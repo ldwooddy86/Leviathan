@@ -21,7 +21,7 @@ next console build can read it as its previous edition. The split edition (`Levi
 One licensee row in the DFW Thermal Debt payload carried a name on the browser app's withheld list; it is dropped from
 both editions (the build drops such rows from every payload it writes, and its validation refuses the repository while a
 withheld name remains anywhere in it, every payload inflated and every zip entry read). Every other byte of the split
-edition is unchanged.
+edition is unchanged. `FEATURES.md` at the repository root lists every feature of this build, dashboard by dashboard.
 
 ### Previous build (October 6, 2026, third build): no client or agency names
 
