@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "Leviathan",
+  "short_name": "Leviathan",
+  "version": "1.0.0",
+  "description": "The Leviathan marketing intelligence console: OmegaWeapon, the Hit Board, fourteen industry atlases, Convergence, the Agency Field.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "Leviathan",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "sandbox": {
+    "pages": [
+      "console/Leviathan.html"
+    ]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'",
+    "sandbox": "sandbox allow-scripts allow-forms allow-popups allow-modals allow-downloads allow-popups-to-escape-sandbox; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:"
+  },
+  "omnibox": {
+    "keyword": "lev"
+  },
+  "commands": {
+    "open-console": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open Leviathan"
+    }
+  }
+}
