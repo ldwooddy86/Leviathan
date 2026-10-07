@@ -1,11 +1,11 @@
 /* Leviathan · the wrapper page. Hosts the sandboxed console in one frame, keeps the console's preferences in extension
    storage (a sandboxed page has none of its own), mirrors the console's route into this tab's URL so links and bookmarks
-   work, and answers the popup, the omnibox and the keyboard command when they look for an open console tab: it navigates to the
-   route they send and brings its own tab forward. */
+   work, and answers the popup, the omnibox and the keyboard command when they look for an open console tab. */
 "use strict";
 (async function () {
   const B = globalThis.browser || globalThis.chrome;
-  const PREFS = 'leviathan.prefs.v1', RECENT = 'leviathan.recent.v1';
+  const PREFS = 'leviathan.prefs.v1', RECENT = 'leviathan.recent.v1', STORE = 'leviathan.store.v1';
+  let storeWrite = Promise.resolve();
   const frame = document.getElementById('console');
   const get = async (k, d) => { try { const r = await B.storage.local.get(k); return r && r[k] !== undefined ? r[k] : d; } catch (e) { return d; } };
   const set = async (k, v) => { try { await B.storage.local.set({ [k]: v }); } catch (e) { /* storage off */ } };
@@ -33,31 +33,27 @@
     if (ev.source !== frame.contentWindow) return;
     const m = ev.data; if (!m || typeof m !== 'object') return;
     if (m.lv === 'prefs' && m.prefs && typeof m.prefs === 'object') set(PREFS, m.prefs);
+    else if (m.lv === 'store' && typeof m.key === 'string' && /^[\w.-]{1,64}$/.test(m.key)) {
+      /* one key of the snapshot the scripts beside the console keep (the Résumé Forge draft): merge and persist */
+      storeWrite = storeWrite.then(async () => { const data = await get(STORE, {}); const next = data && typeof data === 'object' ? data : {}; next[m.key] = m.value === undefined ? null : m.value; await set(STORE, next); });
+    }
     else if (m.lv === 'route' && typeof m.hash === 'string') {
       const hash = m.hash || '#command';
       if (location.hash !== hash) { try { history.replaceState(null, '', location.pathname + hash); } catch (e) { /* ignore */ } }
       recordRecent(hash);
+      /* the console's first route is its ready signal: hand it the store snapshot */
+      if (m.ready) storeWrite.then(() => get(STORE, {})).then(data => post({ lv: 'wrapper', kind: 'store', data: data && typeof data === 'object' ? data : {} }));
     }
   });
   /* the tab's hash changed from outside (typed, a bookmark, the popup): hand it to the console */
   window.addEventListener('hashchange', () => post({ lv: 'wrapper', kind: 'go', hash: location.hash }));
 
-  /* bring this tab and its window forward: done here rather than by the popup, which closes as soon as another window takes focus */
-  async function focusSelf() {
-    try { if (typeof windowId === 'number') await B.windows.update(windowId, { focused: true }); } catch (e) { /* ignore */ }
-    try { if (typeof tabId === 'number') await B.tabs.update(tabId, { active: true }); } catch (e) { /* ignore */ }
-  }
   B.runtime.onMessage.addListener((m, sender, respond) => {
     if (!m || typeof m !== 'object') return false;
-    if (m.lv === 'where') {
-      /* the first answer wins: a console tab the user can see answers at once, a hidden one after a beat, so the visible one takes the route when several are open */
-      if (document.visibilityState === 'visible') { respond({ tabId, windowId }); return false; }
-      setTimeout(() => { try { respond({ tabId, windowId }); } catch (e) { /* port closed */ } }, 150);
-      return true;
-    }
+    if (m.lv === 'where') { respond({ tabId, windowId }); return false; }
     if (m.lv === 'go' && m.tabId === tabId && typeof m.route === 'string') {
-      if (m.route) { const h = '#' + m.route; if (location.hash === h) post({ lv: 'wrapper', kind: 'go', hash: h }); else location.hash = h; }
-      if (m.focus) focusSelf();
+      const h = '#' + m.route;
+      if (location.hash === h) post({ lv: 'wrapper', kind: 'go', hash: h }); else location.hash = h;
       respond({ ok: true }); return false;
     }
     return false;

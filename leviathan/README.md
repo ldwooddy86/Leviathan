@@ -3,7 +3,27 @@
 One frame, sixteen dashboards. OmegaWeapon and the Hit Board sit at the core; fourteen industry atlases hang off it in
 three wings (legal, home services, healthcare); the Convergence map and the Agency Field read all of them at once.
 
-## This build (October 6, 2026, third build): no client or agency names
+## This build (October 7, 2026, fourth build): the Résumé Forge in the single file edition
+
+`Leviathan-full.html` now carries the browser app's patches and the **Résumé Forge** inline: a fourth console view beside
+the Agency Field (route `resume`, `resume.<agency>`, a Résumé link on every Agency Field row) that reads the Agency Radar's
+findings on any of the 222 agencies into the gaps it shows and the lines it sells, ranks seventeen hiring tracks on demand
+and angle, and builds an ATS-friendly résumé in the agency's own vocabulary, with an ATS readiness score, a mirror readout,
+readability, match-a-posting and copy, .txt, .md, print and interview-brief exports. The engine is Clapback 4.3.0's résumé
+module, ported. Nothing is sent anywhere; the draft stays in the browser.
+
+The file is written in place by `cd chrome-app && node build.mjs --full` from this folder's own `Leviathan-full.html`: the
+thirteen anchored patches, the four `ext/` scripts inline (so the file needs nothing beside it), the payloads scrubbed. The
+patch is idempotent (an edition this build wrote earlier is unpatched first), so the file can be rebuilt in place and the
+next console build can read it as its previous edition. The split edition (`Leviathan.html`, `Leviathan-data.js`,
+`Leviathan-data-2.js`) stays the plain console without the Forge: the browser app and the single file are built from it.
+
+One licensee row in the DFW Thermal Debt payload carried a name on the browser app's withheld list; it is dropped from
+both editions (the build drops such rows from every payload it writes, and its validation refuses the repository while a
+withheld name remains anywhere in it, every payload inflated and every zip entry read). Every other byte of the split
+edition is unchanged.
+
+### Previous build (October 6, 2026, third build): no client or agency names
 
 The console now carries no client or agency names. In the DFW Thermal Debt Atlas the brand defaults are a neutral
 placeholder ("Your HVAC Company", with no phone, address, license, logo, acquisitions or social profiles; the Brand panel
@@ -50,12 +70,13 @@ Water Hammer, Swarm Front, Oncogene, Ocular Health) carried over unchanged.
 
 | File | Size | Holds |
 |---|---|---|
-| `Leviathan-full.html` | 62 MB | **The whole console in one file**: frame, fonts, registry and all sixteen dashboards inline. Open it anywhere; it needs nothing beside it. Over GitHub's 50 MB warning line but under its 100 MB limit. |
+| `Leviathan-full.html` | 63 MB | **The whole console in one file**: frame, fonts, registry, all sixteen dashboards and the Résumé Forge inline (the browser app's patches applied). Open it anywhere; it needs nothing beside it. Over GitHub's 50 MB warning line but under its 100 MB limit. |
 | `Leviathan.html` | 26 MB | The same console split for hosting that minds file size: the frame, fonts, registry, and the twelve smaller atlases packed inline (gzip + base64). |
 | `Leviathan-data.js` | 26 MB | Severance, Dental Divide and Ocular Health, loaded on demand. |
 | `Leviathan-data-2.js` | 10 MB | The Termination Exposure Atlas, loaded on demand. |
 | `tools/build.py` | | The build script of the first build (DFW Thermal Debt and Termination Exposure). |
 | `tools/build_louisiana.py` | | The build script of the second build (the Louisiana legal atlases); it imports its helpers from `build.py`. |
+| `../chrome-app/build.mjs --full` | | The fourth build: rewrites `Leviathan-full.html` in place with the browser app's patches and the Résumé Forge inline (see `../chrome-app/README.md`). |
 
 `Leviathan-full.html` is the one to send around. The split edition keeps every file under GitHub's 50 MB line; keep its
 three files in one folder and open `Leviathan.html`. Either way, use a current Chrome, Edge, Safari or Firefox. Nothing runs on a server: each atlas unpacks in the browser

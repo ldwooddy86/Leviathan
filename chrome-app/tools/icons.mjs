@@ -4,11 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 process.env.PLAYWRIGHT_BROWSERS_PATH = process.env.PLAYWRIGHT_BROWSERS_PATH || '/opt/pw-browsers';
 let chromium;
-try { ({ chromium } = await import('playwright')); }
-catch (e) {
-  try { ({ chromium } = await import('/opt/node22/lib/node_modules/playwright/index.mjs')); }
-  catch (e2) { console.error('Playwright is not installed. In chrome-app run: npm install  (then: npx playwright install chromium)'); process.exit(2); }
-}
+try { ({ chromium } = await import('playwright')); } catch (e) { ({ chromium } = await import('/opt/node22/lib/node_modules/playwright/index.mjs')); }
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const mark = size => {
   const small = size <= 32;

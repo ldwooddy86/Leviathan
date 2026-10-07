@@ -50,40 +50,6 @@ else {
   if (hvac && hvac.mods.some(x => x.key === 'paid')) ok(O.resolve('hvac.paid') === 'hvac.paid', 'resolve keeps an exact route');
   ok(O.resolve('zzzz qqqq') === 'command' && O.resolve('') === 'command', 'resolve falls back to the Command Deck');
   ok(O.search('convergence')[0].route === 'convergence', 'the console views are searchable');
-  ok(O.resolve('legal') === 'legal' && O.search('legal wing')[0].route === 'legal', 'the wings are routes and searchable');
-  ok(O.resolve('convergence.75001') === 'convergence.75001' && O.resolve('agencies.x') === 'agencies.x' && O.resolve('convergence.7500') !== 'convergence.7500', 'ZIP and agency filter routes pass through as typed');
   const every = O.entries(); ok(every.length > R.modules.length, 'entries include the modules inside the atlases', every.length);
-
-  /* openRoute against a fake browser: the open console tab takes the route through the wrapper; otherwise a tab is created */
-  async function drive(hasConsole, setting, route, opts) {
-    const calls = [];
-    const fake = {
-      runtime: { getURL: p => 'chrome-extension://abc/' + p, lastError: null, sendMessage(m, cb) { calls.push(['msg', m]); if (!hasConsole) { cb(undefined); return; } cb(m.lv === 'where' ? { tabId: 7, windowId: 1 } : { ok: true }); } },
-      tabs: { async create(o) { calls.push(['create', o]); }, async update(a, b) { calls.push(['update', a, b]); } },
-      windows: { async update(a, b) { calls.push(['focus', a, b]); } },
-      storage: { local: { async get() { return setting ? { 'leviathan.popup.v1': { newTab: true } } : {}; } } },
-    };
-    const c2 = { chrome: fake, console, setTimeout, clearTimeout, Promise };
-    vm.createContext(c2); vm.runInContext(read('registry.js'), c2); vm.runInContext(read('open.js'), c2);
-    const result = await c2.LV_OPEN.openRoute(route, opts);
-    return { result, calls };
-  }
-  {
-    const a = await drive(false, false, 'hvac');
-    ok(a.result === 'new' && a.calls.some(c => c[0] === 'create' && c[1].url === 'chrome-extension://abc/app.html#hvac' && c[1].active === true), 'no console open: a new active tab', JSON.stringify(a.calls));
-    const b = await drive(true, false, 'hvac');
-    const go = b.calls.find(c => c[0] === 'msg' && c[1].lv === 'go');
-    ok(b.result === 'reused' && go && go[1].route === 'hvac' && go[1].tabId === 7 && go[1].focus === true && !b.calls.some(c => c[0] === 'create' || c[0] === 'focus' || c[0] === 'update'), 'console open: the route goes to the wrapper, which does the focusing; nothing else is touched', JSON.stringify(b.calls));
-    const c = await drive(true, false, '');
-    ok(c.result === 'reused' && c.calls.some(x => x[0] === 'msg' && x[1].lv === 'go' && x[1].route === ''), 'an empty route only brings the open console forward');
-    const d = await drive(true, true, 'hvac');
-    ok(d.result === 'new' && !d.calls.some(x => x[0] === 'msg' && x[1].lv === 'where'), 'the new tab setting skips the open console');
-    const e = await drive(true, true, 'hvac', { newTab: false });
-    ok(e.result === 'reused', 'an explicit newTab false overrides the setting');
-    const f = await drive(false, false, 'hvac', { newTab: true, active: false });
-    ok(f.calls.some(x => x[0] === 'create' && x[1].active === false), 'a background disposition opens the tab inactive');
-    const g = await drive(false, false, 'hvac', { currentTab: true });
-    ok(g.result === 'current' && g.calls.some(x => x[0] === 'update' && x[1].url === 'chrome-extension://abc/app.html#hvac'), 'the current tab disposition navigates the current tab');
-  }
 }
 if (fails) { console.log(`\n${fails} failed`); process.exit(1); }

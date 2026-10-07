@@ -55,7 +55,7 @@
     const q = $('#q');
     q.addEventListener('input', () => renderList(q.value));
     q.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { e.preventDefault(); const first = q.value.trim() ? $('#list .row') : null; open(first ? first.getAttribute('data-route') : 'command'); }
+      if (e.key === 'Enter') { const first = $('#list .row'); if (first) { e.preventDefault(); open(first.getAttribute('data-route')); } }
       else if (e.key === 'Escape') { if (q.value) { e.preventDefault(); q.value = ''; renderList(''); } }
       else if (e.key === 'ArrowDown') { const first = $('#list .row'); if (first) { e.preventDefault(); first.focus(); } }
     });

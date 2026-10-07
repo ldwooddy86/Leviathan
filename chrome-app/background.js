@@ -1,7 +1,5 @@
 /* Leviathan · background service worker. Opens the console on install, on the keyboard command (Ctrl+Shift+L, Command+Shift+L
-   on a Mac; chrome://extensions/shortcuts changes it) and from the address bar: type "lev", a space, then an atlas, module, wing or
-   view. Plain Enter reuses the open console tab (or the popup's new tab setting applies); Alt+Enter and Shift+Enter open a new tab,
-   in the background when Chrome says so. */
+   on a Mac; chrome://extensions/shortcuts changes it) and from the address bar: type "lev", a space, then an atlas or module. */
 "use strict";
 importScripts('registry.js', 'open.js');
 const B = globalThis.browser || globalThis.chrome;
@@ -19,6 +17,6 @@ if (B.omnibox) {
   B.omnibox.onInputEntered.addListener((text, disposition) => {
     const route = O.resolve(text);
     if (disposition === 'currentTab') O.openRoute(route, { currentTab: true });
-    else O.openRoute(route, { newTab: true, active: disposition !== 'newBackgroundTab' });
+    else O.openRoute(route, { newTab: true });
   });
 }
