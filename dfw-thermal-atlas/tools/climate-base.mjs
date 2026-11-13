@@ -1,4 +1,4 @@
-// Build the static climate baseline the app ships with: app/data/climate-base.js (window.__CLIMATE_BASE__).
+// Build the static climate baseline the app ships with: app/live/climate_base.js (__CLIMATE_BASE__ on the global object, so the page, the background worker and Node all load it).
 // It holds what does not move week to week: the official 1991 to 2020 normals of the 45 stations in the metro box (NCEI),
 // the daily normals at DFW Airport, 30 seasons of freeze statistics and the last ten seasons per station (ACIS), the 4 km
 // normals grid and county normals (PRISM through ACIS) and, sampled from that grid, the cold exposure of every atlas ZIP.
@@ -21,7 +21,7 @@ if ((process.env.HTTPS_PROXY || process.env.https_proxy) && !process.env.NODE_US
   process.exit(r.status ?? 1);
 }
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const APP = join(ROOT, 'app'), OUT = join(APP, 'data', 'climate-base.js');
+const APP = join(ROOT, 'app'), OUT = join(APP, 'live', 'climate_base.js');
 const a = process.argv.slice(2), has = k => a.includes(k), val = k => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : null; };
 const cache = val('--cache') ? resolve(val('--cache')) : null; if (cache) mkdirSync(cache, { recursive: true });
 
@@ -169,5 +169,5 @@ console.log(`zip           ${kb(zip)}  ${zr.length} ZIPs; metro mean ${r1(metroH
 console.log(`total         ${(body.length / 1024).toFixed(1).padStart(6)} KB; ${http.stats.n} requests, ${Math.round(http.stats.bytes / 1024)} KB read`);
 if (bad.length) fail(bad.join('; '));
 if (has('--dry')) { console.log('dry run: nothing written'); process.exit(0); }
-writeFileSync(OUT, `/* ==== climate-base.js ==== */\n/* The static climate baseline (1991 to 2020 normals, freeze climatology, the normals grid), written by tools/climate-base.mjs. */\nwindow.__CLIMATE_BASE__ = ${body};\n`);
-console.log('wrote app/data/climate-base.js');
+writeFileSync(OUT, `/* ==== live/climate_base.js ==== */\n/* The static climate baseline (1991 to 2020 normals, freeze climatology, the normals grid), written by tools/climate-base.mjs. */\n(typeof globalThis !== 'undefined' ? globalThis : self).__CLIMATE_BASE__ = ${body};\n`);
+console.log('wrote app/live/climate_base.js');

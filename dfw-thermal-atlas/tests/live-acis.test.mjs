@@ -8,7 +8,7 @@ import { context, load, fakeFetch, same, plain, ROOT, APP } from './helpers/load
 const fx = n => JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'acis', n), 'utf8'));
 const W1 = fx('w1-airports-daily-2026-11-13.json'), W2 = fx('w2-station-reductions-2026-11-13.json'), W3 = fx('w3-same-span-1991-2020-2026-11-13.json'), G1 = fx('g1-prism-season-to-date-2026-11-13.json'), G2 = fx('g2-prism-30-fall-mean-2026-11-13.json');
 /* the baseline as the app ships it */
-const BASE_FILE = readFileSync(join(APP, 'data', 'climate-base.js'), 'utf8'), BASE = JSON.parse(BASE_FILE.slice(BASE_FILE.indexOf('{'), BASE_FILE.lastIndexOf('}') + 1));
+const BASE_FILE = readFileSync(join(APP, 'live', 'climate_base.js'), 'utf8'), BASE = JSON.parse(BASE_FILE.slice(BASE_FILE.indexOf('{'), BASE_FILE.lastIndexOf('}') + 1));
 const ATLAS_FILE = readFileSync(join(APP, 'data', 'atlas-data.js'), 'utf8'), ATLAS = JSON.parse(ATLAS_FILE.slice(ATLAS_FILE.indexOf('{'), ATLAS_FILE.lastIndexOf('}') + 1));
 const fresh = () => load(context(), 'live/core.js', 'live/geo.js', 'live/sources/acis_season.js', 'live/derive.js', 'live/climate.js').TDA_LIVE;
 const NOW = new Date('2026-11-13T18:30:00Z');                      // Friday midday in Dallas: yesterday is November 12
@@ -374,7 +374,7 @@ test('safe on nothing: no record, no baseline, a record from another version', a
   /* the cold picture reads the season through this file */
   const cold = L.derive.cold({ acis_season: { data } }, NOW); assert.equal(cold.ok, false, 'no forecast, no cold picture, no throw');
   /* in the page the baseline is a global: it is found without being passed */
-  const ctx = context(); ctx.window = ctx; load(ctx, 'data/climate-base.js', 'live/core.js', 'live/geo.js', 'live/sources/acis_season.js', 'live/climate.js');
+  const ctx = context(); load(ctx, 'live/climate_base.js', 'live/core.js', 'live/geo.js', 'live/sources/acis_season.js', 'live/climate.js');
   assert.equal(ctx.__CLIMATE_BASE__.v, 1); assert.equal(ctx.TDA_LIVE.climate.status(data, undefined, NOW).metro.firstFreeze.median, '2026-11-24'); assert.equal(ctx.TDA_LIVE.climate.zip(32.7734, -96.6188, null, undefined, '75149').exposure, 1.002);
 });
 
@@ -395,7 +395,7 @@ test('a record broken anywhere never makes a read throw', async () => {
 /* ---------- the baseline the app ships ---------- */
 test('the baseline file: one line of JSON under 250 KB, whole', () => {
   const lines = BASE_FILE.split('\n');
-  assert.equal(lines[0], '/* ==== climate-base.js ==== */'); assert.match(lines[2], /^window\.__CLIMATE_BASE__ = \{.*\};$/); assert.equal(lines.length, 4); assert.equal(lines[3], '');
+  assert.equal(lines[0], '/* ==== live/climate_base.js ==== */'); assert.match(lines[2], /^\(typeof globalThis !== 'undefined' \? globalThis : self\)\.__CLIMATE_BASE__ = \{.*\};$/); assert.equal(lines.length, 4); assert.equal(lines[3], '');
   assert.ok(BASE_FILE.length < 250 * 1024, `${Math.round(BASE_FILE.length / 1024)} KB`); assert.ok(BASE_FILE.length > 80 * 1024, 'not the placeholder'); assert.ok(!/<\/script/i.test(BASE_FILE));
   same(Object.keys(BASE), ['v', 'built', 'normalsPeriod', 'lastSeason', 'credit', 'metro', 'ncei', 'dailyNormHdd', 'dailyNormTmin', 'stations', 'freeze', 'last10', 'prism', 'prismCounty', 'homes', 'zip']);
   assert.equal(BASE.v, 1); assert.match(BASE.built, /^\d{4}-\d\d-\d\d$/); assert.equal(BASE.normalsPeriod, '1991 to 2020');

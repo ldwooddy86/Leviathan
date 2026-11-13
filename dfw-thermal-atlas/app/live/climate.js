@@ -1,7 +1,7 @@
 /* ==== live/climate.js ==== */
 /* Pure reads of the climate records: the heating season to date against normal (metro, counties, stations), where the first
    freeze stands, the cold exposure of a place, and one honest sentence about it. Inputs are the weekly record of the
-   acis_season collector (data) and the static baseline baked into the build (base: window.__CLIMATE_BASE__, written by
+   acis_season collector (data) and the static baseline baked into the build (base: __CLIMATE_BASE__ in live/climate_base.js, written by
    tools/climate-base.mjs). No DOM, no network; runs in the page, the background worker and Node. Every function is safe on
    missing input: null means unknown, never zero.
    Grades: station observations and official normals are the publishers' own numbers (A); ranks, first freeze chances and
