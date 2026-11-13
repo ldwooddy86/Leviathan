@@ -32,7 +32,8 @@
   ],
   "host_permissions": [
     "https://api.weather.gov/*",
-    "https://www.spc.noaa.gov/*"
+    "https://www.spc.noaa.gov/*",
+    "https://www.saferproducts.gov/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

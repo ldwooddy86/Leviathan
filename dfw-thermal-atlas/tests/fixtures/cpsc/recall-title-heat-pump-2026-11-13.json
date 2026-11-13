@@ -1,0 +1,234 @@
+[
+ {
+  "RecallID": 10947,
+  "RecallNumber": "26734",
+  "RecallDate": "2026-09-03T00:00:00",
+  "URL": "https://cpsc.gov/Recalls/2026/Daikin-Comfort-Technologies-Manufacturing-Recalls-Amana-Through-The-Wall-Air-Conditioners-and-Heat-Pumps-Due-to-Risk-of-Serious-Injury-from-Fire",
+  "Title": "Daikin Comfort Technologies Manufacturing Recalls Amana Through-The-Wall Air Conditioners and Heat Pumps Due to Risk of Serious Injury from Fire",
+  "Products": [
+   {
+    "Name": "Amana Through the Wall (TTW) air conditioners or heat pumps",
+    "Description": "",
+    "Model": "",
+    "Type": "Air Conditioners",
+    "CategoryID": "371",
+    "NumberOfUnits": "About 4,633 (In addition, about 126 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The snubber circuit can emit flames if it shorts, posing a risk of serious injury due to fire hazard.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should stop using the recalled product immediately and contact Daikin Comfort Technologies Manufacturing, Inc. (DCT) to submit a request for a full refund of the unit. Consumers will be required to provide their contact information, cut the product\u2019s cord, and then upload a photo of the product\u2019s serial number and the cut cord to receive a full refund of the unit."
+   }
+  ],
+  "Description": "This recall involves certain Amana brand Through the Wall (TTW) air conditioners or heat pumps. These products are white and the brand name is printed on most of the units\u2019 control covers. The units are used to provide room climate control. They most often are installed at hotels, apartment building"
+ },
+ {
+  "RecallID": 10839,
+  "RecallNumber": "26581",
+  "RecallDate": "2026-06-25T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2026/Daikin-Comfort-Technologies-Manufacturing-Recalls-Amana-Air-Conditioners-and-Heat-Pumps-Due-to-Risk-of-Serious-Injury-from-Fire-and-Burns",
+  "Title": "Daikin Comfort Technologies Manufacturing Recalls Amana Air Conditioners and Heat Pumps Due to Risk of Serious Injury from Fire and Burns",
+  "Products": [
+   {
+    "Name": "Amana Window-Room-Air-Conditioners (WRAC) and Through the Wall (TTW) air conditioners or heat pumps",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 13,514\u00a0(In addition,\u00a0about 53 were sold\u00a0in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The heating element can remain energized during a ground fault, despite being turned off, posing a risk of fire or burn injury to consumers.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should stop using the recalled products immediately and contact Daikin Comfort Technologies Manufacturing, Inc. (DCT) to submit a request for a full refund. Consumers will be required to provide their contact information, cut the product's cord, and then upload a photo of the product's serial number and cut cord in order to receive a full refund of the unit."
+   }
+  ],
+  "Description": "This recall involves certain Amana brand Window-Room-Air-Conditioners and Through the Wall air conditioners or heat pumps. The products are white-colored, and the brand name is printed on most of the units' control covers. The units are used to provide room climate control. They most often are insta"
+ },
+ {
+  "RecallID": 9990,
+  "RecallNumber": "24286",
+  "RecallDate": "2024-06-27T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2024/Daikin-Comfort-Technologies-Manufacturing-Recalls-Daikin-FIT-mana-Brand-S-series-and-Goodman-SD-Heat-Pumps-Due-to-Risk-of-Excessive-Heat-Exposure",
+  "Title": "Daikin Comfort Technologies Manufacturing Recalls Daikin FIT, Amana Brand S-series, and Goodman SD Heat Pumps Due to Risk of Excessive Heat Exposure",
+  "Products": [
+   {
+    "Name": "Daikin FIT, Amana Brand S-series, and Goodman SD heat pumps",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 56,000 (In addition, about 5,522 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "A power interruption in the heat pump can result in the product providing heat when the power resumes, despite the thermostat being in cooling mode, posing a risk of excessive heat exposure to consumers.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Daikin Comfort Technologies Manufacturing L.P., of Houston, Texas",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Daikin Comfort Technologies (DCT) is updating the software remotely for consumers whose Daikin FIT, Amana Brand S-series, and Goodman SD heating and cooling systems are connected to WiFi. Consumers with systems not connected to WiFi should register for the recall at http://www.goodmanmfg.com/fit-recall to receive instructions to perform the update."
+   }
+  ],
+  "Description": "This recall involves Daikin FIT, Amana Brand S-series, and Goodman SD heat pumps that provide heating and cooling. The recalled units are beige and the model name is printed on the outside of the unit. The model number is located on the serial plate on the side of the unit. The following model numbe"
+ },
+ {
+  "RecallID": 9968,
+  "RecallNumber": "24260",
+  "RecallDate": "2024-06-13T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2024/Daikin-Comfort-Technologies-Manufacturing-Recalls-Amana-Daikin-Goodman-Branded-Air-Conditioning-and-Heat-Pump-Packaged-Units-Due-to-Fire-Hazard",
+  "Title": "Daikin Comfort Technologies Manufacturing Recalls Amana, Daikin, Goodman-Branded Air Conditioning and Heat Pump Packaged Units Due to Fire Hazard",
+  "Products": [
+   {
+    "Name": "Amana, Daikin, and Goodman branded air conditioning and heat pump packaged units",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 12,100"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The unit's serial plate can have incorrect electrical ratings which can lead to incorrect wirings being used, posing a fire hazard.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Daikin Comfort Technologies Manufacturing L.P. (f/k/a Goodman Manufacturing Company L.P.), of Houston, Texas",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Consumers should not attempt to open the outside electrical panel of the recalled air conditioning and heat pump units, and immediately contact Daikin Comfort Technologies Manufacturing L.P. (DCT) for a free repair and inspection. DCT is contacting all known purchasers directly."
+   }
+  ],
+  "Description": "This recall involves Amana, Daikin, and Goodman branded packaged air conditioners and heat pumps. The recalled units are gray or green in color, and can be identified by the model number located on the electrical connection side of the unit on the outside panel. To see if your product is subject to "
+ },
+ {
+  "RecallID": 9680,
+  "RecallNumber": "23779",
+  "RecallDate": "2023-08-03T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2023/Daikin-Comfort-Technologies-Recalls-Amana-Packaged-Terminal-Air-Conditioners-and-Heat-Pumps-Due-to-Burn-and-Fire-Hazards-Recall-Alert",
+  "Title": "Daikin Comfort Technologies Recalls Amana Packaged Terminal Air Conditioners and Heat Pumps Due to Burn and Fire Hazards (Recall Alert)",
+  "Products": [
+   {
+    "Name": "Amana Packaged Terminal Air Conditioners/Heat Pumps (PTACs) equipped with \"DigiAir\" modules",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 62,100 (In addition, about 302 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The DigiAir module compressor can overheat, posing burn and fire hazards.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Daikin Comfort Technologies Manufacturing L.P. (DCT), of Houston, Texas",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Consumers should contact Daikin Comfort Technologies Manufacturing, L.P. (DCT) for instructions on disabling the DigiAir compressor in the recalled PTACs and to arrange for the free repair of the unit by a qualified technician. DCT is contacting all known purchasers directly."
+   }
+  ],
+  "Description": "This recall involves Amana-branded Packaged Terminal Air Conditioners and Heat Pumps (PTACs) assembled with \"DigiAir\" modules. DigiAir modules are factory-installed make-up air systems with configurable dehumidification. The recalled units are beige and have a model number that begins with PMH or PM"
+ },
+ {
+  "RecallID": 8757,
+  "RecallNumber": "20083",
+  "RecallDate": "2020-02-27T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2020/Lennox-Industries-Recalls-Ductless-Heat-Pumps-Due-to-Fire-Hazard",
+  "Title": "Lennox Industries Recalls Ductless Heat Pumps Due to Fire Hazard",
+  "Products": [
+   {
+    "Name": "Lennox Ductless Single-Zone and Multi-Zone heat pumps",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 1,650 (in addition, about 380 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "Internal electrical components can fail, allowing the units to overheat, posing a fire hazard.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should immediately contact their installing servicer, dealer, or contractor to arrange for a free replacement of the outdoor unit. While awaiting replacement, consumers should monitor the recalled heat pumps while they are being operated and keep foliage and other flammable items at least 24 inches away from the recalled units. Lennox is contacting all known independent dealers about the recall directly. The dealers will contact individual consumers to arrange for recalled outdoor units to be removed and replacement units to be installed."
+   }
+  ],
+  "Description": "This recall involves three models of Lennox Ductless Single-Zone or Multi-Zone heat pumps. The model and serial numbers can be found on the nameplate on the side of the units. Only heat pumps with the following model and serial numbers are included in the recall: Model Number Serial Number MPA018S4M"
+ },
+ {
+  "RecallID": 8684,
+  "RecallNumber": "20009",
+  "RecallDate": "2019-10-10T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2020/Carrier-Recalls-Carrier-and-BryantBranded-Heat-Pumps-Due-to-Fire-Hazard",
+  "Title": "Carrier Recalls Carrier- and Bryant-Branded Heat Pumps Due to Fire Hazard",
+  "Products": [
+   {
+    "Name": "Carrier- and Bryant-branded 1.5-ton multi-zone, 4-ton multi zone and 4-ton single-zone ductless heat pumps",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 5,350 (in addition, about 450 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The fan motor on the heat pumps can fail, causing the units to overheat, posing a fire hazard.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should immediately contact their installing servicer, dealer or contractor to arrange for a free repair. While awaiting repair, consumers should monitor affected units while they are being operated and keep foliage and other flammable items at least 24 inches away from the recalled units."
+   }
+  ],
+  "Description": "This recall involves Carrier- and Bryant-branded 1.5-ton multi-zone, 4-ton multi-zone and 4-ton single-zone ductless heat pump outdoor units. The units are used for cooling and heating homes and light commercial facilities. The model number and product number can be found on the nameplate/rating pla"
+ }
+]

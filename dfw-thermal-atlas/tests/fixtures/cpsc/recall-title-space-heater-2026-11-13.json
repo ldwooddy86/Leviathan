@@ -1,0 +1,131 @@
+[
+ {
+  "RecallID": 11038,
+  "RecallNumber": "27054",
+  "RecallDate": "2026-10-29T00:00:00",
+  "URL": "https://cpsc.gov/Recalls/2027/DREO-Recalls-DR-HSH015-Space-Heaters-Due-to-Fire-and-Burn-Hazards",
+  "Title": "DREO Recalls DR-HSH015 Space Heaters Due to Fire and Burn Hazards",
+  "Products": [
+   {
+    "Name": "DREO Space Heaters, model DR-HSH015",
+    "Description": "",
+    "Model": "",
+    "Type": "Electric Space Heaters,not Otherwise Specified",
+    "CategoryID": "987",
+    "NumberOfUnits": "About 338,800 (In addition, about 36,300 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The recalled space heaters can overheat and ignite, posing fire and burn hazards.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should stop using the recalled space heaters immediately and contact DREO for a free replacement space heater. Consumers will be asked to unplug the space heater, destroy it by cutting the electrical cord and follow instructions to send a photo of the destroyed heater."
+   }
+  ],
+  "Description": "This recall involves DREO space heaters, model number DR-HSH015. The ceramic, electric heaters are black and measure about 11.5 inches wide and 13 inches tall and include a remote control. Only units manufactured from April 2025 through January 2026 are included in this recall. The manufacture date,"
+ },
+ {
+  "RecallID": 10086,
+  "RecallNumber": "25036",
+  "RecallDate": "2024-11-07T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2025/GoveeLife-and-Govee-Smart-Electric-Space-Heaters-Recalled-Due-to-Fire-and-Burn-Hazards-Imported-by-Govee",
+  "Title": "GoveeLife and Govee Smart Electric Space Heaters Recalled Due to Fire and Burn Hazards; Imported by Govee",
+  "Products": [
+   {
+    "Name": "GoveeLife and Govee Smart Electric Space Heaters",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 512,500 (In addition, about 48,600 in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The smart electric space heaters can overheat, posing fire and burn hazards. Testing determined the smart electric space heaters do not comply with the voluntary industry safety standard, UL 1278, posing an overheating and fire risk from wireless control features.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should immediately stop using the recalled electric space heaters and contact the brands for a refund. Unplug the electric space heater, cut the power cord, and send an image of the destroyed electric space heater, the manufacturer's label and SN Code on the bottom or side of the unit to GoveeLife or Govee through the link https://recall.goveelife.com/heater-recall. Consumers who do not have the original order number will receive a refund ranging from $31.80 to $106.63, depending on the model purchased. For consumers who do have the original order number, they will receive a full refund of the purchase price. Consumers can find the order number in their purchase records on online sales channels. They can also contact heatersupport@goveelife.com if they have problems finding the order number."
+   }
+  ],
+  "Description": "This recall involves GoveeLife and Govee smart electric space heaters with Model Numbers H7130 (including the H7130101 variation), H7131, H7132, H7133, H7134, and H7135. \"GoveeLife\" or \"Govee\" is printed on the front or side of each unit. The space heaters were sold in black and white and measure fr"
+ },
+ {
+  "RecallID": 9234,
+  "RecallNumber": "22723",
+  "RecallDate": "2022-02-10T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2022/Shop-LC-Recalls-Electric-Space-Heaters-Due-to-Fire-and-Burn-Hazards-Recall-Alert",
+  "Title": "Shop LC Recalls Electric Space Heaters Due to Fire and Burn Hazards (Recall Alert)",
+  "Products": [
+   {
+    "Name": "Personal Electric Space Heaters",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 4,500"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The electric space heaters can overheat, posing fire and burn hazards.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [],
+  "Remedies": [
+   {
+    "Name": "Consumers should immediately stop using the recalled electric space heaters and return the product to Shop LC.  Shop LC is notifying all known purchasers directly and providing free return labels with pre-paid postage. Upon receipt of the recalled electric heaters, Shop LC will refund consumers through the original method of payment."
+   }
+  ],
+  "Description": "This recall involves Shop LC personal electric space heaters. The heaters are black or white with a gold grill and were sold individually or in sets of two. The heaters sold individually have a dome-shaped top and a carrying handle. The heaters sold in sets of two are cylinder shaped. The heaters me"
+ },
+ {
+  "RecallID": 8577,
+  "RecallNumber": "19752",
+  "RecallDate": "2019-06-11T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2019/Amazon-Recalls-AmazonBasics-Ceramic-Space-Heaters-Due-to-Fire-and-Burn-Hazards-Recall-Alert",
+  "Title": "Amazon Recalls AmazonBasics Ceramic Space Heaters Due to Fire and Burn Hazards (Recall Alert)",
+  "Products": [
+   {
+    "Name": "AmazonBasics 1500 Watt Ceramic Space Heaters",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 377,000 (About 18,000 sold in Canada and 3,765 in Mexico)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The heater can overheat, posing fire and burn hazards.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Ningbo Singfun Electric Appliance Co., Ltd., of China",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Consumers should immediately stop using the recalled heaters. All known purchasers are being contacted directly by the Amazon with full instructions on how to receive a full refund."
+   }
+  ],
+  "Description": "This recall involves AmazonBasics 1500 watt ceramic space heaters. Two models (ASIN B074MR2HGM and ASIN B074MWRLZM) have oscillating fans and the others (ASIN B074MX8VNR and ASIN B074MWKSLX) do not. The heaters were sold in black and silver colors. The AmazonBasics logo is printed on the front of th"
+ }
+]

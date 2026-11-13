@@ -1,0 +1,110 @@
+[
+ {
+  "RecallID": 9642,
+  "RecallNumber": "23218",
+  "RecallDate": "2023-06-08T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2023/Allied-Air-Enterprises-Recalls-Armstrong-Air-and-Air-Ease-Gas-Furnaces-Due-to-Carbon-Monoxide-Poisoning-Hazard",
+  "Title": "Allied Air Enterprises Recalls Armstrong Air and Air Ease Gas Furnaces Due to Carbon Monoxide Poisoning Hazard",
+  "Products": [
+   {
+    "Name": "Armstrong Air and Air Ease single stage gas furnaces",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 9,255"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "A component inside the furnace was improperly assembled, causing the furnace to produce high levels of carbon monoxide (CO) under certain operating conditions, which poses a risk of CO poisoning to the consumer.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Allied Air Enterprises LLC, of West Columbia, South Carolina",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Contact Allied Air Enterprises to schedule a free in-home repair by an authorized technician who will replace the incorrect component. Allied Air Enterprises is contacting all known distributors directly, who will work with dealers to contact all known consumers who purchased the recalled units. Consumers who continue to use the recalled furnaces while awaiting repair should have working carbon monoxide alarms on every level of the home and outside sleeping areas."
+   }
+  ],
+  "Description": "This recall involves 96% efficiency gas furnaces under the ARMSTRONG and AIREASE brand names with the model numbers A96UH1E045B12S, A96UH1E070B12S, and/or A96UH1E110C20S. The furnaces weigh between 129 and 170 pounds and were sold between September 2022 and March 2023. The brand name is printed on t"
+ },
+ {
+  "RecallID": 9362,
+  "RecallNumber": "22193",
+  "RecallDate": "2022-07-28T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2022/Daikin-Comfort-Technologies-Manufacturing-formerly-Goodman-Manufacturing-Company-L-P-Expands-Recall-of-Evaporator-Coil-Drain-Pans-to-Include-Those-Installed-with-Non-Condensing-Gas-Furnaces-Due-to-Fire-Hazard",
+  "Title": "Daikin Comfort Technologies Manufacturing (formerly Goodman Manufacturing Company, L.P.) Expands Recall of Evaporator Coil Drain Pans to Include Those Installed with Non-Condensing Gas Furnaces Due to Fire Hazard",
+  "Products": [
+   {
+    "Name": "Evaporator coil drain pans",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 298,300 (In addition, about 44,000 were sold in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The molded plastic drain pan located at the bottom of the evaporator coil can overheat, melt and deform, posing a fire hazard.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Daikin Comfort Technologies Manufacturing, L.P. (formerly Goodman Manufacturing Company, L.P.) of Houston, Texas",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Consumers should contact Daikin Comfort Technologies Manufacturing, L.P. (DCT) to determine whether your unit is included in this recall and to register for the free repair by a qualified technician. DCT is contacting all registered consumers where records indicate their gas furnace system is subject to the expanded recall."
+   }
+  ],
+  "Description": "This recall expands the scope of a previous recall that involved certain evaporator coil drain pans installed with condensing gas furnaces in an up-flow coil configuration. The recall now also includes those drain pans installed with certain configurations of competitor branded (not Goodman, Daikin "
+ },
+ {
+  "RecallID": 9177,
+  "RecallNumber": "22021",
+  "RecallDate": "2021-11-18T00:00:00",
+  "URL": "https://www.cpsc.gov/Recalls/2022/Goodman-Manufacturing-Company-Recalls-Evaporator-Coil-Drain-Pans-Installed-with-Condensing-Gas-Furnaces-Due-to-Fire-Hazard",
+  "Title": "Goodman Manufacturing Company Recalls Evaporator Coil Drain Pans Installed with Condensing Gas Furnaces Due to Fire Hazard",
+  "Products": [
+   {
+    "Name": "Evaporator coil drain pans installed with residential condensing gas furnaces in an up-flow configuration",
+    "Description": "",
+    "Model": "",
+    "Type": "",
+    "CategoryID": "",
+    "NumberOfUnits": "About 298,300 (In addition, about 44,000 in Canada)"
+   }
+  ],
+  "Hazards": [
+   {
+    "Name": "The molded plastic drain pan located at the bottom of the evaporator coil, when installed with a residential condensing gas furnace in an up-flow configuration, can overheat, melt, and deform, posing a fire hazard.",
+    "HazardType": "",
+    "HazardTypeID": ""
+   }
+  ],
+  "Manufacturers": [
+   {
+    "Name": "Goodman Manufacturing Company L.P., of Houston, Texas (evaporator coils)",
+    "CompanyID": ""
+   }
+  ],
+  "Remedies": [
+   {
+    "Name": "Contact Goodman Manufacturing Company to register for the free repair. Visit Goodman's recall website to use a model verification tool for evaporator coil, furnace, and outdoor condenser. The tool provides step-by-step instructions to determine if your gas furnace system is subject to this recall. Goodman will also assist consumers in gathering information on their units including the drain pan serial number, the furnace model number and brand name, and the model number for the outdoor system."
+   }
+  ],
+  "Description": "This recall involves evaporator coil drain pans paired with residential condensing gas furnaces that are installed in a vertical, or \"up-flow,\" configuration. Furnaces in this configuration that were installed or repaired with a new evaporator coil drain pan between January 2019 and November 2021 ar"
+ }
+]

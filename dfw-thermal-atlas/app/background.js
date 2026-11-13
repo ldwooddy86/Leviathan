@@ -2,9 +2,9 @@
    Keeps the live data fresh without the page being open: a full refresh of every public source once a week (Monday 6 am by
    default), a light weather pulse once a day, and a catch up at browser start when a run was missed. After each run it sets
    the toolbar badge to the coldest forecast low of the week when a cold trigger is active and, if notifications are on,
-   says so once per trigger. Also opens the atlas on install, on the keyboard command and from the address bar keyword "tda". */
+   sends one notification per new trigger (a freeze in the forecast, or a new cold, heat, air quality or severe storm alert). Also opens the atlas on install, on the keyboard command and from the address bar keyword "tda". */
 "use strict";
-importScripts('live/core.js', 'live/geo.js', 'live/sources/nws_cold.js', 'live/derive.js'); /* live layer: kept in step with the template by build.mjs */
+importScripts('live/core.js', 'live/geo.js', 'live/sources/nws_cold.js', 'live/sources/cpsc_recalls.js', 'live/derive.js'); /* live layer: kept in step with the template by build.mjs */
 importScripts('registry.js', 'open.js');
 const C = globalThis.chrome, L = globalThis.TDA_LIVE, O = globalThis.TDA_OPEN;
 const store = L.chromeStore(C.storage.local);
@@ -29,18 +29,21 @@ function run(scope) {
 /* run whatever is due: the weekly refresh when seven days have passed, else the daily pulse */
 async function catchUp() { const d = L.due(await L.getState(store), await L.getSettings(store), new Date()); if (d) await run(d); else await announce(true); return d; }
 
-/* ---------- badge and notification ---------- */
+/* ---------- badge and notifications ---------- */
+/* One notification per new trigger: a freeze in the forecast, or a new cold, heat, air quality or severe storm alert for the
+   12 counties. Keys already sent are remembered, so a daily pulse never repeats itself. */
+const routes = {};
 async function announce(quiet) {
   if (!L.derive || !L.derive.cold) return;
-  let cold; try { cold = L.derive.cold(await L.snapshot(store, null), new Date()); } catch (e) { console.error('derive', e); return; }
+  let cold, notes; try { const recs = await L.snapshot(store, null), now = new Date(); cold = L.derive.cold(recs, now); notes = L.derive.notices(recs, now); } catch (e) { console.error('derive', e); return; }
   const b = L.derive.badge(cold);
   try { await C.action.setBadgeText({ text: b.text || '' }); if (b.text) { await C.action.setBadgeBackgroundColor({ color: b.color }); if (C.action.setBadgeTextColor) await C.action.setBadgeTextColor({ color: '#ffffff' }); } await C.action.setTitle({ title: b.title || 'DFW Thermal Debt Atlas' }); } catch (e) { }
-  if (quiet || !cold.notice) return;
+  if (quiet || !notes.length) return;
   const s = await L.getSettings(store); if (s.notify === false) return;
-  const last = (await store.get(NOTE_KEY)) || {};
-  if (last.key === cold.notice.key) return;
-  await store.set(NOTE_KEY, { key: cold.notice.key, at: new Date().toISOString() });
-  try { C.notifications.create(NOTE_ID, { type: 'basic', iconUrl: C.runtime.getURL('icons/icon128.png'), title: cold.notice.title, message: cold.notice.message, priority: 1 }); } catch (e) { }
+  const sent = ((await store.get(NOTE_KEY)) || {}).keys || [];
+  const fresh = notes.filter(n => !sent.includes(n.key)).slice(0, 3); if (!fresh.length) return;
+  await store.set(NOTE_KEY, { keys: fresh.map(n => n.key).concat(sent).slice(0, 60), at: new Date().toISOString() });
+  fresh.forEach((n, i) => { const id = NOTE_ID + '-' + Date.now() + '-' + i; routes[id] = n.route; try { C.notifications.create(id, { type: 'basic', iconUrl: C.runtime.getURL('icons/icon128.png'), title: n.title, message: n.message, priority: 1 }); } catch (e) { } });
 }
 
 /* ---------- events ---------- */
@@ -58,7 +61,7 @@ C.runtime.onMessage.addListener((m, sender, respond) => {
   })().catch(e => { try { respond({ error: String(e && e.message || e) }); } catch (_) { } });
   return true;
 });
-if (C.notifications && C.notifications.onClicked) C.notifications.onClicked.addListener(id => { if (id === NOTE_ID) { O.openRoute('heat'); C.notifications.clear(id); } });
+if (C.notifications && C.notifications.onClicked) C.notifications.onClicked.addListener(id => { if (id.indexOf(NOTE_ID) === 0) { O.openRoute(routes[id] || 'heat'); C.notifications.clear(id); } });
 if (C.commands && C.commands.onCommand) C.commands.onCommand.addListener(cmd => { if (cmd === 'open-atlas') O.openRoute(''); });
 if (C.omnibox) {
   try { C.omnibox.setDefaultSuggestion({ description: 'DFW Thermal Debt Atlas: open <match>%s</match> (a module, a city or a ZIP code)' }); } catch (e) { }

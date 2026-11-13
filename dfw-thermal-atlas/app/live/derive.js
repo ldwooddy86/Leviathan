@@ -80,10 +80,25 @@
     return { ok: true, active: tier >= 2 || coldAlerts.length > 0, tier, medTier, tierName: TIER[tier], th, today, nights, byCounty, points: pts, alerts, coldAlerts, worst, minLow: worst.minF, at: rec.at, updated: d.updated || null, stale, baseline: !!rec.baseline,
       eyebrow: stale ? `Forecast from ${dow(localDay(rec.at))} ${md(localDay(rec.at))} (refresh due)` : 'The next seven nights', headline, sub, actions, notice };
   }
+  /* Everything worth one notification each, keyed so each is sent once: the freeze in the forecast, and every new alert
+     product a heating and cooling shop acts on (cold and winter, heat, air quality, severe storms). */
+  const ALERT_KINDS = [[/freeze|frost|cold|wind chill|winter|ice storm|blizzard|snow|sleet/i, 'heat'], [/heat/i, 'weather'], [/air quality/i, 'weather'], [/severe thunderstorm|tornado/i, 'weather']];
+  function notices(recs, now, opt) {
+    const c = cold(recs, now, opt), out = [], seen = {};
+    if (!c.ok || c.stale) return out;
+    c.alerts.forEach(a => {
+      const kind = ALERT_KINDS.find(k => k[0].test(a.event)); if (!kind) return;
+      const key = 'alert:' + a.event + ':' + String(a.onset || '').slice(0, 10); if (seen[key]) { seen[key].counties = [...new Set(seen[key].counties.concat(a.counties))]; return; }
+      seen[key] = { key, event: a.event, counties: a.counties.slice(), route: kind[1] }; out.push(seen[key]);
+    });
+    out.forEach(n => { n.title = n.event; n.message = (n.counties.length >= 12 ? 'All 12 counties' : list(n.counties.slice(0, 6)) + (n.counties.length > 6 ? ' and ' + (n.counties.length - 6) + ' more' : '')) + '. ' + (n.route === 'heat' ? `Coldest forecast low ${c.minLow}°F ${c.worst.name}. Open the Heat Desk for the plan.` : 'Open the Weather Desk for the standing rule and the hours.'); delete n.event; delete n.counties; });
+    if (c.tier >= 3 && !c.coldAlerts.length && c.notice) out.unshift(Object.assign({ route: 'heat' }, c.notice));
+    return out;
+  }
   /* The toolbar badge: the coldest forecast low once it reaches the cold threshold, nothing otherwise. */
   function badge(c) {
     if (!c || !c.ok || c.stale || c.minLow == null || c.minLow > c.th.cold) return { text: '', color: '#13243a', title: 'DFW Thermal Debt Atlas' + (c && c.ok && !c.stale ? ` · coldest forecast low this week ${c.minLow}°F` : '') };
     return { text: c.minLow + '°', color: c.minLow <= c.th.hard ? '#6d28d9' : c.minLow <= c.th.freeze ? '#1c5cab' : '#3e7fcf', title: `Coldest forecast low in the next seven nights: ${c.minLow}°F ${c.worst.name} at ${c.worst.minAt}. ${c.headline}` };
   }
-  L.derive = Object.assign(L.derive || {}, { TH, TIER, tierOf, localDay, dow, md, list, cold, badge });
+  L.derive = Object.assign(L.derive || {}, { TH, TIER, tierOf, localDay, dow, md, list, cold, notices, badge });
 })(typeof globalThis !== 'undefined' ? globalThis : self);

@@ -120,3 +120,16 @@ test('thresholds can be moved', () => {
   assert.equal(c.tier, 2); assert.equal(L.derive.tierOf(32), 3); assert.equal(L.derive.tierOf(33), 2); assert.equal(L.derive.tierOf(25), 4); assert.equal(L.derive.tierOf(51), 0); assert.equal(L.derive.tierOf(null), 0);
   assert.equal(L.derive.localDay(new Date('2026-11-14T03:30:00Z')), '2026-11-13', 'evening in Dallas is still the 13th');
 });
+
+test('notices: one per new alert product the shop acts on, plus the freeze without an alert', () => {
+  const L = fresh();
+  const mk = (event, ugc, onset) => ({ id: event + onset, properties: { id: event + onset, event, onset, ends: '2026-11-20T09:00:00-06:00', headline: event, geocode: { UGC: ugc } } });
+  const al = L.nws.parseAlerts({ features: [mk('Freeze Warning', ['TXZ103'], '2026-11-17T00:00:00-06:00'), mk('Freeze Warning', ['TXZ104'], '2026-11-17T01:00:00-06:00'), mk('Air Quality Alert', ['TXC113', 'TXC439'], '2026-11-14T10:00:00-06:00'), mk('Flood Watch', ['TXC113'], '2026-11-14T10:00:00-06:00'), mk('Severe Thunderstorm Watch', L.geo.counties.map(c => c.czone), '2026-11-14T15:00:00-06:00')] }, L.geo.byZone);
+  const n = L.derive.notices(record(L, [50, 47, 36, 31, 49, 56, 58], null, { alerts: JSON.parse(JSON.stringify(al)) }), NOW);
+  same(n.map(x => x.key), ['alert:Freeze Warning:2026-11-17', 'alert:Air Quality Alert:2026-11-14', 'alert:Severe Thunderstorm Watch:2026-11-14']);
+  assert.match(n[0].message, /^Denton and Collin\. Coldest forecast low 31°F Monday night/); assert.equal(n[0].route, 'heat'); assert.equal(n[1].route, 'weather'); assert.match(n[2].message, /^All 12 counties/);
+  const quietFreeze = L.derive.notices(record(L, [50, 47, 36, 31, 49, 56, 58]), NOW);
+  same(quietFreeze.map(x => [x.key, x.route]), [['tier3:2026-11-16', 'heat']]);
+  same(L.derive.notices(record(L, [50, 47, 44, 46, 49, 56, 58]), NOW), []);
+  same(L.derive.notices(record(L, [50, 47, 30, 46, 49, 56, 58]), new Date('2026-11-15T23:00:00Z'), {}).length, 0, 'a forecast more than a day and a half old stays quiet');
+});
