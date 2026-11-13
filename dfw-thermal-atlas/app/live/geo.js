@@ -1,7 +1,6 @@
 /* ==== live/geo.js ==== */
 /* The geography the collectors share: the 12 counties with their Census and National Weather Service codes, and the
-   forecast points the cold watch reads (14 airport stations the Weather Desk already lists, plus the county seats of the
-   five counties that have none). The office is where the trucks leave from. */
+   forecast points the cold watch reads. The office is where the trucks leave from. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE;
@@ -13,19 +12,21 @@
     { name: 'Parker', fips: '48367', zone: 'TXZ117', czone: 'TXC367' }, { name: 'Rockwall', fips: '48397', zone: 'TXZ120', czone: 'TXC397' },
     { name: 'Tarrant', fips: '48439', zone: 'TXZ118', czone: 'TXC439' }, { name: 'Wise', fips: '48497', zone: 'TXZ102', czone: 'TXC497' },
   ];
-  /* gx, gy: the Fort Worth office (FWD) forecast grid cell of each point, as api.weather.gov/points answered on 2026-11-13.
-     The collector uses them directly and looks a point up again only if the Weather Service says the cell is gone. */
+  /* Forecast points: one at the population centre or county seat of every county, on the airport observing station where one
+     sits there (stn: the paired station, so forecast and observation can be compared), plus extra points where a county holds
+     a million people or the urban heat island splits it. gx, gy: the Fort Worth office (FWD) forecast grid cell, as
+     api.weather.gov/points answered on 2026-11-13; the collector looks a point up again only if that cell is gone. */
   const points = [
-    { id: 'KHQZ', name: 'Mesquite', lat: 32.747, lon: -96.530, county: 'Dallas', gx: 99, gy: 102 }, { id: 'KDAL', name: 'Dallas Love Field', lat: 32.847, lon: -96.852, county: 'Dallas', gx: 87, gy: 107 },
-    { id: 'KRBD', name: 'South Dallas (Executive)', lat: 32.681, lon: -96.868, county: 'Dallas', gx: 87, gy: 100 }, { id: 'KADS', name: 'Addison', lat: 32.969, lon: -96.836, county: 'Dallas', gx: 88, gy: 112 },
-    { id: 'KGPM', name: 'Grand Prairie', lat: 32.699, lon: -97.047, county: 'Tarrant', gx: 80, gy: 101 }, { id: 'KDFW', name: 'DFW Airport', lat: 32.897, lon: -97.038, county: 'Tarrant', gx: 80, gy: 109 },
-    { id: 'KGKY', name: 'Arlington', lat: 32.664, lon: -97.094, county: 'Tarrant', gx: 78, gy: 99 }, { id: 'KFTW', name: 'Fort Worth Meacham', lat: 32.820, lon: -97.362, county: 'Tarrant', gx: 68, gy: 106 },
-    { id: 'KAFW', name: 'Fort Worth Alliance', lat: 32.988, lon: -97.319, county: 'Tarrant', gx: 70, gy: 113 }, { id: 'KDTO', name: 'Denton', lat: 33.201, lon: -97.198, county: 'Denton', gx: 75, gy: 123 },
-    { id: 'KTKI', name: 'McKinney', lat: 33.178, lon: -96.591, county: 'Collin', gx: 97, gy: 122 }, { id: 'KF46', name: 'Rockwall', lat: 32.930, lon: -96.435, county: 'Rockwall', gx: 103, gy: 110 },
-    { id: 'KTRL', name: 'Terrell', lat: 32.709, lon: -96.267, county: 'Kaufman', gx: 109, gy: 101 }, { id: 'KJWY', name: 'Midlothian', lat: 32.456, lon: -96.912, county: 'Ellis', gx: 85, gy: 90 },
-    { id: 'GRNV', name: 'Greenville', lat: 33.138, lon: -96.111, county: 'Hunt', gx: 115, gy: 120 }, { id: 'CLEB', name: 'Cleburne', lat: 32.348, lon: -97.387, county: 'Johnson', gx: 67, gy: 85 },
-    { id: 'GRNB', name: 'Granbury', lat: 32.442, lon: -97.794, county: 'Hood', gx: 52, gy: 90 }, { id: 'WTHF', name: 'Weatherford', lat: 32.759, lon: -97.797, county: 'Parker', gx: 52, gy: 104 },
-    { id: 'DECA', name: 'Decatur', lat: 33.234, lon: -97.586, county: 'Wise', gx: 60, gy: 125 },
+    { id: 'MESQ', name: 'Mesquite', lat: 32.8063, lon: -96.6609, county: 'Dallas', gx: 94, gy: 105, stn: 'KHQZ' }, { id: 'KDAL', name: 'Dallas Love Field', lat: 32.8542, lon: -96.8551, county: 'Dallas', gx: 87, gy: 107, stn: 'KDAL' },
+    { id: 'KRBD', name: 'South Dallas', lat: 32.6758, lon: -96.8639, county: 'Dallas', gx: 87, gy: 99, stn: 'KRBD' }, { id: 'KADS', name: 'Addison', lat: 32.9667, lon: -96.8333, county: 'Dallas', gx: 88, gy: 112, stn: 'KADS' },
+    { id: 'KDFW', name: 'DFW Airport', lat: 32.8974, lon: -97.0220, county: 'Tarrant', gx: 81, gy: 109, stn: 'KDFW' }, { id: 'KGKY', name: 'Arlington', lat: 32.6583, lon: -97.0951, county: 'Tarrant', gx: 78, gy: 99, stn: 'KGKY' },
+    { id: 'KFTW', name: 'Fort Worth', lat: 32.8253, lon: -97.3642, county: 'Tarrant', gx: 68, gy: 106, stn: 'KFTW' }, { id: 'KAFW', name: 'Alliance', lat: 32.9733, lon: -97.3181, county: 'Tarrant', gx: 70, gy: 113, stn: 'KAFW' },
+    { id: 'KDTO', name: 'Denton', lat: 33.2051, lon: -97.2006, county: 'Denton', gx: 75, gy: 123, stn: 'KDTO' }, { id: 'LEWV', name: 'Lewisville', lat: 33.0462, lon: -96.9942, county: 'Denton', gx: 82, gy: 116, stn: null },
+    { id: 'KTKI', name: 'McKinney', lat: 33.1778, lon: -96.5903, county: 'Collin', gx: 97, gy: 122, stn: 'KTKI' }, { id: 'PLAN', name: 'Plano', lat: 33.0198, lon: -96.6989, county: 'Collin', gx: 93, gy: 115, stn: null },
+    { id: 'KF46', name: 'Rockwall', lat: 32.9322, lon: -96.4348, county: 'Rockwall', gx: 103, gy: 111, stn: 'KF46' }, { id: 'KTRL', name: 'Terrell', lat: 32.7136, lon: -96.2683, county: 'Kaufman', gx: 109, gy: 101, stn: 'KTRL' },
+    { id: 'KJWY', name: 'Midlothian', lat: 32.4558, lon: -96.9122, county: 'Ellis', gx: 85, gy: 90, stn: 'KJWY' }, { id: 'KGVT', name: 'Greenville', lat: 33.0667, lon: -96.0667, county: 'Hunt', gx: 116, gy: 116, stn: 'KGVT' },
+    { id: 'KCPT', name: 'Cleburne', lat: 32.3536, lon: -97.4336, county: 'Johnson', gx: 65, gy: 86, stn: 'KCPT' }, { id: 'KGDJ', name: 'Granbury', lat: 32.4442, lon: -97.8167, county: 'Hood', gx: 51, gy: 90, stn: 'KGDJ' },
+    { id: 'WTHF', name: 'Weatherford', lat: 32.7593, lon: -97.7972, county: 'Parker', gx: 52, gy: 104, stn: 'KMWL' }, { id: 'KLUD', name: 'Decatur', lat: 33.2544, lon: -97.5806, county: 'Wise', gx: 61, gy: 125, stn: 'KLUD' },
   ];
   const km = (a, b, c, d) => { const R = 6371, p = Math.PI / 180, x = Math.sin((c - a) * p / 2) ** 2 + Math.cos(a * p) * Math.cos(c * p) * Math.sin((d - b) * p / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); };
   /* the n nearest of `list` ([{lat, lon}]) to a place, with inverse distance weights that sum to 1 (a point within 1 km takes it all) */

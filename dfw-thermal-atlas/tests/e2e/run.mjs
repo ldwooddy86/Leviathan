@@ -96,7 +96,7 @@ try {
     if (ann) { ok(ann.ok && !!ann.headline && ann.nights >= 5 && ann.counties === 12, 'the worker derives the cold picture: seven nights, twelve counties', `${ann.headline} | ${ann.sub}`); ok(ann.badgeShown === (ann.badge.text || ''), 'the toolbar badge follows the forecast', JSON.stringify(ann.badge.text) + ' ' + ann.badge.title); }
     /* ---- 3b. a freeze in the store: badge and one notification, sent once ---- */
     const real = await sw.evaluate(async () => (await chrome.storage.local.get('tda.live.src.nws_cold'))['tda.live.src.nws_cold']);
-    const cold = JSON.parse(JSON.stringify(real)); const kd = cold.data.points.find(p => p.id === 'KDTO'); kd.nights[2].lowF = 30; cold.data.points.find(p => p.id === 'DECA').nights[2].lowF = 31;
+    const cold = JSON.parse(JSON.stringify(real)); const kd = cold.data.points.find(p => p.id === 'KDTO'); kd.nights[2].lowF = 30; cold.data.points.find(p => p.id === 'KLUD').nights[2].lowF = 31;
     const say = () => page.evaluate(() => new Promise(res => chrome.runtime.sendMessage({ type: 'tda.live.announce', notify: true }, r => res(r))));
     await sw.evaluate(async rec => { await chrome.storage.local.set({ 'tda.live.src.nws_cold': rec }); await chrome.storage.local.remove('tda.live.notified'); }, cold);
     await say();

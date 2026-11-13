@@ -70,7 +70,8 @@
         throw last;
       };
       const first = !chains[host];
-      const p = (chains[host] || Promise.resolve()).catch(() => { }).then(() => first ? null : sleep(o.gapMs != null ? o.gapMs : 300)).then(run);
+      const gap = o.gapMs != null ? o.gapMs : init.gapMs != null ? init.gapMs : 300;       /* a source may ask for a longer pause on its host (init.gapMs); tests set o.gapMs */
+      const p = (chains[host] || Promise.resolve()).catch(() => { }).then(() => first ? null : sleep(gap)).then(run);
       chains[host] = p;
       return p;
     }
