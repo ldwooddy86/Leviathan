@@ -1,0 +1,145 @@
+{
+ "description": "Documents published on or after 11/13/2024, from Environmental Protection Agency, and affecting 40 CFR 84",
+ "count": 6,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-10388",
+   "publication_date": "2026-05-26",
+   "type": "Proposed Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Excluding Road and Intermodal Container Transport Refrigeration Units From the Hydrofluorocarbon Leak Repair Requirements",
+   "html_url": "https://www.federalregister.gov/documents/2026/05/26/2026-10388/phasedown-of-hydrofluorocarbons-excluding-road-and-intermodal-container-transport-refrigeration",
+   "effective_on": null,
+   "comments_close_on": "2026-07-10",
+   "action": "Proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-10387",
+   "publication_date": "2026-05-26",
+   "type": "Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Reconsideration of Certain Regulatory Requirements Promulgated Under the Technology Transitions Provisions of the American Innovation and Manufacturing Act of 2020",
+   "html_url": "https://www.federalregister.gov/documents/2026/05/26/2026-10387/phasedown-of-hydrofluorocarbons-reconsideration-of-certain-regulatory-requirements-promulgated-under",
+   "effective_on": "2026-07-27",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-19895",
+   "publication_date": "2025-11-14",
+   "type": "Proposed Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Reconsideration of Certain Regulatory Requirements Promulgated Under the Technology Transitions Provisions of the American Innovation and Manufacturing Act of 2020; Extension of Comment Period",
+   "html_url": "https://www.federalregister.gov/documents/2025/11/14/2025-19895/phasedown-of-hydrofluorocarbons-reconsideration-of-certain-regulatory-requirements-promulgated-under",
+   "effective_on": "2025-10-03",
+   "comments_close_on": "2025-11-21",
+   "action": "Notice; extension of public comment period.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-19438",
+   "publication_date": "2025-10-03",
+   "type": "Proposed Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Reconsideration of Certain Regulatory Requirements Promulgated Under the Technology Transitions Provisions of the American Innovation and Manufacturing Act of 2020",
+   "html_url": "https://www.federalregister.gov/documents/2025/10/03/2025-19438/phasedown-of-hydrofluorocarbons-reconsideration-of-certain-regulatory-requirements-promulgated-under",
+   "effective_on": null,
+   "comments_close_on": "2025-11-17",
+   "action": "Proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-16357",
+   "publication_date": "2025-08-26",
+   "type": "Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Review and Renewal of Eligibility for Application-Specific Allowances",
+   "html_url": "https://www.federalregister.gov/documents/2025/08/26/2025-16357/phasedown-of-hydrofluorocarbons-review-and-renewal-of-eligibility-for-application-specific",
+   "effective_on": "2025-09-25",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-29243",
+   "publication_date": "2024-12-12",
+   "type": "Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Restrictions on the Use of HFCs Under the AIM Act in Variable Refrigerant Flow Air Conditioning Subsector",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/12/2024-29243/phasedown-of-hydrofluorocarbons-restrictions-on-the-use-of-hfcs-under-the-aim-act-in-variable",
+   "effective_on": "2025-01-13",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  }
+ ]
+}

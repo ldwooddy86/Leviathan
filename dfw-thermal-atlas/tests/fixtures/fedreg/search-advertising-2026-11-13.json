@@ -1,0 +1,736 @@
+{
+ "description": "Documents published on or after 11/13/2024, from Federal Trade Commission, and of type Rule or Proposed Rule",
+ "count": 31,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-22581",
+   "publication_date": "2026-11-05",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of New Hope Now",
+   "html_url": "https://www.federalregister.gov/documents/2026/11/05/2026-22581/petition-for-rulemaking-of-new-hope-now",
+   "effective_on": null,
+   "comments_close_on": "2026-12-07",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-21510",
+   "publication_date": "2026-10-21",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Jason Plotzker",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/21/2026-21510/petition-for-rulemaking-of-jason-plotzker",
+   "effective_on": null,
+   "comments_close_on": "2026-11-20",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-20143",
+   "publication_date": "2026-10-01",
+   "type": "Proposed Rule",
+   "title": "Rule on Impersonation of Government and Businesses",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/01/2026-20143/rule-on-impersonation-of-government-and-businesses",
+   "effective_on": null,
+   "comments_close_on": "2026-11-30",
+   "action": "Advance notice of proposed rulemaking (\"ANPRM\"); request for public comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "461"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-20078",
+   "publication_date": "2026-09-30",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Malik Tony Singleton",
+   "html_url": "https://www.federalregister.gov/documents/2026/09/30/2026-20078/petition-for-rulemaking-of-malik-tony-singleton",
+   "effective_on": null,
+   "comments_close_on": "2026-10-30",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-19598",
+   "publication_date": "2026-09-24",
+   "type": "Rule",
+   "title": "Rules of Practice",
+   "html_url": "https://www.federalregister.gov/documents/2026/09/24/2026-19598/rules-of-practice",
+   "effective_on": "2026-09-24",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "4"
+    },
+    {
+     "title": 16,
+     "part": "5"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-19597",
+   "publication_date": "2026-09-24",
+   "type": "Rule",
+   "title": "Rules of Practice",
+   "html_url": "https://www.federalregister.gov/documents/2026/09/24/2026-19597/rules-of-practice",
+   "effective_on": "2026-09-24",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": null
+    }
+   ]
+  },
+  {
+   "document_number": "2026-18854",
+   "publication_date": "2026-09-15",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Robert Michael Vanleeuwen",
+   "html_url": "https://www.federalregister.gov/documents/2026/09/15/2026-18854/petition-for-rulemaking-of-robert-michael-vanleeuwen",
+   "effective_on": null,
+   "comments_close_on": "2026-10-15",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "318"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-17428",
+   "publication_date": "2026-08-26",
+   "type": "Rule",
+   "title": "Telemarketing Sales Rule Fees",
+   "html_url": "https://www.federalregister.gov/documents/2026/08/26/2026-17428/telemarketing-sales-rule-fees",
+   "effective_on": "2026-10-01",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "310"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-15824",
+   "publication_date": "2026-08-04",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Matheus Garcia Pereira",
+   "html_url": "https://www.federalregister.gov/documents/2026/08/04/2026-15824/petition-for-rulemaking-of-matheus-garcia-pereira",
+   "effective_on": null,
+   "comments_close_on": "2026-09-03",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-15182",
+   "publication_date": "2026-07-28",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of the National Consumers League, Campaign for Fairer Gambling, the National Council for Problem Gambling, the Public Health Advocacy Institute, and Truth in Advertising, Inc.",
+   "html_url": "https://www.federalregister.gov/documents/2026/07/28/2026-15182/petition-for-rulemaking-of-the-national-consumers-league-campaign-for-fairer-gambling-the-national",
+   "effective_on": null,
+   "comments_close_on": "2026-08-27",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-07997",
+   "publication_date": "2026-04-24",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Animal Rescuers for Change",
+   "html_url": "https://www.federalregister.gov/documents/2026/04/24/2026-07997/petition-for-rulemaking-of-animal-rescuers-for-change",
+   "effective_on": null,
+   "comments_close_on": "2026-05-26",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-07772",
+   "publication_date": "2026-04-21",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Andrew Gonzalez",
+   "html_url": "https://www.federalregister.gov/documents/2026/04/21/2026-07772/petition-for-rulemaking-of-andrew-gonzalez",
+   "effective_on": null,
+   "comments_close_on": "2026-05-21",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-07473",
+   "publication_date": "2026-04-16",
+   "type": "Proposed Rule",
+   "title": "Rule on Unfair or Deceptive Fees in Online Food Delivery Services",
+   "html_url": "https://www.federalregister.gov/documents/2026/04/16/2026-07473/rule-on-unfair-or-deceptive-fees-in-online-food-delivery-services",
+   "effective_on": null,
+   "comments_close_on": "2026-05-18",
+   "action": "Advance notice of proposed rulemaking; request for public comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": null
+    }
+   ]
+  },
+  {
+   "document_number": "2026-04952",
+   "publication_date": "2026-03-13",
+   "type": "Proposed Rule",
+   "title": "Rule Concerning the Use of Prenotification Negative Option Plans",
+   "html_url": "https://www.federalregister.gov/documents/2026/03/13/2026-04952/rule-concerning-the-use-of-prenotification-negative-option-plans",
+   "effective_on": null,
+   "comments_close_on": "2026-04-13",
+   "action": "Advance notice of proposed rulemaking; request for public comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "425"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-04907",
+   "publication_date": "2026-03-13",
+   "type": "Proposed Rule",
+   "title": "Rule on Unfair or Deceptive Rental Housing Fee Practices",
+   "html_url": "https://www.federalregister.gov/documents/2026/03/13/2026-04907/rule-on-unfair-or-deceptive-rental-housing-fee-practices",
+   "effective_on": null,
+   "comments_close_on": "2026-04-13",
+   "action": "Advance notice of proposed rulemaking; request for public comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": null
+    }
+   ]
+  },
+  {
+   "document_number": "2026-02866",
+   "publication_date": "2026-02-12",
+   "type": "Rule",
+   "title": "Revision of the Negative Option Rule, Withdrawal of the CARS Rule, Removal of the Non-Compete Rule To Conform These Rules to Federal Court Decisions",
+   "html_url": "https://www.federalregister.gov/documents/2026/02/12/2026-02866/revision-of-the-negative-option-rule-withdrawal-of-the-cars-rule-removal-of-the-non-compete-rule-to",
+   "effective_on": "2026-02-12",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "425"
+    },
+    {
+     "title": 16,
+     "part": "463"
+    },
+    {
+     "title": 16,
+     "part": "910"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-01230",
+   "publication_date": "2026-01-23",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Andrew Gonzalez",
+   "html_url": "https://www.federalregister.gov/documents/2026/01/23/2026-01230/petition-for-rulemaking-of-andrew-gonzalez",
+   "effective_on": null,
+   "comments_close_on": "2026-02-23",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-21887",
+   "publication_date": "2025-12-03",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Consumer Federation of America and the American Economic Liberties Project",
+   "html_url": "https://www.federalregister.gov/documents/2025/12/03/2025-21887/petition-for-rulemaking-of-consumer-federation-of-america-and-the-american-economic-liberties",
+   "effective_on": null,
+   "comments_close_on": "2026-01-02",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "425"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-17091",
+   "publication_date": "2025-09-05",
+   "type": "Rule",
+   "title": "Telemarketing Sales Rule Fees; Correction",
+   "html_url": "https://www.federalregister.gov/documents/2025/09/05/2025-17091/telemarketing-sales-rule-fees-correction",
+   "effective_on": "2025-09-05",
+   "comments_close_on": null,
+   "action": "Notice; correction.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "310"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-16430",
+   "publication_date": "2025-08-27",
+   "type": "Rule",
+   "title": "Telemarketing Sales Rule Fees",
+   "html_url": "https://www.federalregister.gov/documents/2025/08/27/2025-16430/telemarketing-sales-rule-fees",
+   "effective_on": "2024-10-01",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "310"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-11271",
+   "publication_date": "2025-06-18",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Alliance for Natural Health USA; Xlear, Inc.; and Better Way Health",
+   "html_url": "https://www.federalregister.gov/documents/2025/06/18/2025-11271/petition-for-rulemaking-of-alliance-for-natural-health-usa-xlear-inc-and-better-way-health",
+   "effective_on": null,
+   "comments_close_on": "2025-07-18",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "2"
+    },
+    {
+     "title": 16,
+     "part": "3"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-05904",
+   "publication_date": "2025-04-22",
+   "type": "Rule",
+   "title": "Children's Online Privacy Protection Rule",
+   "html_url": "https://www.federalregister.gov/documents/2025/04/22/2025-05904/childrens-online-privacy-protection-rule",
+   "effective_on": "2025-06-23",
+   "comments_close_on": null,
+   "action": "Final rule amendments.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "312"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-04295",
+   "publication_date": "2025-03-19",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of American Apparel & Footwear Association",
+   "html_url": "https://www.federalregister.gov/documents/2025/03/19/2025-04295/petition-for-rulemaking-of-american-apparel-and-footwear-association",
+   "effective_on": null,
+   "comments_close_on": "2025-04-18",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "423"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-02022",
+   "publication_date": "2025-01-31",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Central Office of Reform and Efficiency (Rules of Practice)",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/31/2025-02022/petition-for-rulemaking-of-central-office-of-reform-and-efficiency-rules-of-practice",
+   "effective_on": null,
+   "comments_close_on": "2025-03-03",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-01532",
+   "publication_date": "2025-01-29",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Central Office of Reform and Efficiency (Impersonation Rule)",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/29/2025-01532/petition-for-rulemaking-of-central-office-of-reform-and-efficiency-impersonation-rule",
+   "effective_on": null,
+   "comments_close_on": "2025-02-28",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "461"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-00634",
+   "publication_date": "2025-01-21",
+   "type": "Proposed Rule",
+   "title": "Petition for Rulemaking of Central Office of Reform and Efficiency (Negative Option Rule)",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/21/2025-00634/petition-for-rulemaking-of-central-office-of-reform-and-efficiency-negative-option-rule",
+   "effective_on": null,
+   "comments_close_on": "2025-02-20",
+   "action": "Receipt of petition; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "425"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-01361",
+   "publication_date": "2025-01-17",
+   "type": "Rule",
+   "title": "Adjustments to Civil Penalty Amounts",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/17/2025-01361/adjustments-to-civil-penalty-amounts",
+   "effective_on": "2025-01-17",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-30293",
+   "publication_date": "2025-01-10",
+   "type": "Rule",
+   "title": "Trade Regulation Rule on Unfair or Deceptive Fees",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/10/2024-30293/trade-regulation-rule-on-unfair-or-deceptive-fees",
+   "effective_on": "2025-05-12",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "464"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-30718",
+   "publication_date": "2024-12-26",
+   "type": "Proposed Rule",
+   "title": "Trade Regulation Rule on Impersonation of Government and Businesses",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/26/2024-30718/trade-regulation-rule-on-impersonation-of-government-and-businesses",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Initial notice of informal hearing; final notice of informal hearing; list of Hearing Participants; requests for submissions from Hearing Participants.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "461"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-28399",
+   "publication_date": "2024-12-10",
+   "type": "Rule",
+   "title": "Telemarketing Sales Rule",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/10/2024-28399/telemarketing-sales-rule",
+   "effective_on": "2025-01-09",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "310"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-25534",
+   "publication_date": "2024-11-15",
+   "type": "Rule",
+   "title": "Negative Option Rule",
+   "html_url": "https://www.federalregister.gov/documents/2024/11/15/2024-25534/negative-option-rule",
+   "effective_on": "2025-01-14",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "425"
+    }
+   ]
+  }
+ ]
+}

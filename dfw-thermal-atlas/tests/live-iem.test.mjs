@@ -120,6 +120,7 @@ test('later runs ask for the running season only and replace it', async () => {
   same(d2.events.slice(0, 147), base.events, 'the earlier seasons are carried over as they were');
   same(d2.events.slice(147), [[2026, 'FZ.W', 1, M('2026-11-17 06:00'), M('2026-11-17 15:00'), 1 | 4 | 2048], [2026, 'FZ.A', 1, M('2026-11-17 06:00'), M('2026-11-16 21:10'), 1 | 4 | 2048]]);
   same(d2.office[2026], { 'FZ.A': 1, 'FZ.W': 1 }); assert.equal(d2.archiveThrough, '2026-11-16'); assert.equal(d2.archiveFrom, '2016-07-01'); same(d2.seasons, range(2016, 2026));
+  const evening = (await run(L, service({ 2026: FREEZE }), base, new Date('2026-11-17T03:30:00Z'))).data; assert.equal(evening.fetched, '2026-11-17T03:30Z'); assert.equal(evening.archiveThrough, '2026-11-16', 'half past nine in the evening in Dallas is still the 16th');
   same(L.BY_ID.iem_cold.digest(d2), { products: 2, days: 0, firstFreezeWarning: 'November 17', active: 0, seasons: 10 }, 'issued, not in effect yet');
   const eve = I.thisSeason(d2, new Date('2026-11-16T22:00:00Z'));
   same(eve.events, [{ code: 'FZ.W', name: 'Freeze Warning', year: 2026, id: 1, begin: '2026-11-17T06:00Z', end: '2026-11-17T15:00Z', date: '2026-11-17', counties: ['Collin', 'Denton', 'Wise'], withdrawn: false },
@@ -227,7 +228,7 @@ test('climatology: the complete winters, for planning sentences', async () => {
   /* "by November 15 in 5 of the last 10 falls" */
   const d = I.climatology(data, { county: 'Dallas' });
   same({ seasons: d.seasons, n: d.freezeWarningSeasons, median: d.medianFirstFreezeWarning, earliest: d.earliestFirst, latest: d.latestFirst, meanDays: d.meanDays }, { seasons: 10, n: 8, median: '11-12', earliest: '2019-10-31', latest: '2020-11-30', meanDays: 7.2 });
-  same(I.firstBy(data, '11-15', { county: 'Dallas' }), { n: 5, of: 10 }); same(I.firstBy(data, '11-15'), { n: 7, of: 10 }); same(I.firstBy(data, '10-15'), { n: 0, of: 10 }); same(I.firstBy(data, '12-31'), { n: 10, of: 10 }); same(I.firstBy(data, '12-31', { county: 'Dallas' }), { n: 8, of: 10 });
+  same(I.firstBy(data, '11-15', { county: 'Dallas' }), { n: 5, of: 10 }); same(I.firstBy(data, '11-15'), { n: 7, of: 10 }); same(I.firstBy(data, '11-09'), { n: 6, of: 10 }, 'on or before the day'); same(I.firstBy(data, '11-08'), { n: 5, of: 10 }); same(I.firstBy(data, '10-15'), { n: 0, of: 10 }); same(I.firstBy(data, '12-31'), { n: 10, of: 10 }); same(I.firstBy(data, '12-31', { county: 'Dallas' }), { n: 8, of: 10 });
   assert.equal(I.monthDay(c.medianFirstFreezeWarning), 'November 5'); assert.equal(I.monthDay('2026-11-17'), 'November 17'); assert.equal(I.monthDay(null), '');
   assert.equal(I.climatology(data, { county: 'Nowhere' }).seasons, 0); assert.equal(I.climatology(data, { county: 'Nowhere' }).meanDays, null);
   /* a winter still running is never averaged in */
@@ -268,11 +269,24 @@ test('failure modes: a failed winter ends the archive pulls for this run and is 
   same(I.byCounty(part, 2019).Dallas.days, null, 'a winter that is missing is unknown, not zero');
   /* an answer that is not the table counts as a failure too */
   const f1b = service({ 2023: ERROR_PAGE }), partB = (await run(L, f1b)).data; same(asked(f1b), [2026, 2025, 2024, 2023]); same(partB.seasons, [2024, 2025, 2026]); assert.match(partB.staleWhy, /got a web page instead/); assert.ok(!/[<>]/.test(partB.staleWhy));
+  /* whatever a failure says, the reason kept in the record cannot close a script tag */
+  const partC = (await run(L, service({ 2023: new Error('socket closed <\/script><b>') }))).data; assert.match(partC.staleWhy, /^socket closed/); assert.ok(!/[<>]/.test(JSON.stringify(partC)));
   /* the next run asks for the running season and the six that are missing, and the archive is whole */
   const f2 = service(), done = (await run(L, f2, part, new Date('2026-11-20T18:00:00Z'))).data;
   same(asked(f2), [2026, 2021, 2020, 2019, 2018, 2017, 2016]); same(done.seasons, range(2016, 2026)); same(done.stale, {}); assert.equal(done.staleWhy, undefined); same(done.events, full.events); assert.equal(done.archiveFrom, '2016-07-01');
   /* and the one after that is back to a single request */
   const f3 = service(); await run(L, f3, done, new Date('2026-11-27T18:00:00Z')); same(asked(f3), [2026]);
+});
+
+test('failure modes: a first run that runs long stops asking and leaves the rest for the next refresh', async () => {
+  /* a clock the fake service can push forward: every winter of the archive takes half a minute to answer */
+  let late = 0; class Clock extends Date { static now() { return Date.now() + late; } }
+  const L = load(context({ Date: Clock }), 'live/core.js', 'live/geo.js', 'live/sources/iem_cold.js').TDA_LIVE; L.iem.pace = 0;
+  const f = fakeFetch([[/watchwarn\.py/, u => { const s = seasonOfUrl(u); if (s < 2026) late += 30000; return s === 2026 ? EMPTY : s === 2025 ? S2025 : slice(s); }]]);
+  const d = (await run(L, f)).data;
+  same(asked(f), [2026, 2025, 2024, 2023], 'three winters in ninety seconds, then no more'); same(d.seasons, [2023, 2024, 2025, 2026]); same(Object.keys(d.stale).map(Number), range(2016, 2022)); assert.ok(Object.values(d.stale).every(v => v === null));
+  assert.equal(d.staleWhy, 'the first pull of the archive ran long; the rest follows at the next refresh'); assert.equal(d.events.length, (await first(fresh())).events.filter(e => L.iem.seasonOf(e[3]) >= 2023).length);
+  late = 0; const g = service(); same((await run(L, g, d, new Date('2026-11-20T18:00:00Z'))).data.seasons, range(2016, 2026)); same(asked(g), [2026, 2022, 2021, 2020, 2019, 2018, 2017, 2016]);
 });
 
 test('July: the season that just ended is pulled once more and the archive grows by a winter', async () => {

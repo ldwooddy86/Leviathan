@@ -1,0 +1,213 @@
+{
+ "description": "Documents matching '\"energy efficient home improvement credit\" | \"residential clean energy credit\" | \"home energy rebates\" | \"home efficiency rebates\" | \"home electrification and appliance rebates\"' and published on or after 08/16/2022",
+ "count": 9,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-20277",
+   "publication_date": "2026-10-02",
+   "type": "Proposed Rule",
+   "title": "Federal Scholarship Tax Credit",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/02/2026-20277/federal-scholarship-tax-credit",
+   "effective_on": null,
+   "comments_close_on": "2026-12-01",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF THE TREASURY",
+     "name": "Treasury Department",
+     "slug": "treasury-department"
+    },
+    {
+     "raw_name": "Internal Revenue Service",
+     "name": "Internal Revenue Service",
+     "slug": "internal-revenue-service"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 26,
+     "part": "1"
+    }
+   ],
+   "action": "Notice of proposed rulemaking and public hearing.",
+   "abstract": "This document contains proposed regulations regarding the nonrefundable Federal tax credit for qualified contributions to scholarship granting organizations to fund qualified elementary and secondary school education scholarships. The proposed regulations would affect taxpayers who make such qualified contributions, States that elect to participate by certifying organizations as scholarship granting organizations, and the organizations that have been certified as scholarship granting organizations by one or more electing States. This document also provides notice of a public hearing on the proposed regulations."
+  },
+  {
+   "document_number": "2025-13304",
+   "publication_date": "2025-07-16",
+   "type": "Notice",
+   "title": "Agency Information Collection Activities; Comment Request on U.S. Individual Income Tax Returns and Related Forms, Schedules, Attachments, and Published Guidance",
+   "html_url": "https://www.federalregister.gov/documents/2025/07/16/2025-13304/agency-information-collection-activities-comment-request-on-us-individual-income-tax-returns-and",
+   "effective_on": null,
+   "comments_close_on": "2025-09-15",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF THE TREASURY",
+     "name": "Treasury Department",
+     "slug": "treasury-department"
+    },
+    {
+     "raw_name": "Internal Revenue Service",
+     "name": "Internal Revenue Service",
+     "slug": "internal-revenue-service"
+    }
+   ],
+   "cfr_references": [],
+   "action": "Notice of Information Collection; request for comments.",
+   "abstract": "In accordance with the Paperwork Reduction Act of 1995, the IRS is inviting comments on the information collection request outlined in this notice."
+  },
+  {
+   "document_number": "2024-24110",
+   "publication_date": "2024-10-25",
+   "type": "Proposed Rule",
+   "title": "Energy Efficient Home Improvement Credit",
+   "html_url": "https://www.federalregister.gov/documents/2024/10/25/2024-24110/energy-efficient-home-improvement-credit",
+   "effective_on": null,
+   "comments_close_on": "2024-12-24",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF THE TREASURY",
+     "name": "Treasury Department",
+     "slug": "treasury-department"
+    },
+    {
+     "raw_name": "Internal Revenue Service",
+     "name": "Internal Revenue Service",
+     "slug": "internal-revenue-service"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 26,
+     "part": "1"
+    }
+   ],
+   "action": "Notice of proposed rulemaking and notice of public hearing.",
+   "abstract": "This document contains proposed regulations regarding the energy efficient home improvement credit as modified by the Inflation Reduction Act of 2022 (IRA). The proposed regulations would affect manufacturers of specified property who want to become qualified manufacturers and eligible taxpayers who place in service certain home improvement property. The proposed regulations would provide rules for manufacturers of specified property to register to be qualified manufacturers and satisfy certain other requirements, and rules for taxpayers to calculate the credit."
+  },
+  {
+   "document_number": "2024-08793",
+   "publication_date": "2024-04-26",
+   "type": "Notice",
+   "title": "Final Determination: Adoption of Energy Efficiency Standards for New Construction of HUD- and USDA-Financed Housing",
+   "html_url": "https://www.federalregister.gov/documents/2024/04/26/2024-08793/final-determination-adoption-of-energy-efficiency-standards-for-new-construction-of-hud--and",
+   "effective_on": "2024-05-28",
+   "comments_close_on": null,
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF HOUSING AND URBAN DEVELOPMENT",
+     "name": "Housing and Urban Development Department",
+     "slug": "housing-and-urban-development-department"
+    },
+    {
+     "raw_name": "DEPARTMENT OF AGRICULTURE",
+     "name": "Agriculture Department",
+     "slug": "agriculture-department"
+    }
+   ],
+   "cfr_references": [],
+   "action": "Notice of final determination.",
+   "abstract": "The Energy Independence and Security Act of 2007 (EISA) establishes procedures for the U.S. Department of Housing and Urban Development (HUD) and the U.S. Department of Agriculture (USDA) to consider adopting periodic revisions to the International Energy Conservation Code (IECC) and to ANSI/ASHRAE/IES Standard 90.1: Energy Standard for Buildings, Except Low-Rise Residential Buildings (ASHRAE 90.1), subject to a determination by the agencies that the revised codes do not negatively affect the availability or affordability of new construction of single and multifamily housing covered by EISA, and a determination by the Secretary of Energy that the revised codes \"would improve energy efficiency.\" At the time of developing the preliminary determination, the most recent editions of the codes for which DOE had issued efficiency determinations were ASHRAE 90.1-2019, and the 2021 IECC. This notice follows the notice of preliminary determination published on May 18, 2023, and announces the final determination of HUD and USDA as required under section 481(d)(1) of EISA. After consideration of public comments, HUD and USDA determine that the 2021 IECC and ASHRAE 90.1-2019 will not negatively affect the affordability and availability of housing covered by EISA."
+  },
+  {
+   "document_number": "2023-17571",
+   "publication_date": "2023-08-16",
+   "type": "Notice",
+   "title": "Notice of Availability of Tribal Allocation Formula for the Tribal Home Electrification and Appliance Rebates Programs",
+   "html_url": "https://www.federalregister.gov/documents/2023/08/16/2023-17571/notice-of-availability-of-tribal-allocation-formula-for-the-tribal-home-electrification-and",
+   "effective_on": null,
+   "comments_close_on": "2023-09-15",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [],
+   "action": "Notice of availability; request for comment.",
+   "abstract": "The Department of Energy (DOE or the Department) is publishing its intended allocation formula that will be used to distribute funds to Indian Tribes through the $225 million Tribal Home Electrification and Appliance Rebates program. The purpose of the Tribal Home Electrification and Appliance Rebates program is to help Tribal households to reduce energy bills, increase home comfort, improve indoor air quality, and reduce emissions by providing direct funding for energy efficiency and electrification home upgrades. This notice provides the tentative allocation formula developed by the Department to distribute funds to Tribes, as well as the allocation amounts and data used to calculate allocations. This notice also describes how Tribes may partner with other Tribes through consortia to submit a single application to DOE, and how Tribes may authorize a third-party agent to handle the application and administration of a grant award."
+  },
+  {
+   "document_number": "2023-16476",
+   "publication_date": "2023-08-14",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards for Consumer Boilers",
+   "html_url": "https://www.federalregister.gov/documents/2023/08/14/2023-16476/energy-conservation-program-energy-conservation-standards-for-consumer-boilers",
+   "effective_on": null,
+   "comments_close_on": "2023-10-13",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "action": "Notice of proposed rulemaking and announcement of public meeting.",
+   "abstract": "The Energy Policy and Conservation Act, as amended (EPCA), prescribes energy conservation standards for various consumer products and certain commercial and industrial equipment, including consumer boilers. EPCA also requires the U.S. Department of Energy (DOE or the Department) to periodically determine whether more-stringent standards would be technologically feasible and economically justified and would result in significant energy savings. In this notice of proposed rulemaking (NOPR), DOE proposes amended energy conservation standards for consumer boilers, and also announces a public meeting to receive comment on these proposed standards and associated analyses and results."
+  },
+  {
+   "document_number": "2023-02113",
+   "publication_date": "2023-02-22",
+   "type": "Proposed Rule",
+   "title": "Introduction to the Unified Agenda of Federal Regulatory and Deregulatory Actions-Fall 2022",
+   "html_url": "https://www.federalregister.gov/documents/2023/02/22/2023-02113/introduction-to-the-unified-agenda-of-federal-regulatory-and-deregulatory-actions-fall-2022",
+   "effective_on": null,
+   "comments_close_on": null,
+   "agencies": [
+    {
+     "raw_name": "REGULATORY INFORMATION SERVICE CENTER",
+     "name": "Regulatory Information Service Center",
+     "slug": "regulatory-information-service-center"
+    }
+   ],
+   "cfr_references": [],
+   "action": "Introduction to the Regulatory Plan and the Unified Agenda of Federal Regulatory and Deregulatory Actions.",
+   "abstract": "Publication of the Fall 2022 Unified Agenda of Federal Regulatory and Deregulatory Actions represents a key component of the regulatory planning mechanism prescribed in Executive Order (\"E.O.\") 12866, \"Regulatory Planning and Review,\" (58 FR 51735) and reaffirmed in E.O. 13563, \"Improving Regulation and Regulatory Review,\" (76 FR 3821). The Regulatory Flexibility Act requires that agencies publish semiannual regulatory agendas in the Federal Register describing regulatory actions they are developing that may have a significant economic impact on a substantial number of small entities (5 U.S.C. 602). The Unified Agenda of Regulatory and Deregulatory Actions (Unified Agenda), published in the fall and spring, helps agencies fulfill all of these requirements. All federal regulatory agencies have chosen to publish their regulatory agendas as part of this publication. The complete Unified Agenda and Regulatory Plan can be found online at www.reginfo.gov and a reduced print version can be found in the Federal Register. Information regarding obtaining printed copies can also be found on the Reginfo.gov website (or below, VI. How Can Users Get Copies of the Plan and the Agenda?). The Fall 2022 Unified Agenda publication appearing in the Federal Register includes the Regulatory Plan and agency regulatory flexibility agendas, in accordance with the publication requirements of the Regulatory Flexibility Act. Agency regulatory flexibility agendas contain only those Agenda entries for rules that are likely to have a significant economic impact on a substantial number of small entities and entries that have been selected for periodic review under section 610 of the Regulatory Flexibility Act. The complete Fall 2022 Unified Agenda contains the Regulatory Plans of 29 Federal agencies and 67 Federal agency regulatory agendas."
+  },
+  {
+   "document_number": "2023-01873",
+   "publication_date": "2023-01-31",
+   "type": "Notice",
+   "title": "Notice of Request for Information (RFI) Regarding Inflation Reduction Act Home Efficiency and Electrification Rebate Programs",
+   "html_url": "https://www.federalregister.gov/documents/2023/01/31/2023-01873/notice-of-request-for-information-rfi-regarding-inflation-reduction-act-home-efficiency-and",
+   "effective_on": null,
+   "comments_close_on": null,
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [],
+   "action": "Request for information (RFI).",
+   "abstract": "The U.S. Department of Energy's (DOE) Office of State and Community Energy Programs (SCEP) invites public input for its Request for Information (RFI) number DE-FOA-DE-FOA-0002981 regarding the development of best practices for the Home Energy Rebate programs in accordance with the Inflation Reduction Act (IRA). Responses to this RFI will be used for planning purposes to develop one or multiple opportunities to assist states, territories, Indian Tribes, as well as potentially other entities, in designing, managing, and improving the Home Energy Rebate programs."
+  },
+  {
+   "document_number": "2022-20855",
+   "publication_date": "2022-09-27",
+   "type": "Notice",
+   "title": "Green and Resilient Retrofit Program: Request for Information",
+   "html_url": "https://www.federalregister.gov/documents/2022/09/27/2022-20855/green-and-resilient-retrofit-program-request-for-information",
+   "effective_on": null,
+   "comments_close_on": "2022-10-27",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF HOUSING AND URBAN DEVELOPMENT",
+     "name": "Housing and Urban Development Department",
+     "slug": "housing-and-urban-development-department"
+    }
+   ],
+   "cfr_references": [],
+   "action": "Request for information.",
+   "abstract": "In response to the passage of the Inflation Reduction Act of 2022, HUD is currently designing a new program, the Green and Resilient Retrofit Program (GRRP), and expects to make multiple rounds of funding available to support energy, and water efficiency retrofits and climate resilience of HUD-assisted multifamily properties. Through this Request for Information (RFI), HUD is seeking input on funding rounds as well as on utility benchmarking. Information provided in response to this RFI will inform prioritization of work, treatment of cost-benefit analyses, and key design elements that will help ensure program goals are met."
+  }
+ ]
+}

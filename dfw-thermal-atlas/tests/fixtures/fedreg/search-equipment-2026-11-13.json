@@ -1,0 +1,612 @@
+{
+ "description": "Documents matching 'furnace | furnaces | \"heat pump\" | \"heat pumps\" | \"central air conditioners\"', published on or after 11/13/2024, from Energy Department or Consumer Product Safety Commission, and of type Rule or Proposed Rule",
+ "count": 23,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-21443",
+   "publication_date": "2026-10-20",
+   "type": "Proposed Rule",
+   "title": "Authorizations for Certain Activities at Liquefied Natural Gas Plants",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/20/2026-21443/authorizations-for-certain-activities-at-liquefied-natural-gas-plants",
+   "effective_on": null,
+   "comments_close_on": "2026-12-21",
+   "action": "Notice of proposed rulemaking.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    },
+    {
+     "raw_name": "Federal Energy Regulatory Commission",
+     "name": "Federal Energy Regulatory Commission",
+     "slug": "federal-energy-regulatory-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 18,
+     "part": "2"
+    },
+    {
+     "title": 18,
+     "part": "153"
+    },
+    {
+     "title": 18,
+     "part": "375"
+    }
+   ],
+   "abstract": "The Federal Energy Regulatory Commission proposes to revise its regulations to establish procedures for authorizing activities at liquefied natural gas plants without case-specific authorization orders under sections 3 or 7 of the Natural Gas Act."
+  },
+  {
+   "document_number": "2026-20517",
+   "publication_date": "2026-10-07",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Test Procedures for Commercial Warm Air Furnaces",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/07/2026-20517/energy-conservation-program-test-procedures-for-commercial-warm-air-furnaces",
+   "effective_on": "2026-12-07",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The Department of Energy (\"DOE\" or \"the Department\") is withdrawing the test procedure for commercial warm air furnaces adopted under the Energy Policy and Conservation Act, specifically appendix B, \"Uniform Test Method for Measurement of the Energy Efficiency of Commercial Warm Air Furnaces (Thermal Efficiency Two).\" Upon reconsideration, DOE has determined that appendix B would have an uncertain increase in representativeness that does not outweigh the likely increase in burden. DOE has also determined that withdrawing the appendix B test procedure would be consistent with the proposed Process Rule, which states that for certain categories of equipment, including CWAFs, DOE will adopt the industry test procedure, as contemplated by EPCA, except in very limited circumstances. Commercial warm air furnaces will continue to be subject to the testing requirements of appendix A, \"Uniform Test Method for Measurement of the Energy Efficiency of Commercial Warm Air Furnaces (Thermal Efficiency).\""
+  },
+  {
+   "document_number": "2026-13674",
+   "publication_date": "2026-07-07",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Procedures, Interpretations, and Policies for Consideration of New or Revised Energy Conservation Standards and Test Procedures for Consumer Products and Certain Commercial/Industrial Equipment",
+   "html_url": "https://www.federalregister.gov/documents/2026/07/07/2026-13674/energy-conservation-program-procedures-interpretations-and-policies-for-consideration-of-new-or",
+   "effective_on": null,
+   "comments_close_on": "2026-08-06",
+   "action": "Notice of proposed rulemaking and announcement of webinar.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "The U.S. Department of Energy (\"DOE\" or \"the Department\") proposes to update the Department's current rulemaking methodology titled, \"Procedures, Interpretations, and Policies for Consideration of New or Revised Energy Conservation Standards and Test Procedures for Consumer Products and Certain Commercial/Industrial Equipment\" (\"Process Rule\"). Specifically, DOE proposes to: make Appendix A binding on DOE for certain actions; amend objectives and considerations consistent with recent Executive orders and Department policies; add a definition of \"significant energy savings\"; re-instate the comparative analysis requirement, described as a \"walk up\" approach; include certain economic thresholds; re-instate the description of clear and convincing evidence; and revert to language from the 2020 Process Rule text, with minor edits, in several sections. In addition to requesting written comments on its proposal, DOE will also hold a public meeting to discuss this proposal and obtain additional input."
+  },
+  {
+   "document_number": "2026-13673",
+   "publication_date": "2026-07-07",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Review of DOE's Analytic Methods for Setting Energy Conservation Standards",
+   "html_url": "https://www.federalregister.gov/documents/2026/07/07/2026-13673/energy-conservation-program-review-of-does-analytic-methods-for-setting-energy-conservation",
+   "effective_on": null,
+   "comments_close_on": "2026-09-08",
+   "action": "Request for information and request for comments.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    },
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The U.S. Department of Energy (\"DOE\" or the \"Department\") requests comment regarding the assumptions, models, and methodologies that DOE uses in setting energy conservation standards for covered products and equipment. Relatedly, DOE also requests comments on the report summarizing the work conducted by the National Academies of Sciences, Engineering, and Medicine (\"NASEM\") Committee on Review of Methods for Setting Building and Equipment Performance Standards. DOE also welcomes the submission of data, peer-reviewed studies, and other relevant information related to how DOE might implement NASEM report recommendations and to DOE's analytical methodology for evaluating energy conservation standards in general."
+  },
+  {
+   "document_number": "2026-08145",
+   "publication_date": "2026-04-27",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Notification of Petition for Rulemaking",
+   "html_url": "https://www.federalregister.gov/documents/2026/04/27/2026-08145/energy-conservation-program-notification-of-petition-for-rulemaking",
+   "effective_on": null,
+   "comments_close_on": "2026-05-27",
+   "action": "Notification of petition for rulemaking; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "On February 19, 2026, the Department of Energy (DOE) received a petition from the American Gas Association (AGA), the American Public Gas Association (APGA), and the National Propane Gas Association (NPGA) asking DOE to amend the compliance dates for two energy conservation standards final rules for commercial water heating equipment and consumer furnaces. Through this notification, DOE is seeking comment on whether it should grant the petition and undertake a rulemaking to consider the proposal contained in the petition, as well as any data or information that may be relevant to DOE's consideration of the petition."
+  },
+  {
+   "document_number": "2025-22643",
+   "publication_date": "2025-12-12",
+   "type": "Rule",
+   "title": "Safety Standard for Toys: Requirements for Water Beads",
+   "html_url": "https://www.federalregister.gov/documents/2025/12/12/2025-22643/safety-standard-for-toys-requirements-for-water-beads",
+   "effective_on": "2026-03-12",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "CONSUMER PRODUCT SAFETY COMMISSION",
+     "name": "Consumer Product Safety Commission",
+     "slug": "consumer-product-safety-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "1112"
+    },
+    {
+     "title": 16,
+     "part": "1250"
+    }
+   ],
+   "abstract": "Section 106(a) of the Consumer Product Safety Improvement Act of 2008 (CPSIA) mandates that ASTM F963 shall be a mandatory toy safety standard. This safety standard sets forth requirements for water bead toys and toys that contain water beads. Under this statutory authority, the U.S. Consumer Product Safety Commission (CPSC or Commission) is issuing a safety standard for water bead toys and toys that contain water beads."
+  },
+  {
+   "document_number": "2025-17262",
+   "publication_date": "2025-09-09",
+   "type": "Rule",
+   "title": "Energy Conservation Program for Appliance Standards: Certification Requirements, Labeling Requirements, and Enforcement Provisions for Certain Consumer Products and Commercial Equipment",
+   "html_url": "https://www.federalregister.gov/documents/2025/09/09/2025-17262/energy-conservation-program-for-appliance-standards-certification-requirements-labeling-requirements",
+   "effective_on": "2025-09-09",
+   "comments_close_on": null,
+   "action": "Final rule; Congressional Review Act (CRA) revocation.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    },
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The U.S. Department of Energy (DOE) is publishing this final rule to rescind and amend the certification provisions, labeling requirements, and enforcement provisions for specific types of consumer products and commercial and industrial equipment addressed in its final rule published in the Federal Register on October 9, 2024. DOE is undertaking this action because the October 9, 2024 final rule was the subject of a joint resolution of disapproval under the Congressional Review Act (CRA), which was passed by the U.S. House of Representatives and the Senate and subsequently signed by the President on May 9, 2025, after which it became law. Because the October 9, 2024 final rule has no force or effect, DOE has a nondiscretionary duty to remove the associated provisions from the Code of Federal Regulations (CFR), and through this final rule, DOE is taking the necessary action to effect such rescission."
+  },
+  {
+   "document_number": "2025-17227",
+   "publication_date": "2025-09-09",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Test Procedure for Central Air Conditioners and Heat Pumps",
+   "html_url": "https://www.federalregister.gov/documents/2025/09/09/2025-17227/energy-conservation-program-test-procedure-for-central-air-conditioners-and-heat-pumps",
+   "effective_on": "2025-09-09",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    }
+   ],
+   "abstract": "The U.S. Department of Energy (\"DOE\") is finalizing a one- year delay of certain product-specific enforcement provisions related to the controls verification procedure established in a recently published final rule amending the test procedures for central air conditioners and heat pumps."
+  },
+  {
+   "document_number": "2025-12383",
+   "publication_date": "2025-07-03",
+   "type": "Rule",
+   "title": "Revision of National Environmental Policy Act Implementing Procedures",
+   "html_url": "https://www.federalregister.gov/documents/2025/07/03/2025-12383/revision-of-national-environmental-policy-act-implementing-procedures",
+   "effective_on": "2025-07-03",
+   "comments_close_on": "2025-08-04",
+   "action": "Interim final rule; request for comments.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "205"
+    },
+    {
+     "title": 10,
+     "part": "1021"
+    }
+   ],
+   "abstract": "This interim final rule substantially revises Department of Energy's (DOE) regulations containing its National Environmental Policy Act (NEPA) implementing procedures, which were promulgated to supplement now-rescinded Council on Environmental Quality regulations. Mindful that the Supreme Court recently clarified NEPA is a \"purely procedural statute,\" DOE will henceforth maintain the remainder of its procedures in a procedural guidance document separate from the Code of Federal Regulations (DOE NEPA implementing procedures). Thus, DOE is revising 10 CFR part 1021 to contain only administrative and routine actions excepted from NEPA review in appendix A, its existing categorical exclusions in appendix B, related requirements, and a provision for emergency circumstances. DOE is revising appendix A in 10 CFR part 1021 to align with DOE's new NEPA implementing procedures that it is publishing separate from the Code of Federal Regulations. Appendix A in 10 CFR part 1021 (formerly categorical exclusions) are now administrative and routine actions that do not require NEPA review. DOE is also revising 10 CFR part 205, subpart W, to remove the NEPA procedures from its Presidential permit regulations."
+  },
+  {
+   "document_number": "2025-09591",
+   "publication_date": "2025-05-29",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Test Procedure for Central Air Conditioners and Heat Pumps",
+   "html_url": "https://www.federalregister.gov/documents/2025/05/29/2025-09591/energy-conservation-program-test-procedure-for-central-air-conditioners-and-heat-pumps",
+   "effective_on": null,
+   "comments_close_on": "2025-06-30",
+   "action": "Notice of proposed rulemaking and request for comment.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    }
+   ],
+   "abstract": "The U.S. Department of Energy (DOE) proposes to delay the applicability of certain product-specific enforcement provisions related to the controls verification procedure established in a recently published final rule amending the test procedures for central air conditioners and heat pumps. DOE is seeking comment from interested parties on the proposal."
+  },
+  {
+   "document_number": "2025-09064",
+   "publication_date": "2025-05-20",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Test Procedures for Central Air Conditioners and Heat Pumps",
+   "html_url": "https://www.federalregister.gov/documents/2025/05/20/2025-09064/energy-conservation-program-test-procedures-for-central-air-conditioners-and-heat-pumps",
+   "effective_on": "2025-01-07",
+   "comments_close_on": null,
+   "action": "Final rule; further delay of effective date.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    },
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "This document further delays the effective date of a recently published final rule amending the test procedures for central air conditioners and heat pumps."
+  },
+  {
+   "document_number": "2025-08583",
+   "publication_date": "2025-05-16",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards for Consumer Furnace Fans",
+   "html_url": "https://www.federalregister.gov/documents/2025/05/16/2025-08583/energy-conservation-program-energy-conservation-standards-for-consumer-furnace-fans",
+   "effective_on": null,
+   "comments_close_on": "2025-06-16",
+   "action": "Request for information.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "The Department of Energy (DOE or the Department) is considering whether to revise its existing regulations regarding the energy conservation standards for consumer furnace fans adopted under the Energy Policy and Conservation Act (EPCA). DOE is initiating this effort through this request for information (RFI) to invite public input on appropriate standard levels that are technologically feasible, economically justified, and result in significant conservation of energy."
+  },
+  {
+   "document_number": "2025-08580",
+   "publication_date": "2025-05-16",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Test Procedures for Commercial Warm Air Furnaces",
+   "html_url": "https://www.federalregister.gov/documents/2025/05/16/2025-08580/energy-conservation-program-test-procedures-for-commercial-warm-air-furnaces",
+   "effective_on": null,
+   "comments_close_on": "2025-07-15",
+   "action": "Proposed rule; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The Department of Energy (DOE or the Department) is proposing to amend the test procedure for commercial warm air furnaces adopted under the Energy Policy and Conservation Act by rescinding Appendix B, \"Uniform Test Method for Measurement of the Energy Efficiency of Commercial Warm Air Furnaces (Thermal Efficiency Two).\" Upon further evaluation, the Department has tentatively determined that Appendix B is unduly burdensome to conduct, thereby failing to meet the statutory criteria for adoption of a test procedure. Commercial warm air furnaces will continue to be subject to the testing requirements of Appendix A, \"Uniform Test Method for Measurement of the Energy Efficiency of Commercial Warm Air Furnaces (Thermal Efficiency).\" DOE invites public input on its proposal."
+  },
+  {
+   "document_number": "2025-04473",
+   "publication_date": "2025-03-20",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Test Procedures for Central Air Conditioners and Heat Pumps",
+   "html_url": "https://www.federalregister.gov/documents/2025/03/20/2025-04473/energy-conservation-program-test-procedures-for-central-air-conditioners-and-heat-pumps",
+   "effective_on": "2025-05-20",
+   "comments_close_on": null,
+   "action": "Final rule; further delay of effective date.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    },
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "This document further delays the effective date of a recently published final rule amending the test procedures for central air conditioners and heat pumps."
+  },
+  {
+   "document_number": "2025-03839",
+   "publication_date": "2025-03-13",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Proposed Withdrawal of Determination of Miscellaneous Gas Products as a Covered Consumer Product",
+   "html_url": "https://www.federalregister.gov/documents/2025/03/13/2025-03839/energy-conservation-program-proposed-withdrawal-of-determination-of-miscellaneous-gas-products-as-a",
+   "effective_on": null,
+   "comments_close_on": "2025-04-14",
+   "action": "Notice of proposed rule; proposed withdrawal of determination.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "As part of its implementation of the Executive Order, \"Unleashing American Energy\" (Jan. 20, 2025), the U.S. Department of Energy (\"DOE\") is reviewing existing agency actions to ensure, among other things, that all regulatory requirements related to energy are grounded in clearly applicable law and that the American people's freedom to choose from a variety of goods and appliances is not restricted. As a result of this review, DOE is proposing to withdraw its prior determination that miscellaneous gas products (\"MGPs\"), which are comprised of decorative hearths and outdoor heaters, qualify as covered products under Part A of Title III of the Energy Policy and Conservation Act, as amended (\"EPCA\"). After further consideration of the relevant statutory authority and available information, DOE is proposing to withdraw its determination that MGPs are covered products under EPCA for which DOE is authorized to establish test procedures and energy conservation standards."
+  },
+  {
+   "document_number": "2025-02234",
+   "publication_date": "2025-02-05",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Test Procedures for Central Air Conditioners and Heat Pumps",
+   "html_url": "https://www.federalregister.gov/documents/2025/02/05/2025-02234/energy-conservation-program-test-procedures-for-central-air-conditioners-and-heat-pumps",
+   "effective_on": "2025-03-21",
+   "comments_close_on": "2025-03-07",
+   "action": "Final rule; delay of effective date.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    },
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "This document delays the effective date of a recently published final rule amending the test procedures for central air conditioners and heat pumps. DOE also seeks comment on any further delay of the effective date, including the impacts of such delay, as well as comment on the legal, factual, or policy issues raised by the rule."
+  },
+  {
+   "document_number": "2025-00987",
+   "publication_date": "2025-01-21",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards and Test Procedures for Certain Consumer Products and Commercial Equipment; Corrections",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/21/2025-00987/energy-conservation-program-energy-conservation-standards-and-test-procedures-for-certain-consumer",
+   "effective_on": "2025-01-21",
+   "comments_close_on": null,
+   "action": "Final rule; correcting amendments.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    },
+    {
+     "title": 10,
+     "part": "430"
+    },
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The U.S. Department of Energy (\"DOE\") is publishing a final rule to amend and correct certain energy conservation standards and test procedures of consumer products and commercial and industrial equipment, as described in sections I and II of this document. The changes addressed in this document are technical in nature, and neither the errors nor the corrections in this document affect the substance of any rulemaking or any conclusions reached in support of any final rule."
+  },
+  {
+   "document_number": "2024-31214",
+   "publication_date": "2025-01-21",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards for Commercial Refrigerators, Freezers, and Refrigerator-Freezers",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/21/2024-31214/energy-conservation-program-energy-conservation-standards-for-commercial-refrigerators-freezers-and",
+   "effective_on": "2025-03-24",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The Energy Policy and Conservation Act, as amended (\"EPCA\"), prescribes energy conservation standards for various consumer products and certain commercial and industrial equipment, including commercial refrigerators, freezers, and refrigerator-freezers (\"commercial refrigeration equipment\" or \"CRE\"). EPCA also requires the U.S. Department of Energy (\"DOE\") to periodically review its existing standards to determine whether more-stringent standards would be technologically feasible and economically justified and would result in significant energy savings. In this final rule, DOE is adopting new and amended energy conservation standards for CRE. It has determined that the new and amended energy conservation standards for this equipment would result in significant conservation of energy and are technologically feasible and economically justified."
+  },
+  {
+   "document_number": "2025-01082",
+   "publication_date": "2025-01-17",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Commercial Warm Air Furnaces; Final Determination",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/17/2025-01082/energy-conservation-program-commercial-warm-air-furnaces-final-determination",
+   "effective_on": "2023-07-03",
+   "comments_close_on": null,
+   "action": "Final determination.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "On June 2, 2023, the U.S. Department of Energy (\"DOE\" or the \"Department\") published a test procedure final rule which established test procedures for commercial warm air furnaces (\"CWAFs\"). On August 1, 2023, the Air-Conditioning, Heating, and Refrigeration Institute (\"AHRI\") filed a petition for review of the final rule in the United States Court of Appeals for the Fourth Circuit. In a February 6, 2024, order, the Fourth Circuit granted a voluntary remand of the final rule to the Department of Energy (\"DOE\") to determine whether establishment of the test procedure for the thermal efficiency two (\"TE2\") metric is supported by the specific provisions applicable to CWAFs under the Energy Policy and Conservation Act (\"EPCA\"). More specifically, DOE agreed in this voluntary remand to not enforce the TE2 test procedure unless and until the Department determines that the TE2 test procedure is consistent with the amended industry test procedure, or determines, supported by clear and convincing evidence, that the amended industry test procedure fails to satisfy the statutory requirements. This document provides DOE's determination that the amended industry test procedure fails to satisfy EPCA's statutory requirements."
+  },
+  {
+   "document_number": "2024-30852",
+   "publication_date": "2025-01-07",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Test Procedure for Central Air Conditioners and Heat Pumps",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/07/2024-30852/energy-conservation-program-test-procedure-for-central-air-conditioners-and-heat-pumps",
+   "effective_on": "2025-02-06",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "429"
+    },
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "This final rule amends the Federal test procedure for central air conditioners and heat pumps (\"CAC/HPs\") to incorporate by reference the latest versions of the applicable industry standards. Specifically, DOE is incorporating by reference the latest version of the relevant industry consensus test standard, AHRI 210/240-2024 (I-P) for the current test procedure for CAC/HPs (\"appendix M1\") for measuring the current cooling and heating metrics--seasonal energy efficiency ratio 2 (\"SEER2\") and heating seasonal performance factor 2 (\"HSPF2\"). DOE is incorporating by reference the new industry consensus test standard, AHRI 1600-2024 (I-P), for a new test procedure (\"appendix M2\") for CAC/HPs that adopts two new metrics--seasonal cooling and off-mode rating efficiency (\"SCORE\") and seasonal heating and off-mode rating efficiency (\"SHORE\"). Testing to the SCORE and SHORE metrics would not be required until such time as compliance is required with any amended energy conservation standard based on the new metrics. Additionally, DOE is amending certain provisions of DOE's regulations related to representations and enforcement for CAC/HPs."
+  },
+  {
+   "document_number": "2024-30369",
+   "publication_date": "2024-12-26",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards for Consumer Gas-fired Instantaneous Water Heaters",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/26/2024-30369/energy-conservation-program-energy-conservation-standards-for-consumer-gas-fired-instantaneous-water",
+   "effective_on": "2025-03-11",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ],
+   "abstract": "The Energy Policy and Conservation Act, as amended (\"EPCA\"), prescribes energy conservation standards for various consumer products and certain commercial and industrial equipment, including gas-fired instantaneous water heaters, which are a type of consumer water heater. EPCA also requires the U.S. Department of Energy (\"DOE\" or the \"Department\") to periodically review its existing standards to determine whether more-stringent standards would be technologically feasible and economically justified, and would result in significant energy savings. In this final rule, DOE is adopting amended energy conservation standards for gas-fired instantaneous water heaters. It has determined that the amended energy conservation standards for these products would result in significant conservation of energy, and are technologically feasible and economically justified."
+  },
+  {
+   "document_number": "2024-30274",
+   "publication_date": "2024-12-26",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Commercial Warm Air Furnaces; Notification of Tentative Determination and Request for Comment",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/26/2024-30274/energy-conservation-program-commercial-warm-air-furnaces-notification-of-tentative-determination-and",
+   "effective_on": null,
+   "comments_close_on": "2025-01-08",
+   "action": "Notification of tentative determination and request for comment.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "On June 2, 2023, the U.S. Department of Energy (\"DOE\" or the \"Department\") published a test procedure final rule which established test procedures for commercial warm air furnaces (\"CWAFs\"). The Air- Conditioning, Heating, and Refrigeration Institute (\"AHRI\") filed a petition for review of the final rule in the United States Court of Appeals for the Fourth Circuit on August 1, 2023. In a February 6, 2024, order, the Fourth Circuit granted a voluntary remand of the final rule to the Department of Energy (\"DOE\") to determine whether establishment of the test procedure for the thermal efficiency two (\"TE2\") metric is supported by the specific provisions applicable to CWAFs under the Energy Policy and Conservation Act (\"EPCA\"). More specifically, DOE agreed in this voluntary remand to only establish the TE2 test procedure if the Department makes a determination that the TE2 test procedure is consistent with the amended industry test procedure, or a determination, supported by clear and convincing evidence, that the amended industry test procedure fails to satisfy the statutory requirements. This document provides DOE's tentative determination that the amended industry test procedure fails to satisfy EPCA's statutory requirements and requests comment on this topic."
+  },
+  {
+   "document_number": "2024-28474",
+   "publication_date": "2024-12-23",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards for Walk-In Coolers and Walk-In Freezers",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/23/2024-28474/energy-conservation-program-energy-conservation-standards-for-walk-in-coolers-and-walk-in-freezers",
+   "effective_on": "2025-02-21",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "431"
+    }
+   ],
+   "abstract": "The Energy Policy and Conservation Act, as amended (\"EPCA\"), prescribes energy conservation standards for various consumer products and certain commercial and industrial equipment, including walk-in coolers and freezers (\"walk-ins\" or \"WICFs\"). EPCA also requires the U.S. Department of Energy (\"DOE\") to periodically review its existing standards to determine whether more-stringent standards would be technologically feasible and economically justified, and would result in significant energy savings. In this final rule, DOE is adopting amended energy conservation standards for walk-ins. It has determined that the amended energy conservation standards for these products would result in significant conservation of energy and are technologically feasible and economically justified."
+  }
+ ]
+}

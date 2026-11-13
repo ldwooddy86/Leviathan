@@ -1,0 +1,60 @@
+{
+ "description": "Documents matching '\"energy efficient home improvement credit\" | \"residential clean energy credit\" | \"home energy rebates\" | \"home efficiency rebates\" | \"home electrification and appliance rebates\"' and published on or after 11/13/2024",
+ "count": 2,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-20277",
+   "publication_date": "2026-10-02",
+   "type": "Proposed Rule",
+   "title": "Federal Scholarship Tax Credit",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/02/2026-20277/federal-scholarship-tax-credit",
+   "effective_on": null,
+   "comments_close_on": "2026-12-01",
+   "action": "Notice of proposed rulemaking and public hearing.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF THE TREASURY",
+     "name": "Treasury Department",
+     "slug": "treasury-department"
+    },
+    {
+     "raw_name": "Internal Revenue Service",
+     "name": "Internal Revenue Service",
+     "slug": "internal-revenue-service"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 26,
+     "part": "1"
+    }
+   ],
+   "abstract": "This document contains proposed regulations regarding the nonrefundable Federal tax credit for qualified contributions to scholarship granting organizations to fund qualified elementary and secondary school education scholarships. The proposed regulations would affect taxpayers who make such qualified contributions, States that elect to participate by certifying organizations as scholarship granting organizations, and the organizations that have been certified as scholarship granting organizations by one or more electing States. This document also provides notice of a public hearing on the proposed regulations."
+  },
+  {
+   "document_number": "2025-13304",
+   "publication_date": "2025-07-16",
+   "type": "Notice",
+   "title": "Agency Information Collection Activities; Comment Request on U.S. Individual Income Tax Returns and Related Forms, Schedules, Attachments, and Published Guidance",
+   "html_url": "https://www.federalregister.gov/documents/2025/07/16/2025-13304/agency-information-collection-activities-comment-request-on-us-individual-income-tax-returns-and",
+   "effective_on": null,
+   "comments_close_on": "2025-09-15",
+   "action": "Notice of Information Collection; request for comments.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF THE TREASURY",
+     "name": "Treasury Department",
+     "slug": "treasury-department"
+    },
+    {
+     "raw_name": "Internal Revenue Service",
+     "name": "Internal Revenue Service",
+     "slug": "internal-revenue-service"
+    }
+   ],
+   "cfr_references": [],
+   "abstract": "In accordance with the Paperwork Reduction Act of 1995, the IRS is inviting comments on the information collection request outlined in this notice."
+  }
+ ]
+}

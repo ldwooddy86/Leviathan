@@ -1,0 +1,140 @@
+{
+ "count": 5,
+ "results": [
+  {
+   "document_number": "2024-30293",
+   "publication_date": "2025-01-10",
+   "type": "Rule",
+   "title": "Trade Regulation Rule on Unfair or Deceptive Fees",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/10/2024-30293/trade-regulation-rule-on-unfair-or-deceptive-fees",
+   "effective_on": "2025-05-12",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "464"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-21967",
+   "publication_date": "2024-10-11",
+   "type": "Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Management of Certain Hydrofluorocarbons and Substitutes Under the American Innovation and Manufacturing Act of 2020",
+   "html_url": "https://www.federalregister.gov/documents/2024/10/11/2024-21967/phasedown-of-hydrofluorocarbons-management-of-certain-hydrofluorocarbons-and-substitutes-under-the",
+   "effective_on": "2024-12-10",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    },
+    {
+     "title": 40,
+     "part": "261"
+    },
+    {
+     "title": 40,
+     "part": "262"
+    },
+    {
+     "title": 40,
+     "part": "266"
+    },
+    {
+     "title": 40,
+     "part": "270"
+    },
+    {
+     "title": 40,
+     "part": "271"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-18519",
+   "publication_date": "2024-08-22",
+   "type": "Rule",
+   "title": "Trade Regulation Rule on the Use of Consumer Reviews and Testimonials",
+   "html_url": "https://www.federalregister.gov/documents/2024/08/22/2024-18519/trade-regulation-rule-on-the-use-of-consumer-reviews-and-testimonials",
+   "effective_on": "2024-10-21",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "FEDERAL TRADE COMMISSION",
+     "name": "Federal Trade Commission",
+     "slug": "federal-trade-commission"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 16,
+     "part": "465"
+    }
+   ]
+  },
+  {
+   "document_number": "2023-25514",
+   "publication_date": "2023-12-18",
+   "type": "Rule",
+   "title": "Energy Conservation Program: Energy Conservation Standards for Consumer Furnaces",
+   "html_url": "https://www.federalregister.gov/documents/2023/12/18/2023-25514/energy-conservation-program-energy-conservation-standards-for-consumer-furnaces",
+   "effective_on": "2024-02-16",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "DEPARTMENT OF ENERGY",
+     "name": "Energy Department",
+     "slug": "energy-department"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 10,
+     "part": "430"
+    }
+   ]
+  },
+  {
+   "document_number": "2023-22529",
+   "publication_date": "2023-10-24",
+   "type": "Rule",
+   "title": "Phasedown of Hydrofluorocarbons: Restrictions on the Use of Certain Hydrofluorocarbons Under the American Innovation and Manufacturing Act of 2020",
+   "html_url": "https://www.federalregister.gov/documents/2023/10/24/2023-22529/phasedown-of-hydrofluorocarbons-restrictions-on-the-use-of-certain-hydrofluorocarbons-under-the",
+   "effective_on": "2023-12-26",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "84"
+    }
+   ]
+  }
+ ]
+}
