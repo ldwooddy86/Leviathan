@@ -56,7 +56,7 @@ C.runtime.onMessage.addListener((m, sender, respond) => {
     if (m.type === 'tda.live.check') { await ensureSchedule(); respond({ ran: await catchUp() }); }
     else if (m.type === 'tda.live.schedule') { await schedule(); respond({ ok: true }); }
     else if (m.type === 'tda.live.refresh') { const r = await run(m.scope || 'weekly'); respond(r); }
-    else if (m.type === 'tda.live.announce') { await announce(true); respond({ ok: true }); }
+    else if (m.type === 'tda.live.announce') { await announce(!m.notify); respond({ ok: true }); }
     else respond(null);
   })().catch(e => { try { respond({ error: String(e && e.message || e) }); } catch (_) { } });
   return true;

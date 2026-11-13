@@ -94,6 +94,32 @@ try {
     ok(st && heard >= st.ok.length, 'the open page hears the worker\'s refresh through the store', heard);
     const ann = await sw.evaluate(async () => { const L = globalThis.TDA_LIVE; if (!L.derive || !L.derive.cold) return null; const c = L.derive.cold(await L.snapshot(L.chromeStore(chrome.storage.local), null), new Date()); return { ok: c.ok, headline: c.headline, sub: c.sub, nights: c.nights.length, counties: Object.keys(c.byCounty).length, badge: L.derive.badge(c), badgeShown: await chrome.action.getBadgeText({}) }; });
     if (ann) { ok(ann.ok && !!ann.headline && ann.nights >= 5 && ann.counties === 12, 'the worker derives the cold picture: seven nights, twelve counties', `${ann.headline} | ${ann.sub}`); ok(ann.badgeShown === (ann.badge.text || ''), 'the toolbar badge follows the forecast', JSON.stringify(ann.badge.text) + ' ' + ann.badge.title); }
+    /* ---- 3b. a freeze in the store: badge and one notification, sent once ---- */
+    const real = await sw.evaluate(async () => (await chrome.storage.local.get('tda.live.src.nws_cold'))['tda.live.src.nws_cold']);
+    const cold = JSON.parse(JSON.stringify(real)); const kd = cold.data.points.find(p => p.id === 'KDTO'); kd.nights[2].lowF = 30; cold.data.points.find(p => p.id === 'DECA').nights[2].lowF = 31;
+    const say = () => page.evaluate(() => new Promise(res => chrome.runtime.sendMessage({ type: 'tda.live.announce', notify: true }, r => res(r))));
+    await sw.evaluate(async rec => { await chrome.storage.local.set({ 'tda.live.src.nws_cold': rec }); await chrome.storage.local.remove('tda.live.notified'); }, cold);
+    await say();
+    await until(() => sw.evaluate(() => new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n).length)))), 4000);      // creating a notification is asynchronous
+    const n1 = await sw.evaluate(async () => ({ badge: await chrome.action.getBadgeText({}), title: await chrome.action.getTitle({}), notes: await new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n)))), sent: (await chrome.storage.local.get('tda.live.notified'))['tda.live.notified'] }));
+    ok(n1.badge === '30°' && /30°F/.test(n1.title), 'a freeze in the forecast sets the badge to the coldest low', `${n1.badge} · ${n1.title}`);
+    ok(n1.notes.length === 1 && n1.sent && /^tier3:/.test(n1.sent.keys[0]), 'and sends one notification', JSON.stringify(n1.sent));
+    await say();
+    const n2 = await sw.evaluate(() => new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n).length))));
+    ok(n2 === 1, 'the same trigger is not announced twice', n2);
+    const hd = await until(() => page.evaluate(() => { const c = TDA_LIVE.derive.cold(LIVE.all(), new Date()); return c.minLow === 30 ? document.getElementById('shellFacts').innerText : null; }), 5000);
+    ok(/30°F/.test(hd || ''), 'the open page shows the new coldest low in its header', (hd || '').replace(/\n/g, ' · '));
+    await sw.evaluate(async rec => { await chrome.storage.local.set({ 'tda.live.src.nws_cold': rec }); for (const id of Object.keys(await new Promise(res => chrome.notifications.getAll(res)))) chrome.notifications.clear(id); }, real);
+    await say();
+    /* ---- 3c. the schedule: settings move the alarm; a due alarm runs the pulse and re arms ---- */
+    await page.evaluate(() => LIVE.saveSettings({ weeklyDow: 3, weeklyHour: 9 }));
+    const moved = await until(() => sw.evaluate(async () => { const a = await chrome.alarms.get('tda-weekly'); const d = new Date(a.scheduledTime); return d.getDay() === 3 && d.getHours() === 9 ? { when: d.toString() } : null; }), 5000);
+    ok(!!moved, 'changing the refresh day in the page moves the worker\'s alarm', moved && moved.when);
+    await page.evaluate(() => LIVE.saveSettings({ weeklyDow: 1, weeklyHour: 6 }));
+    await sw.evaluate(async () => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const ago = new Date(Date.now() - 30 * 36e5).toISOString(); s.lastWeekly = ago; s.lastDaily = ago; await chrome.storage.local.set({ 'tda.live.state': s }); await chrome.alarms.create('tda-daily', { when: Date.now() + 400 }); });
+    const pulse = await until(() => sw.evaluate(async () => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const r = (s.runs || [])[0]; return r && r.scope === 'daily' && !s.running ? { r, next: new Date((await chrome.alarms.get('tda-daily')).scheduledTime).toString() } : null; }), 120000, 1000);
+    ok(pulse && pulse.r.by === 'extension' && pulse.r.ok >= 1, 'a due daily alarm runs the weather pulse in the worker', pulse ? `${pulse.r.ok} source(s) in ${(pulse.r.ms / 1000).toFixed(1)} s` : 'no pulse within two minutes');
+    ok(pulse && +new Date(pulse.next) > Date.now() + 36e5, 'and the alarm is armed again for the next morning', pulse && pulse.next);
   } else note(OFFLINE ? 'offline: the live refresh was not exercised' : 'no live sources registered yet');
   for (const k of ['heat', 'live']) {
     if (!boot.mods.includes(k)) { note(`module ${k} is not registered yet`); continue; }
