@@ -119,7 +119,7 @@
     if (!opt.force && state.running && t0 - +new Date(state.running.since) < 6 * MIN) return { locked: true, by: state.running.by, since: state.running.since };
     state.running = { since: iso(t0), by: env, scope: Array.isArray(scope) ? 'some' : scope }; await store.set(K.state, state);
     const pick = Array.isArray(scope) ? scope.map(id => BY_ID[id]).filter(Boolean) : SOURCES.filter(s => scope === 'weekly' || s.cadence === 'daily');
-    const ran = [], failed = [], skipped = []; const chains = {};
+    const ran = [], failed = [], skipped = [], kept = []; const chains = {};
     let next = 0, done = 0;
     const progress = (s, status) => { done++; if (opt.onProgress) { try { opt.onProgress({ done, total: pick.length, id: s.id, name: s.name, status }); } catch (e) { } } };
     async function one(s) {
@@ -127,6 +127,8 @@
       const key = s.key ? (settings.keys || {})[s.key] : null;
       const skip = settings.disabled[s.id] ? 'turned off in settings' : (!s.cors && env === 'page') ? 'needs the browser app (this source does not allow calls from a web page)' : (s.keyRequired && !key) ? 'needs a free API key (add it in Live Data settings)' : null;
       if (skip) { skipped.push({ id: s.id, why: skip }); await store.set(K.src(s.id), Object.assign({ v: V, id: s.id, data: null }, prev || {}, { skipped: { at: iso(now()), why: skip } })); return progress(s, 'skipped'); }
+      /* a run that picks up after an interrupted one keeps what the interrupted run already fetched */
+      if (opt.keepFresh && prev && prev.ok && prev.at && +now() - +new Date(prev.at) < opt.keepFresh) { kept.push(s.id); return progress(s, 'kept'); }
       const http = makeHttp(Object.assign({ fetch: opt.fetch, chains }, opt.http || {})); const started = +now();
       try {
         const data = await withTimeout(Promise.resolve().then(() => s.run({ http, now: new Date(started), prev: prev && prev.data != null ? prev.data : null, key, settings, env, geo: root.TDA_LIVE.geo || {} })), s.timeoutMs || 120000, s.name);
@@ -150,10 +152,10 @@
     finally {
       state = await getState(store);
       const end = +now(); delete state.running;
-      const anyRan = ran.length > 0;
+      const anyRan = ran.length + kept.length > 0;
       if (anyRan && scope === 'weekly') { state.lastWeekly = iso(end); state.lastDaily = iso(end); }
       else if (anyRan && scope === 'daily') state.lastDaily = iso(end);
-      state.runs = [{ at: iso(t0), scope: Array.isArray(scope) ? scope.join(',') : scope, by: env, ms: end - t0, ok: ran.length, failed: failed.map(f => f.id), skipped: skipped.map(f => f.id) }].concat(state.runs || []).slice(0, 16);
+      state.runs = [{ at: iso(t0), scope: Array.isArray(scope) ? scope.join(',') : scope, by: env, ms: end - t0, ok: ran.length, kept: kept.length || undefined, failed: failed.map(f => f.id), skipped: skipped.map(f => f.id) }].concat(state.runs || []).slice(0, 16);
       await store.set(K.state, state);
     }
     return { ok: failed.length === 0, ran, failed, skipped, ms: +now() - t0 };

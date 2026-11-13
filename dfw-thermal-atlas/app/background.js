@@ -8,7 +8,7 @@ importScripts('live/core.js', 'live/geo.js', 'live/sources/nws_cold.js', 'live/s
 importScripts('registry.js', 'open.js');
 const C = globalThis.chrome, L = globalThis.TDA_LIVE, O = globalThis.TDA_OPEN;
 const store = L.chromeStore(C.storage.local);
-const ALARM_WEEKLY = 'tda-weekly', ALARM_DAILY = 'tda-daily', NOTE_KEY = 'tda.live.notified', NOTE_ID = 'tda-cold';
+const ALARM_WEEKLY = 'tda-weekly', ALARM_DAILY = 'tda-daily', ALARM_RETRY = 'tda-retry', NOTE_KEY = 'tda.live.notified', NOTE_ID = 'tda-cold', RETRY_KEY = 'tda.live.retry';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* ---------- schedule: one shot alarms, re armed after every run and at every start (so daylight saving never drifts them) ---------- */
@@ -20,19 +20,33 @@ async function schedule() {
 async function ensureSchedule() { const [w, d] = await Promise.all([C.alarms.get(ALARM_WEEKLY), C.alarms.get(ALARM_DAILY)]); const s = await L.getSettings(store); if (!w || (s.daily !== false && !d)) await schedule(); }
 
 /* ---------- runs ---------- */
+/* Chrome stops a worker that has been idle for 30 seconds, and only events and extension calls count as activity, so a run
+   that is busy fetching pings a cheap call every 20 seconds to stay up. If the worker is stopped anyway, the retry alarm
+   set at the start of the run wakes it again; the retry keeps what the interrupted run already fetched and gives up
+   after two tries, so a source that keeps failing is never hammered. */
 let running = null;
-function run(scope) {
+function run(scope, opt) {
   if (running) return running;
-  running = L.refresh({ scope, store, env: 'extension' }).then(async r => { if (!r.locked) await announce(); return r; }).catch(e => { console.error('refresh', e); return { ok: false }; }).finally(() => { running = null; });
+  const beat = setInterval(() => { try { C.runtime.getPlatformInfo(() => void C.runtime.lastError); } catch (e) { } }, 20000);
+  try { C.alarms.create(ALARM_RETRY, { delayInMinutes: 8 }); } catch (e) { }
+  running = L.refresh(Object.assign({ scope, store, env: 'extension' }, opt || {}))
+    .then(async r => { if (!r.locked) { await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
+    .catch(e => { console.error('refresh', e); return { ok: false }; })
+    .finally(() => { clearInterval(beat); running = null; try { C.alarms.clear(ALARM_RETRY); } catch (e) { } });
   return running;
 }
 /* run whatever is due: the weekly refresh when seven days have passed, else the daily pulse */
-async function catchUp() { const d = L.due(await L.getState(store), await L.getSettings(store), new Date()); if (d) await run(d); else await announce(true); return d; }
+async function catchUp(opt) { const d = L.due(await L.getState(store), await L.getSettings(store), new Date()); if (d) await run(d, opt); else await announce(true); return d; }
+/* the retry alarm fired: the run it was guarding never finished */
+async function retry() {
+  const n = ((await store.get(RETRY_KEY)) || {}).n || 0; if (n >= 2) return;
+  await store.set(RETRY_KEY, { n: n + 1, at: new Date().toISOString() });
+  await catchUp({ keepFresh: 6 * L.HOUR });
+}
 
 /* ---------- badge and notifications ---------- */
 /* One notification per new trigger: a freeze in the forecast, or a new cold, heat, air quality or severe storm alert for the
    12 counties. Keys already sent are remembered, so a daily pulse never repeats itself. */
-const routes = {};
 async function announce(quiet) {
   if (!L.derive || !L.derive.cold) return;
   let cold, notes; try { const recs = await L.snapshot(store, null), now = new Date(); cold = L.derive.cold(recs, now); notes = L.derive.notices(recs, now); } catch (e) { console.error('derive', e); return; }
@@ -43,13 +57,15 @@ async function announce(quiet) {
   const sent = ((await store.get(NOTE_KEY)) || {}).keys || [];
   const fresh = notes.filter(n => !sent.includes(n.key)).slice(0, 3); if (!fresh.length) return;
   await store.set(NOTE_KEY, { keys: fresh.map(n => n.key).concat(sent).slice(0, 60), at: new Date().toISOString() });
-  fresh.forEach((n, i) => { const id = NOTE_ID + '-' + Date.now() + '-' + i; routes[id] = n.route; try { C.notifications.create(id, { type: 'basic', iconUrl: C.runtime.getURL('icons/icon128.png'), title: n.title, message: n.message, priority: 1 }); } catch (e) { } });
+  /* the route rides in the notification id, so a click still lands on the right page after the worker has slept */
+  fresh.forEach((n, i) => { const id = NOTE_ID + '|' + (n.route || 'heat') + '|' + Date.now() + '-' + i; try { C.notifications.create(id, { type: 'basic', iconUrl: C.runtime.getURL('icons/icon128.png'), title: n.title, message: n.message, priority: 1 }); } catch (e) { } });
 }
 
 /* ---------- events ---------- */
 C.runtime.onInstalled.addListener(d => { (async () => { await schedule(); if (d && d.reason === 'install') await O.openRoute('heat', { newTab: true }); await catchUp(); })(); });
 C.runtime.onStartup.addListener(() => { (async () => { await ensureSchedule(); await catchUp(); })(); });
-C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_WEEKLY) await run('weekly'); else if (a.name === ALARM_DAILY) await catchUp(); await schedule(); })(); });
+/* the next alarms are set before the run starts: a run that is cut short must not take the schedule down with it */
+C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); if (a.name === ALARM_WEEKLY) await run('weekly'); else await catchUp(); })(); });
 C.runtime.onMessage.addListener((m, sender, respond) => {
   if (!m || typeof m.type !== 'string' || m.type.indexOf('tda.live.') !== 0) return false;
   (async () => {
@@ -61,7 +77,7 @@ C.runtime.onMessage.addListener((m, sender, respond) => {
   })().catch(e => { try { respond({ error: String(e && e.message || e) }); } catch (_) { } });
   return true;
 });
-if (C.notifications && C.notifications.onClicked) C.notifications.onClicked.addListener(id => { if (id.indexOf(NOTE_ID) === 0) { O.openRoute(routes[id] || 'heat'); C.notifications.clear(id); } });
+if (C.notifications && C.notifications.onClicked) C.notifications.onClicked.addListener(id => { if (id.indexOf(NOTE_ID) === 0) { O.openRoute(id.split('|')[1] || 'heat'); C.notifications.clear(id); } });
 if (C.commands && C.commands.onCommand) C.commands.onCommand.addListener(cmd => { if (cmd === 'open-atlas') O.openRoute(''); });
 if (C.omnibox) {
   try { C.omnibox.setDefaultSuggestion({ description: 'DFW Thermal Debt Atlas: open <match>%s</match> (a module, a city or a ZIP code)' }); } catch (e) { }

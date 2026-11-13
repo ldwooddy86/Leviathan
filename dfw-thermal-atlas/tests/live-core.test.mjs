@@ -90,6 +90,20 @@ test('the lock stops a second run; force overrides; a stale lock expires', async
   assert.equal((await L.refresh({ store, fetch: fakeFetch([]), env: 'page' })).ok, true);
 });
 
+test('a run that picks up after an interrupted one keeps what was already fetched', async () => {
+  const L = fresh(); const store = L.memoryStore(); let calls = { a: 0, b: 0 }; let clock = +new Date('2026-11-02T12:00:00Z');
+  src(L, { run: async () => ({ v: ++calls.a }) }); src(L, { id: 'b', run: async () => ({ v: ++calls.b }) });
+  /* the interrupted run stored a and died before b; its lock is still in the state */
+  await store.set(L.K.src('a'), { v: L.V, id: 'a', ok: true, at: new Date(clock - 10 * L.MIN).toISOString(), data: { v: 0 }, digest: { v: 0 } });
+  await store.set(L.K.state, { running: { since: new Date(clock - 10 * L.MIN).toISOString(), by: 'extension' }, runs: [] });
+  const r = await L.refresh({ store, fetch: fakeFetch([]), env: 'extension', keepFresh: 6 * L.HOUR, now: () => new Date(clock) });
+  same(r.ran, ['b']); same(calls, { a: 0, b: 1 });
+  const st = await L.getState(store); assert.ok(st.lastWeekly, 'the resumed run counts as the weekly run'); assert.equal(st.runs[0].kept, 1);
+  clock += 7 * L.HOUR;
+  await L.refresh({ store, fetch: fakeFetch([]), env: 'extension', keepFresh: 6 * L.HOUR, force: true, now: () => new Date(clock) });
+  same(calls, { a: 1, b: 2 }, 'records older than the window are fetched again');
+});
+
 test('the week over week comparison point survives a same day refresh', async () => {
   const L = fresh(); const store = L.memoryStore(); let v = 1; let clock = +new Date('2026-11-02T12:00:00Z');
   src(L, { run: async () => ({ v: v++ }) });
