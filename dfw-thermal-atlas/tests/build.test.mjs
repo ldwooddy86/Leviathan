@@ -39,6 +39,7 @@ test('the single file edition is self contained and whole', () => {
 
 test('manifest: version 3, least privilege, every collector host granted', () => {
   assert.equal(manifest.manifest_version, 3);
+  assert.ok(manifest.description.length <= 132, 'the description fits the 132 characters the browser shows');
   /* identity: the Accounts module signs in to the ad platforms with launchWebAuthFlow. Everything else an account or a CMS needs is asked
      for at the moment of use (optional_host_permissions), never at install. */
   assert.deepEqual(manifest.permissions.slice().sort(), ['alarms', 'identity', 'notifications', 'storage', 'unlimitedStorage']);
