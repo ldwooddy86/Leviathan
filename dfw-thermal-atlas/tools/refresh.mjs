@@ -20,9 +20,11 @@ const APP = join(ROOT, 'app'), OUT = join(APP, 'data', 'live-baseline.js');
 const a = process.argv.slice(2), has = k => a.includes(k), val = k => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : null; };
 const keys = {}; a.forEach((x, i) => { if (x === '--key' && a[i + 1]) { const [k, ...v] = a[i + 1].split('='); keys[k] = v.join('='); } });
 
+/* A generic client string: it names what the client does, never the project, the account or a contact. */
+const UA = 'public-data-refresh/1.0 (weekly refresh of public datasets)';
 /* the live layer in template order, minus the page's own glue */
 const files = readFileSync(join(ROOT, 'atlas.template.html'), 'utf8').split('\n').map(l => /^<!--@js (live\/[^ ]+)-->$/.exec(l)).filter(Boolean).map(m => m[1]).filter(f => f !== 'live/page.js');
-const ctx = vm.createContext({ console, setTimeout, clearTimeout, URL, URLSearchParams, AbortController, TextEncoder, TextDecoder, Intl, fetch: (u, i) => fetch(u, Object.assign({}, i, { headers: Object.assign({ 'User-Agent': 'dfw-thermal-atlas/5.0 (weekly public data refresh; github.com/ldwooddy86/Leviathan)' }, (i && i.headers) || {}) })) });
+const ctx = vm.createContext({ console, setTimeout, clearTimeout, URL, URLSearchParams, AbortController, TextEncoder, TextDecoder, Intl, fetch: (u, i) => fetch(u, Object.assign({}, i, { headers: Object.assign({ 'User-Agent': UA }, (i && i.headers) || {}) })) });
 ctx.globalThis = ctx; ctx.self = ctx;
 for (const f of files) vm.runInContext(readFileSync(join(APP, f), 'utf8'), ctx, { filename: f });
 const L = ctx.TDA_LIVE;

@@ -37,27 +37,33 @@ test('parseForecast turns the 12 hour periods into nights and days keyed by loca
   same(L.nws.parseForecast({ properties: { periods: [{ isDaytime: false, startTime: '2026-01-10T18:00:00-06:00', name: 'Tonight', temperature: -5, temperatureUnit: 'C' }] } }).nights[0].lowF, 23);
 });
 
-test('the collector reads every point, resolves each grid once and keeps it', async () => {
+test('the collector reads every point from its baked grid cell: twenty requests', async () => {
   const L = fresh(); const fetch = fakeFetch(routes());
   const { data, http } = await runOnce(L, fetch);
-  assert.equal(data.points.length, 19); assert.equal(data.failed, 0); assert.equal(http.stats.n, 39, '19 lookups, 19 forecasts, 1 alerts');
-  assert.ok(data.points.every(p => p.nights.length === 7 && p.grid === 'FWD/77,123'));
-  assert.equal(data.points.find(p => p.id === 'KHQZ').county, 'Denton', 'the county comes from the lookup (the fixture answers Denton for every point)');
+  assert.equal(data.points.length, 19); assert.equal(data.failed, 0); assert.equal(http.stats.n, 20, '19 forecasts and 1 alerts request, no lookups');
+  assert.ok(data.points.every(p => p.nights.length === 7));
+  assert.equal(data.points.find(p => p.id === 'KDTO').grid, 'FWD/75,123'); assert.equal(data.points.find(p => p.id === 'KHQZ').county, 'Dallas');
+  assert.ok(fetch.calls.some(c => c.url === 'https://api.weather.gov/gridpoints/FWD/99,102/forecast'));
   assert.ok(fetch.calls.every(c => c.init.credentials === 'omit' && c.init.cache === 'no-store'), 'no cookies, no cache');
   assert.ok(fetch.calls.find(c => /alerts\/active\?zone=/.test(c.url)).url.includes('TXZ119') && fetch.calls.find(c => /alerts\/active/.test(c.url)).url.includes('TXC113'));
-  const fetch2 = fakeFetch(routes()); const second = await runOnce(L, fetch2, JSON.parse(JSON.stringify(data)));
-  assert.equal(second.http.stats.n, 20, 'the second run skips the lookups'); assert.equal(second.data.gridsAt, data.gridsAt);
+  same(data.grids, {});
   same(L.BY_ID.nws_cold.digest(JSON.parse(JSON.stringify(data))), { minLow: 44, freezePoints: 0, coldAlerts: 0, alerts: 0 });
 });
 
-test('one bad point does not sink the run; a moved grid is looked up again; total failure throws', async () => {
-  const L = fresh(); let n = 0;
-  const flaky = fakeFetch([[/\/points\//, POINT], [/\/forecast$/, () => (++n === 3 ? { status: 404, body: '{"title":"Not Found"}' } : FORECAST)], [/alerts/, { features: [] }]]);
+test('a grid cell that went away is looked up once and remembered; one bad point does not sink the run; total failure throws', async () => {
+  const L = fresh();
+  const moved = fakeFetch([[/\/points\//, POINT], [/gridpoints\/FWD\/75,123\/forecast$/, { status: 404, body: '{"title":"Not Found"}' }], [/\/forecast$/, FORECAST], [/alerts/, { features: [] }]]);
+  const first = await runOnce(L, moved);
+  assert.equal(first.data.failed, 0); assert.equal(first.http.stats.n, 22, 'one 404, one lookup, one retry on the new cell');
+  same(first.data.grids, { KDTO: { wfo: 'FWD', x: 77, y: 123, czone: 'TXC121' } }); assert.equal(first.data.points.find(p => p.id === 'KDTO').grid, 'FWD/77,123');
+  const again = fakeFetch(routes()); const second = await runOnce(L, again, JSON.parse(JSON.stringify(first.data)));
+  assert.equal(second.http.stats.n, 20); assert.ok(again.calls.some(c => /FWD\/77,123\/forecast/.test(c.url)), 'the remembered cell is used');
+  let n = 0;
+  const flaky = fakeFetch([[/\/forecast$/, () => (++n === 3 ? { status: 500, body: 'x' } : FORECAST)], [/alerts/, { features: [] }]]);
   const { data } = await runOnce(L, flaky);
-  assert.equal(data.failed, 1); const bad = data.points.find(p => p.err); assert.match(bad.err, /404/); assert.equal(data.grids[bad.id], undefined, 'the stale grid is dropped');
-  assert.equal(data.points.filter(p => p.nights.length === 7).length, 18);
+  assert.equal(data.failed, 1); assert.match(data.points.find(p => p.err).err, /500/); assert.equal(data.points.filter(p => p.nights.length === 7).length, 18);
   await assert.rejects(() => runOnce(L, fakeFetch([[/./, { status: 503, body: 'down' }]])), /503/);
-  const noAlerts = await runOnce(L, fakeFetch([[/\/points\//, POINT], [/\/forecast$/, FORECAST], [/alerts/, { status: 500, body: 'x' }]]));
+  const noAlerts = await runOnce(L, fakeFetch([[/\/forecast$/, FORECAST], [/alerts/, { status: 500, body: 'x' }]]));
   assert.equal(noAlerts.data.points.length, 19); assert.match(noAlerts.data.alertsErr, /500/); same(noAlerts.data.alerts, []);
 });
 
