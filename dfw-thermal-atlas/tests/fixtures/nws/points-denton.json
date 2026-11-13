@@ -1,0 +1,12 @@
+{
+ "properties": {
+  "gridId": "FWD",
+  "gridX": 77,
+  "gridY": 123,
+  "forecast": "https://api.weather.gov/gridpoints/FWD/77,123/forecast",
+  "forecastZone": "https://api.weather.gov/zones/forecast/TXZ103",
+  "county": "https://api.weather.gov/zones/county/TXC121",
+  "timeZone": "America/Chicago",
+  "cwa": "FWD"
+ }
+}

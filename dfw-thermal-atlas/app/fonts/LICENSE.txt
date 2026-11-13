@@ -1,0 +1,7 @@
+The font files in this folder are redistributed under the SIL Open Font License, Version 1.1 (https://openfontlicense.org).
+
+IBM Plex Sans, IBM Plex Sans Condensed, IBM Plex Mono: Copyright IBM Corp. (https://github.com/IBM/plex)
+Bebas Neue: Copyright The Bebas Neue Project Authors (https://github.com/dharmatype/Bebas-Neue)
+Open Sans: Copyright The Open Sans Project Authors (https://github.com/googlefonts/opensans)
+
+Downloaded from Google Fonts by tools/fonts.mjs, latin and latin-ext subsets only, unmodified.
