@@ -67,7 +67,7 @@ TDA_LIVE.register({
   hosts: ['api.example.gov'],            // every host run() calls
   cadence: 'weekly',                     // or 'daily' for the morning pulse
   cors: true,                            // false: the host refuses calls from a web page, so only the browser app and Node run it
-  grade: 'A', terms: 'Licence or terms of use, in a few words',
+  grade: 'A', terms: 'License or terms of use, in a few words',
   labels: { count: ['Things counted', 'n'] },   // how each digest figure is named in "what changed since last week"
   async run(ctx) {                       // ctx: { http: { json, text }, now, prev, key, settings, env, geo }
     const rows = await ctx.http.json('https://api.example.gov/things?since=2026-01-01');
