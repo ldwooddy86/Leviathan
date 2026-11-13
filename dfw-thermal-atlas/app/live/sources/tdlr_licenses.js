@@ -5,13 +5,13 @@
    are 2026-09-19 and 2026-10-19). One request reads the file date. When the file is new, four more count it: active
    licenses by county, class and endorsement; the Texas totals with the highest license number that had already expired;
    the license numbers above that one by county (a license runs one year and numbers are issued in sequence, so those are
-   the licenses first issued in the last 12 months); and the 25 newest of them by name. About 20 KB on the wire, 6 KB stored.
+   the licenses first issued in the last 12 months); and the 40 newest of them by name. About 22 KB on the wire, 8 KB stored.
    Contractors per home is the competition a heating advertiser bids against; the new numbers show who is entering. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, HOST = 'https://data.texas.gov', ID = '7358-krk7';
   const META = `${HOST}/api/views/metadata/v1/${ID}`, RES = `${HOST}/resource/${ID}.json`;
-  const V = 1, CON = 'A/C Contractor', TECH = 'A/C Technician', NEWEST = 25, DAY = 864e5;
+  const V = 1, CON = 'A/C Contractor', TECH = 'A/C Technician', NEWEST = 40, DAY = 864e5;      /* 40 newest: about two months of new licenses in the 12 counties */
   /* no custom header: a plain GET needs no CORS preflight. The counts scan a million rows, so give them time. */
   const OPT = { gapMs: 600, retries: 1, timeoutMs: 30000 };
   /* The expiration date is text, mm/dd/yyyy. Rebuilt on the server as yyyymmdd it compares as text; OKD guards the shape. */
@@ -109,6 +109,11 @@
       throw new Error(col ? `the license file no longer has the column ${col[1]}, so ${what} could not be counted` : `the Texas Open Data Portal refused the query for ${what}`);
     }
   }
+  /* The headline numbers of one file. by and maxNo carry no label: they are what change() compares the next file against. */
+  function digestOf(d) {
+    const top = d.counties.slice().sort((a, b) => b.contractors - a.contractors)[0], by = {}; d.counties.forEach(c => { by[c.name] = [c.contractors, c.techs]; });
+    return { contractors: d.total.contractors, techs: d.total.techs, top: top ? `${top.name} (${thousands(top.contractors)})` : '', new12: d.total.new12, asOf: d.asOfDay, by, maxNo: d.entrants && d.entrants.newest[0] ? d.entrants.newest[0].no : null };
+  }
   const basis = day => `Counted from the TDLR All Licenses file as published on ${longDay(day)}. Active: the license type is A/C Contractor or A/C Technician, the business county is one of the 12, and the expiration date is on or after the file date. Comfort: the license carries the environmental air conditioning endorsement, which covers home heating. Expiring within 90 days counts from the file date. Lapsed: still in the file with an expiration date before the file date (the file keeps a license 18 months after it expires). New in 12 months: license numbers above the highest numbered Texas contractor license that had already expired on the file date. Numbers are issued in sequence and a license runs one year, so every higher number was first issued within the year (grade B: the line sits within days of a full year, and the count is dropped when the first expiration date among those licenses is more than 45 days past the file date). A license is counted in its business county, a technician in the county on the technician's own record.`;
 
   L.register({
@@ -134,12 +139,11 @@
       } catch (e) { entrants = prev && prev.entrants ? prev.entrants : null; stale.push({ block: 'entrants', why: why(e), kept: entrants ? entrants.asOf : null }); }
       main.counties.forEach(c => { c.new12 = entrants && entrants.by[c.name] != null ? entrants.by[c.name] : null; });
       const total = {}; ['contractors', 'classA', 'comfort', 'techs', 'certified', 'expiring90', 'lapsed'].forEach(k => { total[k] = sum(main.counties, k); }); total.new12 = entrants ? entrants.total : null;
-      return { v: V, asOf: f.asOf, asOfDay: f.day, checked: now, basis: basis(f.day), counties: main.counties, total, texas, entrants, badDates: main.badDates, stale };
+      /* before: the headline numbers of the file this one replaced, kept until the next file so the month over month change stays readable */
+      const before = prev ? (prev.asOf !== f.asOf ? digestOf(prev) : prev.before || null) : null;
+      return { v: V, asOf: f.asOf, asOfDay: f.day, checked: now, basis: basis(f.day), counties: main.counties, total, texas, entrants, before, badDates: main.badDates, stale };
     },
-    digest(d) {
-      const top = d.counties.slice().sort((a, b) => b.contractors - a.contractors)[0], by = {}; d.counties.forEach(c => { by[c.name] = [c.contractors, c.techs]; });
-      return { contractors: d.total.contractors, techs: d.total.techs, top: top ? `${top.name} (${thousands(top.contractors)})` : '', new12: d.total.new12, asOf: d.asOfDay, by };
-    },
+    digest: digestOf,
   });
 
   /* ---------- reads ---------- */
@@ -153,13 +157,18 @@
     }
     return out;
   }
-  /* What moved since the digest of the previous refresh (record.prev.digest): the totals and the counties that changed, the
-     largest contractor change first. fileChanged false means the state has not replaced the file since. null: nothing to compare. */
+  /* What moved against an earlier digest: by default the file this one replaced (data.before), or pass the digest of the
+     previous refresh (record.prev.digest) for week over week. The totals, the counties that changed (the largest contractor
+     change first) and entered: the license holders numbered above the highest number of the earlier file, newest first
+     (enteredMore: the list of newest holders was too short to show them all). fileChanged false means the state has not
+     replaced the file since. null: nothing to compare. */
   function change(d, p) {
+    p = p || (d && d.before);
     if (!d || !d.total || !p || p.contractors == null) return null;
     const diff = (a, b) => a == null || b == null ? null : a - b;
     const counties = d.counties.map(c => { const was = (p.by || {})[c.name]; return was ? { name: c.name, contractors: c.contractors - was[0], techs: c.techs - was[1] } : null; }).filter(x => x && (x.contractors || x.techs)).sort((a, b) => Math.abs(b.contractors) - Math.abs(a.contractors) || (a.name < b.name ? -1 : 1));
-    return { fileChanged: p.asOf !== d.asOfDay, from: p.asOf || null, to: d.asOfDay, contractors: diff(d.total.contractors, p.contractors), techs: diff(d.total.techs, p.techs), new12: diff(d.total.new12, p.new12), counties };
+    const newest = (d.entrants && d.entrants.newest) || [], entered = p.maxNo != null ? newest.filter(x => x.no > p.maxNo) : [];
+    return { fileChanged: p.asOf !== d.asOfDay, from: p.asOf || null, to: d.asOfDay, contractors: diff(d.total.contractors, p.contractors), techs: diff(d.total.techs, p.techs), new12: diff(d.total.new12, p.new12), counties, entered, enteredMore: entered.length > 0 && entered.length === newest.length };
   }
   /* days between the file date and `now`: how old the picture is */
   const ageDays = (d, now) => d && d.asOf ? Math.max(0, Math.floor((+new Date(now || Date.now()) - +new Date(d.asOf)) / DAY)) : null;

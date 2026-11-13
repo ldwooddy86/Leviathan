@@ -1,6 +1,7 @@
 /* ==== src/00_core.js ==== */
 /* ==== core ==== */
 "use strict";
+try { const t = JSON.parse(localStorage.getItem('tda.theme')); if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t; } catch (e) { }     // before the first paint
 /* ============================ data ============================ */
 const DATA = window.__ATLAS_DATA__ || JSON.parse(document.getElementById('atlas-data').textContent);
 const META = DATA.meta;
@@ -26,8 +27,8 @@ const D = (v, d = 1) => isN(v) ? (+v).toFixed(d) : '—';
 const S = (v, d = 1) => isN(v) ? ((v > 0 ? '+' : '') + (+v).toFixed(d)) : '—';
 const P = (v, d = 1) => isN(v) ? (+v).toFixed(d) + '%' : '—';
 const M$ = v => isN(v) ? '$' + nf.format(Math.round(v)) : '—';
-const MM = v => { if (!isN(v)) return '—'; const a = Math.abs(v); return a >= 1e9 ? '$' + (v / 1e9).toFixed(2) + 'B' : a >= 1e6 ? '$' + (v / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M' : a >= 1e3 ? '$' + (v / 1e3).toFixed(a >= 1e5 ? 0 : 1) + 'K' : '$' + Math.round(v); };
-const K = v => { if (!isN(v)) return '—'; const a = Math.abs(v); return a >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : a >= 1e4 ? Math.round(v / 1e3) + 'k' : a >= 1e3 ? (v / 1e3).toFixed(1) + 'k' : String(Math.round(v)); };
+const MM = v => { if (!isN(v)) return '—'; const a = Math.abs(v); return a >= 999.5e6 ? '$' + (v / 1e9).toFixed(2) + 'B' : a >= 999500 ? '$' + (v / 1e6).toFixed(a >= 1e8 ? 0 : 1) + 'M' : a >= 1e3 ? '$' + (v / 1e3).toFixed(a >= 1e5 ? 0 : 1) + 'K' : '$' + Math.round(v); };
+const K = v => { if (!isN(v)) return '—'; const a = Math.abs(v); return a >= 999500 ? (v / 1e6).toFixed(2) + 'M' : a >= 1e4 ? Math.round(v / 1e3) + 'k' : a >= 1e3 ? (v / 1e3).toFixed(1) + 'k' : String(Math.round(v)); };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const isDark = () => { const t = document.documentElement.dataset.theme; if (t === 'dark') return true; if (t === 'light') return false; return matchMedia('(prefers-color-scheme: dark)').matches; };
@@ -54,8 +55,8 @@ const DASH_RE = /[‐-―−\-]/;
 function houseClean(s) {
   if (s == null) return s;
   return String(s)
+    .replace(/(\d)\s*[–-]\s*(\$?\d)/g, '$1 to $2')
     .replace(/\s*[—–―]\s*/g, ', ')
-    .replace(/(\d)\s*[–—-]\s*(\d)/g, '$1 to $2')
     .replace(/\bR-?(22|410A|454B|32|407C)\b/gi, (m, g) => 'R' + g.toUpperCase())
     .replace(/(\w)-(\w)/g, '$1 $2')
     .replace(/[‐-―−-]/g, ' ')
@@ -109,7 +110,7 @@ async function saveFile(filename, data) {
   const blob = data instanceof Blob ? data : new Blob([data], { type: /\.csv$/.test(filename) ? 'text/csv;charset=utf-8' : /\.json$/.test(filename) ? 'application/json' : /\.html?$/.test(filename) ? 'text/html;charset=utf-8' : 'text/plain;charset=utf-8' });
   const u = URL.createObjectURL(blob); const a = el('a', { href: u, download: filename }); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 2500); toast('Downloaded ' + filename);
 }
-const csvQ = v => { const s = v == null ? '' : String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const csvQ = v => { let s = v == null ? '' : String(v); if (typeof v !== 'number' && /^[=@\t\r]|^[+-](?!\$?[\d.,]*%?$)/.test(s)) s = "'" + s; return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
 function toCSV(header, rows, note) { return (note ? note.split('\n').map(l => '# ' + l).join('\n') + '\n' : '') + header.map(csvQ).join(',') + '\n' + rows.map(r => (Array.isArray(r) ? r : header.map(h => r[h])).map(csvQ).join(',')).join('\n') + '\n'; }
 const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
 function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
@@ -148,9 +149,10 @@ function dataTable(host, cols, rows, opts) {
   const get = (r, c) => c.v ? c.v(r) : r[c.k];
   const sorted = rows.slice().sort((a, b) => { const c = cols.find(x => x.k === st.k) || cols[0]; const va = get(a, c), vb = get(b, c); if (typeof va === 'string' || typeof vb === 'string') return st.dir * String(va || '').localeCompare(String(vb || '')); if (!isN(va) && !isN(vb)) return 0; if (!isN(va)) return 1; if (!isN(vb)) return -1; return st.dir * (va - vb); });
   const lim = opts.limit ? sorted.slice(0, opts.limit) : sorted;
-  host.innerHTML = `<table><thead><tr>${cols.map(c => `<th class="sort ${c.l ? 'l' : ''}" data-k="${c.k}" title="${esc(c.t || '')}">${c.h}${st.k === c.k ? (st.dir < 0 ? ' ↓' : ' ↑') : ''}</th>`).join('')}</tr></thead><tbody>${lim.map(r => `<tr class="${opts.rowClass ? opts.rowClass(r) : ''}${opts.onClick ? ' click' : ''}" data-id="${esc(opts.id ? opts.id(r) : '')}">${cols.map(c => `<td class="${c.l ? 'l' : ''} ${c.cls || ''}">${c.f ? c.f(get(c.raw ? { ...r } : r, c), r) : esc(get(r, c) ?? '—')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  $$('th.sort', host).forEach(th => th.onclick = () => { const k = th.dataset.k; st.dir = st.k === k ? -st.dir : (cols.find(c => c.k === k).l ? 1 : -1); st.k = k; dataTable(host, cols, rows, opts); });
-  if (opts.onClick) $$('tbody tr', host).forEach(tr => tr.onclick = () => opts.onClick(tr.dataset.id));
+  host.innerHTML = `<table><thead><tr>${cols.map(c => `<th class="sort ${c.l ? 'l' : ''}" data-k="${c.k}" tabindex="0" aria-sort="${st.k === c.k ? (st.dir < 0 ? 'descending' : 'ascending') : 'none'}" title="${esc(c.t || '')}">${c.h}${st.k === c.k ? (st.dir < 0 ? ' ↓' : ' ↑') : ''}</th>`).join('')}</tr></thead><tbody>${lim.map((r, i) => `<tr class="${opts.rowClass ? opts.rowClass(r) : ''}${opts.onClick ? ' click' : ''}"${opts.onClick ? ` tabindex="${i ? -1 : 0}"` : ''} data-id="${esc(opts.id ? opts.id(r) : '')}">${cols.map(c => `<td class="${c.l ? 'l' : ''} ${c.cls || ''}">${c.f ? c.f(get(c.raw ? { ...r } : r, c), r) : esc(get(r, c) ?? '—')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const sortBy = k => { st.dir = st.k === k ? -st.dir : (cols.find(c => c.k === k).l ? 1 : -1); st.k = k; dataTable(host, cols, rows, opts); };
+  $$('th.sort', host).forEach(th => { th.onclick = () => sortBy(th.dataset.k); th.onkeydown = e => { if (e.target === th && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); const k = th.dataset.k; sortBy(k); const n = $(`th[data-k="${k}"]`, host); if (n) n.focus(); } }; });
+  if (opts.onClick) $$('tbody tr', host).forEach(tr => { tr.onclick = () => opts.onClick(tr.dataset.id); tr.onkeydown = e => { if (e.target !== tr) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); const id = tr.dataset.id, i = tr.sectionRowIndex; opts.onClick(id); const rs = $$('tbody tr', host), n = rs.find(x => x.dataset.id === id) || rs[Math.min(i, rs.length - 1)]; if (n && n !== tr) { rs.forEach(x => x.tabIndex = -1); n.tabIndex = 0; n.focus(); } } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { const n = e.key === 'ArrowDown' ? tr.nextElementSibling : tr.previousElementSibling; if (n) { e.preventDefault(); tr.tabIndex = -1; n.tabIndex = 0; n.focus(); } } }; });
 }
 function wireSeg(host, cb) { $$('button', host).forEach(b => b.onclick = () => { $$('button', host).forEach(x => x.setAttribute('aria-pressed', String(x === b))); cb(b.dataset.v); }); }
 

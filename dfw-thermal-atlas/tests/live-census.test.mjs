@@ -56,7 +56,7 @@ test('the collector today: the compiled file is the latest, four small requests 
   assert.ok(fetch.calls.every(c => c.init.credentials === 'omit' && c.init.cache === 'no-store' && c.init.headers === undefined && !/key=/.test(c.url)));
   same(data, { v: 1, checked: '2026-11-13T18:43:00.000Z', compiled: 2024, latest: 2024, newer: false, state: 'current', published: true, api: null, key: 'none', firstSeen: null,
     years: [{ year: 2024, listed: true, title: 'ACS 5-Year Detailed Tables', modified: '2025-09-02', published: true }, { year: 2025, listed: false, published: false }], tables: null, stale: [] });
-  same(L.BY_ID.census_acs.digest(plain(data)), { latest: '2020 to 2024', compiled: '2020 to 2024', newer: 'no' });
+  same(L.BY_ID.census_acs.digest(plain(data)), { latest: '2020 to 2024', compiled: '2020 to 2024', newer: 'no', key: null }, 'no key saved: the key row stays out of the table');
   same(L.census.status(plain(data)), { state: 'current', compiled: '2020 to 2024', latest: '2020 to 2024', firstSeen: null, text: 'The stock model uses the latest American Community Survey five year file, 2020 to 2024.' });
   assert.ok(JSON.stringify(data).length < 600, 'a tiny record: ' + JSON.stringify(data).length);
 });
@@ -72,7 +72,7 @@ test('a newer file is out: listed by the catalogue, posted on the file server, i
   same(sent(fetch), [`GET ${API}/2024/acs/acs5.json`, `HEAD ${FILE(2024)}`, `GET ${API}/2025/acs/acs5.json`, `HEAD ${FILE(2025)}`, ...['B25040', 'B25117', 'B25034', 'B25035'].map(t => `GET ${API}/2025/acs/acs5/variables/${t}_001E.json`)]);
   same({ latest: data.latest, newer: data.newer, state: data.state, published: data.published, firstSeen: data.firstSeen, stale: data.stale }, { latest: 2025, newer: true, state: 'newer', published: true, firstSeen: '2026-12-10T15:00:00.000Z', stale: [] });
   same(data.tables, [{ id: 'B25040', name: 'House Heating Fuel', present: true }, { id: 'B25117', name: 'Tenure by House Heating Fuel', present: true }, { id: 'B25034', name: 'Year Structure Built', present: true }, { id: 'B25035', name: 'Median Year Structure Built', present: true }]);
-  same(L.BY_ID.census_acs.digest(plain(data)), { latest: '2021 to 2025', compiled: '2020 to 2024', newer: 'yes' });
+  same(L.BY_ID.census_acs.digest(plain(data)), { latest: '2021 to 2025', compiled: '2020 to 2024', newer: 'yes', key: null });
   same(L.census.status(plain(data)).text, 'A newer Census file is out: American Community Survey 2021 to 2025. The stock model, compiled from 2020 to 2024, can be rebuilt.');
   /* a week later: the day it was first seen is kept and the tables are not asked for again */
   const again = fakeFetch(routes(out)), second = await runOnce(L, again, { now: new Date('2026-12-17T15:00:00Z'), prev: plain(data) });
@@ -105,14 +105,15 @@ test('with a key: one data call confirms, and a key the Bureau refuses is report
   let fetch = fakeFetch(routes({ data: keyPage('invalid', INVALID) })), r = await runOnce(L, fetch, { key: 'abc123' });
   same(sent(fetch).slice(-1), ['GET ' + DATA]); assert.equal(fetch.calls.filter(c => /key=/.test(c.url)).length, 1, 'the key travels on the data call only');
   same([r.data.state, r.data.api, r.data.key, r.data.published], ['current', null, 'refused', true]); assert.ok(!JSON.stringify(r.data).includes('abc123'), 'the key is never stored');
+  same(L.BY_ID.census_acs.digest(plain(r.data)).key, 'not accepted', 'and the Live Data table says so');
   assert.match(L.census.status(plain(r.data)).text, /2020 to 2024\. The Census API did not accept the Census API key saved in Live Data settings\.$/);
   r = await runOnce(L, fakeFetch(routes()), { key: 'abc123' }); same(r.data.key, 'refused', 'the Missing Key page counts the same');
-  r = await runOnce(L, fakeFetch(routes({ data: { status: 500, body: 'x' } })), { key: 'abc123' }); same([r.data.api, r.data.key], [null, 'unknown']);
+  r = await runOnce(L, fakeFetch(routes({ data: { status: 500, body: 'x' } })), { key: 'abc123' }); same([r.data.api, r.data.key, L.BY_ID.census_acs.digest(plain(r.data)).key], [null, 'unknown', 'could not be checked']);
   r = await runOnce(L, fakeFetch(routes({ data: '<html>busy</html>' })), { key: 'abc123' }); same([r.data.api, r.data.key], [null, 'unknown']);
   /* No key was at hand to record a data answer. This one is hand made in the documented shape (a header row, then one row per
      place) with no estimate in it; the collector keeps nothing from the answer but the fact that it came. */
   const answer = [['NAME', 'B25040_001E', 'state', 'county'], ['Dallas County, Texas', null, '48', '113']];
-  r = await runOnce(L, fakeFetch(routes({ data: answer })), { key: 'abc123' }); same([r.data.api, r.data.key, r.data.state], [true, 'ok', 'current']);
+  r = await runOnce(L, fakeFetch(routes({ data: answer })), { key: 'abc123' }); same([r.data.api, r.data.key, r.data.state, L.BY_ID.census_acs.digest(plain(r.data)).key], [true, 'ok', 'current', 'accepted']);
   r = await runOnce(L, fakeFetch(routes({ data: [['NAME']] })), { key: 'abc123' }); same([r.data.api, r.data.key], [null, 'unknown'], 'an answer without the table is no confirmation');
   /* listed but not on the file server, and the data call for 2025 answers: confirmed by the API itself */
   fetch = fakeFetch(routes({ list25: LIST25, data: answer })); r = await runOnce(L, fetch, { key: 'abc123' });

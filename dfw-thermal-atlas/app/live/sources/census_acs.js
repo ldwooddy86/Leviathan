@@ -5,7 +5,8 @@
    and the Bureau's file server, where the summary file of the heating fuel table is posted (the 2024 file is stamped
    2026-01-29, its release day). With a Census API key it also confirms with one small data call: data calls have needed
    a key since May 2026 and redirect to a "Missing Key" page without one. It stores no estimates: two to five small
-   requests, under 1 KB stored. */
+   requests, under 1 KB stored. Until the next file is out, the catalogue and the file server each answer 404 for it:
+   that is the answer "not yet", not a failure (a browser still prints the two lines in its console). */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, API = 'https://api.census.gov/data', FILES = 'https://www2.census.gov/programs-surveys/acs/summary_file';
@@ -83,7 +84,7 @@
     about: 'Watches for the next American Community Survey five year file. The stock model (heating fuel, owner or renter, year built) is compiled from the 2020 to 2024 file; when a newer one is published this says so, and the model can be rebuilt.',
     hosts: ['api.census.gov', 'www2.census.gov'], cadence: 'weekly', cors: true, key: 'census', keyLabel: 'Census API key', keyUrl: 'https://api.census.gov/data/key_signup.html', keyRequired: false, grade: 'A',
     terms: 'U.S. Government work, public domain (the catalogue marks it CC0). This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.',
-    labels: { latest: ['Latest five year file', 'text'], compiled: ['File the stock model was compiled from', 'text'], newer: ['Newer file out', 'text'] },
+    labels: { latest: ['Latest five year file', 'text'], compiled: ['File the stock model was compiled from', 'text'], newer: ['Newer file out', 'text'], key: ['Census API key', 'text'] },
     async run(ctx) {
       const prev = ctx.prev && ctx.prev.v === V ? ctx.prev : null, now = ctx.now.toISOString(), years = [], stale = [];
       for (const y of candidates(ctx.now)) {
@@ -104,7 +105,8 @@
       const tables = !newer || top.listed !== true ? null : prev && prev.latest === latest && prev.tables && prev.tables.every(t => t.present === true) ? prev.tables : await tablesOf(ctx, latest);
       return { v: V, checked: now, compiled: COMPILED, latest, newer, state: !newer ? 'current' : confirmed ? 'newer' : 'listed', published: top.published, api: k.api, key: k.key, firstSeen: newer ? (prev && prev.latest === latest && prev.firstSeen) || now : null, years, tables, stale };
     },
-    digest(d) { return { latest: span(d.latest), compiled: span(d.compiled), newer: d.state === 'newer' ? 'yes' : d.state === 'listed' ? 'listed, not confirmed' : 'no' }; },
+    /* key stays out of the table until a key is saved */
+    digest(d) { return { latest: span(d.latest), compiled: span(d.compiled), newer: d.state === 'newer' ? 'yes' : d.state === 'listed' ? 'listed, not confirmed' : 'no', key: d.key === 'ok' ? 'accepted' : d.key === 'refused' ? 'not accepted' : d.key === 'unknown' ? 'could not be checked' : null }; },
   });
 
   /* ---------- reads ---------- */

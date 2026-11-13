@@ -195,6 +195,8 @@ test('a block that fails keeps last week\'s copy with its own through date; noth
   same([none.data.todate, none.data.blocks.W3, none.data.stale.W3], [null, null, null]); assert.equal(L.climate.status(none.data, BASE, NOW).metro.hdd, 29);
   const old = copy(prev); old.blocks = { W1: '2026-06-20', W2: '2026-06-20', W3: '2026-06-20', G1: '2026-06-18', G2: '2026-06-18' };
   const o = await runOnce(L, fakeFetch(routes({ W3: ERR_400, G1: ERR_EMPTY })), old); same([o.data.todate, o.data.grid, o.data.county, o.data.stale], [null, null, null, { W3: null, G1: null, G2: null }]);
+  /* a grid of another shape is a failed block, named like the others */
+  const odd = await runOnce(L, fakeFetch(routes({ G1: { data: [G1.data[0]] } }))); same([odd.data.grid, odd.data.errs.G1, odd.data.blocks.W2], [null, 'G1: the grid is not 40 by 62', '2026-11-12']);
   /* every request down: the run fails and the core keeps the last good record */
   await assert.rejects(() => runOnce(L, fakeFetch([[/./, { status: 503, body: 'down' }]]), prev), /W2: ACIS answered HTTP 503/);
   await assert.rejects(() => runOnce(L, fakeFetch(routes({ W1: ERR_EMPTY, W2: ERR_400, W3: ERR_400, G1: ERR_200 }))), /W2: ACIS answered HTTP 400/);

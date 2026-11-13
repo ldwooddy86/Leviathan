@@ -7,9 +7,10 @@
      W3  the same span in each of the 30 falls 1991 to 2020 (the rank of this season, freeze nights normal to date)
      G1  the PRISM grids (about 4 km) and county means of season heating degree days, freeze nights and the season minimum
      G2  the 30 fall mean of the same span for the grid and the counties
-   About 40 KB on the wire and 80 to 115 KB stored. Every block stands alone: one that fails keeps last week's copy, with its
-   own through date in data.stale (data.blocks holds the through date of every block). History is not asked for twice: W3 and
-   G2 are reused when the day they cover is already stored. The run fails only when none of W1, W2 and G1 came back. */
+   About 33 KB on the wire (205 KB decoded) and 75 to 115 KB stored. Every block stands alone: one that fails keeps last
+   week's copy, with its own through date in data.stale (data.blocks holds the through date of every block). History is not
+   asked for twice: W3 and G2 are reused when the day they cover is already stored. The run fails only when none of W1, W2
+   and G1 came back. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, API = 'https://data.rcc-acis.org/', V = 1;
@@ -163,7 +164,7 @@
       /* last week's copy of a block, when it is there and belongs to this season; the block is then marked stale with its own through date */
       const HAS = { W1: p => p.daily && p.daily.tn, W2: p => p.std && p.std.cols, W3: p => p.todate && p.todate.hdd, G1: p => p.grid && p.grid.hdd, G2: p => p.grid && p.grid.hddNorm };
       const kept = id => (prev && prev.blocks[id] && prev.blocks[id] >= sp.start && HAS[id](prev) ? prev.blocks[id] : null);
-      const miss = (id, e) => { errs[id] = String((e && e.message) || e).slice(0, 200); stale[id] = blocks[id] = kept(id); return blocks[id]; };
+      const miss = (id, e) => { const m = String((e && e.message) || e); errs[id] = (m.indexOf(id + ':') === 0 ? m : id + ': ' + m).slice(0, 200); stale[id] = blocks[id] = kept(id); return blocks[id]; };
       let daily = null, std = null, todate = null, g1 = null, g2 = null;
 
       /* W1: the airports day by day. It also shows whether yesterday has arrived: when DFW Airport or most of the airports do not

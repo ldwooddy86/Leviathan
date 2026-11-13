@@ -51,6 +51,10 @@ test('equipment: consumer furnaces and heat pumps stay, commercial equipment and
   for (const n of ['2026-21443', '2026-13674', '2026-13673', '2025-22643', '2025-17262', '2025-12383', '2025-03839', '2025-00987', '2024-31214', '2024-30369', '2024-28474']) assert.equal(eq(by(n)), null, n + ' only mentions the words in passing');
   /* the edges of the rule, on records in the register's shape */
   assert.equal(eq(rec('Energy Conservation Program: Energy Conservation Standards for Consumer Furnaces', DOE, ['10/430'])), 'furnace');
+  assert.equal(eq(rec('Energy Conservation Program: Energy Conservation Standards for Commercial Water Heating Equipment and Consumer Furnaces; Compliance Dates', DOE, ['10/430', '10/431'])), 'furnace', 'the document the 2026 petition asks for would name both rules: it must not be lost to the water heaters or to part 431');
+  assert.equal(eq(rec('Energy Conservation Program: Request for Information on Consumer Furnaces', DOE, [])), 'furnace', 'a title that names the product needs no CFR citation');
+  assert.equal(eq(rec('Energy Conservation Program: Test Procedures for Commercial Warm Air Furnaces', DOE, [])), null, 'commercial by its title alone');
+  assert.equal(eq(rec('Energy Conservation Program: Notification of Petition for Rulemaking', DOE, [], 'A petition about consumer furnaces.')), null, 'an abstract alone counts only with the consumer parts cited');
   assert.equal(eq(rec('Energy Conservation Program: Test Procedure for Central Air Conditioners and Heat Pumps', DOE, ['10/429'])), 'heatpump', 'the certification part alone is still consumer equipment');
   assert.equal(eq(rec('Energy Conservation Program: Test Procedure for Water-Source Heat Pumps', DOE, ['10/429', '10/431'])), null, 'commercial once part 431 is cited without part 430');
   assert.equal(eq(rec('Energy Conservation Program: Energy Conservation Standards for Single Package Vertical Heat Pumps', DOE, ['10/431'])), null);
@@ -186,6 +190,20 @@ test('failure modes: nothing answers, a page instead of JSON, the access check, 
   same({ stale: one.data.stale, n: one.data.docs.length }, { stale: ['equipment', 'advertising', 'credit', 'standing'], n: 6 }, 'one search answering is enough for a record');
   const net = await runOnce(L, fakeFetch([[/federal-trade-commission/, new TypeError('Failed to fetch')], ...routes()]));
   same(net.data.stale, ['advertising']);
+});
+
+test('a site that does not answer at all is asked twice, not five times', async () => {
+  const L = fresh(); const dead = fakeFetch([[/./, new TypeError('Failed to fetch')]]);
+  await assert.rejects(() => runOnce(L, dead), /Failed to fetch/);
+  assert.equal(dead.calls.length, 4, 'two searches, each tried twice, then it stops');
+  /* the first search answers, the next two meet silence: the rest keep last week\'s documents */
+  const full = (await runOnce(L, fakeFetch(routes()))).data;
+  const half = fakeFetch([[/energy-department/, EQUIP], [/./, new TypeError('Failed to fetch')]]);
+  const { data } = await runOnce(L, half, copy(full));
+  assert.equal(half.calls.length, 5, 'one answer, then two searches tried twice each');
+  same({ stale: data.stale, n: data.docs.length, failed: data.failed }, { stale: ['refrigerant', 'advertising', 'credit', 'standing'], n: 24, failed: 4 });
+  /* an error status is an answer of a kind: the next search is still asked */
+  const busy = fakeFetch([[/./, { status: 500, body: 'x' }]]); await assert.rejects(() => runOnce(L, busy), /HTTP 500/); assert.equal(busy.calls.length, 10, 'five searches, each tried twice');
 });
 
 test('the list is capped at 60 and the standing rules survive the cap', async () => {

@@ -13,8 +13,8 @@
   /* the abstract is asked for only where the topic is read from it (equipment and credits) */
   const FIELDS = ['document_number', 'publication_date', 'type', 'title', 'html_url', 'effective_on', 'comments_close_on', 'action', 'agencies', 'cfr_references'];
   const tail = abs => FIELDS.concat(abs ? ['abstract'] : []).map(f => 'fields[]=' + f).join('&');
-  /* a second between calls. The site turns automated readers of its full text pages away to an access check; the API answers. */
-  const OPT = { gapMs: 1100, retries: 2, timeoutMs: 25000, expectFinalUrl: u => /^https:\/\/www\.federalregister\.gov\/api\//.test(u) };
+  /* a second between calls and one retry. The site turns automated readers of its full text pages away to an access check; the API answers. */
+  const OPT = { gapMs: 1100, retries: 1, timeoutMs: 20000, expectFinalUrl: u => /^https:\/\/www\.federalregister\.gov\/api\//.test(u) };
   /* Standing rules by document number, each seen in a live answer on 2026-11-13: the consumer furnace standard (95 percent AFUE
      for gas furnaces, compliance from 2028-12-18), the technology transitions rule for hydrofluorocarbons and the rule on
      managing them in service work, the rule on consumer reviews and testimonials, and the rule on unfair or deceptive fees. */
@@ -44,14 +44,18 @@
   const parts = (r, title) => ((r && r.cfr_references) || []).filter(c => c && +c.title === title && c.part != null).map(c => String(c.part));
   const slugs = r => ((r && r.agencies) || []).map(a => (a && a.slug) || '');
   const agencyOf = r => { const s = slugs(r), k = Object.keys(AGENCY).find(x => s.includes(x)), a = ((r && r.agencies) || [])[0] || {}; return k ? AGENCY[k] : clean(a.name || a.raw_name).slice(0, 60); };
-  const FURNACE = /furnace/i, HEATPUMP = /heat pump|central air conditioner/i, OTHER_APPLIANCE = /water heat|pool heat|dryer|room air|portable air/i;
-  /* Energy Department documents count when they amend the consumer product rules (10 CFR 430, or 429 alone: 431 is commercial
-     equipment) and the title names the product; a title that names no product counts when the abstract names it. */
+  /* Consumer equipment only. Energy Department rules for consumer products sit in 10 CFR 430 (429 is certification) and those
+     for commercial equipment in 431: a document that cites 431 without 430, or whose title says commercial and not consumer,
+     is not ours. A title that names the product decides the topic (a heat pump water heater or dryer is not a heat pump); a
+     title that names no product of ours counts when the abstract names it and the consumer parts are cited. */
+  const OTHER_APPLIANCE = /water heat|pool heat|dryer|room air|portable air/i;
   function equipment(r) {
-    const t = clean(r.title), a = clean(r.abstract), p = parts(r, 10);
-    if (slugs(r).includes('energy-department') && !(p.includes('430') || (p.includes('429') && !p.includes('431')))) return null;
-    const hit = FURNACE.test(t) ? 'furnace' : HEATPUMP.test(t) ? 'heatpump' : null;
-    if (hit) return OTHER_APPLIANCE.test(t) ? null : hit;
+    const t = clean(r.title), a = clean(r.abstract), p = parts(r, 10), doe = slugs(r).includes('energy-department');
+    if ((doe && p.includes('431') && !p.includes('430')) || (/commercial/i.test(t) && !/consumer|residential/i.test(t))) return null;
+    if (/furnace/i.test(t)) return 'furnace';
+    if (/central air conditioner/i.test(t)) return 'heatpump';
+    if (/heat pump/i.test(t)) return OTHER_APPLIANCE.test(t) ? null : 'heatpump';
+    if (doe && !p.includes('430') && !p.includes('429')) return null;
     return /consumer furnace|residential furnace/i.test(a) ? 'furnace' : /central air conditioners? and heat pumps?/i.test(a) ? 'heatpump' : null;
   }
   const refrigerant = r => (parts(r, 40).includes('84') ? 'refrigerant' : null);
@@ -111,17 +115,20 @@
 
   L.register({
     id: 'fedreg_rules', name: 'Federal rules on heating equipment, refrigerants and advertising', publisher: 'Office of the Federal Register (National Archives)', page: 'https://www.federalregister.gov/',
-    about: 'Rules, proposed rules and notices of the last 24 months on consumer furnaces and heat pumps (Energy Department), refrigerants (Environmental Protection Agency), the residential energy credits, and reviews, fees and recurring plans in advertising (Federal Trade Commission), plus the standing rules still in force. Feeds the rules watch in the Heat Desk and keeps offers and copy in step with what is in force.',
+    about: 'Federal Register documents of the last 24 months on consumer furnaces and heat pumps, refrigerants, the residential energy credits, and reviews, fees and recurring plans in advertising, plus the standing rules still in force. Keeps heating offers and ad copy in step with the rules: which equipment may be sold, which dates are coming, which claims are regulated.',
     hosts: ['www.federalregister.gov'], cadence: 'weekly', cors: true, grade: 'A', terms: 'U.S. Government work, public domain. No key.',
     labels: { last90: ['Documents published in the last 90 days', 'int'], newest: ['Newest document', 'text'], effective180: ['Rules taking effect in the next 180 days', 'int'] },
     async run(ctx) {
       const prev = ctx.prev && Array.isArray(ctx.prev.docs) ? ctx.prev : null, through = ET.format(ctx.now), since = monthsBack(through, MONTHS);
-      const seen = {}, stale = []; let answered = 0, lastErr = null;
+      const seen = {}, stale = []; let answered = 0, lastErr = null, silent = 0;
       /* a fresh record replaces what is there and a standing rule stays marked; a record kept from the last run only fills a gap */
       const add = (d, fill) => { const o = seen[d.id]; if (!o) seen[d.id] = d; else if (fill) { if (d.pin) o.pin = true; } else seen[d.id] = Object.assign({}, o, d, o.pin || d.pin ? { pin: true } : null); };
       for (const b of BLOCKS) {
-        try { pick(await ask(ctx.http, b.url(since)), b).forEach(d => { if (b.pin || d.d >= since) add(d); }); answered++; }      /* the window is checked here too, not left to the server */
-        catch (e) { lastErr = e; stale.push(b.key); if (prev) prev.docs.filter(d => (b.pin ? d.pin : b.topics.includes(d.topic) && d.d >= since)).forEach(d => add(d, true)); }
+        try {
+          if (silent >= 2) throw lastErr;                                                                     /* two requests in a row met silence (no answer at all): the site is down, stop asking */
+          pick(await ask(ctx.http, b.url(since)), b).forEach(d => { if (b.pin || d.d >= since) add(d); });      /* the window is checked here too, not left to the server */
+          answered++; silent = 0;
+        } catch (e) { lastErr = e; silent = e && e.status ? 0 : silent + 1; stale.push(b.key); if (prev) prev.docs.filter(d => (b.pin ? d.pin : b.topics.includes(d.topic) && d.d >= since)).forEach(d => add(d, true)); }
       }
       if (!answered) throw lastErr || new Error('no Federal Register search answered');
       const all = Object.values(seen).sort(newestFirst), pins = all.filter(d => d.pin);

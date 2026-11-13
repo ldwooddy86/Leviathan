@@ -6,7 +6,7 @@ const GEO = DATA.geo;
 function proj(lon, lat) { return [(lon - GEO.minx) * GEO.kx * GEO.sx, (GEO.maxy - lat) * GEO.sx]; }
 const COUNTY_LABEL = (() => {
   const out = {}; FIPS.forEach(f => { const zs = Z.filter(z => z.fips === f && isN(z.lat)); if (!zs.length) return; const w = zs.map(z => Math.max(1, z.sqmi || 1)); const sw = sum(w); const lat = sum(zs.map((z, i) => z.lat * w[i])) / sw, lon = sum(zs.map((z, i) => z.lon * w[i])) / sw; out[f] = proj(lon, lat); });
-  const nudge = { '48113': [0, -40], '48439': [-60, 60], '48085': [0, -40], '48121': [-40, -60] };
+  const nudge = { '48113': [0, -85], '48439': [-60, 60], '48085': [0, -85], '48121': [-40, -60], '48221': [0, -45], '48231': [0, -45], '48251': [0, -45], '48257': [0, -45], '48367': [0, -45], '48397': [0, 45], '48497': [0, 45] };
   Object.keys(nudge).forEach(f => { if (out[f]) { out[f] = [out[f][0] + nudge[f][0], out[f][1] + nudge[f][1]]; } });
   return out;
 })();
@@ -37,6 +37,7 @@ class ZipMap {
     if (this.o.labels) {
       Object.entries(COUNTY_LABEL).forEach(([f, [x, y]]) => { const g = svgEl('g'); const t = svgEl('text', { class: 'lab ct', 'text-anchor': 'middle' }, CNAME(f)); g.appendChild(t); this.gL.appendChild(g); this.labels.push({ g, x, y }); });
       MAP_CITIES.forEach(c => { const g = svgEl('g'); const t = svgEl('text', { class: 'lab' + (c.major ? ' mj' : ''), 'text-anchor': 'middle', dy: '-6' }, c.name); const dot = svgEl('circle', { r: c.major ? 3.2 : 2.2, fill: cssv('--ink-2') }); g.appendChild(dot); g.appendChild(t); this.gL.appendChild(g); this.labels.push({ g, x: c.x, y: c.y, dot }); });
+      if (document.fonts) document.fonts.addEventListener('loadingdone', () => { this._lk = ''; this.apply(); });
     }
     this.wire(); this.apply();
     if (window.ResizeObserver) { this.ro = new ResizeObserver(() => this.apply()); this.ro.observe(svg); }
@@ -48,6 +49,11 @@ class ZipMap {
     this.labels.forEach(l => l.g.setAttribute('transform', `translate(${l.x} ${l.y}) scale(${s})`));
     this.pinsData.forEach(p => p.g.setAttribute('transform', `translate(${p.x} ${p.y}) scale(${s})`));
     this.gL.style.display = this.o.labels ? '' : 'none';
+    const key = (this.svg.clientWidth | 0) + ':' + this.k.toFixed(2); if (this.o.labels && key !== this._lk) { this._lk = key; this.declutter(); }
+  }
+  declutter() {
+    const kept = [];
+    this.labels.map((l, i) => [l.dot ? i : 1000 + i, l]).sort((a, b) => a[0] - b[0]).forEach(([, l]) => { l.g.style.display = ''; const r = l.g.getBoundingClientRect(); const hit = r.width > 0 && kept.some(q => r.left < q.right && q.left < r.right && r.top < q.bottom && q.top < r.bottom); l.g.style.display = hit ? 'none' : ''; if (!hit) kept.push(r); });
   }
   zoomAt(mx, my, f) { const nk = clamp(this.k * f, 1, 14), rf = nk / this.k; this.tx = mx - (mx - this.tx) * rf; this.ty = my - (my - this.ty) * rf; this.k = nk; if (this.k <= 1.001) { this.k = 1; this.tx = 0; this.ty = 0; } this.apply(); }
   reset() { this.k = 1; this.tx = 0; this.ty = 0; this.apply(); }

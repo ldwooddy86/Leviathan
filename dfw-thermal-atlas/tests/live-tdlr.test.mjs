@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { context, load, fakeFetch, same, plain, ROOT } from './helpers/load.mjs';
 
 /* Answers recorded from data.texas.gov on 2026-11-13, when the license file was the one uploaded 2026-10-19. The newest
-   list is cut to its first 12 rows; the error file is the portal's real answer to a query that names a missing column. */
+   list is cut to the first 12 of its 40 rows; the error file is the portal's real answer to a query that names a missing column. */
 const raw = n => readFileSync(join(ROOT, 'tests', 'fixtures', 'tdlr', n), 'utf8'), fx = n => JSON.parse(raw(n));
 const META = fx('metadata-2026-11-13.json'), COUNTS = fx('counts-by-county-2026-11-13.json'), TEXAS = fx('texas-totals-2026-11-13.json'), ENTRANTS = fx('entrants-by-county-2026-11-13.json'), NEWEST = fx('newest-2026-11-13.json'), NO_COLUMN = raw('error-no-such-column-2026-11-13.json');
 const fresh = () => load(context(), 'live/core.js', 'live/geo.js', 'live/sources/tdlr_licenses.js').TDA_LIVE;
@@ -51,7 +51,7 @@ test('queries: counted on the server, every date taken from the file date', () =
   p = qs(Q.entrants);
   same([p.get('$select'), p.get('$where'), p.get('$group')], [`business_county,count(*) as n,min(${KEY}) as lo`, `license_type='A/C Contractor' and ${IN12} and license_number::number>156844`, 'business_county']);
   p = qs(Q.newest);
-  same([p.get('$select'), p.get('$where'), p.get('$order'), p.get('$limit')], [`license_number,business_name,business_county,license_subtype,${D}`, `license_type='A/C Contractor' and ${IN12} and license_number::number>156844`, 'license_number::number DESC', '25']);
+  same([p.get('$select'), p.get('$where'), p.get('$order'), p.get('$limit')], [`license_number,business_name,business_county,license_subtype,${D}`, `license_type='A/C Contractor' and ${IN12} and license_number::number>156844`, 'license_number::number DESC', '40']);
   const winter = L.tdlr.queries('2026-12-18', names);
   assert.ok(qs(winter.counts).get('$select').includes(`${KEY}>='20261218' and ${KEY}<='20270318'`), '90 days on, across the new year');
   same([winter.entrants, winter.newest], [null, null], 'no number line, no entrant queries');
@@ -109,7 +109,7 @@ test('the collector: five plain GETs when the file is new, the exact queries, a 
   const Q = L.tdlr.queries('2026-10-19', L.geo.counties.map(c => c.name), 156844);
   same(fetch.calls.map(c => c.url), ['https://data.texas.gov/api/views/metadata/v1/7358-krk7', Q.counts, Q.texas, Q.entrants, Q.newest]); assert.equal(http.stats.n, 5);
   assert.ok(fetch.calls.every(c => c.init.method === 'GET' && c.init.credentials === 'omit' && c.init.cache === 'no-store' && c.init.headers === undefined && c.init.body === undefined), 'no cookies and no custom header, so a web page needs no preflight');
-  same({ v: data.v, asOf: data.asOf, asOfDay: data.asOfDay, checked: data.checked, badDates: data.badDates, stale: data.stale }, { v: 1, asOf: '2026-10-19T18:51:17Z', asOfDay: '2026-10-19', checked: '2026-11-13T18:40:00.000Z', badDates: 0, stale: [] });
+  same({ v: data.v, asOf: data.asOf, asOfDay: data.asOfDay, checked: data.checked, before: data.before, badDates: data.badDates, stale: data.stale }, { v: 1, asOf: '2026-10-19T18:51:17Z', asOfDay: '2026-10-19', checked: '2026-11-13T18:40:00.000Z', before: null, badDates: 0, stale: [] });
   same(data.total, { contractors: 4855, classA: 2529, comfort: 4712, techs: 10974, certified: 1083, expiring90: 805, lapsed: 337, new12: 247 });
   same(data.texas, { asOf: '2026-10-19T18:51:17Z', contractors: 19123, techs: 41271 });
   same({ asOf: data.entrants.asOf, after: data.entrants.after, from: data.entrants.from, total: data.entrants.total, newest: data.entrants.newest.length }, { asOf: '2026-10-19T18:51:17Z', after: 156844, from: '2025-10-19', total: 247, newest: 12 });
@@ -117,10 +117,15 @@ test('the collector: five plain GETs when the file is new, the exact queries, a 
   assert.ok(data.counties.every(c => c.contractorsPer10kHomes === null), 'the page fills contractors per home from its own housing counts');
   assert.match(data.basis, /^Counted from the TDLR All Licenses file as published on October 19, 2026\. Active: /);
   const g = L.BY_ID.tdlr_licenses.digest(plain(data));
-  same({ contractors: g.contractors, techs: g.techs, top: g.top, new12: g.new12, asOf: g.asOf }, { contractors: 4855, techs: 10974, top: 'Dallas (1,639)', new12: 247, asOf: '2026-10-19' });
+  same({ contractors: g.contractors, techs: g.techs, top: g.top, new12: g.new12, asOf: g.asOf, maxNo: g.maxNo }, { contractors: 4855, techs: 10974, top: 'Dallas (1,639)', new12: 247, asOf: '2026-10-19', maxNo: 169943 });
   same([Object.keys(g.by).length, g.by.Dallas, g.by.Wise], [12, [1639, 3737], [63, 127]]);
   assert.ok(Object.keys(L.BY_ID.tdlr_licenses.labels).every(k => g[k] != null), 'every label has a digest value');
   const size = JSON.stringify(data).length; assert.ok(size < 9000, 'the stored record stays small: ' + size); assert.ok(!/<\/script/i.test(JSON.stringify(data)));
+  /* the worst case: all 40 newest holders, every name at the 60 character cap and carrying markup */
+  const forty = Array.from({ length: 40 }, (_, i) => Object.assign({}, NEWEST[i % 12], { license_number: String(169943 - i), business_name: '</script><b>' + 'X'.repeat(80) }));
+  const big = (await runOnce(L, fakeFetch(routes({ newest: forty })))).data, bigSize = JSON.stringify(big).length;
+  assert.equal(big.entrants.newest.length, 40); assert.ok(big.entrants.newest.every(x => x.name.length === 60 && !/[<>]/.test(x.name)));
+  assert.ok(bigSize < 12000, 'even then: ' + bigSize); assert.ok(!/<\/script/i.test(JSON.stringify(big)), 'a name can never close the script tag the baseline is baked into');
 });
 
 test('the same file a week later costs one request; a new file is counted again with its own dates', async () => {
@@ -137,6 +142,11 @@ test('the same file a week later costs one request; a new file is counted again 
   assert.match(third.data.basis, /published on November 19, 2026\./);
   same(third.data.stale.map(s => [s.block, s.kept]), [['entrants', '2026-10-19T18:51:17Z']]); assert.match(third.data.stale[0].why, /license numbers above 156844 do not span a year \(first expiration 2026-10-22\)/);
   same(third.data.entrants, first.entrants); assert.equal(third.data.total.new12, 247);
+  /* the file it replaced is remembered, and stays remembered through the weeks in which nothing new is uploaded */
+  same(third.data.before, plain(L.BY_ID.tdlr_licenses.digest(first)), 'the headline numbers of the October file');
+  same(L.tdlr.change(plain(third.data)), { fileChanged: true, from: '2026-10-19', to: '2026-11-19', contractors: 0, techs: 0, new12: 0, counties: [], entered: [], enteredMore: false }, 'the same rows under a new date: nothing moved');
+  const nov = Object.assign({}, plain(third.data), { stale: [] }), week = fakeFetch(routes({ meta: Object.assign({}, META, { dataUpdatedAt: '2026-11-19T19:02:44+0000' }) })), fourth = await runOnce(L, week, nov, new Date('2026-11-27T12:00:00Z'));
+  assert.equal(week.calls.length, 1); same(fourth.data.before, third.data.before, 'carried through an unchanged week');
 });
 
 test('partial failure: the county counts stand, the block that failed is kept from the last run and named', async () => {
@@ -146,7 +156,7 @@ test('partial failure: the county counts stand, the block that failed is kept fr
   assert.equal(cold.http.stats.n, 4, 'file date, counts and two tries at the Texas totals; without the number line the entrants are not asked for');
   same([cold.data.total.contractors, cold.data.total.techs, cold.data.total.new12, cold.data.texas, cold.data.entrants], [4855, 10974, null, null, null]); assert.ok(cold.data.counties.every(c => c.new12 === null));
   same(cold.data.stale.map(s => [s.block, s.kept]), [['texas', null], ['entrants', null]]); assert.match(cold.data.stale[0].why, /HTTP 500 from data\.texas\.gov/); assert.match(cold.data.stale[1].why, /did not give the license number/);
-  const g = L.BY_ID.tdlr_licenses.digest(plain(cold.data)); same([g.contractors, g.new12, g.top], [4855, null, 'Dallas (1,639)']);
+  const g = L.BY_ID.tdlr_licenses.digest(plain(cold.data)); same([g.contractors, g.new12, g.top, g.maxNo], [4855, null, 'Dallas (1,639)', null]);
   /* with a run of the September file behind it, the September blocks are kept and dated */
   const sep = '2026-09-19T20:58:00Z', older = Object.assign({}, first, { asOf: sep, asOfDay: '2026-09-19', texas: Object.assign({}, first.texas, { asOf: sep }), entrants: Object.assign({}, first.entrants, { asOf: sep }) });
   const warm = await runOnce(L, down(), older);
@@ -176,10 +186,16 @@ test('reads: contractors per 10,000 homes from the page\'s own housing counts, a
   same([by.Dallas.techsPerContractor, by.Dallas.contractors, by.Dallas.new12], [2.3, 1639, 68]); assert.ok(Math.abs(by.Dallas.newShare - 68 / 1639) < 1e-12);
   assert.equal(L.tdlr.byCounty(data).Dallas.contractorsPer10kHomes, null); same(L.tdlr.byCounty(null), {}); assert.equal(data.counties[1].contractorsPer10kHomes, null, 'the stored record is not touched');
   const digest = plain(L.BY_ID.tdlr_licenses.digest(data));
-  same(L.tdlr.change(data, digest), { fileChanged: false, from: '2026-10-19', to: '2026-10-19', contractors: 0, techs: 0, new12: 0, counties: [] });
-  const before = plain(digest); before.asOf = '2026-09-19'; before.contractors -= 12; before.techs += 30; before.new12 = null; before.by.Dallas = [1630, 3767]; before.by.Hood = [55, 104];
-  same(L.tdlr.change(data, before), { fileChanged: true, from: '2026-09-19', to: '2026-10-19', contractors: 12, techs: -30, new12: null, counties: [{ name: 'Dallas', contractors: 9, techs: -30 }, { name: 'Hood', contractors: -3, techs: 0 }] });
-  same([L.tdlr.change(data, null), L.tdlr.change(null, digest), L.tdlr.change(data, {})], [null, null, null]);
+  same(L.tdlr.change(data, digest), { fileChanged: false, from: '2026-10-19', to: '2026-10-19', contractors: 0, techs: 0, new12: 0, counties: [], entered: [], enteredMore: false });
+  /* against the digest of a September file whose highest license number was 169529 (issued 2026-10-06 in the recorded list) */
+  const before = plain(digest); before.asOf = '2026-09-19'; before.contractors -= 12; before.techs += 30; before.new12 = null; before.by.Dallas = [1630, 3767]; before.by.Hood = [55, 104]; before.maxNo = 169529;
+  const ch = L.tdlr.change(data, before);
+  same({ fileChanged: ch.fileChanged, from: ch.from, to: ch.to, contractors: ch.contractors, techs: ch.techs, new12: ch.new12, counties: ch.counties, enteredMore: ch.enteredMore }, { fileChanged: true, from: '2026-09-19', to: '2026-10-19', contractors: 12, techs: -30, new12: null, counties: [{ name: 'Dallas', contractors: 9, techs: -30 }, { name: 'Hood', contractors: -3, techs: 0 }], enteredMore: false });
+  same(ch.entered.map(x => [x.no, x.county, x.issued]), [[169943, 'Rockwall', '2026-10-16'], [169942, 'Tarrant', '2026-10-16'], [169876, 'Dallas', '2026-10-15'], [169874, 'Tarrant', '2026-10-15'], [169825, 'Dallas', '2026-10-14'], [169586, 'Dallas', '2026-10-07'], [169580, 'Ellis', '2026-10-07'], [169531, 'Tarrant', '2026-10-06']], 'who entered since the previous file, newest first');
+  before.maxNo = 100; assert.equal(L.tdlr.change(data, before).enteredMore, true, 'every listed holder is new: there may be more than the list shows');
+  delete before.maxNo; same(L.tdlr.change(data, before).entered, [], 'a digest from before the number was kept names nobody');
+  same([L.tdlr.change(data, null), L.tdlr.change(data), L.tdlr.change(null, digest), L.tdlr.change(data, {})], [null, null, null, null], 'a first file has nothing before it');
+  const dataWithBefore = Object.assign({}, data, { before }); same(L.tdlr.change(dataWithBefore).entered.length, 0, 'data.before is the default comparison'); assert.equal(L.tdlr.change(dataWithBefore).contractors, 12);
   same([L.tdlr.ageDays(data, NOW), L.tdlr.ageDays(data, '2026-10-19T19:00:00Z'), L.tdlr.ageDays(null, NOW)], [24, 0, null]);
 });
 

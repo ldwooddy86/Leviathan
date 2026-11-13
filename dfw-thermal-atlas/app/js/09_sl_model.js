@@ -54,7 +54,7 @@ const SLM = (() => {
       landlord: { ticket: 1100, margin: 50, pipe: 8, cpcMult: 0.80, cvr: 3.5, close: 45, lsaCpl: null, metaCpl: 90 },
     }
   };
-  let A = (() => { const s = store.get('tda.sl.v1', null); const a = JSON.parse(JSON.stringify(DEF)); if (s && typeof s === 'object') { if (isN(s.cpc)) a.cpc = s.cpc; if (isN(s.budget)) a.budget = s.budget; if (isN(s.alpha)) a.alpha = s.alpha; Object.assign(a.rates, s.rates || {}); Object.keys(a.lines).forEach(k => Object.assign(a.lines[k], (s.lines || {})[k] || {})); } return a; })();
+  let A = (() => { const s = store.get('tda.sl.v1', null); const a = JSON.parse(JSON.stringify(DEF)); if (s && typeof s === 'object') { if (isN(s.cpc)) a.cpc = s.cpc; if (isN(s.budget)) a.budget = s.budget; if (isN(s.alpha)) a.alpha = s.alpha; Object.assign(a.rates, s.rates || {}); Object.keys(a.lines).forEach(k => { Object.assign(a.lines[k], (s.lines || {})[k] || {}); if (a.lines[k].ticket == null) a.lines[k].ticket = DEF.lines[k].ticket; }); } return a; })();
   const save = () => store.set('tda.sl.v1', A);
   const TICK_MED = DATA.tickets.median || 12599;
   const tadj = z => clamp((z.ticket || TICK_MED) / TICK_MED, 0.75, 1.55);
@@ -217,7 +217,7 @@ const SLM = (() => {
     const ids = lineIds || BASE.map(l => l.id); const zs = scope || ZR; const set = new Set(zs.map(z => z.zip));
     const rows = ids.map(id => { const line = LI[id]; const gp = sum(ZR.filter(z => set.has(z.zip)).map(z => SLZ[z.zip][id].gp)); const s = month == null ? 100 : line.months[month]; const u = unitEcon(line, null); const lev = u.gpRoas || 0.01; return { line, gp, season: s, u, w: Math.pow(Math.max(1, gp * s / 100 * lev), alpha == null ? A.alpha : alpha) }; });
     const W = sum(rows.map(r => r.w)) || 1;
-    rows.forEach(r => { r.budget = budget * r.w / W; r.leads = r.u.cpl ? r.budget / r.u.cpl : 0; r.jobs = r.leads * r.u.close / 100; r.rev = r.jobs * r.u.ticket; r.gpOut = r.jobs * r.u.gpPerJob; r.cap = r.gp * (month == null ? 1 : r.season / 100 / 12); r.share = r.cap > 0 ? r.jobs / Math.max(1e-9, sum(zs.map(z => SLZ[z.zip][r.line.id].jobs)) * (month == null ? 1 : r.season / 100 / 12)) : 0; });
+    rows.forEach(r => { r.budget = budget * r.w / W; r.leads = r.u.cpl ? r.budget / r.u.cpl : 0; r.jobs = r.leads * r.u.close / 100; r.rev = r.jobs * r.u.ticket; r.gpOut = r.jobs * r.u.gpPerJob; r.cap = r.gp * (month == null ? 1 / 12 : r.season / 100 / 12); r.share = r.cap > 0 ? r.jobs / Math.max(1e-9, sum(zs.map(z => SLZ[z.zip][r.line.id].jobs)) * (month == null ? 1 / 12 : r.season / 100 / 12)) : 0; });
     return rows.sort((a, b) => b.budget - a.budget);
   }
   /* ---------- layer catalog additions for modules 01 and 05 ---------- */

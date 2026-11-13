@@ -17,6 +17,7 @@
   /* ---------- dates: plain 'YYYY-MM-DD' and 'YYYY-MM' strings ---------- */
   const FMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' });
   const today = now => FMT.format(new Date(now));                                         // the calendar day in Dallas Fort Worth
+  const month = now => today(now).slice(0, 7);                                            // and its month key
   const utcDay = ms => new Date(ms).toISOString().slice(0, 10);
   /* A permit date as the cities store it: milliseconds at midnight UTC of the permit's day (Fort Worth) or at local midnight
      written in UTC, five or six hours later (Irving), or a plain date string. The UTC calendar day is the permit's day in each. */
@@ -82,71 +83,83 @@
   }
   const zipOf = v => { const m = /^(\d{5})(?:\D|$)/.exec(String(v == null ? '' : v).trim()); return m && m[1] !== '00000' ? m[1] : null; };
 
+  /* ---------- the record, built from counts (the same for every source: ArcGIS here, Socrata for Dallas) ---------- */
+  /* o: { city, asked (the first month asked for, 'YYYY-MM'), through (the latest permit date), months: { 'YYYY-MM': { n, ds, ht, ho } }
+          (rows, rows with a description, heating rows, heating only rows), extra: [{ x, d, zip, ds, ht, ho }] (a permit that fills
+          several rows: x rows too many, dated d, with 1 or 0 for described, heating, heating only) or null when a row is a permit,
+          told (the file has a work description field), what, residentialOnly }
+     Months are complete months only, oldest first, gaps filled with zero; a feed that begins inside the window loses its first
+     month, which may be partial. Heating is counted only where at least half the permits say what was done. */
+  function record(o) {
+    const W = windows(o.through), extra = o.extra || [], byM = {}, zero = { n: 0, ds: 0, ht: 0, ho: 0 };
+    for (const m of Object.keys(o.months || {})) byM[m] = Object.assign({}, zero, o.months[m]);
+    for (const u of extra) { const b = byM[u.d.slice(0, 7)]; if (b) { b.n -= u.x; b.ds -= u.x * u.ds; b.ht -= u.x * u.ht; b.ho -= u.x * u.ho; } }
+    let ms = Object.keys(byM).sort().filter(m => m < W.cur); if (ms.length && ms[0] > o.asked) ms = ms.slice(1);
+    const all = []; if (ms.length) for (let m = ms[0]; m <= W.last; m = addMonths(m, 1)) all.push(Object.assign({ m }, byM[m] || zero));
+    const kept = all.slice(-KEEP), described = kept.slice(-12).reduce((a, x) => { a.n += x.ds; a.of += x.n; return a; }, { n: 0, of: 0 }), told = teller(o.told ? described : null);
+    const months = kept.map(x => { const k = told(x.n, x.ds); return { m: x.m, mech: x.n, heat: k ? x.ht : null, heatOnly: k ? x.ho : null }; });
+    return { v: 1, city: o.city, through: o.through, months, byZip12: null, zipMonths: null, recent: null, described: o.told ? described : null, multi: o.extra ? { permits: extra.length, rows: extra.reduce((s, u) => s + u.x, 0) } : null, rule: RULE_TEXT, what: o.what || '', residentialOnly: !!o.residentialOnly, stale: [] };
+  }
+  /* is heating known for a group of n permits of which ds carry a description? An empty group follows the city's last 12 months. */
+  const teller = described => (n, ds) => !!described && (n > 0 ? ds / n >= MIN_DESC : described.of > 0 && described.n / described.of >= MIN_DESC);
+  /* The ZIP table of the last 12 complete months and the two eight week windows, added to a record from counts by ZIP code:
+     zrows [{ zip, n12, d12, h12, nr, dr, hr, ny, dy, hy }] (permits, described, heating in each window of windows(rec.through)). */
+  function addZips(rec, zrows, extra) {
+    const W = windows(rec.through), told = teller(rec.described), zs = {}, S = { n12: 0, d12: 0, h12: 0, nr: 0, dr: 0, hr: 0, ny: 0, dy: 0, hy: 0 };
+    for (const r of zrows || []) { for (const k in S) S[k] += r[k] || 0; const z = zipOf(r.zip); if (z) { const e = zs[z] || (zs[z] = [0, 0]); e[0] += r.n12 || 0; e[1] += r.h12 || 0; } }
+    for (const u of extra || []) {
+      if (u.d >= W.z0 && u.d < W.z1) { S.n12 -= u.x; S.d12 -= u.x * u.ds; S.h12 -= u.x * u.ht; if (u.zip && zs[u.zip]) { zs[u.zip][0] -= u.x; zs[u.zip][1] -= u.x * u.ht; } }
+      if (u.d >= W.r0 && u.d <= W.r1) { S.nr -= u.x; S.dr -= u.x * u.ds; S.hr -= u.x * u.ht; }
+      if (u.d >= W.y0 && u.d <= W.y1) { S.ny -= u.x; S.dy -= u.x * u.ds; S.hy -= u.x * u.ht; }
+    }
+    const k12 = told(S.n12, S.d12); rec.byZip12 = {};
+    for (const z of Object.keys(zs).sort()) if (zs[z][0] > 0) rec.byZip12[z] = [zs[z][0], k12 ? zs[z][1] : null];
+    rec.zipMonths = [W.z0.slice(0, 7), W.last];
+    rec.recent = { weeks: WEEKS, from: W.r0, to: W.r1, mech: S.nr, heat: told(S.nr, S.dr) ? S.hr : null, sameWeeksLastYear: { from: W.y0, to: W.y1, mech: S.ny, heat: told(S.ny, S.dy) ? S.hy : null } };
+    return rec;
+  }
+  /* the ZIP query failed: the months are fresh, the ZIP table and the recent weeks stay as the last good run left them, and the record says so */
+  function keepZips(rec, prev, e) {
+    prev = prev || {}; rec.byZip12 = prev.byZip12 || null; rec.zipMonths = prev.zipMonths || null; rec.recent = prev.recent || null;
+    rec.stale = ['byZip12', 'recent']; rec.err = String((e && e.message) || e).slice(0, 160); return rec;
+  }
+
   /* ---------- the collector every ArcGIS city shares ---------- */
   /* cfg: { city, layer (the layer URL), date (the permit date field), base (the where clause that means mechanical work),
             zip (a field, or an SQL expression that yields the ZIP code; null when the file has none), id (the permit number,
             when one permit can fill several rows; null when a row is a permit), desc (the work description field or null),
             blank: [texts that stand for no description], residentialOnly, what (one sentence: which permits are counted) }
-     Three requests, every one a server side aggregate: months, the permits that fill several rows, ZIP codes with the windows. */
+     Three requests, every one a server side aggregate: months, the permits that fill several rows, ZIP codes with the windows.
+     Without the first two there is no honest count, so either failing fails the run; the third failing leaves a partial record. */
   async function arcgisRun(cfg, ctx) {
-    const prev = ctx.prev || {}, D = cfg.date, T = cfg.desc || null, Z = cfg.zip || null, zKey = Z && /^\w+$/.test(Z) ? Z : 'EXPR_1';
-    const t = today(ctx.now), asked = addMonths(t.slice(0, 7), -LOOKBACK);
+    const D = cfg.date, T = cfg.desc || null, Z = cfg.zip || null, zKey = Z && /^\w+$/.test(Z) ? Z : 'EXPR_1';
+    const t = today(ctx.now), asked = addMonths(month(ctx.now), -LOOKBACK);
     /* the upper bound keeps a mistyped future date from moving every window */
     const base = `${cfg.base} AND ${D} >= DATE '${asked}-01' AND ${D} < DATE '${addDays(t, 2)}'`;
     const desc = T ? describedSql(T, cfg.blank) : null, heat = T ? heatSql(T) : null, only = T ? heatOnlySql(T) : null;
     const ym = `EXTRACT(YEAR FROM ${D}),EXTRACT(MONTH FROM ${D})`;
 
     /* 1. permits by month, and the latest permit date */
-    const byM = {}; let through = null;
+    const months = {}; let through = null;
     for (const r of rows(await query(ctx.http, cfg.layer, { where: base, outStatistics: [stat('count', D, 'n'), stat('max', D, 'mx')].concat(T ? [sumIf(desc, 'ds'), sumIf(heat, 'ht'), sumIf(only, 'ho')] : []), groupByFieldsForStatistics: ym, orderByFields: ym }))) {
       const m = monthKey(r.EXPR_1, r.EXPR_2), d = day(r.mx); if (!m || !(r.n > 0)) continue;
-      byM[m] = { n: r.n, ds: r.ds || 0, ht: r.ht || 0, ho: r.ho || 0 }; if (d && (!through || d > through)) through = d;
+      months[m] = { n: r.n, ds: r.ds || 0, ht: r.ht || 0, ho: r.ho || 0 }; if (d && (!through || d > through)) through = d;
     }
     if (!through) throw new Error('the ' + cfg.city + ' permit file holds no mechanical permit since ' + asked);
-    const W = windows(through);
 
-    /* 2. a permit on several parcels or with several owners fills several rows: find those and count each permit once per ZIP code */
-    let extra = [], multi = null;
-    if (cfg.id) {
-      extra = (await queryAll(ctx.http, cfg.layer, { where: base, outStatistics: [stat('count', D, 'n'), stat('min', D, 'd')].concat(T ? [maxIf(desc, 'ds'), maxIf(heat, 'ht'), maxIf(only, 'ho')] : []), groupByFieldsForStatistics: cfg.id + (Z ? ',' + Z : ''), having: `COUNT(${D}) > 1`, orderByFields: cfg.id }))
-        .map(r => ({ x: r.n - 1, d: day(r.d), zip: Z ? zipOf(r[zKey]) : null, ds: r.ds ? 1 : 0, ht: r.ht ? 1 : 0, ho: r.ho ? 1 : 0 })).filter(u => u.x > 0 && u.d);
-      for (const u of extra) { const b = byM[u.d.slice(0, 7)]; if (b) { b.n -= u.x; b.ds -= u.x * u.ds; b.ht -= u.x * u.ht; b.ho -= u.x * u.ho; } }
-      multi = { permits: extra.length, rows: extra.reduce((s, u) => s + u.x, 0) };
-    }
-
-    /* complete months, oldest first, gaps filled with zero; a feed that begins inside the window loses its first month, which may be partial */
-    let ms = Object.keys(byM).sort().filter(m => m < W.cur); if (ms.length && ms[0] > asked) ms = ms.slice(1);
-    const all = []; if (ms.length) for (let m = ms[0]; m <= W.last; m = addMonths(m, 1)) all.push(Object.assign({ m }, byM[m] || { n: 0, ds: 0, ht: 0, ho: 0 }));
-    const kept = all.slice(-KEEP), tot = kept.reduce((a, x) => { a.n += x.n; a.ds += x.ds; return a; }, { n: 0, ds: 0 });
-    /* heating is counted only where at least half the permits say what was done */
-    const told = (n, ds) => !!T && (n > 0 ? ds / n >= MIN_DESC : tot.n > 0 && tot.ds / tot.n >= MIN_DESC);
-    const months = kept.map(x => { const k = told(x.n, x.ds); return { m: x.m, mech: x.n, heat: k ? x.ht : null, heatOnly: k ? x.ho : null }; });
-    const y12 = kept.slice(-12).reduce((a, x) => { a.of += x.n; a.n += x.ds; return a; }, { n: 0, of: 0 });
-    const out = { v: 1, city: cfg.city, through, months, byZip12: null, zipMonths: null, recent: null, described: T ? y12 : null, multi, rule: RULE_TEXT, what: cfg.what || '', residentialOnly: !!cfg.residentialOnly, stale: [] };
+    /* 2. a permit on several parcels or with several owners fills several rows: find those, so each permit counts once per ZIP code */
+    const extra = !cfg.id ? null : (await queryAll(ctx.http, cfg.layer, { where: base, outStatistics: [stat('count', D, 'n'), stat('min', D, 'd')].concat(T ? [maxIf(desc, 'ds'), maxIf(heat, 'ht'), maxIf(only, 'ho')] : []), groupByFieldsForStatistics: cfg.id + (Z ? ',' + Z : ''), having: `COUNT(${D}) > 1`, orderByFields: cfg.id }))
+      .map(r => ({ x: r.n - 1, d: day(r.d), zip: Z ? zipOf(r[zKey]) : null, ds: r.ds ? 1 : 0, ht: r.ht ? 1 : 0, ho: r.ho ? 1 : 0 })).filter(u => u.x > 0 && u.d);
+    const rec = record({ city: cfg.city, asked, through, months, extra, told: !!T, what: cfg.what, residentialOnly: cfg.residentialOnly });
 
     /* 3. the last 12 complete months by ZIP code, the last eight weeks and the same weeks a year earlier: one grouped query */
     try {
-      const win = (a, b) => `${D} >= DATE '${a}' AND ${D} < DATE '${b}'`, c12 = win(W.z0, W.z1), cr = win(W.r0, addDays(W.r1, 1)), cy = win(W.y0, addDays(W.y1, 1));
+      const W = windows(through), win = (a, b) => `${D} >= DATE '${a}' AND ${D} < DATE '${b}'`, c12 = win(W.z0, W.z1), cr = win(W.r0, addDays(W.r1, 1)), cy = win(W.y0, addDays(W.y1, 1));
       const st = [sumIf(c12, 'n12'), sumIf(cr, 'nr'), sumIf(cy, 'ny')].concat(T ? [sumIf(`${c12} AND ${desc}`, 'd12'), sumIf(`${c12} AND ${heat}`, 'h12'), sumIf(`${cr} AND ${desc}`, 'dr'), sumIf(`${cr} AND ${heat}`, 'hr'), sumIf(`${cy} AND ${desc}`, 'dy'), sumIf(`${cy} AND ${heat}`, 'hy')] : []);
       const zr = await queryAll(ctx.http, cfg.layer, Object.assign({ where: `${cfg.base} AND ${D} >= DATE '${W.y0 < W.z0 ? W.y0 : W.z0}' AND ${D} < DATE '${addDays(through, 1)}'`, outStatistics: st }, Z ? { groupByFieldsForStatistics: Z, orderByFields: Z } : {}));
-      const zs = {}, S = { n12: 0, d12: 0, h12: 0, nr: 0, dr: 0, hr: 0, ny: 0, dy: 0, hy: 0 };
-      for (const r of zr) { for (const k in S) S[k] += r[k] || 0; const z = Z ? zipOf(r[zKey]) : null; if (z) { const e = zs[z] || (zs[z] = [0, 0]); e[0] += r.n12 || 0; e[1] += r.h12 || 0; } }
-      for (const u of extra) {
-        const in12 = u.d >= W.z0 && u.d < W.z1, inR = u.d >= W.r0 && u.d <= W.r1, inY = u.d >= W.y0 && u.d <= W.y1;
-        if (in12) { S.n12 -= u.x; S.d12 -= u.x * u.ds; S.h12 -= u.x * u.ht; if (u.zip && zs[u.zip]) { zs[u.zip][0] -= u.x; zs[u.zip][1] -= u.x * u.ht; } }
-        if (inR) { S.nr -= u.x; S.dr -= u.x * u.ds; S.hr -= u.x * u.ht; }
-        if (inY) { S.ny -= u.x; S.dy -= u.x * u.ds; S.hy -= u.x * u.ht; }
-      }
-      const k12 = told(S.n12, S.d12); out.byZip12 = {};
-      for (const z of Object.keys(zs).sort()) if (zs[z][0] > 0) out.byZip12[z] = [zs[z][0], k12 ? zs[z][1] : null];
-      out.zipMonths = [W.z0.slice(0, 7), W.last];
-      out.recent = { weeks: WEEKS, from: W.r0, to: W.r1, mech: S.nr, heat: told(S.nr, S.dr) ? S.hr : null, sameWeeksLastYear: { from: W.y0, to: W.y1, mech: S.ny, heat: told(S.ny, S.dy) ? S.hy : null } };
-    } catch (e) {
-      /* the months are fresh; the ZIP codes and the recent weeks stay as the last good run left them, and say so */
-      out.byZip12 = prev.byZip12 || null; out.zipMonths = prev.zipMonths || null; out.recent = prev.recent || null;
-      out.stale = ['byZip12', 'recent']; out.err = String((e && e.message) || e).slice(0, 160);
-    }
-    return out;
+      addZips(rec, zr.map(r => Object.assign({}, r, { zip: Z ? r[zKey] : null })), extra);
+    } catch (e) { keepZips(rec, ctx.prev, e); }
+    return rec;
   }
 
   /* ---------- reads ---------- */
@@ -196,5 +209,5 @@
     return REF.map(r => { const mech = s(r.mech), heat = s(r.heat), only = s(r.heatOnly); return Object.assign({}, r, { mechTotal: mech, heatTotal: heat, heatOnlyTotal: only, heatPct: p(heat, mech), heatOnlyPct: p(only, mech), heatOnlyNovToFebPct: p(r.heatOnly[10] + r.heatOnly[11] + r.heatOnly[0] + r.heatOnly[1], only) }); });
   }
 
-  L.permits = { KEEP, WEEKS, MIN_DESC, RULE, RULE_TEXT, REF, LABELS, today, day, addDays, addMonths, monthKey, windows, isHeat, isHeatOnly, isDescribed, heatSql, heatOnlySql, describedSql, arcgis: { stat, sumIf, maxIf, form, rows, query, queryAll, run: arcgisRun }, zipOf, cityView, summary, digest, ref };
+  L.permits = { KEEP, LOOKBACK, WEEKS, MIN_DESC, RULE, RULE_TEXT, REF, LABELS, today, month, day, addDays, addMonths, monthKey, windows, zipOf, isHeat, isHeatOnly, isDescribed, heatSql, heatOnlySql, describedSql, record, addZips, keepZips, arcgis: { stat, sumIf, maxIf, form, rows, query, queryAll, run: arcgisRun }, cityView, summary, digest, ref };
 })(typeof globalThis !== 'undefined' ? globalThis : self);

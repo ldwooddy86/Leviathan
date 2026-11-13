@@ -10,7 +10,7 @@ function niceTicks(lo, hi, n) {
   for (let v = t0; v <= hi + step * 0.001; v += step) out.push(+v.toFixed(10));
   return out;
 }
-function chartFrame(host, W, H, aria) { host.innerHTML = ''; const s = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': aria || 'chart' }); host.appendChild(s); return s; }
+function chartFrame(host, W, H, aria) { host.innerHTML = ''; const card = host.closest && host.closest('.card'); const h = card && card.querySelector('.card-h h3'); const s = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': aria || (h ? h.textContent.trim() : 'chart') }); host.appendChild(s); return s; }
 /* line chart: spec {series:[{name,color,pts:[[x,y]],dash,area,width}], x:{min,max,ticks,fmt,label}, y:{min,max,fmt,label,zero}, H, vlines:[{x,label}], bands:[{x0,x1,label}], legend} */
 function lineChart(host, spec) {
   const W = spec.W || 820, H = spec.H || 300, L = spec.L || 58, R = spec.R || 20, T = spec.T || 18, B = spec.B || 42;
@@ -131,7 +131,7 @@ function coefPlot(host, rows, spec) {
   return s;
 }
 function corrMatrix(keys, labels, corr) {
-  const cell = v => { const a = Math.abs(v), same = v === 1; const bg = same ? cssv('--sunk') : `color-mix(in srgb, ${v >= 0 ? cssv('--heat') : cssv('--cool')} ${Math.round(a * 70)}%, ${cssv('--card')})`; return `<td style="background:${bg};color:${a > .55 && !same ? '#fff' : 'inherit'}">${same ? '—' : D(v, 2)}</td>`; };
+  const cell = v => { const a = Math.abs(v), same = v === 1; const bg = same ? 'var(--sunk)' : `color-mix(in srgb, var(${v >= 0 ? '--heat' : '--cool'}) ${Math.round(a * 70)}%, var(--card))`; return `<td class="${a > .55 && !same ? 'hi' : ''}" style="background:${bg}">${same ? '—' : D(v, 2)}</td>`; };
   return `<div class="xscroll"><table class="cm"><thead><tr><th></th>${keys.map(k => `<th>${labels[k]}</th>`).join('')}</tr></thead><tbody>${keys.map(k1 => `<tr><th class="rh">${labels[k1]}</th>${keys.map(k2 => cell(corr[k1][k2])).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 

@@ -29,7 +29,7 @@ const BRANDX = (() => {
   const okHex = h => /^#[0-9a-f]{6}$/i.test(String(h || ''));
   function css() {
     const c = BRAND.colors; const P = okHex(c.primary) ? c.primary : '#173a69', S2 = okHex(c.secondary) ? c.secondary : '#4f8bc9', A = okHex(c.accent) ? c.accent : '#edd21c', Dk = okHex(c.dark) ? c.dark : '#112337';
-    const accentInkL = lum(P) > 0.4 ? '#10191f' : '#ffffff', accentInkD = lum(S2) > 0.4 ? '#06201f' : '#ffffff';
+    const accentInkL = lum(P) > 0.179 ? '#10191f' : '#ffffff', accentInkD = lum(S2) > 0.179 ? '#06201f' : '#ffffff';
     const goldL = lum(A) > 0.6 ? mix(A, '#000000', 0.22) : A;
     const disp = BRAND.fonts && BRAND.fonts.display ? `'${BRAND.fonts.display}',` : '', body = BRAND.fonts && BRAND.fonts.body ? `'${BRAND.fonts.body}',` : '';
     return `:root{--accent:${P};--accent-ink:${accentInkL};--accent-soft:${mix(P, '#ffffff', 0.86)};--navy:${Dk};--navy-2:${P};--navy-ink:${mix(P, '#ffffff', 0.88)};--navy-mute:${mix(P, '#ffffff', 0.6)};--bench:${goldL};--bench-soft:${mix(A, '#ffffff', 0.8)};--brand-gold:${A};--brand-sky:${S2};--sans:${body}'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;--brand-display:${disp}'IBM Plex Sans Condensed','Arial Narrow',system-ui,sans-serif}
@@ -52,7 +52,7 @@ const BRANDX = (() => {
   }
   function apply() {
     let st = document.getElementById('brand-style'); if (!st) { st = document.createElement('style'); st.id = 'brand-style'; document.head.appendChild(st); } st.textContent = css();
-    const fam = [BRAND.fonts && BRAND.fonts.display, BRAND.fonts && BRAND.fonts.body].filter(Boolean); if (fam.length) { const id = 'brand-fonts'; let ln = document.getElementById(id); const href = 'https://fonts.googleapis.com/css2?' + fam.map(f => 'family=' + encodeURIComponent(f).replace(/%20/g, '+') + (f === 'Open Sans' ? ':ital,wght@0,400;0,600;0,700;1,400' : '')).join('&') + '&display=swap'; if (!ln) { ln = document.createElement('link'); ln.id = id; ln.rel = 'stylesheet'; document.head.appendChild(ln); } if (ln.href !== href) ln.href = href; }
+    const HAVE = ['Bebas Neue', 'Open Sans', 'IBM Plex Sans', 'IBM Plex Sans Condensed', 'IBM Plex Mono']; const fam = [BRAND.fonts && BRAND.fonts.display, BRAND.fonts && BRAND.fonts.body].filter(f => f && !HAVE.includes(f)); if (fam.length) { const id = 'brand-fonts'; let ln = document.getElementById(id); const href = 'https://fonts.googleapis.com/css2?' + fam.map(f => 'family=' + encodeURIComponent(f).replace(/%20/g, '+') + (f === 'Open Sans' ? ':ital,wght@0,400;0,600;0,700;1,400' : '')).join('&') + '&display=swap'; if (!ln) { ln = document.createElement('link'); ln.id = id; ln.rel = 'stylesheet'; document.head.appendChild(ln); } if (ln.href !== href) ln.href = href; }
     const bm = document.querySelector('.brandmark'); if (bm) {
       bm.innerHTML = `<div class="logo" id="brandLogo"></div><div><div class="nm">${esc(BRAND.name)}</div><div class="sb">${esc(BRAND.tagline)} · DFW Thermal Debt Atlas · ${esc(BRAND.city)}, ${esc(BRAND.state)} · TDLR ${esc(BRAND.lic)}</div></div>`;
       const host = bm.querySelector('#brandLogo'); const src = BRAND.logoData || BRAND.logoUrl; const fb = () => { host.innerHTML = fallbackLogo(38); host.classList.add('fb'); };
@@ -67,9 +67,9 @@ const BRANDX = (() => {
   /* ---------- settings panel ---------- */
   function panel() {
     let ov = document.getElementById('brandPanel'); if (ov) { ov.remove(); }
-    ov = el('div', { id: 'brandPanel', class: 'overlay', role: 'dialog', 'aria-label': 'Brand settings' });
+    ov = el('div', { id: 'brandPanel', class: 'overlay', role: 'dialog', 'aria-modal': 'true', tabindex: '-1', 'aria-label': 'Brand settings' });
     const f = (k, lab, val, type, hint) => `<div class="f"><label class="fl" for="bp_${k}">${lab}</label><input type="${type || 'text'}" id="bp_${k}" data-k="${k}" value="${esc(val == null ? '' : val)}">${hint ? `<span class="hint">${hint}</span>` : ''}</div>`;
-    ov.innerHTML = `<div class="panel"><div class="card-h" style="display:flex;gap:10px;align-items:center"><div style="flex:1"><h3>Brand: who this atlas is built for</h3><p>Names, numbers and colors flow into the shell, the Campaign Desk, the Site Forge, the Satchel and the connectors. Saved in this browser; the build defaults come from ${esc(BRAND_DEFAULT.domain)} on ${esc(BRAND_DEFAULT.reviews.asOf)}.</p></div><button class="ibtn" id="bpClose">Close</button></div><div class="card-b"><div class="plan">
+    ov.innerHTML = `<div class="panel"><div class="card-h" style="display:flex;gap:10px;align-items:center"><div style="flex:1"><h3>Brand: who this atlas is built for</h3><p>Names, numbers and colors flow into the shell, the Campaign Desk, the Site Forge, the Satchel and the connectors. Saved in this browser; the build defaults come from ${esc(BRAND_DEFAULT.domain)} on ${new Date(BRAND_DEFAULT.reviews.asOf + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.</p></div><button class="ibtn" id="bpClose">Close</button></div><div class="card-b"><div class="plan">
       ${f('name', 'Business name', BRAND.name)}${f('short', 'Short name', BRAND.short)}${f('tagline', 'Tagline', BRAND.tagline)}${f('phone', 'Phone', BRAND.phone, 'tel')}${f('url', 'Website', BRAND.url, 'url')}${f('lic', 'TDLR license', BRAND.lic)}
       ${f('street', 'Street', BRAND.street)}${f('city', 'City', BRAND.city)}${f('zip', 'ZIP', BRAND.zip)}${f('lat', 'Latitude (weather grid)', BRAND.lat, 'number')}${f('lon', 'Longitude', BRAND.lon, 'number')}${f('hours', 'Hours', BRAND.hours)}
       ${f('plan', 'Maintenance plan name', BRAND.plan)}${f('financing', 'Financing partners', BRAND.financing)}${f('promo', 'Current promotion', BRAND.promo)}
@@ -81,12 +81,16 @@ const BRANDX = (() => {
       <div class="f"><label class="fl" for="bp_logo">Logo file (kept in this browser)</label><input type="file" id="bp_logo" accept="image/*"><span class="hint">${BRAND.logoData ? 'A logo file is stored. ' : ''}PNG, SVG or WebP under 400 KB.</span></div>
       </div><div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" id="bpSave">Save and apply</button><button class="btn sec" id="bpClearLogo">Remove logo file</button><button class="btn ghost" id="bpReset">Reset to ${esc(BRAND_DEFAULT.short)} defaults</button></div></div></div>`;
     document.body.appendChild(ov);
+    const opener = document.activeElement, close = () => { ov.remove(); if (opener && opener.focus) opener.focus(); };
+    ov.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); close(); return; } if (e.key !== 'Tab') return; const fs = $$('button,input,select,textarea,a[href]', ov).filter(x => !x.disabled && x.offsetParent !== null); if (!fs.length) return; const a = document.activeElement; if (e.shiftKey && (a === fs[0] || a === ov)) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && a === fs[fs.length - 1]) { e.preventDefault(); fs[0].focus(); } });
+    $$('input[type=color]', ov).forEach(i => i.addEventListener('input', () => { i.nextElementSibling.textContent = i.value; }));
     let logoData = BRAND.logoData || '';
     $('#bp_logo', ov).onchange = e => { const fl = e.target.files && e.target.files[0]; if (!fl) return; if (fl.size > 400 * 1024) { toast('Logo file is over 400 KB; pick a smaller one'); return; } const rd = new FileReader(); rd.onload = () => { logoData = String(rd.result || ''); toast('Logo loaded; save to apply'); }; rd.readAsDataURL(fl); };
-    $('#bpSave', ov).onclick = () => { const patch = {}; $$('input[data-k]', ov).forEach(i => { const k = i.dataset.k; patch[k] = i.type === 'number' ? (+i.value || BRAND[k]) : i.value.trim(); }); patch.domain = String(patch.url || BRAND.url).replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, ''); patch.colors = { primary: $('#bp_c_primary', ov).value, secondary: $('#bp_c_secondary', ov).value, accent: $('#bp_c_accent', ov).value, dark: $('#bp_c_dark', ov).value }; patch.logoData = logoData; save(patch); toast('Brand saved'); ov.remove(); };
+    $('#bpSave', ov).onclick = () => { const patch = {}; $$('input[data-k]', ov).forEach(i => { const k = i.dataset.k; patch[k] = i.type === 'number' ? (+i.value || BRAND[k]) : i.value.trim(); }); patch.domain = String(patch.url || BRAND.url).replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, ''); patch.colors = { primary: $('#bp_c_primary', ov).value, secondary: $('#bp_c_secondary', ov).value, accent: $('#bp_c_accent', ov).value, dark: $('#bp_c_dark', ov).value }; patch.logoData = logoData; save(patch); toast('Brand saved'); close(); };
     $('#bpClearLogo', ov).onclick = () => { logoData = ''; save({ logoData: '' }); toast('Logo file removed'); };
-    $('#bpReset', ov).onclick = () => { reset(); toast('Brand reset to defaults'); ov.remove(); };
-    $('#bpClose', ov).onclick = () => ov.remove(); ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+    $('#bpReset', ov).onclick = () => { reset(); toast('Brand reset to defaults'); close(); };
+    $('#bpClose', ov).onclick = close; ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    $('#bp_name', ov).focus();
   }
   return { apply, save, reset, panel, addr, fallbackLogo, css, get B() { return BRAND; } };
 })();
