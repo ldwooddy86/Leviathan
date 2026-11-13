@@ -1,0 +1,14 @@
+vtec_year,ugc,phenomena,significance,eventid,utc_issue,utc_expire,fcster,note
+2026,TXZ119,FZ,W,3,2026-11-17 06:00,2026-11-17 15:00,"Doe, J.",first freeze of the fall
+2026,TXZ103,FZ,W,3,2026-11-17 06:00,2026-11-17 15:00,"said ""hard"" freeze","two
+lines"
+2026,TXZ104,FZ,W,3,2026-11-17 06:00,2026-11-17 14:00,,ends an hour early
+2026,TXZ091,FZ,W,3,2026-11-17 06:00,2026-11-17 15:00,,outside the 12 counties
+2026,TXC113,FZ,W,3,2026-11-17 06:00,2026-11-17 15:00,,a county code is not a forecast zone
+
+2026,TXZ119,FZ,A,2,2026-11-17 06:00,2026-11-16 21:10,"Doe, J.",watch replaced by the warning
+2026,TXZ119,FZ,W
+2026,TXZ119,FZ,W,4,not a date,2026-11-18 15:00,,bad start
+2026,DALLAS,FZ,W,4,2026-11-18 06:00,2026-11-18 15:00,,bad zone
+2026,TXZ119,FZ,W,,2026-11-18 06:00,2026-11-18 15:00,,no event number
+2026,TXZ119,FZ,W,5,2026-11-19 06:00,2026-11-19 15:00,"a quote that never closes,x
