@@ -230,3 +230,14 @@ test('place: the forecast at a ZIP centroid is the inverse distance mean of the 
   assert.ok(between.hdd7 > 0 && between.hddPeak.d === '2026-11-16');
   assert.equal(L.derive.place(null, 32.8, -96.6), null); assert.equal(L.derive.place(c, null, null), null); assert.equal(L.derive.place(L.derive.cold({}, NOW), 32.8, -96.6), null);
 });
+
+test('notices: other live files can add their own, and a broken one is skipped', () => {
+  const L = fresh();
+  const recs = record(L, [50, 47, 44, 46, 49, 56, 58]);
+  const before = L.derive.notices(recs, NOW).length;
+  L.derive.more.push(() => [{ key: 'outlook:2:2026-11-23', title: 'Cold favoured, Nov 23 to 24', message: 'x', route: 'heat' }, { title: 'no key: dropped' }]);
+  L.derive.more.push(() => { throw new Error('boom'); });
+  const out = L.derive.notices(recs, NOW);
+  assert.equal(out.length, before + 1); assert.equal(out[out.length - 1].key, 'outlook:2:2026-11-23');
+  assert.equal(L.derive.notices({}, NOW).length, 1, 'with no forecast record the added notices still come through');
+});
