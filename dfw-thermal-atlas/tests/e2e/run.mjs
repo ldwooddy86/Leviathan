@@ -85,6 +85,8 @@ try {
     const st = await until(() => sw.evaluate(async () => { const all = await chrome.storage.local.get(null); const s = all['tda.live.state'] || {}; if (!s.lastWeekly || s.running) return null; const ks = Object.keys(all).filter(k => k.startsWith('tda.live.src.')); return { keys: ks.length, bytes: JSON.stringify(Object.fromEntries(ks.map(k => [k, all[k]]))).length, run: (s.runs || [])[0], ok: ks.filter(k => all[k].ok).map(k => all[k].id), bad: ks.filter(k => all[k].ok === false).map(k => `${all[k].id}: ${(all[k].err || {}).msg}`), skipped: ks.filter(k => all[k].skipped && !all[k].ok).map(k => `${all[k].id}: ${all[k].skipped.why}`) }; }), 240000, 1000);
     ok(st && st.run && st.run.by === 'extension', 'the worker ran the first full refresh on its own after install', st ? `${st.ok.length} ok, ${st.bad.length} failed, ${st.skipped.length} skipped in ${(st.run.ms / 1000).toFixed(1)} s (waited ${((Date.now() - t0) / 1000).toFixed(0)} s)` : 'no run within four minutes');
     if (st) {
+      const al = await sw.evaluate(async () => (await chrome.alarms.getAll()).map(a => a.name).sort());
+      ok(!al.includes('tda-retry') && al.includes('tda-weekly') && al.includes('tda-daily'), 'the finished run cleared its retry alarm and left the schedule in place', al.join(', '));
       ok(st.ok.length >= Math.ceil(srcs.length * 0.7), 'most sources answered', `${st.ok.length} of ${srcs.length}`);
       if (st.bad.length) note('failed sources: ' + st.bad.join(' | '));
       if (st.skipped.length) note('skipped sources: ' + st.skipped.join(' | '));
@@ -104,6 +106,7 @@ try {
     const n1 = await sw.evaluate(async () => ({ badge: await chrome.action.getBadgeText({}), title: await chrome.action.getTitle({}), notes: await new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n)))), sent: (await chrome.storage.local.get('tda.live.notified'))['tda.live.notified'] }));
     ok(n1.badge === '30°' && /30°F/.test(n1.title), 'a freeze in the forecast sets the badge to the coldest low', `${n1.badge} · ${n1.title}`);
     ok(n1.notes.length === 1 && n1.sent && /^tier3:/.test(n1.sent.keys[0]), 'and sends one notification', JSON.stringify(n1.sent));
+    ok(n1.notes.length === 1 && /^tda-cold\|[a-z]+(\.\d{5})?\|/.test(n1.notes[0]), 'whose id carries the page it opens, so a click works after the worker has slept', n1.notes[0]);
     await say();
     const n2 = await sw.evaluate(() => new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n).length))));
     ok(n2 === 1, 'the same trigger is not announced twice', n2);

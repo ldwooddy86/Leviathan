@@ -53,6 +53,36 @@ switch per source). A source that fails keeps its last good data and says so.
 <!-- SOURCES:BEGIN -->
 <!-- SOURCES:END -->
 
+## Adding a source
+
+A source is one file under `app/live/sources/` that calls `TDA_LIVE.register({...})`, plus one line in
+`atlas.template.html` (the build copies the list into the worker and the popup) and its host in the manifest's
+`host_permissions` (a test fails until all three agree).
+
+```js
+TDA_LIVE.register({
+  id: 'my_source',                       // snake_case; also the storage key
+  name: 'What it is', publisher: 'Who publishes it', page: 'https://a page a person can read',
+  about: 'One sentence: what the atlas uses it for.',
+  hosts: ['api.example.gov'],            // every host run() calls
+  cadence: 'weekly',                     // or 'daily' for the morning pulse
+  cors: true,                            // false: the host refuses calls from a web page, so only the browser app and Node run it
+  grade: 'A', terms: 'Licence or terms of use, in a few words',
+  labels: { count: ['Things counted', 'n'] },   // how each digest figure is named in "what changed since last week"
+  async run(ctx) {                       // ctx: { http: { json, text }, now, prev, key, settings, env, geo }
+    const rows = await ctx.http.json('https://api.example.gov/things?since=2026-01-01');
+    return { rows: rows.map(r => ({ d: r.date, n: +r.n })) };       // small, plain JSON: this is what is stored
+  },
+  digest: data => ({ count: data.rows.length })                      // a few numbers to compare week over week
+});
+```
+
+`ctx.http` waits its turn per host, times out, retries only 429 and 5xx, sends no cookies and no identifying header. A
+source that throws keeps its last good record and shows the error in Live Data. Keep what `run` returns small (the whole
+store should stay under a few megabytes), record a real answer under `tests/fixtures/<id>/` and test the parser against
+it, and state the evidence grade honestly. `node tools/refresh.mjs --only my_source --dry` runs one collector from the
+command line.
+
 ## How it is built
 
 - `atlas.template.html` is the page skeleton. `build.mjs` turns each `<!--@js path-->` line into an inline `<script>` for the
@@ -62,8 +92,11 @@ switch per source). A source that fails keeps its last good data and says so.
   timeout, retries only for 429 and 5xx, no cookies), the schedule and the store. The same file runs in three places: the
   atlas page, the background worker and Node. `app/live/sources/*.js` are the collectors, one per source; each documents its
   requests and states its evidence grade. `app/live/derive.js` turns the records into the cold picture, the badge and the notices.
-- `app/background.js` owns the schedule in the browser app: one shot alarms re armed after every run (so daylight saving never
-  drifts them), a lock so the page and the worker never refresh at once, and a catch up at start.
+- `app/background.js` owns the schedule in the browser app: one shot alarms set again before every run (so daylight saving
+  never drifts them and a run that is cut short cannot take the schedule with it), a lock so the page and the worker never
+  refresh at once, and a catch up at start. Chrome stops an idle worker after 30 seconds, so a run in progress keeps the
+  worker awake, and a retry alarm picks up a run that was stopped anyway: it keeps what was already fetched and gives up
+  after two tries.
 - `app/live/page.js` is the page's handle on all of it (`LIVE`): the records, their ages, a refresh the page can run itself,
   and a `live` event the modules redraw on. `app/data/live-baseline.js` is a snapshot of the records baked at build time, so a
   fresh install and the single file open with current data before their first refresh.
