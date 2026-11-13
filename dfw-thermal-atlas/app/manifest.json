@@ -28,12 +28,18 @@
     "storage",
     "unlimitedStorage",
     "alarms",
-    "notifications"
+    "notifications",
+    "identity"
   ],
   "host_permissions": [
     "https://api.weather.gov/*",
     "https://www.spc.noaa.gov/*",
-    "https://www.saferproducts.gov/*"
+    "https://www.saferproducts.gov/*",
+    "https://data.rcc-acis.org/*",
+    "https://mesonet.agron.iastate.edu/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

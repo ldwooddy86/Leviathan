@@ -39,7 +39,10 @@ test('the single file edition is self contained and whole', () => {
 
 test('manifest: version 3, least privilege, every collector host granted', () => {
   assert.equal(manifest.manifest_version, 3);
-  assert.deepEqual(manifest.permissions.slice().sort(), ['alarms', 'notifications', 'storage', 'unlimitedStorage']);
+  /* identity: the Accounts module signs in to the ad platforms with launchWebAuthFlow. Everything else an account or a CMS needs is asked
+     for at the moment of use (optional_host_permissions), never at install. */
+  assert.deepEqual(manifest.permissions.slice().sort(), ['alarms', 'identity', 'notifications', 'storage', 'unlimitedStorage']);
+  assert.deepEqual(manifest.optional_host_permissions, ['https://*/*']);
   assert.equal(manifest.content_security_policy.extension_pages, "script-src 'self'; object-src 'self'");
   const L = load(context(), ...liveList()).TDA_LIVE;
   const granted = manifest.host_permissions.map(h => { assert.match(h, /^https:\/\/[a-z0-9.-]+\/\*$/, h + ' is an exact https host'); return h.slice(8, -2); });

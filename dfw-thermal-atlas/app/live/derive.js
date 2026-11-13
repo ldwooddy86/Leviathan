@@ -136,6 +136,19 @@
       hdd7, hddNorm7, loadPct, hddPeak, heatOn, firstHeatingWeek, firstFreezeAhead, season, at: rec.at, updated: d.updated || null, oldest: d.oldest || null, stale, baseline: !!rec.baseline,
       eyebrow: stale ? `Forecast from ${dow(localDay(rec.at))} ${md(localDay(rec.at))} (refresh due)` : 'The next seven nights', headline, sub, actions, notice };
   }
+  /* The forecast at one place (a ZIP centroid): the inverse distance mean of the three nearest forecast points, night by night,
+     with the same counts and tier a county gets. c is a cold picture; returns null when there is none. */
+  function place(c, lat, lon) {
+    if (!c || !c.ok || !c.points.length || !L.geo || lat == null || lon == null) return null;
+    const near = L.geo.nearest(lat, lon, c.points, 3), th = c.th;
+    const wmean = get => { let s = 0, w = 0; near.forEach(x => { const v = get(x.p); if (v != null) { s += v * x.w; w += x.w; } }); return w ? s / w : null; };
+    const nights = c.nights.map(n => { const f = wmean(p => { const q = p.nights.find(k => k.d === n.d); return q ? q.lowF : null; }), a = wmean(p => { const q = p.nights.find(k => k.d === n.d); return q ? q.appF : null; }); return f == null ? null : { d: n.d, name: n.name, label: n.label, lowF: Math.round(f), appF: a == null ? null : Math.round(a) }; }).filter(Boolean);
+    if (!nights.length) return null;
+    const days = c.days.map(x => { const h = wmean(p => { const q = p.days.find(k => k.d === x.d); return q ? q.hdd : null; }); return h == null ? null : { d: x.d, hdd: Math.round(h) }; }).filter(Boolean);
+    const lo = nights.reduce((a, b) => (b.lowF < a.lowF ? b : a));
+    return { nights, days, minF: lo.lowF, minNight: lo.d, minName: lo.name, tier: tierOf(lo.lowF, th), n50: nights.filter(n => n.lowF <= th.cool).length, n40: nights.filter(n => n.lowF <= th.cold).length, n32: nights.filter(n => n.lowF <= th.freeze).length, n25: nights.filter(n => n.lowF <= th.hard).length,
+      hdd7: days.length >= 5 ? sum(days.map(x => x.hdd)) : null, hddPeak: days.length ? days.reduce((a, b) => (b.hdd > a.hdd ? b : a)) : null, from: near.map(x => ({ id: x.p.id, name: x.p.name, km: Math.round(x.km), w: Math.round(x.w * 100) / 100 })) };
+  }
   /* Everything worth one notification each, keyed so each is sent once: the freeze or the first heating week in the forecast,
      and every new alert product a heating and cooling shop acts on (cold and winter, heat, air quality, severe storms). */
   const ALERT_KINDS = [[/freez|frost|cold|wind chill|winter|ice storm|blizzard|snow|sleet/i, 'heat'], [/heat/i, 'weather'], [/air quality/i, 'weather'], [/severe thunderstorm|tornado/i, 'weather']];
@@ -156,5 +169,5 @@
     if (!c || !c.ok || c.stale || c.minLow == null || c.minLow > c.th.cold) return { text: '', color: '#13243a', title: 'DFW Thermal Debt Atlas' + (c && c.ok && !c.stale ? ` · ${c.headline}` : '') };
     return { text: c.minLow + '°', color: c.minLow <= c.th.hard ? '#6d28d9' : c.minLow <= c.th.freeze ? '#1c5cab' : '#3e7fcf', title: `Coldest forecast low in the next seven nights: ${c.minLow}°F ${c.worst.name} at ${c.worst.minAt}. ${c.headline}` };
   }
-  L.derive = Object.assign(L.derive || {}, { TH, TIER, HEAT_ON_HDD, tierOf, localDay, dow, md, list, normHdd, cold, notices, badge });
+  L.derive = Object.assign(L.derive || {}, { TH, TIER, HEAT_ON_HDD, tierOf, localDay, dow, md, list, normHdd, cold, place, notices, badge });
 })(typeof globalThis !== 'undefined' ? globalThis : self);

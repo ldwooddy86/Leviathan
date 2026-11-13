@@ -218,3 +218,15 @@ test('notices: one per new alert product the shop acts on, plus the freeze witho
   same(L.derive.notices(record(L, [50, 47, 44, 46, 49, 56, 58]), NOW), []);
   same(L.derive.notices(record(L, [50, 47, 30, 46, 49, 56, 58]), new Date('2026-11-15T23:00:00Z'), {}).length, 0, 'a forecast more than a day and a half old stays quiet');
 });
+
+test('place: the forecast at a ZIP centroid is the inverse distance mean of the three nearest points', () => {
+  const L = fresh();
+  const c = L.derive.cold(record(L, [50, 47, 44, 46, 49, 56, 58], { KDTO: [44, 46, 30, 46, 49, 56, 58], LEWV: [48, 47, 38, 46, 49, 56, 58] }), NOW);
+  const office = L.derive.place(c, 32.8063, -96.6609);
+  assert.equal(office.from.length, 1); assert.equal(office.from[0].id, 'MESQ'); assert.equal(office.minF, 44); assert.equal(office.tier, 1); assert.equal(office.nights.length, 7);
+  const denton = L.derive.place(c, 33.2051, -97.2006); assert.equal(denton.minF, 30); assert.equal(denton.tier, 3); assert.equal(denton.n32, 1); assert.equal(denton.minName, 'Sunday night');
+  const between = L.derive.place(c, 33.12, -97.10);                                              // between Denton and Lewisville
+  assert.equal(between.from.length, 3); assert.ok(between.minF > 30 && between.minF < 44, 'a blend: ' + between.minF); assert.ok(Math.abs(between.from.reduce((s, x) => s + x.w, 0) - 1) < 0.02);
+  assert.ok(between.hdd7 > 0 && between.hddPeak.d === '2026-11-16');
+  assert.equal(L.derive.place(null, 32.8, -96.6), null); assert.equal(L.derive.place(c, null, null), null); assert.equal(L.derive.place(L.derive.cold({}, NOW), 32.8, -96.6), null);
+});
