@@ -180,15 +180,20 @@
   const digest = d => { const c = cityView('', d); return { mech12: c.last12 ? c.last12.mech : null, heat12: c.last12 ? c.last12.heat : null, yoyPct: c.yoyPct, through: c.through, zips: c.zips }; };
 
   /* ---------- what share of mechanical permits is heating work ---------- */
-  /* Measured once, where a city writes down what was installed: City of Irving residential mechanical permits, March 2022 to
-     February 2025, counted by the rule above on the city's server on 2026-11-13 (the answer is kept in tests/fixtures/permits
-     and a test holds these numbers to it). Irving stopped publishing on 2025-02-28, so this is a fixed reference and not a
-     live reading. By month of the year, January first, three years summed. Grade B. */
-  const REF = { city: 'Irving', what: 'residential mechanical permits', from: '2022-03', to: '2025-02', measured: '2026-11-13', grade: 'B',
-    mech: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], heat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], heatOnly: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
+  /* Measured twice, where a city wrote down what was installed, by the rule above on the city's own server on 2026-11-13
+     (the answers are kept in tests/fixtures/permits and a test holds these numbers to them). Counts by month of the year,
+     January first, three years summed. Fixed references, not live readings: Irving stopped publishing on 2025-02-28 and
+     Fort Worth stopped recording the work description in 2014. Grade B. */
+  const REF = [
+    { city: 'Irving', what: 'residential mechanical permits pulled outside a building permit', from: '2022-03', to: '2025-02', residentialOnly: true, described: [1699, 1700], measured: '2026-11-13', grade: 'B',
+      mech: [94, 76, 112, 154, 184, 199, 221, 191, 124, 132, 100, 113], heat: [31, 18, 16, 18, 28, 20, 21, 10, 16, 19, 17, 24], heatOnly: [27, 6, 6, 0, 2, 0, 0, 1, 3, 4, 8, 11] },
+    { city: 'Fort Worth', what: 'mechanical permits pulled outside a building permit, homes and businesses together', from: '2010-01', to: '2012-12', residentialOnly: false, described: [10030, 12612], measured: '2026-11-13', grade: 'B',
+      mech: [747, 711, 982, 1162, 1112, 1405, 1302, 1456, 1135, 942, 819, 839], heat: [140, 101, 130, 164, 145, 174, 178, 186, 164, 136, 114, 133], heatOnly: [49, 33, 25, 23, 24, 21, 19, 22, 35, 40, 48, 43] },
+  ];
+  /* the references with their totals and shares: heating as a share of all mechanical permits, heating only likewise, and the share of the heating only permits pulled November to February */
   function ref() {
-    const s = a => a.reduce((x, y) => x + y, 0), mech = s(REF.mech), heat = s(REF.heat), only = s(REF.heatOnly), cold = [10, 11, 0, 1].reduce((x, i) => x + REF.heatOnly[i], 0), p = (a, b) => b > 0 ? Math.round(a / b * 1000) / 10 : null;
-    return Object.assign({}, REF, { mechTotal: mech, heatTotal: heat, heatOnlyTotal: only, heatPct: p(heat, mech), heatOnlyPct: p(only, mech), heatOnlyNovToFebPct: p(cold, only) });
+    const s = a => a.reduce((x, y) => x + y, 0), p = (a, b) => b > 0 ? Math.round(a / b * 1000) / 10 : null;
+    return REF.map(r => { const mech = s(r.mech), heat = s(r.heat), only = s(r.heatOnly); return Object.assign({}, r, { mechTotal: mech, heatTotal: heat, heatOnlyTotal: only, heatPct: p(heat, mech), heatOnlyPct: p(only, mech), heatOnlyNovToFebPct: p(r.heatOnly[10] + r.heatOnly[11] + r.heatOnly[0] + r.heatOnly[1], only) }); });
   }
 
   L.permits = { KEEP, WEEKS, MIN_DESC, RULE, RULE_TEXT, REF, LABELS, today, day, addDays, addMonths, monthKey, windows, isHeat, isHeatOnly, isDescribed, heatSql, heatOnlySql, describedSql, arcgis: { stat, sumIf, maxIf, form, rows, query, queryAll, run: arcgisRun }, zipOf, cityView, summary, digest, ref };

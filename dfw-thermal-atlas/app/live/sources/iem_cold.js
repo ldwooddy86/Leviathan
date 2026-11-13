@@ -6,7 +6,7 @@
    winters before it, one season a request (about 600 KB in all, once), and each July the season that just ended is pulled
    once more. Kept as a compact list: about 7 KB for ten winters.
    The service selects rows by start time (checked 2026-11-13), so each request asks for a whole season: a warning issued
-   today for tomorrow night is already in the answer, where a window that ends today would miss it. */
+   today for tomorrow night is already in the answer, where a request that ends today would miss it. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, HOST = 'mesonet.agron.iastate.edu', API = 'https://' + HOST + '/cgi-bin/request/gis/watchwarn.py';

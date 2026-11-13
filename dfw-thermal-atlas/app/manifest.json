@@ -37,7 +37,10 @@
     "https://www.saferproducts.gov/*",
     "https://data.rcc-acis.org/*",
     "https://mesonet.agron.iastate.edu/*",
-    "https://www.federalregister.gov/*"
+    "https://www.federalregister.gov/*",
+    "https://data.texas.gov/*",
+    "https://api.census.gov/*",
+    "https://www2.census.gov/*"
   ],
   "optional_host_permissions": [
     "https://*/*"

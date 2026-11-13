@@ -60,16 +60,18 @@
     if (!Array.isArray(rows)) throw new Error('the license counts are not a list');
     if (rows.length >= 1000) throw new Error('the license counts were cut off at 1,000 rows');
     const by = {}; counties.forEach(c => { by[upper(c.name)] = { name: c.name, fips: c.fips, contractors: 0, classA: 0, comfort: 0, techs: 0, certified: 0, expiring90: 0, lapsed: 0, new12: null, contractorsPer10kHomes: null }; });
-    let listed = 0, bad = 0;
+    let listed = 0, con = 0, bad = 0;
     for (const r of rows) {
       const c = by[upper(r.business_county)], n = +r.n || 0, act = +r.act || 0; if (!c || !n) continue;
-      listed += n; bad += +r.bad || 0;
-      if (r.license_type === CON) { const s = subtype(r.license_subtype); c.contractors += act; c.lapsed += n - act; c.expiring90 += +r.x90 || 0; if (s.classA) c.classA += act; if (s.env) c.comfort += act; }
+      if (r.license_type === CON) { const s = subtype(r.license_subtype); con += n; c.contractors += act; c.lapsed += n - act; c.expiring90 += +r.x90 || 0; if (s.classA) c.classA += act; if (s.env) c.comfort += act; }
       else if (r.license_type === TECH) { c.techs += act; if (upper(r.license_subtype) === 'CER') c.certified += act; }
+      else continue;
+      listed += n; bad += +r.bad || 0;
     }
     const list = counties.map(c => by[upper(c.name)]);
-    if (!sum(list, 'contractors')) throw new Error(listed ? 'no contractor license in the file is active on the file date: the expiration dates may have changed shape' : 'no air conditioning license came back for the 12 counties: the license type or county names in the file may have changed');
-    if (bad > listed * 0.02) throw new Error(`${thousands(bad)} of ${thousands(listed)} expiration dates in the license file are not mm/dd/yyyy`);
+    if (!con) throw new Error('no air conditioning contractor license came back for the 12 counties: the license type or county names in the file may have changed');
+    if (bad > listed * 0.02) throw new Error(`${thousands(bad)} of ${thousands(listed)} expiration dates in the license file are not mm/dd/yyyy any more`);
+    if (!sum(list, 'contractors')) throw new Error('no contractor license in the file is active on the file date: the expiration dates may have changed');
     return { counties: list, badDates: bad };
   }
   /* Texas as a whole on the same rule, and n0: the highest contractor license number that had already expired on the file date. */
