@@ -146,7 +146,7 @@ test('the same file a week later costs one request; a new file is counted again 
   same(third.data.before, plain(L.BY_ID.tdlr_licenses.digest(first)), 'the headline numbers of the October file');
   same(L.tdlr.change(plain(third.data)), { fileChanged: true, from: '2026-10-19', to: '2026-11-19', contractors: 0, techs: 0, new12: 0, counties: [], entered: [], enteredMore: false }, 'the same rows under a new date: nothing moved');
   const nov = Object.assign({}, plain(third.data), { stale: [] }), week = fakeFetch(routes({ meta: Object.assign({}, META, { dataUpdatedAt: '2026-11-19T19:02:44+0000' }) })), fourth = await runOnce(L, week, nov, new Date('2026-11-27T12:00:00Z'));
-  assert.equal(week.calls.length, 1); same(fourth.data.before, third.data.before, 'carried through an unchanged week');
+  assert.equal(week.calls.length, 1); same(fourth.data.before, plain(third.data.before), 'carried through an unchanged week');   // plain: third.data was built inside the vm, and the strict comparison also looks at the realm
 });
 
 test('partial failure: the county counts stand, the block that failed is kept from the last run and named', async () => {
