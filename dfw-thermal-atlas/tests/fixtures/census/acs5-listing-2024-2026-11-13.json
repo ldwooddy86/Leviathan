@@ -1,0 +1,11 @@
+{
+ "@id": "https://api.census.gov/data/2024/acs/acs5.json",
+ "dataset": [
+  {"c_vintage":2024,"c_dataset":["acs","acs5"],"c_isAvailable":true,"title":"ACS 5-Year Detailed Tables","identifier":"https://api.census.gov/data/id/ACSDT5Y2024","modified":"2025-09-02 17:33:50.0"},
+  {"c_vintage":2024,"c_dataset":["acs","acs5","cprofile"],"c_isAvailable":true,"title":"ACS 5-Year Comparison Profiles","identifier":"https://api.census.gov/data/id/ACSCP5Y2024","modified":"2025-09-02 17:33:43.0"},
+  {"c_vintage":2024,"c_dataset":["acs","acs5","profile"],"c_isAvailable":true,"title":"ACS 5-Year Data Profiles","identifier":"https://api.census.gov/data/id/ACSDP5Y2024","modified":"2025-09-02 17:33:54.0"},
+  {"c_vintage":2024,"c_dataset":["acs","acs5","subject"],"c_isAvailable":true,"title":"ACS 5-Year Subject Tables","identifier":"https://api.census.gov/data/id/ACSST5Y2024","modified":"2025-09-02 17:33:47.0"},
+  {"c_vintage":2024,"c_dataset":["acs","acs5","pums"],"c_isAvailable":true,"title":"2024 American Community Survey: 5-Year Estimates - Public Use Microdata Sample","identifier":"https://api.census.gov/data/id/ACSPUMS5Y2024","modified":"2025-12-23 15:02:39.0"},
+  {"c_vintage":2024,"c_dataset":["acs","acs5","pumspr"],"c_isAvailable":true,"title":"2024 American Community Survey: 5-Year Estimates - Public Use Microdata Sample Puerto Rico","identifier":"https://api.census.gov/data/id/ACSPUMS5YPR2024","modified":"2025-12-23 15:02:35.0"}
+ ]
+}

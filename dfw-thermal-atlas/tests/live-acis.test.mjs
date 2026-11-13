@@ -73,7 +73,7 @@ test('W2: a station row becomes numbers in a fixed order, the gate is applied on
   assert.equal(Object.values(r.rows).filter(x => x[18]).length, 32); assert.equal(r.rows[23844], undefined, 'Benbrook Dam closed');
   /* before October the gate reads the count since July 1 */
   const sep = A.parseW2(W2, A.span('2026-09-20')); assert.equal(sep.rows[32311][18], 0, '49 missing since July 1'); assert.equal(sep.rows[23929][18], 0); assert.equal(sep.rows[23812][18], 0); assert.equal(sep.rows[29755][18], 1);
-  same(plain(A.parseW2(null, A.span('2026-11-12'))), { stations: {}, rows: {} }); same(plain(A.parseW2({ data: [{ meta: { uid: 1 }, data: ['x'] }] }, A.span('2026-11-12'))), { stations: {}, rows: {} });
+  same(plain(A.parseW2(null, A.span('2026-11-12'))), { stations: {}, rows: {} }); same(plain(A.parseW2({ data: [null, 'x', {}, { meta: { uid: 1 }, data: ['x'] }] }, A.span('2026-11-12'))), { stations: {}, rows: {} }, 'rows that are not station rows are skipped');
 });
 
 test('W1 and W3: daily pairs by position, 30 falls with the unusable ones null', () => {
@@ -87,6 +87,7 @@ test('W1 and W3: daily pairs by position, 30 falls with the unusable ones null',
   assert.equal(w.hdd[23693].filter(v => v != null).length, 18, 'Hillsboro: 18 usable falls'); assert.equal(w.fr32[23693].filter(v => v != null).length, 18, 'one mask for all four lists');
   assert.equal(w.hdd[32311], undefined, 'Mesquite Metro has no fall before 2022'); same(Object.keys(keep.hdd), ['29755']);
   same(plain(A.parseW3({ data: [{ meta: { uid: 5 }, data: [[['1', 0], ['0', 0], '0', '40']] }] })), { hdd: {}, fr32: {}, fr25: {}, minT: {} }, 'a row that is not 30 falls cannot be dated');
+  same(plain(A.parseW3({ data: [null, { meta: { uid: 5 }, data: Array(30).fill(null) }] })), { hdd: {}, fr32: {}, fr25: {}, minT: {} }); same(plain(A.parseDaily({ data: [null, { meta: { uid: 5 }, data: [['M', 'M']] }] }, 1)), { stations: {}, tn: {}, tx: {} }, 'a station with no reading at all is left out');
 });
 
 test('G1 and G2: the newest finished PRISM day, flat grids from the south, county means', () => {
@@ -95,7 +96,7 @@ test('G1 and G2: the newest finished PRISM day, flat grids from the south, count
   assert.equal(g.hdd.length, 2480); assert.equal(g.fr32.length, 2480); assert.equal(g.minT.length, 2480); assert.equal(n.hddNorm.length, 2480);
   same(g.hdd.slice(0, 4), G1.data[1][1][0].slice(0, 4), 'the first values are the southern row, from the west'); assert.equal(g.hdd[62], G1.data[1][1][1][0], 'the second row starts at index 62'); assert.equal(g.hdd[2479], G1.data[1][1][39][61]);
   assert.ok(g.hdd.every(v => Number.isInteger(v)) && g.fr32.every(v => v === 0));
-  same(g.county['48113'], { hdd: 35.76, hdd7: 12.6, fr32: 0, minT: 44.9 }); same(g.county['48497'], { hdd: 69.84, hdd7: 28.6, fr32: 0, minT: 40.1 }); assert.equal(Object.keys(g.county).length, 13, 'the 12 counties and Somervell');
+  same(g.county['48113'], { hdd: 35.76, hdd7: 12.6, fr32: 0, minT: 44.9 }); same(g.county['48497'], { hdd: 69.83, hdd7: 28.6, fr32: 0, minT: 40.1 }); assert.equal(Object.keys(g.county).length, 13, 'the 12 counties and Somervell');
   same(n.county['48113'], { hddNorm: 154.28, fr32Norm: 0.54 }); same(n.county['48231'], { hddNorm: 187.72, fr32Norm: 0.84 });
   /* a missing cell is unknown, a day PRISM has not made is skipped, a grid of another shape is refused */
   same(A.flat(Array.from({ length: 40 }, (_, j) => Array.from({ length: 62 }, (_, i) => (j === 1 && i === 2 ? -999 : 5)))).filter(v => v == null).length, 1);
@@ -144,7 +145,7 @@ test('the digest for the week over week table', async () => {
   same(Object.keys(s.digest(data)).sort(), Object.keys(s.labels).sort(), 'every digest number has a label');
   const cold = copy(data), I = k => cold.std.cols.indexOf(k);
   cold.std['100'][I('firstFreeze')] = '2026-11-10'; cold.std['100'][I('fr32')] = 2; cold.county['48497'].fr32 = 0.4; cold.county['48425'].fr32 = 1; cold.std['29755'][I('fr32')] = 1;
-  same([s.digest(cold).freezeCounties, s.digest(cold).fr32], [2, 1], 'Denton by a station, Wise by the grid; Somervell is not one of the 12');
+  same([s.digest(cold).freezeCounties, s.digest(cold).fr32], [3, 1], 'Denton and Tarrant by a station, Wise by the grid; Somervell is not one of the 12');
   const gaps = copy(data); gaps.std['29755'][I('ok')] = 0; same([s.digest(gaps).hdd, s.digest(gaps).pct, s.digest(gaps).norm, s.digest(gaps).stations], [null, null, 157, 31], 'a gated reading is not shown');
   same(s.digest({ through: null }), { hdd: null, norm: null, pct: null, fr32: null, stations: 0, freezeCounties: 0, through: null });
 });
@@ -158,6 +159,14 @@ test('when yesterday has not arrived at DFW Airport the whole run ends a day ear
   const noDfw = copy(W2); noDfw.data.find(r => r.meta.uid === 29755).data = [['M', 135], '157', ['M', 43], ['M', 7], '54', ['M', 30], '143', ['M', 135], 'M', 'M', 'M', ['M', 'M'], 'M'];
   let n = 0; const f2 = fakeFetch(routes({ W1: ERR_EMPTY, W2: () => (++n === 1 ? noDfw : W2) })), r2 = await runOnce(L, f2);
   same(sent(f2, 'W2').map(b => b.date), ['2026-11-12', '2026-11-11']); assert.equal(r2.data.through, '2026-11-11'); assert.equal(r2.data.blocks.W1, null); assert.match(r2.data.errs.W1, /empty body/);
+  /* most airports late while DFW Airport is in: still a day back */
+  const most = copy(W1); most.data.filter(r => r.meta.uid !== 29755).slice(0, 4).forEach(r => { r.data[134] = ['M', 'M']; });
+  assert.equal((await runOnce(L, fakeFetch(routes({ W1: most })))).data.through, '2026-11-11'); most.data[3].data[134] = ['42', '78']; most.data[4].data[134] = ['42', '77'];
+  const few = await runOnce(L, fakeFetch(routes({ W1: most }))); same([few.data.through, few.data.daily.n], ['2026-11-12', 135], 'two late airports of six do not hold the run back');
+  /* without the daily call, a day missing in DFW Airport's last seven is read the same way; with it, an older gap is not */
+  const gap = copy(W2); gap.data.find(r => r.meta.uid === 29755).data[3] = ['10', 1];
+  const f3 = fakeFetch(routes({ W1: ERR_EMPTY, W2: gap })); assert.equal((await runOnce(L, f3)).data.through, '2026-11-11'); same(sent(f3, 'W2').map(b => b.date), ['2026-11-12', '2026-11-11'], 'asked once more, not a third time');
+  const f4 = fakeFetch(routes({ W2: gap })), r4 = await runOnce(L, f4); same([r4.data.through, sent(f4, 'W2').length], ['2026-11-12', 1]);
 });
 
 test('a block that fails keeps last week\'s copy with its own through date; nothing usable throws', async () => {
@@ -194,7 +203,9 @@ test('a block that fails keeps last week\'s copy with its own through date; noth
 test('history is not asked for twice: a second run the same day makes three requests', async () => {
   const L = fresh(), first = (await runOnce(L, fakeFetch(routes()))).data, f = fakeFetch(routes()), { data, http } = await runOnce(L, f, first, new Date('2026-11-13T22:00:00Z'));
   assert.equal(http.stats.n, 3); same(f.calls.map(c => kind(c.init)), ['W1', 'W2', 'G1']); same(data.stale, {}); same(data.blocks, first.blocks); same(data.todate, first.todate); same(data.grid.hddNorm, first.grid.hddNorm); same(data.county, first.county);
-  const next = fakeFetch(routes()); await runOnce(L, next, first, new Date('2026-11-14T18:30:00Z')); assert.ok(next.calls.some(c => kind(c.init) === 'W3'), 'a new day asks again');
+  /* a record that holds the falls and the grid mean of earlier days asks again */
+  const older = copy(first); older.blocks.W3 = '2026-11-11'; older.blocks.G2 = '2026-11-10'; const next = fakeFetch(routes()), again = await runOnce(L, next, older);
+  assert.equal(again.http.stats.n, 5); same(again.data.blocks, first.blocks); same(again.data.stale, {});
 });
 
 test('through the runner: a record with its digest, and the size it stays under', async () => {
@@ -237,7 +248,7 @@ test('status reproduces what the spec observed through 2026-11-12', async () => 
   same([m.hdd7, m.hdd7Norm, m.pct7, m.hdd30, m.hdd30Norm, m.pct30], [10, 54, 19, 29, 143, 20]);
   same([m.fr32, m.fr25, m.fr32Norm, m.fr32NormFrom, m.freezeBy, m.minT, m.minDate, m.min7, m.lastFreeze, m.daysSinceFreeze], [0, 0, 0.67, 'station', { n: 8, of: 30 }, 47, '2026-10-17', 50, '2026-02-23', 262]);
   same(m.firstFreeze, { state: 'pending', date: null, daysVsMedian: null, climChance: 25, climText: '25', daysToMedian: 11, median: '2026-11-24', p10: '2026-11-06', p90: '2026-12-12', src: 'NCEI', from: null, seasons: 30 });
-  same([m.normHdd, m.normFr32, m.exposure, m.record, m.county, m.icao], [2220.2, 29.2, { ratio: 1, freeze: 1, src: 'NCEI' }, 30, 'Tarrant', 'KDFW']);
+  same([m.normHdd, m.normFr32, m.vsDfw, m.record, m.county, m.icao], [2220.2, 29.2, { ratio: 1, freeze: 1, src: 'NCEI' }, 30, 'Tarrant', 'KDFW']);
   /* counties, coldest first, with the share of the 30 fall mean */
   same(s.counties.map(c => c.name), ['Wise', 'Parker', 'Hunt', 'Hood', 'Denton', 'Collin', 'Johnson', 'Tarrant', 'Ellis', 'Rockwall', 'Kaufman', 'Dallas']);
   same(s.counties.map(c => [c.hdd, c.hddNorm, c.pct]), [[69.8, 216.1, 32], [61.8, 202.7, 30], [61, 187.7, 33], [59.3, 183.6, 32], [54.5, 187.6, 29], [51.6, 185.5, 28], [49.9, 167.3, 30], [46, 159.7, 29], [43.1, 160.5, 27], [42.3, 172.9, 24], [41.3, 166.6, 25], [35.8, 154.3, 23]]);
@@ -246,10 +257,11 @@ test('status reproduces what the spec observed through 2026-11-12', async () => 
   const dal = s.counties.find(c => c.name === 'Dallas'); same([dal.fips, dal.fr32, dal.fr32Norm, dal.minT, dal.hdd7, dal.dep, dal.exposure, dal.normFr25], ['48113', 0, 0.54, 44.9, 12.6, -118.5, 0.969, 7.2]);
   assert.ok(s.counties.every(c => c.firstFreeze && c.firstFreeze.state === 'pending' && c.firstFreeze.station), 'no county has had a freeze, and each names its station');
   const ff = n => { const f = s.counties.find(c => c.name === n).firstFreeze; return [f.station, f.median, f.climChance, f.daysToMedian, f.src, f.nearby]; };
-  same(ff('Tarrant'), ['DFW Airport', '2026-11-24', 25, 11, 'NCEI', false]); same(ff('Dallas'), ['Dallas Love Field', '2026-11-29', 15, 16, 'NCEI', false]); same(ff('Denton'), ['Denton Municipal Airport', '2026-11-07', 66, -6, 'NCEI', false]);
+  same(ff('Tarrant'), ['Fort Worth Alliance Airport', '2026-11-17', 42, 4, 'NCEI', false], 'of six complete stations with official dates, the one that normally freezes first'); same(ff('Dallas'), ['Dallas Executive Airport', '2026-11-25', 22, 12, 'NCEI', false]); same(ff('Denton'), ['Denton Municipal Airport', '2026-11-07', 66, -6, 'NCEI', false]);
   same(ff('Collin'), ['McKinney Municipal Airport', '2026-11-11', 54, -2, 'NCEI', false]); same(ff('Kaufman'), ['Terrell Municipal Airport', '2026-11-18', 38, 5, 'NCEI', false]);
   same(ff('Parker'), ['Mineral Wells Airport', '2026-11-10', 60, -3, 'NCEI', true], 'Weatherford has gaps: the nearest complete station speaks for Parker County, and says so');
-  same(ff('Hood'), ['Granbury Municipal Airport', '2026-11-13', 58, 0, 'ACIS', false], 'no official normals: the airport\'s own 12 seasons');
+  same(ff('Hood'), ['Granbury Municipal Airport', '2026-11-13', 58, 0, 'ACIS', false], 'no official normals: the airport\'s own 12 seasons'); same(ff('Wise'), ['Bridgeport Municipal Airport', '2026-11-02', 70, -11, 'ACIS', false], 'Bridgeport before Decatur: the earlier of two ten season records');
+  same(s.counties.map(c => [c.firstFreeze.stationsOk, c.firstFreeze.stationsWithFreeze]), [[2, 0], [0, 0], [1, 0], [1, 0], [1, 0], [1, 0], [1, 0], [8, 0], [1, 0], [1, 0], [1, 0], [4, 0]]);
   const rock = s.counties.find(c => c.name === 'Rockwall').firstFreeze; same([rock.station, rock.src, rock.from, rock.median], ['Rockwall Municipal Airport', 'NCEI nearby', 'Lavon Dam', '2026-11-19'], 'nine seasons are too few: the nearest official dates, named');
   /* stations */
   assert.equal(s.stations.length, 43); assert.equal(s.stations.filter(x => x.ok).length, 32); assert.equal(s.stations.filter(x => x.metro).length, 31); assert.ok(s.stations.slice(0, 31).every(x => x.metro), 'the 12 counties first');
@@ -260,8 +272,8 @@ test('status reproduces what the spec observed through 2026-11-12', async () => 
   same([by(29493).rank.n, by(29493).rank.of, by(29493).rank.text], [3, 21, 'third lowest']); same([by(29489).fr32Norm, by(29489).freezeBy], [0.41, { n: 6, of: 22 }], 'Terrell, as the spec counted it');
   same([by(23929).ok, by(23929).miss, by(23929).hdd, by(23929).hddNorm, by(23929).pct, by(23929).fr32, by(23929).firstFreeze, by(23929).minT, by(23929).lastFreeze], [false, 12, null, 168, null, null, null, 47, '2026-02-01'], 'Richardson has gaps: no total, no "no freeze yet"');
   same([by(23812).ok, by(23812).hdd, by(23812).dep], [false, null, null], 'Ferris is not "0 heating degree days, 167 below normal"');
-  same([by(32311).name, by(32311).ok, by(32311).hdd, by(32311).hddNorm, by(32311).pct, by(32311).rank, by(32311).fr32Norm, by(32311).fr32NormFrom, by(32311).exposure, by(32311).record], ['Mesquite Metro Airport', true, 27, null, null, null, 0.54, 'county', { ratio: 1.072, freeze: 1.27, src: 'PRISM' }, null]);
-  same([by(100).exposure, by(100).firstFreeze.climChance, by(23883).exposure, by(101).exposure.ratio, by(32320).exposure], [{ ratio: 1.188, freeze: 1.77, src: 'NCEI' }, 66, { ratio: 1.188, freeze: 2.08, src: 'NCEI' }, 0.896, { ratio: 1.2, freeze: 1.92, src: 'PRISM' }]);
+  same([by(32311).name, by(32311).ok, by(32311).hdd, by(32311).hddNorm, by(32311).pct, by(32311).rank, by(32311).fr32Norm, by(32311).fr32NormFrom, by(32311).vsDfw, by(32311).record], ['Mesquite Metro Airport', true, 27, null, null, null, 0.54, 'county', { ratio: 1.072, freeze: 1.27, src: 'PRISM' }, null]);
+  same([by(100).vsDfw, by(100).firstFreeze.climChance, by(23883).vsDfw, by(101).vsDfw.ratio, by(32320).vsDfw], [{ ratio: 1.188, freeze: 1.77, src: 'NCEI' }, 66, { ratio: 1.188, freeze: 2.08, src: 'NCEI' }, 0.896, { ratio: 1.2, freeze: 1.92, src: 'PRISM' }]);
   /* first freeze chances by tomorrow, read between the official decile dates (spec section 8) */
   same([by(23850), by(101), by(23898), by(23879), by(24396), by(29493)].map(x => [x.firstFreeze.climChance, x.firstFreeze.daysToMedian]), [[22, 12], [21, 14], [33, 6], [30, 7], [42, 4], [32, 8]]);
   same(s.grades, { metro: 'A', stations: 'A', series: 'A', rank: 'B', firstFreeze: 'B', counties: 'C', zip: 'C' });
@@ -309,7 +321,7 @@ test('first freeze: read between the official dates, counted in a station\'s own
   same([C.chanceBy(c, '2026-11-05'), C.chanceBy(c, '2026-12-13'), C.chanceBy(null, '2026-11-13'), C.chanceBy(c, null)], [{ v: null, text: 'under 10' }, { v: null, text: 'over 90' }, { v: null, text: null }, { v: null, text: null }]);
   /* the station's own 30 seasons when it has no official dates: DFW Airport's ACIS record gives November 25, as the spec found */
   const own = C.climOf(BASE, { lat: 32.89744, lon: -97.02196 }, '29755', 2026); same([own.src, own.n, own.median, own.p10, own.p90], ['ACIS', 30, '2026-11-25', '2026-11-05', '2026-12-08']);
-  assert.equal(C.chanceBy(own, '2026-11-13').v, 30, '9 of 30 seasons had frozen by November 13'); assert.equal(C.chanceBy(own, '2026-10-29').v, 0); assert.equal(C.chanceBy(own, '2026-12-21').v, 100);
+  assert.equal(C.chanceBy(own, '2026-11-13').v, 33, '10 of 30 seasons had frozen by November 13'); assert.equal(C.chanceBy(own, '2026-10-29').v, 0); assert.equal(C.chanceBy(own, '2026-12-21').v, 100);
   same([C.climOf(BASE, {}, '32303', 2026).median, C.climOf(BASE, {}, '32303', 2026).n, C.climOf(BASE, {}, '32320', 2026).median, C.climOf(BASE, {}, '32305', 2026).median], ['2026-11-12', 12, '2026-11-02', '2026-11-24'], 'Cleburne, Bridgeport and Decatur airports, as the spec has them');
   const near = C.climOf(BASE, { lat: 32.93059, lon: -96.43548 }, '79765', 2026); same([near.src, near.from, near.km, near.median], ['NCEI nearby', 'Lavon Dam', 13, '2026-11-19']);
   assert.equal(C.climOf(BASE, { lat: 29.76, lon: -95.37 }, '1', 2026), null); assert.equal(C.climOf(null, dfw, '29755', 2026), null); assert.equal(C.climOf(BASE, dfw, '29755', null), null);
@@ -350,7 +362,7 @@ test('safe on nothing: no record, no baseline, a record from another version', a
   /* the baseline alone: the static side of every county, coldest normal first */
   const b = C.status(null, BASE, NOW); same([b.ok, b.today, b.counties[0].name, b.counties[0].normHdd, b.counties[0].exposure, b.counties[11].name, b.counties[11].hdd], [false, '2026-11-13', 'Wise', 2743, 1.152, 'Dallas', null]);
   /* the weekly record alone (the background worker has no baseline): the numbers of the week, no climatology */
-  const w = C.status(data, null, NOW); same([w.ok, w.metro.hdd, w.metro.norm, w.metro.pct, w.metro.rank.n, w.metro.firstFreeze.state, w.metro.firstFreeze.median, w.metro.exposure, w.counties[0].name, w.counties[0].normHdd, w.series.total, w.series.normTotal], [true, 29, 157, 18, 2, 'pending', null, null, 'Wise', null, 29, null]);
+  const w = C.status(data, null, NOW); same([w.ok, w.metro.hdd, w.metro.norm, w.metro.pct, w.metro.rank.n, w.metro.firstFreeze.state, w.metro.firstFreeze.median, w.metro.vsDfw, w.counties[0].name, w.counties[0].normHdd, w.series.total, w.series.normTotal], [true, 29, 157, 18, 2, 'pending', null, null, 'Wise', null, 29, null]);
   assert.equal(C.headline(w), 'Heating season to date: 29 heating degree days at DFW Airport against a normal of 157 (18%), second lowest to this date among 31 falls; no freeze yet.');
   /* the cold picture reads the season through this file */
   const cold = L.derive.cold({ acis_season: { data } }, NOW); assert.equal(cold.ok, false, 'no forecast, no cold picture, no throw');

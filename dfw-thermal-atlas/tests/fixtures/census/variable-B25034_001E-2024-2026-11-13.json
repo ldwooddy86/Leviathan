@@ -1,0 +1,9 @@
+{
+ "name": "B25034_001E",
+ "label": "Estimate!!Total:",
+ "concept": "Year Structure Built",
+ "predicateType": "int",
+ "group": "B25034",
+ "limit": 0,
+ "attributes": "B25034_001EA,B25034_001M,B25034_001MA"
+}

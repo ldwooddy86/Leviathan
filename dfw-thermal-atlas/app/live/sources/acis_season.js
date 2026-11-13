@@ -90,7 +90,7 @@
   function parseW2(j, sp) {
     const stations = {}, rows = {};
     for (const r of (j && j.data) || []) {
-      const m = r.meta || {}, d = r.data || []; if (m.uid == null || d.length < 13) continue;
+      const m = (r && r.meta) || {}, d = (r && r.data) || []; if (m.uid == null || d.length < 13) continue;
       const [hdd, missJul] = pair(d[0]), [hddOct, missOct] = pair(d[2]), [hdd7, miss7] = pair(d[3]), [hdd30, miss30] = pair(d[5]), [fr32] = pair(d[7]), [minT, minDate] = pair(d[11]);
       const row = [num(hdd), num(d[1]), num(hddOct), num(missOct), num(hdd7), num(miss7), num(d[4]), num(hdd30), num(miss30), num(d[6]), num(fr32), num(d[8]), day(d[9]), day(d[10]), num(minT), day(minDate), num(d[12]), num(missJul)];
       if (row[I.hdd] == null && row[I.minT] == null) continue;
@@ -102,7 +102,7 @@
   function parseDaily(j, n) {
     const stations = {}, tn = {}, tx = {};
     for (const r of (j && j.data) || []) {
-      const m = r.meta || {}, d = r.data || []; if (m.uid == null) continue;
+      const m = (r && r.meta) || {}, d = (r && r.data) || []; if (m.uid == null) continue;
       const lo = Array.from({ length: n }, (_, i) => num((d[i] || [])[0])), hi = Array.from({ length: n }, (_, i) => num((d[i] || [])[1]));
       if (lo.every(v => v == null) && hi.every(v => v == null)) continue;
       stations[m.uid] = stationOf(m); tn[m.uid] = lo; tx[m.uid] = hi;
@@ -114,9 +114,9 @@
   function parseW3(j, keep) {
     const out = { hdd: {}, fr32: {}, fr25: {}, minT: {} };
     for (const r of (j && j.data) || []) {
-      const u = (r.meta || {}).uid, d = r.data || []; if (u == null || d.length !== 30 || (keep && !keep[u])) continue;
+      const u = ((r && r.meta) || {}).uid, d = (r && r.data) || []; if (u == null || d.length !== 30 || (keep && !keep[u])) continue;
       const h = [], f = [], g = [], t = [];
-      for (const y of d) { const [hv, hm] = pair(y[0]), [fv, fm] = pair(y[1]), ok = num(hm) != null && hm <= 5 && num(fm) != null && fm <= 5; h.push(ok ? num(hv) : null); f.push(ok ? num(fv) : null); g.push(ok ? num(y[2]) : null); t.push(ok ? num(y[3]) : null); }
+      for (const y of d) { if (!Array.isArray(y)) { h.push(null); f.push(null); g.push(null); t.push(null); continue; } const [hv, hm] = pair(y[0]), [fv, fm] = pair(y[1]), ok = num(hm) != null && hm <= 5 && num(fm) != null && fm <= 5; h.push(ok ? num(hv) : null); f.push(ok ? num(fv) : null); g.push(ok ? num(y[2]) : null); t.push(ok ? num(y[3]) : null); }
       if (h.some(v => v != null) || f.some(v => v != null)) { out.hdd[u] = h; out.fr32[u] = f; out.fr25[u] = g; out.minT[u] = t; }
     }
     return out;
@@ -154,28 +154,32 @@
     about: 'Observed heating degree days since July 1 against the 1991 to 2020 normal at every reporting station in and around the 12 counties, freeze nights, first and last freeze, the same span in 30 past falls, and 4 km grids and county means of the season so far. Feeds the season line, the Heat Desk pacing and the season to date by county and ZIP.',
     hosts: ['data.rcc-acis.org'], cadence: 'weekly', cors: true, grade: 'A/C', timeoutMs: 200000,
     terms: 'Station data and normals: NOAA Regional Climate Centers (ACIS), public. Grids: PRISM Climate Group, Oregon State University, credit required. Recent days are preliminary.',
-    labels: { hdd: ['DFW Airport heating degree days since July 1', 'int'], norm: ['Normal to the same date (1991 to 2020)', 'int'], pct: ['Share of normal', 'pct'], fr32: ['Freeze nights at DFW Airport', 'int'], stations: ['Stations reporting', 'int'], freezeCounties: ['Counties with a freeze so far (of 12)', 'int'], through: ['Observed through', 'text'] },
+    labels: { hdd: ['DFW Airport heating degree days since July 1', 'int'], norm: ['Normal to the same date (1991 to 2020)', 'int'], pct: ['Percent of normal', 'pct'], fr32: ['Freeze nights at DFW Airport', 'int'], stations: ['Stations reporting', 'int'], freezeCounties: ['Counties with a freeze so far (of 12)', 'int'], through: ['Observed through', 'text'] },
     async run(ctx) {
       const prev = ctx.prev && ctx.prev.v === V && ctx.prev.blocks ? ctx.prev : null, ask = (id, path, req) => call(ctx.http, id, path, req);
       let sp = dates(ctx.now); const asked = sp.through;
       const blocks = {}, stale = {}, errs = {}, got = [], fresh = {};
-      /* last week's copy of a block, when it belongs to this season; the block is then marked stale with its own through date */
-      const kept = id => (prev && prev.blocks[id] && prev.blocks[id] >= sp.start ? prev.blocks[id] : null);
+      /* last week's copy of a block, when it is there and belongs to this season; the block is then marked stale with its own through date */
+      const HAS = { W1: p => p.daily && p.daily.tn, W2: p => p.std && p.std.cols, W3: p => p.todate && p.todate.hdd, G1: p => p.grid && p.grid.hdd, G2: p => p.grid && p.grid.hddNorm };
+      const kept = id => (prev && prev.blocks[id] && prev.blocks[id] >= sp.start && HAS[id](prev) ? prev.blocks[id] : null);
       const miss = (id, e) => { errs[id] = String((e && e.message) || e).slice(0, 200); stale[id] = blocks[id] = kept(id); return blocks[id]; };
       let daily = null, std = null, todate = null, g1 = null, g2 = null;
 
-      /* W1: the airports day by day. It also shows whether yesterday has arrived at DFW Airport: when it has not, everything this run reads ends the day before. */
+      /* W1: the airports day by day. It also shows whether yesterday has arrived: when DFW Airport or most of the airports do not
+         have it yet, everything this run reads ends the day before. */
       try {
-        const d = parseDaily(await ask('W1', 'MultiStnData', body.W1(sp, airports(ctx.geo))), sp.n); if (!Object.keys(d.tn).length) throw new Error('W1: no airport station answered');
-        const lo = d.tn[DFW], hi = d.tx[DFW];
-        if (lo && sp.n > 1 && (lo[sp.n - 1] == null || hi[sp.n - 1] == null)) { sp = span(addDays(sp.through, -1)); Object.keys(d.tn).forEach(u => { d.tn[u].pop(); d.tx[u].pop(); }); }
+        const d = parseDaily(await ask('W1', 'MultiStnData', body.W1(sp, airports(ctx.geo))), sp.n), us = Object.keys(d.tn); if (!us.length) throw new Error('W1: no airport station answered');
+        const absent = u => d.tn[u][sp.n - 1] == null || d.tx[u][sp.n - 1] == null;
+        if (sp.n > 1 && ((d.tn[DFW] && absent(DFW)) || us.filter(absent).length > us.length / 2)) { sp = span(addDays(sp.through, -1)); us.forEach(u => { d.tn[u].pop(); d.tx[u].pop(); }); }
         daily = { start: sp.start, n: sp.n, tn: d.tn, tx: d.tx }; Object.assign(fresh, d.stations); blocks.W1 = sp.through; got.push('W1');
       } catch (e) { if (miss('W1', e)) daily = prev.daily; }
 
-      /* W2: the station table. If DFW Airport has no value at all for the date, step back one day and ask once more. */
+      /* W2: the station table. If DFW Airport has no value for the date (or, when the daily call did not answer, a day missing in its
+         last seven), step back one day and ask once more. */
       try {
         let w = parseW2(await ask('W2', 'MultiStnData', body.W2(sp)), sp);
-        if ((!w.rows[DFW] || w.rows[DFW][I.hdd] == null) && sp.through === asked && sp.n > 1) { sp = span(addDays(sp.through, -1)); w = parseW2(await ask('W2', 'MultiStnData', body.W2(sp)), sp); }
+        const late = r => !r || r[I.hdd] == null || (got.indexOf('W1') < 0 && r[I.miss7] >= 1);
+        if (late(w.rows[DFW]) && sp.through === asked && sp.n > 1) { sp = span(addDays(sp.through, -1)); w = parseW2(await ask('W2', 'MultiStnData', body.W2(sp)), sp); }
         if (!Object.keys(w.rows).length) throw new Error('W2: no station reported');
         std = Object.assign({ cols: COLS }, w.rows); Object.assign(fresh, w.stations); blocks.W2 = sp.through; got.push('W2');
       } catch (e) { if (miss('W2', e)) std = prev.std; }
@@ -191,13 +195,13 @@
       try {
         const g = parseG1(await ask('G1', 'GridData', body.G1(sp))); if (!g) throw new Error('G1: PRISM has not finished any of the last three days');
         g1 = g; blocks.G1 = g.date; got.push('G1');
-      } catch (e) { if (miss('G1', e)) g1 = { date: prev.grid.date, hdd: prev.grid.hdd, fr32: prev.grid.fr32, minT: prev.grid.minT, county: prev.county || {} }; }
+      } catch (e) { if (miss('G1', e)) g1 = { date: prev.blocks.G1, hdd: prev.grid.hdd, fr32: prev.grid.fr32, minT: prev.grid.minT, county: prev.county || {} }; }
 
       /* G2: the 30 fall mean for that same PRISM day */
       const old2 = () => ({ hddNorm: prev.grid.hddNorm, county: prev.county || {} });
-      if (g1 && prev && prev.grid && prev.grid.hddNorm && prev.blocks.G2 === g1.date) { g2 = old2(); blocks.G2 = g1.date; }
-      else if (g1 && got.indexOf('G1') >= 0) try { g2 = parseG2(await ask('G2', 'GridData', body.G2(span(g1.date)))); blocks.G2 = g1.date; got.push('G2'); } catch (e) { if (miss('G2', e) && prev.grid && prev.grid.hddNorm) g2 = old2(); }
-      else if (miss('G2', new Error('G2: not asked, the grid it belongs to did not arrive')) && g1 && prev.grid && prev.grid.hddNorm) g2 = old2();
+      if (g1 && prev && HAS.G2(prev) && prev.blocks.G2 === g1.date) { g2 = old2(); blocks.G2 = g1.date; }
+      else if (g1 && got.indexOf('G1') >= 0) try { g2 = parseG2(await ask('G2', 'GridData', body.G2(span(g1.date)))); blocks.G2 = g1.date; got.push('G2'); } catch (e) { if (miss('G2', e)) g2 = old2(); }
+      else if (miss('G2', new Error('G2: not asked, the grid it belongs to did not arrive')) && g1) g2 = old2();
       if (!g1) { g2 = null; if (blocks.G2) stale.G2 = blocks.G2 = null; }
 
       if (!got.length) throw new Error(errs.W2 || errs.W1 || errs.G1 || 'ACIS did not answer');

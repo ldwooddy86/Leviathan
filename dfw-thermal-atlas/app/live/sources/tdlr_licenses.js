@@ -96,6 +96,15 @@
       return { no: +r.license_number, name: clean(r.business_name).slice(0, 60), county: c.name, sub: upper(r.license_subtype), comfort: subtype(r.license_subtype).env, issued };
     }).filter(Boolean);
   }
+  /* a refused query says why in its body ("No such column: license_kind"): pass that on instead of a bare status */
+  async function ask(ctx, url, what) {
+    try { return await ctx.http.json(url, OPT); }
+    catch (e) {
+      if (!(e && e.status === 400)) throw e;
+      const col = /No such column: ?(\w+)/.exec(e.body || '');
+      throw new Error(col ? `the license file no longer has the column ${col[1]}, so ${what} could not be counted` : `the Texas Open Data Portal refused the query for ${what}`);
+    }
+  }
   const basis = day => `Counted from the TDLR All Licenses file as published on ${day}. Active: the license type is A/C Contractor or A/C Technician, the business county is one of the 12, and the expiration date is on or after the file date. Comfort: the license carries the environmental air conditioning endorsement, which covers home heating. Expiring within 90 days counts from the file date. Lapsed: still in the file with an expiration date before the file date (the file keeps a license 18 months after it expires). New in 12 months: license numbers above the highest numbered Texas contractor license that had already expired on the file date. Numbers are issued in sequence and a license runs one year, so every higher number was first issued within the year (grade B: the line can sit a few days early). A license is counted in its business county, a technician in the county on the technician's own record.`;
 
   L.register({
@@ -108,16 +117,16 @@
       const f = fileDate(await ctx.http.json(META, OPT));
       /* the same file as last time, and nothing missing from it: nothing to count again */
       if (prev && prev.asOf === f.asOf && !(prev.stale || []).length && prev.entrants && prev.texas) return Object.assign({}, prev, { checked: now });
-      const main = parseCounts(await ctx.http.json(queries(f.day, names).counts, OPT), G.counties);
+      const main = parseCounts(await ask(ctx, queries(f.day, names).counts, 'licenses by county'), G.counties);
       const stale = []; let texas = null, entrants = null, after = null;
       const why = e => String((e && e.message) || e).slice(0, 140);
-      try { const t = parseTexas(await ctx.http.json(queries(f.day, names).texas, OPT)); after = t.n0; texas = { asOf: f.asOf, contractors: t.contractors, techs: t.techs }; }
+      try { const t = parseTexas(await ask(ctx, queries(f.day, names).texas, 'the Texas totals')); after = t.n0; texas = { asOf: f.asOf, contractors: t.contractors, techs: t.techs }; }
       catch (e) { texas = prev && prev.texas ? prev.texas : null; stale.push({ block: 'texas', why: why(e), kept: texas ? texas.asOf : null }); }
       try {
         if (after == null) throw new Error('the Texas totals did not give the license number the last 12 months start above');
-        const Q = queries(f.day, names, after), e = parseEntrants(await ctx.http.json(Q.entrants, OPT), G.counties, f.day);
+        const Q = queries(f.day, names, after), e = parseEntrants(await ask(ctx, Q.entrants, 'new licenses by county'), G.counties, f.day);
         if (!e.ok) throw new Error(`the license numbers above ${after} do not span a year (first expiration ${e.first || 'unknown'})`);
-        entrants = { asOf: f.asOf, after, from: yearsBefore(f.day, 1), by: e.by, total: e.total, newest: parseNewest(await ctx.http.json(Q.newest, OPT), G.counties, f.day) };
+        entrants = { asOf: f.asOf, after, from: yearsBefore(f.day, 1), by: e.by, total: e.total, newest: parseNewest(await ask(ctx, Q.newest, 'the newest licenses'), G.counties, f.day) };
       } catch (e) { entrants = prev && prev.entrants ? prev.entrants : null; stale.push({ block: 'entrants', why: why(e), kept: entrants ? entrants.asOf : null }); }
       main.counties.forEach(c => { c.new12 = entrants && entrants.by[c.name] != null ? entrants.by[c.name] : null; });
       const total = {}; ['contractors', 'classA', 'comfort', 'techs', 'certified', 'expiring90', 'lapsed'].forEach(k => { total[k] = sum(main.counties, k); }); total.new12 = entrants ? entrants.total : null;

@@ -95,7 +95,7 @@ test('the 12 zones and the bitmask round trip', () => {
   /* a whole office answer: 46 zones in, 12 kept */
   const jan = I.compact(I.parse(WINDOW));
   same(jan, [[2026, 'EC.W', 1, 29488320, 29492100, 4095], [2026, 'EC.A', 1, 29488320, M('2026-01-22 20:36'), 4095]], 'the Winter Storm Warning rows of that window were for zones outside the 12');
-  same(I.compact(I.parse(WINDOW), ['TXZ142', 'TXZ119']).map(e => [e[1], e[5]]), [['WS.W', 1], ['EC.W', 3], ['EC.A', 3]], 'any zone list can be asked for: here a zone south of the 12 that was under that warning');
+  same(I.compact(I.parse(WINDOW), ['TXZ142', 'TXZ119']).map(e => [e[1], e[5]]), [['WS.W', 1], ['EC.W', 3], ['EC.A', 3]], 'any zone list can be asked for: here Mills County, outside the 12, which was under that warning');
   same(I.compact([]), []); same(I.compact(null), []);
 });
 
@@ -270,7 +270,7 @@ test('failure modes: a failed winter ends the archive pulls for this run and is 
   /* an answer that is not the table counts as a failure too */
   const f1b = service({ 2023: ERROR_PAGE }), partB = (await run(L, f1b)).data; same(asked(f1b), [2026, 2025, 2024, 2023]); same(partB.seasons, [2024, 2025, 2026]); assert.match(partB.staleWhy, /got a web page instead/); assert.ok(!/[<>]/.test(partB.staleWhy));
   /* whatever a failure says, the reason kept in the record cannot close a script tag */
-  const partC = (await run(L, service({ 2023: new Error('socket closed <\/script><b>') }))).data; assert.match(partC.staleWhy, /^socket closed/); assert.ok(!/[<>]/.test(JSON.stringify(partC)));
+  const partC = (await run(L, service({ 2023: new Error('socket closed <\/script><b>') }))).data; assert.match(partC.staleWhy, /socket closed/); assert.ok(!/[<>]/.test(JSON.stringify(partC)));
   /* the next run asks for the running season and the six that are missing, and the archive is whole */
   const f2 = service(), done = (await run(L, f2, part, new Date('2026-11-20T18:00:00Z'))).data;
   same(asked(f2), [2026, 2021, 2020, 2019, 2018, 2017, 2016]); same(done.seasons, range(2016, 2026)); same(done.stale, {}); assert.equal(done.staleWhy, undefined); same(done.events, full.events); assert.equal(done.archiveFrom, '2016-07-01');
@@ -285,7 +285,7 @@ test('failure modes: a first run that runs long stops asking and leaves the rest
   const f = fakeFetch([[/watchwarn\.py/, u => { const s = seasonOfUrl(u); if (s < 2026) late += 30000; return s === 2026 ? EMPTY : s === 2025 ? S2025 : slice(s); }]]);
   const d = (await run(L, f)).data;
   same(asked(f), [2026, 2025, 2024, 2023], 'three winters in ninety seconds, then no more'); same(d.seasons, [2023, 2024, 2025, 2026]); same(Object.keys(d.stale).map(Number), range(2016, 2022)); assert.ok(Object.values(d.stale).every(v => v === null));
-  assert.equal(d.staleWhy, 'the first pull of the archive ran long; the rest follows at the next refresh'); assert.equal(d.events.length, (await first(fresh())).events.filter(e => L.iem.seasonOf(e[3]) >= 2023).length);
+  assert.equal(d.staleWhy, 'the pull of the archive ran long; the rest follows at the next refresh'); assert.equal(d.events.length, (await first(fresh())).events.filter(e => L.iem.seasonOf(e[3]) >= 2023).length);
   late = 0; const g = service(); same((await run(L, g, d, new Date('2026-11-20T18:00:00Z'))).data.seasons, range(2016, 2026)); same(asked(g), [2026, 2022, 2021, 2020, 2019, 2018, 2017, 2016]);
 });
 

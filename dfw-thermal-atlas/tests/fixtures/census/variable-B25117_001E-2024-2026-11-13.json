@@ -1,0 +1,9 @@
+{
+ "name": "B25117_001E",
+ "label": "Estimate!!Total:",
+ "concept": "Tenure by House Heating Fuel",
+ "predicateType": "int",
+ "group": "B25117",
+ "limit": 0,
+ "attributes": "B25117_001EA,B25117_001M,B25117_001MA"
+}

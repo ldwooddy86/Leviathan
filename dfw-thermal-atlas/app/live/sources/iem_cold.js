@@ -3,7 +3,8 @@
    chill, winter storm, ice storm, winter weather, freezing fog) that the National Weather Service office in Fort Worth issued
    for the 12 county forecast zones. One request a week asks for the running season (July 1 to June 30) as CSV and replaces
    that season's rows, because end times move when a product is extended or cancelled. The first run also pulls the ten
-   winters before it, one season a request (about 600 KB in all, once). Kept as a compact list: about 7 KB for ten winters.
+   winters before it, one season a request (about 600 KB in all, once), and each July the season that just ended is pulled
+   once more. Kept as a compact list: about 7 KB for ten winters.
    The service selects rows by start time (checked 2026-11-13), so each request asks for a whole season: a warning issued
    today for tomorrow night is already in the answer, where a window that ends today would miss it. */
 (function (root) {
@@ -180,10 +181,10 @@
   L.register({
     id: 'iem_cold', name: 'Cold watches, warnings and advisories issued', publisher: 'Iowa Environmental Mesonet, Iowa State University', page: 'https://' + HOST + '/request/gis/watchwarn.phtml',
     about: 'Every dated freeze, frost, extreme cold, wind chill, winter storm, ice storm and winter weather product the National Weather Service in Fort Worth issued for the 12 counties, ten winters back and this season to date. Feeds the cold season record: products and cold hazard days by county, and how early the first Freeze Warning usually comes.',
-    hosts: [HOST], cadence: 'weekly', cors: true, grade: GRADE.record, terms: 'Iowa Environmental Mesonet: free to use for most any legal purpose. The products themselves are U.S. Government work', timeoutMs: 180000,
+    hosts: [HOST], cadence: 'weekly', cors: true, grade: GRADE.record, terms: 'Public domain, free for any lawful purpose, no warranty of accuracy; credit to the Iowa Environmental Mesonet of Iowa State University is appreciated', timeoutMs: 180000,
     labels: { products: ['Cold hazard products this season', 'int'], days: ['Cold hazard days this season (any of the 12 counties)', 'int'], firstFreezeWarning: ['First Freeze Warning this season', 'text'], active: ['Cold hazard products in effect now', 'int'], seasons: ['Complete seasons in the archive', 'int'] },
     async run(ctx) {
-      const now = ctx.now || new Date(), S = seasonAt(now), zones = ctx.geo.counties.map(c => c.zone), p = ctx.prev;
+      const t0 = Date.now(), now = ctx.now || new Date(), S = seasonAt(now), zones = ctx.geo.counties.map(c => c.zone), p = ctx.prev;
       const ok = !!p && p.v === V && Array.isArray(p.events) && Array.isArray(p.seasons) && Array.isArray(p.zones) && p.zones.join() === zones.join();
       let events = ok ? p.events.slice() : [], why = '';
       const held = new Set(ok ? p.seasons : []), office = Object.assign({}, ok ? p.office : null), bad = Object.assign({}, ok ? p.bad : null), was = (ok && p.stale) || {}, stale = {};
@@ -191,11 +192,11 @@
       /* the running season is the one request that has to answer: when it fails the run fails and the last good record stays */
       take(S, read(await ctx.http.text(url(S))));
       /* then, newest first, each of the ten winters before it that is not held, was left stale, or was still running at the last
-         pull. The first failure ends the pulls for this run; what is missing is named in stale and asked for again next time. */
-      const t0 = Date.now();
+         pull. The first failure, or 70 seconds on the clock, ends the pulls for this run; what is missing is named in stale and
+         asked for again next time. */
       for (let s = S - 1; s >= S - WINTERS; s--) {
         if (held.has(s) && !(s in was) && !(ok && p.season <= s)) continue;
-        if (!why && Date.now() - t0 > BUDGET_MS) why = 'the first pull of the archive ran long; the rest follows at the next refresh';
+        if (!why && Date.now() - t0 > BUDGET_MS) why = 'the pull of the archive ran long; the rest follows at the next refresh';
         if (!why) { try { if (I.pace) await sleep(I.pace); take(s, read(await ctx.http.text(url(s)))); continue; } catch (e) { why = String((e && e.message) || e).replace(/[<>]/g, ' ').slice(0, 140); } }
         stale[s] = held.has(s) ? (was[s] || p.archiveThrough || null) : null;                           /* the date the rows kept run through; null: nothing held */
       }

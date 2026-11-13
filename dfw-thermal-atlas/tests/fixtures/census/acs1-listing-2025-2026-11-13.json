@@ -1,0 +1,10 @@
+{
+ "@id": "https://api.census.gov/data/2025/acs/acs1/cprofile.json",
+ "dataset": [
+  {"c_vintage":2025,"c_dataset":["acs","acs1","cprofile"],"c_isAvailable":true,"title":"ACS 1-Year Comparison Profiles","identifier":"https://api.census.gov/data/id/ACSCP1Y2025","modified":"2026-03-19 10:20:15.0"},
+  {"c_vintage":2025,"c_dataset":["acs","acs1"],"c_isAvailable":true,"title":"ACS 1-Year Detailed Tables","identifier":"https://api.census.gov/data/id/ACSDT1Y2025","modified":"2026-03-19 10:20:28.0"},
+  {"c_vintage":2025,"c_dataset":["acs","acs1","profile"],"c_isAvailable":true,"title":"ACS 1-Year Data Profiles","identifier":"https://api.census.gov/data/id/ACSDP1Y2025","modified":"2026-03-19 10:20:18.0"},
+  {"c_vintage":2025,"c_dataset":["acs","acs1","spp"],"c_isAvailable":true,"title":"ACS 1-Year Selected Population Profiles","identifier":"https://api.census.gov/data/id/ACSSPP1Y2025","modified":"2026-03-19 10:20:25.0"},
+  {"c_vintage":2025,"c_dataset":["acs","acs1","subject"],"c_isAvailable":true,"title":"ACS 1-Year Subject Tables","identifier":"https://api.census.gov/data/id/ACSST1Y2025","modified":"2026-03-19 10:20:21.0"}
+ ]
+}

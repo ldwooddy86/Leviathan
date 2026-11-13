@@ -89,10 +89,10 @@
     for (const u of Object.keys((d && d.stations) || {})) { const st = d.stations[u], s = row(u); if (s && s.ok && fin(st.lat) && fin(st.lon)) out.push({ uid: u, st, s }); }
     return out;
   }
-  /* the three nearest of a list to a place, weight 1 / max(km, 1)² */
+  /* the three nearest of a list to a place, weight 1 / max(km, 1)²; a station more than 75 km away is not near */
   function nearest3(list, lat, lon) {
     if (!fin(lat) || !fin(lon)) return [];
-    return list.map(x => ({ x, km: km(lat, lon, x.st.lat, x.st.lon) })).sort((a, b) => a.km - b.km).slice(0, 3).map(o => ({ x: o.x, km: o.km, w: 1 / Math.pow(Math.max(o.km, 1), 2) }));
+    return list.map(x => ({ x, km: km(lat, lon, x.st.lat, x.st.lon) })).filter(o => o.km <= 75).sort((a, b) => a.km - b.km).slice(0, 3).map(o => ({ x: o.x, km: o.km, w: 1 / Math.pow(Math.max(o.km, 1), 2) }));
   }
   const idw = (near, get) => { let s = 0, w = 0; for (const o of near) { const v = get(o.x); if (fin(v)) { s += v * o.w; w += o.w; } } return w ? s / w : null; };
 
@@ -106,8 +106,9 @@
     const own = st && st.ghcn && base.ncei ? dec(base.ncei[st.ghcn]) : null;
     if (own) return { src: 'NCEI', from: null, dec: own, median: own[4], p10: own[0], p90: own[8], n: 30 };
     const f = base.freeze && uid != null ? base.freeze[uid] : null;
-    if (f && Array.isArray(f.first) && Array.isArray(f.miss)) {
-      const use = f.miss.map((m, k) => (m != null && m <= 10 ? k : -1)).filter(k => k >= 0), offs = use.filter(k => isDay(f.first[k])).map(k => between(f.first[k], (1991 + k) + '-07-01')).sort((a, b) => a - b);
+    if (f && Array.isArray(f.first) && Array.isArray(f.fr32)) {
+      /* a season is usable when its freeze count is there (the baseline nulls a season with more than 10 missing days) */
+      const use = f.fr32.map((v, k) => (fin(v) ? k : -1)).filter(k => k >= 0), offs = use.filter(k => isDay(f.first[k])).map(k => between(f.first[k], (1991 + k) + '-07-01')).sort((a, b) => a - b);
       if (use.length >= 10 && offs.length >= 10) return { src: 'ACIS', from: null, offs, n: use.length, median: fromDos(rhe(median(offs)), season), p10: fromDos(rankAt(offs, 0.1), season), p90: fromDos(rankAt(offs, 0.9), season) };
     }
     if (st && fin(st.lat) && fin(st.lon) && base.ncei) {
@@ -199,20 +200,23 @@
         minT: nn(s.minT), minDate: nn(s.minDate), min7: ok7 ? nn(s.min7) : null,
         firstFreeze: freezeOf(base, st, u, row(u), ok, T, season), lastFreeze: nn(s.lastFreeze), daysSinceFreeze: isDay(s.lastFreeze) && T ? between(T, s.lastFreeze) : null,
         normHdd: n && fin(n.hdd) ? n.hdd : null, normFr32: n && fin(n.d32) ? n.d32 : null,
-        /* cold exposure against DFW Airport: official normals where the station has them, else the PRISM grid at both places */
-        exposure: n && fin(n.hdd) && dfwN && fin(dfwN.hdd) ? { ratio: rd(n.hdd / dfwN.hdd, 3), freeze: fin(n.d32) && fin(dfwN.d32) && dfwN.d32 ? rd(n.d32 / dfwN.d32, 2) : null, src: 'NCEI' } : pr != null && dfwP ? { ratio: rd(pr / dfwP, 3), freeze: pf != null && dfwPf ? rd(pf / dfwPf, 2) : null, src: 'PRISM' } : null };
+        /* cold exposure against DFW Airport (1.000): official normals where the station has them, else the PRISM grid at both places */
+        vsDfw: n && fin(n.hdd) && dfwN && fin(dfwN.hdd) ? { ratio: rd(n.hdd / dfwN.hdd, 3), freeze: fin(n.d32) && fin(dfwN.d32) && dfwN.d32 ? rd(n.d32 / dfwN.d32, 2) : null, src: 'NCEI' } : pr != null && dfwP ? { ratio: rd(pr / dfwP, 3), freeze: pf != null && dfwPf ? rd(pf / dfwPf, 2) : null, src: 'PRISM' } : null };
     }
     const uids = d && d.stations ? Object.keys(d.stations).filter(u => row(u)) : [];
     const stations = uids.map(one).sort((a, b) => (a.metro === b.metro ? 0 : a.metro ? -1 : 1) || String(a.county).localeCompare(String(b.county)) || String(a.name).localeCompare(String(b.name)));
 
-    /* a county's first freeze: the earliest freeze any of its stations recorded; else the complete station there with the best
-       climatology behind it (official dates first, then the longest record); else the nearest complete station outside it (nearby: true) */
-    const grade = s => { const f = s.firstFreeze; return (f && f.src === 'NCEI' ? 300 : f && f.src === 'ACIS' ? 200 : f && f.src ? 100 : 0) + (s.record || 0) - (s.miss || 0) / 100; };
+    /* A county's first freeze is the first one anywhere inside it: the earliest freeze any of its stations recorded; else, among
+       its complete stations, the one where the first freeze normally comes earliest (official dates before a station's own
+       record, a station's own record before borrowed dates; then the longer record); else the nearest complete station
+       outside the county (nearby: true). The order rests on the baseline alone, so the station named does not flip week to week. */
+    const tier = s => { const f = s.firstFreeze; return f && f.src === 'NCEI' ? 3 : f && f.src === 'ACIS' ? 2 : f && f.src ? 1 : 0; };
+    const first = (a, b) => tier(b) - tier(a) || (a.firstFreeze.median && b.firstFreeze.median ? (a.firstFreeze.median < b.firstFreeze.median ? -1 : a.firstFreeze.median > b.firstFreeze.median ? 1 : 0) : 0) || (b.record || 0) - (a.record || 0) || +a.uid - +b.uid;
     function countyFreeze(c) {
       const inC = stations.filter(s => s.fips === c.fips), hit = inC.filter(s => s.firstFreeze && s.firstFreeze.state === 'occurred').sort((a, b) => (a.firstFreeze.date < b.firstFreeze.date ? -1 : 1));
       const okC = inC.filter(s => s.ok), meta = { stationsOk: okC.length, stationsWithFreeze: hit.length };
       if (hit.length) return Object.assign({}, hit[0].firstFreeze, { station: hit[0].name, uid: hit[0].uid, nearby: false, km: null }, meta);
-      const pend = okC.filter(s => s.firstFreeze).sort((a, b) => grade(b) - grade(a));
+      const pend = okC.filter(s => s.firstFreeze).sort(first);
       if (pend.length) return Object.assign({}, pend[0].firstFreeze, { station: pend[0].name, uid: pend[0].uid, nearby: false, km: null }, meta);
       const pts = (G.points || []).filter(p => p.county === c.name), ref = pts.length ? { lat: mean(pts.map(p => p.lat)), lon: mean(pts.map(p => p.lon)) } : inC.length ? { lat: mean(inC.map(s => s.lat)), lon: mean(inC.map(s => s.lon)) } : null;
       const out = ref ? stations.filter(s => s.ok && s.firstFreeze && fin(s.lat) && s.fips !== c.fips).map(s => ({ s, km: km(ref.lat, ref.lon, s.lat, s.lon) })).sort((a, b) => a.km - b.km)[0] : null;

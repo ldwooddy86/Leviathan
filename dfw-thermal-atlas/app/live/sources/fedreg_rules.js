@@ -111,7 +111,7 @@
       /* a fresh record replaces what is there and a standing rule stays marked; a record kept from the last run only fills a gap */
       const add = (d, fill) => { const o = seen[d.id]; if (!o) seen[d.id] = d; else if (fill) { if (d.pin) o.pin = true; } else seen[d.id] = Object.assign({}, o, d, o.pin || d.pin ? { pin: true } : null); };
       for (const b of BLOCKS) {
-        try { pick(await ask(ctx.http, b.url(since)), b).forEach(d => add(d)); answered++; }
+        try { pick(await ask(ctx.http, b.url(since)), b).forEach(d => { if (b.pin || d.d >= since) add(d); }); answered++; }      /* the window is checked here too, not left to the server */
         catch (e) { lastErr = e; stale.push(b.key); if (prev) prev.docs.filter(d => (b.pin ? d.pin : b.topics.includes(d.topic) && d.d >= since)).forEach(d => add(d, true)); }
       }
       if (!answered) throw lastErr || new Error('no Federal Register search answered');

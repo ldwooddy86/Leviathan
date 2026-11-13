@@ -1,0 +1,9 @@
+{
+ "name": "B25040_001E",
+ "label": "Estimate!!Total:",
+ "concept": "House Heating Fuel",
+ "predicateType": "int",
+ "group": "B25040",
+ "limit": 0,
+ "attributes": "B25040_001EA,B25040_001M,B25040_001MA"
+}
