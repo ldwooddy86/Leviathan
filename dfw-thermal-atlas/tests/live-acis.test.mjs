@@ -198,6 +198,8 @@ test('a block that fails keeps last week\'s copy with its own through date; noth
   /* every request down: the run fails and the core keeps the last good record */
   await assert.rejects(() => runOnce(L, fakeFetch([[/./, { status: 503, body: 'down' }]]), prev), /W2: ACIS answered HTTP 503/);
   await assert.rejects(() => runOnce(L, fakeFetch(routes({ W1: ERR_EMPTY, W2: ERR_400, W3: ERR_400, G1: ERR_200 }))), /W2: ACIS answered HTTP 400/);
+  /* history alone is not news: with the table, the airports and the grid all down, the 30 falls arriving does not make a run */
+  await assert.rejects(() => runOnce(L, fakeFetch(routes({ W1: ERR_EMPTY, W2: ERR_EMPTY, G1: ERR_200 })), prev), /W2: ACIS answered with an empty body/);
 });
 
 test('history is not asked for twice: a second run the same day makes three requests', async () => {
@@ -301,7 +303,7 @@ test('zip: the baked exposure, the season to date from the grids, the stations w
   same([Z('75150', data).exposure, Z('75181', data).exposure, Z('75247', data).exposure, Z('76487', data).exposure], [0.989, 1.028, 0.887, 1.207], 'Mesquite, and the warmest and coldest ZIP of the metro');
   const den = Z('76201', data); same([den.exposure > 1.05, den.normHdd > 2500, den.hddToDate > mesq.hddToDate, den.pct, den.near[0].name], [true, true, true, 29, 'Denton Municipal Airport'], 'Denton is colder than Mesquite, in the normals and this fall');
   /* without the ZIP code the same place is sampled: the same exposure to three decimals */
-  const r = ATLAS.zrows.find(x => x[0] === '75149'), pt = L.climate.zip(r[4], r[5], data, BASE); same([pt.exposure, pt.normHdd, pt.normFr32], [1.002, 2386, 31.7]);
+  const r = ATLAS.zrows.find(x => x[0] === '75149'), pt = L.climate.zip(r[ATLAS.zcols.indexOf('lat')], r[ATLAS.zcols.indexOf('lon')], data, BASE); same([pt.exposure, pt.normHdd, pt.normFr32], [1.002, 2386, 31.7]);
   same([L.climate.zip(33.21, -97.13, data, BASE).hddToDate, L.climate.zip(32.76, -97.80, data, BASE).hddToDate], [55, 62], 'Denton and Weatherford, as the spec read them');
   /* no weekly record: the static side still answers; no baseline: the weekly side still answers; neither: nulls */
   same(Z('75149', null), { exposure: 1.002, freezeExposure: 0.97, normHdd: 2386, normFr32: 31.7, hddToDate: null, hddNormToDate: null, pct: null, fr32ToDate: null, seasonMin: null, through: null, from: null, firstFreezeNearby: null, lastFreeze: null, near: [], grade: 'C' });
@@ -348,6 +350,9 @@ test('once it has frozen, and when the numbers are too small for a percentage', 
   const l = L.climate.status(late, BASE, new Date('2026-12-02T18:00:00Z')); same([l.metro.firstFreeze.daysToMedian, l.metro.firstFreeze.climChance], [-8, 70]); assert.match(L.climate.headline(l), /no freeze yet, 8 days past the median first freeze of November 24\.$/);
   /* a record nobody refreshed for two weeks says so */
   const stale = L.climate.status(data, BASE, new Date('2026-11-27T18:00:00Z')); same([stale.ageDays, stale.overdue], [15, true]); assert.match(L.climate.headline(stale), / Observed through November 12; a refresh is due\.$/);
+  /* a record of the season that ended, read in the first days of the next one */
+  const done = copy(data); Object.assign(done, { through: '2027-06-28' }); done.blocks.W1 = done.blocks.W2 = done.blocks.W3 = '2027-06-28'; done.std['29755'][I('hdd')] = 1700; done.std['29755'][I('hddNorm')] = 2220;
+  const was = L.climate.status(done, BASE, new Date('2027-07-03T18:00:00Z')); same([was.current, was.season, was.metro.pct, L.climate.status(done, BASE, new Date('2027-06-29T18:00:00Z')).current, L.climate.status(done, BASE, null).current], [false, 2026, 77, true, true]); assert.match(L.climate.headline(was), /^Last heating season: 1700 heating degree days at DFW Airport against a normal of 2220 \(77%\)/);
   /* from January the comparison is among seasons, not falls */
   const jan = copy(data); Object.assign(jan, { through: '2027-01-20' }); jan.blocks.W1 = jan.blocks.W2 = jan.blocks.W3 = '2027-01-20'; assert.match(L.climate.headline(L.climate.status(jan, BASE, new Date('2027-01-21T18:00:00Z'))), /among 31 seasons/);
 });
@@ -369,6 +374,20 @@ test('safe on nothing: no record, no baseline, a record from another version', a
   /* in the page the baseline is a global: it is found without being passed */
   const ctx = context(); ctx.window = ctx; load(ctx, 'data/climate-base.js', 'live/core.js', 'live/geo.js', 'live/sources/acis_season.js', 'live/climate.js');
   assert.equal(ctx.__CLIMATE_BASE__.v, 1); assert.equal(ctx.TDA_LIVE.climate.status(data, undefined, NOW).metro.firstFreeze.median, '2026-11-24'); assert.equal(ctx.TDA_LIVE.climate.zip(32.7734, -96.6188, null, undefined, '75149').exposure, 1.002);
+});
+
+test('a record broken anywhere never makes a read throw', async () => {
+  const L = fresh(), C = L.climate, good = (await runOnce(L, fakeFetch(routes()))).data;
+  let seed = 20261113; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff, pick = a => a[Math.floor(rnd() * a.length)];
+  const junk = () => pick([null, undefined, {}, [], 'x', '', 0, -999, NaN, 'M', [null], true, '2026-13-45', '2026-02-30', 1e99, '29', ['M', 'M'], [1, 2, 3], { cols: [] }, { lat: 'x', lon: null }, -1, '11/24', [[]], Infinity]);
+  const breakIt = (o, depth) => { if (!o || typeof o !== 'object') return; const keys = Object.keys(o); if (!keys.length) return; const k = pick(keys); if (depth <= 0 || rnd() < 0.35 || !o[k] || typeof o[k] !== 'object') { if (rnd() < 0.2) delete o[k]; else o[k] = junk(); } else breakIt(o[k], depth - 1); };
+  for (let i = 0; i < 500; i++) {
+    const d = copy(good), b = rnd() < 0.5 ? copy(BASE) : rnd() < 0.5 ? null : BASE, hits = 1 + Math.floor(rnd() * 6);
+    for (let k = 0; k < hits; k++) breakIt(rnd() < 0.65 || !b || b === BASE ? d : b, 1 + Math.floor(rnd() * 5));
+    assert.doesNotThrow(() => { const s = C.status(d, b, pick([NOW, null, 'x', 0, undefined])); assert.equal(typeof C.headline(s), 'string'); assert.equal(typeof s.ok, 'boolean'); assert.equal(s.counties.length, 12); JSON.stringify(s); }, 'status, round ' + i);
+    assert.doesNotThrow(() => JSON.stringify(C.zip(pick([32.77, null, 'a', 99]), pick([-96.6, undefined, {}]), d, b, pick(['75149', null, 5, {}]))), 'zip, round ' + i);
+    assert.doesNotThrow(() => { JSON.stringify(C.series(d, b, pick([undefined, '29755', 99, {}]))); JSON.stringify(C.nights(d, pick([14, 0, -3, 'x', null]))); L.derive.cold({ acis_season: { data: d } }, NOW); }, 'series, nights and the cold picture, round ' + i);
+  }
 });
 
 /* ---------- the baseline the app ships ---------- */

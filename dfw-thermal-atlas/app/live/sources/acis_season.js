@@ -8,7 +8,8 @@
      G1  the PRISM grids (about 4 km) and county means of season heating degree days, freeze nights and the season minimum
      G2  the 30 fall mean of the same span for the grid and the counties
    About 40 KB on the wire and 80 to 115 KB stored. Every block stands alone: one that fails keeps last week's copy, with its
-   own through date in data.stale. History is not asked for twice: W3 and G2 are reused when the day they cover is already stored. */
+   own through date in data.stale (data.blocks holds the through date of every block). History is not asked for twice: W3 and
+   G2 are reused when the day they cover is already stored. The run fails only when none of W1, W2 and G1 came back. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, API = 'https://data.rcc-acis.org/', V = 1;
@@ -153,7 +154,7 @@
     id: 'acis_season', name: 'Heating season to date', publisher: 'NOAA Regional Climate Centers (ACIS), with PRISM grids from Oregon State University', page: 'https://www.rcc-acis.org/',
     about: 'Observed heating degree days since July 1 against the 1991 to 2020 normal at every reporting station in and around the 12 counties, freeze nights, first and last freeze, the same span in 30 past falls, and 4 km grids and county means of the season so far. Feeds the season line, the Heat Desk pacing and the season to date by county and ZIP.',
     hosts: ['data.rcc-acis.org'], cadence: 'weekly', cors: true, grade: 'A/C', timeoutMs: 200000,
-    terms: 'Station data and normals: NOAA Regional Climate Centers (ACIS), public. Grids: PRISM Climate Group, Oregon State University, credit required. Recent days are preliminary.',
+    terms: 'Station data and normals: NOAA Regional Climate Centers (ACIS), credit the source. Grids: PRISM Climate Group, Oregon State University, credit required; read their terms before commercial reuse. Recent days are preliminary.',
     labels: { hdd: ['DFW Airport heating degree days since July 1', 'int'], norm: ['Normal to the same date (1991 to 2020)', 'int'], pct: ['Percent of normal', 'pct'], fr32: ['Freeze nights at DFW Airport', 'int'], stations: ['Stations reporting', 'int'], freezeCounties: ['Counties with a freeze so far (of 12)', 'int'], through: ['Observed through', 'text'] },
     async run(ctx) {
       const prev = ctx.prev && ctx.prev.v === V && ctx.prev.blocks ? ctx.prev : null, ask = (id, path, req) => call(ctx.http, id, path, req);
@@ -204,7 +205,8 @@
       else if (miss('G2', new Error('G2: not asked, the grid it belongs to did not arrive')) && g1) g2 = old2();
       if (!g1) { g2 = null; if (blocks.G2) stale.G2 = blocks.G2 = null; }
 
-      if (!got.length) throw new Error(errs.W2 || errs.W1 || errs.G1 || 'ACIS did not answer');
+      /* a run counts when it brought this week's observations: the station table, the airports or the grid. History alone is not news. */
+      if (!got.some(id => id === 'W2' || id === 'W1' || id === 'G1')) throw new Error(errs.W2 || errs.W1 || errs.G1 || 'ACIS did not answer');
       const county = {};
       if (g1) for (const f in g1.county) { const a = g1.county[f]; county[f] = { hdd: a.hdd == null ? null : a.hdd, hdd7: a.hdd7 == null ? null : a.hdd7, fr32: a.fr32 == null ? null : a.fr32, minT: a.minT == null ? null : a.minT }; }
       if (g1 && g2) for (const f in g2.county) { const b = g2.county[f]; if (county[f]) { county[f].hddNorm = b.hddNorm == null ? null : b.hddNorm; county[f].fr32Norm = b.fr32Norm == null ? null : b.fr32Norm; } }
@@ -214,11 +216,11 @@
         grid: g1 ? Object.assign({ date: g1.date }, GEOM, { hdd: g1.hdd, fr32: g1.fr32, minT: g1.minT, hddNorm: g2 ? g2.hddNorm : null }) : null, county: g1 ? county : null, blocks, stale, errs };
     },
     digest(d) {
-      const row = (d.std && d.std[DFW]) || null, ok = !!(row && row[I.ok]), hdd = ok ? row[I.hdd] : null, norm = row ? row[I.hddNorm] : null, has = {};
+      const row = d.std && Array.isArray(d.std[DFW]) ? d.std[DFW] : null, ok = !!(row && row[I.ok]), hdd = ok ? row[I.hdd] : null, norm = row ? row[I.hddNorm] : null, has = {};
       const uids = Object.keys(d.stations || {}).filter(u => d.std && Array.isArray(d.std[u]));
       /* a county has had a freeze when one of its stations recorded one, or the grid shows one somewhere inside it */
-      uids.forEach(u => { const r = d.std[u]; if (r[I.firstFreeze] || r[I.fr32] > 0) has[d.stations[u].fips] = 1; });
-      for (const f in d.county || {}) if (d.county[f].fr32 > 0) has[f] = 1;
+      uids.forEach(u => { const r = d.std[u]; if (r[I.firstFreeze] || r[I.fr32] > 0) has[(d.stations[u] || {}).fips] = 1; });
+      for (const f in d.county || {}) if ((d.county[f] || {}).fr32 > 0) has[f] = 1;
       return { hdd, norm, pct: hdd != null && norm != null && norm >= 25 ? Math.round(100 * hdd / norm) : null, fr32: ok ? row[I.fr32] : null, stations: uids.filter(u => d.std[u][I.ok]).length, freezeCounties: ((L.geo && L.geo.counties) || []).filter(c => has[c.fips]).length, through: d.through || null };
     },
   });

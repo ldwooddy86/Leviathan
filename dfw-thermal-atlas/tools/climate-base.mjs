@@ -5,9 +5,10 @@
 //   node tools/climate-base.mjs                pull the seven requests, check them, write the file
 //   node tools/climate-base.mjs --dry          pull and report, write nothing
 //   node tools/climate-base.mjs --cache <dir>  keep each raw answer in <dir> and read it from there on the next run
-// Run it each July, when a heating season has closed (the last ten seasons move on by one), and at release time. Seven
-// requests, about 250 KB read, under a minute: each of the two grid requests takes the server 12 to 17 s. All or nothing:
-// when a request fails nothing is written and the file in the tree stays as it is.
+// Run it each July, when a heating season has closed (the last ten seasons move on by one; the middle of the month gives the
+// cooperative stations time to send their June), and at release time. Seven requests, about 300 KB read, under a minute:
+// each of the two grid requests takes the server 12 to 17 s. All or nothing: when a request fails or a check does not
+// hold, nothing is written and the file in the tree stays as it is.
 // Node 22, no packages. Behind an HTTPS proxy the script restarts itself with NODE_USE_ENV_PROXY=1 so fetch honours it.
 import vm from 'node:vm';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -151,7 +152,7 @@ if (prism.hdd.some(v => v == null) || prism.fr32.some(v => v == null)) bad.push(
 for (const c of L.geo.counties) if (!prismCounty[c.fips] || !homes[c.fips]) bad.push('no county normal for ' + c.name);
 if (zs.length !== D.zrows.length || !(metroH > 1500 && metroH < 3500)) bad.push('the ZIP block is incomplete');
 const body = JSON.stringify(base);
-if (/<\/script/i.test(body)) bad.push('the baseline holds a literal </script');
+if (/<\/script|<script|<!--/i.test(body)) bad.push('the baseline holds text that would break an inline script (a script tag or a comment opener)');
 if (body.length >= 250 * 1024) bad.push(`the baseline is ${Math.round(body.length / 1024)} KB, over the 250 KB budget`);
 
 /* ---------- report ---------- */

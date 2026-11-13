@@ -8,6 +8,8 @@ const fx = n => JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'fedreg'
 /* the five answers of the live run of 2026-11-13, plus the credit search with an older start and a search with no match */
 const EQUIP = fx('search-equipment-2026-11-13.json'), REFR = fx('search-refrigerant-2026-11-13.json'), ADS = fx('search-advertising-2026-11-13.json'), CREDIT = fx('search-credit-2026-11-13.json'), STANDING = fx('documents-standing-2026-11-13.json');
 const CREDIT_OLD = fx('search-credit-since-2022-08-16-2026-11-13.json'), NONE = fx('search-no-match-2026-11-13.json');
+/* the furnace rule and the 2026 petition notice in their own words (search excerpts) */
+const RULE_TEXT = fx('excerpt-furnace-rule-compliance-2026-11-13.json'), PETITION_TEXT = fx('excerpt-furnace-petition-2026-11-13.json');
 const fresh = () => load(context(), 'live/core.js', 'live/geo.js', 'live/sources/fedreg_rules.js').TDA_LIVE;
 const T0 = new Date('2026-11-13T18:40:00Z');                                  // the afternoon of the recording, a Friday
 const routes = o => [[/\/documents\/\d{4}-\d+,/, (o && o.standing) || STANDING], [/energy-department/, (o && o.equipment) || EQUIP], [/environmental-protection-agency/, (o && o.refrigerant) || REFR], [/federal-trade-commission/, (o && o.advertising) || ADS], [/home%20improvement/, (o && o.credit) || CREDIT]];
@@ -25,6 +27,18 @@ test('registration: weekly, grade A, callable from a page, one host, house style
   for (const t of [s.name, s.about, s.terms, ...Object.values(s.labels).map(l => l[0])]) assert.ok(!/\w[-–—]\w|\s[-–—]\s/.test(t), 'no hyphen or dash between words: ' + t);
   same(L.fedreg.TOPICS, ['furnace', 'heatpump', 'refrigerant', 'credit', 'advertising']);
   same(L.fedreg.PINS, { '2023-25514': 'furnace', '2023-22529': 'refrigerant', '2024-21967': 'refrigerant', '2024-18519': 'advertising', '2024-30293': 'advertising' });
+});
+
+test('the compliance date of the furnace standard is the register\'s own sentence, twice', () => {
+  const L = fresh(), day = t => { const m = /(January|February|March|April|May|June|July|August|September|October|November|December) (\d{1,2}), (\d{4})/.exec(t); return m ? new Date(Date.UTC(+m[3], ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].indexOf(m[1]), +m[2])).toISOString().slice(0, 10) : null; };
+  const rule = RULE_TEXT.results[0], text = rule.excerpts.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+  same({ id: rule.document_number, cite: rule.citation, d: rule.publication_date, effective: rule.effective_on, dates: rule.dates }, { id: '2023-25514', cite: '88 FR 87502', d: '2023-12-18', effective: '2024-02-16', dates: 'Effective date: The effective date of this rule is February 16, 2024.' }, 'the dates field of the API stops at the effective date');
+  const said = /Compliance date: (Compliance with the amended standards established for the subject consumer furnaces in this final rule is required on and after [A-Z][a-z]+ \d+, \d{4})\./.exec(text);
+  assert.ok(said, 'the rule states its compliance date in the text'); assert.equal(day(said[1]), '2028-12-18'); same(L.fedreg.COMPLY, { '2023-25514': day(said[1]) });
+  const pet = PETITION_TEXT.results[0], ptext = pet.excerpts.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ');
+  same({ id: pet.document_number, cite: pet.citation, d: pet.publication_date, comments: pet.comments_close_on, action: pet.action, docket: pet.docket_ids }, { id: '2026-08145', cite: '91 FR 22477', d: '2026-04-27', comments: '2026-05-27', action: 'Notification of petition for rulemaking; request for comment.', docket: ['EERE-2026-BT-STD-0001'] });
+  assert.match(ptext, /non-weatherized gas furnaces \(95% AFUE\) and mobile home gas furnaces \(95% AFUE\)/); assert.equal(day(/The compliance date for the amended energy conservation standards for the subject consumer furnaces is ([A-Z][a-z]+ \d+, \d{4})/.exec(ptext)[1]), L.fedreg.COMPLY['2023-25514'], 'the Energy Department repeats the date in April 2026');
+  assert.match(pet.abstract, /^On February 19, 2026, the Department of Energy \(DOE\) received a petition from the American Gas Association/);
 });
 
 test('equipment: consumer furnaces and heat pumps stay, commercial equipment and other appliances go', () => {
@@ -68,7 +82,8 @@ test('refrigerant, advertising and credit: what each search keeps from the real 
 
 test('doc: the publisher\'s words, our topic, and nothing kept from a broken record', () => {
   const L = fresh(), F = L.fedreg, r = STANDING.results.find(x => x.document_number === '2023-25514');
-  same(F.doc(r, 'furnace', true), { id: '2023-25514', d: '2023-12-18', type: 'Rule', agency: 'DOE', title: 'Energy Conservation Program: Energy Conservation Standards for Consumer Furnaces', url: 'https://www.federalregister.gov/documents/2023/12/18/2023-25514/energy-conservation-program-energy-conservation-standards-for-consumer-furnaces', topic: 'furnace', effective: '2024-02-16', comments: null, action: 'Final rule.', pin: true });
+  same(F.doc(r, 'furnace', true), { id: '2023-25514', d: '2023-12-18', type: 'Rule', agency: 'DOE', title: 'Energy Conservation Program: Energy Conservation Standards for Consumer Furnaces', url: 'https://www.federalregister.gov/documents/2023/12/18/2023-25514/energy-conservation-program-energy-conservation-standards-for-consumer-furnaces', topic: 'furnace', effective: '2024-02-16', comments: null, action: 'Final rule.', pin: true, comply: '2028-12-18' });
+  assert.equal(F.doc(r, 'furnace').comply, undefined, 'only the standing rule carries the date'); assert.equal(F.doc(STANDING.results.find(x => x.document_number === '2024-18519'), 'advertising', true).comply, undefined);
   const p = F.doc(EQUIP.results.find(x => x.document_number === '2026-08145'), 'furnace');
   same({ type: p.type, effective: p.effective, comments: p.comments, action: p.action, pin: p.pin }, { type: 'Proposed Rule', effective: null, comments: '2026-05-27', action: 'Notification of petition for rulemaking; request for comment.' });
   assert.equal(F.agencyOf({ agencies: [{ slug: 'treasury-department' }, { slug: 'internal-revenue-service' }] }), 'IRS'); assert.equal(F.agencyOf({ agencies: [{ slug: 'energy-department' }, { slug: 'federal-energy-regulatory-commission' }] }), 'DOE');
@@ -102,7 +117,8 @@ test('the collector sends five requests dated from the day of the run and merges
   const T = L.fedreg.byTopic(data); same(Object.keys(T), ['furnace', 'heatpump', 'refrigerant', 'credit', 'advertising']);
   same({ furnace: ids(T.furnace), heatpump: T.heatpump.length, refrigerant: T.refrigerant.length, credit: T.credit.length, advertising: ids(T.advertising) }, { furnace: ['2026-08145', '2025-08583', '2023-25514'], heatpump: 6, refrigerant: 8, credit: 0, advertising: ['2026-04952', '2026-02866', '2025-21887', '2025-00634', '2024-30293', '2024-25534', '2024-18519'] });
   same([...new Set(data.docs.map(d => d.agency))].sort(), ['DOE', 'EPA', 'FTC']); same([...new Set(data.docs.map(d => d.type))].sort(), ['Proposed Rule', 'Rule']);
-  assert.ok(data.docs.every(d => /^https:\/\/www\.federalregister\.gov\/documents\/\d{4}\/\d\d\/\d\d\//.test(d.url) && d.title && d.action && Object.keys(d).every(k => ['id', 'd', 'type', 'agency', 'title', 'url', 'topic', 'effective', 'comments', 'action', 'pin'].includes(k))));
+  assert.ok(data.docs.every(d => /^https:\/\/www\.federalregister\.gov\/documents\/\d{4}\/\d\d\/\d\d\//.test(d.url) && d.title && d.action && Object.keys(d).every(k => ['id', 'd', 'type', 'agency', 'title', 'url', 'topic', 'effective', 'comments', 'action', 'pin', 'comply'].includes(k))));
+  same(data.docs.filter(d => d.comply).map(d => [d.id, d.comply]), [['2023-25514', '2028-12-18']]);
   same(L.BY_ID.fedreg_rules.digest(copy(data)), { last90: 0, newest: '2026-05-26 · EPA · Phasedown of Hydrofluorocarbons: Reconsideration of Certain Regulatory Requirements Promul…', effective180: 0 });
   const size = JSON.stringify(data).length; assert.ok(size < 16000, 'the stored record stays small: ' + size); assert.ok(!/<\/script/i.test(JSON.stringify(data)));
 });
@@ -118,13 +134,17 @@ test('dates: the window and the day of the run follow Washington time', async ()
 
 test('reads: what is recent and which dates are still ahead', async () => {
   const L = fresh(), F = L.fedreg; const { data } = await runOnce(L, fakeFetch(routes()));
-  same(F.upcoming(data, T0), [], 'nothing ahead on the day of the recording'); assert.equal(F.recent(data, 90).length, 0); same(ids(F.recent(data, 180)), ['2026-10387', '2026-10388']);
+  same(F.upcoming(data, T0).map(u => [u.id, u.what, u.on, u.days, u.recheck]), [['2023-25514', 'compliance', '2028-12-18', 766, false]], 'on the day of the recording only the furnace compliance date is ahead'); assert.equal(F.recent(data, 90).length, 0); same(ids(F.recent(data, 180)), ['2026-10387', '2026-10388']);
   assert.equal(F.recent(data, 365).length, 7); assert.equal(F.recent(data).length, 0, '90 days when no span is given'); assert.equal(F.recent(data, 30, new Date('2026-06-10T12:00:00Z')).length, 2, 'counted back from a given day');
   const june = F.upcoming(data, new Date('2026-06-01T15:00:00Z'));
-  same(june.map(u => [u.id, u.what, u.on, u.days]), [['2026-10388', 'comments', '2026-07-10', 39], ['2026-10387', 'effective', '2026-07-27', 56]], 'soonest first');
+  same(june.map(u => [u.id, u.what, u.on, u.days]), [['2026-10388', 'comments', '2026-07-10', 39], ['2026-10387', 'effective', '2026-07-27', 56], ['2023-25514', 'compliance', '2028-12-18', 931]], 'soonest first');
   assert.equal(june[1].title, data.docs[0].title); assert.equal(june[1].topic, 'refrigerant'); assert.equal(june[1].type, 'Rule');
-  same(F.upcoming(data, new Date('2026-07-27T23:00:00Z')).map(u => [u.id, u.days]), [['2026-10387', 0]], 'the day itself still counts, in Dallas time');
-  same(F.upcoming(data, new Date('2026-07-28T05:30:00Z')).map(u => u.id), [], 'half past midnight in Dallas on the 28th: gone');
+  same(F.upcoming(data, new Date('2026-07-27T23:00:00Z')).map(u => [u.id, u.days]), [['2026-10387', 0], ['2023-25514', 875]], 'the day itself still counts, in Dallas time');
+  same(F.upcoming(data, new Date('2026-07-28T05:30:00Z')).map(u => u.id), ['2023-25514'], 'half past midnight in Dallas on the 28th: gone');
+  same(F.upcoming(data, new Date('2028-12-18T18:00:00Z')).map(u => [u.what, u.days]), [['compliance', 0]]); same(F.upcoming(data, new Date('2028-12-19T18:00:00Z')), []);
+  /* a newer rule on furnaces: the compliance date may have moved, so it is flagged for a second look */
+  const moved = copy(data); moved.docs.unshift(Object.assign({}, moved.docs.find(d => d.id === '2025-08583'), { id: '2027-01234', d: '2027-02-01', type: 'Rule', effective: '2027-04-02', comments: null }));
+  same(F.upcoming(moved, new Date('2027-02-10T18:00:00Z')).map(u => [u.id, u.what, !!u.recheck]), [['2027-01234', 'effective', false], ['2023-25514', 'compliance', true]]);
   const fall = F.upcoming(data, new Date('2025-09-30T15:00:00Z'));
   assert.ok(fall.some(u => u.id === '2025-19895' && u.what === 'comments' && u.on === '2025-11-21')); assert.ok(!fall.some(u => u.id === '2025-19895' && u.what === 'effective'), 'a proposal has no effective date of its own, whatever the register repeats there');
   assert.equal(data.docs.find(d => d.id === '2025-19895').effective, '2025-10-03', 'the stored value stays as published');

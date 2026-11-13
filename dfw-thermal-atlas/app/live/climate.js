@@ -23,9 +23,10 @@
   const fin = v => typeof v === 'number' && Number.isFinite(v);
   const nn = v => (v == null || (typeof v === 'number' && !Number.isFinite(v)) ? null : v);
   const rd = (v, dp) => { if (!fin(v)) return null; const k = Math.pow(10, dp || 0); return Math.round(v * k) / k; };
-  const isDay = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
   const ms = ymd => Date.parse(ymd + 'T12:00:00Z');
-  const addDays = (ymd, n) => new Date(ms(ymd) + n * DAY).toISOString().slice(0, 10);
+  /* a real calendar date as YYYY-MM-DD (the parser alone would let February 30 through) */
+  const isDay = v => { if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false; const t = ms(v); return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === v; };
+  const addDays = (ymd, n) => { const t = ms(ymd) + n * DAY; return Number.isFinite(t) ? new Date(t).toISOString().slice(0, 10) : null; };
   const between = (a, b) => Math.round((ms(a) - ms(b)) / DAY);                                   /* a minus b, in days */
   const seasonOf = ymd => +ymd.slice(0, 4) - (+ymd.slice(5, 7) < 7 ? 1 : 0);
   const leap = y => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
@@ -35,6 +36,7 @@
   const fromDos = (n, season) => addDays(season + '-07-01', n);
   const pretty = ymd => (isDay(ymd) ? MONTH[+ymd.slice(5, 7) - 1] + ' ' + (+ymd.slice(8, 10)) : '');
   function localDay(now) {
+    if (now == null || Number.isNaN(+new Date(now))) return null;
     try { const p = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date(now)).reduce((o, x) => (o[x.type] = x.value, o), {}); return `${p.year}-${p.month}-${p.day}`; }
     catch (e) { return new Date(now).toISOString().slice(0, 10); }
   }
@@ -86,7 +88,7 @@
   /* stations that pass the quality gate, with a place: what the nearest station rules choose from */
   function okStations(d) {
     const row = rowsOf(d), out = [];
-    for (const u of Object.keys((d && d.stations) || {})) { const st = d.stations[u], s = row(u); if (s && s.ok && fin(st.lat) && fin(st.lon)) out.push({ uid: u, st, s }); }
+    for (const u of Object.keys((d && d.stations) || {})) { const st = d.stations[u] || {}, s = row(u); if (s && s.ok && fin(st.lat) && fin(st.lon)) out.push({ uid: u, st, s }); }
     return out;
   }
   /* the three nearest of a list to a place, weight 1 / max(km, 1)²; a station more than 75 km away is not near */
@@ -101,8 +103,8 @@
      it has happened in 10, 20 … 90 percent of years; the station's own 30 seasons from ACIS when at least 10 are usable; the
      official dates of the nearest normals station within 40 km (and the result says whose they are). */
   function climOf(base, st, uid, season) {
-    if (!base || season == null) return null;
-    const dec = n => (n && Array.isArray(n.first32) && n.first32.length === 9 && n.first32.every(x => typeof x === 'string' && x.length === 5) ? n.first32.map(x => inSeason(x, season)) : null);
+    if (!base || !fin(season)) return null;
+    const dec = n => { if (!n || !Array.isArray(n.first32) || n.first32.length !== 9 || !n.first32.every(x => typeof x === 'string' && /^\d\d[\/-]\d\d$/.test(x))) return null; const d = n.first32.map(x => inSeason(x, season)); return d.every(isDay) ? d : null; };
     const own = st && st.ghcn && base.ncei ? dec(base.ncei[st.ghcn]) : null;
     if (own) return { src: 'NCEI', from: null, dec: own, median: own[4], p10: own[0], p90: own[8], n: 30 };
     const f = base.freeze && uid != null ? base.freeze[uid] : null;
@@ -160,7 +162,7 @@
   function nights(data, n) {
     const d = read(data), D = d && d.daily, G = L.geo || {}, names = {}; (G.counties || []).forEach(c => { names[c.fips] = c.name; });
     if (!D || !D.tn || !isDay(D.start)) return [];
-    return Object.keys(D.tn).map(u => { const st = (d.stations && d.stations[u]) || {}, lo = D.tn[u] || [], hi = (D.tx && D.tx[u]) || [], from = Math.max(0, lo.length - (n || 14)); return { uid: u, name: st.label || st.name || null, icao: st.icao || null, county: names[st.fips] || NEAR[st.fips] || null, nights: lo.slice(from).map((v, i) => ({ d: addDays(D.start, from + i), tn: nn(v), tx: nn(hi[from + i]) })) }; });
+    return Object.keys(D.tn).filter(u => Array.isArray(D.tn[u])).map(u => { const st = (d.stations && d.stations[u]) || {}, lo = D.tn[u], hi = D.tx && Array.isArray(D.tx[u]) ? D.tx[u] : [], from = Math.max(0, lo.length - (n > 0 ? Math.floor(n) : 14)); return { uid: u, name: st.label || st.name || null, icao: st.icao || null, county: names[st.fips] || NEAR[st.fips] || null, nights: lo.slice(from).map((v, i) => ({ d: addDays(D.start, from + i), tn: nn(v), tx: nn(hi[from + i]) })) }; });
   }
 
   /* ---------- the season to date ---------- */
@@ -170,7 +172,7 @@
     const T = d && isDay(B.W2) ? B.W2 : null, season = d && fin(d.season) ? d.season : null, row = rowsOf(d);
     const gateOct = T ? +T.slice(5, 7) >= 10 || +T.slice(5, 7) <= 6 : true, falls = d && d.todate && B.W3 && B.W3 === B.W2 ? d.todate : null;
     const gridOn = !!(d && d.county && isDay(B.G1)), normOn = gridOn && B.G2 === B.G1;
-    const today = now != null ? localDay(now) : null, through = d ? (T || nn(d.through)) : null, ageDays = isDay(through) && today ? between(today, through) : null;
+    const today = localDay(now), through = d ? (T || nn(d.through)) : null, ageDays = isDay(through) && today ? between(today, through) : null;
     const P = base && base.prism && Array.isArray(base.prism.hdd) ? base.prism : null, metroHdd = base && base.metro && fin(base.metro.hdd) ? base.metro.hdd : null;
     const dfwSt = (d && d.stations && d.stations[DFW]) || (base && base.stations && base.stations[DFW]) || { lat: 32.89744, lon: -97.02196, ghcn: 'USW00003927' };
     const dfwN = base && base.ncei ? base.ncei[dfwSt.ghcn] || null : null, dfwP = P ? sample(P.hdd, dfwSt.lat, dfwSt.lon, P) : null, dfwPf = P ? sample(P.fr32, dfwSt.lat, dfwSt.lon, P) : null;
@@ -233,7 +235,8 @@
     }).sort((a, b) => (a.hdd != null && b.hdd != null ? b.hdd - a.hdd : a.hdd != null ? -1 : b.hdd != null ? 1 : (b.normHdd || 0) - (a.normHdd || 0)) || a.name.localeCompare(b.name));
 
     const m = one(DFW);
-    return { ok: !!(d && (T || gridOn)), through, season, today, ageDays, overdue: ageDays != null && ageDays > 9, gridThrough: gridOn ? B.G1 : null, gridNormal: normOn,
+    /* current: the record belongs to the heating season today falls in (false in early July, until the first run of the new season) */
+    return { ok: !!(d && (T || gridOn)), through, season, today, ageDays, overdue: ageDays != null && ageDays > 9, current: !today || season == null || seasonOf(today) === season, gridThrough: gridOn ? B.G1 : null, gridNormal: normOn,
       stale: d ? Object.keys(d.stale || {}).map(id => ({ id, what: WHAT[id] || id, through: nn(d.stale[id]), why: (d.errs && d.errs[id]) || null })) : [],
       metro: Object.assign(m, { station: m.name || 'DFW Airport', norm: m.hddNorm }), counties, stations, series: series(d, base, DFW), grades: GRADES, credit: CREDIT };
   }
@@ -280,7 +283,7 @@
     let b = '';
     if (f && f.state === 'occurred') b = `first freeze ${pretty(f.date)}` + (f.daysVsMedian == null ? '' : f.daysVsMedian === 0 ? ', on the median date' : `, ${days(Math.abs(f.daysVsMedian))} ${f.daysVsMedian < 0 ? 'ahead of' : 'after'} the median date`) + (m.fr32 != null ? `, ${m.fr32} freeze ${m.fr32 === 1 ? 'night' : 'nights'} so far` : '');
     else if (f && f.state === 'pending') b = 'no freeze yet' + (f.median ? (f.daysToMedian >= 0 ? `, the median first freeze is ${pretty(f.median)}` : `, ${days(-f.daysToMedian)} past the median first freeze of ${pretty(f.median)}`) : '');
-    return `Heating season to date: ${a}${b ? '; ' + b : ''}.` + (s.overdue && isDay(s.through) ? ` Observed through ${pretty(s.through)}; a refresh is due.` : '');
+    return `${s.current === false ? 'Last heating season' : 'Heating season to date'}: ${a}${b ? '; ' + b : ''}.` + (s.overdue && isDay(s.through) ? ` Observed through ${pretty(s.through)}; a refresh is due.` : '');
   }
 
   L.climate = { DFW, GEOM, GRADES, sample, cell, status, zip, headline, series, nights, climOf, chanceBy, hddOf, inSeason, pretty };

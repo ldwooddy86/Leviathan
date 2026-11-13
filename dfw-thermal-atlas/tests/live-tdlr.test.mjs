@@ -32,8 +32,9 @@ test('subtype: class and endorsement pairs as the file writes them', () => {
   same(s('AR'), { classA: true, env: false, refrig: true }); same(s('BR'), { classA: false, env: false, refrig: true });
   same(s('AEBR'), { classA: true, env: true, refrig: true }); same(s('ARBE'), { classA: true, env: true, refrig: true }); same(s('ARBR'), { classA: true, env: false, refrig: true });
   for (const none of [undefined, null, '', 'REG', 'CER']) same(s(none), { classA: false, env: false, refrig: false });
-  const seen = [...new Set(COUNTS.filter(r => r.license_type === 'A/C Contractor').map(r => r.license_subtype))].sort();
+  const con = COUNTS.filter(r => r.license_type === 'A/C Contractor'), seen = [...new Set(con.map(r => r.license_subtype).filter(Boolean))].sort();
   same(seen, ['AC', 'AE', 'AEBR', 'AR', 'ARBE', 'BC', 'BE', 'BR'], 'the contractor subtypes in the recorded file');
+  same(con.filter(r => !r.license_subtype).map(r => [r.business_county, r.n]), [['DALLAS', '1']], 'one license in the file has no subtype: it counts as a contractor, in no class');
   for (const c of seen) assert.ok(s(c).env || s(c).refrig, c + ' carries an endorsement');
 });
 
@@ -60,7 +61,7 @@ test('queries: counted on the server, every date taken from the file date', () =
 test('parseCounts: the 108 recorded rows become twelve county rows', () => {
   const L = fresh(), r = L.tdlr.parseCounts(COUNTS, L.geo.counties);
   assert.equal(COUNTS.length, 108); assert.equal(r.badDates, 0);
-  same(r.counties.map(c => c.name), L.geo.counties.map(c => c.name), 'one row per county, in the order of the geography file');
+  same(r.counties.map(c => c.name), plain(L.geo.counties.map(c => c.name)), 'one row per county, in the order of the geography file');
   same(r.counties.find(c => c.name === 'Dallas'), { name: 'Dallas', fips: '48113', contractors: 1639, classA: 878, comfort: 1581, techs: 3737, certified: 359, expiring90: 272, lapsed: 119, new12: null, contractorsPer10kHomes: null });
   same(r.counties.find(c => c.name === 'Hood'), { name: 'Hood', fips: '48221', contractors: 52, classA: 19, comfort: 50, techs: 104, certified: 5, expiring90: 14, lapsed: 2, new12: null, contractorsPer10kHomes: null });
   const t = k => r.counties.reduce((s, c) => s + c[k], 0), rawSum = (type, k) => COUNTS.filter(x => x.license_type === type).reduce((s, x) => s + +x[k], 0);
@@ -114,7 +115,7 @@ test('the collector: five plain GETs when the file is new, the exact queries, a 
   same({ asOf: data.entrants.asOf, after: data.entrants.after, from: data.entrants.from, total: data.entrants.total, newest: data.entrants.newest.length }, { asOf: '2026-10-19T18:51:17Z', after: 156844, from: '2025-10-19', total: 247, newest: 12 });
   same(data.counties.map(c => [c.name, c.fips, c.contractors, c.new12]), [['Collin', '48085', 491, 17], ['Dallas', '48113', 1639, 68], ['Denton', '48121', 409, 22], ['Ellis', '48139', 197, 11], ['Hood', '48221', 52, 3], ['Hunt', '48231', 90, 4], ['Johnson', '48251', 187, 12], ['Kaufman', '48257', 174, 9], ['Parker', '48367', 176, 14], ['Rockwall', '48397', 123, 12], ['Tarrant', '48439', 1254, 68], ['Wise', '48497', 63, 7]]);
   assert.ok(data.counties.every(c => c.contractorsPer10kHomes === null), 'the page fills contractors per home from its own housing counts');
-  assert.match(data.basis, /^Counted from the TDLR All Licenses file as published on 2026-10-19\. Active: /);
+  assert.match(data.basis, /^Counted from the TDLR All Licenses file as published on October 19, 2026\. Active: /);
   const g = L.BY_ID.tdlr_licenses.digest(plain(data));
   same({ contractors: g.contractors, techs: g.techs, top: g.top, new12: g.new12, asOf: g.asOf }, { contractors: 4855, techs: 10974, top: 'Dallas (1,639)', new12: 247, asOf: '2026-10-19' });
   same([Object.keys(g.by).length, g.by.Dallas, g.by.Wise], [12, [1639, 3737], [63, 127]]);
@@ -133,7 +134,7 @@ test('the same file a week later costs one request; a new file is counted again 
   assert.equal(f3.calls.length, 4, 'file date, counts, Texas totals, entrants by county; the newest list is not asked for once the check fails');
   same([third.data.asOf, third.data.asOfDay, third.data.texas.asOf], ['2026-11-19T19:02:44Z', '2026-11-19', '2026-11-19T19:02:44Z']);
   assert.ok(qs(f3.calls[1].url).get('$select').includes(`${KEY}>='20261119' and ${KEY}<='20270217'`) && qs(f3.calls[2].url).get('$select').includes(`${KEY}<'20261119',license_number::number)) as n0`), 'active, expiring and the number line all count from the new file date');
-  assert.match(third.data.basis, /published on 2026-11-19\./);
+  assert.match(third.data.basis, /published on November 19, 2026\./);
   same(third.data.stale.map(s => [s.block, s.kept]), [['entrants', '2026-10-19T18:51:17Z']]); assert.match(third.data.stale[0].why, /license numbers above 156844 do not span a year \(first expiration 2026-10-22\)/);
   same(third.data.entrants, first.entrants); assert.equal(third.data.total.new12, 247);
 });
@@ -170,7 +171,7 @@ test('nothing usable: the run throws and says why', async () => {
 test('reads: contractors per 10,000 homes from the page\'s own housing counts, and what moved since the last digest', async () => {
   const L = fresh(), data = plain((await runOnce(L, fakeFetch(routes()))).data);
   const by = L.tdlr.byCounty(data, { Dallas: 1000000, 48085: 400000 });
-  same(Object.keys(by), L.geo.counties.map(c => c.name));
+  same(Object.keys(by), plain(L.geo.counties.map(c => c.name)));
   same([by.Dallas.contractorsPer10kHomes, by.Collin.contractorsPer10kHomes, by.Tarrant.contractorsPer10kHomes], [16.4, 12.3, null], 'by county name or by FIPS code; unknown where the page gave no homes');
   same([by.Dallas.techsPerContractor, by.Dallas.contractors, by.Dallas.new12], [2.3, 1639, 68]); assert.ok(Math.abs(by.Dallas.newShare - 68 / 1639) < 1e-12);
   assert.equal(L.tdlr.byCounty(data).Dallas.contractorsPer10kHomes, null); same(L.tdlr.byCounty(null), {}); assert.equal(data.counties[1].contractorsPer10kHomes, null, 'the stored record is not touched');

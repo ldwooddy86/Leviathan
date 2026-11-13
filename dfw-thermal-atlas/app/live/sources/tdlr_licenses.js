@@ -1,11 +1,11 @@
 /* ==== live/sources/tdlr_licenses.js ==== */
 /* Texas Department of Licensing and Regulation: the air conditioning and refrigeration contractor and technician licenses
    whose business county is one of the 12, counted on the server of the Texas Open Data Portal (dataset 7358-krk7, "TDLR All
-   Licenses": about a million rows of every license type, replaced whole about once a month, last on 2026-10-19).
-   One request reads the file date. When the file is new, four more count it: active licenses by county, class and
-   endorsement; the Texas totals with the highest license number that had already expired; the license numbers above that
-   one by county (a license runs one year and numbers are issued in sequence, so those are the licenses first issued in
-   the last 12 months); and the 25 newest of them by name. About 20 KB on the wire, 8 KB stored.
+   Licenses": about a million rows of every license type, replaced whole about once a month: the two uploads on record
+   are 2026-09-19 and 2026-10-19). One request reads the file date. When the file is new, four more count it: active
+   licenses by county, class and endorsement; the Texas totals with the highest license number that had already expired;
+   the license numbers above that one by county (a license runs one year and numbers are issued in sequence, so those are
+   the licenses first issued in the last 12 months); and the 25 newest of them by name. About 20 KB on the wire, 6 KB stored.
    Contractors per home is the competition a heating advertiser bids against; the new numbers show who is entering. */
 (function (root) {
   'use strict';
@@ -22,6 +22,8 @@
   const daysBetween = (a, b) => Math.round((Date.parse(b + 'T12:00:00Z') - Date.parse(a + 'T12:00:00Z')) / DAY);
   const leap = y => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
   const yearsBefore = (ymd, n) => { const y = +ymd.slice(0, 4) - n; return y + (ymd.slice(5) === '02-29' && !leap(y) ? '-02-28' : ymd.slice(4)); };
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const longDay = ymd => `${MONTHS[+ymd.slice(5, 7) - 1]} ${+ymd.slice(8)}, ${ymd.slice(0, 4)}`;
   const thousands = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const upper = s => String(s == null ? '' : s).trim().toUpperCase();
   const clean = s => String(s == null ? '' : s).replace(/[<>\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -107,12 +109,12 @@
       throw new Error(col ? `the license file no longer has the column ${col[1]}, so ${what} could not be counted` : `the Texas Open Data Portal refused the query for ${what}`);
     }
   }
-  const basis = day => `Counted from the TDLR All Licenses file as published on ${day}. Active: the license type is A/C Contractor or A/C Technician, the business county is one of the 12, and the expiration date is on or after the file date. Comfort: the license carries the environmental air conditioning endorsement, which covers home heating. Expiring within 90 days counts from the file date. Lapsed: still in the file with an expiration date before the file date (the file keeps a license 18 months after it expires). New in 12 months: license numbers above the highest numbered Texas contractor license that had already expired on the file date. Numbers are issued in sequence and a license runs one year, so every higher number was first issued within the year (grade B: the line can sit a few days early). A license is counted in its business county, a technician in the county on the technician's own record.`;
+  const basis = day => `Counted from the TDLR All Licenses file as published on ${longDay(day)}. Active: the license type is A/C Contractor or A/C Technician, the business county is one of the 12, and the expiration date is on or after the file date. Comfort: the license carries the environmental air conditioning endorsement, which covers home heating. Expiring within 90 days counts from the file date. Lapsed: still in the file with an expiration date before the file date (the file keeps a license 18 months after it expires). New in 12 months: license numbers above the highest numbered Texas contractor license that had already expired on the file date. Numbers are issued in sequence and a license runs one year, so every higher number was first issued within the year (grade B: the line sits within days of a full year, and the count is dropped when the first expiration date among those licenses is more than 45 days past the file date). A license is counted in its business county, a technician in the county on the technician's own record.`;
 
   L.register({
     id: 'tdlr_licenses', name: 'Air conditioning contractor licenses', publisher: 'Texas Department of Licensing and Regulation, on the Texas Open Data Portal', page: 'https://data.texas.gov/dataset/TDLR-All-Licenses/7358-krk7',
     about: 'Active air conditioning and refrigeration contractor and technician licenses in each of the 12 counties, the licenses expiring soon and the license numbers first issued in the last 12 months. Contractors per home is the competition a heating ad bids against, and the new licenses show where it is growing.',
-    hosts: ['data.texas.gov'], cadence: 'weekly', cors: true, grade: 'A', terms: 'Public record of the State of Texas, published on its open data portal. The dataset states no license; the file is replaced about once a month.',
+    hosts: ['data.texas.gov'], cadence: 'weekly', cors: true, grade: 'A', timeoutMs: 180000, terms: 'Public record of the State of Texas, published on its open data portal. The dataset states no license; the file is replaced about once a month.',
     labels: { contractors: ['Active contractor licenses in the 12 counties', 'int'], techs: ['Active technician licenses in the 12 counties', 'int'], top: ['County with the most contractor licenses', 'text'], new12: ['Contractor licenses first issued in the last 12 months', 'int'], asOf: ['Date of the license file', 'text'] },
     async run(ctx) {
       const G = ctx.geo, names = G.counties.map(c => c.name), prev = ctx.prev && ctx.prev.v === V ? ctx.prev : null, now = ctx.now.toISOString();

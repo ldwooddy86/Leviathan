@@ -1,0 +1,23 @@
+{
+ "description": "Documents matching '\"consumer furnaces\"' and published on or after 12/18/2023",
+ "count": 18,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-08145",
+   "publication_date": "2026-04-27",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Notification of Petition for Rulemaking",
+   "citation": "91 FR 22477",
+   "action": "Notification of petition for rulemaking; request for comment.",
+   "dates": "Written comments and information are requested and will be accepted on or before May 27, 2026.",
+   "docket_ids": [
+    "EERE-2026-BT-STD-0001"
+   ],
+   "effective_on": null,
+   "comments_close_on": "2026-05-27",
+   "abstract": "On February 19, 2026, the Department of Energy (DOE) received a petition from the American Gas Association (AGA), the American Public Gas Association (APGA), and the National Propane Gas Association (NPGA) asking DOE to amend the compliance dates for two energy conservation standards final rules for commercial water heating equipment and consumer furnaces. Through this notification, DOE is seeking comment on whether it should grant the petition and undertake a rulemaking to consider the proposal contained in the petition, as well as any data or information that may be relevant to DOE's consideration of the petition.",
+   "excerpts": "DOE adopted amended energy conservation standards for \n \n certain <span class=\"match\">consumer furnaces</span>. These standards were codified in DOE's regulations at 10 CFR 430.32(e). This final rule set the annual fuel utilization efficiency (AFUE) standards for non-weatherized gas furnaces (95% AFUE) and mobile home gas furnaces (95% AFUE) at levels that effectively require the use of condensing technology. The compliance date for the amended energy conservation standards for the subject <span class=\"match\">consumer furnaces</span> is December 18, 2028.\n \n In announcing this petition for public comment"
+  }
+ ]
+}

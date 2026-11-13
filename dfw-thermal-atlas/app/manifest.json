@@ -40,7 +40,8 @@
     "https://www.federalregister.gov/*",
     "https://data.texas.gov/*",
     "https://api.census.gov/*",
-    "https://www2.census.gov/*"
+    "https://www2.census.gov/*",
+    "https://services5.arcgis.com/*"
   ],
   "optional_host_permissions": [
     "https://*/*"

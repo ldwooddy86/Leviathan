@@ -19,6 +19,12 @@
      for gas furnaces, compliance from 2028-12-18), the technology transitions rule for hydrofluorocarbons and the rule on
      managing them in service work, the rule on consumer reviews and testimonials, and the rule on unfair or deceptive fees. */
   const PINS = { '2023-25514': 'furnace', '2023-22529': 'refrigerant', '2024-21967': 'refrigerant', '2024-18519': 'advertising', '2024-30293': 'advertising' };
+  /* A date the register prints in the text of a standing rule and in no field of the API. Read on 2026-11-13 in the documents'
+     own words, through search excerpts: the furnace rule 2023-25514 ("Compliance with the amended standards established for the
+     subject consumer furnaces in this final rule is required on and after December 18, 2028") and the petition notice 2026-08145
+     ("The compliance date ... for the subject consumer furnaces is December 18, 2028"). A later rule may move it: upcoming()
+     flags the date for a second look once a newer rule on the same topic has been published. */
+  const COMPLY = { '2023-25514': '2028-12-18' }, COMPLY_READ = '2026-11-13';
   const TERM_EQUIP = 'furnace | furnaces | "heat pump" | "heat pumps" | "central air conditioners"';
   const TERM_CREDIT = '"energy efficient home improvement credit" | "residential clean energy credit" | "home energy rebates" | "home efficiency rebates" | "home electrification and appliance rebates"';
   const AGENCY = { 'internal-revenue-service': 'IRS', 'treasury-department': 'Treasury', 'energy-department': 'DOE', 'environmental-protection-agency': 'EPA', 'federal-trade-commission': 'FTC', 'consumer-product-safety-commission': 'CPSC' };
@@ -66,7 +72,7 @@
   function doc(r, topic, pin) {
     if (!r || !r.document_number || !isDay(r.publication_date) || !clean(r.title) || !topic) return null;
     const d = { id: String(r.document_number), d: r.publication_date, type: clean(r.type), agency: agencyOf(r), title: clean(r.title), url: /^https:\/\/www\.federalregister\.gov\//.test(r.html_url || '') ? r.html_url : '', topic, effective: isDay(r.effective_on) ? r.effective_on : null, comments: isDay(r.comments_close_on) ? r.comments_close_on : null, action: clean(r.action).slice(0, 140) };
-    if (pin) d.pin = true;
+    if (pin) { d.pin = true; if (COMPLY[d.id]) d.comply = COMPLY[d.id]; }
     return d;
   }
   /* the list inside an answer: a search with no match has a count and no results; one document asked by number comes bare */
@@ -86,16 +92,19 @@
   /* ---------- reads ---------- */
   function byTopic(data) { const out = {}; TOPICS.forEach(t => { out[t] = []; }); ((data && data.docs) || []).forEach(d => { if (out[d.topic]) out[d.topic].push(d); }); return out; }
   /* documents published in the last `days` days, counted back from `now` in Dallas, or from the day of the run when `now` is left out */
-  function recent(data, days, now) { if (!data || !Array.isArray(data.docs)) return []; const from = addDays(now ? CT.format(new Date(now)) : data.through, -(days == null ? 90 : days)); return data.docs.filter(d => d.d >= from); }
-  /* dates still ahead (today counts): a rule taking effect, a comment period closing. One entry per date, soonest first:
-     the document plus what ('effective' | 'comments'), on (the date) and days (from today in Dallas). A proposed rule has no
-     effective date of its own (the register repeats the date of the proposal there), so only its comment date is read. */
+  function recent(data, days, now) { const anchor = !data || !Array.isArray(data.docs) ? null : now ? CT.format(new Date(now)) : data.through; if (!isDay(anchor)) return []; const from = addDays(anchor, -(days == null ? 90 : days)); return data.docs.filter(d => d.d >= from); }
+  /* dates still ahead (today counts): a rule taking effect, a comment period closing, a compliance date. One entry per date,
+     soonest first: the document plus what ('effective' | 'comments' | 'compliance'), on (the date) and days (from today in
+     Dallas). A proposed rule has no effective date of its own (the register repeats the date of the proposal there), so only
+     its comment date is read. A compliance entry carries recheck: true once a newer rule on its topic has been published. */
   function upcoming(data, now) {
     if (!data || !Array.isArray(data.docs)) return [];
     const today = CT.format(now ? new Date(now) : new Date()), out = [];
+    const entry = (d, what, on, more) => out.push(Object.assign({}, d, { what, on, days: daysBetween(today, on) }, more));
     data.docs.forEach(d => {
-      if (d.effective && d.effective >= today && d.type !== 'Proposed Rule') out.push(Object.assign({}, d, { what: 'effective', on: d.effective, days: daysBetween(today, d.effective) }));
-      if (d.comments && d.comments >= today) out.push(Object.assign({}, d, { what: 'comments', on: d.comments, days: daysBetween(today, d.comments) }));
+      if (isDay(d.effective) && d.effective >= today && d.type !== 'Proposed Rule') entry(d, 'effective', d.effective);
+      if (isDay(d.comments) && d.comments >= today) entry(d, 'comments', d.comments);
+      if (isDay(d.comply) && d.comply >= today) entry(d, 'compliance', d.comply, { recheck: data.docs.some(x => x.id !== d.id && x.topic === d.topic && x.type === 'Rule' && x.d > COMPLY_READ) });
     });
     return out.sort((a, b) => (a.on < b.on ? -1 : a.on > b.on ? 1 : newestFirst(a, b)));
   }
@@ -120,9 +129,9 @@
       return { v: 1, through, since, docs, failed: stale.length, stale };
     },
     digest(d) {
-      const docs = d.docs || [], t = d.through, from = addDays(t, -90), to = addDays(t, 180), n = docs[0];
-      return { last90: docs.filter(x => x.d >= from).length, newest: n ? `${n.d} · ${n.agency} · ${n.title.length > 90 ? n.title.slice(0, 90).trim() + '…' : n.title}` : '', effective180: docs.filter(x => x.type === 'Rule' && x.effective && x.effective > t && x.effective <= to).length };
+      const docs = d.docs || [], t = isDay(d.through) ? d.through : (docs[0] || {}).d || '1970-01-01', from = addDays(t, -90), to = addDays(t, 180), n = docs[0];
+      return { last90: docs.filter(x => x.d >= from).length, newest: n ? [n.d, n.agency, n.title.length > 90 ? n.title.slice(0, 90).trim() + '…' : n.title].filter(Boolean).join(' · ') : '', effective180: docs.filter(x => x.type === 'Rule' && x.effective && x.effective > t && x.effective <= to).length };
     },
   });
-  L.fedreg = { byTopic, recent, upcoming, urls, pick, doc, rows, equipment, refrigerant, advertising, credit, agencyOf, BLOCKS, PINS, TOPICS, MONTHS, CAP };
+  L.fedreg = { byTopic, recent, upcoming, urls, pick, doc, rows, equipment, refrigerant, advertising, credit, agencyOf, BLOCKS, PINS, COMPLY, TOPICS, MONTHS, CAP };
 })(typeof globalThis !== 'undefined' ? globalThis : self);
