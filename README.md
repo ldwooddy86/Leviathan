@@ -10,6 +10,8 @@ Marketing intelligence atlases, the unified console that holds them, and the bro
 | `FEATURES.md` | Every feature of this build, dashboard by dashboard: the console, the Core, the fourteen atlases and their 228 modules, the Résumé Forge, the browser app, the editions. |
 | `dental-divide-atlas.html` | The Dental Divide Atlas, the dental market companion (single file). |
 | `toothandnail.skill` | The Tooth and Nail skill card: the Dental Divide method packed for Claude. |
+| `dfw-thermal-atlas/` | The **DFW Thermal Debt Atlas, Build 5**, as a browser app of its own (Chrome, Edge, Brave): the heating and cooling atlas for the 12 counties of Dallas Fort Worth, with the Heat Desk (where and when to spend on heating services and repair, ZIP by ZIP) and a live data layer that refreshes 12 public sources every week and the weather outlook every morning. Source tree, tests and its own `README.md`; the single file edition is `dfw-thermal-atlas/DFW_Thermal_Debt_Atlas.html`. |
+| `DFW-Thermal-Debt-Atlas-browser-app.zip` | That browser app zipped for anyone to install: download, unzip, then Load unpacked on the `dfw-thermal-debt-atlas/` folder inside. Written by `node build.mjs --release` in `dfw-thermal-atlas/`. |
 
 ## Load the browser app
 
