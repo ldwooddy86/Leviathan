@@ -28,6 +28,12 @@
       $('weekHead').textContent = state.lastWeekly ? 'No forecast in the store yet' : 'The first refresh has not run yet';
       $('weekSub').textContent = 'Refresh the live data to get the forecast lows, the cold triggers and this week\'s heating plan.';
     }
+    /* the season so far and the two weeks ahead, when those records are in the store */
+    const more = $('weekMore'); more.textContent = '';
+    const line = (k, text) => { if (!text) return; const p = el('p'); p.appendChild(el('b', '', k + ' ')); p.appendChild(document.createTextNode(text)); more.appendChild(p); };
+    try { if (L.climate && L.climate.headline && recs.acis_season && recs.acis_season.data) line('Season so far.', L.climate.headline(recs.acis_season.data, null, new Date())); } catch (e) { }
+    try { const o = L.derive && L.derive.outlook ? L.derive.outlook(recs, new Date()) : null; if (o && o.ok && !o.stale && o.headline) line('Two weeks ahead.', o.headline); } catch (e) { }
+    more.hidden = !more.children.length;
     /* status */
     const st = $('status'); st.textContent = '';
     const add = (k, v, cls) => { st.appendChild(el('span', '', k)); const b = el('b'); if (cls) { const d = el('span', 'dot ' + cls); b.appendChild(d); } b.appendChild(document.createTextNode(v)); st.appendChild(b); };

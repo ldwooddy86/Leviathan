@@ -32,6 +32,9 @@ main{padding:10px 12px 8px;display:flex;flex-direction:column;gap:9px;max-height
 .week p{margin:0;color:var(--ink-2);font-size:12.5px}
 .week ul{margin:6px 0 0;padding:0 0 0 16px;color:var(--ink-2);font-size:12.5px}
 .week li{margin:1px 0}
+.week .more{margin-top:7px;padding-top:6px;border-top:1px solid var(--line, rgba(128,128,128,.25))}
+.week .more p{margin:2px 0 0}
+.week .more b{color:var(--ink)}
 .status{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px;color:var(--ink-2);margin-top:4px}
 .status b{font-weight:600;color:var(--ink)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px;vertical-align:1px}
@@ -59,7 +62,7 @@ footer{display:flex;justify-content:space-between;gap:8px;padding:8px 12px 10px;
 <body>
 <header><img src="icons/icon48.png" alt=""><div><div class="nm">DFW Thermal Debt Atlas</div><div class="sb" id="sub">Heating and cooling campaign intelligence</div></div></header>
 <main>
-  <section class="card week" id="week" aria-live="polite"><div class="eyebrow" id="weekEyebrow">This week</div><h2 id="weekHead">Reading the live data</h2><p id="weekSub"></p><ul id="weekList" hidden></ul></section>
+  <section class="card week" id="week" aria-live="polite"><div class="eyebrow" id="weekEyebrow">This week</div><h2 id="weekHead">Reading the live data</h2><p id="weekSub"></p><ul id="weekList" hidden></ul><div class="more" id="weekMore" hidden></div></section>
   <div class="btns">
     <button class="b p" id="goHeat" type="button">Open the Heat Desk: where to spend this week</button>
     <button class="b" id="goAtlas" type="button">Open the atlas</button>
