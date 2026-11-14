@@ -1,6 +1,7 @@
 /* The shared layer (core, brand, map, charts, stylesheet): tables and the Brand dialog work from the keyboard, the copy and CSV
-   guards, the compact formatters, chart names, the rail, map labels, sideways overflow, contrast, and what leaves the browser.
+   guards, the byte order mark of every CSV file (saved on its own or inside a pack), the compact formatters, chart names, the rail, map labels, sideways overflow, contrast, and what leaves the browser.
    Each part runs on its own, so the file can be pointed at an older build (--file) to list everything that build gets wrong. */
+import { readFileSync } from 'node:fs';
 const HC = [   // [typed, what leaves the atlas]; the first 17 are the reader's probes
   ['10–15 years', '10 to 15 years'], ['10 – 15 years', '10 to 15 years'], ['10-15 years', '10 to 15 years'], ['10 — 15 years', '10, 15 years'],
   ['$50-$100 off', '$50 to $100 off'], ['$50–$100 off', '$50 to $100 off'], ['Mon–Sat 7–8', 'Mon, Sat 7 to 8'], ['24/7 — call now', '24/7, call now'],
@@ -91,12 +92,12 @@ export default async function (page, t, ctx) {
     await page.evaluate(() => { const click = HTMLAnchorElement.prototype.click; window.__saved = []; window.__unhook = () => { HTMLAnchorElement.prototype.click = click; }; HTMLAnchorElement.prototype.click = function () { if (!this.download || !/^blob:/.test(this.href)) return click.call(this); const name = this.download; window.__saved.push(fetch(this.href).then(r => r.arrayBuffer()).then(b => ({ name, bytes: [...new Uint8Array(b)] }))); }; });
     const saved = async () => (await page.evaluate(async () => { const a = await Promise.all(window.__saved); window.__saved = []; return a; })).map(f => ({ name: f.name, data: Buffer.from(f.bytes) }));
     try {
-      await page.evaluate(async text => { await saveFile('probe.csv', text); await saveFile('marked.csv', '﻿' + text); await saveFile('probe.json', '{"a":"°"}'); await saveFile('probe.txt', text); await saveFile('probe.html', '<p>°</p>'); await saveFile('bytes.csv', new Blob([text])); }, TEXT);
+      await page.evaluate(async text => { await saveFile('probe.csv', text); await saveFile('marked.csv', '\uFEFF' + text); await saveFile('probe.json', '{"a":"°"}'); await saveFile('probe.txt', text); await saveFile('probe.html', '<p>°</p>'); await saveFile('bytes.csv', new Blob([text])); }, TEXT);
       const one = Object.fromEntries((await saved()).map(f => [f.name, f.data])), csv = one['probe.csv'];
       t.ok(csv && marked(csv) && csv.subarray(3).equals(Buffer.from(TEXT)), 'a CSV file saved on its own starts with the byte order mark and the text follows unchanged', head(csv));
       t.ok(csv && one['marked.csv'] && one['marked.csv'].equals(csv), 'a CSV text that already carries the mark is not given a second one', head(one['marked.csv']));
       t.ok(['probe.json', 'probe.txt', 'probe.html', 'bytes.csv'].every(n => one[n] && one[n].length && !marked(one[n])), 'JSON, text and HTML files, and a file handed over as finished bytes, carry no mark', Object.keys(one).map(n => n + ' ' + head(one[n])));
-      const z = unzip(await page.evaluate(async text => [...new Uint8Array(await zipBlob([{ name: 'pack/probe.csv', data: text }, { name: 'pack/marked.csv', data: '﻿' + text }, { name: 'pack/read-me.txt', data: text }, { name: 'pack/plan.json', data: '{"a":"°"}' }, { name: 'pack/bytes.csv', data: new TextEncoder().encode(text) }]).arrayBuffer())], TEXT)) || {};
+      const z = unzip(await page.evaluate(async text => [...new Uint8Array(await zipBlob([{ name: 'pack/probe.csv', data: text }, { name: 'pack/marked.csv', data: '\uFEFF' + text }, { name: 'pack/read-me.txt', data: text }, { name: 'pack/plan.json', data: '{"a":"°"}' }, { name: 'pack/bytes.csv', data: new TextEncoder().encode(text) }]).arrayBuffer())], TEXT)) || {};
       t.ok(Object.keys(z).length === 5 && Object.values(z).every(e => e.ok), 'a pack with CSV files in it is a sound zip: stored sizes and checksums agree', Object.keys(z));
       t.ok(csv && z['pack/probe.csv'] && z['pack/probe.csv'].data.equals(csv) && z['pack/marked.csv'].data.equals(csv), 'a CSV file inside a pack is byte for byte the file saved on its own', head((z['pack/probe.csv'] || {}).data));
       t.ok(z['pack/read-me.txt'] && !marked(z['pack/read-me.txt'].data) && !marked(z['pack/plan.json'].data) && z['pack/bytes.csv'].data.equals(Buffer.from(TEXT)), 'the other files of a pack are stored as given');
@@ -105,8 +106,8 @@ export default async function (page, t, ctx) {
       for (const [mod, ids] of Object.entries(CSVS)) { const there = await page.evaluate(([m, ids]) => { if (!MODS.some(x => x.key === m)) return []; showModule(m); return ids.filter(id => document.getElementById(id)); }, [mod, ids]); await page.waitForTimeout(150); for (const id of there) { await page.evaluate(id => document.getElementById(id).click(), id); await page.waitForTimeout(40); const got = await saved(); got.forEach(f => files.push({ ...f, from: mod + ' #' + id })); if (!got.length) files.push({ name: '', data: Buffer.alloc(0), from: mod + ' #' + id }); } }
       const bad = files.filter(f => !/\.csv$/.test(f.name) || !marked(f.data) || marked(f.data.subarray(3))).map(f => f.from + ' ' + (f.name || 'saved nothing') + ' ' + head(f.data));
       t.ok(files.length >= 12 && !bad.length, `the CSV exports of the modules (${files.length} files from ${new Set(files.map(f => f.from.split(' ')[0])).size} modules) each start with one byte order mark`, bad);
-      const ragged = files.filter(f => f.data.length).map(f => { const rows = table(f.data.subarray(3).toString('utf8')); return rows.length > 1 && rows.every(r => r.length === rows[0].length) && !/�/.test(f.data.toString('utf8')) ? null : f.from + ' ' + f.name + ' ' + rows.length + ' rows'; }).filter(Boolean);
-      t.eq(ragged, [], 'and each still reads as a table: every row has as many cells as the header and no byte is lost');
+      const ragged = files.filter(f => f.data.length).map(f => { const tabs = f.data.subarray(3).toString('utf8').split(/\n{2,}/).map(table), rows = tabs[0]; return rows.length > 1 && tabs.every(tb => tb.every(r => r.length === tb[0].length)) && !/\uFFFD/.test(f.data.toString('utf8')) ? null : f.from + ' ' + f.name + ' ' + rows.length + ' rows'; }).filter(Boolean);
+      t.eq(ragged, [], 'and each still reads as a table (two where a blank line parts them): every row has as many cells as the header and no byte is lost');
       if (await page.evaluate(() => { if (!MODS.some(m => m.key === 'heat')) return false; showModule('heat'); return true; })) {
         await page.waitForSelector('#h17Files button[data-x="pack"]', { timeout: 4000 }).catch(() => null);
         const keys = await page.evaluate(() => [...document.querySelectorAll('#h17Files button[data-x]')].map(b => b.dataset.x));
@@ -119,8 +120,8 @@ export default async function (page, t, ctx) {
       } else t.note('no Heat Desk in this build: the pack check was skipped');
     } finally { await page.evaluate(() => { if (window.__unhook) window.__unhook(); }); }
     if (await page.evaluate(() => { showModule('paid'); return !!document.getElementById('a5G'); })) {
-      await page.waitForTimeout(200); const g = await ctx.download(() => page.click('#a5G'));
-      t.ok(/\.csv$/.test(g.name) && g.text.charCodeAt(0) === 0xFEFF && g.text.charCodeAt(1) !== 0xFEFF && /^[A-Za-z"#]/.test(g.text.slice(1)), 'a CSV file downloaded through the browser arrives with the mark in front', g.name + ' ' + JSON.stringify(g.text.slice(0, 24)));
+      await page.waitForTimeout(200); const [d] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('#a5G')]), g = readFileSync(await d.path());   // the bytes on disk, whatever the runner's own reader does with a mark
+      t.ok(/\.csv$/.test(d.suggestedFilename()) && marked(g) && !marked(g.subarray(3)) && /^[A-Za-z"#]/.test(g.subarray(3, 4).toString()), 'a CSV file downloaded through the browser arrives on disk with the mark in front', d.suggestedFilename() + ' ' + head(g));
     }
   });
 
@@ -247,20 +248,23 @@ export default async function (page, t, ctx) {
         <span class="pill st-connected">connected</span><span class="pill st-configured">waiting</span><span class="pill st-expired">expired</span><span class="tier tE">E</span><span class="mini pb-ok">valid</span>
         <span class="pbadge p-site">site</span><span class="pbadge p-google">google</span><span class="pbadge p-nextdoor">nextdoor</span><span class="pbadge p-mail">mail</span>
         <div class="daycard"><div class="dhi">feels 104</div></div><div class="rk bench"><div class="nm">Client</div></div><div class="rk bench sel"><div class="nm">Client <span class="rn">39.</span></div></div>
-        ${corrMatrix(['a', 'b', 'c'], { a: 'A', b: 'B', c: 'C' }, { a: { a: 1, b: 0.94, c: -0.62 }, b: { a: 0.94, b: 1, c: 0.56 }, c: { a: -0.62, b: 0.56, c: 1 } })}</div></div><div class="wrap"><p class="mini">note</p><div class="foot">Footer line</div></div>`);
+        ${corrMatrix(['a', 'b', 'c'], { a: 'A', b: 'B', c: 'C' }, { a: { a: 1, b: 0.94, c: -0.62 }, b: { a: 0.94, b: 1, c: 0.56 }, c: { a: -0.62, b: 0.56, c: 1 } })}
+        ${['', ' judg', ' note'].map(k => `<div class="callout${k}">${G('A')}${G('B')}${G('C')}${G('D')}${G('X')}</div>`).join('')}</div></div><div class="wrap"><p class="mini">note</p><div class="foot">Footer line</div></div>`);
       document.body.appendChild(box); const low = [];
       box.querySelectorAll('button,span,.dhi,.nm,.cm td,.foot,p.mini').forEach(e => { if (e.children.length && !e.matches('.nm')) return; const r = window.__ratio(e); if (r < 4.5) low.push((e.className || e.tagName) + ' "' + e.textContent.trim().slice(0, 12) + '" ' + r); });
-      const btn = window.__ratio(box.querySelector('.btn')), chips = [...box.querySelectorAll('.g')].map(e => window.__ratio(e)); box.remove(); return { low, btn, chips, dark: isDark() };
+      const btn = window.__ratio(box.querySelector('.btn')), chips = [...box.querySelectorAll('.card-b > .g')].map(e => window.__ratio(e)), inCallout = [...box.querySelectorAll('.callout .g')].map(e => window.__ratio(e)); box.remove(); return { low, btn, chips, inCallout, dark: isDark() };
     });
     await ctx.show('index');
     try {
       const light = await probe();
       t.ok(!light.dark && light.chips.every(r => r >= 4.5), 'light theme: the grade chips A, B, C, D and the gray one read at 4.5:1 or better on a card', light.chips);
+      t.ok(light.inCallout.length === 15 && light.inCallout.every(r => r >= 4.5), 'light theme: a grade chip inside a callout of any of the three kinds reads at 4.5:1 or better', light.inCallout);
       t.eq(light.low, [], 'light theme: buttons, status words, pills, badges, the client row, the matrix and the footer all reach 4.5:1');
       await page.evaluate(() => { if (!isDark()) toggleTheme(); }); await page.waitForTimeout(100);
       const dark = await probe();
       t.ok(dark.dark && dark.btn >= 4.5, 'dark theme: the ink on a primary button reaches 4.5:1', dark.btn);
       t.ok(dark.chips.every(r => r >= 4.5), 'dark theme: the grade chips read at 4.5:1 or better on a card', dark.chips);
+      t.ok(dark.inCallout.length === 15 && dark.inCallout.every(r => r >= 4.5), 'dark theme: a grade chip inside a callout reads at 4.5:1 or better', dark.inCallout);
       t.eq(dark.low, [], 'dark theme: buttons, status words, pills, badges, the client row, the matrix and the footer all reach 4.5:1');
       /* the index was drawn in the light theme and its matrix is not redrawn on a theme change: it must follow the theme all the same */
       const inPage = await page.evaluate(async () => { const out = []; for (const k of ['index', 'paid', 'supply']) { if (!MODI[k]) continue; showModule(k); await new Promise(r => setTimeout(r, 200)); document.querySelectorAll('#mod-' + k + ' .g, #mod-' + k + ' .btn:not([disabled]), #mod-' + k + ' .cm td, #mod-' + k + ' .foot').forEach(e => { if (!e.getClientRects().length) return; const r = window.__ratio(e); if (r < 4.5) out.push(k + ' ' + e.className + ' "' + e.textContent.trim().slice(0, 10) + '" ' + r); }); } return [...new Set(out)]; });
@@ -355,15 +359,21 @@ export default async function (page, t, ctx) {
 
   /* ---------- the stored theme is applied by the first shared script, not the last ---------- */
   await part('the stored theme', async () => {
-    await page.addInitScript(() => { new MutationObserver(() => { const r = document.documentElement; if (r && r.dataset.theme && !window.__themeAt) window.__themeAt = { theme: r.dataset.theme, brand: typeof BRANDX, shellFacts: !!(document.getElementById('shellFacts') || {}).innerHTML }; }).observe(document, { attributes: true, subtree: true, attributeFilter: ['data-theme'] }); });
-    await ctx.fresh({ 'tda.theme': '"dark"' });
+    /* The stored value is written by a script that runs first in the new document, when the address asks for it. Writing it from the page
+       and then loading again is not reliable in headless Chromium: about one new document in four starts without the value (measured). */
+    await page.addInitScript(() => {
+      const m = /[?&]storedTheme=(\w+)/.exec(location.search); try { if (m) localStorage.setItem('tda.theme', JSON.stringify(m[1])); window.__themeStored = localStorage.getItem('tda.theme'); } catch (e) { }
+      new MutationObserver(() => { const r = document.documentElement; if (r && r.dataset.theme && !window.__themeAt) window.__themeAt = { theme: r.dataset.theme, brand: typeof BRANDX, shellFacts: !!(document.getElementById('shellFacts') || {}).innerHTML }; }).observe(document, { attributes: true, subtree: true, attributeFilter: ['data-theme'] });
+    });
+    const load = async v => { await page.goto(ctx.url + '?storedTheme=' + v, { waitUntil: 'load' }); return page.evaluate(() => window.__themeStored); };
+    const had = await load('dark');
     const th = await page.evaluate(() => ({ at: window.__themeAt || null, now: document.documentElement.dataset.theme, dark: isDark() }));
-    t.ok(th.now === 'dark' && th.dark && th.at && th.at.theme === 'dark' && th.at.brand === 'undefined' && !th.at.shellFacts, 'a stored dark theme is set before the brand layer loads and before the shell builds the page', th);
+    t.ok(had === '"dark"' && th.now === 'dark' && th.dark && th.at && th.at.theme === 'dark' && th.at.brand === 'undefined' && !th.at.shellFacts, 'a stored dark theme is set before the brand layer loads and before the shell builds the page', { had, ...th });
     const tg = await page.evaluate(() => { toggleTheme(); const a = [document.documentElement.dataset.theme, localStorage.getItem('tda.theme')]; toggleTheme(); return a.concat([document.documentElement.dataset.theme, localStorage.getItem('tda.theme')]); });
     t.eq(tg, ['light', '"light"', 'dark', '"dark"'], 'the theme button still switches the theme and stores the choice');
-    await ctx.fresh({ 'tda.theme': '"sepia"' });
-    t.ok(await page.evaluate(() => { const v = document.documentElement.dataset.theme; return v !== 'sepia'; }), 'a stored value that is not a theme is not applied');
-    await ctx.fresh();
+    const odd = await load('sepia');
+    t.ok(odd === '"sepia"' && await page.evaluate(() => document.documentElement.dataset.theme !== 'sepia' && !window.__themeAt), 'a stored value that is not a theme is not applied', odd);
+    await page.evaluate(() => localStorage.removeItem('tda.theme')); await ctx.fresh();
   });
   t.ok(!ctx.errors.length, 'no page error or console error', ctx.errors.slice(0, 5));
 }

@@ -156,6 +156,7 @@ label.fl,.fl{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transfor
 .g-b{color:#1c5cab;border-color:color-mix(in srgb,var(--s1) 55%,transparent)}
 .g-c{color:#9a6a00;border-color:color-mix(in srgb,#eda100 65%,transparent)}
 .g-d{color:var(--critical);border-color:color-mix(in srgb,var(--critical) 55%,transparent)}
+.callout .g{background:var(--card)}
 :root[data-theme="dark"] .g-a,:root[data-theme="dark"] .q1,:root[data-theme="dark"] .disp.x,:root[data-theme="dark"] .pill.st-connected,:root[data-theme="dark"] .pb-ok{color:#5fd35f} :root[data-theme="dark"] .g-b{color:var(--s1)} :root[data-theme="dark"] .g-c{color:#e8b64a}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .g-a,:root:not([data-theme="light"]) .q1,:root:not([data-theme="light"]) .disp.x,:root:not([data-theme="light"]) .pill.st-connected,:root:not([data-theme="light"]) .pb-ok{color:#5fd35f}:root:not([data-theme="light"]) .g-b{color:var(--s1)}:root:not([data-theme="light"]) .g-c{color:#e8b64a}}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:999px;border:1px solid var(--line-strong);color:var(--ink-2);white-space:nowrap}

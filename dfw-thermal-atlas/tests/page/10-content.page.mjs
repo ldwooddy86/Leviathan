@@ -60,7 +60,12 @@ export default async function (page, t, ctx) {
     const longest = market(clean(byName[0].city), byName[0].cty), len = (x, c, lim) => { const s = fillCopy(x, c, lim); return s ? s.length : null; };
     const known = new Set(ANGLES.filter(a => !NEW[a.id]).flatMap(a => a.lsa));
     const towns = [...new Set(ZR.map(z => clean(z.city).toLowerCase()).filter(Boolean))], negs = NEG_CUSTOMER.concat(heatNeg || []), blocked = [];
-    HEAT.filter(id => ANG[id]).flatMap(id => ANG[id].kw.concat(ANG[id].kwq)).forEach(k => (k.includes('{city}') ? towns.map(c => k.replace('{city}', c)) : [k]).forEach(q => negs.forEach(n => { if ((' ' + q + ' ').includes(' ' + n + ' ')) blocked.push(`${q} is blocked by ${n}`); })));
+    [...new Set(HEAT.concat(LINES.maint.angles))].filter(id => ANG[id]).flatMap(id => ANG[id].kw.concat(ANG[id].kwq)).forEach(k => (k.includes('{city}') ? towns.map(c => k.replace('{city}', c)) : [k]).forEach(q => negs.forEach(n => { if ((' ' + q + ' ').includes(' ' + n + ' ')) blocked.push(`${q} is blocked by ${n}`); })));   // the maintenance line carries the heating negatives when it runs the heating tune up
+    /* what a licensed contractor cannot put in an ad without proof or a condition: a saving, a time or a sure result, a rank or a word about a rival. Read in everything the three new angles say and in the descriptions this build rewrote for the furnace and heat pump angles */
+    const CLAIMS = [['a saving or a price', /\bsav(e|es|ed|ing|ings)\b|\b(lower|cut|reduce|slash)\w* (your |the )?(bill|bills|cost|costs)\b|\bpays? for itself\b|\bcheap|\bdiscount|% off\b|\$\s?\d|\bfree\b|\bahorr|\bdescuento|\bbarat|\bgratis\b/i], ['a time or a sure result', /\bguarant|\bgarant|\bsame day\b|\btoday\b|\btonight\b|\bwithin \d|\bin (an|one|\d+) (hour|hours|minute|minutes)\b|\b24\s?\/\s?7\b|\b24 (hours|horas)\b|\bimmediate|\binmediat|\binstant|\bright away\b|\bfast(est)?\b|\bquick|\brápid|\bmismo día\b|\bhoy\b|\bahora mismo\b|\bon time\b|\bfirst (visit|time)\b/i], ['a rank or a rival', /\bbest\b|\bmejor|#\s?1\b|\bnumber one\b|\bnúmero uno\b|\btop rated\b|\bmost trusted\b|\bleading\b|\bbeat\b|\bcompetitor|\bcompetencia\b|\bother (companies|contractors|guys)\b|\botras compañías\b|\bunlike\b|\bcheapest\b|\blowest\b|\bexpert|\bexperto/i]];
+    const said = Object.keys(NEW).filter(id => ANG[id]).flatMap(id => { const a = ANG[id]; return a.h.concat(a.d, a.es.h, a.es.d, [a.meta.p, a.meta.h, a.meta.d]).map(x => [id, x]); }).concat(['furnace', 'heatpump'].flatMap(id => ANG[id].d.concat(ANG[id].es.d).map(x => [id, x])));
+    const claims = said.flatMap(([id, x]) => CLAIMS.filter(c => c[1].test(x)).map(c => `${id}: "${x}" reads as ${c[0]}`));
+
     return {
       count: { lines: Object.keys(LINES).length, angles: ids.length, library: ANGLES.length }, missing: pairs.filter(p => !ANG[p[1]]).map(p => p.join(': ')), off: ANGLES.filter(a => !ids.includes(a.id)).map(a => a.id),
       worst: { city: worst[1].city, county }, real: real.map(z => ({ zip: z.zip, city: z.city, county: z.cty, spanish: z.span_sh })), where: ALL.map(x => x[0]),
@@ -71,7 +76,8 @@ export default async function (page, t, ctx) {
       shape: Object.keys(NEW).map(id => { const a = ANG[id]; return !a ? { id, absent: true } : { id, short: a.short, line: a.line, path: a.path, lsa: a.lsa, lsaKnown: a.lsa.length > 0 && a.lsa.every(x => known.has(x)), plain: [typeof a.label, typeof a.why, typeof a.trig].join(), n: { h: a.h.length, d: a.d.length, esH: a.es.h.length, esD: a.es.d.length, kw: a.kw.length, kwq: a.kwq.length }, lic: [a.d.some(x => x.includes('{lic}')), a.es.d.some(x => x.includes('{lic}'))], kw: a.kw, meta: { p: [len(a.meta.p, worst[1]), len(a.meta.p, longest)], h: len(a.meta.h, worst[1], 40), d: len(a.meta.d, worst[1], 30) } }; }),
       kwBad: ids.flatMap(id => { const all = ANG[id].kw.concat(ANG[id].kwq); return all.filter((k, i) => !/^[a-z0-9]+( [a-z0-9]+)*$/.test(k.replace('{city}', 'x')) || k.split(' ').length > 10 || k.replace('{city}', longest.city).length > 80 || all.indexOf(k) !== i).map(k => `${id}: ${k}`); }),
       kwShared: Object.keys(LINES).flatMap(l => { const seen = {}; LINES[l].angles.filter(id => ANG[id]).forEach(id => ANG[id].kw.concat(ANG[id].kwq).forEach(k => (seen[k] = seen[k] || []).push(id))); return Object.keys(seen).filter(k => seen[k].length > 1).map(k => `${l}: ${k} (${seen[k].join(', ')})`); }),
-      furnaceKw: ANG.furnace.kw, furnaceIn: real.some(z => ANG.furnace.trig(z)),
+      furnaceKw: ANG.furnace.kw, furnaceIn: real.some(z => ANG.furnace.trig(z)), claims, said: said.length,
+      licHead: { all: ANGLES.filter(a => a.id !== 'recruit' && !NEW[a.id]).every(a => a.h.includes('TDLR Lic {lic}')), fresh: Object.keys(NEW).filter(id => !ANG[id] || !ANG[id].h.includes('TDLR Lic {lic}')) },
       family: ['landlord', 'financing', 'maint', 'iaq'].map(id => ANG[id].why).filter(w => !/single family/.test(w) || /single-family/.test(w)),
     };
   }, [HEAT, NEW]);
@@ -100,6 +106,8 @@ export default async function (page, t, ctx) {
   /* the heating angles: compliance, shape, triggers */
   t.eq(R.lint, [], 'the Satchel lint finds nothing in any headline, description, social line or keyword of the five heating angles, and every description set carries the license');
   t.eq(R.heat, HEAT, 'the heat line runs heating repair first, then furnace, heat pump, electric heat and the heating tune up');
+  t.ok(R.said > 60 && !R.claims.length, `none of the ${R.said} lines of new heating copy promises a saving, a time or a sure result, or names a rank or a rival`, R.claims.slice(0, 6));
+  t.ok(R.licHead.all && !R.licHead.fresh.length, 'each new angle carries the headline "TDLR Lic" with the license number, as every customer angle of the library does', R.licHead);
   for (const s of R.shape) {
     if (!t.ok(!s.absent, `the ${NEW[s.id]} angle is in the library`)) continue;
     t.ok(s.short === NEW[s.id] && s.line === 'heat' && /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s.path) && s.lsaKnown && s.plain === 'string,string,function', `${s.short}: on the heat line, with a page path and Local Services job types the library already uses`, s);
@@ -117,7 +125,7 @@ export default async function (page, t, ctx) {
   t.ok(R.neg.array && R.neg.list.length > 0 && !R.neg.bad.length && !R.neg.twice.length, 'NEG_HEAT is a list of lower case strings, none twice', { n: R.neg.list.length, bad: R.neg.bad, twice: R.neg.twice });
   t.eq(R.neg.shared, [], 'NEG_HEAT shares nothing with NEG_CUSTOMER');
   t.eq(NAMED.filter(n => !R.neg.list.includes(n)), [], 'NEG_HEAT names the heaters that are not central heating: space, water, pool and patio heaters, fireplaces and the rest of the agreed list');
-  t.eq(R.neg.blocked, [], 'no customer or heating negative blocks a keyword of the heat line, in any city of the 12 counties');
+  t.eq(R.neg.blocked, [], 'no customer or heating negative blocks a keyword of the heat line or of the maintenance line, in any city of the 12 counties');
 
   /* through the Campaign Desk: the heating plan for the three real ZIPs, as the Google file carries it */
   await ctx.show('desk', { zips: R.real.map(z => z.zip), line: 'heat' });

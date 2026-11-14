@@ -102,7 +102,7 @@ let toastT; function toast(msg) { TOAST.textContent = msg; TOAST.classList.add('
 
 /* ============================ files ============================ */
 const inViewer = () => !!(window.claude && typeof window.claude.use === 'function');
-const csvMark = (name, data) => typeof data === 'string' && /\.csv$/.test(name) && data.charCodeAt(0) !== 0xFEFF ? '﻿' + data : data;     // byte order mark: without it Excel on Windows misreads °, ✓ and accented letters
+const csvMark = (name, data) => typeof data === 'string' && /\.csv$/.test(name) && data.charCodeAt(0) !== 0xFEFF ? '\uFEFF' + data : data;     // byte order mark: without it Excel on Windows misreads °, ✓ and accented letters
 async function saveFile(filename, data) {
   data = csvMark(filename, data);
   if (inViewer()) {
