@@ -1,0 +1,293 @@
+{
+ "id": "oncology",
+ "depth": "keywords",
+ "vertical": "Oncology",
+ "wing": "health",
+ "atlas": "Oncogene Atlas",
+ "scope": "Texas and Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#oncology",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "breast",
+   "label": "Breast cancer",
+   "short": "Breast",
+   "keywords": {
+    "core": [
+     "breast cancer treatment",
+     "breast cancer doctor",
+     "breast oncologist near me",
+     "breast cancer specialist",
+     "breast cancer center near me",
+     "triple negative breast cancer treatment",
+     "her2 positive breast cancer treatment",
+     "breast cancer second opinion",
+     "breast surgeon near me",
+     "genetic testing for breast cancer"
+    ]
+   }
+  },
+  {
+   "id": "thoracic",
+   "label": "Lung and thoracic cancer",
+   "short": "Lung",
+   "keywords": {
+    "core": [
+     "lung cancer treatment",
+     "lung cancer specialist",
+     "lung cancer doctor near me",
+     "thoracic oncologist",
+     "lung cancer screening near me",
+     "low dose ct scan lung",
+     "mesothelioma treatment",
+     "mesothelioma specialist",
+     "lung nodule doctor",
+     "small cell lung cancer treatment"
+    ]
+   }
+  },
+  {
+   "id": "gu",
+   "label": "Genitourinary cancers",
+   "short": "GU",
+   "keywords": {
+    "core": [
+     "prostate cancer treatment",
+     "prostate cancer specialist",
+     "psa test near me",
+     "urologic oncologist",
+     "bladder cancer treatment",
+     "kidney cancer treatment",
+     "kidney cancer specialist",
+     "radiation for prostate cancer",
+     "testicular cancer doctor",
+     "prostate cancer second opinion"
+    ]
+   }
+  },
+  {
+   "id": "gi",
+   "label": "Gastrointestinal cancers",
+   "short": "GI",
+   "keywords": {
+    "core": [
+     "colon cancer treatment",
+     "colorectal cancer specialist",
+     "rectal cancer treatment",
+     "pancreatic cancer treatment",
+     "pancreatic cancer specialist",
+     "liver cancer treatment",
+     "liver cancer doctor",
+     "stomach cancer treatment",
+     "esophageal cancer treatment",
+     "gi oncologist near me"
+    ]
+   }
+  },
+  {
+   "id": "gyn",
+   "label": "Gynecologic cancers",
+   "short": "Gyn",
+   "keywords": {
+    "core": [
+     "gynecologic oncologist near me",
+     "ovarian cancer treatment",
+     "ovarian cancer specialist",
+     "uterine cancer treatment",
+     "endometrial cancer treatment",
+     "cervical cancer treatment",
+     "cervical cancer specialist",
+     "gyn oncology"
+    ]
+   }
+  },
+  {
+   "id": "heme",
+   "label": "Blood cancers",
+   "short": "Blood",
+   "keywords": {
+    "core": [
+     "hematologist oncologist near me",
+     "lymphoma treatment",
+     "lymphoma specialist",
+     "leukemia treatment",
+     "leukemia doctor",
+     "multiple myeloma treatment",
+     "myeloma specialist",
+     "hematologist near me",
+     "car t cell therapy",
+     "blood cancer doctor"
+    ]
+   }
+  },
+  {
+   "id": "skin",
+   "label": "Melanoma",
+   "short": "Melanoma",
+   "keywords": {
+    "core": [
+     "melanoma treatment",
+     "melanoma specialist",
+     "melanoma oncologist",
+     "stage 3 melanoma treatment",
+     "immunotherapy for melanoma",
+     "skin cancer specialist near me"
+    ]
+   }
+  },
+  {
+   "id": "hn",
+   "label": "Head, neck and thyroid cancers",
+   "short": "Head and neck",
+   "keywords": {
+    "core": [
+     "head and neck cancer treatment",
+     "throat cancer treatment",
+     "oral cancer specialist",
+     "tongue cancer treatment",
+     "hpv throat cancer",
+     "thyroid cancer treatment",
+     "thyroid cancer specialist",
+     "laryngeal cancer treatment"
+    ]
+   }
+  },
+  {
+   "id": "neuro",
+   "label": "Brain and spine tumors",
+   "short": "Neuro",
+   "keywords": {
+    "core": [
+     "brain tumor treatment",
+     "brain tumor specialist",
+     "glioblastoma treatment",
+     "neuro oncologist near me",
+     "radiation for brain tumor",
+     "brain cancer doctor"
+    ]
+   }
+  },
+  {
+   "id": "medonc",
+   "label": "Medical oncology",
+   "keywords": {
+    "core": [
+     "oncologist near me",
+     "cancer doctor near me",
+     "medical oncologist",
+     "chemotherapy near me",
+     "immunotherapy for cancer",
+     "targeted therapy cancer"
+    ]
+   }
+  },
+  {
+   "id": "radonc",
+   "label": "Radiation oncology",
+   "keywords": {
+    "core": [
+     "radiation oncologist near me",
+     "radiation therapy near me",
+     "radiation treatment for cancer",
+     "stereotactic radiosurgery",
+     "sbrt treatment",
+     "radiation oncology center"
+    ]
+   }
+  },
+  {
+   "id": "infusion",
+   "label": "Infusion center",
+   "keywords": {
+    "core": [
+     "infusion center near me",
+     "chemo infusion center",
+     "outpatient infusion"
+    ]
+   }
+  },
+  {
+   "id": "hematology",
+   "label": "Hematology",
+   "keywords": {
+    "core": [
+     "hematologist near me",
+     "blood disorder specialist",
+     "anemia specialist",
+     "iron infusion near me"
+    ]
+   }
+  },
+  {
+   "id": "second",
+   "label": "Second opinions",
+   "keywords": {
+    "core": [
+     "cancer second opinion",
+     "second opinion oncologist",
+     "second opinion cancer diagnosis"
+    ]
+   }
+  },
+  {
+   "id": "trials",
+   "label": "Clinical trials",
+   "keywords": {
+    "core": [
+     "cancer clinical trials near me",
+     "clinical trials for lung cancer",
+     "clinical trials for breast cancer"
+    ]
+   }
+  },
+  {
+   "id": "genetic",
+   "label": "Genetic counseling and testing",
+   "keywords": {
+    "core": [
+     "genetic counseling for cancer",
+     "brca testing near me",
+     "hereditary cancer testing"
+    ]
+   }
+  },
+  {
+   "id": "screening",
+   "label": "Lung cancer screening",
+   "keywords": {
+    "core": [
+     "lung cancer screening near me",
+     "low dose ct scan",
+     "lung screening ct"
+    ]
+   }
+  },
+  {
+   "id": "survivorship",
+   "label": "Survivorship care",
+   "keywords": {
+    "core": [
+     "cancer survivorship clinic",
+     "life after cancer treatment",
+     "cancer follow up care"
+    ]
+   }
+  },
+  {
+   "id": "navigation",
+   "label": "Financial counseling and navigation",
+   "keywords": {
+    "core": [
+     "cancer financial assistance",
+     "help paying for chemo",
+     "cancer patient navigator"
+    ]
+   }
+  }
+ ],
+ "negatives": {}
+}

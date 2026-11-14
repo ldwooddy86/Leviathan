@@ -1,0 +1,479 @@
+{
+ "id": "hvac",
+ "depth": "keywords",
+ "vertical": "HVAC",
+ "wing": "home",
+ "atlas": "Louisiana Thermal Debt Atlas",
+ "scope": "Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#hvac",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "repair",
+   "label": "Air conditioning repair",
+   "short": "AC Repair",
+   "line": "repair",
+   "path": "/ac-repair",
+   "why": "Core line; every ZIP.",
+   "keywords": {
+    "core": [
+     "ac repair",
+     "air conditioning repair",
+     "ac repair near me",
+     "ac not cooling",
+     "air conditioner not working",
+     "hvac repair",
+     "ac service",
+     "emergency ac repair",
+     "ac repair {city}",
+     "air conditioner repair {city}"
+    ],
+    "questions": [
+     "why is my ac blowing warm air",
+     "ac not turning on",
+     "how much is ac repair",
+     "ac making noise",
+     "ac frozen coil"
+    ]
+   }
+  },
+  {
+   "id": "replace",
+   "label": "Air conditioner and system replacement",
+   "short": "AC Replacement",
+   "line": "replace",
+   "path": "/ac-replacement",
+   "why": "Systems 15+ years at or above 22.5% (the Louisiana median), or 48 or more replacements per 1,000 households.",
+   "keywords": {
+    "core": [
+     "ac replacement",
+     "new ac unit",
+     "ac installation",
+     "hvac replacement",
+     "central air replacement",
+     "new hvac system",
+     "ac unit replacement cost",
+     "hvac system replacement {city}",
+     "ac installation {city}",
+     "replace ac unit {city}"
+    ],
+    "questions": [
+     "how much is a new ac unit",
+     "should i repair or replace my ac",
+     "how long does an ac unit last in louisiana",
+     "what size ac do i need",
+     "best time to replace ac"
+    ]
+   }
+  },
+  {
+   "id": "firstwave",
+   "label": "First replacement of the builder's original system",
+   "short": "Builder System",
+   "line": "replace",
+   "path": "/ac-replacement",
+   "why": "Original builder systems aged 10 to 25 at or above 14%.",
+   "keywords": {
+    "core": [
+     "replace builder grade ac",
+     "original ac unit replacement",
+     "ac replacement {city}",
+     "new ac for {city} home",
+     "hvac upgrade {city}",
+     "ac unit replacement near me"
+    ],
+    "questions": [
+     "is my builder grade ac oversized",
+     "how long do builder grade ac units last",
+     "why is my upstairs so hot"
+    ]
+   }
+  },
+  {
+   "id": "r22",
+   "label": "R22 system replacement",
+   "short": "R22 System",
+   "line": "replace",
+   "path": "/r22-replacement",
+   "why": "R22 era systems at or above 18%.",
+   "keywords": {
+    "core": [
+     "r22 ac replacement",
+     "r22 freon replacement",
+     "replace r22 unit",
+     "r22 ac unit {city}",
+     "old freon ac replacement",
+     "r22 refrigerant cost"
+    ],
+    "questions": [
+     "can i still get r22 freon",
+     "is my ac r22",
+     "how much to recharge r22",
+     "what replaces r22"
+    ]
+   }
+  },
+  {
+   "id": "furnace",
+   "label": "Furnace replacement and heating safety",
+   "short": "Furnace",
+   "line": "heat",
+   "path": "/furnace-replacement",
+   "why": "Gas furnaces 20+ at or above 14% where gas heat is at least 35%.",
+   "keywords": {
+    "core": [
+     "furnace replacement",
+     "new furnace",
+     "furnace repair",
+     "gas furnace installation",
+     "heater repair",
+     "furnace replacement {city}",
+     "furnace repair {city}",
+     "furnace inspection"
+    ],
+    "questions": [
+     "how long does a furnace last",
+     "furnace smells like gas",
+     "furnace not igniting",
+     "is my furnace safe"
+    ]
+   }
+  },
+  {
+   "id": "heatpump",
+   "label": "Heat pump repair and replacement",
+   "short": "Heat Pump",
+   "line": "replace",
+   "path": "/heat-pump",
+   "why": "Heat pump share at or above 35%.",
+   "keywords": {
+    "core": [
+     "heat pump repair",
+     "heat pump replacement",
+     "heat pump installation",
+     "heat pump not heating",
+     "heat pump {city}",
+     "heat pump service near me"
+    ],
+    "questions": [
+     "why is my heat pump blowing cold air",
+     "heat pump vs furnace louisiana",
+     "how long do heat pumps last"
+    ]
+   }
+  },
+  {
+   "id": "storm",
+   "label": "Storm, flood and hail damaged equipment",
+   "short": "Storm Damage",
+   "line": "replace",
+   "path": "/storm-damage-ac",
+   "keywords": {
+    "core": [
+     "storm damage ac unit",
+     "flood damaged ac unit",
+     "hurricane damaged ac",
+     "hail damage ac unit",
+     "ac unit flooded",
+     "elevate ac unit",
+     "storm damage hvac {city}",
+     "flooded ac repair {city}"
+    ],
+    "questions": [
+     "is my ac safe to run after a flood",
+     "can a flooded ac unit be repaired",
+     "does insurance cover storm damage to ac",
+     "how high should my ac unit be elevated"
+    ]
+   }
+  },
+  {
+   "id": "rebuild",
+   "label": "Systems installed in a storm rebuild, now at the end of their life",
+   "short": "Rebuild Era",
+   "line": "replace",
+   "path": "/ac-replacement",
+   "why": "At least 20% of central systems trace to a flood rebuild (2005, 2008, 2012, 2016 or 2021 claims) and are now aging together.",
+   "keywords": {
+    "core": [
+     "ac replacement {city}",
+     "replace 20 year old ac",
+     "old ac unit replacement",
+     "r22 ac replacement",
+     "new ac unit {city}",
+     "hvac replacement near me"
+    ],
+    "questions": [
+     "how long does an ac unit last in louisiana",
+     "is a 20 year old ac worth fixing",
+     "should i replace my ac before hurricane season"
+    ]
+   }
+  },
+  {
+   "id": "duct",
+   "label": "Ductwork replacement and full system reinstall",
+   "short": "Ductwork",
+   "line": "replace",
+   "path": "/ductwork",
+   "why": "Homes built 1980 to 1999 at or above 34%.",
+   "keywords": {
+    "core": [
+     "duct replacement",
+     "ductwork replacement",
+     "air duct repair",
+     "duct sealing",
+     "new ductwork {city}",
+     "hvac duct replacement cost"
+    ],
+    "questions": [
+     "how long does ductwork last",
+     "signs of leaky ducts",
+     "why are some rooms hotter"
+    ]
+   }
+  },
+  {
+   "id": "landlord",
+   "label": "Landlord and property manager service",
+   "short": "Rental Homes",
+   "line": "b2b",
+   "path": "/property-managers",
+   "why": "Rented share of single family homes at or above 30%.",
+   "keywords": {
+    "core": [
+     "hvac for property managers",
+     "rental property ac repair",
+     "landlord hvac service",
+     "property management hvac {city}"
+    ],
+    "questions": [
+     "who pays for ac repair in a rental",
+     "hvac contract for rental properties"
+    ]
+   }
+  },
+  {
+   "id": "newowner",
+   "label": "New homeowner system checkup",
+   "short": "New Homeowner",
+   "line": "maint",
+   "path": "/home-buyers",
+   "why": "Owners who moved in since 2020 at or above 17%.",
+   "keywords": {
+    "core": [
+     "hvac inspection new home",
+     "ac inspection",
+     "hvac checkup",
+     "ac tune up {city}",
+     "hvac inspection {city}"
+    ],
+    "questions": [
+     "how old is my ac unit",
+     "how to read ac serial number age"
+    ]
+   }
+  },
+  {
+   "id": "premium",
+   "label": "Variable speed and high efficiency systems",
+   "short": "High Efficiency",
+   "line": "replace",
+   "path": "/high-efficiency",
+   "why": "Median value at or above $300,000 or income at or above $100,000.",
+   "keywords": {
+    "core": [
+     "variable speed ac",
+     "high efficiency ac",
+     "two stage ac",
+     "quiet ac system",
+     "high efficiency hvac {city}"
+    ],
+    "questions": [
+     "is a variable speed ac worth it",
+     "what seer rating is best for louisiana"
+    ]
+   }
+  },
+  {
+   "id": "financing",
+   "label": "Replacement with financing",
+   "short": "Financing",
+   "line": "replace",
+   "path": "/financing",
+   "why": "Income below the metro ZIP median with owner single family at or above 50%.",
+   "keywords": {
+    "core": [
+     "ac financing",
+     "hvac financing",
+     "finance new ac unit",
+     "ac payment plans {city}"
+    ],
+    "questions": [
+     "can i finance a new ac",
+     "hvac financing bad credit"
+    ]
+   }
+  },
+  {
+   "id": "maint",
+   "label": "Maintenance plans and tune ups",
+   "short": "Maintenance Plan",
+   "line": "maint",
+   "path": "/maintenance-plan",
+   "why": "Owners 65+ at or above 38% or owner single family at or above 69%.",
+   "keywords": {
+    "core": [
+     "ac tune up",
+     "hvac maintenance plan",
+     "ac maintenance",
+     "furnace tune up",
+     "hvac service plan {city}"
+    ],
+    "questions": [
+     "how often should ac be serviced",
+     "is an hvac maintenance plan worth it"
+    ]
+   }
+  },
+  {
+   "id": "iaq",
+   "label": "Indoor air quality: filtration, purification and humidity control",
+   "short": "Indoor Air",
+   "line": "iaq",
+   "path": "/indoor-air-quality",
+   "why": "Owner single family at or above 40%; strongest in spring pollen season and the humid months.",
+   "keywords": {
+    "core": [
+     "indoor air quality",
+     "whole home air purifier",
+     "hvac air filtration system",
+     "uv light for hvac",
+     "whole house dehumidifier",
+     "air scrubber for hvac",
+     "indoor air quality {city}",
+     "whole home air purifier {city}"
+    ],
+    "questions": [
+     "does a whole house air purifier help with allergies",
+     "what is a media air cleaner",
+     "how to reduce dust in house hvac",
+     "is a uv light in hvac worth it"
+    ]
+   }
+  },
+  {
+   "id": "ductless",
+   "label": "Ductless mini split systems for rooms the ducts never reached",
+   "short": "Ductless",
+   "line": "ductless",
+   "path": "/ductless-mini-split",
+   "why": "Homes built before 1960 at or above 25% of units, or four bedroom homes at or above 25%.",
+   "keywords": {
+    "core": [
+     "ductless mini split installation",
+     "mini split installation",
+     "ductless ac",
+     "garage ac unit installed",
+     "mini split for garage",
+     "ductless air conditioner {city}",
+     "mini split installation {city}"
+    ],
+    "questions": [
+     "how much does a mini split cost installed",
+     "is a mini split good for a garage",
+     "mini split vs window unit",
+     "can a mini split heat and cool"
+    ]
+   }
+  },
+  {
+   "id": "commercial",
+   "label": "Light commercial HVAC for small buildings and rooftop units",
+   "short": "Light Commercial",
+   "line": "commercial",
+   "path": "/commercial-hvac",
+   "why": "Housing density at or above 1,500 units a square mile or 40 or more HVAC establishments within 8 km, as a proxy for business density.",
+   "keywords": {
+    "core": [
+     "commercial hvac repair",
+     "commercial ac repair",
+     "rooftop unit replacement",
+     "commercial hvac maintenance contract",
+     "commercial hvac {city}",
+     "commercial ac repair {city}",
+     "rtu replacement {city}"
+    ],
+    "questions": [
+     "how long do rooftop units last",
+     "commercial hvac maintenance cost",
+     "who repairs rooftop ac units"
+    ]
+   }
+  },
+  {
+   "id": "recruit",
+   "label": "Recruiting HVAC technicians",
+   "short": "Technician Jobs",
+   "line": "recruit",
+   "path": "/careers",
+   "why": "Recruiting line; used when the plan line is recruiting.",
+   "keywords": {
+    "core": [
+     "hvac technician jobs",
+     "hvac installer jobs",
+     "hvac jobs {city}",
+     "ac technician jobs near me"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_CUSTOMER": [
+   "jobs",
+   "job",
+   "hiring",
+   "careers",
+   "salary",
+   "school",
+   "training",
+   "certification",
+   "course",
+   "diy",
+   "how to install",
+   "youtube",
+   "reddit",
+   "parts",
+   "supply",
+   "wholesale",
+   "amazon",
+   "home depot",
+   "lowes",
+   "walmart",
+   "window unit",
+   "portable ac",
+   "car ac",
+   "auto ac",
+   "rv ac",
+   "free",
+   "manual",
+   "wiring diagram",
+   "lawsuit",
+   "recall"
+  ],
+  "NEG_RECRUIT": [
+   "repair",
+   "near me ac",
+   "cost",
+   "price",
+   "replacement",
+   "install my",
+   "financing",
+   "coupon"
+  ]
+ }
+}

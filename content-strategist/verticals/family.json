@@ -1,0 +1,572 @@
+{
+ "id": "family",
+ "depth": "keywords",
+ "vertical": "Family law",
+ "wing": "legal",
+ "atlas": "Severance",
+ "scope": "Texas and Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan-data.js#family",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "div-k",
+   "label": "Divorce with children",
+   "short": "Divorce, kids",
+   "keywords": {
+    "core": [
+     "divorce lawyer",
+     "divorce attorney",
+     "divorce lawyer near me",
+     "divorce with children lawyer",
+     "child custody divorce lawyer",
+     "family law attorney",
+     "divorce mediation",
+     "contested divorce lawyer"
+    ],
+    "tx": [
+     "how to file for divorce in texas",
+     "texas divorce lawyer",
+     "conservatorship lawyer",
+     "standard possession order lawyer"
+    ],
+    "la": [
+     "how to file for divorce in louisiana",
+     "louisiana divorce lawyer",
+     "joint custody louisiana",
+     "domiciliary parent louisiana"
+    ],
+    "spanish": [
+     "abogado de divorcio",
+     "abogado de divorcio con hijos",
+     "abogado de custodia de hijos"
+    ],
+    "negatives": [
+     "divorce forms",
+     "divorce papers pdf",
+     "free divorce",
+     "divorce records",
+     "divorce quotes",
+     "divorce party",
+     "divorce coach"
+    ]
+   }
+  },
+  {
+   "id": "div-nk",
+   "label": "Divorce without children",
+   "short": "Divorce, no kids",
+   "keywords": {
+    "core": [
+     "uncontested divorce",
+     "agreed divorce",
+     "divorce without children",
+     "flat fee divorce lawyer",
+     "simple divorce lawyer",
+     "no fault divorce",
+     "how long does a divorce take",
+     "divorce lawyer consultation"
+    ],
+    "tx": [
+     "uncontested divorce texas",
+     "agreed divorce texas",
+     "divorce texas 60 days",
+     "informal marriage divorce texas"
+    ],
+    "la": [
+     "uncontested divorce louisiana",
+     "102 divorce louisiana",
+     "103 divorce louisiana",
+     "covenant marriage divorce"
+    ],
+    "spanish": [
+     "divorcio de mutuo acuerdo",
+     "abogado de divorcio sin hijos"
+    ],
+    "negatives": [
+     "divorce forms",
+     "divorce papers pdf",
+     "online divorce",
+     "divorce kit",
+     "divorce records search",
+     "free divorce papers"
+    ]
+   }
+  },
+  {
+   "id": "cust",
+   "label": "Custody and parenting time",
+   "short": "Custody",
+   "keywords": {
+    "core": [
+     "child custody lawyer",
+     "custody attorney",
+     "fathers rights lawyer",
+     "unmarried father custody",
+     "child custody lawyer near me",
+     "joint custody lawyer",
+     "visitation rights lawyer",
+     "custody evaluation lawyer"
+    ],
+    "tx": [
+     "sapcr lawyer",
+     "conservatorship attorney texas",
+     "primary residence texas custody",
+     "custody lawyer texas"
+    ],
+    "la": [
+     "custody lawyer louisiana",
+     "joint custody louisiana",
+     "domiciliary parent",
+     "relocation custody louisiana"
+    ],
+    "spanish": [
+     "abogado de custodia",
+     "custodia de hijos abogado",
+     "derechos de padres abogado"
+    ],
+    "negatives": [
+     "custody forms",
+     "custody agreement template",
+     "custody schedule app",
+     "custody calendar printable",
+     "police custody",
+     "custodian jobs"
+    ]
+   }
+  },
+  {
+   "id": "mod",
+   "label": "Modification",
+   "short": "Modification",
+   "keywords": {
+    "core": [
+     "modify child support",
+     "child support modification lawyer",
+     "custody modification lawyer",
+     "change custody order",
+     "reduce child support after job loss",
+     "modification attorney",
+     "relocation custody lawyer",
+     "move away custody lawyer"
+    ],
+    "tx": [
+     "modify child support texas",
+     "custody modification texas",
+     "change possession order texas"
+    ],
+    "la": [
+     "modify child support louisiana",
+     "change custody louisiana",
+     "bergeron standard custody"
+    ],
+    "spanish": [
+     "modificar manutencion de hijos",
+     "cambiar orden de custodia"
+    ],
+    "negatives": [
+     "modification forms",
+     "loan modification",
+     "mortgage modification",
+     "car modification",
+     "modify order form pdf"
+    ]
+   }
+  },
+  {
+   "id": "enf",
+   "label": "Enforcement and contempt",
+   "short": "Enforcement",
+   "keywords": {
+    "core": [
+     "child support enforcement lawyer",
+     "contempt of court child support",
+     "enforce visitation order",
+     "ex not following custody order",
+     "back child support lawyer",
+     "enforce custody order",
+     "unpaid child support lawyer"
+    ],
+    "tx": [
+     "motion for enforcement texas",
+     "back child support texas",
+     "possession enforcement texas"
+    ],
+    "la": [
+     "rule for contempt louisiana",
+     "back child support louisiana",
+     "make arrears executory"
+    ],
+    "spanish": [
+     "manutencion no pagada abogado",
+     "hacer cumplir orden de custodia"
+    ],
+    "negatives": [
+     "child support login",
+     "child support payment portal",
+     "child support phone number",
+     "pay child support online",
+     "contempt meaning"
+    ]
+   }
+  },
+  {
+   "id": "po",
+   "label": "Protective orders",
+   "short": "Protective orders",
+   "keywords": {
+    "core": [
+     "protective order lawyer",
+     "restraining order lawyer",
+     "domestic violence lawyer",
+     "emergency protective order",
+     "defend protective order",
+     "protective order hearing lawyer",
+     "family violence attorney"
+    ],
+    "tx": [
+     "protective order texas",
+     "family violence protective order texas",
+     "magistrate order of emergency protection"
+    ],
+    "la": [
+     "protective order louisiana",
+     "tro louisiana",
+     "domestic abuse petition louisiana"
+    ],
+    "spanish": [
+     "orden de proteccion abogado",
+     "abogado de violencia domestica"
+    ],
+    "negatives": [
+     "restraining order lookup",
+     "protective order search",
+     "court records",
+     "arrest records",
+     "mugshots",
+     "domestic violence shelter jobs"
+    ]
+   }
+  },
+  {
+   "id": "sup",
+   "label": "Child support",
+   "short": "Support",
+   "keywords": {
+    "core": [
+     "child support lawyer",
+     "child support attorney",
+     "child support calculator",
+     "child support hearing lawyer",
+     "child support deviation",
+     "child support for high income",
+     "how much is child support"
+    ],
+    "tx": [
+     "texas child support calculator",
+     "attorney general child support hearing",
+     "iv d court lawyer"
+    ],
+    "la": [
+     "louisiana child support calculator",
+     "dcfs child support hearing",
+     "child support louisiana guidelines"
+    ],
+    "spanish": [
+     "abogado de manutencion de hijos",
+     "calculadora de manutencion"
+    ],
+    "negatives": [
+     "child support login",
+     "child support card",
+     "child support phone number",
+     "child support office hours",
+     "child support payment",
+     "child support jobs"
+    ]
+   }
+  },
+  {
+   "id": "pat",
+   "label": "Paternity and filiation",
+   "short": "Paternity",
+   "keywords": {
+    "core": [
+     "paternity lawyer",
+     "establish paternity",
+     "paternity test court order",
+     "unmarried father rights",
+     "disavowal of paternity",
+     "acknowledgment of paternity"
+    ],
+    "la": [
+     "paternity lawyer louisiana",
+     "filiation louisiana",
+     "avowal action louisiana"
+    ],
+    "spanish": [
+     "abogado de paternidad"
+    ],
+    "negatives": [
+     "paternity test kit",
+     "dna test at home",
+     "paternity test cost cvs",
+     "maury",
+     "paternity leave"
+    ]
+   }
+  },
+  {
+   "id": "adopt",
+   "label": "Adoption",
+   "short": "Adoption",
+   "keywords": {
+    "core": [
+     "adoption attorney",
+     "stepparent adoption lawyer",
+     "grandparent adoption lawyer",
+     "relative adoption",
+     "adult adoption lawyer",
+     "adoption lawyer near me",
+     "terminate parental rights for adoption"
+    ],
+    "tx": [
+     "stepparent adoption texas",
+     "adoption attorney texas"
+    ],
+    "la": [
+     "intrafamily adoption louisiana",
+     "stepparent adoption louisiana"
+    ],
+    "spanish": [
+     "abogado de adopcion",
+     "adopcion de hijastro"
+    ],
+    "negatives": [
+     "adopt a pet",
+     "puppies",
+     "adoption agency jobs",
+     "adoption grants",
+     "adopt a highway",
+     "dog adoption",
+     "cat adoption"
+    ]
+   }
+  },
+  {
+   "id": "cps",
+   "label": "CPS and DCFS defense",
+   "short": "CPS defense",
+   "keywords": {
+    "core": [
+     "cps lawyer",
+     "cps defense attorney",
+     "child protective services lawyer",
+     "termination of parental rights defense",
+     "grandparent rights lawyer",
+     "kinship placement lawyer"
+    ],
+    "tx": [
+     "dfps removal lawyer",
+     "cps investigation attorney texas"
+    ],
+    "la": [
+     "dcfs lawyer louisiana",
+     "child in need of care attorney",
+     "cinc lawyer"
+    ],
+    "spanish": [
+     "abogado de cps",
+     "abogado para casos de cps"
+    ],
+    "negatives": [
+     "cps jobs",
+     "cps caseworker",
+     "report child abuse",
+     "cps hotline",
+     "cps salary",
+     "foster parent training"
+    ]
+   }
+  },
+  {
+   "id": "prenup",
+   "label": "Premarital and matrimonial agreements",
+   "short": "Prenups",
+   "keywords": {
+    "core": [
+     "prenup lawyer",
+     "prenuptial agreement attorney",
+     "postnuptial agreement lawyer",
+     "premarital agreement lawyer",
+     "prenup cost",
+     "prenup for business owners"
+    ],
+    "tx": [
+     "prenuptial agreement texas",
+     "partition agreement texas"
+    ],
+    "la": [
+     "matrimonial agreement louisiana",
+     "separate property regime louisiana"
+    ],
+    "spanish": [
+     "acuerdo prenupcial abogado"
+    ],
+    "negatives": [
+     "prenup template",
+     "prenup form",
+     "free prenup",
+     "prenup app",
+     "wedding planner",
+     "wedding venue"
+    ]
+   }
+  },
+  {
+   "id": "high",
+   "label": "High asset divorce",
+   "short": "High asset",
+   "keywords": {
+    "core": [
+     "high net worth divorce attorney",
+     "high asset divorce lawyer",
+     "business owner divorce",
+     "executive divorce lawyer",
+     "divorce stock options",
+     "complex property division lawyer",
+     "forensic accountant divorce"
+    ],
+    "tx": [
+     "separate property tracing texas",
+     "reimbursement claim divorce texas"
+    ],
+    "la": [
+     "community property partition louisiana",
+     "reimbursement claim community property"
+    ],
+    "negatives": [
+     "celebrity divorce",
+     "net worth of",
+     "richest",
+     "divorce settlement news"
+    ]
+   }
+  },
+  {
+   "id": "mil",
+   "label": "Military divorce",
+   "short": "Military",
+   "keywords": {
+    "core": [
+     "military divorce lawyer",
+     "military divorce attorney",
+     "military retirement divorce",
+     "usfspa lawyer",
+     "deployment custody lawyer",
+     "scra divorce"
+    ],
+    "tx": [
+     "fort cavazos divorce lawyer",
+     "fort bliss divorce attorney",
+     "jbsa divorce lawyer"
+    ],
+    "la": [
+     "barksdale divorce attorney",
+     "fort polk divorce lawyer"
+    ],
+    "negatives": [
+     "military jobs",
+     "enlist",
+     "recruiter",
+     "va benefits login",
+     "military id card"
+    ]
+   }
+  },
+  {
+   "id": "gray",
+   "label": "Gray divorce (50 and over)",
+   "short": "Gray divorce",
+   "keywords": {
+    "core": [
+     "divorce after 50",
+     "gray divorce attorney",
+     "divorce retirement accounts",
+     "qdro lawyer",
+     "divorce and social security",
+     "late life divorce lawyer",
+     "pension division divorce"
+    ],
+    "tx": [
+     "spousal maintenance texas",
+     "divorce retirement texas"
+    ],
+    "la": [
+     "final periodic support louisiana",
+     "sims fraction pension"
+    ],
+    "negatives": [
+     "senior dating",
+     "retirement calculator",
+     "social security office",
+     "medicare enrollment"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_COMMON": [
+   "free",
+   "pro bono",
+   "legal aid",
+   "forms",
+   "form",
+   "pdf",
+   "template",
+   "do it yourself",
+   "diy",
+   "without a lawyer",
+   "pro se",
+   "self help center",
+   "how to become",
+   "salary",
+   "jobs",
+   "job",
+   "career",
+   "paralegal",
+   "law school",
+   "school",
+   "degree",
+   "definition",
+   "meaning",
+   "statistics",
+   "rate",
+   "records",
+   "lookup",
+   "public records",
+   "movie",
+   "song",
+   "lyrics",
+   "reddit",
+   "quotes",
+   "memes",
+   "wedding",
+   "anniversary",
+   "counseling",
+   "therapist",
+   "church",
+   "lawhelp",
+   "personal injury",
+   "car accident",
+   "criminal defense",
+   "dui",
+   "bankruptcy",
+   "immigration",
+   "workers comp"
+  ]
+ }
+}

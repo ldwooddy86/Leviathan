@@ -1,0 +1,307 @@
+{
+ "id": "ocular",
+ "depth": "keywords",
+ "vertical": "Eye care",
+ "wing": "health",
+ "atlas": "The Ocular Health Targeting Atlas",
+ "scope": "National",
+ "source": {
+  "file": "leviathan/Leviathan-data.js#ocular",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "eye-exam",
+   "label": "Eye exam",
+   "path": "/eye-exam",
+   "keywords": {
+    "core": [
+     "eye exam near me",
+     "eye exam cost",
+     "eye exam without insurance",
+     "cheap eye exam near me",
+     "affordable eye exam",
+     "eye doctor near me",
+     "optometrist near me",
+     "same day eye exam",
+     "walk in eye exam",
+     "eye exam open saturday",
+     "eye exam medicaid",
+     "glasses and eye exam",
+     "eye exam {city}",
+     "optometrist {city}"
+    ],
+    "spanish": [
+     "examen de la vista cerca de mi",
+     "examen de la vista precio",
+     "examen de la vista sin seguro",
+     "examen de ojos barato",
+     "optometrista cerca de mi",
+     "lentes y examen de la vista",
+     "examen de la vista medicaid",
+     "examen de la vista {city}"
+    ]
+   }
+  },
+  {
+   "id": "diabetic-eye-exam",
+   "label": "Diabetic eye exam",
+   "path": "/diabetic-eye-exam",
+   "keywords": {
+    "core": [
+     "diabetic eye exam",
+     "diabetic eye exam near me",
+     "dilated eye exam diabetes",
+     "eye doctor for diabetics",
+     "does medicare cover diabetic eye exam",
+     "diabetic retinopathy screening",
+     "annual diabetic eye exam",
+     "retinal exam diabetes",
+     "diabetic eye exam {city}"
+    ],
+    "spanish": [
+     "examen de la vista para diabéticos",
+     "examen de ojos diabetes",
+     "retinopatía diabética examen",
+     "examen de retina diabetes",
+     "examen de la vista diabetes {city}"
+    ]
+   }
+  },
+  {
+   "id": "contact-lenses",
+   "label": "Contact lenses",
+   "path": "/contact-lenses",
+   "keywords": {
+    "core": [
+     "contact lens exam",
+     "contact lens fitting near me",
+     "contact lens prescription renewal",
+     "daily contacts exam",
+     "contacts for astigmatism",
+     "multifocal contact lenses",
+     "contact lens exam cost",
+     "red eye contacts doctor",
+     "contact lens exam {city}"
+    ]
+   }
+  },
+  {
+   "id": "dry-eye",
+   "label": "Dry eye",
+   "path": "/dry-eye",
+   "keywords": {
+    "core": [
+     "dry eye treatment near me",
+     "eyes burning at end of day",
+     "watery eyes treatment",
+     "eye drops not working",
+     "dry eye doctor",
+     "reading glasses after 40",
+     "progressive lenses",
+     "blurry vision up close",
+     "macular degeneration test",
+     "dry eye treatment {city}"
+    ]
+   }
+  },
+  {
+   "id": "glaucoma-test",
+   "label": "Glaucoma test",
+   "path": "/glaucoma-test",
+   "keywords": {
+    "core": [
+     "glaucoma test near me",
+     "glaucoma screening",
+     "eye pressure test",
+     "glaucoma runs in family",
+     "family history glaucoma test",
+     "early signs of glaucoma",
+     "medicare glaucoma test",
+     "glaucoma test {city}"
+    ]
+   }
+  },
+  {
+   "id": "examen-de-la-vista",
+   "label": "Examen de la vista",
+   "path": "/examen-de-la-vista",
+   "keywords": {
+    "core": [
+     "eye exam spanish speaking",
+     "eye doctor habla español",
+     "eye exam no insurance",
+     "medicaid eye doctor near me",
+     "eye exam {city}"
+    ],
+    "spanish": [
+     "examen de la vista cerca de mi",
+     "examen de la vista sin seguro",
+     "oculista cerca de mi",
+     "optometrista que hable español",
+     "examen de la vista para diabéticos",
+     "lentes baratos cerca de mi",
+     "examen de la vista medicaid",
+     "examen de la vista {city}"
+    ]
+   }
+  },
+  {
+   "id": "medicare-eye-exam",
+   "label": "Medicare eye exam",
+   "path": "/medicare-eye-exam",
+   "keywords": {
+    "core": [
+     "medicare eye exam",
+     "medicare advantage vision benefit",
+     "does medicare cover eye exams",
+     "eye doctor accepts medicare",
+     "cataract evaluation near me",
+     "night driving glare",
+     "macular degeneration test",
+     "retina scan near me",
+     "medicare eye exam {city}"
+    ],
+    "spanish": [
+     "examen de la vista medicare",
+     "oculista que acepta medicare",
+     "cataratas examen",
+     "examen de la vista medicare {city}"
+    ]
+   }
+  },
+  {
+   "id": "kids-eye-exam",
+   "label": "Kids eye exam",
+   "path": "/kids-eye-exam",
+   "keywords": {
+    "core": [
+     "kids eye exam near me",
+     "pediatric eye doctor",
+     "child failed vision screening",
+     "back to school eye exam",
+     "kids glasses near me",
+     "myopia control",
+     "lazy eye treatment",
+     "sports goggles prescription",
+     "kids eye exam {city}"
+    ],
+    "spanish": [
+     "examen de la vista para niños",
+     "oculista para niños cerca de mi",
+     "lentes para niños",
+     "examen de la vista escuela",
+     "examen de la vista niños {city}"
+    ]
+   }
+  },
+  {
+   "id": "eye-strain",
+   "label": "Eye strain",
+   "path": "/eye-strain",
+   "keywords": {
+    "core": [
+     "eye strain from computer",
+     "computer glasses",
+     "tired eyes screen",
+     "headache after work eyes",
+     "eye doctor near me open late",
+     "eye exam online booking",
+     "blue light glasses",
+     "eye twitching",
+     "eye exam {city}"
+    ]
+   }
+  },
+  {
+   "id": "safety-eyewear",
+   "label": "Safety eyewear",
+   "path": "/safety-eyewear",
+   "keywords": {
+    "core": [
+     "prescription safety glasses",
+     "safety glasses with prescription",
+     "eye injury urgent care",
+     "something in my eye doctor",
+     "scratched eye doctor near me",
+     "workers comp eye doctor",
+     "dot eye exam",
+     "cdl vision test near me",
+     "eye doctor {city} same day"
+    ],
+    "spanish": [
+     "lentes de seguridad con graduación",
+     "lesión en el ojo doctor",
+     "algo en el ojo doctor cerca de mi",
+     "examen de la vista dot",
+     "examen de la vista cdl"
+    ]
+   }
+  },
+  {
+   "id": "employers",
+   "label": "Employers",
+   "path": "/employers",
+   "keywords": {
+    "core": [
+     "onsite vision screening",
+     "prescription safety eyewear program",
+     "employee eye exam program",
+     "dot vision exam employer",
+     "safety glasses program",
+     "occupational eye care"
+    ]
+   }
+  },
+  {
+   "id": "retinal-imaging",
+   "label": "Retinal imaging",
+   "path": "/retinal-imaging",
+   "keywords": {
+    "core": [
+     "macular degeneration test",
+     "retina scan near me",
+     "oct eye exam",
+     "wavy lines vision",
+     "amsler grid test",
+     "cataract symptoms",
+     "night driving glare",
+     "medicare eye exam near me",
+     "retinal imaging {city}"
+    ]
+   }
+  },
+  {
+   "id": "low-vision",
+   "label": "Low vision",
+   "path": "/low-vision",
+   "keywords": {
+    "core": [
+     "low vision specialist near me",
+     "low vision aids",
+     "eye doctor for elderly parent",
+     "mobile eye exam nursing home",
+     "macular degeneration help reading"
+    ]
+   }
+  },
+  {
+   "id": "sports-eyewear",
+   "label": "Sports eyewear",
+   "path": "/sports-eyewear",
+   "keywords": {
+    "core": [
+     "sports goggles prescription",
+     "basketball glasses",
+     "kids sports glasses",
+     "contacts for sports",
+     "prescription swim goggles",
+     "sports glasses {city}"
+    ]
+   }
+  }
+ ],
+ "negatives": {}
+}

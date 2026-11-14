@@ -1,0 +1,596 @@
+{
+ "id": "plumbing",
+ "depth": "keywords",
+ "vertical": "Plumbing",
+ "wing": "home",
+ "atlas": "Water Hammer Atlas",
+ "scope": "Texas and Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#plumbing",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "drain",
+   "label": "Drain cleaning and clog clearing",
+   "short": "Drain Cleaning",
+   "line": "emergency",
+   "path": "/drain-cleaning",
+   "why": "Core line; every ZIP.",
+   "keywords": {
+    "core": [
+     "drain cleaning",
+     "clogged drain",
+     "drain cleaning near me",
+     "plumber near me",
+     "clogged toilet",
+     "kitchen sink clogged",
+     "main line clog",
+     "hydro jetting",
+     "drain cleaning {city}",
+     "plumber {city}"
+    ],
+    "questions": [
+     "why does my drain keep clogging",
+     "how much is drain cleaning",
+     "sewer smell in house",
+     "what is hydro jetting",
+     "water backing up in tub"
+    ]
+   }
+  },
+  {
+   "id": "sewer",
+   "label": "Sewer line repair and replacement",
+   "short": "Sewer Line",
+   "line": "sewer",
+   "path": "/sewer-line-repair",
+   "keywords": {
+    "core": [
+     "sewer line repair",
+     "sewer line replacement",
+     "trenchless sewer repair",
+     "sewer camera inspection",
+     "main sewer line clog",
+     "sewer backup",
+     "sewer line repair {city}",
+     "sewer replacement {city}",
+     "tree roots in sewer line",
+     "sewer scope inspection"
+    ],
+    "questions": [
+     "how much does sewer line replacement cost",
+     "signs of a broken sewer line",
+     "what is trenchless sewer repair",
+     "does homeowners insurance cover sewer line",
+     "how long do clay sewer pipes last"
+    ]
+   }
+  },
+  {
+   "id": "castiron",
+   "label": "Cast iron drain replacement under the slab",
+   "short": "Cast Iron Drains",
+   "line": "sewer",
+   "path": "/cast-iron-drain-replacement",
+   "why": "Homes on a slab still draining through original cast iron at or above 5% of homes (the two state median), where slabs are at least 65% of the stock.",
+   "keywords": {
+    "core": [
+     "cast iron pipe replacement",
+     "cast iron drain replacement",
+     "cast iron sewer pipe replacement",
+     "replace cast iron under slab",
+     "tunneling under slab plumbing",
+     "cast iron pipe repair {city}",
+     "cast iron replacement {city}"
+    ],
+    "questions": [
+     "how long do cast iron drain pipes last",
+     "signs of cast iron pipe failure",
+     "how much to replace cast iron pipes under slab",
+     "tunneling vs breaking slab plumbing"
+    ]
+   }
+  },
+  {
+   "id": "whrepair",
+   "label": "Water heater repair",
+   "short": "Water Heater Repair",
+   "line": "heater",
+   "path": "/water-heater-repair",
+   "why": "Core line; every ZIP.",
+   "keywords": {
+    "core": [
+     "water heater repair",
+     "no hot water",
+     "water heater not working",
+     "water heater pilot light",
+     "water heater leaking",
+     "water heater repair near me",
+     "water heater repair {city}",
+     "hot water heater repair {city}"
+    ],
+    "questions": [
+     "why is my water heater not heating",
+     "water heater leaking from bottom",
+     "how long do water heaters last",
+     "repair or replace water heater"
+    ]
+   }
+  },
+  {
+   "id": "whreplace",
+   "label": "Water heater replacement",
+   "short": "Water Heater",
+   "line": "heater",
+   "path": "/water-heater-replacement",
+   "why": "Water heaters 10 years or older at or above 32.7% (the two state median), or 75 or more replacements due per 1,000 households.",
+   "keywords": {
+    "core": [
+     "water heater replacement",
+     "new water heater",
+     "water heater installation",
+     "water heater installed today",
+     "50 gallon water heater installed",
+     "gas water heater replacement",
+     "water heater replacement {city}",
+     "water heater installation {city}",
+     "water heater cost installed"
+    ],
+    "questions": [
+     "how much is a new water heater installed",
+     "how long does a water heater last",
+     "signs your water heater is failing",
+     "do i need a permit to replace a water heater"
+    ]
+   }
+  },
+  {
+   "id": "tankless",
+   "label": "Tankless water heaters",
+   "short": "Tankless",
+   "line": "heater",
+   "path": "/tankless-water-heater",
+   "why": "Median income at or above $85,000 (the top quarter of ZIPs) or tankless share of water heaters at or above 6.5%.",
+   "keywords": {
+    "core": [
+     "tankless water heater installation",
+     "tankless water heater",
+     "gas tankless water heater",
+     "tankless water heater repair",
+     "tankless descaling",
+     "tankless water heater {city}",
+     "tankless installation {city}"
+    ],
+    "questions": [
+     "is a tankless water heater worth it",
+     "how much does tankless installation cost",
+     "tankless water heater hard water",
+     "what size tankless do i need"
+    ]
+   }
+  },
+  {
+   "id": "leak",
+   "label": "Leak detection and pipe repair",
+   "short": "Leak Repair",
+   "line": "emergency",
+   "path": "/leak-detection",
+   "why": "Core line; every ZIP.",
+   "keywords": {
+    "core": [
+     "leak detection",
+     "water leak repair",
+     "pipe leak repair",
+     "hidden water leak",
+     "leak detection near me",
+     "water bill high leak",
+     "burst pipe repair",
+     "leak detection {city}",
+     "pipe repair {city}"
+    ],
+    "questions": [
+     "how to find a hidden water leak",
+     "why is my water bill so high",
+     "water meter moving when nothing is on",
+     "pinhole leak in copper pipe"
+    ]
+   }
+  },
+  {
+   "id": "slab",
+   "label": "Slab leak detection and repair",
+   "short": "Slab Leak",
+   "line": "repipe",
+   "path": "/slab-leak-repair",
+   "why": "Expansive clay, drought and slab composite at or above 17.7 (the two state median).",
+   "keywords": {
+    "core": [
+     "slab leak repair",
+     "slab leak detection",
+     "hot spot on floor",
+     "water leak under slab",
+     "slab leak reroute",
+     "slab leak repair {city}",
+     "slab leak detection {city}",
+     "foundation leak plumber"
+    ],
+    "questions": [
+     "signs of a slab leak",
+     "how much does slab leak repair cost",
+     "does homeowners insurance cover slab leaks",
+     "reroute vs repair slab leak"
+    ]
+   }
+  },
+  {
+   "id": "repipe",
+   "label": "Whole home repiping",
+   "short": "Repipe",
+   "line": "repipe",
+   "path": "/repiping",
+   "why": "Failure prone supply pipe (original galvanized, polybutylene, Kitec, plus half of copper 45 years or older) at or above 15% of homes (the two state median).",
+   "keywords": {
+    "core": [
+     "whole house repipe",
+     "repiping",
+     "repipe with pex",
+     "galvanized pipe replacement",
+     "copper pipe replacement",
+     "repipe cost",
+     "repipe {city}",
+     "whole house repipe {city}"
+    ],
+    "questions": [
+     "how much does it cost to repipe a house",
+     "how long does a repipe take",
+     "pex vs copper repipe",
+     "signs you need to repipe your house"
+    ]
+   }
+  },
+  {
+   "id": "polyb",
+   "label": "Polybutylene and Kitec pipe replacement",
+   "short": "Polybutylene",
+   "line": "repipe",
+   "path": "/polybutylene-replacement",
+   "why": "Homes still on original polybutylene or Kitec at or above 4.8% (the top quarter of ZIPs).",
+   "keywords": {
+    "core": [
+     "polybutylene pipe replacement",
+     "polybutylene plumbing",
+     "kitec pipe replacement",
+     "replace poly pipe",
+     "gray plastic pipe replacement",
+     "polybutylene replacement {city}"
+    ],
+    "questions": [
+     "how do i know if i have polybutylene pipes",
+     "is polybutylene pipe bad",
+     "what is kitec plumbing",
+     "will insurance cover a house with polybutylene"
+    ]
+   }
+  },
+  {
+   "id": "galv",
+   "label": "Galvanized pipe replacement",
+   "short": "Galvanized Pipe",
+   "line": "repipe",
+   "path": "/galvanized-pipe-replacement",
+   "why": "Original galvanized supply pipe at or above 2.5% of homes, or homes built before 1960 at or above 20%.",
+   "keywords": {
+    "core": [
+     "galvanized pipe replacement",
+     "replace galvanized pipes",
+     "galvanized pipe repipe",
+     "rusty water pipes",
+     "low water pressure old house",
+     "galvanized pipe replacement {city}"
+    ],
+    "questions": [
+     "how long do galvanized pipes last",
+     "signs of galvanized pipe failure",
+     "is galvanized pipe safe"
+    ]
+   }
+  },
+  {
+   "id": "freeze",
+   "label": "Frozen and burst pipe repair",
+   "short": "Frozen Pipes",
+   "line": "freeze",
+   "path": "/frozen-pipe-repair",
+   "why": "Modeled freeze burst claims at or above 2.8 per 1,000 homes a year (the two state median), or 25 or more per 1,000 in a Uri class event.",
+   "keywords": {
+    "core": [
+     "burst pipe repair",
+     "frozen pipe repair",
+     "frozen pipes",
+     "pipe burst",
+     "emergency plumber",
+     "burst pipe repair near me",
+     "frozen pipe repair {city}",
+     "emergency plumber {city}"
+    ],
+    "questions": [
+     "what to do if pipes freeze",
+     "how to thaw frozen pipes",
+     "how to shut off water main",
+     "does insurance cover burst pipes"
+    ]
+   }
+  },
+  {
+   "id": "treat",
+   "label": "Water softeners, filtration and reverse osmosis",
+   "short": "Water Treatment",
+   "line": "treat",
+   "path": "/water-softener",
+   "why": "Delivered hardness at or above 173 mg/L as CaCO3 (the two state median; 180 and above is very hard).",
+   "keywords": {
+    "core": [
+     "water softener installation",
+     "water softener",
+     "whole house water filter",
+     "reverse osmosis installation",
+     "hard water treatment",
+     "water softener {city}",
+     "water filtration {city}"
+    ],
+    "questions": [
+     "do i need a water softener",
+     "how hard is my water",
+     "water softener vs filter",
+     "how much is a water softener installed"
+    ]
+   }
+  },
+  {
+   "id": "gas",
+   "label": "Gas line repair and installation",
+   "short": "Gas Line",
+   "line": "gas",
+   "path": "/gas-line-repair",
+   "why": "Homes heated with utility or bottled gas at or above 25%.",
+   "keywords": {
+    "core": [
+     "gas line repair",
+     "gas line installation",
+     "gas leak repair",
+     "gas pressure test",
+     "generator gas line",
+     "gas line for stove",
+     "gas line repair {city}",
+     "gas plumber {city}"
+    ],
+    "questions": [
+     "who repairs gas lines",
+     "how much to run a gas line",
+     "gas company red tag what to do"
+    ]
+   }
+  },
+  {
+   "id": "fixture",
+   "label": "Toilets, faucets and disposals",
+   "short": "Fixtures",
+   "line": "emergency",
+   "path": "/toilet-faucet-repair",
+   "why": "Core line; every ZIP.",
+   "keywords": {
+    "core": [
+     "toilet repair",
+     "running toilet",
+     "faucet repair",
+     "garbage disposal repair",
+     "toilet installation",
+     "faucet installation",
+     "toilet repair {city}",
+     "plumber {city}"
+    ],
+    "questions": [
+     "why does my toilet keep running",
+     "how much to replace a toilet",
+     "garbage disposal humming"
+    ]
+   }
+  },
+  {
+   "id": "flood",
+   "label": "Flood and storm plumbing",
+   "short": "Flood and Storm",
+   "line": "flood",
+   "path": "/flood-plumbing",
+   "why": "Flood and storm exposure in the top quarter, or 10 or more flood insurance claims per 1,000 homes since 2016.",
+   "keywords": {
+    "core": [
+     "flooded water heater",
+     "water heater replacement after flood",
+     "sewer backup after flood",
+     "plumber after hurricane",
+     "storm damage plumbing",
+     "flood plumbing repair {city}"
+    ],
+    "questions": [
+     "is my water heater safe after a flood",
+     "what to do after sewer backup",
+     "does flood insurance cover water heater"
+    ]
+   }
+  },
+  {
+   "id": "landlord",
+   "label": "Landlord and property manager plumbing",
+   "short": "Rental Homes",
+   "line": "b2b",
+   "path": "/property-managers",
+   "why": "Rented share of single family homes at or above 22.5% (the top quarter of ZIPs).",
+   "keywords": {
+    "core": [
+     "plumber for property managers",
+     "rental property plumber",
+     "landlord plumbing service",
+     "property management plumbing {city}",
+     "make ready plumbing"
+    ],
+    "questions": [
+     "who pays for plumbing in a rental",
+     "plumbing contract for rental properties"
+    ]
+   }
+  },
+  {
+   "id": "newowner",
+   "label": "New homeowner plumbing inspection",
+   "short": "New Homeowner",
+   "line": "maint",
+   "path": "/home-buyers",
+   "why": "Owners who moved in since 2020 at or above 18.8% (the top quarter of ZIPs).",
+   "keywords": {
+    "core": [
+     "plumbing inspection",
+     "sewer scope inspection",
+     "home plumbing inspection",
+     "water heater age check",
+     "plumbing inspection {city}"
+    ],
+    "questions": [
+     "how old is my water heater",
+     "should i get a sewer scope before buying a house"
+    ]
+   }
+  },
+  {
+   "id": "membership",
+   "label": "Plumbing membership plans and annual inspections",
+   "short": "Membership",
+   "line": "maint",
+   "path": "/membership",
+   "why": "Owners 65+ at or above 39.5% or owner single family at or above 65%.",
+   "keywords": {
+    "core": [
+     "plumbing maintenance plan",
+     "water heater flush",
+     "annual plumbing inspection",
+     "plumbing membership {city}"
+    ],
+    "questions": [
+     "how often should a water heater be flushed",
+     "is a plumbing membership worth it"
+    ]
+   }
+  },
+  {
+   "id": "financing",
+   "label": "Big ticket plumbing with financing",
+   "short": "Financing",
+   "line": "repipe",
+   "path": "/financing",
+   "why": "Income below the two state ZIP median with owner single family at or above 50%.",
+   "keywords": {
+    "core": [
+     "plumbing financing",
+     "sewer line financing",
+     "repipe financing",
+     "water heater financing",
+     "plumbing payment plans {city}"
+    ],
+    "questions": [
+     "can i finance a sewer line replacement",
+     "plumbing financing bad credit"
+    ]
+   }
+  },
+  {
+   "id": "commercial",
+   "label": "Light commercial plumbing",
+   "short": "Light Commercial",
+   "line": "commercial",
+   "path": "/commercial-plumbing",
+   "why": "Housing density at or above 1,500 units a square mile or 20 or more plumbing and mechanical establishments in the ZIP, as a proxy for business density.",
+   "keywords": {
+    "core": [
+     "commercial plumber",
+     "commercial plumbing repair",
+     "restaurant plumber",
+     "grease trap service",
+     "backflow testing",
+     "commercial plumber {city}",
+     "backflow testing {city}"
+    ],
+    "questions": [
+     "how often should a grease trap be cleaned",
+     "who does backflow testing",
+     "commercial plumbing maintenance contract"
+    ]
+   }
+  },
+  {
+   "id": "recruit",
+   "label": "Recruiting plumbers and apprentices",
+   "short": "Plumber Jobs",
+   "line": "recruit",
+   "path": "/careers",
+   "why": "Recruiting line; used when the plan line is recruiting.",
+   "keywords": {
+    "core": [
+     "plumber jobs",
+     "journeyman plumber jobs",
+     "plumbing apprentice jobs",
+     "plumber jobs {city}",
+     "service plumber jobs near me"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_CUSTOMER": [
+   "jobs",
+   "job",
+   "hiring",
+   "careers",
+   "salary",
+   "school",
+   "training",
+   "license test",
+   "apprenticeship program",
+   "course",
+   "diy",
+   "how to",
+   "youtube",
+   "reddit",
+   "parts",
+   "supply",
+   "wholesale",
+   "amazon",
+   "home depot",
+   "lowes",
+   "walmart",
+   "ferguson",
+   "free",
+   "manual",
+   "diagram",
+   "lawsuit",
+   "recall",
+   "plumbing code book",
+   "plumber salary",
+   "rv",
+   "boat"
+  ],
+  "NEG_RECRUIT": [
+   "repair",
+   "near me plumber",
+   "cost",
+   "price",
+   "replacement",
+   "install my",
+   "financing",
+   "coupon",
+   "emergency"
+  ]
+ }
+}

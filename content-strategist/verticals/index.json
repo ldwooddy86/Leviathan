@@ -1,0 +1,144 @@
+{
+ "packs": [
+  {
+   "id": "dental",
+   "depth": "keywords",
+   "vertical": "Dental",
+   "wing": "health",
+   "atlas": "The Dental Divide Atlas",
+   "scope": "National",
+   "angles": 16,
+   "keywords": 291
+  },
+  {
+   "id": "ocular",
+   "depth": "keywords",
+   "vertical": "Eye care",
+   "wing": "health",
+   "atlas": "The Ocular Health Targeting Atlas",
+   "scope": "National",
+   "angles": 14,
+   "keywords": 152
+  },
+  {
+   "id": "oncology",
+   "depth": "keywords",
+   "vertical": "Oncology",
+   "wing": "health",
+   "atlas": "Oncogene Atlas",
+   "scope": "Texas and Louisiana",
+   "angles": 19,
+   "keywords": 115
+  },
+  {
+   "id": "dfw",
+   "depth": "deep",
+   "vertical": "HVAC",
+   "wing": "home",
+   "atlas": "DFW Thermal Debt Atlas · Build 6",
+   "scope": "Dallas Fort Worth, Texas: 12 counties",
+   "angles": 20,
+   "keywords": 196
+  },
+  {
+   "id": "hvac",
+   "depth": "keywords",
+   "vertical": "HVAC",
+   "wing": "home",
+   "atlas": "Louisiana Thermal Debt Atlas",
+   "scope": "Louisiana",
+   "angles": 18,
+   "keywords": 170
+  },
+  {
+   "id": "pest",
+   "depth": "keywords",
+   "vertical": "Pest control",
+   "wing": "home",
+   "atlas": "Swarm Front Atlas",
+   "scope": "Texas and Louisiana",
+   "angles": 22,
+   "keywords": 200
+  },
+  {
+   "id": "plumbing",
+   "depth": "keywords",
+   "vertical": "Plumbing",
+   "wing": "home",
+   "atlas": "Water Hammer Atlas",
+   "scope": "Texas and Louisiana",
+   "angles": 22,
+   "keywords": 229
+  },
+  {
+   "id": "roofing",
+   "depth": "keywords",
+   "vertical": "Roofing",
+   "wing": "home",
+   "atlas": "Uplift Roofing Atlas",
+   "scope": "Louisiana",
+   "angles": 11,
+   "keywords": 108
+  },
+  {
+   "id": "criminal",
+   "depth": "keywords",
+   "vertical": "Criminal defense",
+   "wing": "legal",
+   "atlas": "Probable Cause Defense Atlas",
+   "scope": "Texas",
+   "angles": 14,
+   "keywords": 204
+  },
+  {
+   "id": "criminal_la",
+   "depth": "keywords",
+   "vertical": "Criminal defense",
+   "wing": "legal",
+   "atlas": "Probable Cause Defense Atlas",
+   "scope": "Louisiana",
+   "angles": 14,
+   "keywords": 176
+  },
+  {
+   "id": "employment",
+   "depth": "keywords",
+   "vertical": "Employment law",
+   "wing": "legal",
+   "atlas": "The Termination Exposure Atlas",
+   "scope": "National",
+   "angles": 17,
+   "keywords": 244
+  },
+  {
+   "id": "family",
+   "depth": "keywords",
+   "vertical": "Family law",
+   "wing": "legal",
+   "atlas": "Severance",
+   "scope": "Texas and Louisiana",
+   "angles": 14,
+   "keywords": 197
+  },
+  {
+   "id": "injury",
+   "depth": "keywords",
+   "vertical": "Personal injury",
+   "wing": "legal",
+   "atlas": "Contraflow Injury Atlas",
+   "scope": "Texas",
+   "angles": 9,
+   "keywords": 99
+  },
+  {
+   "id": "injury_la",
+   "depth": "keywords",
+   "vertical": "Personal injury",
+   "wing": "legal",
+   "atlas": "Contraflow Injury Atlas",
+   "scope": "Louisiana",
+   "angles": 9,
+   "keywords": 91
+  }
+ ]
+}

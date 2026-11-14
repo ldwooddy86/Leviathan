@@ -1,0 +1,524 @@
+{
+ "id": "criminal_la",
+ "depth": "keywords",
+ "vertical": "Criminal defense",
+ "wing": "legal",
+ "atlas": "Probable Cause Defense Atlas",
+ "scope": "Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#criminal_la",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "dwi",
+   "label": "DWI and impaired driving",
+   "short": "DWI",
+   "keywords": {
+    "core": [
+     "dwi lawyer",
+     "dwi attorney",
+     "dui lawyer",
+     "dui attorney",
+     "dwi defense attorney",
+     "drunk driving lawyer",
+     "owi lawyer",
+     "first offense dwi lawyer",
+     "second offense dwi lawyer",
+     "third offense dwi lawyer",
+     "dwi refusal lawyer",
+     "dwi license suspension lawyer",
+     "dwi hearing lawyer",
+     "ignition interlock lawyer",
+     "underage dwi lawyer",
+     "vehicular homicide lawyer"
+    ],
+    "spanish": [
+     "abogado de dwi",
+     "abogado de dui",
+     "abogado manejar borracho"
+    ],
+    "negatives": [
+     "dwi class",
+     "dwi school",
+     "sr22",
+     "sr 22",
+     "ignition interlock installation",
+     "interlock device cost",
+     "breathalyzer",
+     "checkpoint",
+     "dwi victim",
+     "drunk driver accident",
+     "accident lawyer",
+     "statistics",
+     "bail bonds",
+     "bondsman",
+     "driving school"
+    ]
+   }
+  },
+  {
+   "id": "drug",
+   "label": "Drug possession",
+   "short": "Possession",
+   "keywords": {
+    "core": [
+     "drug possession lawyer",
+     "drug charges lawyer",
+     "drug crime attorney",
+     "possession of marijuana lawyer",
+     "marijuana charge lawyer",
+     "cds possession lawyer",
+     "drug paraphernalia charge lawyer",
+     "fentanyl possession lawyer",
+     "meth possession lawyer",
+     "cocaine possession lawyer",
+     "prescription drug charge lawyer",
+     "felony drug possession lawyer",
+     "drug court lawyer"
+    ],
+    "spanish": [
+     "abogado de drogas",
+     "abogado posesion de drogas",
+     "abogado de marihuana"
+    ],
+    "negatives": [
+     "drug test",
+     "drug testing",
+     "rehab",
+     "treatment center",
+     "detox",
+     "narcan",
+     "pharmacy",
+     "prescription refill",
+     "drug interactions",
+     "overdose symptoms",
+     "dispensary",
+     "medical marijuana card",
+     "bail bonds"
+    ]
+   }
+  },
+  {
+   "id": "dist",
+   "label": "Drug distribution and trafficking",
+   "short": "Distribution",
+   "keywords": {
+    "core": [
+     "drug trafficking lawyer",
+     "drug distribution lawyer",
+     "possession with intent to distribute lawyer",
+     "pwid lawyer",
+     "intent to distribute charge lawyer",
+     "drug dealing charge lawyer",
+     "fentanyl distribution lawyer",
+     "drug conspiracy lawyer",
+     "federal drug lawyer",
+     "drug trafficking defense attorney"
+    ],
+    "spanish": [
+     "abogado de trafico de drogas",
+     "abogado distribucion de drogas"
+    ],
+    "negatives": [
+     "statistics",
+     "cartel",
+     "news",
+     "documentary",
+     "drug test",
+     "rehab",
+     "bail bonds"
+    ]
+   }
+  },
+  {
+   "id": "assault",
+   "label": "Assault and battery",
+   "short": "Battery",
+   "keywords": {
+    "core": [
+     "assault lawyer",
+     "battery lawyer",
+     "assault and battery attorney",
+     "simple battery lawyer",
+     "second degree battery lawyer",
+     "aggravated battery lawyer",
+     "aggravated assault lawyer",
+     "battery of a police officer lawyer",
+     "self defense lawyer",
+     "assault charge attorney",
+     "bar fight charge lawyer"
+    ],
+    "spanish": [
+     "abogado de agresion",
+     "abogado de asalto"
+    ],
+    "negatives": [
+     "assault rifle",
+     "assault weapon",
+     "victim",
+     "victim advocate",
+     "car battery",
+     "battery replacement",
+     "battery charger",
+     "phone battery",
+     "sexual assault hotline"
+    ]
+   }
+  },
+  {
+   "id": "dv",
+   "label": "Domestic abuse battery",
+   "short": "Domestic",
+   "keywords": {
+    "core": [
+     "domestic violence lawyer",
+     "domestic abuse battery lawyer",
+     "domestic violence defense attorney",
+     "domestic battery charge lawyer",
+     "protective order lawyer",
+     "restraining order lawyer",
+     "battery of a dating partner lawyer",
+     "false domestic violence accusation lawyer",
+     "violation of protective order lawyer",
+     "strangulation charge lawyer",
+     "stalking charge lawyer"
+    ],
+    "spanish": [
+     "abogado de violencia domestica",
+     "abogado orden de proteccion"
+    ],
+    "negatives": [
+     "shelter",
+     "hotline",
+     "victim services",
+     "how to get a protective order",
+     "statistics",
+     "counseling",
+     "support group",
+     "advocate"
+    ]
+   }
+  },
+  {
+   "id": "theft",
+   "label": "Theft, burglary and property",
+   "short": "Theft",
+   "keywords": {
+    "core": [
+     "theft lawyer",
+     "theft charge attorney",
+     "shoplifting lawyer",
+     "burglary lawyer",
+     "felony theft lawyer",
+     "misdemeanor theft lawyer",
+     "possession of stolen property lawyer",
+     "criminal damage to property lawyer",
+     "unauthorized use of a vehicle lawyer",
+     "home invasion lawyer",
+     "auto theft charge lawyer"
+    ],
+    "spanish": [
+     "abogado de robo",
+     "abogado de hurto"
+    ],
+    "negatives": [
+     "identity theft protection",
+     "insurance claim",
+     "report stolen",
+     "car alarm",
+     "security camera",
+     "loss prevention jobs",
+     "stolen car report"
+    ]
+   }
+  },
+  {
+   "id": "white",
+   "label": "White collar and fraud",
+   "short": "White collar",
+   "keywords": {
+    "core": [
+     "white collar crime lawyer",
+     "white collar defense attorney",
+     "fraud defense lawyer",
+     "embezzlement lawyer",
+     "identity theft charge lawyer",
+     "bank fraud lawyer",
+     "wire fraud lawyer",
+     "forgery charge lawyer",
+     "medicaid fraud defense attorney",
+     "insurance fraud defense lawyer",
+     "money laundering lawyer",
+     "public corruption lawyer",
+     "target letter lawyer"
+    ],
+    "spanish": [
+     "abogado de fraude"
+    ],
+    "negatives": [
+     "fraud alert",
+     "report fraud",
+     "credit card dispute",
+     "scam",
+     "identity theft victim",
+     "fraud department",
+     "freeze credit",
+     "chargeback"
+    ]
+   }
+  },
+  {
+   "id": "weapons",
+   "label": "Weapons and firearms",
+   "short": "Weapons",
+   "keywords": {
+    "core": [
+     "gun charge lawyer",
+     "firearm charge lawyer",
+     "felon in possession of a firearm lawyer",
+     "illegal carrying of a weapon lawyer",
+     "illegal use of weapons lawyer",
+     "concealed carry violation lawyer",
+     "weapons charge attorney",
+     "gun possession lawyer",
+     "federal gun charge lawyer"
+    ],
+    "spanish": [
+     "abogado de armas"
+    ],
+    "negatives": [
+     "gun store",
+     "gun range",
+     "concealed carry class",
+     "ccw class",
+     "permit application",
+     "ammunition",
+     "holster",
+     "gun show",
+     "for sale"
+    ]
+   }
+  },
+  {
+   "id": "sex",
+   "label": "Sex offenses",
+   "short": "Sex offenses",
+   "keywords": {
+    "core": [
+     "sex crime lawyer",
+     "sex offense defense attorney",
+     "sexual assault defense lawyer",
+     "indecent behavior with a juvenile lawyer",
+     "carnal knowledge lawyer",
+     "online solicitation lawyer",
+     "sex offender registration lawyer",
+     "prostitution charge lawyer",
+     "solicitation charge lawyer"
+    ],
+    "negatives": [
+     "registry search",
+     "victim",
+     "report abuse",
+     "hotline",
+     "counseling",
+     "statistics",
+     "support"
+    ]
+   }
+  },
+  {
+   "id": "violent",
+   "label": "Homicide and robbery",
+   "short": "Violent felony",
+   "keywords": {
+    "core": [
+     "murder lawyer",
+     "homicide defense attorney",
+     "manslaughter lawyer",
+     "armed robbery lawyer",
+     "robbery charge lawyer",
+     "carjacking lawyer",
+     "attempted murder lawyer",
+     "violent crime lawyer",
+     "felony defense lawyer"
+    ],
+    "spanish": [
+     "abogado de homicidio"
+    ],
+    "negatives": [
+     "true crime",
+     "documentary",
+     "news",
+     "podcast",
+     "case files",
+     "victim"
+    ]
+   }
+  },
+  {
+   "id": "juv",
+   "label": "Juvenile cases",
+   "short": "Juvenile",
+   "keywords": {
+    "core": [
+     "juvenile lawyer",
+     "juvenile defense attorney",
+     "juvenile court lawyer",
+     "teen arrested lawyer",
+     "minor charged with a crime lawyer",
+     "school fight charge lawyer",
+     "juvenile expungement lawyer",
+     "juvenile detention hearing lawyer"
+    ],
+    "spanish": [
+     "abogado para menores",
+     "abogado juvenil"
+    ],
+    "negatives": [
+     "juvenile justice degree",
+     "detention officer jobs",
+     "child custody",
+     "adoption",
+     "child support",
+     "cinc"
+    ]
+   }
+  },
+  {
+   "id": "misd",
+   "label": "Public order and other charges",
+   "short": "Misdemeanor",
+   "keywords": {
+    "core": [
+     "criminal defense lawyer",
+     "criminal defense attorney",
+     "criminal lawyer",
+     "criminal attorney",
+     "misdemeanor lawyer",
+     "disturbing the peace charge lawyer",
+     "trespassing charge lawyer",
+     "resisting arrest lawyer",
+     "warrant lawyer",
+     "driving under suspension lawyer",
+     "hit and run charge lawyer",
+     "city court lawyer"
+    ],
+    "spanish": [
+     "abogado criminal",
+     "abogado criminalista",
+     "abogado de defensa criminal"
+    ],
+    "negatives": [
+     "civil lawyer",
+     "divorce",
+     "custody",
+     "small claims",
+     "pay ticket online",
+     "traffic ticket payment",
+     "personal injury",
+     "accident"
+    ]
+   }
+  },
+  {
+   "id": "expunge",
+   "label": "Expungement and record clearing",
+   "short": "Expungement",
+   "keywords": {
+    "core": [
+     "expungement lawyer",
+     "expungement attorney",
+     "louisiana expungement",
+     "clear criminal record lawyer",
+     "expunge arrest record",
+     "expunge dwi lawyer",
+     "record expungement attorney",
+     "first offender pardon lawyer",
+     "criminal record clearing lawyer"
+    ],
+    "spanish": [
+     "abogado de expungement",
+     "limpiar record criminal"
+    ],
+    "negatives": [
+     "free expungement clinic",
+     "expungement form",
+     "diy",
+     "background check",
+     "record search",
+     "mugshot",
+     "inmate search"
+    ]
+   }
+  },
+  {
+   "id": "fed",
+   "label": "Federal crimes",
+   "short": "Federal",
+   "keywords": {
+    "core": [
+     "federal criminal defense lawyer",
+     "federal defense attorney",
+     "federal criminal lawyer",
+     "federal drug charge lawyer",
+     "federal gun charge lawyer",
+     "wire fraud lawyer",
+     "federal investigation lawyer",
+     "target letter lawyer",
+     "grand jury subpoena lawyer",
+     "federal sentencing lawyer"
+    ],
+    "spanish": [
+     "abogado federal"
+    ],
+    "negatives": [
+     "federal jobs",
+     "inmate locator",
+     "bop",
+     "federal holidays",
+     "federal prison camp",
+     "pardon application form"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_COMMON": [
+   "jobs",
+   "job",
+   "career",
+   "salary",
+   "hiring",
+   "paralegal",
+   "law school",
+   "how to become",
+   "internship",
+   "free legal aid",
+   "pro bono",
+   "legal aid",
+   "public defender",
+   "template",
+   "form",
+   "diy",
+   "reddit",
+   "wiki",
+   "definition",
+   "meaning",
+   "inmate search",
+   "jail roster",
+   "mugshots",
+   "arrest records search",
+   "bail bonds",
+   "bondsman",
+   "personal injury",
+   "divorce",
+   "bankruptcy",
+   "texas",
+   "mississippi",
+   "arkansas"
+  ]
+ }
+}

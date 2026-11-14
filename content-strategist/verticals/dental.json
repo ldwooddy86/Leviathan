@@ -1,0 +1,597 @@
+{
+ "id": "dental",
+ "depth": "keywords",
+ "vertical": "Dental",
+ "wing": "health",
+ "atlas": "The Dental Divide Atlas",
+ "scope": "National",
+ "source": {
+  "file": "leviathan/Leviathan-data.js#dental",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "implants",
+   "label": "Implants & full-arch",
+   "short": "Implants",
+   "path": "/dental-implants",
+   "keywords": {
+    "core": [
+     "dental implants",
+     "dental implants {city}",
+     "dental implants near me",
+     "dental implants cost",
+     "all on 4 dental implants",
+     "implant dentist near me",
+     "tooth implant cost",
+     "full mouth dental implants",
+     "implant supported dentures",
+     "single tooth implant"
+    ],
+    "questions": [
+     "how much do dental implants cost",
+     "are dental implants worth it",
+     "dental implants vs bridge",
+     "how long do dental implants last",
+     "does insurance cover dental implants"
+    ],
+    "spanish": [
+     "implantes dentales",
+     "implantes dentales {city}",
+     "implantes dentales precio",
+     "dentista de implantes cerca de mi",
+     "implantes dentales cerca de mi"
+    ]
+   }
+  },
+  {
+   "id": "dentures",
+   "label": "Dentures & partials",
+   "short": "Dentures",
+   "path": "/dentures",
+   "keywords": {
+    "core": [
+     "dentures",
+     "dentures near me",
+     "dentures {city}",
+     "partial dentures",
+     "denture repair near me",
+     "denture reline",
+     "implant supported dentures",
+     "affordable dentures",
+     "same day dentures",
+     "denture dentist near me"
+    ],
+    "questions": [
+     "how much do dentures cost",
+     "how long do dentures last",
+     "partial denture vs bridge",
+     "can dentures be relined",
+     "what are snap in dentures"
+    ],
+    "spanish": [
+     "dentaduras",
+     "dentaduras postizas",
+     "dentaduras {city}",
+     "reparación de dentaduras",
+     "dentaduras cerca de mi"
+    ]
+   }
+  },
+  {
+   "id": "aligners",
+   "label": "Clear aligners & adult orthodontics",
+   "short": "Aligners",
+   "path": "/clear-aligners",
+   "keywords": {
+    "core": [
+     "clear aligners",
+     "clear aligners {city}",
+     "invisalign {city}",
+     "invisalign near me",
+     "invisalign cost",
+     "adult braces",
+     "adult orthodontics near me",
+     "clear braces",
+     "teeth straightening",
+     "aligner dentist near me"
+    ],
+    "questions": [
+     "how much does invisalign cost",
+     "invisalign vs braces",
+     "how long does invisalign take",
+     "can adults get braces",
+     "does insurance cover invisalign"
+    ]
+   }
+  },
+  {
+   "id": "cosmetic",
+   "label": "Cosmetic, veneers & whitening",
+   "short": "Cosmetic",
+   "path": "/cosmetic-dentistry",
+   "keywords": {
+    "core": [
+     "cosmetic dentist",
+     "cosmetic dentist near me",
+     "cosmetic dentist {city}",
+     "veneers",
+     "veneers cost",
+     "porcelain veneers near me",
+     "teeth whitening near me",
+     "teeth whitening {city}",
+     "dental bonding",
+     "smile makeover"
+    ],
+    "questions": [
+     "how much do veneers cost",
+     "veneers vs bonding",
+     "how long do veneers last",
+     "is professional teeth whitening worth it",
+     "does teeth whitening damage enamel"
+    ]
+   }
+  },
+  {
+   "id": "kids",
+   "label": "Pediatric & family dentistry",
+   "short": "Pediatric",
+   "path": "/family-dentistry",
+   "keywords": {
+    "core": [
+     "family dentist",
+     "family dentist near me",
+     "family dentist {city}",
+     "kids dentist near me",
+     "pediatric dentist near me",
+     "children's dentist {city}",
+     "dentist for kids",
+     "dentist that takes kids",
+     "dental sealants",
+     "first dental visit"
+    ],
+    "questions": [
+     "when should a child first see a dentist",
+     "how often should kids see the dentist",
+     "are dental sealants worth it",
+     "what age do kids lose teeth",
+     "how to prepare a toddler for the dentist"
+    ],
+    "spanish": [
+     "dentista familiar",
+     "dentista para niños",
+     "dentista para niños cerca de mi",
+     "dentista familiar {city}",
+     "dentista pediátrico cerca de mi"
+    ]
+   }
+  },
+  {
+   "id": "ortho",
+   "label": "Braces for teens",
+   "short": "Teen braces",
+   "path": "/braces",
+   "keywords": {
+    "core": [
+     "braces",
+     "braces near me",
+     "braces {city}",
+     "braces for teens",
+     "orthodontist near me",
+     "orthodontist {city}",
+     "braces cost",
+     "clear braces for teens",
+     "orthodontic consultation",
+     "braces payment plan"
+    ],
+    "questions": [
+     "how much do braces cost",
+     "what age should a child get braces",
+     "braces vs invisalign for teens",
+     "how long do braces take",
+     "does insurance cover braces"
+    ]
+   }
+  },
+  {
+   "id": "medicaid",
+   "label": "Medicaid / CHIP children",
+   "short": "Medicaid kids",
+   "path": "/medicaid-chip-dentist",
+   "keywords": {
+    "core": [
+     "dentist that accepts medicaid near me",
+     "medicaid dentist near me",
+     "medicaid dentist {city}",
+     "chip dentist near me",
+     "kids dentist that takes medicaid",
+     "pediatric dentist medicaid",
+     "dentist that accepts chip",
+     "medicaid dental {city}",
+     "children's medicaid dentist",
+     "free dental for kids with medicaid"
+    ],
+    "questions": [
+     "does medicaid cover dental for kids",
+     "what does chip cover for dental",
+     "how to find a medicaid dentist",
+     "does medicaid cover braces for kids",
+     "does chip cover braces"
+    ],
+    "spanish": [
+     "dentista que acepta medicaid",
+     "dentista medicaid cerca de mi",
+     "dentista para niños medicaid",
+     "dentista chip",
+     "dentista medicaid {city}"
+    ]
+   }
+  },
+  {
+   "id": "emergency",
+   "label": "Emergency & same-day care",
+   "short": "Emergency",
+   "path": "/emergency-dentist",
+   "keywords": {
+    "core": [
+     "emergency dentist",
+     "emergency dentist near me",
+     "emergency dentist {city}",
+     "same day dentist",
+     "dentist open now",
+     "toothache dentist near me",
+     "broken tooth repair",
+     "emergency tooth extraction",
+     "walk in dentist near me",
+     "dentist open saturday"
+    ],
+    "questions": [
+     "what to do for a knocked out tooth",
+     "how much does an emergency dentist cost",
+     "can a dentist see me today",
+     "what counts as a dental emergency",
+     "how to stop tooth pain until dentist"
+    ],
+    "spanish": [
+     "dentista de emergencia",
+     "dentista de emergencia cerca de mi",
+     "dentista de emergencia {city}",
+     "dentista abierto hoy",
+     "dolor de muela dentista"
+    ]
+   }
+  },
+  {
+   "id": "noins",
+   "label": "No insurance — membership plan",
+   "short": "No insurance",
+   "path": "/membership-plan",
+   "keywords": {
+    "core": [
+     "dentist no insurance",
+     "dentist without insurance near me",
+     "affordable dentist near me",
+     "affordable dentist {city}",
+     "dental membership plan",
+     "dental savings plan {city}",
+     "cash pay dentist",
+     "dentist prices without insurance",
+     "cheap dentist near me",
+     "dental cleaning cost without insurance"
+    ],
+    "questions": [
+     "how much is a dental cleaning without insurance",
+     "how to see a dentist without insurance",
+     "what is a dental membership plan",
+     "is a dental savings plan worth it",
+     "how much does a filling cost without insurance"
+    ],
+    "spanish": [
+     "dentista sin seguro",
+     "dentista económico cerca de mi",
+     "dentista sin seguro {city}",
+     "plan dental sin seguro",
+     "precio limpieza dental sin seguro"
+    ]
+   }
+  },
+  {
+   "id": "spanish",
+   "label": "Spanish-language practice",
+   "short": "Spanish",
+   "path": "/es",
+   "keywords": {
+    "core": [
+     "spanish speaking dentist near me",
+     "spanish speaking dentist {city}",
+     "bilingual dentist near me",
+     "dentist that speaks spanish",
+     "dentista cerca de mi",
+     "dentista {city}",
+     "dentista en {city}",
+     "dentista hispano cerca de mi",
+     "dentista que hable español",
+     "dentista familiar cerca de mi"
+    ],
+    "questions": [
+     "how to find a spanish speaking dentist",
+     "dentista que acepta seguro cerca de mi",
+     "cuanto cuesta una limpieza dental",
+     "dentista abierto los sabados",
+     "dentista con citas el mismo dia"
+    ],
+    "spanish": [
+     "dentista cerca de mi",
+     "dentista {city}",
+     "dentista en {city}",
+     "dentista que habla español",
+     "dentista familiar cerca de mi",
+     "dentista económico {city}"
+    ]
+   }
+  },
+  {
+   "id": "newmover",
+   "label": "New in town — find a dentist",
+   "short": "New movers",
+   "path": "/new-patients",
+   "keywords": {
+    "core": [
+     "dentist near me",
+     "dentist {city}",
+     "new patient dentist near me",
+     "dentist accepting new patients",
+     "dentist accepting new patients {city}",
+     "best dentist near me",
+     "family dentist near me",
+     "general dentist {city}",
+     "dental cleaning near me",
+     "dentist open saturday near me"
+    ],
+    "questions": [
+     "how to find a good dentist",
+     "how to choose a dentist",
+     "what does a new patient dental exam include",
+     "how much is a dental cleaning",
+     "how to transfer dental records"
+    ],
+    "spanish": [
+     "dentista cerca de mi",
+     "dentista {city}",
+     "dentista que acepta nuevos pacientes",
+     "dentista nuevo paciente cerca de mi",
+     "dentista abierto sábados"
+    ]
+   }
+  },
+  {
+   "id": "senior",
+   "label": "Seniors & Medicare Advantage dental",
+   "short": "Seniors",
+   "path": "/senior-dental-care",
+   "keywords": {
+    "core": [
+     "dentist for seniors near me",
+     "senior dentist {city}",
+     "medicare advantage dentist near me",
+     "dentist that accepts medicare advantage",
+     "dentures for seniors",
+     "geriatric dentist near me",
+     "dentist that takes humana dental",
+     "dentist that takes aetna medicare",
+     "dry mouth treatment dentist",
+     "dental care for elderly"
+    ],
+    "questions": [
+     "does medicare cover dental",
+     "which medicare advantage plans cover dental",
+     "how much do dentures cost for seniors",
+     "does medicare cover dental implants",
+     "how to find a dentist that takes medicare"
+    ]
+   }
+  },
+  {
+   "id": "access",
+   "label": "Underserved area — availability",
+   "short": "Availability",
+   "path": "/now-accepting-patients",
+   "keywords": {
+    "core": [
+     "dentist accepting new patients",
+     "dentist accepting new patients near me",
+     "dentist near me",
+     "dentist in {county}",
+     "dentist {city}",
+     "general dentist near me",
+     "dentist appointment this week",
+     "dentist with openings",
+     "rural dentist near me",
+     "dentist near {city}"
+    ],
+    "questions": [
+     "why is it hard to find a dentist",
+     "how far is too far to drive to a dentist",
+     "how to get a dental appointment fast",
+     "dentist accepting new patients this week",
+     "dentist that takes new patients without insurance"
+    ],
+    "spanish": [
+     "dentista aceptando pacientes",
+     "dentista cerca de mi",
+     "dentista en {county}",
+     "dentista {city}",
+     "dentista con citas esta semana"
+    ]
+   }
+  },
+  {
+   "id": "sedation",
+   "label": "Dental anxiety & sedation",
+   "short": "Sedation",
+   "path": "/comfort-dentistry",
+   "keywords": {
+    "core": [
+     "sedation dentist near me",
+     "sedation dentistry {city}",
+     "dentist for anxious patients",
+     "dental anxiety dentist near me",
+     "nitrous oxide dentist",
+     "sleep dentistry near me",
+     "gentle dentist near me",
+     "dentist for people afraid of the dentist",
+     "oral sedation dentist",
+     "dentist for nervous patients {city}"
+    ],
+    "questions": [
+     "how does sedation dentistry work",
+     "what to do if you are scared of the dentist",
+     "is nitrous oxide safe at the dentist",
+     "how much does sedation dentistry cost",
+     "what happens if you have not been to the dentist in years"
+    ],
+    "spanish": [
+     "dentista con sedación",
+     "dentista para personas con miedo",
+     "dentista con sedación {city}",
+     "dentista sin dolor cerca de mi",
+     "odontología con sedación"
+    ]
+   }
+  },
+  {
+   "id": "hyg",
+   "label": "Hygienist recruiting",
+   "short": "Hygienists",
+   "path": "/careers/dental-hygienist",
+   "keywords": {
+    "core": [
+     "dental hygienist jobs",
+     "dental hygienist jobs {city}",
+     "dental hygienist jobs near me",
+     "rdh jobs {city}",
+     "hygienist jobs {state}",
+     "dental hygienist positions near me",
+     "part time dental hygienist jobs",
+     "dental hygienist openings",
+     "hygienist hiring near me",
+     "dental hygienist job {county}"
+    ],
+    "questions": [
+     "how much do dental hygienists make in {state}",
+     "best dental offices to work for",
+     "dental hygienist four day week",
+     "dental hygienist sign on bonus",
+     "dental hygienist temp jobs"
+    ]
+   }
+  },
+  {
+   "id": "assoc",
+   "label": "Associate dentist recruiting",
+   "short": "Associates",
+   "path": "/careers/associate-dentist",
+   "keywords": {
+    "core": [
+     "associate dentist jobs",
+     "associate dentist jobs {city}",
+     "associate dentist jobs {state}",
+     "dentist jobs near me",
+     "general dentist jobs {city}",
+     "associate dentist position",
+     "new grad dentist jobs",
+     "dentist job openings {state}",
+     "private practice dentist jobs",
+     "dentist jobs {county}"
+    ],
+    "questions": [
+     "how much do associate dentists make",
+     "associate dentist vs dso",
+     "what to look for in an associate contract",
+     "how to find an associate dentist job",
+     "associate dentist partnership track"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_PATIENT": [
+   "jobs",
+   "job",
+   "hiring",
+   "careers",
+   "career",
+   "salary",
+   "salaries",
+   "resume",
+   "school",
+   "schools",
+   "program",
+   "programs",
+   "training",
+   "course",
+   "courses",
+   "certification",
+   "degree",
+   "diy",
+   "at home",
+   "home remedy",
+   "home remedies",
+   "kit",
+   "kits",
+   "amazon",
+   "walmart",
+   "wholesale",
+   "supplies",
+   "supply",
+   "lab",
+   "laboratory",
+   "dental assistant",
+   "hygienist",
+   "meaning",
+   "definition",
+   "wiki",
+   "video",
+   "youtube",
+   "reddit",
+   "tiktok",
+   "free clinic",
+   "charity",
+   "volunteer",
+   "recall",
+   "lawsuit",
+   "malpractice",
+   "pictures",
+   "images"
+  ],
+  "NEG_RECRUIT": [
+   "near me dentist",
+   "appointment",
+   "emergency",
+   "cost",
+   "price",
+   "prices",
+   "insurance",
+   "medicaid",
+   "chip",
+   "school",
+   "schools",
+   "program",
+   "programs",
+   "course",
+   "courses",
+   "how to become",
+   "certification",
+   "exam",
+   "license lookup",
+   "license verification",
+   "salary calculator",
+   "indeed",
+   "ziprecruiter",
+   "glassdoor",
+   "temp agency"
+  ]
+ }
+}

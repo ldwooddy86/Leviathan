@@ -1,0 +1,353 @@
+{
+ "id": "roofing",
+ "depth": "keywords",
+ "vertical": "Roofing",
+ "wing": "home",
+ "atlas": "Uplift Roofing Atlas",
+ "scope": "Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#roofing",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "replace",
+   "label": "Roof replacement",
+   "short": "Replace",
+   "keywords": {
+    "core": [
+     "roof replacement",
+     "new roof",
+     "roof replacement cost",
+     "roofing company",
+     "roofers near me",
+     "roofing contractor",
+     "shingle roof replacement",
+     "architectural shingles",
+     "reroof",
+     "roof installation",
+     "residential roofing",
+     "roof estimate",
+     "roofing companies near me",
+     "new roof cost"
+    ],
+    "spanish": [
+     "reemplazo de techo",
+     "techos nuevos",
+     "compañia de techos",
+     "techeros cerca de mi"
+    ],
+    "negatives": [
+     "roofing nails",
+     "roofing shingles for sale",
+     "shingle calculator",
+     "roof rack",
+     "car roof",
+     "shed roof",
+     "dog house",
+     "roofing license exam",
+     "roof truss",
+     "roof pitch calculator"
+    ]
+   }
+  },
+  {
+   "id": "repair",
+   "label": "Roof repair and leaks",
+   "short": "Repair",
+   "keywords": {
+    "core": [
+     "roof repair",
+     "roof leak repair",
+     "leaking roof",
+     "emergency roof repair",
+     "roof repair near me",
+     "flashing repair",
+     "chimney leak repair",
+     "shingle repair",
+     "roof patch",
+     "roof leak",
+     "roof inspection"
+    ],
+    "spanish": [
+     "reparacion de techos",
+     "goteras en el techo"
+    ],
+    "negatives": [
+     "flex seal",
+     "roof sealant",
+     "rv roof",
+     "camper roof",
+     "car sunroof",
+     "tarp for sale",
+     "roof coating home depot"
+    ]
+   }
+  },
+  {
+   "id": "storm",
+   "label": "Storm and wind damage",
+   "short": "Storm",
+   "keywords": {
+    "core": [
+     "storm damage roof repair",
+     "hurricane roof damage",
+     "wind damage roof repair",
+     "roof tarp",
+     "emergency roof tarp",
+     "roof inspection after storm",
+     "missing shingles",
+     "tree on roof",
+     "blue tarp roof",
+     "roof damage repair",
+     "storm roof repair"
+    ],
+    "spanish": [
+     "daños de tormenta techo",
+     "lona para techo"
+    ],
+    "negatives": [
+     "public adjuster",
+     "insurance agent",
+     "insurance quote",
+     "fema application",
+     "car insurance",
+     "tarp for sale",
+     "harbor freight"
+    ]
+   }
+  },
+  {
+   "id": "hail",
+   "label": "Hail damage",
+   "short": "Hail",
+   "keywords": {
+    "core": [
+     "hail damage roof",
+     "hail damage roof repair",
+     "hail roof inspection",
+     "hail damaged shingles",
+     "roof hail damage",
+     "hail storm roof"
+    ],
+    "spanish": [
+     "daños por granizo techo"
+    ],
+    "negatives": [
+     "hail damage car",
+     "paintless dent repair",
+     "hail netting",
+     "auto hail",
+     "hail guard"
+    ]
+   }
+  },
+  {
+   "id": "fortified",
+   "label": "FORTIFIED roofs",
+   "short": "FORTIFIED",
+   "keywords": {
+    "core": [
+     "fortified roof",
+     "fortified roof cost",
+     "fortified roof contractor",
+     "louisiana fortify homes program",
+     "fortified roof grant",
+     "fortified roof louisiana",
+     "ibhs fortified roof",
+     "wind mitigation roof",
+     "fortified roofer near me"
+    ],
+    "spanish": [
+     "techo fortified",
+     "subvencion techo luisiana"
+    ],
+    "negatives": [
+     "fortified wine",
+     "fortified milk",
+     "fortified cereal",
+     "fortified foods",
+     "vitamin"
+    ]
+   }
+  },
+  {
+   "id": "metal",
+   "label": "Metal roofing",
+   "short": "Metal",
+   "keywords": {
+    "core": [
+     "metal roofing",
+     "metal roof installation",
+     "standing seam metal roof",
+     "metal roof cost",
+     "metal roof contractor",
+     "metal roof over shingles",
+     "metal roofing near me",
+     "metal roof replacement"
+    ],
+    "spanish": [
+     "techos de metal",
+     "techo de lamina"
+    ],
+    "negatives": [
+     "metal roofing panels for sale",
+     "metal building kit",
+     "carport kit",
+     "scrap metal",
+     "metal roof paint",
+     "diy metal roof"
+    ]
+   }
+  },
+  {
+   "id": "mh",
+   "label": "Manufactured home roofs",
+   "short": "Mobile home",
+   "keywords": {
+    "core": [
+     "mobile home roof",
+     "mobile home roof over",
+     "mobile home roof repair",
+     "manufactured home roof replacement",
+     "trailer roof leak",
+     "mobile home metal roof",
+     "mobile home roof coating"
+    ],
+    "spanish": [
+     "techo para casa movil"
+    ],
+    "negatives": [
+     "rv roof",
+     "camper roof",
+     "mobile home for sale",
+     "mobile home parts",
+     "mobile home lot"
+    ]
+   }
+  },
+  {
+   "id": "mf",
+   "label": "Multifamily, condo and HOA",
+   "short": "Multifamily",
+   "keywords": {
+    "core": [
+     "apartment roofing",
+     "multifamily roofing contractor",
+     "hoa roof replacement",
+     "condo roof replacement",
+     "townhome roof replacement",
+     "property management roofing"
+    ],
+    "negatives": [
+     "apartment for rent",
+     "condo for sale",
+     "apartments near me",
+     "hoa fees"
+    ]
+   }
+  },
+  {
+   "id": "comm",
+   "label": "Commercial roof replacement",
+   "short": "Commercial",
+   "keywords": {
+    "core": [
+     "commercial roofing",
+     "commercial roof replacement",
+     "flat roof replacement",
+     "tpo roofing",
+     "pvc roofing",
+     "modified bitumen roof",
+     "commercial roofing contractor",
+     "warehouse roof replacement",
+     "church roof replacement",
+     "metal building roof"
+    ],
+    "negatives": [
+     "commercial roofing jobs",
+     "roofing salary",
+     "rubber roof kit",
+     "flat roof diy",
+     "roofing apprenticeship"
+    ]
+   }
+  },
+  {
+   "id": "coat",
+   "label": "Restoration, coatings and maintenance",
+   "short": "Coatings",
+   "keywords": {
+    "core": [
+     "commercial roof coating",
+     "silicone roof coating",
+     "roof restoration",
+     "flat roof coating",
+     "commercial roof repair",
+     "roof maintenance program",
+     "commercial roof inspection"
+    ],
+    "negatives": [
+     "roof coating home depot",
+     "elastomeric paint",
+     "diy roof coating",
+     "roof coating gallon"
+    ]
+   }
+  },
+  {
+   "id": "newc",
+   "label": "New construction roofing",
+   "short": "New build",
+   "keywords": {
+    "core": [
+     "new construction roofing",
+     "roofing subcontractor",
+     "builder roofing contractor",
+     "roofing for builders",
+     "roof installation new home"
+    ],
+    "negatives": [
+     "roofing jobs",
+     "roofing apprenticeship",
+     "roofing license",
+     "build my own house"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_COMMON": [
+   "jobs",
+   "job",
+   "career",
+   "salary",
+   "hiring",
+   "apprentice",
+   "apprenticeship",
+   "training",
+   "how to",
+   "diy",
+   "do it yourself",
+   "youtube",
+   "reddit",
+   "wiki",
+   "definition",
+   "meaning",
+   "license exam",
+   "osha",
+   "home depot",
+   "lowes",
+   "menards",
+   "for sale",
+   "wholesale",
+   "texas",
+   "mississippi",
+   "arkansas",
+   "alabama",
+   "florida"
+  ]
+ }
+}

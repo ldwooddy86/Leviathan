@@ -1,0 +1,570 @@
+{
+ "id": "employment",
+ "depth": "keywords",
+ "vertical": "Employment law",
+ "wing": "legal",
+ "atlas": "The Termination Exposure Atlas",
+ "scope": "National",
+ "source": {
+  "file": "leviathan/Leviathan-data-2.js#employment",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "wt",
+   "label": "Wrongful termination",
+   "short": "Wrongful termination",
+   "path": "/wrongful-termination",
+   "keywords": {
+    "core": [
+     "wrongful termination lawyer",
+     "wrongful termination attorney",
+     "wrongful termination lawyer near me",
+     "wrongful termination attorney near me",
+     "wrongful termination law firm",
+     "employment lawyer",
+     "employment attorney",
+     "employment lawyer near me",
+     "employment attorney near me",
+     "employment lawyer for employees",
+     "unlawful termination lawyer",
+     "illegal termination attorney",
+     "fired without cause lawyer",
+     "sue employer for wrongful termination",
+     "wrongful discharge attorney",
+     "lawyer for being fired",
+     "fired for no reason lawyer"
+    ],
+    "questions": [
+     "can i sue my employer for firing me",
+     "what to do after being fired",
+     "is it illegal to fire someone for no reason",
+     "fired without warning what are my rights",
+     "how do i know if i was wrongfully terminated",
+     "can you sue for wrongful termination"
+    ],
+    "spanish": [
+     "abogado de despido injustificado",
+     "abogado laboral cerca de mi",
+     "me despidieron injustamente",
+     "abogado de trabajo para empleados",
+     "abogado despido injustificado {city}"
+    ]
+   }
+  },
+  {
+   "id": "retal",
+   "label": "Retaliation & whistleblower",
+   "short": "Retaliation",
+   "path": "/retaliation",
+   "keywords": {
+    "core": [
+     "retaliation lawyer",
+     "retaliation attorney",
+     "workplace retaliation lawyer",
+     "whistleblower attorney",
+     "whistleblower lawyer",
+     "whistleblower lawyer near me",
+     "fired for reporting harassment lawyer",
+     "fired for complaining to hr lawyer",
+     "retaliation lawyer near me",
+     "employer retaliation attorney",
+     "sox whistleblower attorney",
+     "qui tam attorney"
+    ],
+    "questions": [
+     "can i sue for retaliation at work",
+     "fired after filing a complaint",
+     "what counts as retaliation at work",
+     "fired for reporting safety violations"
+    ],
+    "spanish": [
+     "abogado de represalias laborales",
+     "despedido por quejarse abogado"
+    ]
+   }
+  },
+  {
+   "id": "age",
+   "label": "Age discrimination (ADEA)",
+   "short": "Age discrimination",
+   "path": "/age-discrimination",
+   "keywords": {
+    "core": [
+     "age discrimination lawyer",
+     "age discrimination attorney",
+     "age discrimination lawyer near me",
+     "adea attorney",
+     "fired for being too old lawyer",
+     "age discrimination layoff attorney",
+     "older worker discrimination lawyer",
+     "severance agreement review lawyer"
+    ],
+    "questions": [
+     "can i sue for age discrimination",
+     "laid off replaced by younger worker",
+     "is it age discrimination if",
+     "how to prove age discrimination"
+    ],
+    "spanish": [
+     "abogado discriminación por edad",
+     "despedido por edad abogado"
+    ]
+   }
+  },
+  {
+   "id": "dis",
+   "label": "Disability, medical leave & accommodation",
+   "short": "Disability & leave",
+   "path": "/disability-medical-leave",
+   "keywords": {
+    "core": [
+     "disability discrimination attorney",
+     "disability discrimination lawyer",
+     "fmla lawyer",
+     "fmla attorney",
+     "fmla retaliation lawyer",
+     "fired while on fmla lawyer",
+     "fired after medical leave lawyer",
+     "ada lawyer for employees",
+     "reasonable accommodation lawyer",
+     "fired after injury lawyer"
+    ],
+    "questions": [
+     "can i be fired while on fmla",
+     "fired after returning from medical leave",
+     "denied reasonable accommodation what can i do",
+     "fired for being disabled"
+    ],
+    "spanish": [
+     "abogado despido licencia medica",
+     "abogado fmla en español"
+    ]
+   }
+  },
+  {
+   "id": "preg",
+   "label": "Pregnancy & family leave",
+   "short": "Pregnancy",
+   "path": "/pregnancy-discrimination",
+   "keywords": {
+    "core": [
+     "pregnancy discrimination lawyer",
+     "pregnancy discrimination attorney",
+     "fired for being pregnant lawyer",
+     "fired after maternity leave lawyer",
+     "pregnant workers fairness act lawyer",
+     "maternity leave discrimination attorney",
+     "fired after parental leave attorney"
+    ],
+    "questions": [
+     "can i be fired for being pregnant",
+     "fired after maternity leave what can i do",
+     "pregnancy discrimination how to prove"
+    ],
+    "spanish": [
+     "abogado discriminación por embarazo",
+     "despedida por embarazo abogado"
+    ]
+   }
+  },
+  {
+   "id": "warn",
+   "label": "Mass layoff & WARN notice",
+   "short": "Layoff / WARN",
+   "path": "/layoff-warn-act",
+   "keywords": {
+    "core": [
+     "warn act lawyer",
+     "warn act attorney",
+     "mass layoff lawyer",
+     "layoff without notice lawyer",
+     "plant closing lawyer",
+     "laid off no notice attorney",
+     "warn act class action",
+     "severance review lawyer layoff",
+     "{state} warn act attorney"
+    ],
+    "questions": [
+     "laid off without notice what are my rights",
+     "does warn act apply to me",
+     "how much notice for a layoff",
+     "laid off can i sue"
+    ],
+    "spanish": [
+     "despido masivo abogado",
+     "ley warn abogado"
+    ]
+   }
+  },
+  {
+   "id": "sev",
+   "label": "Severance review",
+   "short": "Severance review",
+   "path": "/severance-review",
+   "keywords": {
+    "core": [
+     "severance agreement lawyer",
+     "severance agreement review",
+     "severance negotiation lawyer",
+     "severance attorney near me",
+     "should i sign my severance agreement",
+     "severance package review attorney",
+     "employment contract review lawyer"
+    ],
+    "questions": [
+     "how to negotiate severance",
+     "what to look for in a severance agreement",
+     "can i negotiate severance after being laid off"
+    ],
+    "spanish": [
+     "abogado acuerdo de despido",
+     "revisar acuerdo de indemnización"
+    ]
+   }
+  },
+  {
+   "id": "wage",
+   "label": "Unpaid wages, overtime & final pay",
+   "short": "Unpaid wages",
+   "path": "/unpaid-wages-overtime",
+   "keywords": {
+    "core": [
+     "unpaid overtime lawyer",
+     "unpaid wages attorney",
+     "wage and hour attorney",
+     "wage and hour lawyer near me",
+     "final paycheck lawyer",
+     "unpaid wages lawyer near me",
+     "overtime lawyer",
+     "off the clock work lawyer",
+     "tip theft lawyer",
+     "wage theft attorney",
+     "unpaid commission lawyer"
+    ],
+    "questions": [
+     "employer didn't pay final paycheck",
+     "can i sue for unpaid overtime",
+     "how long does employer have to pay final check {state}",
+     "salaried but working 60 hours no overtime"
+    ],
+    "spanish": [
+     "abogado de salarios no pagados",
+     "abogado horas extra no pagadas",
+     "robo de salario abogado",
+     "abogado cheque final"
+    ]
+   }
+  },
+  {
+   "id": "misclass",
+   "label": "Misclassification — contractor or exempt",
+   "short": "Misclassification",
+   "path": "/misclassification",
+   "keywords": {
+    "core": [
+     "misclassification lawyer",
+     "independent contractor misclassification attorney",
+     "1099 misclassification lawyer",
+     "misclassified as exempt lawyer",
+     "contractor vs employee lawyer",
+     "gig worker lawyer",
+     "misclassified employee back pay"
+    ],
+    "questions": [
+     "am i misclassified as an independent contractor",
+     "1099 employee rights",
+     "can a 1099 contractor sue for overtime"
+    ],
+    "spanish": [
+     "abogado clasificación erronea contratista",
+     "1099 derechos empleado abogado"
+    ]
+   }
+  },
+  {
+   "id": "nonc",
+   "label": "Non-compete & restrictive covenants",
+   "short": "Non-compete",
+   "path": "/non-compete",
+   "keywords": {
+    "core": [
+     "non compete lawyer",
+     "non compete attorney",
+     "non compete agreement lawyer near me",
+     "is my non compete enforceable",
+     "non compete review lawyer",
+     "cease and desist former employer lawyer",
+     "non solicitation agreement lawyer",
+     "{state} non compete law attorney"
+    ],
+    "questions": [
+     "how to get out of a non compete",
+     "are non competes enforceable in {state}",
+     "can my employer enforce a non compete if i was fired"
+    ]
+   }
+  },
+  {
+   "id": "temp",
+   "label": "Temp & staffing-agency workers",
+   "short": "Staffing / temp",
+   "path": "/staffing-agency-workers",
+   "keywords": {
+    "core": [
+     "temp agency lawyer",
+     "staffing agency lawsuit",
+     "staffing agency not paying overtime",
+     "temp worker rights lawyer",
+     "temp agency unpaid wages",
+     "staffing agency discrimination lawyer",
+     "temp agency fees deducted from pay",
+     "contract worker lawyer",
+     "temp worker equal pay {state}"
+    ],
+    "questions": [
+     "can i sue a temp agency",
+     "temp agency not paying me",
+     "who is my employer temp agency or client",
+     "temp agency took money from my check"
+    ],
+    "spanish": [
+     "abogado agencia de empleo temporal",
+     "agencia de trabajo no paga horas extra",
+     "abogado trabajadores temporales"
+    ]
+   }
+  },
+  {
+   "id": "fcra",
+   "label": "Background-check denial (FCRA)",
+   "short": "Background check",
+   "path": "/background-check-denied",
+   "keywords": {
+    "core": [
+     "background check lawyer",
+     "fcra attorney",
+     "fcra lawyer",
+     "denied job because of background check lawyer",
+     "background check error lawyer",
+     "wrong background check lawsuit",
+     "pre adverse action notice lawyer",
+     "job offer rescinded background check attorney",
+     "credit check job denial lawyer"
+    ],
+    "questions": [
+     "can i sue for a wrong background check",
+     "job offer rescinded after background check what can i do",
+     "how far back can a background check go {state}"
+    ],
+    "spanish": [
+     "abogado verificación de antecedentes",
+     "reporte de antecedentes erroneo abogado"
+    ]
+   }
+  },
+  {
+   "id": "visa",
+   "label": "H-1B, visa workers & citizenship-status hiring",
+   "short": "Visa workers / IER",
+   "path": "/h1b-visa-worker-rights",
+   "keywords": {
+    "core": [
+     "h1b lawyer for employees",
+     "h1b wage violation attorney",
+     "h1b benching lawyer",
+     "h1b employer not paying salary",
+     "visa fee charged to employee lawyer",
+     "citizenship discrimination lawyer",
+     "us citizens only job ad illegal",
+     "immigrant worker rights lawyer",
+     "prevailing wage violation attorney"
+    ],
+    "questions": [
+     "can h1b employer bench me without pay",
+     "employer charged me h1b fees is that legal",
+     "no sponsorship job posting legal"
+    ],
+    "spanish": [
+     "abogado trabajadores con visa",
+     "abogado h2b derechos",
+     "me cobraron la visa de trabajo abogado"
+    ]
+   }
+  },
+  {
+   "id": "farm",
+   "label": "Farm labour contractors — MSPA & H-2A",
+   "short": "Farm labour",
+   "path": "/farmworker-rights",
+   "keywords": {
+    "core": [
+     "farmworker lawyer",
+     "farm worker rights attorney",
+     "h2a lawyer",
+     "h2a contract violation",
+     "mspa lawyer",
+     "farm labor contractor lawsuit",
+     "migrant worker lawyer",
+     "farmworker unpaid wages"
+    ],
+    "questions": [
+     "h2a worker not paid contract wage",
+     "contractor deducting rides from pay legal",
+     "farmworker rights {state}"
+    ],
+    "spanish": [
+     "abogado trabajadores del campo",
+     "abogado h2a",
+     "contratista agricola no paga",
+     "derechos trabajadores agricolas"
+    ]
+   }
+  },
+  {
+   "id": "payt",
+   "label": "Pay-transparency postings",
+   "short": "Pay transparency",
+   "path": "/pay-transparency",
+   "keywords": {
+    "core": [
+     "pay transparency law lawyer",
+     "job posting no salary range {state}",
+     "salary history ban lawyer",
+     "pay transparency violation",
+     "{state} pay transparency law attorney",
+     "recruiter asked salary history illegal"
+    ],
+    "questions": [
+     "is it illegal to not post salary range in {state}",
+     "can i sue for no pay range job posting"
+    ]
+   }
+  },
+  {
+   "id": "ai",
+   "label": "AI hiring screens & algorithmic bias",
+   "short": "AI hiring",
+   "path": "/ai-hiring-discrimination",
+   "keywords": {
+    "core": [
+     "ai hiring discrimination lawyer",
+     "algorithm rejected job application lawsuit",
+     "workday lawsuit join",
+     "ai job screening discrimination",
+     "automated hiring discrimination attorney",
+     "{state} ai hiring law"
+    ],
+    "questions": [
+     "can i sue if ai rejected my job application",
+     "how to join the workday age discrimination lawsuit"
+    ]
+   }
+  },
+  {
+   "id": "harass",
+   "label": "Sexual harassment & hostile workplace",
+   "short": "Harassment",
+   "path": "/sexual-harassment",
+   "keywords": {
+    "core": [
+     "sexual harassment lawyer",
+     "sexual harassment attorney",
+     "hostile work environment lawyer",
+     "workplace harassment attorney near me",
+     "sexual harassment lawyer near me",
+     "fired for reporting sexual harassment"
+    ],
+    "questions": [
+     "what counts as a hostile work environment",
+     "can i sue for sexual harassment at work",
+     "hr ignored my harassment complaint"
+    ],
+    "spanish": [
+     "abogado acoso sexual trabajo",
+     "abogado acoso laboral"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_SHARED": [
+   "jobs",
+   "job",
+   "hiring",
+   "careers",
+   "career",
+   "salary",
+   "salaries",
+   "resume",
+   "cv",
+   "hr",
+   "human resources",
+   "employer",
+   "employers",
+   "defense",
+   "defence",
+   "how to fire",
+   "how to terminate",
+   "termination letter",
+   "template",
+   "sample",
+   "samples",
+   "form",
+   "forms",
+   "definition",
+   "meaning",
+   "wiki",
+   "wikipedia",
+   "reddit",
+   "quora",
+   "statistics",
+   "law school",
+   "paralegal",
+   "bar exam",
+   "cle",
+   "textbook",
+   "unemployment office",
+   "file for unemployment",
+   "unemployment application",
+   "unemployment claim status",
+   "canada",
+   "ontario",
+   "uk",
+   "australia",
+   "india",
+   "philippines",
+   "pdf",
+   "checklist",
+   "policy",
+   "handbook",
+   "training",
+   "course",
+   "certification",
+   "degree",
+   "intern",
+   "internship",
+   "free legal aid",
+   "pro bono",
+   "legal aid"
+  ],
+  "NEG_EMPLOYER": [
+   "employer rights",
+   "can i fire",
+   "terminate an employee",
+   "firing an employee",
+   "how to lay off",
+   "layoff notice template",
+   "warn act compliance",
+   "warn act requirements for employers",
+   "severance agreement template",
+   "severance calculator",
+   "non compete template",
+   "background check for employers",
+   "tenant screening",
+   "landlord"
+  ]
+ }
+}

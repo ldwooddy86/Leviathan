@@ -1,0 +1,319 @@
+{
+ "id": "injury_la",
+ "depth": "keywords",
+ "vertical": "Personal injury",
+ "wing": "legal",
+ "atlas": "Contraflow Injury Atlas",
+ "scope": "Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#injury_la",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "car",
+   "label": "Car accidents",
+   "short": "Car",
+   "keywords": {
+    "core": [
+     "car accident lawyer",
+     "car wreck lawyer",
+     "auto accident attorney",
+     "car accident attorney",
+     "rear end collision lawyer",
+     "uninsured motorist lawyer",
+     "hit and run accident lawyer",
+     "uber accident lawyer",
+     "lyft accident lawyer",
+     "rideshare accident lawyer",
+     "motorcycle accident lawyer",
+     "pedestrian accident lawyer",
+     "bicycle accident lawyer",
+     "personal injury lawyer",
+     "injury attorney"
+    ],
+    "spanish": [
+     "abogado de accidentes de carro",
+     "abogado de accidentes de auto",
+     "abogado de lesiones personales"
+    ],
+    "negatives": [
+     "body shop",
+     "collision repair",
+     "towing",
+     "rental car",
+     "car insurance quote",
+     "cheap insurance",
+     "how to fix",
+     "salvage"
+    ]
+   }
+  },
+  {
+   "id": "truck",
+   "label": "Truck accidents",
+   "short": "Truck",
+   "keywords": {
+    "core": [
+     "truck accident lawyer",
+     "18 wheeler accident lawyer",
+     "semi truck accident attorney",
+     "tractor trailer accident lawyer",
+     "commercial truck accident lawyer",
+     "oilfield truck accident lawyer",
+     "dump truck accident lawyer",
+     "garbage truck accident lawyer",
+     "delivery truck accident lawyer",
+     "big rig accident attorney",
+     "tanker truck accident lawyer"
+    ],
+    "spanish": [
+     "abogado de accidentes de camion",
+     "abogado de accidentes de trailer"
+    ],
+    "negatives": [
+     "truck driving school",
+     "cdl",
+     "truck driver jobs",
+     "owner operator",
+     "truck insurance",
+     "truck parts",
+     "truck for sale",
+     "dispatcher"
+    ]
+   }
+  },
+  {
+   "id": "dui",
+   "label": "Impaired driving accidents",
+   "short": "Impaired",
+   "keywords": {
+    "core": [
+     "drunk driver accident lawyer",
+     "drunk driving accident attorney",
+     "hit by drunk driver lawyer",
+     "drunk driver victim lawyer",
+     "impaired driver crash lawyer",
+     "dwi accident victim lawyer"
+    ],
+    "spanish": [
+     "abogado accidente conductor ebrio"
+    ],
+    "negatives": [
+     "dwi defense",
+     "dui defense",
+     "dwi charge",
+     "first offense",
+     "how to beat",
+     "expungement",
+     "bail",
+     "bond",
+     "license suspension",
+     "ignition interlock",
+     "criminal lawyer",
+     "dwi lawyer"
+    ]
+   }
+  },
+  {
+   "id": "prem",
+   "label": "Premises liability and slip and fall",
+   "short": "Premises",
+   "keywords": {
+    "core": [
+     "slip and fall lawyer",
+     "premises liability lawyer",
+     "trip and fall attorney",
+     "fall injury lawyer",
+     "store fall lawyer",
+     "negligent security lawyer",
+     "apartment injury lawyer",
+     "casino injury lawyer",
+     "hotel injury lawyer",
+     "parking lot injury lawyer"
+    ],
+    "spanish": [
+     "abogado de resbalones y caidas"
+    ],
+    "negatives": [
+     "fall protection",
+     "osha training",
+     "slip resistant shoes",
+     "floor mat",
+     "fall prevention exercises",
+     "nursing assistant"
+    ]
+   }
+  },
+  {
+   "id": "dog",
+   "label": "Dog attacks and bites",
+   "short": "Dog",
+   "keywords": {
+    "core": [
+     "dog bite lawyer",
+     "dog attack attorney",
+     "dog bite attorney",
+     "animal attack lawyer",
+     "dog bite injury lawyer",
+     "child dog bite lawyer"
+    ],
+    "spanish": [
+     "abogado de mordidas de perro"
+    ],
+    "negatives": [
+     "dog training",
+     "adopt",
+     "puppy",
+     "vet",
+     "animal control jobs",
+     "dog bite treatment at home",
+     "rabies shot cost"
+    ]
+   }
+  },
+  {
+   "id": "prod",
+   "label": "Product liability",
+   "short": "Product",
+   "keywords": {
+    "core": [
+     "product liability lawyer",
+     "defective product attorney",
+     "product injury lawyer",
+     "defective tire lawyer",
+     "airbag injury lawyer",
+     "defective vehicle lawyer",
+     "burn injury lawyer",
+     "explosion injury lawyer",
+     "defective equipment injury lawyer"
+    ],
+    "spanish": [
+     "abogado de productos defectuosos"
+    ],
+    "negatives": [
+     "product recall list",
+     "product liability insurance",
+     "return policy",
+     "warranty claim form",
+     "class action settlement checks"
+    ]
+   }
+  },
+  {
+   "id": "drown",
+   "label": "Child drownings",
+   "short": "Drowning",
+   "keywords": {
+    "core": [
+     "drowning accident lawyer",
+     "pool accident lawyer",
+     "child drowning lawyer",
+     "swimming pool injury lawyer",
+     "apartment pool drowning attorney",
+     "near drowning lawyer",
+     "day care drowning lawyer"
+    ],
+    "spanish": [
+     "abogado de accidentes en piscina"
+    ],
+    "negatives": [
+     "swim lessons",
+     "pool supplies",
+     "pool fence installation",
+     "lifeguard jobs",
+     "cpr class"
+    ]
+   }
+  },
+  {
+   "id": "child",
+   "label": "Injuries to children",
+   "short": "Child",
+   "keywords": {
+    "core": [
+     "child injury lawyer",
+     "daycare injury lawyer",
+     "day care negligence attorney",
+     "school injury lawyer",
+     "playground injury lawyer",
+     "child hurt at daycare lawyer",
+     "daycare abuse lawyer"
+    ],
+    "spanish": [
+     "abogado de lesiones de niños"
+    ],
+    "negatives": [
+     "daycare near me",
+     "daycare jobs",
+     "child care license",
+     "tuition",
+     "school enrollment",
+     "pediatrician"
+    ]
+   }
+  },
+  {
+   "id": "medmal",
+   "label": "Medical malpractice",
+   "short": "Malpractice",
+   "keywords": {
+    "core": [
+     "medical malpractice lawyer",
+     "medical negligence attorney",
+     "birth injury lawyer",
+     "surgical error lawyer",
+     "misdiagnosis lawyer",
+     "hospital negligence lawyer",
+     "wrong diagnosis attorney",
+     "medication error lawyer"
+    ],
+    "spanish": [
+     "abogado de negligencia medica"
+    ],
+    "negatives": [
+     "malpractice insurance",
+     "medical billing",
+     "nursing jobs",
+     "cna",
+     "medical records request form",
+     "patient portal"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_COMMON": [
+   "jobs",
+   "job",
+   "career",
+   "salary",
+   "hiring",
+   "paralegal",
+   "law school",
+   "how to become",
+   "internship",
+   "free legal aid",
+   "pro bono",
+   "legal aid",
+   "template",
+   "form",
+   "diy",
+   "reddit",
+   "wiki",
+   "definition",
+   "meaning",
+   "divorce",
+   "bankruptcy",
+   "immigration",
+   "criminal defense",
+   "workers comp",
+   "social security disability",
+   "texas",
+   "mississippi",
+   "arkansas"
+  ]
+ }
+}

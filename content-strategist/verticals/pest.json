@@ -1,0 +1,566 @@
+{
+ "id": "pest",
+ "depth": "keywords",
+ "vertical": "Pest control",
+ "wing": "home",
+ "atlas": "Swarm Front Atlas",
+ "scope": "Texas and Louisiana",
+ "source": {
+  "file": "leviathan/Leviathan.html#pest",
+  "compiled": "2026-10-06",
+  "extracted": "2026-11-14"
+ },
+ "note": "Keyword library lifted from the atlas's ad and page copy. No keyword volumes are in the atlas.",
+ "angles": [
+  {
+   "id": "termite",
+   "label": "Subterranean termite treatment (liquid and bait)",
+   "short": "Termite Treatment",
+   "line": "termite",
+   "path": "/termite-control",
+   "why": "Termite pressure class very heavy or heavy (Formosan documented or edge, or a humid native termite zone).",
+   "keywords": {
+    "core": [
+     "termite treatment",
+     "termite control",
+     "termite exterminator",
+     "termite company near me",
+     "termite treatment cost",
+     "termite bait system",
+     "termite control {city}",
+     "termite treatment {city}",
+     "termite company {city}",
+     "subterranean termite treatment"
+    ],
+    "questions": [
+     "how much does termite treatment cost",
+     "signs of termites in house",
+     "mud tubes on foundation",
+     "liquid termite treatment vs bait",
+     "how long does termite treatment last"
+    ]
+   }
+  },
+  {
+   "id": "formosan",
+   "label": "Formosan termite colonies, treatment and repair warranties",
+   "short": "Formosan Termites",
+   "line": "termite",
+   "path": "/formosan-termites",
+   "why": "Formosan termites documented in the county or parish, or on its expansion edge.",
+   "keywords": {
+    "core": [
+     "formosan termite treatment",
+     "formosan termites",
+     "formosan termite swarm",
+     "formosan termite control {city}",
+     "termite swarm {city}",
+     "flying termites at night",
+     "formosan termite damage"
+    ],
+    "questions": [
+     "what do formosan termites look like",
+     "why are termites swarming around my porch light",
+     "how do you get rid of formosan termites",
+     "are formosan termites in my area"
+    ]
+   }
+  },
+  {
+   "id": "swarm",
+   "label": "Native termite swarm season response",
+   "short": "Swarm Season",
+   "line": "termite",
+   "path": "/termite-swarms",
+   "why": "Every zone with spring native termite swarms; timed by the county swarm clock (heat units since December 21 plus rain).",
+   "keywords": {
+    "core": [
+     "termite swarm",
+     "flying termites",
+     "termites swarming in house",
+     "flying ants or termites",
+     "termite swarmers",
+     "termite swarm {city}",
+     "termites in window sill"
+    ],
+    "questions": [
+     "are flying ants termites",
+     "what to do when termites swarm",
+     "why are termites swarming inside",
+     "termite swarm season"
+    ]
+   }
+  },
+  {
+   "id": "wdi",
+   "label": "Real estate wood destroying insect (WDI) inspections",
+   "short": "WDI Inspection",
+   "line": "wdi",
+   "path": "/wdi-inspection",
+   "why": "Home sales per 1,000 housing units at or above the two state median, or recent owners at or above 18%.",
+   "keywords": {
+    "core": [
+     "wdi inspection",
+     "termite inspection for home sale",
+     "termite letter",
+     "wood destroying insect report",
+     "va termite inspection",
+     "termite inspection cost",
+     "wdi inspection {city}",
+     "termite inspection {city}"
+    ],
+    "questions": [
+     "who pays for termite inspection when buying a house",
+     "does va require a termite inspection",
+     "how long is a termite inspection good for",
+     "what is a wdi report"
+    ]
+   }
+  },
+  {
+   "id": "pretreat",
+   "label": "New construction pretreatments and builder warranties",
+   "short": "Builder Pretreat",
+   "line": "builder",
+   "path": "/builder-pretreatment",
+   "why": "Built 2010 or later at or above 25% of units, or 40 or more single family permits a year on the five year average.",
+   "keywords": {
+    "core": [
+     "termite pretreatment",
+     "new construction termite treatment",
+     "builder termite pretreat",
+     "termite pretreat {city}",
+     "slab pretreatment termites"
+    ],
+    "questions": [
+     "is termite pretreatment required for new construction",
+     "how long does termite pretreatment last"
+    ]
+   }
+  },
+  {
+   "id": "renew",
+   "label": "Termite protection plans, bait monitoring and renewals",
+   "short": "Termite Plan",
+   "line": "termite",
+   "path": "/termite-protection-plan",
+   "why": "Owner occupied single family at or above 45% in a very heavy or heavy termite class.",
+   "keywords": {
+    "core": [
+     "termite protection plan",
+     "termite bond",
+     "termite contract",
+     "termite bait monitoring",
+     "termite renewal",
+     "termite warranty {city}"
+    ],
+    "questions": [
+     "is a termite bond worth it",
+     "does homeowners insurance cover termite damage",
+     "what is a termite contract"
+    ]
+   }
+  },
+  {
+   "id": "drywood",
+   "label": "Drywood termite fumigation and spot treatment",
+   "short": "Drywood Termites",
+   "line": "termite",
+   "path": "/drywood-termites",
+   "why": "A coastal zone (1, 3, 6 or 10) within 80 km of the Gulf, the drywood termite belt.",
+   "keywords": {
+    "core": [
+     "drywood termites",
+     "termite fumigation",
+     "tent fumigation termites",
+     "termite pellets",
+     "drywood termite treatment {city}"
+    ],
+    "questions": [
+     "what do termite droppings look like",
+     "do i need to tent my house for termites"
+    ]
+   }
+  },
+  {
+   "id": "pest",
+   "label": "Quarterly general pest control plans",
+   "short": "Pest Control Plan",
+   "line": "pest",
+   "path": "/pest-control",
+   "why": "Core recurring line; every ZIP.",
+   "keywords": {
+    "core": [
+     "pest control",
+     "pest control near me",
+     "exterminator",
+     "exterminator near me",
+     "pest control service",
+     "quarterly pest control",
+     "pest control {city}",
+     "exterminator {city}",
+     "bug spray service",
+     "pest control company"
+    ],
+    "questions": [
+     "how much is pest control a month",
+     "is quarterly pest control worth it",
+     "how often should you spray for bugs"
+    ]
+   }
+  },
+  {
+   "id": "ants",
+   "label": "Ants, fire ants and tawny crazy ants",
+   "short": "Ants and Fire Ants",
+   "line": "pest",
+   "path": "/ant-control",
+   "why": "Fire ant country (everywhere outside the far west) or a dry spell that drives ants indoors.",
+   "keywords": {
+    "core": [
+     "ant control",
+     "fire ant treatment",
+     "ants in kitchen",
+     "crazy ants",
+     "fire ant control {city}",
+     "ant exterminator {city}",
+     "tawny crazy ants"
+    ],
+    "questions": [
+     "why are ants in my house after rain",
+     "how to get rid of fire ants in yard",
+     "what are crazy ants"
+    ]
+   }
+  },
+  {
+   "id": "roaches",
+   "label": "Roaches: German cockroaches and palmetto bugs",
+   "short": "Roach Control",
+   "line": "interior",
+   "path": "/roach-control",
+   "why": "Renters in buildings of five or more units at or above 12% of households, or pre 1980 stock at or above 45%.",
+   "keywords": {
+    "core": [
+     "roach exterminator",
+     "german roach treatment",
+     "cockroach control",
+     "palmetto bugs",
+     "roach exterminator {city}",
+     "roach control {city}",
+     "roaches in kitchen"
+    ],
+    "questions": [
+     "how to get rid of german roaches",
+     "why do i have roaches in a clean house",
+     "palmetto bug vs cockroach"
+    ]
+   }
+  },
+  {
+   "id": "mosquito",
+   "label": "Mosquito control programs",
+   "short": "Mosquito Program",
+   "line": "mosquito",
+   "path": "/mosquito-control",
+   "why": "Vector score at or above the 40th percentile, a West Nile positive mosquito pool in the county since 2025, or a Gulf or Valley zone.",
+   "keywords": {
+    "core": [
+     "mosquito control",
+     "mosquito spraying",
+     "mosquito treatment for yard",
+     "mosquito control {city}",
+     "backyard mosquito service",
+     "mosquito misting system"
+    ],
+    "questions": [
+     "how often should you spray for mosquitoes",
+     "does mosquito spraying work",
+     "how to get rid of mosquitoes in yard"
+    ]
+   }
+  },
+  {
+   "id": "rodent",
+   "label": "Rodent control and exclusion",
+   "short": "Rodent Exclusion",
+   "line": "rodent",
+   "path": "/rodent-control",
+   "why": "Cold front score at or above the 35th percentile, other vacant units at or above 6% (neighboring blight), or pre 1960 stock at or above 25%.",
+   "keywords": {
+    "core": [
+     "rodent control",
+     "rat exterminator",
+     "mice in house",
+     "rats in attic",
+     "rodent exclusion",
+     "rat control {city}",
+     "rodent removal {city}"
+    ],
+    "questions": [
+     "how do rats get in the attic",
+     "how to keep mice out in winter",
+     "what does rodent exclusion cost"
+    ]
+   }
+  },
+  {
+   "id": "bedbug",
+   "label": "Bed bug inspections and heat treatments",
+   "short": "Bed Bugs",
+   "line": "interior",
+   "path": "/bed-bug-treatment",
+   "why": "Renters in buildings of five or more units at or above 15% of households, or three or more lodging establishments in the ZIP.",
+   "keywords": {
+    "core": [
+     "bed bug treatment",
+     "bed bug exterminator",
+     "bed bug heat treatment",
+     "bed bugs {city}",
+     "bed bug inspection",
+     "bed bug exterminator near me"
+    ],
+    "questions": [
+     "how do i know if i have bed bugs",
+     "how much does bed bug heat treatment cost",
+     "can bed bugs come back after treatment"
+    ]
+   }
+  },
+  {
+   "id": "wildlife",
+   "label": "Wildlife removal and exclusion (squirrels, raccoons, bats, opossums)",
+   "short": "Wildlife Exclusion",
+   "line": "wildlife",
+   "path": "/wildlife-removal",
+   "why": "Raised or crawlspace homes at or above 20%, pre 1980 stock at or above 50%, or detached homes at or above 75%.",
+   "keywords": {
+    "core": [
+     "wildlife removal",
+     "squirrel in attic",
+     "raccoon removal",
+     "bat removal",
+     "opossum under house",
+     "wildlife removal {city}",
+     "animal in attic"
+    ],
+    "questions": [
+     "how to get squirrels out of attic",
+     "who removes raccoons",
+     "when can bats be removed"
+    ]
+   }
+  },
+  {
+   "id": "scorpion",
+   "label": "Scorpion and spider programs",
+   "short": "Scorpions",
+   "line": "pest",
+   "path": "/scorpion-control",
+   "why": "Striped bark scorpion country: North Texas, Central Texas, West Texas and upland Central Louisiana.",
+   "keywords": {
+    "core": [
+     "scorpion control",
+     "scorpion exterminator",
+     "scorpions in house",
+     "scorpion control {city}",
+     "brown recluse exterminator",
+     "spider control {city}"
+    ],
+    "questions": [
+     "why are scorpions in my house",
+     "how to keep scorpions out of the attic",
+     "do pest control companies kill scorpions"
+    ]
+   }
+  },
+  {
+   "id": "stinging",
+   "label": "Wasp, hornet and bee removal (Africanized bee aware)",
+   "short": "Wasps and Bees",
+   "line": "pest",
+   "path": "/wasp-bee-removal",
+   "why": "Africanized honey bee territory in Texas (quarantined counties since the 1990s) and Louisiana (Caddo Parish 2005, later around New Orleans).",
+   "keywords": {
+    "core": [
+     "wasp nest removal",
+     "bee removal",
+     "yellow jacket nest",
+     "hornet removal",
+     "bee removal {city}",
+     "wasp removal {city}"
+    ],
+    "questions": [
+     "who removes bees from walls",
+     "how to tell if bees are africanized"
+    ]
+   }
+  },
+  {
+   "id": "flea",
+   "label": "Flea, tick and yard programs (flea borne typhus aware)",
+   "short": "Fleas and Ticks",
+   "line": "pest",
+   "path": "/flea-tick-control",
+   "why": "Flea borne typhus at or above 1 case per 100,000 a year in the county (2021 to 2025), or Central Texas and the Valley.",
+   "keywords": {
+    "core": [
+     "flea treatment for house",
+     "flea exterminator",
+     "tick control yard",
+     "flea control {city}",
+     "tick spraying {city}"
+    ],
+    "questions": [
+     "how do you get rid of fleas in the house",
+     "do opossums carry fleas"
+    ]
+   }
+  },
+  {
+   "id": "storm",
+   "label": "Post storm and flood pest work",
+   "short": "After the Storm",
+   "line": "pest",
+   "path": "/after-the-storm",
+   "why": "Storm exposure in the top 30%, 25 or more flood claims per 1,000 homes since 2016, or a 2026 tropical storm passage.",
+   "keywords": {
+    "core": [
+     "pest control after flood",
+     "rodents after hurricane",
+     "mosquitoes after flood",
+     "termite inspection after flood",
+     "storm pest control {city}"
+    ],
+    "questions": [
+     "do floods bring termites",
+     "why are there more mosquitoes after a hurricane"
+    ]
+   }
+  },
+  {
+   "id": "landlord",
+   "label": "Apartments, landlords and HUD assisted housing (NSPIRE)",
+   "short": "Multifamily",
+   "line": "b2b",
+   "path": "/property-managers",
+   "why": "Renters in buildings of five or more units at or above 20% of households, or five or more apartment lessors and property managers in the ZIP.",
+   "keywords": {
+    "core": [
+     "apartment pest control",
+     "pest control for property managers",
+     "multifamily pest control",
+     "hud pest inspection",
+     "apartment pest control {city}"
+    ],
+    "questions": [
+     "who pays for pest control in an apartment",
+     "nspire pest standards"
+    ]
+   }
+  },
+  {
+   "id": "commercial",
+   "label": "Commercial accounts: restaurants, food plants, warehouses, healthcare",
+   "short": "Commercial",
+   "line": "commercial",
+   "path": "/commercial-pest-control",
+   "why": "25 or more food service, lodging, grocery, food plant, warehouse, healthcare, child care and school establishments in the ZIP.",
+   "keywords": {
+    "core": [
+     "commercial pest control",
+     "restaurant pest control",
+     "warehouse pest control",
+     "food plant pest control",
+     "commercial pest control {city}",
+     "restaurant exterminator {city}"
+    ],
+    "questions": [
+     "how often should a restaurant have pest control",
+     "pest control for health inspection"
+    ]
+   }
+  },
+  {
+   "id": "newowner",
+   "label": "New homeowner pest and termite check",
+   "short": "New Homeowner",
+   "line": "pest",
+   "path": "/new-homeowners",
+   "why": "Owners who moved in since 2020 at or above 18%, or movers from another state at or above 3% of residents a year.",
+   "keywords": {
+    "core": [
+     "pest control new home",
+     "termite inspection new house",
+     "pest control {city}",
+     "first pest control service"
+    ],
+    "questions": [
+     "what bugs are common in texas",
+     "what are palmetto bugs",
+     "do i need pest control in a new house"
+    ]
+   }
+  },
+  {
+   "id": "recruit",
+   "label": "Recruiting pest control technicians",
+   "short": "Technician Jobs",
+   "line": "recruit",
+   "path": "/careers",
+   "why": "Recruiting line; used when the plan line is recruiting.",
+   "keywords": {
+    "core": [
+     "pest control technician jobs",
+     "exterminator jobs",
+     "pest control jobs {city}",
+     "termite technician jobs"
+    ]
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_CUSTOMER": [
+   "jobs",
+   "job",
+   "hiring",
+   "careers",
+   "salary",
+   "school",
+   "training",
+   "license test",
+   "exam",
+   "certification",
+   "course",
+   "diy",
+   "homemade",
+   "how to make",
+   "youtube",
+   "reddit",
+   "spray bottle",
+   "amazon",
+   "home depot",
+   "lowes",
+   "walmart",
+   "ortho",
+   "raid",
+   "spectracide",
+   "borax",
+   "free",
+   "manual",
+   "lawsuit",
+   "recall",
+   "pet store",
+   "termite meaning",
+   "termite movie"
+  ],
+  "NEG_RECRUIT": [
+   "cost",
+   "price",
+   "treatment",
+   "near me exterminator",
+   "coupon",
+   "inspection cost"
+  ]
+ }
+}
