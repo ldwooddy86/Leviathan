@@ -150,8 +150,9 @@ command line.
   worker awake, and a retry alarm picks up a run that was stopped anyway: it keeps what was already fetched. The same
   alarm stays armed when a run ends with sources that failed (a laptop fires its missed alarms the moment it wakes, often
   before its network is back): eight minutes later it asks again for what is due, or else only for the sources that
-  failed, and gives up after two tries per scheduled run. The morning pulse goes by its hour, not by the time since the
-  last refresh, so a refresh pressed in the afternoon does not cost the next morning its forecast.
+  failed, and gives up after two tries per scheduled run. A weekly source that was down on Monday is asked once more with
+  each morning's pulse until it answers. The morning pulse goes by its hour, not by the time since the last refresh, so a
+  refresh pressed in the afternoon does not cost the next morning its forecast.
 - `app/live/page.js` is the page's handle on all of it (`LIVE`): the records, their ages, a refresh the page can run itself,
   and a `live` event the modules redraw on. `app/data/live-baseline.js` is a snapshot of the records baked at build time, so a
   fresh install and the single file open with current data before their first refresh.

@@ -33,7 +33,7 @@ function run(scope, opt) {
   let again = false;
   try { C.alarms.create(ALARM_RETRY, { delayInMinutes: 8 }); } catch (e) { }
   running = L.refresh(Object.assign({ scope, store, env: 'extension' }, opt || {}))
-    .then(async r => { again = !!(r.locked || (r.failed && r.failed.length)); if (!r.locked) { if (!again) await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
+    .then(async r => { again = !!(r.locked || (r.failed && r.failed.length && !(opt && opt.mend))); if (!r.locked) { if (!again && !(opt && opt.mend)) await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
     .catch(e => { console.error('refresh', e); again = true; return { ok: false }; })
     .finally(() => { clearInterval(beat); running = null; if (!again) { try { C.alarms.clear(ALARM_RETRY); } catch (e) { } } });
   return running;
@@ -49,6 +49,9 @@ async function retry() {
   if (await catchUp({ keepFresh: 6 * L.HOUR })) return;
   const bad = await failedNow(); if (bad.length) await run(bad);
 }
+/* the morning pulse also asks once more for a weekly source whose last try failed (a service that was down on Monday), so
+   it comes back the next morning and not the next week; this one try arms no retry of its own */
+async function mend(ran) { if (ran === 'weekly') return; const bad = (await failedNow()).filter(id => L.BY_ID[id] && L.BY_ID[id].cadence !== 'daily'); if (bad.length) await run(bad, { mend: true }); }
 
 /* ---------- badge and notifications ---------- */
 /* One notification per new trigger: a freeze in the forecast, or a new cold, heat, air quality or severe storm alert for the
@@ -71,7 +74,7 @@ async function announce(quiet) {
 C.runtime.onInstalled.addListener(d => { (async () => { await schedule(); if (d && d.reason === 'install') await O.openRoute('heat', { newTab: true }); await catchUp(); })(); });
 C.runtime.onStartup.addListener(() => { (async () => { await ensureSchedule(); await catchUp(); })(); });
 /* the next alarms are set before the run starts: a run that is cut short must not take the schedule down with it */
-C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); await store.set(RETRY_KEY, { n: 0 }); if (a.name === ALARM_WEEKLY) await run('weekly'); else await catchUp(); })(); });
+C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); await store.set(RETRY_KEY, { n: 0 }); if (a.name === ALARM_WEEKLY) await run('weekly'); else await mend(await catchUp()); })(); });
 C.runtime.onMessage.addListener((m, sender, respond) => {
   if (!m || typeof m.type !== 'string' || m.type.indexOf('tda.live.') !== 0) return false;
   (async () => {

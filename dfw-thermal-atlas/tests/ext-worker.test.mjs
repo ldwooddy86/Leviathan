@@ -135,16 +135,28 @@ test('sources that failed are asked again alone, twice at most, and the next sch
   asked.length = 0;
   w.at(at(2026, 11, 16, 6, 24)); w.boot(); await w.fireDue();
   assert.deepEqual(asked, [], 'after two tries the source is left alone'); assert.equal(w.alarmAt('tda-retry'), null);
-  /* the next morning's pulse is a new scheduled run: the count starts again, and only the weather sources are asked */
+  /* the next morning's pulse is a new scheduled run: the count starts again; the weather sources are asked, and the weekly
+     source that failed on Monday is asked once more with them, without a retry of its own */
   w.at(at(2026, 11, 17, 5)); w.boot(); await w.fireDue();
-  assert.deepEqual(asked.slice().sort(), DAILY.slice().sort()); assert.equal(w.runs()[0], 'daily:5'); assert.equal(w.mem['tda.live.retry'].n, 0);
+  assert.deepEqual(asked.slice().sort(), DAILY.concat('cpsc_recalls').sort()); assert.equal(asked.filter(x => x === 'cpsc_recalls').length, 1);
+  assert.deepEqual(w.runs().slice(0, 2), ['cpsc_recalls:0 failed cpsc_recalls', 'daily:5']); assert.equal(w.mem['tda.live.retry'].n, 0);
   assert.deepEqual(w.failed(), ['cpsc_recalls'], 'the weekly source that is down says so until it answers');
-  /* a source switched off in the settings is never retried */
-  w.mem['tda.live.settings'] = Object.assign({}, w.mem['tda.live.settings'], { disabled: { cpsc_recalls: true } });
-  down.add('nws_cold'); asked.length = 0;
+  assert.equal(w.alarmAt('tda-retry'), null, 'the one extra try each morning arms no retry');
+  /* the service is back on Wednesday: the morning pulse brings the weekly source in, five days before the next full refresh */
+  down.delete('cpsc_recalls'); asked.length = 0;
   w.at(at(2026, 11, 18, 5)); w.boot(); await w.fireDue();
-  w.at(at(2026, 11, 18, 5, 8)); w.boot(); asked.length = 0; await w.fireDue();
+  assert.deepEqual(w.failed(), []); assert.deepEqual(w.runs().slice(0, 2), ['cpsc_recalls:1', 'daily:5']);
+  asked.length = 0; w.at(at(2026, 11, 19, 5)); w.boot(); await w.fireDue();
+  assert.deepEqual(asked.slice().sort(), DAILY.slice().sort(), 'with nothing failed, only the weather sources are asked');
+  /* a source switched off in the settings is never asked again, by the retry or by the morning pulse */
+  down.add('cpsc_recalls'); down.add('nws_cold');
+  w.at(at(2026, 11, 23, 6)); w.boot(); await w.fireDue();
+  assert.deepEqual(w.failed(), ['cpsc_recalls', 'nws_cold']);
+  w.mem['tda.live.settings'] = Object.assign({}, w.mem['tda.live.settings'], { disabled: { cpsc_recalls: true } });
+  w.at(at(2026, 11, 23, 6, 8)); w.boot(); asked.length = 0; await w.fireDue();
   assert.deepEqual(asked, ['nws_cold']);
+  down.delete('nws_cold'); w.at(at(2026, 11, 24, 5)); w.boot(); asked.length = 0; await w.fireDue();
+  assert.deepEqual(asked.slice().sort(), DAILY.slice().sort());
   w.kill();
 });
 

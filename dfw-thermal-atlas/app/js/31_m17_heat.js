@@ -881,7 +881,7 @@ registerModule({
     $('#h17XGoogle', root).onclick = () => saveX('googleLocations');
     $('#h17XWeek', root).onclick = () => saveX('week');
     $('#h17XPlan', root).onclick = () => saveX('planByZip');
-    $('#h17Desk', root).onclick = () => { if (!plan.T.zips) { toast('No ZIP is in the plan to send'); return; } goModule('desk', Object.assign(HX.hand(plan, 'all'), { note: `Heat Desk plan for ${plan.monthName}: ${plan.T.zips} ZIPs with their bid adjustments` })); };
+    $('#h17Desk', root).onclick = () => { if (!plan.T.zips) { toast('No ZIP is in the plan to send'); return; } goModule('desk', Object.assign(HX.hand(plan, 'all'), { budget: Math.round(plan.T.spent), mix: Object.fromEntries(plan.platforms.map(q => [q.id, q.share])), note: `Heat Desk plan for ${plan.monthName}: ${plan.T.zips} ZIPs with their bid adjustments, the month's ${usd(plan.T.spent)} and the platform shares that run` })); };   /* the desk opens on this plan's money and platforms, not on its own defaults */
     $('#h17Lines', root).onclick = () => goModule('lines', { line: 'heat' });
     $('#h17Wx', root).onclick = () => goModule('weather', { line: 'heat' });
     $('#h17Live', root).onclick = () => goModule('live');

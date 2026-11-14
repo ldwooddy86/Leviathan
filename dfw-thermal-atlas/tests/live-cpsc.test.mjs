@@ -41,7 +41,10 @@ test('the collector merges the searches, newest first, and survives one failed s
   const L = fresh();
   const fetch = fakeFetch([[/RecallTitle=furnace/, FURNACE], [/RecallTitle=heat%20pump/, HP], [/RecallTitle=boiler/, { status: 500, body: 'x' }], [/RecallTitle=heater/, SPACE], [/RecallTitle=carbon/, []]]);
   const http = L.makeHttp({ fetch, gapMs: 0, backoffMs: 1, retries: 0 });
-  const d = await L.BY_ID.cpsc_recalls.run({ http, now: new Date('2026-11-13T18:00:00Z'), prev: null, geo: L.geo, settings: {} });
+  /* a first read must be whole: with no earlier record, one failed search fails the run instead of storing a short list */
+  await assert.rejects(() => L.BY_ID.cpsc_recalls.run({ http, now: new Date('2026-11-13T18:00:00Z'), prev: null, geo: L.geo, settings: {} }), /1 of 5 recall searches failed and no earlier record fills the gap/);
+  await assert.rejects(() => L.BY_ID.cpsc_recalls.run({ http, now: new Date('2026-11-13T18:00:00Z'), prev: { since: '2019-01-01', recalls: [], failed: 0 }, geo: L.geo, settings: {} }), /no earlier record fills the gap/);
+  const d = await L.BY_ID.cpsc_recalls.run({ http, now: new Date('2026-11-13T18:00:00Z'), prev: { since: '2019-01-01', recalls: L.cpsc.parse(FURNACE).slice(0, 1), failed: 0 }, geo: L.geo, settings: {} });
   assert.equal(d.failed, 1); assert.equal(d.recalls.length, new Set(d.recalls.map(r => r.id)).size, 'no duplicates');
   assert.ok(d.recalls.every((r, i) => i === 0 || d.recalls[i - 1].d >= r.d), 'newest first');
   assert.ok(fetch.calls.every(c => /RecallDateStart=2019-01-01/.test(c.url) && /format=json/.test(c.url)));

@@ -3,6 +3,7 @@
 //   node tools/refresh.mjs                 every source, then write the baseline
 //   node tools/refresh.mjs --only a,b      just these sources (the others keep what the baseline already holds)
 //   node tools/refresh.mjs --dry           run and report, write nothing
+//   node tools/refresh.mjs --forget a,b    drop these records from the baseline first, so the sources are read from nothing
 //   node tools/refresh.mjs --key census=…  an API key for sources that take one (repeatable); never written to the baseline
 // Node 22, no packages. Behind an HTTPS proxy the script restarts itself with NODE_USE_ENV_PROXY=1 so fetch honours it.
 import vm from 'node:vm';
@@ -32,6 +33,7 @@ const L = ctx.TDA_LIVE;
 /* start from the baseline already in the tree, so a partial run or a failed source keeps its last good record */
 let old = { records: {} };
 if (existsSync(OUT)) { try { const raw = readFileSync(OUT, 'utf8'); old = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch (e) { console.error('could not read the existing baseline, starting empty: ' + e.message); } }
+for (const id of (val('--forget') || '').split(',').map(x => x.trim()).filter(Boolean)) delete (old.records || {})[id];
 const seed = {}; for (const [id, r] of Object.entries(old.records || {})) seed[L.K.src(id)] = r;
 seed[L.K.settings] = { keys };
 const store = L.memoryStore(seed);

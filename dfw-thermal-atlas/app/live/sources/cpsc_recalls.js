@@ -50,6 +50,8 @@
         } catch (e) { failed++; lastErr = e; }
       }
       if (failed === TERMS.length) throw lastErr || new Error('no recall search answered');
+      /* a first read must be whole: with no earlier record to fill the gaps, a list that lacks a search would read as "few recalls" */
+      if (failed && !(ctx.prev && Array.isArray(ctx.prev.recalls) && ctx.prev.recalls.length)) throw new Error(`${failed} of ${TERMS.length} recall searches failed and no earlier record fills the gap: ${String((lastErr && lastErr.message) || lastErr).slice(0, 120)}`);
       /* a recall never stops being a recall: when a search failed, what the last run held is kept beside what this run found */
       if (failed && ctx.prev && Array.isArray(ctx.prev.recalls)) ctx.prev.recalls.forEach(r => { if (r && r.id != null && !seen[r.id]) seen[r.id] = r; });
       const recalls = Object.values(seen).sort((a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : b.id - a.id));
