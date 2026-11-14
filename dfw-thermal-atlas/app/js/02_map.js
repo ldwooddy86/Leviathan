@@ -36,7 +36,7 @@ class ZipMap {
     this.labels = [];
     if (this.o.labels) {
       Object.entries(COUNTY_LABEL).forEach(([f, [x, y]]) => { const g = svgEl('g'); const t = svgEl('text', { class: 'lab ct', 'text-anchor': 'middle' }, CNAME(f)); g.appendChild(t); this.gL.appendChild(g); this.labels.push({ g, x, y }); });
-      MAP_CITIES.forEach(c => { const g = svgEl('g'); const t = svgEl('text', { class: 'lab' + (c.major ? ' mj' : ''), 'text-anchor': 'middle', dy: '-6' }, c.name); const dot = svgEl('circle', { r: c.major ? 3.2 : 2.2, fill: cssv('--ink-2') }); g.appendChild(dot); g.appendChild(t); this.gL.appendChild(g); this.labels.push({ g, x: c.x, y: c.y, dot }); });
+      MAP_CITIES.forEach(c => { const g = svgEl('g'); const t = svgEl('text', { class: 'lab' + (c.major ? ' mj' : ''), 'text-anchor': 'middle', dy: '-6' }, c.name); const dot = svgEl('circle', { r: c.major ? 3.2 : 2.2, style: 'fill:var(--ink-2)' }); g.appendChild(dot); g.appendChild(t); this.gL.appendChild(g); this.labels.push({ g, x: c.x, y: c.y, dot }); });
       if (document.fonts) document.fonts.addEventListener('loadingdone', () => { this._lk = ''; this.apply(); });
     }
     this.wire(); this.apply();

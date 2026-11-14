@@ -313,13 +313,24 @@ registerModule({
     /* ---------- the answer: where, on what, this week, on Monday. Every number is read from the same plan and week the tables print, in the same rounding. ---------- */
     const shr = f => (isN(f) ? P(f * 100, f > 0 && f < 0.0995 ? 1 : 0) : NA);                    // a share of the money: one decimal under 10%, the same in the answer and in the tables
     const cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
+    /* why the mix came out as it did, said only as far as the plan's own numbers bear it: the floor when most of the money is floor, the season by its index, the volume by the
+       jobs paid ads can win inside the reach (lines[].winnable), the line trust by its setting. Anything else gets the plain sentence */
+    const floorWho = () => ((PP.pins || []).length ? 'near the shop or pinned by you' : `within ${N(PP.coreMin)} minutes of the shop`);
     function whyMix(lead) {
-      const h = plan.line.heat;
-      if (plan.T.mode === 'custom') return 'The split is the one you set: a custom mix, each line filled on its own with its share of the budget.';
-      if (lead.id === 'heat') return `Repair leads because ${plan.monthName} is inside the heating season (repair season index ${N(h.season)}, where 100 is an average month) and a paid click starts about ${pc(PP.paid.heat)} of repair jobs against ${pc(PP.paid.furnace)} of furnace replacements, so the replacement ZIPs fill up first and the money moves on to repair.`;
-      if (h.season < 100) return `${cap1(WORD[lead.id])} leads because heating repair is out of season in ${plan.monthName} (repair season index ${N(h.season)}, where 100 is an average month). Repair takes over with the first cold nights.`;
-      return `The fill puts ${WORD[lead.id]} first this month; the line table shows what each line returns.`;
+      const h = plan.line.heat, T = plan.T, fl = T.floor || {}, plain = `The fill puts ${WORD[lead.id]} first this month; the line table shows what each line returns.`;
+      if (T.mode === 'custom') return 'The split is the one you set: a custom mix, each line filled on its own with its share of the budget.';
+      if (isN(fl.dollars) && T.spent > 0 && fl.dollars >= 0.5 * T.spent) return `Most of what is placed is the home turf floor: the ${plural(fl.zips, 'ZIP')} ${floorWho()} ${fl.zips === 1 ? 'stays' : 'stay'} in repair and tune ups whatever ${fl.zips === 1 ? 'it returns' : 'they return'}, and little else clears the cut.`;
+      if (lead.id === 'heat') {
+        const f = plan.line.furnace, hp = plan.line.heatpump, vol = isN(h.winnable) && h.winnable > 0 && plan.lines.every(l => !(l.winnable > h.winnable)), dear = [f, hp].some(l => isN(l.mean) && isN(h.mean) && l.mean > h.mean);
+        if (!vol) return plain;
+        return `Repair leads because ${h.season >= 100 ? `${plan.monthName} is inside the heating season (repair season index ${N(h.season)}, where 100 is an average month) and repair is where the volume is` : `repair is where the volume is, even outside the heating season (repair season index ${N(h.season)} in ${plan.monthName}, where 100 is an average month)`}: inside the reach, paid ads can win about ${n0(h.winnable)} repair jobs this month against ${n0(f.winnable)} furnace and ${n0(hp.winnable)} heat pump replacements.`
+          + (dear && PP.gamma < 0.995 ? ` A replacement pays more per lead, but the plan believes only ${D(PP.gamma, 2)} of that modeled gap between lines, so the money follows the volume.` : '');
+      }
+      if (h.season < 100) return `${cap1(WORD[lead.id])} ${lead.id === 'maint' ? 'lead' : 'leads'} because heating repair is out of season in ${plan.monthName} (repair season index ${N(h.season)}, where 100 is an average month). Repair takes over with the first cold nights.`;
+      return plain;
     }
+    /* a line whose money, at the platforms that actually run, brings back less than the hurdle although it cleared it at the planned mix: the answer says so where the owner reads the split */
+    const foldUnder = () => plan.lines.filter(l => l.dollars > 0 && l.runWhy && isN(l.gpPerDollar) && l.gpPerDollar < PP.hurdle - 0.005 && !(isN(l.gpPerDollarPlanned) && l.gpPerDollarPlanned < PP.hurdle - 0.005));
     function answer() {
       const T = plan.T, L = plan.lines.filter(l => l.dollars > 0).sort((a, b) => b.dollars - a.dollars), cs = plan.counties.filter(c => c.dollars > 0);
       const city = {}; plan.zips.forEach(r => { city[r.city] = (city[r.city] || 0) + r.dollars; }); const cities = Object.keys(city).sort((a, b) => city[b] - city[a]).slice(0, 3);
@@ -327,17 +338,20 @@ registerModule({
       if (!T.zips || !L.length) { where = `No ZIP clears the plan at ${usd(T.budget)} a month in ${plan.monthName}. ${T.atHurdle ? cap1(unspentWhy(true)) + '.' : 'Widen the reach or clear the blocked ZIPs.'}`; what = 'With nothing in the plan there is no line mix to report.'; }
       else {
         const far = plan.zips.reduce((a, b) => (b.min > a.min ? b : a)), z1 = plan.zips[0];
-        where = `Spend it close to the shop. At ${usd(T.budget)} a month in ${plan.monthName} the plan buys <b>${plural(T.zips, 'ZIP')}</b>, with <b>${pc(T.share20)}</b> of the money within 20 minutes of the dispatch point and nothing past <b>${N(T.farthest)} minutes</b> (${esc(far.city)} ${esc(far.zip)}). `
+        where = `${T.share20 >= 0.595 ? 'Spend it close to the shop.' : T.share20 >= 0.445 ? 'Keep about half of it close to the shop.' : 'At this budget most of the money goes farther than 20 minutes from the shop.'} At ${usd(T.budget)} a month in ${plan.monthName} the plan buys <b>${plural(T.zips, 'ZIP')}</b>, with <b>${pc(T.share20)}</b> of the money within 20 minutes of the dispatch point and nothing past <b>${N(T.farthest)} minutes</b> (${esc(far.city)} ${esc(far.zip)}). `
           + (cs.length === 1 ? `All of it lands in <b>${esc(cs[0].county)} County</b>. ` : `<b>${esc(cs[0].county)} County</b> takes ${shr(cs[0].share)}, then ${list(cs.slice(1, 4).map(c => `${esc(c.county)} ${shr(c.share)}`))}${cs.length > 4 ? `, and ${plural(cs.length - 4, 'more county', 'more counties')} the rest` : ''}. `)
           + `The ${cities.length === 1 ? 'city that leads is' : 'cities that lead are'} ${list(cities.map(esc))}; the largest single ZIP is ${esc(z1.zip)} ${esc(z1.city)} at ${usd(z1.dollars)} a month.`
           + (T.unspent > 0.5 ? ` <b>${usd(T.unspent)} of the ${usd(T.budget)} stays unspent</b>: ${T.atHurdle ? unspentWhy(true) : unspentWhy()}${T.atHurdle ? '.' : ''}` : '') + ` ${G(GR.spend || 'C')}`;
-        what = `<b>${esc(L[0].name)}</b> leads with ${shr(L[0].share)} of the money (${usd(L[0].dollars)} a month)${L.length > 1 ? ', then ' + list(L.slice(1).map(l => `${WORD[l.id]} ${shr(l.share)} (${usd(l.dollars)})`)) : ''}. ${whyMix(L[0])} ${G('D')}`;
+        const fu = foldUnder();
+        what = `<b>${esc(L[0].name)}</b> ${L.length > 1 ? 'leads with' : 'takes'} ${shr(L[0].share)} of the money (${usd(L[0].dollars)} a month)${L.length > 1 ? ', then ' + list(L.slice(1).map(l => `${WORD[l.id]} ${shr(l.share)} (${usd(l.dollars)})`)) : ''}. ${whyMix(L[0])}`
+          + (fu.length ? ` <b>One caution:</b> at the platforms that run at this budget, ${list(fu.map(l => `the money in ${WORD[l.id]} brings back $${D(l.gpPerDollar, 2)}`))} of gross profit per ad dollar, under the $${D(PP.hurdle, 2)} hurdle. By line and what to build says why and what changes it.` : '') + ` ${G('D')}`;
       }
       if (wk.src === 'normal') week = `${wk.missing || !F0 ? 'No forecast is stored' : 'The stored forecast is more than 36 hours old'}, so the week runs as a normal ${esc(wk.monthName)} week: <b>${usd(wk.T.normal)}</b> across the four lines, every multiplier at 1 and nothing drawn from the freeze reserve. Refresh the live data before changing a budget. ${G('D')}`;
       else {
-        const h = wk.lines.find(l => l.id === 'heat') || wk.lines[0], rs = wk.reserve;
-        week = `${simTag()}${wk.head && wk.head.headline ? ec(wk.head.headline) + '. ' : ''}Heating repair runs ${over(chg(h))} a normal ${esc(wk.monthName)} week${h.paused ? ' (paused)' : ''}. The week comes to <b>${usd(wk.T.week)}</b> against a normal ${usd(wk.T.normal)}, `
-          + (rs.draw > 0.5 ? `drawing ${usd(rs.draw)} from the freeze reserve` : rs.back > 0.5 ? `returning ${usd(rs.back)} to the freeze reserve` : 'with nothing moving in or out of the freeze reserve') + '. '
+        /* the line the sentence follows is heating repair when it has money this month, else the line that has the most */
+        const hr = wk.lines.find(l => l.id === 'heat'), h = hr && hr.normal > 0.5 ? hr : wk.lines.slice().sort((a, b) => b.normal - a.normal)[0], rs = wk.reserve, noRes = rs.none === true || !(rs.month > 0.5);
+        week = `${simTag()}${wk.head && wk.head.headline ? ec(wk.head.headline) + '. ' : ''}${h && h.normal > 0.5 ? `${esc(h.name)} runs ${over(chg(h))} a normal ${esc(wk.monthName)} week${h.paused ? ' (paused)' : ''}. ` : ''}The week comes to <b>${usd(wk.T.week)}</b> against a normal ${usd(wk.T.normal)}, `
+          + (noRes ? (rs.back > 0.5 ? `leaving ${usd(rs.back)} unspent: no freeze reserve is set to return it to` : rs.wanted > 0.5 ? `held there because no freeze reserve is set to draw the ${usd(rs.wanted)} the cold rules ask for` : 'and no freeze reserve is set') : rs.draw > 0.5 ? `drawing ${usd(rs.draw)} from the freeze reserve` : rs.back > 0.5 ? `returning ${usd(rs.back)} to the freeze reserve` : 'with nothing moving in or out of the freeze reserve') + '. '
           + (wk.trigger ? 'A cold trigger is on, so the ZIP list is poured again for the week.' : 'No cold trigger: the ZIP list and the bids stay as they are.')
           + (wk.crew && isN(wk.crew.cap) ? ` The crew cap of ${N(wk.crew.cap)} paid booked jobs a week holds the week down.` : '')
           + (wk.month !== plan.month ? ` The week is planned on ${esc(wk.monthName)}, the month the forecast falls in, not on the ${esc(plan.monthName)} the plan is set to.` : '') + ` ${G(sim() ? 'D' : 'A/D')}`;

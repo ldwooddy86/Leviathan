@@ -92,7 +92,7 @@ registerModule({
         { l: 'R22 era still running', g: 'B', v: K(META.r22), d: 'each one a replacement on its next leak' },
         { l: 'Furnace replacements', g: 'B', v: K(META.furn_rep), d: `a year, of ${N(META.furn)} gas furnaces; ${N(META.furn20)} are past 20` },
         { l: 'Peak of the decade', g: 'B', v: String(2026 + pk), d: `${N(fc[pk])} replacements that year from today's stock` },
-        { l: 'Fort Worth permits 2026', g: 'A', v: S((META.fw_ytd['2026'] / META.fw_ytd['2025'] - 1) * 100, 0) + '%', d: `${N(META.fw_ytd['2026'])} through Sep 24 vs ${N(META.fw_ytd['2025'])} a year earlier` },
+        { l: 'Fort Worth permits 2026', g: 'B', v: S((META.fw_ytd['2026'] / META.fw_ytd['2025'] - 1) * 100, 0) + '%', d: `${N(META.fw_ytd['2026'])} through Sep 24 vs ${N(META.fw_ytd['2025'])} a year earlier` },
       ]);
       $('#r2ScnNote', root).textContent = S0().d;
     }
