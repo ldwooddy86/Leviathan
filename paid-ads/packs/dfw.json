@@ -1,0 +1,3086 @@
+{
+ "format": 1,
+ "id": "dfw",
+ "depth": "paid",
+ "vertical": "HVAC",
+ "atlas": "DFW Thermal Debt Atlas · Build 6",
+ "scope": "Dallas Fort Worth, Texas: 12 counties",
+ "source": {
+  "file": "981cecd4-DFW_Thermal_Debt_Atlas_Build6.html",
+  "build": "6",
+  "compiled": "2026-09-25",
+  "sha256": "f94ff40109f44009",
+  "reader": 2,
+  "extracted": "2026-11-14"
+ },
+ "note": "The atlas holds no keyword volumes and no auction prices. Keywords are its own library per service angle. Every cost, rate and benchmark here is an assumption the atlas states with a grade (A measured to D assumed): quote the grade with the number.",
+ "lines": {
+  "replace": {
+   "label": "Replacements and reinstalls",
+   "angles": [
+    "replace",
+    "firstwave",
+    "r22",
+    "heatpump",
+    "hail",
+    "duct",
+    "premium",
+    "financing"
+   ],
+   "objective": "leads"
+  },
+  "repair": {
+   "label": "Cooling repair",
+   "angles": [
+    "repair",
+    "hail"
+   ],
+   "objective": "calls"
+  },
+  "heat": {
+   "label": "Heating repair and furnace replacement",
+   "angles": [
+    "heatrepair",
+    "furnace",
+    "heatpump",
+    "eheat",
+    "heattune"
+   ],
+   "objective": "calls"
+  },
+  "maint": {
+   "label": "Maintenance plans",
+   "angles": [
+    "maint",
+    "newowner"
+   ],
+   "objective": "leads"
+  },
+  "b2b": {
+   "label": "Landlords and property managers",
+   "angles": [
+    "landlord"
+   ],
+   "objective": "leads"
+  },
+  "recruit": {
+   "label": "Recruiting technicians",
+   "angles": [
+    "recruit"
+   ],
+   "objective": "applications"
+  },
+  "iaq": {
+   "label": "Indoor air quality",
+   "angles": [
+    "iaq",
+    "maint"
+   ],
+   "objective": "leads"
+  },
+  "ductless": {
+   "label": "Ductless mini splits",
+   "angles": [
+    "ductless",
+    "premium"
+   ],
+   "objective": "leads"
+  },
+  "commercial": {
+   "label": "Light commercial HVAC",
+   "angles": [
+    "commercial"
+   ],
+   "objective": "leads"
+  },
+  "blend": {
+   "label": "Full service blend",
+   "angles": [
+    "repair",
+    "replace",
+    "firstwave",
+    "r22",
+    "furnace",
+    "heatpump",
+    "hail",
+    "duct",
+    "maint"
+   ],
+   "objective": "calls"
+  }
+ },
+ "angles": [
+  {
+   "id": "repair",
+   "short": "AC Repair",
+   "label": "Air conditioning repair",
+   "line": "repair",
+   "path": "/ac-repair",
+   "lsa": [
+    "AC repair",
+    "AC not cooling",
+    "Thermostat repair"
+   ],
+   "why": "Core line; every ZIP.",
+   "trig": "z => true",
+   "keywords": {
+    "core": [
+     "ac repair",
+     "air conditioning repair",
+     "ac repair near me",
+     "ac not cooling",
+     "air conditioner not working",
+     "hvac repair",
+     "ac service",
+     "emergency ac repair"
+    ],
+    "city": [
+     "ac repair {city}",
+     "air conditioner repair {city}"
+    ],
+    "questions": [
+     "why is my ac blowing warm air",
+     "ac not turning on",
+     "how much is ac repair",
+     "ac making noise",
+     "ac frozen coil"
+    ]
+   },
+   "copy": {
+    "h": [
+     "AC Repair in {city}",
+     "Same Day AC Repair",
+     "Cooling Fixed Today",
+     "TDLR Lic {lic}",
+     "Upfront Repair Pricing",
+     "Local {city} HVAC Techs",
+     "Open 7 Days a Week",
+     "Call {brand} Today",
+     "AC Not Cooling?",
+     "Repairs on All Brands",
+     "Local Trucks in {city}",
+     "Honest Repair Advice"
+    ],
+    "d": [
+     "Licensed techs price it upfront and aim to fix it on the first visit. Lic {lic}.",
+     "Warm air, strange noises or no power: we diagnose it and quote it before we start.",
+     "Local {county} County team. Call for same day service or book online in two minutes.",
+     "We repair every major brand and tell you honestly when a repair is not worth it."
+    ],
+    "es": {
+     "h": [
+      "Reparación de AC {city}",
+      "Servicio el Mismo Día",
+      "Técnicos con Licencia",
+      "Precio Claro Antes",
+      "Llame a {brand} Hoy"
+     ],
+     "d": [
+      "Técnicos con licencia reparan su aire. Precio claro antes de empezar. Lic {lic}.",
+      "Servimos {city} y el condado de {county}. Llame hoy o reserve en línea.",
+      "Reparamos todas las marcas y le decimos con honestidad cuando no vale la pena reparar."
+     ]
+    },
+    "social": {
+     "primary": "When the AC quits in a {city} summer, you need a straight answer fast. Our licensed techs diagnose it, price it upfront and aim to fix it on the first visit.",
+     "headline": "AC repair in {city}, done right",
+     "description": "Licensed. Upfront pricing."
+    }
+   }
+  },
+  {
+   "id": "replace",
+   "short": "AC Replacement",
+   "label": "Air conditioner and system replacement",
+   "line": "replace",
+   "path": "/ac-replacement",
+   "lsa": [
+    "AC installation",
+    "AC replacement",
+    "HVAC system installation"
+   ],
+   "why": "Systems 15+ years at or above 19%, or high replacement rate.",
+   "trig": "z => z.ge15_sh >= 19 || z.rep_per1k >= 62",
+   "keywords": {
+    "core": [
+     "ac replacement",
+     "new ac unit",
+     "ac installation",
+     "hvac replacement",
+     "central air replacement",
+     "new hvac system",
+     "ac unit replacement cost"
+    ],
+    "city": [
+     "hvac system replacement {city}",
+     "ac installation {city}",
+     "replace ac unit {city}"
+    ],
+    "questions": [
+     "how much is a new ac unit",
+     "should i repair or replace my ac",
+     "how long does an ac unit last in texas",
+     "what size ac do i need",
+     "best time to replace ac"
+    ]
+   },
+   "copy": {
+    "h": [
+     "New AC in {city}",
+     "AC Replacement Quotes",
+     "Matched Systems Installed",
+     "Financing Available",
+     "TDLR Lic {lic}",
+     "Repair or Replace Advice",
+     "Installed by Our Own Crew",
+     "Free Replacement Estimate",
+     "Systems Sized for Your Home",
+     "Local {county} Installers",
+     "Clean, Careful Installs",
+     "Book a Home Visit Today"
+    ],
+    "d": [
+     "Past 15 years, your AC is past the typical Texas life. Written quotes in {city}.",
+     "We size every system to your house and install it with our own crew. Lic {lic}.",
+     "Straight advice, a written price and a clean install. Serving {county} County.",
+     "Ask about financing options. Terms and approval apply; see details before you buy."
+    ],
+    "es": {
+     "h": [
+      "Aire Nuevo en {city}",
+      "Cotización Gratis",
+      "Instalación con Licencia",
+      "Financiamiento Disponible",
+      "Llame a {brand}"
+     ],
+     "d": [
+      "Instalamos sistemas a la medida de su casa. Precio por escrito. Lic {lic}.",
+      "Consejo honesto: reparar o reemplazar. Servimos {city} y {county}.",
+      "Pasados los 15 años, su aire ya superó su vida útil típica en Texas. Pida cotización."
+     ]
+    },
+    "social": {
+     "primary": "Is your AC past 15 years? Half of Texas systems are replaced by then. Get a written quote for a matched system, sized to your {city} home and installed by our own licensed crew.",
+     "headline": "A new AC, quoted in writing",
+     "description": "Matched system. Licensed crew."
+    }
+   }
+  },
+  {
+   "id": "firstwave",
+   "short": "Builder System",
+   "label": "First replacement of the builder's original system",
+   "line": "replace",
+   "path": "/ac-replacement",
+   "lsa": [
+    "AC replacement",
+    "HVAC system installation"
+   ],
+   "why": "Original builder systems aged 10 to 25 at or above 15%.",
+   "trig": "z => z.origwin_sh >= 15",
+   "keywords": {
+    "core": [
+     "replace builder grade ac",
+     "original ac unit replacement",
+     "ac unit replacement near me"
+    ],
+    "city": [
+     "ac replacement {city}",
+     "new ac for {city} home",
+     "hvac upgrade {city}"
+    ],
+    "questions": [
+     "is my builder grade ac oversized",
+     "how long do builder grade ac units last",
+     "why is my upstairs so hot"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Still on the Builder AC?",
+     "Upgrade Your Original AC",
+     "Fix Hot Upstairs Rooms",
+     "Sized Right This Time",
+     "AC Replacement {city}",
+     "TDLR Lic {lic}",
+     "Free Home Comfort Visit",
+     "Quotes in Writing"
+    ],
+    "d": [
+     "Homes in {city} from the 2000s and 2010s are reaching their first AC replacement.",
+     "Builder ACs are often oversized. We measure, fix duct runs and install a matched system.",
+     "We size the new one to the house. Quotes in writing. Lic {lic}."
+    ],
+    "es": {
+     "h": [
+      "¿Su AC es el Original?",
+      "Cambie su Sistema",
+      "Instalación con Licencia"
+     ],
+     "d": [
+      "Las casas de {city} de los años 2000 llegan a su primer cambio de aire.",
+      "Medimos su casa e instalamos un sistema del tamaño correcto. Lic {lic}."
+     ]
+    },
+    "social": {
+     "primary": "If your {city} home came with its original AC, it is probably reaching its first replacement. This time, size it to the house and fix the hot rooms while you are at it.",
+     "headline": "Your first AC replacement",
+     "description": "Sized right. Licensed crew."
+    }
+   }
+  },
+  {
+   "id": "r22",
+   "short": "R22 System",
+   "label": "R22 system replacement",
+   "line": "replace",
+   "path": "/r22-replacement",
+   "lsa": [
+    "AC replacement"
+   ],
+   "why": "R22 era systems at or above 16.5%.",
+   "trig": "z => z.r22_sh >= 16.5",
+   "keywords": {
+    "core": [
+     "r22 ac replacement",
+     "r22 freon replacement",
+     "replace r22 unit",
+     "old freon ac replacement",
+     "r22 refrigerant cost"
+    ],
+    "city": [
+     "r22 ac unit {city}"
+    ],
+    "questions": [
+     "can i still get r22 freon",
+     "is my ac r22",
+     "how much to recharge r22",
+     "what replaces r22"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Is Your AC on R22?",
+     "R22 Systems Replaced",
+     "Stop Paying for R22",
+     "Old Freon AC? Call Us",
+     "TDLR Lic {lic}",
+     "Written Replacement Quote",
+     "Serving {city} Homes"
+    ],
+    "d": [
+     "R22 has not been produced since 2020. If your AC leaks, a recharge costs more every year.",
+     "We check your label and tell you what refrigerant you have. Lic {lic}.",
+     "Get a replacement quote for a matched system, priced in writing."
+    ],
+    "es": {
+     "h": [
+      "¿Su AC Usa R22?",
+      "Reemplazo de R22"
+     ],
+     "d": [
+      "El R22 ya no se produce. Cotización por escrito para un sistema nuevo. Lic {lic}.",
+      "Revisamos la etiqueta y le decimos qué refrigerante usa su aire."
+     ]
+    },
+    "social": {
+     "primary": "Systems installed before 2010 in {city} usually run on R22, which has not been produced since 2020. When yours leaks, a recharge is money into a system with no future. We will check your label for free.",
+     "headline": "Still running R22?",
+     "description": "Free label check."
+    }
+   }
+  },
+  {
+   "id": "heatrepair",
+   "short": "Heating Repair",
+   "label": "Heating repair for furnaces, heat pumps and electric heat",
+   "line": "heat",
+   "path": "/heating-repair",
+   "lsa": [
+    "Heating system repair",
+    "Furnace repair",
+    "Heat pump repair",
+    "Thermostat repair"
+   ],
+   "why": "Core heating line; every ZIP.",
+   "trig": "z => true",
+   "keywords": {
+    "core": [
+     "heating repair",
+     "heater repair",
+     "furnace repair near me",
+     "emergency furnace repair",
+     "no heat",
+     "heater not working",
+     "furnace not working",
+     "heating service"
+    ],
+    "city": [
+     "heating repair {city}",
+     "furnace repair {city}"
+    ],
+    "questions": [
+     "furnace blowing cold air",
+     "heater not turning on",
+     "furnace keeps shutting off",
+     "thermostat says heat but no heat",
+     "how much is furnace repair"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Heating Repair in {city}",
+     "No Heat? Call {brand}",
+     "Furnace and Heat Pump Repair",
+     "TDLR Lic {lic}",
+     "Priced Before Work Starts",
+     "Heater Not Working?",
+     "Gas and Electric Heat Repair",
+     "Heater Repair {city}",
+     "{county} County Heating Techs",
+     "Repairs on All Brands"
+    ],
+    "d": [
+     "No heat on a cold night? Licensed techs diagnose it and price it before work starts.",
+     "Furnaces, heat pumps and electric heat repaired in {city}. Lic {lic}.",
+     "Cold air, short cycling or a furnace that will not start: we find the cause and fix it.",
+     "We repair every major brand and tell you straight when a repair is not worth it."
+    ],
+    "es": {
+     "h": [
+      "Reparación de Calefacción",
+      "¿Sin Calefacción? Llámenos",
+      "Precio Claro Antes de Empezar",
+      "Calefacción en {city}",
+      "Reparamos Bombas de Calor"
+     ],
+     "d": [
+      "¿Sin calefacción? Técnicos con licencia la revisan y le dan el precio antes de empezar.",
+      "Reparamos calefacción de gas, eléctrica y bombas de calor. Lic {lic}.",
+      "Aire frío, se apaga sola o no enciende: encontramos la causa y la reparamos."
+     ]
+    },
+    "social": {
+     "primary": "No heat in {city}? Our licensed techs find the fault and give you the price before any work starts.",
+     "headline": "Heating repair in {city}",
+     "description": "Licensed. Upfront pricing."
+    }
+   }
+  },
+  {
+   "id": "furnace",
+   "short": "Furnace",
+   "label": "Furnace replacement and heating safety",
+   "line": "heat",
+   "path": "/furnace-replacement",
+   "lsa": [
+    "Furnace installation",
+    "Furnace repair",
+    "Heating system repair"
+   ],
+   "why": "Gas furnaces 20+ at or above 13.5% where gas heat is at least 35%.",
+   "trig": "z => z.furn20_sh >= 13.5 && z.gas_sh >= 35",
+   "keywords": {
+    "core": [
+     "furnace replacement",
+     "new furnace",
+     "furnace repair",
+     "gas furnace installation",
+     "heater repair",
+     "furnace inspection"
+    ],
+    "city": [
+     "furnace replacement {city}",
+     "furnace repair {city}"
+    ],
+    "questions": [
+     "how long does a furnace last",
+     "furnace smells like gas",
+     "furnace not igniting",
+     "is my furnace safe"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Furnace Repair {city}",
+     "Furnace Safety Check",
+     "New Gas Furnace Quotes",
+     "Heat Back On Today",
+     "TDLR Lic {lic}",
+     "Is Your Furnace 20+?",
+     "Local {county} Techs"
+    ],
+    "d": [
+     "Furnace past 20? Book a safety check before the first cold night. Lic {lic}.",
+     "No heat or a burner that will not light: we fix it or quote a replacement in writing.",
+     "Licensed techs in {city} check burners, flame sensors and the heat exchanger."
+    ],
+    "es": {
+     "h": [
+      "Reparación de Calefacción",
+      "Revisión de Seguridad"
+     ],
+     "d": [
+      "Revisamos su calefacción antes del frío. Técnicos con licencia. Lic {lic}.",
+      "Sin calefacción o no enciende: la reparamos o cotizamos el cambio por escrito."
+     ]
+    },
+    "social": {
+     "primary": "If your furnace is past 20, have it checked before the first cold snap. Our licensed techs inspect burners, flame sensors and the heat exchanger and tell you straight what it needs.",
+     "headline": "Furnace check before winter",
+     "description": "Licensed. Honest advice."
+    }
+   }
+  },
+  {
+   "id": "heatpump",
+   "short": "Heat Pump",
+   "label": "Heat pump repair and replacement",
+   "line": "replace",
+   "path": "/heat-pump",
+   "lsa": [
+    "Heat pump installation",
+    "Heat pump repair"
+   ],
+   "why": "Heat pump share at or above 35%.",
+   "trig": "z => z.hp_sh >= 35",
+   "keywords": {
+    "core": [
+     "heat pump repair",
+     "heat pump replacement",
+     "heat pump installation",
+     "heat pump not heating",
+     "heat pump service near me"
+    ],
+    "city": [
+     "heat pump {city}"
+    ],
+    "questions": [
+     "why is my heat pump blowing cold air",
+     "heat pump vs furnace texas",
+     "how long do heat pumps last"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Heat Pump Repair {city}",
+     "Heat Pump Replacement",
+     "Heating and Cooling in One",
+     "TDLR Lic {lic}",
+     "Defrost Problems Fixed",
+     "Written Quotes"
+    ],
+    "d": [
+     "Heat pump repair on every brand, with replacement quotes in writing. Lic {lic}.",
+     "Cold air in heat mode, icing or strip heat bills: our {city} techs find the cause.",
+     "Heat pumps work year round in Texas, so they wear faster than a plain AC."
+    ],
+    "es": {
+     "h": [
+      "Bomba de Calor",
+      "Reparación y Cambio"
+     ],
+     "d": [
+      "Reparamos y cambiamos bombas de calor en {city}. Lic {lic}.",
+      "Aire frío en modo calefacción o hielo en la unidad: encontramos la causa."
+     ]
+    },
+    "social": {
+     "primary": "Your heat pump cools all summer and heats all winter, so it wears faster than a plain AC. If yours is struggling, our licensed techs will tell you whether it needs a fix or a replacement.",
+     "headline": "Heat pump trouble?",
+     "description": "Repair or replace, in writing."
+    }
+   }
+  },
+  {
+   "id": "eheat",
+   "short": "Electric Heat",
+   "label": "Electric furnace, air handler and heat strip repair",
+   "line": "heat",
+   "path": "/electric-heat-repair",
+   "lsa": [
+    "Heating system repair",
+    "Furnace repair",
+    "Heat pump repair"
+   ],
+   "why": "Electric furnaces at or above 28% of central systems.",
+   "trig": "z => z.sys_ef / z.sys >= 0.28",
+   "keywords": {
+    "core": [
+     "electric furnace repair",
+     "electric heat not working",
+     "heat strips not working",
+     "air handler repair",
+     "emergency heat not working",
+     "electric furnace not working"
+    ],
+    "city": [
+     "electric furnace repair {city}",
+     "air handler repair {city}"
+    ],
+    "questions": [
+     "auxiliary heat running constantly",
+     "electric furnace blowing cold air",
+     "electric furnace keeps tripping breaker",
+     "heat strips not coming on"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Electric Furnace Repair",
+     "Electric Heat Not Working?",
+     "Air Handler Repair",
+     "Heat Strip Repair {city}",
+     "TDLR Lic {lic}",
+     "Auxiliary Heat Always On?",
+     "Heating Elements Replaced",
+     "Priced Before Work Starts",
+     "No Heat? Call {brand}"
+    ],
+    "d": [
+     "Electric furnace or air handler blowing cold? We test elements, controls and breakers.",
+     "Auxiliary heat running all the time? We find out why the heat pump is not keeping up.",
+     "Electric heat repaired in {city}, priced before work starts. Lic {lic}.",
+     "Strip heat that never shuts off shows up on the electric bill. We find the cause."
+    ],
+    "es": {
+     "h": [
+      "Calefacción Eléctrica",
+      "¿La Calefacción No Calienta?",
+      "Reparación de Resistencias",
+      "Precio Claro Antes de Empezar"
+     ],
+     "d": [
+      "¿Calefacción eléctrica sin calor? Revisamos resistencias, controles y breakers.",
+      "Reparamos calefacción eléctrica y manejadoras de aire en {city}. Lic {lic}.",
+      "¿El calor auxiliar no se apaga? Buscamos por qué la bomba de calor no da abasto."
+     ]
+    },
+    "social": {
+     "primary": "Electric heat not keeping up in {city}? Our licensed techs test the elements, controls and breakers.",
+     "headline": "Electric heat repair",
+     "description": "Licensed. Upfront pricing."
+    }
+   }
+  },
+  {
+   "id": "heattune",
+   "short": "Heating Tune Up",
+   "label": "Fall furnace and heat pump tune up and safety check",
+   "line": "heat",
+   "path": "/furnace-tune-up",
+   "lsa": [
+    "Furnace maintenance"
+   ],
+   "why": "Season offer for fall and early winter; every ZIP.",
+   "trig": "z => true",
+   "keywords": {
+    "core": [
+     "furnace tune up",
+     "heating tune up",
+     "furnace inspection",
+     "furnace maintenance",
+     "furnace safety inspection",
+     "heat pump tune up"
+    ],
+    "city": [
+     "heater tune up {city}",
+     "furnace tune up {city}"
+    ],
+    "questions": [
+     "how often should a furnace be serviced",
+     "what does a furnace tune up include",
+     "do heat pumps need a tune up",
+     "is a furnace tune up worth it"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Furnace Tune Up {city}",
+     "Heating Tune Up",
+     "Furnace Safety Inspection",
+     "TDLR Lic {lic}",
+     "Heat Pump Tune Ups Too",
+     "Carbon Monoxide Check",
+     "Burner and Flame Sensor Check",
+     "Book Before the Next Freeze",
+     "Written Report of Findings",
+     "Heater Tune Up {city}"
+    ],
+    "d": [
+     "Furnace and heat pump tune ups in {city}, done by licensed techs. Lic {lic}.",
+     "On gas furnaces we check burners, flame sensor, heat exchanger and carbon monoxide.",
+     "On heat pumps and electric heat we test defrost, heat strips, airflow and controls.",
+     "You get the findings in writing and a straight answer on what can wait."
+    ],
+    "es": {
+     "h": [
+      "Mantenimiento de Calefacción",
+      "Revisión de Seguridad",
+      "Revisión Antes del Frío",
+      "Mantenimiento en {city}"
+     ],
+     "d": [
+      "Mantenimiento de calefacción y bombas de calor en {city}. Técnicos con licencia.",
+      "Revisamos quemadores, sensor de flama e intercambiador de calor. Lic {lic}.",
+      "Le entregamos los resultados por escrito y le decimos qué reparaciones pueden esperar."
+     ]
+    },
+    "social": {
+     "primary": "Heating tune ups in {city}: a licensed tech checks your furnace or heat pump and reports in writing.",
+     "headline": "Tune up before the next cold snap",
+     "description": "Licensed. Written findings."
+    }
+   }
+  },
+  {
+   "id": "hail",
+   "short": "Hail Damage",
+   "label": "Hail damaged condenser and insurance replacement",
+   "line": "replace",
+   "path": "/hail-damage-ac",
+   "lsa": [
+    "AC repair",
+    "AC replacement"
+   ],
+   "why": "Large hail within 8 km at or above 10 reports a decade, or 6+ since 2023.",
+   "trig": "z => z.hail175_8km >= 10 || z.hail_recent >= 6",
+   "keywords": {
+    "core": [
+     "hail damage ac unit",
+     "hail damaged condenser",
+     "ac hail damage insurance",
+     "condenser coil hail damage"
+    ],
+    "city": [
+     "hail damage hvac {city}"
+    ],
+    "questions": [
+     "does insurance cover hail damage to ac",
+     "can hail damage an ac unit",
+     "how to tell if ac has hail damage"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Hail Hit Your AC?",
+     "Hail Damage Inspections",
+     "Condenser Coil Checks",
+     "Damage Photos for Your Insurer",
+     "TDLR Lic {lic}",
+     "{city} Storm Inspections"
+    ],
+    "d": [
+     "Hail flattens condenser fins and cuts efficiency. Book a condenser inspection.",
+     "We inspect, photograph and document the damage for your claim. Lic {lic}.",
+     "Storm in {city}? Your insurer decides coverage; we give you the documentation."
+    ],
+    "es": {
+     "h": [
+      "¿Granizo Dañó su AC?",
+      "Inspección por Granizo"
+     ],
+     "d": [
+      "Inspeccionamos y documentamos daño por granizo para su reclamo. Lic {lic}.",
+      "Su aseguradora decide la cobertura; nosotros le damos fotos y documentación."
+     ]
+    },
+    "social": {
+     "primary": "Hail can crush the fins on your outdoor unit and cut its efficiency. After a storm in {city}, we inspect, photograph and document the damage so you can decide on a claim.",
+     "headline": "After the hail, check the AC",
+     "description": "Inspection and photos."
+    }
+   }
+  },
+  {
+   "id": "duct",
+   "short": "Ductwork",
+   "label": "Ductwork replacement and full system reinstall",
+   "line": "replace",
+   "path": "/ductwork",
+   "lsa": [
+    "Duct repair",
+    "Duct installation"
+   ],
+   "why": "Homes built 1980 to 1999 at or above 40%.",
+   "trig": "z => z.yb_duct >= 40",
+   "keywords": {
+    "core": [
+     "duct replacement",
+     "ductwork replacement",
+     "air duct repair",
+     "duct sealing",
+     "hvac duct replacement cost"
+    ],
+    "city": [
+     "new ductwork {city}"
+    ],
+    "questions": [
+     "how long does ductwork last",
+     "signs of leaky ducts",
+     "why are some rooms hotter"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Ductwork Replaced Right",
+     "Leaky Ducts Fixed",
+     "Even Cooling Room to Room",
+     "Full System Reinstalls",
+     "TDLR Lic {lic}",
+     "Serving {city} Homes"
+    ],
+    "d": [
+     "Attic ducts from the 1980s and 1990s are past their life. We replace and seal them.",
+     "Ducts sealed and balanced with your new system by our own crew. Lic {lic}.",
+     "Hot rooms and high bills often start in the attic. We test and fix the duct system."
+    ],
+    "es": {
+     "h": [
+      "Ductos Nuevos",
+      "Reparación de Ductos"
+     ],
+     "d": [
+      "Cambiamos y sellamos ductos viejos en {city}. Lic {lic}.",
+      "Cuartos calientes y recibos altos suelen empezar en el ático. Revisamos sus ductos."
+     ]
+    },
+    "social": {
+     "primary": "If your {city} home was built in the 80s or 90s, the ducts in the attic are likely original. We test them, replace what is failing and balance the system so every room cools.",
+     "headline": "Hot rooms start in the attic",
+     "description": "Duct testing and replacement."
+    }
+   }
+  },
+  {
+   "id": "landlord",
+   "short": "Rental Homes",
+   "label": "Landlord and property manager service",
+   "line": "b2b",
+   "path": "/property-managers",
+   "lsa": [
+    "AC repair",
+    "AC replacement"
+   ],
+   "why": "Rented share of single family homes at or above 30%.",
+   "trig": "z => z.rent_sf_sh >= 30",
+   "keywords": {
+    "core": [
+     "hvac for property managers",
+     "rental property ac repair",
+     "landlord hvac service"
+    ],
+    "city": [
+     "property management hvac {city}"
+    ],
+    "questions": [
+     "who pays for ac repair in a rental",
+     "hvac contract for rental properties"
+    ]
+   },
+   "copy": {
+    "h": [
+     "HVAC for Rental Homes",
+     "Property Manager Service",
+     "Fast Tenant Response",
+     "One Invoice, Many Homes",
+     "TDLR Lic {lic}"
+    ],
+    "d": [
+     "AC calls for rental homes: fast tenant response and clear invoices. Lic {lic}.",
+     "We handle AC calls for rental homes across {county} County. One invoice, many homes.",
+     "One clear invoice and straight advice when a system should be replaced."
+    ],
+    "es": {
+     "h": [
+      "Servicio para Rentas"
+     ],
+     "d": [
+      "Servicio de aire para casas de renta en {county}.",
+      "Respuesta rápida a inquilinos y facturas claras para casas de renta. Lic {lic}.",
+      "Una sola factura clara y consejo directo cuando conviene cambiar el sistema."
+     ]
+    },
+    "social": {
+     "primary": "Managing rental homes in {city}? We handle tenant AC calls fast, send one clear invoice and tell you straight when a system should be replaced.",
+     "headline": "HVAC for rental homes",
+     "description": "Fast response. Clear invoices."
+    }
+   }
+  },
+  {
+   "id": "newowner",
+   "short": "New Homeowner",
+   "label": "New homeowner system checkup",
+   "line": "maint",
+   "path": "/home-buyers",
+   "lsa": [
+    "AC maintenance"
+   ],
+   "why": "Owners who moved in since 2020 at or above 22%.",
+   "trig": "z => z.own_recent_sh >= 22",
+   "keywords": {
+    "core": [
+     "hvac inspection new home",
+     "ac inspection",
+     "hvac checkup"
+    ],
+    "city": [
+     "ac tune up {city}",
+     "hvac inspection {city}"
+    ],
+    "questions": [
+     "how old is my ac unit",
+     "how to read ac serial number age"
+    ]
+   },
+   "copy": {
+    "h": [
+     "New Home? Check the AC",
+     "System Age and Health Check",
+     "Know What You Bought",
+     "TDLR Lic {lic}"
+    ],
+    "d": [
+     "Just moved to {city}? We tell you how old your system is and what shape it is in.",
+     "Know your system age, its condition and what to budget for. Lic {lic}."
+    ],
+    "es": {
+     "h": [
+      "¿Casa Nueva?",
+      "Revisión del Sistema"
+     ],
+     "d": [
+      "Le decimos la edad y el estado de su aire en {city}. Lic {lic}.",
+      "¿Se acaba de mudar? Le decimos qué edad tiene su sistema y qué presupuestar."
+     ]
+    },
+    "social": {
+     "primary": "New to your {city} home? Find out how old the AC and furnace are, what condition they are in and what to plan for, before the first hot week.",
+     "headline": "Know your system",
+     "description": "Age and health check."
+    }
+   }
+  },
+  {
+   "id": "premium",
+   "short": "High Efficiency",
+   "label": "Variable speed and high efficiency systems",
+   "line": "replace",
+   "path": "/high-efficiency",
+   "lsa": [
+    "AC installation",
+    "Heat pump installation"
+   ],
+   "why": "Median value at or above $500,000 or income at or above $150,000.",
+   "trig": "z => (z.value || 0) >= 500000 || (z.inc || 0) >= 150000",
+   "keywords": {
+    "core": [
+     "variable speed ac",
+     "high efficiency ac",
+     "two stage ac",
+     "quiet ac system"
+    ],
+    "city": [
+     "high efficiency hvac {city}"
+    ],
+    "questions": [
+     "is a variable speed ac worth it",
+     "what seer rating is best for texas"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Variable Speed Comfort",
+     "Quiet High Efficiency AC",
+     "Even Temperatures, Lower Bills",
+     "TDLR Lic {lic}",
+     "Premium Installs {city}"
+    ],
+    "d": [
+     "Variable speed systems hold temperature and humidity steady in a Texas summer.",
+     "High efficiency systems sized and installed by our own crew. Lic {lic}."
+    ],
+    "es": {
+     "h": [
+      "Alta Eficiencia"
+     ],
+     "d": [
+      "Sistemas de velocidad variable para {city}. Lic {lic}.",
+      "Velocidad variable: temperatura y humedad estables en el verano de Texas."
+     ]
+    },
+    "social": {
+     "primary": "A variable speed system runs longer at low speed, so it is quieter, pulls more humidity and keeps upstairs and downstairs closer together. Ask for a written quote.",
+     "headline": "Quieter, steadier cooling",
+     "description": "Variable speed systems."
+    }
+   }
+  },
+  {
+   "id": "financing",
+   "short": "Financing",
+   "label": "Replacement with financing",
+   "line": "replace",
+   "path": "/financing",
+   "lsa": [
+    "AC replacement"
+   ],
+   "why": "Income below the metro ZIP median with owner single family at or above 50%.",
+   "trig": "z => (z.inc || 0) < MED.inc && z.own_sf_sh >= 50",
+   "keywords": {
+    "core": [
+     "ac financing",
+     "hvac financing",
+     "finance new ac unit"
+    ],
+    "city": [
+     "ac payment plans {city}"
+    ],
+    "questions": [
+     "can i finance a new ac",
+     "hvac financing bad credit"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Financing for a New AC",
+     "Monthly Payment Options",
+     "Apply in Minutes Online",
+     "TDLR Lic {lic}"
+    ],
+    "d": [
+     "Financing options for new systems, subject to credit approval. Lic {lic}.",
+     "Ask about financing a new AC. See terms, APR and conditions before you buy."
+    ],
+    "es": {
+     "h": [
+      "Financiamiento para su AC"
+     ],
+     "d": [
+      "Opciones de pago sujetas a aprobación de crédito. Vea términos y APR. Lic {lic}.",
+      "Financiamiento para sistemas nuevos. Vea términos, APR y condiciones antes de comprar."
+     ]
+    },
+    "social": {
+     "primary": "A new AC should not wait for savings to catch up. Ask about financing options for your {city} home; approval, terms and APR apply and are shown before you sign.",
+     "headline": "Financing options",
+     "description": "Terms shown upfront."
+    }
+   }
+  },
+  {
+   "id": "maint",
+   "short": "Maintenance Plan",
+   "label": "Maintenance plans and tune ups",
+   "line": "maint",
+   "path": "/maintenance-plan",
+   "lsa": [
+    "AC maintenance",
+    "Furnace maintenance"
+   ],
+   "why": "Owners 65+ at or above 30% or owner single family at or above 70%.",
+   "trig": "z => z.own65_sh >= 30 || z.own_sf_sh >= 70",
+   "keywords": {
+    "core": [
+     "ac tune up",
+     "hvac maintenance plan",
+     "ac maintenance",
+     "furnace tune up"
+    ],
+    "city": [
+     "hvac service plan {city}"
+    ],
+    "questions": [
+     "how often should ac be serviced",
+     "is an hvac maintenance plan worth it"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Twice a Year Tune Ups",
+     "Maintenance Plan Members",
+     "Priority Service in Summer",
+     "TDLR Lic {lic}"
+    ],
+    "d": [
+     "Spring AC and fall furnace tune ups with priority scheduling when the heat hits.",
+     "Twice a year tune ups for {city} homes, with a written record. Lic {lic}."
+    ],
+    "es": {
+     "h": [
+      "Plan de Mantenimiento"
+     ],
+     "d": [
+      "Mantenimiento dos veces al año y prioridad en verano. Lic {lic}.",
+      "Revisión del aire en primavera y de la calefacción en otoño, con cita prioritaria."
+     ]
+    },
+    "social": {
+     "primary": "Two visits a year, priority scheduling in the first heat wave and a written record of your system. That is our maintenance plan for {city} homes.",
+     "headline": "Beat the first heat wave",
+     "description": "Priority scheduling."
+    }
+   }
+  },
+  {
+   "id": "iaq",
+   "short": "Indoor Air",
+   "label": "Indoor air quality: filtration, purification and humidity control",
+   "line": "iaq",
+   "path": "/indoor-air-quality",
+   "lsa": [
+    "AC maintenance"
+   ],
+   "why": "Owner single family at or above 40%; strongest in cedar and oak season.",
+   "trig": "z => (z.own_sf_sh || 0) >= 40",
+   "keywords": {
+    "core": [
+     "indoor air quality",
+     "whole home air purifier",
+     "hvac air filtration system",
+     "uv light for hvac",
+     "whole house dehumidifier",
+     "air scrubber for hvac"
+    ],
+    "city": [
+     "indoor air quality {city}",
+     "whole home air purifier {city}"
+    ],
+    "questions": [
+     "does a whole house air purifier help with allergies",
+     "what is a media air cleaner",
+     "how to reduce dust in house hvac",
+     "is a uv light in hvac worth it"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Cleaner Air, Whole Home",
+     "Cedar Season Relief",
+     "Media Filters and UV",
+     "Less Dust, Fewer Allergens",
+     "Home Air Quality {city}",
+     "TDLR Lic {lic}",
+     "Humidity Under Control",
+     "Installed With Your System",
+     "Ask About Air Cleaning",
+     "Breathe Easier at Home"
+    ],
+    "d": [
+     "Media air cleaners, UV lights and dehumidifiers for the system you own. Lic {lic}.",
+     "Cedar, oak and ragweed hit hardest indoors. Filtration sized to your {city} system.",
+     "Cleaner coil, tighter filtration, steadier humidity. Priced first. Lic {lic}.",
+     "We tell you what each device will and will not do. No cure claims, just cleaner air."
+    ],
+    "es": {
+     "h": [
+      "Aire Más Limpio en Casa",
+      "Filtros y Luz UV",
+      "Menos Polvo y Alergias"
+     ],
+     "d": [
+      "Purificadores y filtros instalados en su sistema. Servimos {city}. Lic {lic}.",
+      "Filtros, luz UV y deshumidificadores para el sistema que ya tiene."
+     ]
+    },
+    "social": {
+     "primary": "When cedar season hits {city}, the air inside the house is where you spend the night. Media air cleaners, UV and dehumidification, installed in the system you already have and explained without exaggeration.",
+     "headline": "Cleaner air, whole home",
+     "description": "Filtration and UV, explained."
+    }
+   }
+  },
+  {
+   "id": "ductless",
+   "short": "Ductless",
+   "label": "Ductless mini split systems for rooms the ducts never reached",
+   "line": "ductless",
+   "path": "/ductless-mini-split",
+   "lsa": [
+    "AC installation"
+   ],
+   "why": "Homes built before 1960 at or above 8% of units, or four bedroom homes at or above 35%.",
+   "trig": "z => ((z.yb ? (z.yb[7] + z.yb[8] + z.yb[9]) : 0) / Math.max(1, z.hu || 1)) >= 0.08 || (z.br4p_sh || 0) >= 35",
+   "keywords": {
+    "core": [
+     "ductless mini split installation",
+     "mini split installation",
+     "ductless ac",
+     "garage ac unit installed",
+     "mini split for garage"
+    ],
+    "city": [
+     "ductless air conditioner {city}",
+     "mini split installation {city}"
+    ],
+    "questions": [
+     "how much does a mini split cost installed",
+     "is a mini split good for a garage",
+     "mini split vs window unit",
+     "can a mini split heat and cool"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Ductless Mini Splits",
+     "Cool the Garage Gym",
+     "Rooms the Ducts Missed",
+     "One Unit, Several Rooms",
+     "Mini Splits in {city}",
+     "TDLR Lic {lic}",
+     "Heats and Cools Year Round",
+     "Installed and Permitted",
+     "Quiet Room by Room Comfort",
+     "Written Quote in a Day"
+    ],
+    "d": [
+     "Sunroom, garage, addition or a home without ducts. Permitted install. Lic {lic}.",
+     "One outdoor unit, several rooms, each with its own control. Quoted in writing.",
+     "Ductless heat pumps cool in August and heat in January. In {city}. Lic {lic}.",
+     "Licensed crew, permit pulled, line set and circuit included in the written price."
+    ],
+    "es": {
+     "h": [
+      "Mini Split Sin Ductos",
+      "Fresco en el Garaje",
+      "Instalación con Licencia"
+     ],
+     "d": [
+      "Sistemas mini split instalados con permiso en {city}. Lic {lic}.",
+      "Una unidad exterior, varios cuartos, cada uno con su propio control. Precio por escrito."
+     ]
+    },
+    "social": {
+     "primary": "The garage gym, the sunroom, the addition, the {city} house built before ducts were standard. A ductless mini split cools and heats the room the system never reached, installed by a licensed crew.",
+     "headline": "Rooms the ducts never reached",
+     "description": "Installed and permitted."
+    }
+   }
+  },
+  {
+   "id": "commercial",
+   "short": "Light Commercial",
+   "label": "Light commercial HVAC for small buildings and rooftop units",
+   "line": "commercial",
+   "path": "/commercial-hvac",
+   "lsa": [],
+   "why": "Housing density at or above 1,500 units a square mile or 40 or more HVAC establishments within 8 km, as a proxy for business density.",
+   "trig": "z => (z.density || 0) >= 1500 || (z.est_8km || 0) >= 40",
+   "keywords": {
+    "core": [
+     "commercial hvac repair",
+     "commercial ac repair",
+     "rooftop unit replacement",
+     "commercial hvac maintenance contract"
+    ],
+    "city": [
+     "commercial hvac {city}",
+     "commercial ac repair {city}",
+     "rtu replacement {city}"
+    ],
+    "questions": [
+     "how long do rooftop units last",
+     "commercial hvac maintenance cost",
+     "who repairs rooftop ac units"
+    ]
+   },
+   "copy": {
+    "h": [
+     "Commercial HVAC Service",
+     "Rooftop Units Replaced",
+     "Maintenance Contracts",
+     "Response in Hours",
+     "Commercial HVAC {city}",
+     "TDLR Lic {lic}",
+     "Small Buildings, Big Rooftops",
+     "Quotes by Tonnage",
+     "Keep Tenants Comfortable",
+     "Licensed Commercial Techs"
+    ],
+    "d": [
+     "Rooftop units repaired and replaced for offices, retail and restaurants. Lic {lic}.",
+     "Maintenance contracts priced per unit with a written report after every visit.",
+     "Quotes by tonnage, crane and permit included. Licensed commercial techs. Lic {lic}.",
+     "Response time in writing. A restaurant without cooling in July is a closure."
+    ],
+    "es": {
+     "h": [
+      "HVAC Comercial",
+      "Unidades de Techo"
+     ],
+     "d": [
+      "Servicio HVAC comercial en {city}. Lic {lic}.",
+      "Reparamos y cambiamos unidades de techo para oficinas, tiendas y restaurantes."
+     ]
+    },
+    "social": {
+     "primary": "A rooftop unit that quits in July costs a {city} business more than the repair. We service and replace commercial systems with response times in writing and maintenance contracts priced per unit.",
+     "headline": "Commercial HVAC, in writing",
+     "description": "Rooftop units and contracts."
+    }
+   }
+  },
+  {
+   "id": "recruit",
+   "short": "Technician Jobs",
+   "label": "Recruiting HVAC technicians",
+   "line": "recruit",
+   "path": "/careers",
+   "lsa": [],
+   "why": "Recruiting line; used when the plan line is recruiting.",
+   "trig": "z => false",
+   "keywords": {
+    "core": [
+     "hvac technician jobs",
+     "hvac installer jobs",
+     "ac technician jobs near me"
+    ],
+    "city": [
+     "hvac jobs {city}"
+    ],
+    "questions": []
+   },
+   "copy": {
+    "h": [
+     "HVAC Technicians Wanted",
+     "Install and Service Roles",
+     "Pay Range {pay}",
+     "Company Truck and Tools",
+     "Grow With a Local Team"
+    ],
+    "d": [
+     "Registered or certified HVAC techs: pay range {pay}. Apply online.",
+     "Company truck, training and a real schedule. Apply online in two minutes."
+    ],
+    "es": {
+     "h": [
+      "Buscamos Técnicos HVAC"
+     ],
+     "d": [
+      "Técnicos HVAC: rango de pago {pay}, camioneta y entrenamiento.",
+      "Buscamos técnicos e instaladores HVAC. Camioneta, herramientas y horario estable."
+     ]
+    },
+    "social": {
+     "primary": "We are hiring HVAC technicians and installers in {county} County. Pay range {pay}, company truck, tools and training. Apply in two minutes.",
+     "headline": "HVAC techs wanted",
+     "description": "Pay range posted."
+    }
+   }
+  }
+ ],
+ "negatives": {
+  "NEG_CUSTOMER": [
+   "jobs",
+   "job",
+   "hiring",
+   "careers",
+   "salary",
+   "school",
+   "training",
+   "certification",
+   "course",
+   "diy",
+   "how to install",
+   "youtube",
+   "reddit",
+   "parts",
+   "supply",
+   "wholesale",
+   "amazon",
+   "home depot",
+   "lowes",
+   "walmart",
+   "window unit",
+   "portable ac",
+   "car ac",
+   "auto ac",
+   "rv ac",
+   "free",
+   "manual",
+   "wiring diagram",
+   "lawsuit",
+   "recall"
+  ],
+  "NEG_RECRUIT": [
+   "repair",
+   "near me ac",
+   "cost",
+   "price",
+   "replacement",
+   "install my",
+   "financing",
+   "coupon"
+  ],
+  "NEG_HEAT": [
+   "space heater",
+   "space heaters",
+   "water heater",
+   "water heaters",
+   "tankless",
+   "pool heater",
+   "pool heat pump",
+   "hot tub",
+   "patio heater",
+   "infrared heater",
+   "kerosene heater",
+   "heating oil",
+   "fireplace",
+   "chimney",
+   "stove",
+   "wood furnace",
+   "outdoor furnace",
+   "boiler parts",
+   "radiator",
+   "furnace filter",
+   "furnace filters",
+   "car heater",
+   "heater core",
+   "block heater",
+   "car",
+   "truck",
+   "rv furnace",
+   "camper",
+   "dryer",
+   "oven",
+   "heating pad",
+   "heated blanket",
+   "heat lamp",
+   "heat press",
+   "hair",
+   "curls",
+   "minecraft",
+   "heater rental",
+   "tenant rights"
+  ]
+ },
+ "platforms": {
+  "order": [
+   "google",
+   "lsa",
+   "dg",
+   "meta",
+   "microsoft",
+   "nextdoor",
+   "yelp",
+   "linkedin"
+  ],
+  "labels": {
+   "google": "Google Search",
+   "lsa": "Local Services Ads",
+   "dg": "YouTube and Demand Gen",
+   "meta": "Meta",
+   "microsoft": "Microsoft Advertising",
+   "nextdoor": "Nextdoor",
+   "yelp": "Yelp Ads",
+   "linkedin": "LinkedIn"
+  },
+  "assumptions": {
+   "google": {
+    "basis": "CPC",
+    "cost": 9.68,
+    "ctr": 6.43,
+    "cvr": 6.56,
+    "min": 20,
+    "g": "C",
+    "src": "LocaliQ 2025, air conditioning installation and repair"
+   },
+   "lsa": {
+    "basis": "CPL",
+    "cost": 65,
+    "ctr": 0,
+    "cvr": 100,
+    "min": 20,
+    "g": "D",
+    "src": "Assumption; HVAC lead prices vary by job type and week"
+   },
+   "dg": {
+    "basis": "CPM",
+    "cost": 12,
+    "ctr": 0.6,
+    "cvr": 2,
+    "min": 15,
+    "g": "D",
+    "src": "Assumption"
+   },
+   "meta": {
+    "basis": "CPM",
+    "cost": 14,
+    "ctr": 1.1,
+    "cvr": 4,
+    "min": 10,
+    "g": "D",
+    "src": "Assumption; lead form objective"
+   },
+   "microsoft": {
+    "basis": "CPC",
+    "cost": 6.5,
+    "ctr": 5,
+    "cvr": 5.5,
+    "min": 10,
+    "g": "D",
+    "src": "Assumption; roughly two thirds of Google CPC"
+   },
+   "nextdoor": {
+    "basis": "CPM",
+    "cost": 10,
+    "ctr": 0.5,
+    "cvr": 2,
+    "min": 10,
+    "g": "D",
+    "src": "Assumption"
+   },
+   "yelp": {
+    "basis": "CPC",
+    "cost": 8,
+    "ctr": 3,
+    "cvr": 9,
+    "min": 10,
+    "g": "D",
+    "src": "Assumption; request a quote leads"
+   },
+   "linkedin": {
+    "basis": "CPC",
+    "cost": 6,
+    "ctr": 0.5,
+    "cvr": 8,
+    "min": 10,
+    "g": "D",
+    "src": "Assumption; applications"
+   }
+  },
+  "mix": {
+   "replace": {
+    "google": 44,
+    "lsa": 16,
+    "dg": 8,
+    "meta": 16,
+    "microsoft": 6,
+    "nextdoor": 6,
+    "yelp": 4,
+    "linkedin": 0
+   },
+   "repair": {
+    "google": 46,
+    "lsa": 28,
+    "dg": 0,
+    "meta": 8,
+    "microsoft": 8,
+    "nextdoor": 4,
+    "yelp": 6,
+    "linkedin": 0
+   },
+   "heat": {
+    "google": 46,
+    "lsa": 26,
+    "dg": 0,
+    "meta": 10,
+    "microsoft": 8,
+    "nextdoor": 4,
+    "yelp": 6,
+    "linkedin": 0
+   },
+   "maint": {
+    "google": 30,
+    "lsa": 0,
+    "dg": 12,
+    "meta": 34,
+    "microsoft": 4,
+    "nextdoor": 16,
+    "yelp": 4,
+    "linkedin": 0
+   },
+   "b2b": {
+    "google": 52,
+    "lsa": 0,
+    "dg": 0,
+    "meta": 10,
+    "microsoft": 12,
+    "nextdoor": 0,
+    "yelp": 0,
+    "linkedin": 26
+   },
+   "recruit": {
+    "google": 30,
+    "lsa": 0,
+    "dg": 0,
+    "meta": 30,
+    "microsoft": 0,
+    "nextdoor": 0,
+    "yelp": 0,
+    "linkedin": 40
+   },
+   "blend": {
+    "google": 42,
+    "lsa": 20,
+    "dg": 6,
+    "meta": 14,
+    "microsoft": 6,
+    "nextdoor": 6,
+    "yelp": 6,
+    "linkedin": 0
+   },
+   "iaq": {
+    "google": 18,
+    "lsa": 0,
+    "dg": 22,
+    "meta": 40,
+    "microsoft": 4,
+    "nextdoor": 16,
+    "yelp": 0,
+    "linkedin": 0
+   },
+   "ductless": {
+    "google": 40,
+    "lsa": 10,
+    "dg": 10,
+    "meta": 24,
+    "microsoft": 6,
+    "nextdoor": 10,
+    "yelp": 0,
+    "linkedin": 0
+   },
+   "commercial": {
+    "google": 50,
+    "lsa": 0,
+    "dg": 6,
+    "meta": 8,
+    "microsoft": 14,
+    "nextdoor": 0,
+    "yelp": 4,
+    "linkedin": 18
+   }
+  },
+  "book": {
+   "google": {
+    "geo": "ZIP, city and county criteria with bid modifiers; Google criterion IDs carried for 257 of 277 ZIPs, the rest resolve by name",
+    "bulk": "Google Ads Editor CSV: Account, Import, From file. Every object is paused.",
+    "limits": {
+     "h": 30,
+     "d": 90,
+     "path": 15
+    },
+    "policy": [
+     "HVAC is not a restricted vertical in the United States; Advanced Verification applies to locksmiths and garage door services, not HVAC (read this build).",
+     "Misrepresentation policy: offers and prices must match the landing page; \"free\" needs its conditions.",
+     "Editorial: no exclamation marks in headlines, no gimmicky capitals, no phone numbers in ad text (use call assets).",
+     "TDLR: the license number goes in every ad (16 TAC §75.71(h)); the desk puts it in a description line of every responsive search ad."
+    ]
+   },
+   "lsa": {
+    "geo": "Service area by ZIP list per business profile",
+    "bulk": "No bulk upload. Build sheet: profile, license and insurance documents, service ZIPs, job types, weekly budget, hours, Spanish toggle.",
+    "limits": {
+     "bio": 500
+    },
+    "policy": [
+     "Google screens HVAC providers: business registration, TDLR license, insurance and background checks before the Google badge shows.",
+     "Leads are charged per call, message or booking; dispute wrong service or spam leads within the console window.",
+     "Ranking follows responsiveness, reviews and proximity; answer rate matters more than budget."
+    ]
+   },
+   "dg": {
+    "geo": "Same Google criteria; YouTube placements and custom segments",
+    "bulk": "Build sheet plus custom segment term lists.",
+    "limits": {
+     "h": 40,
+     "lh": 90,
+     "d": 90,
+     "biz": 25
+    },
+    "policy": [
+     "Custom segments from the keyword desk terms; in market Home Services audiences.",
+     "Video creative shows real crews and trucks with the license number on the door (TDLR vehicle rule)."
+    ]
+   },
+   "meta": {
+    "geo": "ZIP keys (US:75150) for ordinary campaigns; financing creative requires the Financial products special ad category: 15 mile radius minimum, no ZIP, age or gender targeting",
+    "bulk": "Ads Manager, Import and Export: CSV with Campaign Name, Objective, Ad Set Name, Zip, Ad Name, Title, Body, Link, Call to Action.",
+    "limits": {
+     "p": 125,
+     "h": 40,
+     "d": 30
+    },
+    "policy": [
+     "Personal attributes: describe the offer, never the person's finances or situation.",
+     "Financing mentions move an ad into the special ad category; the desk keeps financing out of ZIP ad sets.",
+     "Lead forms: consent language for calls and texts, unchecked."
+    ]
+   },
+   "microsoft": {
+    "geo": "ZIP and city by name",
+    "bulk": "Import from Google Ads, or the same Editor CSV with campaign names suffixed _MS.",
+    "limits": {
+     "h": 30,
+     "d": 90
+    },
+    "policy": [
+     "Same editorial practice as Google; audience network off at launch."
+    ]
+   },
+   "nextdoor": {
+    "geo": "ZIP lists and neighborhoods",
+    "bulk": "Build sheet for Nextdoor Ads Manager.",
+    "limits": {
+     "h": 60,
+     "b": 300
+    },
+    "policy": [
+     "Business page must match the advertiser; neighborhood targeting is thin in exurban ZIPs.",
+     "Limits are assumptions to verify in Ads Manager (grade D)."
+    ]
+   },
+   "yelp": {
+    "geo": "Service area by city and ZIP",
+    "bulk": "Build sheet for Yelp Ads (Request a Quote enabled).",
+    "limits": {
+     "h": 40
+    },
+    "policy": [
+     "Never ask for or incentivize reviews on Yelp; Yelp posts consumer alerts on businesses that do."
+    ]
+   },
+   "linkedin": {
+    "geo": "Metro and city by name",
+    "bulk": "Campaign Manager bulk CSV for recruiting campaigns only.",
+    "limits": {
+     "i": 600,
+     "h": 70
+    },
+    "policy": [
+     "Employment ads must not signal age or gender; post a pay range.",
+     "Recruiting only; no customer advertising on LinkedIn in this desk."
+    ]
+   }
+  }
+ },
+ "defaults": {
+  "line": "replace",
+  "budget": 15000,
+  "weeks": 13,
+  "scope": "top",
+  "n": 30,
+  "minhh": 2000,
+  "alpha": 1.2,
+  "spanTh": 20,
+  "pay": "$26 to $42 an hour",
+  "bookRate": 55,
+  "jobVal": 3400,
+  "remarket": true,
+  "v": 5
+ },
+ "desk": {
+  "code": "e4d378638463",
+  "bytes": 62117
+ },
+ "service": {
+  "assumptions": {
+   "cpc": 9.68,
+   "budget": 25000,
+   "alpha": 0.7,
+   "rates": {
+    "heatRatio": 0.38,
+    "r22Hazard": 0.14,
+    "ductRate": 0.035,
+    "ductAttach": 0.25,
+    "maintTake": 0.18,
+    "iaqRate": 0.03,
+    "iaqAttach": 0.15,
+    "ductlessOld": 0.02,
+    "ductlessAdd": 0.004,
+    "hailRate": 0.004,
+    "bizPerCap": 0.0236,
+    "bizJobs": 0.35,
+    "landlordRate": 0.32
+   }
+  },
+  "lines": [
+   {
+    "id": "repair",
+    "short": "AC Repair",
+    "name": "Air conditioning repair",
+    "kind": "base",
+    "desk": "repair",
+    "angle": "repair",
+    "season": "repair",
+    "seasonSrc": "Cooling degree days and 100°F day normals (NWS 1991 to 2020) with the ServiceTitan heat wave surge (+20% calls) on 100°F months",
+    "g": "B",
+    "dayparts": "emergency",
+    "mobile": 78,
+    "intent": "Emergency and same week search; calls over forms",
+    "poolL": "central systems",
+    "jobsL": "paid repair calls a year (atlas call rate by system age)",
+    "fit": {
+     "google": 3,
+     "lsa": 3,
+     "meta": 1,
+     "dg": 0,
+     "microsoft": 2,
+     "nextdoor": 1,
+     "yelp": 2,
+     "linkedin": 0
+    },
+    "svc": [
+     "AC repair",
+     "emergency service"
+    ],
+    "hooks": [
+     "Same day when the call comes before noon",
+     "The price before the work starts",
+     "Fixed on the first visit from truck stock",
+     "Warm air, no air, loud unit: name the symptom in the headline",
+     "License number in every ad (TDLR)",
+     "Spanish ad sets where Spanish speaking households pass 15%"
+    ],
+    "negs": [
+     "window unit",
+     "portable",
+     "car ac",
+     "diy",
+     "parts",
+     "capacitor near me",
+     "how to",
+     "youtube"
+    ],
+    "triggers": [
+     "First 95°F day (median late May): lift search bids 20% for ten days",
+     "Any 100°F day: lift LSA weekly budget 30% the same week",
+     "Heat advisory or excessive heat warning: double evening dayparts"
+    ],
+    "economics": {
+     "ticket": 480,
+     "margin": 62,
+     "pipe": 18,
+     "cpcMult": 1.35,
+     "cvr": 9,
+     "close": 70,
+     "lsaCpl": 60,
+     "metaCpl": 45
+    }
+   },
+   {
+    "id": "replace",
+    "short": "AC Replacement",
+    "name": "Air conditioner and full system replacement",
+    "kind": "base",
+    "desk": "replace",
+    "angle": "replace",
+    "season": "permit",
+    "seasonSrc": "Monthly HVAC mechanical permits, Fort Worth 2012 to 2026, Dallas 2018 to 2020, Irving 2022 to 2025 (weighted by months observed)",
+    "g": "B",
+    "dayparts": "considered",
+    "mobile": 55,
+    "intent": "Considered purchase over two to six weeks; quotes, financing and reviews",
+    "poolL": "systems 15 years or older",
+    "jobsL": "system replacements a year (fitted Weibull renewals)",
+    "fit": {
+     "google": 3,
+     "lsa": 2,
+     "meta": 2,
+     "dg": 2,
+     "microsoft": 2,
+     "nextdoor": 2,
+     "yelp": 1,
+     "linkedin": 0
+    },
+    "svc": [
+     "AC installation",
+     "HVAC installation",
+     "AC replacement",
+     "HVAC replacement",
+     "installation"
+    ],
+    "hooks": [
+     "Repair or replace math in writing",
+     "A2L refrigerant systems, sized by load calculation",
+     "Own crew installs, permit pulled, serial numbers recorded",
+     "Financing creative only in a special ad category campaign on Meta",
+     "Reviews with a dated count",
+     "Two systems, one visit for larger homes"
+    ],
+    "negs": [
+     "window",
+     "portable",
+     "used",
+     "wholesale",
+     "parts",
+     "diy",
+     "rv"
+    ],
+    "triggers": [
+     "Permit season rises from March; heavy up from the first 95°F day through August",
+     "A 100°F month adds about 1.4% to Dallas permits per 100°F day (module 04)",
+     "September: shift to shoulder season replacement offers, quieter auctions"
+    ],
+    "economics": {
+     "ticket": null,
+     "margin": 42,
+     "pipe": 0,
+     "cpcMult": 1.25,
+     "cvr": 5.5,
+     "close": 32,
+     "lsaCpl": 95,
+     "metaCpl": 55
+    }
+   },
+   {
+    "id": "firstwave",
+    "short": "Builder First",
+    "name": "First replacement of the builder original system",
+    "kind": "lens",
+    "of": "replace",
+    "desk": "replace",
+    "angle": "firstwave",
+    "season": "permit",
+    "seasonSrc": "Follows the permit season",
+    "g": "B",
+    "dayparts": "considered",
+    "mobile": 58,
+    "intent": "Subdivision level; the homeowner has never bought a system",
+    "poolL": "original builder systems aged 10 to 25",
+    "jobsL": "first replacements a year (five year window over five)",
+    "fit": {
+     "google": 2,
+     "lsa": 1,
+     "meta": 3,
+     "dg": 2,
+     "microsoft": 1,
+     "nextdoor": 3,
+     "yelp": 0,
+     "linkedin": 0
+    },
+    "svc": [
+     "AC installation",
+     "HVAC installation",
+     "AC replacement"
+    ],
+    "hooks": [
+     "Still on the builder system: the first replacement",
+     "Fix the hot upstairs while sizing the new one",
+     "Neighborhood proof: installs on the same street",
+     "Meta and Nextdoor by ZIP, then subdivision creative"
+    ],
+    "negs": [
+     "new construction",
+     "builder jobs",
+     "home builder"
+    ],
+    "triggers": [
+     "Runs with the permit season; strongest in ZIPs built 2000 to 2012"
+    ],
+    "economics": {
+     "ticket": null,
+     "margin": 42,
+     "pipe": 0,
+     "cpcMult": 1.1,
+     "cvr": 4.5,
+     "close": 30,
+     "lsaCpl": 95,
+     "metaCpl": 45
+    }
+   },
+   {
+    "id": "r22",
+    "short": "R22 Changeout",
+    "name": "R22 era system replacement",
+    "kind": "lens",
+    "of": "replace",
+    "desk": "replace",
+    "angle": "r22",
+    "season": "permit",
+    "seasonSrc": "Follows the permit season; the leak that forces the decision comes in the cooling season",
+    "g": "B",
+    "dayparts": "considered",
+    "mobile": 62,
+    "intent": "Triggered by a leak or a recharge quote; educational search",
+    "poolL": "R22 era systems still running",
+    "jobsL": "R22 systems expected to fail a year (hazard at 16 to 25 years)",
+    "fit": {
+     "google": 2,
+     "lsa": 1,
+     "meta": 2,
+     "dg": 1,
+     "microsoft": 2,
+     "nextdoor": 1,
+     "yelp": 0,
+     "linkedin": 0
+    },
+    "svc": [
+     "AC installation",
+     "AC replacement",
+     "HVAC replacement"
+    ],
+    "hooks": [
+     "R22 has not been produced since 2020; a recharge is money into a system with no future",
+     "Free label check",
+     "Never say R22 is illegal to run (Satchel rule R22A)"
+    ],
+    "negs": [
+     "r22 for sale",
+     "buy r22",
+     "r22 price per pound"
+    ],
+    "triggers": [
+     "June to August recharge quotes",
+     "Winter: educational search and YouTube"
+    ],
+    "economics": {
+     "ticket": null,
+     "margin": 42,
+     "pipe": 0,
+     "cpcMult": 0.85,
+     "cvr": 5,
+     "close": 35,
+     "lsaCpl": 90,
+     "metaCpl": 50
+    }
+   },
+   {
+    "id": "heat",
+    "short": "Heating Repair",
+    "name": "Furnace and heat pump heating repair",
+    "kind": "base",
+    "desk": "heat",
+    "angle": "furnace",
+    "season": "heat",
+    "seasonSrc": "Heating degree day normals with the odds of a night at 20°F or lower by month, 1996 to 2025",
+    "g": "B",
+    "dayparts": "emergency",
+    "mobile": 74,
+    "intent": "No heat calls on cold nights; safety language",
+    "poolL": "central systems (heating side)",
+    "jobsL": "heating repair calls a year (ratio to cooling calls, gas weighted)",
+    "fit": {
+     "google": 3,
+     "lsa": 3,
+     "meta": 1,
+     "dg": 0,
+     "microsoft": 2,
+     "nextdoor": 1,
+     "yelp": 2,
+     "linkedin": 0
+    },
+    "svc": [
+     "heating",
+     "furnace repair",
+     "furnaces"
+    ],
+    "hooks": [
+     "Heat back on today",
+     "Carbon monoxide test on every visit",
+     "Igniters, flame sensors, boards priced before the work",
+     "Heat pump blowing cold: defrost and strip heat explained"
+    ],
+    "negs": [
+     "space heater",
+     "water heater",
+     "fireplace",
+     "boiler parts"
+    ],
+    "triggers": [
+     "First forecast freeze (October or November): open the heating campaigns",
+     "Hard freeze (20°F) months, December to February: emergency dayparts on",
+     "Winter storm warning: LSA budget uncapped for the week"
+    ],
+    "economics": {
+     "ticket": 420,
+     "margin": 60,
+     "pipe": 15,
+     "cpcMult": 1,
+     "cvr": 8.5,
+     "close": 68,
+     "lsaCpl": 55,
+     "metaCpl": 50
+    }
+   },
+   {
+    "id": "furnace",
+    "short": "Furnace Replacement",
+    "name": "Gas furnace replacement",
+    "kind": "base",
+    "desk": "heat",
+    "angle": "furnace",
+    "season": "furnace",
+    "seasonSrc": "Heating degree days with an October and November pre season lift (safety checks find the cracked heat exchangers)",
+    "g": "C",
+    "dayparts": "considered",
+    "mobile": 56,
+    "intent": "Safety driven decision; often a pre winter inspection finding",
+    "poolL": "gas furnaces 20 years or older",
+    "jobsL": "furnace replacements a year (fitted furnace lifetimes)",
+    "fit": {
+     "google": 3,
+     "lsa": 3,
+     "meta": 1,
+     "dg": 1,
+     "microsoft": 2,
+     "nextdoor": 1,
+     "yelp": 1,
+     "linkedin": 0
+    },
+    "svc": [
+     "furnaces",
+     "furnace repair",
+     "furnace installation",
+     "heating"
+    ],
+    "hooks": [
+     "Is your furnace past 20? Have it checked before the first cold night",
+     "Heat exchanger inspection with photos",
+     "Matched furnace and coil when the AC is due too"
+    ],
+    "negs": [
+     "furnace filter",
+     "water heater",
+     "wood furnace",
+     "outdoor furnace"
+    ],
+    "triggers": [
+     "October: pre season inspection offer",
+     "First hard freeze: replacement quotes convert fastest"
+    ],
+    "economics": {
+     "ticket": 5600,
+     "margin": 45,
+     "pipe": 20,
+     "cpcMult": 1,
+     "cvr": 5.5,
+     "close": 38,
+     "lsaCpl": 85,
+     "metaCpl": 60
+    }
+   },
+   {
+    "id": "heatpump",
+    "short": "Heat Pump",
+    "name": "Heat pump replacement",
+    "kind": "lens",
+    "of": "replace",
+    "desk": "replace",
+    "angle": "heatpump",
+    "season": "permit",
+    "seasonSrc": "Permit season blended 70/30 with the heating season (a heat pump fails in both)",
+    "g": "B",
+    "dayparts": "considered",
+    "mobile": 58,
+    "intent": "Dual season failure; electric heated homes",
+    "poolL": "heat pumps (model)",
+    "jobsL": "heat pump replacements a year",
+    "fit": {
+     "google": 3,
+     "lsa": 2,
+     "meta": 2,
+     "dg": 1,
+     "microsoft": 2,
+     "nextdoor": 1,
+     "yelp": 1,
+     "linkedin": 0
+    },
+    "svc": [
+     "heat pumps"
+    ],
+    "hooks": [
+     "Heating and cooling in one system, worn on both sides",
+     "Cold air in heat mode: repair or replace, in writing",
+     "Oncor rebates only with the current program year terms"
+    ],
+    "negs": [
+     "pool heat pump",
+     "water heater heat pump",
+     "geothermal diy"
+    ],
+    "triggers": [
+     "Both peaks: July to August and December to January"
+    ],
+    "economics": {
+     "ticket": null,
+     "margin": 42,
+     "pipe": 0,
+     "cpcMult": 1.05,
+     "cvr": 5,
+     "close": 32,
+     "lsaCpl": 90,
+     "metaCpl": 60
+    }
+   },
+   {
+    "id": "duct",
+    "short": "Ductwork",
+    "name": "Ductwork replacement and sealing",
+    "kind": "base",
+    "desk": "replace",
+    "angle": "duct",
+    "season": "duct",
+    "seasonSrc": "Shoulder months when attic work is possible, plus the share bundled into replacements",
+    "g": "C",
+    "dayparts": "considered",
+    "mobile": 52,
+    "intent": "Comfort complaint (hot rooms, dust, bills); often an add on to replacement",
+    "poolL": "owner occupied single family homes built 1980 to 1999",
+    "jobsL": "duct jobs a year (stand alone rate plus the share attached to replacements)",
+    "fit": {
+     "google": 2,
+     "lsa": 2,
+     "meta": 2,
+     "dg": 1,
+     "microsoft": 1,
+     "nextdoor": 2,
+     "yelp": 1,
+     "linkedin": 0
+    },
+    "svc": [
+     "ductwork",
+     "duct sealing",
+     "duct repair",
+     "duct cleaning"
+    ],
+    "hooks": [
+     "Hot rooms start in the attic",
+     "Duct test with a number, not an opinion",
+     "Replace and balance with the new system, one crew"
+    ],
+    "negs": [
+     "duct cleaning coupon",
+     "dryer vent",
+     "diy duct tape"
+    ],
+    "triggers": [
+     "March to May and September to November attic weather"
+    ],
+    "economics": {
+     "ticket": 5500,
+     "margin": 48,
+     "pipe": 10,
+     "cpcMult": 0.75,
+     "cvr": 4,
+     "close": 35,
+     "lsaCpl": 70,
+     "metaCpl": 50
+    }
+   },
+   {
+    "id": "maint",
+    "short": "Maintenance",
+    "name": "Maintenance plans and tune ups",
+    "kind": "base",
+    "desk": "maint",
+    "angle": "maint",
+    "season": "maint",
+    "seasonSrc": "Spring cooling and fall heating tune up calendar (industry pattern, grade C)",
+    "g": "C",
+    "dayparts": "daytime",
+    "mobile": 60,
+    "intent": "Low urgency; price led; recurring revenue and the replacement pipeline",
+    "poolL": "owner occupied single family homes",
+    "jobsL": "plan or tune up sales a year (take rate, new owner lift)",
+    "fit": {
+     "google": 1,
+     "lsa": 1,
+     "meta": 3,
+     "dg": 2,
+     "microsoft": 1,
+     "nextdoor": 3,
+     "yelp": 1,
+     "linkedin": 0
+    },
+    "svc": [
+     "maintenance",
+     "maintenance plans",
+     "tune-ups",
+     "preventive maintenance",
+     "HVAC maintenance"
+    ],
+    "hooks": [
+     "Beat the first heat wave: priority scheduling",
+     "Two visits a year and a written record",
+     "Member pricing on repairs (terms in the agreement)",
+     "New to the house? Know what you bought"
+    ],
+    "negs": [
+     "diy",
+     "checklist",
+     "filter size",
+     "how to clean"
+    ],
+    "triggers": [
+     "March: cooling tune up window opens",
+     "Late September: heating tune up window",
+     "Avoid July and August (crews are on repairs)"
+    ],
+    "economics": {
+     "ticket": 228,
+     "margin": 35,
+     "pipe": 12,
+     "cpcMult": 0.6,
+     "cvr": 6,
+     "close": 60,
+     "lsaCpl": 40,
+     "metaCpl": 22
+    }
+   },
+   {
+    "id": "iaq",
+    "short": "Indoor Air",
+    "name": "Indoor air quality: filtration, purification, humidity",
+    "kind": "base",
+    "desk": "iaq",
+    "angle": "iaq",
+    "season": "iaq",
+    "seasonSrc": "North Texas pollen calendar (cedar December to February, oak March to April, ragweed September to October) plus the ozone season (27.8 unhealthy days a year, ALA)",
+    "g": "C",
+    "dayparts": "considered",
+    "mobile": 62,
+    "intent": "Health and comfort; social and video creative; attaches to replacements",
+    "poolL": "owner occupied single family homes",
+    "jobsL": "IAQ installs a year (stand alone rate plus attach at replacement)",
+    "fit": {
+     "google": 1,
+     "lsa": 0,
+     "meta": 3,
+     "dg": 2,
+     "microsoft": 1,
+     "nextdoor": 2,
+     "yelp": 0,
+     "linkedin": 0
+    },
+    "svc": [
+     "indoor air quality",
+     "air purification",
+     "duct cleaning"
+    ],
+    "hooks": [
+     "Cedar season and oak season creative, dated",
+     "Media air cleaner, UV, dehumidification: name the device",
+     "No health claims beyond what the manufacturer substantiates"
+    ],
+    "negs": [
+     "air purifier amazon",
+     "portable purifier",
+     "filter subscription",
+     "dyson"
+    ],
+    "triggers": [
+     "December to February cedar",
+     "March to April oak",
+     "September to October ragweed",
+     "Ozone action days May to September"
+    ],
+    "economics": {
+     "ticket": 1350,
+     "margin": 58,
+     "pipe": 5,
+     "cpcMult": 0.55,
+     "cvr": 3,
+     "close": 30,
+     "lsaCpl": null,
+     "metaCpl": 35
+    }
+   },
+   {
+    "id": "ductless",
+    "short": "Ductless",
+    "name": "Ductless mini split systems",
+    "kind": "base",
+    "desk": "ductless",
+    "angle": "ductless",
+    "season": "permit",
+    "seasonSrc": "Permit season blended with a flat base (additions and garages are built year round)",
+    "g": "C",
+    "dayparts": "considered",
+    "mobile": 55,
+    "intent": "Room by room problems: additions, garages, homes without ducts",
+    "poolL": "homes built before 1960 plus half of large owner occupied homes",
+    "jobsL": "ductless installs a year (old stock rate plus additions and garages)",
+    "fit": {
+     "google": 2,
+     "lsa": 1,
+     "meta": 2,
+     "dg": 1,
+     "microsoft": 1,
+     "nextdoor": 2,
+     "yelp": 1,
+     "linkedin": 0
+    },
+    "svc": [
+     "ductless mini-splits",
+     "mini-splits",
+     "ductless systems"
+    ],
+    "hooks": [
+     "The garage gym, the sunroom, the room the ducts never reached",
+     "One outdoor unit, several rooms",
+     "Installed and permitted by a licensed crew"
+    ],
+    "negs": [
+     "diy mini split",
+     "mrcool",
+     "mini split for sale",
+     "window"
+    ],
+    "triggers": [
+     "Spring additions season; summer garage heat"
+    ],
+    "economics": {
+     "ticket": 6500,
+     "margin": 45,
+     "pipe": 0,
+     "cpcMult": 0.9,
+     "cvr": 4,
+     "close": 30,
+     "lsaCpl": null,
+     "metaCpl": 50
+    }
+   },
+   {
+    "id": "hail",
+    "short": "Hail Damage",
+    "name": "Hail damaged condenser inspection and insurance replacement",
+    "kind": "base",
+    "desk": "replace",
+    "angle": "hail",
+    "season": "hail",
+    "seasonSrc": "North Texas hail climatology blended with the 25 largest NOAA reports in the file (2016 to 2026)",
+    "g": "C",
+    "dayparts": "considered",
+    "mobile": 70,
+    "intent": "Event driven: the week after the storm, by ZIP, with photos",
+    "poolL": "systems weighted by large hail exposure (reports within 8 km a decade)",
+    "jobsL": "claim driven condenser replacements a year (expected value; arrives in lumps)",
+    "fit": {
+     "google": 2,
+     "lsa": 1,
+     "meta": 3,
+     "dg": 1,
+     "microsoft": 1,
+     "nextdoor": 3,
+     "yelp": 0,
+     "linkedin": 0
+    },
+    "svc": [
+     "AC repair",
+     "AC replacement"
+    ],
+    "hooks": [
+     "Inspection, photos and a written quote; the claim stays between you and your insurer",
+     "Never offer to waive or pay a deductible (Tex. Ins. Code ch. 707)",
+     "Geo fenced Meta and Nextdoor inside the storm swath within 72 hours"
+    ],
+    "negs": [
+     "roof",
+     "car hail",
+     "hail repair kit",
+     "public adjuster"
+    ],
+    "triggers": [
+     "Any 1.75 inch or larger report inside 8 km: launch within 72 hours",
+     "April to June is 74% of the season"
+    ],
+    "economics": {
+     "ticket": null,
+     "margin": 40,
+     "pipe": 0,
+     "cpcMult": 0.7,
+     "cvr": 5,
+     "close": 40,
+     "lsaCpl": null,
+     "metaCpl": 28
+    }
+   },
+   {
+    "id": "commercial",
+    "short": "Light Commercial",
+    "name": "Light commercial HVAC (rooftop units, small buildings)",
+    "kind": "base",
+    "desk": "commercial",
+    "angle": "commercial",
+    "season": "permit",
+    "seasonSrc": "Permit season blended 30/70 with flat (facilities budgets are year round)",
+    "g": "D",
+    "dayparts": "business",
+    "mobile": 35,
+    "intent": "Facilities managers and owners; business hours; quotes and contracts",
+    "poolL": "businesses (population share proxy; no ZIP business count in the file)",
+    "jobsL": "commercial jobs a year (repairs and rooftop replacements per business)",
+    "fit": {
+     "google": 3,
+     "lsa": 0,
+     "meta": 1,
+     "dg": 1,
+     "microsoft": 2,
+     "nextdoor": 0,
+     "yelp": 1,
+     "linkedin": 2
+    },
+    "svc": [
+     "commercial HVAC",
+     "commercial refrigeration",
+     "new construction HVAC"
+    ],
+    "hooks": [
+     "Rooftop unit replacement quoted by tonnage",
+     "Preventive maintenance contract for multi tenant buildings",
+     "Response time in hours, in writing"
+    ],
+    "negs": [
+     "residential",
+     "home",
+     "apartment for rent",
+     "jobs"
+    ],
+    "triggers": [
+     "Budget season (Q4) for contracts; summer for failures"
+    ],
+    "economics": {
+     "ticket": 4200,
+     "margin": 38,
+     "pipe": 0,
+     "cpcMult": 1.15,
+     "cvr": 3,
+     "close": 28,
+     "lsaCpl": null,
+     "metaCpl": 120
+    }
+   },
+   {
+    "id": "landlord",
+    "short": "Rental Homes",
+    "name": "Landlord and property manager service",
+    "kind": "base",
+    "desk": "b2b",
+    "angle": "landlord",
+    "season": "repair",
+    "seasonSrc": "Follows the repair season (tenant calls) blended 60/40 with flat",
+    "g": "C",
+    "dayparts": "business",
+    "mobile": 45,
+    "intent": "Portfolio buyers: one invoice, many homes; B2B channels",
+    "poolL": "single family homes that are rented",
+    "jobsL": "rental home jobs a year (repairs plus one replacement in fifteen)",
+    "fit": {
+     "google": 2,
+     "lsa": 0,
+     "meta": 1,
+     "dg": 0,
+     "microsoft": 1,
+     "nextdoor": 0,
+     "yelp": 0,
+     "linkedin": 3
+    },
+    "svc": [
+     "AC repair",
+     "AC installation"
+    ],
+    "hooks": [
+     "Fast tenant response, one clear invoice",
+     "Portfolio pricing on replacements",
+     "Straight advice on which units to replace before summer"
+    ],
+    "negs": [
+     "tenant rights",
+     "who pays",
+     "apartment",
+     "landlord insurance"
+    ],
+    "triggers": [
+     "March to May: pre summer portfolio inspections",
+     "Institutional owners budget in Q4"
+    ],
+    "economics": {
+     "ticket": 1100,
+     "margin": 50,
+     "pipe": 8,
+     "cpcMult": 0.8,
+     "cvr": 3.5,
+     "close": 45,
+     "lsaCpl": null,
+     "metaCpl": 90
+    }
+   }
+  ],
+  "dayparts": {
+   "emergency": {
+    "weekday": [
+     -10,
+     5,
+     10,
+     15,
+     25,
+     15
+    ],
+    "saturday": [
+     0,
+     15,
+     20,
+     20,
+     20,
+     10
+    ],
+    "sunday": [
+     0,
+     15,
+     20,
+     20,
+     25,
+     10
+    ]
+   },
+   "considered": {
+    "weekday": [
+     -30,
+     -5,
+     0,
+     5,
+     20,
+     10
+    ],
+    "saturday": [
+     -25,
+     5,
+     15,
+     15,
+     10,
+     0
+    ],
+    "sunday": [
+     -25,
+     5,
+     15,
+     15,
+     20,
+     0
+    ]
+   },
+   "daytime": {
+    "weekday": [
+     -40,
+     0,
+     10,
+     10,
+     0,
+     -20
+    ],
+    "saturday": [
+     -40,
+     0,
+     5,
+     0,
+     -10,
+     -30
+    ],
+    "sunday": [
+     -45,
+     -10,
+     -5,
+     -5,
+     -10,
+     -30
+    ]
+   },
+   "business": {
+    "weekday": [
+     -50,
+     10,
+     25,
+     25,
+     -10,
+     -40
+    ],
+    "saturday": [
+     -50,
+     -30,
+     -30,
+     -30,
+     -40,
+     -50
+    ],
+    "sunday": [
+     -50,
+     -40,
+     -40,
+     -40,
+     -40,
+     -50
+    ]
+   }
+  },
+  "blocks": [
+   "12a to 6a",
+   "6a to 9a",
+   "9a to 12p",
+   "12p to 5p",
+   "5p to 9p",
+   "9p to 12a"
+  ],
+  "platforms": [
+   "google",
+   "lsa",
+   "meta",
+   "dg",
+   "microsoft",
+   "nextdoor",
+   "yelp",
+   "linkedin"
+  ]
+ },
+ "rules": {
+  "version": "2026-09-25",
+  "rules": [
+   {
+    "id": "TDLR1",
+    "enforcer": "TDLR",
+    "severity": "block",
+    "name": "License number missing from advertising",
+    "cite": "16 TAC §75.71(h)",
+    "read": "primary",
+    "scope": "asset",
+    "fix": "Add the affiliated licensee's number, for example \"Lic TACLA12345C\", to at least one description or the page footer.",
+    "route": "TDLR complaint (competitor) or remediation ticket (self)",
+    "test": "630632dcaa6f"
+   },
+   {
+    "id": "TDLR2",
+    "enforcer": "TDLR",
+    "severity": "note",
+    "name": "TDLR consumer notice on proposals, invoices, contracts and signage",
+    "cite": "16 TAC §75.71(i)",
+    "read": "primary",
+    "scope": "page",
+    "fix": "Add: Regulated by The Texas Department of Licensing and Regulation, P.O. Box 12157, Austin, Texas 78711, 1 800 803 9202, 512 463 6599.",
+    "route": "Remediation (self); intelligence only (competitor)",
+    "test": "c10cc41996b7"
+   },
+   {
+    "id": "TAX1",
+    "enforcer": "FTC / DTPA",
+    "severity": "block",
+    "name": "Lapsed federal tax credit advertised",
+    "cite": "IRS 25C (property placed in service after Dec 31, 2025 excluded); FTC Act §5; DTPA §17.46(b)",
+    "read": "primary",
+    "scope": "",
+    "fix": "Remove credit language for 2026 installs. Mention Oncor's program only with the current program year's terms.",
+    "route": "Texas AG Consumer Protection (DTPA) or FTC (competitor)",
+    "test": "4f81816c490f"
+   },
+   {
+    "id": "REGZ1",
+    "enforcer": "CFPB / FTC",
+    "severity": "block",
+    "name": "Credit trigger term without required disclosures",
+    "cite": "Regulation Z, 12 CFR §1026.24(d)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "State the APR, the terms of repayment and the down payment, or drop the specific term and say \"Financing options available, subject to credit approval.\"",
+    "route": "FTC or CFPB (competitor); remediation (self)",
+    "test": "b09ceda82cd4"
+   },
+   {
+    "id": "FREE1",
+    "enforcer": "FTC",
+    "severity": "note",
+    "name": "\"Free\" offer: conditions must be clear",
+    "cite": "16 CFR Part 251 (Guide Concerning Use of the Word Free)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "State every condition next to the offer (for example \"free estimate on system replacement; service calls billed\").",
+    "route": "Intelligence",
+    "test": "e675bbbfbf75"
+   },
+   {
+    "id": "GUAR1",
+    "enforcer": "FTC / DTPA",
+    "severity": "warn",
+    "name": "Guarantee or warranty claim without stated terms",
+    "cite": "FTC Act §5; 16 CFR Part 239 (Guides for Advertising Warranties and Guarantees); DTPA §17.46(b)(20)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Say what is guaranteed, for how long, and how to claim it, or link the terms beside the claim.",
+    "route": "Intelligence; DTPA if material",
+    "test": "a1a9adcec340"
+   },
+   {
+    "id": "SUP1",
+    "enforcer": "FTC / NAD",
+    "severity": "warn",
+    "name": "Superiority or price claim needs substantiation",
+    "cite": "FTC Policy Statement on Substantiation; DTPA §17.46(b)(5),(7)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Cite the basis (for example \"4.9 stars from 708 Google reviews, Sep 2026\") or remove the claim.",
+    "route": "Intelligence; NAD challenge if a competitor relies on it",
+    "test": "a0edb0d99105"
+   },
+   {
+    "id": "REV1",
+    "enforcer": "FTC",
+    "severity": "warn",
+    "name": "Review or rating claim must match real reviews",
+    "cite": "FTC Trade Regulation Rule on Consumer Reviews and Testimonials, 16 CFR Part 465 (effective Oct 21, 2024)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Match the count and rating to the live profile and date it; never gate or buy reviews.",
+    "route": "FTC (competitor, fabricated reviews only)",
+    "test": "feee66584b71"
+   },
+   {
+    "id": "URG1",
+    "enforcer": "FTC / DTPA",
+    "severity": "warn",
+    "name": "False urgency or countdown",
+    "cite": "FTC Act §5 (dark patterns); DTPA §17.46(b)(9),(11)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Use a real end date or remove the deadline.",
+    "route": "Intelligence",
+    "test": "ca09829dd670"
+   },
+   {
+    "id": "R22A",
+    "enforcer": "EPA / DTPA",
+    "severity": "warn",
+    "name": "Misstated R22 or refrigerant rule",
+    "cite": "EPA Section 605 phaseout; Technology Transitions rule as amended May 26, 2026",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Operating an R22 or R410A system is legal. Say what is true: R22 is no longer produced, and new split systems use A2L refrigerants.",
+    "route": "Intelligence; DTPA if used to force a sale",
+    "test": "0d595e48eccb"
+   },
+   {
+    "id": "INS1",
+    "enforcer": "TDI / DTPA",
+    "severity": "warn",
+    "name": "Contractor offering to handle or negotiate an insurance claim",
+    "cite": "Tex. Ins. Code ch. 4102 (a contractor may not act or advertise as a public adjuster, §4102.163); Tex. Ins. Code ch. 707 (paying or waiving a deductible)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Offer inspection, photos and a written quote; say the claim is between the homeowner and the insurer. Never offer to waive or pay a deductible.",
+    "route": "Texas Department of Insurance complaint (competitor); remediation (self)",
+    "test": "496d9f17468d"
+   },
+   {
+    "id": "EFF1",
+    "enforcer": "FTC / DOE",
+    "severity": "note",
+    "name": "Efficiency rating claim",
+    "cite": "FTC Energy Labeling Rule, 16 CFR Part 305; AHRI certified ratings",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Quote the AHRI certified rating of the matched system (condenser plus coil or air handler), not the condenser alone.",
+    "route": "Intelligence",
+    "test": "5a47f63e001e"
+   },
+   {
+    "id": "ES1",
+    "enforcer": "EPA / DOE",
+    "severity": "warn",
+    "name": "ENERGY STAR mark use",
+    "cite": "ENERGY STAR Identity Guidelines",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Use the mark only for certified models and never as a company endorsement.",
+    "route": "Intelligence",
+    "test": "4034f332590c"
+   },
+   {
+    "id": "LIC2",
+    "enforcer": "TDLR / DTPA",
+    "severity": "note",
+    "name": "\"Licensed and insured\", \"bonded\" or \"certified\" claims",
+    "cite": "DTPA §17.46(b)(5); EPA 40 CFR Part 82 Subpart F for Section 608",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Keep proof on file: certificate of insurance, NATE or 608 cards, the manufacturer dealer letter.",
+    "route": "Intelligence",
+    "test": "4140086761e3"
+   },
+   {
+    "id": "AVL1",
+    "enforcer": "DTPA",
+    "severity": "note",
+    "name": "Availability claim (24/7, same day)",
+    "cite": "DTPA §17.46(b)(9)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Only if staffed. Same day claims need a stated cutoff time.",
+    "route": "Intelligence",
+    "test": "f34a15e63042"
+   },
+   {
+    "id": "SMS1",
+    "enforcer": "FCC / Texas",
+    "severity": "warn",
+    "name": "Texting without documented consent",
+    "cite": "TCPA 47 U.S.C. §227; Texas Bus. & Com. Code ch. 302 as amended by SB 140 (Sep 1, 2025)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Unchecked consent box, disclosure that consent is not a condition of purchase, STOP instructions; register under chapter 302 if the exemption does not apply.",
+    "route": "Intelligence; private DTPA action risk",
+    "test": "8d8d39912a65"
+   },
+   {
+    "id": "GGL1",
+    "enforcer": "Google Ads",
+    "severity": "warn",
+    "name": "Editorial: exclamation or gimmicky capitals in a headline",
+    "cite": "Google Ads Editorial policy",
+    "read": "secondary",
+    "scope": "headline",
+    "fix": "Remove the exclamation mark or recase the word.",
+    "route": "Ad disapproval (self)",
+    "test": "429460aba2b8"
+   },
+   {
+    "id": "GGL2",
+    "enforcer": "Google Ads",
+    "severity": "note",
+    "name": "Phone number inside ad text",
+    "cite": "Google Ads Editorial policy (use call assets)",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Move the number to a call asset.",
+    "route": "Ad disapproval (self)",
+    "test": "d5cbb747e572"
+   },
+   {
+    "id": "META1",
+    "enforcer": "Meta",
+    "severity": "warn",
+    "name": "Personal attribute assertion",
+    "cite": "Meta Advertising Standards, personal attributes",
+    "read": "secondary",
+    "scope": "",
+    "fix": "Describe the offer, not the person.",
+    "route": "Ad rejection (self)",
+    "test": "158426d478ab"
+   },
+   {
+    "id": "META2",
+    "enforcer": "Meta",
+    "severity": "note",
+    "name": "Financing offer may require the Financial products special ad category",
+    "cite": "Meta special ad categories (Financial products and services, 2025)",
+    "read": "secondary",
+    "scope": "meta",
+    "fix": "Run financing creative in a separate campaign under the special ad category (15 mile radius minimum, no ZIP, age or gender targeting) or remove financing from ZIP-targeted ad sets.",
+    "route": "Account restriction risk (self)",
+    "test": "949d82ca4846"
+   },
+   {
+    "id": "HOUSE1",
+    "enforcer": "House style",
+    "severity": "block",
+    "name": "Hyphen or dash in copy",
+    "read": "primary",
+    "scope": "copy",
+    "fix": "Rewrite without the hyphen or dash (the desk and forge clean their own copy; pasted copy is checked here).",
+    "route": "Remediation (self)",
+    "test": "95c72294c017",
+    "cite": "House style"
+   },
+   {
+    "id": "HOUSE2",
+    "enforcer": "House style",
+    "severity": "block",
+    "name": "Meta note or placeholder left in copy",
+    "cite": "House style: no explanatory or meta notes inside a deliverable",
+    "read": "primary",
+    "scope": "copy",
+    "fix": "Remove the note or fill the placeholder.",
+    "route": "Remediation (self)",
+    "test": "bb4ecfe5d487"
+   }
+  ],
+  "web": [
+   {
+    "id": "WEB1",
+    "severity": "warn",
+    "name": "Tracking pixel without a privacy notice link",
+    "cite": "Texas Data Privacy and Security Act (Bus. & Com. Code ch. 541), notice duties; platform terms",
+    "fix": "Link a privacy notice in the footer that names the data collected and how to opt out."
+   },
+   {
+    "id": "WEB2",
+    "severity": "warn",
+    "name": "Pre-checked consent box",
+    "cite": "TCPA; Texas SB 140",
+    "fix": "Leave consent unchecked and optional."
+   },
+   {
+    "id": "WEB3",
+    "severity": "warn",
+    "name": "Self-serving aggregateRating in schema",
+    "cite": "Google structured data review snippet guidelines; FTC 16 CFR 465 if fabricated",
+    "fix": "Remove self-served ratings from LocalBusiness schema; show real reviews with a dated source instead."
+   },
+   {
+    "id": "WEB4",
+    "severity": "block",
+    "name": "No license number anywhere on the page",
+    "cite": "16 TAC §75.71(h)",
+    "fix": "Put the license number in the site footer so every page carries it."
+   }
+  ],
+  "controls": [
+   {
+    "id": "licVerified",
+    "label": "License number verified on the TDLR search (name and number match)",
+    "rules": [
+     "TDLR1",
+     "WEB4"
+    ]
+   },
+   {
+    "id": "finTerms",
+    "label": "Financing terms, APR and approval language appear on the landing page beside the offer",
+    "rules": [
+     "REGZ1",
+     "META2"
+    ]
+   },
+   {
+    "id": "reviewsLive",
+    "label": "Review counts and ratings match the live Google profile on a stated date",
+    "rules": [
+     "REV1",
+     "SUP1"
+    ]
+   },
+   {
+    "id": "offerTerms",
+    "label": "Every offer and \"free\" item has its conditions on the page",
+    "rules": [
+     "FREE1",
+     "GUAR1",
+     "URG1"
+    ]
+   },
+   {
+    "id": "availability",
+    "label": "Stated hours and same day service are actually staffed",
+    "rules": [
+     "AVL1"
+    ]
+   },
+   {
+    "id": "certs",
+    "label": "Certificates on file: insurance, NATE or 608, dealer status, ENERGY STAR model numbers",
+    "rules": [
+     "LIC2",
+     "ES1",
+     "EFF1"
+    ]
+   },
+   {
+    "id": "smsConsent",
+    "label": "SMS consent flow reviewed: unchecked box, STOP language, chapter 302 status",
+    "rules": [
+     "SMS1",
+     "WEB2"
+    ]
+   }
+  ],
+  "notice": "Regulated by The Texas Department of Licensing and Regulation, P.O. Box 12157, Austin, Texas 78711, 1 800 803 9202, 512 463 6599.",
+  "consent": "By submitting, you agree that we may contact you by phone, text or email about your request. Message and data rates may apply. Consent is not a condition of purchase. Reply STOP to opt out of texts."
+ }
+}
