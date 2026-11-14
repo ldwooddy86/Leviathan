@@ -245,6 +245,7 @@ export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, se
     else if (sameAngle && !W.place && p.kind === 'service-location') { score += 2; why = `the ${p.place} version of this service`; }
     else if (sisters(W.angle, p.angle) && !p.place && p.kind === 'service') { score += 1.5 + fit(p); why = 'a sister service'; }
     else if (samePlace && p.kind === 'service-location') { score += 1.5; why = `another service in ${p.place}`; }
+    else if (samePlace && p.kind === 'post') { score += 2.5; why = `a post or job from ${p.place}`; }
     else if (p.kind === 'service' && !p.place && p.angle) { score += 1 + fit(p); why = 'a related service'; }
     else if (p.kind === 'contact') { score += 2; why = 'the next step for the reader'; }
     else if (p.kind === 'hub' && /financ|review|about/.test(p.path)) { score += 0.8; why = 'proof or terms the reader may want'; }

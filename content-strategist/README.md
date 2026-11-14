@@ -68,6 +68,7 @@ node content-strategist/cli.mjs cannibal "ac repair plano"  who already holds a 
 node content-strategist/cli.mjs links "ac repair plano"     live pages to link to, with anchors
 node content-strategist/cli.mjs lint draft.md               the writing and page checks alone
 node content-strategist/cli.mjs build draft.md              the whole gate; writes the page, schema and blueprint
+node content-strategist/cli.mjs compare folder-of-pages     how alike a set of pages is, with place names masked
 node content-strategist/cli.mjs social lint post.json
 node content-strategist/cli.mjs social post post.json --platform all            a dry run
 node content-strategist/cli.mjs social post post.json --platform all --confirm  publishes
@@ -101,7 +102,7 @@ Posts go to Graph API `v26.0` (`FB_GRAPH_VERSION` changes it) and to the Busines
 node content-strategist/tests/run.mjs
 ```
 
-Six files, no network: the atlas reader and the packs on disk (in step with the console, nothing withheld), the writing gate, the sitemap reader with cannibalization and links, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, and the command line end to end.
+Seven files, no network: the atlas reader and the packs on disk (in step with the console, nothing withheld), the writing gate, the sitemap reader with cannibalization and links, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, and the command line end to end.
 
 ## Limits
 

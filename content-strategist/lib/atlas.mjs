@@ -298,7 +298,7 @@ export function brandProfile(B) {
   return {
     name: B.name, short: B.short, legalName: B.legal, tagline: B.tagline, phone: B.phone, url: B.url, domain: B.domain, email: B.email || '',
     license: B.lic, licenseLabel: 'TDLR', address: { street: B.street, city: B.city, state: B.state, zip: B.zip }, geo: { lat: B.lat, lon: B.lon },
-    hours: B.hours, hoursSchema: B.hoursSchema, founded: B.founded, logo: B.logoUrl, colors: B.colors || {}, fonts: B.fonts || {},
+    hours: B.hours, hoursSchema: B.hoursSchema, founded: B.founded, since: B.since || '', dealer: B.dealer || [], logo: B.logoUrl, colors: B.colors || {}, fonts: B.fonts || {},
     services: B.services || [], serviceCities: B.serviceCities || [], plan: B.plan, financing: B.financing,
     sameAs: [s.facebook, s.instagram, s.youtube, s.linkedin, s.tiktok, s.x, s.yelp, s.maps].filter(Boolean),
     social: { facebookPageId: s.facebookPageId || '', gbpAccountId: '', gbpLocationId: '' },

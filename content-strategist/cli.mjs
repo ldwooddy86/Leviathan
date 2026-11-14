@@ -25,6 +25,9 @@
      build <page.md> [--allow rule,rule] [--date YYYY-MM-DD] [--no-sitemap]
                                           lint, cannibalization, links and schema; writes the page only when all pass
      validate <schema.json> [--page page.md]
+     compare <folder | files...> [--limit 0.15]
+                                          how alike a set of pages is, place names masked: catches the same page with
+                                          the city swapped, and sentences repeated from page to page
 
    Social
      social lint <post.json>
@@ -44,6 +47,7 @@ import { lint, report } from './lib/lint.mjs';
 import { crawl, fromFile, inventory, deepen, cannibal, linkTargets, Blocked } from './lib/sitemap.mjs';
 import { buildSchema, validate, blueprint, pageUrl } from './lib/schema.mjs';
 import * as social from './lib/social.mjs';
+import { compare } from './lib/unique.mjs';
 
 /* Everything that names the client lives outside the repository: the brand file, the sitemap inventory, the finished pages
    and the ledger of posts. The console's build scans every file under the repository, ignored or not, and refuses it
@@ -224,6 +228,16 @@ const C = {
     const f = A._[0] || die('validate <schema.json> [--page page.md]'), schema = JSON.parse(fs.readFileSync(f, 'utf8')), doc = A.page && A.page !== true ? parse(fs.readFileSync(A.page, 'utf8'), A.page) : null;
     const v = validate(schema, { doc, allow: list(A.allow) });
     out(v, `${v.ok ? 'VALID' : 'INVALID'}  ${rel(f)}  ·  ${(schema['@graph'] || []).map(n => n['@type']).join(', ')}\n${v.errors.map(e => 'ERROR  ' + e).join('\n')}${v.warnings.length ? '\n' + v.warnings.map(e => 'note   ' + e).join('\n') : ''}`); if (!v.ok) process.exitCode = 1;
+  },
+
+  compare() {
+    const files = []; for (const a of A._.length ? A._ : [OUT]) { const p = path.resolve(a); if (!fs.existsSync(p)) die(`Not found: ${a}`); if (fs.statSync(p).isDirectory()) { for (const e of fs.readdirSync(p).sort()) { const f = fs.existsSync(path.join(p, e, 'page.md')) ? path.join(p, e, 'page.md') : /\.(md|html?)$/i.test(e) ? path.join(p, e) : null; if (f) files.push(f); } } else files.push(p); }
+    if (files.length < 2) die('compare needs two or more pages: a folder of built pages, a folder of drafts, or a list of files.');
+    const brand = loadBrand(), docs = files.map(f => { const d = parse(fs.readFileSync(f, 'utf8'), f); return { name: path.basename(f) === 'page.md' ? path.basename(path.dirname(f)) : path.basename(f), text: d.blocks.filter(b => ['p', 'li', 'quote'].includes(b.type) || /^h[1-6]$/.test(b.type)).map(b => b.text + (/[.!?]$/.test(b.text) ? '' : '.')).join('\n'), mask: [d.meta.city, ...(brand ? brand.serviceCities || [] : [])].filter(Boolean) }; });
+    const r = compare(docs, { limit: A.limit ? +A.limit : undefined }), top = r.pages.slice().sort((a, b) => b.similarity - a.similarity);
+    out(r, [`${r.ok ? 'UNIQUE' : 'TOO ALIKE'}  ${r.count} pages  ·  closest pair shares ${Math.round(100 * (top[0] ? top[0].similarity : 0))}% of its four word runs (limit ${Math.round(100 * r.limit)}%)  ·  ${r.repeated.length} sentence${r.repeated.length === 1 ? '' : 's'} on more than one page`,
+      ...r.pairs.slice(0, 20).map(p => `PAIR   ${Math.round(100 * p.similarity)}%  ${p.a}  <>  ${p.b}`), ...r.repeated.slice(0, 25).map(x => `${x.pages.length >= 3 ? 'REPEAT' : 'twice '} on ${x.pages.length} pages: "${x.sentence.slice(0, 110)}"  (${x.pages.slice(0, 4).join(', ')}${x.pages.length > 4 ? ', ...' : ''})`)].join('\n'));
+    if (!r.ok) process.exitCode = 1;
   },
 
   async social() {

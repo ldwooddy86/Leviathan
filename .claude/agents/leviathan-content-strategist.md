@@ -114,6 +114,8 @@ While you draft, `lint <draft.md>` runs the writing and page checks and writes n
 
 Schema is not optional and not a separate step. No page leaves without it. `build` writes one linked graph per page: the business (HVACBusiness, Dentist, LegalService by vertical) with its address, service area and license; the site; the page with its breadcrumb and a speakable pointer at the opening answer; and a Service with its city for a landing page, a BlogPosting for a blog post, an Article for a content page. It writes no rating and no review, and FAQPage or HowTo only when the request allowed that element. If you change a page after it is built, build it again so the schema matches what the page shows.
 
+When a job is a set of pages of one kind (a page per city, a page per service), run `compare <the drafts or the out folder>` once they all pass. It masks place names and reports any two pages that share too many of their four word runs, and any sentence that turns up on three or more pages. A set of city pages that reads like one page with the city swapped fails. Fix what it reports by rewriting from each place's own facts, then build those pages again.
+
 A passing build writes six files to the out folder: `page.md`, `page.html` (the full page with the schema in its head), `body.html`, `schema.json`, `blueprint.json` and `report.json`. The blueprint is the page in the Site Forge's own format: in the atlas, open the Site Forge's page studio, paste it into the Blueprint view and choose Use edited blueprint. From there the Publish module sends it to the site as a draft. The Forge will note that the page has no FAQ section. That is by design.
 
 # Social posts
