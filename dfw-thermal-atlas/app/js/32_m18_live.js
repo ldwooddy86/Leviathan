@@ -13,6 +13,20 @@ registerModule({
     const hourLabel = h => (h % 12 || 12) + (h < 12 ? ' am' : ' pm');
     const kb = b => isN(b) ? (b >= 1048576 ? D(b / 1048576, 1) + ' MB' : b >= 1024 ? N(b / 1024) + ' KB' : N(b) + ' B') : '—';
     const secs = ms => isN(ms) ? (ms >= 10000 ? N(ms / 1000) : D(ms / 1000, 1)) + ' s' : '—';
+    /* A record can be good as a whole and still carry parts an earlier run fetched (a search that failed, a block the source did not
+       answer). Collectors say so in their own fields; this reads the common ones so the table never shows a partly old record as new. */
+    const partial = d => {
+      if (!d || typeof d !== 'object') return '';
+      const cnt = v => Array.isArray(v) ? v.length : v && typeof v === 'object' ? Object.keys(v).length : +v || 0;
+      const first = v => typeof v === 'string' ? v : Array.isArray(v) ? (typeof v[0] === 'string' ? v[0] : '') : v && typeof v === 'object' ? String(Object.values(v)[0] || '') : '';
+      const why = [];
+      if (cnt(d.stale)) why.push(`${cnt(d.stale)} ${cnt(d.stale) === 1 ? 'part' : 'parts'} kept from an earlier run`);
+      else if (cnt(d.failed)) why.push(`${cnt(d.failed)} ${cnt(d.failed) === 1 ? 'request' : 'requests'} failed, earlier data kept where there was any`);
+      else if (d.condStale || d.daysStale) why.push('one part kept from an earlier run');
+      if (d.waiting) why.push('a newer file is being published and will be read at the next run');
+      const e = first(d.errs) || first(d.err) || first(d.staleWhy); if (e && why.length) why.push(e.slice(0, 140));
+      return why.join(' · ');
+    };
     const HEALTH = { fresh: ['var(--good)', 'Current'], aging: ['var(--warning)', 'Aging'], stale: ['var(--critical)', 'Stale'] };
     const keyNames = () => { const out = []; LIVE.sources.forEach(s => { if (s.key && !out.some(k => k.key === s.key)) out.push({ key: s.key, label: s.keyLabel || s.key, required: !!s.keyRequired, url: s.keyUrl || '', by: LIVE.sources.filter(x => x.key === s.key).map(x => x.name) }); }); return out; };
     const where = LIVE.ext ? 'the browser app' : 'this file';
@@ -106,9 +120,9 @@ registerModule({
       const keys = keyNames();
       $('#lvKeys', root).innerHTML = keys.length ? `<div class="dsec" style="margin-top:16px">API keys (${keys.some(k => k.required) ? 'needed where marked' : 'optional'})</div><div class="plan">${keys.map(k => `<div class="f"><label class="fl" for="lvKey_${esc(k.key)}">${esc(k.label)}${k.required ? ' (required)' : ''}</label><input type="password" id="lvKey_${esc(k.key)}" data-key="${esc(k.key)}" value="${esc((S.keys || {})[k.key] || '')}" autocomplete="off" spellcheck="false" placeholder="Paste the key"><span class="hint">Used by ${esc(k.by.join(', '))}. ${k.url ? `<a href="${esc(k.url)}" target="_blank" rel="noopener">Get a free key</a>. ` : ''}Stored in ${where} only.</span></div>`).join('')}</div>` : '';
       $('#lvTbl', root).innerHTML = `<table><thead><tr><th class="l">Source</th><th class="l">What it feeds</th><th class="l">Cadence</th><th class="l">Status</th><th>Last run</th><th class="l">Grade</th><th class="l">On</th><th></th></tr></thead><tbody>${LIVE.sources.map(s => {
-        const r = recs[s.id], h = LIVE.health(s.id), off = !!(S.disabled || {})[s.id];
+        const r = recs[s.id], h = LIVE.health(s.id), off = !!(S.disabled || {})[s.id], part = r && r.ok !== false ? partial(r.data) : '';
         const state = off ? '<span class="mini">Turned off</span>' : !r || r.data == null ? `<span class="sev" style="background:var(--critical)"></span>Not fetched yet` : `<span class="sev" style="background:${HEALTH[h][0]}"></span>${HEALTH[h][1]} · ${esc(LIVE.ago(r.at))}${r.baseline ? ' <span class="mini">(baked into the build)</span>' : ''}`;
-        const prob = r && r.ok === false && r.err ? `<div class="mini" style="color:var(--critical);white-space:normal;max-width:300px">Failed ${esc(LIVE.ago(r.err.at))}: ${esc(r.err.msg)}</div>` : r && r.skipped && !off && (!r.at || +new Date(r.skipped.at) > +new Date(r.at)) ? `<div class="mini" style="color:var(--judg);white-space:normal;max-width:300px">Skipped: ${esc(r.skipped.why)}</div>` : '';
+        const prob = r && r.ok === false && r.err ? `<div class="mini" style="color:var(--critical);white-space:normal;max-width:300px">Failed ${esc(LIVE.ago(r.err.at))}: ${esc(r.err.msg)}</div>` : r && r.skipped && !off && (!r.at || +new Date(r.skipped.at) > +new Date(r.at)) ? `<div class="mini" style="color:var(--judg);white-space:normal;max-width:300px">Skipped: ${esc(r.skipped.why)}</div>` : part ? `<div class="mini" style="color:var(--judg);white-space:normal;max-width:300px">${esc(part)}</div>` : '';
         return `<tr><td class="l wrap" style="min-width:220px"><b>${s.page ? `<a href="${esc(s.page)}" target="_blank" rel="noopener">${esc(s.name)}</a>` : esc(s.name)}</b><div class="mini">${esc(s.publisher)}${s.cors ? '' : ' · browser app only'}${s.key ? (s.keyRequired ? ' · needs a key' : ' · key optional') : ''}</div></td><td class="l wrap" style="min-width:240px;max-width:380px"><span class="mini">${esc(s.about || '')}</span></td><td class="l">${s.cadence === 'daily' ? 'Daily' : 'Weekly'}</td><td class="l">${state}${prob}</td><td>${r && r.ok && isN(r.n) ? `${N(r.n)} req · ${kb(r.bytes)} · ${secs(r.ms)}` : '—'}</td><td class="l">${s.grade ? G(s.grade) : ''}</td><td class="l"><input type="checkbox" data-toggle="${esc(s.id)}" aria-label="Refresh ${esc(s.name)}" ${off ? '' : 'checked'}></td><td><button class="btn sec" type="button" data-src="${esc(s.id)}" ${off || LIVE.busy() ? 'disabled' : ''}>Refresh</button></td></tr>`;
       }).join('') || '<tr><td class="l" colspan="8">No sources are registered in this build.</td></tr>'}</tbody></table>`;
       $('#lvDelta', root).innerHTML = deltaHTML();

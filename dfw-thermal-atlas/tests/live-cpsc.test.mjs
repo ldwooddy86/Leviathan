@@ -49,3 +49,29 @@ test('the collector merges the searches, newest first, and survives one failed s
   assert.ok(g.central >= 5 && g.room >= 4 && /^20\d\d-\d\d-\d\d · /.test(g.newest));
   await assert.rejects(() => L.BY_ID.cpsc_recalls.run({ http: L.makeHttp({ fetch: fakeFetch([[/./, { status: 503, body: '' }]]), gapMs: 0, backoffMs: 1, retries: 0 }), now: new Date(), prev: null, geo: L.geo, settings: {} }), /503/);
 });
+
+test('a database failure answered with HTTP 200 is a failed search, not "no recalls"', async () => {
+  const L = fresh(), ERR = fx('recall-error-provider-failed-2026-11-14.json');
+  assert.match(L.cpsc.refusal(ERR), /^Error retrieving Recalls/); assert.equal(L.cpsc.refusal(FURNACE), null); assert.equal(L.cpsc.refusal([]), null); assert.match(L.cpsc.refusal({}), /not a list/);
+  const src = L.BY_ID.cpsc_recalls, http = L.makeHttp({ fetch: fakeFetch([[/RecallTitle=furnace/, ERR], [/RecallTitle=heat%20pump/, HP], [/RecallTitle=/, []]]), gapMs: 0, backoffMs: 1 });
+  /* last week's record held the furnace recalls; this week the furnace search fails */
+  const prev = { since: '2019-01-01', recalls: L.cpsc.parse(FURNACE), failed: 0 };
+  const d = await src.run({ http, now: new Date('2026-11-14T12:00:00Z'), prev });
+  assert.equal(d.failed, 1); assert.match(d.err, /Error retrieving Recalls/);
+  const ids = new Set(d.recalls.map(r => r.id));
+  for (const r of prev.recalls) assert.ok(ids.has(r.id), 'last week\'s furnace recall ' + r.id + ' is kept');
+  for (const r of L.cpsc.parse(HP)) assert.ok(ids.has(r.id), 'this week\'s heat pump recall ' + r.id + ' is there');
+  assert.ok(!d.recalls.some(r => /^Error/.test(r.title)), 'the error row is never stored as a recall');
+  for (let i = 1; i < d.recalls.length; i++) assert.ok(d.recalls[i - 1].d >= d.recalls[i].d, 'newest first');
+});
+
+test('every search failing fails the run, so the stored record is kept whole', async () => {
+  const L = fresh(), ERR = fx('recall-error-provider-failed-2026-11-14.json');
+  const http = L.makeHttp({ fetch: fakeFetch([[/RecallTitle=/, ERR]]), gapMs: 0, backoffMs: 1 });
+  await assert.rejects(() => L.BY_ID.cpsc_recalls.run({ http, now: new Date(), prev: null }), /Error retrieving Recalls/);
+});
+
+test('each search gets 12 seconds and one more try; the source has an honest limit', () => {
+  const L = fresh(); const src = L.BY_ID.cpsc_recalls;
+  assert.ok(src.timeoutMs >= 5 * 2 * 12000 * 0.75 && src.timeoutMs <= 115000, 'limit ' + src.timeoutMs);
+});

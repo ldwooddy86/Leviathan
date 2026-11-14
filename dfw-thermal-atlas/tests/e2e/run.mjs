@@ -100,7 +100,11 @@ try {
     const real = await sw.evaluate(async () => (await chrome.storage.local.get('tda.live.src.nws_cold'))['tda.live.src.nws_cold']);
     const cold = JSON.parse(JSON.stringify(real)); const kd = cold.data.points.find(p => p.id === 'KDTO'); kd.nights[2].lowF = 30; cold.data.points.find(p => p.id === 'KLUD').nights[2].lowF = 31;
     const say = () => page.evaluate(() => new Promise(res => chrome.runtime.sendMessage({ type: 'tda.live.announce', notify: true }, r => res(r))));
-    await sw.evaluate(async rec => { await chrome.storage.local.set({ 'tda.live.src.nws_cold': rec }); await chrome.storage.local.remove('tda.live.notified'); }, cold);
+    /* the worker's own first refresh may already have announced something true of today (the first heating week of the season, an alert):
+       note it, then start the freeze check from a clean slate */
+    const own = await sw.evaluate(async () => ({ notes: await new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n)))), sent: ((await chrome.storage.local.get('tda.live.notified'))['tda.live.notified'] || {}).keys || [] }));
+    ok(own.notes.length <= 3 && own.notes.length === Math.min(3, own.sent.length), 'the first refresh announced each real trigger once, three at most', JSON.stringify(own.sent));
+    await sw.evaluate(async rec => { await new Promise(res => chrome.notifications.getAll(n => Promise.all(Object.keys(n).map(id => new Promise(r => chrome.notifications.clear(id, r)))).then(res))); await chrome.storage.local.set({ 'tda.live.src.nws_cold': rec }); await chrome.storage.local.remove('tda.live.notified'); }, cold);
     await say();
     await until(() => sw.evaluate(() => new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n).length)))), 4000);      // creating a notification is asynchronous
     const n1 = await sw.evaluate(async () => ({ badge: await chrome.action.getBadgeText({}), title: await chrome.action.getTitle({}), notes: await new Promise(res => chrome.notifications.getAll(n => res(Object.keys(n)))), sent: (await chrome.storage.local.get('tda.live.notified'))['tda.live.notified'] }));
