@@ -98,11 +98,13 @@
   /* Next local time on day of week `dow` (0 Sunday .. 6 Saturday) at `hour`, strictly after `from`. */
   function nextWeekly(from, dow, hour) { const d = new Date(from); d.setHours(hour, 0, 0, 0); let add = (dow - d.getDay() + 7) % 7; if (add === 0 && d <= from) add = 7; d.setDate(d.getDate() + add); return d; }
   function nextDaily(from, hour) { const d = new Date(from); d.setHours(hour, 0, 0, 0); if (d <= from) d.setDate(d.getDate() + 1); return d; }
-  /* What is due right now: 'weekly' when no full refresh ran in the last seven days, else 'daily' when the daily pulse is on and none ran in 20 hours. */
+  /* What is due right now: 'weekly' when no full refresh ran in the last seven days, else 'daily' when the daily pulse is on and
+     its hour has come round since the last refresh (or none ran in 20 hours). The hour is what counts: a refresh pressed at
+     3 pm, or a machine first opened at noon, must not cost the next morning its pulse. */
   function due(state, settings, now) {
-    const t = +new Date(now), lw = state && state.lastWeekly ? +new Date(state.lastWeekly) : 0, ld = state && state.lastDaily ? +new Date(state.lastDaily) : 0;
+    const t = +new Date(now), lw = state && state.lastWeekly ? +new Date(state.lastWeekly) : 0, ld = state && state.lastDaily ? +new Date(state.lastDaily) : 0, last = Math.max(lw, ld);
     if (t - lw >= WEEK - HOUR) return 'weekly';
-    if (settings && settings.daily !== false && t - Math.max(lw, ld) >= 20 * HOUR) return 'daily';
+    if (settings && settings.daily !== false && (t - last >= 20 * HOUR || (settings.dailyHour != null && +nextDaily(last, settings.dailyHour) <= t))) return 'daily';
     return null;
   }
 

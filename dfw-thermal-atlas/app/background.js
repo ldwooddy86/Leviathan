@@ -22,26 +22,32 @@ async function ensureSchedule() { const [w, d] = await Promise.all([C.alarms.get
 /* ---------- runs ---------- */
 /* Chrome stops a worker that has been idle for 30 seconds, and only events and extension calls count as activity, so a run
    that is busy fetching pings a cheap call every 20 seconds to stay up. If the worker is stopped anyway, the retry alarm
-   set at the start of the run wakes it again; the retry keeps what the interrupted run already fetched and gives up
-   after two tries, so a source that keeps failing is never hammered. */
+   set at the start of the run wakes it again; the retry keeps what the interrupted run already fetched. The same alarm is
+   left armed when a run ends with sources that failed (a laptop fires its missed alarms the moment it wakes, before its
+   network is back) or finds the lock of a run that died: the retry then asks again for what is due, or else only for the
+   sources that failed. It gives up after two tries per scheduled run, so a source that keeps failing is never hammered. */
 let running = null;
 function run(scope, opt) {
   if (running) return running;
   const beat = setInterval(() => { try { C.runtime.getPlatformInfo(() => void C.runtime.lastError); } catch (e) { } }, 20000);
+  let again = false;
   try { C.alarms.create(ALARM_RETRY, { delayInMinutes: 8 }); } catch (e) { }
   running = L.refresh(Object.assign({ scope, store, env: 'extension' }, opt || {}))
-    .then(async r => { if (!r.locked) { await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
-    .catch(e => { console.error('refresh', e); return { ok: false }; })
-    .finally(() => { clearInterval(beat); running = null; try { C.alarms.clear(ALARM_RETRY); } catch (e) { } });
+    .then(async r => { again = !!(r.locked || (r.failed && r.failed.length)); if (!r.locked) { if (!again) await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
+    .catch(e => { console.error('refresh', e); again = true; return { ok: false }; })
+    .finally(() => { clearInterval(beat); running = null; if (!again) { try { C.alarms.clear(ALARM_RETRY); } catch (e) { } } });
   return running;
 }
 /* run whatever is due: the weekly refresh when seven days have passed, else the daily pulse */
 async function catchUp(opt) { const d = L.due(await L.getState(store), await L.getSettings(store), new Date()); if (d) await run(d, opt); else await announce(true); return d; }
-/* the retry alarm fired: the run it was guarding never finished */
+/* the sources whose last try failed and that are not switched off */
+async function failedNow() { const s = await L.getSettings(store), out = []; for (const src of L.SOURCES) { if (s.disabled && s.disabled[src.id]) continue; const r = await store.get(L.K.src(src.id)); if (r && r.ok === false) out.push(src.id); } return out; }
+/* the retry alarm fired: the run it was guarding never finished, was locked out, or left sources that failed */
 async function retry() {
   const n = ((await store.get(RETRY_KEY)) || {}).n || 0; if (n >= 2) return;
   await store.set(RETRY_KEY, { n: n + 1, at: new Date().toISOString() });
-  await catchUp({ keepFresh: 6 * L.HOUR });
+  if (await catchUp({ keepFresh: 6 * L.HOUR })) return;
+  const bad = await failedNow(); if (bad.length) await run(bad);
 }
 
 /* ---------- badge and notifications ---------- */
@@ -65,7 +71,7 @@ async function announce(quiet) {
 C.runtime.onInstalled.addListener(d => { (async () => { await schedule(); if (d && d.reason === 'install') await O.openRoute('heat', { newTab: true }); await catchUp(); })(); });
 C.runtime.onStartup.addListener(() => { (async () => { await ensureSchedule(); await catchUp(); })(); });
 /* the next alarms are set before the run starts: a run that is cut short must not take the schedule down with it */
-C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); if (a.name === ALARM_WEEKLY) await run('weekly'); else await catchUp(); })(); });
+C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); await store.set(RETRY_KEY, { n: 0 }); if (a.name === ALARM_WEEKLY) await run('weekly'); else await catchUp(); })(); });
 C.runtime.onMessage.addListener((m, sender, respond) => {
   if (!m || typeof m.type !== 'string' || m.type.indexOf('tda.live.') !== 0) return false;
   (async () => {

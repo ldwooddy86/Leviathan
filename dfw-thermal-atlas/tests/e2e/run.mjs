@@ -86,7 +86,8 @@ try {
     ok(st && st.run && st.run.by === 'extension', 'the worker ran the first full refresh on its own after install', st ? `${st.ok.length} ok, ${st.bad.length} failed, ${st.skipped.length} skipped in ${(st.run.ms / 1000).toFixed(1)} s (waited ${((Date.now() - t0) / 1000).toFixed(0)} s)` : 'no run within four minutes');
     if (st) {
       const al = await sw.evaluate(async () => (await chrome.alarms.getAll()).map(a => a.name).sort());
-      ok(!al.includes('tda-retry') && al.includes('tda-weekly') && al.includes('tda-daily'), 'the finished run cleared its retry alarm and left the schedule in place', al.join(', '));
+      /* a clean run clears its retry alarm; a run that left a source failed keeps it armed, to ask that source again in a few minutes */
+      ok(al.includes('tda-retry') === (st.bad.length > 0) && al.includes('tda-weekly') && al.includes('tda-daily'), st.bad.length ? 'the run left a source failed, so its retry alarm stays armed beside the schedule' : 'the finished run cleared its retry alarm and left the schedule in place', al.join(', '));
       ok(st.ok.length >= Math.ceil(srcs.length * 0.7), 'most sources answered', `${st.ok.length} of ${srcs.length}`);
       if (st.bad.length) note('failed sources: ' + st.bad.join(' | '));
       if (st.skipped.length) note('skipped sources: ' + st.skipped.join(' | '));
