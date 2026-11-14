@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { context, load, fakeFetch, same, plain, ROOT, APP } from './helpers/load.mjs';
@@ -220,6 +220,11 @@ test('the measured heating split is the recorded answer, not a remembered number
   same(fw.described, [told, data.months.reduce((s, x) => s + x.mech, 0)]);
   /* what the two say: about one mechanical permit in seven names heating, one in 25 to 33 is heating alone, and those cluster in the cold months */
   same(P.ref().map(r => [r.city, r.mechTotal, r.heatTotal, r.heatOnlyTotal, r.heatPct, r.heatOnlyPct, r.heatOnlyNovToFebPct]), [['Irving', 1700, 238, 68, 14, 4, 76.5], ['Fort Worth', 12612, 1765, 382, 14, 3, 45.3]]);
+  /* fixed references, labeled with their dates wherever they show: neither is a reading of this year */
+  same(P.ref().map(r => r.label), ['Irving, March 2022 to February 2025', 'Fort Worth, January 2010 to December 2012']); same(P.summary({}).heatRef.map(r => r.label), plain(P.ref().map(r => r.label)));
+  assert.equal(ir.note, 'A fixed reference, not a live reading: the City of Irving stopped publishing this file on 2025-02-28.'); assert.match(fw.note, /^A fixed reference, not a live reading: Fort Worth stopped writing the work on its permits in 2014\.$/);
+  for (const r of P.ref()) { assert.equal(r.measured, '2026-11-13'); assert.equal(r.grade, 'B'); assert.equal(r.heatGrade, 'C'); assert.ok(r.label.includes(P.monthName(r.from)) && r.label.includes(P.monthName(r.to))); }
+  assert.equal(P.monthName('2025-02'), 'February 2025'); assert.equal(P.monthName('2010-12'), 'December 2010');
   assert.equal(ir.heatOnly.indexOf(Math.max(...ir.heatOnly)), 0, 'January is the month of the furnace in Irving'); assert.equal(fw.heatOnly.indexOf(Math.max(...fw.heatOnly)), 0, 'and in Fort Worth'); assert.equal(ir.mech.indexOf(Math.max(...ir.mech)), 6, 'while all mechanical permits peak in July');
 });
 
@@ -270,29 +275,64 @@ test('summary: every city merged, a shared ZIP code summed, unknown heating neve
   same({ city: a.city, through: a.through, last12: a.last12, prior12: a.prior12, yoyPct: a.yoyPct, zips: a.zips, residentialOnly: a.residentialOnly, stale: a.stale, described: a.described }, { city: 'Fort Worth', through: '2026-11-13', last12: { mech: 4610, heat: null, heatOnly: null }, prior12: { mech: 4057, heat: null, heatOnly: null }, yoyPct: 13.6, zips: 43, residentialOnly: false, stale: [], described: { n: 69, of: 4610 } });
   same(a.months, fw.months); same(a.recent, fw.recent); same(a.zipMonths, ['2025-11', '2026-10']);
   same({ city: b.city, last12: b.last12, prior12: b.prior12, yoyPct: b.yoyPct, recent: b.recent.mech + '/' + b.recent.heat }, { city: 'Irving', last12: { mech: 511, heat: 90, heatOnly: 23 }, prior12: { mech: 606, heat: 70, heatOnly: 24 }, yoyPct: -15.7, recent: '46/13' });
-  assert.equal(Object.keys(s.byZip).length, 49); same(s.byZip['76244'], { city: 'Fort Worth', mech12: 449, heat12: null }); same(s.byZip['75063'], { city: 'Irving', mech12: 150, heat12: 31 });
+  assert.equal(Object.keys(s.byZip).length, 49); assert.equal(s.zips, 49); same(s.byZip['76244'], { city: 'Fort Worth', mech12: 449, heat12: null }); same(s.byZip['75063'], { city: 'Irving', mech12: 150, heat12: 31 });
   assert.equal(s.heatRef.length, 2); assert.equal(s.heatRef[0].heatOnlyNovToFebPct, 76.5);
-  /* two cities reach into one ZIP code: the counts add, the city with more permits names it, and a known count plus an unknown one is unknown */
+  same(s.grades, { mech: 'B', heat: 'C' }, 'permit counts are the city\'s own with a known gap; the heating split is a keyword reading of free text'); same(P.GRADES, { mech: 'B', heat: 'C' });
+  /* why Fort Worth has no heating count, ready to print wherever the gap shows; Irving, which wrote the work down, needs no note */
+  assert.equal(a.heatNote, 'Fort Worth wrote down the work on 69 of 4,610 permits in the last 12 months, too few to tell heating from cooling: the heating count is unknown, not zero.'); assert.equal(b.heatNote, null); assert.equal(a.heatSince, null);
+  assert.equal(P.cityView('permits_q', { city: 'Q', months: fw.months, described: null }).heatNote, 'Q does not publish what each permit was for: the heating count is unknown, not zero.'); assert.equal(P.cityView('permits_q', { city: 'Q', months: [] }).heatNote, null);
+  /* two cities reach into one ZIP code: it appears once, the counts add (a permit sits in one city's file only), the city with more permits names it, each city's part stays beside the sum, and a known count plus an unknown one is unknown */
   const edge = Object.assign({}, ir, { city: 'Edgecliff', byZip12: { '76134': [100, 12], '75063': [5, 2], '76244': [3, 1] } });
   const t = P.summary({ permits_irving: ir, permits_edge: edge, permits_fortworth: fw });
-  same(t.byZip['76134'], { city: 'Edgecliff', mech12: 185, heat12: null, shared: true }); same(t.byZip['76244'], { city: 'Fort Worth', mech12: 452, heat12: null, shared: true }); same(t.byZip['75063'], { city: 'Irving', mech12: 155, heat12: 33, shared: true });
+  same(t.byZip['76134'], { city: 'Edgecliff', mech12: 185, heat12: null, shared: true, parts: [{ city: 'Edgecliff', mech12: 100, heat12: 12 }, { city: 'Fort Worth', mech12: 85, heat12: null }] });
+  same(t.byZip['76244'], { city: 'Fort Worth', mech12: 452, heat12: null, shared: true, parts: [{ city: 'Edgecliff', mech12: 3, heat12: 1 }, { city: 'Fort Worth', mech12: 449, heat12: null }] });
+  same(t.byZip['75063'], { city: 'Irving', mech12: 155, heat12: 33, shared: true, parts: [{ city: 'Edgecliff', mech12: 5, heat12: 2 }, { city: 'Irving', mech12: 150, heat12: 31 }] });
   same(t.cities.map(c => c.city), ['Edgecliff', 'Fort Worth', 'Irving'], 'data objects are read as well as stored records');
+  /* nothing is counted twice: the ZIP count and the permit total of three cities are those of the parts, each ZIP code once */
+  assert.equal(t.zips, 49, 'Edgecliff adds no ZIP code of its own: all three of its ZIP codes are shared'); assert.equal(Object.values(t.byZip).filter(z => z.shared).length, 3);
+  const total = o => Object.values(o).reduce((x, v) => x + v[0], 0); assert.equal(Object.values(t.byZip).reduce((x, z) => x + z.mech12, 0), total(fw.byZip12) + total(ir.byZip12) + total(edge.byZip12));
+  for (const z of Object.values(t.byZip)) if (z.shared) assert.equal(z.parts.reduce((x, q) => x + q.mech12, 0), z.mech12);
+  /* the same city under two source ids (an old record beside a new one): only the one with the later permit is read */
+  const twice = P.summary({ permits_irving: ir, permits_irving_old: Object.assign({}, ir, { through: '2024-12-31', byZip12: { '75063': [999, 9], '75999': [7, 0] } }) });
+  same(twice.cities.map(c => c.id), ['permits_irving']); same(twice.byZip['75063'], { city: 'Irving', mech12: 150, heat12: 31 }); assert.equal(twice.byZip['75999'], undefined); assert.equal(twice.zips, 6);
+  same(P.summary({ permits_a: Object.assign({}, ir, { city: ' irving ' }), permits_b: ir }).cities.map(c => c.id), ['permits_a'], 'same city, same latest permit: the first id is kept, and still only one');
+  /* a city whose descriptions changed in kind names the month from which its heating counts compare (heatSince) */
+  const cut = Object.assign({}, ir, { heatSince: '2024-02' }), c1 = P.cityView('permits_c', cut);
+  same({ last12: c1.last12, prior12: c1.prior12, yoyPct: c1.yoyPct, heatSince: c1.heatSince }, { last12: { mech: 511, heat: 90, heatOnly: 23 }, prior12: { mech: 606, heat: null, heatOnly: null }, yoyPct: -15.7, heatSince: '2024-02' }, 'the 12 months since February 2024 keep their heating count; the 12 before it lose theirs, never the permit count');
+  assert.equal(c1.heatNote, 'Heating permits in Irving are comparable from February 2024 on, when the city changed how the work is written down: there is no reading against the year before until both years sit after it.');
+  const c2 = P.cityView('permits_c', Object.assign({}, ir, { heatSince: '2024-06' })); same(c2.last12, { mech: 511, heat: null, heatOnly: null }); assert.equal(P.digest(Object.assign({}, ir, { heatSince: '2024-06' })).heat12, null);
+  assert.equal(c2.heatNote, 'Heating permits in Irving are comparable from June 2024 on, when the city changed how the work is written down: a 12 month count needs 12 complete months since then.');
+  same(P.cityView('permits_c', Object.assign({}, ir, { heatSince: '2022-03' })).prior12, { mech: 606, heat: 70, heatOnly: 24 }, 'once both years sit after the month, both are read');
+  const holed = P.cityView('permits_h', Object.assign({}, ir, { months: ir.months.map((x, i) => i === 30 ? Object.assign({}, x, { heat: null, heatOnly: null }) : x) })); assert.equal(holed.last12.heat, null); assert.match(holed.heatNote, /^Some of the last 12 months in Irving carry too few descriptions/);
   /* short and empty */
-  same(P.summary(null), { cities: [], byZip: {}, through: null, heatRef: plain(P.ref()) }); same(P.summary({ permits_x: { data: { city: 'X' } } }).cities, []);
+  same(P.summary(null), { cities: [], byZip: {}, zips: 0, through: null, grades: { mech: 'B', heat: 'C' }, heatRef: plain(P.ref()) }); same(P.summary({ permits_x: { data: { city: 'X' } } }).cities, []);
   const young = P.cityView('permits_y', { city: 'Y', through: '2026-05-10', months: fw.months.slice(-14), byZip12: null });
   same({ last12: young.last12.mech, prior12: young.prior12, yoyPct: young.yoyPct, zips: young.zips, recent: young.recent }, { last12: 4610, prior12: null, yoyPct: null, zips: null, recent: null });
   const newer = P.cityView('permits_z', { city: 'Z', months: fw.months.slice(-5) }); assert.equal(newer.last12, null); same(P.digest({ city: 'Z', months: fw.months.slice(-5) }), { mech12: null, heat12: null, yoyPct: null, through: null, zips: null });
 });
 
-test('registration: what the Live Data module lists, and no dash in anything a person reads', () => {
+test('registration: what the Live Data module lists, time limits, and no dash in anything a person reads', async () => {
   const L = fresh(), P = L.permits, s = L.BY_ID.permits_fortworth;
   same({ id: s.id, cadence: s.cadence, cors: s.cors, grade: s.grade, hosts: s.hosts }, { id: 'permits_fortworth', cadence: 'weekly', cors: true, grade: 'B', hosts: ['services5.arcgis.com'] }); assert.equal(s.key, undefined, 'no API key');
   assert.equal(new URL(s.config.layer).host, s.hosts[0]); assert.equal(s.page, 'https://www.arcgis.com/home/item.html?id=d2740f4d746b4bfaa03e25de0376238b'); assert.match(s.terms, /Creative Commons Attribution 4\.0/);
   same(Object.keys(s.labels), ['mech12', 'heat12', 'yoyPct', 'through', 'zips']); same(Object.values(s.labels).map(l => l[1]), ['int', 'int', 'pct', 'text', 'int']);
-  const read = [s.name, s.publisher, s.about, s.terms, s.config.what, P.RULE_TEXT].concat(Object.values(s.labels).map(l => l[0]), P.REF.map(r => r.what));
+  same(Object.values(s.labels).map(l => l[0]), ['Mechanical permits, last 12 full months', 'Permits that name heating, last 12 full months', 'Change against the prior 12 months', 'Latest permit date', 'ZIP codes with permits']);
+  const view = P.cityView('permits_fortworth', { city: 'Fort Worth', months: [{ m: '2026-10', mech: 3, heat: null, heatOnly: null }], described: { n: 1, of: 3 } });
+  const read = [s.name, s.publisher, s.about, s.terms, s.config.what, P.RULE_TEXT, view.heatNote, P.heatNote({ city: 'X', heatSince: '2025-06' }, [{ m: '2025-01', heat: 1 }], { heat: null }, null)].concat(Object.values(s.labels).map(l => l[0]), P.ref().map(r => r.what), P.ref().map(r => r.note), P.ref().map(r => r.label));
   for (const t of read) { assert.ok(t && t.length > 3); assert.ok(!/[\u2010-\u2015\u2212]|[A-Za-z]-[A-Za-z]| - /.test(t), 'a hyphen or dash in: ' + t); }
-  assert.ok(s.about.split('. ').length <= 2, 'one or two sentences');
+  assert.ok(s.about.split('. ').length <= 2, 'one or two sentences'); assert.match(s.about, /the city does not record whether a job was heating or cooling\.$/, 'why the heating count of this source is empty, said where the source is listed');
   const manifest = JSON.parse(readFileSync(join(APP, 'manifest.json'), 'utf8')); assert.ok(manifest.host_permissions.includes('https://services5.arcgis.com/*'));
-  /* the Irving placeholder registers nothing: its file stopped on 2025-02-28 and is not a weekly source */
-  assert.equal(L.BY_ID.permits_irving, undefined);
+  /* every request gives up inside 30 seconds, is tried at most twice and waits a second for the one before */
+  const seen = [], stub = { json: async (url, init) => { seen.push(init); return FW[kind(init)]; } };
+  await s.run({ http: stub, now: T0, prev: null, geo: L.geo, settings: {}, env: 'node' });
+  assert.equal(seen.length, 3); for (const i of seen) { assert.ok(i.timeoutMs > 0 && i.timeoutMs < 30000, 'time limit ' + i.timeoutMs); assert.ok(i.retries <= 1); assert.ok(i.gapMs >= 1000); }
+  assert.ok(s.timeoutMs >= 3 * ((seen[0].retries + 1) * seen[0].timeoutMs + 1000) && s.timeoutMs <= 240000, 'the source limit covers three requests at their slowest: ' + s.timeoutMs);
+  /* Irving is not a weekly source: the city last touched its file on 2025-03-12 (newest permit 2025-02-28). Its slot stays the empty
+     placeholder it was, registers nothing, and the three Irving years live on as the fixed reference above, labeled with their dates. */
+  const slot = join(APP, 'live', 'sources', 'permits_irving.js');
+  if (existsSync(slot)) {
+    assert.equal(readFileSync(slot, 'utf8'), '/* ==== live/sources/permits_irving.js ==== */\n/* Irving residential mechanical permits: placeholder until the collector lands. */\n');
+    const both = load(context(), 'live/core.js', 'live/geo.js', 'live/permits.js', 'live/sources/permits_fortworth.js', 'live/sources/permits_irving.js').TDA_LIVE; same(both.SOURCES.map(x => x.id), ['permits_fortworth']);
+  }
+  assert.equal(L.BY_ID.permits_irving, undefined); assert.equal(P.ref()[0].city, 'Irving'); assert.equal(P.ref()[0].to, '2025-02');
 });

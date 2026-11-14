@@ -3,11 +3,12 @@
    and receive() takes a complete plan from another module. Each block names the touch up item it proves. */
 const DASH = /[A-Za-zÀ-ɏ][-‐-―−][A-Za-zÀ-ɏ]/;   // a letter, a hyphen or dash of any kind, a letter
 const IDENT = /^[("']*(?:https?:\/\/\S+|[\w.-]+\.(?:csv|json|html|js|mjs|zip|txt))[)"'.,;:]*$/i;   // file names and links are identifiers, not prose
+const HEAT5 = ['heatrepair', 'furnace', 'heatpump', 'eheat', 'heattune'];   // the heat line of this build, by name: a Build 4 page must fail on it
 const hyphenated = text => [...new Set(text.split(/\s+/).filter(w => DASH.test(w) && !IDENT.test(w)))];
 /* a CSV the desk wrote: note lines (# ...) apart, then one object per row keyed by the header */
 const csv = text => { const note = [], body = []; text.split('\n').forEach(l => (l.startsWith('# ') && !body.length ? note : body).push(l)); const s = body.join('\n'), rows = []; let cur = [], f = '', q = false;
   for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === '"') { if (s[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; } else if (c === '"') q = true; else if (c === ',') { cur.push(f); f = ''; } else if (c === '\n') { cur.push(f); rows.push(cur); cur = []; f = ''; } else f += c; }
-  if (f || cur.length) { cur.push(f); rows.push(cur); } const head = rows.shift() || []; return { note: note.join(' '), head, rows: rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] == null ? '' : r[i]]))) }; };
+  if (f || cur.length) { cur.push(f); rows.push(cur); } const head = rows.shift() || []; return { note: note.join(' '), head, ragged: rows.filter(r => r.length !== head.length && r.join('') !== '').length, rows: rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] == null ? '' : r[i]]))) }; };
 const heads = r => Object.keys(r).filter(k => /^Headline \d+$/.test(k) && r[k]).map(k => r[k]), descs = r => Object.keys(r).filter(k => /^Description \d$/.test(k) && r[k]).map(k => r[k]);
 const town = (city, home) => String(city || '').replace(/\s*\((?:CDP|unincorporated)\)\s*/gi, '').trim() || home;   // a market's city as ad copy names it
 /* what is wrong with the responsive search ads of a search file: Google wants 3 headlines of 30 and 2 descriptions of 90 at least, TDLR wants the licence, the house wants clean copy */
@@ -18,6 +19,10 @@ const adFaults = (rows, lic) => rows.filter(r => r['Ad type']).flatMap(r => { co
   return why.length ? [`${r.Campaign} · ${r['Ad Group']}: ${why.join(', ')}`] : []; });
 export default async function (page, t, ctx) {
   const sleep = ms => page.waitForTimeout(ms);
+  /* the page reopened on a given localStorage. Now and then Chromium shows a reloaded file:// page the storage as an earlier clear() left it (about three times in ten when two reloads follow each other), so what was written is read back after the reload and written again when it is not there */
+  const reopen = async storage => { const want = Object.fromEntries(Object.entries(storage || {}).map(([k, v]) => [k, typeof v === 'string' ? v : JSON.stringify(v)]));
+    for (let i = 0; i < 8; i++) { await ctx.fresh(storage); if (await page.evaluate(w => Object.keys(w).every(k => localStorage.getItem(k) === w[k]) && (localStorage.getItem('tda.desk.v1') || null) === (w['tda.desk.v1'] || null), want)) return; await sleep(150); }
+    throw new Error('localStorage did not keep what the test wrote, eight times over'); };
   const send = async p => { await page.evaluate(() => { document.querySelector('.toast').textContent = ''; }); await ctx.show('desk', p); return page.evaluate(() => document.querySelector('.toast').textContent); };
   const plan = () => page.evaluate(() => MODI.desk.plan());
   const press = id => page.click('#' + id);
@@ -250,10 +255,10 @@ export default async function (page, t, ctx) {
   const hostile = { line: 'heat' + X(1), start: '2026-10-01' + X(2), weeks: X(3), budget: X(4), n: X(5), alpha: X(6), bookRate: X(7), jobVal: X(8), spanTh: X(9), minhh: X(10), scope: X(11), picks: [X(12), '75052'], counties: [X(13)], angles: [X(14), 'furnace', 'repair'], brand: 'Acme' + X(15), lic: 'TACLA1' + X(16), phone: X(17), url: X(18), city: 'Dallas' + X(19), pay: X(20), mix: { google: X(21), lsa: 40, meta: 30 }, asm: { google: { basis: X(22), cost: X(23), ctr: X(24), cvr: X(25), min: X(26), g: X(27), src: X(28) }, lsa: X(29) }, bids: { 75052: X(30) }, remarket: X(31), extra: X(32) };
   const tour = async () => { for (const v of ['platforms', 'flight', 'objects', 'markets']) await tab('#dkTabs', v); for (const v of await page.evaluate(() => PLATS)) for (const l of ['es', 'en']) { await tab('#dkPTabs', v); await tab('#dkLang', l); } await sleep(250);
     return page.evaluate(() => { const p = MODI.desk.plan(), saved = JSON.parse(localStorage.getItem('tda.desk.v1')); return { planted: [...document.querySelectorAll('[id^="xss"], img[src="x"]')].map(e => e.id || e.outerHTML.slice(0, 60)), ran: window.__xss || 0, failed: /failed to load/i.test(document.getElementById('mod-desk').innerText), line: p.line, start: p.start, nums: ['weeks', 'budget', 'n', 'alpha', 'bookRate', 'jobVal', 'spanTh', 'minhh'].every(k => typeof p[k] === 'number' && isFinite(p[k])), scope: p.scope, picks: p.picks, counties: p.counties, angles: p.angles, mix: Object.values(p.mix).every(v => typeof v === 'number'), asm: PLATS.every(k => ['cost', 'ctr', 'cvr', 'min'].every(f => typeof p.asm[k][f] === 'number') && ['basis', 'g', 'src'].every(f => p.asm[k][f] === ASM0[k][f])), extra: 'extra' in p, saved: [saved.start, saved.line, typeof saved.weeks, typeof saved.asm.google.cost, saved.asm.google.basis, 'extra' in saved], brand: document.querySelector('#dkBrand').value }; }); };
-  await ctx.fresh({ 'tda.desk.v1': { start: hostile.start } }); await ctx.show('desk');
+  await reopen({ 'tda.desk.v1': { start: hostile.start } }); await ctx.show('desk');
   const sd = await tour();
   t.ok(!sd.planted.length && !sd.ran && !sd.failed && sd.start === first.start && (await kpi('Monthly media'))[1].endsWith(`weeks from ${first.words}`), 'D22 a hostile start date in localStorage plants no element and runs no handler: the plan opens on the default date', { planted: sd.planted, ran: sd.ran, start: sd.start });
-  await ctx.fresh({ 'tda.desk.v1': hostile }); await ctx.show('desk');
+  await reopen({ 'tda.desk.v1': hostile }); await ctx.show('desk');
   const st = await tour();
   t.ok(!st.planted.length && !st.ran && !st.failed, 'D22 nor does a plan that is hostile in every field, on any tab or platform', { planted: st.planted, ran: st.ran, failed: st.failed });
   t.eq([st.line, st.start, st.nums, st.scope, st.picks, st.counties, st.angles, st.mix, st.asm, st.extra], ['replace', first.start, true, 'top', ['75052'], [], ['furnace', 'repair'], true, true, false], 'D22 the stored plan is cleaned on the way in: a known line, a real date, numbers, ids that exist, known keys only');
@@ -262,7 +267,7 @@ export default async function (page, t, ctx) {
 
   /* D22: the same plan loaded from a file, then two files that are not plans */
   const load = async body => { await page.evaluate(() => { document.querySelector('.toast').textContent = ''; }); const [fc] = await Promise.all([page.waitForEvent('filechooser', { timeout: 15000 }), press('dkLoad')]); await fc.setFiles({ name: 'campaign-desk-plan.json', mimeType: 'application/json', buffer: Buffer.from(body) }); await sleep(300); return page.evaluate(() => document.querySelector('.toast').textContent); };
-  await ctx.fresh(); await ctx.show('desk'); await send({ zips: H.zips.slice(0, 3), line: 'maint' });
+  await reopen(); await ctx.show('desk'); await send({ zips: H.zips.slice(0, 3), line: 'maint' });
   const toastStart = await load(JSON.stringify({ line: 'maint', start: hostile.start })), sf = await tour();
   t.ok(toastStart === 'Plan loaded' && !sf.planted.length && !sf.ran && sf.line === 'maint' && sf.start === first.start, 'D22 a hostile start date in a loaded plan file plants nothing either', { toastStart, planted: sf.planted, ran: sf.ran, start: sf.start });
   const toastLoad = await load(JSON.stringify(hostile)), sl = await tour();
@@ -273,6 +278,89 @@ export default async function (page, t, ctx) {
   const good = await load(JSON.stringify({ line: 'heat', budget: 12000, start: '2027-01-04', weeks: 8, scope: 'picks', picks: ['75217', '75052'] })), pg = await plan();
   t.eq([good, pg.line, pg.budget, pg.start, pg.weeks, pg.zips, pg.angles, pg.mix], ['Plan loaded', 'heat', 12000, '2027-01-04', 8, ['75217', '75052'], lib.heat, lib.mixHeat], 'a plan file that names a line but no angles or mix gets that line\'s own, and its ZIPs in file order');
 
-  await ctx.fresh();
+  /* ---------- the finishing pass: keyword ownership, the Heat Desk hand off, plans kept from Build 4, Spanish previews, every file of every line ---------- */
+  /* from here the files are taken where the page hands them to saveFile, so two hundred of them do not meet the browser's limit on downloads in a row */
+  const grab = async id => { const g = await page.evaluate(async i => { if (!window.__grabs) { window.__grabs = true; window.saveFile = async (name, data) => { window.__grab = { name, text: typeof data === 'string' ? data : await data.text() }; }; } window.__grab = null; document.getElementById(i).click(); await new Promise(r => setTimeout(r, 20)); return window.__grab; }, id); return g ? Object.assign({ name: g.name }, csv(g.text)) : { name: null, note: '', head: [], rows: [], ragged: 0 }; };
+  const filled = f => f.rows.filter(r => Object.values(r).some(Boolean)), rec = n => `${n} ZIP${n === 1 ? '' : 's'} received`;
+  const twice = f => { const by = {}; f.rows.filter(r => r.Keyword && !/^Negative/.test(r['Criterion Type'])).forEach(r => { const k = `${r.Campaign} · ${r.Keyword} · ${r['Criterion Type']}`; (by[k] = by[k] || []).push(r['Ad Group']); }); return Object.keys(by).filter(k => by[k].length > 1).map(k => `${k}: ${by[k].join(', ')}`); };
+  const groupOf = (f, k) => [...new Set(f.rows.filter(r => r.Keyword === k).map(r => r['Ad Group']))];
+  await reopen(); await ctx.show('desk');
+  const more = await page.evaluate(() => ({ maint: LINES.maint.angles, lsa: Object.fromEntries(Object.keys(LINES).map(l => [l, MIX0[l].lsa > 0 && LINES[l].angles.some(id => ANG[id].lsa.length)])), furnace: ZR.filter(z => ANG.furnace.trig(z) && z.span_sh < 20).slice(0, 2).map(z => z.zip), noFurnace: ZR.filter(z => !ANG.furnace.trig(z)).slice(0, 2).map(z => z.zip) }));
+
+  /* a keyword that two angles of a plan list is bid on from one ad group; the furnace angle keeps its Build 4 keywords for the plans that run no heating repair angle */
+  await send({ zips: more.furnace, line: 'heat' });
+  const gK = await grab('dkG'), kK = await grab('dkKw');
+  const kwUI = async id => { await set('#dkKwA', id); return page.evaluate(() => ({ kws: [...document.querySelectorAll('#dkKwOut .kwcol div')].map(d => d.textContent), note: (document.querySelector('#dkKwOut .mini') || { textContent: '' }).textContent })); };
+  const uiF = await kwUI('furnace'), uiR = await kwUI(HEAT5[0]);
+  t.ok(more.furnace.length === 2 && gK.rows.some(r => r['Ad Group'] === 'Furnace Core') && !twice(gK).length, 'a heat plan whose markets fire the furnace trigger bids on no keyword from two ad groups', twice(gK).slice(0, 3));
+  t.eq([groupOf(gK, 'heater repair'), groupOf(gK, 'furnace repair'), groupOf(gK, 'furnace inspection')], [['Heating Repair Core'], ['Furnace Core'], ['Furnace Core']], 'a keyword two heating angles list stays with the angle that comes first in the library: heater repair with Heating Repair, furnace inspection with Furnace');
+  const kTw = kK.rows.filter(r => r.ad_group !== 'Negatives').map(r => `${r.keyword} · ${r.match_type}`);
+  t.ok(new Set(kTw).size === kTw.length && kK.rows.some(r => r.ad_group === 'Heating Repair' && r.keyword === 'heater repair') && !kK.rows.some(r => r.ad_group === 'Furnace' && r.keyword === 'heater repair'), 'the keyword file lists each keyword under one ad group', kTw.filter((k, i) => kTw.indexOf(k) !== i).slice(0, 3));
+  t.ok(uiR.kws.includes('[heater repair] exact') && !uiR.note && uiF.kws.includes('[furnace repair] exact') && !uiF.kws.some(x => /heater repair/.test(x)) && /^2 keywords this angle shares .* stay with that one/.test(uiF.note) && !hyphenated(uiF.note).length, 'the keyword desk shows a shared keyword under the angle that keeps it, and says so under the other', uiF.note);
+  await send({ zips: more.furnace, line: 'blend' });
+  const gB = await grab('dkG');
+  t.eq([groupOf(gB, 'heater repair'), groupOf(gB, 'furnace inspection'), twice(gB)], [['Furnace Core'], ['Furnace Core'], []], 'a blend plan, which runs no heating repair angle, still bids on heater repair and furnace inspection from the furnace ad group, as in Build 4');
+
+  /* the Heat Desk hand off: goModule('desk', HEATX.hand(plan, line)) sends { zips, line, bids }; its plan arrives whole on the heat line, its tune up line on the maintenance line */
+  const hx = await page.evaluate(() => { if (typeof HEATX === 'undefined' || typeof HEATX.hand !== 'function') return null; const pl = HEATX.plan(HEATX.params({})); return { all: HEATX.hand(pl, 'all'), tune: HEATX.hand(pl, 'maint') }; })
+    || (t.note('the Heat Desk engine is not in this build: the test stands a payload of the same shape in'), { all: { zips: H.zips.slice(0, 8), line: 'heat', bids: Object.fromEntries(H.zips.slice(0, 8).map((z, i) => [z, 5 * (i - 3)])) }, tune: { zips: H.zips.slice(2, 6), line: 'maint', bids: Object.fromEntries(H.zips.slice(2, 6).map(z => [z, 10])) } });
+  const scored = zs => page.evaluate(x => x.filter(z => ZR.some(r => r.zip === z)), zs), sAll = await scored(hx.all.zips), sTune = await scored(hx.tune.zips);
+  await send({ line: 'replace' }); const toastH = await send(hx.all), pH = await plan(), xH = await grab('dkPlanX'), gH = await grab('dkG');
+  t.ok(Object.keys(hx.all).sort().join() === 'bids,line,zips' && hx.all.line === 'heat' && hx.tune.line === 'maint' && sAll.length > 0 && hx.all.zips.every(z => typeof z === 'string') && Object.values(hx.all.bids).every(v => typeof v === 'number'), 'the Heat Desk hands over { zips, line, bids }: ZIP strings, numbers for bids, the line heat for its plan and maint for its tune up line', { keys: Object.keys(hx.all), lines: [hx.all.line, hx.tune.line], zips: hx.all.zips.length });
+  t.eq([toastH, pH.line, pH.scope, pH.angles, pH.zips], [rec(hx.all.zips.length), 'heat', 'picks', HEAT5, sAll], 'the Heat Desk plan arrives: the heat line with the five heating angles, and its ZIPs in its own order as the hand picked markets');
+  t.eq(filled(xH).map(r => +r.bid_modifier), sAll.map(z => hx.all.bids[z]), 'and the bid adjustments in the plan file are the ones the Heat Desk sent');
+  t.ok(gH.rows.some(r => r['Ad Group'] === 'Heating Repair Core') && !adFaults(gH.rows, lib.lic).length && !twice(gH).length && JSON.stringify(negsOf(gH)[0]) === JSON.stringify(wantNeg), 'its Google file carries the heating repair ad groups, clean ads, each keyword once and the heating negatives', adFaults(gH.rows, lib.lic).concat(twice(gH)).slice(0, 3));
+  const oneZ = sAll[Math.min(2, sAll.length - 1)], toast1 = await send(Object.assign({}, hx.all, { zips: [oneZ] })), x1 = await grab('dkPlanX');
+  t.eq([toast1, filled(x1).map(r => r.zip), filled(x1).map(r => +r.bid_modifier)], ['1 ZIP received', [oneZ], [hx.all.bids[oneZ]]], 'the one ZIP hand off of the Heat Desk, which sends every bid and one ZIP, builds a one market plan with that market\'s bid');
+  await send({ start: '2026-11-16' }); const toastT = await send(hx.tune), pT = await plan(), gT = await grab('dkG');
+  await send({ start: '2027-05-03' }); await send(hx.tune); const pT2 = await plan();
+  t.eq([toastT, pT.line, pT.zips, pT.angles], [sTune.length ? rec(hx.tune.zips.length) : `Service line: ${lib.lines.maint}`, 'maint', sTune.length ? sTune : pH.zips.slice(0, 1), more.maint.concat('heattune')], 'the tune up line of the Heat Desk arrives on the maintenance line, and for a flight that starts in November the heating tune up is selected with the line\'s own angles');
+  t.eq(pT2.angles, more.maint, 'the same hand off for a flight that starts in May selects the maintenance angles alone');
+  t.ok(gT.rows.some(r => r['Ad Group'] === 'Heating Tune Up Core') && !adFaults(gT.rows, lib.lic).length && !twice(gT).length && groupOf(gT, 'furnace tune up').join() === 'Heating Tune Up Core', 'the Google file of that November plan carries the heating tune up ad groups, clean ads, and "furnace tune up" from one ad group', adFaults(gT.rows, lib.lic).concat(twice(gT), groupOf(gT, 'furnace tune up')).slice(0, 3));
+  await set('#dkStart', '2026-12-07'); await set('#dkLine', 'replace'); await set('#dkLine', 'maint'); const pM = await plan();
+  await set('#dkStart', '2027-04-05'); await set('#dkLine', 'replace'); await set('#dkLine', 'maint'); const pM2 = await plan();
+  t.eq([pM.angles, pM2.angles], [more.maint.concat('heattune'), more.maint], 'picking the maintenance line in the desk follows the same rule: the heating tune up joins for a December start, not for an April one');
+
+  /* D4, the rest of it: a Spanish social preview shows no English line */
+  await send({ zips: ['75052'], line: 'heat' }); await tab('#dkPTabs', 'meta'); await tab('#dkLang', 'es'); const esA = await assets(); await tab('#dkLang', 'en'); const enA = await assets(); await tab('#dkPTabs', 'google');
+  t.ok(esA.length === 2 && enA.length === 3 && !esA.includes(enA[2]), 'D4 a Spanish social preview shows its Spanish text and title and no English description: the library has none in Spanish and the files carry none', esA);
+
+  /* every export button of every service line writes a whole, clean file: a twelve market plan with Spanish builds, and a one market plan */
+  const NAMES = { dkPlanX: /^campaign-plan_\w+_2026-11-16\.csv$/, dkG: /^google-ads-editor_\w+_2026-11-16\.csv$/, dkL: /^lsa-build-sheet_2026-11-16\.csv$/, dkDg: /^demand-gen-build-sheet_2026-11-16\.csv$/, dkM: /^meta-ads-import_2026-11-16\.csv$/, dkMs: /^microsoft-ads_\w+_2026-11-16\.csv$/, dkNd: /^nextdoor-build-sheet_2026-11-16\.csv$/, dkY: /^yelp-build-sheet_2026-11-16\.csv$/, dkLi: /^linkedin-recruiting_2026-11-16\.csv$/, dkCr: /^creative-library_2026-11-16\.csv$/, dkKw: /^keyword-desk\.csv$/ };
+  const ANY = /[‐-―−-]/, wrong = [];
+  for (const line of Object.keys(lib.lines)) for (const [what, zips] of [['twelve markets', H.zips.slice(0, 12)], ['one market', ['75052']]]) {
+    await send({ zips, line, start: '2026-11-16' }); const F = {}, bad = x => wrong.push(`${line}, ${what}: ${x}`);
+    for (const id of Object.keys(NAMES)) { F[id] = await grab(id); if (!F[id].name || !NAMES[id].test(F[id].name) || !F[id].head.length || F[id].ragged || !filled(F[id]).length) bad(`${id} wrote ${F[id].name}, ${F[id].rows.length} rows, ${F[id].ragged} ragged`); }
+    for (const id of ['dkG', 'dkMs']) { const f = F[id], camps = f.rows.filter(r => r['Campaign Type']); adFaults(f.rows, lib.lic).concat(twice(f)).slice(0, 2).forEach(bad);
+      if (camps.length !== 2 || !camps.every(r => r['Campaign Status'] === 'Paused' && r['Start Date'] === '2026-11-16' && /^\d+\.\d\d$/.test(r.Budget)) || !f.rows.some(r => r['Ad type']) || !f.rows.filter(r => r['Ad type']).every(r => r.Status === 'Paused' && /^https:\/\/\S+\?utm_source=/.test(r['Final URL'])) || negsOf(f).some(n => n.length < 8) || f.rows.filter(r => r.Location).length !== zips.length + (zips.length === 1 ? 1 : f.rows.filter(r => r.Location && /_ES_/.test(r.Campaign)).length)) bad(`${id} is not two whole paused campaigns`); }
+    for (const id of ['dkM', 'dkDg', 'dkNd', 'dkY']) F[id].rows.filter(r => !/^DFW_[A-Z0-9]+_[A-Z]+_(EN|ES)_20261116(_SAC)?$/.test(r['Campaign Name']) || count(r.Body, lib.lic) !== 1 || !r.Title || r.Title.length > 40 || ANY.test(r.Title + r.Body) || /[{}]|\s{2}/.test(r.Title + r.Body) || r.Status !== 'Paused' || !(r.Zip || r.Radius) || !/^https:\/\//.test(r.Link)).slice(0, 2).forEach(r => bad(`${id} ${r['Ad Name']}: ${r.Title} / ${r.Body}`));
+    const sets = {}; F.dkCr.rows.forEach(r => { const k = `${r.angle} ${r.language}`; sets[k] = sets[k] || { headline: 0, description: 0 }; sets[k][r.type]++; if (ANY.test(r.text) || +r.chars !== r.text.length || r.text.length > (r.type === 'headline' ? 30 : 90)) bad(`creative ${k}: ${r.text}`); });
+    Object.keys(sets).filter(k => sets[k].headline < 3 || sets[k].description < 2).forEach(k => bad(`creative ${k}: ${sets[k].headline} headlines, ${sets[k].description} descriptions`));
+    const kw = F.dkKw.rows.filter(r => r.ad_group !== 'Negatives').map(r => `${r.keyword} · ${r.match_type}`); if (new Set(kw).size !== kw.length || !kw.length || !F.dkKw.rows.some(r => r.ad_group === 'Negatives')) bad('the keyword file repeats a keyword or lacks its negatives');
+    const sheet = Object.fromEntries(F.dkL.rows.map(r => [r.Field, r.Value])); if (sheet['TDLR license'] !== lib.lic || sheet['Service ZIPs'] !== zips.join(' ') || (more.lsa[line] && !sheet['Job types'])) bad(`the LSA sheet: ${JSON.stringify(sheet).slice(0, 160)}`);
+    if (filled(F.dkPlanX).length !== zips.length || filled(F.dkPlanX).some(r => !r.angles) || filled(F.dkLi).length !== 1) bad('the plan file or the LinkedIn file');
+    const blocks = await page.evaluate(() => MODI.desk.feed().flatMap(x => satchelLint(x.text, { lic: MODI.desk.plan().lic, needLic: true, platform: x.plat }).filter(f => f.rule.sev === 'block').map(f => `${x.label}: ${f.rule.id} ${f.ev}`))); blocks.slice(0, 2).forEach(bad);
+  }
+  t.eq(wrong.slice(0, 8), [], 'every export button of every service line writes a whole, clean file, for a twelve market plan with Spanish builds and for a one market plan: 220 files parsed');
+
+  /* an empty plan: no market, and still no error */
+  await send({ zips: H.zips.slice(0, 3), line: 'heat' }); await set('#dkPicks', 'no such zip');
+  const pE = await plan(), empty = []; for (const id of Object.keys(NAMES)) { const f = await grab(id); if (!f.name || !f.head.length || f.ragged) empty.push(`${id}: no file`); else if (['dkPlanX', 'dkG', 'dkMs', 'dkM', 'dkDg', 'dkNd', 'dkY', 'dkCr'].includes(id) && filled(f).length) empty.push(`${id}: ${filled(f).length} rows`); }
+  t.ok(pE.zips.length === 0 && pE.scope === 'picks' && !empty.length && (await kpi('Markets bought'))[0] === '0' && (await assets()).length >= 5, 'a plan with no market still draws, and every export button writes its header and no row', empty);
+
+  /* a plan kept by Build 4 under tda.desk.v1 still loads; on the heat line it gains the heating angles that build did not have */
+  const old = await page.evaluate(() => ({ line: 'heat', budget: 12000, start: '2026-10-01', weeks: 10, scope: 'picks', counties: [], picks: ['76028', '75052'], n: 30, minhh: 2000, alpha: 1.4, spanTh: 25, angles: ['furnace', 'heatpump'], brand: 'Integrity Air', lic: 'TACLA124869E', phone: '(972) 734-1428', url: 'https://www.example.com', city: 'Mesquite', pay: '$26 to $42 an hour', bookRate: 50, jobVal: 3000, mix: Object.assign({}, MIX0.heat, { google: 50, lsa: 22 }), asm: Object.assign(JSON.parse(JSON.stringify(ASM0)), { google: Object.assign({}, ASM0.google, { cost: 11 }) }), remarket: true, bids: { 75052: 45, 76028: 30 } }));
+  await reopen({ 'tda.desk.v1': old }); await ctx.show('desk');
+  const pO = await plan(), xO = await grab('dkPlanX'), gO = await grab('dkG');
+  t.eq([pO.line, pO.budget, pO.start, pO.weeks, pO.scope, pO.zips, pO.alpha, pO.spanTh, pO.bookRate, pO.jobVal, pO.mix.google, pO.mix.lsa, pO.asm.google.cost, pO.brand, pO.url, filled(xO).map(r => +r.bid_modifier)], ['heat', 12000, '2026-10-01', 10, 'picks', ['76028', '75052'], 1.4, 25, 50, 3000, 50, 22, 11, 'Integrity Air', 'https://www.example.com', [30, 45]], 'a heat plan kept by Build 4 under tda.desk.v1 loads with every figure it held: budget, flight, markets, mix, assumptions, brand and bids');
+  t.eq(pO.angles, HEAT5, 'and it gains the heating angles that build did not have, so its markets run heating repair copy');
+  t.ok(gO.rows.some(r => r['Ad Group'] === 'Heating Repair Core') && gO.rows.filter(r => r['Campaign Type']).every(r => r['Start Date'] === '2026-10-01') && !adFaults(gO.rows, lib.lic).length && !ctx.errors.length, 'its Google file exports whole, on the flight it was saved with', adFaults(gO.rows, lib.lic).slice(0, 2));
+  const toastOld = await load(JSON.stringify(Object.assign({}, old, { picks: ['75052'] }))), pL = await plan();
+  t.eq([toastOld, pL.line, pL.angles, pL.zips, pL.v], ['Plan loaded', 'heat', HEAT5, ['75052'], 5], 'the same holds for a plan file saved by Build 4, and the plan in hand is marked as written by this build');
+  await reopen({ 'tda.desk.v1': Object.assign({}, old, { v: 5 }) }); await ctx.show('desk'); const pN = await plan();
+  await reopen({ 'tda.desk.v1': Object.assign({}, old, { line: 'maint', angles: ['maint'], mix: undefined }) }); await ctx.show('desk'); const pR = await plan();
+  t.eq([pN.angles, pR.line, pR.angles, pR.start], [['furnace', 'heatpump'], 'maint', ['maint'], '2026-10-01'], 'a heat plan this build wrote keeps the two angles its owner chose, and a Build 4 plan on another line keeps its own');
+
+  await reopen();
   t.ok(!ctx.errors.length, 'no page error or console error', ctx.errors.slice(0, 5));
 }

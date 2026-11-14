@@ -17,7 +17,7 @@
   L.register({
     id: 'permits_fortworth', name: 'Fort Worth mechanical permits', publisher: 'City of Fort Worth, Development Services', page: 'https://www.arcgis.com/home/item.html?id=d2740f4d746b4bfaa03e25de0376238b',
     about: 'Heating and air conditioning permits pulled outside a building permit in Fort Worth: by month for three years, by ZIP code for the last 12 months, and the last eight weeks against the same weeks a year earlier. The one observed count of replacement work by ZIP code, used to check the replacement model and to see where the work is being done; the city does not record whether a job was heating or cooling.',
-    hosts: ['services5.arcgis.com'], cadence: 'weekly', cors: true, grade: 'B', terms: 'Creative Commons Attribution 4.0. Credit: City of Fort Worth Development Services Department.',
+    hosts: ['services5.arcgis.com'], cadence: 'weekly', cors: true, grade: 'B', timeoutMs: 180000, terms: 'Creative Commons Attribution 4.0. Credit: City of Fort Worth Development Services Department.',
     labels: L.permits.LABELS, config: CFG,
     run: ctx => L.permits.arcgis.run(CFG, ctx),
     digest: L.permits.digest,

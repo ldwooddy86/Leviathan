@@ -37,11 +37,14 @@
     "https://www.saferproducts.gov/*",
     "https://data.rcc-acis.org/*",
     "https://mesonet.agron.iastate.edu/*",
+    "https://mapservices.weather.noaa.gov/*",
+    "https://www.ercot.com/*",
     "https://www.federalregister.gov/*",
     "https://data.texas.gov/*",
     "https://api.census.gov/*",
     "https://www2.census.gov/*",
-    "https://services5.arcgis.com/*"
+    "https://services5.arcgis.com/*",
+    "https://www.dallasopendata.com/*"
   ],
   "optional_host_permissions": [
     "https://*/*"

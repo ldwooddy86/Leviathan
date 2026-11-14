@@ -71,6 +71,8 @@ export default async function (page, t, ctx) {
       shape: Object.keys(NEW).map(id => { const a = ANG[id]; return !a ? { id, absent: true } : { id, short: a.short, line: a.line, path: a.path, lsa: a.lsa, lsaKnown: a.lsa.length > 0 && a.lsa.every(x => known.has(x)), plain: [typeof a.label, typeof a.why, typeof a.trig].join(), n: { h: a.h.length, d: a.d.length, esH: a.es.h.length, esD: a.es.d.length, kw: a.kw.length, kwq: a.kwq.length }, lic: [a.d.some(x => x.includes('{lic}')), a.es.d.some(x => x.includes('{lic}'))], kw: a.kw, meta: { p: [len(a.meta.p, worst[1]), len(a.meta.p, longest)], h: len(a.meta.h, worst[1], 40), d: len(a.meta.d, worst[1], 30) } }; }),
       kwBad: ids.flatMap(id => { const all = ANG[id].kw.concat(ANG[id].kwq); return all.filter((k, i) => !/^[a-z0-9]+( [a-z0-9]+)*$/.test(k.replace('{city}', 'x')) || k.split(' ').length > 10 || k.replace('{city}', longest.city).length > 80 || all.indexOf(k) !== i).map(k => `${id}: ${k}`); }),
       kwShared: Object.keys(LINES).flatMap(l => { const seen = {}; LINES[l].angles.filter(id => ANG[id]).forEach(id => ANG[id].kw.concat(ANG[id].kwq).forEach(k => (seen[k] = seen[k] || []).push(id))); return Object.keys(seen).filter(k => seen[k].length > 1).map(k => `${l}: ${k} (${seen[k].join(', ')})`); }),
+      furnaceKw: ANG.furnace.kw, furnaceIn: real.some(z => ANG.furnace.trig(z)), order: ANGLES.map(a => a.short),
+      family: ['landlord', 'financing', 'maint', 'iaq'].map(id => ANG[id].why).filter(w => !/single family/.test(w) || /single-family/.test(w)),
     };
   }, [HEAT, NEW]);
   const places = R.where.join('; ');
@@ -88,6 +90,7 @@ export default async function (page, t, ctx) {
 
   /* house style and D27: no hyphen or dash in anything that is filled, shown or bid on */
   t.eq(R.dashed, [], 'no filled asset, angle name, trigger note, line name or keyword carries a hyphen or a dash');
+  t.eq(R.family, [], 'D27 the trigger notes of the rental, financing, maintenance and indoor air angles, which show as tooltips in modules 05 and 08, read "single family"');
 
   /* D3: an empty value is a missing value */
   t.eq(R.d3.empty, [null, null, null], 'D3 a placeholder with an empty value drops the asset: no "Serving County", "Servicio en" or "Local Techs"');
@@ -109,7 +112,8 @@ export default async function (page, t, ctx) {
 
   /* keywords and negatives */
   t.eq(R.kwBad, [], 'every keyword is lower case words and digits, ten words and 80 characters at most, once per angle');
-  t.eq(R.kwShared, [], 'no keyword sits in two angles of the same desk line, so no campaign bids on it from two ad groups');
+  t.eq(['heater repair', 'furnace repair {city}', 'furnace inspection'].filter(k => !R.furnaceKw.includes(k)), [], 'the furnace angle keeps the three keywords Build 4 gave it, so a blend plan, which has no heating repair angle, still bids on them');
+  t.ok(R.kwShared.every(x => /^heat: /.test(x)) && R.kwShared.length === 3, 'only the heat line has angles that list the same keyword, three of them: the desk gives each to one ad group (checked in its Google file below)', R.kwShared);
   t.ok(R.neg.array && R.neg.list.length > 0 && !R.neg.bad.length && !R.neg.twice.length, 'NEG_HEAT is a list of lower case strings, none twice', { n: R.neg.list.length, bad: R.neg.bad, twice: R.neg.twice });
   t.eq(R.neg.shared, [], 'NEG_HEAT shares nothing with NEG_CUSTOMER');
   t.eq(NAMED.filter(n => !R.neg.list.includes(n)), [], 'NEG_HEAT names the heaters that are not central heating: space, water, pool and patio heaters, fireplaces and the rest of the agreed list');
@@ -127,6 +131,10 @@ export default async function (page, t, ctx) {
   t.eq(ads.filter(r => heads(r).length < 3 || descs(r).length < 2 || heads(r).some(h => h.length > 30) || descs(r).some(d => d.length > 90)).map(r => `${r.Campaign} ${r['Ad Group']}: ${heads(r).length} headlines, ${descs(r).length} descriptions`), [], 'D1 every exported responsive search ad has three headlines and two descriptions or more, all inside 30 and 90 characters');
   t.eq(ads.filter(r => !descs(r).some(d => d.includes(plan.lic))).map(r => `${r.Campaign} ${r['Ad Group']}`), [], 'every exported ad carries the licence number in a description');
   t.eq(ads.flatMap(r => heads(r).concat(descs(r)).filter(x => DASH.test(x) || /[{}]/.test(x))).slice(0, 5), [], 'no exported headline or description carries a hyphen, a dash or a placeholder');
+  const kwRows = rows.filter(r => r.Keyword && !/^Negative/.test(r['Criterion Type'])), by = {}; kwRows.forEach(r => { const k = `${r.Campaign} · ${r.Keyword} · ${r['Criterion Type']}`; (by[k] = by[k] || []).push(r['Ad Group']); });
+  t.eq(Object.keys(by).filter(k => by[k].length > 1).map(k => `${k}: ${by[k].join(', ')}`).slice(0, 5), [], 'no campaign of that file bids on a keyword from two ad groups');
+  const home = k => [...new Set(kwRows.filter(r => /_EN_/.test(r.Campaign) && r.Keyword === k).map(r => r['Ad Group']))];
+  t.eq([home('heater repair'), home('furnace inspection'), home('furnace repair')], [['Heating Repair Core'], [R.furnaceIn ? 'Furnace Core' : 'Heating Tune Up Core'], R.furnaceIn ? ['Furnace Core'] : []], 'a keyword two heating angles list stays with the one that comes first in the library: heater repair with Heating Repair, furnace inspection with Furnace where that angle runs');
   const negRows = rows.filter(r => /^Negative/.test(r['Criterion Type'])).map(r => r.Keyword);
   t.eq(R.neg.list.filter(n => !negRows.includes(n)), [], 'the heat campaigns of that file carry every heating negative');
   t.ok(!ctx.errors.length, 'no page error or console error', ctx.errors.slice(0, 5));

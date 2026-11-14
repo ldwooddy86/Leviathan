@@ -1,0 +1,29 @@
+{
+  "_note": "Hand made. The same three records on a July afternoon: both outlook maps say below normal, which in July is a week averaging in the low 80s, and the grid operator is at a Weather Watch for heat. Nothing here may raise a cold tier. None of these values was published by anyone.",
+  "now": "2026-07-10T18:00:00Z",
+  "recs": {
+    "cpc_outlook": { "v": 1, "id": "cpc_outlook", "ok": true, "at": "2026-07-10T10:00:00.000Z", "data": {
+      "v": 1, "day": "2026-07-10",
+      "ext": {
+        "d610": { "issued": "2026-07-09", "start": "2026-07-15", "end": "2026-07-19", "file": "2026-07-09T19:15:14.000Z", "cat": "Below", "prob": 50, "uniform": true, "bands": [{ "cat": "Below", "prob": 50 }], "counties": null, "pB": 55, "pN": 33.3, "pA": 11.7,
+                  "load": { "days": 5, "normHdd": 0, "expHdd": 0, "idx": null, "coldBelowF": 85.8, "coldHdd": 0, "nearHdd": 0, "warmAboveF": 87.9, "warmHdd": 0 }, "pcp": null },
+        "d814": { "issued": "2026-07-09", "start": "2026-07-17", "end": "2026-07-23", "file": "2026-07-09T19:15:13.000Z", "cat": "Below", "prob": 70, "uniform": true, "bands": [{ "cat": "Below", "prob": 70 }], "counties": null, "pB": 75, "pN": 21.7, "pA": 3.3,
+                  "load": { "days": 7, "normHdd": 0, "expHdd": 0, "idx": null, "coldBelowF": 85.7, "coldHdd": 0, "nearHdd": 0, "warmAboveF": 88.4, "warmHdd": 0 }, "pcp": null } },
+      "haz": { "file": { "d3_7": "2026-07-10T17:45:22.000Z" }, "national": [], "metro": [] },
+      "winter": { "file": null, "minor": [], "moderate": [] },
+      "text": { "mrd": null, "thr": { "issued": "2026-07-09T18:57:00+00:00", "synopsis": "", "items": [] }, "enso": null },
+      "long": null,
+      "hist": [{ "issued": "2026-07-09", "d610": "B50", "d814": "B70" }, { "issued": "2026-07-08", "d610": "B40", "d814": "B60" }],
+      "errs": {} } },
+    "nbm_extended": { "v": 1, "id": "nbm_extended", "ok": true, "at": "2026-07-10T10:00:00.000Z", "data": {
+      "v": 1, "model": "NBE", "run": "2026-07-10T12:00:00.000Z", "from": 6, "th": { "freeze": 32, "cold": 40, "hard": 25 },
+      "stations": [
+        { "id": "KDFW", "name": "DFW Airport", "county": "Tarrant", "run": "2026-07-10T12:00:00.000Z", "days": [], "nights": [
+          { "m": "2026-07-16", "d": "2026-07-15", "lead": 6, "lowF": 74, "sd": 2, "p32": 0, "p40": 0, "p25": 0, "ext": false },
+          { "m": "2026-07-21", "d": "2026-07-20", "lead": 11, "lowF": 72, "sd": 4, "p32": 0, "p40": 0, "p25": 0, "ext": true } ] } ] } },
+    "ercot_grid": { "v": 1, "id": "ercot_grid", "ok": true, "at": "2026-07-10T10:00:00.000Z", "data": {
+      "v": 1, "day": "2026-07-10",
+      "cond": { "state": "weather", "level": 2, "name": "Weather Watch", "title": "Weather Watch", "note": "Grid conditions are normal.", "eea": 0, "prcMw": 6100, "at": "2026-07-10T09:59:53.000Z", "updated": "2026-07-10T10:00:05.000Z", "since": "2026-07-09T10:00:02.000Z" },
+      "condStale": false, "days": [], "daysStale": false, "zone": [], "errs": {} } }
+  }
+}

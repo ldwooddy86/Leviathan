@@ -8,7 +8,9 @@
    months, oldest first), byZip12: { zip: [mech, heat] } and zipMonths: [first, last] (the last 12 complete months), recent:
    { weeks: 8, from, to, mech, heat, sameWeeksLastYear: { from, to, mech, heat } }, described: { n, of }, multi, rule, what,
    residentialOnly, stale: [blocks kept from the previous run] }. heat and heatOnly are null wherever the city does not write
-   down what was installed: null means unknown, never zero. */
+   down what was installed: null means unknown, never zero. A city whose descriptions changed in kind adds heatSince, the first
+   month whose heating counts can be set beside today's: a 12 month heating total that reaches back before it stays unknown.
+   A collector may add blocks of its own (Dallas adds its gas tests and the eras of its file); the reads here ignore them. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, DAY = 864e5;
@@ -69,8 +71,9 @@
     if (!Array.isArray(j.features)) throw new Error('the permit service sent no rows');
     return j.features.map(f => (f && f.attributes) || {});
   }
-  /* One statistics query, sent as a form post: the heating rule makes the query longer than a URL should be. A second between calls. */
-  const POST = { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, gapMs: 1000, retries: 2, timeoutMs: 45000 };
+  /* One statistics query, sent as a form post: the heating rule makes the query longer than a URL should be. A second between
+     calls, 28 seconds for an answer and one more try after a busy or failed one, so three requests fit the time a source is given. */
+  const POST = { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, gapMs: 1000, retries: 1, timeoutMs: 28000 };
   const query = (http, layer, p) => http.json(layer + '/query', Object.assign({}, POST, { body: form(Object.assign({}, p, { f: 'json' })) }));
   /* every page of a grouped answer (the service returns 1,000 groups at a time) */
   async function queryAll(http, layer, p, maxPages) {
@@ -164,50 +167,79 @@
 
   /* ---------- reads ---------- */
   const sumOf = (list, k) => list.reduce((s, x) => s == null || x[k] == null ? null : s + x[k], 0);
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const monthName = ym => MONTHS[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4), thousands = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  /* Why a heating count is missing, as one plain sentence to print beside the gap (null when nothing is missing): the city
+     does not write the work down, or its 12 months reach back before the month its heating counts became comparable. */
+  function heatNote(d, ms, last12, prior12) {
+    if (!ms.length) return null;
+    const c = d.city, hs = d.heatSince || null, ds = d.described, since = hs ? 'Heating permits in ' + c + ' are comparable from ' + monthName(hs) + ' on, when the city changed how the work is written down: ' : '';
+    if (ms[ms.length - 1].heat == null) return ds && ds.of > 0 ? c + ' wrote down the work on ' + thousands(ds.n) + ' of ' + thousands(ds.of) + ' permits in the last 12 months, too few to tell heating from cooling: the heating count is unknown, not zero.' : c + ' does not publish what each permit was for: the heating count is unknown, not zero.';
+    if (last12 && last12.heat == null) return hs && ms[Math.max(0, ms.length - 12)].m < hs ? since + 'a 12 month count needs 12 complete months since then.' : 'Some of the last 12 months in ' + c + ' carry too few descriptions to count heating: the 12 month heating count is unknown, not zero.';
+    if (prior12 && prior12.heat == null && hs && ms[Math.max(0, ms.length - 24)].m < hs) return since + 'there is no reading against the year before until both years sit after it.';
+    return null;
+  }
   /* one city's record as the modules read it: the last 12 complete months against the 12 before */
   function cityView(id, d) {
-    const ms = Array.isArray(d.months) ? d.months : [];
-    const blk = l => ({ mech: sumOf(l, 'mech'), heat: sumOf(l, 'heat'), heatOnly: sumOf(l, 'heatOnly') });
+    const ms = Array.isArray(d.months) ? d.months : [], hs = d.heatSince || null;
+    /* a 12 month heating total is given only where all 12 months count heating the same way */
+    const blk = l => { const ok = !hs || l[0].m >= hs; return { mech: sumOf(l, 'mech'), heat: ok ? sumOf(l, 'heat') : null, heatOnly: ok ? sumOf(l, 'heatOnly') : null }; };
     const last12 = ms.length >= 12 ? blk(ms.slice(-12)) : null, prior12 = ms.length >= 24 ? blk(ms.slice(-24, -12)) : null;
     const yoyPct = last12 && prior12 && prior12.mech > 0 ? Math.round((last12.mech / prior12.mech - 1) * 1000) / 10 : null;
-    return { id, city: d.city, through: d.through || null, months: ms, last12, prior12, yoyPct, recent: d.recent || null, zips: d.byZip12 ? Object.keys(d.byZip12).length : null, zipMonths: d.zipMonths || null, described: d.described || null, residentialOnly: !!d.residentialOnly, what: d.what || '', stale: d.stale || [] };
+    return { id, city: d.city, through: d.through || null, months: ms, last12, prior12, yoyPct, recent: d.recent || null, zips: d.byZip12 ? Object.keys(d.byZip12).length : null, zipMonths: d.zipMonths || null, described: d.described || null, heatSince: hs, heatNote: heatNote(d, ms, last12, prior12), residentialOnly: !!d.residentialOnly, what: d.what || '', stale: d.stale || [] };
   }
-  /* Every city permit record merged. recs: the stored records by source id ({ id: { data } }, as LIVE.all() returns them) or the
-     data objects themselves. A ZIP code two cities share carries the sum, under the city with more permits there. */
+  /* Every city permit record merged, for any number of cities. recs: the stored records by source id ({ id: { data } }, as
+     LIVE.all() returns them) or the data objects themselves. Nothing is counted twice: where two sources hold the same city,
+     only the one with the later permit is read; a permit sits in one city's file only, so a ZIP code two cities reach into
+     appears once and carries the sum, under the city with more permits there, with each city's part beside it (parts). A
+     known heating count plus an unknown one is unknown. zips counts each ZIP code once however many cities share it; grades are
+     the evidence grades of the two kinds of figure (GRADES); heatRef are the fixed references below, each with its dated label. */
   function summary(recs) {
-    const cities = [], byZip = {}; let through = null;
+    const pick = {}, cities = [], byZip = {}; let through = null;
     for (const id of Object.keys(recs || {}).sort()) {
       const r = recs[id], d = r && r.data !== undefined ? r.data : r;
       if (!/^permits_/.test(id) || !d || typeof d !== 'object' || !d.city || !Array.isArray(d.months)) continue;
+      const k = String(d.city).trim().toLowerCase(), was = pick[k]; if (!was || String(d.through || '') > String(was.d.through || '')) pick[k] = { id, d };
+    }
+    for (const k of Object.keys(pick).sort((a, b) => pick[a].id < pick[b].id ? -1 : 1)) {
+      const id = pick[k].id, d = pick[k].d;
       cities.push(cityView(id, d)); if (d.through && (!through || d.through > through)) through = d.through;
       for (const zip of Object.keys(d.byZip12 || {})) {
-        const v = d.byZip12[zip] || [], mech = v[0] || 0, heat = v[1] == null ? null : v[1], z = byZip[zip];
-        if (!z) byZip[zip] = { city: d.city, mech12: mech, heat12: heat, top: mech };
-        else { z.shared = true; z.heat12 = z.heat12 == null || heat == null ? null : z.heat12 + heat; z.mech12 += mech; if (mech > z.top) { z.top = mech; z.city = d.city; } }
+        const v = d.byZip12[zip] || [], mech = v[0] || 0, heat = v[1] == null ? null : v[1], z = byZip[zip], part = { city: d.city, mech12: mech, heat12: heat };
+        if (!z) byZip[zip] = { city: d.city, mech12: mech, heat12: heat, top: mech, parts: [part] };
+        else { z.shared = true; z.heat12 = z.heat12 == null || heat == null ? null : z.heat12 + heat; z.mech12 += mech; z.parts.push(part); if (mech > z.top) { z.top = mech; z.city = d.city; } }
       }
     }
-    for (const zip in byZip) delete byZip[zip].top;
-    return { cities, byZip, through, heatRef: ref() };
+    for (const zip in byZip) { delete byZip[zip].top; if (!byZip[zip].shared) delete byZip[zip].parts; }
+    return { cities, byZip, zips: Object.keys(byZip).length, through, grades: Object.assign({}, GRADES), heatRef: ref() };
   }
-  const LABELS = { mech12: ['Mechanical permits, last 12 full months', 'int'], heat12: ['Heating permits, last 12 full months', 'int'], yoyPct: ['Change against the prior 12 months', 'pct'], through: ['Latest permit date', 'text'], zips: ['ZIP codes with permits', 'int'] };
+  /* The grade to print beside each figure. Permit counts are the city's own, but permits capture only a share of the work: B.
+     The heating split reads free text with a keyword rule and counts only the permits that name the equipment (most changeouts
+     are written up as a whole system), so it is a floor: C. */
+  const GRADES = { mech: 'B', heat: 'C' };
+  const LABELS = { mech12: ['Mechanical permits, last 12 full months', 'int'], heat12: ['Permits that name heating, last 12 full months', 'int'], yoyPct: ['Change against the prior 12 months', 'pct'], through: ['Latest permit date', 'text'], zips: ['ZIP codes with permits', 'int'] };
   const digest = d => { const c = cityView('', d); return { mech12: c.last12 ? c.last12.mech : null, heat12: c.last12 ? c.last12.heat : null, yoyPct: c.yoyPct, through: c.through, zips: c.zips }; };
 
   /* ---------- what share of mechanical permits is heating work ---------- */
   /* Measured twice, where a city wrote down what was installed, by the rule above on the city's own server on 2026-11-13
      (the answers are kept in tests/fixtures/permits and a test holds these numbers to them). Counts by month of the year,
      January first, three years summed. Fixed references, not live readings: Irving stopped publishing on 2025-02-28 and
-     Fort Worth stopped recording the work description in 2014. Grade B. */
+     Fort Worth stopped recording the work description in 2014. The permit counts are grade B and the heating split grade C,
+     as everywhere in this file. ref() gives each one a label that carries its dates: print that label wherever the numbers
+     show, so a reader never takes them for this year's. */
   const REF = [
-    { city: 'Irving', what: 'residential mechanical permits pulled outside a building permit', from: '2022-03', to: '2025-02', residentialOnly: true, described: [1699, 1700], measured: '2026-11-13', grade: 'B',
+    { city: 'Irving', what: 'residential mechanical permits pulled outside a building permit', from: '2022-03', to: '2025-02', residentialOnly: true, described: [1699, 1700], measured: '2026-11-13', grade: 'B', heatGrade: 'C',
+      note: 'A fixed reference, not a live reading: the City of Irving stopped publishing this file on 2025-02-28.',
       mech: [94, 76, 112, 154, 184, 199, 221, 191, 124, 132, 100, 113], heat: [31, 18, 16, 18, 28, 20, 21, 10, 16, 19, 17, 24], heatOnly: [27, 6, 6, 0, 2, 0, 0, 1, 3, 4, 8, 11] },
-    { city: 'Fort Worth', what: 'mechanical permits pulled outside a building permit, homes and businesses together', from: '2010-01', to: '2012-12', residentialOnly: false, described: [10030, 12612], measured: '2026-11-13', grade: 'B',
+    { city: 'Fort Worth', what: 'mechanical permits pulled outside a building permit, homes and businesses together', from: '2010-01', to: '2012-12', residentialOnly: false, described: [10030, 12612], measured: '2026-11-13', grade: 'B', heatGrade: 'C',
+      note: 'A fixed reference, not a live reading: Fort Worth stopped writing the work on its permits in 2014.',
       mech: [747, 711, 982, 1162, 1112, 1405, 1302, 1456, 1135, 942, 819, 839], heat: [140, 101, 130, 164, 145, 174, 178, 186, 164, 136, 114, 133], heatOnly: [49, 33, 25, 23, 24, 21, 19, 22, 35, 40, 48, 43] },
   ];
-  /* the references with their totals and shares: heating as a share of all mechanical permits, heating only likewise, and the share of the heating only permits pulled November to February */
+  /* the references with their label (city and dates), totals and shares: heating as a share of all mechanical permits, heating only likewise, and the share of the heating only permits pulled November to February */
   function ref() {
     const s = a => a.reduce((x, y) => x + y, 0), p = (a, b) => b > 0 ? Math.round(a / b * 1000) / 10 : null;
-    return REF.map(r => { const mech = s(r.mech), heat = s(r.heat), only = s(r.heatOnly); return Object.assign({}, r, { mechTotal: mech, heatTotal: heat, heatOnlyTotal: only, heatPct: p(heat, mech), heatOnlyPct: p(only, mech), heatOnlyNovToFebPct: p(r.heatOnly[10] + r.heatOnly[11] + r.heatOnly[0] + r.heatOnly[1], only) }); });
+    return REF.map(r => { const mech = s(r.mech), heat = s(r.heat), only = s(r.heatOnly); return Object.assign({}, r, { label: r.city + ', ' + monthName(r.from) + ' to ' + monthName(r.to), mechTotal: mech, heatTotal: heat, heatOnlyTotal: only, heatPct: p(heat, mech), heatOnlyPct: p(only, mech), heatOnlyNovToFebPct: p(r.heatOnly[10] + r.heatOnly[11] + r.heatOnly[0] + r.heatOnly[1], only) }); });
   }
 
-  L.permits = { KEEP, LOOKBACK, WEEKS, MIN_DESC, RULE, RULE_TEXT, REF, LABELS, today, month, day, addDays, addMonths, monthKey, windows, zipOf, isHeat, isHeatOnly, isDescribed, heatSql, heatOnlySql, describedSql, record, addZips, keepZips, arcgis: { stat, sumIf, maxIf, form, rows, query, queryAll, run: arcgisRun }, cityView, summary, digest, ref };
+  L.permits = { KEEP, LOOKBACK, WEEKS, MIN_DESC, RULE, RULE_TEXT, REF, GRADES, LABELS, today, month, day, addDays, addMonths, monthKey, windows, zipOf, isHeat, isHeatOnly, isDescribed, heatSql, heatOnlySql, describedSql, record, addZips, keepZips, arcgis: { stat, sumIf, maxIf, form, rows, query, queryAll, run: arcgisRun }, monthName, heatNote, cityView, summary, digest, ref };
 })(typeof globalThis !== 'undefined' ? globalThis : self);
