@@ -1,0 +1,84 @@
+/* ==== css/drhvac.css ==== */
+/* Module 19, Dr. HVAC. Built on the atlas's own tokens (css/atlas.css), so both themes and the brand colors apply. */
+.dr-work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:16px;margin-top:16px;align-items:start}
+@media (max-width:1180px){.dr-work{grid-template-columns:minmax(0,1fr)}}
+.dr-chat{display:flex;flex-direction:column;min-height:560px}
+.dr-chat .card-h{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.dr-log{flex:1;min-height:320px;max-height:68vh;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.dr-empty{margin:auto 0;padding:8px 0}
+.dr-empty h4{font-family:var(--display);font-size:18px;font-weight:600;margin:0 0 4px}
+.dr-empty p{font-size:13px;color:var(--ink-2);line-height:1.55;margin:0 0 12px;max-width:560px}
+.dr-starts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:8px}
+.dr-starts button{text-align:left;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35}
+.dr-starts button:hover{border-color:var(--accent)}
+.dr-starts button span{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+.dr-msg{max-width:100%;min-width:0;font-size:13.5px;line-height:1.6}
+.dr-msg.user{align-self:flex-end;max-width:88%;background:var(--accent-soft);border:1px solid var(--line);border-radius:12px 12px 2px 12px;padding:9px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.dr-msg.user .dr-files{margin-top:6px}
+.dr-msg.bot{align-self:stretch;display:flex;flex-direction:column;gap:8px}
+.dr-who{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.dr-md{overflow-wrap:anywhere}
+.dr-md>*:first-child{margin-top:0}.dr-md>*:last-child{margin-bottom:0}
+.dr-md p{margin:0 0 9px}.dr-md ul,.dr-md ol{margin:0 0 9px;padding-left:20px}.dr-md li{margin:2px 0}
+.dr-md h4,.dr-md h5,.dr-md h6{font-family:var(--display);font-weight:600;line-height:1.25;margin:12px 0 5px}
+.dr-md h4{font-size:16px}.dr-md h5{font-size:14.5px}.dr-md h6{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+.dr-md code{font-family:var(--mono);font-size:12px;background:var(--sunk);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+.dr-md a{color:var(--note);text-decoration:underline;text-underline-offset:2px}
+.dr-md hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+.dr-md blockquote{margin:0 0 9px;padding:2px 0 2px 12px;border-left:3px solid var(--line-strong);color:var(--ink-2)}
+.dr-md table{border-collapse:collapse;font-size:12.5px;margin:0 0 9px;display:block;max-width:100%;overflow-x:auto}
+.dr-md th,.dr-md td{border:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top}
+.dr-md th{background:var(--sunk);font-weight:600}
+.dr-code{font-family:var(--mono);font-size:12px;line-height:1.5;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0 0 9px;overflow:auto;max-height:360px;white-space:pre}
+.dr-code code{background:none;border:0;padding:0;font-size:inherit}
+.dr-think{font-size:12px;color:var(--ink-3);font-style:italic;border-left:2px solid var(--line-strong);padding-left:9px;white-space:pre-wrap;overflow-wrap:anywhere}
+.dr-tool{border:1px solid var(--line);border-radius:9px;background:var(--card);font-size:12px;min-width:0}
+.dr-tool>summary,.dr-tool>.dr-th{display:flex;gap:8px;align-items:center;padding:6px 10px;cursor:pointer;list-style:none;min-width:0}
+.dr-tool>summary::-webkit-details-marker{display:none}
+.dr-tool .dr-tn{font-family:var(--mono);font-weight:600;color:var(--ink);white-space:nowrap}
+.dr-tool .dr-ts{color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.dr-tool .dr-tm{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);white-space:nowrap}
+.dr-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--ink-3)}
+.dr-dot.run{background:var(--warning);animation:drPulse 1s ease-in-out infinite}
+.dr-dot.ok{background:var(--good)}.dr-dot.err{background:var(--critical)}.dr-dot.wait{background:var(--note)}
+@keyframes drPulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.dr-dot.run{animation:none}.dr-log{scroll-behavior:auto}}
+.dr-tool .dr-risk{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line-strong);border-radius:999px;padding:0 6px;color:var(--ink-3);white-space:nowrap}
+.dr-tool .dr-risk.draft,.dr-tool .dr-risk.settings{color:var(--judg);border-color:var(--judg)}.dr-tool .dr-risk.live{color:var(--critical);border-color:var(--critical)}
+.dr-tool .dr-tb{border-top:1px solid var(--line);padding:8px 10px;display:grid;gap:6px}
+.dr-tool pre{font-family:var(--mono);font-size:11px;line-height:1.45;background:var(--sunk);border-radius:6px;padding:8px;margin:0;max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.dr-tool .dr-tl{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.dr-note{font-size:12.5px;line-height:1.5;border-radius:8px;padding:8px 11px;border:1px solid var(--line);background:var(--sunk);color:var(--ink-2)}
+.dr-note.error,.dr-note.refusal{border-color:var(--critical);background:color-mix(in srgb,var(--critical) 9%,transparent);color:var(--ink)}
+.dr-ask{border:1px solid var(--note);background:var(--note-bg);border-radius:10px;padding:11px 13px;display:grid;gap:8px}
+.dr-ask.live{border-color:var(--critical);background:color-mix(in srgb,var(--critical) 8%,transparent)}
+.dr-ask .dr-at{font-weight:600;font-size:13.5px;color:var(--ink)}
+.dr-ask .dr-ad{font-size:12.5px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.dr-ask .dr-ak{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--note)}
+.dr-ask.live .dr-ak{color:var(--critical)}
+.dr-ask .cact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dr-ask input[type=text]{flex:1;min-width:160px}
+.dr-compose{border-top:1px solid var(--line);padding:12px 16px 14px;display:grid;gap:8px}
+.dr-compose textarea{width:100%;min-height:74px;max-height:260px;resize:vertical;font:inherit;font-size:13.5px;line-height:1.5}
+.dr-compose .cact{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dr-files{display:flex;gap:6px;flex-wrap:wrap}
+.dr-file{display:inline-flex;gap:6px;align-items:center;font-size:11.5px;border:1px solid var(--line-strong);border-radius:999px;padding:2px 9px;background:var(--card);color:var(--ink-2);max-width:100%}
+.dr-file b{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.dr-file button{border:0;background:none;color:var(--ink-3);padding:0 2px;font-size:13px;line-height:1}
+.dr-bench .card-b{min-width:0}
+.dr-stage{height:640px;overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#fff}
+.dr-stage .prev{display:block;width:100%;height:100%;border:0;border-radius:0;transform-origin:0 0}
+.dr-stage.mobile{width:392px;max-width:100%;margin:0 auto}
+.dr-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+.dr-bar select{max-width:320px}
+.dr-findings{margin-top:10px;max-height:260px;overflow:auto}
+.dr-out{font-family:var(--mono);font-size:11.5px;line-height:1.5;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:520px;overflow:auto;white-space:pre;margin:0}
+.dr-score{display:inline-flex;align-items:baseline;gap:6px;font-family:var(--display);font-weight:600;font-size:22px}
+.dr-score small{font-family:var(--sans);font-size:11.5px;font-weight:400;color:var(--ink-3)}
+.dr-key{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:end;max-width:760px}
+@media (max-width:640px){.dr-key{grid-template-columns:minmax(0,1fr)}}
+#drBtn b{font-weight:700;margin-right:4px}
+/* on a wide screen the tab under the grid is the way in; the header button is for the phone, where the rail scrolls */
+@media (min-width:761px){#drBtn{display:none}}
+/* The nineteenth tab is the one module that is an assistant, not a report: it takes the full row under the grid. */
+@media (min-width:761px){.rail #tab-drhvac{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:12px;padding:7px 12px}.rail #tab-drhvac .t{white-space:nowrap}.rail #tab-drhvac .d{-webkit-line-clamp:1;flex:1;min-width:0;font-size:11.5px}}

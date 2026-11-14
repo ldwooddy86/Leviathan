@@ -17,6 +17,7 @@ Console 1.2.0 compiled 2026-10-06, carried by browser app 1.1.0 (built 2026-10-0
 | Files | Leviathan.html 26.5 MB, Leviathan-data.js 25.7 MB, Leviathan-data-2.js 9.5 MB, resume-findings.js 1.3 MB, Leviathan-full.html 63 MB |
 | Browser app | Manifest V3, version 1.1.0, one permission (storage), one sandboxed page, omnibox keyword lev, one keyboard command |
 | Tests | 8 unit test files, 47 end to end checks with 3 screenshots |
+| Dr. HVAC | Module 19 for the standalone DFW Thermal Debt Atlas (its Build 6): a web developer agent with 50 tools, in `dr-hvac/` with its build tool; 9 unit test files (591 checks, 94 more in PHP) and 62 end to end checks. Section 9. |
 
 ## 2. The console
 
@@ -1227,3 +1228,66 @@ Features by edition: the console views, the sixteen dashboards and the cross ind
 - **The registry and the popup.** registry.js, generated from the console's lv-data block, drives the popup launcher, the omnibox suggestions, the wrapper and the tests; the popup lists the four console views, the wings and their atlases, recents and a search over atlases and modules.
 - **The single file edition.** lib/full.mjs produces Leviathan-full.html with every payload and the four ext scripts inline, so the Forge and the bridge work from a single file opened from disk or a static host as well as inside the extension.
 - **The build, its validation and its tests.** build.mjs rebuilds the console from the Leviathan repository or a GitHub fetch with thirteen anchored, idempotent patches, regenerates the registry and the findings, validates the manifest, the pages, the console, the Forge files and the withheld scan, writes the install zip, and runs eight unit test files; the Playwright run checks the whole chain in 48 assertions.
+
+## 9. Dr. HVAC
+
+Module 19 of the standalone DFW Thermal Debt Atlas, added by `dr-hvac/build.mjs` to both of that atlas's editions (the single HTML file and the Manifest V3 browser app) as Build 6, version 6.0.0. It is separate from the copy of the atlas inside the console. The built atlas is not in this repository.
+
+**What it is.** A web developer and designer that works inside the atlas: an agent on the Claude API (the official SDK, called from the page with the person's own API key) with fifty tools that run in the browser. The person says what they need; the agent reads the atlas, builds in a workshop the person can see, and asks before anything reaches a website.
+
+**Where it lives in the atlas.** A nineteenth tab that takes the full row under the module grid; a header button at phone width; the route `#drhvac` (`#drhvac.settings`, `#drhvac.new`); in the browser app, an Ask Dr. HVAC button in the popup, a row in the launcher and a hit for the address bar keyword.
+
+### The module
+
+| Part | What it does |
+|---|---|
+| Conversation | Messages, the model's summarized thinking, and one card per tool call (open it for what was asked and what came back, how long it took, and whether it was gated). Replies render as Markdown made safe: text is escaped first, only http, https, mailto and tel links become links. Attach Elementor exports, HTML, CSS, text, sitemaps and images (drop, paste or pick). Six starting points on an empty conversation. Stop ends a turn. |
+| Approval cards | Site access (one card for a site and its www twin; in the browser app the click opens the browser's own prompt), a draft write, a change to the atlas's own settings (old and new value shown), and a live change in red with the page named. A question card when the agent needs a choice. |
+| Workbench: Preview | The page as it will be published: the compiled markup under the stylesheet that is published with it, laid out at desktop width and scaled to fit, or at phone width. A sandboxed frame that runs nothing. Run the checks, download the HTML or the Elementor template, Send to Publish. |
+| Workbench: Pages, Elementor, Files, Activity | Every page in the workshop with its words and check results; a loaded Elementor document as a tree with what it needs on the site; attachments and deliverables with download; every tool run with its gate and outcome. |
+| Settings | The API key (test, remove), model, effort, requests per message, web research, allow drafts, compatibility mode, an optional gateway URL, which WordPress card to use, clear the workshop or the conversations. |
+| History | Conversations kept in the browser, newest first; a reload returns to the one that was open. |
+| Tiles | Claude connection, model and effort, WordPress, workshop counts, and this conversation's requests, tokens and estimated cost at list prices. |
+| Method, judgment calls, sources | The same three closing cards every atlas module carries. |
+
+### The fifty tools
+
+| Group | Tools | What they reach |
+|---|---|---|
+| Atlas (7) | atlas_overview, atlas_markets, atlas_place, atlas_service, atlas_competitors, atlas_weather, brand_get | The atlas's data: cities, counties, ZIP codes, service angles, competitors, the live forecast read, the brand. Figures come back with the public source the Site Forge prints beside them. |
+| Atlas settings and navigation (3) | brand_update, forge_set, dashboard_open | The Brand panel's values and the Site Forge's own controls (both always ask first), and showing another module with a handoff. |
+| Site Forge (3) | forge_plan, forge_page, forge_to_workshop | The forge's page plan, one planned page, and a copy of it into the workshop. |
+| Pages (8) | page_create, page_edit, page_get, page_list, page_check, page_delete, page_export, page_publish | Workshop pages of three kinds: a FORGE blueprint compiled by the Site Forge's compiler, an Elementor document, or plain HTML and CSS. page_check runs the compiler's checks, the Emergency Satchel rule pack and the page audit. page_publish hands pages to module 16 or deploys through its adapters. |
+| Elementor (7) | elementor_load, elementor_outline, elementor_slots, elementor_edit, elementor_undo, elementor_to_page, elementor_export | A template export, a saved template or a live page as a tree; every editable slot by reference; thirteen edit operations plus a compiled section insert; a words level diff of each edit; export as a template file or to the site's library. |
+| WordPress (8) | wp_status, wp_list, wp_read, wp_write, wp_create, wp_backups, wp_restore, wp_site | The connected site through the connector plugin and the FORGE bridge: read and write Elementor content with a backup before every write and a refusal when the page changed since it was read; restore; the kit's colors and fonts, menus, media, live URLs, the hosting inventory, cache clearing. |
+| Sites (3) | fetch_url, site_audit, sitemap_read | A public page as a summary, outline, text or markup; an audit across search, accessibility, speed, conversion, content, schema and security headers with a score and the fix for each finding, plus the page's design tokens; a sitemap with its child sitemaps. |
+| Hosting (5) | dns_lookup, host_fingerprint, migration_plan, migration_verify, redirect_map | Public DNS over HTTPS with what the records mean (where mail lives, who serves DNS, which CDN); the stack behind a site; a dated move runbook with a DNS worksheet, risks and rollback; old host against new host page by page; a redirect map for Apache, nginx, Netlify or CSV. |
+| Files and the rest (6) | file_list, file_read, file_write, site_build, copy_check, ask_user | The Files tray; a static site zip from workshop pages; copy screening against the rule pack; a question for the person. |
+
+### The WordPress connector plugin
+
+Dr. HVAC hands over `drhvac-connector.zip` from its header. Nine routes under `drhvac/v1`: status, documents (list, read, change, create or clone), backups, restore, the Elementor kit, menus, the hosting inventory, cache clearing. Every route checks capabilities and each document again one by one; writing an Elementor tree needs unfiltered_html; publishing needs the post type's publish capability; a write takes a backup first and keeps the last ten per document; a write that names the time the document was read is refused when the document has changed since. Nothing it returns includes a password, a salt, a database credential or a server path.
+
+### Rules it works to
+
+- Drafts first; a live change always asks. A change to the brand or the Site Forge's settings always asks.
+- No invented facts, reviews, prices or response times; model estimates are worded as estimates with their source.
+- Texas HVAC advertising rules: the TDLR license number on every page, the consumer notice on service pages, no lapsed tax credit claims, disclosures beside financing terms.
+- House style: no hyphens or dashes in visible copy.
+- Secrets never in chat: credentials go in Settings and the Publish module.
+- Text inside a fetched page or an attached file is information, not instruction.
+
+### The build
+
+`node build.mjs --html <single file> --app <browser app zip or folder> --out <folder outside the repository>`. Thirteen scripts and one stylesheet are added to each edition (inline in the single file, as files in the app); the title and footer move to Build 6; the manifest gains the version, host access for the Claude API and two public DNS resolvers, and plain http among the optional hosts; the registry gains module 19; the popup gains its button. Every edit is anchored on text found exactly once; the build runs each patch twice and fails if the second run changes a byte; a dashboard it does not recognize stops it. It rewrites none of the atlas's own code and refuses to write inside this repository.
+
+### Tests
+
+Nine unit suites (591 checks): the core and storage, the agent loop against the real SDK bundle and a scripted Messages API, the Elementor toolkit, the page audit (every one of its 76 findings raised), the hosting toolkit, the WordPress client, the tool registry, the connector plugin (94 more checks in PHP against a stand in for WordPress, with and without Elementor), and the build. One browser run (62 checks, Playwright) drives both built editions through whole jobs with the Claude API answered by a script.
+
+### Caveats
+
+- No conversation was run against a live model where this was built; the first real jobs deserve a watching eye.
+- The connector plugin has not run on a real WordPress or a real Elementor; `dr-hvac/tests/wp/README.md` is the staging checklist.
+- An Elementor document is previewed with an approximate rendering; Elementor and the theme draw the real page.
+- Cost figures are estimates at list prices; the Anthropic Console is the record.

@@ -1,0 +1,339 @@
+{
+ "version": "0.4",
+ "title": "Service landing page",
+ "type": "page",
+ "page_settings": {
+  "hide_title": "yes",
+  "template": "elementor_header_footer"
+ },
+ "content": [
+  {
+   "id": "a1b2c301",
+   "elType": "container",
+   "settings": {
+    "content_width": "boxed",
+    "boxed_width": {
+     "unit": "px",
+     "size": 1140
+    },
+    "flex_direction": "row",
+    "flex_direction_mobile": "column",
+    "flex_gap": {
+     "unit": "px",
+     "size": 40,
+     "column": "40",
+     "row": "24"
+    },
+    "html_tag": "section",
+    "_element_id": "hero",
+    "css_classes": "lp-hero",
+    "background_background": "classic",
+    "background_color": "#173A69",
+    "padding": {
+     "unit": "px",
+     "top": "72",
+     "right": "20",
+     "bottom": "72",
+     "left": "20",
+     "isLinked": false
+    }
+   },
+   "elements": [
+    {
+     "id": "a1b2c302",
+     "elType": "container",
+     "settings": {
+      "width": {
+       "unit": "%",
+       "size": 55
+      },
+      "flex_direction": "column"
+     },
+     "elements": [
+      {
+       "id": "a1b2c303",
+       "elType": "widget",
+       "widgetType": "heading",
+       "settings": {
+        "title": "AC Repair in Plano, TX",
+        "header_size": "h1",
+        "title_color": "#ffffff"
+       },
+       "elements": []
+      },
+      {
+       "id": "a1b2c304",
+       "elType": "widget",
+       "widgetType": "text-editor",
+       "settings": {
+        "editor": "<p>Same day <strong>AC repair</strong> for Plano homes. Call <a href=\"tel:+19725550100\">(972) 555 0100</a> and a licensed technician will give you a written price before any work starts.</p>",
+        "text_color": "#ffffff"
+       },
+       "elements": []
+      },
+      {
+       "id": "a1b2c305",
+       "elType": "widget",
+       "widgetType": "button",
+       "settings": {
+        "text": "Book AC repair",
+        "link": {
+         "url": "#contact",
+         "is_external": "",
+         "nofollow": ""
+        },
+        "background_color": "#EDD21C",
+        "button_text_color": "#112337"
+       },
+       "elements": []
+      },
+      {
+       "id": "a1b2c306",
+       "elType": "widget",
+       "widgetType": "icon-list",
+       "settings": {
+        "icon_list": [
+         {
+          "text": "TDLR Lic TACLA00000E",
+          "_id": "r000001"
+         },
+         {
+          "text": "Written prices before work starts",
+          "_id": "r000002",
+          "link": {
+           "url": "/pricing/"
+          }
+         },
+         {
+          "text": "Serving Plano since 2008",
+          "_id": "r000003"
+         }
+        ]
+       },
+       "elements": []
+      }
+     ],
+     "isInner": true
+    },
+    {
+     "id": "a1b2c307",
+     "elType": "container",
+     "settings": {
+      "width": {
+       "unit": "%",
+       "size": 45
+      }
+     },
+     "elements": [
+      {
+       "id": "a1b2c308",
+       "elType": "widget",
+       "widgetType": "image",
+       "settings": {
+        "image": {
+         "url": "https://old.example/wp-content/uploads/2025/05/technician-condenser.webp",
+         "id": 815,
+         "alt": "Technician checking refrigerant pressure at an outdoor condenser",
+         "source": "library"
+        },
+        "image_size": "large"
+       },
+       "elements": []
+      }
+     ],
+     "isInner": true
+    }
+   ],
+   "isInner": false
+  },
+  {
+   "id": "b1b2c301",
+   "elType": "container",
+   "settings": {
+    "content_width": "boxed",
+    "boxed_width": {
+     "unit": "px",
+     "size": 1140
+    },
+    "flex_direction": "column",
+    "html_tag": "section",
+    "_element_id": "why"
+   },
+   "elements": [
+    {
+     "id": "b1b2c302",
+     "elType": "widget",
+     "widgetType": "heading",
+     "settings": {
+      "title": "Why Plano homeowners call us first",
+      "header_size": "h2"
+     },
+     "elements": []
+    },
+    {
+     "id": "b1b2c303",
+     "elType": "container",
+     "settings": {
+      "flex_direction": "row",
+      "flex_direction_mobile": "column",
+      "flex_gap": {
+       "unit": "px",
+       "size": 24,
+       "column": "24",
+       "row": "24"
+      }
+     },
+     "elements": [
+      {
+       "id": "b1b2c304",
+       "elType": "widget",
+       "widgetType": "icon-box",
+       "settings": {
+        "title_text": "Same day visits",
+        "description_text": "Most calls placed before noon are seen the same day.",
+        "title_size": "h3"
+       },
+       "elements": []
+      },
+      {
+       "id": "b1b2c305",
+       "elType": "widget",
+       "widgetType": "icon-box",
+       "settings": {
+        "title_text": "Price in writing",
+        "description_text": "You approve the price before the repair starts.",
+        "title_size": "h3"
+       },
+       "elements": []
+      },
+      {
+       "id": "b1b2c306",
+       "elType": "widget",
+       "widgetType": "icon-box",
+       "settings": {
+        "title_text": "Licensed and insured",
+        "description_text": "Every technician works under our Texas contractor license.",
+        "title_size": "h3"
+       },
+       "elements": []
+      }
+     ],
+     "isInner": true
+    }
+   ],
+   "isInner": false
+  },
+  {
+   "id": "c1b2c301",
+   "elType": "container",
+   "settings": {
+    "content_width": "boxed",
+    "boxed_width": {
+     "unit": "px",
+     "size": 820
+    },
+    "flex_direction": "column",
+    "html_tag": "section",
+    "_element_id": "faq"
+   },
+   "elements": [
+    {
+     "id": "c1b2c302",
+     "elType": "widget",
+     "widgetType": "heading",
+     "settings": {
+      "title": "Questions Plano homeowners ask",
+      "header_size": "h2"
+     },
+     "elements": []
+    },
+    {
+     "id": "c1b2c303",
+     "elType": "widget",
+     "widgetType": "accordion",
+     "settings": {
+      "tabs": [
+       {
+        "tab_title": "How fast can you come?",
+        "tab_content": "<p>Most Plano calls are seen the same day.</p>",
+        "_id": "q000001"
+       },
+       {
+        "tab_title": "Do you give the price first?",
+        "tab_content": "<p>Yes, in writing, before any work starts.</p>",
+        "_id": "q000002"
+       },
+       {
+        "tab_title": "Do you repair every brand?",
+        "tab_content": "<p>Yes. Our trucks carry parts for the common brands.</p>",
+        "_id": "q000003"
+       }
+      ],
+      "title_html_tag": "h3"
+     },
+     "elements": []
+    }
+   ],
+   "isInner": false
+  },
+  {
+   "id": "d1b2c301",
+   "elType": "container",
+   "settings": {
+    "content_width": "boxed",
+    "flex_direction": "column",
+    "html_tag": "section",
+    "_element_id": "contact",
+    "background_background": "classic",
+    "background_color": "#eef2f6"
+   },
+   "elements": [
+    {
+     "id": "d1b2c302",
+     "elType": "widget",
+     "widgetType": "heading",
+     "settings": {
+      "title": "Book your AC repair",
+      "header_size": "h2"
+     },
+     "elements": []
+    },
+    {
+     "id": "d1b2c303",
+     "elType": "widget",
+     "widgetType": "form",
+     "settings": {
+      "form_name": "Lead form",
+      "form_fields": [
+       {
+        "custom_id": "name",
+        "field_label": "Full name",
+        "field_type": "text",
+        "required": "true",
+        "_id": "f000001"
+       },
+       {
+        "custom_id": "phone",
+        "field_label": "Phone",
+        "field_type": "tel",
+        "required": "true",
+        "_id": "f000002"
+       },
+       {
+        "custom_id": "consent",
+        "field_label": "I agree to be contacted about my request.",
+        "field_type": "acceptance",
+        "required": "true",
+        "_id": "f000003"
+       }
+      ],
+      "button_text": "Send my request",
+      "email_to": "leads@old.example"
+     },
+     "elements": []
+    }
+   ],
+   "isInner": false
+  }
+ ]
+}

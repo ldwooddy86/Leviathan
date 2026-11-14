@@ -1,0 +1,17 @@
+{
+  "name": "dr-hvac",
+  "version": "6.0.0",
+  "private": true,
+  "description": "Dr. HVAC: the web developer agent for the DFW Thermal Debt Atlas (module 19), its build tool and its tests",
+  "type": "module",
+  "scripts": {
+    "vendor": "node tools/vendor.mjs",
+    "build": "node build.mjs",
+    "test": "node tests/run.mjs",
+    "e2e": "node tests/e2e/run.mjs"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "1.8.0",
+    "esbuild": "0.25.10"
+  }
+}
