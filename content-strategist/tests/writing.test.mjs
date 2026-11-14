@@ -21,6 +21,7 @@ ok(easy.grade < 2 && hard.grade > 18 && easy.ease > 90, 'Flesch-Kincaid puts a p
 const pv = t => passives(t).map(p => p.phrase.toLowerCase());
 ok(pv('The coil was cleaned last week.').length === 1 && pv('Quotes are always provided first.')[0] === 'are always provided' && pv('Your system has been serviced.').length === 1 && pv('The part got damaged in the storm.').length === 1 && pv('The duct was torn by a raccoon.').length === 1, 'be and get passives, with adverbs between');
 ok(!pv('We clean the coil. Our techs are licensed and insured. The coil is frozen. The office is located in Plano. You are tired of the heat. We are done by noon. The fan is used to the load. It has stopped.').length, 'active voice and plain states pass');
+ok(pv('R22 is no longer produced here.')[0] === 'is no longer produced' && pv("The unit wasn't installed right. It's built to last.").length === 2, 'no longer, a negative contraction, it is built');
 ok(pv('Our techs are certified by NATE.').length === 1 && pv('We need speed. Indeed, a hundred red beds were needed.').join() === 'were needed', 'a by phrase turns a state into a passive; -ed nouns are not verbs');
 
 /* ---- tropes ---- */
