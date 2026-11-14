@@ -25,7 +25,7 @@ const browser = await chromium.launch(proxy ? { proxy: { server: proxy } } : {})
 const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 1, colorScheme: theme === 'dark' ? 'dark' : 'light' });
 const page = await ctx.newPage();
 /* the single file refreshes its live data when opened and a run is due; a check run must not call the public sources unless asked (--live) */
-if (!flag('live')) await page.addInitScript(() => { try { if (!localStorage.getItem('tda.live.settings')) localStorage.setItem('tda.live.settings', JSON.stringify({ auto: false })); } catch (e) { } });
+if (!flag('live')) await page.addInitScript(() => { if (self !== top) return; const go = () => { try { if (!localStorage.getItem('tda.live.settings')) localStorage.setItem('tda.live.settings', JSON.stringify({ auto: false })); } catch (e) { } }; const mo = new MutationObserver(() => { mo.disconnect(); go(); }); mo.observe(document, { childList: true, subtree: true }); });   /* written at the first change to the document, before any page script: see tests/page/run.mjs */
 const errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + (e.stack || e.message).split('\n').slice(0, 3).join(' | ')));
 const notes = [];

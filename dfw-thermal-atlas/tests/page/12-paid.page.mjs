@@ -84,7 +84,7 @@ export default async function (page, t, ctx) {
   const stray = dets.concat(await visible('#a5Meth')).flatMap(marks);
   t.ok(!stray.length && /\+45% to minus 40%/.test(await visible('#a5Meth')), 'no dash stands in for a word in a ZIP card or in the method, which writes "minus 40%"', stray.slice(0, 3));
   const meta = await ctx.download(() => page.click('#a5M')), full = await ctx.download(() => page.click('#a5All'));
-  const notes = [meta, full].map(f => f.text.split('\n').filter(l => l.startsWith('# ')).join(' '));
+  const notes = [meta, full].map(f => f.text.replace(/^\uFEFF/, '').split('\n').filter(l => l.startsWith('# ')).join(' '));   /* a saved CSV begins with a byte order mark */
   t.ok(meta.name === 'meta-zip-targets-dfw-hvac.csv' && /ZIP targeted ad sets\.$/.test(notes[0]) && notes[1].length > 20 && !hyphenated(notes.join(' ')).length, 'the notes written into the Meta ZIP file and the full data file carry no hyphenated prose', { notes, bad: hyphenated(notes.join(' ')) });
 
   /* The copy follows the data: drop a ZIP, a competitor, a criterion id and every review count before the module mounts */

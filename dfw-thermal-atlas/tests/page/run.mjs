@@ -28,9 +28,14 @@ const browser = await chromium.launch();
 let failed = 0, passed = 0;
 for (const f of tests) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
+  /* no network from a page test: every request to a web host is refused here; a stand in that a test file adds with page.route answers first */
+  await context.route(/^https?:\/\//i, r => r.abort());
   const page = await context.newPage();
-  /* no live refresh from a test: the page must not call the public sources */
-  await page.addInitScript(() => { try { if (!localStorage.getItem('tda.live.settings')) localStorage.setItem('tda.live.settings', JSON.stringify({ auto: false })); } catch (e) { } });
+  /* no live refresh from a test either. The setting is written at the first change to the new document, before any script of
+     the page runs: a script that touches localStorage at the very start of a document can, on a busy machine, leave that
+     document on a store the next one does not read (measured here: 15 to 25 in 100 reloads lost what was written, none this way).
+     Top frame only: a callback queued inside a sandboxed preview frame would be refused and logged as an error */
+  await page.addInitScript(() => { if (self !== top) return; const go = () => { try { if (!localStorage.getItem('tda.live.settings')) localStorage.setItem('tda.live.settings', JSON.stringify({ auto: false })); } catch (e) { } }; const mo = new MutationObserver(() => { mo.disconnect(); go(); }); mo.observe(document, { childList: true, subtree: true }); });
   const errors = [];
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/^Failed to load resource/.test(m.text())) errors.push('console.error: ' + m.text().slice(0, 300)); });

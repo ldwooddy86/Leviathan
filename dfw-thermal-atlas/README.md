@@ -36,12 +36,44 @@ Ways in after that:
 An unpacked extension does not update its own code. What updates every week is the data. To move to a newer build, replace
 the folder (or `git pull`) and press Reload on the extensions page; stored data, settings and plans are kept.
 
+## The Heat Desk: where and when to spend on heating
+
+Module 17 answers one question for a heating contractor with one dispatch point: where does the next ad dollar earn the
+most, and what does this week's weather change. It opens with the answer in plain words, and everything under it is the
+working behind that answer.
+
+- **The answer.** Four short paragraphs: *Where* (how many ZIP codes, how close to the shop, which counties and cities
+  lead), *On what* (the split between heating repair, furnace replacement, heat pump replacement and tune ups, and why),
+  *This week* (what the forecast does to the budgets) and *On Monday* (the settings to change in the ad accounts).
+- **The plan.** The few numbers an owner sets: monthly heating media, the month, the share held back as a freeze reserve,
+  how far a lead is worth driving for each line, the bidding mode, ZIP codes to pin or block, and the line mix (automatic,
+  repair first, replacement first or your own). Every other assumption sits under Advanced with its grade. The page
+  recomputes as you type and keeps the settings in the browser.
+- **This week.** Seven nights of National Weather Service lows turned into a budget per line and per day, with the cold
+  rules that fired. Three rehearsal weeks (a freeze on the rim, a first freeze across the metro, an arctic outbreak) show
+  what the same rules would do, labeled as simulations.
+- **Where.** A map and a ranked table of ZIP codes with dollars, bid adjustment, confidence and the reason for each; the ZIP
+  codes close to the shop that were held back and why; counties, with the observed permits and gas tests of Dallas and Fort
+  Worth beside the model.
+- **How sure.** Each outcome carries a range (the 10th to 90th percentile of 120 replays of the plan with the stated
+  assumptions shaken) and each figure a grade from A, measured by the publisher, to D, stated. Homes, heating fuel, system
+  ages and the weather are measured. Lead costs, close rates, tickets and the size of each cold response are stated
+  benchmarks, so the dollar outcomes are arithmetic to steer by and never a promise.
+- **Files.** The Monday pack is a zip of everything the ad accounts take: the Google Ads campaign and location files (for
+  Google Ads Editor; every campaign arrives paused), Microsoft locations, the Meta and Nextdoor ZIP lists, the Local Services
+  sheet, exclusions, the week sheet, the plan by ZIP and the assumptions behind them. Each file also has its own button,
+  and the plan hands over to the Campaign Desk (module 08) for keywords and ad copy.
+
+The season line, the two week outlook, permits, licenses, recalls and federal rules on the page come from the live sources
+below and are hidden, with a note, until the first refresh has stored them. An outlook is a reason to hold the reserve; only
+the seven day forecast and active alerts move a budget.
+
 ## What refreshes, and when
 
 | | |
 |---|---|
-| **Weekly, Monday 6 am by default** | every source in the table below |
-| **Daily, 5 am by default** | the weather pulse: forecast lows and alerts (about 20 small requests) |
+| **Weekly, Monday 6 am by default** | every source in the table below (about 85 small requests, half a minute) |
+| **Daily, 5 am by default** | the morning pulse: forecast lows and alerts, the heating season to date, the two week outlooks, the blend of models and the Texas grid (about 45 small requests) |
 | **At browser start** | a catch up, when a scheduled run was missed while the browser was closed |
 | **On demand** | Refresh in the popup or in module 18, Live Data, for everything or one source |
 | **Yearly, by rebuild** | the stock model (housing, heating fuel, system counts and ages, incomes) from the Census American Community Survey |
@@ -51,6 +83,24 @@ the run log, the schedule, and the settings (refresh day and time, the daily pul
 switch per source). A source that fails keeps its last good data and says so.
 
 <!-- SOURCES:BEGIN -->
+12 public sources, read with plain requests (no account, no cookies). The evidence grade runs from A (measured by the publisher) to D (stated).
+
+| Source | Publisher | What the atlas uses it for | Refresh | Grade | Where it runs |
+|---|---|---|---|---|---|
+| [Forecast lows, heating load and alerts](https://www.weather.gov/fwd/) | National Weather Service, Fort Worth office (NOAA) | The forecaster grid at 20 points across the 12 counties: the low of each of the next seven nights, wind chill, snow and ice, the highs and the forecast heating degree days, plus every active watch, warning and advisory. Drives the cold triggers in the Heat Desk, the toolbar badge and the notifications. | every morning | A | browser app and single file |
+| [Heating equipment recalls](https://www.cpsc.gov/Recalls) | U.S. Consumer Product Safety Commission | Recalls since 2019 of furnaces and their coils, heat pumps, boilers, room heaters and carbon monoxide alarms, with units and hazard. Feeds the recall check offer and the safety copy in the Heat Desk. | weekly | A | browser app and single file |
+| [Heating season to date](https://www.rcc-acis.org/) | NOAA Regional Climate Centers (ACIS), with PRISM grids from Oregon State University | Observed heating degree days since July 1 against the 1991 to 2020 normal at every reporting station in and around the 12 counties, freeze nights, first and last freeze, the same span in 30 past falls, and 4 km grids and county means of the season so far. Feeds the season line, the Heat Desk pacing and the season to date by county and ZIP. | every morning | A/C | browser app and single file |
+| [Cold watches, warnings and advisories issued](https://mesonet.agron.iastate.edu/request/gis/watchwarn.phtml) | Iowa Environmental Mesonet, Iowa State University | Every dated freeze, frost, extreme cold, wind chill, winter storm, ice storm and winter weather product the National Weather Service in Fort Worth issued for the 12 counties, ten winters back and this season to date. Feeds the cold season record: products and cold hazard days by county, and how early the first Freeze Warning usually comes. | weekly | B | browser app and single file |
+| [Two week outlooks and cold hazards](https://www.cpc.ncep.noaa.gov/products/predictions/814day/) | NOAA Climate Prediction Center and Weather Prediction Center | Where the seven day forecast stops: the odds of a colder or warmer than normal stretch 6 to 10 and 8 to 14 days out for the 12 counties, cold and winter hazard areas drawn for days 3 to 14, winter storm impact odds for the coming week, the hazards the forecasters name in their discussions, and the monthly and seasonal lean. Sets how early the Heat Desk stages heating repair and no heat budgets. | every morning | B | browser app and single file |
+| [Blend lows and highs, days 6 to 11](https://mesonet.agron.iastate.edu/mos/) | National Weather Service blend of models, served by the Iowa Environmental Mesonet | The National Blend of Models station bulletins for six airports: each night's low and each day's high 6 to 11 days out, with the spread between the models. Bridges the seven day forecast and the 8 to 14 day outlook, and puts a number on the chance of a freeze in days 8 to 11, where a first freeze shows before any outlook map does. | every morning | B | browser app and single file |
+| [Texas grid conditions and demand forecast](https://www.ercot.com/gridmktinfo/dashboards) | Electric Reliability Council of Texas (ERCOT) | The Texas grid operator's public dashboards: the grid condition level, the six day demand forecast and the measured load of the North Central weather zone. It can tell a heating advertiser when the whole state braces for cold (a Weather Watch comes days ahead of a hard freeze; a Conservation Appeal or an Energy Emergency Alert means outage risk and no heat calls when power returns) and when electric heat carries the grid (the daily peak moves to the morning). It cannot tell which county or ZIP is cold, how hard gas furnaces run, or anything past six days; most weeks it reads normal and says nothing. | every morning | B | browser app only |
+| [Dallas mechanical permits and gas tests](https://www.dallasopendata.com/d/e7gq-4sah) | City of Dallas, Dallas OpenData | Residential heating and air conditioning permits of the City of Dallas by month and by ZIP code, the ones that name heating equipment, and gas tests: plumbing permits for a pressure test of a home's gas line, usually after a shut off, a meter release or a repair, which mark homes putting gas heat back in service (a lead indicator of heating demand by ZIP code, grade C, not a count of heating jobs). ZIP codes are usable from June 2025 on (and in 2018 to 2020), months before May 2024 are a gap in the city's file and are left out, and contractor and value are empty from October 2025 on. | weekly | B | browser app and single file |
+| [Fort Worth mechanical permits](https://www.arcgis.com/home/item.html?id=d2740f4d746b4bfaa03e25de0376238b) | City of Fort Worth, Development Services | Heating and air conditioning permits pulled outside a building permit in Fort Worth: by month for three years, by ZIP code for the last 12 months, and the last eight weeks against the same weeks a year earlier. The one observed count of replacement work by ZIP code, used to check the replacement model and to see where the work is being done; the city does not record whether a job was heating or cooling. | weekly | B | browser app and single file |
+| [Air conditioning contractor licenses](https://data.texas.gov/dataset/TDLR-All-Licenses/7358-krk7) | Texas Department of Licensing and Regulation, on the Texas Open Data Portal | Active air conditioning and refrigeration contractor and technician licenses in each of the 12 counties, the licenses expiring soon and the license numbers first issued in the last 12 months. Contractors per home is the competition a heating ad bids against, and the new licenses show where it is growing. | weekly | A | browser app and single file |
+| [Census vintage watch](https://www.census.gov/programs-surveys/acs/news/data-releases.html) | U.S. Census Bureau, American Community Survey | Watches for the next American Community Survey five year file. The stock model (heating fuel, owner or renter, year built) is compiled from the 2020 to 2024 file; when a newer one is published this says so, and the model can be rebuilt. *(takes an optional free API key)* | weekly | A | browser app and single file |
+| [Federal rules on heating equipment, refrigerants and advertising](https://www.federalregister.gov/) | Office of the Federal Register (National Archives) | Federal Register documents of the last 24 months on consumer furnaces and heat pumps, refrigerants, the residential energy credits, and reviews, fees and recurring plans in advertising, plus the standing rules still in force. Keeps heating offers and ad copy in step with the rules: which equipment may be sold, which dates are coming, which claims are regulated. | weekly | A | browser app and single file |
+
+Hosts the browser app may call for these: `api.census.gov`, `api.weather.gov`, `data.rcc-acis.org`, `data.texas.gov`, `mapservices.weather.noaa.gov`, `mesonet.agron.iastate.edu`, `services5.arcgis.com`, `www.dallasopendata.com`, `www.ercot.com`, `www.federalregister.gov`, `www.saferproducts.gov`, `www2.census.gov`. The Weather Desk also reads `api.weather.gov` and `www.spc.noaa.gov` when it is open.
 <!-- SOURCES:END -->
 
 ## Adding a source
@@ -100,8 +150,9 @@ command line.
 - `app/live/page.js` is the page's handle on all of it (`LIVE`): the records, their ages, a refresh the page can run itself,
   and a `live` event the modules redraw on. `app/data/live-baseline.js` is a snapshot of the records baked at build time, so a
   fresh install and the single file open with current data before their first refresh.
-- The modules are the Build 4 scripts, one file each under `app/js/`, plus `31_m17_heat.js` (Heat Desk) and `32_m18_live.js`
-  (Live Data).
+- The modules are the Build 4 scripts, one file each under `app/js/`, plus `28_heat_core.js` (the Heat Desk engine, `HEATX`:
+  the plan, the week, the ranges and the export files, with no page code in it), `31_m17_heat.js` (the Heat Desk page) and
+  `32_m18_live.js` (Live Data).
 
 ```
 app/                     the unpacked extension: manifest, worker, popup, the atlas page and everything it loads
@@ -111,7 +162,7 @@ app/                     the unpacked extension: manifest, worker, popup, the at
   popup.html / popup.js  the toolbar popup
   open.js                search over modules and ZIPs; find or open the atlas tab
   css/ js/ data/ fonts/ icons/
-  live/                  the live layer: core, geo, sources/, derive, page
+  live/                  the live layer: core, geo, sources/, derive (cold picture), climate (season), outlook (two weeks), permits, page
 atlas.template.html      the page skeleton both editions are rendered from
 build.mjs                build, validate, release
 DFW_Thermal_Debt_Atlas.html   the single file edition (written by a release build)

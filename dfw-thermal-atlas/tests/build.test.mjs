@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { validate, sections, render, registry, registryScript, liveSync, liveList, zip, appFiles, APP, ROOT } from '../build.mjs';
 import { context, load } from './helpers/load.mjs';
+import { render as readmeWithSources } from '../tools/readme-sources.mjs';
 
 const manifest = JSON.parse(readFileSync(join(APP, 'manifest.json'), 'utf8'));
 
@@ -61,6 +62,10 @@ test('the worker and the popup load the same live layer as the page', () => {
   assert.ok(!/live\/page\.js/.test(bg), 'page.js needs the DOM and stays out of the worker');
 });
 
+test('README: the table of live sources is in step with the collectors', () => {
+  const now = readFileSync(join(ROOT, 'README.md'), 'utf8');
+  assert.equal(now, readmeWithSources(now), 'run node tools/readme-sources.mjs');
+});
 test('registry: every module in rail order, every ZIP, in step with the file on disk', () => {
   const r = registry();
   assert.equal(r.version, manifest.version);
