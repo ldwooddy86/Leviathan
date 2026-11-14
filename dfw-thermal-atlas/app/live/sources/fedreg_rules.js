@@ -1,11 +1,12 @@
 /* ==== live/sources/fedreg_rules.js ==== */
 /* The Federal Register documents that shape what a Texas heating contractor may sell and say. Four searches over the last
    24 months: Energy Department standards and test procedures for consumer furnaces, heat pumps and central air conditioners;
-   Environmental Protection Agency hydrofluorocarbon rules (40 CFR part 84, the refrigerant transition); Federal Trade
-   Commission rules on reviews, endorsements, fees and recurring plans; and anything on the residential energy credits and
-   the home energy rebates. A fifth request reads the standing rules that are older than the window and still govern.
-   Five requests a week, about 60 KB read. Titles and action lines are the publisher's words: nothing here restates a
-   rule. A search that fails keeps its documents from the last run and is named in `stale`. */
+   Environmental Protection Agency documents on refrigerants (the hydrofluorocarbon phasedown of 40 CFR part 84 with its
+   yearly allowance notices, and the listings of acceptable substitutes for air conditioning); Federal Trade Commission
+   rules on reviews, endorsements, fees and recurring plans; and anything on the residential energy credits and the home
+   energy rebates. A fifth request reads the standing rules that are older than the window and still govern.
+   Five requests a week, about 95 KB read and 13 KB stored. Titles and action lines are the publisher's words: nothing
+   here restates a rule. A search that fails keeps its documents from the last run and is named in `stale`. */
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, API = 'https://www.federalregister.gov/api/v1/documents';
@@ -17,15 +18,20 @@
   const OPT = { gapMs: 1100, retries: 1, timeoutMs: 20000, expectFinalUrl: u => /^https:\/\/www\.federalregister\.gov\/api\//.test(u) };
   /* Standing rules by document number, each seen in a live answer on 2026-11-13: the consumer furnace standard (95 percent AFUE
      for gas furnaces, compliance from 2028-12-18), the technology transitions rule for hydrofluorocarbons and the rule on
-     managing them in service work, the rule on consumer reviews and testimonials, and the rule on unfair or deceptive fees. */
-  const PINS = { '2023-25514': 'furnace', '2023-22529': 'refrigerant', '2024-21967': 'refrigerant', '2024-18519': 'advertising', '2024-30293': 'advertising' };
+     managing them in service work, and the rule on consumer reviews and testimonials. The rule on unfair or deceptive fees
+     (2024-30293, 16 CFR 464) is not among them: its own abstract limits it to "live-event tickets and short-term lodging",
+     so it does not govern a contractor's fees. It is listed like any other document while it is inside the 24 months. */
+  const PINS = { '2023-25514': 'furnace', '2023-22529': 'refrigerant', '2024-21967': 'refrigerant', '2024-18519': 'advertising' };
   /* A date the register prints in the text of a standing rule and in no field of the API. Read on 2026-11-13 in the documents'
      own words, through search excerpts: the furnace rule 2023-25514 ("Compliance with the amended standards established for the
      subject consumer furnaces in this final rule is required on and after December 18, 2028") and the petition notice 2026-08145
-     ("The compliance date ... for the subject consumer furnaces is December 18, 2028"). A later rule may move it: upcoming()
-     flags the date for a second look once a newer rule on the same topic has been published. */
+     ("The compliance date ... for the subject consumer furnaces is December 18, 2028"). That notice (2026-04-27) asks for
+     comment on a petition by three gas associations to extend the date "until January 1, 2030, at a minimum"; through
+     2026-11-13 the register holds no answer to it and no later document on consumer furnaces. A later rule may move the
+     date: upcoming() flags it for a second look once a newer rule on the same topic has been published. */
   const COMPLY = { '2023-25514': '2028-12-18' }, COMPLY_READ = '2026-11-13';
   const TERM_EQUIP = 'furnace | furnaces | "heat pump" | "heat pumps" | "central air conditioners"';
+  const TERM_REFRIG = 'hydrofluorocarbons | hydrofluorocarbon | "significant new alternatives policy"';
   const TERM_CREDIT = '"energy efficient home improvement credit" | "residential clean energy credit" | "home energy rebates" | "home efficiency rebates" | "home electrification and appliance rebates"';
   const AGENCY = { 'internal-revenue-service': 'IRS', 'treasury-department': 'Treasury', 'energy-department': 'DOE', 'environmental-protection-agency': 'EPA', 'federal-trade-commission': 'FTC', 'consumer-product-safety-commission': 'CPSC' };
   /* 16 CFR parts: 255 endorsements and testimonials, 425 recurring plans (negative option), 464 unfair or deceptive fees, 465 consumer reviews and testimonials */
@@ -58,14 +64,24 @@
     if (doe && !p.includes('430') && !p.includes('429')) return null;
     return /consumer furnace|residential furnace/i.test(a) ? 'furnace' : /central air conditioners? and heat pumps?/i.test(a) ? 'heatpump' : null;
   }
-  const refrigerant = r => (parts(r, 40).includes('84') ? 'refrigerant' : null);
+  /* Refrigerants. The hydrofluorocarbon phasedown sits in 40 CFR part 84 (the technology transitions and the service rules);
+     its yearly allowance notices cite no part and are known by their title; the refrigerants a new heat pump may use (the
+     A2L blends) are listed under the Significant New Alternatives Policy program of part 82, and count when the title names
+     refrigeration or air conditioning. A title that names another trade's use is not ours (the three seen on 2026-11-13). */
+  const OTHER_USE = /metered dose inhaler|application-specific allowances|transport refrigeration/i;
+  function refrigerant(r) {
+    const t = clean(r.title);
+    if (OTHER_USE.test(t)) return null;
+    if (parts(r, 40).includes('84') || /hydrofluorocarbon|\bHFCs?\b/i.test(t)) return 'refrigerant';
+    return /significant new alternatives policy/i.test(t) && /refrigeration|air conditioning/i.test(t) ? 'refrigerant' : null;
+  }
   const advertising = r => (parts(r, 16).some(p => AD_PARTS.includes(p)) || /consumer reviews|testimonials|endorsements|word\W{0,3}free\b/i.test(clean(r.title)) ? 'advertising' : null);
   const CREDIT = /energy efficient home improvement|residential clean energy|home energy rebate|home efficiency rebate|home electrification and appliance rebate|\b25C\b|\b25D\b/i;
   const credit = r => (CREDIT.test(clean(r.title)) || CREDIT.test(clean(r.abstract)) ? 'credit' : null);
   const search = (q, since, abs) => `${API}.json?${q}&conditions[publication_date][gte]=${since}&order=newest&per_page=100&${tail(abs)}`;
   const BLOCKS = [
     { key: 'equipment', topics: ['furnace', 'heatpump'], topic: equipment, url: s => search(`conditions[term]=${encodeURIComponent(TERM_EQUIP)}&conditions[agencies][]=energy-department&conditions[agencies][]=consumer-product-safety-commission&conditions[type][]=RULE&conditions[type][]=PRORULE`, s, true) },
-    { key: 'refrigerant', topics: ['refrigerant'], topic: refrigerant, url: s => search('conditions[agencies][]=environmental-protection-agency&conditions[cfr][title]=40&conditions[cfr][part]=84', s) },
+    { key: 'refrigerant', topics: ['refrigerant'], topic: refrigerant, url: s => search(`conditions[term]=${encodeURIComponent(TERM_REFRIG)}&conditions[agencies][]=environmental-protection-agency`, s) },
     { key: 'advertising', topics: ['advertising'], topic: advertising, url: s => search('conditions[agencies][]=federal-trade-commission&conditions[type][]=RULE&conditions[type][]=PRORULE', s) },
     { key: 'credit', topics: ['credit'], topic: credit, url: s => search(`conditions[term]=${encodeURIComponent(TERM_CREDIT)}`, s, true) },
     { key: 'standing', pin: true, topic: r => PINS[r.document_number] || null, url: () => `${API}/${Object.keys(PINS).join(',')}.json?${tail()}` },
@@ -123,12 +139,14 @@
       const seen = {}, stale = []; let answered = 0, lastErr = null, silent = 0;
       /* a fresh record replaces what is there and a standing rule stays marked; a record kept from the last run only fills a gap */
       const add = (d, fill) => { const o = seen[d.id]; if (!o) seen[d.id] = d; else if (fill) { if (d.pin) o.pin = true; } else seen[d.id] = Object.assign({}, o, d, o.pin || d.pin ? { pin: true } : null); };
+      /* a record stored by an earlier version may mark a rule that is no longer among the standing ones: it is kept as an ordinary document */
+      const kept = d => { if (!d.pin || PINS[d.id]) return d; const o = Object.assign({}, d); delete o.pin; delete o.comply; return o; };
       for (const b of BLOCKS) {
         try {
           if (silent >= 2) throw lastErr;                                                                     /* two requests in a row met silence (no answer at all): the site is down, stop asking */
           pick(await ask(ctx.http, b.url(since)), b).forEach(d => { if (b.pin || d.d >= since) add(d); });      /* the window is checked here too, not left to the server */
           answered++; silent = 0;
-        } catch (e) { lastErr = e; silent = e && e.status ? 0 : silent + 1; stale.push(b.key); if (prev) prev.docs.filter(d => (b.pin ? d.pin : b.topics.includes(d.topic) && d.d >= since)).forEach(d => add(d, true)); }
+        } catch (e) { lastErr = e; silent = e && e.status ? 0 : silent + 1; stale.push(b.key); if (prev) prev.docs.map(kept).filter(d => (b.pin ? d.pin : b.topics.includes(d.topic) && d.d >= since)).forEach(d => add(d, true)); }
       }
       if (!answered) throw lastErr || new Error('no Federal Register search answered');
       const all = Object.values(seen).sort(newestFirst), pins = all.filter(d => d.pin);

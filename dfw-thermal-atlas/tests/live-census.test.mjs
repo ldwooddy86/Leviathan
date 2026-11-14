@@ -147,6 +147,17 @@ test('failures: without the compiled file as a control nothing is claimed; a lat
   same([b.data.latest, b.data.state, b.data.firstSeen, b.data.years[1].stale, b.data.stale.map(s => s.block), b.data.tables.length], [2025, 'newer', '2026-12-10T15:00:00.000Z', true, ['2025'], 4]);
 });
 
+test('every request carries its own time limit, under the 30 seconds a background worker allows', async () => {
+  const L = fresh(), out = { list25: LIST25, file25: { status: 200, body: '' }, data: [['NAME', 'B25040_001E', 'state', 'county'], ['Dallas County, Texas', null, '48', '113']] };
+  const real = L.makeHttp({ fetch: fakeFetch(routes(out)), gapMs: 0, backoffMs: 1 }), seen = [];
+  const http = { json: (u, i) => { seen.push([u, i || {}]); return real.json(u, i); }, text: (u, i) => { seen.push([u, i || {}]); return real.text(u, i); }, stats: real.stats };
+  await L.BY_ID.census_acs.run({ http, now: new Date('2026-12-10T15:00:00Z'), prev: null, key: 'abc123', geo: L.geo, settings: {}, env: 'extension' });
+  assert.equal(seen.length, 9, 'the longest run: two catalogue entries, two files, the data call and four tables');
+  assert.ok(seen.every(([, i]) => i.timeoutMs >= 10000 && i.timeoutMs <= 20000 && i.retries === 1 && i.gapMs >= 500), 'at most 20 s each, one retry, half a second or more between calls');
+  assert.ok(seen.filter(([u]) => /api\.census\.gov/.test(u)).every(([, i]) => typeof i.expectFinalUrl === 'function' && !i.expectFinalUrl('https://api.census.gov/data/missing_key.html') && !i.expectFinalUrl('https://api.census.gov/data/invalid_key.html') && i.expectFinalUrl('https://api.census.gov/data/2024/acs/acs5.json')), 'every call to the API refuses an answer that is one of the two key pages');
+  assert.ok(seen.filter(([u]) => /www2\.census\.gov/.test(u)).every(([, i]) => i.method === 'HEAD'), 'the 44 MB file is never downloaded');
+});
+
 test('status says nothing without a record', () => {
   const L = fresh(); same([L.census.status(null), L.census.status({}), L.census.status(undefined)], [null, null, null]);
 });

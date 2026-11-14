@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { context, load, fakeFetch, same, plain, ROOT, APP } from './helpers/load.mjs';
 
-/* Answers recorded from data.rcc-acis.org on 2026-11-13 by running the collector itself (through date 2026-11-12); see each file's _note. */
+/* Answers recorded from data.rcc-acis.org on 2026-11-13 (through date 2026-11-12) to the requests the collector sends: four by running the
+   collector itself, the 30 falls (W3) again that evening with the slimmer request it sends now; see each file's _note. */
 const fx = n => JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'acis', n), 'utf8'));
 const W1 = fx('w1-airports-daily-2026-11-13.json'), W2 = fx('w2-station-reductions-2026-11-13.json'), W3 = fx('w3-same-span-1991-2020-2026-11-13.json'), G1 = fx('g1-prism-season-to-date-2026-11-13.json'), G2 = fx('g2-prism-30-fall-mean-2026-11-13.json');
 /* the baseline as the app ships it */
@@ -21,16 +22,18 @@ const runOnce = async (L, fetch, prev, now) => { const http = L.makeHttp({ fetch
 const row = (d, u) => Object.fromEntries(d.std.cols.map((c, i) => [c, d.std[u][i]]));
 /* the three ways ACIS reported an error on 2026-11-13, bodies verbatim */
 const ERR_400 = { status: 400, body: "bad args: ('elem_2', 'elem_3')\n" }, ERR_200 = { status: 200, body: '{"error":"elem_2: firstlast"}' }, ERR_EMPTY = { status: 200, body: '' };
-/* the request bodies the spec verified against the live service, verbatim */
+/* the request bodies the spec verified against the live service, verbatim. W3 is the spec's request without the two lists nothing read
+   (hard freeze counts and minima by fall) and with the station number as its only meta field: asked on 2026-11-13, it returned the same
+   64 stations and, for all 1,920 station falls, the same heating totals, freeze nights and missing day counts as the spec's request. */
 const SPEC_W2 = JSON.parse('{"bbox":"-98.3,32.0,-95.8,33.6","date":"2026-11-12","meta":"name,sids,ll,elev,county,uid","elems":[{"name":"hdd","interval":"dly","duration":"std","season_start":"07-01","reduce":{"reduce":"sum","add":"mcnt"}},{"name":"hdd","interval":"dly","duration":"std","season_start":"07-01","reduce":"sum","normal":"1"},{"name":"hdd","interval":"dly","duration":"std","season_start":"10-01","reduce":{"reduce":"sum","add":"mcnt"}},{"name":"hdd","interval":"dly","duration":7,"reduce":{"reduce":"sum","add":"mcnt"}},{"name":"hdd","interval":"dly","duration":7,"reduce":"sum","normal":"1"},{"name":"hdd","interval":"dly","duration":30,"reduce":{"reduce":"sum","add":"mcnt"}},{"name":"hdd","interval":"dly","duration":30,"reduce":"sum","normal":"1"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":{"reduce":"cnt_le_32","add":"mcnt"}},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":"cnt_le_25"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":"first_le_32"},{"name":"mint","interval":"dly","duration":365,"reduce":"last_le_32"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":{"reduce":"min","add":"date"}},{"name":"mint","interval":"dly","duration":7,"reduce":"min"}]}');
-const SPEC_W3 = JSON.parse('{"bbox":"-98.3,32.0,-95.8,33.6","sdate":"1991-11-12","edate":"2020-11-12","meta":"name,sids,ll,county,uid","elems":[{"name":"hdd","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":{"reduce":"sum","add":"mcnt"}},{"name":"mint","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":{"reduce":"cnt_le_32","add":"mcnt"}},{"name":"mint","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":"cnt_le_25"},{"name":"mint","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":"min"}]}');
+const SPEC_W3 = JSON.parse('{"bbox":"-98.3,32.0,-95.8,33.6","sdate":"1991-11-12","edate":"2020-11-12","meta":"uid","elems":[{"name":"hdd","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":{"reduce":"sum","add":"mcnt"}},{"name":"mint","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":{"reduce":"cnt_le_32","add":"mcnt"}}]}');
 const SPEC_G1 = JSON.parse('{"bbox":"-98.3,32.0,-95.8,33.6","grid":"21","sdate":"2026-11-10","edate":"2026-11-12","elems":[{"name":"hdd","interval":"dly","duration":"std","season_start":"07-01","reduce":"sum"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":"cnt_le_32"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":"min"},{"name":"hdd","interval":"dly","duration":"std","season_start":"07-01","reduce":"sum","area_reduce":"county_mean"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":"cnt_le_32","area_reduce":"county_mean"},{"name":"mint","interval":"dly","duration":"std","season_start":"07-01","reduce":"min","area_reduce":"county_min"},{"name":"hdd","interval":"dly","duration":7,"reduce":"sum","area_reduce":"county_mean"}]}');
 const SPEC_G2 = JSON.parse('{"bbox":"-98.3,32.0,-95.8,33.6","grid":"21","sdate":"1991-11-11","edate":"2020-11-11","elems":[{"name":"hdd","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":"sum","smry":"mean","smry_only":1},{"name":"hdd","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":"sum","area_reduce":"county_mean","smry":"mean","smry_only":1},{"name":"mint","interval":[1,0,0],"duration":"std","season_start":"07-01","reduce":"cnt_le_32","area_reduce":"county_mean","smry":"mean","smry_only":1}]}');
 
 /* ---------- the collector ---------- */
 test('registered as a weekly source any page can call, with plain words', () => {
   const L = fresh(), s = L.BY_ID.acis_season;
-  assert.equal(s.cadence, 'weekly'); assert.equal(s.cors, true); same(s.hosts, ['data.rcc-acis.org']); assert.match(s.grade, /^[A-D](\/[A-D])?$/); assert.match(s.page, /^https:\/\//);
+  assert.equal(s.cadence, 'daily'); assert.equal(s.cors, true); same(s.hosts, ['data.rcc-acis.org']); assert.match(s.grade, /^[A-D](\/[A-D])?$/); assert.match(s.page, /^https:\/\//);
   for (const t of [s.name, s.about, s.publisher, s.terms, ...Object.values(s.labels).map(l => l[0])]) assert.ok(!/[A-Za-z][-–—][A-Za-z]|\s[-–—]\s/.test(t), 'no hyphen or dash between words: ' + t);
   for (const [k, l] of Object.entries(s.labels)) assert.ok(['int', 'f1', 'pct', 'degF', 'usd', 'text', 'idx'].includes(l[1]), k);
 });
@@ -53,7 +56,7 @@ test('numbers arrive as strings: "M" is unknown, add ons are arrays', () => {
   assert.equal(A.num('29'), 29); assert.equal(A.num('-2'), -2); assert.equal(A.num('0'), 0); assert.equal(A.num(7), 7); assert.equal(A.num('58.5'), 58.5);
   for (const v of ['M', 'T', '', ' ', 'S', '12A', null, undefined, NaN, {}, []]) assert.equal(A.num(v), null, JSON.stringify(v) + ' is not a number');
   same(A.pair(['29', 0]), ['29', 0]); same(A.pair('157'), ['157', null]); same(A.pair(['47', '2026-10-17']), ['47', '2026-10-17']);
-  assert.equal(A.day('2026-02-23'), '2026-02-23'); assert.equal(A.day('M'), null); assert.equal(A.day(null), null);
+  assert.equal(A.day('2026-02-23'), '2026-02-23'); assert.equal(A.day('2028-02-29'), '2028-02-29'); for (const v of ['M', null, '2026-13-45', '2026-02-30', '2027-02-29', '2026-11-12T00:00', 20261112, ' 2026-11-12']) assert.equal(A.day(v), null, JSON.stringify(v) + ' is not a date');
   const dfw = W2.data.find(r => r.meta.uid === 29755).meta;
   assert.equal(A.sidOf(dfw, 6), 'USW00003927'); assert.equal(A.sidOf(dfw, 5), 'KDFW'); assert.equal(A.sidOf(dfw, 3), 'DFW', 'type 3, not the type 32 entry'); assert.equal(A.sidOf({}, 6), null);
   assert.equal(A.sidOf(W2.data.find(r => r.meta.uid === 23930).meta, 6), 'USC00410058', 'Addison: the GHCN id is the type 6 entry, not the type 32 one');
@@ -80,14 +83,14 @@ test('W1 and W3: daily pairs by position, 30 falls with the unusable ones null',
   const L = fresh(), A = L.acis, d = A.parseDaily(W1, 135);
   same(Object.keys(d.tn).sort(), ['100', '23886', '23960', '29755', '32311', '99']);
   assert.equal(d.tn[29755].length, 135); same(d.tn[29755].slice(-3), [59, 56, 51]); same(d.tx[29755].slice(-3), [78, 80, 79]); same([d.tn[29755][0], d.tx[29755][0]], [79, 96], 'July 1: the first pair');
-  assert.equal(d.tn[32311].filter(v => v == null).length, 49, 'Mesquite Metro: the summer outage is null, not zero'); assert.equal(A.parseDaily(W1, 140).tn[29755].slice(-5).every(v => v == null), true, 'days the answer does not hold are unknown');
+  assert.equal(d.tn[32311].filter(v => v == null).length, 49, 'Mesquite Metro: the summer outage is null, not zero'); same(plain(A.parseDaily(W1, 140)), { stations: {}, tn: {}, tx: {} }, 'a row that does not hold exactly the days asked for cannot be dated');
   const w = A.parseW3(W3), keep = A.parseW3(W3, { 29755: 1 });
   same(w.hdd[29755], [347, 119, 291, 140, 193, 167, 228, 169, 77, 217, 104, 207, 103, 78, 76, 153, 54, 59, 132, 85, 137, 129, 125, 128, 38, 13, 109, 223, 289, 174]);
-  assert.equal(w.fr32[29755].filter(v => v > 0).length, 8, 'a freeze by November 12 in 8 of 30 falls'); assert.equal(w.minT[29755][0], 25); assert.equal(w.fr25[29755][0], 2);
-  assert.equal(w.hdd[23693].filter(v => v != null).length, 18, 'Hillsboro: 18 usable falls'); assert.equal(w.fr32[23693].filter(v => v != null).length, 18, 'one mask for all four lists');
+  assert.equal(w.fr32[29755].filter(v => v > 0).length, 8, 'a freeze by November 12 in 8 of 30 falls'); same(Object.keys(w), ['hdd', 'fr32'], 'the two lists that are read'); same(w.fr32[29755].slice(0, 3), [7, 1, 4]);
+  assert.equal(w.hdd[23693].filter(v => v != null).length, 18, 'Hillsboro: 18 usable falls'); assert.equal(w.fr32[23693].filter(v => v != null).length, 18, 'one mask for both lists');
   assert.equal(w.hdd[32311], undefined, 'Mesquite Metro has no fall before 2022'); same(Object.keys(keep.hdd), ['29755']);
-  same(plain(A.parseW3({ data: [{ meta: { uid: 5 }, data: [[['1', 0], ['0', 0], '0', '40']] }] })), { hdd: {}, fr32: {}, fr25: {}, minT: {} }, 'a row that is not 30 falls cannot be dated');
-  same(plain(A.parseW3({ data: [null, { meta: { uid: 5 }, data: Array(30).fill(null) }] })), { hdd: {}, fr32: {}, fr25: {}, minT: {} }); same(plain(A.parseDaily({ data: [null, { meta: { uid: 5 }, data: [['M', 'M']] }] }, 1)), { stations: {}, tn: {}, tx: {} }, 'a station with no reading at all is left out');
+  same(plain(A.parseW3({ data: [{ meta: { uid: 5 }, data: [[['1', 0], ['0', 0]]] }] })), { hdd: {}, fr32: {} }, 'a row that is not 30 falls cannot be dated');
+  same(plain(A.parseW3({ data: [null, { meta: { uid: 5 }, data: Array(30).fill(null) }] })), { hdd: {}, fr32: {} }); same(plain(A.parseDaily({ data: [null, { meta: { uid: 5 }, data: [['M', 'M']] }] }, 1)), { stations: {}, tn: {}, tx: {} }, 'a station with no reading at all is left out');
 });
 
 test('G1 and G2: the newest finished PRISM day, flat grids from the south, county means', () => {
@@ -132,7 +135,7 @@ test('a run: five requests, the bodies the spec verified, the stored shape', asy
   assert.equal(Object.keys(data.stations).length, 43); same(data.stations['29755'], { name: 'DAL-FTW WSCMO AP', label: 'DFW Airport', ghcn: 'USW00003927', icao: 'KDFW', lat: 32.89744, lon: -97.02196, elev: 544, fips: '48439' });
   same(row(data, '29755'), { hdd: 29, hddNorm: 157, hddOct: 29, missOct: 0, hdd7: 10, miss7: 0, hdd7Norm: 54, hdd30: 29, miss30: 0, hdd30Norm: 143, fr32: 0, fr25: 0, firstFreeze: null, lastFreeze: '2026-02-23', minT: 47, minDate: '2026-10-17', min7: 50, missJul: 0, ok: 1 });
   same([data.daily.start, data.daily.n, Object.keys(data.daily.tn).length, data.daily.tn['29755'].length], ['2026-07-01', 135, 6, 135]);
-  same([data.todate.md, data.todate.years[0], data.todate.years[29], data.todate.years.length], ['11-12', 1991, 2020, 30]); assert.ok(Object.keys(data.todate.hdd).every(u => data.std[u]), 'only stations in this week\'s table');
+  same([data.todate.md, data.todate.years[0], data.todate.years[29], data.todate.years.length], ['11-12', 1991, 2020, 30]); same(Object.keys(data.todate), ['md', 'years', 'hdd', 'fr32']); assert.ok(Object.keys(data.todate.hdd).every(u => data.std[u]), 'only stations in this week\'s table');
   same([data.grid.date, data.grid.ny, data.grid.nx, data.grid.lat0, data.grid.lon0, data.grid.step], ['2026-11-11', 40, 62, 32, -98.333333, 0.0416666667]);
   for (const k of ['hdd', 'fr32', 'minT', 'hddNorm']) assert.equal(data.grid[k].length, 2480, k);
   same(data.county['48113'], { hdd: 35.76, hdd7: 12.6, fr32: 0, minT: 44.9, hddNorm: 154.28, fr32Norm: 0.54 });
@@ -210,6 +213,211 @@ test('history is not asked for twice: a second run the same day makes three requ
   /* a record that holds the falls and the grid mean of earlier days asks again */
   const older = copy(first); older.blocks.W3 = '2026-11-11'; older.blocks.G2 = '2026-11-10'; const next = fakeFetch(routes()), again = await runOnce(L, next, older);
   assert.equal(again.http.stats.n, 5); same(again.data.blocks, first.blocks); same(again.data.stale, {});
+  /* a record written by the earlier build also held two lists by fall that nothing read: they go when the block is reused, and when it is kept */
+  const fat = copy(first); fat.todate.fr25 = copy(first.todate.fr32); fat.todate.minT = copy(first.todate.hdd); assert.ok(JSON.stringify(fat).length > JSON.stringify(first).length + 3000);
+  const reused = await runOnce(L, fakeFetch(routes()), fat, new Date('2026-11-13T22:00:00Z')); assert.equal(reused.http.stats.n, 3); same(reused.data.todate, first.todate);
+  const lastWeek = copy(fat); lastWeek.blocks.W3 = '2026-11-05'; const keptFat = await runOnce(L, fakeFetch(routes({ W3: ERR_400 })), lastWeek); same([keptFat.data.stale, Object.keys(keptFat.data.todate)], [{ W3: '2026-11-05' }, ['md', 'years', 'hdd', 'fr32']]);
+});
+
+/* ---------- time, and the weeks when the service is not well ---------- */
+/* last week's record: the same answers dated a week earlier, with a few values of its own so a kept block can be told from a new one */
+const weekAgo = first => {
+  const p = copy(first); Object.assign(p, { through: '2026-11-05', asked: '2026-11-05', fetched: '2026-11-06T12:00:00.000Z', blocks: { W1: '2026-11-05', W2: '2026-11-05', W3: '2026-11-05', G1: '2026-11-04', G2: '2026-11-04' } });
+  p.todate.md = '11-05'; p.grid.date = '2026-11-04'; p.daily.n = 128; for (const u of Object.keys(p.daily.tn)) { p.daily.tn[u].length = 128; p.daily.tx[u].length = 128; }
+  p.std['29755'][0] = 21; p.todate.hdd['29755'][0] = 340; p.grid.hdd[0] = 11; p.grid.hddNorm[0] = 99; p.county['48113'].hdd = 20; p.county['48113'].hddNorm = 100;
+  return p;
+};
+/* what each request fills in the record */
+const blockOf = (d, id) => (id === 'W1' ? d.daily : id === 'W2' ? d.std : id === 'W3' ? d.todate : id === 'G1' ? (d.grid ? [d.grid.date, d.grid.hdd, d.grid.fr32, d.grid.minT, Object.fromEntries(Object.entries(d.county).map(([f, c]) => [f, [c.hdd, c.hdd7, c.fr32, c.minT]]))] : null) : d.grid ? [d.grid.hddNorm, Object.fromEntries(Object.entries(d.county).map(([f, c]) => [f, [c.hddNorm, c.fr32Norm]]))] : null);
+/* an http helper that notes the limits each call was given, and when on the clock it was made */
+const watched = (L, fetch, clock) => { const base = L.makeHttp({ fetch, gapMs: 0, backoffMs: 1 }), seen = []; return { seen, stats: base.stats, json: base.json, text: (u, i) => { seen.push({ id: kind(i), at: clock ? clock.t - clock.t0 : null, retries: i.retries, timeoutMs: i.timeoutMs, gapMs: i.gapMs }); return base.text(u, i); } }; };
+
+test('time: every wait is under 30 s, a second attempt only while it fits, the whole run inside its budget', async () => {
+  const L0 = fresh(), A = L0.acis, s = L0.BY_ID.acis_season;
+  /* the limits one call gets, from what is left of the budget */
+  assert.ok(A.OPT.timeoutMs < 30000 && A.OPT.timeoutMs >= 20000 && A.OPT.retries === 1 && A.OPT.gapMs >= 1000, 'under the 30 s at which a browser stops a worker that waits on one fetch');
+  same(A.plan(A.BUDGET), { retries: 1, timeoutMs: 28000 }); same(A.plan(59500), { retries: 1, timeoutMs: 28000 }, 'the pause before the call, two waits and the pause between them still fit');
+  same(A.plan(59499), { retries: 0, timeoutMs: 28000 }); same(A.plan(20000), { retries: 0, timeoutMs: 19000 }); same(A.plan(5000), { retries: 0, timeoutMs: 4000 });
+  for (const left of [4999, 1000, 0, -5, NaN, undefined, null]) assert.equal(A.plan(left), null, 'not asked with ' + left + ' ms left');
+  /* honest limits: the run can spend its budget and no more; the runner's limit sits above that, and no higher than the other weekly sources' */
+  assert.equal(A.BUDGET, 150000); assert.equal(s.timeoutMs, 170000); assert.ok(6 * 2 * A.OPT.timeoutMs > A.BUDGET, 'six calls of two full waits each would not fit: the budget is what bounds the run, not the count');
+  /* a well week: five calls, each with the full wait, one more attempt and a second between calls */
+  const ok = watched(L0, fakeFetch(routes())); await L0.BY_ID.acis_season.run({ http: ok, now: NOW, prev: null, geo: L0.geo });
+  same(ok.seen.map(c => [c.id, c.retries, c.timeoutMs, c.gapMs]), ['W1', 'W2', 'W3', 'G1', 'G2'].map(id => [id, 1, 28000, 1000]));
+
+  /* the same files on a clock the test moves: every answer below "takes" as long as the test says */
+  const clock = { t0: +NOW, t: +NOW }; class Clock extends Date { constructor(...a) { if (a.length) super(...a); else super(clock.t); } static now() { return clock.t; } }
+  const L = load(context({ Date: Clock }), 'live/core.js', 'live/geo.js', 'live/sources/acis_season.js', 'live/climate.js').TDA_LIVE;
+  const hang = c => { clock.t += c.timeoutMs; const e = new Error('This operation was aborted'); e.name = 'AbortError'; return e; };
+  /* the service accepts the call and never answers: six attempts, cut off one after the other, and the run gives up inside the budget */
+  let http = watched(L, fakeFetch([[/./, () => hang(http.seen[http.seen.length - 1])]]), clock);
+  await assert.rejects(() => L.BY_ID.acis_season.run({ http, now: new Date(clock.t0), prev: null, geo: L.geo }), e => e.message === 'W2: timed out after 28 s: data.rcc-acis.org');
+  same(http.seen.map(c => [c.id, c.at, c.retries, c.timeoutMs]), [['W1', 0, 1, 28000], ['W2', 56000, 1, 28000], ['W3', 112000, 0, 28000], ['G1', 140000, 0, 9000]], 'two waits while they fit, then one, then a short one; the 30 fall mean is not asked without its grid');
+  assert.equal(http.stats.n, 6); assert.equal(clock.t - clock.t0, 149000); assert.ok(clock.t - clock.t0 <= A.BUDGET && A.BUDGET < s.timeoutMs);
+
+  /* a slow week: the airports never answer, the station table needs two tries of 27 s, the 30 falls take 27 s and the grid 10 s.
+     Nothing is left for the last call: it is not made, and the stored copy stays, marked. */
+  const first = (await runOnce(L0, fakeFetch(routes()))).data, prev = weekAgo(first), noDfw = copy(W2); noDfw.data.find(r => r.meta.uid === 29755).data = [['M', 135], '157', ['M', 43], ['M', 7], '54', ['M', 30], '143', ['M', 135], 'M', 'M', 'M', ['M', 'M'], 'M'];
+  clock.t = clock.t0; let w2 = 0;
+  const slow = fakeFetch(routes({ W1: () => hang(http.seen[http.seen.length - 1]), W2: () => { clock.t += 27000; return ++w2 === 1 ? noDfw : W2; }, W3: () => { clock.t += 27000; return W3; }, G1: () => { clock.t += 10000; return G1; } }));
+  http = watched(L, slow, clock); const data = copy(await L.BY_ID.acis_season.run({ http, now: new Date(clock.t0), prev, geo: L.geo }));
+  same(http.seen.map(c => [c.id, c.at, c.retries, c.timeoutMs]), [['W1', 0, 1, 28000], ['W2', 56000, 1, 28000], ['W2', 83000, 1, 28000], ['W3', 110000, 0, 28000], ['G1', 137000, 0, 12000]]);
+  assert.equal(clock.t - clock.t0, 147000, 'three seconds left: too little to ask for the 30 fall mean');
+  same(data.blocks, { W1: '2026-11-05', W2: '2026-11-11', W3: '2026-11-11', G1: '2026-11-11', G2: '2026-11-04' }); same(data.stale, { W1: '2026-11-05', G2: '2026-11-04' });
+  same(data.errs, { W1: 'W1: timed out after 28 s: data.rcc-acis.org', G2: 'G2: not asked, the run was out of time' }); same(data.daily, prev.daily); same(data.grid.hddNorm, prev.grid.hddNorm); assert.equal(data.through, '2026-11-11');
+  /* a shorter wait is named as it was */
+  const late = watched(L, fakeFetch([[/./, () => hang(late.seen[late.seen.length - 1])]]), clock);
+  await assert.rejects(() => L.acis.call(late, 'G1', 'GridData', {}, L.acis.plan(10000)), e => e.message === 'G1: timed out after 9 s: data.rcc-acis.org');
+});
+
+test('the station service down, or the grid service down: the other half arrives and the record says what is stale', async () => {
+  const L = fresh(), first = (await runOnce(L, fakeFetch(routes()))).data, prev = weekAgo(first), before = JSON.stringify(prev), DOWN = { status: 503, body: 'Service Unavailable' }, answer = routes()[0][1];
+  /* MultiStnData down: the airports, the station table and the 30 falls stay as stored; the grids and their mean are new */
+  const stn = await runOnce(L, fakeFetch([[/MultiStnData$/, DOWN], [/GridData$/, answer]]), prev), a = stn.data;
+  assert.equal(stn.http.stats.n, 8, 'each station call once more after the 503, then the two grid calls');
+  same(a.blocks, { W1: '2026-11-05', W2: '2026-11-05', W3: '2026-11-05', G1: '2026-11-11', G2: '2026-11-11' }); same(a.stale, { W1: '2026-11-05', W2: '2026-11-05', W3: '2026-11-05' });
+  for (const id of ['W1', 'W2', 'W3']) { assert.equal(a.errs[id], id + ': ACIS answered HTTP 503 (Service Unavailable)'); same(blockOf(a, id), blockOf(prev, id), id + ' is the stored copy'); }
+  same([a.through, a.asked, a.season, a.stations, a.grid.hdd[0], a.county['48113']], ['2026-11-05', '2026-11-12', 2026, prev.stations, first.grid.hdd[0], first.county['48113']]);
+  const sa = L.climate.status(a, BASE, NOW);
+  same([sa.ok, sa.through, sa.ageDays, sa.overdue, sa.gridThrough, sa.gridNormal, sa.metro.hdd, sa.metro.rank.n], [true, '2026-11-05', 8, false, '2026-11-11', true, 21, 2]);
+  same(sa.stale.map(x => [x.id, x.what, x.through]), [['W1', 'daily lows and highs at the airports', '2026-11-05'], ['W2', 'the station table', '2026-11-05'], ['W3', 'the same span in 30 past falls', '2026-11-05']]); assert.ok(sa.stale.every(x => /HTTP 503/.test(x.why)));
+  assert.equal(sa.series.through, '2026-11-05'); assert.equal(sa.counties.find(c => c.name === 'Dallas').hdd, 35.8, 'the counties are this week\'s');
+  /* GridData down: the stations are new; the stored grid stays with the mean that belongs to it, and one flag covers both */
+  const grd = await runOnce(L, fakeFetch([[/MultiStnData$/, answer], [/GridData$/, DOWN]]), prev), b = grd.data;
+  assert.equal(grd.http.stats.n, 5, 'the grid twice; its 30 fall mean is not asked again');
+  same(b.blocks, { W1: '2026-11-12', W2: '2026-11-12', W3: '2026-11-12', G1: '2026-11-04', G2: '2026-11-04' }); same(b.stale, { G1: '2026-11-04' }); same(Object.keys(b.errs), ['G1']);
+  same(blockOf(b, 'G1'), blockOf(prev, 'G1')); same(blockOf(b, 'G2'), blockOf(prev, 'G2')); same(b.grid, prev.grid); same(b.county, prev.county); same(b.std, first.std);
+  const sb = L.climate.status(b, BASE, NOW);
+  same([sb.through, sb.gridThrough, sb.gridNormal, sb.metro.hdd, sb.stale.map(x => [x.id, x.what, x.through])], ['2026-11-12', '2026-11-04', true, 29, [['G1', 'the grids and county means', '2026-11-04']]]);
+  same([sb.counties.find(c => c.name === 'Dallas').hdd, sb.counties.find(c => c.name === 'Dallas').pct, L.climate.zip(32.7734, -96.6188, b, BASE, '75149').through], [20, 20, '2026-11-04']);
+  /* on a first run there is nothing to keep: the half that answered is the record, the other half is null and named */
+  const c = (await runOnce(L, fakeFetch([[/MultiStnData$/, answer], [/GridData$/, DOWN]]))).data;
+  same([c.grid, c.county, c.blocks.G1, c.blocks.G2, c.stale, Object.keys(c.errs)], [null, null, null, null, { G1: null, G2: null }, ['G1', 'G2']]); assert.equal(c.errs.G2, 'G2: not asked, the grid it belongs to did not arrive');
+  const sc = L.climate.status(c, BASE, NOW); same([sc.ok, sc.gridThrough, sc.metro.hdd, sc.counties[0].hdd, sc.stale.map(x => x.through)], [true, null, 29, null, [null, null]]);
+  const d = (await runOnce(L, fakeFetch([[/MultiStnData$/, DOWN], [/GridData$/, answer]]))).data;
+  same([d.std, d.daily, d.todate, d.through, d.blocks.G1, Object.keys(d.stations).length], [null, null, null, '2026-11-12', '2026-11-11', 0]); const sd = L.climate.status(d, BASE, NOW); same([sd.ok, sd.metro.hdd, sd.metro.firstFreeze, sd.counties[0].name, sd.counties[0].hdd, L.climate.headline(sd)], [true, null, null, 'Wise', 69.8, 'Heating season to date: no complete reading at DFW Airport this week.']);
+  /* both down: the run fails, and the stored record was never touched */
+  await assert.rejects(() => runOnce(L, fakeFetch([[/./, DOWN]]), prev), e => e.message === 'W2: ACIS answered HTTP 503 (Service Unavailable)');
+  assert.equal(JSON.stringify(prev), before, 'no run writes into the record it was handed');
+});
+
+test('an answer cut short is refused block by block, and the stored copy stays', async () => {
+  const L = fresh(), A = L.acis, first = (await runOnce(L, fakeFetch(routes()))).data, prev = weekAgo(first), fips = L.geo.counties.map(c => c.fips);
+  const keptAs = async (over, id, why, p) => { const { data } = await runOnce(L, fakeFetch(routes(over)), p === undefined ? prev : p); assert.match(data.errs[id], why, id); if (p === undefined) { assert.equal(data.stale[id], prev.blocks[id], id + ' is marked with the date of the stored copy'); same(blockOf(data, id), blockOf(prev, id), id + ' is the stored copy'); } return data; };
+  /* the body ends in the middle (a dropped connection behind an HTTP 200) */
+  for (const [id, whole] of Object.entries({ W1, W2, W3, G1, G2 })) await keptAs({ [id]: { status: 200, body: JSON.stringify(whole).slice(0, 3000) } }, id, new RegExp('^' + id + ': ACIS did not answer in JSON'));
+  /* fewer than half the stations of the stored copy */
+  const live = W2.data.filter(r => r.data[11][0] !== 'M'), dfwRow = live.find(r => r.meta.uid === 29755), few = (n, dfw) => ({ data: (dfw ? [dfwRow] : []).concat(live.filter(r => r !== dfwRow)).slice(0, n) });
+  assert.equal(live.length, 43); const w2few = await keptAs({ W2: few(8, false) }, 'W2', /^W2: only 8 stations in the answer, 43 in the stored copy$/);
+  same([w2few.through, w2few.blocks.W1, w2few.blocks.W3, w2few.blocks.G1], ['2026-11-05', '2026-11-12', '2026-11-12', '2026-11-11'], 'a table that is refused does not move the date of the other requests');
+  assert.equal((await runOnce(L, fakeFetch(routes({ W2: few(22, true) })), prev)).data.blocks.W2, '2026-11-12', 'half of them is a thin week, not a cut answer'); await keptAs({ W2: few(21, true) }, 'W2', /^W2: only 21 stations in the answer, 43 in the stored copy$/);
+  await keptAs({ W1: { data: W1.data.slice(0, 2) } }, 'W1', /^W1: only 2 airports in the answer, 6 in the stored copy$/); await keptAs({ W3: { data: W3.data.slice(0, 4) } }, 'W3', /^W3: only 4 stations in the answer, 1[0-9] in the stored copy$/);
+  /* the 30 falls are judged on the whole answer, before the stations outside this week's table are left out: a copy stored in a week
+     without the table holds more stations than a week with it, and must not make the next whole answer look cut */
+  const wide = copy(prev); for (let k = 0; k < 18; k++) { wide.todate.hdd['9' + (1000 + k)] = wide.todate.hdd['29755']; wide.todate.fr32['9' + (1000 + k)] = wide.todate.fr32['29755']; }
+  assert.equal(Object.keys(wide.todate.hdd).length, 34); const wd = (await runOnce(L, fakeFetch(routes()), wide)).data; same([wd.blocks.W3, wd.stale, Object.keys(wd.todate.hdd).length, Object.keys(A.parseW3(W3).hdd).length], ['2026-11-12', {}, 16, 17]);
+  /* on a first run the floors apply: 3 airports, 10 stations, 5 stations with the 30 falls */
+  const bare = async over => (await runOnce(L, fakeFetch(routes(over)))).data;
+  same([(await bare({ W1: { data: W1.data.slice(0, 2) } })).errs.W1, (await bare({ W2: few(9, true) })).errs.W2, (await bare({ W3: { data: W3.data.slice(0, 4) } })).errs.W3], ['W1: only 2 airports in the answer', 'W2: only 9 stations in the answer', 'W3: only 4 stations in the answer']);
+  same([(await bare({ W1: { data: W1.data.slice(0, 3) } })).blocks.W1, (await bare({ W2: few(10, true) })).blocks.W2, (await bare({ W3: { data: W3.data.slice(0, 5) } })).blocks.W3], ['2026-11-12', '2026-11-12', '2026-11-12']);
+  /* a stored copy from the season before is no yardstick: early in July few stations have reported */
+  const old = copy(prev); old.blocks = { W1: '2026-06-20', W2: '2026-06-20', W3: '2026-06-20', G1: '2026-06-18', G2: '2026-06-18' }; assert.equal((await runOnce(L, fakeFetch(routes({ W2: few(12, true) })), old)).data.blocks.W2, '2026-11-12');
+  /* daily rows that do not hold the days asked for cannot be dated */
+  const short = copy(W1); short.data.forEach(r => { r.data.pop(); }); await keptAs({ W1: short }, 'W1', /^W1: no airport row holds the 135 days asked for$/);
+  const mixed = copy(W1); mixed.data.slice(3).forEach(r => { r.data.push(['50', '70']); }); const mx = (await runOnce(L, fakeFetch(routes({ W1: mixed })), prev)).data; same([Object.keys(mx.daily.tn).sort(), mx.blocks.W1], [['23886', '29755', '32311'], '2026-11-12'], 'the rows of the right length are kept');
+  /* county means that leave out one of the 12 counties: the day is not finished; the day before it is used when it is whole */
+  const noDallas = copy(G1.data[1]); delete noDallas[4]['48113']; const dayBefore = copy(G1.data[1]); dayBefore[0] = '2026-11-10';
+  assert.equal(A.parseG1({ data: [dayBefore, noDallas] }, fips).date, '2026-11-10'); assert.equal(A.parseG1({ data: [dayBefore, noDallas] }).date, '2026-11-11', 'without the list every county set will do'); assert.equal(A.parseG1({ data: [noDallas] }, fips), null);
+  await keptAs({ G1: { data: [noDallas] } }, 'G1', /^G1: the county means do not cover the 12 counties$/);
+  const nullDallas = copy(G1.data[1]); nullDallas[4]['48113'] = 'M'; assert.equal(A.parseG1({ data: [nullDallas] }, fips), null, 'a county without a number is not covered');
+  /* a grid with holes in more than one cell in 50 is not a finished day either; a hole or two is */
+  const holes = n => { const g = copy(G1.data[1]); for (let k = 0; k < n; k++) g[1][5 + (k % 30)][3 + Math.floor(k / 30)] = -999; return g; };
+  assert.equal(A.parseG1({ data: [holes(50)] }, fips), null); assert.equal(A.parseG1({ data: [holes(49)] }, fips).hdd.filter(v => v == null).length, 49); await keptAs({ G1: { data: [holes(400)] } }, 'G1', /^G1: PRISM has not finished any of the last three days$/);
+  /* the 30 fall means must cover the 12 counties too; the grid that did arrive is stored without them */
+  const g2cut = copy(G2); delete g2cut.smry[1]['48497']; assert.throws(() => A.parseG2(g2cut, fips), /the 30 fall means do not cover the 12 counties/); assert.equal(Object.keys(A.parseG2(g2cut).county).length, 12);
+  const g = (await runOnce(L, fakeFetch(routes({ G2: g2cut })), prev)).data; same([g.blocks.G1, g.blocks.G2, g.stale, g.errs.G2, g.grid.hddNorm[0]], ['2026-11-11', '2026-11-04', { G2: '2026-11-04' }, 'G2: the 30 fall means do not cover the 12 counties', 99]);
+});
+
+test('an answer in another shape is a failed block with a plain reason, never a throw from inside', async () => {
+  const L = fresh(), A = L.acis, first = (await runOnce(L, fakeFetch(routes()))).data, prev = weekAgo(first), sp = A.span('2026-11-12');
+  /* the parsers take anything */
+  for (const j of [null, undefined, 0, 'x', [], {}, { data: null }, { data: {} }, { data: 'rows' }, { data: 7 }, { data: [null, 1, 'x', [], {}, { meta: null, data: null }, { meta: { uid: {} }, data: [] }, { meta: { uid: 5 }, data: {} }] }]) {
+    same(plain(A.parseW2(j, sp)), { stations: {}, rows: {} }); same(plain(A.parseDaily(j, 135)), { stations: {}, tn: {}, tx: {} }); same(plain(A.parseW3(j)), { hdd: {}, fr32: {} }); assert.equal(A.parseG1(j), null); assert.equal(A.parseG1(j, ['48113']), null); assert.throws(() => A.parseG2(j), /incomplete/);
+  }
+  same(A.list({ data: [1] }), [1]); same(A.list({ data: { 0: 1 } }), []); same(plain(A.byCounty({ 48113: '35.756', '48439': 46, x: 1, '4811': 2, '</script>': 3, 481130: 4 }, 2)), { 48113: 35.76, 48439: 46 }, 'only five digit county codes'); same(plain(A.byCounty('48113', 1)), {}); same(plain(A.byCounty(null, 1)), {});
+  /* a station number is whole digits: a row keyed by anything else is not a station */
+  same([A.uidOf({ meta: { uid: 29755 } }), A.uidOf({ meta: { uid: '99' } }), A.uidOf({ meta: { uid: 0 } })], ['29755', '99', '0']); for (const u of [null, undefined, '', 'x', '</script>', 1.5, -3, {}, [], true, '1234567890']) assert.equal(A.uidOf({ meta: { uid: u } }), null, JSON.stringify(u)); assert.equal(A.uidOf(null), null); assert.equal(A.uidOf({}), null);
+  /* words from outside lose their angle brackets before they are stored */
+  assert.equal(A.clean(' a <b>\n c</b>  d ', 8), 'a b c /b'); assert.equal(A.clean(null, 5), ''); assert.equal(A.nice('<i>DENTON</i> MUNICPAL AP'), 'i Denton i Municipal Airport');
+  same(A.stationOf({ name: 'X</script><script>', sids: ['</script> 5', '<b> 6'], ll: 'nowhere', elev: {}, county: '<48>' }), { name: 'X /script script', label: 'X script script', ghcn: 'b', icao: '/script', lat: null, lon: null, elev: null, fips: '48' });
+  /* numbers where strings were, and the other way round, still read; an add on that is no longer a pair does not */
+  const asNum = copy(W2); asNum.data.forEach(r => { r.data = r.data.map(v => (Array.isArray(v) ? v.map(x => (/^-?\d+$/.test(x) ? +x : x)) : /^-?\d+$/.test(v) ? +v : v)); r.meta.uid = String(r.meta.uid); });
+  same(A.parseW2(asNum, sp).rows['29755'], [29, 157, 29, 0, 10, 0, 54, 29, 0, 143, 0, 0, null, '2026-02-23', 47, '2026-10-17', 50, 0, 1]);
+  const asObj = copy(W2); asObj.data.forEach(r => { r.data = r.data.map(v => (Array.isArray(v) ? { value: v[0], mcnt: v[1] } : { value: v })); }); same(plain(A.parseW2(asObj, sp).rows), {}, 'unknown, not zero');
+  /* a number no reading can take is unknown: it is not stored, and a station whose season total is one of them does not pass the gate */
+  same([A.inR(5, 0, 10), A.inR(0, 0, 10), A.inR(10, 0, 10), A.inR(11, 0, 10), A.inR(-1, 0, 10), A.inR(null, 0, 10)], [5, 0, 10, null, null, null]);
+  const wild = copy(W2), wd = wild.data.find(r => r.meta.uid === 29755); wd.data[0] = [1e99, 0]; wd.data[1] = '-5'; wd.data[3] = ['10', 999]; wd.data[7] = ['400', 0]; wd.data[12] = '140';
+  const wr = A.parseW2(wild, sp).rows['29755']; same([wr[0], wr[1], wr[4], wr[5], wr[10], wr[14], wr[16], wr[18]], [null, null, 10, null, null, 47, null, 0], 'the season total, its normal, a missing day count, the freeze nights and the 7 day low; the season low is a real one');
+  wd.data[11] = ['-80', '2026-10-17']; assert.equal(A.parseW2(wild, sp).rows['29755'], undefined, 'with neither a season total nor a season low the row is not a station of this season');
+  same(plain(A.parseDaily({ data: [{ meta: { uid: 1 }, data: [['-70', '200'], ['41', '136'], [-60, 135]] }] }, 3)), { stations: { 1: { name: '', label: '', ghcn: null, icao: null, lat: null, lon: null, elev: null, fips: null } }, tn: { 1: [null, 41, -60] }, tx: { 1: [null, null, 135] } });
+  same(plain(A.parseW3({ data: [{ meta: { uid: 7 }, data: Array.from({ length: 30 }, (_, i) => [[i === 0 ? '99999' : '120', i === 1 ? 400 : 0], [i === 2 ? '-1' : '2', 0]]) }] })), { hdd: { 7: [null, null].concat(Array(28).fill(120)) }, fr32: { 7: [2, null, null].concat(Array(27).fill(2)) } }, 'a wild total, a wild missing count (the fall is not usable) and a wild count');
+  const hot = copy(G1.data[1]); hot[1][0][0] = 99999; hot[2][0][1] = 500; hot[3][0][2] = -100; hot[4]['48113'] = 1e6; const hg = A.parseG1({ data: [hot] });
+  same([hg.hdd[0], hg.hdd[1], hg.fr32[1], hg.fr32[0], hg.minT[2], hg.minT[1], hg.county['48113'].hdd, hg.county['48439'].hdd], [null, G1.data[1][1][0][1], null, 0, null, G1.data[1][3][0][1], null, 45.96]); assert.equal(A.parseG1({ data: [hot] }, ['48113']), null, 'a county with a wild mean is not covered');
+  assert.equal(A.flat(hot[1])[0], 99999, 'without a range the grid is taken as it is (the baseline tool checks its own)'); const g2hot = copy(G2); g2hot.smry[0][0][0] = -3; assert.equal(A.parseG2(g2hot).hddNorm[0], null);
+  /* through a run: each block that changed shape keeps the stored copy and says why */
+  const cases = [
+    ['W1', { data: { rows: W1.data } }, /^W1: no airport row holds the 135 days asked for$/], ['W1', W1.data, /^W1: no airport row holds/], ['W1', { data: W1.data.map(r => ({ meta: r.meta, data: Object.fromEntries(r.data.map((v, i) => [i, v])) })) }, /^W1: no airport row holds/],
+    ['W2', { data: {} }, /^W2: no station reported$/], ['W2', asObj, /^W2: no station reported$/], ['W2', { data: W2.data.map(r => ({ meta: r.meta, data: r.data.slice(0, 12) })) }, /^W2: no station reported$/], ['W2', { data: W2.data.map(r => ({ station: r.meta, values: r.data })) }, /^W2: no station reported$/], ['W2', 'null', /^W2: no station reported$/],
+    ['W3', { data: W3.data.map(r => ({ meta: r.meta, data: r.data.slice(0, 29) })) }, /^W3: no station has the 30 falls$/], ['W3', { data: W3.data.map(r => ({ meta: { uid: 'DFW' }, data: r.data })) }, /^W3: no station has the 30 falls$/],
+    ['G1', { data: [[G1.data[1][0], G1.data[1][1].slice(0, 39), G1.data[1][2], G1.data[1][3], G1.data[1][4], G1.data[1][5], G1.data[1][6], G1.data[1][7]]] }, /^G1: the grid is not 40 by 62$/], ['G1', { data: G1.data.map(r => ({ date: r[0], hdd: r[1] })) }, /^G1: the answer holds no days$/], ['G1', { grids: G1.data }, /^G1: the answer holds no days$/],
+    ['G1', { data: [[G1.data[1][0], G1.data[1][1], G1.data[1][2], G1.data[1][3], Object.fromEntries(Object.entries(G1.data[1][4]).map(([f, v]) => ['TX' + f.slice(2), v])), {}, {}, {}]] }, /^G1: the county means do not cover the 12 counties$/], ['G1', { data: [['2026-11-01'].concat(G1.data[1].slice(1))] }, /^G1: the answer is for 2026-11-01, outside the days asked for$/], ['G1', { data: [['2026-11-31'].concat(G1.data[1].slice(1))] }, /^G1: the answer holds no days$/],
+    ['G2', { smry: [G2.smry[0].map(r => r.slice(0, 61)), G2.smry[1], G2.smry[2]] }, /^G2: the grid is not 40 by 62$/], ['G2', { smry: { grid: G2.smry[0] } }, /^G2: the 30 fall summary is incomplete$/], ['G2', { data: G2.smry }, /^G2: the 30 fall summary is incomplete$/],
+  ];
+  for (const [id, answer, why] of cases) {
+    const { data } = await runOnce(L, fakeFetch(routes({ [id]: typeof answer === 'string' ? { status: 200, body: answer } : answer })), prev);
+    assert.match(data.errs[id], why, id); assert.equal(data.stale[id], prev.blocks[id], id); same(blockOf(data, id), blockOf(prev, id), id + ' is the stored copy'); assert.equal(typeof L.climate.headline(L.climate.status(data, BASE, NOW)), 'string');
+  }
+});
+
+test('answers broken anywhere: the run fails with a plain reason or keeps the stored copy of the block; nothing unsafe is stored', async () => {
+  const L = fresh(), first = (await runOnce(L, fakeFetch(routes()))).data, prev = weekAgo(first), before = JSON.stringify(prev), ids = ['W1', 'W2', 'W3', 'G1', 'G2'], whole = { W1, W2, W3, G1, G2 };
+  let seed = 20261114; const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff, pick = a => a[Math.floor(rnd() * a.length)];
+  const junk = () => pick([null, {}, [], 'x', '', 0, -999, 'M', [null], true, '2026-13-45', 1e99, '29', ['M', 'M'], [1, 2, 3], { data: [] }, -1, [[]], '</script><script>alert(1)</script>', '<!-- x', { uid: '</script>' }, 'T', 3.5, { error: 'no' }, ['</script>', '</script>'], '2026-11-12', 7]);
+  const breakIt = (o, depth) => { if (!o || typeof o !== 'object') return; const keys = Object.keys(o); if (!keys.length) return; const k = pick(keys); if (depth <= 0 || rnd() < 0.3 || !o[k] || typeof o[k] !== 'object') { if (rnd() < 0.2) delete o[k]; else o[k] = junk(); } else breakIt(o[k], depth - 1); };
+  let failed = 0, kept = 0, clean = 0;
+  for (let i = 0; i < 240; i++) {
+    const over = {}; for (let k = 1 + Math.floor(rnd() * 3); k > 0; k--) { const id = pick(ids); over[id] = over[id] || copy(whole[id]); for (let h = 1 + Math.floor(rnd() * 5); h > 0; h--) breakIt(over[id], 1 + Math.floor(rnd() * 6)); }
+    /* one round in eight nothing of this week's is usable: the airports, the station table and the grid are all junk */
+    if (rnd() < 0.125) for (const id of ['W1', 'W2', 'G1']) over[id] = junk();
+    let data = null, err = null; try { data = (await runOnce(L, fakeFetch(routes(over)), rnd() < 0.85 ? prev : null)).data; } catch (e) { err = e; }
+    if (err) { failed++; assert.match(String(err.message), /^(W1|W2|G1): [^<>]+$/, 'round ' + i + ': ' + err.message); continue; }
+    const text = JSON.stringify(data); assert.ok(!/[<>]/.test(text), 'no angle bracket in the record, round ' + i); assert.ok(text.length < 125 * 1024);
+    assert.ok(/^\d{4}-\d\d-\d\d$/.test(data.through) && data.season === 2026 && data.v === 1, 'round ' + i);
+    for (const id of ids) {
+      if (!(id in data.stale)) { assert.equal(data.errs[id], undefined, 'round ' + i); continue; }
+      assert.match(data.errs[id], new RegExp('^' + id + ': '), 'a stale block says why, round ' + i); assert.equal(data.blocks[id], data.stale[id]);
+      if (data.stale[id]) { kept++; assert.equal(data.stale[id], prev.blocks[id], 'round ' + i); same(blockOf(data, id), blockOf(prev, id), id + ' is the stored copy, round ' + i); }
+    }
+    if (!Object.keys(data.stale).length) clean++;
+    assert.doesNotThrow(() => { const s = L.climate.status(data, BASE, NOW); JSON.stringify(s); assert.equal(typeof L.climate.headline(s), 'string'); JSON.stringify(L.BY_ID.acis_season.digest(data)); JSON.stringify(L.climate.zip(32.77, -96.6, data, BASE, '75149')); JSON.stringify(L.climate.nights(data, 14)); L.derive.cold({ acis_season: { data } }, NOW); }, 'the reads, round ' + i);
+  }
+  assert.ok(failed >= 10 && kept >= 100 && clean >= 30, `the drill reached every outcome: ${failed} failed runs, ${kept} kept blocks, ${clean} runs with nothing stale`);
+  assert.equal(JSON.stringify(prev), before, 'no run writes into the record it was handed');
+});
+
+test('through the runner: a week when nothing answers keeps the last good record whole, with the error beside it', async () => {
+  const L = fresh(), store = L.memoryStore(), opt = { scope: ['acis_season'], store, env: 'extension', force: true, http: { gapMs: 0, backoffMs: 1 } }, key = L.K.src('acis_season');
+  await L.refresh(Object.assign({ fetch: fakeFetch(routes()), now: () => NOW }, opt)); const good = copy(await store.get(key));
+  const LATER = new Date('2026-11-20T12:00:00Z'), r = await L.refresh(Object.assign({ fetch: fakeFetch([[/./, { status: 503, body: '<html><script>x</script> down</html>' }]]), now: () => LATER }, opt)), rec = await store.get(key);
+  same(r.failed, [{ id: 'acis_season', msg: 'W2: ACIS answered HTTP 503 (html script x /script down /html)' }]); same(r.ran, []);
+  same([rec.ok, rec.at, rec.err, rec.digest, rec.n], [false, good.at, { at: '2026-11-20T12:00:00.000Z', msg: 'W2: ACIS answered HTTP 503 (html script x /script down /html)' }, good.digest, good.n]); same(rec.data, good.data); assert.ok(!/[<>]/.test(JSON.stringify(rec)));
+  /* the reads still answer from it, and say how old it is */
+  const s = L.climate.status(rec.data, BASE, LATER); same([s.ok, s.through, s.ageDays, s.overdue, s.metro.hdd, s.stale], [true, '2026-11-12', 8, false, 29, []]);
+  const s2 = L.climate.status(rec.data, BASE, new Date('2026-11-23T12:00:00Z')); same([s2.ageDays, s2.overdue], [11, true]); assert.match(L.climate.headline(s2), / Observed through November 12; a refresh is due\.$/);
+  /* an answer that is JSON but not ACIS (a proxy page, a captive portal) fails the same way */
+  const r2 = await L.refresh(Object.assign({ fetch: fakeFetch([[/./, { status: 200, body: '{"message":"Too many requests"}' }]]), now: () => LATER }, opt)); same(r2.failed, [{ id: 'acis_season', msg: 'W2: no station reported' }]); same((await store.get(key)).data, good.data);
+  /* when the service answers again the record is replaced and the error is gone */
+  await L.refresh(Object.assign({ fetch: fakeFetch(routes()), now: () => new Date('2026-11-13T22:00:00Z') }, opt)); const again = await store.get(key); same([again.ok, again.data.through, again.n], [true, '2026-11-12', 3]); assert.equal(again.err, undefined);
 });
 
 test('through the runner: a record with its digest, and the size it stays under', async () => {
@@ -221,9 +429,12 @@ test('through the runner: a record with its digest, and the size it stays under'
   const big = copy(rec.data), uids = Array.from({ length: 19 }, (_, i) => String(90000 + i));
   big.daily = { start: '2027-07-01', n: 366, tn: Object.fromEntries(uids.map(u => [u, Array(366).fill(-10)])), tx: Object.fromEntries(uids.map(u => [u, Array(366).fill(101)])) };
   for (const k of ['hdd', 'hddNorm']) big.grid[k] = Array(2480).fill(2955); big.grid.fr32 = Array(2480).fill(66); big.grid.minT = Array(2480).fill(-10);
-  const all = Object.keys(big.std).filter(u => u !== 'cols'); for (const k of ['hdd', 'fr32', 'fr25', 'minT']) big.todate[k] = Object.fromEntries(all.map(u => [u, Array(30).fill(k === 'hdd' ? 2955 : k === 'minT' ? -10 : 66)]));
+  const all = Object.keys(big.std).filter(u => u !== 'cols'); for (const k of ['hdd', 'fr32']) big.todate[k] = Object.fromEntries(all.map(u => [u, Array(30).fill(k === 'hdd' ? 2955 : 66)]));
   const size = JSON.stringify(big).length, today = JSON.stringify(rec.data).length;
-  assert.ok(size < 150 * 1024, `the largest record of a season is ${Math.round(size / 1024)} KB`); assert.ok(today < 80 * 1024, `this week's record from the trimmed fixtures is ${Math.round(today / 1024)} KB`);
+  assert.ok(size < 125 * 1024, `the largest record of a season is ${Math.round(size / 1024)} KB`); assert.ok(today < 60 * 1024, `this week's record from the trimmed fixtures is ${Math.round(today / 1024)} KB`);
+  /* what the record holds, block by block: the four grids are the largest part, then the daily lows and highs */
+  const part = k => JSON.stringify(rec.data[k]).length; assert.ok(part('grid') > 25000 && part('grid') < 32000 && part('todate') < 12000 && part('stations') < 8000 && part('std') < 5000 && part('county') < 1500, ['grid', 'daily', 'todate', 'stations', 'std', 'county'].map(k => k + ' ' + part(k)).join(', '));
+  same(Object.keys(rec.data.todate), ['md', 'years', 'hdd', 'fr32'], 'only the two lists by fall that the reads use');
 });
 
 /* ---------- the pure reads ---------- */
@@ -280,8 +491,16 @@ test('status reproduces what the spec observed through 2026-11-12', async () => 
   same([by(100).vsDfw, by(100).firstFreeze.climChance, by(23883).vsDfw, by(101).vsDfw.ratio, by(32320).vsDfw], [{ ratio: 1.188, freeze: 1.77, src: 'NCEI' }, 66, { ratio: 1.188, freeze: 2.08, src: 'NCEI' }, 0.896, { ratio: 1.2, freeze: 1.92, src: 'PRISM' }]);
   /* first freeze chances by tomorrow, read between the official decile dates (spec section 8) */
   same([by(23850), by(101), by(23898), by(23879), by(24396), by(29493)].map(x => [x.firstFreeze.climChance, x.firstFreeze.daysToMedian]), [[22, 12], [21, 14], [33, 6], [30, 7], [42, 4], [32, 8]]);
-  same(s.grades, { metro: 'A', stations: 'A', series: 'A', rank: 'B', firstFreeze: 'B', counties: 'C', zip: 'C' });
-  assert.equal(L.climate.headline(s), 'Heating season to date: 29 heating degree days at DFW Airport against a normal of 157 (18%), second lowest to this date among 31 falls; no freeze yet, the median first freeze is November 24.');
+  same(s.grades, { metro: 'A', stations: 'A', series: 'A', rank: 'B', firstFreeze: 'B', counties: 'C', zip: 'C' }); same(s.freeze, { counties: 0, of: 12, first: null });
+  const line = 'Heating season to date: 29 heating degree days at DFW Airport against a normal of 157 (18%), second lowest to this date among 31 falls; no freeze yet, the median first freeze is November 24.';
+  assert.equal(L.climate.headline(s), line); assert.ok(!/[A-Za-z][-–—][A-Za-z]|\s[-–—]\s/.test(line), 'no hyphen or dash between words');
+  /* the sentence also takes the record's data, or the stored record, in place of the status */
+  assert.equal(L.climate.headline(data, BASE, NOW), line); assert.equal(L.climate.headline({ ok: true, at: '2026-11-13T18:30:00.000Z', data }, BASE, NOW), line); assert.equal(L.climate.headline({ data: null }, BASE, NOW), ''); assert.equal(L.climate.headline({ data: { v: 2, blocks: {} } }, BASE, NOW), '');
+  /* the fields other files read today are all there (the list at the top of live/climate.js) */
+  for (const k of ['ok', 'through', 'season', 'today', 'ageDays', 'overdue', 'current', 'gridThrough', 'gridNormal', 'stale', 'metro', 'freeze', 'counties', 'stations', 'series', 'grades', 'credit']) assert.ok(k in s, 'status.' + k);
+  for (const k of ['station', 'norm', 'uid', 'name', 'acisName', 'icao', 'ghcn', 'county', 'metro', 'fips', 'lat', 'lon', 'elev', 'ok', 'miss', 'missSeason', 'record', 'hdd', 'hddNorm', 'pct', 'dep', 'rank', 'hdd7', 'hdd7Norm', 'pct7', 'hdd30', 'hdd30Norm', 'pct30', 'fr32', 'fr25', 'fr32Norm', 'fr32NormFrom', 'freezeBy', 'minT', 'minDate', 'min7', 'firstFreeze', 'lastFreeze', 'daysSinceFreeze', 'normHdd', 'normFr32', 'vsDfw']) assert.ok(k in m, 'metro.' + k);
+  for (const k of ['name', 'fips', 'hdd', 'hddNorm', 'pct', 'dep', 'hdd7', 'fr32', 'fr32Norm', 'minT', 'normHdd', 'normFr32', 'normFr25', 'exposure', 'exposureHomes', 'firstFreeze']) assert.ok(s.counties.every(c => k in c), 'counties[].' + k);
+  for (const k of ['state', 'date', 'daysVsMedian', 'climChance', 'climText', 'daysToMedian', 'median', 'p10', 'p90', 'src', 'from', 'seasons', 'station', 'uid', 'nearby', 'km', 'stationsOk', 'stationsWithFreeze']) assert.ok(s.counties.every(c => k in c.firstFreeze), 'counties[].firstFreeze.' + k);
 });
 
 test('the accumulation curve and the last nights', async () => {
@@ -340,6 +559,12 @@ test('once it has frozen, and when the numbers are too small for a percentage', 
   same([f.state, f.date, f.daysVsMedian, f.median, f.climChance, f.daysToMedian], ['occurred', '2026-11-20', -4, '2026-11-24', null, null]); same([s.metro.pct, s.metro.dep, s.metro.rank.text, s.metro.rank.n], [106, 22, 'highest', 31]);
   const den = s.counties.find(c => c.name === 'Denton').firstFreeze; same([den.state, den.date, den.station, den.stationsWithFreeze, den.daysVsMedian], ['occurred', '2026-11-08', 'Denton Municipal Airport', 1, 1]);
   assert.equal(L.climate.headline(s), 'Heating season to date: 420 heating degree days at DFW Airport against a normal of 398 (106%), highest to this date among 31 falls; first freeze November 20, 4 days ahead of the median date, 3 freeze nights so far.');
+  same(s.freeze, { counties: 2, of: 12, first: { date: '2026-11-08', county: 'Denton', station: 'Denton Municipal Airport' } }, 'Denton and, through DFW Airport, Tarrant');
+  /* a freeze in the outer counties before DFW Airport has one: "no freeze yet" names the airport, and the sentence says how many counties have had theirs */
+  const outer = copy(data); outer.std['100'][I('firstFreeze')] = '2026-11-09'; outer.std['100'][I('fr32')] = 2; outer.std['32320'][I('firstFreeze')] = '2026-11-10'; outer.std['32320'][I('fr32')] = 1;
+  const o = L.climate.status(outer, BASE, NOW); same([o.freeze, o.metro.firstFreeze.state], [{ counties: 2, of: 12, first: { date: '2026-11-09', county: 'Denton', station: 'Denton Municipal Airport' } }, 'pending']);
+  assert.equal(L.climate.headline(o), 'Heating season to date: 29 heating degree days at DFW Airport against a normal of 157 (18%), second lowest to this date among 31 falls; no freeze yet at DFW Airport, the median first freeze is November 24; 2 of the 12 counties have recorded one, the first on November 9.');
+  const og = copy(outer); og.std['29755'][I('ok')] = 0; assert.equal(L.climate.headline(og, BASE, NOW), 'Heating season to date: no complete reading at DFW Airport this week; 2 of the 12 counties have recorded a freeze, the first on November 9.');
   /* a freeze recorded by a station with gaps is still a freeze */
   const gap = copy(frz); gap.std['29755'][I('ok')] = 0; const g = L.climate.status(gap, BASE, new Date('2026-12-05T18:00:00Z')); same([g.metro.hdd, g.metro.fr32, g.metro.firstFreeze.state, g.metro.firstFreeze.date], [null, null, 'occurred', '2026-11-20']);
   assert.equal(L.climate.headline(g), 'Heating season to date: no complete reading at DFW Airport this week; first freeze November 20, 4 days ahead of the median date.');
@@ -362,13 +587,13 @@ test('once it has frozen, and when the numbers are too small for a percentage', 
 test('safe on nothing: no record, no baseline, a record from another version', async () => {
   const L = fresh(), C = L.climate, { data } = await runOnce(L, fakeFetch(routes()));
   for (const d of [null, undefined, {}, { v: 2, blocks: {} }, { v: 1 }, 'x', 0]) {
-    const s = C.status(d, null, null); same([s.ok, s.through, s.season, s.stale, s.stations, s.series, s.metro.hdd, s.metro.norm, s.metro.firstFreeze, s.metro.station, s.counties.length], [false, null, null, [], [], null, null, null, null, 'DFW Airport', 12]);
+    const s = C.status(d, null, null); same([s.ok, s.through, s.season, s.stale, s.stations, s.series, s.metro.hdd, s.metro.norm, s.metro.firstFreeze, s.metro.station, s.counties.length, s.freeze], [false, null, null, [], [], null, null, null, null, 'DFW Airport', 12, { counties: 0, of: 12, first: null }]);
     assert.equal(C.headline(s), ''); assert.ok(s.counties.every(c => c.hdd === null && c.normHdd === null && c.firstFreeze === null));
   }
   assert.equal(C.headline(null), ''); assert.equal(C.headline({}), ''); assert.equal(C.headline({ ok: true }), '');
   /* the baseline alone: the static side of every county, coldest normal first */
   const b = C.status(null, BASE, NOW); same([b.ok, b.today, b.counties[0].name, b.counties[0].normHdd, b.counties[0].exposure, b.counties[11].name, b.counties[11].hdd], [false, '2026-11-13', 'Wise', 2743, 1.152, 'Dallas', null]);
-  /* the weekly record alone (the background worker has no baseline): the numbers of the week, no climatology */
+  /* the weekly record alone (a build without the baseline file): the numbers of the week, no climatology */
   const w = C.status(data, null, NOW); same([w.ok, w.metro.hdd, w.metro.norm, w.metro.pct, w.metro.rank.n, w.metro.firstFreeze.state, w.metro.firstFreeze.median, w.metro.vsDfw, w.counties[0].name, w.counties[0].normHdd, w.series.total, w.series.normTotal], [true, 29, 157, 18, 2, 'pending', null, null, 'Wise', null, 29, null]);
   assert.equal(C.headline(w), 'Heating season to date: 29 heating degree days at DFW Airport against a normal of 157 (18%), second lowest to this date among 31 falls; no freeze yet.');
   /* the cold picture reads the season through this file */
@@ -376,6 +601,66 @@ test('safe on nothing: no record, no baseline, a record from another version', a
   /* in the page the baseline is a global: it is found without being passed */
   const ctx = context(); load(ctx, 'live/climate_base.js', 'live/core.js', 'live/geo.js', 'live/sources/acis_season.js', 'live/climate.js');
   assert.equal(ctx.__CLIMATE_BASE__.v, 1); assert.equal(ctx.TDA_LIVE.climate.status(data, undefined, NOW).metro.firstFreeze.median, '2026-11-24'); assert.equal(ctx.TDA_LIVE.climate.zip(32.7734, -96.6188, null, undefined, '75149').exposure, 1.002);
+});
+
+/* ---------- the three hosts ---------- */
+/* a forecast record in the shape the cold picture reads (hand made: three of the forecast points, seven nights from November 13) */
+const forecast = lows => ({ ok: true, at: '2026-11-13T12:00:00.000Z', data: { updated: '2026-11-13T11:00:00+00:00', alerts: [], points: [['Mesquite', 'Dallas', 0], ['DFW Airport', 'Tarrant', -1], ['Denton', 'Denton', -4]].map(([name, county, off]) => ({ name, county,
+  nights: lows.map((f, i) => ({ d: new Date(Date.UTC(2026, 10, 13 + i)).toISOString().slice(0, 10), lowF: f + off })), days: lows.map((f, i) => ({ d: new Date(Date.UTC(2026, 10, 13 + i)).toISOString().slice(0, 10), hiF: f + off + 18, hdd: Math.max(0, 65 - (f + off + 9)) })) })) } });
+
+test('in the background worker: no window, no document, no localStorage; the cold picture carries the season to date and the first freeze', async () => {
+  /* what the worker loads: the list app/background.js hands to importScripts, in that order */
+  const bg = readFileSync(join(APP, 'background.js'), 'utf8'), list = [...(/importScripts\(([^)]*'live\/core\.js'[^)]*)\)/.exec(bg) || ['', ''])[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+  const mine = ['live/core.js', 'live/geo.js', 'live/climate_base.js', 'live/sources/acis_season.js', 'live/derive.js', 'live/climate.js'];
+  for (const f of mine) assert.ok(list.includes(f), 'the worker loads ' + f); assert.ok(mine.slice(1).every(f => list.indexOf(f) > list.indexOf('live/core.js')), 'after the runtime they attach to');
+  /* the popup and the page load the same four files (tests/build.test.mjs holds the three lists in step) */
+  const popup = readFileSync(join(APP, 'popup.html'), 'utf8'), template = readFileSync(join(ROOT, 'atlas.template.html'), 'utf8');
+  for (const f of mine) { assert.ok(popup.includes('<script src="' + f + '"></script>'), 'the popup loads ' + f); assert.ok(template.includes('<!--@js ' + f + '-->'), 'the page loads ' + f); }
+  /* a worker's global: fetch and the browser app's storage, and nothing of a page */
+  const kept = {}, area = { get: (k, cb) => cb({ [k]: kept[k] === undefined ? undefined : JSON.parse(kept[k]) }), set: (o, cb) => { for (const k of Object.keys(o)) kept[k] = JSON.stringify(o[k]); cb(); } };
+  const fetch = fakeFetch(routes()), ctx = context({ fetch, chrome: { runtime: { id: 'worker' }, storage: { local: area } } });
+  ctx.importScripts = (...files) => { for (const f of files) load(ctx, f); };
+  for (const k of ['window', 'document', 'localStorage', 'sessionStorage', 'navigator', 'XMLHttpRequest', 'alert']) assert.equal(typeof ctx[k], 'undefined', 'a worker has no ' + k);
+  ctx.importScripts(...list.filter(f => mine.includes(f)));
+  const L = ctx.TDA_LIVE; assert.ok(L.extensionRuntime(), 'the files see the browser app'); assert.equal(ctx.__CLIMATE_BASE__.v, 1, 'the baseline is on the worker\'s global object'); assert.equal(typeof L.climate.status, 'function'); assert.equal(typeof L.derive.cold, 'function');
+  /* the weekly run as the worker makes it: its own fetch, its own store, nothing passed in */
+  const r = await L.refresh({ scope: ['acis_season'], now: () => NOW, http: { gapMs: 0, backoffMs: 1 } }); same([r.ok, r.ran, r.failed], [true, ['acis_season'], []]);
+  assert.equal(fetch.calls.length, 5); assert.ok(fetch.calls.every(c => c.init.credentials === 'omit' && c.init.method === 'POST' && c.url.indexOf('https://data.rcc-acis.org/') === 0));
+  const stored = JSON.parse(kept[L.K.src('acis_season')]); same([stored.ok, stored.id, stored.n, stored.digest, (await L.getState(L.defaultStore())).runs[0].by], [true, 'acis_season', 5, { hdd: 29, norm: 157, pct: 18, fr32: 0, stations: 32, freezeCounties: 0, through: '2026-11-12' }, 'extension']);
+  /* after the run the worker derives the cold picture from what it stored (the badge and the notice come from it) */
+  const recs = await L.snapshot(undefined, null); same(Object.keys(recs), ['acis_season']);
+  const cold = L.derive.cold(Object.assign({ nws_cold: forecast([48, 44, 41, 39, 36, 35, 38]) }, recs), NOW);
+  same(cold.season, { hdd: 29, norm: 157, firstFreeze: null, through: '2026-11-12' }, 'the season to date at DFW Airport, from the worker\'s own record');
+  same([cold.ok, cold.tier, cold.firstHeatingWeek, cold.firstFreezeAhead], [true, 3, true, { d: '2026-11-17', name: 'Tuesday night', at: 'Denton', f: 32 }]); assert.match(cold.sub, / It would be the first freeze of the season\.$/);
+  /* the baseline is read without being handed over: the first freeze climatology comes through in the worker */
+  const s = L.climate.status(recs.acis_season.data, undefined, NOW);
+  same([s.ok, s.metro.firstFreeze.state, s.metro.firstFreeze.median, s.metro.firstFreeze.climChance, s.metro.normHdd, s.counties[0].name, s.counties[0].exposure, s.series.normTotal], [true, 'pending', '2026-11-24', 25, 2220.2, 'Wise', 1.152, 157.2]);
+  assert.equal(L.climate.headline(s), 'Heating season to date: 29 heating degree days at DFW Airport against a normal of 157 (18%), second lowest to this date among 31 falls; no freeze yet, the median first freeze is November 24.');
+  assert.equal(L.climate.zip(32.7734, -96.6188, recs.acis_season.data, undefined, '75149').exposure, 1.002);
+  /* once DFW Airport has frozen the cold picture stops calling the next freeze the first */
+  const frozen = copy(recs.acis_season), I = k => frozen.data.std.cols.indexOf(k); frozen.data.std['29755'][I('firstFreeze')] = '2026-11-10'; frozen.data.std['29755'][I('fr32')] = 1;
+  const after = L.derive.cold({ nws_cold: forecast([48, 44, 41, 39, 36, 35, 38]), acis_season: frozen }, NOW);
+  same([after.season, after.firstFreezeAhead, after.tier], [{ hdd: 29, norm: 157, firstFreeze: '2026-11-10', through: '2026-11-12' }, null, 3]); assert.ok(!/first freeze of the season/.test(after.sub));
+  /* a mild week with a season record: the season still comes through, and nothing is announced */
+  const mild = L.derive.cold({ nws_cold: forecast([62, 61, 60, 63, 62, 61, 60]), acis_season: recs.acis_season }, NOW); same([mild.season.hdd, mild.firstFreezeAhead, mild.firstHeatingWeek, mild.notice], [29, null, false, null]);
+  /* no season record, or one that cannot be read: the cold picture stands on the forecast alone */
+  for (const bad of [undefined, null, {}, { data: null }, { data: { v: 2 } }, { data: 'x' }]) { const c = L.derive.cold({ nws_cold: forecast([48, 44, 41, 39, 36, 35, 38]), acis_season: bad }, NOW); same([c.ok, c.season, c.firstFreezeAhead], [true, null, null]); }
+  /* and the whole list the worker imports loads in such a global, each file after the ones before it: one file that reached for the page
+     would stop the worker, and with it this collector */
+  const all = context({ fetch, chrome: { runtime: { id: 'worker' }, storage: { local: area } } });
+  for (const f of list) assert.doesNotThrow(() => load(all, f), 'the worker cannot load ' + f);
+  assert.ok(all.TDA_LIVE.BY_ID.acis_season && all.TDA_LIVE.climate && all.TDA_LIVE.derive && all.__CLIMATE_BASE__, 'the season collector, the reads and the baseline are there beside the other ' + (all.TDA_LIVE.SOURCES.length - 1) + ' sources');
+});
+
+test('in Node, as tools/refresh.mjs loads the live layer: the same reads, no browser at all', () => {
+  /* every live file the template names, minus the page's own glue; the files of this family in that order */
+  const files = readFileSync(join(ROOT, 'atlas.template.html'), 'utf8').split('\n').map(l => /^<!--@js (live\/[^ ]+)-->$/.exec(l)).filter(Boolean).map(m => m[1]).filter(f => f !== 'live/page.js');
+  const mine = ['live/core.js', 'live/geo.js', 'live/climate_base.js', 'live/sources/acis_season.js', 'live/derive.js', 'live/climate.js'], order = files.filter(f => mine.includes(f)); same(order.slice().sort(), mine.slice().sort());
+  const bare = { console, setTimeout, clearTimeout, URL, URLSearchParams, AbortController, TextEncoder, TextDecoder, Intl }, ctx = context(); for (const k of Object.keys(ctx)) if (!(k in bare) && k !== 'globalThis' && k !== 'self') delete ctx[k];
+  load(ctx, ...order); const L = ctx.TDA_LIVE;
+  same([L.BY_ID.acis_season.id, typeof L.acis.plan, ctx.__CLIMATE_BASE__.zip['75149'].ratio, L.climate.status(null, undefined, NOW).counties[0].name, L.climate.zip(32.7734, -96.6188, null, undefined, '75149').normHdd], ['acis_season', 'function', 1.002, 'Wise', 2386]);
+  /* the globals the three files leave behind: the runtime and the baseline, nothing else */
+  same(Object.keys(ctx).filter(k => !(k in bare) && k !== 'globalThis' && k !== 'self').sort(), ['TDA_LIVE', '__CLIMATE_BASE__']);
 });
 
 test('a record broken anywhere never makes a read throw', async () => {

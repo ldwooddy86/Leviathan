@@ -1,0 +1,14 @@
+{
+ "description": "Documents matching '\"compliance date\" 2028 furnaces \"amend the compliance\"' and filed under agency docket EERE-2026-BT-STD-0001",
+ "count": 1,
+ "total_pages": 1,
+ "results": [
+  {
+   "document_number": "2026-08145",
+   "publication_date": "2026-04-27",
+   "type": "Proposed Rule",
+   "title": "Energy Conservation Program: Notification of Petition for Rulemaking",
+   "excerpts": "(“Department” or “DOE”) <span class=\"match\">amend the compliance</span> dates for the following rules: (1) \n Energy Conservation Program: Energy Conservation Standards for Commercial Water Heating Equipment, \n 88 FR 69686 (Oct. 6, 2023) (“Commercial Water Heater Rule”); \n 3 \n \n and (2) \n Energy Conservation Program: Energy Conservation Standards for Consumer <span class=\"match\">Furnaces</span>, \n 88 FR 87502 (Dec. 18, 2023) (“Consumer <span class=\"match\">Furnace</span> Rule”).\n 4 \n \n The <span class=\"match\">compliance date</span> for the Commercial Water Heater Rule is currently October 6, 2026,\n 5 \n \n and the <span class=\"match\">compliance date</span> for the Consumer <span class=\"match\">Furnace</span> Rule is December"
+  }
+ ]
+}

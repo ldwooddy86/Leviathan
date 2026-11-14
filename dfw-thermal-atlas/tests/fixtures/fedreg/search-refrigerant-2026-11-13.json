@@ -1,8 +1,149 @@
 {
- "description": "Documents published on or after 11/13/2024, from Environmental Protection Agency, and affecting 40 CFR 84",
- "count": 6,
+ "description": "Documents matching 'hydrofluorocarbons | hydrofluorocarbon | \"significant new alternatives policy\"', published on or after 11/13/2024, and from Environmental Protection Agency",
+ "count": 30,
  "total_pages": 1,
  "results": [
+  {
+   "document_number": "2026-20982",
+   "publication_date": "2026-10-14",
+   "type": "Rule",
+   "title": "Extending the Reporting Deadline Under the Greenhouse Gas Reporting Rule for Reporting Year 2025 to March 10, 2027",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/14/2026-20982/extending-the-reporting-deadline-under-the-greenhouse-gas-reporting-rule-for-reporting-year-2025-to",
+   "effective_on": "2026-10-14",
+   "comments_close_on": "2026-11-30",
+   "action": "Interim final rule; request for comment.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "98"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-20389",
+   "publication_date": "2026-10-06",
+   "type": "Notice",
+   "title": "Phasedown of Hydrofluorocarbons: Notice of 2027 Allowance Allocations for Production and Consumption of Regulated Substances Under the American Innovation and Manufacturing Act of 2020, and Notice of Final Actions Establishing Administrative Consequences",
+   "html_url": "https://www.federalregister.gov/documents/2026/10/06/2026-20389/phasedown-of-hydrofluorocarbons-notice-of-2027-allowance-allocations-for-production-and-consumption",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Notice.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": []
+  },
+  {
+   "document_number": "2026-19072",
+   "publication_date": "2026-09-17",
+   "type": "Proposed Rule",
+   "title": "Rescission of the Greenhouse Gas Findings for Fossil Fuel-Fired Power Plants and Repeal of Regulations for Power Plant Greenhouse Gas Emissions Under Clean Air Act Section 111",
+   "html_url": "https://www.federalregister.gov/documents/2026/09/17/2026-19072/rescission-of-the-greenhouse-gas-findings-for-fossil-fuel-fired-power-plants-and-repeal-of",
+   "effective_on": null,
+   "comments_close_on": "2026-11-02",
+   "action": "Supplemental notice of proposed rulemaking.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "60"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-18289",
+   "publication_date": "2026-09-09",
+   "type": "Notice",
+   "title": "U.S. Environmental Protection Agency (EPA) Contractor and Subcontractor Access to Confidential Business Information (CBI) Submitted Under Clean Air Act (CAA), Act To Prevent Pollution From Ships (APPS), and American Innovation and Manufacturing Act (AIM)",
+   "html_url": "https://www.federalregister.gov/documents/2026/09/09/2026-18289/us-environmental-protection-agency-epa-contractor-and-subcontractor-access-to-confidential-business",
+   "effective_on": null,
+   "comments_close_on": "2026-09-15",
+   "action": "Notice.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": []
+  },
+  {
+   "document_number": "2026-15984",
+   "publication_date": "2026-08-06",
+   "type": "Rule",
+   "title": "Alaska: Final Authorization of State Hazardous Waste Program",
+   "html_url": "https://www.federalregister.gov/documents/2026/08/06/2026-15984/alaska-final-authorization-of-state-hazardous-waste-program",
+   "effective_on": "2026-08-06",
+   "comments_close_on": null,
+   "action": "Final authorization.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "271"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-15219",
+   "publication_date": "2026-07-28",
+   "type": "Notice",
+   "title": "Notice of Data Availability: Analysis of HFC Allocation Program Data for 2022-2025",
+   "html_url": "https://www.federalregister.gov/documents/2026/07/28/2026-15219/notice-of-data-availability-analysis-of-hfc-allocation-program-data-for-2022-2025",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Notice of data availability.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": []
+  },
+  {
+   "document_number": "2026-10534",
+   "publication_date": "2026-05-27",
+   "type": "Notice",
+   "title": "Phasedown of Hydrofluorocarbons: Allocation of 2026 Production and Consumption Allowances Set Aside for Metered Dose Inhalers",
+   "html_url": "https://www.federalregister.gov/documents/2026/05/27/2026-10534/phasedown-of-hydrofluorocarbons-allocation-of-2026-production-and-consumption-allowances-set-aside",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Notice.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": []
+  },
   {
    "document_number": "2026-10388",
    "publication_date": "2026-05-26",
@@ -50,6 +191,136 @@
    ]
   },
   {
+   "document_number": "2026-09603",
+   "publication_date": "2026-05-14",
+   "type": "Proposed Rule",
+   "title": "Alaska: Tentative Determination on Final Authorization of State Hazardous Waste Management Program",
+   "html_url": "https://www.federalregister.gov/documents/2026/05/14/2026-09603/alaska-tentative-determination-on-final-authorization-of-state-hazardous-waste-management-program",
+   "effective_on": null,
+   "comments_close_on": "2026-07-02",
+   "action": "Proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "271"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-06665",
+   "publication_date": "2026-04-06",
+   "type": "Proposed Rule",
+   "title": "Protection of Stratospheric Ozone: Listing of Substitutes Under the Significant New Alternatives Policy Program in Refrigeration and Air Conditioning and Fire Suppression; Supplemental Notice of Proposed Rulemaking",
+   "html_url": "https://www.federalregister.gov/documents/2026/04/06/2026-06665/protection-of-stratospheric-ozone-listing-of-substitutes-under-the-significant-new-alternatives",
+   "effective_on": null,
+   "comments_close_on": "2026-05-06",
+   "action": "Supplemental proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "82"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-03995",
+   "publication_date": "2026-02-27",
+   "type": "Rule",
+   "title": "Extending the Reporting Deadline Under the Greenhouse Gas Reporting Rule for 2025",
+   "html_url": "https://www.federalregister.gov/documents/2026/02/27/2026-03995/extending-the-reporting-deadline-under-the-greenhouse-gas-reporting-rule-for-2025",
+   "effective_on": "2026-02-27",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "98"
+    }
+   ]
+  },
+  {
+   "document_number": "2026-03157",
+   "publication_date": "2026-02-18",
+   "type": "Rule",
+   "title": "Rescission of the Greenhouse Gas Endangerment Finding and Motor Vehicle Greenhouse Gas Emission Standards Under the Clean Air Act",
+   "html_url": "https://www.federalregister.gov/documents/2026/02/18/2026-03157/rescission-of-the-greenhouse-gas-endangerment-finding-and-motor-vehicle-greenhouse-gas-emission",
+   "effective_on": "2026-04-20",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "85"
+    },
+    {
+     "title": 40,
+     "part": "86"
+    },
+    {
+     "title": 40,
+     "part": "600"
+    },
+    {
+     "title": 40,
+     "part": "1036"
+    },
+    {
+     "title": 40,
+     "part": "1037"
+    },
+    {
+     "title": 40,
+     "part": "1039"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-20439",
+   "publication_date": "2025-11-20",
+   "type": "Notice",
+   "title": "Phasedown of Hydrofluorocarbons: Notice of 2026 Allowance Allocations for Production and Consumption of Regulated Substances Under the American Innovation and Manufacturing Act of 2020, and Notice of Final Actions Establishing Administrative Consequences",
+   "html_url": "https://www.federalregister.gov/documents/2025/11/20/2025-20439/phasedown-of-hydrofluorocarbons-notice-of-2026-allowance-allocations-for-production-and-consumption",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Notice.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": []
+  },
+  {
    "document_number": "2025-19895",
    "publication_date": "2025-11-14",
    "type": "Proposed Rule",
@@ -69,6 +340,29 @@
     {
      "title": 40,
      "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-19812",
+   "publication_date": "2025-11-10",
+   "type": "Proposed Rule",
+   "title": "Protection of Stratospheric Ozone: Listing of Substitutes Under the Significant New Alternatives Policy Program in Refrigeration and Air Conditioning and Fire Suppression",
+   "html_url": "https://www.federalregister.gov/documents/2025/11/10/2025-19812/protection-of-stratospheric-ozone-listing-of-substitutes-under-the-significant-new-alternatives",
+   "effective_on": null,
+   "comments_close_on": "2025-12-26",
+   "action": "Proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "82"
     }
    ]
   },
@@ -96,6 +390,52 @@
    ]
   },
   {
+   "document_number": "2025-17948",
+   "publication_date": "2025-09-17",
+   "type": "Rule",
+   "title": "Trichloroethylene; Regulation Under the Toxic Substances Control Act (TSCA); Compliance Date Extension",
+   "html_url": "https://www.federalregister.gov/documents/2025/09/17/2025-17948/trichloroethylene-regulation-under-the-toxic-substances-control-act-tsca-compliance-date-extension",
+   "effective_on": "2025-09-15",
+   "comments_close_on": "2025-10-17",
+   "action": "Interim final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "751"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-17923",
+   "publication_date": "2025-09-16",
+   "type": "Proposed Rule",
+   "title": "Reconsideration of the Greenhouse Gas Reporting Program",
+   "html_url": "https://www.federalregister.gov/documents/2025/09/16/2025-17923/reconsideration-of-the-greenhouse-gas-reporting-program",
+   "effective_on": null,
+   "comments_close_on": "2025-11-03",
+   "action": "Proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "98"
+    }
+   ]
+  },
+  {
    "document_number": "2025-16357",
    "publication_date": "2025-08-26",
    "type": "Rule",
@@ -119,6 +459,182 @@
    ]
   },
   {
+   "document_number": "2025-14572",
+   "publication_date": "2025-08-01",
+   "type": "Proposed Rule",
+   "title": "Reconsideration of 2009 Endangerment Finding and Greenhouse Gas Vehicle Standards",
+   "html_url": "https://www.federalregister.gov/documents/2025/08/01/2025-14572/reconsideration-of-2009-endangerment-finding-and-greenhouse-gas-vehicle-standards",
+   "effective_on": null,
+   "comments_close_on": "2025-09-15",
+   "action": "Proposed rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "85"
+    },
+    {
+     "title": 40,
+     "part": "86"
+    },
+    {
+     "title": 40,
+     "part": "600"
+    },
+    {
+     "title": 40,
+     "part": "1036"
+    },
+    {
+     "title": 40,
+     "part": "1037"
+    },
+    {
+     "title": 40,
+     "part": "1039"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-11573",
+   "publication_date": "2025-06-30",
+   "type": "Rule",
+   "title": "Technical Amendment to the List of OMB Approvals Under the Paperwork Reduction Act",
+   "html_url": "https://www.federalregister.gov/documents/2025/06/30/2025-11573/technical-amendment-to-the-list-of-omb-approvals-under-the-paperwork-reduction-act",
+   "effective_on": "2025-06-30",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "9"
+    }
+   ]
+  },
+  {
+   "document_number": "2025-04724",
+   "publication_date": "2025-03-20",
+   "type": "Rule",
+   "title": "Extending the Reporting Deadline Under the Greenhouse Gas Reporting Rule for 2024 Data",
+   "html_url": "https://www.federalregister.gov/documents/2025/03/20/2025-04724/extending-the-reporting-deadline-under-the-greenhouse-gas-reporting-rule-for-2024-data",
+   "effective_on": "2025-03-20",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "98"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-31058",
+   "publication_date": "2025-01-15",
+   "type": "Notice",
+   "title": "Inventory of U.S. Greenhouse Gas Emissions and Sinks: 1990-2023",
+   "html_url": "https://www.federalregister.gov/documents/2025/01/15/2024-31058/inventory-of-us-greenhouse-gas-emissions-and-sinks-1990-2023",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Notice of document availability and request for comments.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": []
+  },
+  {
+   "document_number": "2024-30117",
+   "publication_date": "2024-12-18",
+   "type": "Rule",
+   "title": "Perchloroethylene (PCE); Regulation Under the Toxic Substances Control Act (TSCA)",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/18/2024-30117/perchloroethylene-pce-regulation-under-the-toxic-substances-control-act-tsca",
+   "effective_on": "2025-01-17",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "751"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-29517",
+   "publication_date": "2024-12-18",
+   "type": "Rule",
+   "title": "Carbon Tetrachloride (CTC); Regulation Under the Toxic Substances Control Act (TSCA)",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/18/2024-29517/carbon-tetrachloride-ctc-regulation-under-the-toxic-substances-control-act-tsca",
+   "effective_on": "2025-01-17",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "751"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-29274",
+   "publication_date": "2024-12-17",
+   "type": "Rule",
+   "title": "Trichloroethylene (TCE); Regulation Under the Toxic Substances Control Act (TSCA)",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/17/2024-29274/trichloroethylene-tce-regulation-under-the-toxic-substances-control-act-tsca",
+   "effective_on": "2025-01-16",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "751"
+    }
+   ]
+  },
+  {
    "document_number": "2024-29243",
    "publication_date": "2024-12-12",
    "type": "Rule",
@@ -138,6 +654,60 @@
     {
      "title": 40,
      "part": "84"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-28307",
+   "publication_date": "2024-12-11",
+   "type": "Rule",
+   "title": "Protection of Stratospheric Ozone: Determination 39 for the Significant New Alternatives Policy Program",
+   "html_url": "https://www.federalregister.gov/documents/2024/12/11/2024-28307/protection-of-stratospheric-ozone-determination-39-for-the-significant-new-alternatives-policy",
+   "effective_on": null,
+   "comments_close_on": null,
+   "action": "Determination of acceptability.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "82"
+    }
+   ]
+  },
+  {
+   "document_number": "2024-26643",
+   "publication_date": "2024-11-18",
+   "type": "Rule",
+   "title": "Waste Emissions Charge for Petroleum and Natural Gas Systems: Procedures for Facilitating Compliance, Including Netting and Exemptions",
+   "html_url": "https://www.federalregister.gov/documents/2024/11/18/2024-26643/waste-emissions-charge-for-petroleum-and-natural-gas-systems-procedures-for-facilitating-compliance",
+   "effective_on": "2025-01-17",
+   "comments_close_on": null,
+   "action": "Final rule.",
+   "agencies": [
+    {
+     "raw_name": "ENVIRONMENTAL PROTECTION AGENCY",
+     "name": "Environmental Protection Agency",
+     "slug": "environmental-protection-agency"
+    }
+   ],
+   "cfr_references": [
+    {
+     "title": 40,
+     "part": "2"
+    },
+    {
+     "title": 40,
+     "part": "98"
+    },
+    {
+     "title": 40,
+     "part": "99"
     }
    ]
   }

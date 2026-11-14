@@ -5,9 +5,12 @@ import { join } from 'node:path';
 import { context, load, fakeFetch, same, plain, ROOT } from './helpers/load.mjs';
 
 /* Answers recorded from data.texas.gov on 2026-11-13, when the license file was the one uploaded 2026-10-19. The newest
-   list is cut to the first 12 of its 40 rows; the error file is the portal's real answer to a query that names a missing column. */
+   list is cut to the first 12 of its 40 rows; the error file is the portal's real answer to a query that names a missing column.
+   The state replaced the file later the same day (22:19 UTC): the five "november-file" answers were recorded that evening
+   from the new file, uncut, so one test runs a real change of file. */
 const raw = n => readFileSync(join(ROOT, 'tests', 'fixtures', 'tdlr', n), 'utf8'), fx = n => JSON.parse(raw(n));
 const META = fx('metadata-2026-11-13.json'), COUNTS = fx('counts-by-county-2026-11-13.json'), TEXAS = fx('texas-totals-2026-11-13.json'), ENTRANTS = fx('entrants-by-county-2026-11-13.json'), NEWEST = fx('newest-2026-11-13.json'), NO_COLUMN = raw('error-no-such-column-2026-11-13.json');
+const NOV = { meta: fx('metadata-november-file-2026-11-13.json'), counts: fx('counts-by-county-november-file-2026-11-13.json'), texas: fx('texas-totals-november-file-2026-11-13.json'), entrants: fx('entrants-by-county-november-file-2026-11-13.json'), newest: fx('newest-november-file-2026-11-13.json') };
 const fresh = () => load(context(), 'live/core.js', 'live/geo.js', 'live/sources/tdlr_licenses.js').TDA_LIVE;
 const NOW = new Date('2026-11-13T18:40:00Z');                                                // 25 days after the state replaced the file
 const pick = (o, k, d) => o && k in o ? o[k] : d;
@@ -147,6 +150,66 @@ test('the same file a week later costs one request; a new file is counted again 
   same(L.tdlr.change(plain(third.data)), { fileChanged: true, from: '2026-10-19', to: '2026-11-19', contractors: 0, techs: 0, new12: 0, counties: [], entered: [], enteredMore: false }, 'the same rows under a new date: nothing moved');
   const nov = Object.assign({}, plain(third.data), { stale: [] }), week = fakeFetch(routes({ meta: Object.assign({}, META, { dataUpdatedAt: '2026-11-19T19:02:44+0000' }) })), fourth = await runOnce(L, week, nov, new Date('2026-11-27T12:00:00Z'));
   assert.equal(week.calls.length, 1); same(fourth.data.before, plain(third.data.before), 'carried through an unchanged week');   // plain: third.data was built inside the vm, and the strict comparison also looks at the realm
+});
+
+test('a real change of file: the November file counted after the October one, and what moved between them', async () => {
+  const L = fresh(), oct = plain((await runOnce(L, fakeFetch(routes()))).data), LATER = new Date('2026-11-13T23:32:00Z');
+  const fetch = fakeFetch(routes(NOV)), { data, http } = await runOnce(L, fetch, oct, LATER), d = plain(data);
+  const Q = L.tdlr.queries('2026-11-13', L.geo.counties.map(c => c.name), 157588);
+  same(fetch.calls.map(c => c.url), ['https://data.texas.gov/api/views/metadata/v1/7358-krk7', Q.counts, Q.texas, Q.entrants, Q.newest], 'every date and the number line come from the new file'); assert.equal(http.stats.n, 5);
+  assert.ok(qs(Q.counts).get('$select').includes(`${KEY}>='20261113' and ${KEY}<='20270211'`) && qs(Q.entrants).get('$where').endsWith('license_number::number>157588'));
+  same({ asOf: d.asOf, asOfDay: d.asOfDay, checked: d.checked, badDates: d.badDates, stale: d.stale }, { asOf: '2026-11-13T22:19:48Z', asOfDay: '2026-11-13', checked: '2026-11-13T23:32:00.000Z', badDates: 0, stale: [] });
+  same(d.total, { contractors: 4861, classA: 2532, comfort: 4718, techs: 10965, certified: 1073, expiring90: 848, lapsed: 330, new12: 251 });
+  same(d.texas, { asOf: '2026-11-13T22:19:48Z', contractors: 19111, techs: 41327 });
+  same({ asOf: d.entrants.asOf, after: d.entrants.after, from: d.entrants.from, total: d.entrants.total, newest: d.entrants.newest.length }, { asOf: '2026-11-13T22:19:48Z', after: 157588, from: '2025-11-13', total: 251, newest: 40 });
+  same(d.counties.map(c => [c.name, c.contractors, c.techs, c.expiring90, c.new12]), [['Collin', 493, 1066, 89, 18], ['Dallas', 1643, 3750, 296, 74], ['Denton', 408, 1048, 65, 18], ['Ellis', 197, 390, 43, 11], ['Hood', 52, 104, 9, 4], ['Hunt', 89, 161, 14, 4], ['Johnson', 186, 390, 36, 12], ['Kaufman', 177, 399, 36, 10], ['Parker', 177, 334, 30, 14], ['Rockwall', 125, 367, 21, 13], ['Tarrant', 1250, 2827, 199, 66], ['Wise', 64, 129, 10, 7]]);
+  assert.equal(L.tdlr.parseEntrants(NOV.entrants, L.geo.counties, '2026-11-13').first, '2026-11-26', 'the oldest license above the line expires 13 days after the file date: a year of entrants');
+  assert.ok(d.entrants.newest.every(x => x.issued <= '2026-11-13' && x.issued >= '2025-11-13'), 'every listed holder was first licensed within the year');
+  /* the October file is remembered, and the change is read against it */
+  same(d.before, plain(L.BY_ID.tdlr_licenses.digest(oct)), 'the headline numbers of the file this one replaced');
+  const ch = plain(L.tdlr.change(d));
+  same({ fileChanged: ch.fileChanged, from: ch.from, to: ch.to, contractors: ch.contractors, techs: ch.techs, new12: ch.new12, enteredMore: ch.enteredMore }, { fileChanged: true, from: '2026-10-19', to: '2026-11-13', contractors: 6, techs: -9, new12: 4, enteredMore: false });
+  same(ch.counties, [{ name: 'Dallas', contractors: 4, techs: 13 }, { name: 'Tarrant', contractors: -4, techs: -5 }, { name: 'Kaufman', contractors: 3, techs: -1 }, { name: 'Collin', contractors: 2, techs: -10 }, { name: 'Rockwall', contractors: 2, techs: -11 }, { name: 'Denton', contractors: -1, techs: -1 }, { name: 'Hunt', contractors: -1, techs: 1 }, { name: 'Johnson', contractors: -1, techs: 0 }, { name: 'Parker', contractors: 1, techs: 10 }, { name: 'Wise', contractors: 1, techs: 2 }, { name: 'Ellis', contractors: 0, techs: -7 }], 'the largest contractor change first, then by name');
+  same(ch.entered.map(x => [x.no, x.county, x.issued]), [[170635, 'Tarrant', '2026-11-09'], [170591, 'Dallas', '2026-11-06'], [170586, 'Rockwall', '2026-11-06'], [170505, 'Tarrant', '2026-11-04'], [170459, 'Hood', '2026-11-03'], [170396, 'Dallas', '2026-11-02'], [170331, 'Dallas', '2026-10-30'], [170326, 'Dallas', '2026-10-30'], [170266, 'Kaufman', '2026-10-28'], [170264, 'Dallas', '2026-10-28'], [170262, 'Johnson', '2026-10-28'], [170207, 'Dallas', '2026-10-27'], [170171, 'Parker', '2026-10-26'], [170170, 'Rockwall', '2026-10-26'], [170134, 'Collin', '2026-10-23'], [170100, 'Collin', '2026-10-22'], [170096, 'Dallas', '2026-10-22'], [169992, 'Tarrant', '2026-10-19']], 'the 18 contractor licenses numbered above the October file\'s highest (169943)');
+  same(ch.entered.filter(x => !x.comfort).map(x => x.sub), ['AR', 'AR'], 'two of them are refrigeration only: not a competitor for a heating call');
+  same(plain(L.tdlr.change(d, L.BY_ID.tdlr_licenses.digest(oct))), ch, 'the digest of the previous refresh gives the same answer as data.before');
+  const g = L.BY_ID.tdlr_licenses.digest(d); same({ contractors: g.contractors, techs: g.techs, top: g.top, new12: g.new12, asOf: g.asOf, maxNo: g.maxNo }, { contractors: 4861, techs: 10965, top: 'Dallas (1,643)', new12: 251, asOf: '2026-11-13', maxNo: 170635 });
+  const size = JSON.stringify(d).length; assert.ok(size < 10000, 'all 40 newest holders and the numbers of the file before: ' + size);
+  /* the week after: the same file, one request, the October numbers still there to compare against */
+  const week = fakeFetch(routes(NOV)), next = await runOnce(L, week, d, new Date('2026-11-20T12:00:00Z'));
+  assert.equal(week.calls.length, 1); same(plain(next.data.before), d.before); same(plain(L.tdlr.change(plain(next.data))), ch);
+});
+
+test('a file dated minutes ago whose rows are still the old ones is not counted yet', async () => {
+  const L = fresh(), first = plain((await runOnce(L, fakeFetch(routes()))).data), digest = d => plain(L.BY_ID.tdlr_licenses.digest(d));
+  /* 22:22 UTC on the day of the upload: the portal already shows the November file (dated 22:19) and its queries still answer
+     from the October rows, as the row stamps of that evening (22:26) say they could */
+  const lag = fakeFetch(routes({ meta: NOV.meta })), early = await runOnce(L, lag, first, new Date('2026-11-13T22:22:00Z'));
+  assert.equal(lag.calls.length, 2, 'the file date and the counts: nothing else is asked');
+  assert.ok(qs(lag.calls[1].url).get('$select').includes(`${KEY}>='20261113'`), 'the counts were asked for with the new file date');
+  same(early.data, Object.assign({}, first, { checked: '2026-11-13T22:22:00.000Z', waiting: '2026-11-13T22:19:48Z' }), 'the October record stands, and names the file that is waiting');
+  same(digest(plain(early.data)), digest(first), 'so the headline numbers stay those of October, under the October date');
+  /* the next run finds the rows of the new file and counts it in full */
+  const ready = fakeFetch(routes(NOV)), next = await runOnce(L, ready, plain(early.data), new Date('2026-11-13T23:32:00Z'));
+  assert.equal(ready.calls.length, 5); same([next.data.asOfDay, next.data.total.contractors, next.data.stale], ['2026-11-13', 4861, []]); assert.equal('waiting' in next.data, false); same(next.data.before, digest(first));
+  /* the rows of the new file differ in most counties, so a real file is never mistaken for a loading one, however young */
+  const young = fakeFetch(routes(NOV)); await runOnce(L, young, first, new Date('2026-11-13T22:22:00Z')); assert.equal(young.calls.length, 5);
+  const rowsOf = d => d.counties.map(c => c.contractors + c.lapsed); assert.equal(rowsOf(first).filter((n, i) => n !== rowsOf(plain(next.data))[i]).length, 9, 'nine of the 12 county row counts moved between the two files');
+  /* six hours after its date the same row counts are taken as they are: a file is never held back for longer than that. The entrant
+     rows of October then fail their own check (first expiration before the file date) and that block is kept and named. */
+  const late = fakeFetch(routes({ meta: NOV.meta })), l = await runOnce(L, late, first, new Date('2026-11-14T04:20:00Z'));
+  assert.equal(late.calls.length, 4); same([l.data.asOfDay, l.data.stale.map(x => x.block)], ['2026-11-13', ['entrants']]); assert.equal('waiting' in l.data, false);
+  /* a first run has nothing to compare with and counts what it is given */
+  const cold = fakeFetch(routes({ meta: NOV.meta })); await runOnce(L, cold, null, new Date('2026-11-13T22:22:00Z')); assert.equal(cold.calls.length, 4);
+});
+
+test('every request carries its own time limit, under the 30 seconds a background worker allows', async () => {
+  const L = fresh(), real = L.makeHttp({ fetch: fakeFetch(routes()), gapMs: 0, backoffMs: 1 }), seen = [];
+  const http = { json: (u, i) => { seen.push(i || {}); return real.json(u, i); }, text: (u, i) => { seen.push(i || {}); return real.text(u, i); }, stats: real.stats };
+  await L.BY_ID.tdlr_licenses.run({ http, now: NOW, prev: null, geo: L.geo, settings: {}, env: 'node' });
+  assert.equal(seen.length, 5); assert.ok(seen.every(i => i.timeoutMs >= 10000 && i.timeoutMs < 30000 && i.retries === 1 && i.gapMs >= 500), 'a limit under 30 s, one retry, half a second or more between calls');
+  /* the whole run has its own limit, long enough for five slow answers */
+  assert.ok(L.BY_ID.tdlr_licenses.timeoutMs >= 5 * 28000 && L.BY_ID.tdlr_licenses.timeoutMs <= 240000);
 });
 
 test('partial failure: the county counts stand, the block that failed is kept from the last run and named', async () => {

@@ -1,29 +1,6 @@
 {
- "count": 5,
+ "count": 4,
  "results": [
-  {
-   "document_number": "2024-30293",
-   "publication_date": "2025-01-10",
-   "type": "Rule",
-   "title": "Trade Regulation Rule on Unfair or Deceptive Fees",
-   "html_url": "https://www.federalregister.gov/documents/2025/01/10/2024-30293/trade-regulation-rule-on-unfair-or-deceptive-fees",
-   "effective_on": "2025-05-12",
-   "comments_close_on": null,
-   "action": "Final rule.",
-   "agencies": [
-    {
-     "raw_name": "FEDERAL TRADE COMMISSION",
-     "name": "Federal Trade Commission",
-     "slug": "federal-trade-commission"
-    }
-   ],
-   "cfr_references": [
-    {
-     "title": 16,
-     "part": "464"
-    }
-   ]
-  },
   {
    "document_number": "2024-21967",
    "publication_date": "2024-10-11",

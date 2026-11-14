@@ -1,8 +1,8 @@
 /* ==== live/sources/tdlr_licenses.js ==== */
 /* Texas Department of Licensing and Regulation: the air conditioning and refrigeration contractor and technician licenses
    whose business county is one of the 12, counted on the server of the Texas Open Data Portal (dataset 7358-krk7, "TDLR All
-   Licenses": about a million rows of every license type, replaced whole about once a month: the two uploads on record
-   are 2026-09-19 and 2026-10-19). One request reads the file date. When the file is new, four more count it: active
+   Licenses": about a million rows of every license type, replaced whole about once a month: the uploads on record are
+   2026-09-19, 2026-10-19 and 2026-11-13). One request reads the file date. When the file is new, four more count it: active
    licenses by county, class and endorsement; the Texas totals with the highest license number that had already expired;
    the license numbers above that one by county (a license runs one year and numbers are issued in sequence, so those are
    the licenses first issued in the last 12 months); and the 40 newest of them by name. About 22 KB on the wire, 8 KB stored.
@@ -12,8 +12,9 @@
   const L = root.TDA_LIVE, HOST = 'https://data.texas.gov', ID = '7358-krk7';
   const META = `${HOST}/api/views/metadata/v1/${ID}`, RES = `${HOST}/resource/${ID}.json`;
   const V = 1, CON = 'A/C Contractor', TECH = 'A/C Technician', NEWEST = 40, DAY = 864e5;      /* 40 newest: about two months of new licenses in the 12 counties */
-  /* no custom header: a plain GET needs no CORS preflight. The counts scan a million rows, so give them time. */
-  const OPT = { gapMs: 600, retries: 1, timeoutMs: 30000 };
+  /* no custom header: a plain GET needs no CORS preflight. The counts scan a million rows, so give them time (they answered
+     in under a second on both days measured), but stay under the 30 seconds a background worker allows one request. */
+  const OPT = { gapMs: 600, retries: 1, timeoutMs: 28000 };
   /* The expiration date is text, mm/dd/yyyy. Rebuilt on the server as yyyymmdd it compares as text; OKD guards the shape. */
   const EXP = 'license_expiration_date_mmddccyy', OKD = `${EXP} like '__/__/____'`;
   const KEY = `substring(${EXP},7,4)||substring(${EXP},1,2)||substring(${EXP},4,2)`;
@@ -127,6 +128,11 @@
       /* the same file as last time, and nothing missing from it: nothing to count again */
       if (prev && prev.asOf === f.asOf && !(prev.stale || []).length && prev.entrants && prev.texas) return Object.assign({}, prev, { checked: now });
       const main = parseCounts(await ask(ctx, queries(f.day, names).counts, 'licenses by county'), G.counties);
+      /* The portal dates a new file some minutes before its rows answer (2026-11-13: dated 22:19 UTC, rows stamped 22:26). Old
+         rows under a new date would be counted wrong and kept for a month. A file dated in the last six hours whose row count
+         in every county is that of the last file is still loading: the last record stands and the file is counted next time. */
+      const rowsOf = c => c.contractors + c.lapsed;
+      if (prev && prev.asOf !== f.asOf && +ctx.now - Date.parse(f.asOf) < 6 * 36e5 && Array.isArray(prev.counties) && main.counties.every((c, i) => prev.counties[i] && prev.counties[i].fips === c.fips && rowsOf(prev.counties[i]) === rowsOf(c))) return Object.assign({}, prev, { checked: now, waiting: f.asOf });
       const stale = []; let texas = null, entrants = null, after = null;
       const why = e => String((e && e.message) || e).slice(0, 140);
       try { const t = parseTexas(await ask(ctx, queries(f.day, names).texas, 'the Texas totals')); after = t.n0; texas = { asOf: f.asOf, contractors: t.contractors, techs: t.techs }; }

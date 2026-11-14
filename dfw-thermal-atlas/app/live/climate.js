@@ -1,9 +1,72 @@
 /* ==== live/climate.js ==== */
 /* Pure reads of the climate records: the heating season to date against normal (metro, counties, stations), where the first
-   freeze stands, the cold exposure of a place, and one honest sentence about it. Inputs are the weekly record of the
-   acis_season collector (data) and the static baseline baked into the build (base: __CLIMATE_BASE__ in live/climate_base.js, written by
-   tools/climate-base.mjs). No DOM, no network; runs in the page, the background worker and Node. Every function is safe on
-   missing input: null means unknown, never zero.
+   freeze stands, the cold exposure of a place, and one honest sentence about it. No DOM, no network, no storage, no clock of
+   its own: the same file runs in the page, the popup, the background worker (importScripts) and Node.
+
+   INPUTS, the same in every read
+     data   the acis_season record's data (LIVE.rec('acis_season').data, or the .data of the stored record), or null
+     base   the static baseline. Pass nothing (undefined or null) to use the one the build loads: __CLIMATE_BASE__ on the
+            global object, set by live/climate_base.js, which tools/climate-base.mjs writes
+     now    a Date; "today" is its calendar day in America/Chicago
+   Every read is safe on null, on a record from another version and on a damaged record: null means unknown, never zero, and
+   nothing throws.
+
+   THE READS OTHER CODE DEPENDS ON. Names, arguments and the fields listed here are stable: fields may be added, none removed.
+   L.climate.status(data, base, now) → {
+     ok            a station table or a grid of this build's record version is there (false: the figures below are null)
+     through       the last day in the station table, 'YYYY-MM-DD' (without a table: the day the run asked for)
+     season        2026 for July 2026 to June 2027;  today;  ageDays: today minus through;  overdue: ageDays over 9, a weekly
+                   run was missed;  current: false when the record is from a season that has ended
+     gridThrough   the day of the PRISM grids, or null;  gridNormal: the 30 fall mean stored is for that same day
+     stale         [{ id: 'W1' | 'W2' | 'W3' | 'G1' | 'G2', what, through, why }] the blocks the last run could not renew: what
+                   in words, through the day the kept copy ends (null: nothing was kept), why as the collector wrote it
+     metro         DFW Airport, the station the Weather Service reports for the area: a stations[] row (below) plus station
+                   (its name) and norm (the same number as hddNorm)
+     freeze        { counties, of, first: { date, county, station } | null } how many of the 12 counties have a first freeze
+                   on record at a station this season, and the earliest of them
+     counties      the 12 counties, the coldest season so far first: [{ name, fips, hdd, hddNorm, pct, dep, hdd7, fr32,
+                   fr32Norm, minT (county means of the grids to gridThrough; the two norms are the 30 fall mean to that day),
+                   normHdd, normFr32, normFr25 (a normal year), exposure (normHdd over the metro mean), exposureHomes (the
+                   same, weighted by where the housing units are), firstFreeze: a first freeze object (below) with station,
+                   uid, nearby (true: the station is outside the county), km, stationsOk, stationsWithFreeze; or null }]
+     stations      every station with a reading this season, the 12 counties first: [{ uid, name, acisName, icao, ghcn, county,
+                   metro (inside the 12 counties), fips, lat, lon, elev, ok (the quality gate: at most 3 days missing since
+                   October 1; before October at most 10 since July 1), miss, missSeason, record (usable seasons of the 30),
+                   hdd, hddNorm, pct (null while the normal is under 25), dep, rank: { n, of, text, mean, low, lowYear, high,
+                   highYear } | null, hdd7, hdd7Norm, pct7, hdd30, hdd30Norm, pct30, fr32, fr25, fr32Norm, fr32NormFrom:
+                   'station' | 'county' | null, freezeBy: { n, of } | null, minT, minDate, min7, firstFreeze, lastFreeze,
+                   daysSinceFreeze, normHdd, normFr32, vsDfw: { ratio, freeze, src: 'NCEI' | 'PRISM' } | null }];
+                   hdd, fr32 and fr25 are null when ok is false
+     series        series(data, base) for DFW Airport, or null
+     grades        { metro, stations, series: 'A'; rank, firstFreeze: 'B'; counties, zip: 'C' };  credit: three source lines }
+   A first freeze object: { state: 'occurred' | 'pending', date (occurred), daysVsMedian (occurred; negative is early),
+     climChance (pending: percent of years with a first freeze by tomorrow; null outside 10 to 90), climText ('25', 'under 10',
+     'over 90'), daysToMedian (pending; negative is past the median date), median, p10, p90 (dates in this season), src: 'NCEI' |
+     'ACIS' | 'NCEI nearby' | null, from (the station the dates are borrowed from), seasons }. It is null when the station has
+     gaps and no freeze on record: "none reported" is not "none happened".
+   L.climate.headline(status) → one sentence for a header or the popup; '' when there is nothing to say. It also takes the
+     record's data, or the stored record, in place of the status: headline(data, base, now).
+   L.climate.zip(lat, lon, data, base, zipCode) → { exposure (the baseline's ratio for the ZIP: its normal heating degree days
+     over the housing weighted metro mean; without a zipCode the normals grid is read at the place), freezeExposure, normHdd,
+     normFr32, hddToDate, hddNormToDate, pct, fr32ToDate, seasonMin, through, from: 'grid' | 'stations' | null,
+     firstFreezeNearby, lastFreeze, near: [{ name, uid, km }], grade: 'C' }. With data null the static half still answers.
+   L.climate.series(data, base, uid) → { station, uid, start, through, days: [{ d, tn, tx, hdd, cum, normCum }], total,
+     normTotal, missing } | null: one airport day by day since July 1 (default DFW Airport, the one with a daily normal)
+   L.climate.nights(data, n) → [{ uid, name, icao, county, nights: [{ d, tn, tx }] }]: the last n observed nights (default 14)
+     at every airport the collector reads daily
+   L.climate.sample(grid, lat, lon, geom) and cell(…) → the value of a stored grid at a place, null off the grid
+   Who reads what today: live/derive.js (status: ok, through, metro.hdd, metro.norm, metro.firstFreeze); the Heat Desk engine
+   (zip(…).normHdd with data null; status: stations[].lat, lon, normHdd, hddNorm, metro.firstFreeze, counties[].name and
+   firstFreeze.state; nights(data, 35) beside data.stations[uid].lat and lon; base.built); the Heat Desk page (the whole
+   status with headline; base.zip[zip], base.prismCounty[fips].fr32); the Weather Desk (status: ok, current, through,
+   metro.hdd, norm, pct, station, firstFreeze; headline).
+
+   THE BASELINE (base), which the Heat Desk also reads directly: { v: 1, built, normalsPeriod, lastSeason, credit, metro: { hdd,
+   fr32, hu, zips }, zip: { '75149': { hdd, fr32, ratio } } for each of the 277 ZIPs (normal heating degree days and freeze
+   nights a year at the centroid; ratio: hdd over the housing weighted metro mean), prismCounty: { fips: { hdd, fr32, fr25 } },
+   homes: { fips: { hdd, fr32, ratio, hu, zips } }, ncei (official normals by GHCN id), dailyNormHdd, dailyNormTmin, stations,
+   freeze, last10 (by ACIS station number), prism (the normals grid) }.
+
    Grades: station observations and official normals are the publishers' own numbers (A); ranks, first freeze chances and
    borrowed climatology rest on them with known gaps (B); anything read from the PRISM grid is modeled (C). */
 (function (root) {
@@ -20,12 +83,13 @@
   const CREDIT = ['NOAA Regional Climate Centers, ACIS', 'NOAA National Centers for Environmental Information, U.S. Climate Normals 1991 to 2020', 'PRISM Climate Group, Oregon State University'];
 
   /* ---------- small tools ---------- */
-  const fin = v => typeof v === 'number' && Number.isFinite(v);
-  const nn = v => (v == null || (typeof v === 'number' && !Number.isFinite(v)) ? null : v);
+  const finite = Number.isFinite, fin = v => typeof v === 'number' && finite(v);
+  const nn = v => (v == null || (typeof v === 'number' && !finite(v)) ? null : v);
   const rd = (v, dp) => { if (!fin(v)) return null; const k = Math.pow(10, dp || 0); return Math.round(v * k) / k; };
   const ms = ymd => Date.parse(ymd + 'T12:00:00Z');
-  /* a real calendar date as YYYY-MM-DD (the parser alone would let February 30 through) */
-  const isDay = v => { if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false; const t = ms(v); return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === v; };
+  /* a real calendar date as YYYY-MM-DD (the pattern alone would let February 30 through); counted, not parsed: this runs thousands of times a read */
+  const DIM = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const isDay = v => { if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false; const y = +v.slice(0, 4), m = +v.slice(5, 7), d = +v.slice(8, 10); return m >= 1 && m <= 12 && d >= 1 && d <= (m === 2 && leap(y) ? 29 : DIM[m - 1]); };
   const addDays = (ymd, n) => { const t = ms(ymd) + n * DAY; return Number.isFinite(t) ? new Date(t).toISOString().slice(0, 10) : null; };
   const between = (a, b) => Math.round((ms(a) - ms(b)) / DAY);                                   /* a minus b, in days */
   const seasonOf = ymd => +ymd.slice(0, 4) - (+ymd.slice(5, 7) < 7 ? 1 : 0);
@@ -115,7 +179,7 @@
     }
     if (st && fin(st.lat) && fin(st.lon) && base.ncei) {
       let best = null;
-      for (const g of Object.keys(base.ncei)) { const n = base.ncei[g], d = dec(n); if (!d || !fin(n.lat) || !fin(n.lon)) continue; const k = km(st.lat, st.lon, n.lat, n.lon); if (k <= 40 && (!best || k < best.km)) best = { km: k, n, d }; }
+      for (const g of Object.keys(base.ncei)) { const n = base.ncei[g]; if (!n || !fin(n.lat) || !fin(n.lon)) continue; const k = km(st.lat, st.lon, n.lat, n.lon); if (!(k <= 40) || (best && k >= best.km)) continue; const d = dec(n); if (d) best = { km: k, n, d }; }
       if (best) return { src: 'NCEI nearby', from: best.n.label || best.n.name || null, km: rd(best.km, 0), dec: best.d, median: best.d[4], p10: best.d[0], p90: best.d[8], n: 30 };
     }
     return null;
@@ -235,10 +299,13 @@
     }).sort((a, b) => (a.hdd != null && b.hdd != null ? b.hdd - a.hdd : a.hdd != null ? -1 : b.hdd != null ? 1 : (b.normHdd || 0) - (a.normHdd || 0)) || a.name.localeCompare(b.name));
 
     const m = one(DFW);
+    /* the counties with a first freeze on record at one of their stations, the earliest first */
+    const froze = counties.filter(c => c.firstFreeze && c.firstFreeze.state === 'occurred' && isDay(c.firstFreeze.date)).sort((a, b) => (a.firstFreeze.date < b.firstFreeze.date ? -1 : a.firstFreeze.date > b.firstFreeze.date ? 1 : 0));
     /* current: the record belongs to the heating season today falls in (false in early July, until the first run of the new season) */
     return { ok: !!(d && (T || gridOn)), through, season, today, ageDays, overdue: ageDays != null && ageDays > 9, current: !today || season == null || seasonOf(today) === season, gridThrough: gridOn ? B.G1 : null, gridNormal: normOn,
       stale: d ? Object.keys(d.stale || {}).map(id => ({ id, what: WHAT[id] || id, through: nn(d.stale[id]), why: (d.errs && d.errs[id]) || null })) : [],
-      metro: Object.assign(m, { station: m.name || 'DFW Airport', norm: m.hddNorm }), counties, stations, series: series(d, base, DFW), grades: GRADES, credit: CREDIT };
+      metro: Object.assign(m, { station: m.name || 'DFW Airport', norm: m.hddNorm }), freeze: { counties: froze.length, of: counties.length, first: froze.length ? { date: froze[0].firstFreeze.date, county: froze[0].name, station: froze[0].firstFreeze.station || null } : null },
+      counties, stations, series: series(d, base, DFW), grades: GRADES, credit: CREDIT };
   }
 
   /* ---------- one place ---------- */
@@ -270,9 +337,15 @@
   }
 
   /* ---------- one sentence ---------- */
-  function headline(s) {
+  /* The season in one sentence, from a status. Handed the record's data (or the stored record) instead, it reads the status
+     itself: headline(data, base, now). The numbers are DFW Airport's; once a station elsewhere in the 12 counties has had its
+     first freeze and DFW Airport has not, "no freeze yet" names the airport and the sentence says how many counties have. */
+  function headline(s, base, now) {
+    if (s && s.metro === undefined && s.data && typeof s.data === 'object') s = s.data;
+    if (s && s.metro === undefined && s.blocks) s = status(s, base, now);
     if (!s || !s.ok || !s.metro) return '';
     const m = s.metro, f = m.firstFreeze, words = isDay(s.through) && +s.through.slice(5, 7) >= 7 ? 'falls' : 'seasons', days = n => n + (n === 1 ? ' day' : ' days');
+    const fz = s.freeze && s.freeze.counties > 0 && s.freeze.of > 0 && s.freeze.first && isDay(s.freeze.first.date) ? s.freeze : null;
     let a;
     if (m.hdd == null) a = `no complete reading at ${m.station} this week`;
     else {
@@ -282,7 +355,8 @@
     }
     let b = '';
     if (f && f.state === 'occurred') b = `first freeze ${pretty(f.date)}` + (f.daysVsMedian == null ? '' : f.daysVsMedian === 0 ? ', on the median date' : `, ${days(Math.abs(f.daysVsMedian))} ${f.daysVsMedian < 0 ? 'ahead of' : 'after'} the median date`) + (m.fr32 != null ? `, ${m.fr32} freeze ${m.fr32 === 1 ? 'night' : 'nights'} so far` : '');
-    else if (f && f.state === 'pending') b = 'no freeze yet' + (f.median ? (f.daysToMedian >= 0 ? `, the median first freeze is ${pretty(f.median)}` : `, ${days(-f.daysToMedian)} past the median first freeze of ${pretty(f.median)}`) : '');
+    else if (f && f.state === 'pending') b = 'no freeze yet' + (fz ? ` at ${m.station}` : '') + (f.median ? (f.daysToMedian >= 0 ? `, the median first freeze is ${pretty(f.median)}` : `, ${days(-f.daysToMedian)} past the median first freeze of ${pretty(f.median)}`) : '') + (fz ? `; ${fz.counties} of the ${fz.of} counties have recorded one, the first on ${pretty(fz.first.date)}` : '');
+    else if (fz) b = `${fz.counties} of the ${fz.of} counties have recorded a freeze, the first on ${pretty(fz.first.date)}`;
     return `${s.current === false ? 'Last heating season' : 'Heating season to date'}: ${a}${b ? '; ' + b : ''}.` + (s.overdue && isDay(s.through) ? ` Observed through ${pretty(s.through)}; a refresh is due.` : '');
   }
 

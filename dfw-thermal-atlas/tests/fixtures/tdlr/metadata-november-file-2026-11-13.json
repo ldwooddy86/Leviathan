@@ -1,0 +1,17 @@
+{
+ "id": "7358-krk7",
+ "name": "TDLR - All Licenses",
+ "attribution": "Texas Department of Licensing and Regulation",
+ "attributionLink": "https://www.tdlr.texas.gov/LicenseSearch/licfile.asp",
+ "category": null,
+ "createdAt": "2014-08-01T19:42:21+0000",
+ "dataUpdatedAt": "2026-11-13T22:19:48+0000",
+ "dataUri": "https://data.texas.gov/resource/7358-krk7",
+ "description": "A listing of all TDLR license holders from https://www.tdlr.texas.gov/LicenseSearch/.",
+ "domain": "data.texas.gov",
+ "license": null,
+ "metadataUpdatedAt": "2026-11-13T22:14:35+0000",
+ "provenance": "OFFICIAL",
+ "updatedAt": "2026-11-13T22:14:35+0000",
+ "webUri": "https://data.texas.gov/d/7358-krk7"
+}
