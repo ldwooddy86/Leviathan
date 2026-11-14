@@ -98,13 +98,13 @@ export default async function (page, t, ctx) {
   t.eq(R.holes, [], 'no asset of any angle is filled around an empty or unresolved placeholder, in any of the five settings');
 
   /* the heating angles: compliance, shape, triggers */
-  t.eq(R.lint, [], 'the Satchel lint finds nothing in any headline, description, social line or keyword of the five heating angles, and every description set carries the licence');
+  t.eq(R.lint, [], 'the Satchel lint finds nothing in any headline, description, social line or keyword of the five heating angles, and every description set carries the license');
   t.eq(R.heat, HEAT, 'the heat line runs heating repair first, then furnace, heat pump, electric heat and the heating tune up');
   for (const s of R.shape) {
     if (!t.ok(!s.absent, `the ${NEW[s.id]} angle is in the library`)) continue;
     t.ok(s.short === NEW[s.id] && s.line === 'heat' && /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s.path) && s.lsaKnown && s.plain === 'string,string,function', `${s.short}: on the heat line, with a page path and Local Services job types the library already uses`, s);
-    t.ok(s.n.h >= 7 && s.n.d >= 3 && s.n.esH >= 3 && s.n.esD >= 2 && s.n.kw >= 6 && s.n.kwq >= 4 && s.lic[0] && s.lic[1], `${s.short}: seven headlines, three descriptions, three Spanish headlines and two Spanish descriptions or more, the licence in both languages`, { n: s.n, lic: s.lic });
-    t.ok(s.meta.p.every(n => n && n < 125) && s.meta.h && s.meta.h < 40 && s.meta.d && s.meta.d < 30, `${s.short}: the social text stays under 125 characters before the licence, its headline under 40 and its description under 30`, s.meta);
+    t.ok(s.n.h >= 7 && s.n.d >= 3 && s.n.esH >= 3 && s.n.esD >= 2 && s.n.kw >= 6 && s.n.kwq >= 4 && s.lic[0] && s.lic[1], `${s.short}: seven headlines, three descriptions, three Spanish headlines and two Spanish descriptions or more, the license in both languages`, { n: s.n, lic: s.lic });
+    t.ok(s.meta.p.every(n => n && n < 125) && s.meta.h && s.meta.h < 40 && s.meta.d && s.meta.d < 30, `${s.short}: the social text stays under 125 characters before the license, its headline under 40 and its description under 30`, s.meta);
     t.ok(MONEY[s.id].every(k => s.kw.includes(k)), `${s.short}: bids on its money terms`, MONEY[s.id].filter(k => !s.kw.includes(k)));
   }
   t.ok(R.fires.scored > 0 && R.fires.heatrepair === R.fires.scored && R.fires.heattune === R.fires.scored, `heating repair and the heating tune up fire in all ${R.fires.scored} scored ZIPs`, R.fires);
@@ -129,7 +129,7 @@ export default async function (page, t, ctx) {
   t.ok(['Core', 'Questions', 'Local'].every(x => groups.includes('Heating Repair ' + x) && groups.includes('Heating Tune Up ' + x)) && langs.length === 2, 'the Google file carries the always on heating repair and tune up ad groups, in English and Spanish', { groups, langs });
   t.eq(ads.flatMap(r => heads(r).filter(h => /^(Serving County|Servicio en|Local Techs)$/.test(h) || /[{}]/.test(h)).map(h => `${r.Campaign} ${r['Ad Group']}: ${h}`)), [], 'D3 no exported headline is an orphan such as "Serving County" or "Servicio en"');
   t.eq(ads.filter(r => heads(r).length < 3 || descs(r).length < 2 || heads(r).some(h => h.length > 30) || descs(r).some(d => d.length > 90)).map(r => `${r.Campaign} ${r['Ad Group']}: ${heads(r).length} headlines, ${descs(r).length} descriptions`), [], 'D1 every exported responsive search ad has three headlines and two descriptions or more, all inside 30 and 90 characters');
-  t.eq(ads.filter(r => !descs(r).some(d => d.includes(plan.lic))).map(r => `${r.Campaign} ${r['Ad Group']}`), [], 'every exported ad carries the licence number in a description');
+  t.eq(ads.filter(r => !descs(r).some(d => d.includes(plan.lic))).map(r => `${r.Campaign} ${r['Ad Group']}`), [], 'every exported ad carries the license number in a description');
   t.eq(ads.flatMap(r => heads(r).concat(descs(r)).filter(x => DASH.test(x) || /[{}]/.test(x))).slice(0, 5), [], 'no exported headline or description carries a hyphen, a dash or a placeholder');
   const kwRows = rows.filter(r => r.Keyword && !/^Negative/.test(r['Criterion Type'])), by = {}; kwRows.forEach(r => { const k = `${r.Campaign} · ${r.Keyword} · ${r['Criterion Type']}`; (by[k] = by[k] || []).push(r['Ad Group']); });
   t.eq(Object.keys(by).filter(k => by[k].length > 1).map(k => `${k}: ${by[k].join(', ')}`).slice(0, 5), [], 'no campaign of that file bids on a keyword from two ad groups');

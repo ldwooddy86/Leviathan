@@ -11,9 +11,9 @@ const csv = text => { const note = [], body = []; text.split('\n').forEach(l => 
   if (f || cur.length) { cur.push(f); rows.push(cur); } const head = rows.shift() || []; return { note: note.join(' '), head, ragged: rows.filter(r => r.length !== head.length && r.join('') !== '').length, rows: rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] == null ? '' : r[i]]))) }; };
 const heads = r => Object.keys(r).filter(k => /^Headline \d+$/.test(k) && r[k]).map(k => r[k]), descs = r => Object.keys(r).filter(k => /^Description \d$/.test(k) && r[k]).map(k => r[k]);
 const town = (city, home) => String(city || '').replace(/\s*\((?:CDP|unincorporated)\)\s*/gi, '').trim() || home;   // a market's city as ad copy names it
-/* what is wrong with the responsive search ads of a search file: Google wants 3 headlines of 30 and 2 descriptions of 90 at least, TDLR wants the licence, the house wants clean copy */
+/* what is wrong with the responsive search ads of a search file: Google wants 3 headlines of 30 and 2 descriptions of 90 at least, TDLR wants the license, the house wants clean copy */
 const adFaults = (rows, lic) => rows.filter(r => r['Ad type']).flatMap(r => { const h = heads(r), d = descs(r), why = [];
-  if (h.length < 3) why.push(`${h.length} headlines`); if (d.length < 2) why.push(`${d.length} description`); if (h.some(x => x.length > 30) || d.some(x => x.length > 90)) why.push('over the limit'); if (!d.some(x => x.includes(lic))) why.push('no licence');
+  if (h.length < 3) why.push(`${h.length} headlines`); if (d.length < 2) why.push(`${d.length} description`); if (h.some(x => x.length > 30) || d.some(x => x.length > 90)) why.push('over the limit'); if (!d.some(x => x.includes(lic))) why.push('no license');
   const dirty = h.concat(d).filter(x => /^(Serving\s*County|Servicio en|Local\s+Techs)$|\(CDP\)|unincorporated|[{}]|\s{2}|[-‐-―−]/.test(x)); if (dirty.length) why.push('copy: ' + dirty.join(' / '));
   if (!/^[a-z0-9-]{1,15}$/.test(r['Path 1']) || !/^[a-z]{0,15}$/.test(r['Path 2'])) why.push(`path ${r['Path 1']}/${r['Path 2']}`);
   return why.length ? [`${r.Campaign} · ${r['Ad Group']}: ${why.join(', ')}`] : []; });
@@ -65,7 +65,7 @@ export default async function (page, t, ctx) {
   const g52 = await file('dkG'), groups52 = g52.rows.filter(r => r['Ad Group Type']), ads52 = g52.rows.filter(r => r['Ad type']);
   t.ok(g52.name === `google-ads-editor_heat_${first.start}.csv` && g52.head.length === 52 && [...new Set(g52.rows.map(r => r.Campaign))].length === 2, 'the Google file of the heat plan holds an English and a Spanish campaign in the 52 column layout', [g52.name, g52.head.length]);
   t.ok(groups52.length >= 2 * 2 * want52.length && ads52.length === groups52.length && ads52.every(r => r.Status === 'Paused'), 'D2 the Google file carries ad groups, each with one paused responsive search ad', { groups: groups52.length, ads: ads52.length, angles: want52 });
-  t.eq(adFaults(g52.rows, lib.lic), [], 'D1 D3 every responsive search ad of that file has two descriptions or more, the licence, and no orphan headline such as "Serving County"');
+  t.eq(adFaults(g52.rows, lib.lic), [], 'D1 D3 every responsive search ad of that file has two descriptions or more, the license, and no orphan headline such as "Serving County"');
   t.eq(negsOf(g52), [wantNeg, wantNeg], 'both campaigns of the heat plan carry the customer negatives and the heating negatives, once each');
   const sn52 = g52.rows.filter(r => r.Header).map(r => r['Snippet values'].split('; '));
   t.ok(sn52.length === 2 && sn52.every(v => v.length >= 3 && v.every(x => x.length <= 25)) && sn52[0].every(x => /Furnace|Heat/.test(x)) && sn52[1].every(x => /Calefacción|Calor/.test(x)), 'D34 the heat plan writes a structured snippet of heating services in each language, three values or more', sn52);
@@ -76,16 +76,16 @@ export default async function (page, t, ctx) {
   t.eq(k52.rows.filter(r => r.ad_group === 'Negatives').map(r => r.keyword), wantNeg, 'the keyword file of a heat plan ends with the customer and the heating negatives');
   t.ok(ms52.rows.every(r => /_MS$/.test(r.Campaign) && !r.ID) && !adFaults(ms52.rows, lib.lic).length && JSON.stringify(negsOf(ms52)) === JSON.stringify([wantNeg, wantNeg]), 'the Microsoft file of the heat plan carries the same ads and negatives under _MS names', adFaults(ms52.rows, lib.lic).slice(0, 2));
 
-  /* D4: Spanish social rows carry the licence once and a Spanish title */
+  /* D4: Spanish social rows carry the license once and a Spanish title */
   const count = (s, x) => String(s || '').split(x).length - 1;
   const es52 = m52.rows.filter(r => /_ES_/.test(r['Campaign Name'])), en52 = m52.rows.filter(r => /_EN_/.test(r['Campaign Name']));
-  t.ok(es52.length === want52.length && m52.rows.every(r => count(r.Body, lib.lic) === 1 && count(r.Body, 'Lic ') === 1), 'D4 every Meta body carries the licence exactly once, Spanish rows included', m52.rows.filter(r => count(r.Body, 'Lic ') !== 1).map(r => r.Body));
+  t.ok(es52.length === want52.length && m52.rows.every(r => count(r.Body, lib.lic) === 1 && count(r.Body, 'Lic ') === 1), 'D4 every Meta body carries the license exactly once, Spanish rows included', m52.rows.filter(r => count(r.Body, 'Lic ') !== 1).map(r => r.Body));
   t.ok(es52.every(r => { const a = r['Ad Set Name'].replace(/ ES$/, ''), en = en52.find(x => x['Ad Set Name'] === a + ' EN'); return lib.esH[a] && r.Title !== lib.metaH[a] && (!en || r.Title !== en.Title) && (/\{/.test(lib.esH[a]) || r.Title === lib.esH[a]) && r.Title.length <= 40; }), 'D4 a Spanish Meta row is titled with the Spanish headline of its angle', es52.map(r => r.Title));
   await tab('#dkPTabs', 'meta'); await tab('#dkLang', 'es');
   const pv = await assets(), shown = lib.short[await page.evaluate(() => document.querySelector('#dkAng').value)], row = es52.find(r => r['Ad Set Name'] === shown + ' ES') || {};
   t.ok(count(pv[0], 'Lic ') === 1 && pv[0] === row.Body && pv[1] === row.Title, 'D4 the Spanish Meta preview shows the same body and title as the file', pv.slice(0, 2));
   const feed = await page.evaluate(() => MODI.desk.feed().filter(x => x.plat === 'meta').map(x => x.text));
-  t.ok(feed.length === 2 * want52.length && feed.every(x => count(x, 'Lic ') === 1), 'D4 the creative handed to the Satchel lint carries the licence once', feed.filter(x => count(x, 'Lic ') !== 1));
+  t.ok(feed.length === 2 * want52.length && feed.every(x => count(x, 'Lic ') === 1), 'D4 the creative handed to the Satchel lint carries the license once', feed.filter(x => count(x, 'Lic ') !== 1));
 
   /* D31: the video script of a heating plan opens on a heating scene */
   await tab('#dkLang', 'en'); await tab('#dkPTabs', 'dg');
@@ -238,7 +238,7 @@ export default async function (page, t, ctx) {
   const full = { zips: [H.zips[3], H.zips[0], H.zips[7], H.zips[0]], line: 'heat', budget: 9000, start: '2026-12-07', weeks: 6, mix: { google: 60, lsa: 40, tiktok: 50 }, angles: [lib.lead, 'bogus', lib.lead], note: '  Heating plan for the week\n of December 7  ', surprise: { a: 1 } };
   const toastFull = await send(full), pf = await plan();
   const ui = await page.evaluate(() => ['dkLine', 'dkBud', 'dkStart', 'dkWeeks', 'dkScope', 'dkPicks'].map(id => document.getElementById(id).value));
-  t.eq([pf.line, pf.budget, pf.start, pf.weeks, pf.scope, pf.zips, pf.angles], ['heat', 9000, '2026-12-07', 6, 'picks', [H.zips[3], H.zips[0], H.zips[7]], [lib.lead]], 'receive() honours line, budget, start, weeks, ZIP order and angles, dropping a repeated ZIP and an unknown angle');
+  t.eq([pf.line, pf.budget, pf.start, pf.weeks, pf.scope, pf.zips, pf.angles], ['heat', 9000, '2026-12-07', 6, 'picks', [H.zips[3], H.zips[0], H.zips[7]], [lib.lead]], 'receive() honors line, budget, start, weeks, ZIP order and angles, dropping a repeated ZIP and an unknown angle');
   t.eq(Object.entries(pf.mix).filter(([, v]) => v).concat([['keys', Object.keys(pf.mix).length], ['surprise', 'surprise' in pf]]), [['google', 60], ['lsa', 40], ['keys', 8], ['surprise', false]], 'receive() takes the platform mix as sent, zero for a platform not named, and stores nothing it does not know');
   t.eq(ui, ['heat', '9000', '2026-12-07', '6', 'picks', [H.zips[3], H.zips[0], H.zips[7]].join(', ')], 'the plan fields on screen show what arrived');
   t.eq(toastFull, '3 ZIPs received · Heating plan for the week of December 7', 'the note is toasted once, after the count');
