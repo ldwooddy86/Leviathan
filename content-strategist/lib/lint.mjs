@@ -10,6 +10,16 @@ export const LIMITS = { grade: 9, floor: 7, title: 60, h1: 70, descMin: 120, des
 const GENERIC = /^(?:click here|here|learn more|read more|more|this page|this link|this|link|website|our website|page|find out more|see more|details|more info|more information|check it out|go here|visit)$/i;
 const SEV = { block: 'error', warn: 'warn', note: 'note' };
 
+/* a dollar amount, a percentage, or a count written with a thousands comma: the kinds of number a page must be able to source */
+const FIGURE = /\$\s?\d+(?:,\d{3})*(?:\.\d+)?|\b\d+(?:\.\d+)?\s?%|\b\d{1,3}(?:,\d{3})+\b/g;
+/* the figures a pack vouches for: every number in the market's facts and in the page's city's facts */
+function vouched(pack, city) {
+  const S = new Set(), add = s => (String(s).match(/\d[\d,]*(?:\.\d+)?/g) || []).forEach(x => S.add(x.replace(/,/g, '')));
+  for (const f of (pack.market && pack.market.facts) || []) { add(f.value); add(f.label); }
+  for (const f of (city && city.facts) || []) { add(f.value); add(f.label); }
+  return S;
+}
+
 /* a URL as the inventory keys it: host without www, path without a trailing slash, no query or fragment */
 export function urlKey(u, base) {
   try { const x = new URL(u, base || 'https://example.invalid'); return x.hostname.replace(/^www\./, '').toLowerCase() + (x.pathname.replace(/\/+$/, '') || '/').toLowerCase(); } catch { return String(u).toLowerCase(); }
@@ -26,13 +36,14 @@ export function lint(doc, o = {}) {
   const max = o.maxGrade != null ? o.maxGrade : LIMITS.grade;
 
   /* how it reads */
-  const stats = grade(doc.prose);
+  /* a post's license tag and hashtags are not sentences */
+  const stats = grade(social ? doc.prose.replace(/(^|\s)#[A-Za-z]\w*/g, ' ').replace(/\b(?:TDLR\s+)?(?:Lic(?:ense)?\.?\s+)?TAC\s?L\s?[A-Z]\s?\d{4,}[A-Z]?\b\.?/gi, ' ') : doc.prose);
   if (stats.words >= 30 && stats.grade > max) add('reading-grade', 'error', `Reading grade ${stats.grade} (Flesch-Kincaid); the ceiling is ${max}. Split the sentences below and trade long words for short ones.`, hardest(stats, 5, max).map(s => `[grade ${s.grade}, ${s.words} words] ${s.text}`).join('\n'));
   else if (stats.words >= 120 && stats.grade < LIMITS.floor) add('reading-grade', 'warn', `Reading grade ${stats.grade} is under the ${LIMITS.floor} to ${max} target. Join a few short sentences so the page does not read choppy.`);
   for (const s of stats.per.filter(s => s.words > LIMITS.sentence).slice(0, 4)) add('long-sentence', 'warn', `A ${s.words} word sentence. Split it.`, s.text);
   const P = passives(text);
-  for (const p of P.slice(0, 12)) add('passive', 'error', `Passive voice: "${p.phrase}". Name who does it and lead with them.`, p.sentence);
-  if (P.length > 12) add('passive', 'error', `${P.length - 12} more passive constructions.`, '');
+  for (const p of P.slice(0, 25)) add('passive', 'error', `Passive voice: "${p.phrase}". Name who does it and lead with them.`, p.sentence);
+  if (P.length > 25) add('passive', 'error', `${P.length - 25} more passive constructions.`, '');
   F.push(...tropes(doc));
 
   if (!social) {
@@ -84,12 +95,23 @@ export function lint(doc, o = {}) {
     if (!(doc.jsonld || []).length && doc.format === 'html' && o.expectSchema) add('schema', 'error', 'No JSON-LD in the page.');
   }
 
+  /* what the page claims about its angle, its city and its numbers */
+  if (o.pack && !social) {
+    const pk = o.pack, angle = m.angle ? (pk.angles || []).find(a => a.id === m.angle) : null;
+    if (m.angle && !angle) add('angle', 'error', `The front matter names the angle "${m.angle}", which the ${pk.id} pack does not have. See: keywords ${pk.id}`);
+    const city = m.city && pk.cities ? pk.cities.find(c => c.name.toLowerCase() === String(m.city).toLowerCase()) : null;
+    if (m.city && pk.cities && !city) add('city', 'warn', `"${m.city}" is not a city in the ${pk.id} pack, so the atlas has no facts and no demand read for it.`);
+    if (city && angle && !city.angles.some(x => x.id === angle.id)) add('demand', 'warn', `The atlas finds no demand trigger for "${angle.label}" in ${city.name}${angle.why ? ` (its trigger: ${angle.why.replace(/\.$/, '')})` : ''}. Say so in the hand back and let the person decide whether the page is worth building.`);
+    const known = vouched(pk, city), odd = [...new Set((text.match(FIGURE) || []).map(x => x.trim()).filter(x => !known.has(x.replace(/[$,%\s]/g, ''))))];
+    if (odd.length) add('figure', 'warn', `${odd.length === 1 ? 'A figure' : 'Figures'} the atlas does not vouch for: ${odd.slice(0, 8).join(', ')}. Each needs a source from the person, or cut it.`);
+  }
+
   /* the vertical's advertising rules */
   const C = o.pack && o.pack.compliance, lic = o.brand && o.brand.license, everything = doc.blocks.map(b => b.text).join('\n');
   if (C) {
     if (C.licenseInEveryAsset && !((lic && everything.includes(lic)) || (C.licensePattern && new RegExp(C.licensePattern, 'i').test(everything)))) {
       const rule = (C.rules || []).find(r => r.id === 'TDLR1'), cite = rule ? ` (${rule.cite})` : '';
-      if (social) add('license', 'error', `The license number is missing. Every ad and post carries it${cite}.`, '', lic ? `Add "${o.pack.licenseLabel || 'Lic'} ${lic}".` : 'Set the license in the brand file.');
+      if (social) add('license', 'error', `The license number is missing. Every ad and post carries it${cite}.`, '', lic ? `Add "${o.pack.licenseLabel || ''} Lic ${lic}".`.replace('" Lic', '"Lic') : 'Set the license in the brand file.');
       else add('license', 'warn', `The license number is not in the page copy${cite}. Fine when the site footer prints it on every page; otherwise add it.`);
     }
     for (const r of C.rules || []) {

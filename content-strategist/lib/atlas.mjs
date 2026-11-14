@@ -182,11 +182,12 @@ const fact = (value, label, src, grade) => ({ value, label, source: SRC[src], gr
 
 /* how the Satchel's copy rules are tested here: the patterns are this toolkit's own reading of each rule, matched by id */
 const RULE_TESTS = {
+  TDLR2: { pattern: '\\b(proposals?|estimates?|invoices?|contracts?|financ\\w+)\\b', unless: 'Texas Department of Licensing and Regulation', per: 'page' },
   TAX1: { pattern: '(tax credit|\\b25C\\b|federal rebate|IRA rebate|inflation reduction act)', unless: '(ended|expired|lapsed|no longer|not available|terminated|does not qualify)', per: 'sentence' },
   REGZ1: { pattern: '(\\b\\d{1,3}\\s*(monthly\\s*)?payments?\\b|\\$\\s?\\d[\\d,]*\\s*(\\/|a|per)\\s*(mo|month)\\b|\\d+(\\.\\d+)?%\\s*(apr|interest|financing)|down payment|no interest|interest free|\\d+\\s*months?\\s*(no|0%|same as cash))', unless: '\\bAPR\\b[\\s\\S]*\\b(terms|approval)\\b|\\b(terms|approval)\\b[\\s\\S]*\\bAPR\\b', per: 'page' },
   FREE1: { pattern: '\\bfree\\b[^.]{0,40}' },
   GUAR1: { pattern: '\\b(guarantee[ds]?|guaranteed|warrant(y|ies)|lifetime (warranty|guarantee|coverage|protection|service))\\b[^.]{0,40}', unless: '(terms|details|conditions)', per: 'page' },
-  SUP1: { pattern: '(#\\s?1\\b|number one|best (hvac|ac|price|in )|lowest price|cheapest|top rated|highest rated|most trusted|beat any price)' },
+  SUP1: { pattern: '(#\\s?1\\b|number one|\\bbest (hvac |ac |a\\/c |heat pump |heating |cooling |furnace |air conditioning )?(repair|service|company|contractor|team|prices?|installers?|technicians?|techs?)\\b|\\bbest (hvac|ac|price|in )|lowest price|cheapest|top rated|highest rated|most trusted|beat any price)' },
   REV1: { pattern: '(\\d[\\d,]{2,}\\+?\\s*(five|5)\\s*star|\\b[45](\\.\\d)?\\s*stars?\\b|five star rated|5 star rated)' },
   URG1: { pattern: '(only \\d+ (spots|slots|units|left)|offer ends in|today only|act now|last chance|expires tonight)' },
   R22A: { pattern: '(r[\\s-]?22|r[\\s-]?410a|freon)[^.]{0,40}(illegal|banned to use|must be replaced|outlawed|no longer legal)' },
@@ -227,6 +228,7 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
   const cities = (D.cities || []).filter(c => c.sys > 0).map(c => {
     const zs = (c.zips || []).filter(z => ZR.some(r => r.zip === z)), pct = (a, b) => b ? Math.round(1000 * a / b) / 10 : 0;
     const ge15 = pct(c.ge15, c.sys), orig = pct(c.orig_win, c.sys);
+    const mine = ZR.filter(z => zs.includes(z.zip)), sum = k => mine.reduce((n, z) => n + (z[k] || 0), 0), hp = pct(sum('sys_hp'), sum('sys'));
     return {
       name: c.name, county: c.cty, pop: c.pop, housingUnits: c.hu, zips: c.zips || [], lat: c.lat, lon: c.lon,
       demand: { systems: round(c.sys), aged15: round(c.ge15), aged15Share: ge15, replacementsPerYear: round(c.rep), r22: round(c.r22), opportunityUsd: round(c.opp_usd) },
@@ -239,7 +241,8 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
         fact(N(round(c.furn20)), `gas furnaces in ${c.name} estimated at 20 years or older`, 'est', 'C'),
         fact(String(c.medyr), `median year ${c.name} homes were built`, 'acs', 'A'),
         fact(c.gas_sh + '%', `of ${c.name} homes heat with natural gas`, 'acs', 'A'),
-      ].filter(f => f.value && f.value !== '0' && f.value !== '0%'),
+        hp ? fact(hp + '%', `of ${c.name} central systems estimated to be heat pumps`, 'est', 'C') : null,
+      ].filter(f => f && f.value && f.value !== '0' && f.value !== '0%'),
       angles: zs.length ? angles.map(a => ({ id: a.id, share: Math.round(100 * zs.filter(z => a._hit.has(z)).length / zs.length) })).filter(x => x.share > 0).sort((x, y) => y.share - x.share) : [],
     };
   }).sort((a, b) => b.demand.replacementsPerYear - a.demand.replacementsPerYear);

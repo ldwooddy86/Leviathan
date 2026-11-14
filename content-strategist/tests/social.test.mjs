@@ -35,6 +35,10 @@ const calls = [], fetcher = async (url, o = {}) => { calls.push({ url, o }); if 
 const dir = tmp();
 let r = await send(post, 'facebook', { brand, dir, env, fetcher });
 ok(r.sent === false && r.request.body.message === post.facebook.text && calls.length === 0 && !fs.existsSync(dir + '/social-ledger.jsonl'), 'without confirm nothing is sent and nothing is recorded: the request comes back for review');
+const waiting = Object.assign({}, post, { pending: true });
+r = await send(waiting, 'facebook', { brand, dir, env: { FB_PAGE_ACCESS_TOKEN: 'tok' }, fetcher, confirm: true });
+ok(r.sent === false && r.pending === true && /not live/.test(r.note) && calls.length === 0 && /pending/.test((await send(waiting, 'gbp', { brand, dir, env, fetcher })).note), 'a pending post is never published, even with confirm; its dry run says so');
+ok(check(with_('gbp', { text: 'New page is up. TDLR Lic TACLA00000E' }), 'gbp', { pack, brand }).findings.some(f => f.rule === 'length' && f.severity === 'warn'), 'a Business Profile post too short to stand alone draws a warning');
 r = await send(post, 'facebook', { brand, dir, env: { FB_PAGE_ACCESS_TOKEN: 'tok' }, fetcher, confirm: true });
 ok(r.sent && r.id === '100000000000001_555' && calls.length === 1 && calls[0].o.headers.authorization === 'Bearer tok' && JSON.parse(calls[0].o.body).message === post.facebook.text, 'with confirm the same request goes out with the Page token');
 ok(sent(dir, 'facebook', post.facebook.text) && !sent(dir, 'gbp', post.gbp.text) && !fs.readFileSync(dir + '/social-ledger.jsonl', 'utf8').includes('tok'), 'the ledger records the post and never the token');

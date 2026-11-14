@@ -10,6 +10,7 @@
      verticals                            the packs: one per atlas in the console
      keywords <vertical> [--angle id] [--city name] [--find text]
      market <vertical> [--city name]      sourced local facts for a page
+     rules <vertical>                     the advertising rules, the license format, the notice text
      extract <atlas.html> [--id dfw]      rebuild a deep pack (and the local brand file) from a Thermal Debt atlas
      harvest                              rebuild the keyword packs from the console in leviathan/
 
@@ -95,8 +96,8 @@ const C = {
   help() { console.log(fs.readFileSync(new URL(import.meta.url), 'utf8').split('*/')[0].replace(/^#!.*\n\/\* ?/, '')); },
 
   where() {
-    const brand = loadBrand(), inv = loadInventory(brand), res = { local: LOCAL, out: OUT, drafts: path.join(LOCAL, 'drafts'), brandFile: brand ? brand._file : null, brand: brand ? { name: brand.name, site: brand.url, vertical: brand.vertical || null, license: brand.license ? 'set' : 'MISSING', phone: brand.phone ? 'set' : 'MISSING', facebookPage: (brand.social || {}).facebookPageId ? 'set' : 'not set', businessProfile: (brand.social || {}).gbpAccountId && (brand.social || {}).gbpLocationId ? 'set' : 'not set' } : null, sitemap: inv ? { pages: inv.pages.length, ageHours: inv.ageHours, file: inv._file } : null };
-    out(res, [`Client files: ${LOCAL}   (outside the repository; drafts in ${res.drafts}, built pages in ${OUT})`, brand ? `Brand: ${brand.name} · ${brand.url} · vertical ${brand.vertical || 'not set'} · license ${res.brand.license} · phone ${res.brand.phone} · Facebook Page ${res.brand.facebookPage} · Business Profile ${res.brand.businessProfile}   (${brand._file})` : `Brand: none yet. Run extract on an atlas, copy brand.example.json to ${brandFile()}, or set CS_BRAND_JSON.`, inv ? `Sitemap: ${inv.pages.length} live URLs, read ${inv.ageHours}h ago` : 'Sitemap: not read yet. Run: sitemap'].join('\n'));
+    const brand = loadBrand(), inv = loadInventory(brand), res = { local: LOCAL, out: OUT, drafts: path.join(LOCAL, 'drafts'), brandFile: brand ? brand._file : null, brand: brand ? { name: brand.name, site: brand.url, vertical: brand.vertical || null, license: brand.license ? 'set' : 'MISSING', phone: brand.phone ? 'set' : 'MISSING', facebookPage: (brand.social || {}).facebookPageId ? 'id on file' : 'no id', businessProfile: (brand.social || {}).gbpAccountId && (brand.social || {}).gbpLocationId ? 'ids on file' : 'no ids' } : null, sitemap: inv ? { pages: inv.pages.length, ageHours: inv.ageHours, file: inv._file } : null };
+    out(res, [`Client files: ${LOCAL}   (outside the repository; drafts in ${res.drafts}, built pages in ${OUT})`, brand ? `Brand: ${brand.name} · ${brand.url} · vertical ${brand.vertical || 'not set'} · license ${res.brand.license} · phone ${res.brand.phone} · Facebook Page ${res.brand.facebookPage} · Business Profile ${res.brand.businessProfile} (ids only; \`social whoami\` tests the credentials)   (${brand._file})` : `Brand: none yet. Run extract on an atlas, copy brand.example.json to ${brandFile()}, or set CS_BRAND_JSON.`, inv ? `Sitemap: ${inv.pages.length} live URLs, read ${inv.ageHours}h ago` : 'Sitemap: not read yet. Run: sitemap'].join('\n'));
   },
 
   verticals() {
@@ -109,20 +110,23 @@ const C = {
     const C0 = city && (pack.cities || []).find(c => c.name.toLowerCase() === city.toLowerCase());
     if (city && pack.cities && !C0) die(`"${city}" is not a city in the ${pack.id} pack. Cities: ${(pack.cities || []).slice(0, 40).map(c => c.name).join(', ')}...`);
     let angles = pack.angles.filter(a => !A.angle || a.id === A.angle);
-    if (C0) { const share = Object.fromEntries(C0.angles.map(x => [x.id, x.share])); angles = angles.filter(a => share[a.id]).map(a => Object.assign({}, a, { demandShare: share[a.id] })).sort((x, y) => y.demandShare - x.demandShare); }
+    if (C0) { const share = Object.fromEntries(C0.angles.map(x => [x.id, x.share])); angles = angles.map(a => Object.assign({}, a, { demandShare: share[a.id] || 0 })).sort((x, y) => y.demandShare - x.demandShare); }
     if (find) angles = angles.filter(a => JSON.stringify([a.label, a.keywords]).toLowerCase().includes(find));
     const fill = k => city ? k.replace(/\{city\}/gi, city) : k;
     const rows = angles.map(a => ({ id: a.id, label: a.label, line: a.line, page: a.page ? a.page.slug : a.path || '', why: a.why, demandShare: a.demandShare, reach: a.reach, topCities: a.topCities, keywords: Object.fromEntries(Object.entries(a.keywords).map(([k, v]) => [k, v.map(fill)])) }));
     const res = { vertical: pack.id, atlas: pack.atlas, note: pack.note, city: C0 ? { name: C0.name, county: C0.county, demand: C0.demand } : undefined, angles: rows, negatives: A.angle ? undefined : pack.negatives };
     const T = [`${pack.atlas} · ${pack.vertical}${C0 ? ' · ' + C0.name + ' (' + C0.county + ' County)' : ''}`, pack.note || '', ''];
+    if (!rows.length) T.push(`No angle matches${A.angle ? ` the id "${A.angle}"` : ''}${find ? ` "${find}"` : ''}. Angles: ${pack.angles.map(a => a.id).join(', ')}`);
+    let cut = false;
     for (const r of rows) {
-      T.push(`${r.id}  ${r.label}${r.page ? '   page: ' + r.page : ''}${r.demandShare != null ? `   demand in ${r.demandShare}% of ${city}'s ZIPs` : r.reach ? `   demand in ${r.reach.zips} of ${r.reach.of} ZIPs` : ''}`);
+      if (C0 && !r.demandShare && !cut) { cut = true; T.push(`No demand trigger in ${C0.name} for the angles below. The keywords still exist; the atlas's model just does not point here. Tell the person before you build one of these.`, ''); }
+      T.push(`${r.id}  ${r.label}${r.page ? '   page: ' + r.page : ''}${r.demandShare != null ? (r.demandShare ? `   demand in ${r.demandShare}% of ${C0.name}'s ZIPs` : `   NO demand trigger in ${C0.name}`) : r.reach ? `   demand in ${r.reach.zips} of ${r.reach.of} ZIPs` : ''}`);
       if (r.why) T.push('   when: ' + r.why);
       for (const [k, v] of Object.entries(r.keywords)) if (v.length) T.push(`   ${k.padEnd(10)} ${v.join(' | ')}`);
       if (r.topCities && r.topCities.length && !C0) T.push('   strongest  ' + r.topCities.join(', '));
       T.push('');
     }
-    if (res.negatives) for (const [k, v] of Object.entries(res.negatives)) T.push(`${k}: ${v.slice(0, 40).join(', ')}${v.length > 40 ? ', ...' : ''}`);
+    if (res.negatives) for (const [k, v] of Object.entries(res.negatives)) T.push(`${k}${/RECRUIT|EMPLOYER/.test(k) ? ' (hiring ads only; ignore for customer pages)' : ' (searches the business does not want)'}: ${v.slice(0, 40).join(', ')}${v.length > 40 ? ', ...' : ''}`);
     out(res, T.join('\n'));
   },
 
@@ -133,6 +137,13 @@ const C = {
     const line = f => `  ${String(f.value).padEnd(10)} ${f.label}\n             source: ${f.source} (grade ${f.grade})${f.estimate ? '. A model estimate: word it as one ("an estimated", "about").' : ''}`;
     const T = city ? [`${city.name}, ${city.county} County · ZIPs ${city.zips.join(' ')}`, '', ...city.facts.map(line), '', pack.market.name + ':', ...pack.market.facts.map(line)] : [pack.market.name, '', ...pack.market.facts.map(line), '', 'Cities by replacements a year: ' + res.cities.map(c => `${c.name} ${c.replacementsPerYear}`).join(', ')];
     out(res, T.join('\n'));
+  },
+
+  rules() {
+    const pack = loadPack(A._[0] || die('rules <vertical>')), C0 = pack.compliance; if (!C0) die(`The ${pack.id} pack is a keyword pack; it carries no advertising rules. Ask the person which rules bind this client's ads.`);
+    const brand = loadBrand(), lic = brand && brand.license ? `${pack.licenseLabel || ''} Lic ${brand.license}`.trim() : `${pack.licenseLabel || ''} Lic <number>`.trim();
+    const res = { vertical: pack.id, license: { everyAdAndPost: C0.licenseInEveryAsset, writeItAs: lic }, notice: C0.notice, consent: C0.consent, rules: C0.rules.map(r => ({ id: r.id, gate: r.id === 'TDLR1' ? 'fails a post' : r.test ? { block: 'fails the build', warn: 'warning', note: 'note' }[r.severity] : 'not tested here', enforcer: r.enforcer, name: r.name, cite: r.cite, fix: r.fix })) };
+    out(res, [`${pack.atlas}: advertising rules`, '', `License: ${C0.licenseInEveryAsset ? 'on every ad and every post; on every page unless the site footer prints it.' : 'no rule on file.'} Write it as "${lic}".`, '', 'Notice for a page that talks about proposals, estimates, contracts or financing (put it in a verbatim block, word for word):', '  ' + (C0.notice || 'none on file'), '', 'Consent text under a form that collects a phone number:', '  ' + (C0.consent || 'none on file'), '', ...res.rules.map(r => `${r.id.padEnd(6)} ${r.gate.padEnd(16)} ${r.name}\n         ${r.enforcer}; ${r.cite}\n         fix: ${r.fix}`), '', 'A rule that only warns still needs an answer: confirm the claim with the person or cut it.'].join('\n'));
   },
 
   async extract() {
@@ -226,7 +237,7 @@ const C = {
     if (sub !== 'post') die(`Unknown: social ${sub}`);
     if (A.confirm) viaProxy();
     const res = []; for (const p of want) { try { res.push(await social.send(post, p, { brand, confirm: !!A.confirm, dir: LOCAL })); } catch (e) { res.push({ sent: false, platform: p, error: e.message }); process.exitCode = 1; } }
-    out(res, res.map(x => x.sent ? `SENT  ${x.platform}  ${x.scheduled ? 'scheduled  ' : ''}${x.id}  ${x.url || ''}` : x.error ? `FAILED  ${x.platform}  ${x.error}` : x.duplicate ? `SKIPPED  ${x.platform}  ${x.note}` : `DRY RUN  ${x.platform}\n  ${x.request.method} ${x.request.url}\n  ${JSON.stringify(x.request.body, null, 1).split('\n').join('\n  ')}\n  ${x.note}`).join('\n\n'));
+    out(res, res.map(x => x.sent ? `SENT  ${x.platform}  ${x.scheduled ? 'scheduled  ' : ''}${x.id}  ${x.url || ''}` : x.error ? `FAILED  ${x.platform}  ${x.error}` : x.duplicate ? `SKIPPED  ${x.platform}  ${x.note}` : x.pending && !x.request ? `HELD  ${x.platform}  ${x.note}` : `DRY RUN  ${x.platform}${x.pending ? '  (PENDING: waits on a page that is not live)' : ''}\n  ${x.request.method} ${x.request.url}\n  ${JSON.stringify(x.request.body, null, 1).split('\n').join('\n  ')}\n  ${x.note}`).join('\n\n'));
   },
 };
 

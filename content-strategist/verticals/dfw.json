@@ -1538,6 +1538,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "31.1%",
+     "label": "of Dallas central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -1733,6 +1740,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "32.8%",
+     "label": "of Fort Worth central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -1900,6 +1914,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.5%",
+     "label": "of Arlington central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2061,6 +2082,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "23%",
+     "label": "of Plano central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2201,6 +2229,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "32%",
+     "label": "of Irving central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2347,6 +2382,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "20.8%",
+     "label": "of Frisco central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2483,6 +2525,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "26%",
+     "label": "of Garland central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2626,6 +2675,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "20.7%",
+     "label": "of McKinney central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2761,6 +2817,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "30.6%",
+     "label": "of Grand Prairie central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -2912,6 +2975,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.6%",
+     "label": "of Denton central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3065,6 +3135,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "27.3%",
+     "label": "of Carrollton central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3190,6 +3267,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "27.7%",
+     "label": "of Mesquite central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3323,6 +3407,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.4%",
+     "label": "of Richardson central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3449,6 +3540,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "30.5%",
+     "label": "of Lewisville central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3581,6 +3679,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "19.2%",
+     "label": "of Allen central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3710,6 +3815,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "15.4%",
+     "label": "of Flower Mound central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3842,6 +3954,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.6%",
+     "label": "of Mansfield central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -3975,6 +4094,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "32.7%",
+     "label": "of North Richland Hills central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4104,6 +4230,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "18.5%",
+     "label": "of Rowlett central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4232,6 +4365,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "36.6%",
+     "label": "of Euless central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4351,6 +4491,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "26.4%",
+     "label": "of DeSoto central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4467,6 +4614,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "30.4%",
+     "label": "of Grapevine central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4575,6 +4729,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "35.6%",
+     "label": "of Bedford central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4715,6 +4876,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "21%",
+     "label": "of Rockwall central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4838,6 +5006,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "24%",
+     "label": "of Wylie central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -4954,6 +5129,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "21.5%",
+     "label": "of Keller central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5088,6 +5270,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "23.4%",
+     "label": "of Little Elm central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5219,6 +5408,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "31.1%",
+     "label": "of The Colony central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5327,6 +5523,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "39.5%",
+     "label": "of Burleson central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5446,6 +5649,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "35.9%",
+     "label": "of Cedar Hill central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5569,6 +5779,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.3%",
+     "label": "of Haltom City central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5708,6 +5925,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "22.4%",
+     "label": "of Coppell central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5820,6 +6044,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.6%",
+     "label": "of Hurst central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -5952,6 +6183,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "32.5%",
+     "label": "of Lancaster central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6072,6 +6310,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "35.9%",
+     "label": "of Waxahachie central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6203,6 +6448,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "30.8%",
+     "label": "of Farmers Branch central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6339,6 +6591,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "29%",
+     "label": "of Duncanville central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6466,6 +6725,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "38.9%",
+     "label": "of Midlothian central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6585,6 +6851,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "16%",
+     "label": "of Prosper central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6704,6 +6977,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "12.3%",
+     "label": "of Southlake central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6826,6 +7106,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "38.1%",
+     "label": "of Weatherford central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -6953,6 +7240,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "10.7%",
+     "label": "of Colleyville central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7076,6 +7370,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "17.9%",
+     "label": "of Sachse central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7196,6 +7497,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "29%",
+     "label": "of Greenville central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7316,6 +7624,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "35.4%",
+     "label": "of Cleburne central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7442,6 +7757,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.2%",
+     "label": "of Benbrook central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7582,6 +7904,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33%",
+     "label": "of Saginaw central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7705,6 +8034,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "27%",
+     "label": "of Forney central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7821,6 +8157,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "42.3%",
+     "label": "of Addison central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -7945,6 +8288,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "23.6%",
+     "label": "of Corinth central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8065,6 +8415,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "36.3%",
+     "label": "of Watauga central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8188,6 +8545,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "10.9%",
+     "label": "of Murphy central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8320,6 +8684,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.1%",
+     "label": "of Balch Springs central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8457,6 +8828,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "21.2%",
+     "label": "of Celina central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8581,6 +8959,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "23.7%",
+     "label": "of University Park central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8696,6 +9081,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.6%",
+     "label": "of Ennis central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8811,6 +9203,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.8%",
+     "label": "of Crowley central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -8926,6 +9325,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.5%",
+     "label": "of White Settlement central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9039,6 +9445,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.3%",
+     "label": "of Fate central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9162,6 +9575,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "18.8%",
+     "label": "of Highland Village central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9277,6 +9697,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.3%",
+     "label": "of Anna central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9392,6 +9819,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.5%",
+     "label": "of Princeton central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9499,6 +9933,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.6%",
+     "label": "of Glenn Heights central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9606,6 +10047,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.6%",
+     "label": "of Royse City central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9725,6 +10173,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.6%",
+     "label": "of Red Oak central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9833,6 +10288,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.1%",
+     "label": "of Terrell central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -9960,6 +10422,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "18.1%",
+     "label": "of Melissa central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10071,6 +10540,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.8%",
+     "label": "of Seagoville central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10186,6 +10662,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.9%",
+     "label": "of Trophy Club central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10307,6 +10790,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.5%",
+     "label": "of Rendon (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10442,6 +10932,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "41.8%",
+     "label": "of Azle central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10546,6 +11043,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "41.5%",
+     "label": "of Granbury central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10657,6 +11161,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "27.3%",
+     "label": "of Fairview central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10764,6 +11275,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.9%",
+     "label": "of Roanoke central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -10883,6 +11401,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "17.3%",
+     "label": "of Lantana (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11007,6 +11532,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33.1%",
+     "label": "of Forest Hill central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11130,6 +11662,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.6%",
+     "label": "of Heath central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11241,6 +11780,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "31.3%",
+     "label": "of Kennedale central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11364,6 +11910,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "35.7%",
+     "label": "of Sanger central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11471,6 +12024,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.7%",
+     "label": "of Paloma Creek South (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11590,6 +12150,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28%",
+     "label": "of Richland Hills central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11711,6 +12278,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "33%",
+     "label": "of Highland Park central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11834,6 +12408,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "22.5%",
+     "label": "of Lake Dallas central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -11933,6 +12514,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.5%",
+     "label": "of Commerce central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12044,6 +12632,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "14.2%",
+     "label": "of Sunnyvale central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12163,6 +12758,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "27%",
+     "label": "of Heartland (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12278,6 +12880,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.1%",
+     "label": "of Providence Village central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12393,6 +13002,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "40.3%",
+     "label": "of Joshua central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12500,6 +13116,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "17.5%",
+     "label": "of Lucas central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12619,6 +13242,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "37.7%",
+     "label": "of Decatur central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12736,6 +13366,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "23.4%",
+     "label": "of Northlake central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12863,6 +13500,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "42.9%",
+     "label": "of Pecan Plantation (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -12971,6 +13615,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "41.2%",
+     "label": "of Briar (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13086,6 +13737,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.1%",
+     "label": "of Savannah (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13201,6 +13859,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.4%",
+     "label": "of River Oaks central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13320,6 +13985,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "27%",
+     "label": "of Travis Ranch (CDP) central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13435,6 +14107,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.1%",
+     "label": "of Aubrey central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13550,6 +14229,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "36.3%",
+     "label": "of Kaufman central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13666,6 +14352,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "38.8%",
+     "label": "of Keene central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13797,6 +14490,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.8%",
+     "label": "of Krum central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -13913,6 +14613,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "15.8%",
+     "label": "of Parker central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14044,6 +14751,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "22.5%",
+     "label": "of Hickory Creek central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14144,6 +14858,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "36.3%",
+     "label": "of Willow Park central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14271,6 +14992,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "31.2%",
+     "label": "of Aledo central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14394,6 +15122,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "34.8%",
+     "label": "of Everman central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14505,6 +15240,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "25.7%",
+     "label": "of Oak Point central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14624,6 +15366,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "17.3%",
+     "label": "of Argyle central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14747,6 +15496,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "31.7%",
+     "label": "of Lavon central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14866,6 +15622,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "31.2%",
+     "label": "of Justin central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -14977,6 +15740,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "29.3%",
+     "label": "of Pilot Point central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15084,6 +15854,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "32.5%",
+     "label": "of Hutchins central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15191,6 +15968,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "28.4%",
+     "label": "of Sansom Park central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15310,6 +16094,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "30.4%",
+     "label": "of Bridgeport central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15417,6 +16208,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "41.1%",
+     "label": "of Alvarado central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15524,6 +16322,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "40.6%",
+     "label": "of Wilmer central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15635,6 +16440,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "37.6%",
+     "label": "of Venus central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15751,6 +16563,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "39.6%",
+     "label": "of Josephine central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -15879,6 +16698,13 @@
      "source": "U.S. Census Bureau, American Community Survey 2020 to 2024",
      "grade": "A",
      "estimate": false
+    },
+    {
+     "value": "39.9%",
+     "label": "of Mabank central systems estimated to be heat pumps",
+     "source": "Estimate from Census housing data and EIA RECS 2020 equipment ages",
+     "grade": "C",
+     "estimate": true
     }
    ],
    "angles": [
@@ -16149,7 +16975,12 @@
     "name": "TDLR consumer notice on proposals, invoices, contracts and signage",
     "cite": "16 TAC §75.71(i)",
     "fix": "Add: Regulated by The Texas Department of Licensing and Regulation, P.O. Box 12157, Austin, Texas 78711, 1 800 803 9202, 512 463 6599.",
-    "scope": "page"
+    "scope": "page",
+    "test": {
+     "pattern": "\\b(proposals?|estimates?|invoices?|contracts?|financ\\w+)\\b",
+     "unless": "Texas Department of Licensing and Regulation",
+     "per": "page"
+    }
    },
    {
     "id": "TAX1",
@@ -16209,7 +17040,7 @@
     "cite": "FTC Policy Statement on Substantiation; DTPA §17.46(b)(5),(7)",
     "fix": "Cite the basis (for example \"4.9 stars from 708 Google reviews, Sep 2026\") or remove the claim.",
     "test": {
-     "pattern": "(#\\s?1\\b|number one|best (hvac|ac|price|in )|lowest price|cheapest|top rated|highest rated|most trusted|beat any price)"
+     "pattern": "(#\\s?1\\b|number one|\\bbest (hvac |ac |a\\/c |heat pump |heating |cooling |furnace |air conditioning )?(repair|service|company|contractor|team|prices?|installers?|technicians?|techs?)\\b|\\bbest (hvac|ac|price|in )|lowest price|cheapest|top rated|highest rated|most trusted|beat any price)"
     }
    },
    {

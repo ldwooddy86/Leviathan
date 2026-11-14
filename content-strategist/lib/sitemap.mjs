@@ -172,6 +172,11 @@ export function cannibal(keyword, inv, { pack = null, brand = null, type = 'land
   if (want.place && !inv.some(p => same(p.place, want.place))) advice.push(`No live page names ${want.place} yet. This page will be the first; make it specific to ${want.place}.`);
   if (!want.angle && pack) advice.push('The keyword matches no service angle in the vertical pack. Check `keywords` for the angle it belongs to, or treat it as a new topic.');
   for (const p of planned) advice.push(p.note + ` ("${p.h1}").`);
+  if (want.place && !conflicts.length && mode === 'service') {
+    const like = inv.find(p => p.kind === 'service-location'), ang = pack && (pack.angles || []).find(x => x.id === want.angle);
+    if (like) advice.push(`Slug: the site's city pages look like ${like.path}. Follow that pattern.`);
+    if (ang && ang.page && ang.page.h1City) advice.push(`The Site Forge heads this kind of page "${ang.page.h1City.replace(/\{city\}/g, want.place)}".`);
+  }
   return { verdict: conflicts.length ? 'conflict' : 'clear', want, conflicts: conflicts.slice(0, 8), neighbors: neighbors.slice(0, 12), planned, avoid: avoid.slice(0, 20), advice };
 }
 
@@ -179,7 +184,12 @@ export function cannibal(keyword, inv, { pack = null, brand = null, type = 'land
 /* the live pages a new page should link to: [{url, anchor, why, score}] */
 export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, selfUrl = '', type = 'landing' } = {}) {
   const P = placesOf(pack, brand), c = cannibal(keyword, inv, { pack, brand, type, selfUrl }), W = c.want, self = selfUrl ? urlKey(selfUrl) : '';
-  const lineOf = id => { const a = pack && (pack.angles || []).find(x => x.id === id); return a ? a.line : null; }, myLine = lineOf(W.angle), mine = key(keyword), used = new Set();
+  /* two angles are sisters when the atlas sells them on one service line (the full service blend does not count) */
+  const lines = pack && pack.lines ? Object.entries(pack.lines).filter(([k]) => k !== 'blend').map(([, l]) => l.angles || []) : [];
+  const sisters = (a, b) => !!a && !!b && a !== b && lines.some(l => l.includes(a) && l.includes(b));
+  const INTENT = [['maintain', /mainten|tune|plan\b|inspect|check/], ['replace', /replac|install|new\b|upgrade/], ['repair', /repair|fix|not (work|cool|heat)|broken|emergency/]];
+  const intentOf = s => (INTENT.find(([, re]) => re.test(norm(s))) || [''])[0], my = intentOf(keyword), fit = p => { const pi = intentOf(p.topic || p.keyword); return (pi && pi === my ? 1.5 : 0) + (my === 'repair' && pi === 'maintain' ? 1 : 0); };
+  const mine = key(keyword), used = new Set();
   const rows = [];
   for (const p of inv) {
     if (p.key === self || p.noindex || ['taxonomy', 'legal', 'landing', 'home'].includes(p.kind)) continue;
@@ -191,9 +201,9 @@ export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, se
     else if (samePlace && p.kind === 'location') { score += 4; why = `the ${p.place} page`; }
     else if (sameAngle && p.kind === 'post') { score += 3; why = 'a post on the same service'; }
     else if (sameAngle && !W.place && p.kind === 'service-location') { score += 2; why = `the ${p.place} version of this service`; }
-    else if (p.angle && myLine && lineOf(p.angle) === myLine && !p.place && p.kind === 'service') { score += 3; why = 'a sister service'; }
+    else if (sisters(W.angle, p.angle) && !p.place && p.kind === 'service') { score += 1.5 + fit(p); why = 'a sister service'; }
     else if (samePlace && p.kind === 'service-location') { score += 1.5; why = `another service in ${p.place}`; }
-    else if (p.kind === 'service' && !p.place && p.angle) { score += 1; why = 'a related service'; }
+    else if (p.kind === 'service' && !p.place && p.angle) { score += 1 + fit(p); why = 'a related service'; }
     else if (p.kind === 'contact') { score += 2; why = 'the next step for the reader'; }
     else if (p.kind === 'hub' && /financ|review|about/.test(p.path)) { score += 0.8; why = 'proof or terms the reader may want'; }
     else if (sim >= 0.34) why = 'a related topic';
@@ -203,9 +213,9 @@ export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, se
   }
   rows.sort((a, b) => b.score - a.score);
   const out = [];
-  for (const r of rows) {
-    if (out.length >= n) break;
-    if (r.kind === 'contact' && out.some(x => x.kind === 'contact')) continue;
+  const step = rows.find(r => r.kind === 'contact'), room = step ? Math.max(1, n - 1) : n;      /* the last place goes to the next step */
+  for (const r of [...rows.filter(r => r.kind !== 'contact'), ...(step ? [step] : [])]) {
+    if (out.length >= (r.kind === 'contact' ? n : room)) { if (r.kind !== 'contact') continue; break; }
     let anchor = r.kind === 'contact' ? 'schedule a visit' : r.base.replace(/\s+/g, ' ').trim();
     if (key(anchor) === mine) anchor = r.why === 'the parent service page' && W.angleLabel ? W.angleLabel.toLowerCase() : 'our ' + anchor;
     if (used.has(norm(anchor))) continue; used.add(norm(anchor));

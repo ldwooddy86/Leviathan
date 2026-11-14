@@ -16,7 +16,7 @@ import { parseMarkdown } from './doc.mjs';
 import { lint, urlKey } from './lint.mjs';
 
 export const GRAPH = process.env.FB_GRAPH_VERSION || 'v26.0';
-export const LIMIT = { facebook: { hard: 63206, soft: 500, tags: 3 }, gbp: { hard: 1500, soft: 750 } };
+export const LIMIT = { facebook: { hard: 63206, soft: 500, tags: 3 }, gbp: { hard: 1500, soft: 750, min: 100 } };
 const CTA = ['BOOK', 'ORDER', 'SHOP', 'LEARN_MORE', 'SIGN_UP', 'CALL'];
 const PHONE = /\(?\b\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/;
 
@@ -30,6 +30,7 @@ export function check(post, platform, { pack = null, brand = null, live = null }
   if (!text.trim()) add('empty', 'error', 'The post has no text.');
   if (text.length > L.hard) add('length', 'error', `${text.length} characters; ${platform === 'gbp' ? 'Google Business Profile' : 'Facebook'} takes ${L.hard} at most.`);
   else if (text.length > L.soft) add('length', 'warn', `${text.length} characters. Past ${L.soft} most readers never open the rest.`);
+  else if (L.min && text.trim() && text.length < L.min) add('length', 'warn', `${text.length} characters. A Business Profile post under ${L.min} says too little to stand without its link; 150 to 300 works best.`);
   if (link && !/^https:\/\//.test(link)) add('link', 'error', `The link is not an https URL: ${link}`);
   if (link && brand && brand.domain && !new RegExp('(^|\\.)' + brand.domain.replace(/\./g, '\\.') + '$', 'i').test(new URL(link).hostname)) add('link', 'warn', `The link leaves ${brand.domain}.`, link);
   if (link && live && !live.has(urlKey(link)) && !post.pending) add('link', 'error', `${link} is not in the sitemap. Post after the page is live, or mark the post "pending": true while the page is a draft.`);
@@ -99,7 +100,8 @@ export function sent(dir, platform, text) { const f = LEDGER(dir); if (!fs.exist
 /* publishes one platform's copy. Without confirm it returns the request and sends nothing. */
 export async function send(post, platform, { brand = null, confirm = false, dir = '', env = process.env, fetcher = fetch } = {}) {
   const rq = request(post, platform, brand, env);
-  if (!confirm) return { sent: false, platform, request: rq, note: 'Dry run: nothing was sent. Show this to the person and pass --confirm only after they approve this exact text.' };
+  if (!confirm) return { sent: false, platform, request: rq, pending: !!post.pending, note: 'Dry run: nothing was sent. Show this to the person and pass --confirm only after they approve this exact text.' + (post.pending ? ' This post is marked pending: it waits on a page that is not live, and it cannot be published until the mark is removed.' : '') };
+  if (post.pending) return { sent: false, platform, pending: true, note: 'Not sent: the post is marked pending because its page is not live yet. Publish the page, read the sitemap again, remove "pending" and lint the post once more.' };
   const before = dir ? sent(dir, platform, post[platform].text) : null;
   if (before && !post.repost) return { sent: false, platform, duplicate: before, note: `This exact text went to ${platform} on ${before.at} (${before.id}). Set "repost": true to send it again.` };
   const token = platform === 'facebook' ? (env.FB_PAGE_ACCESS_TOKEN || '') : await googleToken(env, fetcher);

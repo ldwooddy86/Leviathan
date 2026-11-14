@@ -33,5 +33,5 @@ Most summer breakdowns begin as small problems that nobody noticed in the spring
 Call our office or [schedule a visit](https://www.example-air.test/contact/) online whenever it suits you. Describe what the system is doing, and our dispatcher will offer an arrival window that fits around your schedule.
 
 <!-- verbatim -->
-TDLR License TACLA00000E. Regulated by The Texas Department of Licensing and Regulation, P.O. Box 12157, Austin, Texas 78711, 1 800 803 9202, 512 463 6599.
+TDLR Lic TACLA00000E. Regulated by The Texas Department of Licensing and Regulation, P.O. Box 12157, Austin, Texas 78711, 1 800 803 9202, 512 463 6599.
 <!-- /verbatim -->

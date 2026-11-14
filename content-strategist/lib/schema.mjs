@@ -90,7 +90,7 @@ export function buildSchema(o) {
 
   if (type === 'landing') {
     graph.push(clean({
-      '@type': 'Service', '@id': main, name: doc.h1, serviceType: (angle && angle.label) || m.service || m.keyword, description: m.description, url, provider: { '@id': org['@id'] },
+      '@type': 'Service', '@id': main, name: doc.h1, serviceType: m.service || (angle && angle.label) || m.keyword, description: m.description, url, provider: { '@id': org['@id'] },
       areaServed: place(m.city, pack, brand), category: pack && pack.vertical, image, mainEntityOfPage: { '@id': url + '#webpage' },
       availableChannel: brand.phone ? { '@type': 'ServiceChannel', serviceUrl: url, servicePhone: { '@type': 'ContactPoint', telephone: brand.phone, contactType: 'customer service' } } : undefined,
     }));

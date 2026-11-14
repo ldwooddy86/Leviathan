@@ -60,10 +60,15 @@ ok(r.planned.some(p => p.guide === 'aclife'), 'a topic the Site Forge already pl
 r = cannibal('r22 ac replacement', inv, { pack, brand });
 ok(r.verdict === 'clear' && r.planned.some(p => p.slug === 'r22-ac-replacement') && r.neighbors.some(n => n.relation === 'a sister service' && n.url.endsWith('/ac-replacement/')), 'a service the atlas keeps apart is a sister page, and the page the Site Forge plans for it is named', r.planned);
 
+r = cannibal('heat pump repair frisco', inv, { pack, brand });
+ok(r.verdict === 'clear' && r.advice.some(a => /Slug: the site's city pages look like \/ac-repair-frisco-tx\//.test(a)) && r.advice.some(a => a.includes('"Heat Pump Service in Frisco"')), 'a city page is told the slug pattern the live site uses and the heading the Site Forge gives it', r.advice);
+
 /* ---- internal links ---- */
 let L = linkTargets('ac repair plano', inv, { pack, brand, n: 6 });
 ok(L.targets[0].url.endsWith('/ac-repair/') && L.targets[0].why === 'the parent service page' && L.targets.some(t => t.url.endsWith('/plano-hvac/')) && L.targets.some(t => t.kind === 'contact'), 'the parent service page first, then the city page, with a next step', L.targets.map(t => t.url));
 ok(!L.targets.some(t => /frisco|privacy|category|\/lp-/.test(t.url)) && new Set(L.targets.map(t => t.anchor.toLowerCase())).size === L.targets.length && L.targets.every(t => key(t.anchor) !== key('ac repair plano')), 'never another city, a legal, taxonomy or campaign page; anchors differ and none is the page\'s own keyword', L.targets.map(t => t.anchor));
+L = linkTargets('heat pump repair frisco', inv, { pack, brand, n: 6 });
+ok(L.targets[0].url.endsWith('/heat-pump/') && L.targets.some(t => t.url.endsWith('/heating-repair/')) && !L.targets.some(t => /ac-replacement|financing/.test(t.url)) && L.targets[L.targets.length - 1].kind === 'contact', 'a repair page is sent to repair pages, not to replacement and financing; the last link is the next step', L.targets.map(t => t.url.split('/').slice(-2)[0]));
 L = linkTargets('ac repair frisco', inv, { pack, brand, selfUrl: 'https://www.example-air.test/ac-repair-frisco-tx/' });
 ok(!L.targets.some(t => t.url.endsWith('/ac-repair-frisco-tx/')), 'a page is never its own link target');
 L = linkTargets('ac frozen coil', inv, { pack, brand, type: 'blog' });

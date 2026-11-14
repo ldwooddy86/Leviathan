@@ -17,14 +17,17 @@ Every landing page, blog post and content page passes one gate before it is writ
 | Rule | How it is checked |
 |---|---|
 | 9th grade reading level | Flesch-Kincaid over the page's prose. Above grade 9 fails and the sentences to shorten are listed; under 7 draws a warning. |
-| No passive voice | A form of "to be" or "get" with a past participle. A plain state ("the coil is frozen", "we are licensed") passes unless a "by" phrase names the actor. |
+| No passive voice | A form of "to be" or "get" with a past participle, through any adverbs between them. A plain state in the present tense ("the coil is frozen", "we are licensed") passes unless a "by" phrase names the actor. |
 | No AI tropes | Em and en dashes, bullet and numbered lists, a reflex FAQ block, bolded lead ins, "Conclusion" headings, emoji, chat leftovers, and about a hundred stock phrases. A request can allow one by name (`--allow faq`, `--allow ordered-list`). |
 | No cannibalization | The page's keyword is weighed against every live URL in the sitemap. The same service in the same place is a conflict, and the build stops. |
 | Internal links from the sitemap | Every internal link must be a live URL. Generic anchors fail, and so does anchoring another page with the page's own keyword. |
 | Schema with every page | One JSON-LD graph: the business, the site, the page with its breadcrumb and a speakable pointer at the opening answer, and a Service, BlogPosting or Article. Validated against the page before it is written. No rating or review is ever generated. |
-| The vertical's advertising rules | For the DFW pack, the atlas's Satchel rules: the TDLR license number, tax credit, financing, guarantee, superiority and availability claims, each with its cite and fix. |
+| The vertical's advertising rules | For the DFW pack, the atlas's Satchel rules: the TDLR license number and notice, tax credit, financing, guarantee, superiority and availability claims, each with its cite and fix. A rule the atlas grades a block fails the build; the rest warn. |
+| Figures and demand | Every dollar amount, percentage and large count is looked up in the pack's facts for the market and the page's city, and the ones it cannot find are listed for the person to source. A page for an angle with no demand trigger in its city draws a warning that gives the atlas's trigger. |
 
-Social posts go through the same writing rules plus each platform's limits. Nothing is published without `--confirm`, and the agent passes that only after the person approves the exact text.
+Social posts go through the same writing rules plus each platform's limits. Nothing is published without `--confirm`, and the agent passes that only after the person approves the exact text. A post marked pending, because its page is not live yet, cannot be published at all.
+
+The gate measures form. It does not know whether a claim about the business is true, so the agent is told to make none it cannot trace to the brand file or the person, and to list the ones it could not confirm.
 
 ## What each vertical knows
 
@@ -32,7 +35,7 @@ Social posts go through the same writing rules plus each platform's limits. Noth
 
 | Depth | Packs | Holds |
 |---|---|---|
-| deep | `dfw` (DFW Thermal Debt Atlas, Build 6) | 20 service angles with core, city and question terms; where each angle has demand, by ZIP and by city; sourced facts for 119 cities as the Site Forge prints them; the pages the Site Forge plans; the Satchel's advertising rules; the TDLR notice and consent text. |
+| deep | `dfw` (DFW Thermal Debt Atlas, Build 6) | 20 service angles with core, city and question terms; where each angle has demand, by ZIP and by city, and where it has none; sourced facts for 119 cities as the Site Forge prints them; the pages the Site Forge plans; the Satchel's advertising rules; the TDLR notice and consent text. |
 | keywords | `hvac`, `plumbing`, `roofing`, `pest`, `dental`, `ocular`, `oncology`, `criminal`, `criminal_la`, `injury`, `injury_la`, `family`, `employment` | The keyword library the atlas keeps beside its ad copy: angles with core, question, Spanish and state terms, and the negatives. |
 
 The atlases carry no search volumes. A keyword ranks by the demand the atlas models for its angle in a place, not by a volume.
@@ -59,6 +62,7 @@ node content-strategist/cli.mjs where                       the brand on file, t
 node content-strategist/cli.mjs verticals                   the packs
 node content-strategist/cli.mjs keywords dfw --city Plano   angles by demand in a city, the city filled in
 node content-strategist/cli.mjs market dfw --city Plano     sourced local facts
+node content-strategist/cli.mjs rules dfw                   the advertising rules, the license format, the notice text
 node content-strategist/cli.mjs sitemap                     read the client's sitemap (or: sitemap saved-file.xml)
 node content-strategist/cli.mjs cannibal "ac repair plano"  who already holds a keyword
 node content-strategist/cli.mjs links "ac repair plano"     live pages to link to, with anchors

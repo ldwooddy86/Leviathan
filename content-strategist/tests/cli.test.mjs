@@ -18,6 +18,12 @@ r = J(['keywords', 'dental', '--find', 'implant']);
 ok(r.code === 0 && r.json.angles.length >= 1 && r.json.angles[0].keywords.core.some(k => k.includes('implant')), 'keywords for another vertical, searched');
 r = J(['market', 'dfw', '--city', 'Plano']);
 ok(r.code === 0 && r.json.facts.some(f => f.estimate && /15 years or older/.test(f.label) && f.source) && r.json.market.length >= 8, 'market facts for a city, each with its source');
+r = J(['keywords', 'dfw', '--city', 'Frisco', '--angle', 'heatpump']);
+ok(r.code === 0 && r.json.angles.length === 1 && r.json.angles[0].demandShare === 0 && /NO demand trigger in Frisco/.test(run(['keywords', 'dfw', '--city', 'Frisco']).out), 'an angle with no demand in a city is still listed, and marked');
+r = J(['market', 'dfw', '--city', 'Frisco']);
+ok(r.json.facts.some(f => /heat pumps/.test(f.label) && f.estimate), 'a city\'s facts include its heat pump share');
+r = J(['rules', 'dfw']);
+ok(r.code === 0 && r.json.license.writeItAs === 'TDLR Lic TACLA00000E' && r.json.notice.includes('Texas Department of Licensing') && r.json.consent.includes('STOP') && r.json.rules.length >= 15 && run(['rules', 'dental']).code === 2, 'rules prints the license format, the notice, the consent text and each rule');
 ok(run(['keywords', 'nope']).code === 2 && run(['market', 'dental']).code === 2 && run(['keywords', 'dfw', '--city', 'Atlantis']).code === 2, 'an unknown pack or city, or facts from a keyword pack, is an error with a reason');
 
 /* ---- what the site has ---- */
@@ -55,6 +61,9 @@ ok(r.code === 0 && r.json.length === 2 && r.json.every(c => c.ok), 'social lint 
 r = J(['social', 'post', path.join(FX, 'post.json'), '--platform', 'all']);
 ok(r.code === 0 && r.json.length === 2 && r.json.every(x => x.sent === false && x.request && /Dry run/.test(x.note)) && !fs.existsSync(path.join(local, 'social-ledger.jsonl')), 'social post without --confirm is a dry run on every platform');
 ok(run(['social', 'post', path.join(FX, 'post.json')]).code === 2, 'social post needs a platform named');
+const held = path.join(local, 'post-pending.json'); fs.writeFileSync(held, JSON.stringify(Object.assign(JSON.parse(fs.readFileSync(path.join(FX, 'post.json'), 'utf8')), { pending: true, link: 'https://www.example-air.test/not-live-yet/' })));
+r = run(['social', 'post', held, '--platform', 'facebook', '--confirm']);
+ok(/HELD  facebook/.test(r.out) && !fs.existsSync(path.join(local, 'social-ledger.jsonl')) && /PENDING/.test(run(['social', 'post', held, '--platform', 'facebook']).out), 'a pending post is held back at --confirm and marked in the dry run', r.out.slice(0, 160));
 const noLic = path.join(local, 'post-bad.json'); fs.writeFileSync(noLic, JSON.stringify({ link: 'https://www.example-air.test/ac-repair/', facebook: { text: 'We fix it fast.' } }));
 r = run(['social', 'post', noLic, '--platform', 'facebook', '--confirm']);
 ok(r.code === 1 && /Not sent/.test(r.out) && /license/.test(r.out), 'a post that fails its checks is never sent, even with --confirm');
