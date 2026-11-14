@@ -21,7 +21,7 @@ const DRHVAC = (() => {
   const inView = () => !!(G.claude && typeof G.claude.use === 'function');
   const ENV = RT ? ((typeof navigator !== 'undefined' && /Firefox/.test(navigator.userAgent || '')) ? 'firefox' : 'chrome') : inView() ? 'viewer' : (typeof document === 'undefined' ? 'node' : 'file');
   const ENV_NAME = { chrome: 'the Chrome browser app', firefox: 'the Firefox browser app', viewer: 'the Claude viewer', file: 'a downloaded file', node: 'the test harness' };
-  const VERSION = '6.0.0';
+  const VERSION = '6.0.1';
 
   /* ---------- small utilities ---------- */
   const uid = p => (p || 'd') + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);

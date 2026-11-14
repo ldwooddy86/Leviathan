@@ -9,7 +9,9 @@
    given the run is skipped. Screenshots show the client's brand, so --shots must be outside the repository too.
 
    Single file edition
-     1. Loads from disk with no console or page error; nineteen modules; the footer names Build 6.
+     1. Loads from disk with no console or page error; nineteen modules; the footer names Build 6. The Site Forge
+        repair: a site field a person edits in module 09 is saved and the plan redrawn, with no error (skipped, with a
+        note, for an atlas built with --no-forge-fix).
      2. No key: the module says so. Settings: a wrong key is refused by "Test the key", the right one is accepted and saved.
      3. A landing page, start to finish: the model reads the atlas, writes a blueprint from the facts it was given,
         runs the checks and reports in Markdown. Checked: the request (model, tools, system prompt, the dashboard state
@@ -51,6 +53,19 @@ const checks = []; let failed = 0;
 const ok = (cond, label, extra) => { checks.push(`${cond ? 'PASS' : 'FAIL'}  ${label}${extra !== undefined && (!cond || process.env.VERBOSE) ? '  (' + String(extra).replace(/\s+/g, ' ').slice(0, 400) + ')' : ''}`); if (!cond) failed++; return !!cond; };
 const section = t => checks.push('\n' + t);
 const KEY = 'sk-ant-e2e-0000', FIXTURE = path.join(HERE, '..', 'fixture', 'elementor-service-landing.json');
+const VER = JSON.parse(fs.readFileSync(path.join(HERE, '..', '..', 'package.json'), 'utf8')).version;
+/* A person changes a site field in the Site Forge (module 09) and leaves it: the change must reach storage (the forge
+   saves 400 ms later) and the plan, with no error on the page. Then the field is put back the same way. As shipped,
+   the forge read every element with data-k, its table headers included, and threw before saving. */
+async function forgeFieldSaves(page, errors, label) {
+  const before = errors.length;
+  await page.evaluate(() => showModule('forge')); await page.waitForSelector('#mod-forge #f9s_cta_label');
+  const was = await page.inputValue('#mod-forge #f9s_cta_label');
+  const edit = async v => { await page.fill('#mod-forge #f9s_cta_label', v); await page.press('#mod-forge #f9s_cta_label', 'Tab'); await page.waitForTimeout(750); return page.evaluate(() => { const site = (store.get('tda.forge.v1', {}) || {}).site || {}; return { saved: site.cta_label, plan: MODI.forge.publishPages()[0].blueprint.page.cta.primary.label, headers: document.querySelectorAll('#mod-forge th[data-k]').length, stray: ['name', 'cty', 'mi', 'v'].filter(k => k in site) }; }); };
+  const a = await edit('Schedule service'), b = await edit(was);
+  ok(a.saved === 'Schedule service' && a.plan === 'Schedule service' && a.headers > 0 && a.stray.length === 0 && errors.length === before, `${label}: a site field edited by hand in the Site Forge is saved and the plan redrawn, with no error`, JSON.stringify(a) + ' ' + errors.slice(before).join(' | '));
+  ok(b.saved === was && b.plan === was && errors.length === before, `${label}: and it changes back the same way`, JSON.stringify(b));
+}
 const use = (id, name, input) => ({ type: 'tool_use', id, name, input });
 const text = t => ({ type: 'text', text: t });
 
@@ -157,6 +172,9 @@ if (HTML) {
   ok(boot.env === 'file' && boot.tools === 50 && /^\d+\.\d+\.\d+$/.test(boot.sdk || ''), 'the agent, its 50 tools and the Claude SDK are loaded from the one file', `${boot.env} ${boot.tools} ${boot.sdk}`);
   ok(/Build 6 November 14, 2026 adds Dr\. HVAC/.test(boot.foot) && /Build 5 November 13, 2026/.test(boot.foot), 'the footer keeps the build history and adds Build 6');
   ok(boot.mounted === false && boot.btn && boot.btnShown === false, 'the module does no work until it is opened; on a wide screen the tab is the way in');
+  if (/repairs the Site Forge's site fields/.test(boot.foot)) await forgeFieldSaves(page, errors, 'single file');
+  else checks.push('NOTE  this atlas was built without the Site Forge repair (--no-forge-fix): its check was skipped');
+  await page.evaluate(() => showModule('index'));
 
   /* 2. no key, settings */
   await page.click('#tab-drhvac'); await opened(page); await page.waitForSelector('#d19Log .dr-empty');
@@ -297,7 +315,7 @@ if (APP) {
   const dir = checkOut(fs.mkdtempSync(path.join(os.tmpdir(), 'drhvac-app-'))); const A = readApp(path.resolve(APP));
   for (const [name, data] of A.files) { const p = path.join(dir, name); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, data); }
   const man = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8'));
-  ok(man.version === '6.0.0' && man.manifest_version === 3 && man.host_permissions.includes('https://api.anthropic.com/*') && man.optional_host_permissions.includes('https://*/*') && man.content_security_policy.extension_pages === "script-src 'self'; object-src 'self'", 'the manifest: version 6.0.0, Claude among the hosts, websites optional, the script policy unchanged');
+  ok(man.version === VER && man.manifest_version === 3 && man.host_permissions.includes('https://api.anthropic.com/*') && man.optional_host_permissions.includes('https://*/*') && man.content_security_policy.extension_pages === "script-src 'self'; object-src 'self'", `the manifest: version ${VER}, Claude among the hosts, websites optional, the script policy unchanged`, man.version);
   const base = { headless: true, args: ['--headless=new', '--disable-extensions-except=' + dir, '--load-extension=' + dir, '--no-sandbox'], viewport: { width: 1440, height: 950 } };
   let context; try { context = await chromium.launchPersistentContext('', Object.assign({ channel: 'chromium' }, base)); } catch (e) { context = await chromium.launchPersistentContext('', base); }
   try {
@@ -310,6 +328,7 @@ if (APP) {
     const boot = await page.evaluate(() => ({ env: DRHVAC.ENV, tabs: document.querySelectorAll('#rail button').length, tools: DRHVAC.tools.list().length, sdk: (window.AnthropicSDK || {}).VERSION, shown: !document.getElementById('mod-drhvac').hidden, runs: document.querySelector('#mod-drhvac .mast').innerText, css: getComputedStyle(document.querySelector('.dr-work')).display }));
     ok(boot.env === 'chrome' && boot.tabs === 19 && boot.tools === 50 && boot.sdk && boot.shown && boot.css === 'grid', 'atlas.html#drhvac opens the module inside the extension, stylesheet applied', JSON.stringify(boot).slice(0, 160));
     ok(csp.length === 0, 'nothing is refused by the script-src \'self\' policy (no eval, no inline script)', csp.join(' | '));
+    if (/repairs the Site Forge's site fields/.test(await page.textContent('.shell-foot'))) { await forgeFieldSaves(page, errors, 'browser app'); await page.evaluate(() => showModule('drhvac')); }
     await page.evaluate(k => DRHVAC.saveSettings({ apiKey: k }), KEY); await page.waitForFunction(() => DRHVAC.transport() === 'api');
     const stored = await sw.evaluate(async () => (await chrome.storage.local.get('tda.drhvac.v1'))['tda.drhvac.v1']);
     ok(stored && stored.apiKey === KEY && stored.model === 'claude-opus-5-5', 'the settings live in the extension\'s own storage');
@@ -323,7 +342,7 @@ if (APP) {
     const pop = await context.newPage(); const perr = []; watch(pop, perr, NOISE);
     await pop.goto(`chrome-extension://${id}/popup.html`, { waitUntil: 'load' }); await pop.waitForSelector('#list .row');
     const pv = await pop.evaluate(() => ({ btn: (document.getElementById('goDr') || {}).textContent, rows: document.querySelectorAll('#list .row').length, last: [...document.querySelectorAll('#list .row .t')].pop().textContent, ver: document.getElementById('ver').textContent }));
-    ok(/Ask Dr\. HVAC/.test(pv.btn || '') && pv.rows === 19 && pv.last === 'Dr. HVAC' && /Build 6\.0\.0/.test(pv.ver) && perr.length === 0, 'the popup has the Ask Dr. HVAC button, lists nineteen modules and shows Build 6.0.0', JSON.stringify(pv) + perr.join(' '));
+    ok(/Ask Dr\. HVAC/.test(pv.btn || '') && pv.rows === 19 && pv.last === 'Dr. HVAC' && pv.ver.includes('Build ' + VER) && perr.length === 0, `the popup has the Ask Dr. HVAC button, lists nineteen modules and shows Build ${VER}`, JSON.stringify(pv) + perr.join(' '));
     await pop.fill('#q', 'dr hvac'); await pop.waitForTimeout(100); ok(/Dr\. HVAC/.test(await pop.textContent('#list .row .t')), 'the popup search finds Dr. HVAC (the address bar keyword uses the same list)');
     await shot(pop, '8-popup.png');
   } finally { await context.close(); }

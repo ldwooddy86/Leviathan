@@ -37,7 +37,7 @@ build.mjs, lib/zip.mjs        the build
 tests/                        nine unit suites, a PHP harness for the plugin, the browser run
 ```
 
-The module registers itself the way the other eighteen do (`registerModule`), and the atlas's shell picks it up. The build rewrites none of the atlas's own code.
+The module registers itself the way the other eighteen do (`registerModule`), and the atlas's shell picks it up. The build makes one repair to the atlas's own code, described under the build below, and rewrites nothing else in it.
 
 ### Reaching Claude
 
@@ -82,11 +82,13 @@ npm install
 node build.mjs --html /path/to/DFW_Thermal_Debt_Atlas.html --app /path/to/DFW-Thermal-Debt-Atlas-browser-app.zip --out /path/outside/this/repo
 ```
 
-It writes `DFW_Thermal_Debt_Atlas_Build6.html` (every script inline) and `DFW-Thermal-Debt-Atlas-browser-app-6.0.0.zip` (the Manifest V3 extension). Either input may be left out.
+It writes `DFW_Thermal_Debt_Atlas_Build6.html` (every script inline) and `DFW-Thermal-Debt-Atlas-browser-app-6.0.1.zip` (the Manifest V3 extension). Either input may be left out.
+
+**The Site Forge repair.** In the atlas as shipped, a site field edited in the Site Forge (module 09) was never saved: its code read every element in the module that carries `data-k`, the sortable table headers carry `data-k` too, and reading a header's value threw before the save and the replan ran. The build changes three selectors in `21_m09_forge.js` so the forge reads its form controls (`input`, `select`, `textarea`) and nothing else. It is the only change to the atlas's own code, it was asked for by the atlas's owner, and the footer's Build 6 sentence names it. `--no-forge-fix` builds without it and leaves the forge byte for byte as shipped; if the forge's code is not the code the repair was written for, the build stops and says so.
 
 - Every edit is anchored on text that must be found exactly once. A dashboard it does not recognize stops the build with the reason; nothing half patched is written.
 - Running it on an already built atlas replaces the earlier Dr. HVAC blocks. The build runs each patch twice and fails if the second run changes a byte.
-- The browser app keeps its `script-src 'self'` policy. The manifest gains version 6.0.0, host access for `api.anthropic.com` and the two public DNS resolvers, and `http://*/*` beside `https://*/*` among the optional hosts, which are asked for one site at a time.
+- The browser app keeps its `script-src 'self'` policy. The manifest gains version 6.0.1, host access for `api.anthropic.com` and the two public DNS resolvers, and `http://*/*` beside `https://*/*` among the optional hosts, which are asked for one site at a time.
 - If the atlas's own build source is at hand, the files under `src/` follow its naming and drop into it unchanged.
 
 After a change to the plugin, `node tools/connector.mjs` regenerates `src/dr/14_dr_connector_raw.js` (a test fails when the two drift apart). `npm run vendor` rebuilds the SDK bundle and refuses one that uses `eval`, `new Function` or a dynamic import.
@@ -97,13 +99,13 @@ After a change to the plugin, `node tools/connector.mjs` regenerates `src/dr/14_
 node tests/run.mjs
 ```
 
-Nine suites, 603 checks, no packages beyond the two dev dependencies; the plugin's suite also runs 94 checks in PHP (`php` on the path, 7.4 or later) against a stand in for WordPress, once with Elementor and once without, and fails on any PHP warning or notice.
+Nine suites, 614 checks, no packages beyond the two dev dependencies; the plugin's suite also runs 94 checks in PHP (`php` on the path, 7.4 or later) against a stand in for WordPress, once with Elementor and once without, and fails on any PHP warning or notice.
 
 ```bash
 node tests/e2e/run.mjs --html /path/to/built.html --app /path/to/built.zip --shots /path/outside/this/repo
 ```
 
-62 checks in headless Chromium (Playwright) against the built atlas, both editions, with `api.anthropic.com` answered by the test itself in the Messages API's own event stream format. Each scripted reply is written from the tool results in the request it answers, the way a model works: the page it creates uses the figures `atlas_place` returned. It covers the key and settings, a landing page from the atlas through to the Publish module, every approval card, an Elementor template from an attached file, a hosting runbook and its download, the plugin zip (linted with `php -l`), an API failure, a reload, History, phone width, and in the extension the script policy, extension storage, the site access card and the popup.
+66 checks in headless Chromium (Playwright) against the built atlas, both editions, with `api.anthropic.com` answered by the test itself in the Messages API's own event stream format. Each scripted reply is written from the tool results in the request it answers, the way a model works: the page it creates uses the figures `atlas_place` returned. It covers the Site Forge repair (a field edited by hand is saved and the plan redrawn, with no error), the key and settings, a landing page from the atlas through to the Publish module, every approval card, an Elementor template from an attached file, a hosting runbook and its download, the plugin zip (linted with `php -l`), an API failure, a reload, History, phone width, and in the extension the script policy, extension storage, the site access card and the popup.
 
 ## What is and is not verified
 

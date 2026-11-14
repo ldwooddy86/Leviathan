@@ -17,7 +17,7 @@ Console 1.2.0 compiled 2026-10-06, carried by browser app 1.1.0 (built 2026-10-0
 | Files | Leviathan.html 26.5 MB, Leviathan-data.js 25.7 MB, Leviathan-data-2.js 9.5 MB, resume-findings.js 1.3 MB, Leviathan-full.html 63 MB |
 | Browser app | Manifest V3, version 1.1.0, one permission (storage), one sandboxed page, omnibox keyword lev, one keyboard command |
 | Tests | 8 unit test files, 47 end to end checks with 3 screenshots |
-| Dr. HVAC | Module 19 for the standalone DFW Thermal Debt Atlas (its Build 6): a web developer agent with 50 tools, in `dr-hvac/` with its build tool; 9 unit test files (603 checks, 94 more in PHP) and 62 end to end checks. Section 9. |
+| Dr. HVAC | Module 19 for the standalone DFW Thermal Debt Atlas (its Build 6): a web developer agent with 50 tools, in `dr-hvac/` with its build tool; 9 unit test files (614 checks, 94 more in PHP) and 66 end to end checks. The build also repairs the Site Forge's site fields. Section 9. |
 
 ## 2. The console
 
@@ -1231,7 +1231,7 @@ Features by edition: the console views, the sixteen dashboards and the cross ind
 
 ## 9. Dr. HVAC
 
-Module 19 of the standalone DFW Thermal Debt Atlas, added by `dr-hvac/build.mjs` to both of that atlas's editions (the single HTML file and the Manifest V3 browser app) as Build 6, version 6.0.0. It is separate from the copy of the atlas inside the console. The built atlas is not in this repository.
+Module 19 of the standalone DFW Thermal Debt Atlas, added by `dr-hvac/build.mjs` to both of that atlas's editions (the single HTML file and the Manifest V3 browser app) as Build 6, version 6.0.1. It is separate from the copy of the atlas inside the console. The built atlas is not in this repository.
 
 **What it is.** A web developer and designer that works inside the atlas: an agent on the Claude API (the official SDK, called from the page with the person's own API key) with fifty tools that run in the browser. The person says what they need; the agent reads the atlas, builds in a workshop the person can see, and asks before anything reaches a website.
 
@@ -1279,11 +1279,13 @@ Dr. HVAC hands over `drhvac-connector.zip` from its header. Nine routes under `d
 
 ### The build
 
-`node build.mjs --html <single file> --app <browser app zip or folder> --out <folder outside the repository>`. Thirteen scripts and one stylesheet are added to each edition (inline in the single file, as files in the app); the title and footer move to Build 6; the manifest gains the version, host access for the Claude API and two public DNS resolvers, and plain http among the optional hosts; the registry gains module 19; the popup gains its button. Every edit is anchored on text found exactly once; the build runs each patch twice and fails if the second run changes a byte; a dashboard it does not recognize stops it. It rewrites none of the atlas's own code and refuses to write inside this repository.
+`node build.mjs --html <single file> --app <browser app zip or folder> --out <folder outside the repository>`. Thirteen scripts and one stylesheet are added to each edition (inline in the single file, as files in the app); the title and footer move to Build 6; the manifest gains the version, host access for the Claude API and two public DNS resolvers, and plain http among the optional hosts; the registry gains module 19; the popup gains its button. Every edit is anchored on text found exactly once; the build runs each patch twice and fails if the second run changes a byte; a dashboard it does not recognize stops it. It refuses to write inside this repository.
+
+**The Site Forge repair.** The one change the build makes to the atlas's own code, at its owner's request. As shipped, a site field edited in the Site Forge (module 09) was never saved: the forge read every element in the module that carries data-k, its sortable table headers carry data-k too, and reading a header's value threw before the save and the replan ran. Three selectors in `21_m09_forge.js` now name the form controls. The footer's Build 6 sentence says so; `--no-forge-fix` builds without it; a forge whose code is not the code the repair was written for stops the build.
 
 ### Tests
 
-Nine unit suites (603 checks): the core and storage, the agent loop against the real SDK bundle and a scripted Messages API, the Elementor toolkit, the page audit (every one of its 76 findings raised), the hosting toolkit, the WordPress client, the tool registry, the connector plugin (94 more checks in PHP against a stand in for WordPress, with and without Elementor), and the build. One browser run (62 checks, Playwright) drives both built editions through whole jobs with the Claude API answered by a script.
+Nine unit suites (614 checks): the core and storage, the agent loop against the real SDK bundle and a scripted Messages API, the Elementor toolkit, the page audit (every one of its 76 findings raised), the hosting toolkit, the WordPress client, the tool registry, the connector plugin (94 more checks in PHP against a stand in for WordPress, with and without Elementor), and the build. One browser run (66 checks, Playwright) drives both built editions through whole jobs with the Claude API answered by a script, and edits a Site Forge field by hand to prove the repair.
 
 ### Caveats
 

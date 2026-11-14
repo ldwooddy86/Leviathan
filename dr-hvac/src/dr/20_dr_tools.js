@@ -292,9 +292,10 @@ DRHVAC.tools = (() => {
     input_schema: obj({ site: S.any('Site fields to set.'), focus: S.any('Focus fields to set.'), build: S.any('Build switches to set.') }),
     async run(i) {
       forgeMod(); need(has.dom(), 'The page is not available.'); const root = document.querySelector('#mod-forge'); const done = [], missed = []; const fire = (el, type) => el.dispatchEvent(new Event(type || 'change', { bubbles: true }));
-      /* The forge reads every element that carries data-k when a site field changes, and its sortable table headers carry
-         data-k too, which stops its own handler before it saves. The headers are set aside for the length of the event,
-         so the forge reads its fields, saves and replans as it means to. All fields are set first, then one event. */
+      /* As shipped, the forge reads every element that carries data-k when a site field changes, and its sortable table
+         headers carry data-k too, which stops its own handler before it saves. The build repairs that in the forge itself
+         (fixForge in build.mjs); for an atlas built without the repair, the headers are set aside for the length of the
+         event here, so the forge reads its fields, saves and replans as it means to. All fields are set, then one event. */
       const quietly = el => { const parked = [...root.querySelectorAll('[data-k]')].filter(x => typeof x.value !== 'string'); parked.forEach(x => { x.setAttribute('data-k-parked', x.getAttribute('data-k')); x.removeAttribute('data-k'); }); try { fire(el); } finally { parked.forEach(x => { x.setAttribute('data-k', x.getAttribute('data-k-parked')); x.removeAttribute('data-k-parked'); }); } };
       let lastSite = null;
       Object.entries(i.site || {}).forEach(([k, v]) => { const el = root.querySelector(`#f9s_${k}`); if (!el) return missed.push('site.' + k); if (el.type === 'checkbox') el.checked = !!v; else el.value = v == null ? '' : String(v); lastSite = el; done.push('site.' + k); });

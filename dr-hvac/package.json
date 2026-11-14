@@ -1,6 +1,6 @@
 {
   "name": "dr-hvac",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "private": true,
   "description": "Dr. HVAC: the web developer agent for the DFW Thermal Debt Atlas (module 19), its build tool and its tests",
   "type": "module",

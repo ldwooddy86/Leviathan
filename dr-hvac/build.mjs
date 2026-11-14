@@ -1,11 +1,16 @@
 /* Builds Dr. HVAC (module 19) into the DFW Thermal Debt Atlas.
 
      node build.mjs --html <single file dashboard.html> --app <browser app .zip or folder> --out <folder outside this repo>
+       [--no-forge-fix]
 
    The atlas ships as two editions cut from the same sources: one HTML file with every script inline, and a browser app
    (a Manifest V3 extension) that loads the same scripts as files. This tool adds the same new files to both:
-   the vendored Claude SDK, the agent (src/dr), the module (src/33_m19_drhvac.js) and its stylesheet. Nothing in the
-   atlas's own code is rewritten: the module registers itself the way the other eighteen do, and the shell picks it up.
+   the vendored Claude SDK, the agent (src/dr), the module (src/33_m19_drhvac.js) and its stylesheet. The module
+   registers itself the way the other eighteen do, and the shell picks it up.
+
+   One repair is made to the atlas's own code, at its owner's request (fixForge below): the Site Forge's site fields,
+   which lost a change instead of saving it. --no-forge-fix leaves the forge exactly as it was. Nothing else in the
+   atlas's code is rewritten.
 
    Every edit is anchored on text that must be found exactly once, so a dashboard this tool does not recognize fails
    loudly instead of being half patched. Running it on an already patched dashboard replaces the earlier Dr. HVAC
@@ -36,6 +41,7 @@ const MARK = {
 const SHELL = '<!-- shell boot: builds the rail and shows the module in the hash -->';
 const FOOT_AT = 'once a week.</span><span>Model figures are estimates';
 const FOOT_ADD = `; Build ${BUILD.n} ${BUILD.date} adds Dr. HVAC (module 19), a web developer agent that builds and changes pages, works from Elementor templates and plans hosting moves, and asks before anything reaches a site`;
+const FOOT_FIX = ', and repairs the Site Forge\'s site fields, where a change used to be lost instead of saved';
 
 export class BuildError extends Error { }
 const fail = msg => { throw new BuildError(msg); };
@@ -72,23 +78,54 @@ export function sources(root = HERE) {
 }
 
 /* ---------- what both editions share: the title and the footer ---------- */
-function titleAndFooter(html, log) {
+function titleAndFooter(html, log, forgeFixed) {
   const t = /<title>[^<]*<\/title>/.exec(html.slice(0, 4000)); if (!t) fail('no <title> near the top of the page');
   if (new RegExp(`Build ${BUILD.from}</title>$`).test(t[0])) { html = html.replace(t[0], () => t[0].replace(`Build ${BUILD.from}</title>`, `Build ${BUILD.n}</title>`)); log.push(`title: Build ${BUILD.from} → Build ${BUILD.n}`); }
   else if (new RegExp(`Build ${BUILD.n}</title>$`).test(t[0])) log.push(`title: already Build ${BUILD.n}`);
   else fail(`the page title does not end in "Build ${BUILD.from}": ${t[0].length} characters. This tool patches the Build ${BUILD.from} atlas.`);
-  html = html.split(FOOT_ADD).join('');
-  html = once(html, FOOT_AT, FOOT_AT.replace('once a week.', 'once a week' + FOOT_ADD + '.'), 'footer');
-  log.push('footer: the Build ' + BUILD.n + ' sentence');
+  html = html.split(FOOT_ADD + FOOT_FIX).join('').split(FOOT_ADD).join('');
+  html = once(html, FOOT_AT, FOOT_AT.replace('once a week.', 'once a week' + FOOT_ADD + (forgeFixed ? FOOT_FIX : '') + '.'), 'footer');
+  log.push('footer: the Build ' + BUILD.n + ' sentence' + (forgeFixed ? ', naming the Site Forge repair' : ''));
   return html;
 }
 
+/* ---------- one repair to the atlas's own code ----------
+   The Site Forge (module 09) reads and writes its site fields with a selector that takes every element in the module
+   that carries data-k. Its two sortable tables put data-k on their header cells as well (dataTable in the core does),
+   so reading the fields reaches a table header, which has no value, and throws before the change is saved or the plan
+   is redrawn. A site field edited in the forge was lost without a word. The repair names the form controls the fields
+   are. Three places, each of which must be found exactly once: the forge as shipped, or the forge already repaired. */
+export const FORGE_FIELDS = 'input[data-k],select[data-k],textarea[data-k]';
+const FORGE_ALL = '[data-k]';
+const QUERY = sel => '$' + "$('" + sel + "', root)";                     /* the atlas's own query helper, spelled out */
+const FORGE_SITES = [
+  sel => 'function writeSite() { ' + QUERY(sel) + '.forEach(',
+  sel => 'function readSite() { ' + QUERY(sel) + '.forEach(',
+  sel => QUERY(sel) + ".forEach(i => i.addEventListener('change', () => { readSite(); save(); replan(); }));",
+];
+/* 'fixed' when all three places name the form controls, 'original' when all three are as shipped, '' otherwise */
+export function forgeState(text) {
+  const n = sel => FORGE_SITES.map(mk => count(text, mk(sel)));
+  const orig = n(FORGE_ALL), fixed = n(FORGE_FIELDS);
+  if (fixed.every(x => x === 1) && orig.every(x => x === 0)) return 'fixed';
+  if (orig.every(x => x === 1) && fixed.every(x => x === 0)) return 'original';
+  return '';
+}
+export function fixForge(text, what) {
+  const st = forgeState(text);
+  if (st === 'fixed') return { text, changed: 0 };
+  if (st !== 'original') fail(`${what}: the Site Forge's site field code is not the code this repair was written for, so it was left alone and nothing was built. Build with --no-forge-fix to add Dr. HVAC without the repair.`);
+  for (const mk of FORGE_SITES) text = text.replace(mk(FORGE_ALL), () => mk(FORGE_FIELDS));
+  return { text, changed: FORGE_SITES.length };
+}
+
 /* ---------- edition one: the single HTML file ---------- */
-export function patchSingle(html, S) {
-  const log = []; html = String(html).replace(/^﻿/, '');
+export function patchSingle(html, S, o) {
+  const log = []; html = String(html).replace(/^﻿/, ''); o = o || {};
   if (!html.includes('/* ==== src/99_shell.js ==== */')) fail('this is not the single file edition of the atlas (its inline shell script is missing)');
   html = dropBetween(dropBetween(html, MARK.css), MARK.js);
-  html = titleAndFooter(html, log);
+  if (o.forgeFix !== false) { const r = fixForge(html, 'the single file'); html = r.text; log.push(r.changed ? `Site Forge: its site fields now save (${r.changed} places in src/21_m09_forge.js read the form controls, not every element with data-k)` : 'Site Forge: already repaired'); }
+  html = titleAndFooter(html, log, forgeState(html) === 'fixed');
   const HEAD = '\n</head>\n<body>\n<header class="shell-top">';
   html = once(html, HEAD, `\n${MARK.css[0]}\n<style>\n${S.css}</style>\n${MARK.css[1]}${HEAD}`, 'stylesheet');
   log.push(`stylesheet: ${CSS} inline, ${S.css.length.toLocaleString('en-US')} characters`);
@@ -100,8 +137,8 @@ export function patchSingle(html, S) {
 
 /* ---------- edition two: the browser app ---------- */
 /* files: Map of path → Buffer, paths relative to the folder that holds manifest.json */
-export function patchApp(files, S) {
-  const log = []; const text = n => { const b = files.get(n); if (!b) fail(`the browser app has no ${n}`); return b.toString('utf8'); };
+export function patchApp(files, S, o) {
+  o = o || {}; const log = []; const text = n => { const b = files.get(n); if (!b) fail(`the browser app has no ${n}`); return b.toString('utf8'); };
   const put = (n, s) => files.set(n, Buffer.from(s, 'utf8'));
   for (const n of ['manifest.json', 'atlas.html', 'registry.js', 'popup.html', 'popup.js', 'js/99_shell.js', 'css/atlas.css']) text(n);
   /* the new files; anything a previous run left under js/dr is replaced */
@@ -110,9 +147,14 @@ export function patchApp(files, S) {
   put('js/vendor/LICENSE-anthropic-sdk.txt', S.license); put('css/drhvac.css', S.css);
   log.push(`files: ${S.scripts.length} scripts, css/drhvac.css and the SDK license`);
 
+  /* the Site Forge repair, in the forge's own file */
+  const FORGE = 'js/21_m09_forge.js'; let forgeFixed = false;
+  if (o.forgeFix !== false) { const r = fixForge(text(FORGE), FORGE); put(FORGE, r.text); forgeFixed = true; log.push(r.changed ? `Site Forge: its site fields now save (${r.changed} places in ${FORGE} read the form controls, not every element with data-k)` : 'Site Forge: already repaired'); }
+  else forgeFixed = files.has(FORGE) && forgeState(text(FORGE)) === 'fixed';
+
   /* atlas.html */
   let html = dropBetween(text('atlas.html'), MARK.js).replace(/<link rel="stylesheet" href="css\/drhvac\.css">\n?/g, '');
-  html = titleAndFooter(html, log);
+  html = titleAndFooter(html, log, forgeFixed);
   const HEAT = '<link rel="stylesheet" href="css/heat.css">\n';
   html = once(html, HEAT, HEAT + '<link rel="stylesheet" href="css/drhvac.css">\n', 'atlas.html stylesheet');
   html = once(html, SHELL, `${MARK.js[0]}\n${S.scripts.map(x => `<script src="${x.app}"></script>\n`).join('')}${MARK.js[1]}\n${SHELL}`, 'atlas.html scripts');
@@ -170,19 +212,19 @@ export function checkOut(out, root = repoRoot()) {
   return abs;
 }
 
-export function build({ html, app, out, root = HERE, log = console.log }) {
+export function build({ html, app, out, root = HERE, log = console.log, forgeFix = true }) {
   if (!html && !app) fail('give --html, --app or both');
   if (!out) fail('give --out, a folder outside this repository');
   const dest = checkOut(out); const S = sources(root); fs.mkdirSync(dest, { recursive: true }); const made = [];
   log(`Dr. HVAC ${S.version}: ${S.scripts.length} scripts, ${(S.scripts.reduce((n, x) => n + Buffer.byteLength(x.text), 0) / 1024).toFixed(0)} KB`);
   if (html) {
-    const r = patchSingle(fs.readFileSync(html, 'utf8'), S); const again = patchSingle(r.html, S).html;
+    const r = patchSingle(fs.readFileSync(html, 'utf8'), S, { forgeFix }); const again = patchSingle(r.html, S, { forgeFix }).html;
     if (again !== r.html) fail('the single file build is not stable when run twice');
     const f = path.join(dest, `DFW_Thermal_Debt_Atlas_Build${BUILD.n}.html`); fs.writeFileSync(f, r.html); made.push(f);
     log(`\nSingle file edition → ${f}  (${(Buffer.byteLength(r.html) / 1048576).toFixed(2)} MB)`); r.log.forEach(l => log('  ' + l));
   }
   if (app) {
-    const A = readApp(app); const r = patchApp(A.files, S); const again = patchApp(new Map(r.files), S).files;
+    const A = readApp(app); const r = patchApp(A.files, S, { forgeFix }); const again = patchApp(new Map(r.files), S, { forgeFix }).files;
     for (const [n, b] of r.files) if (!again.has(n) || !again.get(n).equals(b)) fail(`the browser app build is not stable when run twice (${n})`);
     const zip = zipApp(r.files, A.top);
     const back = readApp0(zip); if (back !== r.files.size) fail('the browser app zip did not read back whole');
@@ -196,7 +238,7 @@ const readApp0 = zip => readZip(zip).filter(e => !e.dir).length;
 /* ---------- command line ---------- */
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = {}; const argv = process.argv.slice(2);
-  for (let i = 0; i < argv.length; i++) { const m = /^--(html|app|out)(?:=(.*))?$/.exec(argv[i]); if (!m) { console.error('Unknown argument: ' + argv[i]); process.exit(2); } args[m[1]] = m[2] != null ? m[2] : argv[++i]; }
-  if (!args.html && !args.app) { console.error('Usage: node build.mjs --html <single file dashboard.html> --app <browser app .zip or folder> --out <folder outside this repository>'); process.exit(2); }
+  for (let i = 0; i < argv.length; i++) { if (argv[i] === '--no-forge-fix') { args.forgeFix = false; continue; } const m = /^--(html|app|out)(?:=(.*))?$/.exec(argv[i]); if (!m) { console.error('Unknown argument: ' + argv[i]); process.exit(2); } args[m[1]] = m[2] != null ? m[2] : argv[++i]; }
+  if (!args.html && !args.app) { console.error('Usage: node build.mjs --html <single file dashboard.html> --app <browser app .zip or folder> --out <folder outside this repository> [--no-forge-fix]'); process.exit(2); }
   try { build(args); } catch (e) { if (e instanceof BuildError) { console.error('\nBuild stopped: ' + e.message); process.exit(1); } throw e; }
 }
