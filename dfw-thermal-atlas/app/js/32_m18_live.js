@@ -45,7 +45,7 @@ registerModule({
           <div class="plan">
             <div class="f"><label class="fl" for="lvDow">Full refresh day</label><select id="lvDow">${DOW.map((d, i) => `<option value="${i}">${d}</option>`).join('')}</select><span class="hint">Every source, once a week.</span></div>
             <div class="f"><label class="fl" for="lvHour">Full refresh time</label><select id="lvHour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}">${hourLabel(h)}</option>`).join('')}</select><span class="hint">Local time on this computer.</span></div>
-            <div class="f"><label class="fl" for="lvDailyHour">Weather pulse time</label><select id="lvDailyHour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}">${hourLabel(h)}</option>`).join('')}</select><span class="hint">Forecast lows and alerts only, a handful of requests.</span></div>
+            <div class="f"><label class="fl" for="lvDailyHour">Weather pulse time</label><select id="lvDailyHour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}">${hourLabel(h)}</option>`).join('')}</select><span class="hint">The forecast and alerts, the season to date, the two week outlooks and the grid: about 45 small requests.</span></div>
             <div class="f"><span class="fl">Options</span>
               <label class="chk"><input type="checkbox" id="lvDaily"> Take the weather pulse every day</label>
               ${LIVE.ext ? '<label class="chk"><input type="checkbox" id="lvNotify"> Notify me when a cold trigger appears in the forecast</label>' : '<label class="chk"><input type="checkbox" id="lvAuto"> Refresh when this file is opened and a run is due</label>'}
@@ -112,7 +112,7 @@ registerModule({
         { l: 'Last full refresh', v: st.lastWeekly ? esc(LIVE.ago(st.lastWeekly)) : (LIVE.baseline ? 'Baked in' : 'Not yet'), d: st.lastWeekly ? esc(LIVE.stamp(st.lastWeekly)) : (LIVE.baseline && LIVE.baseline.built ? 'Snapshot from the build of ' + esc(LIVE.stamp(LIVE.baseline.built)) : 'Use Refresh everything above') },
         { l: 'Next full refresh', v: esc(nx.weekly.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })), d: `${hourLabel(S.weeklyHour)} ${LIVE.ext ? 'by the background worker' : 'or the next time this file is opened after that'}` },
         { l: 'Sources current', v: `${cur} of ${ids.length}`, d: failed.length ? `<span style="color:var(--critical)">${failed.length} failed on the last run</span>` : never.length ? `${never.length} not fetched yet` : 'All inside their schedule' },
-        { l: 'Weather pulse', v: S.daily === false ? 'Off' : (st.lastDaily ? esc(LIVE.ago(st.lastDaily)) : 'Not yet'), d: S.daily === false ? 'Forecast refreshes weekly only' : 'Daily at ' + hourLabel(S.dailyHour) },
+        { l: 'Weather pulse', v: S.daily === false ? 'Off' : (st.lastDaily ? esc(LIVE.ago(st.lastDaily)) : 'Not yet'), d: S.daily === false ? 'The weather sources refresh weekly only' : 'Daily at ' + hourLabel(S.dailyHour) },
         { l: 'Weight of a full refresh', v: tot.n ? N(tot.n) + ' requests' : '—', d: tot.n ? kb(tot.b) + ' read in total' + (last && isN(last.ms) ? ', last run ' + secs(last.ms) : '') : 'Counted after the first run' },
       ]);
       $('#lvDow', root).value = S.weeklyDow; $('#lvHour', root).value = S.weeklyHour; $('#lvDailyHour', root).value = S.dailyHour; $('#lvDaily', root).checked = S.daily !== false;
