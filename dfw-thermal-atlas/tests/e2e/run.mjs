@@ -124,10 +124,13 @@ try {
     const moved = await until(() => sw.evaluate(async () => { const a = await chrome.alarms.get('tda-weekly'); const d = new Date(a.scheduledTime); return d.getDay() === 3 && d.getHours() === 9 ? { when: d.toString() } : null; }), 5000);
     ok(!!moved, 'changing the refresh day in the page moves the worker\'s alarm', moved && moved.when);
     await page.evaluate(() => LIVE.saveSettings({ weeklyDow: 1, weeklyHour: 6 }));
+    const armed = Date.now();
     await sw.evaluate(async () => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const ago = new Date(Date.now() - 30 * 36e5).toISOString(); s.lastWeekly = ago; s.lastDaily = ago; await chrome.storage.local.set({ 'tda.live.state': s }); await chrome.alarms.create('tda-daily', { when: Date.now() + 400 }); });
-    const pulse = await until(() => sw.evaluate(async () => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const r = (s.runs || [])[0]; return r && r.scope === 'daily' && !s.running ? { r, next: new Date((await chrome.alarms.get('tda-daily')).scheduledTime).toString() } : null; }), 120000, 1000);
+    /* the pulse is the daily run made since the alarm was armed; when a weekly source is in a failed state the worker asks it again right after, as a run of its own */
+    const pulse = await until(() => sw.evaluate(async since => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const r = (s.runs || []).find(x => x.scope === 'daily' && +new Date(x.at) >= since); return r && !s.running ? { r, next: new Date((await chrome.alarms.get('tda-daily')).scheduledTime).toString(), after: (s.runs || []).filter(x => +new Date(x.at) >= since && x.scope !== 'daily').map(x => x.scope + ':' + x.ok) } : null; }, armed), 120000, 1000);
     ok(pulse && pulse.r.by === 'extension' && pulse.r.ok >= 1, 'a due daily alarm runs the weather pulse in the worker', pulse ? `${pulse.r.ok} source(s) in ${(pulse.r.ms / 1000).toFixed(1)} s` : 'no pulse within two minutes');
     ok(pulse && +new Date(pulse.next) > Date.now() + 36e5, 'and the alarm is armed again for the next morning', pulse && pulse.next);
+    if (pulse && pulse.after.length) note('after the pulse the worker asked again for the weekly source that had failed: ' + pulse.after.join(', '));
   } else note(OFFLINE ? 'offline: the live refresh was not exercised' : 'no live sources registered yet');
   for (const k of ['heat', 'live']) {
     if (!boot.mods.includes(k)) { note(`module ${k} is not registered yet`); continue; }
