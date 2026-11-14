@@ -13,7 +13,9 @@ Two editions come out of one source tree:
 | **Single file** | `DFW_Thermal_Debt_Atlas.html` | Everything inline in one HTML file, as before. Opens from disk or any static host. It refreshes its live data when it is opened and a run is due; sources that do not allow calls from a web page need the browser app. |
 
 Nothing runs on a server and nothing about you is sent anywhere. The refresh is a set of plain read requests to the public
-sources listed below; brand settings, plans, API keys and account tokens stay in the browser.
+sources listed below; brand settings, plans, API keys and account tokens stay in the browser. Two other requests are made
+when the page opens, as in Build 4: the brand logo is loaded from the address set in the Brand dialog, and the single file
+loads its typefaces from Google Fonts (the browser app carries the typefaces in its own folder).
 
 ## Install the browser app
 
