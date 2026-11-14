@@ -5,7 +5,7 @@
 const STOP = new Set(['a', 'an', 'the', 'in', 'on', 'at', 'for', 'of', 'to', 'and', 'or', 'near', 'me', 'my', 'your', 'our', 'is', 'are', 'be', 'with', 'by', 'from', 'it', 'its', 'this', 'that', 'do', 'does', 'i', 'you', 'we', 'us', 'vs', 'as', 'tx', 'texas', 'la', 'louisiana', 'usa', 'page', 'guide', 'blog', 'html', 'php', 'www', 'com']);
 const PHRASES = [
   [/\ba\s?\/\s?c\b|\ba\.c\.|\bair[- ]?condition(?:ing|er|ers)\b|\baircon\b/g, 'ac'], [/\bmini[- ]?splits?\b/g, 'minisplit'], [/\btune[- ]?ups?\b/g, 'tuneup'], [/\bheat[- ]?pumps?\b/g, 'heatpump'],
-  [/\bheaters?\b/g, 'heat'], [/\bd\.?w\.?i\.?\b/g, 'dwi'], [/\battorneys?\b/g, 'lawyer'], [/\bdentists?\b|\bdental\b/g, 'dental'], [/\broofers?\b/g, 'roof'], [/\bplumbers?\b/g, 'plumb'], [/\bexterminators?\b/g, 'pest control'],
+  [/\bheaters?\b/g, 'heat'], [/\b(?:frozen|froze|freez(?:e|es|ing))\b/g, 'freez'], [/\b(?:iced|icing|icy)\b/g, 'ice'], [/\bd\.?w\.?i\.?\b/g, 'dwi'], [/\battorneys?\b/g, 'lawyer'], [/\bdentists?\b|\bdental\b/g, 'dental'], [/\broofers?\b/g, 'roof'], [/\bplumbers?\b/g, 'plumb'], [/\bexterminators?\b/g, 'pest control'],
 ];
 const QUESTION = /^(?:how|why|what|when|where|which|who|can|does|do|is|are|should|will|could)\b|\?$/i;
 
@@ -77,6 +77,14 @@ export function angleOf(topic, pack) {
     if (!best || s > best.score) best = { id: a.id, label: a.label, line: a.line, score: Math.round(s * 100) / 100, via: t.text, kind: t.kind };
   }
   return best && best.score >= 0.6 ? best : null;          /* half a match ("hvac" against "hvac repair") is no match */
+}
+
+/* every angle a topic holds: its nearest one, and each one whose whole keyword sits inside it. A slug such as
+   "ac heat pump and furnace repair" holds three services at once. */
+export function anglesHeld(topic, pack) {
+  if (!pack) return []; const T = [...new Set(tokens(topic))], out = new Set(), best = angleOf(topic, pack); if (best) out.add(best.id);
+  if (T.length >= 3) for (const a of index(pack)) if (a.terms.some(t => t.kind !== 'questions' && t.tok.length >= 2 && t.tok.every(x => T.includes(x)))) out.add(a.id);
+  return [...out];
 }
 
 /* a phrase read whole: its stems, its place, its angle, whether it asks a question */

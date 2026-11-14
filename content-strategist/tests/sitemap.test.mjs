@@ -1,7 +1,7 @@
 /* lib/sitemap.mjs and lib/terms.mjs: reading a sitemap, what each URL stands for, cannibalization, internal links. */
 import path from 'node:path';
 import { ok, done, read, json, FX } from './_t.mjs';
-import { parseSitemap, crawl, fromFile, inventory, deepen, cannibal, linkTargets, Blocked } from '../lib/sitemap.mjs';
+import { parseSitemap, crawl, fromFile, inventory, deepen, cannibal, linkTargets, cover, Blocked } from '../lib/sitemap.mjs';
 import { tokens, key, covers, locate, places, angleOf } from '../lib/terms.mjs';
 import { loadPack } from '../lib/atlas.mjs';
 
@@ -73,4 +73,26 @@ L = linkTargets('ac repair frisco', inv, { pack, brand, selfUrl: 'https://www.ex
 ok(!L.targets.some(t => t.url.endsWith('/ac-repair-frisco-tx/')), 'a page is never its own link target');
 L = linkTargets('ac frozen coil', inv, { pack, brand, type: 'blog' });
 ok(L.targets[0].url.endsWith('/ac-repair/') && L.targets.some(t => t.url.includes('/blog/why-is-my-ac')), 'a post links to its service page and to a related post', L.targets.map(t => t.why));
+/* ---- a site built the other way: one page per city for several services, towns the pack does not know ---- */
+const B = 'https://www.example-air.test', U = (p, source = 'page-sitemap.xml') => ({ loc: B + p, lastmod: '', source });
+const site = inventory({ urls: [
+  U('/'), U('/ac-service/'), U('/ac-service/ac-repair/'), U('/heating-service/furnace-repair/'), U('/heating-service/heater-repair/'), U('/indoor-air-quality/thermostats/'), U('/scheduling/'),
+  U('/service-area/ac-heat-pump-and-furnace-repair-in-plano-tx/'), U('/service-area/ac-heat-pump-and-furnace-repair-services-in-zephyr-hollow-tx/'), U('/service-area/ac-heat-pump-and-furnace-repair-services-in-zephyr-hollow-tx/ac-repair/'),
+  U('/service-area/elm-fork-tx-hvac/'), U('/service-area/elm-fork-tx/furnace-services/furnace-repair/'), U('/about-us/our-team/sam-rivera/'), U('/site-search/'),
+  U('/rl_gallery/heat-pump/', 'rl_gallery-sitemap.xml'), U('/case-studies/heat-pump-replacement-in-plano-tx/', 'case-studies-sitemap.xml'),
+  U('/frozen-coils-in-summer-how-is-that-possible/', 'post-sitemap.xml'), U('/why-your-ac-freezes-up-what-you-need-to-know/', 'post-sitemap.xml'), U('/dallas-ac-repair-and-ac-install-professionals/', 'post-sitemap.xml'),
+] }, { pack, brand }), pg = p => site.find(x => x.path === p);
+const hubP = pg('/service-area/ac-heat-pump-and-furnace-repair-in-plano-tx/'), hubZ = pg('/service-area/ac-heat-pump-and-furnace-repair-services-in-zephyr-hollow-tx/');
+ok(hubP.kind === 'location' && hubP.place === 'Plano' && ['repair', 'heatpump'].every(a => hubP.angles.includes(a)) && hubP.angles.length >= 3, 'one page for several services in a city is that city\'s page, and holds each of those services', hubP.angles);
+ok(hubZ.place === 'Zephyr Hollow' && hubZ.kind === 'location' && pg('/service-area/ac-heat-pump-and-furnace-repair-services-in-zephyr-hollow-tx/ac-repair/').place === 'Zephyr Hollow' && pg('/service-area/ac-heat-pump-and-furnace-repair-services-in-zephyr-hollow-tx/ac-repair/').kind === 'service-location' && pg('/service-area/elm-fork-tx-hvac/').place === 'Elm Fork' && pg('/service-area/elm-fork-tx/furnace-services/furnace-repair/').place === 'Elm Fork', 'a town the pack does not know is read from the URL', [hubZ.place, pg('/service-area/elm-fork-tx-hvac/').place]);
+ok(pg('/rl_gallery/heat-pump/').kind === 'media' && pg('/case-studies/heat-pump-replacement-in-plano-tx/').kind === 'post' && pg('/scheduling/').kind === 'contact' && pg('/site-search/').kind === 'legal' && pg('/about-us/our-team/sam-rivera/').kind === 'page' && pg('/indoor-air-quality/thermostats/').angle === null, 'galleries, case studies, scheduling, search and team pages; a page stands for its own slug, not its section');
+r = cannibal('ac repair plano', site, { pack, brand });
+ok(r.verdict === 'conflict' && r.conflicts[0].shared === true && r.conflicts[0].url === hubP.url && /split this service out/.test(r.advice[0]) && /--allow cannibalization/.test(r.advice[0]), 'a keyword a several service city page already holds is a conflict that asks for the person\'s decision', r.advice[0]);
+r = cannibal('ac repair zephyr hollow', site, { pack, brand });
+ok(r.verdict === 'conflict' && r.want.place === 'Zephyr Hollow' && r.conflicts[0].why === 'the same keyword' && r.conflicts[0].url.endsWith('/ac-repair/') && /^Do not write/.test(r.advice[0]), 'a keyword for a town outside the pack still finds the page that holds it');
+r = cannibal('ac frozen coil', site, { pack, brand, type: 'blog' });
+ok(r.verdict === 'clear' && r.neighbors.filter(n => n.close).length === 2 && r.advice.some(a => /^Close topics already on the blog/.test(a)) && r.advice.some(a => a.includes('/ac-service/ac-repair/')), 'posts on a close topic in other words are surfaced, and the parent is the page named for the service', r.advice);
+ok(cover(tokens('ac frozen coil'), { tokens: tokens('frozen coils in summer how is that possible') }) >= 0.6 && cover(tokens('ac frozen coil'), { tokens: tokens('how to clean a furnace filter') }) === 0 && cannibal('why do coils freeze in summer', site, { pack, brand, type: 'blog' }).verdict === 'conflict', 'a post that carries the whole subject is a conflict; question words do not count as subject');
+L = linkTargets('furnace repair plano', site, { pack, brand, n: 6 });
+ok(L.targets.filter(t => t.why === 'the parent service page').length === 1 && L.targets[0].url.endsWith('/heating-service/furnace-repair/') && L.targets.some(t => t.url === hubP.url) && !L.targets.some(t => /rl_gallery|site-search|zephyr|elm-fork/.test(t.url)) && L.targets[L.targets.length - 1].url.endsWith('/scheduling/'), 'one parent page, the city page, never a gallery or another town, and the booking page last', L.targets.map(t => t.why));
 done();
