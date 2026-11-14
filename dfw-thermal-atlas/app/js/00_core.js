@@ -102,7 +102,9 @@ let toastT; function toast(msg) { TOAST.textContent = msg; TOAST.classList.add('
 
 /* ============================ files ============================ */
 const inViewer = () => !!(window.claude && typeof window.claude.use === 'function');
+const csvMark = (name, data) => typeof data === 'string' && /\.csv$/.test(name) && data.charCodeAt(0) !== 0xFEFF ? '﻿' + data : data;     // byte order mark: without it Excel on Windows misreads °, ✓ and accented letters
 async function saveFile(filename, data) {
+  data = csvMark(filename, data);
   if (inViewer()) {
     let dl = null; try { dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
     if (dl) { try { await dl.save({ filename, data }); toast('Saved ' + filename); } catch (e) { const c = e && e.code; toast(c === 'declined' ? 'Download canceled' : c === 'rate_limited' ? 'A save prompt is already open' : 'Could not save ' + filename + (c ? ' (' + c + ')' : '')); } return; }
@@ -119,7 +121,7 @@ function zipBlob(files) {
   const enc = new TextEncoder(); const parts = [], central = []; let offset = 0; const now = new Date();
   const dt = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF, dd = (((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate()) & 0xFFFF;
   for (const f of files) {
-    const name = enc.encode(f.name); const data = typeof f.data === 'string' ? enc.encode(f.data) : f.data; const crc = crc32(data);
+    const name = enc.encode(f.name); const data = typeof f.data === 'string' ? enc.encode(csvMark(f.name, f.data)) : f.data; const crc = crc32(data);
     const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint16(10, dt, true); lh.setUint16(12, dd, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
     parts.push(new Uint8Array(lh.buffer), name, data);
     const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, dt, true); ch.setUint16(14, dd, true); ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);

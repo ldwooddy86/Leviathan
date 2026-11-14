@@ -21,6 +21,28 @@ const CSVQ = [   // [cell, what the file holds]
 ];
 const MMP = [[999, '$999'], [1500, '$1.5K'], [999499, '$999K'], [999500, '$1.0M'], [999999, '$1.0M'], [1e6, '$1.0M'], [6.3e8, '$630M'], [999.49e6, '$999M'], [999.5e6, '$1.00B'], [1e9, '$1.00B'], [2.345e9, '$2.35B'], [null, '—']];
 const KP = [[999, '999'], [1500, '1.5k'], [533000, '533k'], [999499, '999k'], [999500, '1.00M'], [999999, '1.00M'], [1e6, '1.00M'], [2864573, '2.86M'], [null, '—']];
+const CSVS = {   // module: the buttons that each save one CSV file
+  rules: ['p3Csv'], drivers: ['d4Vars'], paid: ['a5G'], desk: ['dkG', 'dkMs', 'dkPlanX'], forge: ['f9LedX'], satchel: ['s10Book'], dfw: ['d11CoX', 'd11ZiX', 'd11InvX', 'd11SvyX'],
+  lines: ['l12Long', 'l12Wide', 'l12G', 'l12M', 'l12Cal'], watch: ['w13Csv', 'w13Sweep', 'w13Roster'], weather: ['w14Sched', 'w14Hourly'], accounts: ['a15Tmpl'],
+};
+const table = text => {   // CSV text to rows of cells; the note lines on top are not part of the table
+  const lines = text.split('\n'); while (lines.length && lines[0].startsWith('# ')) lines.shift(); const s = lines.join('\n'), rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c !== '"') cur += c; else if (s[i + 1] === '"') { cur += '"'; i++; } else q = false; } else if (c === '"') q = true; else if (c === ',') { row.push(cur); cur = ''; } else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; } else if (c !== '\r') cur += c; }
+  if (cur || row.length) { row.push(cur); rows.push(row); } return rows;
+};
+const CRC = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc = d => { let c = 0xFFFFFFFF; for (const x of d) c = CRC[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+const unzip = bytes => {   // a reader of its own for a zip of stored entries: { name: { data, ok } }, or null when the archive does not hold together
+  const b = Buffer.from(bytes), out = {}; let e = b.length - 22; while (e >= 0 && b.readUInt32LE(e) !== 0x06054b50) e--; if (e < 0) return null;
+  let p = b.readUInt32LE(e + 16);
+  for (let i = b.readUInt16LE(e + 10); i > 0; i--) {
+    if (p + 46 > b.length || b.readUInt32LE(p) !== 0x02014b50) return null; const size = b.readUInt32LE(p + 24), nl = b.readUInt16LE(p + 28), lh = b.readUInt32LE(p + 42), name = b.toString('utf8', p + 46, p + 46 + nl);
+    if (lh + 30 > b.length || b.readUInt32LE(lh) !== 0x04034b50) return null; const at = lh + 30 + b.readUInt16LE(lh + 26) + b.readUInt16LE(lh + 28), data = b.subarray(at, at + size);
+    out[name] = { data, ok: b.readUInt16LE(p + 10) === 0 && b.readUInt32LE(p + 20) === size && b.readUInt32LE(lh + 18) === size && data.length === size && crc(data) === b.readUInt32LE(p + 16) && b.toString('utf8', lh + 30, lh + 30 + nl) === name };
+    p += 46 + nl + b.readUInt16LE(p + 30) + b.readUInt16LE(p + 32);
+  }
+  return out;
+};
 export default async function (page, t, ctx) {
   page.setDefaultTimeout(6000);
   const key = async (k, n = 1) => { for (let i = 0; i < n; i++) await page.keyboard.press(k); await page.waitForTimeout(60); };
@@ -60,6 +82,46 @@ export default async function (page, t, ctx) {
     await ctx.show('dfw');
     const led = await page.evaluate(async () => { const out = {}; for (const zip of ['76092', '75207', '75150']) { const p = document.querySelector('#mod-dfw .mapsvg path[data-zip="' + zip + '"]'); if (!p) continue; const r = p.getBoundingClientRect(), o = { bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, pointerId: 1 }; p.dispatchEvent(new PointerEvent('pointerdown', o)); p.dispatchEvent(new PointerEvent('pointerup', o)); await new Promise(r => setTimeout(r, 120)); out[zip] = document.getElementById('d11LedT').textContent.slice(0, 5) + ' ' + [...document.querySelectorAll('#d11Led *')].filter(e => !e.children.length && /±/.test(e.textContent)).map(e => e.textContent.trim()).join(' | '); } return out; });
     t.ok(Object.keys(led).length === 3 && Object.entries(led).every(([z, s]) => s.startsWith(z) && /±/.test(s) && !/-\s?\$?\d|\d{3},\d{3},\d{3}/.test(s)) && /± \$[\d,]+/.test(led['75150']), 'DFW Stats: no ZIP ledger prints a margin like "± $-333,333,333"', led);
+  });
+
+  /* ---------- the byte order mark: a CSV file is the same bytes saved on its own or inside a pack ---------- */
+  await part('byte order mark', async () => {
+    const TEXT = 'zip,note\n75150,72°F ✓ calefacción\n', marked = d => d.length >= 3 && d[0] === 0xEF && d[1] === 0xBB && d[2] === 0xBF, head = d => d ? d.subarray(0, 4).toString('hex') : 'no file';
+    /* what the page hands to the browser, byte for byte: the click on the download link is caught and the file read instead */
+    await page.evaluate(() => { const click = HTMLAnchorElement.prototype.click; window.__saved = []; window.__unhook = () => { HTMLAnchorElement.prototype.click = click; }; HTMLAnchorElement.prototype.click = function () { if (!this.download || !/^blob:/.test(this.href)) return click.call(this); const name = this.download; window.__saved.push(fetch(this.href).then(r => r.arrayBuffer()).then(b => ({ name, bytes: [...new Uint8Array(b)] }))); }; });
+    const saved = async () => (await page.evaluate(async () => { const a = await Promise.all(window.__saved); window.__saved = []; return a; })).map(f => ({ name: f.name, data: Buffer.from(f.bytes) }));
+    try {
+      await page.evaluate(async text => { await saveFile('probe.csv', text); await saveFile('marked.csv', '﻿' + text); await saveFile('probe.json', '{"a":"°"}'); await saveFile('probe.txt', text); await saveFile('probe.html', '<p>°</p>'); await saveFile('bytes.csv', new Blob([text])); }, TEXT);
+      const one = Object.fromEntries((await saved()).map(f => [f.name, f.data])), csv = one['probe.csv'];
+      t.ok(csv && marked(csv) && csv.subarray(3).equals(Buffer.from(TEXT)), 'a CSV file saved on its own starts with the byte order mark and the text follows unchanged', head(csv));
+      t.ok(csv && one['marked.csv'] && one['marked.csv'].equals(csv), 'a CSV text that already carries the mark is not given a second one', head(one['marked.csv']));
+      t.ok(['probe.json', 'probe.txt', 'probe.html', 'bytes.csv'].every(n => one[n] && one[n].length && !marked(one[n])), 'JSON, text and HTML files, and a file handed over as finished bytes, carry no mark', Object.keys(one).map(n => n + ' ' + head(one[n])));
+      const z = unzip(await page.evaluate(async text => [...new Uint8Array(await zipBlob([{ name: 'pack/probe.csv', data: text }, { name: 'pack/marked.csv', data: '﻿' + text }, { name: 'pack/read-me.txt', data: text }, { name: 'pack/plan.json', data: '{"a":"°"}' }, { name: 'pack/bytes.csv', data: new TextEncoder().encode(text) }]).arrayBuffer())], TEXT)) || {};
+      t.ok(Object.keys(z).length === 5 && Object.values(z).every(e => e.ok), 'a pack with CSV files in it is a sound zip: stored sizes and checksums agree', Object.keys(z));
+      t.ok(csv && z['pack/probe.csv'] && z['pack/probe.csv'].data.equals(csv) && z['pack/marked.csv'].data.equals(csv), 'a CSV file inside a pack is byte for byte the file saved on its own', head((z['pack/probe.csv'] || {}).data));
+      t.ok(z['pack/read-me.txt'] && !marked(z['pack/read-me.txt'].data) && !marked(z['pack/plan.json'].data) && z['pack/bytes.csv'].data.equals(Buffer.from(TEXT)), 'the other files of a pack are stored as given');
+      /* the exports of the modules, as their own buttons write them */
+      const files = [];
+      for (const [mod, ids] of Object.entries(CSVS)) { const there = await page.evaluate(([m, ids]) => { if (!MODS.some(x => x.key === m)) return []; showModule(m); return ids.filter(id => document.getElementById(id)); }, [mod, ids]); await page.waitForTimeout(150); for (const id of there) { await page.evaluate(id => document.getElementById(id).click(), id); await page.waitForTimeout(40); const got = await saved(); got.forEach(f => files.push({ ...f, from: mod + ' #' + id })); if (!got.length) files.push({ name: '', data: Buffer.alloc(0), from: mod + ' #' + id }); } }
+      const bad = files.filter(f => !/\.csv$/.test(f.name) || !marked(f.data) || marked(f.data.subarray(3))).map(f => f.from + ' ' + (f.name || 'saved nothing') + ' ' + head(f.data));
+      t.ok(files.length >= 12 && !bad.length, `the CSV exports of the modules (${files.length} files from ${new Set(files.map(f => f.from.split(' ')[0])).size} modules) each start with one byte order mark`, bad);
+      const ragged = files.filter(f => f.data.length).map(f => { const rows = table(f.data.subarray(3).toString('utf8')); return rows.length > 1 && rows.every(r => r.length === rows[0].length) && !/�/.test(f.data.toString('utf8')) ? null : f.from + ' ' + f.name + ' ' + rows.length + ' rows'; }).filter(Boolean);
+      t.eq(ragged, [], 'and each still reads as a table: every row has as many cells as the header and no byte is lost');
+      if (await page.evaluate(() => { if (!MODS.some(m => m.key === 'heat')) return false; showModule('heat'); return true; })) {
+        await page.waitForSelector('#h17Files button[data-x="pack"]', { timeout: 4000 }).catch(() => null);
+        const keys = await page.evaluate(() => [...document.querySelectorAll('#h17Files button[data-x]')].map(b => b.dataset.x));
+        if (keys.includes('pack')) {
+          for (const k of keys) { await page.evaluate(k => { const b = document.querySelector('#h17Files button[data-x="' + k + '"]'); if (b) b.click(); }, k); await page.waitForTimeout(40); }
+          const got = await saved(), pack = got.find(f => /\.zip$/.test(f.name)), inside = (pack && unzip(pack.data)) || {}, names = Object.keys(inside), alone = got.filter(f => /\.csv$/.test(f.name));
+          const off = names.filter(n => !inside[n].ok || (/\.csv$/.test(n) ? !marked(inside[n].data) || marked(inside[n].data.subarray(3)) : marked(inside[n].data))).concat(alone.filter(f => !inside[f.name] || !inside[f.name].data.equals(f.data)).map(f => f.name + ' differs from the pack'));
+          t.ok(names.filter(n => /\.csv$/.test(n)).length >= 3 && alone.length >= 3 && names.some(n => !/\.csv$/.test(n)) && !off.length, `Heat Desk: each CSV file of the Monday pack (${names.filter(n => /\.csv$/.test(n)).length}) carries the mark and is byte for byte the file its own button saves (${alone.length} compared); the read me carries none`, off.length ? off : names);
+        } else t.note('no Monday pack button in the Heat Desk: the pack check was skipped');
+      } else t.note('no Heat Desk in this build: the pack check was skipped');
+    } finally { await page.evaluate(() => { if (window.__unhook) window.__unhook(); }); }
+    if (await page.evaluate(() => { showModule('paid'); return !!document.getElementById('a5G'); })) {
+      await page.waitForTimeout(200); const g = await ctx.download(() => page.click('#a5G'));
+      t.ok(/\.csv$/.test(g.name) && g.text.charCodeAt(0) === 0xFEFF && g.text.charCodeAt(1) !== 0xFEFF && /^[A-Za-z"#]/.test(g.text.slice(1)), 'a CSV file downloaded through the browser arrives with the mark in front', g.name + ' ' + JSON.stringify(g.text.slice(0, 24)));
+    }
   });
 
   /* ---------- 3: every dataTable sorts and selects from the keyboard ---------- */

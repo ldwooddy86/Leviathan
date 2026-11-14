@@ -219,7 +219,10 @@ const HEATX = (() => {
     const cells = [], by = {}, info = {};
     B.lines.forEach((Lb, li) => { const id = Lb.id, s = platShares(P, id, Lb.c0), c0 = Lb.c0, sig = P.paid[id] * P.cap, e = P.coldExp[id], season = Lb.L.months[P.month], close = Lb.close, w3 = P.dmw, soc = (s.lsa > 0 ? s.lsa / c0.lsa : 0) + (s.meta > 0 ? s.meta / c0.meta : 0) + (s.nextdoor > 0 ? s.nextdoor / c0.nextdoor : 0);
       const cpl0 = 1 / ((s.google > 0 ? s.google / c0.google : 0) + (s.microsoft > 0 ? s.microsoft / c0.microsoft : 0) + soc), rows = by[id] = [], stretch = rs && (id === 'heat' || id === 'maint');
-      info[id] = { plat: s, cpl0, close, sigma: sig, season, c0 };
+      /* the same lead cost for any other platform mix of the line (what runs after the minimum folds): the metro blend, and the cell's own with its cost index */
+      const part = (v, c) => (v > 0 && isN(c) && c > 0 ? v / c : 0), socOf = sh => part(sh.lsa, c0.lsa) + part(sh.meta, c0.meta) + part(sh.nextdoor, c0.nextdoor);
+      const runCost = sh => { const so = socOf(sh), m = 1 / (part(sh.google, c0.google) + part(sh.microsoft, c0.microsoft) + so); return { cpl0: m, of: (i, zip) => m * Math.pow(1 / (part(sh.google, Lb.goog[i]) + part(sh.microsoft, Lb.ms[i]) + so) / m * Lb.press[i], P.trust) * (cs && okNum(cs[zip]) && +cs[zip] > 0 ? +cs[zip] : 1) }; };
+      info[id] = { plat: s, cpl0, close, sigma: sig, season, c0, runCost };
       for (let i = 0; i < B.n; i++) { const zb = B.Z[i]; if (blk.has(zb.zip)) continue;
         const half = P.half[id] * (stretch ? rsOf(id, zb.zip) : 1), R = reach(zb.min, half, P.cut);
         const tot = zb.own + zb.rent + zb.mf, dm = id === 'maint' ? 1 : tot > 0 ? (zb.own * w3[0] + zb.rent * w3[1] + zb.mf * w3[2]) / tot : 1;       // who decides: a tune up pool is already owner occupied homes
@@ -227,7 +230,7 @@ const HEATX = (() => {
         const cost = Math.pow(1 / ((s.google > 0 ? s.google / Lb.goog[i] : 0) + (s.microsoft > 0 ? s.microsoft / Lb.ms[i] : 0) + soc) / cpl0 * Lb.press[i], P.trust) * (cs && okNum(cs[zb.zip]) && +cs[zb.zip] > 0 ? +cs[zb.zip] : 1);   // modeled auction cost, shrunk toward the metro (costScale: a what if on one ZIP)
         const cpl = cpl0 * cost, J = Lb.jobs[i] * dm * season / 1200 * xf * w * scale, g = Lb.gd[i] + P.pipeCredit * Lb.gpipe[i], rho = R > 0 ? close * R * g / cpl : 0;
         const c = { zip: zb.zip, id, z: zb.z, zi: i, li, min: zb.min, R, dm, x: xf, w, cost, cpl, close, J, g, gd: Lb.gd[i], gpipe: Lb.gpipe[i], rho, rhoD: rho, K: sig * J * cpl / close, vpc: R * g, floor: 0,
-          core: R > 0 && ((zb.min <= P.coreMin && (id === 'heat' || id === 'maint')) || pin.has(zb.zip) || !!(keep && keep.has(id + zb.zip))), spend: 0, state: R > 0 ? 'under' : 'out', capped: false, y: null, conf: 0, fill: 0, leads: 0, jobs: 0, gp: 0, gpDirect: 0, bid: null, valueRule: null, sigma: sig };
+          core: R > 0 && ((zb.min <= P.coreMin && (id === 'heat' || id === 'maint')) || pin.has(zb.zip) || !!(keep && keep.has(id + zb.zip))), spend: 0, state: R > 0 ? 'under' : 'out', capped: false, y: null, conf: 0, fill: 0, leads: 0, jobs: 0, gp: 0, gpDirect: 0, bid: null, valueRule: null, sigma: sig, cplRun: cpl, KRun: sig * J * cpl / close };
         rows.push(c); cells.push(c); }
     });
     return { B, cells, by, info };
@@ -284,7 +287,8 @@ const HEATX = (() => {
   function takes(rows, lnLam, P, scale) { const s = Math.max(1e-4, P.doubt), fs = P.depth * scale; let T = 0; for (const c of rows) { if (!(c.rhoD > 0 && c.K > 0)) continue; const v = c.K * soft(Math.log(c.rhoD) - lnLam, s), f = c.core ? floorOf(c, fs) : 0; if (c.core) T += Math.max(v, f); else if (v >= fs * c.cpl) T += v; } return T; }
   /* the cut at which a cell would first hold the minimum leads (null: never, its ceiling is too small) */
   function entry(c, P, scale) { const s = Math.max(1e-4, P.doubt), want = P.depth * scale * c.cpl / c.K; if (!(c.rhoD > 0 && c.K > 0)) return null; let lo = -(4 + 12 * s), hi = want + 1; if (hi > 12) return null; for (let i = 0; i < 40; i++) { const mid = (lo + hi) / 2; if (soft(mid, s) < want) lo = mid; else hi = mid; } return Math.log(c.rhoD) - hi; }
-  const outcome = c => { c.fill = c.spend > 0 && c.K > 0 ? 1 - Math.exp(-c.spend / c.K) : 0; c.leads = c.sigma * c.J * c.fill / c.close; c.jobs = c.sigma * c.J * c.R * c.fill; c.gp = c.jobs * c.g; c.gpDirect = c.jobs * c.gd; };
+  /* what the money buys, at the lead cost of the platforms that run (KRun; the fill placed the money at the planned mix, K) */
+  const outcome = c => { c.fill = c.spend > 0 && c.KRun > 0 ? 1 - Math.exp(-c.spend / c.KRun) : 0; c.leads = c.sigma * c.J * c.fill / c.close; c.jobs = c.sigma * c.J * c.R * c.fill; c.gp = c.jobs * c.g; c.gpDirect = c.jobs * c.gd; };
 
   /* ---------- the plan ---------- */
   /* opt: wx (a weather result), reachScale ({ heat, maint, zip } or a number), budget, scale (period over a month), lineBudgets
@@ -313,14 +317,31 @@ const HEATX = (() => {
     } else {
       const rows = [].concat(...IDS.map(live)), f = fill(rows, Bud, P, scale); groups.push({ ids: IDS, rows, f, budget: Bud }); IDS.forEach(id => { lam[id] = f.lam; }); capUsed = f.cap; loosened = f.loosened;
     }
+    /* what runs. A platform share under its minimum runs on Google Search instead (a fold): the ZIP money stays where the fill put it, at the
+       lead cost of the planned mix, and every outcome (leads, jobs, gross profit, the ranges) is priced at the lead cost of the mix that
+       runs. With no fold the two are the same numbers. Local Services is one profile with one budget: its minimum is met by the lines together */
+    const mixRun = () => { const lsaAll = sum(IDS.map(id => sum(by[id].map(c => c.spend)) * info[id].plat.lsa));
+      IDS.forEach(id => { const I = info[id], d = sum(by[id].map(c => c.spend)), pd = {}, folded = []; PLATS.forEach(p => { pd[p] = d * I.plat[p]; });
+        PLATS.forEach(p => { if (p !== 'google' && pd[p] > 0 && (p === 'lsa' ? lsaAll : pd[p]) < (P.platMin[p] || 0) * scale) { folded.push({ line: id, platform: p, dollars: pd[p], to: 'google', leadsOver: 0, why: '' }); pd.google += pd[p]; pd[p] = 0; } });
+        I.d = d; I.pd = pd; I.folded = folded; I.lsaAll = lsaAll;
+        if (!folded.length || !(d > 0)) { I.run = I.plat; I.cplRun0 = I.cpl0; for (const c of by[id]) { c.cplRun = c.cpl; c.KRun = c.K; } }
+        else { const sh = {}; PLATS.forEach(p => { sh[p] = pd[p] / d; }); const rc = I.runCost(sh); I.run = sh; I.cplRun0 = rc.cpl0; for (const c of by[id]) { c.cplRun = rc.of(c.zi, c.zip); c.KRun = c.sigma * c.J * c.cplRun / c.close; } }
+        /* the share of the line's leads each platform brings: its dollars over its own lead cost */
+        const lw = {}; let lt = 0; PLATS.forEach(p => { lw[p] = I.run[p] > 0 && isN(I.c0[p]) && I.c0[p] > 0 ? I.run[p] / I.c0[p] : 0; lt += lw[p]; }); PLATS.forEach(p => { lw[p] = lt > 0 ? lw[p] / lt : p === 'google' ? 1 : 0; }); I.leadShare = lw; }); };
+    mixRun();
     /* the crew cap: more booked jobs than the crews can run comes out of the Far tier first, then the Ring, then the Core */
     let crew = null;
     if (opt.crewCap != null && opt.crewCap >= 0) {
-      const funded = cells.filter(c => c.spend > 0), jobsAt = (set, f) => { let j = 0; for (const c of funded) { const x = set.has(c) ? c.spend * f : c.spend; j += c.sigma * c.J * c.R * (1 - Math.exp(-x / c.K)); } return j; }, none = new Set(), before = jobsAt(none, 1);
-      if (before > opt.crewCap) { crew = { cap: opt.crewCap, jobs: before, after: before, cut: 0, tiers: [] };
+      const none = new Set();
+      for (let pass = 0; pass < 3; pass++) {                                                             // a cut can push a platform under its minimum: the lead cost follows what runs, and the cap is checked again
+        const funded = cells.filter(c => c.spend > 0), jobsAt = (set, f) => { let j = 0; for (const c of funded) { const x = set.has(c) ? c.spend * f : c.spend; j += c.sigma * c.J * c.R * (1 - Math.exp(-x / c.KRun)); } return j; }, before = jobsAt(none, 1);
+        if (!(before > opt.crewCap * (pass ? 1.0001 : 1))) { if (crew) crew.after = before; break; }
+        if (!crew) crew = { cap: opt.crewCap, jobs: before, after: before, cut: 0, tiers: [] };
         for (const tr of ['Far', 'Ring', 'Core']) { const setT = new Set(funded.filter(c => tier(c.min) === tr)); if (!setT.size) continue; let f = 0;
           if (jobsAt(setT, 0) < opt.crewCap) { let lo = 0, hi = 1; for (let i = 0; i < 30; i++) { const mid = (lo + hi) / 2; if (jobsAt(setT, mid) > opt.crewCap) hi = mid; else lo = mid; } f = lo; }
-          setT.forEach(c => { crew.cut += c.spend * (1 - f); c.spend *= f; }); crew.tiers.push({ tier: tr, kept: f }); crew.after = jobsAt(none, 1); if (crew.after <= opt.crewCap * 1.0001) break; } }
+          setT.forEach(c => { crew.cut += c.spend * (1 - f); c.spend *= f; }); const was = crew.tiers.find(x => x.tier === tr); if (was) was.kept *= f; else crew.tiers.push({ tier: tr, kept: f }); crew.after = jobsAt(none, 1); if (crew.after <= opt.crewCap * 1.0001) break; }
+        mixRun();
+      }
     }
     /* outcomes, confidence, states */
     cells.forEach(c => { if (!(c.spend > 0)) c.spend = 0; outcome(c); c.conf = c.y == null ? 0 : PHI(c.y / s); c.state = c.spend > 0 ? 'in' : c.R > 0 ? (c.y != null && c.y >= 0 ? 'small' : 'under') : 'out'; });
