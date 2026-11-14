@@ -146,4 +146,37 @@ ok(E.parse(JSON.stringify(tpl)).ok && E.diff(E.parse(JSON.stringify(tpl)).doc.el
 const b = E.toBundle(DOC, { slug: 'lp-furnace-frisco', title: 'Furnace Repair in Frisco | Northside Comfort', h1: 'Furnace Repair in Frisco, TX', meta_description: 'Furnace repair for Frisco homes.', noindex: true, template: 'elementor_canvas', schema: { '@context': 'https://schema.org' } });
 eq([b.slug, b.title, b.post_title, b.status, b.post_type, b.template, b.seo.noindex, b.seo.description, b.page_settings.hide_title], ['lp-furnace-frisco', 'Furnace Repair in Frisco | Northside Comfort', 'Furnace Repair in Frisco, TX', 'draft', 'page', 'elementor_canvas', true, 'Furnace repair for Frisco homes.', 'yes'], 'toBundle fills the keys the FORGE bridge imports, as a draft');
 ok(b.elementor_data === DOC.elements && b.content_html.startsWith('<style>.e-con') && b.content_html.includes('<h1') && b.schema['@context'] === 'https://schema.org' && E.toBundle(DOC, { status: 'publish', post_type: 'post' }).status === 'publish', 'the bundle carries the tree, an HTML fallback with its css, and the schema');
+
+/* ---- Elementor's Editor V4 ("atomic") elements: read, kept whole, never edited. Shapes taken from Elementor 4.4.0's
+        own prop types (html-v3, string, link, classes) and element names (e-flexbox, e-heading, e-paragraph, e-button). ---- */
+{
+  const S = v => ({ $$type: 'string', value: v }), H = v => ({ $$type: 'html-v3', value: { content: S(v), children: [] } });
+  const V4 = { version: '0.4', title: 'V4 page', type: 'page', content: [
+    { id: 'aa11bb2', elType: 'e-flexbox', settings: { classes: { $$type: 'classes', value: ['e-aa11bb2-x1'] } }, styles: { 'e-aa11bb2-x1': { id: 'e-aa11bb2-x1', label: 'local', type: 'class', variants: [{ meta: { breakpoint: 'desktop', state: null }, props: { 'background-color': { $$type: 'color', value: '#173a69' } } }] } }, editor_settings: { title: 'Hero' }, version: '0.0', interactions: [], elements: [
+      { id: 'cc33dd4', elType: 'widget', widgetType: 'e-heading', settings: { tag: S('h1'), title: H('AC Repair in Plano, TX') }, styles: {}, editor_settings: {}, version: '0.0', elements: [] },
+      { id: 'ee55ff6', elType: 'widget', widgetType: 'e-paragraph', settings: { paragraph: H('Same day AC repair for Plano homes.') }, elements: [] },
+      { id: 'gg77hh8', elType: 'widget', widgetType: 'e-button', settings: { text: H('Book AC repair'), link: { $$type: 'link', value: { destination: { $$type: 'url', value: '#contact' }, isTargetBlank: { $$type: 'boolean', value: false } } } }, elements: [] },
+      { id: 'kk11ll2', elType: 'widget', widgetType: 'e-divider', settings: [], elements: [] },
+      { id: 'ii99jj0', elType: 'widget', widgetType: 'heading', settings: { title: 'A classic heading about Plano', header_size: 'h2', title_color: '#173a69' }, elements: [] },
+    ] }] };
+  const before = JSON.stringify(V4.content[0]); const P = E.parse(JSON.stringify(V4)); const top = P.doc.elements[0];
+  ok(P.ok && P.problems.length === 0 && Object.keys(top).join() === 'id,elType,settings,styles,editor_settings,version,interactions,elements' && Object.keys(top.elements[0]).join() === 'id,elType,widgetType,settings,styles,editor_settings,version,elements' && !('isInner' in top) && top.elements[4].isInner === false && Array.isArray(top.elements[3].settings), 'an atomic element keeps every key it came with, in order, and gains none', Object.keys(top).join());
+  ok(E.isAtomic(top) && E.isAtomic(top.elements[0]) && E.isAtomic(top.elements[3]) && !E.isAtomic(top.elements[4]) && E.unwrap(top.elements[0].settings.title) === 'AC Repair in Plano, TX' && E.unwrap(top.elements[2].settings.link).destination === '#contact', 'atomic elements are recognized by name or by their typed settings, and their values can be read');
+  const V = E.validate(P.doc.elements);
+  ok(V.ok && V.stats.atomic === 5 && V.stats.unknown.length === 0 && V.stats.otherTypes.length === 0 && V.warnings.length === 1 && /5 elements use Elementor's Editor V4 atomic format/.test(V.warnings[0]) && /not edited here/.test(V.warnings[0]), 'validation says so once, in words, instead of one warning per element', V.warnings.join(' | '));
+  const O = E.outline(P.doc.elements);
+  ok(/\[cc33dd4\] e-heading \(h1, V4, read only\) "AC Repair in Plano, TX"/.test(O) && /\[gg77hh8\] e-button \(V4, read only\) "Book AC repair"/.test(O) && /\[ii99jj0\] heading \(h2\) "A classic heading about Plano"/.test(O), 'the outline shows their text and marks them read only', O);
+  const SL = E.slots(P.doc.elements);
+  eq(SL.map(x => [x.ref, x.readonly === true]), [['cc33dd4.title', true], ['ee55ff6.paragraph', true], ['gg77hh8.text', true], ['ii99jj0.title', false]], 'their text is listed as read only slots beside the editable ones');
+  ok(E.words(P.doc.elements) >= 18 && /AC Repair in Plano, TX/.test(E.text(P.doc.elements)), 'and counts toward the words on the page');
+  const R = E.apply(P.doc.elements, [{ op: 'replace_text', find: 'Plano', replace: 'Frisco' }, { op: 'set', ref: 'cc33dd4.title', value: 'New' }, { op: 'set_setting', el: 'ee55ff6', key: 'paragraph', value: 'New' }, { op: 'list_add', el: 'gg77hh8', key: 'items', item: {} }, { op: 'duplicate', el: 'aa11bb2' }, { op: 'replace_color', find: '#173a69', replace: '#000000' }, { op: 'replace_url', find: '#contact', replace: '#book' }, { op: 'regen_ids' }]);
+  eq(R.log.map(l => l.ok), [true, false, false, false, false, true, false, true], 'text, color and id operations apply to the classic elements; every edit aimed at an atomic element is refused');
+  ok(/1 replacement; 2 Editor V4 atomic elements hold it too and were left as they are/.test(R.log[0].note) && /kept exactly as it is and edited in Elementor/.test(R.log[1].note) && /Duplicate it in Elementor/.test(R.log[4].note), 'each refusal says why and where to make the change', R.log.map(l => l.note).join(' | '));
+  const after = R.elements[0], classic = after.elements[4]; const onlyAtomic = el => { const c = JSON.parse(JSON.stringify(el)); c.elements = c.elements.filter(x => /^e-/.test(x.widgetType || '')); return JSON.stringify(c); };
+  ok(onlyAtomic(after) === onlyAtomic(JSON.parse(before)) && classic.settings.title === 'A classic heading about Frisco' && classic.settings.title_color === '#000000' && classic.id !== 'ii99jj0' && after.id === 'aa11bb2', 'after all of it the atomic elements are identical to what was loaded: ids, typed values, styles and all');
+  const html = E.toHtml(P.doc.elements).html;
+  ok(html.includes('<h1>AC Repair in Plano, TX</h1>') && html.includes('<p>Same day AC repair for Plano homes.</p>') && html.includes('<a class="e-btn" href="#contact">Book AC repair</a>') && html.includes('[e-divider]'), 'the approximate rendering shows their text, tags and links', html.slice(0, 300));
+  ok(E.toHtml([{ id: 'x1', elType: 'widget', widgetType: 'e-button', settings: { text: H('<img src=x onerror=1>Go'), link: { $$type: 'link', value: { destination: { $$type: 'url', value: 'javascript:alert(1)' } } } }, elements: [] }]).html.includes('<a class="e-btn" href="#">Go</a>'), 'with markup and a script address in an atomic value made harmless');
+  const T2 = E.toTemplate(P.doc); ok(JSON.stringify(T2.content[0].styles) === JSON.stringify(V4.content[0].styles) && T2.content[0].elements[0].settings.title.$$type === 'html-v3', 'and an exported template still carries their styles and typed values');
+}
 done();

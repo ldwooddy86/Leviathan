@@ -17,7 +17,7 @@ Console 1.2.0 compiled 2026-10-06, carried by browser app 1.1.0 (built 2026-10-0
 | Files | Leviathan.html 26.5 MB, Leviathan-data.js 25.7 MB, Leviathan-data-2.js 9.5 MB, resume-findings.js 1.3 MB, Leviathan-full.html 63 MB |
 | Browser app | Manifest V3, version 1.1.0, one permission (storage), one sandboxed page, omnibox keyword lev, one keyboard command |
 | Tests | 8 unit test files, 47 end to end checks with 3 screenshots |
-| Dr. HVAC | Module 19 for the standalone DFW Thermal Debt Atlas (its Build 6): a web developer agent with 50 tools, in `dr-hvac/` with its build tool; 9 unit test files (591 checks, 94 more in PHP) and 62 end to end checks. Section 9. |
+| Dr. HVAC | Module 19 for the standalone DFW Thermal Debt Atlas (its Build 6): a web developer agent with 50 tools, in `dr-hvac/` with its build tool; 9 unit test files (603 checks, 94 more in PHP) and 62 end to end checks. Section 9. |
 
 ## 2. The console
 
@@ -1283,11 +1283,12 @@ Dr. HVAC hands over `drhvac-connector.zip` from its header. Nine routes under `d
 
 ### Tests
 
-Nine unit suites (591 checks): the core and storage, the agent loop against the real SDK bundle and a scripted Messages API, the Elementor toolkit, the page audit (every one of its 76 findings raised), the hosting toolkit, the WordPress client, the tool registry, the connector plugin (94 more checks in PHP against a stand in for WordPress, with and without Elementor), and the build. One browser run (62 checks, Playwright) drives both built editions through whole jobs with the Claude API answered by a script.
+Nine unit suites (603 checks): the core and storage, the agent loop against the real SDK bundle and a scripted Messages API, the Elementor toolkit, the page audit (every one of its 76 findings raised), the hosting toolkit, the WordPress client, the tool registry, the connector plugin (94 more checks in PHP against a stand in for WordPress, with and without Elementor), and the build. One browser run (62 checks, Playwright) drives both built editions through whole jobs with the Claude API answered by a script.
 
 ### Caveats
 
 - No conversation was run against a live model where this was built; the first real jobs deserve a watching eye.
-- The connector plugin has not run on a real WordPress or a real Elementor; `dr-hvac/tests/wp/README.md` is the staging checklist.
+- The connector plugin has not run on a real WordPress or a real Elementor (it was checked against the sources of WordPress 7.1.4 and Elementor 4.4.0 by reading them); `dr-hvac/tests/wp/README.md` is the staging checklist.
+- Pages built with Elementor's Editor V4 atomic elements are read and kept whole but not edited; classic containers and widgets are.
 - An Elementor document is previewed with an approximate rendering; Elementor and the theme draw the real page.
 - Cost figures are estimates at list prices; the Anthropic Console is the record.

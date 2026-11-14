@@ -27,6 +27,18 @@ DRHVAC.elementor = (() => {
   const strip = h => String(h == null ? '' : h).replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;|&#x27;/g, "'").replace(/\s+/g, ' ').trim();
   const isObj = D.isObj; const clone = D.clone;
   const ELTYPES = ['container', 'section', 'column', 'widget'];
+  /* Elementor's Editor V4 ("atomic") elements, a beta a site opts into from Elementor 3.29 on: layout elements named
+     e-div-block, e-flexbox and the like, widgets named e-heading, e-paragraph, e-button, and every setting a typed value
+     ({"$$type": "string", "value": ...}) with the element's design in a styles map beside its settings. This toolkit reads
+     them (their text shows in the outline, the word count and the rendering) and keeps them whole, key for key, but it does
+     not edit them: a wrong shape there is dropped by Elementor's own validation, and with it the content. */
+  const typed = v => isObj(v) && typeof v.$$type === 'string' && Object.prototype.hasOwnProperty.call(v, 'value');
+  const isAtomic = e => isObj(e) && (/^e-/.test(String(e.elType || '')) || (e.elType === 'widget' && /^e-/.test(String(e.widgetType || ''))) || (isObj(e.settings) && Object.keys(e.settings).some(k => typed(e.settings[k]))));
+  const unwrap = v => { if (!typed(v)) return v; const x = v.value; if (isObj(x) && Object.prototype.hasOwnProperty.call(x, 'content') && /^html/.test(v.$$type)) return unwrap(x.content); if (Array.isArray(x)) return x.map(unwrap); if (isObj(x)) { const o = {}; Object.keys(x).forEach(k => { o[k] = unwrap(x[k]); }); return o; } return x; };
+  const ATOMIC_TEXT = ['title', 'paragraph', 'text', 'label'];
+  const atomicText = e => { const st = (e && e.settings) || {}; for (const k of ATOMIC_TEXT) { const v = unwrap(st[k]); if (typeof v === 'string' && v.trim()) return v; } return ''; };
+  const hasAtomic = el => { let n = 0; walk([el], e => { if (isAtomic(e)) n++; }); return n; };
+  const LOCKED = e => `${typeName(e)} ${e.id} is an Editor V4 atomic element: it is kept exactly as it is and edited in Elementor, not here`;
 
   /* Widgets that ship with Elementor Pro (as of the 3.x line). A type in neither list is reported as unknown, never guessed. */
   const PRO = new Set(['form', 'posts', 'portfolio', 'slides', 'nav-menu', 'animated-headline', 'price-list', 'price-table', 'flip-box', 'call-to-action', 'media-carousel', 'testimonial-carousel', 'reviews', 'countdown', 'share-buttons', 'blockquote', 'template', 'login', 'lottie', 'hotspot', 'paypal-button', 'stripe-button', 'progress-tracker', 'mega-menu', 'loop-grid', 'loop-carousel', 'table-of-contents', 'off-canvas', 'search', 'search-form', 'sitemap', 'breadcrumbs', 'post-navigation', 'author-box', 'post-comments', 'post-info', 'facebook-button', 'facebook-comments', 'facebook-embed', 'facebook-page', 'code-highlight', 'video-playlist', 'gallery', 'taxonomy-filter']);
@@ -83,10 +95,16 @@ DRHVAC.elementor = (() => {
   /* ---------- parsing ---------- */
   function normEl(e, problems, path) {
     if (!isObj(e)) { problems.push(`${path}: not an element object`); return null; }
-    const out = { id: typeof e.id === 'string' && e.id ? e.id : eid(), elType: e.elType, settings: isObj(e.settings) ? e.settings : {}, elements: [], isInner: !!e.isInner };
-    if (e.widgetType != null) out.widgetType = e.widgetType;
+    /* every key the element came with is kept: newer Elementor elements carry more than the classic four (styles,
+       editor_settings, version, interactions), and dropping one would lose that element's design on the next save */
+    const atomic = isAtomic(e);
+    const out = {}; Object.keys(e).forEach(k => { out[k] = e[k]; });                 /* same keys, same order */
+    if (!(typeof e.id === 'string' && e.id)) out.id = eid();
+    if (!isObj(e.settings) && !(atomic && e.settings !== undefined)) out.settings = {};
+    out.elements = [];
+    if (!atomic) out.isInner = !!e.isInner;
     if (!(typeof e.id === 'string' && e.id)) problems.push(`${path}: element had no id; one was assigned`);
-    if (typeof e.elType !== 'string' || !e.elType) problems.push(`${path}: no elType`); else if (!ELTYPES.includes(e.elType)) problems.push(`${path}: element type "${e.elType}" is not one this toolkit knows; it is kept as it is`);
+    if (typeof e.elType !== 'string' || !e.elType) problems.push(`${path}: no elType`); else if (!ELTYPES.includes(e.elType) && !atomic) problems.push(`${path}: element type "${e.elType}" is not one this toolkit knows; it is kept as it is`);
     (Array.isArray(e.elements) ? e.elements : []).forEach((c, i) => { const n = normEl(c, problems, `${path} › ${i}`); if (n) out.elements.push(n); });
     return out;
   }
@@ -139,6 +157,7 @@ DRHVAC.elementor = (() => {
     if (o.el) { const h = find(scope, o.el); if (!h) return []; scope = [h.el]; }      /* that element and everything inside it */
     walk(scope, e => {
       const s = e.settings || {}; const dyn = isObj(s.__dynamic__) ? s.__dynamic__ : {}; const glob = isObj(s.__globals__) ? s.__globals__ : {};
+      if (isAtomic(e)) { if (e.elType === 'widget') ATOMIC_TEXT.forEach(k => { const v = unwrap(s[k]); if (typeof v !== 'string' || !v.trim()) return; const kind = /<\w+[^>]*>/.test(v) ? 'html' : 'text'; if (o.kinds && !o.kinds.includes(kind)) return; out.push({ ref: `${e.id}.${k}`, el: e.id, widget: typeName(e), kind, label: k, value: v, text: kind === 'html' ? strip(v) : undefined, dynamic: false, global: false, guess: false, readonly: true }); }); return; }
       const specs = e.elType === 'widget' ? (W[e.widgetType] || null) : [];
       const add = (path, kind, label, guess) => {
         const v = slotValue(getPath(s, path), kind); const root = parts(path)[0]; const isDyn = dyn[root] != null || dyn[path] != null;
@@ -164,12 +183,12 @@ DRHVAC.elementor = (() => {
   /* ---------- validate ---------- */
   function validate(elements) {
     const errors = [], warnings = []; const ids = new Map(); const byWidget = {}; let depth = 0, sections = 0, containers = 0, columns = 0, widgets = 0, dynamic = 0, globals = 0;
-    const pro = new Set(), unknown = new Set(), otherTypes = new Set();
+    const pro = new Set(), unknown = new Set(), otherTypes = new Set(); let atomic = 0;
     if (!Array.isArray(elements)) return { ok: false, errors: ['The element tree is not an array.'], warnings, stats: {} };
     walk(elements, (e, parent, i, d) => {
       depth = Math.max(depth, d + 1); ids.set(e.id, (ids.get(e.id) || 0) + 1);
-      if (typeof e.elType !== 'string' || !e.elType) errors.push(`${e.id}: an element without an elType`); else if (!ELTYPES.includes(e.elType)) { warnings.push(`${e.id}: element type "${e.elType}" is not one this toolkit knows (a newer Elementor or another plugin); it is kept as it is and cannot be edited by slot`); otherTypes.add(e.elType); }
-      if (e.elType === 'widget') { widgets++; if (!e.widgetType) errors.push(`${e.id}: a widget without a widgetType`); else { byWidget[e.widgetType] = (byWidget[e.widgetType] || 0) + 1; if (isPro(e.widgetType)) pro.add(e.widgetType); else if (!CORE.has(e.widgetType)) unknown.add(e.widgetType); } if ((e.elements || []).length && !/^nested-/.test(e.widgetType || '')) warnings.push(`${e.id}: a ${e.widgetType} widget with child elements`); }
+      if (typeof e.elType !== 'string' || !e.elType) errors.push(`${e.id}: an element without an elType`); else if (isAtomic(e)) atomic++; else if (!ELTYPES.includes(e.elType)) { warnings.push(`${e.id}: element type "${e.elType}" is not one this toolkit knows (a newer Elementor or another plugin); it is kept as it is and cannot be edited by slot`); otherTypes.add(e.elType); }
+      if (e.elType === 'widget') { widgets++; if (!e.widgetType) errors.push(`${e.id}: a widget without a widgetType`); else { byWidget[e.widgetType] = (byWidget[e.widgetType] || 0) + 1; if (isAtomic(e)) { /* counted above */ } else if (isPro(e.widgetType)) pro.add(e.widgetType); else if (!CORE.has(e.widgetType)) unknown.add(e.widgetType); } if ((e.elements || []).length && !/^nested-/.test(e.widgetType || '')) warnings.push(`${e.id}: a ${e.widgetType} widget with child elements`); }
       if (e.elType === 'section') { sections++; if (parent && parent.elType !== 'column') errors.push(`${e.id}: a section inside a ${parent.elType} (sections sit at the top, or inside a column as an inner section)`); (e.elements || []).forEach(c => { if (c.elType !== 'column') errors.push(`${c.id}: a ${typeName(c)} directly inside a section (sections hold columns)`); }); }
       if (e.elType === 'column') { columns++; if (!parent || parent.elType !== 'section') errors.push(`${e.id}: a column outside a section`); }
       if (e.elType === 'container') containers++;
@@ -183,8 +202,9 @@ DRHVAC.elementor = (() => {
     if (depth > 8) warnings.push(`Nesting is ${depth} levels deep; deep nesting slows the editor and the page.`);
     if (pro.size) warnings.push(`Needs Elementor Pro on the site: ${[...pro].join(', ')}.`);
     if (unknown.size) warnings.push(`Widgets from another plugin or a newer Elementor, not checked here: ${[...unknown].join(', ')}.`);
+    if (atomic) warnings.push(`${atomic} element${atomic === 1 ? ' uses' : 's use'} Elementor's Editor V4 atomic format (e-heading, e-div-block and the like). ${atomic === 1 ? 'It is' : 'They are'} shown here and kept exactly as ${atomic === 1 ? 'it is' : 'they are'}, but not edited here: change ${atomic === 1 ? 'it' : 'them'} in the Elementor editor.`);
     let bytes = 0; try { bytes = JSON.stringify(elements).length; } catch (e) { bytes = 0; }
-    return { ok: !errors.length, errors, warnings, stats: { top: elements.length, sections, containers, columns, widgets, depth, byWidget, ids: ids.size, bytes, legacy: sections > 0, usesContainers: containers > 0, pro: [...pro], unknown: [...unknown], otherTypes: [...otherTypes], dynamic, globals, words: words(elements), images: images(elements).length } };
+    return { ok: !errors.length, errors, warnings, stats: { top: elements.length, sections, containers, columns, widgets, depth, byWidget, ids: ids.size, bytes, legacy: sections > 0, usesContainers: containers > 0, pro: [...pro], unknown: [...unknown], otherTypes: [...otherTypes], atomic, dynamic, globals, words: words(elements), images: images(elements).length } };
   }
 
   /* ---------- outline ---------- */
@@ -196,7 +216,9 @@ DRHVAC.elementor = (() => {
     if (e.widgetType === 'heading') bits.push(s.header_size || 'h2');
     if (s._element_id) bits.push('#' + s._element_id); if (s.css_classes) bits.push('.' + String(s.css_classes).trim().split(/\s+/).join('.'));
     if (s.background_background) bits.push('bg ' + (s.background_color || (s.background_image && s.background_image.url ? 'image' : s.background_background)));
-    const txt = first ? D.clip(strip(first.v), 70, 'text').split('\n')[0] : '';
+    if (isAtomic(e)) { const tg = unwrap(s.tag); if (typeof tg === 'string' && tg) bits.push(tg); bits.push('V4, read only'); }
+    const at = !first && isAtomic(e) ? atomicText(e) : '';
+    const txt = first ? D.clip(strip(first.v), 70, 'text').split('\n')[0] : at ? D.clip(strip(at), 70, 'text').split('\n')[0] : '';
     return `${t}${bits.length ? ' (' + bits.join(', ') + ')' : ''}${txt ? ' "' + txt + '"' : ''}`;
   }
   /* outline(elements, {depth, max}) → an indented text tree, one line per element: "  [id] heading (h1) "AC Repair in Frisco"" */
@@ -217,10 +239,11 @@ DRHVAC.elementor = (() => {
   }
 
   /* ---------- edits ---------- */
-  function reid(list) { walk(list, e => { e.id = eid(); const s = e.settings || {}; Object.values(s).forEach(v => { if (Array.isArray(v)) v.forEach(r => { if (isObj(r) && typeof r._id === 'string') r._id = eid(); }); }); }); return list; }
+  function reid(list) { walk(list, e => { if (isAtomic(e)) return;   /* an atomic element's id is tied to its styles and interactions */
+    e.id = eid(); const s = e.settings || {}; Object.values(s).forEach(v => { if (Array.isArray(v)) v.forEach(r => { if (isObj(r) && typeof r._id === 'string') r._id = eid(); }); }); }); return list; }
   const allIds = elements => { const s = new Set(); walk(elements, e => s.add(e.id)); return s; };
   /* every string value of a settings object that is content (not a control value), for replace_text */
-  function eachText(e, fn) { const specs = (W[e.widgetType] || []).concat([]); const s = e.settings || {}; const seen = new Set(); specs.forEach(sp => expand(s, sp).forEach(([p, k]) => { if (k !== 'text' && k !== 'html' && k !== 'field' && k !== 'address') return; const v = getPath(s, p); if (typeof v === 'string' && v) { seen.add(p); const nv = fn(v, p, k); if (nv !== v) setPath(s, p, nv); } })); if (!W[e.widgetType] && e.elType === 'widget') Object.keys(s).forEach(k => { const v = s[k]; if (typeof v === 'string' && v && GUESS_TEXT.test(k) && !seen.has(k) && !/^(#|rgba?\()/.test(v)) { const nv = fn(v, k, 'text'); if (nv !== v) s[k] = nv; } }); }
+  function eachText(e, fn) { if (isAtomic(e)) return; const specs = (W[e.widgetType] || []).concat([]); const s = e.settings || {}; const seen = new Set(); specs.forEach(sp => expand(s, sp).forEach(([p, k]) => { if (k !== 'text' && k !== 'html' && k !== 'field' && k !== 'address') return; const v = getPath(s, p); if (typeof v === 'string' && v) { seen.add(p); const nv = fn(v, p, k); if (nv !== v) setPath(s, p, nv); } })); if (!W[e.widgetType] && e.elType === 'widget') Object.keys(s).forEach(k => { const v = s[k]; if (typeof v === 'string' && v && GUESS_TEXT.test(k) && !seen.has(k) && !/^(#|rgba?\()/.test(v)) { const nv = fn(v, k, 'text'); if (nv !== v) s[k] = nv; } }); }
   function eachString(o, fn) { if (Array.isArray(o)) { o.forEach((v, i) => { if (typeof v === 'string') o[i] = fn(v, String(i)); else eachString(v, fn); }); return; } if (!isObj(o)) return; Object.keys(o).forEach(k => { if (k === 'elements') return; const v = o[k]; if (typeof v === 'string') o[k] = fn(v, k); else eachString(v, fn); }); }
   const reEsc = s => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -243,26 +266,28 @@ DRHVAC.elementor = (() => {
         if (!isObj(op) || !op.op) return done({ op: '?' }, false, 'not an op');
         if (op.op === 'set') {
           const { id, path } = splitRef(op.ref); const h = find(out, id); if (!h) return done(op, false, `no element ${id}`); if (!path) return done(op, false, 'the ref needs a path, for example ' + id + '.title');
+          if (isAtomic(h.el)) return done(op, false, LOCKED(h.el));
           const s = h.el.settings; const root = parts(path)[0]; const dyn = isObj(s.__dynamic__) && s.__dynamic__[root] != null;
           const cur = getPath(s, path); let v = op.value;
           if (isObj(cur) && cur.url !== undefined && typeof v === 'string') v = Object.assign({}, cur, { url: v }, cur.id !== undefined ? { id: '', source: cur.source ? 'url' : undefined } : {});
           else if (isObj(cur) && isObj(v)) v = Object.assign({}, cur, v);
           setPath(s, path, v); return done(op, true, `${typeName(h.el)} ${path} set${dyn ? ' (note: this setting has a dynamic tag, so WordPress fills it at render time and the static value is only a fallback)' : ''}`);
         }
-        if (op.op === 'set_setting') { const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); if (!op.key) return done(op, false, 'key is required'); if (op.value === null) { const ks = parts(op.key); if (ks.length === 1) delete h.el.settings[ks[0]]; else setPath(h.el.settings, op.key, undefined); return done(op, true, `${typeName(h.el)} ${op.key} cleared`); } setPath(h.el.settings, op.key, op.value); return done(op, true, `${typeName(h.el)} ${op.key} set`); }
+        if (op.op === 'set_setting') { const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); if (isAtomic(h.el)) return done(op, false, LOCKED(h.el)); if (!op.key) return done(op, false, 'key is required'); if (op.value === null) { const ks = parts(op.key); if (ks.length === 1) delete h.el.settings[ks[0]]; else setPath(h.el.settings, op.key, undefined); return done(op, true, `${typeName(h.el)} ${op.key} cleared`); } setPath(h.el.settings, op.key, op.value); return done(op, true, `${typeName(h.el)} ${op.key} set`); }
         if (op.op === 'replace_text') {
           if (!op.find) return done(op, false, 'find is empty'); const re = op.regex ? new RegExp(op.find, 'g') : new RegExp(reEsc(op.find), 'g'); let n = 0; const scope = op.el ? find(out, op.el) : null; if (op.el && !scope) return done(op, false, `no element ${op.el}`);
-          walk(scope ? [scope.el] : out, e => eachText(e, v => { const nv = v.replace(re, () => { n++; return String(op.replace == null ? '' : op.replace); }); return nv; }));
-          return done(op, n > 0, n ? `${n} replacement${n === 1 ? '' : 's'}` : `"${op.find}" not found in any text`);
+          let held = 0; walk(scope ? [scope.el] : out, e => { if (isAtomic(e)) { re.lastIndex = 0; if (re.test(atomicText(e))) held++; re.lastIndex = 0; return; } eachText(e, v => { const nv = v.replace(re, () => { n++; return String(op.replace == null ? '' : op.replace); }); return nv; }); });
+          const also = held ? `; ${held} Editor V4 atomic element${held === 1 ? ' holds' : 's hold'} it too and ${held === 1 ? 'was' : 'were'} left as ${held === 1 ? 'it is' : 'they are'} (edit ${held === 1 ? 'it' : 'those'} in Elementor)` : '';
+          return done(op, n > 0, (n ? `${n} replacement${n === 1 ? '' : 's'}` : `"${op.find}" not found in any text this toolkit edits`) + also);
         }
-        if (op.op === 'replace_url') { if (!op.find) return done(op, false, 'find is empty'); let n = 0; walk(out, e => eachString(e.settings, (v, k) => { if ((k === 'url' || /_url$/.test(k) || k === 'shortcode' || k === 'html' || k === 'editor') && v.includes(op.find)) { n += v.split(op.find).length - 1; return v.split(op.find).join(String(op.replace || '')); } return v; })); return done(op, n > 0, n ? `${n} url${n === 1 ? '' : 's'} changed` : `"${op.find}" not found in any url`); }
-        if (op.op === 'replace_color') { const f = String(op.find || '').toLowerCase(); if (!/^#[0-9a-f]{3,8}$/.test(f)) return done(op, false, 'find must be a hex color'); let n = 0; walk(out, e => eachString(e.settings, v => { if (v.toLowerCase() === f) { n++; return String(op.replace); } return v; })); return done(op, n > 0, n ? `${n} color value${n === 1 ? '' : 's'} changed` : `${op.find} is not used as a color here (it may come from a global style)`); }
+        if (op.op === 'replace_url') { if (!op.find) return done(op, false, 'find is empty'); let n = 0; walk(out, e => { if (isAtomic(e)) return; eachString(e.settings, (v, k) => { if ((k === 'url' || /_url$/.test(k) || k === 'shortcode' || k === 'html' || k === 'editor') && v.includes(op.find)) { n += v.split(op.find).length - 1; return v.split(op.find).join(String(op.replace || '')); } return v; }); }); return done(op, n > 0, n ? `${n} url${n === 1 ? '' : 's'} changed` : `"${op.find}" not found in any url`); }
+        if (op.op === 'replace_color') { const f = String(op.find || '').toLowerCase(); if (!/^#[0-9a-f]{3,8}$/.test(f)) return done(op, false, 'find must be a hex color'); let n = 0; walk(out, e => { if (isAtomic(e)) return; eachString(e.settings, v => { if (v.toLowerCase() === f) { n++; return String(op.replace); } return v; }); }); return done(op, n > 0, n ? `${n} color value${n === 1 ? '' : 's'} changed` : `${op.find} is not used as a color here (it may come from a global style)`); }
         if (op.op === 'remove') { const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); h.list.splice(h.index, 1); return done(op, true, `${typeName(h.el)} removed`); }
-        if (op.op === 'duplicate') { const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); const c = reid([clone(h.el)])[0]; h.list.splice(h.index + 1, 0, c); return done(op, true, `${typeName(h.el)} duplicated as ${c.id}`); }
+        if (op.op === 'duplicate') { const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); if (hasAtomic(h.el)) return done(op, false, 'not duplicated: it holds Editor V4 atomic elements, whose styles are tied to their ids. Duplicate it in Elementor.'); const c = reid([clone(h.el)])[0]; h.list.splice(h.index + 1, 0, c); return done(op, true, `${typeName(h.el)} duplicated as ${c.id}`); }
         if (op.op === 'move') { const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); const dest = op.parent && op.parent !== 'root' ? find(out, op.parent) : null; if (op.parent && op.parent !== 'root' && !dest) return done(op, false, `no element ${op.parent}`); if (dest && (dest.el.id === h.el.id || find(h.el.elements || [], dest.el.id))) return done(op, false, 'cannot move an element into itself'); h.list.splice(h.index, 1); const list = dest ? dest.el.elements : (op.parent === 'root' ? out : h.list); const idx = Math.max(0, Math.min(list.length, op.index == null ? list.length : +op.index)); list.splice(idx, 0, h.el); return done(op, true, `${typeName(h.el)} moved to ${dest ? dest.el.id : (op.parent === 'root' ? 'the top level' : 'the same parent')} at ${idx}`); }
         if (op.op === 'insert') { const p = parse(op.elements); if (!p.ok || !p.doc.elements.length) return done(op, false, 'elements is not an Elementor element list: ' + p.problems.join('; ')); const shape = []; walk(p.doc.elements, e => { if (typeof e.elType !== 'string' || !e.elType) shape.push('an element without an elType'); else if (e.elType === 'widget' && !e.widgetType) shape.push('a widget without a widgetType'); }); if (shape.length) return done(op, false, 'not inserted: ' + [...new Set(shape)].join('; ')); const add = reid(p.doc.elements); const dest = op.parent && op.parent !== 'root' ? find(out, op.parent) : null; if (op.parent && op.parent !== 'root' && !dest) return done(op, false, `no element ${op.parent}`); const list = dest ? dest.el.elements : out; const idx = Math.max(0, Math.min(list.length, op.index == null ? list.length : +op.index)); list.splice(idx, 0, ...add); return done(op, true, `${add.length} element${add.length === 1 ? '' : 's'} inserted at ${idx}: ${add.map(e => e.id).join(', ')}`); }
         if (op.op === 'list_add' || op.op === 'list_remove' || op.op === 'list_move') {
-          const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); let rows = getPath(h.el.settings, op.key); if (rows == null && op.op === 'list_add') { rows = []; setPath(h.el.settings, op.key, rows); } if (!Array.isArray(rows)) return done(op, false, `${op.key} is not a list on this ${typeName(h.el)}`);
+          const h = find(out, op.el); if (!h) return done(op, false, `no element ${op.el}`); if (isAtomic(h.el)) return done(op, false, LOCKED(h.el)); let rows = getPath(h.el.settings, op.key); if (rows == null && op.op === 'list_add') { rows = []; setPath(h.el.settings, op.key, rows); } if (!Array.isArray(rows)) return done(op, false, `${op.key} is not a list on this ${typeName(h.el)}`);
           if (op.op === 'list_add') { const item = Object.assign({}, isObj(op.item) ? op.item : {}, { _id: eid() }); const idx = Math.max(0, Math.min(rows.length, op.index == null ? rows.length : +op.index)); rows.splice(idx, 0, item); return done(op, true, `row added to ${op.key} at ${idx}`); }
           if (op.op === 'list_remove') { if (!(op.index >= 0 && op.index < rows.length)) return done(op, false, `${op.key} has ${rows.length} rows`); rows.splice(op.index, 1); return done(op, true, `row ${op.index} removed from ${op.key}`); }
           if (!(op.from >= 0 && op.from < rows.length)) return done(op, false, `${op.key} has ${rows.length} rows`); const [r] = rows.splice(op.from, 1); rows.splice(Math.max(0, Math.min(rows.length, +op.to || 0)), 0, r); return done(op, true, `row moved in ${op.key}`);
@@ -308,6 +333,13 @@ DRHVAC.elementor = (() => {
       const wrap = (inner, extra) => `<div${attrs(e, 'e-w e-w-' + t, [al].concat(extra || []).filter(Boolean))}>${inner}</div>`;
       const a = (url, inner, cls) => url ? `<a${cls ? ` class="${cls}"` : ''} href="${esc(url)}">${inner}</a>` : inner;
       const img = (m, alt) => isObj(m) && m.url ? `<img src="${esc(m.url)}" alt="${esc(m.alt || alt || '')}" loading="lazy" decoding="async">` : '';
+      if (isAtomic(e)) {   /* an Editor V4 widget: its text and tag, plainly */
+        const txt = esc(strip(atomicText(e))), tg = String(unwrap(s.tag) || ''), lk = unwrap(s.link), href = isObj(lk) ? String(typeof lk.destination === 'string' ? lk.destination : (lk.href || '')) : '';
+        if (t === 'e-heading') { const hh = /^h[1-6]$/.test(tg) ? tg : 'h2'; return wrap(`<${hh}>${a(/^(https?:|\/|#|tel:|mailto:)/i.test(href) ? href : '', txt)}</${hh}>`); }
+        if (t === 'e-paragraph') return wrap(`<p>${txt}</p>`);
+        if (t === 'e-button') return wrap(`<a class="e-btn" href="${esc(/^(https?:|\/|#|tel:|mailto:)/i.test(href) ? href : '#')}">${txt}</a>`);
+        return wrap(`<p class="e-unknown">[${esc(t)}]</p>${txt ? `<p>${txt}</p>` : ''}`);
+      }
       switch (t) {
         case 'heading': { const tag = /^h[1-6]$/.test(s.header_size || '') ? s.header_size : (s.header_size === 'div' || s.header_size === 'span' || s.header_size === 'p' ? s.header_size : 'h2'); const c = s.title_color ? `color:${s.title_color}` : ''; return wrap(`<${tag}${c ? ` style="${esc(c)}"` : ''}>${a(linkOf(s.link), s.title || '')}</${tag}>`); }
         case 'text-editor': return wrap(String(s.editor || ''), s.text_color ? ['color:' + s.text_color] : []);
@@ -364,5 +396,5 @@ DRHVAC.elementor = (() => {
     return { slug: page.slug || D.slugify(page.title || doc.title || 'page'), title: page.title || doc.title || '', post_title: page.h1 || page.title || doc.title || '', status: page.status === 'publish' ? 'publish' : 'draft', post_type: page.post_type === 'post' ? 'post' : 'page', template: ps.template || 'default', elementor_data: doc.elements, page_settings: ps, content_html: `<style>${r.css}</style>${r.html}`, seo: page.seo || { title: page.title || doc.title || '', description: page.meta_description || '', canonical: page.canonical || '', noindex: !!page.noindex }, schema: page.schema || null, summary: page.summary || '', excerpt: page.summary || '', featured_media: 0 };
   }
 
-  return { PRO, CORE, isPro, W, eid, parse, walk, find, typeName, getPath, setPath, splitRef, slots, text, words, images, detachMedia, validate, outline, design, apply, diff, toHtml, PREVIEW_CSS, toTemplate, toBundle, strip };
+  return { PRO, CORE, isPro, isAtomic, unwrap, W, eid, parse, walk, find, typeName, getPath, setPath, splitRef, slots, text, words, images, detachMedia, validate, outline, design, apply, diff, toHtml, PREVIEW_CSS, toTemplate, toBundle, strip };
 })();

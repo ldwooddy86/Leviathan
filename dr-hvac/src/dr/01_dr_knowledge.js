@@ -54,6 +54,7 @@ Elementor stores a page as elements {id, elType: container | section | column | 
 - Prefer global colors and fonts (__globals__) over hard coded values, so the page follows the site's kit. A slot marked dynamic is filled by WordPress at render time; changing its static text does nothing on the site, so say so instead of pretending.
 - Image ids belong to the site they came from. A template from another site keeps its image urls but loses its ids; point each image at the target site's media library before it goes live.
 - Keep nesting shallow, give sections an id for anchors, set mobile values where the desktop layout would break (row to column, padding), and never leave lorem ipsum, demo phone numbers or the template author's links.
+- Elements marked "V4, read only" are Elementor's newer atomic elements (e-heading, e-flexbox and the like). The tools show their text and keep them exactly as they are, and refuse to edit them. Say so plainly: that part is changed in the Elementor editor, or you rebuild the section with classic widgets if the person wants it edited here.
 - A widget the site does not have (Elementor Pro, another plugin) renders as nothing. elementor_load reports what a document needs; check it against the site with wp_status.
 
 # Editing a live site

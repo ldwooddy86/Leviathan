@@ -145,7 +145,7 @@ if (HTML) {
   const file = path.resolve(HTML); const raw = fs.readFileSync(file, 'utf8');
   section('Single file edition: ' + path.basename(file));
   ok(/Build 6<\/title>/.test(raw.slice(0, 2000)) && raw.includes('<!-- drhvac:js') && raw.includes('/* ==== src/33_m19_drhvac.js ==== */'), 'the file is the Build 6 single file with the Dr. HVAC blocks');
-  const context = await browser.newContext({ viewport: { width: 1440, height: 950 }, deviceScaleFactor: 1, acceptDownloads: true });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 950 }, deviceScaleFactor: Number(process.env.DRHVAC_E2E_DPR) || 1, acceptDownloads: true });   /* DRHVAC_E2E_DPR=2 for screenshots a person will look at */
   const api = claude(); await context.route('https://api.anthropic.com/**', api.handler);
   const page = await context.newPage(); const errors = []; watch(page, errors, NOISE);
   try {

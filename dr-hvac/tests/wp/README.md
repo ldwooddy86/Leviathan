@@ -1,6 +1,6 @@
 # Testing the connector plugin on a real WordPress
 
-`src/connector/drhvac-connector.php` is tested here against a stand in for WordPress (`stubs.php`, run by `run.php`): 94 checks over its nine routes, its permission rules, the backup and restore cycle and the stale write refusal, once with Elementor and once without. That proves the plugin's own logic. It does not prove it against WordPress itself or against a real Elementor, and it has not been run on either. Do this once on a staging copy before it goes near the live site.
+`src/connector/drhvac-connector.php` is tested here against a stand in for WordPress (`stubs.php`, run by `run.php`): 94 checks over its nine routes, its permission rules, the backup and restore cycle and the stale write refusal, once with Elementor and once without. That proves the plugin's own logic. It was also checked against the sources of WordPress 7.1.4 and Elementor 4.4.0 by reading them, not running them: all 60 WordPress functions it calls are defined in core, and every Elementor meta key, option and method it uses is present. It has still never answered a request on a real WordPress or beside a real Elementor. Do this once on a staging copy before it goes near the live site.
 
 ## Set up
 

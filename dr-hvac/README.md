@@ -97,7 +97,7 @@ After a change to the plugin, `node tools/connector.mjs` regenerates `src/dr/14_
 node tests/run.mjs
 ```
 
-Nine suites, 591 checks, no packages beyond the two dev dependencies; the plugin's suite also runs 94 checks in PHP (`php` on the path, 7.4 or later) against a stand in for WordPress, once with Elementor and once without, and fails on any PHP warning or notice.
+Nine suites, 603 checks, no packages beyond the two dev dependencies; the plugin's suite also runs 94 checks in PHP (`php` on the path, 7.4 or later) against a stand in for WordPress, once with Elementor and once without, and fails on any PHP warning or notice.
 
 ```bash
 node tests/e2e/run.mjs --html /path/to/built.html --app /path/to/built.zip --shots /path/outside/this/repo
@@ -112,7 +112,8 @@ Verified here: everything above, in a real browser, against the real atlas, with
 Not verified here, and worth a first run with someone watching:
 
 - **A live model.** No API key was available where this was built, so no conversation ran against Anthropic. The requests are made by the official SDK, a direct call confirmed that the API accepts them from a browser page and from an extension, and the conversation logic was checked against scripted replies. How well the model uses the fifty tools on a real job is the thing to watch first.
-- **The connector plugin on a real WordPress with real Elementor.** It was tested against a PHP stand in. `tests/wp/README.md` is the checklist for a staging site.
+- **The connector plugin on a real WordPress with real Elementor.** It was tested against a PHP stand in, and checked by reading the sources of WordPress 7.1.4 and Elementor 4.4.0 without running them: all 60 WordPress functions it calls are defined in core, the calls into cache plugins are guarded, and every Elementor meta key, option and method it uses is still there. It has not served a request on a real site. `tests/wp/README.md` is the checklist for a staging site.
+- **Elementor's Editor V4.** Pages built with Elementor's newer atomic elements (e-heading, e-flexbox and the like, a beta a site opts into) are read and kept whole, key for key, but not edited: the tools refuse and say to change them in Elementor. Classic containers, sections, columns and widgets are edited as described.
 - **Websites from the browser app.** Reading a public site needs the browser's permission prompt, which a headless run cannot answer; the fetch, audit, fingerprint and comparison tools were tested against recorded responses.
 - **The Claude viewer transport**, tested only against a mock of its contract.
 - **Host specifics in the runbook** (which button, which command) age; the runbook says where to confirm them.
