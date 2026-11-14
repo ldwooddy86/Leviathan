@@ -10,7 +10,7 @@ function niceTicks(lo, hi, n) {
   for (let v = t0; v <= hi + step * 0.001; v += step) out.push(+v.toFixed(10));
   return out;
 }
-function chartFrame(host, W, H, aria) { host.innerHTML = ''; const card = host.closest && host.closest('.card'); const h = card && card.querySelector('.card-h h3'); const s = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': aria || (h ? h.textContent.trim() : 'chart') }); host.appendChild(s); return s; }
+function chartFrame(host, W, H, aria) { host.innerHTML = ''; const card = host.closest && host.closest('.card'); const h = card && card.querySelector('.card-h h3'); const s = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, class: 'chart', role: 'img', 'aria-label': aria || (h ? h.textContent.trim() : 'chart') }); s.style.setProperty('--cw', W); host.appendChild(s); return s; }
 /* line chart: spec {series:[{name,color,pts:[[x,y]],dash,area,width}], x:{min,max,ticks,fmt,label}, y:{min,max,fmt,label,zero}, H, vlines:[{x,label}], bands:[{x0,x1,label}], legend} */
 function lineChart(host, spec) {
   const W = spec.W || 820, H = spec.H || 300, L = spec.L || 58, R = spec.R || 20, T = spec.T || 18, B = spec.B || 42;

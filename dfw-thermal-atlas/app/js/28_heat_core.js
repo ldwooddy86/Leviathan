@@ -141,7 +141,8 @@ const HEATX = (() => {
   const TH = () => { const L = LV(); return (L && L.derive && L.derive.TH) || { cool: 50, cold: 40, freeze: 32, hard: 25 }; };
   const TIERN = ['mild', 'cool', 'cold', 'freeze', 'hard freeze'];
   const tierOf = f => { const t = TH(); return f == null ? 0 : f <= t.hard ? 4 : f <= t.freeze ? 3 : f <= t.cold ? 2 : f <= t.cool ? 1 : 0; };
-  const localDay = now => { const L = LV(); if (L && L.derive && L.derive.localDay) return L.derive.localDay(now, (L.geo || {}).tz); return new Date(now).toISOString().slice(0, 10); };
+  const when = now => { const d = now == null ? new Date() : new Date(now); return Number.isNaN(+d) ? new Date() : d; };      // a moment, or now when it is not one
+  const localDay = now => { const L = LV(), d = when(now); if (L && L.derive && L.derive.localDay) return L.derive.localDay(d, (L.geo || {}).tz); return d.toISOString().slice(0, 10); };
   const addDays = (ymd, n) => new Date(Date.parse(ymd + 'T12:00:00Z') + n * 864e5).toISOString().slice(0, 10);
   const dowOf = ymd => new Date(ymd + 'T12:00:00Z').getUTCDay();
   const monthOk = v => (okNum(v) && +v >= 0 && +v <= 11 ? Math.round(+v) : null);
@@ -179,7 +180,8 @@ const HEATX = (() => {
     const has = ZR.filter(z => hdd[z.zip] > 0), m = has.length ? sum(has.map(z => z.occ * hdd[z.zip])) / sum(has.map(z => z.occ)) : null, byZip = {};
     ZR.forEach(z => { byZip[z.zip] = m && hdd[z.zip] > 0 ? hdd[z.zip] / m : 1; });
     const lab = source === 'grid' ? `Cold exposure reads the 1991 to 2020 normals grid: each ZIP against the household weighted metro mean of ${nf(m)} heating degree days a year.` : source === 'stations' ? 'Cold exposure reads station normals at the three stations nearest each ZIP; the normals grid is not loaded.' : 'No climate normals are loaded: cold exposure is 1 in every ZIP.';
-    return (EXPO = { key, base: B, byZip, hdd, source, mean: m, label: lab });
+    EXPO = { byZip, hdd, source, mean: m, label: lab }; Object.defineProperty(EXPO, 'key', { value: key }); Object.defineProperty(EXPO, 'base', { value: B });      // the memo's own keys stay out of the listed fields
+    return EXPO;
   }
 
   /* ---------- the static cell table: everything that comes from module 12, the ZIP ledger, the dispatch point and the normals ---------- */
@@ -362,7 +364,7 @@ const HEATX = (() => {
     if (loosened) note('cap', `Too few ZIPs can take this budget under the ${pc(P.zipCap)} cap: the cap was loosened to ${pc(capUsed)} of ${custom && !wide ? 'a line' : 'the plan'} to place it.`);
     if (atHurdle && custom) groups.filter(g => g.f.atHurdle && g.budget - line[g.ids[0]].dollars > 0.5 * scale).forEach(g => { const L = line[g.ids[0]]; note('hurdle', `${usd(g.budget - L.dollars)} of the ${usd(g.budget)} set for ${L.name.toLowerCase()} is left unspent: past ${usd(L.dollars)} its next ad dollar is modeled to return under ${usd2(P.hurdle)} of gross profit, pipeline included (grade D).`); });
     else if (atHurdle) note('hurdle', `${usd(unspent)} is left unspent: past ${usd(spent)} the next ad dollar is modeled to return under ${usd2(P.hurdle)} of gross profit, pipeline included, as the plan weighs the four lines (grade D).${hurdleAt ? ` That begins at about ${usd(hurdleAt)} a month.` : ''}`);
-    groups.forEach(g => { if (g.budget > 0.5 * scale && !g.rows.length) note('block', custom ? `${NAMES[g.ids[0]]} has no ZIP it can buy in ${MONTHS[P.month]}: the ${usd(g.budget)} set for it stays unspent.` : `No ZIP can be bought${P.blocks.length ? ': every ZIP inside the reach cut is blocked' : ' inside the reach cut'}. Nothing is placed.`); });
+    groups.forEach(g => { if (g.budget > 0.5 * scale && !g.rows.length) note('block', custom ? `${NAMES[g.ids[0]]} has no ZIP it can buy in ${MONTHS[P.month]}: the ${usd(g.budget)} set for it stays unspent.` : `No ZIP can be bought: ${cells.some(c => c.R > 0) ? 'no line has jobs a homeowner ad can reach in ' + MONTHS[P.month] : P.blocks.length ? 'every ZIP inside the reach cut is blocked' : 'none is inside the reach cut'}. Nothing is placed.`); });
     if (!P.lsaLive) note('lsa', `Local Services Ads are planned off: the competitor roster of ${rosterDate()} shows no badge. Their share runs on Google Search until the profile is verified.`);
     P.pins.forEach(zp => { const r = at[zp]; if (r && !IDS.some(id => r.lines[id] && r.lines[id].R > 0)) note('pin', `${zp} ${r.city} is pinned but sits past the reach cut on every line (${Math.round(r.min)} minutes): no money goes there.`); });
     if (B.X.source !== 'grid') note('exposure', B.X.label);
@@ -428,6 +430,7 @@ const HEATX = (() => {
   }
   /* the budget at which a ZIP outside the plan comes in, and through which lines */
   function enterOf(r, pl) {
+    if (!pl.ctx) return { enterAt: null, via: [] };                                                    // a copy of a plan carries no working set
     const { by, custom, Bud, scale, bl } = pl.ctx, P = pl.P, lnH = Math.log(Math.max(1e-9, P.hurdle)); let best = null;
     IDS.forEach(id => { const c = r.lines[id]; if (!c || !(c.R > 0) || c.spend > 0) return; const l = entry(c, P, scale); if (l == null || l < lnH) return;
       const share = custom ? (Bud > 0 ? bl(id) / Bud : 0) : 1; if (!(share > 0)) return; const b = takes(custom ? by[id] : pl.cells, l, P, scale) / share / scale;
@@ -476,7 +479,7 @@ const HEATX = (() => {
      so the popup, the notices and the desk tell one story. */
   function forecast(now, recs) {
     try {
-      const L = LV(); now = now || new Date(); recs = recs || (typeof LIVE !== 'undefined' && LIVE.all ? LIVE.all() : null);
+      const L = LV(); now = when(now); recs = recs && typeof recs === 'object' ? recs : (typeof LIVE !== 'undefined' && LIVE.all ? LIVE.all() : null);
       const rec = recs && recs.nws_cold, d = rec && rec.data; if (!L || !L.derive || !d || !Array.isArray(d.points)) return null;
       const today = localDay(now), num = v => (okNum(v) ? +v : null);
       /* a point needs a place; a night needs a date from today on and a low, and a night flagged part is skipped */
@@ -576,7 +579,7 @@ const HEATX = (() => {
     const t0 = stamp(); opt = opt && typeof opt === 'object' ? opt : {}; F = okF(F) ? F : null; const P0 = params(Pin), now = opt.now || new Date(), mo = monthOk(opt.month);
     const month = mo != null ? mo : F ? monthOk(F.month) : P0.month, P = month === P0.month ? P0 : Object.assign({}, P0, { month }), dim = DIM[month], scale = 7 / dim;
     const season = opt.season && opt.season.line && opt.season.at && opt.season.month === month && opt.season.period === 'month' ? opt.season : plan(P), wx = weather(F, P, season), live = wx.ok, notes = [];
-    const base = {}, want = {}, asked = {}; IDS.forEach(id => { base[id] = season.line[id].dollars * (1 - P.reserve) * scale; asked[id] = want[id] = base[id] * (id === 'maint' ? wx.lines[id] : clamp(wx.lines[id], 0.75, 3)); });
+    const base = {}, want = {}; IDS.forEach(id => { base[id] = season.line[id].dollars * (1 - P.reserve) * scale; want[id] = base[id] * (id === 'maint' ? wx.lines[id] : clamp(wx.lines[id], 0.75, 3)); });
     const baseT = sum(IDS.map(id => base[id])), up = sum(IDS.map(id => Math.max(0, want[id] - base[id]))), down = sum(IDS.map(id => Math.max(0, base[id] - want[id]))), pool = season.T.spent * P.reserve;
     const wanted = Math.max(0, up - down), release = Math.min(pool, wanted), limited = wanted > release + 0.5;
     if (limited && up > 0) { const k = (release + down) / up; IDS.forEach(id => { if (want[id] > base[id]) want[id] = base[id] + (want[id] - base[id]) * k; }); }

@@ -29,6 +29,10 @@
   const iso = ms => num(ms) ? new Date(ms).toISOString() : null;
   const r1 = x => Math.round(x * 10) / 10;
   const say = e => String((e && e.message) || e).replace(/[<>]/g, ' ').slice(0, 140);
+  /* A discussion shares its host with the forecast collector, whose requests may be queued ahead of it: it never holds the
+     run longer than 45 seconds. Past that the last good text stays and the outlooks already read are not lost. */
+  const TEXT_LIMIT = 45000;
+  const within = (p, what) => { let t; return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(new Error(what + ' did not answer in ' + TEXT_LIMIT / 1000 + ' seconds')), TEXT_LIMIT); })]).finally(() => clearTimeout(t)); };
   /* a forecaster's paragraph, kept whole: when it runs past n characters it ends at its last full sentence */
   const whole = (s, n) => { if (s.length <= n) return s; const i = s.lastIndexOf('. ', n - 1); return i > 0 ? s.slice(0, i + 1) : s.slice(0, n); };
 
@@ -196,7 +200,8 @@
     const t = String(text || ''), st = /ENSO Alert System Status:\s*(.+)/.exec(t), sy = /Synopsis:\s*([\s\S]*?)\n\s*\n/.exec(t), nx = /next ENSO Diagnostics? Discussion is scheduled for\s+(\d{1,2} [A-Za-z]+ \d{4})/i.exec(t.replace(/\s+/g, ' '));
     return { status: st ? st[1].trim().slice(0, 80) : null, synopsis: sy ? whole(sy[1].replace(/\s+/g, ' ').trim(), 600) : '', next: nx ? nx[1] : null };
   }
-  async function product(ctx, loc) { const j = await ctx.http.json(`${NWS}/products/types/PMD/locations/${loc}/latest`, TXT); if (!j || typeof j.productText !== 'string' || !j.productText) throw new Error('no ' + loc + ' discussion in the answer'); return j; }
+  const DISC = { MRD: 'outlook', THR: 'hazards', ENS: 'ENSO' };
+  async function product(ctx, loc) { const j = await within(ctx.http.json(`${NWS}/products/types/PMD/locations/${loc}/latest`, TXT), 'the ' + DISC[loc] + ' discussion'); if (!j || typeof j.productText !== 'string' || !j.productText) throw new Error('no ' + DISC[loc] + ' discussion in the answer'); return j; }
 
   /* ---------- the long leads ---------- */
   /* The month and the 13 overlapping seasons at the office. Context only: a three month lean says nothing about a given week. */
@@ -210,11 +215,21 @@
     return { month: mo ? { valid: mo.valid, issued: mo.issued, cat: mo.bands[0].cat, prob: mo.bands[0].prob } : null, seasons };
   }
 
+  /* The record:
+       { v, day (the Dallas date of the run),
+         ext: { d610, d814: { issued, start, end, file, cat ('Above' | 'Below' | 'Normal'), prob (the floor of the band), uniform, bands, counties (by name when the
+                metro is split, else null), pB, pN, pA, load: { days, normHdd, expHdd, idx, coldBelowF, coldHdd, nearHdd, warmAboveF, warmHdd } | null, pcp: { cat, prob } | null } | null },
+         haz: { file: { d3_7, d8_14 }, national: [{ win, kind, label, start, end, cold }], metro: [the same, cold areas that touch a county] } | null,
+         winter: { file, minor: [{ start, end, prob }], moderate: [the same] } | null,
+         text: { mrd: { issued, conf610, conf814, nTexas610, nTexas814, nextLongLead }, thr: { issued, synopsis, items: [{ risk, hazard, area, days, start, end, kind, cold, freeze, near, text }] },
+                 enso: { at, issued, status, synopsis, next } }   (each null until first read; synopsis, hazard, area, days and text are the forecaster's own words),
+         long: { at, month: { valid, issued, cat, prob }, seasons: [{ lead, valid, issued, cat, prob }] } | null,
+         hist: [{ issued, d610: 'A50', d814: 'B40' }] newest first, errs: { part: what went wrong this run } } */
   const EXT = [['d610', 'outlooks/cpc_6_10_day_outlk/MapServer'], ['d814', 'outlooks/cpc_8_14_day_outlk/MapServer']];
   L.register({
     id: 'cpc_outlook', name: 'Two week outlooks and cold hazards', publisher: 'NOAA Climate Prediction Center and Weather Prediction Center', page: 'https://www.cpc.ncep.noaa.gov/products/predictions/814day/',
     about: 'Where the seven day forecast stops: the odds of a colder or warmer than normal stretch 6 to 10 and 8 to 14 days out for the 12 counties, cold and winter hazard areas drawn for days 3 to 14, winter storm impact odds for the coming week, the hazards the forecasters name in their discussions, and the monthly and seasonal lean. Sets how early the Heat Desk stages heating repair and no heat budgets.',
-    hosts: ['mapservices.weather.noaa.gov', 'api.weather.gov'], cadence: 'daily', cors: true, grade: GRADE.outlook, terms: 'U.S. Government work, public domain. The probabilities are the forecasters\' own; the heating load built on them is an estimate of this atlas.', timeoutMs: 150000,
+    hosts: ['mapservices.weather.noaa.gov', 'api.weather.gov'], cadence: 'daily', cors: true, grade: GRADE.outlook, terms: 'U.S. Government work, public domain. The probabilities are the forecasters\' own; the heating load built on them is an estimate of this atlas.', timeoutMs: 180000,
     labels: { below814: ['Chance days 8 to 14 run colder than normal', 'pct'], below610: ['Chance days 6 to 10 run colder than normal', 'pct'], idx814: ['Expected heating load, days 8 to 14 (normal = 100)', 'int'], idx610: ['Expected heating load, days 6 to 10 (normal = 100)', 'int'], coldHazards: ['Cold or winter hazards drawn over the counties or named for North Texas, days 3 to 14', 'int'], winterProb: ['Highest chance of winter storm impacts, next seven days', 'pct'], issued: ['Outlook issued', 'text'] },
     async run(ctx) {
       const G = ctx.geo || {}, prev = ctx.prev || {}, now = +ctx.now, pts = countyPoints(G), tbl = L.cpcClass || null, errs = {};

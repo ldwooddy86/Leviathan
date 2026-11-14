@@ -17,7 +17,6 @@ registerModule({
     const usd = v => isN(v) ? (v < 0 ? '-' : '') + '$' + N(Math.abs(v)) : NA;                     // table cells; prose says "returns $43"
     const pc = (f, d) => isN(f) ? P(f * 100, d || 0) : NA;                                        // a fraction as a percent
     const sg = v => isN(v) ? (Math.round(v) > 0 ? '+' : '') + Math.round(v) + '%' : NA;           // a bid adjustment in a cell
-    const sgw = v => !isN(v) ? NA : Math.round(v) === 0 ? 'no change' : (v > 0 ? 'plus ' : 'minus ') + Math.abs(Math.round(v)) + '%';
     const mult = v => isN(v) ? D(v, 2) + '×' : NA;
     const clean = s => String(s == null ? '' : s).replace(/\b([Ll])icence/g, '$1icense').replace(/\b([Ff])avour/g, '$1avor').replace(/(\d)\s*[‐-―−]\s*(?=\$?\d)/g, '$1 to ').replace(/\bR-(?=\d)/g, 'R').replace(/([A-Za-z])[‐-―−-]+(?=[A-Za-z])/g, '$1 ').replace(/(\d)-(?=[A-Za-z])/g, '$1 ').replace(/([A-Za-z])-(?=\d)/g, '$1 ').replace(/\s*[‐-―−]+\s*/g, ', ');     // engine and publisher text: house spelling, no hyphen between words, no dash
     const ec = s => esc(clean(s));
@@ -26,8 +25,6 @@ registerModule({
     const list = a => a.length <= 1 ? a.join('') : a.length === 2 ? a.join(' and ') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
     const plural = (n, one, many) => N(n) + ' ' + (Math.round(n) === 1 ? one : many || one + 's');
     const today = () => { try { return TDA_LIVE.derive.localDay(new Date(), TDA_LIVE.geo.tz); } catch (e) { return new Date().toISOString().slice(0, 10); } };
-    const gp = (o, path) => path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
-    const sp = (o, path, v) => { const ks = path.split('.'); let a = o; ks.slice(0, -1).forEach(k => { if (!a[k] || typeof a[k] !== 'object' || Array.isArray(a[k])) a[k] = {}; a = a[k]; }); a[ks[ks.length - 1]] = v; };
     const th = (h, l, t) => `<th scope="col"${l ? ' class="l"' : ''}${t ? ` title="${esc(t)}"` : ''}>${h}</th>`;
     const tbl = (head, rows, cls) => `<table${cls ? ` class="${cls}"` : ''}><thead><tr>${head.map(h => th(h[0], h[1], h[2])).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
     const tr = (cells, cls) => `<tr${cls ? ` class="${cls}"` : ''}>${cells.map(c => Array.isArray(c) ? `<td class="${c[1]}">${c[0]}</td>` : `<td>${c}</td>`).join('')}</tr>`;
@@ -80,7 +77,7 @@ registerModule({
     /* what was saved is data from outside: keep only keys the engine knows, at the values the engine accepts */
     (() => { let full; try { full = HX.params(st.P); } catch (e) { st.P = {}; return; } const out = {}; Object.keys(st.P).forEach(k => { if (k in HX.DEF && st.P[k] != null) out[k] = full[k]; }); ['pins', 'blocks'].forEach(k => { if (out[k]) out[k] = (Array.isArray(out[k]) ? out[k] : []).map(String).filter(z => ZI[z]); }); st.P = out; })();
     /* PP: the full parameters (the global P is the percent formatter); plan, bands, F, wk: the engine's answers for them */
-    let PP, plan, bands, F0, F, wk, ex = null, fail = '', dirty = false, lt = 0; const CSV = {};
+    let PP, plan, bands, F0, F, wk, ex = null, fail = '', dirty = false; const CSV = {};
     function compute() {
       PP = HX.params(st.P); plan = HX.plan(PP); bands = HX.bands(plan);
       F0 = HX.forecast(new Date()); if (!F0) st.scn = 'live';
@@ -160,7 +157,9 @@ registerModule({
       const s = TDA_LIVE.permits.summary(recs); if (!s || !Array.isArray(s.cities) || !s.cities.length || !s.byZip) return null;
       const by = {}, zip = {}; Object.keys(s.byZip).forEach(z => { const v = s.byZip[z], zr = ZI[z]; if (!zr || !v || !num(v.mech12)) return; by[zr.cty] = (by[zr.cty] || 0) + v.mech12; zip[z] = { n: v.mech12, city: typeof v.city === 'string' ? v.city : '' }; });
       return Object.keys(zip).length ? { at: list.map(x => x.at).filter(Boolean).sort().pop() || null, by, zip, cities: s.cities.map(c => c.city).filter(Boolean), through: isDay(s.through) ? s.through : null } : null;
-    }    /* ---------- the plan: controls built once from the engine's own ranges, so no control can ask for a value the engine refuses ---------- */
+    }
+
+    /* ---------- the plan: controls built once from the engine's own ranges, so no control can ask for a value the engine refuses ---------- */
     const cid = p => 'h17c_' + p.replace(/\W/g, '_'), k100 = p => (R[p] && R[p].pct ? 100 : 1), r6 = v => +(+v).toFixed(6);
     const unitOf = p => { const u = (R[p] || {}).unit || ''; return u === 'x' ? '×' : u; };
     const lab = (p, alt) => alt || ec((R[p] && R[p].label) || p);
@@ -192,7 +191,7 @@ registerModule({
         <div class="hd-f wide"><div class="hd-lr"><span class="fl" id="h17ModeL">Line mix</span>${G('D')}</div><div class="seg" id="h17Mode" role="group" aria-labelledby="h17ModeL"><button type="button" data-v="auto">Auto</button>${Object.keys(HX.PRESETS || {}).map(k => `<button type="button" data-v="${esc(k)}">${ec(HX.PRESETS[k].name)}</button>`).join('')}<button type="button" data-v="custom">Custom</button></div>
           <div class="hd-mix" id="h17Mix">${IDS.map(id => `<label for="h17Mix_${id}">${esc(NAMES[id])} (%)<input type="number" id="h17Mix_${id}" data-mix="${id}" min="0" max="100" step="1" inputmode="numeric"></label>`).join('')}</div><span class="hd-hint" id="h17ModeH"></span></div>
       </div>
-      <details class="hd-adv" id="h17Adv">      <details class="hd-adv" id="h17Adv"><summary>Advanced: every other assumption, with its grade</summary>
+      <details class="hd-adv" id="h17Adv"><summary>Advanced: every other assumption, with its grade</summary>
         ${grouped.map(([t, ks]) => `<div class="hd-advg">${t}</div><div class="hd-plan">${ks.map(p => numF(p)).join('')}${t === 'Crews and phones' && HX.DEF.hours ? `<div class="hd-f"><div class="hd-lr"><span class="fl">Phones</span></div>${'sunday' in HX.DEF.hours ? chkF('hours.sunday', 'Phones are answered on Sunday') : ''}${'onCall' in HX.DEF.hours ? chkF('hours.onCall', 'On call during cold alerts, 6 am to 10 pm every day') : ''}</div>` : ''}</div>`).join('')}
         ${platRows}
       </details>`;
@@ -287,14 +286,18 @@ registerModule({
         const h = wk.lines.find(l => l.id === 'heat') || wk.lines[0], rs = wk.reserve;
         week = `${simTag()}${wk.head && wk.head.headline ? ec(wk.head.headline) + '. ' : ''}Heating repair runs ${over(chg(h))} a normal ${esc(wk.monthName)} week${h.paused ? ' (paused)' : ''}. The week comes to <b>${usd(wk.T.week)}</b> against a normal ${usd(wk.T.normal)}, `
           + (rs.draw > 0.5 ? `drawing ${usd(rs.draw)} from the freeze reserve` : rs.back > 0.5 ? `returning ${usd(rs.back)} to the freeze reserve` : 'with nothing moving in or out of the freeze reserve') + '. '
-          + (wk.trigger ? 'A cold trigger is on, so the ZIP list is poured again for the week.' : 'No cold trigger: the ZIP list and the bids stay as they are.') + ` ${G(sim() ? 'D' : 'A/D')}`;
+          + (wk.trigger ? 'A cold trigger is on, so the ZIP list is poured again for the week.' : 'No cold trigger: the ZIP list and the bids stay as they are.')
+          + (wk.crew && isN(wk.crew.cap) ? ` The crew cap of ${N(wk.crew.cap)} paid booked jobs a week holds the week down.` : '')
+          + (wk.month !== plan.month ? ` The week is planned on ${esc(wk.monthName)}, the month the forecast falls in, not on the ${esc(plan.monthName)} the plan is set to.` : '') + ` ${G(sim() ? 'D' : 'A/D')}`;
       }
       const todo = wk.list || [], first = todo.find(x => x.k !== 'sim') || todo[0];
       const monday = (first ? ec(first.text) : 'Nothing to change. Hold the month plan as it stands.') + (todo.length > 1 ? ` <span class="hd-more">${plural(todo.length - 1, 'more step')} for ${wk.monday ? esc(day(wk.monday)) : 'Monday'} in This week, below; the Monday pack holds the files.</span>` : '');
       $('#h17Answer', root).innerHTML = `<h2 id="h17AnsH">The answer: where to spend, on what, and what to do on Monday</h2>
         <dl class="hd-ans"><dt>Where</dt><dd data-a="where">${where}</dd><dt>On what</dt><dd data-a="what">${what}</dd><dt>This week</dt><dd data-a="week">${week}</dd><dt>On Monday</dt><dd data-a="monday">${monday}</dd></dl>
         <p class="hd-fine"><b>Measured:</b> homes, heating fuel, system ages, the normal cold of each ZIP, the forecast and the alerts. <b>Stated:</b> how far a lead is worth driving, lead costs, close rates and the size of every cold response (grade D, all editable below), so the dollar outcomes are benchmark arithmetic shown with a range and never a promise.</p>`;
-    }    /* ---------- KPI row ---------- */
+    }
+
+    /* ---------- KPI row ---------- */
     function nextTrigger() {
       if (wk.src === 'normal' || !F) return 'No usable forecast: the week runs as a normal week.';
       if (wk.trigger) return `Cold trigger on${wk.triggerWhy && wk.triggerWhy.length ? ': ' + ec(list(wk.triggerWhy)) : ''}.`;
@@ -337,13 +340,15 @@ registerModule({
       CSV.week = () => ['week', ['section', 'label', 'date', 'normal_week_usd', 'this_week_usd', 'change_usd', 'multiplier', 'low_f_at_shop', 'metro_low_min_f', 'metro_low_max_f', 'threshold', 'repair_usd_that_day'],
         wk.lines.map(l => ['line', l.name, '', Math.round(l.normal), Math.round(l.week), Math.round(l.week - l.normal), r6(l.mult), '', '', '', '', '']).concat([['total', 'Total', '', Math.round(wk.T.normal), Math.round(wk.T.week), Math.round(wk.T.week - wk.T.normal), '', '', '', '', '', '']]).concat((wk.days || []).map(d => ['night', d.label || '', d.date || '', '', '', '', '', isN(d.low) ? Math.round(d.low) : '', isN(d.metroMin) ? Math.round(d.metroMin) : '', isN(d.metroMax) ? Math.round(d.metroMax) : '', d.tierName || '', Math.round(d.repair)])),
         `${sim() ? 'SIMULATION, not a forecast. ' : ''}${normal ? why + ': a normal week. ' : ''}Week of ${day(wk.monday || wk.today || today())}. Forecast lows grade A; multipliers and budgets grade D.`];
-    }    /* ---------- map: l label, v value of a ZIP record, f formatter, g grade; cat lists the classes of a layer that is words, not numbers ---------- */
+    }
+
+    /* ---------- map: l label, v value of a ZIP record, f formatter, g grade; cat lists the classes of a layer that is words, not numbers ---------- */
     const wxz = zip => (wk && wk.wx && wk.wx.ok && wk.wx.byZip ? wk.wx.byZip[zip] || null : null);
     const cellOf = (r, id) => (r && r.lines ? r.lines[id] || null : null);
     const HL = {
       share: { l: 'Budget share (% of the plan)', ramp: 'ember', g: GR.spend || 'C', v: r => (r.inPlan ? r.share * 100 : null), f: v => P(v, 1), note: 'Where the dollars are expected to land. Gray ZIPs are not in the plan.' },
       bid: { l: 'Location bid adjustment (%)', div: 1, g: GR.bid || 'D', v: r => (r.inPlan ? r.bid : null), f: sg, note: 'What a click is worth here against the campaign average. Cost decides whether a ZIP is bought; value decides the bid.' },
-      tier: { l: 'Drive tier', g: GR.minutes || 'C', cat: HX.TIERS.map(t => [t.id, `${t.id}: ${t.words}`]), v: r => r.tier, note: 'Drive minutes are 5 plus the straight line kilometres from the dispatch point.' },
+      tier: { l: 'Drive tier', g: GR.minutes || 'C', cat: HX.TIERS.map(t => [t.id, `${t.id}: ${t.words}`]), v: r => r.tier, note: 'Drive minutes are 5 plus the straight line kilometers from the dispatch point.' },
       conf: { l: 'Confidence that the return clears the cut', g: GR.conf || 'D', cat: HX.LABELS.map(t => [t.id, `${t.id}: ${t.words}`]), v: r => (r.inPlan ? r.label : null), note: 'The chance a funded ZIP still clears the cut once the doubt in its return is counted. Gray ZIPs are not in the plan.' },
       reach: { l: 'Reach, heating repair (1 at the door)', ramp: 'teal', g: GR.reach || 'D', v: r => { const c = cellOf(r, 'heat'); return c && c.R > 0 ? c.R : null; }, f: v => D(v, 2), note: 'The share of a repair lead\'s value left after the drive. Gray is past the reach cut: the line is not sold there.' },
       jobs: { l: 'Heating repair jobs this month an ad can reach', ramp: 'ember', g: GR.jobs || 'D', v: r => { const c = cellOf(r, 'heat'); return c ? c.J : null; }, f: v => N(v), note: 'Module 12 jobs, the month\'s season and the homes where an owner decides.' },
@@ -386,12 +391,12 @@ registerModule({
       const status = r.blocked ? '<span class="hd-chip warn">Blocked by you</span> Nothing is spent here and it goes into the exclusions file.'
         : r.inPlan ? `<span class="hd-chip ok">In the plan</span> Rank ${N(r.rank)} of ${N(plan.T.zips)} · ${pc(r.share, 1)} of the money · <b>${usd(r.dollars)}</b> a month · bid ${sg(r.bid)} · ${esc(r.label)} (${pc(r.conf)}) ${G('C/D')}`
         : `<span class="hd-chip">Not in the plan</span> ${held ? ec(held.reason) + '.' : 'No line clears the cut here at this budget.'}${bn && isN(bn.enterAt) ? ` It enters at about ${usd(bn.enterAt)} a month.` : ''}`;
-      const rows = IDS.map(id => { const c = cellOf(r, id), L = plan.line[id]; if (!c) return tr([[esc(SHORT[id]), 'l'], NA, NA, NA, NA, NA, NA, NA]);
-        return tr([[esc(SHORT[id]), 'l'], n1(c.J), c.R > 0 ? D(c.R, 2) : 'out', D(c.cost, 2), c.R > 0 ? `$${D(c.rho, 2)}` : NA, isN(L.lambdaRaw) ? `$${D(L.lambdaRaw, 2)}` : NA, c.spend > 0 ? `<b>${usd(c.spend)}</b>` : `<span class="mini">${esc(STATE[c.state] || (c.capped ? 'cut by the ZIP cap' : 'not funded'))}</span>`, c.spend > 0 ? `${sg(c.bid)} · ${pc(c.conf)}` : NA]); });
+      const rows = IDS.map(id => { const c = cellOf(r, id), L = plan.line[id]; if (!c) return tr([[esc(SHORT[id]), 'l'], NA, NA, NA, NA, NA]);
+        return tr([[esc(SHORT[id]), 'l'], n1(c.J), c.R > 0 ? D(c.R, 2) : 'out', c.R > 0 ? two(`$${D(c.rho, 2)}`, isN(L.lambdaRaw) && L.dollars > 0 ? `cut $${D(L.lambdaRaw, 2)}` : '') : NA, c.spend > 0 ? `<b>${usd(c.spend)}</b>` : [`<span class="mini">${esc(c.capped ? 'cut by the ZIP cap' : STATE[c.state] || 'not funded')}</span>`, 'wrap'], c.spend > 0 ? two(sg(c.bid), pc(c.conf)) : NA]); });
       const w = wxz(r.zip), wr = wk && wk.plan && wk.plan.at ? wk.plan.at[r.zip] : null, zn = LV.zipNormal(r.zip), pz = LV.permits && LV.permits.zip[r.zip] ? LV.permits.zip[r.zip] : null, lev = (SLM.LEV || {})[r.zip] || {}, hdd = plan.exposure && HX.exposure ? (HX.exposure().hdd || {})[r.zip] : null;
       const tags = [r.fuel === 'gas' ? 'Gas led: furnace, igniter and carbon monoxide copy' : r.fuel === 'electric' ? 'Electric led: heat pump, auxiliary heat and electric bill copy' : 'Mixed fuel: run both message sets', lev.es >= 15 ? `Spanish build, suggested share ${N(lev.es)}%` : '', lev.fin >= 60 ? 'Payment led: monthly payment creative belongs in the financing radius campaign' : ''].filter(Boolean);
       body.innerHTML = `<p class="hd-why">${status}</p>${r.inPlan && r.why ? `<p class="hd-why">${ec(r.why)}.</p>` : ''}
-        <div class="dsec">The four lines this month ${G('D')}</div><div class="xscroll">${tbl([['Line', 1], ['Jobs', 0, 'Jobs this month a homeowner ad can reach'], ['Reach', 0, '1 at the door, 0.5 at the half value drive'], ['Cost', 0, 'Cost index: 1 is the metro'], ['Return', 0, 'Gross profit the first ad dollar brings back, pipeline included'], ['Cut', 0, 'What the line\'s last dollar brings back'], ['$ a month'], ['Bid · conf.', 0, 'The line\'s own bid adjustment and the chance the return clears the cut']], rows, 'keep')}</div>
+        <div class="dsec">The four lines this month ${G('D')}</div><div class="xscroll">${tbl([['Line', 1], ['Jobs', 0, 'Jobs this month a homeowner ad can reach'], ['Reach', 0, '1 at the door, 0.5 at the half value drive'], ['Return', 0, 'Gross profit the first ad dollar brings back here, pipeline included; under it the cut, what the line\'s last dollar brings back'], ['$ a month'], ['Bid', 0, 'The line\'s own bid adjustment here; under it, the chance the return clears the cut']], rows, 'keep')}</div>
         ${w ? `<div class="dsec">${sim() ? 'Simulated lows' : 'Forecast lows'} at this ZIP ${G(sim() ? 'D' : 'A')}</div><div class="hd-lows">${w.lows.map((t, i) => `<div>${esc(((wk.days || [])[i] || {}).dow || dshort((wk.wx.dates || [])[i] || '').split(' ')[0])}<b>${isN(t) ? Math.round(t) + '°' : NA}</b></div>`).join('')}</div><div class="rowl" style="margin-top:6px"><span>Repair multiplier this week${w.first ? ' · first freeze' : ''}${w.alert ? ' · ' + ec(w.alert === true ? 'alert' : w.alert) : ''}${w.storm ? ' · storm reach' : ''}</span><b>${mult(w.W)}</b></div>${wr ? `<div class="rowl"><span>This week's dollars here</span><b>${usd(wr.dollars)}</b></div>` : ''}` : ''}
         <div class="dsec">What is in the homes</div>
         <div class="rowl"><span>Gas furnaces · past 20 years ${G('B')}</span><b>${N(z.furn)} · ${N(z.furn20)}</b></div><div class="rowl"><span>Heat pumps · electric furnaces ${G('B')}</span><b>${N(z.sys_hp)} · ${N(z.sys_ef)}</b></div>
@@ -419,8 +424,8 @@ registerModule({
         .concat(st.bench ? plan.bench.map(b => ({ zip: b.zip, city: b.city, county: b.county, min: b.min, tier: HX.tier(b.min), share: null, dollars: null, bid: null, conf: null, label: 'Bench', c: {}, leads: null, fuel: plan.at[b.zip] ? plan.at[b.zip].fuel : '', why: `Not in the plan at ${usd(plan.T.budget)}: ${b.reason}. ${isN(b.enterAt) ? `Enters at about ${usd(b.enterAt)} a month` : 'Enters at a larger budget'}${b.via && b.via.length ? ' through ' + list(b.via.map(id => WORD[id] || id)) : ''}`, rank: null, bench: true, enterAt: b.enterAt })) : []);
       dataTable($('#h17Tbl', root), [
         { k: 'rank', h: '#', f: v => (isN(v) ? N(v) : '') }, { k: 'zip', h: 'ZIP', l: 1, f: v => `<b>${esc(v)}</b>` }, { k: 'city', h: 'City', l: 1, f: v => esc(v) }, { k: 'county', h: 'County', l: 1, f: v => esc(v) },
-        { k: 'min', h: 'Min', t: 'Drive minutes: 5 plus straight line kilometres (grade C)', f: v => N(v) }, { k: 'tier', h: 'Tier', l: 1, t: 'Drive tier: Core 20 minutes or less, Ring 20 to 35, Far over 35', f: (v, r) => (r.bench ? '<span class="hd-lab bench">Bench</span> ' : '') + tierLab(v) },
-        { k: 'share', h: 'Share', t: 'Share of the plan\'s dollars (grade C)', f: v => (isN(v) ? `<span class="hd-sharebar"><i style="width:${clamp(v / Math.max(1, plan.zips[0] ? plan.zips[0].share * 100 : 1) * 100, 2, 100).toFixed(0)}%"></i></span>${P(v, 2)}` : '') },
+        { k: 'min', h: 'Min', t: 'Drive minutes: 5 plus straight line kilometers (grade C)', f: v => N(v) }, { k: 'tier', h: 'Tier', l: 1, t: 'Drive tier: Core 20 minutes or less, Ring 20 to 35, Far over 35', f: (v, r) => (r.bench ? '<span class="hd-lab bench">Bench</span> ' : '') + tierLab(v) },
+        { k: 'share', h: 'Share', t: 'Share of the plan\'s dollars (grade C)', f: v => (isN(v) ? `<span class="hd-sharebar"><i style="width:${clamp(v / Math.max(0.01, plan.zips[0] ? plan.zips[0].share * 100 : 1) * 100, 2, 100).toFixed(0)}%"></i></span>${shr(v / 100)}` : '') },
         { k: 'dollars', h: '$ a month', f: (v, r) => (isN(v) ? usd(v) : isN(r.enterAt) ? `<span class="mini">at ${usd(r.enterAt)}</span>` : '') }, { k: 'bid', h: 'Bid', t: 'Blended location bid adjustment: value of a click here against the campaign average (grade D)', f: v => (isN(v) ? sg(v) : '') },
         { k: 'conf', h: 'Confidence', l: 1, t: 'Chance the return clears the cut, given the stated doubt: Firm 80% or more, Likely 50 to 80%, Test under 50% (grade D)', f: (v, r) => (isN(v) ? `<span class="hd-lab ${String(r.label).toLowerCase()}">${esc(r.label)}</span> ${P(v, 0)}` : '') },
       ].concat(IDS.map(id => ({ k: 'c_' + id, h: esc(SHORT[id]), t: `${NAMES[id]}: dollars a month and the line's own bid adjustment`, cls: 'hd-cell', v: r => (r.c[id] && r.c[id].spend > 0 ? r.c[id].spend : null), f: (v, r) => lineCell(r.c[id]) }))).concat([
@@ -449,7 +454,7 @@ registerModule({
       const head = [['Line', 1], ['Share'], ['$ a month'], ['ZIPs'], ['Leads', 0, 'Expected leads a month; ' + RT], ['Cost per lead'], ['Booked jobs', 0, 'Expected booked jobs a month; ' + RT], ['Gross profit, direct', 0, 'The first ticket alone; ' + RT], ['With pipeline', 0, 'Direct plus the replacement work module 12 credits to repair and tune up visits; ' + RT], ['Farthest', 0, 'Minutes to the farthest funded ZIP'], ['Largest ZIP', 0, 'The largest ZIP as a share of the line'], ['Platforms', 1, 'Where the line\'s money runs after minimums fold it']];
       const row = (l, cls) => tr([[`<b>${esc(l.name)}</b>${cust && isN(l.target) ? `<small>asked ${pc(l.target)}</small>` : ''}`, 'l hd-two'], shr(l.share), usd(l.dollars), n0(l.zips), two(n1(l.leads), rng(l.rl, n1)), l.leads > 0 ? usd(l.cpl) : NA, two(n1(l.jobs), rng(l.rj, n1)), two(usd(l.gpDirect), rng(l.rd, usd)), two(usd(l.gp), rng(l.rg, usd)), l.farthest == null || !(l.dollars > 0) ? '' : n0(l.farthest) + ' min', l.topShare == null || !(l.dollars > 0) ? '' : pc(l.topShare), [l.pw || '', 'l wrap hd-pw']], cls);
       const rows = plan.lines.map(l => row(Object.assign({}, l, { rl: lband(l.id, 'leads'), rj: lband(l.id, 'jobs'), rd: lband(l.id, 'gpDirect'), rg: lband(l.id, 'gp'), pw: esc(platWords(l.plat)) })));
-      rows.push(row({ name: 'Total', share: T.budget ? T.spent / T.budget : 0, dollars: T.spent, zips: T.zips, leads: T.leads, rl: band('leads'), cpl: T.cpl, jobs: T.jobs, rj: band('jobs'), gpDirect: T.gpDirect, rd: band('gpDirect'), gp: T.gp, rg: band('gp'), farthest: T.farthest, topShare: plan.zips[0] ? plan.zips[0].share : null, pw: '' }, 'hd-total'));
+      rows.push(row({ name: 'Total', share: T.spent > 0 ? 1 : 0, dollars: T.spent, zips: T.zips, leads: T.leads, rl: band('leads'), cpl: T.cpl, jobs: T.jobs, rj: band('jobs'), gpDirect: T.gpDirect, rd: band('gpDirect'), gp: T.gp, rg: band('gp'), farthest: T.farthest, topShare: plan.zips[0] ? plan.zips[0].share : null, pw: '' }, 'hd-total'));
       const notes = (plan.notes || []).filter(n => n && n.kind !== 'platform').map(n => ec(n.text));
       $('#h17LinesT', root).innerHTML = `<div class="xscroll">${tbl(head, rows)}</div><p class="hd-note">Under each outcome is its range: the 10th to 90th percentile of 120 replays of this plan. Every dollar outcome is grade D: module 12's stated lead costs, close rates, tickets and margins. ${G('D')} A repair ad pays back little in repair gross profit alone; most of its value is the replacement it may become, which is why the two gross profit columns are kept apart. ${cust ? 'Custom mix: each line is filled on its own.' : `The last dollar of each line returns ${list(plan.lines.filter(l => l.dollars > 0 && isN(l.lambdaRaw)).map(l => `$${D(l.lambdaRaw, 2)} (${WORD[l.id]})`))} of modeled gross profit, pipeline included; the fill believes ${D(PP.gamma, 2)} of the gap between lines.`}</p>${notes.length ? `<ul class="hooks">${notes.map(n => `<li>${n}</li>`).join('')}</ul>` : ''}`;
       CSV.lines = () => ['by-line', ['line', 'share_pct', 'monthly_usd', 'zips', 'leads', 'leads_p10', 'leads_p90', 'cost_per_lead_usd', 'booked_jobs', 'jobs_p10', 'jobs_p90', 'gross_profit_direct_usd', 'gp_direct_p10', 'gp_direct_p90', 'gross_profit_with_pipeline_usd', 'gp_pipeline_p10', 'gp_pipeline_p90', 'farthest_minutes', 'largest_zip_share_pct', 'platforms'],
@@ -472,7 +477,9 @@ registerModule({
       $('#h17Lsa', root).innerHTML = callout('note tight', PP.lsaLive ? 'Local Services Ads are in the plan' : 'Local Services Ads are off', PP.lsaLive
         ? `${lsa ? `${usd(lsa.dollars)} a month runs there. ` : ''}One profile, one service area, a weekly budget and a price per lead: no bid adjustment and no ZIP by line. The sheet in the files below lists the ZIPs, the job types and the verification steps.${a && h.leads > 0 ? ` Without it the same money buys ${n1(a.heat)} repair leads a month at ${usd(a.cpl)} instead of ${n1(h.leads)} at ${usd(h.cpl)}.` : ''} ${G('D')}`
         : `The ${ROSTER} roster shows no Local Services badge for the client, so the plan spends nothing there and folds that share into Google Search.${a && h.leads > 0 ? ` Switched on, the same money would buy about ${n1(a.heat)} repair leads a month at ${usd(a.cpl)} instead of ${n1(h.leads)} at ${usd(h.cpl)}, and ${n0(a.leads)} leads in all against ${n0(T.leads)}.` : ''} Verify the profile, then tick the box in the plan. ${G('D')}`);
-    }    /* ---------- files: the engine writes the text, the page only saves it ---------- */
+    }
+
+    /* ---------- files: the engine writes the text, the page only saves it ---------- */
     const FILE = { googleLocations: 'Google locations', googleCampaigns: 'Google campaigns', week: 'Week change sheet', lsa: 'Local Services sheet', meta: 'Meta ZIPs by line and fuel', microsoft: 'Microsoft locations', nextdoor: 'Nextdoor ZIPs', exclusions: 'Exclusions', zipList: 'Plain ZIP list', planByZip: 'Plan by ZIP, every factor', valueRules: 'Conversion value rules by location', assumptions: 'Assumptions', readme: 'Read me' };
     const fileLabel = k => FILE[k] || k.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, c => c.toUpperCase());
     function filesCard() {
@@ -505,7 +512,9 @@ registerModule({
       $('#h17Rules', root).innerHTML = rs.length ? `<div class="xscroll">${tbl([['Trigger', 1], ['Threshold', 1], ['Budget', 1], ['Bids', 1], ['Hours', 1], ['Creative', 1], ['Size', 1], ['Grade', 1], [sim() ? 'In this simulation' : 'This week', 1]],
         rs.map(r => tr([[`<b>${ec(r.trigger)}</b>`, 'l'], [ec(r.threshold), 'l'], [ec(r.budget), 'l'], [ec(r.bids), 'l'], [ec(r.hours), 'l'], [ec(r.creative), 'l'], [ec(r.size), 'l'], [gr(r.grade), 'l hd-gr'], [r.off ? `<span class="hd-chip">off</span> ${ec(typeof r.off === 'string' ? r.off.replace(/^Off:\s*/, '') : '')}` : r.fired ? '<span class="hd-chip t3">fired</span>' : '<span class="mini">not fired</span>', 'l']], r.fired && !r.off ? 'hd-fired' : '')), 'prose')}</div><p class="hd-note">Location bid adjustments never change with the weather: cold raises what every click is worth by about the same factor everywhere, so the money moves through budgets and bid caps. ${wk && wk.src === 'normal' ? 'No usable forecast is stored, so no weather rule can fire this week.' : ''}</p>` : '<p class="hd-empty">The engine publishes no cold rule in this build.</p>';
       CSV.rules = () => ['cold-rules', ['trigger', 'threshold', 'budget', 'bids', 'hours', 'creative', 'size', 'grade', 'fired_this_week', 'off'], rs.map(r => [r.trigger, r.threshold, r.budget, r.bids, r.hours, r.creative, r.size, r.grade, r.fired && !r.off ? 'yes' : 'no', r.off ? (typeof r.off === 'string' ? r.off : 'yes') : ''].map(v => (typeof v === 'string' ? clean(v) : v == null ? '' : v))), `Heat Desk cold rules${sim() ? ', SIMULATED week' : ''}. Thresholds grade C; forecast and alerts grade A; every size grade D.`];
-    }    /* ---------- prose: how it is built, the judgment calls, what is left out, caveats ---------- */
+    }
+
+    /* ---------- prose: how it is built, the judgment calls, what is left out, caveats ---------- */
     function prose() {
       const Q = PP, pctOf = v => Math.round(v * 100) + '%', h = plan.line.heat, d2 = v => '$' + D(v, 2);
       $('#h17Meth', root).innerHTML = [
@@ -563,7 +572,9 @@ registerModule({
         ['Drive minutes', `5 plus straight line kilometers from ${ec(plan.origin.label)}`, 'C', plan.origin.src === 'brand' ? 'the brand panel\'s dispatch point' : 'the office in the live layer', ''],
         ['Normal cold by ZIP', plan.exposure.source === 'none' ? 'Not in this build: cold exposure is 1 in every ZIP' : ec(plan.exposure.label || ''), plan.exposure.source === 'none' ? '' : GR.exposure || 'C', B && B.normalsPeriod ? ec(String(B.normalsPeriod)) : plan.exposure.source === 'none' ? 'missing' : '1991 to 2020', 'https://www.ncei.noaa.gov/products/land-based-station/us-climate-normals'],
       ].concat(ids.map(live).filter(Boolean)));
-    }    /* ---------- what a budget buys: the same plan at other budgets, computed once per setting ---------- */
+    }
+
+    /* ---------- what a budget buys: the same plan at other budgets, computed once per setting ---------- */
     const LADDER = [2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, 20000, 25000, 30000, 40000];
     function ladderData() {
       const k = pkey(); if (st.ladKey === k && st.lad) return st.lad;
@@ -575,22 +586,24 @@ registerModule({
       try { Ld = ladderData(); } catch (e) { console.error('heat desk ladder', e); host.innerHTML = '<p class="hd-empty">The ladder could not be computed with these settings.</p>'; $('#h17LadN', root).textContent = ''; $('#h17Cols', root).innerHTML = ''; return; }
       const rows = Ld.rows, B = PP.budget, i = rows.findIndex(r => r.budget === B), own = rows[i], nx = rows[i + 1], xmax = Math.max(...rows.map(r => r.budget)), kd = v => (v >= 1000 ? '$' + r6((v / 1000).toFixed(1)) + 'K' : '$' + N(v));
       host.innerHTML = legendRow([{ name: 'Leads a month', color: cssv('--accent') }, { name: 'ZIPs in the plan', color: cssv('--s2'), dash: 1 }]) + '<div id="h17LadS"></div>';
-      lineChart($('#h17LadS', root), { W: 1180, H: 300, series: [{ name: 'Leads a month', color: cssv('--accent'), pts: rows.map(r => [r.budget, r.leads]), dots: true, width: 2.2, fmt: v => D(v, 1) }, { name: 'ZIPs in the plan', color: cssv('--s2'), pts: rows.map(r => [r.budget, r.zips]), dash: '5 4', width: 1.6, fmt: v => N(v) }],
+      const slim = window.innerWidth < 760; st.slim = slim;                                        /* a phone gets a chart drawn for its width, so the axis text stays readable */
+      lineChart($('#h17LadS', root), { W: slim ? 700 : 1180, H: slim ? 330 : 300, series: [{ name: 'Leads a month', color: cssv('--accent'), pts: rows.map(r => [r.budget, r.leads]), dots: true, width: 2.2, fmt: v => D(v, 1) }, { name: 'ZIPs in the plan', color: cssv('--s2'), pts: rows.map(r => [r.budget, r.zips]), dash: '5 4', width: 1.6, fmt: v => N(v) }],
         x: { min: 0, max: xmax, fmt: kd, label: 'Monthly heating media' }, y: { zero: true, fmt: v => N(v), label: 'Leads a month and ZIPs in the plan' },
         vlines: [{ x: B, label: 'your budget' }], marks: own ? [{ x: B, y: own.leads, color: cssv('--bench'), label: `${n0(own.leads)} leads`, dx: 8, dy: 14 }] : [], tipTitle: x => usd(x) + ' a month',
         aria: `Leads a month and ZIPs in the plan at monthly budgets from ${usd(rows[0].budget)} to ${usd(xmax)}, with the budget of ${usd(B)} marked` });
       const lo = rows[0], hi = rows[rows.length - 1];
-      $('#h17LadN', root).innerHTML = (own ? `At ${usd(B)} a month the plan buys <b>${n0(own.leads)} leads</b> at ${usd(own.cpl)} each in ${plural(own.zips, 'ZIP')}.${nx && nx.leads - own.leads > 0.05 ? ` The next ${usd(nx.budget - B)} would add about ${n1(nx.leads - own.leads)} leads at ${usd((nx.spent - own.spent) / (nx.leads - own.leads))} each: every step up the ladder costs more per lead.` : ''} ` : '')
-        + `From ${usd(lo.budget)} to ${usd(hi.budget)} the farthest drive grows from ${n0(lo.farthest)} to ${n0(hi.farthest)} minutes and the cost per lead from ${usd(lo.cpl)} to ${usd(hi.cpl)}.${isN(plan.T.hurdleAt) ? ` Past about ${usd(plan.T.hurdleAt)} a month the last dollar would bring back under $${D(PP.hurdle, 2)} of gross profit and the rest stays unspent.` : ''} ${G('D')}`;
+      const grows = (a, b, f, what, unit) => (f(a) === f(b) ? `${what} stays at ${f(a)}${unit}` : `${what} grows from ${f(a)} to ${f(b)}${unit}`);
+      $('#h17LadN', root).innerHTML = (own ? `At ${usd(B)} a month the plan ${own.unspent > 0.5 ? `places ${usd(own.spent)} of it and ` : ''}buys <b>${n0(own.leads)} leads</b> at ${own.leads > 0 ? usd(own.cpl) : NA} each in ${plural(own.zips, 'ZIP')}.${nx && nx.leads - own.leads > 0.05 ? ` The next ${usd(nx.budget - B)} would add about ${n1(nx.leads - own.leads)} leads at ${usd((nx.spent - own.spent) / (nx.leads - own.leads))} each: every step up the ladder costs more per lead.` : ''} ` : '')
+        + `From ${usd(lo.budget)} to ${usd(hi.budget)} ${grows(lo.farthest, hi.farthest, n0, 'the farthest drive', ' minutes')} and ${grows(lo.cpl, hi.cpl, usd, 'the cost per lead', '')}.${isN(plan.T.hurdleAt) ? ` Past about ${usd(plan.T.hurdleAt)} a month the last dollar would bring back under $${D(PP.hurdle, 2)} of gross profit and the rest stays unspent.` : ''} ${G('D')}`;
       const col = r => `<div class="hd-col${r.budget === B ? ' own' : ''}"><h4>${usd(r.budget)}</h4><div class="hd-colsub">${r.budget === B ? 'your budget, a month' : 'a month'}${r.unspent > 0.5 ? ` · ${usd(r.unspent)} stays unspent` : ''}</div>
         <div class="rowl"><span>ZIPs in the plan · farthest drive</span><b>${N(r.zips)} · ${n0(r.farthest)} min</b></div><div class="rowl"><span>Money within 20 minutes</span><b>${pc(r.share20)}</b></div>
         <div class="rowl"><span>Leads a month · cost per lead ${G('D')}</span><b>${n0(r.leads)} · ${r.leads > 0 ? usd(r.cpl) : NA}</b></div><div class="rowl"><span>Booked jobs a month ${G('D')}</span><b>${n1(r.jobs)}</b></div>
         <div class="rowl"><span>Gross profit: direct · with pipeline ${G('D')}</span><b>${usd(r.gpDirect)} · ${usd(r.gp)}</b></div>
-        <div class="rowl"><span>Mix: repair · furnace · heat pump · tune up</span><b>${IDS.map(id => pc(r.mix[id])).join(' · ')}</b></div>
+        <div class="rowl"><span>Mix: repair · furnace · heat pump · tune up</span><b>${IDS.map(id => shr(r.mix[id])).join(' · ')}</b></div>
         <div class="rowl"><span>Counties</span><b>${(r.counties || []).slice(0, 3).map(c => `${esc(c.county)} ${shr(c.share)}`).join(', ') || 'none'}</b></div>
         <div class="rowl"><span>Largest ZIPs</span><b>${(r.top || []).slice(0, 3).map(t => `${esc(t.zip)} ${esc(t.city)}`).join(', ') || 'none'}</b></div></div>`;
       const all = tbl([['$ a month', 0], ['Unspent'], ['ZIPs'], ['Farthest'], ['Within 20 min'], ['Leads'], ['Cost per lead'], ['Booked jobs'], ['Gross profit, direct'], ['With pipeline'], ['Repair'], ['Furnace'], ['Heat pump'], ['Tune up']],
-        rows.map(r => tr([`<b>${usd(r.budget)}</b>`, r.unspent > 0.5 ? usd(r.unspent) : '$0', n0(r.zips), n0(r.farthest) + ' min', pc(r.share20), n1(r.leads), r.leads > 0 ? usd(r.cpl) : NA, n1(r.jobs), usd(r.gpDirect), usd(r.gp)].concat(IDS.map(id => pc(r.mix[id]))), r.budget === B ? 'sel' : '')));
+        rows.map(r => tr([`<b>${usd(r.budget)}</b>`, r.unspent > 0.5 ? usd(r.unspent) : '$0', n0(r.zips), n0(r.farthest) + ' min', pc(r.share20), n1(r.leads), r.leads > 0 ? usd(r.cpl) : NA, n1(r.jobs), usd(r.gpDirect), usd(r.gp)].concat(IDS.map(id => shr(r.mix[id]))), r.budget === B ? 'sel' : '')));
       $('#h17Cols', root).innerHTML = Ld.cols.map(c => rows.find(r => r.budget === c)).filter(Boolean).map(col).join('') + `<details class="hd-adv hd-all"><summary>Every budget on the ladder</summary><div class="xscroll">${all}</div><p class="hd-note">Each row is the whole plan solved again at that budget, with every other setting as it is now. Leads, jobs and gross profit ${G('D')}</p></details>`;
       CSV.ladder = () => ['budget-ladder', ['monthly_budget_usd', 'your_budget', 'spent_usd', 'unspent_usd', 'zips', 'search_campaigns', 'farthest_minutes', 'share_within_20_min_pct', 'leads', 'cost_per_lead_usd', 'booked_jobs', 'gross_profit_direct_usd', 'gross_profit_with_pipeline_usd'].concat(IDS.map(id => id + '_share_pct')).concat(['core_pct', 'ring_pct', 'far_pct', 'counties', 'largest_zips']),
         rows.map(r => [r.budget, r.budget === B ? 'yes' : '', Math.round(r.spent), Math.round(r.unspent), r.zips, r.campaigns, isN(r.farthest) ? Math.round(r.farthest) : '', Math.round(r.share20 * 100), r6(r.leads.toFixed(1)), r.leads > 0 ? Math.round(r.cpl) : '', r6(r.jobs.toFixed(1)), Math.round(r.gpDirect), Math.round(r.gp)].concat(IDS.map(id => Math.round(r.mix[id] * 100))).concat(['Core', 'Ring', 'Far'].map(t => Math.round(((r.tiers || {})[t] || 0) * 100))).concat([(r.counties || []).map(c => `${c.county} ${Math.round(c.share * 100)}%`).join('; '), (r.top || []).slice(0, 5).map(t => t.zip).join(' ')])),
@@ -606,7 +619,7 @@ registerModule({
       else {
         host.innerHTML = `<div class="hd-seas"><div>${legendRow(IDS.map((id, i) => ({ name: NAMES[id], color: cols[i], sq: 1 })))}<div id="h17SeasC"></div></div><div class="xscroll">${tbl([['Month', 1], ['Repair'], ['Furnace'], ['Heat pump'], ['Tune up'], ['Repair season', 0, 'Module 12 season index of heating repair: 100 is an average month'], ['ZIPs'], ['Leads'], ['Leads the mix', 1]],
           ms.map(m => { const lead = IDS.reduce((a, b) => (m.mix[b] > m.mix[a] ? b : a)); return tr([[`<b>${esc(m.name)}</b>`, 'l']].concat(IDS.map(id => shr(m.mix[id]))).concat([m.season && isN(m.season.heat) ? N(m.season.heat) : NA, n0(m.zips), n0(m.leads), [esc(SHORT[lead]), 'l']]), m.month === plan.month ? 'sel' : ''); }))}</div></div>`;
-        barChart($('#h17SeasC', root), { W: 640, H: 270, L: 46, cats: ms.map(m => m.name.slice(0, 3)), stacked: true, yMax: 100, fmt: v => P(v, 0), yLabel: 'Share of the month\'s heating media', series: IDS.map((id, i) => ({ name: NAMES[id], color: cols[i], values: ms.map(m => m.mix[id] * 100) })), aria: `Line mix by month from ${ms[0].name} to ${ms[ms.length - 1].name}: ${ms.map(m => `${m.name} heating repair ${shr(m.mix.heat)}`).join(', ')}` });
+        barChart($('#h17SeasC', root), { W: 640, H: 280, L: 46, T: 28, cats: ms.map(m => m.name.slice(0, 3)), stacked: true, yMax: 100, fmt: v => P(v, 0), yLabel: 'Share of the month\'s heating media', series: IDS.map((id, i) => ({ name: NAMES[id], color: cols[i], values: ms.map(m => m.mix[id] * 100) })), aria: `Line mix by month from ${ms[0].name} to ${ms[ms.length - 1].name}: ${ms.map(m => `${m.name} heating repair ${shr(m.mix.heat)}`).join(', ')}` });
         const led = ms.filter(m => m.repairLed).map(m => m.name), not = ms.filter(m => !m.repairLed).map(m => m.name);
         $('#h17SeasN', root).innerHTML = `Each month is this plan solved again with only the month changed: ${usd(PP.budget)}, the same reach and guards${PP.mode === 'custom' ? ', and the custom mix you set, so the split does not move' : ''}. ${PP.mode === 'custom' ? '' : `${led.length ? `Repair leads in ${list(led)}` : 'Repair leads in no month'}${not.length ? `; in ${list(not)} the replacement lines or tune ups lead because repair is out of season` : ''}. `}The row of the plan's month is marked. ${G('D')}`;
         CSV.season = () => ['season-mix', ['month', 'repair_pct', 'furnace_pct', 'heatpump_pct', 'tuneup_pct', 'repair_season_index', 'zips', 'leads', 'booked_jobs', 'gross_profit_with_pipeline_usd', 'repair_led'], ms.map(m => [m.name].concat(IDS.map(id => r6((m.mix[id] * 100).toFixed(1)))).concat([m.season && isN(m.season.heat) ? Math.round(m.season.heat) : '', m.zips, r6(m.leads.toFixed(1)), r6(m.jobs.toFixed(1)), Math.round(m.gp), m.repairLed ? 'yes' : 'no'])), `Heat Desk line mix by month at ${usd(PP.budget)} a month, every other setting as saved. Grade D.`];
@@ -684,15 +697,16 @@ registerModule({
     }
     const later = debounce(() => render(), 140);
     /* something outside changed (live records, service line assumptions, the brand's dispatch point): draw now when shown, on the next show when hidden */
-    const outside = debounce(() => { if (root.hidden) dirty = true; else render(); }, 200);    /* ---------- wiring: every event is bound here, none in the markup ---------- */
+    const outside = debounce(() => { if (root.hidden) dirty = true; else render(); }, 200);
+
+    /* ---------- wiring: every event is bound here, none in the markup ---------- */
     root.addEventListener('input', e => { const el = e.target; if (el.dataset && el.dataset.p && el.type !== 'checkbox') { if (el.type === 'range') readout(el); if (commit(el)) later(); } });
     root.addEventListener('change', e => { const el = e.target; if (!el.dataset) return;
       if (el.dataset.p) { if (commit(el)) render(); else syncUI(true); }
       else if (el.dataset.mix) { setMix(el.dataset.mix, el.value); render(true); }
       else if (el.id === 'h17Month') { if (el.value === '') delete st.P.month; else st.P.month = +el.value; save(); render(); }
       else if (el.id === 'h17Layer') { st.layer = el.value; save(); drawMap(); }
-      else if (el.id === 'h17Bench') { st.bench = el.checked; save(); table(); }
-      else if (el.id === 'h17Find') find(el.value); });
+      else if (el.id === 'h17Bench') { st.bench = el.checked; save(); table(); } });
     root.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !root.contains(b)) return; const d = b.dataset;
       if (d.csv) saveCsv(d.csv);
       else if (d.x) saveX(d.x);
@@ -732,6 +746,7 @@ registerModule({
     this.onShow = () => { if (dirty) render(); };
     BUS.on('theme', () => { if (!plan) return; [drawMap, ladder, season].forEach(run); });
     BUS.on('sl', outside); BUS.on('brand', outside);
+    window.addEventListener('resize', debounce(() => { if (plan && (window.innerWidth < 760) !== st.slim) run(ladder); }, 150));          /* the ladder chart is drawn again when the window crosses the phone width */
     BUS.on('live', d => { if (d && (d.why === 'start' || d.why === 'settings')) return; outside(); });
     render(true, true);
   }

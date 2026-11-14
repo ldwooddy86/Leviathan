@@ -35,7 +35,7 @@ const ymd = n => iso(n).slice(0, 10);
 const rec = (id, data, daysOld) => ({ v: 1, id, ok: true, at: iso(daysOld == null ? 0.05 : daysOld), ms: 5, n: 1, bytes: 100, data, digest: null });
 
 /* hand made records in the shapes the collectors store (prefix synthetic: none of this is a recorded answer) */
-function synthetic(counties) {
+export function synthetic(counties) {
   const COLS = ['hdd', 'hddNorm', 'hddOct', 'missOct', 'hdd7', 'miss7', 'hdd7Norm', 'hdd30', 'miss30', 'hdd30Norm', 'fr32', 'fr25', 'firstFreeze', 'lastFreeze', 'minT', 'minDate', 'min7', 'missJul', 'ok'];
   const lows = k => Array.from({ length: 14 }, (_, i) => 52 - k - (i % 5) * 3), highs = k => lows(k).map(v => v + 19);
   const acis = { v: 1, season: +ymd(0).slice(0, 4) - (+ymd(0).slice(5, 7) < 7 ? 1 : 0), through: ymd(1), blocks: { W1: ymd(1), W2: ymd(1) },
@@ -82,7 +82,7 @@ export default async function (page, t, ctx) {
   /* what the engine returns for the settings the page has stored */
   const engine = () => page.evaluate(() => { const P = HEATX.params((store.get('tda.heat.v1', {}) || {}).P || {}), plan = HEATX.plan(P), F = HEATX.forecast(new Date()), wk = HEATX.week(P, F), usd = v => '$' + N(v);
     return { P: { budget: P.budget, month: P.month, mode: P.mode, bidding: P.bidding }, zips: plan.T.zips, zipList: plan.zips.map(r => r.zip), spent: usd(plan.T.spent), share20: Math.round(plan.T.share20 * 100) + '%', farthest: N(plan.T.farthest), month: plan.monthName, counties: plan.counties.filter(c => c.dollars > 0).map(c => c.county), all12: CO.map(c => c.name),
-      lead: plan.lines.slice().sort((a, b) => b.dollars - a.dollars)[0], lines: plan.lines.map(l => ({ name: l.name, dollars: usd(l.dollars) })), top: plan.zips[0] ? { zip: plan.zips[0].zip, city: plan.zips[0].city, dollars: usd(plan.zips[0].dollars) } : null,
+      lead: plan.lines.slice().sort((a, b) => b.dollars - a.dollars)[0], lines: plan.lines.filter(l => l.dollars > 0).map(l => ({ name: l.name, dollars: usd(l.dollars) })), unspent: plan.T.unspent > 0.5 ? usd(plan.T.unspent) : null, crew: !!wk.crew, wkMonth: wk.monthName, top: plan.zips[0] ? { zip: plan.zips[0].zip, city: plan.zips[0].city, dollars: usd(plan.zips[0].dollars) } : null,
       wk: { src: wk.src, week: usd(wk.T.week), normal: usd(wk.T.normal), first: (wk.list[0] || {}).text || '', steps: wk.list.length, headline: (wk.head || {}).headline || '', trigger: wk.trigger }, hand: HEATX.hand(plan, 'all'), source: plan.exposure.source, forecast: !!F, held: HEATX.held(plan).map(h => h.zip), bench: plan.bench.map(b => b.zip) }; });
   const pageSays = () => page.evaluate(() => { const q = s => document.querySelector('#mod-heat ' + s), tx = s => (q(s) ? q(s).innerText : ''), kpi = {}; document.querySelectorAll('#h17Kpis .kpi').forEach(k => { kpi[k.querySelector('.kl span').textContent] = { v: k.querySelector('.kv').textContent, d: k.querySelector('.kd').textContent }; });
     return { where: tx('[data-a="where"]'), what: tx('[data-a="what"]'), week: tx('[data-a="week"]'), monday: tx('[data-a="monday"]'), kpi, rows: [...document.querySelectorAll('#h17Tbl tbody tr:not(.hd-benchrow)')].map(r => r.dataset.id), meta: tx('.mast .meta'), weekTotal: [...document.querySelectorAll('#h17Week tr.hd-total td')].map(td => td.innerText), lineRows: [...document.querySelectorAll('#h17LinesT tbody tr')].map(r => [...r.cells].map(c => c.innerText.split('\n')[0])), todo: [...document.querySelectorAll('#h17Week ol.hd-monday li')].map(li => li.innerText), own: (q('.hd-col.own') || {}).innerText || '', cty: [...document.querySelectorAll('#h17Cty tbody tr')].map(r => [...r.cells].map(c => c.innerText)), ctyHead: [...document.querySelectorAll('#h17Cty thead th')].map(h => h.innerText), miss: tx('#h17Miss'), gate: tx('#h17Gate') }; });
@@ -104,11 +104,13 @@ export default async function (page, t, ctx) {
   await show();
   const m0 = await page.evaluate(() => { const s = document.getElementById('mod-heat'), c = s.querySelector('.callout .ct'); return { reg: MODI.heat && [MODI.heat.num, MODI.heat.title], failed: !!(c && /failed to load/i.test(c.textContent)), empty: ['h17Answer', 'h17Kpis', 'h17Week', 'h17Plan', 'h17Map', 'h17Leg', 'h17Zip', 'h17Tbl', 'h17Held', 'h17LinesT', 'h17Camps', 'h17Plats', 'h17Lsa', 'h17Files', 'h17Cty', 'h17LadC', 'h17Cols', 'h17Rules', 'h17RuleEd', 'h17SeasT', 'h17SeasLive', 'h17Sig', 'h17Sure', 'h17Sens', 'h17Meth', 'h17Judg', 'h17Not', 'h17Cav', 'h17Src'].filter(id => !document.getElementById(id) || document.getElementById(id).innerHTML.trim().length < 40),
     inline: s.querySelectorAll('[onclick],[onchange],[oninput],[onkeydown],[onsubmit],script').length, untyped: [...s.querySelectorAll('.wrap button')].filter(b => b.type !== 'button').length, unnamed: [...s.querySelectorAll('.wrap button')].filter(b => !(b.innerText.trim() || b.getAttribute('aria-label') || b.title)).length,
-    unlabeled: [...s.querySelectorAll('.wrap input, .wrap select')].filter(e => !(e.getAttribute('aria-label') || (e.id && s.querySelector(`label[for="${e.id}"]`)) || e.closest('label'))).map(e => e.id || e.dataset.p || e.type), order: [...s.querySelectorAll('.wrap > *')].slice(0, 4).map(e => e.id || e.className), h2: s.querySelector('#h17Answer h2').textContent }; });
+    unlabeled: [...s.querySelectorAll('.wrap input, .wrap select')].filter(e => !(e.getAttribute('aria-label') || (e.id && s.querySelector(`label[for="${e.id}"]`)) || e.closest('label'))).map(e => e.id || e.dataset.p || e.type), order: [...s.querySelectorAll('.wrap > *')].slice(0, 4).map(e => e.id || e.className), h2: s.querySelector('#h17Answer h2').textContent,
+    dupIds: (ids => [...new Set(ids.filter((id, i) => ids.indexOf(id) !== i))])([...s.querySelectorAll('[id]')].map(e => e.id)), bareDetails: [...s.querySelectorAll('details')].filter(d => !d.firstElementChild || d.firstElementChild.tagName !== 'SUMMARY' || !d.firstElementChild.textContent.trim() || d.parentElement.closest('details')).length, drawers: [...s.querySelectorAll('details > summary')].map(x => x.textContent.trim()) }; });
   t.ok(!m0.failed && !m0.empty.length && !ctx.errors.length, 'the module mounts and every block has content', { m0, errors: ctx.errors.slice(0, 4) });
   t.eq(m0.reg, ['17', 'Heat Desk'], 'it registers as module 17, Heat Desk');
   t.ok(m0.order[1] === 'h17Answer' && /answer/i.test(m0.h2), 'the answer is the first block under the mast', m0.order);
   t.ok(m0.inline === 0 && m0.untyped === 0 && m0.unnamed === 0 && !m0.unlabeled.length, 'no inline handler or script in the markup; every button is a typed, named button and every field has a label', m0);
+  t.ok(!m0.dupIds.length && m0.bareDetails === 0 && m0.drawers.some(x => /^Advanced/.test(x)), 'no id is used twice and every drawer opens from its own named summary', { dup: m0.dupIds, bare: m0.bareDetails, drawers: m0.drawers });
 
   /* ---------- the answer says what the tables say ---------- */
   const A = await agree('at the defaults');
@@ -183,6 +185,22 @@ export default async function (page, t, ctx) {
   const typed = await pageSays();
   t.ok(typed.where.includes('At $12,500 a month') && typed.kpi['Monthly heating media'].d.includes('$12,500'), 'and the answer follows the typed budget', typed.where.slice(0, 120));
   await agree('at a typed budget');
+  await press('#h17Reset'); await wait(350);
+
+  /* ---------- settings at their edges: nothing breaks and the answer still says what the tables say ---------- */
+  const edge = async (label, set) => { const before = ctx.errors.length; await press('#h17Reset'); await page.evaluate(set); await wait(450); const r = await agree(label); await clean(label); t.ok(ctx.errors.length === before, `${label}: no page error`, ctx.errors.slice(before, before + 3)); return r; };
+  await page.evaluate(() => { window.__set = (p, v) => { const el = document.querySelector(`#mod-heat [data-p="${p}"]`); if (el.type === 'checkbox') el.checked = v; else el.value = String(v === 'max' ? el.max : v === 'min' ? el.min : v); el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); }; });
+  let X = await edge('at the largest budget', () => window.__set('budget', 'max'));
+  t.ok(!X.E.unspent || (X.S.where.includes(`${X.E.unspent} stays unspent`) && X.S.kpi['Monthly heating media'].d.includes(`${X.E.unspent} of`)), 'money the hurdle leaves unspent is named in the answer and in the headline number', { unspent: X.E.unspent, kpi: X.S.kpi['Monthly heating media'].d });
+  X = await edge('at the smallest budget', () => window.__set('budget', 'min'));
+  X = await edge('with the plan set to July', () => { const m = document.getElementById('h17Month'); m.value = '6'; m.dispatchEvent(new Event('change', { bubbles: true })); });
+  t.ok(X.E.month === 'July' && X.E.wkMonth !== 'July' && X.S.week.includes(`planned on ${X.E.wkMonth}`) && X.S.week.includes('not on the July the plan is set to') && !X.S.what.startsWith('Heating repair leads'), 'out of season the answer says which line leads and that the week is planned on the month of the forecast', { what: X.S.what.slice(0, 120), week: X.S.week.slice(-140) });
+  X = await edge('with all the money on repair', async () => { document.querySelector('#h17Mode [data-v="custom"]').click(); await new Promise(z => setTimeout(z, 40)); const i = document.getElementById('h17Mix_heat'); i.value = '100'; i.dispatchEvent(new Event('change', { bubbles: true })); });
+  t.ok(X.E.P.mode === 'custom' && X.E.lines.length === 1 && /custom mix/.test(X.S.what), 'a custom mix is named as the owner\'s own split', X.S.what);
+  X = await edge('with the hurdle at its highest', () => window.__set('hurdle', 'max'));
+  X = await edge('with the reach at its shortest', () => ['half.heat', 'half.furnace', 'half.maint'].forEach(p => window.__set(p, 'min')));
+  X = await edge('with Local Services live, Smart Bidding and a crew cap', () => { window.__set('lsaLive', true); document.querySelector('#h17Bid [data-v="smart"]').click(); window.__set('crewCap', 3); });
+  t.ok(!X.E.crew || /crew cap of 3 paid booked jobs a week/.test(X.S.week), 'a crew cap that binds is named in the answer', X.S.week);
   await press('#h17Reset'); await wait(350);
 
   /* ---------- pins, blocks, the bench, the map layers, the search box ---------- */
@@ -276,14 +294,18 @@ export default async function (page, t, ctx) {
   for (const [w, h, theme] of [[1440, 900, 'light'], [1440, 900, 'dark'], [390, 844, 'light'], [390, 844, 'dark']]) {
     await page.setViewportSize({ width: w, height: h }); const before = ctx.errors.length;
     await fresh({ 'tda.theme': JSON.stringify(theme) });
-    const r = await page.evaluate(() => { const s = document.getElementById('mod-heat'), c = s.querySelector('.callout .ct'), box = e => e.getBoundingClientRect(); return { theme: document.documentElement.dataset.theme, dark: isDark(), failed: !!(c && /failed to load/i.test(c.textContent)), overflow: document.documentElement.scrollWidth - innerWidth, wide: [...document.querySelectorAll('#mod-heat > .wrap > *, #mod-heat .hd-answer, #mod-heat .hd-nights, #mod-heat .hd-plan, #mod-heat .hd-files, #mod-heat .hd-cols3')].filter(e => box(e).right > innerWidth + 1 || box(e).left < -1).map(e => e.id || e.className).slice(0, 6), answer: box(document.getElementById('h17Answer')).width, map: box(document.querySelector('#h17Map svg')).width, bg: getComputedStyle(document.getElementById('h17Answer')).backgroundColor, ink: getComputedStyle(document.querySelector('#h17Answer dd')).color, fills: new Set([...document.querySelectorAll('#h17Map svg path')].map(p => p.style.fill).filter(Boolean)).size, stored: localStorage.getItem('tda.theme'), href: location.href.slice(-12), charts: document.querySelectorAll('#h17LadC svg.chart, #h17SeasT svg.chart').length }; });
+    const r = await page.evaluate(() => { const s = document.getElementById('mod-heat'), c = s.querySelector('.callout .ct'), box = e => e.getBoundingClientRect(); return { theme: document.documentElement.dataset.theme, dark: isDark(), failed: !!(c && /failed to load/i.test(c.textContent)), overflow: document.documentElement.scrollWidth - innerWidth, wide: [...document.querySelectorAll('#mod-heat > .wrap > *, #mod-heat .hd-answer, #mod-heat .hd-nights, #mod-heat .hd-plan, #mod-heat .hd-files, #mod-heat .hd-cols3')].filter(e => box(e).right > innerWidth + 1 || box(e).left < -1).map(e => e.id || e.className).slice(0, 6), answer: box(document.getElementById('h17Answer')).width, map: box(document.querySelector('#h17Map svg')).width, bg: getComputedStyle(document.getElementById('h17Answer')).backgroundColor, ink: getComputedStyle(document.querySelector('#h17Answer dd')).color, fills: new Set([...document.querySelectorAll('#h17Map svg path')].map(p => p.style.fill).filter(Boolean)).size, stored: localStorage.getItem('tda.theme'), href: location.href.slice(-12), charts: document.querySelectorAll('#h17LadC svg.chart, #h17SeasT svg.chart').length, thin: [...document.querySelectorAll('#mod-heat svg.chart')].map(c => { const w = c.getBoundingClientRect().width, vb = +(c.getAttribute('viewBox') || '').split(/\s+/)[2]; return [c.parentElement.id, +(11 * w / vb).toFixed(1)]; }).filter(x => x[1] < 7.9) }; });
     t.ok(!r.failed && ctx.errors.length === before && r.theme === theme && r.dark === (theme === 'dark'), `${w} wide, ${theme}: the module mounts with no page error`, { r, errors: ctx.errors.slice(before, before + 3) });
-    t.ok(r.overflow <= 0 && !r.wide.length && r.answer > 300 && r.map > 250 && r.fills > 4 && r.charts === 2, `${w} wide, ${theme}: no sideways page scroll, the answer, the map and the charts are drawn`, r);
+    t.ok(r.overflow <= 0 && !r.wide.length && r.answer > 300 && r.map > 250 && r.fills > 4 && r.charts === 2 && !r.thin.length, `${w} wide, ${theme}: no sideways page scroll, the answer, the map and the charts are drawn, chart axis text at 8 px or more`, r);
     await agree(`${w} wide, ${theme}`);
     if (theme === 'dark') { const lum = c => { const m = c.match(/[\d.]+/g).map(Number); return 0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]; }; t.ok(lum(r.bg) < 80 && lum(r.ink) > 170, `${w} wide, dark: the answer is light ink on a dark card, through the shared tokens`, [r.bg, r.ink]); await clean(`${w} wide, dark`); }
   }
   /* the theme button repaints what is colored in code */
   await page.setViewportSize({ width: 1440, height: 900 }); await fresh();
+  /* a window that shrinks to phone width gets the ladder chart drawn again for that width */
+  const vb = () => page.evaluate(() => { const c = document.querySelector('#h17LadS svg.chart'); return [+(c.getAttribute('viewBox') || '').split(/\s+/)[2], +(11 * c.getBoundingClientRect().width / +(c.getAttribute('viewBox') || '').split(/\s+/)[2]).toFixed(1), document.documentElement.scrollWidth - innerWidth]; });
+  const wide = await vb(); await page.setViewportSize({ width: 390, height: 844 }); await wait(500); const narrow = await vb(); await page.setViewportSize({ width: 1440, height: 900 }); await wait(500);
+  t.ok(narrow[0] < wide[0] && narrow[1] >= 7.9 && narrow[2] <= 0 && (await vb())[0] === wide[0], 'resizing to phone width redraws the ladder chart with readable axis text, and back', { wide, narrow });
   const paint = () => page.evaluate(() => [[...document.querySelectorAll('#h17Map svg path')].slice(0, 400).map(p => p.style.fill).join(), (document.querySelector('#h17LadS svg path[stroke]') || { getAttribute: () => '' }).getAttribute('stroke'), [...document.querySelectorAll('#h17SeasC svg rect[fill]')].slice(0, 4).map(p => p.getAttribute('fill')).join()]);
   const p1 = await paint(); await page.evaluate(() => toggleTheme()); await wait(200); const p2 = await paint(); await page.evaluate(() => toggleTheme()); await wait(200);
   t.ok(p1[0] !== p2[0] && p1[1] !== p2[1] && p1[2] !== p2[2] && JSON.stringify(await paint()) === JSON.stringify(p1), 'switching the theme repaints the map and both charts, and switching back restores them');
@@ -303,6 +325,14 @@ export default async function (page, t, ctx) {
   await clean('with no live record');
   await page.evaluate(() => document.getElementById('h17Miss').querySelector('[data-act="golive"]').click()); await wait(200);
   t.eq(await page.evaluate(() => location.hash), '#live', 'Open Live Data goes to the Live Data module');
+  /* a forecast older than 36 hours is named as stale and the week runs at normal */
+  await fresh();
+  const baked = await page.evaluate(() => JSON.parse(JSON.stringify(LIVE.baseline.records.nws_cold)));
+  before = ctx.errors.length;
+  await fresh({ 'tda.test.nolive': '1', 'tda.live.src.nws_cold': Object.assign({}, baked, { at: iso(40 / 24) }) });
+  const old = await page.evaluate(() => { const F = HEATX.forecast(new Date()); return { F: F && { stale: F.stale, age: Math.round(F.ageH) }, miss: document.getElementById('h17Miss').innerText, ans: document.querySelector('#h17Answer [data-a="week"]').innerText, week: document.getElementById('h17Week').innerText, total: [...document.querySelectorAll('#h17Week tr.hd-total td')].map(td => td.innerText), stale: (document.getElementById('h17Rules').innerText.match(/Stale forecast[^\n]*(\n[^\n]*){0,12}/) || [''])[0] }; });
+  t.ok(old.F && old.F.stale && old.F.age === 40 && ctx.errors.length === before && /A fresh forecast\./.test(old.miss) && /more than 36 hours old/.test(old.miss) && /more than 36 hours old/.test(old.ans) && /normal \w+ week/.test(old.ans) && old.total[1] === old.total[2] && /fired/i.test(old.stale), 'a stored forecast 40 hours old is called stale: the answer, the missing list and the rules table say so and the week runs at normal', old);
+  await clean('with a stale forecast');
   /* and without the climate baseline: the page names the source of the cold exposure it falls back to */
   before = ctx.errors.length;
   await fresh({ 'tda.test.nolive': '1', 'tda.test.noclim': '1' });

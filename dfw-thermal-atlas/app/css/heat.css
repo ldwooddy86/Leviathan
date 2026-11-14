@@ -1,5 +1,5 @@
 /* ==== heat.css ==== */
-/* heat.css · module 17 · Heat Desk. Only what atlas.css lacks, prefixed .hd-. Every colour comes from the shared tokens
+/* heat.css · module 17 · Heat Desk. Only what atlas.css lacks, prefixed .hd-. Every color comes from the shared tokens
    (--accent, --cool, --heat, --line, --ink-*, --judg, --note, --bench), so light and dark both work with no theme block here.
    The cards reuse .card .kpis .plan .seg .chips .tag .rowl .dsec .steps .tscroll .xscroll .legend .catleg from atlas.css. */
 
@@ -86,6 +86,7 @@ details.hd-adv[open]>summary{margin-bottom:10px;color:var(--ink)}
 .hd-zipcard .hd-why{font-size:13px;line-height:1.55;color:var(--ink);margin:0 0 4px}
 .hd-zipcard table{font-size:12px}
 .hd-zipcard th,.hd-zipcard td{padding:4px 6px}
+@media (max-width:480px){.hd-zipcard table{font-size:11.5px}.hd-zipcard th,.hd-zipcard td{padding:4px 3px}}
 .hd-lows{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:4px}
 .hd-lows div{border:1px solid var(--line);border-radius:6px;padding:4px 2px;text-align:center;font-size:10.5px;color:var(--ink-3);line-height:1.25;min-width:0}
 .hd-lows b{display:block;font-size:14px;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -98,16 +99,19 @@ details.hd-adv[open]>summary{margin-bottom:10px;color:var(--ink)}
 .hd-lab.ring,.hd-lab.likely{background:var(--sunk);color:var(--ink)}
 .hd-lab.far,.hd-lab.test{border-style:dashed}
 .hd-lab.bench{border-style:dotted;color:var(--ink-3)}
-td.hd-whyc{white-space:normal;min-width:260px;max-width:460px;line-height:1.45;color:var(--ink-2);text-align:left}
+td.hd-whyc{white-space:normal;min-width:230px;max-width:460px;line-height:1.45;color:var(--ink-2);text-align:left}
+#h17Tbl th,#h17Tbl td{padding-left:7px;padding-right:7px}
 td.hd-cell{font-variant-numeric:tabular-nums}
 td.hd-cell small{color:var(--ink-3);font-size:10.5px;margin-left:4px}
 td.hd-two{line-height:1.3;font-variant-numeric:tabular-nums}
 td.hd-two small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-3);white-space:nowrap}
 td.hd-pw{min-width:150px;max-width:320px;font-size:12px;line-height:1.45;color:var(--ink-2);text-align:left}
 tbody tr.hd-fired td:first-child{box-shadow:inset 3px 0 0 var(--cool)}
+/* on a phone the rules table scrolls sideways instead of squeezing nine columns into the width */
+@media (max-width:760px){#h17Rules table.prose td{min-width:150px}#h17Rules table.prose td:first-child,#h17Rules table.prose td.hd-gr{min-width:96px}}
 td.hd-gr{white-space:nowrap}
 tbody tr.hd-benchrow td{color:var(--ink-3)}
-.hd-sharebar{display:inline-block;width:46px;height:6px;border-radius:3px;background:var(--sunk);vertical-align:1px;margin-right:6px;overflow:hidden}
+.hd-sharebar{display:inline-block;width:38px;height:6px;border-radius:3px;background:var(--sunk);vertical-align:1px;margin-right:6px;overflow:hidden}
 .hd-sharebar i{display:block;height:100%;background:var(--accent)}
 .hd-cardh{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
 .hd-cardh>div:first-child{flex:1 1 320px;min-width:0}
@@ -155,6 +159,7 @@ tbody tr.hd-benchrow td{color:var(--ink-3)}
 .hd-stat .rowl{border-bottom:1px solid var(--line)}
 .hd-seas{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:18px;align-items:start}
 @media (max-width:1100px){.hd-seas{grid-template-columns:minmax(0,1fr)}}
+#h17Outlook>.dsec:first-child{margin-top:16px}
 .hd-dsecrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .hd-dsecrow .ibtn{font-family:var(--sans);letter-spacing:0;text-transform:none;font-weight:400}
 .hd-empty{font-size:12.5px;color:var(--ink-3);line-height:1.55;padding:6px 0}

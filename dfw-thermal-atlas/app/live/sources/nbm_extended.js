@@ -8,7 +8,8 @@
 (function (root) {
   'use strict';
   const L = root.TDA_LIVE, API = 'https://mesonet.agron.iastate.edu/api/1/mos.json';
-  /* one request, one patient retry, and no request waits past 25 seconds (the browser stops the background worker at 30) */
+  /* one request, one patient retry, and no request waits past 25 seconds (the browser stops the background worker at 30); the
+     run itself is given longer, because on a weekly day the archive pulls of live/sources/iem_cold.js queue on the same host */
   const OPT = { gapMs: 1000, retries: 1, timeoutMs: 25000 }, DAY = 864e5, TZ = 'America/Chicago';
   /* the service takes at most six stations a request: DFW Airport, Dallas Love Field, Fort Worth Meacham, McKinney, Denton, Mesquite */
   const STATIONS = ['KDFW', 'KDAL', 'KFTW', 'KTKI', 'KDTO', 'KHQZ'];
@@ -54,12 +55,14 @@
     const by = {}; ((j && j.data) || []).forEach(r => { if (r && typeof r.station === 'string' && r.station) (by[r.station] = by[r.station] || []).push(r); });
     return Object.keys(by).sort().map(id => stationOf(id, by[id], th)).filter(Boolean);
   }
+  /* The record: { v, model, run (ISO, the newest run), from (the first lead kept), th: { freeze, cold, hard },
+       stations: [{ id, name, county, run, nights: [{ m, d, lead, lowF, sd, p32, p40, p25, ext }], days: [{ d, lead, hiF, hiSd, lowF, hdd }] }] } */
   const url = () => API + '?' + STATIONS.map(s => 'station=' + s).join('&') + '&model=NBE';
   const runLabel = run => String(run).slice(0, 10) + ' ' + String(run).slice(11, 13) + 'Z';
   L.register({
     id: 'nbm_extended', name: 'Blend lows and highs, days 6 to 11', publisher: 'National Weather Service blend of models, served by the Iowa Environmental Mesonet', page: 'https://mesonet.agron.iastate.edu/mos/',
     about: 'The National Blend of Models station bulletins for six airports: each night\'s low and each day\'s high 6 to 11 days out, with the spread between the models. Bridges the seven day forecast and the 8 to 14 day outlook, and puts a number on the chance of a freeze in days 8 to 11, where a first freeze shows before any outlook map does.',
-    hosts: ['mesonet.agron.iastate.edu'], cadence: 'daily', cors: true, grade: GRADE.guidance, terms: 'Weather Service guidance, public domain; archive and service by Iowa State University, free for any lawful use, credit appreciated. Model guidance, not the official forecast.', timeoutMs: 60000,
+    hosts: ['mesonet.agron.iastate.edu'], cadence: 'daily', cors: true, grade: GRADE.guidance, terms: 'Weather Service guidance, public domain; archive and service by Iowa State University, free for any lawful use, credit appreciated. Model guidance, not the official forecast.', timeoutMs: 150000,
     labels: { minLow: ['Lowest blend low, mornings 6 to 11 days out', 'degF'], pFreeze: ['Highest chance of a freeze at any of the six airports, 6 to 11 days out', 'pct'], minLowExt: ['Lowest blend low past the seven day forecast (days 8 to 11)', 'degF'], pFreezeExt: ['Highest chance of a freeze past the seven day forecast (days 8 to 11)', 'pct'], hddExt: ['Blend heating degree days, days 8 to 10 at DFW Airport', 'int'], run: ['Model run', 'text'] },
     async run(ctx) {
       const th = thresholds(), now = +ctx.now, G = ctx.geo || {};

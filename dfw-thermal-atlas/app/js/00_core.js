@@ -14,6 +14,7 @@ const FIPS = CO.map(c => c.fips);
 const CNAME = f => (COI[f] || {}).name || '';
 Z.forEach(z => { z.fips = z.ci != null ? FIPS[z.ci] : null; z.cty = CNAME(z.fips); });
 const CITIES = DATA.cities;
+[Z, CITIES].forEach(a => a.forEach(o => ['moe_medyr', 'moe_value', 'moe_inc'].forEach(k => { if (o[k] < 0) o[k] = null; })));     // Census sentinels: a margin of error is never negative
 const COMP = DATA.comp;
 const BENCH = COMP.find(l => l.tier === 'integrity');
 

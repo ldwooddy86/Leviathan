@@ -7,7 +7,7 @@ const NEW = { heatrepair: 'Heating Repair', eheat: 'Electric Heat', heattune: 'H
 const NAMED = ['space heater', 'water heater', 'pool heater', 'patio heater', 'fireplace', 'boiler parts', 'furnace filter', 'wood furnace', 'outdoor furnace', 'car heater', 'heater core', 'heating pad', 'kerosene heater'];
 const MONEY = { heatrepair: ['heating repair', 'heater repair', 'no heat', 'heater not working', 'heating repair {city}'], eheat: ['electric furnace repair', 'heat strips not working', 'air handler repair'], heattune: ['furnace tune up', 'heating tune up', 'furnace inspection'] };
 const DASH = /[-‐-―−]/;   // a hyphen, a dash of any kind or a minus sign
-const csv = text => { const rows = []; let row = [], cur = '', q = false; const s = text.split('\n').filter(l => !l.startsWith('# ')).join('\n');
+const csv = text => { const rows = []; let row = [], cur = '', q = false; const s = text.replace(/^\uFEFF/, '').split('\n').filter(l => !l.startsWith('# ')).join('\n');
   for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === '"') { if (s[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; } else if (c === '"') q = true; else if (c === ',') { row.push(cur); cur = ''; } else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; } else cur += c; }
   if (cur || row.length) { row.push(cur); rows.push(row); } const head = rows.shift() || []; return rows.filter(r => r.length > 1).map(r => Object.fromEntries(head.map((h, i) => [h, r[i] || '']))); };
 export default async function (page, t, ctx) {
@@ -71,7 +71,7 @@ export default async function (page, t, ctx) {
       shape: Object.keys(NEW).map(id => { const a = ANG[id]; return !a ? { id, absent: true } : { id, short: a.short, line: a.line, path: a.path, lsa: a.lsa, lsaKnown: a.lsa.length > 0 && a.lsa.every(x => known.has(x)), plain: [typeof a.label, typeof a.why, typeof a.trig].join(), n: { h: a.h.length, d: a.d.length, esH: a.es.h.length, esD: a.es.d.length, kw: a.kw.length, kwq: a.kwq.length }, lic: [a.d.some(x => x.includes('{lic}')), a.es.d.some(x => x.includes('{lic}'))], kw: a.kw, meta: { p: [len(a.meta.p, worst[1]), len(a.meta.p, longest)], h: len(a.meta.h, worst[1], 40), d: len(a.meta.d, worst[1], 30) } }; }),
       kwBad: ids.flatMap(id => { const all = ANG[id].kw.concat(ANG[id].kwq); return all.filter((k, i) => !/^[a-z0-9]+( [a-z0-9]+)*$/.test(k.replace('{city}', 'x')) || k.split(' ').length > 10 || k.replace('{city}', longest.city).length > 80 || all.indexOf(k) !== i).map(k => `${id}: ${k}`); }),
       kwShared: Object.keys(LINES).flatMap(l => { const seen = {}; LINES[l].angles.filter(id => ANG[id]).forEach(id => ANG[id].kw.concat(ANG[id].kwq).forEach(k => (seen[k] = seen[k] || []).push(id))); return Object.keys(seen).filter(k => seen[k].length > 1).map(k => `${l}: ${k} (${seen[k].join(', ')})`); }),
-      furnaceKw: ANG.furnace.kw, furnaceIn: real.some(z => ANG.furnace.trig(z)), order: ANGLES.map(a => a.short),
+      furnaceKw: ANG.furnace.kw, furnaceIn: real.some(z => ANG.furnace.trig(z)),
       family: ['landlord', 'financing', 'maint', 'iaq'].map(id => ANG[id].why).filter(w => !/single family/.test(w) || /single-family/.test(w)),
     };
   }, [HEAT, NEW]);

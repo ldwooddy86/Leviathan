@@ -77,7 +77,7 @@ export default async function (page, t, ctx) {
     await p.addInitScript(({ snap, storage }) => {
       if (snap !== 'baked') Object.defineProperty(window, '__NWS_SNAPSHOT__', { get: () => snap, set: () => { }, configurable: true });
       Object.defineProperty(window, '__LIVE_BASELINE__', { get: () => null, set: () => { }, configurable: true });
-      try { if (!sessionStorage.getItem('t16')) { localStorage.clear(); for (const k in storage) localStorage.setItem(k, JSON.stringify(storage[k])); sessionStorage.setItem('t16', '1'); } } catch (e) { }
+      try { if (!localStorage.getItem('t16.seeded')) { localStorage.clear(); for (const k in storage) localStorage.setItem(k, JSON.stringify(storage[k])); localStorage.setItem('t16.seeded', '1'); } } catch (e) { }      /* once per context: a reload keeps what the page stored */
     }, { snap: o.snap === undefined ? SNAP : o.snap, storage: Object.assign({ 'tda.live.settings': { auto: false } }, o.storage || {}) });
     p.on('pageerror', e => errors.push('pageerror: ' + e.message)); p.on('console', m => { if (m.type() === 'error' && !/^Failed to load resource/.test(m.text())) errors.push('console.error: ' + m.text().slice(0, 300)); });
     const S = { p, reqs, errors, name: o.name || '',
@@ -206,12 +206,12 @@ export default async function (page, t, ctx) {
     t.eq([r.view, r.line], ['heat', 'heat'], `freeze week, ${tz}: the heating view, Heating Repair selected`);
     t.eq(up(r.kpis), up(TILES), `freeze week, ${tz}: the seven tiles match the figures worked out by hand (no live record: each says it is Mesquite only)`);
     t.eq(r.days.map(d => d.tags), [['Freeze', 'Heating surge'], ['Hard freeze', 'Heating surge'], ['Hard freeze', 'Heating surge', 'Rain: reschedule attic work'], ['Hard freeze', 'Heating surge'], ['Hard freeze', 'Heating surge'], ['Hard freeze', 'Heating surge'], ['Freeze', 'Heating surge']], `freeze week, ${tz}: lows of 26, 20, 22, 20, 22, 25 and 32 tag the days Freeze (32 or lower) or Hard freeze (25 or lower) beside Heating surge`);
-    t.ok(/^Fri 11\/13 44° 26° Sunny · 4h ≤32 /.test(r.days[0].text) && /^Sat 11\/14 41° 20° feels 15° at the coldest Mostly Cloudy ☂ 26% ⚡ 11% · 16h ≤32 /.test(r.days[1].text) && /^Thu 11\/19 46° 32° .* · 14h ≤40 /.test(r.days[6].text), `freeze week, ${tz}: a day card shows the lowest apparent temperature and its hours at 32°F or lower (at 40°F when none)`, r.days.map(d => d.text.slice(0, 70)));
+    t.ok(/^Fri 11\/13 44° 26° Sunny 4h ≤32 /.test(r.days[0].text) && /^Sat 11\/14 41° 20° feels 15° at the coldest Mostly Cloudy ☂ 26% ⚡ 11% · 16h ≤32 /.test(r.days[1].text) && /^Thu 11\/19 46° 32° .* · 14h ≤40 /.test(r.days[6].text), `freeze week, ${tz}: a day card shows the lowest apparent temperature and its hours at 32°F or lower (at 40°F when none)`, r.days.map(d => d.text.slice(0, 70)));
     if (tz !== 'America/Chicago') { t.eq([r.status, r.narr, r.win.rows, r.hourAxis, r.alerts.map(a => a.when), r.lines.heat.sched, sha(r.lines.heat.hourly)], [fz.status, fz.narr, fz.win.rows, fz.hourAxis, fz.alerts.map(a => a.when), fz.lines.heat.sched, sha(fz.lines.heat.hourly)], `freeze week, ${tz}: status, plain words, windows, chart axis, alert times and both plan files are the ones a Central browser shows (D2)`); t.ok(!s.errors.length, `freeze week, ${tz}: no error`, s.errors); await s.close(); }
   }
   /* 72 hours of the hourly forecast: 7 are above 40°F (41, 43, 44, 44, 44, 41 on Friday afternoon, 41 on Saturday) and 17 above 32°F */
   t.ok(/^Temperature Apparent temperature 65 of the next 72 hours are at 40°F or lower, 55 of them at 32°F or lower; shaded columns are 9 pm to 6 am\./.test(fz.hourNote), 'freeze week: the chart note counts 65 hours at 40°F or lower and 55 at 32°F or lower', fz.hourNote.slice(0, 140));
-  t.eq(fz.hourLines, ['40 cold night', '32 freeze', '25 hard freeze'], 'freeze week: the hourly chart draws its reference lines at 40, 32 and 25°F');
+  t.eq(fz.hourLines, ['40', '32', '25'], 'freeze week: the hourly chart draws its reference lines at 40, 32 and 25°F');
   t.ok(fz.cards.some(x => /^Hourly temperature, next 72 hours Temperature and apparent temperature by hour with the 40, 32 and 25 lines that move heating repair demand\.$/.test(x)) && fz.hourAxis.includes('Fri 11a') && fz.hourAxis.includes('Mon 11a'), 'freeze week: the chart card is titled for the heating view and its axis starts at Friday 11 am Central', fz.hourAxis);
   /* plain words: the heating read leads. Saturday: low 20 (grid), the hourly forecast bottoms at 20 with an apparent temperature of 15; 16 hours at 32 or lower and 23 at 40 or lower */
   t.eq(fz.narr.slice(12), [
@@ -275,7 +275,7 @@ export default async function (page, t, ctx) {
     ['Heating degree days since July 1', '29', 'normal to date 157 (18%) · DFW Airport through Nov 12 · no freeze yet', 'A'],
   ]), 'live week, every record: the seven heating tiles (a mild week: no night at 40°F at Mesquite, one at Denton)');
   t.eq(l1.days.map(d => d.tags), [['Tune up window'], ['Tune up window'], ['Rain: reschedule attic work'], [], ['Tune up window'], ['Tune up window'], ['Tune up window']], 'live week: no cold tag in a week whose lows stay at 44°F or higher; the existing tags stay');
-  t.eq(l1.hourLines, ['40 cold night', '32 freeze'], 'live week: the chart reaches down to 30°F so the 40 and 32 lines show; the 25 line is off the scale');
+  t.eq(l1.hourLines, ['40', '32'], 'live week: the chart reaches down to 30°F so the 40 and 32 lines show; the 25 line is off the scale');
   t.ok(/^Temperature Apparent temperature 0 of the next 72 hours are at 40°F or lower; /.test(l1.hourNote), 'live week: the chart note counts no hour at 40°F or lower', l1.hourNote.slice(0, 90));
   /* the heat line now registers the first nights in the 40s: Saturday 5 am, 44°F: 1 + 0.6 × 6 / 25 = 1.144 on a template of 1.00 → +15%; Build 4 gave 1 + 0.6 × 1 / 20 = 1.03 → +5% */
   const sat5 = await lw.p.evaluate(() => { const r = NWSX.plan('heat').days[1].rows.find(x => x.hr === 5); return [r.tempF, +r.base.toFixed(2), +r.w.toFixed(3), r.adj]; });
@@ -374,7 +374,7 @@ export default async function (page, t, ctx) {
   n0 = rf.reqs.length; await rf.p.clock.fastForward('31:00'); await rf.p.waitForTimeout(500); const timer = rf.reqs.length - n0;
   t.eq([hidden, back, timer], [0, 29, 29], 'D4: a hidden page does not refresh; it does when it becomes visible again, and then every thirty minutes by the timer while the desk is on screen');
   /* the Refresh live button, and a second press while one is running */
-  n0 = rf.reqs.length; await rf.p.click('#w14Ref'); await rf.p.click('#w14Ref'); await rf.p.waitForTimeout(600);
+  n0 = rf.reqs.length; await rf.p.evaluate(() => { const b = document.getElementById('w14Ref'); b.click(); b.click(); }); await rf.p.waitForTimeout(600);
   t.eq(rf.reqs.length - n0, 29, 'refresh: the button forces one refresh; a second press while it runs does not start another');
   /* a bare NWSX.refresh(true), as tools/snapshot.mjs calls it, brings all three histories so a re baked snapshot keeps Love Field */
   n0 = rf.reqs.length; const bare = await rf.p.evaluate(async () => { const s = await NWSX.refresh(true); return { live: s.live, hist: Object.keys(JSON.parse(NWSX.snapshotJSON()).obs.history).sort() }; });
@@ -390,6 +390,9 @@ export default async function (page, t, ctx) {
   await fl.p.click('#w14Hist button[data-v="KDAL"]'); await fl.p.waitForTimeout(300);
   t.eq([(await fl.read()).hist, fl.reqs.length], ['No history held for this station.', 2], 'no network: a station that cannot be fetched says so after one try');
   await fl.close();
+  /* with the network down the timer tries again thirty minutes after the last try, not every minute */
+  const rt = await open({ clock: NOV, running: true, storage: { 'tda.nws.v2': LIVE_WEEK } }); await rt.p.clock.fastForward('25:00'); await rt.p.waitForTimeout(300); const tries25 = rt.reqs.length; await rt.p.clock.fastForward('06:00'); await rt.p.waitForTimeout(300);
+  t.eq([tries25, rt.reqs.length], [1, 2], 'no network: one failed try on open, none for the next 25 minutes, the next one after thirty'); await rt.close();
 
   /* ================= 8. copy: what the desk says about refreshing and the browser app is what the code does ================= */
   const copy = [fz.status, fz.alertNote || '', l1.alertNote || '', fz.meth.join(' '), fz.judg, fz.mast, sep.status].join(' ');

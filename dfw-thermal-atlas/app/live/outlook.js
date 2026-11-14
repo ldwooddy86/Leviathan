@@ -15,6 +15,9 @@
   /* night thresholds shared with the rest of the live layer (live/derive.js) */
   const TH = Object.assign({ cool: 50, cold: 40, freeze: 32, hard: 25 }, (L.derive && L.derive.TH) || {});
   const TIER = ['no cold signal', 'lean cold', 'cold favored', 'cold hazard'];
+  /* what each tier is for, in one sentence: staging, never spending (the seven day cold watch and the Heat Desk decide the money) */
+  const USE = ['Hold the base plan.', 'Stage for the window: ready the cold weather creative and the crews, and check the outlook daily; no spend moves on this alone.', 'Prepare for the window: creative approved, the reserve held, call hours planned; spend follows when the seven day forecast shows the lows.', 'Be on an emergency footing before the window opens; the seven day cold watch makes the day by day calls.'];
+  const USE_WARM = 'Hold the base plan; a mild stretch favors tune ups, replacement quotes and financing offers.';
   /* grade of each kind of evidence and of what is built on it */
   const GRADES = { tier: 'C', load: 'C', outlook: 'B', hazard: 'B', named: 'B', winter: 'B', blend: 'B', chance: 'C', grid: 'A' };
   const RULES = {
@@ -61,8 +64,18 @@
   /* the cold hazards the forecasters name, in the atlas's words (the kind set by live/sources/cpc_outlook.js) */
   const NAMED = { temps: 'much below normal temperatures', ice: 'ice or freezing rain', snow: 'heavy snow', chill: 'dangerous wind chill', freeze: 'a freeze', frost: 'frost', cold: 'hazardous cold' };
 
+  /* What outlook() returns, always whole:
+       ok, reason (why not, when ok is false), stale (no fresh outlook map), tier 0 to 3, tierName, lean ('cold' | 'warm' | 'neutral'),
+       window { start, end } of the top tier, anchor (the first day of that window when the call was first made: the notice key),
+       evidence [{ tier, kind ('outlook' | 'hazard' | 'named' | 'winter' | 'blend' | 'grid'), text (the atlas's words), start, end, issued, g (grade),
+                   quote (the forecaster's own sentence, named risks only), since, issues, first, label (by kind) }] highest tier first,
+       d610, d814 (the stored outlooks when fresh, else null), persist (issues in a row with days 8 to 14 below normal),
+       blend { run, freeze, coldest } (the best freeze chance and the lowest low 6 days out or later, each a stored night with stn and name),
+       grid { level, name, state, prcMw, at, since, stale, why } | null, season and seasonNow (heating weather in the window, and today),
+       headline, sub, use (what the tier is for), notes [a sentence for each leg missing or stale], inputs { id: { state: 'ok' | 'stale' | 'missing', at, … } },
+       today (the Dallas date read for), rules, grades */
   const blank = (R, today) => ({ ok: false, reason: '', stale: true, tier: 0, tierName: TIER[0], lean: 'neutral', window: null, anchor: null, evidence: [], d610: null, d814: null, persist: 0,
-    blend: { run: null, freeze: null, coldest: null }, grid: null, season: false, seasonNow: false, headline: 'No two week outlook on hand', sub: '', notes: [], inputs: { cpc_outlook: { state: 'missing', at: null }, nbm_extended: { state: 'missing', at: null }, ercot_grid: { state: 'missing', at: null } }, today, rules: R, grades: GRADES });
+    blend: { run: null, freeze: null, coldest: null }, grid: null, season: false, seasonNow: false, headline: 'No two week outlook on hand', sub: '', use: '', notes: [], inputs: { cpc_outlook: { state: 'missing', at: null }, nbm_extended: { state: 'missing', at: null }, ercot_grid: { state: 'missing', at: null } }, today, rules: R, grades: GRADES });
 
   function read(recs, now, opt) {
     const R = Object.assign({}, RULES, (opt && opt.rules) || {}), t0 = +new Date(now), t = Number.isFinite(t0) ? t0 : Date.now(), tz = (L.geo || {}).tz, today = localDay(t, tz), nowIso = new Date(t).toISOString();
@@ -103,7 +116,7 @@
     /* ---- cold hazards the forecasters name for the Southern Plains or Texas, until their end date ---- */
     const thr = c && c.text && c.text.thr;
     if (thr && thr.issued && age(t, thr.issued) / DAY <= R.staleDays + 1) (thr.items || []).filter(x => x && x.cold && x.near && isDay(x.start) && isDay(x.end) && x.end >= today)
-      .forEach(x => add(x.risk === 'High' ? 3 : x.risk === 'Moderate' ? 2 : 1, 'named', GRADES.named, `${x.risk === 'High' || x.risk === 'Moderate' ? x.risk : 'Slight'} risk of ${NAMED[x.kind] || 'a cold hazard'}${x.freeze && x.kind !== 'freeze' ? ' (a freeze is mentioned)' : ''}, named in the hazards discussion for the Southern Plains or Texas`, x.start, x.end, { issued: thr.issued, quote: String(x.text || `${x.risk} risk of ${x.hazard} for ${x.area}`) }));
+      .forEach(x => add(x.risk === 'High' ? 3 : x.risk === 'Moderate' ? 2 : 1, 'named', GRADES.named, `Forecasters name a ${x.risk === 'High' ? 'high' : x.risk === 'Moderate' ? 'moderate' : 'slight'} risk of ${NAMED[x.kind] || 'a cold hazard'}${x.freeze && x.kind !== 'freeze' ? ', with a possible freeze,' : ''} for the Southern Plains or Texas`, x.start, x.end, { issued: thr.issued, quote: String(x.text || `${x.risk} risk of ${x.hazard} for ${x.area}`) }));
 
     /* ---- winter storm impacts in the coming week ---- */
     const w = (c && c.winter) || null;
@@ -156,6 +169,7 @@
       : out.tier ? `${cap(TIER[out.tier])}${out.window ? ', ' + span(out.window.start, out.window.end) : ''}: ${lower(ev[0].text)}`
       : !ref ? 'No freeze signal in the blend guidance out to day 11'
       : out.lean === 'warm' ? 'Mild through week two: no cold signal past the seven day forecast' : 'No cold signal past the seven day forecast';
+    out.use = !out.ok ? '' : out.tier === 0 && out.lean === 'warm' ? USE_WARM : USE[out.tier];
     out.sub = !out.ok ? out.reason : `Days 6 to 10 (${a ? span(a.start, a.end) : 'no data'}): ${say(a)}${loadSay(a)}. Days 8 to 14 (${b ? span(b.start, b.end) : 'no data'}): ${say(b)}${loadSay(b)}.`;
     return out;
   }
@@ -172,7 +186,7 @@
     const o = outlook(recs, now); if (!o.ok || o.tier < 2 || !o.window) return [];
     return [{ key: 'outlook:' + o.tier + ':' + (o.anchor || o.window.start), title: (o.tier === 3 ? 'Cold hazard' : 'Cold favored') + ' in the two week outlook', message: o.headline + '.', route: 'heat' }];
   }
-  L.derive = Object.assign(L.derive || {}, { outlook, outlookNotice: notice, OUTLOOK_RULES: RULES, OUTLOOK_TIER: TIER, OUTLOOK_GRADES: GRADES, inHeatingSeason: inSeason });
+  L.derive = Object.assign(L.derive || {}, { outlook, outlookNotice: notice, OUTLOOK_RULES: RULES, OUTLOOK_TIER: TIER, OUTLOOK_USE: USE, OUTLOOK_GRADES: GRADES, inHeatingSeason: inSeason });
   /* an older live/derive.js has no hook for more notices: then the reading is still there, only the notice is not sent */
   if (Array.isArray(L.derive.more)) L.derive.more.push(notice);
 })(typeof globalThis !== 'undefined' ? globalThis : self);

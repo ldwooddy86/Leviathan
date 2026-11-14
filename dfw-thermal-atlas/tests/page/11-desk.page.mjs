@@ -1,12 +1,14 @@
 /* Module 08 Campaign Desk: a heating plan is built from heating copy and exports whole campaigns, the money adds up to the budget,
    hand picked markets keep the sender's order, a stored or loaded plan cannot plant markup, the controls work from the keyboard,
-   and receive() takes a complete plan from another module. Each block names the touch up item it proves. */
+   and receive() takes a complete plan from another module. Each block names the touch up item it proves. The last blocks are the
+   finishing pass: a keyword is bid on from one ad group, the Heat Desk hand off arrives on both of its lines, every export button
+   of every service line writes a whole file (also for one market and for none), and a plan kept by Build 4 still loads. */
 const DASH = /[A-Za-zÀ-ɏ][-‐-―−][A-Za-zÀ-ɏ]/;   // a letter, a hyphen or dash of any kind, a letter
 const IDENT = /^[("']*(?:https?:\/\/\S+|[\w.-]+\.(?:csv|json|html|js|mjs|zip|txt))[)"'.,;:]*$/i;   // file names and links are identifiers, not prose
 const HEAT5 = ['heatrepair', 'furnace', 'heatpump', 'eheat', 'heattune'];   // the heat line of this build, by name: a Build 4 page must fail on it
 const hyphenated = text => [...new Set(text.split(/\s+/).filter(w => DASH.test(w) && !IDENT.test(w)))];
-/* a CSV the desk wrote: note lines (# ...) apart, then one object per row keyed by the header */
-const csv = text => { const note = [], body = []; text.split('\n').forEach(l => (l.startsWith('# ') && !body.length ? note : body).push(l)); const s = body.join('\n'), rows = []; let cur = [], f = '', q = false;
+/* a CSV the desk wrote: the byte order mark that saveFile puts first and the note lines (# ...) apart, then one object per row keyed by the header */
+const csv = text => { const note = [], body = []; text.replace(/^\uFEFF/, '').split('\n').forEach(l => (l.startsWith('# ') && !body.length ? note : body).push(l)); const s = body.join('\n'), rows = []; let cur = [], f = '', q = false;
   for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === '"') { if (s[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; } else if (c === '"') q = true; else if (c === ',') { cur.push(f); f = ''; } else if (c === '\n') { cur.push(f); rows.push(cur); cur = []; f = ''; } else f += c; }
   if (f || cur.length) { cur.push(f); rows.push(cur); } const head = rows.shift() || []; return { note: note.join(' '), head, ragged: rows.filter(r => r.length !== head.length && r.join('') !== '').length, rows: rows.map(r => Object.fromEntries(head.map((h, i) => [h, r[i] == null ? '' : r[i]]))) }; };
 const heads = r => Object.keys(r).filter(k => /^Headline \d+$/.test(k) && r[k]).map(k => r[k]), descs = r => Object.keys(r).filter(k => /^Description \d$/.test(k) && r[k]).map(k => r[k]);
@@ -285,18 +287,18 @@ export default async function (page, t, ctx) {
   const twice = f => { const by = {}; f.rows.filter(r => r.Keyword && !/^Negative/.test(r['Criterion Type'])).forEach(r => { const k = `${r.Campaign} · ${r.Keyword} · ${r['Criterion Type']}`; (by[k] = by[k] || []).push(r['Ad Group']); }); return Object.keys(by).filter(k => by[k].length > 1).map(k => `${k}: ${by[k].join(', ')}`); };
   const groupOf = (f, k) => [...new Set(f.rows.filter(r => r.Keyword === k).map(r => r['Ad Group']))];
   await reopen(); await ctx.show('desk');
-  const more = await page.evaluate(() => ({ maint: LINES.maint.angles, lsa: Object.fromEntries(Object.keys(LINES).map(l => [l, MIX0[l].lsa > 0 && LINES[l].angles.some(id => ANG[id].lsa.length)])), furnace: ZR.filter(z => ANG.furnace.trig(z) && z.span_sh < 20).slice(0, 2).map(z => z.zip), noFurnace: ZR.filter(z => !ANG.furnace.trig(z)).slice(0, 2).map(z => z.zip) }));
+  const more = await page.evaluate(() => ({ maint: LINES.maint.angles, lsa: Object.fromEntries(Object.keys(LINES).map(l => [l, MIX0[l].lsa > 0 && LINES[l].angles.some(id => ANG[id].lsa.length)])), furnace: ZR.filter(z => ANG.furnace.trig(z) && z.span_sh < 20).slice(0, 2).map(z => z.zip) }));
 
   /* a keyword that two angles of a plan list is bid on from one ad group; the furnace angle keeps its Build 4 keywords for the plans that run no heating repair angle */
   await send({ zips: more.furnace, line: 'heat' });
   const gK = await grab('dkG'), kK = await grab('dkKw');
   const kwUI = async id => { await set('#dkKwA', id); return page.evaluate(() => ({ kws: [...document.querySelectorAll('#dkKwOut .kwcol div')].map(d => d.textContent), note: (document.querySelector('#dkKwOut .mini') || { textContent: '' }).textContent })); };
-  const uiF = await kwUI('furnace'), uiR = await kwUI(HEAT5[0]);
+  const uiF = await kwUI('furnace'), uiT = await kwUI('heattune'), uiR = await kwUI(HEAT5[0]);
   t.ok(more.furnace.length === 2 && gK.rows.some(r => r['Ad Group'] === 'Furnace Core') && !twice(gK).length, 'a heat plan whose markets fire the furnace trigger bids on no keyword from two ad groups', twice(gK).slice(0, 3));
   t.eq([groupOf(gK, 'heater repair'), groupOf(gK, 'furnace repair'), groupOf(gK, 'furnace inspection')], [['Heating Repair Core'], ['Furnace Core'], ['Furnace Core']], 'a keyword two heating angles list stays with the angle that comes first in the library: heater repair with Heating Repair, furnace inspection with Furnace');
   const kTw = kK.rows.filter(r => r.ad_group !== 'Negatives').map(r => `${r.keyword} · ${r.match_type}`);
   t.ok(new Set(kTw).size === kTw.length && kK.rows.some(r => r.ad_group === 'Heating Repair' && r.keyword === 'heater repair') && !kK.rows.some(r => r.ad_group === 'Furnace' && r.keyword === 'heater repair'), 'the keyword file lists each keyword under one ad group', kTw.filter((k, i) => kTw.indexOf(k) !== i).slice(0, 3));
-  t.ok(uiR.kws.includes('[heater repair] exact') && !uiR.note && uiF.kws.includes('[furnace repair] exact') && !uiF.kws.some(x => /heater repair/.test(x)) && /^2 keywords this angle shares .* stay with that one/.test(uiF.note) && !hyphenated(uiF.note).length, 'the keyword desk shows a shared keyword under the angle that keeps it, and says so under the other', uiF.note);
+  t.ok(uiR.kws.includes('[heater repair] exact') && !uiR.note && uiF.kws.includes('[furnace repair] exact') && !uiF.kws.some(x => /heater repair/.test(x)) && /^2 keywords this angle shares .* stay with that one, so the campaign bids on each from one ad group\.$/.test(uiF.note) && /^One keyword this angle shares .* stays with that one, so the campaign bids on it from one ad group\.$/.test(uiT.note) && !uiT.kws.some(x => /furnace inspection/.test(x)) && !hyphenated(uiF.note + ' ' + uiT.note).length, 'the keyword desk shows a shared keyword under the angle that keeps it, and says so under the others', [uiF.note, uiT.note]);
   await send({ zips: more.furnace, line: 'blend' });
   const gB = await grab('dkG');
   t.eq([groupOf(gB, 'heater repair'), groupOf(gB, 'furnace inspection'), twice(gB)], [['Furnace Core'], ['Furnace Core'], []], 'a blend plan, which runs no heating repair angle, still bids on heater repair and furnace inspection from the furnace ad group, as in Build 4');
@@ -311,12 +313,17 @@ export default async function (page, t, ctx) {
   t.eq(filled(xH).map(r => +r.bid_modifier), sAll.map(z => hx.all.bids[z]), 'and the bid adjustments in the plan file are the ones the Heat Desk sent');
   t.ok(gH.rows.some(r => r['Ad Group'] === 'Heating Repair Core') && !adFaults(gH.rows, lib.lic).length && !twice(gH).length && JSON.stringify(negsOf(gH)[0]) === JSON.stringify(wantNeg), 'its Google file carries the heating repair ad groups, clean ads, each keyword once and the heating negatives', adFaults(gH.rows, lib.lic).concat(twice(gH)).slice(0, 3));
   const oneZ = sAll[Math.min(2, sAll.length - 1)], toast1 = await send(Object.assign({}, hx.all, { zips: [oneZ] })), x1 = await grab('dkPlanX');
-  t.eq([toast1, filled(x1).map(r => r.zip), filled(x1).map(r => +r.bid_modifier)], ['1 ZIP received', [oneZ], [hx.all.bids[oneZ]]], 'the one ZIP hand off of the Heat Desk, which sends every bid and one ZIP, builds a one market plan with that market\'s bid');
+  t.eq([toast1, filled(x1).map(r => r.zip), filled(x1).map(r => +r.bid_modifier)], ['1 ZIP received', [oneZ], [hx.all.bids[oneZ]]], 'a one ZIP hand off that still carries the bids of the whole plan builds a one market plan with that market\'s bid');
   await send({ start: '2026-11-16' }); const toastT = await send(hx.tune), pT = await plan(), gT = await grab('dkG');
   await send({ start: '2027-05-03' }); await send(hx.tune); const pT2 = await plan();
-  t.eq([toastT, pT.line, pT.zips, pT.angles], [sTune.length ? rec(hx.tune.zips.length) : `Service line: ${lib.lines.maint}`, 'maint', sTune.length ? sTune : pH.zips.slice(0, 1), more.maint.concat('heattune')], 'the tune up line of the Heat Desk arrives on the maintenance line, and for a flight that starts in November the heating tune up is selected with the line\'s own angles');
+  t.eq([toastT, pT.line, pT.zips, pT.angles], [sTune.length ? rec(hx.tune.zips.length) : `Service line: ${lib.lines.maint}`, 'maint', sTune.length ? sTune : [oneZ], more.maint.concat('heattune')], 'the tune up line of the Heat Desk arrives on the maintenance line, and for a flight that starts in November the heating tune up is selected with the line\'s own angles');
   t.eq(pT2.angles, more.maint, 'the same hand off for a flight that starts in May selects the maintenance angles alone');
   t.ok(gT.rows.some(r => r['Ad Group'] === 'Heating Tune Up Core') && !adFaults(gT.rows, lib.lic).length && !twice(gT).length && groupOf(gT, 'furnace tune up').join() === 'Heating Tune Up Core', 'the Google file of that November plan carries the heating tune up ad groups, clean ads, and "furnace tune up" from one ad group', adFaults(gT.rows, lib.lic).concat(twice(gT), groupOf(gT, 'furnace tune up')).slice(0, 3));
+  await send({ line: 'replace' }); await ctx.show('heat'); await sleep(500);
+  if (await page.evaluate(() => !!document.getElementById('h17Desk') && typeof HEATX !== 'undefined')) { await page.evaluate(() => { document.querySelector('.toast').textContent = ''; }); await press('h17Desk'); await sleep(300);
+    const pB = await plan(), seen = await page.evaluate(() => ({ toast: document.querySelector('.toast').textContent, hash: location.hash, shown: !document.getElementById('mod-desk').hidden }));
+    t.ok(seen.hash === '#desk' && seen.shown && pB.line === 'heat' && pB.scope === 'picks' && pB.zips.length > 0 && JSON.stringify(pB.angles) === JSON.stringify(HEAT5) && seen.toast.startsWith(rec(pB.picks.length)) && pB.bids && pB.zips.every(z => typeof pB.bids[z] === 'number'), 'the Campaign Desk button of the Heat Desk page opens the desk on the heat line with the plan\'s ZIPs, a bid for each, and the five heating angles', { seen, line: pB.line, zips: pB.zips.length, angles: pB.angles }); }
+  else t.note('the Heat Desk page has no Campaign Desk button in this build: its hand off is checked through HEATX.hand alone');
   await set('#dkStart', '2026-12-07'); await set('#dkLine', 'replace'); await set('#dkLine', 'maint'); const pM = await plan();
   await set('#dkStart', '2027-04-05'); await set('#dkLine', 'replace'); await set('#dkLine', 'maint'); const pM2 = await plan();
   t.eq([pM.angles, pM2.angles], [more.maint.concat('heattune'), more.maint], 'picking the maintenance line in the desk follows the same rule: the heating tune up joins for a December start, not for an April one');
@@ -324,6 +331,12 @@ export default async function (page, t, ctx) {
   /* D4, the rest of it: a Spanish social preview shows no English line */
   await send({ zips: ['75052'], line: 'heat' }); await tab('#dkPTabs', 'meta'); await tab('#dkLang', 'es'); const esA = await assets(); await tab('#dkLang', 'en'); const enA = await assets(); await tab('#dkPTabs', 'google');
   t.ok(esA.length === 2 && enA.length === 3 && !esA.includes(enA[2]), 'D4 a Spanish social preview shows its Spanish text and title and no English description: the library has none in Spanish and the files carry none', esA);
+
+  /* 390 pixels wide: the heat plan fits the screen, and the note on the cooling benchmark does not stretch its row */
+  await send({ zips: H.zips.slice(0, 12), line: 'heat' }); await page.setViewportSize({ width: 390, height: 800 }); await sleep(300);
+  const phone = await page.evaluate(() => ({ over: document.documentElement.scrollWidth - innerWidth, rows: [...document.querySelectorAll('#dkAsm tbody tr')].map(tr => Math.round(tr.getBoundingClientRect().height)), note: document.querySelector('#dkAsm tbody tr').lastElementChild.textContent }));
+  await page.setViewportSize({ width: 1440, height: 900 }); await sleep(200);
+  t.ok(phone.over <= 0 && phone.rows.length === 8 && Math.max(...phone.rows) <= 130 && phone.rows.filter(h => h <= 60).length >= 6 && /cooling benchmark/.test(phone.note), 'at 390 pixels wide the heat plan has no sideways page scroll and the assumption rows stay compact: the note on the cooling benchmark does not stretch its row', phone);
 
   /* every export button of every service line writes a whole, clean file: a twelve market plan with Spanish builds, and a one market plan */
   const NAMES = { dkPlanX: /^campaign-plan_\w+_2026-11-16\.csv$/, dkG: /^google-ads-editor_\w+_2026-11-16\.csv$/, dkL: /^lsa-build-sheet_2026-11-16\.csv$/, dkDg: /^demand-gen-build-sheet_2026-11-16\.csv$/, dkM: /^meta-ads-import_2026-11-16\.csv$/, dkMs: /^microsoft-ads_\w+_2026-11-16\.csv$/, dkNd: /^nextdoor-build-sheet_2026-11-16\.csv$/, dkY: /^yelp-build-sheet_2026-11-16\.csv$/, dkLi: /^linkedin-recruiting_2026-11-16\.csv$/, dkCr: /^creative-library_2026-11-16\.csv$/, dkKw: /^keyword-desk\.csv$/ };

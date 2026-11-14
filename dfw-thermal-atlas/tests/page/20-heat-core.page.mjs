@@ -2,8 +2,11 @@
    The month: the budget is placed in full or the unspent part is reported, shares add to 1, nothing is sold past the reach
    cut, blocks and pins hold, a dearer ZIP never takes more money, custom shares are honored to the dollar, the automatic mix
    is repair led in the cold months and not in October, one cell rebuilt by hand from the atlas inputs matches the engine.
+   Its arithmetic is recomputed from its own cells (line trust, the fill with doubt, outcomes, bids), and cold exposure is run
+   on each of its three sources.
    The week: normal lows return the month scaled to the week, the arctic simulation pauses tune ups, shortens the repair reach
-   and draws on the reserve, a stale forecast runs at normal, the storm rule, the crew cap, the days and the reserve.
+   and draws on the reserve, a stale forecast runs at normal; then the rules one by one (night weights, line responses, alert
+   floors, first freeze, the cold trigger, the storm rule, the crew cap, days and hours, the stateless reserve, last week's cold).
    Then outcome ranges, hostile input, every export read as text, speed, and that the engine changes nothing it reads.
    The forecast used here is built in the test (20 points, seven nights from a fixed day), so the checks do not move with the
    snapshot baked into the build or with the clock. */
@@ -377,8 +380,12 @@ export default async function (page, t, ctx) {
     all('custom, one line only', HEATX.params({ month: 10, mode: 'custom', mix: { heat: 100, furnace: 0, heatpump: 0, maint: 0 } }), F); all('Smart Bidding, Local Services live', HEATX.params({ month: 0, bidding: 'smart', lsaLive: true, budget: 30000 }), HEATX.scenario(F, 'arctic'));
     all('crew cap 1', HEATX.params({ month: 10, crewCap: 1 }), HEATX.scenario(F, 'first')); all('no doubt, no hurdle', HEATX.params({ month: 10, doubt: 0, hurdle: 0, depth: 0.25, zipCap: 0.05 }), F); all('no reserve', HEATX.params({ month: 10, reserve: 0 }), HEATX.scenario(F, 'arctic')); all('on call, open all day', HEATX.params({ month: 10, hours: { open: 0, close: 24, sunday: true, onCall: true } }), HEATX.scenario(F, 'arctic'));
     run('ladder', () => [HEATX.ladder(P0), HEATX.ladder(P0, []), HEATX.ladder(P0, 'x'), HEATX.ladder(P0, [0, -5, NaN, 'a', 3000])]); run('months', () => [HEATX.months(P0), HEATX.months(P0, [12, -1, 'a', 3]), HEATX.months(P0, [])]); run('variants', () => HEATX.variants(P0)); run('lsaGain', () => HEATX.lsaGain(P0));
+    [['every ZIP blocked', HEATX.params({ month: 10, blocks: every })], ['July', HEATX.params({ month: 6 })], ['budget $1,000, custom', HEATX.params({ month: 10, budget: 500, mode: 'custom' })]].forEach(([nm, Pq]) => { run(nm + ' ladder', () => HEATX.ladder(Pq, [2000, 250000])); run(nm + ' months', () => HEATX.months(Pq)); run(nm + ' lsaGain', () => HEATX.lsaGain(Pq)); run(nm + ' variants', () => HEATX.variants(Pq)); run(nm + ' bench', () => [HEATX.bench(HEATX.plan(Pq)), HEATX.bench(HEATX.plan(Pq), 3), HEATX.bench(HEATX.plan(Pq), 'x')]); });
+    run('bench of nothing', () => [HEATX.bench(null), HEATX.bench({}, 5), HEATX.bench(JSON.parse(JSON.stringify(HEATX.plan(P0, { lite: true }), (k, v) => (k === 'z' ? undefined : v))))]);
+    out.variants = (() => { const v = HEATX.variants(P0); return { n: v.rows.length, sorted: v.rows.every((r, i) => i === 0 || r.overlap >= v.rows[i - 1].overlap), unit: v.rows.every(r => r.overlap >= 0 && r.overlap <= 1 + 1e-9 && r.mixMoved >= 0 && r.mixMoved <= 1 && r.top5.length === 5), least: v.rows[0].name + ' ' + (v.rows[0].overlap * 100).toFixed(0) + '%', names: new Set(v.rows.map(r => r.name)).size }; })();
     run('words for nothing', () => [HEATX.why(null), HEATX.why({}), HEATX.why(undefined, null), HEATX.why({ dollars: 5 })]);
     run('plans that are not plans', () => [HEATX.bands(null), HEATX.bands({}), HEATX.held(null), HEATX.held({}), HEATX.hand(null, 'heat'), HEATX.hand({}, 'x'), HEATX.pack(null), HEATX.pack({ a: 1 }), Object.keys(HEATX.exports(null, null, P0)).length, Object.keys(HEATX.exports({}, {}, null)).length, HEATX.rules(null, {}).length, HEATX.weather(null, null, {}).ok, HEATX.week(null, null, null).ok, HEATX.plan(null, null).T.spent, HEATX.plan(P0, { hold: {}, keep: 5, lineBudgets: 'x', scale: -2, reachScale: 'x', crewCap: 'y', wx: 7, costScale: 3 }).T.spent, HEATX.plan(P0, { lineBudgets: { heat: 'a', furnace: -5, heatpump: NaN } }).T.spent]);
+    run('moments that are not moments', () => [HEATX.forecast('garbage', __HT.rec()), HEATX.forecast({}, __HT.rec()), HEATX.week(P0, F, { now: 'garbage' }).today, HEATX.week(P0, null, { now: 'garbage' }).days.length, Object.keys(HEATX.exports(HEATX.plan(P0), null, P0, { now: 'garbage' })).length, HEATX.forecast(now, 'records')]);
     run('get and set', () => [HEATX.get(P0, 'half.heat'), HEATX.get(P0, 'no.such.path') === undefined ? null : 1, HEATX.set(P0, 'half.heat', 999).half.heat, HEATX.set(null, 'budget', 5000).budget, HEATX.set(P0, 'a.b.c', 1).budget]);
     run('small helpers', () => [HEATX.nightW(40), HEATX.nightW(null), HEATX.nightW('x', P0), HEATX.normLow(10), HEATX.minutes(ZR[0]), HEATX.minutes({}), HEATX.reach(10, 30, 0.25), HEATX.label(0.5), HEATX.tier(21), HEATX.fuel({}), HEATX.origin(), HEATX.exposure().source]);
     /* what the hostile cases come to */
@@ -396,6 +403,8 @@ export default async function (page, t, ctx) {
   t.ok(H.blocked.spent === 0 && near(H.blocked.unspent, 10000, 0.01) && H.blocked.zips === 0 && /every ZIP inside the reach cut is blocked/.test(H.blocked.note) && H.blocked.week === 0 && H.blocked.exText === 'Campaign,Location,ID,Bid Modifier,Criterion Type,Status\n', 'with every ZIP blocked nothing is placed, the whole budget is reported unspent and the plan says why', H.blocked);
   t.ok(H.one.zips.join() === '75150' && near(H.one.spent + H.one.unspent, 10000, 0.01) && (H.one.unspent === 0 || H.one.kinds.includes('hurdle')) && H.one.loosened, 'with one ZIP left the cap is loosened and what that ZIP cannot take above the hurdle is reported', H.one);
   t.ok(near(H.july.spent + H.july.unspent, 10000, 0.01) && H.july.zips > 0, 'a month outside the heating season still plans', H.july);
+  t.ok(H.variants.n >= 25 && H.variants.sorted && H.variants.unit && H.variants.names === H.variants.n, 'the one at a time table lists each change once, least stable first, with the share of money that stays put', H.variants);
+  t.note(`one at a time: the change that moves the most money is "${H.variants.least}" of the money staying in the same ZIPs`);
   t.ok(H.fNull.every(Boolean) && H.fPart === 5, 'the forecast adapter returns null when no point has a usable night and skips nights flagged part', { nulls: H.fNull, part: H.fPart });
 
   /* ================= exports, read as text ================= */

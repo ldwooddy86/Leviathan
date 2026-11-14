@@ -10,7 +10,7 @@ const DIR = join(ROOT, 'tests', 'fixtures', 'outlook'), D = '2026-11-13';
 const raw = n => readFileSync(join(DIR, n), 'utf8'), fx = n => JSON.parse(raw(n));
 const F = {
   multi610: raw(`cpc-610-temp-multipoint-${D}.json`), multi814: raw(`cpc-814-temp-multipoint-${D}.json`), point610: raw(`cpc-610-temp-point-${D}.json`), point814: raw(`cpc-814-temp-point-${D}.json`),
-  pcp610: raw(`cpc-610-precip-point-${D}.json`), pcp814: raw(`cpc-814-precip-point-${D}.json`), two610: raw(`cpc-610-temp-envelope-two-bands-${D}.json`),
+  pcp610: raw(`cpc-610-precip-point-${D}.json`), pcp814: raw(`cpc-814-precip-point-${D}.json`), two610: raw(`cpc-610-temp-envelope-two-bands-${D}.json`), two814: raw(`cpc-814-temp-envelope-two-bands-${D}.json`),
   haz: { 1: raw(`hazards-L1-national-${D}.json`), 3: raw(`hazards-L3-national-${D}.json`), 4: raw(`hazards-L4-national-${D}.json`), 6: raw(`hazards-L6-national-${D}.json`) },
   drought: raw(`hazards-L7-multipoint-12-counties-${D}.json`), snowAreas: raw(`hazards-L4-multipoint-mountain-points-${D}.json`), muchBelow: raw('synthetic-hazards-L3-much-below-normal.json'),
   wssiNone: raw(`wssi-p-L1-point-dfw-${D}.json`), wssi1: raw(`wssi-p-L1-multipoint-mountain-points-${D}.json`), wssi2: raw(`wssi-p-L2-multipoint-mountain-points-${D}.json`),
@@ -282,6 +282,10 @@ test('cpc_outlook: a metro split between two bands is resolved county by county'
   const most = (await run(L, 'cpc_outlook', fakeFetch(routes({ multi610: F.two610, point610: u => (east.test(u) ? F.point610 : banded(F.point610, 'Above', 60)) })))).data.ext.d610; same([most.cat, most.prob, most.pA], ['Above', 60, 65]);
   const west = /geometry=-97\./, tie = (await run(L, 'cpc_outlook', fakeFetch(routes({ multi610: F.two610, point610: u => (west.test(u) ? banded(F.point610, 'Above', 60) : F.point610) })))).data.ext.d610;
   assert.equal(Object.keys(tie.counties).filter(c => tie.counties[c].prob === 60).length, 6); same([tie.cat, tie.prob], ['Above', 50], 'six against six: Dallas County sits in the 50 band');
+  /* both outlooks split on the weekly day: 24 point requests on top of the 16, the most a run can ask */
+  const fb = fakeFetch(routes({ multi610: F.two610, point610: u => (east.test(u) ? banded(F.point610, 'Above', 60) : F.point610), multi814: F.two814, point814: u => (west.test(u) ? F.point814 : banded(F.point814, 'Above', 40)) })), b = (await run(L, 'cpc_outlook', fb)).data;
+  assert.equal(fb.calls.length, 40); same([b.ext.d814.uniform, b.ext.d814.bands.map(L.cpc.code), Object.keys(b.ext.d814.counties).length, b.ext.d814.cat, b.ext.d814.prob, b.ext.d814.counties.Dallas.prob, b.ext.d814.counties.Tarrant.prob], [false, ['A33', 'A40'], 12, 'Above', 40, 40, 33], 'six against six again: Dallas County decides');
+  same(b.hist, [{ issued: '2026-11-12', d610: 'A50', d814: 'A40' }]); same(b.errs, {});
   /* one county that cannot be read loses the outlook for this run: the last good one stays, the error is named */
   const prev = (await run(L, 'cpc_outlook', fakeFetch(routes()))).data, bad = (await run(L, 'cpc_outlook', fakeFetch(routes({ multi610: F.two610, point610: u => (east.test(u) ? DOWN : F.point610) })), prev, days(1))).data;
   same(bad.ext.d610, prev.ext.d610); assert.match(bad.errs.d610, /HTTP 503 from mapservices\.weather\.noaa\.gov/); assert.equal(bad.ext.d814.issued, '2026-11-12');
@@ -324,7 +328,7 @@ test('cpc_outlook failure rules: a part that fails keeps its last good value and
   d = await go({ wssi2: DOWN }); same(d.winter, prev.winter); assert.match(d.errs.winter, /HTTP 503/); d = await go({ wssi1: DOWN }, null); assert.equal(d.winter, null); assert.equal(plain(L.BY_ID.cpc_outlook.digest(d)).winterProb, null, 'unknown, not zero');
   /* discussions: not found, not the product, a product without its section */
   d = await go({ mrd: { status: 404, body: '{"title":"Not Found"}' }, thr: '{"id":"x","productText":"SYNOPSIS: nothing else"}' }); same(d.text.mrd, prev.text.mrd); same(d.text.thr, prev.text.thr); assert.match(d.errs.mrd, /HTTP 404 from api\.weather\.gov/); assert.equal(d.errs.thr, 'the hazards discussion has no hazards section');
-  d = await go({ mrd: '{"id":"x","productText":"An unrelated product."}', thr: '{"id":"x"}' }); same(d.text.mrd, prev.text.mrd); assert.equal(d.errs.mrd, 'the outlook discussion did not read as expected'); assert.equal(d.errs.thr, 'no THR discussion in the answer');
+  d = await go({ mrd: '{"id":"x","productText":"An unrelated product."}', thr: '{"id":"x"}' }); same(d.text.mrd, prev.text.mrd); assert.equal(d.errs.mrd, 'the outlook discussion did not read as expected'); assert.equal(d.errs.thr, 'no hazards discussion in the answer');
   d = await go({ mrd: DOWN, thr: DOWN }, null); assert.equal(d.text.mrd, null); assert.equal(d.text.thr, null); assert.equal(plain(L.BY_ID.cpc_outlook.digest(d)).coldHazards, 0);
   /* weekly parts: kept and asked for again at the next run, because their date did not move */
   d = await go({ month: DOWN, ens: DOWN }, prev, days(7)); same(d.long, prev.long); same(d.text.enso, prev.text.enso); assert.match(d.errs.long, /HTTP 503/); assert.match(d.errs.enso, /HTTP 503/);
@@ -346,6 +350,17 @@ test('cpc_outlook fails as a whole only when neither outlook can be read; the ru
   const kept = plain(await store.get(L.K.src('cpc_outlook'))); same(kept.data, good.data); assert.equal(kept.ok, false); assert.equal(kept.at, good.at); assert.equal(kept.err.at, days(1).toISOString());
   /* the reading built on the kept record still stands the next day (the outlooks are a day older, not stale) */
   const o = L.derive.outlook({ cpc_outlook: kept }, days(1)); assert.equal(o.ok, true); assert.equal(o.tier, 1); assert.equal(o.inputs.cpc_outlook.state, 'ok');
+});
+
+test('cpc_outlook: a discussion stuck in the queue of its host is given 45 seconds, and what the run already read is not lost', async () => {
+  const prev = (await run(fresh(), 'cpc_outlook', fakeFetch(routes()))).data, asked = [];
+  /* here the 45 second limit fires at once, and api.weather.gov is busy for good with another collector's request */
+  const L = fresh(FILES, { setTimeout: (fn, ms, ...a) => { asked.push(ms); return setTimeout(fn, ms === 45000 || ms < 20000 ? 0 : ms, ...a); } }), fetch = fakeFetch(routes());
+  const http = L.makeHttp({ fetch, backoffMs: 1, chains: { 'api.weather.gov': new Promise(() => { }) } });
+  const d = plain(await L.BY_ID.cpc_outlook.run({ http, now: days(7), prev, geo: L.geo, settings: {}, env: 'node' }));
+  same([on(fetch, 'api.weather.gov').length, on(fetch, 'mapservices.weather.noaa.gov').length, asked.filter(ms => ms === 45000).length], [0, 13, 3]);
+  same(d.errs, { mrd: 'the outlook discussion did not answer in 45 seconds', thr: 'the hazards discussion did not answer in 45 seconds', enso: 'the ENSO discussion did not answer in 45 seconds' });
+  same(d.text, prev.text); same([d.ext.d610.prob, d.ext.d814.prob, d.haz.national.length, d.long.at], [50, 33, 6, days(7).toISOString()], 'the maps, the hazard areas and the weekly map parts all landed');
 });
 
 test('cpc_outlook: the next issue the same evening, on top of the record of the day', async () => {
@@ -568,14 +583,14 @@ test('ercot_grid failure rules: either part alone keeps the run alive; kept valu
 /* ---------------------------------------------------------------- the two week cold outlook ---------------------------------------------------------------- */
 
 const TIERS = ['no cold signal', 'lean cold', 'cold favored', 'cold hazard'];
-const KEYS = ['anchor', 'blend', 'd610', 'd814', 'evidence', 'grades', 'grid', 'headline', 'inputs', 'lean', 'notes', 'ok', 'persist', 'reason', 'rules', 'season', 'seasonNow', 'stale', 'sub', 'tier', 'tierName', 'today', 'window'];
+const KEYS = ['anchor', 'blend', 'd610', 'd814', 'evidence', 'grades', 'grid', 'headline', 'inputs', 'lean', 'notes', 'ok', 'persist', 'reason', 'rules', 'season', 'seasonNow', 'stale', 'sub', 'tier', 'tierName', 'today', 'use', 'window'];
 const clone = x => JSON.parse(JSON.stringify(x));
 const put = (o, path, v) => { const ks = path.split('.'); let x = o; for (const k of ks.slice(0, -1)) x = x[k]; x[ks[ks.length - 1]] = v; return o; };
 /* the hand made base records with a few fields changed */
 const made = set => { const r = clone(CASES.base); for (const k of Object.keys(set || {})) put(r, k, set[k]); return r; };
 const NOW = new Date(CASES.now), B = 'cpc_outlook.data.ext.', below = (p6, p8) => Object.assign({}, p6 ? { [B + 'd610.cat']: 'Below', [B + 'd610.prob']: p6 } : {}, p8 ? { [B + 'd814.cat']: 'Below', [B + 'd814.prob']: p8 } : {});
 /* every string a reader sees, in plain words */
-const plainWords = o => { prose(o.headline); if (o.sub) prose(o.sub); if (o.reason) prose(o.reason); o.notes.forEach(prose); o.evidence.forEach(e => prose(e.text)); };
+const plainWords = o => { prose(o.headline); if (o.sub) prose(o.sub); if (o.reason) prose(o.reason); if (o.use) prose(o.use); o.notes.forEach(prose); o.evidence.forEach(e => prose(e.text)); };
 
 test('all three through the runner with the first grid call refused: nothing fails, and the reading of the day is tier 1 on the named freeze risk', async () => {
   const L = fresh(); let n = 0; const fetch = fakeFetch(routes({ prc: () => (n++ ? F.prc : REFUSED) })), store = L.memoryStore();
@@ -586,9 +601,9 @@ test('all three through the runner with the first grid call refused: nothing fai
   const recs = plain(await L.snapshot(store, null)), before = JSON.stringify(recs), o = plain(L.derive.outlook(recs, T0));
   assert.equal(JSON.stringify(recs), before, 'the reading changes nothing it is given'); same(Object.keys(o).sort(), KEYS);
   same([o.ok, o.reason, o.stale, o.tier, o.tierName, o.lean, o.persist, o.season, o.seasonNow, o.today, o.anchor], [true, '', false, 1, 'lean cold', 'cold', 0, true, true, '2026-11-13', '2026-11-23']); same(o.window, { start: '2026-11-23', end: '2026-11-24' });
-  same(o.evidence, [{ tier: 1, kind: 'named', text: 'Slight risk of much below normal temperatures (a freeze is mentioned), named in the hazards discussion for the Southern Plains or Texas', start: '2026-11-23', end: '2026-11-24', issued: '2026-11-12T19:57:00+00:00', g: 'B',
+  same(o.evidence, [{ tier: 1, kind: 'named', text: 'Forecasters name a slight risk of much below normal temperatures, with a possible freeze, for the Southern Plains or Texas', start: '2026-11-23', end: '2026-11-24', issued: '2026-11-12T19:57:00+00:00', g: 'B',
     quote: 'Slight risk of much below normal temperatures (and possible first freeze) for much of the Southern Plains and parts of adjacent states, Mon-Tue, Nov 23-24' }], 'the forecaster\'s own sentence rides along as a quote');
-  assert.equal(o.headline, 'Lean cold, Nov 23 to 24: slight risk of much below normal temperatures (a freeze is mentioned), named in the hazards discussion for the Southern Plains or Texas');
+  assert.equal(o.headline, 'Lean cold, Nov 23 to 24: forecasters name a slight risk of much below normal temperatures, with a possible freeze, for the Southern Plains or Texas');
   assert.equal(o.sub, 'Days 6 to 10 (Nov 18 to 22): above normal at 50 to 60 percent, about 74 percent of the normal heating load. Days 8 to 14 (Nov 20 to 26): above normal at 33 to 40 percent, about 97 percent of the normal heating load.');
   same([o.d610.cat, o.d610.prob, o.d610.load.idx, o.d814.cat, o.d814.prob, o.d814.load.idx], ['Above', 50, 74, 'Above', 33, 97]);
   /* the blend's best freeze chance is 14 percent, under the line of 20, so the tier rests on the named risk alone */
@@ -605,6 +620,7 @@ test('all three through the runner with the first grid call refused: nothing fai
 
 test('two week cold outlook: every rule of every tier, each from a hand made record', () => {
   const L = fresh(); same(plain(L.derive.OUTLOOK_TIER), TIERS);
+  same(plain(L.derive.OUTLOOK_USE), ['Hold the base plan.', 'Stage for the window: ready the cold weather creative and the crews, and check the outlook daily; no spend moves on this alone.', 'Prepare for the window: creative approved, the reserve held, call hours planned; spend follows when the seven day forecast shows the lows.', 'Be on an emergency footing before the window opens; the seven day cold watch makes the day by day calls.']);
   for (const c of CASES.cases) {
     const recs = made(c.set), o = plain(L.derive.outlook(recs, NOW));
     assert.equal(o.ok, true, c.name); same([o.tier, o.tierName, o.lean, o.evidence.map(e => e.kind), o.window], [c.tier, TIERS[c.tier], c.lean, c.kinds, c.window], c.name);
@@ -613,6 +629,7 @@ test('two week cold outlook: every rule of every tier, each from a hand made rec
     for (const e of o.evidence) { assert.ok(e.tier >= 1 && e.tier <= 3 && e.tier <= o.tier, c.name); assert.ok(/^\d{4}-\d\d-\d\d$/.test(e.start) && /^\d{4}-\d\d-\d\d$/.test(e.end) && e.start <= e.end, c.name); assert.ok(e.issued && !Number.isNaN(Date.parse(e.issued)), c.name); assert.match(e.g, /^[ABC]$/, c.name); }
     assert.equal(o.evidence.length ? o.evidence[0].tier : 0, o.tier, 'the highest tier leads'); assert.equal(o.anchor, o.window ? o.evidence.filter(e => e.tier === o.tier).map(e => e.first || e.start).sort()[0] : null, c.name);
     assert.ok(o.tier ? o.headline.startsWith(TIERS[o.tier].charAt(0).toUpperCase() + TIERS[o.tier].slice(1) + ', ') : /^(No cold signal past the seven day forecast|Mild through week two: no cold signal past the seven day forecast)$/.test(o.headline), c.name + ': ' + o.headline);
+    assert.equal(o.use, o.tier === 0 && o.lean === 'warm' ? 'Hold the base plan; a mild stretch favors tune ups, replacement quotes and financing offers.' : L.derive.OUTLOOK_USE[o.tier], c.name); assert.ok(!/\$|\d ?%|percent|budget up|raise|increase/i.test(o.use), 'what a tier is for carries no money and no multiplier');
     assert.equal(o.sub.startsWith('Days 6 to 10 (Dec 6 to 10): '), true, c.name); same(plain(L.derive.outlookNotice(recs, NOW)).length, o.tier >= 2 ? 1 : 0, c.name);
   }
   same([0, 1, 2, 3].map(t => CASES.cases.filter(c => c.tier === t).length), [8, 5, 9, 11], 'every tier is reached, and missed, more than once');
@@ -629,7 +646,7 @@ test('two week cold outlook: the words of each kind of evidence', () => {
   assert.equal(head('days 8 to 14 below normal at 70'), 'Cold hazard, Dec 8 to 14: days 8 to 14 colder than normal at 70 to 80 percent');
   assert.equal(head('a Much Below Normal Temperatures area drawn over a county'), 'Cold favored, Dec 9 to 12: a Much Below Normal Temperatures area is drawn over at least one of the 12 counties'); assert.equal(head('a Frost/Freeze area drawn over a county'), 'Cold favored, Dec 4 to 5: a Frost/Freeze area is drawn over at least one of the 12 counties');
   assert.equal(head('a Freezing Rain area drawn over a county'), 'Cold hazard, Dec 5 to 6: a Freezing Rain area is drawn over at least one of the 12 counties');
-  const named = read('a moderate risk named for Texas'); assert.equal(named.headline, 'Cold favored, Dec 9 to 11: moderate risk of much below normal temperatures, named in the hazards discussion for the Southern Plains or Texas'); assert.equal(named.evidence[0].quote, 'Moderate risk of much below normal temperatures for much of Texas and Oklahoma, Wed-Fri, Dec 9-11'); assert.ok(!('quote' in read('days 8 to 14 below normal at 50').evidence[0]), 'only the forecaster\'s words are a quote');
+  const named = read('a moderate risk named for Texas'); assert.equal(named.headline, 'Cold favored, Dec 9 to 11: forecasters name a moderate risk of much below normal temperatures for the Southern Plains or Texas'); assert.equal(named.evidence[0].quote, 'Moderate risk of much below normal temperatures for much of Texas and Oklahoma, Wed-Fri, Dec 9-11'); assert.ok(!('quote' in read('days 8 to 14 below normal at 50').evidence[0]), 'only the forecaster\'s words are a quote');
   assert.equal(head('moderate winter storm impacts at 30 percent'), 'Cold hazard, Dec 3 to 4: 30 percent chance of moderate winter storm impacts in at least one of the 12 counties'); assert.equal(head('minor winter storm impacts at 60 percent'), 'Cold hazard, Dec 3 to 4: 60 percent chance of minor winter storm impacts in at least one of the 12 counties');
   assert.equal(head('a 20 percent chance of a freeze at one airport'), 'Lean cold, Dec 12: 20 percent chance of a freeze at Denton on the morning of Dec 12 (blend low 37°F)'); assert.equal(read('a 20 percent chance of a freeze at one airport').evidence[0].g, 'C', 'the chance is the atlas\'s reading of the blend');
   const hard = read('a blend low of 25 at one airport'); assert.equal(hard.headline, 'Cold hazard, Dec 10: blend low of 25°F at Denton on the morning of Dec 10'); assert.equal(hard.evidence[0].g, 'B'); same([hard.blend.coldest.name, hard.blend.coldest.lowF, hard.blend.freeze.p32], ['Denton', 25, 86]);
@@ -697,7 +714,7 @@ test('two week cold outlook: missing, stale or broken records give a calm, compl
   const L = fresh(), shape = o => { same(Object.keys(plain(o)).sort(), KEYS); assert.equal(typeof o.ok, 'boolean'); assert.ok(o.tier >= 0 && o.tier <= 3); assert.equal(o.tierName, TIERS[o.tier]); assert.ok(Array.isArray(o.evidence) && Array.isArray(o.notes)); plainWords(plain(o)); return plain(o); };
   const NOTHING = 'No outlook, blend guidance or grid reading is stored yet. Refresh the live data.', OLD = 'Nothing stored is fresh enough to judge the two weeks ahead. Refresh the live data.';
   for (const recs of [null, undefined, {}, { cpc_outlook: null }, { cpc_outlook: { id: 'cpc_outlook', data: null, skipped: { why: 'turned off in settings' } }, nbm_extended: { ok: false, err: { msg: 'x' }, data: null }, ercot_grid: {} }, 'x', 7]) {
-    const o = shape(L.derive.outlook(recs, NOW)); same([o.ok, o.reason, o.stale, o.tier, o.lean, o.window, o.anchor, o.evidence, o.d610, o.d814, o.grid, o.headline, o.sub], [false, NOTHING, true, 0, 'neutral', null, null, [], null, null, null, 'No two week outlook on hand', NOTHING]);
+    const o = shape(L.derive.outlook(recs, NOW)); same([o.ok, o.reason, o.stale, o.tier, o.lean, o.window, o.anchor, o.evidence, o.d610, o.d814, o.grid, o.headline, o.sub], [false, NOTHING, true, 0, 'neutral', null, null, [], null, null, null, 'No two week outlook on hand', NOTHING]); assert.equal(o.use, '');
     same(o.inputs, { cpc_outlook: { state: 'missing', at: null, issued: null }, nbm_extended: { state: 'missing', at: null, run: null }, ercot_grid: { state: 'missing', at: null } }); same(o.blend, { run: null, freeze: null, coldest: null }); assert.equal(o.notes.length, 3); same(plain(L.derive.outlookNotice(recs, NOW)), []);
   }
   /* any one record alone */
