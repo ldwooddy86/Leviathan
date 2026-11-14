@@ -251,7 +251,8 @@
       const H = falls && falls.hdd && Array.isArray(falls.hdd[u]) ? falls.hdd[u].map((v, i) => (fin(v) ? { v, y: (falls.years || [])[i] } : null)).filter(Boolean) : [];
       if (hdd != null && H.length >= 10) {
         const lo = H.reduce((a, b) => (b.v < a.v ? b : a)), hi = H.reduce((a, b) => (b.v > a.v ? b : a)), below = 1 + H.filter(x => x.v < hdd).length, above = 1 + H.filter(x => x.v > hdd).length;
-        rank = { n: below, of: H.length + 1, text: below <= above ? (nth(below) + ' lowest').trim() : (nth(above) + ' highest').trim(), mean: rd(mean(H.map(x => x.v)), 1), low: lo.v, lowYear: nn(lo.y), high: hi.v, highYear: nn(hi.y) };
+        /* in the summer every fall on record stands at zero with this one: a tie of all is no rank */
+        if (!(hi.v === lo.v && hdd === lo.v)) rank = { n: below, of: H.length + 1, text: below <= above ? (nth(below) + ' lowest').trim() : (nth(above) + ' highest').trim(), mean: rd(mean(H.map(x => x.v)), 1), low: lo.v, lowYear: nn(lo.y), high: hi.v, highYear: nn(hi.y) };
       }
       /* freeze nights normal to date: the station's own falls when at least 15 are usable, else the county's grid value */
       const F = falls && falls.fr32 && Array.isArray(falls.fr32[u]) ? falls.fr32[u].filter(fin) : [], cw = normOn && d.county[st.fips] ? d.county[st.fips] : null;

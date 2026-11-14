@@ -139,3 +139,14 @@ test('snapshot overlays stored records on the baked baseline, newest wins, error
   assert.equal(s.b.data.v, 'base'); assert.equal(s.b.baseline, true); assert.equal(s.b.ok, false); assert.equal(s.b.err.msg, 'down');
   assert.equal(s.c, undefined);
 });
+
+test('a store that refuses one record (a full quota) fails that source alone: the run goes on, counts right and holds its lock to the end', async () => {
+  const L = fresh(); const mem = L.memoryStore(); const order = [];
+  const store = { get: mem.get, set: async (k, v) => { order.push(k); if (k === L.K.src('b')) throw new Error('QuotaExceededError: the store is full'); return mem.set(k, v); } };
+  ['a', 'b', 'c', 'd', 'e', 'f'].forEach(id => src(L, { id, run: async () => ({ id }) }));
+  const r = await L.refresh({ scope: 'weekly', store, fetch: fakeFetch([]), env: 'node', concurrency: 2 });
+  assert.equal(r.ok, false); same(r.ran.slice().sort(), ['a', 'c', 'd', 'e', 'f']); same(r.failed.map(f => f.id), ['b']); assert.match(r.failed[0].msg, /QuotaExceeded/);
+  const st = await L.getState(mem);
+  assert.equal(st.running, undefined); assert.equal(st.runs[0].ok, 5); same(st.runs[0].failed, ['b']); assert.ok(st.lastWeekly);
+  assert.equal(order.lastIndexOf(L.K.state), order.length - 1, 'nothing is written after the run has let go of its lock');
+});

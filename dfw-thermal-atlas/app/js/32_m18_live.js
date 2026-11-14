@@ -68,7 +68,7 @@ registerModule({
     const run = async (scope, label) => {
       if (LIVE.busy()) { toast('A refresh is already running'); return; }
       if (!LIVE.canFetch()) { toast('This preview cannot reach the network'); return; }
-      const r = await LIVE.refresh(scope, true);
+      const r = await LIVE.refresh(scope);                 /* not forced: while the background worker holds the lock this page waits its turn */
       if (r && r.locked) toast('The background worker is refreshing right now');
       else if (r) toast(`${label}: ${r.ran.length} refreshed${r.failed.length ? ', ' + r.failed.length + ' failed' : ''}${r.skipped.length ? ', ' + r.skipped.length + ' skipped' : ''}`);
     };

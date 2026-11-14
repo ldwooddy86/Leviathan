@@ -150,8 +150,10 @@ command line.
   worker awake, and a retry alarm picks up a run that was stopped anyway: it keeps what was already fetched. The same
   alarm stays armed when a run ends with sources that failed (a laptop fires its missed alarms the moment it wakes, often
   before its network is back): eight minutes later it asks again for what is due, or else only for the sources that
-  failed, and gives up after two tries per scheduled run. A weekly source that was down on Monday is asked once more with
-  each morning's pulse until it answers. The morning pulse goes by its hour, not by the time since the last refresh, so a
+  failed, and gives up after two tries per scheduled run. When not one source has answered (a machine with no network)
+  it goes on looking once an hour until the run is in. A weekly source that was down on Monday is asked once more with
+  each morning's pulse until it answers. A full refresh that comes due while a smaller run is in flight follows it, and a
+  cold spell or a cold shot in the outlook is announced once, not again every morning as its nights pass. The morning pulse goes by its hour, not by the time since the last refresh, so a
   refresh pressed in the afternoon does not cost the next morning its forecast.
 - `app/live/page.js` is the page's handle on all of it (`LIVE`): the records, their ages, a refresh the page can run itself,
   and a `live` event the modules redraw on. `app/data/live-baseline.js` is a snapshot of the records baked at build time, so a
@@ -195,7 +197,7 @@ regenerate the bundled typefaces and the icons; `tools/unpack.mjs` is the one ti
 ## Tests
 
 ```
-node tests/run.mjs             # unit: the live runtime, every collector against recorded answers, the cold picture, the worker's schedule, the build
+node tests/run.mjs             # unit: the live runtime, every collector against recorded answers, the calendar and bad answers, the cold picture, the worker's schedule, the build
 node tests/page/run.mjs        # page: every module and every fix, driven in headless Chromium with no network
 node tests/e2e/run.mjs         # end to end: the unpacked extension in Chromium, the worker's own first refresh against the live sources
 ```

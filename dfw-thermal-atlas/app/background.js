@@ -25,26 +25,33 @@ async function ensureSchedule() { const [w, d] = await Promise.all([C.alarms.get
    set at the start of the run wakes it again; the retry keeps what the interrupted run already fetched. The same alarm is
    left armed when a run ends with sources that failed (a laptop fires its missed alarms the moment it wakes, before its
    network is back) or finds the lock of a run that died: the retry then asks again for what is due, or else only for the
-   sources that failed. It gives up after two tries per scheduled run, so a source that keeps failing is never hammered. */
-let running = null;
+   sources that failed. It gives up after two tries per scheduled run, so a source that keeps failing is never hammered.
+   One case goes on: when the two tries are spent and the scheduled run itself is still due (not one source answered, as on
+   a machine whose network is down), the worker looks again once an hour until that run is in. The extra morning try for a
+   weekly source (mend) leaves the retry alarm alone: the alarm belongs to the run before it. */
+let running = null, runningScope = null;
 function run(scope, opt) {
-  if (running) return running;
+  /* one run at a time. A full refresh asked for while a smaller run is in flight (the weekly alarm firing during a retry of two
+     sources) is not dropped: it follows that run, keeping what was fetched in the last ten minutes */
+  if (running) return scope === 'weekly' && runningScope !== 'weekly' ? running.then(() => run(scope, Object.assign({ keepFresh: 10 * L.MIN }, opt || {}))) : running;
+  runningScope = scope;
+  const mending = !!(opt && opt.mend);
   const beat = setInterval(() => { try { C.runtime.getPlatformInfo(() => void C.runtime.lastError); } catch (e) { } }, 20000);
   let again = false;
-  try { C.alarms.create(ALARM_RETRY, { delayInMinutes: 8 }); } catch (e) { }
+  if (!mending) { try { C.alarms.create(ALARM_RETRY, { delayInMinutes: opt && opt.slow ? 60 : 8 }); } catch (e) { } }
   running = L.refresh(Object.assign({ scope, store, env: 'extension' }, opt || {}))
-    .then(async r => { again = !!(r.locked || (r.failed && r.failed.length && !(opt && opt.mend))); if (!r.locked) { if (!again && !(opt && opt.mend)) await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
+    .then(async r => { again = !!(r.locked || (r.failed && r.failed.length && !mending)); if (!r.locked) { if (!again && !mending) await store.set(RETRY_KEY, { n: 0 }); await announce(); } return r; })
     .catch(e => { console.error('refresh', e); again = true; return { ok: false }; })
-    .finally(() => { clearInterval(beat); running = null; if (!again) { try { C.alarms.clear(ALARM_RETRY); } catch (e) { } } });
+    .finally(() => { clearInterval(beat); running = null; if (!again && !mending) { try { C.alarms.clear(ALARM_RETRY); } catch (e) { } } });
   return running;
 }
 /* run whatever is due: the weekly refresh when seven days have passed, else the daily pulse */
-async function catchUp(opt) { const d = L.due(await L.getState(store), await L.getSettings(store), new Date()); if (d) await run(d, opt); else await announce(true); return d; }
+async function catchUp(opt) { const d = L.due(await L.getState(store), await L.getSettings(store), new Date()); if (d) { if (!opt) await store.set(RETRY_KEY, { n: 0 }); await run(d, opt); } else await announce(true); return d; }   /* a catch up at browser start or page open is a run of its own: it gets its two quick retries */
 /* the sources whose last try failed and that are not switched off */
 async function failedNow() { const s = await L.getSettings(store), out = []; for (const src of L.SOURCES) { if (s.disabled && s.disabled[src.id]) continue; const r = await store.get(L.K.src(src.id)); if (r && r.ok === false) out.push(src.id); } return out; }
 /* the retry alarm fired: the run it was guarding never finished, was locked out, or left sources that failed */
 async function retry() {
-  const n = ((await store.get(RETRY_KEY)) || {}).n || 0; if (n >= 2) return;
+  const n = ((await store.get(RETRY_KEY)) || {}).n || 0; if (n >= 2) { await catchUp({ keepFresh: 6 * L.HOUR, slow: true }); return; }
   await store.set(RETRY_KEY, { n: n + 1, at: new Date().toISOString() });
   if (await catchUp({ keepFresh: 6 * L.HOUR })) return;
   const bad = await failedNow(); if (bad.length) await run(bad);
@@ -64,8 +71,15 @@ async function announce(quiet) {
   if (quiet || !notes.length) return;
   const s = await L.getSettings(store); if (s.notify === false) return;
   const sent = ((await store.get(NOTE_KEY)) || {}).keys || [];
-  const fresh = notes.filter(n => !sent.includes(n.key)).slice(0, 3); if (!fresh.length) return;
-  await store.set(NOTE_KEY, { keys: fresh.map(n => n.key).concat(sent).slice(0, 60), at: new Date().toISOString() });
+  /* a freeze that lasts several nights is one trigger. Its key carries the first freezing night still ahead, which moves on a
+     day each morning: a key whose night follows one already announced, at the same depth or deeper, is remembered and not sent.
+     The two week outlook is the same: the date of one cold shot a week or two out shifts by a day or two between runs, so an
+     outlook key within three days of one already announced at the same tier or higher is that shot again, not a new one */
+  const KEYED = /^(tier|outlook:)(\d):(\d{4}-\d\d-\d\d)$/, noon = d => +new Date(d + 'T12:00:00Z');
+  const goesOn = n => { const k = KEYED.exec(n.key); if (!k) return false; return sent.some(s => { const p = KEYED.exec(s); if (!p || p[1] !== k[1] || +p[2] < +k[2]) return false; const gap = Math.round((noon(k[3]) - noon(p[3])) / L.DAY); return k[1] === 'tier' ? gap === 1 : gap !== 0 && Math.abs(gap) <= 3; }); };
+  const news = notes.filter(n => !sent.includes(n.key)), carried = news.filter(goesOn).map(n => n.key), fresh = news.filter(n => !goesOn(n)).slice(0, 3);
+  if (!fresh.length && !carried.length) return;
+  await store.set(NOTE_KEY, { keys: fresh.map(n => n.key).concat(carried, sent).slice(0, 60), at: new Date().toISOString() });
   /* the route rides in the notification id, so a click still lands on the right page after the worker has slept */
   fresh.forEach((n, i) => { const id = NOTE_ID + '|' + (n.route || 'heat') + '|' + Date.now() + '-' + i; try { C.notifications.create(id, { type: 'basic', iconUrl: C.runtime.getURL('icons/icon128.png'), title: n.title, message: n.message, priority: 1 }); } catch (e) { } });
 }
@@ -74,7 +88,7 @@ async function announce(quiet) {
 C.runtime.onInstalled.addListener(d => { (async () => { await schedule(); if (d && d.reason === 'install') await O.openRoute('heat', { newTab: true }); await catchUp(); })(); });
 C.runtime.onStartup.addListener(() => { (async () => { await ensureSchedule(); await catchUp(); })(); });
 /* the next alarms are set before the run starts: a run that is cut short must not take the schedule down with it */
-C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); await store.set(RETRY_KEY, { n: 0 }); if (a.name === ALARM_WEEKLY) await run('weekly'); else await mend(await catchUp()); })(); });
+C.alarms.onAlarm.addListener(a => { (async () => { if (a.name === ALARM_RETRY) return retry(); if (a.name !== ALARM_WEEKLY && a.name !== ALARM_DAILY) return; await schedule(); await store.set(RETRY_KEY, { n: 0 }); if (a.name === ALARM_WEEKLY) { const lw = (await L.getState(store)).lastWeekly; if (!(lw && Date.now() - +new Date(lw) < 2 * L.HOUR)) await run('weekly'); } else await mend(await catchUp()); })(); });   /* a pulse that fired a little late on Monday has already made the full refresh: the weekly alarm an hour later does not make it again */
 C.runtime.onMessage.addListener((m, sender, respond) => {
   if (!m || typeof m.type !== 'string' || m.type.indexOf('tda.live.') !== 0) return false;
   (async () => {

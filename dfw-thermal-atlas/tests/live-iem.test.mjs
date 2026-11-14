@@ -301,7 +301,7 @@ test('July: the season that just ended is pulled once more and the archive grows
   same(asked(g), [2027, 2026]); same(s.stale, { 2026: '2026-11-16' }); same(s.seasons, range(2016, 2027)); same(s.events, nov.events); assert.match(s.staleWhy, /HTTP 500/);
   const h = service({ 2026: FREEZE }), again = (await run(L, h, s, new Date('2027-07-13T12:00:00Z'))).data; same(asked(h), [2027, 2026]); same(again.stale, {}); assert.equal(again.staleWhy, undefined);
   /* a record that was left alone for two years catches up on both winters it missed */
-  const k = service(); const late = (await run(L, k, base, new Date('2028-09-01T12:00:00Z'))).data; same(asked(k), [2028, 2027, 2026]); same(late.seasons, range(2016, 2028));
+  const k = service({ 2026: FREEZE, 2027: FREEZE }); const late = (await run(L, k, base, new Date('2028-09-01T12:00:00Z'))).data;      /* a winter that has ended never has an empty table: an empty one is refused and asked for again */ same(asked(k), [2028, 2027, 2026]); same(late.seasons, range(2016, 2028));
 });
 
 test('a record in another shape, or for another list of zones, is pulled again from the start', async () => {

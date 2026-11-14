@@ -189,15 +189,18 @@
       let events = ok ? p.events.slice() : [], why = '';
       const held = new Set(ok ? p.seasons : []), office = Object.assign({}, ok ? p.office : null), bad = Object.assign({}, ok ? p.bad : null), was = (ok && p.stale) || {}, stale = {};
       const take = (s, rows) => { events = events.filter(e => seasonOf(e[3]) !== s).concat(compact(rows, zones).filter(e => seasonOf(e[3]) === s)); office[s] = tally(rows)[s] || {}; if (rows.bad) bad[s] = rows.bad; else delete bad[s]; held.add(s); };
+      /* An empty table is an answer only for a season that has brought nothing yet: the office has issued cold products every
+         winter on record, and a product once issued stays in the table. Anything else empty is refused, not stored as a quiet winter. */
+      const pull = async s => { const rows = read(await ctx.http.text(url(s))), had = ok ? p.events.filter(e => seasonOf(e[3]) === s).length : 0; if (!rows.length && (s < S || had)) throw new Error(`the cold hazard table from ${HOST} came back empty for ${label(s)}` + (had ? `, where ${had} products are stored` : '')); return rows; };
       /* the running season is the one request that has to answer: when it fails the run fails and the last good record stays */
-      take(S, read(await ctx.http.text(url(S))));
+      take(S, await pull(S));
       /* then, newest first, each of the ten winters before it that is not held, was left stale, or was still running at the last
          pull. The first failure, or 70 seconds on the clock, ends the pulls for this run; what is missing is named in stale and
          asked for again next time. */
       for (let s = S - 1; s >= S - WINTERS; s--) {
         if (held.has(s) && !(s in was) && !(ok && p.season <= s)) continue;
         if (!why && Date.now() - t0 > BUDGET_MS) why = 'the pull of the archive ran long; the rest follows at the next refresh';
-        if (!why) { try { if (I.pace) await sleep(I.pace); take(s, read(await ctx.http.text(url(s)))); continue; } catch (e) { why = String((e && e.message) || e).replace(/[<>]/g, ' ').slice(0, 140); } }
+        if (!why) { try { if (I.pace) await sleep(I.pace); take(s, await pull(s)); continue; } catch (e) { why = String((e && e.message) || e).replace(/[<>]/g, ' ').slice(0, 140); } }
         stale[s] = held.has(s) ? (was[s] || p.archiveThrough || null) : null;                           /* the date the rows kept run through; null: nothing held */
       }
       const seasons = [...held].sort((a, b) => a - b), t = minOf(now);

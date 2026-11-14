@@ -109,7 +109,7 @@
       const have = {}; (prev.zone || []).forEach(z => { if (z && z.d) have[z.d] = z; });
       for (let back = 1, asked = 0, stop = false; back <= 5 && asked < 2 && left > 0 && !stop; back++) {
         const d = dayBefore(today, back); if (have[d]) continue; asked++;
-        try { const z = parseZones(await ask(zoneUrl(d), true, false)); if (z && z.d === d) have[d] = z; }
+        try { const z = parseZones(await ask(zoneUrl(d), true, false)); if (z && z.d === d) have[d] = z; else errs.zone = 'the zone load page of ' + d + ' did not read as a full day'; }
         catch (e) { errs.zone = say(e); stop = !(e && e.status === 404); }
       }
       const zone = Object.keys(have).sort().reverse().slice(0, ZONE_DAYS).map(d => have[d]);

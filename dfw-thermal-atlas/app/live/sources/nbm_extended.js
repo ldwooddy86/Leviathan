@@ -40,8 +40,9 @@
     th = th || thresholds();
     const rs = (rows || []).map(r => ({ r, f: utc(r.ftime_utc || r.ftime), run: utc(r.runtime_utc || r.runtime) })).filter(x => x.f != null && x.run != null && num(x.r.txn));
     if (!rs.length) return null;
-    const run = Math.max(...rs.map(x => x.run)), runDay = Date.parse(localDate(run)), nights = [], hi = {};
+    const run = Math.max(...rs.map(x => x.run)), runDay = Date.parse(localDate(run)), nights = [], hi = {}, once = {};
     rs.filter(x => x.run === run).sort((a, b) => a.f - b.f).forEach(x => {
+      if (once[x.f]) return; once[x.f] = 1;                         /* one row a forecast time, whatever the answer repeats */
       const h = new Date(x.f).getUTCHours(), sd = num(x.r.xnd) ? x.r.xnd : null;
       if (h === 12) { const m = ymd(x.f), lead = Math.round((Date.parse(m) - runDay) / DAY); nights.push({ m, d: ymd(x.f - DAY), lead, lowF: x.r.txn, sd, p32: chance(x.r.txn, sd, th.freeze), p40: chance(x.r.txn, sd, th.cold), p25: chance(x.r.txn, sd, th.hard), ext: lead >= EXT }); }
       else if (h === 0) hi[ymd(x.f - DAY)] = { hiF: x.r.txn, sd };
@@ -53,7 +54,7 @@
   /* the whole answer → one entry per station, every lead the bulletin carries */
   function parse(j, th) {
     const by = {}; ((j && j.data) || []).forEach(r => { if (r && typeof r.station === 'string' && r.station) (by[r.station] = by[r.station] || []).push(r); });
-    return Object.keys(by).sort().map(id => stationOf(id, by[id], th)).filter(Boolean);
+    return Object.keys(by).filter(id => STATIONS.indexOf(id) >= 0).sort().map(id => stationOf(id, by[id], th)).filter(Boolean);      /* the six asked for, whatever else comes back */
   }
   /* The record: { v, model, run (ISO, the newest run), from (the first lead kept), th: { freeze, cold, hard },
        stations: [{ id, name, county, run, nights: [{ m, d, lead, lowF, sd, p32, p40, p25, ext }], days: [{ d, lead, hiF, hiSd, lowF, hdd }] }] } */

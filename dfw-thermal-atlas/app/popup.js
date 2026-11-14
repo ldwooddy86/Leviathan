@@ -41,11 +41,13 @@
     add('Full refresh', state.lastWeekly ? when(state.lastWeekly) + ' (' + ago(state.lastWeekly) + ')' : 'not yet', age <= L.WEEK * 1.15 ? '' : age <= L.WEEK * 2.2 ? 'aging' : 'stale');
     if (settings.daily !== false) add('Weather pulse', state.lastDaily ? ago(state.lastDaily) : 'not yet');
     add('Next full refresh', when(L.nextWeekly(new Date(), settings.weeklyDow, settings.weeklyHour)));
-    const good = ids.filter(id => recs[id] && recs[id].data != null && recs[id].ok !== false).length, failed = ids.filter(id => recs[id] && recs[id].ok === false);
+    /* current means what it means in Live Data: fetched without a failure and still inside its schedule (a week, or a day for the weather sources) */
+    const inside = id => { const r = recs[id]; return !!(r && r.data != null && r.ok !== false && r.at && Date.now() - +new Date(r.at) <= (L.BY_ID[id].cadence === 'daily' ? L.DAY : L.WEEK) * 1.15); };
+    const good = ids.filter(inside).length, failed = ids.filter(id => recs[id] && recs[id].ok === false);
     add('Sources', ids.length ? good + ' of ' + ids.length + ' current' : 'none registered');
     const note = $('liveNote'); note.textContent = '';
     if (state.running && Date.now() - +new Date(state.running.since) < 6 * L.MIN) note.appendChild(el('div', 'note busy', 'A refresh is running now.'));
-    else if (failed.length) note.appendChild(el('div', 'note bad', failed.length + (failed.length === 1 ? ' source' : ' sources') + ' failed on the last run and kept their previous data: ' + failed.map(id => L.BY_ID[id].name).join(', ') + '.'));
+    else if (failed.length) note.appendChild(el('div', 'note bad', failed.length + (failed.length === 1 ? ' source' : ' sources') + ' failed on the last run and ' + (failed.some(id => recs[id].data != null) ? 'kept their previous data' : 'have no data yet') + ': ' + failed.map(id => L.BY_ID[id].name).join(', ') + '.'));
     $('refresh').disabled = !!(state.running && Date.now() - +new Date(state.running.since) < 6 * L.MIN);
   }
   $('refresh').onclick = () => {

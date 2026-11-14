@@ -144,8 +144,8 @@
       } catch (e) {
         const msg = String((e && e.message) || e).slice(0, 300);
         failed.push({ id: s.id, msg });
-        /* a failed run keeps the last good data and says so */
-        await store.set(K.src(s.id), Object.assign({ v: V, id: s.id, data: null }, prev || {}, { ok: false, err: { at: iso(started), msg }, skipped: undefined }));
+        /* a failed run keeps the last good data and says so (a store that refuses this write too, a full quota, fails this source and not the whole run) */
+        try { await store.set(K.src(s.id), Object.assign({ v: V, id: s.id, data: null }, prev || {}, { ok: false, err: { at: iso(started), msg }, skipped: undefined })); } catch (e2) { }
         progress(s, 'failed');
       }
     }

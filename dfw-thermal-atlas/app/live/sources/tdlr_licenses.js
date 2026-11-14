@@ -65,6 +65,7 @@
     const by = {}; counties.forEach(c => { by[upper(c.name)] = { name: c.name, fips: c.fips, contractors: 0, classA: 0, comfort: 0, techs: 0, certified: 0, expiring90: 0, lapsed: 0, new12: null, contractorsPer10kHomes: null }; });
     let listed = 0, con = 0, bad = 0;
     for (const r of rows) {
+      if (!r) continue;
       const c = by[upper(r.business_county)], n = +r.n || 0, act = +r.act || 0; if (!c || !n) continue;
       if (r.license_type === CON) { const s = subtype(r.license_subtype); con += n; c.contractors += act; c.lapsed += n - act; c.expiring90 += +r.x90 || 0; if (s.classA) c.classA += act; if (s.env) c.comfort += act; }
       else if (r.license_type === TECH) { c.techs += act; if (upper(r.license_subtype) === 'CER') c.certified += act; }
@@ -94,7 +95,8 @@
   }
   /* The newest license holders. issued: one year before the expiration date, two when the license is already renewed ahead. */
   function parseNewest(rows, counties, day) {
-    return (Array.isArray(rows) ? rows : []).map(r => {
+    return (Array.isArray(rows) ? rows : []).slice(0, NEWEST).map(r => {
+      if (!r) return null;
       const c = counties.find(x => upper(x.name) === upper(r.business_county)), m = /^(\d\d)\/(\d\d)\/(\d{4})$/.exec(r[EXP] || '');
       if (!c || !/^\d+$/.test(r.license_number || '')) return null;
       const exp = m ? `${m[3]}-${m[1]}-${m[2]}` : null; let issued = exp ? yearsBefore(exp, 1) : null; if (issued && issued > day) issued = yearsBefore(exp, 2);
@@ -142,6 +144,7 @@
         const Q = queries(f.day, names, after), e = parseEntrants(await ask(ctx, Q.entrants, 'new licenses by county'), G.counties, f.day);
         if (!e.ok) throw new Error(`the license numbers above ${after} do not span a year (first expiration ${e.first || 'unknown'})`);
         entrants = { asOf: f.asOf, after, from: yearsBefore(f.day, 1), by: e.by, total: e.total, newest: parseNewest(await ask(ctx, Q.newest, 'the newest licenses'), G.counties, f.day) };
+        if (e.total > 0 && !entrants.newest.length) throw new Error('the list of the newest licenses came back empty');
       } catch (e) { entrants = prev && prev.entrants ? prev.entrants : null; stale.push({ block: 'entrants', why: why(e), kept: entrants ? entrants.asOf : null }); }
       main.counties.forEach(c => { c.new12 = entrants && entrants.by[c.name] != null ? entrants.by[c.name] : null; });
       const total = {}; ['contractors', 'classA', 'comfort', 'techs', 'certified', 'expiring90', 'lapsed'].forEach(k => { total[k] = sum(main.counties, k); }); total.new12 = entrants ? entrants.total : null;

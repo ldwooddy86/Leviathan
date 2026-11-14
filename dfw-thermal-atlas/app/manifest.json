@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "DFW Thermal Debt Atlas",
-  "short_name": "Thermal Atlas",
+  "short_name": "DFW Atlas",
   "version": "5.0.0",
   "description": "Where and when to spend on heating and cooling in Dallas Fort Worth, ZIP by ZIP. Public weather and permit data refresh weekly.",
   "minimum_chrome_version": "116",

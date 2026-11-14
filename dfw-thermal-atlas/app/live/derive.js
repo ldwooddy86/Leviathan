@@ -36,10 +36,11 @@
     const m = +ymd.slice(5, 7) - 1, day = +ymd.slice(8, 10), mid = DIM[m] / 2 + 0.5, rate = i => NORM_HDD[(i + 12) % 12] / DIM[(i + 12) % 12];
     return day >= mid ? rate(m) + (rate(m + 1) - rate(m)) * (day - mid) / ((DIM[m] + DIM[(m + 1) % 12]) / 2) : rate(m) + (rate(m - 1) - rate(m)) * (mid - day) / ((DIM[m] + DIM[(m + 11) % 12]) / 2);
   }
-  /* The season so far, when the climate collector has run: { hdd, norm, firstFreeze, through } at DFW Airport, or null. */
+  /* The season so far, when the climate collector has run: { hdd, norm, firstFreeze, through } at DFW Airport, or null. A record
+     of a season that has ended, or one that stopped more than nine days ago, says nothing about "the first freeze of the season". */
   function seasonOf(recs, now, opt) {
     if (opt && opt.season !== undefined) return opt.season;
-    try { const r = recs && recs.acis_season; if (!r || !r.data || !L.climate || !L.climate.status) return null; const s = L.climate.status(r.data, root.__CLIMATE_BASE__ || null, now); if (!s || !s.ok || !s.metro) return null; const ff = s.metro.firstFreeze; return { hdd: s.metro.hdd, norm: s.metro.norm, firstFreeze: ff && ff.state === 'occurred' ? ff.date : null, through: s.through }; }
+    try { const r = recs && recs.acis_season; if (!r || !r.data || !L.climate || !L.climate.status) return null; const s = L.climate.status(r.data, root.__CLIMATE_BASE__ || null, now); if (!s || !s.ok || !s.metro || s.current === false || s.overdue) return null; const ff = s.metro.firstFreeze; return { hdd: s.metro.hdd, norm: s.metro.norm, firstFreeze: ff && ff.state === 'occurred' ? ff.date : null, through: s.through }; }
     catch (e) { return null; }
   }
 
@@ -130,7 +131,8 @@
     /* ---- the notice for the popup, keyed so it is sent once per trigger ---- */
     let notice = null;
     if (coldAlerts.length) { const a = coldAlerts[0]; notice = { key: 'alert:' + a.event + ':' + String(a.onset || '').slice(0, 10) + ':' + a.counties.join(','), title: a.event + ' in the forecast area', message: `${list(a.counties.slice(0, 6))}. Coldest forecast low ${worst.minF}°F ${worst.name}. Open the Heat Desk for the plan.` }; }
-    else if (tier >= 3) { const f = firstAt(3); notice = { key: 'tier' + tier + ':' + f.d, title: tier >= 4 ? 'Hard freeze in the forecast' : 'Freeze in the forecast', message: `${headline}. ${sub}` }; }
+    /* keyed by the first night of the spell as the forecast collector remembers it (data.spell), so the key holds while the nights pass */
+    else if (tier >= 3) { const f = firstAt(3), sp = d.spell, since = sp && sp.since && sp.last && sp.since <= f.d && f.d <= sp.last ? sp.since : f.d; notice = { key: 'tier' + tier + ':' + since, title: tier >= 4 ? 'Hard freeze in the forecast' : 'Freeze in the forecast', message: `${headline}. ${sub}` }; }
     else if (firstHeatingWeek) notice = { key: 'firstheat:' + String(season.through || today).slice(0, 4), title: 'The first heating week of the season', message: `${hdd7} heating degree days in the next seven days against ${season.hdd} since July. ${cap(peakWords)}.` };
     return { ok: true, active: tier >= 2 || coldAlerts.length > 0 || firstHeatingWeek || heatOn, tier, medTier, tierName: TIER[tier], th, today, nights, days, byCounty, points: pts, alerts, coldAlerts, worst, minLow: worst.minF, emergency,
       hdd7, hddNorm7, loadPct, hddPeak, heatOn, firstHeatingWeek, firstFreezeAhead, season, at: rec.at, updated: d.updated || null, oldest: d.oldest || null, stale, baseline: !!rec.baseline,

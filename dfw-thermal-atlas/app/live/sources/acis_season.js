@@ -80,7 +80,7 @@
     catch (e) { throw new Error(id + ': ' + (e && e.status ? 'ACIS answered HTTP ' + e.status + (e.body ? ' (' + clean(e.body, 120) + ')' : '') : clean((e && e.message) || e, 160))); }
     if (!String(t).trim()) throw new Error(id + ': ACIS answered with an empty body');
     let j; try { j = JSON.parse(t); } catch (e) { throw new Error(id + ': ACIS did not answer in JSON (' + clean(String(t).slice(0, 80), 80) + ')'); }
-    if (j && j.error) throw new Error(id + ': ACIS reported an error (' + clean(j.error, 120) + ')');
+    if (j && j.error) throw new Error(id + ': ACIS reported an error (' + clean(typeof j.error === 'string' ? j.error : JSON.stringify(j.error), 120) + ')');
     return j;
   }
 

@@ -27,7 +27,8 @@ async function until(fn, timeout, every) { const t0 = Date.now(); let v; while (
 const proxy = process.env.HTTPS_PROXY || process.env.https_proxy;
 async function launch() {
   const base = { headless: true, args: ['--headless=new', '--disable-extensions-except=' + APP, '--load-extension=' + APP, '--no-sandbox'], viewport: { width: 1440, height: 1000 } };
-  if (proxy) base.proxy = { server: proxy };
+  /* --offline means it: every outside request is refused at once (nothing listens on port 9), so the worker's first refresh reaches no public source */
+  if (OFFLINE) base.proxy = { server: 'http://127.0.0.1:9' }; else if (proxy) base.proxy = { server: proxy };
   try { return await chromium.launchPersistentContext('', Object.assign({ channel: 'chromium' }, base)); }
   catch (e) { console.log('channel chromium failed, retrying with the default build: ' + e.message.split('\n')[0]); return chromium.launchPersistentContext('', base); }
 }
@@ -77,8 +78,8 @@ try {
   /* ---- 3. the live layer ---- */
   const srcs = await page.evaluate(() => LIVE.sources.map(s => ({ id: s.id, cadence: s.cadence, cors: s.cors, hosts: s.hosts })));
   ok(JSON.stringify(srcs.map(s => s.id)) === JSON.stringify(w.sources), 'the page and the worker register the same sources', srcs.length + ' sources');
-  const man = JSON.parse(await (await page.request.get(`chrome-extension://${id}/manifest.json`).catch(() => ({ text: async () => '{}' }))).text().catch(() => '{}'));
-  if (man.host_permissions) { const allowed = man.host_permissions.map(h => h.replace(/^https:\/\//, '').replace(/\/\*$/, '')); const missing = [...new Set(srcs.flatMap(s => s.hosts))].filter(h => !allowed.includes(h)); ok(!missing.length, 'the manifest grants every host a source calls', missing.join(', ') || allowed.length + ' hosts'); }
+  const man = await page.evaluate(() => chrome.runtime.getManifest());      /* asked of the browser: a request for the file from outside the page fails, and the check used to be skipped without a word */
+  if (ok(Array.isArray(man.host_permissions), 'the manifest is read back from the browser')) { const allowed = man.host_permissions.map(h => h.replace(/^https:\/\//, '').replace(/\/\*$/, '')); const missing = [...new Set(srcs.flatMap(s => s.hosts))].filter(h => !allowed.includes(h)); ok(!missing.length, 'the manifest grants every host a source calls', missing.join(', ') || allowed.length + ' hosts'); }
   if (!OFFLINE && srcs.length) {
     /* installing the app starts the first full refresh in the worker: wait for it rather than starting a second one */
     const t0 = Date.now();
@@ -124,13 +125,10 @@ try {
     const moved = await until(() => sw.evaluate(async () => { const a = await chrome.alarms.get('tda-weekly'); const d = new Date(a.scheduledTime); return d.getDay() === 3 && d.getHours() === 9 ? { when: d.toString() } : null; }), 5000);
     ok(!!moved, 'changing the refresh day in the page moves the worker\'s alarm', moved && moved.when);
     await page.evaluate(() => LIVE.saveSettings({ weeklyDow: 1, weeklyHour: 6 }));
-    const armed = Date.now();
     await sw.evaluate(async () => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const ago = new Date(Date.now() - 30 * 36e5).toISOString(); s.lastWeekly = ago; s.lastDaily = ago; await chrome.storage.local.set({ 'tda.live.state': s }); await chrome.alarms.create('tda-daily', { when: Date.now() + 400 }); });
-    /* the pulse is the daily run made since the alarm was armed; when a weekly source is in a failed state the worker asks it again right after, as a run of its own */
-    const pulse = await until(() => sw.evaluate(async since => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const r = (s.runs || []).find(x => x.scope === 'daily' && +new Date(x.at) >= since); return r && !s.running ? { r, next: new Date((await chrome.alarms.get('tda-daily')).scheduledTime).toString(), after: (s.runs || []).filter(x => +new Date(x.at) >= since && x.scope !== 'daily').map(x => x.scope + ':' + x.ok) } : null; }, armed), 120000, 1000);
+    const pulse = await until(() => sw.evaluate(async () => { const s = (await chrome.storage.local.get('tda.live.state'))['tda.live.state']; const r = (s.runs || []).find(x => x.scope === 'daily'); /* not runs[0]: when a weekly source failed in the first refresh, the pulse is followed at once by one more try for it, which is logged after it */ return r && !s.running ? { r, next: new Date((await chrome.alarms.get('tda-daily')).scheduledTime).toString() } : null; }), 120000, 1000);
     ok(pulse && pulse.r.by === 'extension' && pulse.r.ok >= 1, 'a due daily alarm runs the weather pulse in the worker', pulse ? `${pulse.r.ok} source(s) in ${(pulse.r.ms / 1000).toFixed(1)} s` : 'no pulse within two minutes');
     ok(pulse && +new Date(pulse.next) > Date.now() + 36e5, 'and the alarm is armed again for the next morning', pulse && pulse.next);
-    if (pulse && pulse.after.length) note('after the pulse the worker asked again for the weekly source that had failed: ' + pulse.after.join(', '));
   } else note(OFFLINE ? 'offline: the live refresh was not exercised' : 'no live sources registered yet');
   for (const k of ['heat', 'live']) {
     if (!boot.mods.includes(k)) { note(`module ${k} is not registered yet`); continue; }

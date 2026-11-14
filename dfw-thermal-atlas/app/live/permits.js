@@ -109,7 +109,7 @@
      zrows [{ zip, n12, d12, h12, nr, dr, hr, ny, dy, hy }] (permits, described, heating in each window of windows(rec.through)). */
   function addZips(rec, zrows, extra) {
     const W = windows(rec.through), told = teller(rec.described), zs = {}, S = { n12: 0, d12: 0, h12: 0, nr: 0, dr: 0, hr: 0, ny: 0, dy: 0, hy: 0 };
-    for (const r of zrows || []) { for (const k in S) S[k] += r[k] || 0; const z = zipOf(r.zip); if (z) { const e = zs[z] || (zs[z] = [0, 0]); e[0] += r.n12 || 0; e[1] += r.h12 || 0; } }
+    for (const r of zrows || []) { for (const k in S) S[k] += +r[k] || 0; const z = zipOf(r.zip); if (z) { const e = zs[z] || (zs[z] = [0, 0]); e[0] += +r.n12 || 0; e[1] += +r.h12 || 0; } }
     for (const u of extra || []) {
       if (u.d >= W.z0 && u.d < W.z1) { S.n12 -= u.x; S.d12 -= u.x * u.ds; S.h12 -= u.x * u.ht; if (u.zip && zs[u.zip]) { zs[u.zip][0] -= u.x; zs[u.zip][1] -= u.x * u.ht; } }
       if (u.d >= W.r0 && u.d <= W.r1) { S.nr -= u.x; S.dr -= u.x * u.ds; S.hr -= u.x * u.ht; }
@@ -160,6 +160,9 @@
       const W = windows(through), win = (a, b) => `${D} >= DATE '${a}' AND ${D} < DATE '${b}'`, c12 = win(W.z0, W.z1), cr = win(W.r0, addDays(W.r1, 1)), cy = win(W.y0, addDays(W.y1, 1));
       const st = [sumIf(c12, 'n12'), sumIf(cr, 'nr'), sumIf(cy, 'ny')].concat(T ? [sumIf(`${c12} AND ${desc}`, 'd12'), sumIf(`${c12} AND ${heat}`, 'h12'), sumIf(`${cr} AND ${desc}`, 'dr'), sumIf(`${cr} AND ${heat}`, 'hr'), sumIf(`${cy} AND ${desc}`, 'dy'), sumIf(`${cy} AND ${heat}`, 'hy')] : []);
       const zr = await queryAll(ctx.http, cfg.layer, Object.assign({ where: `${cfg.base} AND ${D} >= DATE '${W.y0 < W.z0 ? W.y0 : W.z0}' AND ${D} < DATE '${addDays(through, 1)}'`, outStatistics: st }, Z ? { groupByFieldsForStatistics: Z, orderByFields: Z } : {}));
+      /* the ZIP rows count the same permits as the months: an answer that does not add up to them (empty, cut short or doubled) is not kept */
+      const m12 = rec.months.slice(-12).reduce((s, x) => s + x.mech, 0), z12 = zr.reduce((s, r) => s + (+r.n12 || 0), 0) - (extra || []).reduce((s, u) => s + (u.d >= W.z0 && u.d < W.z1 ? u.x : 0), 0);
+      if (rec.months.length >= 12 && Math.abs(z12 - m12) > 0.1 * m12 + 5) throw new Error('the ZIP rows hold ' + z12 + ' permits for the 12 months and the months ' + m12);
       addZips(rec, zr.map(r => Object.assign({}, r, { zip: Z ? r[zKey] : null })), extra);
     } catch (e) { keepZips(rec, ctx.prev, e); }
     return rec;

@@ -98,7 +98,10 @@
   /* the list inside an answer: a search with no match has a count and no results; one document asked by number comes bare */
   function rows(j) {
     if (!j || typeof j !== 'object' || (typeof j.count !== 'number' && !j.document_number)) throw new Error('The Federal Register answered without a document list');
-    return Array.isArray(j.results) ? j.results : j.document_number ? [j] : [];
+    const list = Array.isArray(j.results) ? j.results : j.document_number ? [j] : [];
+    /* an answer that counts documents and lists none, or lists rows that are not documents, is cut short or in another shape (its status marks it as an answer, not silence) */
+    if ((j.count > 0 && !list.length) || list.some(r => !r || typeof r !== 'object')) throw Object.assign(new Error('The Federal Register counted ' + (j.count || list.length) + ' documents and did not list them'), { status: 200 });
+    return list;
   }
   const pick = (j, block) => rows(j).map(r => doc(r, block.topic(r || {}), block.pin)).filter(Boolean);
   const RANK = { Rule: 0, 'Proposed Rule': 1, Notice: 2 };

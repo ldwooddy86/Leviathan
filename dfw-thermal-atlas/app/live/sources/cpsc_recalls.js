@@ -25,7 +25,7 @@
   const OPT = { timeoutMs: 12000, retries: 1 }, BUDGET = 75000;
   /* The service answers a database failure with HTTP 200 and one row that is not a recall ("Error retrieving Recalls: ...", RecallID 0).
      Read as data that row would mean "no recalls", and a week of furnace recalls would vanish. */
-  const refusal = list => { if (!Array.isArray(list)) return 'the answer is not a list'; const r = list[0]; return list.length === 1 && r && !r.RecallDate && /^Error\b/i.test(String(r.Title || '')) ? String(r.Title).slice(0, 140) : null; };
+  const refusal = list => { if (!Array.isArray(list)) return 'the answer is not a list'; if (list.some(x => !x || typeof x !== 'object')) return 'a row of the answer is not a recall'; const r = list[0]; return list.length === 1 && r && !r.RecallDate && /^Error\b/i.test(String(r.Title || '')) ? String(r.Title).slice(0, 140) : null; };
   function parse(list) {
     return (Array.isArray(list) ? list : []).map(r => {
       const product = ((r.Products || [])[0] || {}).Name || '', haz = ((r.Hazards || [])[0] || {}).Name || '';
@@ -39,16 +39,19 @@
     hosts: ['www.saferproducts.gov'], cadence: 'weekly', cors: true, grade: 'A', terms: 'U.S. Government work, public domain', timeoutMs: 110000,
     labels: { central: ['Central heating recalls since 2019 (furnace, heat pump, boiler)', 'int'], room: ['Room heater recalls since 2019', 'int'], alarm: ['Carbon monoxide alarm recalls since 2019', 'int'], last12: ['Recalls in the last 12 months', 'int'], newest: ['Most recent recall', 'text'] },
     async run(ctx) {
-      const seen = {}, t0 = Date.now(); let failed = 0, lastErr = null;
+      const seen = {}, t0 = Date.now(); let failed = 0, lastErr = null, empty = 0;
       for (const t of TERMS) {
         try {
           /* the service is slow on some days: a search that has not answered in 12 seconds is tried once more, and after 75 seconds the rest wait for next week */
           if (Date.now() - t0 > BUDGET) throw new Error('not asked: the run was out of time');
           const list = await ctx.http.json(`${API}?format=json&RecallTitle=${encodeURIComponent(t)}&RecallDateStart=${SINCE}`, OPT);
           const bad = refusal(list); if (bad) throw new Error(bad);
-          parse(list).forEach(r => { seen[r.id] = r; });
+          const got = parse(list); if (!got.length) empty++;
+          got.forEach(r => { seen[r.id] = r; });
         } catch (e) { failed++; lastErr = e; }
       }
+      /* a recall never stops being a recall: when recalls the last run held are missing from this one, a search that brought none did not really answer */
+      if (!failed && empty && ctx.prev && Array.isArray(ctx.prev.recalls) && ctx.prev.recalls.some(r => r && r.id != null && !seen[r.id])) { failed = empty; lastErr = new Error(`${empty} recall ${empty > 1 ? 'searches' : 'search'} came back empty where the last run held recalls`); }
       if (failed === TERMS.length) throw lastErr || new Error('no recall search answered');
       /* a first read must be whole: with no earlier record to fill the gaps, a list that lacks a search would read as "few recalls" */
       if (failed && !(ctx.prev && Array.isArray(ctx.prev.recalls) && ctx.prev.recalls.length)) throw new Error(`${failed} of ${TERMS.length} recall searches failed and no earlier record fills the gap: ${String((lastErr && lastErr.message) || lastErr).slice(0, 120)}`);

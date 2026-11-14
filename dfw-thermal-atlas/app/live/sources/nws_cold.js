@@ -11,6 +11,11 @@
   const TZ = 'America/Chicago', H = 36e5;
   /* a second between calls and three patient retries: the rate limit is not published, and errors are cached for a minute */
   const OPT = { headers: { Accept: 'application/geo+json' }, gapMs: 700, retries: 2, timeoutMs: 25000 };
+  /* The run's own clock, so that it ends inside the 180 seconds the runner gives it whatever the host does (a host that
+     hangs costs 78 seconds a request): three tries while 90 seconds are left, then one try no longer than what is left,
+     and with under 5 seconds to go the request is not made and the point keeps its last good nights. */
+  const LIMIT = 170000;
+  const patience = t0 => { const left = LIMIT - (Date.now() - t0); if (left < 5000) throw new Error('not asked: the run was out of time'); return left > 90000 ? OPT : Object.assign({}, OPT, { retries: 0, timeoutMs: Math.min(OPT.timeoutMs, left) }); };
   const DATE_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
   const localDate = ms => DATE_FMT.format(new Date(ms));                                  // YYYY-MM-DD in the metro's time zone
   const prevDay = ymd => new Date(Date.parse(ymd + 'T12:00:00Z') - 864e5).toISOString().slice(0, 10);
@@ -24,7 +29,7 @@
     const h = (+(m[1] || 0)) * 24 + (+(m[2] || 0)) + (+(m[3] || 0)) / 60 + (+(m[4] || 0)) / 3600;
     return { t0, t1: t0 + h * H, h };
   }
-  const layer = (P, key) => ((P[key] || {}).values || []).map(v => { const iv = parseInterval(v.validTime); return iv ? { t0: iv.t0, t1: iv.t1, h: iv.h, v: v.value } : null; }).filter(Boolean);
+  const layer = (P, key) => ((P[key] || {}).values || []).map(v => { const iv = v ? parseInterval(v.validTime) : null; return iv ? { t0: iv.t0, t1: iv.t1, h: iv.h, v: v.value } : null; }).filter(Boolean);
   const overlap = (a, w) => Math.max(0, Math.min(a.t1, w.t1) - Math.max(a.t0, w.t0));
   const WINTRY = { snow: 1, snow_showers: 1, sleet: 1, freezing_rain: 1, freezing_drizzle: 1, ice_crystals: 1, blowing_snow: 1, freezing_fog: 1, frost: 1 };
   /* The raw grid of one cell → nights and days.
@@ -35,7 +40,7 @@
   function gridNights(P, nowMs) {
     P = P || {};
     const minT = layer(P, 'minTemperature'), maxT = layer(P, 'maxTemperature'), app = layer(P, 'apparentTemperature'), wc = layer(P, 'windChill'), snow = layer(P, 'snowfallAmount'), ice = layer(P, 'iceAccumulation');
-    const wx = ((P.weather || {}).values || []).map(v => { const iv = parseInterval(v.validTime); return iv ? { t0: iv.t0, t1: iv.t1, v: v.value || [] } : null; }).filter(Boolean);
+    const wx = ((P.weather || {}).values || []).map(v => { const iv = v ? parseInterval(v.validTime) : null; return iv ? { t0: iv.t0, t1: iv.t1, v: Array.isArray(v.value) ? v.value : [] } : null; }).filter(Boolean);
     const minOver = (Ly, w) => { let m = null; for (const a of Ly) if (a.v != null && overlap(a, w) > 0) m = m == null ? a.v : Math.min(m, a.v); return m; };
     const sumOver = (Ly, w) => { let s = 0, hit = false; for (const a of Ly) { const o = overlap(a, w); if (o > 0 && a.v != null) { hit = true; s += a.v * o / (a.t1 - a.t0); } } return hit ? s : null; };
     const inch = (mm, dp) => mm == null ? null : Math.round(mm / 25.4 * Math.pow(10, dp)) / Math.pow(10, dp);
@@ -75,32 +80,40 @@
     labels: { minLow: ['Coldest forecast low, next seven nights', 'degF'], hdd7: ['Forecast heating degree days, next seven days (mean of the points)', 'int'], freezePoints: ['Forecast points with a freeze (32°F or lower)', 'int'], coldAlerts: ['Active cold weather alerts', 'int'], alerts: ['All active alerts in the 12 counties', 'int'] },
     async run(ctx) {
       const G = ctx.geo, prev = ctx.prev || {}, grids = Object.assign({}, prev.grids || {}), now = +ctx.now;     /* grids: cells looked up again after a baked one went away */
-      const old = {}; (prev.points || []).forEach(p => { old[p.id] = p; });
-      const lookup = async pt => { const p = (await ctx.http.json(`${API}/points/${pt.lat},${pt.lon}`, OPT)).properties; return { wfo: p.gridId, x: p.gridX, y: p.gridY, czone: String(p.county || '').split('/').pop() }; };
+      const old = {}, t0 = Date.now(); (prev.points || []).forEach(p => { old[p.id] = p; });
+      const lookup = async pt => { const p = (await ctx.http.json(`${API}/points/${pt.lat},${pt.lon}`, patience(t0))).properties; return { wfo: p.gridId, x: p.gridX, y: p.gridY, czone: String(p.county || '').split('/').pop() }; };
       const zones = G.counties.map(c => c.zone).concat(G.counties.map(c => c.czone)).join(',');
       let alerts = prev.alerts || [], alertsErr = null;
-      try { alerts = parseAlerts(await ctx.http.json(`${API}/alerts/active?zone=${zones}`, OPT), G.byZone); } catch (e) { alertsErr = String((e && e.message) || e).slice(0, 120); if (prev.alertsAt && now - +new Date(prev.alertsAt) > 12 * H) alerts = []; }
+      try { alerts = parseAlerts(await ctx.http.json(`${API}/alerts/active?zone=${zones}`, patience(t0)), G.byZone); } catch (e) { alertsErr = String((e && e.message) || e).slice(0, 120); if (prev.alertsAt && now - +new Date(prev.alertsAt) > 12 * H) alerts = []; }
       const out = []; let failed = 0, lastErr = null;
       for (const pt of G.points) {
         const rec = { id: pt.id, name: pt.name, lat: pt.lat, lon: pt.lon, county: pt.county, nights: [], days: [] };
         try {
           let g = grids[pt.id] || (pt.gx != null ? { wfo: 'FWD', x: pt.gx, y: pt.gy } : null), j;
           if (!g) g = grids[pt.id] = await lookup(pt);
-          try { j = await ctx.http.json(`${API}/gridpoints/${g.wfo}/${g.x},${g.y}`, OPT); }
-          catch (e) { if (!(e && e.status === 404)) throw e; g = grids[pt.id] = await lookup(pt); j = await ctx.http.json(`${API}/gridpoints/${g.wfo}/${g.x},${g.y}`, OPT); }       /* the grid moved: find the new cell and keep it */
+          try { j = await ctx.http.json(`${API}/gridpoints/${g.wfo}/${g.x},${g.y}`, patience(t0)); }
+          catch (e) { if (!(e && e.status === 404)) throw e; g = grids[pt.id] = await lookup(pt); j = await ctx.http.json(`${API}/gridpoints/${g.wfo}/${g.x},${g.y}`, patience(t0)); }       /* the grid moved: find the new cell and keep it */
           if (!j || !j.properties || !j.properties.minTemperature) throw new Error('the grid has no minimum temperature layer');
           const r = gridNights(j.properties, now); if (!r.nights.length) throw new Error('no night in the grid');
           rec.nights = r.nights; rec.days = r.days; rec.upd = r.upd; rec.grid = `${g.wfo}/${g.x},${g.y}`;
           if (g.czone && G.byZone[g.czone]) rec.county = G.byZone[g.czone];
         } catch (e) {
-          failed++; lastErr = e; rec.err = String((e && e.message) || e).slice(0, 120);
+          failed++; if (!lastErr || !/^not asked/.test(String(e && e.message))) lastErr = e; rec.err = String((e && e.message) || e).slice(0, 120);
           const o = old[pt.id]; if (o && o.nights && o.nights.length) { rec.nights = o.nights; rec.days = o.days || []; rec.upd = o.upd || null; rec.grid = o.grid; rec.stale = true; }
         }
         out.push(rec);
       }
       if (failed === G.points.length) throw lastErr || new Error('no forecast point answered');
       const upds = out.filter(p => p.upd && !p.stale).map(p => p.upd).sort();
-      return { v: 2, updated: upds[upds.length - 1] || null, oldest: upds[0] || null, points: out, failed, alerts, alertsErr, alertsAt: alertsErr ? (prev.alertsAt || null) : ctx.now.toISOString(), grids };
+      /* The freeze spell the forecast is in: since, the evening of its first night, kept from run to run while freezing nights
+         follow one another; last, the night the run of them ends on. live/derive.js keys the freeze notice by since, so a
+         spell is announced once and not again every morning as its nights pass. */
+      const fzF = (L.derive && L.derive.TH && L.derive.TH.freeze) || 32, from = prevDay(localDate(now)), next = d => new Date(Date.parse(d + 'T12:00:00Z') + 864e5).toISOString().slice(0, 10);
+      const fz = [...new Set(out.flatMap(p => p.nights.filter(n => n.d >= from && n.lowF != null && n.lowF <= fzF).map(n => n.d)))].sort(), ps = prev.spell;
+      let spell = null;
+      if (fz.length) { let last = fz[0]; for (const d of fz) if (d <= next(last)) last = d; spell = { since: ps && ps.since && ps.last && fz[0] <= next(ps.last) ? ps.since : fz[0], last }; }
+      else if (ps && ps.last >= from) spell = ps;                    /* a forecast that drops the freeze for a morning does not start the spell over */
+      return { v: 2, updated: upds[upds.length - 1] || null, oldest: upds[0] || null, points: out, failed, alerts, alertsErr, alertsAt: alertsErr ? (prev.alertsAt || null) : ctx.now.toISOString(), grids, spell };
     },
     digest(d) {
       const live = d.points.filter(p => !p.err || p.stale), lows = live.flatMap(p => p.nights.filter(n => !n.part).map(n => n.lowF));

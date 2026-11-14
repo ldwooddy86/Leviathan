@@ -195,3 +195,130 @@ test('a new weekday and hour in the settings move the alarm, and a browser start
   assert.equal(w.runs()[0], 'daily:5', 'and the missed morning is caught up');
   w.kill();
 });
+
+test('a weekly source that has been down for days does not cost a failed morning pulse its retry', async () => {
+  const w = await fresh(at(2026, 11, 9, 6));
+  const down = new Set(['cpsc_recalls']); let offline = false; const asked = [];
+  w.runSource = async id => { asked.push(id); if (offline || down.has(id)) throw new TypeError('Failed to fetch'); return { stub: id }; };
+  w.at(at(2026, 11, 16, 6)); w.boot(); await w.fireDue();                                          // Monday: eleven of twelve
+  for (const mi of [8, 16, 24]) { w.at(at(2026, 11, 16, 6, mi)); w.boot(); await w.fireDue(); }    // the two quick tries, used up
+  assert.deepEqual(w.failed(), ['cpsc_recalls']); assert.equal(w.alarmAt('tda-retry'), null);
+  /* Tuesday the laptop wakes before its network is back: the pulse fails, and so does the one extra try for the weekly source */
+  offline = true; w.at(at(2026, 11, 17, 7, 30)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-daily']);
+  assert.equal(w.failed().length, 6);
+  assert.equal(local(w.alarmAt('tda-retry')), '2026-11-17 07:38', 'the retry the failed pulse armed is still there after the extra try');
+  offline = false; asked.length = 0; w.at(at(2026, 11, 17, 7, 38)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-retry']);
+  assert.deepEqual(asked.slice().sort(), DAILY.slice().sort(), 'the retry brings the forecast in the same morning');
+  assert.equal(local(new Date(w.state().lastDaily)), '2026-11-17 07:38'); assert.deepEqual(w.failed(), ['cpsc_recalls']);
+  assert.equal(w.alarmAt('tda-retry'), null);
+  w.kill();
+});
+
+test('no network for the first hour of the week: after the two quick tries the worker looks again each hour until the run is in', async () => {
+  for (const daily of [true, false]) {
+    const w = await fresh(at(2026, 11, 9, 7));
+    if (!daily) { w.mem['tda.live.settings'] = { daily: false }; w.boot(); await w.send({ type: 'tda.live.schedule' }); await w.settle(); }
+    let offline = true; const asked = []; w.runSource = async id => { asked.push(id); if (offline) throw new TypeError('Failed to fetch'); return { stub: id }; };
+    w.at(at(2026, 11, 16, 7, 30)); w.boot(); await w.fireDue();                                    // the laptop is opened with no network
+    for (const mi of [38, 46]) { w.at(at(2026, 11, 16, 7, mi)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-retry']); }
+    assert.equal(w.mem['tda.live.retry'].n, 2); assert.equal(w.failed().length, 12);
+    w.at(at(2026, 11, 16, 7, 54)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-retry']);   // the quick tries are spent and nothing has answered yet
+    assert.equal(local(w.alarmAt('tda-retry')), '2026-11-16 08:54', `pulse ${daily ? 'on' : 'off'}: the next look is an hour on`);
+    offline = false; w.at(at(2026, 11, 16, 8, 54)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-retry']);
+    assert.equal(w.runs()[0], 'weekly:12', `pulse ${daily ? 'on' : 'off'}: the refresh of the week comes in the same morning`);
+    assert.equal(local(new Date(w.state().lastWeekly)), '2026-11-16 08:54'); assert.deepEqual(w.failed(), []);
+    assert.equal(w.alarmAt('tda-retry'), null, 'and the hourly look stops'); assert.equal(w.mem['tda.live.retry'].n, 0);
+    /* the hourly look is only for a run that is still due: a source that stays down while the others answer is left alone after two tries */
+    w.runSource = async id => { asked.push(id); if (id === 'cpsc_recalls') throw new TypeError('Failed to fetch'); return { stub: id }; };
+    w.at(at(2026, 11, 23, 6)); w.boot(); await w.fireDue();
+    for (const mi of [8, 16]) { w.at(at(2026, 11, 23, 6, mi)); w.boot(); await w.fireDue(); }
+    asked.length = 0; w.at(at(2026, 11, 23, 6, 24)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-retry']);
+    assert.deepEqual(asked, []); assert.equal(w.alarmAt('tda-retry'), null, 'no hourly loop for one dead source');
+    w.kill();
+  }
+});
+
+test('a freeze that lasts several nights is one notification, a second one only when it deepens to a hard freeze', async () => {
+  const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  /* the forecast as issued each morning: seven nights from that day at two places */
+  const forecast = (day, low) => ({ alerts: [], points: [['MESQ', 'Mesquite', 'Dallas'], ['KDTO', 'Denton', 'Denton']].map(([id, name, county]) => ({ id, name, county, lat: 32.8, lon: -96.7,
+    nights: Array.from({ length: 7 }, (_, i) => { const d = ymd(new Date(+day + i * 864e5)); return { d, lowF: low(d), appF: low(d) - 3, snowIn: 0, iceIn: 0, wx: [] }; }),
+    days: Array.from({ length: 7 }, (_, i) => ({ d: ymd(new Date(+day + i * 864e5)), hiF: 45, hdd: 25 })) })) });
+  let low = d => (d >= '2026-11-17' && d <= '2026-11-22' ? 29 : 45);
+  const w = makeWorld({ now: at(2026, 11, 13, 19) });
+  w.runSource = async id => (id === 'nws_cold' ? forecast(new Date(w.clock.now), low) : { stub: id });
+  const sent = () => w.log.filter(x => x.startsWith('notify ')).map(x => x.slice(7));
+  const morning = async d => { w.at(at(2026, 11, d, 5)); w.boot(); await w.fireDue(); };
+  w.boot(); w.chrome.runtime.onInstalled.fire({ reason: 'install' }); await w.settle();
+  assert.deepEqual(sent(), ['Freeze in the forecast'], 'told once, four days ahead');
+  for (let d = 14; d <= 19; d++) await morning(d);
+  assert.deepEqual(sent(), ['Freeze in the forecast'], 'three mornings into the spell: still the one notification');
+  assert.equal(w.badge.text, '29°', 'the badge goes on showing the coldest low ahead');
+  low = d => (d === '2026-11-21' ? 20 : d >= '2026-11-17' && d <= '2026-11-22' ? 29 : 45);          // the spell deepens
+  await morning(20);
+  assert.deepEqual(sent(), ['Freeze in the forecast', 'Hard freeze in the forecast']);
+  for (let d = 21; d <= 24; d++) await morning(d);
+  assert.equal(sent().length, 2, 'and the rest of the spell is quiet'); assert.equal(w.badge.text, '');
+  low = d => (d === '2026-11-28' ? 30 : 45);                                                      // a new freeze the week after is a new trigger
+  await morning(25);
+  assert.deepEqual(sent().slice(2), ['Freeze in the forecast']);
+  w.kill();
+});
+
+test('one cold shot in the two week outlook is one notification however its date shifts; a higher tier or a later shot is told again', async () => {
+  const w = makeWorld({ now: at(2026, 11, 13, 19) });
+  let key = null; const sent = () => w.log.filter(x => x.startsWith('notify ')).map(x => x.slice(7));
+  /* the outlook notice arrives through the same hook live/outlook.js uses; its key is 'outlook:' + tier + ':' + the day the shot is expected */
+  const morning = async (d, k) => { key = k; w.at(at(2026, 11, d, 5)); w.boot(); w.L.derive.more.push(() => (key ? [{ key, title: 'Outlook ' + key.slice(8), message: 'm', route: 'heat' }] : [])); await w.fireDue(); };
+  w.boot(); w.chrome.runtime.onInstalled.fire({ reason: 'install' }); await w.settle();
+  await morning(14, 'outlook:2:2026-11-24'); assert.deepEqual(sent(), ['Outlook 2:2026-11-24']);
+  await morning(15, 'outlook:2:2026-11-25'); await morning(16, 'outlook:2:2026-11-23'); await morning(17, 'outlook:2:2026-11-26');
+  assert.equal(sent().length, 1, 'the same shot, its date moving a day or two between runs');
+  await morning(18, 'outlook:3:2026-11-25'); assert.deepEqual(sent().slice(1), ['Outlook 3:2026-11-25'], 'a higher tier is news');
+  await morning(19, 'outlook:2:2026-11-26'); assert.equal(sent().length, 2, 'falling back a tier is not');
+  await morning(20, 'outlook:2:2026-12-05'); assert.equal(sent().length, 3, 'a shot nine days later is a new one');
+  w.kill();
+});
+
+test('a pulse that fires a little late on Monday makes the full refresh, and the weekly alarm an hour later does not make it again', async () => {
+  const w = await fresh(at(2026, 11, 9, 6));
+  w.at(at(2026, 11, 16, 5, 2)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-daily']);
+  assert.equal(w.runs()[0], 'weekly:12', 'six days and twenty three hours on, the catch up at the pulse is the full refresh');
+  w.at(at(2026, 11, 16, 6)); w.boot(); assert.deepEqual(await w.fireDue(), ['tda-weekly']);
+  assert.equal(w.runs().filter(r => r.startsWith('weekly')).length, 2, 'the one of last week and the one at 5:02: no third');
+  assert.equal(local(w.alarmAt('tda-weekly')), '2026-11-23 06:00', 'and the alarm is set for next Monday');
+  w.at(at(2026, 11, 23, 6)); w.boot(); await w.fireDue();
+  assert.equal(w.runs()[0], 'weekly:12', 'an alarm a week after a full refresh runs as always');
+  w.kill();
+});
+
+test('a catch up at page open that fails starts its own two quick retries, even when an earlier run had spent the count', async () => {
+  const w = await fresh(at(2026, 11, 9, 6));
+  let offline = true; w.runSource = async id => { if (offline) throw new TypeError('Failed to fetch'); return { stub: id }; };
+  w.mem['tda.live.retry'] = { n: 2 }; w.alarms.clear();                    // the count is spent and the alarms were lost
+  w.at(at(2026, 11, 17, 9)); w.boot(); assert.equal(JSON.stringify(await w.send({ type: 'tda.live.check' })), '{"ran":"weekly"}'); await w.settle();
+  assert.equal(w.mem['tda.live.retry'].n, 0); assert.equal(local(w.alarmAt('tda-retry')), '2026-11-17 09:08');
+  w.at(at(2026, 11, 17, 9, 8)); w.boot(); await w.fireDue();
+  assert.equal(w.mem['tda.live.retry'].n, 1); assert.equal(local(w.alarmAt('tda-retry')), '2026-11-17 09:16', 'a second quick try, not an hour away');
+  offline = false; w.at(at(2026, 11, 17, 9, 16)); w.boot(); await w.fireDue();
+  assert.equal(w.runs()[0], 'weekly:12'); assert.equal(w.alarmAt('tda-retry'), null);
+  w.kill();
+});
+
+test('the weekly alarm that fires while a smaller run is in flight waits for it, then makes the full refresh', async () => {
+  const w = makeWorld({ now: at(2026, 11, 16, 5, 59) });
+  w.mem['tda.live.state'] = { lastWeekly: at(2026, 11, 9, 6).toISOString(), lastDaily: at(2026, 11, 16, 5).toISOString(), runs: [] };
+  w.alarms.set('tda-weekly', { name: 'tda-weekly', scheduledTime: +at(2026, 11, 16, 6) }); w.alarms.set('tda-daily', { name: 'tda-daily', scheduledTime: +at(2026, 11, 17, 5) });
+  let release; const gate = new Promise(r => { release = r; }); const asked = [];
+  w.runSource = id => { asked.push(id); return id === 'nws_cold' && asked.length === 1 ? gate.then(() => ({ stub: id })) : Promise.resolve({ stub: id }); };
+  w.boot(); const one = w.send({ type: 'tda.live.refresh', scope: ['nws_cold'] }); await w.settle(40);
+  assert.ok(w.state().running, 'a refresh of one source is in flight');
+  w.at(at(2026, 11, 16, 6)); const fired = w.fireDue(); await w.settle(40);
+  assert.deepEqual(asked, ['nws_cold'], 'the weekly alarm has fired and waits');
+  release(); await fired; await one; await w.settle(200);
+  assert.match(w.runs()[0], /^weekly:1[12]$/, 'the full refresh followed the small run'); assert.equal(w.runs().length, 2);
+  assert.equal(local(new Date(w.state().lastWeekly)), '2026-11-16 06:00');
+  assert.equal(asked.filter(x => x === 'nws_cold').length, 1, 'the forecast fetched a minute before is kept, not fetched again');
+  assert.equal(local(w.alarmAt('tda-weekly')), '2026-11-23 06:00'); assert.equal(w.alarmAt('tda-retry'), null);
+  w.kill();
+});

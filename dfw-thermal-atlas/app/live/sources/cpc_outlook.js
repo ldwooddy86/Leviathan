@@ -96,7 +96,7 @@
      metro is split: then each county is asked on its own and the headline is the band most counties share (the office's
      county breaks a tie). */
   async function outlookAt(ctx, path, pts, homeCounty) {
-    const o = bandsOf(await arc(ctx, qMulti(path, F_EXT, pts))); if (!o) throw new Error('no outlook area covers the 12 counties');
+    const o = bandsOf(await arc(ctx, qMulti(path, F_EXT, pts))); if (!o) throw new Error('no outlook area covers the 12 counties'); if (!o.issued || !o.start || !o.end) throw new Error('the outlook area came back without its dates');
     let counties = null, head = o.bands[0];
     if (o.bands.length > 1) {
       counties = {};
