@@ -4,14 +4,17 @@
    node content-strategist/cli.mjs <command>
 
    Where things stand
-     where                                the brand on file, the sitemap inventory, where client files go
+     where                                the dashboard connected, the brand on file, the sitemap inventory, where client files go
+     connect <atlas.html> [--id dfw]      connect a dashboard (a Thermal Debt atlas as one file): rebuilds the deep pack and the
+                                          brand file from it, for this agent and the paid ads specialist alike. `extract` is the
+                                          older name for the same command.
+     dashboard                            what is connected, the doors it has for pages coming back, what each agent can do
 
    What the vertical knows
      verticals                            the packs: one per atlas in the console
      keywords <vertical> [--angle id] [--city name] [--find text]
      market <vertical> [--city name]      sourced local facts for a page
      rules <vertical>                     the advertising rules, the license format, the notice text
-     extract <atlas.html> [--id dfw]      rebuild a deep pack (and the local brand file) from a Thermal Debt atlas
      harvest                              rebuild the keyword packs from the console in leviathan/
 
    What the site already has
@@ -29,6 +32,13 @@
                                           how alike a set of pages is, place names masked: catches the same page with
                                           the city swapped, and sentences repeated from page to page
 
+   The dashboard
+     handoff [slug | folder ...] [--out file] [--no-live]
+                                          one pages file for the dashboard's Publish module from the pages already built
+                                          (all of them, or the ones named). With a browser here it is dropped on the running
+                                          dashboard's import box first, and you are told what Publish made of it.
+     check <pages.json | blueprint.json>  hand a file to the running dashboard's Publish module and report what it listed
+
    Social
      social lint <post.json>
      social post <post.json> --platform facebook|gbp|all [--confirm]
@@ -36,29 +46,35 @@
 
    Common options: --vertical id, --brand file, --json
    Client files (brand, sitemap inventory, built pages, post ledger) live in ~/.leviathan/content-strategist, outside the
-   repository; CS_LOCAL, CS_OUT, CS_BRAND and CS_BRAND_JSON move them. */
+   repository; CS_LOCAL, CS_OUT, CS_BRAND and CS_BRAND_JSON move them. The connected dashboard's own files sit beside
+   them in ~/.leviathan/dashboard. */
 import fs from 'node:fs';
 import path from 'node:path';
-import os from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { HERE, REPO, listPacks, loadPack, deepPack, brandProfile, writePack, harvestConsole, isThermalDebt } from './lib/atlas.mjs';
+import { REPO, listPacks, loadPack, harvestConsole, isThermalDebt } from './lib/atlas.mjs';
 import { parse, parseMarkdown, renderBody, renderPage, slugify } from './lib/doc.mjs';
 import { lint, report } from './lib/lint.mjs';
 import { crawl, fromFile, inventory, deepen, cannibal, linkTargets, Blocked } from './lib/sitemap.mjs';
 import { buildSchema, validate, blueprint, pageUrl } from './lib/schema.mjs';
 import * as social from './lib/social.mjs';
 import { compare } from './lib/unique.mjs';
+/* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
+import { runConnect, runStatus, runCheck } from '../dashboard-link/cli.mjs';
+import { status as linkStatus, NotConnected } from '../dashboard-link/lib/connect.mjs';
+import { pagesFile, note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
+import * as live from '../dashboard-link/lib/live.mjs';
+import { CS_LOCAL } from '../dashboard-link/lib/paths.mjs';
 
 /* Everything that names the client lives outside the repository: the brand file, the sitemap inventory, the finished pages
    and the ledger of posts. The console's build scans every file under the repository, ignored or not, and refuses it
    while a withheld name is anywhere in it. */
-const LOCAL = path.resolve(process.env.CS_LOCAL || path.join(os.homedir(), '.leviathan', 'content-strategist'));
+const LOCAL = CS_LOCAL;
 const OUT = path.resolve(process.env.CS_OUT || path.join(LOCAL, 'out'));
 const inRepo = p => !path.relative(REPO, p).startsWith('..') && fs.existsSync(path.join(REPO, '.git'));
 for (const [name, p] of [['CS_LOCAL', LOCAL], ['CS_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add']);
+const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const list = v => (v && v !== true ? String(v).split(',').map(s => s.trim()).filter(Boolean) : []);
@@ -79,7 +95,7 @@ function loadBrand(required = false) {
   const f = brandFile();
   if (fs.existsSync(f)) return Object.assign(JSON.parse(fs.readFileSync(f, 'utf8')), { _file: f });
   if (process.env.CS_BRAND_JSON) { try { return Object.assign(JSON.parse(process.env.CS_BRAND_JSON), { _file: 'CS_BRAND_JSON' }); } catch (e) { die('CS_BRAND_JSON is not valid JSON: ' + e.message); } }
-  if (required) die(`No brand file at ${f}. The brand (name, site, phone, license, address) stays out of the repository.\nMake it one of three ways:\n  node content-strategist/cli.mjs extract <atlas.html>     reads the brand an atlas was built for\n  mkdir -p ${path.dirname(f)} && cp content-strategist/brand.example.json ${f}     then fill it in\n  set CS_BRAND_JSON to the same JSON in the environment, so every session has it`);
+  if (required) die(`No brand file at ${f}. The brand (name, site, phone, license, address) stays out of the repository.\nMake it one of three ways:\n  node content-strategist/cli.mjs connect <atlas.html>     reads the brand the dashboard was built for\n  mkdir -p ${path.dirname(f)} && cp content-strategist/brand.example.json ${f}     then fill it in\n  set CS_BRAND_JSON to the same JSON in the environment, so every session has it`);
   return null;
 }
 function packFor(meta = {}, brand = null) {
@@ -101,7 +117,9 @@ const C = {
 
   where() {
     const brand = loadBrand(), inv = loadInventory(brand), res = { local: LOCAL, out: OUT, drafts: path.join(LOCAL, 'drafts'), brandFile: brand ? brand._file : null, brand: brand ? { name: brand.name, site: brand.url, vertical: brand.vertical || null, license: brand.license ? 'set' : 'MISSING', phone: brand.phone ? 'set' : 'MISSING', facebookPage: (brand.social || {}).facebookPageId ? 'id on file' : 'no id', businessProfile: (brand.social || {}).gbpAccountId && (brand.social || {}).gbpLocationId ? 'ids on file' : 'no ids' } : null, sitemap: inv ? { pages: inv.pages.length, ageHours: inv.ageHours, file: inv._file } : null };
-    out(res, [`Client files: ${LOCAL}   (outside the repository; drafts in ${res.drafts}, built pages in ${OUT})`, brand ? `Brand: ${brand.name} · ${brand.url} · vertical ${brand.vertical || 'not set'} · license ${res.brand.license} · phone ${res.brand.phone} · Facebook Page ${res.brand.facebookPage} · Business Profile ${res.brand.businessProfile} (ids only; \`social whoami\` tests the credentials)   (${brand._file})` : `Brand: none yet. Run extract on an atlas, copy brand.example.json to ${brandFile()}, or set CS_BRAND_JSON.`, inv ? `Sitemap: ${inv.pages.length} live URLs, read ${inv.ageHours}h ago` : 'Sitemap: not read yet. Run: sitemap'].join('\n'));
+    const link = linkStatus(), lc = link.connection; res.dashboard = lc ? { atlas: lc.identity.atlas, build: lc.identity.build, sha256: lc.identity.sha256.slice(0, 16), connectedAt: lc.connectedAt, runsHere: lc.live.ok, problems: link.problems } : null;
+    out(res, [lc ? `Dashboard: ${lc.identity.atlas} · Build ${lc.identity.build}, connected ${String(lc.connectedAt).slice(0, 16).replace('T', ' ')} UTC. ${lc.live.ok ? 'It runs on this machine, so a pages file can be tried on its Publish module before you hand it over.' : 'It cannot be run on this machine (' + lc.live.why + ').'}` : 'Dashboard: none connected. Ask for the dashboard file and run: connect <atlas.html>', ...link.problems.map(p => 'PROBLEM  ' + p),
+      `Client files: ${LOCAL}   (outside the repository; drafts in ${res.drafts}, built pages in ${OUT})`, brand ? `Brand: ${brand.name} · ${brand.url} · vertical ${brand.vertical || 'not set'} · license ${res.brand.license} · phone ${res.brand.phone} · Facebook Page ${res.brand.facebookPage} · Business Profile ${res.brand.businessProfile} (ids only; \`social whoami\` tests the credentials)   (${brand._file})` : `Brand: none yet. Connect the dashboard (connect <atlas.html>), copy brand.example.json to ${brandFile()}, or set CS_BRAND_JSON.`, inv ? `Sitemap: ${inv.pages.length} live URLs, read ${inv.ageHours}h ago` : 'Sitemap: not read yet. Run: sitemap'].join('\n'));
   },
 
   verticals() {
@@ -150,14 +168,34 @@ const C = {
     out(res, [`${pack.atlas}: advertising rules`, '', `License: ${C0.licenseInEveryAsset ? 'on every ad and every post; on every page unless the site footer prints it.' : 'no rule on file.'} Write it as "${lic}".`, '', 'Notice for a page that talks about proposals, estimates, contracts or financing (put it in a verbatim block, word for word):', '  ' + (C0.notice || 'none on file'), '', 'Consent text under a form that collects a phone number:', '  ' + (C0.consent || 'none on file'), '', ...res.rules.map(r => `${r.id.padEnd(6)} ${r.gate.padEnd(16)} ${r.name}\n         ${r.enforcer}; ${r.cite}\n         fix: ${r.fix}`), '', 'A rule that only warns still needs an answer: confirm the claim with the person or cut it.'].join('\n'));
   },
 
-  async extract() {
-    const f = A._[0] || die('extract <atlas.html> [--id dfw]'); const text = fs.readFileSync(f, 'utf8');
-    if (!isThermalDebt(text)) die('This file is not a Thermal Debt atlas (no atlas data block with service angles). Keyword packs for the other atlases come from: harvest');
-    const { pack, brand } = deepPack(text, { id: A.id && A.id !== true ? A.id : 'dfw', file: f }), w = await writePack(pack);
-    const res = { pack: w.row, withheldStringsDropped: w.dropped, withheldListChecked: w.checked };
-    if (brand) { const b = Object.assign({ vertical: pack.id }, brandProfile(brand)), bf = brandFile(); const keep = fs.existsSync(bf) ? JSON.parse(fs.readFileSync(bf, 'utf8')) : {}; if (keep.social) b.social = Object.assign(b.social, Object.fromEntries(Object.entries(keep.social).filter(([, v]) => v))); fs.mkdirSync(path.dirname(bf), { recursive: true }); fs.writeFileSync(bf, JSON.stringify(b, null, 1) + '\n'); res.brand = rel(bf); }
-    out(res, `Pack ${w.row.id}: ${w.row.angles} angles, ${w.row.keywords} keywords, ${pack.cities.length} cities, ${pack.compliance.rules.length} advertising rules  ->  ${rel(path.join(HERE, 'verticals', pack.id + '.json'))}\n${w.checked ? `Withheld names: ${w.dropped} string${w.dropped === 1 ? '' : 's'} dropped from the pack.` : 'Withheld list not found; the pack was not scanned.'}${res.brand ? `\nBrand  ->  ${res.brand} (local, ignored by git)` : ''}`);
+  /* Connecting a dashboard is one act for both agents (dashboard-link): this agent's deep pack and the brand file are
+     rebuilt from the atlas, the paid ads specialist's pack and the client's model beside them, and where a browser is
+     here the dashboard is opened to see that it runs. */
+  async connect() {
+    const f = A._[0] || die('connect <atlas.html> [--id dfw] [--no-live] [--no-copy]'); if (!fs.existsSync(f)) die('No file at ' + f);
+    if (!isThermalDebt(fs.readFileSync(f, 'utf8'))) die('This file is not a Thermal Debt atlas (no atlas data block with service angles). Keyword packs for the other atlases come from: harvest');
+    const r = await runConnect(f, { id: A.id && A.id !== true ? A.id : undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'] }); out(r.value, r.text);
   },
+  extract() { return C.connect(); },
+  dashboard() { const r = runStatus(); out(r.value, r.text); if (r.value.connected && r.value.problems.length) process.exitCode = 1; },
+
+  /* The built pages as one file the dashboard's Publish module takes: its import box reads a `pages` list of FORGE
+     blueprints, compiles each with the Site Forge compiler and lists it as a draft. */
+  async handoff() {
+    const named = A._.length > 0, dirs = named ? A._.map(a => (fs.existsSync(a) ? path.resolve(a) : path.join(OUT, a))) : (fs.existsSync(OUT) ? fs.readdirSync(OUT).sort().map(e => path.join(OUT, e)).filter(p => fs.existsSync(path.join(p, 'blueprint.json'))) : []);
+    if (!dirs.length) die('No built pages to hand over. A page is built with: build <page.md>');
+    const bps = dirs.map(d => { const p = fs.existsSync(d) && fs.statSync(d).isDirectory() ? path.join(d, 'blueprint.json') : d; if (!fs.existsSync(p)) die(`No blueprint at ${p}. Name a built page by its slug or its folder.`); return JSON.parse(fs.readFileSync(p, 'utf8')); });
+    const link = linkStatus(), made = pagesFile(bps, handoffNote('content-strategist', link.connected ? link.connection : null, { pages: bps.map(b => b.page && b.page.slug) }));
+    if (made.problems.length) die('The pages file was not written:\n  ' + made.problems.join('\n  '));
+    const file = A.out && A.out !== true ? path.resolve(A.out) : path.join(OUT, 'pages-for-publish.json'); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, made.file);
+    let tried = null, why = '';
+    if (!link.connected) why = 'no dashboard is connected (connect <atlas.html>)'; else if (A['no-live']) why = '--no-live was passed'; else { const av = await live.available(); if (!av.ok) why = av.why; else { try { tried = await runCheck(file); } catch (e) { why = String(e.message || e).split('\n')[0]; } } }
+    out({ file, pages: bps.map(b => b.page.slug), dashboard: tried ? tried.value : null, notTried: why || undefined },
+      [`${made.count} page${made.count === 1 ? '' : 's'}  ->  ${rel(file)}`, `For the dashboard: Publish (module 16), "What to publish", Import. Drop this file on the box. Each page is compiled there by the Site Forge compiler and listed as a draft; nothing reaches a site until a person sends it.`,
+        tried ? 'Tried on the running dashboard: ' + tried.text : `Not tried on the running dashboard: ${why}.`].join('\n'));
+    if (tried && !tried.ok) process.exitCode = 1;
+  },
+  async check() { const f = A._[0] || die('check <pages.json | blueprint.json>'); const r = await runCheck(path.resolve(f)); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
 
   async harvest() {
     const r = await harvestConsole(REPO);
@@ -221,7 +259,7 @@ const C = {
     const dir = path.join(A.out && A.out !== true ? path.resolve(A.out) : OUT, slug); fs.mkdirSync(dir, { recursive: true });
     const bp = blueprint({ doc, brand, pack, schema, type, slug, url }), files = { 'page.md': src, 'page.html': renderPage(doc, { schema, url, lang: m.language || 'en-US' }), 'body.html': renderBody(doc) + '\n', 'schema.json': JSON.stringify(schema, null, 1) + '\n', 'blueprint.json': JSON.stringify(bp, null, 1) + '\n', 'report.json': JSON.stringify({ built: new Date().toISOString(), url, type, keyword: m.keyword, stats: r.stats, counts: r.counts, findings: r.findings, cannibalization: can && { verdict: can.verdict, neighbors: can.neighbors.map(n => n.url) }, schemaTypes: schema['@graph'].map(n => n['@type']) }, null, 1) + '\n' };
     for (const [n, body] of Object.entries(files)) fs.writeFileSync(path.join(dir, n), body);
-    out({ ok: true, url, dir: rel(dir), files: Object.keys(files), report: r, schemaTypes: schema['@graph'].map(n => n['@type']) }, report(r, rel(f)) + `\n\nBuilt ${url}\n  schema: ${schema['@graph'].map(n => n['@type']).join(', ')}\n  ${Object.keys(files).map(n => rel(path.join(dir, n))).join('\n  ')}`);
+    out({ ok: true, url, dir: rel(dir), files: Object.keys(files), report: r, schemaTypes: schema['@graph'].map(n => n['@type']) }, report(r, rel(f)) + `\n\nBuilt ${url}\n  schema: ${schema['@graph'].map(n => n['@type']).join(', ')}\n  ${Object.keys(files).map(n => rel(path.join(dir, n))).join('\n  ')}\nFor the dashboard: \`handoff\` puts the built pages in one file for its Publish module and tries it there.`);
   },
 
   validate() {
@@ -256,4 +294,5 @@ const C = {
 };
 
 if (A.help || !C[cmd]) { C.help(); if (!C[cmd] && cmd !== 'help') process.exitCode = 2; }
-else Promise.resolve().then(() => C[cmd]()).catch(e => { console.error(e && e.stack && process.env.CS_DEBUG ? e.stack : 'Error: ' + (e && e.message ? e.message : e)); process.exit(2); });
+/* no dashboard connected, or no browser to run it in, is a plain message; a missing browser has its own exit code (3) */
+else Promise.resolve().then(() => C[cmd]()).catch(e => { const plain = e instanceof NotConnected || e instanceof live.Unavailable; console.error(e && e.stack && process.env.CS_DEBUG ? e.stack : (plain ? '' : 'Error: ') + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });

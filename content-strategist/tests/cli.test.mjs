@@ -5,7 +5,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { ok, done, FX, ROOT, tmp } from './_t.mjs';
 
-const local = tmp(), env = Object.assign({}, process.env, { CS_LOCAL: local, CS_OUT: path.join(local, 'out'), CS_BRAND: path.join(FX, 'brand.json'), HTTPS_PROXY: '', https_proxy: '', CS_BRAND_JSON: '' });
+/* LEVIATHAN_HOME keeps a dashboard connected on this machine out of the test: the commands here see none */
+const local = tmp(), env = Object.assign({}, process.env, { CS_LOCAL: local, CS_OUT: path.join(local, 'out'), CS_BRAND: path.join(FX, 'brand.json'), HTTPS_PROXY: '', https_proxy: '', CS_BRAND_JSON: '', LEVIATHAN_HOME: path.join(local, 'home'), LEVIATHAN_DASHBOARD: '', LEVIATHAN_NO_LIVE: '1' });
 const run = (args, e = env) => { const r = spawnSync(process.execPath, [path.join(ROOT, 'cli.mjs'), ...args], { encoding: 'utf8', env: e, timeout: 120000 }); return { code: r.status, out: r.stdout || '', err: r.stderr || '' }; };
 const J = (args, e) => { const r = run([...args, '--json'], e); try { return Object.assign(r, { json: JSON.parse(r.out) }); } catch { return Object.assign(r, { json: null }); } };
 

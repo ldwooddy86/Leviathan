@@ -306,7 +306,8 @@ export function brandProfile(B) {
 }
 
 /* ---------- writing packs ---------- */
-export const PACKS = path.join(HERE, 'verticals');
+/* CS_PACKS moves the packs, so that a test can connect a dashboard without rewriting the ones in the repository */
+export const PACKS = process.env.CS_PACKS ? path.resolve(process.env.CS_PACKS) : path.join(HERE, 'verticals');
 export function loadPack(id) { const p = path.join(PACKS, id + '.json'); if (!fs.existsSync(p)) throw new Error(`no vertical pack "${id}" (run: node content-strategist/cli.mjs verticals)`); return JSON.parse(fs.readFileSync(p, 'utf8')); }
 export function listPacks() { const p = path.join(PACKS, 'index.json'); return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : { packs: [] }; }
 export async function writePack(pack) {

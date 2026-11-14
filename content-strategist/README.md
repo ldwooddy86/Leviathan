@@ -44,21 +44,23 @@ Rebuild the keyword packs after a new console build lands in `leviathan/`, and t
 
 ```
 node content-strategist/cli.mjs harvest
-node content-strategist/cli.mjs extract path/to/DFW_Thermal_Debt_Atlas.html
+node content-strategist/cli.mjs connect path/to/DFW_Thermal_Debt_Atlas.html
 ```
 
-`extract` reads the atlas as text. It runs nothing in it except the one line triggers of the service angles, each checked against a whitelist first. It also writes the brand the atlas was built for to the local brand file.
+`connect` (the older name `extract` still works) connects the dashboard for this agent and for the paid ads specialist at once, through `dashboard-link/`. The pack is read from the atlas as text: nothing in it is run except the one line triggers of the service angles, each checked against a whitelist first. The brand the atlas was built for goes to the local brand file. A pack already read from the same dashboard file is left untouched, so connecting twice changes nothing under git.
 
 ## Where client files live
 
 Outside the repository, in `~/.leviathan/content-strategist/`: the brand file, the sitemap inventory, drafts, built pages and the ledger of posts. The console's build scans every file under the repository, ignored by git or not, and refuses it while a withheld name is anywhere in it, so nothing that names a client may sit in the tree. The packs are scanned against the same list before they are written, and a pack never carries a brand.
 
-`CS_LOCAL`, `CS_OUT` and `CS_BRAND` move those paths. A cloud session starts on a fresh machine, so give it the brand one of three ways: attach the atlas and run `extract`, fill a copy of `brand.example.json`, or set `CS_BRAND_JSON` in the environment to the same JSON.
+`CS_LOCAL`, `CS_OUT` and `CS_BRAND` move those paths. A cloud session starts on a fresh machine, so give it the brand one of three ways: attach the dashboard file and run `connect`, fill a copy of `brand.example.json`, or set `CS_BRAND_JSON` in the environment to the same JSON.
 
 ## Commands
 
 ```
-node content-strategist/cli.mjs where                       the brand on file, the sitemap, where client files go
+node content-strategist/cli.mjs where                       the dashboard connected, the brand on file, the sitemap, where client files go
+node content-strategist/cli.mjs connect atlas.html          connect a dashboard (shared with the paid ads specialist)
+node content-strategist/cli.mjs dashboard                   what is connected and the doors it has for pages
 node content-strategist/cli.mjs verticals                   the packs
 node content-strategist/cli.mjs keywords dfw --city Plano   angles by demand in a city, the city filled in
 node content-strategist/cli.mjs market dfw --city Plano     sourced local facts
@@ -69,6 +71,8 @@ node content-strategist/cli.mjs links "ac repair plano"     live pages to link t
 node content-strategist/cli.mjs lint draft.md               the writing and page checks alone
 node content-strategist/cli.mjs build draft.md              the whole gate; writes the page, schema and blueprint
 node content-strategist/cli.mjs compare folder-of-pages     how alike a set of pages is, with place names masked
+node content-strategist/cli.mjs handoff                     the built pages as one file for the dashboard's Publish module, tried there first
+node content-strategist/cli.mjs check pages.json            hand a pages file or one blueprint to the running dashboard
 node content-strategist/cli.mjs social lint post.json
 node content-strategist/cli.mjs social post post.json --platform all            a dry run
 node content-strategist/cli.mjs social post post.json --platform all --confirm  publishes
@@ -81,7 +85,13 @@ A site that answers a script with a bot challenge cannot be read from here. `sit
 
 ## Working with the dashboard
 
-A passing build writes `blueprint.json`, the page in the Site Forge's own format. In the atlas, open the Site Forge's page studio, paste it into the Blueprint view and choose Use edited blueprint; the Publish module then sends it to the site as a draft. The tests compile both fixture blueprints with the Forge compiler inside the console's DFW atlas. The Forge notes that such a page has no FAQ section, which is by design.
+The agent connects to a dashboard in both directions, through the link it shares with the paid ads specialist (`dashboard-link/`).
+
+In: `connect <atlas.html>` reads the dashboard file for the deep pack and the brand, records which build it was, and finds the doors that build has for pages. `dashboard` shows them.
+
+Out: `handoff` puts the built pages into one file, `pages-for-publish.json`, in the form the dashboard's Publish module (module 16) reads: a `pages` list of FORGE blueprints. Dropped on Publish's import box, each blueprint is compiled by the Site Forge's own compiler and listed as a draft. Where Playwright and Chromium are on the machine, `handoff` does exactly that to the running dashboard first, headless and with every network request refused, and reports what Publish listed. One page can also go in by hand: paste its `blueprint.json` into the Blueprint view of the Site Forge's page studio and choose Use edited blueprint.
+
+The tests compile both fixture blueprints with the Forge compiler inside the console's DFW atlas, and the link's own browser tests drop a pages file on that atlas's Publish module. The Forge notes that such a page has no FAQ section, which is by design.
 
 The schema uses the same ids the Forge compiles (`<site>/#organization`, `<site>/#website`, `<page>#webpage`), so the two merge on a site that carries both.
 
@@ -102,7 +112,7 @@ Posts go to Graph API `v26.0` (`FB_GRAPH_VERSION` changes it) and to the Busines
 node content-strategist/tests/run.mjs
 ```
 
-Seven files, no network: the atlas reader and the packs on disk (in step with the console, nothing withheld), the writing gate, the sitemap reader with cannibalization and links, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, and the command line end to end.
+Eight files, no network: the atlas reader and the packs on disk (in step with the console, nothing withheld), the writing gate, the sitemap reader with cannibalization and links, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`.
 
 ## Limits
 
