@@ -77,6 +77,7 @@ creative_<line>_<date>.csv             every line of copy with its length, limit
 campaign.json                          the campaign file the folder was built from
 report.json                            what the gate measured, every claim and who vouched for it
 README.md                              what to do with each file, for the person who gets the folder
+handoff.json                           all of the above as one file, for the Agent Desk in the dashboard
 ```
 
 Every campaign and every ad in the files is paused. Ad groups, keywords and assets inside a paused campaign are enabled, and serve nothing until a person switches the campaign on.
@@ -89,11 +90,15 @@ The files carry a flat daily budget and no ad schedule. The README in the folder
 
 In: `connect <atlas.html>`. See `dashboard-link/README.md` for what is read and where it is kept.
 
-Out: `campaign-desk-plan.json`. In the dashboard, open the Campaign Desk (module 08), press ⤒ Load and choose the file. The desk then shows the plan: the markets, the split, the forecast and the flight.
+Out: the Agent Desk. `build` puts the campaign on the Agent Desk of a copy of the dashboard (`~/.leviathan/dashboard/<Atlas>_Build_<n>_Agent_Desk.html`; the connected dashboard itself is never written to) and says where the copy is. A person opens it and chooses Agent Desk, the last module. There the plan loads on the Campaign Desk with one button and the desk is read back; the specialist's own copy is read ad by ad, each screened by the dashboard's own rules; the claims nobody has vouched for wait for the owner; the launch checks and every file of the folder are at hand. With a browser on the machine `build` opens the copy to see that the Agent Desk lists the campaign. `handoff.json` in the folder is the same hand-off as one file, to drop on the Agent Desk of any copy. `dashboard-link/README.md` has the whole of it.
+
+The owner's answers come back as a file. On the Agent Desk the owner confirms a claim in their own words, with their name, or says to cut it, and saves `owner-answers.json`. `answers owner-answers.json campaign.json` records each confirmation under `confirmed` in the campaign file and says whether the gate takes it (a superlative with no basis, a credit term with no disclosure wording and a claim the brand file contradicts are still refused), and lists every line that carries a claim to cut. It does not rewrite copy: the lines are the writer's. An answers file is the owner's word only when a person hands it over; the agent never writes one.
+
+By hand, the older way still works: `campaign-desk-plan.json`. In the dashboard, open the Campaign Desk (module 08), press ⤒ Load and choose the file. The desk then shows the plan: the markets, the split, the forecast and the flight.
 
 The plan model here is a port of that Campaign Desk, so a plan made here says what the desk will say. Three things keep that honest. The pack carries a fingerprint of the desk's code, and the toolkit says when the connected dashboard is not a build the model was checked against (Build 6 is). The browser tests put eleven plans through the running desk and compare markets, angles, mix, forecast, flight and the desk's own exported files with the port's, byte for byte. And where Playwright and Chromium are on the machine, `build` screens the copy with the running dashboard's own rule tests and loads the plan through the desk's own Load button, then reports whether the desk's figures match. When they do not, the report says so and the desk's figures are the ones to quote.
 
-The Campaign Desk writes its own ad copy from its library, so the agent's copy does not appear in the dashboard. It travels in the bulk files.
+The Campaign Desk writes its own ad copy from its library, so the agent's copy does not appear on the desk. It is on the Agent Desk, and it travels in the bulk files.
 
 For a heating buy, `plan --from-heat` starts from the Heat Desk's plan for the month the flight mostly runs in (`--month` picks another): its ZIPs, its bid adjustments and the platform shares that run after its minimums. `--within` holds those ZIPs to a drive time and `--mix` replaces its split, and the command says when either has moved the plan away from the Heat Desk's own. The Heat Desk and the Campaign Desk are two models and give different figures for the same money; the Heat Desk weighs drive time, cold and competition by ZIP, and the agent is told to quote it for heating and to say which plan its figure is for. The plan also prints the Heat Desk's reading of each ZIP and the share of the month it holds back as a freeze reserve.
 
@@ -119,7 +124,10 @@ node paid-ads/cli.mjs channels [id] [--for emergency]
 node paid-ads/cli.mjs plan --line heat --budget 12000 --start 2026-11-23 --weeks 10 --from-heat
 node paid-ads/cli.mjs draft plan.json            a campaign file started from the dashboard's library
 node paid-ads/cli.mjs lint campaign.json         the gate, writing nothing
-node paid-ads/cli.mjs build campaign.json        the gate, the files, and the check against the running dashboard
+node paid-ads/cli.mjs build campaign.json        the gate, the files, the check against the running dashboard, the hand-off to the Agent Desk
+node paid-ads/cli.mjs answers owner-answers.json campaign.json
+                                                 the owner's answers from the Agent Desk, put into a campaign file
+node paid-ads/cli.mjs panel [--forget id|all]    write the dashboard copy with the Agent Desk again, and say what is on it
 node paid-ads/cli.mjs check campaign-desk-plan.json
 node paid-ads/cli.mjs read file-from-the-dashboard.json
 ```
@@ -133,9 +141,9 @@ node paid-ads/tests/run.mjs        no browser
 node paid-ads/tests/e2e/run.mjs    with a browser: the running Campaign Desk
 ```
 
-Six files without a browser: the channel book's integrity and the figures the gate leans on, keyword intent and negatives, the copy gate rule by rule, the plan model's arithmetic and files, the campaign gate, and the command line end to end in a sandbox. They use the DFW atlas the console carries (Build 4) and a made up brand, so no client file is needed.
+Six files without a browser: the channel book's integrity and the figures the gate leans on, keyword intent and negatives, the copy gate rule by rule, the plan model's arithmetic and files, the campaign gate with the hand-off it makes, and the command line end to end in a sandbox, `answers` included. They use the DFW atlas the console carries (Build 4) and a made up brand, so no client file is needed.
 
-The browser test runs the whole command line against that atlas with the dashboard open: connect, plan, draft, build with the live screen and the live load. Build 4 is not a build the plan model claims to mirror, and the test holds the toolkit to saying so rather than claiming a match it did not check. Point `ATLAS_HTML` at a Build 6 dashboard file to run the eleven plan parity check and the same command line flow against it; nothing from that file is printed but counts.
+The browser test runs the whole command line against that atlas with the dashboard open: connect, plan, draft, build with the live screen and the live load. Build 4 is not a build the plan model claims to mirror, and the test holds the toolkit to saying so rather than claiming a match it did not check. Point `ATLAS_HTML` at a Build 6 dashboard file to run the eleven plan parity check and the same command line flow against it; nothing from that file is printed but counts. The Agent Desk itself is driven in a browser by `dashboard-link/tests/e2e/panel.test.mjs`, which builds a campaign with this command line first.
 
 ```
 ATLAS_HTML=path/to/atlas.html node paid-ads/tests/e2e/run.mjs

@@ -43,6 +43,14 @@
                                         by the running dashboard and the plan is loaded through the desk's own Load button.
                                         A draft cannot be built. --allow sets a rule aside by name where that is possible
                                         (a platform limit, a rule of law or a contradicted claim never is), and is recorded.
+                                        The folder also gets handoff.json, the whole campaign as one file, and the copy of
+                                        the dashboard with the Agent Desk in it is written again with this campaign on it.
+     answers <owner-answers.json> <campaign.json>
+                                        the owner's answers from the dashboard's Agent Desk, put into a campaign file: each
+                                        confirmation is recorded in the owner's words, each claim to cut is listed with the
+                                        lines that carry it
+     panel [--out file] [--forget id|all] [--no-live]
+                                        write the copy of the dashboard with the Agent Desk in it again, and say what is on it
      check <file>                       hand a plan file to the running dashboard and report what it made of it
      read <file>                        a file saved from the dashboard: the desk's plan, the competitor ledger, account results
 
@@ -52,7 +60,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { status, requireConnection, loadPaidPack, listPaidPacks, loadModel, loadLive, loadCompetitors, loadBrand, atlasFile, NotConnected } from '../dashboard-link/lib/connect.mjs';
-import { runConnect, runStatus, runCheck, runHeat, runRead } from '../dashboard-link/cli.mjs';
+import { runConnect, runStatus, runCheck, runHeat, runRead, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
+import { bundle as handoffBundle, registerBundle, workingName, joins as panelJoins, ANSWERS } from '../dashboard-link/lib/panel.mjs';
 import * as live from '../dashboard-link/lib/live.mjs';
 import { note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
 import { PA_LOCAL, CS_LOCAL, outside, inRepo, rel, readJson } from '../dashboard-link/lib/paths.mjs';
@@ -76,7 +85,7 @@ const out = (v, t) => console.log(A.json ? JSON.stringify(v, null, 1) : (t != nu
 const die = (msg, code = 2) => { console.error(msg); process.exit(code); };
 /* the options each command takes: one it does not know is an error, never something to ignore without a word */
 const OPTS = { help: [], where: [], connect: ['id', 'no-live', 'no-copy'], dashboard: [], check: ['files'], read: [], heat: ['budget', 'month', 'lsa'], lines: ['pack'], markets: ['line', 'n', 'county', 'city', 'zips', 'within'], keywords: ['line', 'city', 'find', 'pack'], rules: ['pack'], competitors: ['find', 'n'], channels: ['find', 'for'],
-  plan: ['line', 'budget', 'start', 'weeks', 'n', 'zips', 'county', 'mix', 'angles', 'by-line', 'from-heat', 'out', 'within', 'month', 'lsa', 'job-value', 'book-rate'], draft: ['out', 'force'], lint: ['allow'], build: ['allow', 'out', 'no-live', 'force'] };
+  plan: ['line', 'budget', 'start', 'weeks', 'n', 'zips', 'county', 'mix', 'angles', 'by-line', 'from-heat', 'out', 'within', 'month', 'lsa', 'job-value', 'book-rate'], draft: ['out', 'force'], lint: ['allow'], build: ['allow', 'out', 'no-live', 'force'], answers: [], panel: ['out', 'forget', 'no-live'] };
 if (OPTS[cmd]) { const bad = Object.keys(A).filter(k => k !== '_' && k !== 'json' && k !== 'help' && !OPTS[cmd].includes(k)); if (bad.length) die(`${cmd} does not take ${bad.map(k => '--' + k).join(', ')}.${OPTS[cmd].length ? ' It takes: ' + OPTS[cmd].map(k => '--' + k).join(', ') + '.' : ' It takes no options.'}`); }
 /* an option that must be a number in a range, or a real date: a bad value stops the command */
 function numOpt(k, { min = -Infinity, max = Infinity, int = false, what = '' } = {}) {
@@ -379,13 +388,59 @@ const C = {
         recount();
       } catch (e) { dash.desk = { error: String(e.message || e).split('\n')[0] }; }
     }
-    const names = Object.keys(made).concat(['report.json', 'README.md']), R = g.reading;
+    const names = Object.keys(made).concat(['report.json', 'README.md', 'handoff.json']), R = g.reading;
     const reportJson = { built: new Date().toISOString(), name: c.name || '', atlas: { name: X.connection.identity.atlas, build: X.connection.identity.build, sha256: X.connection.identity.sha256.slice(0, 16) }, plan: g.plan, forecast: { totals: R.totals, byPlatform: R.forecast, costPerBooked: R.costPerBooked, flight: R.flight, pacedBy: R.season.from }, heatDesk: c.heat || null, outsideTheDesk: (c.extra || []).filter(e => e && +e.monthly > 0), stats: g.stats, counts: g.counts, rulesSetAside: g.allowed, rulesNotLifted: g.notLifted, findings: g.findings, claims: g.claims, landingPagesChecked: X.site ? { against: 'the site\'s sitemap', ageHours: X.site.ageHours, pages: X.site.paths.size } : null, dashboard: dash, files: names };
-    fs.writeFileSync(path.join(dir, 'report.json'), JSON.stringify(reportJson, null, 1) + '\n');
-    fs.writeFileSync(path.join(dir, 'README.md'), camp.readme(c, g, X, names, dash.desk && !dash.desk.error ? dash.desk : null));
+    /* The hand-off for the dashboard's Agent Desk: this folder as one file, put on file for this client, and the copy of
+       the dashboard that holds it written again. A dashboard build the panel cannot join gets the files and no copy. */
+    const joins = atlas ? panelJoins(fs.readFileSync(atlas, 'utf8')) : { ok: false, why: 'the dashboard file is gone from this machine' };
+    const reportText = JSON.stringify(reportJson, null, 1) + '\n', readmeText = camp.readme(c, g, X, names, dash.desk && !dash.desk.error ? dash.desk : null, joins.ok ? { name: workingName(X.connection) } : null);
+    fs.writeFileSync(path.join(dir, 'report.json'), reportText); fs.writeFileSync(path.join(dir, 'README.md'), readmeText);
+    const hand = handoffBundle({ id: 'paid:' + path.basename(dir), agent: 'paid-ads-specialist', title: c.name || `${R.P.line} from ${R.P.start}`, connection: X.connection, paid: camp.handoff(c, g, X, Object.assign({}, made, { 'report.json': reportText, 'README.md': readmeText }), dash) });
+    fs.writeFileSync(path.join(dir, 'handoff.json'), JSON.stringify(hand) + '\n');
+    let panel = null, panelWhy = joins.ok ? '' : joins.why;
+    if (joins.ok) { try { registerBundle(hand); panel = (await runPanel({ check: av.ok })).value; } catch (e) { panelWhy = String(e.message || e).split('\n')[0]; } }
+    const pl = panel ? [`For the dashboard: open ${rel(panel.file)} and choose Agent Desk, the last module. This campaign is on it: the plan loads on the Campaign Desk from there with one button, the copy is screened by the dashboard's own rules, and the owner answers the claims that wait on them.`, panel.opened ? (panel.ok ? `  Opened headless to check it: the Agent Desk is module ${panel.opened.num} and lists ${panel.opened.handoffs.length} hand-off${panel.opened.handoffs.length === 1 ? '' : 's'}.` : '  PROBLEM  Opened headless, and the Agent Desk did not come up as it should. Use the by hand route below and say so.') : `  That copy was not opened to check it: ${panel.notOpened}.`, `  By hand instead: Campaign Desk (module 08), ⤒ Load, choose ${rel(path.join(dir, 'campaign-desk-plan.json'))}`]
+      : [`The copy of the dashboard with the Agent Desk was not written: ${panelWhy}`, `For the dashboard: Campaign Desk (module 08), ⤒ Load, choose ${rel(path.join(dir, 'campaign-desk-plan.json'))}`];
     const dl = dash.ran ? [dash.screen ? (dash.screen.error ? `  The dashboard's screen could not be run: ${dash.screen.error}` : `  Screened by the running dashboard: ${dash.screen.sets} ad sets, ${dash.screen.agrees ? 'it flags nothing this toolkit did not' : dash.screen.extra + ' more findings, listed above'}.`) : '', dash.desk ? (dash.desk.error ? `  The plan could not be tried on the dashboard: ${dash.desk.error}` : dash.desk.accepted ? `  Loaded through the Campaign Desk's own Load button: taken ("${dash.desk.verdict}"), ${dash.desk.markets} markets${dash.desk.agrees ? ', and its forecast matches this one figure for figure.' : '. Its forecast differs: see the warning.'}` : `  The Campaign Desk refused the plan file: "${dash.desk.verdict}".`) : ''].filter(Boolean) : [`  Not checked against the running dashboard: ${dash.why}.`];
-    out({ ok: true, dir, files: names, counts: g.counts, stats: g.stats, findings: g.findings, claims: g.claims, allowed: g.allowed, notLifted: g.notLifted, dashboard: dash, forecast: reportJson.forecast },
-      [camp.report(g, name) + liftText(g), '', `Built ${c.name || ''}`.trim(), ...dl, X.site ? `  Landing pages were checked against the site's sitemap, read ${X.site.ageHours} hour${X.site.ageHours === 1 ? '' : 's'} ago.` : '  Landing pages were not checked: the site\'s sitemap has not been read here.', `  Every campaign and every ad in these files is paused. Nothing was sent to an ad account.`, ...names.map(n => '  ' + rel(path.join(dir, n))), '', `For the dashboard: Campaign Desk (module 08), ⤒ Load, choose ${rel(path.join(dir, 'campaign-desk-plan.json'))}`].join('\n'));
+    out({ ok: true, dir, files: names, counts: g.counts, stats: g.stats, findings: g.findings, claims: g.claims, allowed: g.allowed, notLifted: g.notLifted, dashboard: dash, forecast: reportJson.forecast, handoff: hand.id, agentDesk: panel ? { file: panel.file, handoffs: panel.bundles.length, opened: panel.opened ? panel.ok : null, notOpened: panel.notOpened } : { file: null, why: panelWhy } },
+      [camp.report(g, name) + liftText(g), '', `Built ${c.name || ''}`.trim(), ...dl, X.site ? `  Landing pages were checked against the site's sitemap, read ${X.site.ageHours} hour${X.site.ageHours === 1 ? '' : 's'} ago.` : '  Landing pages were not checked: the site\'s sitemap has not been read here.', `  Every campaign and every ad in these files is paused. Nothing was sent to an ad account.`, ...names.map(n => '  ' + rel(path.join(dir, n))), '', ...pl].join('\n'));
+  },
+
+  /* The owner's answers from the dashboard's Agent Desk, put into a campaign file. A confirmation is recorded under
+     "confirmed" in the owner's own words; the gate then says whether it takes it. A claim the owner says to cut is listed
+     with every line that carries it: the copy is not rewritten here, because cutting a claim well is the writer's work. */
+  answers() {
+    const af = A._[0], cf = A._[1]; if (!af || !cf) die('answers <owner-answers.json> <campaign.json>');
+    const X = context(), ans = readJson(path.resolve(af)) || die('No answers file at ' + af), file = path.resolve(cf), c = readJson(file) || die('No campaign file at ' + cf);
+    if (!ans || ans.format !== ANSWERS || !Array.isArray(ans.answers)) die(`${rel(path.resolve(af))} is not an answers file from the dashboard's Agent Desk: it carries no "${ANSWERS}" mark and no list of answers.`);
+    if (!c || typeof c !== 'object' || !c.plan) die(`${rel(file)} is not a campaign file: it has no plan.`);
+    outside(path.dirname(file), 'The campaign file\'s folder');
+    const low = s => String(s || '').trim().toLowerCase(), notes = [], confirmed = Array.isArray(c.confirmed) ? c.confirmed.slice() : [], asked = { confirm: [], cut: [] };
+    if (ans.campaign && c.name && ans.campaign !== c.name) notes.push(`These answers were given for "${ans.campaign}" and this campaign file is "${c.name}". Check that it is the right file before you build from it.`);
+    for (const a of ans.answers) {
+      if (!a || typeof a.claim !== 'string' || !a.claim.trim()) { notes.push('An answer with no claim in it was passed over.'); continue; }
+      if (a.decision === 'cut') { asked.cut.push(a); continue; }
+      if (a.decision !== 'confirm') { notes.push(`"${a.claim}" carries neither a confirmation nor a cut, and was passed over.`); continue; }
+      if (!a.by || !String(a.by).trim()) { notes.push(`"${a.claim}" was confirmed by nobody named, and was not recorded.`); continue; }
+      const rec = Object.assign({ claim: a.claim.trim(), by: String(a.by).trim() }, a.on ? { on: String(a.on) } : {}, a.terms ? { terms: String(a.terms) } : {}, a.basis ? { basis: String(a.basis) } : {}, { from: 'the Agent Desk' });
+      const at = confirmed.findIndex(x => x && low(x.claim) === low(rec.claim)); if (at >= 0) confirmed[at] = rec; else confirmed.push(rec);
+      asked.confirm.push(rec);
+    }
+    const next = Object.assign({}, c, { confirmed }), g = camp.gate(next, X), stand = claim => g.claims.filter(x => low(x.said) === low(claim));
+    if (asked.confirm.length) fs.writeFileSync(file, JSON.stringify(next, null, 1) + '\n');
+    const rows = asked.confirm.map(r => { const s = stand(r.claim), bad = s.find(x => x.status !== 'confirmed' && x.status !== 'on-file'); return { claim: r.claim, by: r.by, taken: s.length > 0 && !bad, inCopy: s.length > 0, why: !s.length ? 'the copy no longer says this, so there is nothing for it to vouch for' : bad ? (bad.status === 'contradicts' ? 'the brand file says otherwise (' + bad.detail + '), and no confirmation overrules that: correct the brand file first, or cut the claim' : bad.detail) : s[0].detail }; });
+    const cuts = asked.cut.map(a => ({ claim: a.claim, lines: camp.linesWith(g, a.claim) }));
+    out({ file, campaign: c.name || '', handoff: ans.handoff || '', recorded: rows, toCut: cuts, notes, counts: g.counts },
+      [`Answers from the Agent Desk${ans.campaign ? ` for "${ans.campaign}"` : ''}${ans.made ? ', saved ' + String(ans.made).slice(0, 10) : ''}: ${asked.confirm.length} confirmed, ${asked.cut.length} to cut.`, ...notes.map(n => 'NOTE  ' + n),
+        ...(rows.length ? [`Recorded under "confirmed" in ${rel(file)}:`, ...rows.map(r => `  "${r.claim}"  by ${r.by}: ${r.taken ? 'the gate takes it (' + r.why + ')' : 'NOT taken: ' + r.why}`)] : ['Nothing was recorded, and the campaign file was not written.']),
+        ...(cuts.length ? ['To cut. The lines are yours to rewrite, so that each still persuades and still asks for the action:', ...cuts.flatMap(x => (x.lines.length ? x.lines.map(l => `  "${x.claim}"  in ${l.where}: ${l.text}`) : [`  "${x.claim}"  is no longer in the copy.`]))] : []),
+        '', `Next: ${cuts.some(x => x.lines.length) ? 'rewrite the lines to cut, then ' : ''}node paid-ads/cli.mjs lint ${rel(file)}, and build again so the Agent Desk shows the campaign as it now stands.`].join('\n'));
+    if (rows.some(r => !r.taken)) process.exitCode = 1;
+  },
+
+  async panel() {
+    if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
+    const r = await runPanel({ out: opt('out'), check: !A['no-live'], forget: opt('forget') }); out(r.value, r.text); if (!r.ok) process.exitCode = 1;
   },
 };
 /* --allow: a name that is no rule stops the command; what was set aside and what could not be is said after the report */
@@ -393,4 +448,4 @@ function badAllow(g) { if (g.unknownAllow.length) die(`--allow names ${g.unknown
 function liftText(g) { return (g.allowed.length ? `\n\nSet aside because it was asked for: ${g.allowed.join(', ')}. The build records this, and so does the README.` : '') + (g.notLifted.length ? `\nNot set aside, whatever was asked: ${g.notLifted.join(', ')}.` : ''); }
 
 if (A.help || !C[cmd]) { C.help(); if (!C[cmd] && cmd !== 'help') process.exitCode = 2; }
-else Promise.resolve().then(() => C[cmd]()).catch(e => { console.error(e instanceof NotConnected || e instanceof live.Unavailable ? e.message : (process.env.PA_DEBUG && e && e.stack) || 'Error: ' + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });
+else Promise.resolve().then(() => C[cmd]()).catch(e => { console.error(e instanceof NotConnected || e instanceof live.Unavailable || e instanceof NoSuchHandoff ? e.message : (process.env.PA_DEBUG && e && e.stack) || 'Error: ' + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });

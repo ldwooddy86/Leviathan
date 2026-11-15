@@ -71,7 +71,8 @@ node content-strategist/cli.mjs links "ac repair plano"     live pages to link t
 node content-strategist/cli.mjs lint draft.md               the writing and page checks alone
 node content-strategist/cli.mjs build draft.md              the whole gate; writes the page, schema and blueprint
 node content-strategist/cli.mjs compare folder-of-pages     how alike a set of pages is, with place names masked
-node content-strategist/cli.mjs handoff                     the built pages as one file for the dashboard's Publish module, tried there first
+node content-strategist/cli.mjs handoff                     the built pages for the dashboard: onto its Agent Desk, and as one file for Publish, tried there first
+node content-strategist/cli.mjs panel [--forget id|all]     write the dashboard copy with the Agent Desk again, and say what is on it
 node content-strategist/cli.mjs check pages.json            hand a pages file or one blueprint to the running dashboard
 node content-strategist/cli.mjs social lint post.json
 node content-strategist/cli.mjs social post post.json --platform all            a dry run
@@ -91,7 +92,9 @@ In: `connect <atlas.html>` reads the dashboard file for the deep pack and the br
 
 Out: `handoff` puts the built pages into one file, `pages-for-publish.json`, in the form the dashboard's Publish module (module 16) reads: a `pages` list of FORGE blueprints. Dropped on Publish's import box, each blueprint is compiled by the Site Forge's own compiler and listed as a draft. Where Playwright and Chromium are on the machine, `handoff` does exactly that to the running dashboard first, headless and with every network request refused, and reports what Publish listed. One page can also go in by hand: paste its `blueprint.json` into the Blueprint view of the Site Forge's page studio and choose Use edited blueprint.
 
-The tests compile both fixture blueprints with the Forge compiler inside the console's DFW atlas, and the link's own browser tests drop a pages file on that atlas's Publish module. The Forge notes that such a page has no FAQ section, which is by design.
+`handoff` also puts the pages on the Agent Desk, so nobody has to carry a file. It writes `handoff.json` beside the pages file (the same blueprints with what the gate measured for each page: its address, keyword, words, reading grade, schema and the warnings left in), and writes a copy of the dashboard with the Agent Desk in it, `~/.leviathan/dashboard/<Atlas>_Build_<n>_Agent_Desk.html`. The connected dashboard itself is never written to. A person opens the copy, chooses Agent Desk, the last module, reads the pages there and sends them to Publish with one button, through that same import box; they land as drafts. Handing over every built page replaces the set that was on the Agent Desk; handing over pages by name adds a hand-off of their own. Publish keeps pages only while the dashboard is open, and the Agent Desk says so when pages sent before are no longer there. `dashboard-link/README.md` has the whole of it.
+
+The tests compile both fixture blueprints with the Forge compiler inside the console's DFW atlas, and the link's own browser tests drop a pages file on that atlas's Publish module and send the pages there from the Agent Desk. The Forge notes that such a page has no FAQ section, which is by design.
 
 The schema uses the same ids the Forge compiles (`<site>/#organization`, `<site>/#website`, `<page>#webpage`), so the two merge on a site that carries both.
 

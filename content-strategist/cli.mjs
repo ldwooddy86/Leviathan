@@ -36,7 +36,11 @@
      handoff [slug | folder ...] [--out file] [--no-live]
                                           one pages file for the dashboard's Publish module from the pages already built
                                           (all of them, or the ones named). With a browser here it is dropped on the running
-                                          dashboard's import box first, and you are told what Publish made of it.
+                                          dashboard's import box first, and you are told what Publish made of it. It also
+                                          writes handoff.json, the pages with what the gate measured, and writes the copy of
+                                          the dashboard with the Agent Desk in it again, with these pages on it.
+     panel [--out file] [--forget id|all] [--no-live]
+                                          write the copy of the dashboard with the Agent Desk in it again, and say what is on it
      check <pages.json | blueprint.json>  hand a file to the running dashboard's Publish module and report what it listed
 
    Social
@@ -59,8 +63,9 @@ import { buildSchema, validate, blueprint, pageUrl } from './lib/schema.mjs';
 import * as social from './lib/social.mjs';
 import { compare } from './lib/unique.mjs';
 /* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
-import { runConnect, runStatus, runCheck } from '../dashboard-link/cli.mjs';
-import { status as linkStatus, NotConnected } from '../dashboard-link/lib/connect.mjs';
+import { runConnect, runStatus, runCheck, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
+import { status as linkStatus, atlasFile, NotConnected } from '../dashboard-link/lib/connect.mjs';
+import { bundle as handoffBundle, registerBundle, joins as panelJoins } from '../dashboard-link/lib/panel.mjs';
 import { pagesFile, note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
 import * as live from '../dashboard-link/lib/live.mjs';
 import { CS_LOCAL } from '../dashboard-link/lib/paths.mjs';
@@ -184,16 +189,33 @@ const C = {
   async handoff() {
     const named = A._.length > 0, dirs = named ? A._.map(a => (fs.existsSync(a) ? path.resolve(a) : path.join(OUT, a))) : (fs.existsSync(OUT) ? fs.readdirSync(OUT).sort().map(e => path.join(OUT, e)).filter(p => fs.existsSync(path.join(p, 'blueprint.json'))) : []);
     if (!dirs.length) die('No built pages to hand over. A page is built with: build <page.md>');
+    const folderOf = d => (fs.existsSync(d) && fs.statSync(d).isDirectory() ? d : path.dirname(d));
     const bps = dirs.map(d => { const p = fs.existsSync(d) && fs.statSync(d).isDirectory() ? path.join(d, 'blueprint.json') : d; if (!fs.existsSync(p)) die(`No blueprint at ${p}. Name a built page by its slug or its folder.`); return JSON.parse(fs.readFileSync(p, 'utf8')); });
     const link = linkStatus(), made = pagesFile(bps, handoffNote('content-strategist', link.connected ? link.connection : null, { pages: bps.map(b => b.page && b.page.slug) }));
     if (made.problems.length) die('The pages file was not written:\n  ' + made.problems.join('\n  '));
     const file = A.out && A.out !== true ? path.resolve(A.out) : path.join(OUT, 'pages-for-publish.json'); fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, made.file);
     let tried = null, why = '';
     if (!link.connected) why = 'no dashboard is connected (connect <atlas.html>)'; else if (A['no-live']) why = '--no-live was passed'; else { const av = await live.available(); if (!av.ok) why = av.why; else { try { tried = await runCheck(file); } catch (e) { why = String(e.message || e).split('\n')[0]; } } }
-    out({ file, pages: bps.map(b => b.page.slug), dashboard: tried ? tried.value : null, notTried: why || undefined },
-      [`${made.count} page${made.count === 1 ? '' : 's'}  ->  ${rel(file)}`, `For the dashboard: Publish (module 16), "What to publish", Import. Drop this file on the box. Each page is compiled there by the Site Forge compiler and listed as a draft; nothing reaches a site until a person sends it.`,
+    /* The hand-off for the dashboard's Agent Desk: the same pages with what the gate measured for each, as one file beside
+       the pages file, put on file for this client; then the copy of the dashboard that holds it is written again. */
+    const info = bps.map((b, i) => { const folder = folderOf(dirs[i]); let r = null; if (path.basename(folder) === b.page.slug) { try { r = JSON.parse(fs.readFileSync(path.join(folder, 'report.json'), 'utf8')); } catch { r = null; } }
+      return Object.assign({ slug: b.page.slug, title: b.page.h1 || b.page.title || '' }, r ? { url: r.url || '', type: r.type || '', keyword: r.keyword || '', words: (r.stats || {}).words ?? null, grade: (r.stats || {}).grade ?? null, schemaTypes: r.schemaTypes || [], warnings: (r.findings || []).filter(f => f.severity === 'warn').map(f => f.message) } : {}); });
+    const hand = handoffBundle({ id: named ? 'content:' + bps.map(b => b.page.slug).sort().join('+').slice(0, 80) : 'content:pages', agent: 'content-strategist', title: bps.length === 1 ? (bps[0].page.h1 || bps[0].page.title || bps[0].page.slug) : `${bps.length} pages`, connection: link.connected ? link.connection : null,
+      content: { pages: bps, info, checked: { dashboard: tried ? { ran: true, accepted: !!tried.ok, verdict: (tried.value && tried.value.verdict) || '' } : { ran: false, why } } } });
+    const hf = /pages-for-publish\.json$/.test(file) ? path.join(path.dirname(file), 'handoff.json') : file.replace(/(\.json)?$/i, '.handoff.json'); fs.writeFileSync(hf, JSON.stringify(hand) + '\n');
+    let panel = null, panelWhy = '';
+    if (!link.connected) panelWhy = 'no dashboard is connected'; else { const src = atlasFile(), j = src ? panelJoins(fs.readFileSync(src, 'utf8')) : { ok: false, why: 'the dashboard file is gone from this machine' }; if (!j.ok) panelWhy = j.why; else { try { registerBundle(hand); panel = (await runPanel({ check: !A['no-live'] })).value; } catch (e) { panelWhy = String(e.message || e).split('\n')[0]; } } }
+    const byHand = `Publish (module 16), "What to publish", Import. Drop ${rel(file)} on the box.`, drafts = 'Each page is compiled there by the Site Forge compiler and listed as a draft; nothing reaches a site until a person sends it.';
+    out({ file, handoff: hf, pages: bps.map(b => b.page.slug), dashboard: tried ? tried.value : null, notTried: why || undefined, agentDesk: panel ? { file: panel.file, handoffs: panel.bundles.length, opened: panel.opened ? panel.ok : null, notOpened: panel.notOpened } : { file: null, why: panelWhy } },
+      [`${made.count} page${made.count === 1 ? '' : 's'}  ->  ${rel(file)}`, `Hand-off  ->  ${rel(hf)}`,
+        ...(panel ? [`For the dashboard: open ${rel(panel.file)} and choose Agent Desk, the last module. ${made.count === 1 ? 'This page is' : 'These pages are'} on it, with what the gate measured, and one button sends ${made.count === 1 ? 'it' : 'them'} to Publish. ${drafts}`, panel.opened ? (panel.ok ? `  Opened headless to check it: the Agent Desk is module ${panel.opened.num} and lists ${panel.opened.handoffs.length} hand-off${panel.opened.handoffs.length === 1 ? '' : 's'}.` : '  PROBLEM  Opened headless, and the Agent Desk did not come up as it should. Use the by hand route below and say so.') : `  That copy was not opened to check it: ${panel.notOpened}.`, '  By hand instead: ' + byHand]
+          : [`The copy of the dashboard with the Agent Desk was not written: ${panelWhy}.`, `For the dashboard: ${byHand} ${drafts}`]),
         tried ? 'Tried on the running dashboard: ' + tried.text : `Not tried on the running dashboard: ${why}.`].join('\n'));
     if (tried && !tried.ok) process.exitCode = 1;
+  },
+  async panel() {
+    if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
+    const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '' }); out(r.value, r.text); if (!r.ok) process.exitCode = 1;
   },
   async check() { const f = A._[0] || die('check <pages.json | blueprint.json>'); const r = await runCheck(path.resolve(f)); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
 
@@ -295,4 +317,4 @@ const C = {
 
 if (A.help || !C[cmd]) { C.help(); if (!C[cmd] && cmd !== 'help') process.exitCode = 2; }
 /* no dashboard connected, or no browser to run it in, is a plain message; a missing browser has its own exit code (3) */
-else Promise.resolve().then(() => C[cmd]()).catch(e => { const plain = e instanceof NotConnected || e instanceof live.Unavailable; console.error(e && e.stack && process.env.CS_DEBUG ? e.stack : (plain ? '' : 'Error: ') + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });
+else Promise.resolve().then(() => C[cmd]()).catch(e => { const plain = e instanceof NotConnected || e instanceof live.Unavailable || e instanceof NoSuchHandoff; console.error(e && e.stack && process.env.CS_DEBUG ? e.stack : (plain ? '' : 'Error: ') + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });

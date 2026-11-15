@@ -151,6 +151,18 @@ export async function publish(s, pagesFile) {
   return out;
 }
 
+/* ---------- the Agent Desk ---------- */
+/* What a copy of the dashboard with the Agent Desk in it (lib/panel.mjs) opens to: whether the module is there, its
+   number, its place in the rail, and the hand-offs it lists. */
+export async function panel(s) {
+  const out = await s.run(() => {
+    const m = typeof MODI !== 'undefined' ? MODI.agents : null; if (!m) return { present: false, tab: false, failed: false, handoffs: [], modules: typeof MODS !== 'undefined' ? MODS.length : 0 };
+    showModule('agents'); const sec = document.querySelector('#mod-agents');
+    return { present: true, num: m.num, title: m.title, tab: !!document.querySelector('#tab-agents'), shown: !!sec && !sec.hidden, failed: !sec || /This module failed to load/.test(sec.textContent || ''), handoffs: typeof m.handoffs === 'function' ? m.handoffs() : [], modules: MODS.length };
+  });
+  out.errors = s.errors.slice(); return out;
+}
+
 /* ---------- the Heat Desk ---------- */
 /* The Heat Desk engine's plan for a month and its reading of the week, from the forecast the file carries. settings is a
    sparse HEATX settings object (budget, month 0 to 11, lsaLive, mode, mix, ...). Returns null when the dashboard has no

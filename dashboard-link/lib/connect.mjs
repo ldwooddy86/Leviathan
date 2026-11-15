@@ -23,6 +23,7 @@ import { deepPack, brandProfile, writePack, scrub, loadPack as loadContentPack, 
 import { identity, titleClient, modules, doors, library, model, competitors, brandRaw, isThermalDebt, READER } from './read.mjs';
 import { drift } from './satchel.mjs';
 import * as live from './live.mjs';
+import { hasPanel, stripPanel, embeddedData, listBundles, registerBundle, belongs } from './panel.mjs';
 import { REPO, LINK, CS_LOCAL, outside, readJson, writeJson } from './paths.mjs';
 
 export const FORMAT = 1;
@@ -116,7 +117,8 @@ function capabilities({ lib, mdl, mods, drs, comp, brand, driftList, liveOk, sna
 /* opts: id (the pack id; "dfw" for the DFW atlas), copy (keep a copy of the file, default true), live ('auto' | false) */
 export async function connect(file, opts = {}) {
   const abs = path.resolve(file); if (!fs.existsSync(abs)) throw new Error('no file at ' + abs);
-  const text = fs.readFileSync(abs, 'utf8');
+  /* a copy with the Agent Desk in it (lib/panel.mjs) is the same dashboard: the block comes out before anything is read */
+  const raw = fs.readFileSync(abs, 'utf8'), carried = hasPanel(raw) ? embeddedData(raw) : null, text = hasPanel(raw) ? stripPanel(raw) : raw;
   if (!isThermalDebt(text)) throw new Error('This file is not a Thermal Debt atlas (no data block with service angles). A deep connection needs one; keyword packs for the other atlases in the console come from: node content-strategist/cli.mjs harvest');
   outside(LINK, 'The dashboard link folder (LEVIATHAN_DASHBOARD)');
   const ident = identity(text, abs);
@@ -136,7 +138,7 @@ export async function connect(file, opts = {}) {
 
   /* this client's files */
   fs.mkdirSync(LINK, { recursive: true });
-  let copy = null; if (opts.copy !== false) { copy = F.atlas(); if (path.resolve(copy) !== abs) fs.copyFileSync(abs, copy); }
+  let copy = null; if (opts.copy !== false) { copy = F.atlas(); if (text !== raw) fs.writeFileSync(copy, text); else if (path.resolve(copy) !== abs) fs.copyFileSync(abs, copy); }
   writeJson(F.model(), Object.assign({ id, sha256: ident.sha256 }, mdl));
   writeJson(F.competitors(), Object.assign({ id, sha256: ident.sha256 }, comp));
   const brandFile = B ? writeBrand(B, id) : null;
@@ -162,6 +164,12 @@ export async function connect(file, opts = {}) {
     counts: { angles: lib.angles.length, zips: mdl.zips.length, rules: lib.rules.rules.length, lines: lib.service ? lib.service.lines.length : 0, competitors: comp.companies.filter(c => !c.self).length },
     capabilities: caps,
   };
+  /* hand-offs that came inside a copy with the Agent Desk go on file here, unless a newer one of the same name already is */
+  if (text !== raw) {
+    const have = Object.fromEntries(listBundles().map(b => [b.id, b])); let kept = 0;
+    for (const b of (carried ? carried.bundles : [])) { if (!belongs(b, connection) || (have[b.id] && String(have[b.id].made) >= String(b.made))) continue; registerBundle(b); kept++; }
+    connection.panel = { carried: carried ? carried.bundles.length : 0, kept };
+  }
   writeJson(F.connection(), connection);
   return connection;
 }

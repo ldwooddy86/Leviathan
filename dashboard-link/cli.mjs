@@ -14,15 +14,21 @@
      heat [--budget n] [--month 1..12] [--lsa]
                               the Heat Desk's plan and its reading of the week, from the running dashboard
      read <file>              what a file saved from the dashboard holds: a desk plan, the competitor ledger, account results
+     panel [--out file] [--forget id|all] [--no-live]
+                              write a copy of the connected dashboard with the Agent Desk in it: a module where both
+                              agents' hand-offs arrive and from which a plan loads on the Campaign Desk and pages go to
+                              Publish. The dashboard file that was connected is never written to. Each agent refreshes
+                              the copy when it hands work over; --forget drops a hand-off (or all) from it.
 
-   Add --json for machine output. The paid ads and content strategist command lines take connect and dashboard too.
-   A browser is needed for check and heat (Playwright with Chromium); connect uses one when it is there. */
+   Add --json for machine output. The paid ads and content strategist command lines take connect, dashboard and panel too.
+   A browser is needed for check and heat (Playwright with Chromium); connect and panel use one when it is there. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { connect, status, requireConnection, atlasFile, NotConnected } from './lib/connect.mjs';
 import * as live from './lib/live.mjs';
 import { readFile, ledger, actuals } from './lib/handoff.mjs';
-import { connectText, statusText, deskCheckText, publishCheckText, heatText } from './lib/report.mjs';
+import { connectText, statusText, deskCheckText, publishCheckText, heatText, panelText } from './lib/report.mjs';
+import { refresh, forgetBundles } from './lib/panel.mjs';
 import { outside, rel } from './lib/paths.mjs';
 
 const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help']);
@@ -52,6 +58,22 @@ export async function runCheck(file, { filesTo = '' } = {}) {
   throw new Error(`${file} is not a file the dashboard takes: a Campaign Desk plan (line, budget, start, ...) or a pages file (a "pages" list of blueprints).`);
 }
 export async function runHeat(settings) { const atlas = await liveFile(); const h = await live.withDashboard(atlas, s => live.heat(s, settings)); return { value: h, text: heatText(h) }; }
+/* The copy of the connected dashboard with the Agent Desk in it, holding every hand-off registered for this client. With
+   a browser here the copy is opened to see that the module is in the rail and lists what was put in. `ok` is false only
+   when it was opened and that is not what it showed. `forget` drops a hand-off (by its id, or "all") from the registry
+   first; the folders the agents built are not touched. */
+export class NoSuchHandoff extends Error { }
+export async function runPanel({ out = '', check = true, forget = '' } = {}) {
+  const s = requireConnection(), src = atlasFile(), gone = forget ? forgetBundles(String(forget)) : null;
+  if (gone && !gone.length) throw new NoSuchHandoff(`No hand-off "${forget}" is on file. panel lists what is.`);
+  const r = refresh(s.connection, src, { out });
+  let opened = null, why = '';
+  if (!check) why = '--no-live was passed'; else { const av = await live.available(); if (!av.ok) why = av.why; else { try { opened = await live.withDashboard(r.file, x => live.panel(x)); } catch (e) { why = 'the copy did not open (' + String(e.message || e).split('\n')[0] + ')'; } } }
+  r.opened = opened; if (!opened) r.notOpened = why;
+  r.ok = !opened || (opened.present && opened.tab && !opened.failed && !opened.errors.length && opened.handoffs.length === r.bundles.length);
+  if (gone) r.forgotten = gone;
+  return { value: r, ok: r.ok, text: (gone ? `Forgotten: ${gone.join(', ')}. The folders the agents built are still where they were.\n` : '') + panelText(r) };
+}
 
 /* what a file saved from the dashboard holds */
 export function runRead(f) {
@@ -71,10 +93,15 @@ const C = {
   async check() { const f = A._[0] || die('check <campaign-desk-plan.json | pages.json> [--files folder]'); const r = await runCheck(f, { filesTo: A.files && A.files !== true ? A.files : '' }); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
   async heat() { const P = {}; if (A.budget && A.budget !== true) P.budget = +A.budget; if (A.month && A.month !== true) P.month = +A.month - 1; if (A.lsa) P.lsaLive = true; const r = await runHeat(P); out(r.value, r.text); },
   read() { const f = A._[0] || die('read <file saved from the dashboard>'); const r = runRead(f); out(r.value, r.text); },
+  async panel() {
+    if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
+    const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '' });
+    out(r.value, r.text); if (!r.ok) process.exitCode = 1;
+  },
 };
 
 const direct = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname);
 if (direct) {
   if (A.help || !C[cmd]) { C.help(); if (!C[cmd] && cmd !== 'help') process.exitCode = 2; }
-  else Promise.resolve().then(() => C[cmd]()).then(() => { if (process.exitCode == null) process.exitCode = 0; }).catch(e => { console.error(e instanceof NotConnected || e instanceof live.Unavailable ? e.message : (process.env.LV_DEBUG && e && e.stack) || 'Error: ' + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });
+  else Promise.resolve().then(() => C[cmd]()).then(() => { if (process.exitCode == null) process.exitCode = 0; }).catch(e => { console.error(e instanceof NotConnected || e instanceof live.Unavailable || e instanceof NoSuchHandoff ? e.message : (process.env.LV_DEBUG && e && e.stack) || 'Error: ' + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });
 }

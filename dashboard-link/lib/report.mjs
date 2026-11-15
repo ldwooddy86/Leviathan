@@ -21,6 +21,13 @@ function doorsText(doors) {
   return ['Doors: what this dashboard takes in and gives out with its own controls', ...doors.map(d => `  ${d.dir === 'in' ? 'in ' : 'out'}  ${d.what}  (${who[d.agent] || d.agent})\n        ${d.how}`)];
 }
 
+/* the hand-offs that came inside a copy with the Agent Desk in it: how many, and how many of them were new here */
+function carriedText({ carried: n, kept: k }) {
+  if (!n) return '';
+  if (k === n) return `, and the ${n === 1 ? 'hand-off' : n + ' hand-offs'} inside it ${n === 1 ? 'was' : 'were'} put on file here`;
+  return `. Of the ${n === 1 ? 'one hand-off' : n + ' hand-offs'} inside it, ${k === 0 ? 'none was' : k === 1 ? 'one was' : k + ' were'} put on file here: the rest ${n - k === 1 ? 'is' : 'are'} on file already, or ${n - k === 1 ? 'was' : 'were'} made for another client's dashboard`;
+}
+
 /* after connect */
 export function connectText(c) {
   const live = c.live.ok ? 'The dashboard was also opened headless and its computed model read (seasons, unit economics, priority by ZIP and line).' : `The dashboard was read as text only: ${c.live.why}.`;
@@ -29,7 +36,8 @@ export function connectText(c) {
     'Connected: ' + identityLine(c),
     `  ${c.modules.length} modules: ${c.modules.map(m => m.num + ' ' + m.title).join(', ')}`,
     c.client ? `  Built for ${c.client}. The brand is in ${c.brandFile ? rel(c.brandFile) : 'no file'}, outside the repository.` : '  The dashboard names no client.',
-    '  ' + live, '',
+    '  ' + live,
+    ...(c.panel ? [`  The file carried the Agent Desk. It was read as the dashboard without it${carriedText(c.panel)}.`] : []), '',
     ...doorsText(c.doors), '',
     ...capsText(c.capabilities), '',
     'In the repository (no client name in either; ' + (c.packs.scanned ? 'both scanned against the withheld list' : 'the withheld list was not found, so they were NOT scanned') + '):',
@@ -88,5 +96,20 @@ export function heatText(h) {
     ...(w ? ['', w.stale || w.source === 'normal' ? `This week: the forecast in the file is ${w.forecastAgeHours != null ? w.forecastAgeHours + ' hours old' : 'missing'}, so the week runs at normal and nothing is released. Open the dashboard for a live read.` : `This week (${w.from} to ${w.to}, forecast ${w.forecastAgeHours} hours old): ${w.head ? w.head.headline : ''}`,
       ...(w.stale || w.source === 'normal' ? [] : [`  ${$(w.totals.week)} against a normal ${$(w.totals.normal)}. ${w.reserve}`, '  ' + w.lines.map(l => `${l.name} x${l.multiplier}${l.paused ? ' (paused)' : ''}`).join(', '), w.trigger ? '  TRIGGER: ' + w.why : '  No trigger this week.', ...w.rules.map(r => `  Rule fired: ${r.id}: ${r.budget}`)])] : []),
     ...(h.weekError ? ['  The week could not be read: ' + h.weekError] : []),
+  ].join('\n');
+}
+
+/* the copy of the dashboard with the Agent Desk in it */
+export function panelText(r) {
+  const who = { 'paid-ads-specialist': 'paid ads specialist', 'content-strategist': 'content strategist' }, o = r.opened, n = r.bundles.length;
+  return [
+    `The dashboard with the Agent Desk in it  ->  ${rel(r.file)}   (${mb(r.bytes)}; a copy: the dashboard file that was connected is not written to)`,
+    n ? `  ${n} hand-off${n === 1 ? '' : 's'} in it, newest first:` : '  No hand-off is in it yet. A campaign built by the paid ads specialist or pages handed over by the content strategist go in as they are made.',
+    ...r.bundles.map(b => `    ${(who[b.agent] || b.agent || 'an agent').padEnd(20)} ${String(b.made).slice(0, 16).replace('T', ' ')}  ${b.title || b.id}   (${b.id})`),
+    ...(r.slimmed.length ? [`  ${r.slimmed.length} older hand-off${r.slimmed.length === 1 ? ' is' : 's are'} in it without the text of the bulk files, to keep the file small: ${r.slimmed.join(', ')}. The files are in each hand-off's own folder.`] : []),
+    ...(r.leftOut.length ? [`  ${r.leftOut.length} older still ${r.leftOut.length === 1 ? 'was' : 'were'} left out: ${r.leftOut.join(', ')}. Forget what is finished with: panel --forget <id>.`] : []),
+    ...(r.others ? [`  ${r.others} hand-off${r.others === 1 ? '' : 's'} on this machine belong${r.others === 1 ? 's' : ''} to another client's dashboard and ${r.others === 1 ? 'was' : 'were'} not put in this one.`] : []),
+    o ? (o.present && o.tab && !o.failed && !o.errors.length ? `  Opened headless: the Agent Desk is module ${o.num} of ${o.modules} and lists ${o.handoffs.length} hand-off${o.handoffs.length === 1 ? '' : 's'}.` : `  PROBLEM  Opened headless, and the Agent Desk ${!o.present ? 'is not there' : o.failed ? 'failed to load' : o.errors.length ? 'raised errors: ' + o.errors.slice(0, 3).join(' | ') : 'has no place in the rail'}. Do not hand this copy over.`) : `  Not opened to check it: ${r.notOpened}.`,
+    'Open that file in a browser, the way the dashboard itself is opened. The Agent Desk is the last module in the rail. From it a plan loads on the Campaign Desk and pages go to Publish; nothing there spends money or publishes anything.',
   ].join('\n');
 }

@@ -303,10 +303,12 @@ export function files(file, g, ctx, handoff) {
   return out;
 }
 
+/* what each file of a built folder is for, by its name: the README lists them and the Agent Desk shows them */
+export const FILE_NOTES = [[/^google-ads-editor/, 'Google Ads Editor: Account, Import, From file. Review the proposed changes, post, and leave everything paused until the checks below are done.'], [/^microsoft-ads/, 'Microsoft Advertising: import the same sheet, or import the Google campaigns once they are live and then set Microsoft\'s own budget.'], [/^meta-build-sheet/, 'Meta: a build sheet, not an import file. Build the campaign in Ads Manager from it: one ad set a language with every ad of that language inside, so the budget is not split thin. A row marked with a special ad category runs on a radius, not on ZIP codes.'], [/^lsa-build-sheet/, 'Local Services Ads: the profile, job types, service ZIPs and weekly budget to enter.'], [/^demand-gen/, 'Demand Gen: the build sheet for Google Ads.'], [/^nextdoor/, 'Nextdoor Ads Manager: the build sheet.'], [/^yelp/, 'Yelp Ads: the build sheet.'], [/^linkedin/, 'LinkedIn Campaign Manager: the build sheet.'], [/^other-channels/, 'Channels the dashboard does not plan: build each by hand in its own platform, paused, and check every limit there.'], [/^keywords_/, 'Every keyword with its ad group, match type and intent. No volumes and no click prices: price the set in Keyword Planner inside the account.'], [/^creative_/, 'Every line of copy with its length, its limit and its pin.'], [/^campaign-plan_/, 'The markets: minutes from the shop, bid adjustment, and the desk\'s own dollars by ZIP (a planning view: the campaign has one budget). The angles column says where the dashboard\'s model finds demand; a search campaign runs every ad group in every ZIP.'], [/^report\.json/, 'What the gate measured, every finding, and every claim with who vouched for it.'], [/^handoff\.json/, 'This whole folder as one file for the Agent Desk in the dashboard: drop it on the Agent Desk of any copy of the dashboard, or open the copy that already holds it.']];
 /* What to do with the folder, for the person who gets it. `check` is what the running dashboard made of the plan (or
    null when it was not tried). Everything the gate left open is listed here by name: a README that says less than the
    gate knew would be the one place the person looks. */
-export function readme(file, g, ctx, names, check) {
+export function readme(file, g, ctx, names, check, panel = null) {
   const R = g.reading, { P } = R, T = R.totals, target = R.targetCostPerBooked, lineId = desk.NAME_LINE[P.line] || P.line, PL = ctx.pack.platforms, FC = R.forecast, brand = ctx.brand || {}, FL = flightOf(R);
   const open = [...new Set(g.claims.filter(c => c.status === 'unconfirmed').map(c => `"${c.said}"`))], dated = [...new Set(g.claims.filter(c => c.status === 'on-file' && ['reviews', 'price'].includes(c.type)).map(c => `"${c.said}"`))];
   const warns = new Map(); for (const f of g.findings.filter(x => x.severity === 'warn' && !x.rule.startsWith('claim:'))) warns.set(f.rule, (warns.get(f.rule) || 0) + 1);
@@ -316,15 +318,16 @@ export function readme(file, g, ctx, names, check) {
     `# ${file.name || 'Campaign'}`, '',
     `Built for the ${ctx.pack.atlas}. ${$(P.budget)} a month for ${P.weeks} weeks from ${P.start} to ${desk.lastDay(P)}, in ${R.markets.length} ZIP markets.${extraTotal ? ` On top of that, ${$(extraTotal)} a month goes to ${extra.map(e => (byId(e.channel) || {}).name || e.channel).join(', ')}, which the dashboard does not plan: ${$(P.budget + extraTotal)} a month in all.` : ''}`,
     `Forecast a month, on the Campaign Desk's own benchmarks (graded C and D, so a starting point and not a promise): ${Math.round(T.leads)} leads, ${Math.round(T.booked)} booked jobs, ${R.costPerBooked ? $(R.costPerBooked) : 'n/a'} a booked job.${extraTotal ? ' The channels outside the desk are not in this forecast.' : ''}`,
-    ...(H ? [`The Heat Desk, the dashboard's own model for heating, reckoned its plan for ${H.month} (${H.zips} ZIPs, ${$(H.spent)}) at ${H.leads} leads and ${H.jobs} booked jobs, ${$(H.costPerJob)} a job (grade ${H.grade}). It weighs drive time, cold and competition by ZIP, which the Campaign Desk does not, so for heating it is the better guide.${H.same ? '' : ' This campaign changed that plan (its markets, its money or its split), so the figure is a reference and not a forecast of what is in this folder.'}`] : []), '',
+    ...(H ? [`The Heat Desk, the dashboard's own model for heating, reckoned its plan for ${H.month} (${H.zips} ZIPs, ${$(H.spent)}) at ${H.leads} leads and ${H.jobs} booked jobs, ${$(H.costPerJob)} a job (grade ${H.grade}). It weighs drive time, cold and competition by ZIP, which the Campaign Desk does not, so for heating it is the better guide.${heatSame(file, g) ? '' : ' This campaign changed that plan (its markets, its money or its split), so the figure is a reference and not a forecast of what is in this folder.'}`] : []), '',
     '## Nothing here spends money', '',
     'Every campaign and every ad in these files is paused. Ad groups, keywords and assets inside them are enabled, and serve nothing until a person switches the campaign on. Nothing was sent to any ad account. A person imports each file, reads it, and switches it on.', '',
     '## The dashboard', '',
+    ...(panel ? [`This campaign is on the Agent Desk of the dashboard copy named \`${panel.name}\`, kept beside the connected dashboard. Open that copy and choose Agent Desk, the last module: the plan loads on the Campaign Desk from there with one button, the copy is screened by the dashboard's own rules as you read it, and the claims that need the owner's word are answered there. \`handoff.json\` is the same hand-off as one file, for the Agent Desk of any other copy.`, '', 'By hand instead:'] : []),
     'Open the dashboard, go to the Campaign Desk (module 08), press ⤒ Load and choose `campaign-desk-plan.json`. The desk then shows this plan: the markets, the split, the forecast and the flight.',
     check ? (check.accepted ? `This was tried against the running dashboard when the folder was built: the desk took the plan and showed ${kp}.${check.agrees === false ? ' Those figures differ from the forecast above: quote the dashboard\'s.' : ''}` : `When the folder was built the running dashboard did not take the plan ("${check.verdict}"). Do not load it until that is understood.`) : 'The plan was not tried against the running dashboard (no browser was on the machine that built this).',
     'The desk writes its own ad copy from its library, so the copy in these files will not appear there. The files below carry the copy.', '',
     '## The files', '',
-    ...[[/^google-ads-editor/, 'Google Ads Editor: Account, Import, From file. Review the proposed changes, post, and leave everything paused until the checks below are done.'], [/^microsoft-ads/, 'Microsoft Advertising: import the same sheet, or import the Google campaigns once they are live and then set Microsoft\'s own budget.'], [/^meta-build-sheet/, 'Meta: a build sheet, not an import file. Build the campaign in Ads Manager from it: one ad set a language with every ad of that language inside, so the budget is not split thin. A row marked with a special ad category runs on a radius, not on ZIP codes.'], [/^lsa-build-sheet/, 'Local Services Ads: the profile, job types, service ZIPs and weekly budget to enter.'], [/^demand-gen/, 'Demand Gen: the build sheet for Google Ads.'], [/^nextdoor/, 'Nextdoor Ads Manager: the build sheet.'], [/^yelp/, 'Yelp Ads: the build sheet.'], [/^linkedin/, 'LinkedIn Campaign Manager: the build sheet.'], [/^other-channels/, 'Channels the dashboard does not plan: build each by hand in its own platform, paused, and check every limit there.'], [/^keywords_/, 'Every keyword with its ad group, match type and intent. No volumes and no click prices: price the set in Keyword Planner inside the account.'], [/^creative_/, 'Every line of copy with its length, its limit and its pin.'], [/^campaign-plan_/, 'The markets: minutes from the shop, bid adjustment, and the desk\'s own dollars by ZIP (a planning view: the campaign has one budget). The angles column says where the dashboard\'s model finds demand; a search campaign runs every ad group in every ZIP.'], [/^report\.json/, 'What the gate measured, every finding, and every claim with who vouched for it.']].filter(([re]) => has(re)).map(([re, what]) => `- \`${has(re)}\`: ${what}`), '',
+    ...FILE_NOTES.filter(([re]) => has(re)).map(([re, what]) => `- \`${has(re)}\`: ${what}`), '',
     '## Before anything is switched on', '',
     ...(g.allowed && g.allowed.length ? [`- These rules were set aside for this build because someone asked: ${g.allowed.join(', ')}. Know why before you launch.`] : []),
     ...(open.length ? [`- Confirm these claims with the owner or cut them: ${open.join(', ')}.`] : ['- No claim in the copy is waiting for the owner\'s word.']),
@@ -344,5 +347,57 @@ export function readme(file, g, ctx, names, check) {
     P.line === 'heat' || P.angles.includes('heattune') ? '- Freeze rule (the dashboard\'s): a forecast low of 20°F or less switches heating repair ads on across all markets for 72 hours; replacement quotes wait. The Heat Desk reads the week.' : '- Heat wave rule (the dashboard\'s): three or more forecast 100°F days lift Search and Local Services 25% for the week.',
     '- After 60 to 90 days replace the starting bid adjustments with the observed cost a booked job by ZIP, and send the account results back through the dashboard\'s Accounts module.',
   ].join('\n') + '\n';
+}
+/* ---------- the hand-off for the dashboard's Agent Desk ---------- */
+/* Does the campaign still buy what the Heat Desk planned: its ZIPs, its money and its platform split? null when the
+   campaign did not start from the Heat Desk. A heat record that does not carry the Heat Desk's own ZIPs and split
+   cannot be compared, and is treated as changed. */
+export function heatSame(file, g) {
+  const H = file && file.heat; if (!H || typeof H !== 'object') return null;
+  const R = g.reading, P = R.P, theirs = Array.isArray(H.picks) ? H.picks.map(String).sort() : null;
+  if (!theirs || !H.mix || typeof H.mix !== 'object' || JSON.stringify(R.markets.map(m => m.z.zip).sort()) !== JSON.stringify(theirs)) return false;
+  if (Math.abs(P.budget - (+H.spent || 0)) > 1) return false;
+  const tot = o => sum(Object.values(o || {})) || 1, a = tot(P.mix), b = tot(H.mix);
+  return Object.keys(Object.assign({}, P.mix, H.mix)).every(k => Math.abs(((P.mix || {})[k] || 0) / a - (H.mix[k] || 0) / b) < 0.006);
+}
+/* what a file in a built folder is for, by its name */
+const MORE_NOTES = [[/^campaign-desk-plan\.json$/, 'The plan file the Campaign Desk loads: module 08, ⤒ Load. The Agent Desk loads this same plan with one button.'], [/^campaign\.json$/, 'The campaign file this folder was built from: the plan, the copy and every confirmed claim. The specialist builds from it again after a change.'], [/^README\.md$/, 'What to do with this folder, and what to check before anything is switched on.']];
+export const fileNote = name => ((FILE_NOTES.concat(MORE_NOTES).find(([re]) => re.test(name)) || [])[1] || '');
+/* The `paid` part of a hand-off bundle (dashboard-link/lib/panel.mjs): what the Agent Desk shows for a built campaign.
+   made is every file of the folder as {name: text}; dash is what the running dashboard made of the campaign when it was
+   built, or why it was not asked. The plan is the one the Campaign Desk loads, without the note the plan file carries. */
+export function handoff(file, g, ctx, made, dash) {
+  const R = g.reading, { P } = R, PL = ctx.pack.platforms, T = R.totals, FC = R.forecast, brand = ctx.brand || {}, shop = brand.geo && brand.geo.lat != null ? brand.geo : null, port = desk.ported(ctx.pack), ANG = Object.fromEntries(ctx.pack.angles.map(a => [a.id, a]));
+  const extra = (file.extra || []).filter(e => e && +e.monthly > 0).map(e => ({ channel: e.channel, name: (byId(e.channel) || {}).name || e.channel, monthly: +e.monthly }));
+  const H = file.heat && typeof file.heat === 'object' ? file.heat : null, readmeText = made['README.md'] || '';
+  /* the two lists of the README the person acts on, as lists */
+  const section = title => { const at = readmeText.indexOf('## ' + title + '\n'); if (at < 0) return []; const rest = readmeText.slice(at + title.length + 4), end = rest.indexOf('\n## '); return (end < 0 ? rest : rest.slice(0, end)).split('\n').filter(l => l.startsWith('- ')).map(l => l.slice(2)); };
+  const order = n => (n === 'README.md' ? 0 : n === 'campaign-desk-plan.json' ? 2 : n === 'campaign.json' ? 3 : n === 'report.json' ? 4 : 1);
+  return {
+    plan: Object.assign({}, g.plan),
+    summary: {
+      line: P.line, lineLabel: (ctx.pack.lines[P.line] || {}).label || P.line, budget: P.budget, start: P.start, end: desk.lastDay(P), weeks: P.weeks, bookRate: P.bookRate, jobVal: P.jobVal,
+      angles: R.angles.map(id => (ANG[id] || {}).short || id), markets: R.markets.length, households: Math.round(R.households),
+      totals: { clicks: T.clicks, leads: T.leads, booked: T.booked, costPerBooked: R.costPerBooked, target: R.targetCostPerBooked },
+      mix: PL.order.filter(p => FC[p].spend > 0).map(p => ({ id: p, label: PL.labels[p] || p, share: 100 * FC[p].spend / (T.spend || 1), spend: FC[p].spend, clicks: FC[p].clicks, leads: FC[p].leads, booked: FC[p].booked, basis: P.asm[p].basis, cost: P.asm[p].cost, grade: P.asm[p].g || '' })),
+      flight: flightOf(R).map(x => ({ month: x.month, days: x.days, spend: x.spend, daily: x.daily, stub: x.stub })), pacedBy: R.season.from,
+      extra, extraTotal: sum(extra.map(e => e.monthly)), deskModel: port.same ? '' : port.why,
+      heat: H ? { month: H.month, zips: H.zips, spent: H.spent, leads: H.leads, jobs: H.jobs, costPerJob: H.costPerJob, grade: H.grade, same: heatSame(file, g) } : null,
+    },
+    markets: R.markets.map(m => ({ zip: m.z.zip, city: m.z.city, county: m.z.county, minutes: shop ? desk.minutesFrom(shop, m.z) : null, bid: desk.bidOf(m.z, P), spend: Math.round(m.spend), es: m.es, angles: m.angles.map(a => a.short) })),
+    search: file.search || [], ads: file.ads || [], confirmed: file.confirmed || [],
+    channels: Object.fromEntries([...new Set((file.ads || []).map(a => a && a.channel).filter(Boolean))].map(id => [id, (byId(id) || {}).name || id])),
+    claims: g.claims.map(c => ({ type: c.type, said: c.said, status: c.status, detail: c.detail, where: c.where || '', in: c.in || '' })),
+    findings: g.findings, counts: g.counts, stats: g.stats, allowed: g.allowed, notLifted: g.notLifted,
+    checked: { dashboard: dash || { ran: false, why: 'it was not asked' }, landing: ctx.site ? { ageHours: ctx.site.ageHours, pages: ctx.site.paths.size } : null },
+    before: section('Before anything is switched on'), running: section('Running it'),
+    files: Object.keys(made).sort((a, b) => order(a) - order(b)).map(name => ({ name, what: fileNote(name), text: made[name] })),
+  };
+}
+/* The lines of a campaign that carry a claim, for a claim the owner says to cut: [{where, text}] */
+export function linesWith(g, claim) {
+  const want = String(claim || '').trim().toLowerCase(), seen = new Set(), out = [];
+  for (const c of g.claims) { if (String(c.said).trim().toLowerCase() !== want) continue; const k = c.where + '|' + c.in; if (seen.has(k)) continue; seen.add(k); out.push({ where: c.where || '', text: c.in || '' }); }
+  return out;
 }
 export { slug, CHANNELS, forDesk };

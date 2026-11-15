@@ -1,0 +1,83 @@
+/* ==== leviathan agent desk ==== */
+/* Styles for the Agent Desk module. Everything is scoped under .lvp and drawn with the dashboard's own tokens (--card,
+   --line, --ink, --accent and the rest), so it follows the dashboard's light and dark themes. The one colour written out
+   here is the green of the dashboard's own "connected" pill, for the title of a callout that reports something done.
+   No class of the dashboard's that changes between builds is leaned on: a table cell that wraps is .lvp-w, not .wrap.
+   One rule reaches outside .lvp, and only to the Agent Desk's own tab: where a build gives a module a full width bar in
+   the rail (Build 6 does, for Dr. HVAC), the Agent Desk takes the same shape under it instead of sitting alone on a row. */
+.rail .in:has(#tab-drhvac) #tab-agents{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:12px;padding:7px 12px}
+.rail .in:has(#tab-drhvac) #tab-agents .t{white-space:nowrap}
+.rail .in:has(#tab-drhvac) #tab-agents .d{-webkit-line-clamp:1;flex:1;min-width:0;font-size:11.5px}
+.lvp .lvp-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;margin-top:16px;align-items:start}
+.lvp .lvp-grid.lvp-solo{grid-template-columns:minmax(0,1fr) minmax(0,520px)}
+.lvp .lvp-inbox{position:sticky;top:calc(56px + env(safe-area-inset-top,0px))}
+.lvp .lvp-item{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 8px;color:var(--ink)}
+.lvp .lvp-item:hover{border-color:var(--line-strong)}
+.lvp .lvp-item[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.lvp .lvp-item:focus-visible,.lvp .drop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lvp .lvp-who{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.lvp .lvp-t{font-weight:600;font-size:13.5px;line-height:1.3;overflow-wrap:anywhere}
+.lvp .lvp-m{font-size:11.5px;color:var(--ink-3)}
+.lvp .lvp-s{margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.lvp .lvp-s .pill,.lvp .lvp-ad summary .pill{white-space:normal}
+.lvp .drop{margin-top:4px}
+.lvp .lvp-hint{margin:8px 0 0}
+.lvp .lvp-lead{margin:0 0 10px;max-width:900px}
+.lvp .status{margin-top:10px}
+.lvp .lvp-kpis{margin-top:0;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+.lvp .callout.lvp-ok{border-left-color:var(--good);background:color-mix(in srgb,var(--good) 7%,var(--card))}
+.lvp .callout.lvp-ok .ct{color:#0b7d0b}
+:root[data-theme="dark"] .lvp .callout.lvp-ok .ct{color:#5fd35f}
+.lvp .lvp-w{white-space:normal}
+.lvp .lvp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.lvp .lvp-row.lvp-row0{margin:0 0 10px}
+.lvp .lvp-row .btn{white-space:normal;text-align:left}
+.lvp .lvp-tabs{margin:18px 0 14px}
+.lvp .lvp-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start}
+.lvp .lvp-two.lvp-plan{grid-template-columns:minmax(0,.8fr) minmax(0,1.6fr)}
+.lvp .lvp-two .rowl b{text-align:right;font-weight:600;overflow-wrap:anywhere}
+.lvp .lvp-tall{max-height:360px;overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:10px}
+.lvp .lvp-pages{margin-top:14px}
+.lvp .lvp-h{font-family:var(--display);font-size:15px;font-weight:600;margin:18px 0 8px}
+.lvp .lvp-assets{font-size:12.5px;color:var(--ink-2);margin:0 0 8px;display:grid;gap:5px}
+.lvp .lvp-assets b{color:var(--ink);margin-right:6px}
+.lvp .lvp-ad{border:1px solid var(--line);border-radius:10px;margin:0 0 8px;background:var(--card)}
+.lvp .lvp-ad>summary{cursor:pointer;padding:9px 12px;font-size:13px;line-height:1.6;list-style-position:inside}
+.lvp .lvp-ad>summary:hover{background:var(--sunk)}
+.lvp .lvp-ad[open]>summary{border-bottom:1px solid var(--line)}
+.lvp .lvp-ad>*:not(summary){margin-left:12px;margin-right:12px}
+.lvp .lvp-ad>.lvp-two,.lvp .lvp-ad>.fl:first-of-type{margin-top:10px}
+.lvp .lvp-ad>*:last-child{margin-bottom:12px}
+.lvp .lvp-line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.lvp .lvp-line span:first-child{overflow-wrap:anywhere}
+.lvp .lvp-line .mini{white-space:nowrap;font-variant-numeric:tabular-nums}
+.lvp .lvp-over{color:var(--critical);font-weight:600}
+.lvp .lvp-gap{display:block;margin-top:10px}
+.lvp .lvp-url{overflow-wrap:anywhere}
+.lvp .lvp-dim{opacity:.7}
+.lvp .lvp-r{text-align:right;white-space:nowrap}
+.lvp .lvp-ul{margin:6px 0 0;padding-left:18px}
+.lvp .lvp-check{font-size:13px;line-height:1.6;color:var(--ink-2);max-width:1000px}
+.lvp .lvp-check li{margin:0 0 6px}
+.lvp .lvp-find td:nth-child(1){white-space:nowrap;width:80px}
+.lvp .lvp-find td:nth-child(2){width:150px;overflow-wrap:anywhere}
+.lvp .lvp-find td:nth-child(4){width:200px}
+.lvp .lvp-who2{display:grid;gap:4px;max-width:340px;margin:0 0 12px}
+.lvp .lvp-claim{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;align-items:start;padding:11px 0;border-top:1px solid var(--line)}
+.lvp .lvp-said b{font-size:13.5px}
+.lvp .lvp-in{font-style:italic}
+.lvp .lvp-ans{grid-column:1 / -1;display:grid;gap:4px;max-width:720px}
+.lvp .lvp-ans input,.lvp .lvp-who2 input{width:100%;text-transform:none;letter-spacing:0;font-weight:400}
+.lvp .lvp-must{color:var(--critical);text-transform:none;letter-spacing:0;font-weight:500}
+.lvp button.lnk{font-size:inherit}
+@media (max-width:1100px){
+  .lvp .lvp-grid,.lvp .lvp-grid.lvp-solo{grid-template-columns:minmax(0,1fr)}
+  .lvp .lvp-inbox{position:static;order:-1}
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .lvp .callout.lvp-ok .ct{color:#5fd35f}
+}
+@media (max-width:760px){
+  .lvp .lvp-two,.lvp .lvp-two.lvp-plan{grid-template-columns:minmax(0,1fr)}
+  .lvp .lvp-claim{grid-template-columns:minmax(0,1fr)}
+}

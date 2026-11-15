@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ok, done, FX } from './_t.mjs';
 import { atlasFile, sandbox, run, gitState, REPO } from '../../dashboard-link/tests/_t.mjs';
+import { isBundle, embeddedData, stripPanel } from '../../dashboard-link/lib/panel.mjs';
 
 const CLI = 'content-strategist/cli.mjs', before = gitState();
 const { home, env } = sandbox(), file = atlasFile();
@@ -42,11 +43,21 @@ const pf = at('content-strategist', 'out', 'pages-for-publish.json');
 ok(r.code === 0 && r.json.file === pf && r.json.pages.length === 2 && r.json.pages.includes('ac-repair-plano-tx') && r.json.notTried === '--no-live was passed' && r.json.dashboard === null && fs.existsSync(pf), 'handoff: every built page in one file for the Publish module', r.err);
 const P = J(pf);
 ok(Array.isArray(P.pages) && P.pages.length === 2 && P.pages.every(b => b.page && b.page.slug && Array.isArray(b.sections)) && P.handoff.format === 'leviathan.handoff' && P.handoff.agent === 'content-strategist' && P.handoff.atlas.build === '4' && P.handoff.pages.length === 2, 'the file is a pages list of blueprints with a note on who made it and for which build');
+/* the hand-off for the dashboard's Agent Desk, and the copy of the dashboard that holds it */
+const hf = at('content-strategist', 'out', 'handoff.json'), hb = J(hf), deskCopy = at('dashboard', 'DFW_Thermal_Debt_Atlas_Build_4_Agent_Desk.html');
+ok(r.json.handoff === hf && isBundle(hb) && hb.id === 'content:pages' && hb.agent === 'content-strategist' && hb.atlas.build === '4' && hb.title === '2 pages' && JSON.stringify(hb.content.pages) === JSON.stringify(P.pages) && hb.content.checked.dashboard.ran === false && hb.content.checked.dashboard.why === '--no-live was passed',
+  'handoff also writes handoff.json for the Agent Desk: the same blueprints, with who made them and that they were not tried on the running dashboard');
+ok(hb.content.info.length === 2 && hb.content.info.every(i => i.slug && i.title && i.url && ['landing', 'blog'].includes(i.type) && i.keyword && i.words > 100 && i.grade > 0 && i.grade <= 9 && i.schemaTypes.length >= 3 && Array.isArray(i.warnings)), 'with what the gate measured for each page: its address, its keyword, its words and reading grade, its schema, the warnings left in');
+ok(r.json.agentDesk.file === deskCopy && r.json.agentDesk.handoffs === 1 && r.json.agentDesk.opened === null && embeddedData(fs.readFileSync(deskCopy, 'utf8')).bundles[0].id === 'content:pages' && stripPanel(fs.readFileSync(deskCopy, 'utf8')) === fs.readFileSync(at('dashboard', 'atlas.html'), 'utf8') && fs.readFileSync(file, 'utf8') === fs.readFileSync(at('dashboard', 'atlas.html'), 'utf8'),
+  'and writes the copy of the dashboard with the Agent Desk in it, holding these pages; the dashboard that was connected is not written to');
 r = go(['handoff', 'ac-repair-plano-tx', '--no-live', '--out', at('one.json')]);
-ok(r.code === 0 && /^1 page {2}-> /.test(r.out) && /For the dashboard: Publish \(module 16\), "What to publish", Import\. Drop this file on the box\./.test(r.out) && /nothing reaches a site until a person sends it/.test(r.out) && /Not tried on the running dashboard: --no-live was passed\./.test(r.out) && J(at('one.json')).pages.length === 1, 'one page by its slug, with the steps a person takes in the dashboard and a plain statement that it was not tried there');
+ok(r.code === 0 && /^1 page {2}-> /.test(r.out) && /^Hand-off {2}-> .*one\.handoff\.json$/m.test(r.out) && /For the dashboard: open .*DFW_Thermal_Debt_Atlas_Build_4_Agent_Desk\.html and choose Agent Desk, the last module\. This page is on it, with what the gate measured, and one button sends it to Publish\./.test(r.out) && /nothing reaches a site until a person sends it/.test(r.out) && /That copy was not opened to check it: --no-live was passed\./.test(r.out) && /By hand instead: Publish \(module 16\), "What to publish", Import\. Drop .*one\.json on the box\./.test(r.out) && /Not tried on the running dashboard: --no-live was passed\./.test(r.out) && J(at('one.json')).pages.length === 1 && J(at('one.handoff.json')).id === 'content:ac-repair-plano-tx' && J(at('one.handoff.json')).title === 'AC Repair in Plano, TX',
+  'one page by its slug: where it now is in the dashboard, the by hand route, a plain statement that neither was tried there, and a hand-off of its own that does not replace the whole set\'s');
+r = go(['panel', '--no-live']);
+ok(r.code === 0 && /2 hand-offs in it, newest first:/.test(r.out) && /content strategist\s+\S+ \S+ {2}AC Repair in Plano, TX {3}\(content:ac-repair-plano-tx\)/.test(r.out) && /\(content:pages\)/.test(r.out) && go(['panel', '--no-live', '--forget', 'content:ac-repair-plano-tx']).code === 0 && /No hand-off "content:nope" is on file/.test(go(['panel', '--forget', 'content:nope']).err), 'panel: the same command the link has, from the strategist\'s own command line, and a hand-off is forgotten by its id');
 r = go(['handoff']); ok(r.code === 0 && /Not tried on the running dashboard: LEVIATHAN_NO_LIVE is set\./.test(r.out), 'with no browser on the machine, handoff still writes the file and says it was not tried');
 ok(go(['handoff', 'no-such-page', '--no-live']).code === 2 && /No blueprint at/.test(go(['handoff', 'no-such-page', '--no-live']).err), 'a page that was never built cannot be handed over');
 r = go(['check', pf]); ok(r.code === 3 && /no browser is available here/.test(r.err), 'check needs a browser, and says so');
-ok(go(['help']).out.includes('handoff [slug | folder ...]') && go(['help']).out.includes('connect <atlas.html>'), 'help lists the dashboard commands');
+ok(go(['help']).out.includes('handoff [slug | folder ...]') && go(['help']).out.includes('connect <atlas.html>') && go(['help']).out.includes('panel [--out file] [--forget id|all] [--no-live]'), 'help lists the dashboard commands');
 ok(before !== null && gitState() === before && !fs.existsSync(path.join(REPO, 'content-strategist', 'out')), 'the repository is as it was: nothing a command wrote landed in it');
 done();
