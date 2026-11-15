@@ -6,6 +6,7 @@ Ask for it by name in a Claude Code session on this repository:
 
 ```
 Use the leviathan-content-strategist agent to write a landing page for AC repair in Plano.
+Use the leviathan-content-strategist agent to plan a page for every city we serve, from what each area needs.
 Use the leviathan-content-strategist agent to plan six blog posts for the heating season.
 Use the leviathan-content-strategist agent to draft Facebook and Google Business Profile posts for the new Plano page.
 ```
@@ -16,11 +17,12 @@ Every landing page, blog post and content page passes one gate before it is writ
 
 | Rule | How it is checked |
 |---|---|
-| 9th grade reading level | Flesch-Kincaid over the page's prose. Above grade 9 fails and the sentences to shorten are listed; under 7 draws a warning. |
-| No passive voice | A form of "to be" or "get" with a past participle, through any adverbs between them. A plain state in the present tense ("the coil is frozen", "we are licensed") passes unless a "by" phrase names the actor. |
+| 9th grade reading level | Flesch-Kincaid over the page's prose. Above grade 9 fails and the sentences to shorten are listed; under 6 draws a warning. |
+| No passive voice | A form of "to be" or "get" with a past participle, through any adverbs between them. A plain state passes: the shape a thing is in ("the coil is frozen"), a credential whoever granted it ("licensed by TDLR"), what a thing is for ("built for the new refrigerant"). A finding comes with the plain active wording where one is known: homes "went up in" a year, owners "replace" a system. |
+| A homeowner's voice | The machinery behind a number named in the copy fails ("a model estimate", a survey's acronym); the source goes in plain words ("Census figures", "by one estimate"). A decimal percentage fails, and a count to the last hundred, a decimal age or a page of percentages draws a warning with the way a person would say it ("about one in five"). So do a page that never says "you", an opening on the company, and a city page whose section headings never name the city. |
 | No AI tropes | Em and en dashes, bullet and numbered lists, a reflex FAQ block, bolded lead ins, "Conclusion" headings, emoji, chat leftovers, and about a hundred stock phrases. A request can allow one by name (`--allow faq`, `--allow ordered-list`). |
 | No cannibalization | The page's keyword is weighed against every live URL in the sitemap. The same service in the same place is a conflict, and the build stops. That includes a city page that covers several services at once, and a blog post that carries the same subject in other words. |
-| Internal links from the sitemap | Every internal link must be a live URL. Generic anchors fail, and so does anchoring another page with the page's own keyword. |
+| Internal links from the sitemap | Every internal link must be a live URL. Generic anchors fail, and so does anchoring another page with the page's own keyword. A page for one city is asked to name the two cities next door, each linked to its own live page. |
 | Schema with every page | One JSON-LD graph: the business, the site, the page with its breadcrumb and a speakable pointer at the opening answer, and a Service, BlogPosting or Article. Validated against the page before it is written. No rating or review is ever generated. |
 | The vertical's advertising rules | For the DFW pack, the atlas's Satchel rules: the TDLR license number and notice, tax credit, financing, guarantee, superiority and availability claims, each with its cite and fix. A rule the atlas grades a block fails the build; the rest warn. |
 | Figures and demand | Every dollar amount, percentage and large count is looked up in the pack's facts for the market and the page's city, and the ones it cannot find are listed for the person to source. A page for an angle with no demand trigger in its city draws a warning that gives the atlas's trigger. |
@@ -35,10 +37,36 @@ The gate measures form. It does not know whether a claim about the business is t
 
 | Depth | Packs | Holds |
 |---|---|---|
-| deep | `dfw` (DFW Thermal Debt Atlas, Build 6) | 20 service angles with core, city and question terms; where each angle has demand, by ZIP and by city, and where it has none; sourced facts for 119 cities as the Site Forge prints them; the pages the Site Forge plans; the Satchel's advertising rules; the TDLR notice and consent text. |
+| deep | `dfw` (DFW Thermal Debt Atlas, Build 6) | 20 service angles with core, city and question terms; where each angle has demand, by ZIP and by city, and where it has none; sourced facts for 119 cities as the Site Forge prints them, each with how a person would say it and its source in plain words; the heatmap layers for every ZIP and what each area needs; the cities next door to each city; the pages the Site Forge plans; the Satchel's advertising rules; the TDLR notice and consent text. |
 | keywords | `hvac`, `plumbing`, `roofing`, `pest`, `dental`, `ocular`, `oncology`, `criminal`, `criminal_la`, `injury`, `injury_la`, `family`, `employment` | The keyword library the atlas keeps beside its ad copy: angles with core, question, Spanish and state terms, and the negatives. |
 
 The atlases carry no search volumes. A keyword ranks by the demand the atlas models for its angle in a place, not by a volume.
+
+## What each area needs
+
+The dashboard draws its ZIP heatmaps from one catalog of layers: the age of the central systems, the decade the homes went up, the heating fuel, hail, who bought lately. The deep pack reads the same catalog and the same ZIP rows, so the agent sees what the map shows.
+
+A need is a layer running hot in a ZIP, and the toolkit holds nineteen of them (`lib/atlas.mjs`, `NEEDS`): systems past 15 and past 20 years, R22 era systems, builder original systems, flexible duct from the 1980s and 1990s, homes from before 1980, the 2000s boom, homes from the 2010s, new homes, older gas furnaces, gas heat, electric heat, heat pumps, hail, new owners, larger homes. Each says the point to get across to the owner and the trade detail behind it. Three more (rentals, older owners, Spanish speaking households) are for planning only and never reach a reader.
+
+```
+node content-strategist/cli.mjs areas dfw                 every city by what runs hot there
+node content-strategist/cli.mjs areas dfw --need hail     the cities that share one need
+node content-strategist/cli.mjs brief Plano               the plan for one city page
+```
+
+`brief` is what the agent writes a city page from. It says who the reader is (the year the typical home dates to, how that differs across the city's ZIP codes, what they heat with), what sets the place apart in order, what is true in part of town only and in which ZIP, what is common elsewhere and not the story here, each measure here against the whole market, every ZIP with the figures that bear on it, the figures as a person says them, the live pages to link to and the neighbors to name. A city outside the mapped area gets a brief that says so, with no local figure.
+
+A need runs hot by where a ZIP stands among the market's ZIPs, the way the map colors it. The brief prints the measure itself beside it, here and across the market, and says when the gap is small, so a page does not write up a three point difference as a local crisis.
+
+## What a round of client review changed
+
+A set of city pages went to a client, and the client sent back their own edited versions. The toolkit now holds itself to what those edits did.
+
+The pages read like a report, and the client made them talk to the owner of the house. Figures written to the decimal became "about one in five". "A model estimate built from Census housing data" became "Census figures put the typical home here at 1993". Openings that named the company first became openings on the reader's situation. Section labels became headings that name the service and the city. Every page gained a sentence naming two neighboring cities, each linked to its own page. The voice checks, the spoken form on every fact, the neighbor links and the `brief` command come from that review.
+
+The client's edits also brought back passive voice ("homes were built", "is typically replaced"), which the gate still refuses. It now gives the plain active wording with the finding, so the fix reads naturally.
+
+`compare` checks more than it did. A sentence of four words or more that turns up on three pages fails the set, and so does a section heading on four pages with only the city swapped. The closing lines of a set are where the sameness was.
 
 Rebuild the keyword packs after a new console build lands in `leviathan/`, and the deep pack when a new build of the atlas file arrives:
 
@@ -53,6 +81,8 @@ node content-strategist/cli.mjs connect path/to/DFW_Thermal_Debt_Atlas.html
 
 Outside the repository, in `~/.leviathan/content-strategist/`: the brand file, the sitemap inventory, drafts, built pages and the ledger of posts. The console's build scans every file under the repository, ignored by git or not, and refuses it while a withheld name is anywhere in it, so nothing that names a client may sit in the tree. The packs are scanned against the same list before they are written, and a pack never carries a brand.
 
+The brand file may carry `neighbors`, the client's own choice of the cities to name beside each city (`{"Plano": ["Allen", "Richardson"]}`); it wins over the map.
+
 `CS_LOCAL`, `CS_OUT` and `CS_BRAND` move those paths. A cloud session starts on a fresh machine, so give it the brand one of three ways: attach the dashboard file and run `connect`, fill a copy of `brand.example.json`, or set `CS_BRAND_JSON` in the environment to the same JSON.
 
 ## Commands
@@ -64,13 +94,15 @@ node content-strategist/cli.mjs dashboard                   what is connected an
 node content-strategist/cli.mjs verticals                   the packs
 node content-strategist/cli.mjs keywords dfw --city Plano   angles by demand in a city, the city filled in
 node content-strategist/cli.mjs market dfw --city Plano     sourced local facts
+node content-strategist/cli.mjs areas dfw                   every city by what runs hot on the heatmaps
+node content-strategist/cli.mjs brief Plano                 the plan for one city page, ZIP by ZIP
 node content-strategist/cli.mjs rules dfw                   the advertising rules, the license format, the notice text
 node content-strategist/cli.mjs sitemap                     read the client's sitemap (or: sitemap saved-file.xml)
 node content-strategist/cli.mjs cannibal "ac repair plano"  who already holds a keyword
 node content-strategist/cli.mjs links "ac repair plano"     live pages to link to, with anchors
 node content-strategist/cli.mjs lint draft.md               the writing and page checks alone
 node content-strategist/cli.mjs build draft.md              the whole gate; writes the page, schema and blueprint
-node content-strategist/cli.mjs compare folder-of-pages     how alike a set of pages is, with place names masked
+node content-strategist/cli.mjs compare folder-of-pages     how alike a set of pages is, place names masked: runs, sentences, headings
 node content-strategist/cli.mjs handoff                     the built pages for the dashboard: onto its Agent Desk, and as one file for Publish, tried there first
 node content-strategist/cli.mjs panel [--forget id|all] [--no-repairs | --repairs]
                                                             write the dashboard copy with the Agent Desk again, and say what is on it
@@ -116,8 +148,8 @@ Posts go to Graph API `v26.0` (`FB_GRAPH_VERSION` changes it) and to the Busines
 node content-strategist/tests/run.mjs
 ```
 
-Eight files, no network: the atlas reader and the packs on disk (in step with the console, nothing withheld), the writing gate, the sitemap reader with cannibalization and links, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`.
+Nine files, no network: the atlas reader, the heatmap needs and the packs on disk (in step with the console, nothing withheld), the writing gate with the voice checks, the brief for a city page, the sitemap reader with cannibalization, links and neighbors, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`.
 
 ## Limits
 
-Passive voice and syllable counts are heuristics. They are tuned to over report passives slightly, and a reading grade can sit a few tenths from another tool's. Only `dfw` is a deep pack; the Louisiana Thermal Debt Atlas shares its family but is read as a keyword pack for now. The inventory reads a URL's keyword from its slug unless `sitemap --deep` can fetch the pages for their titles and h1.
+A need is a reading of the map, not of a house: it says what is common in a ZIP, and the copy has to say "many" and "likely". A ZIP code can reach past the city line, and the brief says when a city's ZIP codes plainly do. The cities next door come from straight line distance between city centers unless the brand file lists the client's own (`neighbors`). Passive voice and syllable counts are heuristics. They are tuned to over report passives slightly, and a reading grade can sit a few tenths from another tool's. Only `dfw` is a deep pack; the Louisiana Thermal Debt Atlas shares its family but is read as a keyword pack for now. The inventory reads a URL's keyword from its slug unless `sitemap --deep` can fetch the pages for their titles and h1.
