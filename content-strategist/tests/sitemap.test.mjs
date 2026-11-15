@@ -1,7 +1,7 @@
 /* lib/sitemap.mjs and lib/terms.mjs: reading a sitemap, what each URL stands for, cannibalization, internal links. */
 import path from 'node:path';
 import { ok, done, read, json, FX } from './_t.mjs';
-import { parseSitemap, crawl, fromFile, inventory, deepen, cannibal, linkTargets, cover, Blocked } from '../lib/sitemap.mjs';
+import { parseSitemap, crawl, fromFile, inventory, deepen, cannibal, linkTargets, cover, Blocked, nearby, cityPage } from '../lib/sitemap.mjs';
 import { tokens, key, covers, locate, places, angleOf } from '../lib/terms.mjs';
 import { loadPack } from '../lib/atlas.mjs';
 
@@ -66,7 +66,11 @@ ok(r.verdict === 'clear' && r.advice.some(a => /Slug: the site's city pages look
 /* ---- internal links ---- */
 let L = linkTargets('ac repair plano', inv, { pack, brand, n: 6 });
 ok(L.targets[0].url.endsWith('/ac-repair/') && L.targets[0].why === 'the parent service page' && L.targets.some(t => t.url.endsWith('/plano-hvac/')) && L.targets.some(t => t.kind === 'contact'), 'the parent service page first, then the city page, with a next step', L.targets.map(t => t.url));
-ok(!L.targets.some(t => /frisco|privacy|category|\/lp-/.test(t.url)) && new Set(L.targets.map(t => t.anchor.toLowerCase())).size === L.targets.length && L.targets.every(t => key(t.anchor) !== key('ac repair plano')), 'never another city, a legal, taxonomy or campaign page; anchors differ and none is the page\'s own keyword', L.targets.map(t => t.anchor));
+ok(!L.targets.some(t => /ac-repair-frisco|privacy|category|\/lp-/.test(t.url)) && new Set(L.targets.map(t => t.anchor.toLowerCase())).size === L.targets.length && L.targets.every(t => key(t.anchor) !== key('ac repair plano')), 'never another city\'s service page, a legal, taxonomy or campaign page; anchors differ and none is the page\'s own keyword', L.targets.map(t => t.anchor));
+const nb = L.targets.filter(t => t.kind === 'neighbor');
+ok(nb.length === 1 && nb[0].url.endsWith('/frisco-hvac/') && nb[0].anchor === 'Frisco' && /neighboring city, about \d+ miles/.test(nb[0].why) && L.targets[L.targets.length - 1].kind === 'contact' && L.targets.indexOf(nb[0]) === L.targets.length - 2, 'the city next door comes in by its own page, named once, just ahead of the next step', L.targets.map(t => t.kind + ' ' + t.url));
+ok(nearby('Plano', { pack, brand })[0].miles > 0 && nearby('Plano', { pack, brand: Object.assign({}, brand, { neighbors: { plano: ['Allen', 'Frisco'] } }) }).map(x => x.name).join() === 'Allen,Frisco' && !nearby('Atlantis', { pack, brand }).length, 'neighbors come from the map, unless the brand file lists the client\'s own');
+ok(cityPage(inv, 'Frisco').url.endsWith('/frisco-hvac/') && cityPage(inv, 'Atlantis') === null && !linkTargets('ac repair plano', inv, { pack, brand, neighbors: 0 }).targets.some(t => t.kind === 'neighbor'), 'a city is stood for by its hub page; no hub, no link');
 L = linkTargets('heat pump repair frisco', inv, { pack, brand, n: 6 });
 ok(L.targets[0].url.endsWith('/heat-pump/') && L.targets.some(t => t.url.endsWith('/heating-repair/')) && !L.targets.some(t => /ac-replacement|financing/.test(t.url)) && L.targets[L.targets.length - 1].kind === 'contact', 'a repair page is sent to repair pages, not to replacement and financing; the last link is the next step', L.targets.map(t => t.url.split('/').slice(-2)[0]));
 L = linkTargets('ac repair frisco', inv, { pack, brand, selfUrl: 'https://www.example-air.test/ac-repair-frisco-tx/' });

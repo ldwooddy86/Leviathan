@@ -23,6 +23,10 @@ r = J(['keywords', 'dfw', '--city', 'Frisco', '--angle', 'heatpump']);
 ok(r.code === 0 && r.json.angles.length === 1 && r.json.angles[0].demandShare === 0 && /NO demand trigger in Frisco/.test(run(['keywords', 'dfw', '--city', 'Frisco']).out), 'an angle with no demand in a city is still listed, and marked');
 r = J(['market', 'dfw', '--city', 'Frisco']);
 ok(r.json.facts.some(f => /heat pumps/.test(f.label) && f.estimate), 'a city\'s facts include its heat pump share');
+r = J(['areas', 'dfw']);
+ok(r.code === 0 && r.json.needs.length >= 15 && r.json.cities.length >= 100 && r.json.cities.find(c => c.city === 'Plano').needs.includes('flex-duct') && J(['areas', 'dfw', '--need', 'before-1980']).json.cities.length < r.json.cities.length && run(['areas', 'dental']).code === 2 && run(['areas', 'dfw', '--need', 'nope']).code === 2, 'areas: every city by what runs hot on the heatmaps, or the cities that share one need');
+r = run(['brief', 'Plano']);
+ok(r.code === 0 && /WHAT SETS PLANO APART/.test(r.out) && /BY ZIP/.test(r.out) && /No sitemap on file/.test(r.out) && !/LIVE PAGES TO LINK TO/.test(r.out), 'brief: the plan for a city page from the heatmaps; before the sitemap is read it says it has no links');
 r = J(['rules', 'dfw']);
 ok(r.code === 0 && r.json.license.writeItAs === 'TDLR Lic TACLA00000E' && r.json.notice.includes('Texas Department of Licensing') && r.json.consent.includes('STOP') && r.json.rules.length >= 15 && run(['rules', 'dental']).code === 2, 'rules prints the license format, the notice, the consent text and each rule');
 ok(run(['keywords', 'nope']).code === 2 && run(['market', 'dental']).code === 2 && run(['keywords', 'dfw', '--city', 'Atlantis']).code === 2, 'an unknown pack or city, or facts from a keyword pack, is an error with a reason');
@@ -35,8 +39,10 @@ r = J(['cannibal', 'ac repair frisco']);
 ok(r.code === 1 && r.json.verdict === 'conflict', 'cannibal exits 1 on a conflict');
 r = J(['cannibal', 'ac repair plano']);
 ok(r.code === 0 && r.json.verdict === 'clear' && r.json.avoid.length >= 2, 'and 0 when the keyword is clear, with the keywords to leave alone');
+r = J(['brief', 'Plano']);
+ok(r.code === 0 && r.json.links.some(l => l.kind === 'neighbor' && l.anchor === 'Frisco') && r.json.cannibal.verdict === 'clear' && r.json.lead.length >= 2 && /LIVE PAGES TO LINK TO/.test(run(['brief', 'Plano']).out), 'with the sitemap read, the brief carries the keyword check, the pages to link to and the neighbor');
 r = J(['links', 'ac repair plano', '--n', '4']);
-ok(r.code === 0 && r.json.targets.length === 4 && r.json.targets[0].url.endsWith('/ac-repair/'), 'links returns live targets with anchors');
+ok(r.code === 0 && r.json.targets.filter(t => t.kind !== 'neighbor').length === 4 && r.json.targets[0].url.endsWith('/ac-repair/') && r.json.targets.some(t => t.kind === 'neighbor' && t.anchor === 'Frisco'), 'links returns live targets with anchors, and the city next door');
 
 /* ---- the gate ---- */
 r = J(['build', path.join(FX, 'landing.md'), '--date', '2026-11-14']);

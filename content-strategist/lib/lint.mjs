@@ -4,20 +4,34 @@
 import { grade, hardest, words } from './readability.mjs';
 import { passives } from './passive.mjs';
 import { tropes, phrases } from './tropes.mjs';
+import { voice } from './voice.mjs';
 import { covers, key, tokens, norm } from './terms.mjs';
 
-export const LIMITS = { grade: 9, floor: 7, title: 60, h1: 70, descMin: 120, descMax: 158, lede: 80, sentence: 30, minLinks: { landing: 2, blog: 3, page: 3 }, minWords: { landing: 300, blog: 600, page: 400 } };
+export const LIMITS = { grade: 9, floor: 6, title: 60, h1: 70, descMin: 120, descMax: 158, lede: 80, sentence: 30, minLinks: { landing: 2, blog: 3, page: 3 }, minWords: { landing: 300, blog: 600, page: 400 } };
 const GENERIC = /^(?:click here|here|learn more|read more|more|this page|this link|this|link|website|our website|page|find out more|see more|details|more info|more information|check it out|go here|visit)$/i;
 const SEV = { block: 'error', warn: 'warn', note: 'note' };
 
 /* a dollar amount, a percentage, or a count written with a thousands comma: the kinds of number a page must be able to source */
 const FIGURE = /\$\s?\d+(?:,\d{3})*(?:\.\d+)?|\b\d+(?:\.\d+)?\s?%|\b\d{1,3}(?:,\d{3})+\b/g;
-/* the figures a pack vouches for: every number in the market's facts and in the page's city's facts */
+/* The figures a pack vouches for: every number in the market's facts and in the page's city's facts, and the ZIP figures
+   behind the city's heatmaps. A figure on the page is backed when it is one of those, or one of them rounded the way a
+   person would say it: a count or a dollar amount within 6 in 100 of a vouched one, a percentage within a point of a
+   vouched one, or to the nearest five. */
 function vouched(pack, city) {
-  const S = new Set(), add = s => (String(s).match(/\d[\d,]*(?:\.\d+)?/g) || []).forEach(x => S.add(x.replace(/,/g, '')));
-  for (const f of (pack.market && pack.market.facts) || []) { add(f.value); add(f.label); }
-  for (const f of (city && city.facts) || []) { add(f.value); add(f.label); }
-  return S;
+  const exact = new Set(), counts = [], pcts = [], num = s => parseFloat(String(s).replace(/[$,%\s]/g, '')), add = s => (String(s == null ? '' : s).match(/\d[\d,]*(?:\.\d+)?/g) || []).forEach(x => exact.add(x.replace(/,/g, '')));
+  for (const f of [...((pack.market && pack.market.facts) || []), ...((city && city.facts) || [])]) {
+    add(f.value); add(f.label); add(f.say); const v = String(f.value), x = num(v); if (!Number.isFinite(x)) continue;
+    if (/%$/.test(v)) pcts.push(x); else if (/,|^\$/.test(v) || (x >= 100 && !/^\d{4}$/.test(v))) counts.push(x);
+    for (const m of String(f.label).match(/\b\d{1,3}(?:,\d{3})+\b/g) || []) counts.push(num(m));
+  }
+  for (const a of (city && city.areas) || []) { add(a.builtAround); for (const [k, v] of Object.entries(a.values || {})) { add(v); if (!/^(idx|hail)/.test(k)) pcts.push(v); } }
+  return { exact, counts, pcts };
+}
+function backed(fig, known) {
+  const raw = fig.replace(/[$,%\s]/g, ''); if (known.exact.has(raw)) return true;
+  const x = parseFloat(raw); if (!Number.isFinite(x)) return false;
+  if (/%/.test(fig)) return known.pcts.some(v => Math.abs(x - v) < 1 || (x % 5 === 0 && Math.abs(x - v) <= 2.5));
+  return known.counts.some(v => Math.abs(x - v) <= 0.06 * v);
 }
 
 /* a URL as the inventory keys it: host without www, path without a trailing slash, no query or fragment */
@@ -42,9 +56,10 @@ export function lint(doc, o = {}) {
   else if (stats.words >= 120 && stats.grade < LIMITS.floor) add('reading-grade', 'warn', `Reading grade ${stats.grade} is under the ${LIMITS.floor} to ${max} target. Join a few short sentences so the page does not read choppy.`);
   for (const s of stats.per.filter(s => s.words > LIMITS.sentence).slice(0, 4)) add('long-sentence', 'warn', `A ${s.words} word sentence. Split it.`, s.text);
   const P = passives(text);
-  for (const p of P.slice(0, 25)) add('passive', 'error', `Passive voice: "${p.phrase}". Name who does it and lead with them.`, p.sentence);
+  for (const p of P.slice(0, 25)) add('passive', 'error', `Passive voice: "${p.phrase}". Name who does it and lead with them.`, p.sentence, p.hint || '');
   if (P.length > 25) add('passive', 'error', `${P.length - 25} more passive constructions.`, '');
   F.push(...tropes(doc));
+  F.push(...voice(doc, { social, brand: o.brand }));
 
   if (!social) {
     /* what the page says it is */
@@ -60,6 +75,8 @@ export function lint(doc, o = {}) {
     for (let i = 1; i < doc.headings.length; i++) if (doc.headings[i].level > doc.headings[i - 1].level + 1) { add('heading-order', 'warn', `Heading level jumps from h${doc.headings[i - 1].level} to h${doc.headings[i].level}.`, doc.headings[i].text); break; }
     if (!doc.lede.length) add('answer', 'error', 'No opening answer. Put two to four sentences between the h1 and the first h2 that answer the search outright; search and AI results quote that paragraph.');
     else { const n = words(doc.lede[0]).length; if (n > LIMITS.lede) add('answer', 'warn', `The opening answer runs ${n} words. Keep the first paragraph under ${LIMITS.lede} so a result can quote it whole.`, doc.lede[0].slice(0, 140)); }
+    const cityName = String(m.city || '').toLowerCase(), h2 = doc.headings.filter(h => h.level === 2);
+    if (cityName && h2.length >= 3 && h2.filter(h => h.text.toLowerCase().includes(cityName)).length < 2) add('heading-place', 'warn', `Fewer than two h2 headings name ${m.city}. On a page for one place, let the section headings say the service and the place ("Heat pump repair in ${m.city}").`);
     if (LIMITS.minWords[type] && doc.words < LIMITS.minWords[type]) add('length', 'warn', `${doc.words} words. A ${type} page here runs ${LIMITS.minWords[type]} or more.`);
     for (const im of doc.images || []) if (!String(im.alt || '').trim()) add('alt-text', 'warn', 'An image has no alt text. Describe what the photo shows.', im.src);
 
@@ -102,7 +119,7 @@ export function lint(doc, o = {}) {
     const city = m.city && pk.cities ? pk.cities.find(c => c.name.toLowerCase() === String(m.city).toLowerCase()) : null;
     if (m.city && pk.cities && !city) add('city', 'warn', `"${m.city}" is not a city in the ${pk.id} pack, so the atlas has no facts and no demand read for it.`);
     if (city && angle && !city.angles.some(x => x.id === angle.id)) add('demand', 'warn', `The atlas finds no demand trigger for "${angle.label}" in ${city.name}${angle.why ? ` (its trigger: ${angle.why.replace(/\.$/, '')})` : ''}. Say so in the hand back and let the person decide whether the page is worth building.`);
-    const known = vouched(pk, city), odd = [...new Set((text.match(FIGURE) || []).map(x => x.trim()).filter(x => !known.has(x.replace(/[$,%\s]/g, ''))))];
+    const known = vouched(pk, city), odd = [...new Set((text.match(FIGURE) || []).map(x => x.trim()).filter(x => !backed(x, known)))];
     if (odd.length) add('figure', 'warn', `${odd.length === 1 ? 'A figure' : 'Figures'} the atlas does not vouch for: ${odd.slice(0, 8).join(', ')}. Each needs a source from the person, or cut it.`);
   }
 

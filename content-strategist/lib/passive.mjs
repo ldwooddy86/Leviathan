@@ -5,7 +5,12 @@
      how someone is       "we are licensed and insured", "you are tired of the heat", "our techs are skilled"
      the shape a thing    "the coil is frozen", "the breaker is tripped", "the unit is covered in ice"; present tense
      is in right now      only, since "the duct was torn out" tells of something done to it
-   Either turns passive when a "by" phrase names the actor ("certified by NATE", "frozen by low airflow"). */
+     what a thing is for  "built for the new refrigerant", "sized for the house", "meant to run all day"
+   A state turns passive when a "by" phrase names who did it ("frozen by low airflow"). A credential stays a state even
+   then: "licensed by TDLR" says what the company is.
+
+   Each finding carries a hint where the plain active wording is known: homes "went up" or "date to" a year, and owners
+   "replace" a system. The rule is there to keep the actor in the sentence, not to make it read strangely. */
 import { sentences } from './readability.mjs';
 
 const BE = "(?:am|is|are|was|were|be|been|being|isn't|aren't|wasn't|weren't|[a-z]+'re|i'm|it's|that's|what's|he's|she's|there's|who's)";
@@ -17,7 +22,13 @@ const NOT_VERB = new Set(['need', 'feed', 'speed', 'seed', 'weed', 'indeed', 'be
 /* how someone is: a feeling, a credential, a quality. A state in any tense. */
 const PERSON = new Set(['tired', 'interested', 'excited', 'pleased', 'concerned', 'worried', 'surprised', 'scared', 'bored', 'confused', 'married', 'retired', 'involved', 'committed', 'dedicated', 'experienced', 'qualified', 'licensed', 'insured', 'bonded', 'certified', 'located', 'based', 'done', 'gone', 'finished', 'prepared', 'satisfied', 'convinced', 'determined', 'inclined', 'accustomed', 'advanced', 'detailed', 'limited', 'related', 'complicated', 'crowded', 'born', 'ashamed', 'thrilled', 'delighted', 'relieved', 'stressed', 'overwhelmed', 'exhausted', 'owned', 'operated', 'skilled', 'equipped', 'talented', 'gifted', 'devoted']);
 /* the shape a thing is in. A state in the present tense; in the past it is something that was done to the thing. */
-const CONDITION = new Set(['stuck', 'lost', 'hurt', 'shut', 'closed', 'broken', 'frozen', 'worn', 'torn', 'clogged', 'cracked', 'damaged', 'blocked', 'corroded', 'rusted', 'bent', 'flooded', 'oversized', 'undersized', 'outdated', 'covered', 'coated', 'iced', 'set', 'tripped', 'seized', 'undercharged', 'overcharged', 'plugged', 'burned', 'burnt', 'sealed', 'pitted', 'sized', 'rated', 'soaked', 'stained', 'warped', 'kinked', 'crushed', 'stripped', 'jammed', 'overloaded', 'overheated', 'wired', 'grounded', 'insulated', 'vented', 'matched', 'dated', 'aged', 'packed', 'filled', 'loaded', 'exposed', 'buried', 'hidden', 'attached', 'connected', 'mounted']);
+const CONDITION = new Set(['stuck', 'lost', 'hurt', 'shut', 'closed', 'broken', 'frozen', 'worn', 'torn', 'clogged', 'cracked', 'damaged', 'blocked', 'corroded', 'rusted', 'bent', 'flooded', 'oversized', 'undersized', 'outdated', 'covered', 'coated', 'iced', 'set', 'tripped', 'seized', 'undercharged', 'overcharged', 'plugged', 'burned', 'burnt', 'sealed', 'pitted', 'sized', 'rated', 'soaked', 'stained', 'warped', 'kinked', 'crushed', 'stripped', 'jammed', 'overloaded', 'overheated', 'wired', 'grounded', 'insulated', 'vented', 'matched', 'dated', 'aged', 'packed', 'filled', 'loaded', 'exposed', 'buried', 'hidden', 'attached', 'connected', 'mounted', 'left', 'lit', 'printed', 'listed', 'stamped', 'labeled', 'marked']);
+/* a credential, which stays a state whoever granted it */
+const CREDENTIAL = new Set(['licensed', 'insured', 'bonded', 'certified', 'owned', 'operated', 'regulated', 'registered', 'accredited']);
+/* what a thing is for: a state when "for" or "to" follows */
+const PURPOSE = new Set(['built', 'made', 'designed', 'meant', 'intended', 'sized', 'rated', 'set', 'made', 'suited', 'matched', 'tuned', 'wired']);
+const HINT = [[/^(built|constructed)$/, 'Homes "went up in" or "date to" a year; "builders put in" a system.'], [/^(replaced|swapped|changed)$/, 'Say who does it: "owners replace a system at about 15 years", or "a system lasts about 15 years".'], [/^(installed|fitted)$/, 'Say who: "the builder installed", "our crew installs". Or use the state: "sits in the attic".'], [/^(recommended|advised|suggested)$/, 'Say who recommends it, or tell the reader directly: "have it checked each fall".'], [/^(needed|required)$/, 'Say what needs it: "an older coil needs", "the job takes".'], [/^(called|known|named)$/, 'Use "goes by", "we call it", or drop the label.'], [/^(caused|damaged|crushed|bent)$/, 'Lead with the cause: "hail crushes the fins".']];
+export const hintFor = verb => (HINT.find(([re]) => re.test(verb)) || [null, ''])[1];
 const PRESENT = /^(am|is|are|be|isn't|aren't|[a-z]+'re|i'm|it's|that's|what's|he's|she's|there's|who's)$/;
 /* verbs whose -ed form after "is" or "has" is active ("it's happened") */
 const INTRANS = new Set(['happened', 'arrived', 'failed', 'stopped', 'started', 'changed', 'passed', 'died', 'ended', 'worked', 'lasted', 'appeared', 'remained', 'existed', 'occurred', 'emerged', 'vanished', 'disappeared', 'returned', 'moved', 'improved', 'dropped', 'increased', 'decreased', 'grown', 'fallen', 'risen', 'become', 'come', 'gone', 'begun', 'run']);
@@ -37,6 +48,8 @@ export function passives(text) {
       if (NOT_VERB.has(verb)) continue;
       if (/^(used|supposed)$/.test(verb) && /^\s+to\b/i.test(rest)) continue;                 /* "is used to the heat" */
       const agent = AGENT.test(rest), got = /^(get|gets|got|gotten|getting)$/.test(aux);
+      if (!got && CREDENTIAL.has(verb)) continue;                                               /* "licensed by TDLR" */
+      if (!got && !agent && PURPOSE.has(verb) && /^\s+(?:\w+\s+)?(?:for|to)\b/i.test(rest)) continue;   /* "built for the new refrigerant" */
       if (!agent && !got) {
         if (PERSON.has(verb)) continue;
         if (/^un[a-z]{3,}ed$/.test(verb) && !/^(unplugged|unlocked|uninstalled|unloaded|unscrewed|uncovered|unpacked)$/.test(verb)) continue;   /* "is unrelated", "is unexpected" */
@@ -44,7 +57,7 @@ export function passives(text) {
       }
       if (/^(it's|that's|what's|he's|she's|there's|who's)$/.test(aux) && INTRANS.has(verb)) continue;    /* "it's stopped" is "it has stopped" */
       if (got && /^(started|done|used|married|dressed|rid|lost|stuck|going|ahead|ready)$/.test(verb)) continue;
-      out.push({ sentence, phrase: m[0], verb, agent });
+      out.push({ sentence, phrase: m[0], verb, agent, hint: hintFor(verb) });
     }
   }
   return out;

@@ -14,6 +14,10 @@
      verticals                            the packs: one per atlas in the console
      keywords <vertical> [--angle id] [--city name] [--find text]
      market <vertical> [--city name]      sourced local facts for a page
+     areas <vertical> [--need id]         every city by what runs hot there on the dashboard's heatmaps
+     brief <city> [--keyword k] [--url u] the plan for one city page: who the reader is, what sets their part of town
+                                          apart (by ZIP), what to tell the owner and the trade detail behind it, the
+                                          figures as a person says them, the neighbors to name, the pages to link to
      rules <vertical>                     the advertising rules, the license format, the notice text
      harvest                              rebuild the keyword packs from the console in leviathan/
 
@@ -57,11 +61,12 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { REPO, listPacks, loadPack, harvestConsole, isThermalDebt } from './lib/atlas.mjs';
 import { parse, parseMarkdown, renderBody, renderPage, slugify } from './lib/doc.mjs';
-import { lint, report } from './lib/lint.mjs';
-import { crawl, fromFile, inventory, deepen, cannibal, linkTargets, Blocked } from './lib/sitemap.mjs';
+import { lint, report, urlKey } from './lib/lint.mjs';
+import { crawl, fromFile, inventory, deepen, cannibal, linkTargets, nearby, cityPage, Blocked } from './lib/sitemap.mjs';
 import { buildSchema, validate, blueprint, pageUrl } from './lib/schema.mjs';
 import * as social from './lib/social.mjs';
 import { compare } from './lib/unique.mjs';
+import { brief, briefText, areasTable } from './lib/brief.mjs';
 /* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
 import { runConnect, runStatus, runCheck, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
 import { status as linkStatus, atlasFile, NotConnected } from '../dashboard-link/lib/connect.mjs';
@@ -166,6 +171,19 @@ const C = {
     out(res, T.join('\n'));
   },
 
+  areas() {
+    const pack = loadPack(A._[0] || die('areas <vertical> [--need id]')); if (!pack.needs) die(`The ${pack.id} pack carries no heatmaps. Only a deep pack read from a dashboard file does (see: connect).`);
+    const need = A.need && A.need !== true ? String(A.need) : ''; if (need && !pack.needs.some(n => n.id === need)) die(`No need "${need}". Needs: ${pack.needs.map(n => n.id).join(', ')}`);
+    const rows = areasTable(pack, { need });
+    out({ vertical: pack.id, needs: pack.needs.map(n => ({ id: n.id, title: n.title, metro: n.metro, copy: n.copy })), cities: rows }, [`${pack.atlas}: what runs hot where, from the dashboard's heatmaps`, '', 'The needs (share of the market\'s systems in ZIPs where each runs hot):', ...pack.needs.map(n => `  ${n.id.padEnd(17)} ${String(n.metro).padStart(3)}%  ${n.title}${n.copy ? '' : '   (planning only; never said to a reader)'}`), '', ...rows.map(r => `${r.city.padEnd(22)} ${String(r.builtAround || '').padEnd(5)} ${r.needs.join(', ') || 'nothing citywide'}${r.pockets.length ? '   |  in part: ' + r.pockets.join('; ') : ''}`), '', 'The year is the typical home\'s. A city\'s whole plan: brief <city>'].join('\n'));
+  },
+
+  brief() {
+    const name = A._.join(' ') || die('brief <city> [--keyword k] [--url page-url] [--type landing|blog|page]'), brand = loadBrand(), pack = packFor({}, brand) || die('No deep pack. Connect a dashboard first: connect <atlas.html>'), inv = loadInventory(brand);
+    const b = brief({ pack, brand, inv: inv ? inv.pages : null, city: name, keyword: A.keyword && A.keyword !== true ? A.keyword : '', type: A.type && A.type !== true ? A.type : 'landing', selfUrl: A.url && A.url !== true ? A.url : '', n: +A.n || 8 });
+    out(b, briefText(b) + (inv ? '' : '\n\nNo sitemap on file, so the brief has no links and no keyword check. Run: sitemap'));
+  },
+
   rules() {
     const pack = loadPack(A._[0] || die('rules <vertical>')), C0 = pack.compliance; if (!C0) die(`The ${pack.id} pack is a keyword pack; it carries no advertising rules. Ask the person which rules bind this client's ads.`);
     const brand = loadBrand(), lic = brand && brand.license ? `${pack.licenseLabel || ''} Lic ${brand.license}`.trim() : `${pack.licenseLabel || ''} Lic <number>`.trim();
@@ -252,7 +270,7 @@ const C = {
 
   links() {
     const kw = A._.join(' ') || die('links "<keyword>" [--n 6]'), brand = loadBrand(), pack = packFor({}, brand), inv = needInventory(brand);
-    const r = linkTargets(kw, inv.pages, { pack, brand, n: +A.n || 6, type: A.type && A.type !== true ? A.type : 'landing', selfUrl: A.url && A.url !== true ? A.url : '' });
+    const r = linkTargets(kw, inv.pages, { pack, brand, n: +A.n || 6, type: A.type && A.type !== true ? A.type : 'landing', selfUrl: A.url && A.url !== true ? A.url : '', neighbors: A.neighbors != null && A.neighbors !== true ? +A.neighbors : 2 });
     out(r, [`Internal links for "${kw}"  ·  ${inv.pages.length} live URLs, sitemap read ${inv.ageHours}h ago`, ...r.targets.map(t => `  [${t.anchor}](${t.url})\n     ${t.why}`), r.targets.length ? '' : '  No live page relates to this keyword yet. Link to the home page and the contact page, and say so in the report.', r.rule].join('\n'));
   },
 
@@ -274,6 +292,7 @@ const C = {
     const r = lint(doc, { type, allow, pack, brand, url, slug, live: inv ? new Set(inv.pages.map(p => p.key)) : null, avoid: can ? can.avoid : [] });
     const push = (rule, severity, message, excerpt = '') => { if (allow.includes(rule)) return; r.findings.push({ rule, severity, message, excerpt }); r.counts[severity]++; if (severity === 'error') r.ok = false; };
     if (can && can.verdict === 'conflict') push('cannibalization', 'error', can.advice[0], can.conflicts.map(c => c.url).join('\n'));
+    if (inv && m.city && type !== 'blog') { const near = nearby(m.city, { pack, brand }).map(nb => cityPage(inv.pages, nb.name, url)).filter(Boolean), mine = new Set(doc.links.map(l => urlKey(l.href, brand.url))); if (near.length && !near.some(p => mine.has(p.key))) push('neighbor-links', 'warn', `The page names no neighboring city. Link one or two near the end ("We also serve ..."): ${near.slice(0, 3).map(p => `${p.place} ${p.url}`).join(', ')}.`); }
     if (!inv) push('sitemap', 'warn', 'Built without the sitemap: links were not checked against live URLs and the keyword was not checked for cannibalization.');
     else if (inv.ageHours > 72) push('sitemap', 'warn', `The sitemap inventory is ${inv.ageHours} hours old. Read it again before publishing.`);
     const schema = buildSchema({ doc, brand, pack, type, url, slug, date, allow }), v = validate(schema, { doc, url, allow });
@@ -294,10 +313,10 @@ const C = {
   compare() {
     const files = []; for (const a of A._.length ? A._ : [OUT]) { const p = path.resolve(a); if (!fs.existsSync(p)) die(`Not found: ${a}`); if (fs.statSync(p).isDirectory()) { for (const e of fs.readdirSync(p).sort()) { const f = fs.existsSync(path.join(p, e, 'page.md')) ? path.join(p, e, 'page.md') : /\.(md|html?)$/i.test(e) ? path.join(p, e) : null; if (f) files.push(f); } } else files.push(p); }
     if (files.length < 2) die('compare needs two or more pages: a folder of built pages, a folder of drafts, or a list of files.');
-    const brand = loadBrand(), docs = files.map(f => { const d = parse(fs.readFileSync(f, 'utf8'), f); return { name: path.basename(f) === 'page.md' ? path.basename(path.dirname(f)) : path.basename(f), text: d.blocks.filter(b => ['p', 'li', 'quote'].includes(b.type) || /^h[1-6]$/.test(b.type)).map(b => b.text + (/[.!?]$/.test(b.text) ? '' : '.')).join('\n'), mask: [d.meta.city, ...(brand ? brand.serviceCities || [] : [])].filter(Boolean) }; });
+    const brand = loadBrand(), pk = packFor({}, brand), docs = files.map(f => { const d = parse(fs.readFileSync(f, 'utf8'), f); return { name: path.basename(f) === 'page.md' ? path.basename(path.dirname(f)) : path.basename(f), text: d.blocks.filter(b => ['p', 'li', 'quote'].includes(b.type) || /^h[2-6]$/.test(b.type)).map(b => b.text + (/[.!?]$/.test(b.text) ? '' : '.')).join('\n'), headings: d.blocks.filter(b => /^h[2-6]$/.test(b.type)).map(b => b.text), mask: [d.meta.city, ...(brand ? brand.serviceCities || [] : []), ...(pk && pk.cities ? pk.cities.map(c => c.name) : [])].filter(Boolean) }; });
     const r = compare(docs, { limit: A.limit ? +A.limit : undefined }), top = r.pages.slice().sort((a, b) => b.similarity - a.similarity);
     out(r, [`${r.ok ? 'UNIQUE' : 'TOO ALIKE'}  ${r.count} pages  ·  closest pair shares ${Math.round(100 * (top[0] ? top[0].similarity : 0))}% of its four word runs (limit ${Math.round(100 * r.limit)}%)  ·  ${r.repeated.length} sentence${r.repeated.length === 1 ? '' : 's'} on more than one page`,
-      ...r.pairs.slice(0, 20).map(p => `PAIR   ${Math.round(100 * p.similarity)}%  ${p.a}  <>  ${p.b}`), ...r.repeated.slice(0, 25).map(x => `${x.pages.length >= 3 ? 'REPEAT' : 'twice '} on ${x.pages.length} pages: "${x.sentence.slice(0, 110)}"  (${x.pages.slice(0, 4).join(', ')}${x.pages.length > 4 ? ', ...' : ''})`)].join('\n'));
+      ...r.pairs.slice(0, 20).map(p => `PAIR   ${Math.round(100 * p.similarity)}%  ${p.a}  <>  ${p.b}`), ...r.headings.filter(x => x.pages.length >= 3).slice(0, 15).map(x => `${x.pages.length >= 4 ? 'HEADING' : 'heading'} on ${x.pages.length} pages: "${x.sentence}"  (${x.pages.slice(0, 4).join(', ')}${x.pages.length > 4 ? ', ...' : ''})`), ...r.repeated.slice(0, 25).map(x => `${x.pages.length >= 3 ? 'REPEAT' : 'twice '} on ${x.pages.length} pages: "${x.sentence.slice(0, 110)}"  (${x.pages.slice(0, 4).join(', ')}${x.pages.length > 4 ? ', ...' : ''})`)].join('\n'));
     if (!r.ok) process.exitCode = 1;
   },
 

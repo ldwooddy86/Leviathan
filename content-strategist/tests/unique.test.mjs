@@ -14,4 +14,8 @@ const a = 'Our crew fixed a heat pump in Allen last week and the owner was glad.
 r = compare([{ name: 'a', text: a, mask: ['Allen'] }, { name: 'b', text: b, mask: ['Wylie'] }, { name: 'c', text: c, mask: ['Rowlett'] }], { limit: 0.9 });
 ok(!r.ok && r.repeated[0].pages.length === 3 && /call us any time/.test(r.repeated[0].sentence), 'a sentence that turns up on three pages fails the set even when no pair is close');
 ok(compare([{ name: 'a', text: a, mask: [] }, { name: 'b', text: b, mask: [] }], { limit: 0.9 }).ok, 'the same sentence on two pages is listed, not failed');
+const four = ['Allen', 'Wylie', 'Rowlett', 'Sachse'].map((c, i) => ({ name: c, mask: [c], text: ['Hail hits hard here and bends the fins.', 'Gas heat rules this side of the county.', 'Lake air keeps the coils damp all year.', 'New roofs went on after the last storm.'][i] + ' Call us today.', headings: [`Furnace repair in ${c}`, ['Why coils freeze', 'When heat fails', 'What hail does', 'How ducts leak'][i]] }));
+r = compare(four, { limit: 0.9 });
+ok(!r.ok && r.headings.length === 1 && r.headings[0].pages.length === 4 && /furnace repair in ~/.test(r.headings[0].sentence) && !r.repeated.length, 'a section heading that only swaps the city across four pages fails the set; a three word line is too short to count', r);
+ok(compare(four.map(d => Object.assign({}, d, { text: d.text.replace('Call us today.', 'Call us today to book.') })), { limit: 0.9 }).repeated[0].pages.length === 4, 'a short sentence of four words or more on every page is caught');
 done();

@@ -1,0 +1,36 @@
+/* lib/brief.mjs: the plan for one city page, read from the pack's heatmaps and the site's own pages. */
+import path from 'node:path';
+import { ok, done, json, FX } from './_t.mjs';
+import { brief, briefText, zipFacts, areasTable, cityOf } from '../lib/brief.mjs';
+import { loadPack } from '../lib/atlas.mjs';
+import { fromFile, inventory } from '../lib/sitemap.mjs';
+
+const pack = loadPack('dfw'), brand = json('brand.json'), inv = inventory(fromFile(path.join(FX, 'sitemap.xml'), brand.url), { pack, brand });
+const b = brief({ pack, brand, inv, city: 'plano', now: 2026 });
+ok(b.city === 'Plano' && b.county === 'Collin' && b.inAtlas && b.keyword === 'ac repair plano' && b.zips.length === 7, 'a brief is for one city and one keyword; the core service is the default');
+ok(b.home.builtAround === 1993 && b.home.split && b.home.oldest.year < b.home.newest.year && /second or third system/.test(b.home.means) && b.heating.lead === 'mixed' && /even weight/.test(b.heating.say), 'who the reader is: the age of the homes, how it differs across town, what that usually means, what they heat with', b.home);
+const ids = x => x.map(n => n.id);
+ok(b.lead.length >= 2 && b.lead.length <= 4 && b.lead.every(n => n.citywide && n.owner && n.tech && n.where && n.terms.length) && ids(b.lead).includes('flex-duct') && !ids(b.lead).includes('larger-homes'), 'what sets the place apart leads: each need with what to tell the owner, the trade detail, where in town and the terms that fit; a need that is only inferred never leads', ids(b.lead));
+ok(b.lead[0].lift >= b.lead[b.lead.length - 1].lift && b.lead.every(n => n.share > n.metro) && b.also.every(n => n.citywide) && b.pockets.every(n => !n.citywide && /^in part of Plano: ZIP \d{5}/.test(n.where)), 'the order is by how far the city stands above the market; a need in part of town is filed apart, with its ZIPs', b.pockets.map(n => n.where));
+ok(b.quiet.some(q => q.id === 'new-homes') && !b.quiet.some(q => ids([...b.lead, ...b.also, ...b.pockets]).includes(q.id)), 'what is common elsewhere and absent here is named, so the page does not borrow another city\'s problem', ids(b.quiet));
+ok(b.planning.every(n => !n.copy) && ![...b.lead, ...b.also, ...b.pockets].some(n => !n.copy), 'who owns, rents or has lived there long is for planning only, never for copy');
+const m = b.lead.find(n => n.measure) || b.also.find(n => n.measure);
+ok(m && m.measure.here > 0 && m.measure.metro > 0 && b.against.length >= 8 && b.against.every(a => /above|below|about the same/.test(a.read)), 'each measure is shown here and across the market, so a small gap is not written up as a large one');
+ok(b.areas.length === 7 && b.areas.every(a => a.facts.length >= 2 && a.facts[0].key === 'medyr' && a.facts.every(f => f.text && f.source && !/\d\.\d/.test(f.text))) && b.areas[0].share >= b.areas[6].share, 'every ZIP with the figures that bear on it, said the way a person says them', b.areas[0].facts.map(f => f.text));
+ok(zipFacts({ builtAround: 1984, needs: ['hail'], values: { yb_duct: 61.2, gas_sh: 20, elec_sh: 79.5, hail175_8km: 6.4, hail_recent: 2, ge15_sh: 21 } }, pack.needs).map(f => f.key).join() === 'medyr,yb_duct,elec_sh,hail175_8km', 'a ZIP\'s facts are its building era, its heating fuel and the layers behind what runs hot there');
+ok(b.neighbors.length >= 4 && b.neighbors.find(n => n.name === 'Frisco').url.endsWith('/frisco-hvac/') && b.neighbors.filter(n => n.url).length === 1, 'the cities next door, each with its live page where the site has one');
+const L = b.links;
+ok(L.some(l => l.url.endsWith('/ac-repair/') && l.why === 'the parent service page' && l.backs.includes('Air conditioning repair')) && L.some(l => l.url.endsWith('/heat-pump/')) && L.some(l => l.url.endsWith('/heating-repair/')) && L.some(l => l.url.endsWith('/ac-replacement/') && l.backs.some(x => /R22|15 years|20 years/.test(x))) && L[L.length - 1].kind === 'contact' && L.filter(l => l.kind === 'neighbor').length === 1 && new Set(L.map(l => l.url)).size === L.length, 'the links cover every service the page will raise: one parent page for each service and each need, then the neighbor, then the next step', L.map(l => l.url.split('/').slice(-2)[0] + ':' + l.kind));
+ok(b.cannibal.verdict === 'clear' && !b.rewrites, 'the keyword is checked against the live site');
+const f = brief({ pack, brand, inv, city: 'Frisco' });
+ok(!f.rewrites && f.cannibal.verdict === 'conflict' && f.cannibal.conflicts[0].url.endsWith('/ac-repair-frisco-tx/'), 'a city whose keyword another live page already holds is told so', [f.rewrites, f.cannibal.verdict]);
+const own = inv.map(p => p.url.endsWith('/plano-hvac/') ? Object.assign({}, p, { angles: ['repair', 'heatrepair'] }) : p), rw = brief({ pack, brand, inv: own, city: 'Plano', keyword: 'hvac plano' });
+ok(rw.cannibal && (rw.rewrites ? rw.rewrites.endsWith('/plano-hvac/') && rw.cannibal.verdict === 'clear' : true), 'a city that already has its page gets a brief for a rewrite of it', [rw.rewrites, rw.cannibal.verdict]);
+const T = briefText(b);
+ok(['WHO YOU ARE WRITING TO', 'WHAT SETS PLANO APART', 'ALSO TRUE HERE', 'NOT THE STORY HERE', 'PLANO AGAINST THE MARKET', 'BY ZIP', 'FIGURES FOR THE CITY', 'FIGURES FOR TEXAS AND THE MARKET', 'THE SERVICES THE PAGE COVERS', 'LIVE PAGES TO LINK TO', 'NEIGHBORS', 'HOW TO WRITE IT'].every(h => T.includes('\n' + h)) && /Tell the owner: /.test(T) && /The trade detail: /.test(T) && /about one in five/.test(T) && /none of the lines above is copy/.test(T), 'the brief reads as a plan: the reader, the needs, the ZIPs, the figures as spoken, the links, the voice');
+const o = brief({ pack, brand, inv, city: 'Atlantis' }), OT = briefText(o);
+ok(!o.inAtlas && !o.lead && o.market.length >= 8 && o.services.length === 4 && /no heatmap for Atlantis/.test(OT) && /Use no local figure/.test(OT) && /The map has no neighbors/.test(OT), 'a city outside the mapped area gets a brief that says so: no local figure, the trade knowledge only');
+ok(brief({ pack, brand: Object.assign({}, brand, { neighbors: { Atlantis: ['Frisco', 'Plano'] } }), inv, city: 'Atlantis' }).neighbors.map(n => !!n.url).join() === 'true,true', 'the client\'s own list of neighbors stands in where the map has none');
+const A = areasTable(pack), newer = areasTable(pack, { need: 'new-homes' });
+ok(A.length >= 100 && A.every(r => r.city && Array.isArray(r.needs) && r.needs.length <= 4) && newer.length > 5 && newer.length < A.length && newer.every(r => cityOf(pack, r.city).needs.some(n => n.id === 'new-homes')), 'every city by what runs hot there, and the cities that share one need', [A.length, newer.length]);
+done();

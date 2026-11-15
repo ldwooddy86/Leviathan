@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ok, done, ROOT } from './_t.mjs';
 import { matchClose, fields, record, plain, ownerOf, declared } from '../lib/literal.mjs';
-import { harvest, anglesFrom, negatives, trigger, consolePayloads, registry, listPacks, loadPack, withheld, scrub, isThermalDebt, deepPack } from '../lib/atlas.mjs';
+import { harvest, anglesFrom, negatives, trigger, consolePayloads, registry, listPacks, loadPack, withheld, scrub, isThermalDebt, deepPack, readHeatmaps, NEEDS, miles } from '../lib/atlas.mjs';
 
 /* ---- the literal reader ---- */
 const src = `const ANGLES = [
@@ -58,6 +58,21 @@ ok(D.cities[0].demand.replacementsPerYear >= D.cities[5].demand.replacementsPerY
 ok(D.compliance.licenseInEveryAsset && D.compliance.notice.includes('Texas Department of Licensing') && D.compliance.rules.length >= 15 && D.compliance.rules.filter(r => r.test).every(r => { try { new RegExp(r.test.pattern, 'i'); return true; } catch { return false; } }), 'the advertising rules come with their cites, and each test pattern compiles');
 ok(D.sitePlan.service.length >= 10 && D.sitePlan.guides.length >= 5 && !D.compliance.rules.some(r => r.enforcer === 'House style'), 'the Site Forge plan is carried; house style rules are not');
 ok(!('brand' in D) && !JSON.stringify(D).includes('"phone"'), 'no brand in a pack');
+
+/* ---- the heatmaps: what each area needs ---- */
+const LY = `const LAYERS = {\n ge15_sh: {l:'Central systems 15 years or older (%)', grp:'Thermal debt', g:'B', note:'Past the median life.'},\n yb_duct: {l:'Homes built 1980 to 1999 (%)', grp:'Housing stock', g:'A', note:'The flex duct generation.'},\n secret: {l:'Not a layer the pack uses', g:'A'},\n};`;
+const rows = [...Array(8)].map((_, i) => ({ zip: '7500' + i, sys: 1000, ge15_sh: 10 + i, yb_duct: 20 + 5 * i, gas_sh: i === 7 ? 70 : 20, elec_sh: i === 7 ? 30 : 80, hail_recent: i === 0 ? 7 : 0, span_sh: 5 }));
+const HM = readHeatmaps(LY, rows), z7 = HM.zips.get('75007'), z0 = HM.zips.get('75000');
+ok(Object.keys(HM.layers).includes('ge15_sh') && HM.layers.yb_duct.label === 'Homes built 1980 to 1999 (%)' && HM.layers.yb_duct.note === 'The flex duct generation.' && !('secret' in HM.layers) && 'gas_sh' in HM.layers, 'the layer catalog is read as text: a layer the pack uses keeps its label and note, the rest are left out, and a column with no catalog entry still counts');
+ok(z7.pct.ge15_sh > 90 && z0.pct.ge15_sh < 10 && z7.values.yb_duct === 55, 'each ZIP gets its percentile on a layer among the market\'s ZIPs');
+ok(z7.needs.includes('aging-systems') && z7.needs.includes('flex-duct') && z7.needs.includes('gas-heat') && !z7.needs.includes('electric-heat') && z0.needs.includes('electric-heat') && z0.needs.includes('hail') && !z0.needs.includes('aging-systems'), 'a need is a layer running hot in a ZIP', [z7.needs, z0.needs]);
+ok(NEEDS.every(n => n.id && n.title && n.tech && n.layers.length && typeof n.hot === 'function' && (n.copy === false ? !n.owner : n.owner.length > 60)) && NEEDS.filter(n => n.copy === false).map(n => n.id).join() === 'rentals,older-owners,spanish', 'every need says what to tell the owner and the trade detail behind it; who owns or rents a home, their age and their language are for planning only');
+ok(Math.round(miles({ lat: 33.02, lon: -96.7 }, { lat: 33.15, lon: -96.82 })) === 11, 'miles between two cities');
+ok(D.layers && Object.keys(D.layers).length >= 24 && typeof D.layers.ge15_sh.metro === 'number' && D.needs.length === NEEDS.length && D.needs.every(n => typeof n.metro === 'number' && !('hot' in n)), 'the DFW pack carries the heatmap layers with the market\'s level on each, and the needs with their reach', Object.keys(D.layers || {}).length);
+ok(plano.areas.length === plano.zips.length && plano.areas.every(a => /^\d{5}$/.test(a.zip) && a.builtAround > 1900 && Array.isArray(a.needs) && typeof a.values.ge15_sh === 'number' && typeof a.heat.ge15_sh === 'number') && Math.abs(plano.areas.reduce((n, a) => n + a.share, 0) - 100) <= 4, 'a city carries each of its ZIPs: what runs hot there, the figures behind it and its share of the city\'s systems');
+ok(plano.needs.length >= 5 && plano.needs.every(n => n.zips.length && n.share > 0 && n.share <= 100 && typeof n.citywide === 'boolean') && plano.needs.find(n => n.id === 'flex-duct').citywide && !plano.needs.some(n => n.id === 'new-homes'), 'and its needs in order, each with the ZIPs it belongs to: flexible duct across Plano, no new build story', plano.needs.map(n => n.id));
+ok(plano.neighbors.length >= 4 && plano.neighbors[0].miles <= plano.neighbors[3].miles && plano.neighbors.some(n => n.name === 'Allen') && !plano.neighbors.some(n => n.name === 'Plano'), 'and the cities next door, nearest first', plano.neighbors);
+ok(plano.facts.every(f => f.say && f.plainSource) && plano.facts.find(f => /15 years or older/.test(f.label)).say === 'about one in five' && D.market.facts.find(f => /central air conditioner/.test(f.label)).say === 'about 15 years' && D.market.facts.find(f => /central air conditioner/.test(f.label)).plainSource === 'federal energy surveys', 'every fact comes with how a person would say it and where it comes from in plain words');
 
 /* ---- nothing withheld ---- */
 const find = await withheld();

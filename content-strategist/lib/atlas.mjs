@@ -15,6 +15,7 @@ import vm from 'node:vm';
 import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { fields, elements, plain, record, matchClose, ownerOf, declared } from './literal.mjs';
+import { sayShare, sayNumber } from './voice.mjs';
 
 export const HERE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const REPO = path.resolve(HERE, '..');
@@ -178,7 +179,126 @@ const SRC = {
   irv: 'City of Irving mechanical permits, 2022 to 2025',
   epa: 'U.S. Environmental Protection Agency',
 };
-const fact = (value, label, src, grade) => ({ value, label, source: SRC[src], grade, estimate: src === 'est' });
+/* a fact as the page may print it: the figure, what it counts, its source in full and in plain words, and the figure as a
+   person would say it ("about one in five") */
+const sayPct = sayShare, sayCount = x => sayNumber(x);
+function sayValue(v) {
+  const s = String(v), n = parseFloat(s.replace(/[$,]/g, ''));
+  if (/%$/.test(s)) return sayPct(n);
+  if (/years$/.test(s)) { const w = Math.floor(n), f = n - w; return f < 0.25 ? `about ${w} years` : f < 0.75 ? `about ${w} and a half years` : `about ${w + 1} years`; }
+  if (/^\$/.test(s)) return 'about $' + sayCount(n).replace('about ', '');
+  if (/^\d{4}$/.test(s)) return s;
+  return Number.isFinite(n) ? sayCount(n) : s;
+}
+const fact = (value, label, src, grade) => ({ value, say: sayValue(value), label, source: SRC[src], plainSource: PLAIN_SOURCE[src] || '', grade, estimate: src === 'est' });
+
+
+/* ---------- what each area needs, read from the heatmaps ---------- */
+/* The dashboard draws its ZIP heatmaps from one catalog of layers (LAYERS: the age of the systems, the housing stock, the
+   heating fuel, hail, who owns the homes). A need is a layer running hot in a ZIP, said twice: once for the homeowner,
+   in the words a technician would use at the door, and once for the writer, with the parts and faults behind it. `hot`
+   tests a ZIP row; pct is that ZIP's percentile on a layer among the metro's residential ZIPs. `copy: false` marks
+   knowledge for planning that must not be said to a reader (never address a person's age or what they own). */
+export const NEEDS = [
+  { id: 'aging-systems', layers: ['ge15_sh', 'meanage'], angles: ['replace', 'repair'], title: 'A large share of systems past 15 years', hot: (z, p) => p.ge15_sh >= 75,
+    owner: 'Once an air conditioner passes about 15 years, repairs come closer together and parts get harder to match. That is the age to price a replacement next to any big repair, so the choice is yours and not the weather\'s.',
+    tech: 'Past the Texas median replacement age of about 15 years. Expect hard starting compressors, pitted contactors, weak capacitors, evaporator coil leaks, and indoor coils that match no condenser sold today.' },
+  { id: 'past-twenty', layers: ['ge20_sh'], angles: ['replace', 'r22'], title: 'Many systems 20 years or older', hot: (z, p) => p.ge20_sh >= 80,
+    owner: 'A system past 20 is on borrowed time. Most of them use the old R22 refrigerant, and a new outdoor unit will not pair with the old indoor coil, so one major failure usually means replacing both halves.',
+    tech: 'R22 charge, mismatched coils, fixed orifice metering, single stage compressors past rated life. A compressor or coil failure is a full system replacement, not a part swap.' },
+  { id: 'r22', layers: ['r22_sh'], angles: ['r22', 'replace'], title: 'R22 era systems still running', hot: (z, p) => p.r22_sh >= 75,
+    owner: 'Systems put in before 2010 run on R22. Nobody makes it any more, so a leak means paying for a shrinking supply of reclaimed refrigerant or replacing the system. The data plate on the outdoor unit tells you which refrigerant you have.',
+    tech: 'New R22 equipment ended in 2010 and production ended in 2020; only reclaimed stock remains. No drop in: R410A and the A2L refrigerants (R454B, R32) need their own coil, metering device and oil.' },
+  { id: 'builder-original', layers: ['origwin_sh', 'first5_per1k'], angles: ['firstwave', 'replace', 'repair'], title: 'Builder original systems, 10 to 25 years old', hot: (z, p) => p.origwin_sh >= 75,
+    owner: 'Many homes here still run the system the builder put in. Those tend to fail in a known order: the capacitor, then the contactor, then the indoor coil. The first replacement is also your one chance to get the size right.',
+    tech: 'Builder grade equipment in its first failure window. Often oversized: short cycling, poor humidity control, hot upstairs rooms. Replacement should start from a load calculation (Manual J), not the old tonnage.' },
+  { id: 'flex-duct', layers: ['yb_duct'], angles: ['duct'], title: 'Homes from the 1980s and 1990s: aging flexible duct', hot: (z, p) => p.yb_duct >= 75,
+    owner: 'Homes built in the 1980s and 1990s got flexible duct in the attic. After 27 to 46 Texas summers it sags, leaks at the joints and sheds its insulation, so some rooms never catch up. A new system on leaky ducts will disappoint you.',
+    tech: 'The flex duct generation, in attics that reach 140 degrees: torn inner liners, crushed runs, loose boots and plenums, high static pressure. Test the ducts whenever equipment is replaced.' },
+  { id: 'before-1980', layers: ['yb_pre1980'], angles: ['ductless', 'duct', 'replace'], title: 'Homes built before 1980', hot: (z, p) => p.yb_pre1980 >= 75,
+    owner: 'Many homes here went up before 1980, when central air often came later as an add on. Ducts can be too small, a few rooms may have none, and an older electrical panel can limit your choices for a heat pump.',
+    tech: 'Retrofit central air: undersized returns, long duct runs through tight framing, 100 amp panels that cannot carry strip heat or a large heat pump. Ductless mini splits suit additions and rooms the ducts never reached.' },
+  { id: 'boom-2000s', layers: ['yb_2000_09'], angles: ['firstwave', 'replace'], title: 'Homes from the 2000 to 2009 building boom', hot: (z, p) => p.yb_2000_09 >= 75,
+    owner: 'A big share of homes here went up between 2000 and 2009. Their original systems are now 17 to 26 years old, which puts them squarely in replacement age.',
+    tech: 'The first Dallas Fort Worth builder boom. R22 on the early years, R410A after; 10 and 13 SEER condensers; original furnaces nearing heat exchanger age.' },
+  { id: 'homes-2010s', layers: ['yb_2010_19'], angles: ['repair', 'maint'], title: 'Homes from the 2010s: first parts failing', hot: (z, p) => p.yb_2010_19 >= 75,
+    owner: 'Homes from the 2010s have reached the age when the first parts give out: a capacitor, a contactor, sometimes the indoor coil. Most of these are repairs, not replacements.',
+    tech: 'R410A systems 7 to 16 years old: capacitor and contactor wear, early evaporator coil leaks, condensate switch trips. Worth a repair in nearly every case.' },
+  { id: 'new-homes', layers: ['yb_2020p'], angles: ['maint', 'newowner'], title: 'Homes built since 2020', hot: (z, p) => p.yb_2020p >= 75,
+    owner: 'Newer homes here are young enough that the maker\'s parts warranty may still apply. What matters now is upkeep, clean filters and fixing weak airflow early, before a small flaw from the build wears the equipment.',
+    tech: 'Warranty territory: maintenance and airflow corrections, not replacements. Common build flaws: kinked flex runs, undersized returns, low refrigerant charge from the factory line set length.' },
+  { id: 'older-furnaces', layers: ['furn20_sh', 'gas_sh'], angles: ['furnace', 'heatrepair', 'heattune'], title: 'Gas furnaces 20 years or older', hot: (z, p) => p.furn20_sh >= 75 && z.gas_sh >= 30,
+    owner: 'A good share of gas furnaces here are past 20 years. At that age the heat exchanger and the flame safety parts deserve a look every fall, before the first cold night.',
+    tech: 'Heat exchanger cracks, flame rollout, tired inducer motors, dirty flame sensors and worn ignitors. Carbon monoxide risk rises with exchanger age. Texas gas furnaces are typically replaced at about 18 years.' },
+  { id: 'gas-heat', layers: ['gas_sh'], angles: ['heatrepair', 'furnace'], title: 'Most homes heat with gas', hot: z => z.gas_sh >= 60,
+    owner: 'Most homes here heat with gas, so a winter call is usually a furnace call: a burner that will not light, or a furnace that starts and then quits.',
+    tech: 'Gas furnace faults: ignitor, flame sensor, pressure switch, inducer, limit switch, control board. A furnace that lights and shuts off is protecting itself.' },
+  { id: 'electric-heat', layers: ['elec_sh', 'hp_sh'], angles: ['heatpump', 'eheat', 'heatrepair'], title: 'Most homes heat with electricity', hot: z => z.elec_sh >= 60,
+    owner: 'Most homes here heat with electricity, through a heat pump or an electric furnace with heat strips. When a heat pump falls behind, the strips cover for it, and you see it on the bill before you feel it in the house.',
+    tech: 'Heat pumps (reversing valve, defrost control, low charge) and air handlers with strip heat (sequencers, elements, breakers). Auxiliary heat that never shuts off points to a heat pump that is not keeping up.' },
+  { id: 'heat-pumps', layers: ['hp_sh'], angles: ['heatpump'], title: 'Heat pumps are common', hot: z => z.hp_sh >= 35,
+    owner: 'Heat pumps are common here. One runs all year, cooling in summer and heating in winter, so it wears faster than an air conditioner that rests half the year.',
+    tech: 'Year round duty cycle. Texas heat pumps are typically replaced at about 13 and a half years. Watch defrost boards, reversing valves and outdoor fan motors.' },
+  { id: 'hail', layers: ['hail175_8km', 'hail_recent', 'hail1_8km'], angles: ['hail'], title: 'Large hail falls here often', hot: (z, p) => p.hail175_8km >= 75 || z.hail_recent >= 6,
+    owner: 'Large hail falls here more often than in most of the metro. It flattens the thin fins on the outdoor unit, and a unit can keep running for months with less cooling and a higher bill before anyone looks.',
+    tech: 'Golf ball size hail crushes condenser fins: less airflow, higher head pressure, shorter compressor life. Fins can be combed straight when the tubes are sound; a split tube means a coil. The insurer decides coverage; never offer to handle a claim.' },
+  { id: 'new-owners', layers: ['own_recent_sh'], angles: ['newowner', 'maint'], title: 'Many owners bought since 2020', hot: (z, p) => p.own_recent_sh >= 75,
+    owner: 'Many owners here bought since 2020. If that is you, the system came with the house and no history. Learn its age and its refrigerant before the first hot week.',
+    tech: 'No maintenance record. The serial number on the data plate usually codes the year of manufacture; the plate also names the refrigerant. A first visit sets a baseline.' },
+  { id: 'larger-homes', layers: ['rooms', 'value'], angles: ['premium', 'ductless'], title: 'Larger homes', hot: (z, p) => p.rooms >= 80 || p.value >= 85,
+    owner: 'Homes here run larger than most, which usually means more cooling capacity and often a second system for the upstairs. Rooms far from the unit are the first to run warm.',
+    tech: 'Median rooms is a tonnage proxy: multiple systems, zoning dampers, long duct runs. Variable speed and two stage equipment hold temperature and humidity more evenly in large floor plans.', inferred: true },
+  { id: 'rentals', layers: ['rent_sf_sh'], angles: ['landlord'], title: 'Many single family homes are rentals', hot: (z, p) => p.rent_sf_sh >= 75, copy: false,
+    owner: '', tech: 'A tenant makes the call and an owner or manager decides. Plan a page for property managers instead of addressing renters on a homeowner page.' },
+  { id: 'older-owners', layers: ['own65_sh'], angles: ['maint'], title: 'Many owners are 65 or older', hot: (z, p) => p.own65_sh >= 75, copy: false,
+    owner: '', tech: 'Heat is a health risk here, not only a comfort issue. Lead with planning ahead and maintenance. Never address a reader\'s age in copy.' },
+  { id: 'spanish', layers: ['span_sh'], angles: [], title: 'Many Spanish speaking households', hot: z => z.span_sh >= 25, copy: false,
+    owner: '', tech: 'Consider a Spanish page written natively, not translated. The dashboard\'s Site Forge builds one from the same plan.' },
+];
+const LAYER_USE = ['idx', 'ge15_sh', 'ge20_sh', 'meanage', 'rep_per1k', 'origwin_sh', 'first5_per1k', 'r22_sh', 'furn20_sh', 'medyr', 'yb_pre1980', 'yb_duct', 'yb_2000_09', 'yb_2010_19', 'yb_2020p', 'gas_sh', 'elec_sh', 'hp_sh', 'hail1_8km', 'hail175_8km', 'hail_recent', 'own_recent_sh', 'own65_sh', 'rent_sf_sh', 'span_sh', 'rooms', 'value', 'inc'];
+/* the layers a page may draw a ZIP's figures from */
+const AREA_VALUES = ['idx', 'ge15_sh', 'ge20_sh', 'r22_sh', 'origwin_sh', 'furn20_sh', 'yb_pre1980', 'yb_duct', 'yb_2000_09', 'yb_2010_19', 'yb_2020p', 'gas_sh', 'elec_sh', 'hp_sh', 'hail175_8km', 'hail_recent', 'own_recent_sh'];
+export const PLAIN_SOURCE = { acs: 'Census figures', est: 'by one estimate', recs: 'federal energy surveys', irv: 'city permit records', epa: 'EPA rules', storm: 'storm reports' };
+export const miles = (a, b) => { const R = 3958.8, r = x => x * Math.PI / 180, dl = r(b.lat - a.lat), dn = r(b.lon - a.lon), h = Math.sin(dl / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dn / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); };
+
+/* the layer catalog as the pack carries it, and every residential ZIP read against it: {layers, zips: Map(zip -> {values, pct, needs})} */
+export function readHeatmaps(text, ZR) {
+  const at = declared(text, 'LAYERS'), layers = {};
+  if (at !== -1) for (const f of fields(text, at)) { if (text[f.start] !== '{' || !LAYER_USE.includes(f.key)) continue; const r = record(text, f.start); layers[f.key] = { label: r.l || f.key, group: r.grp || '', grade: r.g || '', note: typeof r.note === 'string' ? r.note : '' }; }
+  for (const k of LAYER_USE) if (!layers[k] && ZR.some(z => typeof z[k] === 'number')) layers[k] = { label: k, group: '', grade: '', note: '' };
+  const sorted = {}; for (const k of Object.keys(layers)) sorted[k] = ZR.map(z => z[k]).filter(v => typeof v === 'number' && !Number.isNaN(v)).sort((a, b) => a - b);
+  const pctOf = (k, v) => { const s = sorted[k]; if (!s || !s.length || typeof v !== 'number') return null; let lo = 0, hi = s.length; while (lo < hi) { const m = (lo + hi) >> 1; if (s[m] < v) lo = m + 1; else hi = m; } let up = lo; while (up < s.length && s[up] === v) up++; return Math.round(100 * ((lo + up) / 2) / s.length); };
+  const zips = new Map();
+  for (const z of ZR) {
+    const pct = {}, values = {}; for (const k of Object.keys(layers)) { if (typeof z[k] !== 'number') continue; values[k] = Math.round(z[k] * 10) / 10; pct[k] = pctOf(k, z[k]); }
+    if (pct.medyr != null) pct.medyr = 100 - pct.medyr;                                           /* older stock reads hotter */
+    zips.set(z.zip, { values, pct, needs: NEEDS.filter(n => { try { return !!n.hot(z, pct); } catch { return false; } }).map(n => n.id) });
+  }
+  return { layers, zips };
+}
+
+/* what the whole market looks like on each layer (a mean weighted by systems), so a city can be read against it,
+   and the share of the market's systems that sit in ZIPs where a need runs hot */
+function baseline(HM, ZR) {
+  const out = {};
+  for (const [k, l] of Object.entries(HM.layers)) { let n = 0, w = 0; for (const z of ZR) if (typeof z[k] === 'number' && z.sys > 0) { n += z[k] * z.sys; w += z.sys; } out[k] = Object.assign({}, l, { metro: w ? Math.round(10 * n / w) / 10 : null }); }
+  return out;
+}
+function metroShare(id, HM, ZR) { let hot = 0, all = 0; for (const z of ZR) { const s = z.sys || 0; all += s; if ((HM.zips.get(z.zip) || { needs: [] }).needs.includes(id)) hot += s; } return all ? Math.round(100 * hot / all) : 0; }
+
+/* one city read against the heatmaps: its ZIPs with what runs hot in each, and its needs in order.
+   A need counts for the city when it is hot in ZIPs that hold a third of the city's systems; one that is hot in less is
+   still listed, with the ZIPs it belongs to, because that is what lets a page speak to one part of town. */
+function areaNeeds(c, rows, HM, NEED) {
+  const total = rows.reduce((n, z) => n + (z.sys || 0), 0) || 1;
+  const areas = rows.map(z => { const h = HM.zips.get(z.zip) || { values: {}, pct: {}, needs: [] }, v = h.values, keep = k => AREA_VALUES.includes(k);
+    return { zip: z.zip, share: Math.round(100 * (z.sys || 0) / total), builtAround: v.medyr ? Math.round(v.medyr) : null, needs: h.needs,
+      values: Object.fromEntries(Object.entries(v).filter(([k]) => keep(k))), heat: Object.fromEntries(Object.entries(h.pct).filter(([k]) => keep(k))) };
+  }).sort((a, b) => b.share - a.share);
+  const needs = Object.keys(NEED).map(id => { const z = areas.filter(a => a.needs.includes(id)), share = z.reduce((n, a) => n + a.share, 0); return { id, share: Math.min(100, share), zips: z.map(a => a.zip), citywide: share >= 34 }; })
+    .filter(n => n.zips.length).sort((a, b) => b.share - a.share);
+  return { areas, needs };
+}
 
 /* how the Satchel's copy rules are tested here: the patterns are this toolkit's own reading of each rule, matched by id */
 const RULE_TESTS = {
@@ -225,6 +345,7 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
   const lines = {}; for (const r of recordsOf(text, declared(text, 'LINES'))) if (r._key) lines[r._key] = { label: r.l, angles: r.angles || [], objective: r.obj };
 
   /* the cities: sourced facts as the Site Forge prints them, and the angles with demand there */
+  const HM = readHeatmaps(text, ZR), NEED = Object.fromEntries(NEEDS.map(n => [n.id, n]));
   const cities = (D.cities || []).filter(c => c.sys > 0).map(c => {
     const zs = (c.zips || []).filter(z => ZR.some(r => r.zip === z)), pct = (a, b) => b ? Math.round(1000 * a / b) / 10 : 0;
     const ge15 = pct(c.ge15, c.sys), orig = pct(c.orig_win, c.sys);
@@ -244,8 +365,11 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
         hp ? fact(hp + '%', `of ${c.name} central systems estimated to be heat pumps`, 'est', 'C') : null,
       ].filter(f => f && f.value && f.value !== '0' && f.value !== '0%'),
       angles: zs.length ? angles.map(a => ({ id: a.id, share: Math.round(100 * zs.filter(z => a._hit.has(z)).length / zs.length) })).filter(x => x.share > 0).sort((x, y) => y.share - x.share) : [],
+      ...areaNeeds(c, mine, HM, NEED),
     };
   }).sort((a, b) => b.demand.replacementsPerYear - a.demand.replacementsPerYear);
+  /* the cities next door, nearest first */
+  for (const c of cities) c.neighbors = cities.filter(o => o !== c && o.lat && c.lat).map(o => ({ name: o.name, miles: Math.round(miles(c, o)) })).sort((a, b) => a.miles - b.miles).slice(0, 6);
   for (const a of angles) { a.topCities = cities.filter(c => c.angles.some(x => x.id === a.id && x.share >= 50)).slice(0, 12).map(c => c.name); delete a._hit; }
 
   const M = D.meta || {}, W = (M.weib_all || {}), T = D.tickets || {};
@@ -287,6 +411,7 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
     schemaType: 'HVACBusiness', licenseLabel: 'TDLR',
     note: 'No keyword volumes are in the atlas. Keywords are the atlas\'s own library per service angle; an angle ranks by where the model finds demand for it (reach, and each city\'s share of ZIPs that trigger it).',
     lines, angles, negatives: negatives(text), market, cities, sitePlan,
+    layers: baseline(HM, ZR), needs: NEEDS.map(n => ({ id: n.id, title: n.title, layers: n.layers, angles: n.angles, owner: n.owner, tech: n.tech, copy: n.copy !== false, inferred: !!n.inferred, metro: metroShare(n.id, HM, ZR) })),
     compliance: { licenseInEveryAsset: rules.some(r => r.id === 'TDLR1'), licensePattern: 'TAC\\s?L\\s?[A-Z]\\s?\\d{4,}', notice, consent, rules },
   };
   return { pack, brand: B };

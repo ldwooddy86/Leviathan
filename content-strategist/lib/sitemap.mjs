@@ -223,7 +223,22 @@ export function cannibal(keyword, inv, { pack = null, brand = null, type = 'land
 
 /* ---------- internal links ---------- */
 /* the live pages a new page should link to: [{url, anchor, why, score}] */
-export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, selfUrl = '', type = 'landing' } = {}) {
+/* The places next to a place, nearest first. The client's own list wins (brand.neighbors: {"Plano": ["Allen", ...]}),
+   since a business knows its map; otherwise the pack's distances between cities. */
+export function nearby(place, { pack = null, brand = null } = {}) {
+  if (!place) return [];
+  const own = brand && brand.neighbors ? Object.entries(brand.neighbors).find(([k]) => same(k, place)) : null; if (own) return own[1].map(name => ({ name, miles: null, from: 'the brand file' }));
+  const c = pack && pack.cities ? pack.cities.find(x => same(x.name, place)) : null;
+  return c && c.neighbors ? c.neighbors.map(x => ({ name: x.name, miles: x.miles, from: 'the map' })) : [];
+}
+/* the live page that stands for a city: its hub. Where a city has two, the one in the same folder as the page being written. */
+export function cityPage(inv, place, selfUrl = '') {
+  const self = selfUrl ? urlKey(selfUrl) : '', folder = u => { try { return new URL(u).pathname.split('/').filter(Boolean).slice(0, -1).join('/'); } catch { return ''; } }, mine = selfUrl ? folder(selfUrl) : null;
+  const c = inv.filter(p => p.kind === 'location' && same(p.place, place) && p.key !== self && !p.noindex);
+  return c.sort((a, b) => (mine != null ? (folder(b.url) === mine) - (folder(a.url) === mine) : 0) || a.path.length - b.path.length)[0] || null;
+}
+
+export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, selfUrl = '', type = 'landing', neighbors = 2 } = {}) {
   const P = allPlaces(placesOf(pack, brand), inv), c = cannibal(keyword, inv, { pack, brand, type, selfUrl }), W = c.want, self = selfUrl ? urlKey(selfUrl) : '';
   /* two angles are sisters when the atlas sells them on one service line (the full service blend does not count) */
   const lines = pack && pack.lines ? Object.entries(pack.lines).filter(([k]) => k !== 'blend').map(([, l]) => l.angles || []) : [];
@@ -237,7 +252,7 @@ export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, se
     if (c.conflicts.some(x => x.url === p.url && !x.shared)) continue;
     const sim = Math.max(jaccard(W.tokens, p.tokens), p.headTokens ? jaccard(W.tokens, p.headTokens) : 0), cv = p.kind === 'post' ? cover(W.tokens, p) : 0; let score = 2.5 * sim + 3 * cv, why = '';
     const sameAngle = W.angle && (p.angle === W.angle || (p.angles || []).includes(W.angle)), samePlace = W.place && same(W.place, p.place);
-    if (W.place && p.place && !samePlace) continue;                /* a Plano page does not send its reader to Frisco */
+    if (W.place && p.place && !samePlace) continue;                /* another city's pages are not this reader's; the two cities next door come in below */
     if (sameAngle && !p.place && p.kind === 'service') { score += 5 + (canon && key(p.topic || p.keyword) === canon ? 0.5 : 0); why = 'the parent service page'; }
     else if (samePlace && p.kind === 'location') { score += 4; why = `the ${p.place} page`; }
     else if (p.kind === 'post' && cv >= 0.6) { score += 2; why = 'a post on a close topic'; }
@@ -266,5 +281,8 @@ export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, se
     if (used.has(norm(anchor))) continue; used.add(norm(anchor));
     out.push({ url: r.url, anchor, why: r.why, kind: r.kind, score: r.score });
   }
+  /* A page for one place names the two places next door, each linked to its own page, once, near the end. A reader on
+     the edge of town finds their page, and the city pages hold together as a set. */
+  if (W.place && neighbors > 0) { let k = 0; for (const nb of nearby(W.place, { pack, brand })) { if (k >= neighbors) break; const p = cityPage(inv, nb.name, selfUrl); if (!p || out.some(t => t.url === p.url)) continue; out.splice(step && out.length ? out.length - 1 : out.length, 0, { url: p.url, anchor: p.place, why: `a neighboring city${nb.miles != null ? `, about ${nb.miles} miles away` : ''}: name it once near the end ("We also serve ...")`, kind: 'neighbor', score: 0 }); k++; } }
   return { want: W, verdict: c.verdict, targets: out, rule: 'Use each anchor once, in a sentence that would read fine without the link. Reword an anchor to fit the sentence, but never anchor another page with this page\'s own keyword.' };
 }
