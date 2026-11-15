@@ -39,7 +39,7 @@
                                           dashboard's import box first, and you are told what Publish made of it. It also
                                           writes handoff.json, the pages with what the gate measured, and writes the copy of
                                           the dashboard with the Agent Desk in it again, with these pages on it.
-     panel [--out file] [--forget id|all] [--no-live]
+     panel [--out file] [--forget id|all] [--no-live] [--no-repairs | --repairs]
                                           write the copy of the dashboard with the Agent Desk in it again, and say what is on it
      check <pages.json | blueprint.json>  hand a file to the running dashboard's Publish module and report what it listed
 
@@ -79,7 +79,7 @@ const inRepo = p => !path.relative(REPO, p).startsWith('..') && fs.existsSync(pa
 for (const [name, p] of [['CS_LOCAL', LOCAL], ['CS_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy']);
+const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const list = v => (v && v !== true ? String(v).split(',').map(s => s.trim()).filter(Boolean) : []);
@@ -215,7 +215,8 @@ const C = {
   },
   async panel() {
     if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
-    const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '' }); out(r.value, r.text); if (!r.ok) process.exitCode = 1;
+    if (A.repairs && A['no-repairs']) die('--repairs and --no-repairs cannot both be asked for.');
+    const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '', repairs: A['no-repairs'] ? false : A.repairs ? true : undefined }); out(r.value, r.text); if (!r.ok) process.exitCode = 1;
   },
   async check() { const f = A._[0] || die('check <pages.json | blueprint.json>'); const r = await runCheck(path.resolve(f)); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
 

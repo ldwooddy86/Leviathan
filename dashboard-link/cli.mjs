@@ -14,14 +14,21 @@
      heat [--budget n] [--month 1..12] [--lsa]
                               the Heat Desk's plan and its reading of the week, from the running dashboard
      read <file>              what a file saved from the dashboard holds: a desk plan, the competitor ledger, account results
-     panel [--out file] [--forget id|all] [--no-live]
+     panel [--out file] [--forget id|all] [--no-live] [--no-repairs | --repairs]
                               write a copy of the connected dashboard with the Agent Desk in it: a module where both
                               agents' hand-offs arrive and from which a plan loads on the Campaign Desk and pages go to
                               Publish. The dashboard file that was connected is never written to. Each agent refreshes
-                              the copy when it hands work over; --forget drops a hand-off (or all) from it.
+                              the copy when it hands work over; --forget drops a hand-off (or all) from it. The copy
+                              also carries repairs to the layout of the dashboard's own modules, where text and
+                              controls overlapped; --no-repairs leaves them out from then on, --repairs puts them back.
+     layout [--widths 1440,1190,...] [--quick] [--plain] [--modules key,key]
+                              sweep the running dashboard for text and controls that overlap, crowd each other or spill
+                              out of their box: every module, every view, the dialogs, at each width. It sweeps the copy
+                              (with the repairs, unless they were left out); --plain sweeps the dashboard as it was
+                              connected. --quick looks at each module as it opens and no further.
 
    Add --json for machine output. The paid ads and content strategist command lines take connect, dashboard and panel too.
-   A browser is needed for check and heat (Playwright with Chromium); connect and panel use one when it is there. */
+   A browser is needed for check, heat and layout (Playwright with Chromium); connect and panel use one when it is there. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { connect, status, requireConnection, atlasFile, NotConnected } from './lib/connect.mjs';
@@ -29,9 +36,10 @@ import * as live from './lib/live.mjs';
 import { readFile, ledger, actuals } from './lib/handoff.mjs';
 import { connectText, statusText, deskCheckText, publishCheckText, heatText, panelText } from './lib/report.mjs';
 import { refresh, forgetBundles } from './lib/panel.mjs';
+import { sweep, tally, layoutText, WIDTHS } from './lib/layout.mjs';
 import { outside, rel } from './lib/paths.mjs';
 
-const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help']);
+const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help', 'no-repairs', 'repairs', 'quick', 'plain']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const out = (v, text) => console.log(A.json ? JSON.stringify(v, null, 1) : text);
@@ -63,16 +71,25 @@ export async function runHeat(settings) { const atlas = await liveFile(); const 
    when it was opened and that is not what it showed. `forget` drops a hand-off (by its id, or "all") from the registry
    first; the folders the agents built are not touched. */
 export class NoSuchHandoff extends Error { }
-export async function runPanel({ out = '', check = true, forget = '' } = {}) {
+export async function runPanel({ out = '', check = true, forget = '', repairs = undefined } = {}) {
   const s = requireConnection(), src = atlasFile(), gone = forget ? forgetBundles(String(forget)) : null;
   if (gone && !gone.length) throw new NoSuchHandoff(`No hand-off "${forget}" is on file. panel lists what is.`);
-  const r = refresh(s.connection, src, { out });
+  const r = refresh(s.connection, src, { out, repairs });
   let opened = null, why = '';
   if (!check) why = '--no-live was passed'; else { const av = await live.available(); if (!av.ok) why = av.why; else { try { opened = await live.withDashboard(r.file, x => live.panel(x)); } catch (e) { why = 'the copy did not open (' + String(e.message || e).split('\n')[0] + ')'; } } }
   r.opened = opened; if (!opened) r.notOpened = why;
-  r.ok = !opened || (opened.present && opened.tab && !opened.failed && !opened.errors.length && opened.handoffs.length === r.bundles.length);
+  r.ok = !opened || (opened.present && opened.tab && !opened.failed && !opened.errors.length && opened.handoffs.length === r.bundles.length && opened.repairs === r.repairs);
   if (gone) r.forgotten = gone;
   return { value: r, ok: r.ok, text: (gone ? `Forgotten: ${gone.join(', ')}. The folders the agents built are still where they were.\n` : '') + panelText(r) };
+}
+/* Sweeps the dashboard for text and controls that overlap, crowd or spill (lib/layout.mjs). It sweeps the copy, which is
+   what a person opens, with the layout repairs in unless they were left out; plain sweeps the dashboard as it was
+   connected. `ok` is true when nothing was found. */
+export async function runLayout({ widths = null, quick = false, plain = false, modules = null, onStep = null } = {}) {
+  const s = requireConnection(), atlas = await liveFile(); let file = atlas, repaired = false;
+  if (!plain) { const r = refresh(s.connection, atlas, {}); file = r.file; repaired = r.repairs; }
+  const report = await live.withDashboard(file, x => sweep(x, { widths: widths || WIDTHS, quick, modules, onStep })), t = tally(report), i = s.connection.identity;
+  return { value: Object.assign({ file, repaired, tally: t }, report), ok: t.total === 0 && !t.widest && !report.pageErrors.length, text: layoutText(report, { name: `${i.atlas}${i.build ? ' · Build ' + i.build : ''}`, repaired }) };
 }
 
 /* what a file saved from the dashboard holds */
@@ -95,7 +112,13 @@ const C = {
   read() { const f = A._[0] || die('read <file saved from the dashboard>'); const r = runRead(f); out(r.value, r.text); },
   async panel() {
     if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
-    const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '' });
+    if (A.repairs && A['no-repairs']) die('--repairs and --no-repairs cannot both be asked for.');
+    const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '', repairs: A['no-repairs'] ? false : A.repairs ? true : undefined });
+    out(r.value, r.text); if (!r.ok) process.exitCode = 1;
+  },
+  async layout() {
+    const widths = A.widths && A.widths !== true ? String(A.widths).split(',').map(Number) : null; if (widths && widths.some(w => !(w >= 280 && w <= 3840))) die('--widths takes window widths in pixels, from 280 to 3840, separated by commas.');
+    const r = await runLayout({ widths, quick: !!A.quick, plain: !!A.plain, modules: A.modules && A.modules !== true ? String(A.modules).split(',') : null });
     out(r.value, r.text); if (!r.ok) process.exitCode = 1;
   },
 };

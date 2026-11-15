@@ -130,6 +130,8 @@ Say which of these `handoff` told you, and nothing it did not: whether the copy 
 
 Handing over every built page replaces the set that was on the Agent Desk. Handing over pages by name adds a hand-off of their own. `panel` lists what is on the Agent Desk and `panel --forget <id>` takes one off; forget a hand-off only when the person says it is finished with.
 
+The copy also carries repairs to the layout of the dashboard's own modules, in places where text and controls overlapped (a label run into its field, a table out of its card, chart labels over each other). They change no word and no number. `panel` says whether they are in. If the person wants the dashboard exactly as it was delivered, `panel --no-repairs` writes the copy without them and keeps it so until `panel --repairs`. If the person reports text or controls overlapping, do not guess: `node dashboard-link/cli.mjs layout` sweeps the running dashboard and names what it finds.
+
 If `handoff` reports that Publish refused the file, or listed fewer pages than you built, do not hand it over: read the reason, fix the page, build it and run `handoff` again. `check <file>` tries a single blueprint or pages file on its own.
 
 One page can also go in by hand: in the Site Forge's page studio, paste `blueprint.json` into the Blueprint view and choose Use edited blueprint. The Forge and Publish will each note that the page has no FAQ section. That is by design.

@@ -93,6 +93,39 @@ Hand-offs opened by hand are kept in the browser's storage, the newest six, with
 
 A large registry does not make a file that will not open: the copy holds twelve hand-offs at most, the newest whole, older ones without the text of their bulk files. `panel --forget <id>` drops one, `panel --forget all` drops every one; the folders the agents built are not touched.
 
+## The layout repairs
+
+The copy also carries repairs to the dashboard's own modules, in the places where their text and controls overlapped, ran together or ran out of their box. They are one style sheet and one small script (`panel/atlas-repairs.css`, `panel/atlas-repairs.js`). They sit in the same block as the Agent Desk and come out with it, so the dashboard file is still never written to.
+
+| Where | What a person saw | The cause in the dashboard | The repair |
+|---|---|---|---|
+| Dr. HVAC, Settings, the API key (Build 6) | The label, the field and its hint ran together on one line: the field against the last letter of its label, the hint at body size wrapping round both | `.dr-key .f` has no layout of its own. The stacked field rule is written for `.plan .f`, and `.hint` is styled only inside `.plan` | The label is above the field, the field shares its row with Test and Remove, and the hint is under them in the size of every other hint |
+| Every password field: Accounts, Publish, Site Forge, Competitor Watch, Live Data, Dr. HVAC | The browser's own box, another height, border and font than the field beside it | The rule that dresses fields lists text, number, search, url, date, email and tel, and not `password` | Password fields get the same dress |
+| Publish, the tick boxes of a connection card (Webflow, Duda) | The tick sat in the middle of an empty box as wide as a field, and its label was squeezed beside it into a column a word wide, four to six lines tall | `.conn .plan input{width:100%}` is meant for text fields and catches the tick box too | A tick box is its own size, and its label has the row |
+| Competitor Watch, first seen and last seen | The second date stuck out of its cell, and at tablet width slid under the next control | Two date fields in a row that cannot wrap, and a date field will not shrink below its date | The two share the cell while both fit and stack when they do not. A date beside a field of another kind (the Campaign Desk's flight start and its weeks) is left as it was |
+| Replacement Wave, the reinvestment tables | A table ran out through the side of its card and over the next column | Table cells do not wrap, and the box holding the table did not scroll | The box that holds a table scrolls sideways, as the dashboard's `.xscroll` boxes do |
+| Publish and the connection cards, on a phone | A web address or a path ran out of its card and the page scrolled sideways | An address has no place to break | Addresses and paths break where they must |
+| Site Forge and the other two column modules, narrow | Every line of a column ran out of its card | Under 1100 px `.grid2` is one `1fr` column, and `1fr` grows to the longest word that cannot break | The column keeps to its card, and a word longer than its line breaks |
+| The Campaign Desk's channel mix, a label and value row, a long button, under 360 px | Each ran out of the side of its card | Four fixed columns that add up to 288 px; a row whose two sides cannot shrink; a button caption that never wraps | Under 360 px only: the columns share the row, the two sides may break, the caption may wrap |
+| Bar charts: What a job is worth, The hail record, Hour of the day, A decade of establishments | The tallest bars rose out of the chart and over the rule under the card's heading, by up to about 30 px | `barChart` ends its scale at the last tick (`y1 = yt[yt.length - 1]`) where `lineChart` takes the larger of that and the data | The chart's frame grows upward to hold what is drawn above it |
+| Scatter charts: Observed against modeled | ZIP labels printed over each other and over other points | Each label is drawn 9 above its point, with no look at the others | A label that would cover another label or point is tried at seven places round its own point, and left out if none is free; pointing at the point still shows it |
+| Line and scatter charts: The refrigerant clock, What a budget buys, Demand Drivers, Paid | A grid line struck through a label; a marker line ran through the note of the marker before it; an axis title sat on the top tick | Labels are drawn before the lines that cross them, with nothing to set them off. The title sits in the corner where the top tick is | The label gets a halo in the colour of what it sits on and is drawn after the line, as the map's place names are. The title moves up into head room |
+| Line charts with notes, before Build 6 | A note printed over the note beside it, or under the series' last point | Notes all start on the same row. Build 6 staggers them (`dy`) | A note that lands on another, a tick or a point moves down a row, or along its line, inside the frame |
+| The map, every build | A place name under the zoom buttons: one or two letters at desk width, most of "Greenville" on a phone | The buttons sit over the corner of the map and the names take no notice of them | A name under the buttons is left out while it is there, and comes back when the map is moved |
+| The map, before Build 6 | County names printed over city names | No declutter. Build 6 added one (`ZipMap.declutter`) | The same rule for a build that lacks it, the two major cities placed first. A build that has it keeps its own |
+
+Nothing is restyled: each rule gives a thing the room, the wrap or the dress its neighbours already have, and a rule whose target a build does not have does nothing. The repairs change no word and no number of the dashboard. The table is also the list for the next build: fixed at the source, each repair has nothing left to do.
+
+What they leave alone, because nothing overlaps there: a table wider or taller than its card inside one of the dashboard's own scroll boxes (`.tscroll`, `.xscroll`), which scrolls; the text of a long option in a dropdown, which the browser cuts at the arrow; and rows of tabs or a card's heading that wrap onto a second line.
+
+```
+node dashboard-link/cli.mjs layout                 sweep the copy for anything that overlaps, at six window widths
+node dashboard-link/cli.mjs layout --plain         the same sweep of the dashboard as it was connected, without the repairs
+node dashboard-link/cli.mjs panel --no-repairs     write the copy without them, from then on (--repairs puts them back)
+```
+
+`layout` opens the dashboard and walks it as a person would: every module as it opens and scrolled, every section opened, every view switch, the first row of each table, the dialogs, the header and the rail, at each width. In each view it measures where every line of text and every control really is, and reports what sits on something else, what touches it with no room between, what runs out of its box or off the page, a label, field and hint run together on one line, a text field the style sheet never dressed and a tick box stretched to a field's width. In the drawings it reports chart labels over each other, a label with a line through it or on a point, a chart drawn past its own frame, and a place name under the map's buttons. It exits 1 when it finds something, so it can be run after a new build is connected.
+
 ## Commands
 
 ```
@@ -102,11 +135,13 @@ node dashboard-link/cli.mjs doors           what the dashboard takes in and give
 node dashboard-link/cli.mjs check <file>    hand a plan or a pages file to the running dashboard
 node dashboard-link/cli.mjs heat            the Heat Desk's plan
 node dashboard-link/cli.mjs read <file>     a file saved from the dashboard: a desk plan, the competitor ledger, account results
-node dashboard-link/cli.mjs panel [--out file] [--forget id|all] [--no-live]
+node dashboard-link/cli.mjs panel [--out file] [--forget id|all] [--no-live] [--no-repairs | --repairs]
                                             write the copy of the dashboard with the Agent Desk in it, and say what is on it
+node dashboard-link/cli.mjs layout [--widths 1440,1190,...] [--quick] [--plain] [--modules key,key]
+                                            sweep the running dashboard for text and controls that overlap
 ```
 
-Add `--json` for machine output. Exit codes: 0 done, 1 the dashboard refused the file, the connection is out of step, or the copy was opened and the Agent Desk did not come up, 2 an error, 3 a browser was needed and none is available.
+Add `--json` for machine output. Exit codes: 0 done, 1 the dashboard refused the file, the connection is out of step, the copy was opened and the Agent Desk did not come up, or `layout` found something, 2 an error, 3 a browser was needed and none is available.
 
 ## Staying in step with a new build
 
@@ -127,6 +162,8 @@ The tests use the DFW atlas the console in `leviathan/` carries (Build 4, a plac
 
 The Agent Desk is tested twice. Without a browser: the block goes in and comes out leaving the file as it was, text in a hand-off cannot end the data block, the module's files hold nothing that reaches the network, and the commands refuse to write over a dashboard. With a browser, `e2e/panel.test.mjs` has both agents' command lines do their work, opens the copy and drives the Agent Desk by its own buttons: every tab, the plan loaded and read back from the Campaign Desk, the pages sent and read back from Publish, the owner's answers saved and fed to the specialist, a file chosen and a folder dropped, a reload, every other module still opening, and a hand-off whose every line is an image tag with a handler shown as text.
 
+The layout repairs are tested twice as well. Without a browser: the block carries them, they can be left out and the choice is kept, and neither file reaches the network, writes markup, takes anything off the page by a style rule or forces a rule. With a browser, `e2e/repairs.test.mjs` opens the dashboard as it was delivered and with the repairs in, runs the sweep on both, then goes to each repaired place and measures it: the password fields against the text fields beside them, the two dates in their cell, the wide tables in their card, every chart (no label on another, no bar above its frame, and each label left out still shown by pointing at its point), the map at rest, zoomed and on a phone, the tick boxes of the connection cards, and Dr. HVAC's settings at desk and phone width. It holds the repairs to changing no word of any module and to leaving alone what was right (the Campaign Desk's date and weeks still share their row), and checks that left out, the dashboard measures exactly as it did as delivered.
+
 Point `ATLAS_HTML` at another dashboard file to run the browser tests against it as well. Nothing from that file is printed but counts.
 
 ```
@@ -136,3 +173,5 @@ ATLAS_HTML=path/to/atlas.html node dashboard-link/tests/e2e/run.mjs
 ## Limits
 
 Only a Thermal Debt atlas can be connected. The other atlases in the console give the content strategist keyword packs (`harvest`) and no connection. The link reads from a dashboard file and writes files for its doors: it does not reach into a dashboard that is open in someone's browser. Work handed over later reaches the Agent Desk when the person opens the copy again, or drops the `handoff.json` on the one they have open. The Agent Desk was built for the module shell of this atlas and tested on Builds 4 and 6; a build with another shell gets no copy, and the agents say so. The Accounts module is read only, so nothing here sends a campaign to an ad account.
+
+The layout sweep and the repairs were measured in headless Chromium, on Builds 4 and 6. `layout` runs with the network refused like every other check here, so it sets the page in the machine's own fonts and not in the web fonts the dashboard loads when it is online; the repairs do not depend on the width of a typeface, but a sweep can only speak for the fonts it ran with. Two repairs, the date pair and the scrolling tables, use `:has()`, which browsers have had since 2023, and the halo of a label that sits on a shaded band uses `color-mix()`, of the same year; in an older browser those places stay as the dashboard drew them, or the halo is the card's colour. The sweep does not reach what needs a key or a live account to appear (a Dr. HVAC conversation in progress, a connected ad account's results) or what shows only under the pointer.

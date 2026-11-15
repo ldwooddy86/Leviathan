@@ -49,7 +49,7 @@
                                         the owner's answers from the dashboard's Agent Desk, put into a campaign file: each
                                         confirmation is recorded in the owner's words, each claim to cut is listed with the
                                         lines that carry it
-     panel [--out file] [--forget id|all] [--no-live]
+     panel [--out file] [--forget id|all] [--no-live] [--no-repairs | --repairs]
                                         write the copy of the dashboard with the Agent Desk in it again, and say what is on it
      check <file>                       hand a plan file to the running dashboard and report what it made of it
      read <file>                        a file saved from the dashboard: the desk's plan, the competitor ledger, account results
@@ -76,7 +76,7 @@ const OUT = path.resolve(process.env.PA_OUT || path.join(PA_LOCAL, 'out')), DRAF
 for (const [name, p] of [['PA_LOCAL', PA_LOCAL], ['PA_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'help', 'no-live', 'no-copy', 'lsa', 'from-heat', 'force']);
+const BOOL = new Set(['json', 'help', 'no-live', 'no-copy', 'lsa', 'from-heat', 'force', 'no-repairs', 'repairs']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const opt = k => (A[k] && A[k] !== true ? String(A[k]) : '');
@@ -85,7 +85,7 @@ const out = (v, t) => console.log(A.json ? JSON.stringify(v, null, 1) : (t != nu
 const die = (msg, code = 2) => { console.error(msg); process.exit(code); };
 /* the options each command takes: one it does not know is an error, never something to ignore without a word */
 const OPTS = { help: [], where: [], connect: ['id', 'no-live', 'no-copy'], dashboard: [], check: ['files'], read: [], heat: ['budget', 'month', 'lsa'], lines: ['pack'], markets: ['line', 'n', 'county', 'city', 'zips', 'within'], keywords: ['line', 'city', 'find', 'pack'], rules: ['pack'], competitors: ['find', 'n'], channels: ['find', 'for'],
-  plan: ['line', 'budget', 'start', 'weeks', 'n', 'zips', 'county', 'mix', 'angles', 'by-line', 'from-heat', 'out', 'within', 'month', 'lsa', 'job-value', 'book-rate'], draft: ['out', 'force'], lint: ['allow'], build: ['allow', 'out', 'no-live', 'force'], answers: [], panel: ['out', 'forget', 'no-live'] };
+  plan: ['line', 'budget', 'start', 'weeks', 'n', 'zips', 'county', 'mix', 'angles', 'by-line', 'from-heat', 'out', 'within', 'month', 'lsa', 'job-value', 'book-rate'], draft: ['out', 'force'], lint: ['allow'], build: ['allow', 'out', 'no-live', 'force'], answers: [], panel: ['out', 'forget', 'no-live', 'no-repairs', 'repairs'] };
 if (OPTS[cmd]) { const bad = Object.keys(A).filter(k => k !== '_' && k !== 'json' && k !== 'help' && !OPTS[cmd].includes(k)); if (bad.length) die(`${cmd} does not take ${bad.map(k => '--' + k).join(', ')}.${OPTS[cmd].length ? ' It takes: ' + OPTS[cmd].map(k => '--' + k).join(', ') + '.' : ' It takes no options.'}`); }
 /* an option that must be a number in a range, or a real date: a bad value stops the command */
 function numOpt(k, { min = -Infinity, max = Infinity, int = false, what = '' } = {}) {
@@ -440,7 +440,8 @@ const C = {
 
   async panel() {
     if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
-    const r = await runPanel({ out: opt('out'), check: !A['no-live'], forget: opt('forget') }); out(r.value, r.text); if (!r.ok) process.exitCode = 1;
+    if (A.repairs && A['no-repairs']) die('--repairs and --no-repairs cannot both be asked for.');
+    const r = await runPanel({ out: opt('out'), check: !A['no-live'], forget: opt('forget'), repairs: A['no-repairs'] ? false : A.repairs ? true : undefined }); out(r.value, r.text); if (!r.ok) process.exitCode = 1;
   },
 };
 /* --allow: a name that is no rule stops the command; what was set aside and what could not be is said after the report */

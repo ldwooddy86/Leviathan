@@ -90,7 +90,7 @@ The files carry a flat daily budget and no ad schedule. The README in the folder
 
 In: `connect <atlas.html>`. See `dashboard-link/README.md` for what is read and where it is kept.
 
-Out: the Agent Desk. `build` puts the campaign on the Agent Desk of a copy of the dashboard (`~/.leviathan/dashboard/<Atlas>_Build_<n>_Agent_Desk.html`; the connected dashboard itself is never written to) and says where the copy is. A person opens it and chooses Agent Desk, the last module. There the plan loads on the Campaign Desk with one button and the desk is read back; the specialist's own copy is read ad by ad, each screened by the dashboard's own rules; the claims nobody has vouched for wait for the owner; the launch checks and every file of the folder are at hand. With a browser on the machine `build` opens the copy to see that the Agent Desk lists the campaign. `handoff.json` in the folder is the same hand-off as one file, to drop on the Agent Desk of any copy. `dashboard-link/README.md` has the whole of it.
+Out: the Agent Desk. `build` puts the campaign on the Agent Desk of a copy of the dashboard (`~/.leviathan/dashboard/<Atlas>_Build_<n>_Agent_Desk.html`; the connected dashboard itself is never written to) and says where the copy is. A person opens it and chooses Agent Desk, the last module. There the plan loads on the Campaign Desk with one button and the desk is read back; the specialist's own copy is read ad by ad, each screened by the dashboard's own rules; the claims nobody has vouched for wait for the owner; the launch checks and every file of the folder are at hand. With a browser on the machine `build` opens the copy to see that the Agent Desk lists the campaign. `handoff.json` in the folder is the same hand-off as one file, to drop on the Agent Desk of any copy. The copy also carries repairs to the layout of the dashboard's own modules, where text and controls overlapped; `panel --no-repairs` leaves them out. `dashboard-link/README.md` has the whole of it.
 
 The owner's answers come back as a file. On the Agent Desk the owner confirms a claim in their own words, with their name, or says to cut it, and saves `owner-answers.json`. `answers owner-answers.json campaign.json` records each confirmation under `confirmed` in the campaign file and says whether the gate takes it (a superlative with no basis, a credit term with no disclosure wording and a claim the brand file contradicts are still refused), and lists every line that carries a claim to cut. It does not rewrite copy: the lines are the writer's. An answers file is the owner's word only when a person hands it over; the agent never writes one.
 
@@ -127,7 +127,8 @@ node paid-ads/cli.mjs lint campaign.json         the gate, writing nothing
 node paid-ads/cli.mjs build campaign.json        the gate, the files, the check against the running dashboard, the hand-off to the Agent Desk
 node paid-ads/cli.mjs answers owner-answers.json campaign.json
                                                  the owner's answers from the Agent Desk, put into a campaign file
-node paid-ads/cli.mjs panel [--forget id|all]    write the dashboard copy with the Agent Desk again, and say what is on it
+node paid-ads/cli.mjs panel [--forget id|all] [--no-repairs | --repairs]
+                                                 write the dashboard copy with the Agent Desk again, and say what is on it
 node paid-ads/cli.mjs check campaign-desk-plan.json
 node paid-ads/cli.mjs read file-from-the-dashboard.json
 ```

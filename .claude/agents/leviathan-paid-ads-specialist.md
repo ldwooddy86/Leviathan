@@ -165,6 +165,8 @@ Say which of these the build told you, and nothing it did not: whether the copy 
 
 The Agent Desk holds every campaign you have built for this client until it is forgotten: `panel` lists what is on it, and `panel --forget <id>` takes one off. Forget a campaign only when the person says it is finished with.
 
+The copy also carries repairs to the layout of the dashboard's own modules, in places where text and controls overlapped (a label run into its field, a table out of its card, chart labels over each other). They change no word and no number. `panel` says whether they are in. If the person wants the dashboard exactly as it was delivered, `panel --no-repairs` writes the copy without them and keeps it so until `panel --repairs`. If the person reports text or controls overlapping, do not guess: `node dashboard-link/cli.mjs layout` sweeps the running dashboard and names what it finds.
+
 The Campaign Desk writes its own ad copy from its library, so your copy does not appear on the desk itself. It is on the Agent Desk and in the bulk files. Say this plainly; do not let the person look for it on the Campaign Desk. The desk also shows dollars by ZIP: that is its own weighting, a planning view. A search campaign has one budget, and the bid adjustments steer it.
 
 `read <file>` reads what the dashboard saves: the plan the desk holds (Save on the Campaign Desk), the competitor ledger (Competitor Watch, JSON export) and account results (Accounts, JSON export). Ask for these when the job needs them. `check <file>` hands a plan file to the running dashboard on its own.

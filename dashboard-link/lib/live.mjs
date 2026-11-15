@@ -158,7 +158,7 @@ export async function panel(s) {
   const out = await s.run(() => {
     const m = typeof MODI !== 'undefined' ? MODI.agents : null; if (!m) return { present: false, tab: false, failed: false, handoffs: [], modules: typeof MODS !== 'undefined' ? MODS.length : 0 };
     showModule('agents'); const sec = document.querySelector('#mod-agents');
-    return { present: true, num: m.num, title: m.title, tab: !!document.querySelector('#tab-agents'), shown: !!sec && !sec.hidden, failed: !sec || /This module failed to load/.test(sec.textContent || ''), handoffs: typeof m.handoffs === 'function' ? m.handoffs() : [], modules: MODS.length };
+    return { present: true, num: m.num, title: m.title, tab: !!document.querySelector('#tab-agents'), shown: !!sec && !sec.hidden, failed: !sec || /This module failed to load/.test(sec.textContent || ''), handoffs: typeof m.handoffs === 'function' ? m.handoffs() : [], modules: MODS.length, repairs: !!document.getElementById('lvp-repairs') };
   });
   out.errors = s.errors.slice(); return out;
 }

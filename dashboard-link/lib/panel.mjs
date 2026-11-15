@@ -5,6 +5,8 @@
    that file with one block put in front of its shell script:
 
      <!-- leviathan:agent-desk:start ... -->
+     <style id="lvp-repairs">          panel/atlas-repairs.css: repairs to the layout of the dashboard's own modules
+     <script id="lvp-repairs-js">      panel/atlas-repairs.js: the one repair a style sheet cannot make (chart labels)
      <style id="lvp-style">            the module's styles, scoped under .lvp, drawn with the dashboard's own tokens
      <script type="application/json" id="lvp-data">   the hand-offs put in the file, as data
      <script>                          panel/agent-desk.js: a module registered the way the dashboard's own are
@@ -15,15 +17,19 @@
    byte: stripPanel(installPanel(x)) === x. connect() strips it first, so a copy with the Agent Desk in it connects as the
    same dashboard.
 
+   The repairs fix places where the dashboard's own text and controls overlap, crowd or spill (lib/layout.mjs finds
+   them). They ride in the same block, so they too are only ever in the copy and come out with it, and they can be left
+   out: refresh() remembers the choice beside the connection.
+
    A hand-off is a bundle: what an agent built, in one JSON object (the plan the Campaign Desk loads, the specialist's own
    copy, the claims waiting on the owner, the gate's findings and the bulk files; or the pages for Publish with what the
    gate measured). Each agent writes its bundle beside its other files as handoff.json and registers it here, outside the
    repository; refresh() writes the copy of the connected dashboard with the registered bundles in it. */
 import fs from 'node:fs';
 import path from 'node:path';
-import { HERE, LINK, outside } from './paths.mjs';
+import { HERE, LINK, outside, readJson, writeJson } from './paths.mjs';
 
-export const PANEL = 1;
+export const PANEL = 2;
 export const BUNDLE = 'leviathan.handoff.bundle';
 export const ANSWERS = 'leviathan.owner-answers';
 const SRC = path.join(HERE, 'panel');
@@ -63,18 +69,21 @@ const dataText = v => JSON.stringify(v).replace(/</g, '\\u003c');
 /* The dashboard text with the Agent Desk in it. bundles: the hand-offs to put in the file. atlas: {name, build, sha256}
    of the dashboard the block goes into, so the panel can tell a hand-off made for another file. A file that already has
    the block gets a fresh one, never two. */
-export function installPanel(text, { bundles = [], atlas = null, at = new Date().toISOString() } = {}) {
-  const clean = stripPanel(text), i = seam(clean), js = source('agent-desk.js'), css = source('agent-desk.css');
-  if (/<\/script/i.test(js) || js.includes('<!--')) throw new Error('panel/agent-desk.js holds a closing script tag or an HTML comment, which would end its script block early.');
-  if (/<\/style/i.test(css)) throw new Error('panel/agent-desk.css holds a closing style tag.');
+export function installPanel(text, { bundles = [], atlas = null, at = new Date().toISOString(), repairs = true } = {}) {
+  const clean = stripPanel(text), i = seam(clean), js = source('agent-desk.js'), css = source('agent-desk.css'), rcss = repairs ? source('atlas-repairs.css') : '', rjs = repairs ? source('atlas-repairs.js') : '';
+  for (const [name, t] of [['agent-desk.js', js], ['atlas-repairs.js', rjs]]) if (/<\/script/i.test(t) || t.includes('<!--')) throw new Error(`panel/${name} holds a closing script tag or an HTML comment, which would end its script block early.`);
+  for (const [name, t] of [['agent-desk.css', css], ['atlas-repairs.css', rcss]]) if (/<\/style/i.test(t)) throw new Error(`panel/${name} holds a closing style tag.`);
   const bad = bundles.filter(b => !isBundle(b)); if (bad.length) throw new Error(`${bad.length} of the hand-offs given ${bad.length === 1 ? 'is' : 'are'} not a hand-off bundle.`);
-  const block = `${START} v${PANEL} · the Agent Desk, a module added by Leviathan's dashboard link. Everything outside this block is the dashboard as it was delivered; take the block out, through the end marker, and the file is the original. -->\n`
+  const block = `${START} v${PANEL} · the Agent Desk, a module added by Leviathan's dashboard link${repairs ? ', with repairs to the layout of the dashboard\'s own modules' : ''}. Everything outside this block is the dashboard as it was delivered; take the block out, through the end marker, and the file is the original. -->\n`
+    + (repairs ? `<style id="lvp-repairs">\n${rcss}</style>\n<script id="lvp-repairs-js">\n${rjs}</script>\n` : '')
     + `<style id="lvp-style">\n${css}</style>\n`
-    + `<script type="application/json" id="lvp-data">${dataText({ v: PANEL, installed: at, atlas, bundles })}</script>\n`
+    + `<script type="application/json" id="lvp-data">${dataText({ v: PANEL, installed: at, atlas, repairs: !!repairs, bundles })}</script>\n`
     + `<script>\n${js}</script>\n${END}`;
   return clean.slice(0, i) + block + '\n' + clean.slice(i);
 }
-/* what a file with the Agent Desk in it carries: {v, installed, atlas, bundles} or null */
+/* does a file carry the layout repairs? */
+export const hasRepairs = text => String(text).includes('<style id="lvp-repairs">');
+/* what a file with the Agent Desk in it carries: {v, installed, atlas, repairs, bundles} or null */
 export function embeddedData(text) {
   const m = /<script type="application\/json" id="lvp-data">([\s\S]*?)<\/script>/.exec(String(text)); if (!m) return null;
   try { const d = JSON.parse(m[1]); return d && typeof d === 'object' ? Object.assign(d, { bundles: (Array.isArray(d.bundles) ? d.bundles : []).filter(isBundle) }) : null; } catch { return null; }
@@ -129,8 +138,11 @@ export const workingFile = connection => path.join(LINK, workingName(connection)
    file this ever writes over is an earlier copy of its own making: a file at the target that has no Agent Desk in it is
    someone's dashboard, and is left alone. The newest hand-offs for this client go in whole until `budget` bytes of them
    are in; older ones go in without the text of their bulk files; past `max` they stay in the registry only.
-   Returns {file, bytes, bundles, slimmed, leftOut, others}. */
-export function refresh(connection, src, { out = '', budget = 4e6, max = 12, at = undefined } = {}) {
+   `repairs` says whether the layout repairs go in: true or false sets the choice and keeps it beside the connection, so
+   that an agent writing the copy again later does as the person last asked; left out, the kept choice stands (in, at first).
+   Returns {file, bytes, bundles, slimmed, leftOut, others, repairs}. */
+export const settingsFile = () => path.join(LINK, 'panel.json');
+export function refresh(connection, src, { out = '', budget = 4e6, max = 12, at = undefined, repairs = undefined } = {}) {
   if (!src || !fs.existsSync(src)) throw new Error('The connected dashboard file is gone from this machine. Connect it again.');
   const file = path.resolve(out || workingFile(connection)); outside(path.dirname(file), 'The folder for the dashboard copy');
   if (path.resolve(src) === file) throw new Error(`${file} is the dashboard file itself. The Agent Desk goes into a copy: give another name.`);
@@ -141,7 +153,9 @@ export function refresh(connection, src, { out = '', budget = 4e6, max = 12, at 
     const whole = JSON.stringify(b).length;
     if (!put.length || size + whole <= budget) { put.push(b); size += whole; } else { const s = slim(b); put.push(s); size += JSON.stringify(s).length; slimmed.push(b.id); }
   }
-  const i = connection.identity, text = installPanel(fs.readFileSync(src, 'utf8'), { bundles: put, atlas: { name: i.atlas || '', build: i.build || null, sha256: i.sha256 ? i.sha256.slice(0, 16) : null }, at });
+  const kept = readJson(settingsFile(), {}) || {}, withRepairs = typeof repairs === 'boolean' ? repairs : kept.repairs !== false;
+  if (typeof repairs === 'boolean' && repairs !== (kept.repairs !== false)) writeJson(settingsFile(), Object.assign({}, kept, { repairs }));
+  const i = connection.identity, text = installPanel(fs.readFileSync(src, 'utf8'), { bundles: put, atlas: { name: i.atlas || '', build: i.build || null, sha256: i.sha256 ? i.sha256.slice(0, 16) : null }, at, repairs: withRepairs });
   fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text);
-  return { file, bytes: Buffer.byteLength(text), bundles: put.map(b => ({ id: b.id, agent: b.agent, title: b.title, made: b.made, kind: b.paid ? 'paid' : 'content' })), slimmed, leftOut, others: listBundles().length - mine.length };
+  return { file, bytes: Buffer.byteLength(text), bundles: put.map(b => ({ id: b.id, agent: b.agent, title: b.title, made: b.made, kind: b.paid ? 'paid' : 'content' })), slimmed, leftOut, others: listBundles().length - mine.length, repairs: withRepairs };
 }

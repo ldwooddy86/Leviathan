@@ -8,6 +8,7 @@
 .rail .in:has(#tab-drhvac) #tab-agents{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:12px;padding:7px 12px}
 .rail .in:has(#tab-drhvac) #tab-agents .t{white-space:nowrap}
 .rail .in:has(#tab-drhvac) #tab-agents .d{-webkit-line-clamp:1;flex:1;min-width:0;font-size:11.5px}
+.lvp{overflow-wrap:break-word}
 .lvp .lvp-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;margin-top:16px;align-items:start}
 .lvp .lvp-grid.lvp-solo{grid-template-columns:minmax(0,1fr) minmax(0,520px)}
 .lvp .lvp-inbox{position:sticky;top:calc(56px + env(safe-area-inset-top,0px))}

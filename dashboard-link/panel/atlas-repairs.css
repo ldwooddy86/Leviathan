@@ -1,0 +1,74 @@
+/* ==== leviathan layout repairs ==== */
+/* Repairs to the dashboard's own layout, put into the copy beside the Agent Desk and taken out with it. Each one answers
+   a defect found in the DFW Thermal Debt Atlas (Builds 4 and 6) by sweeping every module and view, from 320 to 1600 px
+   wide, for text and controls that overlap, crowd each other or spill out of their box, and by looking at the pages.
+   Nothing here restyles the dashboard: every rule gives a thing the room, the wrap or the dress its neighbours already
+   have. A rule whose target a build does not have does nothing. The causes are listed in dashboard-link/README.md so
+   the next build can fix them at the source. The script beside this sheet (atlas-repairs.js) sees to the drawings. */
+
+/* 1. A password field was the one text field the style sheet never dressed: it showed as the browser's own box, a
+      different height and font from the field beside it, in every credentials card and in Dr. HVAC's settings. */
+input[type=password]{background:var(--card);border:1px solid var(--line-strong);border-radius:7px;padding:6px 9px;font-size:12.5px;max-width:100%;color:var(--ink)}
+.plan input[type=password]{width:100%}
+
+/* 2. Dr. HVAC settings, the API key row. Its label, field and hint sat in a box with no layout of its own (the stacked
+      field rule is written for .plan only), so the three ran together on one line: the field against the last letter
+      of its label, the hint at body size wrapping around both. Now the label is above, the field shares its row with
+      the two buttons, and the hint is under them in the size every other hint has. */
+.dr-key{grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"lab lab lab" "inp test rm" "hint hint hint";align-items:center;gap:4px 8px}
+.dr-key>.f{display:contents}
+.dr-key>.f>label{grid-area:lab}
+.dr-key>.f>input{grid-area:inp;width:100%;min-width:0}
+.dr-key>.f>.hint{grid-area:hint;font-size:11px;color:var(--ink-3);line-height:1.4}
+.dr-key>#d19KeyTest{grid-area:test}
+.dr-key>#d19KeyRm{grid-area:rm}
+@media (max-width:640px){
+  .dr-key{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"lab lab" "inp inp" "hint hint" "test rm";justify-items:start}
+  .dr-key>.f>input{justify-self:stretch}
+}
+
+/* 3. Two date fields side by side inside one cell of a form grid (Competitor Watch: first seen, last seen). A date field
+      will not shrink below the width of its date (134px here), so in a cell narrower than two of them the second one
+      stuck out of the cell, and at tablet width slid under the next cell's control. The pair now shares the cell while
+      there is room for both dates, and stacks when there is not. Only the date fields are sized: a field of another
+      kind beside a date (the Campaign Desk's flight start and its weeks) keeps its own width and its place on the row,
+      and pairs of plain text fields, which do shrink, are left as they were. */
+.plan .f>div[style*="display:flex"]:has(>input[type=date]){flex-wrap:wrap;min-width:0}
+.plan .f>div[style*="display:flex"]:has(>input[type=date])>input[type=date]{flex:1 1 134px;min-width:0}
+
+/* 4. A table wider than its card ran out through the card's side (cells do not wrap), over the card's border and into
+      the next column. The box that holds a table now scrolls sideways instead, as the dashboard's .xscroll boxes do. */
+.module div:has(>table){overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* 5. A web address or a file path with no space in it ran out of a narrow card. It now breaks where it must. */
+.conn a,.conn li,.conn p,.conn code,.steps li,.steps a{overflow-wrap:anywhere}
+
+/* 6. On a narrow window a column sized "1fr" grew to the width of the longest unbreakable word in it (a file name, a
+      JSON key, a campaign name), and every line of the column ran out of its card by that much. The column now keeps to
+      its card, and a word longer than its line breaks instead of running out. */
+@media (max-width:1100px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.grid2>*{min-width:0}
+.module{overflow-wrap:break-word}
+
+/* 7. On the narrowest phones (under 360px) a few things were wider than the card they sit in: the Campaign Desk's
+      channel mix rows (four columns that add up to 288px), a row of a label and its value when the value is long or
+      is told never to wrap (the Heat Desk's ZIP card), a small grid of figures in a card (the index's ZIP detail), and
+      a button with a long caption, which never wraps. Under that width only: the mix columns share the row they have,
+      the two sides of a row and the cells of such a grid may break, and a button's caption may wrap. */
+@media (max-width:359px){
+  .mix .m{grid-template-columns:minmax(0,1fr) minmax(36px,1fr) 40px 60px;gap:6px}
+  .rowl>*{min-width:0;overflow-wrap:anywhere}
+  .module .hd-zipcard .rowl b{white-space:normal}
+  .module .card-b>div[style*="grid"]>*{min-width:0;overflow-wrap:anywhere}
+  .module .btn{white-space:normal;max-width:100%}
+}
+
+/* 8. A chart label that a grid line or a marker line runs through (the script beside this sheet finds them and marks
+      them): the line breaks around the label, the way the map's place names sit on its roads. */
+.chart text[data-lv-halo]{paint-order:stroke;stroke:var(--card);stroke-width:3px;stroke-linejoin:round}
+
+/* 9. A tick box in a connection card (Publish: Webflow, Duda and the rest). The rule that makes every field of those
+      cards fill its cell (.conn .plan input{width:100%}) also caught the tick box, which then took the whole row of its
+      own label: the tick sat in the middle of an empty box and the label beside it was squeezed into a column a word
+      wide, four and five lines tall. A tick box is its own size again, and its label has the row. */
+.conn .plan input[type=checkbox],.conn .plan input[type=radio]{width:auto;flex:none}
