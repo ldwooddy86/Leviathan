@@ -16,7 +16,10 @@
    copy on Amazon S3 and decoded in the page), and it is drawn the way a game engine draws a scene (a physical sky and sun,
    sun shadows, ambient occlusion, bloom, filmic tone mapping, photo-scanned brick, siding, stucco, asphalt, concrete and
    bark, windows with frames and glass, foliage of photographed leaves). The area exports as a glTF model for Unreal
-   Engine 5 or Blender. Google's photos are one click away,
+   Engine 5 or Blender. With a Google Maps key that has the Map Tiles API, the same 3D view can stand on Google's
+   Photorealistic 3D Tiles instead (the photographed mesh behind Google Earth's 3D), with the glows on top. Past the
+   imagery's finest zoom, the satellite map's AI detail runs Real-ESRGAN on this computer's graphics card to draw each
+   tile four times finer, labelled as inferred. Google's photos are one click away,
    and with a Google Maps key (Maps JavaScript API) they glow too. Street photos inside the side panel come from Mapillary
    when a Mapillary token is saved. Every request goes from this browser straight to a public service;
    nothing is sent anywhere else, and the keys a person saves stay in this browser.
@@ -50,7 +53,7 @@
   const KINDS = { all: 'Every building', home: 'Homes', apt: 'Apartments and lodging', biz: 'Shops, offices and services', ind: 'Industrial and warehouses', inst: 'Schools, worship, health, government', other: 'Everything else' };
   /* green and orange cut points: an average DFW system scores about 45 (6.3% replaced a year, 21.5% calling for a repair), so
      orange is the typical home, green needs evidence of an older or original system, red needs evidence of recent work */
-  const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 55, orange: 42, arcgisKey: '', mlyToken: '', gKey: '', show: { g: true, o: true, r: true }, kind: 'all', view: null };
+  const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 55, orange: 42, arcgisKey: '', mlyToken: '', gKey: '', show: { g: true, o: true, r: true }, kind: 'all', view: null, ai: true };
   const CFG = (() => {
     const s = store.get(STORE, {}) || {}, o = JSON.parse(JSON.stringify(DEF));
     if (['esri', 'esri-labels', 'street'].includes(s.imagery)) o.imagery = s.imagery;
@@ -64,7 +67,8 @@
     if (typeof s.gKey === 'string') o.gKey = s.gKey.trim().slice(0, 200);
     if (s.show && typeof s.show === 'object') ['g', 'o', 'r'].forEach(k => { o.show[k] = s.show[k] !== false; });
     if (KINDS[s.kind]) o.kind = s.kind;
-    if (s.view && isN(s.view.lat) && isN(s.view.lon) && isN(s.view.z) && Math.abs(s.view.lat - 32.8) < 2 && Math.abs(s.view.lon + 97) < 2.5) o.view = { lat: +s.view.lat, lon: +s.view.lon, z: clamp(Math.round(+s.view.z), 8, 21) };
+    if (typeof s.ai === 'boolean') o.ai = s.ai;
+    if (s.view && isN(s.view.lat) && isN(s.view.lon) && isN(s.view.z) && Math.abs(s.view.lat - 32.8) < 2 && Math.abs(s.view.lon + 97) < 2.5) o.view = { lat: +s.view.lat, lon: +s.view.lon, z: clamp(Math.round(+s.view.z), 8, 22) };
     return o;
   })();
   const saveCfg = () => store.set(STORE, CFG);
@@ -534,7 +538,7 @@
           ${card('What this cannot show', 'Gaps, and where the missing record lives.', '<div id="scGap"></div>')}
         </div>
         ${card('Source register', 'Every layer traced to the service it came from, with the grade the atlas applies.', '<div id="scSrc"></div>', 'mt')}
-        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect equipment, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Texas Geographic Information Office, the Census Bureau, the City of Dallas, the City of Fort Worth, OpenStreetMap's Overpass servers (for the 3D streets), the USGS lidar copy on Amazon S3 (for the 3D roofs and trees), Google (for its Street View photos, while they show) and, with a token, Mapillary; no record of what you look at leaves this browser. Street View is Google's own player, loaded from google.com while it shows.</div>
+        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect equipment, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Texas Geographic Information Office, the Census Bureau, the City of Dallas, the City of Fort Worth, OpenStreetMap's Overpass servers (for the 3D streets), the USGS lidar copy on Amazon S3 (for the 3D roofs and trees), Google (for its Street View photos, while they show, and with your key its photoreal 3D tiles from tile.googleapis.com) and, with a token, Mapillary; the AI detail runs on this computer and sends nothing; no record of what you look at leaves this browser. Street View is Google's own player, loaded from google.com while it shows.</div>
         </div>`;
 
       $('#scImg', root).value = CFG.imagery;
@@ -542,7 +546,7 @@
       if (!LF) { host.innerHTML = '<div class="callout" style="margin:16px">The map library did not load, so the map cannot draw. Reload the page.</div>'; return; }
 
       /* ---------- the map ---------- */
-      const map = LF.map(host, { minZoom: 8, maxZoom: 21, zoomSnap: 1, worldCopyJump: false, attributionControl: true, preferCanvas: false, maxBounds: [[30.6, -99.8], [34.9, -94.2]], maxBoundsViscosity: 0.6 });
+      const map = LF.map(host, { minZoom: 8, maxZoom: 22, zoomSnap: 1, worldCopyJump: false, attributionControl: true, preferCanvas: false, maxBounds: [[30.6, -99.8], [34.9, -94.2]], maxBoundsViscosity: 0.6 });
       map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
       LF.control.scale({ imperial: true, metric: false, position: 'bottomleft' }).addTo(map);
       [['scHeat', 410], ['scCty', 415], ['scRef', 420], ['scBld', 430], ['scSel', 440]].forEach(([n, z]) => { const p = map.createPane(n); p.style.zIndex = z; if (n === 'scRef' || n === 'scCty') p.style.pointerEvents = 'none'; });
@@ -557,13 +561,88 @@
       function setBase() {
         base.forEach(l => map.removeLayer(l)); base = [];
         const root0 = CFG.arcgisKey ? EP.esriKey : EP.esri, tok = CFG.arcgisKey ? '?token=' + encodeURIComponent(CFG.arcgisKey) : '';
-        const tl = (svc, o) => LF.tileLayer(root0 + svc + '/MapServer/tile/{z}/{y}/{x}' + tok, Object.assign({ maxZoom: 21, maxNativeZoom: 19, attribution: esriAttr, detectRetina: false }, o || {}));
+        const tl = (svc, o) => LF.tileLayer(root0 + svc + '/MapServer/tile/{z}/{y}/{x}' + tok, Object.assign({ maxZoom: 22, maxNativeZoom: 19, attribution: esriAttr, detectRetina: false }, o || {}));
         if (CFG.imagery === 'street') base.push(tl('World_Street_Map', { maxNativeZoom: 19, attribution: 'Powered by <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>. Map: Esri, HERE, Garmin, USGS, EPA, NPS' }));
         else {
           base.push(tl('World_Imagery', { maxNativeZoom: cm15 === false ? 19 : 20 }));
           if (CFG.imagery === 'esri-labels') { base.push(tl('Reference/World_Transportation', { pane: 'scRef', maxNativeZoom: 19, attribution: '' })); base.push(tl('Reference/World_Boundaries_and_Places', { pane: 'scRef', maxNativeZoom: 19, attribution: '' })); }
         }
         base.forEach((l, i) => { l.on('tileerror', () => { tileErr++; if (tileErr > 6 && !tileOk) status(); }); l.on('tileload', () => { tileOk++; }); l.addTo(map); if (i === 0) l.bringToBack(); });
+        aiSet();
+      }
+
+      /* ---------- AI detail: past the imagery's finest zoom, Real-ESRGAN draws each tile four times finer ---------- */
+      /* The imagery stops at about 15 cm a pixel (zoom 20; 30 cm where Esri has no aerial). Closer than that the map would
+         only enlarge pixels; with AI detail on, each tile at zoom 21 and 22 is cut from its zoom 20 parent run through
+         Real-ESRGAN (scoutsr.js, on this computer's graphics card), with a 16 pixel margin from the neighbours so no seams
+         show. A tile first shows the plain enlargement, then the enhanced one. Parents are kept (24 of them), so panning back
+         costs nothing. The detail is inferred, not photographed: the map labels it whenever it shows. */
+      const AI = { cache: new Map(), queue: [], running: false, done: 0, ms: 0, err: '', layer: null, ctl: null };
+      const aiAvail = () => !!(window.__SCOUT_SR__ && window.__SCOUT_TF__);
+      const aiOn = () => CFG.ai !== false && aiAvail() && CFG.imagery !== 'street';
+      const imgURL = (z, x, y) => (CFG.arcgisKey ? EP.esriKey : EP.esri) + 'World_Imagery/MapServer/tile/' + z + '/' + y + '/' + x + (CFG.arcgisKey ? '?token=' + encodeURIComponent(CFG.arcgisKey) : '');
+      const loadImg = url => new Promise((res, rej) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => rej(new Error('tile')); im.src = url; });
+      const aiPz = () => (cm15 === false ? 19 : 20);
+      function aiParent(pz, px, py) {
+        const key = pz + '/' + px + '/' + py; let e = AI.cache.get(key);
+        if (e) { AI.cache.delete(key); AI.cache.set(key, e); e.refs++; return e; }
+        e = { key, pz, px, py, refs: 1 }; e.p = new Promise((res, rej) => { e.res = res; e.rej = rej; }); e.p.catch(() => {});
+        AI.cache.set(key, e); AI.queue.push(e); while (AI.cache.size > 16) { const k0 = AI.cache.keys().next().value; const o = AI.cache.get(k0); AI.cache.delete(k0); const qi = AI.queue.indexOf(o); if (qi >= 0) { AI.queue.splice(qi, 1); o.rej(new Error('dropped')); } }
+        setTimeout(aiPump, 0); return e;   /* after the whole batch of tiles is queued, so the nearest goes first */
+      }
+      async function aiPump() {
+        if (AI.running) return; AI.running = true; aiPaint();
+        try {
+          while (AI.queue.length) {
+            const c = map.getCenter(), z = AI.queue[0].pz, n2 = Math.pow(2, z), cx = (c.lng + 180) / 360 * n2, cy = (1 - Math.log(Math.tan(rad(c.lat)) + 1 / Math.cos(rad(c.lat))) / Math.PI) / 2 * n2;
+            AI.queue.sort((a, b) => Math.hypot(a.px + 0.5 - cx, a.py + 0.5 - cy) - Math.hypot(b.px + 0.5 - cx, b.py + 0.5 - cy));
+            const e = AI.queue.shift();
+            if (e.refs <= 0) { AI.cache.delete(e.key); e.rej(new Error('dropped')); continue; }
+            aiPaint();
+            try {
+              const m = 16, cv = document.createElement('canvas'); cv.width = cv.height = 256 + 2 * m; const g = cv.getContext('2d');
+              const ims = await Promise.all([-1, 0, 1].flatMap(dy => [-1, 0, 1].map(dx => loadImg(imgURL(e.pz, e.px + dx, e.py + dy)).catch(() => null))));
+              if (!ims[4]) throw new Error('the imagery tile did not load');
+              g.drawImage(ims[4], m - 256, m - 256, 768, 768);   /* a stretched fill under the edges, in case a neighbour is missing */
+              ims.forEach((im, i) => { if (im) g.drawImage(im, m + (i % 3 - 1) * 256, m + (Math.floor(i / 3) - 1) * 256); });
+              const big = await window.__SCOUT_SR__.enhance(cv), out = document.createElement('canvas'); out.width = out.height = 1024;
+              out.getContext('2d').drawImage(big, 4 * m, 4 * m, 1024, 1024, 0, 0, 1024, 1024);
+              AI.done++; AI.ms = window.__SCOUT_SR__.enhance.lastMs || 0; AI.err = ''; e.res(out);
+            } catch (err) { AI.err = String((err && err.message) || err); e.rej(err); AI.cache.delete(e.key); }
+            aiPaint();
+          }
+        } finally { AI.running = false; aiPaint(); }
+      }
+      const AILayer = LF.GridLayer.extend({
+        initialize(o) { LF.GridLayer.prototype.initialize.call(this, o); this.on('tileunload', ev => { const e = ev.tile && ev.tile._aiE; if (e) { e.refs--; ev.tile._aiE = null; } }); },
+        createTile(coords, done) {
+          const pz = aiPz(), dz = coords.z - pz, n = 1 << Math.max(0, dz), t = document.createElement('canvas');
+          /* on a high density screen the tile keeps all the pixels the network drew (512 at zoom 21), shown at 256 */
+          const R = Math.min(2, Math.max(1, Math.round(window.devicePixelRatio || 1))), W = Math.max(256, Math.min(256 * R, 1024 / n));
+          t.width = t.height = W; const g = t.getContext('2d');
+          if (dz < 1) { setTimeout(() => done(null, t), 0); return t; }
+          const px = coords.x >> dz, py = coords.y >> dz, sx = coords.x - px * n, sy = coords.y - py * n;
+          loadImg(imgURL(pz, px, py)).then(im => { if (!t.dataset.ai) { g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(im, sx * 256 / n, sy * 256 / n, 256 / n, 256 / n, 0, 0, W, W); } done(null, t); }).catch(() => done(null, t));
+          const e = aiParent(pz, px, py); t._aiE = e;   /* the tile holds a reference until it unloads */
+          e.p.then(c => { const s2 = 1024 / n; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(c, sx * s2, sy * s2, s2, s2, 0, 0, W, W); t.dataset.ai = '1'; }).catch(() => {});
+          return t;
+        },
+      });
+      const AICtl = LF.Control.extend({ options: { position: 'bottomleft' }, onAdd() { const d = LF.DomUtil.create('div', 'sc-aictl'); LF.DomEvent.disableClickPropagation(d); LF.DomEvent.disableScrollPropagation(d); return d; } });
+      function aiPaint() {
+        if (!AI.ctl) return; const d = AI.ctl.getContainer(); if (!d) return;
+        if (!aiAvail() || CFG.imagery === 'street') { d.hidden = true; return; } d.hidden = false;
+        const z = map.getZoom(), past = z > aiPz(), on = aiOn(), left = AI.queue.length + (AI.running ? 1 : 0);
+        const st = !on ? 'off' : !past ? `on from zoom ${aiPz() + 1}` : AI.err && !left ? 'not available here: ' + esc(AI.err) : left ? `enhancing ${left} tile${left > 1 ? 's' : ''}${AI.ms ? ' (' + (AI.ms / 1000).toFixed(1) + ' s each)' : ''}…` : 'enhanced';
+        d.innerHTML = `<button type="button" aria-pressed="${on}" title="Past the imagery's finest zoom, Real-ESRGAN (an AI model running on this computer) draws each tile four times finer">AI detail: ${on ? 'On' : 'Off'}</button><span>${st}</span>${on && past ? `<em>AI-enhanced beyond the imagery's ${aiPz() === 20 ? 15 : 30} cm: fine detail is inferred, not photographed</em>` : ''}`;
+        d.querySelector('button').onclick = () => { CFG.ai = !aiOn(); saveCfg(); aiSet(); };
+      }
+      function aiSet() {
+        if (AI.layer) { map.removeLayer(AI.layer); AI.layer = null; }
+        if (aiOn()) { AI.layer = new AILayer({ minZoom: aiPz() + 1, maxZoom: 22, tileSize: 256, zIndex: 5, updateWhenZooming: false, keepBuffer: 1 }); AI.layer.addTo(map); }
+        map.setMaxZoom(aiOn() ? 22 : 21); if (!aiOn() && map.getZoom() > 21) map.setZoom(21);
+        if (!AI.ctl && aiAvail()) { AI.ctl = new AICtl(); AI.ctl.addTo(map); map.on('zoomend', aiPaint); }
+        aiPaint();
       }
       setBase();
 
@@ -1114,6 +1193,7 @@
         onMove: st => { d3St = st; whereSoon(); },
         onNote: t => { const n = $('#sc3dNote', root); if (n) n.textContent = t || ''; },
         onGraphics: () => render3DBar(),
+        googleKey: () => CFG.gKey || '',
         facts: b => ({ address: b.addr ? title(b.addr) : '', zip: b.zip || b.zipF || '', city: b.city ? title(b.city) : '', use: (PROF[b.cls] || PROF.unk).l, reading: STL[b.status], score: b.sc.score, likelySystem: b.sys.short, likelyNeed: needLabel(b), heightMeters: Math.round(hOf(b) * 10) / 10, fieldCheck: CK[b.id] && CK[b.id].s ? STL[CK[b.id].s] : '' }),
       };
       const refresh3D = debounce(() => { if (d3 && d3Mode) d3.refresh(); }, 350);
@@ -1137,6 +1217,17 @@
       }
       const whereSoon = debounce(() => { const w = $('#sc3dWhere', root); if (w && d3Mode) w.innerHTML = where3D(d3St || (d3 && d3.state())); if (d3 && d3St) $$('#sc3dBar [data-h]', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.h === d3St.mode))); }, 90);
       let gfxOpen = false;
+      /* the model under the glows: the measured one (no key), or Google's photoreal 3D mesh (a Google key with the Map Tiles API) */
+      function modelSeg() {
+        const g = d3 && d3.graphics ? d3.graphics() : null; if (!g || !g.photoAvail) return '';
+        const on = g.photo, warn = on && g.photoErr ? ' sc-warn' : '';
+        return `<span class="seg${warn}" role="group" aria-label="Model"><button type="button" data-model="measured" aria-pressed="${!on}" title="Measured by USGS lidar and drawn by the page: no key">Measured</button><button type="button" data-model="photo" aria-pressed="${on}" title="Google's Photorealistic 3D Tiles: the real streets, houses and trees as photographed (Google key with the Map Tiles API)">Photoreal (Google)</button></span>`;
+      }
+      function photoForm() {
+        const g = d3 && d3.graphics ? d3.graphics() : null; if (!g || !g.photo || (g.photoReady && !g.photoErr)) return '';
+        if (g.hasKey && !g.photoErr) return `<div class="sc-svwhere mini">Loading Google's photoreal 3D tiles…</div>`;
+        return `<form class="sc-svkey" id="sc3dKeyF" autocomplete="off"><span><b>Photoreal 3D:</b> ${g.photoErr ? esc(g.photoErr) + ' Paste another key, or the same one once it is fixed. The key stays in this browser.' : 'Google\'s Photorealistic 3D Tiles are the real neighborhood as photographed from the air (the data behind Google Earth\'s 3D). They need a Google Maps key with the <b>Map Tiles API</b> turned on (Google Cloud console, APIs and Services; billing on, and Google\'s free monthly use covers testing). The key stays in this browser.'}</span><input type="password" id="sc3dKey" placeholder="Paste a Google Maps key (AIza…)" spellcheck="false" aria-label="Google Maps key"><button class="btn sm" type="submit">Turn on photoreal</button><a href="https://developers.google.com/maps/documentation/tile/3d-tiles" target="_blank" rel="noopener noreferrer">About the 3D tiles ↗</a></form>`;
+      }
       const slug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'area';
       function gfxMenu() {
         const g = d3 && d3.graphics ? d3.graphics() : null; if (!g) return '';
@@ -1150,6 +1241,8 @@
       }
       function render3DBar() {
         const t = d3Target; if (!t) { d3Bar.innerHTML = ''; return; } const b = t.b ? (B.get(t.b.id) || t.b) : null, st = d3 ? d3.state() : null, mode = st ? st.mode : 'street';
+        const gx = d3 && d3.graphics ? d3.graphics() : null, mn = $('#scModeNote', root);
+        if (mn && d3Mode) mn.textContent = gx && gx.photo && gx.photoReady && !gx.photoErr ? 'Google\'s photoreal 3D tiles: the neighborhood as Google photographed it from the air, every building glowing in its colour. Walk the streets and alleys, or rise to drone and bird height for the roofs.' : 'The neighborhood built from open data, every building glowing in its colour. Walk the streets and alleys, or rise to drone and bird height for the roofs.';
         if (b && !svList.includes(b.id)) { svList = svListNow(); if (!svList.includes(b.id)) svList.unshift(b.id); }
         const i = b ? svList.indexOf(b.id) : -1;
         d3Bar.innerHTML = `<div class="sc-svinfo">${b ? `<span class="sc-pill ${b.status}">${STL[b.status]}</span><b>${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</b><span class="mini">${esc([(PROF[b.cls] || PROF.unk).l, b.sys.short, needLabel(b), 'score ' + b.sc.score].join(' · '))}</span>` : `<b>A point on the map</b><span class="mini">${t.lat.toFixed(5)}, ${t.lon.toFixed(5)}</span>`}</div>
@@ -1158,19 +1251,22 @@
             <span class="seg" role="group" aria-label="Height">${[['street', 'Street'], ['drone', 'Drone'], ['bird', 'Bird']].map(([k, l]) => `<button type="button" data-h="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</span>
             ${b ? '<button type="button" class="ibtn" data-a="face" title="Turn to face the building">Face it</button>' : ''}
             ${b ? `<span class="seg sc-svck" role="group" aria-label="Your field check">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely']].map(([k, l]) => `<button type="button" data-ck="${k}" aria-pressed="${!!(CK[b.id] && CK[b.id].s === k)}" title="Mark what you see: ${l.toLowerCase()}">${l}</button>`).join('')}</span>` : ''}
+            ${modelSeg()}
             ${gfxMenu()}
             <button type="button" class="ibtn" data-a="export" title="Download this area as a 3D model (glTF .glb) for Unreal Engine 5, Blender or any 3D tool: every building with its reading and its glow, the streets and the trees (Esri's imagery stays out)">⇩ 3D model for Unreal</button>
             <button type="button" class="ibtn" data-a="full">${svFull ? '⤡ Exit full window' : '⤢ Full window'}</button>
             <button type="button" class="ibtn" data-a="photos" title="Google's photographs of this street, in the card's place">Google photos</button>
             <button type="button" class="btn sm" data-a="map">Back to satellite</button>
           </div>
-          <div class="sc-svwhere" id="sc3dWhere">${where3D(st)}</div>`;
+          <div class="sc-svwhere" id="sc3dWhere">${where3D(st)}</div>${photoForm()}`;
         $$('[data-a]', d3Bar).forEach(x => x.onclick = () => { const a = x.dataset.a;
           if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'face' && d3 && b) d3.face(b); else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1);
           else if (a === 'export' && d3 && d3.exportGLB) { x.disabled = true; x.textContent = 'Building the model…'; const s2 = d3.state(); d3.exportGLB().then(blob => saveFile(`rooftop-scout-3d-${slug(s2.road)}-${new Date().toISOString().slice(0, 10)}.glb`, blob)).catch(e => toast('The 3D model did not build: ' + (e && e.message || e))).finally(() => render3DBar()); }
           else if (a === 'photos') { const s2 = d3 ? d3.state() : null; showSV(b ? { lat: b.lat, lon: b.lon, street: b.street, b } : s2 ? { lat: s2.lat, lon: s2.lon, street: '', b: null } : t); } });
         $$('[data-h]', d3Bar).forEach(x => x.onclick = () => { if (d3) { d3.setHeight(x.dataset.h); whereSoon(); } });
         const gd = $('#sc3dGfx', d3Bar); if (gd) gd.addEventListener('toggle', () => { gfxOpen = gd.open; });
+        $$('[data-model]', d3Bar).forEach(x => x.onclick = () => { if (!d3) return; d3.setGraphics({ photo: x.dataset.model === 'photo' }); render3DBar(); });
+        const kf3 = $('#sc3dKeyF', d3Bar); if (kf3) kf3.onsubmit = e => { e.preventDefault(); const k = $('#sc3dKey', kf3).value.trim(); if (!k) { toast('Paste a key first'); return; } CFG.gKey = k.slice(0, 200); GM.failed = ''; saveCfg(); settings(); toast('Google Maps key saved in this browser'); if (d3) d3.setGraphics({ photo: true }); render3DBar(); };
         $$('[data-g]', d3Bar).forEach(x => x.onclick = () => { const [k, v] = x.dataset.g.split(':'); if (!d3) return; d3.setGraphics(k === 'trees' ? { trees: v === 'on' } : { [k]: v }); render3DBar(); });
         $$('[data-ck]', d3Bar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); render3DBar(); if (d3) d3.refresh(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
       }
@@ -1242,6 +1338,8 @@
         `<b>The score and the colour</b>. The chance of at least one paid job: a replacement within five years, a repair call within twelve months, an installation, or hail work where large hail fell within 8 km since 2023. A building with several units counts the chance any of them needs it, damped by the square root of the count, and the result is weighted by how much of a building like it is conditioned (a parking deck almost none). Green at ${CFG.green} or more, orange at ${CFG.orange} to ${CFG.green - 1}, red below; both cut points are in Settings. An average DFW system scores about 45 (the metro replaces ${P(META.rep / META.sys * 100, 1)} of its systems a year and calls for a repair on about 21%), so by default orange is the typical building, green needs evidence of an older or original system, and red needs evidence of recent work or a new building. A field check replaces the colour.`,
         `<b>The likely system ${G('B')}</b>. From the type, footprint and height, and for homes the ZIP's heating fuel (ACS B25040) with the RECS heat pump share of electric homes (47% single family, 53% apartments). Tonnage is a rule of thumb (500 to 600 square feet a ton in a home, 250 to 400 in a commercial building).`,
         `<b>The 3D street view ${G('C')}</b>. The neighborhood rebuilt in the browser, with no key, from measurements: every roof is the shape the USGS 3D Elevation Program's airborne lidar measured over the building's FEMA footprint (the highest single or last laser return in each 75 cm cell, capped at FEMA's height so overhanging trees stay out; a modeled hipped or flat roof where the lidar holds too few points), and every tree crown is where the laser met leaves (points outside the footprints, or the first of several returns over a roof, more than 2.2 m above a ground model built from the ground returns), drawn as clusters of photographed leaves with trunks under the crowns' peaks. Houses have walls set back under their eaves, windows with frames, sills and glass, a front door facing the street and a garage door facing the alley or drive; its roof and the ground are Esri's aerial and satellite imagery, the streets are asphalt and the alleys and drives concrete, from OpenStreetMap (the Census TIGER file when OpenStreetMap does not answer, without the alleys), and the trees stand where the aerial photo shows canopy. It is drawn the way a game engine draws a scene: a physical sky with the sun where it stands over Dallas at the chosen hour, light from that sky, sun shadows, ambient occlusion, bloom on the glows (three.js's port of Unreal Engine's bloom) and filmic tone mapping, on physically based brick, siding, stucco, storefront glass and metal. The view is drawn by the page, so it knows where it stands and looks, and every building's glow sits exactly on its walls. It walks at eye level along the streets and alleys and rises to drone (38 m) and bird (120 m) height, and the area exports as a glTF model (one node per building, its reading in the node's extras, its glow as an emissive shell) that opens in Unreal Engine 5 or Blender.`,
+        `<b>Photoreal 3D ${G('A')}</b>. With a Google Maps key that has the Map Tiles API turned on, Model: Photoreal (Google) in the 3D bar puts the same walk on Google's Photorealistic 3D Tiles: the streets, houses, cars and trees as Google photographed them from the air and meshed them (the data behind Google Earth's 3D view), streamed to the browser and drawn unlit with their photographed light. The glows sit on top, each building's FEMA footprint raised to its height and set on Google's ground, which the page finds by casting rays into the mesh around the camera. Google's logo and the imagery's credits show over the view while it does. Without a key, or if Google refuses the key, the view stays on the measured model.`,
+        `<b>AI detail on the map</b>. The imagery stops at about 15 cm a pixel (zoom 20; 30 cm where Esri has only satellite). Past that, at zoom 21 and 22, AI detail runs each imagery tile through Real-ESRGAN (realesr-general-x4v3, a super-resolution network) in TensorFlow.js on this computer's graphics card, with a 16 pixel margin from its neighbours so the joins do not show, and draws it four times finer: sharper roof edges, vents, units and shingle courses. Detail the network adds is inferred from the picture, not photographed, and the map says so whenever it shows. Nothing leaves the browser; the button under the map turns it off.`,
       ].map(x => `<li>${x}</li>`).join('');
       $('#scMeth', root).innerHTML = method();
       function settings() {
@@ -1250,7 +1348,7 @@
           <div class="f"><label class="fl" for="scGr">Green at a score of</label><div class="row"><input type="range" id="scGr" min="20" max="90" step="1" value="${CFG.green}"><output id="scGrO">${CFG.green}</output></div></div>
           <div class="f"><label class="fl" for="scOr">Orange at a score of</label><div class="row"><input type="range" id="scOr" min="5" max="85" step="1" value="${CFG.orange}"><output id="scOrO">${CFG.orange}</output></div></div>
           <div class="f"><label class="fl" for="scArc">ArcGIS key (optional)</label><div class="row"><input type="password" id="scArc" autocomplete="off" spellcheck="false" placeholder="${CFG.arcgisKey ? 'Saved: ' + esc(CFG.arcgisKey.slice(0, 4)) + '…' : 'AAPK… or an access token'}"><button class="btn sm" id="scArcS">Save</button><button class="btn sm sec" id="scArcR"${CFG.arcgisKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Routes the imagery through your own ArcGIS Location Platform account, the way Esri asks commercial apps to use it (its free tier covers two million basemap tiles a month). Without a key the public World Imagery service is used, with Esri's attribution on the map.</p></div>
-          <div class="f"><label class="fl" for="scGk">Google Maps key (for the glows)</label><div class="row"><input type="password" id="scGk" autocomplete="off" spellcheck="false" placeholder="${CFG.gKey ? 'Saved: ' + esc(CFG.gKey.slice(0, 6)) + '…' : 'AIza…'}"><button class="btn sm" id="scGkS">Save</button><button class="btn sm sec" id="scGkR"${CFG.gKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Turns on the glows. Street View then runs on Google's Maps JavaScript API, which reports where its camera stands and looks, so every building in the picture gets a green, orange or red glow that follows the view as it turns, zooms and walks. In the Google Cloud console, turn on the Maps JavaScript API for the key and leave it unrestricted by web address (a file opened from this computer sends none; restrict it to that API instead). Google bills Street View loads past its monthly free use. Without a key Street View still plays, through Google's plain embedded player, without glows.</p></div>
+          <div class="f"><label class="fl" for="scGk">Google Maps key (Street View glows, photoreal 3D)</label><div class="row"><input type="password" id="scGk" autocomplete="off" spellcheck="false" placeholder="${CFG.gKey ? 'Saved: ' + esc(CFG.gKey.slice(0, 6)) + '…' : 'AIza…'}"><button class="btn sm" id="scGkS">Save</button><button class="btn sm sec" id="scGkR"${CFG.gKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Turns on the photoreal 3D view (turn on the Map Tiles API for the key) and the glows on Google's photos. Street View then runs on Google's Maps JavaScript API, which reports where its camera stands and looks, so every building in the picture gets a green, orange or red glow that follows the view as it turns, zooms and walks. In the Google Cloud console, turn on the Maps JavaScript API for the key and leave it unrestricted by web address (a file opened from this computer sends none; restrict it to that API instead). Google bills Street View loads past its monthly free use. Without a key Street View still plays, through Google's plain embedded player, without glows.</p></div>
           <div class="f"><label class="fl" for="scMlyK">Mapillary token (optional)</label><div class="row"><input type="password" id="scMlyK" autocomplete="off" spellcheck="false" placeholder="${CFG.mlyToken ? 'Saved: ' + esc(CFG.mlyToken.slice(0, 6)) + '…' : 'MLY|…'}"><button class="btn sm" id="scMlyS">Save</button><button class="btn sm sec" id="scMlyR"${CFG.mlyToken ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Shows Mapillary's street photos (CC BY-SA) in the From the road card, turned to face the building. A free client token comes from mapillary.com under Developers. Mapillary's coverage of residential streets is thinner than Street View's.</p></div>
           <div class="f"><label class="fl">Field checks</label><div class="row"><span class="mini">${plural(Object.keys(CK).length, 'building')} checked in this browser.</span><button class="btn sm sec" id="scCkX"${Object.keys(CK).length ? '' : ' disabled'}>Clear them all</button></div></div>`;
         $('#scMinZ', s).onchange = e => { CFG.minZoom = +e.target.value; saveCfg(); restyleAll(); load(); refreshSoon(); };
@@ -1277,6 +1375,8 @@
         ['Units and tons are rules of thumb', 'Rooftop unit counts and tonnage come from floor area, not from counting units on the imagery. Count them on the 15 cm imagery before quoting.'],
         ['Imagery dates differ', 'Satellite and aerial captures under one map are from different days (the line under the map names the one under its centre). Street View and Mapillary have their own dates: Street View shows its date under "View on Google Maps" and "See more dates" in Google Maps.'],
         ['The 3D view is measured, then dressed', 'Roof shapes and tree crowns are measured by the USGS lidar, flown in 2018 over most of Dallas County: a roof built or a tree cut since then shows as it was, and a building too new for the lidar gets a modeled roof. Walls are not measured (airborne lidar sees roofs and treetops): brick or siding is a likely look for the building\'s type, windows are placed at a typical spacing, doors face the nearest street or alley. Roofs carry the aerial picture; fences, cars and signs appear only as that flat picture on the ground. Google photos, one click away, show the street as it was photographed.'],
+        ['AI detail is inferred, not photographed', 'Past zoom 20 the map shows what Real-ESRGAN draws from the 15 cm picture: edges it sharpens are there, but fine texture it adds is its best guess. Count rooftop units, read a vent or judge a roof\'s wear on the imagery at zoom 20 or in Street View; turn AI detail off to see the plain enlargement.'],
+        ['Photoreal 3D is Google\'s capture', 'Google\'s mesh is from its own flights, of its own date, and melts thin things (wires, poles, fences) into lumps; it is not measured the way the lidar is. The glows on it are still the FEMA footprints, so a building\'s glow can sit a little off a mesh that leans.'],
         ['A glow is a drawing, not a detection', 'Each glow is the building\'s FEMA footprint raised to its FEMA height (or a height for its type) and drawn from the panorama\'s own camera position and direction. Trees, fences and nearer buildings are not cut out of it, and a footprint or a height a few meters off moves its edge by as much. The colour is the building\'s reading, as on the map.'],
         ['Street View stands where Google drove', 'The view is aimed from the nearest point of the building\'s own street. Where Google\'s car did not pass (a private drive, a new street) the player picks the nearest picture it has, which can be on the next street; turn, step, or walk with the arrows in the picture.'],
       ], ['Caveat', 'Why it matters']);
@@ -1300,6 +1400,8 @@
         ['Streets and alleys (3D view)', 'OpenStreetMap through the Overpass API (overpass-api.de, then two mirrors), © OpenStreetMap contributors (ODbL); the Census TIGER file when none answers', 'B', 'live', 'https://www.openstreetmap.org/copyright'],
         ['3D drawing', 'three.js r186 (MIT), carried in the file, with its sky, ambient occlusion (GTAO), bloom (a port of Unreal Engine\'s) and glTF export add-ons', '', '', 'https://threejs.org/'],
         ['Roofs and trees (3D view)', 'USGS 3D Elevation Program airborne lidar (public domain), the Entwine Point Tile copy on Amazon S3 (usgs-lidar-public), decoded in the page with laz-perf (Apache-2.0); where no lidar answers, trees are placed where the Esri imagery shows canopy', 'A', 'TX_Pecos_Dallas_B3_2018 over most of Dallas; the newest collection over any other point', 'https://www.usgs.gov/3d-elevation-program'],
+        ['Photoreal 3D (with your key)', 'Google Photorealistic 3D Tiles through the Map Tiles API (tile.googleapis.com), streamed with 3DTilesRendererJS (NASA-AMMOS, Apache-2.0) and decoded with Draco; Google\'s logo and data credits show over the view', '', 'live', 'https://developers.google.com/maps/documentation/tile/3d-tiles'],
+        ['AI detail (map, zoom 21 and 22)', 'Real-ESRGAN realesr-general-x4v3 (Xintao Wang and contributors, BSD-3-Clause), run in TensorFlow.js 4.22 (Apache-2.0) on the browser\'s WebGL; its weights carried in the file', '', 'inferred', 'https://github.com/xinntao/Real-ESRGAN'],
         ['Materials (3D view)', 'CC0 photo-scanned textures from Poly Haven (brick, siding, stucco, metal, asphalt, concrete, grass, bark, shingle) and ambientCG (leaves), carried in the file', '', '', 'https://polyhaven.com/'],
       ]);
 
@@ -1318,12 +1420,12 @@
       /* ---------- what other code may call ---------- */
       self.api = {
         zoomZip, goTo: (la, lo, z) => { map.setView([la, lo], z || 19); pendingPick = { lat: la, lon: lo }; setTimeout(tryPending, 50); },
-        map: () => map, buildings: () => [...B.values()], pick: id => pick(id, { pan: true }), d3: () => d3, open3D: t => open3D(t), glows: () => GM.hits.map(h => ({ id: h.b.id, d: h.d, box: [h.x0, h.y0, h.x1, h.y1] })), sv: () => ({ mode: svMode, live: GM.live, cam: GM.cam, failed: GM.failed, n: GM.n, target: svTarget && svTarget.b ? svTarget.b.id : null }), read, systemOf, addrParts, stateAt, aim, svURL, status: () => ({ tiles: [...T.values()].map(t => ({ k: t.k, st: t.st, n: t.ids.size })), queued: Q.list.length, running: Q.run, errors: errors.slice() }),
+        map: () => map, ai: () => ({ on: aiOn(), avail: aiAvail(), layer: !!AI.layer, parentZoom: aiPz(), done: AI.done, queued: AI.queue.length, running: AI.running, ms: AI.ms, err: AI.err, cached: AI.cache.size }), buildings: () => [...B.values()], pick: id => pick(id, { pan: true }), d3: () => d3, open3D: t => open3D(t), glows: () => GM.hits.map(h => ({ id: h.b.id, d: h.d, box: [h.x0, h.y0, h.x1, h.y1] })), sv: () => ({ mode: svMode, live: GM.live, cam: GM.cam, failed: GM.failed, n: GM.n, target: svTarget && svTarget.b ? svTarget.b.id : null }), read, systemOf, addrParts, stateAt, aim, svURL, status: () => ({ tiles: [...T.values()].map(t => ({ k: t.k, st: t.st, n: t.ids.size })), queued: Q.list.length, running: Q.run, errors: errors.slice() }),
       };
       self.version = VERSION;
     },
     onShow() { const m = this.api && this.api.map && this.api.map(); if (m) setTimeout(() => m.invalidateSize({ pan: false }), 0); },
-    receive(p) { if (!p || typeof p !== 'object' || !this.api) return; if (typeof p.zip === 'string' && ZPI[p.zip]) this.api.zoomZip(p.zip); else if (isN(p.lat) && isN(p.lon)) this.api.goTo(+p.lat, +p.lon, isN(p.zoom) ? clamp(+p.zoom, 8, 21) : 19); },
+    receive(p) { if (!p || typeof p !== 'object' || !this.api) return; if (typeof p.zip === 'string' && ZPI[p.zip]) this.api.zoomZip(p.zip); else if (isN(p.lat) && isN(p.lon)) this.api.goTo(+p.lat, +p.lon, isN(p.zoom) ? clamp(+p.zoom, 8, 22) : 19); },
     fromRoute(arg) { const a = String(arg || '').trim(); if (/^\d{5}$/.test(a)) return this.receive({ zip: a }); const m = /^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)(?:,(\d+))?$/.exec(a); if (m) this.receive({ lat: +m[1], lon: +m[2], zoom: m[3] ? +m[3] : 19 }); },
   });
 })();

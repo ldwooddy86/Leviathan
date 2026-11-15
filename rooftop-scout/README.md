@@ -10,6 +10,13 @@ file it came from.
   era share and the rest) drawn over Esri World Imagery: Vantor satellite imagery at about 30 cm, 15 cm aerial imagery at
   the closest zoom across most of Dallas Fort Worth. The heatmap fades as you zoom so the roofs show. The capture date and
   source of the imagery under the map's centre are read live and shown under the map.
+- **AI detail past the imagery's finest zoom.** The imagery stops at about 15 cm a pixel (zoom 20). At zoom 21 and 22,
+  each tile is cut from its zoom 20 parent run through Real-ESRGAN (`realesr-general-x4v3`, a super-resolution network)
+  in TensorFlow.js on the computer's own graphics card, with a 16 pixel margin from its neighbours so the joins do not
+  show: four times the pixels, sharper roof edges, vents and units. A tile first shows the plain enlargement, then the
+  enhanced one; the parents are kept, so panning back costs nothing. The detail the network adds is inferred, not
+  photographed, and the map says so whenever it shows; the **AI detail** button under the map turns it off. Nothing
+  leaves the browser.
 - **Every building read.** From zoom 17 the buildings in view are fetched from FEMA USA Structures and coloured:
   **green** likely to need a repair, a replacement or an installation, **orange** maybe, **red** not likely (dashed, so
   the three read apart without colour). Each building card gives the likely system (split system with a gas furnace, heat
@@ -47,6 +54,14 @@ file it came from.
     a cross street and walking turns onto it), turn (A and D, or drag), rise to drone (38 m) or bird (120 m) height for
     the roofs (Q and E, or the Street / Drone / Bird switch), click the ground to go there, click a building to read it,
     double click to stand in front of it, step to the previous or next building, mark a field check, go full window.
+  - **Photoreal (Google), with a key.** With a Google Maps key that has the **Map Tiles API** turned on (Google Cloud
+    console, APIs and Services; billing on the project, and Google's free monthly use covers testing), Model: Photoreal
+    (Google) in the 3D bar puts the same walk on Google's Photorealistic 3D Tiles: the real streets, houses, cars and
+    trees as Google photographed and meshed them (the data behind Google Earth's 3D), streamed from
+    `tile.googleapis.com` with 3DTilesRendererJS and drawn with their own photographed light. The glows stay on top, each
+    building's footprint set on Google's ground (found by casting rays into the mesh around the camera), and Google's
+    logo and data credits show over the view. The key is entered in the 3D bar or in Settings and stays in the browser.
+    Without a key, or if Google refuses it (the reason shows in the bar), the view stays on the measured model.
   - **3D model for Unreal** downloads the area as a glTF 2.0 file (`.glb`): one node per building, named by its address,
     with the module's reading in its extras (use, reading, score, likely system, likely need, field check); its glow as an
     emissive shell (`KHR_materials_emissive_strength`, so Unreal's bloom lights it); the streets, the trees and a ground.
@@ -76,7 +91,7 @@ file it came from.
 7. **Score:** the chance of at least one paid job. Green at 55 or more, orange at 42 to 54 (adjustable in Settings). An
    average DFW system scores about 45, so orange is the typical building.
 
-## Services (all keyless and open to a browser)
+## Services (keyless and open to a browser, except where a key is named)
 
 | What | Service |
 |---|---|
@@ -90,6 +105,8 @@ file it came from.
 | Streets and alleys (3D view) | OpenStreetMap through the Overpass API (`overpass-api.de`, `overpass.kumi.systems`, `maps.mail.ru`), Census TIGER as the fallback |
 | Roofs and trees (3D view) | USGS 3DEP lidar, `s3-us-west-2.amazonaws.com/usgs-lidar-public` (Entwine Point Tiles); trees from the Esri imagery where no lidar answers |
 | Street photos (optional) | Mapillary API v4, `graph.mapillary.com` |
+| Photoreal 3D (with your key) | Google Photorealistic 3D Tiles, Map Tiles API, `tile.googleapis.com` |
+| AI detail (map, zoom 21 and 22) | none: Real-ESRGAN runs in the page, on the imagery tiles the map already loads |
 
 Opened inside the Claude viewer, outside requests are blocked: the module says so and the heatmap still draws. Download
 the file and open it in a browser.
@@ -112,4 +129,10 @@ glTF export add-ons (MIT, `vendor/THREE-LICENSE`) are carried inline and kept pr
 with esbuild; the command is at the top of that file. `scoutlidar.js` reads the lidar; `vendor/lazperf.bundle.js` is
 laz-perf (Apache-2.0, `vendor/LAZPERF-LICENSE`) with its WebAssembly inline, built from `vendor/lazperf-entry.js`;
 `vendor/dfw-lidar.json` lists the USGS lidar collections over DFW (name, year, outline); `vendor/textures/` holds the
-CC0 photo textures (`SOURCES.md`), embedded by build.py as data URIs.
+CC0 photo textures (`SOURCES.md`), embedded by build.py as data URIs. The three.js bundle also carries
+3DTilesRendererJS 0.5.3 (Apache-2.0, `vendor/3DTILES-LICENSE`) and the Draco decoder, for the photoreal view;
+`vendor/google-logo.png` is the logo Google asks to be shown over its tiles. `scoutsr.js` is the AI detail;
+`vendor/tf.bundle.js` is TensorFlow.js 4.22 core with its WebGL backend (Apache-2.0, `vendor/TFJS-LICENSE`), built from
+`vendor/tf-entry.js`; `vendor/sr/` holds Real-ESRGAN's `realesr-general-x4v3` weights (BSD-3-Clause,
+`vendor/sr/REALESRGAN-LICENSE`) as float16, converted from the released PyTorch file without PyTorch by
+`vendor/sr/srnet.py`, which also runs the network in numpy as the reference the browser output is checked against.

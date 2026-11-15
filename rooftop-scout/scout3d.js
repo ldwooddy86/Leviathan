@@ -33,9 +33,9 @@
     const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 
     /* ---------- graphics: the quality the machine can carry, the hour of the sun, the trees ---------- */
-    const GFX_KEY = 'tda.scout.gfx.v1', GFX0 = { q: 'auto', sun: 'afternoon', trees: true };
+    const GFX_KEY = 'tda.scout.gfx.v1', GFX0 = { q: 'auto', sun: 'afternoon', trees: true, photo: false };
     const gfx = (() => { try { return Object.assign({}, GFX0, JSON.parse(localStorage.getItem(GFX_KEY) || '{}')); } catch (e) { return Object.assign({}, GFX0); } })();
-    const saveGfx = () => { try { localStorage.setItem(GFX_KEY, JSON.stringify({ q: gfx.q, sun: gfx.sun, trees: gfx.trees })); } catch (e) { /* this browser keeps no settings */ } };
+    const saveGfx = () => { try { localStorage.setItem(GFX_KEY, JSON.stringify({ q: gfx.q, sun: gfx.sun, trees: gfx.trees, photo: !!gfx.photo })); } catch (e) { /* this browser keeps no settings */ } };
     const TIERS = {
       high: { label: 'High', pr: 2, shadow: 2048, ao: true, bloom: true, msaa: 4, trees: 6000, post: true, leafVox: 1.0, leaves: 170000, img: 20 },
       medium: { label: 'Medium', pr: 1.25, shadow: 1024, ao: false, bloom: true, msaa: 4, trees: 3000, post: true, leafVox: 1.4, leaves: 75000, img: 19 },
@@ -69,6 +69,86 @@
     Object.values(G).forEach(g => scene.add(g));
     const O = { labels: new THREE.Group(), sel: new THREE.Group() }; Object.values(O).forEach(g => overlay.add(g));
     const pmrem = new THREE.PMREMGenerator(renderer); let envRT = null;
+
+    /* ---------- photoreal: Google's Photorealistic 3D Tiles, the city as photographed (a Google key with the Map Tiles API) ---------- */
+    /* Google's 3D mesh of the real streets, houses, trees and cars, built from aerial photographs (the data behind Google
+       Earth's 3D), streamed tile by tile around the camera by the 3D Tiles renderer. It shows alone: the modeled ground,
+       roofs, roads and trees hide (Google's terms keep its tiles off other maps), while the glows, outlines and labels stay,
+       on the FEMA footprints at the ground's real height (the lidar's ground model), and the hidden model still answers
+       clicks. The photographs carry their own light, so the tiles are drawn unlit with a neutral tone curve that keeps their
+       colours; sun shadows and ambient occlusion are off. The camera stands on the mesh's own ground. Google's logo and the
+       tiles' data credits show in the corner, as Google requires. */
+    const XT = THREE.tiles || null, GEOID = -26.6;   /* the geoid over DFW: sea level lies about 26.6 m below the WGS84 ellipsoid */
+    const PR = { on: !!gfx.photo, tiles: null, reo: null, wrap: new THREE.Group(), key: '', err: '', calib: 0, gy: 0, gyAt: null, gyT: 0, gyTarget: null, attr: '', attrT: 0 };
+    PR.wrap.rotation.y = Math.PI; PR.wrap.name = 'photoreal'; PR.wrap.visible = false; scene.add(PR.wrap);   /* the plugin puts +X west and +Z north; half a turn gives +X east and +Z south, as here */
+    let dracoL = null;
+    const draco = () => { if (dracoL) return dracoL; const d = new XT.DRACOLoader(); d.setDecoderConfig({ type: 'wasm' }); const str = atob(XT.dracoWasm), bin = new Uint8Array(str.length); for (let i = 0; i < str.length; i++) bin[i] = str.charCodeAt(i);
+      d._loadLibrary = (url, type) => Promise.resolve(type === 'arraybuffer' ? bin.buffer.slice(0) : XT.dracoJs); return (dracoL = d); };
+    const prKey = () => (env.googleKey ? env.googleKey() : '') || '';
+    const prOn = () => PR.on && !!PR.tiles && !PR.err;
+    const prH0 = () => (LID.d ? LID.d.ground(0, 0) + GEOID : 140);
+    const groundRel = (x, z) => (LID.d ? LID.d.ground(x, z) - LID.d.ground(0, 0) : 0);
+    const esc3 = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    /* what to tell the person when Google refuses: from the status alone (the library's own text can hold the request's
+       address, and with it the key, so it is never shown) */
+    function prErrText(e) {
+      const m = String((e && e.error && e.error.message) || (e && e.message) || ''), c = (m.match(/\b([45]\d\d)\b/) || [])[1];
+      if (c === '400') return 'Google says the key is not valid: check it was pasted whole.';
+      if (c === '403') return 'Google refused the key: turn on the Map Tiles API for it (Google Cloud console, APIs and Services) with billing on its project, and do not limit the key to web addresses (a file opened from this computer sends none).';
+      if (c === '429') return 'Google says the key has used up its quota for now.';
+      if (c) return 'Google did not send its 3D tiles (error ' + c + ').';
+      return 'Google did not answer: the network, a blocker or the browser stopped the request.';
+    }
+    function prStart() {
+      if (!XT || !prKey()) return false;
+      if (PR.tiles && PR.key === prKey()) { prPlace(); return true; }
+      prStop();
+      try {
+        const t = new XT.TilesRenderer(); PR.key = prKey(); PR.err = ''; PR.calib = 0;
+        t.registerPlugin(new XT.GoogleCloudAuthPlugin({ apiToken: PR.key, autoRefreshToken: true }));
+        t.registerPlugin(new XT.GLTFExtensionsPlugin({ dracoLoader: draco() }));
+        PR.reo = new XT.ReorientationPlugin({ lat: R(S.lat0), lon: R(S.lon0), height: prH0() }); t.registerPlugin(PR.reo);
+        t.errorTarget = T === TIERS.high ? 8 : T === TIERS.medium ? 12 : 18;   /* screen space error in pixels: lower is sharper and loads more */
+        t.setCamera(camera); t.setResolutionFromRenderer(camera, renderer);
+        t.addEventListener('load-model', ({ scene: sc }) => { sc.traverse(o => { if (!o.isMesh || !o.material) return; const m = o.material; if (!m.isMeshBasicMaterial) { o.material = new THREE.MeshBasicMaterial({ map: m.map || null, color: m.map ? 0xffffff : (m.color ? m.color.getHex() : 0xbbbbbb) }); m.dispose(); } o.castShadow = o.receiveShadow = false; }); need(); });
+        t.addEventListener('needs-update', () => need());
+        t.addEventListener('tiles-load-end', () => { PR.calWant = true; PR.calTries = 0; need(); });   /* a tile reported loaded joins the scene on the next update: calibrate from the loop */
+        t.addEventListener('load-error', e => { if (e && e.tile && t.root) return; PR.err = prErrText(e); prApply(); setTimeout(() => { if (PR.err && PR.tiles === t) prStop(); }, 0); });   /* a refused start is dropped, so the next key (or the same one, fixed) starts afresh */
+        PR.wrap.add(t.group); PR.tiles = t; prPlace(); return true;
+      } catch (e) { PR.err = 'The photoreal view could not start: ' + ((e && e.message) || e); return false; }
+    }
+    function prStop() { if (!PR.tiles) return; try { PR.wrap.remove(PR.tiles.group); PR.tiles.dispose(); } catch (e) { /* gone either way */ } PR.tiles = null; PR.reo = null; }
+    function prPlace() { if (!PR.tiles || !PR.reo) return; PR.reo.lat = R(S.lat0); PR.reo.lon = R(S.lon0); PR.reo.height = prH0(); PR.reo.transformLatLonHeightToOrigin(PR.reo.lat, PR.reo.lon, PR.reo.height); PR.wrap.position.y = 0; PR.calib = 0; PR.calTries = 0; PR.calWant = true; PR.gyAt = null; PR.gyTarget = null; need(); }
+    /* the lowest surface under a point is the ground (canopy, wires and roofs lie above it) */
+    const prRay = new THREE.Raycaster(), DOWN = new THREE.Vector3(0, -1, 0), V3 = new THREE.Vector3();
+    function prLowest(x, z) { if (!PR.tiles) return null; prRay.set(V3.set(x, 500, z), DOWN); prRay.far = 1200; let hs = []; try { hs = prRay.intersectObject(PR.tiles.group, true); } catch (e) { return null; } return hs.length ? hs[hs.length - 1].point.y : null; }
+    /* once tiles near the camera are in, the mesh's ground along the street is set to the lidar's (or to zero) */
+    function prCalibrate() {
+      if (!prOn() || PR.calib >= 6) return false;
+      const o = nearestOnRoads(S.x, S.z, 60), bx = o ? o.x : S.x, bz = o ? o.z : S.z, d = [];
+      for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) { const x = bx + i * 3, z = bz + j * 3, y = prLowest(x, z); if (y != null) d.push(y - groundRel(x, z)); }
+      if (d.length < 5) return false; d.sort((a, b) => a - b); const off = d[Math.floor(d.length / 2)];
+      if (Math.abs(off) > 0.03) { PR.wrap.position.y -= off; PR.gyAt = null; PR.gyTarget = null; } PR.calib++; PR.calWant = false; need(); return true;
+    }
+    /* the ground under the camera: Google's mesh, re-read as the camera moves, eased so steps do not jolt */
+    function prGround(x, z) {
+      if (!prOn()) return 0; const now = performance.now();
+      if (!PR.gyAt || Math.hypot(PR.gyAt[0] - x, PR.gyAt[1] - z) > 0.8 || now - PR.gyT > 700) { PR.gyT = now; const y = prLowest(x, z); if (y != null) { PR.gyAt = [x, z]; PR.gyTarget = y; } else if (PR.gyTarget == null) PR.gyTarget = groundRel(x, z); }
+      const tgt = PR.gyTarget != null ? PR.gyTarget : 0; PR.gy += (tgt - PR.gy) * 0.5; if (Math.abs(tgt - PR.gy) > 0.01) S.needs = true; return PR.gy;
+    }
+    const ATTR = host.querySelector('.sc-3dattr'), ATTR0 = ATTR ? ATTR.innerHTML : '';
+    function prAttr(force) {
+      if (!ATTR) return; const now = performance.now(); if (!force && now - PR.attrT < 1500) return; PR.attrT = now;
+      if (!prOn()) { ATTR.classList.remove('sc-3dattr-g'); if (ATTR.innerHTML !== ATTR0) ATTR.innerHTML = ATTR0; PR.attr = ''; return; }
+      const list = []; try { PR.tiles.getAttributions(list); } catch (e) { /* none yet */ }
+      const txt = list.filter(a => a.type === 'string' && a.value).map(a => a.value).join('; ');
+      const html = `<img src="${window.__SCOUT_GLOGO__ || ''}" alt="Google" class="sc-glogo"> ${esc3(txt || 'Google')} · Glows: FEMA footprints, the atlas's readings`;
+      ATTR.classList.add('sc-3dattr-g'); if (html !== PR.attr) { PR.attr = html; ATTR.innerHTML = html; }
+    }
+    function prApply() {
+      const on = prOn(); [G.ground, G.roads, G.bld, G.trees].forEach(g => { g.visible = !on; }); PR.wrap.visible = on;
+      pipeline(); if (S.ok) buildBuildings(); prAttr(true); need(); if (env.onGraphics) env.onGraphics(graphics());
+    }
 
     /* ---------- state ---------- */
     const S = { ok: false, gen: 0, lat0: 0, lon0: 0, kx: 1, ky: 1, x: 0, z: 0, yaw: 0, pitch: 0, fov: 65, mode: 'street', roads: [], graph: [], on: null, img: null, cur: null, hov: null, pick: [], labels: [], keys: {}, tween: null, running: false, needs: true, last: 0, built: 0, note: '',
@@ -468,13 +548,13 @@
       const img = S.img, Bt = { brick: batch(), siding: batch(), stucco: batch(), store: batch(), glass: batch(), metal: batch(), trim: batch(), roof: batch(), win: batch(), winframe: batch() };
       const SH = { p: [], n: [], c: [], h: [] }, HA = { p: [], c: [] }, ED = { p: [], c: [] };
       const imgUV = (x, z) => [(x - img.xW) / (img.xE - img.xW), (-z - img.nS) / (img.nN - img.nS)], uv3 = p => imgUV(p[0], p[2]);
-      const occ = []; let n = 0, measured = 0;
+      const occ = [], photo = prOn(), haloY = photo ? 0.5 : 0.16; let n = 0, measured = 0;
       env.buildings().forEach(b => {
         const [cx, cz] = toL(b.lat, b.lon); if (Math.hypot(cx - S.x, cz - S.z) > RADIUS + 30 || Math.hypot(cx, cz) > RADIUS + 40) return;
         const rings = ringsOf(b); if (!rings.length) return; n++;
         const id = b.id, cls = b.cls || 'unk', hRaw = Math.max(2.4, env.height(b)), flat = env.flat(b), scol = C(env.color(b)), kind = facadeOf(b, hRaw), F = FAC[kind], tint = tintOf(kind, id), WB = Bt[kind], photo = MAT[kind] && MAT[kind].userData.photo, tile = PHOTO_TILE[kind] || 2;
-        const start = {}; Object.keys(Bt).forEach(k => { start[k] = Bt[k].own.length; }); const sh0 = SH.h.length / 6;
-        const geo = { rings: [], flat, h: hRaw, kind, cls, door: null };
+        const start = {}, p0 = {}; Object.keys(Bt).forEach(k => { start[k] = Bt[k].own.length; p0[k] = Bt[k].p.length; }); const sh0 = SH.h.length / 6, sp0 = SH.p.length, hp0 = HA.p.length, ep0 = ED.p.length, yb = photo ? groundRel(cx, cz) : 0;
+        const geo = { rings: [], flat, h: hRaw, kind, cls, door: null, yb };
         rings.forEach((P, ri) => {
           const ar = area(P), rec = { P, W: P, Q: null, eave: hRaw, h: hRaw, flat };
           /* a wall run from a to c, its top following topAt (the measured roof) or level; photo materials tile at their real
@@ -508,7 +588,7 @@
             }
             const eMin = Math.min(...P.map(p => roof.at(p[0], p[1])));
             Object.assign(rec, { W, Q: null, eave: Math.max(2.2, eMin), h: roof.max, lidar: true, roof });
-            occ.push({ id, P, h: Math.max(2.2, roof.med) });
+            occ.push({ id, P, h: Math.max(2.2, roof.med) + yb });
           } else if (!flat) {
             /* a hipped roof: the footprint is the eave line, offset inward to the ridge; the walls stand 42 cm in, under the eaves */
             let d = Math.min(9, 0.46 * minWidth(P)), Q = d > 0.25 ? offsetRing(P, -d) : null, tries = 0;
@@ -534,7 +614,7 @@
             }
             if (area(Q) > 0.05) capAt(Q, top, Bt.roof, uv3);
             Object.assign(rec, { W, Q, eave, h: top });
-            occ.push({ id, P, h: eave + rise * 0.5 });
+            occ.push({ id, P, h: eave + rise * 0.5 + yb });
           } else {
             /* a flat roof behind a parapet */
             const para = ar > 120 && hRaw > 4.2, deck = para ? hRaw - 0.9 : hRaw, Pi = para ? offsetRing(P, -0.3) : null, inner = Pi && validOffset(P, Pi) ? Pi : null;
@@ -542,7 +622,7 @@
             if (inner) { ring(inner, inner, deck, hRaw, Bt.trim, TRIM.para, true); flatRing(P, inner, hRaw, Bt.trim, TRIM.cap, 1); capAt(inner, deck, Bt.roof, uv3); }
             else capAt(P, hRaw, Bt.roof, uv3);
             Object.assign(rec, { eave: hRaw, h: hRaw, Q: inner || P });
-            occ.push({ id, P, h: hRaw });
+            occ.push({ id, P, h: hRaw + yb });
           }
           geo.rings.push(rec);
           /* the glow shell: the footprint pushed out 55 cm and up past the eaves; the halo: a pool of the colour on the ground */
@@ -550,11 +630,12 @@
           for (let i = 0; i < Sg.length; i++) { const j = (i + 1) % Sg.length, a2 = Sg[i], c2 = Sg[j], dx = c2[0] - a2[0], dz = c2[1] - a2[1], len = Math.hypot(dx, dz) || 1, nx = -dz / len, nz = dx / len;
             [[a2, 0, 0], [c2, 0, 0], [c2, sTop, 1], [a2, 0, 0], [c2, sTop, 1], [a2, sTop, 1]].forEach(([p, y, hh]) => { SH.p.push(p[0], y, p[1]); SH.n.push(nx, 0, nz); SH.c.push(scol.r, scol.g, scol.b); SH.h.push(hh); }); }
           const H1 = offsetRing(P, 0.3), H2 = offsetRing(P, 2.8);
-          for (let i = 0; i < H1.length; i++) { const j = (i + 1) % H1.length; [[H1[i], 0.5], [H1[j], 0.5], [H2[j], 0], [H1[i], 0.5], [H2[j], 0], [H2[i], 0]].forEach(([p, al]) => { HA.p.push(p[0], 0.16, p[1]); HA.c.push(scol.r * 1.2, scol.g * 1.2, scol.b * 1.2, al); }); }
+          for (let i = 0; i < H1.length; i++) { const j = (i + 1) % H1.length; [[H1[i], 0.5], [H1[j], 0.5], [H2[j], 0], [H1[i], 0.5], [H2[j], 0], [H2[i], 0]].forEach(([p, al]) => { HA.p.push(p[0], haloY, p[1]); HA.c.push(scol.r * 1.2, scol.g * 1.2, scol.b * 1.2, al); }); }
           const eC = [scol.r * 1.35, scol.g * 1.35, scol.b * 1.35], E = (p, y, q, y2) => { ED.p.push(p[0], y, p[1], q[0], y2, q[1]); ED.c.push(...eC, ...eC); };
           const eAt = p => rec.lidar ? rec.roof.at(p[0], p[1]) + 0.05 : rec.eave + 0.04;
           for (let i = 0; i < P.length; i++) { const j = (i + 1) % P.length; E(P[i], eAt(P[i]), P[j], eAt(P[j])); if (!flat && !rec.lidar) { E(P[i], rec.eave + 0.04, rec.Q[i], rec.h + 0.04); E(rec.Q[i], rec.h + 0.04, rec.Q[j], rec.h + 0.04); } }
         });
+        if (yb) { const lift = (arr, from) => { for (let q = from + 1; q < arr.length; q += 3) arr[q] += yb; }; Object.keys(Bt).forEach(k => lift(Bt[k].p, p0[k])); lift(SH.p, sp0); lift(HA.p, hp0); lift(ED.p, ep0); }
         S.geo.set(id, geo);
         const ranges = {}; Object.keys(Bt).forEach(k => { if (Bt[k].own.length > start[k]) ranges[k] = [start[k], Bt[k].own.length]; });
         S.parts.push({ id, ranges, shell: [sh0, SH.h.length / 6], status: b.status, kind });
@@ -584,7 +665,7 @@
         const t0 = B.own.length, dirx = (best.c[0] - best.a[0]) / best.len, dirz = (best.c[1] - best.a[1]) / best.len, off = 0.035;
         const col = best.garage ? C(hash01(id + 'g') < 0.7 ? '#ffffff' : '#e6dccb') : C(DOORS[Math.floor(hash01(id + 'd') * DOORS.length) % DOORS.length]);
         const put = (s2, w, h, u0, u1) => { const p0 = [best.a[0] + dirx * (s2 - w / 2) + best.nx * off, best.a[1] + dirz * (s2 - w / 2) + best.nz * off], p1 = [best.a[0] + dirx * (s2 + w / 2) + best.nx * off, best.a[1] + dirz * (s2 + w / 2) + best.nz * off];
-          quad(B, [p0[0], 0.02, p0[1]], [p1[0], 0.02, p1[1]], [p1[0], h, p1[1]], [p0[0], h, p0[1]], [best.nx, 0, best.nz], [[u0, 0], [u1, 0], [u1, 1], [u0, 1]], col, id); };
+          const yy = g.yb || 0; quad(B, [p0[0], 0.02 + yy, p0[1]], [p1[0], 0.02 + yy, p1[1]], [p1[0], h + yy, p1[1]], [p0[0], h + yy, p0[1]], [best.nx, 0, best.nz], [[u0, 0], [u1, 0], [u1, 1], [u0, 1]], col, id); };
         if (best.garage) { if (best.len >= 6) { put(best.len / 2 - 1.24, 2.4, 2.15, 0.505, 0.995); put(best.len / 2 + 1.24, 2.4, 2.15, 0.505, 0.995); } else put(best.len / 2, best.w, 2.15, 0.505, 0.995); }
         else put(best.s, 0.98, 2.1, 0.005, 0.495);
         if (B.own.length > t0) S.doorRanges.set(id, [t0, B.own.length]);
@@ -599,6 +680,7 @@
       g.rings.forEach(r => { const P = r.P, W = r.W, Q = r.Q || P, ea = p => r.lidar ? r.roof.at(p[0], p[1]) + 0.04 : r.eave;
         for (let i = 0; i < P.length; i++) { const j = (i + 1) % P.length, k = (i + 1) % W.length; E.push(W[i][0], 0.05, W[i][1], W[k][0], 0.05, W[k][1], W[i][0], 0.05, W[i][1], W[i][0], r.lidar ? r.roof.at(W[i][0], W[i][1]) : r.eave, W[i][1], P[i][0], ea(P[i]), P[i][1], P[j][0], ea(P[j]), P[j][1]);
           if (!r.flat && !r.lidar) E.push(P[i][0], r.eave, P[i][1], Q[i][0], r.h, Q[i][1], Q[i][0], r.h, Q[i][1], Q[j][0], r.h, Q[j][1]); } });
+      if (g.yb) for (let q = 1; q < E.length; q += 3) E[q] += g.yb;
       const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(E, 3)); return new THREE.LineSegments(geo, mat);
     }
     function highlight() {
@@ -608,7 +690,7 @@
         const col = C(env.color(b)), pos = [], nrm = [], gc = [], gh = [];
         cur.rings.forEach(r => { const Sg = offsetRing(r.P, 0.9), top = (r.flat ? r.h : r.eave) + 1.0;
           for (let i = 0; i < Sg.length; i++) { const j = (i + 1) % Sg.length, a = Sg[i], c = Sg[j], dx = c[0] - a[0], dz = c[1] - a[1], len = Math.hypot(dx, dz) || 1;
-            [[a, 0, 0], [c, 0, 0], [c, top, 1], [a, 0, 0], [c, top, 1], [a, top, 1]].forEach(([p, y, hh]) => { pos.push(p[0], y, p[1]); nrm.push(-dz / len, 0, dx / len); gc.push(col.r, col.g, col.b); gh.push(hh); }); } });
+            [[a, 0, 0], [c, 0, 0], [c, top, 1], [a, 0, 0], [c, top, 1], [a, top, 1]].forEach(([p, y, hh]) => { pos.push(p[0], y + (cur.yb || 0), p[1]); nrm.push(-dz / len, 0, dx / len); gc.push(col.r, col.g, col.b); gh.push(hh); }); } });
         const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3)); g.setAttribute('gcol', new THREE.Float32BufferAttribute(gc, 3)); g.setAttribute('gh', new THREE.Float32BufferAttribute(gh, 1));
         const m = new THREE.Mesh(g, MAT.aura); m.renderOrder = 4; G.sel.add(m); }
       if (S.hov && S.hov !== S.cur) { const o = outlineOf(S.hov, MAT.hov); if (o) G.sel.add(o); }
@@ -652,9 +734,9 @@
     function labels() {
       O.labels.children.slice().forEach(o => O.labels.remove(o)); S.labels = [];
       const near = env.buildings().map(b => { const [x, z] = toL(b.lat, b.lon); return { b, x, z, d: Math.hypot(x - S.x, z - S.z) }; }).filter(o => o.d < 110 || o.b.id === S.cur).sort((a, b) => a.d - b.d).slice(0, 22);
-      near.forEach(o => { const b = o.b, s = labelSprite(env.label(b), env.color(b), env.labelInk(b), b.id === S.cur); const g = S.geo.get(b.id), top = g ? Math.max(...g.rings.map(r => r.h)) : Math.max(2.4, env.height(b)); s.position.set(o.x, top + 2.4, o.z); s.userData.kind = 'b'; s.userData.id = b.id; s.userData.cur = b.id === S.cur; O.labels.add(s); S.labels.push(s); });
+      near.forEach(o => { const b = o.b, s = labelSprite(env.label(b), env.color(b), env.labelInk(b), b.id === S.cur); const g = S.geo.get(b.id), top = g ? Math.max(...g.rings.map(r => r.h)) : Math.max(2.4, env.height(b)); s.position.set(o.x, top + 2.4 + (g ? g.yb || 0 : 0), o.z); s.userData.kind = 'b'; s.userData.id = b.id; s.userData.cur = b.id === S.cur; O.labels.add(s); S.labels.push(s); });
       const named = new Map(); S.roads.forEach(r => { if (!r.name || r.kind === 'path' || r.kind === 'drive') return; let best = null; r.pts.forEach(p => { const d = Math.hypot(p[0] - S.x, p[1] - S.z); if (!best || d < best.d) best = { d, p }; }); if (best && best.d < 240) { const o = named.get(r.name); if (!o || best.d < o.d) named.set(r.name, best); } });
-      [...named.entries()].sort((a, b) => a[1].d - b[1].d).slice(0, 16).forEach(([name, o]) => { const s = labelSprite(name, 'rgba(16,25,31,.78)', '#ffffff', false); s.position.set(o.p[0], 2.2, o.p[1]); s.userData.kind = 'r'; O.labels.add(s); S.labels.push(s); });
+      [...named.entries()].sort((a, b) => a[1].d - b[1].d).slice(0, 16).forEach(([name, o]) => { const s = labelSprite(name, 'rgba(16,25,31,.78)', '#ffffff', false); s.position.set(o.p[0], 2.2 + (prOn() ? groundRel(o.p[0], o.p[1]) : 0), o.p[1]); s.userData.kind = 'r'; O.labels.add(s); S.labels.push(s); });
       need();
     }
 
@@ -874,6 +956,7 @@
         if (gen !== S.gen) return; if (!d) return;
         if (d.none) { LID.state = 'none'; lidarNote('No lidar here, so the roofs and trees are modeled.'); treesSoon(); return; }
         const t1 = performance.now(); LID.d = d; LID.idx = lidarIndex(d); LID.state = 'ok'; LID.year = d.year; const t2 = performance.now();
+        if (PR.tiles) prPlace();
         buildBuildings(); LID.ms = { index: Math.round(t2 - t1), buildings: Math.round(performance.now() - t2), load: d.ms || null };
         lidarNote(`Roofs and trees measured by USGS 3DEP lidar${d.year ? ' (flown ' + d.year + ')' : ''}: ${(d.points / 1e6).toFixed(1)} million points; ${S.measured} of ${S.built} roofs measured.`);
       } catch (e) { if (gen !== S.gen) return; LID.state = 'failed'; lidarNote('The lidar did not load (' + (e && e.message || e) + '), so the roofs and trees are modeled.'); treesSoon(); }
@@ -889,6 +972,7 @@
       const z20 = T.img === 20 && renderer.capabilities.maxTextureSize >= 4096, inner = imagery(z20 ? 20 : 19, z20 ? 16 : 8, '#6f7764', () => treesSoon()), outer = imagery(17, 8, '#77806b'); S.img = inner;
       G.ground.add(groundPlane(outer, -0.06, false)); G.ground.add(groundPlane(inner, 0, true));
       if (!S.sunSet) { S.sunSet = true; setSun(); }
+      if (PR.on) { if (PR.tiles) prPlace(); else if (prStart()) prApply(); }
       LID.state = 'off'; LID.d = null; LID.idx = null; LID.roofs = new Map(); LID.note = '';
       buildBuildings(); setRoads([]); note('Loading the streets and alleys…'); lidar(gen);
       if (env.ensure) env.ensure(la, lo, RADIUS + 60);
@@ -914,7 +998,9 @@
       T = TIERS[tierName()];
       [composer, bloomComposer].forEach(c => { if (!c) return; try { c.passes.forEach(p => p.dispose && p.dispose()); c.renderTarget1.dispose(); c.renderTarget2.dispose(); } catch (e) { /* gone either way */ } }); composer = bloomComposer = null;
       const dpr = Math.min(T.pr, window.devicePixelRatio || 1); renderer.setPixelRatio(dpr);
-      const shadows = !!T.shadow;
+      const photo = prOn(); renderer.toneMapping = photo ? THREE.NeutralToneMapping : THREE.AgXToneMapping; renderer.toneMappingExposure = photo ? 1.0 : 1.15;
+      if (PR.tiles) { PR.tiles.errorTarget = T === TIERS.high ? 8 : T === TIERS.medium ? 12 : 18; PR.tiles.setResolutionFromRenderer(camera, renderer); }
+      const shadows = !!T.shadow && !photo;
       if (renderer.shadowMap.enabled !== shadows) { renderer.shadowMap.enabled = shadows; scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => { m.needsUpdate = true; }); }); }
       sun.castShadow = shadows; if (shadows) { sun.shadow.mapSize.set(T.shadow, T.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
       const w = host.clientWidth || 1, h = host.clientHeight || 1;
@@ -923,7 +1009,7 @@
           const rt = new THREE.WebGLRenderTarget(Math.round(w * dpr), Math.round(h * dpr), { type: THREE.HalfFloatType, samples: T.msaa });
           composer = new A.EffectComposer(renderer, rt); composer.setPixelRatio(dpr); composer.setSize(w, h);
           composer.addPass(new A.RenderPass(scene, camera));
-          if (T.ao && A.GTAOPass) {
+          if (T.ao && A.GTAOPass && !photo) {
             const ao = new A.GTAOPass(scene, camera, w, h); ao.output = A.GTAOPass.OUTPUT.Default; ao.blendIntensity = 0.9;
             ao.updateGtaoMaterial({ radius: 2.2, distanceExponent: 1.4, thickness: 1.2, scale: 1, samples: 12, distanceFallOff: 1 }); ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 5, rings: 2, samples: 12 });
             const r0 = ao.render.bind(ao); ao.render = function () { const v = [G.fx.visible, sky ? sky.visible : false, G.sel.visible, G.trees.visible]; G.fx.visible = false; G.sel.visible = false; G.trees.visible = false; if (sky) sky.visible = false; try { r0.apply(null, arguments); } finally { G.fx.visible = v[0]; G.sel.visible = v[2]; G.trees.visible = v[3]; if (sky) sky.visible = v[1]; } };
@@ -951,7 +1037,7 @@
 
     /* ---------- the camera, the loop and the pointer ---------- */
     function placeCamera() {
-      const eye = HEIGHT[S.mode].eye, p = R(S.pitch), y = R(S.yaw);
+      const gy = prOn() ? prGround(S.x, S.z) : 0, eye = gy + HEIGHT[S.mode].eye, p = R(S.pitch), y = R(S.yaw);
       camera.position.set(S.x, eye, S.z); camera.lookAt(S.x + Math.sin(y) * Math.cos(p) * 10, eye + Math.sin(p) * 10, S.z - Math.cos(y) * Math.cos(p) * 10);
       const near = S.mode === 'street' ? 0.3 : 1.5; if (camera.fov !== S.fov || camera.near !== near) { camera.fov = S.fov; camera.near = near; camera.updateProjectionMatrix(); }
       camera.updateMatrixWorld();
@@ -964,7 +1050,7 @@
       S.labels.forEach(s => { const d = s.position.distanceTo(cam), r = s.userData.kind === 'r', k = clamp(d * (r ? 0.03 : 0.042), 0.55, r ? 9 : 14); s.scale.set(k * s.userData.aspect, k, 1);
         s.visible = d < (r ? 300 : 160) && (s.userData.cur || !occluded(cam.x, cam.y, cam.z, s.position.x, s.position.y - (r ? 0 : 1.2), s.position.z, s.userData.id)); });
     }
-    function resize() { const w = host.clientWidth || 1, h = host.clientHeight || 1; renderer.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; camera.aspect = w / h; camera.updateProjectionMatrix(); if (composer) composer.setSize(w, h); if (bloomComposer) bloomComposer.setSize(w, h); need(); }
+    function resize() { const w = host.clientWidth || 1, h = host.clientHeight || 1; renderer.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; camera.aspect = w / h; camera.updateProjectionMatrix(); if (composer) composer.setSize(w, h); if (bloomComposer) bloomComposer.setSize(w, h); if (PR.tiles) PR.tiles.setResolutionFromRenderer(camera, renderer); need(); }
     function frame(t) {
       S.raf = 0; const dt = Math.min(1, S.last ? (t - S.last) / 1000 : 0.016);   /* real time, so a slow machine walks at the same pace in fewer frames */ S.last = t; let moving = false;
       const k = S.keys, sp = S.mode === 'street' ? 7 : S.mode === 'drone' ? 18 : 45;
@@ -973,9 +1059,14 @@
       if (S.tween) { const w = S.tween, u = Math.min(1, (t - w.t0) / w.ms), e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
         S.x = w.x0 + (w.x1 - w.x0) * e; S.z = w.z0 + (w.z1 - w.z0) * e; if (w.yaw1 != null) { const dy = ((w.yaw1 - w.yaw0 + 540) % 360) - 180; S.yaw = (w.yaw0 + dy * e + 360) % 360; } if (w.p1 != null) S.pitch = w.p0 + (w.p1 - w.p0) * e;
         moving = true; if (u >= 1) { S.tween = null; after(); } }
-      if (S.needs || moving) { placeCamera(); draw(); S.needs = false; }
+      const streaming = prOn() && PR.tiles.loadProgress < 1;
+      if (S.needs || moving || streaming) {
+        S.needs = false; placeCamera();   /* placeCamera may ask for another frame (the photoreal ground easing in) */
+        if (prOn()) { PR.tiles.update(); prAttr(false);
+          if ((PR.calWant || !PR.calib) && (PR.calTries || 0) < 60) { if (t - (PR.calT || 0) > 400) { PR.calT = t; PR.calTries = (PR.calTries || 0) + 1; if (prCalibrate()) PR.calTries = 0; } S.needs = true; } }
+        draw(); }
       watchPace(t, moving);
-      if (S.running && (moving || S.needs)) S.raf = requestAnimationFrame(frame); else S.last = 0;
+      if (S.running && (moving || S.needs || streaming)) S.raf = requestAnimationFrame(frame); else S.last = 0;
     }
     /* on Auto, a walk that runs under about 19 frames a second steps the quality down once, and says so */
     function watchPace(t, moving) {
@@ -1030,7 +1121,7 @@
     }
     function setHeight(m) { if (!HEIGHT[m] || m === S.mode) return; const was = S.mode; S.mode = m; S.pitch = HEIGHT[m].pitch; if (m === 'street') { const o = nearestOnRoads(S.x, S.z, 60); if (o) { S.on = o; S.x = o.x; S.z = o.z; } } else if (was === 'street') S.on = null; need(); if (env.onMove) env.onMove(state()); }
     function state() { const [la, lo] = toLL(S.x, S.z), r = roadAt(); return { lat: la, lon: lo, yaw: S.yaw, pitch: S.pitch, mode: S.mode, road: r ? r.name : '', roadKind: r ? r.kind : '', built: S.built, roads: S.roads.length, trees: S.treeN, leaves: S.leafN || 0, leafTotal: S.leafTotal || 0, lidar: LID.state, measured: S.measured || 0, note: S.note }; }
-    function graphics() { const t = tierName(); return { q: gfx.q, tier: t, label: TIERS[t].label, auto: autoTier, sun: gfx.sun, trees: gfx.trees, gpu: GPU, post: !!composer, sunAlt: Math.round(S.sunAlt), sunTime: S.sunTime || null, sunNote: S.sunNote, lidar: LID.state, lidarYear: LID.year || null }; }
+    function graphics() { const t = tierName(); return { q: gfx.q, tier: t, label: TIERS[t].label, auto: autoTier, sun: gfx.sun, trees: gfx.trees, gpu: GPU, post: !!composer, sunAlt: Math.round(S.sunAlt), sunTime: S.sunTime || null, sunNote: S.sunNote, lidar: LID.state, lidarYear: LID.year || null, photo: PR.on, photoReady: prOn(), photoErr: PR.err, hasKey: !!prKey(), photoAvail: !!XT, photoLoad: PR.tiles ? +PR.tiles.loadProgress.toFixed(2) : null, photoCalib: PR.calib, photoLift: +PR.wrap.position.y.toFixed(2) }; }
 
     /* ---------- the area as a glTF model for Unreal Engine 5, Blender or any 3D tool ---------- */
     /* One node per building, named by its address, with the module's reading in its extras (Unreal's Interchange importer
@@ -1105,11 +1196,15 @@
         if (o.q && o.q !== gfx.q && (o.q === 'auto' || TIERS[o.q])) { gfx.q = o.q; pipe = true; }
         if (o.sun && o.sun !== gfx.sun && (o.sun === 'now' || SUN_AT[o.sun])) { gfx.sun = o.sun; sunCh = true; }
         if (o.trees != null && !!o.trees !== gfx.trees) { gfx.trees = !!o.trees; tr = true; }
+        if (o.photo != null && (!!o.photo !== PR.on || (o.photo && !PR.tiles))) { PR.on = gfx.photo = !!o.photo; PR.err = ''; if (PR.on && S.ok) prStart(); saveGfx(); prApply(); return graphics(); }
         saveGfx(); if (pipe) pipeline(); else if (tr) { if (LID.state === 'ok' && LID.d) canopy(); else buildTrees(); } if (sunCh) setSun(); return graphics();
       },
       exportGLB,
       /* for tests: what the renderer holds, and lights to switch off to see the shadows alone */
-      debug(o) { if (o && o.env != null) scene.environmentIntensity = o.env; if (o && o.hemi != null) hemi.intensity = o.hemi; if (o) need();
+      debug(o) { if (o && o.probe) { const meshes = []; if (PR.tiles) PR.tiles.group.traverse(m => { if (m.isMesh) meshes.push(m); }); prRay.set(V3.set(S.x, 500, S.z), DOWN); prRay.far = 1200; const direct = meshes.length ? prRay.intersectObjects(meshes, false).map(h => +h.point.y.toFixed(2)) : [];
+          let grp = []; try { grp = PR.tiles ? prRay.intersectObject(PR.tiles.group, true).map(h => +h.point.y.toFixed(2)) : []; } catch (e) { grp = ['error ' + e.message]; }
+          const bb = new THREE.Box3(); meshes.forEach(m => bb.expandByObject(m)); return { meshes: meshes.length, direct: direct.slice(0, 6), group: grp.slice(0, 6), lowest: prLowest(S.x, S.z), box: meshes.length ? [bb.min.toArray().map(v => +v.toFixed(1)), bb.max.toArray().map(v => +v.toFixed(1))] : null, cam: [+S.x.toFixed(1), +S.z.toFixed(1)], wrapY: PR.wrap.position.y }; }
+        if (o && o.env != null) scene.environmentIntensity = o.env; if (o && o.hemi != null) hemi.intensity = o.hemi; if (o) need();
         const casters = []; scene.traverse(x => { if (x.castShadow) casters.push(x.name || x.type); });
         return { lidarMs: LID.ms || null, shadows: renderer.shadowMap.enabled, sunCasts: sun.castShadow, map: !!sun.shadow.map, mapSize: sun.shadow.mapSize.x, cam: [sun.shadow.camera.left, sun.shadow.camera.right, sun.shadow.camera.near, sun.shadow.camera.far], sunPos: sun.position.toArray().map(v => +v.toFixed(1)), target: sun.target.position.toArray().map(v => +v.toFixed(1)), sunDir: sunDir.toArray().map(v => +v.toFixed(3)), casters, passes: composer ? composer.passes.map(p => p.constructor.name) : [], env: scene.environmentIntensity, calls: renderer.info.render.calls, tris: renderer.info.render.triangles };
       },
