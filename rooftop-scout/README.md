@@ -16,16 +16,21 @@ file it came from.
   pump, packaged rooftop units, PTACs, central plant), its size, its controls and environmental control, the chance of a
   replacement within five years, a repair call within twelve months and an installation, the service lines it falls
   under, and the evidence with the atlas's grades.
-- **Street View from the road, inside the dashboard.** The map card switches between the satellite map and live Google
-  Street View (the Satellite / Street View switch, the Street View button on a building, or a double click on a
-  building). The view stands on the street the building's address names, at the nearest point of the Census TIGER
-  centreline, and faces the building, tilted up for buildings with rooftop units. Drag to look around, click the arrows
-  to walk the street, step to the previous or next building (likely ones first), turn, face it again, mark a field check,
-  or go full window; Esc goes back. While Street View shows, the satellite map is hidden: Google's Maps Platform terms
-  (3.2.3(e)) keep Street View and a non-Google map off the same screen. No key is needed (Google's standard embedded
-  player); with a Google Maps key saved in Settings it runs through the Maps Embed API. Each view also opens in Google Maps
-  in its own tab. With a free Mapillary token, Mapillary's street photos show in the side panel, turned to face the
-  building.
+- **Street View from the road, inside the dashboard, with the buildings glowing.** The map card switches between the
+  satellite map and live Google Street View (the Satellite / Street View switch, the Street View button on a building,
+  or a double click on a building). The view stands on the street the building's address names and faces the building,
+  tilted up for buildings with rooftop units. Drag to look around, walk the street with the arrows, step to the previous
+  or next building (likely ones first), turn, face it again, mark a field check, or go full window; Esc goes back.
+  - **Glows (with a Google Maps key, Maps JavaScript API):** every building within about 110 m glows **green**,
+    **orange** or **red** in the picture. Each glow is the building's FEMA footprint raised to its height and drawn from
+    the panorama's own camera (position, heading, pitch and zoom, which the API reports at every move), so the glows
+    follow the view as it turns, zooms and walks. Point at a glow to name the building; click it to make it the current
+    one without moving the camera. Each glow carries its status and score.
+  - **Without a key** Street View plays through Google's plain embedded player. That player is sealed (it tells the page
+    nothing about where it looks), so no glow could be placed on it correctly and none is drawn; the bar offers the key.
+  - While Street View shows, the satellite map is hidden: Google's Maps Platform terms (3.2.3(e)) keep Street View and a
+    non-Google map off the same screen. Each view also opens in Google Maps in its own tab. With a free Mapillary token,
+    Mapillary's street photos show in the side panel, turned to face the building.
 - **Field checks.** What you see on the roof or from the street (old or rusted unit, window units, hail damage, rooftop
   units, new equipment) overrides the model's colour, is kept in this browser and travels with the CSV.
 - **Lead list.** The buildings in view as a sortable table and a CSV, with the links into Service Lines and the Campaign
@@ -53,7 +58,7 @@ file it came from.
 | Permits | `www.dallasopendata.com` (e7gq-4sah), Fort Worth development permits on `services5.arcgis.com` |
 | Streets | Census TIGERweb, `tigerweb.geo.census.gov` |
 | Address search | Esri World Geocoder, `geocode.arcgis.com` |
-| Street View | Google's embedded Street View player (`maps.google.com`), or the Maps Embed API with a key |
+| Street View | Maps JavaScript API Street View with a key (glows), or Google's embedded player (`maps.google.com`) without |
 | Street photos (optional) | Mapillary API v4, `graph.mapillary.com` |
 
 Opened inside the Claude viewer, outside requests are blocked: the module says so and the heatmap still draws. Download

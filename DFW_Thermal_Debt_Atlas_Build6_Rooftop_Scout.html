@@ -20405,6 +20405,17 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .sc .sc-mapcard.sc-full>.sc-bar,.sc .sc-mapcard.sc-full>.legend,.sc .sc-mapcard.sc-full>.sc-modebar{display:none}
 html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
 @media (max-width:760px){.sc .sc-svf{height:58vh;min-height:300px}}
+/* Street View with glows: Google's panorama in a box of the page, the glow canvas over it, taking no pointer events */
+.sc .sc-svj{position:relative;height:min(66vh,640px);min-height:380px;background:#0b1014;overflow:hidden}
+.sc .sc-svj[hidden],.sc .sc-svf[hidden]{display:none!important}
+.sc .sc-svp{position:absolute;inset:0}
+.sc .sc-svc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.sc .sc-mapcard.sc-full .sc-svj{flex:1;height:auto;min-height:0}
+.sc .sc-svkey{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;font-size:12px;line-height:1.45;color:var(--ink-2);background:color-mix(in srgb,var(--accent) 7%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:8px;padding:8px 10px;margin:0}
+.sc .sc-svkey>span{flex:1 1 100%}
+.sc .sc-svkey input{flex:1 1 220px;min-width:0}
+.sc .sc-svkey a{color:var(--accent)}
+@media (max-width:760px){.sc .sc-svj{height:58vh;min-height:300px}}
 </style>
 <script id="scout-leaflet">
 /* ==== vendor/leaflet.js (Leaflet 1.9.4, BSD 2 clause) ==== */
@@ -20428,7 +20439,9 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
    Green: likely to need the work. Orange: maybe. Red: not likely. A field check from the imagery overrides the model.
    Live Google Street View plays inside the map card, aimed from the street at the building, in place of the satellite map:
    Google's terms (Maps Platform 3.2.3(e)) keep Street View imagery and a non-Google map off the same screen, so the card
-   switches between the two. Street photos inside the side panel come from Mapillary when a Mapillary token is saved. Every request goes from this browser straight to a public service;
+   switches between the two. With a Google Maps key (Maps JavaScript API) every building in the picture glows green, orange
+   or red, drawn from the panorama's own camera so the glows follow the view. Street photos inside the side panel come from
+   Mapillary when a Mapillary token is saved. Every request goes from this browser straight to a public service;
    nothing is sent anywhere else, and the keys a person saves stay in this browser.
    Plain script in the dashboard's own style, on the dashboard's own helpers (registerModule, mastHTML, card, callout,
    kpiHTML, dataTable, layerOptions, zipTip, qScale, legendHTML, saveFile, toCSV, store, toast). Leaflet 1.9.4 is carried
@@ -20922,7 +20935,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         <div class="sc-grid">
           <div class="card sc-mapcard"><div class="sc-modebar"><div class="seg" id="scMode" role="group" aria-label="What the card shows"><button type="button" data-v="map" aria-pressed="true">Satellite</button><button type="button" data-v="sv" aria-pressed="false">Street View</button></div><span class="sc-mnote" id="scModeNote">Pick a building, then Street View to stand in the street in front of it (or double click the building).</span></div>
             <div class="sc-map" id="scMap" role="application" aria-label="Satellite map of Dallas Fort Worth with the heatmap and buildings"></div>
-            <div class="sc-svw" id="scSvw" hidden><div class="sc-svbar" id="scSvBar"></div><iframe class="sc-svf" id="scSvF" title="Google Street View" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="about:blank"></iframe></div>
+            <div class="sc-svw" id="scSvw" hidden><div class="sc-svbar" id="scSvBar"></div><div class="sc-svj" id="scSvJ" hidden><div class="sc-svp" id="scSvP"></div><canvas class="sc-svc" id="scSvC" aria-hidden="true"></canvas></div><iframe class="sc-svf" id="scSvF" title="Google Street View" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="about:blank"></iframe></div>
             <div class="sc-bar"><span class="sc-st" id="scStatus"></span><span class="sc-chips" id="scChips"></span></div>
             <div class="sc-bar" style="border-top:0;padding-top:0"><span class="sc-note" id="scImgNote">The imagery's source and capture date show here at neighborhood zoom.</span></div>
             <div class="legend" id="scLeg"></div></div>
@@ -21032,7 +21045,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         pump(); status(); evict();
       }
       async function loadTile(t) {
-        if (!inView(t)) { t.st = 'idle'; return; }
+        if (!inView(t) && !t.force) { t.st = 'idle'; return; }
         t.st = 'load'; status();
         let fc; try { fc = await fetchBuildings(t.box, 0); } catch (e) { t.st = 'err'; t.errAt = Date.now(); note('Buildings: ' + why(e)); return; }
         const bs = ingest(fc, t); bs.forEach(b => { read(b); draw(b); }); refreshSoon();
@@ -21041,7 +21054,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         if (wantParcels) { try { const ps = await fetchParcels(t); joinParcels(t, ps); fips.forEach(f => { if (PCOV[f]) return; const mine = bs.filter(b => b.fips === f && b.parcel); if (mine.length >= 8) PCOV[f] = mine.some(b => b.parcel.yb) ? 'yes' : 'no'; }); } catch (e) { note('Parcels: ' + why(e)); } }
         try { const pr = await fetchPermits(t); joinPermits(t, pr); pr.errs.forEach(note); t.permitsAsked = pr.asked; } catch (e) { note('Permits: ' + why(e)); }
         t.ids.forEach(id => { const b = B.get(id); if (b) { read(b); draw(b); } });
-        t.st = 'ok'; refreshSoon(); tryPending();
+        t.st = 'ok'; t.force = false; refreshSoon(); tryPending(); if (svMode) drawSoon();
         if (sel && sel.type === 'b' && t.ids.has(sel.id)) detail();
       }
       function evict() {
@@ -21111,7 +21124,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         if (b.zip && b.zip !== selZip) { selZip = b.zip; paintHeat(); }
         if (o && o.pan && !svMode) map.panTo([b.lat, b.lon], { animate: true });
         const t = { lat: b.lat, lon: b.lon, street: b.street, b };
-        detail(); street(t); if (svMode) showSV(t); refreshSoon();
+        detail(); street(t); if (svMode) { if (o && o.noSV) { svTarget = t; renderSvBar(); drawSoon(); } else showSV(t); } refreshSoon();
       }
       function pickPoint(la, lo) {
         const prev = sel && sel.type === 'b' ? B.get(sel.id) : null; sel = { type: 'pt', lat: la, lon: lo }; if (prev && prev.lay) prev.lay.setStyle(bStyle(prev));
@@ -21223,25 +21236,177 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
       }
 
       /* ---------- Street View inside the dashboard ---------- */
-      /* Google's live Street View, walkable, in the map card's own place and aimed from the street at the building. While it
-         shows, the satellite map is hidden: Google's Maps Platform terms (3.2.3(e)) keep Street View imagery and a non-Google
-         map off the same screen, so the card switches between them instead of showing both. Without a key the picture is
-         Google's standard embedded Street View player; with a Google Maps key saved in Settings it is the Maps Embed API,
-         Google's documented embed (free of charge). */
-      const svw = $('#scSvw', root), svf = $('#scSvF', root), svBar = $('#scSvBar', root), mapCard = $('.sc-mapcard', root);
+      /* Live Google Street View in the map card's own place, aimed from the street at the building. While it shows, the
+         satellite map is hidden: Google's Maps Platform terms (3.2.3(e)) keep Street View imagery and a non-Google map off the
+         same screen, so the card switches between the two instead of showing both.
+         Two players. With a Google Maps key saved (Maps JavaScript API), the panorama is Google's StreetViewPanorama in a box
+         of this page. It reports where its camera stands and looks (position, heading, pitch, zoom) at every move, so every
+         building within about 110 m is raised from its FEMA footprint to its height, drawn in perspective from that camera, and
+         given a glow in its colour; the glows follow as the view turns, zooms and walks. Without a key it is Google's standard
+         embedded player, which is sealed (it tells the page nothing about where it looks): no glow could be placed on it
+         correctly, so none is drawn and the bar offers the key instead. */
+      const svw = $('#scSvw', root), svf = $('#scSvF', root), svBar = $('#scSvBar', root), mapCard = $('.sc-mapcard', root), svj = $('#scSvJ', root), svp = $('#scSvP', root), svc = $('#scSvC', root);
       var svMode = false; let svFull = false, svTarget = null, svView = null, svHead = 0, svPitch = 0, svList = [], svTok2 = 0;
-      const svSrc = (v, head, pitch) => { const h = Math.round(((head % 360) + 360) % 360); return CFG.gKey
-        ? `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CFG.gKey)}&location=${v.lat.toFixed(6)},${v.lon.toFixed(6)}&heading=${h}&pitch=${Math.round(pitch)}&fov=90&language=en`
-        : `https://maps.google.com/maps?layer=c&cbll=${v.lat.toFixed(6)},${v.lon.toFixed(6)}&cbp=11,${h},0,0,${Math.round(-pitch)}&output=svembed&hl=en`; };
+      const GM = { p: null, lib: null, pano: null, svc: null, failed: '', cam: null, date: '', hits: [], hov: null, n: 0, live: false };
+      const glowOn = () => !!CFG.gKey && !GM.failed;
+      const svSrc = (v, head, pitch) => `https://maps.google.com/maps?layer=c&cbll=${v.lat.toFixed(6)},${v.lon.toFixed(6)}&cbp=11,${Math.round(((head % 360) + 360) % 360)},0,0,${Math.round(-pitch)}&output=svembed&hl=en`;
+      const pitchFor = b => !b ? 0 : b.sys.life === 'plant' ? 18 : b.sys.life === 'rtu' ? 12 : b.sys.life === 'ptac' ? 8 : 2;   /* tilt up for roofs that carry the units */
+
+      /* the Maps JavaScript API, loaded once, only when a key is saved and Street View is asked for */
+      function loadGoogle() {
+        if (GM.lib) return Promise.resolve(GM.lib);
+        if (GM.p) return GM.p;
+        GM.p = new Promise((ok, no) => {
+          const cb = '__scoutGoogle' + Math.random().toString(36).slice(2), t = setTimeout(() => no(new Error('the Google Maps script did not load within 25 seconds')), 25000);
+          window[cb] = async () => {
+            clearTimeout(t); try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+            const g = window.google && window.google.maps; if (!g) { no(new Error('the Google Maps script loaded without google.maps')); return; }
+            let lib = g; if (typeof g.importLibrary === 'function') { try { lib = Object.assign({}, g, await g.importLibrary('streetView')); } catch (e) { lib = g; } }
+            if (!lib.StreetViewPanorama || !lib.StreetViewService) { no(new Error('this version of the Maps JavaScript API has no Street View classes')); return; }
+            GM.lib = lib; ok(lib);
+          };
+          const before = window.gm_authFailure;   /* Google calls this when it refuses the key, after the script has loaded */
+          window.gm_authFailure = () => { GM.failed = 'Google refused the key. Turn on the Maps JavaScript API for it, and do not limit it to web addresses (a file opened from this computer sends none).'; toast('Google refused the Maps key: Street View is back on the plain player'); if (svMode && svTarget) showSV(svTarget); if (typeof before === 'function') { try { before(); } catch (e) { /* theirs */ } } };
+          const s = document.createElement('script'); s.async = true; s.src = 'https://maps.googleapis.com/maps/api/js?' + qs({ key: CFG.gKey, v: 'weekly', callback: cb });
+          s.onerror = () => { clearTimeout(t); no(new Error('the Google Maps script could not be reached')); };
+          document.head.appendChild(s);
+        });
+        GM.p.catch(e => { GM.failed = 'The Maps JavaScript API did not load: ' + why(e) + '.'; GM.p = null; });
+        return GM.p;
+      }
+      async function ensurePano() {
+        const lib = await loadGoogle();
+        if (!GM.pano) {
+          GM.pano = new lib.StreetViewPanorama(svp, { visible: true, addressControl: true, linksControl: true, panControl: true, zoomControl: true, clickToGo: false, fullscreenControl: false, motionTracking: false, motionTrackingControl: false, enableCloseButton: false, showRoadLabels: true });
+          GM.svc = new lib.StreetViewService();
+          ['pov_changed', 'zoom_changed', 'position_changed', 'pano_changed'].forEach(ev => GM.pano.addListener(ev, () => onPano(ev)));
+        }
+        return GM.pano;
+      }
+      /* the panorama nearest the point on the street, widening the search when the street has none close by */
+      async function findPano(v) {
+        const L = GM.lib, src = (L.StreetViewSource && (L.StreetViewSource.OUTDOOR || L.StreetViewSource.GOOGLE)) || 'outdoor', pref = (L.StreetViewPreference && L.StreetViewPreference.NEAREST) || 'nearest';
+        let last = null;
+        for (const radius of [35, 80, 200]) {
+          try { const r = await GM.svc.getPanorama({ location: { lat: v.lat, lng: v.lon }, radius, sources: [src], preference: pref }); const d = r && (r.data || r); if (d && d.location && d.location.pano) return d; }
+          catch (e) { last = e; }
+        }
+        throw last || new Error('no Street View near this street');
+      }
+      const latLngOf = ll => ll ? [typeof ll.lat === 'function' ? ll.lat() : +ll.lat, typeof ll.lng === 'function' ? ll.lng() : +ll.lng] : null;
+      const dateOf = s => { const m = /^(\d{4})-(\d\d)/.exec(String(s || '')); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, 15)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : ''; };
+      const metaDate = debounce(async () => { if (!GM.pano || !GM.svc) return; const id = GM.pano.getPano && GM.pano.getPano(); if (!id) return; try { const r = await GM.svc.getPanorama({ pano: id }); const d = r && (r.data || r); if (d && GM.pano.getPano() === id) { GM.date = d.imageDate || ''; renderSvBar(); } } catch (e) { /* the date is a courtesy */ } }, 700);
+      function onPano(ev) {
+        if (!GM.live) return;
+        if (ev === 'position_changed') { const c = latLngOf(GM.pano.getPosition()); if (c) { GM.cam = c; ensureAround(c[0], c[1]); } }
+        if (ev === 'pano_changed') metaDate();
+        if (ev === 'pov_changed' || ev === 'position_changed') renderWhere();
+        drawSoon();
+      }
+      /* buildings around the camera: the tiles under it and around it, even while the map is hidden */
+      function ensureAround(la, lo) {
+        const d = 0.0016, ks = new Set();
+        [[0, 0], [d, 0], [-d, 0], [0, d * 1.2], [0, -d * 1.2]].forEach(([a, b]) => ks.add(lon2x(lo + b, TILE_Z) + '/' + lat2y(la + a, TILE_Z)));
+        ks.forEach(k => { let t = T.get(k); if (!t) { const [x, y] = k.split('/').map(Number); t = { k, x, y, box: tileBox(TILE_Z, x, y), ids: new Set(), st: 'idle', at: 0 }; T.set(k, t); }
+          t.at = Date.now(); if (t.st === 'idle' || (t.st === 'err' && Date.now() - (t.errAt || 0) > 15000)) { t.st = 'queued'; t.force = true; Q.list.unshift(() => loadTile(t)); } });
+        pump();
+      }
+
+      /* ---------- the glows: each building's footprint raised to its height and drawn from the panorama's camera ---------- */
+      const CAMH = 2.5, NEAR = 0.8, MAXD = 110;    /* Google's camera rides about 2.5 m up; nothing nearer than 0.8 m is drawn */
+      const mLat = la => 111132.92 - 559.82 * Math.cos(2 * rad(la)) + 1.175 * Math.cos(4 * rad(la)), mLon = la => 111412.84 * Math.cos(rad(la)) - 93.5 * Math.cos(3 * rad(la));
+      const fovOf = z => 180 / Math.pow(2, isN(z) ? +z : 1);   /* Google: a zoom of 0 is a 180° field of view, halved at each level */
+      const hOf = b => (b.h > 2.2 ? b.h : b.cls === 'shed' ? 3 : b.cls === 'garage' ? 4 : b.cls === 'sf' || b.cls === 'mh' ? (storiesRes(b.h) > 1 ? 8.5 : 5.5) : b.cls === 'mf' ? 9.5 : 6.5);
+      function camera(W, H) {
+        if (!GM.pano || !GM.cam) return null;
+        const pov = GM.pano.getPov() || {}, la = GM.cam[0], lo = GM.cam[1], ky = mLat(la), kx = mLon(la);
+        const yaw = rad(+pov.heading || 0), pit = rad(+pov.pitch || 0), sy = Math.sin(yaw), cy = Math.cos(yaw), sp = Math.sin(pit), cp = Math.cos(pit), F = (W / 2) / Math.tan(rad(clamp(fovOf(GM.pano.getZoom()), 4, 170)) / 2);
+        /* east, north, up from the camera into its own right, up and forward axes, then onto the picture plane */
+        return { la, lo, F, cam: (pla, plo, up) => { const e = (plo - lo) * kx, n = (pla - la) * ky, u = up - CAMH; return [e * cy - n * sy, -e * sy * sp - n * cy * sp + u * cp, e * sy * cp + n * cy * cp + u * sp]; }, scr: c => [W / 2 + F * c[0] / c[2], H / 2 - F * c[1] / c[2]] };
+      }
+      function hull(P) {
+        if (P.length < 3) return P; const p = P.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]), cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+        for (const q of p) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+        for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+        lo.pop(); up.pop(); return lo.concat(up);
+      }
+      /* the outline a building makes in the picture: every corner of the raised footprint in front of the camera, and where an
+         edge crosses the near plane, projected; their hull is the glow */
+      function outline(b, C) {
+        const top = hOf(b), pts = [], add = (a, c) => { const ai = a[2] >= NEAR, ci = c[2] >= NEAR; if (ai) pts.push(C.scr(a)); if (ai !== ci) { const t = (NEAR - a[2]) / (c[2] - a[2]); pts.push(C.scr([a[0] + t * (c[0] - a[0]), a[1] + t * (c[1] - a[1]), NEAR])); } };
+        b.rings.forEach(r => { const n = r.length - (r.length > 1 && r[0][0] === r[r.length - 1][0] && r[0][1] === r[r.length - 1][1] ? 1 : 0); if (n < 3) return;
+          const lo = [], hi = []; for (let i = 0; i < n; i++) { lo.push(C.cam(r[i][0], r[i][1], 0)); hi.push(C.cam(r[i][0], r[i][1], top)); }
+          for (let i = 0; i < n; i++) { const j = (i + 1) % n; add(lo[i], lo[j]); add(hi[i], hi[j]); add(lo[i], hi[i]); } });
+        return pts.length >= 3 ? hull(pts) : null;
+      }
+      const rgba = (hex, a) => { const h = String(hex).replace('#', ''); if (h.length !== 6) return hex; return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${a})`; };
+      let drawQ = 0; const drawSoon = () => { if (!drawQ) drawQ = requestAnimationFrame(() => { drawQ = 0; drawGlows(); }); };
+      function drawGlows() {
+        const W = svj.clientWidth, H = svj.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1), ctx = svc.getContext('2d');
+        if (svc.width !== Math.round(W * dpr) || svc.height !== Math.round(H * dpr)) { svc.width = Math.round(W * dpr); svc.height = Math.round(H * dpr); }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H); GM.hits = []; GM.n = 0;
+        if (!svMode || !glowOn() || !GM.live || !W || !H) return;
+        const C = camera(W, H); if (!C) return;
+        const cur = svTarget && svTarget.b ? svTarget.b.id : null, list = [];
+        B.forEach(b => {
+          if (b.id !== cur && !shown(b)) return;
+          const d = meters([C.la, C.lo], [b.lat, b.lon]); if (d > MAXD + 40) return;
+          const hl = outline(b, C); if (!hl) return;
+          let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; hl.forEach(([x, y]) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; });
+          if (x1 < -40 || x0 > W + 40 || y1 < -40 || y0 > H + 40 || d > MAXD) return;
+          list.push({ b, d, hl, x0, x1, y0, y1 });
+        });
+        GM.n = list.length;
+        ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H - 30); ctx.clip();   /* the bottom strip stays clear for Google's logo and terms */
+        list.sort((a, b) => b.d - a.d).forEach(it => {
+          const b = it.b, col = COL[b.status], isCur = b.id === cur, isHov = GM.hov === b.id, a = clamp(1.3 - it.d / MAXD, 0.35, 1);
+          ctx.save(); ctx.beginPath(); it.hl.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.closePath();
+          ctx.globalAlpha = a; ctx.fillStyle = rgba(col, isCur || isHov ? 0.3 : 0.2); ctx.fill();
+          ctx.lineJoin = 'round'; ctx.shadowColor = col; ctx.shadowBlur = isCur ? 30 : 18; ctx.lineWidth = isCur ? 4 : 2.6; ctx.strokeStyle = col;
+          if (b.status === 'r') ctx.setLineDash([9, 6]); ctx.stroke(); ctx.setLineDash([]);
+          if (isCur || isHov) { ctx.shadowBlur = 0; ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.stroke(); }
+          ctx.restore();
+        });
+        /* a label over each glow near enough to read, nearest first, none on top of another */
+        const placed = [], font = '600 12px ' + (cssv('--sans') || 'system-ui, sans-serif');
+        ctx.font = font; ctx.textBaseline = 'middle';
+        list.slice().sort((a, b) => (a.b.id === cur ? -1 : b.b.id === cur ? 1 : a.d - b.d)).forEach(it => {
+          if (it.d > 75 && it.b.id !== cur) return; if (it.x1 - it.x0 < 34 && it.b.id !== cur) return;
+          const b = it.b, txt = `${STS[b.status]} · ${b.sc.score}`, w = ctx.measureText(txt).width + 18, h = 22;
+          const x = clamp((it.x0 + it.x1) / 2 - w / 2, 4, W - w - 4), y = clamp(it.y0 - h - 6, 4, H - 30 - h - 4);
+          if (placed.some(p => x < p[2] && p[0] < x + w && y < p[3] && p[1] < y + h)) return; placed.push([x, y, x + w, y + h]);
+          ctx.save(); ctx.globalAlpha = 0.95; ctx.fillStyle = COL[b.status]; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, 11); else ctx.rect(x, y, w, h); ctx.fill();
+          if (b.id === cur) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.stroke(); }
+          ctx.fillStyle = b.status === 'r' ? '#ffffff' : '#10191f'; ctx.fillText(txt, x + 9, y + h / 2 + 0.5); ctx.restore();
+        });
+        ctx.restore();
+        GM.hits = list.sort((a, b) => a.d - b.d);
+      }
+      /* pointing at a glow names the building; a click makes it the current one, without moving the camera */
+      const inPoly = (x, y, P) => { let s = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const yi = P[i][1], xi = P[i][0], yj = P[j][1], xj = P[j][0]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) s = !s; } return s; };
+      const hitAt = e => { const r = svj.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; const h = GM.hits.find(it => inPoly(x, y, it.hl)); return h ? h.b : null; };
+      let downAt = null;
+      svj.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; }, true);
+      svj.addEventListener('pointermove', e => {
+        if (!glowOn() || !GM.live || (e.buttons & 1)) return; const b = hitAt(e), id = b ? b.id : null;
+        if (id !== GM.hov) { GM.hov = id; drawSoon(); }
+        if (b) showTip(bTip(b).replace('Click for the full reading · double click for Street View', 'Click to make it the current building'), e); else hideTip();
+      }, true);
+      svj.addEventListener('pointerleave', () => { if (GM.hov) { GM.hov = null; drawSoon(); } hideTip(); });
+      svj.addEventListener('click', e => { if (!glowOn() || !GM.live) return; if (downAt && Math.abs(e.clientX - downAt[0]) + Math.abs(e.clientY - downAt[1]) > 5) return; const b = hitAt(e); if (b) { hideTip(); pick(b.id, { noSV: true }); } }, true);
+      const resizePano = () => { try { if (GM.pano && GM.lib && GM.lib.event && GM.lib.event.trigger) GM.lib.event.trigger(GM.pano, 'resize'); } catch (e) { /* the panorama keeps its size */ } };
+      if (window.ResizeObserver) new ResizeObserver(() => { resizePano(); drawSoon(); }).observe(svj);
+
+      /* ---------- switching the card, aiming, stepping ---------- */
       function setMode(m) {
         svMode = m === 'sv';
-        if (!svMode) svf.src = 'about:blank';   /* unload the player before its frame is hidden: at 0 by 0 it logs errors of its own */
+        if (!svMode) { svf.src = 'about:blank'; GM.live = false; GM.hov = null; }   /* unload the plain player before its frame is hidden: at 0 by 0 it logs errors of its own */
         $$('#scMode button', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === m)));
         host.hidden = svMode; svw.hidden = !svMode; hideTip();
         $('#scModeNote', root).textContent = svMode ? 'The satellite map is hidden while Street View shows: Google\'s terms keep the two off the same screen. Satellite brings it back.' : 'Pick a building, then Street View to stand in the street in front of it (or double click the building).';
         if (!svMode) { if (svFull) full(false); setTimeout(() => { map.invalidateSize({ pan: false }); if (svTarget) map.panTo([svTarget.lat, svTarget.lon]); }, 0); }
       }
-      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); document.documentElement.classList.toggle('sc-noscroll', svFull); if (svMode) renderSvBar(); }
+      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); document.documentElement.classList.toggle('sc-noscroll', svFull); if (svMode) { renderSvBar(); drawSoon(); } }
       /* the buildings to step through: those in view when Street View opened, likely ones first, highest scores first */
       function svListNow() {
         const bd = curBounds(), rank = { g: 3, o: 2, r: 1 };
@@ -21253,28 +21418,62 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         svBar.innerHTML = '<div class="sc-svwhere"><span class="sc-busy"></span>Finding the street in front…</div>';
         let v; try { v = await aim(target); } catch (e) { v = { lat: target.lat, lon: target.lon, heading: 0, road: '', m: 0 }; }
         if (my !== svTok2 || !svMode) return;
-        const b = target.b; svView = v; svHead = v.heading;
-        svPitch = !b ? 0 : b.sys.life === 'plant' ? 18 : b.sys.life === 'rtu' ? 12 : b.sys.life === 'ptac' ? 8 : 2;   /* tilt up for roofs that carry the units */
-        svf.src = svSrc(v, svHead, svPitch); renderSvBar();
+        const b = target.b; svView = v; svHead = v.heading; svPitch = pitchFor(b);
+        if (glowOn()) {
+          svf.src = 'about:blank'; svf.hidden = true; svj.hidden = false;   /* the panorama starts in a box that is on screen */
+          try {
+            await ensurePano(); if (my !== svTok2 || !svMode) return;
+            const d = await findPano(v); if (my !== svTok2 || !svMode) return;
+            const cam = latLngOf(d.location.latLng) || [v.lat, v.lon];
+            GM.cam = cam; GM.date = d.imageDate || ''; GM.live = true; svf.hidden = true; svf.src = 'about:blank'; svj.hidden = false;
+            GM.pano.setPano(d.location.pano); GM.pano.setPov({ heading: b ? bearing(cam, [b.lat, b.lon]) : v.heading, pitch: svPitch }); GM.pano.setZoom(1); GM.pano.setVisible(true); resizePano();
+            ensureAround(cam[0], cam[1]); renderSvBar(); drawSoon(); return;
+          } catch (e) {
+            if (my !== svTok2 || !svMode) return;
+            if (GM.failed) toast('Street View glows are off: ' + GM.failed); else toast('No Google panorama near this street: ' + why(e));
+          }
+        }
+        GM.live = false; svj.hidden = true; svf.hidden = false; svf.src = svSrc(v, svHead, svPitch); drawGlows(); renderSvBar();
       }
-      function turn(d) { if (!svView) return; svHead = ((svHead + d) % 360 + 360) % 360; svf.src = svSrc(svView, svHead, svPitch); renderSvBar(); }
+      function povNow() { return GM.live && GM.pano ? (GM.pano.getPov() || { heading: 0, pitch: 0 }) : { heading: svHead, pitch: svPitch }; }
+      function turn(d) {
+        if (GM.live && GM.pano) { const p = povNow(); GM.pano.setPov({ heading: ((p.heading + d) % 360 + 360) % 360, pitch: p.pitch }); return; }
+        if (!svView) return; svHead = ((svHead + d) % 360 + 360) % 360; svf.src = svSrc(svView, svHead, svPitch); renderSvBar();
+      }
+      function face() {
+        const b = svTarget && svTarget.b; if (!b) return;
+        if (GM.live && GM.pano && GM.cam) { GM.pano.setPov({ heading: bearing(GM.cam, [b.lat, b.lon]), pitch: pitchFor(b) }); return; }
+        if (svView) { svHead = svView.heading; svf.src = svSrc(svView, svHead, svPitch); renderSvBar(); }
+      }
       function step(d) { if (!svList.length) return; const cur = svTarget && svTarget.b ? svList.indexOf(svTarget.b.id) : -1; const i = ((cur + d) % svList.length + svList.length) % svList.length; if (B.get(svList[i])) pick(svList[i]); }
+      function whereText() {
+        const t = svTarget, b = t && t.b ? (B.get(t.b.id) || t.b) : null, v = svView;
+        if (GM.live && GM.cam) {
+          const p = povNow(), facing = b && Math.abs(((p.heading - bearing(GM.cam, [b.lat, b.lon]) + 540) % 360) - 180) < 25;
+          return `Looking ${compass(p.heading)}${facing ? ' at the building' : ''}${GM.date ? ' · pictures of ' + esc(dateOf(GM.date)) : ''} · <b>${N(GM.n)}</b> building${GM.n === 1 ? '' : 's'} glowing within ${MAXD} m. Drag to look around, use the arrows in the picture to walk the street, point at a glow to name it and click to read it. Esc goes back to the satellite map.`;
+        }
+        const facing = b && v && Math.abs(((svHead - v.heading + 540) % 360) - 180) < 20;
+        return `${v && v.road ? `Standing on ${esc(v.road)}, looking ${compass(svHead)}${facing ? ' at the building' : ''}.` : 'At the street nearest this point.'} Drag to look around; click the arrows in the picture to walk the street. Esc goes back to the satellite map.`;
+      }
+      const renderWhere = debounce(() => { const w = $('.sc-svwhere', svBar); if (w && svMode) w.innerHTML = whereText(); }, 120);
       function renderSvBar() {
         const t = svTarget; if (!t) { svBar.innerHTML = ''; return; } const b = t.b ? (B.get(t.b.id) || t.b) : null, v = svView;
         if (b && !svList.includes(b.id)) { svList = svListNow(); if (!svList.includes(b.id)) svList.unshift(b.id); }
-        const i = b ? svList.indexOf(b.id) : -1, facing = b && v && Math.abs(((svHead - v.heading + 540) % 360) - 180) < 20;
+        const i = b ? svList.indexOf(b.id) : -1, p = povNow(), gl = GM.live && GM.cam ? { lat: GM.cam[0], lon: GM.cam[1], heading: p.heading } : (v ? { lat: v.lat, lon: v.lon, heading: svHead } : t);
         svBar.innerHTML = `<div class="sc-svinfo">${b ? `<span class="sc-pill ${b.status}">${STL[b.status]}</span><b>${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</b><span class="mini">${esc([(PROF[b.cls] || PROF.unk).l, b.sys.short, needLabel(b), 'score ' + b.sc.score].join(' · '))}</span>` : `<b>A point on the map</b><span class="mini">${t.lat.toFixed(5)}, ${t.lon.toFixed(5)}</span>`}</div>
           <div class="sc-svctl">
             ${b && svList.length > 1 ? `<button type="button" class="ibtn" data-a="prev" title="The previous building (likely ones first, highest scores first)" aria-label="Previous building">◀</button><span class="mini sc-svn">${N(i + 1)} of ${N(svList.length)}</span><button type="button" class="ibtn" data-a="next" title="The next building" aria-label="Next building">▶</button>` : ''}
             <button type="button" class="ibtn" data-a="left" title="Turn left 45°" aria-label="Turn left">↺</button>${b ? '<button type="button" class="ibtn" data-a="face" title="Turn back to face the building">Face it</button>' : ''}<button type="button" class="ibtn" data-a="right" title="Turn right 45°" aria-label="Turn right">↻</button>
             ${b ? `<span class="seg sc-svck" role="group" aria-label="Your field check">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely']].map(([k, l]) => `<button type="button" data-ck="${k}" aria-pressed="${!!(CK[b.id] && CK[b.id].s === k)}" title="Mark what you see: ${l.toLowerCase()}">${l}</button>`).join('')}</span>` : ''}
             <button type="button" class="ibtn" data-a="full">${svFull ? '⤡ Exit full window' : '⤢ Full window'}</button>
-            <a class="ibtn" href="${esc(svURL(v ? { lat: v.lat, lon: v.lon, heading: svHead } : t))}" target="scout-streetview" referrerpolicy="no-referrer" title="Open this view in Google Maps">Google Maps ↗</a>
+            <a class="ibtn" href="${esc(svURL(gl))}" target="scout-streetview" referrerpolicy="no-referrer" title="Open this view in Google Maps">Google Maps ↗</a>
             <button type="button" class="btn sm" data-a="map">Back to satellite</button>
           </div>
-          <div class="sc-svwhere">${v && v.road ? `Standing on ${esc(v.road)}, looking ${compass(svHead)}${facing ? ' at the building' : ''}.` : 'At the street nearest this point.'} Drag to look around; click the arrows in the picture to walk the street. Esc goes back to the satellite map.</div>`;
-        $$('[data-a]', svBar).forEach(x => x.onclick = () => { const a = x.dataset.a; if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'left') turn(-45); else if (a === 'right') turn(45); else if (a === 'face' && svView) { svHead = svView.heading; svf.src = svSrc(svView, svHead, svPitch); renderSvBar(); } else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1); });
-        $$('[data-ck]', svBar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); renderSvBar(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
+          <div class="sc-svwhere">${whereText()}</div>
+          ${glowOn() ? '' : `<form class="sc-svkey" id="scSvKeyF" autocomplete="off"><span><b>Glows over the buildings:</b> ${GM.failed ? esc(GM.failed) + ' ' : ''}the plain player is sealed and says nothing about where it looks, so glows need Google's Street View with a Google Maps key (Maps JavaScript API).</span><input type="password" id="scSvKey" placeholder="Paste a Google Maps key (AIza…)" spellcheck="false" aria-label="Google Maps key"><button class="btn sm" type="submit">Turn on glows</button><a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener noreferrer">How to get a key ↗</a></form>`}`;
+        $$('[data-a]', svBar).forEach(x => x.onclick = () => { const a = x.dataset.a; if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'left') turn(-45); else if (a === 'right') turn(45); else if (a === 'face') face(); else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1); });
+        $$('[data-ck]', svBar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); renderSvBar(); drawSoon(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
+        const kf = $('#scSvKeyF', svBar); if (kf) kf.onsubmit = e => { e.preventDefault(); const k = $('#scSvKey', kf).value.trim(); if (!k) { toast('Paste a key first'); return; } CFG.gKey = k.slice(0, 200); GM.failed = ''; saveCfg(); settings(); toast('Google Maps key saved in this browser'); showSV(svTarget); };
       }
       $$('#scMode button', root).forEach(x => x.onclick = () => {
         if (x.dataset.v === 'map') { if (svMode) setMode('map'); return; }
@@ -21354,7 +21553,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
           <div class="f"><label class="fl" for="scGr">Green at a score of</label><div class="row"><input type="range" id="scGr" min="20" max="90" step="1" value="${CFG.green}"><output id="scGrO">${CFG.green}</output></div></div>
           <div class="f"><label class="fl" for="scOr">Orange at a score of</label><div class="row"><input type="range" id="scOr" min="5" max="85" step="1" value="${CFG.orange}"><output id="scOrO">${CFG.orange}</output></div></div>
           <div class="f"><label class="fl" for="scArc">ArcGIS key (optional)</label><div class="row"><input type="password" id="scArc" autocomplete="off" spellcheck="false" placeholder="${CFG.arcgisKey ? 'Saved: ' + esc(CFG.arcgisKey.slice(0, 4)) + '…' : 'AAPK… or an access token'}"><button class="btn sm" id="scArcS">Save</button><button class="btn sm sec" id="scArcR"${CFG.arcgisKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Routes the imagery through your own ArcGIS Location Platform account, the way Esri asks commercial apps to use it (its free tier covers two million basemap tiles a month). Without a key the public World Imagery service is used, with Esri's attribution on the map.</p></div>
-          <div class="f"><label class="fl" for="scGk">Google Maps key (optional)</label><div class="row"><input type="password" id="scGk" autocomplete="off" spellcheck="false" placeholder="${CFG.gKey ? 'Saved: ' + esc(CFG.gKey.slice(0, 6)) + '…' : 'AIza…'}"><button class="btn sm" id="scGkS">Save</button><button class="btn sm sec" id="scGkR"${CFG.gKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Street View works without a key, through Google's standard embedded Street View player. With a key that has the Maps Embed API turned on (Google does not charge for it), Street View runs through that documented API instead.</p></div>
+          <div class="f"><label class="fl" for="scGk">Google Maps key (for the glows)</label><div class="row"><input type="password" id="scGk" autocomplete="off" spellcheck="false" placeholder="${CFG.gKey ? 'Saved: ' + esc(CFG.gKey.slice(0, 6)) + '…' : 'AIza…'}"><button class="btn sm" id="scGkS">Save</button><button class="btn sm sec" id="scGkR"${CFG.gKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Turns on the glows. Street View then runs on Google's Maps JavaScript API, which reports where its camera stands and looks, so every building in the picture gets a green, orange or red glow that follows the view as it turns, zooms and walks. In the Google Cloud console, turn on the Maps JavaScript API for the key and leave it unrestricted by web address (a file opened from this computer sends none; restrict it to that API instead). Google bills Street View loads past its monthly free use. Without a key Street View still plays, through Google's plain embedded player, without glows.</p></div>
           <div class="f"><label class="fl" for="scMlyK">Mapillary token (optional)</label><div class="row"><input type="password" id="scMlyK" autocomplete="off" spellcheck="false" placeholder="${CFG.mlyToken ? 'Saved: ' + esc(CFG.mlyToken.slice(0, 6)) + '…' : 'MLY|…'}"><button class="btn sm" id="scMlyS">Save</button><button class="btn sm sec" id="scMlyR"${CFG.mlyToken ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Shows Mapillary's street photos (CC BY-SA) in the From the road card, turned to face the building. A free client token comes from mapillary.com under Developers. Mapillary's coverage of residential streets is thinner than Street View's.</p></div>
           <div class="f"><label class="fl">Field checks</label><div class="row"><span class="mini">${plural(Object.keys(CK).length, 'building')} checked in this browser.</span><button class="btn sm sec" id="scCkX"${Object.keys(CK).length ? '' : ' disabled'}>Clear them all</button></div></div>`;
         $('#scMinZ', s).onchange = e => { CFG.minZoom = +e.target.value; saveCfg(); restyleAll(); load(); refreshSoon(); };
@@ -21366,8 +21565,8 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         $('#scArcR', s).onclick = () => { CFG.arcgisKey = ''; saveCfg(); tileErr = 0; tileOk = 0; setBase(); settings(); toast('ArcGIS key removed'); };
         $('#scMlyS', s).onclick = () => { const v = $('#scMlyK', s).value.trim(); if (!v) { toast('Paste a token first'); return; } CFG.mlyToken = v.slice(0, 500); saveCfg(); settings(); toast('Mapillary token saved in this browser'); if (sel && sel.type !== 'zip') { const b = sel.type === 'b' ? B.get(sel.id) : null; street(b ? { lat: b.lat, lon: b.lon, street: b.street, b } : { lat: sel.lat, lon: sel.lon, street: '', b: null }); } };
         $('#scMlyR', s).onclick = () => { CFG.mlyToken = ''; saveCfg(); settings(); toast('Mapillary token removed'); };
-        const svAgain = () => { if (svMode && svView) svf.src = svSrc(svView, svHead, svPitch); };
-        $('#scGkS', s).onclick = () => { const v = $('#scGk', s).value.trim(); if (!v) { toast('Paste a key first'); return; } CFG.gKey = v.slice(0, 200); saveCfg(); settings(); svAgain(); toast('Google Maps key saved in this browser'); };
+        const svAgain = () => { if (svMode && svTarget) showSV(svTarget); };
+        $('#scGkS', s).onclick = () => { const v = $('#scGk', s).value.trim(); if (!v) { toast('Paste a key first'); return; } CFG.gKey = v.slice(0, 200); GM.failed = ''; saveCfg(); settings(); svAgain(); toast('Google Maps key saved in this browser'); };
         $('#scGkR', s).onclick = () => { CFG.gKey = ''; saveCfg(); settings(); svAgain(); toast('Google Maps key removed'); };
         let armed = false; $('#scCkX', s).onclick = e => { if (!armed) { armed = true; e.target.textContent = 'Click again to clear'; setTimeout(() => { armed = false; if (e.target.isConnected) e.target.textContent = 'Clear them all'; }, 4000); return; } Object.keys(CK).forEach(k => delete CK[k]); store.set(CHECKS, CK); B.forEach(b => statusOf(b)); restyleAll(); settings(); refreshSoon(); if (sel && sel.type === 'b') detail(); toast('Field checks cleared'); };
       }
@@ -21380,6 +21579,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         ['Rebuilt and remodeled homes', 'An appraisal roll keeps the original year built through most remodels. A full HVAC replacement without a permit leaves no trace the model can read.'],
         ['Units and tons are rules of thumb', 'Rooftop unit counts and tonnage come from floor area, not from counting units on the imagery. Count them on the 15 cm imagery before quoting.'],
         ['Imagery dates differ', 'Satellite and aerial captures under one map are from different days (the line under the map names the one under its centre). Street View and Mapillary have their own dates: Street View shows its date under "View on Google Maps" and "See more dates" in Google Maps.'],
+        ['A glow is a drawing, not a detection', 'Each glow is the building\'s FEMA footprint raised to its FEMA height (or a height for its type) and drawn from the panorama\'s own camera position and direction. Trees, fences and nearer buildings are not cut out of it, and a footprint or a height a few meters off moves its edge by as much. The colour is the building\'s reading, as on the map.'],
         ['Street View stands where Google drove', 'The view is aimed from the nearest point of the building\'s own street. Where Google\'s car did not pass (a private drive, a new street) the player picks the nearest picture it has, which can be on the next street; turn, step, or walk with the arrows in the picture.'],
       ], ['Caveat', 'Why it matters']);
       $('#scGap', root).innerHTML = judgList([
@@ -21397,7 +21597,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         ['Streets', 'U.S. Census Bureau TIGERweb, transportation layers', 'A', 'current', 'https://tigerweb.geo.census.gov/'],
         ['Address search', 'Esri World Geocoding Service (single searches, nothing stored)', 'A', 'live', 'https://www.esri.com/'],
         ['Life tables and repair rates', 'The atlas: EIA RECS 2020 Texas Weibull lifetimes (module 02), repair call rates by age (module 05), ZIP heating fuel and housing age (ACS)', 'B', 'compiled ' + esc(META.compiled || ''), ''],
-        ['Street View', 'Google Street View, shown in the map card in place of the satellite map: Google\'s embedded player, or the Maps Embed API with your key; and in Google Maps in its own tab', '', 'live', 'https://developers.google.com/maps/documentation/embed/embedding-map#streetview_mode'],
+        ['Street View', 'Google Street View in the map card, in place of the satellite map: the Maps JavaScript API with your key (with the glows), or Google\'s plain embedded player without one; and Google Maps in its own tab', '', 'live', 'https://developers.google.com/maps/documentation/javascript/streetview'],
         ['Street photos', 'Mapillary API v4, with your token (CC BY-SA 4.0)', '', 'live', 'https://www.mapillary.com/developer/api-documentation'],
       ]);
 
@@ -21416,7 +21616,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
       /* ---------- what other code may call ---------- */
       self.api = {
         zoomZip, goTo: (la, lo, z) => { map.setView([la, lo], z || 19); pendingPick = { lat: la, lon: lo }; setTimeout(tryPending, 50); },
-        map: () => map, buildings: () => [...B.values()], pick: id => pick(id, { pan: true }), read, systemOf, addrParts, stateAt, aim, svURL, status: () => ({ tiles: [...T.values()].map(t => ({ k: t.k, st: t.st, n: t.ids.size })), queued: Q.list.length, running: Q.run, errors: errors.slice() }),
+        map: () => map, buildings: () => [...B.values()], pick: id => pick(id, { pan: true }), glows: () => GM.hits.map(h => ({ id: h.b.id, d: h.d, box: [h.x0, h.y0, h.x1, h.y1] })), sv: () => ({ mode: svMode, live: GM.live, cam: GM.cam, failed: GM.failed, n: GM.n, target: svTarget && svTarget.b ? svTarget.b.id : null }), read, systemOf, addrParts, stateAt, aim, svURL, status: () => ({ tiles: [...T.values()].map(t => ({ k: t.k, st: t.st, n: t.ids.size })), queued: Q.list.length, running: Q.run, errors: errors.slice() }),
       };
       self.version = VERSION;
     },

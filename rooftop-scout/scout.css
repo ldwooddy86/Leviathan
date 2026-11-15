@@ -127,3 +127,14 @@
 .sc .sc-mapcard.sc-full>.sc-bar,.sc .sc-mapcard.sc-full>.legend,.sc .sc-mapcard.sc-full>.sc-modebar{display:none}
 html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
 @media (max-width:760px){.sc .sc-svf{height:58vh;min-height:300px}}
+/* Street View with glows: Google's panorama in a box of the page, the glow canvas over it, taking no pointer events */
+.sc .sc-svj{position:relative;height:min(66vh,640px);min-height:380px;background:#0b1014;overflow:hidden}
+.sc .sc-svj[hidden],.sc .sc-svf[hidden]{display:none!important}
+.sc .sc-svp{position:absolute;inset:0}
+.sc .sc-svc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.sc .sc-mapcard.sc-full .sc-svj{flex:1;height:auto;min-height:0}
+.sc .sc-svkey{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;font-size:12px;line-height:1.45;color:var(--ink-2);background:color-mix(in srgb,var(--accent) 7%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:8px;padding:8px 10px;margin:0}
+.sc .sc-svkey>span{flex:1 1 100%}
+.sc .sc-svkey input{flex:1 1 220px;min-width:0}
+.sc .sc-svkey a{color:var(--accent)}
+@media (max-width:760px){.sc .sc-svj{height:58vh;min-height:300px}}
