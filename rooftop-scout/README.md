@@ -19,16 +19,29 @@ file it came from.
 - **Street view (3D), no key: the neighborhood rebuilt from open data, every building glowing.** The map card switches
   between three views: the satellite map, the 3D street view and Google's photos (the Satellite / Street view (3D) /
   Google photos switch, the Street view button on a building, or a double click on a building, which opens the 3D view).
-  - Every building is its FEMA footprint raised to its FEMA height (a hipped roof on houses, eaves at about 60% of the
-    height; a flat roof on the rest). Its roof, and the ground, are Esri's aerial and satellite imagery. Every street,
-    alley and service drive is OpenStreetMap's (through the Overpass API: overpass-api.de, then two mirrors), or the
-    Census TIGER file's when none answers (then without the alleys).
+  - Every building is its FEMA footprint raised to its FEMA height. Houses get walls set back under their eaves, a hipped
+    roof, a foundation, a front door on the wall facing the street and a garage door facing the alley or drive; the rest
+    get flat roofs behind parapets. Roofs and the ground are Esri's aerial and satellite imagery. Every street, alley and
+    service drive is OpenStreetMap's (through the Overpass API: overpass-api.de, then two mirrors), or the Census TIGER
+    file's when none answers (then without the alleys); streets are drawn as asphalt, alleys and drives as concrete. Trees
+    stand where the aerial photo shows canopy, sized by it.
+  - It is drawn the way a modern game engine draws a scene: a physical sky with the sun where it stands over Dallas at the
+    chosen hour (Morning, Midday, Afternoon, Evening or Now), light from that sky, sun shadows, ambient occlusion (GTAO),
+    filmic tone mapping, physically based brick, lap siding, stucco, storefront and curtain wall glass and metal panel, and
+    bloom on the glows only (three.js's port of Unreal Engine's bloom, fed by the glows alone, so nothing else blooms).
+    Quality is High, Medium or Basic: Auto picks one for the machine and steps down once if the walk stutters.
   - The page draws the scene itself, so it always knows where the camera stands and looks, and each building's green,
     orange or red glow, outline and label sit exactly on it. The current building carries a white outline.
   - Walk at eye level street by street and alley by alley (W and S or the arrow keys, or the on-screen pad; looking down
     a cross street and walking turns onto it), turn (A and D, or drag), rise to drone (38 m) or bird (120 m) height for
     the roofs (Q and E, or the Street / Drone / Bird switch), click the ground to go there, click a building to read it,
     double click to stand in front of it, step to the previous or next building, mark a field check, go full window.
+  - **3D model for Unreal** downloads the area as a glTF 2.0 file (`.glb`): one node per building, named by its address,
+    with the module's reading in its extras (use, reading, score, likely system, likely need, field check); its glow as an
+    emissive shell (`KHR_materials_emissive_strength`, so Unreal's bloom lights it); the streets, the trees and a ground.
+    It opens in Unreal Engine 5 (drag it into the Content Browser, or File > Import Into Level), Blender or any glTF tool;
+    meters, +Y up, the origin's latitude and longitude in the scene's extras. Esri's imagery stays out of it (its terms keep
+    it on Esri's servers). Khronos's glTF validator passes it with no errors and no warnings.
 - **Google photos.** Google's own Street View photographs of the street, in the card's place, aimed at the building.
   Without a key it is Google's plain embedded player, which is sealed (it tells the page nothing about where it looks), so
   no glow is drawn on it; with a Google Maps key (Maps JavaScript API) the photos glow too, drawn from the panorama's own
@@ -64,14 +77,25 @@ file it came from.
 | Address search | Esri World Geocoder, `geocode.arcgis.com` |
 | Street View | Maps JavaScript API Street View with a key (glows), or Google's embedded player (`maps.google.com`) without |
 | Streets and alleys (3D view) | OpenStreetMap through the Overpass API (`overpass-api.de`, `overpass.kumi.systems`, `maps.mail.ru`), Census TIGER as the fallback |
+| Trees (3D view) | none: placed in the browser from the Esri imagery already loaded |
 | Street photos (optional) | Mapillary API v4, `graph.mapillary.com` |
 
 Opened inside the Claude viewer, outside requests are blocked: the module says so and the heatmap still draws. Download
 the file and open it in a browser.
 
+## Why not Unreal Engine itself
+
+Unreal Engine 5 has no web export: the only way to show an Unreal scene in a browser is Pixel Streaming, where the engine
+runs on a server with a graphics card and streams video to the page. That needs a GPU server and Epic's toolchain, and a
+single dashboard file cannot carry it. So the view uses the same techniques in a browser engine (three.js), and the
+**3D model for Unreal** export takes the scene into the real Unreal Engine, where Cesium for Unreal can add terrain and
+imagery under it and Pixel Streaming can serve it to a browser.
+
 ## Rebuild
 
 `python3 rooftop-scout/build.py <atlas.html> <out.html>` inserts the module after the Agent Desk's end marker and before
 the shell boot script, and changes nothing else. Files: `scout.js` (the module), `scout3d.js` (the 3D street view),
-`scout.css`. Leaflet 1.9.4 (BSD 2 clause, `vendor/LEAFLET-LICENSE`) and three.js r149 (MIT, `vendor/THREE-LICENSE`) are
-carried inline and kept private to the module (`window.__SCOUT_LEAFLET__`, `window.__SCOUT_THREE__`).
+`scout.css`. Leaflet 1.9.4 (BSD 2 clause, `vendor/LEAFLET-LICENSE`) and three.js r186 with its sky, post-processing and
+glTF export add-ons (MIT, `vendor/THREE-LICENSE`) are carried inline and kept private to the module
+(`window.__SCOUT_LEAFLET__`, `window.__SCOUT_THREE__`). `vendor/three.bundle.min.js` is built from `vendor/three-entry.js`
+with esbuild; the command is at the top of that file.

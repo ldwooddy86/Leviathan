@@ -154,3 +154,13 @@ html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
 .sc .sc-mapcard.sc-full .sc-3d{flex:1;height:auto;min-height:0}
 .sc .sc-sv .sc-svgo+.sc-svgo{margin-top:6px}
 @media (max-width:760px){.sc .sc-3d{height:58vh;min-height:300px}}
+/* the Graphics menu in the 3D bar */
+.sc .sc-gfx{position:relative}
+.sc .sc-gfx>summary{list-style:none;cursor:pointer;user-select:none}
+.sc .sc-gfx>summary::-webkit-details-marker{display:none}
+.sc .sc-gfx>summary::after{content:" ▾";color:var(--ink-3)}
+.sc .sc-gfx[open]>summary{border-color:var(--line-strong);color:var(--ink)}
+.sc .sc-gfxp{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:min(380px,calc(100vw - 48px));display:grid;gap:8px;padding:11px 12px;background:var(--card);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.sc .sc-gfxr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sc .sc-gfxr>.mini{width:52px;flex:none}
+.sc .sc-gfxp p{margin:0;line-height:1.45}

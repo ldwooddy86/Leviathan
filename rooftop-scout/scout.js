@@ -11,7 +11,10 @@
    Google's terms (Maps Platform 3.2.3(e)) keep Street View imagery and a non-Google map off the same screen, so the card
    switches between them. With no key at all, the Street view (3D) rebuilds the neighborhood from open data (FEMA
    buildings, Esri imagery, OpenStreetMap streets and alleys) and every building glows in its colour, exactly, because the
-   page draws the scene itself; it walks the streets and alleys and rises for the roofs. Google's photos are one click away,
+   page draws the scene itself; it walks the streets and alleys and rises for the roofs. It is drawn the way a game engine
+   draws a scene (a physical sky and sun, sun shadows, ambient occlusion, bloom, filmic tone mapping, physically based
+   brick, siding, stucco and glass, trees where the aerial photo shows canopy), and the area exports as a glTF model for
+   Unreal Engine 5 or Blender. Google's photos are one click away,
    and with a Google Maps key (Maps JavaScript API) they glow too. Street photos inside the side panel come from Mapillary
    when a Mapillary token is saved. Every request goes from this browser straight to a public service;
    nothing is sent anywhere else, and the keys a person saves stay in this browser.
@@ -1108,6 +1111,8 @@
         onFront: b => { hideTip(); pick(b.id); },
         onMove: st => { d3St = st; whereSoon(); },
         onNote: t => { const n = $('#sc3dNote', root); if (n) n.textContent = t || ''; },
+        onGraphics: () => render3DBar(),
+        facts: b => ({ address: b.addr ? title(b.addr) : '', zip: b.zip || b.zipF || '', city: b.city ? title(b.city) : '', use: (PROF[b.cls] || PROF.unk).l, reading: STL[b.status], score: b.sc.score, likelySystem: b.sys.short, likelyNeed: needLabel(b), heightMeters: Math.round(hOf(b) * 10) / 10, fieldCheck: CK[b.id] && CK[b.id].s ? STL[CK[b.id].s] : '' }),
       };
       const refresh3D = debounce(() => { if (d3 && d3Mode) d3.refresh(); }, 350);
       async function open3D(target) {
@@ -1129,6 +1134,18 @@
         return `${on}, looking ${compass(st.yaw)}${facing ? ' at the building' : ''} · <b>${N(st.built)}</b> buildings glowing${st.roads ? '' : ' · the streets are still loading'}. Drag to look around; <b>W</b> and <b>S</b> (or ▲ ▼) walk the street, <b>A</b> and <b>D</b> turn, <b>Q</b> and <b>E</b> rise and come down; click the ground to go there, a building to read it, double click to stand in front of it.`;
       }
       const whereSoon = debounce(() => { const w = $('#sc3dWhere', root); if (w && d3Mode) w.innerHTML = where3D(d3St || (d3 && d3.state())); if (d3 && d3St) $$('#sc3dBar [data-h]', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.h === d3St.mode))); }, 90);
+      let gfxOpen = false;
+      const slug = v => String(v || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'area';
+      function gfxMenu() {
+        const g = d3 && d3.graphics ? d3.graphics() : null; if (!g) return '';
+        const seg = (name, cur, opts) => `<span class="seg" role="group" aria-label="${name}">${opts.map(([k, l]) => `<button type="button" data-g="${name}:${k}" aria-pressed="${cur === k}">${l}</button>`).join('')}</span>`;
+        return `<details class="sc-gfx" id="sc3dGfx"${gfxOpen ? ' open' : ''}><summary class="ibtn" title="Quality, the hour of the sun, trees">Graphics: ${esc(g.label)}${g.q === 'auto' ? ' (auto)' : ''}</summary><div class="sc-gfxp">
+            <div class="sc-gfxr"><span class="mini">Quality</span>${seg('q', g.q, [['auto', 'Auto'], ['high', 'High'], ['medium', 'Medium'], ['basic', 'Basic']])}</div>
+            <div class="sc-gfxr"><span class="mini">Sun</span>${seg('sun', g.sun, [['morning', 'Morning'], ['midday', 'Midday'], ['afternoon', 'Afternoon'], ['evening', 'Evening'], ['now', 'Now']])}</div>
+            <div class="sc-gfxr"><span class="mini">Trees</span>${seg('trees', g.trees ? 'on' : 'off', [['on', 'On'], ['off', 'Off']])}</div>
+            <p class="mini">High: sun shadows, ambient occlusion, bloom on the glows, 4× antialiasing. Medium: lighter shadows, no ambient occlusion. Basic: no shadows or effects, for older machines. Auto picks one for this machine (${esc(g.auto)} here) and steps down if the walk stutters. The sun stands where it does over Dallas today at that hour.${g.sunNote ? ' ' + esc(g.sunNote) : ''}</p>
+          </div></details>`;
+      }
       function render3DBar() {
         const t = d3Target; if (!t) { d3Bar.innerHTML = ''; return; } const b = t.b ? (B.get(t.b.id) || t.b) : null, st = d3 ? d3.state() : null, mode = st ? st.mode : 'street';
         if (b && !svList.includes(b.id)) { svList = svListNow(); if (!svList.includes(b.id)) svList.unshift(b.id); }
@@ -1139,6 +1156,8 @@
             <span class="seg" role="group" aria-label="Height">${[['street', 'Street'], ['drone', 'Drone'], ['bird', 'Bird']].map(([k, l]) => `<button type="button" data-h="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</span>
             ${b ? '<button type="button" class="ibtn" data-a="face" title="Turn to face the building">Face it</button>' : ''}
             ${b ? `<span class="seg sc-svck" role="group" aria-label="Your field check">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely']].map(([k, l]) => `<button type="button" data-ck="${k}" aria-pressed="${!!(CK[b.id] && CK[b.id].s === k)}" title="Mark what you see: ${l.toLowerCase()}">${l}</button>`).join('')}</span>` : ''}
+            ${gfxMenu()}
+            <button type="button" class="ibtn" data-a="export" title="Download this area as a 3D model (glTF .glb) for Unreal Engine 5, Blender or any 3D tool: every building with its reading and its glow, the streets and the trees (Esri's imagery stays out)">⇩ 3D model for Unreal</button>
             <button type="button" class="ibtn" data-a="full">${svFull ? '⤡ Exit full window' : '⤢ Full window'}</button>
             <button type="button" class="ibtn" data-a="photos" title="Google's photographs of this street, in the card's place">Google photos</button>
             <button type="button" class="btn sm" data-a="map">Back to satellite</button>
@@ -1146,8 +1165,11 @@
           <div class="sc-svwhere" id="sc3dWhere">${where3D(st)}</div>`;
         $$('[data-a]', d3Bar).forEach(x => x.onclick = () => { const a = x.dataset.a;
           if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'face' && d3 && b) d3.face(b); else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1);
+          else if (a === 'export' && d3 && d3.exportGLB) { x.disabled = true; x.textContent = 'Building the model…'; const s2 = d3.state(); d3.exportGLB().then(blob => saveFile(`rooftop-scout-3d-${slug(s2.road)}-${new Date().toISOString().slice(0, 10)}.glb`, blob)).catch(e => toast('The 3D model did not build: ' + (e && e.message || e))).finally(() => render3DBar()); }
           else if (a === 'photos') { const s2 = d3 ? d3.state() : null; showSV(b ? { lat: b.lat, lon: b.lon, street: b.street, b } : s2 ? { lat: s2.lat, lon: s2.lon, street: '', b: null } : t); } });
         $$('[data-h]', d3Bar).forEach(x => x.onclick = () => { if (d3) { d3.setHeight(x.dataset.h); whereSoon(); } });
+        const gd = $('#sc3dGfx', d3Bar); if (gd) gd.addEventListener('toggle', () => { gfxOpen = gd.open; });
+        $$('[data-g]', d3Bar).forEach(x => x.onclick = () => { const [k, v] = x.dataset.g.split(':'); if (!d3) return; d3.setGraphics(k === 'trees' ? { trees: v === 'on' } : { [k]: v }); render3DBar(); });
         $$('[data-ck]', d3Bar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); render3DBar(); if (d3) d3.refresh(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
       }
       /* the walk pad over the view: hold to walk or turn; Enter or Space for a step */
@@ -1217,7 +1239,7 @@
         `<b>Installation ${G('D')}</b>. Homes without central air: by era (24% before 1940 down to under 1% after 2000), raised for small homes (in full only where the year built is on file, since the footprint already leans the estimated era) and for lower income ZIPs, cut for homes with an HVAC permit on file, and never above 35%. RECS 2020 Texas puts ${D((DATA.recs_tx.acequip || {})[4], 1)}% of homes that cool on room units.`,
         `<b>The score and the colour</b>. The chance of at least one paid job: a replacement within five years, a repair call within twelve months, an installation, or hail work where large hail fell within 8 km since 2023. A building with several units counts the chance any of them needs it, damped by the square root of the count, and the result is weighted by how much of a building like it is conditioned (a parking deck almost none). Green at ${CFG.green} or more, orange at ${CFG.orange} to ${CFG.green - 1}, red below; both cut points are in Settings. An average DFW system scores about 45 (the metro replaces ${P(META.rep / META.sys * 100, 1)} of its systems a year and calls for a repair on about 21%), so by default orange is the typical building, green needs evidence of an older or original system, and red needs evidence of recent work or a new building. A field check replaces the colour.`,
         `<b>The likely system ${G('B')}</b>. From the type, footprint and height, and for homes the ZIP's heating fuel (ACS B25040) with the RECS heat pump share of electric homes (47% single family, 53% apartments). Tonnage is a rule of thumb (500 to 600 square feet a ton in a home, 250 to 400 in a commercial building).`,
-        `<b>The 3D street view ${G('C')}</b>. The neighborhood rebuilt in the browser, with no key: each building is its FEMA footprint raised to its FEMA height (a hipped roof on houses, eaves at about 60% of the height; a flat roof on the rest), its roof and the ground are Esri's aerial and satellite imagery, and the streets, alleys and service drives are OpenStreetMap's (the Census TIGER file when OpenStreetMap does not answer, without the alleys). The view is drawn by the page, so it knows where it stands and looks, and every building's glow sits exactly on its walls. It walks at eye level along the streets and alleys and rises to drone (38 m) and bird (120 m) height.`,
+        `<b>The 3D street view ${G('C')}</b>. The neighborhood rebuilt in the browser, with no key: each building is its FEMA footprint raised to its FEMA height (houses with walls set back under their eaves, a hipped roof, a front door facing the street and a garage door facing the alley or drive; the rest with flat roofs behind parapets), its roof and the ground are Esri's aerial and satellite imagery, the streets are asphalt and the alleys and drives concrete, from OpenStreetMap (the Census TIGER file when OpenStreetMap does not answer, without the alleys), and the trees stand where the aerial photo shows canopy. It is drawn the way a game engine draws a scene: a physical sky with the sun where it stands over Dallas at the chosen hour, light from that sky, sun shadows, ambient occlusion, bloom on the glows (three.js's port of Unreal Engine's bloom) and filmic tone mapping, on physically based brick, siding, stucco, storefront glass and metal. The view is drawn by the page, so it knows where it stands and looks, and every building's glow sits exactly on its walls. It walks at eye level along the streets and alleys and rises to drone (38 m) and bird (120 m) height, and the area exports as a glTF model (one node per building, its reading in the node's extras, its glow as an emissive shell) that opens in Unreal Engine 5 or Blender.`,
       ].map(x => `<li>${x}</li>`).join('');
       $('#scMeth', root).innerHTML = method();
       function settings() {
@@ -1252,7 +1274,7 @@
         ['Rebuilt and remodeled homes', 'An appraisal roll keeps the original year built through most remodels. A full HVAC replacement without a permit leaves no trace the model can read.'],
         ['Units and tons are rules of thumb', 'Rooftop unit counts and tonnage come from floor area, not from counting units on the imagery. Count them on the 15 cm imagery before quoting.'],
         ['Imagery dates differ', 'Satellite and aerial captures under one map are from different days (the line under the map names the one under its centre). Street View and Mapillary have their own dates: Street View shows its date under "View on Google Maps" and "See more dates" in Google Maps.'],
-        ['The 3D view is a model, not a photograph', 'Walls are drawn, not photographed: their windows are a pattern, their height is FEMA\'s (or a height for the building\'s type), and roofs are the aerial picture laid on the footprint. Trees, fences, cars and signs appear only as the flat picture on the ground. Google photos, one click away, show the street as it was photographed.'],
+        ['The 3D view is a model, not a photograph', 'Walls are drawn, not photographed: brick or siding is a likely look for the building\'s type, not what it is clad in; windows are a pattern; doors face the nearest street or alley; heights are FEMA\'s (or a height for the building\'s type) and roof pitches are typical; roofs are the aerial picture laid on the footprint. Trees stand where the photo shows canopy, with generic shapes; fences, cars and signs appear only as the flat picture on the ground. Google photos, one click away, show the street as it was photographed.'],
         ['A glow is a drawing, not a detection', 'Each glow is the building\'s FEMA footprint raised to its FEMA height (or a height for its type) and drawn from the panorama\'s own camera position and direction. Trees, fences and nearer buildings are not cut out of it, and a footprint or a height a few meters off moves its edge by as much. The colour is the building\'s reading, as on the map.'],
         ['Street View stands where Google drove', 'The view is aimed from the nearest point of the building\'s own street. Where Google\'s car did not pass (a private drive, a new street) the player picks the nearest picture it has, which can be on the next street; turn, step, or walk with the arrows in the picture.'],
       ], ['Caveat', 'Why it matters']);
@@ -1274,7 +1296,8 @@
         ['Street View', 'Google Street View in the map card, in place of the satellite map: the Maps JavaScript API with your key (with the glows), or Google\'s plain embedded player without one; and Google Maps in its own tab', '', 'live', 'https://developers.google.com/maps/documentation/javascript/streetview'],
         ['Street photos', 'Mapillary API v4, with your token (CC BY-SA 4.0)', '', 'live', 'https://www.mapillary.com/developer/api-documentation'],
         ['Streets and alleys (3D view)', 'OpenStreetMap through the Overpass API (overpass-api.de, then two mirrors), © OpenStreetMap contributors (ODbL); the Census TIGER file when none answers', 'B', 'live', 'https://www.openstreetmap.org/copyright'],
-        ['3D drawing', 'three.js r149 (MIT), carried in the file', '', '', 'https://threejs.org/'],
+        ['3D drawing', 'three.js r186 (MIT), carried in the file, with its sky, ambient occlusion (GTAO), bloom (a port of Unreal Engine\'s) and glTF export add-ons', '', '', 'https://threejs.org/'],
+        ['Trees (3D view)', 'Placed in the browser where the Esri imagery shows canopy (dark, textured, green or leafless brown), sized by the canopy\'s extent', 'C', 'with the imagery', ''],
       ]);
 
       /* ---------- the map's events and the first view ---------- */
