@@ -19,20 +19,16 @@ if html.count(ANCHOR) != 1 or html.count(SHELL) != 1 or html.index(ANCHOR) > htm
 read = lambda n: open(os.path.join(HERE, n), encoding='utf-8').read()
 leaflet_css, leaflet_js, css, js = read('vendor/leaflet.css'), read('vendor/leaflet.min.js'), read('scout.css'), read('scout.js')
 three_js, js3d = read('vendor/three.bundle.min.js'), read('scout3d.js')
-laz_js, lidar_js = read('vendor/lazperf.bundle.js'), read('scoutlidar.js')
+ortw_js, ortg_js, trace_js = read('vendor/ort-wasm.bundle.js'), read('vendor/ort-webgpu.bundle.js'), read('scouttrace.js')
 tf_js, sr_js = read('vendor/tf.bundle.js'), read('scoutsr.js')
 sr_w = base64.b64encode(open(os.path.join(HERE, 'vendor', 'sr', 'realesr-general-x4v3.f16.bin'), 'rb').read()).decode()
 sr_meta = json.load(open(os.path.join(HERE, 'vendor', 'sr', 'realesr-general-x4v3.json'), encoding='utf-8'))
-if '__WASM__' in laz_js:
-    sys.exit('vendor/lazperf.bundle.js still has its wasm placeholder')
 TEX = os.path.join(HERE, 'vendor', 'textures')
 tex = {f[:-5]: 'data:image/webp;base64,' + base64.b64encode(open(os.path.join(TEX, f), 'rb').read()).decode() for f in sorted(os.listdir(TEX)) if f.endswith('.webp')}
-lidar_index = json.load(open(os.path.join(HERE, 'vendor', 'dfw-lidar.json'), encoding='utf-8'))
 data_js = ('window.__SCOUT_TEX__ = ' + json.dumps(tex, separators=(',', ':')) + ';\n'
-           'window.__SCOUT_LIDAR_INDEX__ = ' + json.dumps(lidar_index, separators=(',', ':')) + ';\n'
            'window.__SCOUT_GLOGO__ = "data:image/png;base64,' + base64.b64encode(open(os.path.join(HERE, 'vendor', 'google-logo.png'), 'rb').read()).decode() + '";\n'
            'window.__SCOUT_SRW__ = { meta: ' + json.dumps(sr_meta, separators=(',', ':')) + ', bin: "' + sr_w + '" };')
-for name, text in [('leaflet.min.js', leaflet_js), ('scout.js', js), ('leaflet.css', leaflet_css), ('scout.css', css), ('three.bundle.min.js', three_js), ('scout3d.js', js3d), ('lazperf.bundle.js', laz_js), ('scoutlidar.js', lidar_js), ('data', data_js), ('tf.bundle.js', tf_js), ('scoutsr.js', sr_js)]:
+for name, text in [('leaflet.min.js', leaflet_js), ('scout.js', js), ('leaflet.css', leaflet_css), ('scout.css', css), ('three.bundle.min.js', three_js), ('scout3d.js', js3d), ('ort-wasm.bundle.js', ortw_js), ('ort-webgpu.bundle.js', ortg_js), ('scouttrace.js', trace_js), ('data', data_js), ('tf.bundle.js', tf_js), ('scoutsr.js', sr_js)]:
     low = text.lower()
     if '</script' in low or '</style' in low or '<!--' in text:
         sys.exit(name + ' holds a sequence that would end its tag early')
@@ -48,9 +44,10 @@ block = (
     'window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function" ? window.L.noConflict() : null;\n</script>\n'
     '<script id="scout-three">\n/* ==== vendor/three.bundle.min.js (three.js r186 and the add-ons in vendor/three-entry.js, MIT): it hands itself to\n'
     '   Rooftop Scout as window.__SCOUT_THREE__ and sets no global THREE ==== */\n' + three_js.strip() + '\n</script>\n'
-    '<script id="scout-laz">\n/* ==== vendor/lazperf.bundle.js (laz-perf, Apache-2.0, vendor/LAZPERF-LICENSE; its WebAssembly inline) ==== */\n' + laz_js.strip() + '\n</script>\n'
-    '<script id="scout-data">\n/* ==== the 3D view\'s materials (CC0 photo-scanned textures from Poly Haven and ambientCG, vendor/textures/SOURCES.md) and the table of USGS lidar collections over DFW (vendor/dfw-lidar.json) ==== */\n' + data_js + '\n</script>\n'
-    '<script id="scout-lidar">\n' + lidar_js.strip() + '\n</script>\n'
+    '<script id="scout-data">\n/* ==== the 3D view\'s materials (CC0 photo-scanned textures from Poly Haven and ambientCG, vendor/textures/SOURCES.md), Google\'s logo for the photoreal view, and Real-ESRGAN\'s weights for the map\'s AI detail ==== */\n' + data_js + '\n</script>\n'
+    '<script id="scout-ort-wasm">\n/* ==== vendor/ort-wasm.bundle.js (ONNX Runtime Web 1.30.0, processor build, MIT, vendor/ORT-LICENSE) ==== */\n' + ortw_js.strip() + '\n</script>\n'
+    '<script id="scout-ort-webgpu">\n/* ==== vendor/ort-webgpu.bundle.js (ONNX Runtime Web 1.30.0, graphics card build, MIT, vendor/ORT-LICENSE) ==== */\n' + ortg_js.strip() + '\n</script>\n'
+    '<script id="scout-trace">\n' + trace_js.strip() + '\n</script>\n'
     '<script id="scout-tf">\n/* ==== vendor/tf.bundle.js (TensorFlow.js core and WebGL backend 4.22.0, Apache-2.0, vendor/TFJS-LICENSE) ==== */\n' + tf_js.strip() + '\n</script>\n'
     '<script id="scout-sr">\n' + sr_js.strip() + '\n</script>\n'
     '<script id="scout-3d">\n' + js3d.strip() + '\n</script>\n'
