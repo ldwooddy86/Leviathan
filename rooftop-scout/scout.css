@@ -138,3 +138,19 @@ html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
 .sc .sc-svkey input{flex:1 1 220px;min-width:0}
 .sc .sc-svkey a{color:var(--accent)}
 @media (max-width:760px){.sc .sc-svj{height:58vh;min-height:300px}}
+/* the 3D street view: the scene fills the card's place; a walk pad and the credits sit over it */
+.sc .sc-3dw[hidden]{display:none!important}
+.sc .sc-3dw{background:#0b1014}
+.sc .sc-3d{position:relative;height:min(66vh,640px);min-height:380px;overflow:hidden;background:#cfe1ef}
+.sc .sc-3dc{display:block;width:100%;height:100%;outline:none;cursor:grab;touch-action:none}
+.sc .sc-3dc:focus-visible{box-shadow:inset 0 0 0 3px var(--accent)}
+.sc .sc-3dnote{position:absolute;left:10px;top:10px;z-index:3;font-size:11.5px;line-height:1.4;color:#10191f;background:rgba(255,255,255,.86);border-radius:6px;padding:4px 8px;max-width:min(70%,520px);pointer-events:none}
+.sc .sc-3dnote:empty{display:none}
+.sc .sc-3dattr{position:absolute;right:0;bottom:0;z-index:3;font-size:10.5px;color:#10191f;background:rgba(255,255,255,.78);padding:2px 7px;border-top-left-radius:6px;pointer-events:none}
+.sc .sc-3dpad{position:absolute;left:12px;bottom:12px;z-index:3;display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px}
+.sc .sc-3dpad button{width:40px;height:40px;border-radius:9px;border:1px solid rgba(16,25,31,.25);background:rgba(255,255,255,.88);color:#10191f;font-size:15px;line-height:1;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.25);touch-action:none;user-select:none}
+.sc .sc-3dpad button:active{background:#ffffff;transform:translateY(1px)}
+.sc .sc-mapcard.sc-full>.sc-3dw{flex:1;display:flex;flex-direction:column;min-height:0}
+.sc .sc-mapcard.sc-full .sc-3d{flex:1;height:auto;min-height:0}
+.sc .sc-sv .sc-svgo+.sc-svgo{margin-top:6px}
+@media (max-width:760px){.sc .sc-3d{height:58vh;min-height:300px}}

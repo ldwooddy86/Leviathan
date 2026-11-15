@@ -16,21 +16,25 @@ file it came from.
   pump, packaged rooftop units, PTACs, central plant), its size, its controls and environmental control, the chance of a
   replacement within five years, a repair call within twelve months and an installation, the service lines it falls
   under, and the evidence with the atlas's grades.
-- **Street View from the road, inside the dashboard, with the buildings glowing.** The map card switches between the
-  satellite map and live Google Street View (the Satellite / Street View switch, the Street View button on a building,
-  or a double click on a building). The view stands on the street the building's address names and faces the building,
-  tilted up for buildings with rooftop units. Drag to look around, walk the street with the arrows, step to the previous
-  or next building (likely ones first), turn, face it again, mark a field check, or go full window; Esc goes back.
-  - **Glows (with a Google Maps key, Maps JavaScript API):** every building within about 110 m glows **green**,
-    **orange** or **red** in the picture. Each glow is the building's FEMA footprint raised to its height and drawn from
-    the panorama's own camera (position, heading, pitch and zoom, which the API reports at every move), so the glows
-    follow the view as it turns, zooms and walks. Point at a glow to name the building; click it to make it the current
-    one without moving the camera. Each glow carries its status and score.
-  - **Without a key** Street View plays through Google's plain embedded player. That player is sealed (it tells the page
-    nothing about where it looks), so no glow could be placed on it correctly and none is drawn; the bar offers the key.
-  - While Street View shows, the satellite map is hidden: Google's Maps Platform terms (3.2.3(e)) keep Street View and a
-    non-Google map off the same screen. Each view also opens in Google Maps in its own tab. With a free Mapillary token,
-    Mapillary's street photos show in the side panel, turned to face the building.
+- **Street view (3D), no key: the neighborhood rebuilt from open data, every building glowing.** The map card switches
+  between three views: the satellite map, the 3D street view and Google's photos (the Satellite / Street view (3D) /
+  Google photos switch, the Street view button on a building, or a double click on a building, which opens the 3D view).
+  - Every building is its FEMA footprint raised to its FEMA height (a hipped roof on houses, eaves at about 60% of the
+    height; a flat roof on the rest). Its roof, and the ground, are Esri's aerial and satellite imagery. Every street,
+    alley and service drive is OpenStreetMap's (through the Overpass API: overpass-api.de, then two mirrors), or the
+    Census TIGER file's when none answers (then without the alleys).
+  - The page draws the scene itself, so it always knows where the camera stands and looks, and each building's green,
+    orange or red glow, outline and label sit exactly on it. The current building carries a white outline.
+  - Walk at eye level street by street and alley by alley (W and S or the arrow keys, or the on-screen pad; looking down
+    a cross street and walking turns onto it), turn (A and D, or drag), rise to drone (38 m) or bird (120 m) height for
+    the roofs (Q and E, or the Street / Drone / Bird switch), click the ground to go there, click a building to read it,
+    double click to stand in front of it, step to the previous or next building, mark a field check, go full window.
+- **Google photos.** Google's own Street View photographs of the street, in the card's place, aimed at the building.
+  Without a key it is Google's plain embedded player, which is sealed (it tells the page nothing about where it looks), so
+  no glow is drawn on it; with a Google Maps key (Maps JavaScript API) the photos glow too, drawn from the panorama's own
+  camera. While either Google view shows, the satellite map and the 3D view are hidden: Google's Maps Platform terms
+  (3.2.3(e)) keep Street View off any screen with a non-Google map. Each view also opens in Google Maps in its own tab.
+  With a free Mapillary token, Mapillary's street photos show in the side panel, turned to face the building.
 - **Field checks.** What you see on the roof or from the street (old or rusted unit, window units, hail damage, rooftop
   units, new equipment) overrides the model's colour, is kept in this browser and travels with the CSV.
 - **Lead list.** The buildings in view as a sortable table and a CSV, with the links into Service Lines and the Campaign
@@ -59,6 +63,7 @@ file it came from.
 | Streets | Census TIGERweb, `tigerweb.geo.census.gov` |
 | Address search | Esri World Geocoder, `geocode.arcgis.com` |
 | Street View | Maps JavaScript API Street View with a key (glows), or Google's embedded player (`maps.google.com`) without |
+| Streets and alleys (3D view) | OpenStreetMap through the Overpass API (`overpass-api.de`, `overpass.kumi.systems`, `maps.mail.ru`), Census TIGER as the fallback |
 | Street photos (optional) | Mapillary API v4, `graph.mapillary.com` |
 
 Opened inside the Claude viewer, outside requests are blocked: the module says so and the heatmap still draws. Download
@@ -67,5 +72,6 @@ the file and open it in a browser.
 ## Rebuild
 
 `python3 rooftop-scout/build.py <atlas.html> <out.html>` inserts the module after the Agent Desk's end marker and before
-the shell boot script, and changes nothing else. Leaflet 1.9.4 (BSD 2 clause, `vendor/LEAFLET-LICENSE`) is carried inline
-and kept private to the module (`window.__SCOUT_LEAFLET__`).
+the shell boot script, and changes nothing else. Files: `scout.js` (the module), `scout3d.js` (the 3D street view),
+`scout.css`. Leaflet 1.9.4 (BSD 2 clause, `vendor/LEAFLET-LICENSE`) and three.js r149 (MIT, `vendor/THREE-LICENSE`) are
+carried inline and kept private to the module (`window.__SCOUT_LEAFLET__`, `window.__SCOUT_THREE__`).

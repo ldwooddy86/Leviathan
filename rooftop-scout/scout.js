@@ -9,9 +9,11 @@
    Green: likely to need the work. Orange: maybe. Red: not likely. A field check from the imagery overrides the model.
    Live Google Street View plays inside the map card, aimed from the street at the building, in place of the satellite map:
    Google's terms (Maps Platform 3.2.3(e)) keep Street View imagery and a non-Google map off the same screen, so the card
-   switches between the two. With a Google Maps key (Maps JavaScript API) every building in the picture glows green, orange
-   or red, drawn from the panorama's own camera so the glows follow the view. Street photos inside the side panel come from
-   Mapillary when a Mapillary token is saved. Every request goes from this browser straight to a public service;
+   switches between them. With no key at all, the Street view (3D) rebuilds the neighborhood from open data (FEMA
+   buildings, Esri imagery, OpenStreetMap streets and alleys) and every building glows in its colour, exactly, because the
+   page draws the scene itself; it walks the streets and alleys and rises for the roofs. Google's photos are one click away,
+   and with a Google Maps key (Maps JavaScript API) they glow too. Street photos inside the side panel come from Mapillary
+   when a Mapillary token is saved. Every request goes from this browser straight to a public service;
    nothing is sent anywhere else, and the keys a person saves stay in this browser.
    Plain script in the dashboard's own style, on the dashboard's own helpers (registerModule, mastHTML, card, callout,
    kpiHTML, dataTable, layerOptions, zipTip, qScale, legendHTML, saveFile, toCSV, store, toast). Leaflet 1.9.4 is carried
@@ -447,7 +449,7 @@
     if (t.roads) return t.roads; if (t.roadsP) return t.roadsP;
     const pad = 0.0012, box = { w: t.box.w - pad, e: t.box.e + pad, s: t.box.s - pad, n: t.box.n + pad };
     t.roadsP = Promise.all([8, 6].map(L => getJSON(EP.roads + L + '/query?' + qs({ geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: 'NAME,MTFCC', returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'json' }), { timeout: 25000 }).catch(() => ({ features: [] }))))
-      .then(js => { const rs = []; js.forEach(j => (j.features || []).forEach(f => { const nm = f.attributes && f.attributes.NAME && f.attributes.NAME !== 'Null' ? f.attributes.NAME : ''; ((f.geometry && f.geometry.paths) || []).forEach(p => rs.push({ name: nm, core: nm ? addrParts('1 ' + nm).street : '', line: p.map(([lo, la]) => [la, lo]) })); })); t.roads = rs; t.roadsP = null; return rs; });
+      .then(js => { const rs = []; js.forEach(j => (j.features || []).forEach(f => { const nm = f.attributes && f.attributes.NAME && f.attributes.NAME !== 'Null' ? f.attributes.NAME : ''; ((f.geometry && f.geometry.paths) || []).forEach(p => rs.push({ name: nm, core: nm ? addrParts('1 ' + nm).street : '', m: (f.attributes && f.attributes.MTFCC) || '', line: p.map(([lo, la]) => [la, lo]) })); })); t.roads = rs; t.roadsP = null; return rs; });
     return t.roadsP;
   }
   function nearestOn(pt, line) {
@@ -503,9 +505,10 @@
           <div class="ctl" style="flex:1 1 260px"><label class="fl" for="scFind">Find an address, ZIP or city</label><form id="scFindF" autocomplete="off"><input type="search" id="scFind" placeholder="6846 Lorna Ln, Dallas · 75214 · Plano"></form></div>
         </div>
         <div class="sc-grid">
-          <div class="card sc-mapcard"><div class="sc-modebar"><div class="seg" id="scMode" role="group" aria-label="What the card shows"><button type="button" data-v="map" aria-pressed="true">Satellite</button><button type="button" data-v="sv" aria-pressed="false">Street View</button></div><span class="sc-mnote" id="scModeNote">Pick a building, then Street View to stand in the street in front of it (or double click the building).</span></div>
+          <div class="card sc-mapcard"><div class="sc-modebar"><div class="seg" id="scMode" role="group" aria-label="What the card shows"><button type="button" data-v="map" aria-pressed="true">Satellite</button><button type="button" data-v="3d" aria-pressed="false">Street view (3D)</button><button type="button" data-v="sv" aria-pressed="false">Google photos</button></div><span class="sc-mnote" id="scModeNote">Pick a building, then Street view to stand in the street in front of it (or double click the building).</span></div>
             <div class="sc-map" id="scMap" role="application" aria-label="Satellite map of Dallas Fort Worth with the heatmap and buildings"></div>
             <div class="sc-svw" id="scSvw" hidden><div class="sc-svbar" id="scSvBar"></div><div class="sc-svj" id="scSvJ" hidden><div class="sc-svp" id="scSvP"></div><canvas class="sc-svc" id="scSvC" aria-hidden="true"></canvas></div><iframe class="sc-svf" id="scSvF" title="Google Street View" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="about:blank"></iframe></div>
+            <div class="sc-3dw" id="sc3dW" hidden><div class="sc-svbar" id="sc3dBar"></div><div class="sc-3d" id="sc3D"><div class="sc-3dnote" id="sc3dNote"></div><div class="sc-3dpad" id="sc3dPad" role="group" aria-label="Walk and turn"><span></span><button type="button" data-k="fwd" title="Walk forward (W)" aria-label="Walk forward">▲</button><span></span><button type="button" data-k="left" title="Turn left (A)" aria-label="Turn left">◀</button><button type="button" data-k="back" title="Walk back (S)" aria-label="Walk back">▼</button><button type="button" data-k="right" title="Turn right (D)" aria-label="Turn right">▶</button></div><div class="sc-3dattr">Imagery: Esri, Vantor · Buildings: FEMA · Streets: © OpenStreetMap contributors, U.S. Census</div></div></div>
             <div class="sc-bar"><span class="sc-st" id="scStatus"></span><span class="sc-chips" id="scChips"></span></div>
             <div class="sc-bar" style="border-top:0;padding-top:0"><span class="sc-note" id="scImgNote">The imagery's source and capture date show here at neighborhood zoom.</span></div>
             <div class="legend" id="scLeg"></div></div>
@@ -526,7 +529,7 @@
           ${card('What this cannot show', 'Gaps, and where the missing record lives.', '<div id="scGap"></div>')}
         </div>
         ${card('Source register', 'Every layer traced to the service it came from, with the grade the atlas applies.', '<div id="scSrc"></div>', 'mt')}
-        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect equipment, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Texas Geographic Information Office, the Census Bureau, the City of Dallas, the City of Fort Worth, Google (for Street View, while it shows) and, with a token, Mapillary; no record of what you look at leaves this browser. Street View is Google's own player, loaded from google.com while it shows.</div>
+        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect equipment, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Texas Geographic Information Office, the Census Bureau, the City of Dallas, the City of Fort Worth, OpenStreetMap's Overpass servers (for the 3D streets), Google (for its Street View photos, while they show) and, with a token, Mapillary; no record of what you look at leaves this browser. Street View is Google's own player, loaded from google.com while it shows.</div>
         </div>`;
 
       $('#scImg', root).value = CFG.imagery;
@@ -590,10 +593,11 @@
       }
       function draw(b) {
         if (!b.lay) { b.lay = LF.polygon(b.rings, bStyle(b)); b.lay.on('click', e => { LF.DomEvent.stopPropagation(e); pick(b.id); });
-          b.lay.on('dblclick', e => { LF.DomEvent.stop(e); hideTip(); pick(b.id); showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); });
+          b.lay.on('dblclick', e => { LF.DomEvent.stop(e); hideTip(); pick(b.id); open3D({ lat: b.lat, lon: b.lon, street: b.street, b }); });
           b.lay.on('mouseover', e => { hov = b.id; b.lay.setStyle(bStyle(b)); showTip(bTip(b), e.originalEvent); }); b.lay.on('mousemove', e => showTip(bTip(b), e.originalEvent)); b.lay.on('mouseout', () => { hov = null; b.lay.setStyle(bStyle(b)); hideTip(); }); }
         else b.lay.setStyle(bStyle(b));
         const on = shown(b) && map.getZoom() >= CFG.minZoom - 1; if (on && !gB.hasLayer(b.lay)) gB.addLayer(b.lay); else if (!on && gB.hasLayer(b.lay)) gB.removeLayer(b.lay);
+        if (d3Mode) refresh3D();
       }
       const bTip = b => `<div class="tt">${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</div><div class="ts">${esc((PROF[b.cls] || PROF.unk).l)}${b.zip ? ' · ' + esc(b.zip) : ''}</div>` + tipRow('Status', esc(STL[b.status]) + (b.checked ? ' (your check)' : '')) + tipRow('Score', String(b.sc.score)) + tipRow('Likely system', esc(b.sys.short)) + tipRow('Need', esc(needLabel(b).split(':')[0])) + tipRow('Year built', b.yb ? String(b.yb) : 'not on file') + (b.last ? tipRow('Last HVAC permit', esc(monthYear(b.last.d))) : '') + '<div class="tf">Click for the full reading · double click for Street View</div>';
       const restyleAll = () => B.forEach(b => { if (b.lay) draw(b); });
@@ -624,7 +628,7 @@
         if (wantParcels) { try { const ps = await fetchParcels(t); joinParcels(t, ps); fips.forEach(f => { if (PCOV[f]) return; const mine = bs.filter(b => b.fips === f && b.parcel); if (mine.length >= 8) PCOV[f] = mine.some(b => b.parcel.yb) ? 'yes' : 'no'; }); } catch (e) { note('Parcels: ' + why(e)); } }
         try { const pr = await fetchPermits(t); joinPermits(t, pr); pr.errs.forEach(note); t.permitsAsked = pr.asked; } catch (e) { note('Permits: ' + why(e)); }
         t.ids.forEach(id => { const b = B.get(id); if (b) { read(b); draw(b); } });
-        t.st = 'ok'; t.force = false; refreshSoon(); tryPending(); if (svMode) drawSoon();
+        t.st = 'ok'; t.force = false; refreshSoon(); tryPending(); if (svMode) drawSoon(); if (d3Mode) refresh3D();
         if (sel && sel.type === 'b' && t.ids.has(sel.id)) detail();
       }
       function evict() {
@@ -635,7 +639,7 @@
 
       /* ---------- the status line, counts and table ---------- */
       /* the view the counts, the table and the CSV read: the map's, or while Street View hides the map, the last one it showed */
-      let viewBounds = null; const curBounds = () => (svMode && viewBounds ? viewBounds : map.getBounds());
+      let viewBounds = null; const curBounds = () => ((svMode || d3Mode) && viewBounds ? viewBounds : map.getBounds());
       const inViewB = () => { const bd = curBounds(); return [...B.values()].filter(b => bd.contains([b.lat, b.lon])); };
       function status() {
         const zm = map.getZoom(), busy = Q.run + Q.list.length, el2 = $('#scStatus', root), hintEl = document.getElementById('scHint'); if (!el2) return;
@@ -694,12 +698,12 @@
         if (b.zip && b.zip !== selZip) { selZip = b.zip; paintHeat(); }
         if (o && o.pan && !svMode) map.panTo([b.lat, b.lon], { animate: true });
         const t = { lat: b.lat, lon: b.lon, street: b.street, b };
-        detail(); street(t); if (svMode) { if (o && o.noSV) { svTarget = t; renderSvBar(); drawSoon(); } else showSV(t); } refreshSoon();
+        detail(); street(t); if (d3Mode) { if (o && o.noSV) { d3Target = t; if (d3) d3.setCurrent(b.id); render3DBar(); } else open3D(t); } else if (svMode) { if (o && o.noSV) { svTarget = t; renderSvBar(); drawSoon(); } else showSV(t); } refreshSoon();
       }
       function pickPoint(la, lo) {
         const prev = sel && sel.type === 'b' ? B.get(sel.id) : null; sel = { type: 'pt', lat: la, lon: lo }; if (prev && prev.lay) prev.lay.setStyle(bStyle(prev));
         const t = { lat: la, lon: lo, street: '', b: null };
-        detail(); street(t); if (svMode) showSV(t); refreshSoon();
+        detail(); street(t); if (d3Mode) open3D(t); else if (svMode) showSV(t); refreshSoon();
       }
       function tryPending() {
         if (!pendingPick) return; const { lat, lon } = pendingPick; let best = null, bd = 1e9;
@@ -729,8 +733,8 @@
         const b = B.get(sel.id); if (!b) return; const s = b.sc, st = b.state, sys = b.sys, ck = CK[b.id] || {}, z = b.z;
         nm.textContent = b.addr ? title(b.addr) : 'Building, no address on file';
         sb.textContent = [b.city ? title(b.city) : (z ? z.city : ''), b.zip, (PROF[b.cls] || PROF.unk).l, b.sqft ? N(Math.round(b.sqft / 10) * 10) + ' sq ft footprint' : '', b.h ? D(b.h, 1) + ' m tall' : ''].filter(Boolean).join(' · ');
-        pl.innerHTML = `<div class="sc-score">${N(s.score)}<small>score</small></div><button type="button" class="btn sm sc-svq" id="scSvQ" title="Stand in the street in front of this building">Street View</button>`;
-        $('#scSvQ', pl).onclick = () => { showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+        pl.innerHTML = `<div class="sc-score">${N(s.score)}<small>score</small></div><button type="button" class="btn sm sc-svq" id="scSvQ" title="Stand in the street in front of this building">Street view</button>`;
+        $('#scSvQ', pl).onclick = () => { open3D({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
         const ybTxt = b.ybSrc === 'parcel' ? `<b>Built ${b.yb}</b>, from the ${esc(title(b.parcel && b.parcel.src || 'county appraisal district'))} roll in the TxGIO statewide parcel file${b.parcel && b.parcel.tax ? ' (' + esc(b.parcel.tax) + ')' : ''} ${G('A')}`
           : b.ybSrc === 'permit' ? `<b>Built about ${b.yb}</b>, from a new construction permit (${esc(b.permits.find(p => p.newc) ? b.permits.find(p => p.newc).src : 'city')}) ${G('A')}`
           : `<b>Year built not on file</b>${b.fips && PCOV[b.fips] === 'no' ? ` (the statewide parcel file carries none for ${esc(CNAME(b.fips))} County)` : ''}. Most likely ${b.prior ? b.prior.map((w, i) => [w, i]).sort((x, y) => y[0] - x[0]).slice(0, 2).map(([w, i]) => `${BIN_L[i]} (${pct(w)})`).join(' or ') : 'unknown'}, from the ZIP's housing age${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`;
@@ -750,8 +754,9 @@
             <div class="sc-cues">${CUES.map(([k, l]) => `<label class="chk"><input type="checkbox" data-cue="${k}"${(ck.cues || []).includes(k) ? ' checked' : ''}> ${esc(l)}</label>`).join('')}</div>
             <input type="text" id="scCkN" maxlength="240" placeholder="A note (kept in this browser)" value="${esc(ck.note || '')}">
             ${ck.at ? `<p class="sc-note">Checked ${esc(new Date(ck.at).toLocaleString())}</p>` : ''}</div>
-          <div class="sc-acts"><button class="btn sm" id="scSv1">Street View</button><button class="btn sm sec" id="scCopy">Copy address</button><button class="btn sm sec" data-go-lines="1">Service Lines ↗</button><button class="btn sm sec" id="scDesk1">Campaign Desk ↗</button></div>`;
-        $('#scSv1', dt).onclick = () => { showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+          <div class="sc-acts"><button class="btn sm" id="scSv1">Street view</button><button class="btn sm sec" id="scSvG">Google photos</button><button class="btn sm sec" id="scCopy">Copy address</button><button class="btn sm sec" data-go-lines="1">Service Lines ↗</button><button class="btn sm sec" id="scDesk1">Campaign Desk ↗</button></div>`;
+        $('#scSv1', dt).onclick = () => { open3D({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+        $('#scSvG', dt).onclick = () => { showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
         $$('[data-line]', dt).forEach(c => c.onclick = () => goModule('lines', { line: c.dataset.line, zip: b.zip }));
         const lg = $('[data-go-lines]', dt); if (lg) lg.onclick = () => goModule('lines', { zip: b.zip, line: b.lines[0] || 'replace' });
         $('#scDesk1', dt).onclick = () => goModule('desk', { zips: [b.zip].filter(Boolean) });
@@ -779,11 +784,12 @@
         if (v.m > 0) { sight = LF.polyline([[v.lat, v.lon], [target.lat, target.lon]], { pane: 'scSel', color: '#ffffff', weight: 2, dashArray: '5 5', opacity: 0.95, interactive: false }).addTo(gSel); }
         cam = LF.marker([v.lat, v.lon], { pane: 'scSel', interactive: false, keyboard: false, icon: LF.divIcon({ className: '', html: '<div class="sc-cam" title="Where Street View stands"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(gSel);
         const where = v.road ? `standing on ${esc(v.road)}, looking ${compass(v.heading)}${target.b ? ' at the building' : ''}` : 'at the street nearest this point';
-        box.innerHTML = `<div class="sc-sv"><button type="button" class="btn sc-svgo" id="scSvShow">Show Street View</button>
+        box.innerHTML = `<div class="sc-sv"><button type="button" class="btn sc-svgo" id="scSvShow">Street view (3D), every building glowing</button><button type="button" class="btn sec sc-svgo" id="scSvPh">Google photos of this street</button>
           <p class="sc-note">Live Google Street View in the map's place, ${where}: drag to look around, click the arrows in the picture to walk the street, and step from building to building. The satellite map comes back with one click. <a href="${esc(svURL(v))}" id="scSvGo" target="scout-streetview" referrerpolicy="no-referrer">Open it in Google Maps instead ↗</a></p>
           <div id="scMly"></div>
           <div class="sc-acts" style="margin-top:2px"><a class="btn sm sec" href="${esc(satURL(target.lat, target.lon))}" target="scout-streetview" referrerpolicy="no-referrer">Google satellite ↗</a><a class="btn sm sec" href="${esc(mlyURL(target.lat, target.lon))}" target="_blank" rel="noopener noreferrer">Mapillary ↗</a></div></div>`;
-        $('#scSvShow', root).onclick = () => { showSV(target); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+        $('#scSvShow', root).onclick = () => { open3D(target); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+        $('#scSvPh', root).onclick = () => { showSV(target); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
         $('#scSvSub', root).textContent = target.b ? 'Street View aimed at this building from its street' : 'Street View at this point';
         const mb = $('#scMly', root);
         if (!CFG.mlyToken) { mb.innerHTML = `<p class="sc-note">Street photos can show here too: save a free Mapillary token in <button type="button" class="lnk" id="scToSet">Settings and keys</button>.</p>`; $('#scToSet', root).onclick = () => { $('#scSet', root).scrollIntoView({ behavior: 'smooth', block: 'center' }); const i = $('#scMlyK', root); if (i) i.focus(); }; return; }
@@ -874,9 +880,9 @@
         drawSoon();
       }
       /* buildings around the camera: the tiles under it and around it, even while the map is hidden */
-      function ensureAround(la, lo) {
-        const d = 0.0016, ks = new Set();
-        [[0, 0], [d, 0], [-d, 0], [0, d * 1.2], [0, -d * 1.2]].forEach(([a, b]) => ks.add(lon2x(lo + b, TILE_Z) + '/' + lat2y(la + a, TILE_Z)));
+      function ensureAround(la, lo, r) {
+        r = r || 180; const dLa = r / 110900, dLo = r / (111320 * Math.cos(rad(la))), ks = new Set();
+        for (let x = lon2x(lo - dLo, TILE_Z); x <= lon2x(lo + dLo, TILE_Z); x++) for (let y = lat2y(la + dLa, TILE_Z); y <= lat2y(la - dLa, TILE_Z); y++) ks.add(x + '/' + y);
         ks.forEach(k => { let t = T.get(k); if (!t) { const [x, y] = k.split('/').map(Number); t = { k, x, y, box: tileBox(TILE_Z, x, y), ids: new Set(), st: 'idle', at: 0 }; T.set(k, t); }
           t.at = Date.now(); if (t.st === 'idle' || (t.st === 'err' && Date.now() - (t.errAt || 0) > 15000)) { t.st = 'queued'; t.force = true; Q.list.unshift(() => loadTile(t)); } });
         pump();
@@ -969,14 +975,16 @@
 
       /* ---------- switching the card, aiming, stepping ---------- */
       function setMode(m) {
-        svMode = m === 'sv';
+        const was = viewMode; viewMode = m; svMode = m === 'sv'; d3Mode = m === '3d';
         if (!svMode) { svf.src = 'about:blank'; GM.live = false; GM.hov = null; }   /* unload the plain player before its frame is hidden: at 0 by 0 it logs errors of its own */
+        if (!d3Mode && d3) d3.stop();
         $$('#scMode button', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === m)));
-        host.hidden = svMode; svw.hidden = !svMode; hideTip();
-        $('#scModeNote', root).textContent = svMode ? 'The satellite map is hidden while Street View shows: Google\'s terms keep the two off the same screen. Satellite brings it back.' : 'Pick a building, then Street View to stand in the street in front of it (or double click the building).';
-        if (!svMode) { if (svFull) full(false); setTimeout(() => { map.invalidateSize({ pan: false }); if (svTarget) map.panTo([svTarget.lat, svTarget.lon]); }, 0); }
+        host.hidden = m !== 'map'; svw.hidden = !svMode; d3w.hidden = !d3Mode; hideTip();
+        $('#scModeNote', root).textContent = svMode ? 'Google\'s photographs of the street. The satellite map and the 3D view are hidden while they show: Google\'s terms keep its Street View off any screen with another map.' : d3Mode ? 'The neighborhood built from open data, every building glowing in its colour. Walk the streets and alleys, or rise to drone and bird height for the roofs.' : 'Pick a building, then Street view to stand in the street in front of it (or double click the building).';
+        if (m === 'map') { if (svFull) full(false); const t = was === '3d' ? d3Target : svTarget; setTimeout(() => { map.invalidateSize({ pan: false }); if (t) map.panTo([t.lat, t.lon]); }, 0); }
+        if (d3Mode && d3) d3.start();
       }
-      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); document.documentElement.classList.toggle('sc-noscroll', svFull); if (svMode) { renderSvBar(); drawSoon(); } }
+      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); document.documentElement.classList.toggle('sc-noscroll', svFull); if (svMode) { renderSvBar(); drawSoon(); } if (d3Mode) render3DBar(); }
       /* the buildings to step through: those in view when Street View opened, likely ones first, highest scores first */
       function svListNow() {
         const bd = curBounds(), rank = { g: 3, o: 2, r: 1 };
@@ -984,7 +992,7 @@
       }
       async function showSV(target) {
         if (!target) return; const my = ++svTok2; svTarget = target;
-        if (!svMode) { viewBounds = map.getBounds(); svList = svListNow(); setMode('sv'); }
+        if (!svMode) { if (viewMode === 'map') { viewBounds = map.getBounds(); svList = svListNow(); } setMode('sv'); }
         svBar.innerHTML = '<div class="sc-svwhere"><span class="sc-busy"></span>Finding the street in front…</div>';
         let v; try { v = await aim(target); } catch (e) { v = { lat: target.lat, lon: target.lon, heading: 0, road: '', m: 0 }; }
         if (my !== svTok2 || !svMode) return;
@@ -1037,23 +1045,117 @@
             ${b ? `<span class="seg sc-svck" role="group" aria-label="Your field check">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely']].map(([k, l]) => `<button type="button" data-ck="${k}" aria-pressed="${!!(CK[b.id] && CK[b.id].s === k)}" title="Mark what you see: ${l.toLowerCase()}">${l}</button>`).join('')}</span>` : ''}
             <button type="button" class="ibtn" data-a="full">${svFull ? '⤡ Exit full window' : '⤢ Full window'}</button>
             <a class="ibtn" href="${esc(svURL(gl))}" target="scout-streetview" referrerpolicy="no-referrer" title="Open this view in Google Maps">Google Maps ↗</a>
+            <button type="button" class="ibtn" data-a="3d" title="The 3D street view, every building glowing, no key">Street view (3D)</button>
             <button type="button" class="btn sm" data-a="map">Back to satellite</button>
           </div>
           <div class="sc-svwhere">${whereText()}</div>
-          ${glowOn() ? '' : `<form class="sc-svkey" id="scSvKeyF" autocomplete="off"><span><b>Glows over the buildings:</b> ${GM.failed ? esc(GM.failed) + ' ' : ''}the plain player is sealed and says nothing about where it looks, so glows need Google's Street View with a Google Maps key (Maps JavaScript API).</span><input type="password" id="scSvKey" placeholder="Paste a Google Maps key (AIza…)" spellcheck="false" aria-label="Google Maps key"><button class="btn sm" type="submit">Turn on glows</button><a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener noreferrer">How to get a key ↗</a></form>`}`;
-        $$('[data-a]', svBar).forEach(x => x.onclick = () => { const a = x.dataset.a; if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'left') turn(-45); else if (a === 'right') turn(45); else if (a === 'face') face(); else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1); });
+          ${glowOn() ? '' : `<form class="sc-svkey" id="scSvKeyF" autocomplete="off"><span><b>Glows on Google's photos:</b> ${GM.failed ? esc(GM.failed) + ' ' : ''}this plain player is sealed and says nothing about where it looks, so glows on the photos need a Google Maps key (Maps JavaScript API). The <b>Street view (3D)</b> has every building glowing without one.</span><input type="password" id="scSvKey" placeholder="Paste a Google Maps key (AIza…)" spellcheck="false" aria-label="Google Maps key"><button class="btn sm" type="submit">Turn on glows</button><a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank" rel="noopener noreferrer">How to get a key ↗</a></form>`}`;
+        $$('[data-a]', svBar).forEach(x => x.onclick = () => { const a = x.dataset.a; if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'left') turn(-45); else if (a === 'right') turn(45); else if (a === 'face') face(); else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1); else if (a === '3d') open3D(svTarget); });
         $$('[data-ck]', svBar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); renderSvBar(); drawSoon(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
         const kf = $('#scSvKeyF', svBar); if (kf) kf.onsubmit = e => { e.preventDefault(); const k = $('#scSvKey', kf).value.trim(); if (!k) { toast('Paste a key first'); return; } CFG.gKey = k.slice(0, 200); GM.failed = ''; saveCfg(); settings(); toast('Google Maps key saved in this browser'); showSV(svTarget); };
       }
       $$('#scMode button', root).forEach(x => x.onclick = () => {
-        if (x.dataset.v === 'map') { if (svMode) setMode('map'); return; }
-        if (svMode) return;
-        const sb = sel && sel.type === 'b' ? B.get(sel.id) : null;
-        if (sb) showSV({ lat: sb.lat, lon: sb.lon, street: sb.street, b: sb });
-        else if (sel && sel.type === 'pt') showSV({ lat: sel.lat, lon: sel.lon, street: '', b: null });
-        else { const c = map.getCenter(); if (map.getZoom() < 14) toast('Showing the street nearest the map\'s centre. Pick a building to aim at it.'); showSV({ lat: c.lat, lon: c.lng, street: '', b: null }); }
+        const v = x.dataset.v; if (v === viewMode) return;
+        if (v === 'map') { setMode('map'); return; }
+        const sb = sel && sel.type === 'b' ? B.get(sel.id) : null; let t;
+        if (sb) t = { lat: sb.lat, lon: sb.lon, street: sb.street, b: sb };
+        else if (viewMode === '3d' && d3) { const s2 = d3.state(); t = { lat: s2.lat, lon: s2.lon, street: '', b: null }; }
+        else if (viewMode === 'sv' && svTarget) t = svTarget;
+        else if (sel && sel.type === 'pt') t = { lat: sel.lat, lon: sel.lon, street: '', b: null };
+        else { const c = map.getCenter(); if (map.getZoom() < 14) toast('Showing the street nearest the map\'s centre. Pick a building to aim at it.'); t = { lat: c.lat, lon: c.lng, street: '', b: null }; }
+        if (v === '3d') open3D(t); else showSV(t);
       });
-      document.addEventListener('keydown', e => { if (e.key !== 'Escape' || !svMode || root.hidden) return; if (svFull) full(false); else setMode('map'); });
+      document.addEventListener('keydown', e => { if (e.key !== 'Escape' || viewMode === 'map' || root.hidden) return; if (svFull) full(false); else setMode('map'); });
+
+      /* ---------- the 3D street view: the neighborhood built from open data, no key, the glows exact ---------- */
+      /* scout3d.js builds it (FEMA buildings raised to their heights, Esri imagery on the roofs and the ground, OpenStreetMap
+         streets and alleys); this part feeds it the module's buildings and readings and hears what the person does in it. It
+         draws Esri imagery, so it is a non-Google map: it takes the card's place as the satellite map does, and never shares
+         the screen with Google's photos. */
+      const d3w = $('#sc3dW', root), d3Bar = $('#sc3dBar', root), d3Host = $('#sc3D', root);
+      var d3 = null, d3Mode = false, d3Target = null, d3St = null, viewMode = 'map';
+      /* the streets, alleys and drives around a point: OpenStreetMap through the Overpass API (the first public server that
+         answers), or the Census TIGER file, which has the streets but not the alleys */
+      const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+      const osmKind = t => { const h = t.highway || '', s = t.service || ''; if (/^(motorway|trunk|primary|secondary)(_link)?$/.test(h)) return 'major'; if (/^(tertiary|tertiary_link|residential|unclassified|living_street|road)$/.test(h)) return 'street'; if (h === 'service') return s === 'alley' ? 'alley' : /^(driveway|parking_aisle|drive-through|emergency_access)$/.test(s) ? 'drive' : 'service'; if (/^(footway|path|pedestrian|cycleway|steps|track|bridleway)$/.test(h)) return 'path'; return null; };
+      const tigerKind = m => /^S1(100|200|630)$/.test(m) ? 'major' : m === 'S1730' ? 'alley' : m === 'S1780' ? 'drive' : /^S1(640|740)$/.test(m) ? 'service' : /^S1(710|720|820|830)$/.test(m) ? 'path' : 'street';
+      async function roads3d(la, lo, r) {
+        const dLa = r / 110900, dLo = r / (111320 * Math.cos(rad(la))), bb = [la - dLa, lo - dLo, la + dLa, lo + dLo].map(v => v.toFixed(6)).join(',');
+        const q = `[out:json][timeout:25];way["highway"](${bb});out tags geom;`;
+        for (const url of OVERPASS) {
+          const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 12000);
+          try {
+            const res = await fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal, credentials: 'omit' });
+            if (!res.ok) continue; const j = await res.json();
+            const list = (j.elements || []).filter(e => e.type === 'way' && e.geometry && e.geometry.length > 1).map(e => ({ name: (e.tags && (e.tags.name || e.tags.ref)) || '', kind: osmKind(e.tags || {}), pts: e.geometry.map(g => [g.lat, g.lon]) })).filter(x => x.kind);
+            if (list.length) { list.source = ''; return list; }
+          } catch (e) { /* the next server */ } finally { clearTimeout(tm); }
+        }
+        const ks = new Set(); [[0, 0], [dLa, 0], [-dLa, 0], [0, dLo], [0, -dLo], [dLa, dLo], [-dLa, -dLo], [dLa, -dLo], [-dLa, dLo]].forEach(([a, b]) => ks.add(tileOf(la + a, lo + b)));
+        const all = (await Promise.all([...ks].map(t => roadsFor(t).catch(() => [])))).flat(), seen = new Set();
+        const list = all.filter(r => { const k = r.line.map(p => p.join()).join(';'); if (seen.has(k)) return false; seen.add(k); return true; }).map(r => ({ name: r.name, kind: tigerKind(r.m || ''), pts: r.line }));
+        list.source = 'OpenStreetMap did not answer, so the streets are the Census TIGER file\'s and the alleys are missing.';
+        return list;
+      }
+      const flatRoof = b => !['sf', 'mh', 'garage', 'shed'].includes(b.cls) && !(b.cls === 'mf' && ((b.sys && b.sys.units) || 0) <= 4);
+      const env3d = {
+        tileURL: (z, x, y) => (CFG.arcgisKey ? EP.esriKey : EP.esri) + 'World_Imagery/MapServer/tile/' + z + '/' + y + '/' + x + (CFG.arcgisKey ? '?token=' + encodeURIComponent(CFG.arcgisKey) : ''),
+        buildings: () => { const cur = d3Target && d3Target.b ? d3Target.b.id : null, out = []; B.forEach(b => { if (b.sc && (shown(b) || b.id === cur)) out.push(b); }); return out; },
+        byId: id => B.get(id) || null, height: b => hOf(b), flat: flatRoof, color: b => COL[b.status], labelInk: b => (b.status === 'r' ? '#ffffff' : '#10191f'), label: b => `${STS[b.status]} · ${b.sc.score}`,
+        roads: roads3d, ensure: (la, lo, r) => ensureAround(la, lo, r),
+        onHover: (b, e) => { if (b && e) showTip(bTip(b).replace('Click for the full reading · double click for Street View', 'Click to read it · double click to stand in front of it'), e); else hideTip(); },
+        onPick: b => { hideTip(); pick(b.id, { noSV: true }); },
+        onFront: b => { hideTip(); pick(b.id); },
+        onMove: st => { d3St = st; whereSoon(); },
+        onNote: t => { const n = $('#sc3dNote', root); if (n) n.textContent = t || ''; },
+      };
+      const refresh3D = debounce(() => { if (d3 && d3Mode) d3.refresh(); }, 350);
+      async function open3D(target) {
+        if (!target) return;
+        if (!d3) { d3 = window.__SCOUT_THREE__ && window.__SCOUT_3D__ ? window.__SCOUT_3D__(window.__SCOUT_THREE__, d3Host, env3d) : null; if (!d3) { toast('This browser cannot draw the 3D view (WebGL is off or missing). Google photos still work.'); return; } }
+        d3Target = target; if (viewMode === 'map') { viewBounds = map.getBounds(); svList = svListNow(); }
+        if (!d3Mode) setMode('3d');
+        render3DBar();
+        let v; try { v = await aim(target); } catch (e) { v = { lat: target.lat, lon: target.lon, heading: 0 }; }
+        if (!d3Mode || d3Target !== target) return;
+        await d3.open(v.lat, v.lon, target.b ? null : v.heading, { cur: target.b ? target.b.id : null, face: target.b || null });
+        render3DBar(); try { d3.canvas.focus({ preventScroll: true }); } catch (e) { /* fine */ }
+      }
+      function where3D(st) {
+        if (!st) return '';
+        const b = d3Target && d3Target.b ? (B.get(d3Target.b.id) || d3Target.b) : null, facing = b && Math.abs(((st.yaw - bearing([st.lat, st.lon], [b.lat, b.lon]) + 540) % 360) - 180) < 25;
+        const kind = { major: 'main road', alley: 'alley', service: 'service drive' }[st.roadKind] || '';
+        const on = st.mode === 'street' ? (st.road ? `On ${esc(st.road)}${kind ? ' (' + kind + ')' : ''}` : kind === 'alley' ? 'In an alley' : kind ? 'On a ' + kind : 'At street level') : st.mode === 'drone' ? 'At drone height, 38 m up' : 'At bird height, 120 m up';
+        return `${on}, looking ${compass(st.yaw)}${facing ? ' at the building' : ''} · <b>${N(st.built)}</b> buildings glowing${st.roads ? '' : ' · the streets are still loading'}. Drag to look around; <b>W</b> and <b>S</b> (or ▲ ▼) walk the street, <b>A</b> and <b>D</b> turn, <b>Q</b> and <b>E</b> rise and come down; click the ground to go there, a building to read it, double click to stand in front of it.`;
+      }
+      const whereSoon = debounce(() => { const w = $('#sc3dWhere', root); if (w && d3Mode) w.innerHTML = where3D(d3St || (d3 && d3.state())); if (d3 && d3St) $$('#sc3dBar [data-h]', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.h === d3St.mode))); }, 90);
+      function render3DBar() {
+        const t = d3Target; if (!t) { d3Bar.innerHTML = ''; return; } const b = t.b ? (B.get(t.b.id) || t.b) : null, st = d3 ? d3.state() : null, mode = st ? st.mode : 'street';
+        if (b && !svList.includes(b.id)) { svList = svListNow(); if (!svList.includes(b.id)) svList.unshift(b.id); }
+        const i = b ? svList.indexOf(b.id) : -1;
+        d3Bar.innerHTML = `<div class="sc-svinfo">${b ? `<span class="sc-pill ${b.status}">${STL[b.status]}</span><b>${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</b><span class="mini">${esc([(PROF[b.cls] || PROF.unk).l, b.sys.short, needLabel(b), 'score ' + b.sc.score].join(' · '))}</span>` : `<b>A point on the map</b><span class="mini">${t.lat.toFixed(5)}, ${t.lon.toFixed(5)}</span>`}</div>
+          <div class="sc-svctl">
+            ${b && svList.length > 1 ? `<button type="button" class="ibtn" data-a="prev" title="The previous building (likely ones first, highest scores first)" aria-label="Previous building">◀</button><span class="mini sc-svn">${N(i + 1)} of ${N(svList.length)}</span><button type="button" class="ibtn" data-a="next" title="The next building" aria-label="Next building">▶</button>` : ''}
+            <span class="seg" role="group" aria-label="Height">${[['street', 'Street'], ['drone', 'Drone'], ['bird', 'Bird']].map(([k, l]) => `<button type="button" data-h="${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</span>
+            ${b ? '<button type="button" class="ibtn" data-a="face" title="Turn to face the building">Face it</button>' : ''}
+            ${b ? `<span class="seg sc-svck" role="group" aria-label="Your field check">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely']].map(([k, l]) => `<button type="button" data-ck="${k}" aria-pressed="${!!(CK[b.id] && CK[b.id].s === k)}" title="Mark what you see: ${l.toLowerCase()}">${l}</button>`).join('')}</span>` : ''}
+            <button type="button" class="ibtn" data-a="full">${svFull ? '⤡ Exit full window' : '⤢ Full window'}</button>
+            <button type="button" class="ibtn" data-a="photos" title="Google's photographs of this street, in the card's place">Google photos</button>
+            <button type="button" class="btn sm" data-a="map">Back to satellite</button>
+          </div>
+          <div class="sc-svwhere" id="sc3dWhere">${where3D(st)}</div>`;
+        $$('[data-a]', d3Bar).forEach(x => x.onclick = () => { const a = x.dataset.a;
+          if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'face' && d3 && b) d3.face(b); else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1);
+          else if (a === 'photos') { const s2 = d3 ? d3.state() : null; showSV(b ? { lat: b.lat, lon: b.lon, street: b.street, b } : s2 ? { lat: s2.lat, lon: s2.lon, street: '', b: null } : t); } });
+        $$('[data-h]', d3Bar).forEach(x => x.onclick = () => { if (d3) { d3.setHeight(x.dataset.h); whereSoon(); } });
+        $$('[data-ck]', d3Bar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); render3DBar(); if (d3) d3.refresh(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
+      }
+      /* the walk pad over the view: hold to walk or turn; Enter or Space for a step */
+      $$('#sc3dPad button', root).forEach(x => {
+        const k = x.dataset.k, on = e => { e.preventDefault(); if (d3) d3.hold(k, true); }, off = () => { if (d3) d3.hold(k, false); };
+        x.addEventListener('pointerdown', on); ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(ev => x.addEventListener(ev, off));
+        x.addEventListener('keydown', e => { if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); if (!d3) return; if (k === 'fwd') d3.walk(8); else if (k === 'back') d3.walk(-8); else d3.turn(k === 'left' ? -20 : 20); });
+      });
 
       /* ---------- imagery: which pictures are under the centre of the map ---------- */
       let imgNote = '';
@@ -1115,6 +1217,7 @@
         `<b>Installation ${G('D')}</b>. Homes without central air: by era (24% before 1940 down to under 1% after 2000), raised for small homes (in full only where the year built is on file, since the footprint already leans the estimated era) and for lower income ZIPs, cut for homes with an HVAC permit on file, and never above 35%. RECS 2020 Texas puts ${D((DATA.recs_tx.acequip || {})[4], 1)}% of homes that cool on room units.`,
         `<b>The score and the colour</b>. The chance of at least one paid job: a replacement within five years, a repair call within twelve months, an installation, or hail work where large hail fell within 8 km since 2023. A building with several units counts the chance any of them needs it, damped by the square root of the count, and the result is weighted by how much of a building like it is conditioned (a parking deck almost none). Green at ${CFG.green} or more, orange at ${CFG.orange} to ${CFG.green - 1}, red below; both cut points are in Settings. An average DFW system scores about 45 (the metro replaces ${P(META.rep / META.sys * 100, 1)} of its systems a year and calls for a repair on about 21%), so by default orange is the typical building, green needs evidence of an older or original system, and red needs evidence of recent work or a new building. A field check replaces the colour.`,
         `<b>The likely system ${G('B')}</b>. From the type, footprint and height, and for homes the ZIP's heating fuel (ACS B25040) with the RECS heat pump share of electric homes (47% single family, 53% apartments). Tonnage is a rule of thumb (500 to 600 square feet a ton in a home, 250 to 400 in a commercial building).`,
+        `<b>The 3D street view ${G('C')}</b>. The neighborhood rebuilt in the browser, with no key: each building is its FEMA footprint raised to its FEMA height (a hipped roof on houses, eaves at about 60% of the height; a flat roof on the rest), its roof and the ground are Esri's aerial and satellite imagery, and the streets, alleys and service drives are OpenStreetMap's (the Census TIGER file when OpenStreetMap does not answer, without the alleys). The view is drawn by the page, so it knows where it stands and looks, and every building's glow sits exactly on its walls. It walks at eye level along the streets and alleys and rises to drone (38 m) and bird (120 m) height.`,
       ].map(x => `<li>${x}</li>`).join('');
       $('#scMeth', root).innerHTML = method();
       function settings() {
@@ -1149,6 +1252,7 @@
         ['Rebuilt and remodeled homes', 'An appraisal roll keeps the original year built through most remodels. A full HVAC replacement without a permit leaves no trace the model can read.'],
         ['Units and tons are rules of thumb', 'Rooftop unit counts and tonnage come from floor area, not from counting units on the imagery. Count them on the 15 cm imagery before quoting.'],
         ['Imagery dates differ', 'Satellite and aerial captures under one map are from different days (the line under the map names the one under its centre). Street View and Mapillary have their own dates: Street View shows its date under "View on Google Maps" and "See more dates" in Google Maps.'],
+        ['The 3D view is a model, not a photograph', 'Walls are drawn, not photographed: their windows are a pattern, their height is FEMA\'s (or a height for the building\'s type), and roofs are the aerial picture laid on the footprint. Trees, fences, cars and signs appear only as the flat picture on the ground. Google photos, one click away, show the street as it was photographed.'],
         ['A glow is a drawing, not a detection', 'Each glow is the building\'s FEMA footprint raised to its FEMA height (or a height for its type) and drawn from the panorama\'s own camera position and direction. Trees, fences and nearer buildings are not cut out of it, and a footprint or a height a few meters off moves its edge by as much. The colour is the building\'s reading, as on the map.'],
         ['Street View stands where Google drove', 'The view is aimed from the nearest point of the building\'s own street. Where Google\'s car did not pass (a private drive, a new street) the player picks the nearest picture it has, which can be on the next street; turn, step, or walk with the arrows in the picture.'],
       ], ['Caveat', 'Why it matters']);
@@ -1169,12 +1273,14 @@
         ['Life tables and repair rates', 'The atlas: EIA RECS 2020 Texas Weibull lifetimes (module 02), repair call rates by age (module 05), ZIP heating fuel and housing age (ACS)', 'B', 'compiled ' + esc(META.compiled || ''), ''],
         ['Street View', 'Google Street View in the map card, in place of the satellite map: the Maps JavaScript API with your key (with the glows), or Google\'s plain embedded player without one; and Google Maps in its own tab', '', 'live', 'https://developers.google.com/maps/documentation/javascript/streetview'],
         ['Street photos', 'Mapillary API v4, with your token (CC BY-SA 4.0)', '', 'live', 'https://www.mapillary.com/developer/api-documentation'],
+        ['Streets and alleys (3D view)', 'OpenStreetMap through the Overpass API (overpass-api.de, then two mirrors), © OpenStreetMap contributors (ODbL); the Census TIGER file when none answers', 'B', 'live', 'https://www.openstreetmap.org/copyright'],
+        ['3D drawing', 'three.js r149 (MIT), carried in the file', '', '', 'https://threejs.org/'],
       ]);
 
       /* ---------- the map's events and the first view ---------- */
       const saveView = debounce(() => { const c = map.getCenter(); CFG.view = { lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: map.getZoom() }; saveCfg(); }, 800);
       map.on('zoomend', () => { paintHeat(); restyleAll(); });
-      map.on('moveend', () => { if (!svMode) viewBounds = map.getBounds(); load(); refreshSoon(); imgInfo(); saveView(); });
+      map.on('moveend', () => { if (viewMode !== 'map') return; viewBounds = map.getBounds(); load(); refreshSoon(); imgInfo(); saveView(); });   /* a hidden map reports no view of its own */
       map.on('mouseout', hideTip);
       BUS.on('theme', () => { if (self.mounted) { paintHeat(); restyleAll(); } });
       map.attributionControl.addAttribution('Data: FEMA, TxGIO, U.S. Census, Dallas, Fort Worth');
@@ -1186,7 +1292,7 @@
       /* ---------- what other code may call ---------- */
       self.api = {
         zoomZip, goTo: (la, lo, z) => { map.setView([la, lo], z || 19); pendingPick = { lat: la, lon: lo }; setTimeout(tryPending, 50); },
-        map: () => map, buildings: () => [...B.values()], pick: id => pick(id, { pan: true }), glows: () => GM.hits.map(h => ({ id: h.b.id, d: h.d, box: [h.x0, h.y0, h.x1, h.y1] })), sv: () => ({ mode: svMode, live: GM.live, cam: GM.cam, failed: GM.failed, n: GM.n, target: svTarget && svTarget.b ? svTarget.b.id : null }), read, systemOf, addrParts, stateAt, aim, svURL, status: () => ({ tiles: [...T.values()].map(t => ({ k: t.k, st: t.st, n: t.ids.size })), queued: Q.list.length, running: Q.run, errors: errors.slice() }),
+        map: () => map, buildings: () => [...B.values()], pick: id => pick(id, { pan: true }), d3: () => d3, open3D: t => open3D(t), glows: () => GM.hits.map(h => ({ id: h.b.id, d: h.d, box: [h.x0, h.y0, h.x1, h.y1] })), sv: () => ({ mode: svMode, live: GM.live, cam: GM.cam, failed: GM.failed, n: GM.n, target: svTarget && svTarget.b ? svTarget.b.id : null }), read, systemOf, addrParts, stateAt, aim, svURL, status: () => ({ tiles: [...T.values()].map(t => ({ k: t.k, st: t.st, n: t.ids.size })), queued: Q.list.length, running: Q.run, errors: errors.slice() }),
       };
       self.version = VERSION;
     },

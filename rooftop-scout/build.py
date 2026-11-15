@@ -18,7 +18,8 @@ if html.count(ANCHOR) != 1 or html.count(SHELL) != 1 or html.index(ANCHOR) > htm
 
 read = lambda n: open(os.path.join(HERE, n), encoding='utf-8').read()
 leaflet_css, leaflet_js, css, js = read('vendor/leaflet.css'), read('vendor/leaflet.min.js'), read('scout.css'), read('scout.js')
-for name, text in [('leaflet.min.js', leaflet_js), ('scout.js', js), ('leaflet.css', leaflet_css), ('scout.css', css)]:
+three_js, js3d = read('vendor/three.min.js'), read('scout3d.js')
+for name, text in [('leaflet.min.js', leaflet_js), ('scout.js', js), ('leaflet.css', leaflet_css), ('scout.css', css), ('three.min.js', three_js), ('scout3d.js', js3d)]:
     low = text.lower()
     if '</script' in low or '</style' in low or '<!--' in text:
         sys.exit(name + ' holds a sequence that would end its tag early')
@@ -32,6 +33,10 @@ block = (
     '<script id="scout-leaflet">\n/* ==== vendor/leaflet.js (Leaflet 1.9.4, BSD 2 clause) ==== */\n' + leaflet_js + '\n'
     '/* kept private to Rooftop Scout: the global L goes back to what it was */\n'
     'window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function" ? window.L.noConflict() : null;\n</script>\n'
+    '<script id="scout-three">\n/* ==== vendor/three.min.js (three.js r149, MIT) ==== */\n' + three_js.strip() + '\n'
+    '/* kept private to Rooftop Scout: the global THREE goes away again */\n'
+    'window.__SCOUT_THREE__ = window.THREE || null; try { delete window.THREE; } catch (e) { window.THREE = undefined; }\n</script>\n'
+    '<script id="scout-3d">\n' + js3d.strip() + '\n</script>\n'
     '<script id="scout-js">\n' + js.strip() + '\n</script>\n'
     '<!-- rooftop-scout:end -->'
 )
