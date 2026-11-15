@@ -1,0 +1,58 @@
+url,entity_type,severity,charge,detail
+https://centercityemergencydentists.com/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/,Organization,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/,Organization,S3,missing-recommended,contactPoint
+https://centercityemergencydentists.com/,Organization,S3,missing-recommended,address
+https://centercityemergencydentists.com/,Organization,S3,missing-recommended,telephone
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Article,S1,missing-required,image
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Article,S3,missing-recommended,description
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Organization,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Organization,S3,missing-recommended,contactPoint
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Organization,S3,missing-recommended,address
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Organization,S3,missing-recommended,telephone
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Person,S3,missing-recommended,jobTitle
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Person,S3,missing-recommended,worksFor
+https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/,Person,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Article,S1,missing-required,image
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Article,S3,missing-recommended,description
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Article,S3,headline-long,134 chars (>110)
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Organization,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Organization,S3,missing-recommended,contactPoint
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Organization,S3,missing-recommended,address
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Organization,S3,missing-recommended,telephone
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Person,S3,missing-recommended,jobTitle
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Person,S3,missing-recommended,worksFor
+https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/,Person,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/privacy-policy/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/privacy-policy/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/privacy-policy/,Organization,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/privacy-policy/,Organization,S3,missing-recommended,contactPoint
+https://centercityemergencydentists.com/privacy-policy/,Organization,S3,missing-recommended,address
+https://centercityemergencydentists.com/privacy-policy/,Organization,S3,missing-recommended,telephone
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Article,S1,missing-required,image
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Article,S3,missing-recommended,description
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Organization,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Organization,S3,missing-recommended,contactPoint
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Organization,S3,missing-recommended,address
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Organization,S3,missing-recommended,telephone
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Person,S3,missing-recommended,jobTitle
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Person,S3,missing-recommended,worksFor
+https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/,Person,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Article,S1,missing-required,image
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Article,S3,missing-recommended,description
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Organization,S3,missing-recommended,sameAs
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Organization,S3,missing-recommended,contactPoint
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Organization,S3,missing-recommended,address
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Organization,S3,missing-recommended,telephone
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Person,S3,missing-recommended,jobTitle
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Person,S3,missing-recommended,worksFor
+https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/,Person,S3,missing-recommended,sameAs

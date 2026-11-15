@@ -1,0 +1,106 @@
+[
+ {
+  "seed": "midwest pest control",
+  "suggestions": [
+   "midwest pest control",
+   "midwest pest control fargo",
+   "midwest pest control omaha",
+   "midwest pest control rockford il",
+   "midwest pest control grand forks",
+   "midwest pest control near me",
+   "midwest pest control reviews",
+   "midwest pest control lincoln ne",
+   "midwest pest control ankeny",
+   "midwest pest control omaha reviews"
+  ],
+  "client_present": true,
+  "status": "ok",
+  "fetched": "2026-11-15T08:47Z"
+ },
+ {
+  "seed": "pest control omaha",
+  "suggestions": [
+   "pest control omaha",
+   "pest control omaha ne",
+   "pest control omaha prices",
+   "pest control omaha reddit",
+   "pest control omaha mice",
+   "pest control omaha reviews",
+   "rodent control omaha",
+   "termite control omaha",
+   "insect control omaha",
+   "evo pest control omaha reviews"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:47Z"
+ },
+ {
+  "seed": "exterminator omaha",
+  "suggestions": [
+   "exterminator omaha",
+   "exterminator omaha ne",
+   "mice exterminator omaha",
+   "mouse exterminator omaha",
+   "bat exterminator omaha",
+   "mole exterminator omaha",
+   "wasp exterminator omaha",
+   "rodent exterminator omaha",
+   "ant exterminator omaha",
+   "bug exterminator omaha"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:47Z"
+ },
+ {
+  "seed": "termite treatment omaha",
+  "suggestions": [
+   "termite treatment omaha",
+   "termite inspection omaha",
+   "termite control omaha",
+   "termite inspection omaha ne",
+   "termite treatment how is it done",
+   "termite treatment timeline"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:47Z"
+ },
+ {
+  "seed": "pest control lincoln ne",
+  "suggestions": [
+   "pest control lincoln ne",
+   "pest control lincoln ne prices",
+   "rodent control lincoln ne",
+   "termite control lincoln ne",
+   "insect control lincoln ne",
+   "pest control near lincoln",
+   "pest control near lincoln ca",
+   "abc pest control lincoln ne",
+   "midwest pest control lincoln ne",
+   "best pest control lincoln ne"
+  ],
+  "client_present": true,
+  "status": "ok",
+  "fetched": "2026-11-15T08:47Z"
+ },
+ {
+  "seed": "mosquito control omaha",
+  "suggestions": [
+   "mosquito control omaha",
+   "pest control omaha",
+   "pest control omaha ne",
+   "pest control omaha prices",
+   "pest control omaha reddit",
+   "pest control omaha mice",
+   "mosquito spray omaha",
+   "pest control omaha reviews",
+   "insect control omaha",
+   "mosquito control near me"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:48Z"
+ }
+]

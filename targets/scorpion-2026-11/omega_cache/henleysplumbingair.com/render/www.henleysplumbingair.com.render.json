@@ -1,0 +1,1363 @@
+{
+ "url": "https://www.henleysplumbingair.com/",
+ "locale": "en-US",
+ "fetched_at": "2026-11-15T08:49:03Z",
+ "presence": {
+  "identity": "OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)",
+  "timezone": null,
+  "viewport": null,
+  "engine": "chromium (headless; honest: declared UA, no stealth, webdriver flag left true)"
+ },
+ "status": 200,
+ "final_url": "https://www.henleysplumbingair.com/",
+ "title": "Plumbing & HVAC Services Across the Inland Empire | Henley's",
+ "tier": "RENDERED",
+ "consent_banner": {
+  "cmp_root": null,
+  "text_hint": false,
+  "accept_controls": [],
+  "reject_controls": [],
+  "reading": "no consent banner detected"
+ },
+ "pre_consent_trackers": [
+  "call_tracking",
+  "google_ads_doubleclick",
+  "google_analytics",
+  "google_tag_manager"
+ ],
+ "pre_consent_tracker_requests": [
+  {
+   "t": 0.142,
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-SDKN38H1RD",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.143,
+   "url": "https://cdn.callrail.com/companies/205364564/9e14945ae3a023e689c6/12/swap.js",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 0.275,
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-PXL3SFNL",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 0.531,
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-SDKN38H1RD&gtm=45je6bb1h1v9206888447za208zd9206888447xf1&_p=1794732544098&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=205909506&_eu=AAAAAGAC&cid=998927385.1794732544&ec_mode=a&frm=0&pscdl=noapi&rcb=18&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B153",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.534,
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&tid=G-SDKN38H1RD&cid=998927385.1794732544&gtm=45je6bb1h1v9206888447za208zd9206888447xf1&rcb=18&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115616985~115938466~115938469~118897920~118897930~120213116~120385423~120412528~120420416~120469145~120469153~",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.534,
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-17032377429&cx=c&gtm=4e6bb1h1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.827,
+   "url": "https://js.callrail.com/companies/205364564/external_forms.js?t=1794732544626&",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 0.986,
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17032377429/?random=1794732544765&cv=11&fst=1794732544765&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~118131808~1188",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.989,
+   "url": "https://www.google.com/rmkt/collect/17032377429/?random=1794732544765&cv=11&fst=1794732544765&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~118131808~118897920~118897930~1202131",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.991,
+   "url": "https://ad.doubleclick.net/ccm/s/collect?auid=1417935404.1794732545&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&fmt=8",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.197,
+   "url": "https://www.google.com/pagead/1p-user-list/17032377429/?random=1794732544765&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~118131808~118897920~118897930~120213",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  }
+ ],
+ "prechecked_checkboxes": [],
+ "scarcity_strings": [],
+ "timer_strings_first_load": [
+  "40:14",
+  "00:00",
+  "32:46",
+  "00:00",
+  "00:00"
+ ],
+ "ai_agent_markers": [],
+ "chat_iframes": [],
+ "post_scroll_new_trackers": [],
+ "timer_strings_after_reload": [
+  "40:14",
+  "00:00",
+  "32:46",
+  "00:00",
+  "00:00"
+ ],
+ "timer_reset_reading": "timer RESET on reload \u2014 CONFIRMED-capable dark pattern (fake urgency)",
+ "request_count": 168,
+ "third_party_hosts": [
+  "ad.doubleclick.net",
+  "analytics.google.com",
+  "cdn.callrail.com",
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "googleads.g.doubleclick.net",
+  "js.callrail.com",
+  "stats.g.doubleclick.net",
+  "www.clickcease.com",
+  "www.google.com",
+  "www.googletagmanager.com"
+ ],
+ "requests": [
+  {
+   "t": 0.012,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 0.139,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Henleys.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.139,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/css/front.used.css?ver=1794550146",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.14,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/widget-google-reviews/assets/7.2/css/public-main.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.14,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-2021.css?ver=1793895712",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.14,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-2215.css?ver=1794442396",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.141,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-5.css?ver=1793895713",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.142,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-355.css?ver=1794436501",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.142,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-5103.css?ver=1794442321",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.142,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/widget-google-reviews/assets/7.2/js/public-main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.142,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-SDKN38H1RD",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.142,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/10/henley-hero-desktop.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.143,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.143,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/henleys-price-beat-promise-hero-nophone.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.143,
+   "phase": "pre-interaction",
+   "url": "https://cdn.callrail.com/companies/205364564/9e14945ae3a023e689c6/12/swap.js",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 0.144,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/perfmatters/js/lazyload.min.js?ver=2.6.8",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.275,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-PXL3SFNL",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 0.346,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.347,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/themes/oceanwp/assets/fonts/fontawesome/webfonts/fa-regular-400.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.347,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/themes/oceanwp/assets/fonts/fontawesome/webfonts/fa-solid-900.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.347,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.348,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCvr73w5aXp-p7K4KLg.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.348,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/7cHqv4kjgoGqM7E3_-gs51ostz0rdg.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.531,
+   "phase": "pre-interaction",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-SDKN38H1RD&gtm=45je6bb1h1v9206888447za208zd9206888447xf1&_p=1794732544098&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=205909506&_eu=AAAAAGAC&cid=998927385.1794732544&ec_mode=a&frm=0&pscdl=noapi&rcb=18&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B153",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.534,
+   "phase": "pre-interaction",
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&tid=G-SDKN38H1RD&cid=998927385.1794732544&gtm=45je6bb1h1v9206888447za208zd9206888447xf1&rcb=18&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115616985~115938466~115938469~118897920~118897930~120213116~120385423~120412528~120420416~120469145~120469153~",
+   "type": "ping",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.534,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-17032377429&cx=c&gtm=4e6bb1h1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.542,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.542,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCvr70w-.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.625,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/S6u9w4BMUTPHh6UVSwiPGQ3q5d0.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.627,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCvC70w-.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.757,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/iCON1-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.758,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon2-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.758,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon3-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.758,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2025/04/drains-icon.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.758,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon4.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.758,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon5.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.759,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.759,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL2.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.769,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL3.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.769,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL4.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.77,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_cbd5093e2f617e9e3b735ff15e17d3fd.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.77,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_9dd8238fff88f044f29ee892c68c5220.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.77,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_2e4f17791e70ca160e898144f4ddef53.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.771,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_a345ac5b48e251ea4e36e4fb5aac6b57.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.771,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_36be22af01c17ac7abefc4e79495f4b4.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.782,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_2f57cef88530394222853c80ff12c8f7.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.782,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_df9caf9878fb3d9e775dd89d4c7404df.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.783,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_87c96e7fbfd631a9d25d45b665aff144.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.783,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_32750345fe3c65eccab1202545487092.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.783,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_d1f09132d27901f26a0c25c9181d6eef.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.784,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_d4ea5eaeb266727780b5ec064c2169c2.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.784,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_0ca70dfb46a5279919e03c52f87db3c9.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.787,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_5ea983149267c81cd983d56844ab4b40.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.788,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_85b387f06c211cc28fef5e042e11a3d7.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.788,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_0b4b03ad4ace27fd26100c037f3ba342.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.788,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_1fe4549a30ad7dea4f838dc460b04f31.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.789,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_1dddb37aa837db1303b32a8119e7237d.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.789,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_2c72ac64ce3ade0c28e870f95183ea01.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.789,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_856e2757f680237ecfd1c5870fa61857.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.79,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_0c1a797277c641e6bdf765436c3e4d09.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.79,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_5d8b178adcc7d390bf0159ccd7180fd2.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.79,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_467e2018dbb64c9503e41ed185744693.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.79,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_d2200bff7865e37fe15b6977e67420fe.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.791,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_523ee009d2b9486d5151ab522e898a57.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.791,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_60a4d2ce593968dd9981ce53cb2c3694.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.791,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/image1-1.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.791,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log1.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.792,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log2.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.792,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log3.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.792,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log4.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.792,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log5.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.792,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log6.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.793,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon7.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.827,
+   "phase": "pre-interaction",
+   "url": "https://js.callrail.com/companies/205364564/external_forms.js?t=1794732544626&",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 0.827,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Henleys-300x139.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.827,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5ad001f2bd45624",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.986,
+   "phase": "pre-interaction",
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17032377429/?random=1794732544765&cv=11&fst=1794732544765&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~118131808~1188",
+   "type": "script",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.989,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/rmkt/collect/17032377429/?random=1794732544765&cv=11&fst=1794732544765&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~118131808~118897920~118897930~1202131",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.99,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/ccm/collect?rcb=7&frm=0&apvc=1&auid=1417935404.1794732545&dt=Plumbing%20%26%20HVAC%20Services%20Across%20the%20Inland%20Empire%20%7C%20Henley%27s&tid=AW-17032377429&en=page_view&dl=https%3A%2F%2Fwww.henleysplumbingair.com%2F&scrsrc=www.googletagmanager.com&rnd=1109408982.17947",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 0.991,
+   "phase": "pre-interaction",
+   "url": "https://ad.doubleclick.net/ccm/s/collect?auid=1417935404.1794732545&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&fmt=8",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.085,
+   "phase": "pre-interaction",
+   "url": "https://www.clickcease.com/monitor/stat.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.197,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/1p-user-list/17032377429/?random=1794732544765&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~118131808~118897920~118897930~120213",
+   "type": "image",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.316,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/cdn-cgi/challenge-platform/h/b/scripts/jsd/f8df4d4a0cd6/main.js?ray=a5ad001f2bd45624",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.441,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/cdn-cgi/challenge-platform/h/b/jsd/oneshot/f8df4d4a0cd6/0.9329583503787634:1794730222:29TnVxhfvuFADXDyXelrGBZqxhrQqMFSVk_8izhcTMc/a5ad001f2bd45624",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 9.231,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/10/henley-hero-mobile.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.231,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/S6uyw4BMUTPHjx4wXiWtFCc.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 9.232,
+   "phase": "pre-interaction",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/mobile-menu/includes/css/font/mobmenu.woff2?31192480",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.975,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 16.065,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Henleys.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.066,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/css/front.used.css?ver=1794550146",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.066,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/widget-google-reviews/assets/7.2/css/public-main.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.067,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-2021.css?ver=1793895712",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.067,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-2215.css?ver=1794442396",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.068,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-5.css?ver=1793895713",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.068,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-355.css?ver=1794436501",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.068,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/elementor/css/post-5103.css?ver=1794442321",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.069,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/widget-google-reviews/assets/7.2/js/public-main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.069,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-SDKN38H1RD",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 16.07,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/10/henley-hero-desktop.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.07,
+   "phase": "reload",
+   "url": "https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.071,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/henleys-price-beat-promise-hero-nophone.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.071,
+   "phase": "reload",
+   "url": "https://cdn.callrail.com/companies/205364564/9e14945ae3a023e689c6/12/swap.js",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 16.071,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/perfmatters/js/lazyload.min.js?ver=2.6.8",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.076,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-PXL3SFNL",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 16.079,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/themes/oceanwp/assets/fonts/fontawesome/webfonts/fa-regular-400.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.079,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/themes/oceanwp/assets/fonts/fontawesome/webfonts/fa-solid-900.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.08,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/plugins/mobile-menu/includes/css/font/mobmenu.woff2?31192480",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.081,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/7cHqv4kjgoGqM7E3_-gs51ostz0rdg.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.081,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/S6uyw4BMUTPHjx4wXiWtFCc.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.082,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/S6u9w4BMUTPHh6UVSwiPGQ3q5d0.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.082,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.082,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/JTUSjIg1_i6t8kCHKm459WlhyyTh89Y.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.083,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/cache/perfmatters/www.henleysplumbingair.com/fonts/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCvr73w5aXp-p7K4KLg.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.083,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.084,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCvr70w-.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.084,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/montserrat/v31/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCvC70w-.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 16.185,
+   "phase": "reload",
+   "url": "https://js.callrail.com/companies/205364564/external_forms.js?t=1794732560005&",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 16.228,
+   "phase": "reload",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-SDKN38H1RD&gtm=45je6bb1h1v9206888447za208zd9206888447xf1&_p=1794732559896&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=205909506&_eu=AAAAAGQC&cid=998927385.1794732544&ec_mode=a&frm=0&pscdl=noapi&rcb=5&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B153.0.8010.",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 16.229,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-17032377429&cx=c&gtm=4e6bb1h1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 16.235,
+   "phase": "reload",
+   "url": "https://www.clickcease.com/monitor/stat.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.244,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/iCON1-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.244,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon2-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.248,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon3-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.248,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2025/04/drains-icon.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.248,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon4.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.249,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon5.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.249,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.253,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL2.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.254,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL3.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.254,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/CL4.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.255,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_cbd5093e2f617e9e3b735ff15e17d3fd.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.256,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_9dd8238fff88f044f29ee892c68c5220.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.257,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_2e4f17791e70ca160e898144f4ddef53.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.257,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_a345ac5b48e251ea4e36e4fb5aac6b57.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.258,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_36be22af01c17ac7abefc4e79495f4b4.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.259,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_2f57cef88530394222853c80ff12c8f7.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.259,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_df9caf9878fb3d9e775dd89d4c7404df.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.26,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_87c96e7fbfd631a9d25d45b665aff144.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.26,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_32750345fe3c65eccab1202545487092.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.261,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_d1f09132d27901f26a0c25c9181d6eef.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.261,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_d4ea5eaeb266727780b5ec064c2169c2.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.262,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJA4NHyelTw4ARFhinOWyMQlM_0ca70dfb46a5279919e03c52f87db3c9.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.263,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_5ea983149267c81cd983d56844ab4b40.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.263,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_85b387f06c211cc28fef5e042e11a3d7.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.264,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_0b4b03ad4ace27fd26100c037f3ba342.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.264,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_1fe4549a30ad7dea4f838dc460b04f31.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.265,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJxcv_Hjq53IARb5xs3rQrIco_1dddb37aa837db1303b32a8119e7237d.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.265,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_2c72ac64ce3ade0c28e870f95183ea01.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.266,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_856e2757f680237ecfd1c5870fa61857.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.266,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_0c1a797277c641e6bdf765436c3e4d09.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.267,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_5d8b178adcc7d390bf0159ccd7180fd2.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.267,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_467e2018dbb64c9503e41ed185744693.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.268,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_d2200bff7865e37fe15b6977e67420fe.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.268,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_523ee009d2b9486d5151ab522e898a57.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.268,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2026/11/ChIJL5WaDnapSi8RIYlEaBSdo-8_60a4d2ce593968dd9981ce53cb2c3694.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.269,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/image1-1.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.269,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log1.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.27,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log2.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.27,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log3.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.271,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log4.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.271,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log5.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.271,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Log6.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.272,
+   "phase": "reload",
+   "url": "https://www.henleysplumbingair.com/wp-content/uploads/2022/03/Icon7.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.334,
+   "phase": "reload",
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/17032377429/?random=1794732560129&cv=11&fst=1794732560129&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=100940090~115938466~115938469~118131808~1188",
+   "type": "script",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 16.335,
+   "phase": "reload",
+   "url": "https://www.google.com/rmkt/collect/17032377429/?random=1794732560129&cv=11&fst=1794732560129&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=100940090~115938466~115938469~118131808~118897920~118897930~1198604",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 16.337,
+   "phase": "reload",
+   "url": "https://www.google.com/ccm/collect?rcb=17&frm=0&apvc=1&auid=1417935404.1794732545&dt=Plumbing%20%26%20HVAC%20Services%20Across%20the%20Inland%20Empire%20%7C%20Henley%27s&tid=AW-17032377429&en=page_view&dl=https%3A%2F%2Fwww.henleysplumbingair.com%2F&scrsrc=www.googletagmanager.com&rnd=602703922.17947",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 16.395,
+   "phase": "reload",
+   "url": "https://www.google.com/pagead/1p-user-list/17032377429/?random=1794732560129&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1h1v9245439398za208zb9206888447zd9206888447xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=100940090~115938466~115938469~118131808~118897920~118897930~119860",
+   "type": "image",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 21.288,
+   "phase": "reload",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-SDKN38H1RD&gtm=45je6bb1h1v9206888447za200zd9206888447xf1&_p=1794732559896&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=205909506&_eu=AEAAAGQC&ae=a&cid=998927385.1794732544&frm=0&pscdl=noapi&rcb=5&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B153.0.8010.12%7C",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  }
+ ]
+}

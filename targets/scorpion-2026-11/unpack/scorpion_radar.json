@@ -1,0 +1,2243 @@
+{
+ "id": "scorpion",
+ "name": "Scorpion",
+ "domain": "scorpion.co",
+ "region": "US",
+ "status": "active",
+ "status_note": null,
+ "successor": null,
+ "segment": "Vertical: Legal & home services",
+ "hq_city": "Lehi, UT",
+ "hq_country": "US",
+ "offices": [
+  "Lehi, UT"
+ ],
+ "ownership": "founder-led",
+ "owner": "Rustin Kretz (founder and CEO)",
+ "founded": null,
+ "employees": {
+  "value": null,
+  "basis": null,
+  "url": null
+ },
+ "employees_n": null,
+ "positioning": "Revenue-focused marketing and technology partner for local businesses in home services, legal, franchise and healthcare, pairing expert teams with its own AI-driven tools.",
+ "headline_claim": "Says it has served local businesses for 20+ years; LinkedIn ads cite 8x ROI for a home services client.",
+ "icp": "local",
+ "services": [
+  "Website",
+  "SEO",
+  "Digital Advertising",
+  "Local Services Ads",
+  "Lead Generation",
+  "AI Chat & Online Scheduling",
+  "Video & Photography",
+  "Convert (AI voice and messaging assistants)"
+ ],
+ "proprietary": [
+  "Convert (AI voice and messaging assistants)",
+  "Scorpion AI Chat (24/7 chat with online scheduling)",
+  "AI-powered lead scoring",
+  "In-house award-winning video and photography studios"
+ ],
+ "strategy": {
+  "seo": 2,
+  "content_pr": 1,
+  "ai_search": 2,
+  "paid_search": 2,
+  "paid_social": 0,
+  "programmatic_ctv": 0,
+  "retail_media": 0,
+  "creator_influencer": 0,
+  "cro": 1,
+  "web_dev": 2,
+  "data_measurement": 2,
+  "email_crm": 1,
+  "b2b_abm": 0,
+  "local": 3,
+  "ai_automation": 2
+ },
+ "strategy_evidence": {
+  "local": {
+   "note": "Title sells marketing for local businesses; LSA, multi-location vertical and Apple Business Connect API access",
+   "url": "https://scorpion.co/"
+  },
+  "seo": {
+   "note": "SEO in main nav; 520 vertical articles, e.g. why SEO still matters for injury lawyers",
+   "url": "https://scorpion.co/"
+  },
+  "paid_search": {
+   "note": "Digital Advertising and Local Services Ads lines; 117 own Google ads, incl. PI cost-per-signed-case ads",
+   "url": "https://scorpion.co/"
+  },
+  "web_dev": {
+   "note": "Website is the first service in the nav, sold as sites that build trust and drive revenue",
+   "url": "https://scorpion.co/"
+  },
+  "ai_search": {
+   "note": "AI Overview and ChatGPT Atlas posts each close on how Scorpion wins AI-powered search",
+   "url": "https://www.scorpion.co/articles2/news/what-local-businesses-need-to-know-about-ai-overview-and-seo/"
+  },
+  "data_measurement": {
+   "note": "Chief Data Scientist in the C-suite, AI lead scoring, and a Clio tie-up tackling law-firm data lag",
+   "url": "https://www.scorpion.co/articles/news/industry-trends-news/clio-scorpion-partnership-gives-law-firms-end-to/"
+  },
+  "ai_automation": {
+   "note": "Nav sells 24/7 AI chat with booking, Convert AI voice and messaging assistants, and AI-powered ads",
+   "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/"
+  }
+ },
+ "ai_posture": "Sells AI as product: AI-powered ads and lead scoring, 24/7 AI chat with booking, Convert voice and messaging assistants, plus AI search guidance.",
+ "verticals": [
+  "Electrical",
+  "HVAC",
+  "Landscaping",
+  "Pest Control",
+  "Plumbing",
+  "Roofing",
+  "Bankruptcy law",
+  "Criminal defense law",
+  "Employment law",
+  "Estate and probate law",
+  "Family law",
+  "Immigration law",
+  "Personal injury law",
+  "Franchise",
+  "Medical",
+  "Hospital & healthcare systems",
+  "Multi-location platforms"
+ ],
+ "clients": [
+  {
+   "name": "Pauls Plumbing & Heating",
+   "evidence": "testimonial",
+   "url": "https://scorpion.co/"
+  },
+  {
+   "name": "Midwest Mold Removal",
+   "evidence": "testimonial",
+   "url": "https://scorpion.co/"
+  },
+  {
+   "name": "Protector Pest Solutions",
+   "evidence": "testimonial",
+   "url": "https://scorpion.co/"
+  },
+  {
+   "name": "Awesome Home",
+   "evidence": "case study",
+   "url": "https://scorpion.co/successes/case-studies/"
+  },
+  {
+   "name": "Owenby Law",
+   "evidence": "case study",
+   "url": "https://scorpion.co/successes/case-studies/"
+  }
+ ],
+ "moves": [
+  {
+   "date": "2021",
+   "type": "award",
+   "note": "BIG Award for Business picked it as 2021 Company of the Year",
+   "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/"
+  },
+  {
+   "date": "2025-11",
+   "type": "other",
+   "note": "Announced a Clio partnership for law firms (date from sitemap)",
+   "url": "https://www.scorpion.co/articles/news/industry-trends-news/clio-scorpion-partnership-gives-law-firms-end-to/"
+  },
+  {
+   "date": null,
+   "type": "launch",
+   "note": "Launched an AI chat product for local businesses; date not shown",
+   "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/"
+  },
+  {
+   "date": null,
+   "type": "other",
+   "note": "Gained access to Apple's Business Connect API; date not shown",
+   "url": "https://www.scorpion.co/articles2/news/scorpion-now-has-access-to-apple-s-business-connect-api/"
+  },
+  {
+   "date": null,
+   "type": "other",
+   "note": "Thumbtack joined its partnership lineup; date not shown",
+   "url": "https://www.scorpion.co/articles2/news/thumbtack-has-joined-the-scorpion-partnership-lineup/"
+  }
+ ],
+ "partners": [
+  "Clio partnership",
+  "Thumbtack partner",
+  "Apple Business Connect API access"
+ ],
+ "pricing_signals": null,
+ "prominence": 0.4723,
+ "prominence_signals": [
+  {
+   "note": "Heavy self-promotion: 117 own Google ads (44 in the last 30 days) plus 5+ LinkedIn company ads",
+   "url": "https://scorpion.co/"
+  },
+  {
+   "note": "Large content estate: about 1,900 sitemap URLs, incl. 520 vertical articles and 57 news items",
+   "url": "https://scorpion.co/"
+  },
+  {
+   "note": "C-suite includes a Chief Data Scientist and a President of Enterprise",
+   "url": "https://scorpion.co/about-us/"
+  },
+  {
+   "note": "BIG Award for Business 2021 Company of the Year",
+   "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/"
+  }
+ ],
+ "cms": [],
+ "social_links": {
+  "linkedin": [
+   "https://www.linkedin.com/company/scorpion"
+  ],
+  "instagram": [
+   "https://www.instagram.com/scorpion.co"
+  ],
+  "youtube": [
+   "https://www.youtube.com/@Scorpiondesign"
+  ],
+  "x": [
+   "https://x.com/scorpiondotco"
+  ],
+  "facebook": [
+   "https://www.facebook.com/Scorpion.co"
+  ]
+ },
+ "llms_txt": null,
+ "ai_bots_blocked": [],
+ "sitemap_urls": 1897,
+ "content_90d": 0,
+ "content_365d": 63,
+ "ai_urls": 12,
+ "google": {
+  "status": "active",
+  "count": 117,
+  "own_count": 117,
+  "count_30d": 44,
+  "formats": [
+   "text",
+   "video"
+  ],
+  "format_counts": {
+   "text": 80,
+   "image": 0,
+   "video": 37
+  },
+  "advertisers": [
+   "Scorpion Design, LLC",
+   "Scorpion Design, LLC",
+   "Scorpion Design, Inc."
+  ],
+  "attribution": "name",
+  "last_shown": "2026-09-27",
+  "date_range": "2023-12-08/2026-09-27",
+  "samples": [
+   "Signed Cases, Not Just Leads - Reduce Cost Per Signed Case | Drive More Revenue for Your Personal Injury Law",
+   "Scorpion Marketing Agency - No Guesswork, Only Growth | Digital Marketing Solutions For Local Businesses. Get More Customers. Track Your",
+   "Scorpion Digital Marketing | Stop Chasing Leads. Grow Revenue with Scorpion. Contact Us Today."
+  ],
+  "query_url": "https://adstransparency.google.com/?region=anywhere&domain=scorpion.co"
+ },
+ "linkedin": {
+  "status": "active",
+  "count": "5+",
+  "count_note": "101 ads match the name query (all advertisers); first results page shows 24 cards; 5 company-page ads among them; more result pages exist, so the count is a floor; near-name advertisers excluded: Scorpion Intelligence (1), Scorpion Protective Coatings, Inc. (1)",
+  "company_ads": 5,
+  "thought_leader_ads": 0,
+  "formats": [
+   "video",
+   "message",
+   "single image"
+  ],
+  "format_counts": {
+   "single image": 1,
+   "video": 2,
+   "message": 2
+  },
+  "advertisers": [
+   "Scorpion"
+  ],
+  "samples": [
+   "8x ROI. 75% above monthly lead goals. Nearly 2x customer value. See how Scorpion helped Brandyn Nuffer and Awesome Home",
+   "Joy set out to get great results for her clients and grow Owenby Law. After partnering with Scorpion, firm revenue"
+  ],
+  "query_url": "https://www.linkedin.com/ad-library/search?accountOwner=Scorpion"
+ },
+ "meta": null,
+ "tiktok": null,
+ "google_video_share": 0.32,
+ "li_thought_leader": 0,
+ "pixels_social": [
+  "meta_pixel"
+ ],
+ "abm_stack": [],
+ "test_tools": [],
+ "archetype": "Local & SMB",
+ "family_scores": {
+  "Search & AI visibility": 2.42,
+  "Performance media": 0.97,
+  "Commerce & retail media": 0,
+  "Creator & social": 0,
+  "B2B pipeline": 0.65,
+  "Experience & build": 1.95,
+  "Data & measurement": 2.3,
+  "Local & SMB": 3.45,
+  "AI transformation": 2.3
+ },
+ "core": [
+  "seo",
+  "ai_search",
+  "paid_search",
+  "web_dev",
+  "data_measurement",
+  "local",
+  "ai_automation"
+ ],
+ "breadth": 10,
+ "lead": [
+  "local"
+ ],
+ "gaps": [],
+ "confidence": "moderate",
+ "sources": [
+  "https://scorpion.co/",
+  "https://scorpion.co/about-us/",
+  "https://www.scorpion.co/articles2/news/what-local-businesses-need-to-know-about-ai-overview-and-seo/",
+  "https://www.scorpion.co/articles2/news/part-1-chatgpt-s-new-web-browser-marks-a-turning-point-in-search/",
+  "https://www.scorpion.co/articles/news/industry-trends-news/clio-scorpion-partnership-gives-law-firms-end-to/"
+ ],
+ "is_deep": true,
+ "deep": {
+  "case_study_count": 9,
+  "case_studies": [
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/plumbing/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/hvac/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/pest-control/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/electrical/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/family-law/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/personal-injury/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/criminal-defense/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/franchises/successes/case-studies/",
+    "lastmod": "2026-04-02"
+   },
+   {
+    "title": "",
+    "url": "https://www.scorpion.co/law-firms/successes/case-studies/",
+    "lastmod": "2026-03-31"
+   }
+  ],
+  "news": [
+   {
+    "url": "https://www.scorpion.co/articles/news/industry-trends-news/googles-march-2026-core-update-what-local-servic/",
+    "date": "2026-04-10",
+    "title": "Google's March 2026 Core Update: What Local Service Businesses Need to Know",
+    "excerpt": "Key Takeaways: The March 2026 Google Core Update just rolled out and was completed on April 8th. This was the largest of 3 algorithm updates in four weeks, and will have the largest impact on local service businesses Home services, legal, and healthcare are seeing the biggest ranking shifts, especia"
+   },
+   {
+    "url": "https://www.scorpion.co/articles/news/industry-trends-news/ai-overviews-and-local-search-how-smbs-can-stay-/",
+    "date": "2026-04-10",
+    "title": "AI Overviews and Local Search: How SMBs Can Stay Visible in 2026",
+    "excerpt": "Key Takeaways: Over half of Google searches now end without a click. Users get answers directly on the results page through AI Overviews, map packs, and review summaries, often without ever visiting your website. Google is evaluating local businesses the same way it evaluates AI-generated content: I"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/5-things-to-know-from-google-s-ai-rollout-and-what-it-means-for-your-marketing-/",
+    "date": "2026-02-03",
+    "title": "5 Things to Know from Google’s AI Rollout | Scorpion",
+    "excerpt": "Google just unveiled its boldest moves yet at Google I/O and Google Marketing Live 2025 . If you’re a local business owner, the changes go beyond hype. AI is no longer just a buzzword. It’s at the core of how your customers discover, evaluate, and choose who to do business with. At Scorpion, we’ve b"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/how-quality-ai-gets-you-faster-lsa-credits-and-better-leads-over-time/",
+    "date": "2026-02-03",
+    "title": "How Quality AI Gets You Faster LSA Credits and Better Leads Over Time",
+    "excerpt": "Local businesses depend on Google Local Services Ads (LSA) to drive high-intent calls, messages and bookings, but managing lead quality can be time-consuming. Quality AI takes that off your plate by automatically submitting lead-quality feedback to Google every hour, 24/7. The result? Faster credits"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/never-miss-another-lead-how-scorpion-convert-drives-real-results/",
+    "date": "2026-02-03",
+    "title": "Never Miss Another Lead: How Scorpion Convert Drives Real Results",
+    "excerpt": "Missing leads is costing you money. Every unanswered call, delayed response, or unqualified prospect that slips through the cracks represents lost revenue. But what if you could capture, qualify, and book every single lead 24/7, without adding staff or overwhelming your team? That's exactly what Sco"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/ai-traffic-isn-t-worse-it-s-just-playing-a-different-game/",
+    "date": "2026-02-03",
+    "title": "AI Traffic Isn’t Worse, It’s Just Playing a Different Game",
+    "excerpt": "SearchEngineLand’s recent article, “ AI search clicks aren’t always better traffic ,” stirred the pot with data from Ahrefs showing that AI search users bounce more, view fewer pages, and engage less deeply than traditional searchers. At first glance, it might look like AI traffic is lower quality. "
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/",
+    "date": "2026-02-03",
+    "title": "Scorpion Named 2021 Company of the Year by the BIG Award for Business | Scorpion",
+    "excerpt": "In 2021, as Scorpion expanded its support to more local businesses than ever before, it’s gratifying to be recognized for the hard work of our incredible employees and the loyalty of our more than 14,000 customers! This week, we were proud to receive the Business Intelligence Group’s BIG Award for B"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/scorpion-now-has-access-to-apple-s-business-connect-api/",
+    "date": "2026-02-03",
+    "title": "Scorpion now has access to Apple’s Business Connect API",
+    "excerpt": "What the latest update in digital marketing means for Scorpion clients For years, Scorpion has been on a mission to revolutionize the way users connect to businesses. Thanks to the launch of Apple Business Connect this month, our listings functionality has become even more valuable. Apple Business C"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/thumbtack-has-joined-the-scorpion-partnership-lineup/",
+    "date": "2026-02-03",
+    "title": "Thumbtack has joined the Scorpion partnership lineup",
+    "excerpt": "Digital advertising has come a long way since its implementation in the mid-nineties. The first digital ad was an AT&T banner that only prompted the user to ‘click your mouse here’ with no mention of the brand. Now, thanks to market research, target audience optimization, and brand understanding of "
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/",
+    "date": "2026-02-03",
+    "title": "Scorpion Launches Industry-leading AI Chat Solution for Local Businesses",
+    "excerpt": "Scorpion is excited to announce the launch of our new product offering, Connect with AI Chat. Businesses of any size now have access to a conversational AI chatbot that is available 24/7 to answer questions about their business and services. Previously, major corporations benefited the most from thi"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/convert-more-leads-with-scorpions-ai-chat-the-ultimate-website-engagement-tool/",
+    "date": "2026-02-03",
+    "title": "Convert More Leads with Scorpion's AI Chat: The Ultimate Website Engagement Tool",
+    "excerpt": "Are you ready to increase your leads and engage with your website visitors more effectively than ever? Scorpion’s new AI Chat feature, part of Scorpion Connect , is designed to do exactly that, and it can convert more of these website visitors into satisfied customers. Scorpion’s AI Chat responds to"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/unlock-the-power-of-24-7-customer-communication-with-ai-chat/",
+    "date": "2026-02-03",
+    "title": "Unlock the Power of 24/7 Customer Communication with AI Chat",
+    "excerpt": "Scorpion's AI Chat delivers a 24/7 personalized and exceptional customer experience. It leverages Scorpion’s experience with thousands of local businesses to provide immediate support to your website visitors. Not only does this increase your lead count, but the leads you spend time interacting with"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/scorpion-key-event-highlights-march-april-2024/",
+    "date": "2026-02-03",
+    "title": "Scorpion Key Event Highlights: March & April 2024",
+    "excerpt": "Scorpion's Presence at Key Industry Events in 2024 At Scorpion, we recognize the importance of building connections within the industries we serve. In 2024, we have had the opportunity to attend a variety of notable events. We have engaged with industry leaders, shared insights, and strengthened rel"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/scorpion-s-strategy-for-carbon-emissions-reduction-by-2030-with-science-based-targets-initiative/",
+    "date": "2026-02-03",
+    "title": "Scorpion’s Strategy for Carbon Emissions Reduction by 2030 With Science Based Targets Initiative",
+    "excerpt": "We’re committed to reducing our carbon footprint in partnership with the Science Based Targets initiative (SBTi), which provides a framework and guidance for companies to reduce greenhouse gas emissions in line with climate science. Through this commitment, Scorpion submitted a science-based target "
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/day-of-learning-scorpion-s-commitment-to-professional-development/",
+    "date": "2026-02-03",
+    "title": "Day of Learning: Scorpion’s Commitment to Professional Development",
+    "excerpt": "At Scorpion, we believe that supporting our team’s growth is one of the most powerful investments we can make. Our recent Day of Learning showcased this commitment by offering employees a dedicated day for learning, development, and connection. This event aimed to achieve two simple goals: To energi"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/scorpion-applauds-googles-move-to-a-unified-google-verified-badge/",
+    "date": "2026-02-03",
+    "title": "Scorpion Applauds Google's Move to a Unified \"Google Verified\" Badge",
+    "excerpt": "Google Simplifies Trust: Here’s Why That’s Big for Your Business Google is rolling out a major change in how Local Services Ads (LSAs) build consumer trust. Starting in October, all LSA trust badges (Google Guaranteed, Google Screened, and others) will merge into a single, simplified “Google Verifie"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/google-seo-update-2025-what-the-new-search-results-change-means-for-your-business/",
+    "date": "2026-02-03",
+    "title": "Google SEO Update 2025: What It Means for Keyword Visibility",
+    "excerpt": "Google just made a major change to how search results are displayed. As of this update, Google now limits search results to 10 per page. In the past, it was possible to view up to 100 results at once. That option is now gone. At first glance, this might not sound like a big deal. After all, your cus"
+   },
+   {
+    "url": "https://www.scorpion.co/articles2/news/part-1-chatgpt-s-new-web-browser-marks-a-turning-point-in-search/",
+    "date": "2026-02-03",
+    "title": "ChatGPT’s New Web Browser Marks a Turning Point in Search",
+    "excerpt": "When Google launched Chrome in 2008, it didn’t just release another browser, it reshaped how people accessed the internet. Suddenly, Google search wasn’t a destination; it was the default way of experiencing the web. This week, OpenAI is taking a page out of Google’s playbook, unveiling ChatGPT Atla"
+   }
+  ],
+  "ats": null,
+  "jobs_count": 0,
+  "jobs": [],
+  "blog_recent_dates": [
+   [
+    "podcasts/cant-pay-with-leads",
+    "2026-04-27"
+   ],
+   [
+    "podcasts/cant-pay-with-leads",
+    "2026-04-27"
+   ],
+   [
+    "insights/reviews",
+    "2026-04-10"
+   ],
+   [
+    "digital-advertising/apple-maps-ads-what-this-means-for-local-service",
+    "2026-04-03"
+   ],
+   [
+    "blog/topics",
+    "2026-03-19"
+   ],
+   [
+    "revenue-intelligence/you-re-losing-the-leads-you-already-paid-for",
+    "2026-03-18"
+   ],
+   [
+    "marketing/what-we-learned-at-legalweek-2026-the-firms-that",
+    "2026-03-16"
+   ],
+   [
+    "artificial-intelligence/part-3-should-you-advertise-in-chatgpt-here-s-wh",
+    "2026-02-16"
+   ],
+   [
+    "artificial-intelligence/part-2-how-and-why-scorpion-evaluates-new-ad-pla",
+    "2026-02-12"
+   ],
+   [
+    "artificial-intelligence/part-1-chatgpt-is-testing-ads-what-that-means-fo",
+    "2026-02-10"
+   ],
+   [
+    "lead-management/what-is-a-missed-call-worth-",
+    "2026-02-03"
+   ],
+   [
+    "lead-management/how-scorpion-convert-helped-a-texas-criminal-def",
+    "2026-02-02"
+   ],
+   [
+    "blog/topics",
+    "2026-02-02"
+   ],
+   [
+    "topics/lead-management",
+    "2026-02-02"
+   ],
+   [
+    "franchise/jose-pina",
+    "2026-01-13"
+   ],
+   [
+    "franchise/kyle-johnson",
+    "2026-01-13"
+   ],
+   [
+    "franchise/greg-kemp",
+    "2025-12-23"
+   ],
+   [
+    "franchise/john-hardee",
+    "2025-12-23"
+   ],
+   [
+    "videos/webinars",
+    "2025-12-09"
+   ],
+   [
+    "crm-integration/exclusive-to-scorpion-clio-grow-earlier-roi-insi",
+    "2025-12-03"
+   ],
+   [
+    "franchise/saunda-mcdaniel",
+    "2025-11-21"
+   ],
+   [
+    "franchise/mason-holloway",
+    "2025-11-21"
+   ],
+   [
+    "artificial-intelligence/part-2-how-scorpion-s-strategy-works-with-chatgp",
+    "2025-11-19"
+   ],
+   [
+    "franchise/erika-spencer-ferguson",
+    "2025-11-12"
+   ],
+   [
+    "lead-management/how-scorpion-convert-helped-a-nebraska-plumbing-",
+    "2025-11-07"
+   ],
+   [
+    "lead-management/how-scorpion-convert-helped-a-texas-law-firm-str2",
+    "2025-11-06"
+   ],
+   [
+    "topics/lead-management",
+    "2025-11-06"
+   ],
+   [
+    "landscaping/insights",
+    "2025-10-16"
+   ],
+   [
+    "roofing/insights",
+    "2025-10-16"
+   ],
+   [
+    "pest-control/insights",
+    "2025-10-16"
+   ]
+  ],
+  "deepened": "2026-09-28",
+  "fetch_note": "Own site read on 2026-09-29: no sitemap URLs could be read (https://scorpion.co/sitemap.xml WAF 403, https://scorpion.co/sitemap_index.xml WAF 403).",
+  "deepen_plan": {
+   "sitemap_urls": 0,
+   "pages": 1,
+   "counts": {
+    "case_study_urls": 0,
+    "news_urls": 0,
+    "blog_urls": 0
+   }
+  }
+ },
+ "tags": [
+  "gtm",
+  "meta_pixel"
+ ],
+ "horus": {
+  "ok": true,
+  "status_note": null,
+  "voice": {
+   "n": 10,
+   "counts": {
+    "T19": 3,
+    "T08": 2,
+    "T12": 1,
+    "T03": 1,
+    "T01": 1,
+    "T13": 1,
+    "T05": 1
+   },
+   "lines": [
+    {
+     "topic": "T12",
+     "f": "headline_claim",
+     "t": "Says it has served local businesses for 20+ years; LinkedIn ads cite 8x ROI for a home services client.",
+     "u": "https://scorpion.co/",
+     "d": null,
+     "grey": false
+    },
+    {
+     "topic": "T03",
+     "f": "news",
+     "t": "Google's March 2026 Core Update: What Local Service Businesses Need to Know",
+     "u": "https://www.scorpion.co/articles/news/industry-trends-news/googles-march-2026-core-update-what-local-servic/",
+     "d": "2026-04-10",
+     "grey": false
+    },
+    {
+     "topic": "T01",
+     "f": "news",
+     "t": "AI Overviews and Local Search: How SMBs Can Stay Visible in 2026",
+     "u": "https://www.scorpion.co/articles/news/industry-trends-news/ai-overviews-and-local-search-how-smbs-can-stay-/",
+     "d": "2026-04-10",
+     "grey": false
+    },
+    {
+     "topic": "T08",
+     "f": "news",
+     "t": "How Quality AI Gets You Faster LSA Credits and Better Leads Over Time",
+     "u": "https://www.scorpion.co/articles2/news/how-quality-ai-gets-you-faster-lsa-credits-and-better-leads-over-time/",
+     "d": "2026-02-03",
+     "grey": false
+    },
+    {
+     "topic": "T13",
+     "f": "news",
+     "t": "Convert More Leads with Scorpion's AI Chat: The Ultimate Website Engagement Tool",
+     "u": "https://www.scorpion.co/articles2/news/convert-more-leads-with-scorpions-ai-chat-the-ultimate-website-engagement-tool/",
+     "d": "2026-02-03",
+     "grey": false
+    },
+    {
+     "topic": "T08",
+     "f": "news",
+     "t": "Scorpion Applauds Google's Move to a Unified \"Google Verified\" Badge",
+     "u": "https://www.scorpion.co/articles2/news/scorpion-applauds-googles-move-to-a-unified-google-verified-badge/",
+     "d": "2026-02-03",
+     "grey": false
+    },
+    {
+     "topic": "T19",
+     "f": "news",
+     "t": "ChatGPT’s New Web Browser Marks a Turning Point in Search",
+     "u": "https://www.scorpion.co/articles2/news/part-1-chatgpt-s-new-web-browser-marks-a-turning-point-in-search/",
+     "d": "2026-02-03",
+     "grey": false
+    },
+    {
+     "topic": "T05",
+     "f": "blog",
+     "t": "insights reviews",
+     "u": null,
+     "d": "2026-04-10",
+     "grey": false
+    },
+    {
+     "topic": "T19",
+     "f": "blog",
+     "t": "artificial intelligence part 3 should you advertise in chatgpt here s wh",
+     "u": null,
+     "d": "2026-02-16",
+     "grey": false
+    },
+    {
+     "topic": "T19",
+     "f": "blog",
+     "t": "artificial intelligence part 1 chatgpt is testing ads what that means fo",
+     "u": null,
+     "d": "2026-02-10",
+     "grey": false
+    }
+   ]
+  },
+  "ledger_items": [],
+  "nilometer": [],
+  "topic_mix": {
+   "T23": 0.144,
+   "T05": 0.133,
+   "T08": 0.128,
+   "T02": 0.083,
+   "T17": 0.083,
+   "T19": 0.067,
+   "T04": 0.056,
+   "T06": 0.056,
+   "T22": 0.056,
+   "T01": 0.039,
+   "T03": 0.033,
+   "T07": 0.033,
+   "T18": 0.028,
+   "T21": 0.028,
+   "T10": 0.017,
+   "T20": 0.017
+  },
+  "stage_mix": {
+   "Khepri": 0.061,
+   "Ra": 0.189,
+   "Atum": 0.689,
+   "Duat": 0.061
+  },
+  "arc_hour": 16.5,
+  "tilt": 0.289,
+  "stereo": 0.522,
+  "kj": {
+   "KJ1": {
+    "raw": 0.278,
+    "net": 0.243,
+    "d": [
+     [
+      "ai_search",
+      2,
+      0.222
+     ],
+     [
+      "seo",
+      -1,
+      -0.111
+     ],
+     [
+      "paid_search",
+      1,
+      0.111
+     ],
+     [
+      "content_pr",
+      1,
+      0.056
+     ]
+    ],
+    "s": []
+   },
+   "KJ2": {
+    "raw": 0.222,
+    "net": 0.194,
+    "d": [
+     [
+      "paid_search",
+      1,
+      0.111
+     ],
+     [
+      "ai_search",
+      1,
+      0.111
+     ]
+    ],
+    "s": []
+   },
+   "KJ3": {
+    "raw": 0.111,
+    "net": 0.097,
+    "d": [
+     [
+      "ai_search",
+      1,
+      0.111
+     ]
+    ],
+    "s": []
+   },
+   "KJ4": {
+    "raw": 0.167,
+    "net": 0.146,
+    "d": [
+     [
+      "paid_search",
+      -2,
+      -0.222
+     ],
+     [
+      "data_measurement",
+      2,
+      0.222
+     ],
+     [
+      "ai_automation",
+      1,
+      0.111
+     ],
+     [
+      "email_crm",
+      1,
+      0.056
+     ]
+    ],
+    "s": []
+   },
+   "KJ5": {
+    "raw": 0,
+    "net": 0,
+    "d": [],
+    "s": []
+   },
+   "KJ6": {
+    "raw": 0.056,
+    "net": 0.037,
+    "d": [
+     [
+      "ai_automation",
+      2,
+      0.222
+     ],
+     [
+      "paid_search",
+      -1,
+      -0.111
+     ],
+     [
+      "seo",
+      -1,
+      -0.111
+     ],
+     [
+      "data_measurement",
+      1,
+      0.111
+     ]
+    ],
+    "s": []
+   },
+   "KJ7": {
+    "raw": 0.167,
+    "net": 0.113,
+    "d": [
+     [
+      "local",
+      1,
+      0.167
+     ]
+    ],
+    "s": []
+   },
+   "KJ8": {
+    "raw": 0.056,
+    "net": 0.037,
+    "d": [
+     [
+      "content_pr",
+      1,
+      0.056
+     ]
+    ],
+    "s": []
+   },
+   "KJ9": {
+    "raw": 0.111,
+    "net": 0.097,
+    "d": [
+     [
+      "data_measurement",
+      2,
+      0.222
+     ],
+     [
+      "seo",
+      -1,
+      -0.111
+     ]
+    ],
+    "s": []
+   },
+   "KJ10": {
+    "raw": 0.111,
+    "net": 0.075,
+    "d": [
+     [
+      "ai_search",
+      1,
+      0.111
+     ]
+    ],
+    "s": []
+   },
+   "KJ11": {
+    "raw": 0,
+    "net": 0,
+    "d": [],
+    "s": []
+   }
+  },
+  "kj_net_sum": 1.039,
+  "scen_fit": {
+   "S1": 44.4,
+   "S2": 38.9,
+   "S3": 30.6,
+   "S4": 22.2
+  },
+  "scen_best": "S1",
+  "scen_worst": "S4",
+  "resilience": 37.3,
+  "rails": {
+   "R1": {
+    "score": 53.3,
+    "base": 53.3,
+    "ev": []
+   },
+   "R2": {
+    "score": 56.4,
+    "base": 56.4,
+    "ev": []
+   },
+   "R3": {
+    "score": 26.7,
+    "base": 16.7,
+    "ev": [
+     "community"
+    ]
+   },
+   "L": {
+    "score": 42.9,
+    "base": 42.9,
+    "ev": []
+   }
+  },
+  "moves": {
+   "P1": {
+    "s": "partial",
+    "why": "Sells AI search, but no audited AI-visibility product (tracking, scorecard, citation share) shows in the record.",
+    "ev": []
+   },
+   "P2": {
+    "s": "absent",
+    "why": "No feed, schema or entity work in the record.",
+    "ev": []
+   },
+   "P3": {
+    "s": "making",
+    "why": "Local Services Ads or Sponsored Places work is evidenced.",
+    "ev": [
+     {
+      "f": "services",
+      "t": "Local Services Ads",
+      "u": "https://scorpion.co/",
+      "m": "Local Services Ads"
+     },
+     {
+      "f": "strategy_evidence",
+      "t": "Title sells marketing for local businesses; LSA, multi-location vertical and Apple Business Connect API access",
+      "u": "https://scorpion.co/",
+      "m": "LSA"
+     }
+    ]
+   },
+   "P4": {
+    "s": "making",
+    "why": "Runs paid media and supplies inputs: first-party data, creative volume or measurement depth.",
+    "ev": []
+   },
+   "P5": {
+    "s": "unknown",
+    "why": "No public pricing model in the record.",
+    "ev": []
+   },
+   "P6": {
+    "s": "partial",
+    "why": "AI-operator depth, an academy or a talent pipeline shows, not the full move.",
+    "ev": []
+   },
+   "P7": {
+    "s": "partial",
+    "why": "Some owned-audience work shows.",
+    "ev": [
+     {
+      "f": "blog",
+      "t": "podcasts cant pay with leads",
+      "u": null,
+      "m": "podcasts"
+     }
+    ]
+   },
+   "P8": {
+    "s": "absent",
+    "why": "Sells paid search; no sign of testing ads inside AI assistants.",
+    "ev": []
+   }
+  },
+  "moves_score": {
+   "making": 2,
+   "partial": 3,
+   "applicable": 8
+  },
+  "house": {
+   "tests": [
+    {
+     "cap": "ai_search",
+     "do": "unknown",
+     "note": "llms.txt check did not complete"
+    },
+    {
+     "cap": "paid_search",
+     "do": "corroborated",
+     "note": "Runs its own Google ads (117 in the Transparency Center, 44 in the last 30 days)"
+    },
+    {
+     "cap": "content",
+     "do": "corroborated",
+     "note": "0 sitemap URLs updated in 90 days, 63 in 365"
+    }
+   ],
+   "corroborated": 2,
+   "contradicted": 0,
+   "tested": 2,
+   "integrity": 100
+  },
+  "graveyard": [],
+  "hti": 24.9,
+  "hti_pct": 81,
+  "band": "Favored",
+  "kj_top": [
+   "KJ1",
+   "KJ2",
+   "KJ4"
+  ],
+  "kj_tail": [
+   "KJ1",
+   "KJ2"
+  ],
+  "kj_head": [],
+  "arc_word": "dusk (Atum)",
+  "arc_clock": "16:30",
+  "watch": [
+   {
+    "id": "I2",
+    "kj": "KJ1"
+   },
+   {
+    "id": "I10",
+    "kj": "KJ1"
+   },
+   {
+    "id": "I3",
+    "kj": "KJ2"
+   },
+   {
+    "id": "I7",
+    "kj": "KJ4"
+   }
+  ],
+  "verdict": "Favored (+25). Best placed for KJ1: The click is being replaced by the citation. The sold mix sits at 16:30 on the Solar Arc, dusk (Atum). Best fit: The Walled Oasis (44/100). Say/do: 2 of 2 tested lines practised on its own house."
+ },
+ "offshore": {
+  "ok": true,
+  "index": 74.2,
+  "band": "Landfall",
+  "gloss": "offshore delivery is present or the mix cannot avoid it",
+  "base": 64.2,
+  "labor": 0.76,
+  "migration": 72.2,
+  "displacement": 76.2,
+  "contrib": [
+   {
+    "cap": "local",
+    "label": "Local",
+    "share": 0.167,
+    "off": 3,
+    "labor": 0.85,
+    "pts": 14.2
+   },
+   {
+    "cap": "seo",
+    "label": "SEO",
+    "share": 0.111,
+    "off": 3,
+    "labor": 0.9,
+    "pts": 10.0
+   },
+   {
+    "cap": "web_dev",
+    "label": "Web & Product",
+    "share": 0.111,
+    "off": 3,
+    "labor": 0.9,
+    "pts": 10.0
+   },
+   {
+    "cap": "paid_search",
+    "label": "Paid Search",
+    "share": 0.111,
+    "off": 3,
+    "labor": 0.6,
+    "pts": 6.7
+   },
+   {
+    "cap": "ai_search",
+    "label": "AI Search / GEO",
+    "share": 0.111,
+    "off": 2,
+    "labor": 0.7,
+    "pts": 5.2
+   },
+   {
+    "cap": "data_measurement",
+    "label": "Data & Measurement",
+    "share": 0.111,
+    "off": 2,
+    "labor": 0.7,
+    "pts": 5.2
+   },
+   {
+    "cap": "ai_automation",
+    "label": "AI Automation / Agents",
+    "share": 0.111,
+    "off": 2,
+    "labor": 0.6,
+    "pts": 4.4
+   },
+   {
+    "cap": "content_pr",
+    "label": "Content & Digital PR",
+    "share": 0.056,
+    "off": 2,
+    "labor": 0.85,
+    "pts": 3.1
+   },
+   {
+    "cap": "cro",
+    "label": "CRO",
+    "share": 0.056,
+    "off": 2,
+    "labor": 0.75,
+    "pts": 2.8
+   },
+   {
+    "cap": "email_crm",
+    "label": "Email & CRM",
+    "share": 0.056,
+    "off": 2,
+    "labor": 0.7,
+    "pts": 2.6
+   }
+  ],
+  "overlap": 0.104,
+  "shore": {
+   "south_asia": 0.35,
+   "southeast_asia": 0.3,
+   "eastern_europe": 0.1,
+   "latin_america": 0.25,
+   "africa": 0.0
+  },
+  "asia": 0.65,
+  "language": "en_us",
+  "language_label": "United States and Canada",
+  "terms": {
+   "migration": [
+    {
+     "term": "delivery_language",
+     "pts": 8,
+     "class": "observed",
+     "why": "The agency describes global delivery, offshore or nearshore teams, 24/7 or follow-the-sun coverage in its own words (observed).",
+     "ev": [
+      {
+       "f": "ai_posture",
+       "t": "Sells AI as product: AI-powered ads and lead scoring, 24/7 AI chat with booking, Convert voice and messaging assistant…",
+       "u": "https://scorpion.co/",
+       "m": "24/7"
+      },
+      {
+       "f": "proprietary",
+       "t": "Scorpion AI Chat (24/7 chat with online scheduling)",
+       "u": "https://scorpion.co/",
+       "m": "24/7"
+      },
+      {
+       "f": "strategy_evidence",
+       "t": "Nav sells 24/7 AI chat with booking, Convert AI voice and messaging assist…",
+       "u": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/",
+       "m": "24/7"
+      }
+     ]
+    }
+   ],
+   "displacement": [
+    {
+     "term": "icp_local",
+     "pts": 12,
+     "class": "inferred",
+     "why": "Local-market budgets meet the same price competition as small business."
+    }
+   ]
+  },
+  "hub_offices": [],
+  "hub_jobs": [],
+  "observed_regions": [],
+  "onshore_claims": [
+   {
+    "f": "proprietary",
+    "t": "In-house award-winning video and photography studios",
+    "u": "https://scorpion.co/",
+    "m": "In-house"
+   }
+  ],
+  "evidence_class": "observed",
+  "verdict": "Landfall (74). 64 of it is the sold mix: Local (14) and SEO (10) carry the most movable hours. Migration 72, displacement 76. Shore: 65% South and Southeast Asia, 25% Latin America. Claims onshore delivery in its own words.",
+  "falsifiers": [
+   "A job posting, a listed office or a vendor credit in a hub economy would move the migration read from inferred to observed; none found means none was on the public record the Radar read.",
+   "Published outcome or productised pricing would lower the displacement read; published hourly rates would raise it.",
+   "A client roster that shifts toward enterprise governance work would lower displacement; a shift toward small-business volume would raise it."
+  ],
+  "index_pct": 94
+ },
+ "needs": {
+  "n": 5,
+  "observed": 0,
+  "named_only": 5,
+  "evidence_types": {
+   "testimonial": 3,
+   "case study": 2
+  },
+  "mix": [],
+  "top": [],
+  "clients": [
+   {
+    "name": "Pauls Plumbing & Heating",
+    "evidence": "testimonial",
+    "url": "https://scorpion.co/",
+    "title": null,
+    "signal": "",
+    "source": "none",
+    "needs": [
+     "N0"
+    ],
+    "weight": 0.6
+   },
+   {
+    "name": "Midwest Mold Removal",
+    "evidence": "testimonial",
+    "url": "https://scorpion.co/",
+    "title": null,
+    "signal": "",
+    "source": "none",
+    "needs": [
+     "N0"
+    ],
+    "weight": 0.6
+   },
+   {
+    "name": "Protector Pest Solutions",
+    "evidence": "testimonial",
+    "url": "https://scorpion.co/",
+    "title": null,
+    "signal": "",
+    "source": "none",
+    "needs": [
+     "N0"
+    ],
+    "weight": 0.6
+   },
+   {
+    "name": "Awesome Home",
+    "evidence": "case study",
+    "url": "https://scorpion.co/successes/case-studies/",
+    "title": null,
+    "signal": "",
+    "source": "none",
+    "needs": [
+     "N0"
+    ],
+    "weight": 1.0
+   },
+   {
+    "name": "Owenby Law",
+    "evidence": "case study",
+    "url": "https://scorpion.co/successes/case-studies/",
+    "title": null,
+    "signal": "",
+    "source": "none",
+    "needs": [
+     "N0"
+    ],
+    "weight": 1.0
+   }
+  ],
+  "shared": [],
+  "shared_n": 0,
+  "inferred_from_mix": [
+   "local"
+  ]
+ },
+ "dossier": {
+  "spine": {
+   "id": "scorpion",
+   "identity": {
+    "name": "Scorpion",
+    "domain": "scorpion.co",
+    "hq": "Lehi, UT, US",
+    "region": "US",
+    "segment": "Vertical: Legal & home services",
+    "archetype": "Local & SMB",
+    "ownership": "founder-led",
+    "owner": "Rustin Kretz (founder and CEO)",
+    "founded": null,
+    "employees": null,
+    "status": "active",
+    "status_note": null,
+    "successor": null,
+    "icp": "local",
+    "prominence": 0.4723,
+    "prominence_signals": [
+     {
+      "note": "Heavy self-promotion: 117 own Google ads (44 in the last 30 days) plus 5+ LinkedIn company ads",
+      "url": "https://scorpion.co/"
+     },
+     {
+      "note": "Large content estate: about 1,900 sitemap URLs, incl. 520 vertical articles and 57 news items",
+      "url": "https://scorpion.co/"
+     },
+     {
+      "note": "C-suite includes a Chief Data Scientist and a President of Enterprise",
+      "url": "https://scorpion.co/about-us/"
+     },
+     {
+      "note": "BIG Award for Business 2021 Company of the Year",
+      "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/"
+     }
+    ],
+    "confidence": "moderate",
+    "offices": [
+     "Lehi, UT"
+    ],
+    "cms": [],
+    "partners": [
+     "Clio partnership",
+     "Thumbtack partner",
+     "Apple Business Connect API access"
+    ]
+   },
+   "positioning": {
+    "positioning": "Revenue-focused marketing and technology partner for local businesses in home services, legal, franchise and healthcare, pairing expert teams with its own AI-driven tools.",
+    "headline_claim": "Says it has served local businesses for 20+ years; LinkedIn ads cite 8x ROI for a home services client.",
+    "ai_posture": "Sells AI as product: AI-powered ads and lead scoring, 24/7 AI chat with booking, Convert voice and messaging assistants, plus AI search guidance.",
+    "pricing_signals": null,
+    "services": [
+     "Website",
+     "SEO",
+     "Digital Advertising",
+     "Local Services Ads",
+     "Lead Generation",
+     "AI Chat & Online Scheduling",
+     "Video & Photography",
+     "Convert (AI voice and messaging assistants)"
+    ],
+    "proprietary": [
+     "Convert (AI voice and messaging assistants)",
+     "Scorpion AI Chat (24/7 chat with online scheduling)",
+     "AI-powered lead scoring",
+     "In-house award-winning video and photography studios"
+    ]
+   },
+   "focus": [
+    {
+     "cap": "local",
+     "label": "Local",
+     "score": 3,
+     "note": "Title sells marketing for local businesses; LSA, multi-location vertical and Apple Business Connect API access",
+     "url": "https://scorpion.co/",
+     "lead": true,
+     "core": true
+    },
+    {
+     "cap": "ai_automation",
+     "label": "AI Automation / Agents",
+     "score": 2,
+     "note": "Nav sells 24/7 AI chat with booking, Convert AI voice and messaging assistants, and AI-powered ads",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/",
+     "lead": false,
+     "core": true
+    },
+    {
+     "cap": "ai_search",
+     "label": "AI Search / GEO",
+     "score": 2,
+     "note": "AI Overview and ChatGPT Atlas posts each close on how Scorpion wins AI-powered search",
+     "url": "https://www.scorpion.co/articles2/news/what-local-businesses-need-to-know-about-ai-overview-and-seo/",
+     "lead": false,
+     "core": true
+    },
+    {
+     "cap": "data_measurement",
+     "label": "Data & Measurement",
+     "score": 2,
+     "note": "Chief Data Scientist in the C-suite, AI lead scoring, and a Clio tie-up tackling law-firm data lag",
+     "url": "https://www.scorpion.co/articles/news/industry-trends-news/clio-scorpion-partnership-gives-law-firms-end-to/",
+     "lead": false,
+     "core": true
+    },
+    {
+     "cap": "paid_search",
+     "label": "Paid Search",
+     "score": 2,
+     "note": "Digital Advertising and Local Services Ads lines; 117 own Google ads, incl. PI cost-per-signed-case ads",
+     "url": "https://scorpion.co/",
+     "lead": false,
+     "core": true
+    },
+    {
+     "cap": "seo",
+     "label": "SEO",
+     "score": 2,
+     "note": "SEO in main nav; 520 vertical articles, e.g. why SEO still matters for injury lawyers",
+     "url": "https://scorpion.co/",
+     "lead": false,
+     "core": true
+    },
+    {
+     "cap": "web_dev",
+     "label": "Web & Product",
+     "score": 2,
+     "note": "Website is the first service in the nav, sold as sites that build trust and drive revenue",
+     "url": "https://scorpion.co/",
+     "lead": false,
+     "core": true
+    },
+    {
+     "cap": "cro",
+     "label": "CRO",
+     "score": 1,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "content_pr",
+     "label": "Content & Digital PR",
+     "score": 1,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "email_crm",
+     "label": "Email & CRM",
+     "score": 1,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "b2b_abm",
+     "label": "B2B & ABM",
+     "score": 0,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "creator_influencer",
+     "label": "Creator & Influencer",
+     "score": 0,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "paid_social",
+     "label": "Paid Social",
+     "score": 0,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "programmatic_ctv",
+     "label": "Programmatic & CTV",
+     "score": 0,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    },
+    {
+     "cap": "retail_media",
+     "label": "Retail Media",
+     "score": 0,
+     "note": null,
+     "url": null,
+     "lead": false,
+     "core": false
+    }
+   ],
+   "family_scores": {
+    "Search & AI visibility": 2.42,
+    "Performance media": 0.97,
+    "Commerce & retail media": 0,
+    "Creator & social": 0,
+    "B2B pipeline": 0.65,
+    "Experience & build": 1.95,
+    "Data & measurement": 2.3,
+    "Local & SMB": 3.45,
+    "AI transformation": 2.3
+   },
+   "breadth": 10,
+   "lead": [
+    "Local"
+   ],
+   "core": [
+    "SEO",
+    "AI Search / GEO",
+    "Paid Search",
+    "Web & Product",
+    "Data & Measurement",
+    "Local",
+    "AI Automation / Agents"
+   ],
+   "moves": [
+    {
+     "date": "2025-11",
+     "type": "other",
+     "note": "Announced a Clio partnership for law firms (date from sitemap)",
+     "url": "https://www.scorpion.co/articles/news/industry-trends-news/clio-scorpion-partnership-gives-law-firms-end-to/"
+    },
+    {
+     "date": "2021",
+     "type": "award",
+     "note": "BIG Award for Business picked it as 2021 Company of the Year",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/"
+    },
+    {
+     "date": null,
+     "type": "launch",
+     "note": "Launched an AI chat product for local businesses; date not shown",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/"
+    },
+    {
+     "date": null,
+     "type": "other",
+     "note": "Gained access to Apple's Business Connect API; date not shown",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-now-has-access-to-apple-s-business-connect-api/"
+    },
+    {
+     "date": null,
+     "type": "other",
+     "note": "Thumbtack joined its partnership lineup; date not shown",
+     "url": "https://www.scorpion.co/articles2/news/thumbtack-has-joined-the-scorpion-partnership-lineup/"
+    }
+   ],
+   "news": [
+    {
+     "url": "https://www.scorpion.co/articles/news/industry-trends-news/googles-march-2026-core-update-what-local-servic/",
+     "date": "2026-04-10",
+     "title": "Google's March 2026 Core Update: What Local Service Businesses Need to Know",
+     "excerpt": "Key Takeaways: The March 2026 Google Core Update just rolled out and was completed on April 8th. This was the largest of 3 algorithm updates in four weeks, and will have the largest impact on local service businesses Home services, legal, and healthcare are seeing the biggest ranking shifts, especia"
+    },
+    {
+     "url": "https://www.scorpion.co/articles/news/industry-trends-news/ai-overviews-and-local-search-how-smbs-can-stay-/",
+     "date": "2026-04-10",
+     "title": "AI Overviews and Local Search: How SMBs Can Stay Visible in 2026",
+     "excerpt": "Key Takeaways: Over half of Google searches now end without a click. Users get answers directly on the results page through AI Overviews, map packs, and review summaries, often without ever visiting your website. Google is evaluating local businesses the same way it evaluates AI-generated content: I"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/5-things-to-know-from-google-s-ai-rollout-and-what-it-means-for-your-marketing-/",
+     "date": "2026-02-03",
+     "title": "5 Things to Know from Google’s AI Rollout | Scorpion",
+     "excerpt": "Google just unveiled its boldest moves yet at Google I/O and Google Marketing Live 2025 . If you’re a local business owner, the changes go beyond hype. AI is no longer just a buzzword. It’s at the core of how your customers discover, evaluate, and choose who to do business with. At Scorpion, we’ve b"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/how-quality-ai-gets-you-faster-lsa-credits-and-better-leads-over-time/",
+     "date": "2026-02-03",
+     "title": "How Quality AI Gets You Faster LSA Credits and Better Leads Over Time",
+     "excerpt": "Local businesses depend on Google Local Services Ads (LSA) to drive high-intent calls, messages and bookings, but managing lead quality can be time-consuming. Quality AI takes that off your plate by automatically submitting lead-quality feedback to Google every hour, 24/7. The result? Faster credits"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/never-miss-another-lead-how-scorpion-convert-drives-real-results/",
+     "date": "2026-02-03",
+     "title": "Never Miss Another Lead: How Scorpion Convert Drives Real Results",
+     "excerpt": "Missing leads is costing you money. Every unanswered call, delayed response, or unqualified prospect that slips through the cracks represents lost revenue. But what if you could capture, qualify, and book every single lead 24/7, without adding staff or overwhelming your team? That's exactly what Sco"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/ai-traffic-isn-t-worse-it-s-just-playing-a-different-game/",
+     "date": "2026-02-03",
+     "title": "AI Traffic Isn’t Worse, It’s Just Playing a Different Game",
+     "excerpt": "SearchEngineLand’s recent article, “ AI search clicks aren’t always better traffic ,” stirred the pot with data from Ahrefs showing that AI search users bounce more, view fewer pages, and engage less deeply than traditional searchers. At first glance, it might look like AI traffic is lower quality. "
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/",
+     "date": "2026-02-03",
+     "title": "Scorpion Named 2021 Company of the Year by the BIG Award for Business | Scorpion",
+     "excerpt": "In 2021, as Scorpion expanded its support to more local businesses than ever before, it’s gratifying to be recognized for the hard work of our incredible employees and the loyalty of our more than 14,000 customers! This week, we were proud to receive the Business Intelligence Group’s BIG Award for B"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/scorpion-now-has-access-to-apple-s-business-connect-api/",
+     "date": "2026-02-03",
+     "title": "Scorpion now has access to Apple’s Business Connect API",
+     "excerpt": "What the latest update in digital marketing means for Scorpion clients For years, Scorpion has been on a mission to revolutionize the way users connect to businesses. Thanks to the launch of Apple Business Connect this month, our listings functionality has become even more valuable. Apple Business C"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/thumbtack-has-joined-the-scorpion-partnership-lineup/",
+     "date": "2026-02-03",
+     "title": "Thumbtack has joined the Scorpion partnership lineup",
+     "excerpt": "Digital advertising has come a long way since its implementation in the mid-nineties. The first digital ad was an AT&T banner that only prompted the user to ‘click your mouse here’ with no mention of the brand. Now, thanks to market research, target audience optimization, and brand understanding of "
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/",
+     "date": "2026-02-03",
+     "title": "Scorpion Launches Industry-leading AI Chat Solution for Local Businesses",
+     "excerpt": "Scorpion is excited to announce the launch of our new product offering, Connect with AI Chat. Businesses of any size now have access to a conversational AI chatbot that is available 24/7 to answer questions about their business and services. Previously, major corporations benefited the most from thi"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/convert-more-leads-with-scorpions-ai-chat-the-ultimate-website-engagement-tool/",
+     "date": "2026-02-03",
+     "title": "Convert More Leads with Scorpion's AI Chat: The Ultimate Website Engagement Tool",
+     "excerpt": "Are you ready to increase your leads and engage with your website visitors more effectively than ever? Scorpion’s new AI Chat feature, part of Scorpion Connect , is designed to do exactly that, and it can convert more of these website visitors into satisfied customers. Scorpion’s AI Chat responds to"
+    },
+    {
+     "url": "https://www.scorpion.co/articles2/news/unlock-the-power-of-24-7-customer-communication-with-ai-chat/",
+     "date": "2026-02-03",
+     "title": "Unlock the Power of 24/7 Customer Communication with AI Chat",
+     "excerpt": "Scorpion's AI Chat delivers a 24/7 personalized and exceptional customer experience. It leverages Scorpion’s experience with thousands of local businesses to provide immediate support to your website visitors. Not only does this increase your lead count, but the leads you spend time interacting with"
+    }
+   ],
+   "case_studies": [
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/plumbing/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/hvac/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/pest-control/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/electrical/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/family-law/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/personal-injury/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/criminal-defense/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/franchises/successes/case-studies/",
+     "lastmod": "2026-04-02"
+    },
+    {
+     "title": "",
+     "url": "https://www.scorpion.co/law-firms/successes/case-studies/",
+     "lastmod": "2026-03-31"
+    }
+   ],
+   "jobs": [],
+   "verticals": [
+    "Electrical",
+    "HVAC",
+    "Landscaping",
+    "Pest Control",
+    "Plumbing",
+    "Roofing",
+    "Bankruptcy law",
+    "Criminal defense law",
+    "Employment law",
+    "Estate and probate law",
+    "Family law",
+    "Immigration law",
+    "Personal injury law",
+    "Franchise",
+    "Medical",
+    "Hospital & healthcare systems",
+    "Multi-location platforms"
+   ],
+   "needs": {
+    "n": 5,
+    "observed": 0,
+    "named_only": 5,
+    "mix": [],
+    "top": [],
+    "shared": [],
+    "shared_n": 0,
+    "evidence_types": {
+     "testimonial": 3,
+     "case study": 2
+    },
+    "clients": [
+     {
+      "name": "Pauls Plumbing & Heating",
+      "evidence": "testimonial",
+      "needs": [
+       "N0"
+      ],
+      "signal": "",
+      "url": "https://scorpion.co/"
+     },
+     {
+      "name": "Midwest Mold Removal",
+      "evidence": "testimonial",
+      "needs": [
+       "N0"
+      ],
+      "signal": "",
+      "url": "https://scorpion.co/"
+     },
+     {
+      "name": "Protector Pest Solutions",
+      "evidence": "testimonial",
+      "needs": [
+       "N0"
+      ],
+      "signal": "",
+      "url": "https://scorpion.co/"
+     },
+     {
+      "name": "Awesome Home",
+      "evidence": "case study",
+      "needs": [
+       "N0"
+      ],
+      "signal": "",
+      "url": "https://scorpion.co/successes/case-studies/"
+     },
+     {
+      "name": "Owenby Law",
+      "evidence": "case study",
+      "needs": [
+       "N0"
+      ],
+      "signal": "",
+      "url": "https://scorpion.co/successes/case-studies/"
+     }
+    ],
+    "taxonomy": {
+     "N1": {
+      "label": "Organic demand",
+      "short": "Organic",
+      "why": "Rankings, visibility, organic traffic, search growth, technical SEO and content for search."
+     },
+     "N2": {
+      "label": "Paid performance",
+      "short": "Paid",
+      "why": "Paid search, paid social, programmatic, media buying, ROAS, CPA, budget efficiency."
+     },
+     "N3": {
+      "label": "Brand and creative",
+      "short": "Brand",
+      "why": "Brand strategy, rebrands, creative campaigns, launches, storytelling, video and design."
+     },
+     "N4": {
+      "label": "Web build and platform",
+      "short": "Web",
+      "why": "Websites, relaunches, migrations, ecommerce platforms, apps, UX and conversion design."
+     },
+     "N5": {
+      "label": "Data and measurement",
+      "short": "Data",
+      "why": "Analytics, attribution, marketing mix modelling, dashboards, identity, data platforms and clean rooms."
+     },
+     "N6": {
+      "label": "CRM and owned audiences",
+      "short": "CRM",
+      "why": "CRM, email, lifecycle, loyalty, retention and marketing automation."
+     },
+     "N7": {
+      "label": "Commerce and marketplaces",
+      "short": "Commerce",
+      "why": "Amazon and marketplace growth, retail media, product feeds, ecommerce revenue."
+     },
+     "N8": {
+      "label": "Social and creators",
+      "short": "Social",
+      "why": "Organic social, community, influencer and creator programmes, UGC and short-form video."
+     },
+     "N9": {
+      "label": "AI and automation",
+      "short": "AI",
+      "why": "AI search visibility, generative AI, agents, automation and chatbots."
+     },
+     "N10": {
+      "label": "Local and lead generation",
+      "short": "Leads",
+      "why": "Leads, calls, bookings, local and multi-location demand, franchise and dealer marketing."
+     },
+     "N11": {
+      "label": "B2B pipeline",
+      "short": "B2B",
+      "why": "Account-based marketing, demand generation, pipeline, LinkedIn, sales enablement."
+     },
+     "N12": {
+      "label": "PR, reputation and content",
+      "short": "PR",
+      "why": "Digital PR, earned media, thought leadership, editorial content, reputation and reviews."
+     },
+     "N0": {
+      "label": "Engagement named only",
+      "short": "Named",
+      "why": "The evidence names the client and nothing about the work; the need is inferred from the agency's sold mix and says so."
+     }
+    }
+   },
+   "house": {
+    "llms_txt": null,
+    "ai_bots_blocked": [],
+    "sitemap_urls": 1897,
+    "content_90d": 0,
+    "content_365d": 63,
+    "ai_urls": 12,
+    "google": {
+     "status": "active",
+     "count": 117,
+     "count_30d": 44,
+     "formats": {
+      "text": 80,
+      "image": 0,
+      "video": 37
+     },
+     "samples": [
+      "Signed Cases, Not Just Leads - Reduce Cost Per Signed Case | Drive More Revenue for Your Personal Injury Law",
+      "Scorpion Marketing Agency - No Guesswork, Only Growth | Digital Marketing Solutions For Local Businesses. Get More Customers. Track Your",
+      "Scorpion Digital Marketing | Stop Chasing Leads. Grow Revenue with Scorpion. Contact Us Today."
+     ],
+     "advertisers": [
+      "Scorpion Design, LLC",
+      "Scorpion Design, LLC",
+      "Scorpion Design, Inc."
+     ],
+     "last_shown": "2026-09-27"
+    },
+    "linkedin": {
+     "status": "active",
+     "count": "5+",
+     "company_ads": 5,
+     "thought_leader_ads": 0,
+     "samples": [
+      "8x ROI. 75% above monthly lead goals. Nearly 2x customer value. See how Scorpion helped Brandyn Nuffer and Awesome Home",
+      "Joy set out to get great results for her clients and grow Owenby Law. After partnering with Scorpion, firm revenue"
+     ],
+     "note": "101 ads match the name query (all advertisers); first results page shows 24 cards; 5 company-page ads among them; more result pages exist, so the count is a floor; near-name advertisers excluded: Scorpion Intelligence (1), Scorpion Protective Coatings, Inc. (1)"
+    },
+    "meta": null,
+    "tiktok": null,
+    "pixels_social": [
+     "meta_pixel"
+    ],
+    "test_tools": [],
+    "abm_stack": [],
+    "tags": [
+     "gtm",
+     "meta_pixel"
+    ],
+    "cms": [],
+    "gaps": [],
+    "tests": [
+     {
+      "cap": "AI Search / GEO",
+      "result": "unknown",
+      "note": "llms.txt check did not complete"
+     },
+     {
+      "cap": "Paid Search",
+      "result": "corroborated",
+      "note": "Runs its own Google ads (117 in the Transparency Center, 44 in the last 30 days)"
+     },
+     {
+      "cap": "Publishing cadence",
+      "result": "corroborated",
+      "note": "0 sitemap URLs updated in 90 days, 63 in 365"
+     }
+    ],
+    "social_links": {
+     "linkedin": [
+      "https://www.linkedin.com/company/scorpion"
+     ],
+     "instagram": [
+      "https://www.instagram.com/scorpion.co"
+     ],
+     "youtube": [
+      "https://www.youtube.com/@Scorpiondesign"
+     ],
+     "x": [
+      "https://x.com/scorpiondotco"
+     ],
+     "facebook": [
+      "https://www.facebook.com/Scorpion.co"
+     ]
+    }
+   },
+   "horus": {
+    "hti": 24.9,
+    "pct": 81,
+    "band": "Favored",
+    "verdict": "Favored (+25). Best placed for KJ1: The click is being replaced by the citation. The sold mix sits at 16:30 on the Solar Arc, dusk (Atum). Best fit: The Walled Oasis (44/100). Say/do: 2 of 2 tested lines practised on its own house.",
+    "arc": "16:30 dusk (Atum)",
+    "best_fit": "The Walled Oasis",
+    "resilience": 37.3,
+    "tailwinds": [
+     {
+      "id": "KJ1",
+      "title": "The click is being replaced by the citation",
+      "net": 0.243,
+      "drivers": [
+       [
+        "AI Search / GEO",
+        2
+       ],
+       [
+        "SEO",
+        -1
+       ],
+       [
+        "Paid Search",
+        1
+       ]
+      ]
+     },
+     {
+      "id": "KJ2",
+      "title": "Ads inside AI answers scale faster than any channel before them, but the price and the proof are still unsettled",
+      "net": 0.194,
+      "drivers": [
+       [
+        "Paid Search",
+        1
+       ],
+       [
+        "AI Search / GEO",
+        1
+       ]
+      ]
+     }
+    ],
+    "headwinds": [],
+    "moves": {
+     "P1": {
+      "status": "partial",
+      "why": "Sells AI search, but no audited AI-visibility product (tracking, scorecard, citation share) shows in the record."
+     },
+     "P2": {
+      "status": "absent",
+      "why": "No feed, schema or entity work in the record."
+     },
+     "P3": {
+      "status": "making",
+      "why": "Local Services Ads or Sponsored Places work is evidenced."
+     },
+     "P4": {
+      "status": "making",
+      "why": "Runs paid media and supplies inputs: first-party data, creative volume or measurement depth."
+     },
+     "P5": {
+      "status": "unknown",
+      "why": "No public pricing model in the record."
+     },
+     "P6": {
+      "status": "partial",
+      "why": "AI-operator depth, an academy or a talent pipeline shows, not the full move."
+     },
+     "P7": {
+      "status": "partial",
+      "why": "Some owned-audience work shows."
+     },
+     "P8": {
+      "status": "absent",
+      "why": "Sells paid search; no sign of testing ads inside AI assistants."
+     }
+    },
+    "move_names": {
+     "P1": "Sell AI visibility as an audited product",
+     "P2": "Make feeds and entities a service line",
+     "P3": "Treat LSAs and Sponsored Places as core local work",
+     "P4": "Supply the inputs automation runs on",
+     "P5": "Price on outputs and outcomes",
+     "P6": "Retrain juniors into agent operators",
+     "P7": "Build owned-audience hedges",
+     "P8": "Test ads inside assistants small, with holdouts"
+    },
+    "rails": {
+     "R1": 53.3,
+     "R2": 56.4,
+     "R3": 26.7,
+     "L": 42.9
+    },
+    "graveyard": false,
+    "integrity": 100
+   },
+   "monsoon": {
+    "index": 74.2,
+    "pct": 94,
+    "band": "Landfall",
+    "migration": 72.2,
+    "displacement": 76.2,
+    "asia": 0.65,
+    "shore": {
+     "south_asia": 0.35,
+     "southeast_asia": 0.3,
+     "eastern_europe": 0.1,
+     "latin_america": 0.25,
+     "africa": 0.0
+    },
+    "verdict": "Landfall (74). 64 of it is the sold mix: Local (14) and SEO (10) carry the most movable hours. Migration 72, displacement 76. Shore: 65% South and Southeast Asia, 25% Latin America. Claims onshore delivery in its own words.",
+    "evidence_class": "observed",
+    "terms": [
+     {
+      "term": "delivery_language",
+      "pts": 8,
+      "class": "observed"
+     },
+     {
+      "term": "icp_local",
+      "pts": 12,
+      "class": "inferred"
+     }
+    ],
+    "hub_offices": [],
+    "onshore_claims": [
+     "In-house award-winning video and photography studios"
+    ],
+    "overlap": 0.104
+   },
+   "openings": [
+    {
+     "kind": "move",
+     "text": "Sells AI search with no audited AI visibility product in its record (citation share, scorecard, tracking): a rival with the audited product leads with the number.",
+     "class": "inferred"
+    },
+    {
+     "kind": "move",
+     "text": "Runs paid search with no sign of testing ads inside AI assistants: the first agency in its segment to show results there sets the price.",
+     "class": "inferred"
+    },
+    {
+     "kind": "move",
+     "text": "No feed, schema or entity work in the record on a core search, web or commerce line: the machine-readable layer answer engines consume is unclaimed.",
+     "class": "inferred"
+    },
+    {
+     "kind": "move",
+     "text": "No public pricing model: a transparent, outcome-priced offer against it is a sales conversation it cannot have in public.",
+     "class": "inferred"
+    },
+    {
+     "kind": "price",
+     "text": "Displacement 76 on the Monsoon read: the book buys on price and an offshore-delivered rival can undercut it line by line.",
+     "class": "observed"
+    },
+    {
+     "kind": "claim",
+     "text": "Claims in-house or onshore delivery while selling a mix that is mostly movable hours: a claim to test in the sales room.",
+     "class": "observed"
+    },
+    {
+     "kind": "clients",
+     "text": "The client book is mostly names without described work (5 of 5): the evidence of what it does for them is thin, which is a question to ask its clients.",
+     "class": "observed"
+    },
+    {
+     "kind": "content",
+     "text": "Nothing updated in its sitemap in the last 90 days: the publishing machine is idle.",
+     "class": "observed"
+    }
+   ],
+   "watch": [
+    {
+     "id": "I2",
+     "indicator": "Alphabet Q3 2026 search growth and AI Mode ad disclosures",
+     "watch": "Search and other growth below 10% flags cannibalization; above 15% with AI Mode ads live confirms S1",
+     "next": "late October 2026",
+     "kj": "KJ1"
+    },
+    {
+     "id": "I10",
+     "indicator": "Reddit US daily users versus search referral volatility",
+     "watch": "US DAUq growth at or below 5% alongside AI Mode growth confirms the UGC-starvation risk",
+     "next": "late October 2026",
+     "kj": "KJ1"
+    },
+    {
+     "id": "I3",
+     "indicator": "OpenAI ad run-rate disclosures and CPM trend",
+     "watch": "Next milestone ($2B) and its timing; pricing below $20 CPM signals supply outrunning demand",
+     "next": "rolling",
+     "kj": "KJ2"
+    },
+    {
+     "id": "I7",
+     "indicator": "Holiday 2026 agentic checkout volume and merchant opt-out rates",
+     "watch": "Any disclosed AI-checkout GMV; high Shopify opt-out rates would slow KJ4",
+     "next": "December 2026 to January 2027",
+     "kj": "KJ4"
+    },
+    {
+     "id": "R",
+     "indicator": "The Radar compile date",
+     "watch": "A new compile refreshes offices, ads, sitemap cadence and clients; the dossier is only as fresh as 2026-09-29",
+     "next": "next Radar compile",
+     "kj": null
+    }
+   ],
+   "evidence": [
+    {
+     "label": "home page",
+     "url": "https://scorpion.co/"
+    },
+    {
+     "label": "page: /about-us",
+     "url": "https://scorpion.co/about-us/"
+    },
+    {
+     "label": "page: /articles2/news/what-local-businesses-need-to",
+     "url": "https://www.scorpion.co/articles2/news/what-local-businesses-need-to-know-about-ai-overview-and-seo/"
+    },
+    {
+     "label": "page: /articles2/news/part-1-chatgpt-s-new-web-brow",
+     "url": "https://www.scorpion.co/articles2/news/part-1-chatgpt-s-new-web-browser-marks-a-turning-point-in-search/"
+    },
+    {
+     "label": "page: /articles/news/industry-trends-news/clio-scor",
+     "url": "https://www.scorpion.co/articles/news/industry-trends-news/clio-scorpion-partnership-gives-law-firms-end-to/"
+    },
+    {
+     "label": "capability evidence: AI Automation / Agents",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-launches-industry-leading-ai-chat-solution-for-local-businesses/"
+    },
+    {
+     "label": "move 2021",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-named-2021-company-of-the-year-by-the-big-award-for-business/"
+    },
+    {
+     "label": "move ",
+     "url": "https://www.scorpion.co/articles2/news/scorpion-now-has-access-to-apple-s-business-connect-api/"
+    },
+    {
+     "label": "move ",
+     "url": "https://www.scorpion.co/articles2/news/thumbtack-has-joined-the-scorpion-partnership-lineup/"
+    },
+    {
+     "label": "client: Awesome Home (case study)",
+     "url": "https://scorpion.co/successes/case-studies/"
+    }
+   ],
+   "compiled": "2026-09-29",
+   "edition": "2026.09a",
+   "deepened": {
+    "date": "2026-09-28",
+    "note": "Own site read on 2026-09-29: no sitemap URLs could be read (https://scorpion.co/sitemap.xml WAF 403, https://scorpion.co/sitemap_index.xml WAF 403).",
+    "ats": null,
+    "jobs_count": 0,
+    "case_study_count": 9,
+    "blog_recent_dates": [
+     [
+      "podcasts/cant-pay-with-leads",
+      "2026-04-27"
+     ],
+     [
+      "podcasts/cant-pay-with-leads",
+      "2026-04-27"
+     ],
+     [
+      "insights/reviews",
+      "2026-04-10"
+     ],
+     [
+      "digital-advertising/apple-maps-ads-what-this-means-for-local-service",
+      "2026-04-03"
+     ],
+     [
+      "blog/topics",
+      "2026-03-19"
+     ],
+     [
+      "revenue-intelligence/you-re-losing-the-leads-you-already-paid-for",
+      "2026-03-18"
+     ]
+    ]
+   }
+  },
+  "text": {
+   "bluf": "Scorpion is a founder led local business marketing and technology firm in Lehi, UT (founder and CEO Rustin Kretz), selling websites, ads, Local Services Ads and its own AI chat assistants to home services, legal, franchise and healthcare operators. The record shows it going product first: AI lead scoring, LSA lead quality automation and a 2025-11 Clio partnership for law firms. Horus reads it Favored at 24.9; Monsoon reads Landfall at 74.2 with displacement 76.2. The one thing a rival should know: all 5 clients on record are names only, nothing in its sitemap updated in 90 days, and it publishes no pricing while its ads sell cost per signed case.",
+   "doing": "The positioning line, a revenue focused marketing and technology partner for local businesses in home services, legal, franchise and healthcare pairing expert teams with its own AI driven tools, decodes to a vertical agency selling software with services: one vendor for the website, the ads and the AI receptionist. The headline claim, 20+ years serving local businesses and an 8x ROI for a home services client in its LinkedIn ads, is the agency's claim; its 2021 award post claims more than 14,000 customers.\n\nThe sold mix leads with Local (score 3: LSA, a multi location vertical, Apple Business Connect API access). Core at score 2: AI Automation / Agents (24/7 AI chat with booking, Convert assistants, AI powered ads), AI Search / GEO (AI Overview and ChatGPT Atlas posts), Data & Measurement (a Chief Data Scientist, AI lead scoring, the Clio tie up), Paid Search (117 own Google ads), SEO (520 vertical articles) and Web & Product (Website first in the nav). Family scores put Local & SMB at 3.45 and Performance media at 0.97. Proprietary: Convert, Scorpion AI Chat, AI powered lead scoring and in house video and photography studios. Partners listed: Clio, Thumbtack and Apple Business Connect.\n\nAI posture: AI sold as product rather than service, and a 2026-02-03 post says its Quality AI submits lead quality feedback to Google every hour for LSA credits.\n\nMoves in date order: 2021, BIG Award for Business Company of the Year; undated, the AI chat launch, Apple Business Connect API access and Thumbtack joining its partnership lineup; 2025-11, the Clio partnership for law firms. News runs from 2026-02-03 to 2026-04-10.\n\nThe record lists no pricing model, though its ads sell cost per signed case. Conspicuously absent: a founding year, an employee count, jobs or an ATS (jobs count 0), a CMS, any paid social line, and a single titled case study (the 9 case study pages are vertical index pages; the own site read hit a WAF 403 on the sitemap).",
+   "clients": "The client type is local: home services, legal, franchise and healthcare operators. The verticals list runs from Electrical, HVAC, Pest Control, Plumbing and Roofing to Bankruptcy, Criminal defense, Family, Immigration and Personal injury law, plus Franchise, Medical, Hospital & healthcare systems and Multi-location platforms; the home market is the US from one office in Lehi, UT.\n\nThe needs read names 5 clients, 0 observed and 5 names only, so the mix read is empty. Pauls Plumbing & Heating, Midwest Mold Removal and Protector Pest Solutions are testimonials on the home page; Awesome Home and Owenby Law are case study entries on the successes page with no title the read could code. The only work the record describes comes from its own LinkedIn ads: 8x ROI, 75% above monthly lead goals and nearly 2x customer value for Awesome Home with Brandyn Nuffer, and revenue growth for Owenby Law, as the agency claims. What all five came for is inferred from the sold mix: local lead generation through websites, LSAs and AI chat. None is shared with another tracked agency; the deepen pass counted 9 case study pages, all vertical index pages dated 2026-03-31 to 2026-04-02.\n\nThe book's evidence is therefore three testimonials, two untitled entries and ad copy, for a firm claiming more than 14,000 customers.\n\nWhat the base needs next, tied to KJ1 (the click is being replaced by the citation) and KJ2 (ads inside AI answers): very likely, moderate confidence, these trades and law firms need citation visibility in AI Overviews and map packs, which its 2026-04-10 post says already end over half of Google searches without a click; likely, low confidence, they will also need proof that AI chat and Convert bookings turn into signed jobs and cases, which no case study in the record provides.",
+   "house": "Say and do: 2 of 2 tested lines pass and the Radar flags no gaps, but the AI Search / GEO test is unknown because the llms.txt check did not complete. Paid Search corroborated: its Transparency Center record shows 117 ads, 44 in the last 30 days (80 text, 37 video), advertiser Scorpion Design, last shown 2026-09-27, with lines such as \"Signed Cases, Not Just Leads - Reduce Cost Per Signed Case\" and \"Stop Chasing Leads. Grow Revenue with Scorpion.\" Publishing cadence is marked corroborated on 63 URLs updated in 365 days, yet 0 were updated in 90 days across 1897 sitemap URLs (12 AI URLs), and the latest dated items are a podcast on 2026-04-27 and news on 2026-04-10: the machine is idle. Tags: GTM and a Meta pixel; no CMS identified, no test tools, no ABM stack; no AI crawlers blocked. LinkedIn: 5 company page ads, a floor against 101 name matches, carrying the Awesome Home 8x ROI line.",
+   "market": "Horus reads Scorpion Favored at 24.9, percentile 81, resilience 37.3, 16:30 on the Solar Arc (dusk, Atum), best fit The Walled Oasis at 44/100, and lists no headwind judgment at all. Best placed for KJ1, the click is being replaced by the citation (net 0.243, AI Search / GEO driving), and KJ2, ads inside AI answers (net 0.194). Moves: making P3 and P4; partial on P1 (no audited AI visibility product), P6 and P7; absent on P2 (no feed, schema or entity work) and P8 (no ads inside assistants tested); unknown on P5.\n\nMonsoon reads Landfall at 74.2, percentile 94: displacement 76.2 above migration 72.2, so the book buys on price. 64 of the index is the sold mix, Local (14) and SEO (10) the most movable hours; automation overlap 0.104. Shore: 65% South and Southeast Asia, 25% Latin America. No hub offices are listed, so the footprint is inferred, while the delivery language is observed: it claims in house award winning video and photography studios.",
+   "openings": "The strongest opening is the empty book: all 5 clients on record are names only, the 9 case study pages carry no titles, and the only described results are its own ad copy (8x ROI for Awesome Home). A rival showing audited per client results in the same trades and practice areas, priced on signed cases or booked jobs, very likely (moderate confidence) wins against ads that promise cost per signed case with no public pricing (P5 unknown). Falsifier: titled case studies with figures on its vertical success pages after 2026-09-28.\n\nSecond, price: displacement 76.2 on the Monsoon read means the local and SEO hours can be undercut line by line by an offshore delivered rival, and the in house studio claim is the one to test in the sales room (likely, moderate confidence).\n\nThird, the idle machine: 0 sitemap URLs updated in 90 days against 520 vertical articles, for an agency whose Horus tailwind is the citation; a rival publishing fresh, citable local content for the same verticals can likely take the AI Overview positions its own 2026-04-10 post says matter. P1 partial and P2 absent leave the audited AI visibility number and the schema layer unclaimed; P8 absent leaves ads inside assistants to the first mover.",
+   "watch": [
+    "I2, Alphabet Q3 2026 search growth and AI Mode ad disclosures, late October 2026: search and other growth below 10% flags cannibalization; above 15% with AI Mode ads live confirms S1 and firms up the KJ1 tailwind it is best placed for.",
+    "I10, Reddit US daily users against search referral volatility, late October 2026: US DAUq growth at or below 5% alongside AI Mode growth confirms the UGC starvation risk under KJ1.",
+    "I3, OpenAI ad run rate disclosures and CPM trend, rolling: the next milestone ($2B) and its timing, and pricing below $20 CPM, would signal supply outrunning demand in the KJ2 channel where its P8 is absent.",
+    "I7, holiday 2026 agentic checkout volume and merchant opt out rates, December 2026 to January 2027: disclosed AI checkout GMV would show whether KJ4 reaches local booking flows like its AI chat.",
+    "Follow the 2025-11 Clio partnership and the undated Thumbtack and Apple Business Connect moves for named law firm or trades clients: any titled case study would move the book off 0 observed.",
+    "The next Radar compile refreshes offices, ads, sitemap cadence and clients; the sitemap was unreadable (WAF 403) on the 2026-09-29 own site read, so this dossier is only as fresh as the 2026-09-28 compile."
+   ],
+   "written": "2026-09-29",
+   "model": "claude-fable-5-1"
+  }
+ }
+}

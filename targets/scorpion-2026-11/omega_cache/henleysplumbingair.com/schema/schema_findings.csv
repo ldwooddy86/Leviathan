@@ -1,0 +1,80 @@
+url,entity_type,severity,charge,detail
+https://www.henleysplumbingair.com/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/,Organization,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/,Organization,S3,missing-recommended,contactPoint
+https://www.henleysplumbingair.com/,Organization,S3,missing-recommended,address
+https://www.henleysplumbingair.com/,Organization,S3,missing-recommended,telephone
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S2,nap-mismatch,schema telephone +1-714-353-7176 not found in visible page text
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S2,nap-mismatch,schema telephone +1-714-353-7176 not found in visible page text
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S2,nap-mismatch,schema telephone +1-714-844-8798 not found in visible page text
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/contact/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/contact/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/contact/,Organization,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/contact/,Organization,S3,missing-recommended,contactPoint
+https://www.henleysplumbingair.com/contact/,Organization,S3,missing-recommended,address
+https://www.henleysplumbingair.com/contact/,Organization,S3,missing-recommended,telephone
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S2,nap-mismatch,schema telephone +1-714-353-7176 not found in visible page text
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S2,nap-mismatch,schema telephone +1-714-353-7176 not found in visible page text
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,priceRange
+https://www.henleysplumbingair.com/contact/,LocalBusiness/Plumber/HVACBusiness,S3,missing-recommended,areaServed
+https://www.henleysplumbingair.com/privacy-policy/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/privacy-policy/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/privacy-policy/,Organization,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/privacy-policy/,Organization,S3,missing-recommended,contactPoint
+https://www.henleysplumbingair.com/privacy-policy/,Organization,S3,missing-recommended,address
+https://www.henleysplumbingair.com/privacy-policy/,Organization,S3,missing-recommended,telephone
+https://www.henleysplumbingair.com/service-area/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/service-area/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/service-area/,Organization,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/service-area/,Organization,S3,missing-recommended,contactPoint
+https://www.henleysplumbingair.com/service-area/,Organization,S3,missing-recommended,address
+https://www.henleysplumbingair.com/service-area/,Organization,S3,missing-recommended,telephone
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Article,S3,missing-recommended,description
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Organization,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Organization,S3,missing-recommended,contactPoint
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Organization,S3,missing-recommended,address
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Organization,S3,missing-recommended,telephone
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Person,S3,missing-recommended,jobTitle
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Person,S3,missing-recommended,worksFor
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,Person,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/,FAQPage,S4,info,FAQ rich results limited to authoritative gov/health sites since Aug 2023; value is AI-answer feedstock
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Article,S3,missing-recommended,description
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Organization,S3,missing-recommended,sameAs
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Organization,S3,missing-recommended,contactPoint
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Organization,S3,missing-recommended,address
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Organization,S3,missing-recommended,telephone
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Person,S3,missing-recommended,jobTitle
+https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/,Person,S3,missing-recommended,worksFor

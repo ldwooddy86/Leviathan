@@ -1,0 +1,2561 @@
+{
+ "url": "https://www.russellandlazarus.com/",
+ "locale": "en-US",
+ "fetched_at": "2026-11-15T08:54:06Z",
+ "presence": {
+  "identity": "OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)",
+  "timezone": null,
+  "viewport": null,
+  "engine": "chromium (headless; honest: declared UA, no stealth, webdriver flag left true)"
+ },
+ "status": 200,
+ "final_url": "https://www.russellandlazarus.com/",
+ "title": "Best Personal Injury Attorneys in Orange County, CA",
+ "tier": "RENDERED",
+ "consent_banner": {
+  "cmp_root": null,
+  "text_hint": false,
+  "accept_controls": [],
+  "reject_controls": [],
+  "reading": "no consent banner detected"
+ },
+ "pre_consent_trackers": [
+  "call_tracking",
+  "google_ads_doubleclick",
+  "google_analytics",
+  "google_tag_manager",
+  "meta_pixel",
+  "microsoft_uet",
+  "other_adtech",
+  "session_replay"
+ ],
+ "pre_consent_tracker_requests": [
+  {
+   "t": 0.811,
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-VE3EB4WZ04",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.18,
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-5HSZDSC",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.425,
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-195980701-1&cx=c&gtm=4e6bb1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.512,
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-5C4GNJJGJ1&cx=c&gtm=4e6bb1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.512,
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-691208297&cx=c&gtm=4e6bb1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.513,
+   "url": "https://www.google-analytics.com/analytics.js",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.513,
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 1.513,
+   "url": "https://cdn.callrail.com/companies/966590897/9298935f1c05b4c55c7c/12/swap.js",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 1.514,
+   "url": "https://connect.facebook.net/en_US/fbevents.js",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 1.514,
+   "url": "https://bat.bing.com/bat.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.516,
+   "url": "https://www.clarity.ms/tag/m9vz9qs8zt?ref=gtm2",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 1.878,
+   "url": "https://js.callrail.com/companies/966590897/external_forms.js?t=1794732848646&",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 2.024,
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=17&frm=0&apvc=1&ae=g&en=page_view&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=882063950.1794732849&navt=n&npa=1&ep.ads_data_redaction=0&gdid=dZTNiMT&gtm=45He6bb1v830213395za200zd830213395xeaxf1&gcs=G100&gcd=1",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.04,
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za208zd876478981xf1&_p=1794732847946&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AAAAACAC&cid=984765390.1794732849&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=1&sr=1280x720&uaa=x86&uab=64&uafvl=Headless",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 2.058,
+   "url": "https://scripts.clarity.ms/0.8.77/clarity.js",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.096,
+   "url": "https://connect.facebook.net/signals/config/251156732631749?v=2.9.439&r=stable&domain=www.russellandlazarus.com&hme=1f127d11ce7bba675ee077e129c6ec7e07038113ad3e920301e60f2f865dc776&ex_m=119%2C243%2C172%2C27%2C82%2C83%2C163%2C78%2C77%2C11%2C182%2C102%2C20%2C154%2C142%2C46%2C85%2C90%2C184%2C111%2C150%",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.195,
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=14&frm=0&apvc=0&tid=AW-691208297&en=page_view&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=882063950.1794732849&navt=n&npa=1&gtm=45be6bb1v9102233068za20ozb830213395zd830213395xecxf1&gcs=G100&gcd=13p3p3p3p5l1&d",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.195,
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=14&frm=0&apvc=0&ae=g&tid=AW-691208297&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=882063950.1794732849&navt=n&npa=1&_tu=CA&gtm=45be6bb1v9102233068z8830213395za20gzb830213395zd830213395xeaxf1&gcs=G100&gcd=13p3",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.299,
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-5C4GNJJGJ1&gtm=45je6bb1v893017570za20ozb830213395zd830213395xf1&_p=1794732847946&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&ecid=1882626149&_eu=AAAAAGAC&cid=984765390.1794732849&frm=0&pscdl=denied&rcb=13&sr=1280x720&uaa=x86&uab=64&uafvl=Headl",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 2.314,
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.317,
+   "url": "https://bat.bing.com/p/action/25079313.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.322,
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.322,
+   "url": "https://s.amazon-adsystem.com/iu3?pid=d21cd82b-a872-4e5f-a255-25e623e618cb&event=Sitewide&gtmVersion=3.5&ts=1794732849097&eventSource=amzn.js&uuid=f91fd805-6316-4c94-87db-854b7c02203d",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.322,
+   "url": "https://c.amazon-adsystem.com/aat/allowlist/allowlist.json",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.419,
+   "url": "https://www.facebook.com/tr/?id=251156732631749&ev=PageView&dl=https%3A%2F%2Fwww.russellandlazarus.com&rl=&if=false&ts=1794732849192&iw=false&sw=1280&sh=720&v=2.9.439&r=stable&ec=0&o=77852&aems=0%3B0&fbp=fb.1.1794732849186.501071051393801620&cs_est=true&pm=1&hrl=ab028b&ler=empty&plt=1699.19999999995",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.435,
+   "url": "https://bat.bing.com/action/0?ti=25079313&Ver=2&mid=de365a10-983d-41d9-a1fe-b95476e092ed&bo=1&sid=1ef1b6c0e0d211f193295536c4b5366a&vid=1ef1c190e0d211f1955f9b22d59b9263&vids=1&msclkid=N&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Best%20Personal%20Injury%20Attorneys%20in%20Orange%20County,",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.462,
+   "url": "https://u.clarity.ms/collect",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.594,
+   "url": "https://u.clarity.ms/collect",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.865,
+   "url": "https://c.clarity.ms/c.gif",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.929,
+   "url": "https://s.amazon-adsystem.com/iu3?pid=d21cd82b-a872-4e5f-a255-25e623e618cb&event=Sitewide&gtmVersion=3.5&ts=1794732849097&eventSource=amzn.js&uuid=f91fd805-6316-4c94-87db-854b7c02203d&dcc=t",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.98,
+   "url": "https://c.bing.com/c.gif?ctsa=mr&CtsSyncId=386C344771504BE2B0BF684075C9C2D6&RedC=c.clarity.ms&MXFR=270BEDE5E55969D6238AF5F7E1596794",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 3.016,
+   "url": "https://c.clarity.ms/c.gif?ctsa=mr&CtsSyncId=386C344771504BE2B0BF684075C9C2D6&MUID=0B0C2AA083226E283FF832B282066FBC",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.862,
+   "url": "https://u.clarity.ms/collect",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 7.043,
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za208zd876478981xf1&_p=1794732847946&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AAACACAC&cid=984765390.1794732849&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=1&sr=1280x720&uaa=x86&uab=64&uafvl=Headless",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 8.649,
+   "url": "https://u.clarity.ms/collect",
+   "trackers": [
+    "session_replay"
+   ]
+  }
+ ],
+ "prechecked_checkboxes": [],
+ "scarcity_strings": [],
+ "timer_strings_first_load": [
+  "17:38",
+  "00:00",
+  "45:18",
+  "00:00",
+  "09:00"
+ ],
+ "ai_agent_markers": [],
+ "chat_iframes": [],
+ "post_scroll_new_trackers": [],
+ "timer_strings_after_reload": [
+  "17:38",
+  "00:00",
+  "45:18",
+  "00:00",
+  "09:00"
+ ],
+ "timer_reset_reading": "timer RESET on reload \u2014 CONFIRMED-capable dark pattern (fake urgency)",
+ "request_count": 293,
+ "third_party_hosts": [
+  "acsbapp.com",
+  "analytics.ahrefs.com",
+  "bat.bing.com",
+  "c.amazon-adsystem.com",
+  "c.bing.com",
+  "c.clarity.ms",
+  "cdn.acsbapp.com",
+  "cdn.callrail.com",
+  "cdn.userway.org",
+  "chat-api.intaker.com",
+  "cm.g.doubleclick.net",
+  "connect.facebook.net",
+  "dsum-sec.casalemedia.com",
+  "ib.adnxs.com",
+  "image2.pubmatic.com",
+  "intaker.azureedge.net",
+  "js.callrail.com",
+  "m.bbb.org",
+  "match.adsrvr.org",
+  "maxcdn.bootstrapcdn.com",
+  "me.theario.com",
+  "onetag-sys.com",
+  "pagead2.googlesyndication.com",
+  "pixel.mathtag.com",
+  "pixel.rubiconproject.com",
+  "pixel.tapad.com",
+  "rtb-csync.smartadserver.com",
+  "s.amazon-adsystem.com",
+  "s.w.org",
+  "scripts.clarity.ms",
+  "sg.semasio.net",
+  "static.cloudflareinsights.com",
+  "sync.crwdcntrl.net",
+  "sync.go.sonobi.com",
+  "sync.mathtag.com",
+  "u.clarity.ms",
+  "uipglob.semasio.net",
+  "uipus.semasio.net",
+  "us-u.openx.net",
+  "use.fontawesome.com",
+  "use.typekit.net",
+  "user-sync.fwmrm.net",
+  "www.clarity.ms",
+  "www.facebook.com",
+  "www.google-analytics.com",
+  "www.googletagmanager.com",
+  "www.youtube.com",
+  "x.bidswitch.net"
+ ],
+ "requests": [
+  {
+   "t": 0.011,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 0.787,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/business-reviews-bundle/assets/2.3.1/css/public-main.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.805,
+   "phase": "pre-interaction",
+   "url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css?ver=7.1.4",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.809,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/css/movement.css?ver=1793089232",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.809,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/css/plugin-main.css?ver=1793089232",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.809,
+   "phase": "pre-interaction",
+   "url": "https://use.fontawesome.com/releases/v5.2.0/css/all.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.809,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/youtube-embed-plus/styles/ytprefs.min.css?ver=1788771819",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.809,
+   "phase": "pre-interaction",
+   "url": "https://use.typekit.net/usp1egd.css?ver=7.1.4",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.81,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/app.min.css?ver=1721671125",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.81,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/css/libs/slick.css?ver=1721671125",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.81,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/style.css?ver=1721671125",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.81,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/jquery/jquery.min.js?ver=1693280664",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.81,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1686327564",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.811,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/js/movement.js?ver=1793089232",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.811,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/js/script.js?ver=1793089232",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.811,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/business-reviews-bundle/assets/2.3.1/js/public-main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.811,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/responsive-menu-pro/public/js/noscroll.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.811,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-VE3EB4WZ04",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.812,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/youtube-embed-plus/scripts/ytprefs.min.js?ver=1788771819",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.812,
+   "phase": "pre-interaction",
+   "url": "https://cdn.userway.org/widget.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.812,
+   "phase": "pre-interaction",
+   "url": "https://analytics.ahrefs.com/analytics.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.831,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/formreset.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.831,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/formsmain.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.832,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/readyclass.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.832,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/browsers.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.832,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2023/04/RussellLazarus_Logo_25years.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.889,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/google-site-kit/dist/assets/js/googlesitekit-consent-mode-5ef17bce870a966299fc.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.89,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/google-site-kit/dist/assets/js/googlesitekit-events-provider-content-events-90bacb156ab34fa090db.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.89,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/wp-smushit/app/assets/js/smush-lazy-load.min.js?ver=1793739760",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.891,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/js/libs/slick.min.js?ver=1721671125",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.891,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/js/libs/readmore.js?ver=1721671125",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.892,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/js/custom.js?ver=1721671125",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.892,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/app.min.js?ver=1617199784",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.893,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/youtube-embed-plus/scripts/fitvids.min.js?ver=1788771819",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.894,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/dom-ready.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.894,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/hooks.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.895,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/i18n.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.895,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/a11y.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.895,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/js/jquery.json.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.895,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/js/gravityforms.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.896,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/js/placeholders.jquery.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.896,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/utils.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.896,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/vendor-theme.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.896,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/scripts-theme.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.896,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/js/flags.js?ver=1793088246",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.897,
+   "phase": "pre-interaction",
+   "url": "https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.18,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-5HSZDSC",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.221,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/b15db15f746f29ffa02638cb455b8ec0.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.222,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/f74796d0dc3f3909f35d4530fa4902f1.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.245,
+   "phase": "pre-interaction",
+   "url": "https://acsbapp.com/apps/app/dist/js/app.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.246,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/widget/chat.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.351,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2025/09/russell-lazarus-personal-injury-attorneys-orange-county-ca-1-1600-913-1536x876.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.425,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-195980701-1&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.512,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-5C4GNJJGJ1&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.512,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-691208297&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.513,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/analytics.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.513,
+   "phase": "pre-interaction",
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "type": "script",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 1.513,
+   "phase": "pre-interaction",
+   "url": "https://cdn.callrail.com/companies/966590897/9298935f1c05b4c55c7c/12/swap.js",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 1.514,
+   "phase": "pre-interaction",
+   "url": "https://connect.facebook.net/en_US/fbevents.js",
+   "type": "script",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 1.514,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/bat.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.516,
+   "phase": "pre-interaction",
+   "url": "https://www.clarity.ms/tag/m9vz9qs8zt?ref=gtm2",
+   "type": "script",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 1.517,
+   "phase": "pre-interaction",
+   "url": "https://pixel.mathtag.com/event/js?mt_id=1680644&mt_adid=431923&mt_exem=&mt_excl=&v1=&v2=&v3=&s1=&s2=&s3=",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.682,
+   "phase": "pre-interaction",
+   "url": "blob:https://www.russellandlazarus.com/d189e205-56ab-4ac3-8aa7-6e65df2cc0a9",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.719,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2020/02/oc_metro_badge.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.72,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2020/02/lawjournal_badge.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.72,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2020/02/Orange-CountyTrialLawyersAssociation_badge.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.72,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2023/08/sl-badge-l-g-2024.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.72,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2020/02/Top100National-TrialLawyers_badge.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.721,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/08/avvo-badge-1.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.721,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2020/02/MillionDollarAssociatesForum_badge.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.721,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2024/06/heart.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.721,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2024/06/scales.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.725,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2024/06/gavel.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.725,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/flags/svg/en-us.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.725,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/flags/svg/fr-qc.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.726,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/flags/svg/es-mx.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.726,
+   "phase": "pre-interaction",
+   "url": "https://pixel.mathtag.com/event/js?primary-x-request-id=f9e0e92d9e29a6b5111baaf9f9a86e9d&mt_id=1680644&mt_adid=431923&mt_exem=&mt_excl=&v1=&v2=&v3=&s1=&s2=&s3=&mt_pqc=mt_aid&mt_fpa=1&mt_gfp=mt_fp_mt_aid",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.726,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/iframe_api",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.836,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/gform-text-counter.bf4b9483b3258d0ab7f8.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.878,
+   "phase": "pre-interaction",
+   "url": "https://js.callrail.com/companies/966590897/external_forms.js?t=1794732848646&",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 1.901,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/10/google-100-m.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.901,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/10/NicePng_yelp-logo-png_147643-m.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.974,
+   "phase": "pre-interaction",
+   "url": "https://cdn.acsbapp.com/config/russellandlazarus.com/config.json",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.003,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/wp-emoji-release.min.js?ver=1784327011",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.024,
+   "phase": "pre-interaction",
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=17&frm=0&apvc=1&ae=g&en=page_view&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=882063950.1794732849&navt=n&npa=1&ep.ads_data_redaction=0&gdid=dZTNiMT&gtm=45He6bb1v830213395za200zd830213395xeaxf1&gcs=G100&gcd=1",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.04,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za208zd876478981xf1&_p=1794732847946&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AAAAACAC&cid=984765390.1794732849&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=1&sr=1280x720&uaa=x86&uab=64&uafvl=Headless",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 2.052,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/gform-input-mask.4effd6b2152e96808e92.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.058,
+   "phase": "pre-interaction",
+   "url": "https://scripts.clarity.ms/0.8.77/clarity.js",
+   "type": "script",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.096,
+   "phase": "pre-interaction",
+   "url": "https://connect.facebook.net/signals/config/251156732631749?v=2.9.439&r=stable&domain=www.russellandlazarus.com&hme=1f127d11ce7bba675ee077e129c6ec7e07038113ad3e920301e60f2f865dc776&ex_m=119%2C243%2C172%2C27%2C82%2C83%2C163%2C78%2C77%2C11%2C182%2C102%2C20%2C154%2C142%2C46%2C85%2C90%2C184%2C111%2C150%",
+   "type": "script",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.104,
+   "phase": "pre-interaction",
+   "url": "https://cdn.acsbapp.com/cache/app/wildcards.json",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.195,
+   "phase": "pre-interaction",
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=14&frm=0&apvc=0&tid=AW-691208297&en=page_view&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=882063950.1794732849&navt=n&npa=1&gtm=45be6bb1v9102233068za20ozb830213395zd830213395xecxf1&gcs=G100&gcd=13p3p3p3p5l1&d",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.195,
+   "phase": "pre-interaction",
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=14&frm=0&apvc=0&ae=g&tid=AW-691208297&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=882063950.1794732849&navt=n&npa=1&_tu=CA&gtm=45be6bb1v9102233068z8830213395za20gzb830213395zd830213395xeaxf1&gcs=G100&gcd=13p3",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.299,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-5C4GNJJGJ1&gtm=45je6bb1v893017570za20ozb830213395zd830213395xf1&_p=1794732847946&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&ecid=1882626149&_eu=AAAAAGAC&cid=984765390.1794732849&frm=0&pscdl=denied&rcb=13&sr=1280x720&uaa=x86&uab=64&uafvl=Headl",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 2.306,
+   "phase": "pre-interaction",
+   "url": "https://pixel.mathtag.com/sync/iframe?mt_uuid=88ff6af9-7330-4500-be97-0fc40c33fa23&no_iframe=1&mt_adid=431923&source=mathtag",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 2.309,
+   "phase": "pre-interaction",
+   "url": "https://pixel.mathtag.com/comp/img?mt_id=99&ns=xx&bcdv=0",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 2.314,
+   "phase": "pre-interaction",
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.317,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/action/25079313.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.322,
+   "phase": "pre-interaction",
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.322,
+   "phase": "pre-interaction",
+   "url": "https://s.amazon-adsystem.com/iu3?pid=d21cd82b-a872-4e5f-a255-25e623e618cb&event=Sitewide&gtmVersion=3.5&ts=1794732849097&eventSource=amzn.js&uuid=f91fd805-6316-4c94-87db-854b7c02203d",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.322,
+   "phase": "pre-interaction",
+   "url": "https://c.amazon-adsystem.com/aat/allowlist/allowlist.json",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.339,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/widget/widget.CODTX0SS.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.34,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/widget/widget.Ci5khmwF.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.341,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/www-widgetapi.vflset/www-widgetapi.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.419,
+   "phase": "pre-interaction",
+   "url": "https://www.facebook.com/tr/?id=251156732631749&ev=PageView&dl=https%3A%2F%2Fwww.russellandlazarus.com&rl=&if=false&ts=1794732849192&iw=false&sw=1280&sh=720&v=2.9.439&r=stable&ec=0&o=77852&aems=0%3B0&fbp=fb.1.1794732849186.501071051393801620&cs_est=true&pm=1&hrl=ab028b&ler=empty&plt=1699.19999999995",
+   "type": "image",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.435,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/action/0?ti=25079313&Ver=2&mid=de365a10-983d-41d9-a1fe-b95476e092ed&bo=1&sid=1ef1b6c0e0d211f193295536c4b5366a&vid=1ef1c190e0d211f1955f9b22d59b9263&vids=1&msclkid=N&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Best%20Personal%20Injury%20Attorneys%20in%20Orange%20County,",
+   "type": "image",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.462,
+   "phase": "pre-interaction",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.507,
+   "phase": "pre-interaction",
+   "url": "https://pixel.mathtag.com/comp/img?mt_id=99&ns=xx&bcdv=0",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 2.594,
+   "phase": "pre-interaction",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.858,
+   "phase": "pre-interaction",
+   "url": "https://me.theario.com/erfan.png",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.865,
+   "phase": "pre-interaction",
+   "url": "https://c.clarity.ms/c.gif",
+   "type": "image",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.875,
+   "phase": "pre-interaction",
+   "url": "https://www.russellandlazarus.com/cdn-cgi/rum?",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 2.929,
+   "phase": "pre-interaction",
+   "url": "https://s.amazon-adsystem.com/iu3?pid=d21cd82b-a872-4e5f-a255-25e623e618cb&event=Sitewide&gtmVersion=3.5&ts=1794732849097&eventSource=amzn.js&uuid=f91fd805-6316-4c94-87db-854b7c02203d&dcc=t",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 2.98,
+   "phase": "pre-interaction",
+   "url": "https://c.bing.com/c.gif?ctsa=mr&CtsSyncId=386C344771504BE2B0BF684075C9C2D6&RedC=c.clarity.ms&MXFR=270BEDE5E55969D6238AF5F7E1596794",
+   "type": "image",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 3.016,
+   "phase": "pre-interaction",
+   "url": "https://c.clarity.ms/c.gif?ctsa=mr&CtsSyncId=386C344771504BE2B0BF684075C9C2D6&MUID=0B0C2AA083226E283FF832B282066FBC",
+   "type": "image",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 3.107,
+   "phase": "pre-interaction",
+   "url": "https://chat-api.intaker.com/api/v2/Chat/widget",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 3.435,
+   "phase": "pre-interaction",
+   "url": "https://chat-api.intaker.com/api/v2/Chat/visitor",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 3.463,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/spriteChat.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 3.463,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/fonts/Roboto/medium/RobotoMedium.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 3.464,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/icons/call-us-new.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 3.464,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/fonts/Roboto/regular/RobotoRegular.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 3.465,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/IntakerLogo-v2.svg",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 3.465,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/moveToCenterIcon.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 3.465,
+   "phase": "pre-interaction",
+   "url": "https://s.w.org/images/core/emoji/17.0.2/svg/1f44b-1f3fc.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 3.471,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/dialog-video/Video%20Oct%2016%202026%2C%2011%2009%2040%20AM_7268f_MiniWidget.mp4",
+   "type": "media",
+   "trackers": []
+  },
+  {
+   "t": 4.862,
+   "phase": "pre-interaction",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 7.043,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za208zd876478981xf1&_p=1794732847946&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AAACACAC&cid=984765390.1794732849&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=1&sr=1280x720&uaa=x86&uab=64&uafvl=Headless",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 8.649,
+   "phase": "pre-interaction",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 9.024,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/openTabGrey.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.024,
+   "phase": "pre-interaction",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/intaker-power-v2.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.029,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/svg/fb-footer.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.03,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/svg/yt-footer.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.03,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/svg/in-footer.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.03,
+   "phase": "post-scroll",
+   "url": "https://m.bbb.org/brand/seals/Accredited_Business_Seal_NoRating_RGB.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.579,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2025/11/personal-injury-attorney-sacramento-ca-1-600-511.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.579,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2026/07/personal-injury-attorney-san-diego-ca-3-600-511.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.58,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2025/08/newport-beach-2-527-450.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.58,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2019/05/long-beach.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.58,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/10/Russell-Lazarus-Riverside-office-min.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.58,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/10/laguna-niguel-m.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.58,
+   "phase": "post-scroll",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2022/07/RL_Location5.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.304,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/comp/img?mt_id=99&ns=xx&bcdv=1",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.507,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/comp/img?mt_id=99&ns=xx&bcdv=1",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.962,
+   "phase": "reload",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 13.128,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 14.011,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/business-reviews-bundle/assets/2.3.1/css/public-main.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.012,
+   "phase": "reload",
+   "url": "https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css?ver=7.1.4",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.012,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/css/movement.css?ver=1793089232",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.012,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/css/plugin-main.css?ver=1793089232",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.012,
+   "phase": "reload",
+   "url": "https://use.fontawesome.com/releases/v5.2.0/css/all.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.013,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/youtube-embed-plus/styles/ytprefs.min.css?ver=1788771819",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.013,
+   "phase": "reload",
+   "url": "https://use.typekit.net/usp1egd.css?ver=7.1.4",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.013,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/app.min.css?ver=1721671125",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.013,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/css/libs/slick.css?ver=1721671125",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.013,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/style.css?ver=1721671125",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.013,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/jquery/jquery.min.js?ver=1693280664",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.014,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1686327564",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.014,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/js/movement.js?ver=1793089232",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.015,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/lead-call-buttons/js/script.js?ver=1793089232",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.015,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/business-reviews-bundle/assets/2.3.1/js/public-main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.016,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/responsive-menu-pro/public/js/noscroll.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.016,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-VE3EB4WZ04",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.016,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/youtube-embed-plus/scripts/ytprefs.min.js?ver=1788771819",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.017,
+   "phase": "reload",
+   "url": "https://cdn.userway.org/widget.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.017,
+   "phase": "reload",
+   "url": "https://analytics.ahrefs.com/analytics.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.017,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/formreset.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.017,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/formsmain.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.018,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/readyclass.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.018,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/legacy/css/browsers.min.css?ver=1793998965",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.018,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2023/04/RussellLazarus_Logo_25years.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.053,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/google-site-kit/dist/assets/js/googlesitekit-consent-mode-5ef17bce870a966299fc.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.053,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/google-site-kit/dist/assets/js/googlesitekit-events-provider-content-events-90bacb156ab34fa090db.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.056,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/wp-smushit/app/assets/js/smush-lazy-load.min.js?ver=1793739760",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.056,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/js/libs/slick.min.js?ver=1721671125",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.056,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/js/libs/readmore.js?ver=1721671125",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.057,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/src/js/custom.js?ver=1721671125",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.057,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/app.min.js?ver=1617199784",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.057,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/youtube-embed-plus/scripts/fitvids.min.js?ver=1788771819",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.058,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/dom-ready.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.058,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/hooks.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.058,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/i18n.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.059,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/dist/a11y.min.js?ver=1787568017",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.059,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/js/jquery.json.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.059,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/js/gravityforms.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.059,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/js/placeholders.jquery.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.06,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/utils.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.06,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/vendor-theme.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.06,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/scripts-theme.min.js?ver=1793998965",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.061,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/js/flags.js?ver=1793088246",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.061,
+   "phase": "reload",
+   "url": "https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.117,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-5HSZDSC",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 14.133,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/b15db15f746f29ffa02638cb455b8ec0.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 14.134,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/dist/f74796d0dc3f3909f35d4530fa4902f1.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 14.221,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-195980701-1&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.273,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-5C4GNJJGJ1&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.274,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-691208297&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.274,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/analytics.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.275,
+   "phase": "reload",
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "type": "script",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 14.275,
+   "phase": "reload",
+   "url": "https://cdn.callrail.com/companies/966590897/9298935f1c05b4c55c7c/12/swap.js",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 14.275,
+   "phase": "reload",
+   "url": "https://connect.facebook.net/en_US/fbevents.js",
+   "type": "script",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 14.276,
+   "phase": "reload",
+   "url": "https://bat.bing.com/bat.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 14.276,
+   "phase": "reload",
+   "url": "https://www.clarity.ms/tag/m9vz9qs8zt?ref=gtm2",
+   "type": "script",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 14.276,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/event/js?mt_id=1680644&mt_adid=431923&mt_exem=&mt_excl=&v1=&v2=&v3=&s1=&s2=&s3=",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.298,
+   "phase": "reload",
+   "url": "https://acsbapp.com/apps/app/dist/js/app.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.298,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/widget/chat.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.456,
+   "phase": "reload",
+   "url": "https://connect.facebook.net/signals/config/251156732631749?v=2.9.439&r=stable&domain=www.russellandlazarus.com&hme=1f127d11ce7bba675ee077e129c6ec7e07038113ad3e920301e60f2f865dc776&ex_m=119%2C243%2C172%2C27%2C82%2C83%2C163%2C78%2C77%2C11%2C182%2C102%2C20%2C154%2C142%2C46%2C85%2C90%2C184%2C111%2C150%",
+   "type": "script",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 14.458,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/action/25079313.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 14.481,
+   "phase": "reload",
+   "url": "https://cdn.acsbapp.com/config/russellandlazarus.com/config.json",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 14.481,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/widget/widget.CODTX0SS.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 14.482,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/widget/widget.Ci5khmwF.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.498,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/svg/fb-footer.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.5,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/svg/yt-footer.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.501,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/themes/genesis-child/assets/svg/in-footer.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.515,
+   "phase": "reload",
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 14.53,
+   "phase": "reload",
+   "url": "https://www.facebook.com/tr/?id=251156732631749&ev=PageView&dl=https%3A%2F%2Fwww.russellandlazarus.com&rl=&if=false&ts=1794732861302&iw=false&sw=1280&sh=720&v=2.9.439&r=stable&ec=0&o=77852&aems=0%3B0&fbp=fb.1.1794732849186.501071051393801620&cs_est=true&pm=1&hrl=ab028b&ler=empty&ups[pv]=%7B%7D&ups[r",
+   "type": "image",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 14.54,
+   "phase": "reload",
+   "url": "https://me.theario.com/erfan.png",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 14.544,
+   "phase": "reload",
+   "url": "https://cdn.acsbapp.com/cache/app/wildcards.json",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 14.545,
+   "phase": "reload",
+   "url": "https://scripts.clarity.ms/0.8.80-beta/clarity.js",
+   "type": "script",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 14.55,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/sync/iframe?mt_uuid=88ff6af9-7330-4500-be97-0fc40c33fa23&no_iframe=1&mt_adid=431923&source=mathtag",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 14.555,
+   "phase": "reload",
+   "url": "https://c.amazon-adsystem.com/aat/amzn.js",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 14.555,
+   "phase": "reload",
+   "url": "https://s.amazon-adsystem.com/iu3?pid=d21cd82b-a872-4e5f-a255-25e623e618cb&event=Sitewide&gtmVersion=3.5&ts=1794732861330&eventSource=amzn.js&uuid=c3d95b7b-fac3-4e40-9cb0-d7f5288ea719",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 14.556,
+   "phase": "reload",
+   "url": "https://c.amazon-adsystem.com/aat/allowlist/allowlist.json",
+   "type": "fetch",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 14.566,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/fonts/Roboto/medium/RobotoMedium.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 14.566,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/fonts/Roboto/regular/RobotoRegular.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 14.593,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/flags/svg/en-us.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.593,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/flags/svg/fr-qc.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.594,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gtranslate/flags/svg/es-mx.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.594,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-includes/js/wp-emoji-release.min.js?ver=1784327011",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.631,
+   "phase": "reload",
+   "url": "https://js.callrail.com/companies/966590897/external_forms.js?t=1794732861369&",
+   "type": "script",
+   "trackers": [
+    "call_tracking"
+   ]
+  },
+  {
+   "t": 14.652,
+   "phase": "reload",
+   "url": "https://bat.bing.com/action/0?ti=25079313&Ver=2&mid=12d1789a-403f-4f73-ab62-f78fb568706e&bo=1&sid=1ef1b6c0e0d211f193295536c4b5366a&vid=1ef1c190e0d211f1955f9b22d59b9263&vids=0&msclkid=N&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Best%20Personal%20Injury%20Attorneys%20in%20Orange%20County,",
+   "type": "image",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 14.671,
+   "phase": "reload",
+   "url": "https://www.youtube.com/iframe_api",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.797,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/gform-text-counter.bf4b9483b3258d0ab7f8.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.806,
+   "phase": "reload",
+   "url": "https://chat-api.intaker.com/api/v2/Chat/widget",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 14.829,
+   "phase": "reload",
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=16&frm=0&apvc=1&ae=g&en=page_view&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=1650386819.1794732862&navt=r&npa=1&ep.ads_data_redaction=0&gdid=dZTNiMT&gtm=45He6bb1v830213395za200zd830213395xeaxf1&gcs=G100&gcd=",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 14.829,
+   "phase": "reload",
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=18&frm=0&apvc=0&tid=AW-691208297&en=page_view&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=1650386819.1794732862&navt=r&npa=1&gdid=dZTNiMT&_tu=CA&gtm=45be6bb1v9102233068za20ozb830213395zd830213395xecxf1&gcs=G1",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 14.83,
+   "phase": "reload",
+   "url": "https://pagead2.googlesyndication.com/ccm/collect?rcb=18&frm=0&apvc=0&ae=g&tid=AW-691208297&dl=https%3A%2F%2Fwww.russellandlazarus.com%2F&scrsrc=www.googletagmanager.com&rnd=1650386819.1794732862&navt=r&npa=1&gdid=dZTNiMT&_tu=CA&gtm=45be6bb1v9102233068z8830213395za20gzb830213395zd830213395xeaxf1&gcs",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 14.849,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za208zd876478981xf1&_p=1794732860888&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AAAAACAC&cid=624379931.1794732862&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=10&sr=1280x720&uaa=x86&uab=64&uafvl=Headles",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.85,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za208zd876478981xf1&_p=1794732860888&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AAACACAC&cid=624379931.1794732862&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=10&sr=1280x720&uaa=x86&uab=64&uafvl=Headles",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.851,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-5C4GNJJGJ1&gtm=45je6bb1v893017570za20ozb830213395zd830213395xf1&_p=1794732860888&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&ecid=1089390915&_eu=AAAAAGAC&cid=624379931.1794732862&frm=0&pscdl=denied&rcb=12&sr=1280x720&uaa=x86&uab=6",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 14.87,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/plugins/gravityforms/assets/js/dist/gform-input-mask.4effd6b2152e96808e92.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.93,
+   "phase": "reload",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/www-widgetapi.vflset/www-widgetapi.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 14.938,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2025/11/personal-injury-attorney-sacramento-ca-1-600-511.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.939,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2026/07/personal-injury-attorney-san-diego-ca-3-600-511.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.939,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2025/08/newport-beach-2-527-450.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.94,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2019/05/long-beach.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.94,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/10/Russell-Lazarus-Riverside-office-min.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.94,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2021/10/laguna-niguel-m.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.941,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/wp-content/uploads/2022/07/RL_Location5.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.941,
+   "phase": "reload",
+   "url": "https://m.bbb.org/brand/seals/Accredited_Business_Seal_NoRating_RGB.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.97,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/misc/img?mop_seq=0:12&mt_cb=204780&mop_top=",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 14.987,
+   "phase": "reload",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 15.184,
+   "phase": "reload",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 15.328,
+   "phase": "reload",
+   "url": "https://www.russellandlazarus.com/cdn-cgi/rum?",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 15.335,
+   "phase": "reload",
+   "url": "https://chat-api.intaker.com/api/v2/Chat/visitor",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 15.351,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/spriteChat.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.354,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/moveToCenterIcon.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.355,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/openTabGrey.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.357,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/intaker-power-v2.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.358,
+   "phase": "reload",
+   "url": "https://s.w.org/images/core/emoji/17.0.2/svg/1f44b-1f3fc.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.359,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/icons/call-us-new.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.36,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/new-dashboard/iconsChat/IntakerLogo-v2.svg",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 15.37,
+   "phase": "reload",
+   "url": "https://intaker.azureedge.net/dialog-video/Video%20Oct%2016%202026%2C%2011%2009%2040%20AM_7268f_MiniWidget.mp4",
+   "type": "media",
+   "trackers": []
+  },
+  {
+   "t": 15.959,
+   "phase": "reload",
+   "url": "https://image2.pubmatic.com/AdServer/Pug?vcode=bz0yJnR5cGU9MSZjb2RlPTM2MiZ0bD0xMjk2MDA=&piggybackCookie=uid:88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 15.96,
+   "phase": "reload",
+   "url": "https://cm.g.doubleclick.net/pixel?google_nid=mediamath&google_hm=iP9q-XMwRQC-lw_EDDP6Iw",
+   "type": "image",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 15.996,
+   "phase": "reload",
+   "url": "https://sync.mathtag.com/sync/img?mt_exid=10074&google_error=3",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.313,
+   "phase": "reload",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 17.963,
+   "phase": "reload",
+   "url": "https://pixel.tapad.com/idsync/ex/receive?partner_id=2040&partner_device_id=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.964,
+   "phase": "reload",
+   "url": "https://pixel.rubiconproject.com/tap.php?v=4222&nid=1512&put=88ff6af9-7330-4500-be97-0fc40c33fa23&expires=28",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 17.965,
+   "phase": "reload",
+   "url": "https://dsum-sec.casalemedia.com/rum?cm_dsp_id=3&external_user_id=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 17.965,
+   "phase": "reload",
+   "url": "https://x.bidswitch.net/sync?dsp_id=80&user_id=88ff6af9-7330-4500-be97-0fc40c33fa23&expires=30",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 17.965,
+   "phase": "reload",
+   "url": "https://sync.go.sonobi.com/us.gif?nw=mediamath&nuid=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.965,
+   "phase": "reload",
+   "url": "https://uipus.semasio.net/mediamath/1/info?sType=sync&sExtCookieId=88ff6af9-7330-4500-be97-0fc40c33fa23&sInitiator=external",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.966,
+   "phase": "reload",
+   "url": "https://sync.crwdcntrl.net/qmap?c=17733&tp=INFL&tpid=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.966,
+   "phase": "reload",
+   "url": "https://rtb-csync.smartadserver.com/redir/?partnerid=25&partneruserid=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.966,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/misc/img?mop_seq=10:12&mt_cb=727459&mop_top=3:1794732861|4:1794732861|10072:1794732861|9:1794732861|15:1794732861|46:1794732861|42:1794732861|10041:1794732861|10040:1794732861|39:1794732861|",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.966,
+   "phase": "reload",
+   "url": "https://user-sync.fwmrm.net/ad/u?mode=user-register&dspid=8&dspuid=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.967,
+   "phase": "reload",
+   "url": "https://us-u.openx.net/w/1.0/sd?id=562733107&val=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 17.967,
+   "phase": "reload",
+   "url": "https://pixel.mathtag.com/misc/img?mop_seq=12:12&mt_cb=192765&check=88ff6af9-7330-4500-be97-0fc40c33fa23&mop_top=3:1794732861|4:1794732861|10072:1794732861|9:1794732861|15:1794732861|46:1794732861|42:1794732861|10041:1794732861|10040:1794732861|39:1794732861|44:1794732861|5:1794732861|",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 18.051,
+   "phase": "reload",
+   "url": "https://pixel.tapad.com/idsync/ex/receive/check?partner_id=2040&partner_device_id=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 18.114,
+   "phase": "reload",
+   "url": "https://x.bidswitch.net/ul_cb/sync?dsp_id=80&user_id=88ff6af9-7330-4500-be97-0fc40c33fa23&expires=30",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 18.125,
+   "phase": "reload",
+   "url": "https://dsum-sec.casalemedia.com/rum?cm_dsp_id=3&external_user_id=88ff6af9-7330-4500-be97-0fc40c33fa23&C=1",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 18.15,
+   "phase": "reload",
+   "url": "https://us-u.openx.net/w/1.0/sd?cc=1&id=562733107&val=88ff6af9-7330-4500-be97-0fc40c33fa23",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 18.247,
+   "phase": "reload",
+   "url": "https://onetag-sys.com/match/?int_id=30&uid=c825be19-ff31-4d2b-883f-958f86b27c16&gdpr=&gdpr_consent=&us_privacy=",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 18.312,
+   "phase": "reload",
+   "url": "https://sync.crwdcntrl.net/qmap?c=17733&tp=INFL&tpid=88ff6af9-7330-4500-be97-0fc40c33fa23&ct=y",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 18.579,
+   "phase": "reload",
+   "url": "https://uipus.semasio.net/mediamath/1/info2?sType=sync&sExtCookieId=88ff6af9-7330-4500-be97-0fc40c33fa23&sInitiator=external",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 18.805,
+   "phase": "reload",
+   "url": "https://sg.semasio.net/sync/1/14876172?sExtCookieId=88ff6af9-7330-4500-be97-0fc40c33fa23&sInitiator=external&gdpr=",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 19.14,
+   "phase": "reload",
+   "url": "https://match.adsrvr.org/track/cmf/generic?ttd_pid=semasio&ttd_tpi=1&gdpr=",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 19.292,
+   "phase": "reload",
+   "url": "https://match.adsrvr.org/track/cmb/generic?ttd_pid=semasio&ttd_tpi=1&gdpr=",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 19.344,
+   "phase": "reload",
+   "url": "https://uipglob.semasio.net/tradedesk/1/info?sType=sync&gdpr=0&gdpr_consent=&sInitiator=internal&sExtCookieId=273ce3c4-f278-4009-83ff-3bc618205a8c",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 19.671,
+   "phase": "reload",
+   "url": "https://sg.semasio.net/sync/1/32675800?&gdpr=0&gdpr_consent=&sInitiator=internal&sExtCookieId=273ce3c4-f278-4009-83ff-3bc618205a8c",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 19.762,
+   "phase": "reload",
+   "url": "https://ib.adnxs.com/getuid?https%3A%2F%2Fsu.semasio.net%2Fsync%2F1%2F4354957%3FsExtCookieId%3D%24UID%26sInitiator%3Dinternal&gdpr=0&gdpr_consent=",
+   "type": "image",
+   "trackers": [
+    "other_adtech"
+   ]
+  },
+  {
+   "t": 19.844,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-VE3EB4WZ04&gtm=45je6bb1v876478981za200zd876478981xf1&_p=1794732860888&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&_eu=AEAAACAC&ae=a&cid=624379931.1794732862&frm=0&ibt=1&ngs=1&pscdl=denied&rcb=10&sr=1280x720&uaa=x86&uab=64&uafvl=He",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 19.85,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/g/collect?v=2&tid=G-5C4GNJJGJ1&gtm=45je6bb1v893017570za20gzb830213395zd830213395xf1&_p=1794732860888&gcs=G100&gcd=13p3p3p3p5l1&npa=1&dma_cps=-&dma=0&gdid=dZTNiMT&ecid=1089390915&_eu=AEAAAGAC&ae=a&cid=624379931.1794732862&frm=0&pscdl=denied&rcb=12&sr=1280x720&uaa=x86&",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 20.551,
+   "phase": "reload",
+   "url": "https://u.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  }
+ ]
+}

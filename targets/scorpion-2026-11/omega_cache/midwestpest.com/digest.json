@@ -1,0 +1,829 @@
+{
+ "domain": "midwestpest.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 94,
+  "indexable": 29,
+  "codes": {
+   "Low LONG_TITLE": 27,
+   "Low ORPHAN_CANDIDATE": 2,
+   "High NOINDEX_IN_SITEMAP": 1,
+   "Info NOINDEX_FOLLOWED_LINKS": 1
+  },
+  "examples": {
+   "NOINDEX_IN_SITEMAP": [
+    "https://midwestpest.com/pest-control-omaha"
+   ],
+   "LONG_TITLE": [
+    "https://midwestpest.com/",
+    "https://midwestpest.com/pest-control-altoona",
+    "https://midwestpest.com/pest-control-ames"
+   ],
+   "ORPHAN_CANDIDATE": [
+    "https://midwestpest.com/blog/how-prevent-rodent-infestations-winter",
+    "https://midwestpest.com/slate"
+   ],
+   "NOINDEX_FOLLOWED_LINKS": [
+    "https://midwestpest.com/pest-control-omaha"
+   ]
+  },
+  "jsonld_types": {
+   "Product": 30,
+   "LocalBusiness": 30,
+   "BlogPosting": 2,
+   "FAQPage": 1
+  },
+  "no_desc": 0,
+  "long_title": 28
+ },
+ "pages": [
+  {
+   "url": "https://midwestpest.com/",
+   "status": 200,
+   "title": "Omaha, NE Pest Control Exterminators | Midwest Pest Control | Exterminators | Pest Control Near Me",
+   "desc_len": 222,
+   "words": 1184,
+   "canonical": "https://midwestpest.com/",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Midwest Pest Control",
+     "telephone": "402-524-5200",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Omaha",
+      "addressRegion": "Nebraska",
+      "streetAddress": "14225 Dayton Circle Suite 10"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+14022512749",
+    "4025245200"
+   ],
+   "phones_text": [
+    "4025245200"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/people"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "guarantee_language": [
+     "Our commitment to satisfaction guarantees that you receive the highest standard of service and protec",
+     "erset, IA See where else we service Image Your Satisfaction Guaranteed! At Midwest Pest Control, our pest control experts in Omaha",
+     "Your satisfaction is our guarantee! Image Get Started Today! Call us at 402-524-5200 or Get a"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "Expert",
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PGSWLNX": {
+     "gtm_ids": [
+      "GTM-PGSWLNX",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-CYJY1CF00S"
+     ],
+     "ua_ids": [
+      "UA-180175450-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PGSWLNX"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://midwestpest.com/free-quote",
+   "status": 200,
+   "title": "Free Pest Control Quotes & Estimates | Midwest Pest Control",
+   "desc_len": 108,
+   "words": 387,
+   "canonical": "https://midwestpest.com/free-quote",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Midwest Pest Control",
+     "telephone": "402-524-5200",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Omaha",
+      "addressRegion": "Nebraska",
+      "streetAddress": "14225 Dayton Circle Suite 10"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+14022512749",
+    "4025245200"
+   ],
+   "phones_text": [
+    "4022512749",
+    "4025245200"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/people"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PGSWLNX": {
+     "gtm_ids": [
+      "GTM-PGSWLNX",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-CYJY1CF00S"
+     ],
+     "ua_ids": [
+      "UA-180175450-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PGSWLNX"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://midwestpest.com/pest-control-lincoln",
+   "status": 200,
+   "title": "Eco-Friendly Pest Control in Lincoln, NE | Rodent Control, Mosquito Control, Near Me | Midwest Pest Control",
+   "desc_len": 206,
+   "words": 1646,
+   "canonical": "https://midwestpest.com/pest-control-lincoln",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Midwest Pest Control",
+     "telephone": "402-524-5200",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Omaha",
+      "addressRegion": "Nebraska",
+      "streetAddress": "14225 Dayton Circle Suite 10"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+14022512749",
+    "4025245200"
+   ],
+   "phones_text": [
+    "4025245200"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/people"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "guarantee_language": [
+     "Starting at $39/Month! Image Benefit Body 100% Satisfaction Guarantee If you are ever unhappy with our pest services, our extermi",
+     "We use reduced-risk products to guarantee you receive service that\u2019s safe for you, your family, and y",
+     "following combination of interior and exterior services, we guarantee elimination and prevention of carpenter ants, sugar ants, a",
+     "Guaranteed Service for Your Satisfaction There\u2019s nothing more frustrat",
+     "We have a service guarantee to ensure you get the pest control you deserve! Your satisf"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "expert"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "sentiment_conditioned_incentive": [
+     "5 Star Review Gabe was so professional and efficient! Thank you! Marin Coughlin Get a Free"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PGSWLNX": {
+     "gtm_ids": [
+      "GTM-PGSWLNX",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-CYJY1CF00S"
+     ],
+     "ua_ids": [
+      "UA-180175450-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PGSWLNX"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://midwestpest.com/pest-control-omaha",
+   "status": 200,
+   "title": "Eco-Friendly Pest Control in Omaha, NE | Rodent Control, Mosquito Control, Near Me | Midwest Pest Control",
+   "desc_len": 204,
+   "words": 1440,
+   "canonical": "https://midwestpest.com/pest-control-omaha",
+   "robots_meta": [
+    "noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate"
+   ],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Midwest Pest Control",
+     "telephone": "402-524-5200",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Omaha",
+      "addressRegion": "Nebraska",
+      "streetAddress": "14225 Dayton Circle Suite 10"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+14022512749",
+    "4025245200"
+   ],
+   "phones_text": [
+    "4025245200"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/people"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "guarantee_language": [
+     "ow with your free quote! Claim A Free Estimate 100% Service Guaranteed for Peace of Mind At Midwest, we believe in reliable and af",
+     "fordable service\u2014that\u2019s why we have a 100% satisfaction guarantee in place to back you up"
+    ],
+    "specialist_expert_claims": [
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PGSWLNX": {
+     "gtm_ids": [
+      "GTM-PGSWLNX",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-CYJY1CF00S"
+     ],
+     "ua_ids": [
+      "UA-180175450-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PGSWLNX"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://midwestpest.com/privacy-policy",
+   "status": 200,
+   "title": "Privacy Policy | Midwest Pest Control",
+   "desc_len": 174,
+   "words": 786,
+   "canonical": "https://midwestpest.com/privacy-policy",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Midwest Pest Control",
+     "telephone": "402-524-5200",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Omaha",
+      "addressRegion": "Nebraska",
+      "streetAddress": "14225 Dayton Circle Suite 10"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+14022512749",
+    "4025245200"
+   ],
+   "phones_text": [
+    "4025245200"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/people"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://midwestpest.com/privacy-policy",
+     "/privacy-policy"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PGSWLNX": {
+     "gtm_ids": [
+      "GTM-PGSWLNX",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-CYJY1CF00S"
+     ],
+     "ua_ids": [
+      "UA-180175450-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PGSWLNX"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://midwestpest.com/services/mosquito-control",
+   "status": 200,
+   "title": "Mosquito Control in Nebraska & Iowa | Midwest Pest Control",
+   "desc_len": 128,
+   "words": 1634,
+   "canonical": "https://midwestpest.com/services/mosquito-control",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "Answer",
+    "FAQPage",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product",
+    "ProfessionalService",
+    "Question",
+    "Service"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Midwest Pest Control",
+     "telephone": "402-524-5200",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Omaha",
+      "addressRegion": "Nebraska",
+      "streetAddress": "14225 Dayton Circle Suite 10"
+     }
+    },
+    {
+     "type": "Service",
+     "name": "Mosquito Control",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    },
+    {
+     "type": "ProfessionalService",
+     "name": "Midwest Pest Control",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "+14022512749",
+    "4025245200"
+   ],
+   "phones_text": [
+    "4025245200"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/people"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "guarantee_language": [
+     "ng Lasting Mosquito Protection Icon Image 100% Satisfaction Guarantee Icon Image Locally Owned and Operated Mosquito Control Serv",
+     "Family-friendly products, like larvicide , to guarantee minimally invasive service"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PGSWLNX": {
+     "gtm_ids": [
+      "GTM-PGSWLNX",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-CYJY1CF00S"
+     ],
+     "ua_ids": [
+      "UA-180175450-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PGSWLNX"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "Product S4 info Type 'Product' has no rich-result rules ": 6,
+  "AggregateRating S3 missing-recommended bestRating": 6,
+  "LocalBusiness S3 missing-recommended url": 6,
+  "LocalBusiness S3 missing-recommended image": 6,
+  "LocalBusiness S3 missing-recommended geo": 6,
+  "LocalBusiness S3 missing-recommended openingHoursSpecification": 6,
+  "LocalBusiness S3 missing-recommended sameAs": 6,
+  "LocalBusiness S3 missing-recommended areaServed": 6,
+  "ProfessionalService S1 missing-required address": 1,
+  "ProfessionalService S1 missing-required telephone": 1,
+  "ProfessionalService S3 missing-recommended image": 1,
+  "ProfessionalService S3 missing-recommended geo": 1
+ },
+ "render": [
+  {
+   "url": "https://midwestpest.com/",
+   "raw_words": 1172,
+   "rendered_words": 1173,
+   "js_dependent_share": 0.001,
+   "lcp_ms_lab": 580,
+   "requests": 70,
+   "third_party_hosts": 14,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 47,
+   "load": 1631.9000000001397,
+   "console_errors": 0
+  },
+  {
+   "url": "https://midwestpest.com/pest-control-omaha",
+   "raw_words": 1428,
+   "rendered_words": 1429,
+   "js_dependent_share": 0.001,
+   "lcp_ms_lab": 268,
+   "requests": 63,
+   "third_party_hosts": 13,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 29.5,
+   "load": 1070.6000000000931,
+   "console_errors": 0
+  }
+ ],
+ "probe": [
+  {
+   "url": "https://midwestpest.com/",
+   "status": 200,
+   "banner": "no consent banner detected",
+   "pre_consent": [
+    "google_ads_doubleclick",
+    "google_analytics",
+    "google_tag_manager",
+    "microsoft_uet"
+   ],
+   "chat": [],
+   "ai_agents": [],
+   "prechecked": [],
+   "scarcity": [],
+   "timers": [],
+   "requests": 75,
+   "hosts": [
+    "279035.tctm.co",
+    "ajax.googleapis.com",
+    "analytics.google.com",
+    "bat.bing.com",
+    "cdn.jsdelivr.net",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "maps.googleapis.com",
+    "maps.gstatic.com",
+    "stats.g.doubleclick.net",
+    "unpkg.com",
+    "www.google-analytics.com",
+    "www.googletagmanager.com",
+    "www.youtube.com"
+   ]
+  }
+ ],
+ "demand": [
+  {
+   "seed": "midwest pest control",
+   "brand_in_list": true,
+   "top": [
+    "midwest pest control",
+    "midwest pest control fargo",
+    "midwest pest control omaha",
+    "midwest pest control rockford il",
+    "midwest pest control grand forks",
+    "midwest pest control near me",
+    "midwest pest control reviews",
+    "midwest pest control lincoln ne",
+    "midwest pest control ankeny",
+    "midwest pest control omaha reviews"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "pest control omaha",
+   "brand_in_list": false,
+   "top": [
+    "pest control omaha",
+    "pest control omaha ne",
+    "pest control omaha prices",
+    "pest control omaha reddit",
+    "pest control omaha mice",
+    "pest control omaha reviews",
+    "rodent control omaha",
+    "termite control omaha",
+    "insect control omaha",
+    "evo pest control omaha reviews"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "exterminator omaha",
+   "brand_in_list": false,
+   "top": [
+    "exterminator omaha",
+    "exterminator omaha ne",
+    "mice exterminator omaha",
+    "mouse exterminator omaha",
+    "bat exterminator omaha",
+    "mole exterminator omaha",
+    "wasp exterminator omaha",
+    "rodent exterminator omaha",
+    "ant exterminator omaha",
+    "bug exterminator omaha"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "termite treatment omaha",
+   "brand_in_list": false,
+   "top": [
+    "termite treatment omaha",
+    "termite inspection omaha",
+    "termite control omaha",
+    "termite inspection omaha ne",
+    "termite treatment how is it done",
+    "termite treatment timeline"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "pest control lincoln ne",
+   "brand_in_list": true,
+   "top": [
+    "pest control lincoln ne",
+    "pest control lincoln ne prices",
+    "rodent control lincoln ne",
+    "termite control lincoln ne",
+    "insect control lincoln ne",
+    "pest control near lincoln",
+    "pest control near lincoln ca",
+    "abc pest control lincoln ne",
+    "midwest pest control lincoln ne",
+    "best pest control lincoln ne"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "mosquito control omaha",
+   "brand_in_list": false,
+   "top": [
+    "mosquito control omaha",
+    "pest control omaha",
+    "pest control omaha ne",
+    "pest control omaha prices",
+    "pest control omaha reddit",
+    "pest control omaha mice",
+    "mosquito spray omaha",
+    "pest control omaha reviews",
+    "insect control omaha",
+    "mosquito control near me"
+   ],
+   "status": "ok"
+  }
+ ]
+}

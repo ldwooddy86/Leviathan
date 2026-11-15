@@ -1,0 +1,59 @@
+url,entity_type,severity,charge,detail
+https://midwestpest.com/,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://midwestpest.com/,AggregateRating,S3,missing-recommended,bestRating
+https://midwestpest.com/,LocalBusiness,S3,missing-recommended,url
+https://midwestpest.com/,LocalBusiness,S3,missing-recommended,image
+https://midwestpest.com/,LocalBusiness,S3,missing-recommended,geo
+https://midwestpest.com/,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/,LocalBusiness,S3,missing-recommended,sameAs
+https://midwestpest.com/,LocalBusiness,S3,missing-recommended,areaServed
+https://midwestpest.com/free-quote,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://midwestpest.com/free-quote,AggregateRating,S3,missing-recommended,bestRating
+https://midwestpest.com/free-quote,LocalBusiness,S3,missing-recommended,url
+https://midwestpest.com/free-quote,LocalBusiness,S3,missing-recommended,image
+https://midwestpest.com/free-quote,LocalBusiness,S3,missing-recommended,geo
+https://midwestpest.com/free-quote,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/free-quote,LocalBusiness,S3,missing-recommended,sameAs
+https://midwestpest.com/free-quote,LocalBusiness,S3,missing-recommended,areaServed
+https://midwestpest.com/pest-control-lincoln,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://midwestpest.com/pest-control-lincoln,AggregateRating,S3,missing-recommended,bestRating
+https://midwestpest.com/pest-control-lincoln,LocalBusiness,S3,missing-recommended,url
+https://midwestpest.com/pest-control-lincoln,LocalBusiness,S3,missing-recommended,image
+https://midwestpest.com/pest-control-lincoln,LocalBusiness,S3,missing-recommended,geo
+https://midwestpest.com/pest-control-lincoln,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/pest-control-lincoln,LocalBusiness,S3,missing-recommended,sameAs
+https://midwestpest.com/pest-control-lincoln,LocalBusiness,S3,missing-recommended,areaServed
+https://midwestpest.com/pest-control-omaha,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://midwestpest.com/pest-control-omaha,AggregateRating,S3,missing-recommended,bestRating
+https://midwestpest.com/pest-control-omaha,LocalBusiness,S3,missing-recommended,url
+https://midwestpest.com/pest-control-omaha,LocalBusiness,S3,missing-recommended,image
+https://midwestpest.com/pest-control-omaha,LocalBusiness,S3,missing-recommended,geo
+https://midwestpest.com/pest-control-omaha,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/pest-control-omaha,LocalBusiness,S3,missing-recommended,sameAs
+https://midwestpest.com/pest-control-omaha,LocalBusiness,S3,missing-recommended,areaServed
+https://midwestpest.com/privacy-policy,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://midwestpest.com/privacy-policy,AggregateRating,S3,missing-recommended,bestRating
+https://midwestpest.com/privacy-policy,LocalBusiness,S3,missing-recommended,url
+https://midwestpest.com/privacy-policy,LocalBusiness,S3,missing-recommended,image
+https://midwestpest.com/privacy-policy,LocalBusiness,S3,missing-recommended,geo
+https://midwestpest.com/privacy-policy,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/privacy-policy,LocalBusiness,S3,missing-recommended,sameAs
+https://midwestpest.com/privacy-policy,LocalBusiness,S3,missing-recommended,areaServed
+https://midwestpest.com/services/mosquito-control,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://midwestpest.com/services/mosquito-control,AggregateRating,S3,missing-recommended,bestRating
+https://midwestpest.com/services/mosquito-control,LocalBusiness,S3,missing-recommended,url
+https://midwestpest.com/services/mosquito-control,LocalBusiness,S3,missing-recommended,image
+https://midwestpest.com/services/mosquito-control,LocalBusiness,S3,missing-recommended,geo
+https://midwestpest.com/services/mosquito-control,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/services/mosquito-control,LocalBusiness,S3,missing-recommended,sameAs
+https://midwestpest.com/services/mosquito-control,LocalBusiness,S3,missing-recommended,areaServed
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S1,missing-required,address
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S1,missing-required,telephone
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S3,missing-recommended,image
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S3,missing-recommended,geo
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S3,missing-recommended,openingHoursSpecification
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S3,missing-recommended,priceRange
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S3,missing-recommended,sameAs
+https://midwestpest.com/services/mosquito-control,ProfessionalService,S3,missing-recommended,areaServed
+https://midwestpest.com/services/mosquito-control,FAQPage,S2,faq-pairs,1 of 30 questions lack name/acceptedAnswer.text
+https://midwestpest.com/services/mosquito-control,FAQPage,S4,info,FAQ rich results limited to authoritative gov/health sites since Aug 2023; value is AI-answer feedstock

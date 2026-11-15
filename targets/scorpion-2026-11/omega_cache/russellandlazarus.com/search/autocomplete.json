@@ -1,0 +1,78 @@
+[
+ {
+  "seed": "russell and lazarus",
+  "suggestions": [
+   "russell and lazarus",
+   "russell and lazarus riverside",
+   "russell and lazarus fullerton",
+   "russell and lazarus newport",
+   "russell and lazarus apc",
+   "russell and lazarus long beach",
+   "russell and lazarus newport beach",
+   "russell and lazarus law firm",
+   "russell and lazarus riverside reviews",
+   "russell and lazarus laguna niguel"
+  ],
+  "client_present": true,
+  "status": "ok",
+  "fetched": "2026-11-15T08:54Z"
+ },
+ {
+  "seed": "car accident lawyer orange county",
+  "suggestions": [
+   "car accident lawyer orange county",
+   "auto accident lawyer orange county",
+   "best car accident lawyer orange county",
+   "car accident lawyer orange county ca",
+   "joe naz car accident lawyer orange county",
+   "lawyer car accident near me"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:54Z"
+ },
+ {
+  "seed": "personal injury lawyer newport beach",
+  "suggestions": [
+   "personal injury lawyer newport beach",
+   "personal injury attorney newport beach ca",
+   "personal injury lawyer near me",
+   "personal injury attorney near me reviews",
+   "how much should a personal injury lawyer charge",
+   "personal injury lawyer fee structure",
+   "personal injury lawsuit examples"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:54Z"
+ },
+ {
+  "seed": "truck accident lawyer orange county",
+  "suggestions": [],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:54Z"
+ },
+ {
+  "seed": "motorcycle accident lawyer orange county",
+  "suggestions": [
+   "motorcycle accident lawyer orange county"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:54Z"
+ },
+ {
+  "seed": "personal injury lawyer irvine",
+  "suggestions": [
+   "personal injury lawyer irvine ca",
+   "personal injury lawyer near me",
+   "personal injury attorney near me reviews",
+   "personal injury lawyer fee structure",
+   "how much does it cost to hire a personal injury lawyer"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:54Z"
+ }
+]

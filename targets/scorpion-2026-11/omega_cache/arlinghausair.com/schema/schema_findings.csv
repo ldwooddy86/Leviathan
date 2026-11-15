@@ -1,0 +1,71 @@
+url,entity_type,severity,charge,detail
+https://www.arlinghausair.com/,LocalBusiness/Organization,S1,missing-required,telephone
+https://www.arlinghausair.com/,LocalBusiness/Organization,S3,missing-recommended,geo
+https://www.arlinghausair.com/,LocalBusiness/Organization,S3,missing-recommended,openingHoursSpecification
+https://www.arlinghausair.com/,LocalBusiness/Organization,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/,LocalBusiness/Organization,S3,missing-recommended,areaServed
+https://www.arlinghausair.com/,WebPage,S3,missing-recommended,breadcrumb
+https://www.arlinghausair.com/,Person,S3,missing-recommended,jobTitle
+https://www.arlinghausair.com/,Person,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/,Person,S3,missing-recommended,url
+https://www.arlinghausair.com/,VideoObject,S3,missing-recommended,contentUrl
+https://www.arlinghausair.com/,WebSite,S3,missing-recommended,potentialAction
+https://www.arlinghausair.com/,WebPage,S3,missing-recommended,breadcrumb
+https://www.arlinghausair.com/,Organization,S3,missing-recommended,address
+https://www.arlinghausair.com/,Organization,S3,missing-recommended,telephone
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,geo
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S2,nap-mismatch,schema telephone +18599558377 not found in visible page text
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,geo
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S2,nap-mismatch,schema telephone +15138050803 not found in visible page text
+https://www.arlinghausair.com/areas-we-serve/,Organization,S2,entity-conflict,"multiple business names in schema: ['Arlinghaus Plumbing, Heating & Air Conditioning', 'Arlinghaus Plumbing, Heating, and Air Conditioning']"
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness,S1,missing-required,telephone
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness,S3,missing-recommended,geo
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness,S3,missing-recommended,areaServed
+https://www.arlinghausair.com/areas-we-serve/,WebSite,S3,missing-recommended,potentialAction
+https://www.arlinghausair.com/areas-we-serve/,BreadcrumbList,S2,breadcrumb-positions,"positions ['1', '2'] not contiguous from 1"
+https://www.arlinghausair.com/areas-we-serve/,CollectionPage,S4,info,Type 'CollectionPage' has no rich-result rules here; verify manually
+https://www.arlinghausair.com/areas-we-serve/,WebSite,S3,missing-recommended,potentialAction
+https://www.arlinghausair.com/areas-we-serve/,WebPage,S3,missing-recommended,breadcrumb
+https://www.arlinghausair.com/areas-we-serve/,Organization,S3,missing-recommended,address
+https://www.arlinghausair.com/areas-we-serve/,Organization,S3,missing-recommended,telephone
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,geo
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S3,telephone-format,"['859-955-8377', '513-805-0803', '812-706-3312']"
+https://www.arlinghausair.com/areas-we-serve/,LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness,S2,nap-mismatch,"schema telephone ['859-955-8377', '513-805-0803', '812-706-3312'] not found in visible page text"
+https://www.arlinghausair.com/privacy-policy/,LocalBusiness/Organization,S1,missing-required,telephone
+https://www.arlinghausair.com/privacy-policy/,LocalBusiness/Organization,S3,missing-recommended,geo
+https://www.arlinghausair.com/privacy-policy/,LocalBusiness/Organization,S3,missing-recommended,openingHoursSpecification
+https://www.arlinghausair.com/privacy-policy/,LocalBusiness/Organization,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/privacy-policy/,LocalBusiness/Organization,S3,missing-recommended,areaServed
+https://www.arlinghausair.com/privacy-policy/,WebSite,S3,missing-recommended,potentialAction
+https://www.arlinghausair.com/privacy-policy/,BreadcrumbList,S2,breadcrumb-positions,"positions ['1', '2'] not contiguous from 1"
+https://www.arlinghausair.com/privacy-policy/,Person,S3,missing-recommended,jobTitle
+https://www.arlinghausair.com/privacy-policy/,Person,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/privacy-policy/,Person,S3,missing-recommended,url
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,LocalBusiness/Organization,S1,missing-required,telephone
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,LocalBusiness/Organization,S3,missing-recommended,geo
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,LocalBusiness/Organization,S3,missing-recommended,openingHoursSpecification
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,LocalBusiness/Organization,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,LocalBusiness/Organization,S3,missing-recommended,areaServed
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,WebSite,S3,missing-recommended,potentialAction
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,BreadcrumbList,S2,breadcrumb-positions,"positions ['1', '2'] not contiguous from 1"
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,Person,S3,missing-recommended,jobTitle
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,Person,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/,Person,S3,missing-recommended,url
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,LocalBusiness/Organization,S1,missing-required,telephone
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,LocalBusiness/Organization,S3,missing-recommended,geo
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,LocalBusiness/Organization,S3,missing-recommended,openingHoursSpecification
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,LocalBusiness/Organization,S3,missing-recommended,priceRange
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,LocalBusiness/Organization,S3,missing-recommended,areaServed
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,WebSite,S3,missing-recommended,potentialAction
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,BreadcrumbList,S2,breadcrumb-positions,"positions ['1', '2'] not contiguous from 1"
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,Person,S3,missing-recommended,jobTitle
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,Person,S3,missing-recommended,sameAs
+https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/,Person,S3,missing-recommended,url

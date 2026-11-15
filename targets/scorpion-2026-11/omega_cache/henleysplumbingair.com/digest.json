@@ -1,0 +1,887 @@
+{
+ "domain": "henleysplumbingair.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 163,
+  "indexable": 30,
+  "codes": {
+   "Low LONG_TITLE": 20,
+   "Low ORPHAN_CANDIDATE": 17
+  },
+  "examples": {
+   "LONG_TITLE": [
+    "https://www.henleysplumbingair.com/10-reasons-to-upgrade-to-a-programmable-thermostat/",
+    "https://www.henleysplumbingair.com/11-of-the-most-common-causes-of-a-leaky-pipe/",
+    "https://www.henleysplumbingair.com/5-signs-your-furnace-is-too-big-or-small-for-your-home/"
+   ],
+   "ORPHAN_CANDIDATE": [
+    "https://www.henleysplumbingair.com/11-of-the-most-common-causes-of-a-leaky-pipe/",
+    "https://www.henleysplumbingair.com/5-signs-your-furnace-is-too-big-or-small-for-your-home/",
+    "https://www.henleysplumbingair.com/ac-cooling-time-on-hot-days-whats-normal/"
+   ]
+  },
+  "jsonld_types": {
+   "WebPage": 30,
+   "ImageObject": 29,
+   "BreadcrumbList": 30,
+   "WebSite": 30,
+   "Organization": 30,
+   "LocalBusiness": 5,
+   "Plumber": 5,
+   "HVACBusiness": 5,
+   "CollectionPage": 1,
+   "Article": 28,
+   "Person": 28,
+   "FAQPage": 2
+  },
+  "no_desc": 0,
+  "long_title": 20
+ },
+ "pages": [
+  {
+   "url": "https://www.henleysplumbingair.com/",
+   "status": 200,
+   "title": "Plumbing & HVAC Services Across the Inland Empire | Henley's",
+   "desc_len": 163,
+   "words": 3755,
+   "canonical": "https://www.henleysplumbingair.com/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "Elementor 4.2.3; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "GeoCoordinates",
+    "ImageObject",
+    "ListItem",
+    "LocalBusiness/Plumber/HVACBusiness",
+    "Organization",
+    "PostalAddress",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air",
+     "telephone": "+1-714-353-7176",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1760 California Ave STE 113",
+      "addressLocality": "Corona",
+      "addressRegion": "CA",
+      "postalCode": "92881",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air",
+     "telephone": "+1-714-353-7176",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "337 W 40th St",
+      "addressLocality": "San Bernardino",
+      "addressRegion": "CA",
+      "postalCode": "92407",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air \u2014 Corporate Office",
+     "telephone": "+1-909-883-8827",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1701 Commerce St",
+      "addressLocality": "Corona",
+      "addressRegion": "CA",
+      "postalCode": "92878",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air \u2014 Yorba Linda",
+     "telephone": "+1-714-844-8798",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "22345 La Palma Ave Suite 110",
+      "addressLocality": "Yorba Linda",
+      "addressRegion": "CA",
+      "postalCode": "92887",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air \u2014 Rancho Cucamonga",
+     "telephone": "+1-909-883-8827",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "8816 Foothill Blvd",
+      "addressLocality": "Rancho Cucamonga",
+      "addressRegion": "CA",
+      "postalCode": "91730",
+      "addressCountry": "US"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+19098838827",
+    "9098838827"
+   ],
+   "phones_text": [
+    "9098838827"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/HenleysPlumbingAir"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.henleysplumbingair.com/privacy-policy/"
+    ],
+    "license_numbers": [
+     "LIC #776658"
+    ],
+    "guarantee_language": [
+     "Vote now The Henley's Guarantee $ NO-SURPRISE PRICE You approve the price before work start",
+     "s FIX IT RIGHT GUARANTEE Warranty in writing on every estimate HENLEY'S Guarantee Pr",
+     "g first RESPECT YOUR HOME Floor protection and full cleanup Guarantee details and exclusions are explained on your written estima",
+     "re our specialty, and our service comes with a satisfaction guarantee! DRAINS Tired of clogs and other drain troubles? We can cle"
+    ],
+    "superlatives": [
+     "the best",
+     "Top rated"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "Expert",
+     "specialize",
+     "expert"
+    ],
+    "award_claims": [
+     "Best of Yorba",
+     "best of the",
+     "Best of all"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PXL3SFNL": {
+     "gtm_ids": [
+      "GTM-PXL3SFNL"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PXL3SFNL"
+    ],
+    "ga4_ids": [
+     "G-SDKN38H1RD"
+    ],
+    "google_ads_ids": [
+     "AW-17032377429"
+    ],
+    "callrail_ids": [
+     "205364564"
+    ],
+    "vendors_present": [
+     "call_tracking",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/contact/",
+   "status": 200,
+   "title": "Contact Henley's | Calls Answered 24/7",
+   "desc_len": 195,
+   "words": 673,
+   "canonical": "https://www.henleysplumbingair.com/contact/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "Elementor 4.2.3; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "GeoCoordinates",
+    "ImageObject",
+    "ListItem",
+    "LocalBusiness/Plumber/HVACBusiness",
+    "Organization",
+    "PostalAddress",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air",
+     "telephone": "+1-714-353-7176",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1760 California Ave STE 113",
+      "addressLocality": "Corona",
+      "addressRegion": "CA",
+      "postalCode": "92881",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air",
+     "telephone": "+1-714-353-7176",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "337 W 40th St",
+      "addressLocality": "San Bernardino",
+      "addressRegion": "CA",
+      "postalCode": "92407",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air \u2014 Corporate Office",
+     "telephone": "+1-909-883-8827",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1701 Commerce St",
+      "addressLocality": "Corona",
+      "addressRegion": "CA",
+      "postalCode": "92878",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air \u2014 Yorba Linda",
+     "telephone": "+1-714-844-8798",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "22345 La Palma Ave Suite 110",
+      "addressLocality": "Yorba Linda",
+      "addressRegion": "CA",
+      "postalCode": "92887",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/Plumber/HVACBusiness",
+     "name": "Henley's Plumbing & Air \u2014 Rancho Cucamonga",
+     "telephone": "+1-909-883-8827",
+     "sameAs": [
+      "https://www.facebook.com/HenleysPlumbingAir/"
+     ],
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "8816 Foothill Blvd",
+      "addressLocality": "Rancho Cucamonga",
+      "addressRegion": "CA",
+      "postalCode": "91730",
+      "addressCountry": "US"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+17148448798",
+    "+19092459369",
+    "+19098838827",
+    "+19513567487",
+    "9098838827"
+   ],
+   "phones_text": [
+    "7148448798",
+    "9092459369",
+    "9098838827",
+    "9513567487"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/HenleysPlumbingAir"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.henleysplumbingair.com/privacy-policy/"
+    ],
+    "license_numbers": [
+     "LIC #776658"
+    ],
+    "specialist_expert_claims": [
+     "Experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PXL3SFNL": {
+     "gtm_ids": [
+      "GTM-PXL3SFNL"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PXL3SFNL"
+    ],
+    "ga4_ids": [
+     "G-SDKN38H1RD"
+    ],
+    "google_ads_ids": [
+     "AW-17032377429"
+    ],
+    "callrail_ids": [
+     "205364564"
+    ],
+    "vendors_present": [
+     "call_tracking",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/privacy-policy/",
+   "status": 200,
+   "title": "Privacy Policy | Henley's Plumbing & Air",
+   "desc_len": 157,
+   "words": 994,
+   "canonical": "https://www.henleysplumbingair.com/privacy-policy/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "Elementor 4.2.3; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "+19098838827",
+    "9098838827"
+   ],
+   "phones_text": [
+    "9098838827"
+   ],
+   "credits": [],
+   "socials": [],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.henleysplumbingair.com/privacy-policy/"
+    ],
+    "license_numbers": [
+     "LIC #776658"
+    ],
+    "specialist_expert_claims": [
+     "Experts"
+    ],
+    "tcpa_consent_language": [
+     "By providing your phone number to Henley\u2019s Plumbing & Air Conditioning , you consent to receive SMS (text message) communications from us related to: Appointment confirmations and reminders Service up"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PXL3SFNL": {
+     "gtm_ids": [
+      "GTM-PXL3SFNL"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PXL3SFNL"
+    ],
+    "ga4_ids": [
+     "G-SDKN38H1RD"
+    ],
+    "google_ads_ids": [
+     "AW-17032377429"
+    ],
+    "callrail_ids": [
+     "205364564"
+    ],
+    "vendors_present": [
+     "call_tracking",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/service-area/",
+   "status": 200,
+   "title": "Areas We Serve in the Inland Empire | Henley's Plumbing & Air",
+   "desc_len": 165,
+   "words": 1191,
+   "canonical": "https://www.henleysplumbingair.com/service-area/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "Elementor 4.2.3; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "+19098838827",
+    "9098838827"
+   ],
+   "phones_text": [
+    "9098838827"
+   ],
+   "credits": [],
+   "socials": [],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.henleysplumbingair.com/privacy-policy/"
+    ],
+    "license_numbers": [
+     "LIC #776658"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "Experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PXL3SFNL": {
+     "gtm_ids": [
+      "GTM-PXL3SFNL"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PXL3SFNL"
+    ],
+    "ga4_ids": [
+     "G-SDKN38H1RD"
+    ],
+    "google_ads_ids": [
+     "AW-17032377429"
+    ],
+    "callrail_ids": [
+     "205364564"
+    ],
+    "vendors_present": [
+     "call_tracking",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/",
+   "status": 200,
+   "title": "Water Heater Repair vs Replace: Inland Empire Guide",
+   "desc_len": 150,
+   "words": 1737,
+   "canonical": "https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "Elementor 4.2.3; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "Answer",
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "FAQPage",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "Question",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "+19098838827",
+    "9098838827"
+   ],
+   "phones_text": [
+    "9098838827"
+   ],
+   "credits": [],
+   "socials": [],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.henleysplumbingair.com/privacy-policy/"
+    ],
+    "license_numbers": [
+     "Lic #776658",
+     "LIC #776658"
+    ],
+    "guarantee_language": [
+     "Exact lifespan varies \u2014 we will not invent a guarantee"
+    ],
+    "specialist_expert_claims": [
+     "Experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PXL3SFNL": {
+     "gtm_ids": [
+      "GTM-PXL3SFNL"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PXL3SFNL"
+    ],
+    "ga4_ids": [
+     "G-SDKN38H1RD"
+    ],
+    "google_ads_ids": [
+     "AW-17032377429"
+    ],
+    "callrail_ids": [
+     "205364564"
+    ],
+    "vendors_present": [
+     "call_tracking",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/",
+   "status": 200,
+   "title": "Why Is My Water Pressure So Low? - Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+   "desc_len": 153,
+   "words": 1838,
+   "canonical": "https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "Elementor 4.2.3; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "+19098838827",
+    "9098838827"
+   ],
+   "phones_text": [
+    "9098838827"
+   ],
+   "credits": [],
+   "socials": [],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.henleysplumbingair.com/privacy-policy/"
+    ],
+    "license_numbers": [
+     "LIC #776658"
+    ],
+    "superlatives": [
+     "Voted Best",
+     "leading",
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "Experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-PXL3SFNL": {
+     "gtm_ids": [
+      "GTM-PXL3SFNL"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-PXL3SFNL"
+    ],
+    "ga4_ids": [
+     "G-SDKN38H1RD"
+    ],
+    "google_ads_ids": [
+     "AW-17032377429"
+    ],
+    "callrail_ids": [
+     "205364564"
+    ],
+    "vendors_present": [
+     "call_tracking",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "LocalBusiness/Plumber/HVACBusiness S3 missing-recommended openingHoursSpecification": 10,
+  "LocalBusiness/Plumber/HVACBusiness S3 missing-recommended priceRange": 10,
+  "LocalBusiness/Plumber/HVACBusiness S3 missing-recommended areaServed": 10,
+  "ReadAction S4 info Type 'ReadAction' has no rich-result rul": 6,
+  "PropertyValueSpecification S4 info Type 'PropertyValueSpecification' has no": 6,
+  "Organization S3 missing-recommended sameAs": 6,
+  "Organization S3 missing-recommended contactPoint": 6,
+  "Organization S3 missing-recommended address": 6,
+  "Organization S3 missing-recommended telephone": 6,
+  "LocalBusiness/Plumber/HVACBusiness S2 nap-mismatch schema telephone +1-714-353-7176 not fou": 4,
+  "Article S3 missing-recommended description": 2,
+  "Person S3 missing-recommended jobTitle": 2
+ },
+ "render": [
+  {
+   "url": "https://www.henleysplumbingair.com/",
+   "raw_words": 3743,
+   "rendered_words": 4005,
+   "js_dependent_share": 0.065,
+   "lcp_ms_lab": 956,
+   "requests": 140,
+   "third_party_hosts": 13,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 111.5,
+   "load": 2058.3000000000466,
+   "console_errors": 1
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/",
+   "raw_words": 1838,
+   "rendered_words": 2014,
+   "js_dependent_share": 0.087,
+   "lcp_ms_lab": 296,
+   "requests": 87,
+   "third_party_hosts": 9,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 35.9000000001397,
+   "load": 842,
+   "console_errors": 1
+  }
+ ],
+ "probe": [],
+ "demand": []
+}

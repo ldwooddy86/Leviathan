@@ -1,0 +1,1057 @@
+{
+ "domain": "arlinghausair.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 257,
+  "indexable": 30,
+  "codes": {
+   "Low ORPHAN_CANDIDATE": 12,
+   "Low DEEP_PAGE": 4,
+   "Low LONG_TITLE": 4
+  },
+  "examples": {
+   "DEEP_PAGE": [
+    "https://www.arlinghausair.com/furnace-safety/",
+    "https://www.arlinghausair.com/how-much-does-a-new-furnace-cost/",
+    "https://www.arlinghausair.com/how-often-should-you-change-your-furnace-filter/"
+   ],
+   "LONG_TITLE": [
+    "https://www.arlinghausair.com/furnace-not-working-try-tips-calling-pros-old/",
+    "https://www.arlinghausair.com/furnace-repair-cost-cincinnati/",
+    "https://www.arlinghausair.com/furnace-safety/"
+   ],
+   "ORPHAN_CANDIDATE": [
+    "https://www.arlinghausair.com/9-ways-get-air-conditioner-running-efficiently-spring/",
+    "https://www.arlinghausair.com/ac-replacement-5-things-know-dont-waste-money/",
+    "https://www.arlinghausair.com/does-a-heat-pump-increase-home-value-and-energy-savings/"
+   ]
+  },
+  "jsonld_types": {
+   "Place": 30,
+   "LocalBusiness": 32,
+   "Organization": 30,
+   "WebSite": 31,
+   "ImageObject": 29,
+   "WebPage": 30,
+   "Person": 29,
+   "Article": 2,
+   "VideoObject": 1,
+   "HVACBusiness": 2,
+   "Plumber": 2,
+   "Electrician": 2,
+   "HomeAndConstructionBusiness": 2,
+   "BreadcrumbList": 29,
+   "CollectionPage": 1,
+   "BlogPosting": 28,
+   "FAQPage": 25
+  },
+  "no_desc": 0,
+  "long_title": 4
+ },
+ "pages": [
+  {
+   "url": "https://www.arlinghausair.com/",
+   "status": 200,
+   "title": "Arlinghaus: HVAC, Plumbing & More! | Cincinnati, Erlanger & Florence",
+   "desc_len": 166,
+   "words": 3986,
+   "canonical": "https://www.arlinghausair.com/",
+   "robots_meta": [
+    "follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large"
+   ],
+   "generator": "Elementor 4.3.6; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "Article",
+    "City",
+    "ContactPoint",
+    "ImageObject",
+    "LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness",
+    "LocalBusiness/Organization",
+    "OpeningHoursSpecification",
+    "Organization",
+    "Person",
+    "Place",
+    "PostalAddress",
+    "SearchAction",
+    "VideoObject",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness/Organization",
+     "name": "Arlinghaus Plumbing, Heating, and Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": {
+      "@type": "PostalAddress"
+     }
+    },
+    {
+     "type": "Organization",
+     "name": "Arlinghaus Plumbing, Heating & Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": null
+    },
+    {
+     "type": "LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness",
+     "name": "Arlinghaus Plumbing, Heating & Air Conditioning",
+     "telephone": "+18599558377",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "40 Cave Run Dr",
+      "addressLocality": "Erlanger",
+      "addressRegion": "KY",
+      "postalCode": "41018",
+      "addressCountry": "US"
+     }
+    },
+    {
+     "type": "LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness",
+     "name": "Arlinghaus Plumbing, Heating & Air Conditioning",
+     "telephone": "+15138050803",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "11575 Goldcoast Dr",
+      "addressLocality": "Cincinnati",
+      "addressRegion": "OH",
+      "postalCode": "45249",
+      "addressCountry": "US"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "phones_text": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/ArlinghausAir",
+    "g.page/r",
+    "instagram.com/arlinghausair",
+    "linkedin.com/company/arlinghaus-heating-and-air-conditioning",
+    "maps.app.goo.gl/Z4x3fUi1wxyX6DV3A",
+    "twitter.com/ArlinghausHVAC",
+    "yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+    "youtube.com/@arlinghauscincinnati",
+    "youtube.com/@arlinghausplumbingheatinga5826"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy/"
+    ],
+    "guarantee_language": [
+     "ay Service Local, Family Owned & Operated 100% Satisfaction Guarantee Schedule now 4",
+     "Satisfaction Guarantee: We're not happy until you\u2019re happy \u2014 every job comes with",
+     "a satisfaction guarantee",
+     ", Indiana, and Ohio, of course! At Arlinghaus, you have our guarantee that we\u2019ll restore your plumbing system to full health and",
+     "il you are 100% satisfied with the end product \u2014 that\u2019s our guarantee",
+     "Backed by licensed technicians and a satisfaction guarantee, the Happy House Club makes it easy to enjoy a safe and com",
+     "ENDS SOON! $89 Happy House Heating Checkup + Our Stay Warm Guarantee! Schedule Now *Cannot be combined with any other offers",
+     "iscounts Trusted Professionals Reduced Diagnostic Fees 100% Guarantee Join TOday In The Community We believe that one of life\u2019s g"
+    ],
+    "superlatives": [
+     "the best",
+     "Award-Winning",
+     "Best in",
+     "the Best",
+     "leading",
+     "Leading"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "specializing",
+     "expert",
+     "specialize",
+     "experts"
+    ],
+    "award_claims": [
+     "Best of NKY",
+     "Best of the",
+     "Best of North"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-TQ6HH3R": {
+     "gtm_ids": [
+      "GTM-TQ6HH3R"
+     ],
+     "ga4_ids": [
+      "G-03VLGGD31D"
+     ],
+     "ua_ids": [
+      "UA-103658182-1"
+     ],
+     "google_ads_ids": [
+      "AW-871025383"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-TQ6HH3R"
+    ],
+    "ga4_ids": [
+     "G-03VLGGD31D"
+    ],
+    "ua_ids": [
+     "UA-103658182-1"
+    ],
+    "google_ads_ids": [
+     "AW-871025383"
+    ],
+    "microsoft_uet_ids": [
+     "271002339"
+    ],
+    "vendors_present": [
+     "google_ads",
+     "google_analytics",
+     "google_tag_manager",
+     "microsoft_ads"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.arlinghausair.com/areas-we-serve/",
+   "status": 200,
+   "title": "Areas We Serve | Arlinghaus Plumbing, Heating, AC & Electrical",
+   "desc_len": 130,
+   "words": 2346,
+   "canonical": "https://www.arlinghausair.com/areas-we-serve/",
+   "robots_meta": [
+    "follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large"
+   ],
+   "generator": "Elementor 4.3.6; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "CollectionPage",
+    "ContactPoint",
+    "ImageObject",
+    "ListItem",
+    "LocalBusiness",
+    "LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness",
+    "OpeningHoursSpecification",
+    "Organization",
+    "Place",
+    "PostalAddress",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Arlinghaus Plumbing, Heating, and Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": {
+      "@type": "PostalAddress"
+     }
+    },
+    {
+     "type": "Organization",
+     "name": "Arlinghaus Plumbing, Heating & Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": null
+    },
+    {
+     "type": "LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness",
+     "name": "Arlinghaus Plumbing, Heating & Air Conditioning",
+     "telephone": [
+      "859-955-8377",
+      "513-805-0803",
+      "812-706-3312"
+     ],
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "phones_text": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/ArlinghausAir",
+    "g.page/r",
+    "instagram.com/arlinghausair",
+    "linkedin.com/company/arlinghaus-heating-and-air-conditioning",
+    "maps.app.goo.gl/Z4x3fUi1wxyX6DV3A",
+    "twitter.com/ArlinghausHVAC",
+    "yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+    "youtube.com/@arlinghauscincinnati",
+    "youtube.com/@arlinghausplumbingheatinga5826"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy/"
+    ],
+    "guarantee_language": [
+     "Satisfaction Guarantee: We're not happy until you\u2019re happy \u2014 every job comes with",
+     "a satisfaction guarantee"
+    ],
+    "superlatives": [
+     "Award-Winning",
+     "award-winning",
+     "the Best"
+    ],
+    "specialist_expert_claims": [
+     "specializing"
+    ],
+    "award_claims": [
+     "Best of the",
+     "Best of NKY"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-TQ6HH3R": {
+     "gtm_ids": [
+      "GTM-TQ6HH3R"
+     ],
+     "ga4_ids": [
+      "G-03VLGGD31D"
+     ],
+     "ua_ids": [
+      "UA-103658182-1"
+     ],
+     "google_ads_ids": [
+      "AW-871025383"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-TQ6HH3R"
+    ],
+    "ga4_ids": [
+     "G-03VLGGD31D"
+    ],
+    "ua_ids": [
+     "UA-103658182-1"
+    ],
+    "google_ads_ids": [
+     "AW-871025383"
+    ],
+    "microsoft_uet_ids": [
+     "271002339"
+    ],
+    "vendors_present": [
+     "google_ads",
+     "google_analytics",
+     "google_tag_manager",
+     "microsoft_ads"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.arlinghausair.com/privacy-policy/",
+   "status": 200,
+   "title": "Privacy Policy | Arlinghaus Plumbing, Heating, AC & Electrical",
+   "desc_len": 148,
+   "words": 1887,
+   "canonical": "https://www.arlinghausair.com/privacy-policy/",
+   "robots_meta": [
+    "follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large"
+   ],
+   "generator": "Elementor 4.3.6; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "ImageObject",
+    "ListItem",
+    "LocalBusiness/Organization",
+    "Person",
+    "Place",
+    "PostalAddress",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness/Organization",
+     "name": "Arlinghaus Plumbing, Heating, and Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": {
+      "@type": "PostalAddress"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "phones_text": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/ArlinghausAir",
+    "g.page/r",
+    "instagram.com/arlinghausair",
+    "linkedin.com/company/arlinghaus-heating-and-air-conditioning",
+    "maps.app.goo.gl/Z4x3fUi1wxyX6DV3A",
+    "twitter.com/ArlinghausHVAC",
+    "yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+    "youtube.com/@arlinghauscincinnati",
+    "youtube.com/@arlinghausplumbingheatinga5826"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.arlinghausair.com/privacy-policy/",
+     "https://www.arlinghausair.com/privacy-policy/feed/",
+     "https://www.arlinghausair.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.arlinghausair.com%2Fprivacy-policy%2F",
+     "https://www.arlinghausair.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.arlinghausair.com%2Fprivacy-policy%2F&#038;format=xml",
+     "/privacy-policy/"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-TQ6HH3R": {
+     "gtm_ids": [
+      "GTM-TQ6HH3R"
+     ],
+     "ga4_ids": [
+      "G-03VLGGD31D"
+     ],
+     "ua_ids": [
+      "UA-103658182-1"
+     ],
+     "google_ads_ids": [
+      "AW-871025383"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-TQ6HH3R"
+    ],
+    "ga4_ids": [
+     "G-03VLGGD31D"
+    ],
+    "ua_ids": [
+     "UA-103658182-1"
+    ],
+    "google_ads_ids": [
+     "AW-871025383"
+    ],
+    "microsoft_uet_ids": [
+     "271002339"
+    ],
+    "vendors_present": [
+     "google_ads",
+     "google_analytics",
+     "google_tag_manager",
+     "microsoft_ads"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/",
+   "status": 200,
+   "title": "Tank vs. Tankless Water Heaters: Comprehensive Guide | Arlinghaus",
+   "desc_len": 156,
+   "words": 1787,
+   "canonical": "https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/",
+   "robots_meta": [
+    "follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large"
+   ],
+   "generator": "Elementor 4.3.6; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BlogPosting",
+    "BreadcrumbList",
+    "ImageObject",
+    "ListItem",
+    "LocalBusiness/Organization",
+    "Person",
+    "Place",
+    "PostalAddress",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness/Organization",
+     "name": "Arlinghaus Plumbing, Heating, and Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": {
+      "@type": "PostalAddress"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "phones_text": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/ArlinghausAir",
+    "g.page/r",
+    "instagram.com/arlinghausair",
+    "linkedin.com/company/arlinghaus-heating-and-air-conditioning",
+    "maps.app.goo.gl/Z4x3fUi1wxyX6DV3A",
+    "twitter.com/ArlinghausHVAC",
+    "yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+    "youtube.com/@arlinghauscincinnati",
+    "youtube.com/@arlinghausplumbingheatinga5826"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy/"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "expert"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-TQ6HH3R": {
+     "gtm_ids": [
+      "GTM-TQ6HH3R"
+     ],
+     "ga4_ids": [
+      "G-03VLGGD31D"
+     ],
+     "ua_ids": [
+      "UA-103658182-1"
+     ],
+     "google_ads_ids": [
+      "AW-871025383"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-TQ6HH3R"
+    ],
+    "ga4_ids": [
+     "G-03VLGGD31D"
+    ],
+    "ua_ids": [
+     "UA-103658182-1"
+    ],
+    "google_ads_ids": [
+     "AW-871025383"
+    ],
+    "microsoft_uet_ids": [
+     "271002339"
+    ],
+    "vendors_present": [
+     "google_ads",
+     "google_analytics",
+     "google_tag_manager",
+     "microsoft_ads"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/",
+   "status": 200,
+   "title": "The Top 5 Plumbing Secrets Every Homeowner Should Know - Arlinghaus",
+   "desc_len": 240,
+   "words": 1851,
+   "canonical": "https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/",
+   "robots_meta": [
+    "follow, index, max-snippet:-1, max-video-preview:-1, max-image-preview:large"
+   ],
+   "generator": "Elementor 4.3.6; features: e_font_icon_svg, additional_custom_breakpoints; settings: css_print_method-external, google_font-enabled, font_display-swap",
+   "jsonld_types": [
+    "BlogPosting",
+    "BreadcrumbList",
+    "ImageObject",
+    "ListItem",
+    "LocalBusiness/Organization",
+    "Person",
+    "Place",
+    "PostalAddress",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness/Organization",
+     "name": "Arlinghaus Plumbing, Heating, and Air Conditioning",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/ArlinghausAir/",
+      "https://twitter.com/ArlinghausHVAC",
+      "https://www.linkedin.com/company/arlinghaus-heating-and-air-conditioning/",
+      "https://www.youtube.com/@arlinghausplumbingheatinga5826",
+      "https://www.yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+      "https://www.instagram.com/arlinghausair/"
+     ],
+     "address": {
+      "@type": "PostalAddress"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "phones_text": [
+    "5132160862",
+    "8122000978",
+    "8594299169"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/ArlinghausAir",
+    "g.page/r",
+    "instagram.com/arlinghausair",
+    "linkedin.com/company/arlinghaus-heating-and-air-conditioning",
+    "maps.app.goo.gl/Z4x3fUi1wxyX6DV3A",
+    "twitter.com/ArlinghausHVAC",
+    "yelp.com/biz/arlinghaus-plumbing-heating-and-air-conditioning-erlanger-2",
+    "youtube.com/@arlinghauscincinnati",
+    "youtube.com/@arlinghausplumbingheatinga5826"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy/"
+    ],
+    "superlatives": [
+     "#1"
+    ],
+    "specialist_expert_claims": [
+     "expert",
+     "experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-TQ6HH3R": {
+     "gtm_ids": [
+      "GTM-TQ6HH3R"
+     ],
+     "ga4_ids": [
+      "G-03VLGGD31D"
+     ],
+     "ua_ids": [
+      "UA-103658182-1"
+     ],
+     "google_ads_ids": [
+      "AW-871025383"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-TQ6HH3R"
+    ],
+    "ga4_ids": [
+     "G-03VLGGD31D"
+    ],
+    "ua_ids": [
+     "UA-103658182-1"
+    ],
+    "google_ads_ids": [
+     "AW-871025383"
+    ],
+    "microsoft_uet_ids": [
+     "271002339"
+    ],
+    "vendors_present": [
+     "google_ads",
+     "google_analytics",
+     "google_tag_manager",
+     "microsoft_ads"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "WebSite S3 missing-recommended potentialAction": 6,
+  "LocalBusiness/Organization S1 missing-required telephone": 4,
+  "LocalBusiness/Organization S3 missing-recommended geo": 4,
+  "LocalBusiness/Organization S3 missing-recommended openingHoursSpecification": 4,
+  "LocalBusiness/Organization S3 missing-recommended priceRange": 4,
+  "LocalBusiness/Organization S3 missing-recommended areaServed": 4,
+  "Person S3 missing-recommended jobTitle": 4,
+  "Person S3 missing-recommended sameAs": 4,
+  "Person S3 missing-recommended url": 4,
+  "BreadcrumbList S2 breadcrumb-positions positions ['1', '2'] not contiguous from": 4,
+  "WebPage S3 missing-recommended breadcrumb": 3,
+  "LocalBusiness/HVACBusiness/Plumber/Electrician/HomeAndConstructionBusiness S3 missing-recommended geo": 3
+ },
+ "render": [
+  {
+   "url": "https://www.arlinghausair.com/",
+   "raw_words": 3986,
+   "rendered_words": 5119,
+   "js_dependent_share": 0.221,
+   "lcp_ms_lab": 1440,
+   "requests": 282,
+   "third_party_hosts": 52,
+   "verdict": "PARTLY JS-DEPENDENT (22%)",
+   "ttfb": 67.4000000001397,
+   "load": 4175.299999999814,
+   "console_errors": 7
+  },
+  {
+   "url": "https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/",
+   "raw_words": 1851,
+   "rendered_words": 2643,
+   "js_dependent_share": 0.3,
+   "lcp_ms_lab": 560,
+   "requests": 247,
+   "third_party_hosts": 45,
+   "verdict": "PARTLY JS-DEPENDENT (30%)",
+   "ttfb": 39.9000000001397,
+   "load": 2229.1999999999534,
+   "console_errors": 4
+  }
+ ],
+ "probe": [
+  {
+   "url": "https://www.arlinghausair.com/",
+   "status": 200,
+   "banner": "no consent banner detected",
+   "pre_consent": [
+    "google_ads_doubleclick",
+    "google_analytics",
+    "google_tag_manager",
+    "meta_pixel",
+    "microsoft_uet",
+    "reddit_pixel",
+    "session_replay"
+   ],
+   "chat": [],
+   "ai_agents": [],
+   "prechecked": [],
+   "scarcity": [
+    "HURRY",
+    "OFFER ENDS",
+    "HURRY",
+    "OFFER ENDS",
+    "HURRY",
+    "OFFER ENDS",
+    "HURRY",
+    "OFFER ENDS"
+   ],
+   "timers": [
+    "09:00",
+    "17:00",
+    "32:55",
+    "05:00",
+    "00:18"
+   ],
+   "requests": 600,
+   "hosts": [
+    "9710554.fls.doubleclick.net",
+    "a.smtrk.net",
+    "ad.doubleclick.net",
+    "alb.reddit.com",
+    "analytics.google.com",
+    "api.scheduleengine.net",
+    "api.scheduler.servicetitan.com",
+    "api.segment.io",
+    "arlingmobiledd.wpenginepowered.com",
+    "bat.bing.com",
+    "build.1pdata.app",
+    "bzr.openai.com",
+    "bzrcdn.openai.com",
+    "c.bing.com",
+    "c.clarity.ms",
+    "capture-api.reachlocalservices.com",
+    "cdn.jsdelivr.net",
+    "cdn.rlets.com",
+    "cdn.segment.com",
+    "cnv.event.prod.bidr.io",
+    "connect.facebook.net",
+    "d1ae0zx28z2bae.cloudfront.net",
+    "d1b3llzbo1rqxo.cloudfront.net",
+    "e28e5d5b-adc1-4c2f-91b3-16dc48c03256.rlets.com",
+    "embed.scheduleengine.net",
+    "embed.scheduler.servicetitan.com",
+    "fault.rlets.com",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "googleads.g.doubleclick.net",
+    "hits3.livemarketshoppers.com",
+    "l.clarity.ms",
+    "mads-dni-go.servicetitan.com",
+    "maps.googleapis.com",
+    "maps.gstatic.com",
+    "pixel-config.reddit.com",
+    "places.googleapis.com",
+    "scheduler.servicetitan.com",
+    "scripts.clarity.ms",
+    "searchlight.partners",
+    "static.cloudflareinsights.com",
+    "static.servicetitan.com",
+    "stats.g.doubleclick.net",
+    "stpaymentspciprod.blob.core.windows.net",
+    "tag.simpli.fi",
+    "text2chat-widget.servicetitan.com",
+    "www.clarity.ms",
+    "www.facebook.com",
+    "www.google.com",
+    "www.googleadservices.com",
+    "www.googletagmanager.com",
+    "www.gstatic.com",
+    "www.redditstatic.com"
+   ]
+  }
+ ],
+ "demand": [
+  {
+   "seed": "arlinghaus",
+   "brand_in_list": true,
+   "top": [
+    "arlinghaus",
+    "arlinghaus builders",
+    "arlinghaus heating and air",
+    "arlinghaus plumbing",
+    "arlinghaus hvac",
+    "arlinghaus homes",
+    "arlinghaus heating and cooling",
+    "arlinghaus heating and air reviews",
+    "arlinghaus air",
+    "arlinghaus electric"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "plumber northern kentucky",
+   "brand_in_list": false,
+   "top": [
+    "plumber northern kentucky",
+    "plumbing northern kentucky",
+    "plumbing companies northern kentucky",
+    "plumbing supply northern kentucky",
+    "jolly plumbing northern kentucky",
+    "1 tom plumber northern kentucky",
+    "plumber no near me",
+    "plumbers near me uk"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "hvac cincinnati",
+   "brand_in_list": false,
+   "top": [
+    "hvac cincinnati",
+    "hvac cincinnati ohio",
+    "hvac cincinnati state",
+    "hvac cincinnati school",
+    "hvac cincinnati jobs",
+    "hvac cincinnati reddit",
+    "hvac cincinnati apprenticeship program",
+    "heating and cooling cincinnati",
+    "cincinnati hvac companies",
+    "cincinnati hvac union"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "furnace repair florence ky",
+   "brand_in_list": false,
+   "top": [
+    "furnace repair florence ky",
+    "hvac repair florence ky",
+    "furnace repair northern kentucky"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "ac repair erlanger ky",
+   "brand_in_list": false,
+   "top": [
+    "ac repair erlanger ky",
+    "ac repair works near me",
+    "ac repair near me",
+    "ac repair today",
+    "ac repair description"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "electrician northern kentucky",
+   "brand_in_list": false,
+   "top": [
+    "electrician northern kentucky",
+    "electrician florence kentucky",
+    "electrician northern ky",
+    "electrician apprenticeship northern kentucky",
+    "electrician jobs in northern kentucky",
+    "how to become an electrician in ky",
+    "how much do electricians make in kentucky"
+   ],
+   "status": "ok"
+  }
+ ]
+}

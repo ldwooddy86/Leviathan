@@ -1,0 +1,104 @@
+{
+ "tool": "UltimaWeapon google_crawler/1.0",
+ "mode": "honest (declared UA, mobile viewport, no stealth)",
+ "generated_at": "2026-11-15T08:49:03Z",
+ "rows": [
+  {
+   "url": "https://www.henleysplumbingair.com/",
+   "raw_status": 200,
+   "raw_tier": "RAW",
+   "raw_words": 3743,
+   "status": 200,
+   "final_url": "https://www.henleysplumbingair.com/",
+   "rendered_words": 4005,
+   "js_dependent_share": 0.065,
+   "rendered_only_headings": [
+    "check your water quality"
+   ],
+   "raw_links": 250,
+   "rendered_links": 324,
+   "jsonld_raw": [
+    "WebPage",
+    "ImageObject",
+    "BreadcrumbList",
+    "WebSite",
+    "Organization",
+    "LocalBusiness",
+    "Plumber",
+    "HVACBusiness",
+    "LocalBusiness",
+    "Plumber",
+    "HVACBusiness",
+    "LocalBusiness",
+    "Plumber",
+    "HVACBusiness",
+    "LocalBusiness",
+    "Plumber",
+    "HVACBusiness",
+    "LocalBusiness",
+    "Plumber",
+    "HVACBusiness"
+   ],
+   "jsonld_rendered_only": [],
+   "title_rendered": "Plumbing & HVAC Services Across the Inland Empire | Henley's",
+   "nav_timing_ms": {
+    "ttfb": 111.5,
+    "domContentLoaded": 1154.4000000001397,
+    "load": 2058.3000000000466,
+    "transferSize": 60365,
+    "type": "navigate"
+   },
+   "lcp_ms_lab": 956,
+   "console_errors": [
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+   ],
+   "third_party_hosts": 13,
+   "requests": 140,
+   "viewport": "412x915",
+   "wall_s": 9.3,
+   "verdict": "server-visible: raw HTML carries the content",
+   "screenshot": "omega_cache/henleysplumbingair.com/google_shots/5c497913b139.png"
+  },
+  {
+   "url": "https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/",
+   "raw_status": 200,
+   "raw_tier": "RAW",
+   "raw_words": 1838,
+   "status": 200,
+   "final_url": "https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/",
+   "rendered_words": 2014,
+   "js_dependent_share": 0.087,
+   "rendered_only_headings": [],
+   "raw_links": 226,
+   "rendered_links": 298,
+   "jsonld_raw": [
+    "Article",
+    "WebPage",
+    "ImageObject",
+    "BreadcrumbList",
+    "WebSite",
+    "Organization",
+    "Person"
+   ],
+   "jsonld_rendered_only": [],
+   "title_rendered": "Why Is My Water Pressure So Low? - Henley's Plumbing & Air - Voted Best Plumbers in Corona, Riverside, Eastvale, & San Bernardino",
+   "nav_timing_ms": {
+    "ttfb": 35.9000000001397,
+    "domContentLoaded": 300.0999999998603,
+    "load": 842,
+    "transferSize": 45872,
+    "type": "navigate"
+   },
+   "lcp_ms_lab": 296,
+   "console_errors": [
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+   ],
+   "third_party_hosts": 9,
+   "requests": 87,
+   "viewport": "412x915",
+   "wall_s": 8.3,
+   "verdict": "server-visible: raw HTML carries the content",
+   "screenshot": "omega_cache/henleysplumbingair.com/google_shots/c1fef359e820.png"
+  }
+ ]
+}

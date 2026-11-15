@@ -1,0 +1,3488 @@
+{
+ "url": "https://www.arlinghausair.com/",
+ "locale": "en-US",
+ "fetched_at": "2026-11-15T08:50:40Z",
+ "presence": {
+  "identity": "OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)",
+  "timezone": null,
+  "viewport": null,
+  "engine": "chromium (headless; honest: declared UA, no stealth, webdriver flag left true)"
+ },
+ "status": 200,
+ "final_url": "https://www.arlinghausair.com/",
+ "title": "Arlinghaus: HVAC, Plumbing & More! | Cincinnati, Erlanger & Florence",
+ "tier": "RENDERED",
+ "consent_banner": {
+  "cmp_root": null,
+  "text_hint": false,
+  "accept_controls": [],
+  "reject_controls": [],
+  "reading": "no consent banner detected"
+ },
+ "pre_consent_trackers": [
+  "google_ads_doubleclick",
+  "google_analytics",
+  "google_tag_manager",
+  "meta_pixel",
+  "microsoft_uet",
+  "reddit_pixel",
+  "session_replay"
+ ],
+ "pre_consent_tracker_requests": [
+  {
+   "t": 0.379,
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-03VLGGD31D",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.379,
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-103658182-1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.379,
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-871025383",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.394,
+   "url": "https://bat.bing.com/bat.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 0.915,
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-03VLGGD31D&gtm=45je6bb1v880050126za208zd880050126xf1&_p=1794732641360&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1877049966&_eu=EAAAAGAC&cid=1360343840.1794732642&ec_mode=a&frm=0&ir=1&pscdl=noapi&rcb=14&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.916,
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&tid=G-03VLGGD31D&cid=1360343840.1794732642&gtm=45je6bb1v880050126za208zd880050126xf1&rcb=14&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115938466~115938468~118897920~118897930~119860442~120213116~120385422~120412526~120420414~120469145~120469153~121",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.916,
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-103658182-1&cx=c&gtm=4e6bb1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.917,
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-871025383&cx=c&gtm=4e6bb1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.935,
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-TQ6HH3R",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.225,
+   "url": "https://www.redditstatic.com/ads/pixel.js",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 1.23,
+   "url": "https://9710554.fls.doubleclick.net/activityi;src=9710554;type=conversi;cat=homep0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=462041443446.8389?",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.601,
+   "url": "https://bat.bing.com/p/action/271002339.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.912,
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/871025383/?random=1794732642841&cv=11&fst=1794732642841&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.916,
+   "url": "https://www.google.com/rmkt/collect/871025383/?random=1794732642841&cv=11&fst=1794732642841&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~120",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.918,
+   "url": "https://ad.doubleclick.net/ccm/s/collect?auid=527816685.1794732643&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&fmt=8",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.439,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=PageVisit",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.461,
+   "url": "https://bat.bing.com/p/conversions/t/271002339?insights=1",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.461,
+   "url": "https://bat.bing.com/action/0?ti=271002339&Ver=2&mid=4afbce37-eb77-4815-8065-5a46fa37675c&bo=1&sid=a44bc760e0d111f1bf6e27f2550bb239&vid=a44bfa60e0d111f1859d71c47b961392&vids=1&msclkid=N&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Arlinghaus%3A%20HVAC,%20Plumbing%20%26%20More!%20%7C%20Cinc",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.725,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.init_consent",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.726,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.init",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.727,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.727,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.728,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.js",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.728,
+   "url": "https://connect.facebook.net/en_US/fbevents.js",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.729,
+   "url": "https://www.clarity.ms/tag/h0sj222s3a?ref=gtm2",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.729,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.73,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.73,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.73,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.scrollDepth",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.731,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=scroll",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.733,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.dom",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.733,
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/871025383/?random=1794732643667&cv=11&fst=1794732643667&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.735,
+   "url": "https://www.google.com/rmkt/collect/871025383/?random=1794732643667&cv=11&fst=1794732643667&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~120",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.861,
+   "url": "https://www.google.com/pagead/1p-user-list/871025383/?random=1794732642841&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~12",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.873,
+   "url": "https://bat.bing.com/p/insightsConversions/s/0.8.77",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.873,
+   "url": "https://www.google.com/pagead/1p-user-list/871025383/?random=1794732643667&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~12",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.987,
+   "url": "https://connect.facebook.net/signals/config/156349445790840?v=2.9.439&r=stable&domain=www.arlinghausair.com&hme=1f127d11ce7bba675ee077e129c6ec7e07038113ad3e920301e60f2f865dc776&ex_m=119%2C243%2C172%2C27%2C82%2C83%2C163%2C78%2C77%2C11%2C182%2C102%2C20%2C154%2C142%2C46%2C85%2C90%2C184%2C111%2C150%2C17",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 3.492,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=8597574072&cl=iId-CL6HtcABEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.497,
+   "url": "https://bat.bing.com/p/conversions/c/g",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 3.547,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=8597574072&cl=iId-CL6HtcABEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.61,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5137296938&cl=1kBICMO89sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.61,
+   "url": "https://scripts.clarity.ms/0.8.80-beta/clarity.js",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 3.714,
+   "url": "https://www.facebook.com/tr/?id=156349445790840&ev=PageView&dl=https%3A%2F%2Fwww.arlinghausair.com%2F&rl=&if=false&ts=1794732644682&iw=false&sw=1280&sh=720&v=2.9.439&r=stable&ec=0&o=77854&aems=0%3B0&fbp=fb.1.1794732644644.986316835853682891&cs_est=true&ler=empty&pmd[title]=Arlinghaus%3A%20HVAC%2C%20",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 3.717,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5137296938&cl=1kBICMO89sIBEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.777,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5139879343&cl=GCqiCKXJ7MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.806,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5139879343&cl=GCqiCKXJ7MIBEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.929,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5134492674&cl=xLp1CI_L7MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.983,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5134492674&cl=xLp1CI_L7MIBEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.028,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5136571789&cl=LN7TCKHL7MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.07,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5136571789&cl=LN7TCKHL7MIBEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.109,
+   "url": "https://l.clarity.ms/collect",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.116,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5132068855&cl=x-n4CLrC9sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.13,
+   "url": "https://c.clarity.ms/c.gif",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.149,
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.load",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 4.17,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5132068855&cl=x-n4CLrC9sIBEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.22,
+   "url": "https://c.bing.com/c.gif?ctsa=mr&CtsSyncId=9F36E49C06BB4BABAE0B5B2F085A8979&RedC=c.clarity.ms&MXFR=3B9AE4E055CB65B60B35FCF251CB6B59",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.221,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5134492335&cl=NDa2CO7D9sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.252,
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5134492335&cl=NDa2CO7D9sIBEOeVq58D&dma=0",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.275,
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5138135415&cl=ALz2COm63MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.298,
+   "url": "https://c.clarity.ms/c.gif?ctsa=mr&CtsSyncId=9F36E49C06BB4BABAE0B5B2F085A8979&MUID=2369D8B87BBC65A005B6C0AA7A7764F4",
+   "trackers": [
+    "session_replay"
+   ]
+  }
+ ],
+ "prechecked_checkboxes": [],
+ "scarcity_strings": [
+  "HURRY",
+  "OFFER ENDS",
+  "HURRY",
+  "OFFER ENDS",
+  "HURRY",
+  "OFFER ENDS",
+  "HURRY",
+  "OFFER ENDS"
+ ],
+ "timer_strings_first_load": [
+  "09:00",
+  "17:00",
+  "32:55",
+  "05:00",
+  "00:18"
+ ],
+ "ai_agent_markers": [],
+ "chat_iframes": [],
+ "post_scroll_new_trackers": [],
+ "timer_strings_after_reload": [
+  "09:00",
+  "17:00",
+  "32:55",
+  "05:00",
+  "00:18"
+ ],
+ "timer_reset_reading": "timer RESET on reload \u2014 CONFIRMED-capable dark pattern (fake urgency)",
+ "request_count": 600,
+ "third_party_hosts": [
+  "9710554.fls.doubleclick.net",
+  "a.smtrk.net",
+  "ad.doubleclick.net",
+  "alb.reddit.com",
+  "analytics.google.com",
+  "api.scheduleengine.net",
+  "api.scheduler.servicetitan.com",
+  "api.segment.io",
+  "arlingmobiledd.wpenginepowered.com",
+  "bat.bing.com",
+  "build.1pdata.app",
+  "bzr.openai.com",
+  "bzrcdn.openai.com",
+  "c.bing.com",
+  "c.clarity.ms",
+  "capture-api.reachlocalservices.com",
+  "cdn.jsdelivr.net",
+  "cdn.rlets.com",
+  "cdn.segment.com",
+  "cnv.event.prod.bidr.io",
+  "connect.facebook.net",
+  "d1ae0zx28z2bae.cloudfront.net",
+  "d1b3llzbo1rqxo.cloudfront.net",
+  "e28e5d5b-adc1-4c2f-91b3-16dc48c03256.rlets.com",
+  "embed.scheduleengine.net",
+  "embed.scheduler.servicetitan.com",
+  "fault.rlets.com",
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "googleads.g.doubleclick.net",
+  "hits3.livemarketshoppers.com",
+  "l.clarity.ms",
+  "mads-dni-go.servicetitan.com",
+  "maps.googleapis.com",
+  "maps.gstatic.com",
+  "pixel-config.reddit.com",
+  "places.googleapis.com",
+  "scheduler.servicetitan.com",
+  "scripts.clarity.ms",
+  "searchlight.partners",
+  "static.cloudflareinsights.com",
+  "static.servicetitan.com",
+  "stats.g.doubleclick.net",
+  "stpaymentspciprod.blob.core.windows.net",
+  "tag.simpli.fi",
+  "text2chat-widget.servicetitan.com",
+  "www.clarity.ms",
+  "www.facebook.com",
+  "www.google.com",
+  "www.googleadservices.com",
+  "www.googletagmanager.com",
+  "www.gstatic.com",
+  "www.redditstatic.com"
+ ],
+ "requests": [
+  {
+   "t": 0.011,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 0.379,
+   "phase": "pre-interaction",
+   "url": "https://embed.scheduler.servicetitan.com/scheduler-v1.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.379,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-03VLGGD31D",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.379,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-103658182-1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.379,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-871025383",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.379,
+   "phase": "pre-interaction",
+   "url": "https://cdn.rlets.com/capture_configs/e28/e5d/5ba/dc14c2f91b316dc48c03256.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.38,
+   "phase": "pre-interaction",
+   "url": "https://d1b3llzbo1rqxo.cloudfront.net/attributer.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.38,
+   "phase": "pre-interaction",
+   "url": "https://searchlight.partners/photon/photon-3p.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.38,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/dynamic-content-for-elementor/assets/css/style.min.css?ver=3.4.19",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.38,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/dynamic-content-for-elementor/assets/css/dynamic-visibility.min.css?ver=3.4.19",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.381,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor/assets/css/reset.css?ver=3.5.2",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.381,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor/assets/css/theme.css?ver=3.5.2",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.381,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-frontend.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.381,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-1038.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.381,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-heading.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.382,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-icon-list.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.382,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-image.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.382,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-icon-box.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.382,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-divider.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.382,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-pro-widget-nav-menu.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.383,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/modules/sticky.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.384,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/e-animation-float.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.385,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-social-icons.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.385,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-apple-webkit.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.385,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-5.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.386,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/fadeInLeft.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.386,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/slideInRight.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.387,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-video.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.387,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-image-box.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.388,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-nested-accordion.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.388,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-spacer.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.388,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/fadeInRight.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.388,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/swiper/v8/css/swiper.min.css?ver=8.4.5",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.389,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/conditionals/e-swiper.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.389,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-loop-common.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.39,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-loop-carousel.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.39,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/rotateInDownRight.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.391,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/modules/motion-fx.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.391,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-60.css?ver=1794324947",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.391,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-17100.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.391,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-16419.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.391,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/google-fonts/css/montserrat.css?ver=1747751508",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.392,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Public+Sans:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.392,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Oswald:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.392,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.393,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.393,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.393,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.393,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.393,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/10/Arlinghaus-Plumbing-Heating-Air-Conditioning-Electrical-logo-Erlanger-Florence-KY.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.394,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2026/10/6kReviews-icon-1.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.394,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/bat.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 0.394,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2026/10/white-houses-bg-divider-1-1024x107.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.394,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/arlinghaus-green-hh-slogan-logo-1-300x126.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.394,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-16206.css?ver=1794324948",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.395,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-rating.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.395,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-counter.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.395,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-16209.css?ver=1794324948",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.396,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-210.css?ver=1794324928",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.396,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-media-carousel.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.396,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-carousel-module-base.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.397,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-208.css?ver=1794324929",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.397,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-pro-widget-testimonial-carousel.min.css?ver=1794324927&ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.397,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-reviews.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.397,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-star-rating.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.398,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-209.css?ver=1794324929",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.398,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor-child/custom-style.css?ver=bc32e3400e0534fb13d833b6d73d65ab",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.398,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/slideInLeft.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.398,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/conditionals/popup.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.398,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/dynamicconditions/Public/js/dynamic-conditions-public.js?ver=1.7.5",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.399,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/webpack.runtime.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.399,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/frontend-modules.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.399,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-includes/js/jquery/ui/core.min.js?ver=1.14.2",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.4,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/frontend.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.4,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/lib/smartmenus/jquery.smartmenus.min.js?ver=1.2.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.401,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/lib/sticky/jquery.sticky.min.js?ver=4.3.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.401,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-includes/js/imagesloaded.min.js?ver=5.0.0",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.401,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/jquery-numerator/jquery-numerator.min.js?ver=0.2.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.402,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/swiper/v8/swiper.min.js?ver=8.4.5",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.402,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor-child/custom.js?ver=bc32e3400e0534fb13d833b6d73d65ab",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.402,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-includes/js/dist/hooks.min.js?ver=f0f188028580e8dc1255",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.403,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-includes/js/dist/i18n.min.js?ver=1dfe7db3940c23ea9216",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.403,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/js/frontend.min.js?ver=4.3.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.403,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/js/elements-handlers.min.js?ver=4.3.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.403,
+   "phase": "pre-interaction",
+   "url": "https://embed.scheduleengine.net/schedule-engine-v3.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.915,
+   "phase": "pre-interaction",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-03VLGGD31D&gtm=45je6bb1v880050126za208zd880050126xf1&_p=1794732641360&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1877049966&_eu=EAAAAGAC&cid=1360343840.1794732642&ec_mode=a&frm=0&ir=1&pscdl=noapi&rcb=14&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.916,
+   "phase": "pre-interaction",
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&tid=G-03VLGGD31D&cid=1360343840.1794732642&gtm=45je6bb1v880050126za208zd880050126xf1&rcb=14&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115938466~115938468~118897920~118897930~119860442~120213116~120385422~120412526~120420414~120469145~120469153~121",
+   "type": "ping",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 0.916,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-103658182-1&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.917,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-871025383&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 0.935,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-TQ6HH3R",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 0.936,
+   "phase": "pre-interaction",
+   "url": "https://a.smtrk.net/trk?t=s&i=60942b93890de53dd7b95705&p=t,i,x&s=97cbddc9128cf6fd42a0de03709cadf3&r=&u=https%3A//www.arlinghausair.com/",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.22,
+   "phase": "pre-interaction",
+   "url": "https://static.servicetitan.com/marketing-ads/dni.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.224,
+   "phase": "pre-interaction",
+   "url": "https://bzrcdn.openai.com/sdk/oaiq.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.225,
+   "phase": "pre-interaction",
+   "url": "https://www.redditstatic.com/ads/pixel.js",
+   "type": "script",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 1.23,
+   "phase": "pre-interaction",
+   "url": "https://9710554.fls.doubleclick.net/activityi;src=9710554;type=conversi;cat=homep0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=462041443446.8389?",
+   "type": "document",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.27,
+   "phase": "pre-interaction",
+   "url": "https://arlingmobiledd.wpenginepowered.com/wp-content/uploads/elementor/google-fonts/fonts/montserrat-jtusjig1_i6t8kchkm459wlhyw.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.271,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/publicsans/v21/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymu8Z6JxAct.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.271,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/publicsans/v21/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymuFpmJxAct.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.271,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/publicsans/v21/ijwGs572Xtc6ZYQws9YVwllKVG8qX1oyOymuyJ6JxAct.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.272,
+   "phase": "pre-interaction",
+   "url": "https://static.servicetitan.com/text2chat/shim.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.36,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/shutterstock_2476215249.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.361,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/home-hero-overlay-test.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.361,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/white-houses-bg-divider.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.362,
+   "phase": "pre-interaction",
+   "url": "https://arlingmobiledd.wpenginepowered.com/wp-content/uploads/elementor/google-fonts/fonts/montserrat-jtuqjig1_i6t8kchkm459wxrys7m.woff2",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.362,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/oswald/v57/TK3_WkUHHAIjg75cFRf3bXL8LICs18NvsUZiYA.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.38,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2026/06/ColorOfComfort-web.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.564,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/ac-home-ql-icon.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.565,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/heating-home-ql-icon.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.565,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/plumbing-home-ql-icon.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.566,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/electrical-home-ql-icon.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.566,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/10/Happy-House-Left.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.566,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/04/arlinghaus-seal-of-approval-thumbnail.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.567,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/family-owned-operated-icon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.568,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/experience-team-icon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.568,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/comprehensive-services-icon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.569,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/customer-first-icon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.57,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/satisfaction-icon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.57,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/happy-house-blue-gradient.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.573,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/happyhouse-special-offers.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.601,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/action/271002339.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.912,
+   "phase": "pre-interaction",
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/871025383/?random=1794732642841&cv=11&fst=1794732642841&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~",
+   "type": "script",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.916,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/rmkt/collect/871025383/?random=1794732642841&cv=11&fst=1794732642841&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~120",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.917,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/ccm/collect?rcb=15&frm=0&apvc=1&auid=527816685.1794732643&dt=Arlinghaus%3A%20HVAC%2C%20Plumbing%20%26%20More!%20%7C%20Cincinnati%2C%20Erlanger%20%26%20Florence&tid=AW-871025383&en=page_view&dl=https%3A%2F%2Fwww.arlinghausair.com%2F&scrsrc=www.googletagmanager.com&rnd=708248318",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 1.918,
+   "phase": "pre-interaction",
+   "url": "https://ad.doubleclick.net/ccm/s/collect?auid=527816685.1794732643&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&fmt=8",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.93,
+   "phase": "pre-interaction",
+   "url": "https://api.scheduleengine.net/se-web-api/v1/config/widget/embed?api_key=j3u6rheqfin43p3ga536kg27",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 1.949,
+   "phase": "pre-interaction",
+   "url": "https://api.scheduler.servicetitan.com/graphql/graphql",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 1.974,
+   "phase": "pre-interaction",
+   "url": "https://d1ae0zx28z2bae.cloudfront.net/arlinghausair.com?t=1794732642958",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 1.979,
+   "phase": "pre-interaction",
+   "url": "https://d1ae0zx28z2bae.cloudfront.net/arlinghausair.com?t=1794732642961",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.026,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/dialog/dialog.min.js?ver=4.9.3",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.027,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/lightbox-lightbox.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.028,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/conditionals/dialog.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.028,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/share-link/share-link.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.028,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-lightbox.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.062,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/background-slideshow.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.062,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/background-video.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.073,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/text-editor.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.111,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/video.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.114,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/nested-accordion.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.192,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/chunks/counter.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.342,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/?brandId=brand_zuce2z99679nqdydwg3qrnbo&api_key=j3u6rheqfin43p3ga536kg27&schedulerid=sched_so268wbb6h4o1cxaky8izkxo&client_url=https%3A%2F%2Fwww.arlinghausair.com%2F&client_referrer=",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 2.373,
+   "phase": "pre-interaction",
+   "url": "https://bzrcdn.openai.com/pixel-config/v1/DgVjs57BJpFWVP27D6hYJn.json",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.439,
+   "phase": "pre-interaction",
+   "url": "https://pixel-config.reddit.com/pixels/a2_hl44gkxw7r7w/config",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 2.439,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=PageVisit",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.443,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/?token=9d196186-5f2b-445f-bc15-3eb97fcca226&r=1794732643423",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 2.461,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/t/271002339?insights=1",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.461,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/action/0?ti=271002339&Ver=2&mid=4afbce37-eb77-4815-8065-5a46fa37675c&bo=1&sid=a44bc760e0d111f1bf6e27f2550bb239&vid=a44bfa60e0d111f1859d71c47b961392&vids=1&msclkid=N&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Arlinghaus%3A%20HVAC,%20Plumbing%20%26%20More!%20%7C%20Cinc",
+   "type": "image",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.516,
+   "phase": "pre-interaction",
+   "url": "https://mads-dni-go.servicetitan.com/api/dni?tenantId=357082374&host=www.arlinghausair.com&url=www.arlinghausair.com&api-version=2020-12-01",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 2.521,
+   "phase": "pre-interaction",
+   "url": "https://searchlight.partners/photon/service/pageload?i=e5f21251-6ee1-4785-9aee-9ae40792f868&l=https%3A%2F%2Fwww.arlinghausair.com%2F",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 2.725,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.init_consent",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.726,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.init",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.727,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.727,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.728,
+   "phase": "pre-interaction",
+   "url": "https://www.gstatic.com/wcm/loader.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.728,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.js",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.728,
+   "phase": "pre-interaction",
+   "url": "https://connect.facebook.net/en_US/fbevents.js",
+   "type": "script",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.729,
+   "phase": "pre-interaction",
+   "url": "https://www.clarity.ms/tag/h0sj222s3a?ref=gtm2",
+   "type": "script",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 2.729,
+   "phase": "pre-interaction",
+   "url": "https://build.1pdata.app/hhtransmute.js?UQBPIAAEYUFVFlVQFAUOAlX",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.729,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.73,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.73,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtag.config",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.73,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.scrollDepth",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.731,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=scroll",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.733,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.dom",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 2.733,
+   "phase": "pre-interaction",
+   "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/871025383/?random=1794732643667&cv=11&fst=1794732643667&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~",
+   "type": "script",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.735,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/rmkt/collect/871025383/?random=1794732643667&cv=11&fst=1794732643667&fmt=8&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~120",
+   "type": "fetch",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.736,
+   "phase": "pre-interaction",
+   "url": "https://cnv.event.prod.bidr.io/log/cnv?tag_id=1179&buzz_key=ribeye&value=&segment_key=ribeye-1057&account_id=2&order=[ORDER]&ord=[CACHEBUSTER]",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 2.739,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/ccm/collect?rcb=11&frm=0&apvc=0&ae=g&auid=527816685.1794732643&dt=Arlinghaus%3A%20HVAC%2C%20Plumbing%20%26%20More!%20%7C%20Cincinnati%2C%20Erlanger%20%26%20Florence&en=page_view&dl=https%3A%2F%2Fwww.arlinghausair.com%2F&scrsrc=www.googletagmanager.com&rnd=708248318.1794732643&",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.747,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/ccm/collect?rcb=15&frm=0&apvc=0&auid=527816685.1794732643&dt=Arlinghaus%3A%20HVAC%2C%20Plumbing%20%26%20More!%20%7C%20Cincinnati%2C%20Erlanger%20%26%20Florence&tid=AW-871025383&en=page_view&dl=https%3A%2F%2Fwww.arlinghausair.com%2F&scrsrc=www.googletagmanager.com&rnd=708248318",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 2.752,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/css/7730eee3896c4590.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.752,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/css/51d0ac5c28acdaab.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.753,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/webpack-f73cabc13e665ff3.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.753,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/framework-1d8a3f4c794524dc.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.757,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/main-bb628318ae555c9a.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.758,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/pages/_app-501f230676dcac02.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.759,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/63a52f3a-79b9f1a780f41c6e.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.759,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/98309536-925028bbd952f8a2.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.76,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/994-b567afc5a46af962.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.76,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/540-37e2417f13efd87b.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.76,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/375-94eaec8c52b0944f.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.761,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/568-c9de777f782f101a.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.763,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/45-f6a6eef0dbeaabc7.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.764,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/121-4c07183a1a1b5c7e.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.765,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/781-f611331b879dae4d.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.768,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/938-1518067679a4427c.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.768,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/39-4e0f760a8218d23d.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.769,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/411-c61139ecad5c87fa.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.772,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/682-05b986ab6f87407b.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.772,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/pages/index-030c29aa7aaa0c3b.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.772,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/yEiMaLbvWtMSPzxGV_RFZ/_buildManifest.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.773,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/yEiMaLbvWtMSPzxGV_RFZ/_ssgManifest.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.773,
+   "phase": "pre-interaction",
+   "url": "https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.781,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/reactVendor.fe241095.js?a36d571572b93d8fd527",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.781,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/iconsVendor.510a6440.js?a36d571572b93d8fd527",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.781,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/3.65f3c9d8.js?a36d571572b93d8fd527",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.782,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/main.6a1068a5.js?a36d571572b93d8fd527",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.782,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/3.7ce8c9ab.bundle.css?a36d571572b93d8fd527",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.787,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/main.53dad8c8.bundle.css?a36d571572b93d8fd527",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.845,
+   "phase": "pre-interaction",
+   "url": "https://e28e5d5b-adc1-4c2f-91b3-16dc48c03256.rlets.com/static/storage.html",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 2.861,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/1p-user-list/871025383/?random=1794732642841&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~12",
+   "type": "image",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.873,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/insightsConversions/s/0.8.77",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.873,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/1p-user-list/871025383/?random=1794732643667&cv=11&fst=1794729600000&bg=ffffff&guid=ON&async=1&en=gtag.config&gtm=45be6bb1v9102640816za208zb880050126zd880050126xecxf1&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938466~115938468~117227715~118897920~118897930~119860442~12",
+   "type": "image",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 2.987,
+   "phase": "pre-interaction",
+   "url": "https://connect.facebook.net/signals/config/156349445790840?v=2.9.439&r=stable&domain=www.arlinghausair.com&hme=1f127d11ce7bba675ee077e129c6ec7e07038113ad3e920301e60f2f865dc776&ex_m=119%2C243%2C172%2C27%2C82%2C83%2C163%2C78%2C77%2C11%2C182%2C102%2C20%2C154%2C142%2C46%2C85%2C90%2C184%2C111%2C150%2C17",
+   "type": "script",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 2.997,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Nunito+Sans:300,300i,400,400i,600,600i,700,700i,800,800i",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 3.0,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Nunito+Sans:300,300i,400,400i,600,600i,700,700i,800,800i",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 3.035,
+   "phase": "pre-interaction",
+   "url": "https://hits3.livemarketshoppers.com/fullthrottlelims_pxl.gif?c=6091783356&r=1794732644016-0.5449308887220853&f=&b=OmegaWeapon/1.0%20%28declared%20site-audit%20bot%3B%20obeys%20robots.txt%29&l=en-US&p=https%3A//www.arlinghausair.com/&o=&s=11816&hs=&ss=1&ly=3&z=0",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 3.049,
+   "phase": "pre-interaction",
+   "url": "https://www.gstatic.com/call-tracking/call-tracking_9.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.215,
+   "phase": "pre-interaction",
+   "url": "https://cnv.event.prod.bidr.io/log/cnv?tag_id=1179&buzz_key=ribeye&value=&segment_key=ribeye-1057&account_id=2&order=%5BORDER%5D&ord=%5BCACHEBUSTER%5D&_bee_ppp=1",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 3.22,
+   "phase": "pre-interaction",
+   "url": "https://cdn.segment.com/analytics.js/v1/nu4haJYhH97eGt7Eeb5ggpNzCaBT2DVp/analytics.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.469,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/139-f65f96b35c9d6e76.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.47,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/_next/static/chunks/358-6411e90ab6630119.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.492,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=8597574072&cl=iId-CL6HtcABEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.497,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/c/g",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 3.5,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/cdn-cgi/rum?",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 3.526,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/api/graphql?opname=getSchedulerIssues",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 3.546,
+   "phase": "pre-interaction",
+   "url": "https://cdn.segment.com/v1/projects/nu4haJYhH97eGt7Eeb5ggpNzCaBT2DVp/settings",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 3.547,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=8597574072&cl=iId-CL6HtcABEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.551,
+   "phase": "pre-interaction",
+   "url": "https://capture-api.reachlocalservices.com/originCountry",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 3.579,
+   "phase": "pre-interaction",
+   "url": "https://stpaymentspciprod.blob.core.windows.net/webfields/1.0.52/webfields.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.579,
+   "phase": "pre-interaction",
+   "url": "https://api.scheduler.servicetitan.com/graphql?opname=paymentsConfig",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 3.601,
+   "phase": "pre-interaction",
+   "url": "https://cdn.segment.com/analytics-next/bundles/ajs-destination.bundle.0f003b5e4b03680982b4.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.61,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5137296938&cl=1kBICMO89sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.61,
+   "phase": "pre-interaction",
+   "url": "https://scripts.clarity.ms/0.8.80-beta/clarity.js",
+   "type": "script",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 3.714,
+   "phase": "pre-interaction",
+   "url": "https://www.facebook.com/tr/?id=156349445790840&ev=PageView&dl=https%3A%2F%2Fwww.arlinghausair.com%2F&rl=&if=false&ts=1794732644682&iw=false&sw=1280&sh=720&v=2.9.439&r=stable&ec=0&o=77854&aems=0%3B0&fbp=fb.1.1794732644644.986316835853682891&cs_est=true&ler=empty&pmd[title]=Arlinghaus%3A%20HVAC%2C%20",
+   "type": "image",
+   "trackers": [
+    "meta_pixel"
+   ]
+  },
+  {
+   "t": 3.717,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5137296938&cl=1kBICMO89sIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.77,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/api/perf",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 3.774,
+   "phase": "pre-interaction",
+   "url": "https://cdn.segment.com/analytics-next/bundles/schemaFilter.bundle.f63551a29dc1697f71b6.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.777,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5139879343&cl=GCqiCKXJ7MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.806,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5139879343&cl=GCqiCKXJ7MIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.929,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5134492674&cl=xLp1CI_L7MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 3.931,
+   "phase": "pre-interaction",
+   "url": "https://text2chat-widget.servicetitan.com/api/widget",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 3.936,
+   "phase": "pre-interaction",
+   "url": "https://bzr.openai.com/v1/sdk/events?pid=DgVjs57BJpFWVP27D6hYJn&st=oaiq-web&sv=0.1.105&t=1794732644916&ec=2",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 3.938,
+   "phase": "pre-interaction",
+   "url": "https://cdn.segment.com/next-integrations/actions/amplitude-plugins/28329fafaddd9058cb0e.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 3.983,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5134492674&cl=xLp1CI_L7MIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.028,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5136571789&cl=LN7TCKHL7MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.029,
+   "phase": "pre-interaction",
+   "url": "https://cdn.segment.com/next-integrations/actions/actions-plugin/6e09382dbc5c9f46c410.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 4.07,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5136571789&cl=LN7TCKHL7MIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.109,
+   "phase": "pre-interaction",
+   "url": "https://l.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.116,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5132068855&cl=x-n4CLrC9sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.13,
+   "phase": "pre-interaction",
+   "url": "https://c.clarity.ms/c.gif",
+   "type": "image",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.137,
+   "phase": "pre-interaction",
+   "url": "https://api.segment.io/v1/p",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 4.149,
+   "phase": "pre-interaction",
+   "url": "https://alb.reddit.com/rp?id=a2_hl44gkxw7r7w&event=gtm.load",
+   "type": "fetch",
+   "trackers": [
+    "reddit_pixel"
+   ]
+  },
+  {
+   "t": 4.17,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5132068855&cl=x-n4CLrC9sIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.219,
+   "phase": "pre-interaction",
+   "url": "https://scheduler.servicetitan.com/api/perf",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 4.22,
+   "phase": "pre-interaction",
+   "url": "https://c.bing.com/c.gif?ctsa=mr&CtsSyncId=9F36E49C06BB4BABAE0B5B2F085A8979&RedC=c.clarity.ms&MXFR=3B9AE4E055CB65B60B35FCF251CB6B59",
+   "type": "image",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.221,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5134492335&cl=NDa2CO7D9sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.252,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5134492335&cl=NDa2CO7D9sIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.275,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5138135415&cl=ALz2COm63MIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.292,
+   "phase": "pre-interaction",
+   "url": "https://fault.rlets.com/static/_.gif?s=e28e5d5b-adc1-4c2f-91b3-16dc48c03256&m=Unknown%20OS%20or%20OS%20Version&f=OmegaWeapon%2F1.0%20(declared%20site-audit%20bot%3B%20obeys%20robots.txt)",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 4.296,
+   "phase": "pre-interaction",
+   "url": "https://tag.simpli.fi/sifitag/d9a5dd70-50f0-0134-a365-0cc47abc2b4e",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 4.298,
+   "phase": "pre-interaction",
+   "url": "https://c.clarity.ms/c.gif?ctsa=mr&CtsSyncId=9F36E49C06BB4BABAE0B5B2F085A8979&MUID=2369D8B87BBC65A005B6C0AA7A7764F4",
+   "type": "image",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 4.3,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5138135415&cl=ALz2COm63MIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.302,
+   "phase": "pre-interaction",
+   "url": "https://e28e5d5b-adc1-4c2f-91b3-16dc48c03256.rlets.com/api/v1/visits",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 4.335,
+   "phase": "pre-interaction",
+   "url": "https://www.googleadservices.com/pagead/conversion/871025383/wcm?cc=ZZ&dn=5139879439&cl=H2-cCIXG9sIBEOeVq58D&dma=0&npa=0&ct_eid=2",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 4.358,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/pagead/attribution/wcm?cc=ZZ&dn=5139879439&cl=H2-cCIXG9sIBEOeVq58D&dma=0",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 5.157,
+   "phase": "pre-interaction",
+   "url": "https://l.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 5.954,
+   "phase": "pre-interaction",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-03VLGGD31D&gtm=45je6bb1v880050126za200zd880050126xf1&_p=1794732641360&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1877049966&_eu=EEAAAGQC&ae=a&cid=1360343840.1794732642&frm=0&ir=1&pscdl=noapi&rcb=14&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrome%3B153.0.8010.1",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 7.265,
+   "phase": "pre-interaction",
+   "url": "https://l.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 9.147,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/nunitosans/v19/pe1mMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp5F5bxqqtQ1yiU4G1ilXs1Ug.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 9.147,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/nunitosans/v19/pe1mMImSLYBIv1o4X1M8ce2xCx3yop4tQpF_MeTm0lfGWVpNn64CL7U8upHZIbMV51Q42ptCp5F5bxqqtQ1yiU4GCC5Xs1Ug.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 9.153,
+   "phase": "pre-interaction",
+   "url": "https://api.segment.io/v1/t",
+   "type": "fetch",
+   "trackers": []
+  },
+  {
+   "t": 10.705,
+   "phase": "pre-interaction",
+   "url": "https://l.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 11.085,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/mobile-home-hero-img-whole.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.086,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/home-hero-overlay-mobile-new.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.086,
+   "phase": "pre-interaction",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/white-houses-bg-divider-MobileNEW.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.836,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/family-choice-award.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.836,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/thumbnail_Ruud_DifferenceMaker_Logo_PMS-copy.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.837,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/PatriotEmpl_Year.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.837,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/BOC24-WINNER-v.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.837,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/Best-Workplaces-Logo.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.838,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/greater-home-and-design.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.838,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/best-of-NKY.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.998,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/New-Club-logos-2023_Maintenance-Club.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.022,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/12/our-work-standsout-bg-desktop.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.032,
+   "phase": "post-scroll",
+   "url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6200.484722625149!2d-84.61444908716769!3d39.009784539944924!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8841c78cf730e4a3%3A0xe35de8981e0bb4c6!2sArlinghaus%20Plumbing%20Heating%20%26%20Air%20Conditioning!5e0!3m2!1sen!2sus!4v1790025421171!5",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 12.052,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/11/Arlinghaus-lined-vans.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.169,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/happy-house-club-homepage-bg.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.191,
+   "phase": "post-scroll",
+   "url": "https://maps.gstatic.com/maps-api-v3/embed/js/66/13d/init_embed.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.192,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps/api/js?key=AIzaSyCmL18misQw9KdwqGaw3zHkitj8vG6QF2Y&paint_origin=&libraries=geometry,search&v=weekly&loading=async&language=en&region=us&experimentation=allowed&callback=onApiLoad",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.208,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/422023334_832775838871103_8249003183465277276_n.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.208,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/395288911_713192117496143_5815483333059269661_n.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.208,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/arlingahaus-community-pic-8.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.208,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/351516224_1531728417355975_6020607645127461381_n.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.209,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/460873687_930346772447342_2886930347763513300_n.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.21,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/DSC_0052.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.21,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/IMG_6159-e1596042605817.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.21,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/difference-pic-2.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.21,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/difference-pic-1.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.211,
+   "phase": "post-scroll",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/02/arlingahaus-community-pic-6.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.239,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/search.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.239,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/geometry.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.24,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.456,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 12.491,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/common.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.491,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/util.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.492,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/map.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.492,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/controls.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.492,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places_impl.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.492,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.493,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps/api/js/StaticMapService.GetMapImage?1m2&1i2222475&2i3205508&2e1&3u15&4m2&1u460&2u300&5m6&1e0&5sen&6sus&10b1&12b1&14i47083502&8e1&key=AIzaSyCmL18misQw9KdwqGaw3zHkitj8vG6QF2Y&token=69557",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.499,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/onion.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.5,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/search_impl.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.602,
+   "phase": "post-scroll",
+   "url": "https://maps.gstatic.com/mapfiles/openhand_8_8.cur",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 12.668,
+   "phase": "post-scroll",
+   "url": "https://fonts.googleapis.com/css?family=Google+Sans+Text:400&text=%E2%86%90%E2%86%92%E2%86%91%E2%86%93&lang=en",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 12.668,
+   "phase": "post-scroll",
+   "url": "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Google+Sans:400,500,700|Google+Sans+Text:400,500,700&lang=en",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 12.676,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/log.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 12.736,
+   "phase": "post-scroll",
+   "url": "https://fonts.gstatic.com/s/roboto/v51/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiA8.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 12.757,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/GetViewportInfo",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 12.758,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/InitMapsJwt",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 12.779,
+   "phase": "post-scroll",
+   "url": "https://bat.bing.com/p/conversions/c/g",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 12.84,
+   "phase": "post-scroll",
+   "url": "https://maps.googleapis.com/$rpc/google.internal.maps.mapsjs.v1.MapsJsInternalService/GetPlaceWidgetMetadata",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 12.891,
+   "phase": "post-scroll",
+   "url": "https://www.google.com/maps/vt?pb=!1m4!1m3!1i15!2i8681!3i12521!1m4!1m3!1i15!2i8681!3i12522!1m4!1m3!1i15!2i8682!3i12521!1m4!1m3!1i15!2i8683!3i12521!1m4!1m3!1i15!2i8682!3i12522!1m4!1m3!1i15!2i8683!3i12522!2m3!1e0!2sm!3i803569816!2m3!1e2!2sspotlit!5i1!3m13!2sen!3sUS!5e289!12m5!1e68!2m2!1sset!2sRoadmap!",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 12.931,
+   "phase": "post-scroll",
+   "url": "https://places.googleapis.com/$rpc/google.maps.places.v1.Places/GetPlace",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 13.203,
+   "phase": "post-scroll",
+   "url": "https://fonts.gstatic.com/l/font?kit=5aUu9-KzpRiLCAt4Unrc-xIKmCU5mE1kgo3FI_E8lH570oBdIw&skey=b20c8ebc9802c116&v=v29",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 13.203,
+   "phase": "post-scroll",
+   "url": "https://fonts.gstatic.com/s/googlesanstext/v29/5aUp9-KzpRiLCAt4Unrc-xIKmCU5oLlVnmhjsw.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 13.242,
+   "phase": "post-scroll",
+   "url": "https://fonts.gstatic.com/s/googlesanstext/v29/5aUu9-KzpRiLCAt4Unrc-xIKmCU5qEp2jg.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.229,
+   "phase": "reload",
+   "url": "https://l.clarity.ms/collect",
+   "type": "xhr",
+   "trackers": [
+    "session_replay"
+   ]
+  },
+  {
+   "t": 15.593,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/conversions/c/g",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 16.937,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 17.102,
+   "phase": "reload",
+   "url": "https://embed.scheduler.servicetitan.com/scheduler-v1.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.103,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-03VLGGD31D",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 17.103,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=UA-103658182-1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 17.103,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=AW-871025383",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 17.103,
+   "phase": "reload",
+   "url": "https://cdn.rlets.com/capture_configs/e28/e5d/5ba/dc14c2f91b316dc48c03256.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.103,
+   "phase": "reload",
+   "url": "https://d1b3llzbo1rqxo.cloudfront.net/attributer.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.104,
+   "phase": "reload",
+   "url": "https://searchlight.partners/photon/photon-3p.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.104,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/dynamic-content-for-elementor/assets/css/style.min.css?ver=3.4.19",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.104,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/dynamic-content-for-elementor/assets/css/dynamic-visibility.min.css?ver=3.4.19",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.104,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor/assets/css/reset.css?ver=3.5.2",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.105,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor/assets/css/theme.css?ver=3.5.2",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.105,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-frontend.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.105,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-1038.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.105,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-heading.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.105,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-icon-list.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.106,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-image.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.106,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-icon-box.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.106,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-divider.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.106,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-pro-widget-nav-menu.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.106,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/modules/sticky.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.107,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/e-animation-float.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.107,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-social-icons.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.108,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-apple-webkit.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.108,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-5.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.108,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/fadeInLeft.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.108,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/slideInRight.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.108,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-video.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.109,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-image-box.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.109,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-nested-accordion.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.109,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-spacer.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.109,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/fadeInRight.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.109,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/swiper/v8/css/swiper.min.css?ver=8.4.5",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.111,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/conditionals/e-swiper.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.113,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-loop-common.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.113,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-loop-carousel.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.113,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/rotateInDownRight.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.114,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/modules/motion-fx.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.114,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-60.css?ver=1794324947",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.114,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-17100.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.114,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-16419.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.114,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/google-fonts/css/montserrat.css?ver=1747751508",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.114,
+   "phase": "reload",
+   "url": "https://fonts.googleapis.com/css?family=Public+Sans:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.115,
+   "phase": "reload",
+   "url": "https://fonts.googleapis.com/css?family=Oswald:100,100italic,200,200italic,300,300italic,400,400italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.115,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-includes/js/jquery/jquery.min.js?ver=3.7.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.115,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.116,
+   "phase": "reload",
+   "url": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.116,
+   "phase": "reload",
+   "url": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.116,
+   "phase": "reload",
+   "url": "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.116,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2024/10/Arlinghaus-Plumbing-Heating-Air-Conditioning-Electrical-logo-Erlanger-Florence-KY.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.117,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2026/10/6kReviews-icon-1.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.118,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2026/10/white-houses-bg-divider-1-1024x107.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.118,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/2025/01/arlinghaus-green-hh-slogan-logo-1-300x126.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 17.118,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-16206.css?ver=1794324948",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.118,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-rating.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.119,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/css/widget-counter.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.119,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-16209.css?ver=1794324948",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.119,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-210.css?ver=1794324928",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.119,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-media-carousel.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.12,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-carousel-module-base.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.12,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-208.css?ver=1794324929",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.12,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-pro-widget-testimonial-carousel.min.css?ver=1794324927&ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.12,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/widget-reviews.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.121,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/custom-widget-star-rating.min.css?ver=1794324927",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.121,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/uploads/elementor/css/post-209.css?ver=1794324929",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.121,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor-child/custom-style.css?ver=bc32e3400e0534fb13d833b6d73d65ab",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.121,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/animations/styles/slideInLeft.min.css?ver=4.3.6",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.121,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/css/conditionals/popup.min.css?ver=4.3.1",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 17.122,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/dynamicconditions/Public/js/dynamic-conditions-public.js?ver=1.7.5",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.122,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/webpack.runtime.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.122,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/frontend-modules.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.124,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-includes/js/jquery/ui/core.min.js?ver=1.14.2",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.124,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/js/frontend.min.js?ver=4.3.6",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.125,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/lib/smartmenus/jquery.smartmenus.min.js?ver=1.2.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.125,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/lib/sticky/jquery.sticky.min.js?ver=4.3.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.126,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-includes/js/imagesloaded.min.js?ver=5.0.0",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.126,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/jquery-numerator/jquery-numerator.min.js?ver=0.2.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.126,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor/assets/lib/swiper/v8/swiper.min.js?ver=8.4.5",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.127,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/themes/hello-elementor-child/custom.js?ver=bc32e3400e0534fb13d833b6d73d65ab",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.127,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-includes/js/dist/hooks.min.js?ver=f0f188028580e8dc1255",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.128,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-includes/js/dist/i18n.min.js?ver=1dfe7db3940c23ea9216",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.128,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/js/frontend.min.js?ver=4.3.1",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 17.129,
+   "phase": "reload",
+   "url": "https://www.arlinghausair.com/wp-content/plugins/elementor-pro/assets/js/elements-handlers.min.js?ver=4.3.1",
+   "type": "script",
+   "trackers": []
+  }
+ ]
+}

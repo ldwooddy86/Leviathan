@@ -1,0 +1,1245 @@
+{
+ "meta": {
+  "built_at": "2026-11-15T09:01Z",
+  "doctrine_date": "2026-11-15",
+  "archetype_label": "Local service business",
+  "name_on_page": false,
+  "previous_run": null
+ },
+ "target": {
+  "domain": "henleysplumbingair.com",
+  "homepage": "https://www.henleysplumbingair.com/",
+  "business_name": "Henley's Plumbing & Air",
+  "recipient": "the Leviathan operator",
+  "archetype": "local-service",
+  "archetype_secondary": null,
+  "vertical": "Plumbing & HVAC",
+  "geography": {
+   "label": "Inland Empire, CA"
+  },
+  "posture": "competitor",
+  "question": "What is wrong across every digital channel on this Scorpion/acquired-agency client, and what can a challenger lead with?",
+  "money_pages": [
+   "https://www.henleysplumbingair.com/",
+   "https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/",
+   "https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/",
+   "https://www.henleysplumbingair.com/service-area/"
+  ],
+  "jurisdictions": [
+   "US"
+  ],
+  "surfaces": [
+   "website",
+   "local",
+   "paid",
+   "AI/GEO"
+  ],
+  "nome": "local-services",
+  "codex_overlays": [
+   "digital-marketing"
+  ],
+  "radar_id": null
+ },
+ "run": {
+  "id": "omega-henleysplumbingair.com-20261115",
+  "run_date": "2026-11-15",
+  "tier": 0,
+  "presence": {
+   "mode": "DECLARED",
+   "line": "Presence DECLARED (honest mode): every request identified the tool truthfully as 'OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)' over a plain Python HTTP client. robots.txt was obeyed and requests were rate-limited per host. A WAF/403/CAPTCHA is recorded NOT_TESTED and never worked around.",
+   "vantage": "US workspace egress; an EU-consent posture read from here is NOT_TESTED unless the banner shows globally."
+  },
+  "fetches_used": null,
+  "fetch_budget": 30,
+  "exports_supplied": [],
+  "exports_requested": [
+   "GSC Performance + URL Inspection + Pages",
+   "GA4 organic sessions & key events",
+   "GBP Performance + profile screenshots",
+   "Google/Microsoft Ads account export (if any)",
+   "A GSC/Bing link export (unlocks authority + disavow)"
+  ],
+  "previous_run": null,
+  "cache_dir": "omega_cache/henleysplumbingair.com",
+  "judgment_calls": [
+   "Archetype read as local-service (secondary none).",
+   "Agency of record set to 1SEO Digital Agency (now Scorpion) from the hosting fingerprint and the prior Agency Radar.",
+   "Posture is competitor intelligence, not a self-audit.",
+   "Pre-consent tracker firing is held as CANDIDATE (US vantage, innocent reading open), not CONFIRMED.",
+   "Case-study/footer ties do not distinguish current from former engagements."
+  ]
+ },
+ "metrics": {
+  "overall": {
+   "grade": "C",
+   "pillars_graded": 8,
+   "pillars_total": 11
+  },
+  "scorecard": {
+   "Technical": {
+    "grade": "A",
+    "confidence": "Confirmed",
+    "n": 1,
+    "weight": 1.0,
+    "why": "Weighted density of technical and crawl findings over pages crawled."
+   },
+   "Content": {
+    "grade": "A",
+    "confidence": "Confirmed",
+    "n": 1,
+    "weight": 1.0
+   },
+   "Local": {
+    "grade": "C",
+    "confidence": "Plausible",
+    "n": 1,
+    "weight": 1.0,
+    "why": "On-site NAP and schema graded; GBP, reviews and pack rank are a screenshot/export (unverified, confidence lowered)."
+   },
+   "Authority": {
+    "grade": "NA",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "No link export (Tier 3); authority not graded this run."
+   },
+   "Competitive Position": {
+    "grade": "B",
+    "confidence": "Plausible",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Client present on its brand in Autocomplete but absent on 0 of the non-brand money seeds.",
+    "gap": 0,
+    "rival": "The Inland Empire plumbing-and-HVAC pack across Corona, Rive",
+    "client_lens_mean": null,
+    "rival_lens_mean": null
+   },
+   "Paid": {
+    "grade": "C",
+    "confidence": "Plausible",
+    "n": 1,
+    "weight": 1.0,
+    "why": "Paid tag observed on the money pages; account data is an export (protocol until supplied)."
+   },
+   "Social": {
+    "grade": "NA",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Organic handles observed; no ad-library capture or export to grade."
+   },
+   "AI Visibility": {
+    "grade": "C",
+    "confidence": "Plausible",
+    "n": 1,
+    "weight": 1.0,
+    "why": "Readiness and non-brand demand graded; prompt tracker needs screenshots (confidence lowered)."
+   },
+   "Compliance & Exposure": {
+    "grade": "C",
+    "confidence": "Plausible",
+    "n": 1,
+    "weight": 1.0,
+    "why": "Graded from dispositions, not density. CANDIDATE rows hold as intelligence."
+   },
+   "Market Position": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Brand read is thin (reviews not fetched); Market Position not graded."
+   },
+   "Agency Fit": {
+    "grade": "F",
+    "confidence": "Confirmed",
+    "n": 5,
+    "weight": 1.0,
+    "why": "100% of High+Medium findings are inherited from the 1SEO Digital Agency (now Scorpion) template or stack.",
+    "inherited_share": 1.0
+   }
+  },
+  "honest_count": {
+   "n": 6,
+   "confirmed": 0,
+   "routable": 0,
+   "candidate": 1,
+   "cleared": 0,
+   "coverage": {
+    "testable": 2,
+    "families": 6
+   },
+   "sentence": "6 observations. 0 CONFIRMED, 0 routable. 1 CANDIDATE, held as intelligence. 0 CLEARED. Most of the value here is the client's competitive intelligence, held in-house."
+  },
+  "findings": {
+   "n": 5,
+   "by_severity": {
+    "Medium": 3,
+    "Low": 2
+   }
+  },
+  "coverage": {
+   "tier": 0,
+   "archetype": "local-service",
+   "vantage": "US workspace egress; an EU-consent posture read from here is NOT_TESTED unless the banner shows globally.",
+   "blocked": [
+    "links: Tier 3 link export (GSC/Bing) not supplied; no disavow or link gap this run.",
+    "apps: No app discovered (no store badges, AASA or assetlinks).",
+    "exposure: "
+   ],
+   "not_observable": [
+    {
+     "item": "Ad creatives, targeting and spend",
+     "why": "Ad libraries and ad accounts are not fetchable; read by screenshot/export.",
+     "cost_to_close": "An Ads Transparency capture or the client's Ads export."
+    },
+    {
+     "item": "GBP fields, reviews, map-pack rank",
+     "why": "Every GBP field and the pack are a screenshot/export.",
+     "cost_to_close": "GBP Performance export + pack screenshots for the money terms."
+    },
+    {
+     "item": "Actual index coverage",
+     "why": "The crawl sees signals, not whether Google indexed the URL.",
+     "cost_to_close": "GSC URL Inspection + Pages report."
+    },
+    {
+     "item": "Referring domains / authority",
+     "why": "No link export supplied (Tier 3).",
+     "cost_to_close": "A GSC or Bing link export."
+    }
+   ]
+  },
+  "crawl": {
+   "n": 30,
+   "status": {
+    "indexable": 30,
+    "noindex or blocked": 0,
+    "redirect": 0,
+    "error": 0,
+    "unfetched": 0
+   },
+   "depth": {}
+  },
+  "reviews": {
+   "rows": []
+  },
+  "competitors": {
+   "rows": [
+    {
+     "threat_rank": 1,
+     "name": "The Inland Empire plumbing-and-HVAC pack across Corona, Rive",
+     "domain": null,
+     "one_line": "The Inland Empire plumbing-and-HVAC pack across Corona, Riverside and Rancho Cucamonga; Henley's has the deepest schema in its book but leaks link equity to orphan pages the rivals consolidate.",
+     "Technical": "B",
+     "Content": "B",
+     "Local": "A",
+     "Authority": "B",
+     "AI/GEO": "B",
+     "steal_this": "They own the non-brand money terms in the pack; match their local entity completeness and city-page depth."
+    }
+   ],
+   "lenses": [
+    "Technical",
+    "Content",
+    "Local",
+    "Authority",
+    "AI/GEO"
+   ]
+  },
+  "ai": {
+   "citable_client": 0,
+   "citable_checked": 0,
+   "prompts": 0,
+   "prompts_pending": 0,
+   "prompts_mentioned": 0,
+   "brand_facts_inconsistent": 0,
+   "readiness_n": 4,
+   "citable_rivals": {}
+  },
+  "brand": {
+   "rows": [],
+   "n_sun": 0,
+   "n_moon": 0,
+   "thin": true,
+   "minimums": {
+    "sun_items": 20,
+    "moon_items": 15
+   },
+   "floor_led": [],
+   "broadcast_led": [],
+   "complaint_share": null,
+   "stance": {
+    "sun": null,
+    "moon": null
+   },
+   "grade": {
+    "grade": "?"
+   },
+   "clusters": {},
+   "frames": {
+    "sun": [
+     "The brand's own site copy and service claims (read)."
+    ],
+    "moon": [
+     "Review platforms (Google, Yelp, BBB) were not fetched this run; the floor read is pending."
+    ]
+   }
+  },
+  "momentum": null,
+  "grading": {
+   "severity_weight": {
+    "High": 3.0,
+    "Medium": 2.0,
+    "Low": 1.0,
+    "Info": 0.5,
+    "Win": -1.0
+   },
+   "evidence_multiplier": {
+    "observed": 1.0,
+    "inferred": 0.7,
+    "unverified": 0.0
+   },
+   "money_page_multiplier": 1.5,
+   "density_bands": {
+    "A": "<=0.3 weighted pts per graded page",
+    "B": "<=0.8",
+    "C": "<=1.6",
+    "D": "<=2.8",
+    "F": ">2.8"
+   },
+   "confidence_bands": {
+    "Confirmed": "observed evidence, controls passed",
+    "Plausible": "observed + open question",
+    "Weak": "inferred or thin"
+   },
+   "exposure_grade": "from dispositions: any CONFIRMED High -> D/F; CANDIDATE only -> C; none -> A/B by count",
+   "market_grade": "from the Moon eye complaint share and stance; thin read caps confidence at low",
+   "agency_fit_grade": "share of High+Medium findings inherited from the agency template or stack -> A (low) to F (high)",
+   "honest_count_rules": "CONFIRMED = quoted evidence + fetched/vintage cite + controls + adversarial check; CANDIDATE = real observation, innocent reading open; CLEARED = a control knocked it down."
+  }
+ },
+ "modules": {
+  "crawl": {
+   "status": "run",
+   "sources": [
+    "honest crawl"
+   ],
+   "why": null
+  },
+  "technical": {
+   "status": "run",
+   "sources": [
+    "raw scan",
+    "render probe"
+   ]
+  },
+  "content": {
+   "status": "run",
+   "sources": [
+    "raw scan",
+    "schema tribunal",
+    "Autocomplete"
+   ]
+  },
+  "local": {
+   "status": "partial",
+   "why": "On-site signals only; GBP and reviews are screenshots/exports.",
+   "sources": [
+    "raw scan"
+   ]
+  },
+  "links": {
+   "status": "blocked",
+   "why": "Tier 3 link export (GSC/Bing) not supplied; no disavow or link gap this run.",
+   "sources": []
+  },
+  "competitors": {
+   "status": "partial",
+   "why": "Rival set and lenses inferred from Autocomplete and market knowledge; no rank data.",
+   "sources": [
+    "Autocomplete"
+   ],
+   "rows": [
+    {
+     "threat_rank": 1,
+     "name": "The Inland Empire plumbing-and-HVAC pack across Corona, Rive",
+     "domain": null,
+     "one_line": "The Inland Empire plumbing-and-HVAC pack across Corona, Riverside and Rancho Cucamonga; Henley's has the deepest schema in its book but leaks link equity to orphan pages the rivals consolidate.",
+     "Technical": "B",
+     "Content": "B",
+     "Local": "A",
+     "Authority": "B",
+     "AI/GEO": "B",
+     "steal_this": "They own the non-brand money terms in the pack; match their local entity completeness and city-page depth."
+    }
+   ],
+   "lenses": [
+    "Technical",
+    "Content",
+    "Local",
+    "Authority",
+    "AI/GEO"
+   ]
+  },
+  "paid": {
+   "status": "partial",
+   "why": "A live Google Ads tag is instrumented; the account export (campaigns, search terms, spend, Auction Insights) would make the audit real.",
+   "sources": [
+    "GTM read"
+   ],
+   "intel": [
+    {
+     "rival": "(this client)",
+     "platform": "Google Ads",
+     "active": "tag AW-17032377429 present and firing",
+     "since": "",
+     "formats": "",
+     "hooks": "CallRail 205364564 attributes the calls",
+     "lp": "https://henleysplumbingair.com/",
+     "evidence_class": "observed",
+     "source": "GTM container read",
+     "date": "2026-11-15"
+    }
+   ],
+   "account_audit": {
+    "status": "protocol_only"
+   },
+   "landing_pages": [
+    {
+     "campaign": "(live)",
+     "url": "https://henleysplumbingair.com/",
+     "speed": "lab LCP strong",
+     "compliance": "see exposure",
+     "message_match": "verify against ad copy"
+    }
+   ]
+  },
+  "social": {
+   "status": "partial",
+   "why": "Organic handles observed; no ad-library capture or account export.",
+   "sources": [
+    "raw scan"
+   ],
+   "organic": [
+    {
+     "platform": "facebook",
+     "handle": "facebook.com/HenleysPlumbingAir",
+     "url": "https://facebook.com/HenleysPlumbingAir"
+    }
+   ]
+  },
+  "ai": {
+   "status": "partial",
+   "why": "Readiness and demand observed; prompt tracker and citable footprint need screenshots.",
+   "sources": [
+    "robots.txt",
+    "Autocomplete",
+    "schema"
+   ]
+  },
+  "apps": {
+   "status": "not_run",
+   "why": "No app discovered (no store badges, AASA or assetlinks).",
+   "sources": []
+  },
+  "exposure": {
+   "status": "run",
+   "why": null,
+   "sources": [
+    "render probe",
+    "raw scan"
+   ],
+   "controls_applied": [
+    {
+     "candidate": "Dark patterns (fabricated urgency)",
+     "control": "US-vantage jurisdiction check + innocent-reading test",
+     "result": "CANDIDATE"
+    }
+   ],
+   "clause_coverage": [
+    {
+     "family": "Consent & trackers",
+     "status": "testable from here"
+    },
+    {
+     "family": "Dark patterns",
+     "status": "testable from here"
+    },
+    {
+     "family": "Ad creative & targeting",
+     "status": "not observable (needs exports/screenshots)"
+    },
+    {
+     "family": "Reviews authenticity",
+     "status": "partial (GBP screenshot needed)"
+    },
+    {
+     "family": "Licensing/claims",
+     "status": "partial"
+    }
+   ],
+   "inventory": [
+    {
+     "surface": "https://www.henleysplumbingair.com/",
+     "tags": "GTM + GA4 + Google Ads + CallRail",
+     "cmp": "none detected",
+     "handles": "",
+     "apps": "none"
+    }
+   ],
+   "consent_trackers": [
+    {
+     "url": "https://www.henleysplumbingair.com/",
+     "pre_consent": "call_tracking, google_ads_doubleclick, google_analytics, google_tag_manager",
+     "cmp": "none",
+     "consent_mode": "present in container, not gating",
+     "note": "no banner detected"
+    }
+   ],
+   "accounts": [],
+   "not_observable": [
+    {
+     "item": "Ad creatives, targeting and spend",
+     "why": "Ad libraries and ad accounts are not fetchable; read by screenshot/export.",
+     "cost_to_close": "An Ads Transparency capture or the client's Ads export."
+    },
+    {
+     "item": "GBP fields, reviews, map-pack rank",
+     "why": "Every GBP field and the pack are a screenshot/export.",
+     "cost_to_close": "GBP Performance export + pack screenshots for the money terms."
+    },
+    {
+     "item": "Actual index coverage",
+     "why": "The crawl sees signals, not whether Google indexed the URL.",
+     "cost_to_close": "GSC URL Inspection + Pages report."
+    },
+    {
+     "item": "Referring domains / authority",
+     "why": "No link export supplied (Tier 3).",
+     "cost_to_close": "A GSC or Bing link export."
+    }
+   ]
+  },
+  "agency": {
+   "status": "run",
+   "sources": [
+    "footer/RDAP/hosting fingerprint",
+    "prior Agency Radar"
+   ],
+   "of_record": {
+    "name": "1SEO Digital Agency (now Scorpion)",
+    "domain": "1seo.com",
+    "confidence": "Confirmed",
+    "evidence": [
+     "Scorpion acquired 1SEO Digital Agency on 2026-06-18; 1SEO's home-services, legal, health and franchise clients moved onto Scorpion's RevenueMAX platform.",
+     "public urlscan scan 2026-11-02 recorded a request to 1seo.com",
+     "Agency of record joined to the prior Scorpion Agency Radar record (edition 2026.09a)."
+    ],
+    "reverse_justice_offered": true,
+    "radar": {
+     "ok": true,
+     "id": "scorpion",
+     "name": "Scorpion",
+     "domain": "scorpion.co",
+     "region": "US",
+     "hq": "Lehi, UT, US",
+     "segment": "Vertical: Legal & home services",
+     "archetype": "Local & SMB",
+     "ownership": "founder-led",
+     "owner": "Rustin Kretz (founder and CEO)",
+     "band": "Favored",
+     "hti": 24.9,
+     "arc_clock": null,
+     "arc_word": null,
+     "best_fit": null,
+     "saydo": null,
+     "offshore": {
+      "band": "Landfall",
+      "index": 74.2
+     },
+     "house": "Scorpion rolls up local-service agencies (1SEO Jun 2026, Coalmarch Oct 2026, GNGF 2024, MediaSmack, Wheat Creative) and migrates their clients onto the scorpcloud/RevenueMAX platform.",
+     "gaps": [],
+     "verdict": null,
+     "compiled": "2026-09-29",
+     "edition": "2026.09a",
+     "leads": null
+    }
+   },
+   "inherited_vs_owned": [
+    {
+     "finding_id": "F01",
+     "side": "inherited",
+     "why": "17 pages are orphan candidates - The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are template-level; the license numbers"
+    },
+    {
+     "finding_id": "F02",
+     "side": "inherited",
+     "why": "20 title tags exceed the snippet limit - The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are template-level; the license"
+    },
+    {
+     "finding_id": "F03",
+     "side": "inherited",
+     "why": "LocalBusiness schema omits recommended fields - The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are template-level; the "
+    },
+    {
+     "finding_id": "F04",
+     "side": "inherited",
+     "why": "A countdown timer resets on every reload (fake urgency) - The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are template-l"
+    },
+    {
+     "finding_id": "F05",
+     "side": "inherited",
+     "why": "Invisible on the money searches; present only on its own name - The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are temp"
+    }
+   ],
+   "shared_layer": [],
+   "industry_alignment": [
+    {
+     "practice": "AI search / GEO (sold as a Scorpion strength)",
+     "floor_stance": "The floor says AI citations follow complete entity data, schema and reviews, not a product badge.",
+     "agency_selling": "Scorpion markets 'winning AI-powered search'; this client ships Product-on-service schema and no AI-crawler posture.",
+     "note": "Say/do gap: the AI pitch is not reflected in the client's own markup."
+    },
+    {
+     "practice": "Lead quality & revenue (RevenueMAX)",
+     "floor_stance": "Practitioners weight owned organic + local + reviews as the durable moat.",
+     "agency_selling": "Scorpion leads with revenue attribution and AI lead scoring.",
+     "note": "The client's non-brand organic/local capture is thin, so attribution rides mostly on brand and paid."
+    }
+   ],
+   "claims": [],
+   "pattern_verdict": null,
+   "self_audit": []
+  },
+  "market": {
+   "status": "partial",
+   "why": "Brand read is thin: review platforms are walled/not fetched this run, so the floor eye is pending. Autocomplete and on-site voice are the only brand signals read.",
+   "sources": [
+    "Autocomplete",
+    "on-site copy"
+   ],
+   "industry": {},
+   "brand": {
+    "items": []
+   }
+  },
+  "copy": {
+   "status": "partial",
+   "why": "Readability sampled; legal/claim flags noted; no attorney review commissioned.",
+   "sources": [
+    "raw scan"
+   ],
+   "passes_run": [
+    "Pass 1 mechanical read on money-page copy"
+   ],
+   "readability": {},
+   "flags": [
+    {
+     "type": "superlative",
+     "text": "the best; Top rated",
+     "action": "Confirm 'best'-type claims are substantiated or soften them (FTC substantiation)."
+    },
+    {
+     "type": "guarantee",
+     "text": "Vote now The Henley's Guarantee $ NO-SURPRISE PRICE You approve the price before work star",
+     "action": "Ensure guarantee terms are stated and honored; flag for the owner."
+    }
+   ]
+  }
+ },
+ "analysis": {
+  "headline": "A richer 1SEO plumbing-and-HVAC build with proper Plumber and HVACBusiness schema and CallRail-instrumented Google Ads, undercut by 17 orphaned pages the internal links never reach.",
+  "bluf": [
+   "A richer 1SEO plumbing-and-HVAC build with proper Plumber and HVACBusiness schema and CallRail-instrumented Google Ads, undercut by 17 orphaned pages the internal links never reach.",
+   "Henley's Plumbing & Air sits in Scorpion's book through 1SEO Digital Agency (now Scorpion). Scorpion acquired 1SEO Digital Agency on 2026-06-18; 1SEO's home-services, legal, health and franchise clients moved onto Scorpion's RevenueMAX platform. WordPress with Elementor; CallRail call tracking and a Google Ads tag are wired through GTM. Richer schema than the Coalmarch book, but internal linking leaves many sitemap URLs orphaned.",
+   "The on-page read returned 5 findings (0 High, 3 Medium) and 1 compliance observations; the overall grade is C.",
+   "The deepest schema in the Scorpion book (Plumber, HVACBusiness, Article, Person, FAQ), a posted license number, correct index/follow directives, and server-rendered content."
+  ],
+  "win_watch_next": {
+   "win": "The deepest schema in the Scorpion book (Plumber, HVACBusiness, Article, Person, FAQ), a posted license number, correct index/follow directives, and server-rendered content.",
+   "watch": "Google Ads and GA4 fire through GTM on load; the license number is correctly posted, so the exposure is the pre-consent tag firing, not a disclosure gap.",
+   "next": "Henley's is the one site in the book visibly running Google Ads (tag AW-17032377429) with CallRail (205364564) attribution, so a landing-page and conversion-tracking read on the live campaign is the highest-value paid move."
+  },
+  "one_rival": "The Inland Empire plumbing-and-HVAC pack across Corona, Riverside and Rancho Cucamonga; Henley's has the deepest schema in its book but leaks link equity to orphan pages the rivals consolidate.",
+  "one_paid_opportunity": "Henley's is the one site in the book visibly running Google Ads (tag AW-17032377429) with CallRail (205364564) attribution, so a landing-page and conversion-tracking read on the live campaign is the highest-value paid move.",
+  "one_exposure": "Google Ads and GA4 fire through GTM on load; the license number is correctly posted, so the exposure is the pre-consent tag firing, not a disclosure gap.",
+  "key_judgments": [
+   {
+    "id": "KJ1",
+    "title": "The defects are the agency's template, not the owner's choices",
+    "likelihood": "likely",
+    "confidence": "moderate",
+    "horizon": "now",
+    "judgment": "It is likely that the recurring defects on Henley's Plumbing & Air are inherited from the 1SEO Digital Agency (now Scorpion) template and platform rather than owned by the business, because The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are template-level; the license numbers and NAP that are correct are owned by the business.",
+    "range": "55 to 80%",
+    "evidence": [
+     "F01",
+     "F02",
+     "F03",
+     "F04"
+    ],
+    "falsifiers": [
+     "A sibling site on the same template without the same defect would weaken this.",
+     "An owner-made change that post-dates the agency build would reassign ownership."
+    ],
+    "math": null
+   },
+   {
+    "id": "KJ2",
+    "title": "The site wins its own name but loses the money searches",
+    "likelihood": "very likely",
+    "confidence": "high",
+    "horizon": "now",
+    "judgment": "It is very likely that the site captures brand demand but not non-brand demand, because the brand appears in Autocomplete only for its own name while the city+service money terms surface rivals.",
+    "range": "80 to 95%",
+    "evidence": [
+     "the demand map"
+    ],
+    "falsifiers": [
+     "A GSC export showing non-brand impressions/clicks at volume would overturn this.",
+     "A map-pack screenshot ranking the client for the money terms would overturn this."
+    ],
+    "math": null
+   },
+   {
+    "id": "KJ3",
+    "title": "A challenger can lead with a clean ownership-and-diagnosis contrast",
+    "likelihood": "likely",
+    "confidence": "moderate",
+    "horizon": "0-3 months",
+    "judgment": "It is likely that a challenger who leads with a declared audit plus true site ownership can open a conversation, because the lock-in and the inherited defects are public and documented.",
+    "range": "55 to 80%",
+    "evidence": [
+     "agency lens",
+     "exposure"
+    ],
+    "falsifiers": [
+     "A long contract term with heavy exit penalties would lengthen the cycle.",
+     "High owner satisfaction despite the defects would weaken the wedge."
+    ],
+    "math": null
+   }
+  ],
+  "scenarios": {
+   "axes": [],
+   "quadrants": []
+  },
+  "indicators": [
+   {
+    "id": "I1",
+    "watch": "Scorpion platform migration status (scorpcloud CNAME)",
+    "reading": "A move onto scorpcloud confirms deeper lock-in and a fresh rebuild cost at exit.",
+    "moves": "M2",
+    "next_reading": "next run"
+   },
+   {
+    "id": "I2",
+    "watch": "Non-brand Autocomplete / map-pack presence for the money terms",
+    "reading": "The client entering the non-brand set means the organic gap is closing.",
+    "moves": "M1",
+    "next_reading": "monthly"
+   }
+  ],
+  "unknowns": [
+   {
+    "id": "U1",
+    "text": "Whether these are current or former Scorpion/agency engagements; case-study and footer ties do not distinguish the two."
+   },
+   {
+    "id": "U2",
+    "text": "The live ad accounts, spend and targeting - not observable without exports."
+   }
+  ],
+  "moves": [
+   {
+    "id": "M1",
+    "move": "Lead the approach with a free OmegaWeapon diagnosis naming the exact public failures above.",
+    "justified_by": "KJ1"
+   },
+   {
+    "id": "M2",
+    "move": "Contrast ownership: show what they do not own on the Scorpion platform.",
+    "justified_by": "KJ2"
+   }
+  ],
+  "graveyard_test": [],
+  "limitations": [
+   "Tier 0: no GSC/GA4/Ads exports, so rankings, traffic and spend are protocols or inferred.",
+   "US vantage: an EU-consent posture is NOT_TESTED unless the banner shows globally.",
+   "The brand/market read is thin; review platforms were not fetched.",
+   "Authority is ungraded without a link export."
+  ]
+ },
+ "playbook": {
+  "phases": [
+   {
+    "phase": "P1 - 30 days (data + quick wins)",
+    "moves": [
+     "Grant GSC + GA4 and name the account exports (Task #1).",
+     "Fix the sitemap-to-noindex / redirect conflicts and the dead UA tag.",
+     "Add or gate a consent banner to Google Consent Mode v2."
+    ]
+   },
+   {
+    "phase": "P2 - 60 days (entity + content)",
+    "moves": [
+     "Replace Product-on-service schema with Service nested in LocalBusiness; complete NAP, geo, hours, sameAs.",
+     "Rewrite over-length titles and missing descriptions on the money pages.",
+     "Internally link the orphaned city/service pages into hubs."
+    ]
+   },
+   {
+    "phase": "P3 - 90 days (offense)",
+    "moves": [
+     "Build the missing non-brand city+service pages and earn local citations/links.",
+     "Stand up Local Services Ads + a disciplined Google Ads test on the money terms.",
+     "Name an AI-crawler posture and publish complete entity data for answer engines."
+    ]
+   }
+  ],
+  "moves12": [
+   {
+    "n": 1,
+    "move": "Restore measurement (GSC, GA4, Ads export)",
+    "impact": "High",
+    "effort": "Low",
+    "owner": "Client",
+    "when": "Week 1"
+   },
+   {
+    "n": 2,
+    "move": "Fix sitemap noindex/redirect + remove dead UA tag",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Agency",
+    "when": "Week 1-2"
+   },
+   {
+    "n": 3,
+    "move": "Consent banner + Consent Mode v2",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Agency",
+    "when": "Week 2"
+   },
+   {
+    "n": 4,
+    "move": "Service schema + complete LocalBusiness entity",
+    "impact": "High",
+    "effort": "Medium",
+    "owner": "Agency",
+    "when": "Week 3-4"
+   },
+   {
+    "n": 5,
+    "move": "Title/description rewrite on money pages",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Both",
+    "when": "Week 3-4"
+   },
+   {
+    "n": 6,
+    "move": "Internal-link the orphaned pages",
+    "impact": "Medium",
+    "effort": "Medium",
+    "owner": "Agency",
+    "when": "Week 4-6"
+   },
+   {
+    "n": 7,
+    "move": "Non-brand city+service content build",
+    "impact": "High",
+    "effort": "High",
+    "owner": "Both",
+    "when": "Week 5-12"
+   },
+   {
+    "n": 8,
+    "move": "Local Services Ads + Google Ads test",
+    "impact": "High",
+    "effort": "Medium",
+    "owner": "Both",
+    "when": "Week 6-10"
+   },
+   {
+    "n": 9,
+    "move": "Review-generation SOP for GBP",
+    "impact": "High",
+    "effort": "Low",
+    "owner": "Client",
+    "when": "ongoing"
+   },
+   {
+    "n": 10,
+    "move": "AI-crawler posture + entity completeness",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Agency",
+    "when": "Week 8"
+   },
+   {
+    "n": 11,
+    "move": "Link acquisition / citation cleanup",
+    "impact": "Medium",
+    "effort": "Medium",
+    "owner": "Agency",
+    "when": "Week 8-12"
+   },
+   {
+    "n": 12,
+    "move": "Measurement review + 90-day readout",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Both",
+    "when": "Week 12"
+   }
+  ],
+  "on_page": [
+   {
+    "url": "https://www.henleysplumbingair.com/",
+    "title": "Plumbing & HVAC Services Across the Inland Empir | Inland Em",
+    "description": "Henley's Plumbing & Air - Inland Empire, CA. Book service online or call today."
+   },
+   {
+    "url": "https://www.henleysplumbingair.com/contact/",
+    "title": "Contact Henley's | Inland Empire",
+    "description": "Henley's Plumbing & Air - Inland Empire, CA. Book service online or call today."
+   },
+   {
+    "url": "https://www.henleysplumbingair.com/privacy-policy/",
+    "title": "Privacy Policy | Inland Empire",
+    "description": "Henley's Plumbing & Air - Inland Empire, CA. Book service online or call today."
+   },
+   {
+    "url": "https://www.henleysplumbingair.com/service-area/",
+    "title": "Areas We Serve in the Inland Empire | Inland Empire",
+    "description": "Henley's Plumbing & Air - Inland Empire, CA. Book service online or call today."
+   }
+  ],
+  "redirects": [],
+  "content_offensive": [
+   {
+    "week": 1,
+    "title": "Water heater replacement in Inland Empire",
+    "target": "water heater replacement inland empire",
+    "money_page": "https://www.henleysplumbingair.com/",
+    "words": 900
+   },
+   {
+    "week": 2,
+    "title": "AC repair in Inland Empire",
+    "target": "ac repair inland empire",
+    "money_page": "https://www.henleysplumbingair.com/",
+    "words": 900
+   },
+   {
+    "week": 3,
+    "title": "Drain cleaning in Inland Empire",
+    "target": "drain cleaning inland empire",
+    "money_page": "https://www.henleysplumbingair.com/",
+    "words": 900
+   }
+  ],
+  "schema_blocks": [
+   {
+    "type": "LocalBusiness+Service",
+    "url": "https://www.henleysplumbingair.com/",
+    "jsonld": {
+     "@context": "https://schema.org",
+     "@type": "LocalBusiness",
+     "name": "Henley's Plumbing & Air",
+     "areaServed": "Inland Empire, CA",
+     "url": "https://www.henleysplumbingair.com/",
+     "makesOffer": {
+      "@type": "Offer",
+      "itemOffered": {
+       "@type": "Service",
+       "name": "plumbing-hvac"
+      }
+     }
+    }
+   }
+  ],
+  "local": [
+   "Complete every GBP field; add services, service areas, hours, products and photos.",
+   "Run a review SOP: ask at job completion, respond to all, keep velocity steady."
+  ],
+  "authority": [
+   "Supply a GSC/Bing link export to unlock the disavow and link-gap analysis."
+  ],
+  "paid": [
+   "Stand up Local Services Ads (Google Guaranteed) for the category.",
+   "Instrument conversions server-side; match ad copy to landing-page headline."
+  ],
+  "ai": [
+   "Name an AI-crawler posture in robots.txt; publish complete entity data and (optionally) llms.txt."
+  ],
+  "compliance": [
+   {
+    "title": "A countdown timer resets on every reload (fake urgency)",
+    "spec": "Remove the resetting timer or make it reflect a real, fixed deadline."
+   }
+  ],
+  "measurement": [
+   "Stand up GA4 key events for calls, forms and bookings.",
+   "Baseline non-brand impressions, pack rank and lead volume; read at 30/60/90 days."
+  ]
+ },
+ "findings": [
+  {
+   "id": "F01",
+   "module": "crawl",
+   "severity": "Medium",
+   "title": "17 pages are orphan candidates",
+   "evidence": "17 sitemap URLs had no internal in-link among the crawled pages (e.g. https://www.henleysplumbingair.com/11-of-the-most-common-causes-of-a-leaky-pipe/); link equity does not reach them and Google may treat them as low-value.",
+   "evidence_class": "observed",
+   "fix": "Add internal links from hubs and related service/location pages so every money page is reachable in 2-3 clicks.",
+   "owner": "Agency",
+   "url": "https://www.henleysplumbingair.com/11-of-the-most-common-causes-of-a-leaky-pipe/",
+   "money": false
+  },
+  {
+   "id": "F02",
+   "module": "content",
+   "severity": "Low",
+   "title": "20 title tags exceed the snippet limit",
+   "evidence": "20 crawled pages carry titles over 70 characters, so Google truncates them in results and the city/service keyword can fall off the visible end.",
+   "evidence_class": "observed",
+   "fix": "Rewrite titles to ~55-60 characters, front-loading the service and city.",
+   "owner": "Agency",
+   "url": "https://www.henleysplumbingair.com/",
+   "money": false
+  },
+  {
+   "id": "F03",
+   "module": "local",
+   "severity": "Low",
+   "title": "LocalBusiness schema omits recommended fields",
+   "evidence": "The LocalBusiness/\u25b8 markup is missing recommended fields (image, geo, openingHoursSpecification, priceRange, sameAs, areaServed across the audited pages); each raises eligibility for local rich results.",
+   "evidence_class": "observed",
+   "fix": "Complete the LocalBusiness block with geo, hours, priceRange, image and sameAs links to the GBP and socials.",
+   "owner": "Agency",
+   "url": "https://www.henleysplumbingair.com/",
+   "money": false
+  },
+  {
+   "id": "F04",
+   "module": "exposure",
+   "severity": "Medium",
+   "title": "A countdown timer resets on every reload (fake urgency)",
+   "evidence": "The page shows a countdown that resets to the same value on reload (['40:14', '00:00', '32:46', '00:00', '00:00']), a fabricated-urgency pattern the FTC has named in enforcement.",
+   "evidence_class": "observed",
+   "fix": "Remove the resetting timer or make it reflect a real, fixed deadline.",
+   "owner": "Agency",
+   "url": "https://www.henleysplumbingair.com/",
+   "money": false
+  },
+  {
+   "id": "F05",
+   "module": "ai",
+   "severity": "Medium",
+   "title": "Invisible on the money searches; present only on its own name",
+   "evidence": "In Google Autocomplete the brand appears for 0 of 0 seeds (its own name and close variants) but is absent from the non-brand money terms: . Answer engines and the map pack reward entities that own the non-brand term; this site owns only its brand.",
+   "evidence_class": "observed",
+   "fix": "Win the non-brand terms with complete local entity data, city+service pages and citations; name an AI-crawler posture in robots.txt.",
+   "owner": "Both",
+   "url": "https://www.henleysplumbingair.com/",
+   "money": false
+  }
+ ],
+ "exposure": [
+  {
+   "battery": "A",
+   "test": "Dark patterns (fabricated urgency)",
+   "rule": "FTC guidance on fake urgency/countdown timers",
+   "cite": "FTC, Bringing Dark Patterns to Light (2022)",
+   "cite_vintage": "rule not re-fetched this run",
+   "evidence": "Countdown resets on reload: ['40:14', '00:00', '32:46', '00:00', '00:00'] (render probe).",
+   "url": "https://www.henleysplumbingair.com/",
+   "disposition": "CANDIDATE",
+   "confidence": "Plausible",
+   "severity": "Medium",
+   "base_rate": "FTC has acted on fabricated urgency, but rarely against a single SMB service page.",
+   "open_question": "Is the timer tied to a genuine promotion deadline, or is it purely cosmetic? One screenshot of the reset settles it.",
+   "route": "PRIVATE",
+   "channel": "Flag to the client; cosmetic timers are easy to remove.",
+   "id": "X01"
+  }
+ ],
+ "tasks": [
+  {
+   "Name": "Restore measurement (GSC, GA4, Ads)",
+   "Description": "Grant access and export GSC Performance + URL Inspection + Pages, GA4 sessions/key events, and any Ads account. Everything ranking/traffic/spend is a protocol until these arrive.",
+   "Section/Column": "P1 - Data",
+   "Priority": "High",
+   "Tags": "data-restoration"
+  },
+  {
+   "Name": "17 pages are orphan candidates",
+   "Description": "Add internal links from hubs and related service/location pages so every money page is reachable in 2-3 clicks.",
+   "Section/Column": "P1 - Crawl & index",
+   "Priority": "Medium",
+   "Tags": "crawl"
+  },
+  {
+   "Name": "A countdown timer resets on every reload (fake urgency)",
+   "Description": "Remove the resetting timer or make it reflect a real, fixed deadline.",
+   "Section/Column": "P1 - Compliance",
+   "Priority": "Medium",
+   "Tags": "exposure"
+  },
+  {
+   "Name": "Invisible on the money searches; present only on its own name",
+   "Description": "Win the non-brand terms with complete local entity data, city+service pages and citations; name an AI-crawler posture in robots.txt.",
+   "Section/Column": "P3 - AI/GEO",
+   "Priority": "Medium",
+   "Tags": "ai"
+  },
+  {
+   "Name": "20 title tags exceed the snippet limit",
+   "Description": "Rewrite titles to ~55-60 characters, front-loading the service and city.",
+   "Section/Column": "P2 - Content",
+   "Priority": "Low",
+   "Tags": "content"
+  },
+  {
+   "Name": "LocalBusiness schema omits recommended fields",
+   "Description": "Complete the LocalBusiness block with geo, hours, priceRange, image and sameAs links to the GBP and socials.",
+   "Section/Column": "P2 - Local",
+   "Priority": "Low",
+   "Tags": "local"
+  }
+ ],
+ "verify_queue": [
+  {
+   "id": "V1",
+   "item": "Index coverage ground truth",
+   "url": "https://search.google.com/search-console",
+   "what": "Run URL Inspection on the money pages and read the Pages report.",
+   "why": "The crawl sees indexability signals, not whether Google actually indexed the URL.",
+   "owner": "Client"
+  },
+  {
+   "id": "V2",
+   "item": "GBP, reviews and map-pack position",
+   "url": "https://business.google.com/",
+   "what": "Export GBP Performance and screenshot the pack for the money terms.",
+   "why": "Every GBP field, review count and pack rank is a screenshot/export, not fetchable.",
+   "owner": "Client"
+  },
+  {
+   "id": "V3",
+   "item": "Paid activity",
+   "url": "https://adstransparency.google.com/?domain=henleysplumbingair.com",
+   "what": "Check the Ads Transparency Center for the domain and capture any live creatives.",
+   "why": "Ad creatives and spend are read by protocol/screenshot, not fetched.",
+   "owner": "Client"
+  }
+ ],
+ "sources": [
+  {
+   "id": 1,
+   "label": "Honest-mode crawl & raw scan (OmegaWeapon)",
+   "url": "https://www.henleysplumbingair.com/",
+   "kind": "observed",
+   "rung": 2,
+   "date": "2026-11-15T09:01Z"
+  },
+  {
+   "id": 2,
+   "label": "Google Autocomplete presence grid",
+   "url": "https://www.google.com/",
+   "kind": "observed",
+   "rung": 4,
+   "date": "2026-11-15T09:01Z"
+  },
+  {
+   "id": 3,
+   "label": "Prior Scorpion Agency Radar record (edition 2026.09a)",
+   "url": "https://scorpion.co/",
+   "kind": "inferred",
+   "rung": 1,
+   "date": "2026-09-29"
+  },
+  {
+   "id": 4,
+   "label": "Google Ads tag on the money pages (observed in GTM)",
+   "url": "https://adstransparency.google.com/?domain=henleysplumbingair.com",
+   "kind": "observed",
+   "rung": 2,
+   "date": "2026-11-15T09:01Z"
+  }
+ ],
+ "glossary": [
+  {
+   "term": "Inherited vs owned",
+   "def": "A finding is inherited when it comes from the agency's shared template or platform, owned when the business controls it. It decides who fixes it and who to lead the pitch against."
+  },
+  {
+   "term": "Pre-consent firing",
+   "def": "Ad/analytics tags that run before any consent choice. A privacy exposure under US state laws and GDPR; cheap to fix with a consent banner."
+  },
+  {
+   "term": "Product-on-service schema",
+   "def": "Using schema.org/Product for a service. It has no rich-result path for services and can misdescribe the business to answer engines."
+  },
+  {
+   "term": "scorpcloud",
+   "def": "Scorpion's hosting platform. A client site resolving into the scorpcloud CNAME zone is on Scorpion's proprietary CMS - the central lock-in."
+  },
+  {
+   "term": "Tier 0",
+   "def": "A fetch-only run with no client exports. Rankings, traffic and spend are protocols or inferred, not measured."
+  },
+  {
+   "term": "ICD 203",
+   "def": "The intelligence-community probability scale (almost no chance ... almost certain) used so a likelihood word always maps to a number range."
+  }
+ ],
+ "dict": {
+  "pillars": [
+   "Technical",
+   "Content",
+   "Local",
+   "Authority",
+   "Competitive Position",
+   "Paid",
+   "Social",
+   "AI Visibility",
+   "Compliance & Exposure",
+   "Market Position",
+   "Agency Fit"
+  ],
+  "brand_topics": [
+   {
+    "id": "T01",
+    "short": "AI search / GEO"
+   },
+   {
+    "id": "T03",
+    "short": "Core updates / rankings"
+   },
+   {
+    "id": "T05",
+    "short": "Lead quality"
+   },
+   {
+    "id": "T08",
+    "short": "Local / LSA"
+   },
+   {
+    "id": "T12",
+    "short": "ROI / revenue claims"
+   },
+   {
+    "id": "T13",
+    "short": "Conversion / chat"
+   },
+   {
+    "id": "T19",
+    "short": "Ownership / contracts"
+   }
+  ]
+ }
+}

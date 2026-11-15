@@ -1,0 +1,77 @@
+{
+ "tool": "UltimaWeapon google_crawler/1.0",
+ "mode": "honest (declared UA, mobile viewport, no stealth)",
+ "generated_at": "2026-11-15T08:46:11Z",
+ "rows": [
+  {
+   "url": "https://www.soundpestcontrol.com/",
+   "raw_status": 200,
+   "raw_tier": "RAW",
+   "raw_words": 1198,
+   "status": 200,
+   "final_url": "https://www.soundpestcontrol.com/",
+   "rendered_words": 1208,
+   "js_dependent_share": 0.008,
+   "rendered_only_headings": [],
+   "raw_links": 82,
+   "rendered_links": 82,
+   "jsonld_raw": [
+    "LocalBusiness"
+   ],
+   "jsonld_rendered_only": [],
+   "title_rendered": "Pest Control in the Puget Sound | No-Contract Options | Sound Pest Control",
+   "nav_timing_ms": {
+    "ttfb": 211.10000000009313,
+    "domContentLoaded": 1535.6999999999534,
+    "load": 2414.6999999999534,
+    "transferSize": 89116,
+    "type": "navigate"
+   },
+   "lcp_ms_lab": 876,
+   "console_errors": [
+    "Podium Webchat failed to load: organizationScriptV2 returned no webchat config. Verify REACT_APP_WIDGET_API_TOKEN matches a valid org in the targeted environment."
+   ],
+   "third_party_hosts": 17,
+   "requests": 78,
+   "viewport": "412x915",
+   "wall_s": 9.5,
+   "verdict": "server-visible: raw HTML carries the content",
+   "screenshot": "omega_cache/soundpestcontrol.com/google_shots/dc58d7626982.png"
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/pest-control-silverdale",
+   "raw_status": 200,
+   "raw_tier": "RAW",
+   "raw_words": 1569,
+   "status": 200,
+   "final_url": "https://www.soundpestcontrol.com/pest-control-silverdale",
+   "rendered_words": 1577,
+   "js_dependent_share": 0.005,
+   "rendered_only_headings": [],
+   "raw_links": 71,
+   "rendered_links": 71,
+   "jsonld_raw": [
+    "LocalBusiness"
+   ],
+   "jsonld_rendered_only": [],
+   "title_rendered": "Pest Control in Silverdale, WA | No-Contracts | Sound Pest Control | Bed Bug Exterminator, Rodent Control, Ant Control, Mole Control, Pest Control Near Me",
+   "nav_timing_ms": {
+    "ttfb": 51.699999999953434,
+    "domContentLoaded": 876,
+    "load": 1249.5,
+    "transferSize": 78540,
+    "type": "navigate"
+   },
+   "lcp_ms_lab": 692,
+   "console_errors": [
+    "Podium Webchat failed to load: organizationScriptV2 returned no webchat config. Verify REACT_APP_WIDGET_API_TOKEN matches a valid org in the targeted environment."
+   ],
+   "third_party_hosts": 16,
+   "requests": 68,
+   "viewport": "412x915",
+   "wall_s": 8.9,
+   "verdict": "server-visible: raw HTML carries the content",
+   "screenshot": "omega_cache/soundpestcontrol.com/google_shots/36490428d20b.png"
+  }
+ ]
+}

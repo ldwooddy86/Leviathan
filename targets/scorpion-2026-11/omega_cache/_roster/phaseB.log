@@ -1,0 +1,166 @@
+### americanturfandtreecare.com 08:43:36
+RAW        200    0.0s https://www.americanturfandtreecare.com/ -> https://www.americanturfandtreecare.com/  title='American Turf &amp; Tree
+RAW        200    0.0s https://www.americanturfandtreecare.com/lawn-care-loveland -> https://www.americanturfandtreecare.com/lawn-care-lovel
+RAW        200  0.149s https://www.americanturfandtreecare.com/services/weed-control -> https://www.americanturfandtreecare.com/services/wee
+RAW        200    0.0s https://www.americanturfandtreecare.com/lawn-care-eaton -> https://www.americanturfandtreecare.com/lawn-care-eaton  t
+RAW        200  0.123s https://www.americanturfandtreecare.com/contact -> https://www.americanturfandtreecare.com/contact  title='Contact Us
+RAW        200  0.355s https://www.americanturfandtreecare.com/privacy-policy -> https://www.americanturfandtreecare.com/privacy-policy  tit
+RAW        200 https://www.americanturfandtreecare.com/lawn-care-eaton  tags=1 vendors=0 cloak=-
+RAW        200 https://www.americanturfandtreecare.com/contact  tags=1 vendors=0 cloak=-
+RAW        200 https://www.americanturfandtreecare.com/privacy-policy  tags=1 vendors=0 cloak=-
+wrote 6 pages -> omega_cache/americanturfandtreecare.com/web
+6 pages, 62 findings -> omega_cache/americanturfandtreecare.com/schema
+RENDERED                     https://www.americanturfandtreecare.com/  pre-consent=google_ads_doubleclick google_analytics google_tag_manager microsoft_uet  consent=no consent banner detected
+wrote 1 renders -> omega_cache/americanturfandtreecare.com/render  (presented as Google Chrome 154 on Windows 11)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=americanturfandtreecare.com&type=MX (omegaweapon)
+{'domain': 'americanturfandtreecare.com', 'spf': '"v=spf1 include:mailgun.org include:_spf.google.com include:spf.smtp2go.com ~all"', 'dmarc': '"v=DMARC1;p=none;rua=mailto:dmarc@americanturfandtreecare.com"', 'dmarc_policy': 'none', 'mx': '1 aspmx.l.google.com. 5 alt1.aspmx.l.google.com. 5 alt2.aspmx.l.google.com. 10 alt3.aspmx.l.google.com. 10 alt4.aspmx.l.google.com.', 'reading': 'DMARC p=none — monitoring only'}
+{'domain': 'americanturfandtreecare.com', 'status': 200, 'registration': '2009-01-19T19:52:27Z', 'expiration': '2027-01-19T19:52:27Z', 'last_changed': '2017-04-03T20:54:33Z', 'last_update_of_RDAP_database': '2026-11-15T08:44:52Z', 'nameservers': 'NS-CLOUD-D1.GOOGLEDOMAINS.COM NS-CLOUD-D2.GOOGLEDOMAINS.COM NS-CLOUD-D3.GOOGLEDOMAINS.COM NS-CLOUD-D4.GOOGLEDOMAINS.COM', 'registrar': 'eNom, LLC', 'entity[registrar]': 'eNom, LLC', 'rdap_status': 'client transfer prohibited'}
+american turf and tree care                   BRAND american turf and tree care; american turf and tree care reviews; american turf and tree care greeley co; american turf and tree care greeley; ameri
+lawn care greeley                             - lawn care greeley; lawn care greeley co; lawn service greeley; lawn service greeley co; lawn mowing greeley co; greeley lawn care; augusta lawn care gre
+lawn care fort collins                        - lawn care fort collins; lawn care fort collins co; lawn service fort collins; lawn mowing fort collins; lawn maintenance fort collins; yard care fort co
+tree care greeley                             BRAND greely tree service; tree trimming greeley; tree service greeley co; tree trimming greeley co; tree trimming greeley prices; greeley tree care works
+lawn aeration greeley                         - lawn aeration greeley; lawn aeration greeley co; lawn care greeley; lawn care greeley co
+lawn care windsor co                          - lawn care windsor co; lawn care windsor colorado; lawn service windsor co; lawn care companies windsor; lawn mowing windsor co; sam's lawn care windsor 
+### done 08:45:12
+### soundpestcontrol.com 08:45:12
+RAW        200    0.0s https://www.soundpestcontrol.com/ -> https://www.soundpestcontrol.com/  title='Pest Control in the Puget Sound | No-C
+RAW        200    0.0s https://www.soundpestcontrol.com/pest-control-silverdale -> https://www.soundpestcontrol.com/pest-control-silverdale 
+RAW        200    0.0s https://www.soundpestcontrol.com/rodent-control/bremerton-wa -> https://www.soundpestcontrol.com/rodent-control/breme
+RAW        200    0.0s https://www.soundpestcontrol.com/pest-control-bainbridge-island -> https://www.soundpestcontrol.com/pest-control-bain
+RAW        200    0.0s https://www.soundpestcontrol.com/free-quote -> https://www.soundpestcontrol.com/free-quote  title='Free Estimate | Co
+RAW        200   0.28s https://www.soundpestcontrol.com/privacy-policy -> https://www.soundpestcontrol.com/privacy-policy  title='Privacy Po
+RAW        200 https://www.soundpestcontrol.com/pest-control-bainbridge-island  tags=1 vendors=2 cloak=-
+RAW        200 https://www.soundpestcontrol.com/free-quote  tags=1 vendors=2 cloak=-
+RAW        200 https://www.soundpestcontrol.com/privacy-policy  tags=1 vendors=2 cloak=-
+wrote 6 pages -> omega_cache/soundpestcontrol.com/web
+6 pages, 49 findings -> omega_cache/soundpestcontrol.com/schema
+RENDERED                     https://www.soundpestcontrol.com/  pre-consent=chat_or_ai_widget google_ads_doubleclick google_analytics google_tag_manager microsoft_uet  consent=no consent banner detected
+wrote 1 renders -> omega_cache/soundpestcontrol.com/render  (presented as Google Chrome 153 on macOS)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=soundpestcontrol.com&type=MX (omegaweapon)
+{'domain': 'soundpestcontrol.com', 'spf': '"v=spf1 mx include:mailgun.org include:_spf.google.com include:_spf.pestpac.com ~all"', 'dmarc': '"v=DMARC1; p=none; rua=mailto:invoice@soundpestcontrol.com"', 'dmarc_policy': 'none', 'mx': '1 smtp.google.com.', 'reading': 'DMARC p=none — monitoring only'}
+{'domain': 'soundpestcontrol.com', 'status': 200, 'registration': '2006-02-02T16:25:46Z', 'expiration': '2029-02-02T16:25:46Z', 'last_changed': '2022-09-07T05:25:29Z', 'last_update_of_RDAP_database': '2026-11-15T08:46:22Z', 'nameservers': 'NS-CLOUD-C1.GOOGLEDOMAINS.COM NS-CLOUD-C2.GOOGLEDOMAINS.COM NS-CLOUD-C3.GOOGLEDOMAINS.COM NS-CLOUD-C4.GOOGLEDOMAINS.COM', 'registrar': 'Wild West Domains, LLC', 'entity[registrar]': 'Wild West Domains, LLC', 'rdap_status': 'client delete prohibited client renew prohibited client transfer prohibited client update prohibited'}
+sound pest control                            BRAND sound pest control; sound pest control reviews; sound pest control bremerton; sound pest control silverdale; sound pest control silverdale wa; noise
+pest control tacoma                           - pest control tacoma; pest control tacoma wa; pest control tacoma prices; pest control tacoma reddit; rodent control tacoma; rodent control tacoma wa; pe
+pest control olympia                          - pest control olympia; pest control olympia wa; rodent control olympia wa; rodent control olympia; pest control olympic peninsula; pci pest control olymp
+rodent control tacoma                         - rodent control tacoma; rodent control tacoma wa; animal control tacoma; pest control tacoma; pest control tacoma wa; critter control tacoma; animal cont
+pest control puyallup                         - pest control puyallup; pest control puyallup prices; pest control puyallup washington; rodent control puyallup; sentinel pest control puyallup; rambo pe
+exterminator tacoma                           - exterminator tacoma; exterminator tacoma wa; rat exterminator tacoma; ant exterminator tacoma; western exterminator tacoma; flea exterminator tacoma; be
+### done 08:46:38
+### midwestpest.com 08:46:38
+RAW        200    0.0s https://midwestpest.com/ -> https://midwestpest.com/  title='Omaha, NE Pest Control Exterminators | Midwest Pest Cont
+RAW        200    0.0s https://midwestpest.com/pest-control-omaha -> https://midwestpest.com/pest-control-omaha  title='Eco-Friendly Pest Co
+RAW        200  0.414s https://midwestpest.com/services/mosquito-control -> https://midwestpest.com/services/mosquito-control  title='Mosqui
+RAW        200    0.0s https://midwestpest.com/pest-control-lincoln -> https://midwestpest.com/pest-control-lincoln  title='Eco-Friendly Pes
+RAW        200  0.125s https://midwestpest.com/free-quote -> https://midwestpest.com/free-quote  title='Free Pest Control Quotes &amp; Estim
+RAW        200  0.244s https://midwestpest.com/privacy-policy -> https://midwestpest.com/privacy-policy  title='Privacy Policy | Midwest Pes
+RAW        200 https://midwestpest.com/pest-control-lincoln  tags=1 vendors=0 cloak=-
+RAW        200 https://midwestpest.com/free-quote  tags=1 vendors=0 cloak=-
+RAW        200 https://midwestpest.com/privacy-policy  tags=1 vendors=0 cloak=-
+wrote 6 pages -> omega_cache/midwestpest.com/web
+6 pages, 58 findings -> omega_cache/midwestpest.com/schema
+RENDERED                     https://midwestpest.com/  pre-consent=google_ads_doubleclick google_analytics google_tag_manager microsoft_uet  consent=no consent banner detected
+wrote 1 renders -> omega_cache/midwestpest.com/render  (presented as Google Chrome 154 on Windows 11)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=midwestpest.com&type=MX (omegaweapon)
+{'domain': 'midwestpest.com', 'spf': '"v=spf1 +ip4:35.206.107.64  include:midwestpest.com.spf.auto.dnssmarthost.net ~all"', 'dmarc': '"v=DMARC1; p=none; aspf=r; adkim=r;"', 'dmarc_policy': 'none', 'mx': '10 alt4.aspmx.l.google.com. 1 aspmx.l.google.com. 5 alt1.aspmx.l.google.com. 10 alt3.aspmx.l.google.com. 5 alt2.aspmx.l.google.com.', 'reading': 'DMARC p=none — monitoring only'}
+{'domain': 'midwestpest.com', 'status': 200, 'registration': '1998-02-19T05:00:00Z', 'expiration': '2027-02-18T05:00:00Z', 'last_changed': '2026-02-19T18:09:06Z', 'last_update_of_RDAP_database': '2026-11-15T08:47:37Z', 'nameservers': 'NS1.GIOWM1116.SITEGROUND.BIZ NS2.GIOWM1116.SITEGROUND.BIZ', 'registrar': 'GoDaddy.com, LLC', 'entity[registrar]': 'GoDaddy.com, LLC', 'rdap_status': 'client delete prohibited client renew prohibited client transfer prohibited client update prohibited'}
+midwest pest control                          BRAND midwest pest control; midwest pest control fargo; midwest pest control omaha; midwest pest control rockford il; midwest pest control grand forks; mi
+pest control omaha                            - pest control omaha; pest control omaha ne; pest control omaha prices; pest control omaha reddit; pest control omaha mice; pest control omaha reviews; ro
+exterminator omaha                            - exterminator omaha; exterminator omaha ne; mice exterminator omaha; mouse exterminator omaha; bat exterminator omaha; mole exterminator omaha; wasp exte
+termite treatment omaha                       - termite treatment omaha; termite inspection omaha; termite control omaha; termite inspection omaha ne; termite treatment how is it done; termite treatme
+pest control lincoln ne                       BRAND pest control lincoln ne; pest control lincoln ne prices; rodent control lincoln ne; termite control lincoln ne; insect control lincoln ne; pest cont
+mosquito control omaha                        - mosquito control omaha; pest control omaha; pest control omaha ne; pest control omaha prices; pest control omaha reddit; pest control omaha mice; mosqui
+### done 08:48:02
+### henleysplumbingair.com 08:48:02
+RAW        200    0.0s https://www.henleysplumbingair.com/ -> https://www.henleysplumbingair.com/  title='Plumbing &amp; HVAC Services Acros
+RAW        200    0.0s https://www.henleysplumbingair.com/why-is-my-water-pressure-so-low/ -> https://www.henleysplumbingair.com/why-is-my-w
+RAW        200    0.0s https://www.henleysplumbingair.com/water-heater-repair-vs-replace-inland-empire/ -> https://www.henleysplumbingair.co
+RAW        200  0.657s https://www.henleysplumbingair.com/service-area/ -> https://www.henleysplumbingair.com/service-area/  title='Areas We
+RAW        200  0.305s https://www.henleysplumbingair.com/contact/ -> https://www.henleysplumbingair.com/contact/  title='Contact Henley&#03
+RAW        200   0.52s https://www.henleysplumbingair.com/privacy-policy/ -> https://www.henleysplumbingair.com/privacy-policy/  title='Priv
+RAW        200 https://www.henleysplumbingair.com/service-area/  tags=4 vendors=3 cloak=-
+RAW        200 https://www.henleysplumbingair.com/contact/  tags=4 vendors=3 cloak=-
+RAW        200 https://www.henleysplumbingair.com/privacy-policy/  tags=4 vendors=3 cloak=-
+wrote 6 pages -> omega_cache/henleysplumbingair.com/web
+6 pages, 79 findings -> omega_cache/henleysplumbingair.com/schema
+RENDERED                     https://www.henleysplumbingair.com/  pre-consent=call_tracking google_ads_doubleclick google_analytics google_tag_manager  consent=no consent banner detected
+wrote 1 renders -> omega_cache/henleysplumbingair.com/render  (presented as Google Chrome 152 on Windows 11)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=henleysplumbingair.com&type=MX (omegaweapon)
+{'domain': 'henleysplumbingair.com', 'spf': '"v=spf1 include:dc-aa8e722993._spfm.henleysplumbingair.com include:_spf.google.com ~all"', 'dmarc': '"v=DMARC1; p=none;"', 'dmarc_policy': 'none', 'mx': '1 aspmx.l.google.com. 5 alt1.aspmx.l.google.com. 5 alt2.aspmx.l.google.com. 10 alt3.aspmx.l.google.com. 10 alt4.aspmx.l.google.com.', 'reading': 'DMARC p=none — monitoring only'}
+{'domain': 'henleysplumbingair.com', 'status': 200, 'registration': '2021-09-30T21:17:22Z', 'expiration': '2028-09-30T21:17:22Z', 'last_changed': '2025-09-17T22:02:06Z', 'last_update_of_RDAP_database': '2026-11-15T08:49:22Z', 'nameservers': 'NS31.DOMAINCONTROL.COM NS32.DOMAINCONTROL.COM', 'registrar': 'GoDaddy.com, LLC', 'entity[registrar]': 'GoDaddy.com, LLC', 'rdap_status': 'client delete prohibited client renew prohibited client transfer prohibited client update prohibited'}
+henleys plumbing                              BRAND henleys plumbing; henleys plumbing and air; henleys plumbing and air reviews; henley plumbing supplies; henley plumbing and heating; henleys plumbin
+plumber san bernardino                        - plumber san bernardino; plumber san bernardino ca; plumbing san bernardino; plumbers san bernardino residential; plumbing san bernardino ca; plumbers sa
+plumber corona ca                             - plumber corona ca; plumbing corona ca; emergency plumber corona ca; plumbing supply corona ca; reece plumbing corona ca; bogart plumbing corona ca; infi
+ac repair riverside                           - ac repair riverside; ac repair riverside ca; hvac repair riverside; hvac repair riverside ca; car ac repair riverside; car ac repair riverside ca; mb pl
+water heater replacement redlands             - water heater repair redlands; how much is a permit to replace a water heater; how much does it cost for a water heater replacement; do you need a permit
+hvac repair rancho cucamonga                  - hvac repair rancho cucamonga; air conditioner repair rancho cucamonga; hvac repair near me
+### done 08:49:41
+### arlinghausair.com 08:49:41
+RAW        200    0.0s https://www.arlinghausair.com/ -> https://www.arlinghausair.com/  title='Arlinghaus: HVAC, Plumbing &amp; More! | Cin
+RAW        200  0.182s https://www.arlinghausair.com/the-top-5-plumbing-secrets-every-homeowner-should-know/ -> https://www.arlinghausair.co
+RAW        200  1.145s https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/ -> https://www.arling
+RAW        200  0.935s https://www.arlinghausair.com/areas-we-serve/ -> https://www.arlinghausair.com/areas-we-serve/  title='Areas We Serve
+RAW        200  0.899s https://www.arlinghausair.com/privacy-policy/ -> https://www.arlinghausair.com/privacy-policy/  title='Privacy Policy
+RAW        200 https://www.arlinghausair.com/tank-vs-tankless-everything-you-need-to-know-about-water-heaters/  tags=5 vendors=4 cloak=-
+RAW        200 https://www.arlinghausair.com/areas-we-serve/  tags=5 vendors=4 cloak=-
+RAW        200 https://www.arlinghausair.com/privacy-policy/  tags=5 vendors=4 cloak=-
+wrote 5 pages -> omega_cache/arlinghausair.com/web
+5 pages, 70 findings -> omega_cache/arlinghausair.com/schema
+RENDERED                     https://www.arlinghausair.com/  pre-consent=google_ads_doubleclick google_analytics google_tag_manager meta_pixel microsoft_uet reddit_pixel session_replay  consent=no consent banner detected
+wrote 1 renders -> omega_cache/arlinghausair.com/render  (presented as Google Chrome 153 on Windows 11)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=arlinghausair.com&type=MX (omegaweapon)
+{'domain': 'arlinghausair.com', 'spf': '"v=spf1 include:spf.protection.outlook.com include:servers.mcsv.net include:_spfclients.plumberseo.net include:aspmx.pardot.com ~all"', 'dmarc': '"v=DMARC1; p=none; rua=mailto:itsupport@vitistech.com; sp=none; aspf=r; adkim=r;"', 'dmarc_policy': 'none', 'mx': '0 arlinghausair-com.mail.protection.outlook.com.', 'reading': 'DMARC p=none — monitoring only'}
+{'domain': 'arlinghausair.com', 'status': 200, 'registration': '2008-05-14T19:49:48Z', 'expiration': '2028-05-14T19:49:48Z', 'last_changed': '2025-06-25T00:38:45Z', 'last_update_of_RDAP_database': '2026-11-15T08:50:52Z', 'nameservers': 'NS1.DOTSTER.COM NS2.DOTSTER.COM', 'registrar': 'Domain.com - Network Solutions, LLC', 'entity[registrar]': 'Domain.com - Network Solutions, LLC', 'rdap_status': 'client transfer prohibited'}
+arlinghaus                                    BRAND arlinghaus; arlinghaus builders; arlinghaus heating and air; arlinghaus plumbing; arlinghaus hvac; arlinghaus homes; arlinghaus heating and cooling;
+plumber northern kentucky                     - plumber northern kentucky; plumbing northern kentucky; plumbing companies northern kentucky; plumbing supply northern kentucky; jolly plumbing northern 
+hvac cincinnati                               - hvac cincinnati; hvac cincinnati ohio; hvac cincinnati state; hvac cincinnati school; hvac cincinnati jobs; hvac cincinnati reddit; hvac cincinnati appr
+furnace repair florence ky                    - furnace repair florence ky; hvac repair florence ky; furnace repair northern kentucky
+ac repair erlanger ky                         - ac repair erlanger ky; ac repair works near me; ac repair near me; ac repair today; ac repair description
+electrician northern kentucky                 - electrician northern kentucky; electrician florence kentucky; electrician northern ky; electrician apprenticeship northern kentucky; electrician jobs in
+### done 08:51:20
+### centercityemergencydentists.com 08:51:20
+RAW        200    0.0s https://centercityemergencydentists.com/ -> https://centercityemergencydentists.com/  title='Emergency Dentist in Phi
+RAW        200    0.0s https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/ -> https://centercitye
+RAW        200    0.0s https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/ -> https://centercityemergencydentists.c
+RAW        200    0.0s https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-denti
+RAW        200  0.365s https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/ -> https://centercityem
+RAW        200  0.105s https://centercityemergencydentists.com/privacy-policy/ -> https://centercityemergencydentists.com/privacy-policy/  t
+RAW        200 https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/  tags=3 vendors=2 cloak=-
+RAW        200 https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/  tags=3 vendors=2 cloak=-
+RAW        200 https://centercityemergencydentists.com/privacy-policy/  tags=3 vendors=2 cloak=-
+wrote 6 pages -> omega_cache/centercityemergencydentists.com/web
+6 pages, 57 findings -> omega_cache/centercityemergencydentists.com/schema
+RENDERED                     https://centercityemergencydentists.com/  pre-consent=google_ads_doubleclick google_analytics google_tag_manager  consent=no consent banner detected
+wrote 1 renders -> omega_cache/centercityemergencydentists.com/render  (presented as Google Chrome 154 on Windows 10)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=centercityemergencydentists.com&type=MX (omegaweapon)
+{'domain': 'centercityemergencydentists.com', 'spf': 'absent', 'dmarc': 'absent', 'dmarc_policy': 'absent', 'mx': '10 mailstore1.secureserver.net. 0 smtp.secureserver.net.', 'reading': 'no DMARC — bulk-sender requirements unmet'}
+{'domain': 'centercityemergencydentists.com', 'status': 200, 'registration': '2013-12-10T19:09:27Z', 'expiration': '2026-12-10T19:09:27Z', 'last_changed': '2025-12-11T14:32:17Z', 'last_update_of_RDAP_database': '2026-11-15T08:52:37Z', 'nameservers': 'NS55.DOMAINCONTROL.COM NS56.DOMAINCONTROL.COM', 'registrar': 'GoDaddy.com, LLC', 'entity[registrar]': 'GoDaddy.com, LLC', 'rdap_status': 'client delete prohibited client renew prohibited client transfer prohibited client update prohibited'}
+center city emergency dentist                 BRAND center city emergency dentist; center city emergency dentist reviews; center city emergency dentist philadelphia; center city emergency dentist hour
+emergency dentist philadelphia                - emergency dentist philadelphia; emergency dentist philadelphia open now; emergency dentist philadelphia pa; emergency dentist philadelphia that accept k
+24 hour dentist philadelphia                  - 24 hour dentist philadelphia; 24 hour emergency dentist philadelphia; 24 hour emergency dentist philadelphia open now; 1800 emergency dentist philadelph
+walk in dentist philadelphia                  - walk in dentist philadelphia pa; walk in dentist philadelphia; emergency dentist in philadelphia; emergency dentist in philadelphia pa; emergency dentis
+same day dentist philadelphia                 - same day dentist philadelphia; can you get same day dentist appointments; same day dentist appointment near me; do dentists take same day appointments; 
+### done 08:53:00
+### russellandlazarus.com 08:53:00
+RAW        200    0.0s https://www.russellandlazarus.com/ -> https://www.russellandlazarus.com/  title='Best Personal Injury Attorneys in Or
+RAW        200    0.0s https://www.russellandlazarus.com/immediately-after-car-accident/ -> https://www.russellandlazarus.com/immediately-af
+RAW        200  0.772s https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/ -> https://www.russel
+RAW        200  0.872s https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/ -> https://www.russellandlazarus.com/glendale
+RAW        200   0.93s https://www.russellandlazarus.com/two-reasons-to-contact-attorney/ -> https://www.russellandlazarus.com/two-reasons-t
+RAW        200   0.78s https://www.russellandlazarus.com/privacy/ -> https://www.russellandlazarus.com/privacy/  title='Privacy Policy | Bes
+RAW        200 https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/  tags=2 vendors=3 cloak=-
+RAW        200 https://www.russellandlazarus.com/two-reasons-to-contact-attorney/  tags=2 vendors=3 cloak=-
+RAW        200 https://www.russellandlazarus.com/privacy/  tags=2 vendors=3 cloak=-
+wrote 6 pages -> omega_cache/russellandlazarus.com/web
+6 pages, 73 findings -> omega_cache/russellandlazarus.com/schema
+RENDERED                     https://www.russellandlazarus.com/  pre-consent=call_tracking google_ads_doubleclick google_analytics google_tag_manager meta_pixel microsoft_uet other_adtech session_replay  consent=no consent banner detected
+wrote 1 renders -> omega_cache/russellandlazarus.com/render  (presented as Microsoft Edge 153 on Windows 11)
+  honest   api      200 https://cloudflare-dns.com/dns-query?name=russellandlazarus.com&type=MX (omegaweapon)
+{'domain': 'russellandlazarus.com', 'spf': '"v=spf1 +a +mx +ip4:162.215.13.186 ~all"', 'dmarc': 'absent', 'dmarc_policy': 'absent', 'mx': '0 _dc-mx.6697bd8521b3.russellandlazarus.com.', 'reading': 'no DMARC — bulk-sender requirements unmet'}
+{'domain': 'russellandlazarus.com', 'status': 200, 'registration': '2010-05-13T17:04:29Z', 'expiration': '2030-05-13T17:04:29Z', 'last_changed': '2026-04-17T20:35:20Z', 'last_update_of_RDAP_database': '2026-11-15T08:54:22Z', 'nameservers': 'DANA.NS.CLOUDFLARE.COM HUGH.NS.CLOUDFLARE.COM', 'registrar': 'GoDaddy.com, LLC', 'entity[registrar]': 'GoDaddy.com, LLC', 'rdap_status': 'client delete prohibited client renew prohibited client transfer prohibited client update prohibited'}
+russell and lazarus                           BRAND russell and lazarus; russell and lazarus riverside; russell and lazarus fullerton; russell and lazarus newport; russell and lazarus apc; russell and
+car accident lawyer orange county             - car accident lawyer orange county; auto accident lawyer orange county; best car accident lawyer orange county; car accident lawyer orange county ca; joe
+personal injury lawyer newport beach          - personal injury lawyer newport beach; personal injury attorney newport beach ca; personal injury lawyer near me; personal injury attorney near me review
+truck accident lawyer orange county           - 
+motorcycle accident lawyer orange county      - motorcycle accident lawyer orange county
+personal injury lawyer irvine                 - personal injury lawyer irvine ca; personal injury lawyer near me; personal injury attorney near me reviews; personal injury lawyer fee structure; how mu
+### done 08:54:42

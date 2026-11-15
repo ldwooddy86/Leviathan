@@ -1,0 +1,2 @@
+url,status,tier,presence,title,consent,pre_consent_trackers,post_scroll_new,prechecked,scarcity,timer_reset,ai_agent,axe_violations,requests,fetched_at
+https://www.henleysplumbingair.com/,200,RENDERED,OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt),Plumbing & HVAC Services Across the Inland Empire | Henley's,no consent banner detected,call_tracking google_ads_doubleclick google_analytics google_tag_manager,,0,,timer RESET on reload — CONFIRMED-capable dark pattern (fake urgency),,,168,2026-11-15T08:49:03Z

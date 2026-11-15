@@ -1,0 +1,346 @@
+[
+ {
+  "domain": "advantagepestdenver.com",
+  "advantagepestdenver.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.advantagepestdenver.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "advantagepestco.com",
+  "advantagepestco.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.advantagepestco.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "apmdenver.com",
+  "apmdenver.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "15.197.225.128",
+    "3.33.251.168"
+   ]
+  },
+  "www.apmdenver.com": {
+   "status": 0,
+   "cname": [
+    "apmdenver.com."
+   ],
+   "a": [
+    "3.33.251.168",
+    "15.197.225.128"
+   ]
+  },
+  "ns": [
+   "ns75.domaincontrol.com.",
+   "ns76.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "advantagepestmgmt.com",
+  "advantagepestmgmt.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.advantagepestmgmt.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "evergreenpc.com",
+  "evergreenpc.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "34.224.10.110",
+    "52.11.37.152"
+   ]
+  },
+  "www.evergreenpc.com": {
+   "status": 0,
+   "cname": [
+    "ho012.scorphosting.com.",
+    "home02.scorpcloud.com."
+   ],
+   "a": [
+    "162.159.142.250",
+    "172.66.2.246"
+   ]
+  },
+  "ns": [
+   "ns77.domaincontrol.com.",
+   "ns78.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "russellandlazarus.com",
+  "russellandlazarus.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "104.21.7.150",
+    "172.67.136.113"
+   ]
+  },
+  "www.russellandlazarus.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "172.67.136.113",
+    "104.21.7.150"
+   ]
+  },
+  "ns": [
+   "dana.ns.cloudflare.com.",
+   "hugh.ns.cloudflare.com."
+  ]
+ },
+ {
+  "domain": "cheryldavidlaw.com",
+  "cheryldavidlaw.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "159.203.74.217"
+   ]
+  },
+  "www.cheryldavidlaw.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "159.203.74.217"
+   ]
+  },
+  "ns": [
+   "ns41.domaincontrol.com.",
+   "ns42.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "cheryldavid.com",
+  "cheryldavid.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "34.224.10.110",
+    "52.11.37.152"
+   ]
+  },
+  "www.cheryldavid.com": {
+   "status": 0,
+   "cname": [
+    "le023.scorphosting.com.",
+    "legal04.scorpcloud.com."
+   ],
+   "a": [
+    "162.159.142.250",
+    "172.66.2.246"
+   ]
+  },
+  "ns": [
+   "chip.ns.cloudflare.com.",
+   "cass.ns.cloudflare.com."
+  ]
+ },
+ {
+  "domain": "thebrotherslawfirm.com",
+  "thebrotherslawfirm.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "192.64.119.204"
+   ]
+  },
+  "www.thebrotherslawfirm.com": {
+   "status": 0,
+   "cname": [
+    "parkingpage.namecheap.com.",
+    "parking.d.parity.domains."
+   ],
+   "a": [
+    "104.219.250.36"
+   ]
+  },
+  "ns": [
+   "dns1.registrar-servers.com.",
+   "dns2.registrar-servers.com."
+  ]
+ },
+ {
+  "domain": "brotherslawfirm.com",
+  "brotherslawfirm.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "162.255.119.82"
+   ]
+  },
+  "www.brotherslawfirm.com": {
+   "status": 0,
+   "cname": [
+    "parkingpage.namecheap.com.",
+    "parking.d.parity.domains."
+   ],
+   "a": [
+    "104.219.250.36"
+   ]
+  },
+  "ns": [
+   "dns2.registrar-servers.com.",
+   "dns1.registrar-servers.com."
+  ]
+ },
+ {
+  "domain": "overheaddoornorthland.com",
+  "overheaddoornorthland.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "162.159.142.250",
+    "172.66.2.246"
+   ]
+  },
+  "www.overheaddoornorthland.com": {
+   "status": 0,
+   "cname": [
+    "overheaddoornorthland.scorpcloud.com."
+   ],
+   "a": [
+    "162.159.142.250",
+    "172.66.2.246"
+   ]
+  },
+  "ns": [
+   "karsyn.ns.cloudflare.com.",
+   "clayton.ns.cloudflare.com."
+  ]
+ },
+ {
+  "domain": "pestmastersinc.com",
+  "pestmastersinc.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "65.39.148.166"
+   ]
+  },
+  "www.pestmastersinc.com": {
+   "status": 0,
+   "cname": [
+    "framer.droa.com."
+   ],
+   "a": [
+    "65.39.148.166"
+   ]
+  },
+  "ns": [
+   "dns3.nameresolvers.com.",
+   "dns2.nameresolvers.com.",
+   "dns4.nameresolvers.com.",
+   "dns1.nameresolvers.com."
+  ]
+ },
+ {
+  "domain": "pestmastersservices.com",
+  "pestmastersservices.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.pestmastersservices.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "thebugman.com",
+  "thebugman.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "185.178.196.3"
+   ]
+  },
+  "www.thebugman.com": {
+   "status": 0,
+   "cname": [
+    "fe.cfp2c.edge.pantheon.io."
+   ],
+   "a": [
+    "185.178.196.3"
+   ]
+  },
+  "ns": [
+   "ns2.worldnic.com.",
+   "ns1.worldnic.com."
+  ]
+ },
+ {
+  "domain": "radiantplumbing.com",
+  "radiantplumbing.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "104.20.23.243",
+    "172.66.149.158"
+   ]
+  },
+  "www.radiantplumbing.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "104.20.23.243",
+    "172.66.149.158"
+   ]
+  },
+  "ns": [
+   "jeff.ns.cloudflare.com.",
+   "gabriella.ns.cloudflare.com."
+  ]
+ },
+ {
+  "domain": "arlinghausair.com",
+  "arlinghausair.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "162.159.135.42"
+   ]
+  },
+  "www.arlinghausair.com": {
+   "status": 0,
+   "cname": [
+    "arlinghausair.com."
+   ],
+   "a": [
+    "162.159.135.42"
+   ]
+  },
+  "ns": [
+   "ns1.dotster.com.",
+   "ns2.dotster.com."
+  ]
+ }
+]

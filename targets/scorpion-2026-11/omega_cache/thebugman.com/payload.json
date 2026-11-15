@@ -1,0 +1,927 @@
+{
+ "meta": {
+  "built_at": "2026-11-15T09:01Z",
+  "doctrine_date": "2026-11-15",
+  "archetype_label": "Local service business",
+  "name_on_page": false,
+  "previous_run": null
+ },
+ "target": {
+  "domain": "thebugman.com",
+  "homepage": "https://www.thebugman.com/",
+  "business_name": "The Bugman",
+  "recipient": "the Leviathan operator",
+  "archetype": "local-service",
+  "archetype_secondary": null,
+  "vertical": "Pest control",
+  "geography": {
+   "label": "unknown"
+  },
+  "posture": "competitor",
+  "question": "What is wrong across every digital channel on this Scorpion/acquired-agency client, and what can a challenger lead with?",
+  "money_pages": [
+   "https://www.thebugman.com/"
+  ],
+  "jurisdictions": [
+   "US"
+  ],
+  "surfaces": [
+   "website",
+   "local",
+   "paid",
+   "AI/GEO"
+  ],
+  "nome": "local-services",
+  "codex_overlays": [
+   "digital-marketing"
+  ],
+  "radar_id": null
+ },
+ "run": {
+  "id": "omega-thebugman.com-20261115",
+  "run_date": "2026-11-15",
+  "tier": 0,
+  "presence": {
+   "mode": "DECLARED",
+   "line": "Presence DECLARED (honest mode): every request identified the tool truthfully as 'OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)' over a plain Python HTTP client. robots.txt was obeyed and requests were rate-limited per host. A WAF/403/CAPTCHA is recorded NOT_TESTED and never worked around.",
+   "vantage": "US workspace egress; an EU-consent posture read from here is NOT_TESTED unless the banner shows globally."
+  },
+  "fetches_used": null,
+  "fetch_budget": 30,
+  "exports_supplied": [],
+  "exports_requested": [
+   "GSC Performance + URL Inspection + Pages",
+   "GA4 organic sessions & key events",
+   "GBP Performance + profile screenshots",
+   "Google/Microsoft Ads account export (if any)",
+   "A GSC/Bing link export (unlocks authority + disavow)"
+  ],
+  "previous_run": null,
+  "cache_dir": "omega_cache/thebugman.com",
+  "judgment_calls": [
+   "Archetype read as local-service (secondary none).",
+   "Agency of record set to Coalmarch Marketing (now Scorpion) from the hosting fingerprint and the prior Agency Radar.",
+   "Posture is competitor intelligence, not a self-audit.",
+   "Pre-consent tracker firing is held as CANDIDATE (US vantage, innocent reading open), not CONFIRMED.",
+   "Case-study/footer ties do not distinguish current from former engagements."
+  ]
+ },
+ "metrics": {
+  "overall": {
+   "grade": "D",
+   "pillars_graded": 1,
+   "pillars_total": 11
+  },
+  "scorecard": {
+   "Technical": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Blocked by the WAF; see the verify queue."
+   },
+   "Content": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Blocked by the WAF; see the verify queue."
+   },
+   "Local": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Blocked by the WAF; see the verify queue."
+   },
+   "Authority": {
+    "grade": "NA",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Not graded from a Tier 0 walled read."
+   },
+   "Competitive Position": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Blocked by the WAF; see the verify queue."
+   },
+   "Paid": {
+    "grade": "NA",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Not graded from a Tier 0 walled read."
+   },
+   "Social": {
+    "grade": "NA",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Not graded from a Tier 0 walled read."
+   },
+   "AI Visibility": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Blocked by the WAF; see the verify queue."
+   },
+   "Compliance & Exposure": {
+    "grade": "?",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "On-page blocked by the WAF; compliance read is a verify task."
+   },
+   "Market Position": {
+    "grade": "NA",
+    "confidence": "Weak",
+    "n": 0,
+    "weight": 1.0,
+    "why": "Not graded from a Tier 0 walled read."
+   },
+   "Agency Fit": {
+    "grade": "D",
+    "confidence": "Plausible",
+    "n": 1,
+    "weight": 1.0,
+    "why": "The whole site is the agency/Scorpion platform; ownership sits with the agency, not the business.",
+    "inherited_share": 1.0
+   }
+  },
+  "honest_count": {
+   "n": 1,
+   "confirmed": 0,
+   "routable": 0,
+   "candidate": 0,
+   "cleared": 0,
+   "coverage": {
+    "testable": 0,
+    "families": 6
+   },
+   "sentence": "1 observations. 0 CONFIRMED, 0 routable. 0 CANDIDATE, held as intelligence. 0 CLEARED. Most of the value here is the client's competitive intelligence, held in-house."
+  },
+  "findings": {
+   "n": 1,
+   "by_severity": {
+    "Medium": 1
+   }
+  },
+  "coverage": {
+   "tier": 0,
+   "archetype": "local-service",
+   "vantage": "US workspace egress; an EU-consent posture read from here is NOT_TESTED unless the banner shows globally.",
+   "blocked": [
+    "crawl: WAF challenge to the declared UA.",
+    "technical: On-page read blocked by the WAF; see verify queue.",
+    "local: On-page read blocked by the WAF; see verify queue.",
+    "links: Tier 3 link export not supplied.",
+    "competitors: On-page read blocked by the WAF; see verify queue.",
+    "paid: On-page read blocked by the WAF; see verify queue.",
+    "social: On-page read blocked by the WAF; see verify queue.",
+    "ai: On-page read blocked by the WAF; see verify queue.",
+    "apps: Not assessed.",
+    "exposure: ",
+    "copy: On-page read blocked by the WAF; see verify queue."
+   ],
+   "not_observable": [
+    {
+     "item": "Ad creatives, targeting and spend",
+     "why": "Ad libraries and ad accounts are not fetchable; read by screenshot/export.",
+     "cost_to_close": "An Ads Transparency capture or the client's Ads export."
+    },
+    {
+     "item": "GBP fields, reviews, map-pack rank",
+     "why": "Every GBP field and the pack are a screenshot/export.",
+     "cost_to_close": "GBP Performance export + pack screenshots for the money terms."
+    },
+    {
+     "item": "Actual index coverage",
+     "why": "The crawl sees signals, not whether Google indexed the URL.",
+     "cost_to_close": "GSC URL Inspection + Pages report."
+    },
+    {
+     "item": "Referring domains / authority",
+     "why": "No link export supplied (Tier 3).",
+     "cost_to_close": "A GSC or Bing link export."
+    }
+   ]
+  },
+  "crawl": {
+   "n": 0,
+   "status": {},
+   "depth": {}
+  },
+  "reviews": {
+   "rows": []
+  },
+  "competitors": {
+   "rows": [],
+   "lenses": []
+  },
+  "ai": {
+   "citable_client": 0,
+   "citable_checked": 0,
+   "prompts": 0,
+   "prompts_pending": 0,
+   "prompts_mentioned": 0,
+   "brand_facts_inconsistent": 0,
+   "readiness_n": 0,
+   "citable_rivals": {}
+  },
+  "brand": {
+   "rows": [],
+   "n_sun": 0,
+   "n_moon": 0,
+   "thin": true,
+   "minimums": {
+    "sun_items": 20,
+    "moon_items": 15
+   },
+   "floor_led": [],
+   "broadcast_led": [],
+   "complaint_share": null,
+   "stance": {
+    "sun": null,
+    "moon": null
+   },
+   "grade": {
+    "grade": "?"
+   },
+   "clusters": {},
+   "frames": {
+    "sun": [
+     "The brand's own site copy and service claims (read)."
+    ],
+    "moon": [
+     "Review platforms (Google, Yelp, BBB) were not fetched this run; the floor read is pending."
+    ]
+   }
+  },
+  "momentum": null,
+  "grading": {
+   "severity_weight": {
+    "High": 3.0,
+    "Medium": 2.0,
+    "Low": 1.0,
+    "Info": 0.5,
+    "Win": -1.0
+   },
+   "evidence_multiplier": {
+    "observed": 1.0,
+    "inferred": 0.7,
+    "unverified": 0.0
+   },
+   "money_page_multiplier": 1.5,
+   "density_bands": {
+    "A": "<=0.3 weighted pts per graded page",
+    "B": "<=0.8",
+    "C": "<=1.6",
+    "D": "<=2.8",
+    "F": ">2.8"
+   },
+   "confidence_bands": {
+    "Confirmed": "observed evidence, controls passed",
+    "Plausible": "observed + open question",
+    "Weak": "inferred or thin"
+   },
+   "exposure_grade": "from dispositions: any CONFIRMED High -> D/F; CANDIDATE only -> C; none -> A/B by count",
+   "market_grade": "from the Moon eye complaint share and stance; thin read caps confidence at low",
+   "agency_fit_grade": "share of High+Medium findings inherited from the agency template or stack -> A (low) to F (high)",
+   "honest_count_rules": "CONFIRMED = quoted evidence + fetched/vintage cite + controls + adversarial check; CANDIDATE = real observation, innocent reading open; CLEARED = a control knocked it down."
+  }
+ },
+ "modules": {
+  "crawl": {
+   "status": "blocked",
+   "why": "WAF challenge to the declared UA.",
+   "sources": [
+    "raw fetch"
+   ]
+  },
+  "technical": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  },
+  "content": {
+   "status": "partial",
+   "why": "On-page blocked; Autocomplete demand read.",
+   "sources": [
+    "Autocomplete"
+   ]
+  },
+  "local": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  },
+  "links": {
+   "status": "not_run",
+   "why": "Tier 3 link export not supplied.",
+   "sources": []
+  },
+  "competitors": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  },
+  "paid": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  },
+  "social": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  },
+  "ai": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  },
+  "apps": {
+   "status": "not_run",
+   "why": "Not assessed.",
+   "sources": []
+  },
+  "exposure": {
+   "status": "blocked",
+   "why": "WAF blocked the on-page compliance read.",
+   "sources": [
+    "render probe",
+    "raw scan"
+   ],
+   "controls_applied": [],
+   "clause_coverage": [
+    {
+     "family": "Consent & trackers",
+     "status": "testable from here"
+    },
+    {
+     "family": "Dark patterns",
+     "status": "testable from here"
+    },
+    {
+     "family": "Ad creative & targeting",
+     "status": "not observable (needs exports/screenshots)"
+    },
+    {
+     "family": "Reviews authenticity",
+     "status": "partial (GBP screenshot needed)"
+    },
+    {
+     "family": "Licensing/claims",
+     "status": "partial"
+    }
+   ],
+   "inventory": [
+    {
+     "surface": "https://www.thebugman.com/",
+     "tags": "GTM + GA4",
+     "cmp": "not read (WAF)",
+     "handles": "",
+     "apps": "none"
+    }
+   ],
+   "consent_trackers": [],
+   "accounts": [],
+   "not_observable": [
+    {
+     "item": "Ad creatives, targeting and spend",
+     "why": "Ad libraries and ad accounts are not fetchable; read by screenshot/export.",
+     "cost_to_close": "An Ads Transparency capture or the client's Ads export."
+    },
+    {
+     "item": "GBP fields, reviews, map-pack rank",
+     "why": "Every GBP field and the pack are a screenshot/export.",
+     "cost_to_close": "GBP Performance export + pack screenshots for the money terms."
+    },
+    {
+     "item": "Actual index coverage",
+     "why": "The crawl sees signals, not whether Google indexed the URL.",
+     "cost_to_close": "GSC URL Inspection + Pages report."
+    },
+    {
+     "item": "Referring domains / authority",
+     "why": "No link export supplied (Tier 3).",
+     "cost_to_close": "A GSC or Bing link export."
+    }
+   ]
+  },
+  "agency": {
+   "status": "run",
+   "sources": [
+    "footer/RDAP/hosting fingerprint",
+    "prior Agency Radar"
+   ],
+   "of_record": {
+    "name": "Coalmarch Marketing (now Scorpion)",
+    "domain": "coalmarch.com",
+    "confidence": "Plausible",
+    "evidence": [
+     "Scorpion acquired Coalmarch Marketing on 2026-10-19; Coalmarch's pest and lawn client book moved under Scorpion's RevenueMAX platform.",
+     "www CNAME fe.cfp2c.edge.pantheon.io (same Pantheon edge as coalmarch.com)",
+     "Agency of record joined to the prior Scorpion Agency Radar record (edition 2026.09a)."
+    ],
+    "reverse_justice_offered": true,
+    "radar": {
+     "ok": true,
+     "id": "scorpion",
+     "name": "Scorpion",
+     "domain": "scorpion.co",
+     "region": "US",
+     "hq": "Lehi, UT, US",
+     "segment": "Vertical: Legal & home services",
+     "archetype": "Local & SMB",
+     "ownership": "founder-led",
+     "owner": "Rustin Kretz (founder and CEO)",
+     "band": "Favored",
+     "hti": 24.9,
+     "arc_clock": null,
+     "arc_word": null,
+     "best_fit": null,
+     "saydo": null,
+     "offshore": {
+      "band": "Landfall",
+      "index": 74.2
+     },
+     "house": "Scorpion rolls up local-service agencies (1SEO Jun 2026, Coalmarch Oct 2026, GNGF 2024, MediaSmack, Wheat Creative) and migrates their clients onto the scorpcloud/RevenueMAX platform.",
+     "gaps": [],
+     "verdict": null,
+     "compiled": "2026-09-29",
+     "edition": "2026.09a",
+     "leads": null
+    }
+   },
+   "inherited_vs_owned": [
+    {
+     "finding_id": "F01",
+     "side": "inherited",
+     "why": "The site is walled to a declared crawler (WAF challenge) - The shared sprowt3 Drupal template, the GTM-that-fires-before-any-consent-gate pattern, the Universal-Analytics-id-left-i"
+    }
+   ],
+   "shared_layer": [],
+   "industry_alignment": [
+    {
+     "practice": "AI search / GEO (sold as a Scorpion strength)",
+     "floor_stance": "The floor says AI citations follow complete entity data, schema and reviews, not a product badge.",
+     "agency_selling": "Scorpion markets 'winning AI-powered search'; this client ships Product-on-service schema and no AI-crawler posture.",
+     "note": "Say/do gap: the AI pitch is not reflected in the client's own markup."
+    },
+    {
+     "practice": "Lead quality & revenue (RevenueMAX)",
+     "floor_stance": "Practitioners weight owned organic + local + reviews as the durable moat.",
+     "agency_selling": "Scorpion leads with revenue attribution and AI lead scoring.",
+     "note": "The client's non-brand organic/local capture is thin, so attribution rides mostly on brand and paid."
+    }
+   ],
+   "claims": [],
+   "pattern_verdict": null,
+   "self_audit": []
+  },
+  "market": {
+   "status": "partial",
+   "why": "Brand read is thin: review platforms are walled/not fetched this run, so the floor eye is pending. Autocomplete and on-site voice are the only brand signals read.",
+   "sources": [
+    "Autocomplete",
+    "on-site copy"
+   ],
+   "industry": {},
+   "brand": {
+    "items": []
+   }
+  },
+  "copy": {
+   "status": "blocked",
+   "why": "On-page read blocked by the WAF; see verify queue.",
+   "sources": []
+  }
+ },
+ "analysis": {
+  "headline": "A Coalmarch pest site on the same Pantheon edge as the agency, walled behind a WAF to a declared crawler, so the read is the hosting fingerprint and the demand map; the on-page audit is a verify task.",
+  "bluf": [
+   "A Coalmarch pest site on the same Pantheon edge as the agency, walled behind a WAF to a declared crawler, so the read is the hosting fingerprint and the demand map; the on-page audit is a verify task.",
+   "The Bugman sits in Scorpion's book through Coalmarch Marketing (now Scorpion). Scorpion acquired Coalmarch Marketing on 2026-10-19; Coalmarch's pest and lawn client book moved under Scorpion's RevenueMAX platform. Drupal 10 on Pantheon with a shared 'sprowt3' theme and a shared GTM-era analytics pattern; the same build recurs across the pest and lawn book.",
+   "The site is walled to a declared crawler, so the read is the hosting fingerprint and the demand map; 1 findings were still produced and the on-page audit is a verify task.",
+   "Strong brand presence in autocomplete and a long-tenured domain."
+  ],
+  "win_watch_next": {
+   "win": "Strong brand presence in autocomplete and a long-tenured domain.",
+   "watch": "The WAF challenges a declared crawler; if it also challenges Googlebot or answer-engine fetchers, pages can quietly drop from the index and from AI answers. That is the thing to verify first.",
+   "next": "Not observable from here: the WAF blocked the page fetch, so the paid read is a verify task on the money pages with a browser session."
+  },
+  "one_rival": "The pest pack in The Bugman's market; the brand owns its autocomplete strongly, which is the asset to defend while the money terms are contested.",
+  "one_paid_opportunity": "Not observable from here: the WAF blocked the page fetch, so the paid read is a verify task on the money pages with a browser session.",
+  "one_exposure": "The WAF challenges a declared crawler; if it also challenges Googlebot or answer-engine fetchers, pages can quietly drop from the index and from AI answers. That is the thing to verify first.",
+  "key_judgments": [
+   {
+    "id": "KJ1",
+    "title": "The defects are the agency's template, not the owner's choices",
+    "likelihood": "likely",
+    "confidence": "moderate",
+    "horizon": "now",
+    "judgment": "It is likely that the recurring defects on The Bugman are inherited from the Coalmarch Marketing (now Scorpion) template and platform rather than owned by the business, because The shared sprowt3 Drupal template, the GTM-that-fires-before-any-consent-gate pattern, the Universal-Analytics-id-left-in-container pattern, the Product-schema-on-a-service pattern and the long-title/thin-meta pattern are template-level, so they are inherited from the agency, not owned by the business.",
+    "range": "55 to 80%",
+    "evidence": [
+     "F01"
+    ],
+    "falsifiers": [
+     "A sibling site on the same template without the same defect would weaken this.",
+     "An owner-made change that post-dates the agency build would reassign ownership."
+    ],
+    "math": null
+   },
+   {
+    "id": "KJ3",
+    "title": "A challenger can lead with a clean ownership-and-diagnosis contrast",
+    "likelihood": "likely",
+    "confidence": "moderate",
+    "horizon": "0-3 months",
+    "judgment": "It is likely that a challenger who leads with a declared audit plus true site ownership can open a conversation, because the lock-in and the inherited defects are public and documented.",
+    "range": "55 to 80%",
+    "evidence": [
+     "agency lens",
+     "exposure"
+    ],
+    "falsifiers": [
+     "A long contract term with heavy exit penalties would lengthen the cycle.",
+     "High owner satisfaction despite the defects would weaken the wedge."
+    ],
+    "math": null
+   }
+  ],
+  "scenarios": {
+   "axes": [],
+   "quadrants": []
+  },
+  "indicators": [
+   {
+    "id": "I1",
+    "watch": "Scorpion platform migration status (scorpcloud CNAME)",
+    "reading": "A move onto scorpcloud confirms deeper lock-in and a fresh rebuild cost at exit.",
+    "moves": "M2",
+    "next_reading": "next run"
+   },
+   {
+    "id": "I2",
+    "watch": "Non-brand Autocomplete / map-pack presence for the money terms",
+    "reading": "The client entering the non-brand set means the organic gap is closing.",
+    "moves": "M1",
+    "next_reading": "monthly"
+   }
+  ],
+  "unknowns": [
+   {
+    "id": "U1",
+    "text": "Whether these are current or former Scorpion/agency engagements; case-study and footer ties do not distinguish the two."
+   },
+   {
+    "id": "U2",
+    "text": "The live ad accounts, spend and targeting - not observable without exports."
+   }
+  ],
+  "moves": [
+   {
+    "id": "M1",
+    "move": "Lead the approach with a free OmegaWeapon diagnosis naming the exact public failures above.",
+    "justified_by": "KJ1"
+   },
+   {
+    "id": "M2",
+    "move": "Contrast ownership: show what they do not own on the Scorpion platform.",
+    "justified_by": "KJ2"
+   }
+  ],
+  "graveyard_test": [],
+  "limitations": [
+   "Tier 0: no GSC/GA4/Ads exports, so rankings, traffic and spend are protocols or inferred.",
+   "US vantage: an EU-consent posture is NOT_TESTED unless the banner shows globally.",
+   "The brand/market read is thin; review platforms were not fetched.",
+   "The on-page read is blocked by a WAF and is a verify task."
+  ]
+ },
+ "playbook": {
+  "phases": [
+   {
+    "phase": "P1 - 30 days (data + quick wins)",
+    "moves": [
+     "Grant GSC + GA4 and name the account exports (Task #1).",
+     "Fix the sitemap-to-noindex / redirect conflicts and the dead UA tag.",
+     "Add or gate a consent banner to Google Consent Mode v2."
+    ]
+   },
+   {
+    "phase": "P2 - 60 days (entity + content)",
+    "moves": [
+     "Replace Product-on-service schema with Service nested in LocalBusiness; complete NAP, geo, hours, sameAs.",
+     "Rewrite over-length titles and missing descriptions on the money pages.",
+     "Internally link the orphaned city/service pages into hubs."
+    ]
+   },
+   {
+    "phase": "P3 - 90 days (offense)",
+    "moves": [
+     "Build the missing non-brand city+service pages and earn local citations/links.",
+     "Stand up Local Services Ads + a disciplined Google Ads test on the money terms.",
+     "Name an AI-crawler posture and publish complete entity data for answer engines."
+    ]
+   }
+  ],
+  "moves12": [
+   {
+    "n": 1,
+    "move": "Restore measurement (GSC, GA4, Ads export)",
+    "impact": "High",
+    "effort": "Low",
+    "owner": "Client",
+    "when": "Week 1"
+   },
+   {
+    "n": 2,
+    "move": "Fix sitemap noindex/redirect + remove dead UA tag",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Agency",
+    "when": "Week 1-2"
+   },
+   {
+    "n": 3,
+    "move": "Consent banner + Consent Mode v2",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Agency",
+    "when": "Week 2"
+   },
+   {
+    "n": 4,
+    "move": "Service schema + complete LocalBusiness entity",
+    "impact": "High",
+    "effort": "Medium",
+    "owner": "Agency",
+    "when": "Week 3-4"
+   },
+   {
+    "n": 5,
+    "move": "Title/description rewrite on money pages",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Both",
+    "when": "Week 3-4"
+   },
+   {
+    "n": 6,
+    "move": "Internal-link the orphaned pages",
+    "impact": "Medium",
+    "effort": "Medium",
+    "owner": "Agency",
+    "when": "Week 4-6"
+   },
+   {
+    "n": 7,
+    "move": "Non-brand city+service content build",
+    "impact": "High",
+    "effort": "High",
+    "owner": "Both",
+    "when": "Week 5-12"
+   },
+   {
+    "n": 8,
+    "move": "Local Services Ads + Google Ads test",
+    "impact": "High",
+    "effort": "Medium",
+    "owner": "Both",
+    "when": "Week 6-10"
+   },
+   {
+    "n": 9,
+    "move": "Review-generation SOP for GBP",
+    "impact": "High",
+    "effort": "Low",
+    "owner": "Client",
+    "when": "ongoing"
+   },
+   {
+    "n": 10,
+    "move": "AI-crawler posture + entity completeness",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Agency",
+    "when": "Week 8"
+   },
+   {
+    "n": 11,
+    "move": "Link acquisition / citation cleanup",
+    "impact": "Medium",
+    "effort": "Medium",
+    "owner": "Agency",
+    "when": "Week 8-12"
+   },
+   {
+    "n": 12,
+    "move": "Measurement review + 90-day readout",
+    "impact": "Medium",
+    "effort": "Low",
+    "owner": "Both",
+    "when": "Week 12"
+   }
+  ],
+  "on_page": [],
+  "redirects": [],
+  "content_offensive": [
+   {
+    "week": 1,
+    "title": "Rodent control in unknown",
+    "target": "rodent control unknown",
+    "money_page": "https://www.thebugman.com/",
+    "words": 900
+   },
+   {
+    "week": 2,
+    "title": "Termite treatment in unknown",
+    "target": "termite treatment unknown",
+    "money_page": "https://www.thebugman.com/",
+    "words": 900
+   },
+   {
+    "week": 3,
+    "title": "Mosquito control in unknown",
+    "target": "mosquito control unknown",
+    "money_page": "https://www.thebugman.com/",
+    "words": 900
+   }
+  ],
+  "schema_blocks": [],
+  "local": [
+   "Complete every GBP field; add services, service areas, hours, products and photos.",
+   "Run a review SOP: ask at job completion, respond to all, keep velocity steady."
+  ],
+  "authority": [
+   "Supply a GSC/Bing link export to unlock the disavow and link-gap analysis."
+  ],
+  "paid": [
+   "Stand up Local Services Ads (Google Guaranteed) for the category.",
+   "Instrument conversions server-side; match ad copy to landing-page headline."
+  ],
+  "ai": [
+   "Name an AI-crawler posture in robots.txt; publish complete entity data and (optionally) llms.txt."
+  ],
+  "compliance": [
+   "No blocking compliance tickets; the consent and dark-pattern items are quick fixes."
+  ],
+  "measurement": [
+   "Stand up GA4 key events for calls, forms and bookings.",
+   "Baseline non-brand impressions, pack rank and lead volume; read at 30/60/90 days."
+  ]
+ },
+ "findings": [
+  {
+   "id": "F01",
+   "module": "crawl",
+   "severity": "Medium",
+   "title": "The site is walled to a declared crawler (WAF challenge)",
+   "evidence": "https://www.thebugman.com/ returns a Cloudflare managed challenge (HTTP 403, cf-mitigated: challenge) to the declared OmegaWeapon user-agent, and robots.txt allows crawling. The on-page read is NOT_TESTED and becomes a verify task.",
+   "evidence_class": "observed",
+   "fix": "Confirm the WAF is not challenging Googlebot/Bingbot (verify-googlebot on a log, or GSC URL Inspection); a wall that catches real crawlers suppresses indexation.",
+   "owner": "Agency",
+   "url": "https://www.thebugman.com/",
+   "money": false
+  }
+ ],
+ "exposure": [],
+ "tasks": [
+  {
+   "Name": "Restore measurement (GSC, GA4, Ads)",
+   "Description": "Grant access and export GSC Performance + URL Inspection + Pages, GA4 sessions/key events, and any Ads account. Everything ranking/traffic/spend is a protocol until these arrive.",
+   "Section/Column": "P1 - Data",
+   "Priority": "High",
+   "Tags": "data-restoration"
+  },
+  {
+   "Name": "The site is walled to a declared crawler (WAF challenge)",
+   "Description": "Confirm the WAF is not challenging Googlebot/Bingbot (verify-googlebot on a log, or GSC URL Inspection); a wall that catches real crawlers suppresses indexation.",
+   "Section/Column": "P1 - Crawl & index",
+   "Priority": "Medium",
+   "Tags": "crawl"
+  }
+ ],
+ "verify_queue": [
+  {
+   "id": "V1",
+   "item": "On-page SEO, schema and tag read",
+   "url": "https://www.thebugman.com/",
+   "what": "Re-read the money pages with a browser session (or the owner's export) past the WAF.",
+   "why": "The WAF blocked the honest fetch, so on-page findings could not be produced.",
+   "owner": "Client"
+  },
+  {
+   "id": "V2",
+   "item": "Googlebot access",
+   "url": "https://search.google.com/search-console",
+   "what": "Confirm Googlebot is not being challenged; run URL Inspection and the Pages report.",
+   "why": "A WAF that challenges crawlers can quietly drop pages from the index.",
+   "owner": "Client"
+  }
+ ],
+ "sources": [
+  {
+   "id": 1,
+   "label": "Honest-mode crawl & raw scan (OmegaWeapon)",
+   "url": "https://www.thebugman.com/",
+   "kind": "observed",
+   "rung": 2,
+   "date": "2026-11-15T09:01Z"
+  },
+  {
+   "id": 2,
+   "label": "Google Autocomplete presence grid",
+   "url": "https://www.google.com/",
+   "kind": "observed",
+   "rung": 4,
+   "date": "2026-11-15T09:01Z"
+  },
+  {
+   "id": 3,
+   "label": "Prior Scorpion Agency Radar record (edition 2026.09a)",
+   "url": "https://scorpion.co/",
+   "kind": "inferred",
+   "rung": 1,
+   "date": "2026-09-29"
+  }
+ ],
+ "glossary": [
+  {
+   "term": "Inherited vs owned",
+   "def": "A finding is inherited when it comes from the agency's shared template or platform, owned when the business controls it. It decides who fixes it and who to lead the pitch against."
+  },
+  {
+   "term": "Pre-consent firing",
+   "def": "Ad/analytics tags that run before any consent choice. A privacy exposure under US state laws and GDPR; cheap to fix with a consent banner."
+  },
+  {
+   "term": "Product-on-service schema",
+   "def": "Using schema.org/Product for a service. It has no rich-result path for services and can misdescribe the business to answer engines."
+  },
+  {
+   "term": "scorpcloud",
+   "def": "Scorpion's hosting platform. A client site resolving into the scorpcloud CNAME zone is on Scorpion's proprietary CMS - the central lock-in."
+  },
+  {
+   "term": "Tier 0",
+   "def": "A fetch-only run with no client exports. Rankings, traffic and spend are protocols or inferred, not measured."
+  },
+  {
+   "term": "ICD 203",
+   "def": "The intelligence-community probability scale (almost no chance ... almost certain) used so a likelihood word always maps to a number range."
+  }
+ ],
+ "dict": {
+  "pillars": [
+   "Technical",
+   "Content",
+   "Local",
+   "Authority",
+   "Competitive Position",
+   "Paid",
+   "Social",
+   "AI Visibility",
+   "Compliance & Exposure",
+   "Market Position",
+   "Agency Fit"
+  ],
+  "brand_topics": [
+   {
+    "id": "T01",
+    "short": "AI search / GEO"
+   },
+   {
+    "id": "T03",
+    "short": "Core updates / rankings"
+   },
+   {
+    "id": "T05",
+    "short": "Lead quality"
+   },
+   {
+    "id": "T08",
+    "short": "Local / LSA"
+   },
+   {
+    "id": "T12",
+    "short": "ROI / revenue claims"
+   },
+   {
+    "id": "T13",
+    "short": "Conversion / chat"
+   },
+   {
+    "id": "T19",
+    "short": "Ownership / contracts"
+   }
+  ]
+ }
+}

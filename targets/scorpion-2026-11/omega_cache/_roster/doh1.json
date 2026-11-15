@@ -1,0 +1,630 @@
+[
+ {
+  "domain": "trianglepest.com",
+  "trianglepest.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "88.223.84.85"
+   ]
+  },
+  "www.trianglepest.com": {
+   "status": 0,
+   "cname": [
+    "trianglepest.com."
+   ],
+   "a": [
+    "88.223.84.85"
+   ]
+  },
+  "ns": [
+   "dns1.registrar-servers.com.",
+   "dns2.registrar-servers.com."
+  ]
+ },
+ {
+  "domain": "trianglepestcontrol.com",
+  "trianglepestcontrol.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "13.248.169.48",
+    "76.223.54.146"
+   ]
+  },
+  "www.trianglepestcontrol.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "13.248.169.48",
+    "76.223.54.146"
+   ]
+  },
+  "ns": [
+   "ns1.afternic.com.",
+   "ns2.afternic.com."
+  ]
+ },
+ {
+  "domain": "advantagepest.com",
+  "advantagepest.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "192.149.55.62"
+   ]
+  },
+  "www.advantagepest.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "192.149.55.62"
+   ]
+  },
+  "ns": [
+   "ns-2014.awsdns-59.co.uk.",
+   "ns-974.awsdns-57.net.",
+   "ns-1069.awsdns-05.org.",
+   "ns-16.awsdns-02.com."
+  ]
+ },
+ {
+  "domain": "advantagepestmanagement.com",
+  "advantagepestmanagement.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "52.20.84.62"
+   ]
+  },
+  "www.advantagepestmanagement.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "52.20.84.62"
+   ]
+  },
+  "ns": [
+   "ns1.atom.com.",
+   "ns2.atom.com."
+  ]
+ },
+ {
+  "domain": "americanturfandtree.com",
+  "americanturfandtree.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "76.223.54.146",
+    "13.248.169.48"
+   ]
+  },
+  "www.americanturfandtree.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "76.223.54.146",
+    "13.248.169.48"
+   ]
+  },
+  "ns": [
+   "ns2.afternic.com.",
+   "ns1.afternic.com."
+  ]
+ },
+ {
+  "domain": "americanturfandtreecare.com",
+  "americanturfandtreecare.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "23.185.0.3"
+   ]
+  },
+  "www.americanturfandtreecare.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "23.185.0.3"
+   ]
+  },
+  "ns": [
+   "ns-cloud-d1.googledomains.com.",
+   "ns-cloud-d2.googledomains.com.",
+   "ns-cloud-d3.googledomains.com.",
+   "ns-cloud-d4.googledomains.com."
+  ]
+ },
+ {
+  "domain": "evergreenlawnandpest.com",
+  "evergreenlawnandpest.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.evergreenlawnandpest.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "evergreenlawnpest.com",
+  "evergreenlawnpest.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.evergreenlawnpest.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "trugreenmidsouth.com",
+  "trugreenmidsouth.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "3.33.251.168",
+    "15.197.225.128"
+   ]
+  },
+  "www.trugreenmidsouth.com": {
+   "status": 0,
+   "cname": [
+    "trugreenmidsouth.com."
+   ],
+   "a": [
+    "3.33.251.168",
+    "15.197.225.128"
+   ]
+  },
+  "ns": [
+   "ns10.domaincontrol.com.",
+   "ns09.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "midwestpestcontrol.com",
+  "midwestpestcontrol.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "107.180.51.26"
+   ]
+  },
+  "www.midwestpestcontrol.com": {
+   "status": 0,
+   "cname": [
+    "midwestpestcontrol.com."
+   ],
+   "a": [
+    "107.180.51.26"
+   ]
+  },
+  "ns": [
+   "ns37.domaincontrol.com.",
+   "ns38.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "midwestpest.com",
+  "midwestpest.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "35.202.252.85"
+   ]
+  },
+  "www.midwestpest.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "35.202.252.85"
+   ]
+  },
+  "ns": [
+   "ns2.siteground.net.",
+   "ns1.siteground.net."
+  ]
+ },
+ {
+  "domain": "pestmasters.com",
+  "pestmasters.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "76.223.54.146",
+    "13.248.169.48"
+   ]
+  },
+  "www.pestmasters.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "13.248.169.48",
+    "76.223.54.146"
+   ]
+  },
+  "ns": [
+   "ns4.afternic.com.",
+   "ns3.afternic.com."
+  ]
+ },
+ {
+  "domain": "soundpestcontrol.com",
+  "soundpestcontrol.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "23.185.0.4"
+   ]
+  },
+  "www.soundpestcontrol.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "23.185.0.4"
+   ]
+  },
+  "ns": [
+   "ns-cloud-c2.googledomains.com.",
+   "ns-cloud-c4.googledomains.com.",
+   "ns-cloud-c3.googledomains.com.",
+   "ns-cloud-c1.googledomains.com."
+  ]
+ },
+ {
+  "domain": "soundpest.com",
+  "soundpest.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.soundpest.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "thebugman.com",
+  "thebugman.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "185.178.196.3"
+   ]
+  },
+  "www.thebugman.com": {
+   "status": 0,
+   "cname": [
+    "fe.cfp2c.edge.pantheon.io."
+   ],
+   "a": [
+    "185.178.196.3"
+   ]
+  },
+  "ns": [
+   "ns1.worldnic.com.",
+   "ns2.worldnic.com."
+  ]
+ },
+ {
+  "domain": "davisbrothersmasonry.com",
+  "davisbrothersmasonry.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.davisbrothersmasonry.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "alancherryexteriors.com",
+  "alancherryexteriors.com": {
+   "status": 0,
+   "cname": [],
+   "a": []
+  },
+  "www.alancherryexteriors.com": {
+   "status": 0,
+   "cname": [
+    "alancherryexteriors.com."
+   ],
+   "a": []
+  },
+  "ns": [
+   "ns7.markmonitor.com.",
+   "ns6.markmonitor.com.",
+   "ns5.markmonitor.com.",
+   "ns3.markmonitor.com.",
+   "ns1.markmonitor.com.",
+   "ns4.markmonitor.com.",
+   "ns2.markmonitor.com."
+  ]
+ },
+ {
+  "domain": "fivestarpaintinginc.com",
+  "fivestarpaintinginc.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "100.24.208.97",
+    "35.172.94.1"
+   ]
+  },
+  "www.fivestarpaintinginc.com": {
+   "status": 0,
+   "cname": [
+    "s.multiscreensite.com.",
+    "global.multiscreensite.com.",
+    "a3c02b2530d6f27ca.awsglobalaccelerator.com."
+   ],
+   "a": [
+    "75.2.0.180",
+    "99.83.169.22"
+   ]
+  },
+  "ns": [
+   "ns2.g10.cfdns.biz.",
+   "ns4.g10.cfdns.co.uk.",
+   "ns1.g10.cfdns.net.",
+   "ns3.g10.cfdns.info."
+  ]
+ },
+ {
+  "domain": "shilohvein.com",
+  "shilohvein.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "www.shilohvein.com": {
+   "status": 3,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "patriotchevy.com",
+  "patriotchevy.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "15.197.225.128",
+    "3.33.251.168"
+   ]
+  },
+  "www.patriotchevy.com": {
+   "status": 0,
+   "cname": [
+    "patriotchevroletbuickgmc.com.dlr.sincrod.com."
+   ],
+   "a": [
+    "13.249.141.118",
+    "13.249.141.19",
+    "13.249.141.2",
+    "13.249.141.53"
+   ]
+  },
+  "ns": [
+   "ns65.domaincontrol.com.",
+   "ns66.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "patriotchevrolet.com",
+  "patriotchevrolet.com": {
+   "status": 2,
+   "cname": [],
+   "a": []
+  },
+  "www.patriotchevrolet.com": {
+   "status": 2,
+   "cname": [],
+   "a": []
+  },
+  "ns": []
+ },
+ {
+  "domain": "americanairandheat.com",
+  "americanairandheat.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "162.254.31.93",
+    "192.58.198.93"
+   ]
+  },
+  "www.americanairandheat.com": {
+   "status": 0,
+   "cname": [
+    "americanairandheat.com."
+   ],
+   "a": [
+    "162.254.31.93",
+    "192.58.198.93"
+   ]
+  },
+  "ns": [
+   "ns19.domaincontrol.com.",
+   "ns20.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "radiantplumbing.com",
+  "radiantplumbing.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "172.66.149.158",
+    "104.20.23.243"
+   ]
+  },
+  "www.radiantplumbing.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "172.66.149.158",
+    "104.20.23.243"
+   ]
+  },
+  "ns": [
+   "jeff.ns.cloudflare.com.",
+   "gabriella.ns.cloudflare.com."
+  ]
+ },
+ {
+  "domain": "henleysplumbingair.com",
+  "henleysplumbingair.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "141.193.213.10",
+    "141.193.213.11"
+   ]
+  },
+  "www.henleysplumbingair.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "141.193.213.10",
+    "141.193.213.11"
+   ]
+  },
+  "ns": [
+   "ns32.domaincontrol.com.",
+   "ns31.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "arlinghausplumbing.com",
+  "arlinghausplumbing.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "15.197.225.128",
+    "3.33.251.168"
+   ]
+  },
+  "www.arlinghausplumbing.com": {
+   "status": 0,
+   "cname": [
+    "arlinghausplumbing.com."
+   ],
+   "a": [
+    "3.33.251.168",
+    "15.197.225.128"
+   ]
+  },
+  "ns": [
+   "ns20.domaincontrol.com.",
+   "ns19.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "arlinghaus.com",
+  "arlinghaus.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "167.94.245.90"
+   ]
+  },
+  "www.arlinghaus.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "141.193.213.10",
+    "141.193.213.11"
+   ]
+  },
+  "ns": [
+   "ns1.dnsmadeeasy.com.",
+   "ns2.dnsmadeeasy.com.",
+   "ns0.dnsmadeeasy.com.",
+   "ns4.dnsmadeeasy.com.",
+   "ns3.dnsmadeeasy.com."
+  ]
+ },
+ {
+  "domain": "centercityemergencydentists.com",
+  "centercityemergencydentists.com": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "160.153.0.243"
+   ]
+  },
+  "www.centercityemergencydentists.com": {
+   "status": 0,
+   "cname": [
+    "centercityemergencydentists.com."
+   ],
+   "a": [
+    "160.153.0.243"
+   ]
+  },
+  "ns": [
+   "ns56.domaincontrol.com.",
+   "ns55.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "elmwoodparkzoo.org",
+  "elmwoodparkzoo.org": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "192.124.249.114"
+   ]
+  },
+  "www.elmwoodparkzoo.org": {
+   "status": 0,
+   "cname": [
+    "elmwoodparkzoo.org."
+   ],
+   "a": [
+    "192.124.249.114"
+   ]
+  },
+  "ns": [
+   "ns26.domaincontrol.com.",
+   "ns25.domaincontrol.com."
+  ]
+ },
+ {
+  "domain": "800gambler.org",
+  "800gambler.org": {
+   "status": 0,
+   "cname": [],
+   "a": [
+    "104.198.104.41"
+   ]
+  },
+  "www.800gambler.org": {
+   "status": 0,
+   "cname": [
+    "800gambler.org."
+   ],
+   "a": [
+    "104.198.104.41"
+   ]
+  },
+  "ns": [
+   "ns39.domaincontrol.com.",
+   "ns40.domaincontrol.com."
+  ]
+ }
+]

@@ -1,0 +1,128 @@
+{
+ "_shared": {
+  "recipient": "the Leviathan operator",
+  "posture": "competitor",
+  "doctrine_date": "2026-11-15",
+  "scorpion_radar_id": "scorpion",
+  "books": {
+   "coalmarch": {
+    "agency": "Coalmarch Marketing (now Scorpion)",
+    "acq_note": "Scorpion acquired Coalmarch Marketing on 2026-10-19; Coalmarch's pest and lawn client book moved under Scorpion's RevenueMAX platform.",
+    "acq_url": "https://www.prnewswire.com/news-releases/scorpion-deepens-its-investment-in-pest-control-and-lawn-care-acquires-coalmarch-marketing-302424000.html",
+    "template": "Drupal 10 on Pantheon with a shared 'sprowt3' theme and a shared GTM-era analytics pattern; the same build recurs across the pest and lawn book.",
+    "inherited": "The shared sprowt3 Drupal template, the GTM-that-fires-before-any-consent-gate pattern, the Universal-Analytics-id-left-in-container pattern, the Product-schema-on-a-service pattern and the long-title/thin-meta pattern are template-level, so they are inherited from the agency, not owned by the business."
+   },
+   "1seo": {
+    "agency": "1SEO Digital Agency (now Scorpion)",
+    "acq_note": "Scorpion acquired 1SEO Digital Agency on 2026-06-18; 1SEO's home-services, legal, health and franchise clients moved onto Scorpion's RevenueMAX platform.",
+    "acq_url": "https://www.scorpion.co/about-us/scorpion-news/scorpion-news/2026/scorpion-acquires-1seo-digital-agency-bringing-a/",
+    "template": "WordPress with Elementor; CallRail call tracking and a Google Ads tag are wired through GTM. Richer schema than the Coalmarch book, but internal linking leaves many sitemap URLs orphaned.",
+    "inherited": "The Elementor build, the GTM-mediated CallRail and Google Ads wiring and the orphaned-location-page pattern are template-level; the license numbers and NAP that are correct are owned by the business."
+   },
+   "gngf": {
+    "agency": "Get Noticed Get Found / GNGF (now Scorpion)",
+    "acq_note": "Scorpion acquired GNGF on 2024-09-18; GNGF was a law-firm-only agency and its clients were offered Scorpion's platform.",
+    "acq_url": "https://www.prnewswire.com/news-releases/scorpion-strengthens-commitment-to-legal-industry-with-acquisition-of-get-noticed-get-found-advancing-its-consolidation-strategy-302251149.html",
+    "template": "WordPress on a GNGF Genesis child theme (the gngf_vars handle is still in the page); some firms have since been migrated onto Scorpion's scorpcloud platform.",
+    "inherited": "The Genesis child theme and the GNGF script wiring are inherited; a firm still on the GNGF theme two years after the acquisition is a sign the promised platform migration has not reached it."
+   },
+   "scorpion": {
+    "agency": "Scorpion (native platform client)",
+    "acq_note": "Hosted directly on Scorpion's own scorpcloud platform; a native Scorpion client rather than an acquired one.",
+    "acq_url": "https://www.scorpion.co/",
+    "template": "Scorpion scorpcloud platform behind Cloudflare; the roster is one hosting-fingerprint pull away because every client resolves into the scorpcloud CNAME zone.",
+    "inherited": "The whole site is the Scorpion platform; ownership of the site, its CMS and its data sits with Scorpion, not the business, which is the central lock-in the Hit Board names."
+   }
+  }
+ },
+ "domains": {
+  "americanturfandtreecare.com": {
+   "headline": "A fast, server-rendered Coalmarch lawn-care site that still leaks analytics before consent, mislabels every service as a retail Product, and captures its own name but none of its money searches.",
+   "one_rival": "The Greeley and Fort Collins lawn-care pack that owns the non-brand 'lawn care greeley / fort collins' autocomplete while American Turf appears only on its own name; that is where the paid and local work has to win ground.",
+   "one_paid": "No ads.txt and no observable paid tag on the money pages: the site is built for organic and GBP, so a disciplined Local Services Ads and Google Ads test in Greeley, Loveland and Fort Collins is unclaimed ground the incumbent is leaving on the table.",
+   "one_exposure": "Google Ads, DoubleClick, GA4, Microsoft UET and a call-tracking vendor all fire on load with no consent banner anywhere on the site; for a business that serves customers who can be in California, that pre-consent firing is the one thing that could draw a complaint.",
+   "wins": "The raw HTML carries the content (0% JS-dependent), lab LCP is under 1s, 30 of 30 crawled pages are indexable, and the location pages carry genuinely unique copy.",
+   "key_findings_extra": []
+  },
+  "soundpestcontrol.com": {
+   "headline": "A Coalmarch pest site whose own sitemap points Google at noindex and redirecting pages, buries 17 titles past the snippet limit, and still runs a 2016 Universal Analytics id in the container.",
+   "one_rival": "The Tacoma and Olympia pest pack that holds the non-brand 'pest control tacoma / olympia' autocomplete; Sound Pest is present only on its own name, so the gap is the whole Puget Sound money term set.",
+   "one_paid": "No observable paid tag: the incumbent is not running or not instrumenting Google Ads or LSA from these pages, so paid search and Local Services Ads across Kitsap and Pierce county are open ground.",
+   "one_exposure": "Chat, Google Ads, GA4 and Microsoft UET fire before any consent gate on every page, with no banner; the sitemap-to-noindex conflict is a Google-hygiene problem, the pre-consent firing is the compliance one.",
+   "wins": "FAQ schema is present and valid on six pages, the raw HTML is server-rendered, and lab LCP is strong.",
+   "key_findings_extra": []
+  },
+  "midwestpest.com": {
+   "headline": "A Coalmarch Omaha pest site that labels every service as a retail Product for the schema engine, runs 27 over-length titles, and keeps a dead 2020 Universal Analytics id firing beside GA4.",
+   "one_rival": "The Omaha and Lincoln pest pack that owns 'pest control omaha / exterminator omaha'; Midwest appears on its brand and on 'pest control lincoln ne' but is absent from the core Omaha money terms.",
+   "one_paid": "No observable paid tag on the money set: Google Ads and LSA across the Omaha metro are unclaimed from these pages.",
+   "one_exposure": "Google Ads, DoubleClick, GA4 and Microsoft UET fire on load with no consent banner; the Product-schema-on-a-service pattern is a GEO and rich-result risk, not a legal one.",
+   "wins": "Server-rendered HTML, the fastest lab LCP in the book (sub-300ms on the Omaha page), and a satisfaction-guarantee that is plainly stated.",
+   "key_findings_extra": []
+  },
+  "henleysplumbingair.com": {
+   "headline": "A richer 1SEO plumbing-and-HVAC build with proper Plumber and HVACBusiness schema and CallRail-instrumented Google Ads, undercut by 17 orphaned pages the internal links never reach.",
+   "one_rival": "The Inland Empire plumbing-and-HVAC pack across Corona, Riverside and Rancho Cucamonga; Henley's has the deepest schema in its book but leaks link equity to orphan pages the rivals consolidate.",
+   "one_paid": "Henley's is the one site in the book visibly running Google Ads (tag AW-17032377429) with CallRail (205364564) attribution, so a landing-page and conversion-tracking read on the live campaign is the highest-value paid move.",
+   "one_exposure": "Google Ads and GA4 fire through GTM on load; the license number is correctly posted, so the exposure is the pre-consent tag firing, not a disclosure gap.",
+   "wins": "The deepest schema in the Scorpion book (Plumber, HVACBusiness, Article, Person, FAQ), a posted license number, correct index/follow directives, and server-rendered content.",
+   "key_findings_extra": []
+  },
+  "arlinghausair.com": {
+   "headline": "An Elementor-heavy 1SEO HVAC, plumbing and electrical build for the Cincinnati and Northern Kentucky market, carrying the weight of a very large page against a three-state service area.",
+   "one_rival": "The Cincinnati and Northern Kentucky home-services pack; Arlinghaus has the brand and multi-trade breadth but the page weight and template bloat are where a leaner rival wins the mobile race.",
+   "one_paid": "A paid read depends on the money-page tag stack read in this run; Local Services Ads across Kentucky, Ohio and Indiana is the obvious multi-trade opportunity.",
+   "one_exposure": "The tag-firing and consent posture read in this run governs the exposure; the multi-state, multi-trade footprint makes license-number display per trade the thing to verify.",
+   "wins": "Multi-trade, multi-state coverage with per-state phone numbers and a broad service menu.",
+   "key_findings_extra": []
+  },
+  "centercityemergencydentists.com": {
+   "headline": "A 1SEO emergency-dental site for center-city Philadelphia on Elementor with NitroPack, built for same-day and walk-in intent, carried on a single location and a tight money term set.",
+   "one_rival": "The Philadelphia emergency and walk-in dental pack; the brand term is owned, the generic 'emergency dentist philadelphia' set is the contested ground.",
+   "one_paid": "Emergency dental is a high-intent paid category; a paid read depends on the tag stack read in this run, and LSA for the dental category plus Google Ads on same-day intent is the play.",
+   "one_exposure": "A YMYL health site: the tag-firing and consent posture read in this run governs exposure, and any outcome or guarantee language on a medical service needs a second read.",
+   "wins": "Clear same-day and walk-in positioning, a defined downtown service area, and stated office hours.",
+   "key_findings_extra": []
+  },
+  "russellandlazarus.com": {
+   "headline": "A GNGF personal-injury firm still running the GNGF Genesis child theme more than two years after the acquisition, a sign the promised Scorpion platform migration never reached it.",
+   "one_rival": "The Orange County and Newport Beach personal-injury pack; the brand is owned but the generic 'car accident / personal injury lawyer orange county' set is dominated by firms with heavier content and link programs.",
+   "one_paid": "Personal injury is the most expensive paid category there is; a paid read depends on the money-page tag stack, and LSA for law plus a disciplined Google Ads cost-per-signed-case program is where the budget lives.",
+   "one_exposure": "A law-firm site under state bar advertising rules: the GNGF theme still in place, plus any outcome or specialization language, is the thing to read against the California bar rules and the firm's consent posture.",
+   "wins": "A long-established firm (since 1984) with a defined Newport Beach base and clear practice areas.",
+   "key_findings_extra": []
+  },
+  "thebugman.com": {
+   "headline": "A Coalmarch pest site on the same Pantheon edge as the agency, walled behind a WAF to a declared crawler, so the read is the hosting fingerprint and the demand map; the on-page audit is a verify task.",
+   "one_rival": "The pest pack in The Bugman's market; the brand owns its autocomplete strongly, which is the asset to defend while the money terms are contested.",
+   "one_paid": "Not observable from here: the WAF blocked the page fetch, so the paid read is a verify task on the money pages with a browser session.",
+   "one_exposure": "The WAF challenges a declared crawler; if it also challenges Googlebot or answer-engine fetchers, pages can quietly drop from the index and from AI answers. That is the thing to verify first.",
+   "wins": "Strong brand presence in autocomplete and a long-tenured domain.",
+   "key_findings_extra": []
+  },
+  "evergreenpc.com": {
+   "headline": "A Coalmarch lawn-and-pest site already migrated onto Scorpion's scorpcloud platform and walled to a declared crawler, so the read is the Scorpion hosting fingerprint and the Apopka demand map.",
+   "one_rival": "The Apopka and Orlando lawn-and-pest pack; the brand owns 'evergreen lawn and pest' and even 'pest control apopka', but 'pest control orlando' is held by the metro pack.",
+   "one_paid": "Not observable from here: the WAF blocked the page fetch, so the paid read is a verify task.",
+   "one_exposure": "The site now lives on a proprietary CMS the business does not control; the on-page tag and consent read is a verify task behind the WAF.",
+   "wins": "Already on the Scorpion platform (migration done), strong brand and local autocomplete presence.",
+   "key_findings_extra": []
+  },
+  "cheryldavid.com": {
+   "headline": "A GNGF-origin consumer-bankruptcy firm migrated onto Scorpion's scorpcloud platform and now behind Cloudflare, so the read is the hosting fingerprint and the brand demand map.",
+   "one_rival": "The bankruptcy pack in the firm's market; the brand name is owned in autocomplete but the generic bankruptcy term set is contested.",
+   "one_paid": "Not observable from here: the WAF blocked the page fetch, so the paid read is a verify task behind a browser session.",
+   "one_exposure": "Migrated onto a CMS the firm does not control; the bar-advertising and consent read is a verify task on the live pages behind the WAF.",
+   "wins": "Migrated onto the Scorpion platform and a clearly owned brand term; note the brand name collides in autocomplete with an unrelated TV character, a disambiguation problem for search and AI answers.",
+   "key_findings_extra": []
+  },
+  "overheaddoornorthland.com": {
+   "headline": "A native Scorpion garage-door client in Eagan, MN on the scorpcloud platform behind Cloudflare, walled to a declared crawler, with the roster-defining scorpcloud fingerprint in plain sight.",
+   "one_rival": "The Twin Cities garage-door and overhead-door pack; the brand owns its name but the generic 'garage door repair' metro terms are the contested set.",
+   "one_paid": "Not observable from here: the WAF blocked the page fetch, so the paid read is a verify task.",
+   "one_exposure": "The whole site is Scorpion's proprietary platform, so the business owns neither the CMS nor an easy exit; the on-page read is a verify task behind the WAF.",
+   "wins": "On the Scorpion platform with a recognizable Overhead Door brand affiliation.",
+   "key_findings_extra": []
+  }
+ }
+}

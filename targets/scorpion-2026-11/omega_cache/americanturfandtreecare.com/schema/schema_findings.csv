@@ -1,0 +1,63 @@
+url,entity_type,severity,charge,detail
+https://www.americanturfandtreecare.com/,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://www.americanturfandtreecare.com/,AggregateRating,S3,missing-recommended,bestRating
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,url
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/,LocalBusiness,S3,missing-recommended,areaServed
+https://www.americanturfandtreecare.com/contact,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://www.americanturfandtreecare.com/contact,AggregateRating,S3,missing-recommended,bestRating
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,url
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/contact,LocalBusiness,S3,missing-recommended,areaServed
+https://www.americanturfandtreecare.com/lawn-care-eaton,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://www.americanturfandtreecare.com/lawn-care-eaton,AggregateRating,S3,missing-recommended,bestRating
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,url
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/lawn-care-eaton,LocalBusiness,S3,missing-recommended,areaServed
+https://www.americanturfandtreecare.com/lawn-care-loveland,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://www.americanturfandtreecare.com/lawn-care-loveland,AggregateRating,S3,missing-recommended,bestRating
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,url
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/lawn-care-loveland,LocalBusiness,S3,missing-recommended,areaServed
+https://www.americanturfandtreecare.com/privacy-policy,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://www.americanturfandtreecare.com/privacy-policy,AggregateRating,S3,missing-recommended,bestRating
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,url
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/privacy-policy,LocalBusiness,S3,missing-recommended,areaServed
+https://www.americanturfandtreecare.com/services/weed-control,Product,S4,info,Type 'Product' has no rich-result rules here; verify manually
+https://www.americanturfandtreecare.com/services/weed-control,AggregateRating,S3,missing-recommended,bestRating
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,url
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/services/weed-control,LocalBusiness,S3,missing-recommended,areaServed
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S1,missing-required,address
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S1,missing-required,telephone
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S3,missing-recommended,image
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S3,missing-recommended,geo
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S3,missing-recommended,openingHoursSpecification
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S3,missing-recommended,priceRange
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S3,missing-recommended,sameAs
+https://www.americanturfandtreecare.com/services/weed-control,ProfessionalService,S3,missing-recommended,areaServed

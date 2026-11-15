@@ -1,0 +1,42 @@
+[
+ {
+  "seed": "overhead door northland",
+  "suggestions": [
+   "overhead door northland",
+   "garage door northland",
+   "overhead door company of northland",
+   "overhead door company of the northland eagan reviews",
+   "overhead door company of the northland eagan"
+  ],
+  "client_present": true,
+  "status": "ok",
+  "fetched": "2026-11-15T08:45Z"
+ },
+ {
+  "seed": "garage door repair kansas city north",
+  "suggestions": [
+   "garage door repair north kansas city"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:45Z"
+ },
+ {
+  "seed": "overhead door company",
+  "suggestions": [
+   "overhead door company",
+   "overhead door company near me",
+   "overhead door company of atlanta",
+   "overhead door company of kansas city",
+   "overhead door company locations",
+   "overhead door company of st louis",
+   "overhead door company of colorado springs",
+   "overhead door company of tulsa",
+   "overhead door company of grand rapids",
+   "overhead door company of denver"
+  ],
+  "client_present": true,
+  "status": "ok",
+  "fetched": "2026-11-15T08:45Z"
+ }
+]

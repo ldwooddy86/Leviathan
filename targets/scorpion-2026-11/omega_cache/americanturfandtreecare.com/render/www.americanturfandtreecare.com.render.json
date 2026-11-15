@@ -1,0 +1,1944 @@
+{
+ "url": "https://www.americanturfandtreecare.com/",
+ "locale": "en-US",
+ "fetched_at": "2026-11-15T08:44:35Z",
+ "presence": {
+  "identity": "OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)",
+  "timezone": null,
+  "viewport": null,
+  "engine": "chromium (headless; honest: declared UA, no stealth, webdriver flag left true)"
+ },
+ "status": 200,
+ "final_url": "https://www.americanturfandtreecare.com/",
+ "title": "American Turf & Tree Care | Lawn Care in Greeley, CO | Lawn Care Near Me",
+ "tier": "RENDERED",
+ "consent_banner": {
+  "cmp_root": null,
+  "text_hint": false,
+  "accept_controls": [],
+  "reject_controls": [],
+  "reading": "no consent banner detected"
+ },
+ "pre_consent_trackers": [
+  "google_ads_doubleclick",
+  "google_analytics",
+  "google_tag_manager",
+  "microsoft_uet"
+ ],
+ "pre_consent_tracker_requests": [
+  {
+   "t": 1.17,
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-NVW8TN",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.387,
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-X1WN4RL35H&cx=c&gtm=4e6bc0h2",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.387,
+   "url": "https://www.google-analytics.com/analytics.js",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.389,
+   "url": "https://bat.bing.com/bat.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.418,
+   "url": "https://googleads.g.doubleclick.net/pagead/id",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.418,
+   "url": "https://static.doubleclick.net/instream/ad_status.js",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.778,
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-X1WN4RL35H&gtm=45je6bc0h2v867662001za20ozb71713069zd71713069xf1&_p=1794732276734&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=134623092&_eu=AAAAACAC&cid=487957068.1794732277&ec_mode=a&frm=0&ibt=1&ngs=1&pscdl=noapi&rcb=1&sr=1280x720&uaa=x86&uab=64&uafvl=He",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.779,
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&ngs=1&ibt=1&tid=G-X1WN4RL35H&cid=487957068.1794732277&gtm=45je6bc0h2v867662001za20ozb71713069zd71713069xf1&rcb=1&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115616985~115938466~115938468~118897920~118897930~119863601~120213116~120385422~120412526~12",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.807,
+   "url": "https://www.google-analytics.com/plugins/ua/linkid.js",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.826,
+   "url": "https://googleads.g.doubleclick.net/pagead/id?slf_rd=1",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.836,
+   "url": "https://bat.bing.com/p/action/199014740.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.908,
+   "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1931964288&t=pageview&_s=1&dl=https%3A%2F%2Fwww.americanturfandtreecare.com%2F&ul=en-us&dt=American%20Turf%20%26%20Tree%20Care%20%7C%20Lawn%20Care%20in%20Greeley%2C%20CO%20%7C%20Lawn%20Care%20Near%20Me&sr=1280x720&vp=1280x720&_u=aCDAgAAjAAAAAC",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.908,
+   "url": "https://stats.g.doubleclick.net/j/collect?t=dc&aip=1&_r=3&v=1&_v=j102&tid=UA-69637157-1&cid=487957068.1794732277&jid=1551229663&gjid=1576332525&_gid=975458200.1794732277&_u=aCDAgAAjAAAAAG~&z=290420063",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.968,
+   "url": "https://bat.bing.com/p/conversions/t/199014740",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.968,
+   "url": "https://bat.bing.com/action/0?ti=199014740&tm=gtm002&Ver=2&mid=48a76827-b79e-41d1-8037-2a84585aedab&bo=1&sid=ca327e40e0d011f1a0b3b1dec3f8dea5&vid=ca32b2f0e0d011f1a6cd8be23de03fca&vids=1&msclkid=N&gtm_tag_source=1&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=American%20Turf%20%26%20Tree%20C",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.06,
+   "url": "https://bat.bing.com/p/conversions/s/0.8.77",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.213,
+   "url": "https://bat.bing.com/p/conversions/c/h",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  }
+ ],
+ "prechecked_checkboxes": [],
+ "scarcity_strings": [],
+ "timer_strings_first_load": [
+  "8:00",
+  "5:00"
+ ],
+ "ai_agent_markers": [],
+ "chat_iframes": [],
+ "post_scroll_new_trackers": [],
+ "timer_strings_after_reload": [
+  "8:00",
+  "5:00"
+ ],
+ "timer_reset_reading": "timer RESET on reload \u2014 CONFIRMED-capable dark pattern (fake urgency)",
+ "request_count": 240,
+ "third_party_hosts": [
+  "472076.tctm.co",
+  "ajax.googleapis.com",
+  "analytics.google.com",
+  "api.captivated.works",
+  "bat.bing.com",
+  "cdn.jsdelivr.net",
+  "cdnjs.cloudflare.com",
+  "dkg63mm7284y1.cloudfront.net",
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "googleads.g.doubleclick.net",
+  "i.ytimg.com",
+  "jnn-pa.googleapis.com",
+  "maps.googleapis.com",
+  "maps.gstatic.com",
+  "static.doubleclick.net",
+  "stats.g.doubleclick.net",
+  "unpkg.com",
+  "www.google-analytics.com",
+  "www.google.com",
+  "www.googletagmanager.com",
+  "www.youtube.com"
+ ],
+ "requests": [
+  {
+   "t": 0.011,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 0.108,
+   "phase": "pre-interaction",
+   "url": "https://472076.tctm.co/t.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.109,
+   "phase": "pre-interaction",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.109,
+   "phase": "pre-interaction",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.109,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/fonts/icomoon/fonts/icomoon.ttf?qu873q",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.11,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/fonts/icomoon/fonts/icomoon.woff?qu873q",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.11,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/libraries/slick/slick/fonts/slick.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.11,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/libraries/slick/slick/fonts/slick.woff",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.111,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/google_tag/gtm/google_tag.script.js?tog395",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.111,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_3hq9gqQ82OwsOYm6GYbg-xJ-Us3eMRT9OJFZJEUrhNc.css?delta=0&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.112,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.113,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_VrDX1uh33kr6-qUw41fvkSaOSs_TVQWlFkiJzeRvj6Y.css?delta=2&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.113,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_mMKRvdZiY6pXa90jAaMkPAmjH0dshbwYdVMO-jrbKM4.css?delta=3&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.114,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css2?family=Caveat&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.115,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_pecxNdNyAyM0gfFeTFoqPuP7iolFENQ9aRG68LZWFMc.css?delta=5&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.115,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/logo-header%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.116,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/sprowt/logo-reverse%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.116,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/logo-reverse%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.116,
+   "phase": "pre-interaction",
+   "url": "https://api.captivated.works/widget.js?id=dded5fd6-6722-11eb-9948-939c23806562",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.116,
+   "phase": "pre-interaction",
+   "url": "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.117,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js_22mBeLeogT20QX3BLPRixyrR_shrqR-4ImAKwqh5Cmo.js?scope=footer&delta=1&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.117,
+   "phase": "pre-interaction",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.118,
+   "phase": "pre-interaction",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.118,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js__Jst5yccQllvdMUygm21sOFqj-Tr8iA1Sjn8307YoZ0.js?scope=footer&delta=4&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.119,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/modules/custom/pestpac_webforms/dist/js/utmCapture.js?v=1.x",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.119,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.119,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js_O0G3yuoji26TGC_tTQS6tpc6fM0U4CA_WL-aI5UbAiY.js?scope=footer&delta=7&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.12,
+   "phase": "pre-interaction",
+   "url": "https://unpkg.com/detect-autofill/dist/detect-autofill.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.12,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js__VViA-PepfKe0NmfFzKMNNg2YuFp_0wfl6FNhH1tG3o.js?scope=footer&delta=9&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.472,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.492,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/embed/yXNOk0NZmlQ?si=OPXfiEml7Q2ENy4M",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 0.7,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/bg-leaf-pattern-dark-blue.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.706,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/newgrey.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.707,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/contrib/classy/images/icons/ee0000/required.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.707,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.707,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/bg-leaf-pattern-blue.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.707,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/great-deal-ribbon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.708,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/assets/coupon_border_white.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.708,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/assets/coupon_border.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.708,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/assets/logo-google.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.708,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/service-area-bg-blue.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.708,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/themes/contrib/classy/images/misc/menu-collapsed.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.709,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsgH1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.717,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.718,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgshZ1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.718,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/hero_large_2200x780/public/images/hero-spraying-trees_0.webp?h=38facc0a&itok=u53xo6Vd",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.718,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/images/icon-no-contracts.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.718,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/images/icon-convenient-service.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.719,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-dog-laying-on-green-grass.webp?h=2a84d22f&itok=tFbB0ldx",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.719,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-technician-spraying-weeds-in-lawn.webp?h=826e851b&itok=8ydJPLPl",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.719,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/hero-liquid-aeration.webp?h=38facc0a&itok=zbVT83BJ",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.719,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-spraying-shrubs.webp?h=6b9bf2e9&itok=Ca-6u1Uk",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.72,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/hero-family-eating-outside.webp?h=38facc0a&itok=EiWWPTwK",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.72,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-talking-to-homeowner-about-tree-care.webp?h=6b9bf2e9&itok=u9xa9Fu7",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.944,
+   "phase": "pre-interaction",
+   "url": "https://www.americanturfandtreecare.com/libraries/slick/slick/ajax-loader.gif",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.06,
+   "phase": "pre-interaction",
+   "url": "https://unpkg.com/detect-autofill@1.1.4/dist/detect-autofill.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.071,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/www-player.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 1.071,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/_/ytembeds/_/ss/k=ytembeds.base.ByDGgMh1mig.L.X.O/am=AAAAABAAGAM/d=1/br=1/rs=AGKMywEQwmmecCFxSQN5InsI9xUGGRmstg/m=root,base",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 1.073,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/_/ytembeds/_/js/k=ytembeds.base.en_US.fxd8fRq9O_o.es5.O/am=AAAAABAAGAM/d=1/excm=base,root/br=1/rs=AGKMywFJ7awhRgUuA-_WF1IbuEN33vmYEA/m=root,base",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.073,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/player_embed.vflset/en_US/base.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.094,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiA8.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.097,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiA8.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 1.17,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-NVW8TN",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.338,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/zoid.frame.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.338,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/captivated.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 1.363,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyCrnlirOsW8kRa1Et90LpfLJ8_uBGpw1Fo&v=weekly&channel=4&callback=google.maps.__ib__",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.387,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-X1WN4RL35H&cx=c&gtm=4e6bc0h2",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.387,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/analytics.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.389,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/bat.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.418,
+   "phase": "pre-interaction",
+   "url": "https://googleads.g.doubleclick.net/pagead/id",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.418,
+   "phase": "pre-interaction",
+   "url": "https://static.doubleclick.net/instream/ad_status.js",
+   "type": "script",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.418,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/_/ytembeds/_/js/k=ytembeds.base.en_US.fxd8fRq9O_o.es5.O/ck=ytembeds.base.ByDGgMh1mig.L.X.O/am=AAAAABAAGAM/d=1/exm=base,root/excm=base,root/ed=1/br=1/rs=AGKMywHFloEmKT9ehtvLArZ5BRaggiGVVQ/m=r78Drb",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.464,
+   "phase": "pre-interaction",
+   "url": "https://www.google.com/js/th/Ur_cmCrGbuP0CDSRxcm86cmNvtWLRAMd5Uv5X7w3mIQ.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.483,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/util.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.483,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places_impl.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.483,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.483,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/controls.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.484,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/common.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.484,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.609,
+   "phase": "pre-interaction",
+   "url": "https://i.ytimg.com/vi/yXNOk0NZmlQ/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgSigkMA8=&rs=AOn4CLCfa9IODJB7GTcFyp5GAtGoS7zliw",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.778,
+   "phase": "pre-interaction",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-X1WN4RL35H&gtm=45je6bc0h2v867662001za20ozb71713069zd71713069xf1&_p=1794732276734&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=134623092&_eu=AAAAACAC&cid=487957068.1794732277&ec_mode=a&frm=0&ibt=1&ngs=1&pscdl=noapi&rcb=1&sr=1280x720&uaa=x86&uab=64&uafvl=He",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.779,
+   "phase": "pre-interaction",
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&ngs=1&ibt=1&tid=G-X1WN4RL35H&cid=487957068.1794732277&gtm=45je6bc0h2v867662001za20ozb71713069zd71713069xf1&rcb=1&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115616985~115938466~115938468~118897920~118897930~119863601~120213116~120385422~120412526~12",
+   "type": "ping",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.807,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/plugins/ua/linkid.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.826,
+   "phase": "pre-interaction",
+   "url": "https://googleads.g.doubleclick.net/pagead/id?slf_rd=1",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.83,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/components.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.836,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/action/199014740.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.891,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 1.893,
+   "phase": "pre-interaction",
+   "url": "https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.893,
+   "phase": "pre-interaction",
+   "url": "https://maps.gstatic.com/mapfiles/api-3/images/autocomplete-icons.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.908,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=1931964288&t=pageview&_s=1&dl=https%3A%2F%2Fwww.americanturfandtreecare.com%2F&ul=en-us&dt=American%20Turf%20%26%20Tree%20Care%20%7C%20Lawn%20Care%20in%20Greeley%2C%20CO%20%7C%20Lawn%20Care%20Near%20Me&sr=1280x720&vp=1280x720&_u=aCDAgAAjAAAAAC",
+   "type": "xhr",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.908,
+   "phase": "pre-interaction",
+   "url": "https://stats.g.doubleclick.net/j/collect?t=dc&aip=1&_r=3&v=1&_v=j102&tid=UA-69637157-1&cid=487957068.1794732277&jid=1551229663&gjid=1576332525&_gid=975458200.1794732277&_u=aCDAgAAjAAAAAG~&z=290420063",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.929,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/generate_204?ZCYELQ",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.961,
+   "phase": "pre-interaction",
+   "url": "https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 1.968,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/t/199014740",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.968,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/action/0?ti=199014740&tm=gtm002&Ver=2&mid=48a76827-b79e-41d1-8037-2a84585aedab&bo=1&sid=ca327e40e0d011f1a0b3b1dec3f8dea5&vid=ca32b2f0e0d011f1a6cd8be23de03fca&vids=1&msclkid=N&gtm_tag_source=1&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=American%20Turf%20%26%20Tree%20C",
+   "type": "image",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.992,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/render.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.06,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/s/0.8.77",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.173,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/index.html",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 2.182,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/index.html",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 2.213,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/c/h",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 2.217,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/zoid.frame.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.218,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/app.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.218,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/components.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.219,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/app.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.29,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/socket.io.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.291,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/zoid.frame.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.291,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/app.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 2.292,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/components.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.292,
+   "phase": "pre-interaction",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/app.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 2.352,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 4.039,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/youtubei/v1/log_event?alt=json",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 6.668,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 10.931,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/desktop_max_1600_x_1200/public/images/hero-family-playing-backyard.webp?itok=JABQpHxB",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.932,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/desktop_max_1600_x_1200/public/images/american-turf-tree-service-area-map-greeley-colorado-loveland-for-collins.webp?itok=tXYHCKi8",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.932,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/images/affiliation-bbb.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.932,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-weld-food-bank2x.webp?itok=J_wmIZCg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.932,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-project-evergreen2x.webp?itok=frvc1FXz",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.933,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-nalp2x.webp?itok=HOTiwxy7",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 10.933,
+   "phase": "post-scroll",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/isa_certified_logo.webp?itok=ahKdWQLe",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 11.276,
+   "phase": "post-scroll",
+   "url": "https://bat.bing.com/p/conversions/c/h",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 13.53,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/conversions/c/h",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 15.266,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 15.267,
+   "phase": "reload",
+   "url": "https://www.youtube.com/youtubei/v1/log_event?alt=json",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 15.391,
+   "phase": "reload",
+   "url": "https://472076.tctm.co/t.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.396,
+   "phase": "reload",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.396,
+   "phase": "reload",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.397,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/fonts/icomoon/fonts/icomoon.ttf?qu873q",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.398,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/fonts/icomoon/fonts/icomoon.woff?qu873q",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.399,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/libraries/slick/slick/fonts/slick.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.4,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/libraries/slick/slick/fonts/slick.woff",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.4,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/google_tag/gtm/google_tag.script.js?tog395",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.401,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_3hq9gqQ82OwsOYm6GYbg-xJ-Us3eMRT9OJFZJEUrhNc.css?delta=0&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.401,
+   "phase": "reload",
+   "url": "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.402,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_VrDX1uh33kr6-qUw41fvkSaOSs_TVQWlFkiJzeRvj6Y.css?delta=2&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.402,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_mMKRvdZiY6pXa90jAaMkPAmjH0dshbwYdVMO-jrbKM4.css?delta=3&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.403,
+   "phase": "reload",
+   "url": "https://fonts.googleapis.com/css2?family=Caveat&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.403,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/css/css_pecxNdNyAyM0gfFeTFoqPuP7iolFENQ9aRG68LZWFMc.css?delta=5&language=en&theme=americanturfandtreecare_s3&include=eJxtUe1uwyAMfCEK0vpAyAEnQTMYYdMoe_qRtumkdn-M7842_oCMLQUo2tsMJWpDDNDQy9UtxBPQRXSnVBYTCER2N4Hg6WcUgQXlxIXj0Ljh8FoGSj9oCHbu6qe",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.404,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/logo-header%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.404,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/sprowt/logo-reverse%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.404,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/logo-reverse%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.405,
+   "phase": "reload",
+   "url": "https://api.captivated.works/widget.js?id=dded5fd6-6722-11eb-9948-939c23806562",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.405,
+   "phase": "reload",
+   "url": "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.405,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js_22mBeLeogT20QX3BLPRixyrR_shrqR-4ImAKwqh5Cmo.js?scope=footer&delta=1&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.406,
+   "phase": "reload",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.406,
+   "phase": "reload",
+   "url": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.407,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js__Jst5yccQllvdMUygm21sOFqj-Tr8iA1Sjn8307YoZ0.js?scope=footer&delta=4&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.407,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/modules/custom/pestpac_webforms/dist/js/utmCapture.js?v=1.x",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.408,
+   "phase": "reload",
+   "url": "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.408,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js_O0G3yuoji26TGC_tTQS6tpc6fM0U4CA_WL-aI5UbAiY.js?scope=footer&delta=7&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.409,
+   "phase": "reload",
+   "url": "https://unpkg.com/detect-autofill/dist/detect-autofill.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.41,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/js/js__VViA-PepfKe0NmfFzKMNNg2YuFp_0wfl6FNhH1tG3o.js?scope=footer&delta=9&language=en&theme=americanturfandtreecare_s3&include=eJyFkF1uAyEMhC_EgtQeCDkwS1HNj7DJXr-ssspDo7QvIMafxjNQwciBqs6xU406gEADXj5d4nYj3iSM3FUM_UEKdZMC5-j3DI4uNGYENR2inYI_c",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.438,
+   "phase": "reload",
+   "url": "https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.444,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/hero_large_2200x780/public/images/hero-spraying-trees_0.webp?h=38facc0a&itok=u53xo6Vd",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.445,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/images/icon-no-contracts.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.445,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/images/icon-convenient-service.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.446,
+   "phase": "reload",
+   "url": "https://www.youtube.com/embed/yXNOk0NZmlQ?si=OPXfiEml7Q2ENy4M",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 15.449,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-dog-laying-on-green-grass.webp?h=2a84d22f&itok=tFbB0ldx",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.45,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-technician-spraying-weeds-in-lawn.webp?h=826e851b&itok=8ydJPLPl",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.451,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/hero-liquid-aeration.webp?h=38facc0a&itok=zbVT83BJ",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.451,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-spraying-shrubs.webp?h=6b9bf2e9&itok=Ca-6u1Uk",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.452,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/hero-family-eating-outside.webp?h=38facc0a&itok=EiWWPTwK",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.456,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/teaser_600x300_/public/images/body-content-image-talking-to-homeowner-about-tree-care.webp?h=6b9bf2e9&itok=u9xa9Fu7",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.457,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/desktop_max_1600_x_1200/public/images/hero-family-playing-backyard.webp?itok=JABQpHxB",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.458,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/desktop_max_1600_x_1200/public/images/american-turf-tree-service-area-map-greeley-colorado-loveland-for-collins.webp?itok=tXYHCKi8",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.459,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/images/affiliation-bbb.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.46,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-weld-food-bank2x.webp?itok=J_wmIZCg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.461,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-project-evergreen2x.webp?itok=frvc1FXz",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.462,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-nalp2x.webp?itok=HOTiwxy7",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.462,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/files/styles/brand_450x250_/public/images/isa_certified_logo.webp?itok=ahKdWQLe",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.505,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsgH1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.51,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgshZ1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.51,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/bg-leaf-pattern-dark-blue.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.511,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/newgrey.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.511,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/contrib/classy/images/icons/ee0000/required.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.512,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.512,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/bg-leaf-pattern-blue.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.512,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/great-deal-ribbon.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.513,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/assets/coupon_border_white.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.513,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/assets/coupon_border.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.514,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/sprowt3/assets/logo-google.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.514,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/sites/default/themes/americanturfandtreecare_s3/assets/images/service-area-bg-blue.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.514,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/themes/contrib/classy/images/misc/menu-collapsed.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.515,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.59,
+   "phase": "reload",
+   "url": "https://www.americanturfandtreecare.com/libraries/slick/slick/ajax-loader.gif",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 15.605,
+   "phase": "reload",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/www-player.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.606,
+   "phase": "reload",
+   "url": "https://www.youtube.com/s/_/ytembeds/_/ss/k=ytembeds.base.ByDGgMh1mig.L.X.O/am=AAAAABAAGAM/d=1/br=1/rs=AGKMywEQwmmecCFxSQN5InsI9xUGGRmstg/m=root,base",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.606,
+   "phase": "reload",
+   "url": "https://www.youtube.com/s/_/ytembeds/_/js/k=ytembeds.base.en_US.fxd8fRq9O_o.es5.O/am=AAAAABAAGAM/d=1/excm=base,root/br=1/rs=AGKMywFJ7awhRgUuA-_WF1IbuEN33vmYEA/m=root,base",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.608,
+   "phase": "reload",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/player_embed.vflset/en_US/base.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.608,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-NVW8TN",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 15.654,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWubEbVmUiA8.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.654,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/roboto/v48/KFOMCnqEu92Fr1ME7kSn66aGLdTylUAMQXC89YmC2DPNWub2bVmUiA8.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 15.763,
+   "phase": "reload",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-X1WN4RL35H&cx=c&gtm=4e6bc0h2",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 15.764,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/analytics.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 15.765,
+   "phase": "reload",
+   "url": "https://bat.bing.com/bat.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 15.769,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/zoid.frame.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.769,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/captivated.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 15.777,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyCrnlirOsW8kRa1Et90LpfLJ8_uBGpw1Fo&v=weekly&channel=4&callback=google.maps.__ib__",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.79,
+   "phase": "reload",
+   "url": "https://googleads.g.doubleclick.net/pagead/id",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 15.791,
+   "phase": "reload",
+   "url": "https://static.doubleclick.net/instream/ad_status.js",
+   "type": "script",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 15.791,
+   "phase": "reload",
+   "url": "https://www.youtube.com/s/_/ytembeds/_/js/k=ytembeds.base.en_US.fxd8fRq9O_o.es5.O/ck=ytembeds.base.ByDGgMh1mig.L.X.O/am=AAAAABAAGAM/d=1/exm=base,root/excm=base,root/ed=1/br=1/rs=AGKMywHFloEmKT9ehtvLArZ5BRaggiGVVQ/m=r78Drb",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 15.836,
+   "phase": "reload",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-X1WN4RL35H&gtm=45je6bc0h2v867662001za20ozb71713069zd71713069xf1&_p=1794732291169&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=134623092&_eu=AAAAACQC&cid=487957068.1794732277&ec_mode=a&frm=0&ibt=1&ngs=1&pscdl=noapi&rcb=17&sr=1280x720&uaa=x86&uab=64&uafvl=Headless",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 15.841,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/plugins/ua/linkid.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 15.998,
+   "phase": "reload",
+   "url": "https://www.google.com/js/th/Ur_cmCrGbuP0CDSRxcm86cmNvtWLRAMd5Uv5X7w3mIQ.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.009,
+   "phase": "reload",
+   "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=2136989186&t=pageview&_s=1&dl=https%3A%2F%2Fwww.americanturfandtreecare.com%2F&ul=en-us&dt=American%20Turf%20%26%20Tree%20Care%20%7C%20Lawn%20Care%20in%20Greeley%2C%20CO%20%7C%20Lawn%20Care%20Near%20Me&sr=1280x720&vp=1280x720&_u=SCCAgAAjAAAAAC",
+   "type": "xhr",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 16.012,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/action/199014740.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 16.015,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/components.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.016,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/util.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.017,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places_impl.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.017,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.017,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/controls.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.018,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/common.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.018,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.065,
+   "phase": "reload",
+   "url": "https://i.ytimg.com/vi/yXNOk0NZmlQ/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGHIgSigkMA8=&rs=AOn4CLCfa9IODJB7GTcFyp5GAtGoS7zliw",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.092,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/conversions/t/199014740",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 16.121,
+   "phase": "reload",
+   "url": "https://googleads.g.doubleclick.net/pagead/id?slf_rd=1",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 16.126,
+   "phase": "reload",
+   "url": "https://bat.bing.com/action/0?ti=199014740&tm=gtm002&Ver=2&mid=772f7c37-cae9-4c04-a55b-6825ca176700&bo=1&sid=ca327e40e0d011f1a0b3b1dec3f8dea5&vid=ca32b2f0e0d011f1a6cd8be23de03fca&vids=0&msclkid=N&gtm_tag_source=1&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=American%20Turf%20%26%20Tree%20C",
+   "type": "image",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 16.149,
+   "phase": "reload",
+   "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 16.151,
+   "phase": "reload",
+   "url": "https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.151,
+   "phase": "reload",
+   "url": "https://maps.gstatic.com/mapfiles/api-3/images/autocomplete-icons.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.152,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/render.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.173,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/index.html",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 16.186,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/index.html",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 16.202,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/zoid.frame.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.203,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/app.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.203,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/components.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.204,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/launcher/app.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.225,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/socket.io.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.226,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/zoid.frame.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.226,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/app.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.227,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/components.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.227,
+   "phase": "reload",
+   "url": "https://dkg63mm7284y1.cloudfront.net/20260910233138/widget/app.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 16.259,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/conversions/s/0.8.77",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 16.372,
+   "phase": "reload",
+   "url": "https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 16.416,
+   "phase": "reload",
+   "url": "https://www.youtube.com/generate_204?a4Kzdg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 16.459,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/conversions/c/p",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 16.513,
+   "phase": "reload",
+   "url": "https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/GenerateIT",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 17.959,
+   "phase": "reload",
+   "url": "https://bat.bing.com/p/conversions/c/p",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 18.691,
+   "phase": "reload",
+   "url": "https://www.youtube.com/youtubei/v1/log_event?alt=json",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 20.396,
+   "phase": "reload",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 21.008,
+   "phase": "reload",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-X1WN4RL35H&gtm=45je6bc0h2v867662001za20gzb71713069zd71713069xf1&_p=1794732291169&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=134623092&_eu=AEAAACQC&ae=a&cid=487957068.1794732277&frm=0&ibt=1&ngs=1&pscdl=noapi&rcb=17&sr=1280x720&uaa=x86&uab=64&uafvl=HeadlessChrom",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  }
+ ]
+}

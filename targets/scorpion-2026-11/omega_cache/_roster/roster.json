@@ -1,0 +1,208 @@
+[
+ {
+  "domain": "americanturfandtreecare.com",
+  "home": "https://www.americanturfandtreecare.com/",
+  "business": "American Turf & Tree Care",
+  "book": "coalmarch",
+  "acq": "2026-10-19",
+  "vertical": "lawn",
+  "geo": "Greeley, CO",
+  "fp": "Drupal 10 sprowt3 theme on Pantheon (23.185.0.3), Google Cloud DNS like coalmarch.com",
+  "access": "raw",
+  "brand_terms": "american turf|american turf and tree",
+  "seeds": [
+   "american turf and tree care",
+   "lawn care greeley",
+   "lawn care fort collins",
+   "tree care greeley",
+   "lawn aeration greeley",
+   "lawn care windsor co"
+  ]
+ },
+ {
+  "domain": "soundpestcontrol.com",
+  "home": "https://www.soundpestcontrol.com/",
+  "business": "Sound Pest Control",
+  "book": "coalmarch",
+  "acq": "2026-10-19",
+  "vertical": "pest",
+  "geo": "Puget Sound, WA",
+  "fp": "Drupal 10 sprowt3 theme on Pantheon (23.185.0.4), Google Cloud DNS like coalmarch.com",
+  "access": "raw",
+  "brand_terms": "sound pest",
+  "seeds": [
+   "sound pest control",
+   "pest control tacoma",
+   "pest control olympia",
+   "rodent control tacoma",
+   "pest control puyallup",
+   "exterminator tacoma"
+  ]
+ },
+ {
+  "domain": "midwestpest.com",
+  "home": "https://midwestpest.com/",
+  "business": "Midwest Pest Control",
+  "book": "coalmarch",
+  "acq": "2026-10-19",
+  "vertical": "pest",
+  "geo": "Omaha, NE",
+  "fp": "Drupal 10 sprowt3 theme",
+  "access": "raw",
+  "brand_terms": "midwest pest",
+  "seeds": [
+   "midwest pest control",
+   "pest control omaha",
+   "exterminator omaha",
+   "termite treatment omaha",
+   "pest control lincoln ne",
+   "mosquito control omaha"
+  ]
+ },
+ {
+  "domain": "thebugman.com",
+  "home": "https://www.thebugman.com/",
+  "business": "The Bugman",
+  "book": "coalmarch",
+  "acq": "2026-10-19",
+  "vertical": "pest",
+  "geo": "unknown",
+  "fp": "www CNAME fe.cfp2c.edge.pantheon.io (same Pantheon edge as coalmarch.com)",
+  "access": "walled",
+  "brand_terms": "bugman|bug man",
+  "seeds": [
+   "the bugman pest control",
+   "the bugman"
+  ]
+ },
+ {
+  "domain": "evergreenpc.com",
+  "home": "https://www.evergreenpc.com/",
+  "business": "Evergreen Lawn & Pest Control",
+  "book": "coalmarch",
+  "acq": "2026-10-19",
+  "vertical": "lawn-pest",
+  "geo": "Apopka, FL",
+  "fp": "www CNAME ho012.scorphosting.com -> home02.scorpcloud.com (Scorpion platform)",
+  "access": "walled",
+  "brand_terms": "evergreen",
+  "seeds": [
+   "evergreen lawn and pest",
+   "pest control apopka",
+   "lawn care apopka",
+   "pest control orlando"
+  ]
+ },
+ {
+  "domain": "henleysplumbingair.com",
+  "home": "https://www.henleysplumbingair.com/",
+  "business": "Henley's Plumbing & Air",
+  "book": "1seo",
+  "acq": "2026-06-18",
+  "vertical": "plumbing-hvac",
+  "geo": "Inland Empire, CA",
+  "fp": "public urlscan scan 2026-11-02 recorded a request to 1seo.com",
+  "access": "raw",
+  "brand_terms": "henley",
+  "seeds": [
+   "henleys plumbing",
+   "plumber san bernardino",
+   "plumber corona ca",
+   "ac repair riverside",
+   "water heater replacement redlands",
+   "hvac repair rancho cucamonga"
+  ]
+ },
+ {
+  "domain": "arlinghausair.com",
+  "home": "https://www.arlinghausair.com/",
+  "business": "Arlinghaus Plumbing, Heating, Air Conditioning & Electrical",
+  "book": "1seo",
+  "acq": "2026-06-18",
+  "vertical": "plumbing-hvac",
+  "geo": "Erlanger, KY / Cincinnati, OH",
+  "fp": "named in a 1SEO results press release (EIN Presswire); same Cloudflare edge IP as 1seo.com",
+  "access": "raw",
+  "brand_terms": "arlinghaus",
+  "seeds": [
+   "arlinghaus",
+   "plumber northern kentucky",
+   "hvac cincinnati",
+   "furnace repair florence ky",
+   "ac repair erlanger ky",
+   "electrician northern kentucky"
+  ]
+ },
+ {
+  "domain": "centercityemergencydentists.com",
+  "home": "https://centercityemergencydentists.com/",
+  "business": "Center City Emergency Dentists",
+  "book": "1seo",
+  "acq": "2026-06-18",
+  "vertical": "dental",
+  "geo": "Philadelphia, PA",
+  "fp": "1SEO case study on casestudies.com; NitroPack like 1seo.com",
+  "access": "raw",
+  "brand_terms": "center city emergency|cced",
+  "seeds": [
+   "center city emergency dentist",
+   "emergency dentist philadelphia",
+   "24 hour dentist philadelphia",
+   "walk in dentist philadelphia",
+   "same day dentist philadelphia"
+  ]
+ },
+ {
+  "domain": "russellandlazarus.com",
+  "home": "https://www.russellandlazarus.com/",
+  "business": "Russell & Lazarus APC",
+  "book": "gngf",
+  "acq": "2024-09-18",
+  "vertical": "legal-pi",
+  "geo": "Newport Beach, CA",
+  "fp": "GNGF Genesis child theme (gngf_vars) still live; named GNGF client",
+  "access": "raw",
+  "brand_terms": "russell & lazarus|russell and lazarus|russell lazarus",
+  "seeds": [
+   "russell and lazarus",
+   "car accident lawyer orange county",
+   "personal injury lawyer newport beach",
+   "truck accident lawyer orange county",
+   "motorcycle accident lawyer orange county",
+   "personal injury lawyer irvine"
+  ]
+ },
+ {
+  "domain": "cheryldavid.com",
+  "home": "https://www.cheryldavid.com/",
+  "business": "The Law Offices of Cheryl David",
+  "book": "gngf",
+  "acq": "2024-09-18",
+  "vertical": "legal-bankruptcy",
+  "geo": "unknown",
+  "fp": "www CNAME le023.scorphosting.com -> legal04.scorpcloud.com (migrated to Scorpion)",
+  "access": "walled",
+  "brand_terms": "cheryl david",
+  "seeds": [
+   "cheryl david",
+   "law offices of cheryl david"
+  ]
+ },
+ {
+  "domain": "overheaddoornorthland.com",
+  "home": "https://www.overheaddoornorthland.com/",
+  "business": "Overhead Door Company (Northland)",
+  "book": "scorpion",
+  "acq": "native",
+  "vertical": "garage-doors",
+  "geo": "Eagan, MN (Twin Cities)",
+  "fp": "www CNAME overheaddoornorthland.scorpcloud.com; public urlscan scan 2026-11-12",
+  "access": "walled",
+  "brand_terms": "overhead door",
+  "seeds": [
+   "overhead door northland",
+   "garage door repair kansas city north",
+   "overhead door company"
+  ]
+ }
+]

@@ -1,0 +1,2 @@
+domain,entity[registrar],expiration,last_changed,last_update_of_RDAP_database,nameservers,rdap_status,registrar,registration,status
+thebugman.com,"Network Solutions, LLC",2034-10-22T05:33:12Z,2024-10-23T04:38:03Z,2026-11-15T08:44:22Z,NS1.WORLDNIC.COM NS2.WORLDNIC.COM,client transfer prohibited,"Network Solutions, LLC",2001-10-22T05:33:12Z,200

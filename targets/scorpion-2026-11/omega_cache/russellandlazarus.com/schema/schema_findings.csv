@@ -1,0 +1,74 @@
+url,entity_type,severity,charge,detail
+https://www.russellandlazarus.com/,Organization,S2,entity-conflict,"multiple business names in schema: ['Best Injury Attorneys in Orange County CA', 'Russell & Lazarus APC']"
+https://www.russellandlazarus.com/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,url
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,openingHoursSpecification
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,priceRange
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,sameAs
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,areaServed
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,url
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,openingHoursSpecification
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,priceRange
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,sameAs
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,areaServed
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,url
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,openingHoursSpecification
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,priceRange
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,sameAs
+https://www.russellandlazarus.com/,LegalService,S3,missing-recommended,areaServed
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Article,S1,missing-required,image
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Article,S3,missing-recommended,dateModified
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Article,S3,missing-recommended,description
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Person,S3,missing-recommended,jobTitle
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Person,S3,missing-recommended,worksFor
+https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/,Person,S3,missing-recommended,sameAs
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Article,S1,missing-required,image
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Article,S3,missing-recommended,dateModified
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Article,S3,missing-recommended,description
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Person,S3,missing-recommended,jobTitle
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Person,S3,missing-recommended,worksFor
+https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/,Person,S3,missing-recommended,sameAs
+https://www.russellandlazarus.com/immediately-after-car-accident/,Article,S1,missing-required,image
+https://www.russellandlazarus.com/immediately-after-car-accident/,Article,S3,missing-recommended,dateModified
+https://www.russellandlazarus.com/immediately-after-car-accident/,Article,S3,missing-recommended,description
+https://www.russellandlazarus.com/immediately-after-car-accident/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/immediately-after-car-accident/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/immediately-after-car-accident/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/immediately-after-car-accident/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/immediately-after-car-accident/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/immediately-after-car-accident/,Person,S3,missing-recommended,jobTitle
+https://www.russellandlazarus.com/immediately-after-car-accident/,Person,S3,missing-recommended,worksFor
+https://www.russellandlazarus.com/immediately-after-car-accident/,Person,S3,missing-recommended,sameAs
+https://www.russellandlazarus.com/privacy/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/privacy/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/privacy/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/privacy/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/privacy/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Article,S1,missing-required,image
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Article,S3,missing-recommended,dateModified
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Article,S3,missing-recommended,description
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,ReadAction,S4,info,Type 'ReadAction' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,PropertyValueSpecification,S4,info,Type 'PropertyValueSpecification' has no rich-result rules here; verify manually
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Organization,S3,missing-recommended,contactPoint
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Organization,S3,missing-recommended,address
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Organization,S3,missing-recommended,telephone
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Person,S3,missing-recommended,jobTitle
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Person,S3,missing-recommended,worksFor
+https://www.russellandlazarus.com/two-reasons-to-contact-attorney/,Person,S3,missing-recommended,sameAs

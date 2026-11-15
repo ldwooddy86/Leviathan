@@ -1,0 +1,1004 @@
+{
+ "domain": "russellandlazarus.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 946,
+  "indexable": 30,
+  "codes": {
+   "Low DEEP_PAGE": 24
+  },
+  "examples": {
+   "DEEP_PAGE": [
+    "https://www.russellandlazarus.com/19-year-old-passenger-loses-life/",
+    "https://www.russellandlazarus.com/5-things-to-avoid-after-a-crash/",
+    "https://www.russellandlazarus.com/after-a-truck-accident/"
+   ]
+  },
+  "jsonld_types": {
+   "WebPage": 30,
+   "ImageObject": 3,
+   "BreadcrumbList": 30,
+   "WebSite": 30,
+   "Organization": 31,
+   "LegalService": 3,
+   "Article": 29,
+   "Person": 29
+  },
+  "no_desc": 0,
+  "long_title": 0
+ },
+ "pages": [
+  {
+   "url": "https://www.russellandlazarus.com/",
+   "status": 200,
+   "title": "Best Personal Injury Attorneys in Orange County, CA",
+   "desc_len": 142,
+   "words": 3563,
+   "canonical": "https://www.russellandlazarus.com/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "AMP for WP 1.1.20",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "GeoCoordinates",
+    "ImageObject",
+    "LegalService",
+    "ListItem",
+    "Organization",
+    "PostalAddress",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Best Injury Attorneys in Orange County CA",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://x.com/russelllazarus"
+     ],
+     "address": null
+    },
+    {
+     "type": "Organization",
+     "name": "Russell & Lazarus APC",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://twitter.com/russelllazarus",
+      "https://www.youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ",
+      "https://www.linkedin.com/company/russell-&-lazarus/"
+     ],
+     "address": null
+    },
+    {
+     "type": "LegalService",
+     "name": "Russell & Lazarus APC",
+     "telephone": "(949) 851-0222",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "South Tower, 3501 Jamboree Rd #600",
+      "addressLocality": "Newport Beach",
+      "addressRegion": "CA",
+      "postalCode": "92660",
+      "addressCountry": "USA"
+     }
+    },
+    {
+     "type": "LegalService",
+     "name": "Russell & Lazarus APC",
+     "telephone": "(562) 496-1997",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "100 Oceangate Blvd. 12th Floor",
+      "addressLocality": "Long Beach",
+      "addressRegion": "CA",
+      "postalCode": "90802",
+      "addressCountry": "USA"
+     }
+    },
+    {
+     "type": "LegalService",
+     "name": "Russell & Lazarus APC",
+     "telephone": "(951) 485-4000",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "7121 Magnolia Ave., #V3",
+      "addressLocality": "Riverside",
+      "addressRegion": "CA",
+      "postalCode": "92504",
+      "addressCountry": "USA"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "5624961997",
+    "6199860411",
+    "7147729700",
+    "877207894878",
+    "8777894878",
+    "9162993999",
+    "9493090990",
+    "9494267299",
+    "9498510222",
+    "9514854000"
+   ],
+   "phones_text": [
+    "5624961997",
+    "6199860411",
+    "7147729700",
+    "8777894878",
+    "9162993999",
+    "9493090990",
+    "9494267299",
+    "9498510222",
+    "9514854000"
+   ],
+   "credits": [
+    "Marketing by Search Engine Projects"
+   ],
+   "socials": [
+    "facebook.com/RussellLazarusAPC",
+    "linkedin.com/company/russell-&-lazarus",
+    "maps.app.goo.gl/UPS1x7JuW1VAJSQv5",
+    "twitter.com/russelllazarus",
+    "youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.russellandlazarus.com/privacy/"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "experts"
+    ]
+   },
+   "gtm": {
+    "GTM-5HSZDSC": {
+     "gtm_ids": [
+      "GTM-5HSZDSC"
+     ],
+     "ga4_ids": [
+      "G-5C4GNJJGJ1",
+      "G-VE3EB4WZ04"
+     ],
+     "ua_ids": [
+      "UA-195980701-1",
+      "UA-37141882-15"
+     ],
+     "google_ads_ids": [
+      "AW-691208297"
+     ],
+     "vendors_present": [
+      "call_tracking",
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "microsoft_ads",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-5HSZDSC"
+    ],
+    "ga4_ids": [
+     "G-VE3EB4WZ04"
+    ],
+    "vendors_present": [
+     "consent_mode",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/",
+   "status": 200,
+   "title": "California Car Accident Lawyers | Russell & Lazarus APC",
+   "desc_len": 119,
+   "words": 1353,
+   "canonical": "https://www.russellandlazarus.com/california-statute-of-limitations-for-personal-injury-claims/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "AMP for WP 1.1.20",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Best Injury Attorneys in Orange County CA",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://x.com/russelllazarus"
+     ],
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "877207894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "phones_text": [
+    "8518552400",
+    "8777894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "credits": [
+    "Marketing by Search Engine Projects"
+   ],
+   "socials": [
+    "facebook.com/RussellLazarusAPC",
+    "linkedin.com/company/russell-&-lazarus",
+    "twitter.com/russelllazarus",
+    "youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.russellandlazarus.com/privacy/"
+    ],
+    "superlatives": [
+     "leading"
+    ]
+   },
+   "gtm": {
+    "GTM-5HSZDSC": {
+     "gtm_ids": [
+      "GTM-5HSZDSC"
+     ],
+     "ga4_ids": [
+      "G-5C4GNJJGJ1",
+      "G-VE3EB4WZ04"
+     ],
+     "ua_ids": [
+      "UA-195980701-1",
+      "UA-37141882-15"
+     ],
+     "google_ads_ids": [
+      "AW-691208297"
+     ],
+     "vendors_present": [
+      "call_tracking",
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "microsoft_ads",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-5HSZDSC"
+    ],
+    "ga4_ids": [
+     "G-VE3EB4WZ04"
+    ],
+    "vendors_present": [
+     "consent_mode",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/",
+   "status": 200,
+   "title": "CA Personal Injury Attorney | Russell & Lazarus",
+   "desc_len": 120,
+   "words": 1339,
+   "canonical": "https://www.russellandlazarus.com/glendale-city-with-the-worst-drivers/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "AMP for WP 1.1.20",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Best Injury Attorneys in Orange County CA",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://x.com/russelllazarus"
+     ],
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "877207894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "phones_text": [
+    "8777894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "credits": [
+    "Marketing by Search Engine Projects"
+   ],
+   "socials": [
+    "facebook.com/RussellLazarusAPC",
+    "linkedin.com/company/russell-&-lazarus",
+    "twitter.com/russelllazarus",
+    "youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.russellandlazarus.com/privacy/"
+    ],
+    "superlatives": [
+     "the best"
+    ]
+   },
+   "gtm": {
+    "GTM-5HSZDSC": {
+     "gtm_ids": [
+      "GTM-5HSZDSC"
+     ],
+     "ga4_ids": [
+      "G-5C4GNJJGJ1",
+      "G-VE3EB4WZ04"
+     ],
+     "ua_ids": [
+      "UA-195980701-1",
+      "UA-37141882-15"
+     ],
+     "google_ads_ids": [
+      "AW-691208297"
+     ],
+     "vendors_present": [
+      "call_tracking",
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "microsoft_ads",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-5HSZDSC"
+    ],
+    "ga4_ids": [
+     "G-VE3EB4WZ04"
+    ],
+    "vendors_present": [
+     "consent_mode",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.russellandlazarus.com/immediately-after-car-accident/",
+   "status": 200,
+   "title": "Huntington Beach car accident lawyers",
+   "desc_len": 156,
+   "words": 1571,
+   "canonical": "https://www.russellandlazarus.com/immediately-after-car-accident/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "AMP for WP 1.1.20",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Best Injury Attorneys in Orange County CA",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://x.com/russelllazarus"
+     ],
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "877207894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "phones_text": [
+    "8777894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "credits": [
+    "Marketing by Search Engine Projects"
+   ],
+   "socials": [
+    "facebook.com/RussellLazarusAPC",
+    "linkedin.com/company/russell-&-lazarus",
+    "twitter.com/russelllazarus",
+    "youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.russellandlazarus.com/privacy/"
+    ],
+    "superlatives": [
+     "The best"
+    ]
+   },
+   "gtm": {
+    "GTM-5HSZDSC": {
+     "gtm_ids": [
+      "GTM-5HSZDSC"
+     ],
+     "ga4_ids": [
+      "G-5C4GNJJGJ1",
+      "G-VE3EB4WZ04"
+     ],
+     "ua_ids": [
+      "UA-195980701-1",
+      "UA-37141882-15"
+     ],
+     "google_ads_ids": [
+      "AW-691208297"
+     ],
+     "vendors_present": [
+      "call_tracking",
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "microsoft_ads",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-5HSZDSC"
+    ],
+    "ga4_ids": [
+     "G-VE3EB4WZ04"
+    ],
+    "vendors_present": [
+     "consent_mode",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.russellandlazarus.com/privacy/",
+   "status": 200,
+   "title": "Privacy Policy | Best Personal Injury Law Firm Orange County, CA",
+   "desc_len": 139,
+   "words": 1766,
+   "canonical": "https://www.russellandlazarus.com/privacy/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "AMP for WP 1.1.20",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Best Injury Attorneys in Orange County CA",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://x.com/russelllazarus"
+     ],
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "5624961997",
+    "6199860411",
+    "7147729700",
+    "877207894878",
+    "8777894878",
+    "9162993999",
+    "9493090990",
+    "9494267299",
+    "9498510222",
+    "9514854000"
+   ],
+   "phones_text": [
+    "5624961997",
+    "6199860411",
+    "7147729700",
+    "8777894878",
+    "9162993999",
+    "9493090990",
+    "9494267299",
+    "9498510222",
+    "9514854000"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/RussellLazarusAPC",
+    "linkedin.com/company/russell-&-lazarus",
+    "maps.app.goo.gl/UPS1x7JuW1VAJSQv5",
+    "twitter.com/russelllazarus",
+    "youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.russellandlazarus.com/privacy/",
+     "https://www.russellandlazarus.com/privacy/amp/",
+     "https://www.russellandlazarus.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.russellandlazarus.com%2Fprivacy%2F",
+     "https://www.russellandlazarus.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.russellandlazarus.com%2Fprivacy%2F&#038;format=xml"
+    ],
+    "guarantee_language": [
+     "However, we cannot guarantee that unauthorized persons will always be unable to defeat o"
+    ]
+   },
+   "gtm": {
+    "GTM-5HSZDSC": {
+     "gtm_ids": [
+      "GTM-5HSZDSC"
+     ],
+     "ga4_ids": [
+      "G-5C4GNJJGJ1",
+      "G-VE3EB4WZ04"
+     ],
+     "ua_ids": [
+      "UA-195980701-1",
+      "UA-37141882-15"
+     ],
+     "google_ads_ids": [
+      "AW-691208297"
+     ],
+     "vendors_present": [
+      "call_tracking",
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "microsoft_ads",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-5HSZDSC"
+    ],
+    "ga4_ids": [
+     "G-VE3EB4WZ04"
+    ],
+    "vendors_present": [
+     "consent_mode",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.russellandlazarus.com/two-reasons-to-contact-attorney/",
+   "status": 200,
+   "title": "Orange County injury attorney | Russell & Lazarus APC",
+   "desc_len": 155,
+   "words": 1384,
+   "canonical": "https://www.russellandlazarus.com/two-reasons-to-contact-attorney/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "AMP for WP 1.1.20",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Best Injury Attorneys in Orange County CA",
+     "telephone": null,
+     "sameAs": [
+      "https://www.facebook.com/RussellLazarusAPC",
+      "https://x.com/russelllazarus"
+     ],
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "877207894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "phones_text": [
+    "8777894878",
+    "9493090990",
+    "9498510222"
+   ],
+   "credits": [
+    "Marketing by Search Engine Projects"
+   ],
+   "socials": [
+    "facebook.com/RussellLazarusAPC",
+    "linkedin.com/company/russell-&-lazarus",
+    "twitter.com/russelllazarus",
+    "youtube.com/channel/UCwAInOwqULAJIGRVhgoKbjQ"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.russellandlazarus.com/privacy/"
+    ]
+   },
+   "gtm": {
+    "GTM-5HSZDSC": {
+     "gtm_ids": [
+      "GTM-5HSZDSC"
+     ],
+     "ga4_ids": [
+      "G-5C4GNJJGJ1",
+      "G-VE3EB4WZ04"
+     ],
+     "ua_ids": [
+      "UA-195980701-1",
+      "UA-37141882-15"
+     ],
+     "google_ads_ids": [
+      "AW-691208297"
+     ],
+     "vendors_present": [
+      "call_tracking",
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "microsoft_ads",
+      "recaptcha_or_turnstile",
+      "session_replay"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-5HSZDSC"
+    ],
+    "ga4_ids": [
+     "G-VE3EB4WZ04"
+    ],
+    "vendors_present": [
+     "consent_mode",
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "Organization S3 missing-recommended contactPoint": 7,
+  "Organization S3 missing-recommended address": 7,
+  "Organization S3 missing-recommended telephone": 7,
+  "ReadAction S4 info Type 'ReadAction' has no rich-result rul": 6,
+  "PropertyValueSpecification S4 info Type 'PropertyValueSpecification' has no": 6,
+  "Article S1 missing-required image": 4,
+  "Article S3 missing-recommended dateModified": 4,
+  "Article S3 missing-recommended description": 4,
+  "Person S3 missing-recommended jobTitle": 4,
+  "Person S3 missing-recommended worksFor": 4,
+  "Person S3 missing-recommended sameAs": 4,
+  "LegalService S3 missing-recommended url": 3
+ },
+ "render": [
+  {
+   "url": "https://www.russellandlazarus.com/",
+   "raw_words": 3563,
+   "rendered_words": 4396,
+   "js_dependent_share": 0.189,
+   "lcp_ms_lab": 2608,
+   "requests": 139,
+   "third_party_hosts": 34,
+   "verdict": "PARTLY JS-DEPENDENT (19%)",
+   "ttfb": 799.6000000000931,
+   "load": 2951.2999999998137,
+   "console_errors": 4
+  },
+  {
+   "url": "https://www.russellandlazarus.com/immediately-after-car-accident/",
+   "raw_words": 1571,
+   "rendered_words": 1737,
+   "js_dependent_share": 0.096,
+   "lcp_ms_lab": 1080,
+   "requests": 135,
+   "third_party_hosts": 44,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 697.7999999998137,
+   "load": 2217.6999999999534,
+   "console_errors": 2
+  }
+ ],
+ "probe": [
+  {
+   "url": "https://www.russellandlazarus.com/",
+   "status": 200,
+   "banner": "no consent banner detected",
+   "pre_consent": [
+    "call_tracking",
+    "google_ads_doubleclick",
+    "google_analytics",
+    "google_tag_manager",
+    "meta_pixel",
+    "microsoft_uet",
+    "other_adtech",
+    "session_replay"
+   ],
+   "chat": [],
+   "ai_agents": [],
+   "prechecked": [],
+   "scarcity": [],
+   "timers": [
+    "17:38",
+    "00:00",
+    "45:18",
+    "00:00",
+    "09:00"
+   ],
+   "requests": 293,
+   "hosts": [
+    "acsbapp.com",
+    "analytics.ahrefs.com",
+    "bat.bing.com",
+    "c.amazon-adsystem.com",
+    "c.bing.com",
+    "c.clarity.ms",
+    "cdn.acsbapp.com",
+    "cdn.callrail.com",
+    "cdn.userway.org",
+    "chat-api.intaker.com",
+    "cm.g.doubleclick.net",
+    "connect.facebook.net",
+    "dsum-sec.casalemedia.com",
+    "ib.adnxs.com",
+    "image2.pubmatic.com",
+    "intaker.azureedge.net",
+    "js.callrail.com",
+    "m.bbb.org",
+    "match.adsrvr.org",
+    "maxcdn.bootstrapcdn.com",
+    "me.theario.com",
+    "onetag-sys.com",
+    "pagead2.googlesyndication.com",
+    "pixel.mathtag.com",
+    "pixel.rubiconproject.com",
+    "pixel.tapad.com",
+    "rtb-csync.smartadserver.com",
+    "s.amazon-adsystem.com",
+    "s.w.org",
+    "scripts.clarity.ms",
+    "sg.semasio.net",
+    "static.cloudflareinsights.com",
+    "sync.crwdcntrl.net",
+    "sync.go.sonobi.com",
+    "sync.mathtag.com",
+    "u.clarity.ms",
+    "uipglob.semasio.net",
+    "uipus.semasio.net",
+    "us-u.openx.net",
+    "use.fontawesome.com",
+    "use.typekit.net",
+    "user-sync.fwmrm.net",
+    "www.clarity.ms",
+    "www.facebook.com",
+    "www.google-analytics.com",
+    "www.googletagmanager.com",
+    "www.youtube.com",
+    "x.bidswitch.net"
+   ]
+  }
+ ],
+ "demand": [
+  {
+   "seed": "russell and lazarus",
+   "brand_in_list": true,
+   "top": [
+    "russell and lazarus",
+    "russell and lazarus riverside",
+    "russell and lazarus fullerton",
+    "russell and lazarus newport",
+    "russell and lazarus apc",
+    "russell and lazarus long beach",
+    "russell and lazarus newport beach",
+    "russell and lazarus law firm",
+    "russell and lazarus riverside reviews",
+    "russell and lazarus laguna niguel"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "car accident lawyer orange county",
+   "brand_in_list": false,
+   "top": [
+    "car accident lawyer orange county",
+    "auto accident lawyer orange county",
+    "best car accident lawyer orange county",
+    "car accident lawyer orange county ca",
+    "joe naz car accident lawyer orange county",
+    "lawyer car accident near me"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "personal injury lawyer newport beach",
+   "brand_in_list": false,
+   "top": [
+    "personal injury lawyer newport beach",
+    "personal injury attorney newport beach ca",
+    "personal injury lawyer near me",
+    "personal injury attorney near me reviews",
+    "how much should a personal injury lawyer charge",
+    "personal injury lawyer fee structure",
+    "personal injury lawsuit examples"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "truck accident lawyer orange county",
+   "brand_in_list": false,
+   "top": [],
+   "status": "ok"
+  },
+  {
+   "seed": "motorcycle accident lawyer orange county",
+   "brand_in_list": false,
+   "top": [
+    "motorcycle accident lawyer orange county"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "personal injury lawyer irvine",
+   "brand_in_list": false,
+   "top": [
+    "personal injury lawyer irvine ca",
+    "personal injury lawyer near me",
+    "personal injury attorney near me reviews",
+    "personal injury lawyer fee structure",
+    "how much does it cost to hire a personal injury lawyer"
+   ],
+   "status": "ok"
+  }
+ ]
+}

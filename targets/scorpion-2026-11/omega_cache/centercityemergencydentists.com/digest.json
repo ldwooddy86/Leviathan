@@ -1,0 +1,911 @@
+{
+ "domain": "centercityemergencydentists.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 181,
+  "indexable": 30,
+  "codes": {
+   "Low MISSING_DESCRIPTION": 26,
+   "Low LONG_TITLE": 23,
+   "Low ORPHAN_CANDIDATE": 6,
+   "Low MULTIPLE_H1": 1
+  },
+  "examples": {
+   "LONG_TITLE": [
+    "https://centercityemergencydentists.com/3-foods-to-avoid-this-holiday-season-to-minimize-orthodontic-damage/",
+    "https://centercityemergencydentists.com/3-of-the-most-common-types-of-cosmetic-dentistry-procedures/",
+    "https://centercityemergencydentists.com/3-ways-an-orthodontist-can-help-you-improve-your-smile/"
+   ],
+   "MISSING_DESCRIPTION": [
+    "https://centercityemergencydentists.com/3-foods-to-avoid-this-holiday-season-to-minimize-orthodontic-damage/",
+    "https://centercityemergencydentists.com/3-myths-about-orthodontics-busted/",
+    "https://centercityemergencydentists.com/3-of-the-most-common-types-of-cosmetic-dentistry-procedures/"
+   ],
+   "MULTIPLE_H1": [
+    "https://centercityemergencydentists.com/"
+   ],
+   "ORPHAN_CANDIDATE": [
+    "https://centercityemergencydentists.com/3-of-the-most-common-types-of-cosmetic-dentistry-procedures/",
+    "https://centercityemergencydentists.com/3-ways-an-orthodontist-can-help-you-improve-your-smile/",
+    "https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/"
+   ]
+  },
+  "jsonld_types": {
+   "WebPage": 30,
+   "BreadcrumbList": 30,
+   "WebSite": 30,
+   "Organization": 30,
+   "CollectionPage": 1,
+   "Article": 28,
+   "Person": 28,
+   "ImageObject": 2
+  },
+  "no_desc": 26,
+  "long_title": 23
+ },
+ "pages": [
+  {
+   "url": "https://centercityemergencydentists.com/",
+   "status": 200,
+   "title": "Emergency Dentist in Philadelphia, PA | Center City Emergency Dentist",
+   "desc_len": 156,
+   "words": 1986,
+   "canonical": "https://centercityemergencydentists.com/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "WordPress 7.1.4",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Center City Emergency Dentist",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "2152235555"
+   ],
+   "phones_text": [
+    "2152235555",
+    "2155454107"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/emergencydentistphiladelphia",
+    "instagram.com/centercityemergencydentist",
+    "twitter.com/emrgencydentist"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "superlatives": [
+     "leading"
+    ]
+   },
+   "gtm": {
+    "GTM-52ZG6LC": {
+     "gtm_ids": [
+      "GTM-52ZG6LC"
+     ],
+     "ga4_ids": [
+      "G-T880WN3J8G"
+     ],
+     "ua_ids": [
+      "UA-85039641-1"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "recaptcha_or_turnstile"
+     ]
+    },
+    "GTM-W6NM53K7": {
+     "gtm_ids": [
+      "GTM-W6NM53K7",
+      "gtm-form"
+     ],
+     "ga4_ids": [
+      "G-WKS0LBHSK7",
+      "g-recaptcha"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-52ZG6LC",
+     "GTM-W6NM53K7"
+    ],
+    "ua_ids": [
+     "UA-85039641-1"
+    ],
+    "google_ads_ids": [
+     "AW-946538747"
+    ],
+    "vendors_present": [
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/",
+   "status": 200,
+   "title": "Benefits of Routine Tooth Cleanings | Center City Emergency Dentist",
+   "desc_len": 0,
+   "words": 1046,
+   "canonical": "https://centercityemergencydentists.com/benefits-of-routine-tooth-cleanings/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "WordPress 7.1.4",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Center City Emergency Dentist",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "2152235555"
+   ],
+   "phones_text": [
+    "2152235555",
+    "2152546679",
+    "2155454107"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/emergencydentistphiladelphia",
+    "instagram.com/centercityemergencydentist",
+    "twitter.com/emrgencydentist"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ]
+   },
+   "gtm": {
+    "GTM-52ZG6LC": {
+     "gtm_ids": [
+      "GTM-52ZG6LC"
+     ],
+     "ga4_ids": [
+      "G-T880WN3J8G"
+     ],
+     "ua_ids": [
+      "UA-85039641-1"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "recaptcha_or_turnstile"
+     ]
+    },
+    "GTM-W6NM53K7": {
+     "gtm_ids": [
+      "GTM-W6NM53K7",
+      "gtm-form"
+     ],
+     "ga4_ids": [
+      "G-WKS0LBHSK7",
+      "g-recaptcha"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-52ZG6LC",
+     "GTM-W6NM53K7"
+    ],
+    "ua_ids": [
+     "UA-85039641-1"
+    ],
+    "google_ads_ids": [
+     "AW-946538747"
+    ],
+    "vendors_present": [
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/",
+   "status": 200,
+   "title": "Categories: Cosmetic Dentist Tags: center city emergency dentist, Cosmetic Dentist, Philadelphia Pennsylvania, restorative dental care | Center City Emergency Dentist",
+   "desc_len": 0,
+   "words": 828,
+   "canonical": "https://centercityemergencydentists.com/categories-cosmetic-dentist-tags-center-city-emergency-dentist-cosmetic-dentist-philadelphia-pennsylvania-restorative-dental-care/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "WordPress 7.1.4",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Center City Emergency Dentist",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "2152235555"
+   ],
+   "phones_text": [
+    "2152235555",
+    "2153157691",
+    "2155454107"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/emergencydentistphiladelphia",
+    "instagram.com/centercityemergencydentist",
+    "twitter.com/emrgencydentist"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ]
+   },
+   "gtm": {
+    "GTM-52ZG6LC": {
+     "gtm_ids": [
+      "GTM-52ZG6LC"
+     ],
+     "ga4_ids": [
+      "G-T880WN3J8G"
+     ],
+     "ua_ids": [
+      "UA-85039641-1"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "recaptcha_or_turnstile"
+     ]
+    },
+    "GTM-W6NM53K7": {
+     "gtm_ids": [
+      "GTM-W6NM53K7",
+      "gtm-form"
+     ],
+     "ga4_ids": [
+      "G-WKS0LBHSK7",
+      "g-recaptcha"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-52ZG6LC",
+     "GTM-W6NM53K7"
+    ],
+    "ua_ids": [
+     "UA-85039641-1"
+    ],
+    "google_ads_ids": [
+     "AW-946538747"
+    ],
+    "vendors_present": [
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://centercityemergencydentists.com/privacy-policy/",
+   "status": 200,
+   "title": "Privacy Policy | Center City Emergency Dentist",
+   "desc_len": 0,
+   "words": 1884,
+   "canonical": "https://centercityemergencydentists.com/privacy-policy/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "WordPress 7.1.4",
+   "jsonld_types": [
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Center City Emergency Dentist",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "2152235555"
+   ],
+   "phones_text": [
+    "2152235555",
+    "2155454107",
+    "8776966775"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/emergencydentistphiladelphia",
+    "instagram.com/centercityemergencydentist",
+    "twitter.com/emrgencydentist"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://centercityemergencydentists.com/privacy-policy/",
+     "https://centercityemergencydentists.com/privacy-policy/feed/",
+     "https://centercityemergencydentists.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fcentercityemergencydentists.com%2Fprivacy-policy%2F",
+     "https://centercityemergencydentists.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fcentercityemergencydentists.com%2Fprivacy-policy%2F&#038;format=xml",
+     "http://www.hhs.gov/ocr/privacy/hipaa/complaints",
+     "/privacy-policy"
+    ]
+   },
+   "gtm": {
+    "GTM-52ZG6LC": {
+     "gtm_ids": [
+      "GTM-52ZG6LC"
+     ],
+     "ga4_ids": [
+      "G-T880WN3J8G"
+     ],
+     "ua_ids": [
+      "UA-85039641-1"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "recaptcha_or_turnstile"
+     ]
+    },
+    "GTM-W6NM53K7": {
+     "gtm_ids": [
+      "GTM-W6NM53K7",
+      "gtm-form"
+     ],
+     "ga4_ids": [
+      "G-WKS0LBHSK7",
+      "g-recaptcha"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-52ZG6LC",
+     "GTM-W6NM53K7"
+    ],
+    "ua_ids": [
+     "UA-85039641-1"
+    ],
+    "google_ads_ids": [
+     "AW-946538747"
+    ],
+    "vendors_present": [
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/",
+   "status": 200,
+   "title": "Schedule Your Emergency Dental Appointment with Ease | Center City Emergency Dentist",
+   "desc_len": 154,
+   "words": 864,
+   "canonical": "https://centercityemergencydentists.com/schedule-your-emergency-dental-appointment-with-ease/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "WordPress 7.1.4",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Center City Emergency Dentist",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "2152235555"
+   ],
+   "phones_text": [
+    "2152235555",
+    "2155454107"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/emergencydentistphiladelphia",
+    "instagram.com/centercityemergencydentist",
+    "twitter.com/emrgencydentist"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "specialist_expert_claims": [
+     "specialist",
+     "specialists"
+    ]
+   },
+   "gtm": {
+    "GTM-52ZG6LC": {
+     "gtm_ids": [
+      "GTM-52ZG6LC"
+     ],
+     "ga4_ids": [
+      "G-T880WN3J8G"
+     ],
+     "ua_ids": [
+      "UA-85039641-1"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "recaptcha_or_turnstile"
+     ]
+    },
+    "GTM-W6NM53K7": {
+     "gtm_ids": [
+      "GTM-W6NM53K7",
+      "gtm-form"
+     ],
+     "ga4_ids": [
+      "G-WKS0LBHSK7",
+      "g-recaptcha"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-52ZG6LC",
+     "GTM-W6NM53K7"
+    ],
+    "ua_ids": [
+     "UA-85039641-1"
+    ],
+    "google_ads_ids": [
+     "AW-946538747"
+    ],
+    "vendors_present": [
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/",
+   "status": 200,
+   "title": "What To Do When You\u2019re In Need Of An Emergency Dentist | Center City Emergency Dentist",
+   "desc_len": 154,
+   "words": 835,
+   "canonical": "https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/",
+   "robots_meta": [
+    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+   ],
+   "generator": "WordPress 7.1.4",
+   "jsonld_types": [
+    "Article",
+    "BreadcrumbList",
+    "EntryPoint",
+    "ImageObject",
+    "ListItem",
+    "Organization",
+    "Person",
+    "PropertyValueSpecification",
+    "ReadAction",
+    "SearchAction",
+    "WebPage",
+    "WebSite"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "Organization",
+     "name": "Center City Emergency Dentist",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "2152235555"
+   ],
+   "phones_text": [
+    "2152235555",
+    "2155454107"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/emergencydentistphiladelphia",
+    "instagram.com/centercityemergencydentist",
+    "twitter.com/emrgencydentist"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "superlatives": [
+     "the best"
+    ]
+   },
+   "gtm": {
+    "GTM-52ZG6LC": {
+     "gtm_ids": [
+      "GTM-52ZG6LC"
+     ],
+     "ga4_ids": [
+      "G-T880WN3J8G"
+     ],
+     "ua_ids": [
+      "UA-85039641-1"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "recaptcha_or_turnstile"
+     ]
+    },
+    "GTM-W6NM53K7": {
+     "gtm_ids": [
+      "GTM-W6NM53K7",
+      "gtm-form"
+     ],
+     "ga4_ids": [
+      "G-WKS0LBHSK7",
+      "g-recaptcha"
+     ],
+     "vendors_present": [
+      "google_ads",
+      "google_analytics",
+      "meta",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-52ZG6LC",
+     "GTM-W6NM53K7"
+    ],
+    "ua_ids": [
+     "UA-85039641-1"
+    ],
+    "google_ads_ids": [
+     "AW-946538747"
+    ],
+    "vendors_present": [
+     "google_analytics",
+     "google_tag_manager"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "ReadAction S4 info Type 'ReadAction' has no rich-result rul": 6,
+  "PropertyValueSpecification S4 info Type 'PropertyValueSpecification' has no": 6,
+  "Organization S3 missing-recommended sameAs": 6,
+  "Organization S3 missing-recommended contactPoint": 6,
+  "Organization S3 missing-recommended address": 6,
+  "Organization S3 missing-recommended telephone": 6,
+  "Article S1 missing-required image": 4,
+  "Article S3 missing-recommended description": 4,
+  "Person S3 missing-recommended jobTitle": 4,
+  "Person S3 missing-recommended worksFor": 4,
+  "Person S3 missing-recommended sameAs": 4,
+  "Article S3 headline-long 134 chars (>110)": 1
+ },
+ "render": [
+  {
+   "url": "https://centercityemergencydentists.com/",
+   "raw_words": 1986,
+   "rendered_words": 2348,
+   "js_dependent_share": 0.154,
+   "lcp_ms_lab": 2656,
+   "requests": 98,
+   "third_party_hosts": 16,
+   "verdict": "PARTLY JS-DEPENDENT (15%)",
+   "ttfb": 69.69999999995343,
+   "load": 2373.399999999907,
+   "console_errors": 1
+  },
+  {
+   "url": "https://centercityemergencydentists.com/what-to-do-when-youre-in-need-of-an-emergency-dentist/",
+   "raw_words": 835,
+   "rendered_words": 835,
+   "js_dependent_share": 0.0,
+   "lcp_ms_lab": 372,
+   "requests": 77,
+   "third_party_hosts": 14,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 38.300000000046566,
+   "load": 971.7000000001863,
+   "console_errors": 1
+  }
+ ],
+ "probe": [
+  {
+   "url": "https://centercityemergencydentists.com/",
+   "status": 200,
+   "banner": "no consent banner detected",
+   "pre_consent": [
+    "google_ads_doubleclick",
+    "google_analytics",
+    "google_tag_manager"
+   ],
+   "chat": [],
+   "ai_agents": [],
+   "prechecked": [],
+   "scarcity": [],
+   "timers": [
+    "51:02",
+    "00:00",
+    "30:30",
+    "00:00"
+   ],
+   "requests": 192,
+   "hosts": [
+    "ad.doubleclick.net",
+    "analytics.google.com",
+    "cdn.callreports.com",
+    "cdn.jsdelivr.net",
+    "csp.secureserver.net",
+    "fast.wistia.com",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "googleads.g.doubleclick.net",
+    "img1.wsimg.com",
+    "stats.g.doubleclick.net",
+    "www.google.com",
+    "www.googleadservices.com",
+    "www.googletagmanager.com",
+    "www.gstatic.com"
+   ]
+  }
+ ],
+ "demand": [
+  {
+   "seed": "center city emergency dentist",
+   "brand_in_list": true,
+   "top": [
+    "center city emergency dentist",
+    "center city emergency dentist reviews",
+    "center city emergency dentist philadelphia",
+    "center city emergency dentist hours",
+    "center city emergency dentist photos",
+    "center city emergency dentist patient portal",
+    "center city emergency dentist walnut street philadelphia pa",
+    "center city emergency dentist by owner",
+    "center city emergency dentist insurance",
+    "center city emergency dentist reddit"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "emergency dentist philadelphia",
+   "brand_in_list": false,
+   "top": [
+    "emergency dentist philadelphia",
+    "emergency dentist philadelphia open now",
+    "emergency dentist philadelphia pa",
+    "emergency dentist philadelphia that accept keystone first",
+    "emergency dentist philadelphia medicaid",
+    "emergency dentist philadelphia near me",
+    "emergency dentist philadelphia no insurance",
+    "emergency dentist philadelphia health partners",
+    "emergency dentist philadelphia accepting payment plans",
+    "emergency dentist philadelphia reddit"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "24 hour dentist philadelphia",
+   "brand_in_list": false,
+   "top": [
+    "24 hour dentist philadelphia",
+    "24 hour emergency dentist philadelphia",
+    "24 hour emergency dentist philadelphia open now",
+    "1800 emergency dentist philadelphia 24 hour",
+    "1800 emergency dentist philadelphia 24 hour photos",
+    "1800 emergency dentist philadelphia 24 hour reviews",
+    "24 hr emergency dental near me",
+    "24 hour emergency dentists",
+    "24 hour emergency dentist in washington dc",
+    "are there 24 hour dentists"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "walk in dentist philadelphia",
+   "brand_in_list": false,
+   "top": [
+    "walk in dentist philadelphia pa",
+    "walk in dentist philadelphia",
+    "emergency dentist in philadelphia",
+    "emergency dentist in philadelphia pa",
+    "emergency dentist philadelphia that accept keystone first",
+    "emergency dentist philadelphia medicaid",
+    "emergency dentist philadelphia open now",
+    "emergency dentist philadelphia no insurance",
+    "emergency dentist philadelphia near me",
+    "emergency dentist philadelphia health partners"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "same day dentist philadelphia",
+   "brand_in_list": false,
+   "top": [
+    "same day dentist philadelphia",
+    "can you get same day dentist appointments",
+    "same day dentist appointment near me",
+    "do dentists take same day appointments",
+    "same day dentist near me",
+    "same day dental services near me"
+   ],
+   "status": "ok"
+  }
+ ]
+}

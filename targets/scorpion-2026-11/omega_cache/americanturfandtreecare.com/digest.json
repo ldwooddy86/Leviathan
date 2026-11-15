@@ -1,0 +1,872 @@
+{
+ "domain": "americanturfandtreecare.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 103,
+  "indexable": 30,
+  "codes": {
+   "Low LONG_TITLE": 13,
+   "Low MISSING_DESCRIPTION": 13,
+   "Low ORPHAN_CANDIDATE": 4
+  },
+  "examples": {
+   "LONG_TITLE": [
+    "https://www.americanturfandtreecare.com/",
+    "https://www.americanturfandtreecare.com/lawn-care-eaton",
+    "https://www.americanturfandtreecare.com/lawn-care-evans"
+   ],
+   "MISSING_DESCRIPTION": [
+    "https://www.americanturfandtreecare.com/tree-care-berthoud",
+    "https://www.americanturfandtreecare.com/tree-care-eaton",
+    "https://www.americanturfandtreecare.com/tree-care-evans"
+   ],
+   "ORPHAN_CANDIDATE": [
+    "https://www.americanturfandtreecare.com/about/our-blog/how-snow-affects-your-lawn",
+    "https://www.americanturfandtreecare.com/blog/plants-that-repel-mosquitoes",
+    "https://www.americanturfandtreecare.com/mosquito-control-eaton"
+   ]
+  },
+  "jsonld_types": {
+   "Product": 30,
+   "LocalBusiness": 30,
+   "BlogPosting": 2
+  },
+  "no_desc": 13,
+  "long_title": 13
+ },
+ "pages": [
+  {
+   "url": "https://www.americanturfandtreecare.com/",
+   "status": 200,
+   "title": "American Turf & Tree Care | Lawn Care in Greeley, CO | Lawn Care Near Me",
+   "desc_len": 144,
+   "words": 1385,
+   "canonical": "https://www.americanturfandtreecare.com/",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "American Turf & Tree Care",
+     "telephone": "970-352-7711",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Greeley",
+      "addressRegion": "Colorado",
+      "streetAddress": "2500 W F Street"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "19702817979",
+    "9703527711"
+   ],
+   "phones_text": [
+    "9702897979",
+    "9703527711"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/AmericanTTC",
+    "g.page/AmericanTTC",
+    "yelp.com/biz/american-turf-and-tree-care-greeley-3"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "terms_link": [
+     "/terms-and-conditions"
+    ],
+    "superlatives": [
+     "The best"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-NVW8TN": {
+     "gtm_ids": [
+      "GTM-NVW8TN"
+     ],
+     "ga4_ids": [
+      "G-4NPVKFW14S",
+      "G-X1WN4RL35H"
+     ],
+     "ua_ids": [
+      "UA-69637157-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-NVW8TN"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.americanturfandtreecare.com/contact",
+   "status": 200,
+   "title": "Contact Us | American Turf & Tree Care",
+   "desc_len": 128,
+   "words": 692,
+   "canonical": "https://www.americanturfandtreecare.com/contact",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "American Turf & Tree Care",
+     "telephone": "970-352-7711",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Greeley",
+      "addressRegion": "Colorado",
+      "streetAddress": "2500 W F Street"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "19702817979",
+    "9703527711"
+   ],
+   "phones_text": [
+    "9702817979",
+    "9703527711"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/AmericanTTC",
+    "yelp.com/biz/american-turf-and-tree-care-greeley-3"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "terms_link": [
+     "/terms-and-conditions"
+    ],
+    "specialist_expert_claims": [
+     "Experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-NVW8TN": {
+     "gtm_ids": [
+      "GTM-NVW8TN"
+     ],
+     "ga4_ids": [
+      "G-4NPVKFW14S",
+      "G-X1WN4RL35H"
+     ],
+     "ua_ids": [
+      "UA-69637157-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-NVW8TN"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.americanturfandtreecare.com/lawn-care-eaton",
+   "status": 200,
+   "title": "Lawn Care in Eaton, CO | Weed Control, Aeration, Fertilization, & More | Lawn Care Near Me | American Turf & Tree Care",
+   "desc_len": 180,
+   "words": 1562,
+   "canonical": "https://www.americanturfandtreecare.com/lawn-care-eaton",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "American Turf & Tree Care",
+     "telephone": "970-352-7711",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Greeley",
+      "addressRegion": "Colorado",
+      "streetAddress": "2500 W F Street"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+19706605510",
+    "19702817979",
+    "9703527711"
+   ],
+   "phones_text": [
+    "9702817979",
+    "9703527711"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/AmericanTTC",
+    "yelp.com/biz/american-turf-and-tree-care-greeley-3"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "terms_link": [
+     "/terms-and-conditions"
+    ],
+    "guarantee_language": [
+     "A yard that you can be proud of! A Beautiful Lawn With Guaranteed Service When you partner with our team of lawn technicians,",
+     "ado's best local experts, but we offer you our satisfaction guarantee with every package",
+     "Guaranteed satisfaction: if you\u2019re unhappy with your service, let us k",
+     "Guaranteed Mosquito Treatments Backed By Decades of Experience Image F",
+     "Our satisfaction-guaranteed treatments utilize EPA-approved products and formulas to re",
+     "Our Guarantee Should your issues persist in between scheduled treatments,",
+     "That's our guarantee to you! Image Additional Services Image Winter Services Ima"
+    ],
+    "superlatives": [
+     "The Best",
+     "The best",
+     "the Best"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "expert",
+     "specialists",
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-NVW8TN": {
+     "gtm_ids": [
+      "GTM-NVW8TN"
+     ],
+     "ga4_ids": [
+      "G-4NPVKFW14S",
+      "G-X1WN4RL35H"
+     ],
+     "ua_ids": [
+      "UA-69637157-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-NVW8TN"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.americanturfandtreecare.com/lawn-care-loveland",
+   "status": 200,
+   "title": "Lawn Care in Loveland, CO | Weed Control, Aeration, Fertilization, & More | Lawn Care Near Me | American Turf & Tree Care",
+   "desc_len": 182,
+   "words": 1884,
+   "canonical": "https://www.americanturfandtreecare.com/lawn-care-loveland",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "American Turf & Tree Care",
+     "telephone": "970-660-5510",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Loveland",
+      "addressRegion": "Colorado",
+      "streetAddress": "201 E. 4th St. Suite #38"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "19702817979",
+    "9703527711",
+    "9706605510"
+   ],
+   "phones_text": [
+    "9702817979",
+    "9703527711",
+    "9706605510"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/AmericanTTC",
+    "yelp.com/biz/american-turf-and-tree-care-greeley-3"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "terms_link": [
+     "/terms-and-conditions"
+    ],
+    "guarantee_language": [
+     "e Service Near You! Berthoud Campion Johnstown Milliken Our Guarantee Should your issues persist in between scheduled treatments,",
+     "That's our guarantee to you! Image Additional Services Image Winter Services Ima"
+    ],
+    "superlatives": [
+     "The Best",
+     "The best"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "Expert",
+     "experts",
+     "expert"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-NVW8TN": {
+     "gtm_ids": [
+      "GTM-NVW8TN"
+     ],
+     "ga4_ids": [
+      "G-4NPVKFW14S",
+      "G-X1WN4RL35H"
+     ],
+     "ua_ids": [
+      "UA-69637157-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-NVW8TN"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.americanturfandtreecare.com/privacy-policy",
+   "status": 200,
+   "title": "Privacy Policy | American Turf & Tree Care",
+   "desc_len": 250,
+   "words": 3082,
+   "canonical": "https://www.americanturfandtreecare.com/privacy-policy",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "American Turf & Tree Care",
+     "telephone": "970-352-7711",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Greeley",
+      "addressRegion": "Colorado",
+      "streetAddress": "2500 W F Street"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "9703527711"
+   ],
+   "phones_text": [
+    "9703527711"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/AmericanTTC",
+    "yelp.com/biz/american-turf-and-tree-care-greeley-3"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.americanturfandtreecare.com/privacy-policy"
+    ],
+    "terms_link": [
+     "/terms-and-conditions"
+    ],
+    "guarantee_language": [
+     "do our best to protect your personal information, we cannot guarantee the security of your personal information transmitted to ou",
+     "While we carefully review all content, we cannot guarantee the complete accuracy of any information on our website, wh"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-NVW8TN": {
+     "gtm_ids": [
+      "GTM-NVW8TN"
+     ],
+     "ga4_ids": [
+      "G-4NPVKFW14S",
+      "G-X1WN4RL35H"
+     ],
+     "ua_ids": [
+      "UA-69637157-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-NVW8TN"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.americanturfandtreecare.com/services/weed-control",
+   "status": 200,
+   "title": "Weed Control in Northern Colorado | American Turf & Tree",
+   "desc_len": 212,
+   "words": 1480,
+   "canonical": "https://www.americanturfandtreecare.com/services/weed-control",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "AggregateRating",
+    "LocalBusiness",
+    "PostalAddress",
+    "Product",
+    "ProfessionalService",
+    "Service"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "American Turf & Tree Care",
+     "telephone": "970-352-7711",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Greeley",
+      "addressRegion": "Colorado",
+      "streetAddress": "2500 W F Street"
+     }
+    },
+    {
+     "type": "Service",
+     "name": "Weed Control",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    },
+    {
+     "type": "ProfessionalService",
+     "name": "American Turf & Tree Care",
+     "telephone": null,
+     "sameAs": null,
+     "address": null
+    }
+   ],
+   "tel_hrefs": [
+    "+19706605510",
+    "19702817979",
+    "9703527711"
+   ],
+   "phones_text": [
+    "9702817979",
+    "9703527711"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/AmericanTTC",
+    "yelp.com/biz/american-turf-and-tree-care-greeley-3"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "terms_link": [
+     "/terms-and-conditions"
+    ],
+    "guarantee_language": [
+     "owth in rocks and dirt And more! Call today to get started! Guaranteed Products & Customer Satisfaction In addition to providing t",
+     "We guarantee that our products are the safest in the Northern Colorado a",
+     "uccessful when 85-95% of weeds are eliminated, so we cannot guarantee complete elimination"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "specialist_expert_claims": [
+     "Experts",
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-NVW8TN": {
+     "gtm_ids": [
+      "GTM-NVW8TN"
+     ],
+     "ga4_ids": [
+      "G-4NPVKFW14S",
+      "G-X1WN4RL35H"
+     ],
+     "ua_ids": [
+      "UA-69637157-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-NVW8TN"
+    ],
+    "vendors_present": []
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "Product S4 info Type 'Product' has no rich-result rules ": 6,
+  "AggregateRating S3 missing-recommended bestRating": 6,
+  "LocalBusiness S3 missing-recommended url": 6,
+  "LocalBusiness S3 missing-recommended image": 6,
+  "LocalBusiness S3 missing-recommended geo": 6,
+  "LocalBusiness S3 missing-recommended openingHoursSpecification": 6,
+  "LocalBusiness S3 missing-recommended priceRange": 6,
+  "LocalBusiness S3 missing-recommended sameAs": 6,
+  "LocalBusiness S3 missing-recommended areaServed": 6,
+  "ProfessionalService S1 missing-required address": 1,
+  "ProfessionalService S1 missing-required telephone": 1,
+  "ProfessionalService S3 missing-recommended image": 1
+ },
+ "render": [
+  {
+   "url": "https://www.americanturfandtreecare.com/",
+   "raw_words": 1382,
+   "rendered_words": 1368,
+   "js_dependent_share": 0.0,
+   "lcp_ms_lab": 976,
+   "requests": 106,
+   "third_party_hosts": 22,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 47,
+   "load": 2875.5999999998603,
+   "console_errors": 0
+  },
+  {
+   "url": "https://www.americanturfandtreecare.com/lawn-care-loveland",
+   "raw_words": 1881,
+   "rendered_words": 1862,
+   "js_dependent_share": 0.0,
+   "lcp_ms_lab": 836,
+   "requests": 90,
+   "third_party_hosts": 15,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 55.800000000046566,
+   "load": 1536.1999999999534,
+   "console_errors": 0
+  }
+ ],
+ "probe": [
+  {
+   "url": "https://www.americanturfandtreecare.com/",
+   "status": 200,
+   "banner": "no consent banner detected",
+   "pre_consent": [
+    "google_ads_doubleclick",
+    "google_analytics",
+    "google_tag_manager",
+    "microsoft_uet"
+   ],
+   "chat": [],
+   "ai_agents": [],
+   "prechecked": [],
+   "scarcity": [],
+   "timers": [
+    "8:00",
+    "5:00"
+   ],
+   "requests": 240,
+   "hosts": [
+    "472076.tctm.co",
+    "ajax.googleapis.com",
+    "analytics.google.com",
+    "api.captivated.works",
+    "bat.bing.com",
+    "cdn.jsdelivr.net",
+    "cdnjs.cloudflare.com",
+    "dkg63mm7284y1.cloudfront.net",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "googleads.g.doubleclick.net",
+    "i.ytimg.com",
+    "jnn-pa.googleapis.com",
+    "maps.googleapis.com",
+    "maps.gstatic.com",
+    "static.doubleclick.net",
+    "stats.g.doubleclick.net",
+    "unpkg.com",
+    "www.google-analytics.com",
+    "www.google.com",
+    "www.googletagmanager.com",
+    "www.youtube.com"
+   ]
+  }
+ ],
+ "demand": [
+  {
+   "seed": "american turf and tree care",
+   "brand_in_list": true,
+   "top": [
+    "american turf and tree care",
+    "american turf and tree care reviews",
+    "american turf and tree care greeley co",
+    "american turf and tree care greeley",
+    "american lawn and tree care",
+    "american lawn and tree care ny",
+    "american turf & tree care photos",
+    "american lawn and tree service",
+    "services offered by american turf and tree care",
+    "can you put turf around a tree"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "lawn care greeley",
+   "brand_in_list": false,
+   "top": [
+    "lawn care greeley",
+    "lawn care greeley co",
+    "lawn service greeley",
+    "lawn service greeley co",
+    "lawn mowing greeley co",
+    "greeley lawn care",
+    "augusta lawn care greeley",
+    "augusta lawn care greeley co",
+    "budget lawn care greeley co",
+    "budget lawn care greeley"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "lawn care fort collins",
+   "brand_in_list": false,
+   "top": [
+    "lawn care fort collins",
+    "lawn care fort collins co",
+    "lawn service fort collins",
+    "lawn mowing fort collins",
+    "lawn maintenance fort collins",
+    "yard care fort collins",
+    "joel's lawn care fort collins",
+    "hunters lawn care fort collins",
+    "wolff lawn care fort collins",
+    "organic lawn care fort collins"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "tree care greeley",
+   "brand_in_list": true,
+   "top": [
+    "greely tree service",
+    "tree trimming greeley",
+    "tree service greeley co",
+    "tree trimming greeley co",
+    "tree trimming greeley prices",
+    "greeley tree care workshop",
+    "greeley tree care workshop 2026",
+    "american turf and tree care greeley co",
+    "american turf and tree care greeley"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "lawn aeration greeley",
+   "brand_in_list": false,
+   "top": [
+    "lawn aeration greeley",
+    "lawn aeration greeley co",
+    "lawn care greeley",
+    "lawn care greeley co"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "lawn care windsor co",
+   "brand_in_list": false,
+   "top": [
+    "lawn care windsor co",
+    "lawn care windsor colorado",
+    "lawn service windsor co",
+    "lawn care companies windsor",
+    "lawn mowing windsor co",
+    "sam's lawn care windsor co",
+    "augusta lawn care windsor co",
+    "lawn mowing service windsor co"
+   ],
+   "status": "ok"
+  }
+ ]
+}

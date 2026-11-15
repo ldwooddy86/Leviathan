@@ -1,0 +1,843 @@
+{
+ "url": "https://www.soundpestcontrol.com/",
+ "locale": "en-US",
+ "fetched_at": "2026-11-15T08:46:12Z",
+ "presence": {
+  "identity": "OmegaWeapon/1.0 (declared site-audit bot; obeys robots.txt)",
+  "timezone": null,
+  "viewport": null,
+  "engine": "chromium (headless; honest: declared UA, no stealth, webdriver flag left true)"
+ },
+ "status": 200,
+ "final_url": "https://www.soundpestcontrol.com/",
+ "title": "Pest Control in the Puget Sound | No-Contract Options | Sound Pest Control",
+ "tier": "RENDERED",
+ "consent_banner": {
+  "cmp_root": null,
+  "text_hint": false,
+  "accept_controls": [],
+  "reject_controls": [],
+  "reading": "no consent banner detected"
+ },
+ "pre_consent_trackers": [
+  "chat_or_ai_widget",
+  "google_ads_doubleclick",
+  "google_analytics",
+  "google_tag_manager",
+  "microsoft_uet"
+ ],
+ "pre_consent_tracker_requests": [
+  {
+   "t": 0.072,
+   "url": "https://connect.podium.com/widget.js",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 0.97,
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-KTNW5H",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.265,
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-8W2QWX5QL7&cx=c&gtm=4e6bb1",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.265,
+   "url": "https://www.google-analytics.com/analytics.js",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.265,
+   "url": "https://bat.bing.com/bat.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.267,
+   "url": "https://assets.podium.com/sounds/livechat-notification.wav",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 1.283,
+   "url": "https://mind-flayer.podium.com/graphql",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 1.317,
+   "url": "https://bat.bing.com/p/action/199014741.js",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.332,
+   "url": "https://www.google-analytics.com/plugins/ua/linkid.js",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.368,
+   "url": "https://bat.bing.com/p/conversions/t/199014741",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.368,
+   "url": "https://bat.bing.com/action/0?ti=199014741&tm=gtm002&Ver=2&mid=8a83b29a-5ebc-40f5-9796-6f04ea08971b&bo=1&sid=03759b60e0d111f18b629b092529eadb&vid=03762cb0e0d111f19cc6fdb1b50046b6&vids=1&msclkid=N&gtm_tag_source=1&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Pest%20Control%20in%20the%20Puge",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.387,
+   "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=789660649&t=pageview&_s=1&dl=https%3A%2F%2Fwww.soundpestcontrol.com%2F&ul=en-us&dt=Pest%20Control%20in%20the%20Puget%20Sound%20%7C%20No-Contract%20Options%20%7C%20Sound%20Pest%20Control&sr=1280x720&vp=1280x720&_u=aGBAgEAjAAAAACAAI~&jid=1133953",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.388,
+   "url": "https://stats.g.doubleclick.net/j/collect?t=dc&aip=1&_r=3&v=1&_v=j102&tid=UA-76032643-1&cid=1871283074.1794732374&jid=1133953412&gjid=403407045&_gid=592495084.1794732374&_u=aGBAgEAjAAAAAGAAI~&z=309182307",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.499,
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-8W2QWX5QL7&gtm=45je6bb1v867670171za20ozb72110836zd72110836xf1&_p=1794732373211&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1366257446&_eu=EAAAACAC&cid=1871283074.1794732374&ec_mode=a&frm=0&ibt=1&ir=1&ngs=1&pscdl=noapi&rcb=7&sr=1280x720&uaa=x86&uab=64&uaf",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.502,
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&ngs=1&ibt=1&tid=G-8W2QWX5QL7&cid=1871283074.1794732374&gtm=45je6bb1v867670171za20ozb72110836zd72110836xf1&rcb=7&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115938465~115938469~118897920~118897930~120213116~120385422~120412526~120420414~120469145~120",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.506,
+   "url": "https://bat.bing.com/p/conversions/s/0.8.77",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.712,
+   "url": "https://bat.bing.com/p/conversions/c/l",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.786,
+   "url": "https://mind-flayer.podium.com/graphql",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 1.891,
+   "url": "https://mind-flayer.podium.com/graphql",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  }
+ ],
+ "prechecked_checkboxes": [],
+ "scarcity_strings": [],
+ "timer_strings_first_load": [],
+ "ai_agent_markers": [],
+ "chat_iframes": [],
+ "post_scroll_new_trackers": [],
+ "request_count": 87,
+ "third_party_hosts": [
+  "73828.tctm.co",
+  "ajax.googleapis.com",
+  "analytics.google.com",
+  "assets.podium.com",
+  "bat.bing.com",
+  "cdn.jsdelivr.net",
+  "connect.podium.com",
+  "fonts.googleapis.com",
+  "fonts.gstatic.com",
+  "maps.googleapis.com",
+  "maps.gstatic.com",
+  "mind-flayer.podium.com",
+  "stats.g.doubleclick.net",
+  "unpkg.com",
+  "www.google-analytics.com",
+  "www.googletagmanager.com",
+  "www.youtube.com"
+ ],
+ "requests": [
+  {
+   "t": 0.01,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/",
+   "type": "document",
+   "trackers": []
+  },
+  {
+   "t": 0.059,
+   "phase": "pre-interaction",
+   "url": "https://73828.tctm.co/t.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.059,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/sprowt3/fonts/icomoon/fonts/icomoon.ttf?qu873q",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.059,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/sprowt3/fonts/icomoon/fonts/icomoon.woff?qu873q",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.06,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/libraries/slick/slick/fonts/slick.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.06,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/libraries/slick/slick/fonts/slick.woff",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.06,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/google_tag/gtm/google_tag.script.js?toe9c3",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.06,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/css/css_LoUQZuFP5IvuetfPWby5F-NpeF0qlW1yE8VX6gA0lzY.css?delta=0&language=en&theme=soundpest_s3&include=eJx1UWtuwzAIvpAXS9uBLGKTFA0by-BG2enntE0nrdsfzPcAGYgMqrufQdHFe55RFVbUExdJQ5OGI2sZmL7QMezSLcydOGHztkkUDorRSMqpJtIoV2y7l4JDdxkTgV-IDdsUod7MFRqsDepF",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.064,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.065,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/css/css_h861zsKuHUmPSBV6TtgZyLEzWDPVAxzlEw7bVFHKeD0.css?delta=2&language=en&theme=soundpest_s3&include=eJx1UWtuwzAIvpAXS9uBLGKTFA0by-BG2enntE0nrdsfzPcAGYgMqrufQdHFe55RFVbUExdJQ5OGI2sZmL7QMezSLcydOGHztkkUDorRSMqpJtIoV2y7l4JDdxkTgV-IDdsUod7MFRqsDepF",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.066,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/css/css_3idErx_vblHrdUlxJLt2pUsWbJvzT1ugmNY7o8yGdxY.css?delta=3&language=en&theme=soundpest_s3&include=eJx1UWtuwzAIvpAXS9uBLGKTFA0by-BG2enntE0nrdsfzPcAGYgMqrufQdHFe55RFVbUExdJQ5OGI2sZmL7QMezSLcydOGHztkkUDorRSMqpJtIoV2y7l4JDdxkTgV-IDdsUod7MFRqsDepF",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.067,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/logo-header%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.067,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/hero_1600x520/public/images/girl-playing-with-dog-.webp?itok=NYQiIUbA",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.067,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/sprowt/logo-header%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.068,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/sprowt/logo-header%402x_0.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.068,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/hero_1600x520/public/images/brand-section-image-couple-drinking-coffee.webp?itok=WgGoUiWD",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.068,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/logo-footer%402x.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.068,
+   "phase": "pre-interaction",
+   "url": "https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.069,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/js/js_GGQ6RGivGLHDPEYAiqCTOvoB6an5AK-rggPxTXvwLX0.js?scope=footer&delta=1&language=en&theme=soundpest_s3&include=eJyFkNFqBCEMRX_IGaH9oJDVjJVGIybu_H6VDn3oMuyL4r2HhGMKnCMcmTj6IMwUzDVSaxjgpMchvagfViBgs9HJKS3mA5DZxz4a8n5FToWHZalzXI3U_b_37EeNazjop08sD-",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.07,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/modules/custom/pestpac_webforms/dist/js/utmCapture.js?v=1.x",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.07,
+   "phase": "pre-interaction",
+   "url": "https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.07,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/js/js_Dbdwbdxi5jwQL5bC_FzoONyw2asFtsbhr1xjVo1yy8Q.js?scope=footer&delta=4&language=en&theme=soundpest_s3&include=eJyFkNFqBCEMRX_IGaH9oJDVjJVGIybu_H6VDn3oMuyL4r2HhGMKnCMcmTj6IMwUzDVSaxjgpMchvagfViBgs9HJKS3mA5DZxz4a8n5FToWHZalzXI3U_b_37EeNazjop08sD-",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.071,
+   "phase": "pre-interaction",
+   "url": "https://unpkg.com/detect-autofill/dist/detect-autofill.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.071,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/js/js_qTGSkvK-nQZSL7jvuppli-KFtQ5VkwQtc1vcoLX8ArI.js?scope=footer&delta=6&language=en&theme=soundpest_s3&include=eJyFkNFqBCEMRX_IGaH9oJDVjJVGIybu_H6VDn3oMuyL4r2HhGMKnCMcmTj6IMwUzDVSaxjgpMchvagfViBgs9HJKS3mA5DZxz4a8n5FToWHZalzXI3U_b_37EeNazjop08sD-",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.072,
+   "phase": "pre-interaction",
+   "url": "https://connect.podium.com/widget.js",
+   "type": "script",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 0.279,
+   "phase": "pre-interaction",
+   "url": "https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700,800&display=swap",
+   "type": "stylesheet",
+   "trackers": []
+  },
+  {
+   "t": 0.62,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/contrib/classy/images/icons/ee0000/required.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.62,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsjZ0B4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.621,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsgH1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.621,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgsg-1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.622,
+   "phase": "pre-interaction",
+   "url": "https://fonts.gstatic.com/s/opensans/v44/memSYaGs126MiZpBA-UvWbX2vVnXBbObj2OVZyOOSr4dVJWUgshZ1x4gaVc.ttf",
+   "type": "font",
+   "trackers": []
+  },
+  {
+   "t": 0.622,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/no-contracts.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.623,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/community-involvement.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.623,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/brand_450x250_/public/images/20-years-badge.webp?itok=l9VjBcLa",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.667,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/themes/soundpest_s3/assets/images/logo-bars-2x.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.668,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/service-summary-pest-control.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.668,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/service-summary-ants.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.668,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/service-summary-bed-bug-control.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.668,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/service-summary-rodent-control.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.669,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/images/service-summary-mole-control.webp",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.669,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/sprowt3/assets/great_deal.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.669,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/themes/soundpest_s3/assets/images/coupon_border_grey.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.669,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/sprowt3/assets/coupon_border.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.669,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/themes/soundpest_s3/assets/images/badge-satisfaction-guaranteed%402x.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.67,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/sprowt3/assets/logo-google.svg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.67,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/sites/default/themes/soundpest_s3/assets/images/map-section-image.jpg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.67,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/themes/contrib/classy/images/misc/menu-collapsed.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.784,
+   "phase": "pre-interaction",
+   "url": "https://www.soundpestcontrol.com/libraries/slick/slick/ajax-loader.gif",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 0.916,
+   "phase": "pre-interaction",
+   "url": "https://unpkg.com/detect-autofill@1.1.4/dist/detect-autofill.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 0.97,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtm.js?id=GTM-KTNW5H",
+   "type": "script",
+   "trackers": [
+    "google_tag_manager"
+   ]
+  },
+  {
+   "t": 1.236,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyCrnlirOsW8kRa1Et90LpfLJ8_uBGpw1Fo&v=weekly&channel=4&callback=google.maps.__ib__",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.265,
+   "phase": "pre-interaction",
+   "url": "https://www.googletagmanager.com/gtag/js?id=G-8W2QWX5QL7&cx=c&gtm=4e6bb1",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.265,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/analytics.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.265,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/bat.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.265,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/iframe_api",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.267,
+   "phase": "pre-interaction",
+   "url": "https://assets.podium.com/sounds/livechat-notification.wav",
+   "type": "media",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 1.283,
+   "phase": "pre-interaction",
+   "url": "https://mind-flayer.podium.com/graphql",
+   "type": "xhr",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 1.288,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/util.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.288,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/controls.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.288,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.288,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/places_impl.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.289,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/common.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.289,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps-api-v3/api/js/66/13d/main.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.317,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/action/199014741.js",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.332,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/plugins/ua/linkid.js",
+   "type": "script",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.368,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/t/199014741",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.368,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/action/0?ti=199014741&tm=gtm002&Ver=2&mid=8a83b29a-5ebc-40f5-9796-6f04ea08971b&bo=1&sid=03759b60e0d111f18b629b092529eadb&vid=03762cb0e0d111f19cc6fdb1b50046b6&vids=1&msclkid=N&gtm_tag_source=1&uach=pv%3D&pi=0&lg=en-US&sw=1280&sh=720&sc=24&nwd=1&tl=Pest%20Control%20in%20the%20Puge",
+   "type": "image",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.387,
+   "phase": "pre-interaction",
+   "url": "https://www.google-analytics.com/j/collect?v=1&_v=j102&a=789660649&t=pageview&_s=1&dl=https%3A%2F%2Fwww.soundpestcontrol.com%2F&ul=en-us&dt=Pest%20Control%20in%20the%20Puget%20Sound%20%7C%20No-Contract%20Options%20%7C%20Sound%20Pest%20Control&sr=1280x720&vp=1280x720&_u=aGBAgEAjAAAAACAAI~&jid=1133953",
+   "type": "xhr",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.388,
+   "phase": "pre-interaction",
+   "url": "https://stats.g.doubleclick.net/j/collect?t=dc&aip=1&_r=3&v=1&_v=j102&tid=UA-76032643-1&cid=1871283074.1794732374&jid=1133953412&gjid=403407045&_gid=592495084.1794732374&_u=aGBAgEAjAAAAAGAAI~&z=309182307",
+   "type": "xhr",
+   "trackers": [
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.499,
+   "phase": "pre-interaction",
+   "url": "https://analytics.google.com/g/collect?v=2&tid=G-8W2QWX5QL7&gtm=45je6bb1v867670171za20ozb72110836zd72110836xf1&_p=1794732373211&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1366257446&_eu=EAAAACAC&cid=1871283074.1794732374&ec_mode=a&frm=0&ibt=1&ir=1&ngs=1&pscdl=noapi&rcb=7&sr=1280x720&uaa=x86&uab=64&uaf",
+   "type": "fetch",
+   "trackers": [
+    "google_analytics"
+   ]
+  },
+  {
+   "t": 1.502,
+   "phase": "pre-interaction",
+   "url": "https://stats.g.doubleclick.net/g/collect?v=2&ngs=1&ibt=1&tid=G-8W2QWX5QL7&cid=1871283074.1794732374&gtm=45je6bb1v867670171za20ozb72110836zd72110836xf1&rcb=7&aip=1&dma=0&gcd=13l3l3l3l1l1&npa=0&frm=0&tag_exp=115938465~115938469~118897920~118897930~120213116~120385422~120412526~120420414~120469145~120",
+   "type": "ping",
+   "trackers": [
+    "google_analytics",
+    "google_ads_doubleclick"
+   ]
+  },
+  {
+   "t": 1.506,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/s/0.8.77",
+   "type": "script",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.506,
+   "phase": "pre-interaction",
+   "url": "https://www.youtube.com/s/player/fad7e4e9/www-widgetapi.vflset/www-widgetapi.js",
+   "type": "script",
+   "trackers": []
+  },
+  {
+   "t": 1.712,
+   "phase": "pre-interaction",
+   "url": "https://bat.bing.com/p/conversions/c/l",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  },
+  {
+   "t": 1.778,
+   "phase": "pre-interaction",
+   "url": "https://maps.googleapis.com/maps/api/mapsjs/gen_204?csp_test=true",
+   "type": "xhr",
+   "trackers": []
+  },
+  {
+   "t": 1.782,
+   "phase": "pre-interaction",
+   "url": "https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.782,
+   "phase": "pre-interaction",
+   "url": "https://maps.gstatic.com/mapfiles/api-3/images/autocomplete-icons.png",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 1.786,
+   "phase": "pre-interaction",
+   "url": "https://mind-flayer.podium.com/graphql",
+   "type": "xhr",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 1.891,
+   "phase": "pre-interaction",
+   "url": "https://mind-flayer.podium.com/graphql",
+   "type": "xhr",
+   "trackers": [
+    "chat_or_ai_widget"
+   ]
+  },
+  {
+   "t": 9.592,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/desktop_max_1600_x_1200/public/images/service-area2x.webp?itok=p2riS0O5",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.594,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/teaser_600x300_/public/images/mole.webp?h=38facc0a&itok=WNwvmNv9",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.595,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/teaser_600x300_/public/images/rodent_home.webp?h=38facc0a&itok=dCT9cG--",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.595,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/teaser_600x300_/public/images/wasp_winter_0.webp?h=38facc0a&itok=ARRzZ6Lf",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.595,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-logo-wspma2x.webp?itok=LyAWpEbT",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.596,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-logo-npma2x.webp?itok=LDgq8PBg",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.596,
+   "phase": "post-scroll",
+   "url": "https://www.soundpestcontrol.com/sites/default/files/styles/brand_450x250_/public/images/affiliation-food-bank2x.webp?itok=eRb_Gz70",
+   "type": "image",
+   "trackers": []
+  },
+  {
+   "t": 9.916,
+   "phase": "post-scroll",
+   "url": "https://bat.bing.com/p/conversions/c/l",
+   "type": "xhr",
+   "trackers": [
+    "microsoft_uet"
+   ]
+  }
+ ]
+}

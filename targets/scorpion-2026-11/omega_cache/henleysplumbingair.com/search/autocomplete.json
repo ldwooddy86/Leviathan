@@ -1,0 +1,94 @@
+[
+ {
+  "seed": "henleys plumbing",
+  "suggestions": [
+   "henleys plumbing",
+   "henleys plumbing and air",
+   "henleys plumbing and air reviews",
+   "henley plumbing supplies",
+   "henley plumbing and heating",
+   "henleys plumbing llandudno",
+   "henley plumbing monteagle tn",
+   "henley's plumbing & air corona",
+   "henley plumbing supplies reviews",
+   "henley plumbing houston"
+  ],
+  "client_present": true,
+  "status": "ok",
+  "fetched": "2026-11-15T08:49Z"
+ },
+ {
+  "seed": "plumber san bernardino",
+  "suggestions": [
+   "plumber san bernardino",
+   "plumber san bernardino ca",
+   "plumbing san bernardino",
+   "plumbers san bernardino residential",
+   "plumbing san bernardino ca",
+   "plumbers san bernardino prices",
+   "licensed plumber san bernardino county",
+   "emergency plumber san bernardino",
+   "cheap plumber san bernardino",
+   "ferguson plumbing san bernardino"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:49Z"
+ },
+ {
+  "seed": "plumber corona ca",
+  "suggestions": [
+   "plumber corona ca",
+   "plumbing corona ca",
+   "emergency plumber corona ca",
+   "plumbing supply corona ca",
+   "reece plumbing corona ca",
+   "bogart plumbing corona ca",
+   "infinity plumbing corona ca",
+   "plumbing jobs corona ca",
+   "ram plumbing corona ca",
+   "plumbing concepts.corona ca"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:49Z"
+ },
+ {
+  "seed": "ac repair riverside",
+  "suggestions": [
+   "ac repair riverside",
+   "ac repair riverside ca",
+   "hvac repair riverside",
+   "hvac repair riverside ca",
+   "car ac repair riverside",
+   "car ac repair riverside ca",
+   "mb plumbing heating & ac repair riverside"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:49Z"
+ },
+ {
+  "seed": "water heater replacement redlands",
+  "suggestions": [
+   "water heater repair redlands",
+   "how much is a permit to replace a water heater",
+   "how much does it cost for a water heater replacement",
+   "do you need a permit to replace a water heater"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:49Z"
+ },
+ {
+  "seed": "hvac repair rancho cucamonga",
+  "suggestions": [
+   "hvac repair rancho cucamonga",
+   "air conditioner repair rancho cucamonga",
+   "hvac repair near me"
+  ],
+  "client_present": false,
+  "status": "ok",
+  "fetched": "2026-11-15T08:49Z"
+ }
+]

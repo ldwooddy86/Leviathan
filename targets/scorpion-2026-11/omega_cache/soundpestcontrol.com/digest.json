@@ -1,0 +1,810 @@
+{
+ "domain": "soundpestcontrol.com",
+ "crawl": {
+  "pages": 30,
+  "sitemap_urls": 62,
+  "indexable": 27,
+  "codes": {
+   "Low LONG_TITLE": 17,
+   "High NOINDEX_IN_SITEMAP": 2,
+   "Low ORPHAN_CANDIDATE": 2,
+   "Info NOINDEX_FOLLOWED_LINKS": 2,
+   "Medium SITEMAP_REDIRECT": 1
+  },
+  "examples": {
+   "NOINDEX_IN_SITEMAP": [
+    "https://www.soundpestcontrol.com/learning-center",
+    "https://www.soundpestcontrol.com/thank-you"
+   ],
+   "SITEMAP_REDIRECT": [
+    "https://www.soundpestcontrol.com/node/12"
+   ],
+   "LONG_TITLE": [
+    "https://www.soundpestcontrol.com/",
+    "https://www.soundpestcontrol.com/ant-control/bremerton-wa",
+    "https://www.soundpestcontrol.com/bed-bug-extermination/bremerton-wa"
+   ],
+   "ORPHAN_CANDIDATE": [
+    "https://www.soundpestcontrol.com/redeem-offer",
+    "https://www.soundpestcontrol.com/thank-you"
+   ],
+   "NOINDEX_FOLLOWED_LINKS": [
+    "https://www.soundpestcontrol.com/learning-center",
+    "https://www.soundpestcontrol.com/thank-you"
+   ]
+  },
+  "jsonld_types": {
+   "LocalBusiness": 30,
+   "BlogPosting": 2,
+   "FAQPage": 6
+  },
+  "no_desc": 1,
+  "long_title": 18
+ },
+ "pages": [
+  {
+   "url": "https://www.soundpestcontrol.com/",
+   "status": 200,
+   "title": "Pest Control in the Puget Sound | No-Contract Options | Sound Pest Control",
+   "desc_len": 195,
+   "words": 1200,
+   "canonical": "https://www.soundpestcontrol.com/",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "LocalBusiness",
+    "PostalAddress"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Sound Pest Control",
+     "telephone": "link only no swap\t360-692-1616",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bremerton",
+      "addressRegion": "Washington",
+      "streetAddress": "6701 Kitsap Way"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "3606921616"
+   ],
+   "phones_text": [
+    "3606921616"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/Sound-Pest-Control-161158043907612",
+    "yelp.com/biz/sound-pest-control-bremerton"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "specialist_expert_claims": [
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-KTNW5H": {
+     "gtm_ids": [
+      "GTM-KTNW5H",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-8W2QWX5QL7"
+     ],
+     "ua_ids": [
+      "UA-76032643-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-KTNW5H"
+    ],
+    "vendors_present": [
+     "chat_widgets",
+     "review_widgets"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/free-quote",
+   "status": 200,
+   "title": "Free Estimate | Contact Form | Sound Pest Control",
+   "desc_len": 160,
+   "words": 452,
+   "canonical": "https://www.soundpestcontrol.com/free-quote",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "LocalBusiness",
+    "PostalAddress"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Sound Pest Control",
+     "telephone": "link only no swap\t360-692-1616",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bremerton",
+      "addressRegion": "Washington",
+      "streetAddress": "6701 Kitsap Way"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "+3606921616",
+    "3606921616"
+   ],
+   "phones_text": [
+    "3606921616"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/Sound-Pest-Control-161158043907612",
+    "yelp.com/biz/sound-pest-control-bremerton"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-KTNW5H": {
+     "gtm_ids": [
+      "GTM-KTNW5H",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-8W2QWX5QL7"
+     ],
+     "ua_ids": [
+      "UA-76032643-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-KTNW5H"
+    ],
+    "vendors_present": [
+     "chat_widgets",
+     "review_widgets"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/pest-control-bainbridge-island",
+   "status": 200,
+   "title": "Pest Control in Bainbridge Island, WA | No-Contracts | Sound Pest Control | Bed Bug Exterminator, Rodent Control, Ant Control, Mole Control, Pest Control Near Me",
+   "desc_len": 190,
+   "words": 1895,
+   "canonical": "https://www.soundpestcontrol.com/pest-control-bainbridge-island",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "LocalBusiness",
+    "PostalAddress"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Sound Pest Control",
+     "telephone": "link only no swap\t360-692-1616",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bremerton",
+      "addressRegion": "Washington",
+      "streetAddress": "6701 Kitsap Way"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "13608105420",
+    "3606921616"
+   ],
+   "phones_text": [
+    "3606921616"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/Sound-Pest-Control-161158043907612",
+    "yelp.com/biz/sound-pest-control-bremerton"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "guarantee_language": [
+     "Our guarantee that we will exterminate every critter inside your home"
+    ],
+    "superlatives": [
+     "the best",
+     "leading"
+    ],
+    "specialist_expert_claims": [
+     "specialize",
+     "expert"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-KTNW5H": {
+     "gtm_ids": [
+      "GTM-KTNW5H",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-8W2QWX5QL7"
+     ],
+     "ua_ids": [
+      "UA-76032643-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-KTNW5H"
+    ],
+    "vendors_present": [
+     "chat_widgets",
+     "review_widgets"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/pest-control-silverdale",
+   "status": 200,
+   "title": "Pest Control in Silverdale, WA | No-Contracts | Sound Pest Control | Bed Bug Exterminator, Rodent Control, Ant Control, Mole Control, Pest Control Near Me",
+   "desc_len": 215,
+   "words": 1571,
+   "canonical": "https://www.soundpestcontrol.com/pest-control-silverdale",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "LocalBusiness",
+    "PostalAddress"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Sound Pest Control",
+     "telephone": "link only no swap\t360-692-1616",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bremerton",
+      "addressRegion": "Washington",
+      "streetAddress": "6701 Kitsap Way"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "3606921616"
+   ],
+   "phones_text": [
+    "3606921616"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/Sound-Pest-Control-161158043907612",
+    "yelp.com/biz/sound-pest-control-bremerton"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "superlatives": [
+     "the best"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-KTNW5H": {
+     "gtm_ids": [
+      "GTM-KTNW5H",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-8W2QWX5QL7"
+     ],
+     "ua_ids": [
+      "UA-76032643-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-KTNW5H"
+    ],
+    "vendors_present": [
+     "chat_widgets",
+     "review_widgets"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/privacy-policy",
+   "status": 200,
+   "title": "Privacy Policy | Sound Pest Control",
+   "desc_len": 241,
+   "words": 2953,
+   "canonical": "https://www.soundpestcontrol.com/privacy-policy",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "LocalBusiness",
+    "PostalAddress"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Sound Pest Control",
+     "telephone": "link only no swap\t360-692-1616",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bremerton",
+      "addressRegion": "Washington",
+      "streetAddress": "6701 Kitsap Way"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "3606921616"
+   ],
+   "phones_text": [
+    "3606921616"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/Sound-Pest-Control-161158043907612",
+    "yelp.com/biz/sound-pest-control-bremerton"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "https://www.soundpestcontrol.com/privacy-policy"
+    ],
+    "guarantee_language": [
+     "do our best to protect your personal information, we cannot guarantee the security of your personal information transmitted to ou",
+     "While we carefully review all content, we cannot guarantee the complete accuracy of any information on our website, wh"
+    ],
+    "specialist_expert_claims": [
+     "experts"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-KTNW5H": {
+     "gtm_ids": [
+      "GTM-KTNW5H",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-8W2QWX5QL7"
+     ],
+     "ua_ids": [
+      "UA-76032643-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-KTNW5H"
+    ],
+    "vendors_present": [
+     "chat_widgets",
+     "review_widgets"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/rodent-control/bremerton-wa",
+   "status": 200,
+   "title": "Rodent Control in Bremerton, WA | Rodent Exterminator Near Me, Rodent Control Near Me, Rodent Removal, Rodent Pest Control, Rat Exterminator | Sound Pest Control",
+   "desc_len": 127,
+   "words": 1439,
+   "canonical": "https://www.soundpestcontrol.com/rodent-control/bremerton-wa",
+   "robots_meta": [],
+   "generator": "Drupal 10 (https://www.drupal.org)",
+   "jsonld_types": [
+    "Answer",
+    "FAQPage",
+    "LocalBusiness",
+    "PostalAddress",
+    "Question"
+   ],
+   "jsonld_flags": [],
+   "entities": [
+    {
+     "type": "LocalBusiness",
+     "name": "Sound Pest Control",
+     "telephone": "link only no swap\t360-692-1616",
+     "sameAs": null,
+     "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Bremerton",
+      "addressRegion": "Washington",
+      "streetAddress": "6701 Kitsap Way"
+     }
+    }
+   ],
+   "tel_hrefs": [
+    "3606921616"
+   ],
+   "phones_text": [
+    "3606921616"
+   ],
+   "credits": [],
+   "socials": [
+    "facebook.com/Sound-Pest-Control-161158043907612",
+    "yelp.com/biz/sound-pest-control-bremerton"
+   ],
+   "disclosures": {
+    "privacy_policy_link": [
+     "/privacy-policy"
+    ],
+    "specialist_expert_claims": [
+     "specialists",
+     "experts"
+    ],
+    "message_data_rates": [
+     "Message and data rates may apply"
+    ],
+    "copyright_years": [
+     "2026"
+    ]
+   },
+   "gtm": {
+    "GTM-KTNW5H": {
+     "gtm_ids": [
+      "GTM-KTNW5H",
+      "gtm-cookie",
+      "gtm-youtube"
+     ],
+     "ga4_ids": [
+      "G-8W2QWX5QL7"
+     ],
+     "ua_ids": [
+      "UA-76032643-1"
+     ],
+     "vendors_present": [
+      "consent_mode",
+      "google_ads",
+      "google_analytics",
+      "microsoft_ads",
+      "recaptcha_or_turnstile"
+     ]
+    }
+   },
+   "tags": {
+    "gtm_ids": [
+     "GTM-KTNW5H"
+    ],
+    "vendors_present": [
+     "chat_widgets",
+     "review_widgets"
+    ]
+   },
+   "robots_ai": {
+    "GPTBot": "not named",
+    "ClaudeBot": "not named",
+    "PerplexityBot": "not named",
+    "Google-Extended": "not named",
+    "CCBot": "not named",
+    "Applebot-Extended": "not named",
+    "Bytespider": "not named",
+    "OAI-SearchBot": "not named"
+   }
+  }
+ ],
+ "schema": {
+  "LocalBusiness S3 missing-recommended url": 6,
+  "LocalBusiness S3 missing-recommended image": 6,
+  "LocalBusiness S3 missing-recommended geo": 6,
+  "LocalBusiness S3 missing-recommended openingHoursSpecification": 6,
+  "LocalBusiness S3 missing-recommended priceRange": 6,
+  "LocalBusiness S3 missing-recommended sameAs": 6,
+  "LocalBusiness S3 missing-recommended areaServed": 6,
+  "LocalBusiness S3 telephone-format link only no swap\t360-692-1616": 6,
+  "FAQPage S4 info FAQ rich results limited to authoritativ": 1
+ },
+ "render": [
+  {
+   "url": "https://www.soundpestcontrol.com/",
+   "raw_words": 1198,
+   "rendered_words": 1208,
+   "js_dependent_share": 0.008,
+   "lcp_ms_lab": 876,
+   "requests": 78,
+   "third_party_hosts": 17,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 211.10000000009313,
+   "load": 2414.6999999999534,
+   "console_errors": 1
+  },
+  {
+   "url": "https://www.soundpestcontrol.com/pest-control-silverdale",
+   "raw_words": 1569,
+   "rendered_words": 1577,
+   "js_dependent_share": 0.005,
+   "lcp_ms_lab": 692,
+   "requests": 68,
+   "third_party_hosts": 16,
+   "verdict": "server-visible: raw HTML carries the content",
+   "ttfb": 51.699999999953434,
+   "load": 1249.5,
+   "console_errors": 1
+  }
+ ],
+ "probe": [
+  {
+   "url": "https://www.soundpestcontrol.com/",
+   "status": 200,
+   "banner": "no consent banner detected",
+   "pre_consent": [
+    "chat_or_ai_widget",
+    "google_ads_doubleclick",
+    "google_analytics",
+    "google_tag_manager",
+    "microsoft_uet"
+   ],
+   "chat": [],
+   "ai_agents": [],
+   "prechecked": [],
+   "scarcity": [],
+   "timers": [],
+   "requests": 87,
+   "hosts": [
+    "73828.tctm.co",
+    "ajax.googleapis.com",
+    "analytics.google.com",
+    "assets.podium.com",
+    "bat.bing.com",
+    "cdn.jsdelivr.net",
+    "connect.podium.com",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
+    "maps.googleapis.com",
+    "maps.gstatic.com",
+    "mind-flayer.podium.com",
+    "stats.g.doubleclick.net",
+    "unpkg.com",
+    "www.google-analytics.com",
+    "www.googletagmanager.com",
+    "www.youtube.com"
+   ]
+  }
+ ],
+ "demand": [
+  {
+   "seed": "sound pest control",
+   "brand_in_list": true,
+   "top": [
+    "sound pest control",
+    "sound pest control reviews",
+    "sound pest control bremerton",
+    "sound pest control silverdale",
+    "sound pest control silverdale wa",
+    "noise pest control",
+    "audio pest control",
+    "sound pest management",
+    "sound pest management reviews",
+    "sound pest management kent wa"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "pest control tacoma",
+   "brand_in_list": false,
+   "top": [
+    "pest control tacoma",
+    "pest control tacoma wa",
+    "pest control tacoma prices",
+    "pest control tacoma reddit",
+    "rodent control tacoma",
+    "rodent control tacoma wa",
+    "pest control takoma park md",
+    "long pest control tacoma",
+    "sentinel pest control tacoma",
+    "insight pest control tacoma"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "pest control olympia",
+   "brand_in_list": false,
+   "top": [
+    "pest control olympia",
+    "pest control olympia wa",
+    "rodent control olympia wa",
+    "rodent control olympia",
+    "pest control olympic peninsula",
+    "pci pest control olympia",
+    "pointe pest control olympia",
+    "standard pest control olympia",
+    "venables pest control olympia",
+    "insight pest control olympia reviews"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "rodent control tacoma",
+   "brand_in_list": false,
+   "top": [
+    "rodent control tacoma",
+    "rodent control tacoma wa",
+    "animal control tacoma",
+    "pest control tacoma",
+    "pest control tacoma wa",
+    "critter control tacoma",
+    "animal control tacoma washington",
+    "animal control tacoma phone number",
+    "pest control tacoma prices",
+    "critter control tacoma wa"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "pest control puyallup",
+   "brand_in_list": false,
+   "top": [
+    "pest control puyallup",
+    "pest control puyallup prices",
+    "pest control puyallup washington",
+    "rodent control puyallup",
+    "sentinel pest control puyallup",
+    "rambo pest control puyallup",
+    "insight pest control puyallup reviews",
+    "insight pest control puyallup",
+    "purcor pest control puyallup",
+    "modern pest control puyallup reviews"
+   ],
+   "status": "ok"
+  },
+  {
+   "seed": "exterminator tacoma",
+   "brand_in_list": false,
+   "top": [
+    "exterminator tacoma",
+    "exterminator tacoma wa",
+    "rat exterminator tacoma",
+    "ant exterminator tacoma",
+    "western exterminator tacoma",
+    "flea exterminator tacoma",
+    "bed bug exterminator tacoma",
+    "pest control in tacoma",
+    "exterminator pest control near me",
+    "exterminator products near me"
+   ],
+   "status": "ok"
+  }
+ ]
+}
