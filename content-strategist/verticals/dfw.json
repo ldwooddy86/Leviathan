@@ -10,6 +10,7 @@
   "build": "6",
   "compiled": "2026-09-25",
   "sha256": "a1aba5efb2859942",
+  "reader": 2,
   "extracted": "2026-11-15"
  },
  "schemaType": "HVACBusiness",

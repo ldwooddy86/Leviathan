@@ -75,7 +75,7 @@ node content-strategist/cli.mjs harvest
 node content-strategist/cli.mjs connect path/to/DFW_Thermal_Debt_Atlas.html
 ```
 
-`connect` (the older name `extract` still works) connects the dashboard for this agent and for the paid ads specialist at once, through `dashboard-link/`. The pack is read from the atlas as text: nothing in it is run except the one line triggers of the service angles, each checked against a whitelist first. The brand the atlas was built for goes to the local brand file. A pack already read from the same dashboard file is left untouched, so connecting twice changes nothing under git.
+`connect` (the older name `extract` still works) connects the dashboard for this agent and for the paid ads specialist at once, through `dashboard-link/`. The pack is read from the atlas as text: nothing in it is run except the one line triggers of the service angles, each checked against a whitelist first. The brand the atlas was built for goes to the local brand file. A pack already read from the same dashboard file by the same reader is left untouched, so connecting twice changes nothing under git. When the reader learns to read more from a dashboard (the heatmaps were the last such step), a pack an older reader left is read again on the next `connect`.
 
 ## Where client files live
 

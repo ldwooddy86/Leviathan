@@ -193,6 +193,10 @@ function sayValue(v) {
 const fact = (value, label, src, grade) => ({ value, say: sayValue(value), label, source: SRC[src], plainSource: PLAIN_SOURCE[src] || '', grade, estimate: src === 'est' });
 
 
+/* What this reader takes from a dashboard file. It goes up when the reader learns to read more (2: the heatmap layers,
+   area needs and neighbors), so a pack read by an older reader from the same file is read again on the next connect. */
+export const READER = 2;
+
 /* ---------- what each area needs, read from the heatmaps ---------- */
 /* The dashboard draws its ZIP heatmaps from one catalog of layers (LAYERS: the age of the systems, the housing stock, the
    heating fuel, hail, who owns the homes). A need is a layer running hot in a ZIP, said twice: once for the homeowner,
@@ -407,7 +411,7 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
 
   const pack = {
     id, depth: 'deep', vertical: 'HVAC', wing: 'home', atlas: 'DFW Thermal Debt Atlas' + (build ? ' · Build ' + build : ''), scope: 'Dallas Fort Worth, Texas: 12 counties',
-    source: { file: path.basename(file || ''), build, compiled: M.compiled || null, sha256: crypto.createHash('sha256').update(text).digest('hex').slice(0, 16), extracted: new Date().toISOString().slice(0, 10) },
+    source: { file: path.basename(file || ''), build, compiled: M.compiled || null, sha256: crypto.createHash('sha256').update(text).digest('hex').slice(0, 16), reader: READER, extracted: new Date().toISOString().slice(0, 10) },
     schemaType: 'HVACBusiness', licenseLabel: 'TDLR',
     note: 'No keyword volumes are in the atlas. Keywords are the atlas\'s own library per service angle; an angle ranks by where the model finds demand for it (reach, and each city\'s share of ZIPs that trigger it).',
     lines, angles, negatives: negatives(text), market, cities, sitePlan,

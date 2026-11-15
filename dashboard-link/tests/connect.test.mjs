@@ -55,6 +55,10 @@ r = run(CLI, ['connect', file, '--no-live', '--no-copy'], env, { json: true });
 ok(r.code === 0 && r.json.packs.paid.written === false && r.json.packs.content.written === false && s1.join() === [stamp(at('packs-paid', 'dfw.json')), stamp(at('packs-content', 'dfw.json'))].join(), 'the same file again: neither pack is rewritten');
 ok(r.json.copy === null && J(at('content-strategist', 'brand.json')).social.facebookPageId === '1234567890', 'an account id the person added to the brand file survives a reconnect; --no-copy keeps no copy');
 r = run(CLI, ['connect', file, '--no-live'], env, { json: true }); ok(r.json.copy === at('dashboard', 'atlas.html'), 'and with a copy again');
+/* a content pack read by an older reader, from the very same file, is read again: the reader has learned to read more */
+{ const cf = at('packs-content', 'dfw.json'), old = J(cf); delete old.source.reader; delete old.needs; fs.writeFileSync(cf, JSON.stringify(old));
+  r = run(CLI, ['connect', file, '--no-live', '--no-copy'], env, { json: true }); const again = J(cf);
+  ok(r.code === 0 && r.json.packs.content.written === true && r.json.packs.paid.written === false && again.source.reader >= 2 && Array.isArray(again.needs) && again.needs.length >= 15, 'a pack an older reader left is read again from the same file, and gains what the reader now reads', [r.json.packs.content.written, again.source.reader]); }
 
 /* ---- status, doors, read ---- */
 r = run(CLI, ['status'], env);

@@ -87,7 +87,7 @@ export function loadBrand() {
 }
 
 /* ---------- what each agent can do with this dashboard ---------- */
-function capabilities({ lib, mdl, mods, drs, comp, brand, driftList, liveOk, snap }) {
+function capabilities({ lib, mdl, mods, drs, comp, brand, driftList, liveOk, snap, cs = null }) {
   const has = k => mods.some(m => m.key === k), door = id => drs.some(d => d.id === id), n = v => (v || []).length;
   const row = (ok, what, detail) => ({ ok: !!ok, what, detail: detail || '' });
   const copyN = lib.angles.filter(a => n(a.copy.h) && n(a.copy.d)).length, kwN = lib.angles.reduce((s, a) => s + n(a.keywords.core) + n(a.keywords.city) + n(a.keywords.questions), 0);
@@ -106,6 +106,7 @@ function capabilities({ lib, mdl, mods, drs, comp, brand, driftList, liveOk, sna
   ];
   const content = [
     row(n(lib.angles), 'Deep pack', 'service angles by demand, city facts, the Site Forge\'s page plan, the advertising rules'),
+    row(cs && n(cs.needs) && cs.layers, 'Heatmaps by ZIP', cs && n(cs.needs) ? `${Object.keys(cs.layers).length} layers read into ${cs.needs.length} needs across ${cs.cities.length} cities: what runs hot in each ZIP, what to tell the owner, the trade detail behind it` : 'this build has no layer catalog'),
     row(door('publish.pages.in'), 'Publish takes a pages file', door('publish.pages.in') ? 'module 16, the import box: blueprints are compiled there and land as drafts' : 'this build has no page import'),
     row(door('forge.blueprint.in'), 'Site Forge takes a blueprint', door('forge.blueprint.in') ? 'module 09, page studio, Blueprint view' : 'this build has no blueprint view'),
     row(brand && brand.name, 'Brand', brand ? 'on file' : 'the dashboard carries no brand'),
@@ -132,7 +133,7 @@ export async function connect(file, opts = {}) {
   /* the repository packs */
   const cp = deepPack(text, { id, file: abs }); let content;
   { let have = null; try { have = loadContentPack(id); } catch { have = null; }
-    if (have && have.depth === 'deep' && have.source && have.source.sha256 === cp.pack.source.sha256) content = { written: false, dropped: 0, checked: true, row: null };
+    if (have && have.depth === 'deep' && have.source && have.source.sha256 === cp.pack.source.sha256 && have.source.reader === cp.pack.source.reader) content = { written: false, dropped: 0, checked: true, row: null };
     else content = Object.assign({ written: true }, await writePack(cp.pack)); }
   const paid = await writePaidPack(paidPack(lib, id, ident));
 
@@ -155,7 +156,7 @@ export async function connect(file, opts = {}) {
   }
   if (!snap && fs.existsSync(F.live())) { const old = readJson(F.live(), null); if (!old || old.sha256 !== ident.sha256) fs.rmSync(F.live(), { force: true }); }
 
-  const caps = capabilities({ lib, mdl, mods, drs, comp, brand: B, driftList, liveOk: liveState.ok, snap });
+  const caps = capabilities({ lib, mdl, mods, drs, comp, brand: B, driftList, liveOk: liveState.ok, snap, cs: cp.pack });
   const connection = {
     v: FORMAT, id, connectedAt: new Date().toISOString(), file: abs, copy,
     identity: { atlas: ident.atlas, build: ident.build, compiled: ident.compiled, sha256: ident.sha256, bytes: ident.bytes, zips: ident.zips, counties: ident.counties, cities: ident.cities },
