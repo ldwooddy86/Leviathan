@@ -19,12 +19,23 @@ file it came from.
 - **Street view (3D), no key: the neighborhood rebuilt from open data, every building glowing.** The map card switches
   between three views: the satellite map, the 3D street view and Google's photos (the Satellite / Street view (3D) /
   Google photos switch, the Street view button on a building, or a double click on a building, which opens the 3D view).
-  - Every building is its FEMA footprint raised to its FEMA height. Houses get walls set back under their eaves, a hipped
-    roof, a foundation, a front door on the wall facing the street and a garage door facing the alley or drive; the rest
-    get flat roofs behind parapets. Roofs and the ground are Esri's aerial and satellite imagery. Every street, alley and
-    service drive is OpenStreetMap's (through the Overpass API: overpass-api.de, then two mirrors), or the Census TIGER
-    file's when none answers (then without the alleys); streets are drawn as asphalt, alleys and drives as concrete. Trees
-    stand where the aerial photo shows canopy, sized by it.
+  - **Measured shapes.** Every roof and every tree crown comes from the USGS 3D Elevation Program's airborne lidar
+    (public domain), read keyless from its open Entwine Point Tile copy on Amazon S3 and decoded in the page (laz-perf,
+    WebAssembly): about 15 MB and 1.5 million points for a scene 540 m across, a few seconds on broadband. A ground model
+    comes from the ground returns; each roof is the highest single or last return in each 75 cm cell of the building's
+    FEMA footprint, capped at FEMA's height so overhanging trees stay out, so gables, hips, dormers and rooftop units show
+    as measured. Foliage is where the laser met leaves: points outside the footprints (or the first of several returns
+    over a roof) more than 2.2 m above the ground, with hard surfaces and wires filtered out, voxelized, filled down to a
+    natural crown base and drawn as clusters of photographed leaves, tinted with the aerial photo's colour, with trunks
+    under the crowns' peaks. Where no lidar answers (or a building is newer than the lidar) the roof is modeled (hipped on
+    houses, flat behind a parapet on the rest) and trees stand where the aerial photo shows canopy.
+  - Houses get walls set back under their eaves, windows with frames, sills, muntins and glass that mirrors the sky
+    (shutters on some siding), a foundation, a front door on the wall facing the street and a garage door facing the
+    alley or drive. Walls are not measured (airborne lidar sees roofs and treetops), so brick, siding or stucco is a likely
+    look for the building's type. Roofs and the ground are Esri's aerial and satellite imagery (15 cm aerial at High
+    quality); every street, alley and service drive is OpenStreetMap's (through the Overpass API: overpass-api.de, then
+    two mirrors), or the Census TIGER file's when none answers (then without the alleys). Materials are CC0 photo scans:
+    brick, siding, stucco, metal, asphalt, concrete, grass on the lawns near the camera, bark, roof shingles.
   - It is drawn the way a modern game engine draws a scene: a physical sky with the sun where it stands over Dallas at the
     chosen hour (Morning, Midday, Afternoon, Evening or Now), light from that sky, sun shadows, ambient occlusion (GTAO),
     filmic tone mapping, physically based brick, lap siding, stucco, storefront and curtain wall glass and metal panel, and
@@ -77,7 +88,7 @@ file it came from.
 | Address search | Esri World Geocoder, `geocode.arcgis.com` |
 | Street View | Maps JavaScript API Street View with a key (glows), or Google's embedded player (`maps.google.com`) without |
 | Streets and alleys (3D view) | OpenStreetMap through the Overpass API (`overpass-api.de`, `overpass.kumi.systems`, `maps.mail.ru`), Census TIGER as the fallback |
-| Trees (3D view) | none: placed in the browser from the Esri imagery already loaded |
+| Roofs and trees (3D view) | USGS 3DEP lidar, `s3-us-west-2.amazonaws.com/usgs-lidar-public` (Entwine Point Tiles); trees from the Esri imagery where no lidar answers |
 | Street photos (optional) | Mapillary API v4, `graph.mapillary.com` |
 
 Opened inside the Claude viewer, outside requests are blocked: the module says so and the heatmap still draws. Download
@@ -98,4 +109,7 @@ the shell boot script, and changes nothing else. Files: `scout.js` (the module),
 `scout.css`. Leaflet 1.9.4 (BSD 2 clause, `vendor/LEAFLET-LICENSE`) and three.js r186 with its sky, post-processing and
 glTF export add-ons (MIT, `vendor/THREE-LICENSE`) are carried inline and kept private to the module
 (`window.__SCOUT_LEAFLET__`, `window.__SCOUT_THREE__`). `vendor/three.bundle.min.js` is built from `vendor/three-entry.js`
-with esbuild; the command is at the top of that file.
+with esbuild; the command is at the top of that file. `scoutlidar.js` reads the lidar; `vendor/lazperf.bundle.js` is
+laz-perf (Apache-2.0, `vendor/LAZPERF-LICENSE`) with its WebAssembly inline, built from `vendor/lazperf-entry.js`;
+`vendor/dfw-lidar.json` lists the USGS lidar collections over DFW (name, year, outline); `vendor/textures/` holds the
+CC0 photo textures (`SOURCES.md`), embedded by build.py as data URIs.

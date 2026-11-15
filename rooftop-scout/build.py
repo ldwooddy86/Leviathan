@@ -3,7 +3,7 @@
 The block goes after the Agent Desk's end marker and before the shell boot script, so the shell builds the rail with the
 new module in it. Nothing else in the file changes. Run: python3 build.py SRC OUT
 """
-import sys, os, re, hashlib
+import sys, os, re, hashlib, base64, json
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC, OUT = sys.argv[1], sys.argv[2]
@@ -19,7 +19,15 @@ if html.count(ANCHOR) != 1 or html.count(SHELL) != 1 or html.index(ANCHOR) > htm
 read = lambda n: open(os.path.join(HERE, n), encoding='utf-8').read()
 leaflet_css, leaflet_js, css, js = read('vendor/leaflet.css'), read('vendor/leaflet.min.js'), read('scout.css'), read('scout.js')
 three_js, js3d = read('vendor/three.bundle.min.js'), read('scout3d.js')
-for name, text in [('leaflet.min.js', leaflet_js), ('scout.js', js), ('leaflet.css', leaflet_css), ('scout.css', css), ('three.bundle.min.js', three_js), ('scout3d.js', js3d)]:
+laz_js, lidar_js = read('vendor/lazperf.bundle.js'), read('scoutlidar.js')
+if '__WASM__' in laz_js:
+    sys.exit('vendor/lazperf.bundle.js still has its wasm placeholder')
+TEX = os.path.join(HERE, 'vendor', 'textures')
+tex = {f[:-5]: 'data:image/webp;base64,' + base64.b64encode(open(os.path.join(TEX, f), 'rb').read()).decode() for f in sorted(os.listdir(TEX)) if f.endswith('.webp')}
+lidar_index = json.load(open(os.path.join(HERE, 'vendor', 'dfw-lidar.json'), encoding='utf-8'))
+data_js = ('window.__SCOUT_TEX__ = ' + json.dumps(tex, separators=(',', ':')) + ';\n'
+           'window.__SCOUT_LIDAR_INDEX__ = ' + json.dumps(lidar_index, separators=(',', ':')) + ';')
+for name, text in [('leaflet.min.js', leaflet_js), ('scout.js', js), ('leaflet.css', leaflet_css), ('scout.css', css), ('three.bundle.min.js', three_js), ('scout3d.js', js3d), ('lazperf.bundle.js', laz_js), ('scoutlidar.js', lidar_js), ('data', data_js)]:
     low = text.lower()
     if '</script' in low or '</style' in low or '<!--' in text:
         sys.exit(name + ' holds a sequence that would end its tag early')
@@ -35,6 +43,9 @@ block = (
     'window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function" ? window.L.noConflict() : null;\n</script>\n'
     '<script id="scout-three">\n/* ==== vendor/three.bundle.min.js (three.js r186 and the add-ons in vendor/three-entry.js, MIT): it hands itself to\n'
     '   Rooftop Scout as window.__SCOUT_THREE__ and sets no global THREE ==== */\n' + three_js.strip() + '\n</script>\n'
+    '<script id="scout-laz">\n/* ==== vendor/lazperf.bundle.js (laz-perf, Apache-2.0, vendor/LAZPERF-LICENSE; its WebAssembly inline) ==== */\n' + laz_js.strip() + '\n</script>\n'
+    '<script id="scout-data">\n/* ==== the 3D view\'s materials (CC0 photo-scanned textures from Poly Haven and ambientCG, vendor/textures/SOURCES.md) and the table of USGS lidar collections over DFW (vendor/dfw-lidar.json) ==== */\n' + data_js + '\n</script>\n'
+    '<script id="scout-lidar">\n' + lidar_js.strip() + '\n</script>\n'
     '<script id="scout-3d">\n' + js3d.strip() + '\n</script>\n'
     '<script id="scout-js">\n' + js.strip() + '\n</script>\n'
     '<!-- rooftop-scout:end -->'
