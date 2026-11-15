@@ -20378,6 +20378,33 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .sc .sc-hint:empty{display:none}
 .sc .sc-cam{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 2px 6px rgba(0,0,0,.4)}
 @media (max-width:760px){.sc .sc-pb{grid-template-columns:minmax(0,1fr) 80px 40px}.sc .controls input[type=range]{width:100%}}
+/* Street View in the map card's place, and the switch between the two */
+.sc .sc-modebar{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--card);border-radius:var(--r) var(--r) 0 0}
+.sc .sc-modebar .seg button{padding:6px 14px;font-size:12.5px;font-weight:600}
+.sc .sc-mnote{font-size:11.5px;color:var(--ink-3);flex:1 1 240px;line-height:1.4}
+.sc .sc-modebar+.sc-map{border-radius:0}
+.sc .sc-map[hidden],.sc .sc-svw[hidden]{display:none!important}
+.sc .sc-svw{background:#0b1014}
+.sc .sc-svbar{display:grid;gap:7px;padding:9px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.sc .sc-svinfo{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;min-width:0}
+.sc .sc-svinfo b{font-size:14.5px;overflow-wrap:anywhere}
+.sc .sc-svinfo .mini{flex:1 1 260px;min-width:0}
+.sc .sc-svctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sc .sc-svctl .ibtn{text-decoration:none;display:inline-flex;align-items:center}
+.sc .sc-svctl .seg button{padding:4px 9px}
+.sc .sc-svn{font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.sc .sc-svck button[data-ck="g"][aria-pressed="true"]{background:var(--sc-g);color:#05290f}
+.sc .sc-svck button[data-ck="o"][aria-pressed="true"]{background:var(--sc-o);color:#2b1700}
+.sc .sc-svck button[data-ck="r"][aria-pressed="true"]{background:var(--sc-r);color:#fff}
+.sc .sc-svwhere{font-size:11.5px;color:var(--ink-3);line-height:1.45}
+.sc .sc-svf{display:block;width:100%;height:min(66vh,640px);min-height:380px;border:0;background:#0b1014}
+.sc .sc-svq{margin-top:6px;width:100%}
+.sc .sc-mapcard.sc-full{position:fixed;inset:0;z-index:550;border-radius:0;border:0;margin:0;display:flex;flex-direction:column;background:var(--card)}
+.sc .sc-mapcard.sc-full>.sc-svw{flex:1;display:flex;flex-direction:column;min-height:0}
+.sc .sc-mapcard.sc-full .sc-svf{flex:1;height:auto;min-height:0}
+.sc .sc-mapcard.sc-full>.sc-bar,.sc .sc-mapcard.sc-full>.legend,.sc .sc-mapcard.sc-full>.sc-modebar{display:none}
+html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
+@media (max-width:760px){.sc .sc-svf{height:58vh;min-height:300px}}
 </style>
 <script id="scout-leaflet">
 /* ==== vendor/leaflet.js (Leaflet 1.9.4, BSD 2 clause) ==== */
@@ -20399,9 +20426,9 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
    conditioning was replaced), and read by the atlas's own models: what system it most likely has, how likely that
    system is to need a repair, a replacement or an installation, and which of the fourteen service lines that is.
    Green: likely to need the work. Orange: maybe. Red: not likely. A field check from the imagery overrides the model.
-   Street View opens in Google Maps in its own tab, aimed from the street at the building: Google's terms (Maps Platform
-   3.2.3(e)) keep Street View imagery off any screen that shows a non-Google map. Street photos inside the panel come
-   from Mapillary when a Mapillary token is saved. Every request goes from this browser straight to a public service;
+   Live Google Street View plays inside the map card, aimed from the street at the building, in place of the satellite map:
+   Google's terms (Maps Platform 3.2.3(e)) keep Street View imagery and a non-Google map off the same screen, so the card
+   switches between the two. Street photos inside the side panel come from Mapillary when a Mapillary token is saved. Every request goes from this browser straight to a public service;
    nothing is sent anywhere else, and the keys a person saves stay in this browser.
    Plain script in the dashboard's own style, on the dashboard's own helpers (registerModule, mastHTML, card, callout,
    kpiHTML, dataTable, layerOptions, zipTip, qScale, legendHTML, saveFile, toCSV, store, toast). Leaflet 1.9.4 is carried
@@ -20433,7 +20460,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
   const KINDS = { all: 'Every building', home: 'Homes', apt: 'Apartments and lodging', biz: 'Shops, offices and services', ind: 'Industrial and warehouses', inst: 'Schools, worship, health, government', other: 'Everything else' };
   /* green and orange cut points: an average DFW system scores about 45 (6.3% replaced a year, 21.5% calling for a repair), so
      orange is the typical home, green needs evidence of an older or original system, red needs evidence of recent work */
-  const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 55, orange: 42, arcgisKey: '', mlyToken: '', show: { g: true, o: true, r: true }, kind: 'all', view: null };
+  const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 55, orange: 42, arcgisKey: '', mlyToken: '', gKey: '', show: { g: true, o: true, r: true }, kind: 'all', view: null };
   const CFG = (() => {
     const s = store.get(STORE, {}) || {}, o = JSON.parse(JSON.stringify(DEF));
     if (['esri', 'esri-labels', 'street'].includes(s.imagery)) o.imagery = s.imagery;
@@ -20444,6 +20471,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
     if (isN(s.orange)) o.orange = clamp(Math.round(+s.orange), 5, o.green - 1);
     if (typeof s.arcgisKey === 'string') o.arcgisKey = s.arcgisKey.trim().slice(0, 500);
     if (typeof s.mlyToken === 'string') o.mlyToken = s.mlyToken.trim().slice(0, 500);
+    if (typeof s.gKey === 'string') o.gKey = s.gKey.trim().slice(0, 200);
     if (s.show && typeof s.show === 'object') ['g', 'o', 'r'].forEach(k => { o.show[k] = s.show[k] !== false; });
     if (KINDS[s.kind]) o.kind = s.kind;
     if (s.view && isN(s.view.lat) && isN(s.view.lon) && isN(s.view.z) && Math.abs(s.view.lat - 32.8) < 2 && Math.abs(s.view.lon + 97) < 2.5) o.view = { lat: +s.view.lat, lon: +s.view.lon, z: clamp(Math.round(+s.view.z), 8, 21) };
@@ -20892,13 +20920,15 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
           <div class="ctl" style="flex:1 1 260px"><label class="fl" for="scFind">Find an address, ZIP or city</label><form id="scFindF" autocomplete="off"><input type="search" id="scFind" placeholder="6846 Lorna Ln, Dallas · 75214 · Plano"></form></div>
         </div>
         <div class="sc-grid">
-          <div class="card sc-mapcard"><div class="sc-map" id="scMap" role="application" aria-label="Satellite map of Dallas Fort Worth with the heatmap and buildings"></div>
+          <div class="card sc-mapcard"><div class="sc-modebar"><div class="seg" id="scMode" role="group" aria-label="What the card shows"><button type="button" data-v="map" aria-pressed="true">Satellite</button><button type="button" data-v="sv" aria-pressed="false">Street View</button></div><span class="sc-mnote" id="scModeNote">Pick a building, then Street View to stand in the street in front of it (or double click the building).</span></div>
+            <div class="sc-map" id="scMap" role="application" aria-label="Satellite map of Dallas Fort Worth with the heatmap and buildings"></div>
+            <div class="sc-svw" id="scSvw" hidden><div class="sc-svbar" id="scSvBar"></div><iframe class="sc-svf" id="scSvF" title="Google Street View" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="about:blank"></iframe></div>
             <div class="sc-bar"><span class="sc-st" id="scStatus"></span><span class="sc-chips" id="scChips"></span></div>
             <div class="sc-bar" style="border-top:0;padding-top:0"><span class="sc-note" id="scImgNote">The imagery's source and capture date show here at neighborhood zoom.</span></div>
             <div class="legend" id="scLeg"></div></div>
           <div class="stack sc-side">
             <div class="card"><div class="card-h sc-hd"><div><h3 id="scName">Pick a place</h3><p id="scSub">Click an area of the heatmap, or search an address</p></div><div id="scPill"></div></div><div class="card-b" id="scDetail"></div></div>
-            <div class="card"><div class="card-h"><h3>From the road</h3><p id="scSvSub">Street View in its own tab, aimed at the building; street photos here with a Mapillary token</p></div><div class="card-b" id="scSv"></div></div>
+            <div class="card"><div class="card-h"><h3>From the road</h3><p id="scSvSub">Street View from the street in front of the building, in the map's place</p></div><div class="card-b" id="scSv"></div></div>
           </div>
         </div>
         <div class="card mt"><div class="card-h sc-tblh"><div><h3>Buildings in view</h3><p id="scTblSub">Zoom to street level to list them. Click a row to select it, a header to sort.</p></div>
@@ -20913,7 +20943,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
           ${card('What this cannot show', 'Gaps, and where the missing record lives.', '<div id="scGap"></div>')}
         </div>
         ${card('Source register', 'Every layer traced to the service it came from, with the grade the atlas applies.', '<div id="scSrc"></div>', 'mt')}
-        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect equipment, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Texas Geographic Information Office, the Census Bureau, the City of Dallas, the City of Fort Worth and, with a token, Mapillary; no record of what you look at leaves this browser. Street View opens on google.com in its own tab.</div>
+        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect equipment, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Texas Geographic Information Office, the Census Bureau, the City of Dallas, the City of Fort Worth, Google (for Street View, while it shows) and, with a token, Mapillary; no record of what you look at leaves this browser. Street View is Google's own player, loaded from google.com while it shows.</div>
         </div>`;
 
       $('#scImg', root).value = CFG.imagery;
@@ -20977,11 +21007,12 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
       }
       function draw(b) {
         if (!b.lay) { b.lay = LF.polygon(b.rings, bStyle(b)); b.lay.on('click', e => { LF.DomEvent.stopPropagation(e); pick(b.id); });
+          b.lay.on('dblclick', e => { LF.DomEvent.stop(e); hideTip(); pick(b.id); showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); });
           b.lay.on('mouseover', e => { hov = b.id; b.lay.setStyle(bStyle(b)); showTip(bTip(b), e.originalEvent); }); b.lay.on('mousemove', e => showTip(bTip(b), e.originalEvent)); b.lay.on('mouseout', () => { hov = null; b.lay.setStyle(bStyle(b)); hideTip(); }); }
         else b.lay.setStyle(bStyle(b));
         const on = shown(b) && map.getZoom() >= CFG.minZoom - 1; if (on && !gB.hasLayer(b.lay)) gB.addLayer(b.lay); else if (!on && gB.hasLayer(b.lay)) gB.removeLayer(b.lay);
       }
-      const bTip = b => `<div class="tt">${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</div><div class="ts">${esc((PROF[b.cls] || PROF.unk).l)}${b.zip ? ' · ' + esc(b.zip) : ''}</div>` + tipRow('Status', esc(STL[b.status]) + (b.checked ? ' (your check)' : '')) + tipRow('Score', String(b.sc.score)) + tipRow('Likely system', esc(b.sys.short)) + tipRow('Need', esc(needLabel(b).split(':')[0])) + tipRow('Year built', b.yb ? String(b.yb) : 'not on file') + (b.last ? tipRow('Last HVAC permit', esc(monthYear(b.last.d))) : '') + '<div class="tf">Click for the full reading and Street View</div>';
+      const bTip = b => `<div class="tt">${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</div><div class="ts">${esc((PROF[b.cls] || PROF.unk).l)}${b.zip ? ' · ' + esc(b.zip) : ''}</div>` + tipRow('Status', esc(STL[b.status]) + (b.checked ? ' (your check)' : '')) + tipRow('Score', String(b.sc.score)) + tipRow('Likely system', esc(b.sys.short)) + tipRow('Need', esc(needLabel(b).split(':')[0])) + tipRow('Year built', b.yb ? String(b.yb) : 'not on file') + (b.last ? tipRow('Last HVAC permit', esc(monthYear(b.last.d))) : '') + '<div class="tf">Click for the full reading · double click for Street View</div>';
       const restyleAll = () => B.forEach(b => { if (b.lay) draw(b); });
 
       /* ---------- loading the tiles in view ---------- */
@@ -21020,7 +21051,9 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
       function note(msg) { errors.push(msg); errors = errors.slice(-6); status(); }
 
       /* ---------- the status line, counts and table ---------- */
-      const inViewB = () => { const bd = map.getBounds(); return [...B.values()].filter(b => bd.contains([b.lat, b.lon])); };
+      /* the view the counts, the table and the CSV read: the map's, or while Street View hides the map, the last one it showed */
+      let viewBounds = null; const curBounds = () => (svMode && viewBounds ? viewBounds : map.getBounds());
+      const inViewB = () => { const bd = curBounds(); return [...B.values()].filter(b => bd.contains([b.lat, b.lon])); };
       function status() {
         const zm = map.getZoom(), busy = Q.run + Q.list.length, el2 = $('#scStatus', root), hintEl = document.getElementById('scHint'); if (!el2) return;
         const bs = zm >= CFG.minZoom ? inViewB() : [];
@@ -21076,12 +21109,14 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         const b = B.get(id); if (!b) return; const prev = sel && sel.type === 'b' ? B.get(sel.id) : null;
         sel = { type: 'b', id }; if (prev && prev.lay) prev.lay.setStyle(bStyle(prev)); if (b.lay) { b.lay.setStyle(bStyle(b)); b.lay.bringToFront(); }
         if (b.zip && b.zip !== selZip) { selZip = b.zip; paintHeat(); }
-        if (o && o.pan) map.panTo([b.lat, b.lon], { animate: true });
-        detail(); street({ lat: b.lat, lon: b.lon, street: b.street, b }); refreshSoon();
+        if (o && o.pan && !svMode) map.panTo([b.lat, b.lon], { animate: true });
+        const t = { lat: b.lat, lon: b.lon, street: b.street, b };
+        detail(); street(t); if (svMode) showSV(t); refreshSoon();
       }
       function pickPoint(la, lo) {
         const prev = sel && sel.type === 'b' ? B.get(sel.id) : null; sel = { type: 'pt', lat: la, lon: lo }; if (prev && prev.lay) prev.lay.setStyle(bStyle(prev));
-        detail(); street({ lat: la, lon: lo, street: '', b: null }); refreshSoon();
+        const t = { lat: la, lon: lo, street: '', b: null };
+        detail(); street(t); if (svMode) showSV(t); refreshSoon();
       }
       function tryPending() {
         if (!pendingPick) return; const { lat, lon } = pendingPick; let best = null, bd = 1e9;
@@ -21111,7 +21146,8 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         const b = B.get(sel.id); if (!b) return; const s = b.sc, st = b.state, sys = b.sys, ck = CK[b.id] || {}, z = b.z;
         nm.textContent = b.addr ? title(b.addr) : 'Building, no address on file';
         sb.textContent = [b.city ? title(b.city) : (z ? z.city : ''), b.zip, (PROF[b.cls] || PROF.unk).l, b.sqft ? N(Math.round(b.sqft / 10) * 10) + ' sq ft footprint' : '', b.h ? D(b.h, 1) + ' m tall' : ''].filter(Boolean).join(' · ');
-        pl.innerHTML = `<div class="sc-score">${N(s.score)}<small>score</small></div>`;
+        pl.innerHTML = `<div class="sc-score">${N(s.score)}<small>score</small></div><button type="button" class="btn sm sc-svq" id="scSvQ" title="Stand in the street in front of this building">Street View</button>`;
+        $('#scSvQ', pl).onclick = () => { showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
         const ybTxt = b.ybSrc === 'parcel' ? `<b>Built ${b.yb}</b>, from the ${esc(title(b.parcel && b.parcel.src || 'county appraisal district'))} roll in the TxGIO statewide parcel file${b.parcel && b.parcel.tax ? ' (' + esc(b.parcel.tax) + ')' : ''} ${G('A')}`
           : b.ybSrc === 'permit' ? `<b>Built about ${b.yb}</b>, from a new construction permit (${esc(b.permits.find(p => p.newc) ? b.permits.find(p => p.newc).src : 'city')}) ${G('A')}`
           : `<b>Year built not on file</b>${b.fips && PCOV[b.fips] === 'no' ? ` (the statewide parcel file carries none for ${esc(CNAME(b.fips))} County)` : ''}. Most likely ${b.prior ? b.prior.map((w, i) => [w, i]).sort((x, y) => y[0] - x[0]).slice(0, 2).map(([w, i]) => `${BIN_L[i]} (${pct(w)})`).join(' or ') : 'unknown'}, from the ZIP's housing age${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`;
@@ -21131,7 +21167,8 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
             <div class="sc-cues">${CUES.map(([k, l]) => `<label class="chk"><input type="checkbox" data-cue="${k}"${(ck.cues || []).includes(k) ? ' checked' : ''}> ${esc(l)}</label>`).join('')}</div>
             <input type="text" id="scCkN" maxlength="240" placeholder="A note (kept in this browser)" value="${esc(ck.note || '')}">
             ${ck.at ? `<p class="sc-note">Checked ${esc(new Date(ck.at).toLocaleString())}</p>` : ''}</div>
-          <div class="sc-acts"><button class="btn sm sec" id="scCopy">Copy address</button><button class="btn sm sec" data-go-lines="1">Service Lines ↗</button><button class="btn sm sec" id="scDesk1">Campaign Desk ↗</button></div>`;
+          <div class="sc-acts"><button class="btn sm" id="scSv1">Street View</button><button class="btn sm sec" id="scCopy">Copy address</button><button class="btn sm sec" data-go-lines="1">Service Lines ↗</button><button class="btn sm sec" id="scDesk1">Campaign Desk ↗</button></div>`;
+        $('#scSv1', dt).onclick = () => { showSV({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
         $$('[data-line]', dt).forEach(c => c.onclick = () => goModule('lines', { line: c.dataset.line, zip: b.zip }));
         const lg = $('[data-go-lines]', dt); if (lg) lg.onclick = () => goModule('lines', { zip: b.zip, line: b.lines[0] || 'replace' });
         $('#scDesk1', dt).onclick = () => goModule('desk', { zips: [b.zip].filter(Boolean) });
@@ -21158,11 +21195,12 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         gSel.clearLayers();
         if (v.m > 0) { sight = LF.polyline([[v.lat, v.lon], [target.lat, target.lon]], { pane: 'scSel', color: '#ffffff', weight: 2, dashArray: '5 5', opacity: 0.95, interactive: false }).addTo(gSel); }
         cam = LF.marker([v.lat, v.lon], { pane: 'scSel', interactive: false, keyboard: false, icon: LF.divIcon({ className: '', html: '<div class="sc-cam" title="Where Street View stands"></div>', iconSize: [18, 18], iconAnchor: [9, 9] }) }).addTo(gSel);
-        const where = v.road ? `standing on ${esc(v.road)}, looking ${compass(v.heading)}${target.b ? ' at the building' : ''}` : 'at this point';
-        box.innerHTML = `<div class="sc-sv"><a class="btn sc-svgo" id="scSvGo" href="${esc(svURL(v))}" target="scout-streetview" referrerpolicy="no-referrer">Open Street View ↗</a>
-          <p class="sc-note">Opens Google Street View in its own tab, ${where}. The same tab is reused for every building, so the dashboard and the street view can sit side by side. Google's terms keep Street View off the same screen as a non-Google map, so it is not drawn here.</p>
+        const where = v.road ? `standing on ${esc(v.road)}, looking ${compass(v.heading)}${target.b ? ' at the building' : ''}` : 'at the street nearest this point';
+        box.innerHTML = `<div class="sc-sv"><button type="button" class="btn sc-svgo" id="scSvShow">Show Street View</button>
+          <p class="sc-note">Live Google Street View in the map's place, ${where}: drag to look around, click the arrows in the picture to walk the street, and step from building to building. The satellite map comes back with one click. <a href="${esc(svURL(v))}" id="scSvGo" target="scout-streetview" referrerpolicy="no-referrer">Open it in Google Maps instead ↗</a></p>
           <div id="scMly"></div>
           <div class="sc-acts" style="margin-top:2px"><a class="btn sm sec" href="${esc(satURL(target.lat, target.lon))}" target="scout-streetview" referrerpolicy="no-referrer">Google satellite ↗</a><a class="btn sm sec" href="${esc(mlyURL(target.lat, target.lon))}" target="_blank" rel="noopener noreferrer">Mapillary ↗</a></div></div>`;
+        $('#scSvShow', root).onclick = () => { showSV(target); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
         $('#scSvSub', root).textContent = target.b ? 'Street View aimed at this building from its street' : 'Street View at this point';
         const mb = $('#scMly', root);
         if (!CFG.mlyToken) { mb.innerHTML = `<p class="sc-note">Street photos can show here too: save a free Mapillary token in <button type="button" class="lnk" id="scToSet">Settings and keys</button>.</p>`; $('#scToSet', root).onclick = () => { $('#scSet', root).scrollIntoView({ behavior: 'smooth', block: 'center' }); const i = $('#scMlyK', root); if (i) i.focus(); }; return; }
@@ -21183,6 +21221,70 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
           <p class="sc-note">Photos © Mapillary contributors, CC BY-SA 4.0.</p>`;
         $$('.sc-thumbs button', mb).forEach(x => x.onclick = () => { photoI = +x.dataset.i; showPhoto(target); });
       }
+
+      /* ---------- Street View inside the dashboard ---------- */
+      /* Google's live Street View, walkable, in the map card's own place and aimed from the street at the building. While it
+         shows, the satellite map is hidden: Google's Maps Platform terms (3.2.3(e)) keep Street View imagery and a non-Google
+         map off the same screen, so the card switches between them instead of showing both. Without a key the picture is
+         Google's standard embedded Street View player; with a Google Maps key saved in Settings it is the Maps Embed API,
+         Google's documented embed (free of charge). */
+      const svw = $('#scSvw', root), svf = $('#scSvF', root), svBar = $('#scSvBar', root), mapCard = $('.sc-mapcard', root);
+      var svMode = false; let svFull = false, svTarget = null, svView = null, svHead = 0, svPitch = 0, svList = [], svTok2 = 0;
+      const svSrc = (v, head, pitch) => { const h = Math.round(((head % 360) + 360) % 360); return CFG.gKey
+        ? `https://www.google.com/maps/embed/v1/streetview?key=${encodeURIComponent(CFG.gKey)}&location=${v.lat.toFixed(6)},${v.lon.toFixed(6)}&heading=${h}&pitch=${Math.round(pitch)}&fov=90&language=en`
+        : `https://maps.google.com/maps?layer=c&cbll=${v.lat.toFixed(6)},${v.lon.toFixed(6)}&cbp=11,${h},0,0,${Math.round(-pitch)}&output=svembed&hl=en`; };
+      function setMode(m) {
+        svMode = m === 'sv';
+        if (!svMode) svf.src = 'about:blank';   /* unload the player before its frame is hidden: at 0 by 0 it logs errors of its own */
+        $$('#scMode button', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === m)));
+        host.hidden = svMode; svw.hidden = !svMode; hideTip();
+        $('#scModeNote', root).textContent = svMode ? 'The satellite map is hidden while Street View shows: Google\'s terms keep the two off the same screen. Satellite brings it back.' : 'Pick a building, then Street View to stand in the street in front of it (or double click the building).';
+        if (!svMode) { if (svFull) full(false); setTimeout(() => { map.invalidateSize({ pan: false }); if (svTarget) map.panTo([svTarget.lat, svTarget.lon]); }, 0); }
+      }
+      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); document.documentElement.classList.toggle('sc-noscroll', svFull); if (svMode) renderSvBar(); }
+      /* the buildings to step through: those in view when Street View opened, likely ones first, highest scores first */
+      function svListNow() {
+        const bd = curBounds(), rank = { g: 3, o: 2, r: 1 };
+        return [...B.values()].filter(b => bd.contains([b.lat, b.lon]) && shown(b) && b.sys.life !== 'none').sort((a, b) => rank[b.status] - rank[a.status] || b.sc.score - a.sc.score).map(b => b.id);
+      }
+      async function showSV(target) {
+        if (!target) return; const my = ++svTok2; svTarget = target;
+        if (!svMode) { viewBounds = map.getBounds(); svList = svListNow(); setMode('sv'); }
+        svBar.innerHTML = '<div class="sc-svwhere"><span class="sc-busy"></span>Finding the street in front…</div>';
+        let v; try { v = await aim(target); } catch (e) { v = { lat: target.lat, lon: target.lon, heading: 0, road: '', m: 0 }; }
+        if (my !== svTok2 || !svMode) return;
+        const b = target.b; svView = v; svHead = v.heading;
+        svPitch = !b ? 0 : b.sys.life === 'plant' ? 18 : b.sys.life === 'rtu' ? 12 : b.sys.life === 'ptac' ? 8 : 2;   /* tilt up for roofs that carry the units */
+        svf.src = svSrc(v, svHead, svPitch); renderSvBar();
+      }
+      function turn(d) { if (!svView) return; svHead = ((svHead + d) % 360 + 360) % 360; svf.src = svSrc(svView, svHead, svPitch); renderSvBar(); }
+      function step(d) { if (!svList.length) return; const cur = svTarget && svTarget.b ? svList.indexOf(svTarget.b.id) : -1; const i = ((cur + d) % svList.length + svList.length) % svList.length; if (B.get(svList[i])) pick(svList[i]); }
+      function renderSvBar() {
+        const t = svTarget; if (!t) { svBar.innerHTML = ''; return; } const b = t.b ? (B.get(t.b.id) || t.b) : null, v = svView;
+        if (b && !svList.includes(b.id)) { svList = svListNow(); if (!svList.includes(b.id)) svList.unshift(b.id); }
+        const i = b ? svList.indexOf(b.id) : -1, facing = b && v && Math.abs(((svHead - v.heading + 540) % 360) - 180) < 20;
+        svBar.innerHTML = `<div class="sc-svinfo">${b ? `<span class="sc-pill ${b.status}">${STL[b.status]}</span><b>${esc(b.addr ? title(b.addr) : 'Building, no address on file')}</b><span class="mini">${esc([(PROF[b.cls] || PROF.unk).l, b.sys.short, needLabel(b), 'score ' + b.sc.score].join(' · '))}</span>` : `<b>A point on the map</b><span class="mini">${t.lat.toFixed(5)}, ${t.lon.toFixed(5)}</span>`}</div>
+          <div class="sc-svctl">
+            ${b && svList.length > 1 ? `<button type="button" class="ibtn" data-a="prev" title="The previous building (likely ones first, highest scores first)" aria-label="Previous building">◀</button><span class="mini sc-svn">${N(i + 1)} of ${N(svList.length)}</span><button type="button" class="ibtn" data-a="next" title="The next building" aria-label="Next building">▶</button>` : ''}
+            <button type="button" class="ibtn" data-a="left" title="Turn left 45°" aria-label="Turn left">↺</button>${b ? '<button type="button" class="ibtn" data-a="face" title="Turn back to face the building">Face it</button>' : ''}<button type="button" class="ibtn" data-a="right" title="Turn right 45°" aria-label="Turn right">↻</button>
+            ${b ? `<span class="seg sc-svck" role="group" aria-label="Your field check">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely']].map(([k, l]) => `<button type="button" data-ck="${k}" aria-pressed="${!!(CK[b.id] && CK[b.id].s === k)}" title="Mark what you see: ${l.toLowerCase()}">${l}</button>`).join('')}</span>` : ''}
+            <button type="button" class="ibtn" data-a="full">${svFull ? '⤡ Exit full window' : '⤢ Full window'}</button>
+            <a class="ibtn" href="${esc(svURL(v ? { lat: v.lat, lon: v.lon, heading: svHead } : t))}" target="scout-streetview" referrerpolicy="no-referrer" title="Open this view in Google Maps">Google Maps ↗</a>
+            <button type="button" class="btn sm" data-a="map">Back to satellite</button>
+          </div>
+          <div class="sc-svwhere">${v && v.road ? `Standing on ${esc(v.road)}, looking ${compass(svHead)}${facing ? ' at the building' : ''}.` : 'At the street nearest this point.'} Drag to look around; click the arrows in the picture to walk the street. Esc goes back to the satellite map.</div>`;
+        $$('[data-a]', svBar).forEach(x => x.onclick = () => { const a = x.dataset.a; if (a === 'map') setMode('map'); else if (a === 'full') full(!svFull); else if (a === 'left') turn(-45); else if (a === 'right') turn(45); else if (a === 'face' && svView) { svHead = svView.heading; svf.src = svSrc(svView, svHead, svPitch); renderSvBar(); } else if (a === 'prev' || a === 'next') step(a === 'next' ? 1 : -1); });
+        $$('[data-ck]', svBar).forEach(x => x.onclick = () => { const k = x.dataset.ck, cur = CK[b.id] && CK[b.id].s; setCheck(b.id, { s: cur === k ? undefined : k }); statusOf(b); draw(b); refreshSoon(); renderSvBar(); if (sel && sel.type === 'b' && sel.id === b.id) detail(); });
+      }
+      $$('#scMode button', root).forEach(x => x.onclick = () => {
+        if (x.dataset.v === 'map') { if (svMode) setMode('map'); return; }
+        if (svMode) return;
+        const sb = sel && sel.type === 'b' ? B.get(sel.id) : null;
+        if (sb) showSV({ lat: sb.lat, lon: sb.lon, street: sb.street, b: sb });
+        else if (sel && sel.type === 'pt') showSV({ lat: sel.lat, lon: sel.lon, street: '', b: null });
+        else { const c = map.getCenter(); if (map.getZoom() < 14) toast('Showing the street nearest the map\'s centre. Pick a building to aim at it.'); showSV({ lat: c.lat, lon: c.lng, street: '', b: null }); }
+      });
+      document.addEventListener('keydown', e => { if (e.key !== 'Escape' || !svMode || root.hidden) return; if (svFull) full(false); else setMode('map'); });
 
       /* ---------- imagery: which pictures are under the centre of the map ---------- */
       let imgNote = '';
@@ -21252,6 +21354,7 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
           <div class="f"><label class="fl" for="scGr">Green at a score of</label><div class="row"><input type="range" id="scGr" min="20" max="90" step="1" value="${CFG.green}"><output id="scGrO">${CFG.green}</output></div></div>
           <div class="f"><label class="fl" for="scOr">Orange at a score of</label><div class="row"><input type="range" id="scOr" min="5" max="85" step="1" value="${CFG.orange}"><output id="scOrO">${CFG.orange}</output></div></div>
           <div class="f"><label class="fl" for="scArc">ArcGIS key (optional)</label><div class="row"><input type="password" id="scArc" autocomplete="off" spellcheck="false" placeholder="${CFG.arcgisKey ? 'Saved: ' + esc(CFG.arcgisKey.slice(0, 4)) + '…' : 'AAPK… or an access token'}"><button class="btn sm" id="scArcS">Save</button><button class="btn sm sec" id="scArcR"${CFG.arcgisKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Routes the imagery through your own ArcGIS Location Platform account, the way Esri asks commercial apps to use it (its free tier covers two million basemap tiles a month). Without a key the public World Imagery service is used, with Esri's attribution on the map.</p></div>
+          <div class="f"><label class="fl" for="scGk">Google Maps key (optional)</label><div class="row"><input type="password" id="scGk" autocomplete="off" spellcheck="false" placeholder="${CFG.gKey ? 'Saved: ' + esc(CFG.gKey.slice(0, 6)) + '…' : 'AIza…'}"><button class="btn sm" id="scGkS">Save</button><button class="btn sm sec" id="scGkR"${CFG.gKey ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Street View works without a key, through Google's standard embedded Street View player. With a key that has the Maps Embed API turned on (Google does not charge for it), Street View runs through that documented API instead.</p></div>
           <div class="f"><label class="fl" for="scMlyK">Mapillary token (optional)</label><div class="row"><input type="password" id="scMlyK" autocomplete="off" spellcheck="false" placeholder="${CFG.mlyToken ? 'Saved: ' + esc(CFG.mlyToken.slice(0, 6)) + '…' : 'MLY|…'}"><button class="btn sm" id="scMlyS">Save</button><button class="btn sm sec" id="scMlyR"${CFG.mlyToken ? '' : ' disabled'}>Remove</button></div><p class="sc-note">Shows Mapillary's street photos (CC BY-SA) in the From the road card, turned to face the building. A free client token comes from mapillary.com under Developers. Mapillary's coverage of residential streets is thinner than Street View's.</p></div>
           <div class="f"><label class="fl">Field checks</label><div class="row"><span class="mini">${plural(Object.keys(CK).length, 'building')} checked in this browser.</span><button class="btn sm sec" id="scCkX"${Object.keys(CK).length ? '' : ' disabled'}>Clear them all</button></div></div>`;
         $('#scMinZ', s).onchange = e => { CFG.minZoom = +e.target.value; saveCfg(); restyleAll(); load(); refreshSoon(); };
@@ -21263,6 +21366,9 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         $('#scArcR', s).onclick = () => { CFG.arcgisKey = ''; saveCfg(); tileErr = 0; tileOk = 0; setBase(); settings(); toast('ArcGIS key removed'); };
         $('#scMlyS', s).onclick = () => { const v = $('#scMlyK', s).value.trim(); if (!v) { toast('Paste a token first'); return; } CFG.mlyToken = v.slice(0, 500); saveCfg(); settings(); toast('Mapillary token saved in this browser'); if (sel && sel.type !== 'zip') { const b = sel.type === 'b' ? B.get(sel.id) : null; street(b ? { lat: b.lat, lon: b.lon, street: b.street, b } : { lat: sel.lat, lon: sel.lon, street: '', b: null }); } };
         $('#scMlyR', s).onclick = () => { CFG.mlyToken = ''; saveCfg(); settings(); toast('Mapillary token removed'); };
+        const svAgain = () => { if (svMode && svView) svf.src = svSrc(svView, svHead, svPitch); };
+        $('#scGkS', s).onclick = () => { const v = $('#scGk', s).value.trim(); if (!v) { toast('Paste a key first'); return; } CFG.gKey = v.slice(0, 200); saveCfg(); settings(); svAgain(); toast('Google Maps key saved in this browser'); };
+        $('#scGkR', s).onclick = () => { CFG.gKey = ''; saveCfg(); settings(); svAgain(); toast('Google Maps key removed'); };
         let armed = false; $('#scCkX', s).onclick = e => { if (!armed) { armed = true; e.target.textContent = 'Click again to clear'; setTimeout(() => { armed = false; if (e.target.isConnected) e.target.textContent = 'Clear them all'; }, 4000); return; } Object.keys(CK).forEach(k => delete CK[k]); store.set(CHECKS, CK); B.forEach(b => statusOf(b)); restyleAll(); settings(); refreshSoon(); if (sel && sel.type === 'b') detail(); toast('Field checks cleared'); };
       }
       settings();
@@ -21273,7 +21379,8 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         ['FEMA\'s occupancy is modeled', 'USA Structures classes buildings from parcels, points of interest and imagery. A house used as an office, or a shop over apartments, can be classed either way; unclassified buildings are read by size.'],
         ['Rebuilt and remodeled homes', 'An appraisal roll keeps the original year built through most remodels. A full HVAC replacement without a permit leaves no trace the model can read.'],
         ['Units and tons are rules of thumb', 'Rooftop unit counts and tonnage come from floor area, not from counting units on the imagery. Count them on the 15 cm imagery before quoting.'],
-        ['Imagery dates differ', 'Satellite and aerial captures under one map are from different days (the line under the map names the one under its centre). Street View and Mapillary have their own dates.'],
+        ['Imagery dates differ', 'Satellite and aerial captures under one map are from different days (the line under the map names the one under its centre). Street View and Mapillary have their own dates: Street View shows its date under "View on Google Maps" and "See more dates" in Google Maps.'],
+        ['Street View stands where Google drove', 'The view is aimed from the nearest point of the building\'s own street. Where Google\'s car did not pass (a private drive, a new street) the player picks the nearest picture it has, which can be on the next street; turn, step, or walk with the arrows in the picture.'],
       ], ['Caveat', 'Why it matters']);
       $('#scGap', root).innerHTML = judgList([
         ['The equipment itself', 'No public file lists the make, model, age or refrigerant of a building\'s equipment. A service history, a nameplate photo or a homeowner\'s answer is the only record.'],
@@ -21290,14 +21397,14 @@ window.__SCOUT_LEAFLET__ = window.L && typeof window.L.noConflict === "function"
         ['Streets', 'U.S. Census Bureau TIGERweb, transportation layers', 'A', 'current', 'https://tigerweb.geo.census.gov/'],
         ['Address search', 'Esri World Geocoding Service (single searches, nothing stored)', 'A', 'live', 'https://www.esri.com/'],
         ['Life tables and repair rates', 'The atlas: EIA RECS 2020 Texas Weibull lifetimes (module 02), repair call rates by age (module 05), ZIP heating fuel and housing age (ACS)', 'B', 'compiled ' + esc(META.compiled || ''), ''],
-        ['Street View', 'Google Maps, opened on google.com in its own tab (Maps URLs, no key)', '', 'live', 'https://developers.google.com/maps/documentation/urls/get-started'],
+        ['Street View', 'Google Street View, shown in the map card in place of the satellite map: Google\'s embedded player, or the Maps Embed API with your key; and in Google Maps in its own tab', '', 'live', 'https://developers.google.com/maps/documentation/embed/embedding-map#streetview_mode'],
         ['Street photos', 'Mapillary API v4, with your token (CC BY-SA 4.0)', '', 'live', 'https://www.mapillary.com/developer/api-documentation'],
       ]);
 
       /* ---------- the map's events and the first view ---------- */
       const saveView = debounce(() => { const c = map.getCenter(); CFG.view = { lat: +c.lat.toFixed(5), lon: +c.lng.toFixed(5), z: map.getZoom() }; saveCfg(); }, 800);
       map.on('zoomend', () => { paintHeat(); restyleAll(); });
-      map.on('moveend', () => { load(); refreshSoon(); imgInfo(); saveView(); });
+      map.on('moveend', () => { if (!svMode) viewBounds = map.getBounds(); load(); refreshSoon(); imgInfo(); saveView(); });
       map.on('mouseout', hideTip);
       BUS.on('theme', () => { if (self.mounted) { paintHeat(); restyleAll(); } });
       map.attributionControl.addAttribution('Data: FEMA, TxGIO, U.S. Census, Dallas, Fort Worth');

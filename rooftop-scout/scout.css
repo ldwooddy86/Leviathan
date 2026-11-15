@@ -100,3 +100,30 @@
 .sc .sc-hint:empty{display:none}
 .sc .sc-cam{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 2px 6px rgba(0,0,0,.4)}
 @media (max-width:760px){.sc .sc-pb{grid-template-columns:minmax(0,1fr) 80px 40px}.sc .controls input[type=range]{width:100%}}
+/* Street View in the map card's place, and the switch between the two */
+.sc .sc-modebar{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--card);border-radius:var(--r) var(--r) 0 0}
+.sc .sc-modebar .seg button{padding:6px 14px;font-size:12.5px;font-weight:600}
+.sc .sc-mnote{font-size:11.5px;color:var(--ink-3);flex:1 1 240px;line-height:1.4}
+.sc .sc-modebar+.sc-map{border-radius:0}
+.sc .sc-map[hidden],.sc .sc-svw[hidden]{display:none!important}
+.sc .sc-svw{background:#0b1014}
+.sc .sc-svbar{display:grid;gap:7px;padding:9px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.sc .sc-svinfo{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;min-width:0}
+.sc .sc-svinfo b{font-size:14.5px;overflow-wrap:anywhere}
+.sc .sc-svinfo .mini{flex:1 1 260px;min-width:0}
+.sc .sc-svctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sc .sc-svctl .ibtn{text-decoration:none;display:inline-flex;align-items:center}
+.sc .sc-svctl .seg button{padding:4px 9px}
+.sc .sc-svn{font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.sc .sc-svck button[data-ck="g"][aria-pressed="true"]{background:var(--sc-g);color:#05290f}
+.sc .sc-svck button[data-ck="o"][aria-pressed="true"]{background:var(--sc-o);color:#2b1700}
+.sc .sc-svck button[data-ck="r"][aria-pressed="true"]{background:var(--sc-r);color:#fff}
+.sc .sc-svwhere{font-size:11.5px;color:var(--ink-3);line-height:1.45}
+.sc .sc-svf{display:block;width:100%;height:min(66vh,640px);min-height:380px;border:0;background:#0b1014}
+.sc .sc-svq{margin-top:6px;width:100%}
+.sc .sc-mapcard.sc-full{position:fixed;inset:0;z-index:550;border-radius:0;border:0;margin:0;display:flex;flex-direction:column;background:var(--card)}
+.sc .sc-mapcard.sc-full>.sc-svw{flex:1;display:flex;flex-direction:column;min-height:0}
+.sc .sc-mapcard.sc-full .sc-svf{flex:1;height:auto;min-height:0}
+.sc .sc-mapcard.sc-full>.sc-bar,.sc .sc-mapcard.sc-full>.legend,.sc .sc-mapcard.sc-full>.sc-modebar{display:none}
+html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
+@media (max-width:760px){.sc .sc-svf{height:58vh;min-height:300px}}
