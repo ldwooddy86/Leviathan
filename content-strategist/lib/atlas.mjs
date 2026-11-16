@@ -229,7 +229,7 @@ export const NEEDS = [
     owner: 'Homes from the 2010s have reached the age when the first parts give out: a capacitor, a contactor, sometimes the indoor coil. Most of these are repairs, not replacements.',
     tech: 'R410A systems 7 to 16 years old: capacitor and contactor wear, early evaporator coil leaks, condensate switch trips. Worth a repair in nearly every case.' },
   { id: 'new-homes', layers: ['yb_2020p'], angles: ['maint', 'newowner'], title: 'Homes built since 2020', hot: (z, p) => p.yb_2020p >= 75,
-    owner: 'Newer homes here are young enough that the maker\'s parts warranty may still apply. What matters now is upkeep, clean filters and fixing weak airflow early, before a small flaw from the build wears the equipment.',
+    owner: 'Newer homes here are young enough that the maker\'s parts warranty may still apply, so check its terms before you pay for a part. What matters now is upkeep, clean filters and fixing weak airflow early, before a small flaw from the build wears the equipment.',
     tech: 'Warranty territory: maintenance and airflow corrections, not replacements. Common build flaws: kinked flex runs, undersized returns, low refrigerant charge from the factory line set length.' },
   { id: 'older-furnaces', layers: ['furn20_sh', 'gas_sh'], angles: ['furnace', 'heatrepair', 'heattune'], title: 'Gas furnaces 20 years or older', hot: (z, p) => p.furn20_sh >= 75 && z.gas_sh >= 30,
     owner: 'A good share of gas furnaces here are past 20 years. At that age the heat exchanger and the flame safety parts deserve a look every fall, before the first cold night.',
