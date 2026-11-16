@@ -10,6 +10,16 @@ A dashboard is a Thermal Debt atlas as one `.html` file (the DFW Thermal Debt At
 node dashboard-link/cli.mjs connect path/to/DFW_Thermal_Debt_Atlas_Build6.html
 ```
 
+To make one version of a dashboard the only one the agents will take, connect it with `--pin`:
+
+```
+node dashboard-link/cli.mjs connect path/to/DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_7.html --pin
+```
+
+The pin is the file's fingerprint, recorded on the content pack in the repository, so it holds on any machine and in any later session. From then on `connect` refuses every other version before it reads or writes anything, and says which file is pinned and which it was given. Only another `connect --pin` moves the pin, and an agent passes that flag only when the person names the new version. The Agent Desk and the hand-offs a copy carries are not part of the fingerprint: a copy of the pinned dashboard with work on it is still the pinned dashboard. `status` names the pinned file and reports a connected dashboard that is not it.
+
+Whatever a person adds to the brand file that the dashboard does not carry (account ids, the client's own choice of neighboring cities) stays there when the dashboard is connected again.
+
 The file is read once, as text, and three things are left behind.
 
 | Where | What | For |

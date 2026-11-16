@@ -12,9 +12,11 @@ You act through one toolkit: `node content-strategist/cli.mjs <command>`. It hol
 
 # Start of every job
 
-Run `node content-strategist/cli.mjs where`. It tells you which dashboard is connected, which brand is on file, whether the sitemap has been read, and where client files go.
+Run `node content-strategist/cli.mjs where`. It tells you which dashboard version is pinned, which dashboard is connected, which brand is on file, whether the sitemap has been read, and where client files go.
 
-If no dashboard is connected, ask for the dashboard file (the atlas as one `.html` file) and run `connect <atlas.html>`. That one command connects the dashboard for you and for the paid ads specialist: it rebuilds the vertical pack and the brand file from the dashboard, and where a browser is on the machine it opens the dashboard to see that it runs. `dashboard` shows what is connected and the doors it has for pages coming back. (`extract` is the older name for `connect`.)
+The pinned dashboard is the only one you work from. The person chose that version, and the pin is recorded in the repository, so it holds in every session. If `where` names a pinned file and no dashboard is connected on this machine, ask for that file by name and connect it. If `connect` refuses a file because it is not the pinned version, stop and tell the person which file is pinned and which one you were given. Do not look for a way around it, and never pass `--pin` on your own: only the person moves the pin, by telling you to use a different version ("use only this version from now on"). When they do, connect that file with `connect <atlas.html> --pin` and say that the pin has moved.
+
+If no dashboard is connected and none is pinned, ask for the dashboard file (the atlas as one `.html` file) and run `connect <atlas.html>`. That one command connects the dashboard for you and for the paid ads specialist: it rebuilds the vertical pack and the brand file from the dashboard, and where a browser is on the machine it opens the dashboard to see that it runs. `dashboard` shows what is connected and the doors it has for pages coming back. (`extract` is the older name for `connect`.)
 
 If no brand is on file and there is no dashboard file to connect, you cannot build a page. Ask for the brand facts to fill a copy of `content-strategist/brand.example.json`. Never invent a phone number, license number, address, review count or year founded.
 
@@ -50,15 +52,17 @@ A deep pack carries the dashboard's heatmaps: for every ZIP code, how old the ce
 
 `brief <city>` is the plan for one city page, and you run it before you write any page for a place. Add `--keyword` when the page is not for the core service, and `--url` when you are rewriting a live page. It gives you:
 
-1. Who you are writing to: the year the typical home dates to, how that differs across the city's ZIP codes, what a home of that age has usually been through, and what the homes heat with (which decides whether the furnace or the heat pump leads the heating half of the page).
+1. Who you are writing to: the year the typical home dates to, how that differs across the city's ZIP codes, what a home of that age has usually been through, and what the homes heat with (which decides whether the furnace or the heat pump leads the heating half of the page). It also says how much of its ZIP codes the city fills.
 2. What sets the place apart, in order. Lead the page with these. Each comes with the line to get across to the owner, the trade detail, where in town it applies, and the keywords that fit it.
 3. What is also true here but true of much of the market. Give these a paragraph at most.
-4. What is true in part of town only. Say where: name the ZIP code or the side of town. Never write a pocket up as the whole city.
+4. What is true in part of town only. Say where: name the ZIP code. Never write a pocket up as the whole city.
 5. What is not the story here. A new suburb does not get a paragraph on 25 year old furnaces because the last city did.
 6. Each measure here against the whole market. When the gap is small, say the thing applies here; do not say it is worse here.
 7. Every ZIP with the figures that bear on it, the city's figures said the way a person says them, the live pages to link to (one for each service and each need the page will raise), and the neighboring cities to name.
 
 The brief also lists what is for planning only: where many homes are rentals, where many owners are older, where Spanish is common. Use it to decide which pages to build. Never say it to a reader, and never address who a reader is.
+
+A city and its ZIP codes are not the same place. A ZIP code is often shared by a small city and the big one beside it, and can hold several times the homes the small city does. Where a city fills three quarters or more of its ZIP codes, the brief reads the city from them, part of town by part of town. Where it fills less, the brief judges the city from the city's own figures and files what its ZIP codes say under "true of a ZIP code, not of the city". Follow that split exactly. Say "Highland Park" only for a figure the brief gives as the city's own. A point from a shared ZIP is a point about that ZIP ("in ZIP 75219, which takes in homes beyond Highland Park"), and on such a page you name two ZIP codes at most. When a figure for the city and a figure for one of its ZIP codes disagree, the city's own figure is the one for the city. If a client's existing page states a city figure and your brief seems to say otherwise, check which of the two the brief gives as the city's own before you change a word.
 
 Nothing in a brief is copy. The "tell the owner" lines are the point to make, and you make it fresh on every page, from that city's own facts. A set of pages that reuses those lines word for word fails `compare`.
 

@@ -56,6 +56,8 @@ node content-strategist/cli.mjs brief Plano               the plan for one city 
 
 `brief` is what the agent writes a city page from. It says who the reader is (the year the typical home dates to, how that differs across the city's ZIP codes, what they heat with), what sets the place apart in order, what is true in part of town only and in which ZIP, what is common elsewhere and not the story here, each measure here against the whole market, every ZIP with the figures that bear on it, the figures as a person says them, the live pages to link to and the neighbors to name. A city outside the mapped area gets a brief that says so, with no local figure.
 
+A city is not its ZIP codes. One ZIP is often shared by a small city and the big one beside it: the ZIP codes of the smallest cities here hold up to nine times the homes the city does. So the pack keeps two things for every city: its own figures on the layers, from the city's own record in the dashboard (`own`), and the share of its ZIP codes' systems that sit in the city (`coverage`). At three quarters or more, the ZIP codes are the city and decide its needs, part of town by part of town. Under that, the city's own figures decide, and a need that only its ZIP codes show is kept as true of that ZIP and never said of the city. Hail is the exception, since a storm does not stop at a city line. The first briefs read every city from its ZIP codes, and for a third of the cities that described the neighbors: a town where six homes in ten heat with gas was written up as mostly electric. The writers caught it as a brief that contradicted itself.
+
 A need runs hot by where a ZIP stands among the market's ZIPs, the way the map colors it. The brief prints the measure itself beside it, here and across the market, and says when the gap is small, so a page does not write up a three point difference as a local crisis.
 
 ## What a round of client review changed
@@ -75,13 +77,13 @@ node content-strategist/cli.mjs harvest
 node content-strategist/cli.mjs connect path/to/DFW_Thermal_Debt_Atlas.html
 ```
 
-`connect` (the older name `extract` still works) connects the dashboard for this agent and for the paid ads specialist at once, through `dashboard-link/`. The pack is read from the atlas as text: nothing in it is run except the one line triggers of the service angles, each checked against a whitelist first. The brand the atlas was built for goes to the local brand file. A pack already read from the same dashboard file by the same reader is left untouched, so connecting twice changes nothing under git. When the reader learns to read more from a dashboard (the heatmaps were the last such step), a pack an older reader left is read again on the next `connect`.
+`connect` (the older name `extract` still works) connects the dashboard for this agent and for the paid ads specialist at once, through `dashboard-link/`. `connect <file> --pin` makes that file the only version of the dashboard the toolkit will take: its fingerprint goes on the pack in the repository, and from then on any other version is refused before anything is read, in this and every later session, until another `connect --pin` moves the pin. `where` names the pinned file. A copy of the pinned dashboard with the Agent Desk and work on it is still the pinned dashboard. The pack is read from the atlas as text: nothing in it is run except the one line triggers of the service angles, each checked against a whitelist first. The brand the atlas was built for goes to the local brand file. A pack already read from the same dashboard file by the same reader is left untouched, so connecting twice changes nothing under git. When the reader learns to read more from a dashboard (the heatmaps were the last such step), a pack an older reader left is read again on the next `connect`.
 
 ## Where client files live
 
 Outside the repository, in `~/.leviathan/content-strategist/`: the brand file, the sitemap inventory, drafts, built pages and the ledger of posts. The console's build scans every file under the repository, ignored by git or not, and refuses it while a withheld name is anywhere in it, so nothing that names a client may sit in the tree. The packs are scanned against the same list before they are written, and a pack never carries a brand.
 
-The brand file may carry `neighbors`, the client's own choice of the cities to name beside each city (`{"Plano": ["Allen", "Richardson"]}`); it wins over the map.
+The brand file may carry `neighbors`, the client's own choice of the cities to name beside each city (`{"Plano": ["Allen", "Richardson"]}`); it wins over the map. Whatever a person adds to the brand file that the dashboard does not carry stays there when the dashboard is connected again.
 
 `CS_LOCAL`, `CS_OUT` and `CS_BRAND` move those paths. A cloud session starts on a fresh machine, so give it the brand one of three ways: attach the dashboard file and run `connect`, fill a copy of `brand.example.json`, or set `CS_BRAND_JSON` in the environment to the same JSON.
 
@@ -89,7 +91,7 @@ The brand file may carry `neighbors`, the client's own choice of the cities to n
 
 ```
 node content-strategist/cli.mjs where                       the dashboard connected, the brand on file, the sitemap, where client files go
-node content-strategist/cli.mjs connect atlas.html          connect a dashboard (shared with the paid ads specialist)
+node content-strategist/cli.mjs connect atlas.html [--pin]  connect a dashboard (shared with the paid ads specialist); --pin makes it the only version taken
 node content-strategist/cli.mjs dashboard                   what is connected and the doors it has for pages
 node content-strategist/cli.mjs verticals                   the packs
 node content-strategist/cli.mjs keywords dfw --city Plano   angles by demand in a city, the city filled in
@@ -152,4 +154,4 @@ Nine files, no network: the atlas reader, the heatmap needs and the packs on dis
 
 ## Limits
 
-A need is a reading of the map, not of a house: it says what is common in a ZIP, and the copy has to say "many" and "likely". A ZIP code can reach past the city line, and the brief says when a city's ZIP codes plainly do. The cities next door come from straight line distance between city centers unless the brand file lists the client's own (`neighbors`). Passive voice and syllable counts are heuristics. They are tuned to over report passives slightly, and a reading grade can sit a few tenths from another tool's. Only `dfw` is a deep pack; the Louisiana Thermal Debt Atlas shares its family but is read as a keyword pack for now. The inventory reads a URL's keyword from its slug unless `sitemap --deep` can fetch the pages for their titles and h1.
+A need is a reading of the map, not of a house: it says what is common in a ZIP, and the copy has to say "many" and "likely". The dashboard has no city figure for hail, new owners or home size, so for a city that fills less than half of its ZIP codes those stay ZIP points. A city's heat pump share is worked out the way the dashboard models a ZIP's, from the city's electric heated share. The cities next door come from straight line distance between city centers unless the brand file lists the client's own (`neighbors`). Passive voice and syllable counts are heuristics. They are tuned to over report passives slightly, and a reading grade can sit a few tenths from another tool's. Only `dfw` is a deep pack; the Louisiana Thermal Debt Atlas shares its family but is read as a keyword pack for now. The inventory reads a URL's keyword from its slug unless `sitemap --deep` can fetch the pages for their titles and h1.

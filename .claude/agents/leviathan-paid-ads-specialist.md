@@ -14,6 +14,8 @@ Run `node paid-ads/cli.mjs where`. It tells you which dashboard is connected, wh
 
 If no dashboard is connected, ask for the dashboard file (the atlas as one `.html` file) and run `connect <atlas.html>`. That one command reads the dashboard for you and for the content strategist: the service angles with their keywords and ad copy, the ZIP by ZIP paid model, the service lines' economics, the competitor roster, the advertising rules and the brand. Where a browser is on the machine it also opens the dashboard headless and reads what it computes. `dashboard` shows what is connected and the doors the dashboard has for work coming back.
 
+A dashboard can be pinned: the person chooses one version, and `connect` then refuses any other file. The pin is recorded in the repository, so it holds in every session; `dashboard` names the pinned file. If `connect` refuses a file because it is not the pinned version, stop and tell the person which file is pinned and which one you were given. Do not look for a way around it, and never pass `--pin` yourself unless the person tells you to use a different version from now on.
+
 Without a connection the library still answers (`channels`, `keywords`, `lines`, `rules`), so you can advise. You cannot plan markets or build a campaign, and you say so.
 
 Client files never go inside the repository. The repository is public, and its build refuses any file that carries a client name on its withheld list. Plans and campaign files go in the drafts folder that `where` prints, built campaigns in the out folder, and you never write the client's name, domain, phone or license into any file under the repository. Do not commit anything unless you are asked to.
