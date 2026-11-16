@@ -14,7 +14,8 @@ export function runs(text, n = 4) { const w = text.split(' ').filter(Boolean), S
 /* compare([{name, text, headings: [text], mask: [place names]}]) -> {ok, limit, pages: [{name, closest, similarity}], pairs, repeated, headings} */
 export function compare(docs, { n = 4, limit = 0.15, minWords = 4, spread = 3, headingSpread = 4 } = {}) {
   const names = [...new Set(docs.flatMap(d => d.mask || []).map(x => norm(x).replace(/[^a-z0-9 ]+/g, ' ').trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
-  const D = docs.map(d => ({ name: d.name, set: runs(flat(d.text, names), n), sents: [...new Set(sentences(d.text).map(s => flat(s, names)).filter(s => s.split(' ').length >= minWords))], heads: [...new Set((d.headings || []).map(h => flat(h, names)).filter(Boolean))] }));
+  const D = docs.map(d => ({ name: d.name, set: runs(flat(d.text, names), n), heads: [...new Set((d.headings || []).map(h => flat(h, names)).filter(Boolean))] })).map((d, i) => { const heads = new Set(d.heads); /* a heading is counted with the headings, not again as a sentence */
+    return Object.assign(d, { sents: [...new Set(sentences(docs[i].text).map(s => flat(s, names)).filter(s => s.split(' ').length >= minWords && !heads.has(s)))] }); });
   const pairs = [], best = D.map(() => ({ closest: '', similarity: 0 }));
   for (let i = 0; i < D.length; i++) for (let j = i + 1; j < D.length; j++) {
     const A = D[i].set, B = D[j].set, small = A.size <= B.size ? A : B, big = small === A ? B : A; if (!small.size) continue;

@@ -24,6 +24,7 @@ function vouched(pack, city) {
     if (/%$/.test(v)) pcts.push(x); else if (/,|^\$/.test(v) || (x >= 100 && !/^\d{4}$/.test(v))) counts.push(x);
     for (const m of String(f.label).match(/\b\d{1,3}(?:,\d{3})+\b/g) || []) counts.push(num(m));
   }
+  for (const v of Object.values((city && city.own) || {})) { add(v); pcts.push(v); }
   for (const a of (city && city.areas) || []) { add(a.builtAround); for (const [k, v] of Object.entries(a.values || {})) { add(v); if (!/^(idx|hail)/.test(k)) pcts.push(v); } }
   return { exact, counts, pcts };
 }

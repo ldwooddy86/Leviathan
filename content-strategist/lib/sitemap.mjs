@@ -231,10 +231,13 @@ export function nearby(place, { pack = null, brand = null } = {}) {
   const c = pack && pack.cities ? pack.cities.find(x => same(x.name, place)) : null;
   return c && c.neighbors ? c.neighbors.map(x => ({ name: x.name, miles: x.miles, from: 'the map' })) : [];
 }
+const HUB_WORDS = new Set(['hvac', 'heat', 'heating', 'cool', 'cooling', 'air', 'condit', 'condition', 'conditioning', 'ac', 'servic', 'service', 'services', 'compani', 'company', 'contractor', 'contractors', 'comfort', 'and']);
 /* the live page that stands for a city: its hub. Where a city has two, the one in the same folder as the page being written. */
 export function cityPage(inv, place, selfUrl = '') {
   const self = selfUrl ? urlKey(selfUrl) : '', folder = u => { try { return new URL(u).pathname.split('/').filter(Boolean).slice(0, -1).join('/'); } catch { return ''; } }, mine = selfUrl ? folder(selfUrl) : null;
-  const c = inv.filter(p => p.kind === 'location' && same(p.place, place) && p.key !== self && !p.noindex);
+  /* a page that names the city and one narrow subject ("zoning services in Dallas") is not the city's page, and neither is one service
+     under two names: the hub covers three services or more, or says nothing narrower than heating and air */
+  const c = inv.filter(p => p.kind === 'location' && same(p.place, place) && p.key !== self && !p.noindex && ((p.angles || []).length >= 3 || (p.tokens || []).every(t => HUB_WORDS.has(t))));
   return c.sort((a, b) => (mine != null ? (folder(b.url) === mine) - (folder(a.url) === mine) : 0) || a.path.length - b.path.length)[0] || null;
 }
 

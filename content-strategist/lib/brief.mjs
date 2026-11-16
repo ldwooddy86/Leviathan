@@ -18,27 +18,29 @@ export const cityOf = (pack, name) => (pack && pack.cities ? pack.cities.find(c 
 
 /* a ZIP's figures as sentences a writer can reword: [layer, source, worth saying when, how it reads after the share] */
 const ZIP_FACTS = [
-  ['ge15_sh', 'est', v => v >= 8, 'of the central systems are 15 years old or more'],
-  ['ge20_sh', 'est', v => v >= 5, 'of the central systems are 20 years old or more'],
-  ['r22_sh', 'est', v => v >= 8, 'of the systems went in before 2010, when new units still used R22'],
-  ['origwin_sh', 'est', v => v >= 8, 'of the systems are the one the builder put in, now 10 to 25 years old'],
-  ['furn20_sh', 'est', v => v >= 8, 'of the gas furnaces are 20 years old or more'],
-  ['yb_pre1980', 'acs', v => v >= 20, 'of the homes went up before 1980'],
-  ['yb_duct', 'acs', v => v >= 20, 'of the homes went up between 1980 and 1999'],
-  ['yb_2000_09', 'acs', v => v >= 20, 'of the homes went up between 2000 and 2009'],
-  ['yb_2010_19', 'acs', v => v >= 20, 'of the homes went up between 2010 and 2019'],
-  ['yb_2020p', 'acs', v => v >= 15, 'of the homes went up in 2020 or later'],
-  ['gas_sh', 'acs', v => v >= 15, 'of the homes heat with gas'],
-  ['elec_sh', 'acs', v => v >= 15, 'of the homes heat with electricity'],
-  ['hp_sh', 'est', v => v >= 10, 'of the central systems are heat pumps'],
-  ['own_recent_sh', 'acs', v => v >= 20, 'of the owners moved in since 2020'],
+  ['ge15_sh', 'est', v => v >= 8, 'central systems', 'are 15 years old or more'],
+  ['ge20_sh', 'est', v => v >= 5, 'central systems', 'are 20 years old or more'],
+  ['r22_sh', 'est', v => v >= 8, 'systems', 'went in before 2010, when new units still used R22'],
+  ['origwin_sh', 'est', v => v >= 8, 'systems', 'are the one the builder put in, now 10 to 25 years old'],
+  ['furn20_sh', 'est', v => v >= 8, 'gas furnaces', 'are 20 years old or more'],
+  ['yb_pre1980', 'acs', v => v >= 20, 'homes', 'went up before 1980'],
+  ['yb_duct', 'acs', v => v >= 20, 'homes', 'went up between 1980 and 1999'],
+  ['yb_2000_09', 'acs', v => v >= 20, 'homes', 'went up between 2000 and 2009'],
+  ['yb_2010_19', 'acs', v => v >= 20, 'homes', 'went up between 2010 and 2019'],
+  ['yb_2020p', 'acs', v => v >= 15, 'homes', 'went up in 2020 or later'],
+  ['gas_sh', 'acs', v => v >= 15, 'homes', 'heat with gas'],
+  ['elec_sh', 'acs', v => v >= 15, 'homes', 'heat with electricity'],
+  ['hp_sh', 'est', v => v >= 10, 'central systems', 'are heat pumps'],
+  ['own_recent_sh', 'acs', v => v >= 20, 'owners', 'moved in since 2020'],
 ];
+/* a share of something, as a person says it: "about one in five homes", "about half of the homes" */
+export const shareOf = (pct, noun) => { const x = sayShare(pct); return /\bin (?:\w+)$/.test(x) ? `${x} ${noun}` : `${x} of the ${noun}`; };
 export function zipFacts(area, needs = []) {
   const v = area.values || {}, out = [], era = ['yb_pre1980', 'yb_duct', 'yb_2000_09', 'yb_2010_19', 'yb_2020p'].sort((a, b) => (v[b] || 0) - (v[a] || 0))[0];
   /* the figures that bear on this ZIP: its biggest building era, its heating fuel, and the layers behind what runs hot */
   const bears = new Set([era, (v.gas_sh || 0) >= (v.elec_sh || 0) ? 'gas_sh' : 'elec_sh', ...needs.filter(n => (area.needs || []).includes(n.id)).flatMap(n => n.layers || [])]);
   if (area.builtAround) out.push({ key: 'medyr', value: String(area.builtAround), say: String(area.builtAround), text: `the typical home dates to ${area.builtAround}`, source: PLAIN_SOURCE.acs, estimate: false });
-  for (const [k, src, worth, tail] of ZIP_FACTS) if (bears.has(k) && typeof v[k] === 'number' && worth(v[k])) out.push({ key: k, value: v[k] + '%', say: sayShare(v[k]), text: `${sayShare(v[k])} ${tail}`, source: PLAIN_SOURCE[src], estimate: src === 'est' });
+  for (const [k, src, worth, noun, rest] of ZIP_FACTS) if (bears.has(k) && typeof v[k] === 'number' && worth(v[k])) out.push({ key: k, value: v[k] + '%', say: sayShare(v[k]), text: `${shareOf(v[k], noun)} ${rest}`, source: PLAIN_SOURCE[src], estimate: src === 'est' });
   if (bears.has('hail175_8km') && typeof v.hail175_8km === 'number' && v.hail175_8km >= 3) out.push({ key: 'hail175_8km', value: String(v.hail175_8km), say: sayNumber(Math.round(v.hail175_8km)), text: `${sayNumber(Math.round(v.hail175_8km))} reports of golf ball size hail within five miles in the past ten years${v.hail_recent ? `, ${Math.round(v.hail_recent)} of them since 2023` : ''}`, source: PLAIN_SOURCE.storm, estimate: false });
   return out;
 }
@@ -55,7 +57,8 @@ function lifeStage(year, now) {
   return 'A home this age has had several systems. The ducts, and sometimes the wiring, come from before central air was standard.';
 }
 
-const lower = s => s ? s[0].toLowerCase() + s.slice(1) : s;
+/* the layer a need is measured on, where that is not the first one it lists */
+const NEED_LAYER = { 'older-furnaces': ['furn20_sh'], 'electric-heat': ['elec_sh'], hail: ['hail175_8km'] };
 const READ = d => d >= 8 ? 'well above' : d >= 3 ? 'above' : d > -3 ? 'about the same as' : d > -8 ? 'below' : 'well below';
 
 /* brief({pack, brand, inv, city, keyword, type, selfUrl, now}) -> the plan for one page */
@@ -66,27 +69,29 @@ export function brief({ pack, brand = null, inv = null, city: name, keyword = ''
   const termsFor = ids => [...new Set(ids.map(id => angleById[id]).filter(Boolean).flatMap(a => [...(a.keywords.city || []).slice(0, 2).map(fill), ...(a.keywords.core || []).slice(0, 2), ...(a.keywords.questions || []).slice(0, 1)]))].slice(0, 6);
 
   if (C && C.areas) {
-    const N = Object.fromEntries((pack.needs || []).map(x => [x.id, x])), areas = C.areas;
+    const N = Object.fromEntries((pack.needs || []).map(x => [x.id, x])), areas = C.areas, own = C.own || {}, cov = C.coverage;
     const years = areas.filter(a => a.builtAround).sort((a, b) => a.builtAround - b.builtAround), built = (C.facts.find(f => /median year/.test(f.label)) || {}).value || null;
-    out.home = { builtAround: built ? +built : null, oldest: years[0] ? { zip: years[0].zip, year: years[0].builtAround } : null, newest: years.length ? { zip: years[years.length - 1].zip, year: years[years.length - 1].builtAround } : null, means: lifeStage(+built, now), split: years.length > 1 && years[years.length - 1].builtAround - years[0].builtAround >= 12 };
-    /* a ZIP code can reach past the city line; where the city's own figure sits outside its ZIPs' range, the ZIPs describe a wider area */
-    out.home.wider = !!(built && years.length && (+built > years[years.length - 1].builtAround + 2 || +built < years[0].builtAround - 2));
-    /* each layer here against the market, weighted by where the systems are */
-    const W = k => { let s = 0, w = 0; for (const a of areas) if (typeof a.values[k] === 'number') { s += a.values[k] * a.share; w += a.share; } return w ? Math.round(10 * s / w) / 10 : null; };
-    out.against = ['ge15_sh', 'r22_sh', 'origwin_sh', 'furn20_sh', 'yb_pre1980', 'yb_duct', 'yb_2000_09', 'yb_2010_19', 'yb_2020p', 'gas_sh', 'hp_sh', 'own_recent_sh'].map(k => { const here = W(k), l = (pack.layers || {})[k]; return here == null || !l || l.metro == null ? null : { key: k, label: l.label.replace(/\s*\(%[^)]*\)\s*$/, ''), here, metro: l.metro, read: READ(here - l.metro) }; }).filter(Boolean);
-    const gas = W('gas_sh'), hp = W('hp_sh'), elec = W('elec_sh');
-    out.heating = { gas, electric: elec, heatPumps: hp, lead: gas >= 55 ? 'gas' : elec >= 55 ? 'electric' : 'mixed', say: gas >= 55 ? `${sayShare(gas)} of homes heat with gas, so the furnace section leads the heating half of the page` : elec >= 55 ? `${sayShare(elec)} of homes heat with electricity (heat pumps and electric furnaces with heat strips), so the heat pump section leads the heating half of the page` : `${sayShare(gas)} of homes heat with gas and ${sayShare(elec)} with electricity, so give the furnace and the heat pump even weight` };
-    const row = x => { const d = N[x.id] || {}, cover = x.share >= 80 ? `across ${out.city}` : x.citywide ? `in most of ${out.city} (ZIP ${x.zips.join(', ')})` : `in part of ${out.city}: ZIP ${x.zips.join(', ')}`;
-      const k = (d.layers || [])[0], l = (pack.layers || {})[k], here = k ? W(k) : null, pctLayer = l && /%/.test(l.label);
-      return { id: x.id, title: d.title || x.id, share: x.share, metro: d.metro, lift: x.share - (d.metro || 0), citywide: x.citywide, where: cover, zips: x.zips, measure: here != null && l && l.metro != null && pctLayer ? { label: l.label.replace(/\s*\(%[^)]*\)\s*$/, ''), here, metro: l.metro } : null, owner: d.owner || '', tech: d.tech || '', copy: d.copy !== false, inferred: !!d.inferred, angles: d.angles || [], terms: termsFor(d.angles || []) }; };
+    /* how much of its ZIP codes the city fills: under three quarters, the ZIPs are partly another city's homes */
+    out.coverage = cov == null ? null : cov; out.wider = cov != null && cov < 0.75;
+    out.home = { builtAround: built ? +built : null, oldest: years[0] ? { zip: years[0].zip, year: years[0].builtAround } : null, newest: years.length ? { zip: years[years.length - 1].zip, year: years[years.length - 1].builtAround } : null, means: lifeStage(+built, now), split: !out.wider && years.length > 1 && years[years.length - 1].builtAround - years[0].builtAround >= 12 };
+    /* each layer here against the market: the city's own figure where the dashboard has one, else its ZIPs weighted by where the systems are */
+    const Z = k => { let s = 0, w = 0; for (const a of areas) if (typeof a.values[k] === 'number') { s += a.values[k] * a.share; w += a.share; } return w ? Math.round(10 * s / w) / 10 : null; }, W = k => (typeof own[k] === 'number' ? own[k] : Z(k));
+    out.against = ['ge15_sh', 'r22_sh', 'origwin_sh', 'furn20_sh', 'yb_pre1980', 'yb_duct', 'yb_2000_09', 'yb_2010_19', 'yb_2020p', 'gas_sh', 'hp_sh', 'own_recent_sh'].map(k => { const here = W(k), l = (pack.layers || {})[k]; return here == null || !l || l.metro == null ? null : { key: k, label: l.label.replace(/\s*\(%[^)]*\)\s*$/, ''), here, metro: l.metro, read: READ(here - l.metro), from: typeof own[k] === 'number' ? 'city' : 'zips' }; }).filter(Boolean);
+    const gas = W('gas_sh'), hp = W('hp_sh'), elec = W('elec_sh'), zg = Z('gas_sh');
+    out.heating = { gas, electric: elec, heatPumps: hp, lead: gas >= 55 ? 'gas' : elec >= 55 ? 'electric' : 'mixed', say: gas >= 55 ? `${shareOf(gas, 'homes')} heat with gas, so the furnace section leads the heating half of the page` : elec >= 55 ? `${shareOf(elec, 'homes')} heat with electricity (heat pumps and electric furnaces with heat strips), so the heat pump section leads the heating half of the page` : `${shareOf(gas, 'homes')} heat with gas and ${sayShare(elec)} with electricity, so give the furnace and the heat pump even weight`,
+      note: zg != null && Math.abs(zg - gas) >= 6 ? `Its ZIP codes read ${zg}% gas because they take in homes outside ${out.city}. For ${out.city} itself the figure is ${gas}%.` : '' };
+    const row = x => { const d = N[x.id] || {}, some = x.zips.length && x.zips.length < areas.length ? `ZIP ${x.zips.join(', ')}` : '';
+      const cover = x.citywide ? (x.basis === 'city' ? `across ${out.city}, by the city's own figures${some && !out.wider ? ` (strongest in ${some})` : ''}` : x.share >= 80 ? `across ${out.city}` : `in most of ${out.city} (${some || 'every ZIP'})`) : `in ${x.wider || out.wider ? '' : 'part of ' + out.city + ': '}ZIP ${x.zips.join(', ')}${x.wider || out.wider ? `, which ${x.zips.length > 1 ? 'reach' : 'reaches'} past the city line: say it of the ZIP, not of ${out.city}` : ''}`;
+      const k = (NEED_LAYER[x.id] || d.layers || [])[0], l = (pack.layers || {})[k], here = k ? W(k) : null, pctLayer = l && /%/.test(l.label), lift = x.share - (d.metro || 0);
+      return { id: x.id, title: d.title || x.id, share: x.share, metro: d.metro, lift, score: x.basis === 'city' && x.heat != null ? x.heat : 50 + lift / 2, citywide: x.citywide, basis: x.basis || 'zips', wider: !!x.wider, where: cover, zips: x.zips, measure: here != null && l && l.metro != null && pctLayer ? { label: l.label.replace(/\s*\(%[^)]*\)\s*$/, ''), here, metro: l.metro, from: typeof own[k] === 'number' ? 'city' : 'zips' } : null, owner: d.owner || '', tech: d.tech || '', copy: d.copy !== false, inferred: !!d.inferred, angles: d.angles || [], terms: termsFor(d.angles || []) }; };
     const all = (C.needs || []).map(row), say = all.filter(x => x.copy);
-    const ranked = say.filter(x => x.citywide).sort((a, b) => b.lift - a.lift || b.share - a.share), measured = ranked.filter(x => !x.inferred);
-    out.lead = measured.filter(x => x.lift >= 15).slice(0, 4); if (out.lead.length < 2) out.lead = measured.slice(0, Math.min(3, measured.length));
+    const ranked = say.filter(x => x.citywide).sort((a, b) => b.score - a.score || b.share - a.share), measured = ranked.filter(x => !x.inferred);
+    out.lead = measured.filter(x => x.score >= 57.5).slice(0, 4); if (out.lead.length < 2) out.lead = measured.slice(0, Math.min(3, measured.length));
     out.also = ranked.filter(x => !out.lead.includes(x));
-    out.pockets = say.filter(x => !x.citywide && x.share >= 5).sort((a, b) => b.share - a.share);
+    out.pockets = say.filter(x => !x.citywide && x.zips.length && x.share >= 5).sort((a, b) => b.share - a.share);
     out.planning = all.filter(x => !x.copy);
     /* what is common across the market and not the story here: a page must not borrow another city's problems */
-    out.quiet = (pack.needs || []).filter(d => d.copy && d.metro >= 15 && !['larger-homes', 'electric-heat', 'gas-heat'].includes(d.id) && !all.some(x => x.id === d.id)).map(d => ({ id: d.id, title: d.title, metro: d.metro }));
+    out.quiet = (pack.needs || []).filter(d => d.copy && d.metro >= 15 && !['larger-homes', 'electric-heat', 'gas-heat'].includes(d.id) && !all.some(x => x.id === d.id && (x.citywide || x.zips.length))).map(d => ({ id: d.id, title: d.title, metro: d.metro }));
     out.areas = areas.map(a => ({ zip: a.zip, share: a.share, builtAround: a.builtAround, needs: a.needs.filter(id => (N[id] || {}).copy !== false).map(id => (N[id] || { title: id }).title), facts: zipFacts(a, pack.needs || []) }));
     out.facts = C.facts; out.demand = C.demand;
   }
@@ -117,15 +122,17 @@ export function briefText(b) {
   if (b.cannibal) sec(`KEYWORD  ${b.cannibal.verdict === 'conflict' ? 'CONFLICT' : 'clear'}`, b.rewrites ? `  ${b.city} already has its page, so this brief is for a rewrite of ${b.rewrites}. Keep its address.` : '', `  ${b.cannibal.advice[0] || ''}`, b.cannibal.conflicts.map(c => `  held by ${c.url} (${c.why})`), b.cannibal.avoid.length ? '  Leave these alone: ' + [...new Set(b.cannibal.avoid)].slice(0, 12).map(k => `"${k}"`).join(', ') : '');
   if (!b.inAtlas) sec('WHO YOU ARE WRITING TO', `  The owner of a home in ${b.city}. The dashboard has no heatmap for ${b.city}: it lies outside the mapped cities. Use no local figure and make no claim about the homes here that you cannot source.`, '  Write to the homeowner from the trade: what fails, what they will notice, what to check before they call. Ask the person for anything local they want said.');
   else {
-    const h = b.home;
-    sec('WHO YOU ARE WRITING TO', `  The owner of a home in ${b.city}. Census figures put the typical home here at ${h.builtAround || 'an unknown year'}.${h.split ? ` It is not one town, though: ${h.oldest.zip} dates to about ${h.oldest.year} and ${h.newest.zip} to about ${h.newest.year}. Say which part of town a point belongs to.` : ''}`, h.wider ? `  Take care: the city's own figure (${h.builtAround}) sits outside the range of its ZIP codes, so those ZIP codes reach well past the city line. Use the city figure for ${b.city} as a whole, and say "in ZIP ..." for anything from one ZIP.` : '  A ZIP code can reach past the city line. Name the ZIP itself; do not turn it into "the north side" unless you know the map.', h.means ? `  What that usually means (a rule of thumb, so word it as likely, not certain): ${h.means}` : '', `  Heating: ${b.heating.say}.`);
-    const need = (x, i) => [`  ${i + 1}. ${x.title}  ·  ${x.where}`, `     On the heatmap: hot for ${x.share}% of the systems here against ${x.metro}% across the market.${x.measure ? ` The measure itself: ${x.measure.here}% here, ${x.measure.metro}% across the market${Math.abs(x.measure.here - x.measure.metro) < 3 ? ', so the gap is small: say it applies here, not that it is worse here' : ''}.` : ''}`, x.owner ? `     Tell the owner: ${x.owner}` : '', `     The trade detail: ${x.tech}${x.inferred ? ' (Inferred from home size, not measured: keep it general.)' : ''}`, x.terms.length ? `     Terms that fit: ${x.terms.join(' | ')}` : ''];
+    const h = b.home, pc = b.coverage == null ? null : Math.round(100 * b.coverage);
+    sec('WHO YOU ARE WRITING TO', `  The owner of a home in ${b.city}. Census figures put the typical home here at ${h.builtAround || 'an unknown year'}.${h.split ? ` It is not one town, though: ${h.oldest.zip} dates to about ${h.oldest.year} and ${h.newest.zip} to about ${h.newest.year}. Say which part of town a point belongs to.` : ''}`,
+      b.wider ? `  Take care with ZIP codes here: only about ${pc}% of the homes in ${b.city}'s ZIP codes are in ${b.city}. The rest belong to the cities next door. So what follows is judged from ${b.city}'s own figures wherever the dashboard has them, and anything read from a ZIP is true of that ZIP, not of ${b.city}. Say "${b.city}" for the city's figures, and name a ZIP only for a point about that ZIP.` : '  A ZIP code can reach past the city line. Name the ZIP itself; do not turn it into "the north side" unless you know the map.',
+      h.means ? `  What that usually means (a rule of thumb, so word it as likely, not certain): ${h.means}` : '', `  Heating: ${b.heating.say}.${b.heating.note ? ' ' + b.heating.note : ''}`);
+    const need = (x, i) => [`  ${i + 1}. ${x.title}  ·  ${x.where}`, `     ${x.basis === 'city' ? `By ${b.city}'s own figures` : 'On the heatmap'}: ${x.basis === 'city' ? (x.citywide ? 'it stands well above the market on this.' : 'the city as a whole is not far enough above the market to call this a city trait.') : `hot for ${x.share}% of the systems in its ZIP codes against ${x.metro}% across the market.`}${x.measure ? ` The measure itself: ${x.measure.here}% here${x.measure.from === 'zips' && b.wider ? ' (from its ZIP codes)' : ''}, ${x.measure.metro}% across the market${Math.abs(x.measure.here - x.measure.metro) < 3 ? ', so the gap is small: say it applies here, not that it is worse here' : ''}.` : ''}`, x.owner ? `     Tell the owner: ${x.owner}` : '', `     The trade detail: ${x.tech}${x.inferred ? ' (Inferred from home size, not measured: keep it general.)' : ''}`, x.terms.length ? `     Terms that fit: ${x.terms.join(' | ')}` : ''];
     sec(`WHAT SETS ${b.city.toUpperCase()} APART  (lead with these, in this order; they come from the dashboard's heatmaps)`, b.lead.flatMap(need));
     sec('ALSO TRUE HERE  (true of much of the market too; a paragraph each at most)', b.also.flatMap(need));
-    sec('TRUE IN PART OF TOWN  (say where: name the ZIP or the side of town, never the whole city)', b.pockets.flatMap(need));
+    sec(b.wider ? 'TRUE OF A ZIP CODE, NOT OF THE CITY  (name the ZIP; these ZIP codes take in homes outside the city)' : 'TRUE IN PART OF TOWN  (say where: name the ZIP or the side of town, never the whole city)', b.pockets.flatMap(need));
     sec(`NOT THE STORY HERE  (common elsewhere in the market; do not write as if ${b.city} had it)`, b.quiet.map(q => `  ${q.title}`));
-    sec(`${b.city.toUpperCase()} AGAINST THE MARKET`, b.against.map(a => `  ${a.label}: ${a.here}% here, ${a.metro}% across the market  (${a.read} the market)`));
-    sec('BY ZIP  (what a homeowner in each one is likely living with)', b.areas.flatMap(a => [`  ${a.zip}  ·  ${a.share}% of the city's systems${a.needs.length ? '  ·  ' + a.needs.join('; ') : '  ·  nothing runs hot here'}`, a.facts.length ? '     ' + a.facts.map(f => `${f.text} [${f.value}; ${f.source}]`).join('. ') + '.' : '']));
+    sec(`${b.city.toUpperCase()} AGAINST THE MARKET${b.wider ? "  (the city's own figures, except where marked)" : ''}`, b.against.map(a => `  ${a.label}: ${a.here}% here${a.from === 'zips' && b.wider ? ' (from its ZIP codes)' : ''}, ${a.metro}% across the market  (${a.read} the market)`));
+    sec(b.wider ? `BY ZIP  (what a homeowner in each one is likely living with; each takes in homes outside ${b.city})` : 'BY ZIP  (what a homeowner in each one is likely living with)', b.areas.flatMap(a => [`  ${a.zip}  ·  ${a.share}% of ${b.wider ? "these ZIPs' systems" : "the city's systems"}${a.needs.length ? '  ·  ' + a.needs.join('; ') : '  ·  nothing runs hot here'}`, a.facts.length ? '     ' + a.facts.map(f => `${f.text} [${f.value}; ${f.source}]`).join('. ') + '.' : '']));
     sec('FIGURES FOR THE CITY  (say them the way the left column does; the exact figure is for your check, not for the page)', b.facts.map(f => `  ${String(f.say).padEnd(26)} ${f.label}  [${f.value}; ${src(f)}]`));
     sec('FOR PLANNING ONLY  (never say this to a reader, and never address who they are)', b.planning.map(x => `  ${x.title}, ${x.where}. ${x.tech}`));
   }

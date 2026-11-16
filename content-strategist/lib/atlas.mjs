@@ -194,8 +194,9 @@ const fact = (value, label, src, grade) => ({ value, say: sayValue(value), label
 
 
 /* What this reader takes from a dashboard file. It goes up when the reader learns to read more (2: the heatmap layers,
-   area needs and neighbors), so a pack read by an older reader from the same file is read again on the next connect. */
-export const READER = 2;
+   area needs and neighbors), so a pack read by an older reader from the same file is read again on the next connect. 3: a city's own figures on
+   the layers, and how much of its ZIP codes the city fills. */
+export const READER = 3;
 
 /* ---------- what each area needs, read from the heatmaps ---------- */
 /* The dashboard draws its ZIP heatmaps from one catalog of layers (LAYERS: the age of the systems, the housing stock, the
@@ -278,30 +279,68 @@ export function readHeatmaps(text, ZR) {
     if (pct.medyr != null) pct.medyr = 100 - pct.medyr;                                           /* older stock reads hotter */
     zips.set(z.zip, { values, pct, needs: NEEDS.filter(n => { try { return !!n.hot(z, pct); } catch { return false; } }).map(n => n.id) });
   }
-  return { layers, zips };
+  /* the market's level on each layer: a mean weighted by where the systems are */
+  const mean = {}; for (const k of Object.keys(layers)) { let n = 0, w = 0; for (const z of ZR) if (typeof z[k] === 'number' && z.sys > 0) { n += z[k] * z.sys; w += z.sys; } mean[k] = w ? Math.round(10 * n / w) / 10 : null; }
+  return { layers, zips, pctOf, mean };
 }
 
 /* what the whole market looks like on each layer (a mean weighted by systems), so a city can be read against it,
    and the share of the market's systems that sit in ZIPs where a need runs hot */
 function baseline(HM, ZR) {
   const out = {};
-  for (const [k, l] of Object.entries(HM.layers)) { let n = 0, w = 0; for (const z of ZR) if (typeof z[k] === 'number' && z.sys > 0) { n += z[k] * z.sys; w += z.sys; } out[k] = Object.assign({}, l, { metro: w ? Math.round(10 * n / w) / 10 : null }); }
+  for (const [k, l] of Object.entries(HM.layers)) out[k] = Object.assign({}, l, { metro: HM.mean[k] });
   return out;
 }
 function metroShare(id, HM, ZR) { let hot = 0, all = 0; for (const z of ZR) { const s = z.sys || 0; all += s; if ((HM.zips.get(z.zip) || { needs: [] }).needs.includes(id)) hot += s; } return all ? Math.round(100 * hot / all) : 0; }
 
-/* one city read against the heatmaps: its ZIPs with what runs hot in each, and its needs in order.
-   A need counts for the city when it is hot in ZIPs that hold a third of the city's systems; one that is hot in less is
-   still listed, with the ZIPs it belongs to, because that is what lets a page speak to one part of town. */
+/* the layers each need's test reads; a need can be judged from a city's own figures only when the city has all of them */
+const NEED_ON = { 'aging-systems': ['ge15_sh'], 'past-twenty': ['ge20_sh'], r22: ['r22_sh'], 'builder-original': ['origwin_sh'], 'flex-duct': ['yb_duct'], 'before-1980': ['yb_pre1980'], 'boom-2000s': ['yb_2000_09'], 'homes-2010s': ['yb_2010_19'], 'new-homes': ['yb_2020p'], 'older-furnaces': ['furn20_sh', 'gas_sh'], 'gas-heat': ['gas_sh'], 'electric-heat': ['elec_sh'], 'heat-pumps': ['hp_sh'], hail: ['hail175_8km', 'hail_recent'], 'new-owners': ['own_recent_sh'], 'larger-homes': ['rooms', 'value'], rentals: ['rent_sf_sh'], 'older-owners': ['own65_sh'], spanish: ['span_sh'] };
+
+/* the needs whose test ranks a place among the market's ZIPs, as against a fixed share */
+const RANKED = new Set(['aging-systems', 'r22', 'builder-original', 'flex-duct', 'before-1980', 'boom-2000s', 'homes-2010s', 'new-homes', 'older-furnaces']);
+
+/* A city's own figures on the heatmap layers, from its own record in the dashboard (the city as the Census draws it),
+   not from its ZIP codes. A ZIP code can hold several times the homes its city does: one ZIP is shared by a small city
+   and the big one beside it. Where the city has its own figure, that is the figure for the city. */
+function cityOwn(c) {
+  const sh = (n, d) => (typeof n === 'number' && d > 0 ? Math.round(1000 * n / d) / 10 : null), o = { medyr: c.medyr, gas_sh: c.gas_sh, elec_sh: c.elec_sh, yb_pre1980: c.yb_pre1980, yb_2000_09: c.yb_2000_09, ge15_sh: sh(c.ge15, c.sys), r22_sh: sh(c.r22, c.sys), origwin_sh: sh(c.orig_win, c.sys), furn20_sh: sh(c.furn20, c.furn) };
+  /* homes by decade built, newest first: 2020 on, the 2010s, the 2000s, the 1990s, the 1980s, then five older bands. Read
+     only when the bands agree with the shares the record states outright. */
+  if (Array.isArray(c.yb) && c.yb.length === 10) { const t = c.yb.reduce((x, y) => x + y, 0), pre = sh(c.yb.slice(5).reduce((x, y) => x + y, 0), t), d00 = sh(c.yb[2], t);
+    if (t > 0 && (c.yb_pre1980 == null || Math.abs(pre - c.yb_pre1980) <= 0.6) && (c.yb_2000_09 == null || Math.abs(d00 - c.yb_2000_09) <= 0.6)) Object.assign(o, { yb_2020p: sh(c.yb[0], t), yb_2010_19: sh(c.yb[1], t), yb_duct: sh(c.yb[3] + c.yb[4], t), yb_pre1980: c.yb_pre1980 != null ? c.yb_pre1980 : pre, yb_2000_09: c.yb_2000_09 != null ? c.yb_2000_09 : d00 }); }
+  /* heat pumps, the way the dashboard models them for a ZIP: the electric heated share times the Texas heat pump share
+     among central electric systems, 47 in 100 in single family homes and 53 in 100 in apartments */
+  if (typeof c.elec_sh === 'number' && typeof c.sf_sh === 'number') { const sf = Math.min(1, Math.max(0, c.sf_sh / 100)); o.hp_sh = Math.round(10 * c.elec_sh * (0.47 * sf + 0.53 * (1 - sf))) / 10; }
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => typeof v === 'number' && !Number.isNaN(v)));
+}
+
+/* One city read against the heatmaps: its ZIPs with what runs hot in each, its own figures, and its needs in order.
+
+   `coverage` is the share of the ZIPs' systems that sit in the city itself. At three quarters or more the ZIPs are the
+   city, and a need counts for it when it is hot in ZIPs that hold a third of the systems (basis "zips"). Under that,
+   the ZIPs are partly another city's homes, so a need is judged from the city's own figures where the dashboard has
+   them (basis "city"). Where it has none (hail, heat pumps, new owners, home size) the ZIPs still decide, unless the
+   city fills less than half of them: then the need is kept as true of those ZIPs only (`wider`). Hail is the
+   exception, since a storm does not stop at a city line. A need that is hot in only some ZIPs is still listed with
+   them: that is what lets a page speak to one part of town. */
 function areaNeeds(c, rows, HM, NEED) {
-  const total = rows.reduce((n, z) => n + (z.sys || 0), 0) || 1;
+  const total = rows.reduce((n, z) => n + (z.sys || 0), 0) || 1, own = cityOwn(c), coverage = rows.length && c.sys > 0 ? Math.min(1, Math.round(100 * c.sys / total) / 100) : null;
   const areas = rows.map(z => { const h = HM.zips.get(z.zip) || { values: {}, pct: {}, needs: [] }, v = h.values, keep = k => AREA_VALUES.includes(k);
     return { zip: z.zip, share: Math.round(100 * (z.sys || 0) / total), builtAround: v.medyr ? Math.round(v.medyr) : null, needs: h.needs,
       values: Object.fromEntries(Object.entries(v).filter(([k]) => keep(k))), heat: Object.fromEntries(Object.entries(h.pct).filter(([k]) => keep(k))) };
   }).sort((a, b) => b.share - a.share);
-  const needs = Object.keys(NEED).map(id => { const z = areas.filter(a => a.needs.includes(id)), share = z.reduce((n, a) => n + a.share, 0); return { id, share: Math.min(100, share), zips: z.map(a => a.zip), citywide: share >= 34 }; })
-    .filter(n => n.zips.length).sort((a, b) => b.share - a.share);
-  return { areas, needs };
+  const ownPct = Object.fromEntries(Object.keys(own).map(k => [k, HM.pctOf(k, own[k])]));
+  const needs = Object.keys(NEED).map(id => {
+    const z = areas.filter(a => a.needs.includes(id)), share = Math.min(100, z.reduce((n, a) => n + a.share, 0)), on = NEED_ON[id] || [], k = on[0], byCity = coverage != null && coverage < 0.75 && on.length > 0 && on.every(x => x in own);
+    /* by its own figures a city has a need when the need's test passes on them, or when it stands eight points or more
+       above the market on a share the test ranks by (a city can be well above the market and still short of the hottest ZIPs) */
+    let hot = false; if (byCity) { try { hot = !!NEED[id].hot(own, ownPct); } catch { hot = false; } if (!hot && RANKED.has(id) && HM.mean[k] != null && own[k] - HM.mean[k] >= 8 && (id !== 'older-furnaces' || own.gas_sh >= 30)) hot = true; }
+    const wider = !byCity && id !== 'hail' && coverage != null && coverage < 0.5;
+    /* how far above the market the place stands on the need's first layer, as a percentile among the market's ZIPs */
+    const w = areas.filter(a => typeof a.heat[k] === 'number'), heat = byCity ? ownPct[k] : w.length ? Math.round(w.reduce((n, a) => n + a.heat[k] * a.share, 0) / Math.max(1, w.reduce((n, a) => n + a.share, 0))) : null;
+    return { id, share, zips: z.map(a => a.zip), citywide: byCity ? hot : (share >= 34 && !wider), basis: byCity ? 'city' : 'zips', heat: heat == null ? null : heat, ...(wider ? { wider: true } : {}) };
+  }).filter(n => n.citywide || n.zips.length).sort((a, b) => (b.citywide - a.citywide) || ((b.heat ?? 0) - (a.heat ?? 0)));
+  return { areas, needs, own, coverage };
 }
 
 /* how the Satchel's copy rules are tested here: the patterns are this toolkit's own reading of each rule, matched by id */
@@ -353,7 +392,8 @@ export function deepPack(text, { id = 'dfw', file = '' } = {}) {
   const cities = (D.cities || []).filter(c => c.sys > 0).map(c => {
     const zs = (c.zips || []).filter(z => ZR.some(r => r.zip === z)), pct = (a, b) => b ? Math.round(1000 * a / b) / 10 : 0;
     const ge15 = pct(c.ge15, c.sys), orig = pct(c.orig_win, c.sys);
-    const mine = ZR.filter(z => zs.includes(z.zip)), sum = k => mine.reduce((n, z) => n + (z[k] || 0), 0), hp = pct(sum('sys_hp'), sum('sys'));
+    /* the city's heat pump share: its ZIP codes' when they are the city, the city's own (as the dashboard models it) when they reach well past it */
+    const mine = ZR.filter(z => zs.includes(z.zip)), sum = k => mine.reduce((n, z) => n + (z[k] || 0), 0), zsys = sum('sys'), hpOwn = cityOwn(c).hp_sh, hp = zsys > 0 && c.sys / zsys < 0.75 && hpOwn != null ? hpOwn : pct(sum('sys_hp'), zsys);
     return {
       name: c.name, county: c.cty, pop: c.pop, housingUnits: c.hu, zips: c.zips || [], lat: c.lat, lon: c.lon,
       demand: { systems: round(c.sys), aged15: round(c.ge15), aged15Share: ge15, replacementsPerYear: round(c.rep), r22: round(c.r22), opportunityUsd: round(c.opp_usd) },
@@ -441,7 +481,8 @@ export function loadPack(id) { const p = path.join(PACKS, id + '.json'); if (!fs
 export function listPacks() { const p = path.join(PACKS, 'index.json'); return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, 'utf8')) : { packs: [] }; }
 export async function writePack(pack) {
   const s = await scrub(pack); fs.mkdirSync(PACKS, { recursive: true });
-  fs.writeFileSync(path.join(PACKS, pack.id + '.json'), JSON.stringify(s.value, null, 1) + '\n');
+  /* written beside the pack and moved into place, so a reader never sees half a file */
+  const file = path.join(PACKS, pack.id + '.json'); fs.writeFileSync(file + '.tmp', JSON.stringify(s.value, null, 1) + '\n'); fs.renameSync(file + '.tmp', file);
   const idx = listPacks(), row = { id: pack.id, depth: pack.depth, vertical: pack.vertical, wing: pack.wing, atlas: pack.atlas, scope: pack.scope || '', angles: pack.angles.length, keywords: pack.angles.reduce((n, a) => n + Object.entries(a.keywords).filter(([k]) => k !== 'negatives').reduce((m, [, v]) => m + v.length, 0), 0) };
   idx.packs = [...(idx.packs || []).filter(x => x.id !== pack.id), row].sort((a, b) => (a.wing + a.id).localeCompare(b.wing + b.id));
   fs.writeFileSync(path.join(PACKS, 'index.json'), JSON.stringify(idx, null, 1) + '\n');
