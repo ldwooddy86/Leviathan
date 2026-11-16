@@ -76,7 +76,7 @@ const OUT = path.resolve(process.env.PA_OUT || path.join(PA_LOCAL, 'out')), DRAF
 for (const [name, p] of [['PA_LOCAL', PA_LOCAL], ['PA_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'help', 'no-live', 'no-copy', 'lsa', 'from-heat', 'force', 'no-repairs', 'repairs']);
+const BOOL = new Set(['json', 'help', 'no-live', 'no-copy', 'lsa', 'from-heat', 'force', 'no-repairs', 'repairs', 'pin']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const opt = k => (A[k] && A[k] !== true ? String(A[k]) : '');
@@ -140,7 +140,7 @@ const C = {
     ].join('\n'));
   },
 
-  async connect() { const f = A._[0] || die('connect <atlas.html> [--id dfw] [--no-live] [--no-copy]'); const r = await runConnect(f, { id: opt('id') || undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'] }); out(r.value, r.text); },
+  async connect() { const f = A._[0] || die('connect <atlas.html> [--id dfw] [--no-live] [--no-copy]'); const r = await runConnect(f, { id: opt('id') || undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'], pin: !!A.pin }); out(r.value, r.text); },
   dashboard() { const r = runStatus(); out(r.value, r.text); if (r.value.connected && r.value.problems.length) process.exitCode = 1; },
   async check() { const f = A._[0] || die('check <campaign-desk-plan.json> [--files folder]'); const r = await runCheck(f, { filesTo: opt('files') }); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
   read() { const f = A._[0] || die('read <file saved from the dashboard>'); const r = runRead(f); out(r.value, r.text); },

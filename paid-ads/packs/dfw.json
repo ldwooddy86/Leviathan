@@ -6,12 +6,12 @@
  "atlas": "DFW Thermal Debt Atlas · Build 6",
  "scope": "Dallas Fort Worth, Texas: 12 counties",
  "source": {
-  "file": "ad65f817-DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_3.html",
+  "file": "122acd8c-DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_7.html",
   "build": "6",
   "compiled": "2026-09-25",
-  "sha256": "a1aba5efb2859942",
+  "sha256": "d9d76f75391a3b33",
   "reader": 2,
-  "extracted": "2026-11-15"
+  "extracted": "2026-11-16"
  },
  "note": "The atlas holds no keyword volumes and no auction prices. Keywords are its own library per service angle. Every cost, rate and benchmark here is an assumption the atlas states with a grade (A measured to D assumed): quote the grade with the number.",
  "lines": {

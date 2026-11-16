@@ -36,6 +36,10 @@ export const F = {
 };
 
 export class NotConnected extends Error { }
+/* a dashboard file that is not the version this repository is pinned to */
+export class Pinned extends Error { }
+/* a file's own name: an upload carries an id ahead of it */
+const plainName = f => path.basename(f).replace(/^[0-9a-f]{8}-(?=\S)/, '');
 
 /* ---------- the paid pack ---------- */
 export function paidPackFile(id) { return path.join(PAID_PACKS, id + '.json'); }
@@ -78,6 +82,8 @@ function writeBrand(B, id) {
   const file = F.brand(); outside(path.dirname(file), 'The brand file\'s folder');
   const b = brandFor(B, id), keep = readJson(file, {}) || {};
   if (keep.social) b.social = Object.assign(b.social, Object.fromEntries(Object.entries(keep.social).filter(([, v]) => v)));
+  /* what a person added that the dashboard does not carry stays: the client's own choice of neighboring cities, for one */
+  for (const [k, v] of Object.entries(keep)) if (!(k in b) && !k.startsWith('_')) b[k] = v;
   writeJson(file, b); return file;
 }
 export function loadBrand() {
@@ -133,7 +139,15 @@ export async function connect(file, opts = {}) {
   /* the repository packs */
   const cp = deepPack(text, { id, file: abs }); let content;
   { let have = null; try { have = loadContentPack(id); } catch { have = null; }
-    if (have && have.depth === 'deep' && have.source && have.source.sha256 === cp.pack.source.sha256 && have.source.reader === cp.pack.source.reader) content = { written: false, dropped: 0, checked: true, row: null };
+    /* The pin. A person can say "use only this version of the dashboard": connect --pin records the file's fingerprint
+       on the pack, and from then on any other version is refused before anything is read into the repository or kept
+       on this machine. Only another connect --pin moves it. The Agent Desk and the hand-offs a copy carries are not part
+       of the fingerprint, so a copy of the pinned dashboard with work on it is still the pinned dashboard. */
+    const pin = have && have.source && have.source.pin ? have.source.pin : null, sha = cp.pack.source.sha256;
+    if (pin && pin.sha256 !== sha && !opts.pin) throw new Pinned(`This is not the dashboard version the repository is pinned to.\n  pinned: ${pin.file}  (fingerprint ${pin.sha256}, since ${pin.since})\n  given:  ${plainName(abs)}  (fingerprint ${sha})\nThe person asked for the pinned version only, so nothing was read. Connect the pinned file. To move the pin to this file, on the person's say so and no one else's:\n  connect ${path.basename(abs)} --pin`);
+    if (opts.pin) cp.pack.source.pin = { file: plainName(abs), sha256: sha, since: (pin && pin.sha256 === sha && pin.since) || new Date().toISOString().slice(0, 10) }; else if (pin) cp.pack.source.pin = pin;
+    const samePin = JSON.stringify(pin) === JSON.stringify(cp.pack.source.pin || null);
+    if (have && have.depth === 'deep' && have.source && have.source.sha256 === cp.pack.source.sha256 && have.source.reader === cp.pack.source.reader && samePin) content = { written: false, dropped: 0, checked: true, row: null };
     else content = Object.assign({ written: true }, await writePack(cp.pack)); }
   const paid = await writePaidPack(paidPack(lib, id, ident));
 
@@ -158,7 +172,7 @@ export async function connect(file, opts = {}) {
 
   const caps = capabilities({ lib, mdl, mods, drs, comp, brand: B, driftList, liveOk: liveState.ok, snap, cs: cp.pack });
   const connection = {
-    v: FORMAT, id, connectedAt: new Date().toISOString(), file: abs, copy,
+    v: FORMAT, id, connectedAt: new Date().toISOString(), file: abs, copy, pin: cp.pack.source.pin || null,
     identity: { atlas: ident.atlas, build: ident.build, compiled: ident.compiled, sha256: ident.sha256, bytes: ident.bytes, zips: ident.zips, counties: ident.counties, cities: ident.cities },
     client: titleClient(text) || (B && B.short) || '', modules: mods, doors: drs, live: liveState, drift: driftList, brandFile,
     packs: { content: { file: path.join(CONTENT_PACKS, id + '.json'), written: content.written, dropped: content.dropped || 0 }, paid: { file: paid.file, written: paid.written, dropped: paid.dropped || 0 }, scanned: !!paid.checked },
@@ -184,7 +198,10 @@ export function status() {
   if (c.copy && !fs.existsSync(c.copy)) problems.push('The copy of the dashboard file is gone, so nothing can be checked against the running dashboard. Connect the dashboard again.');
   if (!fs.existsSync(F.model())) problems.push('The ZIP model is missing. Connect the dashboard again.');
   for (const [name, p] of Object.entries(c.packs || {})) { if (!p || !p.file) continue; if (!fs.existsSync(p.file)) { problems.push(`The ${name} pack (${path.relative(REPO, p.file)}) is missing. Connect the dashboard again.`); continue; } const src = (readJson(p.file, {}) || {}).source || {}; if (src.sha256 && src.sha256 !== c.identity.sha256.slice(0, 16)) problems.push(`The ${name} pack in the repository was read from another dashboard file (Build ${src.build || '?'}). Connect the dashboard you mean to work with.`); }
-  return { connected: true, connection: c, problems };
+  /* the pin lives on the content pack in the repository, so it holds on any machine and in any session */
+  const cf = c.packs && c.packs.content && c.packs.content.file, pin = cf && fs.existsSync(cf) ? ((readJson(cf, {}) || {}).source || {}).pin || null : null;
+  if (pin && pin.sha256 !== String(c.identity.sha256).slice(0, 16)) problems.push(`The connected dashboard is not the pinned version (${pin.file}, since ${pin.since}). Connect the pinned file.`);
+  return { connected: true, connection: c, problems, pin };
 }
 /* the connection, or an error that says how to make one */
 export function requireConnection() {

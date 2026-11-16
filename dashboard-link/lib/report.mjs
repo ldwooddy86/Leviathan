@@ -37,6 +37,7 @@ export function connectText(c) {
     `  ${c.modules.length} modules: ${c.modules.map(m => m.num + ' ' + m.title).join(', ')}`,
     c.client ? `  Built for ${c.client}. The brand is in ${c.brandFile ? rel(c.brandFile) : 'no file'}, outside the repository.` : '  The dashboard names no client.',
     '  ' + live,
+    ...(c.pin ? [`  Pinned: this is the only version of the dashboard the toolkit will take (${c.pin.file}, since ${c.pin.since}). Another version is refused unless it is connected with --pin.`] : ['  Not pinned: any version of this dashboard can be connected over it. connect <file> --pin makes this the only one.']),
     ...(c.panel ? [`  The file carried the Agent Desk. It was read as the dashboard without it${carriedText(c.panel)}.`] : []), '',
     ...doorsText(c.doors), '',
     ...capsText(c.capabilities), '',
@@ -53,7 +54,7 @@ export function statusText(s) {
   const c = s.connection, age = Math.round((Date.now() - Date.parse(c.connectedAt)) / 36e5);
   return [
     'Connected: ' + identityLine(c), `  connected ${age < 1 ? 'under an hour' : age + ' hour' + (age === 1 ? '' : 's')} ago from ${rel(c.file)}`,
-    c.client ? `  built for ${c.client}` : '', `  ${c.counts.angles} service angles, ${c.counts.zips} ZIP markets, ${c.counts.lines} service lines, ${c.counts.rules} advertising rules, ${c.counts.competitors} competitors`,
+    c.client ? `  built for ${c.client}` : '', s.pin ? `  pinned to ${s.pin.file} since ${s.pin.since}: no other version is taken unless it is connected with --pin` : '  not pinned to a version', `  ${c.counts.angles} service angles, ${c.counts.zips} ZIP markets, ${c.counts.lines} service lines, ${c.counts.rules} advertising rules, ${c.counts.competitors} competitors`,
     `  running the dashboard here: ${c.live.ok ? 'yes' : 'no (' + c.live.why + ')'}`,
     ...(s.problems.length ? ['', ...s.problems.map(p => 'PROBLEM  ' + p)] : []), '',
     ...doorsText(c.doors), '', ...capsText(c.capabilities),

@@ -5,9 +5,11 @@
 
    Where things stand
      where                                the dashboard connected, the brand on file, the sitemap inventory, where client files go
-     connect <atlas.html> [--id dfw]      connect a dashboard (a Thermal Debt atlas as one file): rebuilds the deep pack and the
+     connect <atlas.html> [--id dfw] [--pin]
+                                          connect a dashboard (a Thermal Debt atlas as one file): rebuilds the deep pack and the
                                           brand file from it, for this agent and the paid ads specialist alike. `extract` is the
-                                          older name for the same command.
+                                          older name for the same command. --pin makes this the only version of the dashboard
+                                          the toolkit will take, in this and every later session, until the pin is moved.
      dashboard                            what is connected, the doors it has for pages coming back, what each agent can do
 
    What the vertical knows
@@ -69,7 +71,7 @@ import { compare } from './lib/unique.mjs';
 import { brief, briefText, areasTable } from './lib/brief.mjs';
 /* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
 import { runConnect, runStatus, runCheck, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
-import { status as linkStatus, atlasFile, NotConnected } from '../dashboard-link/lib/connect.mjs';
+import { status as linkStatus, atlasFile, NotConnected, Pinned } from '../dashboard-link/lib/connect.mjs';
 import { bundle as handoffBundle, registerBundle, joins as panelJoins } from '../dashboard-link/lib/panel.mjs';
 import { pagesFile, note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
 import * as live from '../dashboard-link/lib/live.mjs';
@@ -84,7 +86,7 @@ const inRepo = p => !path.relative(REPO, p).startsWith('..') && fs.existsSync(pa
 for (const [name, p] of [['CS_LOCAL', LOCAL], ['CS_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs']);
+const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs', 'pin']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const list = v => (v && v !== true ? String(v).split(',').map(s => s.trim()).filter(Boolean) : []);
@@ -127,8 +129,11 @@ const C = {
 
   where() {
     const brand = loadBrand(), inv = loadInventory(brand), res = { local: LOCAL, out: OUT, drafts: path.join(LOCAL, 'drafts'), brandFile: brand ? brand._file : null, brand: brand ? { name: brand.name, site: brand.url, vertical: brand.vertical || null, license: brand.license ? 'set' : 'MISSING', phone: brand.phone ? 'set' : 'MISSING', facebookPage: (brand.social || {}).facebookPageId ? 'id on file' : 'no id', businessProfile: (brand.social || {}).gbpAccountId && (brand.social || {}).gbpLocationId ? 'ids on file' : 'no ids' } : null, sitemap: inv ? { pages: inv.pages.length, ageHours: inv.ageHours, file: inv._file } : null };
-    const link = linkStatus(), lc = link.connection; res.dashboard = lc ? { atlas: lc.identity.atlas, build: lc.identity.build, sha256: lc.identity.sha256.slice(0, 16), connectedAt: lc.connectedAt, runsHere: lc.live.ok, problems: link.problems } : null;
-    out(res, [lc ? `Dashboard: ${lc.identity.atlas} · Build ${lc.identity.build}, connected ${String(lc.connectedAt).slice(0, 16).replace('T', ' ')} UTC. ${lc.live.ok ? 'It runs on this machine, so a pages file can be tried on its Publish module before you hand it over.' : 'It cannot be run on this machine (' + lc.live.why + ').'}` : 'Dashboard: none connected. Ask for the dashboard file and run: connect <atlas.html>', ...link.problems.map(p => 'PROBLEM  ' + p),
+    const link = linkStatus(), lc = link.connection; res.dashboard = lc ? { atlas: lc.identity.atlas, build: lc.identity.build, sha256: lc.identity.sha256.slice(0, 16), connectedAt: lc.connectedAt, runsHere: lc.live.ok, pin: link.pin || null, problems: link.problems } : null;
+    /* the pin is on the pack in the repository, so it is known before any dashboard is connected on this machine */
+    const pinned = (link.pin) || (() => { try { const p = packFor({}, brand); return (p && p.source && p.source.pin) || null; } catch { return null; } })();
+    res.pin = pinned;
+    out(res, [lc ? `Dashboard: ${lc.identity.atlas} · Build ${lc.identity.build}, connected ${String(lc.connectedAt).slice(0, 16).replace('T', ' ')} UTC. ${lc.live.ok ? 'It runs on this machine, so a pages file can be tried on its Publish module before you hand it over.' : 'It cannot be run on this machine (' + lc.live.why + ').'}` : 'Dashboard: none connected. Ask for the dashboard file and run: connect <atlas.html>', ...link.problems.map(p => 'PROBLEM  ' + p), pinned ? `Pinned dashboard: ${pinned.file} (fingerprint ${pinned.sha256}, since ${pinned.since}). Use this version and no other; connect refuses a different file.` : 'Pinned dashboard: none. Any version can be connected.',
       `Client files: ${LOCAL}   (outside the repository; drafts in ${res.drafts}, built pages in ${OUT})`, brand ? `Brand: ${brand.name} · ${brand.url} · vertical ${brand.vertical || 'not set'} · license ${res.brand.license} · phone ${res.brand.phone} · Facebook Page ${res.brand.facebookPage} · Business Profile ${res.brand.businessProfile} (ids only; \`social whoami\` tests the credentials)   (${brand._file})` : `Brand: none yet. Connect the dashboard (connect <atlas.html>), copy brand.example.json to ${brandFile()}, or set CS_BRAND_JSON.`, inv ? `Sitemap: ${inv.pages.length} live URLs, read ${inv.ageHours}h ago` : 'Sitemap: not read yet. Run: sitemap'].join('\n'));
   },
 
@@ -195,9 +200,9 @@ const C = {
      rebuilt from the atlas, the paid ads specialist's pack and the client's model beside them, and where a browser is
      here the dashboard is opened to see that it runs. */
   async connect() {
-    const f = A._[0] || die('connect <atlas.html> [--id dfw] [--no-live] [--no-copy]'); if (!fs.existsSync(f)) die('No file at ' + f);
+    const f = A._[0] || die('connect <atlas.html> [--id dfw] [--pin] [--no-live] [--no-copy]'); if (!fs.existsSync(f)) die('No file at ' + f);
     if (!isThermalDebt(fs.readFileSync(f, 'utf8'))) die('This file is not a Thermal Debt atlas (no atlas data block with service angles). Keyword packs for the other atlases come from: harvest');
-    const r = await runConnect(f, { id: A.id && A.id !== true ? A.id : undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'] }); out(r.value, r.text);
+    const r = await runConnect(f, { id: A.id && A.id !== true ? A.id : undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'], pin: !!A.pin }); out(r.value, r.text);
   },
   extract() { return C.connect(); },
   dashboard() { const r = runStatus(); out(r.value, r.text); if (r.value.connected && r.value.problems.length) process.exitCode = 1; },
@@ -337,4 +342,4 @@ const C = {
 
 if (A.help || !C[cmd]) { C.help(); if (!C[cmd] && cmd !== 'help') process.exitCode = 2; }
 /* no dashboard connected, or no browser to run it in, is a plain message; a missing browser has its own exit code (3) */
-else Promise.resolve().then(() => C[cmd]()).catch(e => { const plain = e instanceof NotConnected || e instanceof live.Unavailable || e instanceof NoSuchHandoff; console.error(e && e.stack && process.env.CS_DEBUG ? e.stack : (plain ? '' : 'Error: ') + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });
+else Promise.resolve().then(() => C[cmd]()).catch(e => { const plain = e instanceof NotConnected || e instanceof live.Unavailable || e instanceof NoSuchHandoff || e instanceof Pinned; console.error(e && e.stack && process.env.CS_DEBUG ? e.stack : (plain ? '' : 'Error: ') + (e && e.message ? e.message : e)); process.exit(e instanceof live.Unavailable ? 3 : 2); });

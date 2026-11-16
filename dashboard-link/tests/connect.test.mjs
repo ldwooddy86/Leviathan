@@ -55,6 +55,21 @@ r = run(CLI, ['connect', file, '--no-live', '--no-copy'], env, { json: true });
 ok(r.code === 0 && r.json.packs.paid.written === false && r.json.packs.content.written === false && s1.join() === [stamp(at('packs-paid', 'dfw.json')), stamp(at('packs-content', 'dfw.json'))].join(), 'the same file again: neither pack is rewritten');
 ok(r.json.copy === null && J(at('content-strategist', 'brand.json')).social.facebookPageId === '1234567890', 'an account id the person added to the brand file survives a reconnect; --no-copy keeps no copy');
 r = run(CLI, ['connect', file, '--no-live'], env, { json: true }); ok(r.json.copy === at('dashboard', 'atlas.html'), 'and with a copy again');
+/* ---- the pin: one version of the dashboard and no other ---- */
+{ const cf = at('packs-content', 'dfw.json'), newer = path.join(tmp(), '1a2b3c4d-DFW_Atlas_next.html'); fs.writeFileSync(newer, atlas() + '\n<!-- a later build of the same dashboard -->');
+  ok(!J(cf).source.pin && /not pinned to a version/.test(run(CLI, ['status'], env).out), 'a dashboard is not pinned until someone asks for that');
+  r = run(CLI, ['connect', file, '--no-live', '--no-copy', '--pin'], env, { json: true }); const pin = J(cf).source.pin;
+  ok(r.code === 0 && r.json.pin && pin && pin.sha256 === J(cf).source.sha256 && pin.file === path.basename(file) && /^\d{4}-\d\d-\d\d$/.test(pin.since) && r.json.packs.content.written === true && r.json.packs.paid.written === false, 'connect --pin records the dashboard\'s fingerprint on the pack in the repository', pin);
+  ok(/pinned to .* since \d{4}/.test(run(CLI, ['status'], env).out), 'status says which version is pinned');
+  const stampNow = fs.readFileSync(cf, 'utf8'), linkNow = fs.readFileSync(at('dashboard', 'connection.json'), 'utf8');
+  r = run(CLI, ['connect', newer, '--no-live'], env);
+  ok(r.code === 2 && /not the dashboard version the repository is pinned to/.test(r.err) && r.err.includes('pinned: ' + pin.file) && /given: {2}DFW_Atlas_next\.html/.test(r.err) && /--pin/.test(r.err) && fs.readFileSync(cf, 'utf8') === stampNow && fs.readFileSync(at('dashboard', 'connection.json'), 'utf8') === linkNow, 'another version is refused before anything is read or written, and the message names both files without the upload id', r.err.slice(0, 200));
+  r = run(CLI, ['connect', file, '--no-live', '--no-copy'], env, { json: true });
+  ok(r.code === 0 && r.json.packs.content.written === false && J(cf).source.pin.since === pin.since, 'the pinned version itself connects as before, and the pin stays on the pack');
+  r = run(CLI, ['connect', newer, '--no-live', '--no-copy', '--pin'], env, { json: true });
+  ok(r.code === 0 && J(cf).source.pin.file === 'DFW_Atlas_next.html' && J(cf).source.pin.sha256 !== pin.sha256 && run(CLI, ['connect', file, '--no-live'], env).code === 2, 'only connect --pin moves the pin, and then the old version is the one refused');
+  r = run(CLI, ['connect', file, '--no-live', '--pin'], env, { json: true }); ok(r.code === 0 && J(cf).source.pin.sha256 === pin.sha256, 'and back'); }
+
 /* a content pack read by an older reader, from the very same file, is read again: the reader has learned to read more */
 { const cf = at('packs-content', 'dfw.json'), old = J(cf); delete old.source.reader; delete old.needs; fs.writeFileSync(cf, JSON.stringify(old));
   r = run(CLI, ['connect', file, '--no-live', '--no-copy'], env, { json: true }); const again = J(cf);

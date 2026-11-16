@@ -3,9 +3,11 @@
 
    node dashboard-link/cli.mjs <command>
 
-     connect <atlas.html> [--id dfw] [--no-live] [--no-copy]
+     connect <atlas.html> [--id dfw] [--pin] [--no-live] [--no-copy]
                               read a Thermal Debt atlas once for both agents: the packs each works from, this client's
-                              model and brand (kept outside the repository), and what the running dashboard computes
+                              model and brand (kept outside the repository), and what the running dashboard computes.
+                              --pin makes this the only version of the dashboard the toolkit will take: any other
+                              file is refused from then on, until another connect --pin moves the pin
      status                   what is connected, what each agent can do with it, and anything out of step
      doors                    what the dashboard takes in and gives out with its own controls
      check <file>             hand a file to the real dashboard, headless, through its own control, and report what it
@@ -39,7 +41,7 @@ import { refresh, forgetBundles } from './lib/panel.mjs';
 import { sweep, tally, layoutText, WIDTHS } from './lib/layout.mjs';
 import { outside, rel } from './lib/paths.mjs';
 
-const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help', 'no-repairs', 'repairs', 'quick', 'plain']);
+const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help', 'no-repairs', 'repairs', 'quick', 'plain', 'pin']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const out = (v, text) => console.log(A.json ? JSON.stringify(v, null, 1) : text);
@@ -104,7 +106,7 @@ export function runRead(f) {
 
 const C = {
   help() { console.log(fs.readFileSync(new URL(import.meta.url), 'utf8').split('*/')[0].replace(/^#!.*\n\/\* ?/, '')); },
-  async connect() { const f = A._[0] || die('connect <atlas.html> [--id dfw] [--no-live] [--no-copy]'); const r = await runConnect(f, { id: A.id && A.id !== true ? A.id : undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'] }); out(r.value, r.text); },
+  async connect() { const f = A._[0] || die('connect <atlas.html> [--id dfw] [--pin] [--no-live] [--no-copy]'); const r = await runConnect(f, { id: A.id && A.id !== true ? A.id : undefined, live: A['no-live'] ? false : 'auto', copy: !A['no-copy'], pin: !!A.pin }); out(r.value, r.text); },
   status() { const r = runStatus(); out(r.value, r.text); if (r.value.connected && r.value.problems.length) process.exitCode = 1; },
   doors() { const s = requireConnection(); out(s.connection.doors, s.connection.doors.map(d => `${d.dir === 'in' ? 'in ' : 'out'}  ${d.what}\n     ${d.how}`).join('\n')); },
   async check() { const f = A._[0] || die('check <campaign-desk-plan.json | pages.json> [--files folder]'); const r = await runCheck(f, { filesTo: A.files && A.files !== true ? A.files : '' }); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },

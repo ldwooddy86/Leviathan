@@ -30,7 +30,7 @@ ok(J(bf).vertical === 'dfw' && J(bf).name === 'Your HVAC Company' && J(bf).offer
 r = go(['connect', file, '--no-live'], undefined, Object.assign({}, env, { CS_BRAND: path.join(FX, 'brand.json') }));
 ok(r.code === 2 && /The brand file's folder .* is inside the repository/.test(r.err) && JSON.parse(fs.readFileSync(path.join(FX, 'brand.json'), 'utf8')).name !== 'Your HVAC Company', 'connect will not write a client\'s brand over a file inside the repository');
 fs.copyFileSync(path.join(FX, 'brand.json'), bf);   /* the console's atlas carries a placeholder brand: give the client a real one */
-r = go(['where']); ok(/^Dashboard: DFW Thermal Debt Atlas · Build 4, connected \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC\. It cannot be run on this machine/.test(r.out) && /Brand: Example Air/.test(r.out), 'where: the dashboard that is connected, and that it cannot be run here');
+r = go(['where']); ok(/^Dashboard: DFW Thermal Debt Atlas · Build 4, connected \d{4}-\d{2}-\d{2} \d{2}:\d{2} UTC\. It cannot be run on this machine/.test(r.out) && /Brand: Example Air/.test(r.out) && /\nPinned dashboard: none\. Any version can be connected\./.test(r.out), 'where: the dashboard that is connected, that it cannot be run here, and that no version is pinned');
 r = go(['dashboard']); ok(r.code === 0 && /Content strategist\n {2}ok Deep pack/.test(r.out) && /ok Publish takes a pages file: module 16, the import box/.test(r.out) && /in {3}Pages: a blueprint, a list of blueprints, or a complete HTML page {2}\(content\)/.test(r.out), 'dashboard: what this agent can do with it, and the door its pages go through');
 
 /* ---- pages back to the dashboard ---- */
@@ -60,4 +60,7 @@ ok(go(['handoff', 'no-such-page', '--no-live']).code === 2 && /No blueprint at/.
 r = go(['check', pf]); ok(r.code === 3 && /no browser is available here/.test(r.err), 'check needs a browser, and says so');
 ok(go(['help']).out.includes('handoff [slug | folder ...]') && go(['help']).out.includes('connect <atlas.html>') && go(['help']).out.includes('panel [--out file] [--forget id|all] [--no-live]'), 'help lists the dashboard commands');
 ok(before !== null && gitState() === before && !fs.existsSync(path.join(REPO, 'content-strategist', 'out')), 'the repository is as it was: nothing a command wrote landed in it');
+/* ---- the pin, from this command line (last: connecting again rewrites the brand file this test set up) ---- */
+{ const pf = at('packs-content', 'dfw.json'); r = go(['connect', file, '--no-live', '--pin'], { json: true }); const w2 = go(['where']);
+  ok(r.code === 0 && r.json.pin && /\nPinned dashboard: \S+ \(fingerprint [0-9a-f]{16}, since \d{4}-\d\d-\d\d\)\. Use this version and no other/.test(w2.out) && JSON.parse(fs.readFileSync(pf, 'utf8')).source.pin.sha256 === r.json.pin.sha256, 'connect --pin from the strategist\'s own command line: where names the pinned version from then on'); }
 done();
