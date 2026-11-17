@@ -272,11 +272,11 @@ export function files(file, g, ctx, handoff) {
   const shop = brand.geo && brand.geo.lat != null ? brand.geo : null;
   const planOut = Object.assign({}, g.plan); out['campaign-desk-plan.json'] = JSON.stringify(Object.assign(planOut, { handoff }), null, 1) + '\n';
   out['campaign-plan_' + stamp + '.csv'] = csvFile(['zip', 'city', 'county', 'minutes_from_shop', 'tier', 'bid_modifier', 'desk_monthly_usd', 'spanish', 'angles_with_demand'], R.markets.map(m => [m.z.zip, m.z.city, m.z.county, shop ? desk.minutesFrom(shop, m.z) : '', m.z.tier, desk.bidOf(m.z, P), Math.round(m.spend), m.es ? 'yes' : '', m.angles.map(a => a.short).join('; ')]));
-  const S = file.search || [];
-  for (const [plat, name] of [['google', 'google-ads-editor_'], ['microsoft', 'microsoft-ads_']]) { if (!(FC[plat].spend > 0) || !S.length) continue; const rows = desk.searchRows(S, plat, R, ctx); out[name + stamp + '.csv'] = csvFile(desk.searchHeader(rows), rows); }
+  const S = file.search || [], tagged = Object.assign({}, ctx, { tag: file.slug || '' });   /* the file's slug ends its campaign names */
+  for (const [plat, name] of [['google', 'google-ads-editor_'], ['microsoft', 'microsoft-ads_']]) { if (!(FC[plat].spend > 0) || !S.length) continue; const rows = desk.searchRows(S, plat, R, tagged); out[name + stamp + '.csv'] = csvFile(desk.searchHeader(rows), rows); }
   const ads = file.ads || [], socialOf = (channel, plat) => ads.filter(a => a.channel === channel).map(a => ({ channel: plat, angle: a.angle, lang: a.lang || 'en', name: a.name, headline: text(a.headline) || text((a.headlines || [])[0]) || '', primary: text(a.primary) || text(a.body) || text(a.text) || (a.descriptions || []).map(text).join(' '), description: text(a.description) || '', cta: a.cta, url: a.url }));
   for (const [channel, plat, name] of [['meta', 'meta', 'meta-build-sheet_'], ['demand_gen', 'dg', 'demand-gen-build-sheet_'], ['nextdoor', 'nextdoor', 'nextdoor-build-sheet_'], ['yelp', 'yelp', 'yelp-build-sheet_']]) {
-    const list = socialOf(channel, plat); if (!list.length) continue; const rows = desk.socialRows(list, plat, R, ctx);
+    const list = socialOf(channel, plat); if (!list.length) continue; const rows = desk.socialRows(list, plat, R, tagged);
     const withDesc = plat === 'meta' && list.some(x => x.description); if (withDesc) rows.forEach((r, i) => { r['Link Description'] = list[i].description || ''; });
     rows.forEach(r => { r['Platform monthly budget'] = Math.round(FC[plat].spend); });
     const at = desk.SOCIAL_COLS_OUT.indexOf('Link'), cols = desk.SOCIAL_COLS_OUT.slice(0, at).concat(withDesc ? ['Link Description'] : [], desk.SOCIAL_COLS_OUT.slice(at), ['Platform monthly budget']);
@@ -340,7 +340,7 @@ export function readme(file, g, ctx, names, check, panel = null) {
     `- Set up conversions first: calls from ads of 60 seconds or more, calls from the site through a forwarding number, form submits on the thank you page, ${FC.lsa && FC.lsa.spend > 0 ? 'Local Services leads, ' : ''}and booked jobs imported weekly with their value.`,
     '- Price the keywords in Keyword Planner. The dashboard holds no search volumes and no auction prices.', '',
     '## Running it', '',
-    `- Campaigns are named DFW_${lineId.toUpperCase()}_<PLATFORM>_<LANGUAGE>_${P.start.replace(/-/g, '')} (Microsoft's end in _MS, a Meta special ad category campaign in _SAC). Keep the names: the dashboard's Accounts module files results under a service line by reading them.`,
+    `- Campaigns are named DFW_${lineId.toUpperCase()}_<PLATFORM>_<LANGUAGE>_${P.start.replace(/-/g, '')}${desk.nameTag({ tag: file.slug || '' })} (Microsoft's end in _MS, a Meta special ad category campaign in _SAC).${file.slug ? ' The last part is this campaign\'s own tag, so it does not share a name with another campaign on the same line and start date.' : ''} Keep the names: the dashboard's Accounts module files results under a service line by reading the front of them.`,
     '- Tracking on every landing URL and sitelink: utm_source, utm_medium=cpc, utm_campaign, utm_content.',
     `- Budget: the files carry a flat daily budget (${$(P.budget / 30.4)} a day across the plan). The dashboard paces this flight by season (${R.season.from}): ${FL.filter(x => !x.stub).map(x => `${x.month} ${$(x.daily)} a day`).join(', ')}. Raise and lower the daily budgets by month to follow it, or hold them flat and say so.`,
     `- Target cost a booked job: ${$(target)} (18% of a ${$(P.jobVal)} job). Pause an ad group after 40 clicks with no booked job, or when cost a booked job runs above ${$(target * 2)} for two weeks.`,

@@ -173,7 +173,7 @@ The Campaign Desk writes its own ad copy from its library, so your copy does not
 
 `read <file>` reads what the dashboard saves: the plan the desk holds (Save on the Campaign Desk), the competitor ledger (Competitor Watch, JSON export) and account results (Accounts, JSON export). Ask for these when the job needs them. `check <file>` hands a plan file to the running dashboard on its own.
 
-Campaigns are named `DFW_<LINE>_<PLATFORM>_<LANGUAGE>_<start date>`; Microsoft's end in `_MS` and a Meta special ad category campaign in `_SAC`. Keep the names: the dashboard's Accounts module files results under a service line by reading them.
+Campaigns are named `DFW_<LINE>_<PLATFORM>_<LANGUAGE>_<start date>`; Microsoft's end in `_MS` and a Meta special ad category campaign in `_SAC`. Keep the names: the dashboard's Accounts module files results under a service line by reading the front of them. When you build more than one campaign on the same service line with the same start date (six heating campaigns, say), give each campaign file its own `slug` (`"slug": "furnace-replacement"`): the build puts it on the end of every campaign name in that file (`..._FURNACE_REPLACEMENT`) and on the output folder. Without it the files share one campaign name, and Google Ads Editor, which matches campaigns by name, would merge the second import into the first and overwrite its budget.
 
 # Money and accounts
 

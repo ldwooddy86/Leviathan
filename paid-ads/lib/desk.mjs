@@ -181,6 +181,11 @@ export const bidOf = (z, P) => (P.bids && isN(P.bids[z.zip])) ? +P.bids[z.zip] :
    line (it reads DFW_<LINE>_ from the name, letters only: b2b would not be read, landlord is) */
 export const NAME_LINE = { b2b: 'landlord' };
 export const campName = (P, plat, lang) => `DFW_${(NAME_LINE[P.line] || P.line).toUpperCase()}_${plat.toUpperCase()}_${lang.toUpperCase()}_${P.start.replace(/-/g, '')}`;
+/* A campaign file's own tag on the end of its campaign names, from its slug. Two campaigns on one service line with one
+   start date would otherwise share a name, and Google Ads Editor matches campaigns by name: importing the second file
+   would merge its ad groups into the first and overwrite the budget. The tag goes last (before _MS and _SAC) because the
+   Accounts module reads the line from the front of the name. Never in mirror mode, where the names are the desk's own. */
+export const nameTag = ctx => (!ctx || ctx.mirror || !ctx.tag ? '' : '_' + String(ctx.tag).toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, ''));
 /* the name the desk itself gives the campaign (the same except on the b2b line) */
 export const deskCampName = (P, plat, lang) => `DFW_${P.line.toUpperCase()}_${plat.toUpperCase()}_${lang.toUpperCase()}_${P.start.replace(/-/g, '')}`;
 /* the day after the flight's last day, which is what the desk writes as the end date */
@@ -266,7 +271,7 @@ export function searchRows(campaigns, plat, R, ctx) {
   const txt = x => (typeof x === 'string' ? x : x && x.text), pin = x => (x && typeof x === 'object' && x.pin ? x.pin : 0), shares = ctx.mirror ? null : languageShares(campaigns, R);
   for (const c of campaigns) {
     const lang = c.lang, ms = lang === 'es' ? MKT.filter(m => m.es) : MKT; if (!ms.length) continue;
-    const cn = name(P, plat, lang) + (plat === 'microsoft' ? '_MS' : ''), monthly = ctx.mirror ? (lang === 'es' ? spend * 0.3 : spend * (languages.length > 1 ? 0.7 : 1)) : spend * (lang === 'es' ? shares.es : shares.en);
+    const cn = name(P, plat, lang) + nameTag(ctx) + (plat === 'microsoft' ? '_MS' : ''), monthly = ctx.mirror ? (lang === 'es' ? spend * 0.3 : spend * (languages.length > 1 ? 0.7 : 1)) : spend * (lang === 'es' ? shares.es : shares.en);
     const cmx = sum(ms.map(m => m.share * (m.z.cpc_rel || 1))) / (sum(ms.map(m => m.share)) || 1), maxcpc = (P.asm[plat].cost * cmx).toFixed(2), strategy = ctx.mirror ? BIDDING.conversions : biddingOf(c);
     const camp = { 'Campaign': cn, 'Campaign Type': 'Search', 'Networks': ctx.mirror ? 'Google search' : plat === 'google' ? 'Google Search' : '', 'Budget': (monthly / 30.4).toFixed(2), 'Budget type': 'Daily', 'Languages': lang === 'es' ? 'Spanish' : 'English', 'Bid Strategy Type': strategy, 'Start Date': P.start, 'End Date': ctx.mirror ? endDate(P) : lastDay(P), 'Campaign Status': 'Paused' };
     if (!ctx.mirror && strategy === BIDDING.clicks) camp['Maximum CPC bid limit'] = maxcpc;
@@ -335,7 +340,7 @@ export function socialRows(ads, plat, R, ctx) {
   return ads.filter(x => x.channel === plat).map(x => {
     const lang = x.lang || 'en', ms = lang === 'es' ? MKT.filter(m => m.es) : MKT, a = ANG[x.angle] || {}, said = [x.primary, x.headline, x.description].join(' ');
     const finance = isFinancing(x.angle, (a.copy && a.copy.social && a.copy.social.primary) || '') || isFinancing(x.angle, said) || (!ctx.mirror && talksCredit(x.angle, said));
-    const sac = finance && plat === 'meta', cn = name(P, plat, lang) + (finance ? '_SAC' : ''), own = x.name || ((a.short || x.angle) + ' ' + lang.toUpperCase()), page = x.url || a.path || '';
+    const sac = finance && plat === 'meta', cn = name(P, plat, lang) + nameTag(ctx) + (finance ? '_SAC' : ''), own = x.name || ((a.short || x.angle) + ' ' + lang.toUpperCase()), page = x.url || a.path || '';
     const row = { 'Campaign Name': cn, 'Campaign Objective': 'Leads', 'Special Ad Categories': sac ? 'Financial products and services' : '', 'Ad Set Name': ctx.mirror ? own : `${lang.toUpperCase()} ${sac ? 'radius' : 'ZIP list'}`, 'Zip': sac ? '' : ms.map(m => 'US:' + m.z.zip).join(', '), 'Radius': sac ? '15 mi around ' + (P.city || 'Dallas') + ', TX' : '', 'Ad Name': own, 'Title': x.headline || '', 'Body': x.primary || '', 'Link': ctx.mirror ? (/^https?:/i.test(page) ? page : P.url.replace(/\/$/, '') + page) : finalUrl(P, page, { source: plat, campaign: cn, content: x.angle || 'ad' }), 'Call to Action': x.cta || 'Get Quote', 'Status': 'Paused' };
     if (!ctx.mirror) row.Language = lang === 'es' ? 'Spanish' : 'English';
     return row;
