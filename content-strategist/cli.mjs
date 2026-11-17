@@ -33,6 +33,18 @@
      desk [--no-live]                     work the plan out again and write the Content Strategist module, a module of
                                           its own, into the copy of the dashboard (handoff does this too)
      rules <vertical>                     the advertising rules, the license format, the notice text
+
+   What the page may claim about the company
+     reviews [find | link <place id> | sync | set --rating n --count n]
+                                          the review score, from one place. Never type a rating or a review count:
+                                          write {reviews.rating}, "over {reviews.floor}" or {reviews.line}, and lint
+                                          and build fill them from the figure on file. find and link connect the
+                                          business's Google profile; sync reads its score again; set is a person's
+                                          word until the profile is linked. The gate refuses a typed figure that
+                                          does not match and warns when the figure is over a month old.
+     makes [file]                         the manufacturers the brand file vouches for or the client's sitemap shows.
+                                          The gate refuses a page that names any other make: a company is not said
+                                          to service a brand its own site does not show.
      harvest                              rebuild the keyword packs from the console in leviathan/
 
    What the site already has
@@ -83,7 +95,8 @@ import { compare } from './lib/unique.mjs';
 import { brief, briefText, areasTable } from './lib/brief.mjs';
 import { strategy, planText, competitionText, cityStrategy, cityStrategyText, workTitle, whyWork } from './lib/strategy.mjs';
 /* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
-import { runConnect, runStatus, runCheck, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
+import { runConnect, runStatus, runCheck, runPanel, runReviews, runMakes, reviewsGoesOut, NoSuchHandoff } from '../dashboard-link/cli.mjs';
+import * as reviews from '../dashboard-link/lib/reviews.mjs';
 import { status as linkStatus, atlasFile, NotConnected, Pinned, loadCompetitors, loadModel, loadLive, loadPaidPack } from '../dashboard-link/lib/connect.mjs';
 import { bundle as handoffBundle, registerBundle, joins as panelJoins, listBundles, belongs, registerModuleData } from '../dashboard-link/lib/panel.mjs';
 import { pagesFile, note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
@@ -99,7 +112,7 @@ const inRepo = p => !path.relative(REPO, p).startsWith('..') && fs.existsSync(pa
 for (const [name, p] of [['CS_LOCAL', LOCAL], ['CS_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs', 'pin']);
+const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs', 'pin', 'exact', 'force']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const list = v => (v && v !== true ? String(v).split(',').map(s => s.trim()).filter(Boolean) : []);
@@ -118,7 +131,8 @@ function viaProxy() {
 function brandFile() { return A.brand && A.brand !== true ? path.resolve(A.brand) : process.env.CS_BRAND || path.join(LOCAL, 'brand.json'); }
 function loadBrand(required = false) {
   const f = brandFile();
-  if (fs.existsSync(f)) return Object.assign(JSON.parse(fs.readFileSync(f, 'utf8')), { _file: f });
+  /* the review figure in force (read from the Google profile, or set by a person) stands in for the dashboard's older one */
+  if (fs.existsSync(f)) return reviews.overlay(Object.assign(JSON.parse(fs.readFileSync(f, 'utf8')), { _file: f }));
   if (process.env.CS_BRAND_JSON) { try { return Object.assign(JSON.parse(process.env.CS_BRAND_JSON), { _file: 'CS_BRAND_JSON' }); } catch (e) { die('CS_BRAND_JSON is not valid JSON: ' + e.message); } }
   if (required) die(`No brand file at ${f}. The brand (name, site, phone, license, address) stays out of the repository.\nMake it one of three ways:\n  node content-strategist/cli.mjs connect <atlas.html>     reads the brand the dashboard was built for\n  mkdir -p ${path.dirname(f)} && cp content-strategist/brand.example.json ${f}     then fill it in\n  set CS_BRAND_JSON to the same JSON in the environment, so every session has it`);
   return null;
@@ -299,6 +313,8 @@ const C = {
         tried ? 'Tried on the running dashboard: ' + tried.text : `Not tried on the running dashboard: ${why}.`].join('\n'));
     if (tried && !tried.ok) process.exitCode = 1;
   },
+  async reviews() { const sub = A._[0] || ''; if (reviewsGoesOut(sub)) viaProxy(); const r = await runReviews(sub, { arg: A._.slice(1).join(' '), rating: A.rating, count: A.count, exact: !!A.exact, asOf: A['as-of'], force: !!A.force }); out(r.value, r.text); },
+  makes() { const r = runMakes(A._[0] || ''); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
   async panel() {
     if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
     if (A.repairs && A['no-repairs']) die('--repairs and --no-repairs cannot both be asked for.');
@@ -343,21 +359,22 @@ const C = {
   },
 
   lint() {
-    const f = A._[0] || die('lint <file> [--type landing|blog|page|social] [--keyword k] [--allow rule,rule]'), doc = parse(fs.readFileSync(f, 'utf8'), f), brand = loadBrand(), pack = packFor(doc.meta, brand), inv = loadInventory(brand);
-    const r = lint(doc, { type: A.type && A.type !== true ? A.type : undefined, keyword: A.keyword && A.keyword !== true ? A.keyword : undefined, allow: list(A.allow), pack, brand, live: inv ? new Set(inv.pages.map(p => p.key)) : null, maxGrade: A.grade ? +A.grade : undefined });
+    const f = A._[0] || die('lint <file> [--type landing|blog|page|social] [--keyword k] [--allow rule,rule]'), brand = loadBrand(), fig = reviews.inForce(brand), filled = reviews.expand(fs.readFileSync(f, 'utf8'), fig), doc = parse(filled.text, f), pack = packFor(doc.meta, brand), inv = loadInventory(brand);
+    const r = lint(doc, { inventory: inv ? { pages: inv.pages, ageHours: inv.ageHours } : null, reviews: fig, unfilled: filled.missing, type: A.type && A.type !== true ? A.type : undefined, keyword: A.keyword && A.keyword !== true ? A.keyword : undefined, allow: list(A.allow), pack, brand, live: inv ? new Set(inv.pages.map(p => p.key)) : null, maxGrade: A.grade ? +A.grade : undefined });
     out(r, report(r, rel(f))); if (!r.ok) process.exitCode = 1;
   },
 
   build() {
-    const f = A._[0] || die('build <page.md> [--allow rule,rule] [--date YYYY-MM-DD] [--no-sitemap]'), src = fs.readFileSync(f, 'utf8'), doc = parseMarkdown(src), m = doc.meta;
-    const brand = loadBrand(true), pack = packFor(m, brand), type = m.type, allow = list(A.allow), date = A.date && A.date !== true ? A.date : new Date().toISOString().slice(0, 10);
+    const f = A._[0] || die('build <page.md> [--allow rule,rule] [--date YYYY-MM-DD] [--no-sitemap]'), src = fs.readFileSync(f, 'utf8'), brand = loadBrand(true), fig = reviews.inForce(brand), filled = reviews.expand(src, fig), doc = parseMarkdown(filled.text), m = doc.meta;
+    const pack = packFor(m, brand), type = m.type, allow = list(A.allow), date = A.date && A.date !== true ? A.date : new Date().toISOString().slice(0, 10);
     if (!['landing', 'blog', 'page'].includes(type)) die('The front matter needs `type: landing`, `type: blog` or `type: page`.');
     if (!m.keyword) die('The front matter needs `keyword:`, the one primary keyword this page is for.');
     const slug = m.slug || slugify(doc.h1), inv = A['no-sitemap'] ? null : needInventory(brand);
     const blogBase = inv ? (() => { const c = {}; for (const p of inv.pages.filter(p => p.kind === 'post')) { const s = p.path.split('/').filter(Boolean); if (s.length > 1) c[s[0]] = (c[s[0]] || 0) + 1; } const top = Object.entries(c).sort((a, b) => b[1] - a[1])[0]; return top && top[1] >= 3 ? '/' + top[0] + '/' : '/'; })() : '/';
     const url = pageUrl(type === 'blog' && !m.path && !m.url ? Object.assign({}, m, { path: blogBase + slug + '/' }) : m, brand, slug);
     const can = inv ? cannibal(m.keyword, inv.pages, { pack, brand, type, selfUrl: url }) : null;
-    const r = lint(doc, { type, allow, pack, brand, url, slug, live: inv ? new Set(inv.pages.map(p => p.key)) : null, avoid: can ? can.avoid : [] });
+    /* page.md is kept as written, tokens and all; everything rendered from it carries the figure as it stood at this build */
+    const r = lint(doc, { type, allow, pack, brand, url, slug, live: inv ? new Set(inv.pages.map(p => p.key)) : null, avoid: can ? can.avoid : [], inventory: inv ? { pages: inv.pages, ageHours: inv.ageHours } : null, reviews: fig, unfilled: filled.missing });
     const push = (rule, severity, message, excerpt = '') => { if (allow.includes(rule)) return; r.findings.push({ rule, severity, message, excerpt }); r.counts[severity]++; if (severity === 'error') r.ok = false; };
     if (can && can.verdict === 'conflict') push('cannibalization', 'error', can.advice[0], can.conflicts.map(c => c.url).join('\n'));
     if (inv && m.city && type !== 'blog') { const near = nearby(m.city, { pack, brand }).map(nb => cityPage(inv.pages, nb.name, url)).filter(Boolean), mine = new Set(doc.links.map(l => urlKey(l.href, brand.url))); if (near.length && !near.some(p => mine.has(p.key))) push('neighbor-links', 'warn', `The page names no neighboring city. Link one or two near the end ("We also serve ..."): ${near.slice(0, 3).map(p => `${p.place} ${p.url}`).join(', ')}.`); }

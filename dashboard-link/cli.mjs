@@ -29,11 +29,32 @@
                               (with the repairs, unless they were left out); --plain sweeps the dashboard as it was
                               connected. --quick looks at each module as it opens and no further.
 
-   Add --json for machine output. The paid ads and content strategist command lines take connect, dashboard and panel too.
+     reviews                  the review score on file, where it came from, how old it is, and the tokens copy writes
+                              in place of a typed number: {reviews.rating}, {reviews.floor} ("over {reviews.floor}"),
+                              {reviews.line}. Every build fills them from this one figure.
+     reviews find ["name, address"]
+                              look the business up on Google (the Places API) and list the profiles it could be
+     reviews link <place id> [--force]
+                              keep that profile as the one to read, and read its score now
+     reviews sync             read the linked profile again and put its score in force; says whether the words that
+                              pages and ads carry changed, which means build them again
+     reviews set --rating 4.9 --count 900 [--exact] [--as-of YYYY-MM-DD]
+                              a person's word for the score until the profile is linked. The count is a floor
+                              ("over 900") unless --exact.
+     makes [file]             every manufacturer the brand file vouches for or the client's sitemap shows, and how
+                              (a page of its own, or only articles). With a file: the makers it names that neither
+                              stands behind. The gates of both agents run the same check.
+
+   Add --json for machine output. The paid ads and content strategist command lines take connect, dashboard, panel,
+   reviews and makes too. The Places key is never typed here: it is read from GOOGLE_PLACES_API_KEY, or put in by the
+   session's proxy.
    A browser is needed for check, heat and layout (Playwright with Chromium); connect and panel use one when it is there. */
 import fs from 'node:fs';
 import path from 'node:path';
-import { connect, status, requireConnection, atlasFile, NotConnected } from './lib/connect.mjs';
+import { spawnSync } from 'node:child_process';
+import { connect, status, requireConnection, atlasFile, NotConnected, loadBrand } from './lib/connect.mjs';
+import * as reviews from './lib/reviews.mjs';
+import { makesReport, siteOf, checkMakes } from './lib/makes.mjs';
 import * as live from './lib/live.mjs';
 import { readFile, ledger, actuals } from './lib/handoff.mjs';
 import { connectText, statusText, deskCheckText, publishCheckText, heatText, panelText } from './lib/report.mjs';
@@ -41,7 +62,7 @@ import { refresh, forgetBundles } from './lib/panel.mjs';
 import { sweep, tally, layoutText, WIDTHS } from './lib/layout.mjs';
 import { outside, rel } from './lib/paths.mjs';
 
-const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help', 'no-repairs', 'repairs', 'quick', 'plain', 'pin']);
+const BOOL = new Set(['json', 'no-live', 'no-copy', 'lsa', 'help', 'no-repairs', 'repairs', 'quick', 'plain', 'pin', 'exact', 'force']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const out = (v, text) => console.log(A.json ? JSON.stringify(v, null, 1) : text);
@@ -94,6 +115,61 @@ export async function runLayout({ widths = null, quick = false, plain = false, m
   return { value: Object.assign({ file, repaired, tally: t }, report), ok: t.total === 0 && !t.widest && !report.pageErrors.length, text: layoutText(report, { name: `${i.atlas}${i.build ? ' · Build ' + i.build : ''}`, repaired }) };
 }
 
+/* Node's fetch reads the session proxy only when told to at start, so a command that goes out runs itself again with that set */
+export function viaProxy() {
+  if (!(process.env.HTTPS_PROXY || process.env.https_proxy) || process.env.NODE_USE_ENV_PROXY) return;
+  const r = spawnSync(process.execPath, process.argv.slice(1), { stdio: 'inherit', env: Object.assign({}, process.env, { NODE_USE_ENV_PROXY: '1', NODE_NO_WARNINGS: '1' }) });
+  process.exit(r.status == null ? 1 : r.status);
+}
+/* does this reviews subcommand go out to Google? */
+export const reviewsGoesOut = sub => ['find', 'link', 'sync'].includes(sub);
+const REVIEWS_USAGE = 'reviews [find ["name, address"] | link <place id> [--force] | sync | set --rating 4.9 --count 900 [--exact] [--as-of YYYY-MM-DD]]';
+/* The review score: what is on file, the Google profile it comes from, and reading it again. o: {arg, rating, count,
+   exact, asOf, force, fetcher, env, now, brand}. Shared with the two agents' command lines. */
+export async function runReviews(sub = '', o = {}) {
+  const brand = o.brand !== undefined ? o.brand : loadBrand(), held = reviews.load(), now = o.now || new Date(), net = { fetcher: o.fetcher || fetch, env: o.env || process.env };
+  const state = h => { const f = reviews.inForce(brand, h, now); return { figure: f, words: reviews.words(f), profile: h.profile }; };
+  const again = 'Build the pages and the campaigns again: each build fills the review tokens from this figure.';
+  if (!sub || sub === 'status') return { value: state(held), text: reviews.statusText(brand, held, now) };
+  if (sub === 'set') {
+    if (o.rating == null || o.rating === true || !(+o.rating >= 1 && +o.rating <= 5)) throw new Error('reviews set needs --rating, a number from 1 to 5 (and --count, the number of reviews).');
+    const next = reviews.put(held, { rating: +o.rating, count: o.count == null || o.count === true ? null : +o.count, atLeast: !o.exact, asOf: o.asOf && o.asOf !== true ? o.asOf : undefined, source: 'Google', from: 'person' }, now); reviews.save(next);
+    return { value: state(next), text: reviews.statusText(brand, next, now) + '\n' + again };
+  }
+  if (sub === 'find') {
+    const a = (brand && brand.address) || {}, query = o.arg || (brand ? [brand.name, a.street, a.city, [a.state, a.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ') : '');
+    if (!query) throw new Error('reviews find needs the business name and address, or a brand file to take them from.');
+    const list = (await reviews.findPlace(query, net)).map(p => Object.assign(p, { match: reviews.sameBusiness(p, brand) })), hit = list.filter(p => p.match);
+    return { value: { query, places: list }, text: [`Google profiles for "${query}":`, ...list.map(p => `  ${p.match ? 'MATCH' : '     '}  ${p.name} · ${p.address}${p.phone ? ' · ' + p.phone : ''} · ${p.rating == null ? 'no rating' : p.rating + ' from ' + p.count + ' reviews'}\n         place id ${p.placeId}`), list.length ? '' : '  Google returned none. Try the name with the street address and city.',
+      hit.length === 1 ? `One has the brand file's phone or address. Keep it:\n  reviews link ${hit[0].placeId}` : list.length ? 'MATCH marks a profile with the brand file\'s phone or its street number and ZIP. Keep the right one: reviews link <place id>' : ''].filter(x => x !== '').join('\n') };
+  }
+  if (sub === 'link') {
+    if (!o.arg) throw new Error('reviews link <place id>   (reviews find lists them)');
+    const p = await reviews.fetchPlace(o.arg, net);
+    if (brand && !reviews.sameBusiness(p, brand) && !o.force) throw new Error(`That profile is ${p.name}, ${p.address}${p.phone ? ', ' + p.phone : ''}. Neither its phone nor its address matches the brand file's. If it is the right one, link it with --force.`);
+    let next = reviews.link(held, p, now); if (p.rating != null && p.count != null) next = reviews.put(next, { rating: p.rating, count: p.count, atLeast: false, source: 'Google', from: 'profile' }, now); reviews.save(next);
+    return { value: state(next), text: `Linked: ${p.name}, ${p.address}.\n` + reviews.statusText(brand, next, now) + '\n' + again };
+  }
+  if (sub === 'sync') {
+    const r = await reviews.sync(held, Object.assign({ now }, net)); reviews.save(r.held);
+    const was = r.before ? `${r.before.rating.toFixed(1)} from ${r.before.atLeast ? 'at least ' : ''}${r.before.count == null ? '?' : r.before.count}` : 'nothing', w = reviews.words(r.figure);
+    return { value: Object.assign(state(r.held), { changed: r.changed, wordsChanged: r.wordsChanged }), text: [`Read from the Google profile (${r.place.name}): ${r.figure.rating.toFixed(1)} from ${r.figure.count} reviews. Before: ${was}.`, r.wordsChanged ? `The words copy carries changed: now "${w.line}". ${again}` : `The words copy carries are the same ("${w.line}"), so nothing built needs building again.`].join('\n') };
+  }
+  throw new Error(REVIEWS_USAGE);
+}
+/* The makers the brand file vouches for and the client's sitemap shows; with a file, the ones it names that neither does. */
+export function runMakes(file = '', o = {}) {
+  const brand = o.brand !== undefined ? o.brand : loadBrand(), site = siteOf(brand), rep = makesReport({ brand, site }), T = [];
+  T.push(site ? `Manufacturers, from the brand file and the client's sitemap (${rep.pageCount} addresses, read ${rep.ageHours} hour${rep.ageHours === 1 ? '' : 's'} ago):` : 'Manufacturers, from the brand file alone: the client\'s sitemap has not been read on this machine, so nothing else can be shown to be serviced.');
+  for (const r of rep.rows) T.push(`  ${r.ok ? 'ok ' : 'NO '} ${r.make.padEnd(20)} ${[r.vouched ? `${r.vouched.by} ("${r.vouched.said}")` : '', r.pages.length ? `${r.pages.length} page${r.pages.length === 1 ? '' : 's'} of its own: ${r.pages.slice(0, 3).join(', ')}` : '', r.articles.length ? `${r.articles.length} article${r.articles.length === 1 ? '' : 's'}${r.pages.length || r.vouched ? '' : ' only'}: ${r.articles.slice(0, 2).join(', ')}` : ''].filter(Boolean).join('; ')}`);
+  if (!rep.rows.length) T.push('  none');
+  T.push('A make marked ok may be named in copy. One the site shows only in articles may not, until the owner says the company services it: add it to the brand file\'s makes list. A sitemap lists addresses, so a make named only inside a page\'s text is not seen.');
+  let found = null;
+  if (file) { let text = fs.readFileSync(file, 'utf8'); if (/\.json$/i.test(file)) { const parts = []; JSON.stringify(JSON.parse(text), (k, v) => { if (typeof v === 'string' && !/^(url|path|href|src)$/.test(k)) parts.push(v); return v; }); text = parts.join('\n'); } else if (/\.html?$/i.test(file)) text = text.replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ');
+    found = checkMakes(text, { brand, site, loose: /\.json$/i.test(file) }); T.push('', found.length ? `${rel(path.resolve(file))} names ${found.length} that nothing stands behind:` : `${rel(path.resolve(file))}: every manufacturer it names is vouched for or shown on the site.`, ...found.map(f => `  ${f.make}: ${f.excerpt}`)); }
+  return { value: { rows: rep.rows, siteRead: rep.siteRead, ageHours: rep.ageHours, found }, text: T.join('\n'), ok: !found || !found.length };
+}
+
 /* what a file saved from the dashboard holds */
 export function runRead(f) {
   const { kind, value } = readFile(f);
@@ -118,6 +194,8 @@ const C = {
     const r = await runPanel({ out: A.out && A.out !== true ? A.out : '', check: !A['no-live'], forget: A.forget || '', repairs: A['no-repairs'] ? false : A.repairs ? true : undefined });
     out(r.value, r.text); if (!r.ok) process.exitCode = 1;
   },
+  async reviews() { const sub = A._[0] || ''; if (reviewsGoesOut(sub)) viaProxy(); const r = await runReviews(sub, { arg: A._.slice(1).join(' '), rating: A.rating, count: A.count, exact: !!A.exact, asOf: A['as-of'], force: !!A.force }); out(r.value, r.text); },
+  makes() { const r = runMakes(A._[0] || ''); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
   async layout() {
     const widths = A.widths && A.widths !== true ? String(A.widths).split(',').map(Number) : null; if (widths && widths.some(w => !(w >= 280 && w <= 3840))) die('--widths takes window widths in pixels, from 280 to 3840, separated by commas.');
     const r = await runLayout({ widths, quick: !!A.quick, plain: !!A.plain, modules: A.modules && A.modules !== true ? String(A.modules).split(',') : null });

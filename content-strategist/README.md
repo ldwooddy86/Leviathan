@@ -56,6 +56,8 @@ Social posts go through the same writing rules plus each platform's limits. Noth
 
 The gate measures form. It does not know whether a claim about the business is true, so the agent is told to make none it cannot trace to the brand file or the person, and to list the ones it could not confirm.
 
+Two claims about the business are held to a source. The review score is never typed: a page writes `{reviews.rating}`, "over {reviews.floor} reviews" or `{reviews.line}`, and `lint` and `build` fill them from the one figure on file, which `reviews sync` reads from the business's Google profile. And a page may name a manufacturer only when the brand file vouches for it or the client's own site has a page for it; `makes` lists them. Both rules, and the connection to the profile, are in [the dashboard link](../dashboard-link/README.md#what-copy-may-claim-the-review-score-and-the-makers).
+
 ## What each vertical knows
 
 `verticals/` holds one pack per atlas, read from the atlases themselves.

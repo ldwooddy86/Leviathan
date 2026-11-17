@@ -60,6 +60,8 @@ A person can ask for a rule to be set aside by name (`--allow kw-theme`, `--allo
 
 The gate measures form and traces claims. It cannot know whether a claim is true, or whether an ad is good. An ad that passes can still be dull; an ad that fails cannot ship.
 
+The review score in an ad is never typed: copy writes `{reviews.rating}` and "over {reviews.floor} reviews", the gate fills them from the one figure on file before it measures a line, and the bulk files carry the numbers while the campaign file keeps its tokens. An ad that names a manufacturer the client's site does not show, and the brand file does not vouch for, fails the gate; a keyword that bids on one draws a warning. `reviews` and `makes` are the two commands; [the dashboard link](../dashboard-link/README.md#what-copy-may-claim-the-review-score-and-the-makers) has the detail.
+
 ## What it hands back
 
 `build` writes a folder outside the repository:

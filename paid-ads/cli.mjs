@@ -60,7 +60,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { status, requireConnection, loadPaidPack, listPaidPacks, loadModel, loadLive, loadCompetitors, loadBrand, atlasFile, NotConnected } from '../dashboard-link/lib/connect.mjs';
-import { runConnect, runStatus, runCheck, runHeat, runRead, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
+import { runConnect, runStatus, runCheck, runHeat, runRead, runPanel, runReviews, runMakes, reviewsGoesOut, viaProxy, NoSuchHandoff } from '../dashboard-link/cli.mjs';
+import * as reviews from '../dashboard-link/lib/reviews.mjs';
+import { siteOf as inventoryOf } from '../dashboard-link/lib/makes.mjs';
 import { bundle as handoffBundle, registerBundle, workingName, joins as panelJoins, ANSWERS } from '../dashboard-link/lib/panel.mjs';
 import * as live from '../dashboard-link/lib/live.mjs';
 import { note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
@@ -76,7 +78,7 @@ const OUT = path.resolve(process.env.PA_OUT || path.join(PA_LOCAL, 'out')), DRAF
 for (const [name, p] of [['PA_LOCAL', PA_LOCAL], ['PA_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'help', 'no-live', 'no-copy', 'lsa', 'from-heat', 'force', 'no-repairs', 'repairs', 'pin']);
+const BOOL = new Set(['json', 'help', 'no-live', 'no-copy', 'lsa', 'from-heat', 'force', 'no-repairs', 'repairs', 'pin', 'exact']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const opt = k => (A[k] && A[k] !== true ? String(A[k]) : '');
@@ -109,7 +111,8 @@ function packOnly() {
 function context() {
   const s = requireConnection(), pack = loadPaidPack(s.connection.id), model = loadModel();
   if (!model || !Array.isArray(model.zips)) throw new NotConnected('The ZIP model of the connected dashboard is missing. Connect the dashboard again:\n  node paid-ads/cli.mjs connect <atlas.html>');
-  const snap = loadLive(), comp = loadCompetitors(), brand = loadBrand();
+  /* the review figure in force (read from the Google profile, or set by a person) stands in for the dashboard's older one */
+  const snap = loadLive(), comp = loadCompetitors(), brand = reviews.overlay(loadBrand());
   return { connection: s.connection, problems: s.problems, pack, model, brand, snapshot: snap, seasons: snap && snap.slm ? Object.fromEntries(snap.slm.lines.map(l => [l.id, l.months])) : null, competitors: comp ? comp.companies.filter(c => !c.self).map(c => c.name.replace(/\s*(,? (inc|llc|co|corp)\.?|& sons?)$/i, '')) : [], roster: comp, site: siteOf(brand),
     /* LEVIATHAN_TODAY (YYYY-MM-DD) pins "today" for the coming Monday and for the start date check, so a test reads the same on any day */
     now: /^\d{4}-\d{2}-\d{2}$/.test(process.env.LEVIATHAN_TODAY || '') ? new Date(process.env.LEVIATHAN_TODAY + 'T12:00:00') : undefined };
@@ -119,7 +122,8 @@ function context() {
 function siteOf(brand) {
   if (!brand || !brand.url) return null;
   const f = path.join(CS_LOCAL, 'sitemap', camp.hostOf(brand.url) + '.json'); if (!fs.existsSync(f)) return null;
-  try { const j = JSON.parse(fs.readFileSync(f, 'utf8')); return { file: f, ageHours: Math.max(0, Math.round((Date.now() - Date.parse(j.fetched)) / 36e5)), paths: new Set((j.pages || []).map(p => camp.normPath(p.path || ''))) }; } catch { return null; }
+  /* `pages` is what the makes check reads: a manufacturer an ad names must show on the client's own site */
+  try { const j = JSON.parse(fs.readFileSync(f, 'utf8')); return { file: f, ageHours: Math.max(0, Math.round((Date.now() - Date.parse(j.fetched)) / 36e5)), paths: new Set((j.pages || []).map(p => camp.normPath(p.path || ''))), pages: (inventoryOf(brand) || { pages: [] }).pages }; } catch { return null; }
 }
 const lineOfAngle = (pack, id) => Object.entries(pack.lines).filter(([, v]) => v.angles.includes(id)).map(([k]) => k);
 
@@ -346,9 +350,10 @@ const C = {
   },
 
   async build() {
-    const f = A._[0] || die('build <campaign.json> [--allow rule,rule] [--out folder] [--no-live] [--force]'), X = context(), src = path.resolve(f), c = readJson(src) || die('No campaign file at ' + f);
+    const f = A._[0] || die('build <campaign.json> [--allow rule,rule] [--out folder] [--no-live] [--force]'), X = context(), src = path.resolve(f), raw = readJson(src) || die('No campaign file at ' + f);
     if (A.allow === true) die('--allow takes the rules to set aside, by name: --allow kw-theme');
-    const g = camp.gate(c, X, { allow: list(opt('allow')) }), name = rel(src); badAllow(g);
+    /* the gate fills the review tokens from the figure on file; `c` is the campaign as it will read, `raw` the file as written */
+    const g = camp.gate(raw, X, { allow: list(opt('allow')) }), c = g.file, name = rel(src); badAllow(g);
     const fail = extra => { out({ ok: false, counts: g.counts, findings: g.findings, claims: g.claims, allowed: g.allowed, notLifted: g.notLifted }, camp.report(g, name) + liftText(g) + `\n\nNot written. ${extra || `Fix the ${g.counts.error} error${g.counts.error === 1 ? '' : 's'} and build again.`}`); process.exitCode = 1; };
     if (!g.ok) return fail();
     /* where it goes: a folder a different campaign was built into is not written over without being told to */
@@ -372,6 +377,8 @@ const C = {
     /* the files */
     const made = camp.files(c, g, X, handoffNote('paid-ads-specialist', X.connection, { campaign: c.name || '', campaigns: (c.search || []).length, ads: g.stats.ads, extra: (c.extra || []).map(e => ({ channel: e.channel, monthly: e.monthly })) }));
     fs.mkdirSync(dir, { recursive: true }); for (const [n, body] of Object.entries(made)) fs.writeFileSync(path.join(dir, n), body);
+    /* the folder keeps the campaign as written, tokens and all, so the next build fills them afresh */
+    if (g.filled) fs.writeFileSync(path.join(dir, 'campaign.json'), JSON.stringify(raw, null, 1) + '\n');
     /* the plan through the Campaign Desk's own Load button */
     if (av.ok) {
       try {
@@ -438,6 +445,8 @@ const C = {
     if (rows.some(r => !r.taken)) process.exitCode = 1;
   },
 
+  async reviews() { const sub = A._[0] || ''; if (reviewsGoesOut(sub)) viaProxy(); const r = await runReviews(sub, { arg: A._.slice(1).join(' '), rating: opt('rating'), count: opt('count'), exact: !!A.exact, asOf: opt('as-of'), force: !!A.force }); out(r.value, r.text); },
+  makes() { const r = runMakes(A._[0] || ''); out(r.value, r.text); if (!r.ok) process.exitCode = 1; },
   async panel() {
     if (A.forget === true) die('--forget takes the id of a hand-off as panel lists it, or "all".');
     if (A.repairs && A['no-repairs']) die('--repairs and --no-repairs cannot both be asked for.');

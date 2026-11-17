@@ -140,6 +140,28 @@ node dashboard-link/cli.mjs panel --no-repairs     write the copy without them, 
 
 `layout` opens the dashboard and walks it as a person would: every module as it opens and scrolled, every section opened, every view switch, the first row of each table, the dialogs, the header and the rail, at each width. In each view it measures where every line of text and every control really is, and reports what sits on something else, what touches it with no room between, what runs out of its box or off the page, a label, field and hint run together on one line, a text field the style sheet never dressed and a tick box stretched to a field's width. In the drawings it reports chart labels over each other, a label with a line through it or on a point, a chart drawn past its own frame, and a place name under the map's buttons. It exits 1 when it finds something, so it can be run after a new build is connected.
 
+## What copy may claim: the review score and the makers
+
+Both agents write things about the business that are true only if something outside the copy says so. Two of them are checked here, by the gate of each agent, from the same two modules.
+
+**The review score** (`lib/reviews.mjs`). A rating typed into a page is wrong the day another review lands, so nothing types it. Copy carries a token and every build fills it from one figure on file:
+
+| Token | Filled with |
+|---|---|
+| `{reviews.rating}` | `4.9`, the average to one decimal |
+| `{reviews.floor}` | `900`, the count rounded down to a round number: write "over {reviews.floor}" |
+| `{reviews.line}` | `4.9 from over 900 Google reviews` |
+| `{reviews.source}`, `{reviews.asOf}` | `Google`, `November 2026` |
+| `{reviews.count}` | the exact count; the gate warns on it, since it dates fastest |
+
+The figure comes from the business's Google profile, read through the Places API: `reviews find` looks the business up by the name and address on the brand file and marks the profile whose phone or address matches, `reviews link <place id>` keeps it, and `reviews sync` reads the rating and the count again. Until the profile is linked, `reviews set --rating 4.9 --count 900` records a person's word, with the count held as a floor. The newest of the three (the profile, a person, the figure the dashboard was built with) is the one in force. It is kept in `reviews.json` beside the connection, outside the repository, with the figures before it.
+
+The Places key is never in a file or on a command line. It is read from `GOOGLE_PLACES_API_KEY` when that is set; otherwise the request goes out with a placeholder and the session's proxy puts the saved key in. The key is an API key from a Google Cloud project with "Places API (New)" switched on. Each request names only the fields it needs.
+
+At the gate: a typed rating or count that does not match the figure is an error, an exact count is a warning, and a figure older than 31 days is a warning to sync again. `sync` says whether the words copy carries changed (crossing a round number, or a new rating), which is when built pages and campaigns need building again.
+
+**The makers** (`lib/makes.mjs`). Copy that names a manufacturer says the company works on it. `makes` reads the sitemap inventory the content strategist keeps and the brand file, and sorts each make: vouched for (a dealer credential the dashboard holds, or the owner's `makes` list), shown on a page of its own (a service page, a product page, a case study, a gallery), or shown only in articles. Only the first two may be named. A page or an ad that names any other make fails the gate, and a keyword that bids on one is a warning. A sitemap lists addresses, so a make named only inside a page's text is not seen: that is what the brand file's `makes` list is for.
+
 ## Commands
 
 ```
@@ -153,6 +175,10 @@ node dashboard-link/cli.mjs panel [--out file] [--forget id|all] [--no-live] [--
                                             write the copy of the dashboard with the Agent Desk in it, and say what is on it
 node dashboard-link/cli.mjs layout [--widths 1440,1190,...] [--quick] [--plain] [--modules key,key]
                                             sweep the running dashboard for text and controls that overlap
+node dashboard-link/cli.mjs reviews         the review score on file, its source and age, and the tokens copy writes
+node dashboard-link/cli.mjs reviews find | link <place id> | sync | set --rating n --count n
+                                            connect the Google profile, read its score, or record a person's word
+node dashboard-link/cli.mjs makes [file]    the manufacturers copy may name, from the brand file and the client's sitemap
 ```
 
 Add `--json` for machine output. Exit codes: 0 done, 1 the dashboard refused the file, the connection is out of step, the copy was opened and the Agent Desk did not come up, or `layout` found something, 2 an error, 3 a browser was needed and none is available.

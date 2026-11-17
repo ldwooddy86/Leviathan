@@ -6,6 +6,8 @@ import { passives } from './passive.mjs';
 import { tropes, phrases } from './tropes.mjs';
 import { voice } from './voice.mjs';
 import { covers, key, tokens, norm } from './terms.mjs';
+import { checkMakes } from '../../dashboard-link/lib/makes.mjs';
+import { check as checkReviews } from '../../dashboard-link/lib/reviews.mjs';
 
 export const LIMITS = { grade: 9, floor: 6, title: 60, h1: 70, descMin: 120, descMax: 158, lede: 80, sentence: 30, minLinks: { landing: 2, blog: 3, page: 3 }, minWords: { landing: 300, blog: 600, page: 400 } };
 const GENERIC = /^(?:click here|here|learn more|read more|more|this page|this link|this|link|website|our website|page|find out more|see more|details|more info|more information|check it out|go here|visit)$/i;
@@ -41,7 +43,10 @@ export function urlKey(u, base) {
 }
 const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
 
-/* lint(doc, options): options are {type, keyword, slug, url, site, allow, maxGrade, pack, brand, live (a Set of urlKeys), avoid} */
+/* lint(doc, options): options are {type, keyword, slug, url, site, allow, maxGrade, pack, brand, live (a Set of urlKeys), avoid,
+   inventory (the client's site as its sitemap was read: {pages, ageHours}, or null when it was not; pass it and every
+   manufacturer the page names is held against it), reviews (the review figure in force, or null; pass it and every
+   review claim is held against it)} */
 export function lint(doc, o = {}) {
   const F = [], add = (rule, severity, message, excerpt = '', fix = '') => F.push(fix ? { rule, severity, message, excerpt, fix } : { rule, severity, message, excerpt });
   const m = doc.meta || {}, type = o.type || m.type || 'page', social = type === 'social', keyword = o.keyword || m.keyword || '';
@@ -141,6 +146,11 @@ export function lint(doc, o = {}) {
     }
   }
 
+  /* what the page claims about the company: the makers it names, and its review score */
+  const claimed = [m.title, m.description, doc.h1, text].filter(Boolean).join('\n');
+  for (const k of o.unfilled || []) add('reviews', 'error', `The page carries {reviews.${k}} and the review figure on file cannot fill it. Run the reviews command to see what is on file.`);
+  if ('inventory' in o) for (const f of checkMakes(claimed, { brand: o.brand || null, site: o.inventory || null })) add('make', f.severity, f.message, f.excerpt);
+  if ('reviews' in o) for (const f of checkReviews(claimed, o.reviews || null)) add('reviews', f.severity, f.message, f.excerpt);
   const allow = new Set(o.allow || []), kept = F.filter(f => !allow.has(f.rule)), count = s => kept.filter(f => f.severity === s).length;
   return { ok: count('error') === 0, type, keyword, stats: { grade: stats.grade, ease: stats.ease, words: doc.words, sentences: stats.sentences, wordsPerSentence: stats.wordsPerSentence, passive: P.length }, counts: { error: count('error'), warn: count('warn'), note: count('note') }, allowed: [...allow], findings: kept };
 }

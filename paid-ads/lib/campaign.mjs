@@ -19,6 +19,8 @@ import * as kw from './keywords.mjs';
 import { checkRsa, checkAssets, checkAd, text, chars, CLAIM_TYPES } from './copy.mjs';
 import { CHANNELS, byId, forDesk, format as bookFormat } from '../channels/book.mjs';
 import { deskPlan } from '../../dashboard-link/lib/handoff.mjs';
+import { checkMakes } from '../../dashboard-link/lib/makes.mjs';
+import { check as checkReviews, expandDeep as fillReviews } from '../../dashboard-link/lib/reviews.mjs';
 
 /* the Campaign Desk's platform keys and the channel book's ids */
 export const DESK_TO_CHANNEL = { google: 'google_search', microsoft: 'microsoft_search', lsa: 'lsa', dg: 'demand_gen', meta: 'meta', nextdoor: 'nextdoor', yelp: 'yelp', linkedin: 'linkedin' };
@@ -90,7 +92,11 @@ export const ruleName = a => { const s = String(a).trim(); return /^[A-Za-z]+\d+
    claims, reading (the plan as the desk reads it), plan (the file for the desk), allowed, notLifted, unknownAllow}. */
 export function gate(file, ctx, { allow = [] } = {}) {
   const F = [], add = (severity, rule, where, message, excerpt = '', fix = '') => F.push({ severity, rule, where, message, excerpt, fix });
-  const c = file && typeof file === 'object' ? file : {}, pack = ctx.pack, ANG = Object.fromEntries(pack.angles.map(a => [a.id, a])), claims = [];
+  /* the review tokens ({reviews.rating}, {reviews.floor}, ...) are filled from the figure on file before anything is
+     measured, so every limit is counted on the words a person will read */
+  const figure = (ctx.brand && ctx.brand.proof && ctx.brand.proof.reviews) || null, fill = fillReviews(file && typeof file === 'object' ? file : {}, figure);
+  if (fill.missing.length) add('error', 'reviews', 'file', `The copy carries ${fill.missing.map(k => '{reviews.' + k + '}').join(', ')} and the review figure on file cannot fill ${fill.missing.length === 1 ? 'it' : 'them'}${figure ? '' : ': no figure is on file'}. Run the reviews command to see what is on file.`);
+  const c = fill.value, pack = ctx.pack, ANG = Object.fromEntries(pack.angles.map(a => [a.id, a])), claims = [];
   if (c.draft) add('error', 'draft', 'file', 'The file still carries its draft note, so the copy in it is the dashboard\'s library, not yours. A draft is a starting point and never the deliverable: rewrite it, then delete the "draft" key.');
 
   /* the plan, as the Campaign Desk will take it */
@@ -180,6 +186,21 @@ export function gate(file, ctx, { allow = [] } = {}) {
     if (ch && ch.status !== 'closed') landing(ad.url, where);
     const book = dk && (PL.book[dk] || {}).limits; if (book) { for (const [bk, fk] of [['p', 'primary'], ['h', 'headline'], ['d', 'description'], ['b', 'body'], ['i', 'intro'], ['bio', 'bio']]) { const v = text(ad[fk]); if (book[bk] && v && chars(v) > book[bk]) add('note', 'desk-limit', where, `The dashboard's Campaign Desk cuts ${fk} at ${book[bk]} characters; this is ${chars(v)}. The platform's own figure is in the channel book.`); } }
   }
+  /* what the copy claims about the company: the makers it names, held against the client's own site, and the review
+     score, held against the figure on file */
+  const said = [], bids = [];
+  for (const s of c.search || []) { const tag = `search ${String(s.lang || 'en').toUpperCase()}`;
+    said.push({ where: `${tag} · campaign assets`, text: [...(s.callouts || []), ...(s.sitelinks || []).flatMap(x => (x ? [x.text, x.d1, x.d2] : [])), ...((s.snippets && s.snippets.values) || [])].map(text).filter(Boolean).join('\n') });
+    for (const g of s.adGroups || []) { said.push({ where: `${tag} · ${g.name}`, text: [...((g.ad && g.ad.headlines) || []), ...((g.ad && g.ad.descriptions) || [])].map(text).filter(Boolean).join('\n') }); bids.push({ where: `${tag} · ${g.name}`, list: (g.keywords || []).map(k => k && k.text).filter(Boolean) }); } }
+  for (const a of c.ads || []) said.push({ where: `${a.channel}: ${a.name || a.angle || ''}`, text: ['primary', 'headline', 'description', 'body', 'intro', 'bio', 'text'].map(k => text(a[k])).filter(Boolean).join('\n') });
+  const makeSite = ctx.site && Array.isArray(ctx.site.pages) ? ctx.site : null;
+  for (const x of said) for (const f of checkMakes(x.text, { brand, site: makeSite })) add('error', 'make', x.where, f.message, f.excerpt);
+  for (const x of bids) { const seen = new Map(); for (const k of x.list) for (const f of checkMakes(k, { brand, site: makeSite, loose: true })) { if (!seen.has(f.make)) seen.set(f.make, []); seen.get(f.make).push(k); }
+    for (const [make, ks] of seen) add('warn', 'make', x.where, `${ks.length} keyword${ks.length === 1 ? ' bids' : 's bid'} on ${make} by name, and neither the client's site nor the brand file shows the company works on it. The clicks cost the same whether it does or not: cut ${ks.length === 1 ? 'it' : 'them'}, or ask the owner and add the make to the brand file's makes list.`, ks.slice(0, 6).join(' | ')); }
+  let stale = false;
+  /* a rating or a count the figure does not reach is already an error among the claims below: not said twice */
+  for (const x of said) for (const f of checkReviews(x.text, figure)) { if (f.kind === 'stale') { stale = true; continue; } if (f.kind === 'rating' || f.kind === 'over' || f.kind === 'none') continue; add(f.severity, 'reviews', x.where, f.message, f.excerpt); }
+  if (stale) add('warn', 'reviews', 'file', `The review figure on file is ${figure.ageDays == null ? 'undated' : figure.ageDays + ' days old'} (as of ${figure.asOf || 'no date'}). Run reviews sync to read the Google profile again, then build, so the ads carry the score as it stands.`);
   if (unread.size) add('note', 'landing', 'file', `No landing page was checked: the site's sitemap has not been read on this machine. A path from the dashboard's library is the Site Forge's plan for a page, not proof the page exists. Read the site (node content-strategist/cli.mjs sitemap) and lint again, or open each page yourself.`, [...unread].slice(0, 12).join(' | '));
   for (const p of PL.order) { if (p === 'google' || p === 'microsoft') continue; const has = byPlat[p] || 0, spend = R.forecast[p].spend; if (spend > 0 && !has) add('warn', 'unbuilt', PL.labels[p] || p, `The plan gives ${PL.labels[p] || p} ${$(spend)} a month and the file holds no ad for it.`); if (!spend && has) add('warn', 'unfunded', PL.labels[p] || p, `The file holds ${has} ad${has === 1 ? '' : 's'} for ${PL.labels[p] || p} and the plan gives it nothing.`); }
 
@@ -208,7 +229,7 @@ export function gate(file, ctx, { allow = [] } = {}) {
   for (const r of notLifted) add('note', 'allow', 'file', `${r} was not lifted. An error stays when it is a limit the platform enforces, a file the Campaign Desk would not take, a rule of law, or a claim the brand file contradicts.`);
   const kept = F.filter(f => !(lifts.has(f.rule) && can(f))).sort((a, b) => order[a.severity] - order[b.severity]), n = s => kept.filter(f => f.severity === s).length;
   const ps = stats.persuasion; stats.persuasion = ps.length ? Math.round(sum(ps) / ps.length * 10) / 10 : null;
-  return { ok: n('error') === 0, counts: { error: n('error'), warn: n('warn'), note: n('note') }, findings: kept, stats, claims, reading: R, plan: dp.plan, allowed, lifts: [...lifts], notLifted, unknownAllow };
+  return { ok: n('error') === 0, counts: { error: n('error'), warn: n('warn'), note: n('note') }, findings: kept, stats, claims, reading: R, plan: dp.plan, allowed, lifts: [...lifts], notLifted, unknownAllow, file: c, filled: fill.filled };
 }
 
 /* the gate's result as text */

@@ -179,6 +179,22 @@ A city page usually runs in this order, and you vary it from page to page: the o
 
 A landing page runs 300 words or more and ends on the action. A blog post runs 600 or more. `content-strategist/tests/fixtures/landing.md` and `blog.md` show the form of a page that passes. They belong to a made up business, so copy their shape and never their claims.
 
+# What a page may claim about the company
+
+Two things a page says about the business are checked against a source, and the gate fails the page when they do not hold.
+
+**The review score is never typed.** Do not write "4.9 stars" or "915 reviews" into a page, a post or an ad. Write the tokens, and `lint` and `build` fill them from the one figure on file:
+
+- `{reviews.rating}` is the average, to one decimal.
+- `{reviews.floor}` is the count rounded down to a round number. Write "over {reviews.floor} reviews": it stays true while the profile grows.
+- `{reviews.line}` is the whole claim, such as "4.9 from over 900 Google reviews".
+- `{reviews.source}` and `{reviews.asOf}` are the profile's name and the month the figure was read.
+- `{reviews.count}` is the exact count. It dates the day another review lands, so the gate warns on it.
+
+`reviews` shows the figure in force, where it came from and how old it is. It comes from the business's Google profile: `reviews find` looks the business up, `reviews link <place id>` keeps the profile, and `reviews sync` reads the score again. Until the profile is linked, a person can say what the figure is with `reviews set --rating 4.9 --count 900`, and the count is treated as a floor. Run `reviews sync` before you build anything that carries the score; the gate warns when the figure is over 31 days old, and fails a typed rating or count that does not match it. The saved page keeps its tokens, so the next build carries the score as it stands then. Do not put the score in the schema: a rating copied from another site's reviews is not the page's own to mark up.
+
+**Every manufacturer you name must show on the client's own site.** A line such as "we repair Trane, Lennox and Goodman" says the company works on those makes. Before you name a make, run `makes`: it lists every manufacturer the brand file vouches for (a dealer credential, or the owner's `makes` list) and every one the client's sitemap shows, and says how the site shows it. A make with a page of its own (a service page, a product page, a case study, a gallery) may be named. A make that turns up only in blog posts may not: an article about a maker's award does not show the company services it. Anything else fails the gate. When the owner tells you the company services a make the site does not show, add it to the brand file's `makes` list and say in your hand back that you did. Read the sitemap again first if it is more than a few days old. You can always write about kinds of equipment (a gas furnace, a heat pump, a mini split) without naming who built it.
+
 # The gate, and the schema that goes out with every page
 
 While you draft, `lint <draft.md>` runs the writing and page checks and writes nothing.
