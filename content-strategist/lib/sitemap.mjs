@@ -73,7 +73,7 @@ export function fromFile(file, site = '') {
 /* ---------- reading the URLs ---------- */
 const ACRONYM = { ac: 'AC', hvac: 'HVAC', r22: 'R22', dfw: 'DFW', tx: 'TX', la: 'LA', seer: 'SEER', uv: 'UV', iaq: 'IAQ', dwi: 'DWI', dui: 'DUI', faq: 'FAQ', usa: 'USA', llc: 'LLC', cpa: 'CPA' };
 const phraseOf = seg => decodeURIComponent(seg).replace(/\.(html?|php|aspx?)$/i, '').replace(/[-_+]+/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
-export const display = (s, placeList = []) => { let t = ' ' + String(s).toLowerCase() + ' '; for (const p of placeList) t = t.replace(new RegExp(' ' + p.words.join(' ') + ' ', 'g'), ' ' + p.name + ' '); return t.trim().split(' ').map(w => ACRONYM[w] || w).join(' '); };
+export const display = (s, placeList = []) => { let t = ' ' + String(s).toLowerCase() + ' '; for (const p of placeList) { const w = ' ' + p.words.join(' ') + ' '; if (t.includes(w)) t = t.split(w).join(' ' + p.name + ' '); } return t.trim().split(' ').map(w => ACRONYM[w] || w).join(' '); };
 
 function kindOf(path, source, segs, loc, angle, many) {
   if (!segs.length) return 'home';
@@ -109,6 +109,14 @@ function allPlaces(P, inv) {
   for (const p of inv) if (p.place) { const w = (norm(p.place).match(/[a-z0-9]+/g) || []), k = w.join(' '); if (w.length && !seen.has(k)) { seen.add(k); out.push({ name: p.place, kind: p.placeKind || 'city', words: w }); } }
   return out.sort((a, b) => b.words.length - a.words.length || b.name.length - a.name.length);
 }
+
+/* how a page's keyword reads with its place names capitalized, worked out once for each page */
+const SHOWN = new WeakMap();
+function shown(p, slot, P, text) { let m = SHOWN.get(p); if (!m || m.P !== P) { m = { P }; SHOWN.set(p, m); } if (!(slot in m)) m[slot] = display(text(), P); return m[slot]; }
+
+/* the same list for the same inventory, kept: a plan weighs a thousand keywords against one site */
+const PLACES = new WeakMap();
+function placesFor(pack, brand, inv) { let m = PLACES.get(inv); if (!m || m.pack !== pack || m.brand !== brand || m.n !== inv.length) { m = { pack, brand, n: inv.length, P: allPlaces(placesOf(pack, brand), inv) }; PLACES.set(inv, m); } return m.P; }
 
 /* [{url, key, path, kind, keyword, topic, tokens, place, placeKind, angle, angles, mode, lastmod, source, title?, h1?}] */
 export function inventory(crawled, { pack = null, brand = null } = {}) {
@@ -164,14 +172,14 @@ const RANKING = new Set(['home', 'service', 'service-location', 'location', 'pos
 
 /* weighs a proposed keyword against the live pages: {verdict: 'clear' | 'conflict', want, conflicts, neighbors, planned, avoid, advice} */
 export function cannibal(keyword, inv, { pack = null, brand = null, type = 'landing', selfUrl = '' } = {}) {
-  const P = allPlaces(placesOf(pack, brand), inv), loc = locate(keyword, P), a = angleOf(loc.rest, pack), T = [...new Set(tokens(loc.rest))];
+  const P = placesFor(pack, brand, inv), loc = locate(keyword, P), a = angleOf(loc.rest, pack), T = [...new Set(tokens(loc.rest))];
   const asks = isQuestion(keyword) || (a && a.kind === 'questions' && a.score >= 0.75), mode = type === 'blog' ? (asks ? 'answer' : 'article') : (asks ? 'answer' : 'service');
   const want = { keyword, tokens: T, place: loc.place, placeKind: loc.kind, angle: a ? a.id : null, angleLabel: a ? a.label : null, mode, type };
   const self = selfUrl ? urlKey(selfUrl) : '', conflicts = [], neighbors = [];
   for (const p of inv) {
     if (!RANKING.has(p.kind) || p.key === self || p.noindex) continue;
     const sim = Math.max(jaccard(T, p.tokens), p.headTokens ? jaccard(T, p.headTokens) : 0), samePlace = same(want.place, p.place), sameAngle = !!want.angle && (p.angle === want.angle || (p.angles || []).includes(want.angle)), several = (p.angles || []).length >= 2;
-    const row = { url: p.url, kind: p.kind, keyword: display(((p.topic != null ? p.topic : p.keyword) + (p.place ? ' ' + p.place : '')).trim() || p.keyword, P), holds: p.h1 || p.title || display(p.keyword, P), place: p.place, angle: p.angle, similarity: Math.round(sim * 100) / 100 };
+    const row = { url: p.url, kind: p.kind, keyword: shown(p, 'k', P, () => ((p.topic != null ? p.topic : p.keyword) + (p.place ? ' ' + p.place : '')).trim() || p.keyword), holds: p.h1 || p.title || shown(p, 'h', P, () => p.keyword), place: p.place, angle: p.angle, similarity: Math.round(sim * 100) / 100 };
     const pServes = p.mode === 'service' && p.kind !== 'post';
     if (samePlace && sim >= 0.999) { conflicts.push(Object.assign(row, { why: 'the same keyword' })); continue; }
     if (mode !== 'service' && p.kind === 'post') {                  /* a post on the same subject in other words */
@@ -242,7 +250,7 @@ export function cityPage(inv, place, selfUrl = '') {
 }
 
 export function linkTargets(keyword, inv, { pack = null, brand = null, n = 6, selfUrl = '', type = 'landing', neighbors = 2 } = {}) {
-  const P = allPlaces(placesOf(pack, brand), inv), c = cannibal(keyword, inv, { pack, brand, type, selfUrl }), W = c.want, self = selfUrl ? urlKey(selfUrl) : '';
+  const P = placesFor(pack, brand, inv), c = cannibal(keyword, inv, { pack, brand, type, selfUrl }), W = c.want, self = selfUrl ? urlKey(selfUrl) : '';
   /* two angles are sisters when the atlas sells them on one service line (the full service blend does not count) */
   const lines = pack && pack.lines ? Object.entries(pack.lines).filter(([k]) => k !== 'blend').map(([, l]) => l.angles || []) : [];
   const sisters = (a, b) => !!a && !!b && a !== b && lines.some(l => l.includes(a) && l.includes(b));

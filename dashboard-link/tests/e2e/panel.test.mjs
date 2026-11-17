@@ -70,7 +70,7 @@ for (const { label, file } of targets) {
     T('its hand-off carries the blueprints Publish compiles and what the gate measured for each page'));
 
   r = lk(['panel'], { json: true });
-  ok(r.code === 0 && r.json.ok && r.json.file === copy && r.json.bundles.length === 2 && r.json.bundles[0].kind === 'content' && r.json.bundles[1].kind === 'paid' && r.json.opened.present && r.json.opened.tab && r.json.opened.errors.length === 0 && r.json.slimmed.length === 0 && r.json.leftOut.length === 0, T('panel: the copy holds both hand-offs, newest first, and opens with the Agent Desk in its rail'), r.err.split('\n')[0]);
+  ok(r.code === 0 && r.json.ok && r.json.file === copy && r.json.bundles.length === 2 && r.json.bundles[0].kind === 'content' && r.json.bundles[1].kind === 'paid' && r.json.opened.present && r.json.opened.tab && r.json.opened.errors.length === 0 && r.json.slimmed.length === 0 && r.json.leftOut.length === 0 && r.json.modules.length === 1 && r.json.modules[0].key === 'strategist' && r.json.opened.extra.length === 1 && r.json.opened.extra[0].present && r.json.opened.extra[0].tab && !r.json.opened.extra[0].failed && r.json.opened.extra[0].state.works > 0, T('panel: the copy holds both hand-offs, newest first, and opens with the Agent Desk in its rail and the content strategist\'s own module after it'), r.err.split('\n')[0]);
   ok(stripPanel(read(copy)) === pristine && read(at('dashboard', 'atlas.html')) === pristine && (path.resolve(file) === at('dashboard', 'atlas.html') || read(file) === pristine), T('take the Agent Desk out of the copy and what is left is the connected dashboard, byte for byte; the connected file itself was never written to'));
 
   /* ---------- the copy, opened and driven ---------- */
@@ -78,7 +78,7 @@ for (const { label, file } of targets) {
   try {
     const { page } = s; await page.setViewportSize({ width: 1440, height: 1000 });
     const p0 = await live.panel(s), mods = await page.evaluate(() => MODS.map(m => m.key));
-    ok(p0.present && p0.tab && p0.shown && !p0.failed && p0.errors.length === 0 && p0.handoffs.length === 2 && p0.handoffs.every(h => h.origin === 'file' && h.state === 'new') && p0.num === String(mods.length).padStart(2, '0') && mods[mods.length - 1] === 'agents', T(`the Agent Desk is module ${p0.num}, the last of ${mods.length}, and lists what the agents handed over`), p0.errors[0]);
+    ok(p0.present && p0.tab && p0.shown && !p0.failed && p0.errors.length === 0 && p0.handoffs.length === 2 && p0.handoffs.every(h => h.origin === 'file' && h.state === 'new') && p0.num === String(mods.indexOf('agents') + 1).padStart(2, '0') && mods.slice(mods.indexOf('agents')).join() === 'agents,strategist', T(`the Agent Desk is module ${p0.num} of ${mods.length}, after the dashboard's own, and lists what the agents handed over; the content strategist's own module follows it`), p0.errors[0]);
     ok(await page.evaluate(() => location.hash === '#agents' && /Agent Desk/.test(document.querySelector('#tab-agents').textContent) && document.querySelector('#tab-agents').getAttribute('aria-selected') === 'true' && !!document.querySelector('#mod-agents .mast h1')), T('it has its tab in the rail, its address, and the dashboard\'s own masthead'));
 
     /* a campaign */

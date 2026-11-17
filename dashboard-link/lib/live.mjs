@@ -163,6 +163,17 @@ export async function panel(s) {
   out.errors = s.errors.slice(); return out;
 }
 
+/* an agent's own module in the copy: is it there, does it open, what does it hold */
+export async function moduleCheck(s, key) {
+  const out = await s.run(key => {
+    const m = typeof MODI !== 'undefined' ? MODI[key] : null; if (!m) return { key, present: false, tab: false, failed: false, state: null };
+    showModule(key); const sec = document.querySelector('#mod-' + key);
+    let state = null; try { state = typeof m.state === 'function' ? m.state() : null; } catch (e) { state = { error: String(e && e.message || e) }; }
+    return { key, present: true, num: m.num, title: m.title, tab: !!document.querySelector('#tab-' + key), shown: !!sec && !sec.hidden, failed: !sec || /This module failed to load/.test(sec.textContent || ''), state };
+  }, key);
+  out.errors = s.errors.slice(); return out;
+}
+
 /* ---------- the Heat Desk ---------- */
 /* The Heat Desk engine's plan for a month and its reading of the week, from the forecast the file carries. settings is a
    sparse HEATX settings object (budget, month 0 to 11, lsaLive, mode, mix, ...). Returns null when the dashboard has no

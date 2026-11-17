@@ -19,7 +19,19 @@
      areas <vertical> [--need id]         every city by what runs hot there on the dashboard's heatmaps
      brief <city> [--keyword k] [--url u] the plan for one city page: who the reader is, what sets their part of town
                                           apart (by ZIP), what to tell the owner and the trade detail behind it, the
-                                          figures as a person says them, the neighbors to name, the pages to link to
+                                          figures as a person says them, the neighbors to name, the pages to link to,
+                                          the works worth writing there and who the page is up against
+
+   The content plan, from every tab of the dashboard
+     plan [--city c] [--type city|service-city|service|post] [--line id] [--status gap|hub|page|built] [--top n] [--served]
+                                          every piece worth writing, best first: its keyword, the jobs and gross profit
+                                          behind it (Service Lines), the dashboard's own priority and pressure, the
+                                          competitors in reach (Competitor Watch), what the site already holds, and
+                                          the month it should be live by
+     competition <city>                   who a page for that city is up against, line by line, and what they push
+     order <content-order.json>           the works a person chose in the dashboard's Content Strategist module
+     desk [--no-live]                     work the plan out again and write the Content Strategist module, a module of
+                                          its own, into the copy of the dashboard (handoff does this too)
      rules <vertical>                     the advertising rules, the license format, the notice text
      harvest                              rebuild the keyword packs from the console in leviathan/
 
@@ -69,10 +81,11 @@ import { buildSchema, validate, blueprint, pageUrl } from './lib/schema.mjs';
 import * as social from './lib/social.mjs';
 import { compare } from './lib/unique.mjs';
 import { brief, briefText, areasTable } from './lib/brief.mjs';
+import { strategy, planText, competitionText, cityStrategy, cityStrategyText, workTitle, whyWork } from './lib/strategy.mjs';
 /* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
 import { runConnect, runStatus, runCheck, runPanel, NoSuchHandoff } from '../dashboard-link/cli.mjs';
-import { status as linkStatus, atlasFile, NotConnected, Pinned } from '../dashboard-link/lib/connect.mjs';
-import { bundle as handoffBundle, registerBundle, joins as panelJoins } from '../dashboard-link/lib/panel.mjs';
+import { status as linkStatus, atlasFile, NotConnected, Pinned, loadCompetitors, loadModel, loadLive, loadPaidPack } from '../dashboard-link/lib/connect.mjs';
+import { bundle as handoffBundle, registerBundle, joins as panelJoins, listBundles, belongs, registerModuleData } from '../dashboard-link/lib/panel.mjs';
 import { pagesFile, note as handoffNote } from '../dashboard-link/lib/handoff.mjs';
 import * as live from '../dashboard-link/lib/live.mjs';
 import { CS_LOCAL } from '../dashboard-link/lib/paths.mjs';
@@ -122,6 +135,20 @@ function loadInventory(brand) {
   const j = JSON.parse(fs.readFileSync(f, 'utf8')); j._file = f; j.ageHours = Math.round((Date.now() - Date.parse(j.fetched)) / 36e5); return j;
 }
 const needInventory = brand => loadInventory(brand) || die(`No sitemap inventory${brand && brand.url ? ' for ' + brand.url : ''}. Read the site first:\n  node content-strategist/cli.mjs sitemap\nIf the site blocks the request, save its page and post sitemaps from a browser and pass the file:\n  node content-strategist/cli.mjs sitemap path/to/sitemap.xml`);
+
+/* ---------- the content plan ---------- */
+/* Everything the plan reads beside the pack and the sitemap: the competitor roster, the ZIP model and the computed service
+   line model that connect keeps for this client (outside the repository), the paid ads specialist's pack for the service
+   lines, and the pages this agent has built, from its newest hand-off. A part that is not there is left out, and the
+   plan says which. */
+function planFor(brand, pack) {
+  const inv = loadInventory(brand), link = linkStatus(), conn = link.connected ? link.connection : null, id = pack.id;
+  let paid = null; try { paid = loadPaidPack(id); } catch { paid = null; }
+  const same = conn && String(conn.identity.sha256).slice(0, 16) === (pack.source || {}).sha256, mine = b => !conn || belongs(b, conn);
+  const hand = listBundles().filter(b => b.content && mine(b))[0] || null, info = hand ? (hand.content.info || []) : [];
+  const built = info.map(p => ({ slug: p.slug, url: p.url || '', city: p.city || '', keyword: p.keyword || '', title: p.title || '', words: p.words, grade: p.grade }));
+  return { S: strategy({ pack, brand, inv: inv ? inv.pages : [], link: same ? { competitors: loadCompetitors(), model: loadModel(), live: loadLive(), paid } : { paid }, built }), inv, conn, sameDashboard: !!same };
+}
 
 /* ---------- commands ---------- */
 const C = {
@@ -186,7 +213,42 @@ const C = {
   brief() {
     const name = A._.join(' ') || die('brief <city> [--keyword k] [--url page-url] [--type landing|blog|page]'), brand = loadBrand(), pack = packFor({}, brand) || die('No deep pack. Connect a dashboard first: connect <atlas.html>'), inv = loadInventory(brand);
     const b = brief({ pack, brand, inv: inv ? inv.pages : null, city: name, keyword: A.keyword && A.keyword !== true ? A.keyword : '', type: A.type && A.type !== true ? A.type : 'landing', selfUrl: A.url && A.url !== true ? A.url : '', n: +A.n || 8 });
-    out(b, briefText(b) + (inv ? '' : '\n\nNo sitemap on file, so the brief has no links and no keyword check. Run: sitemap'));
+    /* what the plan says about this city: the works worth writing there, and who the page is up against */
+    let extra = ''; try { const { S, sameDashboard } = planFor(brand, pack), cs = cityStrategy(S, b.city); if (cs) { b.strategy = cs; extra = '\n' + cityStrategyText(cs, b.city, { roster: sameDashboard }); } } catch { extra = ''; }
+    out(b, briefText(b) + extra + (inv ? '' : '\n\nNo sitemap on file, so the brief has no links and no keyword check. Run: sitemap'));
+  },
+
+  plan() {
+    const brand = loadBrand(), pack = packFor({}, brand) || die('No deep pack. Connect a dashboard first: connect <atlas.html>'); if (!pack.needs) die(`The ${pack.id} pack is a keyword pack; a content plan needs a dashboard (see: connect).`);
+    const { S, inv, sameDashboard } = planFor(brand, pack), opt = k => (A[k] && A[k] !== true ? String(A[k]) : '');
+    if (A.served) S.works = S.works.filter(w => !w.c || (S.cities.find(c => c.name === w.c) || {}).served);
+    out(A.json ? { reads: S.reads, lines: S.lines, works: S.works.slice(0, +A.top || 25).map(w => Object.assign({ title: workTitle(w, S), why: whyWork(w, S) }, w)) } : null, planText(S, { city: opt('city'), type: opt('type'), line: opt('line'), status: opt('status'), top: +A.top || 25 }) + (sameDashboard ? '' : '\n\nThe dashboard is not connected on this machine, so the plan has no competitor roster, no click costs and no service line model. Connect the pinned dashboard to read them.') + (inv ? '' : '\nNo sitemap on file: run `sitemap` so the plan knows what the site already holds.'));
+  },
+
+  competition() {
+    const name = A._.join(' ') || die('competition <city>'), brand = loadBrand(), pack = packFor({}, brand) || die('No deep pack. Connect a dashboard first: connect <atlas.html>');
+    const { S, sameDashboard } = planFor(brand, pack); if (!sameDashboard) die('The dashboard is not connected on this machine, so there is no competitor roster to read. Connect the pinned dashboard: connect <atlas.html>');
+    const c = S.cities.find(x => x.name.toLowerCase() === name.toLowerCase());
+    out(c ? { city: c.name, comp: c.comp, lines: c.lines, competitors: (c.comp ? c.comp.top : []).map(([i, d]) => Object.assign({ miles: d }, S.competitors.find(x => x.i === i))) } : null, competitionText(S, name)); if (!c) process.exitCode = 2;
+  },
+
+  /* the works a person chose in the dashboard's Content Strategist module, saved from it as content-order.json */
+  order() {
+    const f = A._[0] || die('order <content-order.json>'); if (!fs.existsSync(f)) die('No file at ' + f);
+    let o; try { o = JSON.parse(fs.readFileSync(f, 'utf8')); } catch (e) { die('That file is not JSON: ' + e.message); }
+    if (!o || o.format !== 'leviathan.content-order' || !Array.isArray(o.works)) die('That file is not a content order. Save one from the Content Strategist module in the dashboard: Plan, "Save the order".');
+    out(o, [`CONTENT ORDER  ${o.works.length} work${o.works.length === 1 ? '' : 's'}${o.client ? ' for ' + o.client : ''}, chosen in the dashboard ${String(o.made || '').slice(0, 10)}`, '', ...o.works.map((w, i) => `${i + 1}. ${w.title}\n   keyword: ${w.keyword}${w.city ? '  ·  city: ' + w.city : ''}${w.line ? '  ·  line: ' + w.line : ''}${w.liveBy ? '  ·  live by ' + w.liveBy : ''}\n   on the site when chosen: ${w.status}${w.url ? ' (' + w.url + ')' : ''}`), '', 'For each: run `brief <city>`, check the keyword with `cannibal`, write it, and `build` it. A work marked "hub" is a section of the city page today: splitting it out is the client\'s call, so ask before you build it.'].join('\n'));
+  },
+
+  /* Works the plan out and writes the Content Strategist module into the copy of the dashboard. */
+  async desk() {
+    const brand = loadBrand(true), pack = packFor({}, brand) || die('No deep pack. Connect a dashboard first: connect <atlas.html>');
+    const link = linkStatus(); if (!link.connected) die('No dashboard is connected on this machine, so there is no copy to put the Content Strategist in. Connect the pinned dashboard: connect <atlas.html>');
+    const { S } = planFor(brand, pack); registerModuleData('strategist', S, link.connection);
+    const r = await runPanel({ check: !A['no-live'] }), m = (r.value.modules || []).find(x => x.key === 'strategist'), x = r.value.opened && (r.value.opened.extra || []).find(e => e.key === 'strategist');
+    out({ file: r.value.file, module: m || null, opened: x || null, works: S.works.length, gaps: S.works.filter(w => w.st === 'gap').length, built: S.built.length, reads: S.reads },
+      [`The Content Strategist  ->  ${rel(r.value.file)}`, `  ${S.works.length} works across ${S.cities.length} cities, ${S.works.filter(w => w.st === 'gap').length} with nothing on the site, ${S.built.length} built and waiting; ${S.competitors.length} competitors read; ${S.site.pages} live URLs weighed.`, x ? (x.present && x.tab && !x.failed && !x.errors.length ? `  Opened headless to check it: Content Strategist is module ${x.num}${x.state ? ` and shows ${x.state.rows} rows of ${x.state.works} works` : ''}.` : '  PROBLEM  Opened headless, and the Content Strategist did not come up as it should. Do not hand this copy over.') : `  Not opened to check it: ${r.value.notOpened || 'no browser here'}.`, 'Open that file the way the dashboard is opened and choose Content Strategist in the rail. It has six views: Plan, City, Keywords, Competition, Pages and What it reads.'].join('\n'));
+    if (!r.ok) process.exitCode = 1;
   },
 
   rules() {
@@ -222,12 +284,13 @@ const C = {
     /* The hand-off for the dashboard's Agent Desk: the same pages with what the gate measured for each, as one file beside
        the pages file, put on file for this client; then the copy of the dashboard that holds it is written again. */
     const info = bps.map((b, i) => { const folder = folderOf(dirs[i]); let r = null; if (path.basename(folder) === b.page.slug) { try { r = JSON.parse(fs.readFileSync(path.join(folder, 'report.json'), 'utf8')); } catch { r = null; } }
-      return Object.assign({ slug: b.page.slug, title: b.page.h1 || b.page.title || '' }, r ? { url: r.url || '', type: r.type || '', keyword: r.keyword || '', words: (r.stats || {}).words ?? null, grade: (r.stats || {}).grade ?? null, schemaTypes: r.schemaTypes || [], warnings: (r.findings || []).filter(f => f.severity === 'warn').map(f => f.message) } : {}); });
+      let cityOf = ''; try { cityOf = String(parse(fs.readFileSync(path.join(folder, 'page.md'), 'utf8'), 'page.md').meta.city || ''); } catch { cityOf = ''; }
+      return Object.assign({ slug: b.page.slug, title: b.page.h1 || b.page.title || '', city: cityOf }, r ? { url: r.url || '', type: r.type || '', keyword: r.keyword || '', words: (r.stats || {}).words ?? null, grade: (r.stats || {}).grade ?? null, schemaTypes: r.schemaTypes || [], warnings: (r.findings || []).filter(f => f.severity === 'warn').map(f => f.message) } : {}); });
     const hand = handoffBundle({ id: named ? 'content:' + bps.map(b => b.page.slug).sort().join('+').slice(0, 80) : 'content:pages', agent: 'content-strategist', title: bps.length === 1 ? (bps[0].page.h1 || bps[0].page.title || bps[0].page.slug) : `${bps.length} pages`, connection: link.connected ? link.connection : null,
       content: { pages: bps, info, checked: { dashboard: tried ? { ran: true, accepted: !!tried.ok, verdict: (tried.value && tried.value.verdict) || '' } : { ran: false, why } } } });
     const hf = /pages-for-publish\.json$/.test(file) ? path.join(path.dirname(file), 'handoff.json') : file.replace(/(\.json)?$/i, '.handoff.json'); fs.writeFileSync(hf, JSON.stringify(hand) + '\n');
     let panel = null, panelWhy = '';
-    if (!link.connected) panelWhy = 'no dashboard is connected'; else { const src = atlasFile(), j = src ? panelJoins(fs.readFileSync(src, 'utf8')) : { ok: false, why: 'the dashboard file is gone from this machine' }; if (!j.ok) panelWhy = j.why; else { try { registerBundle(hand); panel = (await runPanel({ check: !A['no-live'] })).value; } catch (e) { panelWhy = String(e.message || e).split('\n')[0]; } } }
+    if (!link.connected) panelWhy = 'no dashboard is connected'; else { const src = atlasFile(), j = src ? panelJoins(fs.readFileSync(src, 'utf8')) : { ok: false, why: 'the dashboard file is gone from this machine' }; if (!j.ok) panelWhy = j.why; else { try { registerBundle(hand); /* the plan again, now that these pages are built */ try { const br = loadBrand(), pk = packFor({}, br); if (pk && pk.needs) registerModuleData('strategist', planFor(br, pk).S, link.connection); } catch { /* the hand-off still goes */ } panel = (await runPanel({ check: !A['no-live'] })).value; } catch (e) { panelWhy = String(e.message || e).split('\n')[0]; } } }
     const byHand = `Publish (module 16), "What to publish", Import. Drop ${rel(file)} on the box.`, drafts = 'Each page is compiled there by the Site Forge compiler and listed as a draft; nothing reaches a site until a person sends it.';
     out({ file, handoff: hf, pages: bps.map(b => b.page.slug), dashboard: tried ? tried.value : null, notTried: why || undefined, agentDesk: panel ? { file: panel.file, handoffs: panel.bundles.length, opened: panel.opened ? panel.ok : null, notOpened: panel.notOpened } : { file: null, why: panelWhy } },
       [`${made.count} page${made.count === 1 ? '' : 's'}  ->  ${rel(file)}`, `Hand-off  ->  ${rel(hf)}`,

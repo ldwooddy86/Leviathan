@@ -60,6 +60,23 @@ ok(go(['handoff', 'no-such-page', '--no-live']).code === 2 && /No blueprint at/.
 r = go(['check', pf]); ok(r.code === 3 && /no browser is available here/.test(r.err), 'check needs a browser, and says so');
 ok(go(['help']).out.includes('handoff [slug | folder ...]') && go(['help']).out.includes('connect <atlas.html>') && go(['help']).out.includes('panel [--out file] [--forget id|all] [--no-live]'), 'help lists the dashboard commands');
 ok(before !== null && gitState() === before && !fs.existsSync(path.join(REPO, 'content-strategist', 'out')), 'the repository is as it was: nothing a command wrote landed in it');
+/* ---- the content plan, and the Content Strategist module in the copy ---- */
+{ const mf = at('dashboard', 'modules', 'strategist.json'), copy = fs.readFileSync(deskCopy, 'utf8');
+  ok(fs.existsSync(mf) && J(mf).key === 'strategist' && J(mf).data.format === 'leviathan.content-strategy' && J(mf).data.built.length === 2 && copy.includes('id="lvc-data"') && copy.includes("title: 'Content Strategist'") && copy.indexOf('id="lvc-data"') > copy.indexOf('id="lvp-data"'), 'handoff also works the content plan out again and puts the Content Strategist, a module of its own, into the copy after the Agent Desk');
+  r = go(['plan'], { json: true });
+  ok(r.code === 0 && r.json.reads.heatmaps && r.json.reads.competitors > 50 && r.json.reads.sitemap && r.json.reads.lines === false && r.json.works.length === 25 && r.json.works.every(w => w.title && w.kw && Array.isArray(w.why)), 'plan: the works from what this connection holds: the heatmaps, the competitor roster and the sitemap; with no browser there is no service line model, and it says so', r.err || JSON.stringify(r.json && r.json.reads));
+  r = go(['plan', '--city', 'Plano', '--top', '5']);
+  ok(r.code === 0 && /^CONTENT PLAN /.test(r.out) && /City page: Plano/.test(r.out) && /keyword: ac repair plano/.test(r.out) && /a page holds it \(\/plano-hvac\/\)/.test(r.out) && /Service Lines NOT read/.test(r.out), 'plan --city: one city\'s works, each with its keyword and what the site holds', r.out.slice(0, 300));
+  r = go(['competition', 'Plano']);
+  ok(r.code === 0 && /^COMPETITION {2}Plano, Collin County/.test(r.out) && /within 12 miles/.test(r.out) && /Never name a competitor on a page/.test(r.out) && go(['competition', 'Atlantis']).code === 2, 'competition: who a page for that city is up against, from Competitor Watch');
+  r = go(['brief', 'Plano']);
+  ok(r.code === 0 && /THE WORKS WORTH WRITING HERE/.test(r.out) && /WHO THE PAGE IS UP AGAINST/.test(r.out), 'brief ends with the works worth writing in that city and who the page is up against');
+  r = go(['desk', '--no-live'], { json: true });
+  ok(r.code === 0 && r.json.file === deskCopy && r.json.module && r.json.module.key === 'strategist' && r.json.works > 100 && r.json.built === 2 && r.json.opened === null && fs.readFileSync(deskCopy, 'utf8').includes('id="lvc-data"'), 'desk: the plan worked out again and written into the copy', r.err);
+  const of = at('content-order.json'); fs.writeFileSync(of, JSON.stringify({ format: 'leviathan.content-order', v: 1, made: '2026-11-17T00:00:00Z', client: 'Example Air', works: [{ id: 'line:Plano:replace', type: 'service-city', title: 'Air conditioner replacement in Plano', keyword: 'hvac system replacement plano', city: 'Plano', line: 'replace', status: 'gap', url: '', liveBy: 'May' }] }));
+  r = go(['order', of]);
+  ok(r.code === 0 && /^CONTENT ORDER {2}1 work for Example Air/.test(r.out) && /keyword: hvac system replacement plano/.test(r.out) && /live by May/.test(r.out) && go(['order', pf]).code === 2, 'order: the works a person chose in the dashboard module, read back for the agent; another file is refused'); }
+
 /* ---- the pin, from this command line (last: connecting again rewrites the brand file this test set up) ---- */
 { const pf = at('packs-content', 'dfw.json'); r = go(['connect', file, '--no-live', '--pin'], { json: true }); const w2 = go(['where']);
   ok(r.code === 0 && r.json.pin && /\nPinned dashboard: \S+ \(fingerprint [0-9a-f]{16}, since \d{4}-\d\d-\d\d\)\. Use this version and no other/.test(w2.out) && JSON.parse(fs.readFileSync(pf, 'utf8')).source.pin.sha256 === r.json.pin.sha256, 'connect --pin from the strategist\'s own command line: where names the pinned version from then on'); }

@@ -78,9 +78,9 @@ export async function runPanel({ out = '', check = true, forget = '', repairs = 
   if (gone && !gone.length) throw new NoSuchHandoff(`No hand-off "${forget}" is on file. panel lists what is.`);
   const r = refresh(s.connection, src, { out, repairs });
   let opened = null, why = '';
-  if (!check) why = '--no-live was passed'; else { const av = await live.available(); if (!av.ok) why = av.why; else { try { opened = await live.withDashboard(r.file, x => live.panel(x)); } catch (e) { why = 'the copy did not open (' + String(e.message || e).split('\n')[0] + ')'; } } }
+  if (!check) why = '--no-live was passed'; else { const av = await live.available(); if (!av.ok) why = av.why; else { try { opened = await live.withDashboard(r.file, async x => { const p = await live.panel(x); p.extra = []; for (const m of r.modules || []) p.extra.push(await live.moduleCheck(x, m.key)); return p; }); } catch (e) { why = 'the copy did not open (' + String(e.message || e).split('\n')[0] + ')'; } } }
   r.opened = opened; if (!opened) r.notOpened = why;
-  r.ok = !opened || (opened.present && opened.tab && !opened.failed && !opened.errors.length && opened.handoffs.length === r.bundles.length && opened.repairs === r.repairs);
+  r.ok = !opened || (opened.present && opened.tab && !opened.failed && !opened.errors.length && opened.handoffs.length === r.bundles.length && opened.repairs === r.repairs && (opened.extra || []).every(m => m.present && m.tab && !m.failed && !m.errors.length));
   if (gone) r.forgotten = gone;
   return { value: r, ok: r.ok, text: (gone ? `Forgotten: ${gone.join(', ')}. The folders the agents built are still where they were.\n` : '') + panelText(r) };
 }

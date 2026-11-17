@@ -27,7 +27,7 @@
    repository; refresh() writes the copy of the connected dashboard with the registered bundles in it. */
 import fs from 'node:fs';
 import path from 'node:path';
-import { HERE, LINK, outside, readJson, writeJson } from './paths.mjs';
+import { HERE, REPO, LINK, outside, readJson, writeJson } from './paths.mjs';
 
 export const PANEL = 2;
 export const BUNDLE = 'leviathan.handoff.bundle';
@@ -37,6 +37,22 @@ const START = '<!-- leviathan:agent-desk:start', END = '<!-- leviathan:agent-des
 const BOOT = '(function boot() {', RAIL = 'rail.innerHTML = MODS.map';
 
 export class NoSeam extends Error { }
+
+/* ---------- an agent's own module ---------- */
+/* An agent may bring a module of its own into the same block: a style sheet, a script and its data. The source is in the
+   agent's folder in the repository; the data is the agent's to work out, kept outside the repository beside the
+   hand-offs, stamped with the client and the atlas it was made for. The content strategist brings one: the Content
+   Strategist, the content plan with a page around it. It registers after the Agent Desk, so it takes the next number. */
+export const EXTRA = [{ key: 'strategist', agent: 'content-strategist', title: 'Content Strategist', dir: path.join(REPO, 'content-strategist', 'desk'), js: 'content-desk.js', css: 'content-desk.css', dataId: 'lvc-data', styleId: 'lvc-style' }];
+export const moduleFile = key => path.join(LINK, 'modules', String(key).replace(/[^a-z0-9_-]+/gi, '-') + '.json');
+/* puts a module's data on file for the dashboard that is connected */
+export function registerModuleData(key, data, connection = null) {
+  if (!EXTRA.some(m => m.key === key)) throw new Error(`No module "${key}" is known to the panel.`);
+  const f = moduleFile(key); outside(path.dirname(f), 'The module data folder (under LEVIATHAN_DASHBOARD)');
+  fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, JSON.stringify({ key, made: new Date().toISOString(), client: (connection && connection.client) || '', atlas: (connection && connection.identity && connection.identity.atlas) || '', data }) + '\n'); return f;
+}
+export function moduleData(key) { const j = readJson(moduleFile(key), null); return j && j.key === key && j.data && typeof j.data === 'object' ? j : null; }
+export const forgetModuleData = key => { const f = moduleFile(key); if (fs.existsSync(f)) { fs.unlinkSync(f); return true; } return false; };
 
 /* ---------- the block ---------- */
 export const hasPanel = text => String(text).includes(START);
@@ -69,7 +85,7 @@ const dataText = v => JSON.stringify(v).replace(/</g, '\\u003c');
 /* The dashboard text with the Agent Desk in it. bundles: the hand-offs to put in the file. atlas: {name, build, sha256}
    of the dashboard the block goes into, so the panel can tell a hand-off made for another file. A file that already has
    the block gets a fresh one, never two. */
-export function installPanel(text, { bundles = [], atlas = null, at = new Date().toISOString(), repairs = true } = {}) {
+export function installPanel(text, { bundles = [], atlas = null, at = new Date().toISOString(), repairs = true, modules = [] } = {}) {
   const clean = stripPanel(text), i = seam(clean), js = source('agent-desk.js'), css = source('agent-desk.css'), rcss = repairs ? source('atlas-repairs.css') : '', rjs = repairs ? source('atlas-repairs.js') : '';
   for (const [name, t] of [['agent-desk.js', js], ['atlas-repairs.js', rjs]]) if (/<\/script/i.test(t) || t.includes('<!--')) throw new Error(`panel/${name} holds a closing script tag or an HTML comment, which would end its script block early.`);
   for (const [name, t] of [['agent-desk.css', css], ['atlas-repairs.css', rcss]]) if (/<\/style/i.test(t)) throw new Error(`panel/${name} holds a closing style tag.`);
@@ -78,7 +94,13 @@ export function installPanel(text, { bundles = [], atlas = null, at = new Date()
     + (repairs ? `<style id="lvp-repairs">\n${rcss}</style>\n<script id="lvp-repairs-js">\n${rjs}</script>\n` : '')
     + `<style id="lvp-style">\n${css}</style>\n`
     + `<script type="application/json" id="lvp-data">${dataText({ v: PANEL, installed: at, atlas, repairs: !!repairs, bundles })}</script>\n`
-    + `<script>\n${js}</script>\n${END}`;
+    + `<script>\n${js}</script>\n`
+    + modules.map(m => { const def = EXTRA.find(x => x.key === m.key); if (!def) throw new Error(`No module "${m.key}" is known to the panel.`);
+      const mjs = fs.readFileSync(path.join(def.dir, def.js), 'utf8'), mcss = fs.readFileSync(path.join(def.dir, def.css), 'utf8');
+      if (/<\/script/i.test(mjs) || mjs.includes('<!--')) throw new Error(`${def.js} holds a closing script tag or an HTML comment, which would end its script block early.`);
+      if (/<\/style/i.test(mcss)) throw new Error(`${def.css} holds a closing style tag.`);
+      return `<style id="${def.styleId}">\n${mcss}</style>\n<script type="application/json" id="${def.dataId}">${dataText(m.data)}</script>\n<script>\n${mjs}</script>\n`; }).join('')
+    + END;
   return clean.slice(0, i) + block + '\n' + clean.slice(i);
 }
 /* does a file carry the layout repairs? */
@@ -155,7 +177,9 @@ export function refresh(connection, src, { out = '', budget = 4e6, max = 12, at 
   }
   const kept = readJson(settingsFile(), {}) || {}, withRepairs = typeof repairs === 'boolean' ? repairs : kept.repairs !== false;
   if (typeof repairs === 'boolean' && repairs !== (kept.repairs !== false)) writeJson(settingsFile(), Object.assign({}, kept, { repairs }));
-  const i = connection.identity, text = installPanel(fs.readFileSync(src, 'utf8'), { bundles: put, atlas: { name: i.atlas || '', build: i.build || null, sha256: i.sha256 ? i.sha256.slice(0, 16) : null }, at, repairs: withRepairs });
+  /* the agents' own modules whose data was worked out for this client's dashboard */
+  const mods = EXTRA.map(def => ({ def, on: moduleData(def.key) })).filter(m => m.on && (m.on.client || '') === ((connection && connection.client) || '') && (!m.on.atlas || m.on.atlas === connection.identity.atlas));
+  const i = connection.identity, text = installPanel(fs.readFileSync(src, 'utf8'), { bundles: put, atlas: { name: i.atlas || '', build: i.build || null, sha256: i.sha256 ? i.sha256.slice(0, 16) : null }, at, repairs: withRepairs, modules: mods.map(m => ({ key: m.def.key, data: m.on.data })) });
   fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, text);
-  return { file, bytes: Buffer.byteLength(text), bundles: put.map(b => ({ id: b.id, agent: b.agent, title: b.title, made: b.made, kind: b.paid ? 'paid' : 'content' })), slimmed, leftOut, others: listBundles().length - mine.length, repairs: withRepairs };
+  return { file, bytes: Buffer.byteLength(text), bundles: put.map(b => ({ id: b.id, agent: b.agent, title: b.title, made: b.made, kind: b.paid ? 'paid' : 'content' })), slimmed, leftOut, others: listBundles().length - mine.length, repairs: withRepairs, modules: mods.map(m => ({ key: m.def.key, title: m.def.title, agent: m.def.agent, made: m.on.made, bytes: JSON.stringify(m.on.data).length })) };
 }
