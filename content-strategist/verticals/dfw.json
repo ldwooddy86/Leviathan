@@ -6,16 +6,16 @@
  "atlas": "DFW Thermal Debt Atlas · Build 6",
  "scope": "Dallas Fort Worth, Texas: 12 counties",
  "source": {
-  "file": "122acd8c-DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_7.html",
+  "file": "e9e13313-DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_11_Scout_Engine.html",
   "build": "6",
   "compiled": "2026-09-25",
-  "sha256": "d9d76f75391a3b33",
+  "sha256": "3d1c7eb20046e2d1",
   "reader": 3,
-  "extracted": "2026-11-16",
+  "extracted": "2026-11-17",
   "pin": {
-   "file": "DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_7.html",
-   "sha256": "d9d76f75391a3b33",
-   "since": "2026-11-16"
+   "file": "DFW_Thermal_Debt_Atlas_Build6_Rooftop_Scout_11_Scout_Engine.html",
+   "sha256": "3d1c7eb20046e2d1",
+   "since": "2026-11-17"
   }
  },
  "schemaType": "HVACBusiness",
