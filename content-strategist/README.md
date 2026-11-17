@@ -11,6 +11,31 @@ Use the leviathan-content-strategist agent to plan six blog posts for the heatin
 Use the leviathan-content-strategist agent to draft Facebook and Google Business Profile posts for the new Plano page.
 ```
 
+## Its own module in the dashboard
+
+The agent has a module of its own in the dashboard, the Content Strategist, next to the Agent Desk. It is the content plan with a page around it.
+
+| View | What it shows |
+|---|---|
+| Plan | Every piece worth writing, best first: the keyword, jobs and gross profit a year in that place across every company, the dashboard's own priority and pressure, the rivals who sell it, what the site holds, the month to be live by. Filters by kind of piece, service line, status and city. Choose works and it writes the request for the agent, or saves the order as a file. |
+| City | The area brief for one city: what sets it apart with what to tell the owner and the trade detail, each service line there, every ZIP, who is in reach, the site's pages for it, and its figures as a person says them. |
+| Keywords | The keyword set for any piece (city page, service page for a city, service page, post): primary, supporting terms, questions, the searches the business does not want, what the site holds, and what stands behind it. |
+| Competition | The roster from Competitor Watch: where each company is based, its reviews, whether it buys search ads, the lines it sells, what it pushes. And for any line, the cities where the field is thinnest. |
+| Pages | What the agent has built, with what the gate measured, and one button that sends the pages to Publish as drafts through Publish's own import box. |
+| What it reads | Every tab the plan draws on, with a link to it, and what the plan does not know. |
+
+```
+node content-strategist/cli.mjs plan                        the works, best first
+node content-strategist/cli.mjs plan --city Plano --status gap
+node content-strategist/cli.mjs competition Plano           who a page for Plano is up against
+node content-strategist/cli.mjs desk                        work the plan out and write the module into the dashboard copy
+node content-strategist/cli.mjs order content-order.json    the works a person chose in the module
+```
+
+The plan is worked out by `lib/strategy.mjs` from the deep pack, the client's sitemap, and what `connect` keeps for the client outside the repository: the competitor roster, the ZIP model, and the service line model the running dashboard computes (jobs, gross profit, priority and pressure by ZIP and line, and each line's season). The module is `desk/content-desk.js` and `desk/content-desk.css`. `desk` and `handoff` put the module and the plan into the copy of the dashboard through the same block the Agent Desk rides in, so the dashboard file a person connected is never written to, and taking the block out leaves the original. Where a browser is on the machine the copy is opened headless to see that the module comes up.
+
+The score of a work is half the money in it (gross profit a year, ranked among all the works), three tenths the dashboard's own priority for that line in that place, and two tenths how thin the competition is, marked down when the site already holds the keyword. Jobs and gross profit are the whole market's there, not the client's share. A page is due two months before its line peaks. The dashboard has no search volumes, so the plan has none.
+
 ## What it holds itself to
 
 Every landing page, blog post and content page passes one gate before it is written to disk, and `build` is the only command that writes a page.
@@ -97,7 +122,11 @@ node content-strategist/cli.mjs verticals                   the packs
 node content-strategist/cli.mjs keywords dfw --city Plano   angles by demand in a city, the city filled in
 node content-strategist/cli.mjs market dfw --city Plano     sourced local facts
 node content-strategist/cli.mjs areas dfw                   every city by what runs hot on the heatmaps
-node content-strategist/cli.mjs brief Plano                 the plan for one city page, ZIP by ZIP
+node content-strategist/cli.mjs brief Plano                 the plan for one city page, ZIP by ZIP, with the works worth writing there and who is there
+node content-strategist/cli.mjs plan [--city c] [--status gap]   the content plan from every tab, best first
+node content-strategist/cli.mjs competition Plano           who a page for that city is up against
+node content-strategist/cli.mjs desk                        write the Content Strategist module into the dashboard copy
+node content-strategist/cli.mjs order content-order.json    the works chosen in the dashboard module
 node content-strategist/cli.mjs rules dfw                   the advertising rules, the license format, the notice text
 node content-strategist/cli.mjs sitemap                     read the client's sitemap (or: sitemap saved-file.xml)
 node content-strategist/cli.mjs cannibal "ac repair plano"  who already holds a keyword
@@ -150,7 +179,7 @@ Posts go to Graph API `v26.0` (`FB_GRAPH_VERSION` changes it) and to the Busines
 node content-strategist/tests/run.mjs
 ```
 
-Nine files, no network: the atlas reader, the heatmap needs and the packs on disk (in step with the console, nothing withheld), the writing gate with the voice checks, the brief for a city page, the sitemap reader with cannibalization, links and neighbors, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`.
+Ten files, no network: the content plan and the module it rides in (`strategy.test.mjs`), the atlas reader, the heatmap needs and the packs on disk (in step with the console, nothing withheld), the writing gate with the voice checks, the brief for a city page, the sitemap reader with cannibalization, links and neighbors, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`.
 
 ## Limits
 

@@ -103,6 +103,10 @@ Hand-offs opened by hand are kept in the browser's storage, the newest six, with
 
 A large registry does not make a file that will not open: the copy holds twelve hand-offs at most, the newest whole, older ones without the text of their bulk files. `panel --forget <id>` drops one, `panel --forget all` drops every one; the folders the agents built are not touched.
 
+## An agent's own module
+
+An agent may bring a module of its own into the same block as the Agent Desk: a style sheet, a script and its data. The source is in the agent's own folder, and the data is the agent's to work out, kept outside the repository in `~/.leviathan/dashboard/modules/` and stamped with the client and the atlas it was made for. The content strategist brings one, the Content Strategist (`content-strategist/desk/`, data from `content-strategist/cli.mjs desk`). It registers after the Agent Desk and takes the next number in the rail. Everything said of the block holds for it: it is only ever in the copy, and `stripPanel` takes it out with the rest. Where a browser is here, `panel` opens each such module and reports whether it came up. `tests/e2e/strategist.test.mjs` drives it in the running dashboard.
+
 ## The layout repairs
 
 The copy also carries repairs to the dashboard's own modules, in the places where their text and controls overlapped, ran together or ran out of their box. They are one style sheet and one small script (`panel/atlas-repairs.css`, `panel/atlas-repairs.js`). They sit in the same block as the Agent Desk and come out with it, so the dashboard file is still never written to.
