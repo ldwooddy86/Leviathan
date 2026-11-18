@@ -1,0 +1,128 @@
+
+/* ==== command center: paid ads strategist ==== */
+/* Styles for the Paid Ads Strategist module. Everything is scoped under .lvs and drawn with the dashboard's own tokens
+   (--card, --line, --ink, --accent and the rest), so it follows the dashboard's light and dark themes. The rules that
+   reach outside .lvs touch only the rail: the three agent tabs (Agent Desk, Paid Ads Strategist, Content Strategist)
+   share one row where the rail is a grid, in place of three full width bars. */
+@media (min-width:761px){
+  .rail .in:has(#tab-drhvac) #tab-paidads{flex-direction:row;align-items:baseline;gap:12px;padding:7px 12px}
+  .rail .in:has(#tab-drhvac) #tab-paidads .t{white-space:nowrap}
+  .rail .in:has(#tab-drhvac) #tab-paidads .d{-webkit-line-clamp:1;flex:1;min-width:0;font-size:11.5px}
+  .rail .in:has(#tab-drhvac):has(#tab-paidads) #tab-agents,.rail .in:has(#tab-drhvac):has(#tab-paidads) #tab-paidads,.rail .in:has(#tab-drhvac):has(#tab-paidads) #tab-strategist{grid-column:span 2}
+}
+@media (min-width:1180px){
+  .rail .in:has(#tab-drhvac):has(#tab-paidads) #tab-agents,.rail .in:has(#tab-drhvac):has(#tab-paidads) #tab-paidads,.rail .in:has(#tab-drhvac):has(#tab-paidads) #tab-strategist{grid-column:span 3}
+}
+.lvs{overflow-wrap:break-word}
+.lvs .lvs-tabs{margin-top:16px}
+.lvs>#lvsView>.card{margin-top:16px}
+.lvs .lvs-kpis{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+.lvs .card-b>.lvs-kpis:first-child{margin-top:0}
+.lvs .lvs-kpis+.lvs-row{margin-top:14px}
+.lvs .lvs-kpis .kv .mono{font-family:var(--mono)}
+.lvs .lvs-t th,.lvs .lvs-t td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top;white-space:nowrap;font-variant-numeric:tabular-nums}
+.lvs .lvs-t th{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em;background:var(--card);position:sticky;top:0}
+.lvs .lvs-t th.l,.lvs .lvs-t td.l{text-align:left;white-space:normal}
+.lvs .lvs-t{width:100%;border-collapse:collapse}
+.lvs .lvs-t tr.click{cursor:pointer}
+.lvs .lvs-t tr.click:hover td{background:var(--sunk)}
+.lvs .lvs-t tr.click:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lvs .lvs-t tr.on td{background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.lvs .lvs-t tr.on td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.lvs .lvs-t tr.lvs-sum td{border-top:2px solid var(--line-strong);border-bottom:0}
+.lvs .lvs-hint{margin:8px 0 0;max-width:980px}
+.lvs .lvs-lead{margin:0 0 10px;max-width:980px}
+.lvs .lvs-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px}
+.lvs .lvs-row.lvs-row0{margin:14px 0 10px}
+.lvs .card-b>.lvs-row.lvs-row0:first-child{margin-top:0}
+.lvs .lvs-row .btn{white-space:normal;text-align:left}
+.lvs .lvs-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+.lvs .lvs-two.lvs-plan{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+.lvs .lvs-two .rowl b{text-align:right;font-weight:600;overflow-wrap:anywhere;max-width:66%}
+.lvs .lvs-name{font-size:11.5px;font-weight:500}
+.lvs .lvs-tall{max-height:340px;overflow:auto;margin-top:16px;border:1px solid var(--line);border-radius:10px}
+.lvs .lvs-h{font-family:var(--display);font-size:16px;font-weight:600;margin:20px 0 10px}
+.lvs .lvs-h:first-child{margin-top:0}
+.lvs .lvs-h .mini{font-family:var(--sans);font-weight:400;margin-left:8px}
+.lvs .lvs-gap{display:block;margin-top:12px;margin-bottom:4px}
+.lvs .lvs-url{overflow-wrap:anywhere;font-size:12px}
+.lvs .lvs-r{text-align:right;white-space:nowrap}
+.lvs .lvs-ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.6;color:var(--ink-2);max-width:1000px}
+.lvs .lvs-ul li{margin:0 0 6px}
+.lvs a{color:var(--accent)}
+.lvs button.lnk{font-size:inherit}
+.lvs .callout.lvs-ok{border-left-color:var(--good);background:color-mix(in srgb,var(--good) 7%,var(--card))}
+.lvs .callout.lvs-ok .ct{color:#0b7d0b}
+:root[data-theme="dark"] .lvs .callout.lvs-ok .ct{color:#5fd35f}
+/* the campaign picker */
+.lvs .lvs-pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:8px;margin-top:16px}
+.lvs .lvs-pick button{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1px 9px;align-items:baseline;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink)}
+.lvs .lvs-pick button:hover{border-color:var(--line-strong)}
+.lvs .lvs-pick button[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.lvs .lvs-pick button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lvs .lvs-pn{grid-row:1 / span 2;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.lvs .lvs-pt{font-weight:600;font-size:13.5px;line-height:1.25}
+.lvs .lvs-pm{font-size:11.5px;color:var(--ink-3);overflow-wrap:anywhere}
+/* search assets and ad groups */
+.lvs .lvs-assets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;margin:0 0 14px;font-size:12.5px}
+.lvs .lvs-assets .fl{display:block;margin-bottom:5px}
+.lvs .lvs-wide{grid-column:1 / -1}
+.lvs .lvs-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr));gap:8px}
+.lvs .lvs-links>div{display:grid;gap:1px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:var(--card)}
+.lvs .lvs-links span{color:var(--ink-2);font-size:12px}
+.lvs .lvs-assets details summary{cursor:pointer}
+.lvs .lvs-group{border:1px solid var(--line);border-radius:12px;margin:0 0 12px;background:var(--card);padding:12px 14px 14px}
+.lvs .lvs-gh{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:0 0 10px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.lvs .lvs-gh h5{margin:0;font-size:14.5px;font-weight:600}
+.lvs .lvs-flags{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.lvs .lvs-flags .pill{white-space:normal}
+.lvs .lvs-line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+.lvs .lvs-line span:first-child{overflow-wrap:anywhere}
+.lvs .lvs-line .mini{white-space:nowrap;font-variant-numeric:tabular-nums}
+.lvs .lvs-over{color:var(--critical);font-weight:600}
+/* an ad the way a search page shows it */
+.lvs .lvs-serp{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}
+.lvs .lvs-sp{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.lvs .lvs-site,.lvs .lvs-ph{display:flex;gap:9px;align-items:center}
+.lvs .lvs-fav{flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:var(--navy-2);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.lvs .lvs-sn{font-size:13px;font-weight:600;line-height:1.2}
+.lvs .lvs-su{font-size:11.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.lvs .lvs-st{margin-top:8px;font-size:17px;line-height:1.3;color:var(--note)}
+.lvs .lvs-st i{font-style:normal;color:var(--ink-3);margin:0 2px}
+.lvs .lvs-sd{margin-top:5px;font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+/* an ad the way a feed shows it */
+.lvs .lvs-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px;align-items:start}
+.lvs .lvs-post{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.lvs .lvs-ph{padding:11px 12px 8px}
+.lvs .lvs-pp{padding:0 12px 10px;font-size:13px;line-height:1.5;white-space:pre-line}
+.lvs .lvs-media{aspect-ratio:1.91 / 1;background:var(--sunk);border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;place-content:center;gap:4px;text-align:center;color:var(--ink-3);font-size:12px;padding:10px}
+.lvs .lvs-media b{color:var(--ink-2);font-size:13px}
+.lvs .lvs-pf{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg)}
+.lvs .lvs-dom{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.lvs .lvs-hl{font-weight:600;font-size:13.5px;line-height:1.3}
+.lvs .lvs-cta{flex:0 0 auto;border:1px solid var(--line-strong);border-radius:7px;padding:6px 10px;font-size:12px;font-weight:600;background:var(--sunk);white-space:nowrap}
+.lvs .lvs-meta{padding:8px 12px 10px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* a landing page */
+.lvs .lvs-addr{font-size:14px;font-weight:500;overflow-wrap:anywhere}
+.lvs .lvs-grade{font-size:15px;color:var(--ink-3)}
+.lvs .lvs-stage{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:center}
+.lvs .lvs-frame{width:100%;height:760px;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
+.lvs .lvs-frame.lvs-phone{width:390px;max-width:100%}
+/* the owner's list */
+.lvs .lvs-todo td:first-child{width:170px;white-space:nowrap}
+.lvs .lvs-det{border:1px solid var(--line);border-radius:10px;margin:0 0 8px;background:var(--card)}
+.lvs .lvs-det>summary{cursor:pointer;padding:9px 12px;font-size:13px;line-height:1.6;list-style-position:inside}
+.lvs .lvs-det>summary:hover{background:var(--sunk)}
+.lvs .lvs-det[open]>summary{border-bottom:1px solid var(--line)}
+.lvs .lvs-det>*:not(summary){margin-left:14px;margin-right:14px}
+.lvs .lvs-det>.lvs-h{margin-top:14px}
+.lvs .lvs-det>*:last-child{margin-bottom:14px}
+.lvs .lvs-pre{font-family:var(--mono);font-size:11.5px;line-height:1.55;white-space:pre-wrap;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:12px;overflow-x:auto}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .lvs .callout.lvs-ok .ct{color:#5fd35f}
+}
+@media (max-width:900px){
+  .lvs .lvs-two,.lvs .lvs-two.lvs-plan,.lvs .lvs-assets{grid-template-columns:minmax(0,1fr)}
+  .lvs .lvs-todo td:first-child{width:auto;white-space:normal}
+  .lvs .lvs-frame{height:620px}
+}

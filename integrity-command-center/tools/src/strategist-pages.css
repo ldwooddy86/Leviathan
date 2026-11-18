@@ -1,0 +1,36 @@
+
+/* ==== command center: the Content Strategist's Pages view ==== */
+/* The two page sets, the city by service table of heating pages, and the sealed preview frame. Scoped under .lvc and
+   drawn with the dashboard's own tokens, like the rest of the module. */
+.lvc .lvc-sets{margin-top:16px}
+.lvc>#lvcView>#lvcSet>.card,.lvc>#lvcView>#lvcSet>.callout,.lvc #lvcCityPrev>.card,.lvc #lvcHPrev>.card{margin-top:16px}
+.lvc .lvc-row.lvc-row0{margin:0 0 10px;align-items:center}
+.lvc .lvc-row{align-items:center}
+.lvc .lvc-row .btn{white-space:normal;text-align:left}
+.lvc .lvc-scroll{max-height:520px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.lvc .lvc-mxwrap{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.lvc .lvc-mx{width:100%;border-collapse:separate;border-spacing:0}
+.lvc .lvc-mx th,.lvc .lvc-mx td{text-align:center;vertical-align:middle;padding:5px 8px}
+.lvc .lvc-mx thead th{z-index:2;white-space:normal;min-width:104px;line-height:1.25}
+.lvc .lvc-mx th.l{position:sticky;left:0;background:var(--card);text-align:left;white-space:nowrap;min-width:150px;z-index:1}
+.lvc .lvc-mx thead th.l{z-index:3}
+.lvc .lvc-mx tbody th{font-size:12.5px;font-weight:600;color:var(--ink);text-transform:none;letter-spacing:0;top:auto}
+.lvc .lvc-mx tbody tr:hover th,.lvc .lvc-mx tbody tr:hover td{background:var(--sunk)}
+.lvc .lvc-cell{display:inline-block;min-width:62px;font:inherit;font-size:11.5px;font-weight:600;font-style:normal;line-height:1.2;padding:4px 9px;border-radius:999px;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--card));color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}
+.lvc .lvc-cell.lvc-low{border-color:var(--line-strong);background:var(--card);color:var(--ink-2);font-weight:500}
+.lvc .lvc-cell.lvc-none{border-style:dashed;border-color:var(--line-strong);background:var(--card);color:var(--ink-2)}
+.lvc .lvc-cell.lvc-live{border-color:transparent;background:none;color:var(--accent);font-weight:500;text-decoration:underline;text-underline-offset:2px}
+.lvc button.lvc-cell:hover{border-color:var(--ink)}
+.lvc button.lvc-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.lvc button.lvc-cell[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);border-style:solid;color:var(--accent-ink)}
+.lvc .lvc-off{color:var(--ink-3);opacity:.5}
+.lvc .lvc-key{display:block;margin-top:6px}
+.lvc .lvc-key i.lvc-cell{cursor:default;min-width:0;margin:0 4px 0 10px;padding:2px 8px;font-size:10.5px}
+.lvc .lvc-key i.lvc-cell:first-child{margin-left:0}
+.lvc .lvc-stage{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;justify-content:center;margin-bottom:8px}
+.lvc .lvc-frame{width:100%;height:760px;border:1px solid var(--line);border-radius:8px;background:#fff;display:block}
+.lvc .lvc-frame.lvc-phone{width:390px;max-width:100%}
+.lvc .controls input[type="search"]{min-width:200px}
+:root[data-theme="dark"] .lvc .callout.lvc-ok .ct{color:#5fd35f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lvc .callout.lvc-ok .ct{color:#5fd35f}}
+@media (max-width:900px){.lvc .lvc-frame{height:620px}}

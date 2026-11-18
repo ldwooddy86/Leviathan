@@ -10,6 +10,7 @@ Marketing intelligence atlases, the unified console that holds them, and the bro
 | `FEATURES.md` | Every feature of this build, dashboard by dashboard: the console, the Core, the fourteen atlases and their 228 modules, the Résumé Forge, the browser app, the editions. |
 | `dental-divide-atlas.html` | The Dental Divide Atlas, the dental market companion (single file). |
 | `toothandnail.skill` | The Tooth and Nail skill card: the Dental Divide method packed for Claude. |
+| `integrity-command-center/` | The **Integrity Air Conditioning & Heating Command Center** (single file, 17.8 MB): the DFW Thermal Debt Atlas, Build 6, with the Rooftop Scout 12 Scout Engine, a Paid Ads Strategist module holding six heating campaigns and their landing pages, and the Content Strategist holding 70 rewritten city pages and 410 heating pages for the service areas. Its build and check scripts are in `integrity-command-center/tools/`. See `integrity-command-center/README.md`. |
 
 ## Load the browser app
 
