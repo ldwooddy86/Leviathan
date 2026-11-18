@@ -47,6 +47,7 @@ Every landing page, blog post and content page passes one gate before it is writ
 | A homeowner's voice | The machinery behind a number named in the copy fails ("a model estimate", a survey's acronym); the source goes in plain words ("Census figures", "by one estimate"). A decimal percentage fails, and a count to the last hundred, a decimal age or a page of percentages draws a warning with the way a person would say it ("about one in five"). So do a page that never says "you", an opening on the company, and a city page whose section headings never name the city. |
 | No AI tropes | Em and en dashes, bullet and numbered lists, a reflex FAQ block, bolded lead ins, "Conclusion" headings, emoji, chat leftovers, and about a hundred stock phrases. A request can allow one by name (`--allow faq`, `--allow ordered-list`). |
 | No cannibalization | The page's keyword is weighed against every live URL in the sitemap. The same service in the same place is a conflict, and the build stops. That includes a city page that covers several services at once, and a blog post that carries the same subject in other words. |
+| Sources linked, in another tab | A source the copy names ("Census figures", "federal energy surveys", "storm reports", "EPA rules") must sit inside a link to that source, or the page fails (rule `source`). `sources <page.md> --write` writes the links: for the Census, the table that holds the figure (heating fuel B25040, median year built B25035, year built B25034, when owners moved in B25038) for the page's city, any ZIP codes the sentence names, or the metro when the page has no city. Every link out of the site renders with `target="_blank" rel="noopener"`; links to the client's own pages do not. "By one estimate" names no source and gets no link. |
 | Internal links from the sitemap | Every internal link must be a live URL. Generic anchors fail, and so does anchoring another page with the page's own keyword. A page for one city is asked to name the two cities next door, each linked to its own live page. |
 | Schema with every page | One JSON-LD graph: the business, the site, the page with its breadcrumb and a speakable pointer at the opening answer, and a Service, BlogPosting or Article. Validated against the page before it is written. No rating or review is ever generated. |
 | The vertical's advertising rules | For the DFW pack, the atlas's Satchel rules: the TDLR license number and notice, tax credit, financing, guarantee, superiority and availability claims, each with its cite and fix. A rule the atlas grades a block fails the build; the rest warn. |
@@ -57,6 +58,21 @@ Social posts go through the same writing rules plus each platform's limits. Noth
 The gate measures form. It does not know whether a claim about the business is true, so the agent is told to make none it cannot trace to the brand file or the person, and to list the ones it could not confirm.
 
 Two claims about the business are held to a source. The review score is never typed: a page writes `{reviews.rating}`, "over {reviews.floor} reviews" or `{reviews.line}`, and `lint` and `build` fill them from the one figure on file, which `reviews sync` reads from the business's Google profile. And a page may name a manufacturer only when the brand file vouches for it or the client's own site has a page for it; `makes` lists them. Both rules, and the connection to the profile, are in [the dashboard link](../dashboard-link/README.md#what-copy-may-claim-the-review-score-and-the-makers).
+
+## Sources a reader can open
+
+A page that says "Census figures show two in three homes here heat with gas" owes the reader the table. `lib/sources.mjs` knows the public page behind each source the copy names in plain words, and `sources` writes the link around those words:
+
+```
+node content-strategist/cli.mjs sources page.md            # what it would link, and where each link goes
+node content-strategist/cli.mjs sources drafts/ --write    # a whole folder, saved
+```
+
+For the Census it reads the sentence. The clause the source is attached to settles the table ("Census figures put the typical home at 1993" is the median year; "about a third went up before 1980, going by Census figures" is the year built table), and the places the sentence names settle the columns: the page's city by its Census place code (`verticals/dfw.places.json`, all 119 cities of the DFW pack, from the Bureau's gazetteer), with any ZIP codes named in the same sentence beside it, or the metro for a page with no city. When a sentence does not say what its figure is, nothing is linked and the command says so; link those words by hand.
+
+`build` and `lint` then hold the page to it: a named source with no link to that source fails, and every link out of the site opens in another tab. One block needs care in the dashboard. The Site Forge prints an answer section as plain text, so an opening paragraph that links a source goes into the blueprint as rich text under the same heading, which keeps the link; the Forge then notes "no answer capsule" for that page, which is about the block's type.
+
+What the link cannot do is make a figure true. Hold each sentence against the table it links before it ships, and reword the sentence when the table says something else. A figure the dashboard worked out itself ("by one estimate") has no public page and gets no link.
 
 ## What each vertical knows
 
@@ -133,6 +149,7 @@ node content-strategist/cli.mjs rules dfw                   the advertising rule
 node content-strategist/cli.mjs sitemap                     read the client's sitemap (or: sitemap saved-file.xml)
 node content-strategist/cli.mjs cannibal "ac repair plano"  who already holds a keyword
 node content-strategist/cli.mjs links "ac repair plano"     live pages to link to, with anchors
+node content-strategist/cli.mjs sources draft.md --write    link each source the copy names to its public page, in another tab
 node content-strategist/cli.mjs lint draft.md               the writing and page checks alone
 node content-strategist/cli.mjs build draft.md              the whole gate; writes the page, schema and blueprint
 node content-strategist/cli.mjs compare folder-of-pages     how alike a set of pages is, place names masked: runs, sentences, headings
@@ -181,7 +198,7 @@ Posts go to Graph API `v26.0` (`FB_GRAPH_VERSION` changes it) and to the Busines
 node content-strategist/tests/run.mjs
 ```
 
-Ten files, no network: the content plan and the module it rides in (`strategy.test.mjs`), the atlas reader, the heatmap needs and the packs on disk (in step with the console, nothing withheld), the writing gate with the voice checks, the brief for a city page, the sitemap reader with cannibalization, links and neighbors, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`.
+Twelve files, no network: the content plan and the module it rides in (`strategy.test.mjs`), the atlas reader, the heatmap needs and the packs on disk (in step with the console, nothing withheld), the writing gate with the voice checks, the brief for a city page, the sitemap reader with cannibalization, links and neighbors, the schema and the blueprint compiled by the Site Forge, social posting against a stand in, the uniqueness check for a set of city pages, the command line end to end, and the dashboard commands (`connect`, `dashboard`, `handoff`) in a sandbox. The browser test that drops this agent's pages on a running dashboard's Publish module is with the link: `node dashboard-link/tests/e2e/run.mjs`. `sources.test.mjs` covers the sources a page names: the Census table and place each sentence links, the linker, links out of the site opening in another tab, the blueprint's opening block, and the gate rule.
 
 ## Limits
 

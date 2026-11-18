@@ -8,6 +8,7 @@ import { voice } from './voice.mjs';
 import { covers, key, tokens, norm } from './terms.mjs';
 import { checkMakes } from '../../dashboard-link/lib/makes.mjs';
 import { check as checkReviews } from '../../dashboard-link/lib/reviews.mjs';
+import { checkSources } from './sources.mjs';
 
 export const LIMITS = { grade: 9, floor: 6, title: 60, h1: 70, descMin: 120, descMax: 158, lede: 80, sentence: 30, minLinks: { landing: 2, blog: 3, page: 3 }, minWords: { landing: 300, blog: 600, page: 400 } };
 const GENERIC = /^(?:click here|here|learn more|read more|more|this page|this link|this|link|website|our website|page|find out more|see more|details|more info|more information|check it out|go here|visit)$/i;
@@ -46,7 +47,8 @@ const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, '').toL
 /* lint(doc, options): options are {type, keyword, slug, url, site, allow, maxGrade, pack, brand, live (a Set of urlKeys), avoid,
    inventory (the client's site as its sitemap was read: {pages, ageHours}, or null when it was not; pass it and every
    manufacturer the page names is held against it), reviews (the review figure in force, or null; pass it and every
-   review claim is held against it)} */
+   review claim is held against it)}. A source named in the copy ("Census figures", "federal energy surveys", "storm
+   reports", "EPA rules") must sit inside a link to that source: rule `source`. */
 export function lint(doc, o = {}) {
   const F = [], add = (rule, severity, message, excerpt = '', fix = '') => F.push(fix ? { rule, severity, message, excerpt, fix } : { rule, severity, message, excerpt });
   const m = doc.meta || {}, type = o.type || m.type || 'page', social = type === 'social', keyword = o.keyword || m.keyword || '';
@@ -116,6 +118,11 @@ export function lint(doc, o = {}) {
       if (a) { const k2 = norm(a); if (byAnchor.has(k2) && byAnchor.get(k2) !== u) add('anchor', 'warn', `The anchor "${a}" points at two different pages.`, l.href); byAnchor.set(k2, u); }
     }
     if (!(doc.jsonld || []).length && doc.format === 'html' && o.expectSchema) add('schema', 'error', 'No JSON-LD in the page.');
+
+    /* a source the copy names sits inside a link to it, so the reader can open the table; and a link out of the site
+       opens in another tab. The renderer does the second for a Markdown page, so only a page that came as HTML is asked. */
+    for (const f of checkSources(doc)) add('source', 'error', f.message, f.excerpt);
+    if (doc.format === 'html') for (const l of doc.links) if (/^https?:\/\//i.test(l.href) && domain && hostOf(l.href) !== domain && !l.newTab) add('new-tab', 'warn', `The link to ${hostOf(l.href)} leaves the site in the same tab. Give it target="_blank" rel="noopener".`, l.anchor || l.href);
   }
 
   /* what the page claims about its angle, its city and its numbers */

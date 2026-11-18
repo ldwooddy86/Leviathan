@@ -5,6 +5,12 @@ const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', mdash
 export const decode = s => String(s).replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => e[0] === '#' ? String.fromCodePoint(e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : (ENT[e.toLowerCase()] !== undefined ? ENT[e.toLowerCase()] : m));
 export const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 export const stripTags = s => decode(String(s).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+/* A link out of the site opens in another tab, so the reader keeps the page they were on. `site` is the page's own site;
+   with none given, every full web address counts as out of the site. */
+const hostOf = u => { try { return new URL(/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : 'https://' + u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
+export const isOutside = (href, site) => /^https?:\/\//i.test(String(href)) && (!site || hostOf(href) !== hostOf(site));
+export const NEW_TAB = ' target="_blank" rel="noopener"';
+export const opensNewTab = tag => /\btarget=["']?_blank\b/i.test(tag);
 export const slugify = s => String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/['\u2019]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
 /* ---------- front matter: key: value lines; a value that opens with [ { or " is read as JSON, else as text ---------- */
@@ -22,7 +28,7 @@ export function frontMatter(src) {
 }
 
 /* ---------- inline Markdown: {html, text, links, marks} ---------- */
-export function inline(md) {
+export function inline(md, o = {}) {
   const links = [], images = [], marks = { bold: [] };
   let s = String(md), html = '';
   const re = /\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*\s][^*]*)\*|`([^`]+)`|<[^>]+>|!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g; let last = 0, m;
@@ -31,21 +37,21 @@ export function inline(md) {
     if (m[1] != null && s[m.index - 1] === '!') continue;          /* an image: the next alternative takes it */
     const before = s.slice(last, m.index); html += esc(decode(before)); text += decode(before); last = m.index + m[0].length;
     if (m[8] != null) { images.push({ alt: m[7], src: m[8] }); html += `<img src="${esc(m[8])}" alt="${esc(m[7])}" loading="lazy" decoding="async">`; }
-    else if (m[1] != null) { const a = inline(m[1]); links.push({ anchor: a.text, href: m[2] }); html += `<a href="${esc(m[2])}">${a.html}</a>`; text += a.text; }
-    else if (m[3] != null || m[4] != null) { const b = inline(m[3] != null ? m[3] : m[4]); marks.bold.push({ text: b.text, at: text.length }); html += `<strong>${b.html}</strong>`; text += b.text; }
-    else if (m[5] != null) { const b = inline(m[5]); html += `<em>${b.html}</em>`; text += b.text; }
+    else if (m[1] != null) { const a = inline(m[1], o), out = isOutside(m[2], o.site); links.push({ anchor: a.text, href: m[2], outside: out, newTab: out }); html += `<a href="${esc(m[2])}"${out ? NEW_TAB : ''}>${a.html}</a>`; text += a.text; }
+    else if (m[3] != null || m[4] != null) { const b = inline(m[3] != null ? m[3] : m[4], o); marks.bold.push({ text: b.text, at: text.length }); html += `<strong>${b.html}</strong>`; text += b.text; }
+    else if (m[5] != null) { const b = inline(m[5], o); html += `<em>${b.html}</em>`; text += b.text; }
     else if (m[6] != null) { html += `<code>${esc(m[6])}</code>`; text += m[6]; }
-    else { const a = /^<a\b[^>]*href=["']([^"']+)["']/i.exec(m[0]); if (a) links.push({ anchor: '', href: a[1], rawHtml: true }); html += m[0]; }
+    else { const a = /^<a\b[^>]*href=["']([^"']+)["']/i.exec(m[0]), out = !!a && isOutside(a[1], o.site), tag = out && !opensNewTab(m[0]) ? m[0].replace(/\s*\/?>$/, NEW_TAB + '>') : m[0]; if (a) links.push({ anchor: '', href: a[1], rawHtml: true, outside: out, newTab: out }); html += tag; }
   }
   html += esc(decode(s.slice(last))); text += decode(s.slice(last));
   return { html, text: text.replace(/\s+/g, ' ').trim(), links, images, marks };
 }
 
 /* ---------- Markdown to blocks ---------- */
-export function parseMarkdown(src) {
+export function parseMarkdown(src, o = {}) {
   const { meta, body } = frontMatter(src); const blocks = []; const lines = body.split(/\r?\n/);
   let para = [], verbatim = false, fence = false;
-  const flush = () => { if (!para.length) return; const raw = para.join(' ').trim(); para = []; if (!raw) return; const i = inline(raw); blocks.push({ type: verbatim ? 'verbatim' : (!i.text && i.images.length ? 'img' : 'p'), raw, text: i.text, html: i.html, links: i.links, images: i.images, marks: i.marks }); };
+  const flush = () => { if (!para.length) return; const raw = para.join(' ').trim(); para = []; if (!raw) return; const i = inline(raw, o); blocks.push({ type: verbatim ? 'verbatim' : (!i.text && i.images.length ? 'img' : 'p'), raw, text: i.text, html: i.html, links: i.links, images: i.images, marks: i.marks }); };
   for (let n = 0; n < lines.length; n++) {
     const line = lines[n];
     if (/^\s*(```|~~~)/.test(line)) { flush(); fence = !fence; continue; }
@@ -55,12 +61,12 @@ export function parseMarkdown(src) {
     if (/^\s*<!--.*-->\s*$/.test(line)) { flush(); continue; }
     if (!line.trim()) { flush(); continue; }
     const h = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
-    if (h) { flush(); const i = inline(h[2]); blocks.push({ type: 'h' + h[1].length, raw: h[2], text: i.text, html: i.html, links: i.links, marks: i.marks }); continue; }
+    if (h) { flush(); const i = inline(h[2], o); blocks.push({ type: 'h' + h[1].length, raw: h[2], text: i.text, html: i.html, links: i.links, marks: i.marks }); continue; }
     const li = /^\s*(?:([-*+\u2022\u25e6\u25aa\u2023\u2043])|(\d{1,3})[.)])\s+(.*)$/.exec(line);
-    if (li && !verbatim) { flush(); const i = inline(li[3]); blocks.push({ type: 'li', list: li[1] ? 'ul' : 'ol', marker: li[1] || li[2], raw: li[3], text: i.text, html: i.html, links: i.links, marks: i.marks }); continue; }
-    if (/^\s*>/.test(line)) { flush(); const i = inline(line.replace(/^\s*>\s?/, '')); blocks.push({ type: 'quote', raw: line, text: i.text, html: i.html, links: i.links, marks: i.marks }); continue; }
+    if (li && !verbatim) { flush(); const i = inline(li[3], o); blocks.push({ type: 'li', list: li[1] ? 'ul' : 'ol', marker: li[1] || li[2], raw: li[3], text: i.text, html: i.html, links: i.links, marks: i.marks }); continue; }
+    if (/^\s*>/.test(line)) { flush(); const i = inline(line.replace(/^\s*>\s?/, ''), o); blocks.push({ type: 'quote', raw: line, text: i.text, html: i.html, links: i.links, marks: i.marks }); continue; }
     if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flush(); blocks.push({ type: 'hr', raw: line, text: '', html: '', links: [], marks: { bold: [] } }); continue; }
-    if (/^\s*\|.*\|\s*$/.test(line)) { flush(); if (!/^\s*\|[\s:|-]+\|\s*$/.test(line)) { const i = inline(line.replace(/^\s*\||\|\s*$/g, '').replace(/\|/g, ' ')); blocks.push({ type: 'table', raw: line, text: i.text, html: i.html, links: i.links, marks: i.marks }); } continue; }
+    if (/^\s*\|.*\|\s*$/.test(line)) { flush(); if (!/^\s*\|[\s:|-]+\|\s*$/.test(line)) { const i = inline(line.replace(/^\s*\||\|\s*$/g, '').replace(/\|/g, ' '), o); blocks.push({ type: 'table', raw: line, text: i.text, html: i.html, links: i.links, marks: i.marks }); } continue; }
     para.push(line.trim());
   }
   flush();
@@ -82,7 +88,7 @@ export function parseHtml(src) {
   const listAt = at => { const st = []; for (const x of olAt) { if (x.at > at) break; if (x.open) st.push(x.kind); else st.pop(); } return st[st.length - 1] || 'ul'; };
   while ((m = re.exec(body))) {
     const tag = m[1].toLowerCase(), inner = m[3], text = stripTags(inner); if (!text) continue;
-    const links = []; inner.replace(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (x, href, a) => { links.push({ anchor: stripTags(a), href: decode(href) }); return x; });
+    const links = []; inner.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (x, attrs, a) => { const hm = /\bhref=["']([^"']+)["']/i.exec(attrs); if (hm) links.push({ anchor: stripTags(a), href: decode(hm[1]), newTab: opensNewTab(attrs) }); return x; });
     const bold = []; inner.replace(/<(strong|b)\b[^>]*>([\s\S]*?)<\/\1>/gi, (x, tg, b) => { bold.push({ text: stripTags(b), at: stripTags(inner.slice(0, inner.indexOf(x))).length }); return x; });
     const verbatim = /\b(data-verbatim|class=["'][^"']*\b(legal|verbatim)\b)/i.test(m[2]);
     const type = verbatim ? 'verbatim' : tag === 'li' ? 'li' : tag === 'blockquote' ? 'quote' : /^h[1-6]$/.test(tag) ? tag : tag === 'summary' ? 'summary' : 'p';
@@ -106,7 +112,7 @@ function finish(doc) {
   return doc;
 }
 
-export function parse(src, file = '') { return /\.html?$/i.test(file) || /^\s*<(!doctype|html|body|main|article|section|div|h1)\b/i.test(src) ? parseHtml(src) : parseMarkdown(src); }
+export function parse(src, file = '', o = {}) { return /\.html?$/i.test(file) || /^\s*<(!doctype|html|body|main|article|section|div|h1)\b/i.test(src) ? parseHtml(src) : parseMarkdown(src, o); }
 
 /* ---------- blocks to HTML ---------- */
 /* the page body: semantic HTML with the first lede paragraph marked as the answer (the speakable selector points at it) */

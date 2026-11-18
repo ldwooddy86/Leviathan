@@ -89,10 +89,10 @@ ok(lint(parseMarkdown('---\ntitle: X\ndescription: Y\nkeyword: ac repair plano\n
 ok(report(bad, 'bad.md').startsWith('FAIL  bad.md') && report(good).startsWith('PASS'), 'the report leads with the verdict');
 
 /* ---- the document model ---- */
-const d = parseMarkdown(read('landing.md')), html = renderBody(d);
-ok(d.meta.type === 'landing' && Array.isArray(d.meta.secondary) && d.meta.breadcrumbs[0][1] === '/plano-hvac/' && d.h1 === 'AC Repair in Plano, TX' && d.lede.length === 1 && d.links.length === 6, 'front matter, the h1, the lede and the links');
+const d = parseMarkdown(read('landing.md'), { site: 'https://www.example-air.test' }), html = renderBody(d);
+ok(d.meta.type === 'landing' && Array.isArray(d.meta.secondary) && d.meta.breadcrumbs[0][1] === '/plano-hvac/' && d.h1 === 'AC Repair in Plano, TX' && d.lede.length === 1 && d.links.length === 7, 'front matter, the h1, the lede and the links');
 ok(html.includes('<h1>AC Repair in Plano, TX</h1>') && html.includes('<p class="answer forge-answer">When your house gets warm') && html.includes('<section id="what-breaks-most-often-in-plano-homes">') && html.includes('data-verbatim') && !html.includes('<ul>'), 'the body renders with the answer marked for the speakable selector');
 const page = renderPage(d, { schema: { '@context': 'https://schema.org', '@graph': [] }, url: 'https://www.example-air.test/x/' }), back = parseHtml(page);
-ok(back.meta.title === d.meta.title && back.meta.description === d.meta.description && back.meta.canonical === 'https://www.example-air.test/x/' && back.h1 === d.h1 && back.jsonld.length === 1 && back.links.length === 6 && back.blocks.some(b => b.type === 'verbatim'), 'a rendered page reads back the same through the HTML reader');
+ok(back.meta.title === d.meta.title && back.meta.description === d.meta.description && back.meta.canonical === 'https://www.example-air.test/x/' && back.h1 === d.h1 && back.jsonld.length === 1 && back.links.length === 7 && back.blocks.some(b => b.type === 'verbatim'), 'a rendered page reads back the same through the HTML reader');
 ok(tropes(parseHtml('<h1>T</h1><p>Fine.</p><ul><li>a</li></ul><h2>FAQs</h2>')).map(f => f.rule).sort().join() === 'bullet-list,faq', 'a live HTML page can be put through the same rules');
 done();

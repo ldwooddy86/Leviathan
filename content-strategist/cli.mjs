@@ -54,6 +54,11 @@
      links "<keyword>" [--n 6]
 
    The gate
+     sources <page.md | folder> [--write]   link every source the copy names ("Census figures", "federal energy
+                                          surveys", "storm reports", "EPA rules") to its public page: for the Census,
+                                          the table that holds the figure, for the city and ZIP codes the sentence
+                                          names. Shows what it would link; --write saves the page. The link opens in
+                                          another tab. The gate fails a page that names a source and links nothing.
      lint <file> [--type t] [--keyword k] [--allow rule,rule]
      build <page.md> [--allow rule,rule] [--date YYYY-MM-DD] [--no-sitemap]
                                           lint, cannibalization, links and schema; writes the page only when all pass
@@ -92,6 +97,7 @@ import { crawl, fromFile, inventory, deepen, cannibal, linkTargets, nearby, city
 import { buildSchema, validate, blueprint, pageUrl } from './lib/schema.mjs';
 import * as social from './lib/social.mjs';
 import { compare } from './lib/unique.mjs';
+import { linkSources, SOURCES } from './lib/sources.mjs';
 import { brief, briefText, areasTable } from './lib/brief.mjs';
 import { strategy, planText, competitionText, cityStrategy, cityStrategyText, workTitle, whyWork } from './lib/strategy.mjs';
 /* the dashboard link, shared with the paid ads specialist: one connection, one brand file */
@@ -112,7 +118,7 @@ const inRepo = p => !path.relative(REPO, p).startsWith('..') && fs.existsSync(pa
 for (const [name, p] of [['CS_LOCAL', LOCAL], ['CS_OUT', OUT]]) if (inRepo(p)) console.error(`Warning: ${name} (${p}) is inside the repository. The console's withheld name scan reads every file there; keep client files outside it.`);
 
 /* ---------- arguments ---------- */
-const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs', 'pin', 'exact', 'force']);
+const BOOL = new Set(['json', 'deep', 'confirm', 'no-sitemap', 'help', 'all', 'add', 'no-live', 'no-copy', 'no-repairs', 'repairs', 'pin', 'exact', 'force', 'write']);
 function args(argv) { const o = { _: [] }; for (let i = 0; i < argv.length; i++) { const a = argv[i]; if (a.startsWith('--')) { const k = a.slice(2); if (BOOL.has(k) || i + 1 >= argv.length || argv[i + 1].startsWith('--')) o[k] = true; else o[k] = argv[++i]; } else o._.push(a); } return o; }
 const A = args(process.argv.slice(2)), cmd = A._.shift() || 'help';
 const list = v => (v && v !== true ? String(v).split(',').map(s => s.trim()).filter(Boolean) : []);
@@ -358,14 +364,33 @@ const C = {
     out(r, [`Internal links for "${kw}"  ·  ${inv.pages.length} live URLs, sitemap read ${inv.ageHours}h ago`, ...r.targets.map(t => `  [${t.anchor}](${t.url})\n     ${t.why}`), r.targets.length ? '' : '  No live page relates to this keyword yet. Link to the home page and the contact page, and say so in the report.', r.rule].join('\n'));
   },
 
+  /* every source the copy names, linked to its public page */
+  sources() {
+    const target = A._[0] || die('sources <page.md | folder> [--write]'), brand = loadBrand();
+    if (!fs.existsSync(target)) die(`Not found: ${target}`);
+    const files = fs.statSync(target).isDirectory() ? fs.readdirSync(target).filter(n => n.endsWith('.md')).sort().map(n => path.join(target, n)) : [target];
+    const all = [], lines = []; let nLinked = 0, nKept = 0, nOpen = 0, nWritten = 0;
+    for (const f of files) {
+      const src = fs.readFileSync(f, 'utf8'), meta = parse(src, f).meta, r = linkSources(src, { pack: packFor(meta, brand), city: meta.city || '' });
+      nLinked += r.linked.length; nKept += r.kept.length; nOpen += r.open.length; all.push({ file: rel(f), linked: r.linked, kept: r.kept, open: r.open });
+      if (A.write && r.changed) { fs.writeFileSync(f, r.text); nWritten++; }
+      if (!r.linked.length && !r.open.length) continue;
+      lines.push(rel(f)); for (const x of r.linked) lines.push(`  ${A.write ? 'linked' : 'would link'}  "${x.says}" -> ${x.title}${x.source === 'acs' ? ' for ' + x.shows : ''}\n      ${x.url}\n      ${x.sentence.slice(0, 150)}`);
+      for (const x of r.open) lines.push(`  NOT LINKED  "${x.says}": ${x.why}\n      ${x.sentence.slice(0, 150)}\n      Link the words by hand: [${x.says}](address of the page that shows the figure).`);
+    }
+    const names = SOURCES.map(s => `"${s.says}"`).join(', ');
+    lines.push('', `${files.length} file${files.length === 1 ? '' : 's'} · ${nLinked} ${A.write ? 'linked' : 'to link'} · ${nKept} already linked · ${nOpen} the sentence does not settle${A.write ? ` · ${nWritten} file${nWritten === 1 ? '' : 's'} saved` : nLinked ? ' · add --write to save' : ''}`, `Sources known: ${names}. Each link opens in another tab. "By one estimate" names no source and gets no link.`);
+    out({ files: all, linked: nLinked, kept: nKept, open: nOpen, written: nWritten }, lines.join('\n')); if (nOpen) process.exitCode = 1;
+  },
+
   lint() {
-    const f = A._[0] || die('lint <file> [--type landing|blog|page|social] [--keyword k] [--allow rule,rule]'), brand = loadBrand(), fig = reviews.inForce(brand), filled = reviews.expand(fs.readFileSync(f, 'utf8'), fig), doc = parse(filled.text, f), pack = packFor(doc.meta, brand), inv = loadInventory(brand);
+    const f = A._[0] || die('lint <file> [--type landing|blog|page|social] [--keyword k] [--allow rule,rule]'), brand = loadBrand(), fig = reviews.inForce(brand), filled = reviews.expand(fs.readFileSync(f, 'utf8'), fig), doc = parse(filled.text, f, { site: brand && brand.url }), pack = packFor(doc.meta, brand), inv = loadInventory(brand);
     const r = lint(doc, { inventory: inv ? { pages: inv.pages, ageHours: inv.ageHours } : null, reviews: fig, unfilled: filled.missing, type: A.type && A.type !== true ? A.type : undefined, keyword: A.keyword && A.keyword !== true ? A.keyword : undefined, allow: list(A.allow), pack, brand, live: inv ? new Set(inv.pages.map(p => p.key)) : null, maxGrade: A.grade ? +A.grade : undefined });
     out(r, report(r, rel(f))); if (!r.ok) process.exitCode = 1;
   },
 
   build() {
-    const f = A._[0] || die('build <page.md> [--allow rule,rule] [--date YYYY-MM-DD] [--no-sitemap]'), src = fs.readFileSync(f, 'utf8'), brand = loadBrand(true), fig = reviews.inForce(brand), filled = reviews.expand(src, fig), doc = parseMarkdown(filled.text), m = doc.meta;
+    const f = A._[0] || die('build <page.md> [--allow rule,rule] [--date YYYY-MM-DD] [--no-sitemap]'), src = fs.readFileSync(f, 'utf8'), brand = loadBrand(true), fig = reviews.inForce(brand), filled = reviews.expand(src, fig), doc = parseMarkdown(filled.text, { site: brand.url }), m = doc.meta;
     const pack = packFor(m, brand), type = m.type, allow = list(A.allow), date = A.date && A.date !== true ? A.date : new Date().toISOString().slice(0, 10);
     if (!['landing', 'blog', 'page'].includes(type)) die('The front matter needs `type: landing`, `type: blog` or `type: page`.');
     if (!m.keyword) die('The front matter needs `keyword:`, the one primary keyword this page is for.');

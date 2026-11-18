@@ -176,7 +176,11 @@ export function validate(schema, { doc = null, url = '', allow = [] } = {}) {
 export function blueprint(o) {
   const { doc, brand, pack, schema } = o, m = doc.meta || {}, type = o.type || m.type || 'page', base = baseOf(brand), G = schema['@graph'];
   const sections = [{ type: 'hero', h1: doc.h1, cta: ['primary'], trust: true, layout: 'center', style: 'light' }];
-  if (doc.lede.length) sections.push({ type: 'answer', heading: m.answer_heading || 'The short answer', body: doc.lede.join(' '), style: 'tint' });
+  /* The Forge prints an answer section as plain text, so a link in it would be lost. An opening that names a source and
+     links it goes in as rich text instead, under the same heading and in the same style, with the link whole. */
+  if (doc.lede.length) { const i1 = doc.blocks.findIndex(b => b.type === 'h1'), i2 = doc.blocks.findIndex((b, i) => i > i1 && /^h[2-6]$/.test(b.type)), lede = doc.blocks.slice(i1 + 1, i2 === -1 ? doc.blocks.length : i2).filter(b => b.type === 'p');
+    sections.push(lede.some(b => (b.links || []).some(l => l.outside)) ? { type: 'rich_text', heading: m.answer_heading || 'The short answer', html: `<p class="forge-answer"><strong>${lede.map(b => b.html).join(' ')}</strong></p>`, style: 'tint', width: 'narrow' }
+      : { type: 'answer', heading: m.answer_heading || 'The short answer', body: doc.lede.join(' '), style: 'tint' }); }
   let cur = null; const B = doc.blocks, first = B.findIndex(b => b.type === 'h2');
   for (const b of first === -1 ? [] : B.slice(first)) {
     if (b.type === 'h2') { cur = { type: 'rich_text', heading: b.text, html: '', width: 'narrow' }; sections.push(cur); continue; }

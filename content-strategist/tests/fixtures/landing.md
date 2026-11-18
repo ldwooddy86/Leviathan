@@ -16,7 +16,7 @@ When your house gets warm on a July afternoon, you want to know what broke and w
 
 ## What breaks most often in Plano homes
 
-Much of Plano went up in the 1980s and 1990s, and Census figures put the typical home here at 1993. A house that age has probably worn out its first system, and the second one may be getting old too. Older systems tend to fail in the same few ways. A weak capacitor, the part that gives the motors their starting push, stops the outdoor fan from turning. A clogged drain line trips the safety switch and shuts the whole unit down. A slow refrigerant leak lets the indoor coil freeze over on a humid afternoon. Our technicians carry those parts on every truck, so most repairs take a single trip.
+Much of Plano went up in the 1980s and 1990s, and [Census figures](https://data.census.gov/table/ACSDT5Y2024.B25035?g=160XX00US4858016) put the typical home here at 1993. A house that age has probably worn out its first system, and the second one may be getting old too. Older systems tend to fail in the same few ways. A weak capacitor, the part that gives the motors their starting push, stops the outdoor fan from turning. A clogged drain line trips the safety switch and shuts the whole unit down. A slow refrigerant leak lets the indoor coil freeze over on a humid afternoon. Our technicians carry those parts on every truck, so most repairs take a single trip.
 
 By one estimate, about one in five Plano systems is 15 years old or more. If yours is in that group, ask us to price an [AC replacement](https://www.example-air.test/ac-replacement/) beside the repair, so you can compare the two honestly.
 
