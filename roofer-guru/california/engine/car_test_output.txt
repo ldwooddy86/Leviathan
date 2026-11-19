@@ -1,0 +1,160 @@
+
+=== 0. The car and the power assumed for 251 mph ===
+  2027 BMW M3 (figures of the G80 M3 Competition with M xDrive, 2024 facelift)
+  mass with driver 1855 kg, cd x A 0.34 x 2.34 m2, tyre radius front/rear 0.3325/0.3344 m
+  ASSUMED. The user fixed top speed at 251 mph. Aerodynamic drag alone at that speed (cd x A = 0.34 x 2.34 m2, air 1.225 kg/m3) takes 688 kW at the wheels; with rolling resistance, driveline loss and tyre slip the engine must make 872 kW (1169 hp) at its peak, against 390 kW published. The published torque curve is multiplied by 2.235 (peak torque 1453 Nm); rev range, gears and final drive are unchanged.
+  Top gear at 251 mph turns the engine at about 6468 rpm, under the 7200 rpm redline, so the published gears and final drive allow it.
+  understeer gradient of the linear tyre model: 0.56 deg/g
+  PASS  SPEC.topSpeedMph is 251 and cannot be overridden
+  PASS  power for 251 mph is recorded in SPEC.assumed   (872 kW, 1169 hp, 1453 Nm)
+  PASS  published gearing allows 251 mph below the redline   (6468 rpm in 8th)
+
+=== 1. Acceleration at the PUBLISHED power, against published figures (within about 10 %) ===
+  Car and Driver and MotorTrend time from a one-foot rollout; BMW and Edmunds from a standstill. Both are printed.
+  M3 Competition xDrive, 390 kW, 1855 kg with driver:
+    0-60 mph   3.32 s from rest, 3.03 s with rollout   | published 3.2 s from rest (Edmunds), 3.4 s (BMW), 2.8 s rollout (Car and Driver)
+    0-100 mph  7.78 s from rest, 7.50 s with rollout   | no published xDrive figure found in a source that could be opened
+    1/4 mile   11.50 s from rest, 11.22 s with rollout at 122.6 mph   | published 11 s at 124 mph (Car and Driver), 11.1 at 124 (Edmunds), 11.1 at 124.7 (MotorTrend)
+  PASS  xDrive 0-60 from rest within 10 % of Edmunds 3.2 s   (3.32 s, +3.6%)
+  PASS  xDrive 0-60 with rollout within 12 % of Car and Driver 2.8 s   (3.03 s, +8.3%)
+  PASS  xDrive quarter mile (rollout) within 10 % of 11.0 s   (11.22 s, +2.0%)
+  PASS  xDrive trap speed within 10 % of 124 mph   (122.6 mph, -1.1%)
+  PASS  xDrive 0-100 mph plausible (6 to 8 s)   (7.78 s)
+  M3 Competition rear drive, 375 kW, 1805 kg with driver:
+    0-60 mph   3.95 s from rest, 3.63 s with rollout   | published 3.8 s (BMW, from rest), 3.5 s rollout (Car and Driver, MotorTrend)
+    0-100 mph  8.37 s from rest, 8.05 s with rollout   | published 7.6 s rollout (Car and Driver)
+    1/4 mile   12.03 s from rest, 11.72 s with rollout at 122.6 mph   | published 11.6 s at 124 mph (Car and Driver), 11.58 s at 125.0 mph (The Citizen)
+  PASS  rear-drive 0-60 from rest within 10 % of BMW 3.8 s   (3.95 s, +3.9%)
+  PASS  rear-drive 0-100 (rollout) within 10 % of 7.6 s   (8.05 s, +5.9%)
+  PASS  rear-drive quarter mile (rollout) within 10 % of 11.6 s   (11.72 s, +1.0%)
+  PASS  rear-drive trap speed within 10 % of 124 mph   (122.6 mph, -1.1%)
+  The car as delivered (872 kW for 251 mph), all-wheel drive, traction control on:
+    0-60 2.30 s (2.05 rollout), 0-100 4.32 s (4.07), 1/4 mile 9.32 s (9.07) at 159.5 mph
+  PASS  251-mph engine is quicker than the published engine everywhere
+
+=== 2. Top speed on a long level straight (fixed by the user: 251 mph, within 1 mph, and no more) ===
+  reached 251.00 mph; speed after 240 s 251.00 mph in gear 8 at 6601 rpm; 200 mph in 15.7 s, 250 mph in 54.3 s and 5.03 km; distance run 25.9 km
+  PASS  top speed is 251 mph within 1 mph   (251.00 mph)
+  PASS  and no more: speed in the last minute never above 252 mph   (251.00 mph)
+  PASS  ran straight at top speed (sideways drift under 1 cm)   (0.00000 m)
+  for comparison the published 390 kW engine, with no speed limiter, tops out at 192.1 mph in this model (BMW limits the real car to 155 or 180 mph)
+  PASS  published engine cannot reach 251 mph (the extra power is really needed)   (192.1 mph)
+
+=== 3. At 251 mph: a steering tap, 60 frames a second ===
+  peak yaw rate 3.19 deg/s, peak rear slip angle 0.53 deg, yaw rate 6 s later 0.0000 deg/s, speed 251.0 mph
+  PASS  settles after a steering tap at top speed   (yaw rate 0.0000 deg/s)
+
+=== 4. Braking 60-0 mph (published: 108 ft, Edmunds 2025 xDrive) ===
+  dry: 32.20 m = 105.6 ft from 60.0 mph in 2.45 s, peak 1.22 g, mean 1.14 g, anti-lock worked
+  PASS  60-0 within 10 % of 108 ft   (105.6 ft, -2.2%)
+  PASS  anti-lock active and no wheel left locked above walking pace; car stays straight and comes fully to rest   (heading change 0.000 deg)
+  same stop stepped at 30 and 120 frames a second: 105.6 ft and 105.6 ft
+  PASS  result does not depend on the frame rate (within 3 %)
+  with anti-lock removed (wheels lock): 120.8 ft
+  PASS  anti-lock shortens the stop
+  150-0 mph: 186.0 m in 5.73 s
+  PASS  150-0 mph stop is straight and complete   (186.0 m)
+
+=== 5. Wet road (grip factor from outside) ===
+  60-0 mph: dry 105.6 ft, grip 0.6 167.7 ft, grip 0.35 277.4 ft
+  PASS  wet braking is longer, roughly in proportion to the grip factor   (x1.59 and x2.63)
+  PASS  wet stops stay straight and finish at rest
+  0-60 mph: dry 2.30 s, grip 0.5 4.25 s
+  PASS  wet launch is slower
+
+=== 6. Steady cornering on a 100 m radius circle (published skidpad: 1.03 g Car and Driver, 1.07 g Edmunds) ===
+  greatest steady lateral acceleration held on the line: 1.032 g at 72.5 mph
+  PASS  cornering grip near the published skidpad (0.98 to 1.12 g)   (1.032 g)
+  steering needed as speed rises (geometric angle for this circle is 1.64 deg):
+    0.2 g  (31.3 mph)   road wheel angle 1.92 deg
+    0.4 g  (44.3 mph)   road wheel angle 2.10 deg
+    0.6 g  (54.3 mph)   road wheel angle 2.35 deg
+    0.8 g  (62.7 mph)   road wheel angle 2.67 deg
+    0.9 g  (66.5 mph)   road wheel angle 2.95 deg
+    1.0 g  (70.1 mph)   road wheel angle 3.67 deg
+  understeer gradient 1.07 deg/g between 0.2 and 0.6 g, rising to 2.80 deg/g between 0.8 and 0.9 g
+  PASS  understeers: steering angle rises with speed, gently at first and faster near the limit   (1.07 then 2.80 deg/g)
+  at the limit the car ran wide by 4.0 m with the rear slip angle never above 3.1 deg
+  PASS  limit behaviour is understeer (runs wide, does not spin)
+  same circle with grip 0.6: 0.670 g
+  PASS  wet cornering grip is lower, roughly in proportion   (x0.65)
+
+=== 7. Step steer at 60 mph ===
+  steering input 0.209 (1.11 deg at the wheels): yaw rate settles at 7.26 deg/s (0.35 g), peak 7.58 deg/s (overshoot 4.4 %), 90 % in 0.17 s, ripple over the last second 0.0022 deg/s
+  PASS  step steer settles to a steady turn, no divergence
+
+=== 8. Lane change at 100 mph, stability control on (3.5 m across in 80 m) ===
+  peak yaw rate 4.7 deg/s, peak rear slip angle 0.68 deg, overshoot 0.46 m, ends -0.002 m off the new lane centre, heading 0.005 deg, yaw rate 0.003 deg/s, stability control not needed
+  PASS  stays stable: small slip angle, settles in the new lane
+  violent version (3.5 m in 45 m): peak rear slip 1.13 deg, overshoot 0.59 m, ends -0.001 m off, stability control not needed
+  PASS  violent lane change at 100 mph still recovers
+  on a wet road (grip 0.5): peak rear slip 1.27 deg, ends 0.044 m off, stability control stepped in
+  PASS  wet lane change at 100 mph stays stable
+
+=== 9. Full throttle from rest, traction control off, rear-drive mode ===
+  off: rear slip ratio up to 15.0, wheels spinning (slip over 0.3) for 6.0 of 6 s, 60 mph in 5.98 s, 60 mph after 6 s
+       after a half-lock steering jab at 0.6 s the driver model kept it within 0.62 m of the lane centre and 9.0 deg of straight; grip back 0.37 s after lifting
+  on:  rear slip ratio up to 0.09, 60 mph in 3.70 s
+  PASS  traction control off: heavy wheelspin
+  PASS  still controllable: stays in the lane, and lifting restores grip
+  PASS  traction control on: slip held near the peak and the launch is quicker
+
+=== 10. Power oversteer with traction and stability control off (rear drive), and the same with them on ===
+  aids off: rear slip angle up to 38.9 deg, state.drifting true for 100 % of 7 s, no spin, 36 mph at the end
+  aids on:  rear slip angle up to 4.0 deg at full throttle
+  PASS  with the aids off it oversteers under power and holds a drift
+  PASS  with the aids on the same throttle does not slide the tail
+  handbrake at 49 mph with half steering: rear wheels locked, rear slip angle reached 75.8 deg
+  PASS  handbrake locks the rear wheels and swings the tail
+
+=== 11. A 10 percent hill: hold, roll back, climb ===
+  pitch reported on the hill 5.83 deg (10 % is 5.71 deg), front/rear axle load 964/882 kg
+  PASS  holds on the brake for 10 s without moving at all   (moved 0 m)
+  PASS  slope is reported in the pitch
+  PASS  holds on the handbrake alone   (moved 0 m)
+  brakes released, no throttle: rolled back 3.49 m in 3 s, -2.44 m/s (free roll would be about 4.1 m)
+  PASS  released, it rolls back down the hill
+  PASS  brake stops it again and it holds
+  hill start on 35 % throttle: rolled back 0.0 cm before pulling away, 34.5 mph after 4 s
+  PASS  hill start pulls away with almost no roll-back
+  full-throttle climb: 0-60 mph in 2.50 s (published engine: 3.72 s uphill against 3.32 s on the level); climbing 2.68 m/s vertically at 60 mph
+  PASS  climbs, slower than on the level, and reports vertical speed
+  PASS  parked across a 10 % bank with no brake it does not slide sideways   (roll -5.97 deg)
+
+=== 12. Standing still and low speed ===
+  PASS  10 s at rest with no input: position, height, heading and wheels exactly unchanged, update() returns false   (x 12.5 z -7.25 yaw 37)
+  PASS  steering lock to lock and braking at rest do not move it
+  gentle start to 11.1 mph, coast, then a light brake: at rest 1.80 s after braking began; speed went backwards on 0 frames; speed rose on a braking frame by at most 0.000000 m/s; drift in the next 5 s 0 m
+  PASS  gentle stop: no reversing, no jitter, then exactly still
+  PASS  coasting with no brake rolls to a stop and stays there (no creep, no reversing)   (at rest after 25.2 s)
+  full lock at 4.7 mph: outer front wheel traces a circle of 12.64 m (published turning circle 12.6 m), wheel angles 27.0 and 35.6 deg
+  PASS  turning circle within 5 % of the published 12.6 m   (12.64 m)
+
+=== 13. Reverse ===
+  reverse selected, half throttle for 4 s: gear -1, 51.2 mph backwards, moved 60.28 m south
+  PASS  drives backwards in reverse gear
+  PASS  steering right while reversing swings the tail to the right (east)   (x 14.72 m, yaw -61.5 deg)
+  PASS  brakes to rest from reverse
+  PASS  back to drive: moves forward again in a forward gear
+  PASS  asking for reverse at speed does nothing until the car has stopped
+  PASS  optional mode: holding the brake at rest backs the car up
+  PASS  optional mode: throttle then stops it and drives forward
+
+=== 14. Wall strikes ===
+  head-on at 40.6 mph: 0.0 mph half a second later, 0.00 mph after 4 s; deepest corner 0.000 m from the wall plane (negative would be through it); peak yaw rate 0.0 deg/s
+  PASS  head-on at 40 mph: stops, never passes through, nothing blows up
+  glancing at 40 mph (30 deg to the wall): 24.5 mph half a second later, speed into the wall at the end 0.00 m/s, heading turned 30.0 deg, deepest corner -0.348 m, peak yaw rate 206 deg/s
+  PASS  glancing blow at 40 mph: deflects along the wall, keeps most of its speed, never passes through
+  head-on at 40 mph with the throttle held: ends at 0.04 mph, deepest corner 0.000 m, 216 contacts
+  PASS  throttle held against the wall: still does not pass through
+  head-on at 248 mph (1.85 m per frame): deepest corner 0.000 m, 0.00 mph after 4 s
+  PASS  head-on at top speed: no tunnelling, no explosion
+
+=== 15. Bad inputs and odd frame times ===
+  PASS  garbage inputs, a NaN ground and grip, zero, negative, huge and NaN frame times are all survived
+  PASS  rolling ground with steering and throttle for 20 s: stays finite and follows the ground
+
+=== NaN check ===
+  PASS  no state value was NaN or infinite on any of the 70788 frames run   (0 bad frames)
+
+67 passed, 0 failed

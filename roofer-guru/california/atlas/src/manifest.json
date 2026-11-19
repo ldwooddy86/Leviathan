@@ -1,0 +1,521 @@
+[
+ {
+  "kind": "html",
+  "file": "html_00.html",
+  "lines": 558,
+  "bytes": 45944
+ },
+ {
+  "kind": "data"
+ },
+ {
+  "kind": "html",
+  "file": "html_01.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "00_core.js",
+  "lines": 201,
+  "bytes": 22471
+ },
+ {
+  "kind": "html",
+  "file": "html_02.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "01_brand.js",
+  "lines": 94,
+  "bytes": 13755
+ },
+ {
+  "kind": "html",
+  "file": "html_03.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "02_map.js",
+  "lines": 132,
+  "bytes": 16683
+ },
+ {
+  "kind": "html",
+  "file": "html_04.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "03_charts.js",
+  "lines": 137,
+  "bytes": 16837
+ },
+ {
+  "kind": "html",
+  "file": "html_05.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "04_content.js",
+  "lines": 228,
+  "bytes": 38703
+ },
+ {
+  "kind": "html",
+  "file": "html_06.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "05_satchel_rules.js",
+  "lines": 74,
+  "bytes": 23245
+ },
+ {
+  "kind": "html",
+  "file": "html_07.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "06_forge_compile.js",
+  "lines": 278,
+  "bytes": 38371
+ },
+ {
+  "kind": "html",
+  "file": "html_08.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "07_forge_bridge_raw.js",
+  "lines": 4,
+  "bytes": 25319
+ },
+ {
+  "kind": "html",
+  "file": "html_09.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "08_forge_copy.js",
+  "lines": 388,
+  "bytes": 76649
+ },
+ {
+  "kind": "html",
+  "file": "html_10.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "09_sl_model.js",
+  "lines": 76,
+  "bytes": 7112
+ },
+ {
+  "kind": "html",
+  "file": "html_11.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "10_watch_core.js",
+  "lines": 166,
+  "bytes": 27723
+ },
+ {
+  "kind": "html",
+  "file": "html_12.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "11_nws_core.js",
+  "lines": 98,
+  "bytes": 13267
+ },
+ {
+  "kind": "html",
+  "file": "html_13.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "12_accounts_core.js",
+  "lines": 327,
+  "bytes": 83879
+ },
+ {
+  "kind": "html",
+  "file": "html_14.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_00_cms_core.js",
+  "lines": 220,
+  "bytes": 34578
+ },
+ {
+  "kind": "html",
+  "file": "html_15.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_10_wordpress.js",
+  "lines": 243,
+  "bytes": 26042
+ },
+ {
+  "kind": "html",
+  "file": "html_16.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_11_drupal.js",
+  "lines": 176,
+  "bytes": 22246
+ },
+ {
+  "kind": "html",
+  "file": "html_17.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_12_wix.js",
+  "lines": 210,
+  "bytes": 22300
+ },
+ {
+  "kind": "html",
+  "file": "html_18.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_13_duda.js",
+  "lines": 167,
+  "bytes": 18124
+ },
+ {
+  "kind": "html",
+  "file": "html_19.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_14_webflow.js",
+  "lines": 185,
+  "bytes": 21291
+ },
+ {
+  "kind": "html",
+  "file": "html_20.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_15_shopify.js",
+  "lines": 216,
+  "bytes": 23896
+ },
+ {
+  "kind": "html",
+  "file": "html_21.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_16_hubspot.js",
+  "lines": 201,
+  "bytes": 21033
+ },
+ {
+  "kind": "html",
+  "file": "html_22.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_17_joomla.js",
+  "lines": 114,
+  "bytes": 12416
+ },
+ {
+  "kind": "html",
+  "file": "html_23.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_18_ghost.js",
+  "lines": 113,
+  "bytes": 12061
+ },
+ {
+  "kind": "html",
+  "file": "html_24.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "cms_19_headless_kit.js",
+  "lines": 329,
+  "bytes": 27063
+ },
+ {
+  "kind": "html",
+  "file": "html_25.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "13_m01_index.js",
+  "lines": 271,
+  "bytes": 48414
+ },
+ {
+  "kind": "html",
+  "file": "html_26.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "14_m02_storms.js",
+  "lines": 485,
+  "bytes": 78560
+ },
+ {
+  "kind": "html",
+  "file": "html_27.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "15_m03_law.js",
+  "lines": 163,
+  "bytes": 32442
+ },
+ {
+  "kind": "html",
+  "file": "html_28.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "16_m04_drivers.js",
+  "lines": 178,
+  "bytes": 27691
+ },
+ {
+  "kind": "html",
+  "file": "html_29.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "17_m05_paid.js",
+  "lines": 199,
+  "bytes": 33653
+ },
+ {
+  "kind": "html",
+  "file": "html_30.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "18_m06_ground.js",
+  "lines": 167,
+  "bytes": 28595
+ },
+ {
+  "kind": "html",
+  "file": "html_31.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "19_m07_field.js",
+  "lines": 143,
+  "bytes": 25809
+ },
+ {
+  "kind": "html",
+  "file": "html_32.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "20_m08_desk.js",
+  "lines": 293,
+  "bytes": 64388
+ },
+ {
+  "kind": "html",
+  "file": "html_33.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "21_m09_forge.js",
+  "lines": 1001,
+  "bytes": 157268
+ },
+ {
+  "kind": "html",
+  "file": "html_34.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "22_m10_satchel.js",
+  "lines": 199,
+  "bytes": 41501
+ },
+ {
+  "kind": "html",
+  "file": "html_35.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "23_m11_regions.js",
+  "lines": 131,
+  "bytes": 21829
+ },
+ {
+  "kind": "html",
+  "file": "html_36.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "24_m12_lines.js",
+  "lines": 221,
+  "bytes": 38778
+ },
+ {
+  "kind": "html",
+  "file": "html_37.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "25_m13_watch.js",
+  "lines": 118,
+  "bytes": 27790
+ },
+ {
+  "kind": "html",
+  "file": "html_38.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "26_m14_weather.js",
+  "lines": 149,
+  "bytes": 29639
+ },
+ {
+  "kind": "html",
+  "file": "html_39.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "27_m15_accounts.js",
+  "lines": 192,
+  "bytes": 43373
+ },
+ {
+  "kind": "html",
+  "file": "html_40.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "30_m16_publish.js",
+  "lines": 455,
+  "bytes": 69358
+ },
+ {
+  "kind": "html",
+  "file": "html_41.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "31_m17_stock.js",
+  "lines": 261,
+  "bytes": 43689
+ },
+ {
+  "kind": "html",
+  "file": "html_42.html",
+  "lines": 2,
+  "bytes": 18
+ },
+ {
+  "kind": "script",
+  "file": "99_shell.js",
+  "lines": 16,
+  "bytes": 1841
+ },
+ {
+  "kind": "html",
+  "file": "html_43.html",
+  "lines": 4,
+  "bytes": 26
+ }
+]

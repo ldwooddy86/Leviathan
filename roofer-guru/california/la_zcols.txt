@@ -1,0 +1,165 @@
+  0 zip  e.g. "70001"
+  1 city  e.g. "Metairie"
+  2 pi  e.g. 25
+  3 reg  e.g. 1
+  4 lat  e.g. 29.9845
+  5 lon  e.g. -90.1695
+  6 sqmi  e.g. 6.5
+  7 wsqmi  e.g. 0.0
+  8 pop  e.g. 38950
+  9 hh  e.g. 17808
+ 10 inc  e.g. 67923
+ 11 value  e.g. 339400
+ 12 own_sh  e.g. 51.4
+ 13 sfd_sh  e.g. 52.1
+ 14 mf5_sh  e.g. 30.6
+ 15 span_sh  e.g. 11.7
+ 16 span_lep_sh  e.g. 4.7
+ 17 viet_sh  e.g. 0.4
+ 18 french_sh  e.g. 0.7
+ 19 hh100k_sh  e.g. 33.0
+ 20 s65_sh  e.g. 18.6
+ 21 density  e.g. 6011
+ 22 gid  e.g. 9025099
+ 23 hu  e.g. 19447.0
+ 24 occ  e.g. 17808.0
+ 25 vac_sh  e.g. 8.4
+ 26 seas  e.g. 62.0
+ 27 u1  e.g. 11492.0
+ 28 mh  e.g. 247.0
+ 29 mf24  e.g. 1743.0
+ 30 mf5u  e.g. 5942.0
+ 31 mh_sh  e.g. 1.3
+ 32 yb_med  e.g. 1975.0
+ 33 rooms  e.g. 5.2
+ 34 mort_sh  e.g. 59.6
+ 35 pre80_sh  e.g. 60.9
+ 36 yb20  e.g. 122.0
+ 37 yb10  e.g. 851.0
+ 38 yb00  e.g. 2156.0
+ 39 yb90  e.g. 1674.0
+ 40 yb80  e.g. 2804.0
+ 41 yb70  e.g. 4338.0
+ 42 yb60  e.g. 3463.0
+ 43 yb50  e.g. 2664.0
+ 44 yb40  e.g. 1008.0
+ 45 ybold  e.g. 367.0
+ 46 roofs  e.g. 11607
+ 47 ra_med  e.g. 9
+ 48 ra15  e.g. 4166
+ 49 ra20  e.g. 2810
+ 50 ra15_sh  e.g. 35.9
+ 51 ra20_sh  e.g. 24.2
+ 52 wave  e.g. 1356
+ 53 nxt  e.g. 485.9
+ 54 last64  e.g. 2021
+ 55 yrs64  e.g. 5
+ 56 hd1  e.g. 1.6
+ 57 hd175  e.g. 0.6
+ 58 hd2  e.g. 0.1
+ 59 hd1_10  e.g. 1.4
+ 60 wd50  e.g. 5.133
+ 61 wd65  e.g. 0.333
+ 62 td1  e.g. 0.833
+ 63 hur64  e.g. 7.89
+ 64 hur50  e.g. 17.11
+ 65 ts34  e.g. 60.53
+ 66 n64_00  e.g. 4
+ 67 n50_00  e.g. 7
+ 68 vmax_00  e.g. 95.0
+ 69 vmax_20  e.g. 81.0
+ 70 ev_h1  e.g. 0
+ 71 ev_h175  e.g. 0
+ 72 ev_w58  e.g. 3
+ 73 ev_w75  e.g. 0
+ 74 ev_t  e.g. 0
+ 75 ev_dmg  e.g. 1.0
+ 76 fema_k  e.g. 4000
+ 77 fema_20  e.g. 605
+ 78 fema_ida  e.g. 592
+ 79 fema_laura  e.g. 0
+ 80 fema_rate  e.g. 22.5
+ 81 est  e.g. 1234
+ 82 retail  e.g. 98
+ 83 food  e.g. 84
+ 84 lodging  e.g. 13
+ 85 whse  e.g. 8
+ 86 mfg  e.g. 20
+ 87 church  e.g. 13
+ 88 health  e.g. 144
+ 89 school  e.g. 13
+ 90 apts  e.g. 9
+ 91 nonres  e.g. 7
+ 92 office  e.g. 289
+ 93 auto  e.g. 9
+ 94 roofers  e.g. 5
+ 95 builders  e.g. 30
+ 96 supply  e.g. 0
+ 97 ins_agents  e.g. 37
+ 98 adjusters  e.g. 0
+ 99 cru  e.g. 883.4
+100 lic  e.g. 9.4
+101 p_replace  e.g. 381.84
+102 p_repair  e.g. 350.72
+103 p_storm  e.g. 958.24
+104 p_hail  e.g. 69.78
+105 p_fortified  e.g. 101.56
+106 p_metal  e.g. 71.48
+107 p_mh  e.g. 34.75
+108 p_mf  e.g. 34.82
+109 p_comm  e.g. 86.05
+110 p_coat  e.g. 26.5
+111 p_newc  e.g. 42.83
+112 r_replace  e.g. 97.02
+113 r_repair  e.g. 90.29
+114 r_storm  e.g. 247.43
+115 r_hail  e.g. 17.97
+116 r_fortified  e.g. 26.24
+117 r_metal  e.g. 18.51
+118 r_mh  e.g. 9.1
+119 r_mf  e.g. 8.71
+120 r_comm  e.g. 21.98
+121 r_coat  e.g. 6.76
+122 r_newc  e.g. 10.96
+123 z_replace  e.g. 0.449
+124 z_repair  e.g. 0.361
+125 z_storm  e.g. 0.98
+126 z_hail  e.g. -0.555
+127 z_fortified  e.g. 0.968
+128 z_metal  e.g. -1.137
+129 z_mh  e.g. -1.362
+130 z_mf  e.g. 2.139
+131 z_comm  e.g. 1.522
+132 z_coat  e.g. 1.245
+133 z_newc  e.g. -0.3
+134 f_replace  e.g. 1640599
+135 f_repair  e.g. 60474
+136 f_storm  e.g. 2150285
+137 f_hail  e.g. 185954
+138 f_fortified  e.g. 604937
+139 f_metal  e.g. 539683
+140 f_mh  e.g. 45414
+141 f_mf  e.g. 448109
+142 f_comm  e.g. 1327547
+143 f_coat  e.g. 174919
+144 f_newc  e.g. 38864
+145 idx  e.g. 88.6
+146 idx_eq  e.g. 84.1
+147 fees  e.g. 7216785
+148 cases  e.g. 1617.87
+149 gi  e.g. 3.96
+150 gicls  e.g. "H99"
+151 comp_mass  e.g. 13.34
+152 comp_n25  e.g. 8
+153 roof_mass  e.g. 79.67
+154 roof_per10k  e.g. 3.7
+155 comp_pct  e.g. 96.6
+156 cpc_rel  e.g. 1.186
+157 eff  e.g. 6084979
+158 effb  e.g. 94.8
+159 oppb  e.g. 97.7
+160 quad  e.g. 0
+161 tier  e.g. "A"
+162 bid  e.g. 20
+163 res_ok  e.g. 1
+164 metal_sh  e.g. 6.8
