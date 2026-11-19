@@ -1,0 +1,48 @@
+Louisiana Roofer Guru: storm scale, flying saucer and Tic Tac, more roof views
+
+Module 18 of the Louisiana roofing atlas (Rooftop Scout) is renamed
+Louisiana Roofer Guru, and the file with it:
+uplift-louisiana-roofing-atlas.html -> louisiana-roofer-guru.html.
+
+Scout Engine
+- Moved to the DFW atlas's build 12 engine (the flicker and sharpness
+  work), with Louisiana's roofs and roof views kept and build 12's
+  heating and cooling inference left out.
+- Storm scale, ten steps: dry, light rain, heavy rain, severe
+  thunderstorm, tropical storm, hurricane Categories 1 to 5. Each step
+  is a wind (the Saffir-Simpson ranges for the hurricanes) and a rain
+  rate; drop size, fall speed, visibility and how level the rain flies
+  follow from them. Rain, spray and debris are drawn on the GPU; wet
+  surfaces take rings and runoff; trees lean; cloud races; lightning
+  lights the scene, with thunder delayed by distance.
+- From Category 3, within reach of the Gulf, flood water is drawn as an
+  illustration of surge (old Saffir-Simpson heights, thinning inland to
+  the distances Rita and Laura reached). It is labelled as a picture,
+  not a forecast.
+- The Alta X flies dry or in light rain only (Freefly rates it IP43).
+  Past that it lands, will not take off, and the view says:
+  "Don't waste a $40,000 drone, stupid. Use the UAPs."
+- Two craft that fly in any weather: a classic domed flying saucer and
+  the Tic Tac of the 2004 Nimitz encounter. Gravity warp takes either to
+  an address or coordinates in Louisiana (elsewhere is refused); the
+  saucer stands on its edge first, the Tic Tac does not.
+
+Roof View
+- Its own highlighted row, first in the bar, with seven choices.
+- Covering: each roof's likely covering in its colour, with the
+  covering's pattern drawn at real size (three tab, laminated, standing
+  seam, ribbed panels, barrel tile, slate, membranes).
+- Shingle style: three tab or laminated, from the roof's likely age and
+  the share of each sold nationally that year.
+- Storm: what the step on the storm scale would do to each roof, from
+  the atlas's damage curve and FEMA-calibrated ratios; a judgment above
+  Category 3, and said so.
+
+Method, caveats and sources are extended for all of the above.
+
+Tested in headless Chromium on a software renderer: the atlas suites,
+the engine and roof view suites, and this round's own. Two independent
+reviews (code, and every factual claim in the new text) were applied.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_014bzpFdpDnxrARYrAPGJGrQ

@@ -1,0 +1,428 @@
+[
+ {
+  "id": "IB-1",
+  "why": "09 Site Forge: step 1 reads and writes only its form fields; the city and pages tables' sortable headers also carry data-k, have no value, and threw on every step 1 change and on Save",
+  "old": "function readSite() { $$('[data-k]', root).forEach(",
+  "new": "function readSite() { $$('input[data-k], select[data-k], textarea[data-k]', root).forEach("
+ },
+ {
+  "id": "IB-1",
+  "why": "09 Site Forge: step 1 reads and writes only its form fields; the city and pages tables' sortable headers also carry data-k, have no value, and threw on every step 1 change and on Save",
+  "old": "function writeSite() { $$('[data-k]', root).forEach(",
+  "new": "function writeSite() { $$('input[data-k], select[data-k], textarea[data-k]', root).forEach("
+ },
+ {
+  "id": "IB-1",
+  "why": "09 Site Forge: step 1 reads and writes only its form fields; the city and pages tables' sortable headers also carry data-k, have no value, and threw on every step 1 change and on Save",
+  "old": "$$('[data-k]', root).forEach(i => i.addEventListener('change'",
+  "new": "$$('input[data-k], select[data-k], textarea[data-k]', root).forEach(i => i.addEventListener('change'"
+ },
+ {
+  "id": "IB-2",
+  "why": "15 Accounts: LSA spend and lead rows with no line went to the injury atlas's 'car' line; spend now goes to the lines of the charged leads and the rest to repair, as the lead log and the LSA importer already do",
+  "old": "const k = r.line || 'car';",
+  "new": "const k = r.line || 'repair';"
+ },
+ {
+  "id": "IB-2",
+  "why": "15 Accounts: LSA spend and lead rows with no line went to the injury atlas's 'car' line; spend now goes to the lines of the charged leads and the rest to repair, as the lead log and the LSA importer already do",
+  "old": "rows.filter(r => r.kind === 'lead' && r.spend > 0 && (!r.acct || r.acct === String(A.accountId))).forEach(r => daily[r.date] = (daily[r.date] || 0) + r.spend); let placed = 0; Object.entries(daily).sort().forEach(([d, v]) => { rows.push(row({ src: 'lsa', kind: 'ads', date: d, campaign: name, spend: +v.toFixed(2), leads: 0, line: 'car' })); placed += v; });",
+  "new": "rows.filter(r => r.kind === 'lead' && r.spend > 0 && (!r.acct || r.acct === String(A.accountId))).forEach(r => { const k = r.date + '|' + (r.line || 'repair'); daily[k] = (daily[k] || 0) + r.spend; }); let placed = 0; Object.entries(daily).sort().forEach(([k, v]) => { const [d, ln] = k.split('|'); rows.push(row({ src: 'lsa', kind: 'ads', date: d, campaign: name, spend: +v.toFixed(2), leads: 0, line: ln })); placed += v; });"
+ },
+ {
+  "id": "IB-2",
+  "why": "15 Accounts: LSA spend and lead rows with no line went to the injury atlas's 'car' line; spend now goes to the lines of the charged leads and the rest to repair, as the lead log and the LSA importer already do",
+  "old": "spend: +Math.max(0, rest).toFixed(2), line: 'car', note:",
+  "new": "spend: +Math.max(0, rest).toFixed(2), line: 'repair', note:"
+ },
+ {
+  "id": "IB-3",
+  "why": "15 Accounts: a row of the import template with an hour or a ZIP is also stored as a daily row, so the KPIs, pacing, lines and hour chart count it once (not for the atlas's own Actuals export, whose hour and ZIP rows break down its daily rows)",
+  "old": "const out = []; rows.slice(hi + 1).forEach(r => {",
+  "new": "const out = []; let nRead = 0; rows.slice(hi + 1).forEach(r => {"
+ },
+ {
+  "id": "IB-3",
+  "why": "15 Accounts: a row of the import template with an hour or a ZIP is also stored as a daily row, so the KPIs, pacing, lines and hour chart count it once (not for the atlas's own Actuals export, whose hour and ZIP rows break down its daily rows)",
+  "old": "if (imp.id === 'lsa') o.line = lineOf(o.campaign) || 'repair'; out.push(o); });",
+  "new": "if (imp.id === 'lsa') o.line = lineOf(o.campaign) || 'repair'; nRead++; if (imp.id === 'generic' && !H.includes('kind') && (o.hour != null || o.geo)) { out.push(Object.assign({}, o, { kind: 'ads', hour: null, geo: null })); if (o.hour != null) out.push(Object.assign({}, o, { kind: 'hour', geo: null })); if (o.geo) out.push(Object.assign({}, o, { kind: 'geo', hour: null })); return; } out.push(o); });"
+ },
+ {
+  "id": "IB-3",
+  "why": "15 Accounts: a row of the import template with an hour or a ZIP is also stored as a daily row, so the KPIs, pacing, lines and hour chart count it once (not for the atlas's own Actuals export, whose hour and ZIP rows break down its daily rows)",
+  "old": "S.imports.push({ at: new Date().toISOString(), importer: imp.id, n: out.length });",
+  "new": "S.imports.push({ at: new Date().toISOString(), importer: imp.id, n: nRead });"
+ },
+ {
+  "id": "IB-3",
+  "why": "15 Accounts: a row of the import template with an hour or a ZIP is also stored as a daily row, so the KPIs, pacing, lines and hour chart count it once (not for the atlas's own Actuals export, whose hour and ZIP rows break down its daily rows)",
+  "old": "return { rows: out, note: `${out.length} rows as ${imp.name}`, importer: imp };",
+  "new": "return { rows: out, note: `${nRead} rows as ${imp.name}`, importer: imp };"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "const val = sum(mixL.map(o => o.w * SLM.A.lines[o.k].val * SLM.A.fee));",
+  "new": "const val = sum(mixL.map(o => o.w * SLM.A.lines[o.k].val * SLM.A.fee)); const cpcK = (+SLM.A.cpc || SLM.DEF.cpc) / SLM.DEF.cpc; const cvrK = sum(mixL.map(o => o.w * SLM.A.lines[o.k].cvr)) / (sum(mixL.map(o => o.w * SLM.DEF.lines[o.k].cvr)) || 1) || 1; const obsCpl = q => { let w = 0, v = 0; mixL.forEach(o => { const x = SLM.A.lines[o.k][q]; if (isN(x) && x > 0) { w += o.w; v += o.w * x; } }); return w ? v / w : null; };"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "if (A.basis === 'CPC') { clicks = spend / (A.cost * cpcMul * cm); leads = clicks * A.cvr / 100; }",
+  "new": "if (A.basis === 'CPC') { clicks = spend / (A.cost * cpcK * cpcMul * cm); leads = clicks * A.cvr * cvrK / 100; }"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "else if (A.basis === 'CPM') { const imp = spend / A.cost * 1000; clicks = imp * A.ctr / 100; leads = clicks * A.cvr / 100; }",
+  "new": "else if (A.basis === 'CPM') { const imp = spend / A.cost * 1000; clicks = imp * A.ctr / 100; const oc = p === 'meta' ? obsCpl('metaCpl') : null; leads = oc ? spend / oc : clicks * A.cvr / 100; }"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "else { leads = spend / A.cost; clicks = leads; }",
+  "new": "else { leads = spend / ((p === 'lsa' && obsCpl('lsaCpl')) || A.cost); clicks = leads; }"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "function revertModels() { const a = S.settings.applied; if (!a) return; SLM.set({ cpc: a.prev.cpc, lines: a.prev.lines });",
+  "new": "function revertModels() { const a = S.settings.applied; if (!a) return; Object.keys((a.patch && a.patch.lines) || {}).forEach(l => { const cur = SLM.A.lines[l], was = (a.prev.lines || {})[l]; if (cur && was) Object.keys(cur).forEach(k => { if (!(k in was)) delete cur[k]; }); }); SLM.set({ cpc: a.prev.cpc, lines: a.prev.lines });"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "Search costs multiply by each line's click cost multiplier (module 12) and each ZIP's relative cost (module 05).",
+  "new": "Search costs multiply by each line's click cost multiplier (module 12) and each ZIP's relative cost (module 05). They also scale by module 12's base cost per click, and lead rates by each line's click to lead rate, against the model defaults; Apply in module 15 sets those to the account's observed values, and the Meta and Local Services forecasts then use the observed cost per lead of the plan's lines."
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "const n = Object.keys(patch.lines).length + (patch.cpc ? 1 : 0);",
+  "new": "const n = Object.values(patch.lines).reduce((t, v) => t + Object.keys(v).length, 0) + (patch.cpc ? 1 : 0);"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "${Object.entries(v).map(([k, x]) => `${k} ${k === 'cvr' ? P(x, 1) : money(x)}`).join(', ')}",
+  "new": "${Object.entries(v).map(([k, x]) => `${({ cvr: 'Google conversion rate', metaCpl: 'Meta cost per lead', lsaCpl: 'LSA cost per lead' })[k] || k} ${k === 'cvr' ? P(x, 1) : money(x)}`).join(', ')}"
+ },
+ {
+  "id": "IB-4",
+  "why": "15 Accounts to 08 Campaign Desk: Apply moves the Desk as the card says (search costs and lead rates follow module 12's base cost per click and line conversion rates against the defaults; Meta and LSA use the observed cost per lead); Revert removes what Apply added; plain labels; the toast counts inputs",
+  "old": "Local Services converts spend to leads at the stated cost per lead.",
+  "new": "Local Services converts spend to leads at the stated cost per lead. Once module 15 applies the account's actuals, Local Services and Meta leads come from the observed cost per lead of the plan's lines instead."
+ },
+ {
+  "id": "IB-5",
+  "why": "08 Campaign Desk to 10 Satchel: the feed carries every platform the plan spends on, the LSA business bio included",
+  "old": "${esc(houseClean(fillCopy(`${F.name || 'Our company'} replaces and repairs roofs across {Parish} Parish and Louisiana: ${lineKeys().map(k => PLI[k].name.toLowerCase()).slice(0, 3).join(', ')}. Licensed by the LSLBC${F.lic ? ' (' + F.lic + ')' : ''}, with an office in ${F.office || 'Louisiana'}. Every job is permitted and inspected.`, ctxFor(pz))))}",
+  "new": "${esc(lsaBio(pz))}"
+ },
+ {
+  "id": "IB-5",
+  "why": "08 Campaign Desk to 10 Satchel: the feed carries every platform the plan spends on, the LSA business bio included",
+  "old": "    function socialFor(g, z, lang, p) {",
+  "new": "    function lsaBio(z) { const F = firm(); return houseClean(fillCopy(`${F.name || 'Our company'} replaces and repairs roofs across {Parish} Parish and Louisiana: ${lineKeys().map(k => PLI[k].name.toLowerCase()).slice(0, 3).join(', ')}. Licensed by the LSLBC${F.lic ? ' (' + F.lic + ')' : ''}, with an office in ${F.office || 'Louisiana'}. Every job is permitted and inspected.`, ctxFor(z))); }\n    function socialFor(g, z, lang, p) {"
+ },
+ {
+  "id": "IB-5",
+  "why": "08 Campaign Desk to 10 Satchel: the feed carries every platform the plan spends on, the LSA business bio included",
+  "old": "this.feed = () => { const out = []; groups().forEach(g => ['en'].concat(MKT.some(m => m.es) ? ['es'] : []).forEach(lang => { const r = rsaFor(g, MKT[0] && MKT[0].z, lang); out.push({ label: `Google RSA · ${g.label} · ${lang}`, text: r.h.concat(r.d).join('\\n'), plat: 'google' }); const s = socialFor(g, MKT[0] && MKT[0].z, lang, 'meta'); out.push({ label: `Meta · ${g.label} · ${lang}`, text: s.body + '\\n' + (s.title || ''), plat: 'meta' }); })); return out; };",
+  "new": "this.feed = () => { const out = []; const z = MKT[0] && MKT[0].z; const plats = PLATS.filter(p => p === 'google' || p === 'meta' || (FC[p] && FC[p].spend > 0)); groups().forEach(g => ['en'].concat(MKT.some(m => m.es) ? ['es'] : []).forEach(lang => plats.forEach(p => { if (p === 'google' || p === 'microsoft') { const r = rsaFor(g, z, lang); out.push({ label: `${p === 'google' ? 'Google' : 'Microsoft'} RSA · ${g.label} · ${lang}`, text: r.h.concat(r.d).join('\\n'), plat: p }); } else if (p !== 'lsa') { const s = socialFor(g, z, lang, p); out.push({ label: `${PLAB[p]} · ${g.label} · ${lang}`, text: s.body + '\\n' + (s.title || ''), plat: p }); } }))); if (plats.includes('lsa')) out.push({ label: 'Local Services Ads · business bio', text: lsaBio(z), plat: 'lsa' }); return out; };"
+ },
+ {
+  "id": "IB-6",
+  "why": "15 Accounts: the hour chart's template share follows the emergency template's six blocks (it read the first number of the array as the template)",
+  "old": "const tpl = SLM.DAYPARTS.emergency[0];",
+  "new": "const tpl = SLM.DAYPARTS.emergency;"
+ },
+ {
+  "id": "IB-7",
+  "why": "15 Accounts: the Campaign Desk link opens the Desk without a hand-off ('3 ZIPs received')",
+  "old": "goModule('weather', {}); $('#a15Desk', root).onclick = () => goModule('desk', {});",
+  "new": "goModule('weather'); $('#a15Desk', root).onclick = () => goModule('desk');"
+ },
+ {
+  "id": "IB-8",
+  "why": "09 Site Forge: Test connection with no WordPress URL asks for one instead of fetching file:///wp-json/",
+  "old": "$('#f9dTest', root).onclick = async () => { $('#f9dNote', root).textContent = 'Testing…';",
+  "new": "$('#f9dTest', root).onclick = async () => { if (!WP.base()) { WPSTAT = null; $('#f9dGo', root).disabled = true; $('#f9dStatus', root).textContent = ''; $('#f9dCors', root).hidden = true; $('#f9dNote', root).textContent = 'Enter the WordPress URL first (or the public site URL in step 1).'; toast('Enter the WordPress URL first'); return; } $('#f9dNote', root).textContent = 'Testing…';"
+ },
+ {
+  "id": "I2",
+  "why": "01 Index: a selected ZIP outside a newly chosen region or parish is dropped, so the Desk button sends the area's ZIPs",
+  "old": "$('#i1Reg', root).onchange = e => { st.reg = e.target.value; st.par = ''; $('#i1Par', root).value = '';",
+  "new": "$('#i1Reg', root).onchange = e => { st.reg = e.target.value; st.par = ''; $('#i1Par', root).value = ''; if (st.sel && !inScope(ZI[st.sel])) st.sel = null;"
+ },
+ {
+  "id": "I1",
+  "why": "01 Index, 05 Paid, 12 Service Lines: a parish outside the chosen region clears the region, instead of showing the parish with no ZIPs",
+  "old": "$('#i1Par', root).onchange = e => { st.par = e.target.value; if (st.par)",
+  "new": "$('#i1Par', root).onchange = e => { st.par = e.target.value; if (st.par && st.reg && PAI[st.par] && PAI[st.par].reg !== +st.reg) { st.reg = ''; $('#i1Reg', root).value = ''; } if (st.sel && !inScope(ZI[st.sel])) st.sel = null; if (st.par)"
+ },
+ {
+  "id": "I1",
+  "why": "01 Index, 05 Paid, 12 Service Lines: a parish outside the chosen region clears the region, instead of showing the parish with no ZIPs",
+  "old": "$('#p5Par', root).onchange = e => { st.par = e.target.value; if (st.par)",
+  "new": "$('#p5Par', root).onchange = e => { st.par = e.target.value; if (st.par && st.reg && PAI[st.par] && PAI[st.par].reg !== +st.reg) { st.reg = ''; $('#p5Reg', root).value = ''; } if (st.par)"
+ },
+ {
+  "id": "I1",
+  "why": "01 Index, 05 Paid, 12 Service Lines: a parish outside the chosen region clears the region, instead of showing the parish with no ZIPs",
+  "old": "$('#l12Par', root).onchange = e => { st.par = e.target.value; if (st.par)",
+  "new": "$('#l12Par', root).onchange = e => { st.par = e.target.value; if (st.par && st.reg && PAI[st.par] && PAI[st.par].reg !== +st.reg) { st.reg = ''; $('#l12Reg', root).value = ''; } if (st.par)"
+ },
+ {
+  "id": "I3",
+  "why": "05 Paid narrowed to one service line hands that line to the Campaign Desk",
+  "old": "$('#p5Desk', root).onclick = () => goModule('desk', { zips: planSet().sort((a, b) => b.pct - a.pct).slice(0, 60).map(x => x.zip), lines: [...st.lines] });",
+  "new": "$('#p5Desk', root).onclick = () => goModule('desk', Object.assign({ zips: planSet().sort((a, b) => b.pct - a.pct).slice(0, 60).map(x => x.zip), lines: [...st.lines] }, st.lines.size === 1 ? { line: [...st.lines][0] } : {}));"
+ },
+ {
+  "id": "I3",
+  "why": "05 Paid narrowed to one service line hands that line to the Campaign Desk",
+  "old": "$('#p5ZD', root).onclick = () => goModule('desk', { zips: [z.zip] });",
+  "new": "$('#p5ZD', root).onclick = () => goModule('desk', Object.assign({ zips: [z.zip] }, st.lines.size === 1 ? { line: [...st.lines][0] } : {}));"
+ },
+ {
+  "id": "I4",
+  "why": "08 Campaign Desk: a named storm's ad group is dropped when ZIPs arrive that the storm never reached",
+  "old": "} else if (p.event) { P.event = String(p.event); P.storm = ''; } UI.grp = null; syncUI(); rebuild(); toast(`${P.picks.length} ZIPs received`); };",
+  "new": "} else if (p.event) { P.event = String(p.event); P.storm = ''; } else if (p.zips && p.zips.length && P.storm) { var si = SIDS.findIndex(s => s[0] + ' ' + s[1] === P.storm), out = P.picks.filter(z => !(DATA.zstorm[z] || []).some(a => a[0] === si)).length; if (out) { var dropped = `storm ad group ${P.storm} removed, since the storm never reached ${out} of these ZIPs`; P.storm = ''; } } UI.grp = null; syncUI(); rebuild(); toast(`${P.picks.length} ZIPs received` + (dropped ? '; ' + dropped : '')); };"
+ },
+ {
+  "id": "I5",
+  "why": "Service line model: edits recompute each ZIP's top line, and the Index redraws",
+  "old": "  Z.forEach(z => { let best = null, bv = -1; LINE_KEYS.forEach(k => { const v = zipLine(z, k).fees; if (v > bv) { bv = v; best = k; } }); z.sl_top = best; });",
+  "new": "  function topLines() { Z.forEach(z => { let best = null, bv = -1; LINE_KEYS.forEach(k => { const v = zipLine(z, k).fees; if (v > bv) { bv = v; best = k; } }); z.sl_top = best; }); }\n  topLines();"
+ },
+ {
+  "id": "I5",
+  "why": "Service line model: edits recompute each ZIP's top line, and the Index redraws",
+  "old": "else A[k] = patch[k]; }); store.set(KEY, A); BUS.emit('slm'); }",
+  "new": "else A[k] = patch[k]; }); store.set(KEY, A); topLines(); BUS.emit('slm'); }"
+ },
+ {
+  "id": "I5",
+  "why": "Service line model: edits recompute each ZIP's top line, and the Index redraws",
+  "old": "Object.assign(A, d); store.set(KEY, A); BUS.emit('slm'); }",
+  "new": "Object.assign(A, d); store.set(KEY, A); topLines(); BUS.emit('slm'); }"
+ },
+ {
+  "id": "I5",
+  "why": "Service line model: edits recompute each ZIP's top line, and the Index redraws",
+  "old": "BUS.on('theme', () => render());\n    this.receive = p => { if (p && p.zip && ZI[p.zip]) { st.sel = p.zip; map.fitTo([p.zip]); render(); } };",
+  "new": "BUS.on('theme', () => render()); BUS.on('slm', () => render());\n    this.receive = p => { if (p && p.zip && ZI[p.zip]) { st.sel = p.zip; map.fitTo([p.zip]); render(); } };"
+ },
+ {
+  "id": "I6",
+  "why": "01 Index: the ZIP export uses the atlas's own column names (gross_profit_pool, jobs_open_to_marketing)",
+  "old": "toCSV(keys, ZR.map(z => keys.map(k => z[k])), 'Uplift Louisiana Roofing Atlas, module 01, compiled 2026-10-06.\\np_ = expected jobs a year; r_ = per 10,000 residents (shrunk toward the parish rate); fees = gross profit pool at default job values and a 33 percent margin.",
+  "new": "toCSV(keys.map(k => ({ cases: 'jobs_open_to_marketing', fees: 'gross_profit_pool' })[k] || k), ZR.map(z => keys.map(k => z[k])), 'Uplift Louisiana Roofing Atlas, module 01, compiled 2026-10-06.\\np_ = expected jobs a year; r_ = per 10,000 residents (shrunk toward the parish rate); gross_profit_pool = jobs_open_to_marketing at default job values times a 33 percent margin."
+ },
+ {
+  "id": "R5-SEAM-1",
+  "why": "15 Accounts: pacing and the model columns redraw on show when the Desk budget or the service line model changed",
+  "old": "    this.receive = p => { if (p && p.provider) {",
+  "new": "    /* the pace and model columns read the Campaign Desk's budget and the service line model, which change in other modules: redraw on show when either changed */\n    let drawnWith = JSON.stringify([(store.get('up.desk.v1', {}) || {}).budget, SLM.A]);\n    this.onShow = () => { const k = JSON.stringify([(store.get('up.desk.v1', {}) || {}).budget, SLM.A]); if (root.isConnected && k !== drawnWith) { drawnWith = k; renderData(); } };\n    this.receive = p => { if (p && p.provider) {"
+ },
+ {
+  "id": "R5-SEAM-2",
+  "why": "14 Storm Desk: its detail follows Accounts' 'Use observed hours'",
+  "old": "BUS.on('theme', () => { render(); record(); }); BUS.on('nws', () => render());",
+  "new": "BUS.on('theme', () => { render(); record(); }); BUS.on('nws', () => render()); BUS.on('acct', () => { if (root.isConnected) detail(); });"
+ },
+ {
+  "id": "R5-SEAM-4",
+  "why": "15 Accounts: a ZIP outside the atlas was labelled 'outside the twelve counties', the DFW atlas's market",
+  "old": "'outside the twelve counties'",
+  "new": "'not an atlas ZIP: outside Louisiana, or a PO box or other ZIP with no homes mapped'"
+ },
+ {
+  "id": "R6-CF1",
+  "why": "15 Accounts: a second Apply kept the first Apply's values as the ones to restore, so Revert after two Applies left observed values in the model while the tile said the assumptions were restored. A later Apply now restores what the earlier Apply wrote before taking its snapshot, and Revert clears added keys from every line.",
+  "old": "const prev = { cpc: SLM.A.cpc, lines: JSON.parse(JSON.stringify(SLM.A.lines)) };",
+  "new": "const prev = { cpc: SLM.A.cpc, lines: JSON.parse(JSON.stringify(SLM.A.lines)) }; const was = S.settings.applied; if (was && was.prev && was.patch) { if (isN(was.patch.cpc) && SLM.A.cpc === was.patch.cpc) prev.cpc = was.prev.cpc; Object.entries(was.patch.lines || {}).forEach(([l, v]) => { const p0 = (was.prev.lines || {})[l] || {}, cur = prev.lines[l]; if (cur) Object.keys(v).forEach(k => { if (cur[k] === v[k]) { if (k in p0) cur[k] = p0[k]; else delete cur[k]; } }); }); }"
+ },
+ {
+  "id": "R6-CF1",
+  "why": "15 Accounts: a second Apply kept the first Apply's values as the ones to restore, so Revert after two Applies left observed values in the model while the tile said the assumptions were restored. A later Apply now restores what the earlier Apply wrote before taking its snapshot, and Revert clears added keys from every line.",
+  "old": "Object.keys((a.patch && a.patch.lines) || {}).forEach(l => {",
+  "new": "Object.keys(SLM.A.lines).forEach(l => {"
+ },
+ {
+  "id": "R6-EDGE-1",
+  "why": "15 Accounts: Meta and LSA lead costs stand only while an Apply does. Revert strips them, and a model that an earlier version's Revert left them in is cleaned when Accounts loads with nothing applied, so the Campaign Desk no longer forecasts on costs Accounts says are not applied.",
+  "old": "ready = true; BUS.emit('acct'); });",
+  "new": "ready = true; /* the observed Meta and LSA lead costs stand only while an Apply does: drop any that a revert in an earlier version left in the model */ if (!S.settings || !S.settings.applied) { let n = 0; Object.values(SLM.A.lines).forEach(L => ['metaCpl', 'lsaCpl'].forEach(k => { if (k in L) { delete L[k]; n++; } })); if (n) SLM.set({}); } BUS.emit('acct'); });"
+ },
+ {
+  "id": "R6-EDGE-1",
+  "why": "15 Accounts: Meta and LSA lead costs stand only while an Apply does. Revert strips them, and a model that an earlier version's Revert left them in is cleaned when Accounts loads with nothing applied, so the Campaign Desk no longer forecasts on costs Accounts says are not applied.",
+  "old": "SLM.set({ cpc: a.prev.cpc, lines: a.prev.lines });",
+  "new": "const pl = JSON.parse(JSON.stringify(a.prev.lines || {})); [pl, SLM.A.lines].forEach(o => Object.values(o).forEach(L => { delete L.metaCpl; delete L.lsaCpl; })); SLM.set({ cpc: a.prev.cpc, lines: pl });"
+ },
+ {
+  "id": "R6-CF2",
+  "why": "08 Campaign Desk: a cost or rate the user changed in the platform assumptions table is used as set; only figures still at their defaults follow module 12's base cost per click and click to lead rate and the observed Meta and LSA lead costs. The Desk and Accounts texts say so.",
+  "old": "if (A.basis === 'CPC') { clicks = spend / (A.cost * cpcK * cpcMul * cm); leads = clicks * A.cvr * cvrK / 100; }",
+  "new": "if (A.basis === 'CPC') { const own = ASM0[p] || {}; clicks = spend / (A.cost * (+A.cost === own.cost ? cpcK : 1) * cpcMul * cm); leads = clicks * A.cvr * (+A.cvr === own.cvr ? cvrK : 1) / 100; }"
+ },
+ {
+  "id": "R6-CF2",
+  "why": "08 Campaign Desk: a cost or rate the user changed in the platform assumptions table is used as set; only figures still at their defaults follow module 12's base cost per click and click to lead rate and the observed Meta and LSA lead costs. The Desk and Accounts texts say so.",
+  "old": "const oc = p === 'meta' ? obsCpl('metaCpl') : null;",
+  "new": "const oc = p === 'meta' && +A.cost === ASM0.meta.cost && +A.ctr === ASM0.meta.ctr && +A.cvr === ASM0.meta.cvr ? obsCpl('metaCpl') : null;"
+ },
+ {
+  "id": "R6-CF2",
+  "why": "08 Campaign Desk: a cost or rate the user changed in the platform assumptions table is used as set; only figures still at their defaults follow module 12's base cost per click and click to lead rate and the observed Meta and LSA lead costs. The Desk and Accounts texts say so.",
+  "old": "else { leads = spend / ((p === 'lsa' && obsCpl('lsaCpl')) || A.cost); clicks = leads; }",
+  "new": "else { leads = spend / ((p === 'lsa' && +A.cost === ASM0.lsa.cost && obsCpl('lsaCpl')) || A.cost); clicks = leads; }"
+ },
+ {
+  "id": "R6-CF2",
+  "why": "08 Campaign Desk: a cost or rate the user changed in the platform assumptions table is used as set; only figures still at their defaults follow module 12's base cost per click and click to lead rate and the observed Meta and LSA lead costs. The Desk and Accounts texts say so.",
+  "old": "Apply in module 15 sets those to the account's observed values, and the Meta and Local Services forecasts then use the observed cost per lead of the plan's lines.",
+  "new": "Apply in module 15 sets those to the account's observed values, and the Meta and Local Services forecasts then use the observed cost per lead of the plan's lines. A cost or rate you change in this table is used as you set it, without that scaling or replacement; Reset to defaults hands it back to the model."
+ },
+ {
+  "id": "R6-CF2",
+  "why": "08 Campaign Desk: a cost or rate the user changed in the platform assumptions table is used as set; only figures still at their defaults follow module 12's base cost per click and click to lead rate and the observed Meta and LSA lead costs. The Desk and Accounts texts say so.",
+  "old": "Once module 15 applies the account's actuals, Local Services and Meta leads come from the observed cost per lead of the plan's lines instead.",
+  "new": "Once module 15 applies the account's actuals, Local Services and Meta leads come from the observed cost per lead of the plan's lines instead, unless that platform's figures were changed in the assumptions table."
+ },
+ {
+  "id": "R6-CF2",
+  "why": "08 Campaign Desk: a cost or rate the user changed in the platform assumptions table is used as set; only figures still at their defaults follow module 12's base cost per click and click to lead rate and the observed Meta and LSA lead costs. The Desk and Accounts texts say so.",
+  "old": "(module 12, the Campaign Desk and the allocation all move)",
+  "new": "(module 12, the allocation and every Campaign Desk assumption still at its default all move)"
+ },
+ {
+  "id": "R6-CF3",
+  "why": "01 Index: a ZIP handed over that the Index does not score (under 500 residents) is shown but not selected, so the Index's Desk and Forge buttons send the view's top ZIPs instead of one unscored ZIP.",
+  "old": "BUS.on('theme', () => render()); BUS.on('slm', () => render());\n    this.receive = p => { if (p && p.zip && ZI[p.zip]) { st.sel = p.zip; map.fitTo([p.zip]); render(); } };",
+  "new": "BUS.on('theme', () => render()); BUS.on('slm', () => render());\n    this.receive = p => { if (p && p.zip && ZI[p.zip]) { st.sel = ZI[p.zip].res_ok ? p.zip : null; map.fitTo([p.zip]); render(); } };"
+ },
+ {
+  "id": "R6-TPL",
+  "why": "15 Accounts (pre-existing): the import template the module hands out starts with a '# ' note line holding commas and the word campaign, which the header finder took for the header, so the template never imported. Note lines are skipped, as module 07's reader already does.",
+  "old": "const rows = parseCSV(text).filter(r => r.length > 1); if (!rows.length) return { rows: [], note: 'No rows' };",
+  "new": "const rows = parseCSV(text).filter(r => r.length > 1 && !/^# /.test(String(r[0]))); if (!rows.length) return { rows: [], note: 'No rows' };"
+ },
+ {
+  "id": "R6-LINES",
+  "why": "12 Service Lines (pre-existing, the same defect I1 and I2 fixed in the Index): a ZIP selected before a region or parish change that leaves it out is dropped, so the Desk button sends the region's top ZIPs, not the hidden ZIP.",
+  "old": "$('#l12Par', root).value = ''; if (st.reg) map.fitParishes(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };",
+  "new": "$('#l12Par', root).value = ''; if (st.sel && !(ZI[st.sel] && inScope(ZI[st.sel]))) st.sel = null; if (st.reg) map.fitParishes(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };"
+ },
+ {
+  "id": "R6-LINES",
+  "why": "12 Service Lines (pre-existing, the same defect I1 and I2 fixed in the Index): a ZIP selected before a region or parish change that leaves it out is dropped, so the Desk button sends the region's top ZIPs, not the hidden ZIP.",
+  "old": "$('#l12Reg', root).value = ''; } if (st.par) map.fitParishes([st.par]); else map.reset(); render(); };",
+  "new": "$('#l12Reg', root).value = ''; } if (st.sel && !(ZI[st.sel] && inScope(ZI[st.sel]))) st.sel = null; if (st.par) map.fitParishes([st.par]); else map.reset(); render(); };"
+ },
+ {
+  "id": "R6-PAID",
+  "why": "05 Paid (pre-existing, as in the Index and Service Lines): a selected ZIP that a region or parish change leaves out is dropped, so the detail panel no longer shows a ZIP outside the chosen area.",
+  "old": "$('#p5Par', root).value = ''; if (st.reg) map.fitParishes(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };",
+  "new": "$('#p5Par', root).value = ''; if (st.sel && !(ZI[st.sel] && inScope(ZI[st.sel]))) st.sel = null; if (st.reg) map.fitParishes(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };"
+ },
+ {
+  "id": "R6-PAID",
+  "why": "05 Paid (pre-existing, as in the Index and Service Lines): a selected ZIP that a region or parish change leaves out is dropped, so the detail panel no longer shows a ZIP outside the chosen area.",
+  "old": "$('#p5Reg', root).value = ''; } if (st.par) map.fitParishes([st.par]); else map.reset(); render(); };",
+  "new": "$('#p5Reg', root).value = ''; } if (st.sel && !(ZI[st.sel] && inScope(ZI[st.sel]))) st.sel = null; if (st.par) map.fitParishes([st.par]); else map.reset(); render(); };"
+ },
+ {
+  "id": "R7-SRC-1",
+  "why": "15 Accounts: a later Apply puts back, in the live model as well as in its snapshot, what the earlier Apply wrote and nobody changed since, so a value this Apply does not write again (a Meta or LSA lead cost after Clear all actuals, a platform below the minimum) does not stay in force. The load-time strip keeps only the lead costs the Apply in force wrote.",
+  "old": "const was = S.settings.applied; if (was && was.prev && was.patch) { if (isN(was.patch.cpc) && SLM.A.cpc === was.patch.cpc) prev.cpc = was.prev.cpc; Object.entries(was.patch.lines || {}).forEach(([l, v]) => { const p0 = (was.prev.lines || {})[l] || {}, cur = prev.lines[l]; if (cur) Object.keys(v).forEach(k => { if (cur[k] === v[k]) { if (k in p0) cur[k] = p0[k]; else delete cur[k]; } }); }); }",
+  "new": "const was = S.settings.applied; if (was && was.prev && was.patch) { /* what the earlier Apply wrote, and nobody changed since, goes back to the assumption in the model as well as in the snapshot, so a value this Apply does not write again does not stay in force */ if (isN(was.patch.cpc) && SLM.A.cpc === was.patch.cpc) { prev.cpc = was.prev.cpc; SLM.A.cpc = was.prev.cpc; } Object.entries(was.patch.lines || {}).forEach(([l, v]) => { const p0 = (was.prev.lines || {})[l] || {}, cur = prev.lines[l], live = SLM.A.lines[l]; if (cur) Object.keys(v).forEach(k => { if (cur[k] === v[k]) { if (k in p0) { cur[k] = p0[k]; if (live) live[k] = p0[k]; } else { delete cur[k]; if (live) delete live[k]; } } }); }); }"
+ },
+ {
+  "id": "R7-SRC-1",
+  "why": "15 Accounts: a later Apply puts back, in the live model as well as in its snapshot, what the earlier Apply wrote and nobody changed since, so a value this Apply does not write again (a Meta or LSA lead cost after Clear all actuals, a platform below the minimum) does not stay in force. The load-time strip keeps only the lead costs the Apply in force wrote.",
+  "old": "/* the observed Meta and LSA lead costs stand only while an Apply does: drop any that a revert in an earlier version left in the model */ if (!S.settings || !S.settings.applied) { let n = 0; Object.values(SLM.A.lines).forEach(L => ['metaCpl', 'lsaCpl'].forEach(k => { if (k in L) { delete L[k]; n++; } })); if (n) SLM.set({}); }",
+  "new": "/* the observed Meta and LSA lead costs stand only while the Apply that wrote them does: drop any that a revert, or a later Apply, in an earlier version left in the model */ { const ap = S.settings && S.settings.applied, pl = (ap && ap.patch && ap.patch.lines) || {}; let n = 0; Object.entries(SLM.A.lines).forEach(([l, L]) => ['metaCpl', 'lsaCpl'].forEach(k => { if (k in L && !(pl[l] && pl[l][k] === L[k])) { delete L[k]; n++; } })); if (n) SLM.set({}); }"
+ },
+ {
+  "id": "R7-SRC-2",
+  "why": "15 Accounts: the import template's example row is a '# ' note, so a downloaded template filled with the user's rows no longer imports the example as a real actual.",
+  "old": "function templateCSV() { return toCSV(['date', 'hour', 'campaign', 'zip', 'impressions', 'clicks', 'spend', 'leads', 'calls'], [['2026-10-01', '17', 'LA_REPLACE_META_EN_20261012', '70808', 1200, 18, 42.5, 2, 1]], 'Generic import template: one row per day (or hour) per campaign; zip optional. Campaign names that contain the desk token (LA_REPLACE_, LA_STORM_, LA_HAIL_, ...) map to service lines automatically.'); }",
+  "new": "function templateCSV() { return toCSV(['date', 'hour', 'campaign', 'zip', 'impressions', 'clicks', 'spend', 'leads', 'calls'], [], 'Generic import template: one row per day (or hour) per campaign; zip optional. Campaign names that contain the desk token (LA_REPLACE_, LA_STORM_, LA_HAIL_, ...) map to service lines automatically.\\nLines that start with # are notes and are not imported. Example row: 2026-10-01,17,LA_REPLACE_META_EN_20261012,70808,1200,18,42.5,2,1'); }"
+ },
+ {
+  "id": "R7-SRC-3",
+  "why": "15 Accounts and 08 Campaign Desk texts: they now say which Desk assumptions follow Apply (search, Meta and Local Services, not YouTube or TikTok) and which inputs the forecast reads.",
+  "old": "(module 12, the allocation and every Campaign Desk assumption still at its default all move)",
+  "new": "(module 12, the allocation and the Campaign Desk's search, Meta and Local Services assumptions that are still at their defaults all move; YouTube and TikTok stay on their assumptions)"
+ },
+ {
+  "id": "R7-SRC-3",
+  "why": "15 Accounts and 08 Campaign Desk texts: they now say which Desk assumptions follow Apply (search, Meta and Local Services, not YouTube or TikTok) and which inputs the forecast reads.",
+  "old": "Once module 15 applies the account's actuals, Local Services and Meta leads come from the observed cost per lead of the plan's lines instead, unless that platform's figures were changed in the assumptions table.",
+  "new": "Once module 15 applies the account's actuals, Local Services and Meta leads come from the observed cost per lead of the plan's lines instead, unless the Local Services cost, or Meta's cost, CTR or lead CVR, was changed in the assumptions table."
+ },
+ {
+  "id": "R7-SRC-3",
+  "why": "15 Accounts and 08 Campaign Desk texts: they now say which Desk assumptions follow Apply (search, Meta and Local Services, not YouTube or TikTok) and which inputs the forecast reads.",
+  "old": "A cost or rate you change in this table is used as you set it, without that scaling or replacement; Reset to defaults hands it back to the model.",
+  "new": "A cost or rate you change in this table is used as you set it, without that scaling or replacement (the forecast reads cost and lead CVR for search, the cost per lead for Local Services, and cost, CTR and lead CVR for YouTube, Meta and TikTok); Reset to defaults hands it back to the model."
+ },
+ {
+  "id": "R7-UNSCORED",
+  "why": "01 Index and 12 Service Lines (pre-existing): a ZIP the atlas does not score (under 500 residents) is no longer selected by the search box, a map click or a hand-off (the Scout's building card to Service Lines), so the Desk and Forge buttons send the view's top ZIPs instead of one ZIP with no markets. The search box says why.",
+  "old": "$('#i1Find', root).addEventListener('change', e => { const q = e.target.value.trim().toLowerCase(); if (!q) return; const hit = ZI[q] || ZR.filter(z => (z.city || '').toLowerCase().startsWith(q)).sort((a, b) => b.pop - a.pop)[0]; if (hit) { st.sel = hit.zip; map.fitTo([hit.zip]); render(); } else toast('No ZIP or city matches'); });",
+  "new": "$('#i1Find', root).addEventListener('change', e => { const q = e.target.value.trim().toLowerCase(); if (!q) return; const hit = ZI[q] || ZR.filter(z => (z.city || '').toLowerCase().startsWith(q)).sort((a, b) => b.pop - a.pop)[0]; if (hit) { st.sel = hit.res_ok ? hit.zip : null; map.fitTo([hit.zip]); render(); if (!hit.res_ok) toast(`${hit.zip} has fewer than 500 residents, so the atlas does not score it`); } else toast('No ZIP or city matches'); });"
+ },
+ {
+  "id": "R7-UNSCORED",
+  "why": "01 Index and 12 Service Lines (pre-existing): a ZIP the atlas does not score (under 500 residents) is no longer selected by the search box, a map click or a hand-off (the Scout's building card to Service Lines), so the Desk and Forge buttons send the view's top ZIPs instead of one ZIP with no markets. The search box says why.",
+  "old": "$('#l12Find', root).addEventListener('change', e => { const q = e.target.value.trim().toLowerCase(); if (!q) return; const hit = ZI[q] || ZR.filter(z => (z.city || '').toLowerCase().startsWith(q)).sort((a, b) => b.pop - a.pop)[0]; if (hit) { st.sel = hit.zip; map.fitTo([hit.zip]); render(); } else toast('No ZIP or city matches'); });",
+  "new": "$('#l12Find', root).addEventListener('change', e => { const q = e.target.value.trim().toLowerCase(); if (!q) return; const hit = ZI[q] || ZR.filter(z => (z.city || '').toLowerCase().startsWith(q)).sort((a, b) => b.pop - a.pop)[0]; if (hit) { st.sel = hit.res_ok ? hit.zip : null; map.fitTo([hit.zip]); render(); if (!hit.res_ok) toast(`${hit.zip} has fewer than 500 residents, so the atlas does not score it`); } else toast('No ZIP or city matches'); });"
+ },
+ {
+  "id": "R7-UNSCORED",
+  "why": "01 Index and 12 Service Lines (pre-existing): a ZIP the atlas does not score (under 500 residents) is no longer selected by the search box, a map click or a hand-off (the Scout's building card to Service Lines), so the Desk and Forge buttons send the view's top ZIPs instead of one ZIP with no markets. The search box says why.",
+  "old": "if (p.zip && ZI[p.zip]) { st.sel = p.zip; map.fitTo([p.zip]); } render(); };",
+  "new": "if (p.zip && ZI[p.zip]) { st.sel = ZI[p.zip].res_ok ? p.zip : null; map.fitTo([p.zip]); } render(); };"
+ },
+ {
+  "id": "R7-UNSCORED",
+  "why": "01 Index and 12 Service Lines (pre-existing): a ZIP the atlas does not score (under 500 residents) is no longer selected by the search box, a map click or a hand-off (the Scout's building card to Service Lines), so the Desk and Forge buttons send the view's top ZIPs instead of one ZIP with no markets. The search box says why.",
+  "old": "function select(zip) { st.sel = st.sel === zip ? null : zip; render(); }",
+  "new": "function select(zip) { if (st.sel !== zip && !(ZI[zip] && ZI[zip].res_ok)) return; st.sel = st.sel === zip ? null : zip; render(); }"
+ },
+ {
+  "id": "R7-UNSCORED",
+  "why": "01 Index and 12 Service Lines (pre-existing): a ZIP the atlas does not score (under 500 residents) is no longer selected by the search box, a map click or a hand-off (the Scout's building card to Service Lines), so the Desk and Forge buttons send the view's top ZIPs instead of one ZIP with no markets. The search box says why.",
+  "old": "const map = new ZipMap($('#l12Map', root), { segHit: 'none', roads: false, onSelect: z => { st.sel = st.sel === z ? null : z; render(); },",
+  "new": "const map = new ZipMap($('#l12Map', root), { segHit: 'none', roads: false, onSelect: z => { if (st.sel !== z && !(ZI[z] && ZI[z].res_ok)) return; st.sel = st.sel === z ? null : z; render(); },"
+ },
+ {
+  "id": "R8-LEADCOST",
+  "why": "15 Accounts: a later Apply restored the Meta or Local Services lead cost held in a snapshot saved by an earlier version, so the Desk's lead forecasts were off until the next reload. A lead cost now stands only while the Apply that wrote it is in force.",
+  "old": "if (k in p0) { cur[k] = p0[k]; if (live) live[k] = p0[k]; } else { delete cur[k]; if (live) delete live[k]; }",
+  "new": "if (k in p0 && k !== 'metaCpl' && k !== 'lsaCpl') { cur[k] = p0[k]; if (live) live[k] = p0[k]; } else { /* a Meta or LSA lead cost stands only while the Apply that wrote it does: an older one in a snapshot saved by an earlier version is never put back */ delete cur[k]; if (live) delete live[k]; }"
+ },
+ {
+  "id": "R8-EMPTY-APPLY",
+  "why": "15 Accounts: an Apply that writes no input is not recorded as an Apply, so the Model state tile no longer says 'Actuals applied' while the model is on its assumptions.",
+  "old": "S.settings.applied = { at: new Date().toISOString(), prev, patch }; SLM.set(patch); save(); return patch; }",
+  "new": "S.settings.applied = (patch.cpc || Object.keys(patch.lines).length) ? { at: new Date().toISOString(), prev, patch } : null; SLM.set(patch); save(); return patch; }"
+ },
+ {
+  "id": "R8-EMPTY-APPLY",
+  "why": "15 Accounts: the Apply toast also counts the inputs an earlier Apply wrote that this one put back on their assumptions, so it no longer says nothing changed when the Desk forecasts moved. The count reads 'Applied: 1 model input changed' for one input.",
+  "old": "$('#a15Apply', root).onclick = () => { const patch = ACCT.applyToModels(); const n = Object.values(patch.lines).reduce((t, v) => t + Object.keys(v).length, 0) + (patch.cpc ? 1 : 0); toast(n ? `Applied: ${n} model inputs changed` : 'Not enough volume to change any input'); renderData(); };",
+  "new": "$('#a15Apply', root).onclick = () => { const b4 = { cpc: SLM.A.cpc, lines: JSON.parse(JSON.stringify(SLM.A.lines)) }; const patch = ACCT.applyToModels(); const n = Object.values(patch.lines).reduce((t, v) => t + Object.keys(v).length, 0) + (patch.cpc ? 1 : 0); /* the inputs an earlier Apply wrote that this one did not write again and put back on their assumptions */ let back = !patch.cpc && SLM.A.cpc !== b4.cpc ? 1 : 0; Object.keys(SLM.A.lines).forEach(l => { const a = b4.lines[l] || {}, c = SLM.A.lines[l], w = patch.lines[l] || {}; new Set(Object.keys(a).concat(Object.keys(c))).forEach(k => { if (!(k in w) && a[k] !== c[k]) back++; }); }); toast((n ? `Applied: ${n} model input${n === 1 ? '' : 's'} changed` : 'Not enough volume to change any input') + (back ? `; ${back === 1 ? 'one input' : back + ' inputs'} the last Apply wrote ${back === 1 ? 'is' : 'are'} back on the assumption${back === 1 ? '' : 's'}` : '')); renderData(); };"
+ },
+ {
+  "id": "R9-TIP",
+  "why": "01 Index (pre-existing): the tooltip on a ZIP the atlas does not score promised 'Click for the full ledger', but a click selects nothing there; it now says why.",
+  "old": "onHover: (z, e) => { const r = ZI[z]; if (r) showTip(zipTip(r, st.layer), e); }",
+  "new": "onHover: (z, e) => { const r = ZI[z]; if (r) showTip(r.res_ok ? zipTip(r, st.layer) : zipTip(r, st.layer).replace('Click for the full ledger', 'Not scored: fewer than 500 residents'), e); }"
+ }
+]
