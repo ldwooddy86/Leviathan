@@ -10632,8 +10632,8 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
    The ZIP heatmap of any layer in the shared catalog (the same LAYERS modules 01, 04, 05 and 06 draw) sits on Esri World
    Imagery: Vantor satellite imagery of 31 to 50 cm at the closest zoom across
    Louisiana. At street level every building in view is fetched from FEMA's USA Structures inventory, joined to its parcel
-   (the year built, in Lafayette Parish), to the reroof, roof work and new construction permits of New Orleans and East Baton
-   Rouge Parish (the last time its roof was replaced), and to the NOAA hail, wind and tornado reports around it, and read by
+   (the year built, in Lafayette Parish), to the reroof, roof work and new construction permits of New Orleans, East Baton
+   Rouge, Tangipahoa and Terrebonne (the last time its roof was replaced), and to the NOAA hail, wind and tornado reports around it, and read by
    the atlas's own models: the roof it most likely carries, how old that roof most likely is after every storm that reached
    its ZIP (module 17's roof life and storm resets), how likely it is to need a replacement, a repair,
    or wind or hail work, and which of the eleven service lines that is.
@@ -10667,7 +10667,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
    Guru wherever it names itself (the name is set when the page is assembled).
    Round 12, the building's record: the address and the year built of each building come from the parish's own public
    records wherever it publishes them in a form a browser can read (the assessor's roll and the parish's address points,
-   ROLLS below), then OpenStreetMap's buildings, the two permit files, and for a building no record names, the address
+   ROLLS below), then OpenStreetMap's buildings, the four permit files, and for a building no record names, the address
    point the Esri World Geocoder finds in it, asked when it is picked. FEMA's imagery date says when it was standing by. The
    card's "The building on record" gives each fact with its source; the Scout Engine names the building it reads in its bar
    and on its label, with the house number over every building near the camera. Tangipahoa's and Terrebonne's roof
@@ -10810,7 +10810,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   const tileBox = (z, x, y) => { const n = Math.pow(2, z), n0 = deg(Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n)))), n1 = deg(Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 1) / n)))); return { w: x / n * 360 - 180, e: (x + 1) / n * 360 - 180, n: n0, s: n1 }; };
   const env = b => [b.w, b.s, b.e, b.n].map(v => v.toFixed(6)).join(',');
 
-  /* ---------- addresses: one key for FEMA, the parcel roll and the two permit files ---------- */
+  /* ---------- addresses: one key for FEMA, the parcel rolls and the permit files ---------- */
   /* "632 WOODGATE BLVD", "2718 Saint Ann St", "435 E WOODGATE CT BATON ROUGE LA 70808" and "1030 Crete St Apt B" all come
      down to number|core name: suffixes and directions dropped, units and cities cut off. A New Orleans double's range
      ("2824-26 St Ann St", "2616/18 St Philip St") keys on its first number, as FEMA and the parcel roll do. */
@@ -11301,7 +11301,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     { id: 'lafayette-addr', label: 'Lafayette Parish addresses', name: 'the Lafayette Consolidated Government address points', fips: ['22055'], kind: 'addr',
       url: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_Address_Points/FeatureServer/0', f: { addr: 'FULL_ADDR', city: 'CITY', zip: 'ZIP', use: 'ADDR_TYPE', name: 'BLDG_NAME' },
       map: { use: v => ({ RES: 'Residential', 'M-RES': 'Multifamily residential', COM: 'Commercial', EDU: 'Education' })[String(v).toUpperCase()] || (/^null$/i.test(v) ? '' : v) },
-      what: 'Lafayette Consolidated Government GIS, address points (live), with the kind of building at each', when: 'live', link: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_Address_Points/FeatureServer' },
+      what: 'Lafayette Consolidated Government GIS, address points (live), with the kind of building at each', when: 'live', link: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_Address_Points/FeatureServer/0?f=pjson' },
     { id: 'vermilion-addr', label: 'Vermilion Parish addresses', name: 'the Vermilion Parish address points', fips: ['22113'], kind: 'addr',
       url: 'https://services5.arcgis.com/fd4YUNfNg9nSjnfH/arcgis/rest/services/Vermilion_Parish_Address_Points/FeatureServer/6', f: { num: 'Name', st: 'STREET_NAME' },
       what: 'Vermilion Parish address points', when: 'parish wide', link: 'https://services5.arcgis.com/fd4YUNfNg9nSjnfH/arcgis/rest/services/Vermilion_Parish_Address_Points/FeatureServer' },
@@ -11322,7 +11322,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       what: 'Lafayette Parish new residential construction permits, 2021 to 2025: the permit\'s year, about the year built, for homes newer than the roll', when: '2021 to 2025', link: 'https://services5.arcgis.com/riEeMHAEYSsj4tFW/arcgis/rest/services/2021_2025_residential_permits_all_years/FeatureServer' },
     { id: 'lafayette-buildings', label: 'Lafayette buildings', name: 'the Lafayette Consolidated Government building footprints', fips: ['22055'], kind: 'bldg',
       url: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_BuildingFootprints2023/FeatureServer/0', where: "status IS NULL OR status <> 'demolished'", f: { addr: 'FULL_ADDR', city: 'CITY_PARIS', name: 'BLDG_NAME' },
-      what: 'Lafayette Consolidated Government GIS, 2023 building footprints with the address of each', when: '2023 flight', link: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_BuildingFootprints2023/FeatureServer' },
+      what: 'Lafayette Consolidated Government GIS, 2023 building footprints with the address of each', when: '2023 flight', link: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_BuildingFootprints2023/FeatureServer/0?f=pjson' },
     /* Lincoln: the Lincoln Parish GIS District's own server (the Assessor, the City of Ruston and six other agencies). Its Structures layer gives
        each structure a year (Year1: new homes carry the year they were added, older ones years that predate the GIS, many rounded to the decade,
        so it is read as the year built; the fields carry no labels), a second year (Year2, read as the effective year), the heated area (Size),
@@ -11361,7 +11361,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       what: 'Bossier Parish 911 address points, kept by the City of Bossier City Engineering', when: '56,052 points; edited August 21, 2025', link: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Parish_Address/FeatureServer' },
     { id: 'bossier-roll', label: 'Bossier Parish tax roll', name: 'the Bossier Parish Assessor\'s roll', fips: ['22015'], kind: 'parcel', fallback: true,
       url: 'https://bpagis.bossierparish.org/server/rest/services/Parcels/BossierParcels_Public_Es2/MapServer/0', f: { addr: 'PhysicalAddress' },
-      what: 'Bossier Parish Assessor parcels (on its ES2-hosted server): the site address of each parcel', when: '78,903 parcels, a site address on 74%; live', link: 'https://bpagis.bossierparish.org/server/rest/services/Parcels/BossierParcels_Public_Es2/MapServer' },
+      what: 'Bossier Parish Assessor parcels (on its ES2-hosted server): the site address of each parcel', when: '78,903 parcels, a site address on 74%; live', link: 'https://bpagis.bossierparish.org/server/rest/services/Parcels/BossierParcels_Public_Es2/MapServer/0?f=pjson' },
     /* DeSoto: the Assessor's copy of the parish 911 address points (a stable address; 911's own service is renamed with each snapshot) with
        the kind of building at each, and the Assessor's parcels behind them */
     { id: 'desoto-911', label: 'DeSoto Parish addresses', name: 'the DeSoto Parish 911 address points (the Assessor\'s copy)', fips: ['22031'], kind: 'addr',
@@ -11460,7 +11460,9 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     /* Tangipahoa: the parish's tax parcels with the site address, on the parish's own server */
     { id: 'tangipahoa-roll', label: 'Tangipahoa Parish tax parcels', name: 'the Tangipahoa Parish tax parcels', fips: ['22105'], kind: 'parcel',
       url: 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/TaxParcel_A/MapServer/0', f: { addr: 'PHYSICAL_STREET_ADDR', city: 'PHYSICAL_PSTLCITY', zip: 'PHYSICAL_PSTLZIP5' },
-      what: 'Tangipahoa Parish Government GIS, tax parcels with the site address', when: 'live', link: 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/TaxParcel_A/MapServer' },
+      /* a fifth of its site addresses end in the town and the ZIP ("16038 DOCTORS BOULEVARD HAMMOND 70403"), which the city and ZIP fields hold */
+      map: { addr: v => v.replace(/\s+(?:AKERS|ALBANY|AMITE(?: CITY)?|COVINGTON|FLUKER|FOLSOM|FRANKLINTON|HAMMOND|HUSSER|INDEPENDENCE|KENTWOOD|LORANGER|NATALBANY|PONCHATOULA|ROBERT|ROSELAND|SPRINGFIELD|TANGIPAHOA|TICKFAW)(?:\s+LA)?\s+\d{5}(?:-\d{4})?\s*$/i, '').replace(/\s+\d{5}(?:-\d{4})?\s*$/, '') },
+      what: 'Tangipahoa Parish Government GIS, tax parcels with the site address', when: 'live', link: 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/TaxParcel_A/MapServer/0?f=pjson' },
     /* Washington: the parish's 911 address points (captured by GPS) and its parcels behind them */
     { id: 'washington-911', label: 'Washington Parish addresses', name: 'the Washington Parish 911 address points', fips: ['22117'], kind: 'addr',
       url: 'https://services7.arcgis.com/yE0LOKocwREqepjx/arcgis/rest/services/Addresses_(Public_View)/FeatureServer/0', f: { addr: 'ADDRESS', city: 'MSAGComm' },
@@ -11485,14 +11487,14 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       url: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/2', f: { yb: 'Age', eyb: 'Eff_Age', area: 'LivingSqft', cond: 'Condition', use: 'Structure_Type' },
       map: { yb: v => (+v > 0 && +v < 200 ? String(2027 - +v) : ''), eyb: v => (+v > 0 && +v < 200 ? String(2027 - +v) : ''), cond: v => (/^user defined$/i.test(v) ? '' : v) },
       what: 'St. James Parish Assessor (the parish tax viewer server), buildings: an age (the year built is 2027 minus the age, as the roll\'s own sales file shows), an effective age, living area, condition and structure type',
-      when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer' },
+      when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/2?f=pjson' },
     { id: 'stjames-addr', label: 'St. James Parish addresses', name: 'the St. James Parish address points', fips: ['22093'], kind: 'addr',
       url: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/0', f: { num: 'ADDRESS', st: 'ST_LABEL', city: 'COMMUNITY', zip: 'ZIPCODE' },
-      what: 'St. James Parish, address points', when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer' },
+      what: 'St. James Parish, address points', when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/0?f=pjson' },
     { id: 'stjames-roll', label: 'St. James Parish parcels', name: 'the St. James Parish Assessor\'s parcels', fips: ['22093'], kind: 'parcel', fallback: true,
       url: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/4', f: { addr: 'Physical_Addr' },
       map: { addr: v => v.replace(/\s+(LUTCHER|GRAMERCY|(?:NORTH |SOUTH )?VACHERIE|PAULINA|CONVENT|ST\.? JAMES|HESTER|UNCLE SAM|ROMEVILLE|BURNSIDE|WELCOME|DONALDSONVILLE)\s*(?:LA\s*)?(?:\d{5})?\s*$/i, '') },
-      what: 'St. James Parish Assessor, parcels with the site address', when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer' },
+      what: 'St. James Parish Assessor, parcels with the site address', when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/4?f=pjson' },
     /* Calcasieu: the Police Jury's E911 address points, its parcels behind them, and its insurance schedule of the parish's own 273 buildings (year
        built, the year the roof went on, roof covering and shape, cladding, stories, construction): offices, fire stations, parks, no homes */
     { id: 'calcasieu-911', label: 'Calcasieu Parish addresses', name: 'the Calcasieu Parish E911 address points', fips: ['22019'], kind: 'addr',
@@ -11510,10 +11512,10 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     /* Jefferson Davis and Allen: the parish parcels with the site address, on Total Land Solutions' server for the parish GIS (about 2023) */
     { id: 'jeffdavis-roll', label: 'Jefferson Davis Parish parcels', name: 'the Jefferson Davis Parish parcels', fips: ['22053'], kind: 'parcel',
       url: 'https://gis3.totaland.com/arcgis/rest/services/AEDC/JDPE_Parcels/MapServer/0', f: { addr: 'par_address' },
-      what: 'Jefferson Davis Parish GIS (hosted by Total Land Solutions), parcels with the site address', when: 'about 2023', link: 'https://gis3.totaland.com/arcgis/rest/services/AEDC/JDPE_Parcels/MapServer' },
+      what: 'Jefferson Davis Parish GIS (hosted by Total Land Solutions), parcels with the site address', when: 'about 2023', link: 'https://gis3.totaland.com/arcgis/rest/services/AEDC/JDPE_Parcels/MapServer/0?f=pjson' },
     { id: 'allen-roll', label: 'Allen Parish parcels', name: 'the Allen Parish parcels', fips: ['22003'], kind: 'parcel',
       url: 'https://gis3.totaland.com/arcgis/rest/services/Allen/AllenReference2/MapServer/14', f: { addr: 'par_address' },
-      what: 'Allen Parish GIS (hosted by Total Land Solutions), parcels with the site address', when: 'about 2023', link: 'https://gis3.totaland.com/arcgis/rest/services/Allen/AllenReference2/MapServer' },
+      what: 'Allen Parish GIS (hosted by Total Land Solutions), parcels with the site address', when: 'about 2023', link: 'https://gis3.totaland.com/arcgis/rest/services/Allen/AllenReference2/MapServer/14?f=pjson' },
     /* Vernon: the parish's address points, addressed building footprints and parcels on its EFS EDGE map, through the public portal's proxy
        address (the vendor may change it) */
     { id: 'vernon-buildings', label: 'Vernon Parish buildings', name: 'the Vernon Parish addressed building footprints', fips: ['22115'], kind: 'bldg',
@@ -11627,10 +11629,10 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     /* West Baton Rouge: the Assessor's building footprints (each with its site address) and address points, on Total Land Solutions' server */
     { id: 'wbr-buildings', label: 'West Baton Rouge buildings', name: 'the West Baton Rouge Assessor\'s building footprints', fips: ['22121'], kind: 'bldg',
       url: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer/5', f: { addr: 'Prop_Add', city: 'AISPhysCit' },
-      what: 'West Baton Rouge Parish Assessor (hosted by Total Land Solutions), building footprints with the site address of each', when: 'April 2026 flight', link: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer' },
+      what: 'West Baton Rouge Parish Assessor (hosted by Total Land Solutions), building footprints with the site address of each', when: 'April 2026 flight', link: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer/5?f=pjson' },
     { id: 'wbr-addr', label: 'West Baton Rouge addresses', name: 'the West Baton Rouge address points', fips: ['22121'], kind: 'addr',
       url: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer/4', f: { num: 'ADDR_HN', pre: 'ADDR_PD', st: 'ADDR_SN', typ: 'ADDR_ST', suf: 'ADDR_SD' },
-      what: 'West Baton Rouge Parish Assessor (hosted by Total Land Solutions), address points', when: 'live', link: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer' },
+      what: 'West Baton Rouge Parish Assessor (hosted by Total Land Solutions), address points', when: 'live', link: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer/4?f=pjson' },
     /* Iberville: the parish's address points and its parcels with the Assessor's site address */
     { id: 'iberville-addr', label: 'Iberville Parish addresses', name: 'the Iberville Parish address points', fips: ['22047'], kind: 'addr',
       url: 'https://services7.arcgis.com/6SHSRgj15reB1LOT/arcgis/rest/services/EXISTING_ADDRESS_POINTS_view2/FeatureServer/0', f: { addr: 'Match_addr', city: 'ARC_City' },
@@ -11666,32 +11668,92 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     return { whole: whole.filter(Boolean).sort(), part: part.sort() }; })();
   /* parishes with a live roof permit file: Orleans (City of New Orleans), East Baton Rouge, Tangipahoa and Terrebonne */
   const PFILE = { '22071': 'nola', '22033': 'ebr', '22105': 'tang', '22109': 'tpcg' };
-  /* the two on the parishes' own ArcGIS servers, each permit read by its type and its text (checked 2026-11-20). Tangipahoa:
-     reroof permits from 2018 (the Re-Roof types of Act 239 from August 2025, and older 'Building' permits whose text says
-     reroofing), residential and commercial new construction, manufactured home placements, and renovations and additions
-     whose text names the roof. Terrebonne: its residential and commercial building permits, the hurricane ones included,
-     whose text names the roof (most of them after Ida, from September 2021), and new construction. Voided, expired,
-     withdrawn, denied and deactivated permits are left out; a pending one is kept, as its date is when the work was asked
-     for. Tangipahoa's permits carry the issue date to April 2026 and only the date applied for since, which stands in for it
-     (on the few with both, the application came 1 to 82 days earlier). Terrebonne's text sometimes runs the project's name into its description ("Shingle ReplacementRoof replacement"),
-     so a lower case letter followed by a capital is split before the page reads it. */
+  /* The two on the parishes' own ArcGIS servers, each permit read by its type and its text (checked 2026-11-20).
+     Tangipahoa: reroofing in its 'Building' permits from May 2009 to September 2018, its 'Re-roof' permits from July 2018
+     to early 2022 (almost none from then until August 2025), the Re-Roof types of Act 239 from August 14, 2025; residential
+     and commercial new construction, but not a shed, barn, shop, pool house, garage or carport filed as one, nor the
+     parish's accessory new construction type; manufactured home placements (under its moving types to 2024, a type of their
+     own since), but not a used home, a FEMA unit, a camper, a power hookup or a house moved; and renovations and additions
+     whose text names the roof. The file repeats permits (one reroof 1,368 times, some under two dates): one record is kept
+     a permit, the copy with the issue date first. Its permits carry the issue date to April 2026 and only the date applied
+     for since, which stands in for it (on the few with both, the application came 1 to 82 days earlier).
+     Terrebonne: its residential and commercial building permits, the hurricane ones included, to September 25, 2026 (the
+     layer's last edit; few from July 2025 to January 2026). Roof work starts in September 2021 (none from July to November
+     2025), inside renovation and addition permits whose text names the roof or the shingles: the parish has no reroof type. Its work type 'New' is
+     the application's, not the building's (a generator, pool, fence, sign, RV, shed, burial or parade is 'New' too), so the
+     text decides: a new house, camp, townhouse, duplex or commercial building is new construction, a new mobile home a
+     placement, a roof job roof work, and the rest is left out; a mobile home moved or used, and a FEMA or GOHSEP unit, are
+     left out too. Its text sometimes runs the project's name into the description ("Shingle ReplacementRoof replacement",
+     "Roof Replacementreplacement of laminate shingles"), so the two are split before the page reads it, and its own words
+     for a whole reroof ("shingle replacement", "roof change out") are weighed as one; the card shows the words as filed.
+     Voided, expired, withdrawn, denied and deactivated permits are left out; a pending one is kept, as its date is when the
+     work was asked for. */
+  const TX_ROOF = /\bRE-?ROOF|\bROOF|SHINGL/;
+  const TG_NOTNEW = /\b(?:RENOVAT\w*|REMODEL\w*|ADDITION|ADDING|REPAIR\w*)\b|\bMOD TO\b/, TG_NEWB = /NEW CONSTR|NEW (?:HOUSE|HOME|RESIDENCE|BUILDING|SINGLE)|BUILDING (?:A |AN |NEW )?(?:HOUSE|HOME|RESIDENCE)/;
+  const TG_ACC = /\bSHEDS?\b|\bBARNS?\b|CABANA|\bPOOL\b|GARAGE|CAR ?PORT|PAVILION|GAZEBO|GREENHOUSE/, TG_MH = /MANUFACTURED|MOBILE|MOVILE|\bMHP?\b|WIDE\b|\bSINGLE|\bDOUBLE/;
+  const TP_NEWB = /NEW (?:\w+ ){0,2}(?:CONSTRUCTION|RESIDENCE|HOME|HOUSE|CAMP)|CONSTRUCTION OF (?:A |AN )?NEW/;
+  const TP_TEMP = /TEMPORARY|TRAVEL TRAILER|\bFEMA\b|GOHSEP|\bRVS?\b|RECREATION|CAMPER/;
+  const TP_MH = /\bMOBI?LE? HOMES?\b|MANUFACTURED (?:HOME|HOUSING)|\b(?:SINGLE|DOUBLE)[- ]?WIDE\b|\bMHU?\b/;
+  const TP_NOT = /GENERATOR|\bGEN\.?\b|GENERAC|\bKW\b|\bPOOL|\bSPA\b|HOT TUB|FENCE|\bSIGNS?\b|BILLBOARD|LETTERS?\b|TRAILER|ACCESSORY|ACCESSARY|\bSHEDS?\b|STORAGE|CONTAINER|CONEX|CAR ?PORT|GARAGE|PATIO|PORCH|\bDECK\b|CANOPY|PAVILL?ION|GAZEBO|PERGOLA|AWNING|\bCOVER(?:ING)?\b|CABANA|BOAT ?HOUSE|\bBARNS?\b|STABLE|GREENHOUSE|BURIAL|MAUSOLEUM|FESTIVAL|CELEBRAT|PARADE|VENDOR|VENDING|FOOD TRUCK|SNOWBALL|\bEVENT|\bRUN\b|\b5K\b|BALL\b|JAM SESSION|PRAISE|WAY OF THE CROSS|PUBLIC (?:PROPERTY|USE)|DRIVEWAY|PARKING|\bSLAB\b|FOUNDATION ONLY|BULKHEAD|TOWER|ANTENNA|WIRELESS|SOLAR|\bMETER\b|POWER POLE|SHORE ?POWER|EV CHARG|ELECTRIC(?:AL)? ONLY|^ELECTRIC$|GAS SERVICE|MECHANICAL|\bAC\b|PLUMBING FOR|(?:TO|FOR) EXISTING|RENOVAT|REPAIR|REMODEL|ADDITION|ALTERATION|INTERIOR WALL|NON-LOAD|RAMP\b|FUEL TANK|HANGAR|ICE MACHINE|PLAZA|TRAIL\b|BAND ?STAND|ISLAND\b|BREAK ROOM|EQUIPMENT|CABINET|LOADING DOCK|PAVING|RACEWAY|CODE VIOLATION|RELOCAT|SMOKE ROOM|FOUNTAIN|CULVERT|DEMOLI|PORTABLE|ASSESSORY|ACCESORY|LEAN.?TO|AIR ?COOL|INSTALL(?:ATION)? PACKAGE|MONOPOLE|WETLANDS?|GROUND ?WORK|INFRASTRUCTURE/;
+  const TP_NEW = /RESIDEN|\bHOUSES?\b|\bHOMES?\b|DWELLING|SINGLE[- ]FAMILY|\bSFR?\b|DUPLEX|TOWNHO|\bCAMP\b|CONDO|APARTMENT|STUDIO UNITS|HOUSING COMPLEX|BARN ?DOMINIUM|NEW (?:\w+ ){0,2}CONSTRUCTION|CONSTRUCTION OF (?:A |AN )?NEW|COMMERCIAL|COMMERICAL|\bBUILDING|WAREHOUSE|OFFICE|\bSTORE\b|RESTAURANT|CHURCH|SCHOOL|DAYCARE|CLINIC|FIELDHOUSE|\bSHOP\b|FACILITY|CENTER\b|HOTEL|MOTEL|BANK\b|STATION\b|PLANT\b|SHELL\b/;
+  /* Tangipahoa: a permit's kind by its type, and by its text where the type does not settle it */
+  function tgKind(ty, u) {
+    if (/^re-?\s?roof/i.test(ty)) return 'reroof';
+    if (/new construction/i.test(ty)) {
+      if (TG_NOTNEW.test(u) && !TG_NEWB.test(u)) return TX_ROOF.test(u) ? 'roofwork' : '';
+      const acc = TG_ACC.test(u) || (/\(R\)/.test(ty) && /STORAGE|\bSHOP\b/.test(u));
+      return acc && !MAIN_BLDG.test(u) && !/BARN ?DOMINIUM|TINY HOME/.test(u) ? '' : 'newc';
+    }
+    if (/^(?:manufactured home placement|moving)/i.test(ty)) return /\bUSED\b|FEMA|CAMPER|TRAVEL TRAILER|RELOCAT/.test(u) || (/\bLIGHTS\b|ENTERGY/.test(u) && !/\bNEW\b/.test(u)) || (/\bHOUSE\b|\bSHED\b|BUILDING|CONTAINER/.test(u) && !TG_MH.test(u)) ? '' : 'mh';
+    return TX_ROOF.test(u) ? 'roofwork' : '';
+  }
+  /* Terrebonne: the description as filed, with the project's name split off it; and the words it is weighed by */
+  const tpText = s => sval(s).replace(/\bReplacement(?=[a-z]{2})/g, 'Replacement ').replace(/(?<=[A-Za-z][a-z])(?=[A-Z][a-z])/g, ' ');
+  const tpWeigh = d => d.replace(/\bshingles? replac\w*/gi, 'shingle roof replacement').replace(/\broof change[- ]?out\b/gi, 'roof replacement').replace(/\b(?:back |front |rear )?screen(?:ed)? porch\b/gi, 'porch').replace(/\btractor shed\b/gi, 'shed');
+  /* Terrebonne: a permit's kind by its work type and its text (the main item: the text before 'with', 'and' or 'plus') */
+  function tpKind(des, wt, d) {
+    const u = d.toUpperCase(), head = u.replace(/(?:\b(?:WITH|W\/|PLUS|INCLUDING|ALONG WITH|AND)\b|&).*$/, ''), roof = TX_ROOF.test(u);
+    if (wt !== 'New' && wt !== 'Moving/Relocation') return roof ? 'roofwork' : '';
+    if (wt === 'New' && roof && !TP_NEWB.test(u)) return /SOLAR|\bPV\b|PANELS?\b/.test(u) ? '' : 'roofwork';
+    if (TP_MH.test(u)) return (TP_TEMP.test(head) && !/PURCHASED/.test(u)) || (/\bUSED\b|\bMOV(?:E|ED|ING)\b|TRANSPORT|RELOCAT/.test(u) && !/\bNEW\b/.test(u)) || /REPAIR|RENOVAT|ADDITION|PORCH|\bDECK\b|AWNING|CAR ?PORT|\bSTEPS\b|RAMP\b|SKIRT/.test(head) ? '' : 'mh';
+    if (wt !== 'New' || TP_TEMP.test(head)) return '';
+    if (/RESIDENTIAL/i.test(des) && /METAL BUILDING|POLE BUILDING|WORKSHOP|\bSHOP\b|\bBARNS?\b/.test(head)) return '';
+    return TP_NOT.test(head) || !TP_NEW.test(head) ? '' : 'newc';
+  }
   const PERMIT_AGS = {
     tang: { src: 'Tangipahoa Parish', url: 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/Building_Permits/MapServer/0',
-      where: "(permitType LIKE 'Re-%oof%' OR permitType LIKE '%New Construction%' OR permitType LIKE 'Manufactured Home Placement%' OR ((permitType LIKE '%Renovation%' OR permitType LIKE '%Addition%' OR permitType = 'Building' OR permitType IS NULL OR permitType = 'NULL') AND UPPER(projectDescription) LIKE '%ROOF%')) AND (projectStatus IS NULL OR projectStatus NOT IN ('Void', 'Voided', 'Denied', 'Withdrawn', 'Expired', 'Cancelled', 'Canceled'))",
-      out: 'permitType,projectDescription,date,createDate,projectStatus,address',
-      of: a => { const ty = sval(a.permitType); return { addr: sval(a.address), ms: +a.date || +a.createDate, desc: sval(a.projectDescription), type: /^null$/i.test(ty) ? '' : ty, kind: /^re-?\s?roof/i.test(ty) ? 'reroof' : /new construction/i.test(ty) ? 'newc' : /^manufactured home placement/i.test(ty) ? 'mh' : 'roofwork' }; } },
+      where: "(permitType LIKE 'Re-%oof%' OR (permitType LIKE '%New Construction%' AND permitType NOT LIKE '%Accessory%') OR permitType LIKE 'Manufactured Home Placement%' OR (permitType LIKE 'Moving%' AND (UPPER(projectDescription) LIKE '%MANUFACTURED%' OR UPPER(projectDescription) LIKE '%MOBILE%' OR UPPER(projectDescription) LIKE '%MOVILE%' OR UPPER(projectDescription) LIKE '%MH%' OR UPPER(projectDescription) LIKE '%WIDE%' OR UPPER(projectDescription) LIKE '%NEW SING%') AND UPPER(projectDescription) NOT LIKE '%USED%' AND UPPER(projectDescription) NOT LIKE '%FEMA%' AND UPPER(projectDescription) NOT LIKE '%CAMPER%') OR ((permitType LIKE '%Renovation%' OR permitType LIKE '%Addition%' OR permitType = 'Building' OR permitType IS NULL OR permitType = 'NULL') AND (UPPER(projectDescription) LIKE '%ROOF%' OR UPPER(projectDescription) LIKE '%SHINGL%'))) AND (projectStatus IS NULL OR projectStatus NOT IN ('Void', 'Voided', 'Denied', 'Withdrawn', 'Expired', 'Cancelled', 'Canceled'))",
+      out: 'permitType,projectDescription,date,createDate,projectStatus,address,projectNumber',
+      of: a => { const ty = sval(a.permitType), desc = sval(a.projectDescription); return { addr: sval(a.address), ms: +a.date || +a.createDate, iss: +a.date > 0, pn: sval(a.projectNumber), desc, type: /^null$/i.test(ty) ? '' : ty, kind: tgKind(ty, desc.toUpperCase()) }; } },
     tpcg: { src: 'Terrebonne Parish', url: 'https://gis.tpcg.org/server/rest/services/Hosted/MGOPermits/FeatureServer/0',
-      where: "designation IN ('Residential', 'Hurricane Residential', 'Commercial', 'Hurricane Commercial') AND (worktype = 'New' OR ((worktype IS NULL OR worktype IN ('', 'Renovation/Alteration', 'Addition')) AND UPPER(projectdescription) LIKE '%ROOF%')) AND (status IS NULL OR status NOT IN ('Voided', 'Void', 'Deactivated/GOHSEP', 'Deactivated/FEMA', 'Expired', 'Withdrawn', 'Denied'))",
-      out: 'designation,worktype,status,projectdescription,createdate,address',
-      of: a => ({ addr: sval(a.address), ms: +a.createdate, desc: sval(a.projectdescription).replace(/([a-z])([A-Z])/g, '$1 $2'), type: [sval(a.designation), sval(a.worktype)].filter(Boolean).join(', '), kind: sval(a.worktype) === 'New' ? 'newc' : 'roofwork' }) },
+      where: "designation IN ('Residential', 'Hurricane Residential', 'Commercial', 'Hurricane Commercial') AND (worktype = 'New' OR (worktype = 'Moving/Relocation' AND (UPPER(projectdescription) LIKE '%MOBILE%' OR UPPER(projectdescription) LIKE '%MOBLE%' OR UPPER(projectdescription) LIKE '%MANUFACTURED%' OR UPPER(projectdescription) LIKE '%WIDE%')) OR ((worktype IS NULL OR worktype IN ('', 'Renovation/Alteration', 'Addition')) AND (UPPER(projectdescription) LIKE '%ROOF%' OR UPPER(projectdescription) LIKE '%SHINGL%'))) AND (status IS NULL OR status NOT IN ('Voided', 'Void', 'Deactivated/GOHSEP', 'Deactivated/FEMA', 'Expired', 'Withdrawn', 'Denied'))",
+      out: 'designation,worktype,status,projectdescription,createdate,address,projectnumber',
+      of: a => { const des = sval(a.designation), wt = sval(a.worktype), desc = tpText(a.projectdescription); return { addr: sval(a.address), ms: +a.createdate, pn: sval(a.projectnumber), desc, wd: tpWeigh(desc), type: [des, wt].filter(Boolean).join(', '), kind: tpKind(des, wt, desc) }; } },
   };
   /* the card's word on a building with no roof permit, by file */
   const PERMIT_TXT = {
     nola: 'City of New Orleans: reroof permits from May 2025, roof work in renovation permits from 2012',
     ebr: 'East Baton Rouge Parish: reroof permits from July 2025, roof work in remodel permits from 2012, with map points mostly from 2016',
-    tang: 'Tangipahoa Parish: reroof permits from 2018 and the reroof types of Act 239 from August 2025, roof work in renovation and addition permits; updated daily',
-    tpcg: 'Terrebonne Parish: roof work in its building permits from September 2021, most of it after Hurricane Ida',
-  };
+    tang: 'Tangipahoa Parish: reroofing in its building permits from 2009 and reroof permits from 2018 to early 2022, then almost none until the reroof types of Act 239 in August 2025, and roof work in renovation and addition permits; updated daily',
+    tpcg: 'Terrebonne Parish: roof work in its building permits from September 2021 to September 25, 2026 (none from July to November 2025), much of it repairs after Hurricane Ida',
+  };  /* whether a building's permit file was read, from the map squares it stands in: 'read', 'wait' while it loads, else 'fail' */
+  function permitState(b, file) {
+    const ts = [...(b.tiles || [])].map(k => T.get(k)).filter(Boolean);
+    if (!ts.length || ts.some(t => t.permitOk && t.permitOk.has(file))) return 'read';
+    return ts.some(t => t.permitWait) ? 'wait' : 'fail';
+  }
+  /* Towns that keep their own permits, which their parish's file holds few or none of, by Census GEOID (checked 2026-11-20:
+     the Tangipahoa file holds no new construction permit inside Hammond's 9,173 parcels, Ponchatoula's 4,291 or Kentwood's
+     1,556, and one in 100 to 350 parcels in Independence, Roseland, Tickfaw and the village of Tangipahoa, against one in 4
+     in Amite City and about one in 20 outside the towns; East Baton Rouge's holds under ten permits within 1.5 km of the
+     centres of Baker, Central and Zachary, against thousands in Baton Rouge). Their limits come from TIGERweb, once. */
+  const PERMIT_OWN = { ebr: ['2203985', '2213960', '2283405'], tang: ['2232755', '2261615', '2239545', '2237025', '2266165', '2275670', '2274760'] };
+  const PLACES_URL = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4';
+  let ownTowns = null;
+  const townsP = () => ownTowns || (ownTowns = getJSON2(PLACES_URL + '/query?' + qs({ where: `GEOID IN (${Object.values(PERMIT_OWN).flat().map(g => `'${g}'`).join(',')})`, outFields: 'GEOID,NAME', returnGeometry: 'true', outSR: 4326, geometryPrecision: 5, maxAllowableOffset: 0.00005, f: 'json' }), { timeout: 30000 })
+    .then(j => (j.features || []).map(f => { const rings = ((f.geometry || {}).rings || []).map(r => r.map(([lo, la]) => [la, lo])); return { geoid: String(f.attributes.GEOID), name: sval(f.attributes.NAME), rings, bb: bboxOf(rings) }; }).filter(q => q.rings.length))
+    .catch(e => { ownTowns = null; throw e; }));
+  const townName = n => { const m = /^(.*) (city|town|village)$/.exec(n || ''); return m ? `the ${m[2]} of ${m[1]}` : n; };
   function ingest(fc, t) {
     const out = [];
     (fc.features || []).forEach(f => {
@@ -11731,15 +11793,21 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     return j;
   }
   /* ---------- the rolls and address points in a tile, read and joined to its buildings ---------- */
-  /* the parishes a tile reaches: the parish of each building in it, and of nine points across it (the parish shapes are the
-     atlas's, good to about 200 m, so a tile on a parish line asks both parishes' layers) */
+  /* the parishes a tile reaches: the parish of each building in it (its ZIP's, and the one its point falls in), and of nine
+     points across it (the parish shapes are the atlas's, good to about 200 m, so a tile on a parish line asks both parishes'
+     layers) */
   CTY.forEach(c => { c.bb = bboxOf(c.rings); });
+  /* the parish a building stands in, by those shapes (its ZIP's parish can be the next one over) */
+  const pfOf = b => { if (b.pfips === undefined) { const c = CTY.find(q => inBox(b.lat, b.lon, q.bb) && inRings(b.lat, b.lon, q.rings)); b.pfips = c ? c.fips : (b.fips || ''); } return b.pfips; };
   function parishesOf(t, bs) {
-    const out = new Set(bs.map(b => b.fips).filter(Boolean)), bx = t.box;
+    const out = new Set(bs.map(b => b.fips).concat(bs.map(pfOf)).filter(Boolean)), bx = t.box;
     [0.03, 0.5, 0.97].forEach(fy => [0.03, 0.5, 0.97].forEach(fx => { const la = bx.s + (bx.n - bx.s) * fy, lo = bx.w + (bx.e - bx.w) * fx; const c = CTY.find(q => inBox(la, lo, q.bb) && inRings(la, lo, q.rings)); if (c) out.add(c.fips); }));
     return [...out];
   }
   const sval = v => (v == null ? '' : String(v).replace(/\s+/g, ' ').trim());
+  /* the parish servers are many and some are small: a request one drops (a network failure, not a refusal or a time out) is
+     asked once more after a pause before the tile goes on without it */
+  async function getJSON2(url, o) { try { return await getJSON(url, o); } catch (e) { if (/^(?:HTTP 4\d\d|timed out)/.test(String((e && e.message) || ''))) throw e; await new Promise(r => setTimeout(r, 1500)); return getJSON(url, o); } }
   /* an address a building can carry: a house number and a street. Block addresses ("100 BLK N COLLEGE RD"), a lone 0, a
      number with no street and the rolls' "no situs" are left out; a city and state after a comma are cut off */
   function siteAddr(s) {
@@ -11779,11 +11847,11 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   async function fetchRoll(R, box, depth) {
     if (R.platform === 'socrata') {
       const w = `within_box(${R.geo}, ${box.n.toFixed(6)}, ${box.w.toFixed(6)}, ${box.s.toFixed(6)}, ${box.e.toFixed(6)})` + (R.where ? ' AND (' + R.where + ')' : '');
-      const j = await getJSON(R.url + '?' + qs({ $select: ROLL_OUT(R) + ',' + R.geo, $where: w, $limit: 20000 }), { timeout: 40000 });
+      const j = await getJSON2(R.url + '?' + qs({ $select: ROLL_OUT(R) + ',' + R.geo, $where: w, $limit: 20000 }), { timeout: 40000 });
       return (Array.isArray(j) ? j : []).map(r => { const p = r[R.geo] || {}, c = p.coordinates || null; return recOf(R, r, c ? { x: c[0], y: c[1] } : { x: p.longitude, y: p.latitude }); }).filter(Boolean);
     }
     const u = R.url + '/query?' + qs({ where: R.where || '1=1', geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: ROLL_OUT(R), returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'json' });
-    const j = await getJSON(u, { timeout: 40000 });
+    const j = await getJSON2(u, { timeout: 40000 });
     if (j.exceededTransferLimit && (depth || 0) < 2) return (await Promise.all(quarters(box).map(x => fetchRoll(R, x, (depth || 0) + 1)))).flat();
     return (j.features || []).map(f => recOf(R, f.attributes || {}, f.geometry)).filter(Boolean);
   }
@@ -11838,7 +11906,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   const osmLevels = p => { const lv = parseFloat(p.building_levels != null && p.building_levels !== '' ? p.building_levels : p.levels); return lv > 0 && lv < 120 ? lv : null; };
   async function fetchOsm(box, depth) {
     const u = EP.osmBldg + '?' + qs({ where: '1=1', geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: OSM_OUT, returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'json' });
-    const j = await getJSON(u, { timeout: 40000 });
+    const j = await getJSON2(u, { timeout: 40000 });
     if (j.exceededTransferLimit && (depth || 0) < 2) return (await Promise.all(quarters(box).map(x => fetchOsm(x, (depth || 0) + 1)))).flat();
     return (j.features || []).map(f => { const p = f.attributes || {}, kind = sval(p.building).toLowerCase(); if (!kind || kind === 'no' || kind === 'construction' || kind === 'proposed' || kind === 'demolished' || kind === 'ruins') return null;
       const rings = ((f.geometry && f.geometry.rings) || []).map(rg => rg.map(([x, y]) => [y, x])); if (!rings.length || rings[0].length < 4) return null; const bb = bboxOf(rings);
@@ -11881,42 +11949,54 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   const inLA = (la, lo) => isN(la) && isN(lo) && la > 28.8 && la < 33.1 && lo > -94.1 && lo < -88.7;
   /* roof permits in the tile, by their own map points: New Orleans (reroof permits from May 2025, roof work inside renovation
      permits from 2012, new construction from 2012) and East Baton Rouge Parish (reroof permits from July 2025, roof work
-     inside remodel permits and new buildings from 2011) */
+     inside remodel permits and new buildings from 2011); Tangipahoa and Terrebonne follow, from PERMIT_AGS by fetchPermitAgs */
   const NOLA_TYPES = ['Renovation (Non-Structural)', 'Renovation (Structural)', 'Renovation (Structural or Non-structural)', 'Repair', 'Emergency Permit', 'Accessory Structure'];
   async function fetchPermits(t) {
-    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), fips = new Set(bs.map(b => b.fips).concat(parishesOf(t, bs))), out = [], errs = []; let asked = 0;
+    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), fips = new Set(parishesOf(t, bs)), out = [], errs = [], ok = new Set(), bad = new Set(); let asked = 0;
+    const twP = [...fips].some(f => PERMIT_OWN[PFILE[f]]) ? townsP().catch(e => { errs.push('Town limits (U.S. Census): ' + why(e)); return null; }) : null;
     const bx = t.box, wb = `${bx.n.toFixed(6)}, ${bx.w.toFixed(6)}, ${bx.s.toFixed(6)}, ${bx.e.toFixed(6)}`;
     if (fips.has('22071')) {
       asked++;
       const where = `within_box(location_1, ${wb}) AND (code in('ROOF','NEWC') OR (type in(${NOLA_TYPES.map(x => `'${x}'`).join(',')}) AND upper(description) like '%ROOF%'))`;
-      try { const j = await getJSON(EP.nola + '?' + qs({ $select: 'address,type,code,issuedate,filingdate,currentstatus,description,constrval,location_1', $where: where, $limit: 5000 }), { timeout: 30000 });
+      try { const j = await getJSON2(EP.nola + '?' + qs({ $select: 'address,type,code,issuedate,filingdate,currentstatus,description,constrval,location_1', $where: where, $limit: 5000 }), { timeout: 30000 });
         (Array.isArray(j) ? j : []).forEach(r => { const loc = r.location_1 || {}, la = +loc.latitude, lo = +loc.longitude; if (!isN(la) || !isN(lo) || !la) return; if (/VOID|EXPIRED|DENIED|WITHDR|NOT REQUIRED|ERROR/i.test(r.currentstatus || '')) return;
           const d = String(r.issuedate || r.filingdate || '').slice(0, 10); if (!/^\d{4}-\d\d-\d\d$/.test(d)) return;
-          out.push({ lat: la, lon: lo, addr: r.address || '', key: addrParts(r.address).key, d, y: fracYear(d), desc: String(r.description || '').split(/\s*NOTE:/)[0].replace(/\s+/g, ' ').trim(), type: r.type || '', kind: r.code === 'NEWC' ? 'newc' : r.code === 'ROOF' ? 'reroof' : 'roofwork', val: +r.constrval || 0, src: 'City of New Orleans' }); }); }
-      catch (e) { errs.push('New Orleans permits: ' + why(e)); }
+          out.push({ lat: la, lon: lo, addr: r.address || '', key: addrParts(r.address).key, d, y: fracYear(d), desc: String(r.description || '').split(/\s*NOTE:/)[0].replace(/\s+/g, ' ').trim(), type: r.type || '', kind: r.code === 'NEWC' ? 'newc' : r.code === 'ROOF' ? 'reroof' : 'roofwork', val: +r.constrval || 0, src: 'City of New Orleans' }); }); ok.add('nola'); }
+      catch (e) { errs.push('New Orleans permits: ' + why(e)); bad.add('nola'); }
     }
     if (fips.has('22033')) {
       asked++;
       const where = `within_box(geolocation, ${wb}) AND (permittype like 'Re-Roof%' OR permittype like 'New Building%' OR permittype like 'Manuf%' OR ((permittype like 'Existing Bldg%' OR permittype like 'Damage Assessment%') AND upper(projectdescription) like '%ROOF%'))`;
-      try { const j = await getJSON(EP.ebr + '?' + qs({ $select: 'permittype,projectdescription,issueddate,creationdate,streetaddress,projectvalue,geolocation', $where: where, $limit: 5000 }), { timeout: 30000 });
+      try { const j = await getJSON2(EP.ebr + '?' + qs({ $select: 'permittype,projectdescription,issueddate,creationdate,streetaddress,projectvalue,geolocation', $where: where, $limit: 5000 }), { timeout: 30000 });
         (Array.isArray(j) ? j : []).forEach(r => { const loc = r.geolocation || {}, la = +loc.latitude, lo = +loc.longitude; if (!isN(la) || !isN(lo) || !la) return;
           const d = String(r.issueddate || r.creationdate || '').slice(0, 10); if (!/^\d{4}-\d\d-\d\d$/.test(d)) return; const ty = String(r.permittype || '');
-          out.push({ lat: la, lon: lo, addr: r.streetaddress || '', key: addrParts(r.streetaddress).key, d, y: fracYear(d), desc: String(r.projectdescription || '').replace(/\s+/g, ' ').trim(), type: ty, kind: /^Re-Roof/i.test(ty) ? 'reroof' : /^Manuf/i.test(ty) ? 'mh' : /^New Building/i.test(ty) ? 'newc' : 'roofwork', val: +r.projectvalue || 0, src: 'East Baton Rouge Parish' }); }); }
-      catch (e) { errs.push('East Baton Rouge permits: ' + why(e)); }
+          out.push({ lat: la, lon: lo, addr: r.streetaddress || '', key: addrParts(r.streetaddress).key, d, y: fracYear(d), desc: String(r.projectdescription || '').replace(/\s+/g, ' ').trim(), type: ty, kind: /^Re-Roof/i.test(ty) ? 'reroof' : /^Manuf/i.test(ty) ? 'mh' : /^New Building/i.test(ty) ? 'newc' : 'roofwork', val: +r.projectvalue || 0, src: 'East Baton Rouge Parish' }); }); ok.add('ebr'); }
+      catch (e) { errs.push('East Baton Rouge permits: ' + why(e)); bad.add('ebr'); }
     }
     for (const f of Object.keys(PFILE)) { const P = PERMIT_AGS[PFILE[f]]; if (!P || !fips.has(f)) continue; asked++;
-      try { (await fetchPermitAgs(P, bx, 0)).forEach(p => out.push(p)); } catch (e) { errs.push(P.src + ' permits: ' + why(e)); } }
-    out.forEach(p => { p.w = permitW(p); });
-    return { list: out, errs, asked };
+      try { (await fetchPermitAgs(P, bx)).forEach(p => out.push(p)); ok.add(PFILE[f]); } catch (e) { errs.push(P.src + ' permits: ' + why(e)); bad.add(PFILE[f]); } }
+    /* the buildings in a town that keeps its own permits */
+    const tw = twP && await twP;
+    if (tw) bs.forEach(b => { const own = PERMIT_OWN[PFILE[pfOf(b)]]; if (!own) return; const c = tw.find(q => own.includes(q.geoid) && inBox(b.lat, b.lon, q.bb) && inRings(b.lat, b.lon, q.rings)); b.permitTown = c ? c.name : ''; });
+    /* each permit's weight, from its text (Terrebonne's in its own words for a reroof read as the page reads them) */
+    out.forEach(p => { p.w = permitW(p.wd ? Object.assign({}, p, { desc: p.wd }) : p); delete p.wd; });
+    return { list: out, errs, asked, ok, bad };
   }
-  /* a permit file on ArcGIS, by the tile's box (asked again in quarters when the server sends no more than its page) */
-  async function fetchPermitAgs(P, box, depth) {
-    const j = await getJSON(P.url + '/query?' + qs({ where: P.where, geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: P.out, returnGeometry: 'true', outSR: 4326, f: 'json' }), { timeout: 30000 });
-    if (j.exceededTransferLimit && (depth || 0) < 2) return (await Promise.all(quarters(box).map(x => fetchPermitAgs(P, x, (depth || 0) + 1)))).flat();
+  /* a permit file on ArcGIS, by the tile's box: one record a permit (by its number, else its point, day and text), the copy
+     with the issue date first, else the earliest */
+  async function fetchPermitAgs(P, box) {
+    const m = new Map();
+    (await agsPermits(P, box, 0)).forEach(p => { const k = p.pn || `${p.lat},${p.lon}|${p.d}|${p.desc}`, o = m.get(k); if (!o || (p.iss && !o.iss) || (p.iss === o.iss && p.y < o.y)) m.set(k, p); });
+    return [...m.values()];
+  }
+  /* (asked again in quarters when the server sends no more than its page) */
+  async function agsPermits(P, box, depth) {
+    const j = await getJSON2(P.url + '/query?' + qs({ where: P.where, geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: P.out, returnGeometry: 'true', outSR: 4326, f: 'json' }), { timeout: 30000 });
+    if (j.exceededTransferLimit && depth < 2) return (await Promise.all(quarters(box).map(x => agsPermits(P, x, depth + 1)))).flat();
     const out = [];
-    (j.features || []).forEach(f => { const g = f.geometry || {}, la = +g.y, lo = +g.x; if (!inLA(la, lo)) return; const r = P.of(f.attributes || {}); if (!(r.ms > 0)) return;
+    (j.features || []).forEach(f => { const g = f.geometry || {}, la = +g.y, lo = +g.x; if (!inLA(la, lo)) return; const r = P.of(f.attributes || {}); if (!r.kind || !(r.ms > 0)) return;
       const d = new Date(r.ms).toISOString().slice(0, 10), yr = +d.slice(0, 4); if (!(yr >= 1990 && yr <= THIS_YEAR)) return;
-      out.push({ lat: la, lon: lo, addr: r.addr, key: addrParts(r.addr).key, d, y: fracYear(d), desc: String(r.desc || '').replace(/\s+/g, ' ').trim(), type: r.type, kind: r.kind, val: 0, src: P.src }); });
+      out.push({ lat: la, lon: lo, addr: r.addr, key: addrParts(r.addr).key, d, y: fracYear(d), desc: String(r.desc || '').replace(/\s+/g, ' ').trim(), wd: r.wd ? String(r.wd).replace(/\s+/g, ' ').trim() : '', type: r.type, kind: r.kind, pn: r.pn || '', iss: !!r.iss, val: 0, src: P.src }); });
     return out;
   }
   /* A permit joins the main building at its address. When several main buildings share the address it joins the one its
@@ -12899,7 +12979,9 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         const ask = R => fetchRoll(R, t.box, 0).then(rs => { recs.set(R, rs); }).catch(e => note((R.label || R.id) + ': ' + why(e)));
         const jobs = rolls.filter(R => !R.fallback).map(ask);
         jobs.push(fetchOsm(t.box, 0).then(l => { t.osmRes = l; }).catch(e => note('OpenStreetMap buildings: ' + why(e))));
-        if (fips.some(f => PFILE[f])) jobs.push(fetchPermits(t).then(pr => { t.permitRes = pr; pr.errs.forEach(note); t.permitsAsked = pr.asked; }).catch(e => note('Permits: ' + why(e))));
+        /* the permits come last and may come late: the tile's records are drawn without waiting for them */
+        t.permitWait = fips.some(f => PFILE[f]); t.permitOk = null;
+        const permP = t.permitWait ? fetchPermits(t).catch(e => { note('Permits: ' + why(e)); return null; }) : null;
         await Promise.all(jobs);
         /* the parish's own records first, in the registry's order (rolls before address points), then OpenStreetMap, then the permits */
         rolls.forEach(R => { if (recs.has(R)) joinRoll(t, R, recs.get(R)); });
@@ -12907,7 +12989,12 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (later.length) { await Promise.all(later.map(ask)); later.forEach(R => { if (recs.has(R)) joinRoll(t, R, recs.get(R)); }); }
         if (t.osmRes) { joinOsm(t, t.osmRes); t.osmRes = null; }
         t.ids.forEach(id => { const b = B.get(id); if (b && !b.addr && GEO.has(id)) applyGeo(b, GEO.get(id)); });
-        if (t.permitRes) { joinPermits(t, t.permitRes); t.permitRes = null; }
+        if (permP) {
+          t.ids.forEach(id => { const b = B.get(id); if (b) { read(b); draw(b); } }); refreshSoon(); if (d3Mode) refresh3D(); if (enMode) refreshEn();
+          if (sel && sel.type === 'b' && t.ids.has(sel.id)) { detail(); if (enMode) renderEnBar(); else if (d3Mode) render3DBar(); else if (svMode) renderSvBar(); }
+          const pr = await permP; t.permitWait = false;
+          if (pr) { pr.errs.forEach(note); t.permitsAsked = pr.asked; t.permitOk = pr.ok; joinPermits(t, pr); }
+        }
         t.ids.forEach(id => { const b = B.get(id); if (b) { read(b); draw(b); } });
         t.st = 'ok'; t.force = false; refreshSoon(); tryPending(); if (svMode) drawSoon(); if (d3Mode) refresh3D(); if (enMode) refreshEn();
         if (sel && sel.type === 'b' && t.ids.has(sel.id)) { detail(); if (enMode) renderEnBar(); else if (d3Mode) render3DBar(); else if (svMode) renderSvBar(); }
@@ -13056,10 +13143,14 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         const roll = b.parcel && b.parcel.parish ? b.parcel.parish + ' Parish' : (PNAME(b.fips) ? PNAME(b.fips) + ' Parish' : 'the parish');
         const ybTxt = b.yb && REC_YB.has(b.ybSrc) ? `<b>Built ${ybAbout(b) ? 'about ' : ''}${b.yb}</b>, from ${esc(ybFrom(b))} ${G(b.ybSrc === 'osm' ? 'B' : 'A')}`
           : `<b>Year built not on file</b>${b.parcel && !b.parcel.yb ? ` (its parcel on ${esc(rollName(b.parcel.R, b) || 'the ' + roll + ' roll')} carries none)` : ''}. Most likely ${b.prior ? b.prior.map((w, i) => [w, i]).sort((x, y) => y[0] - x[0]).slice(0, 2).map(([w, i]) => `${BIN_L[i]} (${pct(w)})`).join(' or ') : 'unknown'}, from the ZIP's housing age${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`;
-        const pm = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.15).slice(0, 4), file = PFILE[b.fips];
+        const pm = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.15).slice(0, 4), file = PFILE[pfOf(b)], pst = file ? permitState(b, file) : '';
         const nUsed = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.3).length;
         const permTxt = pm.length ? pm.map(p => `<b>${p.kind === 'reroof' ? 'Reroof permit' : p.kind === 'mh' ? 'Manufactured home placed' : 'Permit with roof work'} ${esc(monthYear(p.d))}</b>: ${esc(String(p.desc).slice(0, 110) || p.type)} (${p.addr ? esc(title(String(p.addr).replace(/\s+(BATON ROUGE|NEW ORLEANS)\s+LA\b.*$/i, ''))) + ', ' : ''}${esc(p.src)}${p.share < 1 ? '; an address shared with other buildings' : ''})${p.w < 0.3 ? ' (not used by the model: it reads no reroof or repair of the main roof in the text)' : ''} ${G('A')}`).join('</li><li>') + (b.last ? `</li><li>The model reads the ${esc(monthYear(b.last.d))} permit as ${b.last.kind === 'mh' ? 'the placement of a new or used home' : b.last.w >= 0.9 ? 'a reroof' : b.last.w >= 0.6 ? 'most likely a reroof' : b.last.w >= 0.4 ? 'a repair or a partial reroof' : 'a roof repair'}${b.last.share < 1 ? ' on one or more of the buildings at its address' : ''} and restarts the roof's clock there (weight ${pct(b.lastW)}${b.last.share < 1 ? ` for this building, ${pct(b.last.w)} for the permit` : ''})${nUsed > 1 ? ', after the older ones at their own weights' : ''}.` : '')
-          : file ? `<b>No roof permit on file</b> at this building (${PERMIT_TXT[file] || ''}). A reroof has needed a permit since August 1, 2025 (Act 239), but most older reroofs left no permit on file, so this is weak evidence for an older roof ${G('B')}` : 'No roof permit file covers this address in the atlas (New Orleans, East Baton Rouge, Tangipahoa and Terrebonne only).';
+          : file && b.permitTown ? `No roof permit file covers this address in the atlas: ${esc(townName(b.permitTown))} keeps its own permits, and the ${esc(PERMIT_TXT[file].split(':')[0])} file holds few or none of them.`
+          : file && pst === 'read' ? `<b>No roof permit on file</b> at this building (${PERMIT_TXT[file] || ''}). A reroof has needed a permit since August 1, 2025 (Act 239), but most older reroofs left no permit on file, so this is weak evidence for an older roof ${G('B')}`
+          : file && pst === 'wait' ? `<b>Roof permits loading</b> from the ${esc(PERMIT_TXT[file].split(':')[0])} permit file…`
+          : file ? `<b>Roof permits not read</b>: the ${esc(PERMIT_TXT[file].split(':')[0])} permit file could not be read for this part of the map, so this roof is read without its permits.`
+          : 'No roof permit file covers this address in the atlas (New Orleans, East Baton Rouge, Tangipahoa and Terrebonne only).';
         const mix = rf.mix ? `<div class="sc-sub">Odds by covering: ${rf.mix.map(([l, p]) => `${esc(l)} ${pct(p)}`).join(' · ')} ${G('D')}</div>` : '';
         const ctx = z ? `<b>ZIP ${esc(z.zip)}</b>: Roof Demand Index ${D(z.idx, 0)}, ${P(z.ra20_sh, 0)} of roofs 20 or older, last hurricane force winds ${z.last64 ? esc(z.last64) : 'none since 1950'}, ${D(z.hd1, 1)} hail days a year within 25 miles ${G('B')}` : '';
         const resets = stormsAt(b.zip).filter(x => x.d >= 0.02 && x.list.length).sort((a, c) => c.d - a.d).slice(0, 3);
@@ -13806,7 +13897,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         `<b>The roof it most likely carries ${G('D')}</b>. Homes: asphalt shingles, or metal at the ZIP's metal share (module 17's assumption, ${P(100 * ((META.model && META.model.ANCH && +META.model.ANCH.metal) || 0.12), 0)} statewide, more in rural and higher income ZIPs); a few percent tile or slate. Manufactured homes: their own roof (metal or shingles, roof overs and coatings). Garden apartments: pitched shingle roofs; mid rises and most commercial buildings: a low slope membrane (TPO, modified bitumen, built up); warehouses, plants and farm buildings: a metal building roof. The size in squares is the footprint with an allowance for pitch and eaves (1.22 times on a steep roof, 1.04 on a low slope one).`,
         `<b>The address and the year built ${G('A')} or ${G('C')}</b>. Each parish's own public records, where it publishes them as a layer a browser can read (${N(ROLLS.length)} layers, listed under Sources), joined by location: an assessor's roll goes to the main buildings whose centre falls in the parcel (its year built, its site address and what it says of the building: stories, units, living area, construction, roof), a parish's building footprints and surveys to the FEMA footprint they overlap, and an address point to the building it stands in, else the main building nearest it within 15 m. The first record to give a fact keeps it: address points before parcel addresses, a parish's own records before OpenStreetMap. ${N(AD_FIPS.size)} parishes publish an address for each building or parcel (${parishList(AD_FIPS)}). A year built is on file across most of ${listAnd(YB_COVER.whole)}, and for part of ${listAnd(YB_COVER.part)}; a surveyor's span (1850 to 1860) is read at its middle and a permit's year as about the year built. Where a parish's record is empty or missing, OpenStreetMap's buildings fill the address, the floors, the walls and the roof's shape, and now and then a year of construction (a mapper's record); a new construction permit filed for the building itself (New Orleans, East Baton Rouge, Tangipahoa, Terrebonne) dates it; and else the ZIP's ACS year built mix stands in, leaned by the footprint for a house (the card names its likeliest decade). A building no record names is given the Esri World Geocoder's address point that stands in it or within 25 m of it and in no other building, asked when it is picked. FEMA's footprint carries the date of the imagery it was traced from, so a building stood by then; a later year built on the record means the outline may be an older building on the lot.`,
         `<b>The roof's age ${G('B')}</b>. Module 17's roof life (a Weibull life with a ${D(LIFE.shingle.L, 0)} year mean and shape ${D(LIFE.shingle.k, 0)} for shingles, calibrated to the 2023 American Housing Survey), run year by year from the year built: roofs wear out and are replaced, and each storm year replaces the share of roofs module 17's cohort model replaced at the ZIP that year (from 2000, FEMA verified roof and wind damage at ${D(+(META.model && META.model.DMG && META.model.DMG.M) || 2, 0)} roofs per registration before 2020 and ${D(+(META.model && META.model.ANCH && META.model.ANCH.M2020) || 3.6, 1)} since, grade D, where FEMA has it and the storm's modeled wind elsewhere; from 1992 to 1999, the modeled wind at module 02's damage curve, ${pct(dmgShare(64))} of roofs at hurricane force). Averaged over each ZIP's homes, the building model gives back module 17's ZIP roof ages for shingle roofs (a correlation of 0.998 across the scored ZIPs for the mean age, 0.992 for the share 20 or older); homes also carry the ZIP's metal share on a 40 year life, so they read about a year older than module 17's ZIP figures (0.986 and 0.975). Membranes and metal buildings use the atlas's ${D(LIFE.low.L, 0)} year commercial life and take wind at 70 percent of the residential rate (module 12's commercial line), apartment membranes at 80 percent (its multifamily line); metal homes use module 17's ${D(LIFE.metal.L, 0)} years and shed wind better than shingles (judgment); manufactured home roofs use ${D(LIFE.mh.L, 0)} years and take wind at 1.3 times the rate (module 12's mobile home line). Out come the chance the roof is still the first one, 20 or older, which storm rebuild it most likely dates from, and the chance it wears out within five years.`,
-        `<b>Its last replacement ${G('A')}</b>. Roof permits at the building's address or map point: the City of New Orleans (reroof permits from May 2025, roof work inside renovation permits from 2012), East Baton Rouge Parish (reroof permits from July 2025, roof work inside remodel permits from 2012, with map points mostly from 2016), Tangipahoa Parish (reroof permits from 2018, its Act 239 reroof types from August 2025, and roof work inside renovation and addition permits; dated by the issue date to April 2026 and the date applied for since, updated daily) and Terrebonne Parish (roof work inside its building permits from September 2021, most of it the repairs and reroofs after Hurricane Ida). A permit joins the main building at its address (when several share the address, the one its point falls in, else each of them in the same map square as its point, at a share of the permit's weight unless its text names them all), else the building its point falls in or the main building nearest it. A reroof permit restarts the roof's clock at its date; a repair or a partial reroof (roof work on an addition, a dormer or a lean to alone counts as one) moves it a little; a renovation that only mentions the roof, roof work on a porch, garage, shed or other accessory structure, and rooftop equipment such as solar panels do not move it. Since August 1, 2025 every reroof needs a permit (Act 239 of 2025), so these files will hold most reroofs from here on.`,
+        `<b>Its last replacement ${G('A')}</b>. Roof permits at the building's address or map point: the City of New Orleans (reroof permits from May 2025, roof work inside renovation permits from 2012), East Baton Rouge Parish (reroof permits from July 2025, roof work inside remodel permits from 2012, with map points mostly from 2016), Tangipahoa Parish (reroofing inside its building permits from 2009 and reroof permits from 2018 to early 2022, then almost none until its Act 239 reroof types of August 2025, and roof work inside renovation and addition permits; dated by the issue date to April 2026 and the date applied for since, updated daily) and Terrebonne Parish (roof work inside its building permits from September 2021 to September 25, 2026, the layer's last update, with none from July to November 2025; much of it the repairs and reroofs after Hurricanes Ida and Francine). Tangipahoa's and Terrebonne's files also date a building by its new construction permit and note a new manufactured home's placement; Terrebonne files a generator, pool, fence, sign or RV as new work too, so its permits are read by their text. A parish's file holds only the permits the parish issues: Tangipahoa's covers its unincorporated areas and Amite City but not Hammond, Ponchatoula, Kentwood, Independence, Roseland, Tickfaw or the village of Tangipahoa, and East Baton Rouge's does not cover Baker, Central or Zachary, which keep their own; a building inside those towns' limits (the Census Bureau's) is read without permits, and its card says so. A permit joins the main building at its address (when several share the address, the one its point falls in, else each of them in the same map square as its point, at a share of the permit's weight unless its text names them all), else the building its point falls in or the main building nearest it. A reroof permit restarts the roof's clock at its date; a repair or a partial reroof (roof work on an addition, a dormer or a lean to alone counts as one) moves it a little; a renovation that only mentions the roof, roof work on a porch, garage, shed or other accessory structure, and rooftop equipment such as solar panels do not move it. Since August 1, 2025 every reroof needs a permit (Act 239 of 2025), so these files will hold most reroofs from here on (Terrebonne's only while the parish keeps its layer up to date: it holds none after September 25, 2026).`,
         `<b>Repairs ${G('C')}</b>. Leak and repair calls a year rise with roof age (${D(0.35 * REP_BASE / REP_TARGET, 1)} times the average under 5 years, ${D(2 * REP_BASE / REP_TARGET, 1)} times it past 25; judgment), scaled so the state's roofs at module 17's ages make the atlas's repair line: ${pct(REP_TARGET)} of one unit roofs a year.`,
         `<b>Wind and hail still open ${G('B')}</b>. NOAA Storm Events reports of the last three years within 5 km: hail of an inch or more (a 4% to 28% chance of roof damage by size, fading to nothing at 5 km), thunderstorm wind of 58 mph or more (within 3 km) and EF1 or stronger tornadoes (within 1.5 km), with commercial roofs taking hail at 30 percent of the residential rate; and hurricanes and tropical storms that reached the ZIP in the last three years, at the larger of one and a half times module 17's replacement share that year (replacements and repairs) and half of module 02's wind curve, of which half is still open in the first year after the storm, a quarter in the second and a tenth in the third. Report damage fades as claims settle (all of it within a year, about half in the second, a third in the third); reports of one storm (the same weekday of the same month, within three hours: the reports carry no day of the month) count once, at the strongest; nothing from before a building's year on file counts; and a reroof permit after the event closes most of it.`,
         `<b>The score and the colour</b>. The chance of at least one paid roofing job: a replacement within five years, a repair call within twelve months, or wind or hail damage still open, weighted by how much of a building like it a roofer would expect to work on (a parking deck almost none, a shed a third). Green at ${CFG.green} or more, orange at ${CFG.orange} to ${CFG.green - 1}, red below; both cut points are in Settings. The average Louisiana roof at module 17's ages scores about ${N(AVG_SCORE)}, so by default orange starts near the typical roof, green needs evidence of an older roof or recent storm damage, and red needs evidence of a newer one (a storm rebuild, a permit or a young building). A field check replaces the colour.`,
@@ -13851,7 +13942,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         ['For field visits, not for ads', 'A reading plans where to look. The atlas\'s compliance rules forbid publishing the address, photo or name of a specific damaged home or owner without written permission (module 02), and the claim and deductible promises Louisiana law bans (modules 03 and 10); keep building level readings out of ads, pages and posts.'],
         ['A permit joins by address, else by its map point', 'A permit joins the main building at its address. When several main buildings share the address it joins the one its point falls in, else each of them in the same map square as its point (the map loads buildings and permits in squares about 530 m across) at a share of its weight (a quarter, plus three quarters split among those), since it may cover one building or all of them; a permit whose text names all the buildings or roofs, or the entire property, covers each in full. Without an address match it joins the building its point falls in or the main building nearest it within 20 m. A new construction or manufactured home permit never spreads that way: it joins by an address only one main building has (not one a nearby permit only guessed), or the building its point falls in, and dates a building only when it was filed for that building, since FEMA\'s footprints often predate the new house. A permit that reads as one for a garage, shed or other accessory alone does not date a house, an apartment building or a manufactured home. On narrow New Orleans lots a point between two houses can still land on the neighbour; the card names the permit\'s own address.'],
         ['Roof age is modeled, not recorded', 'No register records when a Louisiana roof was last replaced. Module 17 ages roofs from the year built, a calibrated roof life and the storms that reached the ZIP; Louisiana Roofer Guru runs the same model for one building. A storm reset is a share of roofs, not a fact about this one: a house in a ZIP that lost a third of its roofs to Ida either lost its roof or did not.'],
-        ['Most older reroofs left no permit on file', 'Before August 1, 2025 state law left reroof permits to each parish and city, and many required none (the New Orleans reroof permit type dates from May 2025, East Baton Rouge\'s from July 2025, Tangipahoa\'s Act 239 types from August 2025 with a plain reroof permit from 2018); New Orleans, East Baton Rouge and Terrebonne recorded older roof work only inside renovation and remodel permits, Terrebonne from September 2021. A permit on file is strong evidence; no permit is weak evidence, and weaker the older the roof.'],
+        ['Most older reroofs left no permit on file', 'Before August 1, 2025 state law left reroof permits to each parish and city, and many required none (the New Orleans reroof permit type dates from May 2025, East Baton Rouge\'s from July 2025, Tangipahoa\'s Act 239 types from August 2025, after reroofing filed in its building permits from 2009 and a reroof permit used from 2018 to early 2022, then almost none for three years); New Orleans and East Baton Rouge recorded older roof work only inside renovation and remodel permits, and Terrebonne records all of its roof work there (from September 2021), with no reroof type even since Act 239. A permit on file is strong evidence; no permit is weak evidence, and weaker the older the roof.'],
         ['Year built is on file in ' + N(YB_FIPS.size) + ' parishes, in most of them for a part', `Across most of the parish in ${listAnd(YB_COVER.whole)}; for part of it in ${listAnd(YB_COVER.part)}. A year built is the parish's record of the main building (an assessor's roll, a building inventory or a historic survey): a renovated or rebuilt building can keep an old year (the effective year shows where the record has one), a survey's year is often a surveyor's estimate, and Lafayette's roll carries none built after 2018 (its new construction permits fill some). Everywhere else a building is aged from OpenStreetMap (rarely), a new construction permit (New Orleans, East Baton Rouge, Tangipahoa and Terrebonne) or the ZIP's housing age, so scores bunch together more than they would with the real year.`],
         ['Addresses join by location', 'A parcel\'s site address goes to the buildings whose centre falls in the parcel, an address point to the building it stands in or the main building nearest it within 15 m, an OpenStreetMap address to the footprint its outline holds. On narrow lots, or where a point marks the driveway or the curb, a building can take the neighbour\'s number; the card names the record each address came from. The geocoder\'s address is the nearest address point within 25 m that stands in no other building; when there is none, the card names the nearest one and how far it is.'],
         ['FEMA\'s occupancy is modeled', 'USA Structures classes buildings from parcels, points of interest and imagery. A house used as an office, or a shop over apartments, can be classed either way; unclassified buildings are read by size.'],
@@ -13874,7 +13965,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       $('#scGap', root).innerHTML = judgList([
         ['The roof itself', 'No public file lists a roof\'s covering, age, layers or condition. An insurer\'s inspection, a roofer\'s report, a permit or the owner\'s answer is the only record.'],
         ['Insurance claims', 'Which roofs had a wind or hail claim, and which were paid, sits with the insurers and Louisiana Citizens; FEMA\'s registrations are counted by ZIP in module 02, not by house.'],
-        ['Permits outside four parishes', 'Jefferson, St. Tammany, Lafayette, Caddo, Calcasieu and the other parishes keep their own permit files; since Act 239 every reroof is permitted somewhere, but only New Orleans, East Baton Rouge, Tangipahoa and Terrebonne publish one the atlas can read.'],
+        ['Permits outside four parishes', 'Jefferson, St. Tammany, Lafayette, Caddo, Calcasieu and the other parishes keep their own permit files; since Act 239 every reroof is permitted somewhere, but only New Orleans, East Baton Rouge, Tangipahoa and Terrebonne publish a roof permit file the atlas can read (Lafayette\'s new home permits of 2021 to 2025 give only a year built), and the towns inside Tangipahoa and East Baton Rouge that keep their own permits publish none.'],
         ['Owners and tenants', 'Who owns a building and who lives in it is left out on purpose: this module reads roofs, not people. The permit files and the parish rolls carry owner names and homestead exemptions; the module never asks for them.'],
         ['The year built in the other parishes', `Most parish assessors keep the year built in their own appraisal software and show it only on a search page for one parcel at a time, not as a map layer a browser may read; ${N(64 - YB_FIPS.size)} parishes publish none this way. There the year comes from OpenStreetMap, a permit or the ZIP.`],
       ]);
@@ -13885,8 +13976,9 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         ['Buildings as mapped today', 'OpenStreetMap Buildings for North America (Esri\'s hosted copy, updated frequently): address, name, floors, walls, roof shape and, where a mapper recorded one, the year of construction (start_date); © OpenStreetMap contributors (ODbL)', 'B', 'updated by Esri from OpenStreetMap', 'https://www.arcgis.com/home/item.html?id=2be4ad6652c649cbaea2be211555b1cf'],
         ['New Orleans permits', 'City of New Orleans Open Data, permits (rcm3-fn58): residential reroofing, renovations with roof work, new construction', 'A', '2012 on, reroof permits from May 2025, updated nightly', 'https://data.nola.gov/d/rcm3-fn58'],
         ['East Baton Rouge permits', 'East Baton Rouge Parish Open Data, building permits (7fq7-8j7r): Re-Roof, remodels with roof work, new buildings, manufactured homes', 'A', '2011 on (with map points from 2012), Re-Roof permits from July 2025, updated daily', 'https://data.brla.gov/d/7fq7-8j7r'],
-        ['Tangipahoa permits', 'Tangipahoa Parish Government GIS, building permits: Re-Roof (the Act 239 types from August 2025 and a reroof permit from 2018), renovations and additions with roof work, new construction, manufactured home placements', 'A', '2006 on, updated daily (the issue date to April 2026, the date applied for since); checked ' + ROLLS_CHECKED, 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/Building_Permits/MapServer'],
-        ['Terrebonne permits', 'Terrebonne Parish Consolidated Government, MyGovernmentOnline permits: residential and commercial building permits (the hurricane ones included) whose text names the roof, and new construction', 'A', 'September 2021 on, live; checked ' + ROLLS_CHECKED, 'https://gis.tpcg.org/server/rest/services/Hosted/MGOPermits/FeatureServer'],
+        ['Tangipahoa permits', 'Tangipahoa Parish Government GIS, building permits: reroofing filed as building permits (2009 to 2018), Re-roof (2018 to early 2022) and the Re-Roof types of Act 239 (from August 2025), renovations and additions with roof work, new construction, new manufactured home placements', 'A', '2006 on, updated daily (the issue date to April 2026, the date applied for since); checked ' + ROLLS_CHECKED, 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/Building_Permits/MapServer/0?f=pjson'],
+        ['Terrebonne permits', 'Terrebonne Parish Consolidated Government, MyGovernmentOnline permits: residential and commercial building permits (the hurricane ones included) whose text names the roof or the shingles, and new buildings and new mobile homes, read from the text (the parish files a generator, pool, fence, sign or RV as new work too)', 'A', 'roof work from September 2021 to September 25, 2026, the layer\'s last update (none from July to November 2025); checked ' + ROLLS_CHECKED, 'https://gis.tpcg.org/server/rest/services/Hosted/MGOPermits/FeatureServer'],
+        ['Town limits', 'U.S. Census Bureau TIGERweb, incorporated places: the limits of the towns that keep their own permits (Hammond, Ponchatoula, Kentwood, Independence, Roseland, Tickfaw and Tangipahoa; Baker, Central and Zachary)', 'A', 'current; checked ' + ROLLS_CHECKED, 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Places_CouSub_ConCity_SubMCD/MapServer/4'],
         ['Hail, wind and tornado reports', 'NOAA Storm Events (the atlas\'s 2016 to 2026 points: hail by size, thunderstorm wind by speed, tornadoes by EF rating)', 'A', 'compiled ' + esc(META.compiled || ''), 'https://www.ncdc.noaa.gov/stormevents/'],
         ['Storm resets and roof life', 'The atlas: module 17\'s storm driven roof replacements by ZIP and year, 2000 to 2026 (FEMA verified roof and wind damage, or NHC best track footprints), and module 02\'s ZIP storm footprints from 1992 at its FEMA fitted damage curve; module 17\'s Weibull roof life calibrated to the 2023 American Housing Survey; ZIP housing age (ACS)', 'B', 'compiled ' + esc(META.compiled || ''), ''],
         ['Streets', 'U.S. Census Bureau TIGERweb, transportation layers', 'A', 'current', 'https://tigerweb.geo.census.gov/'],
