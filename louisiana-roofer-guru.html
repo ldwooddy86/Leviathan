@@ -11217,7 +11217,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   };
   const addrFrom = b => (b.addr && ADDR_FROM[b.addrSrc] ? ADDR_FROM[b.addrSrc](b) : '');
   const addrLine = b => (b.addr ? title(b.addr) : b.geoAsk ? 'Finding the address…' : b.addrNear ? 'Near ' + title(b.addrNear) : 'Building, no address on file');
-  const ybFrom = b => (b.ybSrc === 'parcel' ? rollName(b.ybR, b) + (b.ybTax ? ', tax year ' + b.ybTax : '') : b.ybSrc === 'permit' ? 'a new construction permit (' + ((b.permits.find(p => p.kind === 'newc') || {}).src || 'the city') + ')' : b.ybSrc === 'osm' ? 'OpenStreetMap, a mapper\'s record' + (b.osm && b.osm.yb ? ' ("' + b.osm.yb.raw + '")' : '') : '');
+  const ybFrom = b => (b.ybSrc === 'parcel' ? rollName(b.ybR, b) + (b.ybTax ? ', tax year ' + b.ybTax : '') + (b.ybAsof ? ', surveyed ' + b.ybAsof : '') + (b.ybAbout && b.ybR && b.ybR.ranges ? ' (the middle of the surveyor\'s span)' : '') : b.ybSrc === 'permit' ? 'a new construction permit (' + ((b.permits.find(p => p.kind === 'newc') || {}).src || 'the city') + ')' : b.ybSrc === 'osm' ? 'OpenStreetMap, a mapper\'s record' + (b.osm && b.osm.yb ? ' ("' + b.osm.yb.raw + '")' : '') : '');
   const ybAbout = b => b.ybAbout || b.ybSrc === 'permit';
   /* the likeliest decade of the ZIP's mix when no record dates the building (the mean of two far apart decades would name the least likely one) */
   const BIN_IN = ['2020 or later', 'in the 2010s', 'in the 2000s', 'in the 1990s', 'in the 1980s', 'in the 1970s', 'in the 1960s', 'in the 1950s', 'in the 1940s', 'before 1940'];
@@ -11230,19 +11230,27 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   const builtShort = b => (b.yb ? `built ${ybAbout(b) ? 'about ' : ''}${b.yb}` : ybLikely(b) ? `likely built ${ybLikely(b)} (estimate)` : '');
   const recV = (b, k) => (b.rec && b.rec[k] ? b.rec[k].v : '');
   const sqftOf = v => { const n = +String(v).replace(/[, ]/g, ''); return n > 0 ? N(Math.round(n)) + ' sq ft' : String(v); };
+  /* why a building has no year on record: its parish's layer has its record without a year, has no record of it, or there is no such layer */
+  const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
+  function ybWhyNot(b) {
+    const ys = (ROLLS_BY[b.fips] || []).filter(R => R.f.yb), had = ys.filter(R => b.rolls && b.rolls.has(R.id));
+    if (had.length) return `Its record in ${esc(rollName(had[0], b))} carries none${!isMain(b) && had[0].kind === 'parcel' ? ' for a detached garage or shed' : ''}. `;
+    if (ys.length) { const nm = ys.map(R => rollName(R, b)); return `No record of this building in ${esc(nm.length < 2 ? nm[0] : nm.slice(0, -1).join(', ') + ' or ' + nm[nm.length - 1])}. `; }
+    return `${esc(PNAME(b.fips) || 'This')} Parish publishes no year built the page can read. `;
+  }
   /* the building's record on the card: each fact with the record it came from */
   function recordCard(b) {
-    const rows = [], o = b.osm || {}, rf = k => (b.rec && b.rec[k] ? rollName(b.rec[k].R, b) : '');
+    const rows = [], o = b.osm || {}, rf = k => (b.rec && b.rec[k] ? rollName(b.rec[k].R, b) + (b.rec[k].asof ? ', ' + b.rec[k].asof : '') : '');
     const row = (k, v, src) => { if (v == null || v === '') return; rows.push(`<div class="rowl"><span>${esc(k)}</span><b>${esc(String(v))}</b></div>${src ? `<div class="sc-sub" style="margin:0 0 4px">${src}</div>` : ''}`); };
     const place = [b.city ? title(b.city) : (b.z ? b.z.city : ''), b.zipF || b.zip].filter(Boolean).join(' ');
     row('Address', b.addr ? title(b.addr) + (place ? ', ' + place : '') : b.geoAsk ? 'Looking it up…' : b.addrNear ? 'None on file' : 'None on file',
-      b.addr ? `From ${esc(addrFrom(b))} ${G(b.addrSrc === 'osm' || b.addrSrc === 'geocode' ? 'B' : 'A')}${b.addrMore && b.addrMore.length ? `. Also at this building: ${b.addrMore.map(x => esc(title(x))).join(', ')}` : ''}`
+      b.addr ? `From ${esc(addrFrom(b))} ${G(b.addrSrc === 'osm' || b.addrSrc === 'geocode' ? 'B' : 'A')}${(b.addrMore || []).filter(x => addrParts(x).key !== b.akey).length ? `. Also at this building: ${b.addrMore.filter(x => addrParts(x).key !== b.akey).map(x => esc(title(x))).join(', ')}` : ''}`
         : b.addrNear ? `No address point stands in or beside this building; the nearest is <b>${esc(title(b.addrNear))}</b>, ${N(b.geoD || 0)} m away (the Esri World Geocoder) ${G('B')}`
         : b.geoAsk ? '' : `None of FEMA, the parish records, OpenStreetMap or the permits names this building${inViewer() ? '' : ', and the Esri World Geocoder has no address point at it'}.`);
     const prior = b.prior ? b.prior.map((w, i) => [w, i]).sort((x, y) => y[0] - x[0]).slice(0, 2).map(([w, i]) => `${BIN_L[i]} (${pct(w)})`).join(' or ') : '';
     row('Year built', b.yb && REC_YB.has(b.ybSrc) ? `${ybAbout(b) ? 'About ' : ''}${b.yb} · ${N(Math.max(0, THIS_YEAR - b.yb))} years old` : 'Not on public record here',
-      b.yb && REC_YB.has(b.ybSrc) ? `From ${esc(ybFrom(b))} ${G(b.ybSrc === 'osm' ? 'B' : 'A')}${b.imgY && b.yb > b.imgY + 1 ? `. FEMA traced this footprint from imagery of ${esc(monthYear(b.imgD))}, before that year: the outline may be an older building on the lot` : ''}`
-        : `${b.parcel && !b.parcel.yb ? `Its parcel on ${esc(rollName(b.parcel.R, b) || 'the parish roll')} carries none. ` : YB_FIPS.has(b.fips) ? '' : `${esc(PNAME(b.fips) || 'This')} Parish publishes no year built the page can read. `}Most likely ${esc(prior || 'unknown')}, from the ZIP's housing age${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`);
+      b.yb && REC_YB.has(b.ybSrc) ? `From ${esc(ybFrom(b))} ${G(b.ybSrc === 'osm' || (b.ybR && b.ybR.grade === 'B') ? 'B' : 'A')}${b.imgY && b.yb > b.imgY + 1 ? `. FEMA traced this footprint from imagery of ${esc(monthYear(b.imgD))}, before that year: the outline may be an older building on the lot` : ''}`
+        : `${ybWhyNot(b)}Most likely ${esc(prior || 'unknown')}, from the ZIP's housing age${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`);
     if (b.imgY) row('Standing by', String(b.imgY), `In FEMA USA Structures, traced from imagery of ${esc(monthYear(b.imgD))}: built that year or before ${G('A')}`);
     if (recV(b, 'eyb') && +recV(b, 'eyb') !== b.yb) row('Effective year built', recV(b, 'eyb'), `The assessor's year for the building's condition, after renovations (${esc(rf('eyb'))}) ${G('A')}`);
     row('Stories', recV(b, 'stories') || o.levels || '', recV(b, 'stories') ? esc(rf('stories')) + ' ' + G('A') : o.levels ? 'OpenStreetMap ' + G('B') : '');
@@ -11253,8 +11261,10 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     row('Construction', cons ? title(cons) : o.wall ? title(o.wall) : '', cons ? esc(rf(recV(b, 'cons') ? 'cons' : 'wall')) + ' ' + G('A') : 'OpenStreetMap ' + G('B'));
     const roof = [recV(b, 'roofc'), recV(b, 'rooft')].filter(Boolean).join(', ');
     row('Roof on record', roof ? title(roof) : [o.roofc, o.roof].filter(Boolean).map(title).join(', '), roof ? `${esc(rf(recV(b, 'roofc') ? 'roofc' : 'rooft'))} ${G('A')}; the likely roof below is the model's` : 'OpenStreetMap ' + G('B'));
+    if (recV(b, 'roofy')) row('Roof put on', String(recV(b, 'roofy')), `${esc(rf('roofy'))} ${G('A')}; a record, which the roof model below does not read`);
     row('Condition', recV(b, 'cond') ? title(recV(b, 'cond')) : '', esc(rf('cond')) + ' ' + G('A'));
-    row('Name', o.name, 'OpenStreetMap ' + G('B'));
+    if (recV(b, 'note')) { const nR = b.rec.note.R; row(nR.noteLabel || 'On the 911 record', title(recV(b, 'note')), esc(rf('note')) + ': ' + esc(nR.noteWhat || 'a dispatcher\'s description') + ' ' + G('B')); }
+    row('Name', recV(b, 'name') ? title(recV(b, 'name')) : o.name, recV(b, 'name') ? esc(rf('name')) + ' ' + G('A') : 'OpenStreetMap ' + G('B'));
     if (o.historic) row('Historic', title(o.historic.replace(/_/g, ' ')), 'OpenStreetMap ' + G('B'));
     return `<div class="sc-sec sc-rec"><p class="sc-k">The building on record</p>${rows.join('')}</div>`;
   }
@@ -11264,31 +11274,394 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   /* ---------- the public record of each building: the parish rolls and address points it is read from ---------- */
   /* Every layer here is public, keyless and open to a browser (CORS), answers a box in latitude and longitude, and was
      checked on 2026-11-20 (ROLLS_CHECKED). kind 'parcel': tax parcels, joined to the buildings whose centre falls inside
-     them, for the year built, the site address and what the roll says of the building; kind 'addr': address points, joined
-     to the building they stand in, else the main building nearest them within 15 m. f names each layer's fields: yb the year
+     them, for the year built, the site address and what the roll says of the building; kind 'bldg': a parish's own building
+     footprints, joined to the FEMA footprint whose centre falls inside one (or whose outline holds its centre), each fact
+     its own; kind 'addr': address points, joined to the building they stand in, else the main building nearest them within
+     15 m. f names each layer's fields: yb the year
      built, eyb the effective year built (the assessor's year for the building's condition), addr the whole site address or
      num, pre, st, typ, suf and unit its parts, city, zip, stories, units, area the living area in square feet, use,
      cons the construction, wall the exterior walls, roofc the roof covering, rooft the roof's shape, cond the condition,
-     tax the tax year, parish the parish (for a layer that holds more than one). min and ph keep out the years a roll writes
+     tax the tax year, roofy the year the roof was last put on, name a building's name, note a description of the building (a 911 dispatcher's, a surveyor's; noteLabel
+     and noteWhat say whose), ybEst a flag that the year is estimated, asof the date a survey was made, parish the parish (for a
+     layer that holds more than one). ranges: the year may be a surveyor's span; about: the year is a permit's, so about the year built. map turns a layer's values into words. fallback: asked only when the tile's buildings
+     still lack an address after the layers before it (a parish roll behind its 911 points). min and ph keep out the years a roll writes
      when it has none (Lafayette's 1860). A roll's year built and its facts go to the main buildings on the parcel, not to a
      detached garage or shed; the first layer in this list to name a fact keeps it. */
   const ROLLS_CHECKED = '2026-11-20';
+  /* the shorthand some 911 offices write a building in ("WH WF BLK TRM": white wood frame, black trim) */
+  const DESC911 = { TRM: 'trim', WH: 'white', BRK: 'brick', BRN: 'brown', WF: 'wood frame', TAN: 'tan', TLR: 'trailer', TRL: 'trailer', RED: 'red', CRM: 'cream', SDG: 'siding', BL: 'blue', BLU: 'blue', GRN: 'green', BLK: 'black', GR: 'gray', GRY: 'gray', LT: 'light', DK: 'dark', PRCH: 'porch', SHTRS: 'shutters', FRT: 'front', BLDG: 'building', YLW: 'yellow', DW: 'double wide', HSE: 'house', MTL: 'metal', SCRN: 'screened', CNDR: 'cinder', BLCK: 'block', WD: 'wood', FRM: 'frame', PNK: 'pink', CHMNY: 'chimney', BG: 'beige', FNC: 'fence', FNCE: 'fence', ORG: 'orange', 'W/': 'with' };
+  const desc911 = v => sval(v).split(/\s+/).map(t => DESC911[t.toUpperCase()] || t.toLowerCase()).join(' ');
   const ROLLS = (ROLL_LIST => ROLL_LIST.filter(R => R && R.url && R.fips && R.fips.length))([
+    /* Lafayette: the city-parish's own live address points and 2023 building footprints (the demolished left out), its historic preservation
+       sites with their construction dates, the parish roll's year built (below, shared with Vermilion), and the new residential construction
+       permits of 2021 to 2025 (the permit's year, about the year built, for homes the roll is too old to hold); Vermilion: the parish's address
+       points */
+    { id: 'lafayette-addr', label: 'Lafayette Parish addresses', name: 'the Lafayette Consolidated Government address points', fips: ['22055'], kind: 'addr',
+      url: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_Address_Points/FeatureServer/0', f: { addr: 'FULL_ADDR', city: 'CITY', zip: 'ZIP', use: 'ADDR_TYPE', name: 'BLDG_NAME' },
+      map: { use: v => ({ RES: 'Residential', 'M-RES': 'Multifamily residential', COM: 'Commercial', EDU: 'Education' })[String(v).toUpperCase()] || (/^null$/i.test(v) ? '' : v) },
+      what: 'Lafayette Consolidated Government GIS, address points (live), with the kind of building at each', when: 'live', link: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_Address_Points/FeatureServer' },
+    { id: 'vermilion-addr', label: 'Vermilion Parish addresses', name: 'the Vermilion Parish address points', fips: ['22113'], kind: 'addr',
+      url: 'https://services5.arcgis.com/fd4YUNfNg9nSjnfH/arcgis/rest/services/Vermilion_Parish_Address_Points/FeatureServer/6', f: { num: 'Name', st: 'STREET_NAME' },
+      what: 'Vermilion Parish address points', when: 'parish wide', link: 'https://services5.arcgis.com/fd4YUNfNg9nSjnfH/arcgis/rest/services/Vermilion_Parish_Address_Points/FeatureServer' },
+    { id: 'lafayette-historic', ybCover: 'its historic sites',  label: 'Lafayette historic sites', name: 'the Lafayette Consolidated Government historic preservation sites', fips: ['22055'], kind: 'addr', ranges: true,
+      url: 'https://services.arcgis.com/fOr4AY8t0ujnJsua/arcgis/rest/services/LCG_Historic_Preservation_Sites_gdb/FeatureServer/0', f: { addr: 'ADDRESS', yb: 'CONST_DATE', name: 'NAME', note: 'ARCH_TYPE' },
+      noteLabel: 'Style', noteWhat: 'its architectural style', what: 'Lafayette Consolidated Government, historic preservation sites: construction date (\'circa\' read as about), name, architectural style', when: '517 sites', link: 'https://services.arcgis.com/fOr4AY8t0ujnJsua/arcgis/rest/services/LCG_Historic_Preservation_Sites_gdb/FeatureServer' },
     /* Lafayette and Vermilion: both parish rolls in the Regrid parcel schema, on ArcGIS Online (Lafayette refreshed November 19, 2024, tax years 2021 to
        2023, a usable year built on about 57% of parcels and none after 2018, 13% at an 1860 placeholder; Vermilion refreshed April 29, 2025, a year
        built on about 4%, mostly homes built 2017 to 2023) */
-    { id: 'acadiana-regrid', label: 'Lafayette and Vermilion tax rolls', name: 'the {parish} Parish tax roll (public parcel layer)', fips: ['22055', '22113'], kind: 'parcel',
+    { id: 'acadiana-regrid', ybCover: { '22113': 'mostly homes built since 2017' },  label: 'Lafayette and Vermilion tax rolls', name: 'the {parish} Parish tax roll (public parcel layer)', fips: ['22055', '22113'], kind: 'parcel',
       url: 'https://services1.arcgis.com/Brg1qbmzmFn7JtpX/arcgis/rest/services/Parish_Parcels__All_/FeatureServer/0',
       f: { yb: 'yearbuilt', addr: 'address', city: 'scity', zip: 'szip5', use: 'usedesc', tax: 'taxyear' }, extra: ['county'], parishOf: a => title(sval(a.county)), min: 1880, ph: [1860],
       what: 'Lafayette and Vermilion parish tax parcels on ArcGIS Online (the parish rolls in the Regrid parcel schema): year built, site address, use, tax year',
       when: 'Lafayette refreshed November 19, 2024, tax years 2021 to 2023, a usable year built on about 57% of parcels (another 13% carry an 1860 placeholder the scout ignores) and none built after 2018; Vermilion refreshed April 29, 2025, tax year 2025, a year built on about 4% of parcels, mostly homes built 2017 to 2023',
       link: 'https://services1.arcgis.com/Brg1qbmzmFn7JtpX/arcgis/rest/services/Parish_Parcels__All_/FeatureServer' },
+    { id: 'lafayette-newc', ybCover: 'homes permitted 2021 to 2025',  label: 'Lafayette new homes (permits)', name: 'Lafayette Parish new residential construction permits', fips: ['22055'], kind: 'addr', about: true,
+      url: 'https://services5.arcgis.com/riEeMHAEYSsj4tFW/arcgis/rest/services/2021_2025_residential_permits_all_years/FeatureServer/0', f: { addr: 'Address', yb: 'Year' },
+      what: 'Lafayette Parish new residential construction permits, 2021 to 2025: the permit\'s year, about the year built, for homes newer than the roll', when: '2021 to 2025', link: 'https://services5.arcgis.com/riEeMHAEYSsj4tFW/arcgis/rest/services/2021_2025_residential_permits_all_years/FeatureServer' },
+    { id: 'lafayette-buildings', label: 'Lafayette buildings', name: 'the Lafayette Consolidated Government building footprints', fips: ['22055'], kind: 'bldg',
+      url: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_BuildingFootprints2023/FeatureServer/0', where: "status IS NULL OR status <> 'demolished'", f: { addr: 'FULL_ADDR', city: 'CITY_PARIS', name: 'BLDG_NAME' },
+      what: 'Lafayette Consolidated Government GIS, 2023 building footprints with the address of each', when: '2023 flight', link: 'https://maps.lafayettela.gov/arcgis/rest/services/BaseLayers/LCG_BuildingFootprints2023/FeatureServer' },
+    /* Lincoln: the Lincoln Parish GIS District's own server (the Assessor, the City of Ruston and six other agencies). Its Structures layer gives
+       each structure a year (Year1: new homes carry the year they were added, older ones years that predate the GIS, many rounded to the decade,
+       so it is read as the year built; the fields carry no labels), a second year (Year2, read as the effective year), the heated area (Size),
+       use and name; its 911 address points are revised daily */
+    { id: 'lincoln-structures', label: 'Lincoln Parish structures', name: 'the Lincoln Parish GIS District\'s structure inventory', fips: ['22061'], kind: 'bldg', grade: 'B',
+      url: 'https://maps.lincolnparish.org/arcgis/rest/services/LP_Jackson_27_Pro/MapServer/39',
+      f: { yb: 'Year1', eyb: 'Year2', addr: 'Address', area: 'Size', use: 'Subtype', name: 'Name' }, map: { use: v => (/^other$/i.test(v) ? '' : v) },
+      what: 'Lincoln Parish GIS District (the Lincoln Parish Assessor, the City of Ruston and partners), Structures: a year for each structure (Year1, read as the year built: the layer labels none of its fields), a second year (Year2, read as the effective year), the heated area (Size), use, name and address',
+      when: '42,348 structures, a year on 72% of homes (many rounded to the decade); live', link: 'https://maps.lincolnparish.org/arcgis/rest/services/LP_Jackson_27_Pro/MapServer/39' },
+    { id: 'lincoln-911', label: 'Lincoln Parish addresses', name: 'the Lincoln Parish 911 address points', fips: ['22061'], kind: 'addr',
+      url: 'https://maps.lincolnparish.org/arcgis/rest/services/LP_Jackson_27_Pro/MapServer/34', f: { addr: 'Full_Add', city: 'Community', zip: 'Zip' },
+      what: 'Lincoln Parish GIS District, 911 address points', when: '28,119 points, revised daily', link: 'https://maps.lincolnparish.org/arcgis/rest/services/LP_Jackson_27_Pro/MapServer/34' },
+    /* Caddo: the Northwest Louisiana Council of Governments' building footprints (address and use of each building) and its copy of the
+       assessment roll (the site address of each parcel), both on the City of Shreveport's ArcGIS Online; the parish publishes no year built */
+    { id: 'caddo-buildings', label: 'Caddo Parish buildings', name: 'the Caddo Parish building footprints (NLCOG)', fips: ['22017'], kind: 'bldg',
+      url: 'https://services3.arcgis.com/cEsSI6IR59h5UGE4/arcgis/rest/services/NLCOG_Buildings/FeatureServer/8', f: { addr: 'ADDRESS', city: 'CITY', zip: 'ZIP', use: 'USAGE_' },
+      what: 'Northwest Louisiana Council of Governments building footprints for Caddo Parish (City of Shreveport GIS): the address and use of each building',
+      when: '171,399 buildings, an address on 95%; edited June 8, 2023', link: 'https://services3.arcgis.com/cEsSI6IR59h5UGE4/arcgis/rest/services/NLCOG_Buildings/FeatureServer' },
+    { id: 'caddo-roll', label: 'Caddo Parish assessment roll', name: 'the Caddo Parish assessment roll (NLCOG)', fips: ['22017'], kind: 'parcel', fallback: true,
+      url: 'https://services3.arcgis.com/cEsSI6IR59h5UGE4/arcgis/rest/services/Parish_Lots/FeatureServer/0', f: { addr: 'PROP_ADDRESS' },
+      what: 'The Caddo Parish assessment roll kept by NLCOG (the City of Shreveport\'s copy): the site address of each parcel',
+      when: '139,613 parcels, a site address on 85%; copied February 11, 2026', link: 'https://services3.arcgis.com/cEsSI6IR59h5UGE4/arcgis/rest/services/Parish_Lots/FeatureServer' },
+    /* Bossier: Bossier City's building footprints (a year built for those permitted since 2023) and address points, the parish 911 address
+       points (kept by the city's engineers), and the Assessor's parcels behind them (PhysicalAddress only: the layer's other address fields
+       are the owner's mailing address) */
+    { id: 'bossier-city-buildings', ybCover: 'Bossier City buildings permitted since 2023',  label: 'Bossier City buildings', name: 'the Bossier City building footprints', fips: ['22015'], kind: 'bldg',
+      url: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Building/FeatureServer/3', f: { yb: 'Build_Year', addr: 'Address', city: 'City', zip: 'ZIP', use: 'BDPYUSE' },
+      map: { use: v => ({ SFR: 'Single family residence', SB: 'Storage building', MFR: 'Multifamily residence', MH: 'Manufactured home', TH: 'Townhouse', COMM: 'Commercial', PUBL: 'Public building', CHURCH: 'Church', CP: 'Carport', GARAGE: 'Garage', PERG: 'Pergola' })[String(v).toUpperCase()] || v },
+      what: 'City of Bossier City Engineering, building footprints: the address and use of each building, and the year built of those permitted since 2023',
+      when: '42,012 buildings in Bossier City, a year built on 1,228 (2023 on); edited November 7, 2026', link: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Building/FeatureServer' },
+    { id: 'bossier-city-addr', label: 'Bossier City addresses', name: 'the Bossier City address points', fips: ['22015'], kind: 'addr',
+      url: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Address/FeatureServer/0', f: { addr: 'AddressFul', city: 'City', zip: 'ZIP' },
+      what: 'City of Bossier City Engineering, address points', when: '40,712 points; edited November 7, 2026', link: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Address/FeatureServer' },
+    { id: 'bossier-911', label: 'Bossier Parish addresses', name: 'the Bossier Parish 911 address points', fips: ['22015'], kind: 'addr',
+      url: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Parish_Address/FeatureServer/0', f: { addr: 'ADDRESS_TO', city: 'City_code', zip: 'Zip_code' },
+      what: 'Bossier Parish 911 address points, kept by the City of Bossier City Engineering', when: '56,052 points; edited August 21, 2025', link: 'https://services1.arcgis.com/jh7pbmmfSzUSNziy/arcgis/rest/services/Parish_Address/FeatureServer' },
+    { id: 'bossier-roll', label: 'Bossier Parish tax roll', name: 'the Bossier Parish Assessor\'s roll', fips: ['22015'], kind: 'parcel', fallback: true,
+      url: 'https://bpagis.bossierparish.org/server/rest/services/Parcels/BossierParcels_Public_Es2/MapServer/0', f: { addr: 'PhysicalAddress' },
+      what: 'Bossier Parish Assessor parcels (on its ES2-hosted server): the site address of each parcel', when: '78,903 parcels, a site address on 74%; live', link: 'https://bpagis.bossierparish.org/server/rest/services/Parcels/BossierParcels_Public_Es2/MapServer' },
+    /* DeSoto: the Assessor's copy of the parish 911 address points (a stable address; 911's own service is renamed with each snapshot) with
+       the kind of building at each, and the Assessor's parcels behind them */
+    { id: 'desoto-911', label: 'DeSoto Parish addresses', name: 'the DeSoto Parish 911 address points (the Assessor\'s copy)', fips: ['22031'], kind: 'addr',
+      url: 'https://services6.arcgis.com/pbafaqRkYgys7ElS/arcgis/rest/services/Addresses_view/FeatureServer/3', f: { addr: 'ADDRESS', city: 'CITY', use: 'TYPE' },
+      what: 'DeSoto Parish Assessor, its copy of the parish 911 address points, with the kind of building at each (house, business, mobile home)', when: '17,806 points; edited June 9, 2026', link: 'https://services6.arcgis.com/pbafaqRkYgys7ElS/arcgis/rest/services/Addresses_view/FeatureServer' },
+    { id: 'desoto-roll', label: 'DeSoto Parish tax roll', name: 'the DeSoto Parish Assessor\'s roll', fips: ['22031'], kind: 'parcel', fallback: true,
+      url: 'https://services6.arcgis.com/pbafaqRkYgys7ElS/arcgis/rest/services/Parcels_AGOL_view/FeatureServer/0', f: { num: 'Address_Number', pre: 'Street_Direction', st: 'Street_Name' },
+      what: 'DeSoto Parish Assessor parcels: the site address of each parcel', when: '41,995 parcels, a site address on 44%; edited November 14, 2026', link: 'https://services6.arcgis.com/pbafaqRkYgys7ElS/arcgis/rest/services/Parcels_AGOL_view/FeatureServer' },
+    /* Ouachita: the parish 911 district's address points with the kind of building at each (demolished ones left out; about 290 fall just
+       inside southern Morehouse), and the City of Monroe's e911 parcels from the Assessor's roll behind them */
+    { id: 'ouachita-911', label: 'Ouachita Parish addresses', name: 'the Ouachita Parish 911 address points', fips: ['22073', '22067'], kind: 'addr',
+      url: 'https://services7.arcgis.com/wEviGFShOVit9wL9/arcgis/rest/services/Ouachita_Parish_911_Address_points/FeatureServer/0', where: "STATUS IS NULL OR STATUS <> 'DEMOLISHED'",
+      f: { addr: 'FULLADDR', city: 'ZIP_CODE_CITY_R', zip: 'ZIP_CODE_R', use: 'BLDGTYPE' }, map: { use: v => (/^MOREHOUSE$/i.test(v) ? '' : /^TRAILER$/i.test(v) ? 'Manufactured home (trailer)' : v) },
+      what: 'Ouachita Parish 911 Communications District, address points, with the kind of building at each (house, trailer, apartment, duplex)', when: '94,215 points; edited August 27, 2026', link: 'https://services7.arcgis.com/wEviGFShOVit9wL9/arcgis/rest/services/Ouachita_Parish_911_Address_points/FeatureServer' },
+    { id: 'ouachita-roll', label: 'Ouachita Parish parcels', name: 'the Ouachita Parish parcels (the City of Monroe\'s e911 parcels)', fips: ['22073'], kind: 'parcel', fallback: true,
+      url: 'https://services7.arcgis.com/MwglueBMxIOHOjKe/arcgis/rest/services/MGO_Parcels/FeatureServer/0', f: { num: 'Situs_Numb', st: 'Situs_Stre', city: 'Situs_City', zip: 'Situs_Zip' },
+      what: 'City of Monroe GIS, e911 parcels with the Ouachita Parish Assessor\'s site addresses, parish wide', when: '91,887 parcels, a site address on 77%; edited August 27, 2025', link: 'https://services7.arcgis.com/MwglueBMxIOHOjKe/arcgis/rest/services/MGO_Parcels/FeatureServer' },
+    /* Richland: the parish 911 address points, whose dispatchers describe each building ("White Wf House", "Red Brick House") */
+    { id: 'richland-911', label: 'Richland Parish addresses', name: 'the Richland Parish 911 address points', fips: ['22083'], kind: 'addr',
+      url: 'https://services8.arcgis.com/VFkaHw5otiAMcwqf/arcgis/rest/services/AddressPointsPublic/FeatureServer/0', f: { addr: 'NEWADD', city: 'CITY', zip: 'ZIP', use: 'TYPE_', note: 'DESCRIPTION', name: 'LANDMARK_N' },
+      map: { note: v => desc911(v), use: v => (/^\d+$/.test(v) ? '' : v) },
+      what: 'Richland Parish Communications District, 911 address points, with a dispatcher\'s description of each building (colour, walls, stories)', when: '14,019 points; edited October 7, 2025', link: 'https://services8.arcgis.com/VFkaHw5otiAMcwqf/arcgis/rest/services/AddressPointsPublic/FeatureServer' },
+    /* Madison: the parish 911 address points, hosted by the East Texas Council of Governments (the whole address built from its parts) */
+    { id: 'madison-911', label: 'Madison Parish addresses', name: 'the Madison Parish 911 address points', fips: ['22065'], kind: 'addr',
+      url: 'https://maps.etcog.org/arcgis/rest/services/MadisonParish/MadisonParish_Public/FeatureServer/2', f: { num: 'ADD_NUMBER', pre: 'ADD_PRE', st: 'ADD_NAME', typ: 'ADD_TYPE', suf: 'ADD_SUF', unit: 'ADD_UNIT', zip: 'ZIP5', note: 'StructureType' },
+      what: 'Madison Parish 911 address points, hosted by the East Texas Council of Governments', when: '3,968 points', link: 'https://maps.etcog.org/arcgis/rest/services/MadisonParish/MadisonParish_Public/FeatureServer' },
+    /* Orleans: the City of New Orleans' site address points (current ones on buildings and parcels; FEMA's footprints here carry no address),
+       the city's designated landmarks with their construction dates, the FEMA Section 106 survey of 57,443 buildings in the historic
+       neighborhoods after Katrina and Rita (published by the Louisiana Office of Cultural Development: a construction date, mostly a surveyor's
+       span, the stories, frame, cladding, roof covering and roof shape, use, type and style, surveyed 2007 to 2009), the Vieux Carré
+       Commission's primary buildings in the French Quarter, and the city's tax parcels behind them */
+    { id: 'orleans-addr', label: 'Orleans Parish addresses', name: 'the City of New Orleans site address points', fips: ['22071'], kind: 'addr',
+      url: 'https://maps.nola.gov/server/rest/services/Addresses/Site_Address_Point_LAMA/MapServer/0', where: "STATUS = 'Current' AND (POINTTYPE IS NULL OR POINTTYPE IN ('Building', 'Parcel', 'Other'))",
+      f: { addr: 'FULLADDR', zip: 'ZCTA5CE10' },
+      what: 'City of New Orleans GIS, site address points (current points on buildings and parcels)', when: 'live', link: 'https://maps.nola.gov/server/rest/services/Addresses/Site_Address_Point_LAMA/MapServer' },
+    { id: 'orleans-landmarks', ybCover: 'its designated landmarks',  label: 'New Orleans landmarks', name: 'the City of New Orleans\' designated landmarks', fips: ['22071'], kind: 'addr', ranges: true,
+      url: 'https://maps.nola.gov/server/rest/services/Administrative/Historic_Preservation/MapServer/0', f: { addr: 'addr', yb: 'Date_', name: 'name' },
+      what: 'City of New Orleans, designated historic landmarks: name and construction date', when: 'live', link: 'https://maps.nola.gov/server/rest/services/Administrative/Historic_Preservation/MapServer' },
+    { id: 'orleans-survey', ybCover: 'the historic neighborhoods surveyed after Katrina',  label: 'New Orleans historic building survey', name: 'the FEMA historic building survey of New Orleans (Louisiana Office of Cultural Development)', fips: ['22071'], kind: 'addr', grade: 'B', ranges: true,
+      url: 'https://services6.arcgis.com/Pa9GX8gVoVoT9Dpj/arcgis/rest/services/FEMASurvey/FeatureServer/10',
+      f: { num: 'Street_Num', st: 'Street_Nam', zip: 'Zipcode', yb: 'Constructi', ybEst: 'Date_Estim', stories: 'Height', cons: 'Const_Mate', wall: 'Cladding', roofc: 'Roof_Mate', rooft: 'Roof_Type', use: 'Current_Us', note: 'Building_T', asof: 'Last_Updat' }, extra: ['Style'],
+      map: { note: (v, a) => [v, sval(a.Style)].filter(x => x && !/^(other|no style|unknown|multiple)$/i.test(x)).join(', '), roofc: v => (/^(multiple|other|unknown)$/i.test(v) ? '' : v), rooft: v => (/^(multiple|other|unknown)$/i.test(v) ? '' : v), wall: v => (/^(multiple|other|unknown)$/i.test(v) ? '' : v), cons: v => (/^(multiple|other|unknown)$/i.test(v) ? '' : v), use: v => (/^(multiple|other|unknown)$/i.test(v) ? '' : v) },
+      noteLabel: 'Type and style', noteWhat: 'the surveyor\'s reading of the building',
+      what: 'FEMA Section 106 survey of New Orleans\' historic neighborhoods after Katrina and Rita, published by the Louisiana Office of Cultural Development: a construction date (mostly a surveyor\'s estimated span, read at its middle), stories, frame, cladding, roof covering and shape, use, type and style',
+      when: '57,443 buildings, surveyed 2007 to 2009', link: 'https://services6.arcgis.com/Pa9GX8gVoVoT9Dpj/arcgis/rest/services/FEMASurvey/FeatureServer' },
+    { id: 'orleans-vcc', label: 'French Quarter buildings', name: 'the Vieux Carré Commission\'s building survey', fips: ['22071'], kind: 'bldg',
+      url: 'https://gis.nola.gov/arcgis/rest/services/apps/vcvl/MapServer/0', where: "PrimaryOrSecondary = 'Primary'", f: { addr: 'FULLADDRESS', use: 'BuildingType', note: 'CurrentStyle' },
+      noteLabel: 'Style', noteWhat: 'the Vieux Carré Commission\'s reading of the building',
+      what: 'City of New Orleans, Vieux Carré Commission: the primary buildings of the French Quarter, with type and architectural style', when: 'live', link: 'https://gis.nola.gov/arcgis/rest/services/apps/vcvl/MapServer' },
+    { id: 'orleans-roll', label: 'Orleans Parish tax parcels', name: 'the Orleans Parish tax parcels (City of New Orleans)', fips: ['22071'], kind: 'parcel', fallback: true,
+      url: 'https://gis.nola.gov/arcgis/rest/services/LGIM/TaxParcelQuery/MapServer/0', f: { addr: 'SITEADDRESS', city: 'SITECITY', zip: 'SITEZIP' },
+      what: 'City of New Orleans GIS, tax parcels with the site address', when: '161,897 parcels; live', link: 'https://gis.nola.gov/arcgis/rest/services/LGIM/TaxParcelQuery/MapServer' },
+    /* Jefferson: the Assessor's address points and building footprints (floors) on the parish's own server, Kenner's address points with a year
+       built (an unlisted working copy on the city's ArcGIS Online, which may change), and the Assessor's parcels behind them */
+    { id: 'jefferson-addr', label: 'Jefferson Parish addresses', name: 'the Jefferson Parish Assessor\'s address points', fips: ['22051'], kind: 'addr',
+      url: 'https://jpgis.jeffparish.net/server/rest/services/PAO_MAP_2025/MapServer/8', f: { num: 'ADDRESS', st: 'STREET', city: 'AREA_NAME', zip: 'ZIP' },
+      what: 'Jefferson Parish Assessor (the parish GIS server), address points', when: 'live', link: 'https://jpgis.jeffparish.net/server/rest/services/PAO_MAP_2025/MapServer' },
+    { id: 'kenner-yb', ybCover: 'Kenner',  label: 'Kenner addresses with year built', name: 'the City of Kenner\'s address points with a year built', fips: ['22051'], kind: 'addr', ph: [8547],
+      url: 'https://services8.arcgis.com/gCizoHqvF7Wwkv9D/arcgis/rest/services/Working__Copy/FeatureServer/0', f: { addr: 'Address_', yb: 'Year_Built' },
+      what: 'City of Kenner, address points with the year built (an unlisted working copy, which may change)', when: 'Kenner only', link: 'https://services8.arcgis.com/gCizoHqvF7Wwkv9D/arcgis/rest/services/Working__Copy/FeatureServer' },
+    { id: 'jefferson-buildings', label: 'Jefferson Parish buildings', name: 'the Jefferson Parish building footprints', fips: ['22051'], kind: 'bldg',
+      url: 'https://jpgis.jeffparish.net/server/rest/services/PAO_MAP_2025/MapServer/16', f: { num: 'ADDRESS', st: 'STREET', stories: 'NO_FLOORS' },
+      what: 'Jefferson Parish Assessor, building footprints: the address and the number of floors', when: 'live', link: 'https://jpgis.jeffparish.net/server/rest/services/PAO_MAP_2025/MapServer' },
+    { id: 'jefferson-roll', label: 'Jefferson Parish tax parcels', name: 'the Jefferson Parish Assessor\'s parcels', fips: ['22051'], kind: 'parcel', fallback: true,
+      url: 'https://jpgis.jeffparish.net/server/rest/services/PAO_MAP_2025/MapServer/72', f: { addr: 'PARCELADDR' },
+      what: 'Jefferson Parish Assessor, parcels with the site address', when: 'live', link: 'https://jpgis.jeffparish.net/server/rest/services/PAO_MAP_2025/MapServer' },
+    /* St. Bernard: the parish government's address points and the Assessor's parcels behind them (both on the parish's own server) */
+    { id: 'stbernard-addr', label: 'St. Bernard Parish addresses', name: 'the St. Bernard Parish address points', fips: ['22087'], kind: 'addr',
+      url: 'https://lucity.sbpg.net/arcgis/rest/services/AddressViewer/MapServer/0', f: { num: 'HouseNum', pre: 'StreetDir', st: 'StreetName', typ: 'StreetType', city: 'Community' },
+      what: 'St. Bernard Parish Government, address points', when: 'live', link: 'https://lucity.sbpg.net/arcgis/rest/services/AddressViewer/MapServer' },
+    { id: 'stbernard-roll', label: 'St. Bernard Parish parcels', name: 'the St. Bernard Parish parcels', fips: ['22087'], kind: 'parcel', fallback: true,
+      url: 'https://lucity.sbpg.net/arcgis/rest/services/ComDev/Parcels3/MapServer/0', f: { num: 'Address_Number', st: 'Street_Name' },
+      what: 'St. Bernard Parish Government, parcels with the Assessor\'s site address', when: 'live', link: 'https://lucity.sbpg.net/arcgis/rest/services/ComDev/Parcels3/MapServer' },
+    /* Plaquemines: the parish's address points (2019, so newer homes may be missing) */
+    { id: 'plaquemines-addr', label: 'Plaquemines Parish addresses', name: 'the Plaquemines Parish address points', fips: ['22075'], kind: 'addr',
+      url: 'https://services1.arcgis.com/fe3XWHMASK948q2c/arcgis/rest/services/PlaqAddressPoints2/FeatureServer/0', f: { addr: 'FullAddres' },
+      what: 'Plaquemines Parish address points (hosted by the parish\'s GIS contractor)', when: '2019', link: 'https://services1.arcgis.com/fe3XWHMASK948q2c/arcgis/rest/services/PlaqAddressPoints2/FeatureServer' },
+    /* St. Tammany: the 911 district's address points (the Assessor's 2025 copy, with the kind of building at each), the City of Mandeville's
+       historic district survey (a year built, stories, walls, roof covering and shape, condition) and its building footprints, and the
+       Assessor's 2025 parcels behind them */
+    { id: 'sttammany-911', label: 'St. Tammany Parish addresses', name: 'the St. Tammany Parish 911 address points', fips: ['22103'], kind: 'addr',
+      url: 'https://services5.arcgis.com/Ph2T7y7nG3DrfrQ1/arcgis/rest/services/address_points_911_v2025/FeatureServer/0', f: { addr: 'ADDRESS', city: 'CITY_L', zip: 'ZIP_CODE', use: 'MAP_CLASS' },
+      what: 'St. Tammany Parish 911 address points (the Assessor\'s 2025 copy), with the kind of building at each', when: '2025, refreshed regularly', link: 'https://services5.arcgis.com/Ph2T7y7nG3DrfrQ1/arcgis/rest/services/address_points_911_v2025/FeatureServer' },
+    { id: 'mandeville-historic', ybCover: 'Old Mandeville',  label: 'Mandeville historic district', name: 'the City of Mandeville\'s historic district survey', fips: ['22103'], kind: 'bldg', grade: 'B', ranges: true,
+      url: 'https://services6.arcgis.com/h1LBEEg2MI7tkz4N/arcgis/rest/services/Historic_District_Structures/FeatureServer/1',
+      f: { yb: 'CONS_DAT', addr: 'PROP_ADDR', stories: 'STORIES', cons: 'CONS_TYPE', wall: 'EXT_MAT', rooft: 'ROOF', roofc: 'ROOF_MAT', cond: 'PROP_COND' },
+      map: { cons: v => (/^unknown( construction)?$/i.test(v) ? '' : v.replace(/^unknown /i, '')), roofc: v => (/^unknown$/i.test(v) ? '' : v) },
+      what: 'City of Mandeville, historic district structures: a construction date (often a surveyor\'s span), stories, construction, exterior walls, roof covering and shape, condition', when: 'Old Mandeville', link: 'https://services6.arcgis.com/h1LBEEg2MI7tkz4N/arcgis/rest/services/Historic_District_Structures/FeatureServer' },
+    { id: 'mandeville-buildings', label: 'Mandeville buildings', name: 'the City of Mandeville\'s building footprints', fips: ['22103'], kind: 'bldg',
+      url: 'https://services6.arcgis.com/h1LBEEg2MI7tkz4N/arcgis/rest/services/Building_Footprints/FeatureServer/112', f: { addr: 'MP_FULLADD', city: 'CITY', zip: 'ZIP_CODE', use: 'BUILD_TYPE' },
+      map: { addr: v => v.replace(/\s+MANDEVILLE,?\s*(LA)?\s*(\d{5})?\s*$/i, '') },
+      what: 'City of Mandeville, building footprints: the address and kind of each building', when: 'Mandeville', link: 'https://services6.arcgis.com/h1LBEEg2MI7tkz4N/arcgis/rest/services/Building_Footprints/FeatureServer' },
+    { id: 'sttammany-roll', label: 'St. Tammany Parish parcels', name: 'the St. Tammany Parish Assessor\'s 2025 parcels', fips: ['22103'], kind: 'parcel', fallback: true,
+      url: 'https://services6.arcgis.com/qTudxJc3aZ26vKe6/arcgis/rest/services/STP_Parcels_2025/FeatureServer/0', f: { addr: 'Physical_A' },
+      what: 'St. Tammany Parish Assessor, 2025 parcels with the site address', when: '2025', link: 'https://services6.arcgis.com/qTudxJc3aZ26vKe6/arcgis/rest/services/STP_Parcels_2025/FeatureServer' },
+    /* Tangipahoa: the parish's tax parcels with the site address, on the parish's own server */
+    { id: 'tangipahoa-roll', label: 'Tangipahoa Parish tax parcels', name: 'the Tangipahoa Parish tax parcels', fips: ['22105'], kind: 'parcel',
+      url: 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/TaxParcel_A/MapServer/0', f: { addr: 'PHYSICAL_STREET_ADDR', city: 'PHYSICAL_PSTLCITY', zip: 'PHYSICAL_PSTLZIP5' },
+      what: 'Tangipahoa Parish Government GIS, tax parcels with the site address', when: 'live', link: 'https://tangis.tangipahoa.org/server/rest/services/Cadastral/TaxParcel_A/MapServer' },
+    /* Washington: the parish's 911 address points (captured by GPS) and its parcels behind them */
+    { id: 'washington-911', label: 'Washington Parish addresses', name: 'the Washington Parish 911 address points', fips: ['22117'], kind: 'addr',
+      url: 'https://services7.arcgis.com/yE0LOKocwREqepjx/arcgis/rest/services/Addresses_(Public_View)/FeatureServer/0', f: { addr: 'ADDRESS', city: 'MSAGComm' },
+      what: 'Washington Parish 911 address points', when: 'live', link: 'https://services7.arcgis.com/yE0LOKocwREqepjx/arcgis/rest/services/Addresses_(Public_View)/FeatureServer' },
+    { id: 'washington-roll', label: 'Washington Parish parcels', name: 'the Washington Parish parcels', fips: ['22117'], kind: 'parcel', fallback: true,
+      url: 'https://services7.arcgis.com/yE0LOKocwREqepjx/arcgis/rest/services/Parcels_Public_view_March_2024/FeatureServer/0', f: { num: 'PHYSICAL_A', st: 'PHYSICAL_S' },
+      what: 'Washington Parish parcels with the site address', when: 'March 2024', link: 'https://services7.arcgis.com/yE0LOKocwREqepjx/arcgis/rest/services/Parcels_Public_view_March_2024/FeatureServer' },
+    /* St. Charles: the parish GIS's address points (placed on each building's centre) and parcels */
+    { id: 'stcharles-addr', label: 'St. Charles Parish addresses', name: 'the St. Charles Parish address points', fips: ['22089'], kind: 'addr',
+      url: 'https://maps.scpgis.com/geoserver/rest/services/Public/GIS_Data/MapServer/0', f: { addr: 'fulladdr', city: 'municipali', zip: 'zip' },
+      what: 'St. Charles Parish GIS, address points (on each building\'s centre)', when: 'live', link: 'https://maps.scpgis.com/geoserver/rest/services/Public/GIS_Data/MapServer' },
+    { id: 'stcharles-roll', label: 'St. Charles Parish parcels', name: 'the St. Charles Parish parcels', fips: ['22089'], kind: 'parcel', fallback: true,
+      url: 'https://maps.scpgis.com/geoserver/rest/services/Public/Parcels_FZR/MapServer/0', f: { addr: 'fulladdres', city: 'community' },
+      what: 'St. Charles Parish GIS, parcels with the site address', when: 'live', link: 'https://maps.scpgis.com/geoserver/rest/services/Public/Parcels_FZR/MapServer' },
+    /* St. John the Baptist: the regional planning commission's address points for the parish (2019) */
+    { id: 'stjohn-addr', label: 'St. John the Baptist Parish addresses', name: 'the St. John the Baptist Parish address points', fips: ['22095'], kind: 'addr',
+      url: 'https://services5.arcgis.com/NaE1rjvJf3JdTAkI/arcgis/rest/services/address_points/FeatureServer/0', f: { addr: 'DLVRY_ADD', city: 'CITY_1', zip: 'ZIP_CODE' },
+      what: 'St. John the Baptist Parish address points (South Central Planning and Development Commission)', when: '2019', link: 'https://services5.arcgis.com/NaE1rjvJf3JdTAkI/arcgis/rest/services/address_points/FeatureServer' },
+    /* St. James: the Assessor's buildings (an age, read as the year built: 2027 minus the age, as the roll's own sales file shows; the effective
+       age the same way; living area, condition, structure type), the parish's address points and parcels, on the parish's tax viewer server */
+    { id: 'stjames-buildings', label: 'St. James Parish buildings', name: 'the St. James Parish Assessor\'s buildings', fips: ['22093'], kind: 'bldg',
+      url: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/2', f: { yb: 'Age', eyb: 'Eff_Age', area: 'LivingSqft', cond: 'Condition', use: 'Structure_Type' },
+      map: { yb: v => (+v > 0 && +v < 200 ? String(2027 - +v) : ''), eyb: v => (+v > 0 && +v < 200 ? String(2027 - +v) : ''), cond: v => (/^user defined$/i.test(v) ? '' : v) },
+      what: 'St. James Parish Assessor (the parish tax viewer server), buildings: an age (the year built is 2027 minus the age, as the roll\'s own sales file shows), an effective age, living area, condition and structure type',
+      when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer' },
+    { id: 'stjames-addr', label: 'St. James Parish addresses', name: 'the St. James Parish address points', fips: ['22093'], kind: 'addr',
+      url: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/0', f: { num: 'ADDRESS', st: 'ST_LABEL', city: 'COMMUNITY', zip: 'ZIPCODE' },
+      what: 'St. James Parish, address points', when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer' },
+    { id: 'stjames-roll', label: 'St. James Parish parcels', name: 'the St. James Parish Assessor\'s parcels', fips: ['22093'], kind: 'parcel', fallback: true,
+      url: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer/4', f: { addr: 'Physical_Addr' },
+      map: { addr: v => v.replace(/\s+(LUTCHER|GRAMERCY|(?:NORTH |SOUTH )?VACHERIE|PAULINA|CONVENT|ST\.? JAMES|HESTER|UNCLE SAM|ROMEVILLE|BURNSIDE|WELCOME|DONALDSONVILLE)\s*(?:LA\s*)?(?:\d{5})?\s*$/i, '') },
+      what: 'St. James Parish Assessor, parcels with the site address', when: 'live', link: 'https://gisviewer.stjamesla.com/arcgis/rest/services/TaxViewer/MapServer' },
+    /* Calcasieu: the Police Jury's E911 address points, its parcels behind them, and its insurance schedule of the parish's own 273 buildings (year
+       built, the year the roof went on, roof covering and shape, cladding, stories, construction): offices, fire stations, parks, no homes */
+    { id: 'calcasieu-911', label: 'Calcasieu Parish addresses', name: 'the Calcasieu Parish E911 address points', fips: ['22019'], kind: 'addr',
+      url: 'https://lak-dc-arcgis2.cppj.net/arcgis/rest/services/E911/E911_Addresses_Streets/MapServer/0', f: { addr: 'FULL_ADDRE', city: 'CITY', zip: 'ZIPCODE', use: 'TYPE' },
+      map: { use: v => ({ RES: 'Residential', COM: 'Commercial', BUS: 'Business' })[String(v).toUpperCase()] || v },
+      what: 'Calcasieu Parish Police Jury GIS, E911 address points', when: '100,557 points; edited November 19, 2026', link: 'https://lak-dc-arcgis2.cppj.net/arcgis/rest/services/E911/E911_Addresses_Streets/MapServer' },
+    { id: 'calcasieu-facilities', ybCover: 'the parish\'s own buildings',  label: 'Calcasieu Parish buildings (parish owned)', name: 'the Calcasieu Parish Police Jury\'s schedule of its buildings', fips: ['22019'], kind: 'addr',
+      url: 'https://lak-dc-arcgis2.cppj.net/arcgis/rest/services/FACILITIES/FACILITIES_SOV/FeatureServer/0',
+      f: { yb: 'Year_Built', roofy: 'Year_Roof_', addr: 'Street_Add', city: 'City', zip: 'Zip', stories: 'Num_Storie', area: 'F__sq_ft', use: 'Descriptio', cons: 'Constructi', wall: 'Cladding_T', roofc: 'Roof_Cover', rooft: 'Roof_Geome' },
+      map: { roofc: v => v.replace(/^\d+_/, ''), rooft: v => v.replace(/^\d+_/, ''), wall: v => v.replace(/^\d+_/, ''), cons: v => v.replace(/^\d+_/, ''), stories: v => (+v > 0 ? v : '') },
+      what: 'Calcasieu Parish Police Jury, statement of values of the parish\'s own buildings: year built, the year the roof went on, roof covering and shape, cladding, stories, construction', when: '273 parish buildings', link: 'https://lak-dc-arcgis2.cppj.net/arcgis/rest/services/FACILITIES/FACILITIES_SOV/FeatureServer' },
+    { id: 'calcasieu-roll', label: 'Calcasieu Parish parcels', name: 'the Calcasieu Parish parcels', fips: ['22019'], kind: 'parcel', fallback: true,
+      url: 'https://lak-dc-arcgis2.cppj.net/arcgis/rest/services/HubLayers/Parcels/FeatureServer/0', f: { addr: 'PHYSICALAD' },
+      what: 'Calcasieu Parish Police Jury GIS, parcels with the site address', when: '168,029 parcels; edited November 2026', link: 'https://lak-dc-arcgis2.cppj.net/arcgis/rest/services/HubLayers/Parcels/FeatureServer' },
+    /* Jefferson Davis and Allen: the parish parcels with the site address, on Total Land Solutions' server for the parish GIS (about 2023) */
+    { id: 'jeffdavis-roll', label: 'Jefferson Davis Parish parcels', name: 'the Jefferson Davis Parish parcels', fips: ['22053'], kind: 'parcel',
+      url: 'https://gis3.totaland.com/arcgis/rest/services/AEDC/JDPE_Parcels/MapServer/0', f: { addr: 'par_address' },
+      what: 'Jefferson Davis Parish GIS (hosted by Total Land Solutions), parcels with the site address', when: 'about 2023', link: 'https://gis3.totaland.com/arcgis/rest/services/AEDC/JDPE_Parcels/MapServer' },
+    { id: 'allen-roll', label: 'Allen Parish parcels', name: 'the Allen Parish parcels', fips: ['22003'], kind: 'parcel',
+      url: 'https://gis3.totaland.com/arcgis/rest/services/Allen/AllenReference2/MapServer/14', f: { addr: 'par_address' },
+      what: 'Allen Parish GIS (hosted by Total Land Solutions), parcels with the site address', when: 'about 2023', link: 'https://gis3.totaland.com/arcgis/rest/services/Allen/AllenReference2/MapServer' },
+    /* Vernon: the parish's address points, addressed building footprints and parcels on its EFS EDGE map, through the public portal's proxy
+       address (the vendor may change it) */
+    { id: 'vernon-buildings', label: 'Vernon Parish buildings', name: 'the Vernon Parish addressed building footprints', fips: ['22115'], kind: 'bldg',
+      url: 'https://www.efsedge.com/arcgisportalc/sharing/servers/25d9d759f7284648b100da4f8abd18d5/rest/services/Vernon_LA/Vernon_LA_Vector/MapServer/13', f: { addr: 'Street1', city: 'City_1', zip: 'Zip_1' },
+      what: 'Vernon Parish (EFS EDGE), building footprints with an address', when: '16,364 buildings', link: 'https://www.efsedge.com/vernon' },
+    { id: 'vernon-addr', label: 'Vernon Parish addresses', name: 'the Vernon Parish address points', fips: ['22115'], kind: 'addr',
+      url: 'https://www.efsedge.com/arcgisportalc/sharing/servers/25d9d759f7284648b100da4f8abd18d5/rest/services/Vernon_LA/Vernon_LA_Vector/MapServer/52', f: { addr: 'Address_Label', zip: 'ZIP' },
+      what: 'Vernon Parish (EFS EDGE), address points', when: '12,564 points', link: 'https://www.efsedge.com/vernon' },
+    { id: 'vernon-roll', label: 'Vernon Parish parcels', name: 'the Vernon Parish Assessor\'s parcels', fips: ['22115'], kind: 'parcel', fallback: true,
+      url: 'https://www.efsedge.com/arcgisportalc/sharing/servers/25d9d759f7284648b100da4f8abd18d5/rest/services/Vernon_LA/Vernon_LA_Vector/MapServer/91', f: { addr: 'Physical_Address' },
+      what: 'Vernon Parish Assessor (EFS EDGE), 2026 parcels with the site address', when: 'edited November 17, 2026', link: 'https://www.efsedge.com/vernon' },
+    /* Terrebonne: the parish government's address points (the demolished left out) and the Assessor's parcels behind them */
+    { id: 'terrebonne-addr', label: 'Terrebonne Parish addresses', name: 'the Terrebonne Parish address points', fips: ['22109'], kind: 'addr',
+      url: 'https://gis.tpcg.org/server/rest/services/General/ADDRESSPOINT/FeatureServer/3', where: "PROP_TYPE IS NULL OR PROP_TYPE <> 'DEM'",
+      f: { num: 'MUN_NO', pre: 'DIR', st: 'STREET', typ: 'DESIGNATIO', city: 'CITY', zip: 'ZIPCODE', use: 'PROP_TYPE' }, map: { use: v => ({ RESD: 'Residential', COMM: 'Commercial' })[String(v).toUpperCase()] || '' },
+      what: 'Terrebonne Parish Consolidated Government GIS, address points', when: 'live', link: 'https://gis.tpcg.org/server/rest/services/General/ADDRESSPOINT/FeatureServer' },
+    { id: 'terrebonne-roll', label: 'Terrebonne Parish parcels', name: 'the Terrebonne Parish Assessor\'s parcels', fips: ['22109'], kind: 'parcel', fallback: true,
+      url: 'https://gis.tpcg.org/server/rest/services/Assessor/Parcel_Join/FeatureServer/0', f: { num: 'Address_Number', st: 'Street_Name' },
+      what: 'Terrebonne Parish Consolidated Government GIS, the Assessor\'s parcels with the site address', when: 'live', link: 'https://gis.tpcg.org/server/rest/services/Assessor/Parcel_Join/FeatureServer' },
+    /* Lafourche: the parish government's 2021 assessor parcels with a year built on about one in six (2019 is left out: it stands on four times
+       the parcels of the years round it, nearly all never sold, so it reads as a placeholder) and the living area; and its address points */
+    { id: 'lafourche-yb', ybCover: 'about one parcel in six, to 2021',  label: 'Lafourche Parish parcels (2021)', name: 'the Lafourche Parish Assessor\'s 2021 parcels', fips: ['22057'], kind: 'parcel', ph: [2019],
+      url: 'https://services1.arcgis.com/hg2WR9ukwQebQrXp/arcgis/rest/services/Parish_Base_Map_WFL1/FeatureServer/4', f: { yb: 'YearBuilt', area: 'F1SQFT' },
+      what: 'Lafourche Parish Government, the Assessor\'s 2021 parcels: a year built on about one parcel in six (2019 read as a placeholder and left out) and the living area', when: '2021, frozen', link: 'https://services1.arcgis.com/hg2WR9ukwQebQrXp/arcgis/rest/services/Parish_Base_Map_WFL1/FeatureServer' },
+    { id: 'lafourche-addr', label: 'Lafourche Parish addresses', name: 'the Lafourche Parish address points', fips: ['22057'], kind: 'addr',
+      url: 'https://services1.arcgis.com/hg2WR9ukwQebQrXp/arcgis/rest/services/LPG_Address_Records/FeatureServer/0', f: { num: 'addrnum', st: 'fullname', city: 'municipality', zip: 'zipcode' },
+      what: 'Lafourche Parish Government, address points', when: '56,599 points', link: 'https://services1.arcgis.com/hg2WR9ukwQebQrXp/arcgis/rest/services/LPG_Address_Records/FeatureServer' },
+    /* Rapides: the parish's building footprints with the site address of each (the demolished left out) and its address points, with the kind of
+       building at each (house, mobile home) */
+    { id: 'rapides-buildings', label: 'Rapides Parish buildings', name: 'the Rapides Parish building footprints', fips: ['22079'], kind: 'bldg',
+      url: 'https://services3.arcgis.com/qJODk8U9fdLwZBY2/arcgis/rest/services/Online_Map/FeatureServer/31', where: "status IS NULL OR status <> 'demolished'", f: { addr: 'ph_add' },
+      what: 'Rapides Parish, building footprints with the site address of each', when: '124,197 buildings', link: 'https://services3.arcgis.com/qJODk8U9fdLwZBY2/arcgis/rest/services/Online_Map/FeatureServer' },
+    { id: 'rapides-addr', label: 'Rapides Parish addresses', name: 'the Rapides Parish address points', fips: ['22079'], kind: 'addr',
+      url: 'https://services3.arcgis.com/qJODk8U9fdLwZBY2/arcgis/rest/services/Addresses_View/FeatureServer/0', f: { addr: 'address', zip: 'zip', use: 'structure' },
+      what: 'Rapides Parish, address points with the kind of building at each (house, mobile home, church)', when: '60,528 points', link: 'https://services3.arcgis.com/qJODk8U9fdLwZBY2/arcgis/rest/services/Addresses_View/FeatureServer' },
+    /* Avoyelles and Catahoula: the parish address points, footprints and parcels on their EFS EDGE maps, through the public portal's proxy address;
+       Catahoula's 911 office writes each building in shorthand (colour, walls, trim), spelt out here */
+    { id: 'avoyelles-addr', label: 'Avoyelles Parish addresses', name: 'the Avoyelles Parish address points', fips: ['22009'], kind: 'addr',
+      url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c92627398ce14d5bbf56dd2f4044ac23/rest/services/Avoyelles_LA/Avoyelles_LA_Vector/FeatureServer/9', where: "Type IS NULL OR Type <> 'Intersection'",
+      f: { addr: 'Address', city: 'CITY', zip: 'ZIP', use: 'Type' }, what: 'Avoyelles Parish (EFS EDGE), address points with the kind of building at each', when: '25,387 points', link: 'https://www.efsedge.com/avoyelles' },
+    { id: 'avoyelles-roll', label: 'Avoyelles Parish parcels', name: 'the Avoyelles Parish Assessor\'s parcels', fips: ['22009'], kind: 'parcel', fallback: true,
+      url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c92627398ce14d5bbf56dd2f4044ac23/rest/services/Avoyelles_LA/Avoyelles_LA_Vector/FeatureServer/54', f: { addr: 'Address' },
+      what: 'Avoyelles Parish Assessor (EFS EDGE), parcels with the site address', when: 'live', link: 'https://www.efsedge.com/avoyelles' },
+    { id: 'catahoula-buildings', label: 'Catahoula Parish buildings', name: 'the Catahoula Parish addressed building footprints', fips: ['22025'], kind: 'bldg',
+      url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c8575916dcd447698b36d4b13d2d1d31/rest/services/Catahoula_LA/Catahoula_LA_Vector/FeatureServer/20', f: { addr: 'Address', city: 'New_City_1', zip: 'New_Zip_1', note: 'Description' },
+      map: { note: v => desc911(v) }, noteLabel: 'On the 911 record', noteWhat: 'the 911 office\'s description of the building',
+      what: 'Catahoula Parish (EFS EDGE), building footprints with an address and the 911 office\'s description of each', when: 'live', link: 'https://www.efsedge.com/catahoula' },
+    { id: 'catahoula-addr', label: 'Catahoula Parish addresses', name: 'the Catahoula Parish address points', fips: ['22025'], kind: 'addr',
+      url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c8575916dcd447698b36d4b13d2d1d31/rest/services/Catahoula_LA/Catahoula_LA_Vector/FeatureServer/0', f: { addr: 'Address', city: 'New_City_1', zip: 'New_Zip_1' },
+      what: 'Catahoula Parish (EFS EDGE), address points', when: 'live', link: 'https://www.efsedge.com/catahoula' },
+    { id: 'catahoula-roll', label: 'Catahoula Parish parcels', name: 'the Catahoula Parish parcels', fips: ['22025'], kind: 'parcel', fallback: true,
+      url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c8575916dcd447698b36d4b13d2d1d31/rest/services/Catahoula_LA/Catahoula_LA_Vector/FeatureServer/21', f: { addr: 'Phy_Address' },
+      what: 'Catahoula Parish (EFS EDGE), parcels with the site address', when: 'live', link: 'https://www.efsedge.com/catahoula' },
+    /* St. Landry: the parish GIS's parcels with the Assessor's site address, and Eunice's 911 address points (an addressing project under way) */
+    { id: 'stlandry-eunice', label: 'Eunice addresses', name: 'the St. Landry Parish 911 address points for Eunice', fips: ['22097', '22001'], kind: 'addr',
+      url: 'https://parishgis.stlandry.gov/server/rest/services/Hosted/Address_Locations_Eunice_70535/FeatureServer/0', f: { addr: 'fulladdr', city: 'municipality', zip: 'zip' },
+      what: 'St. Landry Parish GIS, 911 address points for the Eunice area (a project under way)', when: 'Eunice', link: 'https://parishgis.stlandry.gov/server/rest/services/Hosted/Address_Locations_Eunice_70535/FeatureServer' },
+    { id: 'stlandry-roll', label: 'St. Landry Parish parcels', name: 'the St. Landry Parish parcels', fips: ['22097'], kind: 'parcel',
+      url: 'https://parishgis.stlandry.gov/server/rest/services/Hosted/Parcels/FeatureServer/0', f: { num: 'address_number', pre: 'street_direction', st: 'street_name' },
+      what: 'St. Landry Parish GIS, parcels with the Assessor\'s site address', when: 'live', link: 'https://parishgis.stlandry.gov/server/rest/services/Hosted/Parcels/FeatureServer' },
+    /* Acadia: the Assessor's one-to-one CAMA parcels (the site address and occupancy) */
+    { id: 'acadia-roll', label: 'Acadia Parish tax parcels', name: 'the Acadia Parish Assessor\'s parcels', fips: ['22001'], kind: 'parcel',
+      url: 'https://services3.arcgis.com/cWVjJ3EL88oVeYPk/arcgis/rest/services/Tax_Parcel_CAMA_One_to_One_View/FeatureServer/0', f: { addr: 'par_address', use: 'occupancy' }, map: { use: v => (/^land only$/i.test(v) ? '' : v) },
+      what: 'Acadia Parish Assessor, CAMA parcels: the site address and occupancy', when: 'live', link: 'https://services3.arcgis.com/cWVjJ3EL88oVeYPk/arcgis/rest/services/Tax_Parcel_CAMA_One_to_One_View/FeatureServer' },
+    /* Iberia: the parish's GPS-collected E911 structure points (retired ones left out), with the kind of structure at each and, for those built
+       since about 2016, the building permit's date (about the year built); and the parish parcels behind them */
+    { id: 'iberia-911', ybCover: 'structures permitted since about 2016',  label: 'Iberia Parish addresses', name: 'the Iberia Parish E911 structure points', fips: ['22045'], kind: 'addr', about: true,
+      url: 'https://maps.iberiagov.net/server/rest/services/E911/Address_Points/MapServer/0', where: "Retired IS NULL OR Retired NOT IN ('Y', 'Yes')",
+      f: { addr: 'Num_Street', city: 'Community', zip: 'Zip', use: 'Structure', yb: 'BldgPermDate' },
+      map: { yb: v => (+v > 1e11 ? String(new Date(+v).getUTCFullYear()) : ''), use: v => (/^mobilehome$/i.test(v) ? 'Mobile home' : /^(other|unknown|preaddressed)$/i.test(v) ? '' : v) }, min: 2000,
+      what: 'Iberia Parish Government, E911 structure points (GPS collected), with the kind of structure and, for newer ones, the building permit\'s date (about the year built)', when: 'live', link: 'https://maps.iberiagov.net/server/rest/services/E911/Address_Points/MapServer' },
+    { id: 'iberia-roll', label: 'Iberia Parish parcels', name: 'the Iberia Parish parcels', fips: ['22045'], kind: 'parcel', fallback: true,
+      url: 'https://maps.iberiagov.net/server/rest/services/Parcels/Parcels_May_2024/MapServer/0', f: { num: 'Address_Nu', pre: 'Street_Dir', st: 'Street_Nam' },
+      what: 'Iberia Parish Government, May 2024 parcels with the site address', when: 'May 2024', link: 'https://maps.iberiagov.net/server/rest/services/Parcels/Parcels_May_2024/MapServer' },
+    /* St. Mary: the parish's 2023 building footprints (each with its parcel's address) and its June 2025 parcels */
+    { id: 'stmary-buildings', label: 'St. Mary Parish buildings', name: 'the St. Mary Parish building footprints', fips: ['22101'], kind: 'bldg',
+      url: 'https://services9.arcgis.com/jGlVpYnGiHmSg9fR/arcgis/rest/services/SMP_BldgFootprint_10092023/FeatureServer/70', f: { num: 'ADDRESS_NU', pre: 'STREET_DIR', st: 'STREET_NAM', city: 'PHYS_CITY' },
+      what: 'St. Mary Parish, 2023 building footprints with the parcel\'s address', when: 'October 2023', link: 'https://services9.arcgis.com/jGlVpYnGiHmSg9fR/arcgis/rest/services/SMP_BldgFootprint_10092023/FeatureServer' },
+    { id: 'stmary-roll', label: 'St. Mary Parish parcels', name: 'the St. Mary Parish parcels', fips: ['22101'], kind: 'parcel', fallback: true,
+      url: 'https://services9.arcgis.com/jGlVpYnGiHmSg9fR/arcgis/rest/services/SMP_Parcel_06032025/FeatureServer/100', f: { addr: 'Full_SiteAddress', city: 'PHYS_CITY' },
+      what: 'St. Mary Parish, June 2025 parcels with the site address', when: 'June 2025', link: 'https://services9.arcgis.com/jGlVpYnGiHmSg9fR/arcgis/rest/services/SMP_Parcel_06032025/FeatureServer' },
+    /* Lafourche: the parish's working address file, behind its address points (it holds more, with some repeats) */
+    { id: 'lafourche-addr2', label: 'Lafourche Parish addresses (working file)', name: 'the Lafourche Parish working address file', fips: ['22057'], kind: 'addr', fallback: true,
+      url: 'https://services1.arcgis.com/hg2WR9ukwQebQrXp/arcgis/rest/services/Working_addressingFile__MGO_SHARE/FeatureServer/1', f: { addr: 'fulladdr', city: 'municipality', zip: 'zipcode' },
+      what: 'Lafourche Parish Government, working address file', when: '113,948 points', link: 'https://services1.arcgis.com/hg2WR9ukwQebQrXp/arcgis/rest/services/Working_addressingFile__MGO_SHARE/FeatureServer' },
+    /* East Baton Rouge: the city-parish's historic building survey (a construction date, often a span, and the building's type) and its building
+       footprints (floors; a year built on a few), its address points and its 2026 tax parcels behind them (FEMA already names most buildings here) */
+    { id: 'ebr-historic', ybCover: 'the surveyed historic districts',  label: 'Baton Rouge historic buildings', name: 'the City of Baton Rouge and Parish of East Baton Rouge historic building survey', fips: ['22033'], kind: 'bldg', grade: 'B', ranges: true,
+      url: 'https://services.arcgis.com/KYvXadMcgf0K1EzK/arcgis/rest/services/Historic_Building/FeatureServer/0', f: { yb: 'DATE_BUILT', name: 'NAME', note: 'TYPE' }, map: { note: v => (/^(structure|building|other)$/i.test(v) ? '' : v) },
+      noteLabel: 'Type', noteWhat: 'the survey\'s type of building', what: 'City of Baton Rouge and Parish of East Baton Rouge, historic building survey: a construction date (often a span) and the type of building', when: 'historic districts', link: 'https://services.arcgis.com/KYvXadMcgf0K1EzK/arcgis/rest/services/Historic_Building/FeatureServer' },
+    { id: 'ebr-buildings', ybCover: 'about 1% of buildings',  label: 'East Baton Rouge buildings', name: 'the East Baton Rouge building footprints', fips: ['22033'], kind: 'bldg',
+      url: 'https://maps.brla.gov/gis/rest/services/Cadastral/Building_Footprint/MapServer/0', f: { yb: 'YEAR_BUILT', stories: 'NUMBER_FLOOR', use: 'STRUCTURE_TYPE' },
+      what: 'City of Baton Rouge and Parish of East Baton Rouge, building footprints: the number of floors, and a year built on about 1%', when: '197,392 buildings', link: 'https://maps.brla.gov/gis/rest/services/Cadastral/Building_Footprint/MapServer' },
+    { id: 'ebr-addr', label: 'East Baton Rouge addresses', name: 'the East Baton Rouge address points', fips: ['22033'], kind: 'addr',
+      url: 'https://maps.brla.gov/gis/rest/services/Map_Reference/Street_Address/MapServer/0', f: { addr: 'FULL_ADDRESS', city: 'CITY', zip: 'ZIP' },
+      what: 'City of Baton Rouge and Parish of East Baton Rouge, official address points', when: 'live', link: 'https://maps.brla.gov/gis/rest/services/Map_Reference/Street_Address/MapServer' },
+    { id: 'ebr-roll', label: 'East Baton Rouge tax parcels', name: 'the East Baton Rouge 2026 tax parcels', fips: ['22033'], kind: 'parcel', fallback: true,
+      url: 'https://services.arcgis.com/KYvXadMcgf0K1EzK/arcgis/rest/services/Tax_Parcels_2026/FeatureServer/0', f: { addr: 'PHYSICAL_ADDRESS' },
+      what: 'City of Baton Rouge and Parish of East Baton Rouge, 2026 tax parcels with the site address', when: '2026', link: 'https://services.arcgis.com/KYvXadMcgf0K1EzK/arcgis/rest/services/Tax_Parcels_2026/FeatureServer' },
+    /* Livingston: the Assessor's parcels for the Denham Springs area (a 2018 copy; the parish publishes no other) */
+    { id: 'livingston-roll', label: 'Livingston Parish parcels (Denham Springs, 2018)', name: 'the Livingston Parish Assessor\'s 2018 parcels', fips: ['22063'], kind: 'parcel',
+      url: 'https://services8.arcgis.com/IUHRIaPhRaOrUMFb/arcgis/rest/services/Livingston_Parish_Assessor_Parcels/FeatureServer/0', f: { addr: 'Par_Addres' },
+      what: 'Livingston Parish Assessor, 2018 parcels for the Denham Springs area, with the site address', when: '2018, partial', link: 'https://services8.arcgis.com/IUHRIaPhRaOrUMFb/arcgis/rest/services/Livingston_Parish_Assessor_Parcels/FeatureServer' },
+    /* Ascension: the parish's address points (with the kind of building on many) and the Assessor's parcels behind them */
+    { id: 'ascension-addr', label: 'Ascension Parish addresses', name: 'the Ascension Parish address points', fips: ['22005'], kind: 'addr',
+      url: 'https://gis.ascensionparishla.gov/server/rest/services/Base_Layers/Address/MapServer/416', f: { addr: 'FULLADDR', city: 'CITY', zip: 'ZIP', use: 'USETYPE' }, map: { use: v => (/^[A-Z]$/.test(v) ? '' : v) },
+      what: 'Ascension Parish Government GIS, address points with the kind of building at many', when: 'live', link: 'https://gis.ascensionparishla.gov/server/rest/services/Base_Layers/Address/MapServer' },
+    { id: 'ascension-roll', label: 'Ascension Parish parcels', name: 'the Ascension Parish Assessor\'s parcels', fips: ['22005'], kind: 'parcel', fallback: true,
+      url: 'https://gis.ascensionparishla.gov/server/rest/services/AssessorData/Parcel_View/MapServer/2', f: { num: 'Address_Number', pre: 'Street_Direction', st: 'Street_Name' },
+      what: 'Ascension Parish Government GIS, the Assessor\'s parcels with the site address', when: 'live', link: 'https://gis.ascensionparishla.gov/server/rest/services/AssessorData/Parcel_View/MapServer' },
+    /* West Baton Rouge: the Assessor's building footprints (each with its site address) and address points, on Total Land Solutions' server */
+    { id: 'wbr-buildings', label: 'West Baton Rouge buildings', name: 'the West Baton Rouge Assessor\'s building footprints', fips: ['22121'], kind: 'bldg',
+      url: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer/5', f: { addr: 'Prop_Add', city: 'AISPhysCit' },
+      what: 'West Baton Rouge Parish Assessor (hosted by Total Land Solutions), building footprints with the site address of each', when: 'April 2026 flight', link: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer' },
+    { id: 'wbr-addr', label: 'West Baton Rouge addresses', name: 'the West Baton Rouge address points', fips: ['22121'], kind: 'addr',
+      url: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer/4', f: { num: 'ADDR_HN', pre: 'ADDR_PD', st: 'ADDR_SN', typ: 'ADDR_ST', suf: 'ADDR_SD' },
+      what: 'West Baton Rouge Parish Assessor (hosted by Total Land Solutions), address points', when: 'live', link: 'https://gis3.totaland.com/arcgis/rest/services/WestBatonRougeTaxAssessor/WestBatonRouge/MapServer' },
+    /* Iberville: the parish's address points and its parcels with the Assessor's site address */
+    { id: 'iberville-addr', label: 'Iberville Parish addresses', name: 'the Iberville Parish address points', fips: ['22047'], kind: 'addr',
+      url: 'https://services7.arcgis.com/6SHSRgj15reB1LOT/arcgis/rest/services/EXISTING_ADDRESS_POINTS_view2/FeatureServer/0', f: { addr: 'Match_addr', city: 'ARC_City' },
+      what: 'Iberville Parish, address points', when: 'live', link: 'https://services7.arcgis.com/6SHSRgj15reB1LOT/arcgis/rest/services/EXISTING_ADDRESS_POINTS_view2/FeatureServer' },
+    { id: 'iberville-roll', label: 'Iberville Parish parcels', name: 'the Iberville Parish parcels', fips: ['22047'], kind: 'parcel', fallback: true,
+      url: 'https://services7.arcgis.com/6SHSRgj15reB1LOT/arcgis/rest/services/Property_Parcels/FeatureServer/0', f: { addr: 'DBO_CAMA_P' },
+      what: 'Iberville Parish, parcels with the Assessor\'s site address', when: 'live', link: 'https://services7.arcgis.com/6SHSRgj15reB1LOT/arcgis/rest/services/Property_Parcels/FeatureServer' },
+    /* Pointe Coupee, West Feliciana, East Feliciana and Assumption: address points (911 schemas), and parcels where that is all there is */
+    { id: 'pointecoupee-addr', label: 'Pointe Coupee Parish addresses', name: 'the Pointe Coupee Parish address points', fips: ['22077'], kind: 'addr',
+      url: 'https://services2.arcgis.com/mHqXjZajqaQHXGlt/arcgis/rest/services/AddressPoints/FeatureServer/0', f: { addr: 'FULLADDR', city: 'MUNICIPALITY' },
+      what: 'Pointe Coupee Parish, 911 address points', when: 'live', link: 'https://services2.arcgis.com/mHqXjZajqaQHXGlt/arcgis/rest/services/AddressPoints/FeatureServer' },
+    { id: 'westfeliciana-addr', label: 'West Feliciana Parish addresses', name: 'the West Feliciana Parish address points', fips: ['22125'], kind: 'addr',
+      url: 'https://services5.arcgis.com/SkttgSmcq6CPonms/arcgis/rest/services/Address_Data_Public_view/FeatureServer/10', f: { addr: 'fulladdr', city: 'municipality' }, map: { city: v => (/feliciana/i.test(v) ? '' : v) },
+      what: 'West Feliciana Parish, site address points', when: 'live', link: 'https://services5.arcgis.com/SkttgSmcq6CPonms/arcgis/rest/services/Address_Data_Public_view/FeatureServer' },
+    { id: 'westfeliciana-roll', label: 'West Feliciana Parish parcels', name: 'the West Feliciana Parish tax parcels', fips: ['22125'], kind: 'parcel', fallback: true,
+      url: 'https://services5.arcgis.com/SkttgSmcq6CPonms/arcgis/rest/services/TaxParcel_public_5b991bdc9e1d4611b34274c5898b2001/FeatureServer/0', f: { addr: 'siteaddress' },
+      what: 'West Feliciana Parish, tax parcels with the site address', when: 'live', link: 'https://services5.arcgis.com/SkttgSmcq6CPonms/arcgis/rest/services/TaxParcel_public_5b991bdc9e1d4611b34274c5898b2001/FeatureServer' },
+    { id: 'eastfeliciana-roll', label: 'East Feliciana Parish parcels', name: 'the East Feliciana Parish Assessor\'s parcels', fips: ['22037'], kind: 'parcel',
+      url: 'https://services6.arcgis.com/KLV8PjHx4dhS4u83/arcgis/rest/services/Eagleview_EFAO_view/FeatureServer/0', f: { num: 'Address_Number', pre: 'Street_Direction', st: 'Street_Name' },
+      what: 'East Feliciana Parish Assessor, parcels with the site address', when: 'live', link: 'https://services6.arcgis.com/KLV8PjHx4dhS4u83/arcgis/rest/services/Eagleview_EFAO_view/FeatureServer' },
+    { id: 'assumption-addr', label: 'Assumption Parish addresses', name: 'the Assumption Parish address points', fips: ['22007'], kind: 'addr',
+      url: 'https://services5.arcgis.com/NaE1rjvJf3JdTAkI/arcgis/rest/services/Assumption_Address_Points/FeatureServer/0', f: { num: 'ADNUMCOMP', st: 'STCOMP', city: 'PLACENAME', zip: 'ZIPCODE' },
+      what: 'Assumption Parish address points (South Central Planning and Development Commission)', when: '2021', link: 'https://services5.arcgis.com/NaE1rjvJf3JdTAkI/arcgis/rest/services/Assumption_Address_Points/FeatureServer' },
   ]);
   const ROLLS_BY = {}; ROLLS.forEach((R, i) => { R.i = i; R.fips.forEach(f => (ROLLS_BY[f] = ROLLS_BY[f] || []).push(R)); });
   /* the parishes whose roll carries a year built, for the method's text and the card */
   const YB_FIPS = new Set(ROLLS.filter(R => R.f.yb).flatMap(R => R.fips)), AD_FIPS = new Set(ROLLS.filter(R => R.f.addr || R.f.st).flatMap(R => R.fips));
   const listAnd = a => (a.length <= 1 ? a[0] || '' : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
   const parishList = s => listAnd([...s].map(f => PNAME(f)).filter(Boolean).sort());
+  /* where the year built is on file: the parishes whose own record dates most of their buildings, and those where it dates a part (ybCover) */
+  const YB_COVER = (() => { const by = {}; ROLLS.filter(R => R.f.yb).forEach(R => R.fips.forEach(f => { const c = R.ybCover == null ? '' : typeof R.ybCover === 'object' ? (R.ybCover[f] || '') : R.ybCover; (by[f] = by[f] || []).push(c); }));
+    const whole = [], part = []; Object.keys(by).forEach(f => { const cs = by[f]; if (cs.some(c => !c)) whole.push(PNAME(f)); else part.push(`${PNAME(f)} (${listAnd([...new Set(cs)])})`); });
+    return { whole: whole.filter(Boolean).sort(), part: part.sort() }; })();
   /* parishes with a live roof permit file: Orleans (City of New Orleans) and East Baton Rouge */
   const PFILE = { '22071': 'nola', '22033': 'ebr' };
   function ingest(fc, t) {
@@ -11348,18 +11721,32 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   }
   const NOVAL = /^(?:N\/?A|NONE|UNKNOWN|UNK|NULL|0|-|\.|\?)$/i;
   const ROLL_OUT = R => [...new Set(Object.values(R.f).concat(R.extra || []).filter(Boolean))].join(',');
-  /* one record of a layer: its place (a parcel's rings or a point), its year built, its address and its facts */
+  /* a year as the records write it: "1925", "1925-06-01", "1925.0", "c. 1925", "1920s"; and for a survey (R.ranges) a span
+     such as "1850-60" or "1910-1920", taken at its middle as about */
+  function yearOf(t, ranges) {
+    if (!t) return null;
+    if (ranges) { const m = /^(?:c\.?|ca\.?|circa|~)?\s*(\d{4})\s*[-–\/]\s*(\d{2}|\d{4})\b/i.exec(t); if (m) { const a0 = +m[1], b1 = m[2].length === 2 ? Math.floor(a0 / 100) * 100 + +m[2] : +m[2]; if (b1 > a0 && b1 - a0 <= 40) return { y: Math.round((a0 + b1) / 2), about: true }; } }
+    const d = /^(\d{4})(?:\.0+|-\d\d(?:-\d\d)?(?:T.*)?)?$/.exec(t); if (d) return { y: +d[1], about: false };
+    const o = osmYear(t); return o ? { y: o.y, about: o.about } : null;
+  }
+  /* one record of a layer: its place (a parcel's rings or a point), its year built, its address and its facts; R.map turns
+     a field's value into what the page shows (codes into words, an age into a year) before anything reads it */
   function recOf(R, a, g) {
-    const F = R.f, v = k => (F[k] ? sval(a[F[k]]) : ''), yr = k => { const y = parseInt(v(k), 10); return y >= (R.min || 1800) && y <= THIS_YEAR && !(R.ph || []).includes(y) ? y : null; };
+    const F = R.f, v = k => { if (!F[k]) return ''; let x = sval(a[F[k]]); if (R.map && R.map[k]) x = sval(R.map[k](x, a)); return x; };
+    const yr = k => { const p = yearOf(v(k), R.ranges); return p && p.y >= (R.min || 1800) && p.y <= THIS_YEAR && !(R.ph || []).includes(p.y) ? p : null; };
     const parts = ['num', 'pre', 'st', 'typ', 'suf'].map(v).filter(Boolean).join(' ');
     const addr = siteAddr(F.addr ? v('addr') : parts) + (F.unit && v('unit') && !NOVAL.test(v('unit')) && (F.addr ? v('addr') : parts) ? ' ' + (/^\d/.test(v('unit')) ? '#' : '') + v('unit') : '');
-    const o = { yb: yr('yb'), eyb: yr('eyb'), addr: siteAddr(addr) ? addr : '', city: v('city'), zip: v('zip').slice(0, 5), tax: v('tax'), parish: R.parishOf ? R.parishOf(a) : (R.parish || '') };
-    ['stories', 'units', 'area', 'use', 'cons', 'wall', 'roofc', 'rooft', 'cond'].forEach(k => { let x = v(k); if (R.map && R.map[k]) x = sval(R.map[k](x, a)); if (x && !NOVAL.test(x)) o[k] = x; });
+    const ybp = yr('yb'), eyp = yr('eyb'), asof = F.asof ? (+a[F.asof] > 1e11 ? new Date(+a[F.asof]).getUTCFullYear() : parseInt(v('asof'), 10) || null) : null;
+    const o = { yb: ybp ? ybp.y : null, ybAbout: !!(ybp && (ybp.about || R.about || (F.ybEst && /^y/i.test(v('ybEst'))))), eyb: eyp ? eyp.y : null, asof, addr: siteAddr(addr) ? addr : '', city: /^\d+$|\bparish\b/i.test(v('city')) ? '' : v('city'), zip: /^\d{5}/.test(v('zip')) ? v('zip').slice(0, 5) : '', tax: v('tax'), parish: R.parishOf ? R.parishOf(a) : (R.parish || '') };
+    ['stories', 'units', 'area', 'use', 'cons', 'wall', 'roofc', 'rooft', 'cond', 'name', 'note', 'roofy'].forEach(k => { const x = v(k).replace(/^[,;\s]+|[,;\s]+$/g, ''); if (x && !NOVAL.test(x)) o[k] = x; });
+    if (o.roofy) { const ry = yearOf(o.roofy); if (ry && ry.y >= 1900 && ry.y <= THIS_YEAR) o.roofy = ry.y; else delete o.roofy; }
     if (o.area && !(+String(o.area).replace(/,/g, '') > 50)) delete o.area;
     if (o.stories && !(+o.stories > 0 && +o.stories < 120)) delete o.stories;
     if (o.units && !(+o.units > 0 && +o.units < 5000)) delete o.units;
     if (R.kind === 'addr') { const lo = +(g && g.x), la = +(g && g.y); if (!isN(la) || !isN(lo) || !o.addr) return null; o.lat = la; o.lon = lo; return o; }
-    const rings = ((g && g.rings) || []).map(rg => rg.map(([x, y]) => [y, x])); if (!rings.length) return null; o.rings = rings; o.bb = bboxOf(rings); return o;
+    const rings = ((g && g.rings) || []).map(rg => rg.map(([x, y]) => [y, x])); if (!rings.length) return null; o.rings = rings; o.bb = bboxOf(rings);
+    if (R.kind === 'bldg') { let la = 0, lo = 0, n = 0; rings[0].slice(0, -1).forEach(([y, x]) => { la += y; lo += x; n++; }); o.la = la / (n || 1); o.lo = lo / (n || 1); }
+    return o;
   }
   async function fetchRoll(R, box, depth) {
     if (R.platform === 'socrata') {
@@ -11378,19 +11765,22 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     if (p && p.city && !b.city) b.city = String(p.city).toUpperCase();
     if (p && p.zip && !b.zipF) b.zipF = String(p.zip).slice(0, 5);
   }
-  const REC_KEYS = ['eyb', 'stories', 'units', 'area', 'use', 'cons', 'wall', 'roofc', 'rooft', 'cond'];
+  const REC_KEYS = ['eyb', 'stories', 'units', 'area', 'use', 'cons', 'wall', 'roofc', 'rooft', 'cond', 'name', 'note', 'roofy'];
   const isMain = b => b.cls !== 'garage' && b.cls !== 'shed';
-  /* what one record gives one building: the year built and the facts go to a main building only, an address to any */
+  /* what one record gives one building: a parcel's year built and facts go to its main buildings only (a parish footprint's
+     are the building's own, whatever its class), an address to any */
   function giveRec(b, p, R) {
     b.rolls = b.rolls || new Set(); if (b.rolls.has(R.id)) return; b.rolls.add(R.id);
+    const own = R.kind === 'bldg' || isMain(b);
     if (R.kind === 'parcel' && !b.parcel) b.parcel = { yb: p.yb, situs: p.addr, use: p.use || '', tax: p.tax, parish: p.parish, R };
-    if (p.yb && !b.yb && isMain(b)) { b.yb = p.yb; b.ybSrc = 'parcel'; b.ybR = R; b.ybTax = p.tax || ''; b.ybParish = p.parish || ''; }
-    if (p.addr && !b.addr) setAddr(b, p.addr, R.kind === 'addr' ? 'addrpt' : 'parcel', R, p);
-    if (isMain(b)) { b.rec = b.rec || {}; REC_KEYS.forEach(k => { if (p[k] != null && p[k] !== '' && !b.rec[k]) b.rec[k] = { v: p[k], R }; }); }
+    if (p.yb && !b.yb && own) { b.yb = p.yb; b.ybSrc = 'parcel'; b.ybR = R; b.ybTax = p.tax || ''; b.ybParish = p.parish || ''; b.ybAbout = !!p.ybAbout; b.ybAsof = p.asof || null; }
+    /* a parish record's address replaces one the geocoder gave while the records were still on their way */
+    if (p.addr && (!b.addr || b.addrSrc === 'geocode')) setAddr(b, p.addr, R.kind === 'addr' ? 'addrpt' : 'parcel', R, p);
+    if (own) { b.rec = b.rec || {}; REC_KEYS.forEach(k => { if (p[k] != null && p[k] !== '' && !b.rec[k]) b.rec[k] = { v: p[k], R, asof: p.asof || null }; }); }
   }
   function joinRoll(t, R, recs) {
     const bs = [...t.ids].map(id => B.get(id)).filter(Boolean);
-    if (R.kind === 'parcel') { bs.forEach(b => { const p = recs.find(q => inBox(b.lat, b.lon, q.bb) && inRings(b.lat, b.lon, q.rings)); if (p) giveRec(b, p, R); }); return; }
+    if (R.kind === 'parcel' || R.kind === 'bldg') { bs.forEach(b => { let p = recs.find(q => inBox(b.lat, b.lon, q.bb) && inRings(b.lat, b.lon, q.rings)); if (!p && R.kind === 'bldg') p = recs.find(q => inBox(q.la, q.lo, b.bb) && inRings(q.la, q.lo, b.rings)); if (p) giveRec(b, p, R); }); return; }
     /* an address point names the building it stands in; one in a yard or at the curb names the main building nearest it
        within 15 m, and a detached garage or shed only when it stands inside one. A building with several points (a double,
        a block of flats) takes the one inside it, else the nearest, then the lowest house number */
@@ -11400,7 +11790,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       bs.forEach(b => { if (!inBox(p.lat, p.lon, [b.bb[0] - pad, b.bb[1] - pad, b.bb[2] + pad, b.bb[3] + pad])) return; const d = edgeMeters(p.lat, p.lon, b) + (isMain(b) ? 0 : 12); if (d < bd) { bd = d; best = b; } });
       if (!best || bd > 15) return; const g = got.get(best) || []; g.push([p, bd]); got.set(best, g);
     });
-    got.forEach((list, b) => { list.sort((x, y) => (x[1] > 0) - (y[1] > 0) || x[1] - y[1] || (parseInt(x[0].addr, 10) || 0) - (parseInt(y[0].addr, 10) || 0)); const p = list[0][0]; giveRec(b, p, R); if (list.length > 1 && !b.addrMore) b.addrMore = list.slice(1, 6).map(x => x[0].addr).filter(x => x && x !== p.addr); });
+    got.forEach((list, b) => { list.sort((x, y) => (x[1] > 0) - (y[1] > 0) || x[1] - y[1] || (parseInt(x[0].addr, 10) || 0) - (parseInt(y[0].addr, 10) || 0)); const p = list[0][0]; giveRec(b, p, R); if (list.length > 1 && !b.addrMore) { const seen = new Set([addrParts(p.addr).key]); b.addrMore = list.slice(1).map(x => x[0].addr).filter(x => { const k = addrParts(x).key || x; if (!x || seen.has(k)) return false; seen.add(k); return true; }).slice(0, 5); } });
   }
 
   /* ---------- OpenStreetMap's buildings as mapped today: what a mapper recorded of each ---------- */
@@ -12466,18 +12856,21 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         let fc; try { fc = await fetchBuildings(t.box, 0); } catch (e) { t.st = 'err'; t.errAt = Date.now(); note('Buildings: ' + why(e)); return; }
         const bs = ingest(fc, t); bs.forEach(b => { read(b); draw(b); }); refreshSoon();
         const fips = parishesOf(t, bs), rolls = [...new Set(fips.flatMap(f => ROLLS_BY[f] || []))].sort((x, y) => x.i - y.i), recs = new Map();
-        const jobs = rolls.map(R => fetchRoll(R, t.box, 0).then(rs => { recs.set(R, rs); }).catch(e => note(R.name + ': ' + why(e))));
+        const ask = R => fetchRoll(R, t.box, 0).then(rs => { recs.set(R, rs); }).catch(e => note((R.label || R.id) + ': ' + why(e)));
+        const jobs = rolls.filter(R => !R.fallback).map(ask);
         jobs.push(fetchOsm(t.box, 0).then(l => { t.osmRes = l; }).catch(e => note('OpenStreetMap buildings: ' + why(e))));
         if (fips.some(f => PFILE[f])) jobs.push(fetchPermits(t).then(pr => { t.permitRes = pr; pr.errs.forEach(note); t.permitsAsked = pr.asked; }).catch(e => note('Permits: ' + why(e))));
         await Promise.all(jobs);
         /* the parish's own records first, in the registry's order (rolls before address points), then OpenStreetMap, then the permits */
         rolls.forEach(R => { if (recs.has(R)) joinRoll(t, R, recs.get(R)); });
+        const later = rolls.filter(R => R.fallback && [...t.ids].some(id => { const b = B.get(id); return b && !b.addr; }));
+        if (later.length) { await Promise.all(later.map(ask)); later.forEach(R => { if (recs.has(R)) joinRoll(t, R, recs.get(R)); }); }
         if (t.osmRes) { joinOsm(t, t.osmRes); t.osmRes = null; }
         t.ids.forEach(id => { const b = B.get(id); if (b && !b.addr && GEO.has(id)) applyGeo(b, GEO.get(id)); });
         if (t.permitRes) { joinPermits(t, t.permitRes); t.permitRes = null; }
         t.ids.forEach(id => { const b = B.get(id); if (b) { read(b); draw(b); } });
         t.st = 'ok'; t.force = false; refreshSoon(); tryPending(); if (svMode) drawSoon(); if (d3Mode) refresh3D(); if (enMode) refreshEn();
-        if (sel && sel.type === 'b' && t.ids.has(sel.id)) detail();
+        if (sel && sel.type === 'b' && t.ids.has(sel.id)) { detail(); if (enMode) renderEnBar(); else if (d3Mode) render3DBar(); else if (svMode) renderSvBar(); }
       }
       function evict() {
         const ok = [...T.values()].filter(t => t.st === 'ok' || t.st === 'err').sort((a, b) => a.at - b.at); if (ok.length <= 70) return;
@@ -12514,7 +12907,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
           { l: 'Likely needs roof work', v: N(cnt.g), d: all.length ? `${pct(cnt.g / all.length)} of the buildings in view` : 'green on the map' },
           { l: 'Maybe', v: N(cnt.o), d: all.length ? `${pct(cnt.o / all.length)} of the buildings in view` : 'orange on the map' },
           { l: 'Not likely', v: N(cnt.r), d: all.length ? `${pct(cnt.r / all.length)} of the buildings in view` : 'red, dashed' },
-          { l: 'Year built on file', v: all.length ? pct(withYb / all.length) : '—', d: 'a parish tax roll, OpenStreetMap or a new construction permit' },
+          { l: 'Year built on file', v: all.length ? pct(withYb / all.length) : '—', d: 'a parish record (tax roll or building inventory), OpenStreetMap or a new construction permit' },
           { l: 'Address on file', v: all.length ? pct(withAd / all.length) : '—', d: 'FEMA, parish rolls and address points, OpenStreetMap, permits; picking one asks the geocoder' },
           { l: 'Roof permits found', v: N(withP), d: 'buildings with a New Orleans or East Baton Rouge roof permit' },
           { l: 'Field checks', v: N(checks), d: `in view; ${N(Object.keys(CK).length)} saved in this browser` },
@@ -13371,7 +13764,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       const method = () => [
         `<b>The building ${G('C')}</b>. FEMA's USA Structures inventory (Oak Ridge National Laboratory): footprint, height, address where it has one, and an occupancy class for every structure over about 40 square meters. Its class sets the roof profile: a house, an apartment block, a strip center, a warehouse, a school.`,
         `<b>The roof it most likely carries ${G('D')}</b>. Homes: asphalt shingles, or metal at the ZIP's metal share (module 17's assumption, ${P(100 * ((META.model && META.model.ANCH && +META.model.ANCH.metal) || 0.12), 0)} statewide, more in rural and higher income ZIPs); a few percent tile or slate. Manufactured homes: their own roof (metal or shingles, roof overs and coatings). Garden apartments: pitched shingle roofs; mid rises and most commercial buildings: a low slope membrane (TPO, modified bitumen, built up); warehouses, plants and farm buildings: a metal building roof. The size in squares is the footprint with an allowance for pitch and eaves (1.22 times on a steep roof, 1.04 on a low slope one).`,
-        `<b>The address and the year built ${G('A')} or ${G('C')}</b>. Each parish's own public records, where it publishes them in a form a browser can read, joined by location: the assessor's tax roll (the year built, the site address, and what the roll says of the building: stories, units, living area, construction, roof) goes to the main buildings whose centre falls in the parcel, and an address point to the building it stands in, else the main building nearest it within 15 m. ${N(YB_FIPS.size)} parishes publish a year built this way (${parishList(YB_FIPS)}) and ${N(AD_FIPS.size)} an address for each building or parcel (${parishList(AD_FIPS)}). Where a parish's record is empty or missing, OpenStreetMap's buildings fill the address, the floors, the walls and the roof's shape, and now and then a year of construction (a mapper's record); a New Orleans or East Baton Rouge new construction permit filed for the building itself dates it; and else the ZIP's ACS year built mix stands in, leaned by the footprint for a house (the card names its likeliest decade). A building no record names is given the Esri World Geocoder's address point that stands in it or within 25 m of it and in no other building, asked when it is picked. FEMA's footprint carries the date of the imagery it was traced from, so a building stood by then; a later year built on the roll means the outline may be an older building on the lot.`,
+        `<b>The address and the year built ${G('A')} or ${G('C')}</b>. Each parish's own public records, where it publishes them as a layer a browser can read (${N(ROLLS.length)} layers, listed under Sources), joined by location: an assessor's roll goes to the main buildings whose centre falls in the parcel (its year built, its site address and what it says of the building: stories, units, living area, construction, roof), a parish's building footprints and surveys to the FEMA footprint they overlap, and an address point to the building it stands in, else the main building nearest it within 15 m. The first record to give a fact keeps it: address points before parcel addresses, a parish's own records before OpenStreetMap. ${N(AD_FIPS.size)} parishes publish an address for each building or parcel (${parishList(AD_FIPS)}). A year built is on file across most of ${listAnd(YB_COVER.whole)}, and for part of ${listAnd(YB_COVER.part)}; a surveyor's span (1850 to 1860) is read at its middle and a permit's year as about the year built. Where a parish's record is empty or missing, OpenStreetMap's buildings fill the address, the floors, the walls and the roof's shape, and now and then a year of construction (a mapper's record); a New Orleans or East Baton Rouge new construction permit filed for the building itself dates it; and else the ZIP's ACS year built mix stands in, leaned by the footprint for a house (the card names its likeliest decade). A building no record names is given the Esri World Geocoder's address point that stands in it or within 25 m of it and in no other building, asked when it is picked. FEMA's footprint carries the date of the imagery it was traced from, so a building stood by then; a later year built on the record means the outline may be an older building on the lot.`,
         `<b>The roof's age ${G('B')}</b>. Module 17's roof life (a Weibull life with a ${D(LIFE.shingle.L, 0)} year mean and shape ${D(LIFE.shingle.k, 0)} for shingles, calibrated to the 2023 American Housing Survey), run year by year from the year built: roofs wear out and are replaced, and each storm year replaces the share of roofs module 17's cohort model replaced at the ZIP that year (from 2000, FEMA verified roof and wind damage at ${D(+(META.model && META.model.DMG && META.model.DMG.M) || 2, 0)} roofs per registration before 2020 and ${D(+(META.model && META.model.ANCH && META.model.ANCH.M2020) || 3.6, 1)} since, grade D, where FEMA has it and the storm's modeled wind elsewhere; from 1992 to 1999, the modeled wind at module 02's damage curve, ${pct(dmgShare(64))} of roofs at hurricane force). Averaged over each ZIP's homes, the building model gives back module 17's ZIP roof ages for shingle roofs (a correlation of 0.998 across the scored ZIPs for the mean age, 0.992 for the share 20 or older); homes also carry the ZIP's metal share on a 40 year life, so they read about a year older than module 17's ZIP figures (0.986 and 0.975). Membranes and metal buildings use the atlas's ${D(LIFE.low.L, 0)} year commercial life and take wind at 70 percent of the residential rate (module 12's commercial line), apartment membranes at 80 percent (its multifamily line); metal homes use module 17's ${D(LIFE.metal.L, 0)} years and shed wind better than shingles (judgment); manufactured home roofs use ${D(LIFE.mh.L, 0)} years and take wind at 1.3 times the rate (module 12's mobile home line). Out come the chance the roof is still the first one, 20 or older, which storm rebuild it most likely dates from, and the chance it wears out within five years.`,
         `<b>Its last replacement ${G('A')}</b>. Roof permits at the building's address or map point: the City of New Orleans (reroof permits from May 2025, roof work inside renovation permits from 2012) and East Baton Rouge Parish (reroof permits from July 2025, roof work inside remodel permits from 2012, with map points mostly from 2016). A permit joins the main building at its address (when several share the address, the one its point falls in, else each of them in the same map square as its point, at a share of the permit's weight unless its text names them all), else the building its point falls in or the main building nearest it. A reroof permit restarts the roof's clock at its date; a repair or a partial reroof (roof work on an addition, a dormer or a lean to alone counts as one) moves it a little; a renovation that only mentions the roof, roof work on a porch, garage, shed or other accessory structure, and rooftop equipment such as solar panels do not move it. Since August 1, 2025 every reroof needs a permit (Act 239 of 2025), so these files will hold most reroofs from here on.`,
         `<b>Repairs ${G('C')}</b>. Leak and repair calls a year rise with roof age (${D(0.35 * REP_BASE / REP_TARGET, 1)} times the average under 5 years, ${D(2 * REP_BASE / REP_TARGET, 1)} times it past 25; judgment), scaled so the state's roofs at module 17's ages make the atlas's repair line: ${pct(REP_TARGET)} of one unit roofs a year.`,
@@ -13419,7 +13812,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         ['A permit joins by address, else by its map point', 'A permit joins the main building at its address. When several main buildings share the address it joins the one its point falls in, else each of them in the same map square as its point (the map loads buildings and permits in squares about 530 m across) at a share of its weight (a quarter, plus three quarters split among those), since it may cover one building or all of them; a permit whose text names all the buildings or roofs, or the entire property, covers each in full. Without an address match it joins the building its point falls in or the main building nearest it within 20 m. A new construction or manufactured home permit never spreads that way: it joins by an address only one main building has (not one a nearby permit only guessed), or the building its point falls in, and dates a building only when it was filed for that building, since FEMA\'s footprints often predate the new house. A permit that reads as one for a garage, shed or other accessory alone does not date a house, an apartment building or a manufactured home. On narrow New Orleans lots a point between two houses can still land on the neighbour; the card names the permit\'s own address.'],
         ['Roof age is modeled, not recorded', 'No register records when a Louisiana roof was last replaced. Module 17 ages roofs from the year built, a calibrated roof life and the storms that reached the ZIP; Louisiana Roofer Guru runs the same model for one building. A storm reset is a share of roofs, not a fact about this one: a house in a ZIP that lost a third of its roofs to Ida either lost its roof or did not.'],
         ['Most older reroofs left no permit on file', 'Before August 1, 2025 state law left reroof permits to each parish and city, and many required none (the New Orleans reroof permit type dates from May 2025, East Baton Rouge\'s from July 2025); the two recorded older roof work only inside renovation and remodel permits. A permit on file is strong evidence; no permit is weak evidence, and weaker the older the roof.'],
-        ['Year built is on file in ' + N(YB_FIPS.size) + ' parishes', `The year built is the assessor\'s record of the main building on the parcel, published as a layer a browser can read by ${parishList(YB_FIPS)}. A renovated or rebuilt building can keep an old year (the effective year shows where the roll has one), and Lafayette\'s roll carries none built after 2018. Everywhere else a building is aged from OpenStreetMap (rarely), a new construction permit (New Orleans and East Baton Rouge) or the ZIP\'s housing age, so scores bunch together more than they would with the real year.`],
+        ['Year built is on file in ' + N(YB_FIPS.size) + ' parishes, in most of them for a part', `Across most of the parish in ${listAnd(YB_COVER.whole)}; for part of it in ${listAnd(YB_COVER.part)}. A year built is the parish's record of the main building (an assessor's roll, a building inventory or a historic survey): a renovated or rebuilt building can keep an old year (the effective year shows where the record has one), a survey's year is often a surveyor's estimate, and Lafayette's roll carries none built after 2018 (its new construction permits fill some). Everywhere else a building is aged from OpenStreetMap (rarely), a new construction permit (New Orleans and East Baton Rouge) or the ZIP's housing age, so scores bunch together more than they would with the real year.`],
         ['Addresses join by location', 'A parcel\'s site address goes to the buildings whose centre falls in the parcel, an address point to the building it stands in or the main building nearest it within 15 m, an OpenStreetMap address to the footprint its outline holds. On narrow lots, or where a point marks the driveway or the curb, a building can take the neighbour\'s number; the card names the record each address came from. The geocoder\'s address is the nearest address point within 25 m that stands in no other building; when there is none, the card names the nearest one and how far it is.'],
         ['FEMA\'s occupancy is modeled', 'USA Structures classes buildings from parcels, points of interest and imagery. A house used as an office, or a shop over apartments, can be classed either way; unclassified buildings are read by size.'],
         ['The covering is a likelihood', 'No public file records what is on a roof. Metal, tile and membranes are odds from the building\'s type and the ZIP (grade D); the imagery at its closest zoom and Street View show what is really there.'],
