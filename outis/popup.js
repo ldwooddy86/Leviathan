@@ -70,9 +70,8 @@ function render() {
   pill.textContent = !site ? 'Not a web page' : !on ? 'Off' : paused ? 'Paused here' : 'Protected';
   $('siteOn').checked = on && !paused;
   $('siteOn').disabled = !on;
-  $('siteForget').checked = on && S.forget && !kept && !paused;
-  $('siteForget').disabled = !on || !S.forget || paused;
-  $('siteForget').closest('.row').title = !S.forget ? 'Forgetting is off in Settings' : paused ? 'Paused sites are not forgotten' : '';
+  $('siteTrust').checked = kept;
+  $('siteTrust').disabled = !on || paused;
   $('forgetNow').disabled = !site;
 
   /* who / where / when */
@@ -168,6 +167,44 @@ async function showSees() {
   setText('seesNote', S.paused.includes(site) ? 'Outis is paused here, so this site sees your real values.' : 'Green: what Outis changed. Canvas noise is different on every site and every browser session.');
 }
 
+/* What the safety checks stopped in this tab, from the background's notes. */
+const STOPPED = {
+  malware: d => [`Blocked ${d}, a known dangerous site`, ''],
+  insecure: d => [`${d} has no secure version: Outis asked before going on`, 'mild'],
+  download: d => [`Deleted a dangerous download: ${d}`, ''],
+  clipboard: () => ['Kept a hidden command off your clipboard', ''],
+  pastejack: () => ['Stopped this page swapping what you copied for a command', ''],
+  applink: d => [`Blocked a link that opens a Windows tool (${d})`, '']
+};
+async function renderSafety() {
+  let events = [];
+  try { const r = await chrome.storage.session.get('events'); events = (tab && r.events && r.events[tab.id]) || []; } catch (e) { events = []; }
+  const list = $('stopped');
+  list.textContent = '';
+  for (const ev of events.slice(-8)) {
+    const f = STOPPED[ev.kind];
+    if (!f) continue;
+    const [text, cls] = f(ev.detail || '');
+    const li = document.createElement('li');
+    li.textContent = text;
+    if (cls) li.className = cls;
+    list.append(li);
+  }
+  const any = S.https || S.malware || S.downloads || S.clipboard || S.appLinks;
+  const pill = $('safetyPill');
+  $('safety').classList.toggle('alert', events.some(e => e.kind !== 'insecure'));
+  if (!S.enabled || !any) { pill.className = 'pill off'; pill.textContent = 'Off'; }
+  else if (events.length) { pill.className = 'pill bad'; pill.textContent = `${events.length} stopped`; }
+  else { pill.className = 'pill'; pill.textContent = 'On'; }
+  const kept = !!site && S.kept.includes(site), paused = !!site && S.paused.includes(site);
+  let note = !S.enabled ? 'Outis is off.' : !any ? 'Safety checks are off in Settings.'
+    : events.length ? 'Outis stepped in on this page.'
+    : 'Watching for dangerous sites, insecure connections, booby-trapped downloads, hidden clipboard commands and links that open Windows tools.';
+  if (S.enabled && paused) note = 'Paused here: no safety checks on this site.';
+  else if (S.enabled && kept) note += ' Trusted site: it may ask for notifications, and WebGPU and keyboard lock work here.';
+  setText('safetyNote', note);
+}
+
 async function showStats() {
   const { stats } = await chrome.storage.local.get('stats');
   if (stats && stats.forgotten) {
@@ -186,6 +223,7 @@ async function init() {
   try { tab = forced ? await chrome.tabs.get(forced) : (await chrome.tabs.query({ active: true, currentWindow: true }))[0]; } catch (e) { tab = null; }
   site = tab ? siteOfUrl(tab.url || '') : '';
   render();
+  renderSafety();
   showStats();
   showCounts();
   $('sees').addEventListener('toggle', () => { if ($('sees').open) showSees(); });
@@ -205,11 +243,12 @@ async function init() {
     chrome.tabs.reload(tab.id);
     setTimeout(() => { showCounts(); if ($('sees').open) showSees(); }, 1500);
   });
-  $('siteForget').addEventListener('change', async e => {
-    const forget = e.target.checked;
-    S = await update(s => { s.kept = forget ? s.kept.filter(x => x !== site) : [...s.kept, site]; return s; });
+  $('siteTrust').addEventListener('change', async e => {
+    const trust = e.target.checked;
+    S = await update(s => { s.kept = trust ? [...s.kept, site] : s.kept.filter(x => x !== site); return s; });
     render();
-    setText('siteMsg', forget ? 'Will be forgotten when you close it.' : 'Kept: you stay signed in here.');
+    renderSafety();
+    setText('siteMsg', trust ? 'Trusted: you stay signed in here, with fewer safety limits. Reload to apply them.' : (S.forget ? 'Not trusted: forgotten when you close it.' : 'Not trusted any more.'));
   });
   $('forgetNow').addEventListener('click', async () => {
     $('forgetNow').disabled = true;

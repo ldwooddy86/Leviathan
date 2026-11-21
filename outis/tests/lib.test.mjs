@@ -80,7 +80,7 @@ test('settings: the page script gets one file per switched-off module and one fo
   assert.deepEqual(shieldFiles(s), ['inject/opt/no-canvas.js', 'inject/opt/no-timezone.js', 'inject/opt/geo-fake.js', 'inject/places/tokyo.js', 'inject/shield.js']);
   for (const f of shieldFlags(normalize({ canvas: false, audio: false, device: false, screen: false, timezone: false, language: false, referrer: false, activity: false, gpc: false, location: 'off' }))) assert.ok(FLAGS.includes(f), f);
   assert.equal(shieldNeeded(normalize({ enabled: false })), false);
-  assert.equal(shieldNeeded(normalize({ canvas: false, audio: false, device: false, screen: false, timezone: false, language: false, referrer: false, activity: false, gpc: false, location: 'off' })), false);
+  assert.equal(shieldNeeded(normalize({ canvas: false, audio: false, device: false, screen: false, timezone: false, language: false, referrer: false, activity: false, gpc: false, location: 'off', clipboard: false, appLinks: false, harden: false })), false);
   assert.equal(shieldNeeded(normalize({})), true);
 });
 
@@ -111,9 +111,9 @@ test('dynamic rules: headers, referrer and paused sites', () => {
   assert.equal(byId[RULE.PAUSE].action.type, 'allowAllRequests');
   assert.deepEqual(byId[RULE.PAUSE].condition.requestDomains, ['example.com']);
   assert.ok(byId[RULE.PAUSE].priority > 2, 'pauses outrank the tracker list and the stand-ins');
-  for (const x of r) if (x.condition.resourceTypes !== ALL_TYPES && x.id !== RULE.REFERRER && x.id !== RULE.PAUSE) assert.fail('header rules cover every request type');
+  for (const x of r) if ([RULE.GPC, RULE.LANGUAGE, RULE.HINTS].includes(x.id) && x.condition.resourceTypes !== ALL_TYPES) assert.fail('header rules cover every request type');
   assert.deepEqual(dynamicRules(normalize({ enabled: false })), []);
-  assert.deepEqual(dynamicRules(normalize({ gpc: false, language: false, device: false, referrer: false })), []);
+  assert.deepEqual(dynamicRules(normalize({ gpc: false, language: false, device: false, referrer: false, https: false })), []);
 });
 
 test('tracker list: valid, unique, third-party only, never the page itself', () => {
@@ -202,7 +202,10 @@ test('manifest: permissions match what the code uses, nothing extra', () => {
     for (const [, api] of src.matchAll(/chrome\.([a-zA-Z]+)\b/g)) used.add(api);
   }
   const need = { alarms: 'alarms', browsingData: 'browsingData', contentSettings: 'contentSettings', cookies: 'cookies', declarativeNetRequest: 'declarativeNetRequest', privacy: 'privacy', proxy: 'proxy', scripting: 'scripting', storage: 'storage', webRequest: 'webRequest' };
+  need.downloads = 'downloads';
   for (const api of Object.keys(need)) assert.ok(!used.has(api) || m.permissions.includes(need[api]), `uses chrome.${api} without the permission`);
+  /* management is asked for only when the person checks their other extensions, and can be given back */
+  assert.ok(used.has('management') && m.optional_permissions.includes('management') && !m.permissions.includes('management'), 'management is optional');
   for (const p of m.permissions) {
     const api = p === 'declarativeNetRequestFeedback' ? 'declarativeNetRequest' : p === 'webRequestAuthProvider' ? 'webRequest' : p;
     assert.ok(used.has(api), `permission ${p} is not used`);

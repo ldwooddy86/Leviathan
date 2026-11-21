@@ -41,8 +41,7 @@ export const CATEGORIES = [
       'yieldlab.net', 'adscale.de', 'ads.linkedin.com', 'ads-twitter.com', 'adsrvr.org', 'bounceexchange.com',
       'bouncex.net', 'smaato.net', 'spotxchange.com', 'springserve.com', 'tremorhub.com', 'undertone.com',
       'onetag-sys.com', 'e-planning.net', 'emxdgt.com', 'richaudience.com', 'improvedigital.com', 'adkernel.com',
-      'lkqd.net', 'innovid.com', 'zedo.com', 'adblade.com', 'popads.net', 'propellerads.com', 'exoclick.com',
-      'rtbhouse.com', 'hsadspixel.net'
+      'lkqd.net', 'innovid.com', 'zedo.com', 'adblade.com', 'rtbhouse.com', 'hsadspixel.net'
     ],
     paths: ['||google.com/pagead/', '||google.com/ads/']
   },

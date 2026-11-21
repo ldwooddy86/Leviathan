@@ -30,6 +30,15 @@ td.same { color: var(--muted); }
 #blockedList { list-style: none; padding: 0; display: grid; gap: 4px; max-height: 180px; overflow: auto; }
 #blockedList li { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
 #blockedList .cat { color: var(--muted); font-size: 11.5px; }
+.small { font-size: 11.5px; }
+.safety-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.safety-head h2 { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stopped { list-style: none; padding: 0; margin: 4px 0 6px; display: grid; gap: 6px; }
+.stopped:empty { display: none; }
+.stopped li { font-size: 12.5px; padding: 6px 8px 6px 10px; border-left: 3px solid var(--bad); background: var(--bad-soft); border-radius: 6px; overflow-wrap: anywhere; }
+.stopped li.mild { border-left-color: var(--warn); background: var(--warn-soft); }
+.safety.alert { border-color: var(--bad); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
 .ipcard { background: var(--warn-soft); border-color: transparent; }
 .ipcard p { font-size: 12.5px; color: var(--ink); }
 .ipcard.safe { background: var(--accent-soft); }

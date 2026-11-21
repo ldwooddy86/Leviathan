@@ -25,7 +25,7 @@
 
   <section id="welcome" class="card welcome" hidden>
     <h2>Outis is on</h2>
-    <p>Every site you open now gets less. Trackers don't load, your device looks like a common one, location requests are refused, and the clock sites see says UTC instead of your time zone. Two choices are worth making now:</p>
+    <p>Every site you open now gets less. Trackers don't load, your device looks like a common one, location requests are refused, and the clock sites see says UTC instead of your time zone. Outis also opens sites over secure connections, blocks known malware sites, and stops booby-trapped downloads and hidden clipboard commands. Two choices are worth making now:</p>
     <div class="choices">
       <div class="choice">
         <h3>The time zone sites see</h3>
@@ -37,19 +37,19 @@
       </div>
       <div class="choice">
         <h3>When you close a site</h3>
-        <p>Forgetting deletes its cookies, so it can't tell you've been there before. You'll be signed out of it, except on sites you keep.</p>
+        <p>Forgetting deletes its cookies, so it can't tell you've been there before. You'll be signed out of it, except on sites you trust.</p>
         <div class="seg" role="group" aria-label="Forget sites">
           <button type="button" data-welcome="forget-on">Forget it</button>
           <button type="button" data-welcome="forget-off">Remember it</button>
         </div>
       </div>
     </div>
-    <p class="note">You can change any of this later on this page, and pause Outis on any site from its toolbar button.</p>
+    <p class="note">You can change any of this later on this page. From the toolbar button you can trust a site (stay signed in, fewer safety limits) or pause Outis on it.</p>
     <div><button type="button" id="welcomeDone">Done</button></div>
   </section>
 
   <nav class="tabs" aria-label="Sections">
-    <a href="#who">Who</a><a href="#where">Where</a><a href="#when">When</a><a href="#sites">Sites</a><a href="#limits">Limits</a>
+    <a href="#who">Who</a><a href="#where">Where</a><a href="#when">When</a><a href="#safety">Safety</a><a href="#sites">Sites</a><a href="#limits">Limits</a>
   </nav>
 
   <section id="who" class="card group">
@@ -160,7 +160,7 @@
       <span class="switch"><input type="checkbox" data-key="activity" aria-label="Hide when I'm active"><span></span></span>
     </div>
     <div class="opt">
-      <div><h3>Forget sites when I close them</h3><p>When the last tab of a site closes, its cookies and stored data are deleted, so next time it can't tell you've been there. You'll be signed out, except on sites you keep (below, or from the toolbar button).</p></div>
+      <div><h3>Forget sites when I close them</h3><p>When the last tab of a site closes, its cookies and stored data are deleted, so next time it can't tell you've been there. You'll be signed out, except on sites you trust (below, or from the toolbar button).</p></div>
       <span class="switch"><input type="checkbox" data-key="forget" aria-label="Forget sites when I close them"><span></span></span>
     </div>
     <div class="opt">
@@ -175,13 +175,73 @@
     <p class="note" id="forgotStats"></p>
   </section>
 
+  <section id="safety" class="card group">
+    <h2>Safety</h2>
+    <p class="lead">What stops malware getting in through the browser.</p>
+    <div class="opt">
+      <div><h3>Secure connections only</h3><p>Opens every site over HTTPS, so nobody between you and the site (public Wi-Fi, a hijacked router) can slip code into the pages you load. A site with no secure version gets a warning first, and you can still go on. Your own network's devices are left alone.</p></div>
+      <span class="switch"><input type="checkbox" data-key="https" aria-label="Secure connections only"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Block known malware, scam-ad and cryptomining sites</h3><p><span id="malwareCount"></span>, including the pop-up ad networks behind fake virus alerts. Opening one shows a warning instead; nothing from them loads inside other sites.</p></div>
+      <span class="switch"><input type="checkbox" data-key="malware" aria-label="Block known malware sites"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Keep Chrome's Safe Browsing on</h3><p>Google's constantly updated list of dangerous sites and downloads covers the new ones no fixed list can. Outis makes sure it stays switched on.</p><p class="control" data-control="safeBrowsing"></p></div>
+      <span class="switch"><input type="checkbox" data-key="safeBrowsing" aria-label="Keep Safe Browsing on"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Stop dangerous downloads</h3><p>Deletes, before you can open them: programs a page builds itself (a way to slip malware past filters), files disguised with a second extension (invoice.pdf.exe), "browser updates" from websites, and scripts and shortcuts that run the moment they're opened. You can still download one on purpose. Sites also can't start several downloads at once.</p></div>
+      <span class="switch"><input type="checkbox" data-key="downloads" aria-label="Stop dangerous downloads"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Guard my clipboard</h3><p>Stops a page from secretly putting a command on your clipboard, the "press Windows+R and paste" or "paste this into Terminal" trick, or swapping what you copy for one. Commands you can see on the page still copy. Sites can't read your clipboard either.</p></div>
+      <span class="switch"><input type="checkbox" data-key="clipboard" aria-label="Guard my clipboard"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Block links that open Windows tools</h3><p>Links to Windows Search, the troubleshooter or the app installer (search-ms:, ms-msdt:, ms-appinstaller:) let a web page run programs or show an attacker's files as if they were yours. Office "open in the app" links still work for Microsoft's own services.</p></div>
+      <span class="switch"><input type="checkbox" data-key="appLinks" aria-label="Block links that open Windows tools"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Refuse notification requests</h3><p>Fake "click Allow to prove you're not a robot" prompts turn into a stream of scam alerts. Sites you trust can still ask.</p></div>
+      <span class="switch"><input type="checkbox" data-key="notifications" aria-label="Refuse notification requests"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Harden sites I don't trust</h3><p>Turns off WebGPU, one of the newest and least-tested parts of the browser, and keyboard lock, which fake "virus alert" pages use to keep you from pressing Esc.</p></div>
+      <span class="switch"><input type="checkbox" data-key="harden" aria-label="Harden sites I don't trust"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Also turn off WebAssembly on sites I don't trust</h3><p>Shrinks what an attack can use even further, but some web apps (games, editors, video tools, some captchas) stop working until you trust them. Off unless you want it.</p></div>
+      <span class="switch"><input type="checkbox" data-key="wasm" aria-label="Turn off WebAssembly on sites I don't trust"><span></span></span>
+    </div>
+    <div class="zeroday">
+      <h3>Against attacks nobody knows about yet</h3>
+      <p>New ("zero-day") attacks on Chrome itself can't be listed in advance. What helps is keeping less of the browser exposed and staying current. Outis does what an extension may; these Chrome settings only you can change:</p>
+      <ul class="checklist">
+        <li><div><strong>Turn off the V8 optimizer.</strong> Most attacks on Chrome go through its JavaScript optimizer. Choose "Don't allow sites to use the V8 optimizer"; sites you need at full speed can be added as exceptions.</div><button type="button" class="ghost" data-chrome="chrome://settings/content/v8">Open the setting</button></li>
+        <li><div><strong>Use Enhanced protection.</strong> Safe Browsing checks sites and downloads in real time instead of against a list a few minutes old.</div><button type="button" class="ghost" data-chrome="chrome://settings/security">Open the setting</button></li>
+        <li><div><strong>Always use secure connections.</strong> Chrome's own HTTPS-only mode, beside Outis's.</div><button type="button" class="ghost" data-chrome="chrome://settings/security">Open the setting</button></li>
+        <li><div><strong>Keep Chrome updated.</strong> Most attacks use flaws that are already fixed. Restart when Chrome offers an update.</div><button type="button" class="ghost" data-chrome="chrome://settings/help">Check for updates</button></li>
+      </ul>
+    </div>
+    <div class="extcheck">
+      <div class="proxy-head">
+        <div><h3>Check my other extensions</h3><p>An extension that can read and change every site can do anything Outis does, including the opposite, and a hijacked one is a common way malware gets in. Outis can list what each of yours is able to do (it needs your permission to look, and you can take it back).</p></div>
+        <button type="button" id="extCheck">Check them</button>
+      </div>
+      <p id="extMsg" class="note" role="status"></p>
+      <ul id="extList" class="extlist"></ul>
+      <button type="button" class="ghost" id="extRevoke" hidden>Take back the permission</button>
+    </div>
+  </section>
+
   <section id="sites" class="card group">
     <h2>Sites</h2>
     <div class="lists">
       <div class="list">
-        <h3>Kept: never forgotten</h3>
-        <p class="note">You stay signed in to these. Everything else still applies.</p>
-        <form class="add" data-list="kept"><input type="text" placeholder="example.com" aria-label="Site to keep" spellcheck="false"><button type="submit">Keep</button></form>
+        <h3>Trusted</h3>
+        <p class="note">You stay signed in to these, they may ask for notifications, and the hardening is off there. Everything else still applies.</p>
+        <form class="add" data-list="kept"><input type="text" placeholder="example.com" aria-label="Site to trust" spellcheck="false"><button type="submit">Trust</button></form>
         <ul data-list="kept"></ul>
       </div>
       <div class="list">
@@ -211,6 +271,10 @@
       <dd>Tracking that a site serves from its own domain, or disguises as its own, isn't on the list.</dd>
       <dt>Fraud checks</dt>
       <dd>Banks and stores run device checks at sign-in and checkout. Outis leaves those services alone, because blocking them gets you locked out. If a site still refuses you, pause Outis there.</dd>
+      <dt>New attacks on Chrome</dt>
+      <dd>No extension can fix a flaw in Chrome itself. Outis narrows what such an attack can reach and keeps you away from known bad sites; the checklist under Safety and Chrome's updates do the rest.</dd>
+      <dt>Trusted sites that get hacked</dt>
+      <dd>When a real site is broken into, the malware arrives from an address you trust. The clipboard, link and download guards still apply there, but the site itself isn't blocked.</dd>
       <dt>Chrome and Google</dt>
       <dd>Chrome itself, a signed-in Google account with sync, and other extensions are outside what Outis controls.</dd>
     </dl>

@@ -17,6 +17,11 @@
      activity  idle detection is refused and the battery is reported full and charging.
      referrer  document.referrer is empty after arriving from another site.
      gpc       navigator.globalPrivacyControl is true.
+   Safety modules:
+     clipboard a command the page did not show you never reaches your clipboard, and a page cannot swap what you
+               copy for one (the "paste this into Run / Terminal" trick).
+     applinks  links and window.open to Windows tools (search-ms:, ms-msdt:, ms-appinstaller: ...) are blocked.
+     harden    on sites you have not trusted: no WebGPU, no keyboard lock, and (if chosen) no WebAssembly.
    Replaced functions keep their names, lengths and native-looking source text. Nothing leaves the page. */
 (function outisShield() {
   'use strict';
@@ -786,5 +791,251 @@
       disguise(g, 'function get globalPrivacyControl() { [native code] }');
       defineProperty(NP, 'globalPrivacyControl', { get: g, set: undefined, enumerable: true, configurable: true });
     }
+  }
+
+  /* ================= safety ================= */
+  /* Guards against what pages try to do to you rather than learn about you: commands slipped onto the clipboard, links
+     that open Windows tools, and (on sites you have not trusted) browser features that new attacks favour. The
+     patterns come from lib/safety.js (tools/build.mjs copies them in). Everything the guards depend on was captured
+     here, before any page script ran, so a hostile page cannot blind them by replacing built-in functions later. */
+  /*@safety*/const SAFETY = {"commands":[["\\b(?:powershell|pwsh)(?:\\.exe)?\\s+(?:-\\w|\\/\\w|[\"']|iex\\b|i[rw][rm]\\b)","i"],["\\bcmd(?:\\.exe)?[\"']?\\s+\\/[ckr]\\b","i"],["\\b(?:mshta|rundll32|regsvr32|certutil|bitsadmin|wscript|cscript|cmstp|msbuild|installutil|regasm|regsvcs|odbcconf|forfiles|schtasks|wmic)(?:\\.exe)?[\"']?\\s","i"],["\\bmsiexec(?:\\.exe)?\\s+\\/[iqxa]","i"],["\\bconhost(?:\\.exe)?\\s+--headless\\b","i"],["(?:^|[\\s;|(&])(?:iex|iwr|irm)(?:\\s|\\(|$)","i"],["\\b(?:Invoke-Expression|Invoke-WebRequest|Invoke-RestMethod|Start-BitsTransfer|DownloadString|DownloadFile|FromBase64String|EncodedCommand)\\b","i"],["\\bNet\\.WebClient\\b","i"],["\\bDavWWWRoot\\b","i"],["\\\\\\\\[\\w.-]+@(?:SSL|\\d+)\\\\","i"],["\\bosascript\\s+-e\\b","i"],["\\bxattr\\s+-[a-z]*[cdr]","i"],["\\bbase64\\s+(?:-d|-D|--decode)\\b",""],["(?:curl|wget)\\b[^|\\n]{0,400}\\|\\s*(?:sudo\\s+)?(?:ba|z|da|k|c)?sh\\b","i"],["\\b(?:bash|sh|zsh|dash)\\s+-c\\b","i"],["\\$\\(\\s*(?:curl|wget)\\b","i"],["`\\s*(?:curl|wget)\\b","i"],["\\/dev\\/tcp\\/","i"],["\\bpython[0-9.]*\\s+-c\\s","i"],["\\bperl\\s+-e\\s","i"]],"schemes":["search-ms","search","ms-search","ms-msdt","ms-officecmd","ms-cxh","ms-cxh-full","ms-appinstaller","mk","its","ms-its","mhtml","hcp","vbscript","jscript","shell"],"office":["ms-word","ms-excel","ms-powerpoint","ms-visio","ms-access","ms-project","ms-publisher","ms-spd","ms-infopath","ms-onenote"],"microsoft":["sharepoint.com","sharepoint-df.com","sharepoint.us","onedrive.live.com","live.com","office.com","office.net","office365.com","microsoft.com","microsoftonline.com","svc.ms","1drv.ms","cloud.microsoft"]};/*@end*/
+  const TRUSTED = !!CFG.trusted;
+  if (G.document && G.Document && G.Element && G.HTMLElement) {
+    const StringCtor = String;
+    const reExec = RegExp.prototype.exec;
+    const sIndexOf = String.prototype.indexOf, sSlice = String.prototype.slice, sLower = String.prototype.toLowerCase, sCode = String.prototype.charCodeAt;
+    const lower = s => apply(sLower, s, []);
+    const find = (s, t) => apply(sIndexOf, s, [t]);
+    const getterOf = (o, n) => { const x = o && owner(o, n); const d = x && getOwnPropertyDescriptor(x, n); return d ? d.get : undefined; };
+    const D = Document.prototype, E = Element.prototype, EVP = Event.prototype;
+    const createElement = D.createElement, appendChild = Node.prototype.appendChild, removeEl = E.remove, attachShadow = E.attachShadow;
+    const getAttribute = E.getAttribute, closest = E.closest;
+    const addListener = EventTarget.prototype.addEventListener, dispatch = EventTarget.prototype.dispatchEvent;
+    const preventDefault = EVP.preventDefault, stopImmediate = EVP.stopImmediatePropagation;
+    const evType = getterOf(EVP, 'type'), evTarget = getterOf(EVP, 'target');
+    const docEl = getterOf(D, 'documentElement'), docBody = getterOf(D, 'body'), activeEl = getterOf(D, 'activeElement');
+    const innerText = getterOf(HTMLElement.prototype, 'innerText');
+    const textSet = (getOwnPropertyDescriptor(Node.prototype, 'textContent') || {}).set;
+    const styleGet = getterOf(HTMLElement.prototype, 'style');
+    const cssTextSet = G.CSSStyleDeclaration && (getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cssText') || {}).set;
+    const localName = getterOf(E, 'localName');
+    const TA = G.HTMLTextAreaElement && HTMLTextAreaElement.prototype, IN = G.HTMLInputElement && HTMLInputElement.prototype;
+    const field = { textarea: [getterOf(TA, 'value'), getterOf(TA, 'selectionStart'), getterOf(TA, 'selectionEnd')], input: [getterOf(IN, 'value'), getterOf(IN, 'selectionStart'), getterOf(IN, 'selectionEnd')] };
+    const gsOwner = owner(G, 'getSelection');
+    const getSelection = gsOwner && gsOwner.getSelection;
+    const selToString = G.Selection && Selection.prototype.toString;
+    const eventGet = getterOf(G, 'event');
+    const CustomEventCtor = G.CustomEvent;
+    const URLCtor = G.URL, urlHost = G.URL && getterOf(URL.prototype, 'hostname');
+
+    /* Text as it reads: invisible characters dropped, runs of whitespace as one space. */
+    const norm = v => {
+      const s = StringCtor(v);
+      let out = '', gap = false;
+      for (let i = 0; i < s.length; i++) {
+        const c = apply(sCode, s, [i]);
+        if (c === 0x200b || c === 0x200c || c === 0x200d || c === 0x2060 || c === 0xfeff) continue;
+        if (c <= 32 || c === 0x85 || c === 0xa0 || c === 0x1680 || (c >= 0x2000 && c <= 0x200a) || c === 0x2028 || c === 0x2029 || c === 0x202f || c === 0x205f || c === 0x3000) { gap = out.length > 0; continue; }
+        if (gap) { out += ' '; gap = false; }
+        out += s[i];
+      }
+      return out;
+    };
+    const CMD = [];
+    for (const pair of SAFETY.commands || []) { try { CMD[CMD.length] = new RegExp(pair[0], pair[1]); } catch (e) { /* skip */ } }
+    const isCommand = t => {
+      if (typeof t !== 'string' || t.length < 6 || t.length > 20000) return false;
+      for (let i = 0; i < CMD.length; i++) if (apply(reExec, CMD[i], [t]) !== null) return true;
+      return false;
+    };
+    /* Was this text on the page for the person to see? A "copy" button next to a visible command passes; a hidden
+       payload does not. */
+    const visible = text => {
+      let t = norm(text);
+      if (t.length > 1 && (t[0] === '$' || t[0] === '>' || t[0] === '#' || t[0] === '%') && t[1] === ' ') t = apply(sSlice, t, [2]);
+      if (!t) return true;
+      let page = '';
+      try { const b = apply(docBody, G.document, []); if (b) page = norm(apply(innerText, b, [])); } catch (e) { page = ''; }
+      return find(page, t) >= 0;
+    };
+    const selectedText = () => {
+      try {
+        const a = apply(activeEl, G.document, []);
+        const tag = a ? apply(localName, a, []) : '';
+        const f = field[tag];
+        if (f && f[0]) {
+          const v = apply(f[0], a, []), s = apply(f[1], a, []), e = apply(f[2], a, []);
+          if (typeof s === 'number' && typeof e === 'number' && e > s) return apply(sSlice, v, [s, e]);
+        }
+      } catch (e) { /* an input type without a selection */ }
+      try { const sel = getSelection ? apply(getSelection, G, []) : null; return sel && selToString ? apply(selToString, sel, []) : ''; } catch (e) { return ''; }
+    };
+
+    /* Tell the person, on the page and on the toolbar button (inject/key.js passes the event on). */
+    const TEXT = {
+      clipboard: ['A hidden command was kept off your clipboard', "This page tried to copy a command it didn't show you. Pages that ask you to paste something into Run, PowerShell or Terminal are a common way to install malware. Don't paste it anywhere."],
+      pastejack: ['This page tried to change what you copied', 'It tried to swap the text you copied for a command. Only what you selected was copied, or nothing.'],
+      applink: ['A link that opens a Windows tool was blocked', "Links like this open programs on your computer, or show an attacker's files as if they were your own."]
+    };
+    let raised = 0, shown = 0;
+    const css = (el, text) => { if (styleGet && cssTextSet) apply(cssTextSet, apply(styleGet, el, []), [text]); };
+    const make = (tag, text, style) => { const el = apply(createElement, G.document, [tag]); if (text) apply(textSet, el, [text]); if (style) css(el, style); return el; };
+    function banner(kind) {
+      const root = apply(docEl, G.document, []);
+      if (!root || shown >= 3 || !attachShadow) return;
+      shown++;
+      try {
+        const host = make('outis-alert', '', 'all: initial; position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 2147483647; width: min(470px, calc(100vw - 28px)); display: block;');
+        const shadow = apply(attachShadow, host, [{ mode: 'closed' }]);
+        const box = make('div', '', 'display: block; box-sizing: border-box; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #eef5f2; background: #13241f; border: 1px solid #2f6b5d; border-left: 5px solid #e0b341; border-radius: 12px; padding: 12px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.4); text-align: left;');
+        const brand = make('div', 'Outis stopped something', 'font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #7fe6c4; font-weight: 700; margin: 0 0 4px;');
+        const t = TEXT[kind] || ['Outis stopped something on this page', ''];
+        const title = make('div', t[0], 'font-weight: 700; font-size: 15px; margin: 0 0 4px; color: #ffffff;');
+        const body = make('div', t[1], 'margin: 0 0 10px; color: #d4e2dd;');
+        const ok = make('button', 'OK', 'all: initial; font: 600 13px system-ui, sans-serif; color: #0c1a16; background: #7fe6c4; border-radius: 8px; padding: 6px 14px; cursor: pointer;');
+        apply(appendChild, box, [brand]); apply(appendChild, box, [title]); apply(appendChild, box, [body]); apply(appendChild, box, [ok]);
+        apply(appendChild, shadow, [box]);
+        const close = () => { try { apply(removeEl, host, []); } catch (e) { /* already gone */ } };
+        apply(addListener, ok, ['click', close]);
+        apply(appendChild, root, [host]);
+        apply(setTimeoutFn, G, [close, 30000]);
+      } catch (e) { /* the page's markup refused it; the toolbar button still says */ }
+    }
+    function raise(kind, detail) {
+      if (++raised > 20) return;
+      try { apply(dispatch, G.document, [new CustomEventCtor('outis-alert', { detail: kind + '\n' + apply(sSlice, StringCtor(detail || ''), [0, 160]) })]); } catch (e) { /* ignore */ }
+      banner(kind);
+    }
+
+    if (ON('clipboard')) {
+      const CP = G.Clipboard && Clipboard.prototype;
+      wrapMethod(CP, 'writeText', orig => function (...args) {
+        if (!args.length) return apply(orig, this, args);
+        const text = StringCtor(args[0]);
+        if (isCommand(text) && !visible(text)) { raise('clipboard', text); return rejectWith('Write permission denied.', 'NotAllowedError'); }
+        return apply(orig, this, [text]);
+      });
+      const CIP = G.ClipboardItem && ClipboardItem.prototype;
+      const itemTypes = getterOf(CIP, 'types'), itemGetType = CIP && CIP.getType, blobText = G.Blob && Blob.prototype.text;
+      /* The plain text of each item is read first; the real write happens only if none of it is a hidden command. */
+      const hiddenCommandIn = async items => {
+        if (!items || typeof items.length !== 'number' || !itemTypes || !itemGetType || !blobText) return false;
+        for (let i = 0; i < items.length; i++) {
+          const types = apply(itemTypes, items[i], []);
+          let plain = false;
+          for (let k = 0; k < types.length; k++) if (types[k] === 'text/plain') plain = true;
+          if (!plain) continue;
+          const text = await apply(blobText, await apply(itemGetType, items[i], ['text/plain']), []);
+          if (isCommand(text) && !visible(text)) { raise('clipboard', text); return true; }
+        }
+        return false;
+      };
+      wrapMethod(CP, 'write', orig => function (...args) {
+        const self = this;
+        return (async () => {
+          let stop = false;
+          try { stop = await hiddenCommandIn(args[0]); } catch (e) { stop = false; }
+          if (stop) throw new DOMExceptionCtor('Write permission denied.', 'NotAllowedError');
+          return apply(orig, self, args);
+        })();
+      });
+      wrapMethod(D, 'execCommand', orig => function (...args) {
+        let cmd = '';
+        try { cmd = lower(StringCtor(args[0])); } catch (e) { cmd = ''; }
+        if (cmd === 'copy' || cmd === 'cut') {
+          const text = selectedText();
+          if (isCommand(text) && !visible(text)) { raise('clipboard', text); return false; }
+        }
+        return apply(orig, this, args);
+      });
+      const DTP = G.DataTransfer && DataTransfer.prototype;
+      wrapMethod(DTP, 'setData', orig => function (...args) {
+        if (args.length < 2) return apply(orig, this, args);
+        const fmt = lower(StringCtor(args[0])), data = StringCtor(args[1]);
+        try {
+          const ev = eventGet ? apply(eventGet, G, []) : undefined;
+          const type = ev && evType ? apply(evType, ev, []) : '';
+          if ((type === 'copy' || type === 'cut') && (fmt === 'text' || fmt === 'text/plain' || fmt === 'url' || fmt === 'text/uri-list')) {
+            /* What the page adds to (or puts in place of) the person's own selection. */
+            const sel = norm(selectedText()), d = norm(data);
+            const at = sel ? find(d, sel) : -1;
+            const added = at >= 0 ? apply(sSlice, d, [0, at]) + ' ' + apply(sSlice, d, [at + sel.length]) : d;
+            if (d !== sel && isCommand(added)) { raise('pastejack', data); return undefined; }
+          }
+        } catch (e) { /* not in a copy event */ }
+        return apply(orig, this, [args[0], data]);
+      });
+    }
+
+    if (ON('applinks')) {
+      const SCHEMES = create(null), OFFICE = create(null), MS = SAFETY.microsoft || [];
+      for (const x of SAFETY.schemes || []) SCHEMES[x] = 1;
+      for (const x of SAFETY.office || []) OFFICE[x] = 1;
+      /* The scheme that makes a link dangerous, or '' (the same rules as dangerousLink in lib/safety.js). */
+      const danger = href => {
+        const s = StringCtor(href === null || href === undefined ? '' : href);
+        let i = 0;
+        while (i < s.length && apply(sCode, s, [i]) <= 32) i++;
+        let j = i;
+        while (j < s.length) {
+          const c = apply(sCode, s, [j]);
+          if ((c >= 97 && c <= 122) || (c >= 65 && c <= 90) || (j > i && ((c >= 48 && c <= 57) || c === 43 || c === 45 || c === 46))) j++;
+          else break;
+        }
+        if (j === i || j >= s.length || s[j] !== ':') return '';
+        const scheme = lower(apply(sSlice, s, [i, j]));
+        if (SCHEMES[scheme]) return scheme;
+        if (!OFFICE[scheme]) return '';
+        const k = find(s, '|u|');
+        let host = '';
+        if (k >= 0) {
+          let rest = apply(sSlice, s, [k + 3]);
+          const bar = find(rest, '|');
+          if (bar >= 0) rest = apply(sSlice, rest, [0, bar]);
+          try { host = lower(apply(urlHost, new URLCtor(rest), [])); } catch (e) { host = ''; }
+        }
+        if (host) {
+          for (let n = 0; n < MS.length; n++) {
+            const d = MS[n];
+            if (host === d || (host.length > d.length && apply(sSlice, host, [host.length - d.length - 1]) === '.' + d)) return '';
+          }
+        }
+        return scheme;
+      };
+      const guard = attr => e => {
+        try {
+          const t = apply(evTarget, e, []);
+          const el = t && (attr === 'href' ? apply(closest, t, ['a[href],area[href]']) : t);
+          if (!el) return;
+          const bad = danger(apply(getAttribute, el, [attr]));
+          if (!bad) return;
+          apply(preventDefault, e, []);
+          apply(stopImmediate, e, []);
+          raise('applink', bad + ':');
+        } catch (err) { /* not an element */ }
+      };
+      apply(addListener, G, ['click', guard('href'), true]);
+      apply(addListener, G, ['auxclick', guard('href'), true]);
+      apply(addListener, G, ['submit', guard('action'), true]);
+      wrapMethod(owner(G, 'open'), 'open', orig => function (...args) {
+        const a = copyArgs(args);
+        if (a.length && a[0] !== undefined) {
+          a[0] = StringCtor(a[0]);
+          const bad = danger(a[0]);
+          if (bad) { raise('applink', bad + ':'); return null; }
+        }
+        return apply(orig, this, a);
+      });
+    }
+  }
+
+  /* Sites you have not trusted lose the newest, least-tested graphics and input features: a large share of new browser
+     attacks go through code like this, and fake "virus alert" pages use keyboard lock to keep you from pressing Esc. */
+  if (ON('harden') && !TRUSTED) {
+    wrapGetter(G.Navigator && Navigator.prototype, 'gpu', fixed(undefined));
+    wrapMethod(G.Keyboard && Keyboard.prototype, 'lock', () => function () { return rejectWith('Keyboard lock is not allowed on this site.', 'NotAllowedError'); });
+  }
+  if (CFG['wasm-off'] && !TRUSTED) {
+    try { delete G.WebAssembly; } catch (e) { /* ignore */ }
   }
 })();

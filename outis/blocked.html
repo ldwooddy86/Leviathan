@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Outis stopped this</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+<main class="wrap" id="main" hidden>
+  <div class="sign" id="sign" aria-hidden="true">
+    <svg viewBox="0 0 48 48" width="56" height="56"><path d="M24 4 41 10v12c0 11-7.2 19.4-17 22-9.8-2.6-17-11-17-22V10z" fill="currentColor" opacity=".16"/><path d="M24 4 41 10v12c0 11-7.2 19.4-17 22-9.8-2.6-17-11-17-22V10z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 15v12" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/><circle cx="24" cy="33" r="2.1" fill="currentColor"/></svg>
+  </div>
+  <p class="brand">Outis</p>
+  <h1 id="title">Outis stopped this</h1>
+  <p id="what" class="what"></p>
+  <dl id="facts" class="facts"></dl>
+  <ul id="why" class="why"></ul>
+  <div class="actions">
+    <button type="button" id="back">Go back</button>
+    <button type="button" id="go" class="ghost" hidden>Continue anyway</button>
+  </div>
+  <p id="note" class="note" role="status"></p>
+</main>
+<script type="module" src="blocked.js"></script>
+</body>
+</html>

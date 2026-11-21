@@ -30,16 +30,27 @@ export const DEFAULTS = Object.freeze({
   activity: true,     // idle detection blocked, battery reported full and charging
   forget: true,       // clear a site's cookies and storage when its last tab closes
   forgetDelay: 15,    // seconds after the last tab closes; -1: at the next browser start
+  /* safety */
+  https: true,        // upgrade http to https; warn before a site with no secure version
+  malware: true,      // static ruleset of malware, scam-ad and cryptomining hosts
+  safeBrowsing: true, // keep Chrome's Safe Browsing on
+  downloads: true,    // stop disguised, page-built, fake-update and click-to-run downloads; no automatic downloads
+  clipboard: true,    // keep hidden commands off the clipboard; sites may not read it
+  appLinks: true,     // block links that open Windows tools (search-ms:, ms-msdt:, ms-appinstaller: ...)
+  notifications: true,// refuse notification requests, except trusted sites
+  harden: true,       // sites not trusted: no WebGPU, no keyboard lock
+  wasm: false,        // sites not trusted: no WebAssembly either (strict, breaks some apps)
   /* sites */
   paused: Object.freeze([]),   // protection off
-  kept: Object.freeze([])      // not forgotten
+  kept: Object.freeze([])      // trusted: not forgotten, fewer safety limits
 });
 
 export const LOCATION_MODES = ['block', 'fake', 'off'];
 export const PROXY_SCHEMES = ['socks5', 'http', 'https'];
 export const FORGET_DELAYS = [15, 60, 600, -1];
 const BOOLEANS = ['enabled', 'trackers', 'cookies', 'links', 'gpc', 'canvas', 'audio', 'device', 'screen', 'language',
-  'webrtc', 'referrer', 'timezone', 'activity', 'forget'];
+  'webrtc', 'referrer', 'timezone', 'activity', 'forget', 'https', 'malware', 'safeBrowsing', 'downloads', 'clipboard', 'appLinks',
+  'notifications', 'harden', 'wasm'];
 
 /* Fill in defaults and drop anything malformed, so a bad write can never switch protection off by accident. */
 export function normalize(raw) {
@@ -96,7 +107,7 @@ export async function update(patch) {
    storage. Instead its registration lists small generated files ahead of it: one per switched-off module and one
    for the place. FLAGS names those files; tools/build.mjs writes them. */
 export const FLAGS = ['no-canvas', 'no-audio', 'no-device', 'no-screen', 'no-timezone', 'no-language', 'no-referrer',
-  'no-activity', 'no-gpc', 'geo-fake', 'geo-off'];
+  'no-activity', 'no-gpc', 'geo-fake', 'geo-off', 'no-clipboard', 'no-applinks', 'no-harden', 'wasm-off', 'trusted'];
 
 export function shieldFlags(s) {
   const f = [];
@@ -111,15 +122,22 @@ export function shieldFlags(s) {
   if (!s.gpc) f.push('no-gpc');
   if (s.location === 'fake') f.push('geo-fake');
   if (s.location === 'off') f.push('geo-off');
+  if (!s.clipboard) f.push('no-clipboard');
+  if (!s.appLinks) f.push('no-applinks');
+  if (!s.harden) f.push('no-harden');
+  if (s.wasm) f.push('wasm-off');
   return f;
 }
 
-export function shieldFiles(s) {
-  return [...shieldFlags(s).map(f => `inject/opt/${f}.js`), `inject/places/${placeById(s.place).id}.js`, 'inject/shield.js'];
+/* trusted: the files for the registration that covers trusted (kept) sites, where the hardening is off. */
+export function shieldFiles(s, trusted = false) {
+  const flags = shieldFlags(s);
+  if (trusted) flags.push('trusted');
+  return [...flags.map(f => `inject/opt/${f}.js`), `inject/places/${placeById(s.place).id}.js`, 'inject/shield.js'];
 }
 
 /* Does the page script have anything to do? */
 export function shieldNeeded(s) {
   return s.enabled && (s.canvas || s.audio || s.device || s.screen || s.timezone || s.language || s.referrer ||
-    s.activity || s.gpc || s.location !== 'off');
+    s.activity || s.gpc || s.location !== 'off' || s.clipboard || s.appLinks || s.harden || s.wasm);
 }

@@ -30,6 +30,24 @@ h3.sub { font-size: 13px; text-transform: uppercase; letter-spacing: .07em; colo
 .proxy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px 12px; }
 .proxy-grid label { display: grid; gap: 3px; font-size: 12.5px; color: var(--muted); }
 .proxy-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.zeroday { margin: 14px 0 4px; padding: 14px 16px; background: var(--accent-soft); border-radius: 12px; }
+.zeroday h3 { font-size: 15px; margin-bottom: 4px; }
+.zeroday > p { color: var(--ink); font-size: 13.5px; }
+.checklist { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+.checklist li { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border-radius: 9px; padding: 9px 11px; font-size: 13.5px; }
+.checklist li button { flex: none; }
+.extcheck { padding: 13px 0 0; border-top: 1px solid var(--line); margin-top: 14px; }
+.extcheck h3 { font-size: 15px; margin-bottom: 3px; }
+.extcheck p { color: var(--muted); font-size: 13.5px; }
+.extlist { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 8px; }
+.extlist > li { background: var(--panel-2); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; font-size: 13.5px; }
+.extlist .ext-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.extlist .ext-name { font-weight: 650; }
+.extlist ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 12.5px; display: grid; gap: 2px; }
+.extlist .ext-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.extlist .ext-actions button { padding: 3px 10px; font-size: 12.5px; }
+.pill.high { background: var(--bad-soft); color: var(--bad); }
+.pill.medium { background: var(--warn-soft); color: var(--warn); }
 .lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 10px; }
 .list h3 { font-size: 15px; }
 .add { display: flex; gap: 6px; margin: 8px 0; }
@@ -58,5 +76,6 @@ body.off .group { opacity: .6; }
   .opt { flex-direction: column; align-items: flex-start; }
   .proxy-head { flex-direction: column; align-items: flex-start; }
   .limits dl { grid-template-columns: 1fr; gap: 2px; }
+  .checklist li { flex-direction: column; align-items: flex-start; }
   .limits dd { margin-bottom: 10px; }
 }

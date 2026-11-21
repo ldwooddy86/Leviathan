@@ -7,6 +7,19 @@
    changes on every restart); the site is the top-level page's host, so frames on one page agree and the same
    embedded tracker sees different noise on different sites. Only the derived number reaches the page. */
 (() => {
+  /* The shield's safety alerts (a hidden clipboard command, a Windows-tool link) reach the toolbar button through here:
+     the page's world cannot call the extension. A page can fake one of these events, which only adds a note to the
+     popup, so each frame passes on at most 20 and only of the known kinds. */
+  let relayed = 0;
+  const KINDS = ['clipboard', 'pastejack', 'applink'];
+  document.addEventListener('outis-alert', e => {
+    const d = typeof e.detail === 'string' ? e.detail : '';
+    const nl = d.indexOf('\n');
+    const kind = nl > 0 ? d.slice(0, nl) : d;
+    if (!KINDS.includes(kind) || ++relayed > 20) return;
+    try { chrome.runtime.sendMessage({ type: 'alert', kind, detail: nl > 0 ? d.slice(nl + 1, nl + 161) : '' }).catch(() => {}); } catch (err) { /* extension reloaded */ }
+  }, true);
+
   const SEED_ATTR = 'data-outis-seed', MARK_ATTR = 'data-outis-shield';
   const root = document.documentElement;
   if (!root) return;

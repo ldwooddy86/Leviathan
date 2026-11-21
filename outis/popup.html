@@ -22,7 +22,7 @@
     </div>
     <div id="siteControls">
       <label class="row"><span>Protect me on this site</span><span class="switch sm"><input type="checkbox" id="siteOn"><span></span></span></label>
-      <label class="row"><span>Forget this site when I close it</span><span class="switch sm"><input type="checkbox" id="siteForget"><span></span></span></label>
+      <label class="row" title="Trusted sites keep you signed in (they aren't forgotten when you close them), may ask to send notifications, and can use WebGPU and keyboard lock."><span>Trust this site <span class="muted small">stay signed in</span></span><span class="switch sm"><input type="checkbox" id="siteTrust"><span></span></span></label>
       <div class="actions">
         <button id="forgetNow" class="ghost" type="button">Forget this site now</button>
         <span id="siteMsg" class="note" role="status"></span>
@@ -47,6 +47,12 @@
       <p class="big" id="whenBig">UTC</p>
       <p class="sub" id="whenSub">the clock sites see</p>
     </article>
+  </section>
+
+  <section id="safety" class="card safety" aria-live="polite">
+    <div class="safety-head"><h2>Safety</h2><span class="pill" id="safetyPill">On</span></div>
+    <ul id="stopped" class="stopped"></ul>
+    <p id="safetyNote" class="note"></p>
   </section>
 
   <details id="sees" class="card fold">

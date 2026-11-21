@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Outis",
   "short_name": "Outis",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Stops websites from learning who you are, where you are and when: blocks trackers, masks your fingerprint, hides location and time.",
   "minimum_chrome_version": "121",
   "icons": {
@@ -32,6 +32,7 @@
     "contentSettings",
     "cookies",
     "declarativeNetRequest",
+    "downloads",
     "privacy",
     "proxy",
     "scripting",
@@ -39,18 +40,50 @@
     "webRequest",
     "webRequestAuthProvider"
   ],
+  "optional_permissions": [
+    "management"
+  ],
   "host_permissions": [
     "<all_urls>"
   ],
   "declarative_net_request": {
     "rule_resources": [
-      { "id": "trackers", "enabled": true, "path": "rules/trackers.json" },
-      { "id": "params", "enabled": true, "path": "rules/params.json" }
+      {
+        "id": "trackers",
+        "enabled": true,
+        "path": "rules/trackers.json"
+      },
+      {
+        "id": "params",
+        "enabled": true,
+        "path": "rules/params.json"
+      },
+      {
+        "id": "malware",
+        "enabled": true,
+        "path": "rules/malware.json"
+      }
     ]
   },
   "web_accessible_resources": [
-    { "resources": ["surrogates/*.js"], "matches": ["<all_urls>"] },
-    { "resources": ["inject/k"], "matches": ["<all_urls>"], "use_dynamic_url": true }
+    {
+      "resources": [
+        "surrogates/*.js",
+        "blocked.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    },
+    {
+      "resources": [
+        "inject/k"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "use_dynamic_url": true
+    }
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

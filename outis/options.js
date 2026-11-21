@@ -4,6 +4,8 @@ import { DEFAULTS, load, update, save } from './lib/settings.js';
 import { PLACES, REGIONS, placeById } from './lib/places.js';
 import { normalizeSite } from './lib/sites.js';
 import { PARAMS, domainCount } from './lib/trackers.js';
+import { malwareCount } from './lib/malware.js';
+import { extensionRisk } from './lib/safety.js';
 
 const $ = id => document.getElementById(id);
 const $$ = sel => [...document.querySelectorAll(sel)];
@@ -174,7 +176,7 @@ function bind() {
       S = await write(s => { if (!s[name].includes(site)) s[name] = [...s[name], site]; return s; });
       input.value = '';
       render();
-      toast(name === 'kept' ? `${site} is kept: you stay signed in there.` : `Outis is paused on ${site}.`);
+      toast(name === 'kept' ? `${site} is trusted: you stay signed in there.` : `Outis is paused on ${site}.`);
     });
   }
   for (const b of $$('[data-welcome]')) {
@@ -185,6 +187,20 @@ function bind() {
       render();
     });
   }
+  /* Chrome's own settings pages, for what an extension may not change. */
+  for (const b of $$('[data-chrome]')) b.addEventListener('click', () => chrome.tabs.create({ url: b.dataset.chrome }));
+  $('extCheck').addEventListener('click', async () => {
+    let granted = false;
+    try { granted = await chrome.permissions.request({ permissions: ['management'] }); } catch (e) { granted = false; }
+    if (!granted) { $('extMsg').textContent = 'Outis needs your permission to see your other extensions.'; return; }
+    renderExtensions();
+  });
+  $('extRevoke').addEventListener('click', async () => {
+    await chrome.permissions.remove({ permissions: ['management'] }).catch(() => false);
+    $('extList').textContent = '';
+    $('extRevoke').hidden = true;
+    $('extMsg').textContent = 'Permission given back. Outis can no longer see your other extensions.';
+  });
   $('welcomeDone').addEventListener('click', () => { $('welcome').hidden = true; history.replaceState(null, '', location.pathname); window.scrollTo(0, 0); });
   $('reset').addEventListener('click', async () => {
     if (!confirm('Reset every Outis setting, including your kept and paused sites?')) return;
@@ -198,15 +214,62 @@ function bind() {
   });
 }
 
+/* Other extensions, riskiest first: what each one is able to do (not what it actually does). */
+const INSTALLED = { normal: 'Chrome Web Store', development: 'Loaded unpacked', sideload: 'Installed by another program', admin: 'Installed by your administrator', other: 'Installed some other way' };
+async function renderExtensions() {
+  const list = $('extList');
+  list.textContent = '';
+  let all = [];
+  try { all = (await chrome.management.getAll()).filter(e => e.id !== chrome.runtime.id && (e.type === 'extension' || e.type === 'hosted_app' || e.type === 'packaged_app')); }
+  catch (e) { $('extMsg').textContent = 'Outis could not read your extensions.'; return; }
+  $('extRevoke').hidden = false;
+  if (!all.length) { $('extMsg').textContent = 'No other extensions are installed.'; return; }
+  const rank = { high: 0, medium: 1, low: 2 };
+  const rated = all.map(e => ({ e, r: extensionRisk(e) })).sort((a, b) => rank[a.r.level] - rank[b.r.level] || a.e.name.localeCompare(b.e.name));
+  const high = rated.filter(x => x.r.level === 'high' && x.e.enabled).length;
+  $('extMsg').textContent = `${all.length} other extension${all.length === 1 ? '' : 's'}. ` + (high
+    ? `${high} switched on ${high === 1 ? 'has' : 'have'} enough power to do real harm if bad or hijacked: keep only the ones you know and use.`
+    : 'None switched on has a dangerous mix of powers.');
+  for (const { e, r } of rated) {
+    const li = document.createElement('li');
+    const head = document.createElement('div'); head.className = 'ext-head';
+    const name = document.createElement('span'); name.className = 'ext-name'; name.textContent = e.name + (e.version ? ` (${e.version})` : '');
+    const pill = document.createElement('span'); pill.className = 'pill ' + (e.enabled ? r.level : 'off');
+    pill.textContent = !e.enabled ? 'Off' : r.level === 'high' ? 'Powerful' : r.level === 'medium' ? 'Some access' : 'Limited';
+    head.append(name, pill);
+    const meta = document.createElement('div'); meta.className = 'note';
+    meta.textContent = INSTALLED[e.installType] || e.installType || '';
+    li.append(head, meta);
+    if (r.reasons.length) {
+      const ul = document.createElement('ul');
+      for (const x of r.reasons) { const item = document.createElement('li'); item.textContent = 'It ' + x + '.'; ul.append(item); }
+      li.append(ul);
+    }
+    const actions = document.createElement('div'); actions.className = 'ext-actions';
+    if (e.mayDisable !== false) {
+      const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'ghost';
+      toggle.textContent = e.enabled ? 'Turn off' : 'Turn on';
+      toggle.addEventListener('click', async () => { try { await chrome.management.setEnabled(e.id, !e.enabled); } catch (err) { toast('Chrome did not allow that change.'); } renderExtensions(); });
+      const uninstallBtn = document.createElement('button'); uninstallBtn.type = 'button'; uninstallBtn.className = 'danger'; uninstallBtn.textContent = 'Remove';
+      uninstallBtn.addEventListener('click', async () => { try { await chrome.management.uninstall(e.id, { showConfirmDialog: true }); } catch (err) { /* cancelled */ } renderExtensions(); });
+      actions.append(toggle, uninstallBtn);
+    }
+    li.append(actions);
+    list.append(li);
+  }
+}
+
 async function init() {
   S = await load();
   fillPlaces();
   $('trackerCount').textContent = `${domainCount()} domains and addresses`;
+  $('malwareCount').textContent = `${malwareCount()} known addresses`;
   $('paramCount').textContent = String(PARAMS.filter(p => !p.startsWith('utm_') && p !== 'fbclid' && p !== 'gclid').length);
   $('version').textContent = `Outis ${chrome.runtime.getManifest().version}`;
   if (location.hash === '#welcome') $('welcome').hidden = false;
   bind();
   render();
+  try { if (await chrome.permissions.contains({ permissions: ['management'] })) renderExtensions(); } catch (e) { /* not granted */ }
 }
 
 init();
