@@ -13675,7 +13675,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         for (let n = mapCard; n && n.parentElement && n !== document.body; n = n.parentElement)
           [...n.parentElement.children].forEach(c => { if (c === n || c.inert || /^(SCRIPT|STYLE|LINK|TEMPLATE)$/.test(c.tagName) || c.classList.contains('toast') || c.id === 'tip' || c.hasAttribute('aria-live')) return; c.inert = true; c.setAttribute('data-sc-inert', ''); });
       };
-      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); document.documentElement.classList.toggle('sc-noscroll', svFull); inertOut(svFull); if (svMode) { renderSvBar(); drawSoon(); } if (d3Mode) render3DBar(); if (enMode) renderEnBar(); }
+      function full(on) { svFull = !!on; mapCard.classList.toggle('sc-full', svFull); mapCard.style.overflowY = svFull ? 'auto' : ''; if (!svFull) mapCard.scrollTop = 0; document.documentElement.classList.toggle('sc-noscroll', svFull); inertOut(svFull); if (svMode) { renderSvBar(); drawSoon(); } if (d3Mode) render3DBar(); if (enMode) renderEnBar(); }
       new MutationObserver(() => { if (root.hidden && svFull) full(false); }).observe(root, { attributes: true, attributeFilter: ['hidden'] });
       /* the buildings to step through: those in view when Street View opened, likely ones first, highest scores first */
       function svListNow() {
@@ -13986,10 +13986,11 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       const whereEnSoon = debounce(() => { const w = $('#scEnWhere', root); const stNow = (en && en.state()) || enSt; if (w && enMode) w.innerHTML = whereEn(stNow); if (en && stNow) { $$('#scEnBar [data-h]', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.h === stNow.mode))); $$('#scEnPad .sc-enalt', root).forEach(x => { x.hidden = !(stNow.mode === 'alta' || stNow.mode === 'saucer' || stNow.mode === 'tictac'); }); } }, 120);
       let enGfxOpen = false, enPlayT = 0, warping = false, warpT = 0, warpQ = '', enSound = false, enZipTab = '';
       /* a control the bar has just focused is brought out from under the sticky module bar, or up from below the window
-         (to the top for a tab that has just opened its pane, so that the pane shows);
+         (far enough that a pane a tab has just opened shows, the tab kept below the module bar; nothing in full window, where
+         the card is fixed over the page);
          zQuiet: the bar is giving the focus back after a redraw, which must not move the page */
       let zQuiet = false;
-      function zSee(f, top) { const mb = $('.mbar', root), h = mb && getComputedStyle(mb).position === 'sticky' ? mb.getBoundingClientRect().bottom : 0, r = f.getBoundingClientRect(); if (r.top < h + 4) window.scrollBy(0, r.top - h - 8); else if (r.bottom > innerHeight + 1) window.scrollBy(0, top ? r.top - h - 8 : Math.min(r.bottom - innerHeight + 8, r.top - h - 8)); }
+      function zSee(f, top) { if (svFull) return; const mb = $('.mbar', root), h = mb && getComputedStyle(mb).position === 'sticky' ? mb.getBoundingClientRect().bottom : 0, r = f.getBoundingClientRect(), p = top && $('#scEnZipP', enBar), b = p ? p.getBoundingClientRect().bottom : r.bottom; if (r.top < h + 4) window.scrollBy(0, r.top - h - 8); else if (b > innerHeight + 1) window.scrollBy(0, Math.min(b - innerHeight + 8, r.top - h - 8)); }
       /* the ZIP pane lies over the bar's later rows: focus landing on a control it covers (Tab out of the pane, Shift+Tab
          from the view, the warp prompt) closes it first, and the control is brought out from under the sticky module bar;
          focus within the ZIP row, on the canvas or on a control in the clear keeps it open (and keyboard focus within the
