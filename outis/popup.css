@@ -1,0 +1,37 @@
+body { width: 372px; }
+.bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px 10px;
+}
+.brand { flex: 1; display: flex; align-items: baseline; gap: 8px; }
+.brand strong { font-size: 16px; letter-spacing: .01em; }
+main { display: grid; gap: 10px; padding: 0 12px 10px; }
+.card { padding: 12px; }
+.site-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.host { font-weight: 650; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; cursor: pointer; }
+.actions { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.axis { padding: 10px; min-width: 0; }
+.axis h2 { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.axis .big { font-size: 18px; font-weight: 700; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.axis .sub { font-size: 11.5px; color: var(--muted); line-height: 1.3; margin-top: 2px; }
+.axis.off .big { color: var(--muted); }
+.fold { padding: 0; }
+.fold summary { padding: 11px 12px; cursor: pointer; font-weight: 600; list-style-position: inside; }
+.fold[open] summary { border-bottom: 1px solid var(--line); }
+.fold > :not(summary) { margin: 10px 12px; }
+table { width: calc(100% - 24px); border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+th, td { text-align: left; padding: 5px 4px; vertical-align: top; border-bottom: 1px solid var(--line); overflow-wrap: break-word; }
+thead th { font-size: 11px; color: var(--muted); font-weight: 600; }
+tbody th { font-weight: 600; width: 30%; }
+td.hid { color: var(--good); }
+td.same { color: var(--muted); }
+#blockedList { list-style: none; padding: 0; display: grid; gap: 4px; max-height: 180px; overflow: auto; }
+#blockedList li { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; }
+#blockedList .cat { color: var(--muted); font-size: 11.5px; }
+.ipcard { background: var(--warn-soft); border-color: transparent; }
+.ipcard p { font-size: 12.5px; color: var(--ink); }
+.ipcard.safe { background: var(--accent-soft); }
+footer { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 12px; }
+body.disabled .trio, body.disabled #sees, body.disabled #blocked { opacity: .55; }

@@ -1,0 +1,707 @@
+[
+ {
+  "id": 100,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "requestDomains": [
+    "google-analytics.com",
+    "analytics.google.com",
+    "googletagmanager.com",
+    "mixpanel.com",
+    "mxpnl.com",
+    "mxpnl.net",
+    "amplitude.com",
+    "heapanalytics.com",
+    "segment.io",
+    "segment.com",
+    "kissmetrics.io",
+    "kissmetrics.com",
+    "chartbeat.com",
+    "chartbeat.net",
+    "parsely.com",
+    "parse.ly",
+    "quantserve.com",
+    "quantcount.com",
+    "scorecardresearch.com",
+    "nr-data.net",
+    "js-agent.newrelic.com",
+    "browser-intake-datadoghq.com",
+    "browser-intake-datadoghq.eu",
+    "browser-intake-us3-datadoghq.com",
+    "browser-intake-us5-datadoghq.com",
+    "browser-intake-ap1-datadoghq.com",
+    "statcounter.com",
+    "histats.com",
+    "getclicky.com",
+    "woopra.com",
+    "piwik.pro",
+    "matomo.cloud",
+    "mc.yandex.ru",
+    "mc.yandex.com",
+    "hm.baidu.com",
+    "cnzz.com",
+    "top-fwz1.mail.ru",
+    "bat.bing.com",
+    "demdex.net",
+    "omtrdc.net",
+    "2o7.net",
+    "everesttech.net",
+    "tealiumiq.com",
+    "pendo.io",
+    "logx.optimizely.com",
+    "appsflyer.com",
+    "kochava.com",
+    "hs-analytics.net",
+    "track.hubspot.com",
+    "hscollectedforms.net",
+    "munchkin.marketo.net",
+    "pi.pardot.com",
+    "evgnet.com",
+    "trackcmp.net",
+    "static.cloudflareinsights.com",
+    "pixel.wp.com",
+    "stats.wp.com",
+    "i.posthog.com"
+   ],
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 200,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "requestDomains": [
+    "doubleclick.net",
+    "googlesyndication.com",
+    "googleadservices.com",
+    "googletagservices.com",
+    "adservice.google.com",
+    "adservice.google.ca",
+    "adservice.google.co.uk",
+    "adservice.google.de",
+    "adservice.google.fr",
+    "adservice.google.com.au",
+    "adservice.google.co.in",
+    "adservice.google.co.jp",
+    "adservice.google.es",
+    "adservice.google.it",
+    "adservice.google.nl",
+    "adservice.google.com.br",
+    "adservice.google.com.mx",
+    "amazon-adsystem.com",
+    "adnxs.com",
+    "adnxs-simple.com",
+    "criteo.com",
+    "criteo.net",
+    "taboola.com",
+    "outbrain.com",
+    "rubiconproject.com",
+    "pubmatic.com",
+    "openx.net",
+    "casalemedia.com",
+    "indexww.com",
+    "bidswitch.net",
+    "mathtag.com",
+    "media.net",
+    "moatads.com",
+    "doubleverify.com",
+    "adsafeprotected.com",
+    "3lift.com",
+    "sharethrough.com",
+    "smartadserver.com",
+    "teads.tv",
+    "yieldmo.com",
+    "gumgum.com",
+    "sovrn.com",
+    "lijit.com",
+    "33across.com",
+    "contextweb.com",
+    "adform.net",
+    "adition.com",
+    "serving-sys.com",
+    "flashtalking.com",
+    "ads.yahoo.com",
+    "analytics.yahoo.com",
+    "gemini.yahoo.com",
+    "advertising.com",
+    "zemanta.com",
+    "revcontent.com",
+    "mgid.com",
+    "adroll.com",
+    "perfectaudience.com",
+    "rfihub.com",
+    "turn.com",
+    "dotomi.com",
+    "conversantmedia.com",
+    "yieldlab.net",
+    "adscale.de",
+    "ads.linkedin.com",
+    "ads-twitter.com",
+    "adsrvr.org",
+    "bounceexchange.com",
+    "bouncex.net",
+    "smaato.net",
+    "spotxchange.com",
+    "springserve.com",
+    "tremorhub.com",
+    "undertone.com",
+    "onetag-sys.com",
+    "e-planning.net",
+    "emxdgt.com",
+    "richaudience.com",
+    "improvedigital.com",
+    "adkernel.com",
+    "lkqd.net",
+    "innovid.com",
+    "zedo.com",
+    "adblade.com",
+    "popads.net",
+    "propellerads.com",
+    "exoclick.com",
+    "rtbhouse.com",
+    "hsadspixel.net"
+   ],
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 201,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||google.com/pagead/",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 202,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||google.com/ads/",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 300,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "requestDomains": [
+    "connect.facebook.net",
+    "analytics.tiktok.com",
+    "tr.snapchat.com",
+    "ct.pinterest.com",
+    "q.quora.com",
+    "alb.reddit.com",
+    "pixel-config.reddit.com",
+    "events.redditmedia.com",
+    "snap.licdn.com",
+    "analytics.twitter.com"
+   ],
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 301,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||facebook.com/tr^",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 302,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||twitter.com/i/adsct",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 303,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||x.com/i/adsct",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 304,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||s.pinimg.com/ct/",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 305,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||sc-static.net/scevent",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 306,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||redditstatic.com/ads/",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 307,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "urlFilter": "||linkedin.com/li/track",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 400,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "requestDomains": [
+    "fpjs.io",
+    "fpcdn.io",
+    "fpnpmcdn.net",
+    "openfpcdn.io",
+    "fpapi.io",
+    "id5-sync.com",
+    "liadm.com",
+    "rlcdn.com",
+    "pippio.com",
+    "tapad.com",
+    "crwdcntrl.net",
+    "bluekai.com",
+    "krxd.net",
+    "exelator.com",
+    "agkn.com",
+    "eyeota.net",
+    "zeotap.com",
+    "uidapi.com",
+    "intentiq.com",
+    "semasio.net",
+    "mediarithmics.com",
+    "permutive.com",
+    "permutive.app",
+    "sddan.com",
+    "hadronid.net",
+    "sharethis.com",
+    "6sc.co",
+    "6sense.com",
+    "clearbitscripts.com",
+    "clearbitjs.com",
+    "reveal.clearbit.com",
+    "demandbase.com",
+    "company-target.com",
+    "zi-scripts.com",
+    "ws.zoominfo.com",
+    "lfeeder.com",
+    "leadfeeder.com",
+    "albacross.com",
+    "ml314.com",
+    "getkoala.com",
+    "getwarmly.com"
+   ],
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 500,
+  "priority": 1,
+  "action": {
+   "type": "block"
+  },
+  "condition": {
+   "requestDomains": [
+    "hotjar.com",
+    "hotjar.io",
+    "mouseflow.com",
+    "fullstory.com",
+    "clarity.ms",
+    "crazyegg.com",
+    "inspectlet.com",
+    "luckyorange.com",
+    "luckyorange.net",
+    "smartlook.com",
+    "smartlook.cloud",
+    "logrocket.com",
+    "logrocket.io",
+    "lr-ingest.io",
+    "lr-in.com",
+    "lr-ingest.com",
+    "quantummetric.com",
+    "contentsquare.net",
+    "decibelinsight.net",
+    "glassboxdigital.io",
+    "sessioncam.com",
+    "clicktale.net",
+    "mc.webvisor.org",
+    "mc.webvisor.com"
+   ],
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "sub_frame",
+    "stylesheet",
+    "script",
+    "image",
+    "font",
+    "object",
+    "xmlhttprequest",
+    "ping",
+    "csp_report",
+    "media",
+    "websocket",
+    "webtransport",
+    "webbundle",
+    "other"
+   ]
+  }
+ },
+ {
+  "id": 901,
+  "priority": 2,
+  "action": {
+   "type": "redirect",
+   "redirect": {
+    "extensionPath": "/surrogates/gtm.js"
+   }
+  },
+  "condition": {
+   "requestDomains": [
+    "googletagmanager.com"
+   ],
+   "urlFilter": "/gtm.js",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "script"
+   ]
+  }
+ },
+ {
+  "id": 902,
+  "priority": 2,
+  "action": {
+   "type": "redirect",
+   "redirect": {
+    "extensionPath": "/surrogates/gtag.js"
+   }
+  },
+  "condition": {
+   "requestDomains": [
+    "googletagmanager.com"
+   ],
+   "urlFilter": "/gtag/js",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "script"
+   ]
+  }
+ },
+ {
+  "id": 903,
+  "priority": 2,
+  "action": {
+   "type": "redirect",
+   "redirect": {
+    "extensionPath": "/surrogates/analytics.js"
+   }
+  },
+  "condition": {
+   "requestDomains": [
+    "google-analytics.com"
+   ],
+   "urlFilter": "/analytics.js",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "script"
+   ]
+  }
+ },
+ {
+  "id": 904,
+  "priority": 2,
+  "action": {
+   "type": "redirect",
+   "redirect": {
+    "extensionPath": "/surrogates/gpt.js"
+   }
+  },
+  "condition": {
+   "requestDomains": [
+    "doubleclick.net"
+   ],
+   "urlFilter": "/tag/js/gpt.js",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "script"
+   ]
+  }
+ },
+ {
+  "id": 905,
+  "priority": 2,
+  "action": {
+   "type": "redirect",
+   "redirect": {
+    "extensionPath": "/surrogates/gpt.js"
+   }
+  },
+  "condition": {
+   "requestDomains": [
+    "googletagservices.com"
+   ],
+   "urlFilter": "/tag/js/gpt.js",
+   "domainType": "thirdParty",
+   "resourceTypes": [
+    "script"
+   ]
+  }
+ }
+]

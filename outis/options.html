@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outis settings</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="options.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <img src="icons/icon128.png" alt="" width="60" height="60">
+    <div class="hero-text">
+      <h1>Outis</h1>
+      <p class="tag">Sites see nobody, from nowhere, at no particular time.</p>
+    </div>
+    <label class="master">
+      <span id="masterLabel">On</span>
+      <span class="switch lg"><input type="checkbox" id="enabled" aria-label="Outis on or off everywhere"><span></span></span>
+    </label>
+  </header>
+
+  <div id="problems" class="warnbox" hidden></div>
+
+  <section id="welcome" class="card welcome" hidden>
+    <h2>Outis is on</h2>
+    <p>Every site you open now gets less. Trackers don't load, your device looks like a common one, location requests are refused, and the clock sites see says UTC instead of your time zone. Two choices are worth making now:</p>
+    <div class="choices">
+      <div class="choice">
+        <h3>The time zone sites see</h3>
+        <p>Your time zone tells sites roughly where you live. Hiding it means some sites will show times in UTC.</p>
+        <div class="seg" role="group" aria-label="Time zone">
+          <button type="button" data-welcome="tz-hide">Hide it</button>
+          <button type="button" data-welcome="tz-keep">Keep my real time zone</button>
+        </div>
+      </div>
+      <div class="choice">
+        <h3>When you close a site</h3>
+        <p>Forgetting deletes its cookies, so it can't tell you've been there before. You'll be signed out of it, except on sites you keep.</p>
+        <div class="seg" role="group" aria-label="Forget sites">
+          <button type="button" data-welcome="forget-on">Forget it</button>
+          <button type="button" data-welcome="forget-off">Remember it</button>
+        </div>
+      </div>
+    </div>
+    <p class="note">You can change any of this later on this page, and pause Outis on any site from its toolbar button.</p>
+    <div><button type="button" id="welcomeDone">Done</button></div>
+  </section>
+
+  <nav class="tabs" aria-label="Sections">
+    <a href="#who">Who</a><a href="#where">Where</a><a href="#when">When</a><a href="#sites">Sites</a><a href="#limits">Limits</a>
+  </nav>
+
+  <section id="who" class="card group">
+    <h2>Who you are</h2>
+    <p class="lead">What lets sites, and the companies behind their trackers, recognize you from site to site.</p>
+    <div class="opt">
+      <div><h3>Block trackers</h3><p>Analytics, ad networks, social media pixels, fingerprinting and identity services, session recorders: <span id="trackerCount"></span> on the list. Also turns off Chrome's ad topics, ad measurement and link pings.</p></div>
+      <span class="switch"><input type="checkbox" data-key="trackers" aria-label="Block trackers"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Block third-party cookies</h3><p>Stops services embedded in other sites from storing anything that follows you between them. A few embedded sign-ins and comment boxes may need a pause.</p><p class="control" data-control="cookies"></p></div>
+      <span class="switch"><input type="checkbox" data-key="cookies" aria-label="Block third-party cookies"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Clean tracking tags from links</h3><p>Removes utm_ campaign tags, fbclid, gclid and <span id="paramCount"></span> other identifiers from addresses before they're opened.</p></div>
+      <span class="switch"><input type="checkbox" data-key="links" aria-label="Clean tracking tags from links"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Tell sites not to sell or share my data</h3><p>Sends Global Privacy Control, which many businesses are legally required to honor as an opt-out under California's privacy law and several other states'.</p></div>
+      <span class="switch"><input type="checkbox" data-key="gpc" aria-label="Send Global Privacy Control"><span></span></span>
+    </div>
+    <h3 class="sub">Mask my device fingerprint</h3>
+    <div class="opt">
+      <div><h3>Canvas and graphics</h3><p>Adds noise you can't see to what sites read back from drawings, different on every site and every browser session, and reports a common graphics card.</p></div>
+      <span class="switch"><input type="checkbox" data-key="canvas" aria-label="Mask canvas and graphics"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Audio</h3><p>Adds noise you can't hear to what sites read back from sound processing.</p></div>
+      <span class="switch"><input type="checkbox" data-key="audio" aria-label="Mask audio"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Device details</h3><p>Reports 8 CPU cores and 8 GB of memory, and hides your exact OS version, hardware model, connection speed, installed voices, keyboard layout, fonts and disk size.</p></div>
+      <span class="switch"><input type="checkbox" data-key="device" aria-label="Mask device details"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Screen</h3><p>Reports your window as your screen, and hides where the window sits across your monitors.</p></div>
+      <span class="switch"><input type="checkbox" data-key="screen" aria-label="Mask screen"><span></span></span>
+    </div>
+  </section>
+
+  <section id="where" class="card group">
+    <h2>Where you are</h2>
+    <p class="lead">What gives away your location.</p>
+    <div class="opt">
+      <div>
+        <h3>Where sites think you are</h3>
+        <p>Sets the time zone sites see and, if you choose to pretend below, the location they get.</p>
+      </div>
+      <select data-key="place" id="place" aria-label="Where sites think you are"></select>
+    </div>
+    <div class="opt column">
+      <div><h3>When a site asks for my location</h3></div>
+      <div class="radios" role="radiogroup" aria-label="Location requests">
+        <label><input type="radio" name="location" value="block"> <span><strong>Refuse</strong>: no site gets your location.</span></label>
+        <label><input type="radio" name="location" value="fake"> <span><strong>Pretend</strong>: sites get the place above, a few hundred metres from its centre.</span></label>
+        <label><input type="radio" name="location" value="off"> <span><strong>Leave it to Chrome</strong>: sites ask you as usual.</span></label>
+      </div>
+      <p class="note" id="fakeNote" hidden>Pick a place above to pretend to be there. "Nowhere" has no location, so requests are refused.</p>
+    </div>
+    <div class="opt">
+      <div><h3>Look like an English (US) browser</h3><p>Sends en-US as your language to sites and scripts, so your language settings don't point to a region. Sites may offer English first.</p></div>
+      <span class="switch"><input type="checkbox" data-key="language" aria-label="Look like an English US browser"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Keep WebRTC from revealing my addresses</h3><p>Video-call technology can expose your network addresses, and your real address even behind a proxy. With a proxy on, WebRTC must go through it.</p><p class="control" data-control="webrtc"></p></div>
+      <span class="switch"><input type="checkbox" data-key="webrtc" aria-label="Protect WebRTC"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Don't tell sites where I came from</h3><p>When you go from one site to another, the new one isn't told which site sent you.</p></div>
+      <span class="switch"><input type="checkbox" data-key="referrer" aria-label="Hide where I came from"><span></span></span>
+    </div>
+    <div class="ipnote">
+      <h3>Your IP address</h3>
+      <p>Every site sees the address your connection comes from. It shows roughly where you are, usually your city or region, and who your internet provider is. Outis can't change it by itself. A VPN app or Tor does, or send your traffic through a proxy here.</p>
+    </div>
+    <div class="opt column proxy">
+      <div class="proxy-head">
+        <div><h3>Send my traffic through a proxy</h3><p>For a proxy you run or subscribe to, or Tor (start Tor Browser, then use 127.0.0.1 port 9150). Sites then see the proxy's address.</p></div>
+        <span class="switch"><input type="checkbox" id="proxyOn" aria-label="Use a proxy"><span></span></span>
+      </div>
+      <div class="proxy-grid">
+        <label>Type <select id="proxyScheme"><option value="socks5">SOCKS5</option><option value="http">HTTP</option><option value="https">HTTPS</option></select></label>
+        <label>Host <input type="text" id="proxyHost" spellcheck="false" autocomplete="off"></label>
+        <label>Port <input type="number" id="proxyPort" min="1" max="65535"></label>
+        <label>User name <input type="text" id="proxyUser" spellcheck="false" autocomplete="off"></label>
+        <label>Password <input type="password" id="proxyPass" autocomplete="new-password"></label>
+      </div>
+      <div class="proxy-actions">
+        <button type="button" class="ghost" data-preset="tor-browser">Tor Browser (9150)</button>
+        <button type="button" class="ghost" data-preset="tor">Tor service (9050)</button>
+        <button type="button" id="proxySave">Save proxy</button>
+        <button type="button" class="ghost" id="ipCheck" title="Asks check.torproject.org, once, which address it sees">Check what sites see</button>
+        <span id="proxyMsg" class="note" role="status"></span>
+      </div>
+      <p class="note">The user name and password are for HTTP and HTTPS proxies (Chrome can't sign in to SOCKS proxies). They stay in this browser's extension storage.</p>
+    </div>
+  </section>
+
+  <section id="when" class="card group">
+    <h2>When you're there</h2>
+    <p class="lead">What tells sites your local time, your daily rhythm, and that you've been before.</p>
+    <div class="opt">
+      <div><h3>Hide my clock and time zone</h3><p>Sites see the time in <strong id="tzName">UTC</strong> instead of yours. Some will show times in that zone.</p></div>
+      <span class="switch"><input type="checkbox" data-key="timezone" aria-label="Hide my clock and time zone"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Hide when I'm active</h3><p>Refuses idle detection (sites asking whether you're at the computer) and reports a full, charging battery, so battery level can't be used to link your visits.</p></div>
+      <span class="switch"><input type="checkbox" data-key="activity" aria-label="Hide when I'm active"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Forget sites when I close them</h3><p>When the last tab of a site closes, its cookies and stored data are deleted, so next time it can't tell you've been there. You'll be signed out, except on sites you keep (below, or from the toolbar button).</p></div>
+      <span class="switch"><input type="checkbox" data-key="forget" aria-label="Forget sites when I close them"><span></span></span>
+    </div>
+    <div class="opt">
+      <div><h3>Forget them</h3></div>
+      <select data-key="forgetDelay" id="forgetDelay" aria-label="When to forget">
+        <option value="15">15 seconds after closing</option>
+        <option value="60">1 minute after closing</option>
+        <option value="600">10 minutes after closing</option>
+        <option value="-1">When I next start Chrome</option>
+      </select>
+    </div>
+    <p class="note" id="forgotStats"></p>
+  </section>
+
+  <section id="sites" class="card group">
+    <h2>Sites</h2>
+    <div class="lists">
+      <div class="list">
+        <h3>Kept: never forgotten</h3>
+        <p class="note">You stay signed in to these. Everything else still applies.</p>
+        <form class="add" data-list="kept"><input type="text" placeholder="example.com" aria-label="Site to keep" spellcheck="false"><button type="submit">Keep</button></form>
+        <ul data-list="kept"></ul>
+      </div>
+      <div class="list">
+        <h3>Paused: no protection</h3>
+        <p class="note">For a site that breaks with Outis. It sees your real details and isn't forgotten.</p>
+        <form class="add" data-list="paused"><input type="text" placeholder="example.com" aria-label="Site to pause" spellcheck="false"><button type="submit">Pause</button></form>
+        <ul data-list="paused"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="limits" class="card group limits">
+    <h2>What Outis can't hide</h2>
+    <p class="lead">Honest limits, so you know what else to do.</p>
+    <dl>
+      <dt>Your IP address</dt>
+      <dd>Every site sees it, and it points to your area and your internet provider. Use a VPN, Tor, or the proxy setting above.</dd>
+      <dt>Accounts you sign in to</dt>
+      <dd>A site you sign in to knows who you are. Outis stops it following you elsewhere, not recognizing you on its own pages.</dd>
+      <dt>The moment you visit</dt>
+      <dd>A site always knows when your request reached it. Outis hides your clock, and forgetting stops it linking one visit to the next.</dd>
+      <dt>Background scripts</dt>
+      <dd>Scripts a page runs in background workers are out of Outis's reach and still see your real time zone and device details. Few trackers use them, but some fingerprinting scripts do.</dd>
+      <dt>Every last fingerprint</dt>
+      <dd>Outis covers the signals trackers use most. Your window size, your fonts (measured from drawn text) and many small details stay visible, so a determined fingerprinting service can still sometimes recognize a returning browser.</dd>
+      <dt>Trackers on the site itself</dt>
+      <dd>Tracking that a site serves from its own domain, or disguises as its own, isn't on the list.</dd>
+      <dt>Fraud checks</dt>
+      <dd>Banks and stores run device checks at sign-in and checkout. Outis leaves those services alone, because blocking them gets you locked out. If a site still refuses you, pause Outis there.</dd>
+      <dt>Chrome and Google</dt>
+      <dd>Chrome itself, a signed-in Google account with sync, and other extensions are outside what Outis controls.</dd>
+    </dl>
+    <p class="note">Outis sends nothing anywhere. The only request it ever makes on its own is "Check what sites see", and only when you click it.</p>
+  </section>
+
+  <footer class="foot">
+    <span class="note" id="version"></span>
+    <button type="button" class="danger" id="reset">Reset all settings</button>
+  </footer>
+</div>
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="options.js"></script>
+</body>
+</html>

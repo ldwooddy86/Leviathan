@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outis</title>
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="popup.css">
+</head>
+<body>
+<header class="bar">
+  <img src="icons/icon32.png" alt="" width="24" height="24">
+  <div class="brand"><strong>Outis</strong><span id="status" class="muted">On</span></div>
+  <label class="switch" title="Turn Outis on or off everywhere"><input type="checkbox" id="enabled" aria-label="Outis on or off"><span></span></label>
+</header>
+
+<main>
+  <section id="site" class="card">
+    <div class="site-head">
+      <span class="host" id="host">This page</span>
+      <span class="pill" id="sitePill">Protected</span>
+    </div>
+    <div id="siteControls">
+      <label class="row"><span>Protect me on this site</span><span class="switch sm"><input type="checkbox" id="siteOn"><span></span></span></label>
+      <label class="row"><span>Forget this site when I close it</span><span class="switch sm"><input type="checkbox" id="siteForget"><span></span></span></label>
+      <div class="actions">
+        <button id="forgetNow" class="ghost" type="button">Forget this site now</button>
+        <span id="siteMsg" class="note" role="status"></span>
+      </div>
+    </div>
+    <p id="notWeb" class="note" hidden>Outis works on web pages. Browser pages like this one are left alone.</p>
+  </section>
+
+  <section class="trio" aria-label="What Outis hides">
+    <article class="axis card" id="who">
+      <h2>Who</h2>
+      <p class="big" id="whoBig">0</p>
+      <p class="sub" id="whoSub">trackers blocked on this page</p>
+    </article>
+    <article class="axis card" id="where">
+      <h2>Where</h2>
+      <p class="big" id="whereBig">Nowhere</p>
+      <p class="sub" id="whereSub">location refused</p>
+    </article>
+    <article class="axis card" id="when">
+      <h2>When</h2>
+      <p class="big" id="whenBig">UTC</p>
+      <p class="sub" id="whenSub">the clock sites see</p>
+    </article>
+  </section>
+
+  <details id="sees" class="card fold">
+    <summary>What this site sees</summary>
+    <table id="seesTable">
+      <thead><tr><th scope="col"></th><th scope="col">This site sees</th><th scope="col">Really</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="note" id="seesNote"></p>
+  </details>
+
+  <details id="blocked" class="card fold">
+    <summary>Blocked on this page <span id="blockedCount" class="muted"></span></summary>
+    <ul id="blockedList"></ul>
+    <p class="note" id="blockedNote">Nothing blocked yet.</p>
+  </details>
+
+  <section id="ip" class="card ipcard">
+    <p id="ipText"><strong>Your IP address is still visible.</strong> It shows roughly where you are and who your internet provider is. A VPN or Tor hides it, or set a proxy in Settings.</p>
+    <div class="actions">
+      <button id="ipCheck" class="ghost" type="button" title="Asks check.torproject.org, once, which address it sees">Check what sites see</button>
+      <span id="ipResult" class="note" role="status"></span>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <a href="options.html" target="_blank" id="settings">Settings</a>
+  <span id="forgotten" class="note"></span>
+</footer>
+<script type="module" src="popup.js"></script>
+</body>
+</html>

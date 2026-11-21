@@ -1,0 +1,131 @@
+/* Outis: shared look for the popup and the settings page. Light and dark follow the system. */
+:root {
+  --bg: #f4f6f5;
+  --panel: #ffffff;
+  --panel-2: #eef2f0;
+  --ink: #14201d;
+  --muted: #5b6965;
+  --line: #d9e1de;
+  --accent: #1d7a63;
+  --accent-ink: #ffffff;
+  --accent-soft: #e1f3ec;
+  --warn: #8a5a00;
+  --warn-soft: #fbf1dc;
+  --bad: #a3302a;
+  --bad-soft: #fbe6e4;
+  --good: #1d7a63;
+  --focus: #2f8f75;
+  --shadow: 0 1px 2px rgba(20, 32, 29, .06), 0 4px 14px rgba(20, 32, 29, .05);
+  --radius: 12px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1614;
+    --panel: #17211e;
+    --panel-2: #1d2a26;
+    --ink: #e6eeeb;
+    --muted: #93a39e;
+    --line: #2a3934;
+    --accent: #5fd3b0;
+    --accent-ink: #0c1a16;
+    --accent-soft: #173a31;
+    --warn: #f0c36a;
+    --warn-soft: #3a2f17;
+    --bad: #ff8a80;
+    --bad-soft: #3d1e1c;
+    --good: #5fd3b0;
+    --focus: #7fe6c4;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+p { margin: 0; }
+code, .mono { font-family: var(--mono); font-size: .92em; }
+[hidden] { display: none !important; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+button {
+  font: inherit;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 9px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.06); }
+button:disabled { opacity: .5; cursor: default; filter: none; }
+button.ghost { background: transparent; color: var(--accent); border-color: var(--line); }
+button.ghost:hover { background: var(--accent-soft); filter: none; }
+button.danger { background: transparent; color: var(--bad); border-color: var(--line); }
+button.danger:hover { background: var(--bad-soft); }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+input[type="text"], input[type="password"], input[type="number"], select {
+  font: inherit;
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 9px;
+  min-width: 0;
+}
+
+/* switch */
+.switch { position: relative; display: inline-block; width: 40px; height: 22px; flex: none; }
+.switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+.switch span {
+  position: absolute; inset: 0;
+  background: var(--line);
+  border-radius: 999px;
+  transition: background .15s;
+}
+.switch span::after {
+  content: ""; position: absolute; left: 3px; top: 3px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  transition: transform .15s;
+}
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(18px); }
+.switch input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+.switch input:disabled + span { opacity: .45; }
+.switch.sm { width: 34px; height: 19px; }
+.switch.sm span::after { width: 13px; height: 13px; }
+.switch.sm input:checked + span::after { transform: translateX(15px); }
+.switch.lg { width: 52px; height: 28px; }
+.switch.lg span::after { width: 22px; height: 22px; }
+.switch.lg input:checked + span::after { transform: translateX(24px); }
+
+.pill {
+  display: inline-block;
+  font-size: 11.5px; font-weight: 600; letter-spacing: .02em;
+  padding: 2px 8px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent);
+}
+.pill.off { background: var(--panel-2); color: var(--muted); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: 12.5px; }
+.warnbox { background: var(--warn-soft); color: var(--warn); border-radius: 9px; padding: 8px 10px; font-size: 13px; }

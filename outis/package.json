@@ -1,0 +1,14 @@
+{
+  "name": "outis",
+  "private": true,
+  "description": "Build and test tooling for the Outis Chrome extension; the extension itself needs no packages",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "check": "node tools/build.mjs --check",
+    "zip": "node tools/build.mjs --zip",
+    "icons": "node tools/icons.mjs",
+    "test": "node tests/run.mjs",
+    "e2e": "node tests/e2e/run.mjs"
+  }
+}
