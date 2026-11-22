@@ -14195,9 +14195,9 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
           '.sc .sc-rs-read.roll .sc-rs-in{animation:scRsRoll var(--rs-t,10s) ease-in-out 1.5s infinite alternate}',
           '@keyframes scRsRoll{0%,14%{transform:translateY(0)}86%,100%{transform:translateY(var(--rs-dy,0))}}',
           '.sc .sc-rs-live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}',
-          /* a narrow view (a phone): the reading across the top, above the sights, the lesser lines and the frame's label left
-             out (the panel names the building); a short view (a phone held sideways): the panel stays right, without the
-             lesser lines */
+          /* a narrow view (a phone held upright): the reading across the top, above the sights, the lesser lines and the
+             frame's label left out (the panel names the building); a short view (a phone on its side): the panel stays
+             right, without the lesser lines */
           '.sc .sc-rs.nw .sc-rs-read{left:8px;right:8px;top:44px;width:auto;max-height:calc(50% - 74px)}',
           '.sc .sc-rs.nw .sc-rs-read .p2,.sc .sc-rs.sh .sc-rs-read .p2{display:none}',
           '.sc .sc-rs.nw .sc-rs-read .r{grid-template-columns:7em 1fr}',
@@ -14263,9 +14263,9 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (!RS.tick) RS.tick = setInterval(rsStep, 250);
         rsPressed();
       }
-      function rsHide() {
+      function rsHide(keep) {
         RS.shown = false; [RS.tint, RS.shade, RS.el].forEach(d => { d.hidden = true; }); enHost.classList.remove('sc-rs-on');
-        clearInterval(RS.tick); RS.tick = 0; rsPages(null);
+        if (!keep) { clearInterval(RS.tick); RS.tick = 0; } rsPages(null);
         RS.prism = null; RS.id = undefined; RS.shape = null; RS.read.hidden = true; RS.read.innerHTML = ''; RS.box.hidden = true; RS.tag.textContent = ''; RS.tagHtml = ''; RS.said = ''; RS.sayAt = 0;
         RS.el.classList.remove('f'); if (RS.live) RS.live.textContent = '';
         rsPressed();
@@ -14275,7 +14275,14 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
          built and data come in; move the frame with the view */
       function rsStep() {
         if (!RS.el) return;
-        if (!rsActive()) { if (RS.shown) rsHide(); return; }
+        if (!rsActive()) {
+          /* put away for a moment (the editor open, the view off screen, the page hidden): the timer keeps watching, so the
+             scan comes back as soon as it may, without waiting for the engine to draw; leaving the walk stops it */
+          const want = !!(rsOn && enMode && en && en.world.mode === 'walk');
+          if (RS.shown) rsHide(want);
+          if (want && !RS.tick) RS.tick = setInterval(rsStep, 250); else if (!want && RS.tick) { clearInterval(RS.tick); RS.tick = 0; }
+          return;
+        }
         if (!RS.shown) rsShow();
         const W = en.world, cv = en.canvas, now = performance.now(), Wd = cv.clientWidth, Ht = cv.clientHeight;
         const vkey = `${W.x.toFixed(2)},${W.y.toFixed(2)},${W.z.toFixed(2)},${W.yaw.toFixed(2)},${W.pitch.toFixed(2)},${W.fov},${Wd},${Ht},${W.lat0},${W.lon0}`;
@@ -14393,7 +14400,8 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       function rsFit() {
         RS.sizeDirty = false;
         const r = RS.read, cv = en.canvas, Wd = cv.clientWidth, Ht = cv.clientHeight; RS.fitW = Wd; RS.fitH = Ht;
-        const narrow = Wd < 640; RS.narrow = narrow; RS.el.classList.toggle('nw', narrow); RS.el.classList.toggle('sh', !narrow && Ht < 380);
+        /* narrow: a phone held upright (a phone on its side keeps the panel at the right, where there is more room) */
+        const narrow = Wd < 480 || (Wd < 640 && Ht >= Wd); RS.narrow = narrow; RS.el.classList.toggle('nw', narrow); RS.el.classList.toggle('sh', !narrow && Ht < 380);
         rsPages(null); r.classList.remove('roll'); r.style.removeProperty('--rs-dy'); r.style.removeProperty('--rs-t');
         const g = en.graphics(), lens = !!(g && g.lens && g.lens !== 'off'), sb = RS.stripB || (narrow ? 38 : 57);
         let top = '', mh = '';
