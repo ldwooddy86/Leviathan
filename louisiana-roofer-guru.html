@@ -10754,7 +10754,9 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   const bearing = (a, b) => { const p1 = rad(a[0]), p2 = rad(b[0]), dl = rad(b[1] - a[1]); return (deg(Math.atan2(Math.sin(dl) * Math.cos(p2), Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl))) + 360) % 360; };
   const compass = h => ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'][Math.round(((h % 360) + 360) % 360 / 45) % 8];
   const pct = v => isN(v) ? Math.round(v * 100) + '%' : '—';
-  const title = s => String(s || '').toLowerCase().replace(/\b([a-z])/g, m => m.toUpperCase()).replace(/\b(Ne|Nw|Se|Sw|Us)\b/g, m => m.toUpperCase()).replace(/(\d)(St|Nd|Rd|Th)\b/g, (m, a, b) => a + b.toLowerCase());
+  const title = s => String(s || '').toLowerCase().replace(/\b([a-z])/g, m => m.toUpperCase()).replace(/\b(Ne|Nw|Se|Sw|Us)\b/g, m => m.toUpperCase()).replace(/(\d)(St|Nd|Rd|Th)\b/g, (m, a, b) => a + b.toLowerCase()).replace(/'([A-Z])\b/g, (m, c) => "'" + c.toLowerCase());
+  /* a name as its record writes it when it has small letters (McDonald's, CVS Pharmacy); an all-capital one in title case */
+  const nameCase = v => (/[a-z]/.test(String(v)) ? String(v) : title(v));
   const ymd = ms => { const d = new Date(ms); return isNaN(d) ? '' : d.toISOString().slice(0, 10); };
   const monthYear = iso => { const d = new Date(String(iso).length === 10 ? iso + 'T12:00:00Z' : iso); return isNaN(d) ? String(iso) : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }); };
   const fracYear = iso => { const m = /^(\d{4})-(\d\d)-(\d\d)/.exec(String(iso)); return m ? +m[1] + (+m[2] - 1 + (+m[3] - 1) / 31) / 12 : null; };
@@ -11228,7 +11230,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   };
   const addrFrom = b => (b.addr && ADDR_FROM[b.addrSrc] ? ADDR_FROM[b.addrSrc](b) : '');
   const addrLine = b => (b.addr ? title(b.addr) : b.geoAsk ? 'Finding the address…' : b.addrNear ? 'Near ' + title(b.addrNear) : 'Building, no address on file');
-  const ybFrom = b => (b.ybSrc === 'parcel' ? rollName(b.ybR, b) + (b.ybTax ? ', tax year ' + b.ybTax : '') + (b.ybAsof ? ', surveyed ' + b.ybAsof : '') + (b.ybAbout && b.ybR && b.ybR.ranges ? ' (the middle of the surveyor\'s span)' : '') : b.ybSrc === 'permit' ? 'a new construction permit (' + ((b.permits.find(p => p.kind === 'newc') || {}).src || 'the city') + ')' : b.ybSrc === 'osm' ? 'OpenStreetMap, a mapper\'s record' + (b.osm && b.osm.yb ? ' ("' + b.osm.yb.raw + '")' : '') : '');
+  const ybFrom = b => (b.ybSrc === 'parcel' ? rollName(b.ybR, b) + (b.ybTax ? ', tax year ' + b.ybTax : '') + (b.ybAsof ? ', on record as of ' + b.ybAsof : '') + (b.ybAbout && b.ybR && b.ybR.ranges ? ' (the year built is the middle of the surveyor\'s span)' : '') : b.ybSrc === 'permit' ? 'a new construction permit (' + ((b.permits.find(p => p.kind === 'newc') || {}).src || 'the city') + ')' : b.ybSrc === 'osm' ? 'OpenStreetMap, a mapper\'s record' + (b.osm && b.osm.yb ? ' ("' + b.osm.yb.raw + '")' : '') : '');
   const ybAbout = b => b.ybAbout || b.ybSrc === 'permit';
   /* the likeliest decade of the ZIP's mix when no record dates the building (the mean of two far apart decades would name the least likely one) */
   const BIN_IN = ['2020 or later', 'in the 2010s', 'in the 2000s', 'in the 1990s', 'in the 1980s', 'in the 1970s', 'in the 1960s', 'in the 1950s', 'in the 1940s', 'before 1940'];
@@ -11275,7 +11277,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     if (recV(b, 'roofy')) row('Roof put on', String(recV(b, 'roofy')), `${esc(rf('roofy'))} ${G('A')}; a record, which the roof model below does not read`);
     row('Condition', recV(b, 'cond') ? title(recV(b, 'cond')) : '', esc(rf('cond')) + ' ' + G('A'));
     if (recV(b, 'note')) { const nR = b.rec.note.R; row(nR.noteLabel || 'On the 911 record', title(recV(b, 'note')), esc(rf('note')) + ': ' + esc(nR.noteWhat || 'a dispatcher\'s description') + ' ' + G('B')); }
-    row('Name', recV(b, 'name') ? title(recV(b, 'name')) : o.name, recV(b, 'name') ? esc(rf('name')) + ' ' + G('A') : 'OpenStreetMap ' + G('B'));
+    row('Name', recV(b, 'name') ? nameCase(recV(b, 'name')) : o.name, recV(b, 'name') ? esc(rf('name')) + ' ' + G('A') : 'OpenStreetMap ' + G('B'));
     if (o.historic) row('Historic', title(o.historic.replace(/_/g, ' ')), 'OpenStreetMap ' + G('B'));
     return `<div class="sc-sec sc-rec"><p class="sc-k">The building on record</p>${rows.join('')}</div>`;
   }
@@ -11301,7 +11303,18 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
   const ROLLS_CHECKED = '2026-11-20';
   /* the shorthand some 911 offices write a building in ("WH WF BLK TRM": white wood frame, black trim) */
   const DESC911 = { TRM: 'trim', WH: 'white', BRK: 'brick', BRN: 'brown', WF: 'wood frame', TAN: 'tan', TLR: 'trailer', TRL: 'trailer', RED: 'red', CRM: 'cream', SDG: 'siding', BL: 'blue', BLU: 'blue', GRN: 'green', BLK: 'black', GR: 'gray', GRY: 'gray', LT: 'light', DK: 'dark', PRCH: 'porch', SHTRS: 'shutters', FRT: 'front', BLDG: 'building', YLW: 'yellow', DW: 'double wide', HSE: 'house', MTL: 'metal', SCRN: 'screened', CNDR: 'cinder', BLCK: 'block', WD: 'wood', FRM: 'frame', PNK: 'pink', CHMNY: 'chimney', BG: 'beige', FNC: 'fence', FNCE: 'fence', ORG: 'orange', 'W/': 'with' };
-  const desc911 = v => sval(v).split(/\s+/).map(t => DESC911[t.toUpperCase()] || t.toLowerCase()).join(' ');
+  /* a 911 description is shown only when every word in it is a building's (a colour, a material, a kind of building or
+     a part of one, a number): dispatchers also write who lives there, who rents it out or who used to, and the module
+     reads roofs, not people, so a description with any other word is left out whole */
+  const DESC_OK = new Set(('white red tan green beige brown yellow blue grey gray orange cream pink black purple silver gold maroon peach light dark lt dk pale '
+    + 'brick siding metal stucco stone glass wood wooden frame block cinder concrete vinyl log steel tin rock shingle shingles asbestos aluminum hardie board '
+    + 'house home homes building buildings mobile manufactured modular trailer camper cabin cottage duplex triplex fourplex apartment apartments apartm apt apts condo condos townhouse townhouses complex unit units '
+    + 'office offices school church store shop barn shed garage carport warehouse courthouse bank station center clinic hospital motel hotel restaurant cafe plant mill gym library hall post fire police jail museum theater factory gin silo grocery market gas service '
+    + 'story stories storey old new high middle elementary junior mixed mix front back rear side upper lower main east west north south '
+    + 'with and the of on in at a an to out vacant double wide single small large big little porch porches shutters trim chimney fence screened roof deck awning '
+    + 'richland rayville delhi mangham parish').split(' '));
+  const descWord = w => { const t = w.toLowerCase().replace(/^[("']+|[)"'.,;:]+$/g, ''); return !t || DESC_OK.has(t) || !!DESC911[t.toUpperCase()] || /^(\d+[a-z]?|#\d+[a-z]?|\d+(st|nd|rd|th)|\d+-(story|stories|storey|unit|units|car)|sub-?\d+|[a-z]|&|-|w\/)$/.test(t) || (/[\/&+-]/.test(t) && t.split(/[\/&+-]/).every(p => !p || DESC_OK.has(p) || !!DESC911[p.toUpperCase()] || /^\d+$/.test(p))); };
+  const desc911 = v => { const s = sval(v); return s && s.split(/\s+/).every(descWord) ? s.split(/\s+/).map(t => DESC911[t.toUpperCase()] || t.toLowerCase()).join(' ') : ''; };
   const ROLLS = (ROLL_LIST => ROLL_LIST.filter(R => R && R.url && R.fips && R.fips.length))([
     /* Lafayette: the city-parish's own live address points and 2023 building footprints (the demolished left out), its historic preservation
        sites with their construction dates, the parish roll's year built (below, shared with Vermilion), and the new residential construction
@@ -11388,15 +11401,18 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     { id: 'ouachita-roll', label: 'Ouachita Parish parcels', name: 'the Ouachita Parish parcels (the City of Monroe\'s e911 parcels)', fips: ['22073'], kind: 'parcel', fallback: true,
       url: 'https://services7.arcgis.com/MwglueBMxIOHOjKe/arcgis/rest/services/MGO_Parcels/FeatureServer/0', f: { num: 'Situs_Numb', st: 'Situs_Stre', city: 'Situs_City', zip: 'Situs_Zip' },
       what: 'City of Monroe GIS, e911 parcels with the Ouachita Parish Assessor\'s site addresses, parish wide', when: '91,887 parcels, a site address on 77%; edited August 27, 2025', link: 'https://services7.arcgis.com/MwglueBMxIOHOjKe/arcgis/rest/services/MGO_Parcels/FeatureServer' },
-    /* Richland: the parish 911 address points, whose dispatchers describe each building ("White Wf House", "Red Brick House") */
+    /* Richland: the parish 911 address points, whose dispatchers describe each building ("White Wf House", "Red Brick House");
+       its landmark names are not read (at some addresses they are the residents'), and a description is shown only when it
+       holds nothing but a building's words (desc911) */
     { id: 'richland-911', label: 'Richland Parish addresses', name: 'the Richland Parish 911 address points', fips: ['22083'], kind: 'addr',
-      url: 'https://services8.arcgis.com/VFkaHw5otiAMcwqf/arcgis/rest/services/AddressPointsPublic/FeatureServer/0', f: { addr: 'NEWADD', city: 'CITY', zip: 'ZIP', use: 'TYPE_', note: 'DESCRIPTION', name: 'LANDMARK_N' },
+      url: 'https://services8.arcgis.com/VFkaHw5otiAMcwqf/arcgis/rest/services/AddressPointsPublic/FeatureServer/0', f: { addr: 'NEWADD', city: 'CITY', zip: 'ZIP', use: 'TYPE_', note: 'DESCRIPTION' },
       map: { note: v => desc911(v), use: v => (/^\d+$/.test(v) ? '' : v) },
-      what: 'Richland Parish Communications District, 911 address points, with a dispatcher\'s description of each building (colour, walls, stories)', when: '14,019 points; edited October 7, 2025', link: 'https://services8.arcgis.com/VFkaHw5otiAMcwqf/arcgis/rest/services/AddressPointsPublic/FeatureServer' },
+      what: 'Richland Parish Communications District, 911 address points, with a dispatcher\'s description of each building (colour, walls, stories), shown only when it holds nothing but a building\'s words; the landmark names are not read', when: '14,019 points; edited October 7, 2025', link: 'https://services8.arcgis.com/VFkaHw5otiAMcwqf/arcgis/rest/services/AddressPointsPublic/FeatureServer' },
     /* Madison: the parish 911 address points, hosted by the East Texas Council of Governments (the whole address built from its parts) */
     { id: 'madison-911', label: 'Madison Parish addresses', name: 'the Madison Parish 911 address points', fips: ['22065'], kind: 'addr',
       url: 'https://maps.etcog.org/arcgis/rest/services/MadisonParish/MadisonParish_Public/FeatureServer/2', f: { num: 'ADD_NUMBER', pre: 'ADD_PRE', st: 'ADD_NAME', typ: 'ADD_TYPE', suf: 'ADD_SUF', unit: 'ADD_UNIT', zip: 'ZIP5', note: 'StructureType' },
-      what: 'Madison Parish 911 address points, hosted by the East Texas Council of Governments', when: '3,968 points', link: 'https://maps.etcog.org/arcgis/rest/services/MadisonParish/MadisonParish_Public/FeatureServer' },
+      map: { note: v => desc911(v) }, noteWhat: 'the 911 office\'s note of the kind of building',
+      what: 'Madison Parish 911 address points, hosted by the East Texas Council of Governments, with the 911 office\'s note of the kind of building, shown only when it holds nothing but a building\'s words', when: '3,968 points', link: 'https://maps.etcog.org/arcgis/rest/services/MadisonParish/MadisonParish_Public/FeatureServer' },
     /* Orleans: the City of New Orleans' site address points (current ones on buildings and parcels; FEMA's footprints here carry no address),
        the city's designated landmarks with their construction dates, the FEMA Section 106 survey of 57,443 buildings in the historic
        neighborhoods after Katrina and Rita (published by the Louisiana Office of Cultural Development: a construction date, mostly a surveyor's
@@ -11571,7 +11587,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
     { id: 'catahoula-buildings', label: 'Catahoula Parish buildings', name: 'the Catahoula Parish addressed building footprints', fips: ['22025'], kind: 'bldg',
       url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c8575916dcd447698b36d4b13d2d1d31/rest/services/Catahoula_LA/Catahoula_LA_Vector/FeatureServer/20', f: { addr: 'Address', city: 'New_City_1', zip: 'New_Zip_1', note: 'Description' },
       map: { note: v => desc911(v) }, noteLabel: 'On the 911 record', noteWhat: 'the 911 office\'s description of the building',
-      what: 'Catahoula Parish (EFS EDGE), building footprints with an address and the 911 office\'s description of each', when: 'live', link: 'https://www.efsedge.com/catahoula' },
+      what: 'Catahoula Parish (EFS EDGE), building footprints with an address and the 911 office\'s description of each, shown only when it holds nothing but a building\'s words', when: 'live', link: 'https://www.efsedge.com/catahoula' },
     { id: 'catahoula-addr', label: 'Catahoula Parish addresses', name: 'the Catahoula Parish address points', fips: ['22025'], kind: 'addr',
       url: 'https://www.efsedge.com/arcgisportala/sharing/servers/c8575916dcd447698b36d4b13d2d1d31/rest/services/Catahoula_LA/Catahoula_LA_Vector/FeatureServer/0', f: { addr: 'Address', city: 'New_City_1', zip: 'New_Zip_1' },
       what: 'Catahoula Parish (EFS EDGE), address points', when: 'live', link: 'https://www.efsedge.com/catahoula' },
@@ -13422,7 +13438,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         const mix = rf.mix ? `<div class="sc-sub">Odds by covering: ${rf.mix.map(([l, p]) => `${esc(l)} ${pct(p)}`).join(' · ')} ${G('D')}</div>` : '';
         const ctx = z ? `<b>ZIP ${esc(z.zip)}</b>: Roof Demand Index ${D(z.idx, 0)}, ${P(z.ra20_sh, 0)} of roofs 20 or older, last hurricane force winds ${z.last64 ? esc(z.last64) : 'none since 1950'}, ${D(z.hd1, 1)} hail days a year within 25 miles ${G('B')}` : '';
         const resets = stormsAt(b.zip).filter(x => x.d >= 0.02 && x.list.length).sort((a, c) => c.d - a.d).slice(0, 3);
-        const resetTxt = resets.length ? `<b>Storms that replaced roofs here</b>: ${resets.map(x => `${esc(stormName(x.list[0].s))}, about ${ktMph0(x.list[0].kt)} mph modeled, ${pct(x.d)} of the ZIP's one unit roofs`).join('; ')} (module 17) ${G('B')}` : '';
+        const resetTxt = resets.length ? `<b>Storms that replaced roofs here</b>: ${resets.map(x => { const more = x.list.slice(1).filter(s => s.d >= 0.02 && s.d >= x.list[0].d / 4); return `${esc(stormName(x.list[0].s))}, about ${ktMph0(x.list[0].kt)} mph modeled${more.length ? ', with ' + more.map(s => esc(s.s[0] === 'Unnamed' ? 'an unnamed storm' : s.s[0])).join(' and ') : ''}, ${pct(x.d)} of the ZIP's one unit roofs`; }).join('; ')} (module 17) ${G('B')}` : '';
         const evSeen = new Set(), evs = (b.ev || []).filter(e => { const k = evLabel(e) + '|' + D(e.km, 1) + '|' + evWhen(e); if (evSeen.has(k)) return false; evSeen.add(k); return true; }).slice(0, 4), evTxt = evs.length ? `<b>NOAA reports within 5 km, last three years</b>: ${evs.map(e => `${esc(evLabel(e))}, ${D(e.km, 1)} km ${esc(e.dir)}, ${esc(evWhen(e))}`).join('; ')} ${G('A')}` : '<b>No damaging hail, wind or tornado report</b> within 5 km in the last three years (NOAA Storm Events) ' + G('A');
         const topS = st.storms && st.storms[0] ? st.storms[0] : null;
         dt.innerHTML = `<div class="sc-sec"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="sc-pill ${b.status}">${STL[b.status]}</span>${b.checked && ck.s ? '<span class="pill">your field check</span>' : ''}</div><div class="sc-sys" style="margin-top:8px">${esc(needLabel(b))}</div></div>
@@ -13985,7 +14001,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (!st) return ''; const g = en ? en.graphics() : null;
         const kind = { major: 'main road', alley: 'alley', service: 'service drive' }[st.roadKind] || '';
         const on = st.mode === 'street' ? (st.road ? `On ${esc(st.road)}${kind ? ' (' + kind + ')' : ''}` : kind ? 'On a ' + kind : 'At street level') : st.mode === 'walk' ? 'On foot (walls stop you; Space jumps, the left Shift runs)' + (rsOn ? ', with the red scan' : '') : st.mode === 'drone' ? 'At drone height, 38 m up' : st.mode === 'bird' ? 'At bird height, 120 m up' : st.mode === 'metro' ? 'High over the city, 1,400 m up' : st.mode === 'alta' ? `Flying the Alta X${st.alta ? ' (' + esc(st.alta.mode.toLowerCase()) + ', ' + N(Math.round(st.alta.alt)) + ' m up, batteries ' + N(Math.round(st.alta.battery * 100)) + '%)' : ''}` : st.mode === 'saucer' || st.mode === 'tictac' ? `In ${st.mode === 'saucer' ? 'the flying saucer' : 'the Tic Tac'}${st.uap ? ' (' + esc(st.uap.mode.toLowerCase()) + ', ' + N(Math.round(st.uap.alt)) + ' m up, ' + N(Math.round(st.uap.speed * 2.237)) + ' mph)' : ''}` : 'Circling';
-        const keys = st.mode === 'saucer' || st.mode === 'tictac' ? 'Drag to look round it; <b>W</b> <b>S</b> <b>A</b> <b>D</b> fly (faster the higher it is, and faster still on <b>Shift</b>), <b>←</b> <b>→</b> turn, <b>↑</b> <b>↓</b> climb and descend, <b>C</b> its camera, <b>X</b> the roof views, <b>G</b> gravity warp; click the ground to go there, double click a roof to hang over it.' : st.mode === 'alta' ? 'Drag to look round it; <b>W</b> <b>S</b> <b>A</b> <b>D</b> fly, <b>←</b> <b>→</b> turn, <b>↑</b> <b>↓</b> climb and descend, <b>C</b> its camera, <b>X</b> the roof views, <b>H</b> home, <b>L</b> land; click the ground to send it there, double click a building to hover off its face.' : st.mode === 'walk' ? 'Drag to look; <b>W</b> <b>S</b> walk, <b>A</b> <b>D</b> step sideways, <b>←</b> <b>→</b> turn, <b>Space</b> jump, left <b>Shift</b> run, <b>V</b> the red scan' + (rsOn ? ', <b>Enter</b> read the building in its sights' : '') + ', <b>Q</b> up to drone height and <b>E</b> back to the street (both end the walk), <b>X</b> the roof views, <b>[</b> <b>]</b> the year; click the ground to go there, a building to read it.' : 'Drag to look; <b>W</b> <b>S</b> move, <b>A</b> <b>D</b> turn, <b>Q</b> <b>E</b> rise and come down, <b>X</b> the roof views, <b>[</b> <b>]</b> the year; click the ground to go there, a building to read it.';
+        const keys = st.mode === 'saucer' || st.mode === 'tictac' ? 'Drag to look round it; <b>W</b> <b>S</b> <b>A</b> <b>D</b> fly (faster the higher it is, and faster still on <b>Shift</b>), <b>←</b> <b>→</b> turn, <b>↑</b> <b>↓</b> climb and descend, <b>C</b> its camera, <b>X</b> the roof views, <b>G</b> gravity warp; click the ground to go there, double click a roof to hang over it.' : st.mode === 'alta' ? 'Drag to look round it; <b>W</b> <b>S</b> <b>A</b> <b>D</b> fly, <b>←</b> <b>→</b> turn, <b>↑</b> <b>↓</b> climb and descend, <b>C</b> its camera, <b>X</b> the roof views, <b>H</b> home, <b>L</b> land; click the ground to send it there, double click a building to hover off its face.' : st.mode === 'walk' ? 'Drag to look; <b>W</b> <b>S</b> walk, <b>A</b> <b>D</b> sidestep, <b>←</b> <b>→</b> turn, <b>Space</b> jump, left <b>Shift</b> run, <b>V</b> the red scan' + (rsOn ? ', <b>Enter</b> read the building in its sights' : '') + ', <b>Q</b> drone, <b>E</b> street, <b>X</b> the roof views, <b>[</b> <b>]</b> the year; click the ground to go there, a building to read it.' : 'Drag to look; <b>W</b> <b>S</b> move, <b>A</b> <b>D</b> turn, <b>Q</b> <b>E</b> rise and come down, <b>X</b> the roof views, <b>[</b> <b>]</b> the year; click the ground to go there, a building to read it.';
         return `${on}, looking ${compass(st.yaw)}${g && g.storm ? ' · <b>' + esc(g.stormInfo.name) + '</b>' + (g.surgeNote ? ': ' + esc(g.surgeNote) : '') : ''} · <b>${N(st.built)}</b> buildings${st.queued ? ', ' + N(st.queued) + ' cells still building' : ''}${st.roads ? '' : ' · the streets are still loading'}${g && g.lens !== 'off' ? ` · ${N(g.lensN)} roofs read in the ${esc(LENS.names[g.lens] || g.lens).toLowerCase()} view${g.lensPending ? ', ' + N(g.lensPending) + ' to go' : ''}` : ''}${g ? ` · <span class="sc-enfps">${N(g.fps)} frames a second, ${N(g.tris)} triangles</span>` : ''}${g && g.broken ? ` · <b>the engine cannot draw with this graphics driver: ${esc(g.broken)}</b>` : ''}${g && g.refused && g.refused.length ? ` · this graphics driver refused ${esc(g.refused.join(', '))}; switched off` : ''}${g && g.wide && g.wideN ? ` · the wider city: ${N(g.wideN)} buildings${g.wideOsm ? ' (' + N(g.wideOsm) + ' of them newer than FEMA\'s file, from OpenStreetMap' + (g.wideReplaced ? '; ' + N(g.wideReplaced) + ' cleared footprints left out' : '') + ')' : ''}${g.widePending ? ', more coming' : ''}${g.skyline ? ', ' + N(g.skyline) + ' towers to the horizon' : ''}` : ''}. ${keys}`;
       }
       const whereEnSoon = debounce(() => { const w = $('#scEnWhere', root); const stNow = (en && en.state()) || enSt; if (w && enMode) w.innerHTML = whereEn(stNow); if (en && stNow) { $$('#scEnBar [data-h]', root).forEach(x => x.setAttribute('aria-pressed', String(x.dataset.h === stNow.mode))); $$('#scEnPad .sc-enalt', root).forEach(x => { x.hidden = !(stNow.mode === 'alta' || stNow.mode === 'saucer' || stNow.mode === 'tictac'); }); } }, 120);
@@ -13993,7 +14009,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       /* the walk view's red scan (its functions are further down, with the engine's) */
       const RS_KEY = 'up.scout.redscan.v1';
       let rsOn = (() => { try { return localStorage.getItem(RS_KEY) !== '0'; } catch (e) { return true; } })();
-      const RS = { en: null, bound: null, tint: null, shade: null, el: null, box: null, tag: null, x: null, top: null, read: null, live: null, shown: false, tick: 0, id: undefined, prism: null, dist: null, vkey: '', pend: false, aimAt: 0, readAt: 0, fresh: false, shape: null, innH: 0, topH: '', stripB: 0, boxCss: '', boxDirty: false, tagHtml: '', tagCss: '', tagW: 0, tagH: 0, tagDirty: false, readR: null, fitW: -1, fitH: -1, sizeDirty: false, narrow: false, pg: null, pgI: 0, pageT: 0, sayAt: 0, said: '', ovl: new Map(), ovlN: -1 };
+      const RS = { en: null, bound: null, tint: null, shade: null, el: null, box: null, tag: null, x: null, top: null, read: null, live: null, shown: false, tick: 0, id: undefined, prism: null, dist: null, vkey: '', pend: false, aimAt: 0, readAt: 0, fresh: false, shape: null, innH: 0, topH: '', stripB: 0, boxCss: '', boxDirty: false, tagHtml: '', tagCss: '', tagW: 0, tagH: 0, tagDirty: false, readR: null, fitW: -1, fitH: -1, sizeDirty: false, narrow: false, pg: null, pgI: 0, pageT: 0, sayAt: 0, said: '', ovl: new Map(), pv: null, lensOn: null, lensL: null };
       const RS_GL = { thermal: 'C', wear: 'D', time: 'D', cover: 'D', style: 'D', storm: 'D' };
       const RS_PK = { reroof: 'reroof permit', roofwork: 'permit with roof work', mh: 'manufactured home placed', newc: 'new construction permit' };
       const RS_PF = { nola: 'New Orleans', ebr: 'East Baton Rouge', tang: 'Tangipahoa', tpcg: 'Terrebonne' };
@@ -14136,7 +14152,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       });
       setInterval(() => { if (enMode && en) whereEnSoon(); }, 1000);
 
-      /* ---------- the red scan: the walk view reads every building it looks at ----------
+      /* ---------- the red scan: the walk view reads the building it looks at, when the Scout has read it ----------
          In Walk (the engine's own on-foot camera) the view turns red and the building under the centre of the view is read
          out in front of it. Scout-js only: the engine is used through what it returns. The building in its sights is the
          first footprint a ray from the eye along the camera's own forward axis meets in the engine's physics (the picture's
@@ -14147,9 +14163,10 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
          over the canvas (the CSS 'color' blend keeps the picture's light and dark and makes it red; a 'multiply' layer adds
          the vignette and the scan lines), so the engine draws as it always does. V turns the scan off and on, Enter reads
          the building in its sights (the card, as a click does); it hides whenever the view is not walking, is off screen or
-         has the editor open. While it shows, a quarter-second timer does its timed work (looking again while the walker
-         stands still, the spoken line, the pages), so none of it waits for frames the engine has no need to draw. Nothing is
-         fetched for it: a building without an address keeps none until it is read. */
+         has the editor open. While it shows (or is put away only for a moment), a quarter-second timer does its timed work
+         (looking again while the walker stands still, the spoken line, coming back after the editor), so none of it waits
+         for frames the engine has no need to draw; the pages a reduced-motion reading turns run on their own six-second
+         timer. Nothing is fetched for it: a building without an address keeps none until it is read. */
       function rsStyle() {
         if (document.getElementById('scRsStyle')) return;
         const st = document.createElement('style'); st.id = 'scRsStyle';
@@ -14190,6 +14207,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
           '.sc .sc-rs-read .k{color:#ff9e8c;font-size:9.5px;line-height:1.6;text-transform:uppercase;letter-spacing:.08em}',
           '.sc .sc-rs-read .k em{font-style:normal;margin-left:4px;padding:0 3px;border:1px solid rgba(255,175,155,.6);border-radius:3px;color:#ffd6cc;font-size:9px}',
           '.sc .sc-rs-read .v{color:#ffe9e4}',
+          '.sc .sc-rs-read .vi{display:block}',
           '.sc .sc-rs-read.in .h,.sc .sc-rs-read.in .s,.sc .sc-rs-read.in .r{animation:scRsIn .28s steps(9,end) both;animation-delay:calc(var(--i,0) * 50ms)}',
           '@keyframes scRsIn{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}',
           '.sc .sc-rs-read.roll .sc-rs-in{animation:scRsRoll var(--rs-t,10s) ease-in-out 1.5s infinite alternate}',
@@ -14214,7 +14232,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (!en) return;
         if (RS.el && RS.en === en && RS.el.isConnected) return;
         [RS.tint, RS.shade, RS.el, RS.live].forEach(d => { if (d && d.parentNode) d.parentNode.removeChild(d); });
-        clearInterval(RS.tick); RS.tick = 0; clearInterval(RS.pageT); RS.pageT = 0; RS.pg = null; RS.shown = false;
+        clearInterval(RS.tick); RS.tick = 0; clearInterval(RS.pageT); RS.pageT = 0; RS.pg = null; RS.shown = false; enHost.classList.remove('sc-rs-on');
         rsStyle();
         const mk = (cls, html) => { const d = document.createElement('div'); d.className = cls; d.hidden = true; d.setAttribute('aria-hidden', 'true'); if (html) d.innerHTML = html; enHost.appendChild(d); return d; };
         RS.tint = mk('sc-rs-tint'); RS.shade = mk('sc-rs-shade');
@@ -14249,7 +14267,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       function rsFocus() { RS.said = ''; if (RS.shown && RS.id != null) RS.sayAt = performance.now() + 400; if (RS.el && RS.shown) RS.el.classList.toggle('f', rsFv()); }
       function rsBlur() { if (RS.el) RS.el.classList.remove('f'); }
       function rsToggle(v) { rsOn = v == null ? !rsOn : !!v; try { localStorage.setItem(RS_KEY, rsOn ? '1' : '0'); } catch (e) { /* this browser keeps no settings */ } rsPressed(); if (en) { en.engine.requestRender(2); rsStep(); } }
-      function rsActive() { return !!(rsOn && enMode && en && RS.el && en.world.mode === 'walk' && !en.editing && en.engine.running && en.engine.onScreen !== false && document.visibilityState !== 'hidden' && en.canvas.clientWidth > 0); }
+      function rsActive() { return !!(rsOn && enMode && en && RS.el && en.world.mode === 'walk' && !en.editing && en.engine.running && en.engine.onScreen !== false && en.canvas.clientWidth > 0); }
       /* the Move row's switch: in Walk it turns the scan off and on; from any other way of moving it walks, with the scan.
          It shows the setting (on in Walk), not whether the layers are up this moment: off screen or under the editor the
          scan is still on */
@@ -14274,7 +14292,10 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
          has moved (at most every 90 ms, and once more as soon as it stops), and twice a second while it is still, for cells
          built and data come in; move the frame with the view */
       function rsStep() {
-        if (!RS.el) return;
+        /* a background tab: nothing is done and nothing is put away, so the scan is as it was when the tab comes back */
+        if (!RS.el || document.visibilityState === 'hidden') return;
+        /* the switch follows the setting and the way of moving, however the walk was left (Q and E in the engine too) */
+        const pv = !!(rsOn && en && en.world.mode === 'walk'); if (pv !== RS.pv) { RS.pv = pv; rsPressed(); }
         if (!rsActive()) {
           /* put away for a moment (the editor open, the view off screen, the page hidden): the timer keeps watching, so the
              scan comes back as soon as it may, without waiting for the engine to draw; leaving the walk stops it */
@@ -14284,14 +14305,18 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
           return;
         }
         if (!RS.shown) rsShow();
-        const W = en.world, cv = en.canvas, now = performance.now(), Wd = cv.clientWidth, Ht = cv.clientHeight;
-        const vkey = `${W.x.toFixed(2)},${W.y.toFixed(2)},${W.z.toFixed(2)},${W.yaw.toFixed(2)},${W.pitch.toFixed(2)},${W.fov},${Wd},${Ht},${W.lat0},${W.lon0}`;
+        const cam = en.engine.camera, cv = en.canvas, now = performance.now(), Wd = cv.clientWidth, Ht = cv.clientHeight;
+        /* the view as it was last drawn (the camera's own matrix, which only a frame changes): a move the engine has made
+           but not drawn yet waits for its frame, so the aim and the frame always use the camera of the picture shown */
+        const vkey = Array.prototype.join.call(cam.invView, ',') + `,${cam.fov},${Wd},${Ht}`;
         const moved = vkey !== RS.vkey; if (moved) RS.vkey = vkey;
-        if (B.size !== RS.ovlN) { RS.ovl.clear(); RS.ovlN = B.size; }
         if (moved ? now - RS.aimAt > 90 : RS.pend || now - RS.aimAt > 500) { RS.aimAt = now; RS.pend = false; rsAim(); } else if (moved) RS.pend = true;
         if (Wd !== RS.fitW || Ht !== RS.fitH) RS.sizeDirty = true;
         if (RS.fresh || now - RS.readAt > 400) {
           RS.readAt = now;
+          /* a roof view turned on or off: the panel moves to the left of its legend or back, whether or not the building
+             has a reading in it yet */
+          const g = en.graphics(), lo = !!(g && g.lens && g.lens !== 'off'); if (lo !== RS.lensOn) { RS.lensOn = lo; RS.sizeDirty = true; }
           try { rsStatus(); } catch (e) { /* the strip waits for the next look */ }
           try { rsReadout(); } catch (e) { RS.shape = null; RS.read.hidden = true; RS.read.innerHTML = ''; RS.tag.textContent = ''; RS.tagHtml = ''; }
         }
@@ -14323,31 +14348,47 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       /* the wider city's footprints (FEMA's and OpenStreetMap's, drawn round the module's own) can stand over a building the
          module has read: the hit is then that building's when the two footprints overlap by a fifth of the smaller one or
          more (4 m² at least). A neighbour that shares a wall, or stands a step away, keeps its own footprint, unread. The
-         answer for each footprint is kept until the module reads more buildings */
+         answer for each footprint is kept while the module's buildings standing round it in the engine stay the same (it
+         is asked again when the module reads a tile or the engine builds a cell there) */
       function rsOver(pr) {
         if (!pr.ring || !pr.bb) return null;
-        const key = pr.userData.id, out = en.engine.physics.prismsIn(pr.bb[0], pr.bb[1], pr.bb[2], pr.bb[3], []);
-        let to = RS.ovl.get(key);
-        if (to === undefined) {
-          to = null; let best = 0; const a1 = rsArea(pr.ring);
-          for (const q of out) {
-            const id = q.userData ? q.userData.id : null; if (id == null || !B.has(id) || !q.ring || !q.bb) continue;
+        const key = pr.userData.id, out = en.engine.physics.prismsIn(pr.bb[0], pr.bb[1], pr.bb[2], pr.bb[3], []), mine = out.filter(q => q.userData && q.userData.id != null && B.has(q.userData.id) && q.ring && q.bb);
+        const sig = mine.map(q => q.userData.id).join('|');
+        let c = RS.ovl.get(key);
+        if (!c || c.sig !== sig) {
+          let to = null, best = 0; const a1 = rsArea(pr.ring);
+          for (const q of mine) {
             const ov = rsOverlap(pr, q); if (!(ov > best)) continue;
-            if (ov >= Math.max(4, 0.2 * Math.min(a1, rsArea(q.ring)))) { best = ov; to = id; }
+            if (ov >= Math.max(4, 0.2 * Math.min(a1, rsArea(q.ring)))) { best = ov; to = q.userData.id; }
           }
-          RS.ovl.set(key, to);
+          c = { to, sig }; RS.ovl.set(key, c);
         }
-        if (to == null) return null;
-        const q = out.find(x => x.userData && x.userData.id === to);
-        return q ? { id: to, prism: q } : null;
+        if (c.to == null) return null;
+        const q = mine.find(x => x.userData.id === c.to);
+        return q ? { id: c.to, prism: q } : null;
       }
-      /* the area two footprints share ([x, z] rings in the engine's metres), sampled on a grid over where their boxes meet */
+      /* the area two footprints share ([x, z] rings in the engine's metres), sampled on a grid over where their boxes meet,
+         the grid no coarser than a quarter of the narrower side (a sliver along a shared wall is not counted twice over);
+         two outlines with no corner inside the other and no crossing edges share nothing, and are not sampled */
       function rsOverlap(a, b) {
         const x0 = Math.max(a.bb[0], b.bb[0]), z0 = Math.max(a.bb[1], b.bb[1]), x1 = Math.min(a.bb[2], b.bb[2]), z1 = Math.min(a.bb[3], b.bb[3]);
         if (!(x1 > x0 && z1 > z0)) return 0;
-        const s = Math.max(0.5, Math.sqrt((x1 - x0) * (z1 - z0)) / 40); let n = 0;
-        for (let x = x0 + s / 2; x < x1; x += s) for (let z = z0 + s / 2; z < z1; z += s) if (rsIn(a.ring, x, z) && rsIn(b.ring, x, z)) n++;
+        if (!rsTouch(a.ring, b.ring, x0, z0, x1, z1)) return 0;
+        let s = Math.min(0.5, Math.min(x1 - x0, z1 - z0) / 4); s = Math.max(s, Math.sqrt((x1 - x0) * (z1 - z0) / 2500), 0.02); let n = 0;
+        const [p, q] = a.ring.length <= b.ring.length ? [a.ring, b.ring] : [b.ring, a.ring];
+        for (let x = x0 + s / 2; x < x1; x += s) for (let z = z0 + s / 2; z < z1; z += s) if (rsIn(p, x, z) && rsIn(q, x, z)) n++;
         return n * s * s;
+      }
+      /* whether two outlines can share any area: a corner of one inside the other, or two edges that cross (only the
+         corners and edges within the box where their boxes meet are looked at, so a long outline costs little) */
+      function rsTouch(A, Bq, x0, z0, x1, z1) {
+        const inBox = p => p[0] >= x0 && p[0] <= x1 && p[1] >= z0 && p[1] <= z1;
+        if (A.some(p => inBox(p) && rsIn(Bq, p[0], p[1])) || Bq.some(p => inBox(p) && rsIn(A, p[0], p[1]))) return true;
+        const edges = R => { const E = []; for (let i = 0, j = R.length - 1; i < R.length; j = i++) { const p = R[j], q = R[i]; if (Math.max(p[0], q[0]) >= x0 && Math.min(p[0], q[0]) <= x1 && Math.max(p[1], q[1]) >= z0 && Math.min(p[1], q[1]) <= z1) E.push([p, q]); } return E; };
+        const cr = (p, q, r, s) => { const d = (q[0] - p[0]) * (s[1] - r[1]) - (q[1] - p[1]) * (s[0] - r[0]); if (!d) return false; const t = ((r[0] - p[0]) * (s[1] - r[1]) - (r[1] - p[1]) * (s[0] - r[0])) / d, u = ((r[0] - p[0]) * (q[1] - p[1]) - (r[1] - p[1]) * (q[0] - p[0])) / d; return t > 0 && t < 1 && u > 0 && u < 1; };
+        const EA = edges(A), EB = edges(Bq);
+        for (const [p, q] of EA) for (const [r, s] of EB) if (cr(p, q, r, s)) return true;
+        return false;
       }
       function rsIn(ring, x, z) {
         let inside = false;
@@ -14403,6 +14444,8 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         /* narrow: a phone held upright (a phone on its side keeps the panel at the right, where there is more room) */
         const narrow = Wd < 480 || (Wd < 640 && Ht >= Wd); RS.narrow = narrow; RS.el.classList.toggle('nw', narrow); RS.el.classList.toggle('sh', !narrow && Ht < 380);
         rsPages(null); r.classList.remove('roll'); r.style.removeProperty('--rs-dy'); r.style.removeProperty('--rs-t');
+        /* the strip as these classes lay it out (a phone's strip is wider and shorter, a resize rewraps it) */
+        if (RS.top.textContent) RS.stripB = RS.top.offsetTop + RS.top.offsetHeight;
         const g = en.graphics(), lens = !!(g && g.lens && g.lens !== 'off'), sb = RS.stripB || (narrow ? 38 : 57);
         let top = '', mh = '';
         if (narrow) {
@@ -14421,20 +14464,37 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         }
         RS.readR = [r.offsetLeft, r.offsetTop, r.offsetWidth, r.offsetHeight];
       }
-      /* with reduced motion: the lines that fit, a page every six seconds, its number beside the place */
+      /* with reduced motion: the lines that fit, a page every six seconds, its number beside the place; a line taller than
+         the room is shown over as many pages as it needs, whole lines of its text on each */
       function rsPages(inn, room) {
         clearInterval(RS.pageT); RS.pageT = 0;
-        if (RS.pg) { RS.pg.forEach(p => p.forEach(e => e.classList.remove('pg-off'))); RS.pg = null; }
+        const clear = x => { x.e.classList.remove('pg-off'); const v = $('.v', x.e), vi = v && v.firstElementChild; if (v) { v.style.maxHeight = ''; v.style.overflow = ''; } if (vi) vi.style.transform = ''; };
+        if (RS.pg) { RS.pg.forEach(p => p.forEach(clear)); RS.pg = null; }
         const n0 = $('.sc-rs-read .s .pg', RS.el); if (n0) n0.textContent = '';
         if (!inn) return;
         const n = $('.s .pg', inn); if (n) n.textContent = ' · 1 of 2';
         const rows = $$('.r', inn).filter(e => e.offsetHeight > 0); if (!rows.length) { if (n) n.textContent = ''; return; }
-        const it = inn.offsetTop, cap = room - (rows[0].offsetTop - it) - 2, pages = []; let cur = [], used = 0;
-        rows.forEach((e, i) => { const hh = (i + 1 < rows.length ? rows[i + 1].offsetTop - it : inn.offsetHeight) - (e.offsetTop - it); if (cur.length && used + hh > cap) { pages.push(cur); cur = []; used = 0; } cur.push(e); used += hh; });
+        const it = inn.offsetTop, cap = Math.max(16, room - (rows[0].offsetTop - it) - 2), pages = []; let cur = [], used = 0;
+        rows.forEach((e, i) => {
+          const hh = (i + 1 < rows.length ? rows[i + 1].offsetTop - it : inn.offsetHeight) - (e.offsetTop - it);
+          if (hh <= cap) { if (cur.length && used + hh > cap) { pages.push(cur); cur = []; used = 0; } cur.push({ e }); used += hh; return; }
+          /* taller than the room: its value a few whole lines at a time, each part on a page of its own */
+          const v = $('.v', e), lh = parseFloat(getComputedStyle(v).lineHeight) || 16, per = Math.max(1, Math.floor((cap - (hh - v.offsetHeight)) / lh)), parts = Math.max(1, Math.ceil(v.offsetHeight / (per * lh) - 0.05));
+          for (let k = 0; k < parts; k++) { if (cur.length) pages.push(cur); cur = [{ e, k, per, lh }]; used = cap; }
+        });
         if (cur.length) pages.push(cur);
         if (pages.length < 2) { if (n) n.textContent = ''; return; }
         RS.pg = pages; RS.pgI = 0;
-        const show = () => { pages.forEach((p, k) => p.forEach(e => e.classList.toggle('pg-off', k !== RS.pgI))); if (n) n.textContent = ` · ${RS.pgI + 1} of ${pages.length}`; const r = RS.read; RS.readR = [r.offsetLeft, r.offsetTop, r.offsetWidth, r.offsetHeight]; RS.boxDirty = true; };
+        const show = () => {
+          const on = new Map(); pages[RS.pgI].forEach(x => on.set(x.e, x));
+          pages.forEach(p => p.forEach(x => {
+            const s = on.get(x.e); x.e.classList.toggle('pg-off', !s);
+            const v = $('.v', x.e), vi = v && v.firstElementChild; if (!s || !v || !vi) return;
+            if (s.per) { v.style.maxHeight = s.per * s.lh + 'px'; v.style.overflow = 'hidden'; vi.style.transform = `translateY(${-s.k * s.per * s.lh}px)`; } else { v.style.maxHeight = ''; v.style.overflow = ''; vi.style.transform = ''; }
+          }));
+          if (n) n.textContent = ` · ${RS.pgI + 1} of ${pages.length}`;
+          const r = RS.read; RS.readR = [r.offsetLeft, r.offsetTop, r.offsetWidth, r.offsetHeight]; RS.innH = inn.offsetHeight; RS.boxDirty = true;
+        };
         show(); RS.pageT = setInterval(() => { if (!RS.pg || RS.pg !== pages) return; RS.pgI = (RS.pgI + 1) % pages.length; show(); }, 6000);
       }
       /* the reading, line by line, as the card has it: [label, value, the card's grade or '', 1 for a lesser line a phone
@@ -14450,9 +14510,16 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (b.yb && REC_YB.has(b.ybSrc)) add('Built', `${ybAbout(b) ? 'about ' : ''}${b.yb} (${N(Math.max(0, THIS_YEAR - b.yb))} years) · from ${ybFrom(b)}${b.imgY && b.yb > b.imgY + 1 ? ` · FEMA traced the footprint from imagery of ${monthYear(b.imgD)}, before that year: it may be an older building on the lot` : ''}`, b.ybSrc === 'osm' || (b.ybR && b.ybR.grade === 'B') ? 'B' : 'A');
         else add('Built', ybShort(b), 'C');
         /* the roof view in use, near the top, where it is seen without rolling */
-        const g = en.graphics(); if (g && g.lens && g.lens !== 'off') { let l = ''; try { const R = en.lensOf(b.id); l = R ? LENS.label(g.lens, R) : ''; } catch (e) { l = ''; } if (l) add(LENS.names[g.lens] || g.lens, l, RS_GL[g.lens] || 'D'); }
+        const g = en.graphics();
+        if (g && g.lens && g.lens !== 'off') {
+          let l = ''; try { const R = en.lensOf(b.id); l = R ? LENS.label(g.lens, R) : ''; } catch (e) { l = ''; }
+          /* a reading being built again (a new year in the Time view) keeps its last words meanwhile, so the panel is not */
+          const m = RS.lensL; if (l) RS.lensL = { id: b.id, lens: g.lens, v: l }; else if (m && m.id === b.id && m.lens === g.lens) l = m.v;
+          if (l) add(LENS.names[g.lens] || g.lens, l, RS_GL[g.lens] || 'D');
+        }
         const o = b.osm || {}, rr = [recV(b, 'roofc'), recV(b, 'rooft')].filter(Boolean).join(', '), ro = [o.roofc, o.roof].filter(Boolean).map(title).join(', ');
-        if (rr) add('Roof on record', title(rr), 'A'); else if (ro) add('Roof on record', ro + ' (OpenStreetMap)', 'B');
+        const ra = ((b.rec && (b.rec.roofc || b.rec.rooft)) || {}).asof;
+        if (rr) add('Roof on record', title(rr) + (ra ? ' (on record as of ' + ra + ')' : ''), 'A'); else if (ro) add('Roof on record', ro + ' (OpenStreetMap)', 'B');
         if (recV(b, 'roofy')) add('Roof put on', `${recV(b, 'roofy')} (a record, which the roof model does not read)`, 'A');
         const rf = b.roof, hasRoof = !!(rf && rf.keys && rf.keys.length), st = b.state;
         if (hasRoof) {
@@ -14465,10 +14532,10 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (lp) add('Last roof permit', `${monthYear(lp.d)} · ${RS_PK[lp.kind] || 'permit'} · ${lp.src}${lp.share < 1 ? ' · an address shared with other buildings' : ''}${lp.w < 0.3 ? ' · not used by the model (its text names no reroof or repair of the main roof)' : ''}${pmL.length > 1 ? ' · ' + N(pmL.length) + ' on file' : ''}`, 'A');
         else if (file && b.permitTown) add('Last roof permit', `no permit file covers it: ${townName(b.permitTown)} keeps its own permits`, '');
         else { const ps = file ? permitState(b, file) : ''; add('Last roof permit', !file ? 'no permit file covers it (New Orleans, East Baton Rouge, Tangipahoa and Terrebonne only)' : ps === 'read' ? 'none on file in the ' + RS_PF[file] + ' permits' : ps === 'wait' ? 'loading the ' + RS_PF[file] + ' permits' : 'the ' + RS_PF[file] + ' permits could not be read here', ps === 'read' ? 'B' : ''); }
-        /* NOAA's reports, as the card lists them (a report repeated in the file counted once), and the storms they come
-           from (the model's rule: reports of one storm in the same month, on the same weekday within three hours) */
-        const seen = new Set(), evd = (b.ev || []).filter(e => { const k = evLabel(e) + '|' + D(e.km, 1) + '|' + evWhen(e); if (seen.has(k)) return false; seen.add(k); return true; });
-        const days = []; evd.forEach(e => { const gk = e.k === 0 ? 0 : 1; if (!days.some(x => x.g === gk && x.e.y === e.y && x.e.m === e.m && x.e.dw === e.dw && Math.abs((+x.e.h || 0) - (+e.h || 0)) <= 3)) days.push({ g: gk, e }); });
+        /* NOAA's reports (a row the file holds twice counted once), and the storms they come from: reports in the same
+           month, on the same weekday and within three hours are one storm, hail and wind together */
+        const seen = new Set(), evd = (b.ev || []).filter(e => { const k = [e.lat, e.lon, e.t, e.k, e.mag].join('|'); if (seen.has(k)) return false; seen.add(k); return true; });
+        const days = []; evd.forEach(e => { if (!days.some(x => x.y === e.y && x.m === e.m && x.dw === e.dw && Math.abs((+x.h || 0) - (+e.h || 0)) <= 3)) days.push(e); });
         const ev0 = evd.slice().sort((p, q) => q.k - p.k || q.mag - p.mag)[0];
         add('Storm reports', ev0 ? `${N(evd.length)} NOAA report${evd.length > 1 ? 's' : ''}${days.length < evd.length ? ' from ' + N(days.length) + ' storm' + (days.length > 1 ? 's' : '') : ''} within 5 km in 3 years · ${evd.length > 1 ? 'among them ' : ''}${evLabel(ev0)}, ${D(ev0.km, 1)} km ${ev0.dir}, ${evWhen(ev0)}` : 'no NOAA report of damaging hail, wind or a tornado within 5 km in 3 years', 'A');
         add('Chance of the work', `replacement within 5 years ${pct(b.sc.P5)} · repair call within 12 months ${pct(b.sc.REP)} · wind damage still open ${pct(b.sc.WIND)} · hail damage still open ${pct(b.sc.HAIL)}`, 'B', 1);
@@ -14479,13 +14546,13 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (recV(b, 'eyb') && +recV(b, 'eyb') !== b.yb) add('Effective year', recV(b, 'eyb') + ' (the assessor\'s, for its condition after renovations)', 'A', 1);
         const ru = recV(b, 'use'), unk = !PROF[b.cls] || b.cls === 'unk', cls = (PROF[b.cls] || PROF.unk).l;
         if (ru) add('Use on record', title(ru), 'A'); else if (o.use) add('Use on record', title(o.use) + ' (OpenStreetMap)', 'B');
-        if (!(unk && (ru || o.use))) add('FEMA class', cls + (b.acc ? ' (read as an accessory building: a larger structure shares its address)' : ''), 'C');
-        const nm = recV(b, 'name') ? title(recV(b, 'name')) : o.name || ''; if (nm) add('Name', nm, recV(b, 'name') ? 'A' : 'B', 1);
-        if (b.addr && (b.addrSrc === 'geocode' || b.addrSrc === 'osm')) add('Address from', addrFrom(b), 'B', 1);
+        if (!(unk && (ru || o.use))) add('Class', `${cls} (FEMA USA Structures: ${b.occ || 'unclassified'}${b.prim && b.prim !== b.occ ? ', ' + b.prim : ''})${b.acc ? '; read as an accessory building, as a larger structure shares its address' : ''}`, 'C');
+        const rn = recV(b, 'name'), nm = rn ? nameCase(rn) : o.name ? o.name + ' (OpenStreetMap)' : ''; if (nm) add('Name', nm, rn ? 'A' : 'B', 1);
+        if (b.addr && (b.addrSrc === 'geocode' || b.addrSrc === 'osm')) add('Address from', addrFrom(b), 'B', b.addrSrc === 'geocode' ? 0 : 1);
         else if (!b.addr && b.addrNear) add('Address', `none on file; the nearest address point is ${N(b.geoD || 0)} m away (the Esri World Geocoder)`, 'B', 1);
         const sz = [b.h > 0 ? D(b.h, 1) + ' m tall' : '', b.sqft ? N(Math.round(b.sqft / 10) * 10) + ' sq ft footprint' : ''].filter(Boolean).join(' · ');
         if (sz) add('Size', sz + ' (FEMA)', 'C', 1);
-        const sto = recV(b, 'stories') || o.levels || ''; if (sto) add('Stories', String(sto), recV(b, 'stories') ? 'A' : 'B', 1);
+        if (recV(b, 'stories')) add('Stories', String(recV(b, 'stories')), 'A', 1); else if (o.levels) add('Stories', o.levels + ' (OpenStreetMap)', 'B', 1);
         if (recV(b, 'units')) add('Units', recV(b, 'units'), 'A', 1);
         if (recV(b, 'area')) add('Living area', sqftOf(recV(b, 'area')), 'A', 1);
         const cons = recV(b, 'cons') || recV(b, 'wall'); if (cons) add('Construction', title(cons), 'A', 1); else if (o.wall) add('Construction', title(o.wall) + ' (OpenStreetMap)', 'B', 1);
@@ -14511,15 +14578,15 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         if (!fresh && R && shape === RS.shape && RS.read.firstElementChild) rsPatch(R);
         else if (fresh || shape !== RS.shape) {
           let html = '';
-          if (R) { let i = 0; html = `<div class="h" style="--i:${i++}">${esc(R.head)}</div><div class="s" style="--i:${i++}"><span class="t">${esc(R.sub)}</span><span class="pg"></span></div>` + R.L.map(([k, v, gr, p2]) => `<div class="r${p2 ? ' p2' : ''}" style="--i:${i++}"><span class="k">${esc(k)}${gr ? `<em>${gr}</em>` : ''}</span><span class="v">${esc(v)}</span></div>`).join(''); }
-          else if (RS.id != null) { const os = String(RS.id).charAt(0) === 'o'; html = `<div class="h">Unread building</div><div class="s"><span class="t">${os ? 'An OpenStreetMap footprint' : 'A FEMA footprint'} of the wider city</span><span class="pg"></span></div><div class="r"><span class="k">Reading</span><span class="v">${os ? 'None: FEMA\'s file, which the Scout reads, has no footprint here (built since, or missed), so the Scout has no reading of it.' : 'None yet: it stands beyond the tiles the Scout has read. Walk closer to it, or open the map there.'}</span></div>`; }
+          if (R) { let i = 0; html = `<div class="h" style="--i:${i++}">${esc(R.head)}</div><div class="s" style="--i:${i++}"><span class="t">${esc(R.sub)}</span><span class="pg"></span></div>` + R.L.map(([k, v, gr, p2]) => `<div class="r${p2 ? ' p2' : ''}" style="--i:${i++}"><span class="k">${esc(k)}${gr ? `<em>${gr}</em>` : ''}</span><span class="v"><span class="vi">${esc(v)}</span></span></div>`).join(''); }
+          else if (RS.id != null) { const os = String(RS.id).charAt(0) === 'o'; html = `<div class="h">Unread building</div><div class="s"><span class="t">${os ? 'An OpenStreetMap footprint' : 'A FEMA footprint'} of the wider city</span><span class="pg"></span></div><div class="r"><span class="k">Reading</span><span class="v">${os ? 'None: an OpenStreetMap footprint (built since FEMA\'s file, missing from it, or a newer building where FEMA\'s older footprint was cleared); the Scout reads FEMA\'s footprints, so it has no reading of this one.' : 'None yet: it stands beyond the tiles the Scout has read. Walk closer to it, or open the map there.'}</span></div>`; }
           RS.shape = shape; RS.read.classList.toggle('in', fresh && !!html);
           RS.read.innerHTML = html ? `<div class="sc-rs-in">${html}</div>` : ''; RS.read.hidden = !html; rsFit();
         }
         rsTagText(b);
       }
       function rsPatch(R) {
-        const inn = RS.read.firstElementChild, h = $('.h', inn), s = $('.s .t', inn), vs = $$('.r .v', inn); let ch = false;
+        const inn = RS.read.firstElementChild, h = $('.h', inn), s = $('.s .t', inn), vs = $$('.r .vi', inn); let ch = false;
         if (h && h.textContent !== R.head) { h.textContent = R.head; ch = true; }
         if (s && s.textContent !== R.sub) { s.textContent = R.sub; ch = true; }
         R.L.forEach((x, i) => { const e = vs[i]; if (e && e.textContent !== x[1]) { e.textContent = x[1]; ch = true; } });
@@ -14532,7 +14599,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
       }
       function rsStatus() {
         const W = en.world, yaw = ((Math.round(W.yaw) % 360) + 360) % 360, b = RS.id != null ? B.get(RS.id) : null, rd = !!(b && b.sc);
-        const lock = RS.id == null ? 'No building in its sights' : `<b>In its sights</b>${RS.dist != null ? ' <span class="u">' + N(RS.dist) + ' m</span>' : ''} · ${rd ? 'roof work ' + esc((STS[b.status] || '').toLowerCase()) : 'unread'}`;
+        const lock = RS.id == null ? 'No building in its sights' : `<b>In its sights</b>${RS.dist != null ? ' <span class="u">' + N(RS.dist) + ' m</span>' : ''} · ${rd ? 'roof work ' + esc((STS[b.status] || '').toLowerCase()) + (CK[b.id] && CK[b.id].s ? ' by your check' : '') : 'unread'}`;
         const h = `<b>Walk · red scan</b> · heading ${yaw}° ${compass(yaw)}<br>${lock}<span class="k3">V plain view · Enter read it · Space jump · left Shift run</span>`;
         if (h !== RS.topH) {
           RS.top.innerHTML = h; RS.topH = h;
@@ -14621,7 +14688,7 @@ try { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if
         `<b>The 3D street view ${G('C')}</b>. The neighborhood rebuilt in the browser, with no key, from the newest satellite photo of the place taken in 2024 or later (Esri's World Imagery metadata names it: Vantor's January 16, 2026 picture over Baton Rouge at 50 cm, for one). Over Baton Rouge, New Orleans and Shreveport no public 3D survey is that new (USGS lidar of 2018 over most of Baton Rouge, 2021 over New Orleans and 2018 over Shreveport; most of FEMA's footprints there come from NGA lidar of 2008 to 2012); USGS flew the coast from Cameron Parish to Terrebonne Parish in early 2024 (Houma and Franklin, not New Orleans or Lake Charles), and elsewhere FEMA's footprints are traced from ORNL imagery of 2015 to 2024. No lidar shapes the buildings or trees (only the photoreal view takes its ground from USGS's bare earth surface), so an AI model, SlimSAM (Segment Anything, pruned), runs on this computer and reads the photo: pointed at each building on record, it finds the roof the photo shows there. Where that roof fits the old outline (or is the part of it the trees leave in view, or fits it a few metres over), the building is <i>confirmed</i>; where a larger, square edged roof covers it, it is <i>redrawn</i> from the photo (its height kept, or raised to two storeys when it grew by half); where no roof shows, it is <i>under trees</i> and keeps its recorded outline. Every tree crown is outlined on a grid of points, its height estimated from its spread. The satellite looked a little sideways, so roofs show slightly off their walls: that lean is measured on the confirmed roofs and taken out. Houses have walls set back under their eaves, windows with frames, sills and glass, a front door facing the street and a garage door facing the alley or drive; roofs are modeled (hipped, or flat behind a parapet) and carry the same photo, shifted for its lean so each roof wears its own; the ground carries it too; the streets are asphalt and the alleys and drives concrete, from OpenStreetMap (the Census TIGER file when OpenStreetMap does not answer or has no streets there, without the alleys); each tree is a dome of photographed leaves over its traced outline, with a trunk and limbs, in summer colours. It is drawn the way a game engine draws a scene: a physical sky with the sun where it stands over the street at the chosen hour, light from that sky, sun shadows, ambient occlusion, bloom on the glows (three.js's port of Unreal Engine's bloom) and filmic tone mapping, on physically based brick, siding, stucco, storefront glass and metal. The view is drawn by the page, so it knows where it stands and looks, and every building's glow sits exactly on its walls. It walks at eye level along the streets and alleys and rises to drone (38 m) and bird (120 m) height, and the area exports as a glTF model (one node per building, its reading in the node's extras, its glow as an emissive shell) that opens in Unreal Engine 5 or Blender.`,
         `<b>The Scout Engine ${G('C')}</b>. The same neighborhood drawn by a renderer written for this page on WebGL2, with no library: the buildings the dashboard holds on their FEMA footprints at their recorded heights (a usual height for the building's kind where none is on file), each under a hipped roof, or a flat one behind a parapet where its roof is low slope (a shape chosen by the building's kind, not measured); a physical sky with the sun where it stands at the chosen day and hour, bounced light, reflections and shadows; the satellite photo on the ground, trees where the photo shows crowns, streets from OpenStreetMap or the Census file; and the wider city out to the skyline, from FEMA's footprints with OpenStreetMap's where it has newer ones. Walk, fly the Alta X or circle a building. Window grids, cars, signals, sidewalks and rooftop equipment are generated, not observed. Its three roof views read the roofs nearest the camera (45 to 170 of them by the Scene's quality, within about 200 to 380 m) and are seen through trees and walls.`,
         `<b>The ZIP, in the Scout Engine ${G('B')}</b>. The row under the building's line opens four panes on the ZIP it stands in; each dotted line opens a note on what it counts. <i>Insurance</i>: the flood policies in force by ZIP (FEMA's National Flood Insurance Program, September 30, 2026, against September 30, 2021, the eve of Risk Rating 2.0), what a home's flood policy costs there, the parish counted the same way and FEMA's own take-up; homeowners premiums, paid claims per 100 policies, claim size and nonrenewals by ZIP for 2018 to 2022 from the insurers in the NAIC's data call, mostly the large ones (the U.S. Treasury's Federal Insurance Office, 337 ZIPs with 96 percent of the homes; Louisiana Citizens and surplus lines are not in it); the nonrenewals by parish to 2023 (the Senate Budget Committee's 23 insurers); FORTIFIED certificates by parish to February 2025 (the Legislative Auditor); and the insurance FEMA's aid applicants reported, which describes applicants, not the ZIP, and counts a registration for each storm. <i>Damage</i>: the hail, wind, tornado and hurricane record, what FEMA's inspectors found (roof, foundation and flood damage and destroyed homes after the 2004 to 2017 storms; after the 2020 to 2026 storms, FEMA having stopped recording roofs on their own early in 2020, verified damage on homes with no flood recorded), storm by storm, and the NFIP's flood claims since 2000 with the floods and causes behind them. A FEMA aid share over fewer than 5 registrations or inspections is not shown; the NFIP's shares and averages need 10 policies or claims. <i>Materials</i>: the atlas's model beside the surveys that check it (EIA's RECS 2020 for Louisiana's houses, 77 percent asphalt shingle and 14 percent metal: 9 percent in cities, 22 to 30 percent in small towns and the country; the same survey for its mobile homes, and CBECS 2018 for the region's commercial buildings), and in the 70 ZIPs that have them, the coverings on file in three local records and named in the four parishes' roof permits since November 20, 2021. <i>Competitors</i>: the ledger's counts, the roofing businesses listed in and around the ZIP (Overture Maps and OpenStreetMap, November 2026: 849 listings of 709 companies and 59 supplier listings, matched to module 07's roofers and flagged where LSLBC's monthly reports of new licenses and added classifications (March 2025 to August 2026) show a roofing line, which says nothing of firms that took none in that time; each with its name, town, phone and website, and no street address or map point: its distances are whole km to its point rounded to about 2 km), the nearest suppliers, and module 07's mapped roofers by their office towns. Every figure is the ZIP's or the parish's, beside the state's and the region's surveys and a few statewide totals, from the files named under Sources, as of their dates; none is about the building.`,
-        `<b>The walk view's red scan</b>. In Walk the view turns red and the building in its sights is framed where it stands and read out beside it. The building is the first footprint met by a ray from the eye through the centre of the view, in the engine's own physics: within 320 m and as far as the view has built its buildings (about 200 m on Low to 400 m on Ultra), looking past cars. A footprint of the wider city that overlaps a building the Scout has read by a fifth of the smaller or more (OpenStreetMap and FEMA tracing the same building) is read as that building; any other is shown as unread. The reading is the card's, with the card's grade where the card gives one: your field check, the model's reading and score, the likely need, the year built and where it is from, the roof view's reading when one is on, the roof on record and the year it went on, the likely roof and its odds, the roof's age, the last roof permit, the NOAA storm reports within 5 km in three years (and the storms they come from), the chance of the work, the next 15 years, the year FEMA's imagery shows the building standing, the use on record and FEMA's class, the name, where a geocoded address is from, the size, stories, units, living area, construction and condition on record, then the ZIP round it (the storm year that replaced the most of its roofs, flood policies per 100 homes, FEMA roof and wind damage registrations per 100 occupied homes since 2004, the roofing contractors listed). A reading longer than its panel rolls slowly down it and back; with reduced motion it is shown a page at a time instead. On a phone, and in a view under 380 px tall, the lesser lines (the odds, the chance of the work, the next 15 years, the building's records past its year built and use, and the ZIP lines) are left out. While a roof view's legend holds the right of the view, the panel moves to the left. V turns the scan off and on and Enter reads the building, as a click does. It reads what the module already holds and asks for nothing: a building with no address keeps none until it is read.`,
+        `<b>The walk view's red scan</b>. In Walk the view turns red and the building in its sights is framed where it stands and read out beside it. The building is the first footprint met by a ray from the eye through the centre of the view, in the engine's own physics: within 320 m and as far as the view has built its buildings (about 200 m on Low to 400 m on Ultra), looking past cars. A footprint of the wider city that overlaps a building the Scout has read by a fifth of the smaller or more (OpenStreetMap and FEMA tracing the same building) is read as that building; any other is shown as unread. The reading is the card's, with the grade the card or the ZIP panel gives where it gives one: your field check, the model's reading and score, the likely need, the year built and where it is from, the roof view's reading when one is on, the roof on record and the year it went on, the likely roof and its odds, the roof's age, the last roof permit, the NOAA storm reports within 5 km in three years and the storms they come from, the chance of the work, the next 15 years; then the building's records (the year FEMA's imagery shows it standing, the effective year on record, the use on record and the class, its name, where an address from the geocoder or OpenStreetMap comes from or the nearest address point when none is on file, FEMA's height and footprint, the stories, units, living area, construction and condition on record, OpenStreetMap's historic tag); then the ZIP round it (the storm year that replaced the most of its roofs, flood policies per 100 homes, FEMA roof and wind damage registrations per 100 occupied homes since 2004, the roofing contractors listed). A reading longer than its panel rolls slowly down it and back; with reduced motion it is shown a page at a time instead. In a view under 480 px wide (or under 640 px and taller than wide, a phone held upright) and in one under 380 px tall, the lesser lines are left out: the odds, the chance of the work, the next 15 years, the building's records past its year built, use and class (a geocoded address keeps its source), and the ZIP lines. While a roof view's legend holds the right of the view, the panel moves to the left. V turns the scan off and on and Enter reads the building, as a click does. It reads what the module already holds and asks for nothing: a building with no address keeps none until it is read.`,
         `<b>Roof view: Thermal ${G('C')}</b>. How hot each roof plane runs at the chosen day and hour, from a steady energy balance on the plane. Sunlight: the clear sky beam and diffuse light for the sun's height (Meinel's fit, with Kasten and Young's air mass), cut for the chosen weather, falling on the plane at its slope and bearing, less what tree crowns and nearby buildings shade at that hour. The roof takes in what it does not reflect: by covering, dark shingles 0.04 up to light ones 0.26 and aged white membranes near 0.68 (Florida Solar Energy Center and the Cool Roof Rating Council), painted metal 0.08 to 0.62, and bare aluminium zinc steel, which reflects well but sheds heat poorly (Oak Ridge); where in its range a roof sits comes from how light it shows in the satellite photo. It gives heat back to the air through a film of 12 W per square metre and kelvin, the low end of the 12 to 20 measured on roofs (Berdahl and others 2008) and the value at which the balance meets measured roof temperatures (a calibration: no wind is measured), and as long wave radiation to the sky. The air is NOAA's 1991 to 2020 normal for the month, blended by distance from seven Louisiana stations and shaped through the day. Against measurements: a dark shingle in July afternoon sun comes out near 170°F over 90°F air (the Florida Solar Energy Center measured 179°F at most in a summer; IBHS about 165°F on a June day, and Oak Ridge the same) and a white roof near 115°F (Oak Ridge measured about 115°F on white painted metal). Run over a normal year, without shade, the same balance gives each plane a rate of heat ageing (chemical ageing about doubles for every 10°C: Berdahl and others 2008). The roof's rate against the average roof of its kind there, held between 0.5 and 1.6, stretches or shortens its life in the outlook below by the square root of that ratio (judgment; that damping is what takes a TPO membrane's life from about 25 years at 160°F to about 12 at 200°F in one maker's heat ageing tests). The card's outlook takes a roof's heat once the engine has read its planes, and says so; the CSV leaves it out.`,
         `<b>Roof view: Wear ${G('D')}</b>. What age and weather have taken from each roof so far, from sound to worn out: the roof's likely age over the mean life of its kind (the roof's age, above; at 100 percent half of such roofs have been replaced), worked harder on the planes that run hottest; what the storms it has stood through left (each tropical storm year of 58 mph or more, by the chance today's roof was already on and by what the year cost the ZIP's roofs, told most at the ridge and edges); wind and hail reported near it and still open; algae where it stays damp (shaded and north planes; how soon it shows is a judgment) and rust on metal near the Gulf's open shore (makers void their warranties on bare aluminium zinc steel within 400 to 2,800 feet of salt water, a mile at one; the model measures to the open coast only and does not see Lake Pontchartrain, the bays or the marsh canals). The marks on a roof (lifted tabs, hail spatter, worn patches, streaks, rust) show which of those is strongest at each spot. They are drawn by rule, not seen.`,
         `<b>The next 15 years, and the Time view ${G('D')}</b>. For each covering the building may carry and each year its roof may date from, the outlook follows the building year by year for ${OUT_Y} years: the roof then in place and what reaches it; a roof that is replaced starts again at age zero. Much of it is counted from records and the rest is stated judgment, which is why it is graded D. <i>Wear</i>: the roof's Weibull life, as above, shortened or stretched by its heat where the engine has read it. <i>Hurricanes and tropical storms</i>: the ZIP's storm years as the roof's age above counts them, the share of roofs each one replaced: from ${OC.femaFrom} module 17's count (FEMA's verified damage where FEMA has it, the storm's modeled wind elsewhere); before ${OC.femaFrom} the modeled wind through module 02's damage curve, scaled by how FEMA's counts have compared with that curve since (about ${D(curveK()[2], 1)} of it for a year of 74 to 91 mph winds and ${D(curveK()[3], 1)} above). A ZIP's own record counts for ${pct(OC.own)} and the ZIPs within ${D(OC.nearKm, 0)} km, by their roofs, for the rest. Two records are kept: the years since ${OC.recFrom}, which the atlas resolves storm by storm, and the ${OC.longTo - OC.longFrom + 1} years since ${OC.longFrom}, for which module 02 counts each ZIP's years of 58 and 74 mph winds; those earlier years are given the mean cost of a storm year of their strength. Statewide the first replaces about 2.5 percent of roofs a year and the second about 2.1; the outlook uses their mean unless the card's Storm record says otherwise. Beside the roofs a storm year replaces are those it damages and a roofer repairs: about three more for each one replaced in a mild year and about one in a hard one, set from the one survey that counted damage where the atlas has a count (after Gustav in Houma IBHS found roof cover damage on 65 percent of 933 houses, on more than 5 percent of the roof on 27 percent; the atlas has 23 to 49 percent of the roofs standing in Houma's three ZIPs replaced that year). <i>Age against wind</i>: a young shingle roof resists far better than an old one. The University of Florida found no partly unsealed shingles in the field of roofs under four years old and 30 percent of strips unsealed at 14 to 20 (hip and ridge caps were unsealed at every age); in Laura 40 percent of two to three year old shingle roofs near Lake Charles were damaged against 97 percent of those 14 to 15 years old (NIST, 623 homes); in the 2020 derecho roofs over ten years old were damaged five times as often as those of three to six (IBHS). The outlook's multiple is a judgment drawn through those: a shingle roof under four years old takes about ${D(gFor(1).w[2], 2)} times the average roof's hazard and one of twenty about ${D(gFor(1).w[20], 1)} times, scaled so that Louisiana's roofs at their ages today average each storm year's count. That spread is wider than the five to ninefold differences those surveys measured between young and old roofs; it is set so that Laura's 40 percent for young roofs comes out of a storm year that replaces six roofs in ten, as the atlas has round Lake Charles in 2020. Metal, tile and slate age another way: their odds stay low for ten years and rise after (in Ian damage was rare on any roof under five years old, and on metal and tile it barely rose until past ten; the rise after ten is a judgment, and nothing was found on slate in hurricanes, which is taken with tile). <i>Thunderstorm wind and tornadoes</i>: the days a year with wind of 58 and of 75 mph and with EF1 tornadoes within 25 miles (SPC, 1996 to 2025) at module 12's stated rates of roofs damaged a day (${D(OC.ts[0][0] * 100, 2)}, ${D(OC.ts[1][0] * 100, 2)} and ${D(OC.ts[2][0] * 100, 2)} percent, grade D). <i>Hail</i>: the days with hail of 1 inch and of 1.75 inches within 25 miles at module 12's rates (${D(OC.hail[0][0] * 100, 2)} and ${D(OC.hail[1][0] * 100, 2)} percent), turned for each covering by the size of hail that damages it (Haag Engineering: three tab shingles 1 inch, laminated 1.25, clay tile and gray slate 1.5, concrete tile and green slate 1.75, single ply membranes 1 to 2, steel panels 2.5, which dent sooner). <i>Leaks</i>: the repair line's calls by roof age. <i>Coverings</i>: over roofs past five years old the model gives metal on a home, and tile and slate, about ${D(past5('hard', RTYPE.metal.wind) / past5(1, 1), 1)} of a shingle roof's wind hazard (a judgment: in Ian 10 to 15 percent of metal and tile roofs past five years showed damage on 5 percent or more of the roof, against almost half of shingle roofs, about 0.2 as a hazard; the roof's age above takes metal at ${D(SMAT.metal, 2)} at every age, itself a judgment); membranes and metal buildings take wind at ${D(RTYPE.low.wind, 1)} of the shingle rate and manufactured homes at ${D(RTYPE.mh.wind, 1)} (module 12). Out come the chances, by each year, of each kind of damage at least once at this address, of a roofer being needed, and of the roof being replaced (one minus the chance today's roof is still on), on the card and for each kind of roof the building may carry. The Time view paints them on the roofs: at each spot the damage most likely to have reached it by the chosen year, brighter as the chance grows. Wind shows first at ridge and hip caps and a little more at the edges than in the field (ASCE 7 puts the hardest uplift there, though after Gustav and Ike IBHS found shingle damage about as often in the middle of a slope as along its edge); heat and age on the planes that run hottest; hail on every plane alike; leaks at edges and ridges; rust at the edges of metal.`,
