@@ -31,47 +31,47 @@ ok      7.4 NM from the threshold: 2700 ft above sea level (evidence about 2700)
 ok      12.9 NM from the threshold: 4000 ft above sea level (evidence about 4000)
 ok   LAX: 318.4 ft per NM (3.00 degrees is 318)
 ok   SAN: 371.6 ft per NM (3.50 degrees is 372)
-ok   LAX: landings 772 in the day (table x scale 776), worst hour off by 2.0
-ok   LAX: take-offs 773 in the day (table x scale 775), worst hour off by 1.5
-     arr by hour 18 0 0 0 0 9 12 38 63 58 39 42 36 38 33 36 28 53 34 50 53 63 34 35
-     dep by hour 7 2 0 0 0 16 38 49 65 70 60 35 45 35 36 30 38 40 49 32 27 35 38 26
-ok   SFO: landings 566 in the day (table x scale 561), worst hour off by 1.4
-ok   SFO: take-offs 568 in the day (table x scale 569), worst hour off by 1.8
-     arr by hour 16 4 0 0 0 0 6 34 26 46 28 36 32 24 18 46 16 36 22 40 40 46 30 20
-     dep by hour 8 0 0 0 0 16 26 24 50 20 58 16 44 30 24 24 46 18 34 18 22 34 30 26
-ok   SAN: landings 330 in the day (table x scale 328), worst hour off by 0.6
-ok   SAN: take-offs 315 in the day (table x scale 328), worst hour off by 4.4
-     arr by hour 1 0 0 0 0 2 2 20 18 24 19 20 20 15 17 19 15 15 22 24 26 18 17 16
-     dep by hour 0 0 0 0 0 0 27 19 24 20 22 20 17 20 18 16 16 17 15 16 14 19 15 0
-ok   BUR: landings 89 in the day (table x scale 87), worst hour off by 0.8
-ok   BUR: take-offs 85 in the day (table x scale 87), worst hour off by 0.8
+ok   LAX: landings 759 in the day (table x scale 776), worst hour off by 4.7
+ok   LAX: take-offs 776 in the day (table x scale 775), worst hour off by 1.4
+     arr by hour 18 1 0 0 0 8 12 39 59 58 38 41 36 38 34 37 28 51 34 49 51 60 32 35
+     dep by hour 6 0 0 0 0 16 39 50 66 70 61 36 44 35 38 30 38 40 48 32 27 36 39 25
+ok   SFO: landings 546 in the day (table x scale 561), worst hour off by 3.0
+ok   SFO: take-offs 570 in the day (table x scale 569), worst hour off by 1.6
+     arr by hour 16 4 0 0 0 0 6 33 28 45 25 34 30 21 18 44 14 36 21 40 42 42 29 18
+     dep by hour 6 0 0 0 0 16 26 26 52 22 58 18 44 32 24 22 44 16 36 20 20 32 30 26
+ok   SAN: landings 327 in the day (table x scale 328), worst hour off by 0.8
+ok   SAN: take-offs 319 in the day (table x scale 328), worst hour off by 4.4
+     arr by hour 2 0 0 0 0 2 1 20 18 24 19 19 19 15 17 20 15 14 22 23 26 18 16 17
+     dep by hour 0 0 0 0 0 0 27 20 25 21 22 20 19 21 17 17 16 16 14 17 13 19 15 0
+ok   BUR: landings 87 in the day (table x scale 87), worst hour off by 0.8
+ok   BUR: take-offs 87 in the day (table x scale 87), worst hour off by 0.5
 ok   LGB: landings 39 in the day (table x scale 40), worst hour off by 0.7
-ok   LGB: take-offs 38 in the day (table x scale 39), worst hour off by 0.8
+ok   LGB: take-offs 40 in the day (table x scale 39), worst hour off by 0.8
 ok   SNA: landings 131 in the day (table x scale 130), worst hour off by 0.8
-ok   SNA: take-offs 130 in the day (table x scale 130), worst hour off by 0.7
-ok   ONT: landings 81 in the day (table x scale 79), worst hour off by 0.9
-ok   ONT: take-offs 79 in the day (table x scale 79), worst hour off by 0.9
-ok   OAK: landings 91 in the day (table x scale 88), worst hour off by 0.7
-ok   OAK: take-offs 86 in the day (table x scale 89), worst hour off by 0.9
-ok   SJC: landings 132 in the day (table x scale 129), worst hour off by 0.8
-ok   SJC: take-offs 129 in the day (table x scale 130), worst hour off by 0.7
-ok   SMF: landings 172 in the day (table x scale 168), worst hour off by 0.7
-ok   SMF: take-offs 165 in the day (table x scale 168), worst hour off by 0.9
-ok   LAX: 807 successive landings on one runway; closest 2.82 NM (78 s); behind a heavy or super the least margin over the rule is 0.12 NM; 0 under the rule
-ok   SFO: 576 successive landings on one runway; closest 4.75 NM (135 s); behind a heavy or super the least margin over the rule is 0.43 NM; 0 under the rule
-ok   SAN: 339 successive landings on one runway; closest 3.17 NM (80 s); behind a heavy or super the least margin over the rule is 14.03 NM; 0 under the rule
-ok   SNA: 119 successive landings on one runway; closest 6.95 NM (170 s); behind a heavy or super the least margin over the rule is n/a; 0 under the rule
-ok   SMF: 167 successive landings on one runway; closest 4.56 NM (114 s); behind a heavy or super the least margin over the rule is n/a; 0 under the rule
-ok   SFO: 245 landings on 28L and 245 on 28R by day, 245 of them in pairs (28L four seconds ahead)
-ok   SAN: 315 take-offs in the day, 0 between 11:30 p.m. and 6:30 a.m.
+ok   SNA: take-offs 130 in the day (table x scale 130), worst hour off by 0.8
+ok   ONT: landings 79 in the day (table x scale 79), worst hour off by 0.9
+ok   ONT: take-offs 77 in the day (table x scale 79), worst hour off by 0.9
+ok   OAK: landings 88 in the day (table x scale 88), worst hour off by 0.7
+ok   OAK: take-offs 90 in the day (table x scale 89), worst hour off by 0.9
+ok   SJC: landings 127 in the day (table x scale 129), worst hour off by 0.8
+ok   SJC: take-offs 129 in the day (table x scale 130), worst hour off by 0.9
+ok   SMF: landings 167 in the day (table x scale 168), worst hour off by 0.8
+ok   SMF: take-offs 169 in the day (table x scale 168), worst hour off by 0.9
+ok   LAX: 791 successive landings on one runway; closest 2.90 NM (78 s); behind a heavy or super the least margin over the rule is 0.46 NM; 0 under the rule
+ok   SFO: 555 successive landings on one runway; closest 4.75 NM (135 s); behind a heavy or super the least margin over the rule is 0.60 NM; 0 under the rule
+ok   SAN: 336 successive landings on one runway; closest 3.26 NM (86 s); behind a heavy or super the least margin over the rule is 2.72 NM; 0 under the rule
+ok   SNA: 116 successive landings on one runway; closest 6.85 NM (183 s); behind a heavy or super the least margin over the rule is n/a; 0 under the rule
+ok   SMF: 154 successive landings on one runway; closest 4.24 NM (117 s); behind a heavy or super the least margin over the rule is n/a; 0 under the rule
+ok   SFO: 235 landings on 28L and 238 on 28R by day, 229 of them in pairs (28L four seconds ahead)
+ok   SAN: 319 take-offs in the day, 0 between 11:30 p.m. and 6:30 a.m.
 ok   SAN: 0 take-offs started within 78 s before or 52 s after a landing on the same runway
-ok   LAX: 27 landings in the 0 and 5 o'clock hours all from over the ocean (6L, 7R); the 39 of the 10 o'clock hour all on 24R and 25L
-ok   LAX: 60 take-offs in the 10 o'clock hour all on 24L and 25R
-ok   SFO: 568 take-offs from 1L and 1R, 0 begun within 50 s before or 45 s after a landing on the crossing 28s
-ok   76166 positions sampled through the day: fastest below 10,000 ft 250 kt (rule 250)
+ok   LAX: 26 landings in the 0 and 5 o'clock hours all from over the ocean (6L, 7R); the 38 of the 10 o'clock hour all on 24R and 25L
+ok   LAX: 61 take-offs in the 10 o'clock hour all on 24L and 25R
+ok   SFO: 570 take-offs from 1L and 1R, 0 begun within 50 s before or 45 s after a landing on the crossing 28s
+ok   75898 positions sampled through the day: fastest below 10,000 ft 250 kt (rule 250)
 ok   high traffic: none below FL300, 0 at a level for the wrong direction; Mach 0.78 to 0.85
 ok   no arrival below its runway
-     LAX departure A320 on 25R: off the ground after 37 s and 1675 m of a 3940 m runway; 2357 ft a minute later; 18350 ft at 56 km
+     LAX departure A321 on 24L: off the ground after 38 s and 1762 m of a 3319 m runway; 2398 ft a minute later; 18370 ft at 69 km
 ok   airborne before the end of the runway
      info at LAX 09:30: {"airport":"LAX","landing":["24R","25L"],"departing":["24L","25R"],"arr":58.1,"dep":70,"arriving":12,"departingNow":12}
 ALL OK

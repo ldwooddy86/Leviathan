@@ -1,0 +1,5 @@
+[
+{"file":"31_m17_stock.js","old":"establishments in all and about ${N(T('cru'))} commercial roofs (estimate).","new":"establishments in all and about ${K(T('cru'))} commercial roofs (estimate, grade D)."},
+{"file":"31_m17_stock.js","old":"The total is anchored to the national commercial building survey scaled to California by residents (grade D).'","new":"The statewide total is an anchor, not a count: the 5.9 million commercial buildings of the federal Commercial Buildings Energy Consumption Survey of 2018 (Energy Information Administration, Table B1: 5,918 thousand) times California\\'s share of United States residents. The survey publishes no California figure, so the share by residents and the weights by building type are assumptions (grade D).'"},
+{"file":"31_m17_stock.js","old":"'Census County Business Patterns 2023, ZIP code detail; CBECS 2018 for the statewide anchor'","new":"'Census County Business Patterns 2023, ZIP code detail; Energy Information Administration, Commercial Buildings Energy Consumption Survey 2018, Table B1, for the statewide anchor (scaled to California by residents, an assumption)'"}
+]

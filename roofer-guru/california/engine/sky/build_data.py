@@ -122,7 +122,7 @@ sb = chain(g, [1557712987, 1560010147, 537838948])[::-1]; nb = chain(g, [5951945
 mid = mid2(nb, sb, 80)
 tw = lambda ids: [sum(cen(g[i])[0] for i in ids) / len(ids), sum(cen(g[i])[1] for i in ids) / len(ids)]
 ggS = tw([1329545860, 1329549315, 1329549317, 1329550017, 1329550151, 1329761876, 1329761878, 1329761879, 1329761880, 1329761881]); ggN = tw([1330832664, 1330832665, 1330832669, 1330832670, 1330832673, 1330832677, 1330832679, 1330832682, 1330832687, 1330832689])
-south = walk(R, nb[0], [nb[0][0] - (nb[3][0] - nb[0][0]), nb[0][1] - (nb[3][1] - nb[0][1])], 520); north = walk(R, nb[-1], [nb[-1][0] + (nb[-1][0] - nb[-4][0]), nb[-1][1] + (nb[-1][1] - nb[-4][1])], 520)
+south = walk(R, nb[0], [nb[0][0] - (nb[3][0] - nb[0][0]), nb[0][1] - (nb[3][1] - nb[0][1])], 900); north = walk(R, nb[-1], [nb[-1][0] + (nb[-1][0] - nb[-4][0]), nb[-1][1] + (nb[-1][1] - nb[-4][1])], 900)
 B['gg'] = {'line': pack(mid), 'towers': [[r5(ggS[0]), r5(ggS[1])], [r5(ggN[0]), r5(ggN[1])]], 'south': pack(south, 3), 'north': pack(north, 3), 'lens': [round(plen(mid)), round(dist(ggS, ggN)), round(plen(south)), round(plen(north))]}
 # Bay Bridge
 b = ways_of('bay.json'); R = J(os.path.join(HERE, 'dl', 'bay.json'))['elements']; R80 = [e for e in R if e['type'] == 'way' and e.get('tags', {}).get('highway') in ('motorway',)]

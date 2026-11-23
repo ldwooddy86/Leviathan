@@ -34,7 +34,7 @@
     const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 
     /* ---------- graphics: the quality the machine can carry, the hour of the sun, the trees ---------- */
-    const GFX_KEY = 'up.scout.gfx.v1', GFX0 = { q: 'auto', sun: 'afternoon', trees: true, photo: false, ai: true };
+    const GFX_KEY = 'cg.scout.gfx.v1', GFX0 = { q: 'auto', sun: 'afternoon', trees: true, photo: false, ai: true };
     const gfx = (() => { try { return Object.assign({}, GFX0, JSON.parse(localStorage.getItem(GFX_KEY) || '{}')); } catch (e) { return Object.assign({}, GFX0); } })();
     const saveGfx = () => { try { localStorage.setItem(GFX_KEY, JSON.stringify({ q: gfx.q, sun: gfx.sun, trees: gfx.trees, photo: !!gfx.photo, ai: gfx.ai !== false })); } catch (e) { /* this browser keeps no settings */ } };
     const TIERS = {
@@ -80,11 +80,13 @@
        colours; sun shadows and ambient occlusion are off. The camera stands on the mesh's own ground. Google's logo and the
        tiles' data credits show in the corner, as Google requires. */
     const XT = THREE.tiles || null;
-    /* the geoid over Louisiana (NGS GEOID18): sea level lies 23.3 m (the tip of the delta) to 27.7 m (Bogalusa) below the
-       WGS84 ellipsoid here, so the elevation service's heights above sea level are turned into the ellipsoid heights Google's
-       tiles use. A cubic in latitude and longitude fitted to GEOID18 at 715 points across the state (every ZIP centre, the
-       towns, the coast and the edges): 0.3 m RMS, 0.62 m at worst; the calibration against Google's own ground takes the rest. */
-    const GEOID = (la, lo) => ((a, b) => -26.6189 + a * (0.3558 + a * (0.3637 - 0.246 * a)) + b * (0.0279 + b * (-0.1831 - 0.0505 * b)) + a * b * (-0.377 - 0.0657 * a - 0.1335 * b))(la - 31, lo + 91.5);
+    /* the geoid over California (NGS GEOID18): sea level lies about 15 to 42 m below the WGS84 ellipsoid across the box this grid covers
+       (about 35 m at Los Angeles, 33 m at San Francisco), so the elevation service's heights above sea level are turned into the ellipsoid
+       heights Google's tiles use. GEOID18 as the National Geodetic Survey's own service gives it on a half degree grid from
+       32 to 42 north and 125 to 114 west (483 points; cells past the model's edge at sea take the nearest value), blended
+       between the four corners: good to about a metre in steep country; the calibration against Google's own ground takes the rest. */
+    const GEOID_G = [-41.7,-41.6,-41.7,-41.8,-41.9,-41.7,-41.3,-41.0,-40.8,-40.7,-40.7,-39.7,-39.0,-37.9,-38.2,-37.9,-36.6,-33.4,-32.1,-34.7,-35.5,-36.6,-34.4,-41.6,-41.6,-41.5,-41.4,-41.3,-41.3,-41.1,-40.8,-40.5,-40.4,-39.4,-38.3,-37.8,-37.9,-38.1,-37.0,-34.9,-32.5,-32.5,-34.4,-34.8,-34.2,-33.1,-41.7,-41.6,-41.5,-41.2,-41.1,-40.7,-40.6,-40.5,-39.8,-39.6,-38.3,-37.7,-38.2,-37.3,-37.0,-36.0,-33.3,-31.8,-33.8,-34.4,-33.8,-33.5,-32.5,-41.7,-41.6,-41.4,-41.2,-40.8,-40.5,-40.1,-39.9,-40.0,-38.6,-37.8,-37.8,-37.0,-36.7,-35.8,-33.8,-32.3,-31.2,-33.6,-32.8,-33.0,-32.6,-31.5,-41.5,-41.3,-41.2,-41.0,-40.7,-40.2,-39.7,-39.6,-39.1,-39.6,-36.1,-36.2,-36.1,-35.8,-34.8,-33.3,-31.8,-31.7,-31.4,-32.3,-32.1,-31.7,-31.0,-41.1,-40.9,-40.7,-40.4,-40.1,-39.7,-39.8,-39.0,-37.9,-36.2,-35.4,-34.0,-33.2,-33.1,-31.8,-31.8,-31.2,-31.0,-31.8,-31.8,-31.2,-30.8,-30.2,-40.8,-40.4,-40.1,-39.8,-39.6,-39.7,-39.5,-37.7,-36.6,-35.4,-33.6,-33.3,-32.9,-30.8,-31.8,-31.7,-31.3,-31.3,-31.1,-29.8,-30.0,-30.4,-28.5,-40.4,-39.9,-39.3,-39.1,-38.8,-39.1,-38.0,-36.8,-34.8,-34.1,-33.9,-34.6,-33.0,-30.1,-30.4,-30.8,-30.5,-30.0,-29.7,-28.7,-28.8,-28.7,-28.0,-40.0,-39.6,-38.8,-38.0,-37.9,-38.2,-37.2,-34.0,-33.7,-33.1,-34.3,-33.7,-31.8,-28.6,-28.1,-28.8,-29.2,-29.0,-28.6,-28.3,-28.3,-28.0,-26.6,-39.6,-39.0,-38.5,-38.0,-37.8,-37.8,-35.2,-33.4,-32.6,-33.3,-33.3,-31.7,-29.6,-25.3,-27.8,-27.9,-29.1,-28.5,-26.7,-26.7,-26.6,-27.5,-26.0,-39.2,-38.7,-38.1,-37.8,-36.8,-35.0,-33.2,-32.7,-39.2,-39.2,-32.4,-30.1,-26.4,-24.5,-26.2,-27.4,-27.2,-27.1,-26.6,-26.1,-26.0,-25.2,-25.8,-38.5,-38.1,-37.5,-36.7,-34.8,-33.1,-32.5,-31.2,-32.3,-31.1,-32.3,-26.2,-24.6,-25.8,-25.8,-25.8,-26.0,-26.0,-25.4,-25.2,-24.9,-24.3,-23.7,-37.6,-37.7,-37.5,-35.0,-33.1,-32.2,-32.1,-32.1,-31.1,-28.9,-25.9,-24.0,-24.9,-24.8,-25.5,-25.1,-25.2,-24.5,-24.8,-24.2,-23.7,-23.0,-22.4,-22.4,-37.1,-36.4,-33.5,-31.6,-30.8,-31.3,-30.9,-29.5,-26.3,-24.0,-24.4,-24.5,-24.8,-24.1,-24.0,-23.3,-23.3,-23.5,-22.9,-22.5,-22.0,-21.0,-35.9,-36.1,-33.6,-31.0,-29.7,-29.6,-30.0,-29.6,-27.2,-24.7,-24.1,-24.2,-24.8,-24.5,-23.9,-22.6,-22.7,-21.7,-21.7,-21.4,-21.2,-20.9,-20.7,-35.2,-34.5,-32.2,-29.9,-28.4,-29.1,-28.4,-27.5,-24.9,-23.1,-23.6,-24.0,-24.4,-24.2,-23.2,-22.4,-21.7,-21.3,-20.6,-20.4,-20.0,-19.9,-19.9,-34.0,-32.8,-30.6,-29.7,-27.8,-29.1,-27.8,-24.6,-23.9,-23.0,-23.6,-23.6,-23.4,-23.3,-22.3,-22.0,-22.0,-20.3,-20.0,-19.5,-19.3,-18.9,-19.0,-33.7,-32.0,-30.6,-28.3,-27.1,-27.9,-26.5,-23.8,-22.9,-22.9,-22.8,-22.8,-22.3,-22.2,-21.5,-20.8,-20.8,-20.0,-19.0,-18.2,-18.5,-18.4,-18.6,-33.0,-31.5,-29.4,-26.9,-24.6,-24.9,-25.1,-24.4,-23.1,-22.5,-22.0,-21.6,-21.9,-21.0,-20.7,-20.3,-19.7,-19.0,-18.3,-18.1,-17.3,-17.2,-17.5,-31.3,-30.5,-28.6,-26.2,-23.8,-23.7,-23.3,-23.0,-22.7,-22.1,-21.7,-21.1,-20.6,-20.5,-20.0,-19.2,-18.4,-18.0,-16.8,-16.7,-15.9,-16.2,-16.3,-30.2,-29.3,-26.8,-24.3,-23.8,-23.6,-23.3,-22.9,-22.2,-21.7,-20.8,-20.5,-20.3,-19.8,-19.0,-18.0,-17.8,-17.4,-16.3,-16.2,-15.4,-15.2,-15.2];
+    const GEOID = (la, lo) => { const NLAT = 21, NLON = 23, fi = Math.min(NLAT - 1.001, Math.max(0, (la - 32.0) / 0.5)), fj = Math.min(NLON - 1.001, Math.max(0, (lo - (-125.0)) / 0.5)), i = Math.floor(fi), j = Math.floor(fj), a = fi - i, b = fj - j, g = (y, x) => GEOID_G[y * NLON + x]; return g(i, j) * (1 - a) * (1 - b) + g(i, j + 1) * (1 - a) * b + g(i + 1, j) * a * (1 - b) + g(i + 1, j + 1) * a * b; };
     const PR = { on: !!gfx.photo, tiles: null, reo: null, wrap: new THREE.Group(), key: '', err: '', calib: 0, gy: 0, gyAt: null, gyT: 0, gyTarget: null, attr: '', attrT: 0 };
     PR.wrap.rotation.y = Math.PI; PR.wrap.name = 'photoreal'; PR.wrap.visible = false; scene.add(PR.wrap);   /* the plugin puts +X west and +Z north; half a turn gives +X east and +Z south, as here */
     let dracoL = null;
@@ -93,7 +95,7 @@
     const prKey = () => (env.googleKey ? env.googleKey() : '') || '';
     const prOn = () => PR.on && !!PR.tiles && !PR.err;
     const demNow = () => (DEMS.d && DEMS.gen === S.gen ? DEMS.d : null);   /* a grid from an earlier scene centre is never used */
-    const prH0 = () => (demNow() ? demNow().ground(0, 0) : 10) + GEOID(S.lat0 || 30.45, S.lon0 || -91.19);   /* without the grid, a typical Louisiana ground of 10 m */
+    const prH0 = () => (demNow() ? demNow().ground(0, 0) : 10) + GEOID(S.lat0 || 34.05, S.lon0 || -118.25);   /* without the grid, a ground of 10 m */
     const groundRel = (x, z) => { const d = demNow(); return d ? d.ground(x, z) - d.ground(0, 0) : 0; };
     const esc3 = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     /* what to tell the person when Google refuses: from the status alone (the library's own text can hold the request's
@@ -195,7 +197,7 @@
     }
     function setSun() {
       const la = S.lat0 || 30.4515, lo = S.lon0 || -91.1871, t = sunTime(gfx.sun, la, lo); let { alt, az } = solar(t, la, lo); S.sunNote = '';
-      if (alt < 4) { S.sunNote = gfx.sun === 'now' ? 'The sun is down in Louisiana now, so the scene is lit as at sundown.' : ''; alt = 4; }
+      if (alt < 4) { S.sunNote = gfx.sun === 'now' ? 'The sun is down in California now, so the scene is lit as at sundown.' : ''; alt = 4; }
       S.sunAlt = alt; S.sunTime = t; const ca = Math.cos(R(alt)); sunDir.set(Math.sin(R(az)) * ca, Math.sin(R(alt)), -Math.cos(R(az)) * ca).normalize();
       const k = smooth(3, 38, alt);
       sun.color.setRGB(1, 0.7 + 0.3 * k, 0.48 + 0.52 * k); sun.intensity = 1.3 + 3.5 * smooth(0, 30, alt);
@@ -453,11 +455,10 @@
     const tintOf = (kind, id) => { const L = TINTS[kind]; return C(L[Math.floor(hash01(id + 't') * L.length) % L.length]); };
 
     /* ---------- the scene traced by AI from the newest satellite photo of 2024 or later (scouttrace.js) ---------- */
-    /* Over Baton Rouge, New Orleans and Shreveport no public 3D survey is that new (USGS lidar of 2018 over most of Baton
-       Rouge, 2021 over New Orleans, 2018 over Shreveport; FEMA's footprints there come mostly from NGA lidar of 2008 to
-       2012), and no lidar shapes them elsewhere either, so the buildings and trees are checked
-       against, and drawn from, the newest photo Esri serves here when it was taken in 2024 or later (Vantor's January 16,
-       2026 picture over Baton Rouge, for one). The photo leans a little (a satellite looks slightly sideways): TR.res.lean, metres in the picture per
+    /* FEMA's California footprints are older than the picture (lidar of 2010 to 2012 in the metros, imagery of 2014 to
+       2024 elsewhere) and no lidar shapes the trees, so the buildings and trees are checked
+       against, and drawn from, the newest photo Esri serves here when it was taken in 2024 or later (Vantor's November 26,
+       2025 picture over central Los Angeles, for one). The photo leans a little (a satellite looks slightly sideways): TR.res.lean, metres in the picture per
        metre of height, is taken out of every traced outline and put back when the photo is laid on a roof. */
     const TRACE = window.__SCOUT_TRACE__ || null, TR = { state: 'off', res: null, src: null, all: null, note: '', partial: null, reach: 0, ms: null };
     const bboxOf = P => { let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity; P.forEach(p => { x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); z0 = Math.min(z0, p[1]); z1 = Math.max(z1, p[1]); }); return [x0, z0, x1, z1]; };
@@ -576,12 +577,12 @@
           const level = y => { const f = () => y; f.level = true; return f; };
           if (!flat) {
             /* a hipped roof: the footprint is the eave line, offset inward to the ridge; the walls stand 42 cm in, under the eaves.
-               Louisiana homes pitch steeper than a Texas ranch: up to about 7 in 12 on houses and apartments where the recorded
-               height leaves a window high eave (2.8 m), and at least 5 in 12 unless the 2.5 m eave guard below flattens a low
-               house; 5 in 12 on the rest */
+               California homes pitch low (the ranch house, and the tile roofed tracts, at about 4 in 12): up to 5 in 12 on houses
+               and apartments where the recorded height leaves a window high eave (2.8 m), and at least 4 in 12 unless the
+               2.5 m eave guard below flattens a low house; 4 in 12 on the rest (a judgment: no survey of roof pitch was found) */
             let d = Math.min(9, 0.46 * minWidth(P)), Q = d > 0.25 ? offsetRing(P, -d) : null, tries = 0;
             while (Q && !validOffset(P, Q) && tries++ < 4) { d *= 0.7; Q = offsetRing(P, -d); }
-            let rise; if (Q && validOffset(P, Q)) rise = cls === 'sf' || cls === 'mf' ? Math.max(d * 0.42, Math.min(d * 0.58, hRaw - 2.8)) : d * 0.42; else { const [mx, mz] = centroid(P); Q = P.map(p => [mx + (p[0] - mx) * 0.35, mz + (p[1] - mz) * 0.35]); rise = clamp(0.2 * Math.sqrt(ar), 0.8, 3); }
+            let rise; if (Q && validOffset(P, Q)) rise = cls === 'sf' || cls === 'mf' ? Math.max(d * 0.333, Math.min(d * 0.42, hRaw - 2.8)) : d * 0.333; else { const [mx, mz] = centroid(P); Q = P.map(p => [mx + (p[0] - mx) * 0.35, mz + (p[1] - mz) * 0.35]); rise = clamp(0.2 * Math.sqrt(ar), 0.8, 3); }
             let eave = hRaw - rise; if (eave < 2.5) { eave = Math.max(2.2, Math.min(2.5, hRaw - 0.6)); rise = Math.max(0.4, hRaw - eave); }
             const top = eave + rise, Wo = offsetRing(P, -0.42), W = validOffset(P, Wo) && area(Wo) > 0.55 * ar ? Wo : P;
             if (ri === 0) geo.door = doorSpot(W, cls, kind);
@@ -937,7 +938,7 @@
       S.treeList = []; clearTrees(); Object.assign(TR, { state: TRACE ? 'waiting' : 'off', res: null, src: null, all: null, srcErr: '', note: '', partial: null, reach: 0, ms: null });
       /* the photo: the newest of 2024 or later among the finest zooms, so the roofs, the AI and the lean all read one picture */
       if (TRACE) { try { const sr = await Promise.race([TRACE.source(la, lo), sleep(6000).then(() => { throw new Error('slow'); })]); if (gen !== S.gen) return; TR.src = sr.best; TR.all = sr.all; TR.srcErr = ''; } catch (e) { TR.src = null; TR.srcErr = e && e.message === 'slow' ? 'the imagery service was slow to answer' : 'the imagery service did not answer'; } if (gen !== S.gen) return; }
-      /* zoom 20 only where Esri has a 15 cm layer: across Louisiana its zoom 20 tile reads "Map data not yet available" */
+      /* zoom 20 only where Esri has a fine layer: past its finest zoom its tile reads "Map data not yet available" */
       const has20 = (TR.all || []).some(o => o.zoom === 20), zs = TR.src && (TR.src.zoom === 20 || TR.src.zoom === 19) ? TR.src.zoom : (T.img === 20 && has20 ? 20 : 19), z20 = zs === 20 && renderer.capabilities.maxTextureSize >= 4096;
       const inner = imagery(z20 ? 20 : 19, z20 ? 16 : 8, '#6f7764', () => treesSoon()), outer = imagery(17, 8, '#77806b'); S.img = inner;
       G.ground.add(groundPlane(outer, -0.06, false)); G.ground.add(groundPlane(inner, 0, true));
@@ -1106,7 +1107,7 @@
       mats();
       const root = new THREE.Scene(), [la, lo] = [S.lat0, S.lon0], r = roadAt();
       root.name = 'Rooftop Scout 3D';
-      root.userData = { generator: 'Uplift Louisiana Roofing Atlas, Rooftop Scout', origin: { lat: +la.toFixed(7), lon: +lo.toFixed(7) }, units: 'meters', axes: '+X east, +Y up, +Z south (glTF); Unreal converts to Z up on import', street: r ? r.name : '', exported: new Date().toISOString(), legend: { green: 'likely needs roof work (a reroof, a repair, or wind or hail work)', orange: 'maybe', red: 'not likely' },
+      root.userData = { generator: 'California Roofer Guru, Rooftop Scout', origin: { lat: +la.toFixed(7), lon: +lo.toFixed(7) }, units: 'meters', axes: '+X east, +Y up, +Z south (glTF); Unreal converts to Z up on import', street: r ? r.name : '', exported: new Date().toISOString(), legend: { green: 'likely needs roof work (a re-roof, a tile relay, a repair, or wind, hail or fire work)', orange: 'maybe', red: 'not likely' },
         sources: 'Buildings: FEMA USA Structures (public domain). Streets: (c) OpenStreetMap contributors, ODbL, or the U.S. Census TIGER file. Trees: placed where Esri imagery shows canopy; their shapes are generic. Facades, doors and roof pitches are generic, not observed. Esri imagery is not included.' };
       const slice = (B, t0, t1, colors, uv) => { const g = new THREE.BufferGeometry(), a = 9 * t0, b = 9 * t1; g.setAttribute('position', new THREE.Float32BufferAttribute(B.p.slice(a, b), 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(B.n.slice(a, b), 3)); if (uv !== false) g.setAttribute('uv', new THREE.Float32BufferAttribute(B.u.slice(6 * t0, 6 * t1), 2)); if (colors) g.setAttribute('color', new THREE.Float32BufferAttribute(B.c.slice(a, b), 3)); return g; };
       /* tangents for the walls' normal maps, from each triangle's positions and texture coordinates (the glTF way: xyz and a handedness) */

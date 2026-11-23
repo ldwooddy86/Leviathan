@@ -35,7 +35,7 @@ const MOD_CA = {
   $$('#rail button').forEach(b => b.addEventListener('click', () => showModule(b.id.slice(4))));
   document.getElementById('shellFacts').insertAdjacentHTML('afterend', '<button class="tbtn" id="brandBtn" title="Company settings: name, CSLB license, qualifying individual, offices, service area, colors">⚙ Company</button>'); document.getElementById('brandBtn').onclick = () => BRANDX.panel();
   /* the facts in the top bar are all counted from the data */
-  const tile = sum(Z.map(z => z.tile_n || 0)); const fair = sum(Z.map(z => z.fair_pif || 0)); const lic = (META.lic && (META.lic.clear || META.lic.n)) || sum(Z.map(z => z.lic || 0));
+  const tile = sum(Z.map(z => z.tile_n || 0)); const fair = FAIR_STATE ? FAIR_STATE.now : sum(Z.map(z => z.fair_pif || 0)); const lic = (META.lic && (META.lic.clear || META.lic.n)) || sum(Z.map(z => z.lic || 0));
   const facts = [[N(NCOUNTY), 'counties'], [N(META.nzip || Z.length), 'ZIP codes'], [K(META.roofs), 'one unit roofs'], [K(META.ra20), 'roofs 20+ years old']];
   if (tile > 0) facts.push([K(tile), 'tile roofs']);
   if (fair > 0) facts.push([K(fair), 'FAIR Plan home policies']);

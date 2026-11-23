@@ -34,11 +34,15 @@ const NWSX = (() => {
   /* a time in Pacific time, for labels */
   const when = (iso, opt) => { try { return new Date(iso).toLocaleString('en-US', Object.assign({ timeZone: TZ, month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }, opt || {})) + ' ' + TZL; } catch (e) { return String(iso || ''); } };
   /* ---------- crew calendar: holidays when crews are off and leads slow, 2026 and 2027 ---------- */
-  /* Federal holidays, with the weekend they make, plus Cesar Chavez Day (a California state holiday, March 31). */
-  const HOL = [['2026-01-01', '2026-01-04', 'New Year'], ['2026-01-17', '2026-01-19', 'Martin Luther King Jr. Day weekend'], ['2026-02-14', '2026-02-16', 'Presidents Day weekend'], ['2026-03-31', '2026-03-31', 'Cesar Chavez Day'],
+  /* Federal holidays, with the weekend they make, plus California's Farmworkers Day (named Cesar Chavez Day through 2025). Checked
+     2026-11-23: the Secretary of State's list of 2026 state holidays gives "Tuesday, March 31 Farmworkers Day"
+     (sos.ca.gov/state-holidays); it had no 2027 list yet, so the 2027 date is the one on the California courts' 2027 holiday
+     schedule, "Farmworkers Day (formerly Cesar Chavez Day) Friday, April 9" (courts.ca.gov/holidays.htm). Copies of both pages are
+     in CA/atlas/integ/web. */
+  const HOL = [['2026-01-01', '2026-01-04', 'New Year'], ['2026-01-17', '2026-01-19', 'Martin Luther King Jr. Day weekend'], ['2026-02-14', '2026-02-16', 'Presidents Day weekend'], ['2026-03-31', '2026-03-31', 'Farmworkers Day (California)'],
     ['2026-05-23', '2026-05-25', 'Memorial Day weekend'], ['2026-06-19', '2026-06-21', 'Juneteenth'], ['2026-07-03', '2026-07-05', 'Independence Day'], ['2026-09-05', '2026-09-07', 'Labor Day weekend'],
     ['2026-10-10', '2026-10-12', 'Columbus Day and Indigenous Peoples Day weekend'], ['2026-11-11', '2026-11-11', 'Veterans Day'], ['2026-11-25', '2026-11-29', 'Thanksgiving'], ['2026-12-24', '2026-12-27', 'Christmas'],
-    ['2026-12-31', '2027-01-03', 'New Year'], ['2027-01-16', '2027-01-18', 'Martin Luther King Jr. Day weekend'], ['2027-02-13', '2027-02-15', 'Presidents Day weekend'], ['2027-03-31', '2027-03-31', 'Cesar Chavez Day'],
+    ['2026-12-31', '2027-01-03', 'New Year'], ['2027-01-16', '2027-01-18', 'Martin Luther King Jr. Day weekend'], ['2027-02-13', '2027-02-15', 'Presidents Day weekend'], ['2027-04-09', '2027-04-09', 'Farmworkers Day (California; the date on the courts\' 2027 schedule)'],
     ['2027-05-29', '2027-05-31', 'Memorial Day weekend'], ['2027-06-18', '2027-06-20', 'Juneteenth'], ['2027-07-03', '2027-07-05', 'Independence Day'], ['2027-09-04', '2027-09-06', 'Labor Day weekend'],
     ['2027-10-09', '2027-10-11', 'Columbus Day and Indigenous Peoples Day weekend'], ['2027-11-11', '2027-11-11', 'Veterans Day'], ['2027-11-24', '2027-11-28', 'Thanksgiving'], ['2027-12-24', '2027-12-26', 'Christmas'], ['2027-12-31', '2028-01-02', 'New Year']];
   const holiday = date => { const h = HOL.find(([a, b]) => date >= a && date <= b); return h ? h[2] : ''; };
@@ -57,7 +61,7 @@ const NWSX = (() => {
     const sa = ok(TM.sa_days);
     add('rain', 'Rain season', topMonths(ok(TM.ar_days) || plus('ar1', 'ar2', 'ar3', 'ar4', 'ar5') || plus('hrain', 'flood'), 0.8), ok(TM.ar_days) || ok(TM.ar1) ? 'atmospheric rivers by month (CW3E catalog)' : 'heavy rain and flood records by month', 'Leak calls, tarps and emergency repairs. Tear offs need a dry window; book re-roofs for the dry months before it.');
     add('wind', 'Santa Ana season', (sa || SA_DAYS).map((v, i) => v >= 3 ? i : -1).filter(i => i >= 0), 'Scripps Santa Ana winds regional index, mean days by month, 1948 to 2018', 'Dry offshore wind in the south: lifted shingles and tile, and the highest fire danger of the year.');
-    add('fire', 'Fire season', topMonths(ok(TM.fire_ac) || ok(TM.fire_n) || ok(TM.fire_dest), 0.8), 'acres burned by month of ignition (CAL FIRE perimeters)', 'Hardening work sells before it; after a fire the disaster rules on price, licence and contracts apply.');
+    add('fire', 'Fire season', topMonths(ok(TM.fire_ac) || ok(TM.fire_n) || ok(TM.fire_dest), 0.8), 'acres burned by month of ignition (CAL FIRE perimeters)', 'Hardening work sells before it; after a fire the disaster rules on price, license and contracts apply.');
     add('heat', 'Heat season', topMonths(plus('xheat', 'heat'), 0.8), 'heat and excessive heat records by month', 'Inland crews start at first light; shade above 80 F and high heat procedures at 95 F are the law for outdoor work.');
     add('snow', 'Snow season', topMonths(plus('hsnow', 'wstorm'), 0.8), 'heavy snow and winter storm records by month', 'Mountain roofs: snow load, ice dams and short work days. Re-roofs wait for the melt.');
     return out;
@@ -71,7 +75,7 @@ const NWSX = (() => {
   function gridAt(arr, iso) { if (!arr || !arr.length) return null; const t = Date.parse(iso); for (const [vt, v] of arr) { const [s, dur] = String(vt).split('/'); const t0 = Date.parse(s); const len = durH(dur) * 3600e3; if (t >= t0 && t < t0 + len) return v; } return null; }
   /* amounts (rain, snow) are totals over their period: the hourly rate is the total divided by the hours of the period */
   function gridRate(arr, iso) { if (!arr || !arr.length) return null; const t = Date.parse(iso); for (const [vt, v] of arr) { const [s, dur] = String(vt).split('/'); const t0 = Date.parse(s); const n = durH(dur); if (t >= t0 && t < t0 + n * 3600e3) return isN(v) ? v / n : null; } return null; }
-  const kmh = v => isN(v) ? v / 1.609 : null;          /* kilometres an hour to miles an hour */
+  const kmh = v => isN(v) ? v / 1.609 : null;          /* kilometers an hour to miles an hour */
   const mmIn = v => isN(v) ? v / 25.4 : null;          /* millimetres to inches */
   /* wind from the land: a direction from north northwest round through east southeast (330 to 110 degrees) is offshore on this coast */
   const offshore = deg => isN(deg) && (deg >= 330 || deg <= 110);
@@ -171,11 +175,11 @@ const NWSX = (() => {
   /* ---------- playbooks: what a roofer does when each kind of trigger fires. Law lines are from the California register (module 03). ---------- */
   const LAW = {
     gouge: 'After a federal, state or local emergency declaration a contractor may not charge more than 10 percent above its own price from before the declaration for repair or reconstruction for 180 days, and building materials are capped the same way for 30 days (Penal Code 396).',
-    lic: 'Contracting without a licence on damage from a declared disaster can be charged as a felony (Business and Professions Code 7028.16).',
+    lic: 'Contracting without a license on damage from a declared disaster can be charged as a felony (Business and Professions Code 7028.16).',
     cancel: 'A contract to repair a home damaged in a declared emergency carries a seven business day right to cancel; the ordinary right is three business days, five for a senior (Business and Professions Code 7159).',
     down: 'The down payment may not exceed $1,000 or 10 percent of the price, whichever is less, and no payment may run ahead of work done; in a declared disaster area the court must impose the maximum fine (Business and Professions Code 7159.5).',
     ded: 'Never offer or advertise a discount meant to offset the deductible, and never pay an agent, broker or adjuster for a referral (Penal Code 551).',
-    adj: 'Negotiating a claim with the insurer for pay is public adjusting and needs that licence (Insurance Code 15006 and 15007). Write the estimate and the scope; do not offer to handle the claim.',
+    adj: 'Negotiating a claim with the insurer for pay is public adjusting and needs that license (Insurance Code 15006 and 15007). Write the estimate and the scope; do not offer to handle the claim.',
     heat: 'Outdoor heat rule: a quart of water an hour for each worker, shade when it is over 80 F, high heat procedures at 95 F or more (Title 8, section 3395).',
     fall: 'Residential roofing needs fall protection at 6 feet or more on slopes up to 7:12 and at any height on steeper roofs (Title 8, section 1731, since July 1, 2025).',
   };
@@ -193,7 +197,7 @@ const NWSX = (() => {
     fire: { name: 'Fire weather (Red Flag Warning)', line: 'harden', lines: ['harden'],
       before: 'A Red Flag Warning is a day for crew safety first: no hot work (torch applied membranes, kettles, grinding), vehicles off dry grass, and a plan to leave. Jobs in the warned zones should be closed up by the afternoon before.',
       during: 'Do not advertise into fear while a fire burns. Hardening messages (Class A assembly, ember resistant vents, gutters and the first five feet) run as education in the warned zones only when no fire is burning there, and stop the moment an evacuation is ordered.',
-      after: 'After a fire: wait for the area to reopen, then inspections by request. Smoke and ember damage is repair work; total losses are rebuild work on a long clock. The disaster rules on price, licence, contracts and claims below apply from the declaration.',
+      after: 'After a fire: wait for the area to reopen, then inspections by request. Smoke and ember damage is repair work; total losses are rebuild work on a long clock. The disaster rules on price, license, contracts and claims below apply from the declaration.',
       law: [LAW.gouge, LAW.lic, LAW.cancel, LAW.down, LAW.adj, LAW.ded] },
     heat: { name: 'Heat', line: 'coat', lines: ['coat', 'comm'],
       before: 'Shift the start to first light and plan the tear off to finish before early afternoon. Check water, shade and the written heat plan. Shingles scuff and sealant strips grab early in heat; adjust staging.',
@@ -214,7 +218,7 @@ const NWSX = (() => {
   /* ---------- alerts mapped to roofing actions (the first pattern that matches wins) ---------- */
   const ALERT_MAP = [
     [/Evacuation|Fire Warning|Shelter In Place|Civil Emergency|Law Enforcement/i, 'Evacuation', 'Stop all outreach to the area: no ads, no calls, no door knocking. Account for crews and get them out. Nothing is sold into an evacuation zone until it reopens.', 'fire'],
-    [/Red Flag Warning|Fire Weather Watch/i, 'Fire weather', 'Crew safety first: no torch or kettle work and nothing that throws sparks, trucks off dry grass, close up jobs in the warned zones. Hardening messages may run as education where no fire is burning; never fear. If a fire follows, the disaster rules apply: prices held within 10 percent of the pre emergency price (Penal Code 396), a licence for every job (Business and Professions Code 7028.16), seven business days to cancel a disaster repair contract (7159).', 'fire'],
+    [/Red Flag Warning|Fire Weather Watch/i, 'Fire weather', 'Crew safety first: no torch or kettle work and nothing that throws sparks, trucks off dry grass, close up jobs in the warned zones. Hardening messages may run as education where no fire is burning; never fear. If a fire follows, the disaster rules apply: prices held within 10 percent of the pre emergency price (Penal Code 396), a license for every job (Business and Professions Code 7028.16), seven business days to cancel a disaster repair contract (7159).', 'fire'],
     [/High Wind|Wind Advisory|Extreme Wind|Lake Wind/i, 'Wind', 'Gusts over 30 mph: no tear offs, secure material and stacks. After the event, repair and inspection ads for lifted shingles and slipped tile in the warned zones; with dry offshore wind treat the day as fire weather too.', 'wind'],
     [/High Surf|Coastal Flood|Beach Hazards|Rip Current|Sneaker|Small Craft|Gale|Marine|Tsunami/i, 'Coast', 'No roofing effect inland of the beach. Salt spray days are hard on fresh coatings near the water.', ''],
     [/Flash Flood|Debris Flow/i, 'Flash flood and debris flow', 'Keep crews and trucks out of canyons and off roads below burn scars. Flood damage is not roof damage: no flood imagery. Short, heavy rain finds weak flashing, so leak repair ads earn their keep for the next 72 hours.', 'rain'],

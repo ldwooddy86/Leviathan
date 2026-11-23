@@ -26,11 +26,14 @@ const CITIES = DATA.cities || []; const CITYI = {}; CITIES.forEach(c => CITYI[c.
 const PLACES = DATA.places || [];
 const COMP = DATA.comp || [];              /* named roofing companies with public evidence only (SCHEMA.md section 8): a short list, not a roster */
 const BENCH = null;                        /* no company is assumed; set yours in the Company panel */
-/* Track structures have no California meaning (the first edition drew storm tracks from them). The data ships them empty; they stay defined so a
-   reader in another module does not throw, and nothing is drawn from them. */
-const RT = DATA.routes || []; const RTI = {}; RT.forEach(r => RTI[r.r] = r);
-const RLIST = DATA.rlist || [];
-const SIDS = DATA.sids || [];
+/* FAIR Plan home policies statewide at the fiscal year ends the data carries: the Plan's own state totals (DATA.ins.state.fair_pif),
+   the one figure every module prints for the state. The ZIP rows and the county rows sum to a few hundred fewer, because the Plan
+   places some policies in no ZIP of the atlas. */
+const FAIR_STATE = (() => { const a = ((DATA.ins || {}).state || {}).fair_pif; return Array.isArray(a) && a.length && a[a.length - 1] > 0 ? { now: a[a.length - 1], first: a[0] } : null; })();
+/* Structures destroyed and damaged by wildfire statewide: the sum over the fires of the event ledger (DATA.hz.fires, CAL FIRE damage
+   inspections, which begin in 2013). The one statewide figure for modules 02 and 06; the ZIP and county rows sum to a few hundred
+   fewer, because some inspected structures fall in no ZIP row of the atlas. */
+const FIRE_STATE = (() => { const f = ((DATA.hz || {}).fires || []).filter(x => typeof x.dest === 'number'); return f.length ? { dest: f.reduce((t, x) => t + x.dest, 0), dmg: f.reduce((t, x) => t + (x.dmg || 0), 0), n: f.length } : null; })();
 const PTF = DATA.ptflags || [];            /* located report flag bit order (hazard data) */
 /* located weather and fire reports (hazard data; kinds and magnitudes are listed in HAZARD_SCHEMA.md and in PT_KINDS when the data carries it) */
 const PTS = (DATA.pts || []).map(a => ({ lat: a[0], lon: a[1], y: a[2], m: a[3], dw: a[4], h: a[5], k: a[6], mag: a[7], b: a[8], pi: a[9], zi: a[10], dmg: a[11] }));
@@ -40,7 +43,7 @@ const LINE_KEYS = (META.model.LINES && META.model.LINES.length ? META.model.LINE
 const COM_LINES = (META.model.COM && META.model.COM.length ? META.model.COM.slice() : ['mf', 'comm', 'coat', 'newc']).filter(k => LINE_KEYS.includes(k));
 const RES_LINES = (META.model.RES && META.model.RES.length ? META.model.RES.slice() : LINE_KEYS.filter(k => !COM_LINES.includes(k))).filter(k => LINE_KEYS.includes(k));
 const NLINE = LINE_KEYS.length;
-/* one colour per line, in line order, for charts that show the lines together (light, dark) */
+/* one color per line, in line order, for charts that show the lines together (light, dark) */
 const LINE_COLORS = { replace: ['#b0522b', '#d98b5d'], repair: ['#3a77a0', '#64a0c4'], storm: ['#1d405a', '#a2c9e1'], fire: ['#9c2f2a', '#f07a6c'], harden: ['#d0892a', '#f0b45c'], tile: ['#8b3d1f', '#f2b892'], solar: ['#c9a227', '#e6cf6a'], metal: ['#6b735f', '#929a85'], mh: ['#7a5c8e', '#b79bcb'], mf: ['#2a5c7f', '#7eb0cd'], comm: ['#3a3f32', '#c2c8b6'], coat: ['#5693b8', '#3d7ba1'], newc: ['#868f7b', '#6f7663'] };
 const lineColor = k => (LINE_COLORS[k] || ['#8d8578', '#9a9184'])[isDark() ? 1 : 0];
 const YEARS_F = (() => { const ys = [...new Set((DATA.pts || []).map(a => a[2]))].filter(y => y > 1900).sort((a, b) => a - b); if (!ys.length) return []; const out = []; for (let y = ys[0]; y <= ys[ys.length - 1]; y++) out.push(y); return out; })();   /* the years the located reports cover, from the data */
@@ -87,7 +90,9 @@ const K = v => { if (!isN(v)) return '—'; const a = Math.abs(v); return a >= 1
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const isDark = () => { const t = document.documentElement.dataset.theme; if (t === 'dark') return true; if (t === 'light') return false; return matchMedia('(prefers-color-scheme: dark)').matches; };
-const G = g => String(g).split('/').map(x => `<span class="g g-${x.trim().toLowerCase()[0]}">${esc(x.trim())}</span>`).join('');
+/* the one meaning of the grades, used by every module (the footer prints the same key) */
+const GRADE_KEY = { a: 'A: primary and direct', b: 'B: primary with a caveat, or a model on primary data', c: 'C: secondary, volatile or proxy', d: 'D: an assumption, a judgment, or over ten years old' };
+const G = g => String(g).split('/').map(x => { const k = x.trim().toLowerCase()[0]; return `<span class="g g-${k}"${GRADE_KEY[k] ? ` title="${GRADE_KEY[k]}"` : ''}>${esc(x.trim())}</span>`; }).join('');
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const sum = a => a.reduce((s, x) => s + (isN(x) ? +x : 0), 0);
 const mean = a => { const b = a.filter(isN); return b.length ? sum(b) / b.length : null; };
@@ -109,8 +114,10 @@ function houseClean(s) {
     .replace(/\s*[—–―]\s*/g, ', ')
     .replace(/(\d)\s*[–—-]\s*(\d)/g, '$1 to $2')
     .replace(/\bI-(\d+)\b/g, 'Interstate $1').replace(/\b(US|CA|SR)-(\d+)\b/g, '$1 $2')
+    .replace(/\b([ABCD])-(\d{1,2}[A-Za-z]?)\b/g, '$1\u0001$2')      /* CSLB classifications keep their hyphen: C-39, C-10, C-46, B-2, D-12 */
     .replace(/(\w)-(\w)/g, '$1 $2')
     .replace(/[‐-―−-]/g, ' ')
+    .replace(/\u0001/g, '-')
     .replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').replace(/\s+([,.;:!?])/g, '$1').trim();
 }
 const phoneFmt = p => { const d = String(p || '').replace(/\D/g, ''); if (d.length === 11 && d[0] === '1') return `(${d.slice(1, 4)}) ${d.slice(4, 7)} ${d.slice(7)}`; if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)} ${d.slice(6)}`; return String(p || ''); };

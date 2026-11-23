@@ -25,7 +25,7 @@
   function SkyModel(D) {
     const FT = 0.3048, NM = 1852, KT = 0.514444, RD = Math.PI / 180, G0 = 9.81, M = { FT, NM, KT };
     const cl = (v, a, b) => (v < a ? a : v > b ? b : v), lp = (a, b, t) => a + (b - a) * t, ss = (a, b, v) => { const t = cl((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-    const hash = (a, b, c, d) => { let h = 2166136261 ^ (a | 0); h = Math.imul(h ^ (b | 0), 16777619); h = Math.imul(h ^ (c | 0), 16777619); h = Math.imul(h ^ (d | 0), 16777619); h ^= h >>> 13; h = Math.imul(h, 0x5bd1e995); h ^= h >>> 15; return (h >>> 0) / 4294967296; };
+    const hash = (a, b, c, d) => { let h = 2166136261 ^ (a | 0); h = Math.imul(h ^ (b | 0), 16777619); h = Math.imul(h ^ (c | 0), 16777619); h = Math.imul(h ^ (d | 0), 16777619); h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
     const mLat = la => 111132.92 - 559.82 * Math.cos(2 * RD * la) + 1.175 * Math.cos(4 * RD * la), mLon = la => 111412.84 * Math.cos(RD * la) - 93.5 * Math.cos(3 * RD * la);
     M.hash = hash; M.mLat = mLat; M.mLon = mLon;
     /* sizes in metres, approach speed in knots (FAA database); d: fuselage width, assumed from the type's cabin; eng: engines; wake: L large, H heavy, S super */
@@ -84,12 +84,13 @@
     function arrivals(ap, b) {
       const key = 'a' + ap + b; let L = cache.get(key); if (L) return L; L = []; const F = FLOW[ap], id = AID[ap], [ra] = rates(ap, b), streams = F.pair ? 1 : F.arr.length, t0 = b * 3600;
       for (let s = 0; s < streams; s++) {
-        const minSep = F.pair ? M.MINSEP_PAIR : M.MINSEP; let n = nOf(ra / (F.pair ? 2 : streams), id, b, 10 + s); n = Math.min(n, Math.floor(3600 / (minSep + 20))); if (!n) continue; const Hh = 3600 / n, jm = Math.min(0.3 * Hh, (Hh - minSep) / 2);
-        const typeOf = k => TYPES[pickW(MIX[ap] || MIX.other, hash(id, b, k, 20 + s))]; let prev = null;
+        const minSep = F.pair ? M.MINSEP_PAIR : M.MINSEP; let n = nOf(ra / (F.pair ? 2 : streams), id, b, 10 + s); n = Math.min(n, F.pair ? Math.floor(3600 / (minSep + 20)) : 31); if (!n) continue;   /* at most 31 an hour on one runway: then 5 NM behind a heavy holds */ const Hh = 3600 / n, jm = Math.min(0.3 * Hh, (Hh - minSep) / 2);
+        const typeAt = (bb, k) => TYPES[pickW(MIX[ap] || MIX.other, hash(id, bb, k, 20 + s))], typeOf = k => typeAt(b, k), wakeOf = (bb, k) => { const a1 = typeAt(bb, k).wake, a2 = F.pair ? typeAt(bb, k + 500).wake : 'L'; return a1 === 'S' || a2 === 'S' ? 'S' : a1 === 'H' || a2 === 'H' ? 'H' : 'L'; };
+        let prev = null, pS = [false, false]; { const [rp] = rates(ap, b - 1); let np = nOf(rp / (F.pair ? 2 : streams), id, b - 1, 10 + s); np = Math.min(np, F.pair ? Math.floor(3600 / (minSep + 20)) : 31); if (np > 0) { prev = wakeOf(b - 1, np - 1); pS = [typeAt(b - 1, np - 1).wake === 'S', F.pair && typeAt(b - 1, np - 1 + 500).wake === 'S']; } }   /* what the last one of the hour before was */
         for (let k = 0; k < n; k++) { const ty = typeOf(k), ty2 = F.pair ? typeOf(k + 500) : null, wk = ty.wake === 'S' || (ty2 && ty2.wake === 'S') ? 'S' : ty.wake === 'H' || (ty2 && ty2.wake === 'H') ? 'H' : 'L'; let j = (hash(id, b, k, 30 + s) * 2 - 1) * jm;
-          if (wk !== 'L') j = -jm; else if (prev && prev !== 'L') j = jm; if (prev === 'S' && !F.pair) { prev = wk; continue; }   /* nothing lands in the slot behind an A380: 7 NM */
+          if (wk !== 'L') j = -jm; else if (prev && prev !== 'L') j = jm; const skip = pS; pS = [ty.wake === 'S', !!ty2 && ty2.wake === 'S']; if (skip[0] && !F.pair) { prev = wk; continue; }   /* nothing lands on a runway in the slot behind an A380: 7 NM */
           const t = t0 + (k + 0.5) * Hh + j, fl = flowAt(F, t), mk = (rw, ty3, dt, tag) => ({ id: key + '_' + s + '_' + k + tag, ap, kind: 'arr', rw, type: ty3, t0: t + dt, liv: Math.floor(hash(id, b, k, 40 + s + (tag ? 5 : 0)) * LIVERY.length), sd: hash(id, b, k, 50 + s) });
-          if (F.pair && fl === F) { L.push(mk(F.arr[0], ty, -4, 'L')); L.push(mk(F.arr[1], ty2, 0, 'R')); } else L.push(mk(fl.arr[(F.pair ? k : s) % fl.arr.length], ty, 0, ''));
+          if (F.pair && fl === F) { if (!skip[0]) L.push(mk(F.arr[0], ty, -4, 'L')); if (!skip[1]) L.push(mk(F.arr[1], ty2, 0, 'R')); } else L.push(mk(fl.arr[(F.pair ? k : s) % fl.arr.length], ty, 0, ''));
           prev = wk; } }
       L.sort((x, y) => x.t0 - y.t0); if (cache.size > CMAX) cache.clear(); cache.set(key, L); return L;
     }

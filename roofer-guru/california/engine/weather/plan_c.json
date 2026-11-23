@@ -1,0 +1,11 @@
+[
+  { "addr": "39707 Big Bear Blvd, Big Bear Lake, CA", "shots": [
+    { "name": "bear_snow_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 4; en.elevation(2058); en.storm('rain')", "steps": 2400, "wait": 7000 },
+    { "name": "bear_snow_bird", "h": "bird", "js": "", "steps": 50, "wait": 7000 }
+  ] },
+  { "addr": "400 Van Ness Ave, San Francisco, CA", "shots": [
+    { "name": "sf2_8_ar5_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 4; en.storm('ar5')", "steps": 900, "wait": 7000 },
+    { "name": "sf2_8_ar5_drone", "h": "drone", "js": "", "steps": 50, "wait": 7000 },
+    { "name": "sf2_9_dried_street", "h": "street", "js": "en.storm(0)", "steps": 3000, "wait": 7000 }
+  ] }
+]

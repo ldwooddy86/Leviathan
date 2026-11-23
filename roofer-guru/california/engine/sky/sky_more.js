@@ -8,11 +8,13 @@
 
     /* ---- Vincent Thomas Bridge: suspension, main span 1,500 ft (457 m), towers 365 ft (111 m), about 185 ft (56 m) clear, 52 ft (16 m) wide, 160 blue lamps on its cables.
             Assumed: side spans of 154 m, the deck heights at its ends, the green paint (not stated in the text opened). ---- */
-    if (BR.vt) { const v = BR.vt, GREEN = [0.25, 0.47, 0.38, 0], D1 = deck({ name: 'Vincent Thomas Bridge', pts: v.line, half: 8.4, marks: { W: v.towers[0], E: v.towers[1] }, rampA: 90, rampB: 90,
-      prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 9], [Math.max(60, K.W - 154), 50], [K.W, 57.5], [(K.W + K.E) / 2, 61.5], [K.E, 57.5], [Math.min(L - 60, K.E + 154), 50], [L, 7]]); return K.t(s); } });
+    if (BR.vt) { const v = BR.vt, GREEN = [0.25, 0.47, 0.38, 0], D1 = deck({ name: 'Vincent Thomas Bridge', pts: v.line, half: 8.4, marks: { W: v.towers[0], E: v.towers[1] }, rampAT: 150, rampBT: 150,
+      prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 15], [Math.max(60, K.W - 154), 51], [K.W - 40, 56.6], [K.W, 57.5], [(K.W + K.E) / 2 - 60, 61.3], [(K.W + K.E) / 2, 61.5], [(K.W + K.E) / 2 + 60, 61.3], [K.E, 57.5], [K.E + 40, 56.6], [Math.min(L - 60, K.E + 154), 51], [L, 15]]); return K.t(s); } });
+      const VA = [v.westRoad && v.westRoad.length > 1 ? deck({ name: 'Vincent Thomas Bridge, west approach', pts: v.westRoad.slice().reverse(), half: 9, flatOnly: true, rampA: 380, prof: () => 15 }) : null, v.eastRoad && v.eastRoad.length > 1 ? deck({ name: 'Vincent Thomas Bridge, east approach', pts: v.eastRoad, half: 9, flatOnly: true, rampB: 380, prof: () => 15 }) : null].filter(Boolean);
       site('Vincent Thomas Bridge', 33.7495, -118.2715, 30000, s => { const sm = samples(D1, 12.2), B = new MeshBuilder(), K = D1.loc.K, L = D1.loc.L; roadway(B, sm, D1.half, { hb: 8.4, t: 4.6, slab: 0.9, box: GREEN, rail: GREEN, under: GREEN });
         susp(B, D1, sm, { towers: ['W', 'E'], top: 111, side: [154, 154], cable: 8.6, col: GREEN, every: 12.2, thick: 0.7, rope: 0.2, clear: 2.5, sideSag: 3, legs: [[null, 57, 3.6, 4.8], [57, 111, 3.1, 4.2]], struts: [[50, 3.2, 3.2], [108.5, 4.5, 3.4]], cross: [[8, 46, 1.5], [63, 84, 1.3], [85, 105, 1.3]], base: [30, 12, 6] });
         for (let st = 40; st < L - 30; st += 46) { if (st > K.W - 160 && st < K.E + 160) continue; const p = pointAt(D1, st); p.nx = -p.tz; p.nz = p.tx; pier(B, p, deckY(D1, st, p.x, p.z) - 4.6, { gap: 5, w: 1.8, l: 2.2 }); }
+        VA.forEach(a => { if (!T.flat()) return; roadway(B, samples(a, 20), a.half, { hb: 6, t: 2.5, box: CONC }); });
         solid(s, B, 'Vincent Thomas Bridge'); const top = yOf(111, 0), n = 40;
         [-1, 1].forEach(sd => { for (let i = 0; i <= n; i++) { [[K.W - 154, K.W, 0], [K.W, K.E, 1], [K.E, K.E + 154, 2]].forEach(sp => { if (sp[2] !== 1 && i % 2) return; const u = i / n, st = sp[0] + (sp[1] - sp[0]) * u, p = pointAt(D1, st), yd = deckY(D1, st, p.x, p.z), y = sp[2] === 1 ? top - 4 * (top - (deckY(D1, (K.W + K.E) / 2, p.x, p.z) + 2.5)) * u * (1 - u) : sp[2] === 0 ? yd + 1.5 + (top - yd - 1.5) * u : yd + 1.5 + (top - yd - 1.5) * (1 - u); lit(s, p.x - p.tz * sd * 8.6, y + 0.8, p.z + p.tx * sd * 8.6, BLU, 16); }); } });
         ['W', 'E'].forEach(k => { const p = pointAt(D1, K[k]); [-1, 1].forEach(sd => lit(s, p.x - p.tz * sd * 8.6, top + 2, p.z + p.tx * sd * 8.6, RED, 30)); }); s.note = 'towers ' + Math.round(K.E - K.W) + ' m apart, ' + (s.lamps.length - 4) + ' blue lamps'; }); }
@@ -24,8 +26,8 @@
             the grey of the west span, where the east span's cable meets the deck. The tunnel through Yerba Buena Island is not modelled: the deck runs across the island in the open. ---- */
     if (BR.bay) { const b = BR.bay, W = b.wt, GREYB = [0.6, 0.62, 0.64, 0], WHITEB = [0.93, 0.93, 0.91, 0];
       const pts = b.sf.slice().reverse().concat([W.W1, W.W7, b.ybi[1]]);
-      const D1 = deck({ name: 'Bay Bridge, west span', pts, half: 10, lower: 7.5, marks: W, rampA: 160,
-        prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 13], [K.W1, 58], [K.W2, 66], [(K.W2 + K.W3) / 2, 72.5], [K.W3, 70], [K.W4, 70], [K.W5, 70], [(K.W5 + K.W6) / 2, 72.5], [K.W6, 66], [K.W7, 60], [L, 57]]); return K.t(s); } });
+      const D1 = deck({ name: 'Bay Bridge, west span', pts, half: 10, lower: 7.5, marks: W, rampA: 200,
+        prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 2], [K.W1, 58], [K.W2, 66], [K.W2 + 180, 70.6], [(K.W2 + K.W3) / 2, 72.5], [K.W3 - 180, 72], [K.W3, 70.5], [K.W4, 70], [K.W5, 70.5], [K.W5 + 180, 72], [(K.W5 + K.W6) / 2, 72.5], [K.W6 - 180, 70.6], [K.W6, 66], [K.W7, 60], [L, 57]]); return K.t(s); } });
       const D2 = deck({ name: 'Bay Bridge, east span', pts: b.east, half: b.eastSep / 2 + 13, marks: { T: b.et }, rampB: 240, sep: b.eastSep,
         prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 57], [K.T, 54], [K.T + 430, 51], [L - 500, 11], [L, 4]]); return K.t(s); } });
       site('Bay Bridge', 37.805, -122.362, 45000, s => {
@@ -76,13 +78,13 @@
     X.extra = (t, cam, night) => {
       /* the lamps that stand still */
       const LS = X.lampSet || (X.lampSet = T.set('Lamps of runways, bridges and ships', X.lampMesh || (X.lampMesh = (() => { const B = new MeshBuilder(), P = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], c = [1, 1, 1, 1]; [[0, 2, 4], [2, 1, 4], [1, 3, 4], [3, 0, 4], [2, 0, 5], [1, 2, 5], [3, 1, 5], [0, 3, 5]].forEach(k => SH.face(B, [P[k[0]], P[k[1]], P[k[2]]], c, [0, 0, 0])); return T.build(B, 'still lamp'); })()), MAT.lamp, { cap: 256 })); LS.ib.clear();
-      if (night > 0.1) for (const s of X.sites) { if (!s.built || !s.lamps) continue; for (const l of s.lamps) { if (!l[4]) continue; const d = Math.hypot(l[0] - cam[0], l[1] - cam[1], l[2] - cam[2]); if (d > 32000) continue; T.lamp(LS.ib, l, Math.max(0.3, d * 0.001), l[3], l[4] * night); } }
+      if (night > 0.1) for (const s of X.sites) { if (!s.built || !s.lamps) continue; for (const l of s.lamps) { if (!l[4]) continue; const d = Math.hypot(l[0] - cam[0], l[1] - cam[1], l[2] - cam[2]); if (d > 32000) continue; T.lamp(LS.ib, l, Math.max(0.3, d * X.lampK), l[3], l[4] * night * Math.min(1, 3500 / d)); } }   /* far lamps are drawn a pixel wide, so they are dimmed in step: a row of them must not become a bar of light */
       /* the vessels */
       const c = toL(BAY[0], BAY[1]); if (Math.hypot(c[0] - cam[0], c[1] - cam[2]) > 30000) { if (VS) Object.keys(VS).forEach(k => VS[k].ib.clear()); X.stats.boats = 0; return; }
       if (!VS) VS = { ferry: T.set('Ferry (generated)', T.build(SH.boat(MeshBuilder, 'ferry'), 'ferry'), MAT.paint, { shadow: 300, far: 15000 }), sail: T.set('Yachts (generated)', T.build(SH.boat(MeshBuilder, 'sail'), 'yacht'), MAT.paint, { far: 9000 }), ddg: T.set('Destroyer under way (generated)', T.build(SH.destroyer(MeshBuilder), 'destroyer under way'), MAT.paint, { shadow: 700, far: 30000 }), wake: T.set('Wakes', wakeMesh, MAT.wake, { far: 12000 }) };
       Object.keys(VS).forEach(k => VS[k].ib.clear()); const list = X.vessels(t), wy = yOf(0, 0); X.vesselList = list; MAT.wake.emissiveIntensity = 0.03 + 0.55 * (1 - night);
       for (const v of list) { const q = toL(v.lat, v.lon), h = v.hdg * RDG, hx = Math.sin(h), hz = -Math.cos(h), yaw = Math.atan2(hx, hz); v.x = q[0]; v.z = q[1]; VS[v.kind].ib.add(q[0], wy, q[1], yaw, 1, 1, 1, 1, 1, 1, 1); if (v.v > 0.5) VS.wake.ib.add(q[0] - hx * v.L * 0.4, wy + 0.25, q[1] - hz * v.L * 0.4, yaw, v.L * 0.5 + v.v * 3, 1, v.L * (1.5 + v.v * 0.6), 1, 1, 1, 1);
-        if (night > 0.12) { const d = Math.hypot(q[0] - cam[0], cam[1], q[1] - cam[2]), s0 = Math.max(0.25, d * 0.001), hgt = v.kind === 'ddg' ? 30 : v.kind === 'ferry' ? 7 : 15; T.lamp(LS.ib, [q[0], wy + hgt, q[1]], s0, WHT, 14 * night); T.lamp(LS.ib, [q[0] + hx * v.L * 0.3 - hz * 2, wy + 3, q[1] + hz * v.L * 0.3 + hx * 2], s0, GRN, 10 * night); T.lamp(LS.ib, [q[0] + hx * v.L * 0.3 + hz * 2, wy + 3, q[1] + hz * v.L * 0.3 - hx * 2], s0, RED, 10 * night); } }
+        if (night > 0.12) { const d = Math.hypot(q[0] - cam[0], cam[1], q[1] - cam[2]), s0 = Math.max(0.25, d * X.lampK), hgt = v.kind === 'ddg' ? 30 : v.kind === 'ferry' ? 7 : 15; T.lamp(LS.ib, [q[0], wy + hgt, q[1]], s0, WHT, 14 * night); T.lamp(LS.ib, [q[0] + hx * v.L * 0.3 - hz * 2, wy + 3, q[1] + hz * v.L * 0.3 + hx * 2], s0, GRN, 10 * night); T.lamp(LS.ib, [q[0] + hx * v.L * 0.3 + hz * 2, wy + 3, q[1] + hz * v.L * 0.3 - hx * 2], s0, RED, 10 * night); } }
       X.stats.boats = list.length;
     };
     X.channel = { line: CH, ferry: FERRY, at: chAt, length: CL };

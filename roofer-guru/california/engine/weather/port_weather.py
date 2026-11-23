@@ -54,10 +54,12 @@ cut("#ifdef WATER\n  /* flood water: brown with silt", "  s.albedo = base.rgb; s
     /* snow: above the snow level, whatever faces the sky goes white, first in patches and then all over; steep faces and
        walls stay bare. The level is a world height (u_snowK.y), broken up a little so it is not a ruled line across a
        mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, and on the crowns of trees. */
-    float snowOn = max(u_wetMask, u_shadeModel > 1.5 && u_shadeModel < 2.5 ? 0.9 : 0.0);
+    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(u_wetMask, leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = N.y;
+    /* a tree's crown: which way a face looks is taken from the face itself as the camera sees it, not from the crown's own normals, which are made for light through leaves */
+    if (leafy && u_snowK.x > 0.001) { sN = normalize(cross(dFdx(v_wpos), dFdy(v_wpos))); if (dot(sN, u_camPos - v_wpos) < 0.0) sN = -sN; skyward = sN.y; }
     if (u_snowK.x > 0.001 && snowOn > 0.0) { float ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0);
-      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, N.y) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * fbm(v_wpos.xz * 0.6)), 0.0, 1.0);
-        base.rgb = mix(base.rgb, vec3(0.9, 0.92, 0.96) * (0.95 + 0.05 * vnoise(v_wpos.xz * 2.7)), cov); s.roughness = mix(s.roughness, 0.85, cov); s.metallic *= 1.0 - cov; N = normalize(mix(N, normalize(gN + vec3(0.0, 0.6, 0.0)), cov * 0.7)); } } }
+      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * fbm(v_wpos.xz * 0.6)), 0.0, 1.0);
+        base.rgb = mix(base.rgb, vec3(0.9, 0.92, 0.96) * (0.95 + 0.05 * vnoise(v_wpos.xz * 2.7)), cov); s.roughness = mix(s.roughness, 0.85, cov); s.metallic *= 1.0 - cov; N = normalize(mix(N, normalize(sN + vec3(0.0, 0.6, 0.0)), cov * (leafy ? 1.0 : 0.7))); } } }
 """)
 rep("u_wetness: env.wetness, u_rainK: env.rainK || ZERO4,", "u_wetness: env.wetness, u_rainK: env.rainK || ZERO4, u_snowK: env.snowK || ZERO4,")
 

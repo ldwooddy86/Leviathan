@@ -33,3 +33,8 @@ Status: see bottom of file.
 - seaLevel prefers terrain datum S.y0 (port edited after the 22:40 build; out/engine_weather.js not yet rebuilt with it)
 - snow pass: snow on tree crowns, bigger brighter flakes, brighter snow scene. Rebuilt 22:5x (incl. seaLevel S.y0). plan_b run in progress used the older build for bear/fresno.
 - running run_b.sh (plan_b per place + checks), logs out/log_b*.txt, out/log_checks.txt
+- snow pass 2: tree crowns take snow by the face as seen (crown normals are not usable), near flake layer. Rebuilt.
+- shots done on new build: fresno tule, santa monica marine, pasadena sa4/smoke/night, sf tstorm. Lost to a closed browser: sf ar5 street/drone, checks. NEXT: checks.js, then plan_c.json (bear snow re-shoot + sf ar5).
+- checks.js ALL PASS on the current build (out/log_checks.txt), no page errors. Running plan_c.json.
+- snow re-shot OK (bear_snow_street/bird read as snow). Waiting on sf ar5 (log_c1). Then report.
+- rain streak opacity up a little (0.46/0.78); rebuilt; re-shooting sf ar5 (log_c1)

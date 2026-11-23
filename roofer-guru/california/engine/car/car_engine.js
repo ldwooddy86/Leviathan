@@ -72,7 +72,7 @@
     /* ---------- state ---------- */
     /* The physics keeps its own frame; (ox, oz) carries it into the world's local metres, so the world can move its
        origin under a car that is going (A.shift) without the dynamics being touched. */
-    let ox = 0, oz = 0, cabinOn = false; const gov = { v: null, dt: 1 / 60 };
+    let ox = 0, oz = 0, cabinOn = false; const gov = { v: null, dt: 1 / 60, still: false, steer: 0 };
     const st = A.state = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, vx: 0, vz: 0, speed: 0, mph: 0, forward: 0, yawRate: 0, rpm: 800, gear: 1, throttle: 0, brake: 0, steer: 0, gLong: 0, gLat: 0, abs: false, tc: false, sc: false, tcMode: 'on', drifting: false, atRest: true, hit: false, hits: 0, reverse: false,
       grip: 1, onRoad: true, wet: 0, night: 0, slide: 0, odo: 0, topMph: 0, governed: false, wheels: [0, 1, 2, 3].map(() => ({ x: 0, y: 0, z: 0, steer: 0, spin: 0, slip: 0, slipAngle: 0, load: 0, travel: 0, sliding: 0 })) };
     A.input = { throttle: 0, brake: 0, steer: 0, handbrake: 0, reverse: false, tc: true };
@@ -85,10 +85,10 @@
       for (let i = 0; i < 4; i++) { const w = PS.wheels[i], o = st.wheels[i]; o.x = w.x + ox; o.z = w.z + oz; o.y = w.y; o.steer = w.steer; o.spin = w.spin; o.slip = w.slip; o.slipAngle = w.slipAngle; o.load = w.load; o.travel = w.travel; }
     }
     /* put the car down at rest: (x, z) the middle of the wheelbase in the world's local metres, yaw in degrees clockwise from north */
-    A.place = (x, z, yaw, y) => { ox = 0; oz = 0; PH.place(x, z, yaw || 0, y); A.input.throttle = A.input.brake = A.input.steer = A.input.handbrake = 0; A.input.reverse = false; read(); cam.yaw = st.yaw; cam.pull = 0; cam.look = 0; SKID.last = [null, null, null, null]; st.hits = 0; pose(0); };
+    A.place = (x, z, yaw, y) => { ox = 0; oz = 0; PH.place(x, z, yaw || 0, y); A.input.throttle = A.input.brake = A.input.steer = A.input.handbrake = 0; A.input.reverse = false; read(); cam.yaw = st.yaw; cam.pull = 0; cam.look = 0; SKID.last = [null, null, null, null]; st.hits = 0; gov.still = false; pose(0); };
     A.show = on => { root.setActive(!!on); A.out = !!on; if (!on) { A.clearMarks(); A.quiet(); } };
     /* the world moved its origin by (dx, dz): everything held in local metres follows */
-    A.shift = (dx, dz) => { ox += dx; oz += dz; A.clearMarks(); read(); pose(0); };
+    A.shift = (dx, dz) => { ox += dx; oz += dz; A.clearMarks(); read(); gov.still = false; pose(0); };
     A.cabin = on => { on = !!on; if (on !== cabinOn) { cabinOn = on; cabinE.setActive(on); } };
 
     function pose(dt) {
@@ -162,7 +162,9 @@
       const g = env.ground, h = env.hit, px = st.x, pz = st.z;
       const moving = PH.update(dt, { ground: g ? (x, z) => g(x + ox, z + oz) : null, grip: env.grip == null ? 1 : env.grip, hit: h ? (x0, z0, x1, z1, r) => h(x0 + ox, z0 + oz, x1 + ox, z1 + oz, r) : null });
       read(); if (PS.hit) st.hits++; st.odo += Math.hypot(st.x - px, st.z - pz); st.grip = env.grip == null ? 1 : env.grip; st.onRoad = env.onRoad !== false; st.wet = env.wet || 0; st.night = env.night || 0; st.live = live;
-      pose(dt); lamps(env); marks(dt, env); chase(dt); sound(live);
+      /* standing still with the wheel untouched: nothing is moved, so nothing asks for a frame */
+      const still = PS.atRest && Math.abs(PS.steer - gov.steer) < 1e-5 && !moving; if (!still || !gov.still) { pose(dt); marks(dt, env); } gov.still = still; gov.steer = PS.steer;
+      lamps(env); chase(dt); sound(live);
       return moving;
     };
     /* ---------- the chase camera's spring: it follows the way the car is going, looks a little into the turn, drops back with speed ---------- */

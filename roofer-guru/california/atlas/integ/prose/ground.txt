@@ -1,0 +1,123 @@
+Before any model, the record. The FAIR Plan and the Department of Insurance counted every policy written, dropped and paid; CAL FIRE inspected every structure a wildfire reached; FEMA counted every household that registered after a declared disaster; the Census Bureau counted every home, its age and type, every building permit and every roofing contractor; the Contractors State License Board lists every licensed roofer. This module lays those records side by side for the 58 counties, so every modeled number elsewhere can be checked against what was counted. Below the records it sets down what is known about the roofs themselves: what they are made of by era and climate, tile and its underlayment, wood shake, cool roof and fire zone rules, weather, and permits by city.
+
+Most measures on this tab were counted by a public agency or a statutory body: policies by the FAIR Plan and the Department of Insurance, burned structures by CAL FIRE, registrations by FEMA, homes and permits by the Census Bureau, licenses by the Contractors State License Board. Each has its own blind spot, listed below: the FAIR Plan shows where insurance retreated, not where roofs failed; FEMA sees only the damage people asked federal help for after declared disasters; permits count new homes, not reroofs; a license sits where the firm gets its mail. The modeled measures (tile share, roof age, the gross profit pool) are graded B or D and say so. Use these records to check every ZIP number in modules 01, 05 and 12.
+
+California FAIR Plan Association, residential policies in force at its latest fiscal year end, by the Plan's own county file. The FAIR Plan is the insurer of last resort: a high rate marks where the ordinary market has pulled back. Its dwelling policy covers named perils only, so a wind or rain leak on a FAIR only home depends on a separate policy.
+
+FEMA counts belong to the year of the disaster: the largest years on file are 2025 (9,793: Los Angeles wildfires January 2025) and 2023 (4,146: Winter storms January 2023, Winter storms March 2023 and Winter storms and mudslides 2023). Homes permitted went from 119,436 in 2021 to 103,856 in 2025, and 2026 to date runs 9% above the same months of 2025. FAIR Plan home policies stand at 665,673, 2.5 times the count four year ends earlier.
+
+Fire zone land share against FAIR Plan policies per 100 homes. Across 58 counties r = 0.65: the two records move together. Furthest above the line: Tuolumne, Nevada, Mariposa and Plumas; furthest below: Tehama, San Luis Obispo and San Benito. Dot size follows homes. The counties off the line are where to look for a reason the records do not carry: a recent fire, a city that adopted a wider map, or insurers leaving for causes other than fire.
+
+Fire zone share against structures CAL FIRE found destroyed. Across 58 counties r = 0.27: a loose tie. Furthest above the line: Butte, Plumas, Lake and Sonoma; furthest below: San Benito, Nevada and Amador. Dot size follows homes. The counties off the line are where to look for a reason the records do not carry: a recent fire, a city that adopted a wider map, or insurers leaving for causes other than fire.
+
+The state rate is 4.5 (fair plan per 100 homes, homes weighted). The twelve highest counties sit mostly in Sierra (7), Far North (3) and Sacramento Valley (1). A high FAIR Plan rate is a record of insurers leaving, which is the market for fire hardened roofs; it is not a record of roof damage, and the Plan's own totals differ slightly between its county file and its web page.
+
+Postal cities of 1,500 residents or more: roofs, service line jobs summed over their ZIPs, licensed roofers nearby, FAIR Plan policies and language at home.
+
+U.S. Energy Information Administration, Residential Energy Consumption Survey 2020, public microdata (occupant reported). B The occupant names the material, so clay and concrete tile are easily confused; samples are small (the mountain and mixed dry climates had too few homes to report); the survey is from 2020.
+
+Asphalt shingles lead, tile follows	About 62 percent of California single family homes have composition shingles and 27 percent tile (18 clay, 9 concrete), against 79 and 7 percent nationally. Wood is 5 percent, metal 2.
+
+The tile era	Tile is on 7 percent of homes built before 1960, 17 percent of those from 1960 to 1979, 43 percent from 1980 to 1999 and 62 percent of homes built since 2000. A tract of the 1990s is a tile tract.
+
+Climate	Tile is on about three in ten homes in the hot, dry south and valley and under two in ten on the marine coast from about Santa Barbara County north.
+
+Flat roofs are invisible in the survey	The survey has no category for built up, modified bitumen or single ply roofs. San Francisco shows what it hides: of reroof permits filed 2023 to 2026 that name a material, three in four are modified bitumen, torch down or cap sheet and one in six composition shingles (city open data, keyword match).
+
+Los Angeles	Nearly all City of Los Angeles reroof permits use the standard lightweight description (under 6 pounds per square foot): shingles and membranes. The median house roof is 22 squares; one permit in five calls for new solid sheathing (city open data, 2023 to 2026).
+
+What is not known	No count of roofing material by metro, county or ZIP was found. The tile, wood and metal shares elsewhere in this atlas are the survey's statewide shares by era and climate applied to local housing ages: grade D.
+
+Tile outlives what is under it	The tile can last generations; the underlayment does not. A reserve study consultant puts standard underlayment at about 25 years, a trade source at 20 to 30. Neither is a test.
+
+Lift and relay	The code lets sound slate, clay or cement tile be taken up and reinstalled; damaged tile may not go back, and rusted or damaged flashings and vents must be replaced (California Residential Code R908.5). One consultant plans for about 30 percent breakage.
+
+Who is due	About 939,000 California single family homes built 1980 to 1999 have tile. In 2026 that whole cohort is at or past the stated underlayment life.
+
+Cool roof rule	Roofs of 25 pounds per square foot or more are exempt from the reflectance rule, which is why most tile relays are. Los Angeles permits say so in words.
+
+In fire zones	Under tile on a wood deck: a 72 pound cap sheet or a Class A rated underlayment, bird stops at the eaves, hips and ridges closed. A relay of half the roof or more in twelve months triggers it.
+
+Associations	One consultant reports a 30 year old Orange County association that spent over $400,000 patching "lifetime" tile roofs with no reserve, then assessed about $12,000 a unit. One account of one project.
+
+The stock	About 5 percent of California single family homes report wood shingles or shakes, some 466,000 homes, most often on homes built before 1960 (8.5 percent).
+
+State law	No untreated or unlisted wood roofing may be sold or applied anywhere in California; it needs State Fire Marshal listing and five years passed of the ten year weathering test (Health and Safety Code 13132.7). Fire retardant shakes in the wildland interface must be part of a Class A assembly.
+
+City bans	The City of Los Angeles has prohibited all wood shake and shingle roofing since August 25, 1989 (Ordinance 165047): new work, reroofs and repairs, with remaining shakes off when over half the roof is redone. The City of San Diego allows no wood renewals and no covering over wood. Others were listed in 2003 (Santa Barbara, Carlsbad, Del Mar, El Cajon, Vista and more). No current statewide list was found.
+
+When a reroof must use a reflective product, by building type, slope and Energy Code climate zone. The values are the same in the 2022 and 2025 codes.
+
+Thermal emittance must also be at least 0.75 (0.80 for the steep nonresidential rule in zones 2 and 4 to 16). Low slope means under 2:12. Products must be rated and labeled by the Cool Roof Rating Council or take a penalty default: 0.08 for an unrated asphalt shingle, 0.10 for anything else. Exceptions a roofer uses: roofs of 25 pounds per square foot or more (most tile); a steep house roof over an attic insulated to R-38, with a radiant barrier, or with R-2 continuous insulation at the deck; area under building integrated solar; and, on low slopes, trading reflectance for deck insulation. A low slope reroof also triggers insulation: R-14 continuous on houses and multifamily, R-23 on nonresidential roofs (R-17 in zones 6 to 8), with recoats exempt. The 16 climate zones are assigned by ZIP in the Energy Code's Joint Appendix JA2; this build does not carry the zone of each ZIP, so check the address. Source: California Energy Commission, 2022 and 2025 Building Energy Efficiency Standards, sections 150.2(b), 180.2(b) and 141.0(b). A
+
+Where the rule applies	All State Responsibility Area land, High and Very High Fire Hazard Severity Zones in local areas, and local interface areas (2025 California Wildland-Urban Interface Code, in force January 1, 2026). The State Fire Marshal's 2025 local maps show Moderate and High zones for the first time.
+
+The reroof trigger	Half the roof or more replaced in twelve months: the roof must meet the rules for new construction. Every repaired part must be at least Class A. The 2022 code said "more than 50 percent".
+
+What the roof must be	A Class A assembly tested to ASTM E108 or UL 790; valley metal over a 36 inch cap sheet; noncombustible gutters and downspouts; listed flame and ember resistant vents or 1/16 to 1/8 inch noncombustible mesh; enclosed eaves.
+
+Outside the zones	Class C is the statewide floor for new roofs, for the whole roof when more than half is replaced in a year, and for any repaired part.
+
+Class A is necessary, not enough	About nine in ten structures inside the January 2025 Palisades and Eaton perimeters had Class A coverings (CAL FIRE inspection data); 16,264 structures were destroyed. The weak points were vents, eaves, windows and the first five feet. Only 10 percent of assessed structures in the Palisades area and 6 percent in the Eaton area had vent screens of 1/8 inch or finer.
+
+What the older fires showed	With wood roofs still common, the roof decided it: in the 1990 Painted Cave fire 70 percent of homes with non flammable roofs survived against 19 percent with flammable ones. In the 2018 Camp Fire 11.5 percent of homes built before 1997 survived against 38.5 percent built later.
+
+Where roofs ignite	At edges, intersections, gutters and vents, where debris collects. Keeping roofs and gutters clear is already the law in the zones.
+
+Zone Zero	The Board of Forestry approved the five foot ember resistant zone rule on August 19, 2026 and filed it on August 28. No source confirmed its approval or an effective date by the compile date. Treat it as pending.
+
+Rain	Reroof permits in the City of Los Angeles rose from 10,383 in 2022 to 14,511 in 2023, the year of the wet winter, and San Francisco's from 2,911 to 3,527. That rain caused the jump is a reading, not a finding. No count of roof leak claims was found.
+
+Wind	Forecasters' narratives begin to mention roof damage at gusts of about 60 to 70 mph. The largest Santa Ana roof damage event on record is October 21, 2007 (Inland Empire $35 million in the federal storm database, which understates). Gusts on January 7, 2025 reached 84 mph at Burbank Airport.
+
+Hail	Hail of an inch or more has been reported 349 times in about 75 years in the whole state, about six days a year. It is not a roofing market here.
+
+Snow country	In the storms of late February 2023, 100 inches fell at Crestline and roofs collapsed in Crestline and Lake Arrowhead; a school roof collapsed in Nevada City. Truckee's own example uses a ground snow load of 325 pounds per square foot. Design loads for Big Bear, South Lake Tahoe and the Placer and El Dorado high country were not found: ask the building department.
+
+Heat and sun	No California field study of shingle life in desert or valley heat was found, nor one for coatings. A trade article for Phoenix, not California, reports 15 to 18 years. Reflective products are required on reroofs in the hot zones (below).
+
+Coastal salt air	No California source was found. Metal roofing warranties commonly exclude or limit sites near salt water: read the maker's distance rule before selling metal near the ocean.
+
+Earthquakes	No source was opened. Reroofing with a heavier covering is a structural question: San Diego requires a permit and calculations above 6 pounds per square foot.
+
+Tear off	A roof replacement removes every existing layer down to the deck (R908.3). A recover is barred over a wet or deteriorated roof, over tile or slate, and over two or more layers.
+
+City of Los Angeles	Permits are issued for reroofs in the thousands every year on a standard description. The code sentence that requires them was not opened.
+
+City of San Diego	No building permit to renew a roof covering when the structure is not altered. A permit is needed if framing or sheathing is altered (up to 25 percent of the deck may be replaced in kind without one on houses), if the new covering weighs more than 6 pounds per square foot, if skip sheathing is replaced, or on a historic property (Information Bulletin 123).
+
+Los Angeles County, unincorporated	A building permit for the reroof and a separate solar permit if panels come off and go back. Overlays only over one layer of shingles, metal, roll or built up roofing (Building Code Manual 1512).
+
+Solar on the roof	Los Angeles County states the license split: C-39 for the roof, C-10 or C-46 for the panels, or an A or B licensee for both. Old bonding clips may not be reused. Whether taking panels off and putting the same ones back changes a customer's older net metering status was not found: do not say either way.
+
+Who may do the work	A license is needed for any job of $1,000 or more, and below that if the work needs a permit or the person employs anyone. Every C-39 licensee must carry workers' compensation even with no employees. Fall protection is required at 6 feet on residential roofs since July 1, 2025.
+
+Code freeze	New state and local residential building standards are frozen from October 1, 2025 to June 1, 2031 (Assembly Bill 130), with home hardening exempt: wildfire rules can still change.
+
+■ Los Angeles   ■ San Francisco. The City of Los Angeles issued the most reroof permits in 2023 (14,511), +40% on the year before. Los Angeles counts permits issued whose description names a reroof; San Francisco counts permits filed with its reroof flag. The current year is left off because it is not complete. San Diego requires no permit for most reroofs, so its counts would miss the market. City open data as read for this build. A for the counts.
+
+FAIR Plan policies	Policies in force with the insurer of last resort, by its own county and ZIP files at its fiscal year ends. A measure of where the ordinary market stopped writing. It covers fire and a short list of named perils; it is not a count of damage.
+
+Non renewals	Residential policies not renewed, from the Department of Insurance. The recent file joins insurer and policyholder decisions; only the older file splits them.
+
+Wildfire inspections	CAL FIRE inspectors record each structure inside or near a fire perimeter as destroyed, damaged or unharmed. Digital records start in 2013; undamaged structures were collected only from 2018.
+
+FEMA registrations	Owners and renters who applied for federal individual assistance after a declared disaster and showed roof damage (older disasters) or verified property loss without flood (2020 on). About three in ten registrants reported homeowners insurance. Fires, storms and earthquakes are all in the count: read the split measures.
+
+Permits	New housing units authorized by local permit offices, as reported to the Census Bureau. Reroofs are not in this survey; where a city requires a reroof permit its own data holds them (two cities are charted above).
+
+Contractors and licenses	County Business Patterns counts establishments with employees and withholds small cells; license records count C-39 licenses by mailing address, about two for every employer establishment, because many licensees have no payroll.
+
+Modeled measures	Tile share, roof age and the gross profit pool come from the atlas's own models, included so the record and the model sit side by side. They carry grades B and D.
+
+Field knowledge	The cards below the tables quote the evidence file compiled for this build. Where it found nothing they say so; nothing was filled in from memory.
+
+Census cartographic boundary files: ZCTA 2020 (1:500,000), counties and states 2024; USGS 1:1,000,000 water bodies; TIGER/Line 2025 area water (bays) A 2020, 2024, 2025
+
+California Department of Insurance: new, renewed and non-renewed residential policies by ZIP 2015-2021 and 2020-2023; wildfire risk report (Ins. Code 929) 2018-2023; FAIR Plan against voluntary market units 2022 A 2015 to 2023
+
+California FAIR Plan Association: policies in force and exposure by ZIP and county, five year-ends; policies by category A fiscal year-end 2026-09-30
+
+BLS producer price indexes WPU1361 (asphalt roofing) and WPU1017 (steel mill products), carried from the earlier edition's data file (BLS refused the download on 2026-11-19) A January 2019 to August 2026
+
+California Roofer Guru, module 06. Records as published by the FAIR Plan, the Department of Insurance, CAL FIRE, FEMA, the Census Bureau and the Contractors State License Board. Compiled November 19, 2026.

@@ -322,7 +322,7 @@ registerModule({
       for (const f of Array.from(files || [])) {
         try { const text = await f.text(); const name = f.name || 'file'; let pages;
           if (/\.json$/i.test(name) || /^\s*[\[{]/.test(text)) pages = fromJson(JSON.parse(text), name); else pages = [fromHtmlDoc(text, name)];
-          pages = pages.filter(Boolean); if (!pages.length) throw new Error('nothing recognisable: expected a Site Forge bundle, a blueprint, an array of either, or an HTML document');
+          pages = pages.filter(Boolean); if (!pages.length) throw new Error('nothing recognizable: expected a Site Forge bundle, a blueprint, an array of either, or an HTML document');
           added += addPages(pages, 'import'); lines.push(`${name}: ${pages.length} page${pages.length === 1 ? '' : 's'} (${pages.map(p => '/' + p.slug + '/').join(', ')})`); }
         catch (e) { lines.push(`${f.name}: ${e.message}`); }
       }
@@ -415,7 +415,7 @@ registerModule({
       ['Elementor developers, library import', 'The template JSON format the FORGE bridge writes', 'B', '', 'https://developers.elementor.com/docs/cli/library-import'],
       ['Drupal JSON:API module', 'Creating resources (POST), core in Drupal 10 and 11', 'A', 'JSON:API 1.0', 'https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/creating-new-resources-post'],
       ['Wix REST, Data Items API', 'Insert and save data items in a CMS collection', 'A', 'v2', 'https://dev.wix.com/docs/rest/business-solutions/cms/data-items/insert-data-item'],
-      ['Duda API, content injection', 'Inject innerHTML into a data-inject element (marked deprecated in favour of snippets)', 'B', '', 'https://developer.duda.co/docs/content-injection-1'],
+      ['Duda API, content injection', 'Inject innerHTML into a data-inject element (marked deprecated in favor of snippets)', 'B', '', 'https://developer.duda.co/docs/content-injection-1'],
       ['Webflow Data API, collection items', 'Create staged items; drafts by default since December 2024', 'A', 'v2', 'https://developers.webflow.com/data/reference/cms/collection-items/staged-items/create-items'],
       ['Shopify GraphQL Admin API', 'pageCreate and pageUpdate; write_content or write_online_store_pages', 'A', shopifyVersion(), 'https://shopify.dev/docs/api/admin-graphql/latest/mutations/pageCreate'],
       ['HubSpot CMS API, blog posts', 'Create, update and publish posts with a private app token', 'A', 'v3', 'https://developers.hubspot.com/docs/api-reference/cms-posts-v3/basic/get-cms-v3-blogs-posts'],

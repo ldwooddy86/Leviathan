@@ -1,0 +1,73 @@
+Every roofing job in California starts with one of four things: a roof that wore out, weather that found its weak point, a fire, or a building that is new. And more and more often an insurer's letter sets the date. This module estimates where those jobs arise for thirteen residential and commercial service lines, from the age of every home, what covers it, the rain, wind and wildfire record, the insurance files and FEMA's damage registrations, and resolves them to the ZIP codes where the roofs are. The map below is the master heatmap for ads and SEO; every other tab reads from it.
+
+This maps where roofing jobs arise, not where they are sold. No agency counts roof replacements by ZIP, and California has no statewide permit file: whether a reroof needs a permit depends on the city. What can be counted is everything around the roof: the homes and the decade each was built (Census), what the 2020 federal energy survey says covers California homes of each era, the rain, wind and heat at the nearest stations and the atmospheric river record (NOAA, CW3E), every structure CAL FIRE inspected after a wildfire, the fire hazard zones, FAIR Plan policies and insurer non-renewals by ZIP (the FAIR Plan and the Department of Insurance), FEMA's registrations for every California disaster since 2003, the commercial buildings (Business Patterns), new permits (Census) and every C-39 roofing license (CSLB). A roof cohort model ages every roof, fitted to the American Housing Survey, with tile on its own clock. The replacement, repair, tile and new construction lines rest on observed housing data (grade B or C); storm, fire, hardening and the commercial and specialty lines lean on stated assumptions (grades C and D) that you can change. A high index is a ZIP where more roofing jobs arise per resident; module 05 turns that into reachable jobs against competition, module 02 shows the weather and the fires, and module 17 the roofs themselves.
+
+Weighted composite of the thirteen service line rates (log of expected jobs per 10,000 residents, standardized). A percentile across the scored ZIPs: 100 carries the most roofing demand per resident, not "100 percent of anything".
+
+Tile roofs are drawn apart, by the age of the underlayment beneath the tile. No storm resets this curve: California roofs are replaced when they wear out, when an insurer or a sale forces it, or after a fire, so the shape follows the building booms and the reroofs that came a roof life later. The last bar is every roof of 40 years or more (1% here): mostly tile and long lived coverings on older homes, and the model's oldest survivors.
+
+Thirteen components, one per service line. Each weight is the line's share of the statewide gross profit pool at default assumptions times a confidence tier. Every number in the chain is shown.
+
+For each line the expected jobs per 10,000 residents are shrunk toward the county rate for small ZIPs (an empirical Bayes prior worth 2,500 residents), log transformed (a small constant is added first, because a California ZIP can have a rate of zero on the fire line), standardized across the 1,531 scored ZIPs (a z score), multiplied by the weight, summed and turned into a percentile. Weight is the line's share of the statewide gross profit pool at default assumptions times a tier: 1.0 where the line rests on observed counts (grades A and B), 0.75 for graded models (C), 0.5 for lines anchored on an assumption (D). Money stands in for importance because a roofer's choice between lines is a choice between job values; that substitution is the largest judgment call in the build.
+
+roofs other than tile on one to four unit homes replaced in the next twelve months because of age (tile relays, metal roofs, fire rebuilds and fire zone upgrades are counted in their own lines)
+
+roofs a year on one to four unit homes needing a roofer after wind or rain (atmospheric rivers, winter storms, Santa Ana, Diablo and sundowner wind), long run average, repairs and replacements
+
+roofs a year on homes damaged or destroyed by wildfire: repairs to damaged homes and new roofs on rebuilds, long run average from CAL FIRE damage inspections
+
+roof hardening jobs a year on homes in Fire Hazard Severity Zones: Class A reroofs chosen for fire or insurance reasons, ember resistant vents, gutters and eaves
+
+reroofs a year on one to four unit homes that already carry rooftop solar and need the array removed and reinstalled, plus roofs replaced ahead of a new array
+
+A roof replaced because it wore out (retail, financing, price shopping), one repaired after an atmospheric river (urgent, small, rarely a claim), one rebuilt after a wildfire (insurer led, slow, regulated) and one upgraded to Class A because an insurer or the FAIR Plan asked (a deadline and a discount) are different sales. The cohort model feeds the replacement and tile lines; the weather record spreads the storm line; CAL FIRE's inspections feed the fire line; insurer wildfire ratings and FAIR Plan policies feed the hardening line.
+
+Tile relays are counted only in the tile line and never as replacements. Metal reroofs and most hardening reroofs are carved out of the replacement line. Solar detach and reset is a job beside a reroof, counted once as its own line. Mobile homes are only in their own line, and buildings of five units or more sit in the multifamily line. Repairs count leaks fixed by a paid roofer, not every leak.
+
+They are not one variable. The lines that follow the roof stock move together (replacement and repair r = 0.94). Tile follows the tracts built since 1980 and runs against the old shingle neighborhoods (tile and replacement r = 0.29). Fire and hardening follow the hills and the insurance map (fire and hardening r = 0.78; hardening and replacement r = 0.35). Storm work follows the rain and the wind (storm and repair r = 0.74), and the commercial lines follow business districts (commercial and replacement r = 0.07). Weighted and equal weight versions of the index correlate r = 0.833 (Spearman 0.790). Pick the line, not the index, when you buy for one service.
+
+Three checks. FEMA registrations were not an input to any line, and city permit counts were not an input to the roof model. Each check says what it can and cannot show.
+
+Fire: Spearman ρ = 0.27 across 1,279 ZIPs with 1,000 homes or more (526 have either record; among those ρ = -0.05). Two agencies, two methods: inspectors on the ground and households applying for help.
+
+Storm: Spearman ρ = 0.17 across 1,279 ZIPs (1,279 with a FEMA storm registration or a modeled rate). FEMA's storm registrations in California are mostly flood and mudflow, which the roof line does not try to follow.
+
+Permits: the cities' own open data (module 17 lists the years). Model: roof replacement, tile lift and relay, metal roofing, fire hardened roofs, multifamily, condo and hoa and commercial roofing and title 24 cool roofs summed over the ZIPs whose largest Census place is the city. Permits count every building type and miss unpermitted work; the model counts ZIPs, not city limits. A ratio near 1 is agreement; far from 1 in either direction is a reason to trust the city's count over the model there.
+
+Fire: agreement between CAL FIRE's inspections and FEMA's registrations is weak (ρ = 0.27). The fire line is built on the inspections, so this says the inspections point where households also reported loss; it does not test the rebuild share. Storm: agreement is weak (ρ = 0.17). That is not a pass. California has no storm that leaves a clean roof damage record the way a landfalling storm does elsewhere, so the storm line stays an exposure weighted spread of a state total (grade C at best) and should be corrected with your own job history. The state totals of the storm, fire and hardening lines rest on anchors listed in module 12, each with its grade.
+
+ACS is a survey	ZIP estimates carry margins of error, largest in small rural ZIPs; the index shrinks small ZIP rates toward the county rate for that reason.
+
+The roof life is fitted, not observed	The Weibull life (mean 25 years for coverings other than tile) is fitted to the West region's 2023 American Housing Survey replacement rates by year built. California specific roof ages are not published, and the tile underlayment life (27 years) rests on one consultant's planning figure.
+
+Roof covering is modeled	The tile, wood and metal shares come from a national survey's California sample by era built (837 single family homes), not from a count of roofs. A ZIP of Spanish revival homes from the 1920s will carry more tile than the model gives it.
+
+Insurance pays for few California roofs	In the American Housing Survey, insurance paid for 2.0% of roof jobs in the Los Angeles metro and 3.5% across the Pacific division, against 41 percent in the west south central states. Storm and fire lines are therefore small beside wear, and claim funded copy fits few jobs.
+
+Fire records start in 2013	CAL FIRE's damage inspection file covers fires since 2013 that the agency inspected. Older fires and some local agency fires are missing, so "none on record" is not "never burned".
+
+Default job values are placeholders	The gross profit pool multiplies jobs by default values (replacement $19,000, commercial $75,000 and so on) and a 33% margin. Replace them with your closed job history in module 12.
+
+Roof permits by ZIP	There is no statewide permit file. Whether a reroof needs a permit depends on the city, and each city keeps its own system; Los Angeles and San Francisco publish theirs and are used as checks only.	C
+
+Insurance claims for roofs	The Department of Insurance publishes fire and smoke claims by ZIP, not wind or water claims on roofs. The share of roofing jobs paid by insurance comes from a housing survey, for metros and the Pacific division only.	C
+
+Search volume and CPC by ZIP	No keyword or Ahrefs data was pulled for this build. Cost per click is modeled from region and competition (grade D) until account actuals arrive in module 15.	D
+
+Roof material by home	No public source records roof covering by parcel; tile, wood and metal are modeled from era built and climate (module 17).	D
+
+Commercial roof age and size	Assessor files that carry building area and year are not published statewide; the commercial lines run on establishment counts and a national building count.	D
+
+How big each roofer is	The CSLB file lists every C-39 license with its city and ZIP but no measure of size, and no ranked list of California roofers by revenue is public. Competition is counted in licenses and employer establishments.	C
+
+San Diego and Sacramento in the housing survey	The American Housing Survey samples Los Angeles, San Francisco, Riverside and (in 2021) San Jose. San Diego and Sacramento are not sampled on their own; the Pacific division figures stand in.	B
+
+Census cartographic boundary files: ZCTA 2020 (1:500,000), counties and states 2024; USGS 1:1,000,000 water bodies; TIGER/Line 2025 area water (bays) A 2020, 2024, 2025
+
+California Department of Insurance: new, renewed and non-renewed residential policies by ZIP 2015-2021 and 2020-2023; wildfire risk report (Ins. Code 929) 2018-2023; FAIR Plan against voluntary market units 2022 A 2015 to 2023
+
+California FAIR Plan Association: policies in force and exposure by ZIP and county, five year-ends; policies by category A fiscal year-end 2026-09-30
+
+BLS producer price indexes WPU1361 (asphalt roofing) and WPU1017 (steel mill products), carried from the earlier edition's data file (BLS refused the download on 2026-11-19) A January 2019 to August 2026
+
+California Roofer Guru, module 01. Compiled November 19, 2026 for 1,762 ZIP codes in all 58 counties. The index is a percentile of expected roofing jobs per resident, not a count of sales. Grades: A primary and direct; B primary with a caveat or a model on primary data; C secondary, volatile or proxy; D assumption or over ten years old. Built from public data only; no keyword or Ahrefs data was pulled for this build.

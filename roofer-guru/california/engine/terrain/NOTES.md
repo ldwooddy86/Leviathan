@@ -47,3 +47,6 @@ uses of SK.now.surge as a height now go through surgeY()), update (2 surge spots
 (2), dblclick, faceAt, setHeight, state, recenter, warpTo, open, project, debug.
 NOT touched (left to their jobs): StormKit, Traffic, X.update (cars' physics boxes still at y = H/2; cars' instances
 are lifted and tilted by wrapping their instance buffers in fleetInit), haze/cloud shaders.
+- [x] tests/t_move.js (stepped by hand): walk down/up Filbert 20.4 m with feet on ground; Alta X rides up the street keeping 3 m (added env.ground terrain following in A.update); warp SF->Mammoth lands 60 m over ground, datum 22->2401; recentre at 12 km keeps asl and ground. All pass (run 2). Badwater t_core passes (-77.7 vs -81.9, tile limit).
+- Tests must run ONE AT A TIME (two browsers at once -> tile fetch failures, page starvation). Continuous play starves page.evaluate under swiftshader: step with engine.emit('update', dt) after engine.stop().
+- Kit change after that run: failed tiles retried by request() back-off + 4 s heartbeat (not timers). NEXT: rebuild, run t_blocked.js, t_core at Twin Peaks/Tahoe/Coronado/Mammoth/Truckee, t_perf.js on both pages (base: build/out/testbed_base.html).

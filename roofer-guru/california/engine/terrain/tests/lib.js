@@ -20,7 +20,7 @@ exports.start = async (file, addr, o) => {
   await page.click('#scMode button[data-v="eng"]');
   for (let i = 0; i < 30; i++) { await wait(2500); const ok = await page.evaluate(() => { const en = MODI.rooftops.api.en(); return !!(en && en.state().lat); }); if (ok && i > 1) break; }
   await page.evaluate(q => { const en = MODI.rooftops.api.en(); en.setGraphics(Object.assign({ q: 'low', sun: 14, weather: 'clear', life: false, wide: false, trees: false, lamps: false }, q || {})); }, o.gfx || null);
-  const T = { browser, page, errs, wait };
+  const T = { browser, page, errs, wait, ctx };
   /* wait until the elevation has come and every ground mesh and cell that waits on it is built */
   T.ready = async (max, needCells) => { const t0 = Date.now(); let s = null; while (Date.now() - t0 < (max || 90000)) { await wait(1500); s = await page.evaluate(() => { const en = MODI.rooftops.api.en(), st = en.state(), d = en.debug(); return { t: st.terrain, built: st.built, queued: st.queued, cells: d.cells.length, cellsBuilt: d.cells.filter(c => c.built).length, roads: st.roads }; }); if (!s.t.loading && !s.t.queue && !s.queued && (!needCells || s.cellsBuilt >= s.cells)) break; } return s; };
   T.shot = async (file2, ms) => { await wait(ms == null ? 6000 : ms); const box = await page.evaluate(() => { const c = document.querySelector('canvas.se-canvas'); c.scrollIntoView({ block: 'center' }); const r = c.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }); await wait(800);

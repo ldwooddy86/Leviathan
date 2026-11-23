@@ -2,10 +2,10 @@
 /* ==== src/10_watch_core.js ==== */
 /* ==== watch_core ==== */
 "use strict";
-/* ============================ COMPETITOR WATCH: roster, licence field, ledger, library links, API bridge, importers, analytics ============================ */
+/* ============================ COMPETITOR WATCH: roster, license field, ledger, library links, API bridge, importers, analytics ============================ */
 /* California has no public ranked roster of roofers: the data carries only the few companies named in the evidence. The watchlist
    therefore starts short and the analyst adds the companies met in the market (kept in this browser with the ledger); the size of the
-   field comes from Contractors State License Board C-39 licence counts by city and county and from Census establishment counts. */
+   field comes from Contractors State License Board C-39 license counts by city and county and from Census establishment counts. */
 /* The ledger lives in this browser (localStorage) and travels as JSON or CSV. Nothing here calls a platform on its own: the Meta Ad
    Library API bridge builds the request and runs it only when the page is opened outside the Claude viewer (whose network rules block
    it) and a token is supplied; otherwise the request URL opens in a new tab and the JSON answer is pasted back into the importer. */
@@ -26,7 +26,7 @@ const WATCH = (() => {
   const KINDS = { ad: 'Ad', claim: 'Claim (offer, warranty, reviews)', signal: 'Signal', event: 'Event', reviews: 'Review snapshot' };
   const PLATFORMS = { meta: 'Meta (Facebook, Instagram)', google: 'Google Search', lsa: 'Local Services Ads', youtube: 'YouTube', microsoft: 'Microsoft Advertising', tiktok: 'TikTok', nextdoor: 'Nextdoor', site: 'Website', tv: 'Television or streaming', radio: 'Radio or podcast', ooh: 'Billboard or bus', mail: 'Direct mail', signs: 'Yard signs, wraps or door hangers', door: 'Door to door canvassing', other: 'Other' };
   const FORMATS = ['image', 'video', 'carousel', 'text', 'lead form', 'story or reel', 'display', 'billboard', 'sign or hanger', 'other'];
-  const OFFERS = { free: 'Free inspection or estimate', insurance: 'Insurance, claim or deductible talk', financing: 'Financing or payments', warranty: 'Warranty or lifetime claim', reviews: 'Review counts or ratings', certs: 'Certification or manufacturer claim', fire: 'Fire resistance, Class A or home hardening claim', energy: 'Cool roof, energy or rebate claim', license: 'Licence, bond or insured claim', speed: 'Speed or availability', spanish: 'Spanish or other language service', none: 'No claim' };
+  const OFFERS = { free: 'Free inspection or estimate', insurance: 'Insurance, claim or deductible talk', financing: 'Financing or payments', warranty: 'Warranty or lifetime claim', reviews: 'Review counts or ratings', certs: 'Certification or manufacturer claim', fire: 'Fire resistance, Class A or home hardening claim', energy: 'Cool roof, energy or rebate claim', license: 'License, bond or insured claim', speed: 'Speed or availability', spanish: 'Spanish or other language service', none: 'No claim' };
   const HOOKS = ['free inspection', 'insurance and deductible', 'financing', 'warranty', 'reviews and trust', 'certifications', 'fire hardening and Class A', 'wildfire rebuild', 'cool roof and energy', 'solar', 'tile', 'local roots', 'rain and leak response', 'wind response', 'metal', 'Spanish', 'speed', 'other'];
   const LINE_IDS = LINE_KEYS.slice();
   /* ---------- inference ---------- */
@@ -79,7 +79,7 @@ const WATCH = (() => {
     googleCreative: (adv, cr) => `https://adstransparency.google.com/advertiser/${enc(adv)}/creative/${enc(cr)}?region=US`,
     gSearch: (name, city) => `https://www.google.com/search?q=${enc(name + ' ' + (city || 'California') + ' roofing')}`,
     gMaps: (name, city) => `https://www.google.com/maps/search/?api=1&query=${enc(name + ' ' + (city || 'California'))}`,
-    /* the licence board's public data portal (lists by classification and county; the licence master file) */
+    /* the license board's public data portal (lists by classification and county; the license master file) */
     cslbPortal: () => 'https://www.cslb.ca.gov/onlineservices/dataportal/ContractorList.aspx',
     site: d => d ? (/^https?:/.test(d) ? d : 'https://' + d) : '',
   };
@@ -178,10 +178,10 @@ const WATCH = (() => {
   function digest() {
     const st = stats(); const out = []; const compsLive = Object.keys(st.byComp).length; const tracked = COMPANIES.filter(c => !isBench(c)).length; const ver = COMPANIES.filter(c => c.verified);
     if (st.live) out.push(`${N(compsLive)} of ${N(tracked)} tracked companies have ${N(st.live)} ads on record as live${st.byPlat.meta ? `, ${N(st.byPlat.meta)} on Meta` : ''}${st.byPlat.google ? `, ${N(st.byPlat.google)} on Google Search` : ''}${st.byPlat.lsa ? `, ${N(st.byPlat.lsa)} in Local Services` : ''}.`); else out.push(st.seeded ? `No competitor ad has been logged as live yet. The seeded entries are the companies' own site titles and descriptions read on ${dateL(ROSTER_DATE)}; open the library links in the sweep planner and log what you see.` : `No competitor ad has been logged yet, and the atlas ships no site reads for California: the watchlist holds ${N(tracked)} companies. Add the companies you meet in your market, open their library links and log what you see.`);
-    const ins = ver.filter(c => /insurance|claim|deductible/i.test(c.desc + ' ' + c.title)); if (ins.length) out.push(`${N(ins.length)} verified sites talk about insurance or claims in their title or description (${ins.slice(0, 4).map(c => c.name).join(', ')}${ins.length > 4 ? ' and others' : ''}). In California a contractor may not offer or advertise a discount meant to offset a deductible (Penal Code 551), and negotiating a claim for pay is public adjusting, which needs its own licence (Insurance Code 15006 and 15007), so read those pages closely (module 10).`);
+    const ins = ver.filter(c => /insurance|claim|deductible/i.test(c.desc + ' ' + c.title)); if (ins.length) out.push(`${N(ins.length)} verified sites talk about insurance or claims in their title or description (${ins.slice(0, 4).map(c => c.name).join(', ')}${ins.length > 4 ? ' and others' : ''}). In California a contractor may not offer or advertise a discount meant to offset a deductible (Penal Code 551), and negotiating a claim for pay is public adjusting, which needs its own license (Insurance Code 15006 and 15007), so read those pages closely (module 10).`);
     const fr = ver.filter(c => /\bfree\b/i.test(c.desc + ' ' + c.title)); if (fr.length) out.push(`${N(fr.length)} verified sites lead with something free, usually the inspection or estimate; "free" needs its conditions beside it (16 CFR Part 251).`);
     const sp = COMPANIES.filter(c => c.spanish); if (ver.length) out.push(`${N(sp.length)} of ${N(ver.length)} verified sites show Spanish pages${sp.length ? ' (' + sp.map(c => c.name).join(', ') + ')' : ''}.`);
-    if (FIELD.state.lic) out.push(`The field is far larger than any watchlist: ${N(FIELD.state.lic)} active C-39 roofing licences across ${N(FIELD.cities.length)} mailing cities, most in ${FIELD.cities.slice(0, 3).map(c => `${c.city} (${N(c.lic)})`).join(', ')}. ${N(COMPANIES.filter(c => c.custom).length)} companies on the watchlist were added by you; ${N(ROSTER.length)} came with the atlas.`);
+    if (FIELD.state.lic) out.push(`The field is far larger than any watchlist: ${N(FIELD.state.lic)} active C-39 roofing licenses across ${N(FIELD.cities.length)} mailing cities, most in ${FIELD.cities.slice(0, 3).map(c => `${c.city} (${N(c.lic)})`).join(', ')}. ${N(COMPANIES.filter(c => c.custom).length)} companies on the watchlist were added by you; ${N(ROSTER.length)} came with the atlas.`);
     const lineCnt = LINE_KEYS.map(k => [k, COMPANIES.filter(c => c.lines.includes(k)).length]).sort((a, b) => a[1] - b[1]); const lcn = k => SLM.lineName(k).replace(/\b[A-Z][a-z]+\b/g, w => w.toLowerCase()); if (COMPANIES.some(c => c.lines.length)) out.push(`Fewest companies market ${lineCnt.slice(0, 3).map(([k, n]) => `${lcn(k)} (${n})`).join(', ')}; most market ${lineCnt.slice(-2).map(([k, n]) => `${lcn(k)} (${n})`).join(' and ')}.`);
     const hooks = Object.entries(st.byHook).filter(([k]) => k !== 'other').sort((a, b) => b[1] - a[1]).slice(0, 3); if (hooks.length) out.push(`The most common hooks on record: ${hooks.map(([k, v]) => `${k} (${v})`).join(', ')}.`);
     if (st.lints) out.push(`${N(st.lints)} entries trip a Satchel rule (${Object.entries(st.byLint).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => `${k} ${v}`).join(', ')}). Each is intelligence first; a complaint only when the evidence is clear and a lawyer agrees (module 10).`);
@@ -191,7 +191,7 @@ const WATCH = (() => {
   function csv() { return toCSV(CSV_H, S.obs.map(toRow), `Competitor Watch ledger, California Roofer Guru, exported ${today()}. Seeded rows, if any, are the companies' own site titles and descriptions read on ${dateL(ROSTER_DATE)}; the rest are observations logged by the analyst or imported from the Meta Ad Library API.`); }
   function json() { const s = JSON.parse(JSON.stringify(S)); s.settings.token = ''; return JSON.stringify(Object.assign({ exported: today(), atlas: 'California Roofer Guru, module 13' }, s), null, 1); }
   function sweepRows(scopeKeys) { return (scopeKeys || COMPANIES.filter(c => !isBench(c)).map(c => c.key)).map(k => { const c = CI[k], m = meta(k); return [c.name, c.domain, c.cities.join('; '), m.lastChecked || '', m.lastChecked ? Math.round(daysAgo(m.lastChecked)) : '', LINKS.metaKw(c.name.replace(/,? (LLC|LLP|PLC|Inc|Co)\.?$/i, '')), m.pageId ? LINKS.metaPage(m.pageId) : '', c.domain ? LINKS.googleDomain(c.domain) : '', m.advId ? LINKS.googleAdv(m.advId) : '', LINKS.gSearch(c.name, c.hq), forCompany(k).filter(o => o.kind === 'ad' && isLive(o)).length]; }); }
-  /* ---------- the field by place: licences and establishments (the measure of competition when the roster is short) ---------- */
+  /* ---------- the field by place: licenses and establishments (the measure of competition when the roster is short) ---------- */
   const FIELD = (() => {
     const cnum = v => isN(v) ? +v : 0;
     const cities = (DATA.lic_city || []).map(a => { const p = CO[a[1]] || {}; return { city: a[0], pi: a[1], county: p.name || '', fips: p.fips || '', reg: p.reg, lic: cnum(a[2]), lic_all: cnum(a[3]) }; }).filter(c => c.city).sort((a, b) => b.lic - a.lic);
@@ -208,7 +208,7 @@ const WATCH = (() => {
     { id: 's4', platform: 'site', label: 'Fire claims', text: 'Fireproof Class A roof guaranteed to save your home from wildfire. Keep your insurance: our roof stops non renewal.' },
     { id: 's5', platform: 'mail', label: 'After a fire', text: 'We are in your neighborhood rebuilding after the fire. Sign today and lock in a price before costs double. Cash discount, no permit needed.' },
     { id: 's6', platform: 'google', label: 'Financing terms', text: 'New roof from $99 a month, $0 down, 0% APR. Best roofer in California. Lifetime warranty.' },
-    { id: 's7', platform: 'meta', label: 'No licence shown', text: 'Affordable roof repair and re-roofing. Licensed and insured. Text us for a same day quote.' },
+    { id: 's7', platform: 'meta', label: 'No license shown', text: 'Affordable roof repair and re-roofing. Licensed and insured. Text us for a same day quote.' },
     { id: 's8', platform: 'site', label: 'A careful ad', text: 'Roof inspections by request in Pasadena. Written estimate before any work, permit pulled in your city. CSLB Lic. #0000000 (C-39).' },
   ];
   /* screen any text with the California rule pack, house style off: [{id, sev, name, cite, ev, fix}] */

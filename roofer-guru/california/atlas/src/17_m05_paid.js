@@ -2,11 +2,22 @@
 /* ==== src/17_m05_paid.js ==== */
 /* ==== m05_paid ==== */
 "use strict";
-/* the main television and search media market each region buys through (the data carries the list as meta.model.MKT; the
-   typed copy is the fallback. A description, not a file of market boundaries: several regions straddle two markets). The cost factor of each region is in the data
-   (meta.model.DMA, an assumption, grade D). Region numbers follow DESIGN.md: 1 North Coast to 11 San Diego and Imperial. */
-const REG_MKT = { 1: 'Eureka; San Francisco for Mendocino and Lake', 2: 'Chico and Redding', 3: 'Sacramento; Chico for Butte and Glenn', 4: 'Sacramento, Fresno and Reno', 5: 'San Francisco, Oakland and San Jose', 6: 'Monterey and Salinas; Santa Barbara and San Luis Obispo', 7: 'Fresno and Bakersfield; Sacramento for Stockton and Modesto', 8: 'Los Angeles', 9: 'Los Angeles', 10: 'Los Angeles; Palm Springs for the Coachella Valley', 11: 'San Diego; Yuma and El Centro for Imperial' };
-if (META.model.MKT) Object.assign(REG_MKT, META.model.MKT);   /* the data's own list of markets by region wins where it is carried */
+/* Media markets, by principal city only. These are the television markets that cover California, each with the California cities it
+   is named for. The names are typed from general knowledge; which market each county belongs to is Nielsen's list and is not in
+   the evidence, so no county list and no split is stated anywhere. A region "holds" a market when one of the named cities lies in one
+   of its counties. Modules 05 and 11 both print from this one table. The cost factor of each region is in the data (meta.model.DMA,
+   an assumption, grade D). */
+const MEDIA_MARKETS = [['Los Angeles', ['Los Angeles']], ['San Francisco, Oakland and San Jose', ['San Francisco', 'Oakland', 'San Jose']], ['Sacramento, Stockton and Modesto', ['Sacramento', 'Stockton', 'Modesto']], ['San Diego', ['San Diego']],
+  ['Fresno and Visalia', ['Fresno', 'Visalia']], ['Santa Barbara, Santa Maria and San Luis Obispo', ['Santa Barbara', 'Santa Maria', 'San Luis Obispo']], ['Monterey and Salinas', ['Monterey', 'Salinas']], ['Bakersfield', ['Bakersfield']],
+  ['Palm Springs', ['Palm Springs']], ['Chico and Redding', ['Chico', 'Redding']], ['Eureka', ['Eureka']], ['Yuma and El Centro', ['El Centro']]];
+const MEDIA_BORDER = ['Medford and Klamath Falls', 'Reno'];                 /* markets centered outside the state that reach border counties */
+const REG_MARKETS = (() => {
+  const cityReg = name => { const c = CITYI[name] || CITIES.find(x => x.name === name || String(x.name).indexOf(name + ' (') === 0) || PLACES.find(x => x.name === name); const p = c && c.pi != null ? PA[c.pi] : null; if (p) return p.reg; if (c && isN(c.lat)) { let best = null, bd = 1e9; Z.forEach(z => { const d = kmLL(c.lat, c.lon, z.lat, z.lon); if (d < bd) { bd = d; best = z; } }); return best ? (PA[best.pi] || {}).reg : null; } return null; };
+  const M = {}; REG_KEYS.forEach(k => { M[k] = []; }); MEDIA_MARKETS.forEach(([name, cities]) => { const here = {}; cities.forEach(c => { const r = cityReg(c); if (r != null) (here[r] = here[r] || []).push(c); }); Object.entries(here).forEach(([r, cs]) => { if (M[r]) M[r].push({ name, cities: cs, all: cs.length === cities.length }); }); });
+  return M;
+})();
+const regMktTxt = k => (REG_MARKETS[k] || []).length ? REG_MARKETS[k].map(m => m.name + (m.all ? '' : ' (' + listAnd(m.cities) + ')')).join('; ') : 'none centered in the region';
+const regMktShort = k => (REG_MARKETS[k] || []).length ? REG_MARKETS[k].map(m => m.name).join('; ') : 'bought from neighboring markets';
 const QUAD_PLAY = [
   ['Anchor', 'High job flow, crowded field', 'Defend: exact and phrase match on the line terms, brand plus city ad groups, highest bids only where the tier is A or better. Organic: city pages with local roof age, weather, fire zone and insurance facts, reviews, photos of local jobs and pages in the languages the city speaks; these markets are won on trust and coverage, not on bids.'],
   ['Whitespace', 'High job flow, thin field', 'Expand first: the cheapest sold jobs in the state sit here. Broader match, radius around the ZIP cluster, Local Services Ads where available, and a city page for every town in the cluster. This is the first money of any new budget.'],
@@ -51,7 +62,7 @@ registerModule({
       ${card('What a ZIP set costs to own', 'A monthly budget spread across a target set by gross profit pool per click cost, with the clicks, leads, sold jobs and gross profit it buys at your assumptions. Change the inputs; the table follows.', '<div id="p5Plan"></div>', 'mt')}
       <div class="split">
         ${card('Coherence check: this map disagrees with module 01, on purpose', 'Module 01 ranks job flow per resident. This module ranks gross profit per dollar of clicks. Where they disagree is where the budget decision lives.', '<div id="p5Coh"></div>')}
-        ${card('Region cost factors', 'The regional half of the cost model, by main media market. Replace with account actuals as they arrive.', '<div id="p5Reg2"></div>')}
+        ${card('Region cost factors', 'The regional half of the cost model. Media markets are named by their principal cities only; which county buys through which market is not in the evidence. Replace the factors with account actuals as they arrive.', '<div id="p5Reg2"></div>')}
       </div>
       ${card('County rollup: where the money sits', 'Gross profit pool, cost and tiers by county for the lines in the plan.', '<div class="tscroll" id="p5Pars"></div>', 'mt')}
       ${card('City rollup', 'The same by city (postal city name, 1,500 residents or more).', '<div class="tscroll short" id="p5Cities"></div>', 'mt')}
@@ -166,7 +177,7 @@ registerModule({
         <p class="body"><b>Rises here</b> (large ZIPs where the roof count is big and the modeled click is cheaper): ${li(d.slice(0, 5))}.</p>
         <p class="body"><b>Falls here</b> (high job flow per resident but few residents, or a crowded field): ${li(d.slice(-5).reverse())}.</p>
         ${callout('judg tight', 'Judgment call: buy volume per dollar, write pages for rates', 'Paid media pays for clicks, so it should follow gross profit per click (this module). Organic pages earn rank by relevance, so a small town with old roofs, a fire zone or a wet winter and no competitor page is often the better SEO target (module 01 and the city table in module 12).')}`;
-      $('#p5Reg2', root).innerHTML = `<div class="xscroll"><table><thead><tr><th class="l">Region</th><th class="l">Main media market</th><th>Factor</th><th>Mean cost in region</th><th>Profit pool</th></tr></thead><tbody>${REG_KEYS.map(k => { const a = R.filter(x => PA[x.z.pi].reg === k); return `<tr><td class="l"><b>${esc(REGN[k])}</b></td><td class="l">${esc(REG_MKT[k])}</td><td>${D(DMA[k], 2)}</td><td>${D(mean(a.map(x => x.cpc)), 2)}×</td><td>${MM(sum(a.map(x => x.fees)))}</td></tr>`; }).join('')}</tbody></table></div><p class="chartnote">Region factors are assumptions (grade D), highest to lowest: ${esc(joinAnd(dmaS.map(k => REGN[k] + ' ' + D(DMA[k], 2))))}. They follow where roofing licenses are thickest (${esc(joinAnd(licTop)) || 'the large metros'} hold the most C-39 licenses by mailing city), not a price file: no California click cost was measured for this build. The competition term adds up to 20% where many roofers sit nearby and subtracts up to 20% where few do. After a wildfire or in the week of a strong atmospheric river, clicks in the affected area can cost well above these levels while every roofer and lead seller bids in.</p>`;
+      $('#p5Reg2', root).innerHTML = `<div class="xscroll"><table><thead><tr><th class="l">Region</th><th class="l">Media markets named for cities in the region</th><th>Factor</th><th>Mean cost in region</th><th>Profit pool</th></tr></thead><tbody>${REG_KEYS.map(k => { const a = R.filter(x => PA[x.z.pi].reg === k); return `<tr><td class="l"><b>${esc(REGN[k])}</b></td><td class="l wrap">${esc(regMktTxt(k))}</td><td>${D(DMA[k], 2)}</td><td>${D(mean(a.map(x => x.cpc)), 2)}×</td><td>${MM(sum(a.map(x => x.fees)))}</td></tr>`; }).join('')}</tbody></table></div><p class="chartnote">Region factors are assumptions (grade D), highest to lowest: ${esc(joinAnd(dmaS.map(k => REGN[k] + ' ' + D(DMA[k], 2))))}. They follow where roofing licenses are thickest (${esc(joinAnd(licTop)) || 'the large metros'} hold the most C-39 licenses by mailing city), not a price file: no California click cost was measured for this build. The competition term adds up to 20% where many roofers sit nearby and subtracts up to 20% where few do. After a wildfire or in the week of a strong atmospheric river, clicks in the affected area can cost well above these levels while every roofer and lead seller bids in.</p>`;
     }
     $('#p5Method', root).innerHTML = proseTable([
       ['1 · Gross profit pool', 'For each ZIP and each line in the plan: jobs a year × share open to marketing × default job value × gross margin (module 12 assumptions), summed over the lines chosen.'],

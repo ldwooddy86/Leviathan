@@ -1,0 +1,95 @@
+Where weather and fire hit roofs. Every wildfire perimeter of 1,000 acres or more since 2000, and every fire that damaged a structure, is drawn on the map with the structures CAL FIRE's inspectors found destroyed and damaged. Atmospheric river landfalls sit on the coast by their rank on the AR1 to AR5 scale, Santa Ana, Diablo, sundowner and winter wind events at the place of their strongest measured gust, and every flood, debris flow, hail, wind and tornado report that carries coordinates at its own point. Type a ZIP to read what has touched it. This is the view for response: which ZIPs to work after an event, when each kind of weather peaks, and what the record says each does to a roof.
+
+Four kinds of record are on this map and each is read differently. A fire perimeter is the mapped edge of a burn; the structure counts inside it are CAL FIRE damage inspections, which begin in 2013 and from 2018 also list the buildings that survived. An atmospheric river landfall is ranked by the water vapor it carried across the coast, not by the rain that fell on a town. A wind event is a set of forecast zone records; the gust shown is the strongest one measured, often on a ridge or in a canyon, not at rooftops in town. A located report is a place where someone or an instrument recorded flood, debris flow, hail, wind or a tornado. Most California weather is filed by forecast zone with no coordinates (high wind, heavy snow, heat, most wildfire records), so the dots are thin exactly where the weather matters most: use the ZIP shading and the ZIP lookup for those. Use the record to place an event and size the roof market it left, and never as proof that a given roof was damaged.
+
+water years 1960 to 2025, landfalls on separate stretches of coast counted separately, as in the list and chart below; 23.5 a year when rivers ashore at the same time anywhere on the coast count once; 118 ranked AR4 or AR5
+
+755 fires, 48 described landfalls, 208 wind events and 10,732 located reports, 2013 to 2026, California. Landfalls are a coast record and are not narrowed by region or county. Dots are thin by nature: most wind, snow, heat and fire weather records are filed by forecast zone and have no point to draw. A
+
+Every fire on the ledger for the years and area chosen above. Structures are CAL FIRE damage inspections tied to the perimeter; fires before 2013 have no inspection record and show no count. Click a row to open the fire.
+
+Landfalls on the California coast by water year and rank (a water year runs October to September), and the extreme and notable ones with what was recorded under them. Click a row to open the landfall.
+
+2,084 landfalls since water year 1960, merged along the coast; the table lists the AR4 and AR5 landfalls and the notable AR3s since 1996. The north takes far more than the south: 15.4 landfalls a year at 42.0 N against 3.3 at 32.5 N. A landfall here is one river on one stretch of coast: events at neighboring coast points that overlap in time are merged, and two rivers ashore at once on separate stretches count as two (31.4 a water year). Merging every event on the California coast that overlaps in time gives 23.5 a water year. Both counts are tabulations of the CW3E event catalog by this atlas, not counts CW3E publishes. B
+
+A named event is one whose record names the wind, so the named counts are lower bounds and uneven between forecast offices. Winter and other events are kept only when large (reported damage of $250,000 or more, twelve or more zone records, or a death). The Scripps regional index counts 46 Santa Ana days in an average year, 1948 to 2018, most in December; it has no public update after 2018. No catalog or published day count exists for Diablo or sundowner winds in the evidence. B
+
+Structures destroyed by wildfire (CAL FIRE inspections, 2013 on): 70,390 in 13 years, 2013 to 2025. Largest years: 2018 (23k), 2025 (17k), 2017 (11k), which hold 71% of the total. Fire loss comes in a few years and a few fires, which is why wildfire roofing is work that arrives in bursts in a few counties, not a steady line.
+
+The year has two halves. Rain, atmospheric rivers, snow and winter wind fill November to March; heat and most fire starts fill June to September; the most destructive fires and the Santa Ana winds meet from October to January, when the rains are late. Module 12 turns these months into service line seasons with a lag, because owners call after they find the damage. A
+
+280 of the 325 declarations since 2000 are for fire (86%); 259 of all declarations are fire management assistance, which pays for fighting a fire and opens no help for households, 53 are major disasters and 13 emergencies. A declaration matters to a roofer for the rules it switches on: the price cap, the longer right to cancel and the felony for unlicensed work all run from a declared emergency (module 03). A
+
+18,824 registrations with roof damage or verified property loss in 20 disasters: fire 11,754, storm 5,866, quake 1,204. Through 2018 FEMA inspectors flagged roof damage directly; from 2020 the flag is empty, so the atlas counts verified real property loss without flood damage. After a fire that measure is mostly total losses, not roofs. FEMA counts only people who applied for federal help. A
+
+Day of week by hour of day for the report type, years and area chosen above. Darker cells hold more reports. Hours are Pacific Standard Time.
+
+Noon to 8 p.m. (a third of the day) holds 45% of these reports and 8 p.m. to 6 a.m. holds 28%. Thunderstorm reports follow the afternoon; winter rain and offshore wind do not, and often peak overnight. Weather time is not search time: leak and tarp searches rise the same evening and the next morning, inspection and replacement searches follow for weeks. Use the grid to stage crews and emergency budgets, not to switch ads off.
+
+136 of 400 hail reports in view are 1 inch or larger, the size at which asphalt shingles begin to bruise; hail of that size is reported somewhere in the state on about six days a year. Wind gust reports outside thunderstorms are thinned to the strongest one a day in each quarter degree cell and come mostly from mountain and canyon sensors. 205 of 1,945 flash flood and debris flow records name a burn scar. Tornado ratings come from damage surveys.
+
+Ralph and others, 2019 (Bulletin of the American Meteorological Society), as used by the Center for Western Weather and Water Extremes. The rank comes from the strongest three hour water vapor transport and how long it stays at 250 or more at one point on the coast: under 24 hours drops the rank by one, over 48 hours raises it by one. AR1: weak, primarily beneficial. AR2: moderate, mostly beneficial, also hazardous. AR3: strong, a balance of beneficial and hazardous. AR4: extreme, mostly hazardous, also beneficial. AR5: exceptional, primarily hazardous. It ranks the storm at the coast, not the rain at a house. A
+
+CAL FIRE inspectors class each structure in or within 300 feet of a perimeter: destroyed (more than 50 percent), major (25 to 50), minor (10 to 25), affected (up to 10) or no damage. This tab calls the middle three "damaged". Digital records begin in 2013; undamaged structures are recorded from 2018. A
+
+The State Fire Marshal maps hazard, not risk, in three classes: Moderate, High and Very High. The map for land the state protects took effect on April 1, 2024; the map for land cities and counties protect is the Marshal's recommendation of March 24, 2025, which each city or county adopts by ordinance and may enlarge, so the legal local map can differ. Federal land is in neither map. In the overlay behind this atlas 61,392 square km are Very High, 39,178 High and 27,448 Moderate (45% of the land in ZIP areas). For a roofer the zones decide the roof: in a zone a new roof, or a re-roof of half or more of the roof within a year, must be a Class A assembly (module 03 has the code sections). The shares shown per ZIP are land area, not homes. A
+
+A Red Flag Warning is the National Weather Service's notice that wind, low humidity and dry fuels make fire spread likely. Each forecast office sets its own thresholds; none is in the evidence behind this atlas, so no criteria are printed here and the Weather Desk (module 14) reads the warnings themselves. D
+
+Wind records here are classed at 40, 58 and 75 mph. In forecasters' own narratives roof damage begins to appear at about 60 to 70 mph; that is a reading of the record, and no California threshold by roof covering is in the evidence. Hail is classed at 1 inch, where asphalt shingles begin to bruise, and 1.75 inch. Tornadoes carry the Enhanced Fujita rating from the damage survey. C
+
+These are raw shares, not performance figures. They are not adjusted for how hot the fire burned, how close the houses stood, vegetation, firefighting or the age of the house; 17% of the rows have no covering recorded; and a few fires supply most of the rows. Only incidents of 2018 and later are shown because before 2018 inspectors recorded only damaged and destroyed buildings, under different covering names, so any "share destroyed" from those years is a recording effect. The published studies of the same records find that roof covering explains little once most roofs are Class A: enclosed eaves, fine vent screens and multi pane windows mattered more (Syphard and Keeley 2019), and in dense neighborhoods house to house spread overwhelms any roof. B
+
+The same caution applies. Read with the study results, these two tables are why the fire hardened roof line sells vents, eaves and gutters with the covering. B
+
+Wildfire	The Palisades and Eaton fires of January 2025 destroyed 6,845 and 9,419 structures in the inspections tied to their perimeters here; CAL FIRE's final incident counts are 6,845 and 9,419. More than 95 percent of the structures in those two fires were built before the 2008 wildfire building code, and about nine in ten already had Class A roof coverings: a Class A covering is the best available and did not save homes on its own. Embers enter at vents, eaves, gutters full of debris and gaps at the roof edge. In older fires a wood roof was the strongest single predictor of loss (Painted Cave, 1990: 70 percent of homes with non flammable roofs survived against 19 percent with flammable ones).	A
+
+Offshore and winter wind	The strongest gust in a named offshore event on this ledger is 130 mph (Santa Ana, Nov 19, 2023), measured on high ground. In the event narratives, roofs are damaged from about 60 to 70 mph: lifted and missing shingles, slipped and broken tile, ridge caps and flashing. No insurer or utility count of California wind claims was found, and no threshold by covering is in the evidence.	C
+
+Rain and atmospheric rivers	Rain does not break a sound roof; it finds worn underlayment, flashing and flat roof drains. Los Angeles issued 40% more re-roof permits in 2023 than in 2022, after the wet winter of 2022 to 2023 (10,383 against 14,511); that the rain caused it is a judgment, and it is the best demand signal found. Tile roofs leak when the underlayment under the tile wears out, at about 25 years, which is the tile lift and relay line. No count of roof leak claims is published.	C
+
+Flash flood and debris flow	Flood damage is not roof damage. Debris flows below burn scars destroy whole buildings in short, heavy rain; 205 located records here name a burn scar. For a roofer they are a crew safety matter and a reason to keep ads free of flood imagery.	B
+
+Hail	Rare. 287 located reports of hail of 1 inch or more are on this map for the whole state, 1996 to 2026. Hail is not a roofing market in California; inspect on request after a report nearby and say so plainly.	A
+
+Mountain snow	125 ZIPs carry a design ground snow load of 100 pounds per square foot or more at the town, and the highest ZIP value is 995. In the winter of 2023 roofs collapsed in Crestline, Lake Arrowhead and Nevada City after a series of storms. The work is snow removal, ice dam and leak repair, and metal roofing; whether a structure can carry its load is an engineer's question.	B
+
+Heat, sun and salt air	Inland heat limits the work day (shade above 80 F and high heat procedures at 95 F for outdoor work) and the Energy Code asks for reflective products on many re-roofs in the hot zones. How fast shingles and coatings age in California heat, and how far salt air shortens the life of metal near the coast, are not in the evidence: the salt and marine layer classes per ZIP are judgment rules.	D
+
+Fire pages	One page per fire and the towns it reached, published only after the area reopens and updated as inspections finish. Lead with CAL FIRE's facts, then what smoke and ember damage looks like on a standing roof, what a rebuild roof must be in a fire zone, how to check a license, and the owner's rights. Open a fire above for a ready brief. Never publish into an evacuated area and never use fear.	A
+
+After a declaration	A federal, state or local emergency declaration switches on the disaster rules: repair and reconstruction prices no more than 10 percent above your own price from before it, for 180 days, and building materials for 30 days (Penal Code 396); a seven business day right to cancel on every contract to repair the damage (Business and Professions Code 7159); the maximum fine for breaking the down payment and progress payment limits (7159.5); and unlicensed contracting that can be charged as a felony (7028.16). Keep a dated price book from before the season.	A
+
+Insurance claims	Write the estimate and the scope and explain the construction to the adjuster if asked. Do not negotiate the claim for the owner for pay: that is public adjusting and needs its own license (Insurance Code 15006 and 15007). Never offer or advertise a discount meant to offset the deductible, and never pay an agent, broker or adjuster for a referral (Penal Code 551).	A
+
+After an atmospheric river	Leak repair and inspection messages in the ZIPs under the landfall for the 72 hours after it, and tarps and dry in before it; module 14 watches the forecast. Use the ZIP's own rain days and the coast class here to choose where: far inland the rank at the coast says little.	B
+
+After a wind event	Repair and inspection messages where gusts of 58 mph or more were measured, in the forecast zones the event names. Offer inspections, not outcomes. Dry offshore wind is also fire weather: crews do no torch work and the message is never fear.	B
+
+Canvassing and contracts	Home improvement contracts over $500 must be in writing with the notices the law lists; the buyer may cancel within three business days, five for a senior, seven for disaster repair; the down payment is $1,000 or 10 percent, whichever is less. A person who sells at the door needs a home improvement salesperson registration (module 03).	A
+
+Who you compete with	5,587 active C-39 roofing licenses are on the state roll, 170 of 5,829 with an out of state mailing address. After a declared disaster the license is the message: unlicensed work is where the law bites hardest, and the license number belongs on every ad, truck and contract. Module 13 holds the license field by city.	A
+
+What never to publish	The address, photo or name of a specific damaged home or owner without written permission; "free roof", "we pay your deductible", "we handle your claim" or "insurance approved"; a perimeter, a landfall or a gust presented as proof that a particular roof was damaged; any promise that a roof will survive a wildfire or keep an insurer.	A
+
+Most weather has no point	High wind, heavy snow, winter storm, heat and most wildfire records are filed by forecast zone, with no coordinates. They are in the yearly and monthly series and in the ZIP columns, not among the dots.
+
+Airport gusts are screened	Daily peak gusts from airports contain sensor spikes of hundreds of miles an hour. A gust is kept only when it is under 2.25 times the fastest sustained wind of the day and passes two more tests; counts at 75 mph remain the least reliable, and the nearest screened station can be far from a ZIP (see the quality letter).
+
+Gust reports come from high ground	Measured gust reports are dominated by ridge, canyon and summit sensors. A 100 mph gust on a truck trail is not a 100 mph wind on a subdivision.
+
+Inspection categories changed in 2018	Before 2018 only damaged and destroyed structures were recorded, and roofs were classed only as fire resistant, combustible or unknown. Shares by roof covering are shown for 2018 and later only, and are raw.
+
+Fires before 2013 have no structure count	The digital inspection records begin in 2013. The Cedar, Witch and other large earlier fires are on the map with acres and no count; none was invented.
+
+Perimeters are incomplete	CAL FIRE says so: some fires are missing or duplicated, old outlines are generalized, and each spring adds the previous year, so fires of the current year are not yet in.
+
+Atmospheric river ranks are at the coast	A ZIP takes the record of its latitude on the coast. Inland, in the lee of the Sierra and in the deserts, far less arrives; use the rain columns for what falls at the ZIP.
+
+Named winds are lower bounds	An event counts as Santa Ana, Diablo or sundowner only when the record names the wind. The Santa Ana index stops in 2018 and no catalog exists for the other two.
+
+Zone shares are land, not homes	Fire Hazard Severity Zone shares are the share of the ZIP area. They understate exposure where homes cluster at the wildland edge of a large ZIP.
+
+Fires are CAL FIRE historic perimeters of 1,000 acres or more since 2000, plus every perimeter or incident with a damaged structure; each inspected structure is tied to the perimeter of its incident by name and distance, so the ledger's totals equal the inspection file's. Atmospheric river landfalls are the CW3E catalog at the California coast points, merged along the coast into one storm with its highest rank. Wind events group the federal High Wind and Strong Wind zone records by kind and overlapping dates. Located reports are federal Storm Events records with coordinates and National Weather Service Local Storm Reports, placed in ZIPs and counties by their coordinates. ZIP values are taken at the town in each ZIP from the nearest stations, with elevation counted as distance. Nothing on this tab is modeled damage: every count is a record.
+
+California Roofer Guru, module 02. Fire records from CAL FIRE, landfalls from the Center for Western Weather and Water Extremes, weather records from NOAA, declarations from FEMA. No homeowner names or addresses are kept. Compiled November 19, 2026.

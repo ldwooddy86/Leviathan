@@ -1,0 +1,3470 @@
+MODULE 12 · SERVICE LINES · THIRTEEN LINES, EVERY ZIP
+Service Lines
+
+A California roofing company is thirteen businesses that share a crew yard. Replacements come due as roofs age, in waves set by the decades the tracts were built; leaks and wind damage arrive with the wet season, November to March; wildfire work comes in rebuilds that run for years; fire hardened roofs are bought on an insurer's deadline; tile roofs need new underlayment while the tile itself goes back; a reroof under solar panels starts with taking them off; metal, manufactured home, multifamily, commercial, coating and new construction work each has its own buyer and season. Each line here has its own heatmap, statewide volume, jobs open to marketing, gross profit pool, season, rules, keywords, competitors and bid modifiers, with every assumption in plain view and editable.
+
+Lines replace, repair, storm, fire, fire hardening, tile relay, solar reset, metal, mobile home, multifamily, commercial, coatings, new build
+ZIPs 1,531 scored
+Grades B where the anchor is observed, C and D where it is an assumption
+Assumptions stored in this browser
+Service Lines
+Choose a line; everything below follows it
+↓ Line targets CSV
+↓ City pages CSV
+Campaign Desk ↗
+Site Forge ↗
+◐ Theme
+READ THIS FIRST: WHAT A SERVICE LINE IS HERE, AND WHAT THE NUMBERS ARE
+A line counts roofing jobs a year at each ZIP (the volume), the share an owner gives to a contractor found through search, ads, referrals or the door (jobs open to marketing), and those jobs times a default ticket times a 33% gross margin (the gross profit pool). Replacement and tile start from the roof cohort model; repair from the American Housing Survey leak rate; storm from a state total (the survey's share of roof jobs paid by insurance) spread by each ZIP's roofs and its wind and atmospheric river exposure; fire from CAL FIRE's damage inspections; hardening from the homes insurers rate High or Extreme for wildfire and the FAIR Plan's policies; solar from the reroofs that sit under panels; new construction from Census building permits; metal, manufactured home, multifamily, commercial and coating lines from stated assumptions. Every default below is a placeholder until it is replaced with your own job history: change it and every module updates. Nothing here is a bid, a quote, a forecast for one company, or legal advice.
+Roof replacement
+Roof repair and leaks
+Wind and rain damage
+Wildfire damage and rebuild roofing
+Fire hardened roofs
+Tile lift and relay
+Solar detach and reset
+Metal roofing
+Manufactured home roofs
+Multifamily, condo and HOA
+Commercial roofing and Title 24 cool roofs
+Restoration, coatings and maintenance
+New construction roofing
+JOBS A YEAR
+B
+262k
+roofs other than tile on one to four unit homes replaced in the next twelve months because of age (tile relays, metal roofs, fire rebuilds and fire zone upgrades are counted in their own lines)
+JOBS OPEN TO MARKETING
+D
+220k
+84% of the jobs go to a contractor found through search, ads, referrals or the door (assumption)
+GROSS PROFIT POOL A YEAR
+D
+$1.38B
+$19,000 default ticket × 33% gross margin
+COST PER SOLD JOB
+D
+$1,689
+$38 a click · 9.0% to lead · 25% sold
+RETURN ON PAID
+D
+3.7×
+gross profit per job ÷ cost per sold job, at the defaults
+PEAK MONTH
+D
+Jul
+130 against an average month of 100
+LARGEST COUNTY
+Los Angeles
+61,906 jobs a year
+MAP METRIC
+Per 10,000 residents
+Jobs a year
+Gross profit pool
+Paid target tier
+REGION
+All eleven regions
+North Coast
+Far North
+Sacramento Valley
+Sierra
+Bay Area
+Central Coast
+San Joaquin Valley
+Los Angeles and Ventura
+Orange County
+Inland Empire
+San Diego and Imperial
+COUNTY
+All 58 counties
+Alameda
+Alpine
+Amador
+Butte
+Calaveras
+Colusa
+Contra Costa
+Del Norte
+El Dorado
+Fresno
+Glenn
+Humboldt
+Imperial
+Inyo
+Kern
+Kings
+Lake
+Lassen
+Los Angeles
+Madera
+Marin
+Mariposa
+Mendocino
+Merced
+Modoc
+Mono
+Monterey
+Napa
+Nevada
+Orange
+Placer
+Plumas
+Riverside
+Sacramento
+San Benito
+San Bernardino
+San Diego
+San Francisco
+San Joaquin
+San Luis Obispo
+San Mateo
+Santa Barbara
+Santa Clara
+Santa Cruz
+Shasta
+Sierra
+Siskiyou
+Solano
+Sonoma
+Stanislaus
+Sutter
+Tehama
+Trinity
+Tulare
+Tuolumne
+Ventura
+Yolo
+Yuba
+FIND A ZIP OR CITY
+Pacific Ocean
+Nevada
+Arizona
+Oregon
+Baja California
+Monterey Bay
+San Francisco Bay
+San Pablo Bay
+Suisun Bay
+San Diego Bay
+Arcata Bay
+San Pedro Bay
+Humboldt Bay
+Tomales Bay
+Grizzly Bay
+Drakes Bay
+Bodega Bay
+Salton Sea
+Lake Tahoe
+Goose Lake
+Honey Lake
+Mono Lake
+Clear Lake
+Shasta Lake
+Lake Almanor
+Eagle Lake
+Clear Lake Reservoir
+Lake Havasu
+Lake Berryessa
+Lower Klamath Lake
+Lake Oroville
+Clair Engle Lake
+Don Pedro Reservoir
+San Luis Reservoir
+Folsom Lake
+New Melones Lake
+Isabella Lake
+Tule Lake Sump
+Comanche Reservoir
+Lake McClure
+Big Sage Reservoir
+San Antonio Reservoir
+Pine Flat Reservoir
+Mountain Meadows Reservoir
+Diamond Valley Lake
+Lake Crowley
+Nacimiento Reservoir
+Black Butte Lake
+Lake Davis
+Thermalito Afterbay
+Millerton Lake
+New Bullards Bar Reservoir
+New Hogan Lake
+Indian Valley Reservoir
+Lake Elsinore
+Stampede Reservoir
+Turlock Lake
+Lake Cachuma
+Moon Lake
+Whiskeytown Lake
+Union Valley Reservoir
+Cow Head Lake
+Lake Mathews
+Bridgeport Reservoir
+Meiss Lake
+Pardee Reservoir
+Lake Success
+Lake Earl
+Lake Perris
+Shaver Lake
+Big Bear Lake
+Lake Casitas
+O'Neill Forebay
+Spicer Reservoir
+ALAMEDA
+ALPINE
+AMADOR
+BUTTE
+CALAVERAS
+COLUSA
+CONTRA COSTA
+DEL NORTE
+EL DORADO
+FRESNO
+GLENN
+HUMBOLDT
+IMPERIAL
+INYO
+KERN
+KINGS
+LAKE
+LASSEN
+LOS ANGELES
+MADERA
+MARIN
+MARIPOSA
+MENDOCINO
+MERCED
+MODOC
+MONO
+MONTEREY
+NAPA
+NEVADA
+ORANGE
+PLACER
+PLUMAS
+RIVERSIDE
+SACRAMENTO
+SAN BENITO
+SAN BERNARDINO
+SAN DIEGO
+SAN FRANCISCO
+SAN JOAQUIN
+SAN LUIS OBISPO
+SAN MATEO
+SANTA BARBARA
+SANTA CLARA
+SANTA CRUZ
+SHASTA
+SIERRA
+SISKIYOU
+SOLANO
+SONOMA
+STANISLAUS
+SUTTER
+TEHAMA
+TRINITY
+TULARE
+TUOLUMNE
+VENTURA
+YOLO
+YUBA
+Los Angeles
+San Diego
+San Jose
+San Francisco
+Fresno
+Sacramento
+Long Beach
+Oakland
+Bakersfield
+Anaheim
+Stockton
+Riverside
+Santa Ana
+Irvine
+Chula Vista
+Santa Clarita
+Fremont
+San Bernardino
+Modesto
+Fontana
+Moreno Valley
+Oxnard
+Huntington Beach
+Glendale
+Ontario
+Elk Grove
+Santa Rosa
+Rancho Cucamonga
+Oceanside
+Garden Grove
+Lancaster
+Palmdale
+Salinas
+Corona
+Hayward
+Roseville
+Sunnyvale
+Visalia
+Victorville
+Temecula
+Santa Maria
+Ventura
+Chico
+Redding
+Merced
+Indio
+Santa Barbara
+Napa
+Santa Cruz
+San Luis Obispo
+Palm Springs
+El Centro
+Monterey
+Ridgecrest
+Eureka
+Barstow
+South Lake Tahoe
+Blythe
+Truckee
+Ukiah
+Susanville
+Yreka
+Crescent City
+Alturas
+Escondido
+Pomona
+Torrance
+Fullerton
+Orange
+Pasadena
+Santa Clara
+Simi Valley
+Thousand Oaks
+Clovis
+Vallejo
+Concord
+Fairfield
+Berkeley
+Antioch
+Richmond
+Carlsbad
+Murrieta
+East Los Angeles
+Downey
+Costa Mesa
+Menifee
+West Covina
+Jurupa Valley
+El Monte
+Inglewood
+Burbank
+El Cajon
+Rialto
+San Mateo
+Vacaville
+Daly City
+Hesperia
+Norwalk
+Vista
+Tracy
+Arden-Arcade
+San Marcos
+Carson
+Compton
+Chino
+Mission Viejo
+South Gate
+Hemet
+Santa Monica
+Westminster
+Manteca
+San Leandro
+Citrus Heights
+Lake Forest
+Whittier
+San Ramon
+Livermore
+Hawthorne
+Folsom
+Newport Beach
+Mountain View
+Buena Park
+Redwood City
+Rancho Cordova
+Alhambra
+Perris
+Lakewood
+Upland
+Tustin
+Milpitas
+Chino Hills
+Alameda
+Pleasanton
+Carmichael
+Bellflower
+Pittsburg
+Apple Valley
+Redlands
+Rocklin
+Turlock
+Lake Elsinore
+Tulare
+Dublin
+Eastvale
+Camarillo
+Baldwin Park
+Walnut Creek
+Yuba City
+Redondo Beach
+Madera
+Lodi
+Union City
+Palo Alto
+Yorba Linda
+Davis
+Brentwood
+Castro Valley
+Lynwood
+South San Francisco
+Laguna Niguel
+San Clemente
+Porterville
+La Habra
+Woodland
+Encinitas
+Montebello
+La Mesa
+Florence-Graham
+San Rafael
+Pico Rivera
+Hanford
+Hollister
+Martinez
+Oroville
+Red Bluff
+Auburn
+Marysville
+Placerville
+Colusa
+Willows
+Lakeport
+Jackson
+Sonora
+Weaverville
+Nevada City
+San Andreas
+Quincy
+Mariposa
+Independence
+Bridgeport
+Downieville
+Markleeville
+Gardena
+Santee
+Petaluma
+Monterey Park
+Gilroy
+National City
+Cupertino
+Highland
+Beaumont
+Fountain Valley
+South Whittier
+San Jacinto
+Arcadia
+West Sacramento
+Yucaipa
+Hacienda Heights
+Colton
+Diamond Bar
+Huntington Park
+Lincoln
+Placentia
+Novato
+Cathedral City
+Paramount
+Palm Desert
+Watsonville
+Delano
+Aliso Viejo
+El Dorado Hills
+Glendora
+Florin
+Rosemead
+Covina
+Cypress
+Ceres
+Azusa
+Poway
+Antelope
+North Highlands
+Cerritos
+Los Banos
+Brea
+La Mirada
+Rancho Santa Margarita
+Newark
+Rowland Heights
+Morgan Hill
+French Valley
+Oakley
+Rohnert Park
+Vineyard
+Lompoc
+Danville
+Coachella
+Campbell
+San Bruno
+Altadena
+Rancho Palos Verdes
+Culver City
+Stanton
+La Quinta
+Calexico
+San Gabriel
+Bell Gardens
+Adelanto
+Montclair
+Monrovia
+Wildomar
+Pacifica
+La Puente
+Claremont
+Foothill Farms
+Orangevale
+Moorpark
+Temple City
+San Juan Capistrano
+Lathrop
+La Presa
+West Hollywood
+Oildale
+Pleasant Hill
+Manhattan Beach
+Westmont
+San Dimas
+Desert Hot Springs
+Fair Oaks
+Foster City
+Dana Point
+Los Gatos
+Menlo Park
+Goleta
+Atwater
+Fallbrook
+Spring Valley CDP
+Seaside
+San Pablo
+Beverly Hills
+Orcutt
+El Paso de Robles
+Santa Paula
+Banning
+Lawndale
+Laguna Hills
+Los Altos
+La Verne
+Burlingame
+Saratoga
+Temescal Valley
+Atascadero
+San Carlos
+Suisun City
+San Lorenzo
+East Palo Alto
+East Niles
+Eastern Goleta Valley
+Lemon Grove
+Walnut
+Twentynine Palms
+Belmont
+Brawley
+Lemoore
+Benicia
+Sanger
+Wasco
+Soledad
+Hercules
+Windsor
+South Pasadena
+El Cerrito
+Galt
+North Tustin
+Imperial Beach
+Bloomington
+West Whittier-Los Nietos
+Reedley
+Mountain House
+Dinuba
+Lafayette
+Riverbank
+Loma Linda
+Norco
+Oakdale
+Ramona
+Yucca Valley
+Coronado
+Arcata
+Coalinga
+Clearlake
+California City
+Grass Valley
+King City
+Fortuna
+Tehachapi
+Half Moon Bay
+Healdsburg
+Morro Bay
+Sonoma
+Lake Arrowhead
+Malibu
+Seal Beach
+Patterson
+Selma
+Maywood
+Bay Point
+Linda
+Ladera Ranch
+Rosemont
+San Fernando
+East San Gabriel
+West Rancho Dominguez
+Laguna Beach
+Millbrae
+Calabasas
+Marina
+West Puente Valley
+Corcoran
+Lakeside CDP
+Ashland
+Duarte
+West Carson
+Winter Gardens
+American Canyon
+Willowbrook
+Granite Bay
+Port Hueneme
+Rosamond
+Imperial
+Rancho San Diego
+Shafter
+Stevenson Ranch
+East Hemet
+Greenfield
+Lomita
+La Cañada Flintridge
+Casa de Oro-Mount Helix
+Prunedale
+Agoura Hills
+Dixon
+La Crescenta-Montrose
+Arvin
+Orinda
+Lennox
+Albany
+South El Monte
+Mead Valley
+Hermosa Beach
+Chowchilla
+Rosedale
+Santa Fe Springs
+Pinole
+Stanford
+Valle Vista
+Phelan
+Olivehurst
+Arroyo Grande
+Cameron Park
+Castaic
+Rancho Mirage
+Nipomo
+Woodcrest
+Laguna Woods
+McKinleyville
+Live Oak
+South San Jose Hills
+Fillmore
+Kerman
+El Segundo
+Moraga
+Bostonia
+Rio Linda
+El Sobrante CDP
+Ripon
+Camp Pendleton South
+Parkway
+Vincent
+Lemon Hill
+La Palma
+Coto de Caza
+Alpine
+Pacific Grove
+Discovery Bay
+Livingston
+East Rancho Dominguez
+Parlier
+Alamo
+McFarland
+Los Osos
+Cherryland
+Mill Valley
+Isla Vista
+Salida
+Oak Park
+Hawaiian Gardens
+Avenal
+Lamont
+El Sobrante CDP
+North Fair Oaks
+Emeryville
+Grand Terrace
+Lake Los Angeles
+Carpinteria
+Palos Verdes Estates
+Larkspur
+Solana Beach
+Kingsburg
+San Anselmo
+Bonita
+Lindsay
+Grover Beach
+Avocado Heights
+Mendota
+Newman
+San Marino
+Tamalpais-Homestead Valley
+Scotts Valley
+Muscoy
+Commerce
+Rancho Mission Viejo
+Winton
+Los Alamitos
+Quartz Hill
+La Riviera
+Big Bear City
+Anderson
+View Park-Windsor Hills
+Canyon Lake
+Valley Center
+Del Aire
+Hillsborough
+East Bakersfield
+Sun Village
+Delhi
+Piedmont
+Sierra Madre
+Clayton
+Diamond Springs
+Citrus
+Calimesa
+Fairview
+Soquel
+Garden Acres
+Home Gardens
+Alum Rock
+Farmersville
+Shasta Lake
+Exeter
+San Diego Country Estates
+Country Club
+Potomac Park
+Blackhawk
+Rio Vista
+Corte Madera
++
+−
+⟲
+ROOF REPLACEMENT: JOBS PER 10,000 RESIDENTS A YEAR
+8.5
+414.3
+Darker ZIPs carry more of the line per resident. Eight quantile classes across 1,531 scored ZIPs; gray means fewer than 500 residents. B
+The reroof of a house, duplex or small building at the end of the covering's life. California single family roofs are 62 percent composition shingles, 27 percent tile (18 clay, 9 concrete) and 5 percent wood by the 2020 federal Residential Energy Consumption Survey (837 California homes; the occupant names the material). A replacement removes every layer down to the deck (Residential Code R908.3). Replacing more than 50 percent of the roof triggers the Energy Code cool roof rule in most inland and southern climate zones, and in a fire zone replacing 50 percent or more in 12 months triggers the Class A new roof rules. The City of Los Angeles issued 14,511 reroof permits in 2023 after the wet winter, against 10,383 in 2022, and 11,954 in 2025; the median house roof there is 22 squares. No California field study of shingle life was found, so the wear out age in the model is an assumption set in the data build.
+Roof replacement · California
+
+Click a ZIP for its ledger
+
+GRADE B
+262,452 jobs a year
+66.9 per 10,000 residents · half of them in 337 of 1,531 ZIPs
+PAID TIERS IN VIEW
+A+ 76 ZIPs · bid +30%
+$182M pool
+A 153 ZIPs · bid +20%
+$303M pool
+B 306 ZIPs · bid +10%
+$455M pool
+C 383 ZIPs · bid 0%
+$336M pool
+D 383 ZIPs · bid −20%
+$97.5M pool
+E 230 ZIPs · bid −50%
+$9.3M pool
+WHAT THE LINE COUNTS
+
+roofs other than tile on one to four unit homes replaced in the next twelve months because of age (tile relays, metal roofs, fire rebuilds and fire zone upgrades are counted in their own lines). The reroof of a house, duplex or small building at the end of the covering's life. California single family roofs are 62 percent composition shingles, 27 percent tile (18 clay, 9 concrete) and 5 percent wood by the 2020 federal Residential Energy Consumption Survey (837 California homes; the occupant names the material). A replacement removes every layer down to the deck (Residential Code R908.3). Replacing more than 50 percent of the roof triggers the Energy Code cool roof rule in most inland and southern climate zones, and in a fire zone replacing 50 percent or more in 12 months triggers the Class A new roof rules. The City of Los Angeles issued 14,511 reroof permits in 2023 after the wet winter, against 10,383 in 2022, and 11,954 in 2025; the median house roof there is 22 squares. No California field study of shingle life was found, so the wear out age in the model is an assumption set in the data build.
+
+Paid targets for this line
+
+ZIPs ranked by gross profit pool per relative click cost. Click a row to select it.
+
+ZIP	CITY	JOBS	PER 10K	POOL	PCT ↓	TIER	BID
+93257	Porterville	477	59.3	$2.5M	100	A+	+30%
+93274	Tulare	481	60.1	$2.5M	100	A+	+30%
+95076	Watsonville	614	74.6	$3.2M	100	A+	+30%
+95350	Modesto	497	86.3	$2.6M	100	A+	+30%
+93306	Bakersfield	457	61.6	$2.4M	100	A+	+30%
+93230	Hanford	431	61.7	$2.3M	100	A+	+30%
+93307	Bakersfield	448	52.3	$2.4M	100	A+	+30%
+93309	Bakersfield	447	70.2	$2.4M	99	A+	+30%
+96003	Redding	350	78.8	$1.8M	99	A+	+30%
+96001	Redding	343	100.7	$1.8M	99	A+	+30%
+93277	Visalia	414	75.9	$2.2M	99	A+	+30%
+94565	Pittsburg	715	71.6	$3.8M	99	A+	+30%
+93722	Fresno	435	50.8	$2.3M	99	A+	+30%
+94112	San Francisco	756	94.5	$4.0M	99	A+	+30%
+95355	Modesto	417	68.7	$2.2M	99	A+	+30%
+96161	Truckee	346	168.3	$1.8M	99	A+	+30%
+93308	Bakersfield	384	69.2	$2.0M	99	A+	+30%
+93304	Bakersfield	392	75.9	$2.1M	99	A+	+30%
+94558	Napa	626	98.2	$3.3M	99	A+	+30%
+95207	Stockton	406	76.8	$2.1M	99	A+	+30%
+96002	Redding	314	93.0	$1.7M	99	A+	+30%
+96150	South Lake Tahoe	445	144.5	$2.3M	99	A+	+30%
+94509	Antioch	630	89.8	$3.3M	98	A+	+30%
+96080	Red Bluff	282	89.0	$1.5M	98	A+	+30%
+90650	Norwalk	732	73.0	$3.9M	98	A+	+30%
+95206	Stockton	387	56.7	$2.0M	98	A+	+30%
+93727	Fresno	386	46.3	$2.0M	98	A+	+30%
+95376	Tracy	375	68.5	$2.0M	98	A+	+30%
+95060	Santa Cruz	452	97.3	$2.4M	98	A+	+30%
+95608	Carmichael	536	86.5	$2.8M	98	A+	+30%
+95822	Sacramento	487	102.8	$2.6M	98	A+	+30%
+93436	Lompoc	407	72.9	$2.1M	98	A+	+30%
+92345	Hesperia	481	54.3	$2.5M	98	A+	+30%
+93446	Paso Robles	401	88.3	$2.1M	98	A+	+30%
+94533	Fairfield	553	70.6	$2.9M	98	A+	+30%
+94536	Fremont	586	82.8	$3.1M	98	A+	+30%
+92117	San Diego	505	94.8	$2.7M	98	A+	+30%
+93312	Bakersfield	326	56.0	$1.7M	98	A+	+30%
+95240	Lodi	348	68.5	$1.8M	97	A+	+30%
+95503	Eureka	275	110.0	$1.5M	97	A+	+30%
+95340	Merced	308	78.9	$1.6M	97	A+	+30%
+95204	Stockton	349	108.8	$1.8M	97	A+	+30%
+95380	Turlock	327	74.1	$1.7M	97	A+	+30%
+92253	La Quinta	419	105.0	$2.2M	97	A+	+30%
+95023	Hollister	403	67.4	$2.1M	97	A+	+30%
+94591	Vallejo	542	92.7	$2.9M	97	A+	+30%
+91911	Chula Vista	483	56.5	$2.5M	97	A+	+30%
+95630	Folsom	446	56.6	$2.4M	97	A+	+30%
+95687	Vacaville	519	75.1	$2.7M	97	A+	+30%
+95336	Manteca	329	65.5	$1.7M	97	A+	+30%
+93455	Santa Maria	379	84.4	$2.0M	97	A+	+30%
+92503	Riverside	494	55.8	$2.6M	97	A+	+30%
+95501	Eureka	258	112.6	$1.4M	97	A+	+30%
+91910	Chula Vista	473	61.3	$2.5M	96	A+	+30%
+95123	San Jose	555	79.5	$2.9M	96	A+	+30%
+94080	South San Francisco	570	88.0	$3.0M	96	A+	+30%
+90280	South Gate	611	66.8	$3.2M	96	A+	+30%
+93291	Visalia	307	48.7	$1.6M	96	A+	+30%
+94122	San Francisco	545	96.4	$2.9M	96	A+	+30%
+92335	Fontana	488	50.3	$2.6M	96	A+	+30%
+95014	Cupertino	528	86.2	$2.8M	96	A+	+30%
+95823	Sacramento	430	51.9	$2.3M	96	A+	+30%
+91331	Pacoima	594	60.9	$3.1M	96	A+	+30%
+92114	San Diego	477	72.0	$2.5M	96	A+	+30%
+95351	Modesto	323	66.7	$1.7M	96	A+	+30%
+93711	Fresno	324	81.2	$1.7M	96	A+	+30%
+94513	Brentwood	508	73.4	$2.7M	96	A+	+30%
+92683	Westminster	590	65.6	$3.1M	96	A+	+30%
+95124	San Jose	546	103.4	$2.9M	95	A+	+30%
+95062	Santa Cruz	381	106.0	$2.0M	95	A+	+30%
+94116	San Francisco	534	118.9	$2.8M	95	A+	+30%
+93906	Salinas	385	60.5	$2.0M	95	A+	+30%
+93065	Simi Valley	530	71.9	$2.8M	95	A+	+30%
+92336	Fontana	464	44.4	$2.4M	95	A+	+30%
+93555	Ridgecrest	268	77.8	$1.4M	95	A+	+30%
+91710	Chino	478	60.6	$2.5M	95	A+	+30%
+93702	Fresno	311	70.3	$1.6M	95	A	+20%
+95035	Milpitas	522	66.5	$2.7M	95	A	+20%
+92201	Indio	380	57.5	$2.0M	95	A	+20%
+92404	San Bernardino	424	66.7	$2.2M	95	A	+20%
+95670	Rancho Cordova	425	72.2	$2.2M	95	A	+20%
+94015	Daly City	519	81.2	$2.7M	95	A	+20%
+95820	Sacramento	417	114.6	$2.2M	95	A	+20%
+93292	Visalia	281	61.3	$1.5M	95	A	+20%
+93726	Fresno	308	68.6	$1.6M	94	A	+20%
+90805	Long Beach	562	60.9	$3.0M	94	A	+20%
+95370	Sonora	257	91.9	$1.4M	94	A	+20%
+95758	Elk Grove	391	59.8	$2.1M	94	A	+20%
+94087	Sunnyvale	502	86.3	$2.6M	94	A	+20%
+93305	Bakersfield	283	74.0	$1.5M	94	A	+20%
+92509	Jurupa Valley	453	55.7	$2.4M	94	A	+20%
+95020	Gilroy	451	67.4	$2.4M	94	A	+20%
+95628	Fair Oaks	415	91.3	$2.2M	94	A	+20%
+92126	San Diego	430	56.6	$2.3M	94	A	+20%
+93611	Clovis	297	63.5	$1.6M	94	A	+20%
+95209	Stockton	294	62.0	$1.5M	94	A	+20%
+90044	Los Angeles	543	57.4	$2.9M	94	A	+20%
+93215	Delano	257	47.5	$1.4M	94	A	+20%
+95125	San Jose	524	95.4	$2.8M	94	A	+20%
+93704	Fresno	299	99.9	$1.6M	93	A	+20%
+92376	Rialto	430	51.2	$2.3M	93	A	+20%
+95624	Elk Grove	383	57.1	$2.0M	93	A	+20%
+94553	Martinez	483	98.8	$2.5M	93	A	+20%
+94587	Union City	496	73.7	$2.6M	93	A	+20%
+94539	Fremont	481	91.2	$2.5M	93	A	+20%
+92646	Huntington Beach	532	95.8	$2.8M	93	A	+20%
+93705	Fresno	296	75.0	$1.6M	93	A	+20%
+94541	Hayward	507	75.6	$2.7M	93	A	+20%
+93313	Bakersfield	272	44.6	$1.4M	93	A	+20%
+92592	Temecula	382	47.8	$2.0M	93	A	+20%
+95482	Ukiah	240	74.3	$1.3M	93	A	+20%
+92506	Riverside	423	91.6	$2.2M	93	A	+20%
+94550	Livermore	439	87.6	$2.3M	93	A	+20%
+90201	Bell Gardens	537	58.0	$2.8M	93	A	+20%
+95205	Stockton	288	72.0	$1.5M	92	A	+20%
+93720	Fresno	284	56.8	$1.5M	92	A	+20%
+95926	Chico	326	79.5	$1.7M	92	A	+20%
+91744	La Puente	515	66.8	$2.7M	92	A	+20%
+94806	San Pablo	459	73.9	$2.4M	92	A	+20%
+95476	Sonoma	425	119.2	$2.2M	92	A	+20%
+92677	Laguna Niguel	469	72.7	$2.5M	92	A	+20%
+95831	Sacramento	369	83.9	$1.9M	92	A	+20%
+92115	San Diego	422	63.5	$2.2M	92	A	+20%
+95945	Grass Valley	246	90.8	$1.3M	92	A	+20%
+91342	Sylmar	494	53.2	$2.6M	92	A	+20%
+92154	San Diego	388	48.6	$2.0M	92	A	+20%
+92260	Palm Desert	345	108.5	$1.8M	92	A	+20%
+94501	Alameda	494	77.4	$2.6M	92	A	+20%
+95127	San Jose	471	79.8	$2.5M	92	A	+20%
+95747	Roseville	373	45.0	$2.0M	92	A	+20%
+92024	Encinitas	398	77.8	$2.1M	91	A	+20%
+91344	Granada Hills	492	91.8	$2.6M	91	A	+20%
+91977	Spring Valley	408	66.6	$2.2M	91	A	+20%
+93535	Lancaster	408	51.7	$2.1M	91	A	+20%
+91770	Rosemead	494	83.8	$2.6M	91	A	+20%
+91709	Chino Hills	417	53.7	$2.2M	91	A	+20%
+91335	Reseda	498	66.7	$2.6M	91	A	+20%
+92211	Palm Desert	338	114.7	$1.8M	91	A	+20%
+94544	Hayward	466	61.0	$2.5M	91	A	+20%
+95307	Ceres	264	57.5	$1.4M	91	A	+20%
+92234	Cathedral City	337	63.9	$1.8M	91	A	+20%
+90011	Los Angeles	497	50.0	$2.6M	91	A	+20%
+90047	Los Angeles	489	94.5	$2.6M	91	A	+20%
+93422	Atascadero	296	90.0	$1.6M	91	A	+20%
+92105	San Diego	393	55.1	$2.1M	91	A	+20%
+95051	Santa Clara	456	73.5	$2.4M	90	A	+20%
+94804	Richmond	433	96.1	$2.3M	90	A	+20%
+95828	Sacramento	357	58.4	$1.9M	90	A	+20%
+95695	Woodland	314	81.9	$1.7M	90	A	+20%
+93420	Arroyo Grande	296	94.5	$1.6M	90	A	+20%
+93940	Monterey	303	97.0	$1.6M	90	A	+20%
+93003	Ventura	413	77.6	$2.2M	90	A	+20%
+94110	San Francisco	459	68.6	$2.4M	90	A	+20%
+92071	Santee	384	64.3	$2.0M	90	A	+20%
+94538	Fremont	437	65.0	$2.3M	90	A	+20%
+95621	Citrus Heights	369	85.9	$1.9M	90	A	+20%
+93536	Lancaster	387	53.0	$2.0M	90	A	+20%
+93245	Lemoore	227	59.6	$1.2M	90	A	+20%
+93706	Fresno	247	60.7	$1.3M	90	A	+20%
+95519	McKinleyville	201	107.5	$1.1M	90	A	+20%
+96007	Anderson	202	82.5	$1.1M	89	A	+20%
+93635	Los Banos	237	47.5	$1.2M	89	A	+20%
+94568	Dublin	419	59.8	$2.2M	89	A	+20%
+91706	Baldwin Park	452	63.5	$2.4M	89	A	+20%
+92504	Riverside	380	65.9	$2.0M	89	A	+20%
+94605	Oakland	460	102.8	$2.4M	89	A	+20%
+92037	La Jolla	361	86.9	$1.9M	89	A	+20%
+90631	La Habra	479	69.8	$2.5M	89	A	+20%
+94521	Concord	424	100.5	$2.2M	89	A	+20%
+93905	Salinas	308	49.2	$1.6M	89	A	+20%
+90808	Long Beach	473	116.8	$2.5M	89	A	+20%
+93637	Madera	231	52.9	$1.2M	89	A	+20%
+91762	Ontario	392	60.9	$2.1M	89	A	+20%
+94952	Petaluma	378	111.5	$2.0M	89	A	+20%
+93311	Bakersfield	234	42.9	$1.2M	89	A	+20%
+93561	Tehachapi	231	72.9	$1.2M	89	A	+20%
+93638	Madera	237	47.1	$1.2M	88	A	+20%
+92708	Fountain Valley	470	82.7	$2.5M	88	A	+20%
+95648	Lincoln	318	55.8	$1.7M	88	A	+20%
+95404	Santa Rosa	384	103.4	$2.0M	88	A	+20%
+91730	Rancho Cucamonga	387	54.2	$2.0M	88	A	+20%
+90660	Pico Rivera	468	77.0	$2.5M	88	A	+20%
+95301	Atwater	228	53.1	$1.2M	88	A	+20%
+95354	Modesto	253	95.7	$1.3M	88	A	+20%
+92109	San Diego	354	77.8	$1.9M	88	A	+20%
+90275	Rancho Palos Verdes	423	101.0	$2.2M	88	A	+20%
+92056	Oceanside	369	68.3	$1.9M	88	A	+20%
+91745	Hacienda Heights	457	83.2	$2.4M	88	A	+20%
+90250	Hawthorne	449	48.2	$2.4M	88	A	+20%
+95521	Arcata	193	90.2	$1.0M	88	A	+20%
+95678	Roseville	339	74.3	$1.8M	88	A	+20%
+95610	Citrus Heights	344	73.2	$1.8M	87	A	+20%
+95382	Turlock	234	60.5	$1.2M	87	A	+20%
+93063	Simi Valley	417	75.4	$2.2M	87	A	+20%
+92691	Mission Viejo	417	89.5	$2.2M	87	A	+20%
+95826	Sacramento	337	83.1	$1.8M	87	A	+20%
+95003	Aptos	300	117.4	$1.6M	87	A	+20%
+90042	Los Angeles	438	76.5	$2.3M	87	A	+20%
+95120	San Jose	394	104.6	$2.1M	87	A	+20%
+92630	Lake Forest	421	62.7	$2.2M	87	A	+20%
+93117	Goleta	273	52.5	$1.4M	87	A	+20%
+92111	San Diego	352	76.8	$1.9M	87	A	+20%
+90703	Cerritos	453	92.7	$2.4M	87	A	+20%
+90022	Los Angeles	446	73.5	$2.4M	87	A	+20%
+94941	Mill Valley	367	111.7	$1.9M	87	A	+20%
+95616	Davis	290	54.3	$1.5M	87	A	+20%
+92128	San Diego	350	70.9	$1.8M	86	A	+20%
+93703	Fresno	243	71.8	$1.3M	86	A	+20%
+93458	Santa Maria	274	47.5	$1.4M	86	A	+20%
+90706	Bellflower	450	58.7	$2.4M	86	A	+20%
+95991	Yuba City	285	67.0	$1.5M	86	A	+20%
+93033	Oxnard	381	49.0	$2.0M	86	A	+20%
+92882	Corona	358	52.0	$1.9M	86	A	+20%
+94044	Pacifica	394	104.4	$2.1M	86	A	+20%
+92553	Moreno Valley	338	45.5	$1.8M	86	A	+20%
+94566	Pleasanton	382	85.8	$2.0M	86	A	+20%
+94303	Palo Alto	395	83.7	$2.1M	86	A	+20%
+95472	Sebastopol	356	121.7	$1.9M	86	A	+20%
+93550	Palmdale	380	47.5	$2.0M	86	A	+20%
+92311	Barstow	273	79.0	$1.4M	86	A	+20%
+95361	Oakdale	225	64.9	$1.2M	86	A	+20%
+92064	Poway	341	69.6	$1.8M	85	A	+20%
+95037	Morgan Hill	367	70.9	$1.9M	85	A	+20%
+93401	San Luis Obispo	265	90.9	$1.4M	85	A	+20%
+94546	Castro Valley	414	91.6	$2.2M	85	A	+20%
+94560	Newark	392	83.2	$2.1M	85	A	+20%
+95210	Stockton	234	56.7	$1.2M	85	A	+20%
+94954	Petaluma	349	93.1	$1.8M	85	A	+20%
+92262	Palm Springs	291	103.3	$1.5M	85	A	+20%
+92346	Highland	320	57.1	$1.7M	85	B	+10%
+91702	Azusa	379	62.3	$2.0M	85	B	+10%
+94025	Menlo Park	384	93.8	$2.0M	85	B	+10%
+90731	San Pedro	399	64.4	$2.1M	85	B	+10%
+91766	Pomona	415	60.0	$2.2M	85	B	+10%
+91950	National City	338	56.5	$1.8M	85	B	+10%
+94590	Vallejo	365	97.4	$1.9M	85	B	+10%
+94010	Burlingame	383	88.9	$2.0M	85	B	+10%
+93955	Seaside	269	82.7	$1.4M	84	B	+10%
+95008	Campbell	398	81.9	$2.1M	84	B	+10%
+90026	Los Angeles	421	66.9	$2.2M	84	B	+10%
+95688	Vacaville	352	87.3	$1.9M	84	B	+10%
+93454	Santa Maria	259	62.5	$1.4M	84	B	+10%
+93657	Sanger	211	58.3	$1.1M	84	B	+10%
+92399	Yucaipa	304	55.0	$1.6M	84	B	+10%
+90043	Los Angeles	415	96.1	$2.2M	84	B	+10%
+91786	Upland	348	62.1	$1.8M	84	B	+10%
+92324	Colton	329	57.5	$1.7M	84	B	+10%
+90638	La Mirada	425	91.0	$2.2M	84	B	+10%
+94901	San Rafael	353	86.6	$1.9M	84	B	+10%
+93612	Clovis	228	60.4	$1.2M	84	B	+10%
+92804	Anaheim	425	51.2	$2.2M	84	B	+10%
+92057	Oceanside	332	58.4	$1.7M	84	B	+10%
+92277	Twentynine Palms	249	91.7	$1.3M	83	B	+10%
+95821	Sacramento	319	82.9	$1.7M	83	B	+10%
+95928	Chico	257	68.5	$1.4M	83	B	+10%
+93619	Clovis	212	39.0	$1.1M	83	B	+10%
+94611	Oakland	385	94.9	$2.0M	83	B	+10%
+95662	Orangevale	306	92.2	$1.6M	83	B	+10%
+90640	Montebello	412	66.9	$2.2M	83	B	+10%
+95242	Lodi	220	76.4	$1.2M	83	B	+10%
+92104	San Diego	327	68.5	$1.7M	83	B	+10%
+94577	San Leandro	401	86.1	$2.1M	83	B	+10%
+94121	San Francisco	367	86.3	$1.9M	83	B	+10%
+92129	San Diego	320	60.4	$1.7M	83	B	+10%
+95993	Yuba City	260	66.5	$1.4M	83	B	+10%
+93010	Camarillo	352	75.0	$1.9M	83	B	+10%
+94561	Oakley	350	76.2	$1.8M	83	B	+10%
+90066	Los Angeles	385	67.7	$2.0M	82	B	+10%
+90815	Long Beach	401	91.5	$2.1M	82	B	+10%
+92020	El Cajon	325	56.3	$1.7M	82	B	+10%
+95132	San Jose	365	89.5	$1.9M	82	B	+10%
+92270	Rancho Mirage	274	143.0	$1.4M	82	B	+10%
+92672	San Clemente	308	81.9	$1.6M	82	B	+10%
+95864	Sacramento	305	115.3	$1.6M	82	B	+10%
+93901	Salinas	260	86.5	$1.4M	82	B	+10%
+95437	Fort Bragg	181	117.5	$951K	82	B	+10%
+91360	Thousand Oaks	356	83.3	$1.9M	82	B	+10%
+95959	Nevada City	180	102.5	$950K	82	B	+10%
+92407	San Bernardino	301	42.6	$1.6M	82	B	+10%
+94526	Danville	356	107.8	$1.9M	82	B	+10%
+90630	Cypress	402	80.7	$2.1M	82	B	+10%
+96130	Susanville	156	80.2	$820K	82	B	+10%
+92647	Huntington Beach	395	66.7	$2.1M	82	B	+10%
+95070	Saratoga	349	108.3	$1.8M	81	B	+10%
+90745	Carson	391	67.9	$2.1M	81	B	+10%
+92395	Victorville	273	57.8	$1.4M	81	B	+10%
+94403	San Mateo	357	82.7	$1.9M	81	B	+10%
+92021	El Cajon	309	44.4	$1.6M	81	B	+10%
+95531	Crescent City	165	74.4	$871K	81	B	+10%
+90065	Los Angeles	387	85.4	$2.0M	81	B	+10%
+94551	Livermore	338	88.4	$1.8M	81	B	+10%
+92562	Murrieta	289	44.9	$1.5M	81	B	+10%
+94928	Rohnert Park	323	70.3	$1.7M	81	B	+10%
+94066	San Bruno	363	85.0	$1.9M	81	B	+10%
+94014	Daly City	369	81.7	$1.9M	81	B	+10%
+94531	Antioch	343	74.6	$1.8M	81	B	+10%
+95129	San Jose	362	86.8	$1.9M	81	B	+10%
+94534	Fairfield	331	80.5	$1.7M	81	B	+10%
+95358	Modesto	207	67.8	$1.1M	80	B	+10%
+91942	La Mesa	315	75.0	$1.7M	80	B	+10%
+91104	Pasadena	368	99.9	$1.9M	80	B	+10%
+92692	Mission Viejo	357	75.3	$1.9M	80	B	+10%
+91941	La Mesa	314	91.9	$1.7M	80	B	+10%
+92392	Victorville	273	42.4	$1.4M	80	B	+10%
+95148	San Jose	358	79.3	$1.9M	80	B	+10%
+92264	Palm Springs	260	121.8	$1.4M	80	B	+10%
+90003	Los Angeles	388	55.6	$2.0M	80	B	+10%
+95818	Sacramento	282	119.4	$1.5M	80	B	+10%
+92544	Hemet	270	52.2	$1.4M	80	B	+10%
+92284	Yucca Valley	254	96.1	$1.3M	80	B	+10%
+93105	Santa Barbara	238	95.3	$1.3M	80	B	+10%
+93710	Fresno	211	66.3	$1.1M	80	B	+10%
+92704	Santa Ana	386	47.5	$2.0M	80	B	+10%
+91764	Ontario	318	56.6	$1.7M	79	B	+10%
+92243	El Centro	243	49.5	$1.3M	79	B	+10%
+94134	San Francisco	367	93.2	$1.9M	79	B	+10%
+92627	Costa Mesa	375	62.1	$2.0M	79	B	+10%
+94061	Redwood City	337	90.8	$1.8M	79	B	+10%
+91761	Ontario	315	50.3	$1.7M	79	B	+10%
+92886	Yorba Linda	376	75.0	$2.0M	79	B	+10%
+90620	Buena Park	383	81.2	$2.0M	79	B	+10%
+94583	San Ramon	338	85.6	$1.8M	79	B	+10%
+90063	Los Angeles	372	76.1	$2.0M	79	B	+10%
+92107	San Diego	283	95.0	$1.5M	79	B	+10%
+94601	Oakland	361	68.3	$1.9M	79	B	+10%
+95660	North Highlands	286	79.8	$1.5M	79	B	+10%
+95966	Oroville	228	78.8	$1.2M	79	B	+10%
+95401	Santa Rosa	308	84.3	$1.6M	79	B	+10%
+93662	Selma	185	62.7	$976K	79	B	+10%
+95356	Modesto	200	60.7	$1.1M	78	B	+10%
+94523	Pleasant Hill	335	96.3	$1.8M	78	B	+10%
+91016	Monrovia	345	82.6	$1.8M	78	B	+10%
+93101	Santa Barbara	236	74.5	$1.2M	78	B	+10%
+90255	Huntington Park	374	54.2	$2.0M	78	B	+10%
+93654	Reedley	184	57.9	$970K	78	B	+10%
+91790	West Covina	350	77.5	$1.8M	78	B	+10%
+90262	Lynwood	369	57.6	$1.9M	78	B	+10%
+95422	Clearlake	160	94.0	$843K	78	B	+10%
+92870	Placentia	365	68.8	$1.9M	78	B	+10%
+95819	Sacramento	269	129.0	$1.4M	78	B	+10%
+94582	San Ramon	318	68.1	$1.7M	78	B	+10%
+92027	Escondido	282	52.5	$1.5M	78	B	+10%
+92374	Redlands	271	59.9	$1.4M	78	B	+10%
+95843	Antelope	272	57.7	$1.4M	78	B	+10%
+95403	Santa Rosa	296	66.3	$1.6M	77	B	+10%
+94602	Oakland	341	105.3	$1.8M	77	B	+10%
+91320	Newbury Park	312	71.6	$1.6M	77	B	+10%
+93551	Palmdale	295	54.6	$1.6M	77	B	+10%
+91801	Alhambra	346	64.8	$1.8M	77	B	+10%
+92563	Murrieta	262	33.2	$1.4M	77	B	+10%
+92113	San Diego	281	58.2	$1.5M	77	B	+10%
+95667	Placerville	231	63.6	$1.2M	77	B	+10%
+90045	Los Angeles	334	79.0	$1.8M	77	B	+10%
+92626	Costa Mesa	351	68.9	$1.8M	77	B	+10%
+95337	Manteca	187	39.5	$984K	77	B	+10%
+93618	Dinuba	175	54.8	$923K	77	B	+10%
+91107	Pasadena	330	99.4	$1.7M	77	B	+10%
+92308	Apple Valley	240	56.4	$1.3M	77	B	+10%
+95111	San Jose	329	58.3	$1.7M	77	B	+10%
+95409	Santa Rosa	285	109.8	$1.5M	76	B	+10%
+92833	Fullerton	357	68.6	$1.9M	76	B	+10%
+92307	Apple Valley	234	56.9	$1.2M	76	B	+10%
+94903	San Rafael	289	95.1	$1.5M	76	B	+10%
+90266	Manhattan Beach	330	94.2	$1.7M	76	B	+10%
+90032	Los Angeles	340	77.9	$1.8M	76	B	+10%
+90019	Los Angeles	344	57.9	$1.8M	76	B	+10%
+95603	Auburn	229	79.2	$1.2M	76	B	+10%
+94555	Fremont	312	82.9	$1.6M	76	B	+10%
+95540	Fortuna	144	100.9	$756K	76	B	+10%
+95762	El Dorado Hills	237	51.1	$1.2M	76	B	+10%
+96022	Cottonwood	140	82.0	$736K	76	B	+10%
+95838	Sacramento	258	63.7	$1.4M	76	B	+10%
+95136	San Jose	321	67.2	$1.7M	76	B	+10%
+90037	Los Angeles	341	52.5	$1.8M	76	B	+10%
+92705	Santa Ana	338	68.9	$1.8M	76	B	+10%
+91765	Diamond Bar	332	74.1	$1.8M	75	B	+10%
+95833	Sacramento	248	59.3	$1.3M	75	B	+10%
+95901	Marysville	211	55.8	$1.1M	75	B	+10%
+92102	San Diego	269	68.5	$1.4M	75	B	+10%
+93950	Pacific Grove	208	129.8	$1.1M	75	B	+10%
+94598	Walnut Creek	305	110.0	$1.6M	75	B	+10%
+92240	Desert Hot Springs	226	54.2	$1.2M	75	B	+10%
+94530	El Cerrito	302	111.9	$1.6M	75	B	+10%
+92084	Vista	278	56.0	$1.5M	75	B	+10%
+91701	Rancho Cucamonga	277	69.7	$1.5M	75	B	+10%
+92028	Fallbrook	260	50.3	$1.4M	75	B	+10%
+91732	El Monte	323	56.6	$1.7M	75	B	+10%
+90016	Los Angeles	331	70.9	$1.7M	75	B	+10%
+90001	Los Angeles	338	60.2	$1.8M	75	B	+10%
+92840	Garden Grove	342	62.7	$1.8M	75	B	+10%
+95118	San Jose	311	95.6	$1.6M	74	B	+10%
+91767	Pomona	320	65.0	$1.7M	74	B	+10%
+95223	Arnold	142	414.3	$746K	74	B	+10%
+92707	Santa Ana	333	57.0	$1.8M	74	B	+10%
+92530	Lake Elsinore	248	40.6	$1.3M	74	B	+10%
+92026	Escondido	271	51.4	$1.4M	74	B	+10%
+94070	San Carlos	297	96.6	$1.6M	74	B	+10%
+94086	Sunnyvale	303	61.5	$1.6M	74	B	+10%
+92019	El Cajon	256	56.7	$1.4M	74	B	+10%
+92405	San Bernardino	254	79.8	$1.3M	74	B	+10%
+92025	Escondido	263	53.0	$1.4M	74	B	+10%
+92120	San Diego	264	80.9	$1.4M	74	B	+10%
+91343	North Hills	329	54.5	$1.7M	74	B	+10%
+92223	Beaumont	236	37.6	$1.2M	74	B	+10%
+93030	Oxnard	287	50.1	$1.5M	74	B	+10%
+94559	Napa	270	97.1	$1.4M	73	B	+10%
+92130	San Diego	253	42.4	$1.3M	73	B	+10%
+93546	Mammoth Lakes	142	149.3	$746K	73	B	+10%
+90503	Torrance	315	72.0	$1.7M	73	B	+10%
+93514	Bishop	139	97.2	$730K	73	B	+10%
+94062	Redwood City	283	107.7	$1.5M	73	B	+10%
+95215	Stockton	174	69.5	$918K	73	B	+10%
+95219	Stockton	175	55.8	$922K	73	B	+10%
+92507	Riverside	258	40.8	$1.4M	73	B	+10%
+95691	West Sacramento	229	57.2	$1.2M	73	B	+10%
+91306	Winnetka	317	66.9	$1.7M	73	B	+10%
+92040	Lakeside	252	54.7	$1.3M	73	B	+10%
+92651	Laguna Beach	298	120.5	$1.6M	73	B	+10%
+92557	Moreno Valley	253	47.0	$1.3M	73	B	+10%
+91780	Temple City	311	85.7	$1.6M	73	B	+10%
+90713	Lakewood	326	111.3	$1.7M	73	B	+10%
+93923	Carmel	190	138.3	$1.0M	72	B	+10%
+91711	Claremont	307	80.5	$1.6M	72	B	+10%
+93534	Lancaster	257	62.2	$1.4M	72	B	+10%
+92009	Carlsbad	255	57.2	$1.3M	72	B	+10%
+95949	Grass Valley	152	77.5	$801K	72	B	+10%
+90605	Whittier	324	81.0	$1.7M	72	B	+10%
+92220	Banning	219	63.9	$1.2M	72	B	+10%
+93001	Ventura	257	79.3	$1.4M	72	B	+10%
+95122	San Jose	305	60.7	$1.6M	72	B	+10%
+94589	Vallejo	272	90.1	$1.4M	72	B	+10%
+90220	Compton	320	66.0	$1.7M	72	B	+10%
+90018	Los Angeles	318	65.2	$1.7M	72	B	+10%
+92805	Anaheim	323	43.9	$1.7M	72	B	+10%
+91367	Woodland Hills	301	65.4	$1.6M	72	B	+10%
+95407	Santa Rosa	263	64.4	$1.4M	72	B	+10%
+92879	Corona	256	51.9	$1.3M	71	B	+10%
+94578	San Leandro	303	72.8	$1.6M	71	B	+10%
+92116	San Diego	250	77.1	$1.3M	71	B	+10%
+92505	Riverside	257	48.3	$1.4M	71	B	+10%
+90278	Redondo Beach	301	70.5	$1.6M	71	B	+10%
+92807	Anaheim	311	82.1	$1.6M	71	B	+10%
+94549	Lafayette	283	98.5	$1.5M	71	B	+10%
+90712	Lakewood	313	98.8	$1.6M	71	B	+10%
+92054	Oceanside	242	62.7	$1.3M	71	B	+10%
+94118	San Francisco	284	72.2	$1.5M	71	B	+10%
+90505	Torrance	295	82.7	$1.6M	71	B	+10%
+94510	Benicia	266	98.2	$1.4M	71	B	+10%
+91214	La Crescenta	292	92.4	$1.5M	71	B	+10%
+94404	San Mateo	279	78.4	$1.5M	71	B	+10%
+95405	Santa Rosa	254	110.0	$1.3M	71	B	+10%
+91304	Canoga Park	288	55.3	$1.5M	70	B	+10%
+95490	Willits	129	89.5	$680K	70	B	+10%
+95348	Merced	148	40.5	$782K	70	B	+10%
+94803	El Sobrante	271	97.2	$1.4M	70	B	+10%
+90221	Compton	309	61.0	$1.6M	70	B	+10%
+95492	Windsor	247	90.7	$1.3M	70	B	+10%
+91789	Walnut	297	73.0	$1.6M	70	B	+10%
+91754	Monterey Park	300	91.0	$1.6M	70	B	+10%
+93405	San Luis Obispo	180	73.8	$946K	70	B	+10%
+95121	San Jose	283	77.5	$1.5M	70	B	+10%
+92648	Huntington Beach	297	64.6	$1.6M	70	B	+10%
+94588	Pleasanton	263	76.7	$1.4M	70	B	+10%
+90504	Torrance	297	87.8	$1.6M	70	B	+10%
+95050	Santa Clara	288	72.4	$1.5M	70	B	+10%
+94580	San Lorenzo	289	96.7	$1.5M	70	B	+10%
+94024	Los Altos	267	111.7	$1.4M	69	B	+10%
+93728	Fresno	164	85.8	$862K	69	B	+10%
+91311	Chatsworth	283	68.9	$1.5M	69	B	+10%
+90002	Los Angeles	304	58.5	$1.6M	69	B	+10%
+95112	San Jose	292	51.8	$1.5M	69	B	+10%
+92649	Huntington Beach	295	82.1	$1.6M	69	B	+10%
+94603	Oakland	294	81.9	$1.5M	69	B	+10%
+92867	Orange	301	67.0	$1.6M	69	B	+10%
+91505	Burbank	303	93.2	$1.6M	69	B	+10%
+92139	San Diego	239	68.2	$1.3M	69	B	+10%
+91748	Rowland Heights	298	69.7	$1.6M	69	B	+10%
+90274	Palos Verdes Peninsula	278	106.5	$1.5M	69	B	+10%
+94131	San Francisco	280	95.7	$1.5M	69	B	+10%
+95973	Chico	179	47.0	$943K	69	B	+10%
+92880	Corona	245	33.2	$1.3M	69	B	+10%
+95116	San Jose	286	60.3	$1.5M	69	B	+10%
+93268	Taft	141	80.2	$745K	68	B	+10%
+92373	Redlands	224	63.1	$1.2M	68	B	+10%
+91406	Van Nuys	300	58.0	$1.6M	68	B	+10%
+92780	Tustin	296	54.7	$1.6M	68	B	+10%
+93314	Bakersfield	146	42.3	$767K	68	B	+10%
+92103	San Diego	231	65.9	$1.2M	68	B	+10%
+92545	Hemet	214	46.9	$1.1M	68	B	+10%
+95842	Sacramento	227	66.8	$1.2M	68	B	+10%
+95341	Merced	143	40.3	$753K	68	B	+10%
+93402	Los Osos	171	116.7	$903K	68	B	+10%
+95128	San Jose	282	84.4	$1.5M	68	B	+10%
+94801	Richmond	255	76.7	$1.3M	68	B	+10%
+92656	Aliso Viejo	269	52.0	$1.4M	68	B	+10%
+91006	Arcadia	275	85.4	$1.4M	68	B	+10%
+94114	San Francisco	273	81.7	$1.4M	68	B	+10%
+94947	Novato	237	98.8	$1.2M	67	B	+10%
+90501	Torrance	285	67.8	$1.5M	67	B	+10%
+94619	Oakland	277	101.2	$1.5M	67	B	+10%
+91362	Thousand Oaks	260	71.9	$1.4M	67	B	+10%
+90604	Whittier	293	73.9	$1.5M	67	B	+10%
+95815	Sacramento	218	80.6	$1.1M	67	B	+10%
+90291	Venice	270	99.1	$1.4M	67	B	+10%
+90744	Wilmington	276	52.8	$1.5M	67	B	+10%
+94402	San Mateo	259	100.1	$1.4M	67	B	+10%
+90803	Long Beach	276	85.8	$1.5M	67	B	+10%
+93444	Nipomo	178	83.5	$936K	67	B	+10%
+92410	San Bernardino	222	47.0	$1.2M	67	B	+10%
+92123	San Diego	228	68.2	$1.2M	67	B	+10%
+95032	Los Gatos	250	90.2	$1.3M	67	B	+10%
+90807	Long Beach	284	84.3	$1.5M	67	B	+10%
+93280	Wasco	133	49.3	$699K	66	B	+10%
+92584	Menifee	211	35.0	$1.1M	66	B	+10%
+90247	Gardena	283	60.3	$1.5M	66	B	+10%
+95632	Galt	191	59.4	$1.0M	66	B	+10%
+92236	Coachella	186	43.1	$979K	66	B	+10%
+95367	Riverbank	151	59.8	$795K	66	B	+10%
+95661	Roseville	211	64.7	$1.1M	66	B	+10%
+95824	Sacramento	208	63.4	$1.1M	66	B	+10%
+90039	Los Angeles	278	93.5	$1.5M	66	B	+10%
+91352	Sun Valley	281	60.0	$1.5M	66	B	+10%
+92586	Menifee	209	95.3	$1.1M	66	B	+10%
+91722	Covina	266	74.8	$1.4M	66	B	+10%
+95961	Olivehurst	181	53.3	$952K	66	B	+10%
+92124	San Diego	223	72.0	$1.2M	66	B	+10%
+93111	Santa Barbara	175	93.1	$922K	66	B	+10%
+92675	San Juan Capistrano	247	69.8	$1.3M	66	B	+10%
+92620	Irvine	274	45.1	$1.4M	65	B	+10%
+93442	Morro Bay	164	133.3	$865K	65	B	+10%
+92543	Hemet	201	50.3	$1.1M	65	B	+10%
+93103	Santa Barbara	177	89.5	$935K	65	B	+10%
+90277	Redondo Beach	261	74.2	$1.4M	65	B	+10%
+93012	Camarillo	241	67.4	$1.3M	65	B	+10%
+93060	Santa Paula	229	66.4	$1.2M	65	B	+10%
+91776	San Gabriel	268	72.0	$1.4M	65	C	0%
+94132	San Francisco	255	92.7	$1.3M	65	C	0%
+94127	San Francisco	258	120.7	$1.4M	65	C	0%
+94518	Concord	251	91.5	$1.3M	65	C	0%
+94306	Palo Alto	246	89.1	$1.3M	65	C	0%
+91326	Porter Ranch	265	68.7	$1.4M	65	C	0%
+93035	Oxnard	236	86.2	$1.2M	65	C	0%
+90241	Downey	280	62.0	$1.5M	65	C	0%
+91307	West Hills	257	93.7	$1.4M	64	C	0%
+90062	Los Angeles	273	82.0	$1.4M	64	C	0%
+95765	Rocklin	198	46.1	$1.0M	64	C	0%
+95363	Patterson	142	47.9	$749K	64	C	0%
+95451	Kelseyville	121	95.8	$637K	64	C	0%
+92078	San Marcos	223	42.4	$1.2M	64	C	0%
+92231	Calexico	175	45.5	$921K	64	C	0%
+95377	Tracy	145	39.9	$763K	64	C	0%
+92703	Santa Ana	276	44.9	$1.5M	64	C	0%
+95682	Shingle Springs	185	62.5	$972K	64	C	0%
+92122	San Diego	209	46.7	$1.1M	64	C	0%
+90242	Downey	276	67.4	$1.5M	64	C	0%
+91803	Alhambra	265	92.8	$1.4M	64	C	0%
+92869	Orange	267	73.0	$1.4M	64	C	0%
+91945	Lemon Grove	217	76.7	$1.1M	64	C	0%
+92131	San Diego	211	59.3	$1.1M	63	C	0%
+94545	Hayward	251	76.5	$1.3M	63	C	0%
+93933	Marina	172	62.1	$904K	63	C	0%
+95757	Elk Grove	181	33.4	$951K	63	C	0%
+91750	La Verne	250	75.5	$1.3M	63	C	0%
+94585	Suisun City	225	77.1	$1.2M	63	C	0%
+91763	Montclair	220	58.3	$1.2M	63	C	0%
+92571	Perris	200	33.9	$1.1M	63	C	0%
+92629	Dana Point	231	88.0	$1.2M	63	C	0%
+90740	Seal Beach	260	103.1	$1.4M	63	C	0%
+90023	Los Angeles	264	60.4	$1.4M	63	C	0%
+91791	West Covina	254	75.8	$1.3M	63	C	0%
+91605	North Hollywood	268	54.1	$1.4M	63	C	0%
+96137	Westwood	100	233.0	$528K	63	C	0%
+92119	San Diego	210	83.3	$1.1M	63	C	0%
+90260	Lawndale	255	78.3	$1.3M	63	C	0%
+92591	Temecula	191	45.8	$1.0M	62	C	0%
+94124	San Francisco	252	72.8	$1.3M	62	C	0%
+94506	Danville	229	85.0	$1.2M	62	C	0%
+92106	San Diego	196	87.5	$1.0M	62	C	0%
+92203	Indio	174	50.3	$918K	62	C	0%
+90041	Los Angeles	252	87.9	$1.3M	62	C	0%
+93036	Oxnard	226	46.9	$1.2M	62	C	0%
+92058	Oceanside	202	41.4	$1.1M	62	C	0%
+90806	Long Beach	256	61.6	$1.3M	62	C	0%
+94043	Mountain View	233	70.4	$1.2M	62	C	0%
+91773	San Dimas	245	72.2	$1.3M	62	C	0%
+92660	Newport Beach	253	71.9	$1.3M	62	C	0%
+93907	Salinas	171	68.6	$901K	62	C	0%
+90601	Whittier	257	83.6	$1.4M	62	C	0%
+94002	Belmont	231	84.0	$1.2M	62	C	0%
+92688	Rancho Santa Margarita	233	54.3	$1.2M	61	C	0%
+93004	Ventura	221	71.6	$1.2M	61	C	0%
+91784	Upland	209	76.1	$1.1M	61	C	0%
+91733	South El Monte	252	61.1	$1.3M	61	C	0%
+90810	Long Beach	253	70.0	$1.3M	61	C	0%
+93725	Fresno	132	54.4	$697K	61	C	0%
+92801	Anaheim	261	43.9	$1.4M	61	C	0%
+91364	Woodland Hills	243	85.6	$1.3M	61	C	0%
+92604	Irvine	251	91.8	$1.3M	61	C	0%
+96019	Shasta Lake	104	98.9	$548K	61	C	0%
+91775	San Gabriel	242	98.6	$1.3M	61	C	0%
+96097	Yreka	96	99.8	$505K	61	C	0%
+92653	Laguna Hills	233	77.4	$1.2M	61	C	0%
+95825	Sacramento	191	53.9	$1.0M	61	C	0%
+91913	Chula Vista	194	34.6	$1.0M	61	C	0%
+96021	Corning	100	69.8	$526K	60	C	0%
+95677	Rocklin	183	63.0	$966K	60	C	0%
+94621	Oakland	245	72.8	$1.3M	60	C	0%
+95252	Valley Springs	119	85.1	$626K	60	C	0%
+94519	Concord	225	114.5	$1.2M	60	C	0%
+94960	San Anselmo	206	124.1	$1.1M	60	C	0%
+92821	Brea	248	59.8	$1.3M	60	C	0%
+90723	Paramount	251	49.0	$1.3M	60	C	0%
+94608	Emeryville	227	66.9	$1.2M	60	C	0%
+91350	Santa Clarita	221	50.9	$1.2M	60	C	0%
+92315	Big Bear Lake	168	236.3	$883K	60	C	0%
+95203	Stockton	134	81.5	$708K	60	C	0%
+91340	San Fernando	241	71.5	$1.3M	60	C	0%
+91741	Glendora	227	84.8	$1.2M	60	C	0%
+91932	Imperial Beach	180	69.0	$949K	60	C	0%
+90027	Los Angeles	242	52.6	$1.3M	60	C	0%
+92069	San Marcos	203	43.7	$1.1M	59	C	0%
+92065	Ramona	183	50.3	$962K	59	C	0%
+95618	Davis	163	62.0	$859K	59	C	0%
+96067	Mount Shasta	92	116.7	$486K	59	C	0%
+93610	Chowchilla	117	49.9	$614K	59	C	0%
+90606	Whittier	244	75.2	$1.3M	59	C	0%
+95366	Ripon	129	67.2	$677K	59	C	0%
+92411	San Bernardino	189	68.6	$998K	59	C	0%
+92316	Bloomington	194	59.2	$1.0M	59	C	0%
+93433	Grover Beach	146	112.3	$770K	59	C	0%
+92008	Carlsbad	189	67.0	$997K	59	C	0%
+95448	Healdsburg	185	112.5	$974K	59	C	0%
+94547	Hercules	210	80.4	$1.1M	59	C	0%
+95746	Granite Bay	172	73.7	$904K	59	C	0%
+90031	Los Angeles	235	64.8	$1.2M	59	C	0%
+91402	Panorama City	241	37.7	$1.3M	58	C	0%
+90064	Los Angeles	228	83.7	$1.2M	58	C	0%
+94520	Concord	214	59.0	$1.1M	58	C	0%
+91606	North Hollywood	242	55.9	$1.3M	58	C	0%
+95135	San Jose	191	92.5	$1.0M	58	C	0%
+95212	Stockton	127	46.2	$669K	58	C	0%
+94022	Los Altos	204	99.0	$1.1M	58	C	0%
+90049	Los Angeles	225	60.8	$1.2M	58	C	0%
+90068	Los Angeles	235	104.3	$1.2M	58	C	0%
+93021	Moorpark	204	54.9	$1.1M	58	C	0%
+93552	Palmdale	193	46.2	$1.0M	58	C	0%
+94564	Pinole	206	107.3	$1.1M	58	C	0%
+93023	Ojai	183	85.0	$963K	58	C	0%
+94040	Mountain View	208	59.3	$1.1M	58	C	0%
+93263	Shafter	112	47.8	$591K	58	C	0%
+91007	Arcadia	221	66.5	$1.2M	57	C	0%
+95835	Sacramento	168	41.7	$886K	57	C	0%
+93631	Kingsburg	115	64.8	$606K	57	C	0%
+92831	Fullerton	236	66.0	$1.2M	57	C	0%
+94945	Novato	188	106.7	$993K	57	C	0%
+94610	Oakland	217	67.3	$1.1M	57	C	0%
+93247	Lindsay	109	60.3	$575K	57	C	0%
+92110	San Diego	177	57.5	$933K	57	C	0%
+93241	Lamont	115	73.2	$607K	57	C	0%
+95453	Lakeport	101	87.7	$533K	57	C	0%
+91325	Northridge	225	64.0	$1.2M	57	C	0%
+95131	San Jose	215	69.3	$1.1M	57	C	0%
+90059	Los Angeles	228	60.9	$1.2M	57	C	0%
+92127	San Diego	178	36.4	$938K	57	C	0%
+91010	Duarte	211	75.3	$1.1M	57	C	0%
+95126	San Jose	219	58.1	$1.2M	56	C	0%
+90746	Carson	225	81.3	$1.2M	56	C	0%
+92706	Santa Ana	229	61.7	$1.2M	56	C	0%
+95338	Mariposa	98	97.5	$515K	56	C	0%
+91355	Valencia	203	69.3	$1.1M	56	C	0%
+92227	Brawley	142	50.1	$750K	56	C	0%
+95330	Lathrop	119	35.6	$628K	56	C	0%
+94606	Oakland	214	55.1	$1.1M	56	C	0%
+90732	San Pedro	206	86.6	$1.1M	56	C	0%
+91724	Covina	211	73.7	$1.1M	56	C	0%
+91042	Tujunga	205	75.1	$1.1M	56	C	0%
+91746	La Puente	216	75.1	$1.1M	56	C	0%
+92301	Adelanto	148	39.6	$779K	56	C	0%
+93013	Carpinteria	138	82.9	$725K	56	C	0%
+92083	Vista	181	48.0	$955K	56	C	0%
+95827	Sacramento	164	74.7	$862K	56	C	0%
+94563	Orinda	199	101.1	$1.0M	55	C	0%
+95816	Sacramento	162	82.5	$852K	55	C	0%
+93041	Port Hueneme	186	78.9	$981K	55	C	0%
+92843	Garden Grove	221	48.4	$1.2M	55	C	0%
+92118	Coronado	164	83.7	$866K	55	C	0%
+94401	San Mateo	196	57.7	$1.0M	55	C	0%
+94030	Millbrae	197	86.9	$1.0M	55	C	0%
+92860	Norco	178	69.0	$936K	55	C	0%
+91401	Van Nuys	220	56.4	$1.2M	55	C	0%
+91604	Studio City	218	67.0	$1.2M	55	C	0%
+92570	Perris	164	29.3	$866K	55	C	0%
+94805	Richmond	190	123.6	$1.0M	55	C	0%
+90046	Los Angeles	215	45.4	$1.1M	55	C	0%
+92508	Riverside	167	45.6	$880K	55	C	0%
+90034	Los Angeles	208	37.5	$1.1M	55	C	0%
+90008	Los Angeles	211	63.5	$1.1M	54	C	0%
+92394	Victorville	145	36.3	$765K	54	C	0%
+91792	West Covina	209	68.0	$1.1M	54	C	0%
+95620	Dixon	174	78.7	$914K	54	C	0%
+93212	Corcoran	99	44.0	$521K	54	C	0%
+90222	Compton	215	66.2	$1.1M	54	C	0%
+91768	Pomona	203	59.7	$1.1M	54	C	0%
+92555	Moreno Valley	157	35.0	$826K	54	C	0%
+91740	Glendora	199	75.0	$1.0M	54	C	0%
+94609	Oakland	197	81.9	$1.0M	54	C	0%
+94618	Oakland	196	110.9	$1.0M	54	C	0%
+93108	Santa Barbara	133	108.2	$702K	54	C	0%
+95817	Sacramento	156	103.9	$823K	54	C	0%
+90249	Gardena	209	78.2	$1.1M	54	C	0%
+94702	Berkeley	192	105.3	$1.0M	54	C	0%
+90033	Los Angeles	210	46.8	$1.1M	53	C	0%
+91011	La Canada Flintridge	198	95.1	$1.0M	53	C	0%
+94597	Walnut Creek	192	83.3	$1.0M	53	C	0%
+91103	Pasadena	200	77.9	$1.1M	53	C	0%
+91040	Sunland	204	94.3	$1.1M	53	C	0%
+91301	Agoura Hills	187	76.9	$986K	53	C	0%
+91506	Burbank	209	106.3	$1.1M	53	C	0%
+90230	Culver City	202	65.0	$1.1M	53	C	0%
+91001	Altadena	195	55.4	$1.0M	53	C	0%
+92841	Garden Grove	211	63.5	$1.1M	53	C	0%
+92314	Big Bear City	140	130.5	$736K	53	C	0%
+91324	Northridge	203	66.0	$1.1M	53	C	0%
+90720	Los Alamitos	207	84.6	$1.1M	53	C	0%
+92337	Fontana	170	47.9	$894K	53	C	0%
+91356	Tarzana	201	64.9	$1.1M	53	C	0%
+92835	Fullerton	210	79.0	$1.1M	53	C	0%
+93630	Kerman	100	48.5	$529K	52	C	0%
+92663	Newport Beach	199	89.8	$1.0M	52	C	0%
+94301	Palo Alto	182	100.3	$959K	52	C	0%
+90405	Santa Monica	191	69.3	$1.0M	52	C	0%
+94117	San Francisco	189	53.0	$993K	52	C	0%
+91739	Rancho Cucamonga	162	40.0	$854K	52	C	0%
+95117	San Jose	192	71.5	$1.0M	52	C	0%
+94706	Albany	182	89.9	$961K	52	C	0%
+91030	South Pasadena	196	74.1	$1.0M	52	C	0%
+95963	Orland	118	73.2	$620K	52	C	0%
+94579	San Leandro	195	95.1	$1.0M	52	C	0%
+94707	Berkeley	181	130.9	$953K	52	C	0%
+91752	Mira Loma	165	43.9	$868K	52	C	0%
+91354	Valencia	175	52.3	$922K	52	C	0%
+91504	Burbank	196	71.8	$1.0M	52	C	0%
+95946	Penn Valley	92	95.6	$487K	51	C	0%
+95066	Scotts Valley	131	87.3	$693K	51	C	0%
+93221	Exeter	95	64.6	$500K	51	C	0%
+93110	Santa Barbara	125	80.0	$659K	51	C	0%
+93560	Rosamond	100	46.5	$525K	51	C	0%
+95602	Auburn	127	64.7	$671K	51	C	0%
+91755	Monterey Park	193	71.1	$1.0M	51	C	0%
+95965	Oroville	116	56.0	$611K	51	C	0%
+93109	Santa Barbara	123	105.7	$650K	51	C	0%
+90804	Long Beach	189	50.5	$996K	51	C	0%
+90603	Whittier	195	89.4	$1.0M	51	C	0%
+92501	Riverside	155	66.1	$818K	51	C	0%
+95320	Escalon	101	72.7	$530K	51	C	0%
+95829	Sacramento	140	45.7	$735K	51	C	0%
+90254	Hermosa Beach	181	91.3	$954K	51	C	0%
+92881	Corona	153	50.6	$807K	50	C	0%
+90813	Long Beach	186	37.5	$978K	50	C	0%
+92883	Corona	146	37.5	$771K	50	C	0%
+93449	Pismo Beach	115	131.7	$606K	50	C	0%
+94703	Berkeley	174	82.5	$915K	50	C	0%
+92679	Trabuco Canyon	171	55.9	$899K	50	C	0%
+94505	Discovery Bay	160	103.8	$840K	50	C	0%
+91316	Encino	187	63.5	$987K	50	C	0%
+90240	Downey	193	76.2	$1.0M	50	C	0%
+95673	Rio Linda	140	82.8	$738K	50	C	0%
+93908	Salinas	121	93.1	$636K	50	C	0%
+91405	Van Nuys	193	35.6	$1.0M	50	C	0%
+92225	Blythe	110	54.0	$581K	50	C	0%
+95133	San Jose	178	61.1	$938K	50	C	0%
+92806	Anaheim	190	47.4	$1.0M	50	C	0%
+92081	Vista	153	53.3	$807K	50	C	0%
+94063	Redwood City	168	51.4	$886K	49	C	0%
+95357	Modesto	99	71.8	$519K	49	C	0%
+91423	Sherman Oaks	188	58.5	$991K	49	C	0%
+92583	San Jacinto	131	39.6	$688K	49	C	0%
+90004	Los Angeles	185	33.0	$977K	49	C	0%
+95841	Sacramento	142	69.3	$749K	49	C	0%
+93428	Cambria	105	144.0	$551K	49	C	0%
+93636	Madera	94	60.1	$493K	49	C	0%
+92551	Moreno Valley	140	38.2	$736K	49	C	0%
+91361	Westlake Village	159	82.8	$838K	49	C	0%
+92802	Anaheim	187	44.3	$982K	49	C	0%
+93301	Bakersfield	93	67.1	$492K	49	C	0%
+92011	Carlsbad	142	61.2	$749K	49	C	0%
+96094	Weed	69	106.1	$362K	49	C	0%
+91351	Canyon Country	162	49.9	$854K	49	C	0%
+90210	Beverly Hills	179	90.5	$942K	48	C	0%
+91737	Rancho Cucamonga	146	63.1	$769K	48	C	0%
+91902	Bonita	142	77.6	$747K	48	C	0%
+93210	Coalinga	82	46.2	$432K	48	C	0%
+92325	Crestline	131	126.1	$691K	48	C	0%
+90301	Inglewood	174	49.2	$915K	48	C	0%
+90061	Los Angeles	178	59.5	$937K	48	C	0%
+95368	Salida	95	68.1	$499K	48	C	0%
+91321	Newhall	164	52.0	$861K	48	C	0%
+94595	Walnut Creek	159	92.8	$837K	48	C	0%
+90602	Whittier	176	67.5	$927K	48	C	0%
+92014	Del Mar	134	95.4	$706K	48	C	0%
+94708	Berkeley	157	124.0	$828K	48	C	0%
+93960	Soledad	102	40.1	$536K	48	C	0%
+92252	Joshua Tree	111	124.8	$582K	48	C	0%
+92673	San Clemente	150	51.9	$789K	47	C	0%
+95334	Livingston	86	50.1	$453K	47	C	0%
+93927	Greenfield	99	48.6	$519K	47	C	0%
+92354	Loma Linda	134	60.5	$705K	47	C	0%
+92845	Garden Grove	172	100.8	$907K	47	C	0%
+94949	Novato	142	83.0	$748K	47	C	0%
+92251	Imperial	109	40.3	$572K	47	C	0%
+90717	Lomita	162	74.0	$852K	47	C	0%
+95030	Los Gatos	149	107.3	$786K	47	C	0%
+93203	Arvin	83	42.0	$436K	47	C	0%
+95948	Gridley	100	85.0	$527K	47	C	0%
+95776	Woodland	112	40.7	$589K	47	C	0%
+93505	California City	81	56.6	$425K	47	C	0%
+91601	North Hollywood	168	46.6	$886K	47	C	0%
+91302	Calabasas	152	59.7	$799K	47	C	0%
+92637	Laguna Woods	154	85.5	$809K	47	C	0%
+91731	El Monte	159	58.0	$837K	46	C	0%
+95971	Quincy	64	111.9	$335K	46	C	0%
+94507	Alamo	148	99.2	$777K	46	C	0%
+95388	Winton	80	59.4	$423K	46	C	0%
+95321	Groveland	70	162.7	$371K	46	C	0%
+91387	Canyon Country	149	33.3	$784K	46	C	0%
+95640	Ione	78	61.6	$413K	46	C	0%
+93250	Mc Farland	76	50.3	$402K	46	C	0%
+93620	Dos Palos	77	73.2	$407K	46	C	0%
+94556	Moraga	148	92.0	$781K	46	C	0%
+94920	Belvedere Tiburon	139	109.5	$733K	46	C	0%
+90270	Maywood	163	66.8	$857K	46	C	0%
+91108	San Marino	154	114.0	$812K	46	C	0%
+95650	Loomis	114	81.7	$600K	46	C	0%
+91106	Pasadena	153	63.8	$805K	46	C	0%
+94019	Half Moon Bay	136	93.2	$716K	45	C	0%
+94705	Berkeley	146	100.5	$770K	45	C	0%
+96101	Alturas	60	120.9	$317K	45	C	0%
+90621	Buena Park	163	46.4	$858K	45	C	0%
+90305	Inglewood	157	100.6	$828K	45	C	0%
+90035	Los Angeles	157	54.7	$824K	45	C	0%
+95834	Sacramento	116	34.5	$613K	45	C	0%
+91206	Glendale	152	48.8	$803K	45	C	0%
+95360	Newman	80	59.6	$422K	45	C	0%
+91915	Chula Vista	120	35.8	$634K	45	C	0%
+92075	Solana Beach	121	94.0	$637K	45	C	0%
+90303	Inglewood	155	67.6	$816K	45	C	0%
+90036	Los Angeles	156	41.2	$824K	45	C	0%
+93930	King City	90	54.9	$474K	45	C	0%
+92625	Corona del Mar	148	110.9	$782K	45	C	0%
+94904	Greenbrae	131	102.9	$692K	44	C	0%
+92832	Fullerton	160	59.0	$843K	44	C	0%
+94965	Sausalito	134	112.8	$706K	44	C	0%
+96145	Tahoe City	93	183.6	$489K	44	C	0%
+95666	Pioneer	69	108.3	$365K	44	C	0%
+92587	Menifee	116	62.4	$613K	44	C	0%
+90814	Long Beach	150	75.3	$788K	44	C	0%
+90304	Inglewood	150	59.3	$789K	44	C	0%
+92701	Santa Ana	156	34.0	$820K	44	C	0%
+94596	Walnut Creek	139	62.0	$731K	44	C	0%
+93730	Fresno	80	56.7	$422K	44	C	0%
+91607	Valley Village	156	49.9	$820K	44	C	0%
+95073	Soquel	102	87.8	$535K	44	C	0%
+94123	San Francisco	139	58.5	$730K	44	C	0%
+92865	Orange	155	73.8	$815K	44	C	0%
+93921	Carmel by the Sea	92	229.3	$485K	44	C	0%
+92377	Rialto	119	57.4	$627K	43	C	0%
+94502	Alameda	147	104.6	$775K	43	C	0%
+94552	Castro Valley	136	91.7	$718K	43	C	0%
+95642	Jackson	71	97.7	$376K	43	C	0%
+94503	American Canyon	127	61.6	$667K	43	C	0%
+94607	Oakland	140	50.8	$735K	43	C	0%
+90680	Stanton	151	48.5	$798K	43	C	0%
+95304	Tracy	78	51.1	$411K	43	C	0%
+95383	Twain Harte	66	147.8	$349K	43	C	0%
+91403	Sherman Oaks	149	58.1	$782K	43	C	0%
+95326	Hughson	77	71.8	$405K	43	C	0%
+91436	Encino	146	87.6	$769K	43	C	0%
+92352	Lake Arrowhead	105	137.3	$555K	43	C	0%
+92612	Irvine	144	44.0	$757K	43	C	0%
+94115	San Francisco	134	42.9	$706K	43	C	0%
+95130	San Jose	133	95.0	$703K	42	C	0%
+92808	Anaheim	143	66.0	$753K	42	C	0%
+92007	Cardiff by the Sea	111	92.6	$585K	42	C	0%
+93465	Templeton	87	81.3	$456K	42	C	0%
+95033	Los Gatos	98	99.8	$517K	42	C	0%
+92210	Indian Wells	96	147.1	$503K	42	C	0%
+95138	San Jose	126	67.4	$663K	42	C	0%
+93953	Pebble Beach	87	172.0	$457K	42	C	0%
+95322	Gustine	71	70.3	$372K	42	C	0%
+95315	Delhi	71	52.6	$374K	42	C	0%
+90710	Harbor City	136	51.9	$717K	42	C	0%
+95605	West Sacramento	101	67.0	$534K	42	C	0%
+91345	Mission Hills	139	73.1	$733K	42	C	0%
+95425	Cloverdale	102	93.7	$538K	42	C	0%
+94517	Clayton	123	97.6	$647K	42	C	0%
+92595	Wildomar	104	31.6	$548K	41	C	0%
+95391	Tracy	115	47.9	$605K	41	C	0%
+95006	Boulder Creek	90	111.8	$473K	41	C	0%
+95054	Santa Clara	126	51.5	$666K	41	C	0%
+92614	Irvine	134	47.3	$708K	41	C	0%
+90715	Lakewood	136	67.0	$717K	41	C	0%
+91208	Glendale	129	78.3	$678K	41	C	0%
+90302	Inglewood	132	46.9	$695K	41	C	0%
+94571	Rio Vista	111	98.2	$587K	41	C	0%
+91201	Glendale	132	59.5	$697K	41	C	0%
+91202	Glendale	129	58.1	$682K	41	C	0%
+92029	Escondido	108	52.9	$569K	41	C	0%
+95316	Denair	66	79.3	$350K	41	C	0%
+90232	Culver City	129	76.1	$681K	41	C	0%
+92618	Irvine	127	20.8	$668K	41	C	0%
+92782	Tustin	132	45.3	$694K	40	C	0%
+93648	Parlier	66	46.0	$350K	40	C	0%
+94925	Corte Madera	112	109.7	$588K	40	C	0%
+90502	Torrance	129	69.1	$680K	40	C	0%
+96013	Burney	50	115.7	$261K	40	C	0%
+94542	Hayward	119	79.8	$627K	40	C	0%
+95386	Waterford	64	61.8	$339K	40	C	0%
+93015	Fillmore	108	57.8	$571K	40	C	0%
+92585	Menifee	96	33.9	$505K	40	D	−20%
+94085	Sunnyvale	118	51.5	$622K	40	D	−20%
+92603	Irvine	123	66.3	$647K	40	D	−20%
+95467	Hidden Valley Lake	58	99.1	$307K	40	D	−20%
+92596	Winchester	93	25.6	$491K	40	D	−20%
+96088	Shingletown	49	107.5	$260K	40	D	−20%
+90007	Los Angeles	129	35.1	$679K	40	D	−20%
+90245	El Segundo	120	70.7	$635K	40	D	−20%
+96073	Palo Cedro	52	90.8	$273K	39	D	−20%
+93614	Coarsegold	60	53.0	$318K	39	D	−20%
+93723	Fresno	66	46.8	$346K	39	D	−20%
+90006	Los Angeles	127	24.6	$668K	39	D	−20%
+92344	Hesperia	90	43.9	$474K	39	D	−20%
+96093	Weaverville	48	109.7	$251K	39	D	−20%
+95010	Capitola	82	93.3	$432K	39	D	−20%
+93644	Oakhurst	58	70.3	$304K	39	D	−20%
+95005	Ben Lomond	81	106.1	$428K	39	D	−20%
+92868	Orange	126	49.2	$666K	39	D	−20%
+90048	Los Angeles	122	57.6	$644K	39	D	−20%
+96122	Portola	47	120.3	$250K	39	D	−20%
+91205	Glendale	120	37.0	$633K	39	D	−20%
+92887	Yorba Linda	120	61.2	$634K	39	D	−20%
+91105	Pasadena	117	88.4	$617K	39	D	−20%
+95932	Colusa	72	89.6	$379K	38	D	−20%
+90670	Santa Fe Springs	123	68.1	$647K	38	D	−20%
+92844	Garden Grove	122	53.7	$643K	38	D	−20%
+90623	La Palma	122	76.5	$644K	38	D	−20%
+94930	Fairfax	98	114.1	$517K	38	D	−20%
+92274	Thermal	75	42.4	$394K	38	D	−20%
+96020	Chester	46	173.4	$241K	38	D	−20%
+91390	Santa Clarita	99	52.6	$521K	38	D	−20%
+95018	Felton	78	110.9	$412K	38	D	−20%
+93647	Orosi	57	50.6	$300K	38	D	−20%
+95832	Sacramento	83	65.3	$437K	38	D	−20%
+96064	Montague	44	101.8	$234K	38	D	−20%
+93286	Woodlake	57	54.9	$298K	38	D	−20%
+93924	Carmel Valley	70	100.1	$368K	38	D	−20%
+94574	Saint Helena	92	116.1	$486K	38	D	−20%
+92010	Carlsbad	95	52.3	$500K	37	D	−20%
+95685	Sutter Creek	56	109.6	$295K	37	D	−20%
+90069	West Hollywood	117	56.5	$616K	37	D	−20%
+93445	Oceano	71	100.6	$372K	37	D	−20%
+92173	San Ysidro	87	33.7	$456K	37	D	−20%
+91723	Covina	111	62.7	$585K	37	D	−20%
+95119	San Jose	104	91.9	$548K	37	D	−20%
+95110	San Jose	113	58.5	$594K	37	D	−20%
+91901	Alpine	84	47.9	$444K	37	D	−20%
+93463	Solvang	69	82.4	$365K	37	D	−20%
+91024	Sierra Madre	108	92.0	$568K	37	D	−20%
+92694	Ladera Ranch	101	30.4	$531K	37	D	−20%
+90402	Santa Monica	107	88.9	$565K	37	D	−20%
+95065	Santa Cruz	76	93.7	$399K	37	D	−20%
+93640	Mendota	53	39.8	$281K	37	D	−20%
+90025	Los Angeles	108	25.3	$569K	37	D	−20%
+93430	Cayucos	65	156.7	$340K	36	D	−20%
+92313	Grand Terrace	90	66.9	$471K	36	D	−20%
+95536	Ferndale	47	134.1	$247K	36	D	−20%
+95220	Acampo	60	72.8	$317K	36	D	−20%
+93223	Farmersville	55	54.5	$291K	36	D	−20%
+94931	Cotati	91	95.9	$479K	36	D	−20%
+92866	Orange	112	71.8	$591K	36	D	−20%
+92606	Irvine	110	47.3	$578K	36	D	−20%
+94041	Mountain View	99	63.3	$520K	36	D	−20%
+91411	Van Nuys	112	49.6	$588K	36	D	−20%
+91501	Burbank	107	57.1	$564K	36	D	−20%
+94065	Redwood City	99	85.1	$521K	36	D	−20%
+93701	Fresno	59	59.9	$310K	36	D	−20%
+95222	Angels Camp	50	91.6	$266K	36	D	−20%
+94572	Rodeo	94	101.3	$497K	36	D	−20%
+95694	Winters	68	62.9	$359K	35	D	−20%
+90701	Artesia	109	67.7	$572K	35	D	−20%
+94107	San Francisco	102	34.5	$536K	35	D	−20%
+91377	Oak Park	96	69.8	$508K	35	D	−20%
+90029	Los Angeles	106	34.0	$558K	35	D	−20%
+95423	Clearlake Oaks	47	117.2	$246K	35	D	−20%
+91303	Canoga Park	102	36.5	$539K	35	D	−20%
+95988	Willows	61	69.9	$321K	35	D	−20%
+90265	Malibu	89	56.7	$467K	35	D	−20%
+90024	Los Angeles	100	21.4	$529K	35	D	−20%
+93460	Santa Ynez	61	93.3	$323K	35	D	−20%
+92371	Phelan	72	36.2	$381K	35	D	−20%
+93219	Earlimart	48	54.6	$253K	35	D	−20%
+95953	Live Oak	62	58.3	$327K	35	D	−20%
+95247	Murphys	47	110.5	$246K	35	D	−20%
+95470	Redwood Valley	44	79.0	$233K	34	D	−20%
+95324	Hilmar	51	64.3	$271K	34	D	−20%
+95446	Guerneville	78	143.4	$410K	34	D	−20%
+95665	Pine Grove	48	101.0	$251K	34	D	−20%
+93622	Firebaugh	48	54.1	$251K	34	D	−20%
+92082	Valley Center	78	38.2	$409K	34	D	−20%
+95327	Jamestown	46	64.4	$242K	34	D	−20%
+95570	Trinidad	42	134.5	$219K	34	D	−20%
+94089	Sunnyvale	92	43.9	$484K	34	D	−20%
+96025	Dunsmuir	38	151.1	$201K	34	D	−20%
+93204	Avenal	46	37.1	$243K	34	D	−20%
+92582	San Jacinto	72	32.8	$379K	34	D	−20%
+92602	Irvine	98	36.8	$514K	34	D	−20%
+92382	Running Springs	71	110.8	$373K	34	D	−20%
+93625	Fowler	51	58.5	$269K	34	D	−20%
+92549	Idyllwild	67	122.2	$351K	34	D	−20%
+90404	Santa Monica	93	42.7	$490K	33	D	−20%
+92532	Lake Elsinore	74	28.5	$390K	33	D	−20%
+91384	Castaic	82	33.7	$431K	33	D	−20%
+94133	San Francisco	90	40.7	$475K	33	D	−20%
+94109	San Francisco	90	18.8	$476K	33	D	−20%
+96041	Hayfork	37	119.5	$196K	33	D	−20%
+96103	Blairsden Graeagle	38	205.0	$199K	33	D	−20%
+92363	Needles	57	89.0	$299K	33	D	−20%
+92285	Landers	62	145.1	$325K	33	D	−20%
+95460	Mendocino	41	140.0	$216K	33	D	−20%
+95458	Lucerne	42	106.4	$219K	33	D	−20%
+92624	Capistrano Beach	82	100.9	$433K	33	D	−20%
+95228	Copperopolis	44	95.2	$232K	33	D	−20%
+91602	North Hollywood	96	47.8	$508K	33	D	−20%
+93543	Littlerock	79	64.0	$415K	33	D	−20%
+92408	San Bernardino	73	52.3	$386K	32	D	−20%
+95436	Forestville	73	116.7	$385K	32	D	−20%
+93926	Gonzales	55	65.4	$289K	32	D	−20%
+95562	Rio Dell	38	110.3	$199K	32	D	−20%
+95726	Pollock Pines	55	67.4	$288K	32	D	−20%
+91381	Stevenson Ranch	82	39.1	$433K	32	D	−20%
+92067	Rancho Santa Fe	70	81.5	$370K	32	D	−20%
+93240	Lake Isabella	42	67.0	$222K	32	D	−20%
+94027	Atherton	80	106.7	$420K	32	D	−20%
+93646	Orange Cove	44	45.9	$230K	32	D	−20%
+94028	Portola Valley	75	107.4	$397K	32	D	−20%
+90802	Long Beach	83	22.9	$436K	32	D	−20%
+91914	Chula Vista	67	42.4	$355K	32	D	−20%
+92356	Lucerne Valley	55	77.3	$291K	32	D	−20%
+91207	Glendale	81	75.0	$428K	32	D	−20%
+93267	Strathmore	40	68.2	$209K	31	D	−20%
+96143	Kings Beach	48	112.9	$255K	31	D	−20%
+96055	Los Molinos	33	89.9	$172K	31	D	−20%
+92359	Mentone	60	63.4	$316K	31	D	−20%
+93222	Pine Mountain Club	40	105.1	$212K	31	D	−20%
+93434	Guadalupe	49	61.0	$260K	31	D	−20%
+95012	Castroville	54	54.3	$284K	31	D	−20%
+95445	Gualala	35	113.6	$185K	31	D	−20%
+90038	Los Angeles	82	33.1	$433K	31	D	−20%
+94939	Larkspur	69	97.1	$364K	31	D	−20%
+92342	Helendale	53	67.2	$280K	31	D	−20%
+95139	San Jose	72	94.7	$377K	31	D	−20%
+95236	Linden	42	83.2	$223K	31	D	−20%
+90077	Los Angeles	80	87.7	$420K	31	D	−20%
+90056	Los Angeles	79	85.9	$417K	31	D	−20%
+90248	Gardena	80	69.6	$421K	31	D	−20%
+92610	Foothill Ranch	74	58.7	$392K	30	D	−20%
+90716	Hawaiian Gardens	80	59.6	$422K	30	D	−20%
+93427	Buellton	48	80.4	$252K	30	D	−20%
+93615	Cutler	39	65.7	$206K	30	D	−20%
+96035	Gerber	32	90.5	$167K	30	D	−20%
+95742	Rancho Cordova	57	36.5	$298K	30	D	−20%
+90040	Los Angeles	80	68.5	$419K	30	D	−20%
+95379	Tuolumne	35	101.1	$185K	30	D	−20%
+95542	Garberville	33	121.2	$171K	30	D	−20%
+92386	Sugarloaf	53	148.6	$278K	30	D	−20%
+96142	Tahoma	45	199.6	$238K	30	D	−20%
+93656	Riverdale	37	53.3	$193K	30	D	−20%
+90403	Santa Monica	71	32.9	$374K	30	D	−20%
+93501	Mojave	37	57.9	$195K	30	D	−20%
+95249	San Andreas	35	85.7	$182K	30	D	−20%
+96032	Fort Jones	28	115.3	$148K	29	D	−20%
+94710	Berkeley	67	79.5	$353K	29	D	−20%
+93022	Oak View	59	88.8	$311K	29	D	−20%
+95428	Covelo	31	114.4	$162K	29	D	−20%
+95329	La Grange	32	107.4	$168K	29	D	−20%
+95713	Colfax	45	51.0	$236K	29	D	−20%
+92250	Holtville	45	54.9	$235K	29	D	−20%
+95457	Lower Lake	32	98.7	$167K	29	D	−20%
+96134	Tulelake	26	121.1	$139K	29	D	−20%
+95709	Camino	45	75.0	$235K	29	D	−20%
+92661	Newport Beach	67	147.7	$351K	29	D	−20%
+90292	Marina del Rey	65	30.7	$345K	29	D	−20%
+90293	Playa del Rey	65	53.4	$343K	29	D	−20%
+95258	Woodbridge	37	79.8	$196K	29	D	−20%
+95683	Sloughhouse	47	71.4	$247K	29	D	−20%
+92004	Borrego Springs	45	109.1	$238K	28	D	−20%
+92310	Fort Irwin	41	50.9	$215K	28	D	−20%
+94709	Berkeley	62	55.7	$327K	28	D	−20%
+95346	Mi Wuk Village	30	165.9	$159K	28	D	−20%
+92101	San Diego	52	12.3	$275K	28	D	−20%
+95497	The Sea Ranch	48	189.6	$250K	28	D	−20%
+93737	Fresno	35	51.2	$185K	28	D	−20%
+94515	Calistoga	51	79.8	$270K	28	D	−20%
+93609	Caruthers	32	65.2	$170K	28	D	−20%
+95004	Aromas	42	88.5	$223K	28	D	−20%
+93516	Boron	32	86.2	$167K	28	D	−20%
+93451	San Miguel	37	71.9	$195K	28	D	−20%
+95046	San Martin	53	81.2	$279K	28	D	−20%
+95987	Williams	38	61.4	$198K	28	D	−20%
+95626	Elverta	46	77.8	$240K	28	D	−20%
+94103	San Francisco	59	20.3	$312K	27	D	−20%
+95693	Wilton	43	57.8	$227K	27	D	−20%
+92397	Wrightwood	54	83.0	$282K	27	D	−20%
+92256	Morongo Valley	41	83.3	$217K	27	D	−20%
+90272	Pacific Palisades	59	31.1	$309K	27	D	−20%
+95658	Newcastle	42	69.6	$223K	27	D	−20%
+96027	Etna	23	116.9	$122K	27	D	−20%
+95045	San Juan Bautista	39	91.1	$203K	27	D	−20%
+93271	Three Rivers	28	91.8	$147K	27	D	−20%
+96114	Janesville	23	90.0	$121K	27	D	−20%
+93270	Terra Bella	28	54.4	$149K	27	D	−20%
+92254	Mecca	37	36.3	$197K	27	D	−20%
+96056	McArthur	23	119.3	$119K	27	D	−20%
+93265	Springville	28	72.4	$145K	27	D	−20%
+90212	Beverly Hills	58	55.7	$305K	27	D	−20%
+93256	Pixley	27	52.7	$144K	27	D	−20%
+92657	Newport Coast	55	56.8	$289K	26	D	−20%
+92320	Calimesa	43	41.3	$224K	26	D	−20%
+95589	Whitethorn	24	142.4	$126K	26	D	−20%
+96028	Fall River Mills	22	111.5	$115K	26	D	−20%
+95454	Laytonville	24	117.5	$128K	26	D	−20%
+92276	Thousand Palms	39	50.7	$205K	26	D	−20%
+96057	McCloud	22	142.4	$115K	26	D	−20%
+90755	Signal Hill	57	51.8	$299K	26	D	−20%
+95811	Sacramento	43	53.0	$224K	26	D	−20%
+95365	Planada	27	63.6	$145K	26	D	−20%
+92241	Desert Hot Springs	38	44.4	$198K	26	D	−20%
+92036	Julian	38	91.6	$198K	26	D	−20%
+93235	Ivanhoe	29	60.8	$150K	26	D	−20%
+92861	Villa Park	57	87.6	$298K	26	D	−20%
+95938	Durham	34	77.6	$177K	26	D	−20%
+95245	Mokelumne Hill	26	94.9	$137K	25	D	−20%
+92233	Calipatria	35	50.6	$185K	25	D	−20%
+95485	Upper Lake	24	83.3	$127K	25	D	−20%
+93242	Laton	27	76.8	$140K	25	D	−20%
+93591	Palmdale	44	62.6	$232K	25	D	−20%
+91978	Spring Valley	42	45.6	$222K	25	D	−20%
+96140	Carnelian Bay	32	131.6	$169K	25	D	−20%
+93426	Bradley	31	121.0	$162K	25	D	−20%
+95442	Glen Ellen	44	113.7	$229K	25	D	−20%
+91935	Jamul	39	46.3	$205K	25	D	−20%
+90005	Los Angeles	54	16.7	$283K	25	D	−20%
+95573	Willow Creek	22	138.1	$116K	25	D	−20%
+95255	West Point	24	107.2	$127K	25	D	−20%
+93523	Edwards	26	67.8	$137K	25	D	−20%
+92662	Newport Beach	50	137.9	$266K	25	D	−20%
+95237	Lockeford	28	71.8	$150K	24	D	−20%
+95560	Redway	22	132.8	$114K	24	D	−20%
+91020	Montrose	50	65.2	$261K	24	D	−20%
+95619	Diamond Springs	34	71.6	$181K	24	D	−20%
+95311	Coulterville	23	98.5	$119K	24	D	−20%
+94923	Bodega Bay	40	159.9	$209K	24	D	−20%
+95912	Arbuckle	31	68.9	$165K	24	D	−20%
+94525	Crockett	45	113.9	$237K	24	D	−20%
+93234	Huron	24	43.1	$126K	24	D	−20%
+90290	Topanga	48	72.0	$251K	24	D	−20%
+95634	Georgetown	32	84.3	$167K	24	D	−20%
+93272	Tipton	24	62.1	$127K	24	D	−20%
+95969	Paradise	30	43.1	$160K	24	D	−20%
+94018	El Granada	43	102.2	$227K	24	D	−20%
+95202	Stockton	28	45.3	$146K	24	D	−20%
+96091	Trinity Center	19	134.5	$100K	24	D	−20%
+95469	Potter Valley	21	120.8	$112K	23	D	−20%
+95328	Keyes	26	65.6	$139K	23	D	−20%
+95692	Wheatland	32	60.7	$168K	23	D	−20%
+95917	Biggs	30	73.5	$156K	23	D	−20%
+95464	Nice	22	91.2	$114K	23	D	−20%
+94704	Berkeley	45	24.7	$239K	23	D	−20%
+94951	Penngrove	40	111.0	$212K	23	D	−20%
+93602	Auberry	23	65.6	$123K	23	D	−20%
+95525	Blue Lake	20	121.7	$107K	23	D	−20%
+95524	Bayside	21	116.9	$109K	23	D	−20%
+96141	Homewood	29	144.4	$151K	23	D	−20%
+90211	Beverly Hills	48	54.9	$253K	23	D	−20%
+93437	Lompoc	29	78.8	$151K	23	D	−20%
+95631	Foresthill	30	48.6	$157K	23	D	−20%
+93225	Frazier Park	37	75.5	$195K	23	D	−20%
+95551	Loleta	20	109.0	$106K	22	D	−20%
+95461	Middletown	22	77.0	$115K	22	D	−20%
+95954	Magalia	28	41.3	$146K	22	D	−20%
+95947	Greenville	18	135.4	$95.0K	22	D	−20%
+91708	Chino	39	24.6	$204K	22	D	−20%
+91203	Glendale	46	31.8	$241K	22	D	−20%
+95567	Smith River	19	83.8	$100K	22	D	−20%
+91101	Pasadena	44	25.2	$231K	22	D	−20%
+94599	Yountville	37	102.2	$193K	22	D	−20%
+92655	Midway City	46	58.4	$241K	22	D	−20%
+93510	Acton	39	53.7	$208K	22	D	−20%
+94305	Stanford	40	27.9	$211K	22	D	−20%
+90057	Los Angeles	45	12.4	$238K	22	D	−20%
+93604	Bass Lake	21	106.6	$110K	22	D	−20%
+96146	Olympic Valley	27	116.8	$140K	22	D	−20%
+95546	Hoopa	18	93.9	$96.8K	21	D	−20%
+92108	San Diego	35	17.0	$184K	21	D	−20%
+92391	Twin Peaks	32	98.7	$169K	21	D	−20%
+93643	North Fork	21	61.4	$109K	21	D	−20%
+93202	Armona	21	54.2	$110K	21	D	−20%
+93562	Trona	26	93.4	$136K	21	D	−20%
+93453	Santa Margarita	25	100.1	$132K	21	D	−20%
+95333	Le Grand	21	62.7	$108K	21	D	−20%
+96118	Loyalton	18	162.0	$95.5K	21	D	−20%
+95982	Sutter	26	81.6	$139K	21	D	−20%
+95019	Freedom	28	60.5	$150K	21	D	−20%
+93650	Fresno	23	65.5	$123K	21	D	−20%
+95426	Cobb	19	113.7	$99.8K	21	D	−20%
+92567	Nuevo	31	32.9	$163K	21	D	−20%
+90704	Avalon	33	82.9	$176K	21	D	−20%
+94037	Montara	36	106.5	$190K	21	D	−20%
+95672	Rescue	28	57.4	$149K	20	D	−20%
+94535	Travis AFB	35	86.6	$184K	20	D	−20%
+96023	Dorris	16	119.7	$82.1K	20	D	−20%
+95456	Little River	17	125.6	$91.7K	20	D	−20%
+94102	San Francisco	38	14.3	$201K	20	D	−20%
+93513	Big Pine	17	115.6	$90.3K	20	D	−20%
+93545	Lone Pine	17	120.2	$90.0K	20	D	−20%
+96051	Lakehead	16	108.1	$82.0K	20	D	−20%
+91204	Glendale	40	27.3	$210K	20	D	−20%
+95449	Hopland	17	99.0	$91.9K	20	D	−20%
+93660	San Joaquin	19	51.6	$100K	20	D	−20%
+95421	Cazadero	29	130.6	$153K	20	D	−20%
+95722	Meadow Vista	25	63.1	$134K	20	D	−20%
+95614	Cool	26	69.4	$135K	20	D	−20%
+94924	Bolinas	31	148.8	$165K	20	D	−20%
+95528	Carlotta	16	115.8	$85.5K	19	D	−20%
+96052	Lewiston	15	86.4	$78.6K	19	D	−20%
+95669	Plymouth	19	89.9	$98.9K	19	D	−20%
+90012	Los Angeles	38	13.4	$199K	19	D	−20%
+95468	Point Arena	16	90.0	$84.5K	19	D	−20%
+95689	Volcano	18	102.6	$92.7K	19	D	−20%
+92317	Blue Jay	27	123.0	$144K	19	D	−20%
+94005	Brisbane	36	80.0	$189K	19	D	−20%
+95134	San Jose	34	16.0	$179K	19	D	−20%
+95623	El Dorado	24	58.9	$127K	19	D	−20%
+95684	Somerset	22	79.2	$117K	19	D	−20%
+90028	Los Angeles	36	14.6	$190K	19	D	−20%
+94508	Angwin	28	85.4	$147K	19	D	−20%
+95627	Esparto	22	57.5	$117K	19	D	−20%
+95372	Soulsbyville	16	98.6	$83.7K	19	D	−20%
+93527	Inyokern	16	72.2	$84.9K	18	D	−20%
+96109	Doyle	13	103.7	$69.9K	18	D	−20%
+95465	Occidental	26	136.3	$139K	18	D	−20%
+92249	Heber	22	34.7	$115K	18	D	−20%
+90020	Los Angeles	35	12.2	$183K	18	D	−20%
+95462	Monte Rio	26	141.4	$138K	18	D	−20%
+91962	Pine Valley	23	75.4	$123K	18	D	−20%
+95547	Hydesville	14	111.0	$74.7K	18	D	−20%
+94956	Point Reyes Station	26	145.8	$137K	18	D	−20%
+95663	Penryn	23	69.9	$121K	18	D	−20%
+91906	Campo	22	62.6	$114K	18	D	−20%
+92003	Bonsall	26	53.8	$136K	18	D	−20%
+95410	Albion	14	115.0	$71.8K	18	D	−20%
+96069	Oak Run	12	90.1	$65.1K	18	D	−20%
+95690	Walnut Grove	20	76.5	$107K	18	D	−20%
+95231	French Camp	17	50.6	$87.9K	18	D	−20%
+92321	Cedar Glen	22	114.5	$117K	17	D	−20%
+95814	Sacramento	23	27.1	$121K	17	D	−20%
+90015	Los Angeles	31	17.3	$164K	17	D	−20%
+95441	Geyserville	23	113.0	$120K	17	D	−20%
+95459	Manchester	13	116.0	$68.6K	17	D	−20%
+96104	Cedarville	12	136.2	$60.6K	17	D	−20%
+93541	Lee Vining	13	123.4	$67.6K	17	D	−20%
+94020	La Honda	25	111.9	$133K	17	D	−20%
+92283	Winterhaven	19	73.5	$100.0K	17	D	−20%
+93206	Buttonwillow	14	66.0	$75.4K	17	D	−20%
+94038	Moss Beach	26	92.1	$138K	17	D	−20%
+93440	Los Alamos	18	98.6	$94.7K	17	D	−20%
+94957	Ross	25	106.7	$133K	17	D	−20%
+92372	Pinon Hills	21	46.7	$111K	17	D	−20%
+95225	Burson	14	92.3	$75.1K	17	D	−20%
+92121	San Diego	23	58.4	$121K	16	D	−20%
+95415	Boonville	13	108.8	$67.5K	16	D	−20%
+96044	Hornbrook	11	108.6	$58.6K	16	D	−20%
+91502	Burbank	29	31.7	$153K	16	D	−20%
+93066	Somis	25	77.7	$131K	16	D	−20%
+93285	Wofford Heights	13	52.0	$71.0K	16	D	−20%
+94511	Bethel Island	25	106.5	$130K	16	D	−20%
+95246	Mountain Ranch	13	88.0	$68.8K	16	D	−20%
+94612	Oakland	27	22.4	$142K	16	D	−20%
+93261	Richgrove	13	63.2	$70.3K	16	D	−20%
+96062	Millville	11	91.5	$59.1K	16	D	−20%
+94937	Inverness	22	136.7	$114K	16	D	−20%
+95638	Herald	18	71.1	$96.4K	16	D	−20%
+93675	Squaw Valley	13	47.9	$69.5K	16	D	−20%
+93526	Independence	12	126.9	$60.9K	16	D	−20%
+95310	Columbia	13	101.7	$66.3K	15	D	−20%
+92257	Niland	17	63.0	$90.6K	15	D	−20%
+95452	Kenwood	22	107.5	$115K	15	D	−20%
+94129	San Francisco	24	64.7	$128K	15	D	−20%
+96120	Markleeville	12	260.0	$60.6K	15	D	−20%
+95728	Soda Springs	16	105.5	$82.5K	15	D	−20%
+95306	Catheys Valley	12	104.2	$61.4K	15	D	−20%
+95319	Empire	14	81.3	$74.3K	15	D	−20%
+95527	Burnt Ranch	10	119.1	$53.0K	15	E	−50%
+92823	Brea	26	50.1	$137K	15	E	−50%
+95565	Scotia	11	118.1	$57.7K	15	E	−50%
+93920	Big Sur	15	83.2	$76.5K	15	E	−50%
+95389	Yosemite National Park	11	74.8	$57.0K	15	E	−50%
+94973	Woodacre	21	112.0	$109K	15	E	−50%
+95703	Applegate	16	63.6	$85.4K	15	E	−50%
+93441	Los Olivos	15	91.6	$78.7K	15	E	−50%
+92617	Irvine	25	15.2	$130K	14	E	−50%
+95955	Maxwell	15	87.1	$76.9K	14	E	−50%
+95432	Elk	10	109.7	$54.7K	14	E	−50%
+95951	Hamilton City	14	62.7	$76.2K	14	E	−50%
+96048	Junction City	9.3	95.8	$48.8K	14	E	−50%
+93424	Avila Beach	14	108.9	$74.9K	14	E	−50%
+95548	Klamath	10.0	82.5	$52.5K	14	E	−50%
+95466	Philo	10	108.4	$53.4K	14	E	−50%
+93616	Del Rey	12	55.2	$64.0K	14	E	−50%
+93653	Raymond	11	65.7	$59.6K	14	E	−50%
+93067	Summerland	15	92.3	$78.4K	14	E	−50%
+95655	Mather	17	46.8	$90.9K	14	E	−50%
+95553	Miranda	9.5	112.8	$50.1K	14	E	−50%
+93266	Stratford	11	59.7	$56.4K	14	E	−50%
+93532	Lake Hughes	18	63.0	$96.9K	14	E	−50%
+92365	Newberry Springs	14	61.1	$73.4K	13	E	−50%
+95612	Clarksburg	15	69.9	$80.7K	13	E	−50%
+92398	Yermo	14	55.9	$72.9K	13	E	−50%
+93667	Tollhouse	11	54.2	$56.2K	13	E	−50%
+96107	Coleville	9.4	119.6	$49.5K	13	E	−50%
+92328	Death Valley	9.3	123.7	$48.8K	13	E	−50%
+93238	Kernville	10	75.0	$54.0K	13	E	−50%
+92561	Mountain Center	15	59.3	$77.6K	13	E	−50%
+93254	New Cuyama	13	97.3	$67.6K	13	E	−50%
+95641	Isleton	14	67.6	$76.3K	13	E	−50%
+93461	Shandon	13	89.1	$66.2K	13	E	−50%
+95552	Mad River	8.4	115.0	$44.2K	13	E	−50%
+95975	Rough And Ready	10	102.7	$53.9K	13	E	−50%
+92322	Cedarpines Park	16	93.5	$83.4K	13	E	−50%
+93283	Weldon	9.9	51.0	$52.1K	13	E	−50%
+95313	Crows Landing	11	76.9	$56.9K	12	E	−50%
+93721	Fresno	11	26.9	$59.3K	12	E	−50%
+95645	Knights Landing	13	74.4	$69.4K	12	E	−50%
+94060	Pescadero	17	97.1	$89.0K	12	E	−50%
+94933	Forest Knolls	17	121.7	$87.9K	12	E	−50%
+95257	Wilseyville	9.4	107.8	$49.6K	12	E	−50%
+93601	Ahwahnee	9.6	59.6	$50.7K	12	E	−50%
+92339	Forest Falls	14	75.4	$73.5K	12	E	−50%
+94105	San Francisco	19	21.8	$100K	12	E	−50%
+95318	El Portal	8.7	106.6	$45.8K	12	E	−50%
+95960	North San Juan	8.9	173.7	$47.0K	12	E	−50%
+93243	Lebec	10	74.4	$53.1K	12	E	−50%
+95563	Salyer	7.6	112.8	$40.0K	12	E	−50%
+95374	Stevinson	10.0	53.5	$52.5K	12	E	−50%
+92281	Westmorland	13	53.9	$66.3K	12	E	−50%
+93553	Pearblossom	16	84.5	$86.7K	11	E	−50%
+95549	Kneeland	8.2	101.5	$43.1K	11	E	−50%
+96059	Manton	7.5	86.1	$39.7K	11	E	−50%
+95427	Comptche	8.2	104.3	$43.4K	11	E	−50%
+95323	Hickman	9.7	64.5	$51.2K	11	E	−50%
+96096	Whitmore	7.4	98.9	$39.0K	11	E	−50%
+96148	Tahoe Vista	11	89.4	$59.1K	11	E	−50%
+95918	Browns Valley	12	62.5	$61.3K	11	E	−50%
+96047	Igo	7.4	91.0	$38.8K	11	E	−50%
+92242	Earp	11	66.6	$57.7K	11	E	−50%
+95585	Leggett	7.8	107.8	$41.0K	11	E	−50%
+96024	Douglas City	7.1	95.6	$37.6K	11	E	−50%
+95526	Bridgeville	7.7	108.8	$40.6K	11	E	−50%
+92061	Pauma Valley	14	70.5	$72.0K	11	E	−50%
+95538	Fort Dick	7.6	73.0	$39.9K	11	E	−50%
+95942	Forest Ranch	10	58.4	$54.8K	11	E	−50%
+96084	Round Mountain	6.8	94.2	$36.0K	10	E	−50%
+92230	Cabazon	12	56.8	$63.4K	10	E	−50%
+93626	Friant	8.8	38.1	$46.2K	10	E	−50%
+94514	Byron	15	82.5	$78.0K	10	E	−50%
+95686	Thornton	9.3	68.2	$49.1K	10	E	−50%
+93205	Bodfish	8.3	54.5	$43.5K	10	E	−50%
+92091	Rancho Santa Fe	14	82.5	$72.7K	10	E	−50%
+93668	Tranquillity	8.2	71.4	$43.3K	10	E	−50%
+95977	Smartsville	11	57.4	$56.8K	10	E	−50%
+96038	Grenada	6.5	116.3	$34.3K	10	E	−50%
+95629	Fiddletown	8.1	93.2	$42.9K	10	E	−50%
+96058	Macdoel	6.4	110.2	$33.7K	10	E	−50%
+96087	Shasta	6.7	87.3	$35.0K	10	E	−50%
+95227	Clements	8.8	72.0	$46.6K	10	E	−50%
+93252	Maricopa	12	77.9	$65.6K	10	E	−50%
+96006	Adin	6.3	107.7	$33.2K	9	E	−50%
+96113	Herlong	6.4	71.6	$33.5K	9	E	−50%
+93239	Kettleman City	7.6	54.2	$40.1K	9	E	−50%
+95251	Vallecito	7.4	97.0	$38.9K	9	E	−50%
+92518	March Air Reserve Base	12	67.2	$65.3K	9	E	−50%
+95636	Grizzly Flats	9.7	73.7	$51.2K	9	E	−50%
+95041	Mount Hermon	10	105.4	$54.6K	9	E	−50%
+93258	Porterville	7.4	57.8	$38.9K	9	E	−50%
+94108	San Francisco	14	22.6	$76.3K	9	E	−50%
+96128	Standish	6.0	101.7	$31.4K	9	E	−50%
+96039	Happy Camp	5.8	111.1	$30.7K	9	E	−50%
+93249	Lost Hills	7.1	46.0	$37.6K	9	E	−50%
+95556	Orleans	6.3	98.3	$33.3K	9	E	−50%
+91934	Jacumba	9.9	66.8	$52.0K	9	E	−50%
+91905	Boulevard	9.9	59.3	$52.4K	9	E	−50%
+95633	Garden Valley	9.7	55.9	$51.0K	8	E	−50%
+95968	Palermo	9.2	66.1	$48.2K	8	E	−50%
+94304	Palo Alto	13	42.6	$69.8K	8	E	−50%
+96008	Bella Vista	5.9	81.3	$30.9K	8	E	−50%
+95615	Courtland	9.8	79.5	$51.7K	8	E	−50%
+92676	Silverado	14	64.0	$71.9K	8	E	−50%
+91916	Descanso	10	59.8	$54.6K	8	E	−50%
+95919	Brownsville	8.5	60.6	$44.7K	8	E	−50%
+94528	Diablo	12	96.6	$65.2K	8	E	−50%
+90058	Los Angeles	14	48.9	$73.5K	8	E	−50%
+95701	Alta	8.3	70.0	$43.5K	8	E	−50%
+92305	Angelus Oaks	9.4	79.4	$49.3K	8	E	−50%
+94592	Vallejo	12	91.7	$61.3K	8	E	−50%
+95303	Ballico	6.5	61.6	$34.4K	8	E	−50%
+95957	Meridian	8.0	78.1	$42.3K	8	E	−50%
+92275	Salton City	8.1	54.5	$42.8K	8	E	−50%
+95064	Santa Cruz	8.2	24.3	$43.2K	7	E	−50%
+95979	Stonyford	7.2	87.0	$37.9K	7	E	−50%
+95943	Glenn	7.3	81.5	$38.4K	7	E	−50%
+93925	Chualar	7.5	69.4	$39.6K	7	E	−50%
+95369	Snelling	5.9	60.4	$31.0K	7	E	−50%
+93201	Alpaugh	5.6	57.2	$29.7K	7	E	−50%
+95543	Gasquet	5.0	79.8	$26.3K	7	E	−50%
+95043	Paicines	7.0	74.0	$36.9K	7	E	−50%
+90017	Los Angeles	12	8.5	$63.7K	7	E	−50%
+94130	San Francisco	11	56.1	$57.6K	7	E	−50%
+90067	Los Angeles	12	42.8	$60.7K	7	E	−50%
+92327	Daggett	7.3	71.7	$38.6K	7	E	−50%
+95039	Moss Landing	7.4	75.0	$39.1K	7	E	−50%
+92282	Whitewater	7.7	52.5	$40.4K	7	E	−50%
+93624	Five Points	5.3	62.6	$28.1K	7	E	−50%
+95653	Madison	7.2	67.7	$37.9K	6	E	−50%
+92548	Homeland	8.3	19.6	$44.0K	6	E	−50%
+92273	Seeley	7.2	53.8	$37.8K	6	E	−50%
+95635	Greenwood	7.2	69.1	$37.7K	6	E	−50%
+92401	San Bernardino	8.6	56.2	$45.5K	6	E	−50%
+94946	Nicasio	8.8	109.1	$46.2K	6	E	−50%
+95674	Rio Oso	7.1	68.3	$37.4K	6	E	−50%
+94586	Sunol	9.5	83.6	$50.1K	6	E	−50%
+93608	Cantua Creek	5.0	62.7	$26.5K	6	E	−50%
+95681	Sheridan	6.9	61.3	$36.6K	6	E	−50%
+95444	Graton	8.6	104.6	$45.5K	6	E	−50%
+94964	San Quentin	9.1	73.0	$47.8K	6	E	−50%
+95002	Alviso	9.5	69.9	$50.2K	6	E	−50%
+92368	Oro Grande	6.9	63.5	$36.4K	6	E	−50%
+90401	Santa Monica	9.6	24.0	$50.7K	6	E	−50%
+95387	Westley	5.3	63.3	$28.1K	5	E	−50%
+95664	Pilot Hill	6.9	67.8	$36.5K	5	E	−50%
+93040	Piru	8.0	58.3	$41.9K	5	E	−50%
+92590	Temecula	7.1	26.4	$37.6K	5	E	−50%
+95659	Nicolaus	6.3	74.3	$33.4K	5	E	−50%
+95935	Dobbins	5.8	57.0	$30.6K	5	E	−50%
+92539	Anza	6.4	30.8	$33.8K	5	E	−50%
+93606	Biola	4.9	56.8	$25.7K	5	E	−50%
+93450	San Ardo	5.3	75.0	$28.1K	5	E	−50%
+95253	Victor	5.1	66.8	$26.7K	5	E	−50%
+93218	Ducor	4.3	59.1	$22.4K	5	E	−50%
+93544	Llano	7.3	65.6	$38.7K	5	E	−50%
+95317	El Nido	4.3	54.0	$22.6K	5	E	−50%
+93651	Prather	4.3	48.3	$22.8K	5	E	−50%
+95537	Fields Landing	3.7	103.2	$19.4K	5	E	−50%
+92358	Lytle Creek	6.6	67.2	$34.7K	5	E	−50%
+95075	Tres Pinos	5.3	71.2	$27.8K	4	E	−50%
+91008	Duarte	7.9	73.0	$41.5K	4	E	−50%
+95962	Oregon House	5.1	52.3	$26.9K	4	E	−50%
+90094	Playa Vista	7.9	16.6	$41.8K	4	E	−50%
+95651	Lotus	5.4	75.9	$28.4K	4	E	−50%
+95652	McClellan	6.2	59.2	$32.9K	4	E	−50%
+95017	Davenport	5.1	88.9	$27.1K	4	E	−50%
+93666	Sultana	4.0	61.1	$21.1K	4	E	−50%
+95668	Pleasant Grove	5.5	74.0	$28.9K	4	E	−50%
+92347	Hinkley	4.9	60.1	$25.8K	4	E	−50%
+92678	Trabuco Canyon	6.9	71.4	$36.3K	4	E	−50%
+95830	Sacramento	5.6	71.8	$29.3K	4	E	−50%
+94567	Pope Valley	6.0	92.1	$31.4K	4	E	−50%
+95903	Beale AFB	4.8	39.1	$25.1K	4	E	−50%
+95697	Yolo	4.9	60.8	$25.7K	4	E	−50%
+94963	San Geronimo	5.8	99.1	$30.6K	3	E	−50%
+94548	Knightsen	5.9	83.6	$31.3K	3	E	−50%
+94158	San Francisco	6.0	16.4	$31.5K	3	E	−50%
+91917	Dulzura	4.5	59.4	$23.4K	3	E	−50%
+96105	Chilcoot	2.4	117.0	$12.6K	3	E	−50%
+93432	Creston	3.6	74.3	$18.9K	3	E	−50%
+92086	Warner Springs	4.1	48.6	$21.8K	3	E	−50%
+93531	Keene	2.8	58.2	$15.0K	3	E	−50%
+92059	Pala	4.3	49.5	$22.6K	3	E	−50%
+92060	Palomar Mountain	4.1	60.7	$21.6K	3	E	−50%
+90013	Los Angeles	5.5	12.6	$28.8K	3	E	−50%
+92536	Aguanga	3.3	29.6	$17.5K	3	E	−50%
+90021	Los Angeles	4.9	38.3	$25.9K	3	E	−50%
+93518	Caliente	2.3	45.9	$12.2K	3	E	−50%
+93645	O Neals	2.3	46.0	$12.0K	3	E	−50%
+92070	Santa Ysabel	3.3	58.5	$17.6K	2	E	−50%
+94111	San Francisco	3.8	29.0	$20.0K	2	E	−50%
+94720	Berkeley	3.6	28.0	$19.0K	2	E	−50%
+95937	Dunnigan	2.2	54.4	$11.7K	2	E	−50%
+90010	Los Angeles	3.4	26.1	$18.0K	2	E	−50%
+95385	Vernalis	1.7	60.3	$8.8K	2	E	−50%
+91125	Pasadena	2.8	53.2	$14.9K	2	E	−50%
+95916	Berry Creek	1.4	56.1	$7.2K	2	E	−50%
+90014	Los Angeles	2.3	14.2	$12.3K	2	E	−50%
+93106	Santa Barbara	1.1	24.5	$5.6K	2	E	−50%
+91963	Potrero	0.8	49.0	$4.2K	2	E	−50%
+92136	San Diego	0.3	21.4	$1.5K	2	E	−50%
+95113	San Jose	0.3	36.9	$1.5K	2	E	−50%
+90071	Los Angeles	0.0	51.6	$0	0	E	−50%
+90073	Los Angeles	0.0	44.1	$0	0	E	−50%
+90089	Los Angeles	0.0	19.8	$0	0	E	−50%
+90263	Malibu	0.0	36.2	$0	0	E	−50%
+90639	La Mirada	0.0	37.8	$0	0	E	−50%
+91330	Northridge	0.0	31.5	$0	0	E	−50%
+92055	Camp Pendleton	0.0	11.1	$0	0	E	−50%
+92092	La Jolla	0.0	49.0	$0	0	E	−50%
+92093	La Jolla	0.0	15.3	$0	0	E	−50%
+92135	San Diego	0.0	44.3	$0	0	E	−50%
+92140	San Diego	0.0	32.7	$0	0	E	−50%
+92145	San Diego	0.0	30.6	$0	0	E	−50%
+92179	San Diego	0.0	26.3	$0	0	E	−50%
+92278	Twentynine Palms	0.0	23.0	$0	0	E	−50%
+92369	Patton	0.0	29.0	$0	0	E	−50%
+93246	Lemoore	0.0	41.3	$0	0	E	−50%
+93409	San Luis Obispo	0.0	43.1	$0	0	E	−50%
+93410	San Luis Obispo	0.0	23.7	$0	0	E	−50%
+93581	Tehachapi	0.0	25.9	$0	0	E	−50%
+93740	Fresno	0.0	40.5	$0	0	E	−50%
+93928	Jolon	0.0	50.2	$0	0	E	−50%
+93944	Monterey	0.0	35.7	$0	0	E	−50%
+94575	Moraga	0.0	63.0	$0	0	E	−50%
+95053	Santa Clara	0.0	33.7	$0	0	E	−50%
+95211	Stockton	0.0	48.1	$0	0	E	−50%
+95671	Represa	0.0	25.1	$0	0	E	−50%
+The line in law
+
+What California and federal rules do to this line's ads, contracts and jobs. Each item carries its citation; module 03 has the full register.
+
+A contractor license for any job of $1,000 or more: roofing is class C-39
+A
+Bus. & Prof. Code 7026, 7048 (Stats. 2024, ch. 240, AB 2622; Stats. 2025, ch. 67, AB 1170); Cal. Code Regs. tit. 16, 832.39 · $1,000 line from January 1, 2025 (it was $500)
+
+Anyone who offers, bids or does work to build, alter, repair or improve a structure is a contractor, subcontractors included. The only exemption is minor work: the total price for labor, materials and everything else is under $1,000, and the work needs no building permit, and the person employs no one. Splitting a job into smaller contracts to stay under the line is not allowed. The roofing class is C-39: it covers installing and repairing surfaces that seal, waterproof and weatherproof structures, from shingles, tile, slate and shakes to metal roofing systems, urethane foam and membranes. In practice almost every reroof needs a licensed contractor, because the price is over $1,000 and most cities require a permit (that last sentence is our reading, grade D). What a roofer must do: hold an active C-39 (or another class that covers the work) before offering or bidding any roofing job.
+
+The license number goes in every ad, contract and bid
+B
+Bus. & Prof. Code 7030.5; 7027.1 and 7027.2 (Stats. 2024, ch. 240, AB 2622) · In force; 7027.2 as amended January 1, 2025
+
+Every licensee must include the license number in all construction contracts, in subcontracts and calls for bid, and in all forms of advertising, as the registrar prescribes. Advertising as a contractor without a license is a misdemeanor with a fine of $700 to $1,000 on top of any other punishment. An unlicensed person may advertise only for jobs under $1,000 and only if the ad says the person is not licensed. What a roofer must do: print the CSLB license number on every ad, page, truck, sign, door hanger, estimate and contract. Section 7030.5 was read on a transcription host, so it is graded B; sections 7027.1 and 7027.2 were read as archive captures of the Legislature's pages.
+
+A written home improvement contract for any residential job over $500
+A
+Bus. & Prof. Code 7151, 7159 (Stats. 2020, ch. 312, SB 1474; 2026 text with AB 1327) · In force
+
+Home improvement means repairing, remodeling, altering or modernizing residential property, and rebuilding a home damaged or destroyed by a disaster with a proclaimed state of emergency. Reroofing is home improvement. When the total price is over $500 the contract must be in writing, signed and dated by both sides, and a copy given to the buyer before any work starts. It must carry the contractor's name, business address and license number; the salesperson's name and registration number; the heading "Home Improvement" in at least 10 point bold; the contract price; any finance charge shown separately; a description of the project and the significant materials; the down payment; a schedule of progress payments; approximate start and completion dates; and a note on extra work and change orders. Required notices cover commercial general liability insurance, workers' compensation, the Mechanics Lien Warning, information about the CSLB, the right to cancel, and the right to require a performance and payment bond. Text is at least 10 point, the main warnings 12 point bold. A change order is in writing and signed before the changed work starts.
+
+Down payment: $1,000 or 10 percent, whichever is less
+A
+Bus. & Prof. Code 7159.5 (Stats. 2023, ch. 403, SB 601); 7159(d)(8)(C), (d)(9)(C) · In force
+
+A down payment on a home improvement contract may not exceed $1,000 or 10 percent of the contract price, whichever amount is less, and the contract must print that sentence. Apart from the down payment a contractor may neither ask for nor accept payment that exceeds the value of the work performed or the material delivered. Breaking the price, down payment or advance payment rules is a misdemeanor: a fine of $100 to $5,000, up to one year in county jail, or both; in an area damaged by a disaster with a proclaimed emergency the court must impose the maximum fine. On request the contractor gives an unconditional lien release for the part already paid, and the owner may hold further payments until it comes. A contractor who furnishes a performance and payment bond, or a blanket bond or joint control the registrar has approved, is exempt from the down payment and progress payment limits.
+
+Right to cancel: three business days, five for a senior, seven after a disaster
+A
+Bus. & Prof. Code 7159(e)(6), (e)(7), (f); Civil Code 1689.6 · Five day rule for contracts from January 1, 2021
+
+The buyer may cancel a home improvement contract until midnight of the third business day after receiving a signed and dated copy that includes the notice. For a buyer who is a senior citizen the notice says five and fifth. A contract written to repair or restore a home damaged by a sudden or catastrophic event with a federal, state or local emergency declaration carries a notice titled "Seven-Day Right to Cancel". The buyer cancels by emailing, mailing, faxing or delivering a written notice to the contractor's place of business, and the contractor returns anything paid within 10 days of receiving it. The notice is not required for a contract negotiated at the contractor's place of business. The age that makes a buyer a senior citizen for this rule was not read in the sections opened, and neither was the Civil Code's definition of a business day: confirm both before relying on a date.
+
+From 2026: cancellation by email, and subcontractors named on request
+A
+Bus. & Prof. Code 7159 (AB 1327, Aguiar-Curry); SB 517 (Niello); CSLB Industry Bulletin 25-04 · January 1, 2026
+
+The first page of a home improvement contract must now carry the name, address and email address of the contractor to whom the Notice of Cancellation is sent, and a telephone number that helps the buyer find and fill in the notice. Buyers may cancel by email. A contractor who uses subcontractors on a home improvement project must, on request, give each subcontractor's name, contact details, license number and classification. What a roofer must do: update every contract form and watch the cancellation inbox every day.
+
+Reroof permits depend on the city
+A
+City of Los Angeles permit data; San Diego Information Bulletin 123; Los Angeles County Building Code Manual 1512 Article 1; San Francisco permit data; Labor Code 3800 · As read November 19, 2026
+
+There is no single state reroof permit statute in the sources read; each city or county decides. City of Los Angeles: permits are issued for reroofs in very large numbers on a standard description (11,954 in 2025); the municipal code sentence that requires them was not opened. City of San Diego: no building permit to renew a roof covering where the roof structure is not altered; a permit is needed if framing or sheathing is altered, if shakes or shingles give way to material heavier than 6 pounds per square foot, if skip sheathing is replaced, or on a historic property, and up to 25 percent of the deck may be replaced in kind without one on houses, duplexes and townhouses. Los Angeles County (unincorporated): a building permit for the reroof, plus a separate solar permit if panels come off and go back. San Francisco: reroof permits are filed over the counter (4,084 in 2025). San Jose and Sacramento were not opened. Permit counts therefore measure the reroof market only where a permit is required.
+
+Tear off, recover and relaying tile
+B
+California Residential Code R908.3, R908.3.1.1, R908.4, R908.5 (2022 and 2025); California Building Code 1505.1.2 (2022) · 2025 edition in force January 1, 2026
+
+A roof replacement removes every existing layer down to the deck. A second layer is not allowed where the roof is water soaked or deteriorated, where the existing covering is slate, clay, cement or asbestos cement tile, or where there are already two or more layers. Sound slate, clay or cement tile may be reinstalled; damaged, cracked or broken tile may not, and rusted or damaged flashings, edgings and vents are replaced. That sentence is the legal basis for a tile lift and relay. Tile or metal over wood shakes needs a fire barrier layer first. The 2025 code lets existing self adhered underlayment stay under conditions. Outside fire zones the statewide floor is Class C, for new roofs, for the whole roof when more than 50 percent is replaced in a year, and for any repaired part. Code text was read on UpCodes, not the official viewer.
+
+Class A roof in a fire zone when 50 percent or more is replaced in 12 months
+B
+2025 California Wildland-Urban Interface Code (Title 24, Part 7) 101.3.1, 504.2, 507.1; 2022 California Building Code 705A.1, 1505.1.1 · January 1, 2026 (the 2022 code said "more than 50 percent")
+
+The 2025 edition moved the wildfire construction rules from Chapter 7A of the Building Code into a new Wildland-Urban Interface Code. It applies on all State Responsibility Area land, in High and Very High Fire Hazard Severity Zones in Local Responsibility Areas, and in local interface areas. On a building that existed before the code, a roof covering that is replaced, or has 50 percent or more replaced in a 12 month period, must be replaced with the covering required for new construction, and every part applied in an addition, alteration or repair must be at least Class A. The roof must be a Class A assembly when tested to ASTM E108 or UL 790. Class A is the rating of an assembly (covering, underlayment and deck together), not of a shingle or a tile on its own. Some assemblies count as Class A without a test, such as clay or concrete tile, metal or slate on a noncombustible deck. Under the 2022 code the trigger was more than 50 percent within one year, in any Fire Hazard Severity Zone. A jurisdiction that adopts the State Fire Marshal's model ordinance is outside the state sentence (2022 text).
+
+Cool roof rules when more than 50 percent of a roof is replaced
+A
+Title 24, Part 6 (2025 Energy Code) 110.8(i), 150.2(b)1I, 180.2(b)1A, 141.0(b)2B, 140.3(a)1A; the 2022 code has the same values · 2025 code for permit applications from January 1, 2026
+
+The Energy Code has 16 climate zones, set by ZIP code. A low sloped roof has a rise to run under 2:12. Single family: when more than 50 percent of the roof is replaced, a new layer over the old one included, steep roofs in zones 4 and 8 to 15 need an aged solar reflectance of at least 0.20 and thermal emittance of 0.75, or a Solar Reflectance Index of 16; low sloped roofs in zones 4 and 6 to 15 need 0.63 and 0.75, or an index of 75. Multifamily: the trigger is more than 50 percent of the roof area or more than 2,000 square feet, whichever is less, replaced, recovered or recoated; low slope in zones 2, 4 and 6 to 15 needs 0.63 (index 75); steep in zones 4 and 8 to 15 needs 0.20 (index 16). Nonresidential, same trigger: low slope in every zone needs 0.63 (index 75); steep needs 0.20 (index 16) in zones 1 and 3 and 0.25 with emittance 0.80 (index 23) in zones 2 and 4 to 16. Hotel and motel guest rooms: low slope 0.55 (index 64) in zones 9, 10, 11, 13, 14 and 15; steep 0.20 in zones 2 to 15. Products are rated and labeled by the Cool Roof Rating Council; an unrated asphalt shingle is assumed to have an aged reflectance of 0.08 and any other unrated product 0.10.
+
+Cool roof exceptions, and the insulation a low slope reroof also triggers
+A
+Title 24, Part 6 (2025 Energy Code) exceptions to 150.2(b)1Ii and 150.2(b)1Iiia; Tables 150.2-E, 150.2-F, 141.0-B, 141.0-C; 180.2(b)1Aiii · 2025 code for permit applications from January 1, 2026
+
+Single family steep roofs are exempt where the attic is insulated to R-38 (or the ceiling U-factor is 0.025 or lower), where there is a radiant barrier in the attic not laid directly above spaced sheathing, where there are no ducts in the attic in zones 2, 4, 9, 10, 12 and 14, or where R-2 or more continuous insulation sits above or below the deck. Roof constructions weighing at least 25 pounds per square foot are exempt in every building type; that is why most concrete and clay tile reroofs are exempt (the tile inference is ours, grade D). Roof area under building integrated solar is exempt. Single family low slope roofs may trade reflectance for deck insulation, down to no reflectance requirement at R-10 in zones 6 and 7 or R-24 in zones 2, 4 and 8 to 15. A low slope reroof also triggers insulation: R-14 continuous or U-0.039 for single family and multifamily in zones 1, 2, 4 and 8 to 16 (a multifamily recoat is exempt); for nonresidential, R-23 in zones 1 to 5 and 9 to 16 and R-17 in zones 6 to 8, with at least R-10 above the deck, and a recoat is exempt. The nonresidential insulation table was read in the 2025 code only.
+
+Wood shakes: listed products only statewide, banned outright in Los Angeles
+A
+Health & Safety Code 13132.7(b), (d), (f), (j); Los Angeles Department of Building and Safety Information Bulletin P/BC 2026-013; Los Angeles Ordinance 165047; San Diego Information Bulletin 123 · Los Angeles since August 25, 1989; bulletin effective January 1, 2026
+
+No wood roof covering may be sold or applied in California unless the State Fire Marshal has approved and listed it and it has passed at least 5 years of the 10 year natural weathering test. The statute's floor is Class A in Very High zones, Class B in State Responsibility Areas other than Moderate, and Class C everywhere else; the building codes now go further in fire zones. Cities may be stricter. In the City of Los Angeles all wood shake and wood shingle roof covering is prohibited for new work, reroofing and repairs; only a minor repair up to 5 percent may be allowed on request, and reroofing more than 50 percent in a year means all remaining shakes come off. The City of San Diego permits no wood shingle or shake renewals and no new covering over existing wood. A 2003 Orange County grand jury report lists other bans (Santa Barbara County, the City of Santa Barbara, Carlsbad, Del Mar, El Cajon, Vista and others); a current statewide list was not found. About 5.4 percent of California single family homes still report wood roofs (2020 federal survey).
+
+Roof warranties: in writing, transferable, and "lifetime" must say whose
+B
+Civil Code 1797.91, 1797.92, 1797.93, 1797.94 · Contracts from January 1, 1994
+
+A contract for roofing materials, or to install, repair or replace all or part of the roof of a residential structure, must be in writing if it includes any warranty that runs past completion. The warranty passes to every later buyer of the home unless a clear and conspicuous clause limits transfer; that limit must sit in a box at the top of the first page of the warranty in 14 point bold. A warranty that uses "lifetime", "life" or a similar word must disclose, clearly enough to be noticed and understood, the life it refers to.
+
+The installer certifies the roof's fire class to the owner
+B
+Health & Safety Code 13132.7(i) · In force
+
+The installer of a roof covering must give the building owner the certification of the roof covering classification, as the manufacturer or supplier provides it, and give it to the building department on request. The installer must also install the covering in accordance with the manufacturer's listing. What a roofer must do: hand over the classification sheet with the final invoice and keep a copy in the job file.
+
+Financing ads and trigger terms
+A
+12 CFR 1026.24 (Regulation Z) · In force
+
+A financing ad that states a payment amount, a number or period of payments, a down payment or a finance charge must also state the down payment, the terms of repayment and the annual percentage rate, using that term. "Financing available" alone triggers nothing. In California the down payment itself is capped (see the down payment row), and a home improvement contract shows any finance charge separately. Read on ecfr.gov on October 6, 2026.
+
+Reviews and testimonials
+A
+16 CFR Part 465 (eff. October 21, 2024); 16 CFR Part 255 · In force
+
+No fake or AI written reviews, no reviews bought on the condition that they are positive, no undisclosed reviews by staff or relatives, no company controlled "independent" review sites, no suppression of negative reviews, and no fake social media indicators. Civil penalties apply per violation. Read on ecfr.gov on October 6, 2026.
+
+Truthful advertising: what was read and what was not
+D
+Penal Code 396(h); Civil Code 1797.93; Cal. Code Regs. tit. 10, 2644.9; FTC Act section 5 · In force
+
+California's general unfair competition and false advertising statutes were not read for this build, so the register cites no section for them. What was read: a price gouging violation is also unfair competition (Penal Code 396); a "lifetime" roof warranty must say whose or what lifetime (Civil Code 1797.93); the Safer from Wildfires regulation sets no discount percentage; and Class A is the rating of a tested assembly. On the fire evidence, about 90 percent of structures inside the January 2025 Palisades and Eaton perimeters had Class A coverings by CAL FIRE's inspection data, and IBHS found those roofs were often paired with vulnerable vents, eaves, windows and doors. Copy must therefore never say "fireproof", promise a discount size or promise that an insurer will renew. Superlatives need a dated, verifiable basis.
+
+Read in November 2026 from the California codes (leginfo.legislature.ca.gov and transcriptions of it), the Contractors State License Board, the Department of Insurance, Title 24 and eCFR. Research material for marketing decisions, not legal advice; confirm with a California lawyer before relying on any item.
+
+Unit economics and assumptions
+
+Change any number; the maps, tables and every module that reads the line follow. Stored in this browser.
+
+Jobs open to marketing (%)
+Default ticket ($)
+Click cost multiplier for the line
+Click to lead (%)
+Lead to sold job (%)
+ALL LINES
+Base cost per click ($)
+Gross margin (%)
+Monthly budget ($)
+Apply
+Reset every line to defaults
+JUDGMENT CALL: NONE OF THESE DEFAULTS IS A FORECAST
+Tickets are round planning numbers set by the data build, not measured: replace $19,000, repair $1,350, storm $7,500, fire $19,000, fire hardening $24,000, tile relay $16,000, solar reset $4,500, metal $28,000, mobile home $7,000, multifamily $40,000, commercial $75,000, coatings $40,000 and new build $13,000. What is measured: the American Housing Survey's median hired roof job was $14,300 in the Los Angeles metro, $15,000 in San Francisco and Oakland and $10,000 in Riverside and San Bernardino in 2023 ($13,700 across the Pacific division), and San Francisco's permit files put the declared cost of a one or two family reroof at a median of $15,000. Those medians mix partial jobs with full reroofs. Click costs, lead rates and close rates are not California evidence: Base cost per click: a planning figure carried from the first edition of this atlas (another state). No California auction or keyword data was pulled, so it is an assumption, grade D. For this line: carried from the first edition. Replace every default with your own average invoices, close rates and margins.
+SEO page targets for this line
+
+Cities ranked by this line's gross profit pool, with the competition already there. One page per city and line where the volume supports it; Spanish pages where a large share speaks Spanish at home.
+
+CITY	COUNTY	RESIDENTS	ZIPS	JOBS A YEAR	OPEN TO MARKETING	POOL ↓	C-39 LICENSES WITHIN 8 KM	SPANISH AT HOME	PAGE PLAN
+Los Angeles	Los Angeles	2,380,896	63	12716	10682	$67.0M	71	42%	City page + landing page · Spanish page
+San Diego	San Diego	1,329,732	39	8127	6827	$42.8M	39	19%	City page + landing page
+San Jose	Santa Clara	1,011,444	28	7559	6350	$39.8M	88	21%	City page + landing page
+Sacramento	Sacramento	850,564	28	6128	5147	$32.3M	49	15%	City page + landing page
+San Francisco	San Francisco	830,479	27	5551	4662	$29.2M	84	11%	City page + landing page · Chinese page
+Fresno	Fresno	622,274	21	3916	3289	$20.6M	43	28%	City page + landing page · Spanish page
+Bakersfield	Kern	591,916	11	3482	2925	$18.3M	11	35%	City page + landing page · Spanish page
+Oakland	Alameda	426,581	14	3354	2817	$17.7M	59	22%	City page + landing page
+Long Beach	Los Angeles	466,181	12	3112	2614	$16.4M	44	32%	City page + landing page · Spanish page
+Stockton	San Joaquin	389,331	12	2597	2181	$13.7M	18	31%	City page + landing page · Spanish page
+Riverside	Riverside	367,890	7	2135	1793	$11.2M	29	34%	City page + landing page · Spanish page
+Modesto	Stanislaus	269,329	7	1996	1676	$10.5M	27	29%	City page + landing page · Spanish page
+Anaheim	Orange	361,715	7	1839	1545	$9.7M	130	39%	City page + landing page · Spanish page
+Fremont	Alameda	228,297	4	1817	1526	$9.6M	22	8%	City page + landing page · Chinese page
+Santa Rosa	Sonoma	210,074	6	1790	1503	$9.4M	20	26%	City page + landing page · Spanish page
+Santa Ana	Orange	337,036	6	1718	1443	$9.0M	108	59%	City page + landing page · Spanish page
+Huntington Beach	Orange	194,835	4	1518	1275	$8.0M	39	9%	City page + landing page
+Whittier	Los Angeles	187,821	6	1489	1251	$7.8M	59	43%	City page + landing page · Spanish page
+San Bernardino	San Bernardino	257,273	7	1473	1237	$7.8M	19	48%	City page + landing page · Spanish page
+Hayward	Alameda	191,800	4	1343	1128	$7.1M	48	32%	City page + landing page · Spanish page
+Chula Vista	San Diego	272,585	5	1337	1123	$7.0M	27	44%	City page + landing page · Spanish page
+Torrance	Los Angeles	171,940	5	1321	1109	$7.0M	93	15%	City page + landing page
+Irvine	Orange	311,856	9	1284	1079	$6.8M	32	6%	City page + landing page · Chinese page
+Salinas	Monterey	195,417	5	1246	1046	$6.6M	19	58%	City page + landing page · Spanish page
+Pasadena	Los Angeles	152,001	7	1215	1020	$6.4M	28	22%	City page + landing page
+Santa Barbara	Santa Barbara	136,942	8	1209	1016	$6.4M	18	19%	City page + landing page
+Vallejo	Solano	126,360	4	1191	1000	$6.3M	18	19%	City page + landing page · Tagalog page
+Corona	Riverside	263,412	5	1158	973	$6.1M	39	27%	City page + landing page · Spanish page
+Oceanside	San Diego	198,702	4	1144	961	$6.0M	30	22%	City page + landing page
+Oxnard	Ventura	213,176	4	1130	949	$6.0M	48	56%	City page + landing page · Spanish page
+Fontana	San Bernardino	239,054	3	1122	942	$5.9M	33	49%	City page + landing page · Spanish page
+Concord	Contra Costa	125,693	4	1114	936	$5.9M	46	22%	City page + landing page
+San Mateo	San Mateo	139,927	4	1091	917	$5.7M	23	15%	City page + landing page · Chinese page
+Garden Grove	Orange	173,498	5	1068	897	$5.6M	121	27%	City page + landing page · Spanish page · Vietnamese page
+Lancaster	Los Angeles	194,251	3	1052	884	$5.5M	4	27%	City page + landing page · Spanish page
+Berkeley	Alameda	127,395	9	1029	864	$5.4M	25	8%	City page + landing page
+Ontario	San Bernardino	183,440	3	1025	861	$5.4M	73	44%	City page + landing page · Spanish page
+Sunnyvale	Santa Clara	154,236	4	1014	852	$5.3M	32	12%	City page + landing page · Chinese page
+Redding	Shasta	112,523	3	1008	846	$5.3M	0	3%	City page + landing page
+Visalia	Tulare	163,333	3	1001	841	$5.3M	19	27%	City page + landing page · Spanish page
+Antioch	Contra Costa	116,477	2	973	817	$5.1M	14	22%	City page + landing page
+Rancho Cucamonga	San Bernardino	175,531	4	972	816	$5.1M	44	17%	City page + landing page
+Fullerton	Orange	140,763	4	963	809	$5.1M	101	25%	City page + landing page
+Orange	Orange	143,297	5	961	808	$5.1M	99	25%	City page + landing page · Spanish page
+Elk Grove	Sacramento	190,119	3	955	802	$5.0M	4	8%	City page + landing page
+Simi Valley	Ventura	128,600	2	947	795	$5.0M	34	15%	City page + landing page
+Pomona	Los Angeles	152,679	3	939	788	$4.9M	28	51%	City page + landing page · Spanish page
+Escondido	San Diego	177,903	4	925	777	$4.9M	26	32%	City page + landing page · Spanish page
+Roseville	Placer	161,837	3	923	775	$4.9M	48	6%	City page + landing page
+Santa Cruz	Santa Cruz	100,040	4	917	770	$4.8M	12	15%	City page + landing page
+Santa Maria	Santa Barbara	145,655	3	913	767	$4.8M	8	48%	City page + landing page · Spanish page
+Palmdale	Los Angeles	184,695	4	911	766	$4.8M	0	45%	City page + landing page · Spanish page
+San Leandro	Alameda	108,103	3	898	754	$4.7M	71	21%	City page + landing page · Chinese page
+Napa	Napa	91,371	2	897	753	$4.7M	14	27%	City page + landing page · Spanish page
+El Cajon	San Diego	173,694	3	890	748	$4.7M	39	16%	City page + landing page
+Ventura	Ventura	115,630	3	890	748	$4.7M	14	19%	City page + landing page
+Daly City	San Mateo	109,406	2	888	746	$4.7M	58	13%	City page + landing page · Chinese page · Tagalog page
+Moreno Valley	Riverside	212,104	4	888	746	$4.7M	15	42%	City page + landing page · Spanish page
+Redwood City	San Mateo	108,913	4	887	745	$4.7M	31	27%	City page + landing page · Spanish page
+Fairfield	Solano	120,008	2	884	742	$4.7M	14	21%	City page + landing page
+Richmond	Contra Costa	93,152	3	878	738	$4.6M	26	42%	City page + landing page · Spanish page
+Vacaville	Solano	109,591	2	871	732	$4.6M	6	13%	City page + landing page
+Santa Clara	Santa Clara	130,641	4	870	731	$4.6M	69	9%	City page + landing page · Chinese page
+Burbank	Los Angeles	108,034	5	844	709	$4.4M	87	14%	City page + landing page
+Compton	Los Angeles	131,353	3	843	708	$4.4M	71	60%	City page + landing page · Spanish page
+Palo Alto	Santa Clara	96,570	4	836	702	$4.4M	16	18%	City page + landing page · Chinese page
+Glendale	Los Angeles	172,545	9	830	698	$4.4M	52	14%	City page + landing page
+Van Nuys	Los Angeles	170,402	4	824	692	$4.3M	149	44%	City page + landing page · Spanish page
+West Covina	Los Angeles	108,367	3	813	683	$4.3M	43	33%	City page + landing page · Spanish page · Chinese page
+Walnut Creek	Contra Costa	90,740	4	794	667	$4.2M	34	8%	City page + landing page
+Livermore	Alameda	87,758	2	777	653	$4.1M	0	10%	City page + landing page
+Lakewood	Los Angeles	79,203	3	775	651	$4.1M	79	22%	City page + landing page
+North Hollywood	Los Angeles	151,376	4	774	650	$4.1M	114	37%	City page + landing page · Spanish page
+Mission Viejo	Orange	92,863	2	774	650	$4.1M	25	11%	City page + landing page
+Inglewood	Los Angeles	127,928	5	768	645	$4.0M	61	47%	City page + landing page · Spanish page
+Chico	Butte	117,007	3	762	640	$4.0M	6	10%	City page + landing page
+Downey	Los Angeles	110,939	3	749	629	$3.9M	91	54%	City page + landing page · Spanish page
+Clovis	Fresno	139,989	3	737	619	$3.9M	17	11%	City page + landing page
+Norwalk	Los Angeles	99,900	1	732	614	$3.9M	83	49%	City page + landing page · Spanish page
+La Puente	Los Angeles	105,329	2	731	614	$3.9M	45	61%	City page + landing page · Spanish page
+Petaluma	Sonoma	71,359	2	727	611	$3.8M	0	13%	City page + landing page
+Costa Mesa	Orange	111,101	2	726	610	$3.8M	87	25%	City page + landing page · Spanish page
+Pittsburg	Contra Costa	100,488	1	715	601	$3.8M	16	35%	City page + landing page · Spanish page
+Citrus Heights	Sacramento	89,370	2	713	599	$3.8M	75	9%	City page + landing page
+Tracy	San Joaquin	133,642	4	712	598	$3.8M	6	18%	City page + landing page
+Victorville	San Bernardino	154,418	3	692	581	$3.6M	15	35%	City page + landing page · Spanish page
+Hemet	Riverside	137,670	3	685	575	$3.6M	4	27%	City page + landing page · Spanish page
+Palm Desert	Riverside	58,615	2	683	574	$3.6M	10	15%	City page + landing page
+Carlsbad	San Diego	114,373	4	682	573	$3.6M	16	8%	City page + landing page
+San Ramon	Contra Costa	87,007	2	656	551	$3.5M	14	3%	City page + landing page · Chinese page
+Pleasanton	Alameda	78,550	2	645	541	$3.4M	16	5%	City page + landing page · Chinese page
+San Rafael	Marin	71,922	2	642	539	$3.4M	9	24%	City page + landing page
+Alameda	Alameda	77,238	2	641	538	$3.4M	39	7%	City page + landing page
+Menifee	Riverside	129,885	4	632	531	$3.3M	16	20%	City page + landing page
+La Mesa	San Diego	74,642	2	628	528	$3.3M	47	13%	City page + landing page
+Carson	Los Angeles	84,499	3	616	517	$3.2M	77	27%	City page + landing page · Spanish page · Tagalog page
+Thousand Oaks	Ventura	78,232	2	615	517	$3.2M	18	13%	City page + landing page
+Watsonville	Santa Cruz	82,806	1	614	516	$3.2M	19	58%	City page + landing page · Spanish page
+Vista	San Diego	117,104	3	612	514	$3.2M	69	31%	City page + landing page · Spanish page
+South Gate	Los Angeles	91,365	1	611	513	$3.2M	84	77%	City page + landing page · Spanish page
+Alhambra	Los Angeles	81,096	2	611	513	$3.2M	43	22%	City page + landing page · Chinese page
+San Pedro	Los Angeles	85,011	2	605	508	$3.2M	21	30%	City page + landing page · Spanish page
+Merced	Merced	112,228	3	600	504	$3.2M	3	35%	City page + landing page · Spanish page
+Pacoima	Los Angeles	97,608	1	594	499	$3.1M	75	73%	City page + landing page · Spanish page
+Camarillo	Ventura	82,539	2	593	498	$3.1M	10	13%	City page + landing page
+Westminster	Orange	89,833	1	590	496	$3.1M	65	16%	City page + landing page · Vietnamese page
+Covina	Los Angeles	81,184	3	588	494	$3.1M	51	34%	City page + landing page · Spanish page
+Danville	Contra Costa	59,639	2	586	492	$3.1M	9	3%	City page + landing page
+Temecula	Riverside	127,079	3	580	487	$3.1M	14	14%	City page + landing page
+Gardena	Los Angeles	84,578	3	572	480	$3.0M	90	34%	City page + landing page · Spanish page
+Hesperia	San Bernardino	110,055	2	571	479	$3.0M	21	34%	City page + landing page · Spanish page
+South San Francisco	San Mateo	64,761	1	570	479	$3.0M	59	20%	City page + landing page · Chinese page · Tagalog page
+Newport Beach	Orange	61,631	4	569	478	$3.0M	56	6%	City page + landing page
+Lodi	San Joaquin	78,944	2	568	477	$3.0M	14	26%	City page + landing page · Spanish page
+Novato	Marin	59,522	3	567	476	$3.0M	6	18%	City page + landing page
+Redondo Beach	Los Angeles	77,267	2	562	472	$3.0M	61	7%	City page + landing page
+Madera	Madera	109,650	3	562	472	$3.0M	9	50%	City page + landing page · Spanish page
+Turlock	Stanislaus	83,043	2	562	472	$3.0M	4	30%	City page + landing page · Spanish page
+Upland	San Bernardino	82,715	2	557	468	$2.9M	65	19%	City page + landing page
+Indio	Riverside	100,560	2	554	465	$2.9M	10	47%	City page + landing page · Spanish page
+Murrieta	Riverside	145,160	2	551	463	$2.9M	11	16%	City page + landing page
+Castro Valley	Alameda	59,361	2	551	463	$2.9M	33	11%	City page + landing page · Chinese page
+Palm Springs	Riverside	46,786	2	551	463	$2.9M	10	20%	City page + landing page
+Rialto	San Bernardino	105,208	2	549	461	$2.9M	31	53%	City page + landing page · Spanish page
+Buena Park	Orange	82,592	2	546	459	$2.9M	73	25%	City page + landing page
+Yuba City	Sutter	81,625	2	545	458	$2.9M	19	19%	City page + landing page
+Woodland Hills	Los Angeles	73,637	2	544	457	$2.9M	112	7%	City page + landing page
+Mountain View	Santa Clara	84,858	3	539	453	$2.8M	25	12%	City page + landing page · Chinese page
+Bell Gardens	Los Angeles	92,763	1	537	451	$2.8M	85	81%	City page + landing page · Spanish page
+Carmichael	Sacramento	61,440	1	536	450	$2.8M	77	5%	City page + landing page
+Eureka	Humboldt	47,944	2	534	448	$2.8M	6	7%	City page + landing page
+Cupertino	Santa Clara	60,932	1	528	443	$2.8M	7	3%	City page + landing page · Chinese page
+Milpitas	Santa Clara	78,810	1	522	438	$2.7M	14	8%	City page + landing page · Chinese page · Vietnamese page
+Chino	San Bernardino	97,967	2	516	434	$2.7M	23	29%	City page + landing page · Spanish page
+Manteca	San Joaquin	98,916	2	516	433	$2.7M	8	21%	City page + landing page
+San Gabriel	Los Angeles	60,624	2	510	429	$2.7M	43	15%	City page + landing page · Chinese page
+Brentwood	Contra Costa	69,755	1	508	427	$2.7M	32	14%	City page + landing page
+Reseda	Los Angeles	74,526	1	498	418	$2.6M	135	41%	City page + landing page · Spanish page
+Los Gatos	Santa Clara	50,064	3	498	418	$2.6M	8	5%	City page + landing page
+Yorba Linda	Orange	69,429	2	496	417	$2.6M	21	7%	City page + landing page
+Union City	Alameda	67,464	1	496	417	$2.6M	28	13%	City page + landing page · Chinese page · Tagalog page
+Arcadia	Los Angeles	64,611	2	496	416	$2.6M	37	10%	City page + landing page · Chinese page
+Redlands	San Bernardino	80,519	2	495	416	$2.6M	13	20%	City page + landing page
+Rosemead	Los Angeles	58,382	1	494	415	$2.6M	38	21%	City page + landing page · Chinese page · Vietnamese page
+Sylmar	Los Angeles	93,301	1	494	415	$2.6M	25	53%	City page + landing page · Spanish page
+Monterey Park	Los Angeles	59,058	2	493	414	$2.6M	55	16%	City page + landing page · Chinese page
+Granada Hills	Los Angeles	52,890	1	492	414	$2.6M	46	21%	City page + landing page
+Porterville	Tulare	81,865	2	484	407	$2.6M	5	49%	City page + landing page · Spanish page
+Martinez	Contra Costa	48,643	1	483	406	$2.5M	12	9%	City page + landing page
+El Monte	Los Angeles	85,051	2	482	405	$2.5M	33	53%	City page + landing page · Spanish page · Chinese page
+Rancho Cordova	Sacramento	76,587	2	482	405	$2.5M	51	10%	City page + landing page
+Tulare	Tulare	80,026	1	481	404	$2.5M	6	40%	City page + landing page · Spanish page
+La Habra	Orange	68,309	1	479	402	$2.5M	53	34%	City page + landing page · Spanish page
+Apple Valley	San Bernardino	83,889	2	474	398	$2.5M	0	21%	City page + landing page
+Santa Monica	Los Angeles	93,581	5	472	396	$2.5M	29	10%	City page + landing page
+Los Altos	Santa Clara	43,078	2	471	395	$2.5M	11	3%	City page + landing page · Chinese page
+Fountain Valley	Orange	56,258	1	470	395	$2.5M	110	10%	City page + landing page · Vietnamese page
+Laguna Niguel	Orange	64,139	1	469	394	$2.5M	16	9%	City page + landing page
+Pico Rivera	Los Angeles	60,272	1	468	393	$2.5M	74	59%	City page + landing page · Spanish page
+San Pablo	Contra Costa	62,546	1	459	385	$2.4M	30	40%	City page + landing page · Spanish page
+San Clemente	San Diego	66,345	2	458	385	$2.4M	9	9%	City page + landing page
+Hacienda Heights	Los Angeles	54,351	1	457	384	$2.4M	51	29%	City page + landing page · Spanish page · Chinese page
+Cerritos	Los Angeles	48,108	1	453	381	$2.4M	67	10%	City page + landing page · Chinese page
+Davis	Yolo	79,897	2	453	380	$2.4M	2	9%	City page + landing page
+Jurupa Valley	Riverside	81,182	1	453	380	$2.4M	31	52%	City page + landing page · Spanish page
+Baldwin Park	Los Angeles	71,082	1	452	380	$2.4M	50	57%	City page + landing page · Spanish page
+Gilroy	Santa Clara	67,181	1	451	379	$2.4M	9	33%	City page + landing page · Spanish page
+Spring Valley	San Diego	71,078	2	451	378	$2.4M	37	31%	City page + landing page · Spanish page
+Bellflower	Los Angeles	76,819	1	450	378	$2.4M	99	44%	City page + landing page · Spanish page
+Hawthorne	Los Angeles	93,826	1	449	377	$2.4M	65	40%	City page + landing page · Spanish page
+Folsom	Sacramento	79,484	1	446	375	$2.4M	25	4%	City page + landing page
+South Lake Tahoe	El Dorado	29,646	1	445	374	$2.3M	8	16%	City page + landing page
+San Luis Obispo	San Luis Obispo	64,905	6	444	373	$2.3M	7	11%	City page + landing page
+Lompoc	Santa Barbara	59,297	2	435	366	$2.3M	8	34%	City page + landing page · Spanish page
+Hanford	Kings	69,684	1	431	362	$2.3M	4	27%	City page + landing page · Spanish page
+Northridge	Los Angeles	68,273	3	428	359	$2.3M	84	27%	City page + landing page · Spanish page
+Tustin	Orange	84,447	2	427	359	$2.3M	51	28%	City page + landing page · Spanish page
+San Marcos	San Diego	100,940	2	426	358	$2.2M	47	23%	City page + landing page
+Glendora	Los Angeles	52,239	2	426	358	$2.2M	33	18%	City page + landing page
+Woodland	Yolo	66,420	2	426	358	$2.2M	12	30%	City page + landing page · Spanish page
+Sonoma	Sonoma	35,196	1	425	357	$2.2M	1	20%	City page + landing page
+La Mirada	Los Angeles	47,604	2	425	357	$2.2M	71	25%	City page + landing page
+Rancho Palos Verdes	Los Angeles	40,945	1	423	355	$2.2M	14	6%	City page + landing page
+Lake Forest	Orange	67,152	1	421	353	$2.2M	30	17%	City page + landing page
+La Quinta	Riverside	38,666	1	419	352	$2.2M	9	22%	City page + landing page
+Dublin	Alameda	70,803	1	419	352	$2.2M	9	5%	City page + landing page
+Chino Hills	San Bernardino	78,006	1	417	351	$2.2M	18	13%	City page + landing page · Chinese page
+Fair Oaks	Sacramento	44,855	1	415	348	$2.2M	58	6%	City page + landing page
+Montebello	Los Angeles	61,382	1	412	346	$2.2M	68	53%	City page + landing page · Spanish page
+Hollister	San Benito	59,889	1	403	339	$2.1M	13	39%	City page + landing page · Spanish page
+Cypress	Orange	49,318	1	402	338	$2.1M	59	11%	City page + landing page · Korean page
+Paso Robles	San Luis Obispo	45,554	1	401	337	$2.1M	8	17%	City page + landing page
+Encinitas	San Diego	50,617	1	398	335	$2.1M	8	9%	City page + landing page
+Campbell	Santa Clara	48,333	1	398	334	$2.1M	47	11%	City page + landing page
+Grass Valley	Nevada	48,022	2	398	334	$2.1M	10	5%	City page + landing page
+Pacifica	San Mateo	37,274	1	394	331	$2.1M	33	8%	City page + landing page
+Newark	Alameda	46,903	1	392	329	$2.1M	14	17%	City page + landing page · Chinese page
+Canoga Park	Los Angeles	82,279	2	391	328	$2.1M	87	38%	City page + landing page · Spanish page
+Santee	San Diego	59,590	1	384	323	$2.0M	20	8%	City page + landing page
+Menlo Park	San Mateo	40,721	1	384	322	$2.0M	25	15%	City page + landing page
+Burlingame	San Mateo	43,025	1	383	322	$2.0M	23	7%	City page + landing page · Chinese page
+Rocklin	Placer	73,077	2	381	320	$2.0M	49	5%	City page + landing page
+Azusa	Los Angeles	60,903	1	379	318	$2.0M	7	44%	City page + landing page · Spanish page
+Valencia	Los Angeles	63,080	2	378	318	$2.0M	25	9%	City page + landing page
+Huntington Park	Los Angeles	69,349	1	374	314	$2.0M	72	82%	City page + landing page · Spanish page
+Lynwood	Los Angeles	64,235	1	369	310	$1.9M	88	73%	City page + landing page · Spanish page
+Morgan Hill	Santa Clara	51,943	1	367	308	$1.9M	5	19%	City page + landing page
+Mill Valley	Marin	32,706	1	367	308	$1.9M	2	5%	City page + landing page
+Placentia	Orange	52,826	1	365	306	$1.9M	87	22%	City page + landing page
+Perris	Riverside	118,178	2	364	306	$1.9M	23	58%	City page + landing page · Spanish page
+San Bruno	San Mateo	42,728	1	363	305	$1.9M	46	18%	City page + landing page
+La Jolla	San Diego	48,412	3	361	303	$1.9M	7	9%	City page + landing page
+Auburn	Placer	48,160	3	358	301	$1.9M	8	6%	City page + landing page
+Sebastopol	Sonoma	28,747	1	356	299	$1.9M	6	6%	City page + landing page
+Oakley	Contra Costa	46,368	1	350	294	$1.8M	32	20%	City page + landing page
+Saratoga	Santa Clara	31,417	1	349	293	$1.8M	6	1%	City page + landing page · Chinese page
+Truckee	Nevada	19,634	1	346	291	$1.8M	4	11%	City page + landing page
+Monrovia	Los Angeles	41,140	1	345	289	$1.8M	26	27%	City page + landing page · Spanish page
+Oroville	Butte	49,684	2	344	289	$1.8M	0	8%	City page + landing page
+Poway	San Diego	48,683	1	341	287	$1.8M	6	9%	City page + landing page
+National City	San Diego	59,891	1	338	284	$1.8M	35	50%	City page + landing page · Spanish page · Tagalog page
+Cathedral City	Riverside	52,267	1	337	283	$1.8M	14	45%	City page + landing page · Spanish page
+Sherman Oaks	Los Angeles	58,121	2	337	283	$1.8M	111	9%	City page + landing page
+Pleasant Hill	Contra Costa	34,592	1	335	282	$1.8M	54	7%	City page + landing page
+Encino	Los Angeles	45,460	2	333	280	$1.8M	105	7%	City page + landing page
+Diamond Bar	Los Angeles	44,502	1	332	279	$1.8M	20	10%	City page + landing page · Chinese page
+Culver City	Los Angeles	47,563	2	331	278	$1.7M	68	20%	City page + landing page
+West Sacramento	Yolo	55,039	2	330	277	$1.7M	20	19%	City page + landing page
+Manhattan Beach	Los Angeles	34,210	1	330	277	$1.7M	42	3%	City page + landing page
+Colton	San Bernardino	57,365	1	329	277	$1.7M	38	47%	City page + landing page · Spanish page
+North Hills	Los Angeles	60,783	1	329	276	$1.7M	109	45%	City page + landing page · Spanish page
+Rohnert Park	Sonoma	46,829	1	323	271	$1.7M	20	19%	City page + landing page
+Lake Elsinore	Riverside	89,823	2	322	271	$1.7M	7	32%	City page + landing page · Spanish page
+Highland	San Bernardino	56,179	1	320	269	$1.7M	8	31%	City page + landing page · Spanish page
+Santa Clarita	Los Angeles	63,281	2	320	268	$1.7M	13	15%	City page + landing page
+Lincoln	Placer	57,459	1	318	267	$1.7M	8	7%	City page + landing page
+Winnetka	Los Angeles	47,176	1	317	266	$1.7M	118	36%	City page + landing page · Spanish page
+Newbury Park	Ventura	43,472	1	312	262	$1.6M	14	12%	City page + landing page
+Canyon Country	Los Angeles	80,024	2	311	261	$1.6M	11	31%	City page + landing page · Spanish page
+Temple City	Los Angeles	35,588	1	311	261	$1.6M	40	13%	City page + landing page · Chinese page
+Claremont	Los Angeles	37,529	1	307	258	$1.6M	36	13%	City page + landing page
+Orangevale	Sacramento	32,600	1	306	257	$1.6M	54	4%	City page + landing page
+Yucaipa	San Bernardino	55,366	1	304	255	$1.6M	9	17%	City page + landing page
+Monterey	Monterey	33,280	3	303	254	$1.6M	9	14%	City page + landing page
+El Cerrito	Contra Costa	26,401	1	302	253	$1.6M	25	7%	City page + landing page
+Aptos	Santa Cruz	24,951	1	300	252	$1.6M	11	9%	City page + landing page
+Laguna Beach	Orange	23,557	1	298	250	$1.6M	8	5%	City page + landing page
+Rowland Heights	Los Angeles	42,463	1	298	250	$1.6M	54	19%	City page + landing page · Chinese page
+San Carlos	San Mateo	30,447	1	297	249	$1.6M	32	6%	City page + landing page
+Walnut	Los Angeles	40,298	1	297	249	$1.6M	35	9%	City page + landing page · Chinese page
+Arroyo Grande	San Luis Obispo	31,345	1	296	249	$1.6M	5	7%	City page + landing page
+Atascadero	San Luis Obispo	33,002	1	296	249	$1.6M	8	9%	City page + landing page
+La Crescenta	Los Angeles	30,817	1	292	245	$1.5M	25	7%	City page + landing page · Korean page
+San Lorenzo	Alameda	29,420	1	289	243	$1.5M	73	25%	City page + landing page · Spanish page · Chinese page · Tagalog page
+North Highlands	Sacramento	35,451	1	286	240	$1.5M	75	24%	City page + landing page
+Beverly Hills	Los Angeles	38,852	3	285	239	$1.5M	71	6%	City page + landing page
+Chatsworth	Los Angeles	40,898	1	283	238	$1.5M	38	18%	City page + landing page
+Lafayette	Contra Costa	28,420	1	283	237	$1.5M	24	3%	City page + landing page
+Red Bluff	Tehama	31,554	1	282	237	$1.5M	3	10%	City page + landing page
+Sun Valley	Los Angeles	46,899	1	281	236	$1.5M	95	58%	City page + landing page · Spanish page
+Palos Verdes Peninsula	Los Angeles	25,059	1	278	233	$1.5M	31	3%	City page + landing page
+Wilmington	Los Angeles	52,800	1	276	232	$1.5M	39	68%	City page + landing page · Spanish page
+Brea	Orange	47,469	2	274	230	$1.4M	38	14%	City page + landing page
+Rancho Mirage	Riverside	17,563	1	274	230	$1.4M	12	10%	City page + landing page
+Barstow	San Bernardino	33,954	1	273	229	$1.4M	2	18%	City page + landing page
+Goleta	Santa Barbara	52,934	1	273	229	$1.4M	5	18%	City page + landing page
+Antelope	Sacramento	47,695	1	272	229	$1.4M	44	5%	City page + landing page
+El Sobrante	Contra Costa	27,659	1	271	228	$1.4M	28	22%	City page + landing page
+Venice	Los Angeles	26,324	1	270	227	$1.4M	31	13%	City page + landing page
+Seaside	Monterey	32,266	1	269	226	$1.4M	11	33%	City page + landing page · Spanish page
+Aliso Viejo	Orange	52,229	1	269	226	$1.4M	17	10%	City page + landing page
+Ridgecrest	Kern	33,845	1	268	225	$1.4M	2	10%	City page + landing page
+Benicia	Solano	26,749	1	266	224	$1.4M	11	7%	City page + landing page
+Porter Ranch	Los Angeles	38,428	1	265	223	$1.4M	41	7%	City page + landing page
+Desert Hot Springs	Riverside	50,499	2	264	222	$1.4M	5	47%	City page + landing page · Spanish page
+Ceres	Stanislaus	46,310	1	264	221	$1.4M	12	45%	City page + landing page · Spanish page
+Fallbrook	San Diego	52,227	1	260	219	$1.4M	11	27%	City page + landing page · Spanish page
+Seal Beach	Orange	24,254	1	260	219	$1.4M	36	7%	City page + landing page
+Sonora	Tuolumne	28,355	1	257	216	$1.4M	7	3%	City page + landing page
+West Hills	Los Angeles	26,580	1	257	216	$1.4M	46	10%	City page + landing page
+Delano	Kern	54,556	1	257	216	$1.4M	2	61%	City page + landing page · Spanish page
+Lawndale	Los Angeles	32,075	1	255	214	$1.3M	81	51%	City page + landing page · Spanish page
+Yucca Valley	San Bernardino	25,415	1	254	213	$1.3M	6	10%	City page + landing page
+Lakeside	San Diego	46,216	1	252	211	$1.3M	12	9%	City page + landing page
+South El Monte	Los Angeles	41,255	1	252	211	$1.3M	39	59%	City page + landing page · Spanish page · Chinese page
+Paramount	Los Angeles	52,050	1	251	211	$1.3M	93	60%	City page + landing page · Spanish page
+La Verne	Los Angeles	32,692	1	250	210	$1.3M	26	12%	City page + landing page
+Twentynine Palms	San Bernardino	30,190	2	249	209	$1.3M	1	13%	City page + landing page
+Windsor	Sonoma	27,429	1	247	208	$1.3M	14	24%	City page + landing page
+San Juan Capistrano	Orange	35,095	1	247	207	$1.3M	14	26%	City page + landing page · Spanish page
+San Dimas	Los Angeles	33,598	1	245	206	$1.3M	35	19%	City page + landing page
+El Centro	Imperial	49,069	1	243	204	$1.3M	1	70%	City page + landing page · Spanish page
+Panorama City	Los Angeles	65,754	1	241	203	$1.3M	119	59%	City page + landing page · Spanish page
+San Fernando	Los Angeles	33,424	1	241	203	$1.3M	73	69%	City page + landing page · Spanish page
+Ukiah	Mendocino	33,164	1	240	202	$1.3M	12	25%	City page + landing page · Spanish page
+El Dorado Hills	El Dorado	47,657	1	237	199	$1.2M	16	3%	City page + landing page
+Los Banos	Merced	50,149	1	237	199	$1.2M	6	45%	City page + landing page · Spanish page
+Beaumont	Riverside	63,833	1	236	199	$1.2M	8	22%	City page + landing page
+Laguna Hills	Orange	29,624	1	233	196	$1.2M	29	15%	City page + landing page
+Rancho Santa Margarita	Orange	43,320	1	233	196	$1.2M	22	12%	City page + landing page
+Dana Point	Orange	25,579	1	231	194	$1.2M	11	6%	City page + landing page
+Placerville	El Dorado	36,830	1	231	194	$1.2M	14	5%	City page + landing page
+Tehachapi	Kern	34,363	2	231	194	$1.2M	3	14%	City page + landing page
+Belmont	San Mateo	27,534	1	231	194	$1.2M	22	8%	City page + landing page
+Santa Paula	Ventura	34,501	1	229	192	$1.2M	4	57%	City page + landing page · Spanish page
+Atwater	Merced	43,009	1	228	192	$1.2M	2	35%	City page + landing page · Spanish page
+Lemoore	Kings	38,823	2	227	191	$1.2M	0	26%	City page + landing page · Spanish page
+Emeryville	Alameda	34,395	1	227	191	$1.2M	22	8%	City page + landing page
+Oakdale	Stanislaus	34,810	1	225	189	$1.2M	4	18%	City page + landing page
+Suisun City	Solano	29,357	1	225	189	$1.2M	6	17%	City page + landing page
+Montclair	San Bernardino	37,700	1	220	185	$1.2M	49	45%	City page + landing page · Spanish page
+Banning	Riverside	33,755	1	219	184	$1.2M	2	28%	City page + landing page · Spanish page
+Duarte	Los Angeles	28,332	2	219	184	$1.2M	27	39%	City page + landing page · Spanish page
+Studio City	Los Angeles	32,469	1	218	183	$1.2M	100	5%	City page + landing page
+Lemon Grove	San Diego	27,745	1	217	182	$1.1M	49	30%	City page + landing page · Spanish page
+Marysville	Yuba	37,732	1	211	177	$1.1M	8	17%	City page + landing page
+Sanger	Fresno	36,205	1	211	177	$1.1M	2	38%	City page + landing page · Spanish page
+Hercules	Contra Costa	26,302	1	210	176	$1.1M	13	10%	City page + landing page · Tagalog page
+Pacific Grove	Monterey	14,951	1	208	175	$1.1M	0	7%	City page + landing page
+Los Alamitos	Orange	23,805	1	207	174	$1.1M	47	10%	City page + landing page
+San Anselmo	Marin	16,232	1	206	173	$1.1M	9	3%	City page + landing page
+Pinole	Contra Costa	18,761	1	206	173	$1.1M	15	15%	City page + landing page
+Tujunga	Los Angeles	26,928	1	205	172	$1.1M	4	19%	City page + landing page
+Sunland	Los Angeles	20,821	1	204	172	$1.1M	42	16%	City page + landing page
+Moorpark	Ventura	37,746	1	204	171	$1.1M	6	20%	City page + landing page
+San Jacinto	Riverside	57,134	2	203	170	$1.1M	8	41%	City page + landing page · Spanish page
+Anderson	Shasta	24,768	1	202	170	$1.1M	13	7%	City page + landing page
+Tarzana	Los Angeles	30,942	1	201	169	$1.1M	120	13%	City page + landing page
+McKinleyville	Humboldt	18,728	1	201	169	$1.1M	2	4%	City page + landing page
+Orinda	Contra Costa	19,378	1	199	167	$1.0M	12	3%	City page + landing page
+La Canada Flintridge	Los Angeles	19,935	1	198	166	$1.0M	23	5%	City page + landing page · Korean page
+Millbrae	San Mateo	22,689	1	197	166	$1.0M	38	8%	City page + landing page · Chinese page
+South Pasadena	Los Angeles	26,068	1	196	165	$1.0M	45	11%	City page + landing page · Chinese page
+Altadena	Los Angeles	35,475	1	195	164	$1.0M	18	22%	City page + landing page
+Bloomington	San Bernardino	32,765	1	194	163	$1.0M	44	63%	City page + landing page · Spanish page
+Arcata	Humboldt	21,980	1	193	162	$1.0M	3	6%	City page + landing page
+Galt	Sacramento	32,493	1	191	160	$1.0M	10	31%	City page + landing page · Spanish page
+Carmel	Monterey	12,565	1	190	159	$1.0M	0	6%	City page + landing page
+Agoura Hills	Los Angeles	23,879	1	187	157	$986K	2	6%	City page + landing page
+Port Hueneme	Ventura	23,273	1	186	156	$981K	34	38%	City page + landing page · Spanish page
+Coachella	Riverside	43,642	1	186	156	$979K	5	79%	City page + landing page · Spanish page
+Selma	Fresno	29,419	1	185	156	$976K	0	47%	City page + landing page · Spanish page
+Healdsburg	Sonoma	16,077	1	185	155	$974K	0	23%	City page + landing page
+Shingle Springs	El Dorado	30,065	1	185	155	$972K	19	4%	City page + landing page
+Reedley	Fresno	31,876	1	184	155	$970K	9	51%	City page + landing page · Spanish page
+Ojai	Ventura	21,036	1	183	154	$963K	1	14%	City page + landing page
+Ramona	San Diego	36,752	1	183	153	$962K	10	21%	City page + landing page
+Albany	Alameda	19,969	1	182	153	$961K	25	6%	City page + landing page · Chinese page
+Hermosa Beach	Los Angeles	19,063	1	181	152	$954K	43	5%	City page + landing page
+Olivehurst	Yuba	33,999	1	181	152	$952K	14	20%	City page + landing page
+Fort Bragg	Mendocino	14,982	1	181	152	$951K	14	13%	City page + landing page
+Nevada City	Nevada	17,683	1	180	151	$950K	1	3%	City page + landing page
+Imperial Beach	San Diego	25,741	1	180	151	$949K	7	35%	City page + landing page · Spanish page
+Nipomo	San Luis Obispo	21,611	1	178	149	$936K	4	22%	City page + landing page
+Norco	Riverside	25,109	1	178	149	$936K	29	27%	City page + landing page · Spanish page
+Trabuco Canyon	Orange	31,482	2	178	149	$935K	5	7%	City page + landing page
+Dinuba	Tulare	32,267	1	175	147	$923K	4	60%	City page + landing page · Spanish page
+Calexico	Imperial	38,621	1	175	147	$921K	2	85%	City page + landing page · Spanish page
+Dixon	Solano	22,223	1	174	146	$914K	1	26%	City page + landing page · Spanish page
+Granite Bay	Placer	22,985	1	172	144	$904K	41	4%	City page + landing page
+Marina	Monterey	28,122	1	172	144	$904K	8	18%	City page + landing page
+Los Osos	San Luis Obispo	14,197	1	171	144	$903K	3	5%	City page + landing page
+Big Bear Lake	San Bernardino	5,215	1	168	141	$883K	1	11%	City page + landing page
+Crescent City	Del Norte	22,291	1	165	139	$871K	2	8%	City page + landing page
+Mira Loma	Riverside	37,983	1	165	138	$868K	16	44%	City page + landing page · Spanish page
+Coronado	San Diego	18,929	1	164	138	$866K	9	12%	City page + landing page
+Morro Bay	San Luis Obispo	11,571	1	164	138	$865K	2	6%	City page + landing page
+Newhall	Los Angeles	31,989	1	164	137	$861K	15	35%	City page + landing page · Spanish page
+Maywood	Los Angeles	24,218	1	163	137	$857K	74	84%	City page + landing page · Spanish page
+Lomita	Los Angeles	21,482	1	162	136	$852K	65	22%	City page + landing page
+Clearlake	Lake	17,054	1	160	134	$843K	1	22%	City page + landing page
+Discovery Bay	Contra Costa	14,970	1	160	134	$840K	1	6%	City page + landing page
+Westlake Village	Ventura	18,802	1	159	134	$838K	9	4%	City page + landing page
+Susanville	Lassen	20,173	1	156	131	$820K	6	14%	City page + landing page
+Valley Village	Los Angeles	31,890	1	156	131	$820K	117	18%	City page + landing page
+San Marino	Los Angeles	12,401	1	154	129	$812K	40	3%	City page + landing page · Chinese page
+Laguna Woods	Orange	17,289	1	154	129	$809K	30	3%	City page + landing page
+Calabasas	Los Angeles	25,569	1	152	127	$799K	40	5%	City page + landing page
+Stanton	Orange	31,991	1	151	127	$798K	68	36%	City page + landing page · Spanish page · Vietnamese page
+Riverbank	Stanislaus	25,593	1	151	127	$795K	17	39%	City page + landing page · Spanish page
+Corona del Mar	Orange	12,294	1	148	125	$782K	32	4%	City page + landing page
+Moraga	Contra Costa	16,973	2	148	125	$781K	8	4%	City page + landing page
+Adelanto	San Bernardino	38,577	1	148	124	$779K	2	43%	City page + landing page · Spanish page
+Alamo	Contra Costa	14,586	1	148	124	$777K	20	4%	City page + landing page
+Grover Beach	San Luis Obispo	12,600	1	146	123	$770K	3	24%	City page + landing page
+Fortuna	Humboldt	14,469	1	144	121	$756K	4	15%	City page + landing page
+Brawley	Imperial	28,315	1	142	120	$750K	4	60%	City page + landing page · Spanish page
+Patterson	Stanislaus	30,769	1	142	119	$749K	14	45%	City page + landing page · Spanish page
+Bonita	San Diego	17,698	1	142	119	$747K	38	30%	City page + landing page · Spanish page
+Mammoth Lakes	Mono	9,000	1	142	119	$746K	4	21%	City page + landing page
+Arnold	Alpine	3,056	1	142	119	$746K	1	3%	City page + landing page
+Taft	Kern	16,963	1	141	119	$745K	0	34%	City page + landing page · Spanish page
+Rio Linda	Sacramento	16,512	1	140	118	$738K	49	15%	City page + landing page
+Big Bear City	San Bernardino	9,334	1	140	117	$736K	5	9%	City page + landing page
+Cottonwood	Tehama	17,092	1	140	117	$736K	6	3%	City page + landing page
+Mission Hills	Los Angeles	18,714	1	139	117	$733K	67	52%	City page + landing page · Spanish page
+Belvedere Tiburon	Marin	12,609	1	139	117	$733K	0	4%	City page + landing page
+Bishop	Mono	14,853	1	139	116	$730K	5	14%	City page + landing page
+Carpinteria	Santa Barbara	16,317	1	138	116	$725K	2	29%	City page + landing page · Spanish page
+Harbor City	Los Angeles	26,761	1	136	114	$717K	61	35%	City page + landing page · Spanish page
+Half Moon Bay	San Mateo	14,419	1	136	114	$716K	2	23%	City page + landing page
+Sausalito	Marin	11,724	1	134	113	$706K	3	4%	City page + landing page
+Del Mar	San Diego	13,105	1	134	113	$706K	6	4%	City page + landing page
+Loma Linda	San Bernardino	22,395	2	134	112	$705K	32	18%	City page + landing page
+Wasco	Kern	27,407	1	133	111	$699K	0	62%	City page + landing page · Spanish page
+Scotts Valley	Santa Cruz	15,135	1	131	110	$693K	14	5%	City page + landing page
+Greenbrae	Marin	12,815	1	131	110	$692K	8	7%	City page + landing page
+Crestline	San Bernardino	9,065	1	131	110	$691K	9	14%	City page + landing page
+Willits	Mendocino	14,677	1	129	108	$680K	0	10%	City page + landing page
+Ripon	San Joaquin	18,954	1	129	108	$677K	5	9%	City page + landing page
+American Canyon	Napa	21,841	1	127	106	$667K	12	20%	City page + landing page · Tagalog page
+Santa Fe Springs	Los Angeles	17,851	1	123	103	$647K	80	44%	City page + landing page · Spanish page
+Clayton	Contra Costa	12,316	1	123	103	$647K	0	3%	City page + landing page
+La Palma	Orange	15,545	1	122	103	$644K	70	9%	City page + landing page · Korean page
+Solana Beach	San Diego	11,944	1	121	102	$637K	10	12%	City page + landing page
+Kelseyville	Lake	12,592	1	121	102	$637K	1	24%	City page + landing page
+El Segundo	Los Angeles	16,769	1	120	101	$635K	33	6%	City page + landing page
+Lathrop	San Joaquin	35,395	1	119	100	$628K	3	18%	City page + landing page
+Valley Springs	Calaveras	14,252	1	119	100	$626K	5	8%	City page + landing page
+Orland	Glenn	16,070	1	118	99	$620K	3	33%	City page + landing page · Spanish page
+West Hollywood	Los Angeles	20,961	1	117	98	$616K	69	6%	City page + landing page
+Chowchilla	Madera	23,520	1	117	98	$614K	1	33%	City page + landing page · Spanish page
+Lamont	Kern	15,250	1	115	97	$607K	8	79%	City page + landing page · Spanish page
+Kingsburg	Tulare	17,583	1	115	97	$606K	2	21%	City page + landing page
+Pismo Beach	San Luis Obispo	8,014	1	115	97	$606K	3	5%	City page + landing page
+Loomis	Placer	13,405	1	114	96	$600K	24	3%	City page + landing page
+Shafter	Kern	24,024	1	112	94	$591K	0	53%	City page + landing page · Spanish page
+Corte Madera	Marin	10,077	1	112	94	$588K	7	6%	City page + landing page
+Rio Vista	Solano	10,974	1	111	94	$587K	0	15%	City page + landing page
+Cardiff by the Sea	San Diego	11,100	1	111	93	$585K	7	14%	City page + landing page
+Joshua Tree	San Bernardino	7,538	1	111	93	$582K	1	10%	City page + landing page
+Blythe	Riverside	20,319	1	110	93	$581K	0	38%	City page + landing page · Spanish page
+Lindsay	Tulare	18,115	1	109	92	$575K	1	65%	City page + landing page · Spanish page
+Artesia	Los Angeles	15,889	1	109	91	$572K	64	22%	City page + landing page · Tagalog page
+Imperial	Imperial	27,454	1	109	91	$572K	1	61%	City page + landing page · Spanish page
+Fillmore	Ventura	19,191	1	108	91	$571K	0	46%	City page + landing page · Spanish page
+Sierra Madre	Los Angeles	10,940	1	108	91	$568K	19	6%	City page + landing page
+Lake Arrowhead	San Bernardino	6,246	1	105	88	$555K	9	14%	City page + landing page
+Cambria	San Luis Obispo	6,399	1	105	88	$551K	1	17%	City page + landing page
+Shasta Lake	Shasta	10,350	1	104	87	$548K	11	3%	City page + landing page
+Wildomar	Riverside	34,438	1	104	87	$548K	11	24%	City page + landing page
+Cloverdale	Sonoma	10,978	1	102	86	$538K	0	24%	City page + landing page
+Soledad	Monterey	27,471	1	102	85	$536K	1	62%	City page + landing page · Spanish page
+Soquel	Santa Cruz	11,639	1	102	85	$535K	18	9%	City page + landing page
+Lakeport	Lake	11,741	1	101	85	$533K	3	9%	City page + landing page
+Ladera Ranch	Orange	35,764	1	101	85	$531K	7	4%	City page + landing page
+Escalon	San Joaquin	13,500	1	101	85	$530K	2	18%	City page + landing page
+Kerman	Fresno	21,284	1	100	84	$529K	0	50%	City page + landing page · Spanish page
+Westwood	Lassen	2,923	1	100	84	$528K	0	4%	City page + landing page
+Gridley	Butte	11,200	1	100	84	$527K	3	31%	City page + landing page · Spanish page
+Corning	Tehama	14,812	1	100	84	$526K	3	40%	City page + landing page · Spanish page
+Rosamond	Kern	22,119	1	100	84	$525K	0	27%	City page + landing page · Spanish page
+Corcoran	Kings	23,142	1	99	83	$521K	0	44%	City page + landing page · Spanish page
+Greenfield	Monterey	21,574	1	99	83	$519K	0	73%	City page + landing page · Spanish page
+Fairfax	Marin	8,406	1	98	82	$517K	4	4%	City page + landing page
+Mariposa	Mariposa	10,006	1	98	82	$515K	2	3%	City page + landing page
+Oak Park	Ventura	13,757	1	96	81	$508K	9	4%	City page + landing page
+Yreka	Siskiyou	9,964	1	96	81	$505K	3	5%	City page + landing page
+Indian Wells	Riverside	4,871	1	96	80	$503K	10	3%	City page + landing page
+Exeter	Tulare	14,538	1	95	80	$500K	4	26%	City page + landing page · Spanish page
+Salida	Stanislaus	13,900	1	95	80	$499K	10	32%	City page + landing page · Spanish page
+Rodeo	Contra Costa	8,976	1	94	79	$497K	5	19%	City page + landing page
+Winchester	Riverside	38,981	1	93	78	$491K	11	16%	City page + landing page
+Tahoe City	Placer	3,441	1	93	78	$489K	5	4%	City page + landing page
+Penn Valley	Nevada	9,958	1	92	78	$487K	3	4%	City page + landing page
+Saint Helena	Napa	7,457	1	92	78	$486K	0	22%	City page + landing page
+Mount Shasta	Siskiyou	7,839	1	92	78	$486K	1	4%	City page + landing page
+Carmel by the Sea	Monterey	2,322	1	92	77	$485K	0	1%	City page + landing page
+Cotati	Sonoma	9,487	1	91	76	$479K	10	15%	City page + landing page
+King City	Monterey	17,243	1	90	76	$474K	3	64%	City page + landing page · Spanish page
+Boulder Creek	Santa Cruz	7,561	1	90	76	$473K	0	6%	City page + landing page
+Grand Terrace	San Bernardino	13,078	1	90	75	$471K	43	26%	City page + landing page · Spanish page
+Malibu	Los Angeles	17,774	2	89	75	$467K	1	7%	City page + landing page
+Pebble Beach	Monterey	3,613	1	87	73	$457K	0	2%	City page + landing page
+San Ysidro	San Diego	27,585	1	87	73	$456K	7	79%	City page + landing page · Spanish page
+Templeton	San Luis Obispo	11,039	1	87	73	$456K	3	4%	City page + landing page
+Livingston	Merced	17,363	1	86	72	$453K	0	52%	City page + landing page · Spanish page
+Alpine	San Diego	18,197	1	84	71	$444K	1	9%	City page + landing page
+Rancho Santa Fe	San Diego	8,910	2	84	71	$443K	4	4%	City page + landing page
+Arvin	Kern	20,712	1	83	70	$436K	0	76%	City page + landing page · Spanish page
+Capistrano Beach	Orange	7,211	1	82	69	$433K	9	16%	City page + landing page
+Stevenson Ranch	Los Angeles	22,582	1	82	69	$433K	16	8%	City page + landing page
+Coalinga	Fresno	18,491	1	82	69	$432K	0	45%	City page + landing page · Spanish page
+Capitola	Santa Cruz	8,707	1	82	69	$432K	16	13%	City page + landing page
+Castaic	Los Angeles	26,478	1	82	69	$431K	1	28%	City page + landing page · Spanish page
+Ben Lomond	Santa Cruz	7,277	1	81	68	$428K	8	5%	City page + landing page
+California City	Kern	14,353	1	81	68	$425K	2	27%	City page + landing page · Spanish page
+Winton	Merced	13,319	1	80	67	$423K	1	61%	City page + landing page · Spanish page
+Hawaiian Gardens	Los Angeles	13,599	1	80	67	$422K	43	56%	City page + landing page · Spanish page
+Newman	Stanislaus	13,779	1	80	67	$422K	0	39%	City page + landing page · Spanish page
+Atherton	San Mateo	7,002	1	80	67	$420K	29	9%	City page + landing page
+Littlerock	Los Angeles	12,275	1	79	66	$415K	2	54%	City page + landing page · Spanish page
+Ione	Amador	13,926	1	78	66	$413K	3	10%	City page + landing page
+Felton	Santa Cruz	6,594	1	78	66	$412K	8	5%	City page + landing page
+Guerneville	Sonoma	4,607	1	78	65	$410K	1	6%	City page + landing page
+Valley Center	San Diego	21,727	1	78	65	$409K	7	21%	City page + landing page
+Dos Palos	Merced	9,927	1	77	65	$407K	0	45%	City page + landing page · Spanish page
+Hughson	Stanislaus	10,593	1	77	65	$405K	4	29%	City page + landing page · Spanish page
+Mc Farland	Kern	15,599	1	76	64	$402K	0	66%	City page + landing page · Spanish page
+Portola Valley	San Mateo	6,531	1	75	63	$397K	0	5%	City page + landing page
+Thermal	Riverside	18,167	1	75	63	$394K	1	75%	City page + landing page · Spanish page
+Foothill Ranch	Orange	12,867	1	74	63	$392K	13	6%	City page + landing page
+Forestville	Sonoma	5,821	1	73	61	$385K	0	7%	City page + landing page
+Phelan	San Bernardino	21,580	1	72	61	$381K	2	25%	City page + landing page · Spanish page
+Colusa	Colusa	7,701	1	72	60	$379K	0	39%	City page + landing page · Spanish page
+Jackson	Amador	7,135	1	71	60	$376K	4	6%	City page + landing page
+Delhi	Merced	13,598	1	71	60	$374K	2	60%	City page + landing page · Spanish page
+Running Springs	San Bernardino	5,215	1	71	59	$373K	1	8%	City page + landing page
+Gustine	Merced	9,506	1	71	59	$372K	2	45%	City page + landing page · Spanish page
+Oceano	San Luis Obispo	6,857	1	71	59	$372K	0	19%	City page + landing page
+Groveland	Tuolumne	3,464	1	70	59	$371K	3	8%	City page + landing page
+Carmel Valley	Monterey	6,316	1	70	59	$368K	1	6%	City page + landing page
+Solvang	Santa Barbara	8,130	1	69	58	$365K	0	17%	City page + landing page
+Pioneer	Amador	5,994	1	69	58	$365K	1	2%	City page + landing page
+Larkspur	Marin	7,315	1	69	58	$364K	8	4%	City page + landing page
+Weed	Siskiyou	6,656	1	69	58	$362K	2	9%	City page + landing page
+Winters	Yolo	10,759	1	68	57	$359K	2	33%	City page + landing page · Spanish page
+Idyllwild	Riverside	4,016	1	67	56	$351K	1	14%	City page + landing page
+Denair	Stanislaus	8,022	1	66	56	$350K	0	14%	City page + landing page
+Parlier	Fresno	15,184	1	66	56	$350K	0	72%	City page + landing page · Spanish page
+Twain Harte	Tuolumne	3,782	1	66	56	$349K	3	3%	City page + landing page
+Marina del Rey	Los Angeles	23,982	1	65	55	$345K	31	6%	City page + landing page
+Playa del Rey	Los Angeles	12,655	1	65	55	$343K	17	8%	City page + landing page
+Cayucos	San Luis Obispo	3,125	1	65	54	$340K	0	1%	City page + landing page
+Waterford	Stanislaus	10,666	1	64	54	$339K	0	32%	City page + landing page · Spanish page
+Quincy	Plumas	6,419	1	64	53	$335K	2	3%	City page + landing page
+Live Oak	Sutter	11,028	1	62	52	$327K	1	25%	City page + landing page
+Landers	San Bernardino	2,764	1	62	52	$325K	0	19%	City page + landing page
+Santa Ynez	Santa Barbara	6,039	1	61	52	$323K	0	13%	City page + landing page
+Willows	Glenn	8,808	1	61	51	$321K	4	26%	City page + landing page · Spanish page
+Coarsegold	Madera	11,445	1	60	51	$318K	2	4%	City page + landing page
+Acampo	San Joaquin	7,931	1	60	51	$317K	4	25%	City page + landing page
+Alturas	Modoc	5,142	1	60	51	$317K	1	10%	City page + landing page
+Mentone	San Bernardino	9,284	1	60	50	$316K	0	14%	City page + landing page
+Oak View	Ventura	6,078	1	59	50	$311K	9	16%	City page
+Pacific Palisades	Los Angeles	21,390	1	59	49	$309K	34	3%	City page
+Hidden Valley Lake	Lake	5,778	1	58	49	$307K	3	11%	City page
+Oakhurst	Madera	7,614	1	58	48	$304K	2	12%	City page
+Orosi	Tulare	11,741	1	57	48	$300K	1	71%	City page · Spanish page
+Signal Hill	Los Angeles	11,521	1	57	48	$299K	44	25%	City page
+Needles	San Bernardino	5,531	1	57	48	$299K	1	10%	City page
+Villa Park	Orange	5,748	1	57	48	$298K	84	5%	City page
+Woodlake	Tulare	10,548	1	57	47	$298K	1	57%	City page · Spanish page
+Sutter Creek	Amador	4,690	1	56	47	$295K	1	4%	City page
+Farmersville	Tulare	10,405	1	55	46	$291K	8	64%	City page · Spanish page
+Lucerne Valley	San Bernardino	6,543	1	55	46	$291K	0	21%	City page
+Gonzales	Monterey	8,724	1	55	46	$289K	0	67%	City page · Spanish page
+Newport Coast	Orange	9,920	1	55	46	$289K	9	2%	City page
+Pollock Pines	El Dorado	8,450	1	55	46	$288K	5	3%	City page
+Castroville	Monterey	10,814	1	54	45	$284K	22	67%	City page · Spanish page
+Wrightwood	Los Angeles	5,854	1	54	45	$282K	0	10%	City page
+Mendota	Fresno	14,657	1	53	45	$281K	0	75%	City page · Spanish page
+Helendale	San Bernardino	7,606	1	53	45	$280K	0	11%	City page
+San Martin	Santa Clara	6,324	1	53	44	$279K	5	30%	City page · Spanish page
+Sugarloaf	San Bernardino	2,042	1	53	44	$278K	5	2%	City page
+Palo Cedro	Shasta	5,750	1	52	44	$273K	5	2%	City page
+Hilmar	Merced	7,636	1	51	43	$271K	1	23%	City page
+Calistoga	Sonoma	6,946	1	51	43	$270K	0	35%	City page · Spanish page
+Fowler	Fresno	8,778	1	51	43	$269K	8	41%	City page · Spanish page
+Angels Camp	Calaveras	5,597	1	50	42	$266K	3	8%	City page
+Burney	Shasta	3,779	1	50	42	$261K	0	1%	City page
+Montrose	Los Angeles	7,532	1	50	42	$261K	29	11%	City page
+Shingletown	Shasta	4,239	1	49	41	$260K	1	2%	City page
+Guadalupe	Santa Barbara	8,603	1	49	41	$260K	1	59%	City page · Spanish page
+Kings Beach	Placer	3,222	1	48	41	$255K	2	37%	City page · Spanish page
+Earlimart	Tulare	9,057	1	48	40	$253K	0	75%	City page · Spanish page
+Buellton	Santa Barbara	5,737	1	48	40	$252K	4	22%	City page
+Firebaugh	Fresno	9,084	1	48	40	$251K	0	74%	City page · Spanish page
+Weaverville	Trinity	4,320	1	48	40	$251K	0	10%	City page
+Topanga	Los Angeles	6,315	1	48	40	$251K	40	3%	City page
+Pine Grove	Amador	4,465	1	48	40	$251K	3	4%	City page
+Portola	Plumas	4,447	1	47	40	$250K	0	10%	City page
+Sloughhouse	Sacramento	6,515	1	47	39	$247K	2	4%	City page
+Ferndale	Humboldt	3,050	1	47	39	$247K	0	10%	City page
+Clearlake Oaks	Lake	3,513	1	47	39	$246K	1	4%	City page
+Murphys	Calaveras	3,858	1	47	39	$246K	2	3%	City page
+Avenal	Kings	13,657	1	46	39	$243K	0	71%	City page · Spanish page
+Jamestown	Tuolumne	8,752	1	46	39	$242K	2	11%	City page
+Midway City	Orange	8,026	1	46	38	$241K	69	29%	City page · Spanish page · Vietnamese page
+Chester	Plumas	2,222	1	46	38	$241K	1	6%	City page
+Elverta	Sacramento	5,595	1	46	38	$240K	19	9%	City page
+Borrego Springs	San Diego	3,007	1	45	38	$238K	2	30%	City page · Spanish page
+Crockett	Contra Costa	3,372	1	45	38	$237K	11	6%	City page
+Colfax	Placer	9,448	1	45	38	$236K	3	3%	City page
+Camino	El Dorado	6,000	1	45	38	$235K	3	6%	City page
+Holtville	Imperial	7,830	1	45	37	$235K	0	63%	City page · Spanish page
+Montague	Siskiyou	4,665	1	44	37	$234K	0	4%	City page
+Redwood Valley	Mendocino	6,226	1	44	37	$233K	3	20%	City page
+Copperopolis	Calaveras	4,611	1	44	37	$232K	0	8%	City page
+Orange Cove	Tulare	10,328	1	44	37	$230K	1	72%	City page · Spanish page
+Glen Ellen	Sonoma	3,449	1	44	37	$229K	2	11%	City page
+El Granada	San Mateo	3,834	1	43	36	$227K	0	10%	City page
+Wilton	Sacramento	7,961	1	43	36	$227K	4	14%	City page
+Calimesa	Riverside	10,902	1	43	36	$224K	9	12%	City page
+Linden	San Joaquin	4,490	1	42	36	$223K	0	21%	City page
+Aromas	Monterey	4,363	1	42	36	$223K	0	25%	City page
+Newcastle	Placer	5,894	1	42	36	$223K	15	2%	City page
+Lake Isabella	Kern	5,981	1	42	35	$222K	2	3%	City page
+Lucerne	Lake	3,638	1	42	35	$219K	1	8%	City page
+Trinidad	Humboldt	2,640	1	42	35	$219K	0	4%	City page
+Morongo Valley	San Bernardino	4,209	1	41	35	$217K	0	21%	City page
+Mendocino	Mendocino	2,199	1	41	34	$216K	1	1%	City page
+Fort Irwin	San Bernardino	8,419	1	41	34	$215K	0	14%	City page
+Penngrove	Sonoma	3,294	1	40	34	$212K	10	6%	City page
+Pine Mountain Club	Kern	2,721	1	40	34	$212K	0	8%	City page · Tagalog page
+Stanford	Santa Clara	18,509	1	40	34	$211K	12	11%	City page
+Strathmore	Tulare	5,531	1	40	33	$209K	1	52%	City page · Spanish page
+Acton	Los Angeles	7,786	1	39	33	$208K	6	23%	City page
+Cutler	Tulare	5,764	1	39	33	$206K	0	78%	City page · Spanish page
+Jamul	San Diego	9,114	1	39	33	$205K	1	14%	City page
+Thousand Palms	Riverside	7,720	1	39	33	$205K	11	42%	City page · Spanish page
+San Juan Bautista	San Benito	3,659	1	39	32	$203K	0	29%	City page · Spanish page
+Dunsmuir	Siskiyou	1,906	1	38	32	$201K	1	3%	City page
+Rio Dell	Humboldt	3,422	1	38	32	$199K	0	5%	City page
+Williams	Colusa	6,786	1	38	32	$198K	0	62%	City page · Spanish page
+Julian	San Diego	3,218	1	38	32	$198K	0	9%	City page
+Mecca	Riverside	11,333	1	37	31	$197K	0	85%	City page · Spanish page
+Woodbridge	San Joaquin	4,144	1	37	31	$196K	7	15%	City page
+Hayfork	Trinity	2,889	1	37	31	$196K	0	0%	City page
+Mojave	Kern	6,435	1	37	31	$195K	0	20%	City page
+San Miguel	Monterey	5,207	1	37	31	$195K	1	34%	City page · Spanish page
+Frazier Park	Ventura	4,663	1	37	31	$195K	0	8%	City page
+Riverdale	Fresno	7,172	1	37	31	$193K	0	57%	City page · Spanish page
+Yountville	Napa	3,348	1	37	31	$193K	0	10%	City page
+Montara	San Mateo	2,917	1	36	30	$190K	5	11%	City page
+Brisbane	San Mateo	4,692	1	36	30	$189K	93	10%	City page · Chinese page
+Calipatria	Imperial	6,836	1	35	30	$185K	0	66%	City page · Spanish page
+Tuolumne	Tuolumne	3,598	1	35	29	$185K	0	3%	City page
+Gualala	Mendocino	2,766	1	35	29	$185K	1	23%	City page
+Travis AFB	Solano	3,952	1	35	29	$184K	15	4%	City page
+San Andreas	Calaveras	4,295	1	35	29	$182K	1	5%	City page
+Diamond Springs	El Dorado	4,974	1	34	29	$181K	14	2%	City page
+Durham	Butte	3,943	1	34	28	$177K	0	4%	City page
+Avalon	Los Angeles	3,421	1	33	28	$176K	0	41%	City page · Spanish page
+Los Molinos	Tehama	3,473	1	33	27	$172K	1	27%	City page · Spanish page
+Garberville	Humboldt	2,463	1	33	27	$171K	0	3%	City page
+Caruthers	Fresno	4,740	1	32	27	$170K	0	56%	City page · Spanish page
+Twin Peaks	San Bernardino	2,254	1	32	27	$169K	16	25%	City page
+Wheatland	Yuba	5,032	1	32	27	$168K	1	6%	City page
+La Grange	Tuolumne	2,954	1	32	27	$168K	1	8%	City page
+Georgetown	El Dorado	3,536	1	32	27	$167K	2	5%	City page
+Boron	Kern	2,889	1	32	27	$167K	0	20%	City page
+Lower Lake	Lake	3,122	1	32	27	$167K	2	19%	City page
+Gerber	Tehama	3,326	1	32	27	$167K	3	30%	City page · Spanish page
+Arbuckle	Colusa	4,855	1	31	26	$165K	1	50%	City page · Spanish page
+Nuevo	Riverside	10,867	1	31	26	$163K	13	49%	City page · Spanish page
+Bradley	Monterey	1,564	1	31	26	$162K	0	12%	City page
+Covelo	Mendocino	2,347	1	31	26	$162K	0	21%	City page
+Paradise	Butte	8,339	1	30	26	$160K	4	3%	City page
+Foresthill	Placer	6,946	1	30	25	$157K	3	6%	City page
+Biggs	Butte	3,752	1	30	25	$156K	0	17%	City page
+Cazadero	Sonoma	1,570	1	29	24	$153K	0	9%	City page
+Ivanhoe	Tulare	4,678	1	29	24	$150K	5	70%	City page · Spanish page
+Freedom	Santa Cruz	5,933	1	28	24	$150K	19	69%	City page · Spanish page
+Lockeford	San Joaquin	3,639	1	28	24	$150K	15	23%	City page
+Rescue	El Dorado	5,764	1	28	24	$149K	11	2%	City page
+Terra Bella	Tulare	5,482	1	28	24	$149K	1	52%	City page · Spanish page
+Fort Jones	Siskiyou	2,408	1	28	24	$148K	2	2%	City page
+Three Rivers	Tulare	2,199	1	28	24	$147K	0	3%	City page
+Angwin	Napa	3,495	1	28	24	$147K	0	13%	City page
+Magalia	Butte	8,165	1	28	23	$146K	2	3%	City page
+Springville	Tulare	3,397	1	28	23	$145K	1	3%	City page
+Planada	Merced	3,963	1	27	23	$145K	3	76%	City page · Spanish page
+Pixley	Tulare	5,578	1	27	23	$144K	0	71%	City page · Spanish page
+Laton	Fresno	2,904	1	27	22	$140K	0	46%	City page · Spanish page
+Keyes	Stanislaus	4,133	1	26	22	$139K	12	62%	City page · Spanish page
+Tulelake	Modoc	2,346	1	26	22	$139K	0	29%	City page · Spanish page
+Sutter	Sutter	2,795	1	26	22	$139K	2	3%	City page
+Moss Beach	San Mateo	2,683	1	26	22	$138K	5	34%	City page · Spanish page
+Edwards	Kern	3,559	2	26	22	$137K	0	4%	City page
+Mokelumne Hill	Calaveras	2,727	1	26	22	$137K	1	2%	City page
+Trona	San Bernardino	1,849	1	26	22	$136K	0	3%	City page
+Bonsall	San Diego	5,061	1	26	22	$136K	21	29%	City page · Spanish page
+Cool	El Dorado	3,954	1	26	22	$135K	0	4%	City page
+Meadow Vista	Placer	4,092	1	25	21	$134K	5	4%	City page
+La Honda	San Mateo	1,694	1	25	21	$133K	0	4%	City page
+Ross	Marin	2,321	1	25	21	$133K	10	4%	City page
+Santa Margarita	San Luis Obispo	2,344	1	25	21	$132K	0	5%	City page
+Somis	Ventura	2,898	1	25	21	$131K	0	21%	City page
+Bethel Island	Contra Costa	1,864	1	25	21	$130K	14	20%	City page
+Laytonville	Mendocino	1,670	1	24	20	$128K	1	4%	City page
+El Dorado	El Dorado	4,844	1	24	20	$127K	6	5%	City page
+Tipton	Tulare	3,818	1	24	20	$127K	1	77%	City page · Spanish page
+West Point	Calaveras	1,955	1	24	20	$127K	0	0%	City page
+Upper Lake	Lake	3,242	1	24	20	$127K	1	4%	City page
+Huron	Fresno	6,519	1	24	20	$126K	0	85%	City page · Spanish page
+Pine Valley	San Diego	2,574	1	23	20	$123K	0	7%	City page
+Auberry	Fresno	3,330	1	23	20	$123K	2	4%	City page
+Etna	Siskiyou	1,908	1	23	19	$122K	0	0%	City page
+Janesville	Lassen	2,959	1	23	19	$121K	0	10%	City page
+Penryn	Placer	3,090	1	23	19	$121K	19	6%	City page
+Geyserville	Sonoma	1,648	1	23	19	$120K	0	21%	City page
+McArthur	Lassen	1,584	1	23	19	$119K	0	1%	City page
+Coulterville	Mariposa	2,245	1	23	19	$119K	0	12%	City page
+Somerset	El Dorado	2,708	1	22	19	$117K	1	8%	City page
+Esparto	Yolo	3,999	1	22	19	$117K	1	39%	City page · Spanish page
+Heber	Imperial	7,312	1	22	18	$115K	0	80%	City page · Spanish page
+Fall River Mills	Shasta	1,526	1	22	18	$115K	0	9%	City page
+Middletown	Lake	3,422	1	22	18	$115K	3	28%	City page · Spanish page
+Kenwood	Sonoma	1,762	1	22	18	$115K	7	1%	City page
+Nice	Lake	2,484	1	22	18	$114K	0	16%	City page
+Campo	San Diego	3,325	1	22	18	$114K	0	28%	City page · Spanish page
+Pinon Hills	San Bernardino	5,149	1	21	18	$111K	2	23%	City page
+Armona	Kings	3,890	1	21	17	$110K	0	52%	City page · Spanish page
+Bayside	Humboldt	1,634	1	21	17	$109K	3	1%	City page
+North Fork	Madera	3,041	1	21	17	$109K	1	3%	City page
+Woodacre	Marin	1,689	1	21	17	$109K	2	9%	City page
+Le Grand	Merced	2,963	1	21	17	$108K	0	44%	City page · Spanish page
+Walnut Grove	Sacramento	2,431	1	20	17	$107K	0	45%	City page · Spanish page
+Loleta	Humboldt	1,880	1	20	17	$106K	1	3%	City page
+Smith River	Del Norte	2,058	1	19	16	$100K	0	18%	City page
+San Joaquin	Fresno	4,086	1	19	16	$100K	0	72%	City page · Spanish page
+Winterhaven	Imperial	1,732	1	19	16	$100.0K	0	3%	City page
+Plymouth	Amador	2,118	1	19	16	$98.9K	0	12%	City page
+Lake Hughes	Los Angeles	2,930	1	18	15	$96.9K	1	16%	City page
+Hoopa	Humboldt	2,397	1	18	15	$96.8K	0	1%	City page
+Herald	Sacramento	2,517	1	18	15	$96.4K	4	23%	City page
+Greenville	Plumas	1,505	1	18	15	$95.0K	0	2%	City page
+Hopland	Mendocino	1,763	1	17	15	$91.9K	1	29%	Section on the county page · Spanish page
+Mather	Sacramento	4,901	1	17	14	$90.9K	36	7%	Section on the county page
+Niland	Imperial	2,158	1	17	14	$90.6K	0	43%	Section on the county page · Spanish page
+Big Pine	Inyo	1,632	1	17	14	$90.3K	0	5%	Section on the county page
+French Camp	San Joaquin	3,896	1	17	14	$87.9K	3	37%	Section on the county page · Spanish page
+Applegate	Placer	2,589	1	16	14	$85.4K	1	4%	Section on the county page
+Inyokern	Tulare	1,831	1	16	14	$84.9K	2	4%	Section on the county page
+Point Arena	Mendocino	2,037	1	16	13	$84.5K	0	18%	Section on the county page
+Soulsbyville	Tuolumne	1,811	1	16	13	$83.7K	7	0%	Section on the county page
+Clarksburg	Yolo	1,865	1	15	13	$80.7K	1	30%	Section on the county page · Spanish page
+Lewiston	Trinity	2,366	1	15	13	$78.6K	1	1%	Section on the county page
+Byron	Contra Costa	1,953	1	15	12	$78.0K	1	23%	Section on the county page
+Mountain Center	Riverside	2,157	1	15	12	$77.6K	1	13%	Section on the county page
+Isleton	Sacramento	2,214	1	14	12	$76.3K	0	46%	Section on the county page · Spanish page
+Hamilton City	Glenn	2,698	1	14	12	$76.2K	0	69%	Section on the county page · Spanish page
+Buttonwillow	Kern	1,898	1	14	12	$75.4K	0	70%	Section on the county page · Spanish page
+Burson	Calaveras	1,609	1	14	12	$75.1K	5	4%	Section on the county page
+Newberry Springs	San Bernardino	2,192	1	14	12	$73.4K	1	10%	Section on the county page
+Yermo	San Bernardino	2,609	1	14	12	$72.9K	0	23%	Section on the county page
+Pauma Valley	San Diego	1,543	1	14	11	$72.0K	0	15%	Section on the county page
+Silverado	Orange	2,085	1	14	11	$71.9K	1	7%	Section on the county page
+Wofford Heights	Kern	2,920	1	13	11	$71.0K	0	12%	Section on the county page
+Richgrove	Tulare	2,005	1	13	11	$70.3K	2	76%	Section on the county page · Spanish page
+Squaw Valley	Fresno	3,374	1	13	11	$69.5K	0	24%	Section on the county page
+Mountain Ranch	Calaveras	1,672	1	13	11	$68.8K	0	0%	Section on the county page
+Westmorland	Imperial	2,082	1	13	11	$66.3K	0	66%	Section on the county page · Spanish page
+Shandon	San Luis Obispo	1,548	1	13	11	$66.2K	0	29%	Section on the county page · Spanish page
+Del Rey	Fresno	2,402	1	12	10	$64.0K	0	62%	Section on the county page · Spanish page
+Cabazon	Riverside	1,887	1	12	10	$63.4K	2	34%	Section on the county page · Spanish page
+Browns Valley	Yuba	1,566	1	12	9.8	$61.3K	1	0%	Section on the county page
+Yosemite National Park	Mariposa	2,181	1	11	9.1	$57.0K	0	28%	Section on the county page · Spanish page
+Smartsville	Yuba	1,780	1	11	9.1	$56.8K	3	4%	Section on the county page
+Stratford	Kings	1,612	1	11	9.0	$56.4K	0	44%	Section on the county page · Spanish page
+Tollhouse	Fresno	2,218	1	11	9.0	$56.2K	0	5%	Section on the county page
+Forest Ranch	Butte	2,089	1	10	8.7	$54.8K	0	3%	Section on the county page
+Descanso	San Diego	1,710	1	10	8.7	$54.6K	0	14%	Section on the county page
+Stevinson	Merced	1,921	1	10.0	8.4	$52.5K	1	44%	Section on the county page · Spanish page
+Boulevard	San Diego	1,683	1	9.9	8.4	$52.4K	0	8%	Section on the county page
+Weldon	Kern	2,326	1	9.9	8.3	$52.1K	0	7%	Section on the county page
+Hickman	Stanislaus	1,644	1	9.7	8.2	$51.2K	0	22%	Section on the county page
+Garden Valley	El Dorado	2,653	1	9.7	8.1	$51.0K	1	0%	Section on the county page
+Alviso	Santa Clara	1,542	1	9.5	8.0	$50.2K	25	44%	Section on the county page · Spanish page
+San Quentin	Marin	2,344	1	9.1	7.6	$47.8K	7	26%	Section on the county page · Spanish page
+Friant	Madera	3,304	1	8.8	7.4	$46.2K	0	12%	Section on the county page
+Homeland	Riverside	8,312	1	8.3	7.0	$44.0K	15	43%	Section on the county page · Spanish page
+Bodfish	Kern	1,708	1	8.3	6.9	$43.5K	2	2%	Section on the county page
+Piru	Ventura	1,799	1	8.0	6.7	$41.9K	0	56%	Section on the county page · Spanish page
+Playa Vista	Los Angeles	11,764	1	7.9	6.7	$41.8K	29	8%	Section on the county page
+Lost Hills	Kern	2,243	1	7.1	6.0	$37.6K	0	88%	Section on the county page · Spanish page
+Anza	Riverside	3,774	1	6.4	5.4	$33.8K	2	27%	Section on the county page · Spanish page
+Herlong	Lassen	2,039	1	6.4	5.3	$33.5K	0	31%	Section on the county page · Spanish page
+Beale AFB	Yuba	2,242	1	4.8	4.0	$25.1K	0	6%	County page mention
+Aguanga	Riverside	2,970	1	3.3	2.8	$17.5K	0	8%	County page mention
+Camp Pendleton	San Diego	10,831	1	0.0	0.0	$0	0	6%	County page mention
+Represa	Sacramento	4,432	1	0.0	0.0	$0	32	18%	County page mention
+Patton	San Bernardino	2,575	1	0.0	0.0	$0	22	19%	County page mention
+Keywords, negatives and angles
+
+Starting keyword set for the line, the negatives that keep job seekers, shoppers and do it yourself searches out, and the copy angles the Campaign Desk builds from. House style: no hyphens or dashes in copy.
+
+KEYWORDS (PHRASE AND EXACT)
+roof replacement
+new roof
+roof replacement cost
+roofing company
+roofers near me
+roofing contractor
+shingle roof replacement
+architectural shingles
+reroof
+roof installation
+residential roofing
+roof estimate
+roofing companies near me
+new roof cost
+cool roof shingles
+licensed roofing contractor
+SPANISH
+reemplazo de techo
+techos nuevos
+compañia de techos
+techeros cerca de mi
+roofero cerca de mi
+NEGATIVES FOR THIS LINE
+roofing nails
+roofing shingles for sale
+shingle calculator
+roof rack
+car roof
+shed roof
+dog house
+roofing license exam
+c39 exam
+roof truss
+roof pitch calculator
+NEGATIVES FOR EVERY LINE
+jobs
+job
+career
+salary
+hiring
+apprentice
+apprenticeship
+training
+how to
+diy
+do it yourself
+youtube
+reddit
+wiki
+definition
+meaning
+license exam
+cslb exam
+osha
+home depot
+lowes
+for sale
+wholesale
+oregon
+nevada
+arizona
+texas
+florida
+COPY ANGLES (FILLED WITH YOUR COMPANY SETTINGS)
+New Roof in California
+Licensed California roofer, written itemized estimates. Your company, California office.
+local
+Roof Past Its Prime?
+Cracked, curling or bare shingles mean it is time. Book a roof inspection today.
+age
+No Big Deposit Up Front
+California caps the down payment at $1,000 or 10 percent. We follow it. Your company.
+deposit
+CSLB Licensed Roofer
+Check our license before you sign. CSLB license number. Your company, California.
+license
+Cool Roof Rated Shingles
+Many reroofs must meet the Energy Code cool roof rule. We check your climate zone.
+cool
+Techo Nuevo en California
+Reemplazo de techos con licencia de California. Your company, oficina en California.
+Spanish · spanish
+
+Location words in keywords ("near me", city names) come from the Campaign Desk's geo build. Avoid "best", "#1", "top rated", "lifetime" and "fireproof" in copy unless a named source, a listing or the written warranty backs it, put the license number in every ad (Business and Professions Code 7030.5), never offer to negotiate a claim (that is public adjusting, Insurance Code 15006) and never offer to pay or waive a deductible. The Satchel (module 10) screens copy against the full rule pack.
+
+Competitive pressure on this line
+
+Who already sells this line: the license roll, employer establishments and the few companies named with public evidence.
+
+C-39 roofing licenses, active (CSLB, November 2026)
+5,587
+Hold C-39 alone · out of state address
+3,933 · 170
+Roofing employer establishments · employees (CBP 2023)
+2,926 · 23,903
+
+A license says who may sell roofing, not which lines a firm sells: no public file records that, and no ranked list of California roofers by size exists. The companies below are only those named in public sources read for this build (4 in all); 0 of them list roof replacement. Add the firms you meet in the field in module 13.
+
+COMPANY	REACH	CITIES	LINES
+No named company lists this line.
+
+Module 07 maps license density and establishments by ZIP; module 13 watches the ads of the firms you add.
+
+The year, line by line
+
+Monthly shape of each line, 100 = an average month. Darker cells are busier months. Repair, storm, fire and manufactured home rows are computed from the rain, wind and fire record by month with a lag for the work that follows; reroof, tile and coating rows from a dry weather index; the rest are planning shapes (graded). Choose a region to see its own year.
+
+LINE	JAN	FEB	MAR	APR	MAY	JUN	JUL	AUG	SEP	OCT	NOV	DEC	GRADE
+Replace	54	53	77	108	119	128	130	130	128	115	98	59	D
+Repair	228	244	201	120	60	27	8	4	8	41	89	170	C
+Storm	216	204	157	104	67	47	26	16	17	53	113	181	B
+Fire	208	104	70	0	1	5	43	77	127	150	241	175	C
+Fire hardening	85	90	100	110	118	120	112	105	100	95	85	80	D
+Tile relay	79	83	97	110	110	113	113	112	111	104	96	72	D
+Solar reset	54	53	77	108	119	128	130	130	128	115	98	59	D
+Metal	54	53	77	108	119	128	130	130	128	115	98	59	D
+Mobile home	174	180	155	113	79	58	46	42	45	67	98	143	C
+Multifamily	95	95	100	104	105	105	104	104	104	102	96	86	D
+Commercial	78	80	91	104	109	113	114	114	113	107	98	76	D
+Coatings	38	34	62	106	126	140	144	144	141	118	96	49	D
+New build	92	92	100	104	106	106	104	104	102	102	98	90	D
+
+California: 83% of the year's normal rain falls from November to March. Leaks and repairs follow the rain and peak in February; wind and rain damage follows the atmospheric rivers and winter fronts with a lag, busiest in January and February (2.2 times an average month). Fire work peaks in November and January, after the offshore wind season, though a rebuild runs for years. Reroofs, tile relays, solar and metal want dry weather; coatings most of all, peaking in July. Hardening is a planning shape ahead of fire season. Where each row comes from: replace dry weather index from normal rain by month (a reroof wants a dry week), with a holiday dip; the weights are assumptions D; repair normal rain by month (80 percent) and high wind (20 percent), the month it happens and the month after C; storm atmospheric river days (55 percent), high wind (30 percent) and offshore wind (15 percent), spread over the month and the two after B; fire structures lost to wildfire by month, spread over the month and the two after; rebuilds themselves run for years C; fire hardening a planning shape: owners act before fire season and at insurance renewal; no monthly evidence was found D; tile relay dry weather index, lifted in the wet months when a failed underlayment shows itself; the weights are assumptions D; solar reset follows the reroof it is part of D; metal follows the reroof season D; mobile home rain and wind, the month it happens and the month after, on a steady base C; multifamily a planning shape for budget years and dry months D; commercial dry weather index on a steady base D; coatings dry weather index, sharpened: coatings need dry, warm days to cure D; new build a planning shape for the building season D. A flat part of a row means the data carried no series for it, not that the line has no season.
+
+Portfolio: where a month of media should go
+
+Your monthly budget split across lines by gross profit pool times season, divided by each line's click cost. Edit the budget in the assumptions card.
+
+LINE	JAN	FEB	MAR	APR	MAY	JUN	JUL	AUG	SEP	OCT	NOV	DEC	YEAR
+Replace	5.6k	5.4k	6.7k	7.8k	8.2k	8.5k	8.6k	8.6k	8.6k	8.4k	7.9k	6.3k	91k
+Repair	1.6k	1.7k	1.1k	442	180	65	15	7	15	121	349	1.1k	6.6k
+Storm	613	568	326	155	86	53	26	14	16	68	194	505	2.6k
+Fire	71	31	15	0	0	0	6	12	21	29	58	59	301
+Fire hardening	549	583	520	456	464	446	409	380	364	378	378	520	5.4k
+Tile relay	2.2k	2.3k	2.2k	2.0k	1.9k	1.8k	1.8k	1.8k	1.8k	1.9k	1.9k	2.0k	24k
+Solar reset	218	212	260	305	321	331	335	336	336	326	307	247	3.5k
+Metal	333	323	397	466	490	504	510	513	512	497	468	377	5.4k
+Mobile home	416	430	282	151	92	60	45	41	45	80	144	335	2.1k
+Multifamily	495	491	411	337	319	301	295	297	302	325	345	448	4.4k
+Commercial	1.9k	2.0k	1.8k	1.7k	1.6k	1.6k	1.6k	1.6k	1.6k	1.7k	1.7k	1.9k	21k
+Coatings	349	303	489	728	839	897	923	927	919	819	730	482	8.4k
+New build	645	640	556	455	437	411	400	402	399	440	479	640	5.9k
+
+$15,000 a month, split by gross profit pool × season ÷ cost per click, raised to 1.2 (above 1 concentrates money in the strongest lines). Roof replacement and tile lift and relay take 64% of the year at the defaults because they carry the most pool per click; a company that does not do a line should zero its ticket in the assumptions card and the split follows.
+
+The thirteen lines side by side
+
+Gross profit pool a year at the current assumptions, statewide. The selected line is dark.
+
+Replace
+$1.38B
+Commercial
+$433M
+Tile relay
+$393M
+Coatings
+$136M
+Metal
+$98.6M
+Multifamily
+$83.4M
+Repair
+$73.7M
+Fire hardening
+$69.7M
+Storm
+$68.4M
+New build
+$67.0M
+Solar reset
+$64.8M
+Mobile home
+$22.1M
+Fire
+$10.4M
+
+$2.90B a year across the thirteen lines at the current tickets, shares and margin: the market's gross profit, not one company's. For scale, the 2022 Economic Census counted $6.21 billion of revenue at California roofing contractors (2,781 establishments, 25,383 employees), with materials at 34 percent of revenue. Storm and fire are long run averages; a real year is either quiet or enormous.
+
+Dayparting templates
+
+Bid adjustments by hour block for each line's template. They are assumptions until account data replaces them (module 15); the last row shows when the weather that drives the work is reported.
+
+TEMPLATE	12A TO 6A	6A TO 9A	9A TO 12P	12P TO 5P	5P TO 9P	9P TO 12A
+Repair, storm, fire and mobile home (emergency)	+10%	+15%	+15%	+10%	+15%	+5%
+Replace, fire hardening, tile relay, solar reset and metal (planned purchase)	−40%	0%	+15%	+10%	+15%	−10%
+Multifamily, commercial, coatings and new build (business hours)	−60%	+5%	+25%	+20%	−20%	−50%
+Weather and fire reports by hour, index to an even spread	0.78×	0.93×	1.09×	1.46×	0.97×	0.69×
+
+Located wind, rain and fire reports run 0.8 times an even spread overnight, 1.5 times from noon to 5 p.m. and 1.0 times from 5 to 9 p.m. California's roof weather is not an afternoon thunderstorm: an atmospheric river rains for a day or two, through the night as well, so owners often find the leak in the morning. The emergency template keeps bids up from early morning to late evening; planned purchases are researched in the day and evening, and business buyers in office hours. Each template is one row of six blocks, the same every day of the week. Replace every template with the hour report from your accounts (module 15) after 60 days.
+
+How the lines are built
+
+Anchor, apportionment and grade for each line.
+
+Roof replacement B	The reroof of a house, duplex or small building at the end of the covering's life. California single family roofs are 62 percent composition shingles, 27 percent tile (18 clay, 9 concrete) and 5 percent wood by the 2020 federal Residential Energy Consumption Survey (837 California homes; the occupant names the material). A replacement removes every layer down to the deck (Residential Code R908.3). Replacing more than 50 percent of the roof triggers the Energy Code cool roof rule in most inland and southern climate zones, and in a fire zone replacing 50 percent or more in 12 months triggers the Class A new roof rules. The City of Los Angeles issued 14,511 reroof permits in 2023 after the wet winter, against 10,383 in 2022, and 11,954 in 2025; the median house roof there is 22 squares. No California field study of shingle life was found, so the wear out age in the model is an assumption set in the data build.
+Roof repair and leaks B	Leak tracing, flashing, vent, skylight and valley repairs, slipped or broken tile, and small sections of covering. Any repaired part must meet the fire class for its location: at least Class C statewide and Class A in a fire zone. Leak calls follow rain: the wet winter of 2022 to 2023 was followed by a 40 percent rise in Los Angeles reroof permits. A repair of $750 or less that the owner asked for may use the short service and repair contract; above that the full home improvement contract applies. Since July 1, 2025 a crew repairing a leak needs fall protection wherever the fall is 6 feet or more. The share of leaks fixed by a paid roofer is an assumption set in the data build.
+Wind and rain damage C	Damage from winter storm wind and rain and from dry offshore wind. NOAA Storm Events lists 7,173 high wind events in California from 1996 to 2026. In forecasters' narratives roof damage appears with gusts of about 60 to 70 mph and above (our reading; the database gives no threshold). The largest Santa Ana roof damage event in the record is October 21, 2007, with gusts over 70 mph and $35 million of reported damage in the Inland Empire alone; on January 4, 2008 a winter storm brought 71 mph near Elk Grove. Rain does its damage through leaks: from December 2022 to March 2023 the database lists 816 flood events. Storm Events dollar figures are forecasters' estimates and are known to be incomplete. A home insured only by the FAIR Plan needs a separate Difference in Conditions policy for wind or water. The damage rates in the model are assumptions set in the data build.
+Wildfire damage and rebuild roofing C	Roofing for homes inside fire perimeters. The January 2025 Palisades and Eaton fires destroyed 16,264 structures and damaged 2,051 (CAL FIRE final counts); insurers had paid $25.4 billion by July 2026, $23.4 billion of it on 38,737 residential claims. From 2013 to 2018 about 47,000 structures were damaged or destroyed in California wildfires. A rebuild roof in a fire zone is a new roof under the Wildland Urban Interface Code: a Class A assembly, ember resistant vents, noncombustible gutters, protected eaves. Unlicensed work on disaster damage can be charged as a felony, repair contracts carry a seven business day right to cancel, and prices are capped for 180 days after the declaration. On a replacement cost policy the owner has at least 36 months after a declared emergency to finish and collect. How fast destroyed homes are rebuilt is an assumption set in the data build.
+Fire hardened roofs D	A Class A roof assembly with the roof edge work that goes with it, sold to owners in fire zones and driven by insurance. Class A is the rating of a whole assembly tested to ASTM E108 or UL 790, not of a product alone. Insurers that price on wildfire risk must reflect a Class A roof in the rate, at no set percentage (Safer from Wildfires). The FAIR Plan, with 698,307 policies at September 2026, gives up to 16.4 percent off the wildfire part of a dwelling premium for all 12 hardening measures; the figure for the roof alone is not published. The evidence does not support selling a roof alone as protection: about 90 percent of structures inside the Palisades and Eaton perimeters already had Class A coverings, and a study of more than 40,000 structures exposed to fire from 2013 to 2018 found enclosed eaves, vent screens and multi pane windows mattered more than roof material. A wood roof is the exception: in the 1990 Painted Cave fire 70 percent of homes with nonflammable roofs survived against 19 percent with flammable roofs, and about 5 percent of California single family homes still have wood. The share of fire zone owners who buy in a year is an assumption set in the data build.
+Tile lift and relay C	The tile outlives the paper under it. In a lift and relay the roofer lifts the tile, strips the underlayment, inspects the deck, lays new underlayment and flashings, and relays the tile. The Residential Code allows sound slate, clay or cement tile to be reinstalled; damaged, cracked or broken tile may not be (R908.5). Tile covers 43 percent of California single family homes built from 1980 to 1999 (about 939,000 homes) and 62 percent of those built from 2000 to 2020. A reserve study consultant puts standard underlayment life at about 25 years and expects about 30 percent of tile to break in a relay; a trade site says older systems are failing at 20 to 30 years. Those are two practitioners' figures, not a test or a field study. Roofs weighing at least 25 pounds per square foot are exempt from the cool roof rule, and Los Angeles permits say so for a tile relay. In a fire zone a relay of 50 percent or more of the roof in 12 months triggers the fire rated layer under the tile and bird stops at the eaves. The underlayment life in the model is an assumption set in the data build.
+Solar detach and reset C	A reroof under an existing solar array, and a new roof put on before panels go up. Every new single family home has needed solar since January 1, 2020, so the stock of roofs with panels grows each year. Los Angeles County requires a separate permit to reinstall a system removed for a reroof, and the City of San Diego an electrical permit. Los Angeles County states the license split: a C-39 contractor reroofs, a C-10 electrical or C-46 solar contractor reinstalls, or an A or B licensee does both. Old bonding clips may not be reused and standoff spacing is rechecked when the covering changes. Whether a detach and reset changes an older net metering status was not found: say nothing either way. The share of reroofs with solar is an assumption set in the data build.
+Metal roofing D	Standing seam and metal shingle roofs on homes. Metal is a small share in California: 2.2 percent of single family roofs in the 2020 federal survey against 7.3 percent nationally, and 3.6 percent in the marine climate. Metal on a noncombustible deck is treated as Class A without a test; over a combustible deck the assembly needs its own listing. The FAIR Plan and the Department of Insurance both count metal among Class A roofs. In snow country, mountain building departments used a ground snow load of 230 pounds per square foot as the limit for rooftop solar. A steep metal roof must meet the cool roof reflectance values where the rule applies. No California source on metal near salt water was added. The metal share of reroofs is an assumption set in the data build.
+Manufactured home roofs C	Roof overs, recovers, coatings and leak repairs on manufactured homes. Mobile homes are 3.5 percent of California households in the 2020 federal survey. Any job of $1,000 or more needs a licensed contractor and a home improvement contract. State rules particular to altering a manufactured home were not read for this build, so the register cites none. The rate of professional roof jobs per home is an assumption set in the data build.
+Multifamily, condo and HOA C	Reroofs for apartment owners, condominium boards and homeowners associations. Apartments in buildings of five or more units are 23.4 percent of California households. In the City of Los Angeles 1,631 of the 2025 reroof permits were for apartments, with a median of 34 squares; San Francisco apartment reroofs had a median declared cost of $24,070 from 2024 to 2026. The cool roof trigger is lower than for houses: more than 50 percent of the roof or more than 2,000 square feet, whichever is less. An association may not require a roof that breaks the fire roofing statute, and tile communities face the same underlayment wear as houses: one consultant describes a 30 year old Orange County association that spent over $400,000 on tile roof repairs with no reserve and levied about $12,000 a unit. Buildings are estimated from units in structure in the data build.
+Commercial roofing and Title 24 cool roofs D	Low slope membranes and metal roofs on warehouses, retail, offices, schools and churches. California roofing contractors took in $6.21 billion in 2022 across 2,781 establishments with 25,383 employees (2022 Economic Census), and 5,602 licenses carried the C-39 class on November 19, 2026. On a nonresidential low slope roof, replacing, recovering or recoating more than 50 percent or more than 2,000 square feet, whichever is less, requires an aged solar reflectance of at least 0.63 in every climate zone, and usually added insulation: R-23 in zones 1 to 5 and 9 to 16 and R-17 in zones 6 to 8, with at least R-10 above the deck. In the City of Los Angeles 637 of the 2025 reroof permits were commercial, with a median of 50 squares. The count of commercial roofs is an assumption set in the data build.
+Restoration, coatings and maintenance D	Restoration of a sound low slope roof with a liquid applied coating, and maintenance agreements. Under the Energy Code a coating applied in the field as the top surface of a low slope roof must cover the whole roof at the dry film thickness the maker recommends. A recoat of more than 50 percent or 2,000 square feet triggers the reflectance rule, but a recoat is exempt from the insulation a replacement would trigger, which is the economic case for coating. The code assumes a field applied coating keeps 65 percent of its initial reflectance gain over 0.20 after three years. A coating life in years was not found, and neither were coating prices. The share of commercial roofs coated in a year is an assumption set in the data build.
+New construction roofing B	Roofs on new homes and buildings, sold to builders. Tile is the new home roof in California: 62 percent of single family homes built from 2000 to 2020 have it. Every new single family home needs a solar array sized in part by roof area with good sun, so the roofer works around it. In fire zones the Wildland Urban Interface Code governs the whole assembly. A roofer on a new home is a subcontractor under the Right to Repair Act: the roof must not let water in for 10 years. Subcontractors keep lien rights only by giving the preliminary notice within 20 days of first furnishing work. Building permits by county come from the Census Building Permits Survey in the data build.
+Judgment calls and caveats
+
+The choices that most move the numbers.
+
+Counted where the roof is	Every line is counted at the ZIP of the building, which is usually where the owner searches from. Cabins and second homes count where they stand, though their owners often search from home.
+Jobs open to marketing	The share of a line's jobs a contractor wins through search, ads, referrals or the door (replace 84%, repair 55%, storm 80%, fire 60%, fire hardening 85%, tile relay 84%, solar reset 50%, metal 88%, mobile home 72%, multifamily 65%, commercial 55%, coatings 50% and new build 25%) is an assumption; the rest go to repeat contractors, insurer programs, handymen or the owner. It is the most uncertain number on the page.
+The pool is not revenue	The gross profit pool is the whole market's margin at the defaults, not one company's share. A company's share depends on its crews, reviews, reputation and competition.
+Tier is relative	Paid tiers rank ZIPs against each other for one line; an A+ ZIP in a thin line can be worth less than a C ZIP in the replacement line.
+Lines do not double count	Tile relays count only in the tile line; metal and most hardening reroofs are carved out of replacement; solar detach and reset is counted once, beside the reroof it serves; mobile homes and buildings of five or more units count only in their own lines.
+Insurance pays for few roofs here	Insurance paid for 2.0% of roof jobs in the Los Angeles metro, 1.3% in San Francisco and Oakland and 8.4% in Riverside and San Bernardino (American Housing Survey 2023), against 41 percent in the west south central states. The storm line is sized from that share, so it is small beside wear; do not plan a claim funded business from it.
+Storm and fire are averages	The storm line is an average year; a wet winter such as 2023 runs far above it (Los Angeles issued 40 percent more reroof permits that year). The fire line is an average of years that held the Camp, Tubbs, Palisades and Eaton fires and years that held none. Plan crews and cash for the average and keep a plan for the year it lands (module 14).
+Hardening rides on insurance, not on a grant	The line counts owners in wildfire exposed homes acting on an insurer's or the FAIR Plan's terms (the Plan takes up to 16.4 percent off its wildfire premium for all twelve measures). The California Safe Homes grant program had $3.0M secured and no grant amounts set when this was compiled: never promise a grant or a discount size.
+California Roofer Guru, module 12. Lines resolved to 1,531 scored ZIPs. Defaults are placeholders; assumptions you change are stored in this browser and flow to modules 01, 05, 08, 09 and 15.

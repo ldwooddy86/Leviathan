@@ -119,6 +119,11 @@ rep("const r0 = Br.tris, w0 = Bw.tris, bb = [1e9, 0, 1e9, -1e9, f.h, -1e9]; K.ad
     "const gb = baseOf(P), pw = Bw.p.n, pr = Br.p.n, r0 = Br.tris, w0 = Bw.tris, bb = [1e9, gb.lo - 10, 1e9, -1e9, gb.y + f.h, -1e9]; K.addContext(Bw, Br, { P, h: f.h, cls: f.cls, id: f.id }, null, { foot: gb.lo - gb.y - 10 }); liftB(Bw, pw, gb.y); liftB(Br, pr, gb.y);")
 rep("    W.debug = () => ({ on: W.on,", "    /* the ground far off has firmed up: the skyline is stood on it again */\n    W.grounded = () => { W.skySig = null; };\n    W.debug = () => ({ on: W.on,")
 
+# ---------------------------------------------------------------- the Alta X: where the ground rises ahead of it, it climbs to stay 3 m over it (env.ground: the bare ground, without roofs)
+rep("        st.yaw = (st.yaw + I.yaw * AS.yawRate * dt + 360) % 360;\n        /* lean to get the speed asked for",
+    "        st.yaw = (st.yaw + I.yaw * AS.yawRate * dt + 360) % 360;\n"
+    "        if (env.ground && st.mode !== 'Landing' && st.mode !== 'Taking off' && Math.hypot(st.vx, st.vz) > 0.5) { const ga = Math.max(env.ground(st.x + st.vx * 0.9, st.z + st.vz * 0.9), env.ground(st.x, st.z)); if (st.y < ga + 3) wantY = Math.max(wantY, Math.min(AS.climb, (ga + 3 - st.y) * 2.5)); }   /* rising ground ahead */\n"
+    "        /* lean to get the speed asked for")
 # ---------------------------------------------------------------- the craft: held between the ground and its ceiling above the ground
 rep("ny = clamp(st.y + st.vy * dt, 0, AS.ceilingM);", "ny = clamp(st.y + st.vy * dt, floor, floor + AS.ceilingM);")
 rep("if (ny < 90 && env.block(nx, nz, ny - 1)) {", "if (ny - floor < 90 && env.block(nx, nz, ny - 1)) {")
@@ -218,7 +223,7 @@ rep("else if (m === 'walk') eye = S.y + HEIGHT.walk.eye; else eye = HEIGHT[m].ey
 rep("{ const fl = SK.now ? SK.now.surge : -9; if (fl > 0 && eye < fl +", "{ const fl = surgeY(); if (fl > -1e8 && eye < fl +")
 rep("cam.fov = S.fov; cam.near = clamp(eye * 0.03, 0.3, 5);", "cam.fov = S.fov; cam.near = clamp((eye - S.gy(S.x, S.z)) * 0.03, 0.3, 5);")
 rep("fl = SK.now ? SK.now.surge : -9; UAP.update(", "fl = surgeY(); UAP.update(")
-rep("Math.max(floorTop(x, z), SK.now ? SK.now.surge : -9)", "Math.max(floorTop(x, z), surgeY())")
+rep("ALTA.update(dt, { floor: (x, z) => Math.max(floorTop(x, z), SK.now ? SK.now.surge : -9),", "ALTA.update(dt, { ground: S.gy, floor: (x, z) => Math.max(floorTop(x, z), surgeY()),")
 rep("e.transform.setPosition(c.x + hx * 2.4, 0.75, c.z + hz * 2.4);", "e.transform.setPosition(c.x + hx * 2.4, S.gy(c.x, c.z) + 0.75, c.z + hz * 2.4);")
 
 # ---- outlines, labels, pointing

@@ -1,0 +1,123 @@
+What is on California's roofs and how old it is. The atlas ages every one unit roof in the state from the decade each home was built, with tile on its own clock (the underlayment wears out, the tile goes back) and wildfire losses re entering as new roofs, on service lives fitted to the American Housing Survey, then counts the roofs coming due in each ZIP. Beside the stock sit the materials: shingle, tile, shake, metal and membrane, what a Class A assembly and the cool roof rule ask of a reroof, and what shingles and steel cost now.
+
+No public register records when each California roof was last replaced or what covers it. The atlas builds roof ages from the decade each one unit home was built (Census) and two service lives: 24.5 years on average for shingle and other coverings (Weibull, shape 3) and 27 years for the underlayment beneath tile, then checks the result against the replacement rates owners in the West report to the American Housing Survey (table below). Which roofs are tile comes from a federal survey's shares by era built, not from a count. There is no storm reset: the only event that renews roofs in the model is a wildfire that destroyed them. A ZIP's roof ages are an estimate; where a city publishes re-roof permits (Los Angeles, San Francisco) they are the better count.
+
+Higher values shade darker. Eight quantile classes across the ZIPs with 500 or more residents; gray ZIPs have fewer, and gray land with no ZIP is open country. B
+
+The roof cohort model (module 17): one unit homes by decade built, a Weibull roof life fitted to the American Housing Survey West region replacement rates by year built, a separate life for the underlayment under tile, and wildfire losses re entering as new roofs. There is no storm reset in California, so roofs here run older than in a state where storms replace them. For a tile roof the age is the age of the underlayment.
+
+One unit roofs by age in years for the area chosen (model, 2026). Tile roofs are drawn apart, by the age of the underlayment beneath the tile.
+
+California: median roof age 13 years; 27% of roofs are 20 or older, 14% are 25 or older and 16% are 15 to 19. Tile is 27% of these roofs, and 15% of the tile has underlayment 25 years or older. The curve is smooth because nothing replaces California roofs all at once: no storm resets the stock. The last bar gathers every roof of 40 years or more. The model's ages are as of 2026. B
+
+Housing units by year built for the area chosen (ACS 2020 to 2024). Older homes mean older decks, older attachment and more reroofs that must be brought up to code.
+
+California: 56% of homes were built before 1980 (darker bars) and the median home was built about 1976. Pre 1980 homes often have spaced sheathing left from wood shakes, plank decking and more than one layer to strip; a reroof there usually needs new solid sheathing (one in five Los Angeles re-roof permits says so), which raises the ticket. A
+
+Housing units by building type and the estimated commercial roofs in the area chosen. One unit homes carry the residential lines; 2 to 4 unit buildings count with them; 5 or more units are the multifamily line.
+
+California: mobile homes are 4% of homes (the manufactured home line, module 12), and 5+ unit buildings hold 24% of units (the multifamily line). Commercial roofs are estimated from establishment counts weighted by how often each industry owns a separate building, scaled to about 690k statewide (grade D).
+
+The service lives the model uses: the share of roofs still on the house at each age, and the chance a roof of that age is replaced in the coming year, for shingle and other coverings and for the underlayment under tile.
+
+Mean life 24.5 years, Weibull shape 3 (scale 27.4 years). Half of roofs are replaced by about 24 years; at 15 years the chance of replacement in the coming year is 3.4%, at 20 it is 5.9% and at 25 it is 9.0%. The life is fitted to what owners in the West report, net of the few jobs insurance paid for; it is long because California roofs are not torn off by storms and many outlive their rated life before an owner, a buyer or an insurer forces the job. Tile underlayment: mean life 27 years, shape 3; half are relaid by about 27 years. That life is a planning figure (one consultant gives about 25 years for standard underlayment, a trade source 20 to 30), not a fit to any survey. B
+
+Annual roof replacement rates by decade built: what owners in the West region report (AHS 2023) and what the model produces for the same homes.
+
+Share of homes replacing the roof in a year, owner occupied one unit homes in the West region. The model's root mean square error is 0.39 points across the six bands. Homes built since 2010 replace roofs rarely (about 1 percent a year), older homes at 3 to 5 percent: that step is the age engine behind the replacement and tile lines. The survey does not say what covers the roof, so tile relays and shingle reroofs are fitted together here and split by the model. The fit sets aside 0.4% a year for jobs not driven by wear. B
+
+What covers California roofs, in what shares (Residential Energy Consumption Survey 2020, single family homes), and what sun, rain, salt air and fire do to each. Where no California life figure was found the table says so.
+
+Composition (asphalt) shingles	61.9% of single family roofs	The default reroof outside the tile tracts. Makers claim 25 to 30 years; no California field study of shingle life was found, inland heat and sun shorten it, and the model's fitted life is the working figure. In the covered climate zones a steep slope reroof of more than half the roof needs an aged solar reflectance of 0.20 or better (Title 24, Part 6), and in fire zones a Class A assembly.	B
+
+Clay and concrete tile	27.4% (clay 18.1%, concrete 9.3%)	On 62 percent of homes built since 2000 and 43 percent of those from 1980 to 1999. The tile can outlast the house; the underlayment does not: about 25 years by one consultant's planning figure, 20 to 30 by a trade source, no test found. The job is a lift and relay: lift the tile, new underlayment and flashings, relay the same tile (the residential code allows sound tile to be reinstalled, R908.5), with about three in ten tiles broken in handling by the same consultant's figure. In fire zones tile on a wood deck needs a cap sheet or Class A underlayment and bird stops.	C
+
+Wood shakes and shingles	5.4%, about 466,000 homes	Highest on homes from before 1960. New wood roofs are restricted statewide (Health and Safety Code 13132.7) and banned in Los Angeles and San Diego, so every shake roof is a replacement with another covering, and a covering laid over shakes needs a fire barrier layer first (R908.4). Spaced sheathing under old shakes means new solid decking in the price.	B
+
+Metal, standing seam and stone coated	2.2% of today's roofs	Small in the stock, larger in reroofs where fire or snow decides: the foothills, the Sierra and the far north. Near salt water, panel and fastener warranties narrow with distance from the surf; no California specific life study was found. Steel prices move the quote (chart below).	C
+
+Low slope membranes (modified bitumen, cap sheet, single ply, built up)	The flat roof cities and every commercial roof	San Francisco is a low slope city: of the re-roof permits there that name a material, three in four are modified bitumen, torch down or cap sheet, one in six shingles, one in twenty single ply. A low slope reroof in the covered zones needs an aged reflectance of 0.63 (Title 24, Part 6) and usually added insulation. The survey behind the shares above has no category for these roofs.	B
+
+Coatings (silicone, acrylic, urethane)	No life figure found	Restore a sound membrane or metal roof and meet the cool roof rule without a tear off. The energy code credits a field applied coating with 65 percent of its initial reflectance gain after three years, against 70 percent for factory products. The coatings line (module 12).	C
+
+Roof overs for manufactured homes	4.2% of owners a year have roof work	Metal or membrane roof overs and coatings. In the West 46% of mobile home roof jobs are done by the owner, and the median hired job is $7,000 (American Housing Survey, a thin sample of about 20 jobs).	C
+
+Solar on the roof	A job beside the roof	A reroof under panels starts with taking the array off and ends with putting it back, by a contractor licensed for it. The detach and reset line (module 12) counts these; price it into the estimate before the owner hears it from someone else.	C
+
+August 2026: asphalt roofing materials stood +50.8% above January 2020 and +3.9% above a year earlier; steel mill products +103.5% and +23.4%. A price book from 2021 is under cost today. Producer prices lead distributor prices by a few months, so quotes need short validity periods; after an emergency declaration a contractor may not raise repair prices more than 10 percent for 180 days, except for documented cost increases (Penal Code 396). A
+
+Roof projects reported by owners of one unit homes in the American Housing Survey 2023 (San Jose 2021), with what two cities' permit files add.
+
+A California roof job costs about 40 percent more than the national median and insurance pays for a few percent of them, so price, financing and trust carry the sale. San Francisco's figure is what applicants declared for permit fees, mostly on low slope roofs, and likely runs low; Los Angeles permits carry a nominal $200 a square that is not a price and is not shown. No audited price series for California roofing was found. The atlas's default replacement ticket of $19,000 and tile relay ticket of $16,000 are planning figures you can change in module 12. A
+
+In a Fire Hazard Severity Zone a new roof, and the whole roof when half or more is replaced within a year, must be a Class A assembly: the covering with the underlayment and deck it was tested on, not the shingle alone. Outside the zones the statewide floor is Class C.
+
+In the January 2025 Los Angeles fires about nine in ten structures in CAL FIRE's inspection data already had Class A coverings. Embers entered through vents, gaps at the eave and under tile, and from debris in gutters. Ember and flame resistant vents, bird stops, metal drip edge and clean metal gutters are part of the roofing job.
+
+In the 1990 Painted Cave fire 70 percent of homes with non-flammable roofs survived against 19 percent with flammable ones. In the 2018 Camp Fire 38.5 percent of homes built in 1997 or later survived against 11.5 percent of older ones.
+
+Tile on a wood deck needs a 72 pound cap sheet or a Class A rated underlayment beneath it, with the ends of the tile closed. Wood shakes cannot go back on in most fire zones; each one is a replacement.
+
+"Safer from Wildfires" (the Department of Insurance's regulation) requires insurers to recognize hardening in their rates, each with its own discount. The FAIR Plan takes up to 16.4 percent off the wildfire part of a dwelling premium for all twelve measures. Never state a discount size for an owner: it is the insurer's to give.
+
+The California Safe Homes program (in force January 1, 2026, run by the Department of Insurance) is meant to help low and middle income owners pay for fire safe roofs and the five foot zone. $3.0M had been secured and grant amounts were not set when this was compiled. The atlas sizes the hardening line from insurance pressure, not from grants (grade D).
+
+Permit	There is no statewide rule: whether a re-roof needs a permit depends on the city or county. Cities that publish theirs: Los Angeles 11,954 re-roof permits in 2025; San Francisco 4,084 re-roof permits in 2025. Ask the building department before quoting.	A
+
+License	A contractor's license is needed for any job of $1,000 or more in total, and for a smaller one that needs a permit or uses an employee. Roofing is the C-39 classification; the license number goes in every contract, bid and advertisement; a C-39 holder must carry workers' compensation even with no employees.	A
+
+Tear off or recover	A roof replacement removes every layer down to the deck. A recover is not allowed over a wet or deteriorated roof, over slate, clay, cement or asbestos cement tile, or over two existing layers (California Residential Code R908.3). The 2025 code lets sound self adhered underlayment stay in place.	B
+
+Cool roof	Title 24, Part 6: when more than half of a house roof is replaced in the covered climate zones, a steep slope covering needs an aged solar reflectance of at least 0.20 and a low slope roof 0.63. Roofs weighing at least 25 pounds per square foot are exempt, and Los Angeles permits for a tile relay state that cool roof compliance is not required.	B
+
+Fire class	Class A in Fire Hazard Severity Zones for new roofs and for the whole roof when half or more is replaced in a year; Class C at least everywhere else.	B
+
+The code freeze	Assembly Bill 130 stops new state and local building standards for homes from October 1, 2025 to June 1, 2031, with exceptions for emergencies and for home hardening. The residential roofing rules here are likely to stand until mid 2031; wildfire rules can still change.	B
+
+On the roof	Cal/OSHA requires fall protection for residential roofing from 6 feet since July 1, 2025 (it was 15), and its heat rules apply on every summer job.	B
+
+Housing units authorized by building permits for the area chosen (Census Building Permits Survey). New homes feed the new construction line now and the replacement and tile lines a roof life on.
+
+California: 103,856 units permitted in 2025, against a peak of 205,020 in 2005. January to September 2026: 83,850 units, +9% on the same months of 2025. These are new buildings only; reroofs do not appear in the Census survey. Every new roof in a fire zone must be a Class A assembly. A
+
+Establishments by type in the area chosen (County Business Patterns 2023, ZIP detail) and the commercial roofs the atlas estimates from them.
+
+California: 1,022,447 establishments in all and about 690k commercial roofs (estimate, grade D). Low slope membranes (modified bitumen, cap sheet, TPO, PVC, built up) dominate warehouses, plants, big box retail and schools; churches and smaller offices often carry steep slope shingle, tile or metal roofs. The atlas assumes a 22 year membrane life and that about 3% of commercial roofs are restored, coated or put on maintenance a year (grade D). Warehouse counts are low because County Business Patterns files many distribution buildings under the owning company's industry.
+
+Work the wave	Roofs aged 15 to 19 (1.53M statewide) are next decade's replacement market. Sort the table above by roofs aged 15 to 19, send the ZIPs to the Desk, and lead with inspections and financing before the roof fails.	B
+
+Tile relays	399k tile roofs are modeled with underlayment 25 years or older. Map the tile layers, walk the tracts, and sell the relay as what it is: new underlayment and flashings under the owner's own tile. The share is a model: confirm on the street before buying media.	D
+
+Roof age and insurance	Insurers inspect roofs at renewal and non-renew on age and condition. A page explaining what an inspection looks for, and a fast written report when an owner gets a notice, catches the owner at the moment the decision is forced. Describe the process; do not interpret anyone's policy or negotiate a claim.	B
+
+Fire zones	Where the fire zone layer is dark, every reroof is a Class A job and vents, eaves and gutters belong in the estimate. Name the assembly, not just the shingle.	B
+
+Pre 1980 neighborhoods	56% of California homes were built before 1980. Expect spaced sheathing, layers to strip and deck repair; price it, show it in photos, and say so before the tear off.	B
+
+Cool roofs and coatings	The reflectance rule turns every low slope reroof in the covered zones into a cool roof, and a coating can meet it on a sound roof. Lead commercial and multifamily copy with the rule and the energy bill.	C
+
+Manufactured homes	514k mobile homes, nearly half of their roof work done by owners, and a median hired job of $7,000. Roof overs, coatings and leak repair are the offer.	C
+
+Ages are modeled	Roof ages come from the decade each home was built and two fitted service lives. A tract reroofed early (a hailstorm, a lender's requirement, a solar boom) will be younger than shown; one that kept its original tile underlayment will be older.
+
+Tile age means underlayment age	For a tile roof the atlas counts the age of the underlayment. The 40 years and over bar is heavy with tile because the model lets underlayment live long; the life itself rests on a consultant's figure, not a study.
+
+Covering is a model	Tile, wood and metal shares come from a federal survey's California sample by era built and a climate factor by region, not from a count of roofs (grade D).
+
+One roof per home	Each one unit home is one roof; attached townhomes are counted as separate roofs though they share one. Units in 2 to 4 unit buildings are counted separately.
+
+Fire resets start in 2013	Only structures in CAL FIRE's damage inspections re enter the stock as new roofs. Roofs replaced after older fires, and after the 1994 earthquake, are not reset.
+
+Commercial roofs are estimated	Establishments are not buildings: one plant may hold several roofs, one strip mall many businesses. The statewide total is an anchor, not a count: the 5.9 million commercial buildings of the federal Commercial Buildings Energy Consumption Survey of 2018 (Energy Information Administration, Table B1: 5,918 thousand) times California's share of United States residents. The survey publishes no California figure, so the share by residents and the weights by building type are assumptions (grade D).
+
+Metro survey	The American Housing Survey reports for three California metros in 2023 and San Jose in 2021, on 60 to 71 roofing jobs each. San Diego and Sacramento are not sampled.
+
+Producer prices	The price indexes track manufacturers' selling prices nationally, not distributor or installed prices in California, and include products beyond roofing.
+
+Each ZIP's one unit homes by decade built (ACS) are split into tile roofs and every other covering by the survey shares for the era, and both enter a cohort model run year by year from 1905 to 2026. Roofs other than tile fail with a Weibull hazard (mean 24.5 years, shape 3); tile roofs fail at the underlayment (mean 27 years, shape 3) and the same tile goes back. New homes enter at age zero, and structures destroyed by wildfire re enter as new roofs over the four years after the fire. The life of the non tile roof was fitted so the model reproduces the American Housing Survey's West region replacement rates by year built. Roofs 20 and older, roofs 15 to 19 and the coming year's replacements and tile relays come straight from the 2026 age distributions.
+
+Census County Business Patterns 2023, ZIP code detail; Energy Information Administration, Commercial Buildings Energy Consumption Survey 2018, Table B1, for the statewide anchor (scaled to California by residents, an assumption) AD 2023
+
+California Residential Code R908 and R337, Building Code Chapter 7A (the 2025 edition gathers the wildfire rules in Part 7 of Title 24), Title 24 Part 6 B 2025 edition
+
+California Roofer Guru, module 17. Housing from the Census Bureau, roof projects from the American Housing Survey, roof covering from the Residential Energy Consumption Survey, prices from the Bureau of Labor Statistics. Roof ages and coverings are modeled. Compiled November 19, 2026.

@@ -1,11 +1,10 @@
 <script id="scout-trace">
 /* ==== rooftop scout: the 3D view traced from 2024-or-newer satellite imagery ==== */
-/* No public 3D survey of Baton Rouge, New Orleans or Shreveport is newer than 2021 (USGS 3DEP lidar: 2021 over Greater New
-   Orleans, 2018 over most of Baton Rouge with 2019 downtown, 2018 over Shreveport; FEMA's footprints there come mostly from
-   NGA lidar of 2008 to 2012). USGS flew part of the coast, from Cameron to Terrebonne Parish, in early 2024, and elsewhere
-   FEMA's footprints are traced from ORNL imagery of 2015 to 2024; no lidar shapes the buildings or trees, so the 3D view is traced
-   from the newest satellite photo Esri serves for the place, if it was captured in 2024 or later: Vantor's January 16, 2026
-   picture over Baton Rouge (Vivid Advanced, 50 cm), for one. An AI model that finds
+/* FEMA's California footprints are older than the picture over them: drawn from NGA lidar of 2010 to 2012 in the metros
+   (Los Angeles, the Bay Area, San Diego, Sacramento) and from ORNL imagery of 2014 to 2024 elsewhere; no lidar shapes the
+   buildings or trees, so the 3D view is traced from the newest satellite photo Esri serves for the place, if it was
+   captured in 2024 or later: Vantor's November 26, 2025 picture over central Los Angeles (Vivid Advanced, 34 cm), for
+   one, or its May 26, 2026 picture over San Francisco. An AI model that finds
    the outline of whatever it is pointed at, SlimSAM (Segment Anything, pruned; Apache-2.0, Chen et al.), runs on this
    computer through ONNX Runtime Web: on the graphics card where WebGPU answers, else on the processor. Its weights (14 to
    40 MB) come from Hugging Face and the runtime from jsDelivr, both once; nothing is sent anywhere.
@@ -182,7 +181,7 @@
     if (!src) return { none: true };
     const net = await load(say); if (!alive()) return { stale: true };
     /* the picture: 1024 pixels over 2 x half metres around the scene's centre (35 cm a pixel): about the photo's own
-       resolution for Vantor's 31 to 34 cm captures (Shreveport, for one), finer than its 50 cm ones (Baton Rouge, New Orleans),
+       resolution for Vantor's 31 to 34 cm captures (Los Angeles and San Francisco, for two), finer than its 50 cm ones (Sacramento, Truckee),
        which it shows a little soft */
     say(`Reading the ${src.label} photo…`);
     const half = o.half, mpp = 2 * half / S, z = src.zoom, n = 2 ** z, lat2t = la => (1 - Math.log(Math.tan(la * Math.PI / 180) + 1 / Math.cos(la * Math.PI / 180)) / Math.PI) / 2 * n, lon2t = lo => (lo + 180) / 360 * n;

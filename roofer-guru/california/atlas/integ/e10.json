@@ -1,0 +1,5 @@
+[
+{"file":"04_content.js","old":"The FAIR Plan had 698,307 policies in force at September 2026, up 157 percent since September 2022, with $773 billion of exposure.","new":"The FAIR Plan had 698,307 policies of all kinds in force at September 2026, up 157 percent since September 2022, with $773 billion of exposure (the atlas's ZIP and county figures count its home policies alone, ${FAIR_STATE ? N(FAIR_STATE.now) : 'a smaller number'} on September 30, 2026)."},
+{"file":"04_content.js","old":"The FAIR Plan, with 698,307 policies at September 2026, gives up to","new":"The FAIR Plan, with 698,307 policies of all kinds at September 2026, gives up to"},
+{"file":"15_m03_law.js","old":"'With 698,307 FAIR Plan policies and non-renewal notices","new":"'With 698,307 FAIR Plan policies of all kinds and non-renewal notices"}
+]

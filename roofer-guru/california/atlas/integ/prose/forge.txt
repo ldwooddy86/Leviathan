@@ -1,0 +1,99 @@
+The atlas turned into the website its campaigns land on: a service page for each of the thirteen roofing lines, a page for each market city, optional county and region hubs, event pages for the wildfires, atmospheric rivers and wind events on record at the market's ZIP codes, campaign landing pages in English and Spanish, and data and rules guides written from the roof stock, the fire and weather record and the California law evidence. Every page prints the company name, the CSLB license number and a real office, is linted by the Compliance Satchel, carries no dashes and no hyphens but the ones in license classifications such as C-39, compiles in the browser to Elementor, semantic HTML and JSON-LD, and deploys to WordPress as drafts through the FORGE bridge.
+
+Modules one to eight say where the old roofs, the fire zones and the storm damage are, which ZIPs pay back, what the license, contract and claims rules are and what the ads say. This module writes the pages those ads land on. Describe the company once, choose the markets, tick the page types, and the forge plans the set, writes each page from the atlas's own numbers with a public source beside every figure, and checks it. It never publishes on its own, never writes a review, a rating or a job result, never says what insurance covers, never promises an insurance discount, renewal or price, never offers to negotiate a claim or anything toward a deductible, never links to a page that is not live on the site's sitemap, and never uses Ahrefs. Deploying from the hosted atlas is blocked by the viewer's network rules, so deploy from the downloaded standalone file or hand the pack to the FORGE skill.
+
+Set the company name, CSLB license number and office city in step 1 or in the Company panel (top right). The forge does not invent a company, a license or an office: a licensed contractor must put the license number in all advertising (Bus. & Prof. Code 7030.5), any job of $1,000 or more needs a license (7048), and Google, Local Services Ads and customers check the office.
+
+Everything here flows into every page: schema, calls to action, the form, the trust strip and the notice. The fields follow the Company panel (top right) while "Follow the Company panel" is ticked; saved in this browser as you type.
+
+Printed in the trust strip, the notice and the schema of every page. A licensed contractor must put the license number in all advertising and contracts (Bus. & Prof. Code 7030.5), and any job of $1,000 or more needs a license (7048). Empty, every page blocks.
+
+For example: C-39 Roofing; C-46 Solar; B General Building. The solar detach and reset page asks who holds the C-10 or C-46 (or A or B) license for the panel work.
+
+A training or designation the company holds, by its exact name. Prints on the About page. Leave blank if none; no page promises an insurance result.
+
+The forge never writes a review or a testimonial. Statements print with "Customer statements are shared with permission and describe one job. Every roof is different." An incentivized or employee statement must say so, and reviews may not be bought, faked or filtered (16 CFR Part 465).
+
+Cities come from the atlas's ZIP model: roof age, the fire and weather record and the thirteen service line pools. Rank them by the work the company wants, and limit them to where its crews will drive.
+
+Click a city to drop it from the plan; click a ZIP on the map to add or drop its city. Fire damage inspections, FAIR Plan policies and FEMA registrations are observed records by ZIP (grade A); the fire zone share is a map overlay on ZIP land (grade B); roof ages and the job pools are the atlas's models (grades B to D). "Residents" and every count sum the city's ZIP codes, which reach past city limits.
+
+Tick the page types and the lines. Event pages default to at most two events from the ledger at the plan's ZIP codes: the recent wildfire with the most structures destroyed or damaged there, and the strongest recent atmospheric river or wind event; failing those, a wildfire of 13 to 24 years ago, whose rebuilt homes have roofs of one age. Pick others below.
+
+EVENTS · WILDFIRES: STRUCTURES DESTROYED OR DAMAGED IN THE PLAN'S ZIP CODES; STORMS: HOMES IN THE ZIP CODES REACHED; AUTOMATIC: THE WORST RECENT WILDFIRE AND THE STRONGEST RECENT STORM
+
+Templated city pages are the fastest route into a doorway or scaled content problem. Every city page here carries that city's own roof stock, fire zone share, fire record, wind and rain figures and FAIR Plan count, but a dozen pages from one template still read as a pattern. If the site already has a page per suburb, consolidate or rewrite those before adding new ones, and publish a city page only where its numbers say something the others do not. The defaults are deliberately conservative: eight cities plus the office city, county and region hubs off, landing pages noindexed, and the per city guide off.
+
+The only pages the forge will ever link to. Paste the site's XML sitemap (the page and post sitemaps, not the index) or a list of live URLs, one per line, optionally as "anchor | URL". Pages in this plan become link targets once they are published and appear here.
+
+page · Bus. & Prof. Code 7027.1 (advertising as a contractor without a license), 7048 (license at $1,000, or at any price where a permit or an employee is involved), 7030.5 (license number in all advertising) · Hold an active C-39 license (or another class that covers the work) before advertising roofing, then enter the license number in the Company panel.
+
+page source · Bus. & Prof. Code 7030.5 (license number in all forms of advertising) · Put "CSLB Lic. #" and the number in the footer of every page.
+
+page source · Google Business Profile and Local Services Ads verification; a local address answers the out of area crew question · Show the office address or city in the footer and on the contact page.
+
+features.title5 · Los Angeles County Building Code Manual 1512 Article 1 (separate solar permit; C-10 or C-46 reinstalls, or an A or B licensee does both: the County's statement of the CSLB position); City of San Diego Information Bulletin 123 (electrical permit) · Name the licensed electrical or solar contractor who reinstalls the system, and price the reinstall permit.
+
+Drop photos and video of the company's own crews, finished roofs, trucks and office. Images are resized to 1920 pixels and converted to WebP in the browser. Assign each to the pages it belongs to; a page asset beats a city asset, which beats a county asset, a region asset, a page type asset and the site default. Unassigned slots resolve from the site's media library at deploy, and a page never ships with a placeholder.
+
+Application Password over REST through the FORGE bridge plugin (download it from the bar above, then Plugins, Add New, Upload, Activate). Everything lands as a draft unless you choose to publish, and a page with a blocking check is refused. Credentials stay in this tab. Every other platform (headless WordPress with the Next.js kit, Drupal, Wix, Duda, Webflow, Shopify, HubSpot, Joomla, Ghost) publishes from module 16, Publish, which reads the pages built here.
+
+Each page is a FORGE blueprint: one JSON document naming the archetype, the RoofingContractor entity with the CSLB license as its identifier and CA as its region, the call to action and form, the media slots and an ordered list of sections. The same blueprint compiles to Elementor flex containers, semantic HTML and JSON-LD here and in the FORGE skill's Python compiler.
+
+Service copy is written per line, the same thirteen lines the Campaign Desk advertises, around the work, the signs owners see and the California rules that apply, with every statement of law carrying its citation. City, county, region and event pages are written from that place's own roof stock, fire zone share, fire record, wind and rain figures and FAIR Plan count; guides from the roof age model, the energy and fire codes and the law evidence.
+
+Title of 60 characters or fewer, meta of 120 to 158, one H1 of 70 or fewer, an answer capsule under the hero, sourced key facts, a FAQ of real questions, a primary call to action with the phone, a sticky mobile bar, a consent form with an unchecked box, and a notice on every page with the company name, the CSLB license number and the office.
+
+Internal links come only from the live URLs pasted in step 4, scored by how well the path matches the page's service line and city. Pages in the plan link to each other only after they are live. Breadcrumbs name Home only when the home page is on the live list.
+
+Every text field runs the Compliance Satchel rule pack (CSLB licensing and the license number, the home improvement contract and down payment rules, Penal Code 551 on deductibles, the public adjuster act on claims, insurance discount and certification claims, financing disclosures, FTC review and "free" rules) and the house style; the page source runs the web rules. A block stops deploy here and in module 16.
+
+Every data column this module reads is named in one block at the top of its source (HZ). A hazard column that is not in the data file yet drops its sentence and its fact; the page still builds and says nothing about that hazard.
+
+The forge opens brand neutral. Until the company name, the CSLB license number and an office city are set, pages read "Your company", "[license number]" and "Your city" and every page blocks. Nothing is filled from a competitor or a sample company.
+
+A licensed contractor must put the license number in all forms of advertising (Bus. & Prof. Code 7030.5), so it prints in the trust strip, the notice and the schema. C-39 covers roofing on homes and commercial buildings alike; the solar page asks who holds the C-10 or C-46 license for the panels.
+
+Pages say what a roofer does: inspect, document with photos, write an itemized estimate and do the work. They never say what a policy covers, never offer to negotiate a claim (that takes a public adjuster license, Ins. Code 15006) and never offer anything toward a deductible (Penal Code 551). That a roofer may meet the adjuster on the roof at the owner's request is our reading of those sections, not a line drawn in a statute; have counsel confirm it.
+
+The Safer from Wildfires rule sets no discount percentage, so no page states one for an insurer. The only percentage printed is the FAIR Plan's own published maximum for all twelve of its measures, labeled as that. No page says a roof will get a policy written, renewed or repriced.
+
+California has no statewide rule that every reroof needs a permit. Pages say the city or county decides and name the two written rules that were read (Los Angeles County and the City of San Diego). Check the rule for each market city before promising a permit.
+
+Pages state three business days, five for a senior citizen and seven for repairs after a declared emergency (Bus. & Prof. Code 7159, Civ. Code 1689.6). The age that makes a buyer a senior citizen was not read; the pages do not state one.
+
+Roof ages are the atlas's estimates and print with "by our estimate" and the method as the source. The fire zone share is a share of ZIP land, not of homes. Gust days come from the nearest long record station, which may sit miles away. FEMA counts only people who applied for federal help.
+
+No field study of shingle, membrane, metal or coating life in California was found. The pages print a national study and an inspectors' guideline table and say so; the tile underlayment figure of about 25 years is one consultant's planning number. No coating life is printed.
+
+A wildfire of the last six years gets a page on inspection and rebuilding with the disaster contract rules; a wildfire of 13 to 24 years ago gets a page on rebuilt homes whose roofs are one age, which is our inference and not a measured fact. Fires before 2013 carry no structure count. Atmospheric river and wind pages state strength and homes reached, never a count of roofs damaged: no damage model exists for them.
+
+The forge writes no review, rating, review count or job result. Customer statements you paste print with a note that they describe one job, and the schema carries no aggregateRating (16 CFR Part 465).
+
+Statute links point to the Legislature's site, regulations to a public transcription, and the Energy Code to the Energy Commission's file; the evidence was read on November 19, 2026 from archive captures and transcriptions because the official pages block automated readers. Title 24 building code citations carry no link. Open each link in a browser before publishing.
+
+Spanish landing pages say "Hablamos español". Tick them only if someone at the company speaks Spanish with customers. The threshold defaults to 15 percent Spanish at home, because 8 percent would add a Spanish page for nearly every California city. The data also carries Chinese, Vietnamese, Tagalog and Korean shares; pages in those languages are not written.
+
+Eight cities plus the office city, at most two events, county and region hubs off and the per city guide off. Templated location pages are the pattern search engines treat as doorways; add places only where the numbers differ.
+
+URL slugs use hyphens as separators, which is how WordPress builds them; the only hyphens in visible copy are the ones in license classifications, which print as the Board writes them (C-39, C-10, C-46).
+
+Download the pack, unzip it beside the FORGE toolkit and run the commands in its README, or paste them into a Claude session that has the forge skill: it resolves media, checks every internal link against the live sitemap, imports each page as a draft through the bridge and reports the links. The pack's plan.json reloads here with ⤒ Load.
+
+for f in pack/blueprints/*.blueprint.json; do s=$(basename $f .blueprint.json); python3 forge_wp.py media-resolve $f pack/media/$s.media.json --assets pack --reuse && python3 forge_compile.py $f out --media pack/media/$s.media.json && python3 forge_wp.py links-check $f --base https://www.example.com && python3 forge_wp.py import out/$s.bundle.json --media pack/media/$s.media.json; done
+
+Contractors State License Board pages and bulletins; Business and Professions Code 7026 to 7159.14 (license threshold, license number, bond, workers compensation, home improvement contracts, down payments, salespeople) A read Nov 19, 2026
+
+Penal Code 396 and 551; Insurance Code 675.1, 678, 2051.5, 15006, 15007; Civil Code 896, 1689.6, 1797.91, 4720, 8200; Health and Safety Code 13132.7; Code of Civil Procedure 337.1, 337.15 A read Nov 19, 2026
+
+Fair Claims Settlement Practices Regulations (10 CCR 2695.5, 2695.7, 2695.9); Safer from Wildfires (10 CCR 2644.9); California Department of Insurance; California FAIR Plan Association key statistics and discount flyer A Sep to Nov 2026
+
+2025 Building Energy Efficiency Standards, Title 24 Part 6, sections 110.8, 140.3, 141.0, 150.1, 150.2, 180.2 (Energy Commission file CEC-400-2025-010-F) A in force Jan 1, 2026
+
+2025 California Wildland Urban Interface Code (Title 24 Part 7) chapters 1 and 5; California Residential Code R908; California Building Code 1505 (read on a transcription host) A in force Jan 1, 2026
+
+Census ACS 2020 to 2024; American Housing Survey 2023; EIA Residential Energy Consumption Survey 2020 (roof material); the atlas roof age model (module 17) AB 2020 to 2024
+
+CAL FIRE Fire Hazard Severity Zones (2024 and 2025), damage inspections 2013 to 2025 and fire perimeters; Insurance Institute for Business and Home Safety, The 2025 LA Conflagrations AB 2026
+
+Site Forge writes pages; it does not publish them, and nothing here is legal or insurance advice. The FORGE bridge plugin is a generic WordPress REST bridge; review it before installing on a production site.

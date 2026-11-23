@@ -1,0 +1,71 @@
+Every surface a California roofing company shows the public, its ads, its pages, its videos, its door hangers, its canvassers, its texts and its contracts, screened against the rules that get ads rejected, licenses cited and contracts undone: the license number in all advertising, the home improvement contract with its down payment cap and right to cancel, the bar on negotiating claims without a public adjuster license, Penal Code 551 on deductibles, the 10 percent price cap after a declared emergency, fire and insurance claims that must not be overstated, the FTC's review, cooling off and "free" rules, Regulation Z financing disclosures and each ad platform's policies. Findings are sorted by who enforces them and how far they can be proven from here.
+
+A complaint to the Contractors State License Board, the Department of Insurance or a district attorney is an accusation against a named company. The Satchel is built to produce a small number of findings strong enough to survive review and to keep everything else in house as intelligence. If a competitor run yields forty candidates and two confirmed findings, the two are worth a careful look, ideally with a lawyer, and the rest are the competitive picture. Mass reporting competitors' ads to the platforms gets the reporter's own accounts reviewed. In self audit posture the same findings become a fix list with an owner for each. Nothing here is legal advice; a California lawyer and the CSLB answer licensing questions. The rule book says for each rule whether its text was read for this build, and several areas of California advertising law were not read at all (module 03 lists them).
+
+Paste a page's raw HTML or its text (view source keeps the scripts and schema the web tests need), a contract, or a door to door or call script, or pull this atlas's own output: every ad the Campaign Desk wrote, or every page the Site Forge built. Each source runs the batteries that apply: copy rules on every sentence, the license statements on every asset set, the contract and direct sale rules on contracts and scripts, web tests on the source, and the surfaces this page cannot see.
+
+One row per rule and source. Click a row for the rule as cited, the evidence, how it was dispositioned, what would settle it and where it goes.
+
+Every candidate binds to exactly one disposition. Tick a control that is in place for this target, and the candidates it answers move to CLEARED with the control named. Confirmed findings move only by hand, in the detail pane.
+
+An active C-39 license (or another class that covers the work), the $25,000 bond and a workers' compensation certificate are on file before any ad runs; the license number appears on every ad, page, sign and contract answers LIC1, LIC2, LIC3, WEB1, SIGN1
+
+No claim negotiation, claim help or coverage wording anywhere: ads, pages, scripts, door hangers; no ties to a public adjuster answers INS1, INS2, INS3, AOB1, PADJ1, WEB6, WEB7
+
+No discount, credit or gift is tied to a deductible, and nothing of value goes to agents, brokers or adjusters for referrals answers DED1, REF1
+
+Every residential job over $500 goes on the current home improvement contract form: headings, notices, the down payment sentence, the right to cancel notice and an email address for cancelling; no deposit above $1,000 or 10 percent answers PAY1, CON1, CON2, CON3, CON4, CON5, CON6, CON7, CONT1
+
+Fire copy names the tested assembly and never says fireproof; no discount size, renewal or grant is promised; fire zone and Zone Zero statements are checked against the address and the filed rule; no wood roofing is offered where a city bars it answers FIRE1, FIRE2, FIRE3, FIRE4, FIRE5, GRANT1, SHAKE1
+
+Cool roof claims rest on rating sheets; no saving is promised; solar reinstalls name the licensed contractor and say nothing about net metering answers ENR1, ENR2, SOL1, SOL2
+
+Salespeople are registered and name the contractor and license first; the three, five or seven day notice goes with every sale at the home; no calls or texts without written consent answers COOL, HIS1, TCPA, DOOR1, CALL1, WEB3
+
+License. The CSLB license lookup confirms the company, its classifications (C-39 Roofing, or a class that covers the work) and its status. A license is needed for any job of $1,000 or more, and the number belongs in every ad.
+
+Bond and workers' compensation. Every licensee files a $25,000 bond, and a C-39 roofer keeps a workers' compensation certificate on file even with no employees; ask for the certificate.
+
+Complaints. The CSLB takes unlicensed work, contract and down payment violations (usually within four years); the Department of Insurance takes unlicensed public adjusting and deductible schemes; price gouging after a declaration is a crime for the attorney general or the district attorney; Cal/OSHA takes job site hazards.
+
+Your own fix list	The marketing owner and the qualifying individual	The finding and the fix	The ad, page, script or contract is corrected before it runs
+
+Contractors State License Board	Complaint to the CSLB	Dated evidence: the ad, sign or contract, the company name as shown, the license lookup result	Investigation of unlicensed advertising and contracting, contract and down payment violations; citations and civil penalties. Complaints against licensees usually within four years
+
+California Department of Insurance	Referral for unlicensed public adjusting or a deductible scheme	Evidence of an offer to negotiate or settle claims, a deductible discount, or referral money to agents or adjusters	Public adjuster licensing enforcement (civil penalties up to $10,000, or $25,000 if willful); Penal Code 551 cases go to prosecutors
+
+Attorney General or the county district attorney	Consumer complaint	A price charged after a declaration against the pre emergency price, or a deceptive claim and a consumer who relied on it	Price gouging is a misdemeanor and unfair competition (Penal Code 396); single complaints are logged, patterns are prosecuted
+
+Local building department	Inquiry or complaint to the city or county	The address, the work seen, and whether a permit is posted	Enforcement of permits, fire zone roof rules and local wood roofing bans
+
+Cal/OSHA	Complaint to the Division of Occupational Safety and Health	A hazard seen in person: crews on a roof with no fall protection, the address and the date	Inspection and citations under Title 8
+
+Google Ads	Report a policy violation	Ad preview, the query and location, the landing page claim	Ad disapproval for misrepresentation or editorial violations
+
+Manufacturers and credential programs	The program's own contractor desk	The claim and a directory search that does not list the company	Program enforcement against misuse of the mark
+
+Every rule the batteries apply. ✔ marks a rule whose text was read for this build (November 2026), on a primary page, a dated archive capture or a transcription host. ◐ marks a secondary source, a platform policy or our own reading: read the live text before it appears in a confirmed finding.
+
+A block level rule with its primary text read (✔) and a match in observable text is CONFIRMED. A ◐ rule, or any warning, is a CANDIDATE until the open question is closed. Notes are INTEL. Surfaces this page cannot see are NOT_OBSERVABLE. Controls move candidates to CLEARED.
+
+Copy rules run sentence by sentence and are counted per source; the license statements run once per asset set, using the Company panel in self audit and the observable text in competitor posture; web tests read the raw source for pixels, prechecked boxes, self served ratings, the license number, the office city and promises hidden in meta tags and schema. A pasted contract runs the home improvement contract tests (heading and license number, the copy statement, the down payment sentence, the progress payment warning, the Mechanics Lien Warning, the right to cancel notice and email address, and any down payment above $1,000); a pasted door to door or call script runs the salesperson, right to cancel and consent tests.
+
+In self audit posture, the house rules block any hyphen or dash and any meta note or placeholder in copy. They are off in competitor posture: style is not a violation.
+
+It fetches nothing, files nothing and contacts no one. It does not see television, door to door pitches, calls, signs, contracts or vendor agreements unless they are pasted; those rows ship as NOT_OBSERVABLE with the check to run.
+
+California has no roofing statute on claim advertising. What it has is the public adjuster license: negotiating or settling a claim for an insured for pay, or advertising that, needs it. So an offer to negotiate or handle the claim blocks, while softer wording such as "claims specialists" or "we work with your insurance" is a candidate, because no text read says how far a roofer may go in showing damage to an adjuster. Deductible offers block outright under Penal Code 551.
+
+"Fireproof" blocks as a candidate for review, never as a confirmed finding, because the basis is the meaning of a Class A rating and the fire evidence, not a statute that names the word. A discount size, a promise of renewal and a promised grant are candidates: Safer from Wildfires sets no percentage, the FAIR Plan publishes no figure for the roof alone, and grant amounts were not set in the sources read.
+
+A competitor ad with no license number is a candidate, not a finding: the license may exist and the number may be elsewhere. The CSLB license lookup settles it, and unlicensed advertising is the board's to act on.
+
+The contract tests look for the statute's own words. A contract negotiated at the contractor's place of business needs no cancellation notice, a bonded job is outside the down payment cap, and jobs of $500 or less and commercial jobs are outside the statute, so the cancellation and down payment rows are candidates, not confirmed findings.
+
+"Best" and "#1" need a verifiable basis; a cited award may substantiate them, so they never auto confirm. California's false advertising statutes were not read for this build.
+
+The copy rules read English. Spanish, Chinese, Vietnamese, Tagalog and Korean ads and pages need a reader of that language for the claim, deductible, fire and warranty language.
+
+Business and Professions Code 7026 to 7159.14 as archived from the Legislature's site and on california.public.law; CSLB industry bulletins 24-07 and 25-04 A read Nov 19, 2026
+
+2025 California Wildland-Urban Interface Code 504.2, 507.1 (UpCodes); Cal. Code Regs. tit. 10, 2644.9; FAIR Plan wildfire hardening discounts flyer B read Nov 19, 2026

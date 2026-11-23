@@ -1,0 +1,75 @@
+Roofing work follows the weather twice: rain, wind, fire and snow make the jobs, and dry, calm days let crews do them. This desk reads the National Weather Service forecast for one point in each region and the alerts in force for California, with the excessive rainfall and fire weather outlooks by county, and turns them into two clocks: a weather trigger index that marks the hours when rain, wind, fire weather, heat or snow press on roofs, which set the ads and bids for the days after, and a work window that marks the days crews can tear off, the days for repairs and inspections, and the days to stay off roofs. All times are Pacific.
+
+The weather trigger index starts at 1.0 and adds for each sign of roof weather in the hourly forecast. Rain: 0.05 inch an hour or more adds the rate divided by 0.25 (up to 1.2), 1.5 inches in 24 hours adds 0.3 and 3 inches adds 0.6, and an atmospheric river named in the office's forecast discussion adds 0.2. Wind: gusts above 30 mph add one point for every 20 mph more, a High Wind Warning adds 0.5, and dry wind off the land (the Santa Ana, Diablo and sundowner pattern) adds 0.3. Fire weather: humidity of 15 percent or less with gusts of 25 mph adds 0.6, a Red Flag Warning over the point adds 0.8 and a Fire Weather Watch 0.4. Heat: 100 F adds 0.3 and 110 F adds 0.5. Snow: 0.5 inch an hour or more adds up to 1.0, 24 inches in 72 hours adds 0.5 and a Winter Storm Warning 0.3. Thunder, hail and a Flash Flood Warning add as well. Elevated is 1.4 or more and high is 2.0 or more; every weight is an assumption graded C. The work window marks daylight hours as good, marginal (rain chance of 25 to 49 percent, gusts of 22 mph or more, 95 F or more, frost, smoke, or a Red Flag Warning, when hot work stops) or blocked (rain chance of 50 percent or more, falling snow, thunder of 30 percent or more, or gusts of 30 mph or more); a day with four or more blocked hours is a day for no tear offs. Owners look for a roofer in the days after damage, so weather actions run after the window, never during it. Fire weather is different: it is a crew safety signal and a time for education, never for fear, and after a fire the disaster rules on price, license and contracts apply (module 03).
+
+Forecast as of November 23, 2026 at 2:38 PM Pacific (api.weather.gov (NWS Eureka EKA, Sacramento STO, San Francisco Bay Area MTR, Hanford HNX, Los Angeles LOX, San Diego SGX, Medford MFR, Reno REV, Las Vegas VEF, Phoenix PSR offices); SPC fire weather outlook; WPC excessive rainfall outlook; CNRFC). Refresh pulls the live forecast and alerts when the atlas is opened outside the Claude viewer; inside it, the snapshot stands and every window below should be read against its date.
+
+Rain and snow ahead at each forecast point, the excessive rainfall outlook by county, and what the forecasters say about atmospheric rivers.
+
+No office names an atmospheric river in its forecast discussion in this read. No machine readable atmospheric river scale forecast was found: the CW3E forecast page (https://cw3e.ucsd.edu/tools/forecasts/atmospheric-river-scale-forecasts/) publishes images only. This block carries what is public as data: the offices whose forecast discussion names an atmospheric river, and the forecast rain at each point (rain.qpf). The scale itself (AR1 to AR5) is explained in module 02. Scale forecasts ↗
+
+Two to three days ahead: stock tarps, sandbags for flat roof drains, sealant and pumps; clear gutters and scuppers on open jobs; dry in every open deck by the night before, or do not start the tear off. Call customers with roofs on the leak watch list.
+
+Fire weather hours are forecast hours with humidity of 15 percent or less and gusts of 25 mph or more, or under a Red Flag Warning or Fire Weather Watch. The warning criteria themselves are set by each forecast office and are not in the evidence behind this atlas, so the desk reads the warning, not a rule of its own. C
+
+A Red Flag Warning is a day for crew safety first: no hot work (torch applied membranes, kettles, grinding), vehicles off dry grass, and a plan to leave. Jobs in the warned zones should be closed up by the afternoon before. Do not advertise into fear while a fire burns. Hardening messages (Class A assembly, ember resistant vents, gutters and the first five feet) run as education in the warned zones only when no fire is burning there, and stop the moment an evacuation is ordered.
+
+Each county takes the kind of its most serious alert (warnings before watches and advisories; fire weather first, then rain, wind, snow, heat). An alert covers forecast zones, so a mountain or coast alert colors the whole county here. A
+
+For 72 hours: wind damage repair and inspection ads where gusts of 58 mph or more were measured (module 02 shows the reports). Lifted shingles, slipped tile, ridge caps and flashing are the calls. Offer inspections, not outcomes. Raise wind and rain damage and roof repair and leaks bids 25% in North Coast for the 72 hours after each high window. On no tear off days, book inspections and small repairs, and move material deliveries.
+
+12a to 6a +10% · 6a to 9a +15% · 9a to 12p +15% · 12p to 5p +10% · 5p to 9p +15% · 9p to 12a +5%, from the emergency template (module 12), on top of the window's lift.
+
+Runs of elevated (1.4 or more) and high (2.0 or more) trigger hours, the kind of weather behind each, and the bid lift for the 72 hours after.
+
+Rain and flood: An atmospheric river or a long rain: tarps and dry in on every open job before it arrives, phones staffed for leak calls during it, leak repair and inspection ads in the covered ZIPs for 72 hours after it. Keep replacement ads running.
+
+Wind: Gusts over 30 mph: no tear offs, secure material and stacks. After the event, repair and inspection ads for lifted shingles and slipped tile in the warned zones; with dry offshore wind treat the day as fire weather too.
+
+Central Siskiyou County; Southwestern Humboldt; Interior Del Norte; Northeastern Interior Humboldt; Northern Coastal Humboldt; Southeastern Interior Humboldt; Coastal Del Norte
+
+Coastal Del Norte; Southwestern Humboldt; Coastal Mendocino; Northern Coastal Humboldt; San Francisco; Coastal North Bay Including Point Reyes National Seashore; San Francisco Peninsula Coast; Northern Monterey Bay and 8 more areas
+
+Coastal North Bay Including Point Reyes National Seashore; San Francisco Peninsula Coast; Northern Monterey Bay; Southern Monterey Bay and Big Sur Coast; San Francisco; San Luis Obispo County Beaches; Santa Barbara County Central Coast Beaches; Ventura County Beaches
+
+Coastal North Bay Including Point Reyes National Seashore; San Francisco Peninsula Coast; Northern Monterey Bay; Southern Monterey Bay and Big Sur Coast; Catalina and Santa Barbara Islands; Santa Barbara County Southwestern Coast; Santa Barbara County Southeastern Coast; Ventura County Beaches and 6 more areas
+
+Santa Barbara County Southwestern Coast; Santa Barbara County Southeastern Coast; Ventura County Beaches; San Luis Obispo County Beaches; Santa Barbara County Central Coast Beaches; Malibu Coast; Los Angeles County Beaches; Catalina and Santa Barbara Islands and 1 more areas
+
+Before	Two to three days ahead: stock tarps, sandbags for flat roof drains, sealant and pumps; clear gutters and scuppers on open jobs; dry in every open deck by the night before, or do not start the tear off. Call customers with roofs on the leak watch list.
+
+During	Crews stay off wet roofs. Staff the phones for leak calls and book them in order; tarp only where it can be done safely. Leak repair ads stay on; replacement ads keep running.
+
+After	For 72 hours after the window: leak repair and inspection ads in the ZIPs the rain covered, with the bid lift. Leak calls keep coming for days because owners find stains late. Re-roof enquiries follow in the weeks after a wet winter.
+
+The rules	A contract to repair a home damaged in a declared emergency carries a seven business day right to cancel; the ordinary right is three business days, five for a senior (Business and Professions Code 7159). Negotiating a claim with the insurer for pay is public adjusting and needs that license (Insurance Code 15006 and 15007). Write the estimate and the scope; do not offer to handle the claim. Never offer or advertise a discount meant to offset the deductible, and never pay an agent, broker or adjuster for a referral (Penal Code 551).
+
+Each playbook is practice written for this atlas (grade C); the rules quoted are from the law register in module 03 and are checked against the copy by module 10. The seven day wait before soliciting in a reopened disaster area binds public adjusters by statute; the evidence holds no such statute for roofers, so the playbooks treat the reopening of the area as the floor for any outreach.
+
+Rain season. Leak calls, tarps and emergency repairs. Tear offs need a dry window; book re-roofs for the dry months before it. Months from: atmospheric rivers by month (CW3E catalog).
+
+Santa Ana season. Dry offshore wind in the south: lifted shingles and tile, and the highest fire danger of the year. Months from: Scripps Santa Ana winds regional index, mean days by month, 1948 to 2018.
+
+Fire season. Hardening work sells before it; after a fire the disaster rules on price, license and contracts apply. Months from: acres burned by month of ignition (CAL FIRE perimeters).
+
+Heat season. Inland crews start at first light; shade above 80 F and high heat procedures at 95 F are the law for outdoor work. Months from: heat and excessive heat records by month.
+
+Snow season. Mountain roofs: snow load, ice dams and short work days. Re-roofs wait for the melt. Months from: heavy snow and winter storm records by month.
+
+Holidays are the federal ones with the weekends they make, plus California's Farmworkers Day (named Cesar Chavez Day through 2025), for 2026 and 2027: March 31, 2026 from the Secretary of State's list of state holidays; for 2027 the Secretary of State had posted no list when this was compiled, so the date shown, April 9, is the one on the California courts' 2027 holiday schedule. A season's months are the fewest months that hold 80 percent of its record, except Santa Ana months, which are those with three or more Santa Ana days in an average year.
+
+Atmospheric rivers peak in December; Heavy rain and flood records peak in January; High wind records peak in January; Santa Ana days peak in December; Acres burned peak in July; Heavy snow and winter storms peak in February; Heat records peak in July. The service line seasons in module 12 follow these with a lag, because owners call after they find the damage.
+
+api.weather.gov points, forecast, hourly forecast and raw gridpoint data (rain and snow amounts, wind gusts and direction, humidity, thunder probability and the weather attributes) for 11 points, and the active alerts for California with their zones. These are what Refresh pulls live.
+
+Station observations, the area forecast discussions of the ten offices (EKA, STO, MTR, HNX, LOX, SGX, MFR, REV, VEF, PSR), the fire weather outlook, the excessive rainfall outlook and the river forecast center discussion are read when the atlas is built and are not refreshed in the page.
+
+The Storm Prediction Center fire weather outlook (days 1 and 2) and the Weather Prediction Center excessive rainfall outlook (days 1 to 3), each intersected with county boundaries: a county takes the highest level that covers part of it.
+
+No machine readable forecast on the atmospheric river scale is public, so the desk reads rain amounts from the forecast grid and notes when an office names an atmospheric river in its discussion.
+
+Common roofing practice: no tear offs with rain likely, snow falling, lightning nearby or gusts over 30 mph. The heat line is the state outdoor heat rule: shade above 80 F and high heat procedures at 95 F or more (Title 8, section 3395). Smoke is read from the forecast text and from air quality alerts; the desk does not read an air quality index (grade C).
+
+Federal holidays and California's Farmworkers Day for 2026 and 2027 (Secretary of State, state holidays; California courts, holiday schedule; both read November 23, 2026), and seasons from the record by month.
+
+California Roofer Guru, module 14. Forecasts and alerts from the National Weather Service; outlooks from the Storm Prediction Center and the Weather Prediction Center. The trigger index and the work window are planning tools, not predictions about any roof.

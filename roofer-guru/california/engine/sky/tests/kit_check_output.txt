@@ -1,0 +1,42 @@
+ok   the kit is made
+     built near Coronado: Naval Base Coronado and Naval Base San Diego [28 ships]; San Diego-Coronado Bridge [crest 69 m, 2640 m of mapped bridge]; Lights of San Diego International Airport [246 lamps]; Lights of North Island Naval Air Station-Halsey Field [460 lamps]; Lights of Miramar Marine Corps Air Station - Mitscher Field [646 lamps]
+ok   no errors
+ok   S.deckAt is published
+     ships: {"carrier":1,"lcs":11,"ddg":14,"lha":2}, prisms 29
+ok   one carrier at the quay, destroyers, littoral combat ships and two assault ships at the piers
+ok   ship sizes: carrier 332.8 x 76.8 m (1,092 x 252 ft), destroyer 155.3 x 20 m (509.5 x 66 ft), LCS 127 x 32 m, assault ship 257 x 32 m
+     meshes (beam x length): carrier 76.8 x 332.8, destroyer 20.0 x 155.2, LCS 31.8 x 127.0, assault 32.0 x 257.0
+ok   the meshes measure what the classes say
+ok   28 ships, 0 overlapping
+ok   the flight deck is solid: a prism of 18 points, top at 19.5 m
+ok   Seahawks: 3 on the circuit, between 0 and 500 ft (FAA remark: surface to 500), fastest 90 kt (type's limit 146)
+ok   none flying at 3 a.m.
+ok   vessels under way: ferry, sail, sail, sail, sail, ddg
+     Coronado: mapped 2640 m (evidence 11,179 ft = 3,407 m with approaches), channel pier at 1317 m, deck 0.1 to 68.1 m, steepest 9.4 % at 2441 m
+ok   Coronado: deck 66.5 m over the channel, the girder's underside 61.1 m (evidence: 200 ft = 61 m clear)
+ok   Coronado: climbing 4.67 % from the island (evidence 4.67)
+ok   Coronado: a deck all the way, no step in it
+ok   Coronado: the mapped line turns 90 degrees (evidence 80)
+ok   Coronado: 9 m off the centre line is on the deck, 14 m off is not
+     built near San Francisco: Golden Gate Bridge [towers 1281 m apart]; Bay Bridge [west towers 705 and 705 m apart]; Lights of San Francisco International Airport [1125 lamps]; Lights of Oakland San Francisco Bay Airport [879 lamps]
+ok   Golden Gate: towers 1281 m apart (evidence 4,200 ft = 1,280 m)
+ok   Golden Gate: roadway 75.0 m at the towers (evidence 746 - 500 ft = 75 m), 79.0 m at mid span, 71.4 m under the truss (evidence: 220 ft = 67 m clear)
+ok   Golden Gate: a deck over 2724 m (evidence 8,981 ft = 2,737 m), steepest 1.2 % (the flat world's ramps at the ends)
+ok   Golden Gate: 27 m wide (evidence 90 ft)
+ok   Bay Bridge west: main spans 705 and 705 m (evidence 2,310 ft = 704 m)
+ok   Bay Bridge west: 3177 m between its end piers (evidence 10,304 ft = 3,141 m)
+ok   Bay Bridge west: upper deck 72.5 m, lower 65.0 m at mid span (evidence: 220 ft = 67 m clear; the deck heights are assumed)
+ok   Bay Bridge west: a deck over 4437 m from the city to the island, steepest 7.5 % at 101 m (W1 at 925)
+ok   Bay Bridge east: a deck over 3620 m, 57 m down to 0.2 m, steepest 3.8 %
+ok   Bay Bridge east: 63.4 m across both decks (evidence 258.33 ft = 78.7 m)
+ok   after the origin moves 9 km the deck at the same place is 77.53 m (was 77.53)
+ok   and the bridge is built again
+ok   Vincent Thomas: towers 454 m apart (evidence 1,500 ft = 457 m)
+ok   Vincent Thomas: deck 61.5 m, 56.9 m under it (evidence about 185 ft = 56 m)
+ok   Vincent Thomas: a deck over 2023 m (evidence 6,060 ft = 1,847 m), steepest 7.2 % at 1901 m, W 913 E 1367
+ok   LAX lights at night: 1251 lamps
+ok   42 flights drawn round Los Angeles at 10:30
+ok   switched off: nothing built, no decks
+     meshes built 55, triangles 144123; errors: none
+ok   no errors at the end
+ALL OK

@@ -84,11 +84,10 @@
     function pumpNet() {
       while (active < 6 && NETQ.length) { const t = NETQ.shift(); if (t.st !== 'load' || t.going) continue; active++; t.going = true;
         load(t).then(d => { active--; t.going = false; t.d = d; t.st = 'ok'; T.stats.ok++; T.epoch++; trim(); tellSoon(); pumpNet(); },
-          () => { active--; t.going = false; t.st = 'err'; t.at = performance.now(); t.tries++; T.stats.err++; tellSoon(); pumpNet();
-            if (t.tries < 5) setTimeout(() => { if (TILES[t.li].get(t.x * 65536 + t.y) === t && t.st === 'err' && T.on) { t.st = 'load'; t.at = performance.now(); NETQ.push(t); pumpNet(); } }, [5000, 15000, 45000, 120000][t.tries - 1]); }); }
+          e => { active--; t.going = false; t.st = 'err'; t.at = performance.now(); t.tries++; t.why = String((e && e.message) || e).slice(0, 80); T.stats.err++; tellSoon(); pumpNet(); }); }
     }
     function request(li, x, y) {
-      const n = 1 << LAD[li]; if (!T.on || x < 0 || y < 0 || x >= n || y >= n) return null; const k = x * 65536 + y; let t = TILES[li].get(k); if (t) { t.used = clock; return t; }
+      const n = 1 << LAD[li]; if (!T.on || x < 0 || y < 0 || x >= n || y >= n) return null; const k = x * 65536 + y; let t = TILES[li].get(k); if (t) { t.used = clock; if (t.st === 'err' && performance.now() - t.at > Math.min(60000, 4000 * Math.pow(2, t.tries))) { t.st = 'load'; t.at = performance.now(); NETQ.push(t); pumpNet(); } return t; }   /* a tile that failed is asked for again after 8, 16, 32, then every 60 seconds, for as long as something wants it */
       t = { li, x, y, st: 'load', d: null, at: performance.now(), tries: 0, used: clock, going: false }; TILES[li].set(k, t); total++; NETQ.push(t); pumpNet(); return t;
     }
     /* no more than 72 tiles are held (about 19 MB): the ones longest unread go first */
@@ -196,6 +195,8 @@
       if (coverDirty) { cover(); did = true; } T.stats.loading = NETQ.length + active; T.stats.held = total; return did || BQ.length > 0;
     };
     T.resort = () => { bqDirty = true; };
+    /* every few seconds the ground that exists asks for its elevation again: that is what brings back a tile that failed */
+    setInterval(() => { if (!T.on || !engine.running || !T.stats.err) return; let any = false; TILES.forEach(m => m.forEach(t => { if (t.st === 'err') any = true; })); if (any) REG.forEach(g => { if (!g.dead) want(g.r, g.L.li); }); }, 4000);
 
     /* ---------- the height of the drawn ground ---------- */
     let gk = null, gkGen = -1;
@@ -262,7 +263,7 @@
     /* ---------- a new origin: grids in local metres are dropped (tiles of elevation stay) ---------- */
     T.reset = () => { [...REG.values()].forEach(T.drop); BQ.length = 0; LAT.clear(); lb = null; gk = null; regGen++; };
     T.info = () => ({ on: T.on, ok: T.stats.ok, failed: T.stats.err, loading: NETQ.length + active, held: total, grounds: REG.size, built: T.stats.built, queue: BQ.length, grid: !!grid(), datum: S.y0 || 0 });
-    T.tiles = () => TILES.map((m, li) => [...m.values()].map(t => LAD[li] + '/' + t.x + '/' + t.y + ':' + t.st));
+    T.tiles = () => TILES.map((m, li) => [...m.values()].map(t => LAD[li] + '/' + t.x + '/' + t.y + ':' + t.st + (t.why ? ' ' + t.why : '')));
     S.terr = T; S.gy = T.gy; S.slopeAt = T.slope; S.y0 = S.y0 || 0; S.elevAt = (lat, lon) => { const h = T.elev(lat, lon, 0); return h === h ? h : S.y0 || 0; };
     return T;
   }

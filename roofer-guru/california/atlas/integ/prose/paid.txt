@@ -1,0 +1,51 @@
+Job flow is not the same as a good place to spend. Los Angeles, Orange County, the Bay Area and San Diego carry the most roofs and the most expensive clicks, because every large roofer and every lead seller buys them. This module divides each ZIP's gross profit pool by what a click is likely to cost there, splits the state into four quadrants of demand and competition, and turns the ranking into tiers and bid modifiers the Campaign Desk can upload.
+
+Efficiency here is gross profit pool a year ÷ relative cost per click, ranked across the scored ZIPs. The gross profit pool comes from the service line model at your assumptions (module 12). The relative cost is a stated model, not a keyword pull: a regional factor for each media market (Bay Area 1.00 down to Far North 0.55; assumptions) times a competition term from the C-39 roofing licenses and the roofing employers nearby (0.8 to 1.2). No keyword planner, auction or Ahrefs data was used. When your accounts are connected (module 15), actual cost per click and cost per sold job replace the model ZIP by ZIP.
+
+Darker ZIPs return more gross profit per click dollar for the lines in the plan. A+ top 5% (+30%), A next 10% (+20%), B next 20% (+10%), C 25% (0), D 25% (−20%), E bottom 15% (−50%). D
+
+Job flow (gross profit pool percentile) against competitive pressure, split at the 60th percentile of each. Each quadrant gets a different play.
+
+Anchor	Defend: exact and phrase match on the line terms, brand plus city ad groups, highest bids only where the tier is A or better. Organic: city pages with local roof age, weather, fire zone and insurance facts, reviews, photos of local jobs and pages in the languages the city speaks; these markets are won on trust and coverage, not on bids.
+
+Whitespace	Expand first: the cheapest sold jobs in the state sit here. Broader match, radius around the ZIP cluster, Local Services Ads where available, and a city page for every town in the cluster. This is the first money of any new budget.
+
+Niche	Maintain: low bids and county level pages; let organic, maps and referrals carry the volume. Raise the line that is unusually strong in the ZIP (module 12), not the whole account.
+
+A monthly budget spread across a target set by gross profit pool per click cost, with the clicks, leads, sold jobs and gross profit it buys at your assumptions. Change the inputs; the table follows.
+
+229 ZIPs · $15,000 a month buys about 592 clicks, 48 leads and 12.3 sold jobs worth $72.6K in gross profit at your assumptions: $1,222 per sold job.
+
+Module 01 ranks job flow per resident. This module ranks gross profit per dollar of clicks. Where they disagree is where the budget decision lives.
+
+Across 1,531 ZIPs the index and the efficiency percentile correlate r = −0.11 (Spearman -0.11). They agree on the broad picture and part ways on two kinds of ZIP.
+
+Rises here (large ZIPs where the roof count is big and the modeled click is cheaper): 92563 Murrieta (index 7, efficiency 97); 93619 Clovis (index 9, efficiency 98); 92618 Irvine (index 3, efficiency 92); 92336 Fontana (index 11, efficiency 98); 92584 Menifee (index 7, efficiency 93).
+
+Falls here (high job flow per resident but few residents, or a crowded field): 96105 Chilcoot (index 95, efficiency 4); 95960 North San Juan (index 99, efficiency 9); 96038 Grenada (index 94, efficiency 6); 96107 Coleville (index 96, efficiency 9); 94933 Forest Knolls (index 94, efficiency 8).
+
+Paid media pays for clicks, so it should follow gross profit per click (this module). Organic pages earn rank by relevance, so a small town with old roofs, a fire zone or a wet winter and no competitor page is often the better SEO target (module 01 and the city table in module 12).
+
+The regional half of the cost model. Media markets are named by their principal cities only; which county buys through which market is not in the evidence. Replace the factors with account actuals as they arrive.
+
+Region factors are assumptions (grade D), highest to lowest: Bay Area 1.00, Los Angeles and Ventura 1.00, Orange County 1.00, San Diego and Imperial 0.90, Inland Empire 0.85, Sacramento Valley 0.80, Central Coast 0.80, San Joaquin Valley 0.65, North Coast 0.60, Sierra 0.60 and Far North 0.55. They follow where roofing licenses are thickest (Los Angeles, San Jose and Sacramento hold the most C-39 licenses by mailing city), not a price file: no California click cost was measured for this build. The competition term adds up to 20% where many roofers sit nearby and subtracts up to 20% where few do. After a wildfire or in the week of a strong atmospheric river, clicks in the affected area can cost well above these levels while every roofer and lead seller bids in.
+
+1 · Gross profit pool	For each ZIP and each line in the plan: jobs a year × share open to marketing × default job value × gross margin (module 12 assumptions), summed over the lines chosen.
+
+2 · Relative cost	Region factor (Bay Area 1.00 down to Far North 0.55) × (0.8 + 0.4 × competitive pressure percentile ÷ 100). Pressure is 60% the distance weighted count of active C-39 roofing licenses (each license counts 1 ÷ (1 + (distance ÷ 10 km)²), by mailing ZIP, CSLB November 2026) and 40% roofing employer establishments weighted the same way (ZIP Code Business Patterns 2023), as a percentile across the scored ZIPs. The first edition of this atlas weighed named company offices; California has no honest roster of companies by size, so licenses stand in.
+
+4 · Tiers and bids	A+ at the 95th percentile and up (+30%), A 85th (+20%), B 65th (+10%), C 40th (0), D 15th (−20%), E below (−50%). Upload as location bid adjustments; never above +30% until account data confirms the ZIP.
+
+6 · Budget	Share of budget ∝ (gross profit pool ÷ cost)^alpha within the target set; clicks, leads and jobs from each line's click cost, conversion and close rates; capped at a twelfth of the ZIP's jobs open to marketing a year.
+
+No keyword data	No search volume, auction or Ahrefs data was pulled for this build. Search volume by ZIP does not exist publicly; Google reports it by metro and state.
+
+Long run, not this week	ZIPs are ranked by their roofs, weather and fire record over the long run. After a specific storm or fire, the record in module 02 and the Weather Desk (module 14) override this ranking for weeks.
+
+Competition is counted in licenses	5,587 active C-39 licenses and 2,926 roofing employer establishments stand for the field. A license is an address without a size: a one truck roofer and a 200 person firm count the same, and general (B) contractors who roof are not counted. Only 4 companies are named, from public sources.
+
+Not used: demographics as targeting	Race, ethnicity, religion and similar attributes are not inputs, and the Desk never targets by them. Language spoken at home is used only to decide where to add ads and pages in Spanish, Chinese, Vietnamese, Korean, Tagalog or another language the company serves.
+
+Not used: single homes as targets	Lists of specific damaged or burned homes, owners named in claim, FEMA or non-renewal records, and geofences drawn around one property are excluded. Target ZIPs and event areas, and confirm damage roof by roof with the owner's permission.
+
+Caveat: job values	Default job values are placeholders. A company that does not sell commercial or metal work should switch those lines off, and one with a higher ticket should raise the replacement value, before trusting the ranking.

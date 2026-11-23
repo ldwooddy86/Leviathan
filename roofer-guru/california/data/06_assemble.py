@@ -40,7 +40,7 @@ for v in haz['by_zip'].values():
 hz_cols = [HZ_RENAME.get(c, c) for c in hz_src_cols]
 
 # ------------------------------------------------------------------ ZIP columns, in order
-A_ID = ['zip', 'city', 'pi', 'reg', 'lat', 'lon', 'sqmi', 'wsqmi', 'gid', 'place', 'ncty']
+A_ID = ['zip', 'city', 'pi', 'reg', 'lat', 'lon', 'sqmi', 'wsqmi', 'gid', 'place', 'ncty', 'cz']
 B_PEOPLE = ['pop', 'hh', 'inc', 'value', 'own_sh', 'sfd_sh', 'mf5_sh', 'span_sh', 'span_lep_sh', 'viet_sh', 'chin_sh', 'tagalog_sh',
             'korean_sh', 'arabic_sh', 'slavic_sh', 'oie_sh', 'chin_lep_sh', 'viet_lep_sh', 'korean_lep_sh', 'tagalog_lep_sh', 'lep_sh',
             'lang2', 'anc_arm', 'anc_iran', 'hisp_sh', 'asian_sh', 'hh100k_sh', 'hh200k_sh', 's65_sh', 'age_med', 'density']
@@ -76,10 +76,26 @@ def tidy(v):
     return v
 
 
+# Title 24 building climate zone by ZIP code (1 to 16): California Energy Commission, "Building Climate Zones by ZIP
+# Code" (Energy Code Reference Joint Appendix JA2), the copy the topography job downloaded 2026-11-19
+# (CA/scout/topo/dl/cec/zip.xlsx, kept here as dl/cec/zip.xlsx). Null where the Commission's list has no row for the ZIP.
+import zipfile, re
+CZ = {}
+_x = zipfile.ZipFile(os.path.join(HERE, 'dl', 'cec', 'zip.xlsx')).read('xl/worksheets/sheet1.xml').decode()
+for _row in re.findall(r'<row[^>]*>(.*?)</row>', _x, re.S)[1:]:
+    _d = dict(re.findall(r'<c r="([A-Z]+)\d+"[^>]*>(?:<v>(.*?)</v>)?', _row))
+    try:
+        _zp, _zn = int(float(_d['A'])), int(float(_d['B']))
+    except (KeyError, ValueError):
+        continue
+    if 90000 <= _zp <= 96999 and 1 <= _zn <= 16:
+        CZ['%05d' % _zp] = _zn
+
 zobj = []
 for d in Z:
     z = d['zip']
     o = dict(d)
+    o['cz'] = CZ.get(z)
     o.update(RR[z])
     o.update(LR[z])
     h = haz['by_zip'].get(z, {})
@@ -245,6 +261,16 @@ if os.path.exists(hp):
         else:
             ts[k] = v
     merged.append('hazard_ts.json')
+# A second count of atmospheric river landfalls, beside the hazard job's `ar_wy`. `ar_wy` merges events at neighbouring
+# coast points that overlap in time, so two rivers ashore at once on separate stretches of coast count as two (about 31
+# a water year). The research tabulation (CA/dl/hazard/atmospheric_rivers/tabulate_cw3e_ar.py) merges every event on
+# the California coast that overlaps in time, so it counts spells with a river ashore anywhere in the state (about 23
+# a water year). Both are this atlas's tabulations of the CW3E catalogue, not counts CW3E publishes.
+_ap = os.path.join(CA, 'dl', 'hazard', 'atmospheric_rivers', 'CW3E_AR_counts_by_coast_stretch_wateryear_scale.csv')
+if os.path.exists(_ap):
+    import csv as _csv
+    ts['ar_wy_state'] = {r['water_year']: [int(r['AR%d' % k]) for k in range(1, 6)]
+                         for r in _csv.DictReader(open(_ap, encoding='utf-8')) if r['stretch'].startswith('All California')}
 hp = os.path.join(HAZ, 'hazard_pts.json')
 extra_top = {}
 if os.path.exists(hp):
@@ -330,7 +356,7 @@ ASSUME = [
     'Solar in ZIPs served by city or district utilities (Los Angeles DWP, SMUD and others) is not in the state interconnection file; those ZIPs take the county\'s share from covered ZIPs or the older Project Sunroof count, whichever is larger (column solar_src = "est").',
     'Mobile homes: AHS West 4.15% a year with 46% done by the owner (22 sampled costs); wind and rain damage at the site built rate.',
     'Multifamily buildings are estimated at 7, 14, 30 and 80 homes a building by ACS size class and replaced on a 22 year life; commercial roofs also 22 years (carried from the model\'s original assumptions).',
-    'Commercial roofs: 5.9 million U.S. commercial buildings (CBECS 2018) times California\'s share of U.S. residents, spread by establishments weighted by building type (weights by judgment).',
+    'Commercial roofs: 5,918,000 U.S. commercial buildings (Energy Information Administration, Commercial Buildings Energy Consumption Survey 2018, Table B1, revised December 2022; read 2026-11-23) times California\'s share of U.S. residents, spread by establishments weighted by building type. The national count is the survey\'s; giving California its share of residents, and the weights by building type, are assumptions: the survey publishes no California count.',
     'Coatings: 3% of commercial roofs a year (the model\'s original assumption).',
     'Roof leak rates by decade built are the AHS Southern profile by decade rescaled so the California stock averages the AHS Pacific 5.25%; 55% fixed by a paid roofer.',
     'A ZIP belongs to the county holding the largest share of its land.',

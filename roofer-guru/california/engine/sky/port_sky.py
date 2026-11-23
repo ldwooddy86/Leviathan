@@ -26,8 +26,8 @@ rep("    engine.on('update', dt => {\n",
     "    const SKY = SE.SkyKit(engine, S, { need, onError: (w, e) => { try { console.warn('sky kit: ' + w, e); } catch (x) { /* no console */ } } });\n"
     "    engine.on('update', dt => {\n")
 # one call a frame, after the camera is placed
-rep("      placeCamera(); pump();\n",
-    "      placeCamera(); pump();\n"
+rep("placeCamera(); pump();\n",
+    "placeCamera(); pump();\n"
     "      if (SKY.update(dt, cam.entity.transform.position, { night: smoothstep(2, -6, S.sunAlt), moving: engine.playing && engine.awake && engine.live, on: gfx.air !== false })) need();\n")
 rep("built: S.built, roads: S.roads.length,", "air: SKY.state(), built: S.built, roads: S.roads.length,")
 rep("live: engine.live, gpu: dev.caps.gpu,", "air: gfx.air !== false, live: engine.live, gpu: dev.caps.gpu,")

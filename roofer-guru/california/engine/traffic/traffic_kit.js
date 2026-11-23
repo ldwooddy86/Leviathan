@@ -58,7 +58,8 @@
     /* how much a vehicle's nose is up, from the ground under its two ends and the deck it is on */
     const pitchOf = (c, hl) => { if (!S.gy) return 0; const a = GY(c.x + c.hx * hl, c.z + c.hz * hl), b = GY(c.x - c.hx * hl, c.z - c.hz * hl); return clamp((a - b) / (2 * hl), -0.4, 0.4); };
     /* the street traffic's cars are placed through here too (the port routes StreetKit's own line to it): on the ground or the deck under them, nose up or down with the slope */
-    SE.carPut = (ib, Sx, c, alpha) => put(ib, c.x, GY(c.x, c.z) + (c.dk || 0), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, c.hl || 2.4), c.col, alpha);
+    /* where the terrain kit has taken a buffer in hand (S.terr.onGround: it lifts and tilts what is added), the car goes through it, with its deck height if it is on one */
+    SE.carPut = (ib, Sx, c, alpha) => { if (ib._onGround) ib.add(c.x, c.dk ? GY(c.x, c.z) + c.dk : 0, c.z, c.yaw, 1, 1, 1, c.col[0], c.col[1], c.col[2], alpha); else put(ib, c.x, GY(c.x, c.z) + (c.dk || 0), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, c.hl || 2.4), c.col, alpha); };
 
     /* ---------- building: the decks, the paint, the piers ---------- */
     const yel = K.hexRGB('#d9a92e'), wht = K.hexRGB('#e6e4dc'), conc = [0.62, 0.61, 0.58, 1], concD = [0.5, 0.49, 0.47, 1];

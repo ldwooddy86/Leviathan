@@ -18,3 +18,6 @@
 - todo after shots: SF + SD shots; look at pictures; cable cars drawn? demand `within` 350 at low quality (cap 240) is small.
 - fix7: lane-end lookahead (s.end), cable cap; re-ported. running shots batch (shots/run.log)
 - fix8: caps raised (far cars as boxes by day, lamps by night), TIGER not cached. NOT yet in out/tb.html (batch running on older build)
+- shots so far: shots/sd_i5_17.png la_4level_15.png la_4level_03.png (camera on buildings; freeway at edge). batch 3 aims the camera along the road (tests/shots.js arg 7).
+- fix: sources are rate-based (headway of the hour's flow); SD 3h jam gone. re-ported + tb.html rebuilt
+- port chain terrain->weather->traffic->car applies (scratchpad/chain); carPut goes through terrain's onGround wrapper when present

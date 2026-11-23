@@ -89,6 +89,7 @@ Units: counts are homes or people unless said; `_sh` columns are percent 0 to 10
 | `gid` | kept | Google Ads location criterion ID of the postal code; null when Google lists none | Google Ads API geotargets file (see change list for the file date; null everywhere if the file could not be reached) |
 | `place` | new | largest Census place by land share, name without "city"/"CDP"; null when the ZIP is mostly outside any place | Census 2020 ZCTA to place file |
 | `ncty` | new | number of counties the ZCTA touches (1 to 4) | same county file |
+| `cz` | new (third issue) | Title 24 building climate zone, 1 to 16; null where the list has no row for the ZIP | California Energy Commission, "Building Climate Zones by ZIP Code" (Energy Code Reference Joint Appendix JA2), the file the topography job fetched 2026-11-19 (`CA/scout/topo/dl/cec/zip.xlsx`, copied to `CA/data/dl/cec/zip.xlsx`). Grade A for the zone; a ZCTA is treated as the postal ZIP of the same number |
 
 ### B. People (ACS 2020-2024 five-year, by ZCTA)
 
@@ -379,6 +380,7 @@ simply outside the outline; the bay polygons in `water` are there for a named fi
 | `ytd26`, `ytd25` | kept | units January to September 2026 and 2025 (Louisiana: to August) |
 | `agehist` | kept | 41 counts, state sum of `agez` |
 | `agehist_t` | new | 41 counts, state sum of `agez_t` |
+| `ar_wy_state` | new (third issue) | `{"1960".."2026": [AR1..AR5]}`: atmospheric river landfalls by water year and rank, every event on the California coast that overlaps in time merged into one (the research tabulation, `CA/dl/hazard/atmospheric_rivers/CW3E_AR_counts_by_coast_stretch_wateryear_scale.csv`, row "All California"): 23.5 a water year 1960 to 2025. The hazard job's `ar_wy` merges only neighbouring coast points, so rivers ashore at once on separate stretches of coast count separately: 31.4 a water year. Both are this atlas's tabulations of the CW3E catalogue, not counts CW3E publishes |
 | `trop_month` | dropped | |
 
 ## 8. `comp`
@@ -535,3 +537,11 @@ coat 0.5. `W` = line's share of `fees_tot` x `TIER` (replace 0.48, tile 0.10, co
   - `meta`: `ahs.west`, `econ`, `hazard`, `notes`, `model.MKT`, `model.ROOF`, `model.PRIOR`, `model.CRU_W`, `model.LEAK` added.
   - Still open: the hazard job's final files were not on disk; rerun `bash build_all.sh 3` when they are, and this
     list will record the merge.
+- 2026-11-23, third issue (integration pass).
+  - Hazard merge is final: `meta.hazard.src` is "hazard job"; `hz`, `pts`, `ptflags`, `ptkinds`, the hazard `ts` keys and
+    the group E columns (with `snow_psf`) come from CA/data/hazard/out. Section 4's "state at this issue" column is history.
+  - New ZIP column `cz` (group A, after `ncty`): Title 24 building climate zone from the Energy Commission's list by ZIP.
+  - New `ts.ar_wy_state` beside the hazard job's `ts.ar_wy` (section 7 says which count is which).
+  - The CBECS figure behind `meta.model.ANCH.cru` was checked against the survey's own table: EIA, CBECS 2018, Table B1,
+    "All buildings" 5,918 thousand (file kept as `CA/data/dl/cbecs/b1.xlsx`, read 2026-11-23). The `meta.assume` line now
+    names the table and says which parts are assumption (California's share by residents; the weights by building type).

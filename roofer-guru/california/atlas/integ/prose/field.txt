@@ -1,0 +1,33 @@
+California roofing is a long tail with no public ranking. 5,587 active C-39 Roofing licenses stand against 2,926 roofing establishments with employees, about 1.9 licenses for each: many licensees have no payroll, and no public file says how big any of them is. So this module reads the field from what is counted: every licensed roofer by the ZIP and city where the license gets its mail, the establishments the Census Bureau counts, a pressure surface by ZIP built from both, and the ground where licensed roofers are few. The 4 named companies on record are only those a public source names; they are not a roster of the market.
+
+License records (5,587 active and unsuspended C-39 Roofing licenses in the Contractors State License Board's master file) show who may legally sell roofing: a license is needed for any job of $1,000 or more (Business and Professions Code 7048). A license is counted where it gets its mail, which is where the firm is, not where it works. Roofing contractors (2,926 establishments with employees in County Business Patterns, NAICS 238160, and 17,116 nonemployer firms in the exterior trades) measure the trade with a payroll. Named companies (4) are only those a public source names; fields nobody read on a company's own site are blank and flagged. Competitive pressure blends licenses near a ZIP (60%, weighted by distance) with roofing establishments (40%). None of this measures size or ad spend; module 13 watches the ads themselves.
+
+Companies a public source names. Not a ranking and not the market: there is no public measure of a California roofer's size. Click a row to open it.
+
+5,587 C-39 Roofing licenses are active and unsuspended, of 5,829 on the renewed roll; 242 are suspended, most often for a lapsed workers' compensation certificate. The four largest mailing cities (Los Angeles, San Jose, Sacramento and San Diego) hold 9% of them: the roll is spread thin across 649 cities. 170 licenses (3%) have an out of state address. Every licensee must show the license number in all advertising (Business and Professions Code 7030.5), which makes any roofing ad checkable against the roll. After a declared disaster, contracting without a license in the disaster area can be charged as a felony (Business and Professions Code 7028.16). A
+
+Mostly small	2,926 roofing establishments have employees (23,903 workers, about 8 each); the license roll is about 1.9 times as long, so roughly half the licenses belong to firms with no payroll or to firms whose main trade is something else.
+
+Workers' compensation	A C-39 licensee must keep a workers' compensation certificate on file even with no employees, and the insurer must audit the payroll in person every year (Business and Professions Code 7125; Insurance Code 11665). It is the commonest reason a roofing license is suspended.
+
+Sales staff	Anyone who solicits or signs home improvement contracts for a licensee must be a registered home improvement salesperson (Business and Professions Code 7152).
+
+Certifications, financing and Spanish pages were not read from company sites for this edition, so nothing is said about them. Module 13 is where to read a competitor's own pages and ads.
+
+Crowded and open counties	Active C-39 licenses per 10,000 residents run highest in Mono (6.8), Alpine (6.2) and Mendocino (3.7) and lowest in Imperial (0.4), Kings (0.3) and Inyo (0.0). A high rate can mean a crowded market or a county whose roofers work the next one over: read it with the pressure surface.
+
+Thin ground	168 scored ZIPs have 3 or fewer licensed roofers within 25 km, most of them in Far North (41), San Joaquin Valley (37) and North Coast (22). Job flow there is smaller per ZIP and the drive is long, but a roofer with a local address has few rivals, and in fire country the work is specialized.
+
+Spanish	0 of the named companies show Spanish pages. Los Angeles (1.01M), San Diego (258k), San Jose (212k) and Bakersfield (209k) hold the most residents who speak Spanish at home. The Campaign Desk builds Spanish only where limited English is common, with the license number in Spanish.
+
+Thin lines	Roof replacement (0 companies), Roof repair and leaks (0 companies), Wind and rain damage (0 companies) are marketed by the fewest named companies. With so few companies read, treat this as a hint.
+
+Pressure is not price	The pressure surface feeds the cost model in module 05; actual auction prices arrive with account data (module 15). After a large storm or fire, crews and advertisers arrive from other counties and prices jump for weeks.
+
+License counts	Every license in the CSLB master file whose classifications include C-39, counted at the mailing ZIP and city on the license. Active means status clear. The file lists renewed licenses only, so the roll is not everyone who ever held the class.
+
+Within 25 km	Licenses are placed at the center of their mailing ZIP and counted within 25 km of each ZIP's center. The distance was carried over from the first edition; in a large metro nearly every ZIP has many, which is why the thin field is defined by the lowest tenth and not by zero.
+
+Named companies	4 companies are listed, only those a public source names. 0 were read on their own sites. A ranked California roster could not be built honestly: no public file measures size.
+
+California Roofer Guru, module 07. License counts from the Contractors State License Board; company names and claims are quoted from public sources for competitive research. Compiled November 19, 2026.

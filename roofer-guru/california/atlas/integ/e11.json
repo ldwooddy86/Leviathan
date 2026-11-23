@@ -1,0 +1,4 @@
+[
+{"file":"13_m01_index.js","old":"{ l: 'Gross profit pool a year', g: 'D', v: MM(META.fees_tot), d: `all ${nl} lines at default assumptions` },","new":"{ l: 'Gross profit pool a year', g: 'D', v: MM(META.fees_tot), d: `all ${nl} lines at default assumptions, every ZIP; ${MM(sum(ZR.map(z => z.fees || 0)))} of it in the ${N(ZR.length)} scored ZIPs the other tabs rank` },"},
+{"file":"24_m12_lines.js","old":"a year across the ${nl} lines at the current tickets, shares and margin: the market's gross profit, not one company's.","new":"a year across the ${nl} lines in the ${N(ZR.length)} scored ZIPs at the current tickets, shares and margin (${MM(META.fees_tot)} with the small ZIPs that are not scored, at the defaults): the market's gross profit, not one company's."}
+]

@@ -6,7 +6,7 @@
    integration) is id:secret; every request carries a short lived HS256 JWT (kid = id, aud /admin/, 5 minutes) as
    "Authorization: Ghost <jwt>" (https://docs.ghost.org/admin-api#token-authentication). Accept-Version tells Ghost the lowest
    major the client can work with (https://docs.ghost.org/faq/api-versioning/); the adapter reads the site's version once and sends
-   v<major>.0 so a Ghost 6 site is not asked for v5 behaviour. The page markup and css travel inside one HTML card so the Lexical
+   v<major>.0 so a Ghost 6 site is not asked for v5 behavior. The page markup and css travel inside one HTML card so the Lexical
    conversion keeps them; JSON-LD and robots go in the page's own code injection head; SEO fields go in the meta fields. */
 (() => {
   const ADMIN = '/ghost/api/admin';       /* https://docs.ghost.org/admin-api#url */

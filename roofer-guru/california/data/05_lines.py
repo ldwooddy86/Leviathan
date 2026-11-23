@@ -31,7 +31,7 @@ TIER = {'replace': 1.0, 'repair': 1.0, 'storm': 0.75, 'fire': 0.75, 'harden': 0.
         'mf': 0.75, 'comm': 0.5, 'coat': 0.5, 'newc': 1.0}
 DMA = {1: 0.60, 2: 0.55, 3: 0.80, 4: 0.60, 5: 1.00, 6: 0.80, 7: 0.65, 8: 1.00, 9: 1.00, 10: 0.85, 11: 0.90}
 US_POP = 334922499          # ACS 2020-2024 B01003, United States row
-CBECS = 5.9e6               # commercial buildings, United States, CBECS 2018
+CBECS = 5.9e6               # commercial buildings, United States: EIA CBECS 2018 Table B1 gives 5,918 thousand (dl/cbecs/b1.xlsx, read 2026-11-23)
 state_pop = base['state']['pop']
 ANCH = {
     'cru': int(round(CBECS * state_pop / US_POP, -4)),

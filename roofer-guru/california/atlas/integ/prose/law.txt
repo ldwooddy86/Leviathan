@@ -1,0 +1,377 @@
+More law touches a California roofer than a roofer almost anywhere else. The license line is $1,000 and the license number goes on every ad. A residential job over $500 needs the state's written contract, a down payment capped at $1,000 or 10 percent, and a right to cancel of three, five or seven business days. Roofers alone must carry workers' compensation with no employees. After a declared disaster prices are capped for 180 days and unlicensed work can be a felony. In a fire zone, replacing half a roof brings the Class A new roof rules; across most of the state, replacing more than half brings the cool roof rules. Insurers work to a 15, 40 and 30 day clock and must weigh a Class A roof in the rate, at no set percentage. Each item below carries its citation, its source and a grade, and the calculators turn the rules into answers for one job.
+
+Sources statutes by archive capture and california.public.law; Title 10 and Title 8 regulations; Title 24; CSLB; Department of Insurance; eCFR
+
+This register is written for the people who run and market a California roofing company: what the law is and what each rule does to licensing, contracts, claims, codes and copy. It is not legal advice, the calculators are screening tools, and a contract, a license question or a dispute belongs with a California lawyer and the Contractors State License Board. Grades: A, the primary text was read (an agency page, or the Legislature's page by dated archive capture); B, the text was read on a transcription host; C, a secondary source; D, our own reading, or searched for and not found. Where something could not be verified the register says so instead of guessing, and the last card lists every gap.
+
+Health & Safety Code 13132.7(b), (d), (f), (j); Los Angeles Department of Building and Safety Information Bulletin P/BC 2026-013; Los Angeles Ordinance 165047; San Diego Information Bulletin 123
+
+City of Los Angeles Ordinance 165047 restricts wood shake and shingle roofs for new construction and for replacement over 10 percent of the roof, treated or not. Today the city prohibits all wood roofing.
+
+2025 California Wildland-Urban Interface Code 503.2.3, 504.2.1.1, 504.2.1.2, 504.2.2, 504.3, 504.4, 504.10; 2022 California Building Code 705A.2 to 705A.4, 706A.2
+
+The roofing and attic vent requirements of the wildfire building standards take effect; the full Chapter 7A applies to permits applied for on or after July 1, 2008 (January 1, 2008 in State Responsibility Areas).
+
+AB 2219: a C-39 licensee must keep a workers' compensation certificate on file even with no employees, or the C-39 class is removed from the license.
+
+SB 824 of 2018: for one year after a declared state of emergency, insurers may not cancel or refuse to renew home policies in ZIP Codes within or next to the fire perimeter only because of the wildfire. SB 894 added two renewals after a total loss.
+
+SB 1474: the right to cancel a home improvement contract becomes five business days for a senior citizen, for contracts from this date. SB 1189: unlicensed contracting on disaster damage may be charged as a felony.
+
+Cal. Code Regs. tit. 10, 2644.9: insurers that price on wildfire risk must reflect a Class A roof and eleven other mitigation items in the rate. No percentage is set.
+
+AB 2622: the minor work exemption rises to $1,000, but only where the work needs no permit and the person employs no one. Cal/OSHA's lower lead exposure limits also start.
+
+The declaration starts the one year non-renewal moratorium, the 180 day price cap on repairs, the seven day right to cancel on repair contracts and the 36 month replacement cost window for the fire areas.
+
+Title 8, section 1731 as amended: residential roofing and reroofing, tear off included, needs fall protection where the fall distance is 6 feet or more (it was 15 feet), and at any height on slopes steeper than 7:12.
+
+AB 130 (effective June 30, 2025): no new state or local residential building standards from this date to June 1, 2031, except emergency standards and home hardening.
+
+Public Resources Code 4291 (Stats. 2025, ch. 731, AB 1455); Government Code 51182; Board of Forestry and Fire Protection, final draft approved August 19, 2026
+
+AB 1455 amends Public Resources Code 4291: the ember resistant zone within 5 feet takes effect for new structures when the Board of Forestry updates its regulations, and for existing structures three years later.
+
+The 2025 codes apply. The wildfire rules leave Chapter 7A for the new Wildland-Urban Interface Code, where replacing 50 percent or more of a roof in 12 months triggers the new roof rules. The cool roof values are unchanged.
+
+AB 1327: contracts carry an email address for cancellation. SB 517: subcontractors are disclosed on request. SB 291: minimum penalties of $10,000 and $20,000 for employing workers without coverage. AB 888 creates the Safe Homes grant program.
+
+SB 779, by the CSLB bulletin: fines for unlicensed activity start at $1,500. Insurance Code 2051.5: all policy forms issued or renewed must comply with the section in full.
+
+The Board approves the final draft of the Zone 0 defensible space regulations. As of November 19, 2026 no source confirmed approval by the Office of Administrative Law or an effective date.
+
+The current Business and Professions Code 7125 sunsets on this date, when the rule roofers already live under is due to reach all contractors.
+
+A contractor license is required: C-39 Roofing, or another class that covers the work. The total price is $1,000 or more. Splitting a job into contracts under $1,000 to avoid the license is not allowed (Bus. & Prof. Code 7048).
+
+A $25,000 contractor bond on file with the CSLB (7071.6), and a workers' compensation certificate on file even with no employees, because the license is C-39 (7125). The insurer audits a roofer's payroll every year in person (Insurance Code 11665).
+
+Written home improvement contract with its headings and notices, signed by both sides, copy to the buyer before work starts (7159). Largest down payment on this job: $1,000 ($1,000 or 10 percent, whichever is less); after that, nothing ahead of work done or material delivered (7159.5).
+
+Pull the permit. At issuance the contractor shows a valid workers' compensation certificate, or the city verifies it electronically (Labor Code 3800).
+
+Screening only. Confirm classifications with the CSLB (cslb.ca.gov) before bidding; building departments set their own permit rules and fees.
+
+Cancellation window: the buyer may cancel until midnight of November 27, 2026 (4 days from today), the third business day after receiving the signed and dated copy: three business days. The buyer may cancel by email, mail, fax or delivery; from 2026 the first page carries the email address and a help telephone number (AB 1327). Anything paid goes back within 10 days of the notice. Work started inside the window is work the buyer can still cancel.
+
+Days are counted here as the federal rule counts them: every day except Sundays and the federal holidays it lists. California's own definition of a business day, and the age that makes a buyer a senior citizen, were not read for this build. Check both before relying on the date.
+
+Down payment $1,850 is $850 over the cap of $1,000 ($1,000 or 10 percent of the price, whichever is less). Taking it is a misdemeanor: a fine of $100 to $5,000, up to a year in county jail, or both (7159.5).
+
+After the down payment, no request or payment may exceed the value of the work performed or the material delivered. On request, give an unconditional lien release for the part already paid.
+
+Acknowledge by December 8, 2026 (15 days from today): within 15 calendar days of notice the insurer acknowledges the claim, provides forms and help, and begins any investigation (10 CCR 2695.5(e)).
+
+Accept or deny by January 16, 2027 (54 days from today): 40 calendar days after proof of claim. If the insurer needs more time it must say so in writing within the 40 days and again every 30 calendar days (2695.7(b), (c)(1)).
+
+Pay by February 15, 2027 (84 days from today): 30 calendar days after the latest lawful acceptance date; enter the real date when known (2695.7(h)).
+
+Replacement cost: a policy may not give less than 12 months from the first actual cash value payment to finish and collect. Enter that payment date for the day.
+
+Suit against the insurer must start by November 20, 2027: 12 months after the start of the loss (Insurance Code 2071, the standard fire policy form). That is the owner's deadline and a question for the owner's lawyer.
+
+Also the insurer's duty on a replacement cost policy: replace all items in the damaged area when new ones would not match in quality, color or size; do not depreciate labor; give the owner a copy of its estimate; do not require a particular roofer (2695.9).
+
+Fair Claims Settlement Practices Regulations, read on the Cornell Legal Information Institute. No fixed penalty percentage was found. Use the clock to plan when insurance money arrives and to explain the timeline in general terms. Negotiating the claim needs a public adjuster license (Insurance Code 15006).
+
+The cap runs for 180 days, to May 22, 2027 (180 days from today), unless the Governor, the Legislature or a local body extends it; a local extension is at most 30 days each. Ceiling: 10 percent above the price charged immediately before the declaration, $1,100 a square. $1,180 is $80 (7%) above it. Lower the price or document the added costs with invoices.
+
+Penal Code 396(b), (c), (g), (h), read on california.public.law. A violation is a misdemeanor (up to a year in county jail, a fine up to $10,000, or both) and unfair competition. The default prices are examples, not market figures. Keep the price book dated before the declaration.
+
+The whole roof must meet the rules for a new roof: a Class A assembly tested to ASTM E108 or UL 790, with the fire rated layer under tile on a wood deck (2025 Wildland-Urban Interface Code 507.1, 504.2: 50 percent or more replaced in a 12 month period). Class A is the rating of the assembly, not of the covering alone. Vents, gutters and eaves have their own rules when they are replaced.
+
+Cool roof required: aged solar reflectance of at least 0.20 and thermal emittance of at least 0.75, or a Solar Reflectance Index of at least 16 (Title 24, Part 6, 150.2(b)1Ii; trigger: more than 50 percent of the roof). The product must be rated and labeled by the Cool Roof Rating Council; an unrated asphalt shingle is assumed to be 0.08.
+
+2025 Energy Code (the 2022 values are the same) and the 2025 Wildland-Urban Interface Code; code text read in the Energy Commission's PDF and on UpCodes. The 16 climate zones are set by ZIP code in Reference Joint Appendix JA2. A local ordinance can change the fire rule.
+
+The hardened roof costs $4,500 more than the plain reroof. A 5.0% discount on $3,200 saves about $160 a year, paying back the difference in about 28.1 years. The FAIR Plan publishes a maximum of 16.4% off the wildfire part of the premium for all 12 measures together; a Class A roof is one of them, and the figure for the roof alone is not published.
+
+The percentage is your entry: take it from the owner's insurer in writing. Never quote a discount in copy (Satchel FIRE2) and never promise renewal (FIRE3). The saving shows at the start of the next policy period after the owner reports the work; proof or an inspection may be needed. If the roof must be Class A anyway under the trigger screen, the extra cost is the vents, gutters and eaves, not the covering. Prices are examples, not market figures.
+
+Enter the completion date for the recording deadline: the earlier of 90 days after completion or 60 days after a recorded notice of completion.
+
+Civil Code 8200, 8204, 8412, 8414, 8416, 8460, read as archive captures of the Legislature's pages. Calendar days. Screening only: lien work belongs with a construction lawyer or a notice service.
+
+Fall protection required: the fall distance is 6 feet or more. Personal fall protection, scaffolding, safety nets or guardrails; a fall protection plan with monitors only if the employer shows those are infeasible. Parapets do not count toward height. Train and document (8 CCR 1731, operative July 1, 2025).
+
+The license number is the ad	It must be in all advertising, so put the CSLB number on every ad, page, truck, sign and door hanger, and say "check our license". It is the fastest answer to out of area crews after a fire or a storm, and the first thing the board looks for.
+
+Sell the contract terms	The down payment cap, the right to cancel by email and the written warranty are consumer protections most owners do not know. "No big deposit" and "three days to change your mind" are lawful, true and hard for an unlicensed seller to match.
+
+No claims talk	"We handle your claim" and "we negotiate with your insurer" describe public adjusting, which needs its own license. Say what a roofer does: inspect, document damage with photos, write an itemized estimate and scope, and do the work.
+
+Deductibles	"We pay your deductible", "deductible assistance" and credits sized to the deductible are barred by Penal Code 551. Financing the owner's share is the lawful answer to a large deductible, with Regulation Z disclosures.
+
+Fire: the assembly, not a promise	Say "Class A fire rated roof assembly" and name it. Never "fireproof". Most roofs inside the January 2025 fire perimeters were already Class A; vents, eaves, gutters and the first five feet decide as much, so sell the roof edge with the roof.
+
+Insurance pressure	With 698,307 FAIR Plan policies and non-renewal notices arriving 75 days ahead, owners in fire zones are looking for what an insurer wants to see. A page on what Safer from Wildfires lists, with "ask your insurer for the figure", meets them honestly. Never a discount size, never a promise of renewal.
+
+Cool roofs	Past 50 percent of the roof, most inland and southern climate zones need rated reflective products. "We check your climate zone and file the rating sheet" is a claim a careless competitor cannot make. Most tile is exempt by weight.
+
+Tile	The tile era homes of 1980 to 1999 are past the underlayment life two practitioners give. "Your tile is fine, the paper under it is not" explains the job; the code lets sound tile go back.
+
+After a declaration	Prices stay within 10 percent for 180 days, repair contracts carry seven days to cancel, and every crew needs the California license. A dated price book and a local address are the proof.
+
+At the door	A registered salesperson who names the contractor and license first, the right notice for the buyer, and no talk of claims or deductibles. Local solicitation permits were not researched.
+
+License · Bus. & Prof. Code 7026, 7048 (Stats. 2024, ch. 240, AB 2622; Stats. 2025, ch. 67, AB 1170); Cal. Code Regs. tit. 16, 832.39 · $1,000 line from January 1, 2025 (it was $500) · All lines
+
+Anyone who offers, bids or does work to build, alter, repair or improve a structure is a contractor, subcontractors included. The only exemption is minor work: the total price for labor, materials and everything else is under $1,000, and the work needs no building permit, and the person employs no one. Splitting a job into smaller contracts to stay under the line is not allowed. The roofing class is C-39: it covers installing and repairing surfaces that seal, waterproof and weatherproof structures, from shingles, tile, slate and shakes to metal roofing systems, urethane foam and membranes. In practice almost every reroof needs a licensed contractor, because the price is over $1,000 and most cities require a permit (that last sentence is our reading, grade D). What a roofer must do: hold an active C-39 (or another class that covers the work) before offering or bidding any roofing job.
+
+License · Bus. & Prof. Code 7030.5; 7027.1 and 7027.2 (Stats. 2024, ch. 240, AB 2622) · In force; 7027.2 as amended January 1, 2025 · All lines
+
+Every licensee must include the license number in all construction contracts, in subcontracts and calls for bid, and in all forms of advertising, as the registrar prescribes. Advertising as a contractor without a license is a misdemeanor with a fine of $700 to $1,000 on top of any other punishment. An unlicensed person may advertise only for jobs under $1,000 and only if the ad says the person is not licensed. What a roofer must do: print the CSLB license number on every ad, page, truck, sign, door hanger, estimate and contract. Section 7030.5 was read on a transcription host, so it is graded B; sections 7027.1 and 7027.2 were read as archive captures of the Legislature's pages.
+
+Every applicant and licensee keeps a contractor's bond of $25,000 on file with the Contractors State License Board. Claimants other than homeowners and employees are capped at $7,500 in aggregate; the rest is reserved for the homeowner and employee beneficiaries. A license qualified by a responsible managing employee, or by an officer who owns less than 10 percent, also needs a $25,000 bond of qualifying individual. After a revocation the board may require a disciplinary bond of at least $25,000 and up to ten times the contractor's bond for at least two years. No general liability minimum was found in the sections read; a home improvement contract must instead say whether the contractor carries commercial general liability insurance.
+
+License · Bus. & Prof. Code 7125, 7125.4 (SB 291), 7126; Insurance Code 11665; Labor Code 3800 · Roofer rule since January 1, 2013 (AB 2219); higher penalties from 2026; all licensees from January 1, 2028 · All lines
+
+Other contractors with no employees may file an exemption. A C-39 licensee may not: a certificate of workers' compensation insurance must be on file with the board even with no employees. The same now applies to C-8 concrete, C-20 heating and air conditioning, C-22 asbestos abatement and D-49 tree service, and the current section sunsets on January 1, 2028, the date the rule is due to reach every licensee. The workers' compensation insurer must audit each C-39 policyholder's payroll every year with a visit in person. Cities and counties check coverage when a permit issues. From 2026 the minimum civil penalty for employing workers without coverage is $10,000 per violation for a sole owner and $20,000 for a partnership, corporation or limited liability company, up to $30,000 per occurrence for repeats; a violation is also a misdemeanor. That Senate Bill 1455 of 2024 set the 2028 date was seen only in a search summary.
+
+License · Bus. & Prof. Code 7152, 7153, 7153.3, 7154; CSLB, Home Improvement Salesperson registration · In force (7152 as updated January 1, 2026) · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+A person who solicits, sells, negotiates or signs home improvement contracts for a licensed contractor must be registered with the board, whatever the dollar amount. Exceptions: officers of record, general partners, the qualifier, sales in a store that the buyer started, people who only set appointments for a registered salesperson, and service staff doing only the repair the buyer asked for. Selling without a current registration is a misdemeanor. The contractor must tell the board in writing before the salesperson starts and within 90 days after they leave. Before any sales activity the salesperson must give the owner or tenant the contractor's business name and license number. A registration runs two years. The registration fee was not found in the sources opened.
+
+License · Bus. & Prof. Code 7028, 7028.7 (SB 779), 7031, 7099.2 · In force; higher minimum civil penalties from July 1, 2026 by the CSLB bulletin · All lines
+
+A first conviction is a misdemeanor: a fine up to $5,000, up to six months in county jail, or both. A second carries a fine of 20 percent of the contract price or $5,000, whichever is greater, and at least 90 days in jail. The board may also cite an unlicensed person for a civil penalty of $1,500 to $15,000. An unlicensed contractor cannot sue to be paid, and the customer may sue to take back everything paid, even for work done. Licensees face civil penalties of $500 to $8,000 in general and $1,500 to $30,000 for the most serious violations. The exact effective date of the new minimums rests on the CSLB bulletin (July 1, 2026).
+
+Disaster · Bus. & Prof. Code 7028.16 (Stats. 2020, ch. 364, SB 1189); Penal Code 667.16 · In force since January 1, 2021 · Fire, Storm, Repair, Replace, Tile relay, Mobile home
+
+Contracting without a license to repair damage from a natural disaster for which the Governor has proclaimed a state of emergency, or the President has declared an emergency or major disaster, may be punished as a felony: a fine up to $10,000, or 16 months, two years or three years, or both; or as a misdemeanor with a fine up to $1,000 or up to one year in county jail. A felony theft or forgery conviction in a scheme to defraud an owner over disaster repairs carries one extra year. What a roofer must do: crews brought into a burn area or a storm area work only under an active California license.
+
+Contract · Bus. & Prof. Code 7151, 7159 (Stats. 2020, ch. 312, SB 1474; 2026 text with AB 1327) · In force · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+Home improvement means repairing, remodeling, altering or modernizing residential property, and rebuilding a home damaged or destroyed by a disaster with a proclaimed state of emergency. Reroofing is home improvement. When the total price is over $500 the contract must be in writing, signed and dated by both sides, and a copy given to the buyer before any work starts. It must carry the contractor's name, business address and license number; the salesperson's name and registration number; the heading "Home Improvement" in at least 10 point bold; the contract price; any finance charge shown separately; a description of the project and the significant materials; the down payment; a schedule of progress payments; approximate start and completion dates; and a note on extra work and change orders. Required notices cover commercial general liability insurance, workers' compensation, the Mechanics Lien Warning, information about the CSLB, the right to cancel, and the right to require a performance and payment bond. Text is at least 10 point, the main warnings 12 point bold. A change order is in writing and signed before the changed work starts.
+
+Contract · Bus. & Prof. Code 7159.5 (Stats. 2023, ch. 403, SB 601); 7159(d)(8)(C), (d)(9)(C) · In force · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+A down payment on a home improvement contract may not exceed $1,000 or 10 percent of the contract price, whichever amount is less, and the contract must print that sentence. Apart from the down payment a contractor may neither ask for nor accept payment that exceeds the value of the work performed or the material delivered. Breaking the price, down payment or advance payment rules is a misdemeanor: a fine of $100 to $5,000, up to one year in county jail, or both; in an area damaged by a disaster with a proclaimed emergency the court must impose the maximum fine. On request the contractor gives an unconditional lien release for the part already paid, and the owner may hold further payments until it comes. A contractor who furnishes a performance and payment bond, or a blanket bond or joint control the registrar has approved, is exempt from the down payment and progress payment limits.
+
+Contract · Bus. & Prof. Code 7159(e)(6), (e)(7), (f); Civil Code 1689.6 · Five day rule for contracts from January 1, 2021 · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+The buyer may cancel a home improvement contract until midnight of the third business day after receiving a signed and dated copy that includes the notice. For a buyer who is a senior citizen the notice says five and fifth. A contract written to repair or restore a home damaged by a sudden or catastrophic event with a federal, state or local emergency declaration carries a notice titled "Seven-Day Right to Cancel". The buyer cancels by emailing, mailing, faxing or delivering a written notice to the contractor's place of business, and the contractor returns anything paid within 10 days of receiving it. The notice is not required for a contract negotiated at the contractor's place of business. The age that makes a buyer a senior citizen for this rule was not read in the sections opened, and neither was the Civil Code's definition of a business day: confirm both before relying on a date.
+
+Contract · Bus. & Prof. Code 7159 (AB 1327, Aguiar-Curry); SB 517 (Niello); CSLB Industry Bulletin 25-04 · January 1, 2026 · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+The first page of a home improvement contract must now carry the name, address and email address of the contractor to whom the Notice of Cancellation is sent, and a telephone number that helps the buyer find and fill in the notice. Buyers may cancel by email. A contractor who uses subcontractors on a home improvement project must, on request, give each subcontractor's name, contact details, license number and classification. What a roofer must do: update every contract form and watch the cancellation inbox every day.
+
+The short service and repair form is allowed only when the price is $750 or less, the buyer made the first contact, the contractor sells nothing beyond what the problem needs, and no payment is due or taken until the work is complete. Otherwise the full home improvement contract rules apply at any price. The buyer may cancel until receiving the signed and dated copy and the work starts. Violations in a disaster area with a proclaimed emergency can add a fine of $500 to $25,000. Most leak repairs priced above $750 therefore need the full contract.
+
+Contract · Civil Code 1797.91, 1797.92, 1797.93, 1797.94 · Contracts from January 1, 1994 · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+A contract for roofing materials, or to install, repair or replace all or part of the roof of a residential structure, must be in writing if it includes any warranty that runs past completion. The warranty passes to every later buyer of the home unless a clear and conspicuous clause limits transfer; that limit must sit in a box at the top of the first page of the warranty in 14 point bold. A warranty that uses "lifetime", "life" or a similar word must disclose, clearly enough to be noticed and understood, the life it refers to.
+
+Fire code · Health & Safety Code 13132.7(i) · In force · Replace, Fire hardening, Fire, Tile relay, Metal, Multifamily, Commercial, New build
+
+The installer of a roof covering must give the building owner the certification of the roof covering classification, as the manufacturer or supplier provides it, and give it to the building department on request. The installer must also install the covering in accordance with the manufacturer's listing. What a roofer must do: hand over the classification sheet with the final invoice and keep a copy in the job file.
+
+Liens · Civil Code 8200, 8204, 8412, 8414, 8416, 8460; Bus. & Prof. Code 7159(e)(4), 7159.5(a)(6) · In force (operative July 1, 2012) · All lines
+
+Subcontractors and suppliers must give a preliminary notice to the owner, the direct contractor and any construction lender no later than 20 days after first furnishing work; a late notice protects only work from 20 days before it was served. A roofer hired directly by the owner gives the notice only to a construction lender, if there is one. Without the notice there is no valid lien. A direct contractor records the lien after completing the contract and before the earlier of 90 days after completion of the work or 60 days after the owner records a notice of completion or cessation; subcontractors and suppliers have the earlier of 90 days or 30 days after that recorded notice. A copy with the Notice of Mechanics Lien is served on the owner. Suit to enforce must start within 90 days of recording or the lien expires. Every home improvement contract tells the owner, in the Mechanics Lien Warning, that unpaid subcontractors and suppliers can lien the home even if the contractor was paid.
+
+Disaster · Penal Code 396(b), (c), (g), (h) · On any federal, state or local emergency declaration · Fire, Storm, Repair, Replace, Tile relay, Fire hardening, Mobile home, Multifamily, Commercial
+
+For 180 days after an emergency is proclaimed or declared, a contractor may not sell or offer repair or reconstruction services, or emergency cleanup services, for more than 10 percent above the price that contractor charged immediately before the declaration. Building materials and other goods carry the same 10 percent cap for 30 days. A larger increase is lawful only if the contractor can prove it was directly attributable to higher labor or material costs, and the price is no more than 10 percent above the contractor's cost plus the markup the contractor customarily applies. The Governor, the Legislature or a local body can extend the periods; each local extension is at most 30 days. A violation is a misdemeanor: up to one year in county jail, a fine up to $10,000, or both, and it is also unfair competition. What a roofer must do: keep a dated price book from before each declaration and the supplier invoices behind any increase.
+
+Claims · Insurance Code 15006, 15007; People v. Montgomery-Sansome, LP (San Mateo County Superior Court No. 17CIV04659) · In force · Storm, Fire, Repair, Replace, Tile relay, Multifamily, Commercial
+
+A public insurance adjuster is a person who, for compensation, acts for or aids an insured in negotiating or settling a property claim, or who advertises or holds out as an adjuster of those claims. Doing that without the license carries a civil penalty up to $10,000, or $25,000 if willful. A San Mateo County trial court applied the Act to a restoration contractor that offered to negotiate with insurers at no cost in return for the repair job: $1,250 per violation, $56,250 in total, and an injunction against negotiating or advocating for a homeowner with an insurer. That is one trial court decision, read on a law firm's site (grade C); it does not bind other courts and an appeal was not checked. What a contractor may safely do, by our reading only (grade D, no statute or agency notice draws the line): write an estimate and scope of work, give it to the owner, and meet the adjuster to explain the construction facts.
+
+It is unlawful for a contractor, or its employees or agents, to knowingly offer or give any discount intended to offset a deductible required by a policy covering repairs to a residential or commercial structure. The one exception: the insurer has determined the amount of the claim and the work is done in accordance with that determination or with estimates the insurer accepted. Advertising a discount is allowed only on the same condition. It is also unlawful to offer an insurance agent, broker or adjuster any fee, commission or other consideration for referring an insured. Where more than $950 is at issue the offense is punishable by 16 months, two years or three years, a fine up to $10,000, or both, or by up to one year in county jail; otherwise by up to six months, $1,000, or both. Unlike some states, no bold contract notice about the deductible was found in California law.
+
+The search found no California statute specific to roofing or repair assignments. That is an absence in the search, not proof there is none. The general rule read is Insurance Code 520: a policy clause that forbids transferring a claim after the loss is void if made before the loss. An assignment does not make claim negotiation by an unlicensed person lawful (see the public adjuster row).
+
+Claims · Insurance Code 15027, 15027.5; Department of Insurance, "After the Fires" flyer (January 2025) · In force · Fire, Storm, Multifamily, Commercial
+
+A public adjuster's contract is in writing on a form the Commissioner approves, and the insured may cancel within three business days. A public adjuster may not have an interest in any contractor or any company repairing the property, may not offer referral fees above $100, and must disclose to the insured any compensation from a contractor or vendor connected to the claim. Public adjusters may not solicit while the loss is under way, for seven days after a declared disaster area reopens, or between 6 p.m. and 8 a.m. The Department tells owners not to sign any repair contract until they have spoken to their insurer. A 2025 bill to cap public adjuster fees at 15 percent (AB 597) was seen only in a search summary as held in committee.
+
+Claims · Cal. Code Regs. tit. 10, 2695.5(e), 2695.7(b), (c)(1), (h) (Fair Claims Settlement Practices Regulations) · In force · Storm, Fire, Repair, Replace, Tile relay, Multifamily, Commercial
+
+On notice of a claim the insurer must, within 15 calendar days, acknowledge it, provide forms, instructions and reasonable assistance, and begin any necessary investigation. Within 40 calendar days of receiving proof of claim it must accept or deny the claim in whole or in part; if it needs more time it says so in writing within the 40 days and again every 30 calendar days. Within 30 calendar days of accepting it must tender payment. A denial is in writing with every factual and legal reason. No fixed statutory penalty percentage was found. The clock is for planning cash flow on insurance paid jobs and for explaining the timeline in general terms.
+
+Claims · Cal. Code Regs. tit. 10, 2695.9(a)(1), (a)(2), (b), (c), (d), (f); Health & Safety Code 13132.7(k) · In force (labor rule operative August 30, 2006) · Storm, Fire, Repair, Replace, Tile relay, Multifamily, Commercial
+
+On a replacement cost policy, when replaced items do not match in quality, color or size, the insurer replaces all items in the damaged area so that it has a reasonably uniform appearance. Consequential damage from making the repair is part of the loss, and the insured pays only the deductible. The expense of labor to repair, rebuild or replace is not a component of physical depreciation; only materials normally replaced during a building's life are depreciated, and each adjustment must be itemized in dollars. The insurer gives the claimant a copy of its estimate, which must reflect costs in the local market; if the owner's contractor's estimate is higher the insurer pays the difference or, on request, names a repairer who will do the work for its figure. An insurer may not require a particular repairer, and may recommend one only when asked or after telling the owner in writing of the right to choose. Fire retardant wood roofing used to patch untreated wood roofing satisfies the matching rule.
+
+Claims · Insurance Code 2051, 2051.5, 2071 · In force; policy forms must comply with 2051.5 from July 1, 2026 · Storm, Fire, Repair, Replace, Tile relay, Multifamily, Commercial
+
+Actual cash value is the cost to repair, rebuild or replace less fair physical depreciation, and depreciation applies only to components normally replaced during the structure's life. On a replacement cost policy the insurer pays actual cash value first and the difference once the property is repaired or replaced. The policy may not give the insured less than 12 months from the first actual cash value payment to collect full replacement cost, or less than 36 months for a loss in a declared state of emergency, with six month extensions for good cause; good cause includes permit delays, missing materials and the unavailability of contractors. After a declared emergency an insurer may not require proof of loss sooner than 100 days after the loss. Suit against the insurer must start within 12 months of the start of the loss, 24 months for a declared emergency. Which 2025 act added the 100 day rule was not identified.
+
+Insurance market · Insurance Code 678 (SB 1242), 675.1 (SB 894; SB 824 of 2018) · In force · Fire hardening, Fire, Replace, Tile relay, Metal
+
+An insurer must deliver a notice of non-renewal at least 75 days before the policy expires. After a total loss in a disaster the insurer must offer to renew for at least the next two annual periods, and no less than 24 months from the loss, and may not cancel while the home is being rebuilt. For one year after the Governor declares a state of emergency, an insurer may not cancel or refuse to renew a residential policy in any ZIP Code within or adjacent to the fire perimeter solely because the home is in an area where a wildfire has occurred; the Commissioner names the ZIP Codes in a bulletin. Declarations listed by the Department on November 19, 2026 include the Dove Fire (November 9, 2026) and the Gann Fire (August 6, 2026), and for 2025 the Gifford, Pack, TCU September Lightning Complex, Franklin and Hughes fires and the January 7, 2025 declaration for the Palisades, Eaton, Hurst, Lidia, Sunset, Woodley and Olivas fires. The ZIP Code lists could not be downloaded. By arithmetic the January 2025 moratorium ended in January 2026 unless extended; no extension was found (grade D).
+
+Insurance market · California FAIR Plan Association, Key Statistics (September 2026) and Wildfire Hardening Discounts flyer (policies effective November 15, 2025 or later) · Figures at September 30, 2026 · Fire hardening, Fire, Replace, Tile relay, Metal, Multifamily, Commercial
+
+The FAIR Plan had 698,307 policies in force at September 2026, up 157 percent since September 2022, with $773 billion of exposure. Its dwelling policy is a named peril policy; owners buy a separate Difference in Conditions policy for wider cover, so a wind or rain leak claim on a home insured only by the FAIR Plan depends on that second policy (our reading, grade D). Policyholders may qualify for up to 12 discounts on the wildfire part of the premium: all 12 give up to 16.4 percent off that part on a dwelling policy and up to 13.8 percent on a commercial policy. A Class A fire rated roof is one of five structure discounts, with enclosed eaves, ember and fire resistant vents, multi pane windows or shutters, and six inches of noncombustible material at the base of the walls. The percentage for the roof alone is not published in the flyer.
+
+Insurance market · Cal. Code Regs. tit. 10, 2644.9; Department of Insurance, FAQ: Safer from Wildfires Regulation (September 2026) · Operative October 14, 2022 · Fire hardening, Fire, Replace, Tile relay, Metal
+
+Any insurer that prices on wildfire risk must take into account and reflect each listed mitigation in its rating plan. The five building items are a Class A fire rated roof, enclosed eaves, fire resistant vents, multi pane windows or working shutters, and at least six inches of noncombustible vertical clearance at the bottom of the exterior walls. Five items cover the surroundings, and two cover the community (a Fire Risk Reduction Community, or a Firewise USA site in good standing). The regulation sets no percentage: the Department says discounts depend on the property and that different insurers may offer different discounts. Most roofs qualify as Class A, including asphalt shingles, concrete, brick or masonry tiles and metal; wood shake does not. The saving shows at the start of the next policy period after the owner reports the work, and proof or an inspection may be needed. Insurers must give the wildfire risk score in writing and allow an appeal. Roof discount percentages by insurer were not found.
+
+Building code · City of Los Angeles permit data; San Diego Information Bulletin 123; Los Angeles County Building Code Manual 1512 Article 1; San Francisco permit data; Labor Code 3800 · As read November 19, 2026 · All lines
+
+There is no single state reroof permit statute in the sources read; each city or county decides. City of Los Angeles: permits are issued for reroofs in very large numbers on a standard description (11,954 in 2025); the municipal code sentence that requires them was not opened. City of San Diego: no building permit to renew a roof covering where the roof structure is not altered; a permit is needed if framing or sheathing is altered, if shakes or shingles give way to material heavier than 6 pounds per square foot, if skip sheathing is replaced, or on a historic property, and up to 25 percent of the deck may be replaced in kind without one on houses, duplexes and townhouses. Los Angeles County (unincorporated): a building permit for the reroof, plus a separate solar permit if panels come off and go back. San Francisco: reroof permits are filed over the counter (4,084 in 2025). San Jose and Sacramento were not opened. Permit counts therefore measure the reroof market only where a permit is required.
+
+Building code · California Residential Code R908.3, R908.3.1.1, R908.4, R908.5 (2022 and 2025); California Building Code 1505.1.2 (2022) · 2025 edition in force January 1, 2026 · Replace, Repair, Tile relay, Metal, Storm, Fire, Multifamily, Commercial
+
+A roof replacement removes every existing layer down to the deck. A second layer is not allowed where the roof is water soaked or deteriorated, where the existing covering is slate, clay, cement or asbestos cement tile, or where there are already two or more layers. Sound slate, clay or cement tile may be reinstalled; damaged, cracked or broken tile may not, and rusted or damaged flashings, edgings and vents are replaced. That sentence is the legal basis for a tile lift and relay. Tile or metal over wood shakes needs a fire barrier layer first. The 2025 code lets existing self adhered underlayment stay under conditions. Outside fire zones the statewide floor is Class C, for new roofs, for the whole roof when more than 50 percent is replaced in a year, and for any repaired part. Code text was read on UpCodes, not the official viewer.
+
+Building code · California Building Standards Commission, Codes page and Information Bulletin 25-03; AB 130 (Stats. 2025, ch. 22) · 2025 Title 24 from January 1, 2026; freeze October 1, 2025 to June 1, 2031 · All lines
+
+The 2025 California Building Standards Code (Title 24) took effect January 1, 2026; the 2022 edition had applied since January 1, 2023. The 2025 Energy Code applies to permit applications filed on or after January 1, 2026. Assembly Bill 130 stops new state and local building standards for residential units from October 1, 2025 to June 1, 2031. The exceptions: rules already in effect on September 30, 2025, emergency health and safety standards, and home hardening, which the Commission reads as local amendments to the Wildland-Urban Interface Code. The 2025 residential rules in this register are therefore likely to stand until mid 2031, apart from wildfire rules (our reading, grade D).
+
+Fire code · 2025 California Wildland-Urban Interface Code (Title 24, Part 7) 101.3.1, 504.2, 507.1; 2022 California Building Code 705A.1, 1505.1.1 · January 1, 2026 (the 2022 code said "more than 50 percent") · Replace, Fire hardening, Fire, Tile relay, Metal, Repair, Storm, Multifamily, Commercial, New build
+
+The 2025 edition moved the wildfire construction rules from Chapter 7A of the Building Code into a new Wildland-Urban Interface Code. It applies on all State Responsibility Area land, in High and Very High Fire Hazard Severity Zones in Local Responsibility Areas, and in local interface areas. On a building that existed before the code, a roof covering that is replaced, or has 50 percent or more replaced in a 12 month period, must be replaced with the covering required for new construction, and every part applied in an addition, alteration or repair must be at least Class A. The roof must be a Class A assembly when tested to ASTM E108 or UL 790. Class A is the rating of an assembly (covering, underlayment and deck together), not of a shingle or a tile on its own. Some assemblies count as Class A without a test, such as clay or concrete tile, metal or slate on a noncombustible deck. Under the 2022 code the trigger was more than 50 percent within one year, in any Fire Hazard Severity Zone. A jurisdiction that adopts the State Fire Marshal's model ordinance is outside the state sentence (2022 text).
+
+Fire code · 2025 California Wildland-Urban Interface Code 503.2.3, 504.2.1.1, 504.2.1.2, 504.2.2, 504.3, 504.4, 504.10; 2022 California Building Code 705A.2 to 705A.4, 706A.2 · Roofing and vent rules from December 1, 2005; full chapter for permits from July 1, 2008 · Fire hardening, Replace, Tile relay, Fire, Metal, New build, Multifamily
+
+Where tile or another profile leaves an air space over a combustible deck, a 72 pound mineral surfaced cap sheet to ASTM D3909 goes over the deck (or a Class A rated underlayment, or one inch of mineral wool board). Bird stops close the eaves where the profile fits, and hip and ridge caps are mudded in. Valleys take metal flashing of at least 0.019 inch over a 36 inch wide cap sheet for the full length. Gutters need a means to keep leaves and debris out, and the 2025 code adds that gutters and downspouts are noncombustible. Vents are listed flame and ember resistant vents, or carry noncombustible corrosion resistant mesh between 1/16 and 1/8 inch. Enclosed eaves and soffits are protected with noncombustible or ignition resistant material. Fire retardant treated wood shakes must form a Class A assembly. Buildings built before July 1, 2008 are otherwise outside the chapter for additions and remodels; the reroof rule is the exception that reaches them.
+
+Fire code · 2025 California Wildland-Urban Interface Code 101.3.1; State Fire Marshal maps (not opened) · New local area maps reported in early 2025 · Fire hardening, Replace, Fire, Tile relay, Metal, New build
+
+The code text on where the rules apply was read (see the Class A row). The maps were not: the State Fire Marshal's pages refused automated reading. City pages seen only in search summaries say the State Fire Marshal issued new Local Responsibility Area maps in early 2025 that show Moderate and High zones as well as Very High for the first time, and one says about 1.4 million acres were added to High and Very High. A 2019 news report quotes CAL FIRE that as many as 3 million homes lie in the zones. Treat the acreage, the dates and the home count as leads, not facts, and check an address on the State Fire Marshal's viewer before quoting a fire zone roof.
+
+Fire code · Health & Safety Code 13132.7(b), (d), (f), (j); Los Angeles Department of Building and Safety Information Bulletin P/BC 2026-013; Los Angeles Ordinance 165047; San Diego Information Bulletin 123 · Los Angeles since August 25, 1989; bulletin effective January 1, 2026 · Replace, Repair, Fire hardening, Fire
+
+No wood roof covering may be sold or applied in California unless the State Fire Marshal has approved and listed it and it has passed at least 5 years of the 10 year natural weathering test. The statute's floor is Class A in Very High zones, Class B in State Responsibility Areas other than Moderate, and Class C everywhere else; the building codes now go further in fire zones. Cities may be stricter. In the City of Los Angeles all wood shake and wood shingle roof covering is prohibited for new work, reroofing and repairs; only a minor repair up to 5 percent may be allowed on request, and reroofing more than 50 percent in a year means all remaining shakes come off. The City of San Diego permits no wood shingle or shake renewals and no new covering over existing wood. A 2003 Orange County grand jury report lists other bans (Santa Barbara County, the City of Santa Barbara, Carlsbad, Del Mar, El Cajon, Vista and others); a current statewide list was not found. About 5.4 percent of California single family homes still report wood roofs (2020 federal survey).
+
+Fire code · Public Resources Code 4291 (Stats. 2025, ch. 731, AB 1455); Government Code 51182; Board of Forestry and Fire Protection, final draft approved August 19, 2026 · Statute amended October 13, 2025; regulation effective date NOT FOUND as of November 19, 2026 · Fire hardening, Fire, Repair, Replace
+
+The statute calls for an ember resistant zone within 5 feet of the structure, defined by Board of Forestry regulations. It does not take effect for new structures until the Board updates its regulations and guidance, and takes effect for existing structures three years after that. The Board approved the final draft on August 19, 2026. A law firm summary says the Board sent it to the Office of Administrative Law on August 28, 2026 and that approval and filing are needed before it takes effect. No source confirming that approval or an effective date was found as of November 19, 2026, so the atlas does not say the rule is in force. It will apply only in State Responsibility Areas and Very High zones in Local Responsibility Areas. Existing homes phase in: within 3 years, firewood, dead leaves, mulch and wood chips out of the first 5 feet, gutters cleaned and trees trimmed; within 5 years on a local timetable, the under eave safety zone, combustible gates, sheds and fencing. The duty that already exists: keep the roof free of leaves and needles and cut back any tree within 10 feet of a chimney outlet. CAL FIRE may not change inspections for the new zone until the State Fire Marshal finds the Legislature has funded it.
+
+No association may require a homeowner to install or repair a roof in a way that violates Health and Safety Code 13132.7. In a Very High zone the governing documents of a common interest development must allow at least one fire retardant roof covering material that meets the statute. A board that still specifies wood shakes, or a single product that is not Class A, can be shown the section.
+
+Energy code · Title 24, Part 6 (2025 Energy Code) 110.8(i), 150.2(b)1I, 180.2(b)1A, 141.0(b)2B, 140.3(a)1A; the 2022 code has the same values · 2025 code for permit applications from January 1, 2026 · Replace, Tile relay, Metal, Multifamily, Commercial, Coatings, Solar reset, Fire
+
+The Energy Code has 16 climate zones, set by ZIP code. A low sloped roof has a rise to run under 2:12. Single family: when more than 50 percent of the roof is replaced, a new layer over the old one included, steep roofs in zones 4 and 8 to 15 need an aged solar reflectance of at least 0.20 and thermal emittance of 0.75, or a Solar Reflectance Index of 16; low sloped roofs in zones 4 and 6 to 15 need 0.63 and 0.75, or an index of 75. Multifamily: the trigger is more than 50 percent of the roof area or more than 2,000 square feet, whichever is less, replaced, recovered or recoated; low slope in zones 2, 4 and 6 to 15 needs 0.63 (index 75); steep in zones 4 and 8 to 15 needs 0.20 (index 16). Nonresidential, same trigger: low slope in every zone needs 0.63 (index 75); steep needs 0.20 (index 16) in zones 1 and 3 and 0.25 with emittance 0.80 (index 23) in zones 2 and 4 to 16. Hotel and motel guest rooms: low slope 0.55 (index 64) in zones 9, 10, 11, 13, 14 and 15; steep 0.20 in zones 2 to 15. Products are rated and labeled by the Cool Roof Rating Council; an unrated asphalt shingle is assumed to have an aged reflectance of 0.08 and any other unrated product 0.10.
+
+Energy code · Title 24, Part 6 (2025 Energy Code) exceptions to 150.2(b)1Ii and 150.2(b)1Iiia; Tables 150.2-E, 150.2-F, 141.0-B, 141.0-C; 180.2(b)1Aiii · 2025 code for permit applications from January 1, 2026 · Replace, Tile relay, Solar reset, Multifamily, Commercial, Coatings
+
+Single family steep roofs are exempt where the attic is insulated to R-38 (or the ceiling U-factor is 0.025 or lower), where there is a radiant barrier in the attic not laid directly above spaced sheathing, where there are no ducts in the attic in zones 2, 4, 9, 10, 12 and 14, or where R-2 or more continuous insulation sits above or below the deck. Roof constructions weighing at least 25 pounds per square foot are exempt in every building type; that is why most concrete and clay tile reroofs are exempt (the tile inference is ours, grade D). Roof area under building integrated solar is exempt. Single family low slope roofs may trade reflectance for deck insulation, down to no reflectance requirement at R-10 in zones 6 and 7 or R-24 in zones 2, 4 and 8 to 15. A low slope reroof also triggers insulation: R-14 continuous or U-0.039 for single family and multifamily in zones 1, 2, 4 and 8 to 16 (a multifamily recoat is exempt); for nonresidential, R-23 in zones 1 to 5 and 9 to 16 and R-17 in zones 6 to 8, with at least R-10 above the deck, and a recoat is exempt. The nonresidential insulation table was read in the 2025 code only.
+
+Solar · Title 24, Part 6 (2025 Energy Code) 150.1(c)14; CPUC Decision 22-12-056 (Net Billing Tariff) · Solar on new homes since January 1, 2020; net billing for applications from April 15, 2023 · New build, Solar reset
+
+All new single family residential buildings must have a photovoltaic system. Its size is the smaller of a formula amount or the solar access roof area times 18 for steep roofs or 14 for low sloped roofs; roof areas with under 70 percent annual solar access do not count. The Energy Commission approved an exception in February 2021 for sites where snow load makes rooftop solar impractical; mountain building departments had proposed a ground snow load of 230 pounds per square foot as the limit. The Net Billing Tariff replaced net metering for customers who apply to interconnect on or after April 15, 2023. Roofers on new homes plan vents, valleys and penetrations around the array.
+
+Solar · Los Angeles County Building Code Manual 1512 Article 1 (April 1, 2025); City of San Diego Information Bulletin 123 · As read November 19, 2026 · Solar reset, Replace, Tile relay
+
+Los Angeles County requires a separate permit to reinstall a rooftop solar system removed for a reroof, on top of the building permit for the reroof. The City of San Diego requires an electrical permit to reinstall the panels. Los Angeles County states the license split: a C-39 contractor does the reroof, a C-10 electrical or C-46 solar contractor reinstalls the system, or an A or B licensee may apply for both trades. That is the County's description; a CSLB document saying the same was not opened (grade C for the CSLB position). Old bonding clips may not be reused, and standoff spacing is rechecked if the covering type changes, for example shingle to tile. Whether taking panels off and putting the same panels back changes a customer's older net metering status was NOT FOUND in the sources opened: do not state it either way without the utility's tariff text. UC fire advisers say properly installed panels do not add fire risk and that debris under and around them should be cleared.
+
+On residential type roofing and reroofing, tear off included, employees on slopes up to and including 7:12 must be protected when the fall distance is 6 feet or more, by personal fall protection, scaffolding, safety nets or guardrails; a fall protection plan with safety monitors is allowed only if the employer shows the conventional methods are infeasible. On slopes steeper than 7:12 protection is required at any height. Parapets do not count toward the height. Workers get documented training on roof specific fall hazards. Other roofing falls under section 1730: protection above 20 feet, and at any height when a felt laying machine is pulled by a worker walking backwards. In 2026 Cal/OSHA cited three Los Angeles County roofing companies $282,420 after a worker repairing a leak fell about 24 feet.
+
+Outdoor employers provide one quart of drinking water per employee per hour for the whole shift, and shade when the temperature exceeds 80 degrees Fahrenheit. At 95 degrees or more, employers in listed industries, construction among them, apply high heat procedures. Inland summer production is planned around these limits.
+
+Safety · Cal. Code Regs. tit. 8, 1529, 341.6, 1532.1; Bus. & Prof. Code 7058.5, 7058.6; California Residential Code R908.3.1.1 · In force; lead limits from January 1, 2025 · Replace, Repair, Tile relay, Multifamily, Commercial, Fire
+
+Removing asbestos containing roofing is Class II asbestos work. An employer disturbing 100 square feet or more of asbestos containing material must register with Cal/OSHA first, and the contractor needs the C-22 class or the board's asbestos certification; an uncertified contractor may still take the job if a C-22 or certified contractor does the asbestos part. Asbestos cement tile may not be covered over with a new layer. For lead in construction the permissible exposure limit is 10 micrograms per cubic meter and the action level is 2, from January 1, 2025. The federal lead renovation rule and the air district asbestos notification rules were not opened for this build (not verified).
+
+No action for a patent deficiency may be brought more than four years after substantial completion, and none for a latent deficiency, one not apparent by reasonable inspection, more than 10 years after. The ordinary limitation periods that run inside those outer limits (Code of Civil Procedure 337, 338 and 339) were not read for this build. The notice every home improvement contract carries tells owners that the CSLB can investigate a complaint filed within the legal deadline, usually four years.
+
+The Act covers original construction sold as individual dwelling units; it does not govern an ordinary reroof contract (our reading). The builder, and to the extent the Act sets out a subcontractor such as the roofer, is liable under its standards: roofs, roofing systems, chimney caps and ventilation components must not let water into the structure or past the moisture barriers; roofing must be installed so that material does not fall from the roof; and manufactured products, roofs included, must be installed so as not to shorten their useful life. No shorter period than the general 10 years is stated for the two roof standards. The builder gives a one year fit and finish warranty, and an owner must give written notice and a chance to repair before suing.
+
+Programs · LADWP Consumer Rebate Program fact sheet (dated April 2024, posted February 2026) · As posted February 2026 · Replace, Coatings, Tile relay, Metal
+
+The utility's fact sheet lists a cool roof rebate of up to $0.60 per square foot for its own customers. The tier rules were not read. Rebate amounts for other utilities and cities (SMUD, Pasadena and others) were not found, and PACE financing was not researched. Quote a rebate only for the utility that publishes it, with its date.
+
+Federal · 16 CFR Part 429 (FTC Cooling Off Rule) · In force · Replace, Repair, Storm, Fire, Fire hardening, Tile relay, Solar reset, Metal, Mobile home
+
+A sale of $25 or more made at the buyer's home carries a right to cancel within three business days, with the written notice the rule prescribes. An emergency exception exists only where the buyer starts the contact, needs the work for a genuine emergency and waives the right in a separate signed statement; canvassing after a fire or a storm does not fit it. California's own notice gives more: five business days for a senior citizen and seven for disaster repairs (see the right to cancel row). Read on ecfr.gov on October 6, 2026.
+
+No fake or AI written reviews, no reviews bought on the condition that they are positive, no undisclosed reviews by staff or relatives, no company controlled "independent" review sites, no suppression of negative reviews, and no fake social media indicators. Civil penalties apply per violation. Read on ecfr.gov on October 6, 2026.
+
+A financing ad that states a payment amount, a number or period of payments, a down payment or a finance charge must also state the down payment, the terms of repayment and the annual percentage rate, using that term. "Financing available" alone triggers nothing. In California the down payment itself is capped (see the down payment row), and a home improvement contract shows any finance charge separately. Read on ecfr.gov on October 6, 2026.
+
+Autodialed or prerecorded marketing calls and texts to mobile phones need prior express written consent, and marketing calls must honor the national Do Not Call list. Lead lists bought from third parties after a fire or a storm rarely carry valid consent. Any California rule on telephone solicitation was not read for this build.
+
+California's general unfair competition and false advertising statutes were not read for this build, so the register cites no section for them. What was read: a price gouging violation is also unfair competition (Penal Code 396); a "lifetime" roof warranty must say whose or what lifetime (Civil Code 1797.93); the Safer from Wildfires regulation sets no discount percentage; and Class A is the rating of a tested assembly. On the fire evidence, about 90 percent of structures inside the January 2025 Palisades and Eaton perimeters had Class A coverings by CAL FIRE's inspection data, and IBHS found those roofs were often paired with vulnerable vents, eaves, windows and doors. Copy must therefore never say "fireproof", promise a discount size or promise that an insurer will renew. Superlatives need a dated, verifiable basis.
+
+Plain answers written from the register, for a sales call, a page or a guide. Each names the register items it rests on; open the item in the register above before quoting it.
+
+The rules every ad, page, script and contract must meet, and where the atlas checks them. The Compliance Satchel (module 10) screens copy against these.
+
+Bus. & Prof. Code 7030.5	License number	The CSLB license number appears in all advertising, in every contract and in every bid.	Satchel LIC1, LIC2, WEB1, SIGN1; Forge footer
+
+Bus. & Prof. Code 7027.1, 7027.2, 7048	Licensed to advertise	Only a licensee advertises as a contractor. An unlicensed person may advertise only jobs under $1,000 and must say in the ad that the person is not licensed.	Satchel LIC1; license screen in module 03
+
+Bus. & Prof. Code 7152, 7153	Salespeople	Anyone who solicits or sells home improvement contracts away from the office is a registered home improvement salesperson and names the contractor and its license number first.	Satchel HIS1, DOOR1
+
+Bus. & Prof. Code 7159	The contract	Residential jobs over $500 use the written home improvement contract with its headings, notices and type sizes; from 2026 the first page carries an email address for cancellation.	Satchel CON1 to CON6 (contracts)
+
+Bus. & Prof. Code 7159.5	Down payment	No more than $1,000 or 10 percent, whichever is less, and nothing ahead of the work done or material delivered.	Satchel PAY1, CON3, CON4, CON7; contract screen
+
+Bus. & Prof. Code 7159(e)(6), (e)(7); Civil Code 1689.6; 16 CFR Part 429	Right to cancel	Three business days, five for a senior citizen, seven for disaster repairs, with the printed notice; refunds within 10 days.	Satchel COOL, CON6, DOOR1; contract screen
+
+Penal Code 551	Deductibles and referrals	No discount meant to offset a deductible unless the insurer has fixed the claim amount and the work follows it; no referral money to agents, brokers or adjusters.	Satchel DED1, REF1, WEB6; Desk and Forge copy
+
+Insurance Code 15006, 15007	Claims	Negotiating or settling a claim for an insured, or advertising that service, needs a public adjuster license. A roofer advertises the roof work, never the claim.	Satchel INS1, INS2, INS3, AOB1, PADJ1, WEB6
+
+Penal Code 396	Price gouging	For 180 days after an emergency declaration, repair prices stay within 10 percent of the pre emergency price unless higher costs are proven.	Satchel GOUGE, PRICE1; price screen
+
+Bus. & Prof. Code 7028.16	Disaster crews	Unlicensed work on disaster damage can be charged as a felony; every crew in a declared area works under a California license.	Satchel STORM1, LOC1
+
+2025 Wildland-Urban Interface Code 504.2, 507.1	Fire ratings	Class A is the rating of a tested assembly. Say what the assembly is; never "fireproof".	Satchel FIRE1, FIRE4, FIRE5; trigger screen
+
+Cal. Code Regs. tit. 10, 2644.9; Insurance Code 675.1	Insurance promises	Safer from Wildfires sets no discount percentage and no rule promises renewal. Send owners to their insurer for the figure.	Satchel FIRE2, FIRE3, GRANT1
+
+Health & Safety Code 13132.7	Wood shakes	Only State Fire Marshal listed wood roofing may be sold or applied; none in the City of Los Angeles; no renewals in the City of San Diego.	Satchel SHAKE1
+
+Title 24, Part 6, 110.8(i)	Cool roof claims	Reflectance claims rest on Cool Roof Rating Council ratings; the code sets minimums, not savings.	Satchel ENR1, ENR2; trigger screen
+
+Los Angeles County BCM 1512 Art. 1; CPUC Net Billing Tariff	Solar on a reroof	Reinstalling panels takes its own permit and the right license; say nothing about net metering status without the tariff text.	Satchel SOL1, SOL2
+
+Civil Code 1797.91 to 1797.94	Warranties	Roof warranties are written, pass to the next owner unless limited in 14 point bold, and "lifetime" says whose.	Satchel LIFE1
+
+47 U.S.C. 227; 47 CFR 64.1200	Calls and texts	Written consent for autodialed or prerecorded marketing; honor the national Do Not Call list.	Satchel TCPA, CALL1, WEB3
+
+FTC Act section 5 (state false advertising law not read)	Truthful claims	Superlatives, proof claims and discounts must be true and substantiated.	Satchel SUP1, LIFE1, WIND1, LIC3
+
+Manufacturer program terms	Certifications	Name a certification or a manufacturer warranty only as the program allows and only while current.	Satchel CERT1, FIRE6
+
+Cal. Code Regs. tit. 8, 1731, 3395	Crew safety in photos and video	Residential roof work shows fall protection at 6 feet or more; a spot showing unprotected workers documents a violation.	Satchel TV1; safety screen
+
+Sources: statutes as archived from leginfo.legislature.ca.gov and on california.public.law, the CSLB industry bulletins, the Department of Insurance, and the federal rules on eCFR. Licensing questions go to the CSLB; insurance questions to the Department of Insurance.
+
+The Board of Forestry and Fire Protection approved the final draft of the Zone 0 defensible space regulations on August 19, 2026. A law firm alert of September 9, 2026 says the Board sent them to the Office of Administrative Law on August 28, 2026. No source confirming that Office's approval, the final text or an effective date was found as of November 19, 2026. An August 2026 trade press report said new construction would be covered from September; that was not confirmed. The Board cut the fully noncombustible strip to a minimum of one foot. Do not write that Zone Zero is in force, and do not sell gutter or eave work as required by it, until the filed rule is read.
+
+California Wildfire and Forest Resilience Task Force, August 2026; Best Best & Krieger alert, September 9, 2026; Insurance Journal, August 20, 2026
+
+Assembly Bill 888 of 2025 took effect January 1, 2026. The Department of Insurance is to run grants for low and middle income owners in high risk areas insured by an admitted insurer or the FAIR Plan, toward fire safe roofs and the five foot zone. A news report said $3 million had been secured to start and that grant amounts had not been determined. Whether applications opened in 2026 was not found. Copy must not promise a grant or state an amount.
+
+Per home amounts and homes completed under the state home hardening retrofit program were not found in any primary source; only aggregator pages with conflicting amounts appeared. The atlas states none.
+
+Assembly Bill 597 of 2025 would have capped public adjuster fees at 15 percent. Bill trackers seen only in a search summary show it held in committee on August 29, 2025. No sign that it became law was found.
+
+Senate Bill 216 of 2022 planned to require workers' compensation of all contractors, with or without employees, by January 1, 2026. The current section 7125 instead sunsets on January 1, 2028, which is when the wider rule turns on. Roofers already carry it; from 2028 the competitors who claim no employees must too. The board must report to the Legislature by 2027 on a new process to verify exemptions (SB 291).
+
+Assembly Bill 130 of 2025 stops new state and local residential building standards from October 1, 2025 to June 1, 2031, except emergency standards and home hardening. Expect the reroof, cool roof and solar rules in this register to hold, and expect cities to keep amending the wildfire code.
+
+No source opened says whether removing rooftop panels for a reroof and putting the same panels back changes a customer's older net metering status. Until the utility tariff text is read, a solar detach and reset page must not say that the status is safe or that it is lost.
+
+The 2025 Fire Hazard Severity Zone maps were seen only through city pages in search summaries, and the only current local wood shake rules confirmed are Los Angeles and San Diego. A statewide list of local bans was not found. Screen each address with the State Fire Marshal's viewer and the city building department.
+
+Statute text	The Legislature's own site refused automated reading. Statutes were read as dated archive captures or on california.public.law, and Title 24 on UpCodes; a section may have been amended since its capture.
+
+Business days and senior citizens	The Civil Code definition of a business day and the age that makes a buyer a senior citizen for the five day right to cancel were not read. The contract screen counts days the way the federal rule does.
+
+Claims	No statute or agency notice read says how far a roofer may go when meeting an adjuster; no assignment of benefits statute for roofing was found; People v. Montgomery-Sansome is one trial court decision and an appeal was not checked.
+
+Insurance discounts	Class A roof discount percentages by insurer, and the FAIR Plan's figure for the roof alone, are not published in the documents opened. Moratorium ZIP Code lists could not be downloaded.
+
+Permits	Reroof permit rules were read as written rules only for the City of San Diego and Los Angeles County. Los Angeles and San Francisco are known from their permit data; San Jose and Sacramento were not opened.
+
+Fire maps and shake bans	The 2025 Fire Hazard Severity Zone maps were seen only in search summaries of city pages. Only Los Angeles and San Diego wood roof rules were confirmed from current documents.
+
+Solar	Whether a detach and reset changes an older net metering status; the CSLB's own statement on which license reinstalls panels (read only as Los Angeles County describes it).
+
+Advertising law	California's general unfair competition and false advertising statutes, any rule on advertising the contractor bond, state telephone solicitation rules and privacy statutes were not read.
+
+Hazardous materials	The federal lead renovation rule, the federal asbestos demolition rule and air district asbestos notification rules were not opened.
+
+Grants and rebates	Safe Homes grant amounts and whether applications opened; Wildfire Mitigation Program amounts; PACE; utility rebates other than the Los Angeles Department of Water and Power.
+
+Prices	No audited price series. San Francisco figures are applicant declared permit costs; Los Angeles valuations are nominal and are not shown as prices. The calculators' default prices are examples, not market figures.
+
+California Roofer Guru, module 03. Statements of law as read November 19, 2026 from statutes, regulations, codes and agency pages, each with its source and grade; screening calculators only. Not legal advice.

@@ -1,0 +1,1406 @@
+MODULE 14 · WEATHER DESK · 11 FORECAST POINTS, ONE PER REGION
+Weather Desk
+
+Roofing work follows the weather twice: rain, wind, fire and snow make the jobs, and dry, calm days let crews do them. This desk reads the National Weather Service forecast for one point in each region and the alerts in force for California, with the excessive rainfall and fire weather outlooks by county, and turns them into two clocks: a weather trigger index that marks the hours when rain, wind, fire weather, heat or snow press on roofs, which set the ads and bids for the days after, and a work window that marks the days crews can tear off, the days for repairs and inspections, and the days to stay off roofs. All times are Pacific.
+
+Forecast api.weather.gov, 11 points and the alerts for California
+Outlooks excessive rainfall days 1 to 3, fire weather days 1 and 2, by county
+Triggers rain, wind, fire weather, heat, snow, thunder (grade C)
+Snapshot embedded for offline use
+Weather Desk
+Forecast to triggers, work windows and actions
+↻ Refresh from NWS
+↓ Campaign windows CSV
+↓ Work days CSV
+Campaign Desk ↗
+Weather and Fire Ledger ↗
+Accounts ↗
+◐ Theme
+READ THIS FIRST: THE WEATHER TRIGGER INDEX AND THE WORK WINDOW
+The weather trigger index starts at 1.0 and adds for each sign of roof weather in the hourly forecast. Rain: 0.05 inch an hour or more adds the rate divided by 0.25 (up to 1.2), 1.5 inches in 24 hours adds 0.3 and 3 inches adds 0.6, and an atmospheric river named in the office's forecast discussion adds 0.2. Wind: gusts above 30 mph add one point for every 20 mph more, a High Wind Warning adds 0.5, and dry wind off the land (the Santa Ana, Diablo and sundowner pattern) adds 0.3. Fire weather: humidity of 15 percent or less with gusts of 25 mph adds 0.6, a Red Flag Warning over the point adds 0.8 and a Fire Weather Watch 0.4. Heat: 100 F adds 0.3 and 110 F adds 0.5. Snow: 0.5 inch an hour or more adds up to 1.0, 24 inches in 72 hours adds 0.5 and a Winter Storm Warning 0.3. Thunder, hail and a Flash Flood Warning add as well. Elevated is 1.4 or more and high is 2.0 or more; every weight is an assumption graded C. The work window marks daylight hours as good, marginal (rain chance of 25 to 49 percent, gusts of 22 mph or more, 95 F or more, frost, smoke, or a Red Flag Warning, when hot work stops) or blocked (rain chance of 50 percent or more, falling snow, thunder of 30 percent or more, or gusts of 30 mph or more); a day with four or more blocked hours is a day for no tear offs. Owners look for a roofer in the days after damage, so weather actions run after the window, never during it. Fire weather is different: it is a crew safety signal and a time for education, never for fear, and after a fire the disaster rules on price, license and contracts apply (module 03).
+EMBEDDED SNAPSHOT
+Forecast as of November 23, 2026 at 2:38 PM Pacific (api.weather.gov (NWS Eureka EKA, Sacramento STO, San Francisco Bay Area MTR, Hanford HNX, Los Angeles LOX, San Diego SGX, Medford MFR, Reno REV, Las Vegas VEF, Phoenix PSR offices); SPC fire weather outlook; WPC excessive rainfall outlook; CNRFC). Refresh pulls the live forecast and alerts when the atlas is opened outside the Claude viewer; inside it, the snapshot stands and every window below should be read against its date.
+ACTIVE ALERTS
+A
+38
+8 touch roofing work; most common: Coastal Flood Warning, Coastal Flood Advisory, High Surf Advisory
+MOST RAIN, NEXT 24 HOURS
+A
+0.25 in
+Eureka; 0.90 in over 72 hours
+EXCESSIVE RAINFALL OUTLOOK TODAY
+A
+None
+no outlook area over California
+FIRE WEATHER OUTLOOK TODAY
+A
+None
+no outlook area over California; 0 Red Flag Warnings in force
+TRIGGER WINDOWS
+C
+3
+1 high, 2 elevated, across 11 points
+HIGHEST TRIGGER, NEXT 72 HOURS
+C
+2.06×
+Eureka
+FULL PRODUCTION DAYS AHEAD
+C
+53 of 66
+point days with room for tear offs
+CREW CALENDAR
+Thanksgiving
+in the forecast period; rain season, santa ana season
+Rain and atmospheric river outlook
+
+Rain and snow ahead at each forecast point, the excessive rainfall outlook by county, and what the forecasters say about atmospheric rivers.
+
+POINT	RAIN 24 H	RAIN 72 H	SNOW 72 H	TOP GUST
+Eureka North Coast	0.25 in	0.90 in	—	46 mph
+Redding Far North	0.00 in	0.46 in	—	9 mph
+Sacramento Sacramento Valley	0.00 in	0.14 in	—	13 mph
+Truckee Sierra	0.00 in	0.01 in	—	17 mph
+San Francisco Bay Area	0.00 in	0.68 in	—	32 mph
+Santa Barbara Central Coast	0.00 in	0.00 in	—	12 mph
+Fresno San Joaquin Valley	0.00 in	0.00 in	—	12 mph
+Los Angeles Los Angeles and Ventura	0.00 in	0.00 in	—	10 mph
+Santa Ana Orange County	0.00 in	0.00 in	—	13 mph
+Riverside Inland Empire	0.00 in	0.00 in	—	13 mph
+San Diego San Diego and Imperial	0.00 in	0.00 in	—	17 mph
+
+Totals from the gridded forecast at each point (the water in snow counts as rain in the first two columns). A
+
+Excessive rainfall outlook, day 1
+None
+Excessive rainfall outlook, day 2
+Marginal · 16 counties in an area
+Excessive rainfall outlook, day 3
+None
+ATMOSPHERIC RIVERS
+
+No office names an atmospheric river in its forecast discussion in this read. No machine readable atmospheric river scale forecast was found: the CW3E forecast page (https://cw3e.ucsd.edu/tools/forecasts/atmospheric-river-scale-forecasts/) publishes images only. This block carries what is public as data: the offices whose forecast discussion names an atmospheric river, and the forecast rain at each point (rain.qpf). The scale itself (AR1 to AR5) is explained in module 02. Scale forecasts ↗
+
+WHAT TO DO WITH IT
+
+Two to three days ahead: stock tarps, sandbags for flat roof drains, sealant and pumps; clear gutters and scuppers on open jobs; dry in every open deck by the night before, or do not start the tear off. Call customers with roofs on the leak watch list.
+
+River forecast center rain discussion, issued Nov 23, 7:01 AM Pacific
+Fire weather outlook
+
+The Storm Prediction Center fire weather outlook by county, Red Flag Warnings in force, and the driest, windiest hours ahead at each point.
+
+Fire weather outlook, day 1
+None
+Fire weather outlook, day 2
+None
+Red Flag Warnings · Fire Weather Watches in force
+0 · 0
+DRIEST HOUR AHEAD AT EACH POINT (72 HOURS)
+POINT	LOWEST HUMIDITY	GUST THEN	WHEN	FIRE WEATHER HOURS
+Santa Ana	22%	9 mph	Thu 12p	0
+Los Angeles	25%	6 mph	Tue 1p	0
+Riverside	26%	9 mph	Thu 1p	0
+San Diego	27%	7 mph	Thu 11a	0
+Santa Barbara	39%	7 mph	Wed 11a	0
+Truckee	56%	8 mph	Thu 1p	0
+Fresno	56%	12 mph	Tue 3p	0
+Eureka	57%	39 mph	Tue 2a	0
+Redding	64%	5 mph	Mon 3p	0
+Sacramento	75%	13 mph	Wed 2p	0
+San Francisco	76%	23 mph	Tue 2p	0
+
+Fire weather hours are forecast hours with humidity of 15 percent or less and gusts of 25 mph or more, or under a Red Flag Warning or Fire Weather Watch. The warning criteria themselves are set by each forecast office and are not in the evidence behind this atlas, so the desk reads the warning, not a rule of its own. C
+
+WHAT TO DO WITH IT
+
+A Red Flag Warning is a day for crew safety first: no hot work (torch applied membranes, kettles, grinding), vehicles off dry grass, and a plan to leave. Jobs in the warned zones should be closed up by the afternoon before. Do not advertise into fear while a fire burns. Hardening messages (Class A assembly, ember resistant vents, gutters and the first five feet) run as education in the warned zones only when no fire is burning there, and stop the moment an evacuation is ordered.
+
+Fire weather outlook text, issued Nov 23, 8:25 AM Pacific
+FORECAST POINT
+Eureka
+Redding
+Sacramento
+Truckee
+San Francisco
+Santa Barbara
+Fresno
+Los Angeles
+Santa Ana
+Riverside
+San Diego
+MAP
+Alerts
+Rain outlook day 1
+Day 2
+Day 3
+Fire weather day 1
+Day 2
+Trigger peak by region
+Pacific Ocean
+Nevada
+Arizona
+Oregon
+Baja California
+Monterey Bay
+San Francisco Bay
+San Pablo Bay
+Suisun Bay
+San Diego Bay
+Arcata Bay
+San Pedro Bay
+Humboldt Bay
+Tomales Bay
+Grizzly Bay
+Drakes Bay
+Bodega Bay
+Salton Sea
+Lake Tahoe
+Goose Lake
+Honey Lake
+Mono Lake
+Clear Lake
+Shasta Lake
+Lake Almanor
+Eagle Lake
+Clear Lake Reservoir
+Lake Havasu
+Lake Berryessa
+Lower Klamath Lake
+Lake Oroville
+Clair Engle Lake
+Don Pedro Reservoir
+San Luis Reservoir
+Folsom Lake
+New Melones Lake
+Isabella Lake
+Tule Lake Sump
+Comanche Reservoir
+Lake McClure
+Big Sage Reservoir
+San Antonio Reservoir
+Pine Flat Reservoir
+Mountain Meadows Reservoir
+Diamond Valley Lake
+Lake Crowley
+Nacimiento Reservoir
+Black Butte Lake
+Lake Davis
+Thermalito Afterbay
+Millerton Lake
+New Bullards Bar Reservoir
+New Hogan Lake
+Indian Valley Reservoir
+Lake Elsinore
+Stampede Reservoir
+Turlock Lake
+Lake Cachuma
+Moon Lake
+Whiskeytown Lake
+Union Valley Reservoir
+Cow Head Lake
+Lake Mathews
+Bridgeport Reservoir
+Meiss Lake
+Pardee Reservoir
+Lake Success
+Lake Earl
+Lake Perris
+Shaver Lake
+Big Bear Lake
+Lake Casitas
+O'Neill Forebay
+Spicer Reservoir
+ALAMEDA
+ALPINE
+AMADOR
+BUTTE
+CALAVERAS
+COLUSA
+CONTRA COSTA
+DEL NORTE
+EL DORADO
+FRESNO
+GLENN
+HUMBOLDT
+IMPERIAL
+INYO
+KERN
+KINGS
+LAKE
+LASSEN
+LOS ANGELES
+MADERA
+MARIN
+MARIPOSA
+MENDOCINO
+MERCED
+MODOC
+MONO
+MONTEREY
+NAPA
+NEVADA
+ORANGE
+PLACER
+PLUMAS
+RIVERSIDE
+SACRAMENTO
+SAN BENITO
+SAN BERNARDINO
+SAN DIEGO
+SAN FRANCISCO
+SAN JOAQUIN
+SAN LUIS OBISPO
+SAN MATEO
+SANTA BARBARA
+SANTA CLARA
+SANTA CRUZ
+SHASTA
+SIERRA
+SISKIYOU
+SOLANO
+SONOMA
+STANISLAUS
+SUTTER
+TEHAMA
+TRINITY
+TULARE
+TUOLUMNE
+VENTURA
+YOLO
+YUBA
+Los Angeles
+San Diego
+San Jose
+San Francisco
+Fresno
+Sacramento
+Long Beach
+Oakland
+Bakersfield
+Anaheim
+Stockton
+Riverside
+Santa Ana
+Irvine
+Chula Vista
+Santa Clarita
+Fremont
+San Bernardino
+Modesto
+Fontana
+Moreno Valley
+Oxnard
+Huntington Beach
+Glendale
+Ontario
+Elk Grove
+Santa Rosa
+Rancho Cucamonga
+Oceanside
+Garden Grove
+Lancaster
+Palmdale
+Salinas
+Corona
+Hayward
+Roseville
+Sunnyvale
+Visalia
+Victorville
+Temecula
+Santa Maria
+Ventura
+Chico
+Redding
+Merced
+Indio
+Santa Barbara
+Napa
+Santa Cruz
+San Luis Obispo
+Palm Springs
+El Centro
+Monterey
+Ridgecrest
+Eureka
+Barstow
+South Lake Tahoe
+Blythe
+Truckee
+Ukiah
+Susanville
+Yreka
+Crescent City
+Alturas
+Escondido
+Pomona
+Torrance
+Fullerton
+Orange
+Pasadena
+Santa Clara
+Simi Valley
+Thousand Oaks
+Clovis
+Vallejo
+Concord
+Fairfield
+Berkeley
+Antioch
+Richmond
+Carlsbad
+Murrieta
+East Los Angeles
+Downey
+Costa Mesa
+Menifee
+West Covina
+Jurupa Valley
+El Monte
+Inglewood
+Burbank
+El Cajon
+Rialto
+San Mateo
+Vacaville
+Daly City
+Hesperia
+Norwalk
+Vista
+Tracy
+Arden-Arcade
+San Marcos
+Carson
+Compton
+Chino
+Mission Viejo
+South Gate
+Hemet
+Santa Monica
+Westminster
+Manteca
+San Leandro
+Citrus Heights
+Lake Forest
+Whittier
+San Ramon
+Livermore
+Hawthorne
+Folsom
+Newport Beach
+Mountain View
+Buena Park
+Redwood City
+Rancho Cordova
+Alhambra
+Perris
+Lakewood
+Upland
+Tustin
+Milpitas
+Chino Hills
+Alameda
+Pleasanton
+Carmichael
+Bellflower
+Pittsburg
+Apple Valley
+Redlands
+Rocklin
+Turlock
+Lake Elsinore
+Tulare
+Dublin
+Eastvale
+Camarillo
+Baldwin Park
+Walnut Creek
+Yuba City
+Redondo Beach
+Madera
+Lodi
+Union City
+Palo Alto
+Yorba Linda
+Davis
+Brentwood
+Castro Valley
+Lynwood
+South San Francisco
+Laguna Niguel
+San Clemente
+Porterville
+La Habra
+Woodland
+Encinitas
+Montebello
+La Mesa
+Florence-Graham
+San Rafael
+Pico Rivera
+Hanford
+Hollister
+Martinez
+Oroville
+Red Bluff
+Auburn
+Marysville
+Placerville
+Colusa
+Willows
+Lakeport
+Jackson
+Sonora
+Weaverville
+Nevada City
+San Andreas
+Quincy
+Mariposa
+Independence
+Bridgeport
+Downieville
+Markleeville
+Gardena
+Santee
+Petaluma
+Monterey Park
+Gilroy
+National City
+Cupertino
+Highland
+Beaumont
+Fountain Valley
+South Whittier
+San Jacinto
+Arcadia
+West Sacramento
+Yucaipa
+Hacienda Heights
+Colton
+Diamond Bar
+Huntington Park
+Lincoln
+Placentia
+Novato
+Cathedral City
+Paramount
+Palm Desert
+Watsonville
+Delano
+Aliso Viejo
+El Dorado Hills
+Glendora
+Florin
+Rosemead
+Covina
+Cypress
+Ceres
+Azusa
+Poway
+Antelope
+North Highlands
+Cerritos
+Los Banos
+Brea
+La Mirada
+Rancho Santa Margarita
+Newark
+Rowland Heights
+Morgan Hill
+French Valley
+Oakley
+Rohnert Park
+Vineyard
+Lompoc
+Danville
+Coachella
+Campbell
+San Bruno
+Altadena
+Rancho Palos Verdes
+Culver City
+Stanton
+La Quinta
+Calexico
+San Gabriel
+Bell Gardens
+Adelanto
+Montclair
+Monrovia
+Wildomar
+Pacifica
+La Puente
+Claremont
+Foothill Farms
+Orangevale
+Moorpark
+Temple City
+San Juan Capistrano
+Lathrop
+La Presa
+West Hollywood
+Oildale
+Pleasant Hill
+Manhattan Beach
+Westmont
+San Dimas
+Desert Hot Springs
+Fair Oaks
+Foster City
+Dana Point
+Los Gatos
+Menlo Park
+Goleta
+Atwater
+Fallbrook
+Spring Valley CDP
+Seaside
+San Pablo
+Beverly Hills
+Orcutt
+El Paso de Robles
+Santa Paula
+Banning
+Lawndale
+Laguna Hills
+Los Altos
+La Verne
+Burlingame
+Saratoga
+Temescal Valley
+Atascadero
+San Carlos
+Suisun City
+San Lorenzo
+East Palo Alto
+East Niles
+Eastern Goleta Valley
+Lemon Grove
+Walnut
+Twentynine Palms
+Belmont
+Brawley
+Lemoore
+Benicia
+Sanger
+Wasco
+Soledad
+Hercules
+Windsor
+South Pasadena
+El Cerrito
+Galt
+North Tustin
+Imperial Beach
+Bloomington
+West Whittier-Los Nietos
+Reedley
+Mountain House
+Dinuba
+Lafayette
+Riverbank
+Loma Linda
+Norco
+Oakdale
+Ramona
+Yucca Valley
+Coronado
+Arcata
+Coalinga
+Clearlake
+California City
+Grass Valley
+King City
+Fortuna
+Tehachapi
+Half Moon Bay
+Healdsburg
+Morro Bay
+Sonoma
+Lake Arrowhead
+Malibu
+Seal Beach
+Patterson
+Selma
+Maywood
+Bay Point
+Linda
+Ladera Ranch
+Rosemont
+San Fernando
+East San Gabriel
+West Rancho Dominguez
+Laguna Beach
+Millbrae
+Calabasas
+Marina
+West Puente Valley
+Corcoran
+Lakeside CDP
+Ashland
+Duarte
+West Carson
+Winter Gardens
+American Canyon
+Willowbrook
+Granite Bay
+Port Hueneme
+Rosamond
+Imperial
+Rancho San Diego
+Shafter
+Stevenson Ranch
+East Hemet
+Greenfield
+Lomita
+La Cañada Flintridge
+Casa de Oro-Mount Helix
+Prunedale
+Agoura Hills
+Dixon
+La Crescenta-Montrose
+Arvin
+Orinda
+Lennox
+Albany
+South El Monte
+Mead Valley
+Hermosa Beach
+Chowchilla
+Rosedale
+Santa Fe Springs
+Pinole
+Stanford
+Valle Vista
+Phelan
+Olivehurst
+Arroyo Grande
+Cameron Park
+Castaic
+Rancho Mirage
+Nipomo
+Woodcrest
+Laguna Woods
+McKinleyville
+Live Oak
+South San Jose Hills
+Fillmore
+Kerman
+El Segundo
+Moraga
+Bostonia
+Rio Linda
+El Sobrante CDP
+Ripon
+Camp Pendleton South
+Parkway
+Vincent
+Lemon Hill
+La Palma
+Coto de Caza
+Alpine
+Pacific Grove
+Discovery Bay
+Livingston
+East Rancho Dominguez
+Parlier
+Alamo
+McFarland
+Los Osos
+Cherryland
+Mill Valley
+Isla Vista
+Salida
+Oak Park
+Hawaiian Gardens
+Avenal
+Lamont
+El Sobrante CDP
+North Fair Oaks
+Emeryville
+Grand Terrace
+Lake Los Angeles
+Carpinteria
+Palos Verdes Estates
+Larkspur
+Solana Beach
+Kingsburg
+San Anselmo
+Bonita
+Lindsay
+Grover Beach
+Avocado Heights
+Mendota
+Newman
+San Marino
+Tamalpais-Homestead Valley
+Scotts Valley
+Muscoy
+Commerce
+Rancho Mission Viejo
+Winton
+Los Alamitos
+Quartz Hill
+La Riviera
+Big Bear City
+Anderson
+View Park-Windsor Hills
+Canyon Lake
+Valley Center
+Del Aire
+Hillsborough
+East Bakersfield
+Sun Village
+Delhi
+Piedmont
+Sierra Madre
+Clayton
+Diamond Springs
+Citrus
+Calimesa
+Fairview
+Soquel
+Garden Acres
+Home Gardens
+Alum Rock
+Farmersville
+Shasta Lake
+Exeter
+San Diego Country Estates
+Country Club
+Potomac Park
+Blackhawk
+Rio Vista
+Corte Madera
++
+−
+⟲
+ALERTS IN FORCE THAT TOUCH ROOFING WORK, BY COUNTY
+Rain
+Wind
+Each county takes the kind of its most serious alert (warnings before watches and advisories; fire weather first, then rain, wind, snow, heat). An alert covers forecast zones, so a mountain or coast alert colors the whole county here. A
+Eureka
+
+North Coast · NWS EKA grid 62,108 · zone CAZ103 · fire weather zone CAZ404
+
+1.00× weather trigger now · normal
+57°F, Mostly Cloudy · rain 3% · humidity 61% · gusts 30 mph · work window marginal
+Rain next 24 · 72 hours
+0.25 · 0.90 in
+Top gust · highest temperature · lowest humidity, 72 hours
+46 mph · 63°F · 57%
+Alerts over this point
+Coastal Flood Warning, Coastal Flood Watch, Wind Advisory
+TRIGGER WINDOWS AHEAD
+Mon Nov 23, 10p to 12a · gusts 39 mph
+1.46× elevated
+Tue Nov 24, 12a to 4a · gusts 39 mph
+1.46× elevated
+Tue Nov 24, 7a to 7p · gusts 39 mph, rain 0.06 in an hour, gusts 46 mph, gusts 41 mph, rain 0.05 in an hour, gusts 40 mph
+2.06× high
+WORK DAYS AHEAD
+Mon Nov 23 · 0 good, 4 marginal, 0 blocked hours · gusts 30 mph
+repairs and inspections
+Tue Nov 24 · 0 good, 0 marginal, 12 blocked hours · gusts 46 mph, rain 100%
+no tear offs
+Wed Nov 25 · 12 good, 0 marginal, 0 blocked hours · Thanksgiving
+full production
+Thu Nov 26 · 0 good, 6 marginal, 6 blocked hours · Thanksgiving, rain 56%
+no tear offs
+Fri Nov 27 · 12 good, 0 marginal, 0 blocked hours · Thanksgiving
+full production
+Sat Nov 28 · 0 good, 4 marginal, 4 blocked hours · Thanksgiving, rain 64%
+no tear offs
+ACTION: OFFSHORE WIND AND HIGH WIND
+
+For 72 hours: wind damage repair and inspection ads where gusts of 58 mph or more were measured (module 02 shows the reports). Lifted shingles, slipped tile, ridge caps and flashing are the calls. Offer inspections, not outcomes. Raise wind and rain damage and roof repair and leaks bids 25% in North Coast for the 72 hours after each high window. On no tear off days, book inspections and small repairs, and move material deliveries.
+
+HOUR BLOCKS FOR THE BID LIFT
+
+12a to 6a +10% · 6a to 9a +15% · 9a to 12p +15% · 12p to 5p +10% · 5p to 9p +15% · 9p to 12a +5%, from the emergency template (module 12), on top of the window's lift.
+
+Region's storm and repair ZIPs to the Desk ↗
+The next four days, hour by hour
+
+Weather trigger index for the selected point, the chance of rain, and the crew work window under it. Shaded: night. Hours are Pacific time.
+
+0.8
+1.0
+1.2
+1.4
+1.6
+1.8
+2.0
+Mon 2p
+Tue 12a
+Wed 12a
+Thu 12a
+Fri 12a
+Index, 1.0 = no weather signal
+elevated
+high
+Weather trigger index
+Work window by hour
+Good
+Marginal
+Blocked
+Night
+0%
+20%
+40%
+60%
+80%
+100%
+Mon 2p
+Tue 2a
+Tue 2p
+Wed 2a
+Wed 2p
+Thu 2a
+Thu 2p
+Fri 2a
+Chance of rain or snow (%)
+
+Peak trigger: Tuesday 10a at 2.06× (rain 0.06 in an hour, gusts 46 mph). 20 good and 33 blocked work hours in the next 96.
+
+Trigger windows and actions, every region
+
+Runs of elevated (1.4 or more) and high (2.0 or more) trigger hours, the kind of weather behind each, and the bid lift for the 72 hours after.
+
+POINT	DATE	HOURS	KIND	PEAK ↓	LEVEL	NEXT 72H BID	LINE	WHY
+Eureka	Tue Nov 24	7a to 7p	Wind, Rain	2.06×	high	+25%	Wind and rain damage	gusts 39 mph, rain 0.06 in an hour, gusts 46 mph, gusts 41 mph, rain 0.05 in an hour, gusts 40 mph
+Eureka	Mon Nov 23	10p to 12a	Wind	1.46×	elevated	+15%	Wind and rain damage	gusts 39 mph
+Eureka	Tue Nov 24	12a to 4a	Wind	1.46×	elevated	+15%	Wind and rain damage	gusts 39 mph
+Work days, every region
+
+Daylight hours that are good, marginal or blocked for roofing, and the call for the day.
+
+POINT	DATE ↑	CALL	GOOD	MARGINAL	BLOCKED	WHY
+Eureka	Mon Nov 23	repairs and inspections	0	4	0	gusts 30 mph
+Redding	Mon Nov 23	full production	4	0	0	
+Sacramento	Mon Nov 23	full production	4	0	0	
+Truckee	Mon Nov 23	full production	4	0	0	
+San Francisco	Mon Nov 23	full production	4	0	0	
+Santa Barbara	Mon Nov 23	full production	4	0	0	
+Fresno	Mon Nov 23	full production	4	0	0	
+Los Angeles	Mon Nov 23	full production	4	0	0	
+Santa Ana	Mon Nov 23	full production	4	0	0	
+Riverside	Mon Nov 23	full production	4	0	0	
+San Diego	Mon Nov 23	full production	4	0	0	
+Eureka	Tue Nov 24	no tear offs	0	0	12	gusts 46 mph, rain 100%
+Redding	Tue Nov 24	full production	10	0	2	rain 63%
+Sacramento	Tue Nov 24	full production	12	0	0	
+Truckee	Tue Nov 24	full production	9	3	0	frost or ice on the deck
+San Francisco	Tue Nov 24	repairs and inspections	8	4	0	gusts 28 mph
+Santa Barbara	Tue Nov 24	full production	12	0	0	
+Fresno	Tue Nov 24	full production	12	0	0	
+Los Angeles	Tue Nov 24	full production	12	0	0	
+Santa Ana	Tue Nov 24	full production	12	0	0	
+Riverside	Tue Nov 24	full production	12	0	0	
+San Diego	Tue Nov 24	full production	12	0	0	
+Eureka	Wed Nov 25	full production	12	0	0	Thanksgiving
+Redding	Wed Nov 25	repairs and inspections	8	4	0	Thanksgiving, rain 47%
+Sacramento	Wed Nov 25	repairs and inspections	8	4	0	Thanksgiving, rain 29%
+Truckee	Wed Nov 25	no tear offs	8	0	4	Thanksgiving, rain 26%, snow
+San Francisco	Wed Nov 25	repairs and inspections	8	4	0	Thanksgiving, rain 42%
+Santa Barbara	Wed Nov 25	full production	12	0	0	Thanksgiving
+Fresno	Wed Nov 25	full production	12	0	0	Thanksgiving
+Los Angeles	Wed Nov 25	full production	12	0	0	Thanksgiving
+Santa Ana	Wed Nov 25	full production	12	0	0	Thanksgiving
+Riverside	Wed Nov 25	full production	12	0	0	Thanksgiving
+San Diego	Wed Nov 25	full production	12	0	0	Thanksgiving
+Eureka	Thu Nov 26	no tear offs	0	6	6	Thanksgiving, rain 56%
+Redding	Thu Nov 26	full production	12	0	0	Thanksgiving
+Sacramento	Thu Nov 26	full production	12	0	0	Thanksgiving
+Truckee	Thu Nov 26	full production	9	3	0	Thanksgiving, frost or ice on the deck
+San Francisco	Thu Nov 26	full production	12	0	0	Thanksgiving
+Santa Barbara	Thu Nov 26	full production	12	0	0	Thanksgiving
+Fresno	Thu Nov 26	full production	12	0	0	Thanksgiving
+Los Angeles	Thu Nov 26	full production	12	0	0	Thanksgiving
+Santa Ana	Thu Nov 26	full production	12	0	0	Thanksgiving
+Riverside	Thu Nov 26	full production	12	0	0	Thanksgiving
+San Diego	Thu Nov 26	full production	12	0	0	Thanksgiving
+Eureka	Fri Nov 27	full production	12	0	0	Thanksgiving
+Redding	Fri Nov 27	full production	12	0	0	Thanksgiving
+Sacramento	Fri Nov 27	full production	12	0	0	Thanksgiving
+Truckee	Fri Nov 27	full production	10	2	0	Thanksgiving, frost or ice on the deck
+San Francisco	Fri Nov 27	full production	12	0	0	Thanksgiving
+Santa Barbara	Fri Nov 27	full production	12	0	0	Thanksgiving
+Fresno	Fri Nov 27	full production	12	0	0	Thanksgiving
+Los Angeles	Fri Nov 27	full production	12	0	0	Thanksgiving
+Santa Ana	Fri Nov 27	full production	12	0	0	Thanksgiving
+Riverside	Fri Nov 27	full production	12	0	0	Thanksgiving
+San Diego	Fri Nov 27	full production	12	0	0	Thanksgiving
+Eureka	Sat Nov 28	no tear offs	0	4	4	Thanksgiving, rain 64%
+Redding	Sat Nov 28	repairs and inspections	4	4	0	Thanksgiving, rain 45%
+Sacramento	Sat Nov 28	repairs and inspections	4	4	0	Thanksgiving, rain 37%
+Truckee	Sat Nov 28	repairs and inspections	4	4	0	Thanksgiving, frost or ice on the deck, gusts 25 mph
+San Francisco	Sat Nov 28	no tear offs	4	0	4	Thanksgiving, rain 53%
+Santa Barbara	Sat Nov 28	full production	8	0	0	Thanksgiving
+Fresno	Sat Nov 28	full production	8	0	0	Thanksgiving
+Los Angeles	Sat Nov 28	full production	8	0	0	Thanksgiving
+Santa Ana	Sat Nov 28	full production	8	0	0	Thanksgiving
+Riverside	Sat Nov 28	full production	8	0	0	Thanksgiving
+San Diego	Sat Nov 28	full production	8	0	0	Thanksgiving
+Active alerts for California
+
+NWS alerts in the snapshot or the latest refresh, grouped by type, with the standing roofing action for each.
+
+2
+Flood Warning Severe · latest until Nov 26, 4:00 PM Pacific
+Solano, CA; Sacramento, CA; San Joaquin, CA; Yolo, CA
+Rain and flood: An atmospheric river or a long rain: tarps and dry in on every open job before it arrives, phones staffed for leak calls during it, leak repair and inspection ads in the covered ZIPs for 72 hours after it. Keep replacement ads running.
+1
+High Wind Warning Severe · latest until Nov 24, 10:00 PM Pacific
+Central Siskiyou County
+Wind: Gusts over 30 mph: no tear offs, secure material and stacks. After the event, repair and inspection ads for lifted shingles and slipped tile in the warned zones; with dry offshore wind treat the day as fire weather too.
+5
+Wind Advisory Moderate · latest until Nov 25, 9:00 AM Pacific
+Central Siskiyou County; Southwestern Humboldt; Interior Del Norte; Northeastern Interior Humboldt; Northern Coastal Humboldt; Southeastern Interior Humboldt; Coastal Del Norte
+Wind: Gusts over 30 mph: no tear offs, secure material and stacks. After the event, repair and inspection ads for lifted shingles and slipped tile in the warned zones; with dry offshore wind treat the day as fire weather too.
+9
+Coastal Flood Warning Severe · latest until Nov 27, 1:00 PM Pacific
+Coastal Del Norte; Southwestern Humboldt; Coastal Mendocino; Northern Coastal Humboldt; San Francisco; Coastal North Bay Including Point Reyes National Seashore; San Francisco Peninsula Coast; Northern Monterey Bay and 8 more areas
+Coast: No roofing effect inland of the beach. Salt spray days are hard on fresh coatings near the water.
+4
+High Surf Warning Moderate · latest until Nov 26, 12:00 PM Pacific
+Coastal North Bay Including Point Reyes National Seashore; San Francisco Peninsula Coast; Northern Monterey Bay; Southern Monterey Bay and Big Sur Coast; San Francisco; San Luis Obispo County Beaches; Santa Barbara County Central Coast Beaches; Ventura County Beaches
+Coast: No roofing effect inland of the beach. Salt spray days are hard on fresh coatings near the water.
+8
+Coastal Flood Advisory Minor · latest until Nov 26, 12:00 PM Pacific
+Coastal North Bay Including Point Reyes National Seashore; San Francisco Peninsula Coast; Northern Monterey Bay; Southern Monterey Bay and Big Sur Coast; Catalina and Santa Barbara Islands; Santa Barbara County Southwestern Coast; Santa Barbara County Southeastern Coast; Ventura County Beaches and 6 more areas
+Coast: No roofing effect inland of the beach. Salt spray days are hard on fresh coatings near the water.
+6
+High Surf Advisory Minor · latest until Nov 27, 4:00 AM Pacific
+Santa Barbara County Southwestern Coast; Santa Barbara County Southeastern Coast; Ventura County Beaches; San Luis Obispo County Beaches; Santa Barbara County Central Coast Beaches; Malibu Coast; Los Angeles County Beaches; Catalina and Santa Barbara Islands and 1 more areas
+Coast: No roofing effect inland of the beach. Salt spray days are hard on fresh coatings near the water.
+3
+Coastal Flood Watch Moderate · latest until Nov 26, 2:00 PM Pacific
+Coastal Del Norte; Southwestern Humboldt; Coastal Mendocino; Northern Coastal Humboldt; Malibu Coast; Los Angeles County Beaches
+Coast: No roofing effect inland of the beach. Salt spray days are hard on fresh coatings near the water.
+Seven day forecast
+
+NWS periods for the selected point.
+
+PERIOD	TEMP	RAIN	WIND	FORECAST
+This Afternoon	59°	12%	18 mph	Mostly Cloudy
+Tonight	51°	12%	18 to 23 mph	Cloudy
+Tuesday	62°	100%	18 to 25 mph	Light Rain
+Tuesday Night	50°	100%	10 to 25 mph	Light Rain then Scattered Rain Showers
+Wednesday	64°	9%	10 mph	Partly Sunny
+Wednesday Night	51°	45%	12 mph	Mostly Cloudy then Chance Light Rain
+Thanksgiving Day	63°	56%	5 to 12 mph	Light Rain Likely
+Thursday Night	52°	31%	5 mph	Chance Light Rain then Cloudy
+Friday	63°	15%	2 mph	Cloudy then Slight Chance Light Rain
+Friday Night	53°	43%	2 to 6 mph	Chance Light Rain
+Saturday	61°	74%	6 to 10 mph	Light Rain Likely
+Saturday Night	52°	87%	10 to 18 mph	Light Rain
+Sunday	59°	88%	16 mph	Light Rain
+Sunday Night	50°	81%	7 to 16 mph	Light Rain
+Triggers and playbooks
+
+What a roofer does when each kind of trigger fires: before, during and after, with the California rules that bound the message.
+
+Rain and atmospheric rivers · line Roof repair and leaks and Wind and rain damage C
+Before	Two to three days ahead: stock tarps, sandbags for flat roof drains, sealant and pumps; clear gutters and scuppers on open jobs; dry in every open deck by the night before, or do not start the tear off. Call customers with roofs on the leak watch list.
+During	Crews stay off wet roofs. Staff the phones for leak calls and book them in order; tarp only where it can be done safely. Leak repair ads stay on; replacement ads keep running.
+After	For 72 hours after the window: leak repair and inspection ads in the ZIPs the rain covered, with the bid lift. Leak calls keep coming for days because owners find stains late. Re-roof enquiries follow in the weeks after a wet winter.
+The rules	A contract to repair a home damaged in a declared emergency carries a seven business day right to cancel; the ordinary right is three business days, five for a senior (Business and Professions Code 7159). Negotiating a claim with the insurer for pay is public adjusting and needs that license (Insurance Code 15006 and 15007). Write the estimate and the scope; do not offer to handle the claim. Never offer or advertise a discount meant to offset the deductible, and never pay an agent, broker or adjuster for a referral (Penal Code 551).
+Offshore wind and high wind · line Wind and rain damage and Roof repair and leaks C
+Fire weather (Red Flag Warning) · line Fire hardened roofs C
+Heat · line Restoration, coatings and maintenance and Commercial roofing and Title 24 cool roofs C
+Mountain snow · line Roof repair and leaks and Wind and rain damage C
+Thunderstorms and flash floods · line Wind and rain damage and Roof repair and leaks C
+
+Each playbook is practice written for this atlas (grade C); the rules quoted are from the law register in module 03 and are checked against the copy by module 10. The seven day wait before soliciting in a reopened disaster area binds public adjusters by statute; the evidence holds no such statute for roofers, so the playbooks treat the reopening of the area as the floor for any outreach.
+
+Crew calendar
+
+Holidays when crews are off and leads slow, and the roofing seasons by month.
+
+HOLIDAY	FROM	TO
+Thanksgiving	November 25, 2026	November 29, 2026
+Christmas	December 24, 2026	December 27, 2026
+New Year	December 31, 2026	January 3, 2027
+Martin Luther King Jr. Day weekend	January 16, 2027	January 18, 2027
+Presidents Day weekend	February 13, 2027	February 15, 2027
+Farmworkers Day (California; the date on the courts' 2027 schedule)	April 9, 2027	
+Memorial Day weekend	May 29, 2027	May 31, 2027
+Juneteenth	June 18, 2027	June 20, 2027
+Independence Day	July 3, 2027	July 5, 2027
+Labor Day weekend	September 4, 2027	September 6, 2027
+Columbus Day and Indigenous Peoples Day weekend	October 9, 2027	October 11, 2027
+Veterans Day	November 11, 2027	
+Thanksgiving	November 24, 2027	November 28, 2027
+Christmas	December 24, 2027	December 26, 2027
+SEASONS
+SEASON	JAN	FEB	MAR	APR	MAY	JUN	JUL	AUG	SEP	OCT	NOV	DEC
+Rain season	•	•	•							•	•	•
+Santa Ana season	•	•								•	•	•
+Fire season						•	•	•	•			
+Heat season						•	•	•	•			
+Snow season	•	•	•									•
+
+Rain season. Leak calls, tarps and emergency repairs. Tear offs need a dry window; book re-roofs for the dry months before it. Months from: atmospheric rivers by month (CW3E catalog).
+
+Santa Ana season. Dry offshore wind in the south: lifted shingles and tile, and the highest fire danger of the year. Months from: Scripps Santa Ana winds regional index, mean days by month, 1948 to 2018.
+
+Fire season. Hardening work sells before it; after a fire the disaster rules on price, license and contracts apply. Months from: acres burned by month of ignition (CAL FIRE perimeters).
+
+Heat season. Inland crews start at first light; shade above 80 F and high heat procedures at 95 F are the law for outdoor work. Months from: heat and excessive heat records by month.
+
+Snow season. Mountain roofs: snow load, ice dams and short work days. Re-roofs wait for the melt. Months from: heavy snow and winter storm records by month.
+
+Holidays are the federal ones with the weekends they make, plus California's Farmworkers Day (named Cesar Chavez Day through 2025), for 2026 and 2027: March 31, 2026 from the Secretary of State's list of state holidays; for 2027 the Secretary of State had posted no list when this was compiled, so the date shown, April 9, is the one on the California courts' 2027 holiday schedule. A season's months are the fewest months that hold 80 percent of its record, except Santa Ana months, which are those with three or more Santa Ana days in an average year.
+
+When weather makes roofing work
+
+The record by month, from the Weather and Fire Ledger (module 02).
+
+0
+5
+10
+15
+20
+25
+30
+Jan
+Feb
+Mar
+Apr
+May
+Jun
+Jul
+Aug
+Sep
+Oct
+Nov
+Dec
+Share of the year (%)
+Atmospheric rivers
+Heavy rain and flood records
+High wind records
+Santa Ana days
+Acres burned
+Heavy snow and winter storms
+Heat records
+
+Atmospheric rivers peak in December; Heavy rain and flood records peak in January; High wind records peak in January; Santa Ana days peak in December; Acres burned peak in July; Heavy snow and winter storms peak in February; Heat records peak in July. The service line seasons in module 12 follow these with a lag, because owners call after they find the damage.
+
+Observations
+
+Latest station reports in the snapshot: temperature, humidity, wind, gusts and visibility. Times are Pacific.
+
+STATION	TEMP	HUMIDITY	WIND	GUST	VISIBILITY	SKY	TIME
+KCEC	57°	44%	—	28 mph	10.0 mi	Cloudy	2:05 PM
+KACV	57°	48%	8 mph	—	10.0 mi	Cloudy	2:05 PM
+KUKI	52°	71%	3 mph	—	10.0 mi	Mostly Clear	2:05 PM
+KRDD	55°	54%	3 mph	—	10.0 mi	Clear	2:05 PM
+KMHS	41°	73%	8 mph	—	10.0 mi	Cloudy	1:56 PM
+KSMF	54°	77%	0 mph	—	10.0 mi	Clear	2:05 PM
+KSAC	54°	77%	0 mph	—	10.0 mi	Clear	2:05 PM
+KTRK	37°	65%	3 mph	—	10.0 mi	Partly Cloudy	1:50 PM
+KTVL	39°	56%	8 mph	—	10.0 mi	Mostly Clear	2:05 PM
+KMMH	28°	69%	0 mph	—	10.0 mi	Clear	1:55 PM
+KBIH	54°	26%	0 mph	—	10.0 mi	Clear	2:05 PM
+KSFO	55°	67%	—	—	10.0 mi	Mostly Clear	2:05 PM
+KOAK	55°	67%	6 mph	—	10.0 mi	Clear	2:05 PM
+KSJC	61°	52%	0 mph	—	10.0 mi	Clear	2:05 PM
+KSTS	55°	67%	5 mph	—	10.0 mi	Clear	2:05 PM
+KMRY	63°	—	5 mph	—	10.0 mi	Clear	2:05 PM
+KSBP	63°	55%	7 mph	—	10.0 mi	Clear	2:05 PM
+KSBA	64°	56%	5 mph	—	10.0 mi	Clear	2:05 PM
+KSCK	54°	77%	5 mph	—	10.0 mi	Clear	2:05 PM
+KFAT	48°	87%	0 mph	—	6.0 mi	Haze	2:05 PM
+KBFL	55°	67%	7 mph	—	9.0 mi	Mostly Clear	2:05 PM
+KLAX	66°	52%	9 mph	—	10.0 mi	Clear	2:05 PM
+KBUR	66°	46%	5 mph	—	10.0 mi	Clear	2:05 PM
+KVNY	66°	43%	7 mph	—	10.0 mi	Clear	2:05 PM
+KLGB	70°	43%	0 mph	—	10.0 mi	Clear	2:05 PM
+KSNA	70°	43%	6 mph	—	10.0 mi	Clear	2:05 PM
+KONT	66°	46%	0 mph	—	10.0 mi	Clear	2:05 PM
+KRAL	66°	37%	0 mph	—	10.0 mi	Clear	2:05 PM
+KPSP	72°	29%	5 mph	—	10.0 mi	Clear	2:05 PM
+KDAG	61°	34%	5 mph	—	10.0 mi	Clear	2:05 PM
+KSAN	70°	53%	7 mph	—	10.0 mi	Clear	2:05 PM
+KNZY	—	—	—	—	10.0 mi	Partly Cloudy	1:52 PM
+KIPL	73°	29%	6 mph	—	10.0 mi	Clear	2:05 PM
+Forecast discussion
+
+The forecasters' own reasoning, from the ten offices that forecast for California.
+
+Eureka
+Sacramento
+San Francisco Bay Area and Monterey
+Hanford and the San Joaquin Valley
+Los Angeles and Oxnard
+San Diego
+Medford (Siskiyou and Modoc)
+Reno (eastern Sierra and Tahoe)
+Las Vegas (Inyo and the Mojave)
+Phoenix (Imperial and the lower desert)
+Issued Nov 23, 2026, 1:06 AM Pacific
+
+000
+FXUS66 KEKA 230906
+AFDEKA
+
+AREA FORECAST DISCUSSION
+National Weather Service Eureka CA
+106 AM PST Mon Nov 23 2026
+
+.KEY MESSAGES...
+
+* Strong south wind will gradually build Monday and peak Tuesday 
+  with gusts over 45 mph ahead of a strong cold front.
+
+* Period of heavy rain along Tuesdays front with greatest rain 
+  focused in Mendocino County with 1 to 2 inches most likely. 
+  Additional rain later in the week.
+
+* High astronomical tides with water levels already increased by El 
+  Nino, will coincide with strong Pacific storm systems, likely 
+  generating record breaking Coastal Flooding Monday(11/23) through 
+  Thursday(11/26) at high tide. Greatest risk will be Tuesday and 
+  Wednesday.
+
+
+&&
+
+.SYNOPSIS...Conditions will remain cool and cloudy as another, 
+stronger storm system approaches Northwest California Monday. South 
+winds are forecast to increase Monday afternoon with strong winds 
+and heavy rain Tuesday alongside the potential for record breaking 
+coastal inundation around high tide. 
+
+
+&&
+
+.DISCUSSION...Cool and cloudy conditions remain across the area with 
+valley fog mostly inhibiting widespread valley frost early this 
+morning. This system will bring increasing southerly winds gusting 
+up to 25 mph by early afternoon with stronger winds through the 
+evening hours. A few weak showers will stream along shore today with 
+little expected rainfall. 
+
+Strong winds will continue to increase into Tuesday as the front 
+approaches. Models show that a low level jet of high winds 
+(generally 55 to 65 kts) is expected over the Del Norte and Humboldt 
+through Tuesday. These winds aloft have the potential to mix down to 
+the surface, especially along the immediate coast from about Cape 
+Mendocino and north into Oregon. The NBM suggest most likely wind 
+gusts in exposed areas of Humboldt and Del Norte of just around 45 
+mph. REFS ensemble shows a 70% chance of gusts at the coast of 45 
+mph, and generally less than a 20% chance for 55 mph gusts. 
+Deterministic models suggest some higher winds around Crescent City, 
+but the need for a High Wind Warning remains marginal. Regardless, 
+45 mph usually results in minor wind damage and small power 
+outages. The potential for higher winds is generally less for most 
+areas of Trinity, Mendocino and Lake counties. However, these areas 
+will still most likely see gusts near 40 mph in exposed areas. Such 
+speeds will be enough to increase the risk for power outages and 
+significantly increase storm surge potential during the King Tides 
+(refer to the 'Coastal Flooding' section for more info).
+
+The higher rainfall potentials have decreased, but overall rain with 
+the system will still be notable. NBM 24-hour rainfall totals (from 
+Tuesday morning to Wednesday morning) indicates a 75 to 85 percent 
+chance of 0.5 inches or greater for Del Norte, northern Humboldt and 
+central Trinity (mostly along the Trinity River Valley). There is 
+about a 65 to 85 percent chance for NBM 24-hour rainfall totals of 
+1.5 inches or greater for most of southern Humboldt, Mendocino and 
+northern and western Lake counties with closer to 0.5 to 1 inch 
+expected for southeastern Lake. There is about a 60 to 80 percent 
+chance of NBM 24-hour rainfall totals of 2 inches or more for the 
+King Range in Humboldt County and the higher terrain areas of 
+southwest Mendocino County. The greatest potential for heavy rain 
+will be along the Mendocino Coast. Such rain amounts could cause 
+minor to moderate small stream flooding, especially in streams that 
+are tidally influenced. That said, CNRFC guidance shows rivers still 
+have a ways to go before river flooding will be a concern. As a 
+result, no significant river impacts are expected. The warm nature 
+of the system will limit any snow concerns to above 5000 feet. 
+
+Showers will persist early Wednesday alongside at least moderate 
+south winds. Another cold front has the potential to pass by the 
+region early Thursday. This front will bring another period of 
+slightly weaker gusty southerly winds. Most ensemble models have 
+generally weakened this front with only 0.2 to 0.6 inches of rain 
+now most likely, all near shore north of Cape Mendocino. /JLW &
+/JHW
+
+
+&&
+
+.AVIATION...06Z...VFR conditions have persisted all evening,
+outside of the interior valleys where fog and stratus have
+developed, with showers remaining far offshore. At most, ceilings
+around 10 kft have been passing over the area. Strong southerly 
+winds will gradually build in through the day Monday. Near shore, 
+gusts will near 25 kts with winds around 40 kts at 2 kft 
+generating some minor low level wind shear. Ceiling will generally
+remain VFR, no lower than 7 kft. Conditions will gradually 
+deteriorate into Tuesday as rain builds. /JHW
+
+
+&&
+
+.MARINE...Southerlies continue to build overnight into Monday as an 
+approaching cold front enter the area. A steep, mid-period swell 
+will keep seas steep regardless of winds, lasting through Monday 
+evening. Small craft advisories have been issued to cover for the 
+hazards of this wave group before winds become the primary threat to 
+mariners beginning early Monday afternoon. Widespread gale to storm 
+force winds in the northern waters will build by late Monday night 
+and peak during the day Tuesday. This will cause extremely chaotic 
+seas and mariners are recommended to remain in port during this 
+period. Warnings have been issued for each respective zone to cover 
+the increasing threats from this weeks coming storms. 
+
+Later this week after the initial storm passage, a moderate to large 
+mid-period swell arrives to the waters at around 17-19ft @ 17sec. 
+This swell will likely warrant a Hazardous Seas Warning, yet this 
+will become more clear after more deep water buoy observations 
+become available. Strong southerlies return Wednesday late morning 
+lasting through Thursday early monring most likely promoting further 
+gale warnings for the northern waters, yet confidence on coverage 
+and timing remains low as of now. Expect additional NW swells and 
+southerly winds through the coming week into next weekend as the 
+storm track remains set over NW CA and the coastal waters. 
+
+
+&&
+
+.COASTAL FLOODING...High astronomical tides continue to grow 
+this week peaking Tuesday through Thursday. Astronomical tides at 
+the North Spit tide gauge reached 9.04ft Sunday(11/22) which is 
+around 1.3ft above the standard modeled value of 7.7ft. The highest 
+tides are expected in the late morning to midday hours through this 
+period. 
+
+The tidal anomaly has been reading consistently over 1.2-1.5 feet 
+due to greater thermal expansion as warmer than normal ocean 
+temperatures exist off the coastline due to El Nino. Storm surge 
+from strong and persistent southerly winds and large breaking waves 
+of 20-25 feet caused by the incoming storms will likely add an 
+additional 1 to 1.5 ft Tuesday and Wednesday. These two factors 
+(warm water + storm surge) have the potential to occur 
+simultaneously, creating a total tide anomaly of 2.0 to 3.0 feet. 
+Minor flooding around Humboldt Bay (water levels above 8.8 ft MLLW) 
+is certain with moderate to major flooding likely during high tide 
+each day through Friday of the coming work week. The highest 
+astronomical tides for November are between 11/24 and 11/26 with 
+each day reaching above 8.4 ft. Should the 1.5 ft anomaly remain, 
+which is most likely, ~10 ft tide levels are expected. If the storm 
+surge materializes as expected, the water levels could break the 
+current record tide level of 10.37 ft MLLW set earlier this year in 
+January. Storm surge is difficult to predict, but given the magnitude 
+of winds on Tuesday, peak tides of 11 feet may be possible. 
+
+Outside of Humboldt, the large swell expected late Tuesday into 
+Wednesday could bring significant beach erosion and waves may wash 
+over low lying areas of HWY 1 and HWY 101 along the coast at high 
+tide. Impacts are also possible near Shelter Cove, Centerville 
+Beach, and other exposed areas away from HWYs. 
+
+A Coastal Flood Warning has been issued for Monday from 7am to 12pm 
+around high tide in Humboldt Bay. Coastal Flood Watches have been 
+issued for the entire NW CA coastline beginning Tuesday morning and 
+lasting through Thursday's high tide. The time frame 2 hours before 
+to 2 hours after high tide will very likely be switched to coastal 
+flood warnings, especially for the Humboldt Bay area, during next 
+week. Please prepare as best you can for this very likely record 
+breaking event. 
+
+
+&&
+
+.EKA WATCHES/WARNINGS/ADVISORIES...
+CA...
+     High Wind Watch from this evening through Tuesday afternoon 
+     for CAZ101.
+
+     Coastal Flood Watch from Tuesday morning through Thursday 
+     afternoon for CAZ101-104-109.
+
+     Wind Advisory from 10 PM this evening to 4 PM PST Tuesday 
+     for CAZ102-103-105-106.
+
+     Coastal Flood Warning from 7 AM this morning to noon PST 
+     today for CAZ103.
+
+     Coastal Flood Watch from noon PST today through Thursday 
+     afternoon for CAZ103.
+
+     Wind Advisory from 4 PM this afternoon to 9 AM PST 
+     Wednesday for CAZ104.
+
+NORTHWEST CALIFORNIA COASTAL WATERS...
+     Coastal Flood Warning from 7 AM this morning to noon PST 
+     today for PZZ415.
+
+     Coastal Flood Watch from noon PST today through Thursday 
+     afternoon for PZZ415.
+
+     Small Craft Advisory until 4 PM PST this afternoon for 
+     PZZ450-455.
+
+     Storm Warning from 4 PM this afternoon to 4 PM PST Tuesday 
+     for PZZ450.
+
+     Gale Warning from 4 PM this afternoon to 4 PM PST Tuesday 
+     for PZZ455.
+
+     Small Craft Advisory until 10 AM PST this morning for 
+     PZZ470-475.
+
+     Storm Warning from 10 AM this morning to 4 PM PST Tuesday 
+     for PZZ470.
+
+     Gale Warning from 10 AM this morning to 4 PM PST Tuesday 
+     for PZZ475.
+
+&&
+
+$$
+
+NOTE: The full forecast discussion is now regularly issued between
+10 am/pm and 1 pm/am. Additional updates will be issued as needed.
+
+Visit us at https://www.weather.gov/eureka
+
+Follow us on Facebook and Twitter at:
+https://www.facebook.com/NWSEureka
+https://www.twitter.com/NWSEureka
+
+For forecast zone information
+see the forecast zone map online:
+https://www.weather.gov/images/eka/zonemap.png
+Method and sources
+Forecast
+api.weather.gov points, forecast, hourly forecast and raw gridpoint data (rain and snow amounts, wind gusts and direction, humidity, thunder probability and the weather attributes) for 11 points, and the active alerts for California with their zones. These are what Refresh pulls live.
+Snapshot only
+Station observations, the area forecast discussions of the ten offices (EKA, STO, MTR, HNX, LOX, SGX, MFR, REV, VEF, PSR), the fire weather outlook, the excessive rainfall outlook and the river forecast center discussion are read when the atlas is built and are not refreshed in the page.
+Outlooks by county
+The Storm Prediction Center fire weather outlook (days 1 and 2) and the Weather Prediction Center excessive rainfall outlook (days 1 to 3), each intersected with county boundaries: a county takes the highest level that covers part of it.
+Atmospheric rivers
+No machine readable forecast on the atmospheric river scale is public, so the desk reads rain amounts from the forecast grid and notes when an office names an atmospheric river in its discussion.
+Trigger weights
+Assumptions (grade C), printed in full in the callout at the top. A base of 1.0, elevated at 1.4, high at 2.0.
+Work window
+Common roofing practice: no tear offs with rain likely, snow falling, lightning nearby or gusts over 30 mph. The heat line is the state outdoor heat rule: shade above 80 F and high heat procedures at 95 F or more (Title 8, section 3395). Smoke is read from the forecast text and from air quality alerts; the desk does not read an air quality index (grade C).
+Crew calendar
+Federal holidays and California's Farmworkers Day for 2026 and 2027 (Secretary of State, state holidays; California courts, holiday schedule; both read November 23, 2026), and seasons from the record by month.
+National Weather Service API
+api.weather.gov A snapshot Nov 23
+Storm Prediction Center
+Fire weather outlooks, days 1 and 2 A snapshot
+Weather Prediction Center
+Excessive rainfall outlooks, days 1 to 3 A snapshot
+California Nevada River Forecast Center
+Hydrometeorological discussion A snapshot
+Santa Ana months
+Scripps Santa Ana winds regional index, daily, 1948 to 2018 B 2018
+Outdoor heat rule
+California Code of Regulations, Title 8, section 3395 A read November 2026
+California Roofer Guru, module 14. Forecasts and alerts from the National Weather Service; outlooks from the Storm Prediction Center and the Weather Prediction Center. The trigger index and the work window are planning tools, not predictions about any roof.

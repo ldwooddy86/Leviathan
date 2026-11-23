@@ -1,0 +1,4 @@
+[
+{"file":"21_m09_forge.js","old":"no hyphen appears in visible copy, so the roofing classification prints as C 39.","new":"the only hyphens in visible copy are the ones in license classifications, which print as the Board writes them (C-39, C-10, C-46)."},
+{"file":"21_m09_forge.js","old":"is linted by the Compliance Satchel, carries no hyphens or dashes, compiles","new":"is linted by the Compliance Satchel, carries no dashes and no hyphens but the ones in license classifications such as C-39, compiles"}
+]

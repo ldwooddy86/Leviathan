@@ -5,7 +5,7 @@ CHhighway/Traffic_AADT (14,080 count points on the state highway system), saved 
 CA/dl/scout/traffic/caltrans_aadt_points.csv. AADT is both directions added together, vehicles a day.
 
 What is kept: one point per route per cell of 0.01 degree (about 1 km) in the three metros and 0.03 degree elsewhere, the larger of the count's "back" and "ahead"
-legs, and the peak hour's share of the day at that point. Points under 8,000 a day outside the three metros are
+legs. Points under 8,000 a day outside the three metros are
 dropped (a road that quiet reads the same as the default). Ten characters a point, base 36:
   lat (3): round((lat - 32) * 1000)      lon (3): round((lon + 125) * 1000)
   aadt (2): thousands a day              route (2): the route number

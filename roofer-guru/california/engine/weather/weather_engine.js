@@ -290,8 +290,8 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
         try { p = dev.program('storm', STORM_VS, STORM_FS); } catch (e) { R.refuse('rain', e); return; }
         dev.bind(R.T.hdrFlatT); dev.state({ depthTest: false, cull: 'none', blend: 'alphaT' }); p.use().sets({ u_viewProj: cam.viewProj, u_view: cam.view, u_camPos: cam.position, u_depth: R.T.depth, u_res: [R.w, R.h], u_nearFar: [cam.near, cam.far], u_light: light, u_mix: [now.roofing, now.frond] }); dev.vao(vao);
         const C = COUNT[tier] || 12000, SP = SPRAY[tier] || 300, hw = 0.0012 + (STORM[K.level].dropMm || 1.4) * 0.0006, gy = o.ground ? o.ground() : 0;
-        if (rk > 0.01) { layer(0, [44, 26, 44], C * rk * 0.75, 0, hw * 1.3, 0.033, 0, 0.36, 1); layer(0, [15, 10, 15], C * rk, 0, hw, 0.033, 0, 0.6, 2); }
-        if (nk > 0.01) { const SNOW = [2.6, 2.65, 2.8, 0]; layer(3, [40, 24, 40], C * nk * 0.8, 3, 0.03, 0.009, 0, 0.85, 6, SNOW); layer(3, [13, 9, 13], C * nk * 0.55, 3, 0.016, 0.009, 0, 1, 7, SNOW); }   /* a flake is a matte white thing lit by the whole sky, and bright against a storm; its streak is short */
+        if (rk > 0.01) { layer(0, [44, 26, 44], C * rk * 0.75, 0, hw * 1.3, 0.033, 0, 0.46, 1); layer(0, [15, 10, 15], C * rk, 0, hw, 0.033, 0, 0.78, 2); }
+        if (nk > 0.01) { const SNOW = [2.6, 2.65, 2.8, 0]; layer(3, [40, 24, 40], C * nk * 1.1, 3, 0.03, 0.009, 0, 0.85, 6, SNOW); layer(3, [13, 9, 13], C * nk * 0.7, 3, 0.016, 0.009, 0, 1, 7, SNOW); layer(3, [5, 4, 5], C * nk * 0.05, 3, 0.022, 0.009, 0, 0.75, 11, SNOW); }   /* a flake is a matte white thing lit by the whole sky, and bright against a storm; its streak is short */
         if (rk > 0.4) layer(1, [26, 0.42, 26], SP * 0.7 * rk, 1, 0.42, 0, gy, 0.06 * rk, 5);   /* heavy rain: spray standing just above the pavement */
         if (now.spray > 0.01 && rk > 0.01) layer(1, [72, 9, 72], SP * 0.6 * now.spray, 1, 2.1, 0, gy, 0.02 + 0.035 * now.spray, 3);
         if (now.dust > 0.01) layer(1, [70, 6, 70], SP * 2.4 * now.dust, 1, 2.4, 0, gy, 0.05 + 0.1 * now.dust, 8, [1.25, 1.02, 0.72, 0]);   /* dust lifted off dry ground */

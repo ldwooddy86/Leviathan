@@ -7,7 +7,7 @@
      inject · the site has one template page with an HTML element carrying data-inject="<content key>". Per slug the adapter
               duplicates that page (Pages v2), sets title, path and SEO, then writes the section HTML (css and JSON-LD inline)
               into the element with the content injection API (INNERHTML). The live site shows it after a republish.
-              Duda lists content injection as deprecated in favour of connected data; it still works and needs no collection.
+              Duda lists content injection as deprecated in favor of connected data; it still works and needs no collection.
      blog   · imports a blog post (title, description, author, date, HTML content) and publishes it when asked.
    Media: Duda pulls images from a public URL only (resources upload), so module 16 needs a media host for local files.
    Auth: Basic from the API user and password (Duda: Settings, API or Business Tools, API Access). No DOM, no app helpers. */

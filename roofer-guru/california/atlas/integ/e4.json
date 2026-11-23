@@ -1,0 +1,5 @@
+[
+{"file":"18_m06_ground.js","old":"fhsz: { l: 'Homes in High or Very High Fire Hazard Severity Zones (%)', s: 'In fire zones %', f: p => g6Hz(p, ['fhsz_sh']), fmt: v => P(v, 0), g: 'B', note: 'State Fire Marshal zone maps laid over ZIPs and averaged over the county.","new":"fhsz: { l: 'Land in High or Very High Fire Hazard Severity Zones (%)', s: 'Fire zone land %', f: p => g6Hz(p, ['fhsz_sh']), fmt: v => P(v, 0), g: 'B', note: 'State Fire Marshal zone maps laid over ZIPs: the share of each ZIP\\'s land inside a High or Very High zone, averaged over the county with homes as weights. It is a share of land, not a count of homes; the data holds no count of homes inside the zones."},
+{"file":"18_m06_ground.js","old":"row('Homes in High or Very High fire zones', P(PMET.fhsz.f(p), 0))","new":"row('Land in High or Very High fire zones (mean of ZIPs, weighted by homes)', P(PMET.fhsz.f(p), 0))"},
+{"file":"18_m06_ground.js","old":"'Where the fire zone maps put homes, the FAIR Plan writes policies'","new":"'Fire zone land share against FAIR Plan policies per 100 homes'"}
+]

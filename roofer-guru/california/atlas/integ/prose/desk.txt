@@ -1,0 +1,167 @@
+The atlas's ZIPs turned into media buys for a California roofing company: a budget allocated by ZIP and platform and paced to each line's season, targeting lists with each platform's identifiers and bid modifiers computed for the plan's own lines, keyword and negative sets, ads written to every platform's limits with the company name, the CSLB license number and an office city built in, event ad groups for heavy rain, high wind, wildfire rebuilding and mountain snow, Spanish where the ZIPs need it and plain advice for Chinese, Vietnamese, Tagalog and Korean, and a bulk file or build sheet for every ads manager.
+
+Choose a service line (or a blend), a budget and a market scope. The desk picks ZIPs from the paid model, splits the money across Google Search, Local Services Ads, YouTube and Demand Gen, Meta, Microsoft and TikTok, paces it to the line's season, forecasts clicks, leads and sold jobs from assumptions you can edit, and writes what each platform expects: location targets with bid modifiers, keywords with match types and negatives, responsive search ads with the city filled in, social and video copy, and build sheets. Every ad set carries the company name, the CSLB license number and an office city, because California requires the license number in all forms of advertising (Business and Professions Code 7030.5). Nothing offers to waive or absorb a deductible (Penal Code 551), promises to negotiate a claim (Insurance Code 15006, 15007) or promises an insurance discount; copy has no hyphens or dashes. It connects to no platform, pulls no keyword volumes and spends no Ahrefs units. Exports set every object to paused. Fill the Company panel (top right) first: the desk refuses to invent a license number.
+
+Missing: CSLB license number (required in all advertising, Business and Professions Code 7030.5), office city, company name, phone. The desk leaves these out rather than inventing them, and the Satchel lint flags every ad set until they are filled. Open the Company panel
+
+The search base here is the service line model's base cost per click ($38 by default, module 12): one number, not two. Search costs multiply by each line's click cost multiplier (module 12) and each ZIP's relative cost (module 05). They also scale by module 12's current base cost per click, and lead rates by each line's click to lead rate, against the model defaults; Apply in module 15 sets those to the account's observed values, and the Meta and Local Services forecasts then use the observed cost per lead of the plan's lines. A cost or rate you change in this table is used as you set it, without that scaling or replacement (the forecast reads cost and lead CVR for search, the cost per lead for Local Services, and cost, CTR and lead CVR for YouTube, Meta and TikTok); Reset to defaults hands it back to the model. Sold jobs use each line's lead to sale rate; social lead forms (Meta, TikTok) close at half that rate and video leads at 60%, because form leads carry more unqualified contacts.
+
+Allocation proportional to gross profit pool per relative click cost to the power α = 1.2. Light gray ZIPs are available but not bought. This buy spans 7 of the 11 regions. Unless crews work all of them, choose regions or counties in the plan.
+
+Tier and bid are computed for the lines in this plan at the current assumptions, the way module 05 computes them (percentile of profit pool per relative click cost among the scored ZIPs). ZIPs sent from module 05 keep the bids it sent.
+
+The rule. A market needs a language when residents who speak it at home and speak English less than very well are at least the threshold percent of residents 5 and over, and number at least 1,000 people (the percent times the ZIP's residents). The default threshold is 1.5 times the statewide share, never below 5 percent, so it marks the markets that stand out rather than most of the state; change it in the table. The budget share of a built language is the allocation weighted share of residents who need it, held between 5 and 40 percent. Source: ACS 2020 to 2024, table C16001, by ZIP. A for the counts; the thresholds are a choice.
+
+What the evidence file does not cover: whether a contract negotiated in another language must be given in that language. Ask counsel before selling in a language the paperwork is not written in.
+
+ZIP criteria with bid modifiers; Google criterion IDs are carried for the California ZIPs Google lists, the rest resolve by name. Presence only ("people in or regularly in"), not interest.
+
+Roofing is not a restricted category for search ads in the United States; editorial rules apply (no exclamation in headlines, no shouting, no phone numbers in ad text).
+
+Every licensed contractor must put the license number in all forms of advertising (Business and Professions Code 7030.5). The desk writes the company name, the CSLB license number and an office city into a description of every ad and pins it to the first description position so it always serves.
+
+No offer to waive, rebate or absorb an insurance deductible in any asset (Penal Code 551), and no promise to negotiate or settle a claim: negotiating a claim for pay is public adjusting and needs its own license (Insurance Code 15006, 15007). The desk never writes either and the lint blocks them.
+
+No promised insurance discount for a Class A roof or fire hardening: the Safer from Wildfires rule (10 CCR 2644.9) makes insurers that price wildfire risk recognize the work, but each insurer files its own amount.
+
+After a declared emergency a contractor's repair prices may not rise more than 10 percent above the price before it for 180 days (Penal Code 396). Keep the dated price book.
+
+Financing trigger terms (a payment, a term, a rate) need the Regulation Z disclosures in the same ad; the desk writes "financing available" at most.
+
+Roofing advertised with no license on file Bus. & Prof. Code 7027.1 (advertising as a contractor without a license), 7048 (license at $1,000, or at any price where a permit or an employee is involved), 7030.5 (license number in all advertising) ✔
+
+no CSLB license number set in the Company panel: Hold an active C-39 license (or another class that covers the work) before advertising roofing, then enter the license number in the Company panel.
+
+Line keywords with match types, question terms and the city variants the export writes for each market city. Price the set in Keyword Planner inside the account; nothing here was priced by a keyword tool.
+
+jobsjobcareersalaryhiringapprenticeapprenticeshiptraininghow todiydo it yourselfyoutuberedditwikidefinitionmeaninglicense examcslb examoshahome depotlowesfor salewholesaleoregonnevadaarizonatexasfloridaroofing nailsroofing shingles for saleshingle calculatorroof rackcar roofshed roofdog houseroofing license examc39 examroof trussroof pitch calculator
+
+Conversion actions	Calls from ads of 60 seconds or more; calls from the website number (forwarding); form submits on the thank you page; chat leads; LSA leads; inspections booked; sold jobs imported from the CRM weekly as offline conversions with the contract value. Send no insurance, claim or policy details to any ad platform.
+
+Target cost per sold job	$941 (15% of the expected gross profit per job at your assumptions). Pause an ad group after 60 clicks with no qualified lead, or when cost per sold job runs above $1,881 for four weeks.
+
+Lead handling	Answer within 60 seconds during staffed hours; after hours, route to an answering service that books inspections. Ask the address, the roof's age and covering, whether there is solar on it, what the owner sees and whether a leak is active. Never interpret coverage, promise what insurance will pay or offer to deal with the insurer: negotiating a claim for pay is public adjusting (Insurance Code 15006, 15007). Whoever sells at the door or signs the contract must be a registered home improvement salesperson (Business and Professions Code 7152).
+
+Weather rule	When an atmospheric river or a high wind warning hits the footprint, move budget to the storm, repair and tile groups in the warned counties for 72 hours and pause replacement ads there while the weather passes (module 14). Under a red flag warning change nothing. During a wildfire or an evacuation, pause every ad in the affected ZIPs; return with rebuild copy only after the area reopens.
+
+Declared emergencies	For 180 days after a federal, state or local emergency declaration a contractor's repair prices may not exceed the price before it by more than 10 percent, save for proven cost increases (Penal Code 396). Disaster repair contracts carry a seven business day right to cancel (Business and Professions Code 7159).
+
+Bid modifiers	Start from the tiers computed for this plan's lines (A+ +30% to E −50%); after 60 to 90 days replace with observed cost per sold job by ZIP (module 15).
+
+Roofing advertised with no license on file	Bus. & Prof. Code 7027.1 (advertising as a contractor without a license), 7048 (license at $1,000, or at any price where a permit or an employee is involved), 7030.5 (license number in all advertising) ✔	Hold an active C-39 license (or another class that covers the work) before advertising roofing, then enter the license number in the Company panel.
+
+License number not shown	Bus. & Prof. Code 7030.5 (license number in all construction contracts, bids and all forms of advertising) ✔	Add "CSLB Lic. #" and the number to a description, a callout or the landing page footer.
+
+"Licensed, bonded and insured" with nothing on file	Bus. & Prof. Code 7071.6 ($25,000 bond for every licensee), 7125 (workers' compensation for every C-39); whether California limits advertising the bond was not read ◐	Claim only the license and coverage you hold; the license number substantiates the claim. Every licensee is bonded, so "bonded" says little: a lawyer should confirm how it may be advertised.
+
+Suggests skipping the permit	Local building departments decide (Los Angeles, San Francisco and Los Angeles County issue reroof permits; City of San Diego Information Bulletin 123 requires none for a like for like covering); Bus. & Prof. Code 7048 (work that needs a permit needs a license at any price) ✔	Say "permitted where the city requires it" and name the city rule; never sell the absence of a permit.
+
+Sale at the home: registered salesperson, contractor named first	Bus. & Prof. Code 7152, 7153, 7154 (home improvement salesperson registration) ✔	Register every salesperson with the CSLB before they start, and open every conversation with the contractor's business name and license number.
+
+Deposit or advance payment above the cap	Bus. & Prof. Code 7159.5 (down payment no more than $1,000 or 10 percent, whichever is less; nothing ahead of work done or material delivered) ✔	Ask for no more than $1,000 or 10 percent, whichever is less, then bill as work is done or material is delivered. A performance and payment bond is the only way around the limit.
+
+Contract: "Home Improvement" heading or license number missing	Bus. & Prof. Code 7159(d)(1), (d)(3) ✔	A residential job over $500 goes on the home improvement contract form: the heading in at least 10 point bold, with the contractor's name, business address and license number.
+
+Contract: the buyer's copy statement is missing	Bus. & Prof. Code 7159(d)(4) (12 point bold) ✔	Print in 12 point bold: "You are entitled to a completely filled in copy of this agreement, signed by both you and the contractor, before any work may be started."
+
+Contract: the down payment sentence is missing	Bus. & Prof. Code 7159(d)(8)(C) ✔	Under the heading "Downpayment" print: "THE DOWNPAYMENT MAY NOT EXCEED $1,000 OR 10 PERCENT OF THE CONTRACT PRICE, WHICHEVER IS LESS."
+
+Contract: the progress payment warning is missing	Bus. & Prof. Code 7159(d)(9)(C) ✔	Under "Schedule of Progress Payments" print: "IT IS AGAINST THE LAW FOR A CONTRACTOR TO COLLECT PAYMENT FOR WORK NOT YET COMPLETED, OR FOR MATERIALS NOT YET DELIVERED. HOWEVER, A CONTRACTOR MAY REQUIRE A DOWNPAYMENT."
+
+Contract: the Mechanics Lien Warning is missing	Bus. & Prof. Code 7159(e)(4) ✔	Add the notice headed "Mechanics Lien Warning" exactly as the statute prints it.
+
+Contract: right to cancel notice or cancellation email address not found	Bus. & Prof. Code 7159(e)(6), (e)(7) (three, five or seven business days); AB 1327 (email address for the Notice of Cancellation from January 1, 2026); Civil Code 1689.6 ✔	Print the right to cancel notice that fits the buyer (three business days; five for a senior citizen; the Seven-Day notice for repairs after a declared disaster) and put the email address and a help telephone number for the Notice of Cancellation on the first page. The notice is not required only for a contract negotiated at the contractor's place of business.
+
+Contract: a down payment above $1,000	Bus. & Prof. Code 7159.5(a)(3), (a)(8) (bond exemption) ✔	Cut the down payment to $1,000 or 10 percent of the price, whichever is less, unless a performance and payment bond approved under the statute covers the job.
+
+Offers to negotiate or handle the claim	Insurance Code 15006, 15007 (acting for an insured in negotiating or settling a claim for pay, or advertising that, is public adjusting and needs the license); People v. Montgomery-Sansome, LP (San Mateo County Superior Court, a trial court decision) ✔	Advertise the roofing work (inspection, photo report, itemized estimate, repair), never the claim. Owners deal with their insurer or a licensed public adjuster.
+
+Insurance adjacent wording needs care	Insurance Code 15007 ("aids in any manner"); no statute or agency notice read draws the line for a roofer who meets an adjuster ◐	Describe what the roofer does on the roof and in the estimate. By our reading a roofer may give the owner an estimate and explain construction facts to an adjuster, but may not negotiate.
+
+Says insurance will pay, or a free roof	Penal Code 551(b) (a roof at no cost to an insured implies the deductible is offset); 16 CFR Part 251; Department of Insurance advice to speak to the insurer before signing ◐	Never say what a policy covers or that insurance will pay. "Get a written report of the damage" is safe.
+
+Offers to pay, waive or discount a deductible	Penal Code 551(b), (c) ✔	Remove it. A discount meant to offset a deductible is unlawful unless the insurer has determined the claim amount and the work follows that determination or estimates the insurer accepted.
+
+Referral money for agents, brokers or adjusters	Penal Code 551(a) ✔	Offer nothing of value to an insurance agent, broker or adjuster for sending an insured.
+
+Ties to a public adjuster	Insurance Code 15027.5 (a public adjuster discloses any compensation from a contractor); Department of Insurance flyer (no interest in a contractor; no referral fees over $100) ✔	Keep public adjusters separate from the roofing company: no shared ownership, no referral money, no bundled offer.
+
+Assignment of benefits or direction to pay	No California statute specific to roofing assignments was found (Insurance Code 520 voids policy clauses that bar transfer of a claim after the loss); an assignment does not license claim negotiation (Insurance Code 15006) ◐	Have a California lawyer review any assignment form. Do not advertise it, and do not negotiate the claim under it.
+
+Emergency or demand pricing language	Penal Code 396(c) (repair prices no more than 10 percent above the pre emergency price for 180 days after a declaration) ✔	For 180 days after a declared emergency, price within 10 percent of the pre emergency price unless higher labor or material costs are proven; keep dated price books and invoices.
+
+Out of area crews after a fire or storm	Bus. & Prof. Code 7028.16 (unlicensed work on disaster damage can be charged as a felony); 7159(e)(7) (seven day right to cancel on disaster repairs) ✔	Lead with the California license number and a local office; every crew in a declared area works under that license.
+
+Sale at the home: the right to cancel notice	16 CFR Part 429 (FTC Cooling Off Rule); Bus. & Prof. Code 7159(e)(6), (e)(7); Civil Code 1689.6 ✔	Give the buyer the signed contract with the right notice and the email address for cancelling; refund within 10 days of a cancellation. The federal emergency waiver applies only when the owner starts the contact and signs a separate waiver.
+
+Calls or texts need written consent	47 U.S.C. 227; 47 CFR 64.1200 ◐	Capture consent on your own forms (unchecked box, clear language); do not buy lead lists after a fire or a storm.
+
+Superlative or comparison needs substantiation	FTC Act s. 5; California's false advertising statutes were not read for this build ◐	Cite a verifiable, dated basis beside the claim or remove it.
+
+Lifetime, leak proof or never claims	Civil Code 1797.93 (a "lifetime" roof warranty must disclose the life it refers to), 1797.91, 1797.92; manufacturer warranty terms ✔	State the warranty exactly as written: who issues it, the years or whose lifetime, what it covers, and whether it passes to the next owner.
+
+Wind speed rating claim	Manufacturer specifications; ASTM D3161 and D7158 wind classes; state building code ◐	Quote the rating of the specific product and installation (nail count, starter, high wind application) that earns it.
+
+Manufacturer certification not on file	Manufacturer program terms; FTC Act s. 5 ◐	Claim only certifications you currently hold, named exactly as the manufacturer allows.
+
+Fireproof or will not burn	Class A is a test classification of a roof assembly (ASTM E108 or UL 790; 2025 California Wildland-Urban Interface Code 504.2), not a promise; about 90 percent of structures inside the January 2025 Palisades and Eaton perimeters had Class A coverings (CAL FIRE inspection data, as reported by IBHS) ◐	Say "Class A fire rated roof assembly" and name the assembly. No roof is fireproof, and vents, eaves, gutters and the first five feet decide as much as the covering.
+
+Promises an insurance discount size	Cal. Code Regs. tit. 10, 2644.9 (Safer from Wildfires sets no percentage; each insurer files its own); FAIR Plan flyer (up to 16.4 percent of the wildfire part of a dwelling premium for all 12 measures; no figure for the roof alone) ✔	Say insurers must take a Class A roof into account and send owners to their insurer for the figure. Never state a percentage for the roof.
+
+Promises renewal, coverage or an end to the FAIR Plan	Insurance Code 675.1 (the moratorium lasts one year, by ZIP Code, and covers only non-renewal for being in a wildfire area), 678; no rule read promises renewal for a new roof ✔	A roof cannot promise what an insurer decides. Say what the roof is and that the owner should ask the insurer what it needs.
+
+Class A stated of a product, not an assembly	2025 California Wildland-Urban Interface Code 504.2; 2022 California Building Code 705A.1 (roof assemblies are classified); Health & Safety Code 13132.7(i) (the installer certifies the classification) ✔	Name the assembly as listed: the covering with its underlayment and deck. A product carries Class A only as part of a tested assembly.
+
+Code or Zone Zero compliance claim	The 2025 code moved Chapter 7A into Title 24 Part 7 on January 1, 2026; Public Resources Code 4291 (Zone Zero: the regulation's effective date was not confirmed as of November 19, 2026) ◐	Cite the code section and edition the roof was built to, and do not say Zone Zero requires anything until the filed regulation and its effective date are read.
+
+Fire credential or agency approval not on file	The credential must exist and be current under its program terms; the State Fire Marshal lists roofing materials (Health & Safety Code 13132.7(j)), and no source read shows a state approval of roofing contractors ◐	Name only a credential the company holds, exactly as its issuer writes it, and never an agency approval that does not exist.
+
+Grant or rebate promise	California Safe Homes (AB 888): grant amounts not set as of January 2026 (news report); Wildfire Mitigation Program amounts not found; LADWP cool roof rebate up to $0.60 a square foot for its own customers ◐	State no grant amount and no guarantee. Name a rebate only for the utility that publishes it, with its date.
+
+Wood shake or wood shingle roofing offered	Health & Safety Code 13132.7(j) (only State Fire Marshal listed wood roofing may be sold or applied); Los Angeles Information Bulletin P/BC 2026-013 (all wood roofing prohibited); San Diego Information Bulletin 123 (no renewals) ✔	Offer wood roofing only where the city allows it and only State Fire Marshal listed products; in a fire zone the assembly must be Class A.
+
+Promised energy saving from a cool roof	Title 24, Part 6 sets minimum reflectance and emittance, not savings (150.2(b)1I, 141.0(b)2B); no source read gives a saving ◐	Quote the product's Cool Roof Rating Council values and the code minimum for the climate zone; leave savings to a measured source.
+
+Cool roof or Title 24 compliance claim	Title 24, Part 6, 110.8(i) (products rated and labeled by the Cool Roof Rating Council; an unrated asphalt shingle defaults to an aged reflectance of 0.08) ✔	Keep the rating sheet for the product named, and check the values against the building type, slope and climate zone.
+
+Net metering promise on a detach and reset	CPUC Net Billing Tariff (applications from April 15, 2023); whether a detach and reset changes an older net metering status was not found in the sources read ◐	Say nothing about net metering status either way; send the owner to the utility's tariff or its interconnection desk.
+
+Solar removal and reinstallation offered	Los Angeles County Building Code Manual 1512 Article 1 (separate solar permit; C-10 or C-46 reinstalls, or an A or B licensee does both: the County's statement of the CSLB position); City of San Diego Information Bulletin 123 (electrical permit) ✔	Name the licensed electrical or solar contractor who reinstalls the system, and price the reinstall permit.
+
+Financing trigger term without the disclosures	12 CFR 1026.24(d) (Regulation Z) ✔	Add the down payment, terms of repayment and the annual percentage rate, or say only "financing available".
+
+Credit offer: Financial products special ad category	Meta Advertising Standards, special ad categories (financial products and services) ◐	Run financing ads under the Financial products and services category (radius at least 15 miles, no age or gender targeting) or drop the financing line.
+
+Review or rating claim must match real reviews	16 CFR Part 465 (eff. Oct. 21, 2024); 16 CFR Part 255 ◐	Quote the live count and the source with a date; never buy, gate or write reviews.
+
+Hyphen or dash in copy	House style: no hyphens or dashes in copy, license classifications excepted ✔	Rewrite without the hyphen or dash (write "fire rated", "well being", "24 hour"). URLs are exempt, and so are license classifications written as the Board writes them (C-39, C-10, C-46).
+
+Meta note or placeholder left in copy	House style: no explanatory or meta notes inside a deliverable ✔	Fill the Company panel (name, license, office) or remove the note.
+
+Markets. ZIPs are ranked by gross profit pool per relative click cost for the chosen lines (module 05 logic), or come from your regions, counties or picks, filtered by residents. A new plan buys one market for every $500 of monthly budget, up to the 1,531 scored ZIPs.
+
+Tiers and bids. Each scored ZIP's percentile of efficiency for the plan's lines sets its tier and bid modifier, the same cuts module 05 uses, recomputed whenever the lines or the assumptions change.
+
+Costs. Search platforms scale the model's base cost per click by the line multiplier and each market's relative cost; CPM platforms convert impressions to clicks by CTR; Local Services converts spend to leads at the stated cost per lead. Once module 15 applies the account's actuals, Local Services and Meta leads come from the observed cost per lead of the plan's lines instead, unless the Local Services cost, or Meta's cost, CTR or lead CVR, was changed in the assumptions table.
+
+Forecast. Leads times each line's lead to sale rate give sold jobs; expected gross profit uses each line's default job value and margin (module 12).
+
+Languages. A market gets a Spanish build when its limited English Spanish speakers pass the threshold in the language card; the Spanish campaigns take the allocation weighted share of residents who need them. Chinese, Vietnamese, Tagalog and Korean get advice, not copy.
+
+Creative. Every asset is filled from the line's angle library and the desk's California lines with the market's city and county, cut to the platform's limits, cleaned of hyphens and dashes, given the company name, the CSLB license number and an office city from the Company panel, and linted by the Satchel rule pack.
+
+The company name, the CSLB license number and an office city go into a description of every responsive search ad, pinned to the first description position, and into every social ad, rather than trusting the writer. California requires the license number in all forms of advertising (Business and Professions Code 7030.5). The statute leaves the form to the registrar; the desk writes "CSLB License #" and the number. Confirm the pin column imports in your version of Google Ads Editor.
+
+The desk never writes "we handle your claim", "insurance approved" or anything about deductibles. A contractor may not offer a discount meant to offset a deductible (Penal Code 551), and negotiating a claim for pay needs a public adjuster license (Insurance Code 15006, 15007). Storm and fire copy describes the inspection, the photos and the itemized estimate.
+
+Fire hardening copy names the roof class and the vents, not a premium. The Safer from Wildfires rule sets no percentage; each insurer files its own, and the FAIR Plan publishes only a combined maximum for twelve measures.
+
+A Class A assembly is a fire test rating, not a promise that a house survives. About nine in ten structures inside the January 2025 Los Angeles fire perimeters had Class A coverings (CAL FIRE inspection data). The desk writes "Class A" and "ember resistant", never "fireproof".
+
+Spanish campaigns run alongside English ones only where limited English Spanish speakers pass the threshold, with the license number repeated in Spanish. The old rule (a share speaking Spanish at home) would have fired across most of California.
+
+Wildfire groups are for rebuilding. Nothing is released into a ZIP under evacuation, and prices after a declared emergency follow Penal Code 396.
+
+No California click or lead price was measured for this build. Costs swing by metro and rise after storms and fires; replace the base after 30 days.
+
+California Roofer Guru, module 08. Media plans are cold start priors built from public data and stated assumptions. Replace every assumption with account data after the first thirty to sixty days. Compiled November 19, 2026.

@@ -1,0 +1,45 @@
+The field in module 07 is where the roofing companies are; this module is what they say and where they buy. California has no public ranked list of roofers, so the atlas ships only the 4 companies named in its evidence and measures the field itself from Contractors State License Board C-39 licenses and Census establishment counts by city and county. You add the companies you meet in your market to the watchlist; the module keeps a ledger of what they publish (ads seen in the Meta Ad Library and the Google Ads Transparency Center, claims on their sites, yard signs, door hangers, truck wraps, television spots, pages in Spanish and other languages, review counts), screens every claim against the California rule pack of the Compliance Satchel, and turns the ledger into share of voice, coverage by service line and a sweep schedule.
+
+The license counts are the state license roll of active C-39 Roofing licenses by mailing address: where a firm is, not where it works, and about two licenses for every roofing employer in the Census counts, because many licensees have no payroll. The watchlist is not a ranking: no public source measures the size of a California roofer. Every ledger entry is something a person saw and logged, or a library record pulled through the API, with its date. The Meta Ad Library shows every active ad a page runs on Facebook and Instagram, with start dates and the text; spend and targeting are published only for political and issue ads. The Google Ads Transparency Center shows search, display and YouTube ads by verified advertiser and region, without spend. Neither shows Local Services Ads, television, radio, billboards, yard signs or door hangers: those are logged by hand. Nothing here scrapes a site or calls a platform without your click, and nothing is reported anywhere; competitor claims that trip a rule are intelligence until the evidence is clear and a lawyer agrees (module 10).
+
+No competitor ad has been logged yet, and the atlas ships no site reads for California: the watchlist holds 4 companies. Add the companies you meet in your market, open their library links and log what you see.
+
+The field is far larger than any watchlist: 5,587 active C-39 roofing licenses across 657 mailing cities, most in Los Angeles (165), San Jose (131), Sacramento (116). 0 companies on the watchlist were added by you; 4 came with the atlas.
+
+Fewest companies market roof replacement (0), roof repair and leaks (0), wind and rain damage (0); most market new construction roofing (0) and commercial roofing and title 24 cool roofs (2).
+
+Active C-39 Roofing licenses (CSLB, by mailing address), roofing establishments with employees (County Business Patterns; blank where the Census withholds the cell), and how many one unit roofs and how much gross profit pool stand behind each license. Click a region to list its counties.
+
+San Joaquin Valley has the most one unit roofs behind each license (2,359) and Sacramento Valley the fewest (1,520). A license is counted where its holder gets mail, so a firm that works three counties counts once, at home. A
+
+CSLB C-39 licenses by mailing city. Use it to choose whose ads to look for first: open the Meta and Google libraries for the city and add what you find to the watchlist.
+
+The companies the atlas ships (named in its evidence) and the ones you added, with reach, lines, live ads on record and the last time anyone checked. Click a row to open the company.
+
+Paste a Meta Ad Library API JSON response, ad library or transparency center links (they become ledger rows and IDs), or a ledger CSV. Rows match companies by domain first and name second.
+
+Builds the ads_archive request. Runs it here only outside the Claude viewer and with a token; otherwise opens the URL so you can paste the JSON back.
+
+Paste what a competitor published, or try the samples. The eight samples are invented for this atlas: no company published them. A hit is intelligence about the claim, not a finding about a company.
+
+Rules: SUP1 Superlative or comparison needs substantiation; LIFE1 Lifetime, leak proof or never claims; FIN1 Financing trigger term without the disclosures
+
+Which lines each company on the watchlist markets (dot) and how many live ads on record serve the line (number). Empty columns are uncontested on the watchlist, not in the market.
+
+Pools at your module 12 assumptions. Roof replacement carries the most in total, split among 0 watchlist companies; roof replacement is uncontested on the watchlist: no listed company markets it, against $1.38B a year. The companies counted are the ones on the watchlist; most licensed roofers are on no list and many market no line online at all.
+
+Who to check next. Statewide and national companies monthly, regional quarterly, local twice a year; any company with a live ad on record every two weeks.
+
+Active C-39 Roofing licenses from the Contractors State License Board license master file by mailing city, ZIP and county; roofing establishments from County and ZIP Code Business Patterns (NAICS 238160). Neither says how large a firm is.
+
+The companies named in the atlas evidence (a trade magazine's regional list), with nothing read from their sites unless the data says so, plus every company you add. Where a site was read, its title and description are logged as dated site claims.
+
+Every observation carries the company, platform, status, first and last seen dates, service line, claim type, hook, text, landing URL, language and library IDs.
+
+Every claim runs through the California rule pack of the Satchel with house style off; the rule list and the law behind each rule are in module 10. The bench shows which rules a text trips and the fix the pack gives for each.
+
+Shows active ads by page with text and start dates for all advertisers; spend, reach and targeting only for political and issue ads in the United States.
+
+Television, radio, billboards, yard signs, door hangers, direct mail, Local Services Ads and search auction prices. Log those by hand with a photo or a recording.
+
+California Roofer Guru, module 13. License counts from the Contractors State License Board, establishments from the Census Bureau. The ledger is research on public advertising; competitor names and claims are quoted as published, and the sample ads are invented.

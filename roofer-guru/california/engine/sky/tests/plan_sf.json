@@ -1,0 +1,27 @@
+{
+ "addr": "1 Ferry Building, San Francisco, CA",
+ "shots": [
+  {
+   "name": "golden_gate_crissy",
+   "lat": 37.8052,
+   "lon": -122.464,
+   "yaw": 300,
+   "pitch": 5,
+   "mode": "street",
+   "sun": 15,
+   "wait": 30000,
+   "check": "const d = en.sky.decks.find(x => x.name === 'Golden Gate Bridge'), K = d.loc.K, t = en.sky.tools, p = t.pointAt(d, (K.S + K.N) / 2); return { towers_m: Math.round(K.N - K.S), mid_deck: +t.deckY(d, (K.S + K.N) / 2, p.x, p.z).toFixed(1), deckAt: en.world.deckAt(p.x, p.z) };"
+  },
+  {
+   "name": "bay_bridge_embarcadero",
+   "lat": 37.7925,
+   "lon": -122.3915,
+   "yaw": 60,
+   "pitch": 6,
+   "mode": "drone",
+   "sun": 15,
+   "wait": 40000,
+   "check": "const d = en.sky.decks.find(x => x.name === 'Bay Bridge, west span'), K = d.loc.K, t = en.sky.tools, s = (K.W2 + K.W3) / 2, p = t.pointAt(d, s); return { W2W3: Math.round(K.W3 - K.W2), W5W6: Math.round(K.W6 - K.W5), upper: +en.world.deckAt(p.x, p.z).toFixed(1), lower: +en.world.deckAt(p.x, p.z, { lower: true }).toFixed(1), built: en.sky.info().built };"
+  }
+ ]
+}

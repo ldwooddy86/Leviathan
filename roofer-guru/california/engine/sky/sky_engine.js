@@ -18,14 +18,14 @@
      carrier's deck; the helicopters' circuit; the boats; pier positions under the Coronado Bridge between the channel
      pier and the ends; colours where no source gave one (haze grey, Coronado blue, Vincent Thomas green). */
   function SkyKit(engine, S, H) {
-    H = H || {}; const dev = engine.device, scene = engine.scene, phys = engine.physics, DATA = SE.SKY_DATA || {}, MD = SkyModel(DATA), SH = SkyShapes, X = { model: MD, shapes: SH, on: true, stats: { flights: 0, sites: 0, helos: 0, boats: 0 } };
+    H = H || {}; const dev = engine.device, scene = engine.scene, phys = engine.physics, DATA = SE.SKY_DATA || {}, MD = SkyModel(DATA), SH = SkyShapes, X = { model: MD, shapes: SH, on: true, lampK: 0.0011, stats: { flights: 0, sites: 0, helos: 0, boats: 0 } };
     const FT = MD.FT, NM = MD.NM, RDG = Math.PI / 180, need = H.need || (() => {}), hsh = MD.hash;
     const root = scene.createEntity('Sky and harbour', { transient: true });
     const MAT = { paint: new Material({ name: 'Sky kit: aircraft, ships and bridges', vertexColors: true, roughness: 0.55, metallic: 0.08 }),
       lamp: new Material({ name: 'Sky kit: lamps', vertexColors: true, albedo: '#ffffff', model: 'unlit', castShadow: false, wet: 0 }),
       shade: new Material({ name: 'Sky kit: aircraft shadows', albedo: '#000000', roughness: 1, blend: 'alpha', alpha: 0.45, castShadow: false, twoSided: true, polygonOffset: [-2, -8], wet: 0 }),
       trail: [0.62, 0.42, 0.26, 0.13].map((a, i) => new Material({ name: 'Sky kit: contrail ' + i, albedo: '#000000', emissive: '#ffffff', emissiveIntensity: 1, model: 'unlit', blend: 'alpha', alpha: a, castShadow: false, twoSided: true, wet: 0 })),
-      wake: new Material({ name: 'Sky kit: wakes', albedo: '#000000', emissive: '#dfeaf0', emissiveIntensity: 0.5, model: 'unlit', blend: 'alpha', alpha: 0.5, castShadow: false, twoSided: true, polygonOffset: [-2, -8], wet: 0 }) };
+      wake: new Material({ name: 'Sky kit: wakes', albedo: '#000000', emissive: '#dfeaf0', emissiveIntensity: 0.5, model: 'unlit', blend: 'alpha', alpha: 0.3, castShadow: false, twoSided: true, polygonOffset: [-2, -8], wet: 0 }) };
     X.materials = MAT;
     const gy = (x, z) => (S.gy ? S.gy(x, z) : 0), terr = () => typeof S.y0 === 'number' && !!S.gy, yOf = (alt, base) => (terr() ? alt - S.y0 : alt - (base || 0));
     const toL = (la, lo) => S.toL(la, lo), camLL = c => [S.lat0 - c[2] / S.ky, S.lon0 + c[0] / S.kx];
@@ -63,7 +63,7 @@
       for (const p of list) {
         const q = toL(p.lat, p.lon), x = q[0], z = q[1], g = p.ground || p.alt - p.base < 400 ? gy(x, z) : 0, y = p.ground ? g : Math.max(yOf(p.alt, p.base), p.kind === 'crz' ? -1e9 : g + 0.2), F = fleet(p.f.type), col = MD.LIVERY[p.f.liv] || MD.LIVERY[0];
         p.x = x; p.y = y; p.z = z; pose(m16, x, y, z, p.hdg, p.pitch, p.bank, 1); F.body.ib.addMatrix(m16, col); if (p.gear) F.gear.ib.addMatrix(m16, col);
-        const agl = y - g, d = Math.hypot(x - cam[0], y - cam[1], z - cam[2]), s0 = Math.max(0.35, d * 0.0011), L = F.a.lamps, sd = p.f.sd || 0;
+        const agl = y - g, d = Math.hypot(x - cam[0], y - cam[1], z - cam[2]), s0 = Math.max(0.35, d * X.lampK), L = F.a.lamps, sd = p.f.sd || 0;
         if (shOn && agl < 400 && p.kind !== 'crz') { const c = at(x, y, z, [0, F.a.cy, 0]), hh = c[1] - g, gx = c[0] - sx * hh, gz = c[2] - sz * hh, g2 = S.gy ? gy(gx, gz) : g; for (let i = 0; i < 3; i++) { const o = i * 4; ms16[o] = m16[o] - sx * m16[o + 1]; ms16[o + 1] = 0; ms16[o + 2] = m16[o + 2] - sz * m16[o + 1]; ms16[o + 3] = 0; } ms16[12] = gx; ms16[13] = g2 + 0.16; ms16[14] = gz; ms16[15] = 1; F.plan.ib.addMatrix(ms16, col); }
         if (d < 60000) {
           if (night > 0.12) { lamp(LAMPS.ib, at(x, y, z, L.tipL), s0, RED, 14 * night); lamp(LAMPS.ib, at(x, y, z, L.tipR), s0, GRN, 14 * night); lamp(LAMPS.ib, at(x, y, z, L.tail), s0, WHT, 10 * night); }
@@ -92,19 +92,22 @@
       const c = toL(BAY[0], BAY[1]); if (Math.hypot(c[0] - cam[0], c[1] - cam[2]) > 30000) { if (HEL) { HEL.body.ib.clear(); HEL.rotor.ib.clear(); } X.stats.helos = 0; return 0; }
       const Hs = helSets(), list = X.helos(t); Hs.body.ib.clear(); Hs.rotor.ib.clear(); X.heloList = list;
       for (const p of list) { const q = toL(p.lat, p.lon), y = yOf(p.alt, 0) + (p.ground ? gy(q[0], q[1]) : 0); p.x = q[0]; p.y = y; p.z = q[1]; pose(m16, q[0], y, q[1], p.hdg, p.pitch, p.bank, 1); Hs.body.ib.addMatrix(m16, null); const hub = at(q[0], y, q[1], [0, Hs.hub, 0]); pose(m16, hub[0], hub[1], hub[2], (p.hdg + t * 540) % 360, p.pitch, p.bank, 1); Hs.rotor.ib.addMatrix(m16, null);
-        const d = Math.hypot(q[0] - cam[0], y - cam[1], q[1] - cam[2]), s0 = Math.max(0.2, d * 0.0011); pose(m16, q[0], y, q[1], p.hdg, p.pitch, p.bank, 1); if (night > 0.12) { lamp(LAMPS.ib, at(q[0], y, q[1], [1.3, 1.9, 1]), s0, RED, 12 * night); lamp(LAMPS.ib, at(q[0], y, q[1], [-1.3, 1.9, 1]), s0, GRN, 12 * night); } if ((t + p.lat * 9000) % 1 < 0.14) lamp(LAMPS.ib, at(q[0], y, q[1], [0, 0.4, -2]), s0 * 1.2, RED, 10 + 45 * night); }
+        const d = Math.hypot(q[0] - cam[0], y - cam[1], q[1] - cam[2]), s0 = Math.max(0.2, d * X.lampK); pose(m16, q[0], y, q[1], p.hdg, p.pitch, p.bank, 1); if (night > 0.12) { lamp(LAMPS.ib, at(q[0], y, q[1], [1.3, 1.9, 1]), s0, RED, 12 * night); lamp(LAMPS.ib, at(q[0], y, q[1], [-1.3, 1.9, 1]), s0, GRN, 12 * night); } if ((t + p.lat * 9000) % 1 < 0.14) lamp(LAMPS.ib, at(q[0], y, q[1], [0, 0.4, -2]), s0 * 1.2, RED, 10 + 45 * night); }
       X.stats.helos = list.length; return list.length;
     }
 
     /* ---------- bridge decks: a line, a width, a height along it; S.deckAt reads them ---------- */
     const BR = DATA.bridges || {}, DECKS = [];
-    const tbl = T => s => { if (s <= T[0][0]) return T[0][1]; for (let i = 0; i < T.length - 1; i++) if (s <= T[i + 1][0]) { const u = (s - T[i][0]) / (T[i + 1][0] - T[i][0]); return lerp(T[i][1], T[i + 1][1], u * u * (3 - 2 * u)); } return T[T.length - 1][1]; };
+    const tbl = T => s => { if (s <= T[0][0]) return T[0][1]; for (let i = 0; i < T.length - 1; i++) if (s <= T[i + 1][0]) { const u = (s - T[i][0]) / (T[i + 1][0] - T[i][0]); return lerp(T[i][1], T[i + 1][1], u); } return T[T.length - 1][1]; };
     /* o: { name, pts [[lat, lon]], half, prof(s, L, K) -> metres above sea level, rampA, rampB (metres over which the end meets the ground), flatOnly (an approach drawn only on the flat world), lower } */
     function deck(o) { o.loc = null; DECKS.push(o); return o; }
     function locate(d) { const P = d.pts.map(p => toL(p[0], p[1])), cum = [0]; let x0 = 1e18, z0 = 1e18, x1 = -1e18, z1 = -1e18; P.forEach((p, i) => { if (i) cum.push(cum[i - 1] + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1])); x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); z0 = Math.min(z0, p[1]); z1 = Math.max(z1, p[1]); }); const m = d.half + 3; d.loc = { P, cum, L: cum[cum.length - 1], bb: [x0 - m, z0 - m, x1 + m, z1 + m], K: {} }; if (d.marks) for (const k in d.marks) d.loc.K[k] = nearestOn(d, toL(d.marks[k][0], d.marks[k][1]))[0]; return d.loc; }
     function nearestOn(d, p) { const { P, cum } = d.loc; let bs = 0, bd = 1e18, side = 0; for (let i = 0; i < P.length - 1; i++) { const ax = P[i][0], az = P[i][1], dx = P[i + 1][0] - ax, dz = P[i + 1][1] - az, l2 = dx * dx + dz * dz || 1e-9, u = clamp(((p[0] - ax) * dx + (p[1] - az) * dz) / l2, 0, 1), qx = ax + dx * u, qz = az + dz * u, dd = Math.hypot(p[0] - qx, p[1] - qz); if (dd < bd) { bd = dd; bs = cum[i] + Math.sqrt(l2) * u; side = dx * (p[1] - az) - dz * (p[0] - ax); } } return [bs, bd, side]; }
     function pointAt(d, s) { const { P, cum, L } = d.loc; s = clamp(s, 0, L); let i = 0; while (i < P.length - 2 && cum[i + 1] < s) i++; const l = cum[i + 1] - cum[i] || 1, u = (s - cum[i]) / l, tx = (P[i + 1][0] - P[i][0]) / l, tz = (P[i + 1][1] - P[i][1]) / l; return { x: P[i][0] + (P[i + 1][0] - P[i][0]) * u, z: P[i][1] + (P[i + 1][1] - P[i][1]) * u, tx, tz, s }; }
-    function deckY(d, s, x, z) { const L = d.loc.L; let y = yOf(d.prof(s, L, d.loc.K), 0); const rA = terr() && d.rampAT != null ? d.rampAT : d.rampA, rB = terr() && d.rampBT != null ? d.rampBT : d.rampB; if (rA && s < rA) y = lerp(gy(x, z) + 0.12, y, smoothstep(0, rA, s)); else if (rB && s > L - rB) y = lerp(gy(x, z) + 0.12, y, smoothstep(0, rB, L - s)); return y; }
+    /* the deck's height in local y, s metres along it. Within rampA of its start (rampB of its end) the deck is moved to meet the ground at that end, the move fading out along the ramp:
+       on the terrain the difference is small; on the flat world it is the whole height of the abutment */
+    function deckY(d, s, x, z) { const lc = d.loc, L = lc.L; let y = yOf(d.prof(s, L, lc.K), 0); const rA = terr() && d.rampAT != null ? d.rampAT : d.rampA, rB = terr() && d.rampBT != null ? d.rampBT : d.rampB;
+      if (rA && s < rA) { const e = lc.P[0]; y += (gy(e[0], e[1]) + 0.12 - yOf(d.prof(0, L, lc.K), 0)) * (1 - smoothstep(0, rA, s)); } else if (rB && s > L - rB) { const e = lc.P[lc.P.length - 1]; y += (gy(e[0], e[1]) + 0.12 - yOf(d.prof(L, L, lc.K), 0)) * (1 - smoothstep(0, rB, L - s)); } return y; }
     let geoKey = '';
     const geoNow = () => S.gen + '/' + S.lat0 + '/' + S.lon0 + '/' + (terr() ? S.y0 : 'flat');
     function relocate() { DECKS.forEach(d => { d.loc = null; }); }
@@ -132,7 +135,7 @@
     /* ---------- sites: things that stand still, built when the camera is near and thrown away when it is far or the origin moves ---------- */
     const SITES = [];
     function site(name, lat, lon, reach, make) { const s = { name, lat, lon, reach, make, built: false, ents: [], meshes: [], sets: [], prisms: [], note: '' }; SITES.push(s); return s; }
-    function drop(s) { if (s.onDrop) s.onDrop(); s.ents.forEach(e => e.destroy()); s.meshes.forEach(m => m.dispose()); s.sets.forEach(k => { k.e.destroy(); k.ib.dispose(); if (k.own) k.mesh.dispose(); }); s.prisms.forEach(p => phys.removePrism(p)); s.ents = []; s.meshes = []; s.sets = []; s.prisms = []; s.built = false; s.dyn = null; }
+    function drop(s) { if (s.onDrop) s.onDrop(); s.ents.forEach(e => e.destroy()); s.meshes.forEach(m => m.dispose()); s.sets.forEach(k => { k.e.destroy(); k.ib.dispose(); if (k.own) k.mesh.dispose(); }); s.prisms.forEach(p => phys.removePrism(p)); s.ents = []; s.meshes = []; s.sets = []; s.prisms = []; s.lamps = null; s.built = false; }
     const solid = (s, B, name, mat) => { if (B.empty) return null; const mesh = build(B, name), e = scene.createEntity(name, { parent: root, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat || MAT.paint; mr.pickable = false; s.ents.push(e); s.meshes.push(mesh); return e; };
     const sset = (s, name, B, mat, o) => { const k = set(name, build(B, name), mat || MAT.paint, o); k.own = true; s.sets.push(k); return k; };
     /* where a point of a ship (x to port, z forward) is in the world, for a ship at (px, pz) heading hdg */
@@ -177,18 +180,18 @@
         if (c.base) B.box(p.x, wy + c.base[2] / 2 - 1, p.z, c.base[0] / 2, c.base[2] / 2 + 1, c.base[1] / 2, Math.atan2(nx, nz), CONC); void yd; });
     };
     /* San Diego-Coronado Bridge: 200 ft (61 m) clear over the channel, 4.67 per cent up from Coronado, the 80 degree curve (its mapped line), blue girders on tall concrete piers */
-    if (BR.cor) { const c = BR.cor, D1 = deck({ name: 'San Diego-Coronado Bridge', pts: c.line, half: 10.2, marks: { ch: c.channel }, rampA: 110, rampB: 260, rampAT: 60, rampBT: 120, crest: 66, low: [6, 18],
-      prof: (s, L, K) => { const k = 5, mn = (a, b) => -k * Math.log(Math.exp(-a / k) + Math.exp(-b / k)), top = 67.2, up = 6 + 0.0467 * s, dn = 18 + (top - 18) * (L - s) / Math.max(1, L - (K.ch + 150)); return mn(mn(up, top), dn); } });
+    if (BR.cor) { const c = BR.cor, D1 = deck({ name: 'San Diego-Coronado Bridge', pts: c.line, half: 10.2, marks: { ch: c.channel }, rampA: 260, rampB: 400, rampAT: 60, rampBT: 120, crest: 69, low: [6, 12],
+      prof: (s, L, K) => { const k = 2.5, mn = (a, b) => -k * Math.log(Math.exp(-a / k) + Math.exp(-b / k)), top = 69.5, up = 6 + 0.0467 * s, dn = 12 + (top - 12) * (L - s) / Math.max(1, L - (K.ch + 150)); return mn(mn(up, top), dn); } });
       site('San Diego-Coronado Bridge', 32.692, -117.153, 30000, s => { const sm = samples(D1, 14), B = new MeshBuilder(), BLUE = [0.16, 0.37, 0.62, 0], K = D1.loc.K, L = D1.loc.L; roadway(B, sm, D1.half, { hb: 4.6, t: 5.4, slab: 1.1, box: BLUE, under: BLUE, rail: CONC });
         const gap = 98, k0 = Math.ceil((40 - K.ch) / gap); for (let s2 = K.ch + k0 * gap; s2 < L - 30; s2 += gap) { const p = pointAt(D1, s2); p.nx = -p.tz; p.nz = p.tx; pier(B, p, deckY(D1, s2, p.x, p.z) - 5.4, { gap: 4.2, w: 2.6, l: 3.4, arch: true }); }
         solid(s, B, 'San Diego-Coronado Bridge'); s.note = 'crest ' + D1.crest + ' m, ' + Math.round(L) + ' m of mapped bridge'; }); }
     /* Golden Gate Bridge: towers 746 ft (227 m) above the water, 4,200 ft (1,280 m) between them, side spans 1,125 ft (343 m), 90 ft (27 m) wide, roadway about 246 ft up at the towers, International Orange */
-    if (BR.gg) { const g = BR.gg, ORANGE = [0.94, 0.29, 0.02, 0], D1 = deck({ name: 'Golden Gate Bridge', pts: g.line, half: 13.5, marks: { S: g.towers[0], N: g.towers[1] }, rampA: 40, rampB: 40, prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 67], [K.S, 75], [(K.S + K.N) / 2, 79], [K.N, 75], [L, 73]]); return K.t(s); } });
-      const A1 = deck({ name: 'Golden Gate Bridge, south approach', pts: g.south.slice().reverse(), half: 14, flatOnly: true, rampA: 500, prof: () => 67 }), A2 = deck({ name: 'Golden Gate Bridge, north approach', pts: g.north, half: 14, flatOnly: true, rampB: 500, prof: () => 73 });
+    if (BR.gg) { const g = BR.gg, ORANGE = [0.94, 0.29, 0.02, 0], D1 = deck({ name: 'Golden Gate Bridge', pts: g.line, half: 13.5, marks: { S: g.towers[0], N: g.towers[1] }, rampAT: 40, rampBT: 40, prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 67], [K.S, 75], [K.S + 320, 77.7], [(K.S + K.N) / 2 - 150, 78.8], [(K.S + K.N) / 2, 79], [(K.S + K.N) / 2 + 150, 78.8], [K.N - 320, 77.7], [K.N, 75], [L, 73]]); return K.t(s); } });
+      const A1 = deck({ name: 'Golden Gate Bridge, south approach', pts: g.south.slice().reverse(), half: 14, flatOnly: true, rampA: 860, prof: () => 67 }), A2 = deck({ name: 'Golden Gate Bridge, north approach', pts: g.north, half: 14, flatOnly: true, rampB: 860, prof: () => 73 });
       site('Golden Gate Bridge', 37.8199, -122.4786, 45000, s => { const sm = samples(D1, 15.24), B = new MeshBuilder(); roadway(B, sm, D1.half, { hb: 13.5, t: 7.6, slab: 1, box: ORANGE, rail: ORANGE, under: ORANGE });
         susp(B, D1, sm, { towers: ['S', 'N'], top: 227, side: [343, 343], cable: 13.7, col: ORANGE, every: 15.24, thick: 1.1, rope: 0.3, clear: 3, sideSag: 6, legs: [[null, 75, 10, 16.5], [75, 122, 9.4, 14.5], [122, 162, 8.4, 12.5], [162, 195, 7.4, 10.8], [195, 227, 6.4, 9.2]], struts: [[66, 7, 6], [122, 8, 6], [162, 7, 5.5], [195, 6.5, 5], [223, 7, 5]], cross: [[12, 60, 2.6]], base: [50, 30, 10] });
         solid(s, B, 'Golden Gate Bridge'); if (!terr()) { const B2 = new MeshBuilder(); [A1, A2].forEach(a => roadway(B2, samples(a, 20), a.half, { hb: 9, t: 3, box: CONC })); solid(s, B2, 'Golden Gate Bridge approaches (flat world only)'); } s.note = 'towers ' + Math.round(D1.loc.K.N - D1.loc.K.S) + ' m apart'; }); }
-    X.decks = DECKS; X.sites = SITES; X.tools = { deck, site, samples, roadway, susp, pier, strip, wall, solid, sset, pointAt, deckY, locate, yOf, gy, toL, shipAt, prism, set, build, lamp, pose, at, tbl, ROAD, CONC };
+    X.decks = DECKS; X.sites = SITES; X.tools = { flat: () => !terr(), deck, site, samples, roadway, susp, pier, strip, wall, solid, sset, pointAt, deckY, locate, yOf, gy, toL, shipAt, prism, set, build, lamp, pose, at, tbl, ROAD, CONC };
 
     /* ---------- every frame ---------- */
     let tick = 0, lastT = 0;
@@ -198,6 +201,7 @@
       const key = geoNow(); if (key !== geoKey) { geoKey = key; relocate(); SITES.forEach(s => { if (s.built) drop(s); }); tick = 0; lastT = 0; }
       if (tick++ % 20 === 0 || X.dirty) { X.dirty = false; let made = false; for (const s of SITES) { const q = toL(s.lat, s.lon), d = Math.hypot(q[0] - cam[0], q[1] - cam[2]); if (s.built && d > s.reach * 1.25) drop(s); else if (!s.built && d < s.reach && !made && !S.fast) { try { s.make(s); s.built = true; } catch (e) { s.built = true; s.note = 'not built: ' + (e && e.message || e); if (H.onError) H.onError(s.name, e); } made = true; need(2); } } X.stats.sites = SITES.filter(s => s.built).length; if (made) X.dirty = true; }
       const t = X.now(); if (!o.moving && lastT) return false; lastT = t; const night = o.night || 0;
+      { const cv = engine.canvas || (dev.gl && dev.gl.canvas), hpx = (cv && (cv.clientHeight || cv.height)) || 800; X.lampK = clamp(2.6 * Math.tan((engine.camera.fov || 65) * RDG / 2) / hpx, 0.0008, 0.006); }   /* a lamp is never drawn smaller than about a pixel and a third across, however far it is */
       try { drawFlights(t, cam, night); const nh = drawHelos(t, cam, night); if (X.extra) X.extra(t, cam, night); return X.stats.flights + nh + X.stats.boats > 0; } catch (e) { if (!X.err) { X.err = String(e && e.stack || e); if (H.onError) H.onError('flights', e); } return false; }
     };
     X.set = on => { X.on = !!on; root.setActive(X.on); if (!X.on) { SITES.forEach(s => { if (s.built) drop(s); }); for (const k in FLEET) { FLEET[k].body.ib.clear(); FLEET[k].gear.ib.clear(); FLEET[k].plan.ib.clear(); } LAMPS.ib.clear(); X.stats.flights = 0; } else { X.dirty = true; lastT = 0; } need(3); return X.on; };

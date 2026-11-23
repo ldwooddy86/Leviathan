@@ -113,7 +113,7 @@ const QKW = {
   coat: ['silicone roof coating', 'commercial roof restoration', 'cool roof coating', 'roof maintenance program'],
   newc: ['new construction roofing contractor', 'builder roofing subcontractor', 'roofing for new homes', 'solar ready roof new construction'],
 };
-/* Event ad groups. The first edition built these from named tropical storms; California's events are of four kinds. Each kind has its service line,
+/* Event ad groups. The first edition built these from named storms of another kind; California's events are of four kinds. Each kind has its service line,
    headlines (30 characters or fewer), one description (90 or fewer), core keywords and a landing slug. {Name} is the event's name when it has one. */
 const DESK_EV = {
   rain: { label: 'Heavy rain and atmospheric river', line: 'storm', first: 'put a bucket under the leak, photograph the ceiling and call for a tarp',
@@ -218,8 +218,10 @@ registerModule({
     const tierOf = z => (TIERS[z.zip] || {}).tier || z.tier || '';
     const bidOf = z => (P.bids && isN(P.bids[z.zip])) ? +P.bids[z.zip] : TIERS[z.zip] ? TIERS[z.zip].bid : (z.bid || 0);
     /* ---------- event ad group ---------- */
+    /* how a named event reads: a fire the ledger calls "Camp" is the Camp Fire, with its year */
+    const evLabel = e => e.name + (e.kind === 'fire' && !/\b(fire|complex)$/i.test(e.name) ? ' Fire' : '') + (e.year && !String(e.name).includes(String(e.year)) ? ' ' + e.year : '');
     const evSel = () => {
-      if (P.storm && EVI[P.storm]) { const e = EVI[P.storm]; return { id: e.id, name: e.name, year: e.year, kind: e.kind, label: e.name + (e.year && !String(e.name).includes(String(e.year)) ? ' ' + e.year : ''), named: true }; }
+      if (P.storm && EVI[P.storm]) { const e = EVI[P.storm]; return { id: e.id, name: e.name, year: e.year, kind: e.kind, label: evLabel(e), named: true }; }
       if (P.event) { const m = /^kind:(\w+)$/.exec(P.event); const kind = m && DESK_EV[m[1]] ? m[1] : deskEvKind(P.event); return { id: 'event', name: '', year: null, kind, label: m ? DESK_EV[kind].label : String(P.event), named: false }; }
       return null;
     };
@@ -243,7 +245,7 @@ registerModule({
         <div class="f"><label class="fl" for="dkN">ZIPs to buy · minimum residents</label><div style="display:flex;gap:6px"><input type="number" id="dkN" min="1" max="${ZR.length}" style="width:80px"><select id="dkMin"><option value="0">any</option><option value="1000">1,000+</option><option value="2000">2,000+</option><option value="5000">5,000+</option><option value="10000">10,000+</option></select></div><span class="hint">Up to the ${N(ZR.length)} scored ZIPs. A new plan starts at one market for every $500 of monthly budget.</span></div>
         <div class="f"><label class="fl" for="dkAlpha">Concentration α <span id="dkAlphaV"></span></label><input type="range" id="dkAlpha" min="0.5" max="2.5" step="0.1"><span class="hint">1 spends in proportion to the profit pool; 2 concentrates on the best ZIPs.</span></div>
         <div class="f"><label class="fl" for="dkUrl">Landing URL base</label><input type="url" id="dkUrl" placeholder="https://www.yourroofingco.com"><span class="hint">Defaults to the Company panel website.</span></div>
-        <div class="f"><label class="fl" for="dkCor">Event ad group (optional)</label><select id="dkCor"><option value="">None</option>${Object.entries(DESK_EV).map(([k, v]) => `<option value="kind:${k}">${esc(v.label)}</option>`).join('')}${EV.length ? `<optgroup label="Events on record">${EV.slice(0, 120).map(e => `<option value="${esc(e.id)}">${esc(e.name)}${e.year && !String(e.name).includes(String(e.year)) ? ' ' + e.year : ''} · ${esc(DESK_EV[e.kind].label.split(' (')[0].toLowerCase())}</option>`).join('')}</optgroup>` : ''}</select><span class="hint">Adds event keywords and headlines for rain, wind, wildfire rebuilding or snow.</span></div>
+        <div class="f"><label class="fl" for="dkCor">Event ad group (optional)</label><select id="dkCor"><option value="">None</option>${Object.entries(DESK_EV).map(([k, v]) => `<option value="kind:${k}">${esc(v.label)}</option>`).join('')}${EV.length ? `<optgroup label="Events on record">${EV.slice(0, 120).map(e => `<option value="${esc(e.id)}">${esc(evLabel(e))} · ${esc(DESK_EV[e.kind].label.split(' (')[0].toLowerCase())}</option>`).join('')}</optgroup>` : ''}</select><span class="hint">Adds event keywords and headlines for rain, wind, wildfire rebuilding or snow.</span></div>
       </div>
       <div class="dsec" style="margin-top:16px">Platform mix (% of budget)</div><div class="mix" id="dkMix"></div><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec sm" id="dkMixReset">Reset mix to line default</button></div>
       <div class="dsec" style="margin-top:16px">Platform assumptions (editable)</div><div class="xscroll" id="dkAsm"></div></div></div>
@@ -348,7 +350,7 @@ registerModule({
     function syncUI() {
       $('#dkLine', root).value = P.line; $('#dkBud', root).value = P.budget; $('#dkStart', root).value = P.start; $('#dkWeeks', root).value = P.weeks; $('#dkScope', root).value = P.scope;
       $$('#dkPars option', root).forEach(o => o.selected = P.counties.includes(o.value)); $$('#dkRegs option', root).forEach(o => o.selected = P.regions.includes(o.value)); $('#dkPicks', root).value = P.picks.join(', '); $('#dkN', root).value = P.n; $('#dkMin', root).value = String(P.minpop);
-      $('#dkAlpha', root).value = P.alpha; $('#dkAlphaV', root).textContent = D(P.alpha, 1); $('#dkUrl', root).value = P.url || ''; $('#dkCor', root).value = P.storm && EVI[P.storm] ? P.storm : /^kind:/.test(P.event || '') ? P.event : '';
+      $('#dkAlpha', root).value = P.alpha; $('#dkAlphaV', root).textContent = D(P.alpha, 1); $('#dkUrl', root).value = P.url || ''; { const cs = $('#dkCor', root); if (P.storm && EVI[P.storm] && ![...cs.options].some(o => o.value === P.storm)) { const e = EVI[P.storm]; const og = cs.querySelector('optgroup') || cs; og.insertAdjacentHTML('beforeend', `<option value="${esc(e.id)}">${esc(evLabel(e))} · ${esc(DESK_EV[e.kind].label.split(' (')[0].toLowerCase())}</option>`); } cs.value = P.storm && EVI[P.storm] ? P.storm : /^kind:/.test(P.event || '') ? P.event : ''; }
       $('#dkBlendF', root).style.display = P.line === 'blend' ? '' : 'none';
       $$('#dkBlend .chip', root).forEach(c => { const on = P.lines.includes(c.dataset.k); c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on)); });
       const F = firm(); const e = evSel(); const miss = [!F.lic && 'CSLB license number (required in all advertising, Business and Professions Code 7030.5)', !F.office && 'office city', !F.name && 'company name', !F.phone && 'phone'].filter(Boolean);
@@ -506,7 +508,10 @@ registerModule({
       if (p.line && PLI[p.line]) { P.line = p.line; P.mix = { ...(MIX0[P.line] || MIX0.blend) }; }
       if (p.lines && p.lines.length > 1) { P.line = 'blend'; P.lines = p.lines.filter(k => PLI[k]); P.mix = { ...MIX0.blend }; }
       const ev = p.storm || p.event;
-      if (ev) { const s = typeof ev === 'object' ? String(ev.id || ev.name || ev.label || '') : String(ev); const hit = EVI[s] || EV.find(e => e.name === s || (e.name + ' ' + e.year) === s);
+      if (ev) { const s = typeof ev === 'object' ? String(ev.name || ev.label || ev.id || '') : String(ev);
+        /* a ledger fire arrives by id (p.fire, or the event object's id) and by name: "Camp Fire 2018" is the fire the list calls "Camp", 2018 */
+        const bare = t => String(t || '').replace(/\s+fire\b/i, '').replace(/\s+/g, ' ').trim().toLowerCase(); const ids = [p.fire, typeof ev === 'object' ? ev.id : null, s].filter(Boolean).map(String);
+        const hit = ids.map(i => EVI[i]).find(Boolean) || EV.find(e => e.name === s || (e.name + ' ' + e.year) === s || (e.kind === 'fire' && e.year && bare(s) === bare(e.name + ' ' + e.year)));
         if (hit) { P.storm = hit.id; P.event = ''; } else { P.storm = ''; P.event = (typeof ev === 'object' && DESK_EV[ev.kind] && !s) ? 'kind:' + ev.kind : s; }
         const e = evSel(); if (e && P.line !== 'blend') { const k = evLine(e); if (![k, 'repair', 'storm', 'fire'].includes(P.line)) { P.line = k; P.mix = { ...(MIX0[k] || MIX0.blend) }; } } }
       else if (p.zips && p.zips.length && P.storm && EVI[P.storm] && EVI[P.storm].zips) { const s = new Set(EVI[P.storm].zips); const out = P.picks.filter(z => !s.has(z)).length; if (out) { dropped = `event ad group ${evSel().label} removed, since the event never reached ${out} of these ZIPs`; P.storm = ''; } }

@@ -182,7 +182,7 @@ function lineTargets(k, rows) {
   out.forEach(o => { let lo = 0, hi = n; while (lo < hi) { const m = (lo + hi) >> 1; if (sorted[m] < o.eff) lo = m + 1; else hi = m; } o.pct = n ? lo / n * 100 : 0; o.tier = LINE_TIER(o.pct); o.bid = TIER_BID[o.tier]; });
   return out;
 }
-/* cities ranked for a line (SEO page targets). comp = active C-39 licenses within 8 km of the city's centre. */
+/* cities ranked for a line (SEO page targets). comp = active C-39 licenses within 8 km of the city's center. */
 function lineCities(k) { return CITIES.map(c => { const zs = (c.zips || []).map(z => ZI[z]).filter(Boolean); let pool = 0, cases = 0, fees = 0; zs.forEach(z => { const o = SLM.zipLine(z, k); pool += o.pool; cases += o.cases; fees += o.fees; }); const pop = Math.max(1, c.pop || 0); return { c, name: c.name, pi: c.pi, pop: c.pop, nzip: zs.length, pool, cases, fees, comp: c.comp, roofers: c.roofers, lic: c.lic, span: (c.span || 0) / pop * 100, chin: (c.chin || 0) / pop * 100, viet: (c.viet || 0) / pop * 100, tagalog: (c.tagalog || 0) / pop * 100, korean: (c.korean || 0) / pop * 100 }; }); }
 const LINE_FIRMS = k => COMP.filter(c => (c.lines || []).includes(k));
 /* quadrant names shared by modules 01 and 05 */

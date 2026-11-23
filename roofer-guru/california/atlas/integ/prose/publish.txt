@@ -1,0 +1,43 @@
+The Site Forge writes the pages; this module sends them. One portable page goes out to whichever platform the site lives on: WordPress with Elementor or as a headless CMS behind the Next.js kit, Drupal, Wix, Duda, Webflow, Shopify, HubSpot, Joomla or Ghost. Each target is a card generated from what that platform needs, every page lands as a draft unless you say otherwise, photos are uploaded through the target or a media host, and a ledger remembers what went where so a second run updates instead of duplicating.
+
+A file has no site permissions, so each CMS must allow this origin in its own CORS settings (the FORGE bridge has an allowed origins list; the hosted platforms do not). The browser app has no such limit; install it to publish anywhere.
+
+One card per platform, built from what that platform needs. Save keeps the fields in this browser, Test reads the site and reports what it found, Use as target picks where the pages go. Credentials never leave this machine.
+
+Basic auth from the API user; pages are duplicated from a template page and filled by content injection, or imported as blog posts. Images come from a media host.
+
+Pages come from the Site Forge, from the composer below, or from a file. Each one is a portable page: title, slug, meta description, section markup with its css, JSON-LD, media slots. Tick the ones to send.
+
+Sends the ticked pages to the target. Drafts unless you tick Publish live, which asks for a second click. A page already in the target's ledger is updated in place (the adapter looks the slug up first). Media is resolved before each page: local photos are uploaded through the target or the media host, library lookups are searched, and an unresolved slot is dropped so nothing ships with a placeholder.
+
+One portable page. Whatever wrote it, a page arrives here as title, slug, meta description, language, section markup with a scoped forge stylesheet, a JSON-LD graph, media slots and internal links. The Site Forge hands its pages over with the photos assigned in step 7; the composer and the import build the same shape.
+
+One adapter per platform. WordPress gets the compiled Elementor JSON through the FORGE bridge (and SEO fields, JSON-LD in the head); the headless route stores the blueprint on the same site and points the canonical at the Next.js front end. Everyone else receives HTML with the scoped css inline, JSON-LD in the head where the platform has a head slot (WordPress, Ghost, HubSpot) and inline in the body otherwise (Drupal, Joomla, Shopify, Duda); Wix and Webflow keep it in a text field of the item when one is configured.
+
+Slug first. Before writing, every adapter looks the slug up in its own model (WordPress slug, Drupal path alias, Shopify handle, Webflow item slug, Ghost slug, Joomla alias, HubSpot slug, Wix item field, Duda page path) and updates what it finds; otherwise it creates. The ledger records id, link, edit link and status per target so a second run is an update, and Skip pages already sent reads it.
+
+Media before markup. A local photo (a file dropped in the Site Forge, or a data URL) is uploaded through the target, or through the media host when the target cannot hold files (Duda, the Wix blog). A library slot is searched by name on the target. The URLs are rewritten in the markup, the JSON-LD and the og:image; a slot that stays unresolved is dropped, or stops the run when Require every image is on.
+
+Drafts by default. Nothing goes live unless Publish live is ticked and confirmed with a second click. Site builders that publish at site level (Duda, Webflow) get a separate Publish site now step after the run.
+
+Site access. Inside the browser app the extension asks once for permission to reach each of your own sites (WordPress, Drupal, Joomla, Ghost) on the first Test or Deploy; the hosted platform APIs are permitted in the manifest. Credentials live in extension storage and never leave this machine.
+
+Wix, Webflow and Duda have no endpoint that takes an arbitrary HTML page. Wix data items feed a dynamic page you design once; Webflow items render through a collection template page; Duda injects the markup into a template page you build with a data-inject element. That is where the platform keeps its own header, footer and navigation, so the pages look native.
+
+Rich text fields keep headings, paragraphs, lists, links and images and drop scripts and embeds. The JSON-LD goes into a plain text field when the collection has one, otherwise it is left out and the result says so.
+
+Duda's developer docs now steer new work to the snippets API, connected data and the content library while keeping content injection available. The adapter uses injection because it is the only route that takes a whole page; watch the result notes and switch modes if Duda removes it.
+
+The adapter creates Online Store pages (or blog articles when a blog id is set); a page renders inside the theme's page template, so a template suffix is the way to give these pages their own layout.
+
+Site pages on HubSpot depend on a template the account owns; blog posts take HTML and metadata directly, so the adapter defaults to posts and offers pages as an option.
+
+Application passwords, API keys and tokens are stored in this browser profile so the next session can publish without retyping. Forget credentials on each card removes them; anyone with this profile can read them until then.
+
+The atlas can lint, preview and send, but it cannot read the site's navigation, redirects or launch calendar. Drafts are the default; the second click on Publish live is the point where a person takes over.
+
+A loaded page carries photo blobs and can be large, so the module keeps only the slugs it saw. Load again from the Site Forge or the file; the ledger, the credentials and the composer draft do persist.
+
+Basic auth from the API user; pages are duplicated from a template page and filled by content injection, or imported as blog posts. Images come from a media host. A
+
+California Roofer Guru, module 16. The Site Forge writes; this module sends. Nothing goes live without a second click, and every credential stays in this browser.

@@ -1,0 +1,1235 @@
+MODULE 09 · SITE FORGE
+Site Forge
+
+The atlas turned into the website its campaigns land on: a service page for each of the thirteen roofing lines, a page for each market city, optional county and region hubs, event pages for the wildfires, atmospheric rivers and wind events on record at the market's ZIP codes, campaign landing pages in English and Spanish, and data and rules guides written from the roof stock, the fire and weather record and the California law evidence. Every page prints the company name, the CSLB license number and a real office, is linted by the Compliance Satchel, carries no dashes and no hyphens but the ones in license classifications such as C-39, compiles in the browser to Elementor, semantic HTML and JSON-LD, and deploys to WordPress as drafts through the FORGE bridge.
+
+774 cities with roof, fire and weather facts
+58 counties · 11 regions · 1,660 events on the ledger
+8 guide topics · 13 service lines
+Internal links only to live URLs
+Site Forge
+Plan, build, deploy
+↓ Pack
+↓ Elementor
+↓ Blueprints
+↓ Bridge plugin
+↓ Ledger
+⤓ Save
+⤒ Load
+◐ Theme
+READ THIS FIRST: WHAT THE FORGE DOES AND DOES NOT DO
+Modules one to eight say where the old roofs, the fire zones and the storm damage are, which ZIPs pay back, what the license, contract and claims rules are and what the ads say. This module writes the pages those ads land on. Describe the company once, choose the markets, tick the page types, and the forge plans the set, writes each page from the atlas's own numbers with a public source beside every figure, and checks it. It never publishes on its own, never writes a review, a rating or a job result, never says what insurance covers, never promises an insurance discount, renewal or price, never offers to negotiate a claim or anything toward a deductible, never links to a page that is not live on the site's sitemap, and never uses Ahrefs. Deploying from the hosted atlas is blocked by the viewer's network rules, so deploy from the downloaded standalone file or hand the pack to the FORGE skill.
+PAGES PREVIEW WITH "YOUR COMPANY", "[LICENSE NUMBER]", "YOUR CITY" AND EVERY PAGE BLOCKS
+Set the company name, CSLB license number and office city in step 1 or in the Company panel (top right). The forge does not invent a company, a license or an office: a licensed contractor must put the license number in all advertising (Bus. & Prof. Code 7030.5), any job of $1,000 or more needs a license (7048), and Google, Local Services Ads and customers check the office.
+1 · The company
+
+Everything here flows into every page: schema, calls to action, the form, the trust strip and the notice. The fields follow the Company panel (top right) while "Follow the Company panel" is ticked; saved in this browser as you type.
+
+⇠ Use the Company panel
+⇠ Import markets from the Campaign Desk
+Follow the Company panel
+COMPANY NAME
+The business name on the CSLB license. Empty, pages read "Your company" and every page blocks.
+PUBLIC SITE URL
+Canonicals, schema and the live sitemap host use this.
+WORDPRESS URL, IF DIFFERENT (HEADLESS)
+PHONE
+A local number that rings the office; a call tracking number should forward to it.
+LEAD EMAIL (FORM NOTIFICATIONS)
+CSLB LICENSE NUMBER
+Printed in the trust strip, the notice and the schema of every page. A licensed contractor must put the license number in all advertising and contracts (Bus. & Prof. Code 7030.5), and any job of $1,000 or more needs a license (7048). Empty, every page blocks.
+LICENSE CLASSIFICATIONS
+For example: C-39 Roofing; C-46 Solar; B General Building. The solar detach and reset page asks who holds the C-10 or C-46 (or A or B) license for the panel work.
+QUALIFYING INDIVIDUAL OR OWNER (OPTIONAL)
+Named on the About page and as the reviewer of the service pages and guides.
+THEIR ROLE, AS PRINTED
+TWO SENTENCES ABOUT THEM (OPTIONAL)
+OFFICE STREET
+Written without hyphens or dashes; it prints in every page footer.
+OFFICE CITY
+A real office customers can reach; Google, Local Services Ads and customers check it.
+ZIP
+OTHER OFFICE CITIES, COMMA SEPARATED
+HOURS, AS CUSTOMERS READ THEM
+Only if actually staffed.
+HOURS IN SPANISH
+HOURS FOR SCHEMA (OPENINGHOURS)
+WORKMANSHIP WARRANTY STATEMENT (OPTIONAL)
+Exact terms only; prints on the About page. "Lifetime" claims are flagged.
+FINANCING STATEMENT (OPTIONAL)
+A payment, a number of payments, a down payment or a rate needs the full Regulation Z terms beside it, or the page blocks.
+MANUFACTURER CERTIFICATIONS (EXACT PROGRAM NAMES)
+Only programs currently held; the Satchel blocks certification claims not listed here.
+WILDFIRE HARDENING CREDENTIALS (OPTIONAL)
+A training or designation the company holds, by its exact name. Prints on the About page. Leave blank if none; no page promises an insurance result.
+PRIVACY NOTICE URL (OPTIONAL)
+Linked beside the consent line of every form when set.
+PROFILES FOR SAMEAS (GOOGLE, FACEBOOK, NEXTDOOR), COMMA SEPARATED
+LOGO URL
+HEADING FONT
+BODY FONT
+PRIMARY BUTTON LABEL
+PRIMARY BUTTON URL
+FORM SHORTCODE (PLUGIN FORMS)
+EXPLAINER VIDEO URL (YOUTUBE OR VIMEO)
+SPANISH LANDING PAGES WHERE SPANISH AT HOME IS AT LEAST (%)
+SCHEMA ENTITY TYPE
+RoofingContractor
+HomeAndConstructionBusiness
+LocalBusiness
+LEAD FORM
+HTML form posting to the bridge
+Elementor Pro form
+Plugin shortcode
+PAGE TEMPLATE
+Theme default
+Elementor full width
+Elementor canvas
+Landing pages use canvas when the theme default is chosen.
+BRAND COLORS: PRIMARY · ACCENT · DARK
+TRUST STRIP (THREE ITEMS SEPARATED BY |)
+{lic}, {officeCity} and {hours} fill from the fields above; an item without data is dropped.
+WHO THE COMPANY IS, TWO OR THREE SENTENCES (OPTIONAL)
+CUSTOMER STATEMENTS WITH WRITTEN PERMISSION ON FILE (ONE PER LINE: QUOTE | NAME | CONTEXT). LEAVE EMPTY TO OMIT
+The forge never writes a review or a testimonial. Statements print with "Customer statements are shared with permission and describe one job. Every roof is different." An incentivized or employee statement must say so, and reviews may not be bought, faked or filtered (16 CFR Part 465).
+Sticky mobile call bar
+noindex campaign landing pages
+Publish guides as posts
+Use Elementor global colors and fonts
+2 · Where to focus
+
+Cities come from the atlas's ZIP model: roof age, the fire and weather record and the thirteen service line pools. Rank them by the work the company wants, and limit them to where its crews will drive.
+
+SCOPE
+Within a drive of the office
+Selected counties
+Selected regions
+All of California
+Hand picked cities
+MILES FROM THE OFFICE
+COUNTIES (COUNTY SCOPE)
+Alameda
+Alpine
+Amador
+Butte
+Calaveras
+Colusa
+Contra Costa
+Del Norte
+El Dorado
+Fresno
+Glenn
+Humboldt
+Imperial
+Inyo
+Kern
+Kings
+Lake
+Lassen
+Los Angeles
+Madera
+Marin
+Mariposa
+Mendocino
+Merced
+Modoc
+Mono
+Monterey
+Napa
+Nevada
+Orange
+Placer
+Plumas
+Riverside
+Sacramento
+San Benito
+San Bernardino
+San Diego
+San Francisco
+San Joaquin
+San Luis Obispo
+San Mateo
+Santa Barbara
+Santa Clara
+Santa Cruz
+Shasta
+Sierra
+Siskiyou
+Solano
+Sonoma
+Stanislaus
+Sutter
+Tehama
+Trinity
+Tulare
+Tuolumne
+Ventura
+Yolo
+Yuba
+REGIONS (REGION SCOPE)
+North Coast
+Far North
+Sacramento Valley
+Sierra
+Bay Area
+Central Coast
+San Joaquin Valley
+Los Angeles and Ventura
+Orange County
+Inland Empire
+San Diego and Imperial
+RANK BY
+Gross profit pool a year, all lines (model)
+Roofs 20 years or older (model)
+Roofs reaching 20 within five years (model)
+Roof replacement jobs a year (model)
+Roof repair and leaks jobs a year (model)
+Wind and rain damage jobs a year (model)
+Wildfire damage and rebuild roofing jobs a year (model)
+Fire hardened roofs jobs a year (model)
+Tile lift and relay jobs a year (model)
+Solar detach and reset reroofs jobs a year (model)
+Metal roofing jobs a year (model)
+Manufactured home roofs jobs a year (model)
+Commercial, multifamily and coating jobs a year (model)
+Land in High or Very High Fire Hazard Severity Zones, percent
+Structures destroyed or damaged by wildfire, 2013 to 2025
+FAIR Plan residential policies in force
+FEMA roof or property registrations, 2003 to 2025
+One unit roofs
+Residents of its ZIP codes
+CITIES · MINIMUM RESIDENTS
+any
+5,000+
+10,000+
+25,000+
+50,000+
+HAND PICKED CITIES (COMMA SEPARATED; OTHER MODULES SEND THEIR ZIPS HERE AS CITIES)
+Pacific Ocean
+Nevada
+Arizona
+Oregon
+Baja California
+Monterey Bay
+San Francisco Bay
+San Pablo Bay
+Suisun Bay
+San Diego Bay
+Arcata Bay
+San Pedro Bay
+Humboldt Bay
+Tomales Bay
+Grizzly Bay
+Drakes Bay
+Bodega Bay
+Salton Sea
+Lake Tahoe
+Goose Lake
+Honey Lake
+Mono Lake
+Clear Lake
+Shasta Lake
+Lake Almanor
+Eagle Lake
+Clear Lake Reservoir
+Lake Havasu
+Lake Berryessa
+Lower Klamath Lake
+Lake Oroville
+Clair Engle Lake
+Don Pedro Reservoir
+San Luis Reservoir
+Folsom Lake
+New Melones Lake
+Isabella Lake
+Tule Lake Sump
+Comanche Reservoir
+Lake McClure
+Big Sage Reservoir
+San Antonio Reservoir
+Pine Flat Reservoir
+Mountain Meadows Reservoir
+Diamond Valley Lake
+Lake Crowley
+Nacimiento Reservoir
+Black Butte Lake
+Lake Davis
+Thermalito Afterbay
+Millerton Lake
+New Bullards Bar Reservoir
+New Hogan Lake
+Indian Valley Reservoir
+Lake Elsinore
+Stampede Reservoir
+Turlock Lake
+Lake Cachuma
+Moon Lake
+Whiskeytown Lake
+Union Valley Reservoir
+Cow Head Lake
+Lake Mathews
+Bridgeport Reservoir
+Meiss Lake
+Pardee Reservoir
+Lake Success
+Lake Earl
+Lake Perris
+Shaver Lake
+Big Bear Lake
+Lake Casitas
+O'Neill Forebay
+Spicer Reservoir
+ALAMEDA
+ALPINE
+AMADOR
+BUTTE
+CALAVERAS
+COLUSA
+CONTRA COSTA
+DEL NORTE
+EL DORADO
+FRESNO
+GLENN
+HUMBOLDT
+IMPERIAL
+INYO
+KERN
+KINGS
+LAKE
+LASSEN
+LOS ANGELES
+MADERA
+MARIN
+MARIPOSA
+MENDOCINO
+MERCED
+MODOC
+MONO
+MONTEREY
+NAPA
+NEVADA
+ORANGE
+PLACER
+PLUMAS
+RIVERSIDE
+SACRAMENTO
+SAN BENITO
+SAN BERNARDINO
+SAN DIEGO
+SAN FRANCISCO
+SAN JOAQUIN
+SAN LUIS OBISPO
+SAN MATEO
+SANTA BARBARA
+SANTA CLARA
+SANTA CRUZ
+SHASTA
+SIERRA
+SISKIYOU
+SOLANO
+SONOMA
+STANISLAUS
+SUTTER
+TEHAMA
+TRINITY
+TULARE
+TUOLUMNE
+VENTURA
+YOLO
+YUBA
+Los Angeles
+San Diego
+San Jose
+San Francisco
+Fresno
+Sacramento
+Long Beach
+Oakland
+Bakersfield
+Anaheim
+Stockton
+Riverside
+Santa Ana
+Irvine
+Chula Vista
+Santa Clarita
+Fremont
+San Bernardino
+Modesto
+Fontana
+Moreno Valley
+Oxnard
+Huntington Beach
+Glendale
+Ontario
+Elk Grove
+Santa Rosa
+Rancho Cucamonga
+Oceanside
+Garden Grove
+Lancaster
+Palmdale
+Salinas
+Corona
+Hayward
+Roseville
+Sunnyvale
+Visalia
+Victorville
+Temecula
+Santa Maria
+Ventura
+Chico
+Redding
+Merced
+Indio
+Santa Barbara
+Napa
+Santa Cruz
+San Luis Obispo
+Palm Springs
+El Centro
+Monterey
+Ridgecrest
+Eureka
+Barstow
+South Lake Tahoe
+Blythe
+Truckee
+Ukiah
+Susanville
+Yreka
+Crescent City
+Alturas
+Escondido
+Pomona
+Torrance
+Fullerton
+Orange
+Pasadena
+Santa Clara
+Simi Valley
+Thousand Oaks
+Clovis
+Vallejo
+Concord
+Fairfield
+Berkeley
+Antioch
+Richmond
+Carlsbad
+Murrieta
+East Los Angeles
+Downey
+Costa Mesa
+Menifee
+West Covina
+Jurupa Valley
+El Monte
+Inglewood
+Burbank
+El Cajon
+Rialto
+San Mateo
+Vacaville
+Daly City
+Hesperia
+Norwalk
+Vista
+Tracy
+Arden-Arcade
+San Marcos
+Carson
+Compton
+Chino
+Mission Viejo
+South Gate
+Hemet
+Santa Monica
+Westminster
+Manteca
+San Leandro
+Citrus Heights
+Lake Forest
+Whittier
+San Ramon
+Livermore
+Hawthorne
+Folsom
+Newport Beach
+Mountain View
+Buena Park
+Redwood City
+Rancho Cordova
+Alhambra
+Perris
+Lakewood
+Upland
+Tustin
+Milpitas
+Chino Hills
+Alameda
+Pleasanton
+Carmichael
+Bellflower
+Pittsburg
+Apple Valley
+Redlands
+Rocklin
+Turlock
+Lake Elsinore
+Tulare
+Dublin
+Eastvale
+Camarillo
+Baldwin Park
+Walnut Creek
+Yuba City
+Redondo Beach
+Madera
+Lodi
+Union City
+Palo Alto
+Yorba Linda
+Davis
+Brentwood
+Castro Valley
+Lynwood
+South San Francisco
+Laguna Niguel
+San Clemente
+Porterville
+La Habra
+Woodland
+Encinitas
+Montebello
+La Mesa
+Florence-Graham
+San Rafael
+Pico Rivera
+Hanford
+Hollister
+Martinez
+Oroville
+Red Bluff
+Auburn
+Marysville
+Placerville
+Colusa
+Willows
+Lakeport
+Jackson
+Sonora
+Weaverville
+Nevada City
+San Andreas
+Quincy
+Mariposa
+Independence
+Bridgeport
+Downieville
+Markleeville
+Gardena
+Santee
+Petaluma
+Monterey Park
+Gilroy
+National City
+Cupertino
+Highland
+Beaumont
+Fountain Valley
+South Whittier
+San Jacinto
+Arcadia
+West Sacramento
+Yucaipa
+Hacienda Heights
+Colton
+Diamond Bar
+Huntington Park
+Lincoln
+Placentia
+Novato
+Cathedral City
+Paramount
+Palm Desert
+Watsonville
+Delano
+Aliso Viejo
+El Dorado Hills
+Glendora
+Florin
+Rosemead
+Covina
+Cypress
+Ceres
+Azusa
+Poway
+Antelope
+North Highlands
+Cerritos
+Los Banos
+Brea
+La Mirada
+Rancho Santa Margarita
+Newark
+Rowland Heights
+Morgan Hill
+French Valley
+Oakley
+Rohnert Park
+Vineyard
+Lompoc
+Danville
+Coachella
+Campbell
+San Bruno
+Altadena
+Rancho Palos Verdes
+Culver City
+Stanton
+La Quinta
+Calexico
+San Gabriel
+Bell Gardens
+Adelanto
+Montclair
+Monrovia
+Wildomar
+Pacifica
+La Puente
+Claremont
+Foothill Farms
+Orangevale
+Moorpark
+Temple City
+San Juan Capistrano
+Lathrop
+La Presa
+West Hollywood
+Oildale
+Pleasant Hill
+Manhattan Beach
+Westmont
+San Dimas
+Desert Hot Springs
+Fair Oaks
+Foster City
+Dana Point
+Los Gatos
+Menlo Park
+Goleta
+Atwater
+Fallbrook
+Spring Valley CDP
+Seaside
+San Pablo
+Beverly Hills
+Orcutt
+El Paso de Robles
+Santa Paula
+Banning
+Lawndale
+Laguna Hills
+Los Altos
+La Verne
+Burlingame
+Saratoga
+Temescal Valley
+Atascadero
+San Carlos
+Suisun City
+San Lorenzo
+East Palo Alto
+East Niles
+Eastern Goleta Valley
+Lemon Grove
+Walnut
+Twentynine Palms
+Belmont
+Brawley
+Lemoore
+Benicia
+Sanger
+Wasco
+Soledad
+Hercules
+Windsor
+South Pasadena
+El Cerrito
+Galt
+North Tustin
+Imperial Beach
+Bloomington
+West Whittier-Los Nietos
+Reedley
+Mountain House
+Dinuba
+Lafayette
+Riverbank
+Loma Linda
+Norco
+Oakdale
+Ramona
+Yucca Valley
+Coronado
+Arcata
+Coalinga
+Clearlake
+California City
+Grass Valley
+King City
+Fortuna
+Tehachapi
+Half Moon Bay
+Healdsburg
+Morro Bay
+Sonoma
+Lake Arrowhead
+Malibu
+Seal Beach
+Patterson
+Selma
+Maywood
+Bay Point
+Linda
+Ladera Ranch
+Rosemont
+San Fernando
+East San Gabriel
+West Rancho Dominguez
+Laguna Beach
+Millbrae
+Calabasas
+Marina
+West Puente Valley
+Corcoran
+Lakeside CDP
+Ashland
+Duarte
+West Carson
+Winter Gardens
+American Canyon
+Willowbrook
+Granite Bay
+Port Hueneme
+Rosamond
+Imperial
+Rancho San Diego
+Shafter
+Stevenson Ranch
+East Hemet
+Greenfield
+Lomita
+La Cañada Flintridge
+Casa de Oro-Mount Helix
+Prunedale
+Agoura Hills
+Dixon
+La Crescenta-Montrose
+Arvin
+Orinda
+Lennox
+Albany
+South El Monte
+Mead Valley
+Hermosa Beach
+Chowchilla
+Rosedale
+Santa Fe Springs
+Pinole
+Stanford
+Valle Vista
+Phelan
+Olivehurst
+Arroyo Grande
+Cameron Park
+Castaic
+Rancho Mirage
+Nipomo
+Woodcrest
+Laguna Woods
+McKinleyville
+Live Oak
+South San Jose Hills
+Fillmore
+Kerman
+El Segundo
+Moraga
+Bostonia
+Rio Linda
+El Sobrante CDP
+Ripon
+Camp Pendleton South
+Parkway
+Vincent
+Lemon Hill
+La Palma
+Coto de Caza
+Alpine
+Pacific Grove
+Discovery Bay
+Livingston
+East Rancho Dominguez
+Parlier
+Alamo
+McFarland
+Los Osos
+Cherryland
+Mill Valley
+Isla Vista
+Salida
+Oak Park
+Hawaiian Gardens
+Avenal
+Lamont
+El Sobrante CDP
+North Fair Oaks
+Emeryville
+Grand Terrace
+Lake Los Angeles
+Carpinteria
+Palos Verdes Estates
+Larkspur
+Solana Beach
+Kingsburg
+San Anselmo
+Bonita
+Lindsay
+Grover Beach
+Avocado Heights
+Mendota
+Newman
+San Marino
+Tamalpais-Homestead Valley
+Scotts Valley
+Muscoy
+Commerce
+Rancho Mission Viejo
+Winton
+Los Alamitos
+Quartz Hill
+La Riviera
+Big Bear City
+Anderson
+View Park-Windsor Hills
+Canyon Lake
+Valley Center
+Del Aire
+Hillsborough
+East Bakersfield
+Sun Village
+Delhi
+Piedmont
+Sierra Madre
+Clayton
+Diamond Springs
+Citrus
+Calimesa
+Fairview
+Soquel
+Garden Acres
+Home Gardens
+Alum Rock
+Farmersville
+Shasta Lake
+Exeter
+San Diego Country Estates
+Country Club
+Potomac Park
+Blackhawk
+Rio Vista
+Corte Madera
++
+−
+⟲
+GROSS PROFIT POOL A YEAR, ALL LINES (MODEL), CITIES IN THE PLAN
+$30.8M
+$147M
+No office set: the plan is statewide
+CITY	COUNTY	GROSS PROFIT POOL A YEAR, ALL LINES ↓	ROOFS 20+ (MODEL)	FIRE ZONE LAND	FIRE DESTROYED OR DAMAGED	FAIR PLAN POLICIES	FEMA REGISTRATIONS	RESIDENTS (ZIPS)	SPANISH AT HOME
+Los Angeles	Los Angeles	$147M	94,233	32%	56	41,982	584	2.38M	45%
+San Diego	San Diego	$96.7M	77,644	44%	0	14,556	171	1.33M	20%
+San Jose	Santa Clara	$67.9M	60,151	59%	9	2,000	31	1.01M	22%
+Sacramento	Sacramento	$63.7M	59,186	0%	0	816	170	851k	16%
+San Francisco	San Francisco	$60.1M	33,360	0%	0	1,998	0	830k	11%
+Fresno	Fresno	$43.0M	38,788	0%	0	887	10	622k	30%
+Bakersfield	Kern	$41.0M	40,094	27%	0	2,708	14	592k	38%
+Oakland	Alameda	$30.8M	22,893	18%	0	5,796	62	427k	23%
+
+Click a city to drop it from the plan; click a ZIP on the map to add or drop its city. Fire damage inspections, FAIR Plan policies and FEMA registrations are observed records by ZIP (grade A); the fire zone share is a map overlay on ZIP land (grade B); roof ages and the job pools are the atlas's models (grades B to D). "Residents" and every count sum the city's ZIP codes, which reach past city limits.
+
+3 · What to build
+
+Tick the page types and the lines. Event pages default to at most two events from the ledger at the plan's ZIP codes: the recent wildfire with the most structures destroyed or damaged there, and the strongest recent atmospheric river or wind event; failing those, a wildfire of 13 to 24 years ago, whose rebuilt homes have roofs of one age. Pick others below.
+
+Home page
+About and license page
+Service page per line
+Region hub per region in the plan
+County hub per county in the plan
+City page per market city
+Event page per wildfire, atmospheric river or wind event
+Campaign landing page per line and city
+Spanish landing variants (only if someone at the company speaks Spanish with customers)
+Data and rules guides
+SERVICE PAGES
+Replace
+Repair
+Storm
+Fire
+Fire hardening
+Tile relay
+Solar reset
+Metal
+Mobile home
+Multifamily
+Commercial
+Coatings
+New build
+LANDING PAGE LINES
+Replace
+Repair
+Storm
+Fire
+Fire hardening
+Tile relay
+Solar reset
+Metal
+Mobile home
+Multifamily
+Commercial
+Coatings
+New build
+EVENTS · WILDFIRES: STRUCTURES DESTROYED OR DAMAGED IN THE PLAN'S ZIP CODES; STORMS: HOMES IN THE ZIP CODES REACHED; AUTOMATIC: THE WORST RECENT WILDFIRE AND THE STRONGEST RECENT STORM
+December 2025 atmospheric river (2025) · 3.21M homes
+October 2021 atmospheric river (2021) · 3.21M homes
+January 2017 atmospheric river (2017) · 3.21M homes
+February 2017 atmospheric river (2017) · 3.21M homes
+October 2010 atmospheric river (2010) · 3.21M homes
+December 1996 atmospheric river (1996) · 3.21M homes
+March 1995 atmospheric river (1995) · 3.21M homes
+February 1986 atmospheric river (1986) · 3.21M homes
+December 1964 atmospheric river (1964) · 3.21M homes
+January 1963 atmospheric river (1963) · 3.21M homes
+December 2014 atmospheric river (2014) · 3.00M homes
+October 2009 atmospheric river (2009) · 3.00M homes
+GUIDE TOPICS
+How long a roof lasts in California
+After wind or rain damage to your roof
+Roofing in a Fire Hazard Severity Zone
+Your roof, non renewal and the FAIR Plan
+How to check a roofer's license
+Cool roof rules for a reroof
+Tile roofs and their underlayment
+Roofs, weather and fire in each city (per city)
+DOORWAY RISK: FEWER, BETTER CITY PAGES
+Templated city pages are the fastest route into a doorway or scaled content problem. Every city page here carries that city's own roof stock, fire zone share, fire record, wind and rain figures and FAIR Plan count, but a dozen pages from one template still read as a pattern. If the site already has a page per suburb, consolidate or rewrite those before adding new ones, and publish a city page only where its numbers say something the others do not. The defaults are deliberately conservative: eight cities plus the office city, county and region hubs off, landing pages noindexed, and the per city guide off.
+⚒ Build all pages
+PAGES PLANNED
+38
+7 service · 8 city · 1 event · 16 landing · 4 guides
+CITIES IN THE PLAN
+8
+Los Angeles, San Diego, San Jose, Sacramento and 4 more
+ROOFS 20 YEARS OR OLDER IN THEIR ZIPS
+B
+426k
+17% of the state's modeled total · 256k more within five years
+GROSS PROFIT POOL A YEAR
+D
+$550M
+19% of the statewide pool, in the plan's cities
+BUILT
+38 of 38
+32,216 words
+BLOCKING CHECKS
+76
+78 warnings · 93 notes
+INTERNAL LINKS
+0
+none until live URLs are pasted
+4 · Live pages on the site
+
+The only pages the forge will ever link to. Paste the site's XML sitemap (the page and post sitemaps, not the index) or a list of live URLs, one per line, optionally as "anchor | URL". Pages in this plan become link targets once they are published and appear here.
+
+No live URLs yet. Pages build without internal links until the site's live URLs are here.
+5 · The page ledger
+
+Every planned page with its slug, lengths, words and checks. Click a row to open it in the studio; remove what you do not want.
+
+TYPE
+All types
+Home
+About
+Service
+Region hub
+County hub
+City
+Event
+Landing
+Guide
+SEARCH
+Show removed pages
+# ↑	TYPE	PAGE	SLUG	TITLE	META	WORDS	BLOCKS	WARN	LINKS	DEPLOY
+1	Home	Home	/home/	39	128	786	2	3	0	
+2	About	About	/about/	50	107	544	2	3	0	
+3	Service	Roof replacement	/roof-replacement/	45	144	1,629	2	2	0	
+4	Service	Roof repair and leaks	/roof-repair/	50	136	1,195	2	2	0	
+5	Service	Wind and rain damage	/storm-damage-roof-repair/	46	157	1,580	2	2	0	
+6	Service	Fire hardened roofs	/fire-hardened-roof/	54	156	1,664	2	2	0	
+7	Service	Tile lift and relay	/tile-roof-underlayment-lift-and-relay/	57	148	1,485	2	2	0	
+8	Service	Solar detach and reset reroofs	/solar-panel-detach-reset-reroof/	53	144	1,316	2	2	0	
+9	Service	Metal roofing	/metal-roofing/	42	154	1,366	2	2	0	
+10	City	Los Angeles, California	/los-angeles-roofing/	45	153	1,109	2	2	0	
+11	City	San Diego, California	/san-diego-roofing/	43	149	1,087	2	2	0	
+12	City	San Jose, California	/san-jose-roofing/	42	150	1,130	2	2	0	
+13	City	Sacramento, California	/sacramento-roofing/	44	151	1,080	2	2	0	
+14	City	San Francisco, California	/san-francisco-roofing/	47	157	1,059	2	2	0	
+15	City	Fresno, California	/fresno-roofing/	40	143	1,075	2	2	0	
+16	City	Bakersfield, California	/bakersfield-roofing/	45	146	1,073	2	2	0	
+17	City	Oakland, California	/oakland-roofing/	41	145	1,060	2	2	0	
+18	Event	December 2025 atmospheric river (2025)	/december-2025-atmospheric-river-2025-roofs-los-angeles/	45	153	889	2	2	0	
+19	Landing	Landing · Replace · Los Angeles	/lp-replace-los-angeles/	46	149	519	2	2	0	
+20	Landing	Landing · Repair · Los Angeles	/lp-repair-los-angeles/	41	127	502	2	2	0	
+21	Landing	Landing · Replace · San Diego	/lp-replace-san-diego/	44	147	519	2	2	0	
+22	Landing	Landing · Repair · San Diego	/lp-repair-san-diego/	39	125	502	2	2	0	
+23	Landing	Landing · Replace · San Jose	/lp-replace-san-jose/	43	146	519	2	2	0	
+24	Landing	Landing · Repair · San Jose	/lp-repair-san-jose/	38	124	502	2	2	0	
+25	Landing	Landing · Replace · Sacramento	/lp-replace-sacramento/	45	148	516	2	2	0	
+26	Landing	Landing · Repair · Sacramento	/lp-repair-sacramento/	40	126	499	2	2	0	
+27	Landing	Landing · Replace · San Francisco	/lp-replace-san-francisco/	48	151	519	2	2	0	
+28	Landing	Landing · Repair · San Francisco	/lp-repair-san-francisco/	43	129	502	2	2	0	
+29	Landing	Landing · Replace · Fresno	/lp-replace-fresno/	41	144	516	2	2	0	
+30	Landing	Landing · Repair · Fresno	/lp-repair-fresno/	36	122	499	2	2	0	
+31	Landing	Landing · Replace · Bakersfield	/lp-replace-bakersfield/	46	149	516	2	2	0	
+32	Landing	Landing · Repair · Bakersfield	/lp-repair-bakersfield/	41	127	499	2	2	0	
+33	Landing	Landing · Replace · Oakland	/lp-replace-oakland/	42	145	516	2	2	0	
+34	Landing	Landing · Repair · Oakland	/lp-repair-oakland/	37	123	499	2	2	0	
+35	Guide	Guide · How Long Does a Roof Last in California?	/how-long-does-a-roof-last-in-california/	40	153	670	2	2	0	
+36	Guide	Guide · What to Do After Wind or Rain Damage to Your Roof in California	/what-to-do-after-wind-or-rain-damage-to-your-roof-in-california/	52	158	742	2	2	0	
+37	Guide	Guide · Roofing in a California Fire Hazard Severity Zone	/roofing-in-a-california-fire-hazard-severity-zone/	49	156	870	2	2	0	
+38	Guide	Guide · How to Check a Roofer's License in California	/how-to-check-a-roofers-license-in-california/	45	153	663	2	2	0	
+6 · Page studio
+
+City · Los Angeles, California · /los-angeles-roofing/ · 1,109 words
+
+TITLE 45 OF 60
+H1 45 OF 70
+SLUG
+META DESCRIPTION 153, AIM 120 TO 158
+Apply and rebuild
+Discard edits
+Remove from plan
+↓ Blueprint
+↓ Elementor template
+↓ Preview HTML
+↓ Bridge bundle
+Preview
+Mobile
+Blueprint
+Elementor JSON
+Schema
+HTML
+CHECKS
+BLOCK · COMPANY Company details missing: company name, CSLB license number, office city; the page prints a placeholder 10 placeholders
+page · Bus. & Prof. Code 7030.5; house style · Fill step 1 or the Company panel (top right).
+BLOCK · LIC1 Roofing advertised with no license on file no CSLB license number set in the Company panel
+page · Bus. & Prof. Code 7027.1 (advertising as a contractor without a license), 7048 (license at $1,000, or at any price where a permit or an employee is involved), 7030.5 (license number in all advertising) · Hold an active C-39 license (or another class that covers the work) before advertising roofing, then enter the license number in the Company panel.
+WARN · WEB1 CSLB license number not on the page no license number configured to check
+page source · Bus. & Prof. Code 7030.5 (license number in all forms of advertising) · Put "CSLB Lic. #" and the number in the footer of every page.
+WARN · WEB2 No office location on the page no office city configured to check
+page source · Google Business Profile and Local Services Ads verification; a local address answers the out of area crew question · Show the office address or city in the footer and on the contact page.
+NOTE · SOL2 Solar removal and reinstallation offered "Solar detach and reset"
+features.title5 · Los Angeles County Building Code Manual 1512 Article 1 (separate solar permit; C-10 or C-46 reinstalls, or an A or B licensee does both: the County's statement of the CSLB position); City of San Diego Information Bulletin 123 (electrical permit) · Name the licensed electrical or solar contractor who reinstalls the system, and price the reinstall permit.
+NOTE · FORGE No internal links yet: paste the live sitemap in step 4 and links are drawn from it
+compiler 1
+NOTE · FORGE Media slot "hero" unresolved (source: library:Los Angeles roof), resolved at deploy
+compiler 2
+FACTS ON THIS PAGE · VALUE, SOURCE, GRADE
+About 358,000 one unit roofs in the Los Angeles ZIP codes
+U.S. Census Bureau, American Community Survey 2020 to 2024
+A
+About 94,200 one unit roofs in the Los Angeles ZIP codes are 20 years or older
+Estimate from Census American Community Survey 2020 to 2024 housing data and the 2023 American Housing Survey
+B
+32% of the land in the Los Angeles ZIP codes is mapped as a High or Very High Fire Hazard Severity Zone
+CAL FIRE Fire Hazard Severity Zone maps (State Responsibility Area 2024, Local Responsibility Area 2025), overlaid on ZIP code areas
+B
+56 structures destroyed or damaged by wildfire in the Los Angeles ZIP codes, 2013 to 2025
+CAL FIRE damage inspection records, 2013 to 2025
+A
+INTERNAL LINKS · LIVE URLS ONLY
+None: paste the live sitemap in step 4.
+7 · Media
+
+Drop photos and video of the company's own crews, finished roofs, trucks and office. Images are resized to 1920 pixels and converted to WebP in the browser. Assign each to the pages it belongs to; a page asset beats a city asset, which beats a county asset, a region asset, a page type asset and the site default. Unassigned slots resolve from the site's media library at deploy, and a page never ships with a placeholder.
+
+Drop files here or click to choose: JPG, PNG, WebP, MP4, WebM
+PREVIEW	FILE	SIZE	ASSIGN TO	ALT TEXT	
+No assets yet. Photos are not saved with the plan; add them again after a reload.
+8 · Deploy to WordPress
+
+Application Password over REST through the FORGE bridge plugin (download it from the bar above, then Plugins, Add New, Upload, Activate). Everything lands as a draft unless you choose to publish, and a page with a blocking check is refused. Credentials stay in this tab. Every other platform (headless WordPress with the Next.js kit, Drupal, Wix, Duda, Webflow, Shopify, HubSpot, Joomla, Ghost) publishes from module 16, Publish, which reads the pages built here.
+
+WORDPRESS URL
+USERNAME
+APPLICATION PASSWORD
+Users, Profile, Application Passwords. An Administrator account is needed for Elementor data.
+Test connection
+Not connected.
+Upload assets and reuse library matches
+Publish instead of draft
+Skip pages already deployed this session
+Publish them
+Keep as drafts
+Deploy pages
+Refresh live URLs from the site
+Verify links against live URLs
+IndexNow published pages
+Not connected.
+PAGE	STATUS	LINK	EDIT	MEDIA	NOTE
+9 · Method, sources, grades and the hand off
+
+How a page is written, where every number comes from, and what to check before anything goes live.
+
+Pages
+Each page is a FORGE blueprint: one JSON document naming the archetype, the RoofingContractor entity with the CSLB license as its identifier and CA as its region, the call to action and form, the media slots and an ordered list of sections. The same blueprint compiles to Elementor flex containers, semantic HTML and JSON-LD here and in the FORGE skill's Python compiler.
+Copy
+Service copy is written per line, the same thirteen lines the Campaign Desk advertises, around the work, the signs owners see and the California rules that apply, with every statement of law carrying its citation. City, county, region and event pages are written from that place's own roof stock, fire zone share, fire record, wind and rain figures and FAIR Plan count; guides from the roof age model, the energy and fire codes and the law evidence.
+Standard
+Title of 60 characters or fewer, meta of 120 to 158, one H1 of 70 or fewer, an answer capsule under the hero, sourced key facts, a FAQ of real questions, a primary call to action with the phone, a sticky mobile bar, a consent form with an unchecked box, and a notice on every page with the company name, the CSLB license number and the office.
+Links
+Internal links come only from the live URLs pasted in step 4, scored by how well the path matches the page's service line and city. Pages in the plan link to each other only after they are live. Breadcrumbs name Home only when the home page is on the live list.
+Checks
+Every text field runs the Compliance Satchel rule pack (CSLB licensing and the license number, the home improvement contract and down payment rules, Penal Code 551 on deductibles, the public adjuster act on claims, insurance discount and certification claims, financing disclosures, FTC review and "free" rules) and the house style; the page source runs the web rules. A block stops deploy here and in module 16.
+Data seams
+Every data column this module reads is named in one block at the top of its source (HZ). A hazard column that is not in the data file yet drops its sentence and its fact; the page still builds and says nothing about that hazard.
+VALUE	FACT AS PRINTED	SOURCE PRINTED ON THE PAGE	DATE	GRADE
+About 2,547,000	one unit roofs in California are 20 years or older	Estimate from Census American Community Survey 2020 to 2024 housing data and the 2023 American Housing Survey	2026	B
+About 1,533,000	more California roofs reach 20 years old within five years	Estimate from Census American Community Survey 2020 to 2024 housing data and the 2023 American Housing Survey	2026	B
+About 282,000	California roofs due for replacement from age alone in the coming year, tile relays aside	Estimate from Census American Community Survey 2020 to 2024 housing data and the 2023 American Housing Survey	2026	B
+About 514,000	mobile and manufactured homes in California	U.S. Census Bureau, American Community Survey 2020 to 2024	2020 to 2024	A
+62 percent	of California single family homes have composition shingle roofs	U.S. Energy Information Administration, 2020 Residential Energy Consumption Survey, California households (occupant reported)	2020	B
+27 percent	of California single family homes have clay or concrete tile roofs, against 7 percent nationally	U.S. Energy Information Administration, 2020 Residential Energy Consumption Survey, California households (occupant reported)	2020	B
+43 percent	of California single family homes built from 1980 to 1999 have tile roofs	U.S. Energy Information Administration, 2020 Residential Energy Consumption Survey, California households (occupant reported)	2020	B
+2.2 percent	of California single family homes have metal roofs, against 7.3 percent nationally	U.S. Energy Information Administration, 2020 Residential Energy Consumption Survey, California households (occupant reported)	2020	B
+About 20 years	life of an asphalt shingle roof in a national study; no field study gives a California figure	National Association of Home Builders, Study of Life Expectancy of Home Components (2007)	2007	B
+40 to 80 years	guideline life of a metal roof nationally, depending on the metal, the finish and salt exposure	International Association of Certified Home Inspectors, life expectancy chart (a guideline table, national)	read November 19, 2026	C
+15 to 30 years	guideline life of a low slope membrane nationally, by type, thickness and drainage	International Association of Certified Home Inspectors, life expectancy chart (a guideline table, national)	read November 19, 2026	C
+About 25 years	planning life of standard underlayment under a tile roof, by one reserve study consultant; the tile usually outlasts it	Carl A. Brown, Lifetime Tile Roofs: Fact or Fiction (2012), a reserve study consultant	2012	C
+1,000 to 2,800 feet	distance from salt water inside which two metal panel makers limit or exclude their finish and perforation warranties	Published warranty terms of two metal panel makers (MBCI 2023, Drexel Metals 2020)	2020 and 2023	C
+About $7,000	median cost of a professional roof job on a manufactured home in the West	U.S. Census Bureau, American Housing Survey 2023	2023	B
+$1,000	total job price at which a contractor license is required; below it a license is still needed when the work needs a permit or the contractor has employees	Bus. & Prof. Code 7048 (AB 2622)	in force January 1, 2025	A
+$25,000	contractor's bond every licensee keeps on file with the Contractors State License Board	Bus. & Prof. Code 7071.6	in force January 1, 2023	A
+Required	workers compensation insurance for every C-39 roofing licensee, with or without employees	Bus. & Prof. Code 7125	read November 19, 2026	A
+$1,000 or 10 percent	largest down payment allowed on a home improvement contract, whichever is less	Bus. & Prof. Code 7159.5	read November 19, 2026	A
+3 business days	to cancel a home improvement contract after receiving the signed copy; 5 for a senior citizen and 7 for repairs after a declared emergency	Bus. & Prof. Code 7159; Civ. Code 1689.6	read November 19, 2026	A
+5,587	active C-39 Roofing licenses on the Contractors State License Board file, November 19, 2026	Contractors State License Board, list by classification, C-39	November 19, 2026	A
+170	of the 5,829 C-39 licenses on the board's roll list an address outside California	Contractors State License Board, list by classification, C-39	November 19, 2026	B
+20 days	for a subcontractor or supplier to give preliminary notice after first furnishing work, on which a mechanics lien depends	Civ. Code 8200, 8204	read November 19, 2026	A
+January 1, 2003	homes sold on or after this date fall under the Right to Repair Act, whose standards say a roof must not let water into the structure	Civ. Code 896, 938	read November 19, 2026	A
+10 years	outer limit for claims over hidden construction defects, from substantial completion; 4 years for visible defects	Code Civ. Proc. 337.15, 337.1	read November 19, 2026	A
+15, 40 and 30 days	for an insurer to acknowledge a claim, to accept or deny it after proof of claim, and to pay after accepting it	Cal. Code Regs. tit. 10, 2695.5 and 2695.7	read November 19, 2026	A
+12 months	least time an insurer may allow to collect full replacement cost; 36 months after a loss in a declared state of emergency	Ins. Code 2051.5	read November 19, 2026	A
+Unlawful	for a contractor to offer or give a price reduction meant to offset an insurance deductible, unless the insurer has already set the claim amount	Penal Code 551	read November 19, 2026	A
+10 percent	most a contractor may raise repair prices for 180 days after an emergency is declared, apart from documented cost increases	Penal Code 396	read November 19, 2026	A
+75 days	least notice an insurer must give before declining to renew a residential policy	Ins. Code 678	read November 19, 2026	A
+1 year	after a declared wildfire emergency during which insurers may not cancel or refuse to renew residential policies in ZIP codes in or next to the fire perimeter solely for wildfire risk	Ins. Code 675.1	read November 19, 2026	A
+No set percentage	in the Safer from Wildfires rule for a Class A roof: insurers that price on wildfire risk must reflect it, and each files its own figure	Cal. Code Regs. tit. 10, 2644.9; California Department of Insurance, September 2026	September 2026	A
+698,307	FAIR Plan policies in force in September 2026, up 157 percent since September 2022	California FAIR Plan Association, key statistics	September 2026	A
+Up to 16.4 percent	off the wildfire part of a FAIR Plan dwelling premium when all 12 of its listed hardening measures are in place; a Class A roof is one, and no figure is published for the roof alone	California FAIR Plan, Wildfire Hardening Discounts (November 2025)	November 2025	A
+Class A	roof assembly required in fire zones for new roofs and when 50 percent or more of a roof is replaced within 12 months	2025 California Wildland Urban Interface Code (Title 24, Part 7)	in force January 1, 2026	A
+1/16 to 1/8 inch	openings of the metal mesh allowed on vents in fire zones, in place of a listed flame and ember resistant vent	2025 California Wildland Urban Interface Code (Title 24, Part 7)	in force January 1, 2026	A
+16,264	structures destroyed in the Palisades and Eaton fires of January 2025, by the final counts	CAL FIRE incident records	2025	A
+About 90 percent	of structures inside the Palisades and Eaton fire perimeters had Class A roof coverings	Insurance Institute for Business and Home Safety, The 2025 LA Conflagrations	2025	A
+10.3 and 6.4 percent	of assessed structures in the Palisades and Eaton fire areas had vent screens of 1/8 inch or finer	Insurance Institute for Business and Home Safety, The 2025 LA Conflagrations	2025	A
+54 percent	chance of no damage for homes with four hardening features in those fires, against 36 percent with one or two	Insurance Institute for Business and Home Safety, The 2025 LA Conflagrations	2025	B
+7,173	high wind events logged for California, 1996 to 2026	NOAA Storm Events Database, California	1996 to 2026	B
+$60 million	property damage reported in the Santa Ana wind event of October 21, 2007 across the Inland Empire, San Diego County and the Orange County coast, with gusts over 70 mph	NOAA Storm Events Database, California	2007	B
+349	reports of hail one inch or larger anywhere in California since 1951	NOAA Storm Events Database, California	1951 to 2026	B
+14,511	reroof permits issued by the City of Los Angeles in 2023, up 40 percent on 2022 after the wet winter	City of Los Angeles open data, building permits issued	queried November 19, 2026	B
+0.20	least aged solar reflectance for a steep slope house reroof in climate zones 4 and 8 to 15, when more than half the roof is replaced	2025 Building Energy Efficiency Standards (Title 24, Part 6)	in force January 1, 2026	A
+0.63	least aged solar reflectance for a low slope reroof: houses in climate zones 4 and 6 to 15, nonresidential buildings in all 16	2025 Building Energy Efficiency Standards (Title 24, Part 6)	in force January 1, 2026	A
+50 percent or 2,000 square feet	of roof replaced, recovered or recoated, whichever is less, brings the cool roof rule into play on multifamily and nonresidential buildings	2025 Building Energy Efficiency Standards (Title 24, Part 6)	in force January 1, 2026	A
+25 pounds per square foot	roof weight at and above which the cool roof reflectance rule does not apply	2025 Building Energy Efficiency Standards (Title 24, Part 6)	in force January 1, 2026	A
+0.08	aged reflectance the code assumes for an asphalt shingle with no Cool Roof Rating Council rating	2025 Building Energy Efficiency Standards (Title 24, Part 6)	in force January 1, 2026	A
+0.65	factor the code applies to a field applied coating when it works out an aged reflectance from an initial one, against 0.70 for other products	2025 Building Energy Efficiency Standards (Title 24, Part 6)	in force January 1, 2026	A
+January 1, 2020	date from which every new single family home has had to be built with a photovoltaic system	2025 Building Energy Efficiency Standards (Title 24, Part 6)	read November 19, 2026	A
+Two permits	in unincorporated Los Angeles County when panels come off for a reroof: the reroof permit and a solar permit to put them back	Los Angeles County Building Code Manual 1512 Article 1 (April 1, 2025)	April 1, 2025	A
+C-10 or C-46	license class Los Angeles County names for removing and reinstalling solar panels; C-39 for the roof, or an A or B licensee for both	Los Angeles County Building Code Manual 1512 Article 1 (April 1, 2025)	April 1, 2025	A
+Up 23%	producer prices for steel mill products, the metal in roof panels and flashing, August 2026 against a year earlier	U.S. Bureau of Labor Statistics, Producer Price Index for steel mill products	August 2026	A
+103,856	new housing units permitted in California in 2025	U.S. Census Bureau, Building Permits Survey	2025	A
+18,824	FEMA household registrations in California with roof or real property damage, 2003 to 2025	OpenFEMA Individuals and Households Program, 2003 to 2025	2003 to 2025	A
+per city	one unit roofs, roofs 20 years or older and reaching 20 within five years, the share of land in High or Very High Fire Hazard Severity Zones, structures destroyed or damaged by wildfire, days a year with gusts of 58 mph or more, normal rainfall, FAIR Plan residential policies, FEMA registrations and the energy climate zone, summed or averaged over its ZIP codes	Census ACS 2020 to 2024; the atlas roof age model; CAL FIRE zone maps and damage inspections; airport station records; California FAIR Plan; OpenFEMA	2026-11-19	AB
+per county and per region	the same figures over the county's or the region's ZIP codes	the same sources	2026-11-19	AB
+per event	wildfires: acres, structures destroyed and damaged, and the count inside the plan's ZIP codes; atmospheric rivers: strength at landfall; wind events: highest gust reported; homes in the ZIP codes reached	CAL FIRE perimeters and damage inspections; the CW3E landfall catalog; NOAA Storm Events	event ledger	AB
+JUDGMENT CALLS TO CHECK BEFORE PUBLISHING
+No company is assumed
+The forge opens brand neutral. Until the company name, the CSLB license number and an office city are set, pages read "Your company", "[license number]" and "Your city" and every page blocks. Nothing is filled from a competitor or a sample company.
+The license goes on every page
+A licensed contractor must put the license number in all forms of advertising (Bus. & Prof. Code 7030.5), so it prints in the trust strip, the notice and the schema. C-39 covers roofing on homes and commercial buildings alike; the solar page asks who holds the C-10 or C-46 license for the panels.
+No claims, coverage or deductible language
+Pages say what a roofer does: inspect, document with photos, write an itemized estimate and do the work. They never say what a policy covers, never offer to negotiate a claim (that takes a public adjuster license, Ins. Code 15006) and never offer anything toward a deductible (Penal Code 551). That a roofer may meet the adjuster on the roof at the owner's request is our reading of those sections, not a line drawn in a statute; have counsel confirm it.
+No insurance promises
+The Safer from Wildfires rule sets no discount percentage, so no page states one for an insurer. The only percentage printed is the FAIR Plan's own published maximum for all twelve of its measures, labeled as that. No page says a roof will get a policy written, renewed or repriced.
+Permits are local
+California has no statewide rule that every reroof needs a permit. Pages say the city or county decides and name the two written rules that were read (Los Angeles County and the City of San Diego). Check the rule for each market city before promising a permit.
+Cancellation rights
+Pages state three business days, five for a senior citizen and seven for repairs after a declared emergency (Bus. & Prof. Code 7159, Civ. Code 1689.6). The age that makes a buyer a senior citizen was not read; the pages do not state one.
+Modeled numbers say so
+Roof ages are the atlas's estimates and print with "by our estimate" and the method as the source. The fire zone share is a share of ZIP land, not of homes. Gust days come from the nearest long record station, which may sit miles away. FEMA counts only people who applied for federal help.
+Service lives are national guideline figures
+No field study of shingle, membrane, metal or coating life in California was found. The pages print a national study and an inspectors' guideline table and say so; the tile underlayment figure of about 25 years is one consultant's planning number. No coating life is printed.
+Event pages
+A wildfire of the last six years gets a page on inspection and rebuilding with the disaster contract rules; a wildfire of 13 to 24 years ago gets a page on rebuilt homes whose roofs are one age, which is our inference and not a measured fact. Fires before 2013 carry no structure count. Atmospheric river and wind pages state strength and homes reached, never a count of roofs damaged: no damage model exists for them.
+No reviews, ratings or results by default
+The forge writes no review, rating, review count or job result. Customer statements you paste print with a note that they describe one job, and the schema carries no aggregateRating (16 CFR Part 465).
+Click every citation once
+Statute links point to the Legislature's site, regulations to a public transcription, and the Energy Code to the Energy Commission's file; the evidence was read on November 19, 2026 from archive captures and transcriptions because the official pages block automated readers. Title 24 building code citations carry no link. Open each link in a browser before publishing.
+Counts are by ZIP code, not city limits
+City figures sum the city's ZIP codes, which reach past city limits, and the pages say "in the Sacramento ZIP codes".
+Spanish pages need a Spanish speaker
+Spanish landing pages say "Hablamos español". Tick them only if someone at the company speaks Spanish with customers. The threshold defaults to 15 percent Spanish at home, because 8 percent would add a Spanish page for nearly every California city. The data also carries Chinese, Vietnamese, Tagalog and Korean shares; pages in those languages are not written.
+Manufactured homes
+Which agency issues a roof permit for a manufactured home was not in the evidence, so the page tells the owner to ask and states no rule.
+Conservative page count
+Eight cities plus the office city, at most two events, county and region hubs off and the per city guide off. Templated location pages are the pattern search engines treat as doorways; add places only where the numbers differ.
+Landing pages are noindex
+Campaign landing pages duplicate the city and service pages' intent; they stay out of the index unless you untick the option.
+Slugs keep hyphens
+URL slugs use hyphens as separators, which is how WordPress builds them; the only hyphens in visible copy are the ones in license classifications, which print as the Board writes them (C-39, C-10, C-46).
+HAND OFF TO THE FORGE SKILL
+Download the pack, unzip it beside the FORGE toolkit and run the commands in its README, or paste them into a Claude session that has the forge skill: it resolves media, checks every internal link against the live sitemap, imports each page as a draft through the bridge and reports the links. The pack's plan.json reloads here with ⤒ Load.
+export WP_URL=https://www.example.com WP_USER=<user> WP_APP_PASS='<application password>'
+python3 forge_wp.py status
+python3 forge_wp.py bridge-zip
+for f in pack/blueprints/*.blueprint.json; do s=$(basename $f .blueprint.json); python3 forge_wp.py media-resolve $f pack/media/$s.media.json --assets pack --reuse && python3 forge_compile.py $f out --media pack/media/$s.media.json && python3 forge_wp.py links-check $f --base https://www.example.com && python3 forge_wp.py import out/$s.bundle.json --media pack/media/$s.media.json; done
+# one page: python3 forge_compile.py pack/blueprints/home.blueprint.json out
+SOURCES
+Licensing and contracts
+Contractors State License Board pages and bulletins; Business and Professions Code 7026 to 7159.14 (license threshold, license number, bond, workers compensation, home improvement contracts, down payments, salespeople) A read Nov 19, 2026
+California statutes
+Penal Code 396 and 551; Insurance Code 675.1, 678, 2051.5, 15006, 15007; Civil Code 896, 1689.6, 1797.91, 4720, 8200; Health and Safety Code 13132.7; Code of Civil Procedure 337.1, 337.15 A read Nov 19, 2026
+Insurance rules
+Fair Claims Settlement Practices Regulations (10 CCR 2695.5, 2695.7, 2695.9); Safer from Wildfires (10 CCR 2644.9); California Department of Insurance; California FAIR Plan Association key statistics and discount flyer A Sep to Nov 2026
+Energy Code
+2025 Building Energy Efficiency Standards, Title 24 Part 6, sections 110.8, 140.3, 141.0, 150.1, 150.2, 180.2 (Energy Commission file CEC-400-2025-010-F) A in force Jan 1, 2026
+Fire and building codes
+2025 California Wildland Urban Interface Code (Title 24 Part 7) chapters 1 and 5; California Residential Code R908; California Building Code 1505 (read on a transcription host) A in force Jan 1, 2026
+Federal rules
+FTC consumer reviews rule (16 CFR Part 465) and Regulation Z advertising (12 CFR 1026.24), on eCFR A
+Roof stock
+Census ACS 2020 to 2024; American Housing Survey 2023; EIA Residential Energy Consumption Survey 2020 (roof material); the atlas roof age model (module 17) AB 2020 to 2024
+Fire
+CAL FIRE Fire Hazard Severity Zones (2024 and 2025), damage inspections 2013 to 2025 and fire perimeters; Insurance Institute for Business and Home Safety, The 2025 LA Conflagrations AB 2026
+Weather
+NOAA Storm Events Database for California; airport station gust and rain records; CW3E atmospheric river landfall catalog AB 2026
+FEMA
+OpenFEMA Individuals and Households Program registrations, California disasters A 2026
+Permits and prices
+City of Los Angeles and San Francisco open permit data; BLS Producer Price Index (WPU1017); Census Building Permits Survey AB Nov 2026
+Schema
+schema.org RoofingContractor A
+Site Forge writes pages; it does not publish them, and nothing here is legal or insurance advice. The FORGE bridge plugin is a generic WordPress REST bridge; review it before installing on a production site.
