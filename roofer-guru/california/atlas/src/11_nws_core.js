@@ -163,7 +163,7 @@ const NWSX = (() => {
   }
   function workDays(pi) {
     const H = hourly(pi).filter(x => x.isDay); const by = {};
-    H.forEach(x => { const o = by[x.date] = by[x.date] || { date: x.date, dow: x.dow, good: 0, marginal: 0, blocked: 0, why: x.hol ? [x.hol] : [], hol: x.hol || '' }; o[x.work === 'night' ? 'good' : x.work] += 1; x.wwhy.forEach(w => { if (!o.why.includes(w)) o.why.push(w); }); });
+    H.forEach(x => { const o = by[x.date] = by[x.date] || { date: x.date, dow: x.dow, good: 0, marginal: 0, blocked: 0, why: x.hol ? [x.hol] : [], hol: x.hol || '' }; o[x.work === 'night' ? 'good' : x.work] += 1; x.wwhy.forEach(w => { const k = w.split(' ')[0]; const j = o.why.findIndex(q => q.split(' ')[0] === k && /^(rain|gusts|high)$/.test(k)); if (j >= 0) { if ((parseFloat(w.replace(/[^0-9.]/g, '')) || 0) > (parseFloat(o.why[j].replace(/[^0-9.]/g, '')) || 0)) o.why[j] = w; } else if (!o.why.includes(w)) o.why.push(w); }); });
     return Object.values(by).map(o => Object.assign(o, { verdict: o.blocked >= 4 ? 'no tear offs' : o.blocked + o.marginal >= 4 ? 'repairs and inspections' : 'full production' }));
   }
   /* rain and snow ahead at a point, from the gridded forecast: inches in the next 24 and 72 hours, and the top gust */

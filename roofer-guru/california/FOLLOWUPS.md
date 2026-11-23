@@ -34,3 +34,11 @@ From the core job
 - Service line seasons are flat until `ts.rain` and `ts.month` are merged; re-run CA/work_core/test_core.js after the merge.
 - `SLM.DEF` click cost, lead and close rates carried from Louisiana as grade D assumptions (no California evidence).
 - Footer source list is static text; `meta.econ` not wired (CA_FACTS typed in module 04 with source printed).
+
+From the ledger job
+- 09_sl_model.js: `HZ.month` picker does not list `sa_days`, `hw`, `hsnow`, `wstorm`, and takes `ts.month.wind` (alias of
+  thunderstorm wind) as its wind series: use the high wind series.
+- Ledger KPI shows 31.4 AR landfalls a year from `ts.ar_wy`; research grouping gave about 23.5: settle which and label it.
+- Inert stand-ins in 14_m02 (stormName, stormKind, SIDX, stormFoot, dmgShare, footStats, RTS): confirm no reader is left.
+- Cesar Chavez Day in the crew calendar is from general knowledge: verify or mark.
+- 11_nws_core.js last tidy checked in Node only: confirm in the browser.

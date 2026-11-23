@@ -180,4 +180,18 @@ html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
 .sc .sc-aictl button[aria-pressed="true"]{background:#2f6fdf;border-color:#2f6fdf}
 .sc .sc-aictl span{opacity:.92}
 .sc .sc-aictl em{flex:1 1 100%;font-style:normal;color:#ffd58a}
+/* California: the Weather row (rain scale, dry wind scale, sky), the Fire and Solar views' dots, the weather statements on the card */
+.sc .sc-wxrow .sc-wxs{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.sc .sc-wxrow .sc-stormw{flex:0 1 430px;min-width:230px}
+.sc .sc-wxrow .sc-stormw .sc-stormt{grid-template-columns:repeat(9,1fr)}
+.sc .sc-wxrow .sc-stormw.sc-windw{flex:0 1 300px;min-width:200px}
+.sc .sc-wxrow .sc-stormw.sc-windw .sc-stormt{grid-template-columns:repeat(6,1fr)}
+.sc .sc-wxrow .sc-stormw.sc-windw input[type=range]{accent-color:#c9801f}
+.sc .sc-wxrow .sc-stormw.sc-windw .sc-stormt i.on{color:#9a5200}
+.sc .sc-wxrow output{flex:1 1 100%;min-width:0;font:12px/1.4 var(--sans);color:var(--ink-2)}
+.sc .sc-roofview .sc-ldot.l-fire{background:linear-gradient(135deg,#1f7a4d,#e6c53a,#b3261e)}
+.sc .sc-roofview .sc-ldot.l-solar{background:linear-gradient(135deg,#3b2f7d,#d9725a,#fff7c2)}
+.sc .sc-roofview .sc-ldot.l-storm{background:linear-gradient(135deg,#1fb3a8,#58c0ff,#d9c23a,#cf2a22)}
+.sc .sc-ev.sc-wx li{margin-bottom:7px}
+.sc .sc-ev.sc-wx li>b:first-child{font-weight:700}
 </style>

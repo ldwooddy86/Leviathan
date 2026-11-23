@@ -12,6 +12,7 @@ exports.start = async (file, addr, o) => {
   if (o.blockElevation) await ctx.route(/elevation-tiles-prod/, r => r.abort());
   const page = await ctx.newPage();
   const errs = []; page.on('pageerror', e => errs.push('pageerror: ' + (e && e.stack || e)));
+  page.on('crash', () => { errs.push('PAGE CRASHED'); console.log('PAGE CRASHED'); });
   if (o.console) page.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text().slice(0, 300)); });
   await page.goto('file://' + path.resolve(file) + '#rooftops', { waitUntil: 'load', timeout: 180000 }); await wait(1500);
   const settle = async max => { const t0 = Date.now(); while (Date.now() - t0 < (max || 120000)) { await wait(2000); const st = await page.evaluate(() => MODI.rooftops.api.status()); if (!(st.queued + st.running) && !st.tiles.some(t => t.st === 'load' || t.st === 'queued') && st.tiles.some(t => t.st === 'ok' || t.st === 'err')) return st; } return null; };

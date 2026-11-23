@@ -22,3 +22,8 @@ Status (2026-11-23 resume)
 - [x] 14_m02_storms.js = cat work_ledger/m02_a.js m02_b.js m02_c.js m02_d.js (edit the parts, then cat again)
 - Hazard schema second issue read (fixed names): hz.{fires,zfire,zdins,ar,ar_pts,ar_big,wind,zones,roof,fhsz,fema}; ts.month kinds hw sw hrain flood fflood debris hsnow wstorm xheat heat wfire g58 fire_* ar1..5 ar_days sa_days hail tsw torn; ZIP cols g40 g58 wd58 rain_d1 h100 fhsz_vh/high/mod ...
 - Data file exists (interim hazard merge: no hz, ts.month {}, pts []). NEXT: fix nws SEASONS + m14 record to read ts.month names directly; m11 col names (g58, fhsz_high, snow_max_psf, MKT); build + browser test.
+- 2026-11-23: all six files Californian, parse, word search 0. Browser test t_page.js: 0 page errors on interim data (pre merge) and on
+  my own merged test file; live refresh works. Final merged data arrived: build with data/out/ca_atlas_data.json and rerun t_page.js net.
+  Test: python3 -I build/build_ca.py work_ledger/out/ca_final.html --data data/out/ca_atlas_data.json --nws data/hazard/out/ca_nws_snapshot.json --engine engine/la_engine.js --engine-style engine/la_engine-style.css ; node work_ledger/t_page.js work_ledger/out/ca_final.html net
+- DONE 2026-11-23: final merged data tested (work_ledger/out/t_final.log): 0 page errors, ZIP lookups right, live refresh works. Word search 0. Report handed back.
+  Refinements left: see the report (fires table capped at 400 rows; 02 map default draws about 10,700 dots; 11_nws work day reason tidy made after the last browser run, node tested only).

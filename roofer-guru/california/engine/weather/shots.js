@@ -1,9 +1,9 @@
 /* Screens of the weather, step by step, at California addresses, on the test bed page.
-   node shots.js <testbed.html> <plan.json> <outdir>
+   node shots.js <testbed.html> <plan.json> <outdir> [the number of one place in the plan]
    plan: [{ addr, shots: [{ name, h (street|drone|bird|metro|saucer), js (run with `en` in scope), steps (0.05 s steps of the kit's clock, by hand), wait (ms) }] }] */
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
-const FILE = path.resolve(process.argv[2]), PLAN = JSON.parse(fs.readFileSync(process.argv[3], 'utf8')), OUT = path.resolve(process.argv[4] || 'shots');
+const ONE = process.argv[5], FILE = path.resolve(process.argv[2]), PLAN = JSON.parse(fs.readFileSync(process.argv[3], 'utf8')).filter((p, i) => ONE == null || +ONE === i), OUT = path.resolve(process.argv[4] || 'shots');
 const wait = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });

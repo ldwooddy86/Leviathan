@@ -1,5 +1,14 @@
 # What the ledger, weather desk, regions and watch modules need from the data jobs
 
+STATUS 2026-11-23: answered. HAZARD_SCHEMA.md (final, section 10) and the merged ca_atlas_data.json carry everything
+below; modules 02, 11, 13, 14 were tested against the merged file. Nothing here is open. Two notes for other readers:
+- `09_sl_model.js` reads monthly series through its own `HZ.month` picker, whose name lists do not include the final
+  names `sa_days` (Santa Ana days), `hw` (High Wind), `hsnow`/`wstorm` (snow), and it takes `ts.month.wind`, which is an
+  alias of thunderstorm wind (`tsw`), as its wind series. Its owner should check those picks against section 3.
+- Module 02 reads the ledger as `DATA.hz`; `hz.fhsz` and `hz.fema` are optional (it falls back to `ts.fema_decl`).
+
+The original requests follow, for the record.
+
 Written by the owner of modules 02, 11, 13, 14 (and 10_watch_core.js, 11_nws_core.js), 2026-11-19, against
 HAZARD_SCHEMA.md "first draft" and data/SCHEMA.md "first issue". Names are yours to choose: I read the schema
 files and adapt. What is listed here is the content and the shapes that will or will not work in the page.
