@@ -23,7 +23,8 @@
     const here = () => [S.lat0 - S.z / S.ky, S.lon0 + S.x / S.kx];
     /* the streets round a point: the tile it is in, with 320 m to spare all round; asked once, then kept */
     TF.ask = async (la, lo) => { const t = snap(la, lo, 1), k = t[0].toFixed(5) + ',' + t[1].toFixed(5); cur = t; askFwy(la, lo); let p = tiles.get(k); if (!p) { p = env.roads(t[0], t[1], 820); tiles.set(k, p); p.catch(() => tiles.delete(k)); if (tiles.size > 30) tiles.delete(tiles.keys().next().value); } const list = await p; if (list && list.tiger && !list.length) tiles.delete(k); return list; };
-    TF.stale = () => { if (!cur) return !!S.roadsAt && Math.hypot(S.x - S.roadsAt[0], S.z - S.roadsAt[1]) > 230; const [la, lo] = here(); if (fcur && (Math.abs(la - fcur[0]) > fcur[2] * 0.62 || Math.abs(lo - fcur[1]) > fcur[3] * 0.62)) askFwy(la, lo); return Math.abs(la - cur[0]) > cur[2] * 0.62 || Math.abs(lo - cur[1]) > cur[3] * 0.62; };
+    TF.stale = () => { if (S.hero && S.hero.on && Math.abs(S.hero.speed || 0) > 45) { const q = here(); if (fcur && (Math.abs(q[0] - fcur[0]) > fcur[2] * 0.62 || Math.abs(q[1] - fcur[1]) > fcur[3] * 0.62)) askFwy(q[0], q[1]); return false; }   /* over 100 mph the street set stays as it is and only the freeways keep coming */
+      if (!cur) return !!S.roadsAt && Math.hypot(S.x - S.roadsAt[0], S.z - S.roadsAt[1]) > 230; const [la, lo] = here(); if (fcur && (Math.abs(la - fcur[0]) > fcur[2] * 0.62 || Math.abs(lo - fcur[1]) > fcur[3] * 0.62)) askFwy(la, lo); return Math.abs(la - cur[0]) > cur[2] * 0.62 || Math.abs(lo - cur[1]) > cur[3] * 0.62; };
     /* the freeways for several kilometres round, on their own: a small answer, and the far traffic has a road to run on */
     function askFwy(la, lo) { const t = snap(la, lo, QF), k = t[0].toFixed(4) + ',' + t[1].toFixed(4); if (fcur && fcur.k === k) return; t.k = k; fcur = t; const my = ++fwyAsk, g = S.gen; let p = ftiles.get(k); if (!p) { try { p = Promise.resolve(env.roads(t[0], t[1], 3600, { only: 'freeway' })); } catch (e) { p = Promise.resolve([]); } ftiles.set(k, p); p.catch(() => ftiles.delete(k)); }
       p.then(list => { if (my !== fwyAsk || g !== S.gen || !list) return; fwyRaw = list.filter(r => r.kind === 'freeway' || r.kind === 'ramp'); fwyRaw.tiger = !!list.tiger; rebuild(); H.need(); }).catch(() => {}); }
@@ -51,12 +52,11 @@
       big = {}; ['truck', 'box', 'bus', 'cable'].forEach(k => { const e = scene.createEntity('Traffic: ' + k, { parent: group, transient: true }), ib = new InstanceBuffer(dev, 16), r = e.add('InstancedRenderer'); r.instances = ib; r.mesh = bigMesh(k); r.material = mBig; r.shadowDistance = 120; big[k] = ib; });
       const lamp = w => { const B = new MeshBuilder(); B.box(0.62, 0, 0, 0.2, 0.11, 0.07, 0); B.box(-0.62, 0, 0, 0.2, 0.11, 0.07, 0); return B.build(dev, { name: 'lamps' }); }; dots = {};
       [['head', mHead], ['tail', mTail]].forEach(([k, mat]) => { const e = scene.createEntity('Traffic lights far off: ' + k, { parent: group, transient: true }), ib = new InstanceBuffer(dev, 256), r = e.add('InstancedRenderer'); r.instances = ib; r.mesh = lamp(); r.material = mat; r.castShadow = false; dots[k] = ib; }); }
-    /* an instance with a heading and a pitch, so a car sits on a slope */
-    const put = (ib, x, y, z, hx, hz, sp, col, a, sc) => { ib._grow(ib.count + 1); const d = ib.data, o = ib.count * 16, cp = Math.sqrt(1 - sp * sp), k = sc || 1; d[o] = hz * k; d[o + 1] = -hx * sp * k; d[o + 2] = hx * cp * k; d[o + 3] = x; d[o + 4] = 0; d[o + 5] = cp * k; d[o + 6] = sp * k; d[o + 7] = y; d[o + 8] = -hx * k; d[o + 9] = -hz * sp * k; d[o + 10] = hz * cp * k; d[o + 11] = z; d[o + 12] = col[0]; d[o + 13] = col[1]; d[o + 14] = col[2]; d[o + 15] = a == null ? 1 : a; ib.dirty = true; ib.count++; };
+    const put = SE.tput = (ib, x, y, z, hx, hz, sp, col, a, sc) => { ib._grow(ib.count + 1); const d = ib.data, o = ib.count * 16, cp = Math.sqrt(1 - sp * sp), k = sc || 1; d[o] = hz * k; d[o + 1] = -hx * sp * k; d[o + 2] = hx * cp * k; d[o + 3] = x; d[o + 4] = 0; d[o + 5] = cp * k; d[o + 6] = sp * k; d[o + 7] = y; d[o + 8] = -hx * k; d[o + 9] = -hz * sp * k; d[o + 10] = hz * cp * k; d[o + 11] = z; d[o + 12] = col[0]; d[o + 13] = col[1]; d[o + 14] = col[2]; d[o + 15] = a == null ? 1 : a; ib.dirty = true; ib.count++; };
     /* how much a vehicle's nose is up, from the ground under its two ends and the deck it is on */
     const pitchOf = (c, hl) => { if (!S.gy) return 0; const a = GY(c.x + c.hx * hl, c.z + c.hz * hl), b = GY(c.x - c.hx * hl, c.z - c.hz * hl); return clamp((a - b) / (2 * hl), -0.4, 0.4); };
-    /* the street traffic's cars are placed through here too (the port routes StreetKit's own line to it) */
-    SE.carPut = (ib, Sx, c, alpha) => { const hl = c.hl || 2.4; put(ib, c.x, GY(c.x, c.z) + (c.dk || 0), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, hl), c.col, alpha); };
+    /* the street traffic's cars are placed through here too (the port routes StreetKit's own line to it): on the ground or the deck under them, nose up or down with the slope */
+    SE.carPut = (ib, Sx, c, alpha) => put(ib, c.x, GY(c.x, c.z) + (c.dk || 0), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, c.hl || 2.4), c.col, alpha);
 
     /* ---------- building: the decks, the paint, the piers ---------- */
     const yel = K.hexRGB('#d9a92e'), wht = K.hexRGB('#e6e4dc'), conc = [0.62, 0.61, 0.58, 1], concD = [0.5, 0.49, 0.47, 1];
@@ -109,13 +109,21 @@
     TF.streetCars = () => CAP()[1];
 
     /* ---------- the user's car, and anything else that drives ---------- */
-    const heroBox = () => { const h = S.hero; if (!h || !h.on) return null; let hx = h.hx, hz = h.hz; if (hx == null) { const y = (h.yaw || 0) * RAD; hx = Math.sin(y); hz = -Math.cos(y); } return { x: h.x, z: h.z, hx, hz, v: Math.abs(h.speed || 0) * (h.speed < 0 ? -1 : 1), hl: (h.len || 4.8) / 2, hw: (h.wid || 1.9) / 2, static: false, hero: true, dk: h.dk != null ? h.dk : (h.y != null ? h.y - GY(h.x, h.z) : null) }; };
+    const heroBox = () => { const h = S.hero; if (!h) return null; let hx = h.hx, hz = h.hz; if (hx == null) { const y = (h.yaw || 0) * RAD; hx = Math.sin(y); hz = -Math.cos(y); } return { x: h.x, z: h.z, hx, hz, v: h.on ? (h.speed || 0) : 0, hl: (h.len || 4.8) / 2, hw: (h.wid || 1.9) / 2, static: false, hero: true, dk: h.dk != null ? h.dk : (h.y != null ? h.y - GY(h.x, h.z) : null) }; };
     const acts = []; TF.actors = () => acts;
-    /* the nearest traffic vehicle whose box meets a box of the user's car's size at (x, z, yaw): { x, z, yaw (radians, 0 = south), hx, hz, v, hl, hw, kind, car } or null. stop: true also brings the vehicle to a halt with its hazard lamps on. */
+    /* the nearest traffic vehicle whose box meets a box of the user's car's size at (x, z, yaw in degrees clockwise from north): null, or
+       { nx, nz (a unit push in plan for the user's car, away from the vehicle struck), depth (m), x, z, v, hx, hz, hl, hw, kind, car }.
+       The vehicle struck stops and stands with its hazard lamps on for three seconds (pass { stop: false } to leave it be). */
+    const sat = (ax, az, ahx, ahz, al, aw, b) => { const dx = b.x - ax, dz = b.z - az, c = Math.abs(ahx * b.hx + ahz * b.hz), s = Math.abs(ahx * b.hz - ahz * b.hx); let best = 1e9, nx = 0, nz = 0, o, p;
+      p = dx * ahx + dz * ahz; o = al + b.hl * c + b.hw * s - Math.abs(p); if (o <= 0) return null; if (o < best) { best = o; nx = ahx * (p < 0 ? -1 : 1); nz = ahz * (p < 0 ? -1 : 1); }
+      p = -dx * ahz + dz * ahx; o = aw + b.hl * s + b.hw * c - Math.abs(p); if (o <= 0) return null; if (o < best) { best = o; nx = -ahz * (p < 0 ? -1 : 1); nz = ahx * (p < 0 ? -1 : 1); }
+      p = dx * b.hx + dz * b.hz; o = b.hl + al * c + aw * s - Math.abs(p); if (o <= 0) return null; if (o < best) { best = o; nx = b.hx * (p < 0 ? -1 : 1); nz = b.hz * (p < 0 ? -1 : 1); }
+      p = -dx * b.hz + dz * b.hx; o = b.hw + al * s + aw * c - Math.abs(p); if (o <= 0) return null; if (o < best) { best = o; nx = -b.hz * (p < 0 ? -1 : 1); nz = b.hx * (p < 0 ? -1 : 1); }
+      return [best, -nx, -nz]; };
     S.trafficHit = TF.hit = (x, z, yaw, o) => { const h = S.hero || {}, y = (yaw || 0) * RAD, hx = Math.sin(y), hz = -Math.cos(y), hl = (h.len || 4.8) / 2, hw = (h.wid || 1.9) / 2; let best = null, bd = 1e9;
-      const test = (c, kind) => { if (c.out || Math.abs(c.x - x) > 16 || Math.abs(c.z - z) > 16) return; if (TR.overlap(x, z, hx, hz, hl, hw, c.x, c.z, c.hx, c.hz, c.hl, c.hw) <= 0) return; const d = Math.hypot(c.x - x, c.z - z); if (d < bd) { bd = d; best = { x: c.x, z: c.z, yaw: c.yaw, hx: c.hx, hz: c.hz, v: c.v, hl: c.hl, hw: c.hw, kind, car: c }; } };
-      for (const c of F.cars) test(c, c.kind); for (const c of TR.cars) test(c, 'car'); for (const c of TR.parked) test(c, 'parked');
-      if (best && o && o.stop && best.kind !== 'parked') { const c = best.car; c.v = 0; if (c.legs) c.crash = 3; else { c.a = 0; c.halt = 3; } } return best; };
+      const dkH = h.dk != null ? h.dk : null, test = (c, kind) => { if (c.out || Math.abs(c.x - x) > 16 || Math.abs(c.z - z) > 16 || (dkH != null && Math.abs((c.dk || 0) - dkH) > 3)) return; const r = sat(x, z, hx, hz, hl, hw, c); if (!r) return; const d = Math.hypot(c.x - x, c.z - z); if (d < bd) { bd = d; best = { nx: r[1], nz: r[2], depth: r[0], x: c.x, z: c.z, yaw: c.yaw, hx: c.hx, hz: c.hz, v: c.v, hl: c.hl, hw: c.hw, kind, car: c }; } };
+      for (const c of F.cars) test(c, c.kind); for (const c of TR.cars) test(c, 'car'); for (const c of (TR.parked || [])) if (Math.abs(c.x - x) < 16) test(c, 'parked');
+      if (best && !(o && o.stop === false) && best.kind !== 'parked' && best.depth > 0.03) { const c = best.car; c.v = 0; if (c.legs) c.crash = 3; else { c.a = 0; c.halt = 3; } } return best; };
 
     /* ---------- every frame ---------- */
     TF.update = (dt, cam, o) => {
@@ -136,7 +144,7 @@
     };
     /* bus colours by city: Muni silver (with the red stripe the mesh carries), Los Angeles Metro orange, San Diego white and red; elsewhere white */
     TF.busCol = () => ({ sf: [0.74, 0.75, 0.77], la: [0.93, 0.47, 0.1], sd: [0.95, 0.95, 0.95] }[D.metroOf(S.lat0, S.lon0)] || [0.92, 0.92, 0.9]);
-    TF.debug = () => ({ now: TF.now, stats: TF.stats, cars: F.cars.length, kinds: F.cars.reduce((a, c) => { a[c.kind] = (a[c.kind] || 0) + 1; return a; }, {}), events: F.events, street: { cars: TR.cars.length, out: TR.cars.filter(c => c.out).length, events: TR.events, dens: TR.dens, cycle: TR.cycle }, mean: F.cars.length ? F.cars.reduce((a, c) => a + c.v, 0) / F.cars.length : 0 });
+    TF.debug = () => ({ t: +F.time.toFixed(1), now: TF.now, stats: TF.stats, cars: F.cars.length, kinds: F.cars.reduce((a, c) => { a[c.kind] = (a[c.kind] || 0) + 1; return a; }, {}), events: F.events, street: { cars: TR.cars.length, out: TR.cars.filter(c => c.out).length, events: TR.events, dens: TR.dens, cycle: TR.cycle }, mean: F.cars.length ? F.cars.reduce((a, c) => a + c.v, 0) / F.cars.length : 0 });
     return TF;
   };
   /* lane lines on a surface street that has its lanes from the map: white dashes between lanes going the same way, a double yellow between the two directions */

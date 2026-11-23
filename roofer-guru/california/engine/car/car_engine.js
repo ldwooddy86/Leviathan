@@ -108,7 +108,7 @@
 
     /* ---------- lamps ---------- */
     function lamps(env) {
-      const night = clamp(env.night || 0, 0, 1), dark = Math.max(night, (env.wet || 0) > 0.5 ? 0.6 : 0), braking = PS.brake > 0.04 && !(PS.gear < 0 && PS.throttle > 0.05), on = A.out;
+      const night = clamp(env.night || 0, 0, 1), dark = Math.max(night, (env.wet || 0) > 0.5 ? 0.6 : 0), braking = PS.brake > 0.04, on = A.out;
       M.drl.emissiveIntensity = on ? 9 + 16 * dark : 0; M.head.emissiveIntensity = on ? 0.15 + 30 * dark : 0; M.tail.emissiveIntensity = on ? 0.5 + 3.5 * dark + (braking ? 16 : 0) : 0; M.chmsl.emissiveIntensity = on && braking ? 22 : 0; M.rev.emissiveIntensity = on && PS.gear < 0 ? 16 : 0;
       M.screen.emissiveIntensity = 0.5 + 0.8 * dark;
       const lit = dark > 0.25 && on; beams.forEach(e => { if (e.active !== lit) e.setActive(lit); if (lit) e.get('Light').intensity = 420 * dark; });
@@ -175,7 +175,7 @@
     /* where a camera goes: { pos, yaw, pitch, roll, fov, near }. user: { yaw, pitch, dist } from the pointer; ground(x, z) keeps it out of the land */
     A.view = (kind, user, ground) => {
       const v = PS.speed, k = smoothstep(8, VMAX, v); user = user || { yaw: 0, pitch: -9, dist: 7.2 };
-      if (kind === 'bonnet' || kind === 'cockpit') { const p = A.point(kind === 'cockpit' ? D.eye : D.bonnetCam); return { pos: p, yaw: PS.yaw + clamp(user.yaw, -150, 150) + (kind === 'cockpit' ? clamp(PS.steer * DEG * 0.35, -9, 9) : 0), pitch: PS.pitch + clamp(user.pitch + (kind === 'cockpit' ? 6 : 5), -40, 40), roll: -PS.roll, fov: (kind === 'cockpit' ? 72 : 68) + 12 * k, near: kind === 'cockpit' ? 0.1 : 0.16 }; }
+      if (kind === 'bonnet' || kind === 'cockpit') { const p = A.point(kind === 'cockpit' ? D.eye : D.bonnetCam); return { pos: p, yaw: PS.yaw + clamp(user.yaw, -150, 150) + (kind === 'cockpit' ? clamp(PS.steer * DEG * 0.35, -9, 9) : 0), pitch: PS.pitch + clamp(user.pitch, -40, 40) + (kind === 'cockpit' ? -2 : -3), roll: -PS.roll, fov: (kind === 'cockpit' ? 72 : 68) + 12 * k, near: kind === 'cockpit' ? 0.1 : 0.16 }; }
       const orbit = kind === 'orbit', yw = (orbit ? user.yaw : cam.yaw + cam.look + user.yaw), pt = clamp(user.pitch, -80, 12), y = yw * RAD, pp = pt * RAD, d = user.dist * (orbit ? 1 : 1 + 0.42 * k) + (orbit ? 0 : cam.pull);
       const fxx = Math.sin(y) * Math.cos(pp), fy = Math.sin(pp), fz = -Math.cos(y) * Math.cos(pp), cx = st.x - fxx * d, cz = st.z - fz * d; let cy = st.y + 1.2 - fy * d; const gy = ground ? ground(cx, cz) : 0; if (cy < gy + 0.4) cy = gy + 0.4;
       return { pos: [cx, cy, cz], yaw: yw, pitch: pt, roll: 0, fov: (orbit ? 55 : 60) + (orbit ? 0 : 17 * k), near: 0.3 };

@@ -120,7 +120,7 @@
      the average California roof and green a fifth above it (the method's note gives the average as the page computes it),
      so green needs evidence of an older roof or open damage, and red needs evidence of a newer one (a rebuild after a
      fire, a permit or a young building) */
-  const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 26, orange: 19, arcgisKey: '', mlyToken: '', gKey: '', show: { g: true, o: true, r: true }, kind: 'all', view: null, ai: true, outRec: 'mid' };
+  const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 26, orange: 19, arcgisKey: '', mlyToken: '', gKey: '', show: { g: true, o: true, r: true }, kind: 'all', view: null, ai: true };
   const CFG = (() => {
     const s = store.get(STORE, {}) || {}, o = JSON.parse(JSON.stringify(DEF));
     if (['esri', 'esri-labels', 'street'].includes(s.imagery)) o.imagery = s.imagery;
@@ -135,7 +135,6 @@
     if (s.show && typeof s.show === 'object') ['g', 'o', 'r'].forEach(k => { o.show[k] = s.show[k] !== false; });
     if (KINDS[s.kind]) o.kind = s.kind;
     if (typeof s.ai === 'boolean') o.ai = s.ai;
-    if (['mid', 'recent', 'long'].includes(s.outRec)) o.outRec = s.outRec;
     if (s.view && isN(s.view.lat) && isN(s.view.lon) && isN(s.view.z) && s.view.lat > G0.maxy - G0.H / G0.sx - 0.5 && s.view.lat < G0.maxy + 0.5 && s.view.lon > G0.minx - 0.5 && s.view.lon < G0.minx + G0.W / (G0.kx * G0.sx) + 0.5) o.view = { lat: +s.view.lat, lon: +s.view.lon, z: clamp(Math.round(+s.view.z), 7, 22) };
     return o;
   })();
@@ -168,7 +167,7 @@
     o = o || {};
     const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), o.timeout || 30000);
     try {
-      const r = await fetch(url, { signal: ctl.signal, credentials: 'omit' });
+      const r = await fetch(url, o.post ? { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: qs(o.post), signal: ctl.signal, credentials: 'omit' } : { signal: ctl.signal, credentials: 'omit' });
       let j = null; try { j = await r.json(); } catch (e) { j = null; }
       if (!r.ok) { const m = j && (j.message || (j.error && (j.error.message || j.error))); throw new Error('HTTP ' + r.status + (m && typeof m === 'string' ? ': ' + m.slice(0, 140) : '')); }
       if (j == null) throw new Error('the service sent no readable answer');
@@ -281,75 +280,72 @@
     return sq && sq < 600 ? 'shed' : 'unk';
   }
 
-  /* ---------- roof life: module 17's Weibull roof life and the storms that reset roofs (module 02) ---------- */
+  /* ---------- roof life: module 17's roof lives, and the wildfires that rebuilt roofs ---------- */
   const lanczos = z => { const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7]; if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * lanczos(1 - z)); z -= 1; let x = c[0]; for (let i = 1; i < g + 2; i++) x += c[i] / (z + i); const t = z + g + 0.5; return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x; };
-  const WB = (META.model && META.model.WB) || { L: 22, k: 3 };
-  /* L: mean life in years; k: Weibull shape. Shingles carry the atlas's calibrated life (module 17); membranes and metal
-     buildings the atlas's 22 year commercial and multifamily life (module 12); metal homes module 17's "40 years or more";
-     manufactured home roofs its "20 years or more" for roof overs (the shapes of the last three are judgment). */
+  const MODEL = (META && META.model) || {}, ANCH = MODEL.ANCH || {};
+  /* module 17's two lives: every covering but tile on one Weibull life, refitted to the American Housing Survey's West
+     region; tile on the life of the underlayment under it, about 25 years by a reserve study consultant's figure and a
+     trade site's (neither a test nor a field study), after which the same tile is lifted and relaid */
+  const WB = MODEL.WB || { L: 22, k: 3 }, WBT = MODEL.WBT || { L: 25, k: 3 };
+  /* L: mean life in years; k: Weibull shape. Shingles, wood and a house's low slope roof carry the atlas's life for
+     coverings other than tile (module 17 keeps them in one cohort: no California field study of shingle or shake life
+     was found); tile the underlayment's; membranes and metal buildings the atlas's commercial and multifamily lives
+     (module 12); metal homes 40 years and manufactured home roofs 20 (the atlas's stated figures; their shapes are
+     judgment). */
   const LIFE = {
     shingle: { L: +WB.L || 22, k: +WB.k || 3, l: 'asphalt shingles' },
+    tile: { L: +WBT.L || 25, k: +WBT.k || 3, l: 'tile (the underlayment under it)' },
+    wood: { L: +WB.L || 22, k: +WB.k || 3, l: 'wood shakes or shingles' },
+    flat: { L: +WB.L || 22, k: +WB.k || 3, l: 'a low slope roof on a house' },
     metal: { L: 40, k: 3, l: 'metal' },
     mh: { L: 20, k: 2.5, l: 'a manufactured home roof' },
-    low: { L: 22, k: 3, l: 'a low slope membrane' },
-    lowmf: { L: 22, k: 3, l: 'a low slope membrane' },
-    mbldg: { L: 22, k: 3, l: 'a metal building roof' },
+    low: { L: +ANCH.comm_life || 22, k: 3, l: 'a low slope membrane' },
+    lowmf: { L: +ANCH.mf_life || +ANCH.comm_life || 22, k: 3, l: 'a low slope membrane' },
+    mbldg: { L: +ANCH.comm_life || 22, k: 3, l: 'a metal building roof' },
   };
   Object.values(LIFE).forEach(p => { p.lam = p.L / lanczos(1 + 1 / p.k); });
-  const DMG = (META.model && META.model.DMG) || { smax: 0.52, v50: 69.7, w: 7.26 };
-  /* the share of one unit roofs a storm's modeled wind damages enough for a roofer (module 02's curve, fitted to FEMA) */
-  const dmgShare = kt => isN(kt) && kt >= 34 ? DMG.smax / (1 + Math.exp(-(kt - DMG.v50) / DMG.w)) : 0;
-  /* how hard wind and hail take each kind of roof, against shingles: commercial roofs at 70 percent of the residential
-     wind rate and 30 percent of its hail rate, apartment membranes at 80 percent of its wind, manufactured homes at 1.3
-     times its wind (the atlas's commercial, multifamily and mobile home lines, module 12); metal homes shed wind and hail
-     better (judgment) */
-  const SMAT = { shingle: 1, metal: 0.45, mh: 1.3, low: 0.7, lowmf: 0.8, mbldg: 0.7 };
-  const HMAT = { shingle: 1, metal: 0.5, mh: 0.9, low: 0.3, lowmf: 0.3, mbldg: 0.3 };
-  const stormName = s => !s ? '' : s[0] === 'Unnamed' ? `an unnamed ${s[2] >= 1 ? 'hurricane' : 'storm'} (${s[1]})` : `${s[2] >= 1 ? 'Hurricane' : s[2] === 0 ? 'Tropical Storm' : 'storm'} ${s[0]} (${s[1]})`;
-  const ktMph0 = kt => Math.round(kt * 1.15078);
-  /* The storm resets, exactly as module 17's cohort model made them: from 2000 on, each year's storm driven replacements in
-     the ZIP (DATA.rhist: FEMA verified roof and wind damage at two roofs per registration before 2020 and 3.6 since where
-     FEMA has it, the best track wind footprint elsewhere), as a share of the ZIP's one unit roofs standing that year (today's homes built before it,
-     from the ACS decades); from 1992 to 1999, the wind footprint at module 02's damage curve. Before 1992 the file holds no
-     footprints, and by now those resets have worn out of today's roofs. */
-  const RH0 = 2000, RH = DATA.rhist || {};
+  const mphOf = ms => Math.round(ms * 2.23694);
+  /* The fire resets, exactly as module 17's cohort model made them: from 2000 on, each year's wildfire rebuild roofs in
+     the ZIP (DATA.rhist, second number: the structures CAL FIRE's damage inspections record as destroyed, coming back
+     as new roofs over the four years after the fire at the atlas's rebuild share), as a share of the ZIP's one unit
+     roofs standing that year (today's one unit homes built before it). California has no other reset: no storm here
+     replaces a neighbourhood's roofs at once. CAL FIRE's digital inspections begin in 2013, so earlier fires (Oakland
+     1991, the Cedar fire of 2003, Witch 2007) reset nothing here unless the atlas's file carries them. */
+  const RH0 = +MODEL.RH0 || 2000, RH = DATA.rhist || {};
+  const OBK = ['o20', 'o10', 'o00', 'o90', 'o80', 'o70', 'o60', 'o50', 'o40', 'oold'];
   function standing(z, y) {
-    const w = YBK.map(k => Math.max(0, +z[k] || 0)), W = sum(w); if (!W) return 1;
+    let w = OBK.map(k => Math.max(0, +z[k] || 0)); if (!(sum(w) > 0)) w = YBK.map(k => Math.max(0, +z[k] || 0)); const W = sum(w); if (!W) return 1;
     let s = 0; w.forEach((v, i) => { const [a, b] = BINS[i], lo = i === BINS.length - 1 ? 1900 : a, hi = b + 1; s += v * clamp((y - lo) / (hi - lo), 0, 1); });
     return clamp(s / W, 0.02, 1);
   }
-  const SYEARS = new Map();
-  function stormsAt(zip) {
-    if (SYEARS.has(zip)) return SYEARS.get(zip);
-    const z = ZI[zip], rh = RH[zip], by = new Map();
-    ((DATA.zstorm || {})[zip] || []).forEach(([si, kt]) => { const s = SIDS[si]; if (!s) return; const y = +s[1], d = dmgShare(kt); const o = by.get(y) || { y, keep: 1, list: [] }; o.keep *= 1 - d; o.list.push({ si, s, kt, d }); by.set(y, o); });
-    if (rh && z) rh.forEach((r, i) => { const y = RH0 + i; if (r && r[1] > 0 && !by.has(y)) by.set(y, { y, keep: 1, list: [] }); });
-    const out = [];
-    by.forEach(o => {
-      const dw = 1 - o.keep; let d = dw, src = 'wind';
-      if (o.y >= RH0 && rh && z && z.roofs > 0) { const r = rh[o.y - RH0]; d = r ? clamp((+r[1] || 0) / (z.roofs * standing(z, o.y)), 0, 0.95) : 0; src = 'atlas'; }
-      if (d > 0.0005 || dw > 0.0005) out.push({ y: o.y, d, dw, src, list: o.list.sort((a, b) => b.d - a.d) });
-    });
-    out.sort((a, b) => a.y - b.y);
-    SYEARS.set(zip, out); return out;
+  const RYEARS = new Map();
+  function resetsAt(zip) {
+    if (RYEARS.has(zip)) return RYEARS.get(zip);
+    const z = ZI[zip], rh = RH[zip], out = [];
+    if (rh && z && z.roofs > 0) rh.forEach((r, i) => { const n = r ? +r[1] || 0 : 0; if (!(n > 0)) return; const y = RH0 + i, d = clamp(n / (z.roofs * standing(z, y)), 0, 0.95); if (d > 0.0005) out.push({ y, d, n }); });
+    RYEARS.set(zip, out); return out;
   }
   /* repair calls a year by roof age: shaped by age (judgment) and scaled so the state's roofs, at module 17's ages, make the
      atlas's own count of paid repair jobs (the repair line's pool) */
   const REP_SHAPE = a => a < 5 ? 0.35 : a < 10 ? 0.6 : a < 15 ? 0.95 : a < 20 ? 1.35 : a < 25 ? 1.7 : 2.0;
   const REP_TARGET = META.pools && META.roofs ? clamp(META.pools.repair / META.roofs, 0.005, 0.08) : 0.027;
-  const REP_BASE = (() => { const H = (DATA.ts && DATA.ts.agehist) || []; let n = 0, s = 0; H.forEach((v, a) => { n += +v || 0; s += (+v || 0) * REP_SHAPE(a); }); return n && s ? REP_TARGET * n / s : REP_TARGET; })();
+  const AGEH = (DATA.ts && DATA.ts.agehist) || [], AGEH_T = (DATA.ts && DATA.ts.agehist_t) || [];
+  const REP_BASE = (() => { let n = 0, s = 0; AGEH.forEach((v, a) => { n += +v || 0; s += (+v || 0) * REP_SHAPE(a); }); return n && s ? REP_TARGET * n / s : REP_TARGET; })();
   const repRate = a => REP_BASE * REP_SHAPE(a);
-  /* the score of the average Louisiana roof at module 17's ages (shingles, no other evidence), for the method's note on the cut points */
-  const AVG_SCORE = (() => { const H = (DATA.ts && DATA.ts.agehist) || [], L0 = LIFE.shingle, S = a => Math.exp(-Math.pow(a / L0.lam, L0.k)); let n = 0, s = 0; H.forEach((v, a) => { const p5 = 1 - S(a + 5) / S(a), rp = repRate(a); n += +v || 0; s += (+v || 0) * (1 - (1 - p5) * (1 - rp)); }); return n ? Math.round(s / n * 100) : null; })();
+  /* the score of the average California roof at module 17's ages (tile on its underlayment's life, every other covering on
+     the shingle life, no other evidence), for the method's note on the cut points */
+  const AVG_SCORE = (() => { let n = 0, s = 0; const one = (H, L0, sign) => { const S = a => Math.exp(-Math.pow(a / L0.lam, L0.k)); H.forEach((v, a) => { const w = sign * (+v || 0), p5 = 1 - S(a + 5) / S(a), rp = repRate(a); n += w; s += w * (1 - (1 - p5) * (1 - rp)); }); };
+    one(AGEH, LIFE.shingle, 1); if (AGEH_T.length) { one(AGEH_T, LIFE.shingle, -1); one(AGEH_T, LIFE.tile, 1); } return n > 0 ? Math.round(s / n * 100) : null; })();
   /* The roof in place, for a clock started in year y0 at a ZIP: year by year the roof wears out on its Weibull life and is
-     replaced, and every storm year resets the share of the surviving roofs its modeled wind damaged. Out come the chance
-     the roof is still the first one, 15 or older, 20 or older, replaced within five years (age driven) and within twelve
-     months, a repair call within twelve months, its mean age, and the storms today's roof most likely dates from. */
+     replaced (for tile: lifted and relaid on new underlayment), and every fire year resets the share of the surviving
+     roofs the fire's rebuilds made new. Out come the chance the roof is still the first one, 15 or older, 20 or older,
+     25 or older, replaced within five years (age driven) and within twelve months, a repair call within twelve months,
+     its mean age, and the fire years today's roof most likely dates from. */
   const HMAX = 125, SMEMO = new Map();
   function rstate(mat, zip, y0) {
     const mk = mat + '|' + zip + '|' + y0; if (SMEMO.has(mk)) return SMEMO.get(mk);
     const p = LIFE[mat] || LIFE.shingle, lam = p.lam, kk = p.k, S = a => Math.exp(-Math.pow(a / lam, kk));
-    const T = clamp(THIS_YEAR - y0, 0, HMAX), y00 = THIS_YEAR - T, sm = new Map(stormsAt(zip).map(s => [s.y, s])), f = SMAT[mat] || 1;
+    const T = clamp(THIS_YEAR - y0, 0, HMAX), y00 = THIS_YEAR - T, sm = new Map(resetsAt(zip).map(s => [s.y, s]));
     let dist = new Float64Array(T + 2); dist[0] = 1; const coh = [];
     for (let i = 1; i <= T; i++) {
       const y = y00 + i, nd = new Float64Array(T + 2); let rep = 0;
@@ -357,28 +353,29 @@
       nd[0] += rep;
       coh.forEach(c => { c.m *= S(c.a + 1) / S(c.a); c.a++; });
       const st = sm.get(y);
-      if (st && st.d > 0) { const d = clamp(st.d * f, 0, 0.95); let moved = 0; for (let a = 1; a <= i; a++) { const v = nd[a] * d; nd[a] -= v; moved += v; } nd[0] += moved; coh.forEach(c => { c.m *= 1 - d; }); if (moved > 0.002) coh.push({ y, st, m: moved, a: 0 }); }
+      if (st && st.d > 0) { const d = clamp(st.d, 0, 0.95); let moved = 0; for (let a = 1; a <= i; a++) { const v = nd[a] * d; nd[a] -= v; moved += v; } nd[0] += moved; coh.forEach(c => { c.m *= 1 - d; }); if (moved > 0.002) coh.push({ y, st, m: moved, a: 0 }); }
       dist = nd;
     }
-    let pOld15 = 0, pOld20 = 0, age = 0, p5 = 0, p1 = 0, rep = 0;
-    for (let a = 0; a <= T; a++) { const v = dist[a]; if (!v) continue; const s0 = S(a); if (a >= 15) pOld15 += v; if (a >= 20) pOld20 += v; age += v * a; p5 += v * (1 - S(a + 5) / s0); p1 += v * (1 - S(a + 1) / s0); rep += v * repRate(a); }
-    const storms = coh.filter(c => c.m > 0.01).sort((a, b) => b.m - a.m).slice(0, 3).map(c => ({ y: c.y, si: c.st.list[0] ? c.st.list[0].si : null, kt: c.st.list[0] ? c.st.list[0].kt : null, share: c.m }));
-    const o = { pOrig: dist[T], pOld15, pOld20, p5: clamp(p5, 0, 1), p1: clamp(p1, 0, 1), rep, age, t: T, storms, dist };
+    let pOld15 = 0, pOld20 = 0, pOld25 = 0, age = 0, p5 = 0, p1 = 0, rep = 0;
+    for (let a = 0; a <= T; a++) { const v = dist[a]; if (!v) continue; const s0 = S(a); if (a >= 15) pOld15 += v; if (a >= 20) pOld20 += v; if (a >= 25) pOld25 += v; age += v * a; p5 += v * (1 - S(a + 5) / s0); p1 += v * (1 - S(a + 1) / s0); rep += v * repRate(a); }
+    const fires = coh.filter(c => c.m > 0.01).sort((a, b) => b.m - a.m).slice(0, 3).map(c => ({ y: c.y, share: c.m }));
+    const o = { pOrig: dist[T], pOld15, pOld20, pOld25, p5: clamp(p5, 0, 1), p1: clamp(p1, 0, 1), rep, age, t: T, fires, dist };
     SMEMO.set(mk, o); return o;
   }
-  const ST_KEYS = ['pOrig', 'pOld15', 'pOld20', 'p5', 'p1', 'rep', 'age', 't'];
-  const ZERO = { pOrig: 0, pOld15: 0, pOld20: 0, p5: 0, p1: 0, rep: 0, age: 0, t: 0, storms: [] };
+  const ST_KEYS = ['pOrig', 'pOld15', 'pOld20', 'pOld25', 'p5', 'p1', 'rep', 'age', 't'];
+  const ZERO = { pOrig: 0, pOld15: 0, pOld20: 0, pOld25: 0, p5: 0, p1: 0, rep: 0, age: 0, t: 0, fires: [] };
   function mixStates(list) {
     const o = {}; ST_KEYS.forEach(k => o[k] = 0); let W = 0; const sy = new Map();
-    list.forEach(([s, w]) => { W += w; ST_KEYS.forEach(k => o[k] += s[k] * w); (s.storms || []).forEach(x => { const e = sy.get(x.y) || { y: x.y, si: x.si, kt: x.kt, share: 0 }; e.share += x.share * w; sy.set(x.y, e); }); });
+    list.forEach(([s, w]) => { W += w; ST_KEYS.forEach(k => o[k] += s[k] * w); (s.fires || []).forEach(x => { const e = sy.get(x.y) || { y: x.y, share: 0 }; e.share += x.share * w; sy.set(x.y, e); }); });
     if (W > 0) { ST_KEYS.forEach(k => o[k] /= W); sy.forEach(e => e.share /= W); }
-    o.storms = [...sy.values()].sort((a, b) => b.share - a.share).slice(0, 3); return o;
+    o.fires = [...sy.values()].sort((a, b) => b.share - a.share).slice(0, 3); return o;
   }
 
   /* ---------- when a building was built, when its year is not on file ---------- */
-  /* The ZIP's ACS year built mix (the same ten bins module 17 draws), sharpened for a house by its footprint: an old
-     neighborhood's big footprint is more likely a rebuild, a small one more likely original. The footprint medians are a
-     judgment call, set wide (a log spread of 0.38) so they lean, not decide. */
+  /* The ZIP's ACS year built mix (the same ten bins module 17 draws; for a house the one unit homes by decade, where the
+     data carries them), sharpened for a house by its footprint: an old neighborhood's big footprint is more likely a
+     rebuild, a small one more likely original. The footprint medians are a judgment call, set wide (a log spread of
+     0.38) so they lean, not decide. This is what stands in wherever no assessor publishes a year built. */
   const BINS = [[2020, 2025], [2010, 2019], [2000, 2009], [1990, 1999], [1980, 1989], [1970, 1979], [1960, 1969], [1950, 1959], [1940, 1949], [1905, 1939]];
   const BIN_L = ['2020 or later', '2010s', '2000s', '1990s', '1980s', '1970s', '1960s', '1950s', '1940s', 'before 1940'];
   const YBK = ['yb20', 'yb10', 'yb00', 'yb90', 'yb80', 'yb70', 'yb60', 'yb50', 'yb40', 'ybold'];
@@ -386,6 +383,7 @@
   const binOf = y => { for (let i = 0; i < BINS.length; i++) if (y >= BINS[i][0]) return i; return BINS.length - 1; };
   function ybPrior(b) {
     const z = b.z; let w = z ? YBK.map(k => Math.max(0, +z[k] || 0)) : null;
+    if (z && (b.cls === 'sf' || b.cls === 'garage' || b.cls === 'shed')) { const o1 = OBK.map(k => Math.max(0, +z[k] || 0)); if (sum(o1) > 0) w = o1; }
     if (!w || !(sum(w) > 0)) w = Array.isArray(META.yb) ? META.yb.map(v => +v || 0) : BINS.map(() => 1);
     if (b.cls === 'sf' && b.sqft > 300) { const ls = Math.log(b.sqft); w = w.map((v, i) => v * Math.exp(-Math.pow(ls - Math.log(FOOT[i]), 2) / (2 * 0.38 * 0.38))); }
     const s = sum(w) || 1; return w.map(v => v / s);
@@ -395,66 +393,214 @@
   /* ---------- the likely roof ---------- */
   const storiesRes = h => !(h > 0) ? 1 : h < 7.2 ? 1 : h < 10.8 ? 2 : 3;
   const floorsCom = h => !(h > 0) ? 1 : clamp(Math.round((h - 1) / 4), 1, 80);
+  /* What California's single family roofs are made of, by the era the house was built: the 2020 Residential Energy
+     Consumption Survey's California households (837 single family homes standing for 8.55 million; the occupant names
+     the material, so clay and concrete tile are easily confused, and a flat roof is reported as composition or other).
+     Shares of homes; slate and the unreported remainder ride with tile; "flat" is the survey's "other". The page's data
+     carries the same table (META.mat) and is read first. Homes built after 2020 are taken as the 2000 to 2020 era. */
+  const MAT_ERA = (META.mat && META.mat.era && META.mat.era.pre60 && META.mat.era) || {
+    pre60: { shingle: 0.749, tile: 0.068, wood: 0.085, metal: 0.046, flat: 0.038 },
+    y6079: { shingle: 0.754, tile: 0.174, wood: 0.031, metal: 0.015, flat: 0.018 },
+    y8099: { shingle: 0.487, tile: 0.430, wood: 0.056, metal: 0.010, flat: 0.009 },
+    y0020: { shingle: 0.329, tile: 0.622, wood: 0.030, metal: 0.006, flat: 0.006 },
+  };
+  /* clay's share of the tile, by era (the same survey: clay 18.1 percent of homes against concrete 9.3) */
+  const CLAY_ERA = { pre60: 0.88, y6079: 0.66, y8099: 0.60, y0020: 0.68 };
+  const ERA_OF_BIN = ['y0020', 'y0020', 'y0020', 'y8099', 'y8099', 'y6079', 'y6079', 'pre60', 'pre60', 'pre60'];
+  const ERA_L = { pre60: 'before 1960', y6079: '1960 to 1979', y8099: '1980 to 1999', y0020: '2000 or later' };
+  /* The climate's lean on tile, from the same survey's two climates with enough homes to report: tile is on 30.9 percent
+     of single family homes in the hot dry south and Central Valley and 18.3 percent on the marine coast from Santa
+     Barbara County north, against 27.4 statewide (1.13 and 0.67 times). The mountains and the far north had too few
+     homes to report; the atlas takes them with the marine coast (an assumption, as module 17 states it). */
+  const REGK = MODEL.REGK || { 1: 'nc', 2: 'fn', 3: 'sv', 4: 'si', 5: 'ba', 6: 'cc', 7: 'sj', 8: 'la', 9: 'oc', 10: 'ie', 11: 'sd' };
+  const regKey = z => (z ? REGK[z.reg] || REGK[String(z.reg)] || '' : '');
+  const CLIMK = { nc: 'marine', ba: 'marine', cc: 'marine', fn: 'mountain', si: 'mountain', sv: 'hot', sj: 'hot', la: 'hot', oc: 'hot', ie: 'hot', sd: 'hot' };
+  const TILE_TILT = { hot: 1.13, marine: 0.67, mountain: 0.67 }, CLIM_L = { hot: 'the hot dry south and Central Valley', marine: 'the marine coast', mountain: 'the mountains and the far north' };
+  /* San Francisco is a low slope city: of the 2,502 re-roof permits of 2023 to 2026 that name a material, 74.9 percent
+     are modified bitumen, torch down or cap sheet, 4.8 single ply, 1.7 built up, 15.8 composition shingles and 1.3 tile or
+     slate (the city's permit file, by keyword: 82 percent of permits name no material). Grade D. */
+  const SF_MIX = { flat: 0.814, shingle: 0.158, tile: 0.013, metal: 0.01, wood: 0.005 };
+  const HKEYS = ['shingle', 'tile', 'wood', 'metal', 'flat'];
+  const HK_L = { shingle: 'Asphalt shingles', tile: 'Tile (clay or concrete), or slate', wood: 'Wood shakes or shingles', metal: 'Metal (standing seam or panels)', flat: 'Low slope: built up, modified bitumen or single ply', low: 'Low slope membrane', lowmf: 'Low slope membrane', mh: 'Manufactured home roof', mbldg: 'Metal building roof' };
+  /* A covering on record: Riverside County's assessor (ROOF_TYPE), CAL FIRE's damage inspection of the building, or the
+     words of a re-roof permit. A record is taken at 85 percent: rolls go stale after a re-roof, inspectors name what
+     they see from the street, and a permit can cover one of two buildings (judgment). */
+  const REC_W = 0.85;
+  const riversideRoof = v => { const u = String(v || '').toUpperCase(); return /SHAKE|WOOD/.test(u) ? 'wood' : /TILE|SLATE/.test(u) ? 'tile' : /MEMBRANE|ROLL|STRUCTURAL CONCRETE/.test(u) ? 'flat' : /STEEL|COPPER|METAL/.test(u) ? 'metal' : /ROCK|COMPOSITE/.test(u) ? 'shingle' : ''; };
+  const dinsRoof = v => { const u = String(v || '').toUpperCase(); return /ASPHALT/.test(u) ? 'shingle' : /TILE|CONCRETE/.test(u) ? 'tile' : /METAL/.test(u) ? 'metal' : /WOOD/.test(u) ? 'wood' : ''; };
+  /* the covering a permit's own words name: Sacramento's e-permits name it outright ("21 squares of 30yr Laminated
+     Dimensional Composition", "TPO Single Ply"), San Francisco's often do, and the City of Los Angeles's standard text
+     ("Class A or B roof covering material weighing less than 6 pounds per sq. ft.") rules out tile without naming one */
+  function permitCover(desc) {
+    const u = String(desc || '').toUpperCase(); if (!u) return null;
+    if (/RESET (THE )?(ROOF )?TILES?|RE-?LAY|LIFT AND (RE)?LAY|REINSTALL (EXISTING |THE )?(ROOF )?TILES?/.test(u)) return { k: 'tile', relay: true };
+    if (/\bTPO\b|\bPVC\b|SINGLE.PLY|MOD(IFIED)?[ .-]*BIT|TORCH|CAP ?SHEET|BUILT.?UP|\bBUR\b|HOT MOP|ROLLED? ROOF|ELASTOMERIC|\bSPF\b|FOAM ROOF/.test(u)) return { k: 'flat' };
+    if (/STANDING SEAM|METAL ROOF|STONE.COATED STEEL/.test(u)) return { k: 'metal' };
+    if (/\bSHAKES?\b|WOOD SHINGLE/.test(u) && !/REMOVE (EXISTING |THE )?(WOOD )?SHAKE|OVER (EXISTING )?SHAKE|REPLACE (EXISTING )?(WOOD )?SHAKES? WITH/.test(u)) return { k: 'wood' };
+    if (/\b(COMP(OSITION)?|ASPHALT|LAMINATED|DIMENSIONAL|ARCHITECTURAL|3.TAB)\b[^.;]{0,24}(SHINGLE|ROOF)|COMP(OSITION)? ?SHINGLE|\bSHINGLES?\b/.test(u) || /LAMINATED DIMENSIONAL COMPOSITION/.test(u)) return { k: 'shingle' };
+    if (/(CLAY|CONCRETE|CEMENT|SPANISH|MISSION|S-?) ?TILES?|TILE ROOF|\bSLATE\b/.test(u) && !/REMOVE (EXISTING |THE )?[A-Z ]{0,12}TILE[^.;]{0,30}(INSTALL|REPLACE WITH|WITH)[^.;]{0,20}(COMP|SHINGLE)/.test(u)) return { k: 'tile' };
+    if (/LESS THAN 6 (POUNDS|LBS?\.?)/.test(u)) return { not: 'tile' };
+    return null;
+  }
+  /* the roof's size as a permit states it ("( 106 ) Squares", "21 squares of ...") */
+  const permitSquares = desc => { const m = /\(?\s*(\d{1,4}(?:\.\d+)?)\s*\)?\s*SQUARES?\b/i.exec(String(desc || '')); const v = m ? +m[1] : 0; return v >= 1 && v <= 3000 ? v : 0; };
   const CHECK = {
-    res: 'Shingles and their nailing, the underlayment, drip edge, flashing at walls, chimneys and vents, the deck under soft spots, and attic ventilation. A reroof needs a permit (Act 239 of 2025) and the code\'s underlayment and edge details.',
-    mh: 'Seams and fasteners on a metal roof, or shingles on a pitched one; roof overs and coatings are the usual jobs, with the tie downs checked after a storm.',
-    low: 'Seams, flashings at walls, curbs and drains, ponding water, blisters and wet insulation (a core cut or an infrared scan); restoration and coatings extend a sound membrane.',
+    res: 'Shingles and their nailing, the underlayment, drip edge, flashing at walls, chimneys and vents, the deck under soft spots, and attic ventilation. Whether a re-roof needs a permit depends on the city; a re-roof of more than half the roof must meet the Energy Code\'s cool roof minimums in the covered climate zones, and in a Fire Hazard Severity Zone the roof must be a Class A assembly.',
+    tile: 'Broken and slipped tiles, the underlayment at the eaves, valleys and penetrations (it ages out long before the tile: about 25 years by the trade\'s figures), flashings, bird stops at the eaves and the mortar at hips and ridge. A lift and relay puts new underlayment under the same tile; broken tile may not go back, and about three tiles in ten break in the work by one consultant\'s planning figure.',
+    wood: 'Split, cupped, curled and missing shakes, moss and debris, the interlayment and the ridge. No untreated or unlisted wood roofing may be sold or applied in California; Los Angeles and San Diego allow no wood re-roof at all, and where half the roof or more is replaced the whole roof must meet today\'s class for the zone.',
+    flat: 'Seams, the cap sheet\'s granules, blisters and ponding, flashings at parapets, skylights and drains, and the scuppers. A low slope re-roof of more than half the roof must meet the cool roof minimums in most climate zones (aged solar reflectance 0.63) or trade them for insulation at the deck.',
+    mh: 'Seams and fasteners on a metal roof, or shingles on a pitched one; roof overs and coatings are the usual jobs. Manufactured homes are under the state housing department\'s rules, not the city\'s building code.',
+    low: 'Seams, flashings at walls, curbs and drains, ponding water, blisters and wet insulation (a core cut or an infrared scan); restoration and coatings extend a sound membrane. A re-roof, recover or recoat of more than half the roof or 2,000 square feet must be a cool roof (Title 24, Part 6) and, on a replacement, brings insulation with it.',
     mbldg: 'Fasteners, seams and panel laps, rust at the eaves and around units, skylight panels and gutters; a coating or a retrofit roof over the panels is common.',
     none: 'No roof covering to replace: an open top deck.',
   };
+  /* the eras a building may date from, with their odds: its year on file, or its ZIP's mix of years */
+  function eraOdds(b) {
+    const o = { pre60: 0, y6079: 0, y8099: 0, y0020: 0 }; const y = b.yb;
+    if (y) { o[y >= 2000 ? 'y0020' : y >= 1980 ? 'y8099' : y >= 1960 ? 'y6079' : 'pre60'] = 1; return o; }
+    const pr = b.prior || ybPrior(b); pr.forEach((w, i) => { o[ERA_OF_BIN[i]] += w; }); return o;
+  }
+  /* a house's coverings with their odds: the survey's shares for the eras it may date from, leaned by the climate (tile)
+     and by where the atlas puts metal (metal_sh against its 4 percent statewide), then any covering on record */
+  function houseMix(b) {
+    const z = b.z || {}, era = eraOdds(b), ck = CLIMK[regKey(z)] || '', m = {}; HKEYS.forEach(k => { m[k] = 0; });
+    if (b.fips === '06075') Object.assign(m, SF_MIX);
+    else { Object.keys(era).forEach(e => { const w = era[e], row = MAT_ERA[e] || MAT_ERA.y6079; if (w > 0) HKEYS.forEach(k => { m[k] += w * (+row[k] || 0); }); });
+      m.tile *= TILE_TILT[ck] || 1; m.metal *= clamp((isN(z.metal_sh) ? +z.metal_sh : 4) / 4, 0.5, 3); }
+    let s = sum(HKEYS.map(k => m[k])) || 1; HKEYS.forEach(k => { m[k] /= s; });
+    const rec = b.cover || null;   /* { k, src } or { not, src } */
+    if (rec && rec.k && HKEYS.includes(rec.k)) HKEYS.forEach(k => { m[k] = (k === rec.k ? REC_W : 0) + (1 - REC_W) * m[k]; });
+    else if (rec && rec.not && m[rec.not] > 0) { m[rec.not] *= 0.1; s = sum(HKEYS.map(k => m[k])) || 1; HKEYS.forEach(k => { m[k] /= s; }); }
+    let clay = 0, tw = 0; Object.keys(era).forEach(e => { clay += era[e] * (MAT_ERA[e] ? +MAT_ERA[e].tile || 0 : 0) * CLAY_ERA[e]; tw += era[e] * (MAT_ERA[e] ? +MAT_ERA[e].tile || 0 : 0); });
+    return { m, era, clim: ck, clay: tw > 0 ? clay / tw : 0.66, rec };
+  }
   /* The roof a building most likely carries: the kinds of roof and their odds, its slope, its size in squares (100 square
      feet of roof), what a roofer would check, and the share of a building like it a roofer would expect to work on (factor). */
   function roofOf(b) {
-    const z = b.z || {}, c = b.cls, sq = b.sqft || 0, h = b.h || 0;
-    const mSh = clamp((isN(z.metal_sh) ? +z.metal_sh : 12) / 100, 0.02, 0.6);
-    const steepSq = (pf) => Math.max(1, Math.round(sq * (pf || 1.22) / 100)), lowSq = () => Math.max(1, Math.round(sq * 1.04 / 100));
-    const o = { keys: null, mix: null, mat: 'shingle', slope: 'steep', factor: 1, units: 1, name: '', short: '', size: '', check: CHECK.res, squares: 0, metalP: 0 };
-    const house = (pre, size) => {
-      o.keys = [['shingle', 1 - mSh], ['metal', mSh]]; o.metalP = mSh;
-      o.mix = [['Asphalt shingles', (1 - mSh) * 0.96], ['Metal (standing seam or panels)', mSh], ['Tile or slate', (1 - mSh) * 0.04]].sort((x, y) => y[1] - x[1]);
-      o.mat = mSh >= 0.5 ? 'metal' : 'shingle'; o.short = o.mix[0][0]; o.squares = steepSq(); o.size = size;
-      o.name = pre + (o.mat === 'metal' ? 'metal panels or standing seam over a wood deck, hip or gable' : 'asphalt shingles over a wood deck, hip or gable');
+    const c = b.cls, sq = b.sqft || 0, h = b.h || 0, noH = !(h > 0);
+    /* 1.15 on a steep roof: a 4 in 12 pitch (1.054) and eaves; the City of Los Angeles's one and two family re-roof
+       permits have a median of 22 squares, about what this gives for a 1,900 square foot footprint. 1.04 on a low slope one. */
+    const steepSq = (pf) => Math.max(1, Math.round(sq * (pf || 1.15) / 100)), lowSq = () => Math.max(1, Math.round(sq * 1.04 / 100));
+    const o = { keys: null, mix: null, mat: 'shingle', slope: 'steep', factor: 1, units: 1, name: '', short: '', size: '', check: CHECK.res, squares: 0, metalP: 0, tileP: 0, woodP: 0, clay: 0.66, hm: null };
+    const hNote = noH ? ' (no height on file: FEMA carries one only where its footprints come from the 2010 to 2012 metro lidar)' : '';
+    const house = (pre, size, flatLean) => {
+      const hm = houseMix(b), m = Object.assign({}, hm.m);
+      if (flatLean) { const t = 1 - m.flat, add = flatLean * t; HKEYS.forEach(k => { if (k !== 'flat') m[k] *= (1 - flatLean); }); m.flat += add; }
+      o.hm = hm; o.keys = HKEYS.map(k => [k, m[k]]).filter(x => x[1] > 0.004).sort((x, y) => y[1] - x[1]); const s = sum(o.keys.map(x => x[1])) || 1; o.keys.forEach(x => { x[1] /= s; });
+      o.metalP = m.metal; o.tileP = m.tile; o.woodP = m.wood; o.clay = hm.clay; o.mat = o.keys[0][0]; o.slope = o.mat === 'flat' ? 'low' : 'steep';
+      o.mix = o.keys.map(([k, w]) => [k === 'tile' ? `Tile (${hm.clay >= 0.5 ? 'clay more likely than concrete' : 'concrete more likely than clay'}), or slate` : HK_L[k], w]);
+      o.short = HK_L[o.mat].split(':')[0].split(' (')[0]; o.squares = o.slope === 'low' ? lowSq() : steepSq(); o.size = size(o.squares);
+      o.check = o.mat === 'tile' ? CHECK.tile : o.mat === 'wood' ? CHECK.wood : o.mat === 'flat' ? CHECK.flat : CHECK.res;
+      o.name = pre + (o.mat === 'tile' ? 'clay or concrete tile over underlayment on a wood deck (the tile outlasts the underlayment)' : o.mat === 'wood' ? 'wood shakes or shingles' : o.mat === 'metal' ? 'metal panels or standing seam over a wood deck' : o.mat === 'flat' ? 'a low slope roof: built up with a cap sheet or gravel, modified bitumen, or single ply' : 'asphalt (composition) shingles over a wood deck, hip or gable');
     };
-    if (c === 'sf') { const st = storiesRes(h); house('Steep slope roof: ', `${st === 1 ? 'One story' : st + ' stories'}, about ${N(steepSq())} squares of roof`); }
-    else if (c === 'garage') { house('Steep slope roof on an outbuilding: ', `about ${N(steepSq())} squares; usually roofed with the house`); o.factor = 0.6; }
-    else if (c === 'shed') { house('A small roof: ', `about ${N(steepSq(1.15))} squares`); o.factor = 0.3; o.short = 'Shingles or metal, a small roof'; }
+    if (c === 'sf') { const st = storiesRes(h); house('Steep slope roof: ', n => `${st === 1 ? 'One story' : st + ' stories'}${hNote}, about ${N(n)} squares of roof`); }
+    else if (c === 'garage') { house('Roof on an outbuilding: ', n => `about ${N(n)} squares; usually roofed with the house`); o.factor = 0.6; }
+    else if (c === 'shed') { house('A small roof: ', n => `about ${N(n)} squares`); o.factor = 0.3; o.short = 'A small roof'; }
     else if (c === 'mh') { Object.assign(o, { keys: [['mh', 1]], mat: 'mh', short: 'Manufactured home roof', name: 'Manufactured home roof: metal on older single wides, shingles on pitched double wides; roof overs and coatings are common', size: `about ${N(steepSq(1.08))} squares`, check: CHECK.mh, squares: steepSq(1.08) }); }
     else if (c === 'mf') {
-      const fl = clamp(Math.round((h - 1.5) / 3.3), 1, 60), gross = sq * fl, units = Math.max(2, Math.round(gross * 0.85 / 900)); o.units = units;
-      if (units <= 4) house('Steep slope roof over a duplex to fourplex: ', `${fl === 1 ? 'One story' : fl + ' stories'}, about ${N(units)} units, about ${N(steepSq())} squares`);
-      else if (fl <= 3 && sq < 30000) Object.assign(o, { keys: [['shingle', 0.85], ['lowmf', 0.15]], mix: [['Asphalt shingles on pitched roofs', 0.85], ['Low slope membrane', 0.15]], mat: 'shingle', short: 'Pitched shingle roofs (apartments)', name: 'Pitched shingle roofs over garden apartment buildings; low slope sections over breezeways and the larger blocks', size: `${fl === 1 ? 'One story' : fl + ' stories'}, about ${N(units)} units, about ${N(steepSq())} squares`, squares: steepSq() });
-      else Object.assign(o, { keys: [['lowmf', 1]], mat: 'low', slope: 'low', short: 'Low slope membrane (mid rise)', name: 'Low slope membrane roof (TPO or modified bitumen) over a mid rise', size: `${fl} floors, about ${N(units)} units, about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
+      /* floors from the height; with none on file, two floors for a footprint of 4,000 square feet or more (a judgment: the garden and courtyard blocks) */
+      const pu = b.parcel && b.parcel.units > 0 ? b.parcel.units : 0, fl = noH ? (sq >= 4000 ? 2 : 1) : clamp(Math.round((h - 1.5) / 3.3), 1, 60), gross = sq * fl, units = pu || Math.max(2, Math.round(gross * 0.85 / 900)); o.units = units;
+      const ft = `${fl === 1 ? 'One story' : fl + ' stories'}${noH ? ' (assumed: no height on file)' : ''}, about ${N(units)} units${pu ? ' (the assessor\'s count)' : ''}`;
+      /* two to four units: a house's roof, flat more often (the dingbats and flats of Los Angeles and the Bay: a judgment, 25 percent more) */
+      if (units <= 4) house('Roof over a duplex to fourplex: ', n => `${ft}, about ${N(n)} squares`, 0.25);
+      else if (fl <= 3 && sq < 30000) { const hm = houseMix(b), pt = hm.m.tile / ((hm.m.tile + hm.m.shingle) || 1), P = 0.55;   /* 55 percent pitched, 45 low slope: a judgment; no count of California apartment roofs by slope was found */
+        Object.assign(o, { hm, clay: hm.clay, keys: [['lowmf', 1 - P], ['shingle', P * (1 - pt)], ['tile', P * pt]].sort((x, y) => y[1] - x[1]), mat: P * (1 - pt) >= 1 - P ? 'shingle' : P * pt >= 1 - P ? 'tile' : 'low', tileP: P * pt, short: 'Apartments: pitched or low slope', name: 'Garden or courtyard apartments: pitched roofs in shingles or tile, or a low slope roof (built up, modified bitumen or single ply) behind a parapet or a mansard', size: `${ft}, about ${N(steepSq())} squares`, squares: steepSq() });
+        o.mix = [['Low slope membrane or built up', 1 - P], ['Asphalt shingles on pitched roofs', P * (1 - pt)], ['Tile on pitched roofs', P * pt]].sort((x, y) => y[1] - x[1]); o.slope = o.mat === 'low' ? 'low' : 'steep'; o.check = o.mat === 'low' ? CHECK.low : o.mat === 'tile' ? CHECK.tile : CHECK.res; }
+      else Object.assign(o, { keys: [['lowmf', 1]], mat: 'low', slope: 'low', short: 'Low slope membrane (mid rise)', name: 'Low slope roof over a mid rise: built up or modified bitumen with a cap sheet, or single ply (TPO or PVC); a cool roof where it has been redone under Title 24', size: `${ft}, about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
     }
     else if (c === 'parking') Object.assign(o, { keys: [], mat: 'none', slope: 'low', factor: 0.05, short: 'Open deck, no roof covering', name: 'No roof covering: an open top deck (waterproofing and joints only)', check: CHECK.none });
     else if (c === 'util') Object.assign(o, { keys: [['mbldg', 0.6], ['low', 0.4]], mat: 'mbldg', slope: 'low', factor: 0.4, short: 'Metal or a small membrane roof', name: 'Equipment shelter or station: a metal roof or a small membrane roof', size: `about ${N(lowSq())} squares`, check: CHECK.mbldg, squares: lowSq() });
-    else if (c === 'ag') Object.assign(o, { keys: [['mbldg', 1]], mat: 'mbldg', slope: 'low', factor: 0.5, short: 'Metal roof (farm building)', name: 'Metal roof on a barn or farm building', size: `about ${N(lowSq())} squares`, check: CHECK.mbldg, squares: lowSq() });
-    else if (c === 'whse' || c === 'ind' || c === 'indh' || c === 'indf' || c === 'avn') Object.assign(o, { keys: [['mbldg', 0.6], ['low', 0.4]], mix: [['Metal building roof (R panel or standing seam)', 0.6], ['Low slope membrane (TPO, modified bitumen or built up)', 0.4]], mat: 'mbldg', slope: 'low', short: 'Metal building roof', name: c === 'avn' ? 'A hangar or terminal roof: standing seam metal or a low slope membrane' : 'Metal building roof (R panel or standing seam), or a low slope membrane on older tilt wall and block buildings', size: `about ${N(lowSq())} squares under roof`, check: CHECK.mbldg, squares: lowSq() });
+    else if (c === 'ag') Object.assign(o, { keys: [['mbldg', 1]], mat: 'mbldg', slope: 'low', factor: 0.5, short: 'Metal roof (farm building)', name: 'Metal roof on a barn, packing shed or farm building', size: `about ${N(lowSq())} squares`, check: CHECK.mbldg, squares: lowSq() });
+    else if (c === 'whse' || c === 'ind' || c === 'indh' || c === 'indf' || c === 'avn') Object.assign(o, { keys: [['low', 0.6], ['mbldg', 0.4]], mix: [['Low slope: built up, cap sheet or single ply over a panelized wood or metal deck', 0.6], ['Metal building roof (R panel or standing seam)', 0.4]], mat: 'low', slope: 'low', short: 'Low slope roof (warehouse)', name: c === 'avn' ? 'A hangar or terminal roof: standing seam metal or a low slope membrane' : 'A warehouse or plant roof: built up or single ply over a panelized deck on tilt up walls (the usual California warehouse), or a metal building roof', size: `about ${N(lowSq())} squares under roof`, check: CHECK.low, squares: lowSq() });
     else {
       /* shops, offices, schools, worship, health, government, arenas and the unrecorded */
       const fl = floorsCom(h), small = sq < 3200 && fl <= 2;
-      if (c === 'church' && sq < 12000) Object.assign(o, { keys: [['shingle', 0.5], ['metal', 0.2], ['low', 0.3]], mix: [['Asphalt shingles (sanctuary)', 0.5], ['Low slope membrane (wings)', 0.3], ['Metal', 0.2]], mat: 'shingle', short: 'Shingles, low slope wings', name: 'A steep sanctuary roof in shingles or metal, often with low slope wings for the hall and classrooms', size: `about ${N(steepSq())} squares`, squares: steepSq() });
-      else if (small) Object.assign(o, { keys: [['shingle', 0.5], ['metal', 0.15], ['low', 0.35]], mix: [['Asphalt shingles on a pitched roof', 0.5], ['Low slope membrane', 0.35], ['Metal', 0.15]], mat: 'shingle', short: 'Shingles or a small membrane roof', name: 'A small commercial roof: shingles or metal on a pitched roof (often a converted house), or a low slope membrane', size: `about ${N(steepSq())} squares`, squares: steepSq() });
-      else if (c === 'school') Object.assign(o, { keys: [['low', 0.7], ['metal', 0.2], ['shingle', 0.1]], mix: [['Low slope membrane', 0.7], ['Standing seam metal', 0.2], ['Asphalt shingles', 0.1]], mat: 'low', slope: 'low', short: 'Low slope membrane, metal on newer wings', name: 'Low slope membrane over the older wings; standing seam metal or shingles on newer buildings', size: `${fl === 1 ? 'One story' : fl + ' floors'}, about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
+      if (c === 'church' && sq < 12000) Object.assign(o, { keys: [['shingle', 0.4], ['tile', 0.2], ['low', 0.3], ['metal', 0.1]], mix: [['Asphalt shingles (sanctuary)', 0.4], ['Low slope membrane (wings)', 0.3], ['Tile', 0.2], ['Metal', 0.1]], mat: 'shingle', short: 'Shingles or tile, low slope wings', name: 'A steep sanctuary roof in shingles, tile or metal, often with low slope wings for the hall and classrooms', size: `about ${N(steepSq())} squares`, squares: steepSq() });
+      else if (small) Object.assign(o, { keys: [['low', 0.5], ['shingle', 0.3], ['tile', 0.12], ['metal', 0.08]], mix: [['Low slope: built up, cap sheet or single ply', 0.5], ['Asphalt shingles on a pitched roof', 0.3], ['Tile', 0.12], ['Metal', 0.08]], mat: 'low', slope: 'low', short: 'A small low slope or pitched roof', name: 'A small commercial roof: a low slope roof behind a parapet, or shingles, tile or metal on a pitched roof (often a converted house)', size: `about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
+      else if (c === 'school') Object.assign(o, { keys: [['low', 0.75], ['metal', 0.15], ['shingle', 0.1]], mix: [['Low slope membrane or built up', 0.75], ['Standing seam metal', 0.15], ['Asphalt shingles', 0.1]], mat: 'low', slope: 'low', short: 'Low slope roof, metal on newer wings', name: 'Low slope roofs over the classroom wings; standing seam metal or shingles on newer buildings', size: `${fl === 1 ? 'One story' : fl + ' floors'}, about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
       else {
         const big = sq >= 60000 && fl <= 2;
-        Object.assign(o, { keys: [['low', 0.85], ['mbldg', 0.15]], mix: [['Low slope membrane (TPO, modified bitumen or built up)', 0.85], ['Metal roof', 0.15]], mat: 'low', slope: 'low', short: big ? 'Big box membrane roof' : 'Low slope membrane',
-          name: c === 'hosp' ? 'Low slope membrane over a hospital: roof work is phased around rooftop equipment and air intakes' : big ? 'A big box roof: a low slope membrane over a metal deck, many drains and rooftop units' : 'Low slope roof: TPO or modified bitumen membrane (built up and gravel on older buildings)',
-          size: `${fl === 1 ? 'One story' : fl + ' floors'}, about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
+        Object.assign(o, { keys: [['low', 0.9], ['mbldg', 0.1]], mix: [['Low slope: built up, modified bitumen or single ply (TPO, PVC)', 0.9], ['Metal roof', 0.1]], mat: 'low', slope: 'low', short: big ? 'Big box membrane roof' : 'Low slope membrane',
+          name: c === 'hosp' ? 'Low slope membrane over a hospital: roof work is phased around rooftop equipment and air intakes' : big ? 'A big box roof: single ply or built up over a panelized or metal deck, many drains, skylights and rooftop units' : 'Low slope roof: built up or modified bitumen with a cap sheet, or single ply; white where it has been redone as a cool roof',
+          size: `${fl === 1 ? 'One story' : fl + ' floors'}${noH ? ' (no height on file)' : ''}, about ${N(lowSq())} squares`, check: CHECK.low, squares: lowSq() });
       }
     }
-    if (o.keys && o.keys.length && !o.mix) o.mix = null;
+    /* the size a re-roof permit states, where one does */
+    const ps = (b.permits || []).map(p => p.sq || 0).find(v => v > 0); if (ps && o.keys && o.keys.length) { o.squares = Math.round(ps); o.size = (o.size ? o.size.replace(/about [\d,]+ squares[^,;]*/, '').replace(/,\s*$/, '').trim() : ''); o.size = (o.size ? o.size + ', ' : '') + `${N(Math.round(ps))} squares by its re-roof permit`; }
+    return o;
+  }
+  /* ---------- Title 24, Part 6: the cool roof a re-roof must be, by building type and climate zone ---------- */
+  /* The 2022 and 2025 Energy Codes carry the same values for re-roofs (sections 150.2(b)1I for single family, 180.2(b)1A
+     for multifamily, 141.0(b)2B with 140.3(a)1A for nonresidential and hotel guest rooms): the least aged solar
+     reflectance, the least thermal emittance, or instead the least solar reflectance index, where more than half the
+     roof is replaced (single family) or more than half or 2,000 square feet (the others). zones: the climate zones the
+     rule covers. A roof weighing 25 pounds a square foot or more is exempt, which is why a tile relay is (Los Angeles's
+     permits say so in words); so is a house with R-38 in the attic, a radiant barrier, or no ducts in the attic in
+     zones 2, 4, 9, 10, 12 and 14. */
+  const Z_ = (a, b) => { const o = []; for (let i = a; i <= b; i++) o.push(i); return o; };
+  const COOL = {
+    sf: { l: 'single family', trig: 'more than half the roof is replaced', steep: [[4].concat(Z_(8, 15)), 0.20, 0.75, 16], low: [[4].concat(Z_(6, 15)), 0.63, 0.75, 75] },
+    mf: { l: 'multifamily', trig: 'more than half the roof or 2,000 square feet, whichever is less, is replaced, recovered or recoated', steep: [[4].concat(Z_(8, 15)), 0.20, 0.75, 16], low: [[2, 4].concat(Z_(6, 15)), 0.63, 0.75, 75] },
+    nr: { l: 'nonresidential', trig: 'more than half the roof or 2,000 square feet, whichever is less, is replaced, recovered or recoated', steep: [[1, 3], 0.20, 0.75, 16], steep2: [[2].concat(Z_(4, 16)), 0.25, 0.80, 23], low: [Z_(1, 16), 0.63, 0.75, 75] },
+    hotel: { l: 'hotel and motel guest rooms', trig: 'more than half the roof or 2,000 square feet, whichever is less, is replaced, recovered or recoated', steep: [Z_(2, 15), 0.20, 0.75, 16], low: [[9, 10, 11, 13, 14, 15], 0.55, 0.75, 64] },
+  };
+  const coolClass = b => (b.cls === 'hotel' ? 'hotel' : b.cls === 'sf' || b.cls === 'garage' || b.cls === 'shed' || (b.cls === 'mf' && ((b.roof && b.roof.units) || 0) <= 2) ? 'sf' : b.cls === 'mf' || b.cls === 'dorm' || b.cls === 'care' ? 'mf' : b.cls === 'mh' ? '' : 'nr');
+  const czOf = b => { const v = b && (b.cz || (b.z && (b.z.cz || b.z.cz16))); const n = parseInt(v, 10); return n >= 1 && n <= 16 ? n : null; };
+  function coolRule(b, slope) {
+    const cc = coolClass(b), C = COOL[cc], cz = czOf(b); if (!C) return { cls: cc, cz, none: true, text: 'A manufactured home\'s roof is under the state housing department\'s rules, not the Energy Code\'s re-roof sections.' };
+    slope = slope || ((b.roof && b.roof.slope) === 'low' ? 'low' : 'steep');
+    const pick = cz == null ? null : slope === 'low' ? (C.low[0].includes(cz) ? C.low : null) : C.steep[0].includes(cz) ? C.steep : C.steep2 && C.steep2[0].includes(cz) ? C.steep2 : null;
+    const o = { cls: cc, l: C.l, cz, slope, trig: C.trig, req: pick ? { sr: pick[1], e: pick[2], sri: pick[3] } : null };
+    o.text = cz == null ? 'The climate zone is not known for this building yet, so the cool roof rule cannot be read.' : pick ? `Climate zone ${cz}: when ${C.trig}, a ${slope === 'low' ? 'low slope' : 'steep'} ${C.l} roof must have an aged solar reflectance of at least ${pick[1].toFixed(2)} and a thermal emittance of at least ${pick[2].toFixed(2)}, or a solar reflectance index of at least ${pick[3]}.` : `Climate zone ${cz}: the Energy Code sets no cool roof minimum for a ${slope === 'low' ? 'low slope' : 'steep'} ${C.l} re-roof here.`;
     return o;
   }
 
-  /* ---------- the storm record around each building: NOAA reports of the last three years ---------- */
+  /* ---------- California's weather and fire record at a ZIP: the hazard columns of the page's data ---------- */
+  /* One place names every hazard column the module reads (the first name present wins; the second names are the
+     data build's stand-ins from before the hazard job's schema was final). Days are days a year unless said.
+       ar1..ar5   atmospheric river days by CW3E rank at the ZIP's latitude on the coast (the ERA5 landfall catalog)
+       rd1, rd2   days with an inch and with two inches of rain (GHCN-Daily, 1996 to 2025); rainIn the 1991 to 2020 normal
+       g40, g58, g75   days with a gust of 40, 58 and 75 mph at the nearest screened station (gustSt, gustKm away)
+       sa         Santa Ana, Diablo or sundowner days (saKind names which)
+       fhszVH, fhszH, fhszM   percent of the ZIP's area in each Fire Hazard Severity Zone; burn the percent inside a
+                  fire perimeter since 1950; fireN the perimeters that touch it; dest, dmg, nodmg the structures CAL FIRE's
+                  inspections record as destroyed, damaged and undamaged there (2013 to 2025)
+       snow       ASCE 7-22 ground snow load, pounds a square foot; elev metres
+       h100, h110 days at 100 F and 110 F; hd1 days with one inch hail within 25 miles; coast km to salt water */
+  const HCOL = {
+    ar1: ['ar1d'], ar2: ['ar2d'], ar3: ['ar3d'], ar4: ['ar4d'], ar5: ['ar5d'], arD: ['ar_d', 'ar_days'], arN: ['ar_n'], ar3n: ['ar3_n'], arMax: ['ar_max'],
+    rainIn: ['rain_in'], rd1: ['rain_d1', 'rd1'], rd2: ['rain_d2', 'rd2'], rainRec: ['rain_rec_in'],
+    g40: ['g40', 'wd40'], g58: ['g58', 'wd58'], g75: ['g75', 'wd75'], gustMax: ['gust_max'], gustKm: ['gust_km'],
+    sa: ['sa_d', 'sa_days', 'sa_n', 'off_d'],
+    fhszVH: ['fhsz_vh'], fhszH: ['fhsz_high'], fhszM: ['fhsz_mod'], fhszHV: ['fhsz_hv', 'fhsz_sh'], burn: ['burn_sh'], fireN: ['fire_n'], fireLastYr: ['fire_last_yr', 'lastfire'], fireBigYr: ['fire_big_yr'], fireBigAc: ['fire_big_ac'],
+    dest: ['dins_dest', 'fire_dest'], dmg: ['dins_dmg', 'fire_dmg'], nodmg: ['dins_nodmg'], worstYr: ['dins_worst_yr'], worstDest: ['dins_worst_dest'],
+    snow: ['snow_psf', 'pg_psf', 'snow_pg'], snow20: ['snow20_psf', 'pg20_psf'], elev: ['elev_pt_m', 'elev_m', 'elev_mean_m'],
+    h90: ['h90'], h100: ['h100', 'heat100'], h110: ['h110', 'heat110'], tjul: ['tjul'],
+    hd1: ['hd1', 'hail_d1'], hd175: ['hd175'], coast: ['coast_km'],
+  };
+  const HTXT = { arMaxDate: ['ar_max_date'], gustSt: ['gust_st'], gustMaxDate: ['gust_max_date'], saKind: ['sa_kind', 'sa_type', 'off_kind'], fireLast: ['fire_last'], fireBig: ['fire_big'], worst: ['dins_worst'], rainSt: ['rain_st'], rainRecDate: ['rain_rec_date'], fhszResp: ['fhsz_resp'], heatSt: ['heat_st'] };
+  const wxCol = (z, k) => { if (!z) return null; const a = HCOL[k] || [k]; for (let i = 0; i < a.length; i++) { const v = z[a[i]]; if (v != null && v !== '' && isN(+v)) return +v; } return null; };
+  const wxTxt = (z, k) => { if (!z) return ''; const a = HTXT[k] || [k]; for (let i = 0; i < a.length; i++) { const v = z[a[i]]; if (v != null && v !== '') return String(v); } return ''; };
+  /* the ZIP's share of area in a High or Very High zone, from whichever columns the data carries */
+  const fhszHV = z => { const a = wxCol(z, 'fhszVH'), b2 = wxCol(z, 'fhszH'); return a != null || b2 != null ? (a || 0) + (b2 || 0) : wxCol(z, 'fhszHV'); };
+  /* the state's mean of a hazard column over its one unit roofs: what "more than most of California" is measured against */
+  const WXMEAN = new Map();
+  function wxMean(k) { if (WXMEAN.has(k)) return WXMEAN.get(k); let s = 0, n = 0; Z.forEach(z => { const v = wxCol(z, k), w = +z.roofs || 0; if (v != null && w > 0) { s += v * w; n += w; } }); const m = n > 0 ? s / n : null; WXMEAN.set(k, m); return m; }
+  /* which columns the page's data really has, for the method's note and the tests */
+  const WXHAS = k => Z.some(z => wxCol(z, k) != null);
+
+  /* ---------- the reports around each building: the atlas's located weather reports of the last three years ---------- */
   /* Hail of an inch or more, thunderstorm wind of 50 knots (58 mph) or more and tornadoes of EF1 or more, from the atlas's
-     NOAA Storm Events points (2016 to 2026), indexed on a grid of 0.05 degree cells */
+     located reports (DATA.pts: NOAA Storm Events and the Weather Service's local storm reports), indexed on a grid of
+     0.05 degree cells. California's damaging wind is mostly not thunderstorm wind: the offshore wind and winter storm
+     days are counted at the ZIP (the gust days above), not here. */
   const EVY = 3.2;
-  const EVS = (typeof PTS !== 'undefined' ? PTS : []).map(p => ({ lat: +p.lat, lon: +p.lon, k: +p.k, mag: +p.mag, y: +p.y, m: +p.m, dw: p.dw, h: p.h, t: +p.y + ((+p.m || 6) - 0.5) / 12 }))
+  const kt2mph = kt => Math.round(kt * 1.15078);
+  const EVS = (typeof PTS !== 'undefined' && Array.isArray(PTS) ? PTS : []).map(p => ({ lat: +p.lat, lon: +p.lon, k: +p.k, mag: +p.mag, y: +p.y, m: +p.m, dw: p.dw, h: p.h, t: +p.y + ((+p.m || 6) - 0.5) / 12 }))
     .filter(p => isN(p.lat) && isN(p.lon) && NOW - p.t <= EVY && NOW - p.t >= -0.1 && ((p.k === 0 && p.mag >= 1) || (p.k === 1 && p.mag >= 50) || (p.k === 2 && p.mag >= 1)));
   const EVG = new Map(); EVS.forEach(p => { const k = Math.floor(p.lat * 20) + ':' + Math.floor(p.lon * 20); if (!EVG.has(k)) EVG.set(k, []); EVG.get(k).push(p); });
   function eventsNear(la, lo) {
-    /* a cell is 5.6 km north to south but only 4.7 to 4.8 km east to west at these latitudes, so two cells each way east and west */
+    /* a cell is 5.6 km north to south but only 4.1 to 4.7 km east to west at California's latitudes, so two cells each way east and west */
     const out = [], i0 = Math.floor(la * 20), j0 = Math.floor(lo * 20);
     for (let i = i0 - 1; i <= i0 + 1; i++) for (let j = j0 - 2; j <= j0 + 2; j++) (EVG.get(i + ':' + j) || []).forEach(p => { const km = meters([la, lo], [p.lat, p.lon]) / 1000; if (km <= 5) out.push(Object.assign({ km, ago: NOW - p.t, dir: compass(bearing([la, lo], [p.lat, p.lon])) }, p)); });
     return out.sort((a, b) => a.ago - b.ago || a.km - b.km);
@@ -464,8 +610,7 @@
   const windDmg = e => e.k === 1 ? (e.mag >= 65 ? 0.08 : 0.03) : e.mag >= 3 ? 0.6 : e.mag >= 2 ? 0.35 : 0.15;
   /* damage still open after a report: claims settle and roofs are fixed within a year or two */
   const recency = ago => ago <= 1 ? 1 : ago <= 2 ? 0.55 : ago <= 3.2 ? 0.3 : 0;
-  const unrep = ago => ago < 0 ? 0 : ago <= 1 ? 0.5 : ago <= 2 ? 0.25 : ago <= 3 ? 0.1 : 0;
-  const evLabel = e => e.k === 0 ? `${D(e.mag, 2).replace(/0$/, '')} inch hail` : e.k === 1 ? `${ktMph0(e.mag)} mph thunderstorm wind` : `an EF${e.mag} tornado`;
+  const evLabel = e => e.k === 0 ? `${D(e.mag, 2).replace(/0$/, '')} inch hail` : e.k === 1 ? `${kt2mph(e.mag)} mph thunderstorm wind` : `an EF${e.mag} tornado`;
   const evWhen = e => `${MON[(e.m || 1) - 1]} ${e.y}`;
 
   /* ---------- reading a building ---------- */
@@ -481,7 +626,7 @@
      or partial replacement of some of them, a hole in the roof, or a portion or section of it.
      Partial: a reroof or roof replacement the text calls partial weighs as a repair on every permit (partial decking,
      siding, fascia and the like does not count), and so does roof work on part of the house only (an addition, a dormer,
-     a lean to, a camelback or an attached shed) on any permit but a reroof permit.
+     a lean to or an attached shed) on any permit but a reroof permit.
      Accessory: an Accessory Structure permit, or one whose first clause names a garage, shed, carport, storage building
      or other accessory building, does not move the clock when its text never names the house or a main building (a
      house named only as where the accessory stands, as what it is not, or as work under another permit does not count).
@@ -498,7 +643,7 @@
   const PW_BEHIND = String.raw`(?<!\b(?:${PW_ACC})S?\b[^.;,]{0,30})(?<!\bPARTIAL(?:LY)? (?:[^\s,.;:]+ ){0,2})`;
   /* the roof word, then: not a rooftop unit, rack, line, drain, repair or section, not on or over an accessory, not in a portion */
   const PW_ROOFW = String.raw`(SHINGLE SYSTEM|(?:(?<!(?<!(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN) (?:AND|&) )(?<!ATTACHED |PARKING |SERVICE |REPAIR |AUTO |COMMERCIAL )\bGARAGE )|(?=ROOF(?:ING|S)? (?:AND|&) (?:THE )?(?:MAIN |EXISTING |PRIMARY )?(?:HOUSE|HOME|RESIDENCE|DWELLING)))ROOF(ING|S)?|(?<!(?:DAMAGED?|MISSING|BROKEN|LOOSE|ROTTEN|CRACKED|LIFTED|FEW|SOME|SEVERAL|\b\d{1,2}) )SHINGLES|SHINGLE(?= ?[,.;)]|$)|ROOF COVERING)\b(?![- ]?(MOUNT|TOP|DECK|RACK|FRAM|STRUCT|JOIST|RAFTER|TRUSS|EXHAUST|VENT|ADDITION|LINE|PITCH|DRAIN|HATCH|LADDER|CURB|ACCESS|FAN|UNIT|PENETRAT|OVERHANG|EXTENSION|GARDEN|TERRACE|PATIO|PORCH|SIGN|REPAIR(?!S?\/REPLAC)|LEAK|DAMAGES?\b|SECTION|PORTION|AREA|STUD|BEAM|SUPPORT|COLUMN|POST|WALL|COAT|FLASH(?!\w*,? AND (?:NEW )?(?:SHINGLES|ROOF))|INSUL|ANCHOR|STABIL|SHOR))(?! (?:ON|OVER|AT|FOR|OF|TO|ABOVE) (?:THE |A |AN |NEW |EXISTING |REAR |FRONT |BACK |SIDE |DETACHED |COVERED |OPEN |SCREENED |SMALL |PROPOSED )*(?:${PW_ACC}|DECK|STAIRS?|STEPS|ENTRY|ENTRANCE|POOL|BAR|BARN|WORKSHOP|STUDIO|ARENA|BOAT ?HOUSE|GREENHOUSE|(?:CONCRETE )?SLAB)S?\b(?! (?:AND|&) (?:THE )?(?:MAIN |EXISTING |PRIMARY )?(?:HOUSE|HOME|RESIDENCE|DWELLING)))(?! (?:IN|AT|ON|OF) (?:THE |A |ONE )?(?:(?:REAR|FRONT|BACK|SIDE|LOWER|UPPER|SMALL|FLAT|DAMAGED|LEAKING|AFFECTED) )?(?:PORTION|SECTION|AREA|PART)S?\b)`;
-  const PW_REPL = new RegExp(String.raw`(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} (?:ROOF )?)\bRE[- ]?ROOF(ING|ED)?\b(?! (?:OF |ON |AT |FOR |TO )?(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b(?! (?:AND|&|PLUS)\b))|\bRE[- ]?SHINGL|(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} )(?<!\b(?:SPOT|SOME|MINOR|SMALL|FEW|ISOLATED|LOCALI[SZ]ED) (?:(?:SLATE|TILE|SHINGLE|METAL|ASPHALT|CLAY) ){0,2})\bROOF(ING)? (SHINGLE |TILE |SLATE )?REPLACE(MENT|D)?\b(?! (?:OF |ON |AT |FOR |TO )(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b(?! (?:AND|&|PLUS)\b))|\bROOF(ING)? RE-?INSTALL\w*|${PW_BEHIND}\bROOF(ING)? (REMOVAL|TEAR ?-?OFF)\b|\b(REPLAC\w*|NEW|REMOV\w*) (THE |EXISTING )?ROOF DECK(ING|S)?,? (AND |& )?(\w+ ){0,3}(SHINGLES|ROOF(ING)?)\b|${PW_BEHIND}\b(REPLAC(E|ED|ES|ING|EMENT OF)|NEW|REMOV(E|AL|ING)( AND REPLACE| & REPLACE| OF)?|CHANG(E|ED|ING)( OUT)?|R ?[\/&] ?R) ${PW_TOK}${PW_ROOFW}|\bTEAR(ING)? ?-?OFF\b|DOWN TO THE DECK|EXPOSE (THE )?DECK|\bTPO\b|MODIFIED BITUMEN|\bMOD(IFIED)? BIT\b|SINGLE.PLY|\bROOF(ING)? SYSTEM\b|FORTIFI|^ROOFING\b(?!:? (REPAIRS?|LEAKS?|PATCH))|(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} (?:(?:FLAT|METAL|SHINGLE|SLATE|TIN|TILE) )?)(?<!\b(?:NO|NONE OF|NO (?:PART|PORTION|SECTION) OF|NOTHING (?:ON|OF)) (?:(?:EXISTING|THE|MAIN) )?(?:(?:FLAT|METAL|SHINGLE|SLATE|TIN|TILE) )?)\bROOF(?:ING|S)? (?:(?:ALSO |STILL )?(?:WILL|SHALL|MUST|IS|ARE) (?:ALSO )?BE(?:ING)?|(?:HAS|HAVE|NEEDS?|IS|ARE) TO BE|TO BE|BEING) (?:(?:COMPLETELY|ENTIRELY|FULLY|TOTALLY) )?(?:(?:REMOVED|TORN OFF|STRIPPED) (?:AND|&) )?REPLACED\b(?!,? \(?(?:AS (?:NEEDED|NECESSARY|REQUIRED(?! BY))|WHERE|IF|(?:ONLY )?WHEN (?:NEEDED|NECESSARY|REQUIRED)|ONLY (?:WHERE|IF|AS (?:NEEDED|NECESSARY|REQUIRED(?! BY)))\b|IN (?:THE )?(?:(?:DAMAGED|AFFECTED|DETERIORATED|ROTTED|ROTTEN|LEAKING|SOME|VARIOUS|SEVERAL|CERTAIN|BAD|WORN) )?(?:AREAS?|PLACES?|SECTIONS?|SPOTS?|LOCATIONS?)\b|IN[- ]KIND WHERE|AT (?:THE )?(?:DAMAGED|AFFECTED|LEAK)|AT A LATER DATE|IN THE FUTURE))(?! (?:OF|ON|AT|FOR|TO|OVER|ABOVE) (?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b(?! (?:AND|&|PLUS) (?!(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)|(?:,? (?:(?:AND|&|PLUS) )?(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)*(?:,|,? (?:AND|&|PLUS)|,? AS WELL AS|,? ALONG WITH) (?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*(?:MAIN |ORIGINAL |PRIMARY )?(?:HOUSE|HOME|RESIDENCE|DWELLING)S?\b(?=\s*(?:[.;,)]|$)|,? (?:AND|&|PLUS) (?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)(?!(?:,? (?:(?:AND|&|PLUS) )?(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)*(?:(?: (?:AND|&|PLUS))?(?: (?!(?:WHICH|THAT|WITH|USING|IN|OF|PER|AS|BY|FOR|FROM|DUE|AFTER|UNDER|INCLUDING|ONLY|TO|AND|PLUS)\b)[A-Z]+){1,2})? (?:(?:IS|ARE|WILL|SHALL|MUST|NEEDS?|HAS|HAVE) (?:(?:ALSO|STILL|NOT|TO) )?(?:BE|BEEN|BEING|NOT|REMAIN|STAY)\b|TO (?:BE|REMAIN|STAY|GET|RECEIVE)\b|BEING\b|NOT\b|NEEDS?\b|GETS?\b|REMAINS?\b|STAYS?\b|(?:RE)?PAINT(?:ED|ING)?\b|STAIN(?:ED|ING)?\b|(?:PRESSURE|POWER)[- ]?WASH(?:ED|ING)?\b|REPAIRED\b))))|\b(RE-?INSTALL\w*|DETACH AND RESET)\b[^.;•]{0,60}?\b(ROOF(ING|S)?|SLATES?|TILES?|SHINGLES|SOLAR|FLASHING)\b`);
+  const PW_REPL = new RegExp(String.raw`(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} (?:ROOF )?)\bRE[- ]?ROOF(ING|ED)?\b(?! (?:OF |ON |AT |FOR |TO )?(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b(?! (?:AND|&|PLUS)\b))|\bRE[- ]?SHINGL|(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} )(?<!\b(?:SPOT|SOME|MINOR|SMALL|FEW|ISOLATED|LOCALI[SZ]ED) (?:(?:SLATE|TILE|SHINGLE|METAL|ASPHALT|CLAY) ){0,2})\bROOF(ING)? (SHINGLE |TILE |SLATE )?REPLACE(MENT|D)?\b(?! (?:OF |ON |AT |FOR |TO )(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b(?! (?:AND|&|PLUS)\b))|\bROOF(ING)? RE-?INSTALL\w*|${PW_BEHIND}\bROOF(ING)? (REMOVAL|TEAR ?-?OFF)\b|\b(REPLAC\w*|NEW|REMOV\w*) (THE |EXISTING )?ROOF DECK(ING|S)?,? (AND |& )?(\w+ ){0,3}(SHINGLES|ROOF(ING)?)\b|${PW_BEHIND}\b(REPLAC(E|ED|ES|ING|EMENT OF)|NEW|REMOV(E|AL|ING)( AND REPLACE| & REPLACE| OF)?|CHANG(E|ED|ING)( OUT)?|R ?[\/&] ?R) ${PW_TOK}${PW_ROOFW}|\bTEAR(ING)? ?-?OFF\b|DOWN TO THE DECK|EXPOSE (THE )?DECK|\bTPO\b|MODIFIED BITUMEN|\bMOD(IFIED)? BIT\b|SINGLE.PLY|\bROOF(ING)? SYSTEM\b|^ROOFING\b(?!:? (REPAIRS?|LEAKS?|PATCH))|(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} (?:(?:FLAT|METAL|SHINGLE|SLATE|TIN|TILE) )?)(?<!\b(?:NO|NONE OF|NO (?:PART|PORTION|SECTION) OF|NOTHING (?:ON|OF)) (?:(?:EXISTING|THE|MAIN) )?(?:(?:FLAT|METAL|SHINGLE|SLATE|TIN|TILE) )?)\bROOF(?:ING|S)? (?:(?:ALSO |STILL )?(?:WILL|SHALL|MUST|IS|ARE) (?:ALSO )?BE(?:ING)?|(?:HAS|HAVE|NEEDS?|IS|ARE) TO BE|TO BE|BEING) (?:(?:COMPLETELY|ENTIRELY|FULLY|TOTALLY) )?(?:(?:REMOVED|TORN OFF|STRIPPED) (?:AND|&) )?REPLACED\b(?!,? \(?(?:AS (?:NEEDED|NECESSARY|REQUIRED(?! BY))|WHERE|IF|(?:ONLY )?WHEN (?:NEEDED|NECESSARY|REQUIRED)|ONLY (?:WHERE|IF|AS (?:NEEDED|NECESSARY|REQUIRED(?! BY)))\b|IN (?:THE )?(?:(?:DAMAGED|AFFECTED|DETERIORATED|ROTTED|ROTTEN|LEAKING|SOME|VARIOUS|SEVERAL|CERTAIN|BAD|WORN) )?(?:AREAS?|PLACES?|SECTIONS?|SPOTS?|LOCATIONS?)\b|IN[- ]KIND WHERE|AT (?:THE )?(?:DAMAGED|AFFECTED|LEAK)|AT A LATER DATE|IN THE FUTURE))(?! (?:OF|ON|AT|FOR|TO|OVER|ABOVE) (?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b(?! (?:AND|&|PLUS) (?!(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)|(?:,? (?:(?:AND|&|PLUS) )?(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)*(?:,|,? (?:AND|&|PLUS)|,? AS WELL AS|,? ALONG WITH) (?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*(?:MAIN |ORIGINAL |PRIMARY )?(?:HOUSE|HOME|RESIDENCE|DWELLING)S?\b(?=\s*(?:[.;,)]|$)|,? (?:AND|&|PLUS) (?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)(?!(?:,? (?:(?:AND|&|PLUS) )?(?:(?:THE|A|AN|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*${PW_ACCN}\b)*(?:(?: (?:AND|&|PLUS))?(?: (?!(?:WHICH|THAT|WITH|USING|IN|OF|PER|AS|BY|FOR|FROM|DUE|AFTER|UNDER|INCLUDING|ONLY|TO|AND|PLUS)\b)[A-Z]+){1,2})? (?:(?:IS|ARE|WILL|SHALL|MUST|NEEDS?|HAS|HAVE) (?:(?:ALSO|STILL|NOT|TO) )?(?:BE|BEEN|BEING|NOT|REMAIN|STAY)\b|TO (?:BE|REMAIN|STAY|GET|RECEIVE)\b|BEING\b|NOT\b|NEEDS?\b|GETS?\b|REMAINS?\b|STAYS?\b|(?:RE)?PAINT(?:ED|ING)?\b|STAIN(?:ED|ING)?\b|(?:PRESSURE|POWER)[- ]?WASH(?:ED|ING)?\b|REPAIRED\b))))|\b(RE-?INSTALL\w*|DETACH AND RESET)\b[^.;•]{0,60}?\b(ROOF(ING|S)?|SLATES?|TILES?|SHINGLES|SOLAR|FLASHING)\b`);
   /* 'install' counts as replacement wording only on a permit that is not for rooftop equipment */
   const PW_INST = new RegExp(String.raw`${PW_BEHIND}(?<!\b(?:IMPROPERLY|PREVIOUSLY|ORIGINALLY|POORLY|BADLY|ILLEGALLY|WAS|WERE|BEEN|ALREADY) )\bINSTALL(S|ED|ING|ATION OF)? ${PW_TOK}${PW_ROOFW}`);
   const PW_REP = new RegExp(String.raw`\bROOF(ING)? (LEAKS?|REPAIRS?|DAMAGE)\b|\bREPAIR(S|ED|ING)? (OF |TO )?${PW_TOK}ROOF(ING)?\b|\b(REPLAC\w*|REPAIR\w*|RESET\w*|FIX\w*) (THE |ANY |ALL )?(MISSING|BROKEN|LOOSE|CRACKED|DAMAGED?|ROTTEN|SLIPPED|IMPROPERLY)\b[^.;•]{0,25}\b(SLATES?|TILES?|SHINGLES?)\b|\b(REPLAC\w*|REPAIR\w*|INSTALL\w*|RESET\w*) (APPROX\w*\.? |ABOUT |UP TO )?\d{1,2} ([\w-]+ )?(SHINGLES|SLATES|TILES)\b|\b(SHINGLE|METAL|SLATE|TILE) ROOF(ING)? REPAIRS?\b|\bHOLES? IN (THE )?ROOF|\b(PORTION|SECTION|PART|AREA)S? OF (THE )?(\w+ )?ROOF|\bROOF (SECTION|PORTION)S?\b|\bPARTIAL(LY)? ([^\s,.;:]+ ){0,2}(RE-?ROOF|ROOF|REPLACE)|\bPATCH|\bLEAK(?![- ]?BARRIER)|\b(SLATES?|TILES?|SHINGLES?) (THAT |WHICH )?(ARE |IS |WERE )?(DAMAGED|MISSING|BROKEN)\b|\b(SPOT|SOME|MINOR|SMALL|FEW|ISOLATED|LOCALI[SZ]ED) ((SLATE|TILE|SHINGLE|METAL|ASPHALT|CLAY) ){0,2}ROOF(ING)? (SHINGLE |TILE |SLATE )?(REPLACE|REPAIR)\w*|\b(REPLAC\w*|REPAIR\w*) (SOME|A FEW|FEW|SEVERAL) ((OF THE|THE|ROOF|ROOFING|SLATE|TILE|DAMAGED|BROKEN|MISSING|LOOSE|OLD|ROTTEN|CRACKED) ){0,2}(SHINGLES|SLATES|TILES)\b`);
@@ -514,31 +659,32 @@
   /* a reroof or roof replacement the text calls partial; a bare 'partial replacement' only at the head of a clause and not of a part that is not the roof */
   const PW_PART = /\bPARTIAL(LY)? ((?!DECK|PLYWOOD|SHEATH|OSB|RE-?DECK)[^\s,.;:]+ ){0,2}(RE-?ROOF|NEW (\w+ )?ROOF|ROOF(ING)? (REPLACE|RE-?COVER|SYSTEM|DEMO\w*|TEAR\w*|REMOV\w*))|(?:(?<![A-Z] )|(?<=\bROOF(?:ING)? ))PARTIAL(LY)? REPLACE(MENT|D)?\b(?! OF\b(?! (?:THE |EXISTING |[A-Z]+ ){0,2}(?:ROOF|SHINGLE|SLATE|TILE))| (?:THE|ANY|ALL|EXISTING|ROTTEN|ROTTED|DAMAGED|DETERIORATED|DECK\w*|PLYWOOD|SHEATH\w*|OSB|WOOD|FASCIA|SOFFIT|SIDING|GUTTERS?|WINDOWS?|DOORS?|RAFTERS?|FRAM\w*|BOARDS?|DRIP|FLASH\w*)\b)/;
   /* roof work on part of the house only: the text's first roof word is a roof a work verb puts on an addition, a dormer, a lean to,
-     a camelback or an attached shed, or the first clause names a lean to, an attached shed or a rear addition as what the work is
+     or an attached shed, or the first clause names a lean to, an attached shed or a rear addition as what the work is
      on; never when the text names the whole roof or the house's roof, or lists the house with the part ('house and new addition
      roof replacement') */
-  const PW_PARTT = new RegExp(String.raw`\b(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)? (?:WORK|REPLACEMENT|REPAIRS?|SYSTEM)|(?:SECTION|PORTION|PART|AREA)S? OF (?:THE )?(?:\w+ )?ROOF(?:ING|S)?)\b(?: ONLY)? (?:ON |OVER |AT |OF |FOR |TO |ABOVE )?(?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S?\b(?! OF\b)|\b(?:NEW|REPLAC\w*|REMOV\w*|INSTALL\w*|CONSTRUCT\w*|BUILD|REBUILD\w*|REPAIR\w*|EXTEND\w*|CHANG\w*|TEAR\w*(?: OFF)?|RECOVER\w*|RE-?FRAM\w*)(?:/\w+)? (?:(?:THE|A|AN|EXISTING|OLD|NEW|FLAT|METAL|SHINGLE|TIN|CORRUGATED|GABLE|PITCHED|HIP|SHED|ASPHALT|SLOPED|REAR|SIDE|DAMAGED|LEAKING) ){0,3}ROOF(?:ING|S)?\b (?:ON |OVER |AT |OF |FOR |TO |ABOVE )?(?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S?\b(?! OF\b)|\b(?:NEW|REPLAC\w*|REMOV\w*|INSTALL\w*|CONSTRUCT\w*|BUILD|REBUILD\w*|REPAIR\w*|EXTEND\w*|CHANG\w*|TEAR\w*(?: OFF)?|RECOVER\w*|RE-?FRAM\w*)(?:/\w+)? (?:(?:THE|A|AN|EXISTING|OLD|NEW|FLAT|METAL|SHINGLE|TIN|CORRUGATED|GABLE|PITCHED|HIP|SHED|ASPHALT|SLOPED|REAR|SIDE|DAMAGED|LEAKING) ){0,3}(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S? (?:FLAT |METAL |SHINGLE |TIN |SHED |GABLE )?ROOF(?:ING|S)?\b(?! (?:ATTACHED |ADJACENT )?(?:OVER|ON|AT|FOR|TO|ABOVE|OFF) (?:THE |AN? |NEW |EXISTING |CONCRETE |REAR |FRONT |BACK |SIDE |DETACHED |COVERED |OPEN |SCREENED |SMALL |PROPOSED |WOOD |WOODEN )*(?:${PW_ACC}|PAVERS?|SLAB|DECK|DRIVEWAY|WALKWAY|POOL|HOT TUB|SPA|STAIRS?|STEPS|ENTRY|ENTRANCE|BOAT|BAR|BARN|WORKSHOP|STUDIO|GREENHOUSE)S?\b)`);
+  const PW_PARTT = new RegExp(String.raw`\b(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)? (?:WORK|REPLACEMENT|REPAIRS?|SYSTEM)|(?:SECTION|PORTION|PART|AREA)S? OF (?:THE )?(?:\w+ )?ROOF(?:ING|S)?)\b(?: ONLY)? (?:ON |OVER |AT |OF |FOR |TO |ABOVE )?(?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S?\b(?! OF\b)|\b(?:NEW|REPLAC\w*|REMOV\w*|INSTALL\w*|CONSTRUCT\w*|BUILD|REBUILD\w*|REPAIR\w*|EXTEND\w*|CHANG\w*|TEAR\w*(?: OFF)?|RECOVER\w*|RE-?FRAM\w*)(?:/\w+)? (?:(?:THE|A|AN|EXISTING|OLD|NEW|FLAT|METAL|SHINGLE|TIN|CORRUGATED|GABLE|PITCHED|HIP|SHED|ASPHALT|SLOPED|REAR|SIDE|DAMAGED|LEAKING) ){0,3}ROOF(?:ING|S)?\b (?:ON |OVER |AT |OF |FOR |TO |ABOVE )?(?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S?\b(?! OF\b)|\b(?:NEW|REPLAC\w*|REMOV\w*|INSTALL\w*|CONSTRUCT\w*|BUILD|REBUILD\w*|REPAIR\w*|EXTEND\w*|CHANG\w*|TEAR\w*(?: OFF)?|RECOVER\w*|RE-?FRAM\w*)(?:/\w+)? (?:(?:THE|A|AN|EXISTING|OLD|NEW|FLAT|METAL|SHINGLE|TIN|CORRUGATED|GABLE|PITCHED|HIP|SHED|ASPHALT|SLOPED|REAR|SIDE|DAMAGED|LEAKING) ){0,3}(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S? (?:FLAT |METAL |SHINGLE |TIN |SHED |GABLE )?ROOF(?:ING|S)?\b(?! (?:ATTACHED |ADJACENT )?(?:OVER|ON|AT|FOR|TO|ABOVE|OFF) (?:THE |AN? |NEW |EXISTING |CONCRETE |REAR |FRONT |BACK |SIDE |DETACHED |COVERED |OPEN |SCREENED |SMALL |PROPOSED |WOOD |WOODEN )*(?:${PW_ACC}|PAVERS?|SLAB|DECK|DRIVEWAY|WALKWAY|POOL|HOT TUB|SPA|STAIRS?|STEPS|ENTRY|ENTRANCE|BOAT|BAR|BARN|WORKSHOP|STUDIO|GREENHOUSE)S?\b)`);
   const PW_PARTS = new RegExp(String.raw`^[^.;:,]{0,60}?(?<!\b(?:DEMO\w*|TEAR\w* DOWN|REMOV\w*|NO|CONSTRUCT\w*|BUILD\w*|ADD|ADDING|NEW|PROPOSED)\s(?:\w+ ){0,3})(?<!\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING)S? (?:ROOFS? )?(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT) )*)\b(?:ATTACHED SHED|LEAN.?TO(?: ADDITION)?|(?:REAR|SIDE) ADDITION)\b(?! (?:AND|&|PLUS|WITH) (?:[\w-]+ ){0,2}?(?:RENOVAT|REMODEL)\w*)(?! (?:AND|&|PLUS|TO) (?:AN? |THE )?(?:[\w-]+ ){0,3}?(?:HOUSE|HOME|RESIDENCE|DWELLING|SINGLE|DOUBLE|DUPLEX|STRUCTURE|BUILDING)\b)`);
-  const PW_WHOLE = new RegExp(String.raw`\b(?:ENTIRE|WHOLE|FULL|COMPLETE)\b[^.;]{0,20}\bROOF|\bMAIN ROOF|\bROOF(?:ING|S)? (?:ON|OF|OVER|FOR) (?:THE )?(?:ENTIRE |WHOLE |MAIN |ORIGINAL |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING)\b|\bRE[- ]?ROOF(?:ING|ED)? (?:OF )?(?:THE )?(?:ENTIRE |WHOLE |MAIN |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING|BUILDING)\b|\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN)S? (?:AND|&) (?:THE |REAR |SIDE )?(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S?\b|\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING)S? (?:ROOFS? )?(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT) )*(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S?\b(?=:? (?:(?:FLAT|METAL|SHINGLE|TIN|SHED|GABLE) )?(?:RE[- ]?ROOF|ROOF))|\b(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S? (?:AND|&) (?:THE )?(?:MAIN |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING)\b|\b(?=ADDITION|LEAN|CAMEL|ATTACHED SHED|DORMER)(?<=\b(?:RE[- ]?ROOF|ROOF)\w*\b[^.;:]{0,40})(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S? (?:AND|&|PLUS) (?:(?:ON|OVER|TO|AT) )?(?:THE )?(?:(?:(?:MAIN|EXISTING|ORIGINAL|OLD|HISTORIC|FRONT|ENTIRE|WHOLE|ONE|TWO|1|2|STORY|SINGLE|FAMILY|[A-Z]+-(?:STORY|FAMILY)) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING)|(?:MAIN|ENTIRE|WHOLE|REST OF THE|REMAINDER OF THE) (?:ROOF|HOUSE))S?\b(?!['’])(?! (?:IS |ARE )?(?:TO|WILL|SHALL) (?:REMAIN|STAY)\b)`);
+  const PW_WHOLE = new RegExp(String.raw`\b(?:ENTIRE|WHOLE|FULL|COMPLETE)\b[^.;]{0,20}\bROOF|\bMAIN ROOF|\bROOF(?:ING|S)? (?:ON|OF|OVER|FOR) (?:THE )?(?:ENTIRE |WHOLE |MAIN |ORIGINAL |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING)\b|\bRE[- ]?ROOF(?:ING|ED)? (?:OF )?(?:THE )?(?:ENTIRE |WHOLE |MAIN |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING|BUILDING)\b|\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN)S? (?:AND|&) (?:THE |REAR |SIDE )?(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S?\b|\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING)S? (?:ROOFS? )?(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT) )*(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S?\b(?=:? (?:(?:FLAT|METAL|SHINGLE|TIN|SHED|GABLE) )?(?:RE[- ]?ROOF|ROOF))|\b(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S? (?:AND|&) (?:THE )?(?:MAIN |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING)\b|\b(?=ADDITION|LEAN|ATTACHED SHED|DORMER)(?<=\b(?:RE[- ]?ROOF|ROOF)\w*\b[^.;:]{0,40})(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S? (?:AND|&|PLUS) (?:(?:ON|OVER|TO|AT) )?(?:THE )?(?:(?:(?:MAIN|EXISTING|ORIGINAL|OLD|HISTORIC|FRONT|ENTIRE|WHOLE|ONE|TWO|1|2|STORY|SINGLE|FAMILY|[A-Z]+-(?:STORY|FAMILY)) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING)|(?:MAIN|ENTIRE|WHOLE|REST OF THE|REMAINDER OF THE) (?:ROOF|HOUSE))S?\b(?!['’])(?! (?:IS |ARE )?(?:TO|WILL|SHALL) (?:REMAIN|STAY)\b)`);
   const PW_ROOF1 = /\bRE[- ]?ROOF|\bROOF|\bRE[- ]?SHINGL|\bSHINGLE/;
   /* a roof word tied to part of the house: a roof (or its replacement, work, system or covering) on, over, at or of an addition, a
-     dormer, a lean to, a camelback or an attached shed, unless the text goes on to the house or the main roof, or such a part's own
+     dormer, a lean to or an attached shed, unless the text goes on to the house or the main roof, or such a part's own
      roof or reroof, unless the house comes first in the list ('house and addition roof replacement'), or the roof such a part is built
      with ('rear addition with new roof'), unless that roof goes on over the house or the house comes first in the list. A permit whose replacement
      wording is all on such roofs is a partial reroof unless the rest of the text names the whole roof or the house's roof. */
-  const PW_PARTN = String.raw`(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|CAMEL.?BACK|ATTACHED SHED|DORMER)S?`;
-  const PW_HOUSEC = String.raw`(?:AND|&|PLUS) (?:(?:ON|OVER|TO|AT) )?(?:THE )?(?:(?:(?:MAIN|EXISTING|ORIGINAL|OLD|HISTORIC|FRONT|ENTIRE|WHOLE|ONE|TWO|1|2|STORY|SINGLE|FAMILY|[A-Z]+-(?:STORY|FAMILY)|SHOTGUN|CREOLE|DOUBLE) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING|SHOTGUN(?! (?:HOUSE|HOME|RESIDENCE|DWELLING|COTTAGE|DOUBLE|SINGLE)S?\b)|DUPLEX|COTTAGE|(?:DOUBLE|SINGLE)(?=\s*(?:[.;,)]|$)))|(?:MAIN|ENTIRE|WHOLE|REST OF THE|REMAINDER OF THE) (?:ROOF|HOUSE))S?\b(?!['’])(?! (?:ROOFS? )?(?:(?:IS|ARE|WILL|SHALL|MUST|TO|DOES|DO|BE|BEING) )*(?:NOT|REMAIN|STAY|EXCLUDED)\w*\b)`;
+  const PW_PARTN = String.raw`(?:ADDITION(?!AL)|ADDITIONAL (?:AREA|SPACE|ROOM|SQUARE FOOTAGE)|LEAN.?TO|ATTACHED SHED|DORMER)S?`;
+  const PW_HOUSEC = String.raw`(?:AND|&|PLUS) (?:(?:ON|OVER|TO|AT) )?(?:THE )?(?:(?:(?:MAIN|EXISTING|ORIGINAL|OLD|HISTORIC|FRONT|ENTIRE|WHOLE|ONE|TWO|1|2|STORY|SINGLE|FAMILY|[A-Z]+-(?:STORY|FAMILY)|DOUBLE) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING|DUPLEX|COTTAGE|(?:DOUBLE|SINGLE)(?=\s*(?:[.;,)]|$)))|(?:MAIN|ENTIRE|WHOLE|REST OF THE|REMAINDER OF THE) (?:ROOF|HOUSE))S?\b(?!['’])(?! (?:ROOFS? )?(?:(?:IS|ARE|WILL|SHALL|MUST|TO|DOES|DO|BE|BEING) )*(?:NOT|REMAIN|STAY|EXCLUDED)\w*\b)`;
   /* the house words right after the part, as round 8 read them (a house that starts a new clause there is a known miss) */
   const PW_HOUSE0 = String.raw`(?:AND|&|PLUS) (?:(?:ON|OVER|TO|AT) )?(?:THE )?(?:(?:(?:MAIN|EXISTING|ORIGINAL|OLD|HISTORIC|FRONT|ENTIRE|WHOLE|ONE|TWO|1|2|STORY|SINGLE|FAMILY|[A-Z]+-(?:STORY|FAMILY)) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING)|(?:MAIN|ENTIRE|WHOLE|REST OF THE|REMAINDER OF THE) (?:ROOF|HOUSE))S?\b(?!['’])(?! (?:ROOFS? )?(?:(?:IS|ARE|WILL|SHALL|MUST|TO|DOES|DO|BE|BEING) )*(?:NOT|REMAIN|STAY|EXCLUDED)\w*\b)`;
   /* a house named after a part ends its list item: more accessories or roof components, its roof, then the end of the clause, a comma,
      bracket, dash, colon, number or a preposition; anything else (a verb, other work) starts a new clause or names other work */
   const PW_HEND = String.raw`(?=(?:(?:,|,? (?:AND|&|PLUS)) (?:(?:THE|A|AN|ALL|BOTH|ITS|NEW|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*(?:${PW_ACCN}|PORCHES|GALLERIES|BALCONIES|GUTTERS?|DOWNSPOUTS?|FLASHINGS?|DRIP EDGES?|DECKING|SHEATHING|UNDERLAYMENT|FASCIAS?|SOFFITS?|VENTS?|SKYLIGHTS?)\b)*(?:(?: (?:ROOF(?:ING|S)?|SHINGLES|UNITS?)(?: (?:COVERING|SYSTEM)S?)?)(?:(?:,|,? (?:AND|&|PLUS)) (?:(?:THE|A|AN|ALL|BOTH|ITS|NEW|EXISTING|REAR|FRONT|BACK|SIDE|DETACHED|COVERED|SMALL) )*(?:${PW_ACCN}|PORCHES|GALLERIES|BALCONIES|GUTTERS?|DOWNSPOUTS?|FLASHINGS?|DRIP EDGES?|DECKING|SHEATHING|UNDERLAYMENT|FASCIAS?|SOFFITS?|VENTS?|SKYLIGHTS?)\b)*)?(?:\s*(?:[.;,()/+:]|$)|\s+[-–]| (?:\d|W/|(?:WHICH|THAT|WHO|WITH|PER|AS|USING|ACCORDING|DUE|DAMAGED|AFTER|DURING|FROM|BY|IN|ON|AT|OF|FOR|OVER|UNDER|THROUGHOUT|INCLUDING|EXCEPT|ONLY|BOTH|COMPLETE|COMPLETELY|ENTIRELY|FULLY|TOTALLY|APPROX\w*|ABOUT|TO (?:MATCH|(?:[A-Z]+ )?CODE)|MATCHING|MEETING|TOTAL\w*|WITHIN|FOLLOWING|BECAUSE|TOO|ALSO(?=\s*(?:[.;,)]|$)))\b)))`;
-  const PW_TIE = new RegExp(String.raw`\b(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)?)(?=(?: (?:AND|&) (?:NEW |EXTERIOR )?(?:SIDING|WALLS?|WINDOWS?|TRIM|FASCIA|SOFFITS?|GUTTERS?|DOWNSPOUTS?|FRAMING|SHEATHING|DOORS?|DECKING|RAFTERS?|JOISTS?|CEILINGS?|FLOORS?|FLOORING|STRUCTURE|SHINGLES|INSULATION|PLYWOOD|DRYWALL|SHEETROCK|FLASHINGS?|WEATHER ?BOARDS?|WEATHERBOARDING|STUCCO|CLADDING|UNDERLAYMENT|FELT|SKYLIGHTS?|SHUTTERS?|VENTS?|EAVES|CORNICES?|RAILINGS?|COLUMNS?|PARAPETS?|BEAMS?|TRUSSES)(?= (?:ON|OVER|AT|OF|FOR|TO|ABOVE) (?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*(?!THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT |DORMER))| (?:SHINGLE |TILE |SLATE )?(?:REPLACEMENT|WORK|SYSTEM|COVERING|SHINGLES|MATERIALS?)|(?: DAMAGED (?:BY|IN|DURING|FROM|AFTER) [^.;,~]{0,30}?,?)? (?:(?:ALSO |STILL )?(?:WILL|SHALL|MUST|IS|ARE) (?:ALSO )?BE(?:ING)?|(?:HAS|HAVE|NEEDS?|IS|ARE) TO BE|TO BE|BEING) (?:(?:COMPLETELY|ENTIRELY|FULLY|TOTALLY) )?(?:(?:REMOVED|TORN OFF|STRIPPED) (?:AND|&) )?REPLACED)? (?:ON|OVER|AT|OF|FOR|TO|ABOVE) (?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*${PW_PARTN}\b(?! OF\b)(?! ${PW_HOUSE0})(?!,? (?:ADDITIONS?,? )?${PW_HOUSEC}${PW_HEND}))|(?<=\b${PW_PARTN} (?:(?:FLAT|METAL|SHINGLE|TIN|SHED|GABLE) )?)(?<!\b(?:(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING|SHOTGUN|DOUBLE|SINGLE|DUPLEX|COTTAGE|FAMILY)S? (?:ROOFS? )?|(?:FRONT|UPPER|ORIGINAL|EXISTING|OLD) (?:(?:SLATE|SHINGLE|TILE|METAL) )?ROOFS? )(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT) )*${PW_PARTN} (?:(?:FLAT|METAL|SHINGLE|TIN|SHED|GABLE) )?)(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)?)\b|(?<=\b${PW_PARTN} WITH (?:(?:A|AN|ITS OWN|ITS|NEW|METAL|SHINGLE|SHINGLED|FLAT|TIN|GABLE|HIP|SHED|PITCHED|ASPHALT|ARCHITECTURAL|STANDING SEAM) ){0,4})(?<!\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING|SHOTGUN|DOUBLE|SINGLE(?!(?<=(?:^|[.;:] ?|\b(?:CONSTRUCT\w*|BUILD\w*|ADD\w*|ERECT\w*|NEW|PROPOSED)(?: OF)?(?: AN?)?(?: NEW)? )SINGLE)(?: AND| &|,) (?:TWO|2|THREE|3|DOUBLE)[- ]STOR(?:Y|IES)\b)|DUPLEX|COTTAGE|FAMILY)S? (?:ROOFS? )?(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT|SECOND|2ND|[A-Z0-9]+-STORY|CAMEL.?BACK) )*${PW_PARTN} WITH (?:(?:A|AN|ITS OWN|ITS|NEW|METAL|SHINGLE|SHINGLED|FLAT|TIN|GABLE|HIP|SHED|PITCHED|ASPHALT|ARCHITECTURAL|STANDING SEAM) ){0,4})(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)?)\b(?! (?:ON|OVER|AT|OF|FOR|TO|ABOVE|COVERING|ACROSS|(?:EXTENDING|EXTENDED|CONTINUING|CONTINUED) (?:OVER|ACROSS|ONTO|TO)) (?:THE |AN? )?(?:(?:ENTIRE|WHOLE|MAIN|EXISTING|ORIGINAL|OLD|PRIMARY) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING)\b)`, 'g');
+  const PW_TIE = new RegExp(String.raw`\b(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)?)(?=(?: (?:AND|&) (?:NEW |EXTERIOR )?(?:SIDING|WALLS?|WINDOWS?|TRIM|FASCIA|SOFFITS?|GUTTERS?|DOWNSPOUTS?|FRAMING|SHEATHING|DOORS?|DECKING|RAFTERS?|JOISTS?|CEILINGS?|FLOORS?|FLOORING|STRUCTURE|SHINGLES|INSULATION|PLYWOOD|DRYWALL|SHEETROCK|FLASHINGS?|WEATHER ?BOARDS?|WEATHERBOARDING|STUCCO|CLADDING|UNDERLAYMENT|FELT|SKYLIGHTS?|SHUTTERS?|VENTS?|EAVES|CORNICES?|RAILINGS?|COLUMNS?|PARAPETS?|BEAMS?|TRUSSES)(?= (?:ON|OVER|AT|OF|FOR|TO|ABOVE) (?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*(?!THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT |DORMER))| (?:SHINGLE |TILE |SLATE )?(?:REPLACEMENT|WORK|SYSTEM|COVERING|SHINGLES|MATERIALS?)|(?: DAMAGED (?:BY|IN|DURING|FROM|AFTER) [^.;,~]{0,30}?,?)? (?:(?:ALSO |STILL )?(?:WILL|SHALL|MUST|IS|ARE) (?:ALSO )?BE(?:ING)?|(?:HAS|HAVE|NEEDS?|IS|ARE) TO BE|TO BE|BEING) (?:(?:COMPLETELY|ENTIRELY|FULLY|TOTALLY) )?(?:(?:REMOVED|TORN OFF|STRIPPED) (?:AND|&) )?REPLACED)? (?:ON|OVER|AT|OF|FOR|TO|ABOVE) (?:THE |AN? |EXISTING |REAR |SIDE |BACK |FRONT |NEW |OLD |ONE |1 |TWO |2 |STORY |FLAT )*${PW_PARTN}\b(?! OF\b)(?! ${PW_HOUSE0})(?!,? (?:ADDITIONS?,? )?${PW_HOUSEC}${PW_HEND}))|(?<=\b${PW_PARTN} (?:(?:FLAT|METAL|SHINGLE|TIN|SHED|GABLE) )?)(?<!\b(?:(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING|DOUBLE|SINGLE|DUPLEX|COTTAGE|FAMILY)S? (?:ROOFS? )?|(?:FRONT|UPPER|ORIGINAL|EXISTING|OLD) (?:(?:SLATE|SHINGLE|TILE|METAL) )?ROOFS? )(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT) )*${PW_PARTN} (?:(?:FLAT|METAL|SHINGLE|TIN|SHED|GABLE) )?)(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)?)\b|(?<=\b${PW_PARTN} WITH (?:(?:A|AN|ITS OWN|ITS|NEW|METAL|SHINGLE|SHINGLED|FLAT|TIN|GABLE|HIP|SHED|PITCHED|ASPHALT|ARCHITECTURAL|STANDING SEAM) ){0,4})(?<!\b(?:HOUSE|HOME|RESIDENCE|DWELLING|MAIN|STRUCTURE|BUILDING|DOUBLE|SINGLE(?!(?<=(?:^|[.;:] ?|\b(?:CONSTRUCT\w*|BUILD\w*|ADD\w*|ERECT\w*|NEW|PROPOSED)(?: OF)?(?: AN?)?(?: NEW)? )SINGLE)(?: AND| &|,) (?:TWO|2|THREE|3|DOUBLE)[- ]STOR(?:Y|IES)\b)|DUPLEX|COTTAGE|FAMILY)S? (?:ROOFS? )?(?:AND|&|PLUS) (?:THE )?(?:(?:REAR|SIDE|BACK|FRONT|NEW|EXISTING|ORIGINAL|OLD|ONE|1|TWO|2|STORY|FLAT|SECOND|2ND|[A-Z0-9]+-STORY) )*${PW_PARTN} WITH (?:(?:A|AN|ITS OWN|ITS|NEW|METAL|SHINGLE|SHINGLED|FLAT|TIN|GABLE|HIP|SHED|PITCHED|ASPHALT|ARCHITECTURAL|STANDING SEAM) ){0,4})(?:RE[- ]?ROOF(?:ING|ED)?|ROOF(?:ING|S)?)\b(?! (?:ON|OVER|AT|OF|FOR|TO|ABOVE|COVERING|ACROSS|(?:EXTENDING|EXTENDED|CONTINUING|CONTINUED) (?:OVER|ACROSS|ONTO|TO)) (?:THE |AN? )?(?:(?:ENTIRE|WHOLE|MAIN|EXISTING|ORIGINAL|OLD|PRIMARY) )*(?:HOUSE|HOME|RESIDENCE|DWELLING|STRUCTURE|BUILDING)\b)`, 'g');
   const PW_WHOLER = new RegExp(String.raw`\b(?:ENTIRE|WHOLE|FULL|COMPLETE)\b[^.;]{0,20}\bROOF|\bMAIN ROOF|\bROOF(?:ING|S)? (?:ON|OF|OVER|FOR) (?:THE )?(?:ENTIRE |WHOLE |MAIN |ORIGINAL |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING)\b|\bRE[- ]?ROOF(?:ING|ED)? (?:OF )?(?:THE )?(?:ENTIRE |WHOLE |MAIN |EXISTING )?(?:HOUSE|HOME|RESIDENCE|DWELLING|BUILDING)\b|(?<!(?<!(?:\bAND|&|\bPLUS) (?:THE |A )?(?:DETACHED |REAR |FRONT |BACK |SIDE )?)\b${PW_ACCN} (?:(?:FLAT|METAL|SHINGLE|SLATE|TIN|TILE) )?)(?<!\b(?:NO|NONE OF|NO (?:PART|PORTION|SECTION) OF|NOTHING (?:ON|OF)) (?:(?:EXISTING|THE|MAIN) )?(?:(?:FLAT|METAL|SHINGLE|SLATE|TIN|TILE) )?)\bROOF(?:ING|S)?\b(?![- ]?(?:DECK|SHEATH|FRAM|STRUCT|JOIST|RAFTER|TRUSS|VENT|FLASH|GUTTER|DRAIN|JACK|PENETRAT|EDGE|CAP|HATCH|CURB|INSUL|COAT|LINE|SURFACE|REPAIR|LEAK|PATCH|DAMAGE(?!D (?:BY|IN|DURING|FROM|AFTER) [^.;,~]{0,30}?,? (?:TO BE|WILL BE|SHALL BE|IS BEING|ARE BEING|BEING) )))(?:(?! (?:NOT|NEVER|MAY|MIGHT|COULD|BE|${PW_ACC}|${PW_PARTN}|PORTION|SECTION|PART|AREA)S?\b)[^.;~]){0,30}\b(?:TO BE|WILL BE|SHALL BE|IS BEING|ARE BEING|BEING) (?:(?:COMPLETELY|ENTIRELY|FULLY|TOTALLY) )?(?:(?:REMOVED|TORN OFF|STRIPPED) (?:AND|&) )?(?:REPLACED|RE-?ROOFED)\b(?!,? \(?(?:AS (?:NEEDED|NECESSARY|REQUIRED(?! BY))|WHERE|IF|(?:ONLY )?WHEN (?:NEEDED|NECESSARY|REQUIRED)|ONLY (?:WHERE|IF|AS (?:NEEDED|NECESSARY|REQUIRED(?! BY)))\b|IN (?:THE )?(?:(?:DAMAGED|AFFECTED|DETERIORATED|ROTTED|ROTTEN|LEAKING|SOME|VARIOUS|SEVERAL|CERTAIN|BAD|WORN) )?(?:AREAS?|PLACES?|SECTIONS?|SPOTS?|LOCATIONS?)\b|IN[- ]KIND WHERE|AT (?:THE )?(?:DAMAGED|AFFECTED|LEAK)|AT A LATER DATE|IN THE FUTURE))`);
   function partOnly(d, R, F) { if (PW_WHOLE.test(d)) return false; const m = PW_PARTT.exec(d); return (!!m && m.index <= d.search(PW_ROOF1)) || ((R || F) && PW_PARTS.test(d)); }
   function permitW(p) {
     if (p.kind === 'newc') return 1;
     if (p.kind === 'mh') return 0.5;
+    if (p.kind === 'rebuild') return p.w || 0;
     /* boilerplate that forbids solar work is not solar work */
     const d = String(p.desc || '').toUpperCase().replace(/\bNO (NEW )?SOLAR[^.;]*|SOLAR[^.;]*NOT (BE )?ALLOWED[^.;]*/g, ' ');
     const R = PW_REPL.test(d) || (PW_INST.test(d) && !PW_EQUIP.test(d)), F = PW_REP.test(d), dm = R && p.kind !== 'reroof' ? d.replace(PW_TIE, 'R~F') : '';
@@ -553,75 +699,100 @@
   /* the weight a permit carries for one building: its text's weight, times its share when several buildings share its address */
   const permitE = p => (p.w || 0) * (p.share || 1);
   const isReroof = p => p.kind !== 'newc' && permitE(p) >= 0.6;
+  /* CAL FIRE's damage classes, as chances the roof needs a roofer */
+  const DINS_W = { 'Destroyed (>50%)': 1, 'Major (26-50%)': 0.85, 'Major (25-50%)': 0.85, 'Minor (10-25%)': 0.55, 'Affected (1-9%)': 0.3, 'Affected (>0-10%)': 0.3 };
+  const dinsClass = d => (/^Destroyed/i.test(d) ? 'destroyed' : /^Major/i.test(d) ? 'major damage' : /^Minor/i.test(d) ? 'minor damage' : /^Affected/i.test(d) ? 'affected' : /^No Damage/i.test(d) ? 'no damage' : /^Inaccessible/i.test(d) ? 'inaccessible' : String(d || '').toLowerCase());
+  const dinsW = d => (/^Destroyed/i.test(d) ? 1 : /^Major/i.test(d) ? 0.85 : /^Minor/i.test(d) ? 0.55 : /^Affected/i.test(d) ? 0.3 : 0);
+  /* the share of destroyed homes that come back with a new roof (the atlas's rebuild share; module 17) */
+  const FIRE_RB = clamp(+ANCH.fire_rb || 0.6, 0.1, 1);
   function read(b) {
-    b.roof = roofOf(b);
-    const rf = b.roof, keys = rf.keys || [];
     /* the start of the clock: the year built on file, or the ZIP's mix of years */
     let starts, prior = null;
-    if (b.yb) { starts = [[b.yb, 1]]; b.ybMid = b.yb; }
+    if (b.yb) { starts = [[b.yb, 1]]; b.ybMid = b.yb; b.prior = null; }
     else { prior = ybPrior(b); starts = []; prior.forEach((w, i) => { if (w > 1e-4) sampleYears(i).forEach(y => starts.push([y, w / 3])); }); b.ybMid = Math.round(sum(starts.map(s => s[0] * s[1]))); b.prior = prior; }
+    /* the covering on record, newest evidence first: the words of the last strong roof permit, CAL FIRE's inspection (when
+       the building was not destroyed), the assessor's roll (Riverside) */
+    const rpAll = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.3).sort((x, y) => x.y - y.y);
+    const lastCov = rpAll.filter(p => p.cov && permitE(p) >= 0.6).pop();
+    const dz = b.dins || null, burned = dz && /^Destroyed/i.test(dz.dmg) ? dz : null;
+    b.cover = lastCov ? Object.assign({ src: 'permit', at: lastCov.d }, lastCov.cov) : dz && !burned && dinsRoof(dz.roof) ? { k: dinsRoof(dz.roof), src: 'dins', at: dz.d } : b.parcel && b.parcel.roofK ? { k: b.parcel.roofK, src: 'roll', raw: b.parcel.roof } : null;
+    b.roof = roofOf(b);
+    const rf = b.roof, keys = rf.keys || [];
     const zip = b.zip || b.zipF || '';
     const stateFrom = list => keys.length ? mixStates(list.flatMap(([y, w]) => keys.map(([k, kw]) => [rstate(k, zip, Math.min(THIS_YEAR, Math.round(y))), w * kw]))) : Object.assign({}, ZERO);
     let st = stateFrom(starts);
     /* the same mix as a list (covering, the year the clock started, weight), for the outlook's years ahead */
     const mixOf = list => list.flatMap(([y, w]) => keys.map(([k, kw]) => [k, Math.min(THIS_YEAR, Math.round(y)), w * kw])); let mix = mixOf(starts);
-    /* roof permits, oldest first: each restarts the clock by its weight, so a reroof followed by a repair keeps both. The
+    /* roof permits, oldest first: each restarts the clock by its weight, so a re-roof followed by a repair keeps both. The
        builder's roof is still on only if no permit replaced it (pOrig); pPerm is the chance the roof of the last strong
-       permit (weight 0.6 or more) is still on, worn down by any weaker permit after it. */
-    const rp = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.3).sort((x, y) => x.y - y.y);
+       permit (weight 0.6 or more) is still on, worn down by any weaker permit after it. A structure CAL FIRE recorded as
+       destroyed is read the same way: if it was rebuilt (the atlas's rebuild share), its roof dates from about two years
+       after the fire. */
+    const rp = rpAll.slice();
+    if (burned && burned.y && NOW - burned.y > 1.5 && !b.permits.some(p => p.y > burned.y && (isReroof(p) || p.kind === 'newc'))) rp.push({ kind: 'rebuild', y: Math.min(NOW, burned.y + 2), d: '', w: FIRE_RB, share: 1, desc: 'Rebuilt after the ' + burned.inc + ' fire', src: 'CAL FIRE damage inspection' });
+    rp.sort((x, y) => x.y - y.y);
     const strong = rp.filter(p => permitE(p) >= 0.6).pop() || null;
-    if (keys.length) rp.forEach(p => { const w = permitE(p), fresh = stateFrom([[Math.floor(p.y), 1]]), o = {}; ST_KEYS.forEach(k => o[k] = w * fresh[k] + (1 - w) * st[k]); o.pOrig = (1 - w) * st.pOrig; o.pPerm = p === strong ? w * fresh.pOrig : (1 - w) * (st.pPerm || 0); const sy = new Map(); [[fresh, w], [st, 1 - w]].forEach(([s, ww]) => (s.storms || []).forEach(x => { const e = sy.get(x.y) || Object.assign({}, x, { share: 0 }); e.share += x.share * ww; sy.set(x.y, e); })); o.storms = [...sy.values()].sort((a, c) => c.share - a.share).slice(0, 3); st = o; mix = mixOf([[Math.floor(p.y), 1]]).map(m => [m[0], m[1], m[2] * w]).concat(mix.map(m => [m[0], m[1], m[2] * (1 - w)])); });
+    if (keys.length) rp.forEach(p => { const w = permitE(p), fresh = stateFrom([[Math.floor(p.y), 1]]), o = {}; ST_KEYS.forEach(k => o[k] = w * fresh[k] + (1 - w) * st[k]); o.pOrig = (1 - w) * st.pOrig; o.pPerm = p === strong ? w * fresh.pOrig : (1 - w) * (st.pPerm || 0); const sy = new Map(); [[fresh, w], [st, 1 - w]].forEach(([s, ww]) => (s.fires || []).forEach(x => { const e = sy.get(x.y) || Object.assign({}, x, { share: 0 }); e.share += x.share * ww; sy.set(x.y, e); })); o.fires = [...sy.values()].sort((a, c) => c.share - a.share).slice(0, 3); st = o; mix = mixOf([[Math.floor(p.y), 1]]).map(m => [m[0], m[1], m[2] * w]).concat(mix.map(m => [m[0], m[1], m[2] * (1 - w)])); });
     const last = rp.length ? rp[rp.length - 1] : null;
-    b.state = st; b.last = last; b.lastW = last ? permitE(last) : null; b.strong = strong;
+    b.state = st; b.last = last && last.kind !== 'rebuild' ? last : (rpAll.length ? rpAll[rpAll.length - 1] : null); b.lastW = b.last ? permitE(b.last) : null; b.strong = strong;
     { const m = new Map(); mix.forEach(([k, y, w]) => { if (w > 1e-5) m.set(k + '|' + y, (m.get(k + '|' + y) || 0) + w); }); b.mix = [...m].map(([k, w]) => { const [kk, y] = k.split('|'); return [kk, +y, w]; }); }
-    /* wind and hail since the roof went on: NOAA reports within 5 km in the last three years, and hurricanes or tropical
-       storms that reached the ZIP in the last three; a reroof permit after the event closes most of it, and nothing from
-       before a building's year on file counts. Reports of one storm (hail, or wind and tornadoes, in the same month and on
-       the same weekday within three hours) count once, at the strongest: reports cluster in towns and along roads. */
+    /* wind and hail since the roof went on: NOAA and Weather Service reports within 5 km in the last three years; a re-roof
+       permit after the event closes most of it, and nothing from before a building's year on file counts. Reports of one
+       storm (hail, or wind and tornadoes, in the same month and on the same weekday within three hours) count once, at
+       the strongest: reports cluster in towns and along roads. */
     const ev = eventsNear(b.lat, b.lon); b.ev = ev;
-    const born = b.yb && (b.ybSrc === 'parcel' || b.ybSrc === 'permit') ? b.yb : null;
-    const hm = keys.reduce((s, [k, w]) => s + (HMAT[k] || 1) * w, 0) || 0, wm = keys.reduce((s, [k, w]) => s + (SMAT[k] || 1) * w, 0) || 0;
+    const born = b.yb && (b.ybSrc === 'parcel' || b.ybSrc === 'permit' || b.ybSrc === 'dins') ? b.yb : null;
+    const hm = keys.reduce((s, [k, w]) => s + ((RTYPE[k] || RTYPE.shingle).hail[0]) * w, 0) || 0, wm = keys.reduce((s, [k, w]) => s + ((RTYPE[k] || RTYPE.shingle).wind) * w, 0) || 0;
     const after = t => b.permits.some(p => (isReroof(p) || p.kind === 'newc') && p.y > t);
-    let keepH = 1, hailTop = null, keepW = 1, windTop = null;
-    const days = [];
+    let keepW = 1, windTop = null; const days = [];
     ev.forEach(e => {
       if (born && e.t < born) return;
-      const g = e.k === 0 ? 0 : 1, d = g === 0 ? hailDmg(e.mag) * clamp(1 - e.km / 5, 0, 1) * recency(e.ago) * hm * (after(e.t) ? 0.15 : 1) : windDmg(e) * clamp(1 - e.km / (e.k === 1 ? 3 : 1.5), 0, 1) * recency(e.ago) * wm * (after(e.t) ? 0.15 : 1);
+      const g = e.k === 0 ? 0 : 1, d = g === 0 ? hailDmg(e.mag) * clamp(1 - e.km / 5, 0, 1) * recency(e.ago) * hm * (after(e.t) ? 0.15 : 1) : windDmg(e) * clamp(1 - e.km / (e.k === 2 ? 1.5 : 3), 0, 1) * recency(e.ago) * wm * (after(e.t) ? 0.15 : 1);
       if (!(d > 0)) return;
       const o = days.find(x => x.g === g && x.e.y === e.y && x.e.m === e.m && x.e.dw === e.dw && Math.abs((+x.e.h || 0) - (+e.h || 0)) <= 3);
       if (!o) days.push({ g, e, d }); else if (d > o.d) { o.e = e; o.d = d; }
     });
-    days.forEach(({ g, e, d }) => { if (g === 0) { keepH *= 1 - d; if (!hailTop || d > hailTop.d) hailTop = { e, d }; } else { keepW *= 1 - d; if (!windTop || d > windTop.d) windTop = { e, d }; } });
-    stormsAt(zip).filter(s => THIS_YEAR - s.y <= 3 && s.list.length && !(born && s.y < born)).forEach(s => { const t = s.y + 0.7, ago = NOW - t, d = Math.min(0.95, Math.max(s.d * 1.5, s.dw * 0.5)) * wm * unrep(ago) * (after(t) ? 0.15 : 1);   /* replacements and repairs */ if (d > 0) { keepW *= 1 - d; if (!windTop || d > windTop.d) windTop = { s, d }; } });
-    const HAIL = keys.length ? clamp(1 - keepH, 0, 0.6) : 0, WIND = keys.length ? clamp(1 - keepW, 0, 0.6) : 0;
+    days.forEach(({ e, d }) => { keepW *= 1 - d; if (!windTop || d > windTop.d) windTop = { e, d }; });
+    const WIND = keys.length ? clamp(1 - keepW, 0, 0.6) : 0;
+    /* fire: CAL FIRE's inspection of this building in the last four years (a destroyed home is a rebuild roof at the
+       atlas's rebuild share, spread over the four years after the fire; a damaged roof a repair or a replacement, most of
+       it closed within three years or by a later permit) */
+    let FIRE = 0;
+    if (dz && dz.y && keys.length) { const ago = NOW - dz.y, w0 = dinsW(dz.dmg); if (burned) FIRE = ago <= 4.5 && !after(dz.y) ? FIRE_RB * clamp(1 - Math.max(0, ago - 1) / 4, 0.15, 1) : 0; else if (w0 > 0) FIRE = w0 * recency(Math.max(0, ago)) * (after(dz.y) ? 0.15 : 1); }
+    FIRE = clamp(FIRE, 0, 0.9);
     const P5 = keys.length ? st.p5 : 0, REP = keys.length ? st.rep : 0;
-    const need = clamp((1 - (1 - P5) * (1 - REP) * (1 - HAIL) * (1 - WIND)) * rf.factor, 0, 1);
-    b.sc = { P5, REP, HAIL, WIND, need, score: Math.round(need * 100), hailTop, windTop };
+    const need = clamp((1 - (1 - P5) * (1 - REP) * (1 - WIND) * (1 - FIRE)) * rf.factor, 0, 1);
+    b.sc = { P5, REP, WIND, FIRE, HAIL: 0, need, score: Math.round(need * 100), windTop };
     /* what the work most likely is */
-    const opts = [['replace', P5], ['repair', REP * 1.5], ['storm', WIND * 1.4], ['hail', HAIL * 1.4]].sort((x, y) => y[1] - x[1]);
-    const nk = !keys.length || rf.factor < 0.1 ? 'none' : opts[0][0];
+    const opts = [['replace', P5], ['repair', REP * 1.5], ['storm', WIND * 1.4], ['fire', FIRE * 1.6]].sort((x, y) => y[1] - x[1]);
+    let nk = !keys.length || rf.factor < 0.1 ? 'none' : opts[0][0];
+    const tileTop = rf.mat === 'tile'; if (nk === 'replace' && tileTop) nk = 'tile';
     const reset = !!strong, permAge = reset ? Math.round(NOW - strong.y) : 0;
-    const top = (st.storms || [])[0], topS = top && top.si != null ? SIDS[top.si] : null;
+    const topF = (st.fires || [])[0];
     /* the builder's roof: its chance (pOrig, which no permit raises) and the building's age, not the clock's */
     const original = !reset && st.pOrig >= 0.35 && THIS_YEAR - (b.yb || b.ybMid || THIS_YEAR) >= 15;
-    const wl = windTop ? (windTop.s ? `Wind damage: ${stormName(windTop.s.list[0].s)} reached this ZIP at about ${ktMph0(windTop.s.list[0].kt)} mph` : `Wind damage: ${evLabel(windTop.e)} reported ${D(windTop.e.km, 1)} km ${windTop.e.dir}, ${evWhen(windTop.e)}`) : 'Wind damage';
-    const hl = hailTop ? `Hail damage: ${evLabel(hailTop.e)} reported ${D(hailTop.e.km, 1)} km ${hailTop.e.dir}, ${evWhen(hailTop.e)}` : 'Hail damage';
-    b.need = { k: nk, l: nk === 'replace' ? (reset && permAge >= 12 ? `Replacement: the roof put on around ${Math.floor(strong.y)} is about ${permAge} years old` : original ? 'Replacement: the builder\'s original roof is likely' : topS && top.share >= 0.25 && THIS_YEAR - top.y >= 13 ? `Replacement: a roof from the ${stormName(topS)} rebuild is likely` : st.pOld20 >= 0.4 ? 'Replacement: a roof 20 years or older is likely' : 'Replacement') : nk === 'repair' ? 'Repair: leaks, worn flashing or a tired section' : nk === 'storm' ? wl : nk === 'hail' ? hl : 'No roofing work expected' };
+    const wl = windTop ? `Wind or hail damage: ${evLabel(windTop.e)} reported ${D(windTop.e.km, 1)} km ${windTop.e.dir}, ${evWhen(windTop.e)}` : 'Wind or hail damage';
+    const fl = dz ? (burned ? `Fire rebuild: CAL FIRE recorded this structure destroyed in the ${dz.inc} fire (${dz.d ? monthYear(dz.d) : Math.floor(dz.y)})` : `Fire damage: CAL FIRE recorded ${dinsClass(dz.dmg)} here in the ${dz.inc} fire (${dz.d ? monthYear(dz.d) : Math.floor(dz.y)})`) : 'Fire damage';
+    b.need = { k: nk, l: nk === 'tile' ? (reset && permAge >= 12 ? `Tile lift and relay: the underlayment laid around ${Math.floor(strong.y)} is about ${permAge} years old` : original && st.pOld25 >= 0.4 ? 'Tile lift and relay: the original underlayment is likely, and 25 years or older' : 'Tile lift and relay: new underlayment under the same tile')
+      : nk === 'replace' ? (reset && permAge >= 12 ? `Replacement: the roof put on around ${Math.floor(strong.y)} is about ${permAge} years old` : original ? 'Replacement: the builder\'s original roof is likely' : topF && topF.share >= 0.25 && THIS_YEAR - topF.y >= 13 ? `Replacement: a roof from the ${topF.y} fire rebuild is likely` : st.pOld20 >= 0.4 ? 'Replacement: a roof 20 years or older is likely' : 'Replacement')
+      : nk === 'repair' ? 'Repair: leaks, worn flashing or a tired section' : nk === 'storm' ? wl : nk === 'fire' ? fl : 'No roofing work expected' };
     /* the atlas's service lines it falls under, by segment as module 12 counts them: manufactured homes and buildings of
-       five or more units only in their own lines, commercial roofs in the commercial and coating lines (which carry their
-       own wind and hail), one to four unit homes in the residential lines with the top need's line first */
+       five or more units only in their own lines, commercial roofs in the commercial and coating lines, one to four unit
+       homes in the residential lines with the top need's line first */
     const L = [], add = id => { if (!L.includes(id) && SLM.LI && SLM.LI[id]) L.push(id); };
     const resi = b.cls === 'sf' || b.cls === 'garage' || b.cls === 'shed' || (b.cls === 'mf' && (rf.units || 0) <= 4), bigMF = b.cls === 'mf' && (rf.units || 0) > 4;
     const comm = !resi && !bigMF && b.cls !== 'mh' && keys.length > 0, lowRoof = rf.mat === 'low' || rf.mat === 'mbldg';
+    const zoneHi = b.fhsz ? b.fhsz.cls >= 2 : !!(b.z && wxCol(b.z, 'fhszHV') >= 50);
     if (b.cls === 'mh') add('mh');
     else if (bigMF) add('mf');
     else if (comm) { add(nk === 'repair' && lowRoof ? 'coat' : 'comm'); if (lowRoof && st.age >= 8 && st.pOld20 < 0.55) add('coat'); }
     else if (resi && keys.length) {
+      if (FIRE >= 0.04) add('fire');
       if (WIND >= 0.04) add('storm');
-      if (HAIL >= 0.04) add('hail');
-      if (nk === 'replace') { add(rf.metalP >= 0.5 ? 'metal' : 'replace'); if (b.cls === 'sf' && (b.yb || b.ybMid || 0) < 2020) add('fortified'); if (rf.metalP < 0.5 && rf.metalP >= 0.15) add('metal'); }
+      if (nk === 'replace' || nk === 'tile') { add(nk === 'tile' ? 'tile' : rf.metalP >= 0.5 ? 'metal' : 'replace'); if (nk !== 'tile' && rf.tileP >= 0.25) add('tile'); if (zoneHi && b.cls === 'sf') add('harden'); if (rf.metalP < 0.5 && rf.metalP >= 0.15) add('metal'); if (CK[b.id] && (CK[b.id].cues || []).includes('solar')) add('solar'); }
       if (REP >= 0.03) add('repair');
-      const first = nk === 'replace' ? (rf.metalP >= 0.5 ? 'metal' : 'replace') : nk, i = L.indexOf(first); if (i > 0) { L.splice(i, 1); L.unshift(first); }
+      if (zoneHi && b.cls === 'sf') add('harden');
+      const first = nk === 'tile' ? 'tile' : nk === 'replace' ? (rf.metalP >= 0.5 ? 'metal' : 'replace') : nk, i = L.indexOf(first); if (i > 0) { L.splice(i, 1); L.unshift(first); }
     }
     if (b.permits.some(p => p.kind === 'newc' && NOW - p.y < 1.5)) add('newc');
     b.lines = L.slice(0, 4);
@@ -635,6 +806,7 @@
 
   /* ---------- the store of buildings and tiles ---------- */
   const B = new Map(), T = new Map();
+  const ZIP_RE = /^9[0-6]\d{3}$/;
   function ingest(fc, t) {
     const out = [];
     (fc.features || []).forEach(f => {
@@ -645,82 +817,190 @@
       if (!b) {
         const rings = []; polys.forEach(poly => poly.forEach(r => rings.push(r.map(([lo, la]) => [la, lo]))));
         const bb = bboxOf(rings); let la = +p.LATITUDE, lo = +p.LONGITUDE; if (!isN(la) || !isN(lo) || !inBox(la, lo, [bb[0] - 0.001, bb[1] - 0.001, bb[2] + 0.001, bb[3] + 0.001])) { la = (bb[0] + bb[2]) / 2; lo = (bb[1] + bb[3]) / 2; }
-        const a = addrParts(p.PROP_ADDR);
+        /* FEMA's California footprints carry no address (none in 25 places sampled) and a height only where they come from
+           the 2010 to 2012 metro lidar (SOURCE NGA): the address comes from the parcel roll, a permit, CAL FIRE's
+           inspection or the geocoder, and a missing height is said, not guessed */
+        const a = addrParts(p.PROP_ADDR), zf = p.PROP_ZIP ? String(p.PROP_ZIP).slice(0, 5) : '';
         b = { id, bid: p.BUILD_ID, rings, bb, lat: la, lon: lo, occ: p.OCC_CLS || '', prim: p.PRIM_OCC || '', cls: classify(p), sqft: +p.SQFEET || 0, h: +p.HEIGHT || 0,
-          addr: p.PROP_ADDR ? String(p.PROP_ADDR) : '', addrSrc: p.PROP_ADDR ? 'fema' : '', akey: a.key, street: a.street, city: String(p.PROP_CITY || '').toUpperCase(), zipF: p.PROP_ZIP ? String(p.PROP_ZIP).slice(0, 5) : '',
-          yb: null, ybSrc: '', parcel: null, permits: [], tiles: new Set(), lay: null };
+          addr: p.PROP_ADDR ? String(p.PROP_ADDR) : '', addrSrc: p.PROP_ADDR ? 'fema' : '', akey: a.key, street: a.street, city: String(p.PROP_CITY || '').toUpperCase(), zipF: ZIP_RE.test(zf) ? zf : '',
+          fsrc: String(p.SOURCE || ''), img: p.IMAGE_DATE ? String(p.IMAGE_DATE).slice(0, 10) : '',
+          yb: null, ybSrc: '', parcel: null, permits: [], tiles: new Set(), lay: null, dins: null, fhsz: null, fire: null, cz: null };
         b.zip = (b.zipF && ZI[b.zipF] && ZPI[b.zipF] && inBox(la, lo, ZPI[b.zipF].bb) ? b.zipF : '') || zipAt(la, lo) || b.zipF;
         b.z = ZI[b.zip] || null; b.fips = b.z ? b.z.fips : null;
         B.set(id, b);
       }
       b.tiles.add(t.k); t.ids.add(id); out.push(b);
     });
-    /* FEMA gives a detached garage or a back house the main house's class and address: on a shared address, a small second
-       structure (under 900 sq ft and under 60% of the largest) is read as the accessory building it most likely is */
-    const by = {}; out.forEach(b => { if (b.akey && b.cls === 'sf') (by[b.akey] = by[b.akey] || []).push(b); });
-    Object.values(by).forEach(g => { if (g.length < 2) return; const main = g.reduce((m, b) => (b.sqft > m.sqft ? b : m), g[0]); g.forEach(b => { if (b !== main && b.sqft < 900 && b.sqft < 0.6 * main.sqft) { b.cls = 'garage'; b.acc = true; } }); });
     return out;
   }
   const quarters = box => { const mx = (box.w + box.e) / 2, my = (box.s + box.n) / 2; return [{ w: box.w, e: mx, s: box.s, n: my }, { w: mx, e: box.e, s: box.s, n: my }, { w: box.w, e: mx, s: my, n: box.n }, { w: mx, e: box.e, s: my, n: box.n }]; };
+  const padBox = (box, m) => { const dla = m / 110900, dlo = m / (111320 * Math.cos(rad((box.s + box.n) / 2))); return { w: box.w - dlo, e: box.e + dlo, s: box.s - dla, n: box.n + dla }; };
   async function fetchBuildings(box, depth) {
-    const u = EP.bldg + '?' + qs({ where: '1=1', geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: 'BUILD_ID,OCC_CLS,PRIM_OCC,PROP_ADDR,PROP_CITY,PROP_ZIP,HEIGHT,SQFEET,LATITUDE,LONGITUDE,UUID', returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'geojson' });
+    const u = EP.bldg + '?' + qs({ where: '1=1', geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: 'BUILD_ID,OCC_CLS,PRIM_OCC,PROP_ADDR,PROP_CITY,PROP_ZIP,HEIGHT,SQFEET,LATITUDE,LONGITUDE,UUID,SOURCE,IMAGE_DATE', returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'geojson' });
     const j = await getJSON(u, { timeout: 40000 });
-    /* the service sends at most 2,000 buildings and does not page: a fuller box is asked again as four quarters */
+    /* the service sends at most 2,000 buildings a request: a fuller box is asked again as four quarters */
     if (j.properties && j.properties.exceededTransferLimit && (depth || 0) < 2) {
       const parts = await Promise.all(quarters(box).map(x => fetchBuildings(x, (depth || 0) + 1)));
       return { features: parts.flatMap(p => p.features || []) };
     }
     return j;
   }
-  /* the parcel roll: every parcel in the tile with its shape, joined to the buildings whose centre falls inside it */
-  async function fetchParcels(box, depth) {
-    const u = EP.parcel + '?' + qs({ where: '1=1', geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: 'yearbuilt,address,numstories,usedesc,taxyear,county', returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'json' });
-    const j = await getJSON(u, { timeout: 40000 });
-    if (j.exceededTransferLimit && (depth || 0) < 2) return (await Promise.all(quarters(box).map(x => fetchParcels(x, (depth || 0) + 1)))).flat();
-    return (j.features || []).map(f => { const a = f.attributes || {}, rings = ((f.geometry && f.geometry.rings) || []).map(rg => rg.map(([lo, la]) => [la, lo])); const yb = parseInt(a.yearbuilt, 10);
-      return { rings, bb: rings.length ? bboxOf(rings) : null, yb: yb >= 1880 && yb <= THIS_YEAR ? yb : null, situs: a.address ? String(a.address).trim() : '', use: a.usedesc ? String(a.usedesc) : '', tax: a.taxyear ? String(a.taxyear) : '', parish: a.county ? title(String(a.county)) : '' }; });
+  /* one envelope query of an ArcGIS layer, quartered when the answer is cut off; rings come back as [lat, lon] */
+  async function arcBox(url, box, fields, extra, depth) {
+    const j = await getJSON(url + '?' + qs(Object.assign({ where: '1=1', geometry: env(box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: fields, returnGeometry: 'true', outSR: 4326, geometryPrecision: 6, f: 'json' }, extra || {})), { timeout: 40000 });
+    if (j.exceededTransferLimit && (depth || 0) < 2) return (await Promise.all(quarters(box).map(x => arcBox(url, x, fields, extra, (depth || 0) + 1)))).flat();
+    return (j.features || []).map(f => { const g = f.geometry || {}, rings = (g.rings || []).map(rg => rg.map(([lo, la]) => [la, lo])); return { a: f.attributes || {}, rings, bb: rings.length ? bboxOf(rings) : null, pt: isN(g.y) && isN(g.x) ? [g.y, g.x] : null }; });
   }
+  const txt = v => (v == null ? '' : String(v).replace(/\s+/g, ' ').trim());
+  /* the parcel roll of the tile's county: every parcel in the tile with its shape, joined to the buildings whose centre falls inside it */
+  async function fetchParcels(box, fips) {
+    const P = PARCEL[fips]; if (!P) return [];
+    let fs = await arcBox(P.url, box, P.f, P.q);
+    if (P.url2) fs = fs.concat(await arcBox(P.url2, box, P.f, P.q).catch(() => []));   /* Ventura keeps the homes built before 1955 in a second layer */
+    const seen = new Set(), out = [];
+    fs.forEach(x => { const o = P.m(x.a); o.situs = txt(o.situs); o.city = txt(o.city); o.use = txt(o.use); o.apn = txt(o.apn); o.roll = txt(o.roll) || P.roll || ''; o.rings = x.rings; o.bb = x.bb; o.county = P.n; o.noYb = !!P.noYb;
+      const k = o.apn + '|' + (o.bb ? o.bb.map(v => v.toFixed(5)).join(',') : ''); if (seen.has(k)) return; seen.add(k); out.push(o); });
+    /* Riverside: the year built and the roof covering sit in a table of buildings, asked by parcel number; the largest building speaks for the parcel */
+    if (P.table) { const pins = [...new Set(out.map(o => o.apn).filter(v => /^[0-9A-Z-]+$/i.test(v)))];
+      for (let i = 0; i < pins.length; i += 150) { const part = pins.slice(i, i + 150);
+        const j = await getJSON(P.table, { timeout: 40000, post: { where: `PIN IN (${part.map(v => `'${v}'`).join(',')})`, outFields: 'PIN,YEAR_BUILT,NUMBER_OF_STORIES,ROOF_TYPE,LIVING_AREA', returnGeometry: 'false', f: 'json' } });
+        const by = new Map(); (j.features || []).forEach(f => { const a = f.attributes || {}, cur = by.get(String(a.PIN)); if (!cur || (+a.LIVING_AREA || 0) > (+cur.LIVING_AREA || 0)) by.set(String(a.PIN), a); });
+        out.forEach(o => { const a = by.get(o.apn); if (!a) return; const y = yr4(a.YEAR_BUILT); o.yb = y && y > 1800 ? y : null; o.roof = txt(a.ROOF_TYPE); o.roofK = riversideRoof(a.ROOF_TYPE); o.stories = +a.NUMBER_OF_STORIES || 0; }); } }
+    return out;
+  }
+  /* San Francisco's assessor roll: one point a parcel (a condominium building has one a unit), newest closed roll */
+  const SF_ROLL = 2025;
+  function sfSitus(s) { const m = /^\s*\d{4}\s+(\d{4})[A-Z]?\s+(.+?)\s*([A-Z]{2})?\d{0,4}\s*$/.exec(String(s || '').toUpperCase()); if (!m || !+m[1]) return ''; const ty = { ST: 'ST', AV: 'AVE', BL: 'BLVD', DR: 'DR', CT: 'CT', WY: 'WAY', PL: 'PL', TR: 'TER', RD: 'RD', LN: 'LN', HY: 'HWY', CR: 'CIR', AL: 'ALY', PK: 'PARK', PZ: 'PLZ' }[m[3] || ''] || ''; return (+m[1]) + ' ' + m[2].replace(/\s+/g, ' ').trim() + (ty ? ' ' + ty : ''); }
+  async function fetchSfRoll(box) {
+    const j = await getJSON(EP.sfroll + '?' + qs({ $select: 'property_location,parcel_number,use_definition,property_class_code_definition,year_property_built,number_of_stories,number_of_units,the_geom', $where: `within_box(the_geom, ${box.n.toFixed(6)}, ${box.w.toFixed(6)}, ${box.s.toFixed(6)}, ${box.e.toFixed(6)}) AND closed_roll_year=${SF_ROLL}`, $limit: 5000 }), { timeout: 40000 });
+    return (Array.isArray(j) ? j : []).map(r => { const g = r.the_geom || {}, c = g.coordinates || (isN(+g.longitude) ? [+g.longitude, +g.latitude] : null); if (!c) return null; return { pt: [+c[1], +c[0]], rings: [], bb: null, yb: yr4(r.year_property_built), situs: sfSitus(r.property_location), city: 'San Francisco', use: txt(r.property_class_code_definition || r.use_definition), apn: txt(r.parcel_number), roll: String(SF_ROLL), units: +r.number_of_units || 0, stories: +r.number_of_stories || 0, county: 'San Francisco' }; }).filter(Boolean);
+  }
+  /* San Diego's roll gives the effective year as two digits: a year past this one's two digits is the 1900s; so is one on a
+     footprint FEMA drew from the 2010 to 2012 lidar when it is past 12; otherwise the ZIP's housing ages decide, and the card says so */
+  function sdYear(yy, b) { const n = parseInt(yy, 10); if (!(n >= 0)) return null; const cur = THIS_YEAR % 100; if (n > cur) return { y: 1900 + n, how: 'sure' }; if (b.fsrc === 'NGA' && n > 12) return { y: 1900 + n, how: 'lidar' }; const pr = ybPrior(b); return pr[binOf(2000 + n)] >= pr[binOf(1900 + n)] ? { y: 2000 + n, how: 'guess' } : { y: 1900 + n, how: 'guess' }; }
   function joinParcels(t, parcels) {
-    t.ids.forEach(id => { const b = B.get(id); if (!b || b.parcel) return; const p = parcels.find(q => q.bb && inBox(b.lat, b.lon, q.bb) && inRings(b.lat, b.lon, q.rings)); if (!p) return;
-      b.parcel = { yb: p.yb, situs: p.situs, use: p.use, tax: p.tax, parish: p.parish };
-      if (p.yb && !b.yb && b.cls !== 'garage' && b.cls !== 'shed') { b.yb = p.yb; b.ybSrc = 'parcel'; }
-      if (!b.addr && p.situs && /^\d/.test(p.situs)) { b.addr = p.situs; b.addrSrc = 'parcel'; const a = addrParts(p.situs); b.akey = a.key; b.street = a.street; } });
+    const polys = parcels.filter(q => q.bb), pts = parcels.filter(q => q.pt && !q.bb), groups = new Map();
+    const take = (b, p) => {
+      if (b.parcel && !(b.parcel.noYb && !p.noYb)) return;
+      b.parcel = { yb: p.yb || null, eff: p.eff || null, situs: p.situs, city: p.city, use: p.use, roll: p.roll, county: p.county, apn: p.apn, units: p.units || 0, roof: p.roof || '', roofK: p.roofK || '', stories: p.stories || 0, noYb: !!p.noYb, yy: p.yy || '', n: p.n || 1 };
+      let yb = p.yb, how = '';
+      if (!yb && p.yy) { const s = sdYear(p.yy, b); if (s) { yb = s.y; how = s.how; b.parcel.yb = yb; b.parcel.yyHow = how; } }
+      if (yb && yb <= THIS_YEAR && (!b.yb || b.ybSrc === 'dins') && b.cls !== 'garage' && b.cls !== 'shed') { b.yb = yb; b.ybSrc = 'parcel'; }
+      if (!b.h && p.stories > 0) { b.h = 3.2 * p.stories + 1.5; b.hSrc = 'stories'; }
+      if ((!b.addr || b.addrSrc === 'geocoder') && p.situs && /^\d/.test(p.situs)) { b.addr = p.situs; b.addrSrc = 'parcel'; if (p.city && !b.city) b.city = String(p.city).toUpperCase(); const a = addrParts(p.situs, p.city); b.akey = a.key; b.street = a.street; }
+    };
+    t.ids.forEach(id => { const b = B.get(id); if (!b) return; const pi = polys.findIndex(q => inBox(b.lat, b.lon, q.bb) && inRings(b.lat, b.lon, q.rings)); if (pi < 0) return; take(b, polys[pi]); const g = groups.get(pi) || []; g.push(b); groups.set(pi, g); });
+    /* a roll of points: each point goes to the building it falls in, else the main building nearest it within 12 m; a
+       building with several (condominiums) takes the earliest year and the count as its units */
+    if (pts.length) { const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), by = new Map();
+      pts.forEach(p => { let best = null, bd = 1e9; bs.forEach(b => { if (b.cls === 'shed') return; const d = edgeMeters(p.pt[0], p.pt[1], b) + (b.cls === 'garage' ? 6 : 0); if (d < bd) { bd = d; best = b; } }); if (best && bd <= 12) { const g = by.get(best) || []; g.push(p); by.set(best, g); } });
+      by.forEach((g, b) => { const ys = g.map(p => p.yb).filter(Boolean), first = g.find(p => p.situs) || g[0]; take(b, Object.assign({}, first, { yb: ys.length ? Math.min(...ys) : null, units: Math.max(g.length, ...g.map(p => p.units || 0)), n: g.length })); }); }
+    /* FEMA gives a detached garage or a back house the main house's class: on one parcel, a small second structure
+       (under 900 sq ft and under 60% of the largest) is read as the accessory building it most likely is */
+    groups.forEach(g => { const hs = g.filter(b => b.cls === 'sf' || b.cls === 'garage'); if (hs.length < 2) return; const main = hs.reduce((m, b) => (b.sqft > m.sqft ? b : m), hs[0]); hs.forEach(b => { if (b !== main && b.cls === 'sf' && b.sqft < 900 && b.sqft < 0.6 * main.sqft) { b.cls = 'garage'; b.acc = true; if (b.ybSrc === 'parcel') { b.yb = null; b.ybSrc = ''; } } }); });
   }
-  /* roof permits in the tile, by their own map points: New Orleans (reroof permits from May 2025, roof work inside renovation
-     permits from 2012, new construction from 2012) and East Baton Rouge Parish (reroof permits from July 2025, roof work
-     inside remodel permits and new buildings from 2011) */
-  const NOLA_TYPES = ['Renovation (Non-Structural)', 'Renovation (Structural)', 'Renovation (Structural or Non-structural)', 'Repair', 'Emergency Permit', 'Accessory Structure'];
+
+  /* ---------- CAL FIRE at the site: the zone, the fires round it, the inspection of the building ---------- */
+  /* Zones, perimeters and the climate zone are asked once for a square of about 5 km (a zoom 13 map tile) and kept;
+     the damage inspections are asked for each map square of buildings, 250 m wider than it. */
+  const FCELL_Z = 13, FC = new Map();
+  const FH_L = { 1: 'Moderate', 2: 'High', 3: 'Very High' };
+  function fireCell(la, lo) {
+    const x = lon2x(lo, FCELL_Z), y = lat2y(la, FCELL_Z), k = x + '/' + y; let c = FC.get(k); if (c && (c.p || c.ok || Date.now() - c.at < 120000)) return c.p || Promise.resolve(c);
+    c = { k, box: tileBox(FCELL_Z, x, y), zones: [], perims: [], cz: null, czs: [], errs: [], ok: false, at: Date.now() }; FC.set(k, c);
+    const zq = (path, ra) => arcBox(EP.fire + path, c.box, 'FHSZ,FHSZ_Description', { maxAllowableOffset: 0.0003, geometryPrecision: 5 }).then(fs => fs.forEach(f => { const cls = +f.a.FHSZ; if (f.bb && cls >= 1 && cls <= 3) c.zones.push({ cls, l: FH_L[cls], ra, rings: f.rings, bb: f.bb }); })).catch(e => c.errs.push('Fire Hazard Severity Zones: ' + why(e)));
+    const pq = arcBox(EP.fire + EP.perim, padBox(c.box, 5000), 'YEAR_,FIRE_NAME,GIS_ACRES', { maxAllowableOffset: 0.0008, geometryPrecision: 4 }).then(fs => fs.forEach(f => { const y2 = +f.a.YEAR_; if (f.bb && y2 >= 1950) c.perims.push({ y: y2, name: txt(f.a.FIRE_NAME), ac: +f.a.GIS_ACRES || 0, rings: f.rings, bb: f.bb }); })).catch(e => c.errs.push('Fire perimeters: ' + why(e)));
+    const cq = getJSON(EP.cz + '?' + qs({ where: '1=1', geometry: env(c.box), geometryType: 'esriGeometryEnvelope', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: 'BZone', returnGeometry: 'false', f: 'json' }), { timeout: 25000 }).then(j => { c.czs = [...new Set((j.features || []).map(f => parseInt((f.attributes || {}).BZone, 10)).filter(n => n >= 1 && n <= 16))]; c.cz = c.czs.length === 1 ? c.czs[0] : null; }).catch(e => c.errs.push('Climate zone: ' + why(e)));
+    c.p = Promise.all([zq(EP.fhszS, 'SRA'), zq(EP.fhszL, 'LRA'), pq, cq]).then(() => { c.p = null; c.ok = c.errs.length < 4; c.at = Date.now(); if (FC.size > 60) { const k0 = FC.keys().next().value; if (k0 !== k) FC.delete(k0); } return c; });
+    return c.p;
+  }
+  /* a square that straddles two climate zones asks for the zone at its own centre */
+  async function czAt(la, lo) { const j = await getJSON(EP.cz + '?' + qs({ where: '1=1', geometry: lo.toFixed(5) + ',' + la.toFixed(5), geometryType: 'esriGeometryPoint', inSR: 4326, spatialRel: 'esriSpatialRelIntersects', outFields: 'BZone', returnGeometry: 'false', f: 'json' }), { timeout: 20000 }); const n = parseInt((((j.features || [])[0] || {}).attributes || {}).BZone, 10); return n >= 1 && n <= 16 ? n : null; }
+  function applyCell(b, c, tcz) {
+    if (!b || !c) return;
+    let top = null; c.zones.forEach(zn => { if ((!top || zn.cls > top.cls) && inBox(b.lat, b.lon, zn.bb) && inRings(b.lat, b.lon, zn.rings)) top = zn; });
+    if (!c.errs.some(e => /^Fire Hazard/.test(e))) b.fhsz = top ? { cls: top.cls, l: top.l, ra: top.ra } : { cls: 0, l: '', ra: '' };
+    if (!c.errs.some(e => /^Fire perimeters/.test(e))) { const ins = [], near = []; let km = 99, nearest = null;
+      c.perims.forEach(p => { const pad = 0.05; if (!inBox(b.lat, b.lon, [p.bb[0] - pad, p.bb[1] - pad, p.bb[2] + pad, p.bb[3] + pad])) return; const d = edgeMeters(b.lat, b.lon, p) / 1000; if (d === 0) ins.push(p); if (d <= 5) near.push(p); if (d < km) { km = d; nearest = p; } });
+      const pick = p => ({ y: p.y, name: p.name, ac: p.ac });
+      b.fire = { in: ins.sort((x, y) => y.y - x.y).slice(0, 4).map(pick), nIn: ins.length, n5: near.length, last5: near.length ? Math.max(...near.map(p => p.y)) : null, big5: near.length ? pick(near.reduce((m, p) => (p.ac > m.ac ? p : m), near[0])) : null, km: nearest && km <= 5 ? km : null, nearest: nearest && km <= 5 ? pick(nearest) : null }; }
+    const cz = c.cz || tcz || null; if (cz) b.cz = cz;
+  }
+  async function fetchDins(t) {
+    const fs = await arcBox(EP.fire + EP.dins, padBox(t.box, 250), 'DAMAGE,STRUCTURETYPE,INCIDENTNAME,INCIDENTSTARTDATE,ROOFCONSTRUCTION,EAVES,VENTSCREEN,YEARBUILT,SITEADDRESS');
+    return fs.filter(f => f.pt).map(f => { const a = f.a, ms = +a.INCIDENTSTARTDATE, d = ms > 0 ? ymd(ms) : ''; return { lat: f.pt[0], lon: f.pt[1], dmg: txt(a.DAMAGE), type: txt(a.STRUCTURETYPE), inc: title(txt(a.INCIDENTNAME)), d, y: d ? fracYear(d) : null, roof: txt(a.ROOFCONSTRUCTION), eaves: txt(a.EAVES), vent: txt(a.VENTSCREEN), yb: yr4(a.YEARBUILT), addr: txt(a.SITEADDRESS) }; });
+  }
+  /* an inspection joins the building its point falls in, else the nearest within 15 m (a main building before a shed);
+     the newest inspection speaks for the building. Each building also counts the inspections within 300 m of it. */
+  function joinDins(t, pts) {
+    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean); t.dinsN = pts.length;
+    pts.forEach(p => { let best = null, bd = 1e9; bs.forEach(b => { if (Math.abs(b.lat - p.lat) > 0.0008 || Math.abs(b.lon - p.lon) > 0.001) return; const d = edgeMeters(p.lat, p.lon, b) + (b.cls === 'shed' ? 8 : b.cls === 'garage' ? 4 : 0); if (d < bd) { bd = d; best = b; } });
+      if (!best || bd > 15) return; if (best.dins && best.dins.y >= (p.y || 0)) return; best.dins = p;
+      if (p.yb && !best.yb && best.cls !== 'garage' && best.cls !== 'shed' && !/Utility|Misc/i.test(p.type)) { best.yb = p.yb; best.ybSrc = 'dins'; }
+      if (!best.addr && /^\d/.test(p.addr)) { best.addr = p.addr.split(',')[0]; best.addrSrc = 'dins'; const a = addrParts(p.addr); best.akey = a.key; best.street = a.street; if (!best.city) best.city = (p.addr.split(',')[1] || '').trim().toUpperCase(); } });
+    if (pts.length) bs.forEach(b => { let n = 0, dest = 0, dm = 0; const inc = new Map(); pts.forEach(p => { if (Math.abs(b.lat - p.lat) > 0.0029 || Math.abs(b.lon - p.lon) > 0.0036 || meters([b.lat, b.lon], [p.lat, p.lon]) > 300) return; n++; if (/^Destroyed/i.test(p.dmg)) { dest++; inc.set(p.inc, (inc.get(p.inc) || 0) + 1); } else if (dinsW(p.dmg) > 0) dm++; });
+      const top = [...inc].sort((x, y) => y[1] - x[1])[0]; b.near = { n, dest, dmg: dm, inc: top ? top[0] : '' }; });
+  }
+
+  /* ---------- re-roof permits, where a city publishes them ---------- */
+  /* The City of Los Angeles (Department of Building and Safety, three tables: 1996 to 2009, 2010 to 2019, 2020 on), by
+     map point; Los Angeles County's EPIC-LA (unincorporated areas and contract cities, 2018 on), by map point and
+     assessor's parcel number; San Francisco (Department of Building Inspection, with its re-roof flag), by map point;
+     the City of Sacramento (2016 on) and San Jose (active, expired and under inspection permits only), which carry no
+     map point and are asked by the parcel numbers of the tile. A re-roof is known by its words everywhere but in San
+     Francisco (the flag) and San Jose (the work type); rooftop solar is not roof work (EPIC-LA's work class "Roof Mount"
+     is solar, and is never matched). */
+  const ROOFQ = f => `(upper(${f}) like '%REROOF%' OR upper(${f}) like '%RE-ROOF%' OR upper(${f}) like '%RE ROOF%' OR upper(${f}) like '%TEAR OFF%' OR upper(${f}) like '%TEAR-OFF%' OR upper(${f}) like '%ROOFING%' OR upper(${f}) like '%ROOF TILE%' OR upper(${f}) like '%ROOF REPAIR%' OR upper(${f}) like '%ROOF COVERING%')`;
+  const BAD_STATUS = /VOID|CANCEL|WITHDR|DENIED|DISAPPROV|REVOKED|REJECT|NOT REQUIRED|ERROR|REFUSED/i;
+  const isoDay = v => { const s = String(v || ''); let m = /^(\d{4})-(\d\d)-(\d\d)/.exec(s); if (m) return m[0]; m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s); return m ? `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` : ''; };
+  const digits = v => String(v == null ? '' : v).replace(/\D/g, '');
+  const reroofHead = d => /^\s*(RE[- ]?ROOF|TEAR[- ]?OFF|REMOVE (THE )?(EXISTING )?ROOF)/i.test(d);
   async function fetchPermits(t) {
-    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), fips = new Set(bs.map(b => b.fips)), out = [], errs = []; let asked = 0;
+    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), files = new Set(bs.map(b => PFILE[b.fips]).filter(Boolean)), out = [], errs = []; let asked = 0;
     const bx = t.box, wb = `${bx.n.toFixed(6)}, ${bx.w.toFixed(6)}, ${bx.s.toFixed(6)}, ${bx.e.toFixed(6)}`;
-    if (fips.has('22071')) {
-      asked++;
-      const where = `within_box(location_1, ${wb}) AND (code in('ROOF','NEWC') OR (type in(${NOLA_TYPES.map(x => `'${x}'`).join(',')}) AND upper(description) like '%ROOF%'))`;
-      try { const j = await getJSON(EP.nola + '?' + qs({ $select: 'address,type,code,issuedate,filingdate,currentstatus,description,constrval,location_1', $where: where, $limit: 5000 }), { timeout: 30000 });
-        (Array.isArray(j) ? j : []).forEach(r => { const loc = r.location_1 || {}, la = +loc.latitude, lo = +loc.longitude; if (!isN(la) || !isN(lo) || !la) return; if (/VOID|EXPIRED|DENIED|WITHDR|NOT REQUIRED|ERROR/i.test(r.currentstatus || '')) return;
-          const d = String(r.issuedate || r.filingdate || '').slice(0, 10); if (!/^\d{4}-\d\d-\d\d$/.test(d)) return;
-          out.push({ lat: la, lon: lo, addr: r.address || '', key: addrParts(r.address).key, d, y: fracYear(d), desc: String(r.description || '').split(/\s*NOTE:/)[0].replace(/\s+/g, ' ').trim(), type: r.type || '', kind: r.code === 'NEWC' ? 'newc' : r.code === 'ROOF' ? 'reroof' : 'roofwork', val: +r.constrval || 0, src: 'City of New Orleans' }); }); }
-      catch (e) { errs.push('New Orleans permits: ' + why(e)); }
+    const push = p => { if (!/^\d{4}-\d\d-\d\d$/.test(p.d)) return; p.y = fracYear(p.d); p.desc = txt(p.desc); p.key = addrParts(p.addr).key; p.cov = permitCover(p.desc); p.sq = permitSquares(p.desc); out.push(p); };
+    const jobs = [];
+    if (files.has('la')) {
+      EP.ladbs.forEach(([url, from]) => { asked++; jobs.push(getJSON(url + '?' + qs({ $select: 'primary_address,permit_type,permit_sub_type,issue_date,status_desc,valuation,work_desc,lat,lon,apn', $where: `within_box(geolocation, ${wb}) AND (permit_type='Bldg-New' OR ${ROOFQ('work_desc')})`, $limit: 5000 }), { timeout: 30000 })
+        .then(j => (Array.isArray(j) ? j : []).forEach(r => { const la = +r.lat, lo = +r.lon; if (!isN(la) || !isN(lo) || !la || BAD_STATUS.test(r.status_desc || '')) return; const ty = txt(r.permit_type), d = txt(r.work_desc);
+          push({ lat: la, lon: lo, addr: txt(r.primary_address), d: isoDay(r.issue_date), desc: d, type: [ty, txt(r.permit_sub_type)].filter(Boolean).join(', '), kind: /New/i.test(ty) ? 'newc' : reroofHead(d) ? 'reroof' : 'roofwork', val: +r.valuation || 0, apn: digits(r.apn), src: 'City of Los Angeles' }); }))
+        .catch(e => errs.push(`Los Angeles permits (${from} on): ` + why(e)))); });
+      asked++; jobs.push(arcBox(EP.epicla, bx, 'CASENUMBER,WORKCLASS_NAME,CASENAME,STATUS,DESCRIPTION,MAIN_ADDRESS,MAIN_AIN,ISSUANCE_DATE,APPLY_DATE,PERMIT_VALUATION', { where: `MODULENAME='PermitManagement' AND (UPPER(DESCRIPTION) LIKE '%REROOF%' OR UPPER(DESCRIPTION) LIKE '%RE-ROOF%' OR UPPER(DESCRIPTION) LIKE '%RE ROOF%' OR UPPER(DESCRIPTION) LIKE '%TEAR OFF%' OR UPPER(DESCRIPTION) LIKE '%TEAR-OFF%')` })
+        .then(fs => fs.forEach(f => { const a = f.a; if (!f.pt || BAD_STATUS.test(a.STATUS || '') || /Roof Mount|Solar/i.test(a.WORKCLASS_NAME || '')) return; const ms = +a.ISSUANCE_DATE || +a.APPLY_DATE, d = txt(a.DESCRIPTION);
+          push({ lat: f.pt[0], lon: f.pt[1], addr: txt(a.MAIN_ADDRESS), d: ms > 0 ? ymd(ms) : '', desc: d, type: [txt(a.WORKCLASS_NAME), txt(a.CASENAME)].filter(Boolean).join(', '), kind: reroofHead(d) || /Repair\/Replacement/i.test(a.WORKCLASS_NAME || '') ? 'reroof' : 'roofwork', val: +a.PERMIT_VALUATION || 0, apn: digits(a.MAIN_AIN), src: 'Los Angeles County (EPIC-LA)' }); }))
+        .catch(e => errs.push('Los Angeles County permits: ' + why(e))));
     }
-    if (fips.has('22033')) {
-      asked++;
-      const where = `within_box(geolocation, ${wb}) AND (permittype like 'Re-Roof%' OR permittype like 'New Building%' OR permittype like 'Manuf%' OR ((permittype like 'Existing Bldg%' OR permittype like 'Damage Assessment%') AND upper(projectdescription) like '%ROOF%'))`;
-      try { const j = await getJSON(EP.ebr + '?' + qs({ $select: 'permittype,projectdescription,issueddate,creationdate,streetaddress,projectvalue,geolocation', $where: where, $limit: 5000 }), { timeout: 30000 });
-        (Array.isArray(j) ? j : []).forEach(r => { const loc = r.geolocation || {}, la = +loc.latitude, lo = +loc.longitude; if (!isN(la) || !isN(lo) || !la) return;
-          const d = String(r.issueddate || r.creationdate || '').slice(0, 10); if (!/^\d{4}-\d\d-\d\d$/.test(d)) return; const ty = String(r.permittype || '');
-          out.push({ lat: la, lon: lo, addr: r.streetaddress || '', key: addrParts(r.streetaddress).key, d, y: fracYear(d), desc: String(r.projectdescription || '').replace(/\s+/g, ' ').trim(), type: ty, kind: /^Re-Roof/i.test(ty) ? 'reroof' : /^Manuf/i.test(ty) ? 'mh' : /^New Building/i.test(ty) ? 'newc' : 'roofwork', val: +r.projectvalue || 0, src: 'East Baton Rouge Parish' }); }); }
-      catch (e) { errs.push('East Baton Rouge permits: ' + why(e)); }
+    if (files.has('sf')) {
+      asked++; jobs.push(getJSON(EP.sfp + '?' + qs({ $select: 'permit_type_definition,street_number,street_name,street_suffix,description,status,issued_date,filed_date,estimated_cost,revised_cost,existing_use,reroof,location', $where: `within_box(location, ${wb}) AND (reroof='Y' OR ${ROOFQ('description')} OR permit_type_definition like 'new construction%')`, $limit: 5000 }), { timeout: 30000 })
+        .then(j => (Array.isArray(j) ? j : []).forEach(r => { const g = r.location || {}, c = g.coordinates || (isN(+g.longitude) ? [+g.longitude, +g.latitude] : null); if (!c || BAD_STATUS.test(r.status || '')) return; const ty = txt(r.permit_type_definition), d = txt(r.description), iss = isoDay(r.issued_date); if (!iss) return;
+          push({ lat: +c[1], lon: +c[0], addr: [r.street_number, r.street_name, r.street_suffix].filter(x => x != null && String(x).trim()).join(' '), d: iss, desc: d, type: [ty, txt(r.existing_use)].filter(Boolean).join(', '), kind: /^new construction/i.test(ty) ? 'newc' : r.reroof === 'Y' || reroofHead(d) ? 'reroof' : 'roofwork', val: +r.revised_cost || +r.estimated_cost || 0, src: 'San Francisco' }); }))
+        .catch(e => errs.push('San Francisco permits: ' + why(e))));
     }
-    out.forEach(p => { p.w = permitW(p); });
-    return { list: out, errs, asked };
+    /* by parcel number: the buildings' parcels must be joined first (the caller waits for them) */
+    const apns = fips => [...new Set(bs.filter(b => b.fips === fips && b.parcel && b.parcel.apn).map(b => digits(b.parcel.apn)).filter(v => v.length >= 6))];
+    const where = b2 => { const o = bs.filter(b => b.parcel && digits(b.parcel.apn) === b2).sort((x, y) => y.sqft - x.sqft)[0]; return o ? [o.lat, o.lon] : [(bx.s + bx.n) / 2, (bx.w + bx.e) / 2]; };
+    if (files.has('sac')) { const list = apns('06067');
+      for (let i = 0; i < list.length; i += 120) { const part = list.slice(i, i + 120); EP.sacp.forEach(url => { asked++; jobs.push(getJSON(url, { timeout: 30000, post: { where: `Parcel_No IN (${part.map(v => `'${v}'`).join(',')}) AND (UPPER(Work_Desc) LIKE '%TEAR OFF%' OR UPPER(Work_Desc) LIKE '%REROOF%' OR UPPER(Work_Desc) LIKE '%RE-ROOF%' OR UPPER(Work_Desc) LIKE '%RE ROOF%' OR UPPER(Activity_Code) LIKE '%ROOF%')`, outFields: 'Type,Sub_Type,Status_Date,Current_Status,Parcel_No,Address,Valuation,Activity_Code,Work_Desc', returnGeometry: 'false', f: 'json' } })
+          .then(j => (j.features || []).forEach(f => { const a = f.attributes || {}; if (BAD_STATUS.test(a.Current_Status || '')) return; const ap = digits(a.Parcel_No), w = where(ap), d = txt(a.Work_Desc);
+            push({ lat: w[0], lon: w[1], addr: txt(a.Address), d: isoDay(a.Status_Date), desc: d || txt(a.Activity_Code), type: [txt(a.Type), txt(a.Activity_Code)].filter(Boolean).join(', '), kind: /REROOF/i.test(a.Activity_Code || '') || /^\s*TEAR OFF/i.test(d) || reroofHead(d) ? 'reroof' : 'roofwork', val: +a.Valuation || 0, apn: ap, byApn: true, src: 'City of Sacramento' }); }))
+          .catch(e => errs.push('Sacramento permits: ' + why(e)))); }); } }
+    if (files.has('sj')) { const list = apns('06085'), RES = ['761b7ae8-3be1-4ad6-923d-c7af6404a904', 'df4b8461-0c7a-4d16-b85d-ff7f71c5fed5', '89ccdad9-7309-4826-a5f3-2fcf1fcb20fa'];
+      for (let i = 0; i < list.length; i += 120) { const part = list.slice(i, i + 120); RES.forEach(id => { asked++; jobs.push(getJSON(EP.sjp + '?' + qs({ sql: `SELECT "ISSUEDATE","gx_location","ASSESSORS_PARCEL_NUMBER","WORKDESCRIPTION","SUBTYPEDESCRIPTION","FOLDERNAME","PERMITVALUATION","Status" FROM "${id}" WHERE "ASSESSORS_PARCEL_NUMBER" IN (${part.map(v => `'${v}'`).join(',')}) AND "WORKDESCRIPTION"='ReRoof'` }), { timeout: 30000 })
+          .then(j => (((j.result || {}).records) || []).forEach(r => { const ap = digits(r.ASSESSORS_PARCEL_NUMBER), w = where(ap);
+            push({ lat: w[0], lon: w[1], addr: txt(r.gx_location), d: isoDay(r.ISSUEDATE), desc: ['Re-roof', txt(r.FOLDERNAME)].filter(Boolean).join(': '), type: ['ReRoof', txt(r.SUBTYPEDESCRIPTION)].filter(Boolean).join(', '), kind: 'reroof', val: +r.PERMITVALUATION || 0, apn: ap, byApn: true, src: 'City of San Jose' }); }))
+          .catch(e => errs.push('San Jose permits: ' + why(e)))); }); } }
+    await Promise.all(jobs);
+    out.forEach(p => { p.w = permitW(p); if (p.cov && p.cov.relay && p.kind === 'reroof') p.w = Math.max(p.w, 0.9); });
+    return { list: out, errs: [...new Set(errs)], asked };
   }
   /* A permit joins the main building at its address. When several main buildings share the address it joins the one its
      point falls in, else each of them at a share of its weight (a quarter, plus three quarters split among them: a
      permit there may cover one building or all of them), or in full when its text names all the buildings or roofs or
      the entire property. Only the buildings in the permit's own tile count, since buildings and permits load tile by
      tile. A detached garage or shed takes it only when no main building has the address. Without an address match it joins the main building nearest its point within 20 m of the walls,
-     and names that building when FEMA gave it no address (New Orleans footprints carry none). A new construction or
-     manufactured home permit is mostly for a building FEMA's footprints (2008 to 2012 lidar in the cities) do not have
+     and names that building when it has no address yet (FEMA's California footprints carry none). A permit with a parcel
+     number and no address match joins the buildings on that parcel (Sacramento and San Jose give no map point at all). A new construction or
+     manufactured home permit is mostly for a building FEMA's footprints (2010 to 2012 lidar in the metros) do not have
      yet, so it never spreads over a shared address, never takes an address a nearby permit only guessed, and by its
      point joins only the building it falls in (within 2 m of the walls), never one on file under another address; a
      building's own permits join first. Only a new construction permit filed for the building itself (by address, or by
@@ -732,28 +1012,28 @@
   /* the existing house named only as the place an accessory goes, and the accessory a new house comes with */
   const ACC_PLACE = /\b(YARD OF|BEHIND|BESIDE|NEXT TO|ADJACENT TO|SERVING|TO SERVE|FOR|OF|AT|ON|TO|FROM) (AN? |THE )?EXISTING ([\w-]+ ){0,3}(RESIDENCE|HOME|HOUSE|DWELLING|SF[RH]|DUPLEX|DOUBLE|SINGLE(-FAMILY)?|BUILDING)\b|\b(REAR |SIDE |BACK |FRONT )?YARD OF (AN? |THE )?([\w-]+ ){0,3}(RESIDENCE|HOME|HOUSE|DWELLING|SF[RH]|DUPLEX|DOUBLE|SINGLE(-FAMILY)?)\b/g;
   const ACC_WITH = /\b(WITH|W\/|AND|PLUS|INCLUDING) (AN? |NEW |DETACHED |ATTACHED |REAR |TWO |\d+ ?(SF|SQ ?FT|S\.F\.)? )*(ACCESSORY|GARAGE|CAR ?PORT|SHED|POOL|CABANA|PORCH|DECK|STORAGE)\w*( (STRUCTURE|BUILDING)S?)?/g;
-  /* New Orleans' 2012 import tail ('Historical Import Type: Permits Residential Single ...') names the permit's class, not the building */
-  const accOnly = u => { const v = u.replace(/\s*HISTORICAL IMPORT TYPE:.*$/, '').replace(ACC_PLACE, ' '); return ACC_ONLY.test(v.replace(ACC_WITH, ' ')) && !MAIN_BLDG.test(v); };
+  const accOnly = u => { const v = u.replace(ACC_PLACE, ' '); return ACC_ONLY.test(v.replace(ACC_WITH, ' ')) && !MAIN_BLDG.test(v); };
   /* a permit whose text names every building or roof at the address, or the entire property, covers each of them in full */
   const PW_ALL = /\b(?:ALL|EVERY|EACH)(?: OF)?(?: THE)? (?!OTHER\b)(?:[A-Z0-9'’&-]+ ){0,4}?(?:BUILDINGS|BLDGS)\b|\b(?:REPLAC\w*|RE-?ROOF\w*)(?: OF)? (?:ALL|EVERY|EACH)(?: OF)?(?: THE)? (?:[A-Z0-9'’&-]+ ){0,4}?ROOFS\b|\bENTIRE (?:COMPLEX|PROPERTY)\b/;
   function joinPermits(t, res) {
-    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), byKey = new Map();
+    const bs = [...t.ids].map(id => B.get(id)).filter(Boolean), byKey = new Map(), byApn = new Map();
+    bs.forEach(b => { const a = b.parcel && b.parcel.apn ? digits(b.parcel.apn) : ''; if (a.length >= 6) { const g = byApn.get(a) || []; g.push(b); byApn.set(a, g); } });
     const index = b => { if (!b.akey) return; const g = byKey.get(b.akey) || []; if (!g.includes(b)) g.push(b); byKey.set(b.akey, g); };
     bs.forEach(index);
     const sigOf = p => p.d + '|' + p.desc.slice(0, 60), give = (b, p) => { const s = sigOf(p); if (b.permits.some(q => sigOf(q) === s)) return false; b.permits.push(p); b.permits.sort((x, y) => y.y - x.y); return true; };
     const isNew = p => p.kind === 'newc' || p.kind === 'mh';
     res.list.slice().sort((a, c) => isNew(a) - isNew(c)).forEach(p => {
-      const nw = isNew(p), at = (p.key && byKey.get(p.key)) || [], main = at.filter(b => b.cls !== 'garage' && b.cls !== 'shed');
+      const nw = isNew(p); let at = (p.key && byKey.get(p.key)) || []; if (!at.length && p.apn) at = byApn.get(p.apn) || []; if (!at.length && p.byApn) return; const main = at.filter(b => b.cls !== 'garage' && b.cls !== 'shed');
       let targets = (main.length ? main : at).filter(b => !nw || b.addrVia !== 'near' || edgeMeters(p.lat, p.lon, b) <= 2);
       if (targets.length > 1) { const inside = targets.filter(b => edgeMeters(p.lat, p.lon, b) === 0); targets = inside.length ? inside : nw ? [] : targets; }
       if (targets.length) { p.via = 'addr'; p.share = targets.length > 1 && !PW_ALL.test(String(p.desc || '').toUpperCase()) ? 0.25 + 0.75 / targets.length : 1; targets.forEach(b => give(b, p)); return; }
       let best = null, bd = 1e9;
       bs.forEach(b => { if (b.cls === 'shed' || (nw && b.akey && b.akey !== p.key && b.addrVia !== 'near')) return; const d = edgeMeters(p.lat, p.lon, b) + (b.cls === 'garage' ? 6 : 0); if (d < bd) { bd = d; best = b; } });
-      if (!best || bd > (nw ? 2 : 20)) return;
+      if (!best || bd > (nw ? 2 : 20) || p.byApn) return;
       p.via = bd <= 2 ? 'in' : 'near';
       if (!give(best, p)) return;
       /* a building FEMA gave no address takes the permit's; its own new construction permit, inside its walls, names it over an address a permit 2 to 20 m away only guessed */
-      if (p.addr && (!best.addr || (nw && p.via === 'in' && best.addrVia === 'near' && p.key !== best.akey))) { if (best.akey && byKey.has(best.akey)) byKey.set(best.akey, byKey.get(best.akey).filter(x => x !== best)); best.addr = String(p.addr).replace(/\s+(BATON ROUGE|NEW ORLEANS)\s+LA\b.*$/i, ''); best.addrSrc = 'permit'; best.addrVia = p.via; const a = addrParts(p.addr); best.akey = a.key; best.street = a.street; index(best); }
+      if (p.addr && (!best.addr || (nw && p.via === 'in' && best.addrVia === 'near' && p.key !== best.akey))) { if (best.akey && byKey.has(best.akey)) byKey.set(best.akey, byKey.get(best.akey).filter(x => x !== best)); best.addr = String(p.addr).split(',')[0].trim(); best.addrSrc = 'permit'; best.addrVia = p.via; const a = addrParts(p.addr); best.akey = a.key; best.street = a.street; index(best); }
     });
     bs.forEach(b => {
       if (b.yb || b.cls === 'garage' || b.cls === 'shed') return;
@@ -800,100 +1080,98 @@
   }
 
   /* ---------- the next fifteen years: what each kind of roof is likely to suffer where it stands ---------- */
-  /* A forecast built from the atlas's own records, year by year for fifteen years, for one kind of roof at one ZIP whose
+  /* An outlook built from California's own record, year by year for fifteen years, for one kind of roof at one ZIP whose
      age today is known as a spread of chances (the clock above). Each year a roof in place can:
-       wear out          its Weibull life (module 17: asphalt shingles 22 years, calibrated to the American Housing Survey);
-       take a hurricane  the ZIP's storm years as the roof clock above counts them: the share of its roofs each one
-                         replaced (from 2004 module 17's count: FEMA's verified roof and wind damage where FEMA has it,
-                         the storm's modelled wind through the atlas's damage curve elsewhere; before 2004 that curve,
-                         scaled by how FEMA's counts have compared with it), and beside the roofs replaced those damaged
-                         and repaired (OC.anyM: about three more for each one in a mild year, about one in a hard
-                         one). Two records are kept: the years
-                         the file resolves storm by storm (1990 on) and the 76 years since 1950, over which hurricane
-                         years came less often; the outlook uses their mean and shows both;
-       take a thunderstorm or tornado   the days a year with 58 mph wind, 75 mph wind and EF1 tornadoes within 25 miles (SPC
-                         1996 to 2025), at the atlas's stated rates of roofs damaged per day (module 12);
-       take hail         the days a year with 1 inch and 1.75 inch hail within 25 miles, at the atlas's stated rates, turned
-                         for each covering by the hail size that damages it (Haag Engineering's thresholds);
-       leak              the repair line's calls a year, shaped by the roof's age (the shape is a judgment);
-     and two slower things are told beside them: algae on shingles, and rust on metal near salt water. A roof that is
-     replaced starts again at age zero and stays in the count. What comes out is a chance, for the building's kind of roof
-     at its ZIP, of each kind of damage by each year: a forecast of the odds, not of a storm. Every rate that is a
-     judgment is marked in OC. */
+       wear out          its Weibull life (module 17: one life for every covering but tile, refitted to the American
+                         Housing Survey's West region; for tile the life of the underlayment), shortened or stretched
+                         by the heat it takes where it stands (the Thermal reading below) against the average
+                         California roof of its kind;
+       take the wind     the days a year with a gust of 58 mph and of 75 mph at the ZIP's nearest screened station
+                         (Santa Ana, Diablo and sundowner days and winter storm days alike), at the atlas's stated
+                         rates of roofs damaged on such a day, turned for each covering and its age;
+       leak in the rain  the repair line's calls a year, shaped by the roof's age (the shape is a judgment), leaned by
+                         how much heavy rain the ZIP takes against the state: its days with an inch of rain and its
+                         atmospheric river days of rank 3 and up, and a little more in snow country (ice dams);
+       burn              the pace at which CAL FIRE's damage inspections record structures destroyed or damaged in
+                         the ZIP and those within 40 km, 2013 to 2025, turned by the Fire Hazard Severity Zone the
+                         building stands in and, slightly, by the covering;
+       take hail         the days a year with 1 inch and 1.75 inch hail within 25 miles where the data counts them
+                         (rare: 349 reports of an inch or more in California since 1951), at the atlas's stated rates;
+     and two slower things are told beside them: moss and algae where it is wet, and rust on metal near salt water. A
+     roof that is replaced starts again at age zero and stays in the count. What comes out is a chance, for the
+     building's kind of roof at its ZIP, of each kind of damage by each year: the odds if the next fifteen years bring
+     weather and fire at the pace of the record, not a forecast of a storm or a fire. Every rate that is a judgment is
+     marked in OC. */
   const OUT_Y = 15;
+  const AW = (ANCH.wind && ANCH.wind.length >= 2 ? ANCH.wind : null);
   const OC = {
-    /* Roofs damaged at all against roofs replaced in a storm year, as a ratio of hazards: a roof of a given age that the
-       year replaces with hazard x is damaged at all with hazard anyM times x. Over Louisiana's roof ages that comes to
-       about four roofs damaged for each one replaced in a year that replaces 1 percent, 3.3 at 10 percent, 2.3 at 27
-       percent and 1.7 at 45. Set from the one survey that counted damage in Louisiana where the roof clock has a count:
-       after Gustav in Houma IBHS found roof cover damage on 602 of 933 houses (65 percent), on more than 5 percent of the
-       roof on 27 percent of them and more than 15 percent on 13 (Liu and others 2010); the clock, from FEMA's
-       registrations, has 23 to 49 percent of the roofs standing in Houma's three ZIPs replaced that year. What is not
-       replaced is repaired, never fewer than a fifth of the replacements nor more than the roofs left. Grade D. */
-    anyM: 4.2,
-    /* thunderstorm wind and tornado days: roofs damaged per day within 25 miles (module 12's stated rates), and the share
-       of that damage that is a replacement, not a repair (judgment) */
-    ts: [[+((META.model && META.model.ANCH && META.model.ANCH.wind) || [])[0] || 0.0003, 0.2], [+((META.model && META.model.ANCH && META.model.ANCH.wind) || [])[1] || 0.0015, 0.4], [+((META.model && META.model.ANCH && META.model.ANCH.wind) || [])[2] || 0.0025, 0.8]],
-    /* hail: roofs damaged per day with 1 inch hail, and a further share per day with 1.75 inch hail (module 12's stated
-       rates), with the share replaced (insurers replace slopes with functional hail damage; judgment) */
-    hail: [[+((META.model && META.model.ANCH && META.model.ANCH.hail) || [])[0] || 0.0022, 0.6], [+((META.model && META.model.ANCH && META.model.ANCH.hail) || [])[1] || 0.004, 0.9]],
-    /* A roof's age against the wind, as a multiple of the hazard (before scaling: the average Louisiana roof is 1).
-       Shingles hold for their first years and then let go: the University of Florida found no unsealed shingles on
-       roofs under four years old, under 1 percent of strips at six years, 12 percent at 7 to 13 and 30 percent at 14
-       to 20, with hip and ridge caps unsealed at every age (Dixon and others 2013); in Laura, near Lake Charles, 40 percent of two to three year old shingle roofs were
-       damaged and 7 percent lost a quarter of their cover, against 97 percent of those 14 to 15 years old, with a break
-       near eight years (NIST 2026, 623 homes); in the 2020 derecho a roof over ten years old was five times as likely
-       to show damage as one of three to six (IBHS 2023). The multiple below is drawn through those (judgment, grade D)
-       and scaled so that Louisiana's roofs at their ages today (module 17) average what each storm year cost. The
-       same multiple works on thunderstorm wind. */
+    /* gust days: roofs damaged on a day with a 58 mph gust and on a day with a 75 mph gust (the atlas's stated rates
+       where the data carries them, else 3 and 15 roofs in 10,000: a judgment, grade D; forecasters' reports in
+       California first name roof damage at gusts of about 60 to 70 mph), and the share of that damage that is a
+       replacement, not a repair (judgment). A station on a ridge or in a pass can count far more days than the
+       streets below it take: days are capped at 25 and 5 a year. */
+    wind: [[+(AW && AW[0]) || 0.0003, 0.2], [+(AW && AW[1]) || 0.0015, 0.4]], capG58: 25, capG75: 5,
+    /* hail: roofs damaged per day with 1 inch hail, and a further share per day with 1.75 inch hail (stated rates), with the share replaced (judgment) */
+    hail: [[0.0022, 0.6], [0.004, 0.9]],
+    /* A roof's age against the wind, as a multiple of the hazard (before scaling: the average California roof is 1).
+       Shingles hold for their first years and then let go: the University of Florida found no unsealed shingles on roofs
+       under four years old, under 1 percent of strips at six years, 12 percent at 7 to 13 and 30 percent at 14 to 20,
+       with hip and ridge caps unsealed at every age (Dixon and others 2013); in a survey of 623 homes after a 2020
+       coastal windstorm, 40 percent of two to three year old shingle roofs were damaged against 97 percent of those 14 to 15
+       years old, with a break near eight years (NIST 2026); in the 2020 Midwest derecho a roof over ten years old was
+       five times as likely to show damage as one of three to six (IBHS 2023). None of these is a California study:
+       none was found. The multiple below is drawn through them (judgment, grade D) and scaled so that California's
+       roofs at their ages today (module 17) average 1. */
     age: a => (a <= 3 ? 0.08 : a <= 6 ? 0.08 + (a - 3) * 0.26 / 3 : a <= 9 ? 0.34 + (a - 6) * 0.22 : a <= 15 ? 1 + (a - 9) * 0.4 / 6 : a <= 20 ? 1.4 + (a - 15) * 0.04 : 1.6),
-    /* Metal, tile and slate age another way. In Ian damage was rare on any roof in its first five years, and on metal
-       and tile it rose negligibly until the roof was past ten; past five years 10 to 15 percent of them showed damage on
-       5 percent or more of the roof against almost half of shingle roofs (University of Florida and Auburn for the Florida
-       Building Commission 2023, 768 roofs). So their multiple stays low for ten years and rises after, as fasteners back
-       out and underlayment and battens age (the rise is a judgment). Scaled the same way. */
+    /* Metal and tile age another way: in a Florida survey of 768 roofs damage on them rose negligibly until the roof was
+       past ten (University of Florida and Auburn 2023). Their multiple stays low for ten years and rises after, as
+       fasteners back out and underlayment and battens age (the rise is a judgment). Scaled the same way. */
     ageHard: a => (a <= 10 ? 0.4 : a <= 25 ? 0.4 + (a - 10) * 0.1 : 1.9),
     /* and against hail: weathered shingles and membranes grow brittle (RICOWI's Dallas survey rated shingles over 9 years
        old at twice the damage of newer ones; Haag); tile and steel do not change with age */
     hailAge: a => (a <= 5 ? 0.6 : a < 9 ? 0.6 + (a - 5) * 0.1 : a < 15 ? 1 + (a - 9) * 0.5 / 6 : 1.5),
     /* wind at the roof: taller buildings stand in faster air (ASCE 7 exposure coefficients, judgment on the step) */
     tall: st => (st >= 3 ? 1.2 : st === 2 ? 1.1 : 1),
-    /* The storm record. recFrom: the first year the file resolves storm by storm at each ZIP (its footprints begin with
-       Andrew in 1992; no storm reached Louisiana in 1990 or 1991). longFrom, longTo: the years the atlas counted for each
-       ZIP's storm years (hur64, hur50: 76 years). femaFrom: the first year of FEMA's registrations in the atlas; before
-       it module 17's storm replacements are the wind curve's. nearKm, own: each ZIP's record is steadied by the ZIPs within 40 km,
-       by their roofs, because where a storm's core passed is partly luck and FEMA's counts lean on who registered.
-       shrink: the years of evidence the state's mean cost of a storm year is worth beside a neighbourhood's own. */
-    recFrom: 1990, femaFrom: 2004, longFrom: 1950, longTo: 2025, nearKm: 40, own: 0.6, shrink: 2,
+    /* the fire record: the years CAL FIRE's digital damage inspections cover; each ZIP's own record is steadied by the
+       ZIPs within 40 km, by their homes, because where a fire ran is partly luck; a damaged structure counts half */
+    fireFrom: 2013, fireTo: 2025, nearKm: 40, own: 0.6, dmgW: 0.5,
+    /* rain's lean on leaks: the square root of the ZIP's heavy rain against the state's, held between 0.6 and 1.6 (a roof
+       leaks when it rains, but repair calls do not double where rain does: judgment, grade D); snow country adds up to 30 percent */
+    rainLo: 0.6, rainHi: 1.6, snowLeak: 0.3,
   };
-  /* the kinds of roof the outlook tells apart. life: the clock's key (LIFE); wind: against shingles (SMAT); ageK: how
-     much of the shingles' ageing against wind the covering shares, or 'hard' for metal, tile and slate, which follow
-     OC.ageHard. Their wind factors are a judgment between the 0.45 the roof clock above uses for metal homes (which it
-     keeps, itself a judgment) and what Ian showed for metal and tile, about a fifth of the shingles' hazard past five
-     years; nothing was found on slate in hurricanes, which is taken with tile; hail: against shingles on a 1 inch day and on a 1.75 inch day, from Haag
-     Engineering's threshold sizes (3 tab shingles 1 inch, laminated 1.25, clay tile and gray slate 1.5, concrete tile
-     and green slate 1.75, membranes 1 to 2, steel panels 2.5: they dent sooner, with the coating whole); hailK: how much of the
-     shingles' ageing against hail it shares; leak: repair calls against the survey's rate; what each cause does to it. */
+  /* the kinds of roof the outlook tells apart. life: the clock's key (LIFE); wind: against shingles; ageK: how much of
+     the shingles' ageing against wind the covering shares, or 'hard' for metal and tile, which follow OC.ageHard (their
+     wind factors are a judgment from the Florida survey above, about a fifth to a third of the shingles' hazard past
+     five years; nothing was found on wood shakes, which are taken a little worse than shingles); hail: against shingles
+     on a 1 inch day and on a 1.75 inch day, from Haag Engineering's threshold sizes; hailK: how much of the shingles'
+     ageing against hail it shares; leak: repair calls against the survey's rate (judgment); fire: the relative risk of
+     destruction in the 2013 to 2018 fires by roof material (Syphard and Keeley 2019, statewide: asphalt 1.05, tile
+     0.88, concrete 0.89, metal 0.97, wood 1.00 and not significant: roof material "did not explain substantial
+     variation", because most roofs were already fire resistant and embers got in at eaves, vents and windows); cls:
+     the fire class the covering most likely carries as an assembly [A, B, C, unrated] when new or re-roofed since the
+     class rules, and old (see the Fire view); what each cause does to it. */
   const RTYPE = {
-    shingle: { l: 'Asphalt shingles', s: 'shingles', life: 'shingle', wind: 1, ageK: 1, hail: [1, 1], hailK: 1, leak: 1, algae: 1, rust: 0,
-      does: { hur: 'Hip and ridge caps go first; tabs lift, crease and blow off, in the middle of a slope about as often as along its edges; at hurricane force whole slopes strip to the underlayment and decking can follow', ts: 'Lifted and creased tabs, missing shingles along edges and the ridge, limbs through the deck', hail: 'Bruises that crack the mat under the granules, granule loss in spatters, cracked or punctured shingles from the larger stones; dents in vents and flashing mark the size', wear: 'Granules wash off, the asphalt dries and cracks, tabs curl and blister; the south and west slopes go first in this heat', leak: 'Leaks at pipe boots, wall and chimney flashing, valleys and nail pops', algae: 'Dark streaks of blue green algae, first on the north and shaded slopes', rust: '' } },
-    metal: { l: 'Metal (standing seam or panels)', s: 'metal', life: 'metal', wind: 0.3, ageK: 'hard', hail: [0.03, 0.15], hailK: 0, leak: 0.7, algae: 0.15, rust: 1,
-      does: { hur: 'Panels peel at the eaves, rakes and ridge where clips or screws let go; ridge caps and trim strip; exposed fastener panels tear at the screws', ts: 'Trim and ridge caps lift, a panel edge peels, limbs dent or pierce panels', hail: 'Dents that leave the coating whole, which a policy with a cosmetic damage exclusion does not pay for; it takes hail of about 2.5 inches to split a panel or open a lap', wear: 'On exposed fastener roofs screws back out and their washers dry and split; paint chalks and fades; sealant at laps and penetrations fails', leak: 'Leaks at screws, laps, ridge and pipe boots', algae: 'Dirt and mildew film on shaded panels', rust: 'Red rust at cut edges, laps, scratches and fasteners; salt air near the Gulf speeds it, and makers do not warrant the coating close to salt water' } },
-    tile: { l: 'Clay or concrete tile, slate', s: 'tile or slate', life: 'tile', wind: 0.3, ageK: 'hard', hail: [0.1, 0.85], hailK: 0, leak: 1.1, algae: 0.6, rust: 0,
-      does: { hur: 'Tiles and slates lift, slide and break at the eaves, hips and ridge; loose pieces become missiles that break more; mortar set ridge and hip tiles fail first', ts: 'Broken and slipped tiles or slates, mostly at edges and under trees', hail: 'Cracked and broken tiles and slates from hail of 1.5 to 1.75 inches and up; corners and exposed edges go first', wear: 'The underlayment and the fasteners age out long before the tile or slate does: slipped pieces, rusted nails, felt that no longer sheds water', leak: 'Leaks where the underlayment has worn through, at valleys, flashing and slipped pieces', algae: 'Mildew, lichen and moss on shaded slopes', rust: '' } },
-    mh: { l: 'Manufactured home roof', s: 'manufactured home roofs', life: 'mh', wind: SMAT.mh, ageK: 1, hail: [0.8, 0.9], hailK: 0.6, leak: 1.3, algae: 0.6, rust: 0.6,
-      does: { hur: 'Metal roof sheets peel from the edges and the roof over tears off; on pitched double wides shingles strip as on a house, sooner, because the decks are lighter', ts: 'Edge sheets and trim peel, a roof over lifts, limbs break through', hail: 'Dented and punctured sheet metal, cracked coatings, bruised shingles on pitched roofs', wear: 'Seams and fasteners open, coatings chalk and crack, the roof over sags and ponds', leak: 'Leaks at seams, vents and the marriage line', algae: 'Mildew and algae on coatings and shingles', rust: 'Rust at seams, fasteners and edges of sheet metal roofs' } },
-    low: { l: 'Low slope membrane', s: 'low slope membranes', life: 'low', wind: SMAT.low, ageK: 0.6, hail: [0.15, 0.6], hailK: 0.8, leak: 1.4, algae: 0.3, rust: 0,
-      does: { hur: 'The membrane peels from the corners and edges once the edge metal or a flashing lets go; gravel scours; rooftop units shift and tear their curbs', ts: 'Edge metal and flashing lift, a corner peels, debris punctures the membrane', hail: 'Fractured or punctured membrane (thermoplastic sheets from 1 to 2 inch hail, modified bitumen from 1.5 to 2, sooner when weathered or over soft insulation), crushed insulation under it, split base flashing', wear: 'Seams open, flashings pull from walls and curbs, the membrane shrinks, cracks and blisters; ponding water speeds all of it', leak: 'Leaks at seams, drains, curbs and wall flashings; wet insulation under the membrane', algae: 'Dirt and growth that darken a white membrane and raise its temperature', rust: '' } },
-    mbldg: { l: 'Metal building roof', s: 'metal building roofs', life: 'mbldg', wind: SMAT.mbldg, ageK: 'hard', hail: [0.03, 0.15], hailK: 0, leak: 1.2, algae: 0.1, rust: 1,
-      does: { hur: 'Panels peel from the eave and rake, ridge caps and gutters strip, skylight panels shatter', ts: 'Trim, gutters and an edge panel lift; skylight panels crack', hail: 'Dents that leave the coating whole; fractured skylight panels; a split panel only from hail of about 2.5 inches', wear: 'Fasteners back out, washers and lap sealant fail, panels move at the laps', leak: 'Leaks at fasteners, laps, ridge, skylight panels and around units', algae: 'Dirt film', rust: 'Rust at eaves, laps, around units and at every scratch; faster in salt air' } },
+    shingle: { l: 'Asphalt shingles', s: 'shingles', life: 'shingle', wind: 1, ageK: 1, hail: [1, 1], hailK: 1, leak: 1, algae: 1, rust: 0, fire: 1.05,
+      does: { wind: 'Hip and ridge caps go first; tabs lift, crease and blow off, in the middle of a slope about as often as along its edges; limbs come through the deck', rain: 'Leaks at pipe boots, wall and chimney flashing, valleys and nail pops; a long atmospheric river finds every one of them', fire: 'Most asphalt shingle roofs are Class A assemblies and do not ignite from embers alone; fires get in at open eaves, vents wider than 1/8 inch, gutters full of needles and the gap at the roof edge', hail: 'Bruises that crack the mat under the granules, granule loss in spatters; dents in vents and flashing mark the size', wear: 'Granules wash off, the asphalt dries and cracks, tabs curl and blister; the south and west slopes go first, and faster in the valleys and deserts', algae: 'Dark algae streaks and moss, first on the north and shaded slopes', rust: '' } },
+    tile: { l: 'Tile (clay or concrete), or slate', s: 'tile', life: 'tile', wind: 0.3, ageK: 'hard', hail: [0.1, 0.85], hailK: 0, leak: 1.1, algae: 0.5, rust: 0, fire: 0.88,
+      does: { wind: 'Tiles lift, slide and break at the eaves, hips and ridge; loose pieces break more; mortar set ridge and hip tiles fail first', rain: 'Water gets under tile by design; the underlayment sheds it. Leaks come where the underlayment has worn through, at valleys, flashings and slipped pieces, and show in the first long storm of a wet winter', fire: 'Clay and concrete tile do not burn, but the air space under them lets embers reach the underlayment and deck: in a fire zone the code wants bird stops at the eaves, mudded hips and ridges and a 72 pound cap sheet or a Class A underlayment under the tile', hail: 'Cracked and broken tiles from hail of 1.5 to 1.75 inches and up; corners and exposed edges go first', wear: 'The tile outlasts the underlayment and the fasteners under it: about 25 years for standard underlayment by the trade\'s figures, then slipped pieces, rusted nails and felt that no longer sheds water. The job is a lift and relay: new underlayment under the same tile', algae: 'Moss, lichen and mildew on shaded slopes', rust: '' } },
+    wood: { l: 'Wood shakes or shingles', s: 'wood shakes', life: 'wood', wind: 1.1, ageK: 1, hail: [0.9, 1], hailK: 1, leak: 1.2, algae: 1.3, rust: 0, fire: 1,
+      does: { wind: 'Split and loosened shakes lift and blow off; ridge caps go first', rain: 'Cupped, split and missing shakes let water to the interlayment; moss holds water against the wood', fire: 'An untreated wood roof is the one covering the older fires single out: in the 1990 Painted Cave fire 70 percent of homes with nonflammable roofs survived against 19 percent with flammable ones. No untreated wood roofing may be sold or applied in California, and Los Angeles and San Diego allow no wood re-roof', hail: 'Splits along the grain from the larger stones', wear: 'Shakes split, cup and curl in the sun and rot where they stay wet; the interlayment felt ages with them', algae: 'Moss and lichen, heavy where it is wet and shaded', rust: '' } },
+    flat: { l: 'Low slope roof on a house', s: 'low slope roofs', life: 'flat', wind: 0.6, ageK: 0.6, hail: [0.15, 0.6], hailK: 0.8, leak: 1.5, algae: 0.3, rust: 0, fire: 1,
+      does: { wind: 'A cap sheet or membrane peels from the edge once the edge metal or a flashing lets go; gravel scours', rain: 'Ponding at clogged scuppers and drains, open laps and blisters, flashings pulled from parapets and skylights: a flat roof shows its age in the first atmospheric river of the season', fire: 'A cap sheet or a gravel surfaced built up roof is usually a Class A assembly; embers collect in leaf litter at parapets and scuppers', hail: 'Fractured or punctured membrane, sooner when weathered', wear: 'The sun dries the asphalt and takes the granules; seams open, the sheet shrinks and blisters; ponding speeds all of it', algae: 'Dirt and growth where water stands', rust: '' } },
+    metal: { l: 'Metal (standing seam or panels)', s: 'metal', life: 'metal', wind: 0.3, ageK: 'hard', hail: [0.03, 0.15], hailK: 0, leak: 0.7, algae: 0.15, rust: 1, fire: 0.97,
+      does: { wind: 'Panels peel at the eaves, rakes and ridge where clips or screws let go; ridge caps and trim strip', rain: 'Leaks at screws, laps, ridge and pipe boots', fire: 'Metal does not burn; the deck under it can, where debris packs the ribs at the eave or the edge is open', hail: 'Dents that leave the coating whole; it takes hail of about 2.5 inches to split a panel', wear: 'On exposed fastener roofs screws back out and their washers dry and split; paint chalks and fades; sealant at laps fails', algae: 'Dirt and mildew film on shaded panels', rust: 'Red rust at cut edges, laps, scratches and fasteners; salt air off the Pacific and the bays speeds it, and makers do not warrant the coating close to salt water' } },
+    mh: { l: 'Manufactured home roof', s: 'manufactured home roofs', life: 'mh', wind: 1.3, ageK: 1, hail: [0.8, 0.9], hailK: 0.6, leak: 1.3, algae: 0.6, rust: 0.6, fire: 1.05,
+      does: { wind: 'Metal roof sheets peel from the edges and a roof over lifts; on pitched double wides shingles strip as on a house, sooner, because the decks are lighter', rain: 'Leaks at seams, vents and the marriage line', fire: 'Light roofs over light walls: in the fires of 2017 to 2020 whole parks were lost', hail: 'Dented sheet metal, cracked coatings', wear: 'Seams and fasteners open, coatings chalk and crack, the roof over sags and ponds', algae: 'Mildew and algae on coatings and shingles', rust: 'Rust at seams, fasteners and edges of sheet metal roofs' } },
+    low: { l: 'Low slope membrane', s: 'low slope membranes', life: 'low', wind: 0.7, ageK: 0.6, hail: [0.15, 0.6], hailK: 0.8, leak: 1.4, algae: 0.3, rust: 0, fire: 1,
+      does: { wind: 'The membrane peels from the corners and edges once the edge metal or a flashing lets go; gravel scours; rooftop units shift and tear their curbs', rain: 'Leaks at seams, drains, curbs and wall flashings; ponding where drains clog; wet insulation under the membrane', fire: 'Most membranes and cap sheets are Class A assemblies; embers gather at parapets, rooftop units and skylights', hail: 'Fractured or punctured membrane, crushed insulation under it, split base flashing', wear: 'Seams open, flashings pull from walls and curbs, the membrane shrinks, cracks and blisters; a white membrane soils and loses reflectance (the Energy Code counts on about 70 percent of its gain over 0.20 lasting three years)', algae: 'Dirt and growth that darken a white membrane and raise its temperature', rust: '' } },
+    mbldg: { l: 'Metal building roof', s: 'metal building roofs', life: 'mbldg', wind: 0.7, ageK: 'hard', hail: [0.03, 0.15], hailK: 0, leak: 1.2, algae: 0.1, rust: 1, fire: 0.97,
+      does: { wind: 'Panels peel from the eave and rake, ridge caps and gutters strip, skylight panels shatter', rain: 'Leaks at fasteners, laps, ridge, skylight panels and around units', fire: 'Steel panels do not burn; plastic skylight panels and what is stored under the roof do', hail: 'Dents that leave the coating whole; fractured skylight panels', wear: 'Fasteners back out, washers and lap sealant fail, panels move at the laps', algae: 'Dirt film', rust: 'Rust at eaves, laps, around units and at every scratch; faster in salt air' } },
   };
-  RTYPE.lowmf = Object.assign({}, RTYPE.low, { life: 'lowmf', wind: SMAT.lowmf });
-  /* tile and slate last far longer than shingles; what ages under them is the felt and the nails (module 17's "50 years or more") */
-  if (!LIFE.tile) { LIFE.tile = { L: 55, k: 3, l: 'tile or slate' }; LIFE.tile.lam = LIFE.tile.L / lanczos(1 + 1 / LIFE.tile.k); SMAT.tile = 0.3; HMAT.tile = 0.6; }
-  const CAUSES = [['hur', 'Hurricane and tropical storm wind'], ['ts', 'Thunderstorm wind and tornadoes'], ['hail', 'Hail'], ['wear', 'Heat, sun and age'], ['leak', 'Leaks and flashing']];
+  RTYPE.lowmf = Object.assign({}, RTYPE.low, { life: 'lowmf', wind: 0.8 });
+  const CAUSES = [['wind', 'Wind'], ['rain', 'Rain and leaks'], ['fire', 'Wildfire'], ['hail', 'Hail'], ['wear', 'Heat, sun and age']];
   const CAUSE_L = Object.fromEntries(CAUSES);
-  /* Louisiana's roofs by age today (module 17), as shares: what a storm year's count is an average over */
+  /* California's roofs by age today (module 17), as shares: what the wind and hail rates are an average over */
   const AGE_MAX = 40;
   const AGEW = (() => { const H = (DATA.ts && DATA.ts.agehist) || [], w = new Float64Array(AGE_MAX + 1); let t = 0; for (let a = 0; a < H.length; a++) { const v = +H[a] || 0; w[Math.min(a, AGE_MAX)] += v; t += v; } if (!t) w.fill(1 / (AGE_MAX + 1)); else for (let a = 0; a <= AGE_MAX; a++) w[a] /= t; return w; })();
   /* by age, for a covering that shares k of the shingles' ageing (or 'hard': metal, tile and slate): the multiple of the
@@ -904,106 +1182,71 @@
     for (let a = 0; a <= AGE_MAX; a++) { g.w[a] = hard ? OC.ageHard(a) : 1 + (OC.age(a) - 1) * k; g.h[a] = 1 + (OC.hailAge(a) - 1) * k; sw += AGEW[a] * g.w[a]; sh += AGEW[a] * g.h[a]; }
     for (let a = 0; a <= AGE_MAX; a++) { g.w[a] /= sw || 1; g.h[a] /= sh || 1; } GK.set(key, g); return g;
   }
-  /* a storm year that replaced the share d of the roofs standing: the hazard H at which roofs of Louisiana's ages, each
-     taking it at its own multiple, average d (by bisection; -ln(1 - d) where age makes no difference) */
-  function hazOf(d, g) {
-    if (!(d > 0)) return 0; const q = clamp(Math.round(d * 2000), 1, 1900); let H = g.H.get(q); if (H !== undefined) return H; const dd = q / 2000; let lo = 0, hi = 80;
-    for (let i = 0; i < 40; i++) { H = (lo + hi) / 2; let m = 0; for (let a = 0; a <= AGE_MAX; a++) m += AGEW[a] * (1 - Math.exp(-H * g.w[a])); if (m < dd) lo = H; else hi = H; }
-    H = (lo + hi) / 2; g.H.set(q, H); return H;
-  }
-  /* that storm year on a roof of age a: the chance it is replaced, and the chance it is repaired */
-  function stormOn(d, a, k) { const g = gFor(k), x = hazOf(d, g) * g.w[clamp(Math.round(a), 0, AGE_MAX)], r = 1 - Math.exp(-x), y = 1 - Math.exp(-x * OC.anyM); return [r, Math.min(1 - r, Math.max(y - r, 0.2 * r))]; }
   const windAgeK = (a, k) => gFor(k).w[Math.min(a, AGE_MAX)], hailAgeK = (a, k) => gFor(k).h[Math.min(a, AGE_MAX)];
-  /* the Gulf's shore, from the atlas's own outline (about 210 m to a step): for salt air on metal */
-  const GULF = (() => { const pts = []; try { pathRings(G0.outline).forEach(r => r.forEach(([la, lo]) => { if (la < 30.2 && lo > -93.9 && lo < -88.7 && !(lo < -93.55 && la > 29.85) && !(lo > -89.75 && la > 30.12)) pts.push([la, lo]); })); } catch (e) { /* no outline: no salt air */ } return pts; })();
+  /* Salt water, for salt air on metal: the Pacific shore from the atlas's own state outline (about 200 m to a step; the
+     land borders with Oregon, Nevada, Arizona and Mexico are cut out by a line drawn inland of the coast), and the bay
+     shores from a short list of points placed by hand along San Francisco, San Pablo and San Diego bays, Humboldt Bay,
+     Morro Bay, Mission Bay, Newport Bay, Marina del Rey and the Los Angeles and Long Beach harbor (good to about a
+     kilometre: the first salt step, half a kilometre, is approximate beside a bay). Suisun Bay and the Delta are
+     brackish and are not counted (a judgment). */
+  const COAST_EAST = [[32.4, -116.95], [33.0, -117.05], [33.5, -117.35], [34.0, -117.9], [34.5, -119.0], [35.0, -120.2], [36.0, -121.0], [37.0, -121.6], [38.0, -122.2], [39.0, -123.2], [40.0, -123.6], [41.0, -123.7], [42.1, -123.8]];
+  const coastEast = la => { const C = COAST_EAST; if (la <= C[0][0]) return C[0][1]; for (let i = 1; i < C.length; i++) if (la <= C[i][0]) return C[i - 1][1] + (C[i][1] - C[i - 1][1]) * (la - C[i - 1][0]) / (C[i][0] - C[i - 1][0]); return C[C.length - 1][1]; };
+  const BAYS = [[37.80, -122.39], [37.76, -122.38], [37.72, -122.36], [37.67, -122.38], [37.62, -122.37], [37.57, -122.25], [37.51, -122.21], [37.46, -122.10], [37.43, -121.97], [37.50, -122.03], [37.56, -122.09], [37.63, -122.15], [37.70, -122.19], [37.71, -122.22], [37.77, -122.28], [37.80, -122.32], [37.84, -122.30], [37.87, -122.31], [37.91, -122.36], [37.96, -122.40], [38.01, -122.36], [38.02, -122.28], [38.06, -122.22], [38.02, -122.13], [38.05, -122.15], [38.10, -122.26], [38.10, -122.50], [38.03, -122.50], [37.97, -122.49], [37.92, -122.48], [37.87, -122.45], [37.86, -122.48],
+    [32.71, -117.23], [32.72, -117.18], [32.71, -117.17], [32.69, -117.15], [32.66, -117.11], [32.62, -117.10], [32.60, -117.11], [32.63, -117.14], [32.69, -117.17], [32.78, -117.23], [33.62, -117.89], [33.61, -117.91], [33.74, -118.25], [33.76, -118.20], [33.75, -118.22], [33.98, -118.45], [40.80, -124.17], [40.86, -124.09], [40.75, -124.21], [35.34, -120.85], [35.37, -120.86]];
+  const SHORE = (() => { const pts = []; try { pathRings(G0.outline).forEach(r => r.forEach(([la, lo]) => { if (la < 41.99 && la > 32.535 && lo < coastEast(la)) pts.push([la, lo]); })); } catch (e) { /* no outline: the bays alone */ } return pts.concat(BAYS); })();
   const coastMemo = new Map();
   function coastKm(la, lo) {
-    if (!isN(la) || !isN(lo) || !GULF.length) return 999; const k = la.toFixed(4) + ',' + lo.toFixed(4); let v = coastMemo.get(k);   /* to about 10 m: the salt steps begin at half a kilometre */
-    if (v === undefined) { let best = 1e18; const kx = Math.cos(rad(la)) * 111.32; for (const p of GULF) { const dy = (p[0] - la) * 110.9, dx = (p[1] - lo) * kx, d = dx * dx + dy * dy; if (d < best) best = d; } v = Math.sqrt(best); if (coastMemo.size > 20000) coastMemo.clear(); coastMemo.set(k, v); }
+    if (!isN(la) || !isN(lo) || !SHORE.length) return 999; const k = la.toFixed(4) + ',' + lo.toFixed(4); let v = coastMemo.get(k);   /* to about 10 m: the salt steps begin at half a kilometre */
+    if (v === undefined) { let best = 1e18; const kx = Math.cos(rad(la)) * 111.32; for (const p of SHORE) { const dy = (p[0] - la) * 110.9, dx = (p[1] - lo) * kx, d = dx * dx + dy * dy; if (d < best) best = d; } v = Math.sqrt(best); if (coastMemo.size > 20000) coastMemo.clear(); coastMemo.set(k, v); }
     return v;
   }
   /* salt air on steel: the years of coating life left against inland (ISO 9223: zinc goes several times faster in the first
      kilometres from salt water; makers void 55 percent aluminium zinc and paint warranties within about 450 m of it). Judgment on the steps. */
   const SALT = [0.4, 0.55, 0.75, 0.9, 1], saltIx = km => (km < 0.5 ? 0 : km < 2 ? 1 : km < 8 ? 2 : km < 25 ? 3 : 4), saltK = km => SALT[saltIx(km)];
-  /* The record a ZIP's outlook draws on.
-     Its storm years one by one since 1990, each with the share of roofs it replaced as the roof clock above counts it
-     (stormsAt: from 2004 module 17's count, FEMA's verified roof and wind damage where FEMA has it and the storm's
-     modelled wind through the damage curve elsewhere; before 2004 the curve, scaled here by curveK), steadied by the
-     ZIPs within OC.nearKm.
-     And the forty years before the footprints begin, from the atlas's count of the years since 1950 with winds of 50
-     knots and of 64 knots at each ZIP (module 02's hur50 and hur64): each of those years is given the mean cost of a
-     storm year of its strength in the resolved record, the neighbourhood's own mean drawn toward the state's. Years of
-     34 to 49 knots before 1990 are taken at the resolved record's pace, because the older storms were rebuilt with a
-     broader wind profile that counts more of them. */
-  const N_REC = OC.longTo - OC.recFrom + 1, N_PRE = OC.recFrom - OC.longFrom, N_LONG = N_REC + N_PRE, BAND = kt => (kt >= 64 ? 2 : kt >= 50 ? 1 : 0);
-  /* How FEMA's counts have compared with the wind curve, by the year's top wind (34 to 49 knots, 50 to 63, 64 to 79, 80
-     and over): over every ZIP's storm years since FEMA's file begins that module 17 took from FEMA (the clock's share
-     differs from the curve's by a fifth or more), the roofs FEMA's count replaced over the roofs the curve would have.
-     Near 1 below hurricane force, about a half to three quarters above it: the curve was fitted on Katrina, Rita,
-     Gustav, Ike and Isaac, and outside 2005 FEMA's counts for a hurricane year have run at 0.3 to 0.8 of it. The
-     years before FEMA's file, which the clock reads from the curve alone, are scaled by it here. From 2004 a ZIP's year
-     that FEMA did not cover is still the curve's, and cannot be told from one FEMA's count happens to match, so it is
-     left as module 17 has it. */
-  const BAND4 = kt => (kt >= 80 ? 3 : kt >= 64 ? 2 : kt >= 50 ? 1 : 0);
-  let CURVEK = null;
-  function curveK() {
-    if (CURVEK) return CURVEK; const t = [[0, 0], [0, 0], [0, 0], [0, 0]];
-    Z.forEach(z => { if (!(z.roofs > 0)) return; stormsAt(z.zip).forEach(s => { if (s.src !== 'atlas' || s.y < OC.femaFrom || s.y > OC.longTo || !s.list.length || !(s.dw > 0.0005) || Math.abs(s.d / s.dw - 1) < 0.2) return; const b = BAND4(s.list[0].kt); t[b][0] += s.d * z.roofs; t[b][1] += s.dw * z.roofs; }); });
-    CURVEK = t.map(([c, w]) => (w > 0 ? clamp(c / w, 0.3, 1.2) : 1)); return CURVEK;
-  }
-  /* what a storm year cost a ZIP's roofs, for the outlook: the clock's share from FEMA's first year on, the scaled curve before */
-  const costOf = s => clamp(s.y < OC.femaFrom && s.list.length ? s.dw * curveK()[BAND4(s.list[0].kt)] : s.d, 0, 0.95);
-  /* a ZIP's own tropical storm years in the resolved record: the year, the share of roofs replaced, the top wind and its storm */
-  const yearsOf = zip => stormsAt(zip).filter(s => s.y >= OC.recFrom && s.y <= OC.longTo && s.list.length && s.list[0].kt >= 34).map(s => ({ y: s.y, d: costOf(s), kt: s.list[0].kt, si: s.list[0].si, ver: s.y >= OC.femaFrom }));
-  /* the state's mean cost of a storm year by its top wind (34 to 49 knots, 50 to 63, hurricane force), by roofs */
-  let BANDS = null;
-  function bandMeans() {
-    if (BANDS) return BANDS; const t = [[0, 0], [0, 0], [0, 0]];
-    Z.forEach(z => { if (!(z.roofs > 0)) return; yearsOf(z.zip).forEach(e => { const b = BAND(e.kt); t[b][0] += e.d * z.roofs; t[b][1] += z.roofs; }); });
-    BANDS = t.map(([c, n], i) => (n > 0 ? c / n : [0.012, 0.06, 0.235][i])); return BANDS;
-  }
-  const EVTS = new Map();
-  function eventsFor(zip) {
-    let E = EVTS.get(zip); if (E) return E; const z = ZI[zip] || null, near = []; let W = 0;
-    if (z && isN(z.lat)) Z.forEach(q => { if (q.zip === zip || !isN(q.lat) || !(q.roofs > 0)) return; if (Math.abs(q.lat - z.lat) > 0.5 || Math.abs(q.lon - z.lon) > 0.6) return; if (meters([z.lat, z.lon], [q.lat, q.lon]) > OC.nearKm * 1000) return; near.push(q); W += q.roofs; });
-    const parts = near.length ? [[zip, OC.own]].concat(near.map(q => [q.zip, (1 - OC.own) * q.roofs / W])) : [[zip, 1]];
-    const res = new Map(), cnt = [0, 0, 0], cost = [0, 0, 0]; let c64 = 0, c50 = 0;
-    parts.forEach(([zp, w]) => { const q = ZI[zp];
-      yearsOf(zp).forEach(e => { const b = BAND(e.kt); cnt[b] += w; cost[b] += w * e.d; if (e.d > 0) { const k = clamp(Math.round(e.d * 2000), 1, 1900); res.set(k, (res.get(k) || 0) + w); } });
-      if (q) { c64 += w * (+q.hur64 || 0) / 100 * N_LONG; c50 += w * (+q.hur50 || 0) / 100 * N_LONG; } });
-    const B = bandMeans(), mean = b => (cost[b] + OC.shrink * B[b]) / (cnt[b] + OC.shrink);
-    /* the years before the footprints: hurricane force, 50 to 63 knots, 34 to 49 knots; each a cost and a count of years */
-    const pre = [[mean(2), Math.max(0, c64 - cnt[2])], [mean(1), Math.max(0, (c50 - c64) - cnt[1])], [mean(0), cnt[0] * N_PRE / N_REC]];
-    E = { res: [...res].map(([k, w]) => [k / 2000, w]), pre, cnt, cost, c64, c50, near: near.length }; EVTS.set(zip, E); return E;
-  }
-  /* by the roof's age, for a covering that shares k of the shingles' ageing: the yearly chance a hurricane or tropical storm
-     replaces it, and repairs it, under each record */
-  const HURA = new Map();
-  function hurByAge(zip, k) {
-    const key = zip + '|' + kKey(k); let h = HURA.get(key); if (h) return h; const g = gFor(k), E = eventsFor(zip), A = () => new Float64Array(AGE_MAX + 1), pre = { rep: A(), fix: A() };
-    h = { long: { rep: A(), fix: A() }, recent: { rep: A(), fix: A() }, mid: { rep: A(), fix: A() } };
-    const add = (o, d, w) => { if (!(w > 0) || !(d > 0)) return; const H = hazOf(d, g); for (let a = 0; a <= AGE_MAX; a++) { const x = H * g.w[a], r = 1 - Math.exp(-x), y = 1 - Math.exp(-x * OC.anyM); o.rep[a] += w * r; o.fix[a] += w * Math.min(1 - r, Math.max(y - r, 0.2 * r)); } };
-    E.res.forEach(([d, w]) => add(h.recent, d, w)); E.pre.forEach(([d, n]) => add(pre, d, n));
-    for (let a = 0; a <= AGE_MAX; a++) ['rep', 'fix'].forEach(f => { const r = h.recent[f][a]; h.long[f][a] = (r + pre[f][a]) / N_LONG; h.recent[f][a] = r / N_REC; h.mid[f][a] = (h.long[f][a] + h.recent[f][a]) / 2; });
-    if (HURA.size > 4000) HURA.clear(); HURA.set(key, h); return h;
-  }
-  /* a ZIP's weather as yearly chances for a shingle roof of average age: replaced by a hurricane, repaired after one, damaged
-     on a thunderstorm or tornado day, the hail days; under the long record, the resolved one and their mean */
-  const HAZ = new Map();
+  /* The record a ZIP's outlook draws on: its gust days, its rain and atmospheric river days, its hail days, and the pace of
+     its fire losses (CAL FIRE's inspections, 2013 to 2025: structures destroyed, and damaged at half weight, a year,
+     over the ZIP's homes), steadied by the ZIPs within OC.nearKm. Everything is a yearly rate for a shingle roof of
+     average age before the covering, its age, the building's height and its fire zone turn it. */
+  const N_FIRE = OC.fireTo - OC.fireFrom + 1, HAZ = new Map();
+  const fireLoss = z => (wxCol(z, 'dest') || 0) + OC.dmgW * (wxCol(z, 'dmg') || 0);
   function hazardAt(zip) {
     let h = HAZ.get(zip); if (h) return h;
-    const z = ZI[zip] || null, HB = hurByAge(zip, 1), avg = o => { let r = 0, f = 0; for (let a = 0; a <= AGE_MAX; a++) { r += AGEW[a] * o.rep[a]; f += AGEW[a] * o.fix[a]; } return { rep: r, fix: f }; };
-    let n64 = 0, top = null; yearsOf(zip).forEach(e => { if (e.kt >= 64) n64++; if (!top || e.d > top.d || (e.d === top.d && e.kt > top.kt)) top = { si: e.si, kt: e.kt, y: e.y, d: e.d }; });   /* the costliest storm year, named for its strongest storm */
-    const hd1 = z ? +z.hd1 || 0 : 0, hd175 = z ? +z.hd175 || 0 : 0, hd2 = z ? +z.hd2 || 0 : 0, wd50 = z ? +z.wd50 || 0 : 0, wd65 = z ? +z.wd65 || 0 : 0, td1 = z ? +z.td1 || 0 : 0;
-    h = { zip, long: avg(HB.long), recent: avg(HB.recent), mid: avg(HB.mid), n64, n64long: z ? Math.round((+z.hur64 || 0) / 100 * N_LONG) : 0, top,
-      ts: [wd50 * OC.ts[0][0], wd65 * OC.ts[1][0], td1 * OC.ts[2][0]], hailDays: [hd1, hd175, hd2], days: { wd50, wd65, td1 }, lat: z ? z.lat : null, lon: z ? z.lon : null };
+    const z = ZI[zip] || null, v = k => (z ? wxCol(z, k) : null), n0 = x => (x == null ? 0 : x);
+    const g58 = Math.min(n0(v('g58')), OC.capG58), g75 = Math.min(n0(v('g75')), OC.capG75);
+    /* fire: own and neighbours */
+    let own = 0, nb = 0, near = 0, nbHu = 0, nbLoss = 0;
+    if (z) { const hu = Math.max(+z.hu || +z.roofs || 0, 50); own = fireLoss(z) / (N_FIRE * hu);
+      if (isN(z.lat)) Z.forEach(q => { if (q.zip === zip || !isN(q.lat) || !(q.hu > 0)) return; if (Math.abs(q.lat - z.lat) > 0.5 || Math.abs(q.lon - z.lon) > 0.6) return; if (meters([z.lat, z.lon], [q.lat, q.lon]) > OC.nearKm * 1000) return; near++; nbHu += +q.hu; nbLoss += fireLoss(q); });
+      nb = nbHu > 0 ? nbLoss / (N_FIRE * nbHu) : own; }
+    const fireRate = clamp(near ? OC.own * own + (1 - OC.own) * nb : own, 0, 0.2), dest = z ? n0(v('dest')) : 0, dm = z ? n0(v('dmg')) : 0, fireRep = dest + dm > 0 ? dest / (dest + OC.dmgW * dm) : 0.9;
+    /* rain against the state: days with an inch of rain plus atmospheric river days of rank 3 and up */
+    const wet = z0 => { const a = wxCol(z0, 'rd1'), r3 = (wxCol(z0, 'ar3') || 0) + (wxCol(z0, 'ar4') || 0) + (wxCol(z0, 'ar5') || 0); return a == null && !r3 ? null : (a || 0) + r3; };
+    if (!HAZ.has('*wet')) { let s = 0, n = 0; Z.forEach(q => { const w = wet(q), r = +q.roofs || 0; if (w != null && r > 0) { s += w * r; n += r; } }); HAZ.set('*wet', n > 0 ? s / n : null); }
+    const wz = z ? wet(z) : null, wm = HAZ.get('*wet'), snow = n0(v('snow'));
+    const rainK = (wz != null && wm > 0 ? clamp(Math.sqrt(wz / wm), OC.rainLo, OC.rainHi) : 1) * (1 + OC.snowLeak * clamp(snow / 100, 0, 1));
+    h = { zip, z, days: { g40: v('g40'), g58: v('g58'), g75: v('g75') }, wind: [g58 * OC.wind[0][0], g75 * OC.wind[1][0]], capped: n0(v('g58')) > OC.capG58 || n0(v('g75')) > OC.capG75,
+      rainK, wet: wz, wetState: wm, fire: { rate: fireRate, own, nb, near, rep: fireRep, dest, dmg: dm }, hailDays: [n0(v('hd1')), n0(v('hd175'))], hasHail: v('hd1') != null,
+      ar: ['ar1', 'ar2', 'ar3', 'ar4', 'ar5'].map(k => v(k)), snow: v('snow'), lat: z ? z.lat : null, lon: z ? z.lon : null };
     HAZ.set(zip, h); return h;
   }
-  /* One kind of roof at one ZIP, fifteen years on, from a spread of chances over the roof's age today (d0). o.rec: 'mid'
-     (the mean of the two storm records), 'recent' (1990 on) or 'long' (1950 on); o.st: stories; o.heat: how hard the sun
-     works this roof against the average roof of its kind there (1: the same; the Scout Engine's reading of its planes
-     supplies it, held between 0.5 and 1.6): its life shortens or stretches by the square root of that, because heat is one
-     of several things that age a roof (judgment).
+  /* the fire zone's turn on the ZIP's pace, for one building: the ZIP's losses fall mostly in its High and Very High
+     zones, so a building inside them takes the pace over the zones' share of the ZIP (at most four times it), one in a
+     Moderate zone the ZIP's own pace, and one outside every zone half of it where the ZIP has such zones at all: embers
+     carried the 2017 and 2025 fires well past the mapped zones (Coffey Park, the Altadena flats). A judgment, grade D.
+     Without the building's zone (the layer did not answer), the ZIP's pace as it is. */
+  function fireK(b) { if (!b || !b.fhsz) return 1; const hv = fhszHV(b.z) || 0, c = b.fhsz.cls; return c >= 2 ? clamp(100 / Math.max(hv, 25), 1, 4) : c === 1 ? 1 : hv >= 5 ? 0.5 : 1; }
+  const fkKey = v => (isN(v) ? clamp(+v, 0, 4) : 1).toFixed(2);
+  /* the heat a roof of a kind takes at a place against the average California roof of that kind (by one unit roofs, over a sample of one ZIP in eight):
+     the Thermal reading's yearly ageing rate, from the 1991 to 2020 normals. The outlook shortens or stretches the
+     roof's life by the square root of it: heat is one of several things that age a roof (judgment). */
+  const SHEAT = new Map();
+  function stateHeat(type) { let v = SHEAT.get(type); if (v !== undefined) return v; let s = 0, n = 0; Z.forEach((z, i) => { const w = +z.roofs || 0; if (i % 8 || !(w > 0) || !isN(z.lat)) return; s += w * heatRef(type, z.lat, z.lon); n += w; }); v = n > 0 ? s / n : null; SHEAT.set(type, v); return v; }
+  function climHeat(type, la, lo) { if (!isN(la) || !isN(lo)) return 1; const s = stateHeat(type); return s > 0 ? clamp(heatRef(type, la, lo) / s, 0.6, 1.6) : 1; }
+  /* One kind of roof at one ZIP, fifteen years on, from a spread of chances over the roof's age today (d0). o.fk: the fire
+     zone's turn on the ZIP's pace of fire losses (fireK); o.st: stories; o.heat: how hard the sun works this roof
+     against the average California roof of its kind (1: the same; the place's normals and the Scout Engine's reading
+     of the roof's planes supply it, held between 0.5 and 1.6): its life shortens or stretches by the square root of
+     that, because heat is one of several things that age a roof (judgment).
      The building is followed, not the roof stock: every case is a spread of chances over the age of the roof then on the
      building, and a replacement by anything puts it back at age zero. Beside every case (dist) the count keeps the cases
      where today's roof is still on (own), those where no roofer has been called (clean) and, cause by cause, those the
@@ -1013,24 +1256,25 @@
      mean age of the roof then in place (age), and the slow marks on that roof (alg; rust for each step of salt air).
      The count is linear in d0, so a building's many possible clock starts are blended into one spread for each covering
      first (outlookOf) and counted once. */
-  /* what a year does to a roof of each age, for one kind of roof at one ZIP under one record, height and heat: for every
-     cause the chance it replaces the roof (r) and the chance it is repaired after it (f); the chance nothing replaces
-     it (stay), and that nothing touches it (none). The chances depend on the roof's age and not on the year, so the
-     table is made once and every count reads it. */
   const QN = HMAX + OUT_Y + 6, QT = new Map();
+  /* what a year does to a roof of each age, for one kind of roof at one ZIP at one height, heat and fire zone factor (fk,
+     given as its key): for every cause the chance it replaces the roof (r) and the chance it is repaired after it (f);
+     the chance nothing replaces it (stay), and that nothing touches it (none). The chances depend on the roof's age
+     and not on the year, so the table is made once and every count reads it. */
   function chances(type, zip, rec, st, heat) {
     const key = [type, zip, rec, st, heat.toFixed(2)].join('|'); let q = QT.get(key); if (q) return q;
-    const T = RTYPE[type] || RTYPE.shingle, hz = hazardAt(zip), HB = hurByAge(zip, T.ageK), HA = HB[rec] || HB.mid, p = LIFE[T.life] || LIFE.shingle, lam = p.lam / Math.pow(heat, 0.5), kk = p.k, S = a => Math.exp(-Math.pow(a / lam, kk)), wk = T.wind * OC.tall(st), CK = CAUSES.map(([c]) => c);
-    const tsR = hz.ts[0] * OC.ts[0][1] + hz.ts[1] * OC.ts[1][1] + hz.ts[2] * OC.ts[2][1], tsF = hz.ts[0] * (1 - OC.ts[0][1]) + hz.ts[1] * (1 - OC.ts[1][1]) + hz.ts[2] * (1 - OC.ts[2][1]);
+    const T = RTYPE[type] || RTYPE.shingle, hz = hazardAt(zip), p = LIFE[T.life] || LIFE.shingle, lam = p.lam / Math.pow(heat, 0.5), kk = p.k, S = a => Math.exp(-Math.pow(a / lam, kk)), wk = T.wind * OC.tall(st), CK = CAUSES.map(([c]) => c), fk = +rec || 1;
+    const wR = hz.wind[0] * OC.wind[0][1] + hz.wind[1] * OC.wind[1][1], wF = hz.wind[0] * (1 - OC.wind[0][1]) + hz.wind[1] * (1 - OC.wind[1][1]);
     const h1 = hz.hailDays[0] * OC.hail[0][0] * T.hail[0], h2 = hz.hailDays[1] * OC.hail[1][0] * T.hail[1], haR = h1 * OC.hail[0][1] + h2 * OC.hail[1][1], haF = h1 * (1 - OC.hail[0][1]) + h2 * (1 - OC.hail[1][1]);
+    const fr = clamp(hz.fire.rate * fk * T.fire, 0, 0.3), fR = fr * hz.fire.rep, fF = fr * (1 - hz.fire.rep);
     q = { CK, r: CK.map(() => new Float64Array(QN)), f: CK.map(() => new Float64Array(QN)), stay: new Float64Array(QN), none: new Float64Array(QN), hz };
-    for (let a = 0; a < QN; a++) { const aa = Math.min(a, AGE_MAX), wa = windAgeK(a, T.ageK) * wk, ha = hailAgeK(a, T.hailK), sa = S(a);
-      const x = { wear: [sa > 0 ? 1 - S(a + 1) / sa : 1, 0], hur: [clamp(HA.rep[aa] * wk, 0, 0.9), clamp(HA.fix[aa] * wk, 0, 0.9)], ts: [clamp(tsR * wa, 0, 0.5), clamp(tsF * wa, 0, 0.5)], hail: [clamp(haR * ha, 0, 0.5), clamp(haF * ha, 0, 0.5)], leak: [0, clamp(repRate(a) * T.leak, 0, 0.5)] };
+    for (let a = 0; a < QN; a++) { const wa = windAgeK(a, T.ageK) * wk, ha = hailAgeK(a, T.hailK), sa = S(a);
+      const x = { wear: [sa > 0 ? 1 - S(a + 1) / sa : 1, 0], wind: [clamp(wR * wa, 0, 0.5), clamp(wF * wa, 0, 0.5)], rain: [0, clamp(repRate(a) * T.leak * hz.rainK, 0, 0.5)], fire: [fR, fF], hail: [clamp(haR * ha, 0, 0.5), clamp(haF * ha, 0, 0.5)] };
       let stay = 1, none = 1; CK.forEach((c, i) => { let r = clamp(x[c][0], 0, 1), f = x[c][1]; if (r + f > 1) f = 1 - r; q.r[i][a] = r; q.f[i][a] = f; stay *= 1 - r; none *= 1 - r - f; }); q.stay[a] = stay; q.none[a] = none; }
     if (QT.size > 600) QT.clear(); QT.set(key, q); return q;
   }
   function count(type, zip, d0in, o) {
-    o = o || {}; const rec = o.rec || CFG.outRec || 'mid', st = o.st || 1, heat = isN(o.heat) ? clamp(o.heat, 0.5, 1.6) : 1, Q = chances(type, zip, rec, st, heat), CK = Q.CK, NK = CK.length;
+    o = o || {}; const rec = fkKey(o.fk), st = o.st || 1, heat = isN(o.heat) ? clamp(o.heat, 0.5, 1.6) : 1, Q = chances(type, zip, rec, st, heat), CK = Q.CK, NK = CK.length;
     let n0 = d0in ? Math.min(d0in.length, HMAX + 2) : 0; while (n0 > 1 && !d0in[n0 - 1]) n0--; if (n0 < 1) n0 = 1;
     const N = n0 + OUT_Y + 2, A0 = () => new Float64Array(N), d0 = A0(); if (d0in && d0in.length) { for (let a = 0; a < n0; a++) d0[a] = d0in[a]; } else d0[0] = 1;
     const copy = () => Float64Array.from(d0), tot = x => { let t = 0; for (let a = 0; a < N; a++) t += x[a]; return t; };
@@ -1057,10 +1301,10 @@
      years old (o.exact: for the table by kind of roof and the tests) */
   const FWD = new Map();
   function forward(type, zip, y0, o) {
-    o = o || {}; const rec = o.rec || CFG.outRec || 'mid', st = o.st || 1, heat = isN(o.heat) ? clamp(o.heat, 0.5, 1.6) : 1, T = RTYPE[type] || RTYPE.shingle, key = [type, zip, y0, rec, st, heat.toFixed(2), o.exact ? 'x' : ''].join('|');
+    o = o || {}; const rec = fkKey(o.fk), st = o.st || 1, heat = isN(o.heat) ? clamp(o.heat, 0.5, 1.6) : 1, T = RTYPE[type] || RTYPE.shingle, key = [type, zip, y0, rec, st, heat.toFixed(2), o.exact ? 'x' : ''].join('|');
     let f = FWD.get(key); if (f) return f;
     const d0 = o.exact ? (() => { const d = new Float64Array(clamp(THIS_YEAR - y0, 0, HMAX) + 2); d[clamp(THIS_YEAR - y0, 0, HMAX)] = 1; return d; })() : (rstate(T.life, zip, y0) || {}).dist;
-    f = count(type, zip, d0, { rec, st, heat }); if (FWD.size > 1500) FWD.clear(); FWD.set(key, f); return f;
+    f = count(type, zip, d0, { fk: o.fk, st, heat }); if (FWD.size > 1500) FWD.clear(); FWD.set(key, f); return f;
   }
   /* several of those, weighted: a building's mix of coverings and of years its clock may have started in. si: the step of
      salt air the building stands in, for rust. */
@@ -1070,59 +1314,53 @@
     if (W > 0) for (let t = 0; t <= OUT_Y; t++) { CAUSES.forEach(([c]) => { o.C[c][t] /= W; o.R[c][t] /= W; o.F[c][t] /= W; }); o.rep[t] /= W; o.any[t] /= W; o.keep[t] /= W; o.age[t] /= W; o.alg[t] /= W; o.rust[t] /= W; }
     o.W = W; return o;
   }
-  /* algae on a roof of age a (a chance its streaks show). The Gulf states are where shingle algae is most widespread, and
-     it shows first on north slopes (ARMA and makers' bulletins); how soon it shows was not found in any source, and
-     algae resistant shingles carry warranties of 10 to 25 years. The curve (half of unprotected shingle roofs streaked
-     by about thirteen years) is a judgment, grade D. slopeK: 1.6 shaded or north, 0.6 full sun. */
-  const algaeAt = (a, typeK, slopeK) => clamp(typeK, 0, 1) * (1 - Math.exp(-Math.pow(Math.max(0, a) / (15 / Math.sqrt(slopeK || 1)), 2.5)));
+  /* moss and algae on a roof of age a (a chance they show). They follow water: the north coast's 40 to 70 inches of rain
+     a year grow moss on any shaded slope, the deserts' 3 to 6 almost none. How soon they show was not found in any
+     source; the curve (half of unprotected shingle roofs marked by about fifteen years in average light where 20
+     inches fall) is a judgment, grade D. slopeK: 1.6 shaded or north, 0.6 full sun; the ZIP's normal rain over 20
+     inches (held between 0.3 and 2.5) works the same way. */
+  const algaeAt = (a, typeK, slopeK) => clamp(typeK, 0, 1.3) * (1 - Math.exp(-Math.pow(Math.max(0, a) / (15 / Math.sqrt(slopeK || 1)), 2.5)));
+  const wetK = z => { const r = wxCol(z, 'rainIn'); return r == null ? 1 : clamp(r / 20, 0.3, 2.5); };
   /* rust that needs a roofer on a steel roof of age a, with salt air (a Weibull on the coating and fastener life: 32 years
-     inland; judgment, grade D). km is the distance to the Gulf's open shore, the only salt water the model sees: not Lake
-     Pontchartrain, the bays or the marsh canals, which the makers' warranties also count. */
+     inland; judgment, grade D). km is the distance to the Pacific or a bay shore as coastKm measures it. */
   const rustOn = (a, k) => 1 - Math.exp(-Math.pow(Math.max(0, a) / (32 * k), 3));
   const rustAt = (a, typeK, km) => clamp(typeK, 0, 1) * rustOn(a, saltK(km));
-  /* both by age, once, for the count: algae on an unprotected roof in average light, rust at each step of salt air */
+  /* both by age, once, for the count: growth on an unprotected roof in average light where 20 inches of rain fall, rust at each step of salt air */
   const ALG1 = Float64Array.from({ length: QN }, (_, a) => algaeAt(a, 1, 1)), RUST1 = SALT.map(k => Float64Array.from({ length: QN }, (_, a) => rustOn(a, k)));
-  /* the kinds of roof a building may carry, with their odds: the clock's coverings, and for a house the few percent of tile or slate */
-  function typesOf(b) {
-    const rf = b.roof || {}, keys = rf.keys || []; if (!keys.length) return [];
-    const house = keys.length === 2 && keys[0][0] === 'shingle' && keys[1][0] === 'metal' && (b.cls === 'sf' || (b.cls === 'mf' && (rf.units || 0) <= 4));
-    if (!house) return keys.map(([k, w]) => [k, w]);
-    const sh = keys[0][1], tile = sh * 0.04; return [['shingle', sh - tile], ['metal', keys[1][1]], ['tile', tile]];
-  }
+  /* the kinds of roof a building may carry, with their odds: the clock's coverings */
+  function typesOf(b) { const rf = b.roof || {}, keys = rf.keys || []; return keys.filter(x => RTYPE[x[0]]).map(([k, w]) => [k, w]); }
   /* a building's outlook: its own mix (b.mix: covering, year the clock started, weight) blended, for each covering, into
      one spread of roof ages today and counted once; the coverings blended; each kind of roof it may carry, apart; and the
-     slower marks on the roof then in place. o.rec, o.heat as in count; without o.heat, the heat the Scout Engine last
-     read for this roof (b.heatK), so the card and the roof views say the same thing. A ZIP with no row in the atlas has
-     no weather on record here, so no outlook. The result is kept on the building until its mix is read again. */
+     slower marks on the roof then in place. o.heat: how hard the sun works this roof against the average roof of its
+     kind at this place; without it, the heat the Scout Engine last read for this roof (b.heatK), so the card and the
+     roof views say the same thing. The place's own heat against the state's (climHeat) is always in. A ZIP with no row
+     in the atlas has no weather on record here, so no outlook. The result is kept on the building until its mix is read again. */
   function outlookOf(b, o) {
     o = o || {}; const zip = b.zip || b.zipF || '', mix = b.mix || [], types = typesOf(b); if (!mix.length || !types.length || !zip || !ZI[zip]) return null;
-    const st = b.cls === 'sf' || b.cls === 'mf' || b.cls === 'mh' || b.cls === 'garage' || b.cls === 'shed' ? storiesRes(b.h) : Math.min(3, floorsCom(b.h)), opt = { rec: o.rec || CFG.outRec || 'mid', st, heat: o.heat != null ? o.heat : b.heatK };
-    const mk = [opt.rec, st, isN(opt.heat) ? clamp(opt.heat, 0.5, 1.6).toFixed(2) : '1'].join('|'); if (b._o && b._o.mix === mix && b._o.key === mk) return b._o.O;
-    const tw = Object.fromEntries(types), km = coastKm(b.lat, b.lon), si = saltIx(km), starts = {}, LEN = HMAX + 2;
+    const st = b.cls === 'sf' || b.cls === 'mf' || b.cls === 'mh' || b.cls === 'garage' || b.cls === 'shed' ? storiesRes(b.h) : Math.min(3, floorsCom(b.h)), own = o.heat != null ? o.heat : b.heatK, fk = fireK(b);
+    const mk = [fkKey(fk), st, isN(own) ? clamp(own, 0.5, 1.6).toFixed(2) : '1', b.fhsz ? b.fhsz.cls : 'x'].join('|'); if (b._o && b._o.mix === mix && b._o.key === mk) return b._o.O;
+    const km = coastKm(b.lat, b.lon), si = saltIx(km), starts = {}, LEN = HMAX + 2;
     /* each covering's spread of roof ages today, over the years its clock may have started in */
     const start = (k, y, w) => { if (!(w > 0) || !RTYPE[k]) return; const d = (rstate(RTYPE[k].life, zip, y) || {}).dist; let s2 = starts[k]; if (!s2) s2 = starts[k] = { d: new Float64Array(LEN), w: 0 }; if (d) { for (let a = 0, n = Math.min(d.length, LEN); a < n; a++) s2.d[a] += d[a] * w; } else s2.d[0] += w; s2.w += w; };
-    mix.forEach(([k, y, w]) => { if (k === 'shingle' && tw.tile > 0) { const sh = tw.tile / (tw.tile + tw.shingle); start('shingle', y, w * (1 - sh)); start('tile', y, w * sh); } else start(k, y, w); });
-    const parts = [], per = {}, tail = new Float64Array(LEN + 1); let PW = 0;
-    Object.keys(starts).forEach(k => { const s2 = starts[k]; if (!(s2.w > 0)) return; for (let a = 0; a < LEN; a++) s2.d[a] /= s2.w; const f = count(k, zip, s2.d, opt); parts.push([f, s2.w]); per[k] = f; PW += s2.w; let run = 0; for (let a = LEN - 1; a >= 0; a--) { tail[a] += s2.w * run; run += s2.d[a]; } });
+    mix.forEach(([k, y, w]) => start(k, y, w));
+    const parts = [], per = {}, heatBy = {}, tail = new Float64Array(LEN + 1); let PW = 0;
+    Object.keys(starts).forEach(k => { const s2 = starts[k]; if (!(s2.w > 0)) return; for (let a = 0; a < LEN; a++) s2.d[a] /= s2.w; const ck = climHeat(k, b.lat, b.lon); heatBy[k] = ck; const f = count(k, zip, s2.d, { fk, st, heat: clamp((isN(own) ? own : 1) * ck, 0.5, 1.6) }); parts.push([f, s2.w]); per[k] = f; PW += s2.w; let run = 0; for (let a = LEN - 1; a >= 0; a--) { tail[a] += s2.w * run; run += s2.d[a]; } });
     if (!(PW > 0)) return null; for (let a = 0; a <= LEN; a++) tail[a] /= PW;   /* tail[n]: the chance today's roof is more than n years old */
-    const all = blend(parts, si), hz = hazardAt(zip);
+    const all = blend(parts, si), hz = hazardAt(zip), wk = wetK(b.z);
     const byType = types.map(([k, w]) => ({ k, w, l: RTYPE[k].l, o: per[k] ? blend([[per[k], 1]], si) : null })).filter(x => x.o && x.o.W > 0);
     /* the slower marks by year, on the roof then in place: over the kinds of roof the building may carry (slow), and for a
-       kind taken alone, RTYPE[k].algae or .rust times that kind's o.alg or o.rust */
+       kind taken alone, RTYPE[k].algae times the place's wetness times that kind's o.alg, or .rust times its o.rust */
     const slow = { algae: new Float64Array(OUT_Y + 1), rust: new Float64Array(OUT_Y + 1) }; let TW = 0; byType.forEach(r => { TW += r.w; });
-    if (TW > 0) for (let t = 0; t <= OUT_Y; t++) { let al = 0, ru = 0; byType.forEach(r => { const T = RTYPE[r.k]; al += r.w * T.algae * r.o.alg[t]; ru += r.w * T.rust * r.o.rust[t]; }); slow.algae[t] = al / TW; slow.rust[t] = ru / TW; }
+    if (TW > 0) for (let t = 0; t <= OUT_Y; t++) { let al = 0, ru = 0; byType.forEach(r => { const T = RTYPE[r.k]; al += r.w * clamp(T.algae * wk * r.o.alg[t], 0, 1); ru += r.w * T.rust * r.o.rust[t]; }); slow.algae[t] = al / TW; slow.rust[t] = ru / TW; }
     const older = n => tail[clamp(Math.floor(+n || 0), 0, LEN)];
-    const O = { zip, all, byType, slow, hz, km, st, rec: opt.rec, types, heat: isN(opt.heat) ? opt.heat : null, older };
+    const clim = types.reduce((s, [k, w]) => s + (heatBy[k] || 1) * w, 0) / (types.reduce((s, x) => s + x[1], 0) || 1);
+    const O = { zip, all, byType, slow, hz, km, st, fk, wetK: wk, types, heat: isN(own) ? own : null, clim, older };
     b._o = { mix, key: mk, O }; return O;
   }
-  /* the causes in order at a year. Wind is one cause here, as on the chart, the roofs and their labels: hurricanes and
-     tropical storms with thunderstorms and tornadoes (taken as independent of each other); sub says which of the two is
-     the larger, and names the words for what it does to each covering */
-  const WIND_FROM = { hur: 'hurricanes and tropical storms', ts: 'thunderstorms and tornadoes' };
-  const causeRank = (O, t) => { const either = (x, y) => 1 - (1 - x) * (1 - y), hur = O.C.hur[t], ts = O.C.ts[t];
-    return [{ c: 'wind', sub: hur >= ts ? 'hur' : 'ts', l: 'Wind', p: either(hur, ts), rep: either(O.R.hur[t], O.R.ts[t]), fix: either(O.F.hur[t], O.F.ts[t]) }].concat(['hail', 'wear', 'leak'].map(c => ({ c, sub: c, l: CAUSE_L[c], p: O.C[c][t], rep: O.R[c][t], fix: O.F[c][t] }))).sort((x, y) => y.p - x.p); };
-  const causeText = k => (k.c === 'wind' ? 'wind, most of it from ' + WIND_FROM[k.sub] : k.l.toLowerCase());
-  const causeShort = k => (k.c === 'wind' ? 'wind (' + WIND_FROM[k.sub] + ')' : k.l.toLowerCase());
+  /* the causes in order at a year */
+  const causeRank = (O, t) => CAUSES.map(([c, l]) => ({ c, sub: c, l, p: O.C[c][t], rep: O.R[c][t], fix: O.F[c][t] })).sort((x, y) => y.p - x.p);
+  const causeText = k => (k.c === 'wear' ? 'heat, sun and age' : k.l.toLowerCase());
+  const causeShort = causeText;
   /* one kind of roof of a given age at a ZIP, with no building under it: for the table by kind of roof */
   function outlookType(type, zip, ageYears, o) { return forward(type, zip, Math.round(THIS_YEAR - clamp(ageYears, 0, 60)), Object.assign({ exact: true }, o || {})); }
 
@@ -1131,7 +1369,9 @@
      against the sun, the covering's solar reflectance) leaves as heat carried off by the air (a film coefficient that
      rises with wind) and as long wave radiation to a sky colder than the air (the covering's emittance). Clear sky
      sunlight is Meinel's fit to air mass with Kasten and Young's air mass; the air is the 1991 to 2020 normal for the
-     month, blended by distance from seven Louisiana stations, shaped through the day. It is a steady balance: a light roof with a
+     month, blended from California's nearest stations by distance and by height (70 stations from the coast to the high
+     Sierra and the deserts; 100 m of height counts as 10 km, and what height is left over is taken at 6.5 C a
+     kilometre), shaped through the day. It is a steady balance: a light roof with a
      vented attic under it follows the sun within minutes. The film is set at 12 W per square metre and
      kelvin, the low end of the 12 to 20 Berdahl and others give for roofs (written below as McAdams's 5.7 + 3.8 v at 1.65
      m/s). It is a calibration, not a measured wind: the air a hand above Florida's test shingles moved at 0.4 m/s, a
@@ -1140,17 +1380,84 @@
      (about 165 F on a June day) and Oak Ridge (165 F) measured it, a white roof near 115 F (Oak Ridge: white painted
      metal, about 115 F) and bare aluminium zinc steel between. */
   const CLIM = [
-    /* NOAA NCEI 1991 to 2020 normals, by-station files: daily maximum and minimum by month, degrees Fahrenheit */
-    { n: 'New Orleans', lat: 29.9933, lon: -90.2511, hi: [62.5, 66.4, 72.3, 78.5, 85.3, 90.0, 91.4, 91.3, 88.1, 80.6, 71.2, 64.8], lo: [46.1, 49.7, 55.3, 61.7, 69.0, 74.7, 76.5, 76.6, 73.5, 64.3, 53.7, 48.4] },
-    { n: 'Baton Rouge', lat: 30.5372, lon: -91.1469, hi: [62.3, 66.6, 73.0, 79.1, 85.8, 90.5, 91.9, 92.2, 88.7, 80.9, 71.0, 64.3], lo: [41.6, 45.3, 51.0, 56.9, 65.1, 71.5, 73.8, 73.3, 68.9, 58.1, 47.8, 43.3] },
-    { n: 'Lafayette', lat: 30.2050, lon: -91.9875, hi: [62.2, 66.1, 72.6, 79.0, 85.9, 90.2, 91.5, 92.3, 89.0, 81.3, 71.5, 64.4], lo: [43.5, 47.4, 53.3, 59.3, 67.2, 73.1, 75.1, 74.7, 70.4, 60.1, 50.2, 45.3] },
-    { n: 'Lake Charles', lat: 30.1250, lon: -93.2158, hi: [63.0, 66.7, 73.1, 79.0, 85.4, 90.5, 92.2, 92.8, 89.4, 82.1, 72.2, 65.3], lo: [43.4, 47.1, 53.1, 59.3, 67.3, 73.7, 75.6, 75.1, 70.7, 60.4, 50.6, 45.3] },
-    { n: 'Alexandria', lat: 31.3928, lon: -92.2956, hi: [59.9, 64.2, 71.5, 78.1, 85.1, 90.8, 93.1, 93.6, 89.2, 80.0, 69.4, 61.9], lo: [36.8, 40.2, 46.8, 53.0, 61.3, 68.2, 71.0, 70.1, 64.6, 52.9, 43.0, 38.3] },
-    { n: 'Shreveport', lat: 32.4506, lon: -93.8411, hi: [58.4, 62.6, 70.4, 77.5, 84.6, 91.1, 94.3, 94.9, 89.6, 79.3, 67.9, 59.9], lo: [37.3, 41.0, 47.7, 54.3, 63.5, 70.6, 73.5, 73.0, 67.0, 55.4, 45.3, 39.0] },
-    { n: 'Monroe', lat: 32.5156, lon: -92.0406, hi: [57.0, 61.1, 69.1, 76.8, 84.4, 90.5, 93.2, 93.6, 88.7, 78.8, 67.3, 59.0], lo: [36.7, 40.2, 47.2, 54.2, 63.1, 70.1, 72.5, 71.4, 65.5, 53.7, 43.9, 38.6] },
+    /* NOAA NCEI 1991 to 2020 normals, by-station files: daily maximum and minimum by month, degrees Fahrenheit; el: the station's elevation, metres */
+    { n: 'Crescent City', lat: 41.7958, lon: -124.2147, el: 13, hi: [54.3,55.2,56.1,57.9,60.8,63.1,65.4,66.1,65.9,62.1,56.6,53.1], lo: [40.0,40.2,41.1,43.2,45.7,48.1,51.1,51.6,48.4,45.5,41.6,39.2] },
+    { n: 'Eureka', lat: 40.8097, lon: -124.1603, el: 6, hi: [55.1,55.4,56.1,57.4,59.6,61.9,63.1,64.0,63.9,61.9,57.8,54.7], lo: [40.8,41.3,42.4,44.2,47.7,50.1,52.4,53.0,50.5,46.8,43.2,40.0] },
+    { n: 'Ukiah', lat: 39.1467, lon: -123.2103, el: 194, hi: [56.9,60.2,64.8,69.6,76.3,82.8,91.1,90.6,87.0,76.7,62.8,55.6], lo: [37.4,38.3,39.7,42.4,47.3,51.9,55.6,54.2,51.3,45.5,40.0,36.2] },
+    { n: 'San Francisco (downtown)', lat: 37.7706, lon: -122.4269, el: 46, hi: [57.8,60.4,62.1,63.0,64.1,66.5,66.3,67.9,70.2,69.8,63.7,57.9], lo: [46.6,47.9,48.9,49.7,51.4,53.0,54.4,55.5,55.6,54.4,50.7,47.0] },
+    { n: 'San Francisco (airport)', lat: 37.6197, lon: -122.3647, el: 2, hi: [58.0,60.8,63.4,65.6,68.3,71.5,72.6,73.4,74.8,72.3,64.3,58.2], lo: [44.5,46.1,47.6,49.1,51.6,53.6,55.3,56.4,55.9,53.4,48.5,44.6] },
+    { n: 'Oakland', lat: 37.7214, lon: -122.2208, el: 2, hi: [57.7,60.3,63.1,65.6,67.9,71.4,71.6,72.4,74.1,71.5,63.9,57.9], lo: [42.0,44.6,47.0,49.1,51.9,54.1,56.2,56.9,55.5,51.2,45.8,42.3] },
+    { n: 'San Jose', lat: 37.3592, lon: -121.9239, el: 16, hi: [59.8,62.4,65.9,69.2,73.8,79.1,80.8,81.4,80.7,75.8,66.1,59.5], lo: [41.8,43.9,46.3,48.4,52.1,55.5,58.1,58.6,57.2,52.7,45.7,41.7] },
+    { n: 'Santa Rosa', lat: 38.4558, lon: -122.7133, el: 51, hi: [59.7,63.6,66.9,70.6,74.5,80.2,81.6,83.0,83.9,78.9,67.1,59.0], lo: [38.4,40.0,41.9,43.9,47.8,51.1,52.1,52.5,51.0,47.6,42.0,38.2] },
+    { n: 'Livermore', lat: 37.6928, lon: -121.8144, el: 120, hi: [57.4,61.0,65.1,69.3,75.3,82.6,87.7,87.5,85.4,77.9,65.6,57.8], lo: [37.8,39.9,41.8,44.6,49.4,53.5,56.6,56.7,54.9,49.2,41.9,37.5] },
+    { n: 'Santa Cruz', lat: 36.9878, lon: -121.9994, el: 21, hi: [62.5,63.9,66.5,69.3,71.4,74.0,74.3,75.8,76.7,73.9,66.7,61.5], lo: [41.4,42.7,44.1,45.7,49.0,51.6,54.3,54.6,52.9,49.5,44.4,40.9] },
+    { n: 'Monterey', lat: 36.5881, lon: -121.8453, el: 50, hi: [61.6,62.1,62.5,63.3,65.4,67.9,68.9,70.0,70.9,69.8,65.2,61.6], lo: [43.3,45.2,45.9,47.4,49.9,52.2,54.2,55.0,53.8,50.8,45.8,42.7] },
+    { n: 'Salinas', lat: 36.6636, lon: -121.6081, el: 23, hi: [62.3,63.3,65.5,67.1,68.3,70.3,70.7,72.4,74.4,73.7,67.7,61.6], lo: [41.6,42.9,44.5,46.4,50.3,52.9,55.0,55.5,54.0,49.6,44.4,40.6] },
+    { n: 'Paso Robles', lat: 35.6697, lon: -120.6283, el: 247, hi: [61.0,63.0,67.5,73.5,81.0,88.5,93.2,94.0,90.1,80.6,68.6,60.3], lo: [35.1,37.2,39.5,40.8,45.7,49.8,53.6,53.2,49.9,43.6,37.1,33.4] },
+    { n: 'San Luis Obispo', lat: 35.3056, lon: -120.6619, el: 94, hi: [64.9,65.2,67.3,69.3,71.9,75.7,78.3,79.7,80.1,77.8,70.8,64.4], lo: [44.0,44.4,46.1,46.8,49.3,51.8,54.2,54.8,53.8,51.5,47.4,43.7] },
+    { n: 'Santa Barbara', lat: 34.4258, lon: -119.8425, el: 3, hi: [64.2,63.8,65.9,67.8,69.2,70.3,73.3,74.5,74.3,73.4,69.2,64.3], lo: [41.3,43.6,46.2,48.1,51.3,54.5,58.1,58.0,55.7,50.9,44.3,40.4] },
+    { n: 'Los Angeles (airport)', lat: 33.9381, lon: -118.3889, el: 30, hi: [66.3,65.6,66.1,68.1,69.5,72.0,75.1,76.7,76.5,74.4,70.9,66.1], lo: [49.4,50.1,52.2,54.2,57.6,60.9,64.0,64.8,63.7,59.8,53.7,49.1] },
+    { n: 'Los Angeles (downtown)', lat: 34.0511, lon: -118.2353, el: 70, hi: [68.0,68.0,69.9,72.4,73.7,77.2,82.0,84.0,83.0,78.6,72.9,67.4], lo: [48.9,50.0,52.4,54.8,58.1,61.4,64.7,65.4,64.2,59.9,53.1,48.2] },
+    { n: 'Long Beach', lat: 33.8117, lon: -118.1464, el: 9, hi: [67.4,66.8,68.6,71.4,73.1,76.1,81.4,83.2,82.4,77.7,72.5,66.7], lo: [46.9,48.4,51.2,53.9,57.9,61.3,64.9,65.5,63.9,59.1,51.6,46.6] },
+    { n: 'Burbank', lat: 34.2006, lon: -118.3575, el: 226, hi: [67.0,66.8,69.5,72.7,75.5,80.3,86.7,88.9,86.6,79.4,72.5,66.1], lo: [45.3,46.4,49.0,51.9,56.6,59.9,64.5,64.9,62.9,57.5,49.0,44.2] },
+    { n: 'Pasadena', lat: 34.1483, lon: -118.1447, el: 263, hi: [68.1,69.3,72.6,76.2,78.3,83.7,89.1,91.3,89.9,83.0,74.7,67.2], lo: [45.5,46.1,48.4,50.6,53.9,57.8,62.0,63.2,61.6,56.3,49.6,44.7] },
+    { n: 'Woodland Hills', lat: 34.1819, lon: -118.5744, el: 241, hi: [69.8,70.0,74.0,78.0,82.0,88.5,95.1,97.4,93.9,85.2,76.4,68.9], lo: [43.1,43.6,45.9,48.1,52.6,56.9,60.8,60.8,58.5,52.9,46.0,42.0] },
+    { n: 'Santa Ana', lat: 33.6800, lon: -117.8664, el: 16, hi: [67.0,66.7,67.7,70.2,71.3,74.1,78.9,80.4,79.9,76.5,71.9,66.5], lo: [48.6,50.1,52.3,54.9,59.3,62.6,66.2,67.1,65.0,59.2,53.3,48.3] },
+    { n: 'Oxnard', lat: 34.2008, lon: -119.2069, el: 11, hi: [65.9,65.4,65.6,66.6,68.0,69.5,72.9,73.5,73.5,73.5,70.0,65.9], lo: [46.1,47.7,49.3,50.5,54.3,57.9,60.6,60.6,59.7,55.4,50.1,46.9] },
+    { n: 'San Diego', lat: 32.7336, lon: -117.1831, el: 5, hi: [66.4,66.2,67.0,68.8,69.5,71.7,75.3,77.3,77.2,74.6,70.7,66.0], lo: [50.3,51.8,54.5,57.1,60.0,62.6,66.1,67.5,66.2,61.5,54.8,49.8] },
+    { n: 'El Cajon', lat: 32.8006, lon: -116.9281, el: 151, hi: [69.3,69.2,71.3,74.5,76.2,80.8,86.1,88.6,87.3,81.0,75.2,68.5], lo: [42.5,44.4,48.0,50.7,55.9,59.4,63.3,64.7,62.1,55.6,47.1,41.7] },
+    { n: 'Escondido', lat: 33.1211, lon: -117.0900, el: 183, hi: [68.8,68.7,71.0,74.2,76.7,81.9,87.2,89.0,86.9,80.8,74.6,68.0], lo: [44.8,45.9,48.9,51.8,56.4,60.2,64.4,65.3,63.1,57.3,49.1,43.8] },
+    { n: 'Campo', lat: 32.6261, lon: -116.4681, el: 805, hi: [61.5,61.4,65.0,69.3,75.8,85.1,91.4,92.9,87.7,77.9,68.6,60.9], lo: [34.8,34.9,35.3,37.6,42.0,45.7,53.5,54.9,50.5,43.0,37.5,33.6] },
+    { n: 'Riverside', lat: 33.9519, lon: -117.4386, el: 245, hi: [67.7,67.9,72.1,75.9,79.9,86.7,93.3,94.9,91.3,82.7,74.5,66.8], lo: [43.6,44.7,46.9,50.0,55.3,59.3,63.9,64.7,61.9,55.2,47.4,42.8] },
+    { n: 'Ontario', lat: 34.0561, lon: -117.6003, el: 289, hi: [67.7,68.1,71.7,75.7,79.8,86.4,93.8,94.9,91.3,82.6,74.7,66.9], lo: [44.6,46.2,48.7,51.1,55.6,60.0,64.7,65.2,63.8,57.1,49.0,43.6] },
+    { n: 'Redlands', lat: 34.0369, lon: -117.1947, el: 430, hi: [66.6,67.4,70.9,75.6,80.3,88.5,95.4,96.2,92.3,82.9,75.0,66.5], lo: [41.1,42.3,44.6,47.7,52.4,56.4,62.5,62.9,59.6,52.9,45.3,40.1] },
+    { n: 'Lake Elsinore', lat: 33.6861, lon: -117.3458, el: 386, hi: [65.7,67.1,71.5,76.5,82.0,90.2,96.5,97.8,93.2,83.1,73.2,65.0], lo: [41.9,42.7,45.8,48.7,53.8,58.3,64.1,64.8,61.2,53.9,45.9,40.3] },
+    { n: 'Sacramento', lat: 38.5069, lon: -121.4950, el: 5, hi: [56.0,61.3,66.3,72.1,80.3,87.9,92.6,91.9,88.5,78.8,65.0,56.0], lo: [39.2,41.5,44.5,47.0,52.0,56.5,59.2,58.8,56.5,50.3,42.7,38.5] },
+    { n: 'Redding', lat: 40.5175, lon: -122.2986, el: 152, hi: [57.2,61.0,65.7,71.8,82.0,91.9,99.9,98.1,92.3,79.4,64.4,56.0], lo: [37.7,40.1,43.2,47.0,54.3,62.4,67.0,63.9,58.2,50.2,41.5,37.2] },
+    { n: 'Chico', lat: 39.6911, lon: -121.8211, el: 56, hi: [56.1,62.2,66.7,72.8,81.3,89.3,95.2,94.3,90.9,79.7,65.0,56.6], lo: [36.2,38.3,41.6,45.3,52.2,57.4,61.0,59.0,54.9,47.4,39.8,36.3] },
+    { n: 'Stockton', lat: 37.8892, lon: -121.2258, el: 8, hi: [57.0,62.9,68.5,74.5,82.8,90.4,95.4,94.4,90.4,80.3,66.6,57.1], lo: [39.1,41.3,44.2,47.4,52.6,57.6,60.9,60.3,57.5,50.6,42.8,38.4] },
+    { n: 'Modesto', lat: 37.6242, lon: -120.9506, el: 22, hi: [56.1,62.2,68.1,73.8,82.0,89.7,95.0,93.5,89.1,79.0,65.7,56.2], lo: [38.8,41.8,45.2,48.4,53.7,59.2,62.7,62.0,58.6,51.5,43.2,38.6] },
+    { n: 'Fresno', lat: 36.7800, lon: -119.7194, el: 102, hi: [55.4,61.3,67.5,73.7,82.7,91.4,97.7,96.5,90.7,78.7,64.9,55.3], lo: [40.6,43.3,47.3,50.9,57.6,63.9,69.3,67.9,63.4,54.6,45.4,39.8] },
+    { n: 'Visalia', lat: 36.3283, lon: -119.2997, el: 92, hi: [55.3,61.3,66.9,72.7,80.6,88.8,93.8,93.2,88.3,77.8,64.4,55.4], lo: [38.4,41.6,45.4,48.6,55.4,61.5,66.7,64.9,60.1,52.3,43.3,37.9] },
+    { n: 'Bakersfield', lat: 35.4344, lon: -119.0542, el: 149, hi: [58.5,64.3,70.2,75.9,84.1,92.3,98.3,96.9,91.4,80.2,67.1,58.8], lo: [40.5,43.2,47.0,50.7,58.0,65.1,71.3,70.0,65.0,55.2,45.4,39.6] },
+    { n: 'Auburn', lat: 38.9072, lon: -121.0839, el: 394, hi: [56.3,59.4,63.1,68.1,76.9,85.7,92.7,92.0,86.8,76.9,63.8,55.8], lo: [37.8,40.0,42.3,44.8,51.5,57.5,63.4,62.8,59.5,51.6,43.1,37.2] },
+    { n: 'Grass Valley', lat: 39.2042, lon: -121.0681, el: 732, hi: [53.6,54.9,57.9,62.7,70.8,80.2,88.0,87.4,82.3,72.1,59.8,52.6], lo: [33.1,34.2,37.0,40.0,46.8,52.6,58.2,56.8,52.1,44.2,37.1,32.6] },
+    { n: 'Sonora', lat: 37.9672, lon: -120.3872, el: 510, hi: [55.7,58.2,62.1,66.7,75.6,85.3,92.8,91.9,86.7,76.2,63.2,55.1], lo: [32.8,34.2,37.0,39.7,45.5,50.8,56.8,55.5,50.8,43.0,36.4,32.4] },
+    { n: 'Three Rivers', lat: 36.4650, lon: -118.8619, el: 348, hi: [58.0,61.7,67.0,72.5,81.8,91.1,97.4,96.4,91.5,79.3,65.7,57.6], lo: [36.0,38.3,41.3,44.4,50.7,58.4,65.0,63.9,58.3,49.1,40.3,35.4] },
+    { n: 'Blue Canyon', lat: 39.2775, lon: -120.7103, el: 1608, hi: [46.5,45.0,48.2,52.0,60.6,69.8,77.8,77.4,72.9,62.9,51.2,44.8], lo: [34.4,33.1,34.7,37.5,45.6,54.4,62.7,62.1,57.2,48.1,39.0,33.6] },
+    { n: 'Yosemite Valley', lat: 37.7503, lon: -119.5897, el: 1225, hi: [47.5,51.2,56.7,63.1,70.5,80.5,89.2,89.0,83.0,70.9,56.0,45.9], lo: [28.5,30.2,33.5,37.6,44.5,51.0,57.4,56.8,51.4,41.3,32.5,27.8] },
+    { n: 'Mammoth Lakes', lat: 37.6478, lon: -118.9617, el: 2379, hi: [41.2,41.0,45.5,51.2,60.4,70.3,77.8,77.4,71.3,60.7,49.3,41.4], lo: [16.6,17.7,22.2,27.1,34.5,42.2,48.9,47.4,39.8,30.2,23.2,17.1] },
+    { n: 'Huntington Lake', lat: 37.2275, lon: -119.2206, el: 2140, hi: [43.3,44.4,46.3,50.1,56.3,65.8,73.6,74.4,68.2,58.3,49.2,44.1], lo: [23.9,23.1,25.9,28.9,35.8,42.5,49.1,49.0,43.7,36.5,30.5,25.3] },
+    { n: 'Lodgepole', lat: 36.6044, lon: -118.7325, el: 2053, hi: [39.2,41.0,45.3,50.0,58.4,68.4,76.1,75.9,70.0,58.9,46.6,37.3], lo: [17.4,18.4,21.8,25.7,33.1,39.5,45.9,44.1,39.2,31.1,23.4,17.2] },
+    { n: 'Bishop', lat: 37.3711, lon: -118.3581, el: 1250, hi: [56.3,59.3,67.1,73.7,82.8,93.5,99.7,98.0,90.0,77.6,64.2,54.5], lo: [23.5,26.4,31.3,36.7,44.2,51.4,56.7,54.0,47.2,37.4,27.0,22.1] },
+    { n: 'Tahoe City', lat: 39.1678, lon: -120.1428, el: 1899, hi: [39.6,40.5,44.6,50.1,59.2,69.3,78.0,77.4,70.4,59.2,47.7,39.7], lo: [20.6,21.1,24.1,27.6,33.9,40.0,46.0,45.4,40.5,32.6,25.9,20.7] },
+    { n: 'South Lake Tahoe', lat: 38.8983, lon: -119.9947, el: 1924, hi: [42.8,43.4,47.8,53.2,62.1,72.0,80.4,79.7,73.4,62.2,50.9,42.8], lo: [18.4,19.3,23.7,27.6,33.2,38.1,42.5,41.0,35.4,29.2,23.3,18.0] },
+    { n: 'Truckee', lat: 39.3331, lon: -120.1730, el: 1775, hi: [41.8,44.5,49.6,54.8,64.3,74.8,83.8,83.8,76.2,64.6,50.9,40.5], lo: [16.1,17.6,21.2,25.2,31.4,35.8,41.4,40.3,34.1,27.5,21.2,15.0] },
+    { n: 'Mount Shasta', lat: 41.3219, lon: -122.3178, el: 1101, hi: [44.4,47.6,52.7,59.0,68.1,76.0,85.2,84.3,77.9,64.3,50.1,42.7], lo: [27.2,28.1,31.0,34.1,40.4,46.2,51.0,49.4,44.2,37.5,30.9,26.9] },
+    { n: 'Burney', lat: 40.8803, lon: -121.6547, el: 975, hi: [44.5,48.9,55.1,61.5,72.1,80.7,89.6,88.2,81.5,67.8,51.6,43.5], lo: [22.6,24.0,26.9,30.7,37.2,42.0,47.5,44.0,37.7,30.4,25.8,22.2] },
+    { n: 'Yreka', lat: 41.7031, lon: -122.6414, el: 826, hi: [46.1,51.7,58.1,64.3,73.9,82.9,93.0,92.2,84.4,69.7,53.9,44.9], lo: [27.3,29.0,32.3,36.5,43.4,48.6,55.4,53.8,46.9,37.7,31.2,27.1] },
+    { n: 'Alturas', lat: 41.4914, lon: -120.5644, el: 1334, hi: [43.0,46.6,52.7,58.4,67.9,78.2,89.1,87.3,79.7,65.7,50.8,41.0], lo: [20.6,23.0,26.5,30.1,37.2,42.2,47.2,44.2,37.2,29.3,24.5,20.0] },
+    { n: 'Susanville', lat: 40.4167, lon: -120.6631, el: 1284, hi: [42.7,47.6,54.2,60.5,69.3,78.9,88.0,86.6,80.0,67.0,51.9,42.6], lo: [22.3,25.6,29.6,33.8,40.2,47.0,53.1,52.0,45.3,35.9,28.1,22.3] },
+    { n: 'Barstow-Daggett', lat: 34.8536, lon: -116.7858, el: 584, hi: [61.4,65.5,72.6,79.5,88.9,99.4,105.0,103.9,96.3,83.2,69.6,59.9], lo: [36.2,40.1,45.6,51.3,59.5,67.9,74.2,73.1,66.0,54.4,42.5,35.0] },
+    { n: 'Lancaster', lat: 34.7411, lon: -118.2117, el: 713, hi: [58.7,61.5,67.2,72.9,81.6,91.3,97.6,97.8,91.4,80.0,67.0,57.7], lo: [31.3,34.5,39.8,44.9,53.4,61.5,67.2,64.7,56.9,45.8,35.0,29.7] },
+    { n: 'Needles', lat: 34.7675, lon: -114.6189, el: 271, hi: [66.4,71.0,79.1,86.6,96.2,106.4,110.5,109.3,102.6,89.5,75.1,64.5], lo: [46.0,48.8,54.1,60.8,70.0,79.6,86.6,85.4,77.3,64.6,52.5,45.0] },
+    { n: 'Victorville', lat: 34.5292, lon: -117.2928, el: 878, hi: [58.4,61.0,66.8,73.1,81.4,91.4,97.5,97.0,91.2,79.3,66.9,56.9], lo: [33.2,35.9,40.1,44.2,50.9,58.0,64.2,63.3,57.6,47.3,37.6,32.5] },
+    { n: 'China Lake', lat: 35.6875, lon: -117.6931, el: 680, hi: [60.1,64.6,71.9,78.7,88.2,98.5,104.6,103.3,95.2,82.7,69.4,59.5], lo: [30.8,35.4,41.8,47.4,55.5,63.7,70.4,68.6,60.5,48.5,36.8,30.3] },
+    { n: 'Palm Springs', lat: 33.8281, lon: -116.5053, el: 128, hi: [70.5,73.7,80.6,86.7,94.7,103.6,108.6,108.1,101.8,91.1,78.7,69.2], lo: [47.6,49.7,54.4,59.1,65.9,72.7,79.4,79.8,74.4,64.5,53.4,46.2] },
+    { n: 'Indio', lat: 33.7086, lon: -116.2153, el: -6, hi: [70.3,73.3,79.9,85.8,93.1,101.7,105.8,105.2,100.8,90.5,78.0,68.8], lo: [46.8,51.0,57.2,63.1,69.3,76.6,82.5,82.5,76.5,65.8,53.0,45.3] },
+    { n: 'Imperial', lat: 32.8342, lon: -115.5786, el: -18, hi: [70.5,73.7,80.1,86.3,94.3,103.5,107.8,107.7,102.2,90.4,78.3,68.7], lo: [41.5,45.2,50.6,55.5,62.1,70.2,78.4,79.4,72.2,60.0,48.4,41.2] },
+    { n: 'Blythe', lat: 33.6186, lon: -114.7142, el: 120, hi: [68.2,72.3,79.6,87.0,95.5,105.0,108.5,107.7,102.0,89.9,76.8,66.4], lo: [43.2,46.2,51.6,57.3,65.2,73.4,81.5,81.7,74.0,61.0,49.1,41.7] },
+    { n: 'Death Valley', lat: 36.4622, lon: -116.8669, el: -59, hi: [67.2,73.7,82.6,91.0,100.7,111.1,117.4,115.9,107.7,93.3,77.4,65.6], lo: [42.5,49.0,57.1,64.8,75.0,84.0,91.0,88.7,79.1,64.4,50.5,41.1] },
+    { n: 'Big Bear Lake', lat: 34.2431, lon: -116.9169, el: 2058, hi: [46.1,45.7,51.2,57.3,65.8,75.1,79.7,78.7,73.0,63.4,53.5,46.2], lo: [23.6,23.7,27.0,31.0,37.2,43.5,50.5,49.5,44.0,35.0,27.8,23.5] },
+    { n: 'Idyllwild', lat: 33.7572, lon: -116.7067, el: 1640, hi: [55.3,54.5,59.2,63.9,71.0,80.3,85.3,85.8,80.8,71.6,61.8,54.2], lo: [30.8,30.4,32.0,35.2,40.9,47.8,55.2,55.4,50.1,42.0,34.8,30.3] },
+    { n: 'Sandberg', lat: 34.7436, lon: -118.7242, el: 1375, hi: [52.3,53.0,57.3,62.0,70.2,79.9,87.7,88.3,82.7,71.3,59.9,51.6], lo: [38.6,38.3,40.6,42.7,49.2,57.5,64.8,65.3,61.2,52.5,44.0,37.6] },
   ];
   const f2c = f => (f - 32) / 1.8, c2f = c => c * 1.8 + 32;
-  const climAt = (la, lo) => { let W = 0; const hi = new Array(12).fill(0), lw = new Array(12).fill(0), near = { d: 1e9, n: '' }; CLIM.forEach(s => { const d = meters([la, lo], [s.lat, s.lon]) / 1000, w = 1 / Math.pow(Math.max(d, 8), 2); W += w; for (let m = 0; m < 12; m++) { hi[m] += s.hi[m] * w; lw[m] += s.lo[m] * w; } if (d < near.d) { near.d = d; near.n = s.n; } }); return { hi: hi.map(v => v / W), lo: lw.map(v => v / W), near: near.n }; };
+  /* the ground's height at a place: its ZIP's, where the page's data has it (the hazard job's elevation at the town point) */
+  const elevAt = (la, lo) => { const zp = zipAt(la, lo), z = zp ? ZI[zp] : null; return z ? wxCol(z, 'elev') : null; };
+  const climAt = (la, lo) => { const el = elevAt(la, lo), near = { d: 1e9, n: '' }, rows = CLIM.map(s => { const km = meters([la, lo], [s.lat, s.lon]) / 1000, d = km + (el == null ? 0 : Math.abs(el - s.el) / 10); if (d < near.d) { near.d = d; near.n = s.n; near.km = km; } return [d, s]; }).sort((x, y) => x[0] - y[0]).slice(0, 4);
+    let W = 0, ez = 0; const hi = new Array(12).fill(0), lw = new Array(12).fill(0); rows.forEach(([d, s]) => { const w = 1 / Math.pow(Math.max(d, 4), 2); W += w; ez += s.el * w; for (let m = 0; m < 12; m++) { hi[m] += s.hi[m] * w; lw[m] += s.lo[m] * w; } });
+    const adj = el == null ? 0 : -(el - ez / W) * 0.0065 * 1.8; return { hi: hi.map(v => v / W + adj), lo: lw.map(v => v / W + adj), near: near.n, km: near.km, el }; };
   const climMemo = new Map(), climOf = (la, lo) => { const k = la.toFixed(1) + ',' + lo.toFixed(1); let v = climMemo.get(k); if (!v) { v = climAt(la, lo); climMemo.set(k, v); } return v; };
   /* the air through the day: coolest at six by the sun, warmest at three (degrees Celsius) */
   function airC(la, lo, month, hour) { const c = climOf(la, lo), hi = f2c(c.hi[month]), lw = f2c(c.lo[month]), h = ((hour % 24) + 24) % 24, f = h >= 6 && h <= 15 ? 0.5 - 0.5 * Math.cos(Math.PI * (h - 6) / 9) : 0.5 + 0.5 * Math.cos(Math.PI * ((h < 6 ? h + 24 : h) - 15) / 15); return lw + (hi - lw) * f; }
@@ -1168,10 +1475,12 @@
      shingles 0.03 to 0.10 dark, 0.12 to 0.22 mid, 0.25 to 0.31 white, emittance 0.91 (Florida Solar Energy Center);
      painted metal 0.06 to 0.13 dark, 0.55 to 0.69 white, emittance 0.83 to 0.90; clay tile about 0.35, concrete tile 0.16
      to 0.25, slate 0.1 to 0.2; membranes from dark modified bitumen at 0.08 to white TPO and PVC at 0.70 after three years
-     (Cool Roof Rating Council; less where the Gulf's damp soils them); bare 55 percent aluminium zinc steel reflects
+     (Cool Roof Rating Council); the Energy Code's own default for an unrated asphalt shingle is an aged reflectance of
+     0.08, and 0.10 for any other unrated product; bare 55 percent aluminium zinc steel reflects
      0.65 but its emittance is only 0.08 to 0.28 (Oak Ridge; Florida Solar Energy Center), so it runs hotter than its brightness suggests, and metal
-     building roofs here are a mix of that and paint */
-  const ROOFOPT = { shingle: { sr: [0.04, 0.26], e: 0.91 }, metal: { sr: [0.08, 0.62], e: 0.85 }, tile: { sr: [0.12, 0.4], e: 0.9 }, mh: { sr: [0.2, 0.65], e: 0.8 }, low: { sr: [0.08, 0.68], e: 0.88 }, lowmf: { sr: [0.08, 0.68], e: 0.88 }, mbldg: { sr: [0.25, 0.62], e: 0.4 } };
+     building roofs here are a mix of that and paint. Wood shakes are taken with mid toned shingles and a house's low
+     slope roof with the membranes (no measurement of either was found). */
+  const ROOFOPT = { shingle: { sr: [0.04, 0.26], e: 0.91 }, wood: { sr: [0.1, 0.3], e: 0.9 }, flat: { sr: [0.08, 0.68], e: 0.88 }, metal: { sr: [0.08, 0.62], e: 0.85 }, tile: { sr: [0.12, 0.4], e: 0.9 }, mh: { sr: [0.2, 0.65], e: 0.8 }, low: { sr: [0.08, 0.68], e: 0.88 }, lowmf: { sr: [0.08, 0.68], e: 0.88 }, mbldg: { sr: [0.25, 0.62], e: 0.4 } };
   /* the reflectance a roof most likely has: the middle of its covering's range, moved by how light the roof shows in the
      satellite photo (lum, 0 to 1 as displayed; the photo's brightness is not a measurement, so it only places the roof within the range) */
   function reflectOf(type, lum) { const r = (ROOFOPT[type] || ROOFOPT.shingle).sr; if (!isN(lum)) return r[0] + (r[1] - r[0]) * 0.35; const t = clamp((lum - 0.22) / 0.5, 0, 1); return r[0] + (r[1] - r[0]) * t * t * (3 - 2 * t); }
@@ -1180,21 +1489,24 @@
   const planeSun = (n, sun, sky, k, shade) => { const cs = Math.max(0, n[0] * sun.dir[0] + n[1] * sun.dir[1] + n[2] * sun.dir[2]), up = (1 + n[1]) / 2, gh = sky.dn * k[0] * Math.max(0, sun.dir[1]) + sky.dn * k[1]; return sky.dn * k[0] * cs * (1 - (shade || 0)) + sky.dn * k[1] * up + 0.2 * gh * (1 - up); };
   /* how fast heat ages a plane over a normal year, against a plane held at 25 C: the rate doubles for each 10 C (the rule of
      thumb for the oxidation that hardens asphalt and plastics), averaged over every hour of twelve mid month days with the
-     sky clear six tenths of the time (Louisiana's share of possible sunshine). No shade is counted: the yearly rate
-     knows the plane's slope, its bearing and the roof's colour, not the trees round it. */
+     sky clear a share of the time that falls with the place's rain: nine tenths less a hundredth for each inch of
+     normal yearly rain, held between a half and nine tenths (a judgment: the page's data carries no sunshine record;
+     the deserts come out near 0.85, Los Angeles 0.75, San Francisco 0.67, Eureka 0.5). No shade is counted: the
+     yearly rate knows the plane's slope, its bearing and the roof's colour, not the trees round it. */
+  const clearShare = (la, lo) => { const zp = zipAt(la, lo), r = zp && ZI[zp] ? wxCol(ZI[zp], 'rainIn') : null; return r == null ? 0.7 : clamp(0.9 - r / 100, 0.5, 0.9); };
   const HEATM = new Map(), MIDDOY = [15, 46, 75, 106, 136, 167, 197, 228, 259, 289, 320, 350];
   function heatRate(sr, e, n, la, lo) {
-    /* the answer is for the rounded place and colour the memo is keyed by (half a degree; a hundredth), so it does not depend on which roof asked first */
-    sr = Math.round(sr * 100) / 100; e = Math.round(e * 100) / 100; la = Math.round(la * 2) / 2; lo = Math.round(lo * 2) / 2;
+    /* the answer is for the rounded place and colour the memo is keyed by (a tenth of a degree, about 10 km: California's air changes that fast between the beach, the valley and the pass; a hundredth), so it does not depend on which roof asked first */
+    sr = Math.round(sr * 100) / 100; e = Math.round(e * 100) / 100; la = Math.round(la * 10) / 10; lo = Math.round(lo * 10) / 10; const cs = clearShare(la, lo);
     const tilt = Math.round(deg(Math.acos(clamp(n[1], -1, 1))) / 5) * 5, az = tilt < 3 ? 0 : Math.round(((deg(Math.atan2(n[0], -n[2])) + 360) % 360) / 22.5) * 22.5, key = [sr.toFixed(2), e.toFixed(2), tilt, az, la.toFixed(1), lo.toFixed(1)].join('|'); let v = HEATM.get(key); if (v !== undefined) return v;
     const t = rad(tilt), a = rad(az), nn = [Math.sin(t) * Math.sin(a), Math.cos(t), -Math.sin(t) * Math.cos(a)]; let s = 0, c = 0;
     for (let m = 0; m < 12; m++) for (let h = 0; h < 24; h++) { const sun = sunAt(MIDDOY[m], h + 0.5, la), sky = clearSky(sun.alt), ta = airC(la, lo, m, h + 0.5);
-      [[SKYK.clear, 0.6, 10], [SKYK.overcast, 0.4, 3]].forEach(([k, w, ds]) => { const T = surfaceC((1 - sr) * planeSun(nn, sun, sky, k, 0), e, ta, 1.65, ds); s += w * Math.pow(2, (T - 25) / 10); c += w; }); }
-    v = s / c; if (HEATM.size > 4000) HEATM.clear(); HEATM.set(key, v); return v;
+      [[SKYK.clear, cs, 10], [SKYK.overcast, 1 - cs, 3]].forEach(([k, w, ds]) => { const T = surfaceC((1 - sr) * planeSun(nn, sun, sky, k, 0), e, ta, 1.65, ds); s += w * Math.pow(2, (T - 25) / 10); c += w; }); }
+    v = s / c; if (HEATM.size > 12000) HEATM.clear(); HEATM.set(key, v); return v;
   }
   /* the average roof of a kind here: a 6 in 12 slope facing every way in turn (2 degrees for the low slope kinds), about a
      third of the way up its range of colours */
-  const heatRef = (type, la, lo) => { const o = ROOFOPT[type] || ROOFOPT.shingle, sr = reflectOf(type, null), low = type === 'low' || type === 'lowmf' || type === 'mbldg', t = rad(low ? 2 : 26.6); let s = 0; for (let k = 0; k < 8; k++) { const a = rad(k * 45); s += heatRate(sr, o.e, [Math.sin(t) * Math.sin(a), Math.cos(t), -Math.sin(t) * Math.cos(a)], la, lo); } return s / 8; };
+  const heatRef = (type, la, lo) => { const o = ROOFOPT[type] || ROOFOPT.shingle, sr = reflectOf(type, null), low = type === 'low' || type === 'lowmf' || type === 'mbldg' || type === 'flat', t = rad(low ? 2 : 26.6); let s = 0; for (let k = 0; k < 8; k++) { const a = rad(k * 45); s += heatRate(sr, o.e, [Math.sin(t) * Math.sin(a), Math.cos(t), -Math.sin(t) * Math.cos(a)], la, lo); } return s / 8; };
 
   /* ---------- the roof views of the Scout Engine: heat, wear, and the next fifteen years, plane by plane ---------- */
   /* The engine cuts every roof near the camera into small triangles and asks, for each corner, what to draw there. It

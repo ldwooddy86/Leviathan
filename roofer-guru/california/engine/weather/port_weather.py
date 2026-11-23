@@ -14,6 +14,11 @@ def rep(a, b, n=1):
     global s
     assert s.count(a) == n, (s.count(a), a[:110])
     s = s.replace(a, b)
+def sub(pat, new, n=1):
+    """a pattern, for the few places the terrain job's port rewrites before this one runs: the count is still asserted"""
+    global s
+    s, k = re.subn(pat, lambda m: new, s)
+    assert k == n, (k, pat[:110])
 def cut(a, b, new):
     global s
     assert s.count(a) == 1 and s.count(b) == 1, (s.count(a), s.count(b), a[:60], b[:60])
@@ -70,10 +75,11 @@ cut("    /* The storm scale: 0 is the weather chosen above; 1 to 9 run from ligh
     const SK = SE.StormKit(engine, { ground: () => (typeof S.gy === 'function' ? S.gy(S.x, S.z) || 0 : 0) }); S.storm = 0; S.wind = 0; S.sky = 0; S.snowLevel = null; S.elev = null; S.y0msl = null; S.wxAt = null; S.wxName = '';
     /* How high the world's y = 0 stands above sea level here, in metres; null when nobody knows, and then no snow is
        drawn. Asked in this order: the terrain (S.elevAt(lat, lon), metres above sea level, with S.gy(x, z) for the
-       ground's height in the world, when a build has them), the module (env.elevation(lat, lon)), and a height given by
+       ground's height in the world, when a build has them; or the terrain's datum S.y0, metres above sea level of y = 0), the module (env.elevation(lat, lon)), and a height given by
        hand for the ground under the camera (en.elevation(m)). */
     function seaLevel() {
-      if (!S.ok) return null; const ll = toLL(S.x, S.z); let e = null, g = 0;
+      if (!S.ok) return null; if (typeof S.gy === 'function' && typeof S.y0 === 'number' && isFinite(S.y0) && typeof S.elevAt !== 'function') return S.y0;   /* the terrain job's datum: how high y = 0 stands */
+      const ll = toLL(S.x, S.z); let e = null, g = 0;
       try { if (typeof S.gy === 'function') g = S.gy(S.x, S.z) || 0; if (typeof S.elevAt === 'function') e = S.elevAt(ll[0], ll[1]); if ((e == null || !isFinite(e)) && env.elevation) e = env.elevation(ll[0], ll[1]); } catch (err) { e = null; }
       if (e == null || !isFinite(e)) e = S.elev; return e == null || !isFinite(e) ? null : e - g;
     }
@@ -90,7 +96,9 @@ cut("    /* The storm scale: 0 is the weather chosen above; 1 to 9 run from ligh
     function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
     /* The Alta X flies in the dry and in light rain, and in an offshore wind only up to its limit. Otherwise it comes down where it is, and will not take off. */
     const canFly = () => !!SE.STORM[S.storm].fly && !!SE.WIND[S.wind].fly;
-    const wxShort = () => [S.storm ? SE.STORM[S.storm].s : '', S.wind ? SE.WIND[S.wind].s + ' wind' : '', S.sky ? SE.SKY[S.sky].s : ''].filter(Boolean).join(', ') || 'Dry';
+    const wxShort = () => [S.storm ? SE.STORM[S.storm].s : '', S.wind ? SE.WIND[S.wind].s : '', S.sky ? SE.SKY[S.sky].s : ''].filter(Boolean).join(', ') || 'Dry';
+    /* what state() says of the weather: the roof views ask it what this weather does to a roof */
+    const wxState = () => { const wx = SK.info(); return { stormKey: wx.key, wind: S.wind, windKey: wx.wind.key, windName: wx.wind.local, sky: wx.sky.key, skyOn: wx.sky.on, weather: wx.text, sustainedMph: wx.sustainedMph, gustMph: wx.gustMph, rainMmH: wx.rainMmH, precip: wx.precip, snowLevelM: wx.snowLevelM, elevationM: wx.elevationM, visKm: wx.visKm, altaCanFly: wx.fly }; };
     function grounded() { const no = !canFly(); if (ALTA) ALTA.ground(no ? NOFLY : '', S.mode !== 'alta'); if (no && S.mode === 'alta' && ALTA && ALTA.state.mode !== 'Landed') alarm(NOFLY); return no; }
     function wxChanged(quiet) { setSun(); grounded(); engine.wake(); if (gfx.lens === 'storm' || gfx.lens === 'thermal') { lensGen++; legT = 0; lensSync(true); } if (!quiet && env.onGraphics) env.onGraphics(graphics()); }
     function setStorm(n, quiet) { n = SE.stormStep(n); if (n === S.storm) return; S.storm = n; wxChanged(quiet); }
@@ -100,10 +108,15 @@ cut("    /* The storm scale: 0 is the weather chosen above; 1 to 9 run from ligh
     function setSnowLevel(m, quiet) { m = numOrNull(m); if (m === S.snowLevel) return; S.snowLevel = m; wxChanged(quiet); }   /* metres above sea level, in the place of the step's own; null gives the step's back */
     function setElevation(m, quiet) { m = numOrNull(m); if (m === S.elev) return; S.elev = m; wxChanged(quiet); }           /* the ground under the camera, metres above sea level, when nothing else knows */
 """)
-rep("cy = Math.max(0.6, (SK.now ? SK.now.surge : -9) + 0.8, Pn[1] + 2.5 - fy * d);", "cy = Math.max(0.6, Pn[1] + 2.5 - fy * d);")
-rep("      { const fl = SK.now ? SK.now.surge : -9; if (fl > 0 && eye < fl + (m === 'orbit' ? 0.8 : 1.6)) eye = fl + (m === 'orbit' ? 0.8 : 1.6); }   /* flood water deeper than the eye: afloat on it */\n", "")
-rep("was = S.fast, fl = SK.now ? SK.now.surge : -9; UAP.update(dt, { floor: (x, z) => Math.max(floorTop(x, z), fl), block: blockAt });", "was = S.fast; UAP.update(dt, { floor: floorTop, block: blockAt });")
-rep("ALTA.update(dt, { floor: (x, z) => Math.max(floorTop(x, z), SK.now ? SK.now.surge : -9), block: blockAt,", "ALTA.update(dt, { floor: floorTop, block: blockAt,")
+# the flood plane is gone from the cameras and the craft (placeCamera and the update handler). These four places are written
+# two ways: as Louisiana left them, and as the terrain job's port leaves them (its surgeY()); either is taken, once.
+FL = r"(?:SK\.now \? SK\.now\.surge : -9|surgeY\(\))"
+sub(r"\(SK\.now \? SK\.now\.surge : -9\) \+ 0\.8, |surgeY\(\) \+ 0\.8, ", "")
+sub(r"\n *\{ const fl = " + FL + r"; if \(fl > [^\n]*afloat on it \*/", "")
+sub(r", fl = " + FL + r"; UAP\.update\(", "; UAP.update(")
+rep("UAP.update(dt, { floor: (x, z) => Math.max(floorTop(x, z), fl), block: blockAt });", "UAP.update(dt, { floor: floorTop, block: blockAt });")
+sub(r"floor: \(x, z\) => Math\.max\(floorTop\(x, z\), " + FL + r"\), block: blockAt,", "floor: floorTop, block: blockAt,")
+sub(r"\n[^\n]*the flood's surface as a world height[^\n]*\n[^\n]*const surgeY = [^\n]*", "", n=s.count('const surgeY = '))
 rep("      if (S.storm && S.surgeAt && Math.hypot(S.x - S.surgeAt[0], S.z - S.surgeAt[1]) > 700) surgeHere();\n",
     "      if (S.storm || S.wind) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }\n")
 rep("ensureAt = null; ensureSoon(); surgeHere(); warpEl.className", "ensureAt = null; ensureSoon(); wxHere(); warpEl.className")
@@ -113,8 +126,7 @@ rep("stormStep: SE.STORM[S.storm], surgeNote: S.surgeNote, weather: S.storm ? 'r
 rep("weatherLabel: S.storm ? SE.STORM[S.storm].l.toLowerCase() : WLAB[gfx.weather] || gfx.weather }; }", "weatherLabel: S.storm || S.wind > 1 ? wxShort().toLowerCase() : WLAB[gfx.weather] || gfx.weather }; }")
 rep("W = a.warp, sn = SE.STORM[S.storm];", "W = a.warp, sn = { s: wxShort() };")
 rep("if (m === 'alta' && !SE.STORM[S.storm].fly) { alarm(NOFLY); return false; }", "if (m === 'alta' && !canFly()) { alarm(NOFLY); return false; }")
-rep("function state() { const [la, lo] = toLL(S.x, S.z), r = roadAt(); return { lat: la, lon: lo, yaw: S.yaw, pitch: S.pitch, mode: S.mode, storm: S.storm, ",
-    "function state() { const [la, lo] = toLL(S.x, S.z), r = roadAt(), wx = SK.info(); return { lat: la, lon: lo, yaw: S.yaw, pitch: S.pitch, mode: S.mode, storm: S.storm, stormKey: wx.key, wind: S.wind, windKey: wx.wind.key, windName: wx.wind.local, sky: wx.sky.key, skyOn: wx.sky.on, weather: wx.text, sustainedMph: wx.sustainedMph, gustMph: wx.gustMph, rainMmH: wx.rainMmH, precip: wx.precip, snowLevelM: wx.snowLevelM, elevationM: wx.elevationM, visKm: wx.visKm, altaCanFly: wx.fly, ")
+rep("pitch: S.pitch, mode: S.mode, storm: S.storm, uap: ", "pitch: S.pitch, mode: S.mode, storm: S.storm, ...wxState(), uap: ")
 rep("storm: S.storm, stormInfo: SK.info(), surge: S.surge, surgeNote: S.surgeNote, trees: gfx.trees,", "storm: S.storm, wind: S.wind, skyState: SE.SKY[S.sky].k, snowLevel: S.snowLevel, elevation: S.elev, stormInfo: SK.info(), trees: gfx.trees,")
 rep("if (o.storm != null) setStorm(o.storm, true);", "if (o.storm != null) setStorm(o.storm, true); if (o.wind != null) setWind(o.wind, true); if (o.skyState != null) setSky(o.skyState, true); if (o.snowLevel !== undefined) setSnowLevel(o.snowLevel, true); if (o.elevation !== undefined) setElevation(o.elevation, true);")
 rep("      storm: n => { setStorm(n); return SK.info(); }, stormKit: SK, warn: alarm, NOFLY,",

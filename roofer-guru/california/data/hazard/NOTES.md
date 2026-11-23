@@ -1,18 +1,18 @@
 # Hazard build: working notes (resume here after a restart)
 
-Folder: CA/data/hazard. Run everything with `bash build_hazard.sh` (each step: `python3 -I NN_name.py`).
-Outputs: out/. Intermediate tables: work/. Schema: HAZARD_SCHEMA.md (keep true).
+Folder: CA/data/hazard. Outputs: out/. Intermediate tables: work/. Schema: HAZARD_SCHEMA.md (second issue written
+2026-11-23: names are FIXED there; scripts must conform to it). Requests from module writers: CA/atlas/NEEDS_FROM_DATA.md.
+The data job reads out/zcta_hazard.json through CA/data/03_hazard_in.py (cols/rows, column `zip`).
 
-Steps (tick when the output file exists and was checked):
-- [ ] 10_nws_snapshot.py  -> out/ca_nws_snapshot.json (live fetch)
-- [ ] 01_zcta_base.py     -> work/zcta_base.json (centroid, area, county, region, coast km, elevation)
-- [ ] 02_stations.py      -> work/zcta_station.json (rain, heat, gust days from stations)
-- [ ] 03_ar.py            -> work/zcta_ar.json, work/ar_events.json
-- [ ] 04_fire.py          -> work/zcta_fire.json, work/fires.json
+Steps (x = output on disk and looked at):
+- [x] 10_nws_snapshot.py  -> out/ca_nws_snapshot.json (2026-11-19; add windDirection on next fetch)
+- [x] 01_zcta_base.py     -> work/zcta_base.json, coast_albers.wkb
+- [x] 02_stations.py      -> work/zcta_station.json
+- [x] 03_ar.py            -> work/zcta_ar.json, work/ar_events.json
+- [ ] 04_fire.py          -> work/zcta_fire.json, work/fires.json, out/fire_rings.json (log: work/04_fire.log)
 - [ ] 05_wind_events.py   -> work/zcta_wind.json, work/wind_events.json
 - [ ] 06_snow_hail.py     -> work/zcta_snow_hail.json
-- [ ] 07_assemble.py      -> out/zcta_hazard.json, out/hazard_events.json, out/hazard_ts.json, out/hazard_pts.json
-- [ ] 08_roof_model.py    -> out/roof_hazard_model.json, out/roof_hazard_model.md
-- [ ] 09_checks.py        -> out/checks.json, out/CHECKS.md
-
-Decisions are logged at the bottom of HAZARD_SCHEMA.md.
+- [ ] 07_assemble.py      -> out/zcta_hazard.json, hazard_events.json, hazard_ts.json, hazard_pts.json
+- [ ] 08_roof_model.py    -> out/roof_hazard_model.json, .md
+- [ ] 09_checks.py        -> out/checks.json, out/CHECKS.md, and section 9 of HAZARD_SCHEMA.md
+- [ ] build_hazard.sh

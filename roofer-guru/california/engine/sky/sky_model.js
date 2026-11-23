@@ -55,7 +55,7 @@
       SAN: { scale: 657 / 610, arr: ['27'], dep: ['27'], gs: 3.5, tch: 65, fix: [[5.2, 2000], [7.4, 2700], [10.9, 3600], [12.9, 4000]], out: [[300, 4, 2000], [250, 2, 2000], [150, 4, 2500]], curfew: [23.5, 6.5], real: 'runway, 3.50 degree path, displaced threshold, departure curfew' },
       BUR: { arr: ['08'], dep: ['15'], cross: true }, LGB: { arr: ['30'], dep: ['30'] }, SNA: { arr: ['20R'], dep: ['20R'] }, ONT: { arr: ['26L'], dep: ['26R'] }, OAK: { arr: ['30'], dep: ['30'] }, SJC: { arr: ['30L'], dep: ['30R'] }, SMF: { arr: ['17R'], dep: ['17L'] } };
     Object.keys(FLOW).forEach(k => { const f = FLOW[k]; f.scale = f.scale || 1; f.gs = f.gs || 3.0; f.tch = f.tch || 50; f.out = f.out || [[0, 1, 1500], [90, 1, 1500], [180, 1, 1500], [270, 1, 1500]]; f.real = f.real || 'runways and flights an hour; the flow is assumed'; });
-    M.MINSEP = 78; M.MINSEP_PAIR = 150; M.APPROACH_NM = 37;      /* seconds between landings on one runway at the least (3 NM at 140 kt); between pairs at SFO; where an arrival is first drawn */
+    M.MINSEP = 78; M.MINSEP_PAIR = 135; M.APPROACH_NM = 37;      /* seconds between landings on one runway at the least (3 NM at 140 kt); between pairs at SFO; where an arrival is first drawn */
 
     /* ---------- airports and runways ---------- */
     const AP = M.airports = {}; (D.airports || []).forEach(a => { AP[a.id] = a; a.elevM = a.elev * FT; a.kLat = mLat(a.lat); a.kLon = mLon(a.lat); a.ends = {};
@@ -84,13 +84,13 @@
     function arrivals(ap, b) {
       const key = 'a' + ap + b; let L = cache.get(key); if (L) return L; L = []; const F = FLOW[ap], id = AID[ap], [ra] = rates(ap, b), streams = F.pair ? 1 : F.arr.length, t0 = b * 3600;
       for (let s = 0; s < streams; s++) {
-        const minSep = F.pair ? M.MINSEP_PAIR : M.MINSEP; let n = nOf(ra / (F.pair ? 2 : streams), id, b, 10 + s); n = Math.min(n, Math.floor(3600 / (minSep + 22))); if (!n) continue; const Hh = 3600 / n, jm = Math.min(0.3 * Hh, (Hh - minSep) / 2);
+        const minSep = F.pair ? M.MINSEP_PAIR : M.MINSEP; let n = nOf(ra / (F.pair ? 2 : streams), id, b, 10 + s); n = Math.min(n, Math.floor(3600 / (minSep + 20))); if (!n) continue; const Hh = 3600 / n, jm = Math.min(0.3 * Hh, (Hh - minSep) / 2);
         const typeOf = k => TYPES[pickW(MIX[ap] || MIX.other, hash(id, b, k, 20 + s))]; let prev = null;
-        for (let k = 0; k < n; k++) { const ty = typeOf(k); let j = (hash(id, b, k, 30 + s) * 2 - 1) * jm; const heavy = ty.wake !== 'L';
-          if (heavy) j = -jm; else if (prev && prev.wake !== 'L') j = jm; if (prev && prev.wake === 'S' && !F.pair) { prev = ty; continue; }   /* nothing lands in the slot behind an A380: 7 NM */
-          const t = t0 + (k + 0.5) * Hh + j, fl = flowAt(F, t), mk = (rw, ty2, dt, tag) => ({ id: key + '_' + s + '_' + k + tag, ap, kind: 'arr', rw, type: ty2, t0: t + dt, liv: Math.floor(hash(id, b, k, 40 + s + (tag ? 5 : 0)) * LIVERY.length), sd: hash(id, b, k, 50 + s) });
-          if (F.pair && fl === F) { L.push(mk(F.arr[0], ty, -4, 'L')); L.push(mk(F.arr[1], typeOf(k + 500), 0, 'R')); } else L.push(mk(fl.arr[(F.pair ? k : s) % fl.arr.length], ty, 0, ''));
-          prev = ty; } }
+        for (let k = 0; k < n; k++) { const ty = typeOf(k), ty2 = F.pair ? typeOf(k + 500) : null, wk = ty.wake === 'S' || (ty2 && ty2.wake === 'S') ? 'S' : ty.wake === 'H' || (ty2 && ty2.wake === 'H') ? 'H' : 'L'; let j = (hash(id, b, k, 30 + s) * 2 - 1) * jm;
+          if (wk !== 'L') j = -jm; else if (prev && prev !== 'L') j = jm; if (prev === 'S' && !F.pair) { prev = wk; continue; }   /* nothing lands in the slot behind an A380: 7 NM */
+          const t = t0 + (k + 0.5) * Hh + j, fl = flowAt(F, t), mk = (rw, ty3, dt, tag) => ({ id: key + '_' + s + '_' + k + tag, ap, kind: 'arr', rw, type: ty3, t0: t + dt, liv: Math.floor(hash(id, b, k, 40 + s + (tag ? 5 : 0)) * LIVERY.length), sd: hash(id, b, k, 50 + s) });
+          if (F.pair && fl === F) { L.push(mk(F.arr[0], ty, -4, 'L')); L.push(mk(F.arr[1], ty2, 0, 'R')); } else L.push(mk(fl.arr[(F.pair ? k : s) % fl.arr.length], ty, 0, ''));
+          prev = wk; } }
       L.sort((x, y) => x.t0 - y.t0); if (cache.size > CMAX) cache.clear(); cache.set(key, L); return L;
     }
     /* the take-offs of one block: evenly spaced, then moved out of the way of the landings on the same or a crossing runway, and a minute apart at the least */

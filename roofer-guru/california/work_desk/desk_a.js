@@ -113,7 +113,7 @@ const QKW = {
   coat: ['silicone roof coating', 'commercial roof restoration', 'cool roof coating', 'roof maintenance program'],
   newc: ['new construction roofing contractor', 'builder roofing subcontractor', 'roofing for new homes', 'solar ready roof new construction'],
 };
-/* Event ad groups. Louisiana's desk built these from named hurricanes; California's events are of four kinds. Each kind has its service line,
+/* Event ad groups. The first edition built these from named tropical storms; California's events are of four kinds. Each kind has its service line,
    headlines (30 characters or fewer), one description (90 or fewer), core keywords and a landing slug. {Name} is the event's name when it has one. */
 const DESK_EV = {
   rain: { label: 'Heavy rain and atmospheric river', line: 'storm', first: 'put a bucket under the leak, photograph the ceiling and call for a tarp',
@@ -126,23 +126,26 @@ const DESK_EV = {
     kw: ['wind damage roof repair', 'shingles blown off roof', 'tile roof wind damage', 'roof blown off', 'emergency roof tarp', 'storm damage roof repair'], slug: 'wind damage roof repair' },
   fire: { label: 'Wildfire damage and rebuild', line: 'fire', first: 'wait until the area is reopened, then photograph the roof from the ground before anything is moved',
     h: ['Wildfire Rebuild Roofing', 'Roof Damage After a Fire?', 'Smoke and Ember Roof Check', 'Class A Roof Rebuilds', 'Fire Rebuild Roofing', '{Name} Fire Rebuild Roofing'],
-    d: 'Rebuilding after the fire? Class A roofs built to the wildfire code, with written estimates.',
+    d: 'Rebuilding after a fire? Class A roofs built to the wildfire code, with written estimates.',
     kw: ['fire damage roof repair', 'wildfire rebuild roofing', 'roof replacement after fire', 'smoke damage roof inspection', 'class a roof replacement', 'fire rebuild roofing contractor'], slug: 'wildfire rebuild roofing' },
   snow: { label: 'Mountain snow load', line: 'storm', first: 'stay off the roof, photograph sagging or cracked ceilings and call',
     h: ['Snow Damage Roof Repair', 'Roof Leak From Ice or Snow?', 'Emergency Roof Tarps', 'Roof Inspection After Snow'],
-    d: 'Snow or ice damage? A licensed roofer inspects the roof and framing and writes an estimate.',
+    d: 'Snow or ice damage? A licensed roofer checks the roof and framing and writes an estimate.',
     kw: ['snow damage roof repair', 'roof collapse repair', 'ice dam roof leak', 'emergency roof repair'], slug: 'snow damage roof repair' },
 };
 const deskEvKind = t => { t = String(t || '').toLowerCase(); return /fire|burn|smoke|ember/.test(t) ? 'fire' : /snow|ice\b|blizzard/.test(t) ? 'snow' : /wind|santa ana|diablo|sundowner|gust/.test(t) ? 'wind' : 'rain'; };
-/* Named events for the event ad group, if the data carries a table of them. The hazard data job owns its shape; this reads whichever of
-   DATA.events, DATA.hazard_events or DATA.ts.events is an array, and from each row a name (name, n, title or label), a kind or type, and a year. */
+/* Named events for the event ad group, from the hazard job's event ledger when the build carries it (DATA.hz): wildfires with structures
+   destroyed (hz.fires: id, name, year, month, dest), and the large atmospheric rivers and wind events if they carry a name (hz.ar_big,
+   hz.wind). A plain DATA.events array of {name, kind, year} is read too. With no ledger the four kinds above still work. */
 function deskEvents() {
-  const D0 = (typeof DATA !== 'undefined' && DATA) || {}; const src = [D0.events, D0.hazard_events, D0.ts && D0.ts.events].find(a => Array.isArray(a) && a.length) || [];
+  const D0 = (typeof DATA !== 'undefined' && DATA) || {}; const H = (D0.hz && typeof D0.hz === 'object') ? D0.hz : {}; const arr = x => Array.isArray(x) ? x : [];
+  const src = arr(H.fires).filter(e => e && +e.dest > 0 && e.name && !/^unnamed$/i.test(e.name)).map(e => Object.assign({ kind: 'fire' }, e))
+    .concat(arr(H.ar_big).map(e => Object.assign({ kind: 'rain' }, e))).concat(arr(H.wind).map(e => Object.assign({ kind: 'wind' }, e))).concat(arr(D0.events)).concat(arr(D0.hazard_events));
   const out = []; const seen = new Set();
-  src.forEach(e => { if (!e || typeof e !== 'object') return; const name = String(e.name || e.n || e.title || e.label || '').trim(); if (!name) return; const year = +e.year || +e.y || (e.date ? +String(e.date).slice(0, 4) : 0) || (e.start ? +String(e.start).slice(0, 4) : 0) || null; const kind = deskEvKind((e.kind || e.type || e.k || '') + ' ' + (/fire/i.test(String(e.kind || e.type || '')) ? '' : name)); const id = String(e.id || e.r || (name + (year ? ' ' + year : ''))); if (seen.has(id)) return; seen.add(id); out.push({ id, name, year, kind, month: +e.month || +e.m || null, n: +e.dest || +e.destroyed || +e.n_dest || +e.est || null, zips: Array.isArray(e.zips) ? e.zips.map(String) : null }); });
-  return out.sort((a, b) => (b.year || 0) - (a.year || 0) || a.name.localeCompare(b.name));
+  src.forEach(e => { if (!e || typeof e !== 'object') return; const name = String(e.name || e.title || e.label || '').trim(); if (!name) return; const year = +e.year || +e.y || (e.start ? +String(e.start).slice(0, 4) : 0) || (e.date ? +String(e.date).slice(0, 4) : 0) || null; const kind = DESK_EV[e.kind] ? e.kind : deskEvKind((e.kind || e.type || '') + ' ' + name); const id = String(e.id || (name + (year ? ' ' + year : ''))); if (seen.has(id)) return; seen.add(id); out.push({ id, name, year, kind, month: +e.month || null, n: isN(e.dest) ? +e.dest : null, zips: Array.isArray(e.zips) ? e.zips.map(String) : null }); });
+  return out.sort((x, y) => (y.year || 0) - (x.year || 0) || (y.n || 0) - (x.n || 0) || x.name.localeCompare(y.name));
 }
-/* Languages. Louisiana built a Spanish campaign wherever 8 percent of residents spoke Spanish at home. In California that share is 28 percent
+/* Languages. The first edition built a Spanish campaign wherever 8 percent of residents spoke Spanish at home. In California that share is 28 percent
    statewide (ACS C16001), so the old rule would fire almost everywhere and say nothing. The rule here asks who needs the language, not who
    speaks it: residents who speak the language at home AND speak English less than very well, as a percent of residents 5 and over.
    A market qualifies when that share is at least the threshold AND it stands for at least DESK_LANG_MIN people. The default threshold is one and
@@ -162,3 +165,5 @@ const DESK_LANG_MIN = 1000, DESK_LANG_FLOOR = 5, DESK_LANG_MULT = 1.5;
    Wet season: November to March. Reroof permits in the City of Los Angeles peak in October, before the rain, and are lowest in January. */
 const DESK_SANTA_ANA = [11.9, 6.7, 2.8, 0.6, 0.1, 0.1, 0, 0, 0.4, 3.5, 7.8, 12.2];
 const DESK_WET = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1];
+/* month names kept here so the desk does not lean on another module's helpers */
+const DESK_MON3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

@@ -20,3 +20,9 @@ Status: see bottom.
 - [ ] terrain_engine.js
 - [ ] port_terrain.py
 - [ ] tests
+- [x] make_grid.py -> terrain_grid.js (399 KB base64, 4 m steps, run-length)
+- [x] terrain_engine.js (kit) written, parses
+- [x] port_terrain.py: 105 patches, all anchors matched on la_engine.js; out/engine_terrain.js parses; build/out/testbed_terrain.html built
+- [ ] tests/lib.js, tests/t_core.js written; NOT YET RUN. Next: run at SF Filbert/Hyde (37.8002,-122.4186 ~ 80 m), LA, Lone Pine.
+  build: python3 -I engine/terrain/port_terrain.py engine/la_engine.js engine/terrain/out/engine_terrain.js && python3 -I build/testbed.py engine/terrain/out/engine_terrain.js build/out/testbed_terrain.html
+- [x] t_core at SF Filbert/Hyde PASSES (ground 86.6 vs 86.5 known; eye 1.7 agl; prisms below ground; no errors; shots/sf_filbert_street.png). Next: LA bird north, Lone Pine.

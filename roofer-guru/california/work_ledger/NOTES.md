@@ -1,24 +1,21 @@
 # Ledger, weather desk, regions, watch job: notes (resume here)
 
 Owner of: CA/atlas/src/14_m02_storms.js, 26_m14_weather.js, 11_nws_core.js, 23_m11_regions.js, 10_watch_core.js, 25_m13_watch.js
-Work folder: CA/work_ledger (tests, private build copies). Needs for the data jobs: CA/atlas/NEEDS_FROM_DATA.md
+Work folder: CA/work_ledger. Needs for the data jobs: CA/atlas/NEEDS_FROM_DATA.md (written, both data jobs told).
 
-Read so far: DESIGN.md, contract chapters (m02, m11, m13, m14, core 10/11), sources_weather_hazard.md, law evidence A2 A3 A4 A13 C,
-data/SCHEMA.md (regions are numbers 1..11, META.model.REGK gives the two letter key; parishes/pi keep their names; comp is tiny).
-Snapshot exists: data/hazard/out/ca_nws_snapshot.json (points carry reg key, fireZone; grid has snow, humidity, sky; alerts carry zones, fips).
+Facts learned (do not re-read the big files):
+- Regions are numbers 1..11 (META.model.REGK gives nc..sd). Core has CO, COI, ATLAS{name,state,st,file,tz,tzName}, MO3, MOL, joinAnd, capFirst.
+- Map API: fillCounty, dimCounty, selectCounty, fitCounties, onCounty, onCountyHover, countyTip (old names aliased). No perimeter layer.
+- HZ global is TAKEN by 09_sl_model.js (HZ.month.{ar,wind,offshore,fire,rainev,hail,heat,snow,tstm}); my ledger global is LEDG.
+- SLM.DAYPARTS[template] is one flat row of six; SLM.daypartGrid(t) gives 7 rows.
+- Data does not exist yet (no ca_atlas_data.json); snapshot exists and is real. Hazard schema is a stub: I code to NEEDS shapes, tolerant.
+- satchelLint(text, ctx) -> [{rule:{id,sev,name,cite,fix}, ev}] ; satCtx has fire, juris California.
 
-Decisions
-- Shared helper names in 14_m02 that other files read are kept (kmLL, MONL, MON3, DOW, DOW3, listAnd, cap1, hourLab, SF, catColor,
-  kindColor, stormKind, stormName, RTS, SIDX, stormFoot, dmgShare, footStats); the storm track ones are inert stand-ins.
-- Fire perimeters are drawn by module 02 itself in a group added to the ZipMap viewport (02_map.js is not mine);
-  perimeter paths carry data-pt = 1e6 + fire index so the map's own hover and click routing reaches onPtHover/onPt.
-- Storage keys: cg.watch.v1. Campaign names CA_<TOK>_GOOGLE_<REGION>.
-
-Status
-- [ ] 11_nws_core.js
-- [ ] 26_m14_weather.js
-- [ ] 10_watch_core.js
-- [ ] 25_m13_watch.js
-- [ ] 23_m11_regions.js
-- [ ] 14_m02_storms.js (waits on HAZARD_SCHEMA.md)
-- [ ] node tests, build, browser tests, word search
+Status (2026-11-23 resume)
+- [x] 11_nws_core.js  (node test t_nws.js passes on the real snapshot)
+- [x] 26_m14_weather.js (parses; not yet rendered in a browser)
+- [x] 10_watch_core.js (patched by work_ledger/patch_watch_core.py; backup *.la.bak)
+- [x] 25_m13_watch.js (patched by patch_m13.py)
+- [x] 23_m11_regions.js (rewritten; tolerant column picker; markets by city)
+- [ ] 14_m02_storms.js
+- [ ] smoke test (work_ledger/smoke.js), word search, report

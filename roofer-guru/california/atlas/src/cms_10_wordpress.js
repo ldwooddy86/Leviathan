@@ -159,7 +159,7 @@
     { k: 'postType', l: 'Post type', t: 'text', def: 'page', optional: true, hint: 'page or post; a page built with a post type keeps its own' },
   ];
   const SETUP = [
-    'In WordPress open Users, Profile, Application Passwords, name it Uplift Atlas and add it. Copy the password once; the site needs HTTPS.',
+    'In WordPress open Users, Profile, Application Passwords, name it California Roofer Guru and add it. Copy the password once; the site needs HTTPS.',
     'Install the FORGE bridge: module 16 downloads forge-bridge.zip. Plugins, Add New, Upload, Activate. Without it only the HTML route works.',
     'Use an Administrator account when pages carry Elementor data (the unfiltered_html capability).',
     'Set Settings, Permalinks to Post name. Plain permalinks hide /wp-json/.',

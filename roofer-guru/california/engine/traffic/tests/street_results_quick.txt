@@ -1,0 +1,18 @@
+== 1. Two main roads that cross in plan with no point in common (the survey's case 4: 80 cars, 120 s) ==
+  both on the ground, as the old engine had it: 80 cars (80 on the road), mean 20 mph, standing 34%, contacts 1, tows 0, wrong way on a one-way street 0, step 2.025 ms
+  one of them a bridge (layer 1): 80 cars (80 on the road), mean 33 mph, standing 0%, contacts 0, tows 0, wrong way on a one-way street 0, step 1.544 ms; highest deck 6.5 m
+
+== 2. A grid of one-way streets (alternate directions, 100 m blocks, 1 km square), 120 cars, 180 s ==
+  120 cars (120 on the road), mean 14 mph, standing 8%, contacts 0, tows 0, wrong way on a one-way street 0, step 1.033 ms
+
+== 3. Real streets from the saved OpenStreetMap answers (surface streets only; freeways are the other model's) ==
+  Los Angeles, Figueroa and 7th, 17h (24.4 cars per lane-km wanted, cycle 120 s): 187 cars (187 on the road), mean 10 mph, standing 51%, contacts 0, tows 0, wrong way on a one-way street 0, step 4.182 ms; buses 3; one-way share of street length 49%; crossings 192, with signals 72
+  San Francisco, Market and Powell, 17h (18.2 cars per lane-km wanted, cycle 90 s): 186 cars (186 on the road), mean 8 mph, standing 47%, contacts 0, tows 0, wrong way on a one-way street 0, step 2.648 ms; buses 5; one-way share of street length 77%; crossings 317, with signals 132
+  San Diego, Barrio Logan under the Coronado Bridge, 17h (16.1 cars per lane-km wanted, cycle 110 s): 190 cars (190 on the road), mean 14 mph, standing 30%, contacts 0, tows 0, wrong way on a one-way street 0, step 2.634 ms; buses 3; one-way share of street length 32%; crossings 153, with signals 18
+
+== 4. The user's car as an actor on a four-lane street: driving at 5 m/s, then standing ==
+  40 cars (40 on the road), mean 26 mph, standing 14%, contacts 0, tows 0, wrong way on a one-way street 0, step 1.089 ms; steps in which a traffic car touched the user's car: 0
+
+== 5. Step cost against fleet size (a 2 km grid of two-way streets and four-lane roads, 100 m blocks) ==
+  100 cars: 0.506 ms a step (5.1 microseconds a car), contacts 0
+  400 cars: 3.229 ms a step (8.1 microseconds a car), contacts 0

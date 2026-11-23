@@ -21,3 +21,14 @@ Status
 - [ ] 15_m03_law.js
 - [ ] 22_m10_satchel.js
 - [ ] harness, Louisiana word search
+
+Resumed Nov 23. 04 and 05 written and parse. 15a.js (tables + helpers) written; next: 15b.js (module), cat 15a 15b > src/15_m03_law.js;
+then 22_m10_satchel.js; then harness.js and the Louisiana word search. Brand field for the fire credential is BRAND.harden (01_brand.js).
+- [x] 15_m03_law.js written (cat 15a 15b), parses. Next: 22.
+- [x] 22 patched from 22_orig.js with 22_blocks.txt via patch22.js (re-run the node line to rebuild). Next: harness + word search.
+
+DONE Nov 23: all four files parse; `node law_work/harness.js` prints ALL CHECKS PASSED against data/out/ca_atlas_data.json.
+Louisiana word search over the four files: 0 (the only pattern hits are up.codes URLs).
+Rebuild: cat law_work/04a.js 04b.js 04c.js 04d.js > src/04_content.js ; cat law_work/15a.js 15b.js > src/15_m03_law.js ;
+         node law_work/patch22.js law_work/22_orig.js law_work/22_blocks.txt src/22_m10_satchel.js  (05 is edited in place).
+Open refinements: see the hand-back report (LAWPUB duplicate in 08, forge ctx key, PL what text vs SCHEMA section 12, browser run).

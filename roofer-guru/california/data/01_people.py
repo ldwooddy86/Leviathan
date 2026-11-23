@@ -182,6 +182,9 @@ for x in xw:
     if x['in_ca'] != '1' or not x['county_fips'].startswith('06'):
         skipped['not mostly California'] += 1
         continue
+    if not re.fullmatch(r'9[0-6]\d{3}', z):
+        skipped['postal code outside 90000 to 96999 (an Oregon post office)'] += 1
+        continue
     r = acs_row('860Z200US' + z)
     if r['pop'] < 1:
         skipped['no residents'] += 1

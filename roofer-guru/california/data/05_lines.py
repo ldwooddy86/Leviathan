@@ -23,7 +23,7 @@ FEE = 0.33
 PRIOR = 2500
 REP = {'replace': 0.84, 'repair': 0.55, 'storm': 0.80, 'fire': 0.60, 'harden': 0.85, 'tile': 0.84, 'solar': 0.50, 'metal': 0.88,
        'mh': 0.72, 'mf': 0.65, 'comm': 0.55, 'coat': 0.50, 'newc': 0.25}
-VAL = {'replace': 19000, 'repair': 1350, 'storm': 7500, 'fire': 19000, 'harden': 24000, 'tile': 20000, 'solar': 4500, 'metal': 28000,
+VAL = {'replace': 19000, 'repair': 1350, 'storm': 7500, 'fire': 19000, 'harden': 24000, 'tile': 16000, 'solar': 4500, 'metal': 28000,
        'mh': 7000, 'mf': 40000, 'comm': 75000, 'coat': 40000, 'newc': 13000}
 GRADE = {'replace': 'B', 'repair': 'B', 'storm': 'C', 'fire': 'C', 'harden': 'D', 'tile': 'C', 'solar': 'C', 'metal': 'D', 'mh': 'C',
          'mf': 'C', 'comm': 'D', 'coat': 'D', 'newc': 'B'}
@@ -184,7 +184,7 @@ for i, x in enumerate(Z):
 expo = np.where(np.isnan(fhsz), arr('wf_hi_n'), fhsz / 100.0 * u1)
 expo = np.maximum(expo, 0)
 prior = own_fire.sum() * expo / expo.sum() if expo.sum() > 0 else np.zeros(N)
-fire_gross = 0.5 * own_fire + 0.5 * prior
+fire_gross = fire_nxt + 0.5 * prior      # the known rebuild pipeline, plus half the long run yearly mean spread by exposure
 P['fire'] = fire_gross * (1 - msh)
 # tile, solar
 P['tile'] = nxt_t.copy()

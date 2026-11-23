@@ -127,4 +127,40 @@ else:
             cols |= set(v)
         haz['cols'] = sorted(cols)
     print('interim hazard tables', used, len(haz['by_zip']))
+# names the hazard schema declares for ZIP columns (section 1 of HAZARD_SCHEMA.md): only these are carried from interim tables
+decl = set()
+hs = os.path.join(HERE, 'hazard', 'HAZARD_SCHEMA.md')
+if os.path.exists(hs):
+    import re
+    on = False
+    for ln in open(hs):
+        if ln.startswith('## 1.'):
+            on = True
+        elif ln.startswith('## 2.'):
+            on = False
+        elif on and ln.startswith('| `'):
+            decl |= set(re.findall(r'`([a-z0-9_]+)`', ln.split('|')[1]))
+haz['declared'] = sorted(decl)
+for v in haz['by_zip'].values():
+    if 'fhsz_sh' not in v and isinstance(v.get('fhsz_vh'), (int, float)) and isinstance(v.get('fhsz_high'), (int, float)):
+        v['fhsz_sh'] = round(v['fhsz_vh'] + v['fhsz_high'], 1)
+    if 'ar3_d' not in v and all(isinstance(v.get(k), (int, float)) for k in ('ar3d', 'ar4d', 'ar5d')):
+        v['ar3_d'] = round(v['ar3d'] + v['ar4d'] + v['ar5d'], 2)
+if haz['src'] != 'hazard job':
+    cols = set()
+    for v in haz['by_zip'].values():
+        cols |= set(v)
+    haz['cols'] = sorted(cols)
+# fire losses by year: the hazard job's table when its event file exists (same shape as the own count)
+he = os.path.join(HAZ, 'hazard_events.json')
+if os.path.exists(he):
+    ev = json.load(open(he))
+    zd = ev.get('zdins')
+    if zd:
+        t_own = sum(v[0] for d in own['fire_year'].values() for v in d.values())
+        t_haz = sum(v[0] for d in zd.values() for v in d.values())
+        haz['fire_year'] = zd
+        haz['fire_src'] = 'hazard job hz.zdins (CAL FIRE DINS 2013 to 2025)'
+        haz['fire_check'] = {'own_res_destroyed': t_own, 'hazard_res_destroyed': t_haz}
+        print('fire by year from hz.zdins; residences destroyed: own count %d, hazard job %d' % (t_own, t_haz))
 save('haz.json', haz)

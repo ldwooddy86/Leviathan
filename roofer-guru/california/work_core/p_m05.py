@@ -1,0 +1,75 @@
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from patchlib import patch
+patch('17_m05_paid.js', [
+ ("""/* region cost factors (assumption, grade D) with the main media market each region buys through */
+const REG_MKT = { 1: 'New Orleans', 2: 'Baton Rouge', 3: 'New Orleans and Baton Rouge', 4: 'Lafayette', 5: 'Lake Charles', 6: 'Alexandria', 7: 'Shreveport', 8: 'Monroe and El Dorado', 9: 'New Orleans and Baton Rouge' };""",
+  """/* the main television and search media market each region buys through (a description by the editor of this atlas, not
+   a file of market boundaries: several regions straddle two markets). The cost factor of each region is in the data
+   (meta.model.DMA, an assumption, grade D). Region numbers follow DESIGN.md: 1 North Coast to 11 San Diego and Imperial. */
+const REG_MKT = { 1: 'Eureka; San Francisco for Mendocino and Lake', 2: 'Chico and Redding', 3: 'Sacramento; Chico for Butte and Glenn', 4: 'Sacramento, Fresno and Reno', 5: 'San Francisco, Oakland and San Jose', 6: 'Monterey and Salinas; Santa Barbara and San Luis Obispo', 7: 'Fresno and Bakersfield; Sacramento for Stockton and Modesto', 8: 'Los Angeles', 9: 'Los Angeles', 10: 'Los Angeles; Palm Springs for the Coachella Valley', 11: 'San Diego; Yuma and El Centro for Imperial' };"""),
+ ("""Organic: city pages with local storm and roof age facts, reviews, photos of local jobs and Spanish pages; these markets are won on trust and coverage, not on bids.'],""",
+  """Organic: city pages with local roof age, weather, fire zone and insurance facts, reviews, photos of local jobs and pages in the languages the city speaks; these markets are won on trust and coverage, not on bids.'],"""),
+ ("""'Maintain: low bids and parish level pages;""", """'Maintain: low bids and county level pages;"""),
+ ("""    root.innerHTML = mastHTML({ eyebrow: 'Module 05 · Paid Acquisition · every scored ZIP', title: 'Paid Acquisition', dek: 'Job flow is not the same as a good place to spend. New Orleans, Baton Rouge and the Northshore carry the most roofs and the most expensive clicks, because every statewide roofer and every storm crew buys them.""",
+  """    const PL = SLM.LINES, PLI = SLM.LI; const nl = numWord(NLINE); const DMA = META.model.DMA || {};
+    const dmaS = REG_KEYS.filter(k => isN(DMA[k])).sort((a, b) => DMA[b] - DMA[a]); const dHi = dmaS[0], dLo = dmaS[dmaS.length - 1];
+    const dmaSpan = dmaS.length ? `${REGN[dHi]} ${D(DMA[dHi], 2)} down to ${REGN[dLo]} ${D(DMA[dLo], 2)}` : 'set in the data';
+    const licTop = ((META.lic || {}).top || []).slice(0, 3).map(r => r[0]);
+    root.innerHTML = mastHTML({ eyebrow: 'Module 05 · Paid Acquisition · every scored ZIP', title: 'Paid Acquisition', dek: 'Job flow is not the same as a good place to spend. Los Angeles, Orange County, the Bay Area and San Diego carry the most roofs and the most expensive clicks, because every large roofer and every lead seller buys them."""),
+ ("""'<b>Lines</b> choose any mix of the eleven',""", """`<b>Lines</b> choose any mix of the ${nl}`,"""),
+ ("""{ id: 'p5ParCsv', label: '↓ Parish rollup CSV' }""", """{ id: 'p5ParCsv', label: '↓ County rollup CSV' }"""),
+ ("""The relative cost is a stated model, not a keyword pull: a regional factor for each media market (New Orleans 1.00 down to Northeast 0.62) times a competition term from the mapped roofing companies and the roofing contractors nearby (0.8 to 1.2).""",
+  """The relative cost is a stated model, not a keyword pull: a regional factor for each media market (${esc(dmaSpan)}; assumptions) times a competition term from the C-39 roofing licenses and the roofing employers nearby (0.8 to 1.2)."""),
+ ("""<button type="button" class="chip" id="p5Crash">Storm lines only</button>""", """<button type="button" class="chip" id="p5Crash">Weather and fire lines only</button>"""),
+ ("""<option value="">All nine regions</option>""", """<option value="">All ${numWord(NREG)} regions</option>"""),
+ ("""<label class="fl" for="p5Par">Parish</label><select id="p5Par"><option value="">All 64 parishes</option>""", """<label class="fl" for="p5Par">County</label><select id="p5Par"><option value="">All ${NCOUNTY} counties</option>"""),
+ ("""${card('Parish rollup: where the money sits', 'Gross profit pool, cost and tiers by parish for the lines in the plan.',""", """${card('County rollup: where the money sits', 'Gross profit pool, cost and tiers by county for the lines in the plan.',"""),
+ ("""${card('City rollup', 'The same by city (USPS city name, 1,500 residents or more).',""", """${card('City rollup', 'The same by city (postal city name, 1,500 residents or more).',"""),
+ ("""    const inScope = z => (!st.par || z.fips === st.par) && (!st.reg || PA[z.pi].reg === +st.reg);
+    function compute() {""", """    const inScope = z => (!st.par || z.fips === st.par) && (!st.reg || (PA[z.pi] && PA[z.pi].reg === +st.reg));
+    function compute() {"""),
+ ("""<div class="ts">${esc(x.z.cty)} Parish · ${QN[x.quad]}</div>""", """<div class="ts">${esc(x.z.cty)} County · ${QN[x.quad]}</div>"""),
+ ("""st.metric === 'comp' ? 'Darker ZIPs face more roofing companies and contractors nearby'""", """st.metric === 'comp' ? 'Darker ZIPs face more roofing licenses and employers nearby'"""),
+ ("""map.pins(st.metric === 'comp' ? COMP.flatMap((c, i) => c.offices.map(""", """map.pins(st.metric === 'comp' ? COMP.flatMap((c, i) => (c.offices || []).map("""),
+ ("""const nm = st.par ? PNAME(st.par) + ' Parish' : st.reg ? REGN[st.reg] : 'Louisiana';
+        $('#p5Name', root).textContent = nm; $('#p5Sub', root).textContent = 'Click a ZIP for its cost ledger'; $('#p5Pill', root).textContent = st.par ? 'Parish' : st.reg ? 'Region' : 'State';""",
+  """const nm = st.par ? PNAME(st.par) + ' County' : st.reg ? REGN[st.reg] : ATLAS.state;
+        $('#p5Name', root).textContent = nm; $('#p5Sub', root).textContent = 'Click a ZIP for its cost ledger'; $('#p5Pill', root).textContent = st.par ? 'County' : st.reg ? 'Region' : 'State';"""),
+ ("""const z = x.z; const reg = PA[z.pi].reg; const dma = META.model.DMA[reg]; const cterm = x.cpc / dma;""", """const z = x.z; const reg = PA[z.pi].reg; const dma = DMA[reg] || 1; const cterm = x.cpc / dma;"""),
+ ("""$('#p5Sub', root).textContent = `${z.cty} Parish · ${REGN[reg]} · ${N(z.pop)} residents`;""", """$('#p5Sub', root).textContent = `${z.cty} County · ${REGN[reg]} · ${N(z.pop)} residents`;"""),
+ ("""<div class="rowl"><span>Mapped roofers within 25 km · roofing contractors in the ZIP</span><b>${N(z.comp_n25)} · ${N(z.roofers)}</b></div>""",
+  """<div class="rowl"><span>C-39 licenses within 25 km · in the ZIP · roofing employers in the ZIP</span><b>${N(z.comp_n25)} · ${N(z.lic)} · ${N(z.roofers)}</b></div>"""),
+ ("""[{ k: 'name', h: 'Parish', l: 1, f: v => `<b>${esc(v)}</b>` }, { k: 'reg', h: 'Region', l: 1 },""", """[{ k: 'name', h: 'County', l: 1, f: v => `<b>${esc(v)}</b>` }, { k: 'reg', h: 'Region', l: 1 },"""),
+ ("""onClick: f => { st.par = f; $('#p5Par', root).value = f; map.fitParishes([f]); render(); } });""", """onClick: f => { st.par = f; $('#p5Par', root).value = f; map.fitCounties([f]); render(); } });"""),
+ ("""const cs = CITIES.map(c => { const a = c.zips.map(z => RI[z]).filter(Boolean);""", """const cs = CITIES.map(c => { const a = (c.zips || []).map(z => RI[z]).filter(Boolean);"""),
+ ("""{ k: 'par', h: 'Parish', l: 1 }, { k: 'pop', h: 'Residents', f: v => N(v) }, { k: 'n', h: 'ZIPs', f: v => N(v) }, { k: 'fees', h: 'Profit pool', f: v => MM(v) }, { k: 'cpc', h: 'Cost', f: v => D(v, 2) + '×' }, { k: 'comp', h: 'Mapped roofers', f: v => N(v) },""",
+  """{ k: 'par', h: 'County', l: 1 }, { k: 'pop', h: 'Residents', f: v => N(v) }, { k: 'n', h: 'ZIPs', f: v => N(v) }, { k: 'fees', h: 'Profit pool', f: v => MM(v) }, { k: 'cpc', h: 'Cost', f: v => D(v, 2) + '×' }, { k: 'comp', h: 'C-39 licenses within 8 km', f: v => N(v) },"""),
+ ("""], cs, { sortKey: 'fees' });""", """], cs, { sortKey: 'fees', limit: 500 });"""),
+ ("""<p class="body"><b>Rises here:</b> big suburban ZIPs where the roof count is large and clicks are cheaper than the metro core: ${li(d.slice(0, 5))}.</p>
+        <p class="body"><b>Falls here:</b> ZIPs with high job flow per resident but small populations or a crowded field: ${li(d.slice(-5).reverse())}.</p>""",
+  """<p class="body"><b>Rises here</b> (large ZIPs where the roof count is big and the modeled click is cheaper): ${li(d.slice(0, 5))}.</p>
+        <p class="body"><b>Falls here</b> (high job flow per resident but few residents, or a crowded field): ${li(d.slice(-5).reverse())}.</p>"""),
+ ("""Organic pages earn rank by relevance, so a small town with old roofs, frequent storms and no competitor page is often the better SEO target (module 01 and the city table in module 12).')}`;""",
+  """Organic pages earn rank by relevance, so a small town with old roofs, a fire zone or a wet winter and no competitor page is often the better SEO target (module 01 and the city table in module 12).')}`;"""),
+ ("""<td>${D(META.model.DMA[k], 2)}</td>""", """<td>${D(DMA[k], 2)}</td>"""),
+ ("""<p class="chartnote">Region factors are assumptions (grade D): New Orleans is the most contested roofing market in the state, then the Northshore and Baton Rouge, the Bayou parishes, Acadiana and the Southwest, the Northwest, Central and the Northeast. The competition term adds up to 20% where many roofers sit nearby and subtracts up to 20% where few do. After a hurricane, clicks in the footprint can cost several times these levels for weeks while storm crews bid in.</p>`;""",
+  """<p class="chartnote">Region factors are assumptions (grade D), highest to lowest: ${esc(joinAnd(dmaS.map(k => REGN[k] + ' ' + D(DMA[k], 2))))}. They follow where roofing licenses are thickest (${esc(joinAnd(licTop)) || 'the large metros'} hold the most C-39 licenses by mailing city), not a price file: no California click cost was measured for this build. The competition term adds up to 20% where many roofers sit nearby and subtracts up to 20% where few do. After a wildfire or in the week of a strong atmospheric river, clicks in the affected area can cost well above these levels while every roofer and lead seller bids in.</p>`;"""),
+ ("""['2 · Relative cost', 'Region factor (New Orleans 1.00 to Northeast 0.62) × (0.8 + 0.4 × competitive pressure percentile). Pressure is 60% the distance weighted presence of the mapped roofing companies (statewide companies weigh 3, national 2.5, regional 1.5, local 1; exp(minus km over 20), plus about a third of that weight for each city a company says it serves) and 40% the roofing contractors nearby (Business Patterns establishments and LSLBC license records within 30 km; exp(minus km over 10)).'],""",
+  """['2 · Relative cost', `Region factor (${esc(dmaSpan)}) × (0.8 + 0.4 × competitive pressure percentile ÷ 100). Pressure is 60% the distance weighted count of active C-39 roofing licenses (each license counts 1 ÷ (1 + (distance ÷ 10 km)²), by mailing ZIP, CSLB November 2026) and 40% roofing employer establishments weighted the same way (ZIP Code Business Patterns 2023), as a percentile across the scored ZIPs. Louisiana's edition weighed named company offices; California's has no honest roster of companies by size, so licenses stand in.`],"""),
+ ("""['Long run, not this week', 'ZIPs are ranked by their roofs and their storms over the long run. After a specific storm, the footprint in module 02 and the Storm Desk (module 14) override this ranking for weeks.'],
+      ['Competitor list is partial', `${COMP.length} roofing companies are mapped, ${META.ncomp_ver} of them verified on their own sites. Small local roofers are present only through Business Patterns and license counts.`],""",
+  """['Long run, not this week', 'ZIPs are ranked by their roofs, weather and fire record over the long run. After a specific storm or fire, the record in module 02 and the Weather Desk (module 14) override this ranking for weeks.'],
+      ['Competition is counted in licenses', `${N((META.lic || {}).clear || (META.lic || {}).n)} active C-39 licenses and ${N((META.cbp || {}).est)} roofing employer establishments stand for the field. A license is an address without a size: a one truck roofer and a 200 person firm count the same, and general (B) contractors who roof are not counted. Only ${N(COMP.length)} companies are named, from public sources.`],"""),
+ ("""Language spoken at home is used only to decide where to add Spanish or Vietnamese ads and pages.'],""", """Language spoken at home is used only to decide where to add ads and pages in Spanish, Chinese, Vietnamese, Korean, Tagalog or another language the company serves.'],"""),
+ ("""['Not used: single homes as targets', 'Lists of specific damaged homes, owners named in claim or FEMA records, and geofences drawn around one property are excluded. Target ZIPs and storm footprints, and confirm damage roof by roof with the owner\\'s permission.'],""",
+  """['Not used: single homes as targets', 'Lists of specific damaged or burned homes, owners named in claim, FEMA or non-renewal records, and geofences drawn around one property are excluded. Target ZIPs and event areas, and confirm damage roof by roof with the owner\\'s permission.'],"""),
+ ("""$('#p5Foot', root).innerHTML = `<b style="color:var(--ink)">Uplift Louisiana Roofing Atlas</b>, module 05. Costs are modeled (grade D) until account actuals replace them in module 15. Compiled October 6, 2026.`;""",
+  """$('#p5Foot', root).innerHTML = `<b style="color:var(--ink)">${ATLAS.name}</b>, module 05. Costs are modeled (grade D) until account actuals replace them in module 15. Compiled ${COMPILED}.`;"""),
+ ("""st.lines = new Set(['storm', 'hail', 'repair']);""", """st.lines = new Set(['storm', 'fire', 'repair'].filter(k => LINE_KEYS.includes(k)));"""),
+ ("""if (st.reg) map.fitParishes(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };""", """if (st.reg) map.fitCounties(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };"""),
+ ("""if (st.par) map.fitParishes([st.par]); else map.reset(); render(); };""", """if (st.par) map.fitCounties([st.par]); else map.reset(); render(); };"""),
+ ("""saveFile('louisiana-zip-bid-modifiers.csv', toCSV(['zip', 'city', 'parish', 'region',""", """saveFile(`${ATLAS.file}-zip-bid-modifiers.csv`, toCSV(['zip', 'city', 'county', 'region',"""),
+ ("""`Uplift Louisiana Roofing Atlas, module 05. Lines: ${[...st.lines].join(', ')}.""", """`${ATLAS.name}, module 05. Lines: ${[...st.lines].join(', ')}."""),
+ ("""saveFile('louisiana-parish-paid-rollup.csv', toCSV(['parish', 'region', 'zips', 'gross_profit_pool', 'profit_weighted_relative_cpc', 'a_plus_and_a_zips', 'whitespace_zips'], rows, 'Uplift Louisiana Roofing Atlas, module 05.')); };""",
+  """saveFile(`${ATLAS.file}-county-paid-rollup.csv`, toCSV(['county', 'region', 'zips', 'gross_profit_pool', 'profit_weighted_relative_cpc', 'a_plus_and_a_zips', 'whitespace_zips'], rows, `${ATLAS.name}, module 05.`)); };"""),
+])

@@ -299,7 +299,7 @@ const LAWPUB = {
    rest as an assumption the data build sets. Counts per ZIP, job values and their constants come from the data build and are
    printed with their own grades; the unit and what strings here must be kept in step with CA/data/SCHEMA.md. */
 const PL = [
-  { key: 'replace', name: 'Roof replacement', short: 'Replace', tok: 'REPLACE', g: 'B', seg: 'res', unit: 'roofs on one to four unit homes replaced in the next twelve months because of age (tile relays, metal roofs, fire rebuilds and fire zone upgrades are counted in their own lines)',
+  { key: 'replace', name: 'Roof replacement', short: 'Replace', tok: 'REPLACE', g: 'B', seg: 'res', unit: 'roofs other than tile on one to four unit homes replaced in the next twelve months because of age (tile relays, metal roofs, fire rebuilds and fire zone upgrades are counted in their own lines)',
     what: 'The reroof of a house, duplex or small building at the end of the covering\'s life. California single family roofs are 62 percent composition shingles, 27 percent tile (18 clay, 9 concrete) and 5 percent wood by the 2020 federal Residential Energy Consumption Survey (837 California homes; the occupant names the material). A replacement removes every layer down to the deck (Residential Code R908.3). Replacing more than 50 percent of the roof triggers the Energy Code cool roof rule in most inland and southern climate zones, and in a fire zone replacing 50 percent or more in 12 months triggers the Class A new roof rules. The City of Los Angeles issued 14,511 reroof permits in 2023 after the wet winter, against 10,383 in 2022, and 11,954 in 2025; the median house roof there is 22 squares. No California field study of shingle life was found, so the wear out age in the model is an assumption set in the data build.',
     who: 'Owners of houses and of two to four unit buildings; landlords of small rentals. The buyer signs a home improvement contract at home, usually after two or three quotes.',
     season: 'Los Angeles permits peak in autumn before the rain (1,663 in October 2023; 1,736 in October 2026) and are lowest in mid winter (777 in January 2023).',
@@ -360,7 +360,7 @@ const PL = [
     angles: [
       { id: 'rebuild', h: 'Roofing for Fire Rebuilds', d: 'Class A roof assemblies for homes rebuilding after wildfire. Licensed roofer.' },
       { id: 'damage', h: 'Fire Damaged Roof Repair', d: 'Heat and embers damage roofing, vents and gutters. Get a written photo report.' },
-      { id: 'license', h: 'Licensed Crews Only', d: 'Disaster repairs need a California license. Check ours: {Lic}. {Company}.' },
+      { id: 'license', h: 'Licensed Crews Only', d: 'Disaster repairs need a California license. Check ours: {Lic}.' },
       { id: 'cancel', h: 'Seven Days to Cancel', d: 'Disaster repair contracts carry a seven business day right to cancel. We explain it.' },
       { id: 'spanish', h: 'Techos Tras un Incendio', d: 'Reparación y reconstrucción de techos con licencia. Hablamos español. {Office}.', lang: 'es' },
     ],
@@ -386,7 +386,7 @@ const PL = [
     kwEs: ['techo resistente al fuego', 'techo clase a'],
     neg: ['fire pit', 'fireplace', 'fire extinguisher', 'fire sprinkler', 'fire insurance quote', 'fire map', 'fire hardening wood', 'class a rv', 'class a license', 'class a motorhome'],
   },
-  { key: 'tile', name: 'Tile lift and relay', short: 'Tile relay', tok: 'TILE', g: 'C', seg: 'res', unit: 'tile roofs a year on one to four unit homes that get new underlayment under the existing tile (lift and relay), plus full tile replacements',
+  { key: 'tile', name: 'Tile lift and relay', short: 'Tile relay', tok: 'TILE', g: 'C', seg: 'res', unit: 'tile roofs a year on one to four unit homes whose underlayment is due for replacement under the existing tile (lift and relay)',
     what: 'The tile outlives the paper under it. In a lift and relay the roofer lifts the tile, strips the underlayment, inspects the deck, lays new underlayment and flashings, and relays the tile. The Residential Code allows sound slate, clay or cement tile to be reinstalled; damaged, cracked or broken tile may not be (R908.5). Tile covers 43 percent of California single family homes built from 1980 to 1999 (about 939,000 homes) and 62 percent of those built from 2000 to 2020. A reserve study consultant puts standard underlayment life at about 25 years and expects about 30 percent of tile to break in a relay; a trade site says older systems are failing at 20 to 30 years. Those are two practitioners\' figures, not a test or a field study. Roofs weighing at least 25 pounds per square foot are exempt from the cool roof rule, and Los Angeles permits say so for a tile relay. In a fire zone a relay of 50 percent or more of the roof in 12 months triggers the fire rated layer under the tile and bird stops at the eaves. The underlayment life in the model is an assumption set in the data build.',
     who: 'Owners of tile roofed homes built from about 1980 on, mostly in Southern California, the Central Valley and newer suburbs; associations with tile roofed communities; buyers after an inspection finds failed underlayment.',
     season: 'Booked ahead of the rainy months; leak calls during rain reveal the failed underlayment.',
@@ -403,7 +403,7 @@ const PL = [
     kwEs: ['reparacion de techo de teja', 'techo de teja gotera', 'cambiar papel de techo de teja'],
     neg: ['floor tile', 'bathroom tile', 'tile installer', 'tile saw', 'ceiling tile', 'tile store', 'roof tiles for sale', 'tile tracker'],
   },
-  { key: 'solar', name: 'Solar detach and reset', short: 'Solar reset', tok: 'SOLAR', g: 'D', seg: 'res', unit: 'reroofs a year on one to four unit homes that already carry rooftop solar and need the array removed and reinstalled, plus roofs replaced ahead of a new array',
+  { key: 'solar', name: 'Solar detach and reset', short: 'Solar reset', tok: 'SOLAR', g: 'C', seg: 'res', unit: 'reroofs a year on one to four unit homes that already carry rooftop solar and need the array removed and reinstalled, plus roofs replaced ahead of a new array',
     what: 'A reroof under an existing solar array, and a new roof put on before panels go up. Every new single family home has needed solar since January 1, 2020, so the stock of roofs with panels grows each year. Los Angeles County requires a separate permit to reinstall a system removed for a reroof, and the City of San Diego an electrical permit. Los Angeles County states the license split: a C-39 contractor reroofs, a C-10 electrical or C-46 solar contractor reinstalls, or an A or B licensee does both. Old bonding clips may not be reused and standoff spacing is rechecked when the covering changes. Whether a detach and reset changes an older net metering status was not found: say nothing either way. The share of reroofs with solar is an assumption set in the data build.',
     who: 'Owners with rooftop solar and a roof that needs replacing; solar installers who need a roofer before an installation; owners planning panels on an older roof.',
     season: 'Follows the replacement line. The data build sets it.',
@@ -427,7 +427,7 @@ const PL = [
     law: ['c39', 'licnum', 'classa', 'coolroof', 'reroof', 'permit', 'hic', 'downpay', 'cancel', 'warranty', 'regz', 'truth'],
     angles: [
       { id: 'metal', h: 'Metal Roofs in {City}', d: 'Standing seam and metal shingle roofs installed by a licensed roofer.' },
-      { id: 'fire', h: 'Metal Roofing for Fire Zones', d: 'Metal roofs built as Class A assemblies for fire zone homes. Written quote. {Company}.' },
+      { id: 'fire', h: 'Metal Roofing for Fire Zones', d: 'Metal roofs built as Class A assemblies for fire zone homes. Written quote.' },
       { id: 'over', h: 'Metal Roof Over Shingles?', d: 'We tell you in writing whether your deck and the code allow it. {Office} office.' },
       { id: 'snow', h: 'Metal Roofs for Snow Country', d: 'Mountain home? Ask about metal roofing and snow loads. Written quote. {Company}.' },
       { id: 'spanish', h: 'Techos de Metal', d: 'Instalación de techos de metal con licencia. Hablamos español. Oficina en {Office}.', lang: 'es' },

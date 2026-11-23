@@ -9,7 +9,7 @@ from shapely.geometry import shape
 
 T = albers()
 ACRE = 4046.8564224
-LEDGER_ACRES = 5000        # CAL FIRE's own "recent large fire" layer uses 5,000 acres
+LEDGER_ACRES = 1000        # the ledger keeps every perimeter of 1,000 acres or more since 2000 (module 02's request)
 TOUCH_M2 = ACRE            # a perimeter "touches" a ZCTA when at least one acre of it lies inside
 COUNT_ACRES = 10           # per ZCTA fire counts use perimeters of 10 acres or more (agencies' minimum sizes differ below that)
 
@@ -35,9 +35,13 @@ def geoms_of(path, keep=None):
             continue
         gs.append(shape(ft['geometry'])); props.append(p)
     ga = alb(np.array(gs, dtype=object))
-    bad = ~shapely.is_valid(ga)
-    if bad.any():
-        ga[bad] = shapely.make_valid(ga[bad])
+    for i in np.where(~shapely.is_valid(ga))[0]:
+        try:
+            ga[i] = shapely.make_valid(ga[i])
+        except Exception:
+            ga[i] = ga[i].buffer(0)
+        if ga[i].geom_type == 'GeometryCollection':
+            ga[i] = shapely.union_all([x for x in ga[i].geoms if x.geom_type in ('Polygon', 'MultiPolygon')])
     return ga, props
 
 
@@ -55,20 +59,25 @@ out = {k: {} for k in keys}
 log('zctas', len(keys))
 
 # ---------------- (a) Fire Hazard Severity Zones: share of ZCTA area
-sh = np.zeros((len(keys), 4))  # moderate, high, very high, non wildland (LRA only)
-resp = np.zeros((len(keys), 2))  # SRA area, LRA area (zoned)
-for path, kind in ((os.path.join(H, 'calfire', 'fhsz', 'FHSZ_SRA_23_3_effective_2024-04-01.ndjson.gz'), 0), (os.path.join(H, 'calfire', 'fhsz', 'FHSZ_LRA25_v1_All.ndjson.gz'), 1)):
-    ga, props = geoms_of(path)
-    cls = np.array([{'moderate': 0, 'high': 1, 'very high': 2, 'nonwildland': 3, 'non-wildland': 3}.get((p.get('FHSZ_Description') or '').lower().strip(), -1) for p in props])
-    log(os.path.basename(path), len(ga), collections.Counter(cls.tolist()))
-    a, b = ztree.query(ga, predicate='intersects')
-    ar = shapely.area(shapely.intersection(ga[a], ZG[b]))
-    for i, j, x in zip(a, b, ar):
-        c = cls[i]
-        if c >= 0:
-            sh[j, c] += x
-            if c < 3:
-                resp[j, kind] += x
+FC = os.path.join(WORK, 'fhsz_shares.npz')
+if os.path.exists(FC):
+    _c = np.load(FC); sh, resp = _c['sh'], _c['resp']
+else:
+    sh = np.zeros((len(keys), 4))  # moderate, high, very high, non wildland (LRA only)
+    resp = np.zeros((len(keys), 2))  # SRA area, LRA area (zoned)
+    for path, kind in ((os.path.join(H, 'calfire', 'fhsz', 'FHSZ_SRA_23_3_effective_2024-04-01.ndjson.gz'), 0), (os.path.join(H, 'calfire', 'fhsz', 'FHSZ_LRA25_v1_All.ndjson.gz'), 1)):
+        ga, props = geoms_of(path)
+        cls = np.array([{'moderate': 0, 'high': 1, 'very high': 2, 'nonwildland': 3, 'non-wildland': 3}.get((p.get('FHSZ_Description') or '').lower().strip(), -1) for p in props])
+        log(os.path.basename(path), len(ga), collections.Counter(cls.tolist()))
+        a, b = ztree.query(ga, predicate='intersects')
+        ar = shapely.area(shapely.intersection(ga[a], ZG[b]))
+        for i, j, x in zip(a, b, ar):
+            c = cls[i]
+            if c >= 0:
+                sh[j, c] += x
+                if c < 3:
+                    resp[j, kind] += x
+    np.savez(FC, sh=sh, resp=resp)
 for j, k in enumerate(keys):
     o = out[k]
     m, h, v = (min(100.0, 100 * sh[j, c] / ZA[j]) for c in (0, 1, 2))
@@ -132,13 +141,15 @@ log('perimeter overlay done; ZCTAs touched', sum(1 for k in keys if out[k]['fire
 # ---------------- (c) damage inspections (DINS)
 pts, D = [], []
 DC = {'Destroyed (>50%)': 0, 'Major (25-50%)': 1, 'Minor (10-25%)': 1, 'Affected (>0-10%)': 1, 'Affected (1-9%)': 1, 'No Damage': 2, 'Inaccessible': 3}
+RESID = ('Single Family', 'Single Famliy', 'Multi Family', 'Mobile Home', 'Mixed Commercial/Residential')   # same list as CA/data/03_hazard_in.py
 for ft in read_nd(os.path.join(H, 'calfire', 'dins', 'DINS_POSTFIRE_MASTER.ndjson.gz')):
     p = ft['properties']; c = (ft.get('geometry') or {}).get('coordinates')
     if not c:
         continue
     ms = p.get('INCIDENTSTARTDATE')
     y = (datetime.datetime(1970, 1, 1) + datetime.timedelta(milliseconds=ms)).year if ms else None
-    D.append({'dc': DC.get(p.get('DAMAGE'), 3), 'name': (p.get('INCIDENTNAME') or '').strip(), 'y': y, 'lon': c[0], 'lat': c[1], 'start': iso(ms)})
+    D.append({'dc': DC.get(p.get('DAMAGE'), 3), 'name': (p.get('INCIDENTNAME') or '').strip(), 'y': y, 'lon': c[0], 'lat': c[1], 'start': iso(ms),
+              'res': (p.get('STRUCTURETYPE') or '').startswith(RESID)})
     pts.append((c[0], c[1]))
 xy = np.array(pts)
 X, Y = T(xy[:, 0], xy[:, 1])
@@ -175,36 +186,55 @@ for i, (sc, j) in best.items():
         dper[i] = j
 log('DINS points tied to a perimeter', int((dper >= 0).sum()), 'of', len(D))
 
-# per ZCTA totals and by year
-zy = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0]))
+# per ZCTA totals and by year: [residences destroyed, residences damaged, all destroyed, all damaged]
+zy = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0, 0, 0]))
+zins = collections.Counter()
 zinc = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0]))
 for i, d in enumerate(D):
     if dz[i] < 0 or d['y'] is None:
         continue
     k = keys[dz[i]]
     c = d['dc']
-    if c <= 2:
-        zy[k][d['y']][c] += 1
+    if d['y'] >= 2018 and c <= 2:
+        zins[k] += 1
     if c <= 1:
+        zy[k][d['y']][2 + c] += 1
+        if d['res']:
+            zy[k][d['y']][c] += 1
         zinc[k][(d['name'], d['y'])][c] += 1
 for k in keys:
     o = out[k]
     yy = zy.get(k, {})
-    o['dins_dest'] = sum(v[0] for v in yy.values()); o['dins_dmg'] = sum(v[1] for v in yy.values())
-    o['dins_nodmg'] = sum(v[2] for y, v in yy.items() if y >= 2018)
-    o['dins_years'] = {str(y): [v[0], v[1]] for y, v in sorted(yy.items()) if v[0] or v[1]}
+    o['fire_dest'] = sum(v[2] for v in yy.values()); o['fire_dmg'] = sum(v[3] for v in yy.values())
+    o['fire_dest_res'] = sum(v[0] for v in yy.values()); o['fire_dmg_res'] = sum(v[1] for v in yy.values())
+    o['fire_insp'] = zins.get(k, 0)
+    o['lastfire'] = max(yy) if yy else None
+    o['yrsfire'] = (2026 - max(yy)) if yy else None
+    o['fire_years'] = {str(y): v for y, v in sorted(yy.items())}
     inc = zinc.get(k, {})
     if inc:
         (n, y), v = max(inc.items(), key=lambda t: (t[1][0], t[1][1]))
-        o['dins_worst'] = n.title(); o['dins_worst_yr'] = y; o['dins_worst_dest'] = v[0]
+        o['fire_worst'] = n.title(); o['fire_worst_yr'] = y; o['fire_worst_dest'] = v[0]
     else:
-        o['dins_worst'] = None; o['dins_worst_yr'] = None; o['dins_worst_dest'] = None
+        o['fire_worst'] = None; o['fire_worst_yr'] = None; o['fire_worst_dest'] = None
+
+# km from the ZIP's town point to the nearest perimeter of 10 acres or more since 2000 (0 when inside one)
+ZB = jload(os.path.join(WORK, 'zcta_base.json'))
+tx, ty = T(np.array([ZB[k]['lon'] for k in keys]), np.array([ZB[k]['lat'] for k in keys]))
+ZP = shapely.points(tx, ty)
+big10 = np.where(PA >= COUNT_ACRES)[0]
+t10 = shapely.STRtree(PG[big10])
+nn = t10.nearest(ZP)
+dkm = shapely.distance(ZP, PG[big10][nn]) / 1000.0
+for j, k in enumerate(keys):
+    out[k]['fire_km'] = rnd(float(dkm[j]), 1)
+    out[k]['fire_near'] = pname(PP[big10[nn[j]]]); out[k]['fire_near_yr'] = int(PY[big10[nn[j]]])
 
 # ---------------- (d) the fire ledger
-fd = collections.defaultdict(lambda: [0, 0, 0])              # perimeter -> destroyed, damaged, no damage
+fd = collections.defaultdict(lambda: [0, 0, 0, 0])              # perimeter -> destroyed, damaged, no damage, residences destroyed
 fz = collections.defaultdict(lambda: collections.defaultdict(lambda: [0, 0]))   # perimeter -> zcta -> destroyed, damaged
 fdn = collections.defaultdict(collections.Counter)
-orphan = collections.defaultdict(lambda: {'n': [0, 0, 0], 'lat': [], 'lon': [], 'z': collections.defaultdict(lambda: [0, 0]), 'start': None})
+orphan = collections.defaultdict(lambda: {'n': [0, 0, 0, 0], 'lat': [], 'lon': [], 'z': collections.defaultdict(lambda: [0, 0]), 'start': None})
 for i, d in enumerate(D):
     c = d['dc']
     if c > 2:
@@ -212,33 +242,39 @@ for i, d in enumerate(D):
     j = int(dper[i])
     if j >= 0:
         fd[j][c] += 1; fdn[j][d['name']] += 1
+        if c == 0 and d['res']:
+            fd[j][3] += 1
         if c <= 1 and dz[i] >= 0:
             fz[j][keys[dz[i]]][c] += 1
     else:
         o = orphan[(d['name'], d['y'])]
         o['n'][c] += 1; o['start'] = o['start'] or d['start']
+        if c == 0 and d['res']:
+            o['n'][3] += 1
         if c <= 1:
             o['lat'].append(d['lat']); o['lon'].append(d['lon'])
             if dz[i] >= 0:
                 o['z'][keys[dz[i]]][c] += 1
 sel = [j for j in range(len(PG)) if PA[j] >= LEDGER_ACRES or (fd[j][0] + fd[j][1]) > 0]
 log('ledger perimeters', len(sel), '(by size', int((PA >= LEDGER_ACRES).sum()), ', with inspected damage', sum(1 for j in fd if fd[j][0] + fd[j][1] > 0), ')')
-inv = shapely.transform  # back to lon/lat for the stored rings
 from pyproj import Transformer
 TI = Transformer.from_crs('EPSG:3310', 'EPSG:4326', always_xy=True).transform
+GEOC = load_geo()
 
 
-def rings_of(g, acres):
-    tol = max(40.0, math.sqrt(acres * ACRE) / 45.0)
-    s = g.simplify(tol, preserve_topology=True)
-    if s.is_empty:
-        s = g.convex_hull
-    parts = [p for p in (s.geoms if hasattr(s, 'geoms') else [s]) if p.geom_type == 'Polygon' and not p.is_empty]
+def rings_of(g, acres, k):
+    """Simplified outer rings in lon/lat. Tolerance grows with the fire's size (about sqrt(area) / k), never under 60 m;
+    holes are dropped; parts under 2 percent of the fire's area are dropped (at most 8 parts kept)."""
+    tol = max(60.0, math.sqrt(acres * ACRE) / k)
+    s_ = g.simplify(tol, preserve_topology=True)
+    if s_.is_empty:
+        s_ = g.convex_hull
+    parts = [p for p in (s_.geoms if hasattr(s_, 'geoms') else [s_]) if p.geom_type == 'Polygon' and not p.is_empty]
     if not parts:
         parts = [g.convex_hull]
     tot = sum(p.area for p in parts)
     parts = sorted(parts, key=lambda p: -p.area)
-    keep = [p for p in parts if p.area >= 0.02 * tot][:12] or parts[:1]
+    keep = [p for p in parts if p.area >= 0.02 * tot][:8] or parts[:1]
     out_ = []
     for p in keep:
         xs, ys = p.exterior.coords.xy
@@ -247,55 +283,96 @@ def rings_of(g, acres):
     return out_
 
 
+# choose the simplification so that all outlines together stay under about 480 KB as atlas paths
+for kk in (40.0, 32.0, 26.0, 21.0, 17.0, 14.0, 11.0, 9.0):
+    RINGS = {j: rings_of(PG[j], PA[j], kk) for j in sel}
+    PATHS = {j: encode_path(RINGS[j], GEOC) for j in sel}
+    size = sum(len(v) for v in PATHS.values())
+    log('outline detail k', kk, 'path bytes', size, 'vertices', sum(len(r) for v in RINGS.values() for r in v))
+    if size <= 480000:
+        break
+KSIMP = kk
+
 zsel = collections.defaultdict(dict)
 for j_, L in zf.items():
     for (i, x, g) in L:
-        zsel[i][keys[j_]] = x
+        zsel[i][j_] = x
+# ZIP points within 25 km of each ledger perimeter
+stree = shapely.STRtree(PG[np.array(sel)])
+na, nb = stree.query(ZP, predicate='dwithin', distance=25000.0)
+nd = shapely.distance(ZP[na], PG[np.array(sel)][nb]) / 1000.0
+near = collections.defaultdict(dict)
+for zi_, si, d in zip(na.tolist(), nb.tolist(), nd.tolist()):
+    near[sel[si]][zi_] = d
+kidx = {k: i for i, k in enumerate(keys)}
 fires = []
+zfire = collections.defaultdict(list)
+rings_out = {}
 for j in sorted(sel, key=lambda j: (PY[j], PP[j].get('ALARM_DATE') or 0)):
     p = PP[j]
-    c = PG[j].centroid
+    c = PG[j].representative_point()
     lo, la = TI(c.x, c.y)
     has_dins = int(PY[j]) >= 2013
-    d = fd.get(j)
-    zl = []
-    for k, x in zsel.get(j, {}).items():
-        v = fz[j].get(k, [0, 0]) if j in fz else [0, 0]
-        zl.append([k, rnd(min(100.0, 100 * x / ZA[keys.index(k)]), 1), v[0], v[1]])
-    for k, v in (fz.get(j) or {}).items():   # structures inspected just outside the perimeter, in a ZCTA it does not touch
-        if k not in zsel.get(j, {}):
-            zl.append([k, 0.0, v[0], v[1]])
-    zl.sort(key=lambda t: (-t[2], -t[1]))
+    d = fd.get(j) or [0, 0, 0, 0]
+    major = d[0] >= 100 or PA[j] >= 50000
+    fi = len(fires)
+    zl = {}
+    for zi_, x in zsel.get(j, {}).items():
+        zl[zi_] = [0, 0, 0.0, rnd(min(100.0, 100 * x / ZA[zi_]), 1)]
+    for k, v in (fz.get(j) or {}).items():
+        e = zl.setdefault(kidx[k], [0, 0, None, 0.0]); e[0], e[1] = v[0], v[1]
+    for zi_, dk in near.get(j, {}).items():
+        if zi_ in zl:
+            zl[zi_][2] = rnd(dk, 1)
+        elif dk <= 10 or major:
+            zl[zi_] = [0, 0, rnd(dk, 1), 0.0]
+    fipset = set()
+    for zi_, e in zl.items():
+        if e[2] is None:
+            e[2] = rnd(float(shapely.distance(ZP[zi_], PG[j])) / 1000.0, 1)
+        zfire[keys[zi_]].append([fi] + e)
+        if e[3] > 0 or e[0] or e[1]:
+            fipset.add(Zs[keys[zi_]]['fips'])
     cause = p.get('CAUSE')
-    fires.append({'id': 'F%d_%d' % (int(PY[j]), p.get('OBJECTID')), 'kind': 'fire', 'name': pname(p), 'year': int(PY[j]), 'start': iso(p.get('ALARM_DATE')), 'cont': iso(p.get('CONT_DATE')),
-                  'month': (int(iso(p.get('ALARM_DATE'))[5:7]) if iso(p.get('ALARM_DATE')) else None), 'acres': int(round(PA[j])), 'gis_acres': rnd(fnum(p.get('GIS_ACRES')), 0),
-                  'destroyed': (d[0] if d else 0) if has_dins else None, 'damaged': (d[1] if d else 0) if has_dins else None, 'nodamage': (d[2] if d else 0) if int(PY[j]) >= 2018 else None,
-                  'dins': [n for n, c_ in fdn[j].most_common(3)] if j in fdn else [],
-                  'dins_note': None if has_dins else 'before the digital damage inspection records (2013)',
-                  'cause': dom['CAUSE'].get(str(cause)) if cause is not None else None, 'agency': p.get('AGENCY'), 'unit': p.get('UNIT_ID'),
-                  'complex': (p.get('COMPLEX_NAME') or '').title() or None, 'lat': round(la, 4), 'lon': round(lo, 4), 'ring': rings_of(PG[j], PA[j]), 'z': zl})
+    st = iso(p.get('ALARM_DATE'))
+    fid = 'F%d_%d' % (int(PY[j]), p.get('OBJECTID'))
+    fires.append({'id': fid, 'name': pname(p), 'year': int(PY[j]), 'start': st, 'cont': iso(p.get('CONT_DATE')), 'month': int(st[5:7]) if st else None,
+                  'acres': int(round(PA[j])), 'dest': d[0] if has_dins else None, 'dmg': d[1] if has_dins else None, 'dest_res': d[3] if has_dins else None,
+                  'insp': (d[0] + d[1] + d[2]) if int(PY[j]) >= 2018 else None, 'dins': [n for n, c_ in fdn[j].most_common(3)] if j in fdn else [],
+                  'note': None if has_dins else 'before the digital damage inspection records (2013): structure counts not known here',
+                  'cause': dom['CAUSE'].get(str(cause)) if cause is not None else None, 'agency': p.get('AGENCY'), 'complex': (p.get('COMPLEX_NAME') or '').title() or None,
+                  'fips': sorted(fipset), 'lat': round(la, 4), 'lon': round(lo, 4), 'd': PATHS[j]})
+    rings_out[fid] = RINGS[j]
 # incidents with inspected damage and no perimeter in the FRAP set
 for (n, y), o in sorted(orphan.items(), key=lambda t: (t[0][1] or 0, t[0][0])):
     if o['n'][0] + o['n'][1] == 0:
         continue
-    fires.append({'id': 'D%s_%s' % (y, re.sub(r'[^A-Za-z0-9]+', '', n)[:14]), 'kind': 'fire', 'name': n.title(), 'year': y, 'start': o['start'], 'cont': None, 'month': int(o['start'][5:7]) if o['start'] else None,
-                  'acres': None, 'gis_acres': None, 'destroyed': o['n'][0], 'damaged': o['n'][1], 'nodamage': o['n'][2] if (y or 0) >= 2018 else None, 'dins': [n],
-                  'dins_note': 'no perimeter matched in the FRAP set: placed at the mean of the inspected structures', 'cause': None, 'agency': None, 'unit': None, 'complex': None,
-                  'lat': round(float(np.mean(o['lat'])), 4), 'lon': round(float(np.mean(o['lon'])), 4), 'ring': None,
-                  'z': sorted([[k, 0.0, v[0], v[1]] for k, v in o['z'].items()], key=lambda t: -t[2])})
-log('ledger fires', len(fires), 'without perimeter', sum(1 for f in fires if f['ring'] is None), 'ring vertices', sum(len(r) for f in fires if f['ring'] for r in f['ring']))
-tot_d = sum(f['destroyed'] or 0 for f in fires); tot_m = sum(f['damaged'] or 0 for f in fires)
+    fi = len(fires)
+    fipset = set()
+    for k, v in o['z'].items():
+        mla, mlo = float(np.mean(o['lat'])), float(np.mean(o['lon']))
+        zfire[k].append([fi, v[0], v[1], rnd(hav_km(ZB[k]['lat'], ZB[k]['lon'], mla, mlo), 1), 0.0]); fipset.add(Zs[k]['fips'])
+    fires.append({'id': 'D%s_%s' % (y, re.sub(r'[^A-Za-z0-9]+', '', n)[:14]), 'name': n.title(), 'year': y, 'start': o['start'], 'cont': None, 'month': int(o['start'][5:7]) if o['start'] else None,
+                  'acres': None, 'dest': o['n'][0], 'dmg': o['n'][1], 'dest_res': o['n'][3], 'insp': (o['n'][0] + o['n'][1] + o['n'][2]) if (y or 0) >= 2018 else None, 'dins': [n],
+                  'note': 'no perimeter matched in the FRAP set: placed at the mean of the inspected structures; the km in zfire is to that point', 'cause': None, 'agency': None, 'complex': None,
+                  'fips': sorted(fipset), 'lat': round(float(np.mean(o['lat'])), 4), 'lon': round(float(np.mean(o['lon'])), 4), 'd': None})
+log('ledger fires', len(fires), 'without perimeter', sum(1 for f in fires if f['d'] is None), 'zfire pairs', sum(len(v) for v in zfire.values()))
+tot_d = sum(f['dest'] or 0 for f in fires); tot_m = sum(f['dmg'] or 0 for f in fires)
 log('ledger destroyed', tot_d, 'damaged', tot_m, '| DINS file destroyed', sum(1 for d in D if d['dc'] == 0), 'damaged', sum(1 for d in D if d['dc'] == 1))
 
-jdump({k: v for k, v in out.items()}, os.path.join(WORK, 'zcta_fire.json'))
-jdump({'fires': fires, 'by_year': {str(y): [sum(1 for d in D if d['y'] == y and d['dc'] == 0), sum(1 for d in D if d['y'] == y and d['dc'] == 1)] for y in range(2013, 2026)},
+jdump(out, os.path.join(WORK, 'zcta_fire.json'))
+mon = lambda p: int(iso(p.get('ALARM_DATE'))[5:7]) if iso(p.get('ALARM_DATE')) else None
+PM = np.array([mon(p) or 0 for p in PP])
+jdump({'fires': fires, 'zfire': zfire, 'ksimp': KSIMP, 'geo': GEOC,
+       'dins_by_year': {str(y): [sum(1 for d in D if d['y'] == y and d['dc'] == 0), sum(1 for d in D if d['y'] == y and d['dc'] == 1), sum(1 for d in D if d['y'] == y and d['dc'] == 0 and d['res'])] for y in range(2013, 2026)},
+       'dins_by_month': [[sum(1 for d in D if d['start'] and int(d['start'][5:7]) == m and d['dc'] == c) for c in (0, 1)] for m in range(1, 13)],
        'perims_by_year': {str(y): [int((PY == y).sum()), int(round(PA[PY == y].sum())), int(((PY == y) & (PA >= 1000)).sum())] for y in range(2000, 2026)},
-       'perims_by_month': [int(sum(1 for p in PP if iso(p.get('ALARM_DATE')) and int(iso(p.get('ALARM_DATE'))[5:7]) == m)) for m in range(1, 13)],
-       'acres_by_month': [int(round(sum(PA[i] for i, p in enumerate(PP) if iso(p.get('ALARM_DATE')) and int(iso(p.get('ALARM_DATE'))[5:7]) == m))) for m in range(1, 13)],
-       'dins_by_month': [[sum(1 for d in D if d['start'] and int(d['start'][5:7]) == m and d['dc'] == c) for c in (0, 1)] for m in range(1, 13)]},
+       'perims_by_month': [int((PM == m).sum()) for m in range(1, 13)], 'acres_by_month': [int(round(PA[PM == m].sum())) for m in range(1, 13)],
+       'fhsz_state_km2': {'moderate': rnd(sh[:, 0].sum() / 1e6, 0), 'high': rnd(sh[:, 1].sum() / 1e6, 0), 'very_high': rnd(sh[:, 2].sum() / 1e6, 0), 'zcta_total': rnd(ZA.sum() / 1e6, 0)}},
       os.path.join(WORK, 'fires.json'))
-for zc in ('95969', '90272', '91001', '95403', '95404', '94102', '96161'):
+jdump(rings_out, os.path.join(OUT, 'fire_rings.json'))
+for zc in ('95969', '90272', '91001', '95403', '95404', '96150'):
     o = out[zc]
-    print(zc, {k: v for k, v in o.items()})
-for f in sorted(fires, key=lambda f: -(f['destroyed'] or 0))[:10]:
-    print(f['name'], f['year'], f['acres'], f['destroyed'], f['damaged'], f['start'], f['cause'], f['dins'], len(f['z']), sum(len(r) for r in f['ring']) if f['ring'] else None)
+    print(zc, {k: v for k, v in o.items() if k != 'fire_years'}, [(fires[e[0]]['name'], fires[e[0]]['year'], e[1:]) for e in sorted(zfire[zc], key=lambda e: -e[1])[:3]])
+for f in sorted(fires, key=lambda f: -(f['dest'] or 0))[:10]:
+    print(f['name'], f['year'], f['acres'], f['dest'], f['dmg'], f['dest_res'], f['start'], f['cause'], f['dins'], f['fips'], len(f['d'] or ''))

@@ -4,3 +4,9 @@ Order of work: 1) patch 12/27/30 (patch_small.py)  2) rewrite 20 desk  3) rewrit
 Status: see bottom lines.
 - [x] patch_small.py applied to 12/27/30 (do not re-run; originals in work_desk/orig)
 - [x] desk written from desk_a/b/c.js (concatenate to rebuild); next: harness, then 18, 19
+- resumed 11-23: 12/27/30/20 parse and are California. TODO now: write 18 (ground_a/b.js), then 19 (field.js), then harness + grep + handback
+- [x] 18 written (ground_a.js + ground_b.js). next: 19 (field.js), harness, grep, handback
+- [x] 19 written (field.js). All six files parse and are California. next: harness (harness.js), grep, handback
+- [x] harness: harness_build.py + harness.js, 65/65 pass on CA data (harness_ca.log). next: grep, live run, handback
+- [x] 11-23: schema names adopted (hz block, DATA.hz.fires), code names cleaned, harness 65/65 on snapshot and live. next: handback
+- [x] final: language table wraps; live harness rerun. HANDED BACK 11-23. Refinements listed in the handback report.

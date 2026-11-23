@@ -100,7 +100,7 @@ const CMS = (() => {
   async function hasOrigin(urlOrOrigin) { const o = originOf(urlOrOrigin); if (!o) return false; if (!RT || !RT.permissions) return true; try { return await RT.permissions.contains({ origins: [o + '/*'] }); } catch (e) { return false; } }
 
   /* ---------- storage ---------- */
-  const KEY = 'cf.cms.v1';
+  const KEY = 'cg.cms.v1';
   let S = { cfg: {}, deployed: {}, log: [], settings: { mediaHost: '', target: '' } }; let ready = false;
   const kv = { async get(k, d) { if (RT && RT.storage) { try { const r = await RT.storage.local.get(k); return r && r[k] !== undefined ? r[k] : d; } catch (e) { return d; } } try { const v = globalThis.localStorage && localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
     async set(k, v) { if (RT && RT.storage) { try { await RT.storage.local.set({ [k]: v }); return; } catch (e) { } } try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } } };

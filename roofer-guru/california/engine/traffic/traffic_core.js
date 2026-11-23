@@ -36,7 +36,7 @@
       const kFree = q / (v * 3.6), k = v < 0.82 * vff ? o.kOf(v, vff) : Math.max(0.6, Math.min(kFree, o.kOf(0.82 * vff, vff)));
       return { v, k, q, per, truck: D.truck(o.route, o.metro) * (o.hour > 6 && o.hour < 19 ? 1 : 1.6) }; };
     /* surface streets at an hour: cars on a kilometre of lane, and the signals' cycle */
-    D.street = (metro, hour, centre) => { const M = D.METRO[metro]; if (!M) { const s = D.share(hour) / (7.2 / SHT); return { k: 2 + 13 * s, cycle: 70, cong: s * 0.5, bus: 0.006 }; } const c = lerpH(M.c, hour) / 100, peak = (hour >= 6 && hour < 10) || (hour >= 15 && hour < 19); return { k: 2.5 + 24 * c * (centre ? 1.15 : 1), cycle: M.cycle[peak ? 1 : 0], cong: c, bus: M.bus }; };
+    D.street = (metro, hour, centre) => { const M = D.METRO[metro]; if (!M) { const s = D.share(hour) / (7.2 / SHT); return { k: 1 + 13 * s, cycle: 70, cong: s * 0.5, bus: 0.006 }; } const c = lerpH(M.c, hour) / 100, peak = (hour >= 6 && hour < 10) || (hour >= 15 && hour < 19); return { k: 1 + 26 * c * (centre ? 1.15 : 1), cycle: M.cycle[peak ? 1 : 0], cong: c, bus: M.bus }; };
     D.MPH = MPH; return D;
   })();
 
@@ -68,9 +68,21 @@
           for (let i = 1; i < n; i++) { const v = h[i - 1] - g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
           for (let i = n - 2; i >= 0; i--) { const v = h[i + 1] - g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
           for (let i = 0; i < n; i++) { const k = key(r.pts[i]); if (h[i] > N.get(k) + 0.01) { N.set(k, h[i]); ch = true; } } }); }
-      roads.forEach(r => { r.up = r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up; });
+      /* a tunnel dips under the ground from its two mouths */
+      roads.forEach(r => { if (r.lv >= 0 || r.kind === 'path' || r.kind === 'cable') return; const n = r.pts.length, a = [0]; for (let i = 1; i < n; i++) a.push(a[i - 1] + Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = 0; i < n; i++) r.dk[i] = -LEVEL * Math.min(1, Math.min(a[i], a[n - 1] - a[i]) / 40); });
+      roads.forEach(r => { r.up = r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up || r.lv < 0; });
       /* long gaps between points are filled, so a rise is a slope and not a step, and a deck can follow the ground */
       roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]]; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(12, Math.floor(l / 28)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); } p2.push(b); d2.push(r.dk[i]); } r.pts = p2; r.dk = d2; }); };
+    /* a long bridge that the map names as a bridge (the Coronado, the Bay Bridge, the Golden Gate) climbs to let ships under:
+       up to 55 m at the middle of its length (the Coronado's deck is 61 m over the channel). Viaducts over land stay at their level. */
+    P.high = roads => { const sp = roads.filter(r => r.span && /bridge/i.test(r.name || '') && (r.kind === 'freeway' || r.kind === 'major')), par = sp.map((r, i) => i), find = i => { while (par[i] !== i) i = par[i] = par[par[i]]; return i; }, ends = new Map();
+      sp.forEach((r, i) => [r.pts[0], r.pts[r.pts.length - 1]].forEach(p => { const k = key(p), j = ends.get(k); if (j === undefined) ends.set(k, i); else par[find(i)] = find(j); }));
+      const G = new Map(); sp.forEach((r, i) => { const g = find(i); let o = G.get(g); if (!o) G.set(g, o = { len: 0, rs: [], pts: [] }); for (let q = 1; q < r.pts.length; q++) o.len += Math.hypot(r.pts[q][0] - r.pts[q - 1][0], r.pts[q][1] - r.pts[q - 1][1]); o.rs.push(r); o.pts.push(r.pts[0], r.pts[r.pts.length - 1]); });
+      G.forEach(o => { if (o.len < 900) return; let A = o.pts[0], B = o.pts[1], bd = 0; for (const p of o.pts) for (const q of o.pts) { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d > bd) { bd = d; A = p; B = q; } } const hm = clamp((o.len - 600) / 45, 0, 55), ux = (B[0] - A[0]) / bd, uz = (B[1] - A[1]) / bd;
+        o.rs.forEach(r => { r.dk = r.dk.map((v, i) => v + hm * Math.sin(Math.PI * clamp(((r.pts[i][0] - A[0]) * ux + (r.pts[i][1] - A[1]) * uz) / bd, 0, 1))); r.high = true; }); }); };
+    /* a ramp that ends on a surface street comes down to the ground there */
+    P.ground = roads => { const use = new Map(); roads.forEach(r => { if (r.kind !== 'freeway' && r.kind !== 'ramp') return; [r.pts[0], r.pts[r.pts.length - 1]].forEach(p => use.set(key(p), (use.get(key(p)) || 0) + 1)); r.pts.slice(1, -1).forEach(p => use.set(key(p), (use.get(key(p)) || 0) + 2)); });
+      roads.forEach(r => { if (r.kind !== 'ramp' || r.span) return; const n = r.pts.length; [[0, 1], [n - 1, -1]].forEach(([e, sd]) => { if (use.get(key(r.pts[e])) > 1) return; let d = 0; for (let i = e; i >= 0 && i < n; i += sd) { if (i !== e) d += Math.hypot(r.pts[i][0] - r.pts[i - sd][0], r.pts[i][1] - r.pts[i - sd][1]); r.dk[i] = Math.min(r.dk[i], 0.09 * d); } }); }); };
     /* the Census file has no direction: of two freeway lines running side by side, each is taken to run with the other on its left */
     P.pairDirs = roads => { const F = roads.filter(r => r.kind === 'freeway' && r.oneway == null); F.forEach(r => { const m = r.pts[Math.floor(r.pts.length / 2)], a = r.pts[Math.max(0, Math.floor(r.pts.length / 2) - 1)], hx = m[0] - a[0], hz = m[1] - a[1], hl = Math.hypot(hx, hz) || 1; let best = 0, bd = 70;
         for (const o of F) { if (o === r) continue; for (const q of o.pts) { const dx = q[0] - m[0], dz = q[1] - m[1], d = Math.hypot(dx, dz); if (d < bd && d > 4) { const side = (dx * -hz + dz * hx) / hl; if (Math.abs(side) > d * 0.7) { bd = d; best = side; } } } }

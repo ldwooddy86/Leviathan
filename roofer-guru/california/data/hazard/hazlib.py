@@ -240,7 +240,8 @@ class ZoneIndex:
             if not g.is_valid:
                 g = g.buffer(0)
             self.v.append({'i': i, 'ugc': p['ugc'], 'name': p['name'], 'wfo': p['wfo'], 'first': p['first_snapshot'], 'last': p['last_snapshot'], 'geom': g,
-                           'clat': p['centroid_lat'], 'clon': p['centroid_lon']})
+                           'clat': p['centroid_lat'], 'clon': p['centroid_lon'], 'ilat': p.get('inside_pt_lat'), 'ilon': p.get('inside_pt_lon'),
+                           'counties': [(c.split()[0], int(c.split()[-1].rstrip('%') or 0)) for c in (p.get('counties') or '').replace(';', ',').split(',') if c.strip()]})
             self.by.setdefault(p['ugc'], []).append(i)
             self.byname.setdefault(_nz(p['name']), []).append(i)
         self.zl = None
@@ -254,7 +255,7 @@ class ZoneIndex:
                 self.zl.append(sorted(int(i) for i in idx))
             self.keys = keys
 
-    def find(self, czt, czf, czn, date):
+    def find(self, czt, czf, czn, date, wfo=None):
         """Index of the outline version for a Storm Events county/zone code and name at a date, or None."""
         ugc = 'CA%s%03d' % ('C' if czt == 'C' else 'Z', czf)
         ds = date.strftime('%Y-%m-%d')
@@ -274,8 +275,11 @@ class ZoneIndex:
                 same = [i for i in cand if _nz(self.v[i]['name']) == nm]
                 if same:
                     return min(same, key=lambda i: abs(int(self.v[i]['first'][:4]) - date.year))
-        # before the archive (or no dated match): accept only an outline whose name equals the event's zone name
+        # before the archive (or no dated match): accept only an outline whose name equals the event's zone name and,
+        # when the caller gives the record's office, whose office is the same (the 1996 files carry wrong zone names)
         same = [i for i in cand if _nz(self.v[i]['name']) == nm] or self.byname.get(nm, [])
+        if wfo:
+            same = [i for i in same if self.v[i]['wfo'] == wfo]
         if same:
             return min(same, key=lambda i: self.v[i]['first'])
         return None

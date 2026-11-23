@@ -8,7 +8,7 @@ def patch(fname, reps):
     for r in reps:
         old, new = r[0], r[1]; n = r[2] if len(r) > 2 else 1
         c = t.count(old)
-        if c != n:
+        if (n == -1 and c < 1) or (n != -1 and c != n):
             print('  MISS', fname, 'count', c, 'want', n, ':', repr(old[:90])); bad += 1; continue
         t = t.replace(old, new)
     if bad:

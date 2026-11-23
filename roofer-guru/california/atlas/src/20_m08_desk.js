@@ -113,7 +113,7 @@ const QKW = {
   coat: ['silicone roof coating', 'commercial roof restoration', 'cool roof coating', 'roof maintenance program'],
   newc: ['new construction roofing contractor', 'builder roofing subcontractor', 'roofing for new homes', 'solar ready roof new construction'],
 };
-/* Event ad groups. Louisiana's desk built these from named hurricanes; California's events are of four kinds. Each kind has its service line,
+/* Event ad groups. The first edition built these from named tropical storms; California's events are of four kinds. Each kind has its service line,
    headlines (30 characters or fewer), one description (90 or fewer), core keywords and a landing slug. {Name} is the event's name when it has one. */
 const DESK_EV = {
   rain: { label: 'Heavy rain and atmospheric river', line: 'storm', first: 'put a bucket under the leak, photograph the ceiling and call for a tarp',
@@ -126,23 +126,26 @@ const DESK_EV = {
     kw: ['wind damage roof repair', 'shingles blown off roof', 'tile roof wind damage', 'roof blown off', 'emergency roof tarp', 'storm damage roof repair'], slug: 'wind damage roof repair' },
   fire: { label: 'Wildfire damage and rebuild', line: 'fire', first: 'wait until the area is reopened, then photograph the roof from the ground before anything is moved',
     h: ['Wildfire Rebuild Roofing', 'Roof Damage After a Fire?', 'Smoke and Ember Roof Check', 'Class A Roof Rebuilds', 'Fire Rebuild Roofing', '{Name} Fire Rebuild Roofing'],
-    d: 'Rebuilding after the fire? Class A roofs built to the wildfire code, with written estimates.',
+    d: 'Rebuilding after a fire? Class A roofs built to the wildfire code, with written estimates.',
     kw: ['fire damage roof repair', 'wildfire rebuild roofing', 'roof replacement after fire', 'smoke damage roof inspection', 'class a roof replacement', 'fire rebuild roofing contractor'], slug: 'wildfire rebuild roofing' },
   snow: { label: 'Mountain snow load', line: 'storm', first: 'stay off the roof, photograph sagging or cracked ceilings and call',
     h: ['Snow Damage Roof Repair', 'Roof Leak From Ice or Snow?', 'Emergency Roof Tarps', 'Roof Inspection After Snow'],
-    d: 'Snow or ice damage? A licensed roofer inspects the roof and framing and writes an estimate.',
+    d: 'Snow or ice damage? A licensed roofer checks the roof and framing and writes an estimate.',
     kw: ['snow damage roof repair', 'roof collapse repair', 'ice dam roof leak', 'emergency roof repair'], slug: 'snow damage roof repair' },
 };
 const deskEvKind = t => { t = String(t || '').toLowerCase(); return /fire|burn|smoke|ember/.test(t) ? 'fire' : /snow|ice\b|blizzard/.test(t) ? 'snow' : /wind|santa ana|diablo|sundowner|gust/.test(t) ? 'wind' : 'rain'; };
-/* Named events for the event ad group, if the data carries a table of them. The hazard data job owns its shape; this reads whichever of
-   DATA.events, DATA.hazard_events or DATA.ts.events is an array, and from each row a name (name, n, title or label), a kind or type, and a year. */
+/* Named events for the event ad group, from the hazard job's event ledger when the build carries it (DATA.hz): wildfires with structures
+   destroyed (hz.fires: id, name, year, month, dest), and the large atmospheric rivers and wind events if they carry a name (hz.ar_big,
+   hz.wind). A plain DATA.events array of {name, kind, year} is read too. With no ledger the four kinds above still work. */
 function deskEvents() {
-  const D0 = (typeof DATA !== 'undefined' && DATA) || {}; const src = [D0.events, D0.hazard_events, D0.ts && D0.ts.events].find(a => Array.isArray(a) && a.length) || [];
+  const D0 = (typeof DATA !== 'undefined' && DATA) || {}; const H = (D0.hz && typeof D0.hz === 'object') ? D0.hz : {}; const arr = x => Array.isArray(x) ? x : [];
+  const src = arr(H.fires).filter(e => e && +e.dest > 0 && e.name && !/^unnamed$/i.test(e.name)).map(e => Object.assign({ kind: 'fire' }, e))
+    .concat(arr(H.ar_big).map(e => Object.assign({ kind: 'rain' }, e))).concat(arr(H.wind).map(e => Object.assign({ kind: 'wind' }, e))).concat(arr(D0.events)).concat(arr(D0.hazard_events));
   const out = []; const seen = new Set();
-  src.forEach(e => { if (!e || typeof e !== 'object') return; const name = String(e.name || e.n || e.title || e.label || '').trim(); if (!name) return; const year = +e.year || +e.y || (e.date ? +String(e.date).slice(0, 4) : 0) || (e.start ? +String(e.start).slice(0, 4) : 0) || null; const kind = deskEvKind((e.kind || e.type || e.k || '') + ' ' + (/fire/i.test(String(e.kind || e.type || '')) ? '' : name)); const id = String(e.id || e.r || (name + (year ? ' ' + year : ''))); if (seen.has(id)) return; seen.add(id); out.push({ id, name, year, kind, month: +e.month || +e.m || null, n: +e.dest || +e.destroyed || +e.n_dest || +e.est || null, zips: Array.isArray(e.zips) ? e.zips.map(String) : null }); });
-  return out.sort((a, b) => (b.year || 0) - (a.year || 0) || a.name.localeCompare(b.name));
+  src.forEach(e => { if (!e || typeof e !== 'object') return; const name = String(e.name || e.title || e.label || '').trim(); if (!name) return; const year = +e.year || +e.y || (e.start ? +String(e.start).slice(0, 4) : 0) || (e.date ? +String(e.date).slice(0, 4) : 0) || null; const kind = DESK_EV[e.kind] ? e.kind : deskEvKind((e.kind || e.type || '') + ' ' + name); const id = String(e.id || (name + (year ? ' ' + year : ''))); if (seen.has(id)) return; seen.add(id); out.push({ id, name, year, kind, month: +e.month || null, n: isN(e.dest) ? +e.dest : null, zips: Array.isArray(e.zips) ? e.zips.map(String) : null }); });
+  return out.sort((x, y) => (y.year || 0) - (x.year || 0) || (y.n || 0) - (x.n || 0) || x.name.localeCompare(y.name));
 }
-/* Languages. Louisiana built a Spanish campaign wherever 8 percent of residents spoke Spanish at home. In California that share is 28 percent
+/* Languages. The first edition built a Spanish campaign wherever 8 percent of residents spoke Spanish at home. In California that share is 28 percent
    statewide (ACS C16001), so the old rule would fire almost everywhere and say nothing. The rule here asks who needs the language, not who
    speaks it: residents who speak the language at home AND speak English less than very well, as a percent of residents 5 and over.
    A market qualifies when that share is at least the threshold AND it stands for at least DESK_LANG_MIN people. The default threshold is one and
@@ -162,6 +165,8 @@ const DESK_LANG_MIN = 1000, DESK_LANG_FLOOR = 5, DESK_LANG_MULT = 1.5;
    Wet season: November to March. Reroof permits in the City of Los Angeles peak in October, before the rain, and are lowest in January. */
 const DESK_SANTA_ANA = [11.9, 6.7, 2.8, 0.6, 0.1, 0.1, 0, 0, 0.4, 3.5, 7.8, 12.2];
 const DESK_WET = [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1];
+/* month names kept here so the desk does not lean on another module's helpers */
+const DESK_MON3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 registerModule({
   key: 'desk', num: '08', title: 'Campaign Desk', desc: 'Budgets, ZIP targets, keywords, ads with the CSLB license number built in, and bulk files for six ad platforms',
   mount(root) {
@@ -177,13 +182,13 @@ registerModule({
     /* markets a budget can carry: one for every $500 a month, so the mean market gets a daily budget a platform can learn on; never more than the scored ZIPs */
     const nDefault = b => clamp(Math.round((+b || 0) / 500), 5, ZR.length);
     const blend0 = () => { const a = DESK_BLEND0.filter(k => PLI[k]); return a.length > 1 ? a : PL.slice(0, 5).map(l => l.key); };
-    const defaults = () => { const budget = +SLM.A.budget || +SLM.DEF.budget || 15000; return { line: 'replace', lines: blend0(), budget, start: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), weeks: 13, scope: 'top', parishes: [], regions: [], picks: [], n: nDefault(budget), minpop: 2000, alpha: 1.2, langTh: {}, storm: '', event: '', url: '', mix: { ...(MIX0.replace) }, asm: JSON.parse(JSON.stringify(ASM0)) }; };
+    const defaults = () => { const budget = +SLM.A.budget || +SLM.DEF.budget || 15000; return { line: 'replace', lines: blend0(), budget, start: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), weeks: 13, scope: 'top', counties: [], regions: [], picks: [], n: nDefault(budget), minpop: 2000, alpha: 1.2, langTh: {}, storm: '', event: '', url: '', mix: { ...(MIX0.replace) }, asm: JSON.parse(JSON.stringify(ASM0)) }; };
     let P = Object.assign(defaults(), store.get(DESK_KEY, {}) || {});
     function tidy() {
       if (!PLI[P.line] && P.line !== 'blend') P.line = PLI.replace ? 'replace' : PL[0].key;
       P.lines = (P.lines || []).filter(k => PLI[k]); if (!P.lines.length) P.lines = blend0();
       P.asm = Object.assign(JSON.parse(JSON.stringify(ASM0)), P.asm || {}); P.mix = Object.assign({ ...(MIX0[P.line] || MIX0.blend) }, P.mix || {});
-      P.parishes = Array.isArray(P.parishes) ? P.parishes : []; P.regions = Array.isArray(P.regions) ? P.regions.map(String) : []; P.picks = Array.isArray(P.picks) ? P.picks : [];
+      P.counties = Array.isArray(P.counties) ? P.counties : []; P.regions = Array.isArray(P.regions) ? P.regions.map(String) : []; P.picks = Array.isArray(P.picks) ? P.picks : [];
       P.langTh = P.langTh && typeof P.langTh === 'object' ? P.langTh : {}; P.n = clamp(Math.round(+P.n || nDefault(P.budget)), 1, ZR.length);
     }
     tidy();
@@ -191,6 +196,8 @@ registerModule({
     const UI = { plat: 'google', grp: null, lang: 'en', tab: 'markets' };
     const L = () => P.line === 'blend' ? null : PLI[P.line];
     const lineKeys = () => (P.line === 'blend' ? P.lines : [P.line]).filter(k => PLI[k] && SLM.A.lines[k]);
+    /* inside this module P is the plan, so the percent formatter has its own name */
+    const pct = (v, d = 1) => isN(v) ? (+v).toFixed(d) + '%' : '—';
     const cap1d = s => String(s).charAt(0).toUpperCase() + String(s).slice(1);
     const socOf = k => SOC[k] || (PLI[k] ? PLI[k].name.toLowerCase() : k);
     /* ---------- language rule ---------- */
@@ -229,7 +236,7 @@ registerModule({
         <div class="f" id="dkBlendF"><label class="fl">Lines in the blend</label><div class="chips" id="dkBlend">${PL.map(l => `<button type="button" class="chip" data-k="${l.key}">${esc(l.short)}</button>`).join('')}</div></div>
         <div class="f"><label class="fl" for="dkBud">Monthly budget ($)</label><input type="number" id="dkBud" min="500" step="500"><span class="hint">Media only.</span></div>
         <div class="f"><label class="fl" for="dkStart">Flight start · weeks</label><div style="display:flex;gap:6px"><input type="date" id="dkStart"><input type="number" id="dkWeeks" min="2" max="52" style="width:70px"></div></div>
-        <div class="f"><label class="fl" for="dkScope">Market scope</label><select id="dkScope"><option value="top">Top ZIPs by efficiency, statewide</option><option value="region">Top ZIPs in selected regions</option><option value="parish">Top ZIPs in selected counties</option><option value="picks">Hand picked ZIPs</option></select><span class="hint">California is several markets. A crew rarely serves more than one or two regions.</span></div>
+        <div class="f"><label class="fl" for="dkScope">Market scope</label><select id="dkScope"><option value="top">Top ZIPs by efficiency, statewide</option><option value="region">Top ZIPs in selected regions</option><option value="county">Top ZIPs in selected counties</option><option value="picks">Hand picked ZIPs</option></select><span class="hint">California is several markets. A crew rarely serves more than one or two regions.</span></div>
         <div class="f"><label class="fl" for="dkRegs">Regions (for region scope)</label><select id="dkRegs" multiple size="4">${REGS.map(([k, n]) => `<option value="${esc(k)}">${esc(n)}</option>`).join('')}</select></div>
         <div class="f"><label class="fl" for="dkPars">Counties (for county scope)</label><select id="dkPars" multiple size="4">${PA.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.fips}">${esc(p.name)}</option>`).join('')}</select></div>
         <div class="f"><label class="fl" for="dkPicks">Hand picked ZIPs</label><input type="text" id="dkPicks" placeholder="${esc(ZR.slice(0, 3).map(z => z.zip).join(', '))}"><span class="hint">Other modules send ZIPs here.</span></div>
@@ -261,7 +268,7 @@ registerModule({
     // ---------- model ----------
     function markets() {
       let pool = ZR.filter(z => z.pop >= P.minpop);
-      if (P.scope === 'parish' && P.parishes.length) pool = pool.filter(z => P.parishes.includes(z.fips));
+      if (P.scope === 'county' && P.counties.length) pool = pool.filter(z => P.counties.includes(z.fips));
       if (P.scope === 'region' && P.regions.length) pool = pool.filter(z => P.regions.includes(String(regOf(z))));
       const keys = lineKeys(); const val = z => SLM.zipAll(z, keys).fees; const eff = z => val(z) / Math.max(0.3, z.cpc_rel || 1);
       if (P.scope === 'picks') { const s = new Set(P.picks); pool = ZR.filter(z => s.has(z.zip)); }
@@ -287,7 +294,7 @@ registerModule({
     const resPlan = () => lineKeys().some(k => !isComSeg((PLI[k] || {}).seg));
     const fit = (t, n) => { t = houseClean(t); return t && t.length <= n ? t : null; };
     const titleCase = t => String(t).replace(/\b([a-z])([a-z]*)/g, (m, a, b) => /^(and|or|of|the|to|in|on|a)$/.test(a + b) ? m : a.toUpperCase() + b);
-    const ctxFor = z => ({ city: (z && z.city) || BRAND.city || 'California', parish: (z && z.cty) || '', county: (z && z.cty) || '' });
+    const ctxFor = z => ({ city: (z && z.city) || BRAND.city || 'California', county: (z && z.cty) || '' });
     /* the desk fills {County} itself, so its copy does not depend on which tokens the shared filler knows */
     const fill = (t, ctx) => fillCopy(String(t).replace(/\{County\}/g, ctx.county || ''), ctx);
     /* ad groups: one per angle for a single line, one per line for a blend, plus an optional event group */
@@ -340,7 +347,7 @@ registerModule({
     const regsOf = M => [...new Set(M.map(m => regOf(m.z)).filter(r => r != null))];
     function syncUI() {
       $('#dkLine', root).value = P.line; $('#dkBud', root).value = P.budget; $('#dkStart', root).value = P.start; $('#dkWeeks', root).value = P.weeks; $('#dkScope', root).value = P.scope;
-      $$('#dkPars option', root).forEach(o => o.selected = P.parishes.includes(o.value)); $$('#dkRegs option', root).forEach(o => o.selected = P.regions.includes(o.value)); $('#dkPicks', root).value = P.picks.join(', '); $('#dkN', root).value = P.n; $('#dkMin', root).value = String(P.minpop);
+      $$('#dkPars option', root).forEach(o => o.selected = P.counties.includes(o.value)); $$('#dkRegs option', root).forEach(o => o.selected = P.regions.includes(o.value)); $('#dkPicks', root).value = P.picks.join(', '); $('#dkN', root).value = P.n; $('#dkMin', root).value = String(P.minpop);
       $('#dkAlpha', root).value = P.alpha; $('#dkAlphaV', root).textContent = D(P.alpha, 1); $('#dkUrl', root).value = P.url || ''; $('#dkCor', root).value = P.storm && EVI[P.storm] ? P.storm : /^kind:/.test(P.event || '') ? P.event : '';
       $('#dkBlendF', root).style.display = P.line === 'blend' ? '' : 'none';
       $$('#dkBlend .chip', root).forEach(c => { const on = P.lines.includes(c.dataset.k); c.classList.toggle('on', on); c.setAttribute('aria-pressed', String(on)); });
@@ -390,11 +397,11 @@ registerModule({
       if (t === 'markets') { host.innerHTML = '<div class="tscroll short" id="dkMk"></div><p class="mini" style="margin-top:4px">Tier and bid are computed for the lines in this plan at the current assumptions, the way module 05 computes them (percentile of profit pool per relative click cost among the scored ZIPs). ZIPs sent from module 05 keep the bids it sent.</p>'; dataTable($('#dkMk', root), [{ k: 'zip', h: 'ZIP', l: 1, v: m => m.z.zip }, { k: 'city', h: 'City', l: 1, v: m => m.z.city }, { k: 'cty', h: 'County', l: 1, v: m => m.z.cty }, { k: 'tier', h: 'Tier', l: 1, v: m => tierOf(m.z) }, { k: 'bid', h: 'Bid', v: m => bidOf(m.z), f: v => S(v, 0) + '%' }, { k: 'spend', h: '$/mo', f: v => M$(v) }, { k: 'lg', h: 'Lang', l: 1, v: m => m.langs.map(k => k.toUpperCase()).join(' ') }, { k: 'fees', h: 'Profit pool', f: v => MM(v) }], MKT, { sortKey: 'spend' }); }
       else if (t === 'platforms') { host.innerHTML = `<table><thead><tr><th class="l">Platform</th><th>$/mo</th><th>Clicks</th><th>Leads</th><th>Sold</th><th>Cost/sold</th></tr></thead><tbody>${PLATS.filter(p => FC[p].spend > 0).map(p => `<tr><td class="l">${PLAB[p]}</td><td>${M$(FC[p].spend)}</td><td>${N(FC[p].clicks)}</td><td>${N(FC[p].leads)}</td><td>${D(FC[p].cases, 1)}</td><td>${FC[p].cases > 0 ? M$(FC[p].spend / FC[p].cases) : '—'}</td></tr>`).join('')}</tbody></table>${PLATS.filter(p => FC[p].spend > 0 && FC[p].spend / 30.4 < P.asm[p].min).map(p => callout('judg tight', 'Below the daily minimum', `${PLAB[p]} gets ${M$(FC[p].spend / 30.4)} a day, under the ${M$(P.asm[p].min)} floor you set; the export groups all markets into one campaign so the platform can learn.`)).join('')}`; }
       else if (t === 'flight') { const pc = pacing(); const mixL = lineMix(); const seas = SLM.MONTHS.map((_, i) => sum(mixL.map(o => o.w * SLM.seasonFor(o.k)[i])));
-        host.innerHTML = `<div id="dkFl"></div><table style="margin-top:8px"><thead><tr><th class="l">Month</th><th>Days</th><th>Seasonal index</th><th>Media</th></tr></thead><tbody>${pc.map(x => `<tr><td class="l">${MON3[x.m]} ${x.y}</td><td>${x.days}</td><td>${D(x.idx, 0)}</td><td>${M$(x.spend)}</td></tr>`).join('')}</tbody></table><p class="chartnote">The flight spends ${M$(sum(pc.map(x => x.spend)))} across ${P.weeks} weeks, weighted by the seasonal index of the plan's lines (module 12).</p>
-        <div class="dsec">California's roofing year</div><div class="xscroll"><table class="keep compact"><thead><tr><th class="l"></th>${MON3.map(m => `<th>${m}</th>`).join('')}</tr></thead><tbody><tr><td class="l">Wet season</td>${DESK_WET.map(w => `<td>${w ? '●' : ''}</td>`).join('')}</tr><tr><td class="l">Santa Ana days</td>${DESK_SANTA_ANA.map(v => `<td>${D(v, 1)}</td>`).join('')}</tr><tr><td class="l">Plan index</td>${seas.map(v => `<td>${D(v, 0)}</td>`).join('')}</tr></tbody></table></div>
+        host.innerHTML = `<div id="dkFl"></div><table style="margin-top:8px"><thead><tr><th class="l">Month</th><th>Days</th><th>Seasonal index</th><th>Media</th></tr></thead><tbody>${pc.map(x => `<tr><td class="l">${DESK_MON3[x.m]} ${x.y}</td><td>${x.days}</td><td>${D(x.idx, 0)}</td><td>${M$(x.spend)}</td></tr>`).join('')}</tbody></table><p class="chartnote">The flight spends ${M$(sum(pc.map(x => x.spend)))} across ${P.weeks} weeks, weighted by the seasonal index of the plan's lines (module 12).</p>
+        <div class="dsec">California's roofing year</div><div class="xscroll"><table class="keep compact"><thead><tr><th class="l"></th>${DESK_MON3.map(m => `<th>${m}</th>`).join('')}</tr></thead><tbody><tr><td class="l">Wet season</td>${DESK_WET.map(w => `<td>${w ? '●' : ''}</td>`).join('')}</tr><tr><td class="l">Santa Ana days</td>${DESK_SANTA_ANA.map(v => `<td>${D(v, 1)}</td>`).join('')}</tr><tr><td class="l">Plan index</td>${seas.map(v => `<td>${D(v, 0)}</td>`).join('')}</tr></tbody></table></div>
         <p class="mini" style="margin-top:6px">Rain falls from November to March, and that is when leaks are found: reroof permits in the City of Los Angeles peak in October, before the rain, and are lowest in January (city open data, 2023 to 2026). Santa Ana wind days run from October to February with almost none from April to September (Scripps Santa Ana Winds Regional Index, mean days a month, 1948 to 2018); Diablo wind in the Bay Area peaks in October (McClung and Mass 2020). Wildfire has no safe month in the south: the Palisades and Eaton fires began on January 7, 2025 in a Santa Ana wind. The evidence file holds no month table for structure loss fires, so the desk does not pace the fire or hardening lines to a fire season. Inland summer heat slows production: Cal/OSHA requires shade above 80 °F and high heat procedures at 95 °F (Title 8, section 3395).</p>
         <p class="mini"><b>Reserve rule (a house rule, not a measured one).</b> Hold 15 to 25 percent of the monthly budget in reserve from November to March for rain and from October to February for offshore wind. Release it to the storm, repair and tile groups in the footprint for 72 hours after an atmospheric river of AR3 or stronger comes ashore or a high wind warning verifies (module 14). Never release it into a ZIP under a wildfire evacuation.</p>`;
-        barChart($('#dkFl', root), { cats: pc.map(x => MON3[x.m] + ' ' + String(x.y).slice(2)), series: [{ name: 'Media', color: ramp('green')[6], values: pc.map(x => x.spend) }], H: 180, W: 520, fmt: v => MM(v) }); }
+        barChart($('#dkFl', root), { cats: pc.map(x => DESK_MON3[x.m] + ' ' + String(x.y).slice(2)), series: [{ name: 'Media', color: ramp('green')[6], values: pc.map(x => x.spend) }], H: 180, W: 520, fmt: v => MM(v) }); }
       else { const o = countObjects(); const e = evSel(); host.innerHTML = `<p class="body">${o.camps} campaigns, ${o.groups} ad groups and ${o.ads} ads across ${PLATS.filter(p => FC[p].spend > 0).length} platforms. Search campaigns run one per language with two ad groups per ${P.line === 'blend' ? 'line' : 'angle'} (Core in exact and phrase, Local with city names in phrase), each with one responsive search ad of up to 15 headlines and 4 descriptions, the license line pinned to the first description${e ? ', plus an event ad group for ' + esc(e.label) : ''}. Social and video run one campaign per platform with an ad set per group.</p>`; }
     }
     /* ---------- languages ---------- */
@@ -404,9 +411,9 @@ registerModule({
       const rows = LANGS.map(Lg => { const th = langTh(Lg.k); const ms = MKT.filter(m => m.langs.includes(Lg.k)); const all = ZR.filter(z => langOk(z, Lg.k)); return { Lg, th, ms, people: sum(ms.map(m => langNeed(m.z, Lg.k) / 100 * (m.z.pop || 0))), all, share: Lg.build ? langShare(MKT, Lg.k) : 0 }; });
       const standIn = ['oie_sh', 'arabic_sh', 'slavic_sh'].filter(hasCol); const SN = { oie_sh: 'another Indo European language (the published stand in for Armenian and Persian)', arabic_sh: 'Arabic', slavic_sh: 'Russian, Polish or another Slavic language' };
       const others = standIn.flatMap(c => MKT.filter(m => (m.z[c] || 0) >= 10).map(m => ({ c, m, v: m.z[c] }))).sort((a, b) => b.v - a.v).slice(0, 6);
-      host.innerHTML = `<div class="xscroll"><table><thead><tr><th class="l">Language</th><th class="l">Measured as</th><th>Statewide</th><th>Threshold %</th><th>Markets in this buy</th><th>Residents who need it there</th><th>Scored ZIPs that qualify</th><th class="l">What the desk does</th></tr></thead><tbody>${rows.map(r => `<tr><td class="l"><b>${esc(r.Lg.name)}</b></td><td class="l mini">${r.Lg.basis === 'lep' ? 'speak it at home and speak English less than very well' : 'speak it at home (no limited English column in this build)'}</td><td>${P(r.Lg.state, 1)}</td><td><input type="number" min="0" max="100" step="1" data-lk="${r.Lg.k}" value="${r.th}" style="width:60px" aria-label="${esc(r.Lg.name)} threshold"></td><td>${N(r.ms.length)} of ${N(MKT.length)}</td><td>${N(r.people)}</td><td>${N(r.all.length)} (${P(100 * r.all.length / Math.max(1, ZR.length), 0)})</td><td class="l mini">${r.Lg.build ? (r.ms.length ? `Builds a Spanish search campaign and Spanish social ads for those markets with ${P(r.share * 100, 0)} of each platform's budget, the license line in Spanish.` : 'No market in this buy qualifies: English only.') : (r.ms.length ? `Advice only: ${esc(r.ms.slice(0, 4).map(m => m.z.city).filter((v, i, a) => a.indexOf(v) === i).join(', '))}. Staff the phone and the estimate in ${esc(r.Lg.name)} before advertising in it; the desk writes no ${esc(r.Lg.name)} copy.` : 'No market in this buy qualifies.')}</td></tr>`).join('')}</tbody></table></div>
+      host.innerHTML = `<div class="xscroll"><table><thead><tr><th class="l">Language</th><th class="l">Measured as</th><th>Statewide</th><th>Threshold %</th><th>Markets in this buy</th><th>Residents who need it there</th><th>Scored ZIPs that qualify</th><th class="l">What the desk does</th></tr></thead><tbody>${rows.map(r => `<tr><td class="l"><b>${esc(r.Lg.name)}</b></td><td class="l wrap mini">${r.Lg.basis === 'lep' ? 'speak it at home and speak English less than very well' : 'speak it at home (no limited English column in this build)'}</td><td>${pct(r.Lg.state, 1)}</td><td><input type="number" min="0" max="100" step="1" data-lk="${r.Lg.k}" value="${r.th}" style="width:60px" aria-label="${esc(r.Lg.name)} threshold"></td><td>${N(r.ms.length)} of ${N(MKT.length)}</td><td>${N(r.people)}</td><td>${N(r.all.length)} (${pct(100 * r.all.length / Math.max(1, ZR.length), 0)})</td><td class="l wrap mini">${r.Lg.build ? (r.ms.length ? `Builds a Spanish search campaign and Spanish social ads for those markets with ${pct(r.share * 100, 0)} of each platform's budget, the license line in Spanish.` : 'No market in this buy qualifies: English only.') : (r.ms.length ? `Advice only: ${esc(r.ms.slice(0, 4).map(m => m.z.city).filter((v, i, a) => a.indexOf(v) === i).join(', '))}. Staff the phone and the estimate in ${esc(r.Lg.name)} before advertising in it; the desk writes no ${esc(r.Lg.name)} copy.` : 'No market in this buy qualifies.')}</td></tr>`).join('')}</tbody></table></div>
         <p class="mini" style="margin-top:6px"><b>The rule.</b> A market needs a language when residents who speak it at home and speak English less than very well are at least the threshold percent of residents 5 and over, and number at least ${N(DESK_LANG_MIN)} people (the percent times the ZIP's residents). The default threshold is ${D(DESK_LANG_MULT, 1)} times the statewide share, never below ${DESK_LANG_FLOOR} percent, so it marks the markets that stand out rather than most of the state; change it in the table. The budget share of a built language is the allocation weighted share of residents who need it, held between 5 and 40 percent. Source: ACS 2020 to 2024, table C16001, by ZIP. ${G('A')} for the counts; the thresholds are a choice.</p>
-        ${others.length ? `<p class="mini">Other language groups of 10 percent or more of residents in this buy (spoken at home, no limited English measure): ${others.map(o => `${esc(o.m.z.zip)} ${esc(o.m.z.city)}, ${P(o.v, 0)} ${esc(SN[o.c])}`).join('; ')}. Armenian and Persian are not published by ZIP.</p>` : ''}
+        ${others.length ? `<p class="mini">Other language groups of 10 percent or more of residents in this buy (spoken at home, no limited English measure): ${others.map(o => `${esc(o.m.z.zip)} ${esc(o.m.z.city)}, ${pct(o.v, 0)} ${esc(SN[o.c])}`).join('; ')}. Armenian and Persian are not published by ZIP.</p>` : ''}
         <p class="mini">What the evidence file does not cover: whether a contract negotiated in another language must be given in that language. Ask counsel before selling in a language the paperwork is not written in.</p>`;
       $$('#dkLangs input[data-lk]', root).forEach(i => i.onchange = () => { P.langTh[i.dataset.lk] = i.value === '' ? null : +i.value; rebuild(); });
     }
@@ -485,7 +492,7 @@ registerModule({
     bind('dkLine', 'line'); bind('dkBud', 'budget', 1); bind('dkStart', 'start'); bind('dkWeeks', 'weeks', 1); bind('dkScope', 'scope'); bind('dkN', 'n', 1); bind('dkMin', 'minpop', 1); bind('dkAlpha', 'alpha', 1, 'input'); bind('dkUrl', 'url');
     $('#dkCor', root).addEventListener('change', e => { const v = e.target.value; if (EVI[v]) { P.storm = v; P.event = ''; } else { P.storm = ''; P.event = v; } UI.grp = null; syncUI(); rebuild(); });
     $$('#dkBlend .chip', root).forEach(c => c.onclick = () => { const k = c.dataset.k; P.lines = P.lines.includes(k) ? (P.lines.length > 1 ? P.lines.filter(x => x !== k) : P.lines) : P.lines.concat(k); UI.grp = null; syncUI(); rebuild(); });
-    $('#dkPars', root).onchange = e => { P.parishes = [...e.target.selectedOptions].map(o => o.value); if (P.parishes.length) P.scope = 'parish'; syncUI(); rebuild(); };
+    $('#dkPars', root).onchange = e => { P.counties = [...e.target.selectedOptions].map(o => o.value); if (P.counties.length) P.scope = 'county'; syncUI(); rebuild(); };
     $('#dkRegs', root).onchange = e => { P.regions = [...e.target.selectedOptions].map(o => o.value); if (P.regions.length) P.scope = 'region'; syncUI(); rebuild(); };
     $('#dkPicks', root).onchange = e => { P.picks = e.target.value.split(/[\s,;]+/).filter(z => ZI[z]); P.scope = 'picks'; syncUI(); rebuild(); };
     $('#dkMixReset', root).onclick = () => { P.mix = { ...(MIX0[P.line] || MIX0.blend) }; rebuild(); };

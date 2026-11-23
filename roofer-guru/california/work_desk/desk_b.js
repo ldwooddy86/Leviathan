@@ -13,13 +13,13 @@ registerModule({
     /* markets a budget can carry: one for every $500 a month, so the mean market gets a daily budget a platform can learn on; never more than the scored ZIPs */
     const nDefault = b => clamp(Math.round((+b || 0) / 500), 5, ZR.length);
     const blend0 = () => { const a = DESK_BLEND0.filter(k => PLI[k]); return a.length > 1 ? a : PL.slice(0, 5).map(l => l.key); };
-    const defaults = () => { const budget = +SLM.A.budget || +SLM.DEF.budget || 15000; return { line: 'replace', lines: blend0(), budget, start: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), weeks: 13, scope: 'top', parishes: [], regions: [], picks: [], n: nDefault(budget), minpop: 2000, alpha: 1.2, langTh: {}, storm: '', event: '', url: '', mix: { ...(MIX0.replace) }, asm: JSON.parse(JSON.stringify(ASM0)) }; };
+    const defaults = () => { const budget = +SLM.A.budget || +SLM.DEF.budget || 15000; return { line: 'replace', lines: blend0(), budget, start: new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10), weeks: 13, scope: 'top', counties: [], regions: [], picks: [], n: nDefault(budget), minpop: 2000, alpha: 1.2, langTh: {}, storm: '', event: '', url: '', mix: { ...(MIX0.replace) }, asm: JSON.parse(JSON.stringify(ASM0)) }; };
     let P = Object.assign(defaults(), store.get(DESK_KEY, {}) || {});
     function tidy() {
       if (!PLI[P.line] && P.line !== 'blend') P.line = PLI.replace ? 'replace' : PL[0].key;
       P.lines = (P.lines || []).filter(k => PLI[k]); if (!P.lines.length) P.lines = blend0();
       P.asm = Object.assign(JSON.parse(JSON.stringify(ASM0)), P.asm || {}); P.mix = Object.assign({ ...(MIX0[P.line] || MIX0.blend) }, P.mix || {});
-      P.parishes = Array.isArray(P.parishes) ? P.parishes : []; P.regions = Array.isArray(P.regions) ? P.regions.map(String) : []; P.picks = Array.isArray(P.picks) ? P.picks : [];
+      P.counties = Array.isArray(P.counties) ? P.counties : []; P.regions = Array.isArray(P.regions) ? P.regions.map(String) : []; P.picks = Array.isArray(P.picks) ? P.picks : [];
       P.langTh = P.langTh && typeof P.langTh === 'object' ? P.langTh : {}; P.n = clamp(Math.round(+P.n || nDefault(P.budget)), 1, ZR.length);
     }
     tidy();
@@ -27,6 +27,8 @@ registerModule({
     const UI = { plat: 'google', grp: null, lang: 'en', tab: 'markets' };
     const L = () => P.line === 'blend' ? null : PLI[P.line];
     const lineKeys = () => (P.line === 'blend' ? P.lines : [P.line]).filter(k => PLI[k] && SLM.A.lines[k]);
+    /* inside this module P is the plan, so the percent formatter has its own name */
+    const pct = (v, d = 1) => isN(v) ? (+v).toFixed(d) + '%' : '—';
     const cap1d = s => String(s).charAt(0).toUpperCase() + String(s).slice(1);
     const socOf = k => SOC[k] || (PLI[k] ? PLI[k].name.toLowerCase() : k);
     /* ---------- language rule ---------- */
@@ -65,7 +67,7 @@ registerModule({
         <div class="f" id="dkBlendF"><label class="fl">Lines in the blend</label><div class="chips" id="dkBlend">${PL.map(l => `<button type="button" class="chip" data-k="${l.key}">${esc(l.short)}</button>`).join('')}</div></div>
         <div class="f"><label class="fl" for="dkBud">Monthly budget ($)</label><input type="number" id="dkBud" min="500" step="500"><span class="hint">Media only.</span></div>
         <div class="f"><label class="fl" for="dkStart">Flight start · weeks</label><div style="display:flex;gap:6px"><input type="date" id="dkStart"><input type="number" id="dkWeeks" min="2" max="52" style="width:70px"></div></div>
-        <div class="f"><label class="fl" for="dkScope">Market scope</label><select id="dkScope"><option value="top">Top ZIPs by efficiency, statewide</option><option value="region">Top ZIPs in selected regions</option><option value="parish">Top ZIPs in selected counties</option><option value="picks">Hand picked ZIPs</option></select><span class="hint">California is several markets. A crew rarely serves more than one or two regions.</span></div>
+        <div class="f"><label class="fl" for="dkScope">Market scope</label><select id="dkScope"><option value="top">Top ZIPs by efficiency, statewide</option><option value="region">Top ZIPs in selected regions</option><option value="county">Top ZIPs in selected counties</option><option value="picks">Hand picked ZIPs</option></select><span class="hint">California is several markets. A crew rarely serves more than one or two regions.</span></div>
         <div class="f"><label class="fl" for="dkRegs">Regions (for region scope)</label><select id="dkRegs" multiple size="4">${REGS.map(([k, n]) => `<option value="${esc(k)}">${esc(n)}</option>`).join('')}</select></div>
         <div class="f"><label class="fl" for="dkPars">Counties (for county scope)</label><select id="dkPars" multiple size="4">${PA.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.fips}">${esc(p.name)}</option>`).join('')}</select></div>
         <div class="f"><label class="fl" for="dkPicks">Hand picked ZIPs</label><input type="text" id="dkPicks" placeholder="${esc(ZR.slice(0, 3).map(z => z.zip).join(', '))}"><span class="hint">Other modules send ZIPs here.</span></div>
@@ -97,7 +99,7 @@ registerModule({
     // ---------- model ----------
     function markets() {
       let pool = ZR.filter(z => z.pop >= P.minpop);
-      if (P.scope === 'parish' && P.parishes.length) pool = pool.filter(z => P.parishes.includes(z.fips));
+      if (P.scope === 'county' && P.counties.length) pool = pool.filter(z => P.counties.includes(z.fips));
       if (P.scope === 'region' && P.regions.length) pool = pool.filter(z => P.regions.includes(String(regOf(z))));
       const keys = lineKeys(); const val = z => SLM.zipAll(z, keys).fees; const eff = z => val(z) / Math.max(0.3, z.cpc_rel || 1);
       if (P.scope === 'picks') { const s = new Set(P.picks); pool = ZR.filter(z => s.has(z.zip)); }
@@ -123,7 +125,7 @@ registerModule({
     const resPlan = () => lineKeys().some(k => !isComSeg((PLI[k] || {}).seg));
     const fit = (t, n) => { t = houseClean(t); return t && t.length <= n ? t : null; };
     const titleCase = t => String(t).replace(/\b([a-z])([a-z]*)/g, (m, a, b) => /^(and|or|of|the|to|in|on|a)$/.test(a + b) ? m : a.toUpperCase() + b);
-    const ctxFor = z => ({ city: (z && z.city) || BRAND.city || 'California', parish: (z && z.cty) || '', county: (z && z.cty) || '' });
+    const ctxFor = z => ({ city: (z && z.city) || BRAND.city || 'California', county: (z && z.cty) || '' });
     /* the desk fills {County} itself, so its copy does not depend on which tokens the shared filler knows */
     const fill = (t, ctx) => fillCopy(String(t).replace(/\{County\}/g, ctx.county || ''), ctx);
     /* ad groups: one per angle for a single line, one per line for a blend, plus an optional event group */

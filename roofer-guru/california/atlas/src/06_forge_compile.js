@@ -1,6 +1,9 @@
 /* ==== 06_forge_compile.js ==== */
 /* ==== src/06_forge_compile.js ==== */
 /* ==== forge_compile ==== */
+/* California Roofer Guru: the page compiler is state neutral. Every word, the CA region code and the CSLB identifier arrive in the blueprint
+   written by module 09 from FCOPY. One addition for California: an optional privacy notice link beside the form consent line
+   (form.privacy_url, form.privacy_label), printed only when the blueprint carries it. */
 const FORGE_COMPILE=(()=>{
 const HEXC='0123456789abcdef';
 const eid=()=>{let s='';for(let i=0;i<7;i++)s+=HEXC[Math.floor(Math.random()*16)];return s;};
@@ -217,7 +220,7 @@ class Forge{
     const f=(this.page.conversion||{}).form||{}; if(f.shortcode) return f.shortcode;
     const fields=f.fields&&f.fields.length?f.fields:DEF_FIELDS; const consent=f.consent||DEF_CONSENT;
     const rows=fields.map(x=>`<label>${esc(x.label)}`+(x.type==='textarea'?`<textarea name="${esc(x.id)}"${x.required?' required':''}></textarea>`:`<input type="${esc(x.type)}" name="${esc(x.id)}"${x.required?' required':''}>`)+'</label>').join('');
-    return `<form class="forge-form" method="post" action="${esc(f.action||'/wp-json/forge/v1/lead')}" data-forge-form><input type="hidden" name="page" value="${esc(this.page.slug)}"><input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">${rows}<label class="forge-consent"><input type="checkbox" name="consent" value="yes" required> ${esc(consent)}</label><button type="submit" class="forge-btn forge-btn-primary">${esc(f.button||'Send my request')}</button><p class="forge-form-msg" aria-live="polite"></p></form>`+FORM_JS;
+    return `<form class="forge-form" method="post" action="${esc(f.action||'/wp-json/forge/v1/lead')}" data-forge-form><input type="hidden" name="page" value="${esc(this.page.slug)}"><input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">${rows}<label class="forge-consent"><input type="checkbox" name="consent" value="yes" required> ${esc(consent)}${f.privacy_url?` <a href="${esc(f.privacy_url)}">${esc(f.privacy_label||'Privacy notice')}</a>`:''}</label><button type="submit" class="forge-btn forge-btn-primary">${esc(f.button||'Send my request')}</button><p class="forge-form-msg" aria-live="polite"></p></form>`+FORM_JS;
   }
   /* ---------- schema ---------- */
   schema(){

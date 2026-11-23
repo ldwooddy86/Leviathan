@@ -71,15 +71,15 @@
   const WIND = [
     { k: 'calm', l: 'Calm', s: 'Calm', mph: 0, gust: 0, dust: 0, leaf: 0,
       note: 'No offshore wind. The air moves as the wet scale and the weather say.' },
-    { k: 'breeze', l: 'Offshore breeze', s: 'Breeze', mph: 12, gust: 20, dust: 0, leaf: 0,
+    { k: 'breeze', l: 'Offshore breeze', s: 'Offshore breeze', mph: 12, gust: 20, dust: 0, leaf: 0,
       note: 'A light, dry wind off the land: 12 mph gusting 20, a choice. The Alta X still flies.' },
-    { k: 'sa1', l: 'Offshore wind, advisory level', s: 'Advisory', mph: 25, gust: 45, dust: 0.12, leaf: 40,
+    { k: 'sa1', l: 'Offshore wind, advisory level', s: 'Offshore advisory', mph: 25, gust: 45, dust: 0.12, leaf: 40,
       note: 'Gusts of 45 mph, under the 58 mph at which the Weather Service files a High Wind report: the level of a wind advisory, chosen. Santa Ana days come about 46 a year in the Scripps regional index (1948 to 2018), most of them in November to February.' },
-    { k: 'sa2', l: 'Offshore wind, high wind', s: 'High wind', mph: 35, gust: 65, dust: 0.35, leaf: 110,
+    { k: 'sa2', l: 'Offshore wind, high wind', s: 'Offshore high wind', mph: 35, gust: 65, dust: 0.35, leaf: 110,
       note: 'Gusts of 65 mph. On 30 November to 1 December 2011 the Santa Fe Dam sensor read 58 to 68 mph and spotters in Pasadena over 60 (Storm Events). In those narratives roof damage begins to be reported at gusts of about 60 to 70 mph (a reading of the narratives, not a published threshold).' },
-    { k: 'sa3', l: 'Offshore wind, damaging', s: 'Damaging', mph: 45, gust: 80, dust: 0.7, leaf: 220, arc: 95,
+    { k: 'sa3', l: 'Offshore wind, damaging', s: 'Offshore damaging', mph: 45, gust: 80, dust: 0.7, leaf: 220, arc: 95,
       note: 'Gusts of 80 mph. On 25 November 1996 Storm Events gives sustained northeast winds of 35 to 45 mph in the Santa Ana; on 21 October 2007 gusts over 70 mph "damaged countless roofs" in the Inland Empire and San Diego County; Mount Diablo read 75 mph in the Diablo wind of 8 October 2017, and Montecito 70 mph in a sundowner on 9 May 2022.' },
-    { k: 'sa4', l: 'Offshore wind, extreme downslope windstorm', s: 'Extreme', mph: 60, gust: 100, dust: 1, leaf: 340, arc: 50,
+    { k: 'sa4', l: 'Offshore wind, extreme downslope windstorm', s: 'Offshore extreme', mph: 60, gust: 100, dust: 1, leaf: 340, arc: 50,
       note: 'Gusts of 100 mph, the strongest measured in rows that name the wind: 100 mph at Mount Lukens Truck Trail and 103 to 104 at Marshall Peak on 7 January 2025, 105 at Johnson Valley on 6 March 2012. These are ridge and canyon sensors; a street in town sees less, and this step shows the worst case. The sustained 60 mph is a choice.' },
   ];
   WIND.forEach((w, i) => { w.i = i; w.ms = w.mph * 0.44704; w.gustMs = w.gust * 0.44704; w.fly = w.gustMs <= ALTA_GUST_MS; w.sway = 0.35 + w.gustMs * 0.055; });
@@ -247,7 +247,8 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
     function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet;
       env.snowK = [now.snow, K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9, 45, now.pond];
       const d = now.dark, on = d > 0.001 || Math.abs(now.temp) > 0.001 || Math.abs(now.sat) > 0.001 || Math.abs(now.expo) > 0.001;
-      if (on || graded) { graded = on; RS.exposure = G0.exposure - 0.95 * d + now.expo; RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; } }
+      if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo; RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
+      else if (graded) { graded = false; RS.exposure = G0.exposure; RS.saturation = G0.saturation; RS.temperature = G0.temperature; RS.contrast = G0.contrast; } }   /* the last of the grade is let go exactly, so nothing of a storm is left in the picture */
     /* once a frame: slide toward the steps, move the air, time the lightning. 2 while the scene is still sliding, 1 while only rain, snow, dust or ash move, 0 at rest. */
     K.update = (dt, cam, live) => {
       if (!started) return false; const s = STORM[K.level], w = WIND[K.windLevel], k = 1 - Math.exp(-dt / 1.1), kw = 1 - Math.exp(-dt / (want.wet > now.wet ? 2.5 : 14)); let moving = false;

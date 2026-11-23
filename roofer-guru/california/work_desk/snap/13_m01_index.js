@@ -1,0 +1,390 @@
+/* ==== 13_m01_index.js ==== */
+/* ==== m01_index ==== */
+"use strict";
+/* ============================ shared layer catalog (modules 1, 4, 5, 6, 7, 11, 12, 17) ============================
+   One entry per ZIP column that can be mapped: l label, grp group, dir (1 high is dark, -1 low is dark, 0 diverging),
+   ramp, g grade, f formatter, note. A layer is listed only when its column is in the data, so the catalog never offers
+   a map that cannot draw. Weather and fire columns take their names from the hazard data (HC, in the model file). */
+const LAYERS = {};
+const LAYER_GROUPS = ['Index', 'Service line rates', 'Service line volume', 'Roof stock and age', 'Roof covering', 'Wildfire', 'Weather', 'Insurance', 'Disaster record', 'Homes and owners', 'Language', 'Commercial stock', 'Competition'];
+/* derived ZIP columns (computed here from columns in the data) */
+Z.forEach(z => {
+  z.fees_pc = z.pop >= 200 ? z.fees / z.pop * 1000 : null;
+  z.lic_hh = z.hh >= 200 ? (z.lic || 0) / z.hh * 10000 : null;
+  z.fire_tot = HC.dest ? (z[HC.dest] || 0) + (HC.dmg ? (z[HC.dmg] || 0) : 0) : null;
+  z.fire_rate = HC.dest && z.hu >= 100 ? z.fire_tot / z.hu * 1000 : null;
+  z.tile25_sh = z.tile_n >= 20 ? (z.tile25 || 0) / z.tile_n * 100 : null;
+  z.wf_loss_hu = z.hu >= 100 && isN(z.wf_loss) ? z.wf_loss * 1000 / z.hu : null;
+});
+(() => {
+  const DER = ['fees_pc', 'lic_hh', 'fire_tot', 'fire_rate', 'tile25_sh', 'wf_loss_hu'];
+  const lay = (k, def) => { if (k && (ZC.includes(k) || DER.includes(k))) LAYERS[k] = def; };
+  const n0 = v => N(v), p0 = v => P(v, 0), p1 = v => P(v, 1), d1 = v => D(v, 1), yr = v => isN(v) ? D(v, 0) : '—';
+  const nl = numWord(NLINE);
+  /* ---- index ---- */
+  lay('idx', { l: 'Roof Demand Index (percentile)', grp: 'Index', dir: 1, ramp: 'green', g: 'C', f: v => D(v, 0), note: `Weighted composite of the ${nl} service line rates (log of expected jobs per 10,000 residents, standardized). A percentile across the scored ZIPs: 100 carries the most roofing demand per resident, not "100 percent of anything".` });
+  lay('idx_eq', { l: 'Roof Demand Index, equal weights (percentile)', grp: 'Index', dir: 1, ramp: 'green', g: 'C', f: v => D(v, 0), note: `The same ${nl} components with every weight equal. The sensitivity check for the weighted index.` });
+  lay('fees', { l: 'Gross profit pool a year at default assumptions ($)', grp: 'Index', dir: 1, ramp: 'green', g: 'D', f: v => MM(v), note: `Jobs open to marketing times the default job value times a ${P((META.model.FEE || 0) * 100, 0)} gross margin, summed over the ${nl} lines. Volume, so big ZIPs shade darker. The assumptions are yours to change in modules 05 and 12.` });
+  lay('fees_pc', { l: 'Gross profit pool per 1,000 residents ($)', grp: 'Index', dir: 1, ramp: 'green', g: 'D', f: v => M$(v), note: 'Gross profit pool divided by residents: where each household carries the most roofing value.' });
+  lay('cases', { l: 'Jobs a year open to marketing (all lines, model)', grp: 'Index', dir: 1, ramp: 'green', g: 'D', f: v => D(v, 1), note: 'Expected jobs times the share an owner gives to a contractor found through search, ads, referrals or the door (default assumptions).' });
+  lay('gi', { l: 'Hot spot statistic, Getis Ord Gi* on the index (z)', grp: 'Index', dir: 0, ramp: 'div', g: 'C', f: v => S(v, 2), note: 'Each ZIP and its eight nearest scored neighbors against the state: above 1.96 is a statistically significant cluster of high roofing demand (95%), below minus 1.96 a cold cluster. Clusters are where a radius or media market buy beats ZIP lists.' });
+  /* ---- roof stock and age ---- */
+  lay('roofs', { l: 'One unit roofs (detached and attached homes)', grp: 'Roof stock and age', dir: 1, ramp: 'teal', g: 'A', f: n0, note: 'ACS 2020 to 2024 one unit homes by year built (B25024, B25127, B25034), one roof per one unit home.' });
+  lay('ra20_sh', { l: 'Roofs 20 years or older (% of one unit roofs, model)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: p0, note: 'The roof cohort model (module 17): one unit homes by decade built, a Weibull roof life fitted to the American Housing Survey West region replacement rates by year built, a separate life for the underlayment under tile, and wildfire losses re entering as new roofs. There is no storm reset in California, so roofs here run older than in a hurricane state. For a tile roof the age is the age of the underlayment.' });
+  lay('ra25_sh', { l: 'Roofs 25 years or older (%, model)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: p0, note: 'The same model at 25 years: the age at which the underlayment under a tile roof is due by the one consultant figure found, and past the life most shingle roofs reach.' });
+  lay('ra15_sh', { l: 'Roofs 15 years or older (%, model)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: p0, note: 'The same model at 15 years, where insurers start asking about roof age.' });
+  lay('ra20', { l: 'Roofs 20 years or older (count, model)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: n0, note: 'Roof debt in homes, not percent.' });
+  lay('ra25', { l: 'Roofs 25 years or older (count, model)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: n0, note: 'Roofs past 25 years, in homes.' });
+  lay('wave', { l: 'Roofs aged 15 to 19 (the next five years of replacements)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: n0, note: 'Roofs that cross 20 within five years: the coming wave, largest where a building boom put up whole tracts at once (the late 1980s, the early 2000s) and those roofs have already been replaced once.' });
+  lay('nxt', { l: 'Age driven replacements, next twelve months (model, tile relays apart)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'B', f: v => D(v, 0), note: 'Expected one to four unit roof replacements from wear alone in the coming year, every covering except tile relays (those are the next layer).' });
+  lay('nxt_t', { l: 'Tile underlayment jobs due, next twelve months (model)', grp: 'Roof stock and age', dir: 1, ramp: 'green', g: 'C', f: v => D(v, 0), note: 'Tile roofs whose underlayment is expected to fail in the coming year (lift and relay: the same tile goes back). The underlayment life is a planning figure from one consultant and a trade site, not a field study.' });
+  lay('ra_med', { l: 'Median roof age, years (model)', grp: 'Roof stock and age', dir: 1, ramp: 'teal', g: 'B', f: yr, note: 'Half the one unit roofs in the ZIP are younger, half older.' });
+  lay('yb_med', { l: 'Median year built (ACS)', grp: 'Roof stock and age', dir: -1, ramp: 'teal', g: 'A', f: yr, note: 'ACS B25035. Older stock carries older decking, flashing and ventilation, and in the oldest tracts spaced sheathing left from wood shake roofs.' });
+  lay('pre80_sh', { l: 'Homes built before 1980 (%)', grp: 'Roof stock and age', dir: 1, ramp: 'teal', g: 'A', f: p0, note: 'ACS B25034. On their third or fourth roof; decking and code upgrades come with the job.' });
+  lay('mh_sh', { l: 'Mobile homes (% of housing units)', grp: 'Roof stock and age', dir: 1, ramp: 'teal', g: 'A', f: p0, note: 'ACS B25024. The manufactured home line: roof overs, coatings and leak repair.' });
+  lay('own_yr', { l: 'Median year owners moved in (ACS)', grp: 'Roof stock and age', dir: -1, ramp: 'teal', g: 'A', f: yr, note: 'ACS B25039. Long tenure owners (Proposition 13 keeps them in place) sit on the oldest roofs and have never been through a sale inspection.' });
+  /* ---- roof covering ---- */
+  lay('tile_sh', { l: 'Tile roofs, clay and concrete (% of one unit roofs, model)', grp: 'Roof covering', dir: 1, ramp: 'teal', g: 'D', f: p0, note: 'Modeled, not counted: the 2020 Residential Energy Consumption Survey shares for California by era built (6.8 percent before 1960, 17.4 percent 1960 to 1979, 43.0 percent 1980 to 1999, 62.2 percent since 2000) applied to the ZIP\'s one unit homes by decade, times a climate factor by region (hot dry 1.13, marine and mountain 0.67), rescaled to 27.4 percent statewide. No public source records the covering on each home.' });
+  lay('tile_n', { l: 'Tile roofs (count, model)', grp: 'Roof covering', dir: 1, ramp: 'teal', g: 'D', f: n0, note: 'One unit roofs times the modeled tile share.' });
+  lay('tile25', { l: 'Tile roofs with underlayment 25 years or older (count, model)', grp: 'Roof covering', dir: 1, ramp: 'green', g: 'D', f: n0, note: 'The lift and relay market: tile outlives the felt beneath it. Tile roofs by underlayment age from the cohort model, 25 years and over.' });
+  lay('tile25_sh', { l: 'Tile roofs past 25 years of underlayment (% of tile roofs, model)', grp: 'Roof covering', dir: 1, ramp: 'green', g: 'D', f: p0, note: 'Share of the ZIP\'s tile roofs whose underlayment has passed 25 years. Shown where the model puts 20 tile roofs or more.' });
+  lay('wood_sh', { l: 'Wood shake and shingle roofs (% of one unit roofs, model)', grp: 'Roof covering', dir: 1, ramp: 'teal', g: 'D', f: p1, note: 'The same survey by era (8.5, 3.1, 5.6 and 3.0 percent), rescaled to 5.4 percent statewide; no local data. New wood roofs are restricted statewide and banned in some cities, so each of these is a replacement with another covering.' });
+  lay('metal_sh', { l: 'Metal share of residential reroofs (%, assumption)', grp: 'Roof covering', dir: 1, ramp: 'teal', g: 'D', f: p0, note: 'An assumption, not a count: 4 percent of reroofs statewide against 2.2 percent of today\'s roofs, 1.6 times under 300 residents per square mile, 0.6 times over 1,500, and 1.5 times where a quarter or more of homes are in a High or Very High fire zone or in snow country.' });
+  lay(HC.solar, { l: 'Homes with rooftop solar (% of one unit homes)', grp: 'Roof covering', dir: 1, ramp: 'teal', g: 'C', f: p0, note: 'The share behind the solar detach and reset line: a reroof under panels needs them taken off and put back. Source and vintage are in the data build record (module 04).' });
+  /* ---- wildfire ---- */
+  lay(HC.fhsz, { l: 'Homes in a High or Very High Fire Hazard Severity Zone (%)', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'B', f: p0, note: 'CAL FIRE Fire Hazard Severity Zones laid over the ZIP. In these zones a new roof, or a reroof of half the roof or more within a year, must be a Class A assembly (Building Code Chapter 7A and the residential code\'s R337).' });
+  lay(HC.fhszvh, { l: 'Homes in a Very High Fire Hazard Severity Zone (%)', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'B', f: p0, note: 'The Very High class alone.' });
+  lay(HC.dest, { l: 'Structures destroyed by wildfire, all years on record', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'CAL FIRE damage inspections (DINS): structures the inspectors recorded as destroyed, placed in the ZIP by their coordinates. Observed, not modeled. The record starts in 2013 and covers fires CAL FIRE inspected.' });
+  lay(HC.dmg, { l: 'Structures damaged by wildfire, all years on record', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'The same inspections: structures with damage short of destroyed (affected, minor, major). These are the roof repair and partial reroof jobs after a fire.' });
+  lay('fire_rate', { l: 'Structures destroyed or damaged by wildfire per 1,000 homes', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'A', f: d1, note: 'The two counts above divided by housing units (ACS 2020 to 2024).' });
+  lay('yrsfire', { l: 'Years since a wildfire destroyed or damaged structures in the ZIP', grp: 'Wildfire', dir: -1, ramp: 'teal', g: 'A', f: v => isN(v) ? D(v, 0) : 'none on record', note: 'From the most recent year in the CAL FIRE damage inspections. A short gap means rebuild roofing now and young roofs afterwards.' });
+  lay('wf_hi_sh', { l: 'Homeowners policies insurers rate High or Extreme wildfire risk (%)', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'B', f: p0, note: 'California Department of Insurance wildfire risk report (Insurance Code 929), homeowners policies, 2023: exposures the insurer itself scores High or Extreme, as a share of exposures with a score. Each insurer uses its own scale.' });
+  lay('wf_score', { l: 'Average insurer fire risk score, homeowners (relative)', grp: 'Wildfire', dir: 1, ramp: 'green', g: 'C', f: v => D(v, 2), note: 'The same report: insurers\' own scores pooled by the Department. Relative only.' });
+  /* ---- weather ---- */
+  lay(HC.ar, { l: 'Atmospheric river days a year (AR2 or stronger)', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: d1, note: 'Days a year the ZIP\'s stretch of coast or inland valley sits under an atmospheric river of AR2 or stronger on the CW3E scale. These are the leak making storms: long, warm, wind driven rain.' });
+  lay(HC.rain, { l: 'Normal rain a year (inches)', grp: 'Weather', dir: 1, ramp: 'teal', g: 'A', f: d1, note: 'NOAA 1991 to 2020 climate normals at the nearest stations, with care for distance, elevation and the coast. Nearly all of it falls November to March.' });
+  lay(HC.rain1, { l: 'Heavy rain days a year (1 inch or more)', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: d1, note: 'Days a year with an inch of rain or more at the nearest daily stations. An inch in a day finds every weak flashing and ponds every flat roof.' });
+  lay(HC.gust, { l: 'Gust days a year, 58 mph or more', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: v => D(v, 2), note: 'Days a year with a measured gust of 58 mph or more at screened airport and climate stations near the ZIP. Winter fronts and atmospheric rivers on the coast and in the north, Santa Ana and Diablo wind below the passes and canyons.' });
+  lay(HC.gust40, { l: 'Gust days a year, 40 mph or more', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: d1, note: 'The lower threshold: the wind that lifts aged shingles and loose tile.' });
+  lay(HC.sa, { l: 'Santa Ana and Diablo wind days a year', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: d1, note: 'Days of dry offshore wind at the ZIP. Offshore wind does two things to a roofer: it strips roofs, and it carries the fires.' });
+  lay(HC.heat, { l: 'Days a year at 100°F or more', grp: 'Weather', dir: 1, ramp: 'teal', g: 'A', f: d1, note: 'From daily maximum temperatures at the nearest stations, 1996 to 2025. Heat and sun age asphalt, set the cool roof and coatings market, and bring Cal/OSHA\'s heat rules onto the job.' });
+  lay(HC.snow, { l: 'Design ground snow load (pounds per square foot)', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: v => D(v, 0), note: 'The ground snow load a roof is designed for at the ZIP. In the Sierra and the far north it decides the covering (metal sheds snow), the fastening and the ice barrier.' });
+  lay(HC.hail, { l: 'Hail days a year, 1 inch or larger within 25 miles', grp: 'Weather', dir: 1, ramp: 'teal', g: 'B', f: v => D(v, 3), note: 'Hail is rare in California: 349 reports of an inch or more anywhere in the state since 1951. Shown so nobody plans a hail campaign here.' });
+  lay(HC.coast, { l: HC.coast === 'coast_mi' ? 'Distance to the coast (miles)' : 'Distance to the coast (km)', grp: 'Weather', dir: -1, ramp: 'teal', g: 'A', f: d1, note: 'From the ZIP\'s town point to the Pacific shoreline. Salt air shortens the life of fasteners, flashing and some metal panels; the marine layer keeps roofs damp and mossy on the north coast.' });
+  lay(HC.elev, { l: HC.elev === 'elev_m' ? 'Elevation (meters)' : 'Elevation (feet)', grp: 'Weather', dir: 1, ramp: 'teal', g: 'A', f: n0, note: 'Elevation at the ZIP\'s town point. With latitude it sets snow, freeze and the length of the roofing season.' });
+  /* ---- insurance ---- */
+  lay('fair_sh', { l: 'FAIR Plan home policies per 100 housing units, 2026', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: d1, note: 'California FAIR Plan Association residential (dwelling) policies in force on September 30, 2026, divided by housing units and capped at 100. The FAIR Plan is the insurer of last resort: a high share marks a ZIP the voluntary market has left.' });
+  lay('fair_pif', { l: 'FAIR Plan home policies in force, September 30, 2026', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'California FAIR Plan five year ZIP file, dwelling policies.' });
+  lay('fair_x', { l: 'FAIR Plan growth, 2022 to 2026 (multiple)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: v => isN(v) ? D(v, 1) + '×' : '—', note: 'Policies in force on September 30, 2026 over the same date in 2022. Blank where the 2022 count was under 10.' });
+  lay('fair_tiv', { l: 'FAIR Plan home exposure, 2026 ($ million)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: v => isN(v) ? '$' + N(v) + 'M' : '—', note: 'Total insured value of FAIR Plan residential policies, September 30, 2026.' });
+  lay('fair_hi', { l: 'FAIR Plan policies the Plan classes as high wildfire risk', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'The Plan\'s own risk class. These owners get the Plan\'s wildfire discounts (up to 16.4 percent off the wildfire premium for all twelve measures, a Class A roof among them).' });
+  lay('fair22_sh', { l: 'FAIR Plan share of insured dwelling units, 2022 (%)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: p1, note: 'The Department of Insurance\'s own share for 2022 (FAIR Plan against the voluntary market).' });
+  lay('nonren_sh', { l: 'Policies non-renewed, 2023 (% of policies up for renewal)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: p1, note: 'California Department of Insurance, residential policies: non-renewals over renewals plus non-renewals, 2023. Insurer and owner initiated together: the 2020 to 2023 file does not split them.' });
+  lay('nonren', { l: 'Policies non-renewed, 2023 (count)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'The same file, count.' });
+  lay('nonren4', { l: 'Policies non-renewed, 2020 to 2023 (count)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'Four years summed. Each is an owner shopping for cover, often asked for a roof inspection or a newer roof.' });
+  lay('insnr_sh', { l: 'Insurer initiated non-renewals per 100 policies, 2021', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: d1, note: 'The last year the Department\'s file separates the insurer\'s decision from the owner\'s.' });
+  lay('wf_claims', { l: 'Fire and smoke claims paid, 2018 to 2023 (count)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'Department of Insurance wildfire risk report, all policy types.' });
+  lay('wf_loss_hu', { l: 'Fire and smoke losses paid per housing unit, 2018 to 2023 ($)', grp: 'Insurance', dir: 1, ramp: 'green', g: 'A', f: v => M$(v), note: 'The same report\'s paid losses divided by housing units.' });
+  lay('prem', { l: 'Average homeowners premium, 2023 ($)', grp: 'Insurance', dir: 1, ramp: 'lime', g: 'A', f: v => M$(v), note: 'Earned premium over earned exposures, homeowners (HO) policies, Department of Insurance.' });
+  lay('cova', { l: 'Average dwelling limit (Coverage A), 2023 ($)', grp: 'Insurance', dir: 1, ramp: 'lime', g: 'A', f: v => MM(v), note: 'The insured rebuilding cost of the house. A roof is priced against it in every claim.' });
+  /* ---- disaster record ---- */
+  lay('fema_k', { l: 'FEMA roof or property damage registrations, 2003 to 2025', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: `OpenFEMA Individuals and Households Program, California disasters (fire, storm, flood and earthquake): registrations with FEMA inspected roof damage (disasters to 2018) or verified real property loss without flood damage (2020 on, when the roof flag is empty). Counts only people who applied for federal help; ${inTen(FEMA_INS.sh)} of all registrants reported homeowners insurance.` });
+  lay('fema_rate', { l: 'FEMA roof or property registrations per 100 occupied homes', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: v => isN(v) ? D(v, 1) : '—', note: 'The same count divided by occupied homes (ACS 2020 to 2024).' });
+  lay('fema_fire', { l: 'FEMA registrations, wildfire disasters', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'The same measure, fire disasters only.' });
+  lay('fema_storm', { l: 'FEMA registrations, storm, flood and winter storm disasters', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'The same measure, severe storm, flood and winter storm disasters only.' });
+  lay('fema_w23', { l: 'FEMA registrations, the 2023 winter storms', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'Roof or property registrations in DR 4683, 4699 and 4707: the atmospheric river winter of 2022 to 2023.' });
+  lay('fema_la25', { l: 'FEMA registrations, January 2025 Los Angeles fires and wind (all)', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'Every household registration in DR 4856 (Palisades and Eaton fires and the wind that drove them), with or without recorded damage.' });
+  lay('fema_quake', { l: 'FEMA registrations, earthquake disasters', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'San Simeon 2003 and Napa 2014. Chimneys and tile are the roof side of an earthquake.' });
+  lay('fema_dest', { l: 'Homes FEMA recorded as destroyed, all disasters', grp: 'Disaster record', dir: 1, ramp: 'green', g: 'A', f: n0, note: 'OpenFEMA, the destroyed flag.' });
+  /* ---- homes and owners ---- */
+  lay('hu', { l: 'Housing units (ACS)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: n0, note: 'ACS B25001.' });
+  lay('own_sh', { l: 'Owner occupied (% of occupied homes)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS B25003. Owners buy roofs; landlords buy repairs.' });
+  lay('rent1', { l: 'Rented one unit homes (count)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: n0, note: 'ACS B25032. Single family rentals: the roof decision sits with an investor or a property manager, not the resident.' });
+  lay('mort_sh', { l: 'Owners with a mortgage (%)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS B25081. A mortgage requires hazard insurance, so these owners must keep cover when an insurer leaves, often through the FAIR Plan; free and clear owners may go without.' });
+  lay('value', { l: 'Median home value ($)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => M$(v), note: 'ACS B25077.' });
+  lay('val1m_sh', { l: 'Owner homes valued $1,000,000 or more (%)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: p0, note: 'ACS B25075. Tile, metal and premium shingle buyers, and long sales cycles.' });
+  lay('inc', { l: 'Median household income ($)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => M$(v), note: 'ACS B19013.' });
+  lay('hh100k_sh', { l: 'Households earning $100,000 or more (%)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS B19001.' });
+  lay('hh200k_sh', { l: 'Households earning $200,000 or more (%)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS B19001.' });
+  lay('s65_sh', { l: 'Residents 65 and over (%)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS B01001. Long tenure owners on older roofs; a senior citizen has five business days to cancel a home improvement contract, not three.' });
+  lay('seas', { l: 'Seasonal and recreational homes (cabins, second homes)', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: n0, note: 'ACS B25004. Tahoe, Big Bear, the desert and the coast: owners who live elsewhere, so reach them where they live.' });
+  lay('density', { l: 'Residents per square mile', grp: 'Homes and owners', dir: 1, ramp: 'lime', g: 'A', f: n0, note: 'Residents over land area.' });
+  /* ---- language ---- */
+  lay('span_sh', { l: 'Speak Spanish at home (% of residents 5+)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001. Sets the Spanish build in the Desk and the Forge.' });
+  lay('span_lep_sh', { l: 'Speak Spanish with limited English (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001: Spanish speakers who speak English less than very well. Where a Spanish page and a Spanish speaking estimator earn their keep.' });
+  lay('chin_sh', { l: 'Speak Chinese at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001, Mandarin and Cantonese together. The San Gabriel Valley, San Francisco and the South Bay.' });
+  lay('viet_sh', { l: 'Speak Vietnamese at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001. Orange County\'s Little Saigon and San Jose.' });
+  lay('tagalog_sh', { l: 'Speak Tagalog at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001, including Filipino.' });
+  lay('korean_sh', { l: 'Speak Korean at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001.' });
+  lay('arabic_sh', { l: 'Speak Arabic at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001.' });
+  lay('slavic_sh', { l: 'Speak Russian, Polish or another Slavic language at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001.' });
+  lay('oie_sh', { l: 'Speak another Indo-European language at home (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001. The published stand in for Armenian and Persian, which the Census does not report by ZIP: Glendale and parts of the San Fernando Valley and the Westside.' });
+  lay('lep_sh', { l: 'Speak English less than very well, any language (%)', grp: 'Language', dir: 1, ramp: 'lime', g: 'A', f: v => P(v), note: 'ACS C16001, all languages summed.' });
+  /* ---- commercial stock ---- */
+  lay('cru', { l: 'Commercial roofs (estimate)', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'D', f: v => D(v, 0), note: `ZIP Code Business Patterns 2023 establishments weighted by building type and scaled to ${K((META.model.ANCH || {}).cru)} commercial roofs statewide (the 2018 national commercial building count times California's share of residents).` });
+  lay('mfb', { l: 'Apartment buildings of five units or more (estimate)', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'C', f: n0, note: 'ACS B25024 homes by building size divided by a typical building in each size band (7, 14, 30 and 80 homes). The multifamily line counts these.' });
+  lay('whse', { l: 'Warehousing establishments (ZBP 2023)', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 493. Big low slope roofs: the Inland Empire and the Central Valley.' });
+  lay('mfg', { l: 'Manufacturing establishments', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 31 to 33.' });
+  lay('retail', { l: 'Retail establishments', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 44 to 45: strip centers and stand alone stores.' });
+  lay('church', { l: 'Religious organizations', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 8131: one building, a board decision and a capital campaign.' });
+  lay('apts', { l: 'Apartment lessors', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 531110.' });
+  lay('pm', { l: 'Residential property managers', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 531311. The buyers for multifamily and homeowners association roofs.' });
+  lay('fair_com', { l: 'FAIR Plan commercial policies in force, 2026', grp: 'Commercial stock', dir: 1, ramp: 'teal', g: 'A', f: n0, note: 'Commercial buildings the voluntary market would not write, September 30, 2026.' });
+  /* ---- competition ---- */
+  lay('lic', { l: 'C-39 roofing licenses in the ZIP, active', grp: 'Competition', dir: 1, ramp: 'teal', g: 'A', f: n0, note: 'Contractors State License Board, November 2026: C-39 Roofing licenses that are active and not suspended, by mailing ZIP. A whole count. A license is an address, not a crew size.' });
+  lay('lic_hh', { l: 'C-39 roofing licenses per 10,000 households', grp: 'Competition', dir: 1, ramp: 'teal', g: 'A', f: d1, note: 'Active C-39 licenses with a mailing address in the ZIP over households (ACS). Roofers base themselves in industrial and commercial ZIPs, so read this beside the 25 km count.' });
+  lay('comp_n25', { l: 'C-39 roofing licenses within 25 km', grp: 'Competition', dir: 1, ramp: 'teal', g: 'A', f: n0, note: 'Active C-39 licenses whose mailing ZIP lies within 25 km of the ZIP\'s center: the roofers who can reach it in a morning.' });
+  lay('comp_mass', { l: 'Roofer presence (distance weighted licenses)', grp: 'Competition', dir: 1, ramp: 'teal', g: 'B', f: d1, note: 'Active C-39 licenses weighted by distance: each counts 1 over (1 plus the square of its distance in tens of kilometers).' });
+  lay('roofers', { l: 'Roofing contractor establishments in the ZIP (ZBP 2023)', grp: 'Competition', dir: 1, ramp: 'teal', g: 'C', f: n0, note: `NAICS 238160 employer establishments. ZIP cells under three are withheld, so small towns read zero; the state has ${N((META.cbp || {}).est)} (County Business Patterns 2023).` });
+  lay('comp_pct', { l: 'Competitive pressure (percentile)', grp: 'Competition', dir: 1, ramp: 'teal', g: 'C', f: v => D(v, 0), note: '60 percent distance weighted C-39 licenses, 40 percent distance weighted roofing establishments, as a percentile across the scored ZIPs.' });
+  lay('cpc_rel', { l: 'Relative cost per click (model)', grp: 'Competition', dir: 1, ramp: 'teal', g: 'D', f: v => D(v, 2) + '×', note: 'A regional factor for the media market times a competition term (0.8 to 1.2). A stated model, not a keyword pull; module 05 explains it.' });
+  lay('solar_co', { l: 'Electrical contractors (ZBP 2023)', grp: 'Competition', dir: 1, ramp: 'teal', g: 'C', f: n0, note: 'NAICS 238210: the trade that holds most solar installers, not solar alone. Partners and rivals for detach and reset work.' });
+  lay('supply', { l: 'Roofing supply houses (ZBP 2023)', grp: 'Competition', dir: 1, ramp: 'teal', g: 'B', f: n0, note: 'NAICS 423330, roofing, siding and insulation wholesalers.' });
+})();
+Object.assign(LAYERS, SLM.layers());
+function layerOptions(keys, sel) { const groups = LAYER_GROUPS.filter(g => keys.some(k => (LAYERS[k] || {}).grp === g)); return groups.map(g => `<optgroup label="${g}">${keys.filter(k => (LAYERS[k] || {}).grp === g).map(k => `<option value="${k}" ${k === sel ? 'selected' : ''}>${esc((LAYERS[k] || {}).l || k)}</option>`).join('')}</optgroup>`).join(''); }
+const GI_LAB = { H99: 'Hot spot, 99%', H95: 'Hot spot, 95%', H90: 'Hot spot, 90%', C99: 'Cold spot, 99%', C95: 'Cold spot, 95%', C90: 'Cold spot, 90%', ns: 'No cluster' };
+/* the language groups of the data, for notes and tooltips */
+const LANG2 = { chin: 'Chinese', viet: 'Vietnamese', tagalog: 'Tagalog', korean: 'Korean', arabic: 'Arabic', slavic: 'Russian and other Slavic languages', oie: 'another Indo-European language (often Armenian or Persian)' };
+function zipTip(z, lay) {
+  const L = LAYERS[lay] || {}; const v = z[lay];
+  return `<div class="tt">${esc(z.zip)} · ${esc(z.city)}</div><div class="ts">${esc(z.cty)} County · ${N(z.hu)} homes · ${N(z.pop)} residents</div>` +
+    (lay !== 'idx' ? tipRow(esc((L.l || lay).replace(/\s*\(.*\)$/, '')), L.f ? L.f(v) : D(v, 1)) : '') +
+    tipRow('Roof Demand Index', isN(z.idx) ? D(z.idx, 0) + 'th pct.' : 'not scored') + tipRow('Roofs 20+ years (model)', P(z.ra20_sh, 0)) + (isN(z.tile_sh) ? tipRow('Tile roofs (model)', P(z.tile_sh, 0)) : '') + (HC.fhsz ? tipRow('Homes in High or Very High fire zones', P(z[HC.fhsz], 0)) : '') + (isN(z.fair_sh) ? tipRow('FAIR Plan policies per 100 homes', D(z.fair_sh, 1)) : '') + tipRow('Gross profit pool a year', MM(z.fees)) + tipRow('Top line', esc(SLM.lineName(z.sl_top))) +
+    `<div class="tf">Click for the full ledger</div>`;
+}
+function zbarH(lab, zv, txt) { const w = Math.min(47, Math.abs(zv) * 17), lft = zv >= 0 ? '50%' : (50 - w) + '%'; return `<div class="zbar"><div class="zl">${lab}</div><div class="zt"><div class="zm"></div><div class="zf" style="left:${lft};width:${w}%;background:${zv >= 0 ? cssv('--heat') : cssv('--cool')}"></div></div><div class="zv">${txt}</div></div>`; }
+/* roof age histogram for a ZIP or a set of ZIPs (model), ages 0 to 39 and 40+; which = 'agez_t' gives the tile part */
+function ageHist(zips, which) { const A = DATA[which || 'agez'] || {}; const a = Array(41).fill(0); zips.forEach(zz => { const r = A[zz]; if (r) r.forEach((v, i) => a[i] += v); }); return a; }
+/* a = all one unit roofs by age; t (optional) = the tile part, drawn as its own series so the two stack */
+function ageChart(host, a, H, t) {
+  const cats = a.map((_, i) => i === 40 ? '40+' : String(i)); const R = ramp('green');
+  if (t && t.length === a.length && sum(t) > 0) { const T = ramp('teal'); barChart(host, { cats, stacked: true, series: [{ name: 'Shingle and other roofs', color: R[4], values: a.map((v, i) => Math.max(0, v - t[i])) }, { name: 'Tile roofs, by age of the underlayment', color: T[5], values: t }], H: H || 170, L: 46, B: 30, maxLabels: 9, fmt: v => K(v), aria: 'Roof age distribution, tile apart' }); return; }
+  barChart(host, { cats, series: [{ name: 'One unit roofs', color: cssv('--accent'), values: a }], H: H || 170, L: 46, B: 30, maxLabels: 9, fmt: v => K(v), highlight: i => i >= 20 ? R[6] : i >= 15 ? R[4] : R[2], aria: 'Roof age distribution' });
+}
+/* Spearman rank correlation, for the checks against records the model did not use */
+function spearman(xs, ys) { const p = xs.map((x, i) => [x, ys[i]]).filter(([x, y]) => isN(x) && isN(y)); if (p.length < 5) return { rho: NaN, n: p.length }; const rk = v => { const o = v.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]); const out = Array(v.length); let i = 0; while (i < o.length) { let j = i; while (j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; const r = (i + j) / 2; for (let q = i; q <= j; q++) out[o[q][1]] = r; i = j + 1; } return out; }; return { rho: pearson(rk(p.map(q => q[0])), rk(p.map(q => q[1]))), n: p.length }; }
+const quantOf = (arr, q) => { const b = arr.filter(isN).map(Number).sort((x, y) => x - y); return b.length ? b[Math.min(b.length - 1, Math.floor(q * b.length))] : null; };
+/* ============================ Module 1: Roof Demand Index ============================ */
+registerModule({
+  key: 'index', num: '01', title: 'Roof Demand Index', desc: `Where roofing jobs arise across ${numWord(NLINE)} residential and commercial lines, ZIP by ZIP, for all ${NCOUNTY} counties`,
+  mount(root) {
+    const st = { layer: 'idx', sel: null, par: '', reg: '', comp: false };
+    const PLX = SLM.LINES; const nl = numWord(NLINE), Nl = capFirst(nl);
+    const W = META.model.W || {}; const Wsum = sum(Object.values(W)); const TIERW = META.model.TIER || {};
+    const tops = ZR.slice().sort((a, b) => b.idx - a.idx); const most = tops[0] || {};
+    const P0 = META.pools || {}; const C = META.model.corr || {};
+    const tileTot = sum(Z.map(z => z.tile_n || 0)), tile25Tot = sum(Z.map(z => z.tile25 || 0)), fairTot = sum(Z.map(z => z.fair_pif || 0)), fair22Tot = sum(Z.map(z => z.fair_pif22 || 0));
+    const destTot = HC.dest ? sum(Z.map(z => z[HC.dest] || 0)) : null;
+    const scoredNote = 'fewer than 500 residents';
+    root.innerHTML = mastHTML({ eyebrow: `Module 01 · Roof Demand Index · ${ATLAS.state}, ${NCOUNTY} counties`, title: 'Roof Demand Index', dek: `Every roofing job in California starts with one of four things: a roof that wore out, weather that found its weak point, a fire, or a building that is new. And more and more often an insurer's letter sets the date. This module estimates where those jobs arise for ${nl} residential and commercial service lines, from the age of every home, what covers it, the rain, wind and wildfire record, the insurance files and FEMA's damage registrations, and resolves them to the ZIP codes where the roofs are. The map below is the master heatmap for ads and SEO; every other tab reads from it.`,
+      meta: [`<b>Coverage</b> ${N(META.nzip || Z.length)} ZIPs · ${N(ZR.length)} scored · ${NCOUNTY} counties · ${K(META.hu)} homes`, `<b>Roof stock</b> ${K(META.roofs)} one unit roofs, ${K(META.ra20)} aged 20 years or more (model)`, '<b>Confidence</b> every layer graded A to D', `<b>Compiled</b> ${COMPILED}`],
+      bar: 'Roof Demand Index', barsub: `${Nl} service lines · scored ZIPs · works offline`,
+      actions: [{ id: 'i1Csv', label: '↓ ZIP CSV' }, { id: 'i1Cor', label: 'Weather and Fire Ledger ↗', title: 'Open the weather and fire record for the selected ZIP' }, { id: 'i1Stock', label: 'Roof Stock ↗', title: 'Roof age and materials for the selected ZIP' }, { id: 'i1Desk', label: 'Campaign Desk ↗', title: 'Send the top ZIPs in view to the Campaign Desk' }, { id: 'i1Forge', label: 'Site Forge ↗', title: 'Send the top cities in view to the Site Forge' }, { id: 'i1Lines', label: 'Service Lines ↗', title: 'Open the selected ZIP in the Service Lines ledger' }] }) +
+      `<div class="wrap">
+      ${callout('', 'Read this first: what the index is and is not', `This maps <b>where roofing jobs arise, not where they are sold</b>. No agency counts roof replacements by ZIP, and California has no statewide permit file: whether a reroof needs a permit depends on the city. What can be counted is everything around the roof: the homes and the decade each was built (Census), what the 2020 federal energy survey says covers California homes of each era, the rain, wind and heat at the nearest stations and the atmospheric river record (NOAA, CW3E), every structure CAL FIRE inspected after a wildfire, the fire hazard zones, FAIR Plan policies and insurer non-renewals by ZIP (the FAIR Plan and the Department of Insurance), FEMA's registrations for every California disaster since 2003, the commercial buildings (Business Patterns), new permits (Census) and every C-39 roofing license (CSLB). A roof cohort model ages every roof, fitted to the American Housing Survey, with tile on its own clock. The replacement, repair, tile and new construction lines rest on observed housing data (grade B or C); storm, fire, hardening and the commercial and specialty lines lean on stated assumptions (grades C and D) that you can change. A high index is a ZIP where more roofing jobs arise per resident; <b>module 05</b> turns that into reachable jobs against competition, <b>module 02</b> shows the weather and the fires, and <b>module 17</b> the roofs themselves.`)}
+      <div class="kpis" id="i1Kpis"></div>
+      <div class="controls">
+        <div class="ctl" style="flex:1 1 320px"><label class="fl" for="i1Layer">Map layer (${N(Object.keys(LAYERS).length)})</label><select id="i1Layer">${layerOptions(Object.keys(LAYERS), 'idx')}</select></div>
+        <div class="ctl"><label class="fl" for="i1Reg">Region</label><select id="i1Reg"><option value="">All ${nl === numWord(NREG) ? '' : ''}${numWord(NREG)} regions</option>${REG_KEYS.map(k => `<option value="${k}">${esc(REGN[k])}</option>`).join('')}</select></div>
+        <div class="ctl"><label class="fl" for="i1Par">County</label><select id="i1Par"><option value="">All ${NCOUNTY} counties</option>${PA.slice().sort((a, b) => a.name.localeCompare(b.name)).map(p => `<option value="${p.fips}">${esc(p.name)}</option>`).join('')}</select></div>
+        <div class="ctl"><label class="fl" for="i1Find">Find a ZIP or city</label><input type="search" id="i1Find" placeholder="95814 or Fresno" autocomplete="off"></div>
+        ${COMP.length ? `<label class="chk"><input type="checkbox" id="i1Comp"> Show the ${COMP.length} named roofing companies</label>` : ''}
+        <label class="chk"><input type="checkbox" id="i1CtyLab"> County names</label>
+      </div>
+      <div class="grid2">
+        <div class="card mapcard"><div id="i1Map"></div><div class="legend" id="i1Leg"></div></div>
+        <div class="stack">
+          <div class="card"><div class="card-h" style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h3 id="i1Name">All scored ZIPs</h3><p id="i1Sub">Click any ZIP on the map or a row in the ranking</p></div><span class="pill" id="i1Pill">State</span></div><div class="card-b" id="i1Detail"></div></div>
+          <div class="card"><div class="card-h"><h3>Ranking: <span id="i1TblName"></span></h3><p>Click a row to select it. Click a header to sort.</p></div><div class="tscroll short" id="i1Tbl"></div></div>
+        </div>
+      </div>
+      <div class="split">
+        ${card('How the index is built', `${Nl} components, one per service line. Each weight is the line's share of the statewide gross profit pool at default assumptions times a confidence tier. Every number in the chain is shown.`, '<div id="i1Method"></div>')}
+        ${card(`Is this one variable or ${nl}?`, 'Pearson correlations between the standardized line rates across the scored ZIPs, with the weighted against equal weight sensitivity check.', '<div id="i1Cohere"></div>')}
+      </div>
+      ${card('Does the model agree with records it did not use?', 'Three checks. FEMA registrations were not an input to any line, and city permit counts were not an input to the roof model. Each check says what it can and cannot show.', `<div class="split" style="margin-top:0"><div><div id="i1Sc1"></div><p class="chartnote" id="i1Sc1n"></p></div><div><div id="i1Sc2"></div><p class="chartnote" id="i1Sc2n"></p></div></div><div id="i1Val"></div>`, 'mt')}
+      <div class="split">
+        ${card('Caveats: the fine print', 'Things that would change a conclusion drawn from this map.', '<div id="i1Cav"></div>')}
+        ${card('What this atlas cannot show', 'Documented gaps. Each says why, so the next request goes to the right custodian.', '<div id="i1Gap"></div>')}
+      </div>
+      ${card('Source register', 'Every layer traced to the dataset it came from, with the grade applied to that layer.', '<div id="i1Src"></div>', 'mt')}
+      <div class="foot" id="i1Foot"></div></div>`;
+    const femaAll = sum(Z.map(z => z.fema_k || 0)), fema20 = sum(Z.map(z => z.fema_20 || 0));
+    $('#i1Kpis', root).innerHTML = kpiHTML([
+      { l: 'One unit roofs', g: 'A', v: K(META.roofs), d: `plus ${K(META.mh)} mobile homes; median home built ${META.yb_med}` },
+      { l: 'Roofs 20 years or older', g: 'B', v: K(META.ra20), d: `${P(META.ra20 / META.roofs * 100, 0)} of one unit roofs; ${K(META.wave)} more reach 20 within five years` },
+      { l: 'Age driven replacements, next 12 months', g: 'B', v: K(META.nxt), d: `${P(META.nxt / META.roofs * 100, 1)} of roofs, tile relays apart` },
+      tileTot ? { l: 'Tile roofs past 25 years of underlayment', g: 'D', v: K(tile25Tot), d: `of ${K(tileTot)} tile roofs (model): the lift and relay market` } : null,
+      fairTot ? { l: 'FAIR Plan home policies', g: 'A', v: K(fairTot), d: fair22Tot ? `${D(fairTot / fair22Tot, 1)} times the September 2022 count, in the atlas's ZIPs` : 'September 30, 2026' } : null,
+      destTot != null ? { l: 'Structures destroyed by wildfire', g: 'A', v: K(destTot), d: 'CAL FIRE damage inspections, all years on record' } : { l: 'FEMA roof or property registrations', g: 'A', v: K(femaAll), d: `2003 to 2025; ${K(fema20)} since 2020` },
+      { l: 'Gross profit pool a year', g: 'D', v: MM(META.fees_tot), d: `all ${nl} lines at default assumptions` },
+      { l: 'Most roofing demand', g: '', v: esc(most.zip || '—'), d: `${esc(most.city || '')} · ${esc(most.cty || '')} County` },
+    ].filter(Boolean));
+    const map = new ZipMap($('#i1Map', root), { segHit: 'none', roads: false, onSelect: z => select(z), onHover: (z, e) => { const r = ZI[z]; if (r) showTip(r.res_ok ? zipTip(r, st.layer) : zipTip(r, st.layer).replace('Click for the full ledger', 'Not scored: ' + scoredNote), e); }, onPin: id => goModule('field', { comp: +String(id).split(':')[0] }), onPinHover: (id, e) => { const [ci, oi] = String(id).split(':').map(Number); const c = COMP[ci]; if (!c) return; const o = (c.offices || [])[oi] || {}; showTip(`<div class="tt">${esc(c.name)}</div><div class="ts">${esc(o.city || c.hq || '')}${c.tier ? ' · ' + esc(c.tier) : ''}${c.verified ? ' · read on its own site' : ''}</div><div class="tf">Click to open in Competitive Field</div>`, e); } });
+    const inScope = z => (!st.par || z.fips === st.par) && (!st.reg || (PA[z.pi] && PA[z.pi].reg === +st.reg));
+    function render() {
+      const L = LAYERS[st.layer]; const vals = ZR.map(z => z[st.layer]);
+      const sc = st.layer === 'gi' ? divScale(vals, 0) : qScale(vals, L.ramp, L.dir);
+      map.fill(zip => { const z = ZI[zip]; if (!z || !z.res_ok) return null; return sc.f(z[st.layer]); });
+      const scope = (st.par || st.reg) ? new Set(Z.filter(inScope).map(z => z.zip)) : null; map.dim(scope);
+      map.select(st.sel);
+      map.pins(st.comp ? COMP.flatMap((c, i) => (c.offices || []).map((o, j) => ({ id: i + ':' + j, lat: o.lat, lon: o.lon, r: c.tier === 'statewide' ? 5.2 : c.tier === 'national' ? 4.6 : c.tier === 'regional' ? 3.8 : 3, fill: o.hq ? cssv('--ink') : cssv('--ink-2'), shape: o.hq ? 'diamond' : '', op: o.hq ? .95 : .7 }))) : []);
+      const v = vals.filter(isN); const nn = vals.length - v.length;
+      $('#i1Leg', root).innerHTML = legendHTML({ title: L.l, R: sc.R, lo: v.length ? L.f(st.layer === 'gi' ? sc.lo : Math.min(...v)) : '—', hi: v.length ? L.f(st.layer === 'gi' ? sc.hi : Math.max(...v)) : '—', note: `<b>${st.layer === 'gi' ? 'Copper is a high demand cluster, blue a cold cluster' : L.dir === -1 ? 'Lower values shade darker' : 'Higher values shade darker'}.</b> ${st.layer === 'gi' ? 'Diverging scale centered on zero.' : 'Eight quantile classes across the scored ZIPs'}; gray means ${scoredNote}${nn ? ` or no value (${N(nn)} scored ZIPs have none)` : ''}. ${G(L.g)}<br>${esc(L.note)}` });
+      drawTable(); drawDetail();
+    }
+    function drawTable() {
+      const L = LAYERS[st.layer]; $('#i1TblName', root).textContent = L.l;
+      const rows = ZR.filter(inScope);
+      const k2 = st.layer === 'idx' ? 'fees' : st.layer; const L2 = LAYERS[k2];
+      dataTable($('#i1Tbl', root), [
+        { k: 'zip', h: 'ZIP', l: 1, f: v => `<b>${esc(v)}</b>` }, { k: 'city', h: 'City', l: 1 }, { k: 'idx', h: 'Index', f: v => D(v, 0) },
+        { k: k2, h: st.layer === 'idx' ? 'Gross profit' : 'Value', f: v => L2.f(v) }, { k: 'hu', h: 'Homes', f: v => N(v) }
+      ], rows, { sortKey: st.layer === 'idx' ? 'idx' : st.layer, sortDir: L.dir === -1 ? 1 : -1, limit: 400, id: r => r.zip, onClick: z => select(z), rowClass: r => r.zip === st.sel ? 'sel' : '' });
+    }
+    const q80 = {}; const Q = (k, q) => { const id = k + q; if (!(id in q80)) q80[id] = quantOf(ZR.map(z => z[k]), q); return q80[id]; };
+    function drawDetail() {
+      const z = st.sel ? ZI[st.sel] : null;
+      if (!z || !z.res_ok) {
+        const rows = ZR.filter(inScope); const nm = st.par ? PNAME(st.par) + ' County' : st.reg ? REGN[st.reg] : 'All scored ZIPs';
+        $('#i1Name', root).textContent = nm; $('#i1Sub', root).textContent = 'Position in view · click any ZIP'; $('#i1Pill', root).textContent = st.par ? 'County' : st.reg ? 'Region' : 'State';
+        const tot = k => sum(rows.map(r => r[k] || 0)); const pop = tot('pop'); const roofs = tot('roofs'); const zl = rows.map(r => r.zip);
+        const a = ageHist(zl), t = ageHist(zl, 'agez_t'); const old = sum(a.slice(40)) / Math.max(1, sum(a)) * 100;
+        $('#i1Detail', root).innerHTML = `<div class="rowl"><span>Homes · one unit roofs · ZIPs</span><b>${N(tot('hu'))} · ${N(roofs)} · ${N(rows.length)}</b></div>
+          <div class="rowl"><span>Roofs 20+ years (model) · aging into 20 in five years</span><b>${N(tot('ra20'))} (${P(tot('ra20') / Math.max(1, roofs) * 100, 0)}) · ${N(tot('wave'))}</b></div>
+          ${tileTot ? `<div class="rowl"><span>Tile roofs (model) · underlayment 25+ years</span><b>${N(tot('tile_n'))} (${P(tot('tile_n') / Math.max(1, roofs) * 100, 0)}) · ${N(tot('tile25'))}</b></div>` : ''}
+          ${PLX.map(l => `<div class="rowl"><span>${esc(l.name)}</span><b>${tot('p_' + l.key) < 10 ? D(tot('p_' + l.key), 1) : N(tot('p_' + l.key))} jobs a year · ${D(tot('p_' + l.key) / Math.max(1, pop) * 1e4, 1)} per 10k</b></div>`).join('')}
+          ${fairTot ? `<div class="rowl"><span>FAIR Plan home policies, 2026 · 2022</span><b>${N(tot('fair_pif'))} · ${N(tot('fair_pif22'))}</b></div>` : ''}
+          ${HC.dest ? `<div class="rowl"><span>Structures destroyed · damaged by wildfire (CAL FIRE)</span><b>${N(tot(HC.dest))} · ${HC.dmg ? N(tot(HC.dmg)) : '—'}</b></div>` : ''}
+          <div class="rowl"><span>FEMA roof or property registrations, 2003 to 2025</span><b>${N(tot('fema_k'))}</b></div>
+          <div class="rowl"><span>Gross profit pool a year (default assumptions)</span><b>${MM(tot('fees'))}</b></div>
+          <div class="dsec">Roof age, all one unit roofs in view (model)</div><div id="i1Age"></div>
+          <p class="mini" style="margin-top:8px">${sum(t) > 0 ? 'Tile roofs are drawn apart, by the age of the underlayment beneath the tile. ' : ''}No storm resets this curve: California roofs are replaced when they wear out, when an insurer or a sale forces it, or after a fire, so the shape follows the building booms and the reroofs that came a roof life later. The last bar is every roof of 40 years or more (${P(old, 0)} here): mostly tile and long lived coverings on older homes, and the model's oldest survivors.</p>`;
+        ageChart($('#i1Age', root), a, 170, t);
+        return;
+      }
+      const rank = tops.findIndex(r => r.zip === z.zip) + 1; const pr = PA[z.pi] || {};
+      $('#i1Name', root).textContent = `${z.zip} · ${z.city}`; $('#i1Sub', root).textContent = `${z.cty} County · ${REGN[pr.reg] || ''} · ${N(z.hu)} homes · ${N(z.pop)} residents`;
+      $('#i1Pill', root).textContent = 'Paid: ' + (QN[z.quad] || '—');
+      const notes = []; const fh = HC.fhsz ? z[HC.fhsz] : null;
+      if (z.gicls && z.gicls[0] === 'H') notes.push(callout('note tight', GI_LAB[z.gicls], `This ZIP and its eight nearest neighbors form a statistically significant cluster of high roofing demand (Gi* z = ${D(z.gi, 2)}). Buy the cluster as a radius or a list, not the ZIP alone.`));
+      if (isN(z.ra25_sh) && z.ra25_sh >= Q('ra25_sh', 0.8)) notes.push(callout('judg tight', 'Roof debt', `${P(z.ra25_sh, 0)} of one unit roofs are modeled at 25 years or older (${N(z.ra25)} roofs), in the top fifth of scored ZIPs. Age driven replacement copy fits here, and these are the roofs an insurer's inspection turns down.`));
+      if ((z.tile_sh || 0) >= 30 && (z.tile25 || 0) >= 100) notes.push(callout('tight', 'Tile underlayment', `${P(z.tile_sh, 0)} of roofs are modeled as tile and ${N(z.tile25)} of them have underlayment 25 years or older. The offer is a lift and relay (new underlayment and flashings under the same tile), not a new roof. The tile share is a model (grade D): confirm on the street.`));
+      if (isN(fh) && fh >= 25) notes.push(callout('judg tight', 'Fire zone', `${P(fh, 0)} of homes sit in a High or Very High Fire Hazard Severity Zone. A reroof of half the roof or more must be Class A here, and the FAIR Plan and insurers discount hardened homes: the fire hardened roof line leads.`));
+      if (isN(z.yrsfire) && z.yrsfire <= 6) notes.push(callout('tight', 'Recent fire', `CAL FIRE recorded structures destroyed or damaged here in ${z.lastfire}${HC.dest ? ` (${N(z[HC.dest])} destroyed on record)` : ''}. Rebuild roofing runs for years after a fire; contracts in a declared disaster area carry a seven business day right to cancel and a price gouging cap.`));
+      if ((z.fair_sh || 0) >= 8 || (isN(z.fair_x) && z.fair_x >= 3 && (z.fair_pif || 0) >= 100)) notes.push(callout('judg tight', 'Insurance pressure', `${N(z.fair_pif)} FAIR Plan home policies (${D(z.fair_sh, 1)} per 100 homes${isN(z.fair_x) ? ', ' + D(z.fair_x, 1) + ' times the 2022 count' : ''})${isN(z.nonren_sh) ? ` and ${P(z.nonren_sh, 1)} of policies non-renewed in 2023` : ''}. Owners here are being asked about roof age and class. Explain the process; do not interpret anyone's policy.`));
+      if ((z.mh_sh || 0) >= 20) notes.push(callout('tight', 'Manufactured home market', `${P(z.mh_sh, 0)} of homes are mobile homes. Roof over and coating offers outperform shingle replacement copy here.`));
+      if ((z.span_lep_sh || 0) >= 10) notes.push(callout('judg tight', 'Spanish build', `${P(z.span_sh, 0)} of residents speak Spanish at home, ${P(z.span_lep_sh, 0)} with limited English. Run Spanish ad groups and a Spanish landing page with the same license number and contract statements. A home improvement contract negotiated mainly in Spanish must be given in Spanish too (Civil Code 1632).`));
+      if (z.lang2 && LANG2[z.lang2] && (z[z.lang2 + '_sh'] || 0) >= 8) notes.push(callout('judg tight', 'A second language', `${P(z[z.lang2 + '_sh'], 0)} of residents speak ${LANG2[z.lang2]} at home. A page and an estimator in that language outperform translated English ads; build it only if someone at the company serves customers in it.`));
+      if (HC.snow && (z[HC.snow] || 0) >= 50) notes.push(callout('tight', 'Snow country', `The design ground snow load here is ${D(z[HC.snow], 0)} pounds per square foot. Metal, ice barrier at the eaves and a short dry season shape every job.`));
+      $('#i1Detail', root).innerHTML = `<div class="big">${D(z.idx, 0)}<span style="font-size:13px;font-weight:500;color:var(--ink-3)">th percentile</span></div><div class="mini" style="margin-bottom:10px">Roof Demand Index · rank ${rank} of ${ZR.length} (1 = most roofing demand per resident)</div>
+        ${PLX.map(l => zbarH(`${l.short} ${D(z['r_' + l.key], 1)}/10k`, z['z_' + l.key] || 0, S(z['z_' + l.key], 1) + 'σ')).join('')}
+        <p class="mini" style="margin:6px 0 10px">Bars are standard deviations of the log rate from the scored ZIP mean; right and copper means more than average.</p>
+        <div class="dsec">Expected a year (model)</div>
+        <div class="xscroll"><table class="keep"><thead><tr><th class="l">Line</th><th>Jobs</th><th>Open to marketing</th><th>Gross profit</th></tr></thead><tbody>${PLX.map(l => { const o = SLM.zipLine(z, l.key); return `<tr><td class="l">${esc(l.name)} ${G(l.g)}</td><td>${D(o.pool, o.pool < 10 ? 1 : 0)}</td><td>${D(o.cases, 1)}</td><td>${MM(o.fees)}</td></tr>`; }).join('')}</tbody></table></div>
+        <div class="dsec">Roofs (ACS, cohort model)</div>
+        <div class="rowl"><span>One unit roofs · mobile homes · 5+ unit homes</span><b>${N(z.roofs)} · ${N(z.mh)} · ${N(z.mf5u)}</b></div>
+        <div class="rowl"><span>Median roof age · median year built</span><b>${isN(z.ra_med) ? z.ra_med + ' years' : '—'} · ${isN(z.yb_med) ? z.yb_med : '—'}</b></div>
+        <div class="rowl"><span>Roofs 20+ · 25+ · aging into 20 within five years</span><b>${N(z.ra20)} (${P(z.ra20_sh, 0)}) · ${N(z.ra25)} · ${N(z.wave)}</b></div>
+        <div class="rowl"><span>Tile roofs (model) · underlayment 25+ · wood shake (model)</span><b>${P(z.tile_sh, 0)} · ${N(z.tile25)} · ${P(z.wood_sh, 1)}</b></div>
+        <div id="i1Age"></div>
+        <div class="dsec">Weather and fire</div>
+        ${HC.rain || HC.ar ? `<div class="rowl"><span>Normal rain a year · atmospheric river days</span><b>${HC.rain ? D(z[HC.rain], 1) + ' in' : '—'} · ${HC.ar ? D(z[HC.ar], 1) : '—'}</b></div>` : ''}
+        ${HC.gust || HC.heat ? `<div class="rowl"><span>Gust days 58 mph+ · days at 100°F+</span><b>${HC.gust ? D(z[HC.gust], 2) : '—'} · ${HC.heat ? D(z[HC.heat], 1) : '—'}</b></div>` : ''}
+        ${HC.snow || HC.coast ? `<div class="rowl"><span>Snow load · distance to the coast</span><b>${HC.snow ? D(z[HC.snow], 0) + ' psf' : '—'} · ${HC.coast ? D(z[HC.coast], 1) + (HC.coast === 'coast_mi' ? ' mi' : ' km') : '—'}</b></div>` : ''}
+        ${HC.fhsz ? `<div class="rowl"><span>Homes in High or Very High fire zones</span><b>${P(z[HC.fhsz], 0)}</b></div>` : ''}
+        ${HC.dest ? `<div class="rowl"><span>Structures destroyed · damaged by wildfire · last year</span><b>${N(z[HC.dest])} · ${HC.dmg ? N(z[HC.dmg]) : '—'} · ${z.lastfire || 'none'}</b></div>` : ''}
+        <div class="rowl"><span>FEMA roof or property registrations · per 100 homes</span><b>${N(z.fema_k)} · ${isN(z.fema_rate) ? D(z.fema_rate, 1) : '—'}</b></div>
+        <div class="dsec">Insurance (FAIR Plan, Department of Insurance)</div>
+        <div class="rowl"><span>FAIR Plan home policies 2026 · per 100 homes · against 2022</span><b>${N(z.fair_pif)} · ${D(z.fair_sh, 1)} · ${isN(z.fair_x) ? D(z.fair_x, 1) + '×' : '—'}</b></div>
+        <div class="rowl"><span>Non-renewed 2023 · share · 2020 to 2023</span><b>${N(z.nonren)} · ${P(z.nonren_sh, 1)} · ${N(z.nonren4)}</b></div>
+        <div class="rowl"><span>Rated High or Extreme wildfire risk · average premium</span><b>${P(z.wf_hi_sh, 0)} · ${M$(z.prem)}</b></div>
+        <div class="dsec">Owners and buildings (ACS, ZBP, CSLB)</div>
+        <div class="rowl"><span>Owners · with a mortgage · moved in (median)</span><b>${P(z.own_sh, 0)} · ${P(z.mort_sh, 0)} · ${isN(z.own_yr) ? z.own_yr : '—'}</b></div>
+        <div class="rowl"><span>Median value · median income</span><b>${M$(z.value)} · ${M$(z.inc)}</b></div>
+        <div class="rowl"><span>Spanish · Chinese · Vietnamese · Tagalog · Korean at home</span><b>${P(z.span_sh, 0)} · ${P(z.chin_sh, 1)} · ${P(z.viet_sh, 1)} · ${P(z.tagalog_sh, 1)} · ${P(z.korean_sh, 1)}</b></div>
+        <div class="rowl"><span>Commercial roofs (est.) · apartment buildings (est.) · warehouses</span><b>${D(z.cru, 0)} · ${N(z.mfb)} · ${N(z.whse)}</b></div>
+        <div class="rowl"><span>C-39 licenses in the ZIP · within 25 km · pressure</span><b>${N(z.lic)} · ${N(z.comp_n25)} · ${D(z.comp_pct, 0)}th pct.</b></div>
+        ${notes.join('')}`;
+      ageChart($('#i1Age', root), DATA.agez[z.zip] || [], 140, (DATA.agez_t || {})[z.zip]);
+    }
+    function select(zip) { if (st.sel !== zip && !(ZI[zip] && ZI[zip].res_ok)) return; st.sel = st.sel === zip ? null : zip; render(); }
+    // method
+    const lab = {}; PLX.forEach(l => lab[l.key] = l.short);
+    const fsum = sum(PLX.map(x => (W[x.key] || 0) / (TIERW[x.key] || 1)));
+    $('#i1Method', root).innerHTML = `<p class="body">For each line the expected jobs per 10,000 residents are shrunk toward the county rate for small ZIPs (an empirical Bayes prior worth 2,500 residents), log transformed (a small constant is added first, because a California ZIP can have a rate of zero on the fire line), standardized across the ${N(ZR.length)} scored ZIPs (a z score), multiplied by the weight, summed and turned into a percentile. <b>Weight</b> is the line's share of the statewide gross profit pool at default assumptions times a <b>tier</b>: 1.0 where the line rests on observed counts (grades A and B), 0.75 for graded models (C), 0.5 for lines anchored on an assumption (D). Money stands in for importance because a roofer's choice between lines is a choice between job values; that substitution is the largest judgment call in the build.</p>
+      <div class="xscroll"><table style="margin-top:10px"><thead><tr><th class="l">Line</th><th>Profit share</th><th>Tier</th><th>Weight</th></tr></thead><tbody>${PLX.map(l => { const fs = (W[l.key] || 0) / (TIERW[l.key] || 1); return `<tr><td class="l wrap" style="min-width:220px"><b>${esc(l.name)}</b><div class="mini" style="margin-top:2px">${esc(l.unit)}</div></td><td>${P(fs / (fsum || 1) * 100, 1)}</td><td>${D(TIERW[l.key], 2)} ${G(l.g)}</td><td><b>${D(W[l.key], 3)}</b></td></tr>`; }).join('')}<tr><td class="l" colspan="3" style="text-align:right">Total weight</td><td><b>${D(Wsum, 3)}</b></td></tr></tbody></table></div>
+      ${callout('judg tight', 'Judgment call: wear, weather, fire and insurance are separate lines', 'A roof replaced because it wore out (retail, financing, price shopping), one repaired after an atmospheric river (urgent, small, rarely a claim), one rebuilt after a wildfire (insurer led, slow, regulated) and one upgraded to Class A because an insurer or the FAIR Plan asked (a deadline and a discount) are different sales. The cohort model feeds the replacement and tile lines; the weather record spreads the storm line; CAL FIRE\'s inspections feed the fire line; insurer wildfire ratings and FAIR Plan policies feed the hardening line.')}
+      ${callout('judg tight', 'Judgment call: no double counting', 'Tile relays are counted only in the tile line and never as replacements. Metal reroofs and most hardening reroofs are carved out of the replacement line. Solar detach and reset is a job beside a reroof, counted once as its own line. Mobile homes are only in their own line, and buildings of five units or more sit in the multifamily line. Repairs count leaks fixed by a paid roofer, not every leak.')}`;
+    const cr = (a, b) => (C[a] || {})[b];
+    $('#i1Cohere', root).innerHTML = corrMatrix(LINE_KEYS, lab, C) + `<p class="body" style="margin-top:12px"><b>They are not one variable.</b> The lines that follow the roof stock move together (replacement and repair r = ${DS(cr('replace', 'repair'), 2)}). Tile follows the tracts built since 1980 and runs against the old shingle neighborhoods (tile and replacement r = ${DS(cr('tile', 'replace'), 2)}). Fire and hardening follow the hills and the insurance map (fire and hardening r = ${DS(cr('fire', 'harden'), 2)}; hardening and replacement r = ${DS(cr('harden', 'replace'), 2)}). Storm work follows the rain and the wind (storm and repair r = ${DS(cr('storm', 'repair'), 2)}), and the commercial lines follow business districts (commercial and replacement r = ${DS(cr('comm', 'replace'), 2)}). Weighted and equal weight versions of the index correlate r = ${DS((META.model.sens || [])[0], 3)} (Spearman ${D((META.model.sens || [])[1], 3)}). Pick the line, not the index, when you buy for one service.</p>`;
+    // checks against records the model did not use
+    const big = ZR.filter(z => (z.hu || 0) >= 1000);
+    const mk = (host, note, rows, xf, yf, xl, yl, txt) => { const use = rows.filter(z => isN(xf(z)) && isN(yf(z)) && (xf(z) > 0 || yf(z) > 0)); const pts = use.map(z => ({ x: Math.log10(1 + xf(z)), y: Math.log10(1 + yf(z)), lab: z.zip, tip: `<div class="tt">${z.zip} · ${esc(z.city)}</div>${tipRow(xl, D(xf(z), 1))}${tipRow(yl, D(yf(z), 1))}` })); if (pts.length >= 8) scatter($(host, root), { pts, x: { label: xl + ' (log10 of 1 + value)', fmt: v => D(v, 1) }, y: { label: yl + ' (log10 of 1 + value)', fmt: v => D(v, 1) }, H: 320 }); else $(host, root).innerHTML = '<p class="mini">Too few ZIPs carry both records to draw this check.</p>'; const all = spearman(rows.map(xf), rows.map(yf)); const pos = spearman(use.map(xf), use.map(yf)); $(note, root).innerHTML = txt(all, pos, use.length); };
+    const strength = r => !isN(r) ? 'cannot be computed' : Math.abs(r) >= 0.6 ? 'strong' : Math.abs(r) >= 0.35 ? 'moderate' : Math.abs(r) >= 0.15 ? 'weak' : 'absent';
+    let rFire = null, rStorm = null;
+    if (HC.dest && ZC.includes('fema_fire')) mk('#i1Sc1', '#i1Sc1n', big, z => (z.fire_tot || 0) / z.hu * 1000, z => (z.fema_fire || 0) / z.hu * 1000, 'CAL FIRE structures destroyed or damaged per 1,000 homes', 'FEMA fire registrations per 1,000 homes', (a, p, n) => { rFire = a.rho; return `<b>Fire</b>: Spearman ρ = ${D(a.rho, 2)} across ${N(a.n)} ZIPs with 1,000 homes or more (${N(n)} have either record; among those ρ = ${D(p.rho, 2)}). Two agencies, two methods: inspectors on the ground and households applying for help.`; });
+    else $('#i1Sc1', root).innerHTML = '<p class="mini">The data carries no located fire losses to set against FEMA.</p>';
+    if (ZC.includes('fema_storm') && ZC.includes('r_storm')) mk('#i1Sc2', '#i1Sc2n', big, z => z.r_storm, z => (z.fema_storm || 0) / z.hu * 1000, 'Storm line, jobs per 10,000 residents a year (model)', 'FEMA storm and flood registrations per 1,000 homes', (a, p, n) => { rStorm = a.rho; return `<b>Storm</b>: Spearman ρ = ${D(a.rho, 2)} across ${N(a.n)} ZIPs (${N(n)} with a FEMA storm registration or a modeled rate). FEMA's storm registrations in California are mostly flood and mudflow, which the roof line does not try to follow.`; });
+    else $('#i1Sc2', root).innerHTML = '<p class="mini">The data carries no FEMA storm registrations to set against the storm line.</p>';
+    const PC = DATA.permits_city || {}; const reroofKeys = ['replace', 'tile', 'metal', 'harden', 'mf', 'comm'].filter(k => LINE_KEYS.includes(k));
+    const permRows = Object.keys(PC).map(city => { const ys = Object.keys(PC[city].years || {}).map(Number).filter(y => y >= 2020 && y <= 2025).sort((a, b) => a - b); const last3 = ys.slice(-3); if (!last3.length) return null; const per = mean(last3.map(y => PC[city].years[y])); const zs = ZC.includes('place') ? Z.filter(z => z.place === city) : (CITYI[city] ? CITYI[city].zips.map(q => ZI[q]).filter(Boolean) : []); if (!zs.length) return null; const model = sum(zs.map(z => sum(reroofKeys.map(k => z['p_' + k] || 0)))); return { city, per, yrs: last3, model, n: zs.length }; }).filter(Boolean);
+    $('#i1Val', root).innerHTML = (permRows.length ? `<div class="xscroll"><table><thead><tr><th class="l">City with open permit data</th><th>Re-roof permits a year</th><th>Model reroof jobs a year</th><th>Model ÷ permits</th></tr></thead><tbody>${permRows.map(r => `<tr><td class="l"><b>${esc(r.city)}</b><div class="mini">${r.yrs[0]} to ${r.yrs[r.yrs.length - 1]} mean · ${N(r.n)} ZIPs mostly inside the city</div></td><td>${N(r.per)}</td><td>${N(r.model)}</td><td>${D(r.model / Math.max(1, r.per), 2)}×</td></tr>`).join('')}</tbody></table></div><p class="chartnote">Permits: the cities' own open data (module 17 lists the years). Model: ${joinAnd(reroofKeys.map(k => SLM.lineName(k).toLowerCase()))} summed over the ZIPs whose largest Census place is the city. Permits count every building type and miss unpermitted work; the model counts ZIPs, not city limits. A ratio near 1 is agreement; far from 1 in either direction is a reason to trust the city's count over the model there.</p>` : '') +
+      callout('judg', 'Judgment call: these are checks of where, not of how many', `Fire: agreement between CAL FIRE's inspections and FEMA's registrations is ${strength(rFire)}${isN(rFire) ? ` (ρ = ${D(rFire, 2)})` : ''}. The fire line is built on the inspections, so this says the inspections point where households also reported loss; it does not test the rebuild share. Storm: agreement is ${strength(rStorm)}${isN(rStorm) ? ` (ρ = ${D(rStorm, 2)})` : ''}. ${isN(rStorm) && Math.abs(rStorm) < 0.35 ? 'That is not a pass. California has no storm that leaves a clean roof damage record the way a hurricane does, so the storm line stays an exposure weighted spread of a state total (grade C at best) and should be corrected with your own job history.' : 'FEMA counts only people who applied for federal help, so this is a test of where, not of how many.'} The state totals of the storm, fire and hardening lines rest on anchors listed in module 12, each with its grade.`);
+    $('#i1Cav', root).innerHTML = proseTable([
+      ['Jobs, not sales', 'Every layer describes roofs, weather and buildings, not signed contracts. No agency counts roof replacements by place.'],
+      ['Ecological reading only', 'A high ZIP contains old roofs and careful owners; nothing here describes a household.'],
+      ['ACS is a survey', 'ZIP estimates carry margins of error, largest in small rural ZIPs; the index shrinks small ZIP rates toward the county rate for that reason.'],
+      ['The roof life is fitted, not observed', `The Weibull life (mean ${D((META.model.WB || {}).L, 0)} years for coverings other than tile) is fitted to the West region's 2023 American Housing Survey replacement rates by year built. California specific roof ages are not published, and the tile underlayment life (${D((META.model.WBT || {}).L, 0)} years) rests on one consultant's planning figure.`],
+      ['Roof covering is modeled', 'The tile, wood and metal shares come from a national survey\'s California sample by era built (837 single family homes), not from a count of roofs. A ZIP of Spanish revival homes from the 1920s will carry more tile than the model gives it.'],
+      ['Insurance pays for few California roofs', `In the American Housing Survey, insurance paid for ${P(((META.ahs || {}).metros || {}).la ? META.ahs.metros.la.ins : null, 1)} of roof jobs in the Los Angeles metro and ${P((META.ahs || {}).pac_ins, 1)} across the Pacific division, against 41 percent in the west south central states. Storm and fire lines are therefore small beside wear, and claim funded copy fits few jobs.`],
+      ['Fire records start in 2013', 'CAL FIRE\'s damage inspection file covers fires since 2013 that the agency inspected. Older fires and some local agency fires are missing, so "none on record" is not "never burned".'],
+      ['Default job values are placeholders', `The gross profit pool multiplies jobs by default values (replacement ${M$((META.model.VAL || {}).replace)}, commercial ${M$((META.model.VAL || {}).comm)} and so on) and a ${P((META.model.FEE || 0) * 100, 0)} margin. Replace them with your closed job history in module 12.`],
+      ['Research material', 'Not legal or insurance advice. Verify statutes and program rules against the primary source before relying on them.'],
+    ]);
+    $('#i1Gap', root).innerHTML = proseTable([
+      ['Roof permits by ZIP', 'There is no statewide permit file. Whether a reroof needs a permit depends on the city, and each city keeps its own system; Los Angeles and San Francisco publish theirs and are used as checks only.', 'C'],
+      ['Insurance claims for roofs', 'The Department of Insurance publishes fire and smoke claims by ZIP, not wind or water claims on roofs. The share of roofing jobs paid by insurance comes from a housing survey, for metros and the Pacific division only.', 'C'],
+      ['Search volume and CPC by ZIP', 'No keyword or Ahrefs data was pulled for this build. Cost per click is modeled from region and competition (grade D) until account actuals arrive in module 15.', 'D'],
+      ['Roof material by home', 'No public source records roof covering by parcel; tile, wood and metal are modeled from era built and climate (module 17).', 'D'],
+      ['Rooftop solar by ZIP', HC.solar ? 'Carried as a ZIP share; its source and vintage are in the data build record (module 04).' : 'Not in the data as a ZIP column: the solar line uses a statewide share, so it follows reroofs, not panels.', HC.solar ? 'C' : 'D'],
+      ['Commercial roof age and size', 'Assessor files that carry building area and year are not published statewide; the commercial lines run on establishment counts and a national building count.', 'D'],
+      ['How big each roofer is', 'The CSLB file lists every C-39 license with its city and ZIP but no measure of size, and no ranked list of California roofers by revenue is public. Competition is counted in licenses and employer establishments.', 'C'],
+      ['San Diego and Sacramento in the housing survey', 'The American Housing Survey samples Los Angeles, San Francisco, Riverside and (in 2021) San Jose. San Diego and Sacramento are not sampled on their own; the Pacific division figures stand in.', 'B'],
+    ].map(r => [r[0], r[1], G(r[2])]));
+    const SRC = META.src || [];
+    $('#i1Src', root).innerHTML = SRC.length ? srcRows(SRC.map(s => [esc(s.k || ''), esc(s.name || ''), s.grade || '', esc(s.vintage || ''), s.url || ''])) : srcRows([
+      ['Homes by year built, structure, tenure and language', 'U.S. Census Bureau, ACS 2020 to 2024 five year, by ZCTA (B01003, B19001, B19013, B25001 to B25004, B25024, B25032, B25034, B25035, B25039, B25075, B25077, B25081, B25127, C16001)', 'A', '2024', 'https://www2.census.gov/programs-surveys/acs/summary_file/2024/table-based-SF/'],
+      ['Roofing projects, leaks and costs', 'U.S. Census Bureau and HUD, American Housing Survey 2023 national file (Los Angeles, San Francisco, Riverside metros; Pacific division; West region) and 2021 metropolitan file (San Jose)', 'A', '2023', 'https://www2.census.gov/programs-surveys/ahs/2023/'],
+      ['Roof covering by era built', 'U.S. Energy Information Administration, Residential Energy Consumption Survey 2020, California sample', 'B', '2020', 'https://www.eia.gov/consumption/residential/data/2020/'],
+      ['Wildfire losses and zones', 'CAL FIRE damage inspections (DINS), fire perimeters and Fire Hazard Severity Zones', 'A', '2026', 'https://www.fire.ca.gov/'],
+      ['Rain, wind, heat and atmospheric rivers', 'NOAA climate normals 1991 to 2020, daily station records, Storm Events and storm reports; the CW3E atmospheric river scale', 'A', '2026', 'https://www.ncei.noaa.gov/'],
+      ['Insurance', 'California FAIR Plan Association ZIP files to September 30, 2026; California Department of Insurance non-renewal and wildfire risk files to 2023', 'A', '2026', 'https://www.insurance.ca.gov/'],
+      ['Disaster registrations', 'FEMA OpenFEMA, Individuals and Households Program valid registrations, California disasters 2003 to 2025', 'A', 'Nov 2026', 'https://www.fema.gov/about/openfema/data-sets'],
+      ['Commercial buildings and roofers', 'County and ZIP Code Business Patterns 2023; Nonemployer Statistics 2024; 2022 Economic Census', 'B', '2022 to 2024', 'https://www2.census.gov/programs-surveys/cbp/datasets/2023/'],
+      ['Licenses', 'Contractors State License Board, C-39 Roofing list by classification', 'A', 'Nov 2026', 'https://www.cslb.ca.gov/OnlineServices/DataPortal/ListByClassification'],
+      ['New construction', 'Census Building Permits Survey, county annual 2005 to 2025 and 2026 year to date', 'A', '2026', 'https://www2.census.gov/econ/bps/County/'],
+      ['Material prices', 'BLS producer price indexes via FRED: asphalt roofing (WPU1361); steel mill products (WPU1017)', 'B', '2026', 'https://fred.stlouisfed.org/series/WPU1361'],
+    ]);
+    $('#i1Foot', root).innerHTML = `<b style="color:var(--ink)">${ATLAS.name}</b>, module 01. Compiled ${COMPILED} for ${N(META.nzip || Z.length)} ZIP codes in all ${NCOUNTY} counties. The index is a percentile of expected roofing jobs per resident, not a count of sales. Grades: A primary and direct; B primary with a caveat or a model on primary data; C secondary, volatile or proxy; D assumption or over ten years old. Built from public data only; no keyword or Ahrefs data was pulled for this build.`;
+    // wiring
+    $('#i1Layer', root).onchange = e => { st.layer = e.target.value; render(); };
+    $('#i1Reg', root).onchange = e => { st.reg = e.target.value; st.par = ''; $('#i1Par', root).value = ''; if (st.sel && !inScope(ZI[st.sel])) st.sel = null; if (st.reg) map.fitCounties(PA.filter(p => p.reg === +st.reg).map(p => p.fips)); else map.reset(); render(); };
+    $('#i1Par', root).onchange = e => { st.par = e.target.value; if (st.par && st.reg && PAI[st.par] && PAI[st.par].reg !== +st.reg) { st.reg = ''; $('#i1Reg', root).value = ''; } if (st.sel && !inScope(ZI[st.sel])) st.sel = null; if (st.par) map.fitCounties([st.par]); else map.reset(); render(); };
+    if ($('#i1Comp', root)) $('#i1Comp', root).onchange = e => { st.comp = e.target.checked; render(); };
+    $('#i1CtyLab', root).onchange = e => map.setCountyLabels(e.target.checked);
+    $('#i1Find', root).addEventListener('change', e => { const q = e.target.value.trim().toLowerCase(); if (!q) return; const hit = ZI[q] || ZR.filter(z => (z.city || '').toLowerCase().startsWith(q)).sort((a, b) => b.pop - a.pop)[0]; if (hit) { st.sel = hit.res_ok ? hit.zip : null; map.fitTo([hit.zip]); render(); if (!hit.res_ok) toast(`${hit.zip} has fewer than 500 residents, so the atlas does not score it`); } else toast('No ZIP or city matches'); });
+    $('#i1Csv', root).onclick = () => { const keys = ['zip', 'city', 'cty', 'pop', 'hu', 'idx', 'idx_eq', 'gi', 'gicls', 'fees', 'cases'].concat(LINE_KEYS.flatMap(k => ['p_' + k, 'r_' + k])).concat(['roofs', 'ra_med', 'ra20', 'ra20_sh', 'ra25', 'wave', 'nxt', 'nxt_t', 'tile_sh', 'tile25', 'wood_sh', 'lastfire', HC.fhsz, HC.dest, HC.dmg, HC.rain, HC.ar, HC.gust, HC.heat, HC.snow, 'fair_pif', 'fair_sh', 'fair_x', 'nonren', 'nonren_sh', 'wf_hi_sh', 'fema_k', 'own_sh', 'mort_sh', 'value', 'inc', 'mh_sh', 'span_sh', 'chin_sh', 'viet_sh', 'cru', 'roofers', 'lic', 'comp_n25', 'comp_pct', 'tier', 'bid']).filter(k => k && (ZC.includes(k) || k === 'cty'));
+      saveFile(`${ATLAS.file}-roof-demand-index-by-zip.csv`, toCSV(keys.map(k => ({ cases: 'jobs_open_to_marketing', fees: 'gross_profit_pool', cty: 'county' })[k] || k), ZR.map(z => keys.map(k => z[k])), `${ATLAS.name}, module 01, compiled ${META.compiled}.\np_ = expected jobs a year; r_ = per 10,000 residents (shrunk toward the county rate); gross_profit_pool = jobs_open_to_marketing at default job values times the default margin.\nidx = percentile of weighted z scores of log rates; gi = Getis Ord Gi* z on the index.`)); };
+    $('#i1Cor', root).onclick = () => goModule('storms', st.sel ? { zip: st.sel } : {});
+    $('#i1Stock', root).onclick = () => goModule('stock', st.sel ? { zip: st.sel } : {});
+    const topZ = () => ZR.filter(inScope).sort((a, b) => b.idx - a.idx).slice(0, 25).map(z => z.zip);
+    $('#i1Desk', root).onclick = () => goModule('desk', { zips: st.sel ? [st.sel] : topZ() });
+    $('#i1Forge', root).onclick = () => goModule('forge', { zips: st.sel ? [st.sel] : topZ() });
+    $('#i1Lines', root).onclick = () => goModule('lines', st.sel ? { zip: st.sel } : {});
+    BUS.on('theme', () => render()); BUS.on('slm', () => render());
+    this.receive = p => { if (!p) return; if (p.layer && LAYERS[p.layer]) { st.layer = p.layer; $('#i1Layer', root).value = p.layer; } if (p.zip && ZI[p.zip]) { st.sel = ZI[p.zip].res_ok ? p.zip : null; map.fitTo([p.zip]); } render(); };
+    render();
+  }
+});

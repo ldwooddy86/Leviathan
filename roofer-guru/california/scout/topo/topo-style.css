@@ -1,0 +1,38 @@
+/* ==== scout topo ==== */
+/* The terrain control, the place names on the map and the terrain section of the building card. */
+.sc .sc-topo-mul{mix-blend-mode:multiply}
+.sc .sc-topo-ctl{background:var(--card,#fff);color:var(--ink,#1c2430);border-radius:8px;font:12px/1.35 var(--font,system-ui,sans-serif);max-width:270px}
+.sc .sc-topo-b{display:block;border:0;background:none;color:inherit;font:600 12px/1 var(--font,system-ui,sans-serif);padding:8px 10px;cursor:pointer;width:auto;height:auto}
+.sc .sc-topo-b[aria-expanded="true"]{border-bottom:1px solid var(--line,#d9dee5);width:100%;text-align:left}
+.sc .sc-topo-p{padding:8px 10px 10px;display:grid;gap:6px}
+.sc .sc-topo-p[hidden]{display:none}
+.sc .sc-topo-r{display:grid;grid-template-columns:58px 1fr;align-items:center;gap:6px;margin:0}
+.sc .sc-topo-r select,.sc .sc-topo-r input{width:100%;min-width:0;font-size:12px}
+.sc .sc-topo-c{display:flex;gap:6px;align-items:center;margin:0;cursor:pointer}
+.sc .sc-topo-acts{display:flex;gap:6px;flex-wrap:wrap}
+.sc .sc-topo-acts button{font:600 11.5px/1 var(--font,system-ui,sans-serif);padding:6px 9px;border-radius:6px;border:1px solid var(--line,#c9d0d9);background:var(--bg-2,#f3f5f8);color:inherit;cursor:pointer;width:auto;height:auto}
+.sc .sc-topo-lt{font-weight:600;margin-top:2px}
+.sc .sc-topo-ramp{height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.25)}
+.sc .sc-topo-tk{position:relative;height:14px;font-size:10px;color:var(--ink-3,#5b6675)}
+.sc .sc-topo-tk span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.sc .sc-topo-tk span:first-child{transform:none}.sc .sc-topo-tk span:last-child{transform:translateX(-100%)}
+.sc .sc-topo-sw{display:flex;gap:6px;align-items:center;font-size:11.5px}
+.sc .sc-topo-sw i{width:14px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.sc .sc-topo-ln,.sc .sc-topo-note{font-size:11px;color:var(--ink-3,#5b6675)}
+.sc .sc-topo-note:empty{display:none}
+/* names: light text with a dark edge, so they read on imagery, on the tint and on the street map */
+.sc .sc-tl{pointer-events:none}
+.sc .sc-tl span{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;font:600 11px/1.1 var(--font,system-ui,sans-serif);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,0 1px 2px #000,1px 0 2px #000,-1px 0 2px #000}
+.sc .sc-tl span i{display:inline-block;width:0;height:0;margin-right:3px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #fff;filter:drop-shadow(0 0 1px #000)}
+.sc .sc-tl-pv span{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#fff7dc}
+.sc .sc-tl-pv6 span{font-size:10.5px;letter-spacing:.1em}
+.sc .sc-tl-r span{font-style:italic;letter-spacing:.04em}
+.sc .sc-tl-d span{color:#ffe2a8;letter-spacing:.06em}
+.sc .sc-tl-v span{color:#d9f2c4}
+.sc .sc-tl-w span,.sc .sc-tl-i span{color:#bfe3ff;font-style:italic}
+.sc .sc-tl-g span i{border-bottom:0;border-top:7px solid #fff}
+/* the card */
+.sc .sc-topo-sec .rowl{gap:10px}
+.sc .sc-topo-v{text-align:right}
+.sc .sc-topo-q{font-size:11px;color:var(--ink-3,#5b6675)}
+.sc .sc-topo-ul{margin-top:8px}

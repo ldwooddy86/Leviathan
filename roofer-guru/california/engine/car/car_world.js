@@ -13,17 +13,18 @@
     const CARW = { segs: [], poles: [], at: null, ver: -1, pr: [], hitN: 0, tHit: null, snap: false, loading: false, loadT: 0, script: null, drive: false, padWas: [], els: null, hudT: 0, lastNote: '' };
     const carLand = (x, z) => (S.gy ? +S.gy(x, z) || 0 : 0);
     /* a road's half width and the height of its surface over the land (the traffic job may give a road its own; else by kind) */
-    const carRoadSpec = r => { const k = K.ROADW[r.kind] || K.ROADW.street; return [(r.width || r.w || k[0]) / 2, r.deck != null ? r.deck : r.h != null ? r.h : k[1]]; };
+    const carRoadSpec = r => { const k = K.ROADW[r.kind] || K.ROADW.street, own = r.kind === 'freeway' || r.kind === 'ramp'; return [own && r.ln ? r.ln * 3.66 / 2 + 1.2 : (r.width || k[0]) / 2, k[1]]; };
     /* the road pieces, lamp posts and tree trunks near the car, gathered again every dozen metres */
     function carNear(x, z, sp) {
       const reach = 45 + sp * 0.6; if (CARW.at && CARW.ver === S.roadsVer && Math.hypot(x - CARW.at[0], z - CARW.at[1]) < 12 && reach <= CARW.at[2]) return;
       CARW.at = [x, z, reach + 20]; CARW.ver = S.roadsVer; const segs = CARW.segs = [], poles = CARW.poles = [], R2 = reach + 20;
-      for (const r of S.roads) { if (r.kind === 'path') continue; const sp2 = carRoadSpec(r), P = r.pts; for (let i = 0; i + 1 < P.length; i++) { const a = P[i], b = P[i + 1]; if (Math.min(a[0], b[0]) > x + R2 || Math.max(a[0], b[0]) < x - R2 || Math.min(a[1], b[1]) > z + R2 || Math.max(a[1], b[1]) < z - R2) continue; segs.push([a[0], a[1], b[0] - a[0], b[1] - a[1], sp2[0], sp2[1], r]); } }
+      for (const r of S.roads) { if (r.kind === 'path' || r.kind === 'cable') continue; const sp2 = carRoadSpec(r), P = r.pts; for (let i = 0; i + 1 < P.length; i++) { const a = P[i], b = P[i + 1]; if (Math.min(a[0], b[0]) > x + R2 || Math.max(a[0], b[0]) < x - R2 || Math.min(a[1], b[1]) > z + R2 || Math.max(a[1], b[1]) < z - R2) continue; segs.push([a[0], a[1], b[0] - a[0], b[1] - a[1], sp2[0], sp2[1], r, r.dk ? +r.dk[i] || 0 : 0, r.dk ? +r.dk[i + 1] || 0 : 0]); } }
       for (const s of LAMP.spots) if (Math.abs(s[0] - x) < R2 && Math.abs(s[1] - z) < R2) poles.push([s[0], s[1], 0.1]);
       CELLS.forEach(c => { if (!c.trees || !c.trees.list || Math.hypot(c.cx - x, c.cz - z) > R2 + 140) return; for (const t of c.trees.list) if (Math.abs(t.x - x) < R2 && Math.abs(t.z - z) < R2) poles.push([t.x, t.z, clamp((t.r || 2) * 0.09, 0.12, 0.4)]); });
     }
     /* the road under a point: null off the road, else [height of its surface over the land, the road] */
-    function carRoadAt(x, z) { let best = null; for (const s of CARW.segs) { const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((x - s[0]) * s[2] + (z - s[1]) * s[3]) / l2, 0, 1) : 0, d = Math.hypot(x - s[0] - s[2] * t, z - s[1] - s[3] * t); if (d <= s[4] && (!best || s[5] > best[0])) best = [s[5], s[6]]; } return best; }
+    /* where roads cross on bridges (the traffic's decks, r.dk) the one nearest the height the car is at is the one it is on */
+    function carRoadAt(x, z) { let best = null, bd = 1e9; const cur = CARW.lift || 0; for (const s of CARW.segs) { const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((x - s[0]) * s[2] + (z - s[1]) * s[3]) / l2, 0, 1) : 0, d = Math.hypot(x - s[0] - s[2] * t, z - s[1] - s[3] * t); if (d > s[4]) continue; const lift = s[5] + s[7] + (s[8] - s[7]) * t, e = Math.abs(lift - cur); if (e < bd) { bd = e; best = [lift, s[6]]; } } return best; }
     const carGround = (x, z) => { const r = carRoadAt(x, z); return carLand(x, z) + (r ? r[0] : 0); };
     /* walls: a circle swept from (x0, z0) to (x1, z1). The answer pushes the circle's END place out of what it struck. */
     function carHit(x0, z0, x1, z1, r) {
@@ -38,25 +39,25 @@
     }
     /* the nearest lane a car may stand in: its middle, and the way it runs (the side of the road traffic keeps to, turned the way the camera looks) */
     function carLane(x, z, yaw, maxD) {
-      const list = S.roads.filter(r => r.kind !== 'path' && r.kind !== 'drive' && r.pts.length > 1), o = nearestOnRoads(x, z, maxD || 120, list); if (!o) return null;
-      const r = list[o.ri], a = r.pts[o.si], b = r.pts[o.si + 1], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, y = Rd(yaw), one = r.oneway === true || r.oneway === 1 || r.oneway === 'yes' ? 1 : r.oneway === -1 ? -1 : 0;
+      const list = S.roads.filter(r => r.kind !== 'path' && r.kind !== 'drive' && r.kind !== 'cable' && r.pts.length > 1), o = nearestOnRoads(x, z, maxD || 120, list); if (!o) return null;
+      const r = list[o.ri], a = r.pts[o.si], b = r.pts[o.si + 1], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, y = Rd(yaw), one = r.ow || r.oneway === true || r.oneway === 1 || r.oneway === 'yes' ? 1 : r.oneway === -1 ? -1 : 0, dk = r.dk ? (+r.dk[o.si] || 0) + ((+r.dk[o.si + 1] || 0) - (+r.dk[o.si] || 0)) * o.t : 0;
       const dir = one || ((dx * Math.sin(y) - dz * Math.cos(y)) >= 0 ? 1 : -1), hx = dx / l * dir, hz = dz / l * dir, hw = carRoadSpec(r)[0], off = one ? 0 : Math.min(hw * 0.5, Math.max(1.6, hw - 1.9));
-      return { x: o.x - hz * off, z: o.z + hx * off, yaw: (DEG * Math.atan2(hx, -hz) + 360) % 360, road: r };
+      return { x: o.x - hz * off, z: o.z + hx * off, yaw: (DEG * Math.atan2(hx, -hz) + 360) % 360, road: r, lift: carRoadSpec(r)[1] + dk };
     }
     function carMake() { if (!CAR) { CAR = SE.M3Kit(engine); R.warm && R.warm(Object.values(CAR.materials)); } return CAR; }
     /* take the car out: where it stands if it is near, else on the nearest lane to the camera */
     function carEnter(yaw, fresh) {
       carMake(); const near = !fresh && CAR.out && Math.hypot(CAR.state.x - S.x, CAR.state.z - S.z) < 60;
-      if (!near) { const L = carLane(S.x, S.z, yaw != null ? yaw : S.yaw, 140); CARW.at = null; if (L) { carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); CARW.snap = false; } else { CAR.place(S.x, S.z, yaw != null ? yaw : S.yaw, carLand(S.x, S.z)); CARW.snap = true; } }
+      if (!near) { const L = carLane(S.x, S.z, yaw != null ? yaw : S.yaw, 140); CARW.at = null; if (L) { CARW.lift = L.lift; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); CARW.snap = false; } else { CAR.place(S.x, S.z, yaw != null ? yaw : S.yaw, carLand(S.x, S.z)); CARW.snap = true; } }
       CAR.show(true); CARW.drive = true; CARW.script = null; S.cchase.yaw = 0; S.cchase.oyaw = (CAR.state.yaw + 150) % 360; if (S.cchase.pitch < -60) S.cchase.pitch = -9; S.x = CAR.state.x; S.z = CAR.state.z; S.on = null; S.fov = 65; engine.playing = true; engine.wake(); carHero(); need(3);
     }
     /* leave it where it is: it brakes to rest by itself and stays there, solid for the traffic */
     function carLeave() { CARW.drive = false; CARW.script = null; if (CAR) { CAR.cabin(false); CAR.quiet(); const I = CAR.input; I.throttle = I.brake = I.steer = I.handbrake = 0; } if (S.fast) { S.fast = false; ensureAt = null; } }
-    function carHero() { if (!CAR || !CAR.out) { S.hero = null; return; } const a = CAR.state, h = S.hero || (S.hero = { x: 0, z: 0, yaw: 0, speed: 0, len: 4.8, wid: 1.9, on: true }); h.x = a.x; h.z = a.z; h.yaw = a.yaw; h.speed = a.forward; h.len = 4.8; h.wid = 1.9; h.on = CARW.drive; }
+    function carHero() { if (!CAR || !CAR.out) { S.hero = null; return; } const a = CAR.state, h = S.hero || (S.hero = { x: 0, z: 0, yaw: 0, speed: 0, len: 4.8, wid: 1.9, on: true }); h.x = a.x; h.z = a.z; h.yaw = a.yaw; h.speed = a.forward; h.len = 4.8; h.wid = 1.9; h.on = true; h.driving = CARW.drive; h.y = a.y; }
     function carEnv() {
       const a = CAR.state, wet = clamp(scene.env.wetness || 0, 0, 1), sn = SE.STORM[S.storm] || {}, heavy = SK.now && SK.now.rain ? clamp(SK.now.rain, 0, 1) : 0, road = carRoadAt(a.x, a.z);
       let grip = sn.grip != null ? +sn.grip : clamp(1 - 0.4 * wet - 0.12 * heavy * heavy, 0.35, 1); if (!road) grip *= 0.62;
-      return { ground: carGround, grip, hit: carHit, night: smoothstep(2, -6, S.sunAlt), wet, onRoad: !!road, road: road ? road[1] : null, live: CARW.drive };
+      CARW.lift = road ? road[0] : 0; return { ground: carGround, grip, hit: carHit, night: smoothstep(2, -6, S.sunAlt), wet, onRoad: !!road, road: road ? road[1] : null, live: CARW.drive };
     }
     /* what the driver asks for: keys while the view has the focus, the on-screen pad (S.keys), a game pad, or a script (en.car.drive) */
     function carInput() {
@@ -77,9 +78,10 @@
     /* one step of the car while it is being driven */
     function carStep(dt) {
       if (!CAR) return false; const a = CAR.state, px = a.x, pz = a.z;
-      if (CARW.snap && S.roads.length) { const L = carLane(a.x, a.z, a.yaw, 140); if (L && a.atRest) { CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); } CARW.snap = false; }
+      if (CARW.snap && S.roads.length) { const L = carLane(a.x, a.z, a.yaw, 140); if (L && a.atRest) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); } CARW.snap = false; }
       const asked = carInput(); carNear(a.x, a.z, a.speed);
-      CARW.hitN = 0; CARW.tHit = null; if (S.trafficHit) { let t = null; try { t = S.trafficHit(a.x, a.z, a.yaw); } catch (e) { t = null; } if (t && isFinite(t.nx) && isFinite(t.nz) && t.depth > 0) { let at = 1; if (isFinite(t.x) && isFinite(t.z)) { const y = Rd(a.yaw), along = (t.x - a.x) * Math.sin(y) - (t.z - a.z) * Math.cos(y); at = along > 0.8 ? 0 : along < -0.8 ? 2 : 1; } CARW.tHit = { nx: +t.nx, nz: +t.nz, depth: Math.min(+t.depth, 3), at }; } }
+      CARW.hitN = 0; CARW.tHit = null; if (S.trafficHit) { let t = null; try { t = S.trafficHit(a.x, a.z, a.yaw); } catch (e) { t = null; } if (t && t.nx == null && isFinite(t.x) && isFinite(t.z)) { const y = Rd(a.yaw), fx = Math.sin(y), fz = -Math.cos(y), ex = a.x - t.x, ez = a.z - t.z, d = Math.hypot(ex, ez) || 1, nx = ex / d, nz = ez / d, ohx = t.hx != null ? t.hx : 0, ohz = t.hz != null ? t.hz : 1, eo = Math.abs(nx * ohx + nz * ohz) * (t.hl || 2.4) + Math.abs(-nx * ohz + nz * ohx) * (t.hw || 0.95), eh = Math.abs(nx * fx + nz * fz) * 2.4 + Math.abs(-nx * fz + nz * fx) * 0.95; t = { nx, nz, depth: clamp(eo + eh - d, 0.03, 1.5), x: t.x, z: t.z }; }
+      if (t && isFinite(t.nx) && isFinite(t.nz) && t.depth > 0) { let at = 1; if (isFinite(t.x) && isFinite(t.z)) { const y = Rd(a.yaw), along = (t.x - a.x) * Math.sin(y) - (t.z - a.z) * Math.cos(y); at = along > 0.8 ? 0 : along < -0.8 ? 2 : 1; } CARW.tHit = { nx: +t.nx, nz: +t.nz, depth: Math.min(+t.depth, 3), at }; } }
       const moving = engine.playing ? CAR.update(dt, carEnv()) : false; S.x = a.x; S.z = a.z;
       const was = S.fast; S.fast = was ? a.speed > 45 : a.speed > 60; if (was && !S.fast) { plan(); ensureAt = null; }
       carRoads(); carHero(); after(Math.hypot(a.x - px, a.z - pz) < 0.02);
@@ -113,14 +115,14 @@
     function carKey(code) {
       if (!CAR) return; if (code === 'KeyC') { S.carCam = CAR.CAMS[(CAR.CAMS.indexOf(S.carCam) + 1) % CAR.CAMS.length]; S.cchase.yaw = 0; if (S.carCam === 'orbit') S.cchase.oyaw = (CAR.state.yaw + 150) % 360; if (env.onGraphics) env.onGraphics(graphics()); }
       else if (code === 'KeyR') CAR.input.reverse = !CAR.input.reverse; else if (code === 'KeyT') CAR.input.tc = CAR.input.tc === false;
-      else if (code === 'KeyB') { const a = CAR.state, L = carLane(a.x, a.z, a.yaw, 400); if (L) { CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); S.x = L.x; S.z = L.z; after(); } }
+      else if (code === 'KeyB') { const a = CAR.state, L = carLane(a.x, a.z, a.yaw, 400); if (L) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); S.x = L.x; S.z = L.z; after(); } }
       engine.playing = true; engine.wake(); need();
     }
     const carState = () => { if (!CAR || !CAR.out) return null; const a = CAR.state, ll = toLL(a.x, a.z); return { mph: a.mph, speed: a.speed, gear: a.reverse ? -1 : a.gear, rpm: a.rpm, throttle: a.throttle, brake: a.brake, steer: a.steer, gLong: a.gLong, gLat: a.gLat, tc: a.tcMode, abs: a.abs, drifting: a.drifting, hit: a.hit, hits: a.hits, atRest: a.atRest, onRoad: a.onRoad, grip: a.grip, wet: a.wet, lamps: !!a.lamps, braking: !!a.braking, yaw: a.yaw, lat: ll[0], lon: ll[1], y: a.y, odo: a.odo, topMph: a.topMph, top: 251, driving: CARW.drive, cam: S.carCam, fast: S.fast }; };
     /* the public handle (en.car) */
     const carApi = { get craft() { return CAR; }, get state() { return CAR ? CAR.state : null; }, get input() { return CAR ? CAR.input : null; }, spec: () => carMake().SPEC, keys: CAR_KEYS, note: CAR_NOTE, cams: ['chase', 'bonnet', 'cockpit', 'orbit'],
       /* put the car at a latitude and longitude, heading yaw (degrees from north); snapped to the nearest lane unless o.exact */
-      place(lat, lon, yaw, o) { carMake(); const p = toL(lat, lon), L = o && o.exact ? null : carLane(p[0], p[1], yaw != null ? yaw : CAR.state.yaw, 60), q = L || { x: p[0], z: p[1], yaw: yaw != null ? yaw : CAR.state.yaw }; CARW.at = null; carNear(q.x, q.z, 0); CAR.place(q.x, q.z, q.yaw, carGround(q.x, q.z)); CAR.show(true); CARW.snap = false; if (S.mode === 'm3') { S.x = q.x; S.z = q.z; after(); } carHero(); need(3); return carState(); },
+      place(lat, lon, yaw, o) { carMake(); const p = toL(lat, lon), L = o && o.exact ? null : carLane(p[0], p[1], yaw != null ? yaw : CAR.state.yaw, 60), q = L || { x: p[0], z: p[1], yaw: yaw != null ? yaw : CAR.state.yaw }; CARW.lift = L ? L.lift : 0; CARW.at = null; carNear(q.x, q.z, 0); CAR.place(q.x, q.z, q.yaw, carGround(q.x, q.z)); CAR.show(true); CARW.snap = false; if (S.mode === 'm3') { S.x = q.x; S.z = q.z; after(); } carHero(); need(3); return carState(); },
       camera(c) { if (!CAR) return S.carCam; if (c && CAR.CAMS.includes(c)) { S.carCam = c; S.cchase.yaw = 0; } else if (!c) carKey('KeyC'); need(); return S.carCam; },
       reset() { carKey('KeyB'); }, tc(on) { if (CAR) CAR.input.tc = on == null ? CAR.input.tc === false : !!on; return CAR ? CAR.input.tc !== false : true; }, reverse(on) { if (CAR) CAR.input.reverse = on == null ? !CAR.input.reverse : !!on; },
       /* a script at the wheel: { throttle, brake, steer, handbrake, reverse }, or null to give the wheel back */

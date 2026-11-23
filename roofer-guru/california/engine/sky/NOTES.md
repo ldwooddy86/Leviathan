@@ -18,3 +18,8 @@ Facts fixed so far:
 Status: see bottom (update as you go).
 - [ ] build_data.py
 - [ ] kit model (schedule, paths)  - [ ] meshes  - [ ] bridges  - [ ] navy  - [ ] port  - [ ] tests
+
+## 23 Nov (resumed)
+- DONE: build_data.py -> sky_data.js; sky_model.js (node-tested: info at LAX works); sky_shapes.js (sizes checked in node);
+  sky_engine.js (kit: flights, helos, navy site, Coronado + Golden Gate, S.deckAt); port_sky.py (7 anchors) applies to la_engine.js -> out/engine_sky.js, parses; out/testbed.html built.
+- NEXT: tests/model_check.js (glide path, spacing, rates); browser run (tests/run.js) at LAX, Coronado, Golden Gate; then sky_more.js (Bay Bridge, Vincent Thomas, boats, airport lights).

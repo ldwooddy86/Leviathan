@@ -95,7 +95,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const t7b = await page.evaluate(() => { const en = MODI.rooftops.api.en(), g = en.graphics(); en.setHeight('saucer'); return { lens: g.lens, n: g.lensN, pending: g.lensPending }; }); await wait(5000);
   const t7c = await page.evaluate(() => { const en = MODI.rooftops.api.en(), hud = document.querySelector('.se-hud'); const t = hud ? hud.textContent : ''; en.setGraphics({ lens: 'off' }); en.setHeight('street'); en.storm(0); en.wind(0); return { hud: (t.match(/WEATHER\s*([^A-Z]*[A-Za-z0-9 ,]*?)(?=CAM|ROOF|$)/) || [])[0] || t.slice(0, 200) }; });
   ok(!t7.err, '7  the storm roof view can be turned on in AR3 with a high offshore wind without an error (the Louisiana module\'s own reading of it is not California\'s yet)', Object.assign({}, t7, t7b));
-  ok(/AR3/.test(t7c.hud) && /High wind/.test(t7c.hud), '7b the craft\'s heads-up display names the weather', t7c);
+  ok(/AR3/.test(t7c.hud) && /Offshore high wind/.test(t7c.hud), '7b the craft\'s heads-up display names the weather', t7c);
 
   await wait(2000);
   console.log('PAGE ERRORS:', errs.length ? errs.join('\n') : 'none'); if (errs.length) bad++; console.log(bad ? bad + ' FAILED' : 'all pass');

@@ -1,0 +1,11 @@
+{ "addr": "9800 S Sepulveda Blvd, Los Angeles, CA",
+  "shots": [
+    { "name": "lax_sepulveda_street", "pos": "const M = en.sky.model, a = M.airports.LAX, e = M.runway('LAX', '24R'); return M.along(a, e, e.displ - 700, 260);", "yaw": 20, "pitch": 14, "mode": "street", "sun": 10, "wait": 40000,
+      "check": "const k = en.sky, f = k.flights.filter(p => p.kind === 'arr' && p.f.rw === '24R' && p.dist > 0).sort((a, b) => a.dist - b.dist)[0]; return f ? { nearest24R_nm: +(f.dist / 1852).toFixed(2), y_m: +f.y.toFixed(1), want_m: +((55 * 0.3048) + Math.tan(3 * Math.PI / 180) * f.dist).toFixed(1), type: f.f.type.key } : null;" },
+    { "name": "lax_drone_east", "pos": "const M = en.sky.model, a = M.airports.LAX, e = M.runway('LAX', '24R'); return M.along(a, e, e.displ + 300, 500);", "yaw": 75, "pitch": 3, "mode": "drone", "sun": 10, "wait": 30000 },
+    { "name": "coronado_carrier_drone", "lat": 32.7098, "lon": -117.1868, "yaw": 322, "pitch": -8, "mode": "drone", "sun": 14, "wait": 45000 },
+    { "name": "coronado_bridge_tidelands", "lat": 32.6928, "lon": -117.1655, "yaw": 78, "pitch": 6, "mode": "street", "sun": 14, "wait": 40000,
+      "check": "const d = en.sky.decks[0], K = d.loc.K, t = en.sky.tools, p = t.pointAt(d, K.ch); return { channel_s: Math.round(K.ch), L: Math.round(d.loc.L), deck_at_channel: +t.deckY(d, K.ch, p.x, p.z).toFixed(1), deckAt: en.world.deckAt(p.x, p.z), off: en.world.deckAt(p.x + 200, p.z + 200) };" },
+    { "name": "golden_gate_crissy", "lat": 37.8052, "lon": -122.4640, "yaw": 300, "pitch": 5, "mode": "street", "sun": 15, "wait": 45000,
+      "check": "const d = en.sky.decks.find(x => x.name === 'Golden Gate Bridge'), K = d.loc.K, t = en.sky.tools, p = t.pointAt(d, (K.S + K.N) / 2); return { towers_m: Math.round(K.N - K.S), mid_deck: +t.deckY(d, (K.S + K.N) / 2, p.x, p.z).toFixed(1), deckAt: en.world.deckAt(p.x, p.z) };" }
+  ] }
