@@ -1508,47 +1508,48 @@
      third of the way up its range of colours */
   const heatRef = (type, la, lo) => { const o = ROOFOPT[type] || ROOFOPT.shingle, sr = reflectOf(type, null), low = type === 'low' || type === 'lowmf' || type === 'mbldg' || type === 'flat', t = rad(low ? 2 : 26.6); let s = 0; for (let k = 0; k < 8; k++) { const a = rad(k * 45); s += heatRate(sr, o.e, [Math.sin(t) * Math.sin(a), Math.cos(t), -Math.sin(t) * Math.cos(a)], la, lo); } return s / 8; };
 
-  /* ---------- the roof views of the Scout Engine: heat, wear, and the next fifteen years, plane by plane ---------- */
+  /* ---------- the roof views of the Scout Engine: plane by plane ---------- */
   /* The engine cuts every roof near the camera into small triangles and asks, for each corner, what to draw there. It
      tells what it knows of the place: the plane's normal, how near the corner is to an eave, a roof corner or a ridge
-     (ASCE 7 puts the hardest uplift there; on the ground IBHS found shingle damage after Gustav and Ike about as often in
-     the middle of a slope as along its edge, rarer but worse at corners, with hip and ridge caps the first thing lost, so
-     the views lean on ridges and hips and only a little on edges), how much of the sun a
-     tree or a neighbour blocks there at this hour, whether a crown hangs over it, and how light the roof shows in the
-     photograph. The answers are numbers on fixed scales, so two roofs, two hours and two years compare. Row picks the
-     colours: 0 heat, 1 wear, 2 and up one cause each. Marks are specks the engine scatters: 1 tabs lost to wind, 2 hail
-     hits, 3 worn patches, 4 algae streaks, 5 rust, 6 a leak. */
+     (ASCE 7 puts the hardest uplift there; on the ground IBHS found shingle damage after two 2008 storms about as often
+     in the middle of a slope as along its edge, rarer but worse at corners, with hip and ridge caps the first thing
+     lost, so the views lean on ridges and hips and only a little on edges), how much of the sun a tree or a neighbour
+     blocks there at this hour, whether a crown hangs over it, and how light the roof shows in the photograph. The
+     answers are numbers on fixed scales, so two roofs, two hours and two years compare. Row picks the colours. Marks are
+     specks the engine scatters: 1 cover lost to wind, 2 hail hits, 3 worn patches, 4 moss or algae, 5 rust (and, in the
+     Fire view, where embers lodge), 6 a leak; from 7 up the mark is the covering's own pattern. */
   const LENS_T = [40, 200];   /* the thermal scale, degrees Fahrenheit */
-  const LENS_ROW = { thermal: 0, wear: 1, hur: 2, ts: 2, hail: 3, wear_t: 4, leak: 5, rust: 6, algae: 7, shingle: 8, metal: 9, tile: 10, low: 11, lowW: 12, mh: 13, mbldg: 14, tab3: 15, lam: 16, other: 17, storm: 18 };
+  const LENS_ROW = { thermal: 0, wear: 1, wind: 2, hail: 3, wear_t: 4, rain: 5, leak: 5, rust: 6, algae: 7, shingle: 8, metal: 9, tile: 10, low: 11, flat: 11, lowmf: 11, lowW: 12, mh: 13, mbldg: 14, tab3: 15, lam: 16, other: 17, storm: 18, wood: 19, fire: 20, fclass: 21, snow: 22, solar: 23, tileC: 24 };
   const LENS_PAL = [
     ['#05061a', '#1a0f5c', '#5b1392', '#a01d86', '#d53f58', '#f0752a', '#f9b223', '#fde96a', '#ffffff'],                /* heat: the ironbow of a thermal camera */
     ['#1d6b4a', '#4f9a4a', '#a8bf3f', '#f0c53a', '#ee8a2e', '#d94a2a', '#8c1d3a'],                                      /* wear: sound to worn out */
     ['#0c2233', '#12507a', '#1f86c9', '#58c0ff', '#d6f1ff'],                                                            /* wind */
     ['#1e1233', '#4a2584', '#8448d6', '#c08cff', '#f1e2ff'],                                                            /* hail */
     ['#33210c', '#7a4a12', '#c9801f', '#ffb347', '#fff0cf'],                                                            /* heat, sun and age */
-    ['#0c2e2c', '#136b66', '#1fb3a8', '#6fe6da', '#dcfffb'],                                                            /* leaks */
+    ['#0c2e2c', '#136b66', '#1fb3a8', '#6fe6da', '#dcfffb'],                                                            /* rain and leaks */
     ['#2e140c', '#7a2e13', '#c4501f', '#f0845a', '#ffe1d4'],                                                            /* rust */
-    ['#16260f', '#35591f', '#5d9134', '#9fd06a', '#e9ffd4'],                                                            /* algae */
+    ['#16260f', '#35591f', '#5d9134', '#9fd06a', '#e9ffd4'],                                                            /* moss and algae */
     ['#2b3140', '#56627a', '#93a5cc'],                                                                                  /* covering: asphalt shingles */
     ['#0f3340', '#1f7f9a', '#62d6f0'],                                                                                  /* covering: metal on a house */
-    ['#40180c', '#a8451f', '#f38d4c'],                                                                                  /* covering: tile or slate */
-    ['#2a2233', '#5d4a78', '#a98fd6'],                                                                                  /* covering: a dark membrane */
-    ['#5a5f66', '#b4bcc6', '#f5f8fb'],                                                                                  /* covering: a white membrane */
+    ['#40180c', '#a8451f', '#f38d4c'],                                                                                  /* covering: clay tile */
+    ['#2a2233', '#5d4a78', '#a98fd6'],                                                                                  /* covering: a dark low slope roof (cap sheet, built up, modified bitumen) */
+    ['#5a5f66', '#b4bcc6', '#f5f8fb'],                                                                                  /* covering: a white membrane or cool coating */
     ['#33300f', '#7d7526', '#d9ce58'],                                                                                  /* covering: a manufactured home roof */
     ['#0f3326', '#218a63', '#63e0b0'],                                                                                  /* covering: metal building panels */
     ['#101c3a', '#2a57c0', '#82abff'],                                                                                  /* shingle style: three tab */
     ['#3a2408', '#c07a14', '#ffc85c'],                                                                                  /* shingle style: laminated */
     ['#1c1f24', '#3b4048', '#6a717c'],                                                                                  /* not shingles */
-    ['#10202c', '#235a7a', '#d9c23a', '#ea7a28', '#cf2a22', '#7e1040'],                                                 /* a storm: untouched to stripped */
+    ['#10202c', '#235a7a', '#d9c23a', '#ea7a28', '#cf2a22', '#7e1040'],                                                 /* the weather on the scales: untouched to stripped */
+    ['#2e2114', '#6e4f2c', '#b98a52'],                                                                                  /* covering: wood shakes */
+    ['#2a0d06', '#7a1f0c', '#d8421a', '#ff8a3c', '#ffe3b0'],                                                            /* wildfire */
+    ['#1f7a4d', '#7fb23f', '#e6c53a', '#ea7a28', '#b3261e'],                                                            /* fire class: Class A to unrated */
+    ['#0d1b2e', '#27507e', '#6fa3d8', '#cfe4f7', '#ffffff'],                                                            /* snow load: none to the design load */
+    ['#141433', '#3b2f7d', '#8a4a9c', '#d9725a', '#f7c14a', '#fff7c2'],                                                 /* the sun a plane takes in a year */
+    ['#3a2a22', '#8a6a58', '#cdb3a2'],                                                                                  /* covering: concrete tile */
   ];
-  const CAUSE_COL = { hur: '#58c0ff', ts: '#58c0ff', wind: '#58c0ff', hail: '#c08cff', wear: '#ffb347', leak: '#6fe6da', rust: '#f0845a', algae: '#9fd06a' };
+  const CAUSE_COL = { wind: '#58c0ff', hail: '#c08cff', wear: '#ffb347', rain: '#6fe6da', leak: '#6fe6da', rust: '#f0845a', algae: '#9fd06a', fire: '#ff8a3c' };
   const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const faceOf = n => (n[1] > 0.985 ? 'level' : 'faces ' + compass((deg(Math.atan2(n[0], -n[2])) + 360) % 360));
-  /* the storms today's roof has most likely been through: each storm year of 50 knots or more at the ZIP, by the chance the
-     roof was already on (older: the chance today's roof is more than that many years old, from the spread of its ages),
-     with the share of the ZIP's roofs that year cost, as the outlook counts it */
-  function stormsSeen(zip, older) { const out = []; stormsAt(zip).forEach(s => { const x = s.list[0]; if (!x || x.kt < 50) return; const ago = THIS_YEAR - s.y; if (ago < 0) return; const p = clamp(older(ago), 0, 1); if (p > 0.05) out.push({ si: x.si, s: x.s, kt: x.kt, ago, p, d: costOf(s) }); }); return out.sort((a, c) => c.d * c.p - a.d * a.p || c.kt * c.p - a.kt * a.p); }
-  /* ---------- three more roof views: what covers each roof, which shingle it is, and what a storm of the chosen strength would do to it ---------- */
   /* Laminated (architectural, dimensional) shingles' share of the asphalt shingles sold in the United States, by year:
      7 percent in 1984 and 23 in 1994 (Elcor's annual reports), 27 in 1996, 36 in 1998, 46 in 2000 and 59 in 2003 (GAF's),
      over 65 in 2006 (ElkCorp), 70 in 2010 (Fine Homebuilding), about 86 over 2015 to 2020, 91 in 2021, 93 in 2022 and
@@ -1556,10 +1557,7 @@
      as one average, which is spread here from 83 to 89, a judgment). 1980 is 5 (ARMA, at second hand) and is held for
      every year before it; 2002, 2004 and 2006 sit between two readings each; 2011 to 2014 were not found and are drawn
      straight between. The rest of each year's shingles are three tab strips. These are national figures: no split for
-     Louisiana was found, and Louisiana's rules set a wind class (ASTM D3161 Class F or D7158 Class H; New Orleans also
-     takes Class G), not a style. Two records point the other way for roofs already on: a 2018 homeowner survey found
-     three tab still the commonest choice for a replacement roof (Home Innovation Research Labs), and in 2023 three tab
-     was on 64 percent of the shingle roofs in Georgia's insurance claims (Nearmap; Louisiana is not in its list). */
+     California was found. Sacramento's permits name the shingle outright ("30yr Laminated Dimensional Composition"). */
   const LAM = [[1980, 0.05], [1984, 0.07], [1994, 0.23], [1996, 0.27], [1998, 0.36], [2000, 0.46], [2002, 0.53], [2003, 0.59], [2004, 0.61], [2006, 0.66], [2010, 0.70], [2015, 0.83], [2018, 0.86], [2021, 0.91], [2022, 0.93], [2023, 0.93], [2024, 0.95], [2025, 0.95]];
   const lamAt = y => { if (y <= LAM[0][0]) return LAM[0][1]; for (let i = 1; i < LAM.length; i++) if (y <= LAM[i][0]) { const a = LAM[i - 1], c = LAM[i]; return a[1] + (c[1] - a[1]) * (y - a[0]) / (c[0] - a[0]); } return LAM[LAM.length - 1][1]; };
   /* a roof's age today as a spread of chances, from the outlook's clock (O.older(n): the chance it is more than n years old), or its one likely age without one */
@@ -1572,80 +1570,154 @@
   /* which shingle: the chance it is laminated, by the years it may have gone on */
   function styleOf(b, O) { const sp = ageSpread(b, O); let lam = 0, yr = 0; sp.forEach(([a, w]) => { lam += w * lamAt(THIS_YEAR - a); yr += w * (THIS_YEAR - a); }); return { lam: clamp(lam, 0, 1), year: Math.round(yr) }; }
   /* The coverings the views tell apart: the row of colours each takes, and the pattern the Scout Engine draws in the plane
-     of the roof (its LENS_FS), each at one common size of that covering: 7 three tab strips (the 36 inch shingle: 12
-     inch tabs at a 5 inch exposure, courses offset half a tab; metric three tabs run 13 1/8 inch tabs at 5 5/8), 8
-     laminated shingles (5 5/8 inch exposure, tabs of uneven width over a darker layer), 9 standing seam (seams at 16
-     inches; also sold at 12), 10 ribbed panels with their screws showing (ribs at 12 inches: 5V crimp, R panel), 11
-     barrel tile (8 1/4 by 10 1/4 inches to the weather, Ludowici's Spanish tile), 13 a white membrane (10 ft sheets:
-     one of the four widths TPO comes in), 14 a dark membrane (the metre wide rolls of a modified bitumen cap sheet).
-     The sizes are from makers' data sheets; 12 (slate) is in the shader and no covering here asks for it. */
+     of the roof, each at one common size of that covering: 7 three tab strips, 8 laminated shingles, 9 standing seam
+     (seams at 16 inches), 10 ribbed panels with their screws showing, 11 barrel (mission) clay tile, 13 a white
+     membrane (10 ft sheets), 14 a cap sheet or other dark roll roofing (metre wide rolls); and, where the engine
+     carries California's patterns (ENGX.pat), 15 flat concrete tile (13 inches to the weather, 12 wide, courses broken
+     half a tile), 16 S tile (the one piece clay or concrete S: 13 inch courses, crowns at 11 3/4 inches), 17 wood shakes
+     (10 inch exposure, shakes 4 to 12 inches wide), 18 a gravel surfaced built up roof and 19 rooftop solar panels.
+     Without them the nearest older pattern stands in. Sizes are from makers' data sheets. */
+  const ENGX = { pat: 14 };   /* the highest pattern number the engine in the page can draw; the engine bar reads it from the engine */
+  const patOf = p => (p <= ENGX.pat ? p : p === 15 || p === 16 ? 11 : p === 17 ? 8 : p === 18 ? 14 : 14);
   const COVER = {
     shingle: { row: 8, pat: 8, l: 'Asphalt shingles', s: 'shingles' },
-    metal: { row: 9, pat: 9, l: 'Metal on a house', s: 'metal', d: 'drawn as standing seam; the records cannot tell it from 5V crimp or ribbed panels' },
-    tile: { row: 10, pat: 11, l: 'Tile or slate', s: 'tile or slate', d: 'drawn as barrel tile' },
+    tile: { row: 10, pat: 16, l: 'Tile (clay or concrete)', s: 'tile', d: 'clay more often than concrete by the survey; drawn as S tile, or flat tile where concrete is the likelier' },
+    wood: { row: 19, pat: 17, l: 'Wood shakes or shingles', s: 'wood shakes' },
+    metal: { row: 9, pat: 9, l: 'Metal on a house', s: 'metal', d: 'drawn as standing seam; the records cannot tell it from ribbed panels or stone coated steel' },
+    flat: { row: 11, pat: 14, l: 'Low slope roof on a house', s: 'a low slope roof', d: 'cap sheet, built up or single ply' },
     low: { row: 11, pat: 14, l: 'Low slope membrane', s: 'membrane' }, lowmf: { row: 11, pat: 14, l: 'Low slope membrane', s: 'membrane' },
     mh: { row: 13, pat: 10, l: 'Manufactured home roof', s: 'manufactured home roof', d: 'metal on older single wides, shingles on pitched double wides; drawn as ribbed metal' },
     mbldg: { row: 14, pat: 10, l: 'Metal building panels', s: 'metal panels', d: 'ribbed panels, their screws showing' },
   };
-  const COVER_KEY = [['shingle', 'Asphalt shingles'], ['metal', 'Metal on a house'], ['tile', 'Tile or slate'], ['low', 'Membrane, dark (modified bitumen, built up, EPDM)'], ['lowW', 'Membrane, white (TPO, PVC or a coating)'], ['mh', 'Manufactured home roof'], ['mbldg', 'Metal building panels']];
-  const coverRow = (k, lum) => ((k === 'low' || k === 'lowmf') && isN(lum) && lum >= 0.55 ? 12 : (COVER[k] || COVER.shingle).row);
+  const COVER_KEY = [['shingle', 'Asphalt shingles'], ['tile', 'Clay tile'], ['tileC', 'Concrete tile'], ['wood', 'Wood shakes or shingles'], ['metal', 'Metal on a house'], ['low', 'Low slope, dark (cap sheet, built up, modified bitumen)'], ['lowW', 'Low slope, white (TPO, PVC or a cool coating)'], ['mh', 'Manufactured home roof'], ['mbldg', 'Metal building panels']];
+  const isLowK = k => k === 'low' || k === 'lowmf' || k === 'flat';
+  const coverRow = (k, lum) => (isLowK(k) && isN(lum) && lum >= 0.55 ? 12 : (COVER[k] || COVER.shingle).row);
   const photoWord = lum => (!isN(lum) ? '' : lum < 0.3 ? 'dark' : lum < 0.42 ? 'mid toned' : lum < 0.58 ? 'light' : 'very light');
-  /* The share of a ZIP's roofs one storm with that sustained wind replaces. To 112 knots, the top of Category 3, it is the
-     atlas's own damage curve (module 02, fitted to FEMA's counts), scaled to what FEMA's counts have come to against it
-     since 2004 (curveK: about all of it below hurricane force, a half to four fifths above). The curve is flat past
-     about 95 knots, because Louisiana's record holds few stronger winds over many roofs; so above 112 knots it is
-     carried up on one anchor from another state: in the South Florida neighbourhoods surveyed after Andrew, where 3
-     second gusts likely passed 155 mph and may have reached 175, 23 to 30 percent of homes lost a third to two thirds of
-     their roof cover and 36 to 47 percent lost more (NAHB Research Center 1993, as IBHS quotes it): 59 to 77 percent
-     together, which is this atlas's sum. By the storm scale's own gust figure (1.23) those gusts go with the Category 4
-     step, so the middle, 68 percent, is set there (124 knots, 143 mph), and the top, 77 percent, at the Category 5 step
-     (143 knots, 165 mph), for which no survey was found. Grade D above Category 3: judgment on one storm's survey. */
-  const CURVE_AT = [42, 57, 72, 90];   /* the middle of each band of wind the ratios were counted in (34 to 49, 50 to 63, 64 to 79, 80 knots and up): the ratio is drawn straight between them, so the share never steps down as the wind rises */
-  const curveKAt = kt => { const K = curveK(); if (kt <= CURVE_AT[0]) return K[0]; for (let i = 1; i < 4; i++) if (kt <= CURVE_AT[i]) return K[i - 1] + (K[i] - K[i - 1]) * (kt - CURVE_AT[i - 1]) / (CURVE_AT[i] - CURVE_AT[i - 1]); return K[3]; };
-  const stormShare = kt => { if (!(kt >= 34)) return 0; const k = Math.min(kt, 112), base = dmgShare(k) * (curveKAt(k) || 1); const c4 = Math.max(base, 0.68); return kt <= 112 ? base : kt <= 124 ? base + (c4 - base) * (kt - 112) / 12 : c4 + (Math.max(c4, 0.77) - c4) * clamp((kt - 124) / 19, 0, 1); };
-  /* that storm on one building: the chance its roof must be replaced, and the chance it is damaged and repaired, over its
-     coverings and the ages it may be; kind 'wind' for a tropical storm or hurricane, 'ts' for one severe thunderstorm
-     (58 mph gusts: the atlas's stated rate for such a day, module 12), 'rain' for rain without wind: no storm damage,
-     and what rain finds is the leaks a roof already has (the repair line's calls a year at its age) */
-  function stormOnRoof(b, O, level, step) {
-    const types = typesOf(b), W = types.reduce((s, x) => s + x[1], 0) || 1, sp = ageSpread(b, O, AGE_MAX), st = O ? O.st : 1, kind = level >= 4 ? 'wind' : level === 3 ? 'ts' : level >= 1 ? 'rain' : 'dry', d = kind === 'wind' && step ? stormShare(step.kt) : 0; let rep = 0, fix = 0, leak = 0;
-    types.forEach(([k, w]) => { const T = RTYPE[k] || RTYPE.shingle, wk = T.wind * OC.tall(st); sp.forEach(([a, pa]) => { const q = w / W * pa;
-      if (kind === 'wind') { const x = stormOn(d, a, T.ageK), r = clamp(x[0] * wk, 0, 0.97), f = Math.min(1 - r, x[1] * wk); rep += q * r; fix += q * f; }
-      else if (kind === 'ts') { const x = OC.ts[0][0] * windAgeK(a, T.ageK) * wk; rep += q * x * OC.ts[0][1]; fix += q * x * (1 - OC.ts[0][1]); }
-      else if (kind === 'rain') leak += q * clamp(repRate(a) * T.leak, 0, 0.5); }); });
-    return { kind, d, rep, fix, any: rep + fix, leak };
+
+  /* ---------- the weather on the engine's scales, and what it would do to a roof ---------- */
+  /* Two scales and a sky, as the Scout Engine runs them. The rain scale: dry, light rain, rain, a thunderstorm, and
+     atmospheric rivers of rank 1 to 5 on the scale of Ralph and others (2019: the rank is set by the water vapour a
+     storm carries and how long it stays, not by wind or rain at a street). The dry wind scale: calm, a breeze, and
+     four steps of offshore wind (Santa Ana in the south, Diablo in the north) from an advisory to an extreme day. For
+     the roof readings each step needs a gust and, for rain, a share of a year's leaks; the engine's own figures are
+     used when it gives them, else these: gusts in mph, a judgment anchored on the Weather Service's usual criteria (a wind
+     advisory from gusts of 46 mph, a high wind warning from 58) and on January 7, 2025, when Burbank Airport gusted
+     to 84 mph and Saddle Peak to 98 (NOAA Storm Events). leak: the share of a year's leak calls a storm of that step
+     brings (a judgment, grade D: no count of leak claims by storm was found; the one demand record is that Los
+     Angeles issued 40 percent more re-roof permits in 2023, after the wet winter of 2022 to 2023, than in
+     2022). swe: inches of water the storm leaves as snow above its snow level (judgment), and snowM that level in
+     metres (warm, strong atmospheric rivers snow high). */
+  const WX_RAIN = [
+    { id: 'dry', l: 'Dry', t: 'Dry', gust: 0, leak: 0, swe: 0, snowM: 0 },
+    { id: 'light', l: 'Light rain', t: 'Light', gust: 10, leak: 0.03, swe: 0.2, snowM: 1700 },
+    { id: 'rain', l: 'Rain', t: 'Rain', gust: 20, leak: 0.10, swe: 0.8, snowM: 1600 },
+    { id: 'tstorm', l: 'Thunderstorm', t: 'T-storm', gust: 50, leak: 0.08, swe: 0.4, snowM: 2400 },
+    { id: 'ar1', l: 'Atmospheric river, rank 1 (weak)', t: 'AR 1', gust: 25, leak: 0.10, swe: 1.0, snowM: 1700 },
+    { id: 'ar2', l: 'Atmospheric river, rank 2 (moderate)', t: 'AR 2', gust: 35, leak: 0.18, swe: 2.0, snowM: 1800 },
+    { id: 'ar3', l: 'Atmospheric river, rank 3 (strong)', t: 'AR 3', gust: 45, leak: 0.30, swe: 3.5, snowM: 2000 },
+    { id: 'ar4', l: 'Atmospheric river, rank 4 (extreme)', t: 'AR 4', gust: 55, leak: 0.45, swe: 5.5, snowM: 2200 },
+    { id: 'ar5', l: 'Atmospheric river, rank 5 (exceptional)', t: 'AR 5', gust: 65, leak: 0.60, swe: 8.0, snowM: 2400 },
+  ];
+  const WX_WIND = [
+    { id: 'calm', l: 'Calm', t: 'Calm', gust: 0 },
+    { id: 'breeze', l: 'Breeze', t: 'Breeze', gust: 20 },
+    { id: 'sa1', l: 'Offshore wind: advisory', t: 'Advisory', gust: 46 },
+    { id: 'sa2', l: 'Offshore wind: high wind warning', t: 'Warning', gust: 62 },
+    { id: 'sa3', l: 'Offshore wind: damaging', t: 'Damaging', gust: 78 },
+    { id: 'sa4', l: 'Offshore wind: extreme', t: 'Extreme', gust: 95 },
+  ];
+  const WX_SKY = [['clear', 'Clear'], ['marine', 'Marine layer'], ['tule', 'Tule fog'], ['smoke', 'Wildfire smoke']];
+  const rainStep = id => WX_RAIN.find(x => x.id === id) || WX_RAIN[0], windStep = id => WX_WIND.find(x => x.id === id) || WX_WIND[0];
+  /* what the scales stand at: the engine bar keeps this as it sets them, and the engine's own word is read when it gives one */
+  const WXNOW = { rain: 'dry', wind: 'calm', sky: 'clear', elev: null, engine: false };
+  const stepId = (s, list) => (s && typeof s === 'object' && list.some(x => x.id === s.id) ? s.id : typeof s === 'string' && list.some(x => x.id === s) ? s : null);
+  const gustOf = (own, eng) => { const g = eng && isN(+eng.gust) && +eng.gust > 5 && +eng.gust < 200 ? +eng.gust : null; return g != null ? g : own.gust; };
+  function wxResolve(ctx) {
+    ctx = ctx || {}; const rid = stepId(ctx.stormStep, WX_RAIN) || WXNOW.rain, wid = stepId(ctx.windStep, WX_WIND) || WXNOW.wind, r = rainStep(rid), w = windStep(wid);
+    const rg = gustOf(r, stepId(ctx.stormStep, WX_RAIN) ? ctx.stormStep : null), wg = gustOf(w, stepId(ctx.windStep, WX_WIND) ? ctx.windStep : null), sky = (typeof ctx.sky === 'string' && WX_SKY.some(x => x[0] === ctx.sky) ? ctx.sky : WXNOW.sky) || 'clear';
+    const snowM = ctx.stormStep && isN(+ctx.stormStep.snowLevel) && +ctx.stormStep.snowLevel > 0 ? +ctx.stormStep.snowLevel : r.snowM;
+    return { rain: r, wind: w, sky, gust: Math.max(rg, wg), rainGust: rg, windGust: wg, snowM, elev: isN(ctx.elev) ? +ctx.elev : WXNOW.elev };
   }
-  /* the strongest wind on record at a ZIP since the file resolves storms (1990), for the Storm view's note */
-  const topWind = zip => { let best = null; yearsOf(zip).forEach(y => { if (!best || y.kt > best.kt) best = y; }); return best; };
-  /* Storm surge, as a picture for the Scout Engine. The height at the open shore is the old Saffir-Simpson scale's for the
-     category (9 to 12 ft, 13 to 18 ft, over 18 ft; the middle of each and 20 ft for Category 5: the Hurricane Center took
-     surge off the scale in 2010, because the shape of the coast decides it as much as the wind does; 20 ft is a
-     judgment, the old scale saying only more than 18). It thins inland to nothing a little past the farthest the
-     Hurricane Center's reports put surge in southwest Louisiana: Rita, Category 3 at landfall, reached Interstate 10 at
-     Lake Charles (about 25 nautical miles by the report, about 50 km from the open shore as this atlas measures it) and
-     left up to 6 ft there; Laura, Category 4, went 20 to 30 nautical miles in. So 56 km is taken for Category 3, 65 for
-     Category 4 and, a judgment, 75 for Category 5. The ground is taken a metre above the sea, which is true of no
-     address in particular. Levees and floodwalls are not in it, nor the lakes, bayous and ship channels that carry
-     surge farther (Ida left 8 ft at LaPlace, by Lake Pontchartrain). Below Category 3 none is drawn: a choice of the
-     picture, not of the weather (the old scale gave 4 to 5 ft for Category 1 and 6 to 8 for Category 2). */
-  const SURGE = { 7: [3.2, 56], 8: [4.7, 65], 9: [6.1, 75] };
-  function surgeAt(la, lo, level) {
-    const s = SURGE[level]; if (!s) return null; const km = coastKm(la, lo); if (!(km < 900)) return { depth: 0, km, note: '' };
-    const depth = km < s[1] ? Math.max(0, (s[0] - 1) * (1 - Math.pow(km / s[1], 2))) : 0;
-    return { depth, km, note: depth > 0.05 ? `Storm surge is drawn ${D(depth * 3.281, 0)} ft deep here, ${D(km, 0)} km from the Gulf's open shore: a picture from the old Saffir-Simpson surge heights, not a forecast. Levees, floodwalls and the lie of the ground are not in it.` : `No surge is drawn here, ${D(km, 0)} km from the Gulf's open shore. That is where this picture stops, not where water stops: real surge has gone farther up lakes, rivers and ship channels. Not a flood map.` };
+  /* The share of roofs a day with that gust damages enough for a roofer (shingles of average age, one story): the atlas's
+     stated rates at 58 and 75 mph (OC.wind), drawn through as a straight line on a log scale and carried on to 100 mph
+     and back to 40 on the same line; nothing below 40, never over 5 percent. Past 75 mph it is an extrapolation with no
+     count behind it: California's reports say "countless roofs" (October 21, 2007, gusts over 70 mph) and give no
+     number. Grade D. */
+  const gustDmg = mph => { if (!(mph >= 40)) return 0; const a = OC.wind[0][0], b2 = OC.wind[1][0], k = Math.log(b2 / a) / 17; return Math.min(0.05, a * Math.exp(k * (mph - 58))); };
+  const gustRepl = mph => clamp(0.2 + (mph - 58) * 0.2 / 17, 0.1, 0.7);
+  /* The fire class a roof most likely carries as an assembly, [Class A, Class B, Class C, unrated], by covering and by
+     the age of the roof. Anchors: about 90 percent of structures inside the 2025 Palisades and Eaton perimeters had
+     Class A coverings by CAL FIRE's inspections and 80 percent of those IBHS examined; clay and concrete tile, metal
+     and slate count as Class A assemblies on the decks and underlayments the code names; fiberglass asphalt shingles
+     are sold as Class A, the older organic felt shingles as Class C; wood shakes are Class B when pressure treated (A
+     over a special underlayment) and unrated when not, and Los Angeles has restricted wood roofs since 1989 and now allows none. The split
+     by age (a roof of 30 years or more is likelier to be of the older kind) is a judgment, grade D. */
+  const FCLS = {
+    shingle: [[0.93, 0.03, 0.04, 0], [0.62, 0.05, 0.33, 0]], tile: [[0.95, 0.03, 0.02, 0], [0.9, 0.05, 0.05, 0]], metal: [[0.92, 0.05, 0.03, 0], [0.88, 0.06, 0.06, 0]],
+    wood: [[0.15, 0.65, 0.1, 0.1], [0.02, 0.18, 0.1, 0.7]], flat: [[0.85, 0.1, 0.05, 0], [0.7, 0.15, 0.15, 0]], low: [[0.88, 0.09, 0.03, 0], [0.75, 0.15, 0.1, 0]], lowmf: [[0.88, 0.09, 0.03, 0], [0.75, 0.15, 0.1, 0]],
+    mh: [[0.6, 0.1, 0.25, 0.05], [0.45, 0.1, 0.35, 0.1]], mbldg: [[0.92, 0.05, 0.03, 0], [0.88, 0.06, 0.06, 0]],
+  };
+  function fireClass(b, O) {
+    const types = typesOf(b), W = types.reduce((s, x) => s + x[1], 0) || 1, sp = ageSpread(b, O, 90), pOld = sp.reduce((s, [a, w]) => s + (a >= 30 ? w : 0), 0), out = [0, 0, 0, 0];
+    types.forEach(([k, w]) => { const F = FCLS[k] || FCLS.shingle; for (let i = 0; i < 4; i++) out[i] += w / W * (F[0][i] * (1 - pOld) + F[1][i] * pOld); });
+    return { p: out, pOld, below: clamp(out[1] * 0.4 + out[2] * 0.7 + out[3], 0, 1) };
   }
+  /* the class a re-roof here must be: Class A in a Fire Hazard Severity Zone when half the roof or more is replaced in a
+     year (the 2025 Wildland-Urban Interface Code, 507.1; the 2022 codes said "more than 50 percent"), and for any part
+     repaired or replaced; outside the zones the statute's floor (Health and Safety Code 13132.7: Class C, Class B in
+     State Responsibility Areas) */
+  const reroofClass = b => (!b.fhsz ? null : b.fhsz.cls >= 1 ? { c: 'A', why: `it stands in a ${b.fhsz.l} Fire Hazard Severity Zone (${b.fhsz.ra === 'SRA' ? 'State' : 'Local'} Responsibility Area)` } : { c: 'C', why: 'it is outside the mapped Fire Hazard Severity Zones (the statute\'s floor; a city may ask more)' });
+  /* Ember exposure, an index from 0 to 1 and not a chance: how open a roof is to wind borne embers on a day of dry
+     offshore wind. By the zone it stands in (Very High 1, High 0.8, Moderate 0.6, none 0.35: embers carried the 2017
+     and 2025 fires past the mapped zones), by how near the record puts fire (inside a perimeter since 1950, or
+     structures destroyed within 300 m), by the wind on the scale, and by the roof: its chance of being below Class A,
+     with a floor because a Class A roof still takes embers at its edges, vents and gutters (IBHS: only 6 to 10 percent
+     of structures in the 2025 fires had vent screens of 1/8 inch or finer). Judgment, grade D. */
+  function emberIx(b, fc, gust) {
+    const zk = !b.fhsz ? 0.5 : [0.35, 0.6, 0.8, 1][clamp(b.fhsz.cls, 0, 3)], hist = (b.fire && b.fire.nIn ? 0.15 : 0) + (b.near && b.near.dest ? 0.15 : 0), wk = gust >= 40 ? clamp(0.5 + (gust - 40) / 80, 0.5, 1.2) : 0.35;
+    return clamp((zk + hist) * wk * (0.3 + 0.7 * fc.below), 0, 1);
+  }
+  /* The weather now on the scales, on one building: over its coverings and the ages its roof may be, the chance it needs a
+     roofer for wind (replaced, repaired), the chance of a leak call in this storm, the snow this storm adds against the
+     ground snow load the code designs for there, and its ember exposure when the sky is smoke or the wind is offshore. */
+  function wxOnRoof(b, O, wx) {
+    const types = typesOf(b), W = types.reduce((s, x) => s + x[1], 0) || 1, sp = ageSpread(b, O, AGE_MAX), st = O ? O.st : 1, hz = O ? O.hz : hazardAt(b.zip || ''), d = gustDmg(wx.gust), rs = gustRepl(wx.gust);
+    let rep = 0, fix = 0, leak = 0;
+    types.forEach(([k, w]) => { const T = RTYPE[k] || RTYPE.shingle, wk = T.wind * OC.tall(st); sp.forEach(([a, pa]) => { const q = w / W * pa, x = clamp(d * windAgeK(a, T.ageK) * wk, 0, 0.95); rep += q * x * rs; fix += q * x * (1 - rs); leak += q * clamp(repRate(a) * T.leak * (hz ? hz.rainK : 1) * wx.rain.leak, 0, 0.6); }); });
+    const z = b.z, pg = wxCol(z, 'snow'), el = wx.elev != null ? wx.elev : wxCol(z, 'elev'), snowing = wx.rain.id !== 'dry' && el != null && wx.snowM > 0 && el >= wx.snowM, add = snowing ? wx.rain.swe * 5.2 : 0;
+    const fc = fireClass(b, O), ember = wx.sky === 'smoke' || /^sa/.test(wx.wind.id) ? emberIx(b, fc, wx.windGust) : 0;
+    return { rep, fix, any: rep + fix, leak, d, gust: wx.gust, snowing, add, pg, snowR: snowing && pg > 0 ? clamp(add / pg, 0, 1.5) : snowing ? null : 0, el, ember, fc, kind: snowing ? 'snow' : wx.gust >= 40 ? 'wind' : wx.rain.id !== 'dry' ? 'rain' : ember > 0 ? 'ember' : 'dry' };
+  }
+  /* the sun a plane takes in a normal year, kWh a square metre: the Thermal reading's clear sky sunlight on the plane, hour
+     by hour over twelve mid month days, with the sky clear the place's share of the time (clearShare); no shade counted */
+  const SUNY = new Map();
+  function sunYear(n, la, lo) {
+    la = Math.round(la * 10) / 10; lo = Math.round(lo * 10) / 10; const tilt = Math.round(deg(Math.acos(clamp(n[1], -1, 1))) / 5) * 5, az = tilt < 3 ? 0 : Math.round(((deg(Math.atan2(n[0], -n[2])) + 360) % 360) / 22.5) * 22.5, key = [tilt, az, la.toFixed(1), lo.toFixed(1)].join('|'); let v = SUNY.get(key); if (v !== undefined) return v;
+    const t = rad(tilt), a = rad(az), nn = [Math.sin(t) * Math.sin(a), Math.cos(t), -Math.sin(t) * Math.cos(a)], cs = clearShare(la, lo); let s = 0;
+    for (let m = 0; m < 12; m++) for (let h = 0; h < 24; h++) { const sun = sunAt(MIDDOY[m], h + 0.5, la), sky = clearSky(sun.alt); s += (cs * planeSun(nn, sun, sky, SKYK.clear, 0) + (1 - cs) * planeSun(nn, sun, sky, SKYK.overcast, 0)) * 30.4; }
+    v = s / 1000; if (SUNY.size > 6000) SUNY.clear(); SUNY.set(key, v); return v;
+  }
+  const SUN_SC = [600, 2300];   /* the Solar view's scale, kWh a square metre a year */
+
+  /* CAL FIRE's damage inspections by roof covering: residences in incidents of 2018 and later (the years undamaged homes
+     were recorded too), the share recorded as destroyed and the count. Raw shares: not adjusted for how hard each fire
+     burned, how close the houses stood, vegetation, defence or the age of the house; "Unknown" is a tenth of the rows,
+     and three fires (Camp, Eaton, Palisades) supply two fifths of them. The page's data is read first if it carries the table. */
+  const DINS_ROOF = (DATA.roof_hazard && DATA.roof_hazard.dins_roof) || (META.roof_hazard && META.roof_hazard.dins_roof) || { shingle: [0.595, 42319, 'asphalt'], metal: [0.534, 11136, 'metal'], tile: [0.321, 9326, 'tile'], wood: [0.585, 554, 'wood'], concrete: [0.400, 718, 'concrete'] };
+  const dinsLine = k => { const r = DINS_ROOF[k === 'flat' || k === 'low' || k === 'lowmf' || k === 'mh' ? 'shingle' : k === 'mbldg' ? 'metal' : k] || null; return r ? `${pct(1 - r[0])} of the ${N(r[1])} inspected homes with ${r[2]} roofs were not destroyed` : ''; };
 
   /* what the lens holds for one building: everything that does not change from corner to corner */
   function lensBegin(lens, b, ctx) {
     if (!b || !b.roof || !b.sc) return null; const types = typesOf(b); if (!types.length) return null;
     ctx = ctx || {}; const la = b.lat, lo = b.lon, zip = b.zip || b.zipF || '', opt = optOf(types, ctx.lum), low = b.roof.slope === 'low', year = clamp(Math.round(+ctx.year || 0), 0, OUT_Y);
     const ref = types.reduce((s, [k, w]) => s + heatRef(k, la, lo) * w, 0) / types.reduce((s, [, w]) => s + w, 0);
-    const hr = n => heatRate(opt.sr, opt.e, n, la, lo), R = { lens, b, types, opt, low, year, zip, la, lo, ref, hr, canopy: +ctx.canopy || 0, lum: ctx.lum, planes: [], storm: clamp(Math.round(+ctx.storm || 0), 0, 9), step: ctx.stormStep || null, surgeNote: ctx.surgeNote || '' };
+    const hr = n => heatRate(opt.sr, opt.e, n, la, lo), R = { lens, b, types, opt, low, year, zip, la, lo, ref, hr, canopy: +ctx.canopy || 0, lum: ctx.lum, planes: [], wx: wxResolve(ctx) };
     /* the whole roof's heat against the average roof of its kind here: the engine gives the planes it drew (normal, area) */
-    R.setPlanes = planes => { let A = 0, s = 0; planes.forEach(p => { A += p.area; s += hr(p.n) * p.area; }); R.planes = planes; R.heat = A > 0 && ref > 0 ? clamp(s / A / ref, 0.5, 1.6) : 1; R.roofHeat = A > 0 ? s / A : ref; if (A > 0 && ref > 0 && (b.heatK == null || Math.abs(b.heatK - R.heat) >= 0.005)) { b.heatK = R.heat; if (LENS.onHeat) { try { LENS.onHeat(b); } catch (e) { /* the card can wait */ } } } return R; };
+    R.setPlanes = planes => { let A = 0, s = 0; planes.forEach(p => { A += p.area; s += hr(p.n) * p.area; }); R.planes = planes; R.area = A; R.heat = A > 0 && ref > 0 ? clamp(s / A / ref, 0.5, 1.6) : 1; R.roofHeat = A > 0 ? s / A : ref; if (A > 0 && ref > 0 && (b.heatK == null || Math.abs(b.heatK - R.heat) >= 0.005)) { b.heatK = R.heat; if (LENS.onHeat) { try { LENS.onHeat(b); } catch (e) { /* the card can wait */ } } } return R; };
     if (lens === 'thermal') {
-      const sun = ctx.sun || { alt: 45, dir: [0.5, 0.7, 0.5] }, k = SKYK[ctx.weather] || SKYK.clear, sky = clearSky(sun.alt), month = isN(ctx.month) ? ctx.month : NOWD.getMonth(), hour = isN(ctx.hour) ? ctx.hour : 15, ta = airC(la, lo, month, hour), ds = ctx.weather === 'overcast' || ctx.weather === 'rain' ? 3 : ctx.weather === 'cloudy' ? 6 : 10;
-      R.air = ta; R.month = month; R.hour = hour; R.sunAlt = sun.alt; R.tmin = 1e9; R.tmax = -1e9; R.hot = null; R.cool = null;
+      const wet = R.wx.rain.id !== 'dry', dim = wet ? 'rain' : R.wx.sky === 'marine' || R.wx.sky === 'tule' ? 'overcast' : R.wx.sky === 'smoke' ? 'haze' : ctx.weather;
+      const sun = ctx.sun || { alt: 45, dir: [0.5, 0.7, 0.5] }, k = SKYK[dim] || SKYK.clear, sky = clearSky(sun.alt), month = isN(ctx.month) ? ctx.month : NOWD.getMonth(), hour = isN(ctx.hour) ? ctx.hour : 15, ta = airC(la, lo, month, hour), ds = dim === 'overcast' || dim === 'rain' ? 3 : dim === 'cloudy' ? 6 : 10;
+      R.air = ta; R.month = month; R.hour = hour; R.sunAlt = sun.alt; R.tmin = 1e9; R.tmax = -1e9; R.hot = null; R.cool = null; R.dim = dim;
       let pn = null, memo = null; R.vertex = (n, zone, shade) => { if (n !== pn) { pn = n; memo = new Map(); } let F = memo.get(shade); if (F === undefined) { F = c2f(surfaceC((1 - opt.sr) * planeSun(n, sun, sky, k, shade), opt.e, ta, 1.65, ds)); memo.set(shade, F); } if (F > R.tmax) { R.tmax = F; R.hot = { n, shade }; } if (F < R.tmin) { R.tmin = F; R.cool = { n, shade }; } return [clamp((F - LENS_T[0]) / (LENS_T[1] - LENS_T[0]), 0, 1), 0, 0, 0]; };
       return R;
     }
@@ -1654,155 +1726,200 @@
   /* wear and time need the roof's planes first (the roof's heat), so their corner readings are made after setPlanes */
   function lensReady(R) {
     if (R.lens === 'thermal') return R;
+    const b = R.b, rf = b.roof || {};
     if (R.lens === 'cover') {
-      /* the covering the building most likely carries (its kind, size and height, and its ZIP's share of metal roofs: the
-         card's own odds), in that covering's colour, stronger the surer it is, with its pattern drawn at real size */
-      const top = R.types[0], k = top[0], W = R.types.reduce((s, x) => s + x[1], 0) || 1, share = top[1] / W, C = COVER[k] || COVER.shingle, white = coverRow(k, R.lum) === 12;
+      /* the covering the building most likely carries (the card's own odds), in that covering's colour, stronger the surer
+         it is, with its pattern drawn at real size; tile is drawn as clay S tile or, where the era makes concrete the
+         likelier, as flat concrete tile */
+      const top = R.types[0], k = top[0], W = R.types.reduce((s, x) => s + x[1], 0) || 1, share = top[1] / W, C = COVER[k] || COVER.shingle, white = coverRow(k, R.lum) === 12, conc = k === 'tile' && (rf.clay != null ? rf.clay : 0.66) < 0.5;
       /* shingles are drawn in the style their likely years make more probable, as in the Shingle style view */
-      const sty = k === 'shingle' ? styleOf(R.b, outlookOf(R.b, { heat: R.heat })) : null;
-      R.cover = { k, share, white, lam: sty ? sty.lam : null, pat: k === 'shingle' ? (sty.lam >= 0.5 ? 8 : 7) : white ? 13 : C.pat }; const cv = [clamp(0.2 + 0.8 * (share - 0.3) / 0.7, 0.2, 1), 1, R.cover.pat, coverRow(k, R.lum)];
+      const sty = k === 'shingle' ? styleOf(b, outlookOf(b, { heat: R.heat })) : null;
+      R.cover = { k, share, white, conc, lam: sty ? sty.lam : null, pat: patOf(k === 'shingle' ? (sty.lam >= 0.5 ? 8 : 7) : white ? 13 : conc ? 15 : C.pat), rec: b.cover || null }; const cv = [clamp(0.2 + 0.8 * (share - 0.3) / 0.7, 0.2, 1), 1, R.cover.pat, conc ? LENS_ROW.tileC : coverRow(k, R.lum)];
       R.vertex = () => cv; return R;
     }
-    R.out = outlookOf(R.b, { heat: R.heat });
+    if (R.lens === 'solar') {
+      /* the sun each plane takes in a normal year, and the cool roof rule a re-roof here must meet */
+      R.rule = coolRule(b); R.sun = { min: 1e9, max: -1e9, sum: 0, A: 0 }; R.planes.forEach(p => { const v = sunYear(p.n, R.la, R.lo); R.sun.sum += v * p.area; R.sun.A += p.area; if (v > R.sun.max) { R.sun.max = v; R.sun.best = p.n; } if (v < R.sun.min) R.sun.min = v; });
+      R.meets = R.rule.req ? R.opt.sr >= R.rule.req.sr : null; let pn = null, v0 = 0;
+      R.vertex = n => { if (n !== pn) { pn = n; v0 = clamp((sunYear(n, R.la, R.lo) - SUN_SC[0]) / (SUN_SC[1] - SUN_SC[0]), 0, 1); } return [v0, 0, 0, LENS_ROW.solar]; }; return R;
+    }
+    R.out = outlookOf(b, { heat: R.heat });
     if (R.lens === 'style') {
       /* which shingle: three tab or laminated, by the years the roof may have gone on (the share of each sold that year);
          a roof that is most likely not shingles is drawn grey, with its own pattern */
-      const top = R.types[0], k = top[0], W = R.types.reduce((s, x) => s + x[1], 0) || 1, shS = (R.types.find(x => x[0] === 'shingle') || [0, 0])[1] / W, sty = styleOf(R.b, R.out); R.style = Object.assign({ shingle: shS, top: k }, sty);
+      const top = R.types[0], k = top[0], W = R.types.reduce((s, x) => s + x[1], 0) || 1, shS = (R.types.find(x => x[0] === 'shingle') || [0, 0])[1] / W, sty = styleOf(b, R.out); R.style = Object.assign({ shingle: shS, top: k }, sty);
       const lam = sty.lam >= 0.5, sure = lam ? sty.lam : 1 - sty.lam, C = COVER[k] || COVER.shingle;
-      const cv = k === 'shingle' ? [clamp(0.25 + 1.5 * (sure - 0.5), 0.25, 1), 1, lam ? 8 : 7, lam ? LENS_ROW.lam : LENS_ROW.tab3] : [0.55, 1, coverRow(k, R.lum) === 12 ? 13 : C.pat, LENS_ROW.other];
+      const cv = k === 'shingle' ? [clamp(0.25 + 1.5 * (sure - 0.5), 0.25, 1), 1, lam ? 8 : 7, lam ? LENS_ROW.lam : LENS_ROW.tab3] : [0.55, 1, patOf(coverRow(k, R.lum) === 12 ? 13 : C.pat), LENS_ROW.other];
       R.vertex = () => cv; return R;
     }
     if (R.lens === 'storm') {
-      /* the storm on the scale, on this roof: the chance it needs a roofer, hardest at the ridge and hips and a little at
-         the edges, as in the Time view; in rain without wind, the chance it calls with a leak this year */
-      const S0 = stormOnRoof(R.b, R.out, R.storm, R.step); R.st = S0;
-      if (S0.kind === 'rain') { const v = clamp(S0.leak / 0.1, 0, 1); R.vertex = (n, zone) => [clamp(v * (0.6 + 0.6 * zone.edge + 0.5 * zone.ridge), 0, 1), v * 0.5, 6, LENS_ROW.leak]; }
-      else { const a = S0.any; R.vertex = (n, zone) => { const zk = 0.2 * zone.edge + 0.1 * zone.corner + 0.5 * zone.ridge, v = clamp(a * (0.78 + zk), 0, 1); return [v, clamp(v * 1.1, 0, 1), 1, LENS_ROW.storm]; }; }
+      /* the weather on the scales, on this roof. Snow, where the storm snows at this height: its load against the ground
+         snow load. Wind of 40 mph and up: the chance the roof needs a roofer, hardest at the ridge and hips and a little
+         at the edges. Rain with less wind: the chance of a leak call in this storm. Dry offshore wind or smoke: ember
+         exposure, at the edges, valleys and ridge where embers lodge. */
+      const S0 = wxOnRoof(b, R.out, R.wx); R.st = S0;
+      if (S0.kind === 'snow') { const v = S0.snowR == null ? 0.3 : clamp(S0.snowR, 0, 1); R.vertex = n => [clamp(v * (0.75 + 0.5 * n[1]), 0, 1), 0, 0, LENS_ROW.snow]; }
+      else if (S0.kind === 'wind') { const a = clamp(S0.any / 0.05, 0, 1), lk = clamp(S0.leak / 0.1, 0, 1); R.vertex = (n, zone) => { const zk = 0.2 * zone.edge + 0.1 * zone.corner + 0.5 * zone.ridge, v = clamp(a * (0.78 + zk), 0, 1); return lk > v ? [clamp(lk * (0.6 + 0.6 * zone.edge + 0.5 * zone.ridge), 0, 1), lk * 0.5, 6, LENS_ROW.rain] : [v, clamp(v * 1.1, 0, 1), 1, LENS_ROW.storm]; }; }
+      else if (S0.kind === 'rain') { const v = clamp(S0.leak / 0.1, 0, 1); R.vertex = (n, zone) => [clamp(v * (0.6 + 0.6 * zone.edge + 0.5 * zone.ridge), 0, 1), v * 0.5, 6, LENS_ROW.rain]; }
+      else if (S0.kind === 'ember') { const v = S0.ember; R.vertex = (n, zone) => [clamp(v * (0.55 + 0.5 * zone.edge + 0.3 * zone.ridge + 0.2 * zone.corner), 0, 1), clamp(v * (0.3 + zone.edge), 0, 1), 5, LENS_ROW.fire]; }
+      else R.vertex = () => [0, 0, 0, LENS_ROW.storm];
       return R;
-    } const age0 = R.b.state ? R.b.state.age : 0; R.seen = stormsSeen(R.zip, R.out ? R.out.older : n => clamp((age0 - n + 2.5) / 5, 0, 1));
-    const b = R.b, O = R.out, t = R.year, st = b.state || ZERO, lifeL = R.types.reduce((s, [k, w]) => s + (LIFE[RTYPE[k].life] || LIFE.shingle).L * w, 0) / R.types.reduce((s, [, w]) => s + w, 0);
-    const algaeK = R.types.reduce((s, [k, w]) => s + RTYPE[k].algae * w, 0), rustK = R.types.reduce((s, [k, w]) => s + RTYPE[k].rust * w, 0), km = O ? O.km : coastKm(b.lat, b.lon);
+    }
+    if (R.lens === 'fire') {
+      /* the class of roof it most likely is (green Class A to red unrated), with ember marks where embers lodge, more of
+         them the higher its zone and the nearer the record puts fire */
+      const fc = fireClass(b, R.out); R.fc = fc; R.req = reroofClass(b); R.ember = emberIx(b, fc, Math.max(R.wx.windGust, 46));
+      const v0 = clamp(fc.below * 1.6, 0, 1), em = R.ember;
+      R.vertex = (n, zone, shade, under) => [clamp(v0 + 0.08 * zone.edge, 0, 1), clamp(em * (0.25 + 0.9 * zone.edge + 0.4 * zone.ridge + (under ? 0.4 : 0)), 0, 1), 5, LENS_ROW.fclass];
+      return R;
+    }
+    const O = R.out, t = R.year, st = b.state || ZERO, lifeL = R.types.reduce((s, [k, w]) => s + (LIFE[RTYPE[k].life] || LIFE.shingle).L * w, 0) / R.types.reduce((s, [, w]) => s + w, 0);
+    const wk = O ? O.wetK : wetK(b.z), algaeK = R.types.reduce((s, [k, w]) => s + RTYPE[k].algae * w, 0) * wk, rustK = R.types.reduce((s, [k, w]) => s + RTYPE[k].rust * w, 0), km = O ? O.km : coastKm(b.lat, b.lon), hz = O ? O.hz : hazardAt(R.zip);
     if (R.lens === 'wear') {
       /* wear to date: the share of its service life the roof has used (its likely age over the mean life of its kind: at
-         1 half of such roofs have been replaced), worked harder or easier on each plane by the heat it takes, plus what
-         the weather has left on it: the storms it has stood through, each by what it cost the ZIP (most at the ridge and edges),
-         hail and wind reported near it in the last three years and still open, algae where it stays damp, rust near salt water */
-      const used = clamp(st.age / lifeL, 0, 1.2), seenW = clamp(R.seen.reduce((s, x) => s + x.p * clamp(0.05 + 0.5 * x.d, 0.05, 0.3), 0), 0, 0.6), open = clamp((b.sc.HAIL || 0) + (b.sc.WIND || 0), 0, 0.6), rust = rustAt(st.age, rustK, km);
-      R.parts = { used, seenW, open, algae: algaeAt(st.age, algaeK, 1 + R.canopy * 0.8), rust, lifeL, age: st.age }; R.wmin = 1e9; R.wmax = -1e9; R.wsum = 0; R.wn = 0;
-      const scW = b.sc.WIND || 0, scH = b.sc.HAIL || 0; let pn = null, hk = 1, nf = 0.5, alO = 0, alU = 0;   /* by plane: its heat against the roof's, how far it faces north (1) or south (0), and its algae in the open and under a crown */
+         1 half of such roofs have been replaced; for tile the life is the underlayment's), worked harder or easier on
+         each plane by the heat it takes and by the place's heat against the state's, plus what the weather has left on
+         it: the gust days it has stood through (most at the ridge and edges), wind and hail reported near it in the last
+         three years and still open, fire damage on record, moss where it stays damp, rust near salt water */
+      const T0 = RTYPE[R.types[0][0]] || RTYPE.shingle, yrW = (hz.wind[0] + hz.wind[1]) * T0.wind, seenW = clamp(1 - Math.pow(1 - clamp(yrW, 0, 0.5), st.age), 0, 0.6), clim = O ? O.clim : 1;
+      const used = clamp(st.age / (lifeL / Math.sqrt(clim || 1)), 0, 1.2), open = clamp((b.sc.WIND || 0) + (b.sc.FIRE || 0), 0, 0.8), rust = rustAt(st.age, rustK, km);
+      R.parts = { used, seenW, open, algae: algaeAt(st.age, algaeK, 1 + R.canopy * 0.8), rust, lifeL, age: st.age, clim, tile: R.types[0][0] === 'tile' }; R.wmin = 1e9; R.wmax = -1e9; R.wsum = 0; R.wn = 0;
+      const scW = b.sc.WIND || 0, scF = b.sc.FIRE || 0; let pn = null, hk = 1, nf = 0.5, alO = 0, alU = 0;   /* by plane: its heat against the roof's, how far it faces north (1) or south (0), and its growth in the open and under a crown */
       R.vertex = (n, zone, shade, under) => { if (n !== pn) { pn = n; hk = clamp(R.hr(n) / (R.roofHeat || 1), 0.75, 1.35); const hzl = Math.hypot(n[0], n[2]) || 1; nf = n[1] > 0.985 ? 0.5 : clamp(0.5 - 0.5 * n[2] / hzl, 0, 1); alO = algaeAt(st.age, algaeK, 0.6 + nf); alU = algaeAt(st.age, algaeK, (0.6 + nf) * 1.7); } const zk = 0.2 * zone.edge + 0.1 * zone.corner + 0.5 * zone.ridge;
         const al = under ? alU : alO, w = clamp(used * hk + seenW * (0.3 + zk) + open * 0.5 + al * 0.1 + rust * 0.4 * (0.5 + zone.edge), 0, 1);
         if (w > R.wmax) R.wmax = w; if (w < R.wmin) R.wmin = w; R.wsum += w; R.wn++;
-        let md = seenW * (0.4 + 1.8 * zk) + scW * 1.2, mk = 1, x = scH * 2; if (x > md) { md = x; mk = 2; } x = Math.max(0, used - 0.45) * hk * 0.9; if (x > md) { md = x; mk = 3; } x = al * 0.8; if (x > md) { md = x; mk = 4; } x = rust * (0.6 + zone.edge); if (x > md) { md = x; mk = 5; }
+        let md = seenW * (0.4 + 1.8 * zk) + scW * 1.2, mk = 1, x = Math.max(0, used - 0.45) * hk * 0.9; if (x > md) { md = x; mk = 3; } x = al * 0.8; if (x > md) { md = x; mk = 4; } x = Math.max(rust * (0.6 + zone.edge), scF); if (x > md) { md = x; mk = 5; }
         return [w, clamp(md, 0, 1), mk, 1]; };
     } else if (R.lens === 'time') {
       /* the years ahead: at each spot, the cause most likely to have damaged it by that year. Wind takes the ridge and hip
-         caps first and a little more at the edges than in the field; heat and age work hardest on the planes that run hottest; hail falls on every plane alike
-         (which way a hailstorm drives is not on record here); leaks start at the edges of things. */
-      if (!O) return null; const A = O.all, wind = 1 - (1 - A.C.hur[t]) * (1 - A.C.ts[t]), hail = A.C.hail[t], wear = A.C.wear[t], leak = A.C.leak[t], rust = O.slow.rust[t], algae = O.slow.algae[t];
-      R.now = { wind, hail, wear, leak, rust, algae, any: A.any[t], rep: A.rep[t], keep: A.keep[t] }; R.rusty = rustK >= 0.5;
-      const hailV = clamp(hail, 0, 1); let pn = null, hk = 1;
+         caps first and a little more at the edges than in the field; heat and age work hardest on the planes that run
+         hottest; rain finds the edges of things; fire and hail fall on every plane alike. */
+      if (!O) return null; const A = O.all, wind = A.C.wind[t], hail = A.C.hail[t], wear = A.C.wear[t], rain = A.C.rain[t], fire = A.C.fire[t], rust = O.slow.rust[t], algae = O.slow.algae[t];
+      R.now = { wind, hail, wear, rain, fire, rust, algae, any: A.any[t], rep: A.rep[t], keep: A.keep[t] }; R.rusty = rustK >= 0.5;
+      let pn = null, hk = 1;
       R.vertex = (n, zone, shade, under) => { if (n !== pn) { pn = n; hk = clamp(R.hr(n) / (R.roofHeat || 1), 0.75, 1.35); } const zk = 0.2 * zone.edge + 0.1 * zone.corner + 0.5 * zone.ridge;
-        let v = clamp(wind * (0.8 + zk), 0, 1), mk = 1, row = LENS_ROW.hur, x = hailV; if (x > v) { v = x; mk = 2; row = LENS_ROW.hail; } x = clamp(wear * hk, 0, 1); if (x > v) { v = x; mk = 3; row = LENS_ROW.wear_t; }
-        x = clamp(leak * (0.5 + 0.7 * zone.edge + 0.5 * zone.ridge), 0, 1) * 0.8; if (x > v) { v = x; mk = 6; row = LENS_ROW.leak; } if (R.rusty) { x = clamp(rust * (0.6 + zone.edge), 0, 1); if (x > v) { v = x; mk = 5; row = LENS_ROW.rust; } }
+        let v = clamp(wind * (0.8 + zk), 0, 1), mk = 1, row = LENS_ROW.wind, x = clamp(hail, 0, 1); if (x > v) { v = x; mk = 2; row = LENS_ROW.hail; } x = clamp(wear * hk, 0, 1); if (x > v) { v = x; mk = 3; row = LENS_ROW.wear_t; }
+        x = clamp(rain * (0.5 + 0.7 * zone.edge + 0.5 * zone.ridge), 0, 1) * 0.8; if (x > v) { v = x; mk = 6; row = LENS_ROW.rain; } x = clamp(fire, 0, 1); if (x > v) { v = x; mk = 5; row = LENS_ROW.fire; } if (R.rusty) { x = clamp(rust * (0.6 + zone.edge), 0, 1); if (x > v) { v = x; mk = 5; row = LENS_ROW.rust; } }
         return [v, clamp(v * 1.15, 0, 1), mk, row]; };
     }
     return R;
   }
   const pc1 = v => (v < 0.005 ? 'under 1%' : v > 0.995 ? 'over 99%' : Math.round(v * 100) + '%');
+  const pcS = v => (v <= 0 ? '0' : v < 0.0005 ? 'under 1 in 2,000' : v < 0.01 ? (v * 100).toFixed(1) + '%' : pc1(v));
   const ramp = (row, a, b2, ticks) => `<span class="se-ramp" style="background:linear-gradient(90deg,${LENS_PAL[row].join(',')})"></span><span class="se-ticks">${ticks.map(x => `<i>${esc(x)}</i>`).join('')}</span>`;
+  const wxTitle = wx => [wx.rain.id !== 'dry' ? wx.rain.l : '', wx.wind.id !== 'calm' ? wx.wind.l : '', wx.sky !== 'clear' ? (WX_SKY.find(x => x[0] === wx.sky) || [0, ''])[1] : ''].filter(Boolean).join(' · ') || 'Dry and calm';
+  const fhszText = b => (!b.fhsz ? 'its fire zone has not been read yet' : b.fhsz.cls ? `in a ${b.fhsz.l} Fire Hazard Severity Zone (${b.fhsz.ra === 'SRA' ? 'State' : 'Local'} Responsibility Area)` : 'outside the mapped Fire Hazard Severity Zones');
+  const CLICK = '<span class="se-leg-cur">Click a building to read its roof.</span>';
   /* the key and the reading the engine shows beside a roof view */
   function lensLegend(lens, R, ctx) {
     ctx = ctx || {}; const b = R && R.b, addr = b ? (b.addr ? title(b.addr) : 'The building picked') : '', kinds = R ? R.types.filter(x => x[1] >= 0.03).map(([k, w]) => `${RTYPE[k].l} ${pct(w)}`).join(' · ') : '';
     if (lens === 'thermal') {
-      const hm = Math.round(((((isN(ctx.hour) ? ctx.hour : 15) % 24) + 24) % 24) * 60) % 1440, when = `${ctx.dayLabel || 'Today'}, ${String(Math.floor(hm / 60)).padStart(2, '0')}:${String(hm % 60).padStart(2, '0')} by the sun, ${esc(ctx.weatherLabel || 'clear sky')}`;
-      let h = `<b>Thermal: how hot each roof plane runs</b><span class="se-leg-note">${when}${R && isN(R.air) ? ` · air ${Math.round(c2f(R.air))}°F, the ${MONTHS[R.month]} normal here (NOAA's stations blended; the nearest is ${esc(climOf(R.la, R.lo).near)})` : ''}${ctx.sunAlt != null && ctx.sunAlt <= 0 ? ' · the sun is down: roofs cool below the air under a clear sky' : ''}</span>${ramp(0, 0, 0, ['40°F', '80', '120', '160', '200°F'])}<span class="se-leg-note">From an energy balance on each plane: the sun it takes at this hour (its slope and bearing, the trees and buildings that shade it), the covering's reflectance (its kind, and how light it shows in the satellite photo) and the normal air temperature. A model, not a thermal camera.</span>`;
-      if (R && R.tmax > -1e8) h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>Reflects about ${pct(R.opt.sr)} of sunlight${isN(R.lum) ? ` (it shows ${R.lum < 0.38 ? 'dark' : R.lum < 0.48 ? 'mid toned' : 'light'} in the photo)` : ''}<br>Hottest plane <b>${Math.round(R.tmax)}°F</b>${R.hot ? ' (' + faceOf(R.hot.n) + (R.hot.shade > 0.3 ? ', part shaded' : '') + ')' : ''} · coolest ${Math.round(R.tmin)}°F${R.cool ? ' (' + faceOf(R.cool.n) + (R.cool.shade > 0.5 ? ', shaded' : '') + ')' : ''}<br>Over a normal year heat ages this roof <b>${D(R.heat, 2)} times</b> as fast as the average ${esc(RTYPE[R.types[0][0]].s)} roof here${R.heat > 1.08 ? ': a darker colour, or planes turned to the sun, cost it years' : R.heat < 0.93 ? ': a lighter colour, or planes turned from the sun, save it years' : ''} (shade is not counted in the yearly rate).</span>`;
-      else h += '<span class="se-leg-cur">Click a building to read its roof.</span>';
+      const hm = Math.round(((((isN(ctx.hour) ? ctx.hour : 15) % 24) + 24) % 24) * 60) % 1440, wxl = R ? wxTitle(R.wx) : '', when = `${ctx.dayLabel || 'Today'}, ${String(Math.floor(hm / 60)).padStart(2, '0')}:${String(hm % 60).padStart(2, '0')} by the sun, ${esc(wxl && wxl !== 'Dry and calm' ? wxl.toLowerCase() : ctx.weatherLabel || 'clear sky')}`, cl = R ? climOf(R.la, R.lo) : null;
+      let h = `<b>Thermal: how hot each roof plane runs</b><span class="se-leg-note">${when}${R && isN(R.air) ? ` · air ${Math.round(c2f(R.air))}°F, the ${MONTHS[R.month]} normal here (NOAA's stations blended by distance and height; the nearest is ${esc(cl.near)}${cl.el != null ? ', and the ground here is taken at ' + N(Math.round(cl.el * 3.281 / 10) * 10) + ' ft' : ''})` : ''}${ctx.sunAlt != null && ctx.sunAlt <= 0 ? ' · the sun is down: roofs cool below the air under a clear sky' : ''}</span>${ramp(0, 0, 0, ['40°F', '80', '120', '160', '200°F'])}<span class="se-leg-note">From an energy balance on each plane: the sun it takes at this hour (its slope and bearing, the trees and buildings that shade it), the covering's reflectance (its kind, and how light it shows in the satellite photo) and the normal air temperature. A model, not a thermal camera.</span>`;
+      if (R && R.tmax > -1e8) h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>Reflects about ${pct(R.opt.sr)} of sunlight${isN(R.lum) ? ` (it shows ${R.lum < 0.38 ? 'dark' : R.lum < 0.48 ? 'mid toned' : 'light'} in the photo)` : ''}<br>Hottest plane <b>${Math.round(R.tmax)}°F</b>${R.hot ? ' (' + faceOf(R.hot.n) + (R.hot.shade > 0.3 ? ', part shaded' : '') + ')' : ''} · coolest ${Math.round(R.tmin)}°F${R.cool ? ' (' + faceOf(R.cool.n) + (R.cool.shade > 0.5 ? ', shaded' : '') + ')' : ''}<br>Over a normal year heat ages this roof <b>${D(R.heat, 2)} times</b> as fast as the average ${esc(RTYPE[R.types[0][0]].s)} roof here${R.heat > 1.08 ? ': a darker colour, or planes turned to the sun, cost it years' : R.heat < 0.93 ? ': a lighter colour, or planes turned from the sun, save it years' : ''}, and this place ${D(climHeat(R.types[0][0], R.la, R.lo), 2)} times as fast as the average California roof of its kind (shade is not counted in the yearly rate).</span>`;
+      else h += CLICK;
       return h;
     }
     if (lens === 'wear') {
-      let h = `<b>Wear: what age and weather have taken so far</b><span class="se-leg-note">Today. The share of its service life each roof has used, worked harder on the planes that run hottest, plus the storms it has stood through, wind and hail reported near it, damp and salt.</span>${ramp(1, 0, 0, ['sound', '', 'half worn', '', 'worn out'])}<span class="se-leg-marks"><span><i class="m1"></i>wind at ridge and edges</span><span><i class="m2"></i>hail</span><span><i class="m3"></i>worn patches</span><span><i class="m4"></i>algae</span><span><i class="m5"></i>rust</span></span>`;
-      if (R && R.parts) { const p = R.parts, top = R.seen.filter(x => x.p >= 0.5).slice(0, 2).map(x => `${stormName(x.s)}, when the record has about ${pc1(x.d)} of this ZIP's roofs replaced`);
-        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>About <b>${D(p.age, 0)} year${Math.round(p.age) === 1 ? '' : 's'}</b> of a ${D(p.lifeL, 0)} year mean life used (${pct(clamp(p.used, 0, 1))})${top.length ? '<br>More likely than not it stood through ' + esc(top.join('; and ')) : ''}${p.open > 0.03 ? `<br>Wind or hail reported near it in the last three years: ${pct(p.open)} chance of damage still open` : ''}${p.algae > 0.15 ? `<br>Algae streaks likely on the shaded and north planes (${pct(p.algae)})` : ''}${p.rust > 0.1 ? `<br>Rust likely at edges and fasteners (${pct(p.rust)}; ${D(R.out ? R.out.km : 0, 0)} km from the Gulf's open shore)` : ''}<br>Worn about <b>${pct(clamp(R.wn ? R.wsum / R.wn : R.wmax, 0, 1))}</b> on the whole; from ${pct(clamp(R.wmin, 0, 1))} to ${pct(clamp(R.wmax, 0, 1))} across its planes</span>`; }
-      else h += '<span class="se-leg-cur">Click a building to read its roof.</span>';
+      let h = `<b>Wear: what age and weather have taken so far</b><span class="se-leg-note">Today. The share of its service life each roof has used (for tile, of the underlayment's), worked harder on the planes that run hottest and in the hotter places, plus the gust days it has stood through, wind, hail and fire damage on record near it, damp and salt.</span>${ramp(1, 0, 0, ['sound', '', 'half worn', '', 'worn out'])}<span class="se-leg-marks"><span><i class="m1"></i>wind at ridge and edges</span><span><i class="m3"></i>worn patches</span><span><i class="m4"></i>moss and algae</span><span><i class="m5"></i>rust, or fire damage</span></span>`;
+      if (R && R.parts) { const p = R.parts;
+        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>About <b>${D(p.age, 0)} year${Math.round(p.age) === 1 ? '' : 's'}</b> of a ${D(p.lifeL, 0)} year mean life used (${pct(clamp(p.used, 0, 1))})${p.tile ? ': the life is the underlayment\'s, not the tile\'s' : ''}${Math.abs(p.clim - 1) >= 0.05 ? `<br>The heat here ages a roof ${D(p.clim, 2)} times as fast as the average California roof of its kind` : ''}${p.seenW > 0.03 ? `<br>The gust days it has stood through: ${pct(p.seenW)} chance wind has taken something from it` : ''}${p.open > 0.03 ? `<br>Wind, hail or fire damage on record near it and still open: ${pct(p.open)}` : ''}${p.algae > 0.15 ? `<br>Moss or algae likely on the shaded and north planes (${pct(clamp(p.algae, 0, 1))})` : ''}${p.rust > 0.1 ? `<br>Rust likely at edges and fasteners (${pct(p.rust)}; ${D(R.out ? R.out.km : 0, 1)} km from salt water)` : ''}<br>Worn about <b>${pct(clamp(R.wn ? R.wsum / R.wn : R.wmax, 0, 1))}</b> on the whole; from ${pct(clamp(R.wmin, 0, 1))} to ${pct(clamp(R.wmax, 0, 1))} across its planes</span>`; }
+      else h += CLICK;
       return h + '<span class="se-leg-note">A model of the odds from records, not an inspection: a roofer on the roof decides.</span>';
     }
     const chip = (row, l, extra) => `<span class="se-leg-row"><i style="background:${LENS_PAL[row][LENS_PAL[row].length - 1]}"></i>${esc(l)}${extra || ''}</span>`;
     if (lens === 'cover') {
-      let h = `<b>Covering: what each roof is most likely made of</b><span class="se-leg-note">Each roof takes its covering's colour, stronger the surer it is, and its pattern at a common size of that covering: fly close and the courses, seams and ribs show.</span>${COVER_KEY.map(([k, l]) => chip(LENS_ROW[k], l)).join('')}`;
-      if (R && R.cover) { const C = COVER[R.cover.k] || COVER.shingle, pw = photoWord(R.lum);
-        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>Most likely <b>${esc(C.l.toLowerCase())}</b> (${pct(R.cover.share)})${R.types.length > 1 ? '; else ' + esc(R.types.slice(1).filter(x => x[1] >= 0.02).map(([k, w]) => `${(COVER[k] || COVER.shingle).s} ${pct(w)}`).join(', ')) : ''}${C.d ? '<br>' + esc(C.d.charAt(0).toUpperCase() + C.d.slice(1)) + '.' : ''}${pw ? `<br>It shows ${pw} in the satellite photo${(R.cover.k === 'low' || R.cover.k === 'lowmf') ? (R.cover.white ? ': drawn as a white membrane or coating' : ': drawn as a dark membrane') : ''}.` : ''}</span>`; }
-      else h += '<span class="se-leg-cur">Click a building to read its roof.</span>';
-      return h + '<span class="se-leg-note">The odds are the card\'s: from the building\'s kind, size and height and its ZIP\'s share of metal roofs. No one has looked at the roof.</span>';
+      let h = `<b>Covering: what each roof is most likely made of</b><span class="se-leg-note">Each roof takes its covering's colour, stronger the surer it is, and its pattern at a common size of that covering: fly close and the courses, tiles, seams and ribs show.</span>${COVER_KEY.map(([k, l]) => chip(LENS_ROW[k], l)).join('')}`;
+      if (R && R.cover) { const C = COVER[R.cover.k] || COVER.shingle, pw = photoWord(R.lum), rec = R.cover.rec, hm = b.roof.hm;
+        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>Most likely <b>${esc(C.l.toLowerCase())}</b> (${pct(R.cover.share)})${R.types.length > 1 ? '; else ' + esc(R.types.slice(1).filter(x => x[1] >= 0.02).map(([k, w]) => `${(COVER[k] || COVER.shingle).s} ${pct(w)}`).join(', ')) : ''}${rec && rec.k ? `<br>On record: ${esc(rec.src === 'roll' ? 'the assessor\'s roll says "' + (rec.raw || '') + '"' : rec.src === 'dins' ? 'CAL FIRE\'s inspection recorded this covering' : 'a re-roof permit names it')}.` : hm ? `<br>From what California homes built ${esc(Object.keys(hm.era).filter(e => hm.era[e] >= 0.25).map(e => ERA_L[e]).join(' or ') || 'in its era')} carry${hm.clim ? ', leaned for ' + esc(CLIM_L[hm.clim]) : ''}.` : ''}${R.cover.k === 'tile' ? `<br>Clay ${pct(b.roof.clay)} · concrete ${pct(1 - b.roof.clay)} if it is tile: drawn as ${R.cover.conc ? 'flat concrete tile' : 'S tile'}.` : C.d ? '<br>' + esc(C.d.charAt(0).toUpperCase() + C.d.slice(1)) + '.' : ''}${pw ? `<br>It shows ${pw} in the satellite photo${isLowK(R.cover.k) ? (R.cover.white ? ': drawn as a white membrane or cool coating' : ': drawn as a dark cap sheet or membrane') : ''}.` : ''}</span>`; }
+      else h += CLICK;
+      return h + '<span class="se-leg-note">The odds are the card\'s: the 2020 Residential Energy Consumption Survey\'s California roofs by the era a home was built, leaned by climate, and any covering a county roll, a permit or a fire inspection records. No one has looked at the roof.</span>';
     }
     if (lens === 'style') {
       let h = `<b>Shingle style: three tab or laminated</b><span class="se-leg-note">Laminated (architectural) shingles were 7% of those sold in 1984, 46% in 2000, about 70% in 2010 and 95% in 2025 (makers' filings and investor reports; Fine Homebuilding for 2010; national). Each shingle roof takes the style its likely years of roofing make more probable.</span>${chip(LENS_ROW.tab3, 'Three tab strip: 12 inch tabs, 5 inch exposure')}${chip(LENS_ROW.lam, 'Laminated: uneven tabs, 5 5/8 inch exposure')}${chip(LENS_ROW.other, 'Most likely not shingles (its own pattern)')}`;
       if (R && R.style) { const s = R.style;
         h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${s.top === 'shingle' ? `By its likely age the shingles went on around <b>${s.year}</b><br>Laminated <b>${pct(s.lam)}</b> · three tab <b>${pct(1 - s.lam)}</b>${s.shingle < 0.97 ? `<br>If it is shingles at all (${pct(s.shingle)})` : ''}` : `Most likely ${esc((COVER[s.top] || COVER.shingle).s)}, not shingles${s.shingle > 0.02 ? ` (shingles ${pct(s.shingle)}: if so, laminated ${pct(s.lam)})` : ''}`}</span>`; }
-      else h += '<span class="se-leg-cur">Click a building to read its roof.</span>';
-      return h + '<span class="se-leg-note">From the roof\'s likely age and national sales, not from the photo. No split for Louisiana was found, and older roofs here may be three tab more often than national sales suggest.</span>';
+      else h += CLICK;
+      return h + '<span class="se-leg-note">From the roof\'s likely age and national sales, not from the photo. No split for California was found.</span>';
     }
     if (lens === 'storm') {
-      const lv = R ? R.storm : clamp(Math.round(+ctx.storm || 0), 0, 9), sp = (R && R.step) || ctx.stormStep || null, nm = sp ? sp.l : 'No storm';
-      let h = `<b>Storm: ${esc(nm)}${sp && sp.mph ? `, ${sp.range ? (sp.range[1] ? sp.range[0] + ' to ' + sp.range[1] : sp.range[0] + ' and up') : 'about ' + sp.mph} mph` : ''}</b>`;
-      if (lv === 0) h += '<span class="se-leg-note">Slide the storm scale off Dry to see what each step would do to each roof.</span>';
-      else if (lv <= 2) h += `<span class="se-leg-note">Rain without wind does not take roofs. It finds the leaks they have: each roof shows its chance of a leak call this year, from the repair line's calls at its age.</span>${ramp(LENS_ROW.leak, 0, 0, ['0', '', '5%', '', '10% a year'])}`;
-      else h += `<span class="se-leg-note">${lv === 3 ? 'One severe thunderstorm with 58 mph gusts: the atlas\'s stated rate for such a day, about 3 roofs in 10,000 within 25 miles.' : `A wind like this replaces about <b>${pc1(stormShare(sp.kt))}</b> of a ZIP's roofs: the atlas's damage curve, scaled to what FEMA's counts have come to${lv >= 8 ? ', and carried past Category 3 on one survey after Andrew: a judgment' : ''}.`} Each roof shows its own chance of needing a roofer, by its covering and age.</span>${ramp(LENS_ROW.storm, 0, 0, ['untouched', '', 'half', '', 'near certain'])}<span class="se-leg-marks"><span><i class="m1"></i>cover lost at ridge, hips and edges</span></span>`;
-      if (R && R.st && lv > 0) { const s = R.st, T0 = RTYPE[R.types[0][0]] || RTYPE.shingle, tw = topWind(R.zip);
-        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>${s.kind === 'rain' ? `A leak call this year: <b>${pc1(s.leak)}</b>` : `Needs a roofer <b>${pc1(s.any)}</b> · replaced <b>${pc1(s.rep)}</b> · repaired ${pc1(s.fix)}${lv >= 4 ? '<br>' + esc(T0.does.hur) + '.' : ''}`}${tw && lv >= 4 ? `<br>The strongest wind on record at this ZIP since ${OC.recFrom}: ${ktMph0(tw.kt)} mph, ${esc(stormName(SIDS[tw.si]))}.` : ''}${R.surgeNote ? '<br>' + esc(R.surgeNote) : ''}</span>`; }
-      else if (lv > 0) h += '<span class="se-leg-cur">Click a building to read its roof.</span>';
+      const wx = R ? R.wx : wxResolve(ctx);
+      let h = `<b>Weather: ${esc(wxTitle(wx))}${wx.gust >= 15 ? `, gusts near ${Math.round(wx.gust)} mph` : ''}</b>`;
+      if (wx.rain.id === 'dry' && wx.wind.id === 'calm' && wx.sky !== 'smoke') h += '<span class="se-leg-note">Set the rain scale, the wind scale or the sky in the Weather row to see what each would do to each roof.</span>';
+      else h += `<span class="se-leg-note">${wx.gust >= 40 ? `A day with gusts near ${Math.round(wx.gust)} mph damages about <b>${pcS(gustDmg(wx.gust))}</b> of roofs enough for a roofer: the atlas's stated rates at 58 and 75 mph${wx.gust > 75 ? ', carried past 75 mph on the same line: an extrapolation' : ''}. Each roof shows its own chance, by its covering and age. ` : ''}${wx.rain.id !== 'dry' ? `Rain takes no roof by itself. It finds the leaks a roof has: each roof shows its chance of a leak call in a storm like this (${pct(wx.rain.leak)} of a year's calls at its age: a judgment). Above about ${N(Math.round(wx.snowM * 3.281 / 100) * 100)} ft this storm snows, and a roof there shows the load it adds against the ground snow load the code designs for. ` : ''}${wx.sky === 'smoke' || /^sa/.test(wx.wind.id) ? 'Dry offshore wind or smoke: each roof shows its ember exposure, an index and not a chance. ' : ''}</span>${wx.gust >= 40 ? ramp(LENS_ROW.storm, 0, 0, ['untouched', '', '2.5%', '', '5% or more']) + '<span class="se-leg-marks"><span><i class="m1"></i>cover lost at ridge, hips and edges</span></span>' : ''}${wx.rain.id !== 'dry' ? ramp(LENS_ROW.rain, 0, 0, ['0', '', '5%', '', '10% leak call']) + ramp(LENS_ROW.snow, 0, 0, ['no snow', '', 'half', '', 'the design load']) : ''}${wx.sky === 'smoke' || /^sa/.test(wx.wind.id) ? ramp(LENS_ROW.fire, 0, 0, ['low', '', 'ember exposure', '', 'high']) : ''}`;
+      if (R && R.st && R.st.kind !== 'dry') { const s = R.st, T0 = RTYPE[R.types[0][0]] || RTYPE.shingle, z = b.z, gm = wxCol(z, 'gustMax'), gs = wxTxt(z, 'gustSt');
+        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}${s.kind === 'snow' ? `<br>Snow: this storm adds about <b>${D(s.add, 0)} lb a square foot</b>${s.pg > 0 ? `, ${pct(clamp(s.add / s.pg, 0, 9.99))} of the ${N(Math.round(s.pg))} lb ground snow load here (ASCE 7-22 as its map service gives it)` : '; the ground snow load here is not in the page\'s data'}, at about ${N(Math.round(s.el * 3.281 / 10) * 10)} ft. Loads add up storm on storm until the roof is cleared or it thaws.` : ''}${s.gust >= 40 ? `<br>Wind: needs a roofer <b>${pcS(s.any)}</b> · replaced ${pcS(s.rep)} · repaired ${pcS(s.fix)}<br>${esc(T0.does.wind)}.` : ''}${R.wx.rain.id !== 'dry' && s.kind !== 'snow' ? `<br>A leak call in this storm: <b>${pcS(s.leak)}</b>. ${esc(T0.does.rain)}.` : ''}${s.ember > 0 ? `<br>Ember exposure <b>${D(s.ember * 10, 1)} of 10</b>: ${esc(fhszText(b))}; Class A ${pct(s.fc.p[0])}.` : ''}${gm != null && s.gust >= 40 ? `<br>The strongest gust on record at ${esc(gs || 'the nearest screened station')}: ${Math.round(gm)} mph.` : ''}</span>`; }
+      else if (!(wx.rain.id === 'dry' && wx.wind.id === 'calm' && wx.sky !== 'smoke')) h += CLICK;
       return h + '<span class="se-leg-note">Odds from records and stated judgments, not a forecast of a storm, and not an inspection.</span>';
     }
+    if (lens === 'fire') {
+      let h = `<b>Fire: the class of roof, the zone, the embers</b><span class="se-leg-note">Each roof takes the colour of the fire class it most likely carries as an assembly, by its covering and the age of the roof; the specks are where embers lodge (edges, valleys, ridge, under a crown), more of them the higher its Fire Hazard Severity Zone and the nearer CAL FIRE's record puts fire.</span>${ramp(LENS_ROW.fclass, 0, 0, ['Class A', '', 'B or C', '', 'unrated'])}<span class="se-leg-marks"><span><i class="m5"></i>where embers lodge</span></span>`;
+      if (R && R.fc) { const p = R.fc.p, f = b.fire, nr = b.near, dz = b.dins, rq = R.req, T0 = RTYPE[R.types[0][0]] || RTYPE.shingle, dl = dinsLine(R.types[0][0]);
+        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>Class A <b>${pct(p[0])}</b> · B ${pct(p[1])} · C ${pct(p[2])} · unrated ${pct(p[3])}<br>It stands ${esc(fhszText(b))}.${rq ? ` A re-roof of half the roof or more must be at least <b>Class ${rq.c}</b>: ${esc(rq.why)}.` : ''}${f ? `<br>${f.nIn ? `Inside ${plural(f.nIn, 'fire perimeter')} since 1950 (${esc(f.in.map(x => (x.name ? title(x.name) + ' ' : '') + x.y).join(', '))})` : f.km != null ? `${D(f.km, 1)} km from the nearest fire perimeter since 1950 (${esc((f.nearest.name ? title(f.nearest.name) + ' ' : '') + f.nearest.y)})` : 'No fire perimeter since 1950 within 5 km'}${f.n5 ? `; ${plural(f.n5, 'perimeter')} within 5 km, the last in ${f.last5}` : ''}.` : ''}${dz ? `<br>CAL FIRE inspected this structure after the ${esc(dz.inc)} fire${dz.d ? ' (' + esc(monthYear(dz.d)) + ')' : ''}: <b>${esc(dinsClass(dz.dmg))}</b>${dz.roof ? ', roof ' + esc(dz.roof.toLowerCase()) : ''}${dz.eaves ? ', eaves ' + esc(dz.eaves.toLowerCase()) : ''}${dz.vent ? ', vents ' + esc(dz.vent.toLowerCase()) : ''}.` : ''}${nr && nr.n ? `<br>Within 300 m, CAL FIRE's inspections record ${N(nr.dest)} structures destroyed and ${N(nr.dmg)} damaged of ${N(nr.n)} inspected${nr.inc ? ' (' + esc(nr.inc) + ')' : ''}.` : ''}<br>Ember exposure <b>${D(R.ember * 10, 1)} of 10</b> on a day of offshore wind. ${esc(T0.does.fire)}.${dl ? `<br><span class="se-leg-note">In CAL FIRE's inspections since 2018, ${esc(dl)}: a raw share, not adjusted for the fire, the spacing or the house.</span>` : ''}</span>`; }
+      else h += CLICK;
+      return h + '<span class="se-leg-note">A roof\'s class is read from its likely covering and age, not from a label on it. About 90 percent of structures inside the 2025 Palisades and Eaton perimeters had Class A coverings: the roof matters, and the eaves, vents, gutters and the next house matter as much.</span>';
+    }
+    if (lens === 'solar') {
+      let h = `<b>Solar and cool roof: the sun each plane takes in a year</b><span class="se-leg-note">Clear sky sunlight on each plane through a normal year, with the sky clear this place's share of the time; trees and neighbours are not counted. A re-roof under panels means a detach and reset (the atlas's solar line), and a re-roof of more than half the roof must meet the Energy Code's cool roof minimums in the covered climate zones.</span>${ramp(LENS_ROW.solar, 0, 0, ['600', '1,000', '1,450', '1,900', '2,300 kWh/m²'])}`;
+      if (R && R.sun && R.sun.A > 0) { const s = R.sun, rl = R.rule;
+        h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>Best plane <b>${N(Math.round(s.max / 10) * 10)} kWh a square metre a year</b>${s.best ? ' (' + faceOf(s.best) + ')' : ''} · the roof on the whole ${N(Math.round(s.sum / s.A / 10) * 10)}<br>${esc(rl.text)}${rl.req ? `<br>This roof most likely reflects about ${pct(R.opt.sr)} of sunlight (its covering, and how light it shows in the photo): ${R.meets ? 'at or over' : 'under'} the ${rl.req.sr.toFixed(2)} a re-roof must reach${R.types[0][0] === 'tile' ? '; a tile roof of 25 pounds a square foot or more is exempt, so a lift and relay of the same tile is' : ''}.` : ''}</span>`; }
+      else h += CLICK;
+      return h + '<span class="se-leg-note">The climate zone is the Energy Commission\'s map at the building; the code lists zones by ZIP code, so a ZIP on a boundary may differ. Exceptions (an attic at R-38, a radiant barrier, insulation above the deck) are not read here.</span>';
+    }
     /* time */
-    const y = R ? R.year : clamp(Math.round(+ctx.year || 0), 0, OUT_Y), key = [['hur', 'Wind (hurricanes, thunderstorms, tornadoes)'], ['hail', 'Hail'], ['wear', 'Heat, sun and age'], ['leak', 'Leaks and flashing'], ['rust', 'Rust (metal, salt air)']];
-    let h = `<b>Time: ${THIS_YEAR + y}${y ? `, ${y} year${y === 1 ? '' : 's'} from now` : ', today'}</b><span class="se-leg-note">Each roof takes the colour of the damage most likely to have reached each part of it by then, brighter as the chance grows. From the storms, hail and wind on record for this ZIP and those round it, and the roof's age and kind.</span>${key.map(([c, l]) => `<span class="se-leg-row"><i style="background:${CAUSE_COL[c]}"></i>${esc(l)}${R && R.now ? ` <b>${pc1(c === 'hur' ? R.now.wind : R.now[c])}</b>` : ''}</span>`).join('')}`;
+    const y = R ? R.year : clamp(Math.round(+ctx.year || 0), 0, OUT_Y), key = [['wind', 'Wind (offshore wind and winter storms)'], ['rain', 'Rain and leaks'], ['fire', 'Wildfire'], ['wear', 'Heat, sun and age'], ['hail', 'Hail'], ['rust', 'Rust (metal, salt air)']];
+    let h = `<b>Time: ${THIS_YEAR + y}${y ? `, ${y} year${y === 1 ? '' : 's'} from now` : ', today'}</b><span class="se-leg-note">Each roof takes the colour of the damage most likely to have reached each part of it by then, brighter as the chance grows. From the gust days, rain, atmospheric rivers, fire losses and hail on record for this ZIP, and the roof's age and kind.</span>${key.map(([c, l]) => `<span class="se-leg-row"><i style="background:${CAUSE_COL[c]}"></i>${esc(l)}${R && R.now ? ` <b>${pc1(R.now[c])}</b>` : ''}</span>`).join('')}`;
     if (R && R.now && R.out) { const O = R.out, rk = causeRank(O.all, Math.max(1, y)), topC = rk[0], T0 = RTYPE[R.types[0][0]];
-      h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>By ${THIS_YEAR + y}: a roofer needed <b>${pc1(R.now.any)}</b> · the roof replaced <b>${pc1(R.now.rep)}</b>${y ? `<br>Most likely: <b>${esc(causeText(topC))}</b>. ${esc(T0.does[topC.sub] || '')}.` : '<br>Move the year, or press Play.'}${R.now.algae > 0.2 ? `<br>Algae streaks on the roof then in place: ${pc1(R.now.algae)}` : ''}<br><span class="se-leg-note">Hurricanes here replace ${D(O.hz.long.rep * 100, 1)}% of roofs a year at the pace of the years since ${OC.longFrom} and ${D(O.hz.recent.rep * 100, 1)}% at the pace since ${OC.recFrom}; the outlook uses ${O.rec === 'mid' ? 'their mean' : O.rec === 'recent' ? 'the record since ' + OC.recFrom : 'the record since ' + OC.longFrom}.</span></span>`; }
-    else h += '<span class="se-leg-cur">Click a building to read its roof.</span>';
-    return h + '<span class="se-leg-note">Odds from records, not a prediction of any one storm, and not an inspection.</span>';
+      h += `<span class="se-leg-cur"><b>${esc(addr)}</b>${esc(kinds)}<br>By ${THIS_YEAR + y}: a roofer needed <b>${pc1(R.now.any)}</b> · the roof replaced${R.types[0][0] === 'tile' ? ' or relaid' : ''} <b>${pc1(R.now.rep)}</b>${y ? `<br>Most likely: <b>${esc(causeText(topC))}</b>. ${esc(T0.does[topC.c] || '')}.` : '<br>Move the year, or press Play.'}${R.now.algae > 0.2 ? `<br>Moss or algae on the roof then in place: ${pc1(R.now.algae)}` : ''}</span>`; }
+    else h += CLICK;
+    return h + '<span class="se-leg-note">Odds at the pace of the record, not a prediction of any one storm or fire, and not an inspection.</span>';
   }
   const LENS = {
-    YEARS: OUT_Y, T: LENS_T, pal: LENS_PAL, rows: LENS_ROW, names: { cover: 'Covering', style: 'Shingle style', thermal: 'Thermal', wear: 'Wear', storm: 'Storm', time: 'Time' },
+    YEARS: OUT_Y, T: LENS_T, pal: LENS_PAL, rows: LENS_ROW, names: { cover: 'Covering', style: 'Shingle style', thermal: 'Thermal', wear: 'Wear', storm: 'Weather', fire: 'Fire', solar: 'Solar and cool roof', time: 'Time' },
     list: [['off', 'Off', 'The scene as it looks'],
-      ['cover', 'Covering', 'What each roof is most likely made of: asphalt shingles, metal, tile or slate, a membrane, a manufactured home roof or metal building panels, each in its colour with its pattern drawn at a common size of that covering'],
+      ['cover', 'Covering', 'What each roof is most likely made of: asphalt shingles, clay or concrete tile, wood shakes, metal, a cap sheet or membrane, a manufactured home roof or metal building panels, each in its colour with its pattern drawn at a common size of that covering'],
       ['style', 'Shingle style', 'Three tab strips or laminated (architectural) shingles: which is more likely on each shingle roof, from the years it may have gone on and the share of each sold then, with the courses drawn at their size'],
-      ['thermal', 'Thermal', 'How hot each roof plane runs at the chosen day and hour: an energy balance from the sun it takes, the covering and the air. Dark shingles in full July sun pass 160 degrees'],
-      ['wear', 'Wear', 'What age and weather have taken from each roof so far: the life it has used, worked harder where it runs hottest, the storms it has stood through, hail and wind reported near it, algae and rust'],
-      ['storm', 'Storm', 'What the storm on the storm scale would do to each roof: its chance of needing a roofer, by its covering and age, from the atlas\'s damage record; in rain without wind, its chance of a leak call'],
-      ['time', 'Time', 'The next 15 years: the damage most likely to reach each roof by each year (wind, hail, heat and age, leaks, rust), from this ZIP\'s storm, hail and wind record and the roof\'s age and kind']],
-    begin: lensBegin, ready: lensReady, legend: lensLegend, surge: surgeAt, stormShare, stormOnRoof, styleOf, lamAt, cover: COVER,
+      ['thermal', 'Thermal', 'How hot each roof plane runs at the chosen day and hour: an energy balance from the sun it takes, the covering and the air. A dark roof in full July sun passes 160 degrees in the valleys and deserts'],
+      ['wear', 'Wear', 'What age and weather have taken from each roof so far: the life it has used (for tile, of its underlayment), worked harder where it runs hottest, the gust days it has stood through, damage on record near it, moss and rust'],
+      ['storm', 'Weather', 'What the weather now set on the rain scale, the wind scale and the sky would do to each roof: a leak call in the rain or the atmospheric river, wind damage by gust speed, snow against the ground snow load, ember exposure in dry offshore wind or smoke'],
+      ['fire', 'Fire', 'The fire class each roof most likely carries (Class A, B, C or unrated) by its covering and age, the Fire Hazard Severity Zone it stands in, the fires and losses on record near it, and where embers lodge'],
+      ['solar', 'Solar and cool roof', 'The sun each roof plane takes in a normal year, and the cool roof rule (Title 24, Part 6) a re-roof of that building must meet in its climate zone'],
+      ['time', 'Time', 'The next 15 years: the damage most likely to reach each roof by each year (wind, rain and leaks, wildfire, heat and age, hail, rust), from this ZIP\'s gust, rain, fire and hail record and the roof\'s age and kind']],
+    begin: lensBegin, ready: lensReady, legend: lensLegend, wxOnRoof, wxResolve, gustDmg, fireClass, coolRule, sunYear, styleOf, lamAt, cover: COVER, rain: WX_RAIN, wind: WX_WIND, sky: WX_SKY, now: WXNOW, engx: ENGX,
     /* the few words over a building while a roof view is on */
-    label: (lens, R) => { if (!R) return ''; if (lens === 'cover') return R.cover ? (R.cover.white ? 'White membrane' : (COVER[R.cover.k] || COVER.shingle).l.replace(' on a house', '')) + ' ' + pct(R.cover.share) : ''; if (lens === 'style') return R.style ? (R.style.top !== 'shingle' ? 'Not shingles' : R.style.lam >= 0.5 ? 'Laminated ' + pct(R.style.lam) : 'Three tab ' + pct(1 - R.style.lam)) : ''; if (lens === 'storm') return R.st ? (R.st.kind === 'dry' ? '' : R.st.kind === 'rain' ? 'Leak ' + pc1(R.st.leak) : pc1(R.st.any)) : ''; if (lens === 'thermal') return R.tmax > -1e8 ? Math.round(R.tmax) + '°F' : ''; if (lens === 'wear') return R.wn ? pct(clamp(R.wsum / R.wn, 0, 1)) + ' worn' : ''; if (!R.now) return ''; if (!R.year) return 'Today'; const t = [['Wind', R.now.wind], ['Hail', R.now.hail], ['Age', R.now.wear], ['Leak', R.now.leak]].concat(R.rusty ? [['Rust', R.now.rust]] : []).sort((x, y) => y[1] - x[1])[0]; return t[0] + ' ' + pc1(t[1]); },
+    label: (lens, R) => { if (!R) return ''; if (lens === 'cover') return R.cover ? (R.cover.white ? 'White membrane' : R.cover.conc ? 'Concrete tile' : (COVER[R.cover.k] || COVER.shingle).l.replace(' on a house', '').replace(' (clay or concrete)', '')) + ' ' + pct(R.cover.share) : ''; if (lens === 'style') return R.style ? (R.style.top !== 'shingle' ? 'Not shingles' : R.style.lam >= 0.5 ? 'Laminated ' + pct(R.style.lam) : 'Three tab ' + pct(1 - R.style.lam)) : ''; if (lens === 'storm') return R.st ? (R.st.kind === 'dry' ? '' : R.st.kind === 'snow' ? 'Snow +' + D(R.st.add, 0) + ' psf' : R.st.kind === 'rain' ? 'Leak ' + pcS(R.st.leak) : R.st.kind === 'ember' ? 'Embers ' + D(R.st.ember * 10, 1) : 'Wind ' + pcS(R.st.any)) : ''; if (lens === 'fire') return R.fc ? 'Class A ' + pct(R.fc.p[0]) : ''; if (lens === 'solar') return R.sun && R.sun.A > 0 ? N(Math.round(R.sun.sum / R.sun.A / 10) * 10) + ' kWh/m²' : ''; if (lens === 'thermal') return R.tmax > -1e8 ? Math.round(R.tmax) + '°F' : ''; if (lens === 'wear') return R.wn ? pct(clamp(R.wsum / R.wn, 0, 1)) + ' worn' : ''; if (!R.now) return ''; if (!R.year) return 'Today'; const t = [['Wind', R.now.wind], ['Leak', R.now.rain], ['Fire', R.now.fire], ['Age', R.now.wear], ['Hail', R.now.hail]].concat(R.rusty ? [['Rust', R.now.rust]] : []).sort((x, y) => y[1] - x[1])[0]; return t[0] + ' ' + pc1(t[1]); },
     /* sun and air for the engine: the month and the hour by the sun for a date at a longitude */
     solar: (date, lon) => { const t = new Date(date.getTime() + (lon / 15) * 3600e3); return { month: t.getUTCMonth(), hour: t.getUTCHours() + t.getUTCMinutes() / 60, doy: Math.floor((Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()) - Date.UTC(t.getUTCFullYear(), 0, 0)) / 864e5) }; },
   };
 
+  /* the county's name for a FIPS code (the atlas keeps its counties under the key it was built with) */
+  const CN = fp => ((typeof CNAME === 'function' ? CNAME(fp) : typeof PNAME === 'function' ? PNAME(fp) : '') || '');
+  const COUNTIES = typeof PA !== 'undefined' && Array.isArray(PA) ? PA : [];
   /* ============================ the module ============================ */
   registerModule({
-    key: KEY, num: NUM, title: 'Rooftop Scout', desc: 'The heatmaps on commercial satellite imagery, down to the roof: rooftops, Street View from the road, and every building marked for a likely replacement, repair or storm and hail work with its likely roof',
+    key: KEY, num: NUM, title: 'Rooftop Scout', desc: 'The heatmaps on commercial satellite imagery, down to the roof: rooftops, Street View from the road, and every California building marked for a likely re-roof, tile relay, repair, or wind, rain or fire work, with its likely roof and the weather on record at it',
     mount(root) {
       const self = this;
       const VIEWER = inViewer();
       const lineName = id => (SLM.LI[id] || {}).short || id;
       root.innerHTML = mastHTML({ eyebrow: `Module ${NUM} · Rooftop Scout · satellite, street and roof level`, title: 'Rooftop Scout',
-        dek: 'Fly over the atlas\'s heatmaps on commercial satellite imagery, drop to the street, and read every roof in view: what it is most likely made of, how old it most likely is after every storm that reached it, and how likely it is to need a replacement, a repair, or wind or hail work. <b>Green</b> is likely, <b>orange</b> is maybe, <b>red</b> is not likely. Each building opens in Street View from the road in front of it, and anything you see on the roof or from the street can overrule the model.',
-        meta: ['<b>Imagery</b> Esri World Imagery: Vantor satellite of 31 to 50 cm', '<b>Buildings</b> FEMA USA Structures', '<b>Age</b> the atlas\'s roof age model, the Lafayette and Vermilion parcel rolls, New Orleans and East Baton Rouge permits', '<b>Storms</b> NHC tracks to the ZIP, NOAA hail and wind reports'],
+        dek: 'Fly over the atlas\'s heatmaps on commercial satellite imagery, drop to the street, and read every roof in view: what it is most likely made of, how old it most likely is, what California\'s weather and fire record holds at it, and how likely it is to need a re-roof, a tile lift and relay, a repair, or wind, rain or fire work. <b>Green</b> is likely, <b>orange</b> is maybe, <b>red</b> is not likely. Each building opens in Street View from the road in front of it, and anything you see on the roof or from the street can overrule the model.',
+        meta: ['<b>Imagery</b> Esri World Imagery: Vantor satellite of 31 to 50 cm, county aerials where finer', '<b>Buildings</b> FEMA USA Structures', '<b>Age</b> the atlas\'s roof age model, ten county assessors\' parcel layers, re-roof permits of Los Angeles, San Francisco, Sacramento and San Jose', '<b>Weather and fire</b> atmospheric rivers, rain, gusts, heat and snow by ZIP; CAL FIRE zones, perimeters and damage inspections at the building'],
         bar: 'Rooftop Scout', barsub: 'Live: needs the network · street level from zoom ' + CFG.minZoom,
         actions: [{ id: 'scCsv', label: '↓ Buildings CSV', title: 'The buildings in view, with roof, need, evidence and your field checks' }, { id: 'scLinesGo', label: 'Service Lines ↗', title: 'Open the selected ZIP in the Service Lines ledger (module 12)' }, { id: 'scDeskGo', label: 'Campaign Desk ↗', title: 'Send the ZIPs in view to the Campaign Desk' }] }) +
         `<div class="wrap sc">
         ${VIEWER ? callout('', 'This view cannot reach the imagery', 'The Claude viewer blocks requests to outside servers, so the satellite tiles, the buildings and the street links cannot load here. Download this file and open it in Chrome, Edge, Safari or Firefox: everything below then runs live from your browser. The heatmap still draws.') : ''}
-        ${callout('note', 'Read this first: what a colour on a roof means', 'Every roof is <b>read by the atlas\'s models, not inspected</b>. The building\'s type, size and height come from FEMA\'s national structure inventory; its age from the Lafayette or Vermilion Parish parcel roll where it carries one, a new construction permit, or else the ZIP\'s housing age; the roof\'s own age from the atlas\'s roof age model (module 17), which wears roofs out on a 22 year life and replaces the share of them each storm took at the ZIP (module 02), and from New Orleans and East Baton Rouge roof permits; recent wind and hail from NOAA\'s reports around the building. That gives the chance of a <b>replacement within five years</b>, a <b>repair call within twelve months</b>, and <b>wind or hail damage</b> still open from the last three years. <span class="sc-sw g" style="vertical-align:-1px"></span> <b>Green</b>: likely to need roof work. <span class="sc-sw o" style="vertical-align:-1px"></span> <b>Orange</b>: maybe. <span class="sc-sw r" style="vertical-align:-1px"></span> <b>Red</b>: not likely (a dashed outline, so the three read apart without colour). Look at the roof and the street, then mark what you saw: your mark replaces the model\'s colour and travels with the CSV.')}
+        ${callout('note', 'Read this first: what a colour on a roof means', 'Every roof is <b>read by the atlas\'s models, not inspected</b>. The building\'s type, size and height come from FEMA\'s national structure inventory (in California it carries no address, and a height only in the metros); its age from the county assessor\'s parcel layer where one publishes a year built (ten counties), a new construction permit, CAL FIRE\'s inspection, or else the ZIP\'s housing age; its covering from what California homes of its era carry (shingles, tile, wood, metal, a low slope roof), and from a roll, a permit or an inspection where one records it; the roof\'s own age from the atlas\'s roof age model (module 17), which wears roofs out on a calibrated life, ages tile by its underlayment and counts wildfire rebuilds, and from re-roof permits where a city publishes them. That gives the chance of a <b>replacement or tile relay within five years</b>, a <b>repair call within twelve months</b>, and <b>wind, hail or fire damage</b> still open. <span class="sc-sw g" style="vertical-align:-1px"></span> <b>Green</b>: likely to need roof work. <span class="sc-sw o" style="vertical-align:-1px"></span> <b>Orange</b>: maybe. <span class="sc-sw r" style="vertical-align:-1px"></span> <b>Red</b>: not likely (a dashed outline, so the three read apart without colour). Look at the roof and the street, then mark what you saw: your mark replaces the model\'s colour and travels with the CSV.')}
         <div class="kpis" id="scKpis"></div>
         <div class="controls">
           <div class="ctl" style="flex:1 1 300px"><label class="fl" for="scLayer">Heatmap layer</label><select id="scLayer">${layerOptions(Object.keys(LAYERS), CFG.heat)}</select></div>
           <div class="ctl"><label class="fl" for="scOp">Heatmap strength</label><input type="range" id="scOp" min="0" max="0.9" step="0.05" value="${CFG.opacity}"></div>
           <div class="ctl"><label class="fl" for="scImg">Imagery</label><select id="scImg"><option value="esri">Satellite</option><option value="esri-labels">Satellite with street names</option><option value="street">Street map</option></select></div>
-          <div class="ctl" style="flex:1 1 260px"><label class="fl" for="scFind">Find an address, ZIP, city or parish</label><form id="scFindF" autocomplete="off"><input type="search" id="scFind" placeholder="632 Woodgate Blvd, Baton Rouge · 70119 · Lafayette · Calcasieu"></form></div>
+          <div class="ctl" style="flex:1 1 260px"><label class="fl" for="scFind">Find an address, ZIP, city or county</label><form id="scFindF" autocomplete="off"><input type="search" id="scFind" placeholder="200 N Spring St, Los Angeles · 94110 · Coronado · Mono County"></form></div>
         </div>
         <div class="sc-grid">
           <div class="card sc-mapcard"><div class="sc-modebar"><div class="seg" id="scMode" role="group" aria-label="What the card shows"><button type="button" data-v="map" aria-pressed="true">Satellite</button><button type="button" data-v="3d" aria-pressed="false">Street view (3D)</button><button type="button" data-v="eng" aria-pressed="false" title="The neighborhood drawn by the Scout Engine: a renderer written for this page, with a physical sky, bounced light, reflections and traffic, and the roof views: heat, weather wear and the next 15 years">Scout Engine (3D)</button><button type="button" data-v="sv" aria-pressed="false">Google photos</button></div><span class="sc-mnote" id="scModeNote">Pick a building, then Street view to stand in the street in front of it (or double click the building).</span></div>
-            <div class="sc-map" id="scMap" role="application" aria-label="Satellite map of Louisiana with the heatmap and buildings"></div>
+            <div class="sc-map" id="scMap" role="application" aria-label="Satellite map of California with the heatmap and buildings"></div>
             <div class="sc-svw" id="scSvw" hidden><div class="sc-svbar" id="scSvBar"></div><div class="sc-svj" id="scSvJ" hidden><div class="sc-svp" id="scSvP"></div><canvas class="sc-svc" id="scSvC" aria-hidden="true"></canvas></div><iframe class="sc-svf" id="scSvF" title="Google Street View" allowfullscreen referrerpolicy="no-referrer-when-downgrade" src="about:blank"></iframe></div>
             <div class="sc-3dw" id="sc3dW" hidden><div class="sc-svbar" id="sc3dBar"></div><div class="sc-3d" id="sc3D"><div class="sc-3dnote" id="sc3dNote"></div><div class="sc-3dpad" id="sc3dPad" role="group" aria-label="Walk and turn"><span></span><button type="button" data-k="fwd" title="Walk forward (W)" aria-label="Walk forward">▲</button><span></span><button type="button" data-k="left" title="Turn left (A)" aria-label="Turn left">◀</button><button type="button" data-k="back" title="Walk back (S)" aria-label="Walk back">▼</button><button type="button" data-k="right" title="Turn right (D)" aria-label="Turn right">▶</button></div><div class="sc-3dattr">Imagery: Esri, Vantor · Buildings: FEMA · Streets: © OpenStreetMap contributors, U.S. Census</div></div></div>
             <div class="sc-3dw sc-enw" id="scEnW" hidden><div class="sc-svbar" id="scEnBar"></div><div class="sc-3d sc-en" id="scEn"><div class="sc-3dnote" id="scEnNote"></div><div class="sc-3dpad" id="scEnPad" role="group" aria-label="Move and turn"><span></span><button type="button" data-k="fwd" title="Forward (W)" aria-label="Forward">▲</button><span></span><button type="button" data-k="left" title="Turn left (A)" aria-label="Turn left">◀</button><button type="button" data-k="back" title="Back (S)" aria-label="Back">▼</button><button type="button" data-k="right" title="Turn right (D)" aria-label="Turn right">▶</button><button type="button" data-k="up" class="sc-enalt" title="Climb (R or the up arrow)" aria-label="Climb" hidden>⤒</button><span class="sc-enalt" hidden></span><button type="button" data-k="down" class="sc-enalt" title="Descend (F or the down arrow)" aria-label="Descend" hidden>⤓</button></div><div class="sc-3dattr">Imagery: Esri, Vantor · Buildings: FEMA USA Structures, © OpenStreetMap contributors · Streets: © OpenStreetMap contributors, U.S. Census · Windows, cars, signals, sidewalks and rooftop equipment are generated, not observed · The roof views are a model, not an inspection</div></div></div>
@@ -1826,7 +1943,7 @@
           ${card('What this cannot show', 'Gaps, and where the missing record lives.', '<div id="scGap"></div>')}
         </div>
         ${card('Source register', 'Every layer traced to the service it came from, with the grade the atlas applies.', '<div id="scSrc"></div>', 'mt')}
-        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect roofs, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri, FEMA, the Census Bureau, the City of New Orleans and East Baton Rouge Parish open data portals, the Lafayette and Vermilion parcel layer on ArcGIS Online, the public Overpass API servers that serve OpenStreetMap data for the 3D streets (overpass-api.de, run by FOSSGIS, then Kumi Systems' overpass.kumi.systems and VK's maps.mail.ru when it does not answer), Hugging Face and jsDelivr (once, for the AI model that traces the 3D view and its runtime), the USGS elevation service (for the photoreal view's ground), Google (for its Street View photos, while they show, and with your key its photoreal 3D tiles from tile.googleapis.com) and, with a token, Mapillary. Each request carries only the area or point in view, or the address you type in the search box (and, like any web request, this computer's network address). The AI detail and the AI tracing run on this computer and send nothing; what the module keeps (the last view, your field checks and notes) stays in this browser, and a key goes only to its own service. Street View is Google's own player, loaded from google.com while it shows. Building level readings are for planning field visits: under the atlas's compliance rules (module 02, What never to publish; modules 05 and 08 target ZIPs, never single homes) a specific damaged home's address, photo or owner never goes into an ad, a page or a post without written permission.</div>
+        <div class="foot">Rooftop Scout reads public records and models them. It does not inspect roofs, and a colour is a probability, not a finding about a household. The requests go from this browser to Esri (imagery, address search), FEMA (buildings), the Census Bureau (streets), the county assessors' public parcel layers (Los Angeles, San Diego through SANDAG, Orange, Riverside, Santa Clara, Contra Costa, San Joaquin, Sonoma, Ventura, Alameda, Sacramento, San Mateo, Placer) and San Francisco's open data, the permit files of the City and County of Los Angeles, San Francisco, Sacramento and San Jose, CAL FIRE's hosted layers (fire zones, perimeters, damage inspections), the California Energy Commission's climate zone layer, the public Overpass API servers that serve OpenStreetMap data for the 3D streets (overpass-api.de, run by FOSSGIS, then Kumi Systems' overpass.kumi.systems and VK's maps.mail.ru when it does not answer), Hugging Face and jsDelivr (once, for the AI model that traces the 3D view and its runtime), the USGS elevation service (for the photoreal view's ground), Google (for its Street View photos, while they show, and with your key its photoreal 3D tiles from tile.googleapis.com) and, with a token, Mapillary. Each request carries only the area or point in view, the parcel numbers in it, or the address you type in the search box (and, like any web request, this computer's network address). The AI detail and the AI tracing run on this computer and send nothing; what the module keeps (the last view, your field checks and notes) stays in this browser, and a key goes only to its own service. Street View is Google's own player, loaded from google.com while it shows. Building level readings are for planning field visits: under the atlas's compliance rules (module 02, What never to publish; modules 05 and 08 target ZIPs, never single homes) a specific damaged or burned home's address, photo or owner never goes into an ad, a page or a post without written permission, and after a declared disaster California's price and solicitation rules apply (module 03).</div>
         </div>`;
 
       $('#scImg', root).value = CFG.imagery;
@@ -1834,7 +1951,7 @@
       if (!LF) { host.innerHTML = '<div class="callout" style="margin:16px">The map library did not load, so the map cannot draw. Reload the page.</div>'; return; }
 
       /* ---------- the map ---------- */
-      const map = LF.map(host, { minZoom: 7, maxZoom: 22, zoomSnap: 1, worldCopyJump: false, attributionControl: true, preferCanvas: false, maxBounds: [[28.3, -95.4], [33.7, -88.0]], maxBoundsViscosity: 0.6 });
+      const map = LF.map(host, { minZoom: 5, maxZoom: 22, zoomSnap: 1, worldCopyJump: false, attributionControl: true, preferCanvas: false, maxBounds: [[ST_BOX.s - 1.5, ST_BOX.w - 2], [ST_BOX.n + 1.5, ST_BOX.e + 2]], maxBoundsViscosity: 0.6 });
       map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>');
       LF.control.scale({ imperial: true, metric: false, position: 'bottomleft' }).addTo(map);
       [['scHeat', 410], ['scCty', 415], ['scRef', 420], ['scBld', 430], ['scSel', 440]].forEach(([n, z]) => { const p = map.createPane(n); p.style.zIndex = z; if (n === 'scRef' || n === 'scCty') p.style.pointerEvents = 'none'; });
@@ -1860,13 +1977,15 @@
       }
 
       /* ---------- AI detail: past the imagery's finest zoom, Real-ESRGAN draws each tile four times finer ---------- */
-      /* The imagery stops at zoom 19 across Louisiana (about 26 cm a screen pixel here: Esri has no 15 cm layer in the state,
-         and its zoom 20 tile reads "Map data not yet available"), from Vantor captures of 31 to 50 cm; zoom 20 only where a
-         15 cm layer turns up under the map. Closer than that the map would only enlarge pixels; with AI detail on, each tile
-         from the zoom after it to 22 is cut from its parent run through
-         Real-ESRGAN (scoutsr.js, on this computer's graphics card), with a 16 pixel margin from the neighbours so no seams
-         show. A tile first shows the plain enlargement, then the enhanced one. Parents are kept (24 of them), so panning back
-         costs nothing. The detail is inferred, not photographed: the map labels it whenever it shows. */
+      /* The imagery's real detail ends at zoom 20 in Los Angeles, San Francisco and Coronado and at zoom 19 in Truckee,
+         Twentynine Palms and the high country (about 23 to 25 cm a screen pixel at zoom 19 here), from Vantor captures of
+         31 to 50 cm and, in places, county aerials of 5 to 30 cm; past its finest zoom Esri's server still answers with a
+         "Map data not yet available" tile. Zoom 20 is used only where the imagery's own record shows a fine layer under
+         the map. Closer than that the map would only enlarge pixels; with AI detail on, each tile from the zoom after it
+         to 22 is cut from its parent run through Real-ESRGAN (scoutsr.js, on this computer's graphics card), with a 16
+         pixel margin from the neighbours so no seams show. A tile first shows the plain enlargement, then the enhanced
+         one. Parents are kept (24 of them), so panning back costs nothing. The detail is inferred, not photographed: the
+         map labels it whenever it shows. */
       const AI = { cache: new Map(), queue: [], running: false, done: 0, ms: 0, err: '', layer: null, ctl: null };
       const aiAvail = () => !!(window.__SCOUT_SR__ && window.__SCOUT_TF__);
       const aiOn = () => CFG.ai !== false && aiAvail() && CFG.imagery !== 'street';
@@ -2003,11 +2122,19 @@
         let fc; try { fc = await fetchBuildings(t.box, 0); } catch (e) { t.st = 'err'; t.errAt = Date.now(); note('Buildings: ' + why(e)); return; }
         const bs = ingest(fc, t); bs.forEach(b => { read(b); draw(b); }); refreshSoon();
         const fips = [...new Set(bs.map(b => b.fips).filter(Boolean))];
-        const wantParcels = fips.some(f => PCOV[f] === 'yes');
-        const jobs = [];
-        if (wantParcels) jobs.push(fetchParcels(t.box, 0).then(ps => joinParcels(t, ps)).catch(e => note('Parcels: ' + why(e))));
-        if (fips.some(f => PFILE[f])) jobs.push(fetchPermits(t).then(pr => { t.permitRes = pr; pr.errs.forEach(note); t.permitsAsked = pr.asked; }).catch(e => note('Permits: ' + why(e))));
+        const jobs = [], pj = [];
+        /* the county assessor's parcels (San Francisco's roll is a table of points) */
+        fips.forEach(fp => { if (PARCEL[fp]) pj.push(fetchParcels(t.box, fp).then(ps => joinParcels(t, ps)).catch(e => note(PARCEL[fp].n + ' County parcels: ' + why(e)))); else if (fp === '06075') pj.push(fetchSfRoll(t.box).then(ps => joinParcels(t, ps)).catch(e => note('San Francisco assessor roll: ' + why(e)))); });
+        const parcelsDone = Promise.all(pj); jobs.push(parcelsDone);
+        /* CAL FIRE's inspections in and round the tile, and the zones, perimeters and climate zone of the 5 km square it is in */
+        const cx = (t.box.w + t.box.e) / 2, cy = (t.box.s + t.box.n) / 2;
+        jobs.push(fetchDins(t).then(ps => { t.dins = ps; }).catch(e => note('CAL FIRE damage inspections: ' + why(e))));
+        jobs.push(fireCell(cy, cx).then(async c => { t.cell = c; c.errs.forEach(e => { if (!errors.includes(e)) note(e); }); if (!c.cz && c.czs.length > 1 && !t.cz) { try { t.cz = await czAt(cy, cx); } catch (e) { /* the card says the zone is not known */ } } }).catch(e => note('CAL FIRE layers: ' + why(e))));
+        /* permits after the parcels: Sacramento and San Jose are asked by parcel number */
+        if (fips.some(fp => PFILE[fp])) jobs.push(parcelsDone.then(() => fetchPermits(t)).then(pr => { t.permitRes = pr; pr.errs.forEach(note); t.permitsAsked = pr.asked; }).catch(e => note('Permits: ' + why(e))));
         await Promise.all(jobs);
+        if (t.dins) { joinDins(t, t.dins); t.dins = null; }
+        if (t.cell) t.ids.forEach(id => applyCell(B.get(id), t.cell, t.cz));
         if (t.permitRes) { joinPermits(t, t.permitRes); t.permitRes = null; }
         t.ids.forEach(id => { const b = B.get(id); if (b) { read(b); draw(b); } });
         t.st = 'ok'; t.force = false; refreshSoon(); tryPending(); if (svMode) drawSoon(); if (d3Mode) refresh3D(); if (enMode) refreshEn();
@@ -2042,14 +2169,14 @@
         status();
         const zm = map.getZoom(), all = zm >= CFG.minZoom ? inViewB() : [], bs = all.filter(shown);
         const cnt = { g: 0, o: 0, r: 0 }; all.forEach(b => cnt[b.status]++);
-        const withYb = all.filter(b => b.ybSrc === 'parcel' || b.ybSrc === 'permit').length, withP = all.filter(b => b.permits.some(p => p.kind !== 'newc' && p.w >= 0.3)).length, checks = all.filter(b => b.checked).length;
+        const withYb = all.filter(b => b.ybSrc === 'parcel' || b.ybSrc === 'permit' || b.ybSrc === 'dins').length, withP = all.filter(b => b.permits.some(p => p.kind !== 'newc' && p.w >= 0.3)).length, checks = all.filter(b => b.checked).length;
         $('#scKpis', root).innerHTML = kpiHTML([
           { l: 'Buildings in view', v: zm >= CFG.minZoom ? N(all.length) : '—', d: zm >= CFG.minZoom ? `${N(bs.length)} shown by the filters` : `zoom ${CFG.minZoom} or closer` },
           { l: 'Likely needs roof work', v: N(cnt.g), d: all.length ? `${pct(cnt.g / all.length)} of the buildings in view` : 'green on the map' },
           { l: 'Maybe', v: N(cnt.o), d: all.length ? `${pct(cnt.o / all.length)} of the buildings in view` : 'orange on the map' },
           { l: 'Not likely', v: N(cnt.r), d: all.length ? `${pct(cnt.r / all.length)} of the buildings in view` : 'red, dashed' },
-          { l: 'Year built on file', v: all.length ? pct(withYb / all.length) : '—', d: 'Lafayette or Vermilion parcel roll, or a new construction permit' },
-          { l: 'Roof permits found', v: N(withP), d: 'buildings with a New Orleans or East Baton Rouge roof permit' },
+          { l: 'Year built on file', v: all.length ? pct(withYb / all.length) : '—', d: 'a county assessor\'s parcel layer, a new construction permit or a CAL FIRE inspection' },
+          { l: 'Roof permits found', v: N(withP), d: 'buildings with a re-roof or roof work permit (Los Angeles, San Francisco, Sacramento, San Jose)' },
           { l: 'Field checks', v: N(checks), d: `in view; ${N(Object.keys(CK).length)} saved in this browser` },
         ]);
         const tbl = $('#scTbl', root);
@@ -2058,12 +2185,12 @@
         const rank = { g: 3, o: 2, r: 1 }, rows = bs.slice().sort((a, b) => b.sc.score - a.sc.score).slice(0, 400);
         dataTable(tbl, [
           { k: 'st', h: 'Status', l: 1, v: r => rank[r.status] * 1000 + r.sc.score, f: (v, r) => `<span class="sc-tdot ${r.status}"></span>${STS[r.status]}${r.checked ? ' ✓' : ''}` },
-          { k: 'score', h: 'Score', v: r => r.sc.score, f: v => N(v), t: 'Chance of at least one paid roofing job (percent): a replacement within five years, a repair call within twelve months, or wind or hail work' },
+          { k: 'score', h: 'Score', v: r => r.sc.score, f: v => N(v), t: 'Chance of at least one paid roofing job (percent): a replacement or tile relay within five years, a repair call within twelve months, or wind, hail or fire work' },
           { k: 'addr', h: 'Address', l: 1, cls: 'sc-a', v: r => r.addr ? title(r.addr) : '', f: (v, r) => v ? esc(v) + (r.zip ? ` <span class="mini">${esc(r.zip)}</span>` : '') : '<span class="mini">no address on file</span>' },
           { k: 'use', h: 'Use', l: 1, v: r => (PROF[r.cls] || PROF.unk).l, f: v => esc(v) },
           { k: 'roof', h: 'Likely roof', l: 1, cls: 'sc-w', v: r => r.roof.short, f: v => esc(v) },
           { k: 'need', h: 'Likely need', l: 1, cls: 'sc-w', v: r => needLabel(r), f: v => esc(v) },
-          { k: 'age', h: 'Roof age', v: r => r.roof.keys && r.roof.keys.length ? r.state.age : null, f: (v, r) => isN(v) && r.roof.keys && r.roof.keys.length ? `<span title="Mean roof age from the model">~${D(v, 0)}</span>` : '—', t: 'The model\'s mean roof age in years: the year built, the roof life, the storms that reached the ZIP and any roof permit' },
+          { k: 'age', h: 'Roof age', v: r => r.roof.keys && r.roof.keys.length ? r.state.age : null, f: (v, r) => isN(v) && r.roof.keys && r.roof.keys.length ? `<span title="Mean roof age from the model">~${D(v, 0)}</span>` : '—', t: 'The model\'s mean roof age in years (for tile, of the underlayment): the year built, the roof life, the fires that rebuilt roofs in the ZIP and any roof permit' },
           { k: 'yb', h: 'Built', v: r => r.yb || r.ybMid || null, f: (v, r) => r.yb ? String(r.yb) : r.ybMid ? `<span class="mini" title="Estimated from the ZIP's housing age">~${Math.round(r.ybMid / 10) * 10}s</span>` : '—' },
           { k: 'perm', h: 'Last roof permit', v: r => r.last ? r.last.y : null, f: (v, r) => r.last ? esc(monthYear(r.last.d)) : '—' },
         ], rows, { sortKey: 'score', sortDir: -1, id: r => r.id, onClick: id => pick(id, { pan: true }), rowClass: r => sel && sel.type === 'b' && sel.id === r.id ? 'sel' : '' });
@@ -2075,13 +2202,23 @@
         map.fitBounds(LF.latLngBounds(p.rings.flat()), { padding: [20, 20], maxZoom: (o && o.maxZoom) || 15 });
         if (!sel || sel.type !== 'b') { sel = { type: 'zip', zip }; detail(); }
       }
+      /* a building with no address on any record: the nearest street address by Esri's geocoder, asked once when it is picked
+         (within 60 m; shown as an estimate, and never used to join a permit) */
+      const revSeen = new Set();
+      async function revAddr(b) {
+        if (!b || b.addr || VIEWER || revSeen.has(b.id)) return; revSeen.add(b.id);
+        try { const j = await getJSON(EP.revgeo + '?' + qs({ location: b.lon.toFixed(6) + ',' + b.lat.toFixed(6), featureTypes: 'PointAddress,StreetAddress', f: 'json' }), { timeout: 12000 }), a = j.address || {};
+          if (b.addr || !a.Address || !/^\d/.test(a.Address) || (a.RegionAbbr && a.RegionAbbr !== 'CA') || (isN(+a.Y) && meters([b.lat, b.lon], [+a.Y, +a.X]) > 60)) return;
+          b.addr = String(a.Address); b.addrSrc = 'geocoder'; if (!b.city && a.City) b.city = String(a.City).toUpperCase(); b.street = addrParts(a.Address).street;
+          if (sel && sel.type === 'b' && sel.id === b.id) { detail(); if (enMode) renderEnBar(); } refreshSoon(); } catch (e) { /* the card says no address is on file */ }
+      }
       function pick(id, o) {
         const b = B.get(id); if (!b) return; const prev = sel && sel.type === 'b' ? B.get(sel.id) : null;
         sel = { type: 'b', id }; if (prev && prev.lay) prev.lay.setStyle(bStyle(prev)); if (b.lay) { b.lay.setStyle(bStyle(b)); b.lay.bringToFront(); }
         if (b.zip && b.zip !== selZip) { selZip = b.zip; paintHeat(); }
         if (o && o.pan && !svMode) map.panTo([b.lat, b.lon], { animate: true });
         const t = { lat: b.lat, lon: b.lon, street: b.street, b };
-        detail(); street(t); if (enMode) { if (o && o.noSV) { enTarget = t; if (en) en.setCurrent(b.id); renderEnBar(); } else openEngine(t); } else if (d3Mode) { if (o && o.noSV) { d3Target = t; if (d3) d3.setCurrent(b.id); render3DBar(); } else open3D(t); } else if (svMode) { if (o && o.noSV) { svTarget = t; renderSvBar(); drawSoon(); } else showSV(t); } refreshSoon();
+        revAddr(b); detail(); street(t); if (enMode) { if (o && o.noSV) { enTarget = t; if (en) en.setCurrent(b.id); renderEnBar(); } else openEngine(t); } else if (d3Mode) { if (o && o.noSV) { d3Target = t; if (d3) d3.setCurrent(b.id); render3DBar(); } else open3D(t); } else if (svMode) { if (o && o.noSV) { svTarget = t; renderSvBar(); drawSoon(); } else showSV(t); } refreshSoon();
       }
       function pickPoint(la, lo) {
         const prev = sel && sel.type === 'b' ? B.get(sel.id) : null; sel = { type: 'pt', lat: la, lon: lo }; if (prev && prev.lay) prev.lay.setStyle(bStyle(prev));
@@ -2103,33 +2240,63 @@
       /* ---------- the card for what is picked ---------- */
       const bar = (l, v, t) => `<div class="sc-pb" title="${esc(t || '')}"><span>${l}</span><i><u style="width:${clamp(v * 100, 0, 100).toFixed(0)}%"></u></i><b>${pct(v)}</b></div>`;
       /* ---------- the card's outlook: the next fifteen years for the building picked ---------- */
-      const CAUSE_INK = { wind: '#1f86c9', hail: '#8448d6', wear: '#c9801f', leak: '#1a9c92', any: 'var(--ink)' };
+      const CAUSE_INK = { wind: '#1f86c9', hail: '#8448d6', wear: '#c9801f', rain: '#1a9c92', fire: '#d8421a', any: 'var(--ink)' };
+      const d1 = v => (v == null ? 'not counted' : v >= 10 ? D(v, 0) : v >= 1 ? D(v, 1) : v > 0 ? D(v, 2) : '0');
+      const OFFSHORE = { la: 'Santa Ana', oc: 'Santa Ana', ie: 'Santa Ana', sd: 'Santa Ana', ba: 'Diablo', sv: 'Diablo (north wind)', nc: 'Diablo', si: 'Diablo and Mono', fn: 'north wind', cc: 'sundowner (on the Santa Barbara coast) and Santa Ana', sj: 'Santa Ana (at the south end of the valley) and Mono' };
+      /* California's weather and fire record applied to this roof: one plain statement a hazard, what the record holds at the
+         ZIP and the site and what that means for the covering the roof most likely is over fifteen years. The record of what
+         has happened, with its source; never a forecast of an event. */
+      function wxFacts(b, O) {
+        const z = b.z; if (!z) return []; const out = [], T = RTYPE[(O && O.types[0] && O.types[0][0]) || (b.roof.keys[0] || ['shingle'])[0]] || RTYPE.shingle, hz = O ? O.hz : hazardAt(b.zip), A = O ? O.all : null, Y = OUT_Y, v = k => wxCol(z, k), cov = T.s;
+        const ar = ['ar1', 'ar2', 'ar3', 'ar4', 'ar5'].map(v), arT = ar.some(x => x != null) ? sum(ar.map(x => x || 0)) : v('arD');
+        if (arT != null) { const am = v('arMax'), ad = wxTxt(z, 'arMaxDate'), hi = (ar[2] || 0) + (ar[3] || 0) + (ar[4] || 0);
+          out.push(['Atmospheric rivers', `About <b>${d1(arT)} days a year</b> under an atmospheric river at this latitude of the coast${ar.some(x => x != null) ? `: rank 1 ${d1(ar[0])}, rank 2 ${d1(ar[1])}, rank 3 ${d1(ar[2])}, rank 4 ${d1(ar[3])}, rank 5 ${d1(ar[4])}` : ''}${am ? `; the strongest in the catalog here was rank ${D(am, 0)}${ad ? ' (' + esc(monthYear(ad)) + ')' : ''}` : ''} (CW3E's landfall catalog on ERA5, ranked on the scale of Ralph and others 2019; the count is the coast's at this latitude, and a ZIP far inland sees less of it). Over ${Y} years that is about ${N(Math.round(hi * Y))} days of rank 3 or stronger. On ${esc(cov)}: ${esc(T.does.rain.charAt(0).toLowerCase() + T.does.rain.slice(1))}.`, 'B']); }
+        const r1 = v('rd1'), r2 = v('rd2'), ri = v('rainIn');
+        if (r1 != null || ri != null) out.push(['Heavy rain', `${r1 != null ? `<b>${d1(r1)} days a year</b> with an inch of rain or more${r2 != null ? ` and ${d1(r2)} with two inches` : ''} (daily gauges, 1996 to 2025)` : 'Days of heavy rain are not counted here'}${ri != null ? `; ${D(ri, 0)} inches in a normal year (NOAA 1991 to 2020 normals${wxTxt(z, 'rainSt') ? ', nearest gauge ' + esc(wxTxt(z, 'rainSt')) : ''})` : ''}. ${hz.wet != null && hz.wetState ? `That is ${hz.wet >= hz.wetState * 1.15 ? 'more' : hz.wet <= hz.wetState * 0.85 ? 'less' : 'about as much'} heavy rain ${hz.wet >= hz.wetState * 1.15 || hz.wet <= hz.wetState * 0.85 ? 'than' : 'as'} the average California roof takes, so the outlook leans leak calls here by ${D(hz.rainK, 2)} times.` : ''}${A ? ` A leak or repair call by ${THIS_YEAR + Y}: <b>${pc1(A.C.rain[Y])}</b>.` : ''}`, 'B']);
+        const g40 = v('g40'), g58 = v('g58'), g75 = v('g75');
+        if (g58 != null || g40 != null) { const gm = v('gustMax'), gs = wxTxt(z, 'gustSt'), gk = v('gustKm'), gd = wxTxt(z, 'gustMaxDate');
+          out.push(['Wind', `Gusts of 40 mph or more on <b>${d1(g40)} days a year</b>, 58 mph on ${d1(g58)} and 75 mph on ${d1(g75)}${gs ? `, measured at ${esc(gs)}${gk != null ? ', ' + D(gk, 0) + ' km away' : ''}` : ' at the nearest screened station'} (airport and GHCN daily peak gusts, screened for sensor errors)${gm ? `; the strongest on record there ${Math.round(gm)} mph${gd ? ' (' + esc(monthYear(gd)) + ')' : ''}` : ''}. Wind is local: a canyon mouth or a ridge takes more than the station does${hz.capped ? ', and this station counts more gust days than the outlook will use (it is capped at 25 and 5 days a year)' : ''}. On ${esc(cov)}: ${esc(T.does.wind.charAt(0).toLowerCase() + T.does.wind.slice(1))}.${A ? ` Wind damage by ${THIS_YEAR + Y}: <b>${pc1(A.C.wind[Y])}</b>.` : ''}`, 'C']); }
+        const sa = v('sa'), ok = OFFSHORE[regKey(z)] || '';
+        if (sa != null || ok) out.push(['Offshore wind', sa != null ? `<b>${d1(sa)} days a year</b> of ${esc(wxTxt(z, 'saKind') || ok || 'dry offshore')} wind on record here: the dry wind behind California's most destructive fires. Those days are already in the gust days above; what they add is fire weather.` : `This is ${esc(ok)} wind country. The page's data carries no count of offshore wind days for the ZIP; such days are in the gust days above when the station measured them. On January 7, 2025 gusts reached 84 mph at Burbank Airport and 98 mph on Saddle Peak (NOAA Storm Events).`, sa != null ? 'B' : 'C']);
+        { const f = b.fire, nr = b.near, dz = b.dins, zVH = v('fhszVH'), zHV = fhszHV(z), dest = v('dest'), dmg = v('dmg'), burn = v('burn'), dl = dinsLine((b.roof.keys[0] || ['shingle'])[0]), fl = wxTxt(z, 'fireLast'), fly = v('fireLastYr');
+          const site = `${b.fhsz ? 'The building stands ' + esc(fhszText(b)) : 'The building\'s own zone has not been read (the layer did not answer)'}${f ? (f.nIn ? `, inside ${plural(f.nIn, 'fire perimeter')} since 1950 (${esc(f.in.map(x => (x.name ? title(x.name) + ' ' : '') + x.y).join(', '))})` : f.km != null ? `, ${D(f.km, 1)} km from the nearest fire perimeter since 1950 (${esc((f.nearest.name ? title(f.nearest.name) + ' ' : '') + f.nearest.y)})` : ', with no fire perimeter since 1950 within 5 km') : ''}`;
+          out.push(['Wildfire', `${site} (CAL FIRE: zones of April 2024 and March 2025, perimeters through 2025). ${zHV != null ? `${P(zHV, 0)} of the ZIP's area is in a High or Very High zone${zVH != null ? ' (' + P(zVH, 0) + ' Very High)' : ''}${burn != null ? ', and ' + P(burn, 0) + ' of it has burned since 1950' : ''}. ` : ''}${dest != null ? `CAL FIRE's damage inspections record <b>${N(dest)} structures destroyed</b> and ${N(dmg || 0)} damaged in this ZIP, 2013 to 2025${fl || fly ? ` (the last fire with losses: ${esc(fl ? title(fl) + ' ' : '')}${fly ? D(fly, 0) : ''})` : ''}. ` : ''}${nr && nr.n ? `Within 300 m of this building: ${N(nr.dest)} destroyed and ${N(nr.dmg)} damaged of ${N(nr.n)} inspected${nr.inc ? ' (' + esc(nr.inc) + ')' : ''}. ` : ''}${dz ? `This structure itself was inspected after the ${esc(dz.inc)} fire: ${esc(dinsClass(dz.dmg))}. ` : ''}${dl ? `In those inspections since 2018, ${esc(dl)}: raw shares, not adjusted for how hard each fire burned, the spacing of the houses or their age. ` : ''}On ${esc(cov)}: ${esc(T.does.fire.charAt(0).toLowerCase() + T.does.fire.slice(1))}.${A ? ` At the pace of the 2013 to 2025 record here and within 40 km${O.fk !== 1 ? ', turned ' + D(O.fk, 2) + ' times for this building\'s zone' : ''}, fire damage or loss by ${THIS_YEAR + Y}: <b>${pcS(A.C.fire[Y])}</b>.` : ''}`, 'B']); }
+        const sn = v('snow'), el = v('elev');
+        if (sn != null && sn >= 5) out.push(['Snow', `Ground snow load <b>${N(Math.round(sn))} lb a square foot</b>${el != null ? ` at about ${N(Math.round(el * 3.281 / 10) * 10)} ft` : ''} (ASCE 7-22, Risk Category II, as its map service gives it for the ZIP's town point; the town or county sets the design load, and steep ground changes it within a mile). In the winter of 2023 roofs fell in at Crestline and Lake Arrowhead under 100 inches of snow, and Mammoth Lakes told owners to clear theirs. Snow slides tear vents, gutters and flashings off the eave, and ice dams back water up under the covering: the outlook adds up to 30 percent to leak calls here. Rooftop solar is limited where the load passes 230 lb (the mountain building departments' joint figure).`, 'C']);
+        else if (el != null && el >= 900) out.push(['Snow', `At about ${N(Math.round(el * 3.281 / 10) * 10)} ft${sn != null ? `, with a ground snow load of ${N(Math.round(sn))} lb a square foot (ASCE 7-22 as its map service gives it)` : '; no ground snow load is in the page\'s data'}: snow is an occasional load here, not a design case for the covering.`, 'C']);
+        const h100 = v('h100'), h110 = v('h110');
+        if (h100 != null || (O && Math.abs(O.clim - 1) >= 0.04)) out.push(['Heat and sun', `${h100 != null ? `<b>${d1(h100)} days a year</b> at 100 F or more${h110 != null ? ` and ${d1(h110)} at 110 F` : ''} (daily records, 1996 to 2025${wxTxt(z, 'heatSt') ? ', nearest station ' + esc(wxTxt(z, 'heatSt')) : ''}). ` : ''}${O ? `From the 1991 to 2020 normals the heat here ages a roof <b>${D(O.clim, 2)} times</b> as fast as the average California roof of its kind${isN(O.heat) && Math.abs(O.heat - 1) >= 0.03 ? `, and this roof's own planes and colour ${D(O.heat, 2)} times the average roof here (the Scout Engine's reading)` : ''}; the outlook ${O.clim * (isN(O.heat) ? O.heat : 1) > 1.03 ? 'shortens' : O.clim * (isN(O.heat) ? O.heat : 1) < 0.97 ? 'stretches' : 'leaves'} its life by the square root of that. ` : ''}On ${esc(cov)}: ${esc(T.does.wear.charAt(0).toLowerCase() + T.does.wear.slice(1))}.${A ? ` Worn out${T === RTYPE.tile ? ' (the underlayment)' : ''} by ${THIS_YEAR + Y}: <b>${pc1(A.C.wear[Y])}</b>.` : ''}`, 'C']);
+        out.push(['Hail', `${hz.hasHail ? `Hail of an inch or more within 25 miles on <b>${d1(hz.hailDays[0])} days a year</b>. ` : ''}Hail is rare in California: 349 reports of an inch or more in the whole state since 1951, the largest 3 inches (NOAA Storm Events).${A && A.C.hail[Y] >= 0.005 ? ` Hail damage by ${THIS_YEAR + Y}: ${pc1(A.C.hail[Y])}.` : ' It adds nothing to speak of to this outlook.'}`, 'A']);
+        { const km = O ? O.km : coastKm(b.lat, b.lon), si = saltIx(km), rustT = O ? O.byType.find(r => RTYPE[r.k].rust > 0) : null, ru = rustT ? RTYPE[rustT.k].rust * rustT.o.rust[Y] : 0, wk = wetK(z), al = O ? O.slow.algae[Y] : 0;
+          if (km < 25) out.push(['Salt air', `<b>${km < 1 ? D(km * 1000, 0) + ' m' : D(km, 1) + ' km'}</b> from the Pacific or a bay shore as the atlas measures it. ${si <= 1 ? 'Makers void coating warranties on bare and painted steel this close to salt water, and fasteners, flashings and gutters rust years sooner.' : 'Close enough for salt to shorten the life of steel fasteners, flashings and coatings.'}${rustT && ru > 0.05 ? ` Rust that needs a roofer by ${THIS_YEAR + Y}, if the roof is ${esc(rustT.l.toLowerCase())}: ${pc1(ru)}.` : ''} The marine layer also keeps north slopes damp.`, 'D']);
+          if (al > 0.2 || wk >= 1.5) out.push(['Moss and algae', `${ri != null ? D(ri, 0) + ' inches of rain a year: ' : ''}moss or algae on the roof then in place, in ${THIS_YEAR + Y}: <b>${pc1(al)}</b>. ${esc(T.does.algae)}.`, 'D']); }
+        return out;
+      }
       function outlookCard(b) {
         let O = null; try { O = outlookOf(b, {}); } catch (e) { O = null; } if (!O) return '';
         const A = O.all, Y = OUT_Y, W = 300, H = 118, L = 30, Rr = 6, T = 8, Bm = 18, x = t => L + (W - L - Rr) * t / Y, y = v => T + (H - T - Bm) * (1 - clamp(v, 0, 1));
-        const wind = t => 1 - (1 - A.C.hur[t]) * (1 - A.C.ts[t]), series = [['any', 'A roofer needed', t => A.any[t]], ['wind', 'Wind', wind], ['wear', 'Heat, sun and age', t => A.C.wear[t]], ['leak', 'Leaks', t => A.C.leak[t]], ['hail', 'Hail', t => A.C.hail[t]]];
+        const tileTop = O.types[0][0] === 'tile', series = [['any', 'A roofer needed', t => A.any[t]], ['wear', tileTop ? 'Underlayment, heat and age' : 'Heat, sun and age', t => A.C.wear[t]], ['rain', 'Rain and leaks', t => A.C.rain[t]], ['wind', 'Wind', t => A.C.wind[t]], ['fire', 'Wildfire', t => A.C.fire[t]], ['hail', 'Hail', t => A.C.hail[t]]].filter(s => s[0] !== 'hail' || A.C.hail[Y] >= 0.005);
         const path = f => Array.from({ length: Y + 1 }, (_, t) => `${t ? 'L' : 'M'}${x(t).toFixed(1)} ${y(f(t)).toFixed(1)}`).join('');
         const svg = `<svg class="sc-outch" viewBox="0 0 ${W} ${H}" role="img" aria-label="Chance of each kind of roof damage by year, ${THIS_YEAR} to ${THIS_YEAR + Y}">${[0, 0.25, 0.5, 0.75, 1].map(v => `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L - 4}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="var(--ink-3)">${Math.round(v * 100)}%</text>`).join('')}${[0, 5, 10, 15].map(t => `<text x="${x(t)}" y="${H - 5}" text-anchor="${t === 0 ? 'start' : t === Y ? 'end' : 'middle'}" font-size="9" fill="var(--ink-3)">${THIS_YEAR + t}</text>`).join('')}${series.map(([k, , f]) => `<path d="${path(f)}" fill="none" stroke="${CAUSE_INK[k]}" stroke-width="${k === 'any' ? 2.2 : 1.6}" stroke-linejoin="round"/>`).join('')}</svg>`;
-        const key = `<div class="sc-outkey">${series.map(([k, l, f]) => `<span><i style="background:${CAUSE_INK[k]}"></i>${esc(l)} <b>${pc1(f(Y))}</b></span>`).join('')}</div>`;
+        const key = `<div class="sc-outkey">${series.map(([k, l, f]) => `<span><i style="background:${CAUSE_INK[k]}"></i>${esc(l)} <b>${k === 'fire' ? pcS(f(Y)) : pc1(f(Y))}</b></span>`).join('')}</div>`;
         const rk = causeRank(A, Y), top = rk[0], T0 = RTYPE[O.types[0][0]], rows = O.byType.filter(r => r.w >= 0.03).map(r => { const k2 = causeRank(r.o, Y)[0]; return `<tr><td>${esc(r.l)}<span class="sc-outwhy">mostly ${esc(causeShort(k2))}</span></td><td class="num">${pct(r.w)}</td><td class="num">${pc1(r.o.any[5])}</td><td class="num">${pc1(r.o.any[10])}</td><td class="num">${pc1(r.o.any[Y])}</td><td class="num">${pc1(r.o.rep[Y])}</td></tr>`; }).join('');
-        const low1 = t => t.charAt(0).toLowerCase() + t.slice(1), kinds = O.byType.filter(r => r.w >= 0.03).map(r => { const T = RTYPE[r.k], al = T.algae * r.o.alg[Y], ru = T.rust * r.o.rust[Y];
-          return `<p class="sc-outkind"><b>${esc(r.l)}</b> · ${pct(r.w)} likely</p><ul class="sc-outdo">${causeRank(r.o, Y).map(k => `<li><b>${esc(k.l)} ${pc1(k.p)}</b> ${esc(k.c === 'wind' ? T.does.hur + (r.o.C.ts[Y] >= 0.03 ? '. In a thunderstorm or tornado: ' + low1(T.does.ts) : '') : T.does[k.c] || '')}.</li>`).join('')}${al > 0.1 && T.does.algae ? `<li><b>Algae ${pc1(al)}</b> ${esc(T.does.algae)}.</li>` : ''}${ru > 0.05 && T.does.rust ? `<li><b>Rust ${pc1(ru)}</b> ${esc(T.does.rust)}.</li>` : ''}</ul>`; }).join('');
-        const rustT = O.byType.find(r => RTYPE[r.k].rust > 0), rustV = rustT ? RTYPE[rustT.k].rust * rustT.o.rust[Y] : 0, hz = O.hz, recL = { mid: 'Both', recent: `Since ${OC.recFrom}`, long: `Since ${OC.longFrom}` };
+        const kinds = O.byType.filter(r => r.w >= 0.03).map(r => { const T2 = RTYPE[r.k], al = clamp(T2.algae * O.wetK * r.o.alg[Y], 0, 1), ru = T2.rust * r.o.rust[Y];
+          return `<p class="sc-outkind"><b>${esc(r.l)}</b> · ${pct(r.w)} likely</p><ul class="sc-outdo">${causeRank(r.o, Y).filter(k => k.c !== 'hail' || k.p >= 0.005).map(k => `<li><b>${esc(k.l)} ${k.c === 'fire' ? pcS(k.p) : pc1(k.p)}</b> ${esc(T2.does[k.c] || '')}.</li>`).join('')}${al > 0.1 && T2.does.algae ? `<li><b>Moss and algae ${pc1(al)}</b> ${esc(T2.does.algae)}.</li>` : ''}${ru > 0.05 && T2.does.rust ? `<li><b>Rust ${pc1(ru)}</b> ${esc(T2.does.rust)}.</li>` : ''}</ul>`; }).join('');
+        const facts = wxFacts(b, O);
         return `<div class="sc-sec sc-out"><p class="sc-k">The next 15 years ${G('D')}</p>
-            <div class="sc-sys">By ${THIS_YEAR + Y}: a roofer needed ${pc1(A.any[Y])}, the roof replaced ${pc1(A.rep[Y])}</div>
-            <div class="sc-sub">The chance, year by year, that this roof takes each kind of damage at least once: from the storms, hail and wind on record for this ZIP and those round it, the roof's likely covering and its age today. Odds from records and stated judgments, not a prediction of any one storm.</div>
+            <div class="sc-sys">By ${THIS_YEAR + Y}: a roofer needed ${pc1(A.any[Y])}, the roof replaced${tileTop ? ' or relaid' : ''} ${pc1(A.rep[Y])}</div>
+            <div class="sc-sub">The chance, year by year, that this roof takes each kind of damage at least once, if the next fifteen years bring weather and fire at the pace of the record for this ZIP: its gust days, its rain and atmospheric rivers, the fires and losses near it, the roof's likely covering and its age today. Odds from records and stated judgments, not a prediction of any storm or fire.</div>
             ${svg}${key}
-            <div class="sc-sub"><b>Most likely: ${esc(causeText(top))}</b> (${pc1(top.p)}; replaced ${pc1(top.rep)}, repaired ${pc1(top.fix)}). ${esc(T0.does[top.sub] || '')}.</div>
-            ${rows ? `<table class="sc-outt"><thead><tr><th>If the roof is</th><th class="num">Odds</th><th class="num">${THIS_YEAR + 5}</th><th class="num">${THIS_YEAR + 10}</th><th class="num">${THIS_YEAR + Y}</th><th class="num">New<br>roof</th></tr></thead><tbody>${rows}</tbody></table><div class="sc-sub">Odds: how likely the roof is of that kind. The three years: a roofer needed by then. New roof: replaced by ${THIS_YEAR + Y}.</div>` : ''}
-            ${kinds ? `<details class="sc-outmore"><summary>What each kind of damage does, by kind of roof</summary>${kinds}<p class="sc-sub">Each figure is the chance of that damage at least once by ${THIS_YEAR + Y} if the roof is of that kind; algae and rust are the chance they show on the roof then in place.</p></details>` : ''}
-            <div class="sc-sub">Hurricanes and tropical storms here replace ${D(hz.long.rep * 100, 1)}% of roofs a year at the pace of the years since ${OC.longFrom} and ${D(hz.recent.rep * 100, 1)}% at the pace since ${OC.recFrom} (FEMA's verified damage where it has it, modeled wind elsewhere)${hz.top && hz.top.d >= 0.005 ? `; the costliest year here since ${OC.recFrom} was ${hz.top.y} (${esc(stormName(SIDS[hz.top.si]).replace(/ \(\d{4}\)$/, ''))}), when the record has about ${pc1(hz.top.d)} of this ZIP's roofs replaced` : ''}. Hail of an inch or more falls within 25 miles on ${D(hz.hailDays[0], 1)} days a year, wind of 58 mph or more on ${D(hz.days.wd50, 1)}.${isN(O.heat) && Math.abs(O.heat - 1) >= 0.03 ? ` Heat ages this roof ${D(O.heat, 2)} times as fast as the average roof of its kind here (the Scout Engine's reading of its planes and colour), which ${O.heat > 1 ? 'shortens' : 'stretches'} its life in this outlook.` : ''}${O.slow.algae[Y] > 0.25 ? ` Algae streaks on the roof then in place, in ${THIS_YEAR + Y}: ${pc1(O.slow.algae[Y])}.` : ''}${rustT && rustV > 0.1 ? ` Rust, if the roof is ${esc(rustT.l.toLowerCase())}: ${pc1(rustV)} by then (${D(O.km, 0)} km from the Gulf's open shore; lakes, bays and canals are not counted).` : ''}</div>
-            <div class="sc-outctl"><span class="mini">Storm record</span><span class="seg" id="scOutRec" role="group" aria-label="Storm record used">${['mid', 'recent', 'long'].map(k => `<button type="button" data-v="${k}" aria-pressed="${(CFG.outRec || 'mid') === k}" title="${k === 'mid' ? 'The mean of the two records' : k === 'recent' ? 'The years the atlas resolves storm by storm at each ZIP, 1990 on: harder on Louisiana than the forty years before' : 'The 76 years since 1950: the same storms, with the hurricane years before 1990 counted from the atlas and given the mean cost of a year of their strength'}">${recL[k]}</button>`).join('')}</span><button type="button" class="btn sm sec" id="scOutEn" title="The same reading drawn on the roof in the Scout Engine: move the year and watch where each kind of damage is likeliest">See it on the roof ↗</button></div></div>`;
+            <div class="sc-sub"><b>Most likely: ${esc(causeText(top))}</b> (${pc1(top.p)}; replaced ${pc1(top.rep)}, repaired ${pc1(top.fix)}). ${esc(T0.does[top.c] || '')}.</div>
+            ${rows ? `<table class="sc-outt"><thead><tr><th>If the roof is</th><th class="num">Odds</th><th class="num">${THIS_YEAR + 5}</th><th class="num">${THIS_YEAR + 10}</th><th class="num">${THIS_YEAR + Y}</th><th class="num">New<br>roof</th></tr></thead><tbody>${rows}</tbody></table><div class="sc-sub">Odds: how likely the roof is of that kind. The three years: a roofer needed by then. New roof: replaced by ${THIS_YEAR + Y} (for tile, lifted and relaid on new underlayment).</div>` : ''}
+            ${facts.length ? `<p class="sc-k" style="margin-top:10px">California's weather on record at this roof</p><ul class="sc-ev sc-wx">${facts.map(([h, t, g]) => `<li><b>${esc(h)}</b> ${G(g)}<br>${t}</li>`).join('')}</ul>` : ''}
+            ${kinds ? `<details class="sc-outmore"><summary>What each kind of damage does, by kind of roof</summary>${kinds}<p class="sc-sub">Each figure is the chance of that damage at least once by ${THIS_YEAR + Y} if the roof is of that kind; moss, algae and rust are the chance they show on the roof then in place.</p></details>` : ''}
+            <div class="sc-outctl"><button type="button" class="btn sm sec" id="scOutEn" title="The same reading drawn on the roof in the Scout Engine: move the year and watch where each kind of damage is likeliest">See it on the roof ↗</button></div></div>`;
       }
-      /* the outlook's own buttons; and that section drawn again alone (another storm record, or the engine has read the
-         roof's heat), so the rest of the card, and a note being typed in it, stay as they are */
+      /* the outlook's own button; and that section drawn again alone (the engine has read the roof's heat), so the rest of
+         the card, and a note being typed in it, stay as they are */
       function outlookWire(b) {
         const dt = $('#scDetail', root); if (!dt || !b) return;
-        $$('#scOutRec button', dt).forEach(x => x.onclick = () => { CFG.outRec = x.dataset.v; saveCfg(); outlookRedraw(b); if (en) en.lensRefresh(); });
         const oe = $('#scOutEn', dt); if (oe) oe.onclick = async () => { mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); await openEngine({ lat: b.lat, lon: b.lon, street: b.street, b }); if (en && enMode) { en.setGraphics({ lens: 'time' }); en.setHeight('orbit'); renderEnBar(); } };
       }
       function outlookRedraw(b) { const dt = $('#scDetail', root), e = dt && $('.sc-out', dt); if (!e || !b) return; const h = outlookCard(b); if (!h) { e.outerHTML = ''; return; } e.outerHTML = h; outlookWire(b); }
@@ -2137,9 +2304,12 @@
         const nm = $('#scName', root), sb = $('#scSub', root), pl = $('#scPill', root), dt = $('#scDetail', root);
         if (!sel) { nm.textContent = 'Pick a place'; sb.textContent = 'Click an area of the heatmap, or search an address'; pl.innerHTML = ''; dt.innerHTML = `<p class="sc-empty">Start on the heatmap: the darker ZIPs carry the most roof demand on the layer you choose. Click one to fly in; from zoom ${CFG.minZoom} every building in view is read and coloured. Or type an address above to go straight to a roof.</p>${zipList()}`; wireZipList(); return; }
         if (sel.type === 'zip') {
-          const z = ZI[sel.zip]; nm.textContent = z ? `${z.zip} · ${z.city}` : sel.zip; sb.textContent = z ? `${z.cty} Parish · ${N(z.hu)} homes · median year built ${D(z.yb_med, 0)}` : ''; pl.innerHTML = z && isN(z.idx) ? `<span class="pill">Index ${D(z.idx, 0)}</span>` : '';
-          dt.innerHTML = z ? `<div class="rowl"><span>Roof Demand Index (percentile)</span><b>${D(z.idx, 0)}</b></div><div class="rowl"><span>Roofs 20 years or older (model)</span><b>${P(z.ra20_sh, 0)}</b></div><div class="rowl"><span>Roofs aged 15 to 19, the next wave</span><b>${N(z.wave)}</b></div><div class="rowl"><span>Median roof age (model)</span><b>${isN(z.ra_med) ? D(z.ra_med, 0) + ' years' : '—'}</b></div><div class="rowl"><span>Last hurricane force winds</span><b>${z.last64 ? esc(z.last64) : 'none since 1950'}</b></div><div class="rowl"><span>Hail days a year, 1 inch or larger within 25 miles</span><b>${D(z.hd1, 1)}</b></div><div class="rowl"><span>FEMA roof and wind registrations, 2004 to 2026</span><b>${N(z.fema_k)}</b></div><div class="rowl"><span>Age driven replacements, next twelve months</span><b>${N(z.nxt)}</b></div>
-            <p class="mini" style="margin-top:10px">Zoom to street level (${CFG.minZoom}) inside the ZIP and every roof is read with these figures as its starting point.</p><div class="sc-acts"><button class="btn sm" id="scZin">Zoom to street level</button><button class="btn sm sec" id="scIdx">Roof Demand Index ↗</button><button class="btn sm sec" id="scStock">Roof Stock ↗</button></div>` : '';
+          const z = ZI[sel.zip], row = (l, v) => `<div class="rowl"><span>${l}</span><b>${v}</b></div>`, has = k => z && wxCol(z, k) != null; nm.textContent = z ? `${z.zip} · ${z.city}` : sel.zip; sb.textContent = z ? `${z.cty} County · ${N(z.hu)} homes · median year built ${D(z.yb_med, 0)}` : ''; pl.innerHTML = z && isN(z.idx) ? `<span class="pill">Index ${D(z.idx, 0)}</span>` : '';
+          dt.innerHTML = z ? row('Roof Demand Index (percentile)', D(z.idx, 0)) + row('Roofs 20 years or older (model)', P(z.ra20_sh, 0)) + (isN(z.ra25_sh) ? row('Roofs 25 years or older: where tile underlayment is due', P(z.ra25_sh, 0)) : '') + (isN(z.tile_sh) ? row('Tile roofs, share of one unit roofs (modeled)', P(z.tile_sh, 0)) : '') + row('Roofs aged 15 to 19, the next wave', N(z.wave)) + row('Median roof age (model)', isN(z.ra_med) ? D(z.ra_med, 0) + ' years' : '—')
+            + (fhszHV(z) != null ? row('Area in a High or Very High Fire Hazard Severity Zone', P(fhszHV(z), 0)) : '') + (has('dest') ? row('Structures destroyed by wildfire, 2013 to 2025 (CAL FIRE)', N(wxCol(z, 'dest'))) : '') + (has('fireLastYr') ? row('Last wildfire with losses here', D(wxCol(z, 'fireLastYr'), 0)) : '')
+            + (has('arD') || has('ar1') ? row('Atmospheric river days a year', d1(has('arD') ? wxCol(z, 'arD') : sum(['ar1', 'ar2', 'ar3', 'ar4', 'ar5'].map(k => wxCol(z, k) || 0)))) : '') + (has('rainIn') ? row('Normal rain a year', D(wxCol(z, 'rainIn'), 0) + ' in') : '') + (has('g58') ? row('Days a year with gusts of 58 mph or more', d1(wxCol(z, 'g58'))) : '') + (has('h100') ? row('Days a year at 100 F or more', d1(wxCol(z, 'h100'))) : '') + (has('snow') && wxCol(z, 'snow') >= 5 ? row('Ground snow load (ASCE 7-22)', N(Math.round(wxCol(z, 'snow'))) + ' lb/sq ft') : '')
+            + (isN(z.fema_k) ? row('FEMA roof or property registrations, 2003 to 2025', N(z.fema_k)) : '') + row('Age driven replacements, next twelve months', N(z.nxt)) + (isN(z.nxt_t) ? row('Tile lift and relay jobs, next twelve months', N(z.nxt_t)) : '')
+            + `<p class="mini" style="margin-top:10px">Zoom to street level (${CFG.minZoom}) inside the ZIP and every roof is read with these figures as its starting point.</p><div class="sc-acts"><button class="btn sm" id="scZin">Zoom to street level</button><button class="btn sm sec" id="scIdx">Roof Demand Index ↗</button><button class="btn sm sec" id="scStock">Roof Stock ↗</button></div>` : '';
           const zin = $('#scZin', root); if (zin) zin.onclick = () => { const p = ZPI[sel.zip]; const c = LF.latLngBounds(p.rings.flat()).getCenter(); map.setView(c, CFG.minZoom); };
           const sk = $('#scStock', root); if (sk) sk.onclick = () => goModule('stock', { zip: sel.zip }); const si = $('#scIdx', root); if (si) si.onclick = () => goModule('index', { zip: sel.zip });
           return;
@@ -2150,27 +2320,38 @@
         sb.textContent = [b.city ? title(b.city) : (z ? z.city : ''), b.zip, (PROF[b.cls] || PROF.unk).l, b.sqft ? N(Math.round(b.sqft / 10) * 10) + ' sq ft footprint' : '', b.h ? D(b.h, 1) + ' m tall' : ''].filter(Boolean).join(' · ');
         pl.innerHTML = `<div class="sc-score">${N(s.score)}<small>score</small></div><button type="button" class="btn sm sc-svq" id="scSvQ" title="Stand in the street in front of this building">Street view</button>`;
         $('#scSvQ', pl).onclick = () => { open3D({ lat: b.lat, lon: b.lon, street: b.street, b }); mapCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-        const roll = b.parcel && b.parcel.parish ? b.parcel.parish + ' Parish' : (PNAME(b.fips) ? PNAME(b.fips) + ' Parish' : 'the parish');
-        const ybTxt = b.ybSrc === 'parcel' ? `<b>Built ${b.yb}</b>, from the ${esc(roll)} tax roll in the public parcel layer${b.parcel && b.parcel.tax ? ' (tax year ' + esc(b.parcel.tax) + ')' : ''} ${G('A')}`
+        const cnty = (b.parcel && b.parcel.county) || CN(b.fips) || '', roll = cnty ? cnty + ' County' : 'the county';
+        const PC = PARCEL[b.fips], noRoll = NO_ROLL[b.fips];
+        const priorTxt = b.prior ? b.prior.map((w, i) => [w, i]).sort((x, y) => y[0] - x[0]).slice(0, 2).map(([w, i]) => `${BIN_L[i]} (${pct(w)})`).join(' or ') : 'unknown';
+        const ybTxt = b.ybSrc === 'parcel' ? `<b>${b.parcel && b.parcel.yy ? 'Effective year' : 'Built'} ${b.yb}</b>, from the ${esc(roll)} assessor's public parcel layer${b.parcel && b.parcel.roll ? ' (' + (/^\d{4}$/.test(b.parcel.roll) ? 'roll year ' : '') + esc(b.parcel.roll) + ')' : ''}${b.parcel && b.parcel.yy ? `: the roll gives two digits, "${esc(b.parcel.yy)}", read as ${b.yb}${b.parcel.yyHow === 'guess' ? ' because that fits the ZIP\'s housing ages better than ' + (b.yb >= 2000 ? b.yb - 100 : b.yb + 100) + ' (it may be the other)' : b.parcel.yyHow === 'lidar' ? ' because FEMA\'s footprint here is from the 2010 to 2012 lidar' : ''}; an effective year moves forward when a house is rebuilt or much enlarged` : ''}${b.parcel && b.parcel.eff && b.parcel.eff > b.yb + 5 ? `; the assessor's effective year is ${b.parcel.eff} (a major remodel or addition)` : ''}${b.parcel && b.parcel.n > 1 ? `; ${N(b.parcel.n)} parcels (condominiums) share the building, the earliest year taken` : ''} ${G(b.parcel && b.parcel.yy ? 'B' : 'A')}`
           : b.ybSrc === 'permit' ? `<b>Built about ${b.yb}</b>, from a new construction permit (${esc((b.permits.find(p => p.kind === 'newc') || {}).src || 'city')}) ${G('A')}`
-          : `<b>Year built not on file</b>${b.parcel && !b.parcel.yb ? ` (its parcel on the ${esc(roll)} roll carries none)` : ''}. Most likely ${b.prior ? b.prior.map((w, i) => [w, i]).sort((x, y) => y[0] - x[0]).slice(0, 2).map(([w, i]) => `${BIN_L[i]} (${pct(w)})`).join(' or ') : 'unknown'}, from the ZIP's housing age${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`;
+          : b.ybSrc === 'dins' ? `<b>Built ${b.yb}</b>, the year CAL FIRE's damage inspection carries for the structure (from the assessor) ${G('B')}`
+          : `<b>Year built not on file</b>${b.parcel && !b.parcel.yb && !b.parcel.noYb ? ` (its parcel on the ${esc(roll)} roll carries none)` : PC && PC.noYb ? ` (${esc(roll)}'s public parcel layer names the parcel but carries no year built)` : noRoll ? ` (${esc(noRoll)} County's assessor publishes no year built a browser can read)` : !PC ? ` (no assessor's layer with a year built was found for ${esc(roll)})` : ''}. Most likely ${priorTxt}, from the ZIP's housing ages in the American Community Survey${b.cls === 'sf' ? ' and the footprint' : ''} ${G('C')}`;
+        const addrTxt = b.addr ? `<b>Address</b> from ${b.addrSrc === 'parcel' ? 'the assessor\'s parcel layer (situs)' : b.addrSrc === 'permit' ? 'a permit at the building' : b.addrSrc === 'dins' ? 'CAL FIRE\'s damage inspection' : b.addrSrc === 'geocoder' ? 'Esri\'s geocoder: the nearest street address to the building, an estimate and not a record of it' : 'FEMA'} ${G(b.addrSrc === 'geocoder' ? 'C' : 'A')}` : '<b>No address on file</b>: FEMA\'s California footprints carry none, and no parcel layer, permit or inspection names this building';
         const pm = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.15).slice(0, 4), file = PFILE[b.fips];
         const nUsed = b.permits.filter(p => p.kind !== 'newc' && p.w >= 0.3).length;
-        const permTxt = pm.length ? pm.map(p => `<b>${p.kind === 'reroof' ? 'Reroof permit' : p.kind === 'mh' ? 'Manufactured home placed' : 'Permit with roof work'} ${esc(monthYear(p.d))}</b>: ${esc(String(p.desc).slice(0, 110) || p.type)} (${p.addr ? esc(title(String(p.addr).replace(/\s+(BATON ROUGE|NEW ORLEANS)\s+LA\b.*$/i, ''))) + ', ' : ''}${esc(p.src)}${p.share < 1 ? '; an address shared with other buildings' : ''})${p.w < 0.3 ? ' (not used by the model: it reads no reroof or repair of the main roof in the text)' : ''} ${G('A')}`).join('</li><li>') + (b.last ? `</li><li>The model reads the ${esc(monthYear(b.last.d))} permit as ${b.last.kind === 'mh' ? 'the placement of a new or used home' : b.last.w >= 0.9 ? 'a reroof' : b.last.w >= 0.6 ? 'most likely a reroof' : b.last.w >= 0.4 ? 'a repair or a partial reroof' : 'a roof repair'}${b.last.share < 1 ? ' on one or more of the buildings at its address' : ''} and restarts the roof's clock there (weight ${pct(b.lastW)}${b.last.share < 1 ? ` for this building, ${pct(b.last.w)} for the permit` : ''})${nUsed > 1 ? ', after the older ones at their own weights' : ''}.` : '')
-          : file ? `<b>No roof permit on file</b> at this building (${file === 'nola' ? 'City of New Orleans: reroof permits from May 2025, roof work in renovation permits from 2012' : 'East Baton Rouge Parish: reroof permits from July 2025, roof work in remodel permits from 2012, with map points mostly from 2016'}). A reroof has needed a permit since August 1, 2025 (Act 239), but most older reroofs left no permit on file, so this is weak evidence for an older roof ${G('B')}` : 'No roof permit file covers this address in the atlas (New Orleans and East Baton Rouge Parish only).';
+        const permTxt = pm.length ? pm.map(p => `<b>${p.cov && p.cov.relay ? 'Tile relay permit' : p.kind === 'reroof' ? 'Re-roof permit' : p.kind === 'mh' ? 'Manufactured home placed' : 'Permit with roof work'} ${esc(monthYear(p.d))}</b>: ${esc(String(p.desc).slice(0, 130) || p.type)} (${p.addr ? esc(title(String(p.addr).split(',')[0])) + ', ' : ''}${esc(p.src)}${p.share < 1 ? '; an address shared with other buildings' : ''}${p.sq ? '; ' + N(Math.round(p.sq)) + ' squares' : ''})${p.w < 0.3 ? ' (not used by the model: it reads no re-roof or repair of the main roof in the text)' : ''} ${G('A')}`).join('</li><li>') + (b.last ? `</li><li>The model reads the ${esc(monthYear(b.last.d))} permit as ${b.last.kind === 'mh' ? 'the placement of a new or used home' : b.last.cov && b.last.cov.relay ? 'a tile lift and relay (new underlayment under the tile)' : b.last.w >= 0.9 ? 'a re-roof' : b.last.w >= 0.6 ? 'most likely a re-roof' : b.last.w >= 0.4 ? 'a repair or a partial re-roof' : 'a roof repair'}${b.last.share < 1 ? ' on one or more of the buildings at its address' : ''} and restarts the roof's clock there (weight ${pct(b.lastW)}${b.last.share < 1 ? ` for this building, ${pct(b.last.w)} for the permit` : ''})${nUsed > 1 ? ', after the older ones at their own weights' : ''}.` : '')
+          : file ? `<b>No roof permit on file</b> at this building (${esc(PFILE_L[file])}). Whether a re-roof needs a permit depends on the city, and a permit joins a building only by its address, parcel number or map point, so this is weak evidence for an older roof ${G('B')}` : 'No public re-roof permit file a browser can read covers this address (Los Angeles city and county, San Francisco, Sacramento and, in part, San Jose publish one).';
         const mix = rf.mix ? `<div class="sc-sub">Odds by covering: ${rf.mix.map(([l, p]) => `${esc(l)} ${pct(p)}`).join(' · ')} ${G('D')}</div>` : '';
-        const ctx = z ? `<b>ZIP ${esc(z.zip)}</b>: Roof Demand Index ${D(z.idx, 0)}, ${P(z.ra20_sh, 0)} of roofs 20 or older, last hurricane force winds ${z.last64 ? esc(z.last64) : 'none since 1950'}, ${D(z.hd1, 1)} hail days a year within 25 miles ${G('B')}` : '';
-        const resets = stormsAt(b.zip).filter(x => x.d >= 0.02 && x.list.length).sort((a, c) => c.d - a.d).slice(0, 3);
-        const resetTxt = resets.length ? `<b>Storms that replaced roofs here</b>: ${resets.map(x => `${esc(stormName(x.list[0].s))}, about ${ktMph0(x.list[0].kt)} mph modeled, ${pct(x.d)} of the ZIP's one unit roofs`).join('; ')} (module 17) ${G('B')}` : '';
-        const evSeen = new Set(), evs = (b.ev || []).filter(e => { const k = evLabel(e) + '|' + D(e.km, 1) + '|' + evWhen(e); if (evSeen.has(k)) return false; evSeen.add(k); return true; }).slice(0, 4), evTxt = evs.length ? `<b>NOAA reports within 5 km, last three years</b>: ${evs.map(e => `${esc(evLabel(e))}, ${D(e.km, 1)} km ${esc(e.dir)}, ${esc(evWhen(e))}`).join('; ')} ${G('A')}` : '<b>No damaging hail, wind or tornado report</b> within 5 km in the last three years (NOAA Storm Events) ' + G('A');
-        const topS = st.storms && st.storms[0] ? st.storms[0] : null;
+        const hm = rf.hm, cv = b.cover;
+        const mixWhy = cv && cv.k ? `<div class="sc-sub"><b>On record:</b> ${cv.src === 'roll' ? `Riverside County's assessor records the roof as "${esc(cv.raw || '')}"` : cv.src === 'dins' ? `CAL FIRE's damage inspection (${esc(b.dins.inc)}${b.dins.d ? ', ' + esc(monthYear(b.dins.d)) : ''}) recorded the roof as ${esc(String(b.dins.roof).toLowerCase())}` : `the ${esc(monthYear(cv.at))} re-roof permit names ${cv.relay ? 'a tile relay' : esc(HK_L[cv.k].toLowerCase())}`}; taken at ${pct(REC_W)}, the rest spread as below ${G('B')}</div>` : cv && cv.not ? `<div class="sc-sub"><b>On record:</b> the ${esc(monthYear(cv.at))} re-roof permit is for a covering under 6 pounds a square foot, so not tile ${G('B')}</div>` : '';
+        const eraWhy = hm ? `<div class="sc-sub">${b.fips === '06075' ? 'San Francisco is a low slope city: of its re-roof permits of 2023 to 2026 that name a material, three in four are modified bitumen, torch down or cap sheet.' : `From the 2020 Residential Energy Consumption Survey's California single family homes built ${esc(Object.keys(hm.era).filter(e => hm.era[e] >= 0.2).map(e => ERA_L[e] + (b.yb ? '' : ' (' + pct(hm.era[e]) + ')')).join(', ') || 'in its era')}${hm.clim ? ', with tile leaned ' + D(TILE_TILT[hm.clim], 2) + ' times for ' + esc(CLIM_L[hm.clim]) : ''}.`}</div>` : '';
+        const cool = hasRoof ? coolRule(b) : null, coolTxt = cool ? `<div class="sc-sub"><b>Cool roof on a re-roof (Title 24, Part 6):</b> ${esc(cool.text)}${cool.req && rf.mat === 'tile' ? ' A roof of 25 pounds a square foot or more is exempt, so a relay of the same tile is.' : ''} ${G(cool.cz ? 'A' : 'C')}</div>` : '';
+        const rq = reroofClass(b), fireTxt = hasRoof && rq ? `<div class="sc-sub"><b>Fire class on a re-roof:</b> at least Class ${rq.c} when half the roof or more is replaced, because ${esc(rq.why)} ${G('A')}</div>` : '';
+        const ctx = z ? `<b>ZIP ${esc(z.zip)}</b>: Roof Demand Index ${D(z.idx, 0)}, ${P(z.ra20_sh, 0)} of roofs 20 or older${isN(z.tile_sh) ? ', ' + P(z.tile_sh, 0) + ' of one unit roofs tile (modeled)' : ''}${fhszHV(z) != null ? ', ' + P(fhszHV(z), 0) + ' of its area in a High or Very High fire zone' : ''}${wxCol(z, 'g58') != null ? ', gusts of 58 mph on ' + d1(wxCol(z, 'g58')) + ' days a year' : ''} ${G('B')}` : '';
+        const resets = resetsAt(b.zip).filter(x => x.d >= 0.01).sort((a, c) => c.d - a.d).slice(0, 3);
+        const resetTxt = resets.length ? `<b>Fires that rebuilt roofs here</b>: ${resets.map(x => `${x.y}, ${pct(x.d)} of the ZIP's one unit roofs`).join('; ')} (module 17: CAL FIRE's destroyed structures coming back as new roofs) ${G('B')}` : '';
+        const dz = b.dins, dinsTxt = dz ? `<b>CAL FIRE inspected this structure</b> after the ${esc(dz.inc)} fire${dz.d ? ' (' + esc(monthYear(dz.d)) + ')' : ''}: ${esc(dinsClass(dz.dmg))}${dz.type ? '; ' + esc(dz.type.toLowerCase()) : ''}${dz.roof ? '; roof ' + esc(dz.roof.toLowerCase()) : ''}${dz.eaves ? '; eaves ' + esc(dz.eaves.toLowerCase()) : ''}${dz.vent ? '; vent screens ' + esc(dz.vent.toLowerCase()) : ''} ${G('A')}` : '';
+        const evSeen = new Set(), evs = (b.ev || []).filter(e => { const k = evLabel(e) + '|' + D(e.km, 1) + '|' + evWhen(e); if (evSeen.has(k)) return false; evSeen.add(k); return true; }).slice(0, 4), evTxt = evs.length ? `<b>Weather reports within 5 km, last three years</b>: ${evs.map(e => `${esc(evLabel(e))}, ${D(e.km, 1)} km ${esc(e.dir)}, ${esc(evWhen(e))}`).join('; ')} ${G('A')}` : '<b>No damaging hail, thunderstorm wind or tornado report</b> within 5 km in the last three years (the atlas\'s located weather reports) ' + G('A');
+        const topF = st.fires && st.fires[0] ? st.fires[0] : null, tileTop = rf.mat === 'tile';
+        const hTxt = !b.h ? '<b>No height on file</b>: FEMA carries one only where its footprint comes from the 2010 to 2012 metro lidar; the building is read as one story unless its kind says otherwise' : b.hSrc === 'stories' ? `<b>Height</b> taken from the assessor's ${N(b.parcel.stories)} stor${b.parcel.stories === 1 ? 'y' : 'ies'}` : '';
         dt.innerHTML = `<div class="sc-sec"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="sc-pill ${b.status}">${STL[b.status]}</span>${b.checked && ck.s ? '<span class="pill">your field check</span>' : ''}</div><div class="sc-sys" style="margin-top:8px">${esc(needLabel(b))}</div></div>
-          <div class="sc-sec"><p class="sc-k">Likely roof</p><div class="sc-sys">${esc(rf.name)}</div>${rf.size ? `<div class="sc-sub">${esc(rf.size)}</div>` : ''}${mix}<div class="sc-sub"><b>What a roofer checks:</b> ${esc(rf.check)}</div></div>
-          <div class="sc-sec"><p class="sc-k">Chance of the work ${G('B')}</p><div class="sc-bars">${bar('Replacement within 5 years', s.P5, 'From the roof life, given the age evidence below: the roof wearing out, not a new storm')}${bar('Repair call within 12 months', s.REP, 'Leak and repair calls by roof age, scaled to the atlas\'s repair line')}${bar('Wind damage still open', s.WIND, 'Hurricanes and tropical storms at the ZIP, thunderstorm wind and tornado reports nearby, in the last three years; less where a reroof permit followed')}${bar('Hail damage still open', s.HAIL, 'Hail of an inch or more reported within 5 km in the last three years; less where a reroof permit followed')}</div>
-            <div class="sc-sub" style="margin-top:6px">${!hasRoof ? '' : `${b.strong ? `Still the roof from the ${Math.floor(b.strong.y)} permit` : 'Still the first roof'}: ${pct(b.strong ? (st.pPerm || 0) : st.pOrig)} · 15 years or older: ${pct(st.pOld15)} · 20 or older: ${pct(st.pOld20)} · average age ${D(st.age, 0)} years.${topS && topS.si != null && topS.share >= 0.08 ? ` Put on after ${esc(stormName(SIDS[topS.si]))}: ${pct(topS.share)}.` : ''}`}${rf.factor < 1 ? ` Weighted by ${pct(rf.factor)}, the share of a building like this a roofer would expect to work on.` : ''}</div>
-            <div class="sc-lines">${b.lines.map(id => `<button type="button" class="chip" data-line="${esc(id)}" title="Open ${esc(lineName(id))} in Service Lines for ZIP ${esc(b.zip || '')}">${esc(lineName(id))}</button>`).join('')}</div>${b.lines.includes('fortified') ? `<p class="sc-note">FORTIFIED: a Louisiana Fortify Homes Program grant of up to ${M$((META.fort && META.fort.grant) || 10000)} applies only if the home is owner occupied with a homestead exemption and carries wind coverage (flood insurance too in a flood zone); mobile homes, condominiums and recently built homes are not eligible (module 03) ${G('B')}</p>` : ''}</div>
+          <div class="sc-sec"><p class="sc-k">Likely roof</p><div class="sc-sys">${esc(rf.name)}</div>${rf.size ? `<div class="sc-sub">${esc(rf.size)}</div>` : ''}${mix}${mixWhy}${eraWhy}<div class="sc-sub"><b>What a roofer checks:</b> ${esc(rf.check)}</div>${coolTxt}${fireTxt}</div>
+          <div class="sc-sec"><p class="sc-k">Chance of the work ${G('B')}</p><div class="sc-bars">${bar(tileTop ? 'Lift and relay within 5 years' : 'Replacement within 5 years', s.P5, 'From the roof life, given the age evidence below: the roof (for tile, its underlayment) wearing out, not a new storm or fire')}${bar('Repair call within 12 months', s.REP, 'Leak and repair calls by roof age, scaled to the atlas\'s repair line')}${bar('Wind or hail damage still open', s.WIND, 'Hail of an inch or more, thunderstorm wind and tornado reports within 5 km in the last three years; less where a re-roof permit followed')}${bar('Fire damage or rebuild', s.FIRE, 'CAL FIRE\'s damage inspection of this building in the last four years: a destroyed home at the atlas\'s rebuild share, a damaged roof by its class; less where a permit followed')}</div>
+            <div class="sc-sub" style="margin-top:6px">${!hasRoof ? '' : `${b.strong ? (b.strong.kind === 'rebuild' ? 'Still the roof of the rebuild' : `Still the roof from the ${Math.floor(b.strong.y)} permit`) : 'Still the first roof'}: ${pct(b.strong ? (st.pPerm || 0) : st.pOrig)} · 15 years or older: ${pct(st.pOld15)} · 20 or older: ${pct(st.pOld20)} · 25 or older: ${pct(st.pOld25)} · average age ${D(st.age, 0)} years.${topF && topF.share >= 0.08 ? ` Put on in a rebuild after the ${topF.y} fire: ${pct(topF.share)}.` : ''}`}${rf.factor < 1 ? ` Weighted by ${pct(rf.factor)}, the share of a building like this a roofer would expect to work on.` : ''}</div>
+            <div class="sc-lines">${b.lines.map(id => `<button type="button" class="chip" data-line="${esc(id)}" title="Open ${esc(lineName(id))} in Service Lines for ZIP ${esc(b.zip || '')}">${esc(lineName(id))}</button>`).join('')}</div>${b.lines.includes('harden') ? `<p class="sc-note">Fire hardening: a Class A roof assembly, ember resistant vents (mesh of 1/16 to 1/8 inch), noncombustible gutters kept clear and enclosed eaves are what the wildland-urban interface code asks of a new roof here, and what insurers' "Safer from Wildfires" discounts name (module 03) ${G('B')}</p>` : ''}</div>
           ${hasRoof ? outlookCard(b) : ''}
-          <div class="sc-sec"><p class="sc-k">Evidence</p><ul class="sc-ev"><li>${ybTxt}</li><li>${permTxt}</li><li>${evTxt}</li>${resetTxt ? `<li>${resetTxt}</li>` : ''}${ctx ? `<li>${ctx}</li>` : ''}<li><b>${esc((PROF[b.cls] || PROF.unk).l)}</b>: FEMA USA Structures (${esc(b.occ || 'unclassified')}${b.prim && b.prim !== b.occ ? ', ' + esc(b.prim) : ''})${b.acc ? '; read as an accessory building because a larger structure shares its address' : ''} ${G('C')}</li></ul></div>
+          <div class="sc-sec"><p class="sc-k">Evidence</p><ul class="sc-ev"><li>${ybTxt}</li><li>${permTxt}</li>${dinsTxt ? `<li>${dinsTxt}</li>` : ''}<li>${evTxt}</li>${resetTxt ? `<li>${resetTxt}</li>` : ''}${ctx ? `<li>${ctx}</li>` : ''}<li><b>${esc((PROF[b.cls] || PROF.unk).l)}</b>: FEMA USA Structures (${esc(b.occ || 'unclassified')}${b.prim && b.prim !== b.occ ? ', ' + esc(b.prim) : ''}${b.parcel && b.parcel.use ? '; the assessor\'s use: ' + esc(String(b.parcel.use).toLowerCase()) : ''})${b.acc ? '; read as an accessory building because a larger structure shares its parcel' : ''}${b.img ? '; footprint from imagery of ' + esc(b.img.slice(0, 4)) : ''} ${G('C')}</li><li>${addrTxt}</li>${hTxt ? `<li>${hTxt} ${G('C')}</li>` : ''}</ul></div>
           <div class="sc-sec sc-check"><p class="sc-k">Field check: what you saw on the roof or from the street</p>
             <div class="seg" id="scCkS" role="group" aria-label="Your status">${[['g', 'Likely'], ['o', 'Maybe'], ['r', 'Not likely'], ['', 'Model']].map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${(ck.s || '') === v}">${l}</button>`).join('')}</div>
             <div class="sc-cues">${CUES.map(([k, l]) => `<label class="chk"><input type="checkbox" data-cue="${k}"${(ck.cues || []).includes(k) ? ' checked' : ''}> ${esc(l)}</label>`).join('')}</div>
@@ -2657,8 +2838,6 @@
         onPick: b => { hideTip(); pick(b.id, { noSV: true }); }, onFront: b => { hideTip(); pick(b.id); },
         onMove: st => { enSt = st; whereEnSoon(); }, onNote: t => { const n = $('#scEnNote', root); if (n) n.textContent = t || ''; }, onGraphics: () => renderEnBar(),
         label: b => `${STS[b.status]} · ${b.sc.score}`,
-        /* the flood the engine lays over the ground in a Category 3 to 5 near the Gulf: a picture, not a forecast (LENS.surge) */
-        surge: (la, lo, level) => LENS.surge(la, lo, level),
         /* gravity warp: once the craft is there the building at the place is picked as its tiles arrive; G in the view asks where to */
         onWarp: stage => { if (stage === 'there') setTimeout(tryPending, 700); if (stage === 'done') { warping = false; clearTimeout(warpT); renderEnBar(); } },
         onWarpAsk: () => { const i = $('#scWarp', enBar); if (i) { i.focus(); i.select(); } },
@@ -2668,7 +2847,8 @@
         /* the roof views: what each roof reads, plane by plane (LENS) */
         lens: LENS,
         /* the wider city, a square of the map at a time. Two public records are merged, because neither is the satellite
-           picture's age: FEMA's USA Structures (in Louisiana traced mostly from lidar of 2008 to 2012 and later imagery; it
+           picture's age: FEMA's USA Structures (in California traced from lidar of 2010 to 2012 in the metros and from imagery of
+           2014 to 2024 elsewhere; it
            has heights and uses) and OpenStreetMap's buildings as they stand today (Esri's hosted copy). FEMA's footprints are
            the base. An OpenStreetMap building that stands where FEMA has none is added (built since, or missed). One that
            is newer than FEMA's picture and much larger than the FEMA footprints under it replaces them (a block cleared
@@ -2731,24 +2911,22 @@
       const STORM_T = ['Dry', 'Light', 'Heavy', 'T-storm', 'Tropical', 'Cat 1', 'Cat 2', 'Cat 3', 'Cat 4', 'Cat 5'];
       const stormText = g => { const x = g && g.stormInfo; if (!x || !x.level) return '<b>No storm</b> · the weather is the Scene menu\'s. Slide right for rain, wind and hurricanes.';
         return `<b>${esc(x.name)}</b> · wind ${x.range ? (x.range[1] ? x.range[0] + ' to ' + x.range[1] : x.range[0] + ' and up') : 'about ' + x.mph} mph${x.level >= 3 ? ', gusts near ' + x.gust : ''} · rain drawn at ${x.rain} mm an hour${x.level >= 7 ? (g.surge > 0.05 ? ` · surge drawn ${D(g.surge * 3.281, 0)} ft deep here (a picture, not a flood map)` : ' · no surge drawn here (the picture\'s edge, not the water\'s)') : x.level >= 5 ? ' · no flood is drawn below Category 3, though such storms bring surge too' : ''}`; };
-      /* gravity warp: places it will go. Louisiana only: the state's outline is the atlas's own */
-      const WARP_TO = [['New Orleans', 29.9511, -90.0715], ['Baton Rouge', 30.4515, -91.1871], ['Shreveport', 32.5252, -93.7502], ['Lafayette', 30.2241, -92.0198], ['Lake Charles', 30.2266, -93.2174], ['Houma', 29.5958, -90.7195], ['Monroe', 32.5093, -92.1193], ['Alexandria', 31.3113, -92.4451], ['Slidell', 30.2752, -89.7812], ['Hammond', 30.5044, -90.4612], ['Grand Isle', 29.2366, -89.9873], ['Cameron', 29.7977, -93.3252]];
-      const LA_RINGS = (() => { try { return pathRings(G0.outline); } catch (e) { return []; } })();
-      const inLouisiana = (la, lo) => isN(la) && isN(lo) && la > 28.8 && la < 33.1 && lo > -94.1 && lo < -88.7 && (!LA_RINGS.length || inRings(la, lo, LA_RINGS));
+      /* gravity warp: places it will go, from the far north to the border, the mountains and the deserts. California only: the state's outline is the atlas's own */
+      const WARP_TO = [['Crescent City', 41.7558, -124.2026], ['Eureka', 40.8021, -124.1637], ['Yreka', 41.7354, -122.6345], ['Alturas', 41.4871, -120.5425], ['Mount Shasta', 41.3099, -122.3106], ['Redding', 40.5865, -122.3917], ['Susanville', 40.4163, -120.6530], ['Chico', 39.7285, -121.8375], ['Paradise', 39.7596, -121.6219], ['Ukiah', 39.1502, -123.2078], ['Truckee', 39.3280, -120.1833], ['South Lake Tahoe', 38.9399, -119.9772], ['Santa Rosa', 38.4404, -122.7141], ['Napa', 38.2975, -122.2869], ['Sacramento', 38.5816, -121.4944], ['San Francisco', 37.7793, -122.4193], ['Oakland', 37.8044, -122.2712], ['San Jose', 37.3382, -121.8863], ['Stockton', 37.9577, -121.2908], ['Yosemite Valley', 37.7456, -119.5936], ['Mammoth Lakes', 37.6485, -118.9721], ['Bishop', 37.3614, -118.3997], ['Santa Cruz', 36.9741, -122.0308], ['Monterey', 36.6002, -121.8947], ['Fresno', 36.7378, -119.7871], ['Visalia', 36.3302, -119.2921], ['Lone Pine', 36.6060, -118.0629], ['Furnace Creek (Death Valley)', 36.4622, -116.8669], ['San Luis Obispo', 35.2828, -120.6596], ['Bakersfield', 35.3733, -119.0187], ['Ridgecrest', 35.6225, -117.6709], ['Barstow', 34.8958, -117.0173], ['Needles', 34.8481, -114.6141], ['Santa Barbara', 34.4208, -119.6982], ['Ventura', 34.2805, -119.2945], ['Lancaster', 34.6868, -118.1542], ['Pacific Palisades', 34.0459, -118.5263], ['Altadena', 34.1897, -118.1312], ['Los Angeles', 34.0537, -118.2428], ['Long Beach', 33.7701, -118.1937], ['Avalon (Catalina)', 33.3428, -118.3282], ['Anaheim', 33.8366, -117.9143], ['Riverside', 33.9806, -117.3755], ['San Bernardino', 34.1083, -117.2898], ['Big Bear Lake', 34.2439, -116.9114], ['Twentynine Palms', 34.1356, -116.0542], ['Palm Springs', 33.8303, -116.5453], ['Blythe', 33.6103, -114.5964], ['Oceanside', 33.1959, -117.3795], ['Julian', 33.0787, -116.6020], ['San Diego', 32.7157, -117.1611], ['Coronado', 32.6859, -117.1831], ['El Centro', 32.7920, -115.5631], ['Calexico', 32.6789, -115.4989]];
       async function warpGo(q, city) {
         if (!en || warping || !q) return; const st0 = en.state(); if (!st0 || !st0.uap) { toast('Take out the flying saucer or the Tic Tac first'); return; }
         let la, lo, label; const m = /^\s*(-?\d{1,3}(?:\.\d+)?)\s*°?\s*([NnSs])?\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*°?\s*([WwEe])?\s*$/.exec(q);
         if (city) { la = city[1]; lo = city[2]; label = city[0]; }
         else if (m) { la = +m[1]; lo = +m[3]; const ns = (m[2] || '').toUpperCase(), ew = (m[4] || '').toUpperCase(); if (!ns && !ew && Math.abs(la) > 60 && Math.abs(lo) < 60) { const t2 = la; la = lo; lo = t2; } if (ns === 'S') la = -Math.abs(la); if (ew === 'W') lo = -Math.abs(lo); else if (ew === 'E') lo = Math.abs(lo); else if (lo > 0) lo = -lo; label = la.toFixed(4) + ', ' + lo.toFixed(4); }
         else { if (VIEWER) { toast('Address search needs the network'); return; }
-          try { const j = await getJSON(EP.geocode + '?' + qs({ f: 'json', singleLine: q, maxLocations: 1, outFields: 'Match_addr,Addr_type', searchExtent: '-94.1,28.9,-88.8,33.1', location: '-91.6,30.9', countryCode: 'USA' }), { timeout: 15000 });
-            const c = (j.candidates || [])[0]; if (!c || c.score < 75 || !c.location) { toast('No match in Louisiana for that address'); return; } la = c.location.y; lo = c.location.x; label = c.address; }
+          try { const j = await getJSON(EP.geocode + '?' + qs({ f: 'json', singleLine: q, maxLocations: 1, outFields: 'Match_addr,Addr_type', searchExtent: GEO_EXT, location: GEO_MID, countryCode: 'USA' }), { timeout: 15000 });
+            const c = (j.candidates || [])[0]; if (!c || c.score < 75 || !c.location) { toast('No match in California for that address'); return; } la = c.location.y; lo = c.location.x; label = c.address; }
           catch (err) { toast('Address search failed: ' + why(err)); return; } }
-        if (!inLouisiana(la, lo)) { toast('Louisiana roofs only: that place is outside the state'); return; }
+        if (!inState(la, lo)) { toast('California roofs only: that place is outside the state'); return; }
         if (!en || !en.uap.warp(la, lo, { cur: null })) { toast('It cannot warp just now'); return; }
         pendingPick = { lat: la, lon: lo }; warping = true; warpQ = ''; clearTimeout(warpT); warpT = setTimeout(() => { warping = false; renderEnBar(); }, 25000); toast('Gravity warp: ' + label); renderEnBar(); try { en.canvas.focus({ preventScroll: true }); } catch (e) { /* fine */ }
       }
-      const enLon = () => (enSt && isN(enSt.lon) ? enSt.lon : enTarget && isN(enTarget.lon) ? enTarget.lon : -91.5);
+      const enLon = () => (enSt && isN(enSt.lon) ? enSt.lon : enTarget && isN(enTarget.lon) ? enTarget.lon : (ST_BB[1] + ST_BB[3]) / 2);
       const hourOf = g => { const t = g && g.sunTime ? new Date(g.sunTime.getTime() + (enLon() / 15) * 3600e3) : null; return t ? t.getUTCHours() + t.getUTCMinutes() / 60 : 15; }, hhmm = h => `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60) % 60).padStart(2, '0')}`;
       const yearText = y => (y ? `${THIS_YEAR + y} · in ${y} year${y === 1 ? '' : 's'}` : `${THIS_YEAR} · today`);
       function enMenu() {
@@ -2862,17 +3040,18 @@
       $('#scKind', root).onchange = e => { CFG.kind = e.target.value; saveCfg(); restyleAll(); refreshSoon(); };
       $('#scFindF', root).onsubmit = async e => {
         e.preventDefault(); const q = $('#scFind', root).value.trim(); if (!q) return;
-        if (/^\d{5}$/.test(q)) { if (ZPI[q]) zoomZip(q); else toast('ZIP ' + q + ' is not in the atlas\'s Louisiana ZIPs'); return; }
-        const ql = q.toLowerCase().replace(/\s+parish$/, '').replace(/^st\.?\s+/, 'st. ');
+        if (/^\d{5}$/.test(q)) { if (ZPI[q]) zoomZip(q); else toast(ZIP_RE.test(q) ? 'ZIP ' + q + ' is not one of the atlas\'s California ZIP areas (it may be a post office box ZIP)' : 'ZIP ' + q + ' is not a California ZIP'); return; }
+        const ql = q.toLowerCase().replace(/\s+county$/, '').replace(/^st\.?\s+/, 'saint ').trim();
         const cz = Z.filter(z => String(z.city).toLowerCase() === q.toLowerCase() && ZPI[z.zip]);
+        const pa = COUNTIES.find(p => String(p.name).toLowerCase() === ql);
+        /* "Orange County", "Mono County": the county; a bare name that is both a city and a county (San Diego, Sacramento) goes to the city */
+        if (pa && CTYI[pa.fips] && (!cz.length || /\scounty$/i.test(q))) { selZip = null; map.fitBounds(LF.latLngBounds(CTYI[pa.fips].rings.flat()), { padding: [20, 20], maxZoom: 13 }); paintHeat(); toast(pa.name + ' County'); return; }
         if (cz.length) { selZip = null; map.fitBounds(LF.latLngBounds(cz.flatMap(z => ZPI[z.zip].rings.flat())), { padding: [20, 20], maxZoom: 14 }); paintHeat(); return; }
-        const pa = PA.find(p => String(p.name).toLowerCase() === ql || String(p.name).toLowerCase() === q.toLowerCase().replace(/\s+parish$/, ''));
-        if (pa && CTYI[pa.fips]) { selZip = null; map.fitBounds(LF.latLngBounds(CTYI[pa.fips].rings.flat()), { padding: [20, 20], maxZoom: 13 }); paintHeat(); toast(pa.name + ' Parish'); return; }
         if (VIEWER) { toast('Address search needs the network'); return; }
         try {
-          const j = await getJSON(EP.geocode + '?' + qs({ f: 'json', singleLine: q, maxLocations: 1, outFields: 'Match_addr,Addr_type', searchExtent: '-94.1,28.9,-88.8,33.1', location: '-91.6,30.9', countryCode: 'USA' }), { timeout: 15000 });
+          const j = await getJSON(EP.geocode + '?' + qs({ f: 'json', singleLine: q, maxLocations: 1, outFields: 'Match_addr,Addr_type', searchExtent: GEO_EXT, location: GEO_MID, countryCode: 'USA' }), { timeout: 15000 });
           const c = (j.candidates || [])[0];
-          if (!c || c.score < 75 || !c.location || c.location.y < 28.8 || c.location.y > 33.1 || c.location.x < -94.1 || c.location.x > -88.7) { toast('No match in Louisiana for that address'); return; }
+          if (!c || c.score < 75 || !c.location || !inState(c.location.y, c.location.x)) { toast('No match in California for that address'); return; }
           pendingPick = { lat: c.location.y, lon: c.location.x }; map.setView([c.location.y, c.location.x], Math.max(19, CFG.minZoom)); toast(c.address); setTimeout(tryPending, 50);
         } catch (err) { toast('Address search failed: ' + why(err)); }
       };
@@ -3016,8 +3195,8 @@
       map.on('moveend', () => { if (viewMode !== 'map' || root.hidden || !host.clientWidth) return; viewBounds = map.getBounds(); load(); refreshSoon(); imgInfo(); saveView(); });   /* a hidden map (another mode, or another tab) reports no view of its own */
       map.on('mouseout', hideTip);
       BUS.on('theme', () => { if (self.mounted) { paintHeat(); restyleAll(); } });
-      map.attributionControl.addAttribution('Data: FEMA, U.S. Census, NOAA, New Orleans, East Baton Rouge, Lafayette and Vermilion Parishes');
-      if (CFG.view) map.setView([CFG.view.lat, CFG.view.lon], CFG.view.z); else map.fitBounds(LA_BOUNDS, { padding: [10, 10] });
+      map.attributionControl.addAttribution('Data: FEMA, U.S. Census, NOAA, CAL FIRE, California Energy Commission, county assessors, city permit files');
+      if (CFG.view) map.setView([CFG.view.lat, CFG.view.lon], CFG.view.z); else map.fitBounds(ST_RINGS.length ? [[ST_BB[0], ST_BB[1]], [ST_BB[2], ST_BB[3]]] : ST_BOUNDS, { padding: [10, 10] });
       $('#scSv', root).innerHTML = '<p class="sc-empty">Pick a building, or any point at street level, and Street View opens from the road in front of it, aimed at the building.</p>';
       paintHeat(); detail(); status(); refresh(); load(); imgInfo();
       /* a resize keeps the centre where it is; a collapsed map (the tab hidden) is left alone, so leaving the tab moves nothing */

@@ -26,7 +26,7 @@ const CITIES = DATA.cities || []; const CITYI = {}; CITIES.forEach(c => CITYI[c.
 const PLACES = DATA.places || [];
 const COMP = DATA.comp || [];              /* named roofing companies with public evidence only (SCHEMA.md section 8): a short list, not a roster */
 const BENCH = null;                        /* no company is assumed; set yours in the Company panel */
-/* Track structures have no California meaning (no tropical cyclones). The data ships them empty; they stay defined so a
+/* Track structures have no California meaning (the first edition drew storm tracks from them). The data ships them empty; they stay defined so a
    reader in another module does not throw, and nothing is drawn from them. */
 const RT = DATA.routes || []; const RTI = {}; RT.forEach(r => RTI[r.r] = r);
 const RLIST = DATA.rlist || [];

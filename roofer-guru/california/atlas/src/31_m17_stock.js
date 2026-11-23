@@ -95,7 +95,7 @@ registerModule({
       map.fill(zz => { const z = ZI[zz]; if (!z || !z.res_ok) return null; return sc.f(z[st.layer]); });
       map.dim((st.par || st.reg) ? new Set(scopeZ().map(z => z.zip)) : null); map.select(st.sel);
       const v = vals.filter(isN);
-      $('#k7Leg', root).innerHTML = legendHTML({ title: L.l, R: sc.R, lo: v.length ? L.f(Math.min(...v)) : '—', hi: v.length ? L.f(Math.max(...v)) : '—', note: `<b>${L.dir === -1 ? 'Lower' : 'Higher'} values shade darker.</b> Eight quantile classes across the ZIPs with 500 or more residents; gray ZIPs have fewer. ${G(L.g)}<br>${esc(L.note)}` });
+      $('#k7Leg', root).innerHTML = legendHTML({ title: L.l, R: sc.R, lo: v.length ? L.f(Math.min(...v)) : '—', hi: v.length ? L.f(Math.max(...v)) : '—', note: `<b>${L.dir === -1 ? 'Lower' : 'Higher'} values shade darker.</b> Eight quantile classes across the ZIPs with 500 or more residents; gray ZIPs have fewer, and gray land with no ZIP is open country. ${G(L.g)}<br>${esc(L.note)}` });
       drawTop(); drawDetail(); drawScope();
     }
     function drawTop() {

@@ -74,11 +74,11 @@ cut("    /* The storm scale: 0 is the weather chosen above; 1 to 9 run from ligh
        Snow falls and lies above the wet step's snow level, wherever the height of the ground is known. */
     const SK = SE.StormKit(engine, { ground: () => (typeof S.gy === 'function' ? S.gy(S.x, S.z) || 0 : 0) }); S.storm = 0; S.wind = 0; S.sky = 0; S.snowLevel = null; S.elev = null; S.y0msl = null; S.wxAt = null; S.wxName = '';
     /* How high the world's y = 0 stands above sea level here, in metres; null when nobody knows, and then no snow is
-       drawn. Asked in this order: the terrain (S.elevAt(lat, lon), metres above sea level, with S.gy(x, z) for the
-       ground's height in the world, when a build has them; or the terrain's datum S.y0, metres above sea level of y = 0), the module (env.elevation(lat, lon)), and a height given by
+       drawn. Asked in this order: the terrain job's datum (S.y0, metres above sea level of y = 0, when S.gy is there too);
+       S.elevAt(lat, lon), metres above sea level, less S.gy(x, z), the ground's height in the world; the module (env.elevation(lat, lon)), and a height given by
        hand for the ground under the camera (en.elevation(m)). */
     function seaLevel() {
-      if (!S.ok) return null; if (typeof S.gy === 'function' && typeof S.y0 === 'number' && isFinite(S.y0) && typeof S.elevAt !== 'function') return S.y0;   /* the terrain job's datum: how high y = 0 stands */
+      if (!S.ok) return null; if (typeof S.gy === 'function' && typeof S.y0 === 'number' && isFinite(S.y0)) return S.y0;   /* the terrain job's datum: how high y = 0 stands */
       const ll = toLL(S.x, S.z); let e = null, g = 0;
       try { if (typeof S.gy === 'function') g = S.gy(S.x, S.z) || 0; if (typeof S.elevAt === 'function') e = S.elevAt(ll[0], ll[1]); if ((e == null || !isFinite(e)) && env.elevation) e = env.elevation(ll[0], ll[1]); } catch (err) { e = null; }
       if (e == null || !isFinite(e)) e = S.elev; return e == null || !isFinite(e) ? null : e - g;

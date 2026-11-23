@@ -14,8 +14,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   await page.goto('file://' + FILE + '#rooftops', { waitUntil: 'load', timeout: 180000 }); await wait(1500);
   const settle = async (max) => { const t0 = Date.now(); while (Date.now() - t0 < (max || 120000)) { await wait(2000); const st = await page.evaluate(() => MODI.rooftops.api.status()); if (!(st.queued + st.running) && !st.tiles.some(t => t.st === 'load' || t.st === 'queued') && st.tiles.some(t => t.st === 'ok' || t.st === 'err')) return st; } return null; };
   await page.fill('#scFind', PLAN.addr); await page.press('#scFind', 'Enter'); await settle(150000); await wait(2000);
-  await page.click('#scMode button[data-v="eng"]');
-  for (let i = 0; i < 20; i++) { await wait(3000); const s = await page.evaluate(() => { const en = MODI.rooftops.api.en(); return en ? en.state().built : null; }); if (s != null && i > 3) break; }
+  await page.evaluate(() => { setTimeout(() => document.querySelector('#scMode button[data-v="eng"]').click(), 50); }); console.log('CLICKED');
+  for (let i = 0; i < 20; i++) { await wait(3000); const s = await page.evaluate(() => { const en = MODI.rooftops.api.en(); return en ? en.state().built : null; }); console.log('built', s); if (s != null && i > 3) break; }
   await page.evaluate(() => { const en = MODI.rooftops.api.en(); en.setGraphics({ q: 'low', sun: 13, weather: 'clear', life: false, wide: false }); });
   console.log('OPENED', PLAN.addr);
   for (const sh of PLAN.shots) {

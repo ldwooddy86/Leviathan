@@ -19,3 +19,6 @@ Status (2026-11-23 resume)
 - [x] 23_m11_regions.js (rewritten; tolerant column picker; markets by city)
 - [ ] 14_m02_storms.js
 - [ ] smoke test (work_ledger/smoke.js), word search, report
+- [x] 14_m02_storms.js = cat work_ledger/m02_a.js m02_b.js m02_c.js m02_d.js (edit the parts, then cat again)
+- Hazard schema second issue read (fixed names): hz.{fires,zfire,zdins,ar,ar_pts,ar_big,wind,zones,roof,fhsz,fema}; ts.month kinds hw sw hrain flood fflood debris hsnow wstorm xheat heat wfire g58 fire_* ar1..5 ar_days sa_days hail tsw torn; ZIP cols g40 g58 wd58 rain_d1 h100 fhsz_vh/high/mod ...
+- Data file exists (interim hazard merge: no hz, ts.month {}, pts []). NEXT: fix nws SEASONS + m14 record to read ts.month names directly; m11 col names (g58, fhsz_high, snow_max_psf, MKT); build + browser test.

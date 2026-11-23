@@ -82,7 +82,8 @@ for k in keys:
     o['snow_psf'] = rnd(s, 0) if s is not None else None; o['snow20_psf'] = rnd(s20, 0) if s20 is not None else None
     o['asce_wind'] = rnd(w, 0) if w is not None else None
     sw = asce['w2022_SWR_CA'].get(k) if asce['w2022_SWR_CA'] else None
-    o['asce_swr'] = (1 if (sw is not None and 0 < sw < 300000) else 0) if asce['w2022_SWR_CA'] else None
+    # the special wind region service answers only in parts of Kern County and the Indian Wells Valley; 0 and 3.4e38 are no-data values
+    o['asce_swr'] = rnd(sw, 0) if (sw is not None and 20 < sw < 300) else None
     inside = tree.query(ZG[k]['geom'], predicate='contains')
     vals = gs[inside]; vals = vals[~np.isnan(vals)]
     o['snow_max_psf'] = rnd(float(vals.max()), 0) if len(vals) else None

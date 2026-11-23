@@ -1,0 +1,26 @@
+[
+  { "addr": "39707 Big Bear Blvd, Big Bear Lake, CA", "shots": [
+    { "name": "bear_snow_early_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 4; en.elevation(2058); en.storm('rain')", "steps": 500, "wait": 7000 },
+    { "name": "bear_snow_street", "h": "street", "js": "", "steps": 2400, "wait": 7000 },
+    { "name": "bear_snow_bird", "h": "bird", "js": "", "steps": 50, "wait": 7000 },
+    { "name": "bear_melted_street", "h": "street", "js": "en.elevation(null); en.storm(0)", "steps": 5000, "wait": 7000 }
+  ] },
+  { "addr": "2600 Fresno St, Fresno, CA", "shots": [
+    { "name": "fres_tule_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 4; en.setGraphics({ sun: 8.5 }); en.sky('tule')", "steps": 300, "wait": 7000 },
+    { "name": "fres_tule_bird", "h": "bird", "js": "", "steps": 50, "wait": 7000 }
+  ] },
+  { "addr": "1685 Main St, Santa Monica, CA", "shots": [
+    { "name": "sm_marine_0800_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 6; en.setGraphics({ sun: 8 }); en.sky('marine')", "steps": 300, "wait": 7000 },
+    { "name": "sm_marine_1115_burning_street", "h": "street", "js": "en.setGraphics({ sun: 11.25 })", "steps": 300, "wait": 7000 }
+  ] },
+  { "addr": "100 N Garfield Ave, Pasadena, CA", "shots": [
+    { "name": "pas_w5_sa4_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 4; en.wind('sa4')", "steps": 300, "wait": 7000 },
+    { "name": "pas_w4_sa3_smoke_street", "h": "street", "js": "en.wind('sa3'); en.sky('smoke')", "steps": 300, "wait": 7000 },
+    { "name": "pas_w5_sa4_smoke_night_street", "h": "street", "js": "en.wind('sa4'); en.setGraphics({ sun: 19 })", "steps": 300, "wait": 7000 }
+  ] },
+  { "addr": "400 Van Ness Ave, San Francisco, CA", "shots": [
+    { "name": "sf2_3_tstorm_street", "h": "street", "js": "en.world.yaw = (en.world.yaw + 90) % 360; en.world.pitch = 4; en.storm('tstorm'); en.stormKit.freezeFlash = true; en.stormKit.strike(en.engine.camera)", "wait": 7000 },
+    { "name": "sf2_8_ar5_street", "h": "street", "js": "en.stormKit.freezeFlash = false; en.stormKit.reset(); en.storm('ar5')", "steps": 1200, "wait": 7000 },
+    { "name": "sf2_8_ar5_drone", "h": "drone", "js": "", "steps": 50, "wait": 7000 }
+  ] }
+]

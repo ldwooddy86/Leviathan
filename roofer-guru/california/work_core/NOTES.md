@@ -10,3 +10,6 @@ NEXT: 24 (patch), 17 (patch), 16 (rewrite), 31 (rewrite/patch); then smoke build
 - 24 done (patched p_m12.py, p_m12b.py)
 - 17 (p_m05.py) and 16 (head kept + m04_tail.js) done. NEXT: 31_m17, then build/test.
 - 31 done (p_m17.py, p_fix1.py). NEXT: smoke build with LA stand-in, then synthetic CA columns test, word search.
+- data exists now (CA/data/out/ca_atlas_data.json; hazard merge interim: ts.month/hour empty, pts empty). HZ/HC in 09 set to final HAZARD_SCHEMA names (p_hz.py); hazard LAYERS rewritten (p_lay.py).
+NEXT: build with CA data + headless test (work_core/test_*.js); word search; report.
+- first full test on CA data passed (no page errors; 150 layers draw). p_fix2.py: wording, land fill under ZIPs.

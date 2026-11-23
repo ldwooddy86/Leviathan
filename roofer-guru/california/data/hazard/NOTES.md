@@ -9,10 +9,10 @@ Steps (x = output on disk and looked at):
 - [x] 01_zcta_base.py     -> work/zcta_base.json, coast_albers.wkb
 - [x] 02_stations.py      -> work/zcta_station.json
 - [x] 03_ar.py            -> work/zcta_ar.json, work/ar_events.json
-- [ ] 04_fire.py          -> work/zcta_fire.json, work/fires.json, out/fire_rings.json (log: work/04_fire.log)
-- [ ] 05_wind_events.py   -> work/zcta_wind.json, work/wind_events.json
-- [ ] 06_snow_hail.py     -> work/zcta_snow_hail.json
-- [ ] 07_assemble.py      -> out/zcta_hazard.json, hazard_events.json, hazard_ts.json, hazard_pts.json
+- [x] 04_fire.py          -> work/zcta_fire.json, work/fires.json, out/fire_rings.json (log: work/04_fire.log)
+- [x] 05_wind_events.py   -> work/zcta_wind.json, work/wind_events.json
+- [x] 06_snow_hail.py     -> work/zcta_snow_hail.json
+- [x] 07_assemble.py      -> out/zcta_hazard.json, hazard_events.json, hazard_ts.json, hazard_pts.json
 - [ ] 08_roof_model.py    -> out/roof_hazard_model.json, .md
 - [ ] 09_checks.py        -> out/checks.json, out/CHECKS.md, and section 9 of HAZARD_SCHEMA.md
 - [ ] build_hazard.sh

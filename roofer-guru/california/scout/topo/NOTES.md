@@ -15,5 +15,7 @@ Test results: heights match research table (Whitney z14 4412.0 vs 4411.8; Badwat
 Ferry Bldg 2.3; Coronado 7 m). No page errors; dead tile service falls back to the grid quietly.
 Note: current CA/scout/scout.js throws "SMAT is not defined" on its own (mid-rewrite), so browser tests use the test bed.
 
-Next (refinements): build_extra.py (CEC climate zone by ZIP, ASCE 7-22 snow grid) -> topo_extra_data.js; topo_extra.js
-(snow, climate zone, marine air lines on card + CSV; profile tool; Topography panel with province notes); rerun tests.
+REFINEMENTS DONE (2026-11-23): build_extra.py -> topo_extra_data.js (CEC climate zone by ZIP, ASCE 7-22 snow grid);
+topo_extra.js (snow, climate zone, salt air on card + CSV; profile tool; Topography panel with province notes);
+test/t3_extra.js. All three tests pass with no page errors. Report handed back.
+Not done: wind in named passes, marine layer, tule fog (no evidence); heights for tier 3 names; spine lines for ranges.

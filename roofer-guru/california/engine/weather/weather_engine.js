@@ -137,7 +137,8 @@ void main() {
     float t = u_q.x; vec3 v = u_vel * cm; float sp = length(v); vec3 ax = v / max(sp, 1e-3), side = normalize(cross(ax, toC) + vec3(1e-5));
     w.xz += vec2(sin(t * (1.1 + 1.7 * h2.y) + h.z * 6.2832), cos(t * (0.9 + 1.3 * h2.z) + h.x * 6.2832)) * (0.1 + 0.16 * h2.x);
     float hw = u_p.y * (0.6 + 0.8 * h2.y), mn = dist * u_p.w * 0.7; v_a *= min(1.0, hw / max(mn, 1e-6)); hw = max(hw, mn); float hl = max(hw, 0.5 * sp * u_p.z);
-    v_a *= clamp(hw / hl * 1.6, 0.3, 1.0); w += side * (a_corner.x * hw) + ax * (a_corner.y * hl);
+    v_a *= clamp(hw / hl * 1.6, 0.3, 1.0); if (u_p.x > 3.5) v_a = 0.7 * edge;   /* an ember is a light: its streak stays bright */
+    w += side * (a_corner.x * hw) + ax * (a_corner.y * hl);
   }
   vec4 vp = u_view * vec4(w, 1.0); v_viewZ = -vp.z; v_uv = a_corner; gl_Position = u_viewProj * vec4(w, 1.0);
 }`;
@@ -175,7 +176,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
     o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '' };
     const COUNT = { ultra: 30000, high: 20000, medium: 12000, low: 5000 }, SPRAY = { ultra: 900, high: 620, medium: 340, low: 130 }, DEBRIS = { ultra: 1, high: 0.8, medium: 0.5, low: 0.28 };
     /* what is on the screen now, eased toward what the steps ask for, so the scales slide */
-    const RS = engine.renderer.settings, G0 = { exposure: RS.exposure || 0, saturation: RS.saturation, temperature: RS.temperature || 0, contrast: RS.contrast };
+    const RS = engine.renderer.settings, G0 = { stars: env.stars == null ? 1 : env.stars, exposure: RS.exposure || 0, saturation: RS.saturation, temperature: RS.temperature || 0, contrast: RS.contrast };
     const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340 };
     let want = Object.assign({}, now), dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
     const offs = [0, 1, 2, 3, 4, 5].map(() => [0, 1, 2, 3].map(() => [0, 0, 0])), drift = [0, 0], vel = [[0, -6, 0], [0, 0.3, 0], [0, -1.2, 0], [0, -1.2, 0], [0, -0.7, 0], [0, 0.5, 0]];
@@ -234,7 +235,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (sk === 1 || sk === 2) { if (level) K.held = 'held off while it rains'; else if (wl >= 2) K.held = sk === 1 ? 'pushed out to sea by the offshore wind' : 'it does not survive wind'; }
       if (sk === 1 && !K.held) { const m = marineAt(K.hour); K.burn = 1 - m; clouds = lerp(clouds, 1, m); sunI = lerp(sunI, 0.13, m); skyI = lerp(skyI, 1.45, m); turb = lerp(turb, 5, m); fog = Math.max(fog, 0.00065 * m); fogH = 260; dark = 0.16 * m; temp = -0.9 * m; sat = -0.1 * m; }
       if (sk === 2 && !K.held) { fog = 3.912 / 200; fogH = 60; sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; }
-      if (sk === 3) { fog = Math.max(fog, 3.912 / 2400); fogH = Math.max(fogH, 800); turb = 11; sunI *= 0.3; skyI *= 0.62; clouds *= 0.6; dark = Math.max(dark, 0.22); temp += 2.6; sat -= 0.05; ash = 1; ember = wl >= 4 ? (wl - 3) / 2 : 0; }
+      if (sk === 3) { fog = Math.max(fog, 3.912 / 2400); fogH = Math.max(fogH, 800); turb = 13; sunI *= 0.22; skyI *= 0.55; clouds *= 0.6; dark = Math.max(dark, 0.2); temp += 3.4; sat -= 0.02; ash = 1; ember = wl >= 4 ? (wl - 3) / 2 : 0; }
       want = { dark, rain: s.rain, ms, gf: ms > 0.1 ? Math.max(1, gust / ms) : 1, fall: s.fall || 6, fog, fogH, clouds, wet: level ? 1 : w0.wetness, sway: Math.max(level ? s.sway : 0.35, w.sway),
         spray: level ? clamp((gust - 20) / 40, 0, 1) : 0, dust: dryWind ? w.dust : 0, debris: level ? (gust > 22 ? clamp((gust - 22) / 14, 0, 1) * 130 : 0) : w.leaf, roofing: gust >= 44 ? 0.4 : gust >= 35 ? 0.25 : gust >= 29 ? 0.1 : 0, frond: level ? 0.06 : 0.22,
         snow: level && K.y0 != null ? 1 : 0, pond: clamp((s.rain - 10) / 15, 0, 1), ash, ember, temp, sat, expo, bear: !level && wl ? nm[1] : 340 };
@@ -244,7 +245,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       return { turbidity: turb, sunIntensity: sunI, skyIntensity: skyI };
     };
     let graded = false, wasQuiet = false;
-    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet;
+    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
       env.snowK = [now.snow, K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9, 45, now.pond];
       const d = now.dark, on = d > 0.001 || Math.abs(now.temp) > 0.001 || Math.abs(now.sat) > 0.001 || Math.abs(now.expo) > 0.001;
       if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo; RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
@@ -293,10 +294,10 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
         if (nk > 0.01) { const SNOW = [1.5, 1.55, 1.65, 0]; layer(3, [40, 24, 40], C * nk * 0.8, 3, 0.02, 0.033, 0, 0.8, 6, SNOW); layer(3, [13, 9, 13], C * nk * 0.55, 3, 0.011, 0.033, 0, 0.95, 7, SNOW); }
         if (rk > 0.4) layer(1, [26, 0.42, 26], SP * 0.7 * rk, 1, 0.42, 0, gy, 0.06 * rk, 5);   /* heavy rain: spray standing just above the pavement */
         if (now.spray > 0.01 && rk > 0.01) layer(1, [72, 9, 72], SP * 0.6 * now.spray, 1, 2.1, 0, gy, 0.02 + 0.035 * now.spray, 3);
-        if (now.dust > 0.01) layer(1, [80, 7, 80], SP * 0.75 * now.dust, 1, 2.6, 0, gy, 0.03 + 0.05 * now.dust, 8, [1.25, 1.02, 0.72, 0]);   /* dust lifted off dry ground */
-        if (now.debris > 0.5) layer(2, [64, 22, 64], now.debris * (DEBRIS[tier] || 0.5), 2, 0.085, 0, gy, 1, 4, [K.level ? 1 : 0.35, 1, 1, 0]);   /* in the dry season the leaves in the air are mostly brown */
-        if (now.ash > 0.01) layer(4, [34, 22, 34], C * 0.05 * now.ash, 3, 0.012, 0.033, 0, 0.8, 9, [0.75, 0.74, 0.72, 0]);
-        if (now.ember > 0.01) { const e = Math.max(0.6, (am[0] + am[1] + am[2]) * 3) * 9; layer(5, [50, 12, 50], SP * 0.5 * now.ember, 4, 0.016, 0.033, 0, 1, 10, [e, e * 0.36, e * 0.05, 1]); }
+        if (now.dust > 0.01) layer(1, [70, 6, 70], SP * 2.4 * now.dust, 1, 2.4, 0, gy, 0.05 + 0.1 * now.dust, 8, [1.25, 1.02, 0.72, 0]);   /* dust lifted off dry ground */
+        if (now.debris > 0.5) layer(2, [56, 18, 56], now.debris * (DEBRIS[tier] || 0.5) * 2.2, 2, 0.1, 0, gy, 1, 4, [K.level ? 1 : 0.35, 1, 1, 0]);   /* in the dry season the leaves in the air are mostly brown */
+        if (now.ash > 0.01) layer(4, [30, 18, 30], C * 0.12 * now.ash, 3, 0.014, 0.033, 0, 0.9, 9, [0.9, 0.88, 0.85, 0]);
+        if (now.ember > 0.01) { const e = Math.max(0.6, (am[0] + am[1] + am[2]) * 3) * 30; layer(5, [44, 9, 44], SP * 2 * now.ember, 4, 0.022, 0.012, 0, 1, 10, [e, e * 0.36, e * 0.05, 1]); }
       }
       if (flash && flash.segs.length && flash.now > 0.04) {
         let pb; try { pb = dev.program('storm-bolt', BOLT_VS, BOLT_FS); } catch (e) { R.refuse('rain', e); return; }

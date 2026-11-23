@@ -49,14 +49,17 @@ const NWSX = (() => {
   const SA_DAYS = [11.9, 6.7, 2.8, 0.6, 0.1, 0.1, 0, 0, 0.4, 3.5, 7.8, 12.2];
   const topMonths = (a, share) => { if (!Array.isArray(a) || a.length !== 12) return null; const t = sum(a); if (!(t > 0)) return null; const idx = a.map((v, i) => [v, i]).sort((x, y) => y[0] - x[0]); const out = []; let acc = 0; for (const [v, i] of idx) { if (acc / t >= share) break; out.push(i); acc += v; } return out.sort((x, y) => x - y); };
   const SEASONS = (() => {
-    /* HZ (09_sl_model.js) reads the monthly hazard series once for every module; the typed Santa Ana months stand in when the data has no offshore wind series */
-    const HM = (typeof HZ !== 'undefined' && HZ && HZ.month) || {}; const out = [];
+    /* monthly series of the hazard build (HAZARD_SCHEMA.md section 3); each is used only when the data carries it */
+    const TM = (typeof DATA !== 'undefined' && DATA.ts && DATA.ts.month) || {}; const out = [];
+    const ok = a => Array.isArray(a) && a.length === 12 && a.some(v => +v > 0) ? a.map(Number) : null;
+    const plus = (...ks) => { const as = ks.map(k => ok(TM[k])).filter(Boolean); return as.length ? as[0].map((_, i) => sum(as.map(a => a[i]))) : null; };
     const add = (k, name, months, src, what) => { if (months && months.length) out.push({ k, name, months, src, what }); };
-    add('rain', 'Rain season', topMonths(HM.ar, 0.8) || topMonths(HM.rainev, 0.8), HM.ar ? 'atmospheric rivers by month (CW3E catalog)' : 'heavy rain and flood reports by month', 'Leak calls, tarps and emergency repairs. Tear offs need a dry window; book re-roofs for the dry months before it.');
-    add('wind', 'Santa Ana season', SA_DAYS.map((v, i) => v >= 3 ? i : -1).filter(i => i >= 0), 'Scripps Santa Ana winds regional index, mean days by month, 1948 to 2018', 'Dry offshore wind in the south: lifted shingles and tile, and the highest fire danger of the year.');
-    add('fire', 'Fire season', topMonths(HM.fire, 0.8), 'wildfire records by month of ignition (CAL FIRE)', 'Hardening work sells before it; after a fire the disaster rules on price, licence and contracts apply.');
-    add('heat', 'Heat season', topMonths(HM.heat, 0.8), 'heat records by month', 'Inland crews start at first light; shade above 80 F and high heat procedures at 95 F are the law for outdoor work.');
-    add('snow', 'Snow season', topMonths(HM.snow, 0.8), 'heavy snow and winter storm records by month', 'Mountain roofs: snow load, ice dams and short work days. Re-roofs wait for the melt.');
+    const sa = ok(TM.sa_days);
+    add('rain', 'Rain season', topMonths(ok(TM.ar_days) || plus('ar1', 'ar2', 'ar3', 'ar4', 'ar5') || plus('hrain', 'flood'), 0.8), ok(TM.ar_days) || ok(TM.ar1) ? 'atmospheric rivers by month (CW3E catalog)' : 'heavy rain and flood records by month', 'Leak calls, tarps and emergency repairs. Tear offs need a dry window; book re-roofs for the dry months before it.');
+    add('wind', 'Santa Ana season', (sa || SA_DAYS).map((v, i) => v >= 3 ? i : -1).filter(i => i >= 0), 'Scripps Santa Ana winds regional index, mean days by month, 1948 to 2018', 'Dry offshore wind in the south: lifted shingles and tile, and the highest fire danger of the year.');
+    add('fire', 'Fire season', topMonths(ok(TM.fire_ac) || ok(TM.fire_n) || ok(TM.fire_dest), 0.8), 'acres burned by month of ignition (CAL FIRE perimeters)', 'Hardening work sells before it; after a fire the disaster rules on price, licence and contracts apply.');
+    add('heat', 'Heat season', topMonths(plus('xheat', 'heat'), 0.8), 'heat and excessive heat records by month', 'Inland crews start at first light; shade above 80 F and high heat procedures at 95 F are the law for outdoor work.');
+    add('snow', 'Snow season', topMonths(plus('hsnow', 'wstorm'), 0.8), 'heavy snow and winter storm records by month', 'Mountain roofs: snow load, ice dams and short work days. Re-roofs wait for the melt.');
     return out;
   })();
   const seasonsOf = date => { const P = partsOf(String(date || '') + 'T00'); if (!P) return []; return SEASONS.filter(s => s.months.includes(P.mo - 1)); };

@@ -8,7 +8,7 @@ const load = n => saved[n] || (saved[n] = JSON.parse(fs.readFileSync(path.join(D
 (async () => {
   const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
   const browser = await chromium.launch({ proxy, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await (await browser.newContext({ viewport: { width: 900, height: 640 }, deviceScaleFactor: 1 })).newPage();
+  const page = await (await browser.newContext({ viewport: { width: 760, height: 560 }, deviceScaleFactor: 1 })).newPage();
   const errs = [], asks = []; page.on('pageerror', e => errs.push('pageerror: ' + (e && e.stack || e).toString().slice(0, 600)));
   await page.route(/overpass|maps\.mail\.ru/, async route => { const q = decodeURIComponent((route.request().postData() || '').replace(/^data=/, '')), m = /\(([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+)\)/.exec(q); if (!m) return route.fulfill({ status: 400, body: 'bad' });
     const [s, w, n, e] = m.slice(1).map(Number), box = s > 36 ? 'sf_northeast' : s > 33.5 ? 'la_central' : 'coronado', only = /\^motorway/.test(q), els = load(box).filter(el => el.type === 'way' ? (el.geometry && (only ? /^motorway/.test((el.tags || {}).highway || '') : ((el.tags || {}).highway || ((el.tags || {}).railway === 'tram' && (el.tags || {}).cable_tram))) && el.geometry.some(g => g.lat > s && g.lat < n && g.lon > w && g.lon < e)) : el.type === 'node' && !only && el.tags && /^(traffic_signals|stop)$/.test(el.tags.highway || '') && el.lat > s && el.lat < n && el.lon > w && el.lon < e);
@@ -23,9 +23,12 @@ const load = n => saved[n] || (saved[n] = JSON.parse(fs.readFileSync(path.join(D
   for (const hr of HOURS) {
     await page.evaluate(([h, hr]) => { const en = MODI.rooftops.api.en(); en.setGraphics({ q: 'low', sun: hr, weather: 'clear', life: true, wide: false }); en.setHeight(h); }, [H, hr]);
     /* keep the engine awake and let the traffic run: the clock is stepped by the page's own frames */
-    for (let i = 0; i < 8; i++) { await page.mouse.move(300 + i * 5, 300); await wait(2500); }
+    for (let i = 0; i < 3; i++) { await page.mouse.move(300 + i * 5, 300); await wait(2500); }
+    /* software drawing is far slower than the clock: the two models are stepped by hand for 40 simulated seconds, then the engine is held still for the picture */
+    await page.evaluate(() => { const en = MODI.rooftops.api.en(), S = en.world, T = S.traffic, cp = en.engine.scene ? null : null; const eye = [S.x, S.z]; for (let i = 0; i < 1200; i++) { T.flow.step(1 / 30, eye); en.street.traffic.step(1 / 30, [S.x, S.z, 540]); } en.setGraphics({ playing: false }); });
+    await page.mouse.move(320, 310); await wait(9000);
     const d = await page.evaluate(() => { const en = MODI.rooftops.api.en(), T = en.world.traffic; return { dbg: T ? T.debug() : null, street: en.street.stats, sunAlt: en.world.sunAlt, roads: en.world.roads.length, kinds: en.world.roads.reduce((a, r) => { a[r.kind] = (a[r.kind] || 0) + 1; return a; }, {}), oneway: en.world.roads.filter(r => r.ow).length, up: en.world.roads.filter(r => r.up).length }; });
     console.log(hr + 'h', JSON.stringify(d)); const b = await box(); await wait(800);
-    await page.screenshot({ path: OUT + '_' + String(hr).padStart(2, '0') + '.png', timeout: 240000, clip: { x: Math.max(0, b.x), y: Math.max(0, b.y), width: Math.min(900, b.width), height: Math.min(640, b.height) } }); }
+    await page.screenshot({ path: OUT + '_' + String(hr).padStart(2, '0') + '.png', timeout: 240000, clip: { x: Math.max(0, b.x), y: Math.max(0, b.y), width: Math.min(900, b.width), height: Math.min(640, b.height) } }); await page.evaluate(() => MODI.rooftops.api.en().setGraphics({ playing: true })); }
   console.log('PAGE ERRORS:', errs.length ? errs.join('\n') : 'none'); await browser.close();
 })().catch(e => { console.error('ERROR', e); process.exit(2); });

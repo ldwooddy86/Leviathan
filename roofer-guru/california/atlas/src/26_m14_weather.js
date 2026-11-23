@@ -183,15 +183,14 @@ registerModule({
     }
     calendar();
     function record() {
-      /* HZ.month (09_sl_model.js) is the one reader of the monthly hazard series */
-      const TM = (typeof HZ !== 'undefined' && HZ && HZ.month) || {}; const R = ramp('green'), TL = ramp('teal');
-      const want = [['ar', 'Atmospheric rivers', TL[6]], ['rainev', 'Heavy rain and flood reports', TL[3]], ['wind', 'High wind', R[4]], ['offshore', 'Santa Ana and offshore wind days', R[6]], ['fire', 'Wildfire', cssv('--critical')], ['snow', 'Heavy snow and winter storms', TL[1]], ['heat', 'Heat', R[2]]];
-      const have = want.filter(([k]) => Array.isArray(TM[k]) && TM[k].length === 12 && sum(TM[k]) > 0);
+      const TM = (DATA.ts || {}).month || {}; const R = ramp('green'), TL = ramp('teal');
+      const ok = a => Array.isArray(a) && a.length === 12 && a.some(v => +v > 0) ? a.map(Number) : null; const plus = (...ks) => { const as = ks.map(q => ok(TM[q])).filter(Boolean); return as.length ? as[0].map((_, i) => sum(as.map(a => a[i]))) : null; };
+      const have = [['Atmospheric rivers', ok(TM.ar_days) || plus('ar1', 'ar2', 'ar3', 'ar4', 'ar5'), TL[6]], ['Heavy rain and flood records', plus('hrain', 'flood', 'fflood'), TL[3]], ['High wind records', ok(TM.hw), R[4]], ['Santa Ana days', ok(TM.sa_days), R[6]], ['Acres burned', ok(TM.fire_ac) || ok(TM.fire_n), cssv('--critical')], ['Heavy snow and winter storms', plus('hsnow', 'wstorm'), TL[1]], ['Heat records', plus('xheat', 'heat'), R[2]]].filter(x => x[1]).map(x => ({ n: x[0], a: x[1], c: x[2] }));
       if (!have.length) { $('#w14Rec', root).innerHTML = '<p class="mini">The monthly record is not in this build of the data. Module 02 holds the event record.</p>'; return; }
       /* each series as a share of its own year, so kinds with very different counts can share one chart */
-      lineChart($('#w14Rec', root), { series: have.slice(0, 6).map(([k, n, c]) => ({ name: n, color: c, pts: TM[k].map((v, i) => [i, v / sum(TM[k]) * 100]), width: 2, fmt: v => D(v, 0) + '%' })), x: { ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], fmt: i => MON3[i] || '' }, y: { label: 'Share of the kind\'s year (%)', fmt: v => D(v, 0), zero: true }, H: 240, W: 560, tipTitle: i => MONL[i] || '', aria: 'Weather and fire records by month' });
-      const pk = k => MONL[TM[k].indexOf(Math.max(...TM[k]))];
-      $('#w14Rec', root).insertAdjacentHTML('beforeend', legendRow(have.slice(0, 6).map(([k, n, c]) => ({ name: n, color: c }))) + `<p class="chartnote">${have.slice(0, 6).map(([k, n]) => `${esc(n)} peak in ${pk(k)}`).join('; ')}. The service line seasons in module 12 follow these with a lag, because owners call after they find the damage.</p>`);
+      lineChart($('#w14Rec', root), { series: have.map(s => ({ name: s.n, color: s.c, pts: s.a.map((v, i) => [i, v / sum(s.a) * 100]), width: 2, fmt: v => D(v, 0) + '%' })), x: { ticks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], fmt: i => MON3[i] || '' }, y: { label: 'Share of the year (%)', fmt: v => D(v, 0), zero: true }, H: 240, W: 560, tipTitle: i => MONL[i] || '', aria: 'Weather and fire records by month' });
+      const pk = a => MONL[a.indexOf(Math.max(...a))];
+      $('#w14Rec', root).insertAdjacentHTML('beforeend', legendRow(have.map(s => ({ name: s.n, color: s.c }))) + `<p class="chartnote">${have.map(s => `${esc(s.n)} peak in ${pk(s.a)}`).join('; ')}. The service line seasons in module 12 follow these with a lag, because owners call after they find the damage.</p>`);
     }
     $('#w14Src', root).innerHTML = judgList([
       ['Forecast', `api.weather.gov points, forecast, hourly forecast and raw gridpoint data (rain and snow amounts, wind gusts and direction, humidity, thunder probability and the weather attributes) for ${N(NP)} points, and the active alerts for California with their zones. These are what Refresh pulls live.`],

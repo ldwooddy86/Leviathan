@@ -57,8 +57,8 @@ const FORGE = (() => {
 
   /* ====================================================================================================================
      SEAMS TO THE DATA BUILD. Every data column, data block and data year this module reads is named in this block and
-     nowhere else (CA/data/SCHEMA.md of November 19, 2026; CA/data/hazard/HAZARD_SCHEMA.md, a first draft on that date).
-     When the hazard job fixes its names, change them here. A column that is not in the file reads as null, its
+     nowhere else (CA/data/SCHEMA.md and CA/data/hazard/HAZARD_SCHEMA.md as they stood on November 23, 2026).
+     If the data build renames a column or a key, change it here. A column that is not in the file reads as null, its
      sentence and its fact are dropped, and the page still builds.
      ==================================================================================================================== */
   const HZ = (() => {
@@ -69,8 +69,8 @@ const FORGE = (() => {
     /* per ZIP columns: logical name -> the column names to try, first present wins (hazard job's working names first, SCHEMA.md stub names second) */
     const COL = {
       fhsz_high: ['fhsz_high'], fhsz_vh: ['fhsz_vh'], fhsz_hv: ['fhsz_sh'],   /* percent of the ZIP's land in High, Very High, and both together */
-      fire_dest: ['dins_dest', 'fire_dest'], fire_dmg: ['dins_dmg', 'fire_dmg'],   /* structures destroyed, damaged (CAL FIRE damage inspections) */
-      fire_worst: ['dins_worst'], fire_worst_yr: ['dins_worst_yr'], fire_worst_n: ['dins_worst_dest'], lastfire: ['lastfire'],
+      fire_dest: ['fire_dest', 'dins_dest'], fire_dmg: ['fire_dmg', 'dins_dmg'],   /* structures destroyed, damaged (CAL FIRE damage inspections) */
+      fire_worst: ['fire_worst', 'dins_worst'], fire_worst_yr: ['fire_worst_yr', 'dins_worst_yr'], fire_worst_n: ['fire_worst_dest', 'dins_worst_dest'], lastfire: ['lastfire'],
       g58: ['g58', 'wd58'], gust_max: ['gust_max'],                               /* days a year with a gust of 58 mph or more nearby; highest gust on record, mph */
       ar_d: ['ar_d', 'ar_days'], rain_in: ['rain_in'], h100: ['h100', 'heat100'], snow_psf: ['snow_psf', 'pg_psf'],
       cz: ['cz', 't24cz'],                                                        /* Title 24 energy climate zone 1 to 16 (asked of the data job; not in SCHEMA.md yet) */
@@ -83,32 +83,39 @@ const FORGE = (() => {
     const fhsz = z => { const h = zc(z, 'fhsz_high'), v = zc(z, 'fhsz_vh'); if (isN(h) || isN(v)) return Math.min(100, (+h || 0) + (+v || 0)); const b = zc(z, 'fhsz_hv'); return isN(b) ? +b : null; };
     /* years the records cover, as printed */
     const YRS = { dins0: 2013, dins1: Math.min(CUR, 2025), fairDate: 'September 30, 2026', fair0: 2022 };
-    /* the event ledger: hazard_events.json {fires, ar, wind}; the assembled page file may carry it under one of these keys */
-    const RAW = DATA.hazard_events || DATA.hz_events || DATA.events || {};
+    /* the event ledger: hazard_events.json, merged into the page data as the top level key hz (HAZARD_SCHEMA.md section 2):
+       fires with zfire[zip] = [[fire index, destroyed, damaged, km, percent of the ZIP inside], ...]; ar_big (the AR4, AR5 and notable AR3
+       landfalls, a stretch of coast lat0 to lat1); wind with zn = indexes into zones[].zips. Absent from the file, no event page is planned. */
+    const RAW = DATA.hz || DATA.hazard_events || {};
     const arr = x => Array.isArray(x) ? x : (x && Array.isArray(x.events) ? x.events : []);
     const fireName = n => { n = String(n || '').trim(); return /\b(fire|complex)$/i.test(n) ? n : n + ' Fire'; };
     const monthOf = e => e.month || (e.start ? +String(e.start).slice(5, 7) : null) || 1;
+    const WINDN = { santa_ana: ' Santa Ana wind event', diablo: ' Diablo wind event', sundowner: ' sundowner wind event', mono: ' Mono wind event', winter: ' winter windstorm' };
     function norm(e, kind) {
       const y = +e.year || (e.start ? +String(e.start).slice(0, 4) : null); const mo = monthOf(e); if (!y) return null;
       const when = MONTHS[mo - 1] + ' ' + y;
       const o = { id: String(e.id || kind + y + mo), kind, year: y, month: mo, when, dr: e.dr || null };
-      if (kind === 'fire') { o.name = fireName(e.name); o.acres = isN(e.acres) ? +e.acres : (isN(e.gis_acres) ? +e.gis_acres : null); o.dest = isN(e.destroyed) ? +e.destroyed : null; o.dmg = isN(e.damaged) ? +e.damaged : null;
+      if (kind === 'fire') { o.name = fireName(e.name); o.acres = isN(e.acres) ? +e.acres : (isN(e.gis_acres) ? +e.gis_acres : null); const pick = (a, b) => isN(a) ? +a : (isN(b) ? +b : null); o.dest = pick(e.dest, e.destroyed); o.dmg = pick(e.dmg, e.damaged);
         o.foot = {}; (e.z || []).forEach(r => { o.foot[r[0]] = { pct: +r[1] || 0, dest: +r[2] || 0, dmg: +r[3] || 0 }; }); }
-      else { o.rank = isN(e.rank) ? +e.rank : null; o.gust = isN(e.gust) ? Math.round(+e.gust) : null; o.at = e.peak_at || e.stretch || e.where || null;
-        o.name = e.name ? String(e.name) : when + (kind === 'ar' ? ' atmospheric river' : ' windstorm');
+      else { o.rank = isN(e.rank) ? +e.rank : null; const g = Array.isArray(e.gust) ? e.gust[0] : e.gust; o.gust = isN(g) ? Math.round(+g) : null; o.at = e.peak_at || e.stretch || e.where || null;
+        o.name = e.name ? String(e.name) : when + (kind === 'ar' ? ' atmospheric river' : (WINDN[e.kind] || ' windstorm'));
         if (Array.isArray(e.z) && e.z.length) { o.foot = {}; e.z.forEach(r => { o.foot[r[0]] = { gust: +r[1] || null }; }); }
+        else if (Array.isArray(e.zn) && Array.isArray(RAW.zones)) { o.foot = {}; e.zn.forEach(i => ((RAW.zones[i] || {}).zips || []).forEach(z => { o.foot[z] = {}; })); }
         else if (isN(e.lat0) && isN(e.lat1)) o.band = [Math.min(e.lat0, e.lat1) - 0.25, Math.max(e.lat0, e.lat1) + 0.25]; }
       o.label = o.name + ' (' + y + ')';
       return o;
     }
-    const EVENTS = arr(RAW.fires).map(e => norm(e, 'fire')).concat(arr(RAW.ar).map(e => norm(e, 'ar')), arr(RAW.wind).map(e => norm(e, 'wind'))).filter(Boolean);
+    const FIRES = arr(RAW.fires).map(e => norm(e, 'fire'));
+    Object.entries(RAW.zfire || {}).forEach(([zip, rows]) => (rows || []).forEach(r => { const f = FIRES[r[0]]; if (f && ((+r[4] || 0) > 0 || (+r[1] || 0) + (+r[2] || 0) > 0)) f.foot[zip] = { pct: +r[4] || 0, dest: +r[1] || 0, dmg: +r[2] || 0 }; }));
+    const ARS = (Array.isArray(RAW.ar_big) ? RAW.ar_big : arr(RAW.ar).filter(e => e && !Array.isArray(e))).map(e => norm(e, 'ar'));
+    const EVENTS = FIRES.concat(ARS, arr(RAW.wind).map(e => norm(e, 'wind'))).filter(e => e && (e.band || (e.foot && Object.keys(e.foot).length)));
     const EVENT_BY_ID = {}; EVENTS.forEach(e => { EVENT_BY_ID[e.id] = e; });
     /* the event's measure at one ZIP row, or null when the event did not touch it */
     const at = (e, z) => e.foot ? (e.foot[z.zip] || null) : (e.band && isN(z.lat) && z.lat >= e.band[0] && z.lat <= e.band[1] ? {} : null);
     /* statewide evidence figures typed from the evidence file (roofing_law_evidence.md, read November 19, 2026); the data file's own value is used where it carries one */
     const L = META.lic || {};
     const licOK = isN(L.clear) && L.clear > 0;
-    const EVD = { c39: licOK ? L.clear : 5602, c39_out: licOK ? L.out : 154, c39_date: 'November 19, 2026', fair_pif: 698307, fair_date: 'September 2026', fair_up: 157,
+    const EVD = { c39: licOK ? L.clear : 5602, c39_roll: licOK && isN(L.n) ? L.n : 5602, c39_out: licOK ? L.out : 154, c39_date: 'November 19, 2026', fair_pif: 698307, fair_date: 'September 2026', fair_up: 157,
       mh_med: (META.ahs || {}).w_mh_med, mh_region: 'the West' };
     /* regions: number -> two letter key and name come from the data (META.model.REGK, REG); the wording for running text is typed here */
     const REGIONS = [
@@ -181,7 +188,7 @@ const FORGE = (() => {
   }
   function windSentence(fx, where) {
     if (!isN(fx.g58)) return '';
-    return (fx.g58 >= 0.1 ? `Gusts of 58 mph or more are measured near ${where} on about ${D(fx.g58, 1)} days a year` : `Gusts of 58 mph or more are measured near ${where} less than once in ten years`) + (isN(fx.gust_max) && fx.gust_max >= 40 ? `, and the highest gust on the station record is ${N(fx.gust_max)} mph.` : '.');
+    return (fx.g58 >= 0.1 ? `Gusts of 58 mph or more are measured near ${where} on about ${D(fx.g58, 1)} days a year` : `Gusts of 58 mph or more are rare at the weather stations nearest ${where}`) + (isN(fx.gust_max) && fx.gust_max >= 40 ? `, and the highest gust on the station record is ${N(fx.gust_max)} mph.` : '.');
   }
   function rainSentence(fx, where) {
     const out = [];
@@ -393,7 +400,7 @@ const FORGE = (() => {
       down_fact: ['$1,000 or 10 percent', 'largest down payment allowed on a home improvement contract, whichever is less', 'Bus. & Prof. Code 7159.5', 'A', READ],
       cancel_fact: ['3 business days', 'to cancel a home improvement contract after receiving the signed copy; 5 for a senior citizen and 7 for repairs after a declared emergency', 'Bus. & Prof. Code 7159; Civ. Code 1689.6', 'A', READ],
       c39_fact: [N(E.c39), `active C-39 Roofing licenses on the Contractors State License Board file, ${E.c39_date}`, 'cslb', 'A', E.c39_date],
-      s_out: [V.s_out, 'of those C-39 licenses list a business address outside California', 'cslb', 'B', E.c39_date],
+      s_out: [V.s_out, `of the ${N(E.c39_roll)} C-39 licenses on the board's roll list an address outside California`, 'cslb', 'B', E.c39_date],
       lien_fact: ['20 days', 'for a subcontractor or supplier to give preliminary notice after first furnishing work, on which a mechanics lien depends', 'Civ. Code 8200, 8204', 'A', READ],
       sb800_fact: ['January 1, 2003', 'homes sold on or after this date fall under the Right to Repair Act, whose standards say a roof must not let water into the structure', 'Civ. Code 896, 938', 'A', READ],
       repose_fact: ['10 years', 'outer limit for claims over hidden construction defects, from substantial completion; 4 years for visible defects', 'Code Civ. Proc. 337.15, 337.1', 'A', READ],
@@ -944,7 +951,9 @@ registerModule({
     $$('input[data-k], select[data-k], textarea[data-k]', root).forEach(i => i.addEventListener('change', () => { readSite(); firmWarn(); save(); replan(); }));
     $('#f9Brand', root).onclick = () => { E.syncBrand(CFG, true); writeSite(); save(); replan(); toast(brandSet() ? 'Company fields taken from the Company panel' : 'The Company panel is empty: fill it (top right) or type the company here'); };
     $('#f9Desk', root).onclick = () => { if (MODI.desk && !MODI.desk.mounted) { MODI.desk.mounted = true; try { MODI.desk.mount($('#mod-desk')); } catch (e) { console.error(e); } } const d = MODI.desk && MODI.desk.plan ? MODI.desk.plan() : store.get('cg.desk.v1', null); if (!d) { toast('Open the Campaign Desk once so its plan exists'); return; }
-      if (d.spanTh != null) S().span = d.spanTh;
+      if (isN(d.spanTh) && d.spanTh > 0) S().span = d.spanTh; if ([].concat(d.lang || []).some(x => /^(es|spanish)/i.test(String(x)))) CFG.build.es = true;
+      if (d.scope === 'county' && Array.isArray(d.counties)) { const fs = d.counties.filter(f => E.HZ.COUNTY_BY_FIPS[f]); if (fs.length) { CFG.focus.scope = 'county'; CFG.focus.counties = fs; } }
+      if (d.scope === 'region' && Array.isArray(d.regions)) { const rk = ((META.model || {}).REGK) || {}; const rs = d.regions.map(r => E.HZ.REGION_BY_KEY[r] ? r : rk[r]).filter(r => E.HZ.REGION_BY_KEY[r]); if (rs.length) { CFG.focus.scope = 'region'; CFG.focus.regions = rs; } }
       const zips = d.zips || (d.scope === 'picks' ? d.picks : null); if (zips && zips.length) { const names = citiesFromZips(zips).slice(0, 24); if (names.length) { CFG.focus.scope = 'pick'; CFG.focus.picks = names; } }
       const lines = d.line === 'blend' ? (d.lines || []) : [d.line]; const ok = lines.filter(k => FCOPY.AC[k]); if (ok.length) { CFG.build.landingLines = ok.slice(0, 3); ok.forEach(k => { if (!CFG.build.lines.includes(k)) CFG.build.lines.push(k); }); }
       const dev = d.event || d.storm; const devOK = dev && E.HZ.EVENT_BY_ID[dev]; if (devOK) { CFG.build.eventPages = true; CFG.build.eventsAuto = false; CFG.build.events = [...new Set([dev].concat(E.chosenEvents(CFG, PLAN.markets)))].slice(0, 6); }

@@ -29,3 +29,5 @@ Status: see bottom of file.
 - lens ctx: stormStep, wind, windStep, sky, wx (= info())
 - tables: SE.STORM, SE.WIND, SE.SKY, SE.windName(lat, lon), SE.stormStep/windStep/skyStep(v)
 - env hooks read: env.elevation(lat, lon) (optional). env.surge is no longer called.
+- visibility pass: more dust/leaves/ash/embers, stronger smoke, stars hidden under smoke. Rebuilt 22:40. Running checks then plan_b.json (trimmed shots).
+- seaLevel prefers terrain datum S.y0 (port edited after the 22:40 build; out/engine_weather.js not yet rebuilt with it)

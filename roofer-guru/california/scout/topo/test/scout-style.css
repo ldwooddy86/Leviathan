@@ -218,4 +218,20 @@ html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
 .sc .sc-topo-v{text-align:right}
 .sc .sc-topo-q{font-size:11px;color:var(--ink-3,#5b6675)}
 .sc .sc-topo-ul{margin-top:8px}
+/* the Topography panel and the profile */
+.sc .sc-topo-card .sc-topo-acts{margin-bottom:10px}
+.sc .leaflet-container.sc-topo-pick{cursor:crosshair}
+.sc .sc-topo-prof{width:100%;height:auto;display:block;margin-top:6px}
+.sc .sc-topo-prof .sc-topo-pl{fill:none;stroke:var(--accent,#c2410c);stroke-width:2;vector-effect:non-scaling-stroke}
+.sc .sc-topo-prof .sc-topo-ar{fill:var(--accent,#c2410c);opacity:.14}
+.sc .sc-topo-prof .sc-topo-gr{stroke:var(--line,#d9dee5);stroke-width:1;vector-effect:non-scaling-stroke}
+.sc .sc-topo-prof .sc-topo-sea{stroke:#2f6fdf;stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.sc .sc-topo-prof .sc-topo-ax{font:11px var(--font,system-ui,sans-serif);fill:var(--ink-3,#5b6675)}
+.sc .sc-topo-prof .sc-topo-dot{fill:var(--accent,#c2410c);stroke:var(--card,#fff);stroke-width:1.5}
+.sc .sc-topo-ps{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;margin:6px 0 2px}
+.sc .sc-topo-notes{margin:12px 0 8px;display:grid;gap:4px}
+.sc .sc-topo-n{border:1px solid var(--line,#d9dee5);border-radius:8px;padding:7px 10px}
+.sc .sc-topo-n summary{cursor:pointer;font-size:13px}
+.sc .sc-topo-n summary span{color:var(--ink-2,#3d4856)}
+.sc .sc-topo-n p{margin:7px 0 2px;font-size:13px;line-height:1.5}
 </style>
