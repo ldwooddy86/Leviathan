@@ -1,24 +1,24 @@
 == 1. Two main roads that cross in plan with no point in common (the survey's case 4: 80 cars, 120 s) ==
-  both on the ground, as the old engine had it: 80 cars (80 on the road), mean 20 mph, standing 34%, contacts 1, tows 0, wrong way on a one-way street 0, step 3.297 ms
-  one of them a bridge (layer 1): 80 cars (80 on the road), mean 33 mph, standing 0%, contacts 0, tows 0, wrong way on a one-way street 0, step 4.036 ms; highest deck 6.5 m
+  both on the ground, as the old engine had it: 80 cars (80 on the road), mean 20 mph, standing 34%, contacts 1, tows 0, wrong way on a one-way street 0, step 2.408 ms
+  one of them a bridge (layer 1): 80 cars (80 on the road), mean 33 mph, standing 0%, contacts 0, tows 0, wrong way on a one-way street 0, step 3.501 ms; highest deck 6.5 m
 
 == 2. A grid of one-way streets (alternate directions, 100 m blocks, 1 km square), 120 cars, 180 s ==
-  120 cars (120 on the road), mean 14 mph, standing 8%, contacts 0, tows 0, wrong way on a one-way street 0, step 3.304 ms
+  120 cars (120 on the road), mean 14 mph, standing 8%, contacts 0, tows 0, wrong way on a one-way street 0, step 3.039 ms
 
 == 3. Real streets from the saved OpenStreetMap answers (surface streets only; freeways are the other model's) ==
-  Los Angeles, Figueroa and 7th, 3h (1.8 cars per lane-km wanted, cycle 90 s): 46 cars (46 on the road), mean 14 mph, standing 38%, contacts 0, tows 0, wrong way on a one-way street 0, step 2.189 ms; buses 2; one-way share of street length 49%; crossings 192, with signals 72
-  Los Angeles, Figueroa and 7th, 17h (24.4 cars per lane-km wanted, cycle 120 s): 187 cars (187 on the road), mean 10 mph, standing 50%, contacts 0, tows 0, wrong way on a one-way street 0, step 5.345 ms; buses 3; one-way share of street length 49%; crossings 192, with signals 72
-  San Francisco, Market and Powell, 3h (2.3 cars per lane-km wanted, cycle 60 s): 49 cars (49 on the road), mean 11 mph, standing 35%, contacts 0, tows 1, wrong way on a one-way street 0, step 1.068 ms; buses 2; one-way share of street length 77%; crossings 318, with signals 132
-  San Francisco, Market and Powell, 17h (18.2 cars per lane-km wanted, cycle 90 s): 186 cars (186 on the road), mean 8 mph, standing 48%, contacts 0, tows 3, wrong way on a one-way street 0, step 4.870 ms; buses 5; one-way share of street length 77%; crossings 318, with signals 132
-  San Diego, Barrio Logan under the Coronado Bridge, 3h (2.0 cars per lane-km wanted, cycle 80 s): 38 cars (38 on the road), mean 17 mph, standing 16%, contacts 0, tows 0, wrong way on a one-way street 0, step 0.569 ms; buses 2; one-way share of street length 32%; crossings 153, with signals 18
-  San Diego, Barrio Logan under the Coronado Bridge, 17h (16.1 cars per lane-km wanted, cycle 110 s): 190 cars (190 on the road), mean 12 mph, standing 31%, contacts 3, tows 0, wrong way on a one-way street 0, step 6.139 ms; buses 3; one-way share of street length 32%; crossings 153, with signals 18
+  Los Angeles, Figueroa and 7th, 3h (1.8 cars per lane-km wanted, cycle 90 s): 46 cars (46 on the road), mean 14 mph, standing 38%, contacts 0, tows 0, wrong way on a one-way street 0, step 1.827 ms; buses 2; one-way share of street length 49%; crossings 192, with signals 72
+  Los Angeles, Figueroa and 7th, 17h (24.4 cars per lane-km wanted, cycle 120 s): 187 cars (187 on the road), mean 10 mph, standing 50%, contacts 0, tows 0, wrong way on a one-way street 0, step 4.756 ms; buses 3; one-way share of street length 49%; crossings 192, with signals 72
+  San Francisco, Market and Powell, 3h (2.3 cars per lane-km wanted, cycle 60 s): 49 cars (49 on the road), mean 11 mph, standing 35%, contacts 0, tows 1, wrong way on a one-way street 0, step 0.666 ms; buses 2; one-way share of street length 77%; crossings 318, with signals 132
+  San Francisco, Market and Powell, 17h (18.2 cars per lane-km wanted, cycle 90 s): 186 cars (186 on the road), mean 8 mph, standing 48%, contacts 0, tows 3, wrong way on a one-way street 0, step 3.702 ms; buses 5; one-way share of street length 77%; crossings 318, with signals 132
+  San Diego, Barrio Logan under the Coronado Bridge, 3h (2.0 cars per lane-km wanted, cycle 80 s): 38 cars (38 on the road), mean 17 mph, standing 16%, contacts 0, tows 0, wrong way on a one-way street 0, step 0.346 ms; buses 2; one-way share of street length 32%; crossings 153, with signals 18
+  San Diego, Barrio Logan under the Coronado Bridge, 17h (16.1 cars per lane-km wanted, cycle 110 s): 190 cars (190 on the road), mean 12 mph, standing 31%, contacts 3, tows 0, wrong way on a one-way street 0, step 2.992 ms; buses 3; one-way share of street length 32%; crossings 153, with signals 18
 
 == 4. The user's car as an actor on a four-lane street: driving at 5 m/s, then standing ==
-  40 cars (40 on the road), mean 26 mph, standing 14%, contacts 0, tows 0, wrong way on a one-way street 0, step 1.519 ms; steps in which a traffic car touched the user's car: 0
+  40 cars (40 on the road), mean 26 mph, standing 14%, contacts 0, tows 0, wrong way on a one-way street 0, step 1.035 ms; steps in which a traffic car touched the user's car: 0
 
 == 5. Step cost against fleet size (a 2 km grid of two-way streets and four-lane roads, 100 m blocks) ==
-  100 cars: 1.021 ms a step (10.2 microseconds a car), contacts 0
-  200 cars: 2.772 ms a step (13.9 microseconds a car), contacts 0
-  400 cars: 7.423 ms a step (18.6 microseconds a car), contacts 0
-  800 cars: 24.761 ms a step (31.0 microseconds a car), contacts 0
-  1600 cars: 53.182 ms a step (33.2 microseconds a car), contacts 0
+  100 cars: 0.559 ms a step (5.6 microseconds a car), contacts 0
+  200 cars: 1.351 ms a step (6.8 microseconds a car), contacts 0
+  400 cars: 4.117 ms a step (10.3 microseconds a car), contacts 0
+  800 cars: 9.965 ms a step (12.5 microseconds a car), contacts 0
+  1600 cars: 25.871 ms a step (16.2 microseconds a car), contacts 0

@@ -2,7 +2,7 @@
 /* ==== service line model (keeps the SLM interface the connectors expect) ==== */
 "use strict";
 /* ---- hazard time series, read once for every module (names as HAZARD_SCHEMA.md section 3 fixes them) ----
-   The data ships ts.month, ts.hour and ts.year empty until the hazard files are merged, so every series here is either
+   The hazard files are merged in the data (ts.month, ts.hour, ts.year); a build without them ships those empty, so every series here is either
    twelve (or twenty four) numbers or null, and every reader tests before it draws.
    HZ.month.<role>  twelve numbers by calendar month, January first, or null
        ar        atmospheric river days at a coast point (ts.month.ar_days; else AR1 to AR5 landfalls summed)

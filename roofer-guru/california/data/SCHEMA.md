@@ -545,3 +545,6 @@ coat 0.5. `W` = line's share of `fees_tot` x `TIER` (replace 0.48, tile 0.10, co
   - The CBECS figure behind `meta.model.ANCH.cru` was checked against the survey's own table: EIA, CBECS 2018, Table B1,
     "All buildings" 5,918 thousand (file kept as `CA/data/dl/cbecs/b1.xlsx`, read 2026-11-23). The `meta.assume` line now
     names the table and says which parts are assumption (California's share by residents; the weights by building type).
+  - `meta.model.MKT` is no longer read by the page: modules 05 and 11 print media markets by principal city from one
+    list in `17_m05_paid.js` (`MEDIA_MARKETS`). The `meta.assume` line says so. `seg`, `routes`, `rlist`, `sids`, `zstorm`
+    still ship empty; the page reads only `seg` (the map's line layer) and has no reader of the other four.

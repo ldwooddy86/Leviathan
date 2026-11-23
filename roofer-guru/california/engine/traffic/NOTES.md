@@ -21,3 +21,18 @@
 - shots so far: shots/sd_i5_17.png la_4level_15.png la_4level_03.png (camera on buildings; freeway at edge). batch 3 aims the camera along the road (tests/shots.js arg 7).
 - fix: sources are rate-based (headway of the hour's flow); SD 3h jam gone. re-ported + tb.html rebuilt
 - port chain terrain->weather->traffic->car applies (scratchpad/chain); carPut goes through terrain's onGround wrapper when present
+
+## State for hand-back (11-23, late)
+Files: traffic_core.js (SE.TrafficData, SE.RoadPrep, SE.Flow), traffic_kit.js (SE.TrafficKit, SE.carPut, SE.streetPaint),
+aadt_table.js (SE.AADT, built by build_aadt.py), traffic_engine.js (= the three packed; written by the port),
+port_traffic.py, scout_roads.js + port_traffic_scout.py, tests/ (lib.js, test_flow.js, test_street.js, shots.js, batch.sh),
+out/engine_traffic.js (port on la_engine.js), out/tb.html (test page with both patches), shots/*.png + shots/run.log.
+Port chain checked: terrain -> weather -> traffic -> car all apply and parse (scratchpad/chain).
+Interface: S.hero {x,z,yaw deg cw from north,speed,len,wid,on} read each frame (on:false = a parked obstacle);
+S.trafficHit(x,z,yaw[, {stop:false}]) -> null | {nx,nz,depth,x,z,v,hx,hz,hl,hw,kind,car}; S.traffic = kit (flow, debug(), hour(), roads, streets);
+env.roads(la,lo,r[, {only:'freeway'}]) -> roads with id,hw,ref,lanes,oneway,maxspeed,layer,bridge,tunnel,hov + list.signals/stops/osm/tiger.
+Touched in la_engine.js: Traffic (top helpers grid/nearList/dkAt/laneKm, setNetwork lanes+dead, extendOnce, place, freeAt, roomAt,
+spawn, enter, populate, step: signal clock, extras, obstacle scan, parked scan, level/deck, contact pass, tow threshold, grid reset);
+StreetKit (network: hw, n.signal; TT + exports; X.build: raised ways skipped, lane paint; X.update: TT[c.ty], car placement line);
+world (WALK line + tf(), setRoads, buildRoads: r.up skip, r.w width, cars; loadRoads; after; update handler: moving + tf().update; lamps).
+Known limits: see report.

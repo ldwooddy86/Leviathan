@@ -1,0 +1,136 @@
+{
+ "A_desk": {
+  "storm": "F2018_2879",
+  "event": "",
+  "line": "fire",
+  "picks": 7,
+  "menu": "Camp Fire 2018 · wildfire damage and rebuild",
+  "callout": "Built for: Camp Fire 2018 (wildfire damage and rebuild). It uses that event's keywords and headlines; clear it by choosing None ab",
+  "bad": ""
+ },
+ "F_deskAds": {
+  "assets": 26,
+  "plats": [
+   "google",
+   "dg",
+   "meta",
+   "microsoft",
+   "tiktok",
+   "lsa"
+  ],
+  "fireAds": 5,
+  "sampleFire": "Wildfire Rebuild Roofing\nRoof Damage After a Fire?\nSmoke and Ember Roof Check\nClass A Roof Rebuilds\nFire Rebuild Roofing\nCamp Fire Rebuild Roofing\nRoofing for Fire Rebuilds\nRoofing Company in Berry Creek\nCalifornia Roofing Company\nItemized Written Estimates\nPermits Pulled Where Required\nCall or Message Us Today\nRoofing in Butte County\nServing Butte County\nAfter the Camp Fire: Class A rebuild roofs by a licensed roofer with a local office.\nRebuilding after a fire? Class A roofs built to the wildfire code, with written estimates.\nClass A roof assemblies for homes rebuilding after wildfire. Licensed roofer.\nWildfire damage and rebuild roofing by a licensed California roofer. Itemized estimates.",
+  "findings": {
+   "block HOUSE2": 1,
+   "_ex block HOUSE2": "Local Services Ads · business bio :: Our company replaces and repairs roofs across Butte County and California: wildfire damage and rebuild roofing. Licensed by the Contractors State License Board, with an office in California. Permits are pulled where the city or county requires them."
+  },
+  "bad": ""
+ },
+ "A_forge": {
+  "pages": 34,
+  "labels": [
+   "Home · Home",
+   "About · About",
+   "Service · Roof replacement",
+   "Service · Roof repair and leaks",
+   "Service · Wind and rain damage",
+   "Service · Fire hardened roofs",
+   "Service · Tile lift and relay",
+   "Service · Solar detach and reset reroofs",
+   "Service · Metal roofing",
+   "City · Paradise, California",
+   "City · Magalia, California",
+   "City · Oroville, California",
+   "City · Chico, California",
+   "City · Forest Ranch, California",
+   "City · Durham, California",
+   "Event · Camp Fire (2018)",
+   "Event · Park Fire (2024)",
+   "Event · November 2025 atmospheric river (2025)",
+   "Landing · Landing · Replace · Paradise",
+   "Landing · Landing · Repair · Paradise",
+   "Landing · Landing · Replace · Magalia",
+   "Landing · Landing · Repair · Magalia",
+   "Landing · Landing · Replace · Oroville",
+   "Landing · Landing · Repair · Oroville",
+   "Landing · Landing · Replace · Chico",
+   "Landing · Landing · Repair · Chico",
+   "Landing · Landing · Replace · Forest Ranch",
+   "Landing · Landing · Repair · Forest Ranch",
+   "Landing · Landing · Replace · Durham",
+   "Landing · Landing · Repair · Durham",
+   "Guide · Guide · How Long Does a Roof Last in California?",
+   "Guide · Guide · What to Do After Wind or Rain Damage to Your Roof in California",
+   "Guide · Guide · Roofing in a California Fire Hazard Severity Zone",
+   "Guide · Guide · How to Check a Roofer's License in California"
+  ],
+  "eventPages": [
+   "Site Forge · Event · Camp Fire (2018)",
+   "Site Forge · Event · Park Fire (2024)",
+   "Site Forge · Event · November 2025 atmospheric river (2025)"
+  ],
+  "campText": "Camp Fire and Your Roof | Paradise, CA Roofs After the Camp Fire in Paradise and Magalia What the Camp Fire of November 2018 did in the Paradise and Magalia area, what a roof needs after a wildfire and the rules that protect owners who repair or… CSLB license [license number] Office in Your city I agree that Your company may call, text or email me about this request. Message and data rates may apply. Reply STOP to opt out of texts. Consent is not a condition of any purchase. Camp Fire · November 2018 What the Camp Fire did in the Paradise and Magalia area, and what it means for roofs there now. The Camp Fire began in November 2018 and burned about 153,000 acres. CAL FIRE damage inspections recorded 18,804 structures destroyed and 754 damaged. All of them were in the ZIP codes of the Paradise and Magalia area. What did the Camp Fire do in the Paradise and Magalia area? The Camp Fire by the numbers structures destroyed in the Camp Fire, November 2018 18,804 structures damaged in the Camp Fire 754 structures destroyed or damaged by the Camp Fire in the ZIP codes of the Paradise and Magalia area 19,558 acres inside the perimeter of the Camp Fire About 153,000 Where the Camp Fire did th"
+ },
+ "F_forgePages": {
+  "findings": {
+   "block HOUSE2": 34,
+   "_ex block HOUSE2": "Site Forge · Home · Home :: \"Your company\""
+  },
+  "bad": "",
+  "cool": [
+   " A reroof here also has rules of its own: a tear off to the deck, a cool roof in many climate zones, and a Class A assembly in fire zones.",
+   " When more than half of a roof is replaced, the Energy Code requires reflective roofing in many California climate zones.",
+   "When more than half of a house roof is replaced, steep slope roofing in climate zones 4 and 8 to 15 must meet a minimum aged solar reflectance of 0.",
+   " When more than half of a roof is replaced, the Energy Code requires reflective roofing in many California climate zones."
+  ]
+ },
+ "S_desk": {
+  "note": "Campaign Desk: 26 assets across 6 platforms. 26 items screened.",
+  "kpis": "CONFIRMED 27 fix before anything runs CANDIDATES 0 open question to close CLEARED 0 by a control or by hand NOT OBSERVABLE 8 check in person INTELLIGENCE 0 held in house ANSWER Not yet Campaign Desk"
+ },
+ "S_forge": {
+  "note": "Site Forge: 34 pages. 34 items screened.",
+  "kpis": "CONFIRMED 68 fix before anything runs CANDIDATES 68 open question to close CLEARED 0 by a control or by hand NOT OBSERVABLE 8 check in person INTELLIGENCE 10 held in house ANSWER Not yet Site Forge",
+  "bad": ""
+ },
+ "G_linesForge": {
+  "shown": true,
+  "toast": "Received 12 cities, roof replacement landing pages"
+ },
+ "G_paidDesk": {
+  "line": "blend",
+  "lines": [
+   "replace",
+   "repair",
+   "storm",
+   "fire",
+   "harden",
+   "tile",
+   "solar",
+   "metal",
+   "mh",
+   "mf",
+   "comm",
+   "coat",
+   "newc"
+  ],
+  "picks": 60
+ },
+ "G_regWx": {
+  "shown": true,
+  "detail": "1.00× weather trigger now · normal 69°F, Sunny · rain 0% · humidity 40% · gusts "
+ },
+ "G_regLed": {
+  "shown": true,
+  "reg": "Los Angeles and Ventura"
+ },
+ "G_fieldWatch": {
+  "shown": true,
+  "name": "Best Contracting Services"
+ },
+ "G_idxStock": {
+  "shown": true,
+  "name": "95969 · Paradise"
+ }
+}
+PAGE ERRORS (0): none

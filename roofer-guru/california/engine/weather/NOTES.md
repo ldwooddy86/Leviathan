@@ -38,3 +38,6 @@ Status: see bottom of file.
 - checks.js ALL PASS on the current build (out/log_checks.txt), no page errors. Running plan_c.json.
 - snow re-shot OK (bear_snow_street/bird read as snow). Waiting on sf ar5 (log_c1). Then report.
 - rain streak opacity up a little (0.46/0.78); rebuilt; re-shooting sf ar5 (log_c1)
+- FINAL (23 Nov): build out/engine_weather.js = port over la_engine.js; out/_terrain_weather.js = port over the terrain job's output (applies, parses; not run in a browser).
+  checks.js all pass (run on the build before the last constants-only change to rain streak opacity). Shots: shots/ (final build), shots/first_build/ (19 Nov build).
+  Open: falling rain streaks are not visible in stills on the software renderer at low quality; far ground beyond built cells takes no snow or wet; no gutters; runoff only on slopes.

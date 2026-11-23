@@ -35,13 +35,13 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     if (l === 'storm') {
       const setR = async v => { await page.evaluate(x => { const r = document.querySelector('#scEnRain'); r.value = x; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); }, v); await wait(6000); return page.evaluate(() => { const e = document.querySelector('.se-legend, .se-leg'), en = MODI.rooftops.api.en(), g2 = en.graphics(); return { wx: Object.assign({}, MODI.rooftops.api.wx), line: document.querySelector('#scEnStormO').innerText.slice(0, 200), fly: document.querySelector('.sc-fly').textContent, flyTitle: document.querySelector('.sc-fly').title, altaTitle: document.querySelector('#scEnBar [data-h="alta"]').title, engStorm: g2.storm, engName: g2.stormInfo && g2.stormInfo.name, leg: e ? e.innerText.replace(/\s+/g, ' ').slice(0, 300) : '' }; }); };
       out.rain1 = await setR(1); out.rain6 = await setR(6); out.rain8 = await setR(8);
-      if (SHOT) await page.screenshot({ path: SHOT, timeout: 180000 });
       await setR(0);
     }
   }
   out.where = await page.evaluate(() => (document.querySelector('#scEnWhere') || {}).innerText || '');
   out.barText = await page.evaluate(() => document.querySelector('#scEnBar').innerText.replace(/\s+/g, ' ').slice(0, 900));
   console.log(JSON.stringify(out, null, 1));
+  if (SHOT) { try { await page.screenshot({ path: SHOT, timeout: 90000 }); } catch (e) { console.log('no picture: the software renderer did not hand one over in 90 s'); } }
   console.log('PAGE ERRORS:', errs.length ? errs.join('\n') : 'none');
   await browser.close();
 })().catch(e => { console.error('ERROR', e); process.exit(2); });

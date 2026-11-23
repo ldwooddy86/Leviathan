@@ -9,7 +9,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   const proxy = process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined;
   const browser = await chromium.launch({ proxy, args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await (await browser.newContext({ viewport: { width: 700, height: 520 }, deviceScaleFactor: 1 })).newPage();
+  const page = await (await browser.newContext({ viewport: { width: 760, height: 900 }, deviceScaleFactor: 1 })).newPage();
   const errs = []; page.on('crash', () => console.log('PAGE CRASHED', new Date().toISOString())); browser.on('disconnected', () => console.log('BROWSER GONE', new Date().toISOString())); page.on('pageerror', e => errs.push('pageerror: ' + (e && e.stack || e))); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|net::ERR/.test(m.text())) errs.push('console: ' + m.text().slice(0, 300)); });
   await page.goto('file://' + FILE + '#rooftops', { waitUntil: 'load', timeout: 180000 }); await wait(1500);
   const settle = async (max) => { const t0 = Date.now(); while (Date.now() - t0 < (max || 120000)) { await wait(2000); const st = await page.evaluate(() => MODI.rooftops.api.status()); if (!(st.queued + st.running) && !st.tiles.some(t => t.st === 'load' || t.st === 'queued') && st.tiles.some(t => t.st === 'ok' || t.st === 'err')) return st; } return null; };
@@ -27,6 +27,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     return { mph: +c.mph.toFixed(2), maxMph: +mx.toFixed(2), minMph: +mn.toFixed(2), maxLatG: +lat.toFixed(2), maxYawRate: +yr.toFixed(1), slide: +slide.toFixed(2), hits: c.hits - hits0, gear: c.gear, rest: c.atRest, yaw: +c.yaw.toFixed(1), odo: Math.round(c.odo), t: c.t, onRoad: c.onRoad, grip: +c.grip.toFixed(2), tc: c.tc, drift: c.drifting, fast: c.fast, lat: +c.lat.toFixed(5), lon: +c.lon.toFixed(5) }; }, [inp, t, o || null]);
   await ev(() => { const en = MODI.rooftops.api.en(); en.setGraphics({ q: 'low', sun: 15, weather: 'clear', life: false, wide: false }); en.setHeight('m3'); }); await wait(4000);
   console.log('entered', JSON.stringify(await car()), JSON.stringify(await ev(() => { const en = MODI.rooftops.api.en(), st = en.state(), h = en.world.hero; return { mode: st.mode, road: st.road, kind: st.roadKind, hero: h && { x: +h.x.toFixed(1), z: +h.z.toFixed(1), yaw: +h.yaw.toFixed(1), speed: h.speed, on: h.on }, hud: document.querySelector('.se-hud') ? document.querySelector('.se-hud').textContent.slice(0, 160) : null, spec: en.car.spec().topSpeedNote }; })));
+  if (!STEPS.includes('hud')) await page.addStyleTag({ content: '.se-hud,.se-note,.se-labels,.se-lbl,.sc-enpad,.sc-ennote{display:none!important}' });
   for (const step of STEPS) {
     if (step === 'shots') {
       await shot('chase');

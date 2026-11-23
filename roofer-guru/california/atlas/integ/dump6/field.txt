@@ -1,0 +1,1092 @@
+MODULE 07 · COMPETITIVE FIELD · THE LICENSE ROLL, ROOFING ESTABLISHMENTS AND NAMED COMPANIES
+Competitive Field
+
+California roofing is a long tail with no public ranking. 5,587 active C-39 Roofing licenses stand against 2,926 roofing establishments with employees, about 1.9 licenses for each: many licensees have no payroll, and no public file says how big any of them is. So this module reads the field from what is counted: every licensed roofer by the ZIP and city where the license gets its mail, the establishments the Census Bureau counts, a pressure surface by ZIP built from both, and the ground where licensed roofers are few. The 4 named companies on record are only those a public source names; they are not a roster of the market.
+
+Licenses 5,587 active C-39 of 5,829 on the renewed roll
+Establishments 2,926 with employees
+Named companies 4, 0 read on their own sites
+Grade A for license counts, C for named companies
+Competitive Field
+Who is already there
+↓ Licenses by city CSV
+↓ Companies CSV
+Competitor Watch ↗
+◐ Theme
+READ THIS FIRST: THREE COUNTS, THREE DENOMINATORS
+License records (5,587 active and unsuspended C-39 Roofing licenses in the Contractors State License Board's master file) show who may legally sell roofing: a license is needed for any job of $1,000 or more (Business and Professions Code 7048). A license is counted where it gets its mail, which is where the firm is, not where it works. Roofing contractors (2,926 establishments with employees in County Business Patterns, NAICS 238160, and 17,116 nonemployer firms in the exterior trades) measure the trade with a payroll. Named companies (4) are only those a public source names; fields nobody read on a company's own site are blank and flagged. Competitive pressure blends licenses near a ZIP (60%, weighted by distance) with roofing establishments (40%). None of this measures size or ad spend; module 13 watches the ads themselves.
+ACTIVE C-39 ROOFING LICENSES
+A
+5,587
+5,829 on the renewed roll · 242 suspended
+ROOFING SPECIALISTS
+A
+67%
+3,933 hold C-39 and no other class
+LICENSES PER EMPLOYER ESTABLISHMENT
+B
+1.9
+2,926 roofing establishments with employees, 23,903 employees
+CITIES WITH A LICENSED ROOFER
+A
+649
+Los Angeles (165), San Jose (131) and Sacramento (116) lead
+OUT OF STATE ADDRESSES
+A
+3%
+170 of 5,829 licenses on the roll
+THIN FIELD ZIPS
+B
+168
+801,142 residents with 3 or fewer licensed roofers within 25 km
+NAMED COMPANIES ON RECORD
+C
+4
+0 read on their own sites · 5 offices placed
+MAP LAYER
+Competitive pressure percentile
+Active C-39 licenses within 25 km
+Roofing establishments and licenses per 10,000 residents
+Active C-39 licenses mailed to the ZIP
+Profit pool per licensed roofer within 25 km
+NAMED COMPANIES: MARKET
+Residential and commercial
+Residential roofers
+Commercial roofers
+NAMED COMPANIES MARKETING
+Any line
+Roof replacement
+Roof repair and leaks
+Wind and rain damage
+Wildfire damage and rebuild roofing
+Fire hardened roofs
+Tile lift and relay
+Solar detach and reset
+Metal roofing
+Manufactured home roofs
+Multifamily, condo and HOA
+Commercial roofing and Title 24 cool roofs
+Restoration, coatings and maintenance
+New construction roofing
+REACH
+national
+regional
+Pacific Ocean
+Nevada
+Arizona
+Oregon
+Baja California
+Monterey Bay
+San Francisco Bay
+San Pablo Bay
+Suisun Bay
+San Diego Bay
+Arcata Bay
+San Pedro Bay
+Humboldt Bay
+Tomales Bay
+Grizzly Bay
+Drakes Bay
+Bodega Bay
+Salton Sea
+Lake Tahoe
+Goose Lake
+Honey Lake
+Mono Lake
+Clear Lake
+Shasta Lake
+Lake Almanor
+Eagle Lake
+Clear Lake Reservoir
+Lake Havasu
+Lake Berryessa
+Lower Klamath Lake
+Lake Oroville
+Clair Engle Lake
+Don Pedro Reservoir
+San Luis Reservoir
+Folsom Lake
+New Melones Lake
+Isabella Lake
+Tule Lake Sump
+Comanche Reservoir
+Lake McClure
+Big Sage Reservoir
+San Antonio Reservoir
+Pine Flat Reservoir
+Mountain Meadows Reservoir
+Diamond Valley Lake
+Lake Crowley
+Nacimiento Reservoir
+Black Butte Lake
+Lake Davis
+Thermalito Afterbay
+Millerton Lake
+New Bullards Bar Reservoir
+New Hogan Lake
+Indian Valley Reservoir
+Lake Elsinore
+Stampede Reservoir
+Turlock Lake
+Lake Cachuma
+Moon Lake
+Whiskeytown Lake
+Union Valley Reservoir
+Cow Head Lake
+Lake Mathews
+Bridgeport Reservoir
+Meiss Lake
+Pardee Reservoir
+Lake Success
+Lake Earl
+Lake Perris
+Shaver Lake
+Big Bear Lake
+Lake Casitas
+O'Neill Forebay
+Spicer Reservoir
+ALAMEDA
+ALPINE
+AMADOR
+BUTTE
+CALAVERAS
+COLUSA
+CONTRA COSTA
+DEL NORTE
+EL DORADO
+FRESNO
+GLENN
+HUMBOLDT
+IMPERIAL
+INYO
+KERN
+KINGS
+LAKE
+LASSEN
+LOS ANGELES
+MADERA
+MARIN
+MARIPOSA
+MENDOCINO
+MERCED
+MODOC
+MONO
+MONTEREY
+NAPA
+NEVADA
+ORANGE
+PLACER
+PLUMAS
+RIVERSIDE
+SACRAMENTO
+SAN BENITO
+SAN BERNARDINO
+SAN DIEGO
+SAN FRANCISCO
+SAN JOAQUIN
+SAN LUIS OBISPO
+SAN MATEO
+SANTA BARBARA
+SANTA CLARA
+SANTA CRUZ
+SHASTA
+SIERRA
+SISKIYOU
+SOLANO
+SONOMA
+STANISLAUS
+SUTTER
+TEHAMA
+TRINITY
+TULARE
+TUOLUMNE
+VENTURA
+YOLO
+YUBA
+Los Angeles
+San Diego
+San Jose
+San Francisco
+Fresno
+Sacramento
+Long Beach
+Oakland
+Bakersfield
+Anaheim
+Stockton
+Riverside
+Santa Ana
+Irvine
+Chula Vista
+Santa Clarita
+Fremont
+San Bernardino
+Modesto
+Fontana
+Moreno Valley
+Oxnard
+Huntington Beach
+Glendale
+Ontario
+Elk Grove
+Santa Rosa
+Rancho Cucamonga
+Oceanside
+Garden Grove
+Lancaster
+Palmdale
+Salinas
+Corona
+Hayward
+Roseville
+Sunnyvale
+Visalia
+Victorville
+Temecula
+Santa Maria
+Ventura
+Chico
+Redding
+Merced
+Indio
+Santa Barbara
+Napa
+Santa Cruz
+San Luis Obispo
+Palm Springs
+El Centro
+Monterey
+Ridgecrest
+Eureka
+Barstow
+South Lake Tahoe
+Blythe
+Truckee
+Ukiah
+Susanville
+Yreka
+Crescent City
+Alturas
+Escondido
+Pomona
+Torrance
+Fullerton
+Orange
+Pasadena
+Santa Clara
+Simi Valley
+Thousand Oaks
+Clovis
+Vallejo
+Concord
+Fairfield
+Berkeley
+Antioch
+Richmond
+Carlsbad
+Murrieta
+East Los Angeles
+Downey
+Costa Mesa
+Menifee
+West Covina
+Jurupa Valley
+El Monte
+Inglewood
+Burbank
+El Cajon
+Rialto
+San Mateo
+Vacaville
+Daly City
+Hesperia
+Norwalk
+Vista
+Tracy
+Arden-Arcade
+San Marcos
+Carson
+Compton
+Chino
+Mission Viejo
+South Gate
+Hemet
+Santa Monica
+Westminster
+Manteca
+San Leandro
+Citrus Heights
+Lake Forest
+Whittier
+San Ramon
+Livermore
+Hawthorne
+Folsom
+Newport Beach
+Mountain View
+Buena Park
+Redwood City
+Rancho Cordova
+Alhambra
+Perris
+Lakewood
+Upland
+Tustin
+Milpitas
+Chino Hills
+Alameda
+Pleasanton
+Carmichael
+Bellflower
+Pittsburg
+Apple Valley
+Redlands
+Rocklin
+Turlock
+Lake Elsinore
+Tulare
+Dublin
+Eastvale
+Camarillo
+Baldwin Park
+Walnut Creek
+Yuba City
+Redondo Beach
+Madera
+Lodi
+Union City
+Palo Alto
+Yorba Linda
+Davis
+Brentwood
+Castro Valley
+Lynwood
+South San Francisco
+Laguna Niguel
+San Clemente
+Porterville
+La Habra
+Woodland
+Encinitas
+Montebello
+La Mesa
+Florence-Graham
+San Rafael
+Pico Rivera
+Hanford
+Hollister
+Martinez
+Oroville
+Red Bluff
+Auburn
+Marysville
+Placerville
+Colusa
+Willows
+Lakeport
+Jackson
+Sonora
+Weaverville
+Nevada City
+San Andreas
+Quincy
+Mariposa
+Independence
+Bridgeport
+Downieville
+Markleeville
+Gardena
+Santee
+Petaluma
+Monterey Park
+Gilroy
+National City
+Cupertino
+Highland
+Beaumont
+Fountain Valley
+South Whittier
+San Jacinto
+Arcadia
+West Sacramento
+Yucaipa
+Hacienda Heights
+Colton
+Diamond Bar
+Huntington Park
+Lincoln
+Placentia
+Novato
+Cathedral City
+Paramount
+Palm Desert
+Watsonville
+Delano
+Aliso Viejo
+El Dorado Hills
+Glendora
+Florin
+Rosemead
+Covina
+Cypress
+Ceres
+Azusa
+Poway
+Antelope
+North Highlands
+Cerritos
+Los Banos
+Brea
+La Mirada
+Rancho Santa Margarita
+Newark
+Rowland Heights
+Morgan Hill
+French Valley
+Oakley
+Rohnert Park
+Vineyard
+Lompoc
+Danville
+Coachella
+Campbell
+San Bruno
+Altadena
+Rancho Palos Verdes
+Culver City
+Stanton
+La Quinta
+Calexico
+San Gabriel
+Bell Gardens
+Adelanto
+Montclair
+Monrovia
+Wildomar
+Pacifica
+La Puente
+Claremont
+Foothill Farms
+Orangevale
+Moorpark
+Temple City
+San Juan Capistrano
+Lathrop
+La Presa
+West Hollywood
+Oildale
+Pleasant Hill
+Manhattan Beach
+Westmont
+San Dimas
+Desert Hot Springs
+Fair Oaks
+Foster City
+Dana Point
+Los Gatos
+Menlo Park
+Goleta
+Atwater
+Fallbrook
+Spring Valley CDP
+Seaside
+San Pablo
+Beverly Hills
+Orcutt
+El Paso de Robles
+Santa Paula
+Banning
+Lawndale
+Laguna Hills
+Los Altos
+La Verne
+Burlingame
+Saratoga
+Temescal Valley
+Atascadero
+San Carlos
+Suisun City
+San Lorenzo
+East Palo Alto
+East Niles
+Eastern Goleta Valley
+Lemon Grove
+Walnut
+Twentynine Palms
+Belmont
+Brawley
+Lemoore
+Benicia
+Sanger
+Wasco
+Soledad
+Hercules
+Windsor
+South Pasadena
+El Cerrito
+Galt
+North Tustin
+Imperial Beach
+Bloomington
+West Whittier-Los Nietos
+Reedley
+Mountain House
+Dinuba
+Lafayette
+Riverbank
+Loma Linda
+Norco
+Oakdale
+Ramona
+Yucca Valley
+Coronado
+Arcata
+Coalinga
+Clearlake
+California City
+Grass Valley
+King City
+Fortuna
+Tehachapi
+Half Moon Bay
+Healdsburg
+Morro Bay
+Sonoma
+Lake Arrowhead
+Malibu
+Seal Beach
+Patterson
+Selma
+Maywood
+Bay Point
+Linda
+Ladera Ranch
+Rosemont
+San Fernando
+East San Gabriel
+West Rancho Dominguez
+Laguna Beach
+Millbrae
+Calabasas
+Marina
+West Puente Valley
+Corcoran
+Lakeside CDP
+Ashland
+Duarte
+West Carson
+Winter Gardens
+American Canyon
+Willowbrook
+Granite Bay
+Port Hueneme
+Rosamond
+Imperial
+Rancho San Diego
+Shafter
+Stevenson Ranch
+East Hemet
+Greenfield
+Lomita
+La Cañada Flintridge
+Casa de Oro-Mount Helix
+Prunedale
+Agoura Hills
+Dixon
+La Crescenta-Montrose
+Arvin
+Orinda
+Lennox
+Albany
+South El Monte
+Mead Valley
+Hermosa Beach
+Chowchilla
+Rosedale
+Santa Fe Springs
+Pinole
+Stanford
+Valle Vista
+Phelan
+Olivehurst
+Arroyo Grande
+Cameron Park
+Castaic
+Rancho Mirage
+Nipomo
+Woodcrest
+Laguna Woods
+McKinleyville
+Live Oak
+South San Jose Hills
+Fillmore
+Kerman
+El Segundo
+Moraga
+Bostonia
+Rio Linda
+El Sobrante CDP
+Ripon
+Camp Pendleton South
+Parkway
+Vincent
+Lemon Hill
+La Palma
+Coto de Caza
+Alpine
+Pacific Grove
+Discovery Bay
+Livingston
+East Rancho Dominguez
+Parlier
+Alamo
+McFarland
+Los Osos
+Cherryland
+Mill Valley
+Isla Vista
+Salida
+Oak Park
+Hawaiian Gardens
+Avenal
+Lamont
+El Sobrante CDP
+North Fair Oaks
+Emeryville
+Grand Terrace
+Lake Los Angeles
+Carpinteria
+Palos Verdes Estates
+Larkspur
+Solana Beach
+Kingsburg
+San Anselmo
+Bonita
+Lindsay
+Grover Beach
+Avocado Heights
+Mendota
+Newman
+San Marino
+Tamalpais-Homestead Valley
+Scotts Valley
+Muscoy
+Commerce
+Rancho Mission Viejo
+Winton
+Los Alamitos
+Quartz Hill
+La Riviera
+Big Bear City
+Anderson
+View Park-Windsor Hills
+Canyon Lake
+Valley Center
+Del Aire
+Hillsborough
+East Bakersfield
+Sun Village
+Delhi
+Piedmont
+Sierra Madre
+Clayton
+Diamond Springs
+Citrus
+Calimesa
+Fairview
+Soquel
+Garden Acres
+Home Gardens
+Alum Rock
+Farmersville
+Shasta Lake
+Exeter
+San Diego Country Estates
+Country Club
+Potomac Park
+Blackhawk
+Rio Vista
+Corte Madera
++
+−
+⟲
+COMPETITIVE PRESSURE PERCENTILE
+0
+100
+Darker is more crowded. Diamonds are headquarters of named companies, circles other offices. B
+The field
+
+Click a ZIP, an office marker or a company
+
+STATE
+ACTIVE C-39 LICENSES BY REGION · PER 10,000 RESIDENTS
+Los Angeles and Ventura
+1,295 · 1.22
+Bay Area
+915 · 1.20
+Inland Empire
+632 · 1.35
+Sacramento Valley
+545 · 1.90
+San Joaquin Valley
+462 · 1.06
+Orange County
+428 · 1.35
+San Diego and Imperial
+400 · 1.15
+Central Coast
+234 · 1.57
+Sierra
+76 · 2.55
+Far North
+73 · 2.00
+North Coast
+65 · 2.03
+LINES MARKETED BY THE NAMED COMPANIES
+Roof replacement
+0
+Roof repair and leaks
+0
+Wind and rain damage
+0
+Wildfire damage and rebuild roofing
+0
+Fire hardened roofs
+0
+Tile lift and relay
+0
+Solar detach and reset
+0
+Metal roofing
+0
+Manufactured home roofs
+0
+Multifamily, condo and HOA
+0
+Commercial roofing and Title 24 cool roofs
+2
+Restoration, coatings and maintenance
+0
+New construction roofing
+0
+Named companies on record
+
+Companies a public source names. Not a ranking and not the market: there is no public measure of a California roofer's size. Click a row to open it.
+
+COMPANY	CSLB LICENSE	REACH	MARKET	HEADQUARTERS	OFFICES ↓	CITIES SERVED	MARKETED LINES	MANUFACTURER PROGRAMS	FINANCING	SPANISH
+Tecta America (California licensees) NAMED ONLY	811111, 864500, 1114949	national	Commercial	—	3	3	—	—	—	—
+Best Contracting Services NAMED ONLY	456263	regional	Commercial	Gardena	1	1	Commercial	—	—	—
+Kodiak Roofing and Waterproofing NAMED ONLY	732770	regional	Commercial	Roseville	1	1	Commercial	—	—	—
+Flynn Group of Companies NAMED ONLY	—	national	Commercial	—	0	—	—	—	—	—
+Thin field: job value where licensed roofers are few
+
+Scored ZIPs with 3 or fewer active C-39 licenses within 25 km (the lowest tenth of scored ZIPs), ranked by gross profit pool.
+
+ZIP	CITY	COUNTY	ROOFS	PROFIT POOL ↓	C-39 WITHIN 25 KM	IN THE ZIP
+93561	Tehachapi	Kern	12,275	$3.2M	3	2
+93555	Ridgecrest	Kern	10,343	$2.9M	2	2
+93215	Delano	Kern	10,375	$2.8M	3	2
+92311	Barstow	San Bernardino	9,495	$2.7M	2	2
+92277	Twentynine Palms	San Bernardino	10,007	$2.5M	1	1
+95223	Arnold	Alpine	6,944	$2.0M	1	1
+95531	Crescent City	Del Norte	5,464	$1.8M	2	2
+95338	Mariposa	Mariposa	4,544	$1.5M	2	2
+93280	Wasco	Kern	5,617	$1.4M	0	0
+95490	Willits	Mendocino	4,687	$1.4M	3	0
+93268	Taft	Kern	4,929	$1.3M	2	0
+92225	Blythe	Riverside	3,928	$1.2M	0	0
+93960	Soledad	Monterey	4,033	$1.1M	1	1
+93428	Cambria	San Luis Obispo	3,904	$1.1M	1	1
+95425	Cloverdale	Sonoma	3,528	$1.1M	3	0
+93644	Oakhurst	Madera	3,212	$1.0M	3	2
+93927	Greenfield	Monterey	3,787	$1.0M	1	0
+93505	California City	Kern	3,832	$1.0M	2	2
+92274	Thermal	Riverside	3,726	$980K	1	1
+96137	Westwood	Lassen	3,694	$978K	1	0
+93930	King City	Monterey	3,258	$956K	3	3
+95666	Pioneer	Amador	3,392	$953K	2	1
+95321	Groveland	Tuolumne	3,427	$951K	3	3
+93210	Coalinga	Fresno	3,250	$939K	0	0
+93250	Mc Farland	Kern	3,557	$844K	2	0
+96094	Weed	Siskiyou	2,674	$787K	3	2
+95971	Quincy	Plumas	2,354	$738K	2	2
+93640	Mendota	Fresno	2,525	$672K	0	0
+93460	Santa Ynez	Santa Barbara	2,249	$641K	0	0
+92036	Julian	San Diego	2,146	$620K	2	0
+92363	Needles	San Bernardino	1,938	$618K	1	1
+93240	Lake Isabella	Kern	1,814	$610K	2	2
+96088	Shingletown	Shasta	2,206	$594K	2	1
+96101	Alturas	Modoc	2,047	$588K	1	1
+93222	Pine Mountain Club	Kern	2,159	$578K	0	0
+93225	Frazier Park	Ventura	1,980	$577K	2	0
+93622	Firebaugh	Fresno	1,953	$546K	0	0
+96122	Portola	Plumas	1,823	$542K	1	0
+92004	Borrego Springs	San Diego	1,961	$523K	2	2
+93204	Avenal	Kings	1,882	$516K	0	0
+96093	Weaverville	Trinity	1,609	$497K	1	0
+96020	Chester	Plumas	1,727	$494K	1	1
+92310	Fort Irwin	San Bernardino	1,658	$483K	0	0
+96013	Burney	Shasta	1,630	$474K	0	0
+95987	Williams	Colusa	1,752	$472K	1	0
+95497	The Sea Ranch	Sonoma	1,839	$456K	3	0
+93501	Mojave	Kern	1,243	$454K	2	0
+96103	Blairsden Graeagle	Plumas	1,613	$452K	1	1
+92250	Holtville	Imperial	1,629	$450K	0	0
+93265	Springville	Tulare	1,691	$439K	1	1
+96064	Montague	Siskiyou	1,587	$434K	3	0
+90704	Avalon	Los Angeles	872	$403K	0	0
+93451	San Miguel	Monterey	1,512	$396K	1	1
+95445	Gualala	Mendocino	1,331	$395K	3	1
+95329	La Grange	Tuolumne	1,404	$371K	3	1
+96025	Dunsmuir	Siskiyou	1,231	$371K	2	1
+95570	Trinidad	Humboldt	1,433	$368K	2	0
+95912	Arbuckle	Colusa	1,496	$351K	1	1
+95542	Garberville	Humboldt	1,137	$349K	0	0
+96041	Hayfork	Trinity	1,255	$332K	0	0
+93426	Bradley	Monterey	1,248	$329K	0	0
+93285	Wofford Heights	Kern	942	$324K	2	0
+91906	Campo	San Diego	1,198	$323K	0	0
+93234	Huron	Fresno	1,006	$301K	0	0
+91962	Pine Valley	San Diego	1,092	$296K	1	0
+96032	Fort Jones	Siskiyou	1,005	$295K	2	2
+93523	Edwards	Kern	1,287	$291K	2	0
+95421	Cazadero	Sonoma	1,088	$287K	3	0
+95311	Coulterville	Mariposa	979	$280K	2	0
+92249	Heber	Imperial	1,218	$279K	3	0
+96114	Janesville	Lassen	921	$269K	0	0
+95428	Covelo	Mendocino	1,075	$264K	0	0
+93516	Boron	Kern	970	$253K	0	0
+95589	Whitethorn	Humboldt	952	$252K	0	0
+95454	Laytonville	Mendocino	904	$247K	1	1
+95573	Willow Creek	Humboldt	783	$234K	1	0
+96027	Etna	Siskiyou	807	$231K	0	0
+96134	Tulelake	Modoc	843	$220K	0	0
+96057	McCloud	Siskiyou	753	$220K	0	0
+95560	Redway	Humboldt	660	$219K	0	0
+96091	Trinity Center	Trinity	802	$216K	0	0
+96028	Fall River Mills	Shasta	772	$208K	0	0
+96056	McArthur	Lassen	750	$199K	1	0
+93562	Trona	San Bernardino	785	$198K	0	0
+95947	Greenville	Plumas	697	$196K	0	0
+93243	Lebec	Kern	556	$194K	2	2
+93238	Kernville	Tulare	680	$193K	0	0
+93527	Inyokern	Tulare	684	$192K	2	2
+96051	Lakehead	Shasta	715	$190K	0	0
+95567	Smith River	Del Norte	705	$187K	2	0
+95468	Point Arena	Mendocino	629	$182K	1	0
+95546	Hoopa	Humboldt	667	$179K	0	0
+92365	Newberry Springs	San Bernardino	596	$177K	1	1
+93545	Lone Pine	Inyo	533	$175K	0	0
+93283	Weldon	Kern	487	$173K	2	0
+92283	Winterhaven	Imperial	666	$172K	0	0
+96052	Lewiston	Trinity	589	$170K	1	1
+96118	Loyalton	Sierra	640	$167K	0	0
+93205	Bodfish	Kern	468	$165K	2	0
+93920	Big Sur	Monterey	521	$163K	0	0
+92257	Niland	Imperial	588	$162K	0	0
+92242	Earp	San Bernardino	511	$158K	0	0
+93513	Big Pine	Inyo	554	$149K	0	0
+91905	Boulevard	San Diego	541	$144K	0	0
+92398	Yermo	San Bernardino	475	$143K	2	0
+93653	Raymond	Madera	549	$140K	3	1
+92086	Warner Springs	San Diego	432	$133K	2	0
+96023	Dorris	Siskiyou	491	$128K	0	0
+93541	Lee Vining	Mono	399	$127K	0	0
+93518	Caliente	Kern	290	$126K	0	0
+93249	Lost Hills	Kern	318	$126K	0	0
+95459	Manchester	Mendocino	529	$122K	1	0
+95389	Yosemite National Park	Mariposa	403	$122K	0	0
+92281	Westmorland	Imperial	418	$119K	1	0
+96109	Doyle	Lassen	458	$119K	0	0
+95306	Catheys Valley	Mariposa	455	$118K	3	0
+93461	Shandon	San Luis Obispo	465	$117K	0	0
+93261	Richgrove	Tulare	455	$116K	3	0
+93239	Kettleman City	Kings	462	$113K	0	0
+93040	Piru	Ventura	445	$112K	1	0
+93252	Maricopa	Ventura	430	$109K	0	0
+95548	Klamath	Del Norte	343	$104K	0	0
+92275	Salton City	Imperial	464	$103K	0	0
+96104	Cedarville	Modoc	377	$102K	0	0
+93254	New Cuyama	Santa Barbara	413	$101K	0	0
+93526	Independence	Inyo	365	$98.6K	0	0
+95432	Elk	Mendocino	379	$96.4K	1	0
+96024	Douglas City	Trinity	341	$96.3K	1	0
+95553	Miranda	Humboldt	354	$94.4K	0	0
+95527	Burnt Ranch	Trinity	374	$93.1K	0	0
+95552	Mad River	Trinity	359	$93.0K	0	0
+95960	North San Juan	Sierra	309	$92.4K	3	1
+96048	Junction City	Trinity	378	$92.2K	0	0
+96107	Coleville	Mono	307	$91.3K	1	0
+91934	Jacumba	San Diego	376	$87.6K	0	0
+96059	Manton	Tehama	313	$86.4K	2	0
+96096	Whitmore	Shasta	296	$82.7K	2	1
+95563	Salyer	Trinity	296	$81.4K	1	0
+94567	Pope Valley	Napa	261	$80.9K	3	0
+95526	Bridgeville	Humboldt	308	$80.5K	0	0
+92328	Death Valley	Inyo	261	$77.8K	0	0
+95979	Stonyford	Colusa	307	$75.7K	0	0
+95318	El Portal	Mariposa	258	$74.3K	2	0
+96039	Happy Camp	Siskiyou	230	$71.8K	0	0
+95556	Orleans	Humboldt	301	$71.8K	0	0
+95543	Gasquet	Del Norte	219	$71.5K	0	0
+95538	Fort Dick	Del Norte	274	$71.3K	2	0
+95043	Paicines	San Benito	286	$70.8K	0	0
+95585	Leggett	Mendocino	252	$69.2K	1	0
+96084	Round Mountain	Shasta	260	$68.5K	1	0
+93531	Keene	Kern	275	$68.3K	3	0
+93668	Tranquillity	Fresno	280	$65.7K	0	0
+92327	Daggett	San Bernardino	258	$65.4K	2	0
+96058	Macdoel	Siskiyou	200	$58.1K	0	0
+96006	Adin	Lassen	233	$55.3K	1	0
+93624	Five Points	Fresno	195	$54.1K	0	0
+96128	Standish	Lassen	226	$52.8K	0	0
+93201	Alpaugh	Tulare	197	$51.2K	0	0
+96113	Herlong	Lassen	157	$50.5K	0	0
+92347	Hinkley	San Bernardino	184	$47.4K	2	0
+93608	Cantua Creek	Fresno	201	$45.1K	0	0
+93450	San Ardo	Monterey	167	$44.6K	0	0
+96105	Chilcoot	Plumas	98	$43.6K	0	0
+91963	Potrero	San Diego	83	$23.1K	2	0
+92278	Twentynine Palms	San Bernardino	0	$16.3K	1	0
+93246	Lemoore	Kings	0	$7.4K	0	0
+93581	Tehachapi	Kern	0	$2.4K	3	1
+93928	Jolon	Monterey	0	$1.1K	0	0
+The local trade by county
+
+Roofing establishments, active C-39 licenses and both per 10,000 residents.
+
+COUNTY	RESIDENTS	ESTABLISHMENTS (COUNTY FILE)	ACTIVE C-39	BOTH PER 10K ↓
+Mono	13,148	4	9	9.9
+Alpine	1,616	—	1	6.2
+El Dorado	192,662	45	65	5.7
+Mendocino	90,244	18	33	5.7
+Amador	41,428	10	13	5.6
+Calaveras	46,248	10	12	4.8
+Tuolumne	54,498	8	17	4.6
+Nevada	102,481	24	21	4.4
+Placer	419,156	64	103	4.0
+Tehama	65,167	9	16	3.8
+Sierra	2,746	—	1	3.6
+Lassen	30,356	4	7	3.6
+Plumas	19,423	3	4	3.6
+San Benito	67,290	10	14	3.6
+Shasta	181,436	30	34	3.5
+Glenn	28,494	—	7	3.5
+Siskiyou	43,466	5	10	3.5
+Sutter	98,857	15	17	3.2
+Butte	207,929	26	38	3.1
+Santa Cruz	264,926	24	51	2.8
+Ventura	837,469	85	150	2.8
+Lake	68,152	6	13	2.8
+Sonoma	485,040	65	70	2.8
+San Luis Obispo	281,555	32	44	2.7
+Sacramento	1,594,006	142	273	2.6
+Yuba	84,507	5	17	2.6
+Santa Barbara	443,701	51	64	2.6
+Trinity	15,860	3	1	2.5
+Napa	134,869	11	23	2.5
+Madera	160,940	13	27	2.5
+Monterey	437,613	41	61	2.3
+Del Norte	27,107	4	2	2.2
+Contra Costa	1,165,012	86	168	2.2
+Orange	3,165,820	252	428	2.1
+San Mateo	742,340	69	90	2.1
+Stanislaus	553,990	43	75	2.1
+Riverside	2,478,600	186	336	2.1
+Solano	451,918	39	56	2.1
+San Bernardino	2,197,104	165	296	2.1
+Humboldt	134,541	10	17	2.0
+Alameda	1,649,473	130	200	2.0
+San Diego	3,288,774	253	392	2.0
+Yolo	220,564	18	24	1.9
+Santa Clara	1,902,047	141	210	1.8
+Fresno	1,016,725	71	115	1.8
+San Joaquin	797,334	57	86	1.8
+Los Angeles	9,808,667	487	1,145	1.7
+Tulare	478,693	22	57	1.7
+San Francisco	830,235	52	76	1.5
+Marin	257,969	17	22	1.5
+Kern	915,075	38	75	1.2
+Mariposa	17,082	—	2	1.2
+Modoc	8,600	—	1	1.2
+Merced	290,201	9	23	1.1
+Imperial	180,202	7	8	0.8
+Colusa	21,984	—	1	0.5
+Kings	153,298	—	4	0.3
+Inyo	18,739	—	0	0.0
+The license roll
+
+Active C-39 Roofing licenses by the city where the license gets its mail.
+
+Los Angeles
+165
+San Jose
+131
+Sacramento
+116
+San Diego
+100
+Fresno
+85
+San Francisco
+76
+Bakersfield
+67
+Riverside
+66
+Anaheim
+64
+Escondido
+58
+Santa Ana
+57
+Oakland
+53
+Oxnard
+51
+Orange
+49
+Vista
+47
+Out of state address
+170
+
+5,587 C-39 Roofing licenses are active and unsuspended, of 5,829 on the renewed roll; 242 are suspended, most often for a lapsed workers' compensation certificate. The four largest mailing cities (Los Angeles, San Jose, Sacramento and San Diego) hold 9% of them: the roll is spread thin across 649 cities. 170 licenses (3%) have an out of state address. Every licensee must show the license number in all advertising (Business and Professions Code 7030.5), which makes any roofing ad checkable against the roll. After a declared disaster, contracting without a license in the disaster area can be charged as a felony (Business and Professions Code 7028.16). A
+
+What the roll says about the trade
+
+Read from the license file and the Census counts.
+
+Mostly small	2,926 roofing establishments have employees (23,903 workers, about 8 each); the license roll is about 1.9 times as long, so roughly half the licenses belong to firms with no payroll or to firms whose main trade is something else.
+Specialists	3,933 of 5,829 licenses on the roll (67%) hold C-39 and nothing else; the rest pair roofing with other classes.
+Workers' compensation	A C-39 licensee must keep a workers' compensation certificate on file even with no employees, and the insurer must audit the payroll in person every year (Business and Professions Code 7125; Insurance Code 11665). It is the commonest reason a roofing license is suspended.
+Bond	Every licensee carries a $25,000 contractor's bond (Business and Professions Code 7071.6).
+Sales staff	Anyone who solicits or signs home improvement contracts for a licensee must be a registered home improvement salesperson (Business and Professions Code 7152).
+
+Certifications, financing and Spanish pages were not read from company sites for this edition, so nothing is said about them. Module 13 is where to read a competitor's own pages and ads.
+
+What the field means for a campaign
+
+How to read pressure, licenses and thin ground.
+
+Crowded and open counties	Active C-39 licenses per 10,000 residents run highest in Mono (6.8), Alpine (6.2) and Mendocino (3.7) and lowest in Imperial (0.4), Kings (0.3) and Inyo (0.0). A high rate can mean a crowded market or a county whose roofers work the next one over: read it with the pressure surface.
+Thin ground	168 scored ZIPs have 3 or fewer licensed roofers within 25 km, most of them in Far North (41), San Joaquin Valley (37) and North Coast (22). Job flow there is smaller per ZIP and the drive is long, but a roofer with a local address has few rivals, and in fire country the work is specialized.
+Spanish	0 of the named companies show Spanish pages. Los Angeles (1.01M), San Diego (258k), San Jose (212k) and Bakersfield (209k) hold the most residents who speak Spanish at home. The Campaign Desk builds Spanish only where limited English is common, with the license number in Spanish.
+Thin lines	Roof replacement (0 companies), Roof repair and leaks (0 companies), Wind and rain damage (0 companies) are marketed by the fewest named companies. With so few companies read, treat this as a hint.
+Pressure is not price	The pressure surface feeds the cost model in module 05; actual auction prices arrive with account data (module 15). After a large storm or fire, crews and advertisers arrive from other counties and prices jump for weeks.
+Judgment calls and sources
+
+How the counts were built and what they miss.
+
+License counts	Every license in the CSLB master file whose classifications include C-39, counted at the mailing ZIP and city on the license. Active means status clear. The file lists renewed licenses only, so the roll is not everyone who ever held the class.
+Within 25 km	Licenses are placed at the center of their mailing ZIP and counted within 25 km of each ZIP's center. The distance was carried over from the first edition; in a large metro nearly every ZIP has many, which is why the thin field is defined by the lowest tenth and not by zero.
+Named companies	4 companies are listed, only those a public source names. 0 were read on their own sites. A ranked California roster could not be built honestly: no public file measures size.
+Offices	Offices of named companies sit at the city or ZIP center, not the street address.
+Missing	Size, revenue, crews, reviews and ad spend of any roofer. Unlicensed operators are, by definition, not on the roll.
+Licenses
+Contractors State License Board, License Master file; check any company on the CSLB license search A November 19, 2026
+Contractors
+County and ZIP Business Patterns, NAICS 238160 Roofing Contractors; Nonemployer Statistics, NAICS 2381 A
+Named companies
+Public sources named on each record; company websites where read C November 19, 2026
+California Roofer Guru, module 07. License counts from the Contractors State License Board; company names and claims are quoted from public sources for competitive research. Compiled November 19, 2026.
