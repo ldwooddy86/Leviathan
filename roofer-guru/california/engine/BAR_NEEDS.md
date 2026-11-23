@@ -33,3 +33,14 @@
 - Alta X flies only in dry or light rain AND calm or breeze; `en.NOFLY`, `en.warn` unchanged.
 - The bar should say what is chosen, from the notes: rain rate and wind per AR rank are this picture's choices; the AR
   scale itself is CW3E's; snow build-up and melt are sped up; marine layer figures are choices.
+
+## traffic (CA/engine/traffic): core done
+- `port_traffic_scout.py <scout.js in> <out>` replaces the road-reading lines in scout.js (applied at assembly by the
+  lead; keep those lines as they are). New road kinds `freeway`, `ramp`, `cable`; each road carries `id, hw, ref, lanes,
+  oneway, maxspeed, layer, bridge, tunnel, hov`; the answer carries `signals`, `stops`, `osm`, `tiger`;
+  `roads3d(la, lo, r, { only: 'freeway' })`. Wording in the module for the new kinds, and scout3d.js (which would draw a
+  freeway as a street), are the Scout owner's.
+- `S.traffic` (kit: `.flow`, `.debug()`, `.hour()`); time of day comes from the engine's sun clock.
+- What is measured and what is generated (for the bar's caption and the method text): measured: Caltrans 2024 counts,
+  TomTom weekday hourly average speeds per metro; chosen: the hourly share curve, truck shares by route, lane and limit
+  defaults, 6.5 m per bridge layer; generated: every car, bus, truck and cable car.

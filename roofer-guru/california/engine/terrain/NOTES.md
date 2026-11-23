@@ -50,3 +50,7 @@ are lifted and tilted by wrapping their instance buffers in fleetInit), haze/clo
 - [x] tests/t_move.js (stepped by hand): walk down/up Filbert 20.4 m with feet on ground; Alta X rides up the street keeping 3 m (added env.ground terrain following in A.update); warp SF->Mammoth lands 60 m over ground, datum 22->2401; recentre at 12 km keeps asl and ground. All pass (run 2). Badwater t_core passes (-77.7 vs -81.9, tile limit).
 - Tests must run ONE AT A TIME (two browsers at once -> tile fetch failures, page starvation). Continuous play starves page.evaluate under swiftshader: step with engine.emit('update', dt) after engine.stop().
 - Kit change after that run: failed tiles retried by request() back-off + 4 s heartbeat (not timers). NEXT: rebuild, run t_blocked.js, t_core at Twin Peaks/Tahoe/Coronado/Mammoth/Truckee, t_perf.js on both pages (base: build/out/testbed_base.html).
+- [x] t_blocked.js PASSES: tiles refused -> grid ground at LA (105 m), all cells built, eye 1.7; Baton Rouge flat at 0 datum 0; tiles let through -> 93.0 m by itself.
+- [x] Chain check: terrain -> weather -> traffic -> car -> sky ports all apply cleanly and the result parses (engine/terrain/out/chain/s4.js). Weather port already adapts to surgeY().
+- Port now 108 patches (added: cars' physics boxes lifted, 2 + 1 anchors in X.update; Alta terrain following).
+- running: tests/run_places.sh > out/places.log (Twin Peaks passes 261.9 vs 262.1). Then: fetch timeout 25 -> 60 s, diag of failed tiles (S.terr.tiles() shows why), t_perf.js on both pages.

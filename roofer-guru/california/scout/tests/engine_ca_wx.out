@@ -1,0 +1,197 @@
+{
+ "engine": {
+  "built": 83,
+  "queued": 0,
+  "roads": 152,
+  "mode": "street"
+ },
+ "has": {
+  "wx": true,
+  "air": false,
+  "m3": false,
+  "elev": true
+ },
+ "rows": [
+  {
+   "label": "Roof View",
+   "buttons": [
+    "Off",
+    "Covering",
+    "Shingle style",
+    "Thermal",
+    "Wear",
+    "Weather",
+    "Fire",
+    "Solar and cool roof",
+    "Time"
+   ],
+   "sliders": []
+  },
+  {
+   "label": "Move",
+   "buttons": [
+    "Street",
+    "On foot",
+    "Drone",
+    "Bird",
+    "Metro",
+    "Orbit",
+    "Alta X",
+    "Flying saucer",
+    "The Tic Tac"
+   ],
+   "sliders": []
+  },
+  {
+   "label": "Weather",
+   "buttons": [
+    "Clear",
+    "Marine layer",
+    "Tule fog",
+    "Wildfire smoke",
+    "Sound off"
+   ],
+   "sliders": [
+    "scEnRain",
+    "scEnWind"
+   ]
+  }
+ ],
+ "lens": {
+  "cover": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Covering: what each roof is most likely made of Each roof takes its covering's colour, stronger the surer it is, and its pattern at a common size of that covering: fly close and the courses, tiles, seams and ribs show. Asphalt shingles Clay tile Concrete tile Wood shakes or shingles Metal on a house Low slope, dark (cap sheet, built up, modified bitumen) Low slope, white (TPO, PVC or a cool coating) Manufactured home"
+  },
+  "style": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Shingle style: three tab or laminated Laminated (architectural) shingles were 7% of those sold in 1984, 46% in 2000, about 70% in 2010 and 95% in 2025 (makers' filings and investor reports; Fine Homebuilding for 2010; national). Each shingle roof takes the style its likely years of roofing make more probable. Three tab strip: 12 inch tabs, 5 inch exposure Laminated: uneven tabs, 5 5/8 inch exposure Most likely not sh"
+  },
+  "thermal": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Thermal: how hot each roof plane runs Today, 14:59 by the sun, clear sky · air 73°F, the November normal here (NOAA's stations blended by distance and height; the nearest is Los Angeles (downtown), and the ground here is taken at 450 ft) 40°F 80 120 160 200°F From an energy balance on each plane: the sun it takes at this hour (its slope and bearing, the trees and buildings that shade it), the covering's reflectance ("
+  },
+  "wear": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Wear: what age and weather have taken so far Today. The share of its service life each roof has used (for tile, of the underlayment's), worked harder on the planes that run hottest and in the hotter places, plus the gust days it has stood through, wind, hail and fire damage on record near it, damp and salt. sound half worn worn out wind at ridge and edges worn patches moss and algae rust, or fire damage 1618 N Las Pa"
+  },
+  "storm": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Weather: Dry and calm Set the rain scale, the wind scale or the sky in the Weather row to see what each would do to each roof. Odds from records and stated judgments, not a forecast of a storm, and not an inspection."
+  },
+  "fire": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Fire: the class of roof, the zone, the embers Each roof takes the colour of the fire class it most likely carries as an assembly, by its covering and the age of the roof; the specks are where embers lodge (edges, valleys, ridge, under a crown), more of them the higher its Fire Hazard Severity Zone and the nearer CAL FIRE's record puts fire. Class A B or C unrated where embers lodge 1618 N Las Palmas Ave Low slope mem"
+  },
+  "solar": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Solar and cool roof: the sun each plane takes in a year Clear sky sunlight on each plane through a normal year, with the sky clear this place's share of the time; trees and neighbours are not counted. A re-roof under panels means a detach and reset (the atlas's solar line), and a re-roof of more than half the roof must meet the Energy Code's cool roof minimums in the covered climate zones. 600 1,000 1,450 1,900 2,300"
+  },
+  "time": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Time: 2031, 5 years from now Each roof takes the colour of the damage most likely to have reached each part of it by then, brighter as the chance grows. From the gust days, rain, atmospheric rivers, fire losses and hail on record for this ZIP, and the roof's age and kind. Wind (offshore wind and winter storms) under 1% Rain and leaks 18% Wildfire under 1% Heat, sun and age 11% Hail under 1% Rust (metal, salt air) 2% "
+  }
+ },
+ "rain1": {
+  "wx": {
+   "rain": "light",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": true
+  },
+  "line": "Light rain · Light rain: wind drawn at 8 mph gusting 14, rain at 2 mm an hour (0.08 in), snow above 1,700 m (5,600 ft), not drawn here: the height of this ground is not known. The Alta X can fly. Rain",
+  "fly": "Alta X can fly",
+  "flyTitle": "Freefly designs the Alta X to withstand light rain (IP43)",
+  "altaTitle": "Fly a Freefly Alta X Gen2, built to its published dimensions: it takes off, holds position, lands on roofs, and runs its batteries down in the published time. It flies dry or in light rain only",
+  "engStorm": 1,
+  "engName": "Light rain",
+  "leg": "Weather: Light rain Rain takes no roof by itself. It finds the leaks a roof has: each roof shows its chance of a leak call in a storm like this (3% of a year's calls at its age: a judgment). Above about 5,600 ft this storm snows, and a roof there shows the load it adds against the ground snow load t"
+ },
+ "rain6": {
+  "wx": {
+   "rain": "ar3",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": true
+  },
+  "line": "Atmospheric river, rank 3 (strong) · Atmospheric river, AR3 (strong): wind drawn at 32 mph gusting 55, rain at 12 mm an hour (0.47 in), snow above 2,200 m (7,200 ft), not drawn here: the height of thi",
+  "fly": "Alta X grounded",
+  "flyTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "altaTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "engStorm": 6,
+  "engName": "Atmospheric river, AR3 (strong)",
+  "leg": "Weather: Atmospheric river, rank 3 (strong), gusts near 55 mph A day with gusts near 55 mph damages fewer than 1 in 2,000 of roofs enough for a roofer: the atlas's stated rates at 58 and 75 mph. Each roof shows its own chance, by its covering and age. Rain takes no roof by itself. It finds the leaks"
+ },
+ "rain8": {
+  "wx": {
+   "rain": "ar5",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": true
+  },
+  "line": "Atmospheric river, rank 5 (exceptional) · Atmospheric river, AR5 (exceptional): wind drawn at 45 mph gusting 80, rain at 25 mm an hour (0.98 in), snow above 2,700 m (8,900 ft), not drawn here: the hei",
+  "fly": "Alta X grounded",
+  "flyTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "altaTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "engStorm": 8,
+  "engName": "Atmospheric river, AR5 (exceptional)",
+  "leg": "Weather: Atmospheric river, rank 5 (exceptional), gusts near 80 mph A day with gusts near 80 mph damages about 0.2% of roofs enough for a roofer: the atlas's stated rates at 58 and 75 mph, carried past 75 mph on the same line: an extrapolation. Each roof shows its own chance, by its covering and age"
+ },
+ "windSky": {
+  "windSlider": true,
+  "skyButtons": [
+   "Clear",
+   "Marine layer",
+   "Tule fog",
+   "Wildfire smoke"
+  ],
+  "wx": {
+   "rain": "dry",
+   "wind": "sa3",
+   "sky": "smoke",
+   "elev": null,
+   "engine": true
+  },
+  "state": {
+   "stormKey": "dry",
+   "windKey": "sa3",
+   "sky": "smoke",
+   "gustMph": 80,
+   "altaCanFly": false,
+   "elevationM": null
+  },
+  "line": "Offshore wind: damaging · Wildfire smoke · Offshore wind, damaging (Santa Ana): 45 mph gusting 80, dry air. Wildfire smoke. The Alta X stays down. No rain. The sky and the air are the ones chosen under Weather. Gusts of 80 mph. On 25 November 1996 Storm Events gives sustained northeast winds of 35 to 45 mph in the Santa Ana; on 21 October 2007 gusts over 70 mph \"damaged countless roofs\" in the Inland Empire and San Diego County; Mount Diablo read 75 mph in the Diablo wind of 8 October 2017, and ",
+  "fly": "Alta X grounded",
+  "leg": "Weather: Offshore wind: damaging · Wildfire smoke, gusts near 80 mph A day with gusts near 80 mph damages about 0.2% of roofs enough for a roofer: the atlas's stated rates at 58 and 75 mph, carried past 75 mph on the same line: an extrapolation. Each roof shows its own chance, by its covering and age. Dry offshore wind or smoke: each roof shows its ember exposure, an index and not a chance. untouched 2.5% 5% or more cover lost at ridge, hips and edges low ember exposure high 1618 N Las Palmas Av",
+  "patterns": 18,
+  "engx": 18,
+  "after": {
+   "rain": "dry",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": true
+  }
+ },
+ "where": "At bird height, 120 m up, looking east · 104 buildings · 43 roofs read in the time view · 38 frames a second, 256,026 triangles. Drag to look; W S move, A D turn, Q E rise and come down, X the roof views, [ ] the year; click the ground to go there, a building to read it.",
+ "barText": "LIKELY NEEDS ROOF WORK 1618 N Las Palmas Ave Office or professional services · Low slope membrane · Replacement · score 26 ROOF VIEW Off Covering Shingle style Thermal Wear Weather Fire Solar and cool roof Time ▶ Play 2031 · in 5 years The next 15 years: the damage most likely to reach each roof by each year (wind, rain and leaks, wildfire, heat and age, hail, rust), from this ZIP's gust, rain, fire and hail record and the roof's age and kind. MOVE Street On foot Drone Bird Metro Orbit Alta X Flying saucer The Tic Tac WEATHER Rain Dry Light Rain T-storm AR 1 AR 2 AR 3 AR 4 AR 5 Dry wind Calm Breeze Advisory Warning Damaging Extreme Sky Clear Marine layer Tule fog Wildfire smoke Alta X can fly Sound off Dry and calm · the sky is the Scene menu's. Slide the rain scale for rain and atmospheric rivers, the wind scale for Santa Ana and Diablo wind, or pick a sky. ◀ 1 of 4 ▶ Face it Likely May"
+}
+PAGE ERRORS: none

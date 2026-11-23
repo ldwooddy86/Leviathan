@@ -70,10 +70,20 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
       await run({ throttle: 0.6 }, 2.5); await shot('rain_spray', 8000); await run({ brake: 1 }, 5, { until: 'rest' }); await ev(() => MODI.rooftops.api.en().storm(0));
     }
     if (step === 'top') {
-      const log = []; let last = null;
-      for (let k = 0; k < 16; k++) { const r = await run({ throttle: 1 }, 5); const w = await ev(() => { const en = MODI.rooftops.api.en(), st = en.state(), d = en.debug(); return { roads: st.roads, cells: st.cells, far: d.far, note: (st.note || '').slice(0, 60), gl: d.err }; }); log.push([k * 5 + 5, r.mph, r.maxMph, r.fast, r.odo, r.onRoad, w.roads, w.cells, w.far].join(' ')); last = r; await wait(2500); if (k === 9) await shot('top_speed', 5000); }
-      console.log('t mph max fast odo onRoad roads cells far\n' + log.join('\n')); console.log('top speed run', JSON.stringify(last), JSON.stringify(await car()));
-      console.log('brake from top', JSON.stringify(await run({ brake: 1 }, 20, { until: 'rest' })));
+      /* full throttle along the road the car stands on: a small helmsman holds the lane (steers at the nearest road piece that runs the car's way) */
+      const leg = (t, thr) => ev(([t, thr]) => { const en = MODI.rooftops.api.en(), W = en.world, n = Math.round(t * 60); let mx = 0, off = 0, offMax = 0, c = null, onN = 0;
+        for (let i = 0; i < n; i++) { const a = en.car.state, y = a.yaw * Math.PI / 180, fx = Math.sin(y), fz = -Math.cos(y); let best = null;
+          if (i % 3 === 0) { for (const r of W.roads) { if (r.kind === 'path' || r.kind === 'drive') continue; for (let k = 0; k + 1 < r.pts.length; k++) { const p = r.pts[k], q = r.pts[k + 1], dx = q[0] - p[0], dz = q[1] - p[1], l = Math.hypot(dx, dz); if (l < 1) continue; const al = (dx * fx + dz * fz) / l; if (Math.abs(al) < 0.93) continue; const tt = Math.max(0, Math.min(1, ((a.x - p[0]) * dx + (a.z - p[1]) * dz) / (l * l))), ex = a.x - p[0] - dx * tt, ez = a.z - p[1] - dz * tt, d = Math.hypot(ex, ez); if (!best || d < best.d) best = { d, sg: al > 0 ? 1 : -1, dx: dx / l, dz: dz / l, ex, ez }; } }
+            let steer = 0; if (best && best.d < 30) { const hx = best.dx * best.sg, hz = best.dz * best.sg, side = ex2(best.ex, best.ez, hx, hz) - 2.2, herr = fx * hz - fz * hx; steer = Math.max(-1, Math.min(1, -(side * 0.012 + herr * -1.6))); off = side; }
+            en.car.drive({ throttle: thr, brake: 0, steer }); }
+          c = en.car.step(1 / 60, 1); if (c.mph > mx) mx = c.mph; if (Math.abs(off) > offMax) offMax = Math.abs(off); if (c.onRoad) onN++; }
+        function ex2(ex, ez, hx, hz) { return ex * -hz + ez * hx; }
+        const st = en.state(), d = en.debug(), ra = W.roadsAt; return { mph: +c.mph.toFixed(2), max: +mx.toFixed(3), fast: c.fast, odoKm: +(c.odo / 1000).toFixed(2), onRoadPct: Math.round(onN / n * 100), off: +offMax.toFixed(1), hits: c.hits, roads: st.roads, roadsAheadM: ra ? Math.round(Math.hypot(ra[0] - en.car.state.x, ra[1] - en.car.state.z)) : null, cells: st.cells, far: d.far, origin: Math.round(Math.hypot(en.car.state.x, en.car.state.z)), lat: +c.lat.toFixed(4), lon: +c.lon.toFixed(4), yaw: +c.yaw.toFixed(1), gl: d.err }; }, [t, thr]);
+      console.log('start', JSON.stringify(await car()));
+      for (let k = 0; k < 22; k++) { const r = await leg(5, 1); console.log('t=' + (k * 5 + 5) + ' s', JSON.stringify(r)); await wait(4000); if (k === 14) await shot('top_speed', 6000); }
+      console.log('after the run', JSON.stringify(await car()));
+      console.log('brake from top', JSON.stringify(await run({ brake: 1 }, 25, { until: 'rest' })));
+      await shot('after_top', 15000); console.log('world after stopping', JSON.stringify(await ev(() => { const en = MODI.rooftops.api.en(), st = en.state(); return { roads: st.roads, cells: st.cells, built: st.built, note: st.note, fast: en.world.fast }; })));
     }
     if (step === 'leave') { await ev(() => { const en = MODI.rooftops.api.en(); en.car.drive(null); en.setHeight('drone'); }); await wait(3000); console.log('left', JSON.stringify(await ev(() => { const en = MODI.rooftops.api.en(), st = en.state(), h = en.world.hero; return { mode: st.mode, car: st.car && { mph: st.car.mph, driving: st.car.driving }, hero: h && { on: h.on, driving: h.driving, speed: h.speed } }; }))); await shot('parked_from_drone', 8000); await ev(() => MODI.rooftops.api.en().setHeight('m3')); await wait(1500); console.log('back in', JSON.stringify(await car())); }
   }

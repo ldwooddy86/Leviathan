@@ -37,3 +37,4 @@ StreetKit (network: hw, n.signal; TT + exports; X.build: raised ways skipped, la
 world (WALK line + tf(), setRoads, buildRoads: r.up skip, r.w width, cars; loadRoads; after; update handler: moving + tf().update; lamps).
 Known limits: see report.
 - trees kept off freeways (mask patch + replan hook); ask() waits up to 5 s for freeways. needs one more browser sanity run
+- FINAL (11-23 23:40): all tests rerun on final code; pictures in shots/ (la_110_fwy_16, la_110_fwy_03, la_4level_15/03, sd_i5_fwy_15/03, sd_i5_17, sf_market_st_15); handing back. Open: LA 17:00 picture (browser crash/timeouts under machine load), 405/10 and Van Ness not shot, live Overpass and TIGER fallback not exercised, terrain+car chain applies but was not run in a browser.
