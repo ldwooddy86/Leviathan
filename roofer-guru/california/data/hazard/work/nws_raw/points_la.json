@@ -92,15 +92,15 @@
         "timeZone": "America/Los_Angeles",
         "radarStation": "KSOX",
         "astronomicalData": {
-            "sunrise": "2026-11-18T06:28:41-08:00",
-            "sunset": "2026-11-18T16:47:43-08:00",
-            "transit": "2026-11-18T11:38:12-08:00",
-            "civilTwilightBegin": "2026-11-18T06:02:02-08:00",
-            "civilTwilightEnd": "2026-11-18T17:14:21-08:00",
-            "nauticalTwilightBegin": "2026-11-18T05:31:41-08:00",
-            "nauticalTwilightEnd": "2026-11-18T17:44:43-08:00",
-            "astronomicalTwilightBegin": "2026-11-18T05:01:53-08:00",
-            "astronomicalTwilightEnd": "2026-11-18T18:14:31-08:00"
+            "sunrise": "2026-11-23T06:33:21-08:00",
+            "sunset": "2026-11-23T16:45:33-08:00",
+            "transit": "2026-11-23T11:39:27-08:00",
+            "civilTwilightBegin": "2026-11-23T06:06:27-08:00",
+            "civilTwilightEnd": "2026-11-23T17:12:27-08:00",
+            "nauticalTwilightBegin": "2026-11-23T05:35:52-08:00",
+            "nauticalTwilightEnd": "2026-11-23T17:43:02-08:00",
+            "astronomicalTwilightBegin": "2026-11-23T05:05:54-08:00",
+            "astronomicalTwilightEnd": "2026-11-23T18:13:00-08:00"
         },
         "nwr": {
             "transmitter": "KWO37",

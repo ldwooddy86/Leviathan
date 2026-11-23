@@ -92,15 +92,15 @@
         "timeZone": "America/Los_Angeles",
         "radarStation": "KBBX",
         "astronomicalData": {
-            "sunrise": "2026-11-18T06:59:56-08:00",
-            "sunset": "2026-11-18T16:49:39-08:00",
-            "transit": "2026-11-18T11:54:48-08:00",
-            "civilTwilightBegin": "2026-11-18T06:30:31-08:00",
-            "civilTwilightEnd": "2026-11-18T17:19:04-08:00",
-            "nauticalTwilightBegin": "2026-11-18T05:57:18-08:00",
-            "nauticalTwilightEnd": "2026-11-18T17:52:17-08:00",
-            "astronomicalTwilightBegin": "2026-11-18T05:24:53-08:00",
-            "astronomicalTwilightEnd": "2026-11-18T18:24:42-08:00"
+            "sunrise": "2026-11-23T07:05:36-08:00",
+            "sunset": "2026-11-23T16:46:30-08:00",
+            "transit": "2026-11-23T11:56:03-08:00",
+            "civilTwilightBegin": "2026-11-23T06:35:52-08:00",
+            "civilTwilightEnd": "2026-11-23T17:16:14-08:00",
+            "nauticalTwilightBegin": "2026-11-23T06:02:21-08:00",
+            "nauticalTwilightEnd": "2026-11-23T17:49:44-08:00",
+            "astronomicalTwilightBegin": "2026-11-23T05:29:44-08:00",
+            "astronomicalTwilightEnd": "2026-11-23T18:22:22-08:00"
         },
         "nwr": {
             "transmitter": "WXL88",

@@ -84,7 +84,7 @@
       if (t && isFinite(t.nx) && isFinite(t.nz) && t.depth > 0) { let at = 1; if (isFinite(t.x) && isFinite(t.z)) { const y = Rd(a.yaw), along = (t.x - a.x) * Math.sin(y) - (t.z - a.z) * Math.cos(y); at = along > 0.8 ? 0 : along < -0.8 ? 2 : 1; } CARW.tHit = { nx: +t.nx, nz: +t.nz, depth: Math.min(+t.depth, 3), at }; } }
       const moving = engine.playing ? CAR.update(dt, carEnv()) : false; S.x = a.x; S.z = a.z;
       const was = S.fast; S.fast = was ? a.speed > 45 : a.speed > 60; if (was && !S.fast) { plan(); ensureAt = null; }
-      carRoads(); carHero(); after(Math.hypot(a.x - px, a.z - pz) < 0.02);
+      carRoads(); carHero(); { const d = Math.hypot(a.x - px, a.z - pz); if (moving || d > 1e-4) after(d < 0.02); }
       if (moving || asked) { engine.wake(); need(); }
       return moving;
     }

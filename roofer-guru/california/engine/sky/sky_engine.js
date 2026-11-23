@@ -202,7 +202,8 @@
     /* the nearest airport, the runways in use, what is in the air; and what of the harbour and the bridges is built */
     X.info = () => { const cam = engine.camera.entity.transform.position, ll = S.kx ? camLL(cam) : [0, 0], i = MD.info(X.now(), ll[0], ll[1]) || {}; i.on = X.on; i.drawn = X.stats.flights; i.helicopters = X.stats.helos; i.boats = X.stats.boats; i.built = SITES.filter(s => s.built).map(s => s.name + (s.note ? ' (' + s.note + ')' : '')); i.bridges = DECKS.filter(d => !d.flatOnly).map(d => d.name); i.clock = new Date(X.now() * 1000).toISOString(); i.error = X.err || null;
       i.what = { real: 'runway ends, approach paths and glide angles, flights an hour by hour of the day, aircraft sizes and approach speeds, the carrier berth, pier and bridge lines, tower positions, ship and bridge dimensions', generated: 'every individual flight and its colours, which ships lie at which pier, aircraft on the carrier deck, the helicopter circuit, boats, the high traffic and its contrails' }; return i; };
-    X.state = () => ({ on: X.on, flights: X.stats.flights, helicopters: X.stats.helos, sites: X.stats.sites });
+    X.state = () => ({ on: X.on, flights: X.stats.flights, helicopters: X.stats.helos, boats: X.stats.boats, sites: X.stats.sites });
+    if (typeof SkyKitMore === 'function') { try { SkyKitMore(X, engine, S, DATA, MAT); } catch (e) { X.err = 'second part: ' + (e && e.stack || e); } }
     return X;
   }
   SE.SkyKit = SkyKit;

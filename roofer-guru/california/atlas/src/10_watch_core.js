@@ -209,7 +209,7 @@ const WATCH = (() => {
     { id: 's5', platform: 'mail', label: 'After a fire', text: 'We are in your neighborhood rebuilding after the fire. Sign today and lock in a price before costs double. Cash discount, no permit needed.' },
     { id: 's6', platform: 'google', label: 'Financing terms', text: 'New roof from $99 a month, $0 down, 0% APR. Best roofer in California. Lifetime warranty.' },
     { id: 's7', platform: 'meta', label: 'No licence shown', text: 'Affordable roof repair and re-roofing. Licensed and insured. Text us for a same day quote.' },
-    { id: 's8', platform: 'site', label: 'A careful ad', text: 'Roof inspections by request in Pasadena. Written estimate, permit pulled in your city, CSLB Lic. #0000000 (C-39). We do not negotiate insurance claims.' },
+    { id: 's8', platform: 'site', label: 'A careful ad', text: 'Roof inspections by request in Pasadena. Written estimate before any work, permit pulled in your city. CSLB Lic. #0000000 (C-39).' },
   ];
   /* screen any text with the California rule pack, house style off: [{id, sev, name, cite, ev, fix}] */
   function lintText(text, platform) { const txt = String(text || '').trim(); if (!txt || typeof satchelLint !== 'function') return []; let out = []; try { out = satchelLint(txt, { platform: platform || 'meta', web: platform === 'site', page: platform === 'site', channel: platform === 'door' ? 'door' : platform === 'mail' ? 'mail' : '', noHouse: true }); } catch (e) { out = []; } return out.filter(x => x && x.rule).map(x => ({ id: x.rule.id, sev: x.rule.sev, name: x.rule.name || x.rule.id, cite: x.rule.cite || '', ev: typeof x.ev === 'string' ? x.ev : '', fix: x.rule.fix || '' })); }

@@ -16,3 +16,5 @@
   functions touched (Traffic: top helpers, setNetwork, extendOnce, place, freeAt, roomAt, spawn, enter, populate, step; StreetKit: network, TT, X.build, X.update;
   world: WALK line, setRoads, buildRoads, loadRoads, after, update handler, lamps).
 - todo after shots: SF + SD shots; look at pictures; cable cars drawn? demand `within` 350 at low quality (cap 240) is small.
+- fix7: lane-end lookahead (s.end), cable cap; re-ported. running shots batch (shots/run.log)
+- fix8: caps raised (far cars as boxes by day, lamps by night), TIGER not cached. NOT yet in out/tb.html (batch running on older build)

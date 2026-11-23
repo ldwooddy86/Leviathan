@@ -68,7 +68,7 @@ def flat_weather(v):
 
 GRID_KEYS = ['probabilityOfThunder', 'quantitativePrecipitation', 'windGust', 'windSpeed', 'probabilityOfPrecipitation', 'visibility',
              # added for California (not in Louisiana's snapshot): snow, humidity for fire weather, sky for marine layer
-             'snowfallAmount', 'snowLevel', 'relativeHumidity', 'skyCover']
+             'snowfallAmount', 'snowLevel', 'relativeHumidity', 'skyCover', 'windDirection']
 
 
 def point(city, lat, lon, reg):
@@ -108,7 +108,7 @@ def alerts():
                     'description': (a.get('description') or '')[:1500], 'instruction': (a.get('instruction') or '')[:800], 'onset': a.get('onset'), 'ends': a.get('ends'),
                     'expires': a.get('expires'), 'areas': a.get('areaDesc'), 'sent': a.get('sent'), 'hail': (pr.get('maxHailSize') or [None])[0], 'gust': (pr.get('maxWindGust') or [None])[0],
                     # added for California: zone codes and county FIPS so an alert can be drawn on counties, and the sender
-                    'zones': gc.get('UGC') or [], 'fips': sorted({'0' + s[1:] if len(s) == 6 else s for s in (gc.get('SAME') or [])}), 'sender': a.get('senderName')})
+                    'zones': gc.get('UGC') or [], 'fips': sorted({s[-5:] for s in (gc.get('SAME') or [])}), 'sender': a.get('senderName')})
     return out
 
 

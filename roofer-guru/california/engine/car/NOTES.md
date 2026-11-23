@@ -20,3 +20,12 @@ Decisions
 - No shader edits: plain Materials (paint lit rough 0.16; glass model 'glass'; lamps lit + emissive).
 - S.fast set by the car above 60 m/s (off below 45): near cells and building fetches stop, far ground and roads stay.
 - Roads at speed: loadRoads() called with S.x/S.z moved ahead for the call (no anchor inside loadRoads).
+
+## 11-23 resumed
+- port_car.py applies cleanly to la_engine.js (all anchors once); out/engine_car.js parses; out/testbed_car.html built.
+- car enters at 200 N Spring St on N Main St (state().car, S.hero, HUD all there).
+- governor (251 never exceeded) checked in node: tests/governor.js -> governor_output.txt.
+- traffic job's interface read from ../traffic/traffic_kit.js: S.trafficHit returns the vehicle struck ({x,z,hx,hz,hl,hw,..});
+  car_world turns that into a push. Roads there carry r.ow, r.ln, r.dk (deck heights per point), kinds freeway/ramp/cable.
+- tests/drive.js <page> "<address>" <tag> steps...  (shots dyn wall night rain top cams leave)
+- next: look at shots, dyn + wall + top runs, Coronado, report.

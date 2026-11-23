@@ -72,7 +72,7 @@
     /* ---------- state ---------- */
     /* The physics keeps its own frame; (ox, oz) carries it into the world's local metres, so the world can move its
        origin under a car that is going (A.shift) without the dynamics being touched. */
-    let ox = 0, oz = 0, cabinOn = false;
+    let ox = 0, oz = 0, cabinOn = false; const gov = { v: null, dt: 1 / 60 };
     const st = A.state = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, vx: 0, vz: 0, speed: 0, mph: 0, forward: 0, yawRate: 0, rpm: 800, gear: 1, throttle: 0, brake: 0, steer: 0, gLong: 0, gLat: 0, abs: false, tc: false, sc: false, tcMode: 'on', drifting: false, atRest: true, hit: false, hits: 0, reverse: false,
       grip: 1, onRoad: true, wet: 0, night: 0, slide: 0, odo: 0, topMph: 0, governed: false, wheels: [0, 1, 2, 3].map(() => ({ x: 0, y: 0, z: 0, steer: 0, spin: 0, slip: 0, slipAngle: 0, load: 0, travel: 0, sliding: 0 })) };
     A.input = { throttle: 0, brake: 0, steer: 0, handbrake: 0, reverse: false, tc: true };
@@ -156,7 +156,8 @@
       env = env || {}; dt = Math.min(Math.max(dt || 0, 0), 0.1); const I = A.input, P = PH.input, live = env.live !== false;
       let thr = live ? clamp(+I.throttle || 0, 0, 1) : 0, brk = live ? clamp(+I.brake || 0, 0, 1) : (PS.atRest ? 0 : 0.6);
       /* the governor: 251 mph and no more, whatever the slope */
-      const over = PS.speed - (VMAX - 0.03); st.governed = over > 0; if (over > 0) { thr = 0; brk = Math.max(brk, clamp(over * 6, 0, 1)); }
+      { const v = PS.speed, acc = dt > 0 && gov.v != null ? clamp((v - gov.v) / gov.dt, -5, 20) : 0, vp = v + Math.max(0, acc) * 0.3, vT = VMAX - 0.002; gov.v = v; gov.dt = dt || 1 / 60;
+        st.governed = vp > vT - 0.005; if (st.governed) { thr = Math.min(thr, clamp((vT - vp) / 0.005, 0, 1)); brk = Math.max(brk, clamp((v - vT) * 150, 0, 1)); } }
       P.throttle = thr; P.brake = brk; P.steer = live ? clamp(+I.steer || 0, -1, 1) : 0; P.handbrake = live ? clamp(+I.handbrake || 0, 0, 1) : (PS.atRest ? 1 : 0); P.reverse = live && !!I.reverse; P.tc = I.tc !== false; P.sc = I.tc !== false;
       const g = env.ground, h = env.hit, px = st.x, pz = st.z;
       const moving = PH.update(dt, { ground: g ? (x, z) => g(x + ox, z + oz) : null, grip: env.grip == null ? 1 : env.grip, hit: h ? (x0, z0, x1, z1, r) => h(x0 + ox, z0 + oz, x1 + ox, z1 + oz, r) : null });

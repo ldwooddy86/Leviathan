@@ -114,7 +114,7 @@ const SLM = (() => {
   const M = META.model; const REP = M.REP || {}, VAL = M.VAL || {};
   /* Paid search defaults. None of the click, lead or close figures is California evidence: no auction, keyword or
      account data was pulled for this build, and the evidence files hold no California click cost. The base click cost
-     and the figures of the nine lines Louisiana also had are carried from that edition's planning figures; the four
+     and the figures of the nine lines the first edition also had are carried from that edition's planning figures; the four
      new lines are set beside the nearest of those (BASIS says which). All are grade D until account actuals replace
      them in module 15. */
   const LDEF = {

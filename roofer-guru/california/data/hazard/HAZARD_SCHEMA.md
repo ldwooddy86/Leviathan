@@ -396,4 +396,22 @@ Eureka 95501, Burbank 91502, Fremont Canyon (Silverado 92676).
 
 ## 9. Measured results
 
-Written by the last build step: see the end of this file.
+Written by `09_checks.py` on 2026-11-23. Checks: 49 of 49 passed (`out/CHECKS.md`).
+
+| file | bytes | content |
+|---|---|---|
+| `zcta_hazard.json` | 1,247,286 | 1808 ZIPs x 135 columns |
+| `hazard_events.json` | 1,098,101 | 1335 fires (1261 with an outline, 305,444 bytes of paths; 345 with inspected damage), 1297 ZIPs in `zfire` (5990 pairs), 2084 AR landfalls, 148 in `ar_big`, 353 wind events, 337 zone outlines |
+| `hazard_ts.json` | 57,665 | 27 month kinds, years 1996 to 2025 |
+| `hazard_pts.json` | 549,656 | 11750 points: hail 812, thunderstorm wind 1095, tornado 268, flood 3259, flash flood 1254, debris flow 706, heavy rain 353, wind gust (not thunderstorm) 4003 |
+| `ca_nws_snapshot.json` | 580,960 | fetched 2026-11-19T01:40:13+00:00; 58 alerts |
+| `roof_hazard_model.json` | 24,482 | |
+| `fire_rings.json` | 1,279,709 | lon/lat rings of the ledger outlines (not for the page) |
+
+Bytes by key of `hazard_events.json`: `fires` 597,303, `zfire` 125,429, `zdins` 13,200, `ar` 81,262, `ar_pts` 3,479, `ar_big` 70,413, `wind` 110,372, `zones` 69,147, `roof` 4,633, `fema` 22,332.
+
+Quality flags, ZIPs by flag: `rain_q` A 1390 B 335 C 73 D 10; `raind_q` A 1284 B 392 C 121 D 11; `heat_q` A 820 B 553 C 331 D 104; `gust_q` A 506 B 675 C 390 D 237; `ar_q` A 966 B 504 C 338; `snow_q` A 936 B 872.
+
+Columns with nulls: `gust_max` 62; `gust_max_date` 62; `lsr_max` 2; `lsr_max_date` 2; `lsr_max_at` 2; `asce_swr` 1803; `fire_big` 895; `fire_big_yr` 895; `fire_big_ac` 895; `fire_last` 895; `fire_last_yr` 895; `fire_since` 895; `lastfire` 1460; `yrsfire` 1460; `fire_worst` 1460; `fire_worst_yr` 1460; `fire_worst_dest` 1460; `snow_max_psf` 459; `apr1_swe_in` 1710; `apr1_st` 1710; `apr1_km` 1710; `apr1_yrs` 1710; `snowfall_in` 253; `hail_max_in` 22; `hail_max_date` 22. Reasons are in `zcta_hazard.json` under `nulls` and in `out/CHECKS.md`.
+
+Statewide: 70,390 destroyed and 7,127 damaged structures in the inspections 2013 to 2025; 348 ZIPs with a destroyed or damaged structure; 986 ZIPs with Very High zone land; 913 ZIPs touched by a perimeter since 2000.

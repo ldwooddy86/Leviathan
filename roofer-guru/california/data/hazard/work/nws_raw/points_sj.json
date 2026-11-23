@@ -92,15 +92,15 @@
         "timeZone": "America/Los_Angeles",
         "radarStation": "KHNX",
         "astronomicalData": {
-            "sunrise": "2026-11-18T06:40:33-08:00",
-            "sunset": "2026-11-18T16:48:11-08:00",
-            "transit": "2026-11-18T11:44:22-08:00",
-            "civilTwilightBegin": "2026-11-18T06:12:53-08:00",
-            "civilTwilightEnd": "2026-11-18T17:15:51-08:00",
-            "nauticalTwilightBegin": "2026-11-18T05:41:29-08:00",
-            "nauticalTwilightEnd": "2026-11-18T17:47:16-08:00",
-            "astronomicalTwilightBegin": "2026-11-18T05:10:43-08:00",
-            "astronomicalTwilightEnd": "2026-11-18T18:18:02-08:00"
+            "sunrise": "2026-11-22T06:44:36-08:00",
+            "sunset": "2026-11-22T16:46:05-08:00",
+            "transit": "2026-11-22T11:45:21-08:00",
+            "civilTwilightBegin": "2026-11-22T06:16:43-08:00",
+            "civilTwilightEnd": "2026-11-22T17:13:58-08:00",
+            "nauticalTwilightBegin": "2026-11-22T05:45:06-08:00",
+            "nauticalTwilightEnd": "2026-11-22T17:45:35-08:00",
+            "astronomicalTwilightBegin": "2026-11-22T05:14:11-08:00",
+            "astronomicalTwilightEnd": "2026-11-22T18:16:30-08:00"
         },
         "nwr": {
             "transmitter": "KIH62",

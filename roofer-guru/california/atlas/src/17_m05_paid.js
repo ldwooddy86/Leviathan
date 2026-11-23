@@ -2,10 +2,11 @@
 /* ==== src/17_m05_paid.js ==== */
 /* ==== m05_paid ==== */
 "use strict";
-/* the main television and search media market each region buys through (a description by the editor of this atlas, not
-   a file of market boundaries: several regions straddle two markets). The cost factor of each region is in the data
+/* the main television and search media market each region buys through (the data carries the list as meta.model.MKT; the
+   typed copy is the fallback. A description, not a file of market boundaries: several regions straddle two markets). The cost factor of each region is in the data
    (meta.model.DMA, an assumption, grade D). Region numbers follow DESIGN.md: 1 North Coast to 11 San Diego and Imperial. */
 const REG_MKT = { 1: 'Eureka; San Francisco for Mendocino and Lake', 2: 'Chico and Redding', 3: 'Sacramento; Chico for Butte and Glenn', 4: 'Sacramento, Fresno and Reno', 5: 'San Francisco, Oakland and San Jose', 6: 'Monterey and Salinas; Santa Barbara and San Luis Obispo', 7: 'Fresno and Bakersfield; Sacramento for Stockton and Modesto', 8: 'Los Angeles', 9: 'Los Angeles', 10: 'Los Angeles; Palm Springs for the Coachella Valley', 11: 'San Diego; Yuma and El Centro for Imperial' };
+if (META.model.MKT) Object.assign(REG_MKT, META.model.MKT);   /* the data's own list of markets by region wins where it is carried */
 const QUAD_PLAY = [
   ['Anchor', 'High job flow, crowded field', 'Defend: exact and phrase match on the line terms, brand plus city ad groups, highest bids only where the tier is A or better. Organic: city pages with local roof age, weather, fire zone and insurance facts, reviews, photos of local jobs and pages in the languages the city speaks; these markets are won on trust and coverage, not on bids.'],
   ['Whitespace', 'High job flow, thin field', 'Expand first: the cheapest sold jobs in the state sit here. Broader match, radius around the ZIP cluster, Local Services Ads where available, and a city page for every town in the cluster. This is the first money of any new budget.'],

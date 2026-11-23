@@ -15,14 +15,15 @@
     [0.28, 0.3, 0.12, 0.14, 0.16].forEach((v, i) => { if (TYPES[i]) TYPES[i].share = v; });
     const pickPaint = r => { let a = 0; for (const [v, w] of ST.PAINT) { a += w; if (r <= a) return v; } return ST.PAINT[0][0]; };
     F.carLen = (c, Rn) => { c.ty = CK.pick(Rn()); const t = TYPES[c.ty]; c.wid = t.W; c.col = pickPaint(Rn()); return t.L; };
-    const CAP = () => ({ ultra: [1500, 280], high: [950, 190], medium: [520, 110], low: [240, 50] }[engine.quality] || [520, 110]);
+    /* by quality: freeway vehicles simulated, street cars, and how far a freeway car is drawn as a car (beyond it: a box by day, its lamps by night) */
+    const CAP = () => ({ ultra: [3000, 280, 1500], high: [2000, 190, 1100], medium: [1200, 110, 800], low: [500, 50, 500] }[engine.quality] || [1200, 110, 800]);
 
     /* ---------- the street map, kept in tiles ---------- */
     const QLA = 0.0045, QF = 5, tiles = new Map(), ftiles = new Map(); let cur = null, fcur = null, fwyRaw = [], strRaw = [], gen = -1, fwyKey = '', fwyAsk = 0;
     const qlo = la => QLA / Math.cos(la * RAD) * 0.998, snap = (la, lo, m) => { const a = QLA * m, b = qlo(Math.round(la / a) * a) * m, cla = Math.round(la / a) * a; return [cla, Math.round(lo / b) * b, a, b]; };
     const here = () => [S.lat0 - S.z / S.ky, S.lon0 + S.x / S.kx];
     /* the streets round a point: the tile it is in, with 320 m to spare all round; asked once, then kept */
-    TF.ask = async (la, lo) => { const t = snap(la, lo, 1), k = t[0].toFixed(5) + ',' + t[1].toFixed(5); cur = t; askFwy(la, lo); let p = tiles.get(k); if (!p) { p = env.roads(t[0], t[1], 820); tiles.set(k, p); p.catch(() => tiles.delete(k)); if (tiles.size > 30) tiles.delete(tiles.keys().next().value); } const list = await p; if (list && list.tiger && !list.length) tiles.delete(k); return list; };
+    TF.ask = async (la, lo) => { const t = snap(la, lo, 1), k = t[0].toFixed(5) + ',' + t[1].toFixed(5); cur = t; askFwy(la, lo); let p = tiles.get(k); if (!p) { p = env.roads(t[0], t[1], 820); tiles.set(k, p); p.catch(() => tiles.delete(k)); if (tiles.size > 30) tiles.delete(tiles.keys().next().value); } const list = await p; if (list && list.tiger) tiles.delete(k);   /* the Census fallback is not kept: OpenStreetMap is asked again next time */ return list; };
     TF.stale = () => { if (S.hero && S.hero.on && Math.abs(S.hero.speed || 0) > 45) { const q = here(); if (fcur && (Math.abs(q[0] - fcur[0]) > fcur[2] * 0.62 || Math.abs(q[1] - fcur[1]) > fcur[3] * 0.62)) askFwy(q[0], q[1]); return false; }   /* over 100 mph the street set stays as it is and only the freeways keep coming */
       if (!cur) return !!S.roadsAt && Math.hypot(S.x - S.roadsAt[0], S.z - S.roadsAt[1]) > 230; const [la, lo] = here(); if (fcur && (Math.abs(la - fcur[0]) > fcur[2] * 0.62 || Math.abs(lo - fcur[1]) > fcur[3] * 0.62)) askFwy(la, lo); return Math.abs(la - cur[0]) > cur[2] * 0.62 || Math.abs(lo - cur[1]) > cur[3] * 0.62; };
     /* the freeways for several kilometres round, on their own: a small answer, and the far traffic has a road to run on */
@@ -50,6 +51,7 @@
     function fleetInit() { if (fleet) return; fleet = TYPES.map((t, i) => { const c = CK.get(i), e = scene.createEntity(t.name + 's on the freeway', { parent: group, transient: true }), sets = {};
         [['near', c.mid, c.rolling, 90], ['far', c.far, c.rolling, 0]].forEach(([k, mesh, mat, sh]) => { const ib = new InstanceBuffer(dev, 64), r = e.add('InstancedRenderer'); r.instances = ib; r.mesh = mesh; r.material = mat; r.castShadow = sh > 0; r.shadowDistance = sh || 1; sets[k] = ib; }); return sets; });
       big = {}; ['truck', 'box', 'bus', 'cable'].forEach(k => { const e = scene.createEntity('Traffic: ' + k, { parent: group, transient: true }), ib = new InstanceBuffer(dev, 16), r = e.add('InstancedRenderer'); r.instances = ib; r.mesh = bigMesh(k); r.material = mBig; r.shadowDistance = 120; big[k] = ib; });
+      { const B = new MeshBuilder(); B.box(0, 0.5, 0, 0.5, 0.5, 0.5, 0); const e = scene.createEntity('Traffic far off', { parent: group, transient: true }), ib = new InstanceBuffer(dev, 256), r = e.add('InstancedRenderer'); r.instances = ib; r.mesh = B.build(dev, { name: 'far car' }); r.material = mBig; r.castShadow = false; big.speck = ib; }
       const lamp = w => { const B = new MeshBuilder(); B.box(0.62, 0, 0, 0.2, 0.11, 0.07, 0); B.box(-0.62, 0, 0, 0.2, 0.11, 0.07, 0); return B.build(dev, { name: 'lamps' }); }; dots = {};
       [['head', mHead], ['tail', mTail]].forEach(([k, mat]) => { const e = scene.createEntity('Traffic lights far off: ' + k, { parent: group, transient: true }), ib = new InstanceBuffer(dev, 256), r = e.add('InstancedRenderer'); r.instances = ib; r.mesh = lamp(); r.material = mat; r.castShadow = false; dots[k] = ib; }); }
     const put = SE.tput = (ib, x, y, z, hx, hz, sp, col, a, sc) => { ib._grow(ib.count + 1); const d = ib.data, o = ib.count * 16, cp = Math.sqrt(1 - sp * sp), k = sc || 1; d[o] = hz * k; d[o + 1] = -hx * sp * k; d[o + 2] = hx * cp * k; d[o + 3] = x; d[o + 4] = 0; d[o + 5] = cp * k; d[o + 6] = sp * k; d[o + 7] = y; d[o + 8] = -hx * k; d[o + 9] = -hz * sp * k; d[o + 10] = hz * cp * k; d[o + 11] = z; d[o + 12] = col[0]; d[o + 13] = col[1]; d[o + 14] = col[2]; d[o + 15] = a == null ? 1 : a; ib.dirty = true; ib.count++; };
@@ -106,7 +108,7 @@
       /* the surface streets: cars per kilometre of lane by the hour, and the signals' cycle */
       const st = D.street(metro, hour, false); TR.dens = st.k; TR.cycle = st.cycle; if (ST.TT) ST.TT.bus = st.bus; TF.now = { hour: +hour.toFixed(2), metro: metro || 'none', street: st, within: Math.round(F.within || 0) };
       if (jump && TR.driveWays && TR.driveWays.length && gfx.life) TR.populate(CAP()[1], 77 + Math.round(hour * 10), [S.x, S.z, 0, 420]); }
-    TF.streetCars = () => CAP()[1];
+    TF.streetCars = () => { if (!gfx.life && fleet) { fleet.forEach(f => { f.near.clear(); f.far.clear(); }); for (const k in big) big[k].clear(); dots.head.clear(); dots.tail.clear(); } return CAP()[1]; };
 
     /* ---------- the user's car, and anything else that drives ---------- */
     const heroBox = () => { const h = S.hero; if (!h) return null; let hx = h.hx, hz = h.hz; if (hx == null) { const y = (h.yaw || 0) * RAD; hx = Math.sin(y); hz = -Math.cos(y); } return { x: h.x, z: h.z, hx, hz, v: h.on ? (h.speed || 0) : 0, hl: (h.len || 4.8) / 2, hw: (h.wid || 1.9) / 2, static: false, hero: true, dk: h.dk != null ? h.dk : (h.y != null ? h.y - GY(h.x, h.z) : null) }; };
@@ -132,10 +134,10 @@
       if (!demandAt || Math.hypot(eye[0] - demandAt[0], eye[1] - demandAt[1]) > 240 || Math.abs(TF.hour() - demandAt[2]) > 0.06) demand(eye);
       if (o.moving) { const n = Math.max(1, Math.min(3, Math.ceil(dt / 0.034))); for (let i = 0; i < n; i++) F.step(dt / n, eye); }
       fleet.forEach(f => { f.near.clear(); f.far.clear(); }); for (const k in big) big[k].clear(); dots.head.clear(); dots.tail.clear();
-      const lit = night > 0.12; mHead.emissiveIntensity = 60 * night; mTail.emissiveIntensity = 26 * night; const ey = cam[1], white = WHITE;
+      const lit = night > 0.12, bodyR = CAP()[2]; mHead.emissiveIntensity = 60 * night; mTail.emissiveIntensity = 26 * night; const ey = cam[1], white = WHITE;
       for (const c of F.cars) { if (c.seg.hide) continue; const dx = c.x - eye[0], dz = c.z - eye[1], y = GY(c.x, c.z) + c.dk, d = Math.sqrt(dx * dx + dz * dz + (ey - y) * (ey - y)); if (c.halt > 0) { c.halt -= dt; c.v = 0; }
         const sp = d < 400 ? (S.gy && c.dk < 0.3 ? pitchOf(c, c.hl) : c.dkS || 0) : 0;
-        if (c.kind === 'car') { if (d < 1500 || !lit) put(fleet[c.ty][d < 150 ? 'near' : 'far'], c.x, y, c.z, c.hx, c.hz, sp, c.col, c.halt > 0 ? 0.5 : c.brake ? 0.75 : 1); }
+        if (c.kind === 'car') { if (d < bodyR) put(fleet[c.ty][d < 150 ? 'near' : 'far'], c.x, y, c.z, c.hx, c.hz, sp, c.col, c.halt > 0 ? 0.5 : c.brake ? 0.75 : 1); else if (night < 0.6) big.speck.add(c.x, y + 0.25, c.z, c.yaw, c.hw * 2, 1.25, c.hl * 2, c.col[0], c.col[1], c.col[2], 1); }
         else { if (!c.col) c.col = c.kind === 'bus' ? TF.busCol() : c.kind === 'cable' ? white : [[0.95, 0.95, 0.93], [0.8, 0.82, 0.85], [0.75, 0.2, 0.15], [0.2, 0.35, 0.6], [0.93, 0.8, 0.25]][Math.floor(c.tint * 5)]; put(big[c.kind], c.x, y, c.z, c.hx, c.hz, sp, c.col, 1); }
         if (lit && d > 110) { const k = clamp(d / 240, 1, 7); put(dots.head, c.x + c.hx * (c.hl + 0.1), y + 0.7, c.z + c.hz * (c.hl + 0.1), c.hx, c.hz, 0, white, 1, k); put(dots.tail, c.x - c.hx * (c.hl + 0.1), y + 0.85, c.z - c.hz * (c.hl + 0.1), c.hx, c.hz, 0, white, 1, k * (c.brake ? 1.35 : 0.9)); } }
       /* the street traffic's buses (StreetKit hands over what its own five bodies cannot draw) */

@@ -28,3 +28,9 @@ From the topo job
 - Climate zone by ZIP (CEC list) is in CA/scout/topo/dl and topo_extra_data.js: have the data build add `cz` to the ZIP table.
 - port_topo.py is applied to scout.js at assembly (anchors listed in its report; Scout job told to keep them).
 - Not built: wind in passes, marine layer, tule fog notes (no evidence); spine lines.
+
+From the core job
+- `fhsz_sh` is a share of the ZIP's land, not homes: module 06's label still says "Homes".
+- Service line seasons are flat until `ts.rain` and `ts.month` are merged; re-run CA/work_core/test_core.js after the merge.
+- `SLM.DEF` click cost, lead and close rates carried from Louisiana as grade D assumptions (no California evidence).
+- Footer source list is static text; `meta.econ` not wired (CA_FACTS typed in module 04 with source printed).

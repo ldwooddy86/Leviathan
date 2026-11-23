@@ -13,3 +13,7 @@ NEXT: 24 (patch), 17 (patch), 16 (rewrite), 31 (rewrite/patch); then smoke build
 - data exists now (CA/data/out/ca_atlas_data.json; hazard merge interim: ts.month/hour empty, pts empty). HZ/HC in 09 set to final HAZARD_SCHEMA names (p_hz.py); hazard LAYERS rewritten (p_lay.py).
 NEXT: build with CA data + headless test (work_core/test_*.js); word search; report.
 - first full test on CA data passed (no page errors; 150 layers draw). p_fix2.py: wording, land fill under ZIPs.
+2026-11-23 STATE: ALL OWNED FILES DONE, parse, render on CA data (test_core.js: no page errors, 150 layers, 13 lines, cg. keys).
+Patches applied in order: p_html, p_core, p_brand(2), p_shell, p_hc, p_m12, p_m12b, p_m05, (16 = head + m04_tail.js), p_m17, p_fix1..6, p_hz, p_lay.
+Waiting on others: hazard merge (ts.rain, ts.month, ts.hour, pts, snow_psf, ar_days, hail1_n25, stress): code reads them when present.
+Test pages: work_core/out/ca_test.html (real data), ca_synth.html (made-up ts series, test only).

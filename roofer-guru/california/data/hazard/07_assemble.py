@@ -37,14 +37,14 @@ for k in keys:
     d['ar_days'] = rnd(d['ar2d'] + d['ar3d'] + d['ar4d'] + d['ar5d'], 2); d['ar3_d'] = rnd(d['ar3d'] + d['ar4d'] + d['ar5d'], 2)
     d['fhsz_sh'] = rnd(min(100.0, d['fhsz_vh'] + d['fhsz_high']), 1)
     c = d['coast_km']; e = d['elev_pt_m'] or 0; tj = d['tjul']
-    d['salt_cls'] = 3 if c <= 1 else 2 if c <= 5 else 1 if c <= 15 else 0
+    d['salt_cls'] = 3 if c <= 0.5 else 2 if c <= 1.6 else 1 if c <= 5 else 0   # steel panel makers' warranty distances: see roof_hazard_model.md section 6
     d['marine_cls'] = 3 if (c <= 8 and e < 300 and tj < 76) else 2 if (c <= 30 and e < 500 and tj < 84) else 1 if (c <= 60 and e < 600 and tj < 90) else 0
     sr = 100 * (min(1, d['rain_d1'] / 15.0) + min(1, d['ar3_d'] / 5.0)) / 2
     sw = 100 * (0.5 * min(1, d['g58'] / 2.0) + 0.3 * min(1, d['wd58'] / 15.0) + 0.2 * d['off_cls'] / 3.0)
     sf = 100 * min(1, 0.6 * (d['fhsz_vh'] + 0.5 * d['fhsz_high'] + 0.2 * d['fhsz_mod']) / 100.0 + 0.25 * min(1, d['burn_sh'] / 30.0) + 0.15 * (1 if d['fire_dest'] > 0 else 0))
     shh = 100 * min(1, d['h100'] / 60.0)
     ss = 100 * min(1, (d['snow_psf'] or 0) / 300.0)
-    sa = 100 * max(0, 1 - c / 10.0)
+    sa = 100 * max(0, 1 - c / 5.0)
     parts = {'rain': sr, 'wind': sw, 'fire': sf, 'heat': shh, 'snow': ss, 'salt': sa}
     for n, v in parts.items():
         d['st_' + n] = int(round(v))
@@ -73,6 +73,12 @@ n1 = jdump({'compiled': COMPILED, 'n': len(rows), 'cols': COLS, 'rows': rows, 'n
 # =====================================================================  2. events
 fires = fj['fires']
 fema = are['fema']
+for d in fema:   # FEMA files two California declarations for Tropical Storm Hilary (August 2023) and one 2005 evacuation under the incident type "Hurricane"
+    if d['kind'] == 'Hurricane':
+        if d['dr'] == 3248:
+            d['kind'] = 'Other'; d['title'] = 'Evacuation From An Out Of State Disaster'
+        else:
+            d['kind'] = 'Severe Storm'
 nmz = lambda s: re.sub(r'[^a-z0-9]+', ' ', (s or '').lower()).strip()
 GENERIC = {'fire', 'fires', 'complex', 'the', 'wildfire', 'wildfires', 'lightning', 'unnamed', 'and', 'lake', 'creek', 'valley', 'river', 'canyon', 'mountain', 'point', 'hill', 'park'}
 for f in fires:

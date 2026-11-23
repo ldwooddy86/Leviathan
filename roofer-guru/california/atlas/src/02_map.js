@@ -5,14 +5,13 @@
 /* ============================ California map (SVG, offline): ZIPs, counties, bays and lakes, neighbors, located reports ============================
    The data sets the frame (geo.W, H, minx, maxy, kx, sx and geo.u); nothing about the frame is typed here. geo.u is the
    number of view box units per unit of the 2,400 wide frame the constants below were first written for (2 at W = 4800).
-   Data keys that keep their first names (SCHEMA.md section 0.1): geo.parish = the 58 county shapes by FIPS, geo.pcent =
-   county label points. On screen a county is always a County. */
+   Two data keys keep the names the first edition gave them (SCHEMA.md section 0.1): the county shapes by FIPS, read
+   below into GEO_COUNTY, and geo.pcent, the county label points. Everything in code and on screen says county. */
 const GEO = DATA.geo;
 const GEO_U = isN(GEO.u) && GEO.u > 0 ? +GEO.u : GEO.W / 2400;
 const GEO_COUNTY = GEO['parish'] || GEO.county || {};
 function proj(lon, lat) { return [(lon - GEO.minx) * GEO.kx * GEO.sx, (GEO.maxy - lat) * GEO.sx]; }
 const COUNTY_LABEL = (() => { const out = {}; FIPS.forEach(f => { const c = (GEO.pcent || {})[f]; if (c) out[f] = proj(c[0], c[1]); }); return out; })();
-const PARISH_LABEL = COUNTY_LABEL;   /* first name, kept for any reader that still uses it */
 /* a Census place name for a label: "San Buenaventura (Ventura)" reads Ventura, "El Paso de Robles (Paso Robles)" reads Paso Robles */
 const placeLabel = n => { const m = /\(([^)]+)\)\s*$/.exec(String(n || '')); return m ? m[1] : String(n || ''); };
 /* Town labels, rebuilt for California from the data's places (Census places of 10,000 or more and every county seat).
@@ -26,7 +25,10 @@ const MAP_CITIES = (() => {
   const keep = ['Weaverville', 'Quincy', 'Downieville', 'Markleeville', 'Bridgeport', 'Independence', 'Mariposa', 'Sonora', 'San Andreas', 'Jackson', 'Placerville', 'Auburn', 'Nevada City', 'Grass Valley', 'Lakeport', 'Willows', 'Colusa', 'Red Bluff', 'Oroville', 'Paradise', 'Mount Shasta', 'Weed', 'Arcata', 'Fortuna', 'Clearlake', 'Tahoe City', 'Lone Pine', 'Big Bear Lake', 'Lake Arrowhead', 'Idyllwild', 'Julian', 'Borrego Springs', 'Twentynine Palms', 'Yucca Valley', 'Joshua Tree', 'Brawley', 'Calexico', 'Avalon', 'Malibu', 'Ojai', 'Solvang', 'Lompoc', 'Morro Bay', 'Cambria', 'Paso Robles', 'King City', 'Hollister', 'Carmel', 'Half Moon Bay', 'Point Reyes Station', 'Bodega Bay', 'Calistoga', 'Healdsburg', 'Sonoma', 'Tehachapi', 'Mojave', 'California City', 'Coalinga', 'Los Banos', 'Oakdale', 'Yosemite Valley', 'Three Rivers', 'Wrightwood', 'Coronado', 'Ramona', 'Pacific Palisades', 'Altadena'];
   const list = PLACES.filter(c => isN(c.lat) && isN(c.lon)).map(c => { const name = placeLabel(c.name); const pop = +c.pop || 0;
     const tier = pop >= 400000 ? 0 : (pop >= 150000 || anchors.includes(name)) ? 1 : (pop >= 60000 || c.seat) ? 2 : (pop >= 25000 || keep.includes(name)) ? 3 : 4;
-    return { name, pop, tier, seat: !!c.seat, lat: c.lat, lon: c.lon }; }).sort((a, b) => a.tier - b.tier || b.pop - a.pop);
+    /* the dot sits where the people are: the population weighted centre of the postal city of the same name when the data
+       has one nearby (a Census internal point can fall offshore: San Francisco's place includes the Farallon Islands) */
+    const pc = CITYI[name] || CITYI[c.name]; const usePc = pc && isN(pc.lat) && isN(pc.lon) && Math.abs(pc.lat - c.lat) < 0.5 && Math.abs(pc.lon - c.lon) < 0.5;
+    return { name, pop, tier, seat: !!c.seat, lat: usePc ? pc.lat : c.lat, lon: usePc ? pc.lon : c.lon }; }).sort((a, b) => a.tier - b.tier || b.pop - a.pop);
   const placed = []; const out = []; const near = 4 * GEO_U;
   list.forEach(c => { const [x, y] = proj(c.lon, c.lat); if (x < 0 || y < 0 || x > GEO.W || y > GEO.H) return; if (placed.some(p => Math.abs(p[0] - x) < near && Math.abs(p[1] - y) < near)) return; placed.push([x, y]); out.push({ name: c.name, x, y, major: c.tier === 0, tier: c.tier, pop: c.pop, seat: c.seat }); });
   return out;
@@ -50,10 +52,6 @@ const SEGS = (DATA.seg || []).map((s, i) => ({ i, r: s[0], d: s[1], v: s[2], cat
 class ZipMap {
   constructor(host, opts) {
     this.o = Object.assign({ labels: true, countyLabels: false, waterLabels: true, roads: false, segHit: 'wide', onSelect: null, onHover: null, aria: 'Map of California ZIP codes' }, opts || {});
-    /* options under their first names are honoured: other modules pass them */
-    if (opts && opts['parishLabels'] != null) this.o.countyLabels = !!opts['parishLabels'];
-    if (opts && opts['onParish'] && !this.o.onCounty) this.o.onCounty = opts['onParish'];
-    if (opts && opts['onParishHover'] && !this.o.onCountyHover) this.o.onCountyHover = opts['onParishHover'];
     this.host = host; this.k = 1; this.tx = 0; this.ty = 0; this.sel = null; this.pinsData = []; this.ptsData = []; this.mode = 'zip';
     const W = GEO.W, H = GEO.H; this.W = W; this.H = H; this.U = GEO_U;
     host.innerHTML = `<div class="mapbox"><svg class="mapsvg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(this.o.aria)}"></svg><div class="maptools"><button type="button" data-z="in" title="Zoom in" aria-label="Zoom in">+</button><button type="button" data-z="out" title="Zoom out" aria-label="Zoom out">−</button><button type="button" data-z="reset" title="Reset view" aria-label="Reset view">⟲</button></div></div>`;
@@ -189,10 +187,7 @@ class ZipMap {
   setCountyLabels(on) { this.o.countyLabels = on; this.apply(); }
   setWaterLabels(on) { this.o.waterLabels = on; this.apply(); }
 }
-/* methods under their first names, for the modules that still call them (they act on counties) */
-[['fitParishes', 'fitCounties'], ['fillParish', 'fillCounty'], ['dimParish', 'dimCounty'], ['selectParish', 'selectCounty'], ['setParishLabels', 'setCountyLabels']].forEach(([a, b]) => { ZipMap.prototype[a] = ZipMap.prototype[b]; });
 function legendHTML(o) {
   const R = o.R || []; return `<div><div class="lt">${o.title}</div><div class="ramp">${R.map(c => `<i style="background:${c}"></i>`).join('')}</div><div class="rlabs"><span>${o.lo}</span><span>${o.hi}</span></div></div><div class="dn">${o.note || ''}</div>`;
 }
 const countyTip = (f, rows) => { const p = PAI[f]; if (!p) return ''; return `<div class="tt">${esc(p.name)} County</div><div class="ts">${esc(REGN[p.reg] || '')} · ${N(p.hu)} homes · ${N(p.pop)} residents</div>${(rows || []).map(r => tipRow(r[0], r[1])).join('')}<div class="tf">Click for the county ledger</div>`; };
-const parishTip = countyTip;   /* first name, kept for the modules that still call it */

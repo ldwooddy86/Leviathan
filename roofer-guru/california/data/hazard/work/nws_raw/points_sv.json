@@ -92,15 +92,15 @@
         "timeZone": "America/Los_Angeles",
         "radarStation": "KDAX",
         "astronomicalData": {
-            "sunrise": "2026-11-18T06:51:33-08:00",
-            "sunset": "2026-11-18T16:50:52-08:00",
-            "transit": "2026-11-18T11:51:12-08:00",
-            "civilTwilightBegin": "2026-11-18T06:23:06-08:00",
-            "civilTwilightEnd": "2026-11-18T17:19:19-08:00",
-            "nauticalTwilightBegin": "2026-11-18T05:50:52-08:00",
-            "nauticalTwilightEnd": "2026-11-18T17:51:32-08:00",
-            "astronomicalTwilightBegin": "2026-11-18T05:19:21-08:00",
-            "astronomicalTwilightEnd": "2026-11-18T18:23:04-08:00"
+            "sunrise": "2026-11-23T06:56:53-08:00",
+            "sunset": "2026-11-23T16:48:02-08:00",
+            "transit": "2026-11-23T11:52:27-08:00",
+            "civilTwilightBegin": "2026-11-23T06:28:08-08:00",
+            "civilTwilightEnd": "2026-11-23T17:16:47-08:00",
+            "nauticalTwilightBegin": "2026-11-23T05:55:38-08:00",
+            "nauticalTwilightEnd": "2026-11-23T17:49:17-08:00",
+            "astronomicalTwilightBegin": "2026-11-23T05:23:55-08:00",
+            "astronomicalTwilightEnd": "2026-11-23T18:20:59-08:00"
         },
         "nwr": {
             "transmitter": "KEC57",
