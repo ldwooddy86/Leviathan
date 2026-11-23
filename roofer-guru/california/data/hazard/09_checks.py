@@ -130,5 +130,6 @@ S9 = ['## 9. Measured results', '', 'Written by `09_checks.py` on %s. Checks: %d
       'Statewide: %s destroyed and %s damaged structures in the inspections 2013 to 2025; %d ZIPs with a destroyed or damaged structure; %d ZIPs with Very High zone land; %d ZIPs touched by a perimeter since 2000.' % (
           format(sum(f['dest'] or 0 for f in F), ','), format(sum(f['dmg'] or 0 for f in F), ','), sum(1 for z in Z.values() if z['lastfire']), sum(1 for z in Z.values() if z['fhsz_vh'] > 0), sum(1 for z in Z.values() if z['fire_n'])),
       '']
-open(sp, 'w').write(s[:i] + '\n'.join(S9))
+tail = s[s.index('\n## 10.'):] if '\n## 10.' in s else ''   # section 10 (answers to the module writers) is kept
+open(sp, 'w').write(s[:i] + '\n'.join(S9) + tail)
 log('checks', npass, 'of', len(res), 'passed; sizes', sizes)

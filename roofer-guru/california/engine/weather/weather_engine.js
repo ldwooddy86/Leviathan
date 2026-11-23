@@ -248,7 +248,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
     function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
       env.snowK = [now.snow, K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9, 45, now.pond];
       const d = now.dark, on = d > 0.001 || Math.abs(now.temp) > 0.001 || Math.abs(now.sat) > 0.001 || Math.abs(now.expo) > 0.001;
-      if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo; RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
+      if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo + 1.25 * snowAir * now.snow;   /* a snow scene is bright under any sky: the meter would turn it grey, as a camera does, so it is opened up a stop and a bit */ RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
       else if (graded) { graded = false; RS.exposure = G0.exposure; RS.saturation = G0.saturation; RS.temperature = G0.temperature; RS.contrast = G0.contrast; } }   /* the last of the grade is let go exactly, so nothing of a storm is left in the picture */
     /* once a frame: slide toward the steps, move the air, time the lightning. 2 while the scene is still sliding, 1 while only rain, snow, dust or ash move, 0 at rest. */
     K.update = (dt, cam, live) => {
@@ -291,7 +291,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
         dev.bind(R.T.hdrFlatT); dev.state({ depthTest: false, cull: 'none', blend: 'alphaT' }); p.use().sets({ u_viewProj: cam.viewProj, u_view: cam.view, u_camPos: cam.position, u_depth: R.T.depth, u_res: [R.w, R.h], u_nearFar: [cam.near, cam.far], u_light: light, u_mix: [now.roofing, now.frond] }); dev.vao(vao);
         const C = COUNT[tier] || 12000, SP = SPRAY[tier] || 300, hw = 0.0012 + (STORM[K.level].dropMm || 1.4) * 0.0006, gy = o.ground ? o.ground() : 0;
         if (rk > 0.01) { layer(0, [44, 26, 44], C * rk * 0.75, 0, hw * 1.3, 0.033, 0, 0.36, 1); layer(0, [15, 10, 15], C * rk, 0, hw, 0.033, 0, 0.6, 2); }
-        if (nk > 0.01) { const SNOW = [1.5, 1.55, 1.65, 0]; layer(3, [40, 24, 40], C * nk * 0.8, 3, 0.02, 0.033, 0, 0.8, 6, SNOW); layer(3, [13, 9, 13], C * nk * 0.55, 3, 0.011, 0.033, 0, 0.95, 7, SNOW); }
+        if (nk > 0.01) { const SNOW = [2.6, 2.65, 2.8, 0]; layer(3, [40, 24, 40], C * nk * 0.8, 3, 0.03, 0.009, 0, 0.85, 6, SNOW); layer(3, [13, 9, 13], C * nk * 0.55, 3, 0.016, 0.009, 0, 1, 7, SNOW); }   /* a flake is a matte white thing lit by the whole sky, and bright against a storm; its streak is short */
         if (rk > 0.4) layer(1, [26, 0.42, 26], SP * 0.7 * rk, 1, 0.42, 0, gy, 0.06 * rk, 5);   /* heavy rain: spray standing just above the pavement */
         if (now.spray > 0.01 && rk > 0.01) layer(1, [72, 9, 72], SP * 0.6 * now.spray, 1, 2.1, 0, gy, 0.02 + 0.035 * now.spray, 3);
         if (now.dust > 0.01) layer(1, [70, 6, 70], SP * 2.4 * now.dust, 1, 2.4, 0, gy, 0.05 + 0.1 * now.dust, 8, [1.25, 1.02, 0.72, 0]);   /* dust lifted off dry ground */

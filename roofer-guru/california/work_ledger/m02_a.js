@@ -13,6 +13,9 @@ const MONL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'A
 const hourLab = h => h < 0 ? 'hour unknown' : h === 0 ? '12 a.m.' : h < 12 ? h + ' a.m.' : h === 12 ? '12 p.m.' : (h - 12) + ' p.m.';
 const listAnd = a => a.length <= 1 ? (a[0] || '') : a.length === 2 ? a[0] + ' and ' + a[1] : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
 const cap1 = s => String(s || '').charAt(0).toUpperCase() + String(s || '').slice(1);
+/* atmospheric river days of AR2 or stronger: the sum of the rank columns when the data does not carry the total (HAZARD_SCHEMA.md 1b) */
+Z.forEach(z => { if (z.ar_days == null && isN(z.ar2d)) z.ar_days = +((+z.ar2d || 0) + (+z.ar3d || 0) + (+z.ar4d || 0) + (+z.ar5d || 0)).toFixed(2); });
+const zHas = c => ZC.includes(c) || Z.some(z => z[c] != null);
 /* located report kinds (the data's own list when it carries one): 0 hail (inches), 1 thunderstorm wind (mph), 2 tornado (EF), 3 flood,
    4 flash flood, 5 debris flow, 6 heavy rain (inches), 7 wind gust outside thunderstorms (mph) */
 const KIND_L = (() => { const d = ['Hail', 'Thunderstorm wind', 'Tornado', 'Flood', 'Flash flood', 'Debris flow', 'Heavy rain', 'Wind gust']; (DATA.ptkinds || []).forEach(o => { if (o && isN(o.k) && o.name) d[o.k] = cap1(String(o.name)); }); return d; })();

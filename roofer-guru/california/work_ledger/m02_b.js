@@ -8,7 +8,7 @@ registerModule({
     const fy = L.fires.map(f => f.year).filter(isN); const Y0 = fy.length ? Math.min(2000, ...fy) : 2000; const Y1 = CUR;
     const YRS = []; for (let y = Y0; y <= Y1; y++) YRS.push(y);
     const st = { lay: { fire: true, ar: true, wind: true, pts: true }, filt: 'all', shade: '', y0: Math.max(Y0, 2013), y1: Y1, par: '', reg: '', fire: null, ar: null, wind: null, pt: null, zip: null, hm: 'count', yk: '' };
-    const has = c => ZC.includes(c);
+    const has = c => zHas(c);
     /* ZIP shadings: only the columns this build of the data carries */
     const SH = [['fhsz_sh', 'Share of the ZIP in a High or Very High Fire Hazard Severity Zone (%)', v => P(v, 0), 'A'], ['fhsz_vh', 'Share of the ZIP in a Very High Fire Hazard Severity Zone (%)', v => P(v, 0), 'A'], ['burn_sh', 'Share of the ZIP inside a fire perimeter since 2000 (%)', v => P(v, 0), 'A'], ['fire_dest', 'Structures destroyed by wildfire in the ZIP, 2013 to 2025', v => N(v), 'A'],
       ['ar_days', 'Atmospheric river days a year, AR2 or stronger (at the ZIP\'s stretch of coast)', v => D(v, 1), 'B'], ['rain_d1', 'Days a year with 1 inch of rain or more', v => D(v, 1), 'A'], ['rain_in', 'Rain in a normal year (inches)', v => D(v, 1), 'A'], ['g58', 'Days a year with a gust of 58 mph or more at the nearest screened station', v => D(v, 2), 'B'], ['wd58', CLIM_L.wd58, v => D(v, 1), 'B'],

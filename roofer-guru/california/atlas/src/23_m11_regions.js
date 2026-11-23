@@ -12,7 +12,7 @@ registerModule({
     const CUR = +String(META.compiled || '2026').slice(0, 4);
     const NR = REG_KEYS.length, NC = CO.length;
     /* first column of the ZIP table that exists under one of these names (hazard column names are the hazard build's to choose) */
-    const col = (...names) => names.find(n => ZC.includes(n)) || null;
+    const col = (...names) => names.find(n => ZC.includes(n)) || names.find(n => Z.some(z => z[n] != null)) || null;
     const C = {
       rain: col('rain_in', 'rain_yr', 'prcp_in'), rd1: col('rd1', 'rain1', 'rday1', 'rain_d1'), ar: col('ar_days', 'ar2', 'ard', 'ar_yr'), gust: col('g58', 'gust58', 'gd58'), gust40: col('g40', 'gust40', 'gd40'), lsr: col('wd58'),
       heat: col('heat100', 'h100', 'hd100'), heat110: col('heat110', 'h110', 'hd110'), snow: col('snow_psf', 'snow_load', 'pg'), hail: col('hd1', 'hail1'),

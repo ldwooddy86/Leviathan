@@ -166,11 +166,13 @@ for e in events:
                     fips.add(c)
     g = None
     for q in rows:
-        if q['magt'] == 'MG' and q['mag']:
+        # measured gusts (MG); records before 2006 often leave the type blank, and those are used and marked
+        if q['magt'] in ('MG', '') and q['mag'] and (q['magt'] == 'MG' or q['y'] < 2006):
             mph = q['mag'] * MPH
             if g is None or mph > g[0]:
                 v = q.get('_v')
-                g = (mph, q['czn'].title(), (zi.v[v]['ilat'] or zi.v[v]['clat']) if v is not None else None, (zi.v[v]['ilon'] or zi.v[v]['clon']) if v is not None else None, 'Storm Events')
+                g = (mph, q['czn'].title() if v is not None else None, (zi.v[v]['ilat'] or zi.v[v]['clat']) if v is not None else None, (zi.v[v]['ilon'] or zi.v[v]['clon']) if v is not None else None,
+                     'Storm Events' if q['magt'] == 'MG' else 'Storm Events (measured or estimated not stated)')
     n58 = None
     if e['b'].year >= 2004:
         i0 = bisect.bisect_left(lt, e['b'] - datetime.timedelta(hours=6)); i1 = bisect.bisect_right(lt, e['e'] + datetime.timedelta(hours=12))

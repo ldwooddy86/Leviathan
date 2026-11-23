@@ -17,7 +17,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   let first = true;
   for (const place of PLAN) {
     await page.fill('#scFind', place.addr); await page.press('#scFind', 'Enter'); await settle(150000); await wait(2500);
-    if (first) { await page.click('#scMode button[data-v="eng"]'); first = false; }
+    if (first) { await page.click('#scMode button[data-v="eng"]', { timeout: 240000, noWaitAfter: true }); first = false; }
     let s = null;
     for (let i = 0; i < 30; i++) { await wait(3000); s = await page.evaluate(() => { const en = MODI.rooftops.api.en(); if (!en) return null; const st = en.state(); return { built: st.built, queued: st.queued, roads: st.roads, lat: st.lat, lon: st.lon }; }); if (s && s.built > 20 && !s.queued && s.roads && i > 5) break; }
     console.log('PLACE', place.addr, JSON.stringify(s));

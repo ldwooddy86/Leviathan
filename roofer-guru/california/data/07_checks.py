@@ -50,7 +50,7 @@ check('ZIP codes are unique and match 9[0-6]ddd', len({z['zip'] for z in Z}) == 
 for k in ('seg', 'routes', 'rlist', 'sids'):
     check('hurricane key %s is empty' % k, D[k] == [])
 check('hurricane key zstorm is empty', D['zstorm'] == {})
-bad = [c for c in cols if re.search(r'^hur|ts34|n64|n50_00|vmax|last64|yrs64|hail|fortified|french', c)]
+bad = [c for c in cols if re.search(r'^hur|ts34|n64|n50_00|vmax|last64|yrs64|^[prfz]_hail|fortified|french', c)]
 check('no hurricane, hail line, FORTIFIED or French column', not bad, bad)
 check('no Louisiana wording in keys or meta', not re.search(r'Louisiana|[Pp]arish(?!es")|LSLBC|FORTIFIED', json.dumps(M)) , '')
 

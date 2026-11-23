@@ -1,8 +1,7 @@
 # HAZARD_SCHEMA.md: California weather and fire data (what replaces Louisiana's hurricane model)
 
-Second issue, 2026-11-23. Names and shapes in this file are FIXED: module writers can code against them now.
-Each output's line in the table says whether the file is on disk yet; section 9 (written last) carries the measured
-sizes, counts and check results. Nothing here is a hurricane: no tracks, categories, surge or tropical outlooks.
+Third issue, 2026-11-23. Every file below is BUILT and on disk; names and shapes are final. Section 9 (rewritten by
+the check step on every build) carries the measured sizes, counts and check results. Nothing here is a hurricane: no tracks, categories, surge or tropical outlooks.
 
 Folder `CA/data/hazard/`. Build: `bash build_hazard.sh` (Python 3 with `-I`; steps 01 to 09, then 10 for the live
 weather read). Outputs in `CA/data/hazard/out/`:
@@ -61,7 +60,7 @@ function hzPath(rings, G) { /* rings: [[[lon, lat], ...], ...]; G = DATA.geo */
 
 ## 1. `zcta_hazard.json`: one row per ZIP
 
-`{compiled, n, cols: [names], rows: [[values in cols order]], notes: {topic: text}}`. First column `zip`. The data job
+`{compiled, n, cols: [names], rows: [[values in cols order]], nulls: {column: [ZIPs with null, reason]}, notes}`. 135 columns, first column `zip`. The data job
 reads it with `03_hazard_in.py` (it finds the `zip` column and carries every other column whole).
 
 ### 1a. Place
@@ -133,7 +132,7 @@ would be better than stations in steep country.
 | `off_kind` | `sa`, `di`, `su`, `` | the offshore wind named most often for the zone |
 | `off_cls` | 0 to 3 | exposure class from the count of the named kind: 0 none; 1 occasional (1 to 4 episodes in 20 years); 2 regular (5 to 19); 3 frequent (20 or more, one a year). Grade C (my rule) |
 | `asce_wind` | mph | ASCE 7-22 basic wind speed, Risk Category II (700 year), sampled at the town point from ASCE's own image service, else the nearest point of the 0.05 degree grid on disk. The service does not state units; read as mph (unconfirmed, as the sources file says) |
-| `asce_swr` | 0/1 | 1 when the town point is in ASCE's California special wind region (the mapped speed does not apply; the local building department sets it). Null when the live sample could not be taken |
+| `asce_swr` | mph | the speed ASCE's California special wind region service returns at the town point. That service answers only in parts of Kern County and the Indian Wells Valley (5 ZIPs: Inyokern, Mojave, California City, Rosamond, Cantil); null everywhere else. It is not a statewide flag of special wind regions: none was obtained |
 
 ### 1e. Wildfire (grade A)
 
@@ -198,7 +197,7 @@ hail reports in 69 years for the whole state, 349 of one inch or more. Most ZIPs
 
 | column | meaning |
 |---|---|
-| `salt_cls` | 0 to 3 from `coast_km`: 3 within 1 km of salt water, 2 within 5 km, 1 within 15 km, 0 beyond. The breaks are my choice (grade D); the roofing evidence has no California distance rule |
+| `salt_cls` | 0 to 3 from `coast_km` (town point): 3 within 0.5 km of salt water (inside every steel panel maker's surf distance in the evidence, 1,500 to 2,800 feet), 2 within 1.6 km (one maker gives no warranty within a mile), 1 within 5 km (my choice), 0 beyond. Grade C: makers' warranty terms, not measured corrosion. Use `coast_min_km` for the part of the ZIP nearest the water |
 | `marine_cls` | 0 to 3, marine layer exposure (grade D, my rule): 3 `coast_km` 8 or less and town below 300 m and `tjul` under 76 F; 2 `coast_km` 30 or less, below 500 m, `tjul` under 84 F; 1 `coast_km` 60 or less, below 600 m, `tjul` under 90 F; else 0. No observed cloud or fog climatology was used: none was collected |
 
 ### 1j. Roof weather stress score (grade D: a ranking aid, not a physical quantity)
@@ -212,7 +211,7 @@ Six parts, each 0 to 100, and a weighted sum. Every weight and cap is my choice,
 | `st_fire` | `100 x min(1, 0.6 (fhsz_vh + 0.5 fhsz_high + 0.2 fhsz_mod) / 100 + 0.25 min(1, burn_sh / 30) + 0.15 [fire_dest > 0])` |
 | `st_heat` | `100 x min(1, h100 / 60)` |
 | `st_snow` | `100 x min(1, snow_psf / 300)` |
-| `st_salt` | `100 x max(0, 1 - coast_km / 10)` |
+| `st_salt` | `100 x max(0, 1 - coast_km / 5)` |
 | `stress` | `0.25 st_rain + 0.25 st_wind + 0.25 st_fire + 0.10 st_heat + 0.10 st_snow + 0.05 st_salt`, rounded |
 | `st_top` | which part is largest: `rain`, `wind`, `fire`, `heat`, `snow`, `salt` |
 
@@ -234,20 +233,20 @@ inspection incident with damage that matches no perimeter. Sorted by year, then 
 
 | field | meaning |
 |---|---|
-| `id` | `F<year>_<FRAP object id>`, or `D<year>_<name>` for an incident without a perimeter |
+| `id` | `F<year>_<FRAP object id>`, or `D<year>_<name>` for an incident without a perimeter. Optional keys are left out of a record when empty; `dest` and `dmg` are always present |
 | `name`, `year`, `start`, `cont`, `month` | FRAP fire name (title case; `Unnamed` when blank), year, alarm date and containment date `YYYY-MM-DD` (null when FRAP has none), alarm month |
 | `acres` | area of the perimeter computed from its outline (FRAP `GIS_ACRES` agrees to rounding); null without a perimeter |
 | `dest`, `dmg` | structures destroyed, and damaged (major + minor + affected), in the damage inspections tied to this perimeter. **Null for fires before 2013** (no digital inspection records: Cedar 2003, Witch 2007 and the rest have no count here, and none was invented); 0 for a 2013 or later fire with no inspection record |
-| `dest_res` | residences among `dest` |
-| `insp` | all structures inspected (undamaged included); 2018 and later only, else null |
-| `dins` | the inspection incident names tied to the perimeter (up to three) |
-| `cause` | FRAP cause text (Lightning, Equipment Use, Arson, Powerline ...), null when not coded |
-| `agency`, `complex` | FRAP agency code and complex name |
+| `dest_res` | residences among `dest` (optional key) |
+| `insp` | all structures inspected, undamaged included; fires of 2018 and later only (optional key) |
+| `dins` | inspection incident names tied to the perimeter, only where they differ from `name` (optional key) |
+| `cause` | FRAP cause text (Lightning, Equipment Use, Arson, Electrical Power ...) (optional key) |
+| `complex` | FRAP complex name (optional key) |
+| `q` | absent for a normal record; 1 = fire before 2013, structure counts not known (`dest`, `dmg` null); 2 = inspection incident with no perimeter in the FRAP set (no `d`; `lat`, `lon` = mean of its damaged structures; the km in `zfire` is to that point) |
 | `fips` | counties (FIPS) of the ZIPs the perimeter covers or where it damaged structures |
 | `lat`, `lon` | a point inside the perimeter (or the mean of the damaged structures when there is no perimeter) |
-| `d` | the outline as an atlas path (outer rings only, simplified; parts under 2% of the fire dropped); null without a perimeter |
-| `dr` | FEMA declaration numbers tied by name and year (fire management, major disaster or emergency), `[]` when none |
-| `note` | why a count is null, or how a perimeter-less incident was placed |
+| `d` | the outline as an atlas path (outer rings only; simplified with a tolerance of the larger of 60 m and sqrt(area) / 40; parts under 2% of the fire dropped, at most 8 parts). Absent without a perimeter |
+| `dr` | FEMA declaration numbers (optional key). Tied when a fire declaration's title holds the fire's name and its incident period starts within 21 days of the alarm date in a county the fire touched; or, for fires of 50 or more structures destroyed or 20,000 acres, when a major disaster or emergency for fire in one of its counties covers the alarm date. Grade C: FEMA titles such as "Wildfires" cover several fires |
 
 How inspections are tied to perimeters: each inspected structure goes to the perimeter of its incident year (or the
 year before or after, for fires that cross a new year) within 1 km whose name or complex name matches the incident
@@ -290,13 +289,12 @@ landfall within 3 days. Damage figures are forecasters' estimates and are incomp
 One entry per wind event: Storm Events "High Wind" and "Strong Wind" records 1996 to 2026 grouped by kind and by
 overlapping dates (records of the same kind whose dates touch or overlap are one event, north and south of 35.8 N
 kept apart). Kinds: `santa_ana`, `diablo`, `sundowner`, `mono` (the narrative names the wind), `winter` (October to
-April, not named), `other`. Kept: every named event; winter and other events with a measured gust of 75 mph or more
-below summit level is not knowable, so the rule is: reported damage of $250,000 or more, or 12 or more zone records,
-or a death.
+April, not named), `other`. Kept: every named event; winter and other events with reported damage of $250,000 or more, or 12 or more zone
+records, or a direct death (a gust rule was not used: the highest gusts are summit sensors, which say little about roofs).
 
 `{id, kind, start, end (YYYY-MM-DD), year, month, gust (mph, highest measured gust in the event's Storm Events
 records or Local Storm Reports), where (place or zone of that gust), lat, lon (of that gust: the report's point, or
-the zone's inside point), fips (counties), dmg ($ reported), deaths (direct), n (zone records), n58 (measured Local
+the zone's inside point; null where the 1996 to 2004 record's zone has no outline), gust_src (`Storm Events`, `Local Storm Report`, or `Storm Events (measured or estimated not stated)` for early records with a blank type), fips (counties holding 20% or more of a zone in the event), dmg ($ reported), deaths (direct), n (zone records), n58 (measured Local
 Storm Reports of 58 mph or more in the event's counties and days; null before 2004), zn (indexes into zones)}`.
 `zones[i]` = `{i, ugc, name, zips: [...]}`: the dated zone outline version and the ZIPs whose town point lies in it.
 A ZIP's wind events are those whose `zn` includes a zone listing the ZIP. Records of 1996 to 2004 in zones retired
@@ -311,7 +309,7 @@ minor, affected, none, total}, metal, tile, concrete, wood, other, unknown}`, an
 `unscreened`, `none`, `unknown`). Raw cross tabulation: see the caveats in roof_hazard_model.md before printing a share.
 `fhsz`: statewide land in each class, km2, from the same overlay (`moderate`, `high`, `very_high`, `zcta_total`), and
 the count of ZIPs with any Very High land.
-`fema`: every California declaration `[number, type (DR, EM, FM), declared date, kind, title, counties designated]`.
+`fema`: every California declaration `[number, type (DR, EM, FM), declared date, kind, title, number of counties designated]`. FEMA files three of them under the incident type "Hurricane": the two for Tropical Storm Hilary (August 2023) are given kind `Severe Storm` here, and the 2005 evacuation declaration (EM-3248) kind `Other` with a neutral title. A 2002 fire and a 2024 fire are really named "Louisiana" and "Hurricane" in the perimeter file; the names are kept.
 
 ## 3. `hazard_ts.json`: time series (merge into `ts`)
 
@@ -325,7 +323,7 @@ the count of ZIPs with any Very High land.
 | `ar_days_wy` | `{wy: [5]}` | AR days by rank, mean over the 20 coast points |
 | `sa_year` | `{"1948".."2018": days}` | Santa Ana days by calendar year (no public update after 2018) |
 | `rain` | `{north: [12], central: [12], south: [12], state: [12], reg: {nc: [12], ...}}` | normal monthly precipitation, inches, mean of the ZIP values weighted by housing units (ACS). Belts: north = nc, fn, sv, si; central = ba, cc, sj; south = la, oc, ie, sd. This is the vector the service line model needs for the leak season |
-| `fema_decl` | `[[number, type, declared date, kind, title, counties], ...]` | every California declaration |
+| `fema_decl` | `[[number, type, declared date, kind, title, number of counties], ...]` | every California declaration (same list as `hz.fema`) |
 | `fema_decl_year` | `{year: {fire, storm, flood, quake, other}}` | declarations by year declared and kind (storm = Severe Storm, Winter Storm, Coastal Storm, Mud/Landslide, Snowstorm, Freezing, Tornado) |
 | `zone_county` | `{fips: {type: count}}` | Storm Events records 2006 to 2025 by county and type, zone filed records placed in the county that holds most of the zone (replaces the parish `trop` field) |
 | `fire_year` | `{"2000".."2025": [perimeters, acres, perimeters of 1,000 acres or more, structures destroyed, damaged, residences destroyed]}` | the last three null before 2013 |
@@ -343,13 +341,14 @@ order changes, rerun step 07 (it re-reads the file).
 Kinds: 0 hail (inches), 1 thunderstorm wind (**mph**; Louisiana used knots), 2 tornado (EF number, -1 unrated), 3 flood
 (no magnitude: 0), 4 flash flood (0), 5 debris flow (0), 6 heavy rain (inches, from Local Storm Reports of 3 inches or
 more), 7 non thunderstorm wind gust (mph, Local Storm Reports of 58 mph or more).
-Sources and thinning: kinds 0 to 5 are Storm Events records with coordinates, 1996 to 2026 (kinds 3 and 4: 2006 on).
-Kinds 6 and 7 are Local Storm Reports 2010 to 2026 thinned to the highest report per day in each 0.25 degree cell.
+Sources and thinning: kinds 0, 1, 2 and 5 are Storm Events records with coordinates, 1996 to 2026; kinds 3 and 4 the
+same for 2016 to 2026. Kinds 6 and 7 are Local Storm Reports 2016 to 2026 thinned to the highest report per day in
+each half degree cell. A point outside every atlas ZIP has `zi` -1 (forest and desert land without a ZCTA).
 Flags, bit order: `h1` (hail 1 inch+), `h175`, `w58` (wind kinds 58 mph+), `w75`, `ef1`, `dmg` ($10,000+), `night`
 (hour 20 to 5), `measured` (instrument), `burn` (flash flood or debris flow whose narrative names a burn scar or a
 named fire).
 
-## 5. `ca_nws_snapshot.json` (fetched live 2026-11-19; refetch with `python3 -I 10_nws_snapshot.py`)
+## 5. `ca_nws_snapshot.json` (fetched live 2026-11-23; refetch with `python3 -I 10_nws_snapshot.py`; the 19 November read is kept in `work/`)
 
 Louisiana's structure with these differences. `points` (11, one per region: Eureka nc, Redding fn, Sacramento sv,
 Truckee si, San Francisco ba, Santa Barbara cc, Fresno sj, Los Angeles la, Santa Ana oc, Riverside ie, San Diego sd)
@@ -367,6 +366,7 @@ in72, gust72_mph}}, src}`;
 `ar` = `{available: false, note, afd_mentions: {office: count of "atmospheric river" in its discussion}, page}`: no
 machine readable AR scale forecast is public (CW3E publishes images), and the block says so.
 A county takes an outlook level when the outlook polygon covers at least 0.5% of it or 25 km2.
+Not fetched: station smoke or air quality (AirNow needs a key); the SPC convective outlook (thunderstorms are a minor hazard here).
 
 ## 6. `roof_hazard_model.json` and `roof_hazard_model.md`
 
@@ -401,17 +401,33 @@ Written by `09_checks.py` on 2026-11-23. Checks: 49 of 49 passed (`out/CHECKS.md
 | file | bytes | content |
 |---|---|---|
 | `zcta_hazard.json` | 1,247,286 | 1808 ZIPs x 135 columns |
-| `hazard_events.json` | 1,098,101 | 1335 fires (1261 with an outline, 305,444 bytes of paths; 345 with inspected damage), 1297 ZIPs in `zfire` (5990 pairs), 2084 AR landfalls, 148 in `ar_big`, 353 wind events, 337 zone outlines |
-| `hazard_ts.json` | 57,665 | 27 month kinds, years 1996 to 2025 |
+| `hazard_events.json` | 1,104,393 | 1335 fires (1261 with an outline, 305,444 bytes of paths; 345 with inspected damage), 1297 ZIPs in `zfire` (5990 pairs), 2084 AR landfalls, 148 in `ar_big`, 367 wind events, 340 zone outlines |
+| `hazard_ts.json` | 57,679 | 27 month kinds, years 1996 to 2025 |
 | `hazard_pts.json` | 549,656 | 11750 points: hail 812, thunderstorm wind 1095, tornado 268, flood 3259, flash flood 1254, debris flow 706, heavy rain 353, wind gust (not thunderstorm) 4003 |
-| `ca_nws_snapshot.json` | 580,960 | fetched 2026-11-19T01:40:13+00:00; 58 alerts |
-| `roof_hazard_model.json` | 24,482 | |
+| `ca_nws_snapshot.json` | 553,711 | fetched 2026-11-23T22:38:55+00:00; 38 alerts |
+| `roof_hazard_model.json` | 24,729 | |
 | `fire_rings.json` | 1,279,709 | lon/lat rings of the ledger outlines (not for the page) |
 
-Bytes by key of `hazard_events.json`: `fires` 597,303, `zfire` 125,429, `zdins` 13,200, `ar` 81,262, `ar_pts` 3,479, `ar_big` 70,413, `wind` 110,372, `zones` 69,147, `roof` 4,633, `fema` 22,332.
+Bytes by key of `hazard_events.json`: `fires` 597,303, `zfire` 125,429, `zdins` 13,200, `ar` 81,262, `ar_pts` 3,479, `ar_big` 70,413, `wind` 116,223, `zones` 69,574, `roof` 4,633, `fema` 22,346.
 
 Quality flags, ZIPs by flag: `rain_q` A 1390 B 335 C 73 D 10; `raind_q` A 1284 B 392 C 121 D 11; `heat_q` A 820 B 553 C 331 D 104; `gust_q` A 506 B 675 C 390 D 237; `ar_q` A 966 B 504 C 338; `snow_q` A 936 B 872.
 
 Columns with nulls: `gust_max` 62; `gust_max_date` 62; `lsr_max` 2; `lsr_max_date` 2; `lsr_max_at` 2; `asce_swr` 1803; `fire_big` 895; `fire_big_yr` 895; `fire_big_ac` 895; `fire_last` 895; `fire_last_yr` 895; `fire_since` 895; `lastfire` 1460; `yrsfire` 1460; `fire_worst` 1460; `fire_worst_yr` 1460; `fire_worst_dest` 1460; `snow_max_psf` 459; `apr1_swe_in` 1710; `apr1_st` 1710; `apr1_km` 1710; `apr1_yrs` 1710; `snowfall_in` 253; `hail_max_in` 22; `hail_max_date` 22. Reasons are in `zcta_hazard.json` under `nulls` and in `out/CHECKS.md`.
 
 Statewide: 70,390 destroyed and 7,127 damaged structures in the inspections 2013 to 2025; 348 ZIPs with a destroyed or damaged structure; 986 ZIPs with Very High zone land; 913 ZIPs touched by a perimeter since 2000.
+
+## 10. Answers to `CA/atlas/NEEDS_FROM_DATA.md` (2026-11-19 requests)
+
+| request | where it is | differences from what was asked |
+|---|---|---|
+| snapshot `windDirection`, five digit `fips` | `ca_nws_snapshot.json` (refetched 23 November) | none |
+| `hz.fires` | `hazard_events.json` `fires` | as asked, with `d` paths in the final `geo`; `dest`, `dmg` are null (not 0) for fires before 2013, marked `q: 1`; `fips` are the counties of the ZIPs touched; optional keys are absent when empty |
+| `hz.zfire` | `zfire` | fire index, destroyed, damaged, km, percent as asked; fires out to 10 km for all, out to 25 km only for major fires (rule in 2b) |
+| `hz.ar` | `ar` (all ranks, 2,084 rows), plus `ar_big` with damage and FEMA ties | start is the UTC date |
+| `hz.wind` | `wind` | `start` and `end` instead of `date`; `zn` + `zones` give the ZIPs; 25 early events have no measured gust |
+| `hz.roof` | `roof` | as asked, with `eaves`, `vents`, `by_era`, `all_structures` |
+| `hz.fhsz` | `fhsz` | land km2 by class, not homes (homes not built) |
+| `pts`, `ptflags`, `ptkinds` | `hazard_pts.json` | wind in mph for both wind kinds; `pi`, `zi` index `CA/data/work/base.json` order |
+| ZIP columns | section 1 | `fhsz_vh`, `fhsz_high`, `fhsz_mod`; `fire_dest`, `fire_dmg`; `lastfire`; `fire_n`; `fire_km`; `g40`, `g58` with `gust_st`, `gust_km`; `rain_d1`, `rain_in`; `ar_days` (AR2+), `ar3_d`; `h100`, `h110`; `snow_psf`; `hd1` |
+| county fields | not written | take housing or resident weighted means of the ZIP columns; `ts.zone_county` has the zone filed records by county |
+| `ts.month`, `ts.year`, FEMA by year and kind, zone events by county | `hazard_ts.json` | section 3 |

@@ -52,7 +52,9 @@
     function fleet(T) { let F = FLEET[T.key]; if (F) return F; const a = SH.airliner(MeshBuilder, T); F = FLEET[T.key] = { a, body: set('Airliners ' + T.key, build(a.body, 'airliner ' + T.key), MAT.paint, { shadow: 600 }), gear: set('Gear ' + T.key, build(a.gear, 'gear ' + T.key), MAT.paint, {}), plan: set('Shadows ' + T.key, build(a.plan, 'shadow ' + T.key), MAT.shade, {}) }; return F; }
     const trailMesh = (() => { const B = new MeshBuilder(); B.quad([-0.5, 0, -1], [0.5, 0, -1], [0.5, 0, 0], [-0.5, 0, 0], [0, 1, 0], null, [1, 1, 1, 0]); return build(B, 'contrail'); })(), TRAILS = MAT.trail.map((m, i) => set('Contrails ' + i, trailMesh, m, { cap: 16 }));
     let clockOff = 0, sunSeen = null;
-    X.now = () => { const st = S.sunTime && S.sunTime.getTime ? S.sunTime.getTime() : null; if (st !== sunSeen) { sunSeen = st; clockOff = st != null ? (st - Date.now()) / 1000 : 0; if (Math.abs(clockOff) < 90) clockOff = 0; } return Date.now() / 1000 + clockOff + (X.skew || 0); };
+    /* the kit's clock, seconds since 1970: the wall clock moved to the scene's hour. X.hold(t) stops it at t (for tests and pictures); X.hold(null) lets it run */
+    X.hold = t => { X.frozen = t == null ? null : +t; need(3); return X.frozen; };
+    X.now = () => { if (X.frozen != null) return X.frozen; const st = S.sunTime && S.sunTime.getTime ? S.sunTime.getTime() : null; if (st !== sunSeen) { sunSeen = st; clockOff = st != null ? (st - Date.now()) / 1000 : 0; if (Math.abs(clockOff) < 90) clockOff = 0; } return Date.now() / 1000 + clockOff + (X.skew || 0); };
     X.flights = [];
     function drawFlights(t, cam, night) {
       for (const k in FLEET) { FLEET[k].body.ib.clear(); FLEET[k].gear.ib.clear(); FLEET[k].plan.ib.clear(); } LAMPS.ib.clear(); TRAILS.forEach(s => s.ib.clear());

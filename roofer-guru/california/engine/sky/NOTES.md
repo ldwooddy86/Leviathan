@@ -23,3 +23,7 @@ Status: see bottom (update as you go).
 - DONE: build_data.py -> sky_data.js; sky_model.js (node-tested: info at LAX works); sky_shapes.js (sizes checked in node);
   sky_engine.js (kit: flights, helos, navy site, Coronado + Golden Gate, S.deckAt); port_sky.py (7 anchors) applies to la_engine.js -> out/engine_sky.js, parses; out/testbed.html built.
 - NEXT: tests/model_check.js (glide path, spacing, rates); browser run (tests/run.js) at LAX, Coronado, Golden Gate; then sky_more.js (Bay Bridge, Vincent Thomas, boats, airport lights).
+- 23 Nov later: tests/model_check.js ALL OK (66 checks; output in tests/model_check_output.txt). tests/run.js + plan_core.json running on out/testbed.html (core engine);
+  LAX shots done: 50 flights drawn, nearest 24R arrival on path (y 120.7 m at 1.07 NM, want 120.7).
+- sky_more.js written (Bay Bridge, Vincent Thomas, vessels, lights at night, airport lights); kit has X.hold(t) to stop its clock. out/engine_sky.js = all five files; out/testbed2.html.
+- NEXT: run tests/plan_two.json on out/testbed2.html; look at shots; fix; report. Bar needs: a switch for setGraphics({air}), en.sky.info() read-out.
