@@ -1,0 +1,88 @@
+# The embedded statewide elevation grid.
+# Fetches the AWS terrarium tiles (Mapzen / Tilezen joint elevation set; USGS 3DEP over the United States) at zoom Z over
+# California, decodes metres = R*256 + G + B/256 - 32768, crops to the state's box, blanks everything outside the state
+# (Census cartographic boundary 2024, 1:500,000, widened by BUF_KM so the coast and the borders still shade), quantises
+# to STEP metres and packs it as a small lossless picture a browser decodes by itself:
+#   value q = round((metres + OFF) / STEP), 0 = no data;  red = q >> 8, green = q & 255, blue = 0.
+# Output: topo_grid.js  (window.__SCOUT_TOPO_GRID__ = { z, x0, y0, w, h, step, off, fmt, b64 }), where (x0, y0) is the
+# world pixel of the top left post at zoom z with 256 pixel tiles. One post is one zoom Z pixel: about 0.98 km at 37 N.
+# python3 -I build_grid.py [zoom, default 7]
+import io, json, math, os, sys, base64, urllib.request
+import numpy as np
+from PIL import Image, ImageDraw
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from shpread import read_shp, read_dbf
+Z = int(sys.argv[1]) if len(sys.argv) > 1 else 7
+STEP, OFF, BUF_KM = 4.0, 100.0, 12
+BOX = (-124.55, 32.45, -114.05, 42.08)                                 # west, south, east, north
+CACHE = os.path.join(HERE, 'dl/terrarium')
+STATE = os.path.join(HERE, '../../dl/people/geo/raw/cb_2024_us_state_500k/cb_2024_us_state_500k')
+os.makedirs(CACHE, exist_ok=True)
+
+
+def wx(lon, z): return (lon + 180) / 360 * 256 * 2 ** z
+def wy(lat, z):
+    s = math.sin(math.radians(lat)); return (0.5 - math.log((1 + s) / (1 - s)) / (4 * math.pi)) * 256 * 2 ** z
+
+
+def tile(z, x, y):
+    p = os.path.join(CACHE, '%d_%d_%d.png' % (z, x, y))
+    if not os.path.exists(p):
+        req = urllib.request.Request('https://s3.amazonaws.com/elevation-tiles-prod/terrarium/%d/%d/%d.png' % (z, x, y), headers={'User-Agent': 'Mozilla/5.0 (compatible; research-client)'})
+        open(p, 'wb').write(urllib.request.urlopen(req, timeout=60).read())
+    a = np.asarray(Image.open(p).convert('RGB'), dtype=np.float64)
+    return a[:, :, 0] * 256 + a[:, :, 1] + a[:, :, 2] / 256 - 32768
+
+
+x0, x1 = int(math.floor(wx(BOX[0], Z))), int(math.ceil(wx(BOX[2], Z)))
+y0, y1 = int(math.floor(wy(BOX[3], Z))), int(math.ceil(wy(BOX[1], Z)))
+W, H = x1 - x0, y1 - y0
+tx0, tx1, ty0, ty1 = x0 // 256, (x1 - 1) // 256, y0 // 256, (y1 - 1) // 256
+mos = np.zeros(((ty1 - ty0 + 1) * 256, (tx1 - tx0 + 1) * 256))
+for ty in range(ty0, ty1 + 1):
+    for tx in range(tx0, tx1 + 1):
+        mos[(ty - ty0) * 256:(ty - ty0 + 1) * 256, (tx - tx0) * 256:(tx - tx0 + 1) * 256] = tile(Z, tx, ty)
+ele = mos[y0 - ty0 * 256:y1 - ty0 * 256, x0 - tx0 * 256:x1 - tx0 * 256]
+print('grid', W, 'x', H, 'posts; tiles', (tx1 - tx0 + 1) * (ty1 - ty0 + 1), 'range', ele.min(), ele.max())
+
+# the state mask
+recs = read_dbf(STATE + '.dbf'); shp = read_shp(STATE + '.shp')
+ca = [s for r, s in zip(recs, shp) if r.get('STUSPS') == 'CA'][0]
+m = Image.new('L', (W, H), 0); d = ImageDraw.Draw(m)
+for ring in ca:
+    d.polygon([(wx(lo, Z) - x0, wy(la, Z) - y0) for lo, la in ring], fill=255)
+mask = np.asarray(m) > 0
+# widen by BUF_KM (a square growth is close enough at this size)
+kmpp = 156.543 * math.cos(math.radians(37)) / 2 ** Z * 256 / 256
+r = max(1, int(round(BUF_KM / kmpp)))
+big = np.zeros_like(mask)
+for dy in range(-r, r + 1):
+    for dx in range(-r, r + 1):
+        if dx * dx + dy * dy > r * r: continue
+        sh = np.zeros_like(mask)
+        ys = slice(max(0, dy), H + min(0, dy)); yd = slice(max(0, -dy), H + min(0, -dy))
+        xs = slice(max(0, dx), W + min(0, dx)); xd = slice(max(0, -dx), W + min(0, -dx))
+        sh[yd, xd] = mask[ys, xs]; big |= sh
+q = np.clip(np.round((ele + OFF) / STEP), 1, 65535).astype(np.uint16)
+sea = (ele <= 0.5) & ~mask                                              # open water outside the state's own outline stays blank
+q[~big | sea] = 0
+print('posts kept', int((q > 0).sum()), 'of', W * H, '; inside the state', int(mask.sum()))
+rgb = np.zeros((H, W, 3), np.uint8); rgb[:, :, 0] = q >> 8; rgb[:, :, 1] = q & 255
+im = Image.fromarray(rgb, 'RGB')
+out = {}
+b = io.BytesIO(); im.save(b, 'PNG', optimize=True); out['png'] = b.getvalue()
+b = io.BytesIO(); im.save(b, 'WEBP', lossless=True, quality=100, method=6, exact=True); out['webp'] = b.getvalue()
+for k, v in out.items(): print(k, len(v), 'bytes;', len(base64.b64encode(v)), 'as base64')
+fmt = 'webp' if len(out['webp']) < len(out['png']) else 'png'
+# the round trip must be exact
+back = np.asarray(Image.open(io.BytesIO(out[fmt])).convert('RGB')).astype(np.int32)
+assert np.array_equal(back[:, :, 0] * 256 + back[:, :, 1], q.astype(np.int32)), 'the packed picture does not decode to the grid'
+meta = dict(z=Z, x0=x0, y0=y0, w=W, h=H, step=STEP, off=OFF, fmt=fmt, buf_km=BUF_KM, posts=int((q > 0).sum()),
+            src='AWS Terrain Tiles (terrarium), zoom %d; state outline: Census cartographic boundary 2024, 1:500,000' % Z)
+js = '/* Generated by build_grid.py. The statewide elevation grid: %d x %d posts at Web Mercator zoom %d (about %.2f km at 37 N), heights in %g m steps. */\n' % (W, H, Z, 156.543 * math.cos(math.radians(37)) / 2 ** Z, STEP)
+js += 'window.__SCOUT_TOPO_GRID__ = ' + json.dumps(dict(meta, b64=base64.b64encode(out[fmt]).decode()), separators=(',', ':')) + ';\n'
+open(os.path.join(HERE, 'topo_grid.js'), 'w').write(js)
+np.save(os.path.join(HERE, 'work/grid_ele.npy'), ele.astype(np.float32)); np.save(os.path.join(HERE, 'work/grid_mask.npy'), mask)
+json.dump(meta, open(os.path.join(HERE, 'work/grid_meta.json'), 'w'))
+print('wrote topo_grid.js', len(js), 'bytes, format', fmt)

@@ -1,0 +1,33 @@
+== 1. Hour profile: what the data gives a ten-lane freeway carrying 329,000 a day (I-405 at I-10), five lanes a side, 65 mph ==
+  la: 3h 62 mph, 2/km/lane | 8h 34 mph, 38/km/lane | 12h 39 mph, 33/km/lane | 17h 29 mph, 43/km/lane | 21h 48 mph, 25/km/lane
+  sf: 3h 61 mph, 2/km/lane | 8h 37 mph, 35/km/lane | 12h 40 mph, 32/km/lane | 17h 34 mph, 37/km/lane | 21h 45 mph, 28/km/lane
+  sd: 3h 65 mph, 2/km/lane | 8h 44 mph, 28/km/lane | 12h 47 mph, 26/km/lane | 17h 40 mph, 32/km/lane | 21h 51 mph, 22/km/lane
+  elsewhere: 3h 65 mph, 2/km/lane | 8h 63 mph, 21/km/lane | 12h 65 mph, 18/km/lane | 17h 56 mph, 21/km/lane | 21h 65 mph, 11/km/lane
+  Coronado Bridge (76,000 a day, five lanes, 50 mph): 3h 50 mph, 1/km/lane | 8h 44 mph, 13/km/lane | 17h 43 mph, 15/km/lane
+  nearest count to I-405 at I-10: {"aadt":329000,"route":405,"km":0.05221223518785223,"same":true}
+  nearest count to the Coronado Bridge: {"aadt":78000,"route":75,"km":1.5172007161823922,"same":true}
+  nearest count in the desert east of Lone Pine: null
+
+== 2. A straight 3 km carriageway, five lanes, Los Angeles, by hour (4 simulated minutes after 1 minute of settling) ==
+  3h: wanted 62 mph at 2/km/lane; ran 30 cars at a mean 64 mph (slowest 55, fastest 72), standing 0%, overlaps 0, lane changes 0, held 0, step 0.030 ms
+  17h: wanted 29 mph at 43/km/lane; ran 620 cars at a mean 28 mph (slowest 19, fastest 35), standing 0%, overlaps 0, lane changes 3, held 0, step 0.344 ms
+
+== 3. A ramp joins four lanes (1.2 km before, 1.2 km after), and a lane drop from four to three ==
+  03:00: 41 cars, mean 60 mph, standing 0%, overlaps 0, lane changes 82, rerouted 0, squeezed over 0, held 0, left by the ends 36, entered 44, on the two ramps now 4 and 0
+  17:00: 672 cars, mean 22 mph, standing 16%, overlaps 116, lane changes 140, rerouted 3, squeezed over 8, held 4, left by the ends 201, entered 302, on the two ramps now 74 and 1
+
+== 4. Real interchanges from the saved OpenStreetMap answers ==
+  Los Angeles: the four-level (SR-110 / US-101) and downtown, 17h: 286 pieces (252 carrying traffic, 66450 lane-metres, out to 1710 m), 2217 vehicles {"car":2159,"bus":9,"box":26,"truck":23}, mean 23 mph, standing 8%, overlaps 1670, lane changes 826, rerouted 89, squeezed 5, held 3, step 2.000 ms
+    roads: 8788, freeway and ramp ways 284, roads with a raised deck 618, highest deck 19.5 m, one-way share of street length 28%, cable car track ways 0
+  San Francisco: I-80 and the Bay Bridge approach, 17h: 103 pieces (82 carrying traffic, 65756 lane-metres, out to 1800 m), 927 vehicles {"car":825,"bus":9,"truck":9,"box":10,"cable":74}, mean 36 mph, standing 2%, overlaps 91, lane changes 339, rerouted 14, squeezed 3, held 0, step 0.732 ms
+    roads: 11642, freeway and ramp ways 102, roads with a raised deck 260, highest deck 26.0 m, one-way share of street length 57%, cable car track ways 35
+  San Diego: I-5 and the Coronado Bridge, 17h: 159 pieces (99 carrying traffic, 56022 lane-metres, out to 1800 m), 1253 vehicles {"car":1214,"truck":25,"box":9,"bus":5}, mean 35 mph, standing 5%, overlaps 186, lane changes 345, rerouted 26, squeezed 17, held 12, step 0.995 ms
+    roads: 8484, freeway and ramp ways 157, roads with a raised deck 374, highest deck 19.5 m, one-way share of street length 34%, cable car track ways 0
+
+== 5. Step cost against fleet size (one straight carriageway of six lanes, as long as the fleet needs, 40 cars/km/lane) ==
+  396 cars: 0.271 ms a step (0.68 microseconds a car), overlaps 0
+  1567 cars: 0.957 ms a step (0.61 microseconds a car), overlaps 0
+
+== 6. The user's car as an actor: standing still in lane 2 of four at 17:00 density, then gone ==
+  60 s with the car standing: frames in which a traffic car touched it 0, closest a follower came 0.45 m, cars queued behind it 9, lane changes so far 25
+  40 s after it left: mean 43 mph, standing 10%

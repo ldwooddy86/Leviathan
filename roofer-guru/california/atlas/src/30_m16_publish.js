@@ -46,7 +46,7 @@ registerModule({
             <div class="f"><label class="fl" for="p16cTitle">Title <span class="mini pb-count" id="p16cTitleN"></span></label><input type="text" id="p16cTitle" autocomplete="off"></div>
             <div class="f"><label class="fl" for="p16cSlug">Slug</label><input type="text" id="p16cSlug" autocomplete="off" spellcheck="false"><span class="hint">Follows the title until you edit it.</span></div>
             <div class="f wide"><label class="fl" for="p16cMeta">Meta description <span class="mini pb-count" id="p16cMetaN"></span></label><input type="text" id="p16cMeta" autocomplete="off"><span class="hint">70 to 155 characters reads well in search results.</span></div>
-            <div class="f"><label class="fl" for="p16cLang">Language</label><select id="p16cLang"><option value="en-US">English (en-US)</option><option value="es-US">Spanish (es-US)</option><option value="es-MX">Spanish (es-MX)</option><option value="en-GB">English (en-GB)</option><option value="fr-CA">French (fr-CA)</option></select></div>
+            <div class="f"><label class="fl" for="p16cLang">Language</label><select id="p16cLang"><option value="en-US">English (en-US)</option><option value="es-US">Spanish (es-US)</option><option value="es-MX">Spanish (es-MX)</option><option value="zh-Hans">Chinese, simplified (zh-Hans)</option><option value="zh-Hant">Chinese, traditional (zh-Hant)</option><option value="vi">Vietnamese (vi)</option><option value="tl">Tagalog (tl)</option><option value="ko">Korean (ko)</option><option value="en-GB">English (en-GB)</option></select></div>
             <div class="f"><label class="fl" for="p16cType">Post type</label><select id="p16cType"><option value="page">Page</option><option value="post">Post</option></select></div>
             <div class="f"><span class="fl">Options</span><label class="chk"><input type="checkbox" id="p16cNoindex"> noindex</label><label class="chk"><input type="checkbox" id="p16cClean" checked> House style on title and description (no dashes)</label></div>
             <div class="f wide"><label class="fl" for="p16cHtml">HTML body <span class="mini" id="p16cHtmlN"></span></label><textarea id="p16cHtml" class="code" spellcheck="false" placeholder="Section markup only: no html, head or body wrapper. The starter template gives you the forge skeleton."></textarea><span class="hint">Scripts and inline event handlers are dropped. The forge css classes (forge-section, forge-inner, forge-lede, forge-answer, forge-faq) are styled on every target.</span></div>
@@ -73,7 +73,7 @@ registerModule({
 
       ${card('How it works', '', '<ol class="meth" id="p16Meth"></ol>', 'mt')}
       <div class="split">${card('Judgment calls', '', '<div id="p16Judg"></div>')}${card('Source register', '', '<div id="p16Src"></div>')}</div>
-      <div class="foot">Uplift Louisiana Roofing Atlas, module 16. The Site Forge writes; this module sends. Nothing goes live without a second click, and every credential stays in this browser.</div></div>`;
+      <div class="foot">California Roofer Guru, module 16. The Site Forge writes; this module sends. Nothing goes live without a second click, and every credential stays in this browser.</div></div>`;
 
     /* ---------- environment ---------- */
     function env() {
@@ -187,7 +187,7 @@ registerModule({
       catch (e) { toast('Kit: ' + e.message); }
     }
     /* ---------- pages ---------- */
-    function persistLoaded() { store.set('cf.publish.loaded', { at: new Date().toISOString(), slugs: st.pages.map(p => p.slug) }); }
+    function persistLoaded() { store.set('cg.publish.loaded', { at: new Date().toISOString(), slugs: st.pages.map(p => p.slug) }); }
     function addPages(list, source) {
       let n = 0; (list || []).forEach(p => { if (!p || !p.slug) return; p = Object.assign({}, p); if (!p.source) p.source = source || 'import'; if (!p.checks && Array.isArray(p.lint) && p.lint.length) p.checks = checksFromLint(p.lint); const i = st.pages.findIndex(x => x.slug === p.slug); if (i >= 0) st.pages[i] = p; else st.pages.push(p); st.selected.add(p.slug); n++; });
       persistLoaded(); renderPages(); kpis(); updateGo(); return n;
@@ -208,7 +208,7 @@ registerModule({
     function renderPages() {
       const host = $('#p16Pages', root); const t = T(); const led = t ? CMS.deployedFor(t.id) : {};
       st.selected.forEach(s => { if (!st.pages.some(p => p.slug === s)) st.selected.delete(s); });
-      if (!st.pages.length) { const rec = store.get('cf.publish.loaded', null); host.innerHTML = `<p class="mini pb-empty">No pages loaded. Load them from the Site Forge, write one in the composer, or import a file.${rec && rec.slugs && rec.slugs.length ? ` Last time ${rec.slugs.length} page${rec.slugs.length === 1 ? ' was' : 's were'} loaded (${esc(rec.slugs.slice(0, 6).join(', '))}${rec.slugs.length > 6 ? ', …' : ''}); pages hold photos, so they are not saved between sessions.` : ''}</p>`; selN(); return; }
+      if (!st.pages.length) { const rec = store.get('cg.publish.loaded', null); host.innerHTML = `<p class="mini pb-empty">No pages loaded. Load them from the Site Forge, write one in the composer, or import a file.${rec && rec.slugs && rec.slugs.length ? ` Last time ${rec.slugs.length} page${rec.slugs.length === 1 ? ' was' : 's were'} loaded (${esc(rec.slugs.slice(0, 6).join(', '))}${rec.slugs.length > 6 ? ', …' : ''}); pages hold photos, so they are not saved between sessions.` : ''}</p>`; selN(); return; }
       host.innerHTML = `<table><thead><tr><th><input type="checkbox" id="p16SelHead" aria-label="Select every page" ${st.pages.length && st.pages.every(p => st.selected.has(p.slug)) ? 'checked' : ''}></th><th class="l">Kind</th><th class="l">Title</th><th class="l">Slug</th><th>Words</th><th>Checks</th><th>Media</th><th class="l">On ${t ? esc(t.name) : 'the target'}</th><th class="l">Actions</th></tr></thead><tbody>${st.pages.map(p => rowHTML(p, led)).join('')}</tbody></table>`;
       $$('input[data-sel]', host).forEach(cb => cb.onchange = () => { if (cb.checked) st.selected.add(cb.dataset.sel); else st.selected.delete(cb.dataset.sel); cb.closest('tr').classList.toggle('pb-sel', cb.checked); selN(); kpis(); updateGo(); });
       $('#p16SelHead', host).onchange = e => { st.pages.forEach(p => { if (e.target.checked) st.selected.add(p.slug); else st.selected.delete(p.slug); }); renderPages(); kpis(); updateGo(); };
@@ -252,7 +252,7 @@ registerModule({
       host.innerHTML = parts.join('');
     }
     /* ---------- composer ---------- */
-    const CK = 'cf.publish.composer';
+    const CK = 'cg.publish.composer';
     const cd = Object.assign({ title: '', slug: '', slugManual: false, meta: '', lang: 'en-US', type: 'page', html: '', schema: '', noindex: false, clean: true }, store.get(CK, {}) || {});
     const cEl = k => $('#p16c' + k, root);
     const cSave = debounce(() => store.set(CK, cd), 300);

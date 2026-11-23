@@ -1,0 +1,557 @@
+[
+ {
+  "url": "https://api.weather.gov/points/40.8021,-124.1637",
+  "status": 200,
+  "bytes": 3930
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/EKA/62,108/forecast",
+  "status": 200,
+  "bytes": 13902
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/EKA/62,108/forecast/hourly",
+  "status": 200,
+  "bytes": 163811
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/EKA/62,108",
+  "status": 200,
+  "bytes": 160928
+ },
+ {
+  "url": "https://api.weather.gov/points/40.5865,-122.3917",
+  "status": 200,
+  "bytes": 3929
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/STO/28,164/forecast",
+  "status": 200,
+  "bytes": 13555
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/STO/28,164/forecast/hourly",
+  "status": 200,
+  "bytes": 163073
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/STO/28,164",
+  "status": 200,
+  "bytes": 215895
+ },
+ {
+  "url": "https://api.weather.gov/points/38.5816,-121.4944",
+  "status": 200,
+  "bytes": 3927
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/STO/41,68/forecast",
+  "status": 200,
+  "bytes": 13724
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/STO/41,68/forecast/hourly",
+  "status": 200,
+  "bytes": 163347
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/STO/41,68",
+  "status": 200,
+  "bytes": 203449
+ },
+ {
+  "url": "https://api.weather.gov/points/39.3280,-120.1833",
+  "status": 200,
+  "bytes": 3925
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/REV/31,100/forecast",
+  "status": 200,
+  "bytes": 13706
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/REV/31,100/forecast/hourly",
+  "status": 200,
+  "bytes": 163387
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/REV/31,100",
+  "status": 200,
+  "bytes": 206187
+ },
+ {
+  "url": "https://api.weather.gov/points/37.7749,-122.4194",
+  "status": 200,
+  "bytes": 3935
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/MTR/85,105/forecast",
+  "status": 200,
+  "bytes": 13764
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/MTR/85,105/forecast/hourly",
+  "status": 200,
+  "bytes": 163682
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/MTR/85,105",
+  "status": 200,
+  "bytes": 235941
+ },
+ {
+  "url": "https://api.weather.gov/points/34.4208,-119.6982",
+  "status": 200,
+  "bytes": 3935
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/LOX/105,70/forecast",
+  "status": 200,
+  "bytes": 13421
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/LOX/105,70/forecast/hourly",
+  "status": 200,
+  "bytes": 162927
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/LOX/105,70",
+  "status": 200,
+  "bytes": 179543
+ },
+ {
+  "url": "https://api.weather.gov/points/36.7378,-119.7871",
+  "status": 200,
+  "bytes": 3928
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/HNX/52,100/forecast",
+  "status": 200,
+  "bytes": 14260
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/HNX/52,100/forecast/hourly",
+  "status": 200,
+  "bytes": 163109
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/HNX/52,100",
+  "status": 200,
+  "bytes": 188396
+ },
+ {
+  "url": "https://api.weather.gov/points/34.0522,-118.2437",
+  "status": 200,
+  "bytes": 3933
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/LOX/155,45/forecast",
+  "status": 200,
+  "bytes": 13254
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/LOX/155,45/forecast/hourly",
+  "status": 200,
+  "bytes": 162646
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/LOX/155,45",
+  "status": 200,
+  "bytes": 171458
+ },
+ {
+  "url": "https://api.weather.gov/points/33.7455,-117.8677",
+  "status": 200,
+  "bytes": 3926
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/38,63/forecast",
+  "status": 200,
+  "bytes": 13624
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/38,63/forecast/hourly",
+  "status": 200,
+  "bytes": 162784
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/38,63",
+  "status": 200,
+  "bytes": 234671
+ },
+ {
+  "url": "https://api.weather.gov/points/33.9806,-117.3755",
+  "status": 200,
+  "bytes": 3926
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/58,70/forecast",
+  "status": 200,
+  "bytes": 13411
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/58,70/forecast/hourly",
+  "status": 200,
+  "bytes": 162635
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/58,70",
+  "status": 200,
+  "bytes": 235344
+ },
+ {
+  "url": "https://api.weather.gov/points/32.7157,-117.1611",
+  "status": 200,
+  "bytes": 3926
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/57,14/forecast",
+  "status": 200,
+  "bytes": 13600
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/57,14/forecast/hourly",
+  "status": 200,
+  "bytes": 163712
+ },
+ {
+  "url": "https://api.weather.gov/gridpoints/SGX/57,14",
+  "status": 200,
+  "bytes": 225984
+ },
+ {
+  "url": "https://api.weather.gov/alerts/active?area=CA",
+  "status": 200,
+  "bytes": 347057
+ },
+ {
+  "url": "https://api.weather.gov/stations/KCEC/observations/latest",
+  "status": 200,
+  "bytes": 4343
+ },
+ {
+  "url": "https://api.weather.gov/stations/KACV/observations/latest",
+  "status": 200,
+  "bytes": 4695
+ },
+ {
+  "url": "https://api.weather.gov/stations/KUKI/observations/latest",
+  "status": 200,
+  "bytes": 4865
+ },
+ {
+  "url": "https://api.weather.gov/stations/KRDD/observations/latest",
+  "status": 200,
+  "bytes": 4691
+ },
+ {
+  "url": "https://api.weather.gov/stations/KMHS/observations/latest",
+  "status": 200,
+  "bytes": 5047
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSMF/observations/latest",
+  "status": 200,
+  "bytes": 4501
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSAC/observations/latest",
+  "status": 200,
+  "bytes": 4687
+ },
+ {
+  "url": "https://api.weather.gov/stations/KTRK/observations/latest",
+  "status": 200,
+  "bytes": 4780
+ },
+ {
+  "url": "https://api.weather.gov/stations/KTVL/observations/latest",
+  "status": 200,
+  "bytes": 4696
+ },
+ {
+  "url": "https://api.weather.gov/stations/KMMH/observations/latest",
+  "status": 200,
+  "bytes": 5031
+ },
+ {
+  "url": "https://api.weather.gov/stations/KBIH/observations/latest",
+  "status": 200,
+  "bytes": 4508
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSFO/observations/latest",
+  "status": 200,
+  "bytes": 5075
+ },
+ {
+  "url": "https://api.weather.gov/stations/KOAK/observations/latest",
+  "status": 200,
+  "bytes": 4888
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSJC/observations/latest",
+  "status": 200,
+  "bytes": 4882
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSTS/observations/latest",
+  "status": 200,
+  "bytes": 4697
+ },
+ {
+  "url": "https://api.weather.gov/stations/KMRY/observations/latest",
+  "status": 200,
+  "bytes": 5048
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSBP/observations/latest",
+  "status": 200,
+  "bytes": 4892
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSBA/observations/latest",
+  "status": 200,
+  "bytes": 4514
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSCK/observations/latest",
+  "status": 200,
+  "bytes": 5052
+ },
+ {
+  "url": "https://api.weather.gov/stations/KFAT/observations/latest",
+  "status": 200,
+  "bytes": 4679
+ },
+ {
+  "url": "https://api.weather.gov/stations/KBFL/observations/latest",
+  "status": 200,
+  "bytes": 4497
+ },
+ {
+  "url": "https://api.weather.gov/stations/KLAX/observations/latest",
+  "status": 200,
+  "bytes": 4526
+ },
+ {
+  "url": "https://api.weather.gov/stations/KBUR/observations/latest",
+  "status": 200,
+  "bytes": 4306
+ },
+ {
+  "url": "https://api.weather.gov/stations/KVNY/observations/latest",
+  "status": 200,
+  "bytes": 4307
+ },
+ {
+  "url": "https://api.weather.gov/stations/KLGB/observations/latest",
+  "status": 200,
+  "bytes": 4310
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSNA/observations/latest",
+  "status": 200,
+  "bytes": 4312
+ },
+ {
+  "url": "https://api.weather.gov/stations/KONT/observations/latest",
+  "status": 200,
+  "bytes": 4310
+ },
+ {
+  "url": "https://api.weather.gov/stations/KRAL/observations/latest",
+  "status": 200,
+  "bytes": 4308
+ },
+ {
+  "url": "https://api.weather.gov/stations/KPSP/observations/latest",
+  "status": 200,
+  "bytes": 4309
+ },
+ {
+  "url": "https://api.weather.gov/stations/KDAG/observations/latest",
+  "status": 200,
+  "bytes": 4314
+ },
+ {
+  "url": "https://api.weather.gov/stations/KSAN/observations/latest",
+  "status": 200,
+  "bytes": 4309
+ },
+ {
+  "url": "https://api.weather.gov/stations/KNZY/observations/latest",
+  "status": 200,
+  "bytes": 4879
+ },
+ {
+  "url": "https://api.weather.gov/stations/KIPL/observations/latest",
+  "status": 200,
+  "bytes": 4307
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/EKA",
+  "status": 200,
+  "bytes": 7222
+ },
+ {
+  "url": "https://api.weather.gov/products/18db331c-8d86-4b24-8bc5-19d9cb0b8b50",
+  "status": 200,
+  "bytes": 7730
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/STO",
+  "status": 200,
+  "bytes": 5646
+ },
+ {
+  "url": "https://api.weather.gov/products/1cb7b81a-035b-4400-90d9-ab55e8c95b03",
+  "status": 200,
+  "bytes": 8246
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/MTR",
+  "status": 200,
+  "bytes": 22588
+ },
+ {
+  "url": "https://api.weather.gov/products/5067437d-ab66-4692-8e8a-97ae07a97a66",
+  "status": 200,
+  "bytes": 8989
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/HNX",
+  "status": 200,
+  "bytes": 9586
+ },
+ {
+  "url": "https://api.weather.gov/products/ddfff98b-48b4-4326-9a0b-39ece243f7af",
+  "status": 200,
+  "bytes": 5614
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/LOX",
+  "status": 200,
+  "bytes": 22194
+ },
+ {
+  "url": "https://api.weather.gov/products/c7a9e4bd-a605-4515-aecf-2bc70d4ca7c6",
+  "status": 200,
+  "bytes": 10539
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/SGX",
+  "status": 200,
+  "bytes": 16284
+ },
+ {
+  "url": "https://api.weather.gov/products/46657653-d954-4d9d-8462-add4578c9ab8",
+  "status": 200,
+  "bytes": 8775
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/MFR",
+  "status": 200,
+  "bytes": 13132
+ },
+ {
+  "url": "https://api.weather.gov/products/82267ac3-92fb-4a4a-a86e-f7f688fca010",
+  "status": 200,
+  "bytes": 4798
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/REV",
+  "status": 200,
+  "bytes": 6434
+ },
+ {
+  "url": "https://api.weather.gov/products/6b4c2d88-25a5-4eb8-89ea-0781545b9c2e",
+  "status": 200,
+  "bytes": 7400
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/VEF",
+  "status": 200,
+  "bytes": 17466
+ },
+ {
+  "url": "https://api.weather.gov/products/a1a0591a-b0ee-475b-98aa-4a83b5729aed",
+  "status": 200,
+  "bytes": 5895
+ },
+ {
+  "url": "https://api.weather.gov/products/types/AFD/locations/PSR",
+  "status": 200,
+  "bytes": 15890
+ },
+ {
+  "url": "https://api.weather.gov/products/3edfdde3-050b-4a7c-9f58-be4ecfdd7f1b",
+  "status": 200,
+  "bytes": 7081
+ },
+ {
+  "url": "https://www.spc.noaa.gov/products/fire_wx/day1fw_windrh.nolyr.geojson",
+  "status": 200,
+  "bytes": 1362
+ },
+ {
+  "url": "https://www.spc.noaa.gov/products/fire_wx/day1fw_dryt.nolyr.geojson",
+  "status": 200,
+  "bytes": 448
+ },
+ {
+  "url": "https://www.spc.noaa.gov/products/fire_wx/day2fw_windrh.nolyr.geojson",
+  "status": 200,
+  "bytes": 448
+ },
+ {
+  "url": "https://www.spc.noaa.gov/products/fire_wx/day2fw_dryt.nolyr.geojson",
+  "status": 200,
+  "bytes": 448
+ },
+ {
+  "url": "https://api.weather.gov/products/types/FWD",
+  "status": 200,
+  "bytes": 14165
+ },
+ {
+  "url": "https://api.weather.gov/products/0f7376ed-7c84-4995-82f0-28e373167237",
+  "status": 200,
+  "bytes": 3242
+ },
+ {
+  "url": "https://api.weather.gov/products/types/FWD",
+  "status": 200,
+  "bytes": 14165
+ },
+ {
+  "url": "https://api.weather.gov/products/bb796bf4-ae7b-4cb8-aa00-e685901de233",
+  "status": 200,
+  "bytes": 2091
+ },
+ {
+  "url": "https://www.wpc.ncep.noaa.gov/exper/eromap/geojson/Day1_Latest.geojson",
+  "status": 200,
+  "bytes": 11118
+ },
+ {
+  "url": "https://www.wpc.ncep.noaa.gov/exper/eromap/geojson/Day2_Latest.geojson",
+  "status": 200,
+  "bytes": 10092
+ },
+ {
+  "url": "https://www.wpc.ncep.noaa.gov/exper/eromap/geojson/Day3_Latest.geojson",
+  "status": 200,
+  "bytes": 5187
+ },
+ {
+  "url": "https://api.weather.gov/products/types/HMD",
+  "status": 200,
+  "bytes": 16448
+ },
+ {
+  "url": "https://api.weather.gov/products/f259f109-3f7f-41af-99bc-af66181ae7ef",
+  "status": 200,
+  "bytes": 3488
+ }
+]

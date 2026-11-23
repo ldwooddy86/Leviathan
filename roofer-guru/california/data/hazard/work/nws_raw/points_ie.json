@@ -1,0 +1,112 @@
+{
+    "@context": [
+        "https://geojson.org/geojson-ld/geojson-context.jsonld",
+        {
+            "@version": "1.1",
+            "wx": "https://api.weather.gov/ontology#",
+            "s": "https://schema.org/",
+            "geo": "http://www.opengis.net/ont/geosparql#",
+            "unit": "http://codes.wmo.int/common/unit/",
+            "@vocab": "https://api.weather.gov/ontology#",
+            "geometry": {
+                "@id": "s:GeoCoordinates",
+                "@type": "geo:wktLiteral"
+            },
+            "city": "s:addressLocality",
+            "state": "s:addressRegion",
+            "distance": {
+                "@id": "s:Distance",
+                "@type": "s:QuantitativeValue"
+            },
+            "bearing": {
+                "@type": "s:QuantitativeValue"
+            },
+            "value": {
+                "@id": "s:value"
+            },
+            "unitCode": {
+                "@id": "s:unitCode",
+                "@type": "@id"
+            },
+            "forecastOffice": {
+                "@type": "@id"
+            },
+            "forecastGridData": {
+                "@type": "@id"
+            },
+            "publicZone": {
+                "@type": "@id"
+            },
+            "county": {
+                "@type": "@id"
+            }
+        }
+    ],
+    "id": "https://api.weather.gov/points/33.9806,-117.3755",
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [
+            -117.3755,
+            33.9806
+        ]
+    },
+    "properties": {
+        "@id": "https://api.weather.gov/points/33.9806,-117.3755",
+        "@type": "wx:Point",
+        "cwa": "SGX",
+        "type": "land",
+        "forecastOffice": "https://api.weather.gov/offices/SGX",
+        "gridId": "SGX",
+        "gridX": 58,
+        "gridY": 70,
+        "forecast": "https://api.weather.gov/gridpoints/SGX/58,70/forecast",
+        "forecastHourly": "https://api.weather.gov/gridpoints/SGX/58,70/forecast/hourly",
+        "forecastGridData": "https://api.weather.gov/gridpoints/SGX/58,70",
+        "observationStations": "https://api.weather.gov/gridpoints/SGX/58,70/stations",
+        "relativeLocation": {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -117.3931676,
+                    33.9381433
+                ]
+            },
+            "properties": {
+                "city": "Riverside",
+                "state": "CA",
+                "distance": {
+                    "unitCode": "wmoUnit:m",
+                    "value": 0
+                },
+                "bearing": {
+                    "unitCode": "wmoUnit:degree_(angle)",
+                    "value": 0
+                }
+            }
+        },
+        "forecastZone": "https://api.weather.gov/zones/forecast/CAZ048",
+        "county": "https://api.weather.gov/zones/county/CAC065",
+        "fireWeatherZone": "https://api.weather.gov/zones/fire/CAZ248",
+        "timeZone": "America/Los_Angeles",
+        "radarStation": "KSOX",
+        "astronomicalData": {
+            "sunrise": "2026-11-18T06:25:04-08:00",
+            "sunset": "2026-11-18T16:44:23-08:00",
+            "transit": "2026-11-18T11:34:43-08:00",
+            "civilTwilightBegin": "2026-11-18T05:58:26-08:00",
+            "civilTwilightEnd": "2026-11-18T17:11:00-08:00",
+            "nauticalTwilightBegin": "2026-11-18T05:28:07-08:00",
+            "nauticalTwilightEnd": "2026-11-18T17:41:20-08:00",
+            "astronomicalTwilightBegin": "2026-11-18T04:58:20-08:00",
+            "astronomicalTwilightEnd": "2026-11-18T18:11:07-08:00"
+        },
+        "nwr": {
+            "transmitter": "WWG21",
+            "sameCode": "006065",
+            "areaBroadcast": "https://api.weather.gov/radio/WWG21/broadcast",
+            "pointBroadcast": "https://api.weather.gov/points/33.9806,-117.3755/radio"
+        }
+    }
+}

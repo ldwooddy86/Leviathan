@@ -1,0 +1,112 @@
+{
+    "@context": [
+        "https://geojson.org/geojson-ld/geojson-context.jsonld",
+        {
+            "@version": "1.1",
+            "wx": "https://api.weather.gov/ontology#",
+            "s": "https://schema.org/",
+            "geo": "http://www.opengis.net/ont/geosparql#",
+            "unit": "http://codes.wmo.int/common/unit/",
+            "@vocab": "https://api.weather.gov/ontology#",
+            "geometry": {
+                "@id": "s:GeoCoordinates",
+                "@type": "geo:wktLiteral"
+            },
+            "city": "s:addressLocality",
+            "state": "s:addressRegion",
+            "distance": {
+                "@id": "s:Distance",
+                "@type": "s:QuantitativeValue"
+            },
+            "bearing": {
+                "@type": "s:QuantitativeValue"
+            },
+            "value": {
+                "@id": "s:value"
+            },
+            "unitCode": {
+                "@id": "s:unitCode",
+                "@type": "@id"
+            },
+            "forecastOffice": {
+                "@type": "@id"
+            },
+            "forecastGridData": {
+                "@type": "@id"
+            },
+            "publicZone": {
+                "@type": "@id"
+            },
+            "county": {
+                "@type": "@id"
+            }
+        }
+    ],
+    "id": "https://api.weather.gov/points/34.4208,-119.6982",
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [
+            -119.6982,
+            34.4208
+        ]
+    },
+    "properties": {
+        "@id": "https://api.weather.gov/points/34.4208,-119.6982",
+        "@type": "wx:Point",
+        "cwa": "LOX",
+        "type": "land",
+        "forecastOffice": "https://api.weather.gov/offices/LOX",
+        "gridId": "LOX",
+        "gridX": 105,
+        "gridY": 70,
+        "forecast": "https://api.weather.gov/gridpoints/LOX/105,70/forecast",
+        "forecastHourly": "https://api.weather.gov/gridpoints/LOX/105,70/forecast/hourly",
+        "forecastGridData": "https://api.weather.gov/gridpoints/LOX/105,70",
+        "observationStations": "https://api.weather.gov/gridpoints/LOX/105,70/stations",
+        "relativeLocation": {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -119.7137143,
+                    34.4035918
+                ]
+            },
+            "properties": {
+                "city": "Santa Barbara",
+                "state": "CA",
+                "distance": {
+                    "unitCode": "wmoUnit:m",
+                    "value": 0
+                },
+                "bearing": {
+                    "unitCode": "wmoUnit:degree_(angle)",
+                    "value": 0
+                }
+            }
+        },
+        "forecastZone": "https://api.weather.gov/zones/forecast/CAZ350",
+        "county": "https://api.weather.gov/zones/county/CAC083",
+        "fireWeatherZone": "https://api.weather.gov/zones/fire/CAZ350",
+        "timeZone": "America/Los_Angeles",
+        "radarStation": "KVTX",
+        "astronomicalData": {
+            "sunrise": "2026-11-18T06:35:16-08:00",
+            "sunset": "2026-11-18T16:52:46-08:00",
+            "transit": "2026-11-18T11:44:01-08:00",
+            "civilTwilightBegin": "2026-11-18T06:08:29-08:00",
+            "civilTwilightEnd": "2026-11-18T17:19:33-08:00",
+            "nauticalTwilightBegin": "2026-11-18T05:38:00-08:00",
+            "nauticalTwilightEnd": "2026-11-18T17:50:02-08:00",
+            "astronomicalTwilightBegin": "2026-11-18T05:08:04-08:00",
+            "astronomicalTwilightEnd": "2026-11-18T18:19:58-08:00"
+        },
+        "nwr": {
+            "transmitter": "KIH34",
+            "sameCode": "006083",
+            "areaBroadcast": "https://api.weather.gov/radio/KIH34/broadcast",
+            "pointBroadcast": "https://api.weather.gov/points/34.4208,-119.6982/radio"
+        }
+    }
+}

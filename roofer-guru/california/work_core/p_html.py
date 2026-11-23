@@ -1,0 +1,10 @@
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from patchlib import patch
+patch('html_00.html', [
+ ('<title>Uplift Roofing Atlas</title>', '<title>California Roofer Guru</title>'),
+ ('content="Louisiana roofing demand intelligence for all 64 parishes: roof age by ZIP, hail, wind and hurricane exposure, FEMA damage, eleven residential and commercial service lines, heatmaps for ads and SEO, licensing and insurance law, competitors, campaigns, pages and compliance."',
+  'content="California roofing demand intelligence for all 58 counties: roof age by ZIP, atmospheric rivers, winter wind and rain, Santa Ana and Diablo wind, wildfire zones and structures lost, heat and mountain snow load, the FAIR Plan and insurer non-renewals, thirteen residential and commercial service lines, heatmaps for ads and SEO, licensing and insurance law, competitors, campaigns, pages and compliance."'),
+ ('/* ---------- Louisiana map layers ---------- */', '/* ---------- California map layers (a tall state: the map never grows past the window; see ZipMap.unit) ---------- */\n.mapsvg{max-height:calc(100vh - 96px);min-height:380px}'),
+ ('Compiled October 6, 2026 from public data: U.S. Census Bureau (ACS 2020 to 2024, Business Patterns, Nonemployer Statistics, Building Permits, American Housing Survey), NOAA (Storm Events, SPC, NHC HURDAT2 and 2026 best tracks, NWS), FEMA OpenFEMA, BLS producer prices via FRED, legis.la.gov, the LSLBC and the Louisiana Department of Insurance.',
+  '<span id="footCompiled">Compiled November 19, 2026</span> from public data: U.S. Census Bureau (ACS 2020 to 2024, Business Patterns, Nonemployer Statistics, Building Permits, American Housing Survey, Economic Census), NOAA (Storm Events, SPC storm reports, climate normals, NWS), the CW3E atmospheric river scale, CAL FIRE (damage inspections, fire perimeters, Fire Hazard Severity Zones), FEMA OpenFEMA, the California Department of Insurance and the California FAIR Plan, the Contractors State License Board, BLS producer prices via FRED and leginfo.legislature.ca.gov.'),
+])

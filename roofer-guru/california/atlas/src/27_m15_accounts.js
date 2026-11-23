@@ -7,6 +7,8 @@ registerModule({
   key: 'accounts', num: '15', title: 'Accounts', desc: 'Connect the paid and social accounts, pull what they actually did, and let the actuals correct the models',
   mount(root) {
     const st = { range: (ACCT.settings() || {}).range || 30, hourLine: 'all', confirm: {} };
+    /* the Campaign Desk (module 08) saves its plan under this key; the pacing card reads the same one */
+    const DESK_KEY = 'cg.desk.v1';
     const ENVN = { chrome: 'the Chrome browser app', firefox: 'the Firefox browser app', viewer: 'the Claude viewer', file: 'a downloaded file' };
     const PB = { google: 'p-google', lsa: 'p-lsa', meta: 'p-meta', tiktok: 'p-tiktok', microsoft: 'p-microsoft', linkedin: 'p-site', youtube: 'p-youtube', facebook: 'p-meta', instagram: 'p-meta', gbp: 'p-google', linkedinpage: 'p-site', calls: 'p-site', other: 'p-site', nextdoor: 'p-nextdoor', yelp: 'p-yelp' };
     const badge = s => `<span class="pbadge ${PB[s] || 'p-site'}">${esc(s)}</span>`;
@@ -21,7 +23,7 @@ registerModule({
       <div class="card mt"><div class="card-h" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1"><h3>Connectors</h3><p>Each card holds the developer credentials the business creates in its own consoles, the account identifiers, and the connection. Credentials and tokens stay in this browser's storage. Connect runs the provider's own sign in window; Paste token takes a token generated elsewhere (a Meta system user token, a TikTok portal token, a Google OAuth Playground token) and works even when this page is opened as a file. Local Services Ads and YouTube use the Google sign in and only need their IDs.</p></div><div class="ctl"><label class="fl">Range</label><div class="seg" id="a15Range"><button data-v="30" aria-pressed="${st.range === 30}">30 days</button><button data-v="90" aria-pressed="${st.range === 90}">90 days</button></div></div></div>
         <div class="card-b"><div class="conns" id="a15Conn"></div></div></div>
       <div class="split">
-        <div class="card"><div class="card-h"><h3>Bring in a report</h3><p>Drop or paste the export an ad platform produces. Google Ads (campaign or hour of day report), Meta Ads Manager (with or without the time of day breakdown), TikTok Ads Manager (custom report by day), Microsoft Advertising, Local Services Ads leads, YouTube Studio (Content table or chart data), CallRail or CTM call logs, and a generic date, campaign, spend, leads sheet for Nextdoor, Yelp or mailers. Campaign names that carry the desk token (LA_REPAIR_, LA_REPLACE_ and so on) map to lines automatically; the rest are matched by keyword.</p></div>
+        <div class="card"><div class="card-h"><h3>Bring in a report</h3><p>Drop or paste the export an ad platform produces. Google Ads (campaign or hour of day report), Meta Ads Manager (with or without the time of day breakdown), TikTok Ads Manager (custom report by day), Microsoft Advertising, Local Services Ads leads, YouTube Studio (Content table or chart data), CallRail or CTM call logs, and a generic date, campaign, spend, leads sheet for Nextdoor, Yelp or mailers. Campaign names that carry the desk token (${esc(ACCT.PREFIX)}REPAIR_, ${esc(ACCT.PREFIX)}REPLACE_ and so on) map to lines automatically; the rest are matched by keyword.</p></div>
           <div class="card-b"><div class="drop" id="a15Drop" tabindex="0" role="button">Drop a CSV here or click to choose</div><input type="file" id="a15File" accept=".csv,.txt,text/csv" hidden>
           <div class="plan" style="margin-top:10px"><div class="f"><label class="fl" for="a15Imp">Format</label><select id="a15Imp"><option value="">Detect from the columns</option>${ACCT.IMPORTERS.map(i => `<option value="${i.id}">${esc(i.name)}</option>`).join('')}</select></div><div class="f"><label class="fl" for="a15Src">Source label (optional)</label><input type="text" id="a15Src" placeholder="nextdoor, yelp, mailer"></div></div>
           <textarea id="a15Paste" class="code" style="min-height:110px;margin-top:10px" placeholder="Or paste the CSV text here"></textarea>
@@ -42,7 +44,7 @@ registerModule({
       </div>
       ${card('How the module is built', '', '<ol class="meth" id="a15Meth"></ol>', 'mt')}
       <div class="split">${card('Judgment calls', '', '<div id="a15Judg"></div>')}${card('Source register', '', '<div id="a15Src2"></div>')}</div>
-      <div class="foot">Uplift Louisiana Roofing Atlas, module 15. Actuals beat assumptions; the module exists so the rest of the atlas can be corrected by the account it is planning for.</div></div>`;
+      <div class="foot">California Roofer Guru, module 15. Actuals beat assumptions; the module exists so the rest of the atlas can be corrected by the account it is planning for.</div></div>`;
     /* ---------- environment ---------- */
     async function env() {
       const host = $('#a15Env', root); const E = ACCT.ENV; const r = ACCT.redirectUrl();
@@ -112,7 +114,7 @@ registerModule({
     twoStep('a15ClearT', 'Clear tokens', async () => { await ACCT.clearAll('tokens'); toast('Tokens cleared'); });
     /* ---------- pacing ---------- */
     function pace() {
-      const desk = store.get('up.desk.v1', {}) || {}; const plan = +desk.budget || SLM.A.budget; const p = ACCT.pacing(plan);
+      const desk = store.get(DESK_KEY, {}) || {}; const plan = +desk.budget || SLM.A.budget; const p = ACCT.pacing(plan);
       if (!p.days) { $('#a15Pace', root).innerHTML = `<p class="mini">No paid rows for this month yet. The Campaign Desk plan is ${money(plan)} a month; once an account is synced or a report imported this shows spend to date, the run rate and the landing point.</p>`; return; }
       const pace = p.onPace; const col = pace == null ? 'var(--ink-3)' : pace > 1.15 ? 'var(--critical)' : pace < 0.85 ? 'var(--warning)' : 'var(--good)';
       $('#a15Pace', root).innerHTML = `<div class="qbox"><div class="qb"><div class="qt">Spent this month</div><div class="qv">${money(p.spend)}</div><div class="qd">through day ${p.day} of ${p.dim} · ${p.days} days with rows</div></div><div class="qb"><div class="qt">Daily rate</div><div class="qv">${money(p.rate)}</div><div class="qd">plan ${money(plan / p.dim)} a day</div></div><div class="qb"><div class="qt">Lands at</div><div class="qv">${money(p.projected)}</div><div class="qd">plan ${money(plan)} · ${S((p.projected / plan - 1) * 100, 0)}%</div></div><div class="qb"><div class="qt">Pace</div><div class="qv" style="color:${col}">${pace != null ? D(pace * 100, 0) + '%' : '—'}</div><div class="qd">${pace == null ? '' : pace > 1.15 ? 'ahead of plan: trim the evening bids or the weakest line' : pace < 0.85 ? 'behind plan: budgets are capping or the auction is thin' : 'on plan'}</div></div></div>
@@ -141,7 +143,7 @@ registerModule({
     function zips() {
       const rows = ACCT.byZip(90); const host = $('#a15Zip', root);
       if (!rows.length) { host.innerHTML = '<p class="mini">No ZIP rows yet. The Google sync pulls the geographic view (spend by matched postal code), LSA message leads carry the customer\'s postal code, and imports with a postal code column land here as well.</p>'; return; }
-      host.innerHTML = `<table><thead><tr><th class="l">ZIP</th><th class="l">City</th><th>Spend</th><th>Clicks</th><th>Leads</th><th>CPL</th><th class="l">Atlas read</th></tr></thead><tbody>${rows.slice(0, 60).map(r => `<tr><td class="l"><b>${esc(r.zip)}</b></td><td class="l">${esc(r.z ? r.z.city : '')}</td><td>${money(r.spend)}</td><td>${N(r.clicks)}</td><td>${N(Math.round(r.leads))}</td><td>${money(r.cpl)}</td><td class="l mini">${r.z ? `${esc(SLM.lineName(r.z.sl_top))} first · ${esc(r.z.cty)}` : 'not an atlas ZIP: outside Louisiana, or a PO box or other ZIP with no homes mapped'}</td></tr>`).join('')}</tbody></table>${rows.length > 60 ? `<p class="mini">${rows.length - 60} more ZIPs in the CSV export.</p>` : ''}`;
+      host.innerHTML = `<table><thead><tr><th class="l">ZIP</th><th class="l">City</th><th>Spend</th><th>Clicks</th><th>Leads</th><th>CPL</th><th class="l">Atlas read</th></tr></thead><tbody>${rows.slice(0, 60).map(r => `<tr><td class="l"><b>${esc(r.zip)}</b></td><td class="l">${esc(r.z ? r.z.city : '')}</td><td>${money(r.spend)}</td><td>${N(r.clicks)}</td><td>${N(Math.round(r.leads))}</td><td>${money(r.cpl)}</td><td class="l mini">${r.z ? `${esc(SLM.lineName(r.z.sl_top))} first · ${esc(r.z.cty)}` : 'not an atlas ZIP: outside California, or a PO box or other ZIP with no homes mapped'}</td></tr>`).join('')}</tbody></table>${rows.length > 60 ? `<p class="mini">${rows.length - 60} more ZIPs in the CSV export.</p>` : ''}`;
     }
     /* ---------- social ---------- */
     function social() {
@@ -185,8 +187,8 @@ registerModule({
     BUS.on('acct', () => { if (root.isConnected) renderData(); }); BUS.on('theme', () => { if (root.isConnected) hours(); });
     renderAll(); ACCT.ready().then(() => { if (root.isConnected) renderAll(); });
     /* the pace and model columns read the Campaign Desk's budget and the service line model, which change in other modules: redraw on show when either changed */
-    let drawnWith = JSON.stringify([(store.get('up.desk.v1', {}) || {}).budget, SLM.A]);
-    this.onShow = () => { const k = JSON.stringify([(store.get('up.desk.v1', {}) || {}).budget, SLM.A]); if (root.isConnected && k !== drawnWith) { drawnWith = k; renderData(); } };
+    let drawnWith = JSON.stringify([(store.get(DESK_KEY, {}) || {}).budget, SLM.A]);
+    this.onShow = () => { const k = JSON.stringify([(store.get(DESK_KEY, {}) || {}).budget, SLM.A]); if (root.isConnected && k !== drawnWith) { drawnWith = k; renderData(); } };
     this.receive = p => { if (p && p.provider) { const c = $(`.conn[data-p="${p.provider}"]`, root); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); } };
   }
 });

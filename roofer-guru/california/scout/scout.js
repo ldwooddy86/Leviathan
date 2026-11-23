@@ -1,42 +1,51 @@
 <script id="scout-js">
 /* ==== rooftop scout ==== */
-/* Module 18, Rooftop Scout: the atlas's heatmaps laid over commercial satellite imagery, down to the single roof.
+/* Module 18, Rooftop Scout, of California Roofer Guru: the atlas's heatmaps laid over commercial satellite imagery, down
+   to the single roof, for California and only California.
    The ZIP heatmap of any layer in the shared catalog (the same LAYERS modules 01, 04, 05 and 06 draw) sits on Esri World
-   Imagery: Vantor satellite imagery of 31 to 50 cm at the closest zoom across
-   Louisiana. At street level every building in view is fetched from FEMA's USA Structures inventory, joined to its parcel
-   (the year built, in Lafayette Parish), to the reroof, roof work and new construction permits of New Orleans and East Baton
-   Rouge Parish (the last time its roof was replaced), and to the NOAA hail, wind and tornado reports around it, and read by
-   the atlas's own models: the roof it most likely carries, how old that roof most likely is after every storm that reached
-   its ZIP (module 17's roof life and storm resets), how likely it is to need a replacement, a repair,
-   or wind or hail work, and which of the eleven service lines that is.
+   Imagery: Vantor satellite imagery of 31 to 50 cm at the closest zoom across most of the state, finer county aerials
+   where Esri carries them (Santa Clara County, Santa Rosa, San Bernardino County). At street level every building in view
+   is fetched from FEMA's USA Structures inventory and joined to what California's public records say about it:
+     its parcel (year built, use, situs address) from the county assessor's public layer where one carries a year built:
+       Los Angeles, San Diego (a two digit effective year), Orange, Riverside (which also records the roof covering),
+       Santa Clara, Contra Costa, San Francisco, San Joaquin, Sonoma and Ventura; an address and use only in Alameda,
+       Sacramento, San Mateo and Placer; nothing in San Bernardino, Fresno or Kern, where the ZIP's housing age stands in
+       and the card says so;
+     re-roof permits where a city publishes them: the City of Los Angeles (1996 on), Los Angeles County's unincorporated
+       areas and contract cities (2018 on), San Francisco (with its re-roof flag), the City of Sacramento (by parcel
+       number, with the covering and the squares) and, in part, San Jose;
+     CAL FIRE's record at the site: the Fire Hazard Severity Zone the building stands in, the fire perimeters since 1950
+       round it, and the damage inspection of the building itself where a fire reached it (which also records its roof);
+     the Energy Commission's building climate zone, for the cool roof rules a re-roof must meet (Title 24, Part 6).
+   Each building is then read by the atlas's own models: the roof it most likely carries (statewide 62 percent shingles,
+   27 percent tile, 5 percent wood on single family homes, and 62 percent tile on those built 2000 to 2020: the 2020
+   Residential Energy Consumption Survey), how old that roof most likely is (module 17's roof life, with tile aged by its
+   underlayment, and wildfire rebuilds), how likely it is to need a replacement, a tile lift and relay, a repair or
+   wind, rain or fire work, and which of the thirteen service lines that is.
    Green: likely to need the work. Orange: maybe. Red: not likely. A field check from the imagery overrides the model.
    Live Google Street View plays inside the map card, aimed from the street at the building, in place of the satellite map:
    Google's terms (Maps Platform 3.2.3(e)) keep Street View imagery and a non-Google map off the same screen, so the card
    switches between them. With no key at all, the Street view (3D) rebuilds the neighborhood from open data (FEMA
    buildings, Esri imagery, OpenStreetMap streets and alleys) and every building glows in its colour, exactly, because the
    page draws the scene itself; it walks the streets and alleys and rises for the roofs. It is traced from the newest
-   satellite photo Esri serves for the place when that photo is from 2024 or later (Vantor's January 16, 2026 picture over
-   Baton Rouge, for one): an AI model (SlimSAM, Segment Anything, run on this computer by ONNX Runtime Web) checks every
-   building on record against the photo, redraws the ones whose roofs changed, and outlines every tree crown. It is drawn
-   the way a game engine draws a scene (a physical sky and sun, sun shadows, ambient occlusion, bloom, filmic tone mapping,
-   photo-scanned brick, siding, stucco, asphalt, concrete and bark, windows with frames and glass, foliage of photographed
-   leaves). The area exports as a glTF model for Unreal Engine 5 or Blender. With a Google Maps key that has the Map Tiles
-   API, the same 3D view can stand on Google's Photorealistic 3D Tiles instead (the photographed mesh behind Google Earth's
-   3D), with the glows on top. Past the imagery's finest zoom, the satellite map's AI detail runs Real-ESRGAN on this
-   computer's graphics card to draw each tile four times finer, labelled as inferred. Google's photos are one click away,
-   and with a Google Maps key (Maps JavaScript API) they glow too. Street photos inside the side panel come from Mapillary
-   when a Mapillary token is saved. Every request goes from this browser straight to a public service;
-   nothing is sent anywhere else, and the keys a person saves stay in this browser.
+   satellite photo Esri serves for the place when that photo is from 2024 or later: an AI model (SlimSAM, Segment
+   Anything, run on this computer by ONNX Runtime Web) checks every building on record against the photo, redraws the
+   ones whose roofs changed, and outlines every tree crown. The area exports as a glTF model for Unreal Engine 5 or
+   Blender. With a Google Maps key that has the Map Tiles API, the same 3D view can stand on Google's Photorealistic 3D
+   Tiles instead. Past the imagery's finest zoom, the satellite map's AI detail runs Real-ESRGAN on this computer's
+   graphics card to draw each tile four times finer, labelled as inferred. Street photos inside the side panel come from
+   Mapillary when a Mapillary token is saved. Every request goes from this browser straight to a public service; nothing
+   is sent anywhere else, and the keys a person saves stay in this browser.
    The Scout Engine (window.__SCOUT_E3D__, carried in the file after this script) draws the same neighborhood with its own
-   WebGL2 renderer and lays three roof views on the roofs round the camera: Thermal (each plane's temperature at the chosen
-   day and hour, from an energy balance), Wear (what age and weather have taken so far) and Time (the damage most likely to
-   have reached each part of each roof by each of the next fifteen years). The same fifteen year outlook is on the building's
-   card: the chance, year by year, of wind, hail, heat and age, and leak damage, by kind of roof, from the storm, hail and
-   wind record of the ZIP and those round it.
-   Round 11: three more roof views (Covering, Shingle style, Storm), a storm scale that runs the engine's weather from light
-   rain to a Category 5 hurricane, and two craft that fly in it where the Alta X may not (it is rated for light rain): a
-   flying saucer and the Tic Tac, which warp to an address or coordinates in Louisiana. The module is now Louisiana Roofer
-   Guru wherever it names itself (the name is set when the page is assembled).
+   WebGL2 renderer and lays roof views on the roofs round the camera: Covering, Shingle style, Thermal, Wear, Weather
+   (what the rain, the atmospheric river, the wind, the snow or the smoke now set on the engine's scales would do to
+   each roof), Fire (the class of roof each most likely is, the zone it stands in and its ember exposure), Solar and
+   cool roof (the sun each plane takes in a year, and the cool roof rule a re-roof there must meet) and Time (the damage
+   most likely to have reached each part of each roof by each of the next fifteen years). The same fifteen year outlook
+   is on the building's card, with California's weather history applied to the roof: atmospheric river days by rank,
+   heavy rain days, gust days at 40, 58 and 75 mph, Santa Ana or Diablo exposure, the fire zone and the fires and
+   losses near it, the ground snow load, heat days, hail and salt air, each said plainly with its source, as the record
+   of what has happened there and never as a forecast of an event.
    Plain script in the dashboard's own style, on the dashboard's own helpers (registerModule, mastHTML, card, callout,
    kpiHTML, dataTable, layerOptions, zipTip, qScale, legendHTML, saveFile, toCSV, store, toast). Leaflet 1.9.4 is carried
    inline beside it and kept private (window.__SCOUT_LEAFLET__), so no other module sees a global L. */
@@ -44,32 +53,73 @@
   'use strict';
   if (typeof registerModule !== 'function' || typeof MODS === 'undefined' || typeof MODI === 'undefined' || MODI.rooftops) return;
   const LF = window.__SCOUT_LEAFLET__ || null;
-  const KEY = 'rooftops', STORE = 'up.scout.v1', CHECKS = 'up.scout.checks.v1', VERSION = 1;
+  const KEY = 'rooftops', STORE = 'cg.scout.v1', CHECKS = 'cg.scout.checks.v1', VERSION = 1;
   const NUM = String(Math.max(0, ...MODS.map(m => +m.num || 0)) + 1).padStart(2, '0');
   const G0 = DATA.geo;
   const NOWD = new Date(), NOW = NOWD.getFullYear() + (NOWD.getMonth() + (NOWD.getDate() - 1) / 31) / 12, THIS_YEAR = NOWD.getFullYear();
   const TILE_Z = 16;                                                     /* buildings, parcels and permits are fetched per zoom 16 tile, about 530 m square here */
 
-  /* ---------- public services: every one keyless and open to a browser (CORS), checked 2026-11-15 ---------- */
+  /* ---------- public services: every one keyless and open to a browser (CORS), checked 2026-11-19 ---------- */
   const EP = {
     esri: 'https://server.arcgisonline.com/ArcGIS/rest/services/',
     esriKey: 'https://ibasemaps-api.arcgis.com/arcgis/rest/services/',
     bldg: 'https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/USA_Structures_View/FeatureServer/0/query',
-    parcel: 'https://services1.arcgis.com/Brg1qbmzmFn7JtpX/arcgis/rest/services/Parish_Parcels__All_/FeatureServer/0/query',
     roads: 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/Transportation/MapServer/',
-    nola: 'https://data.nola.gov/resource/rcm3-fn58.json',
-    ebr: 'https://data.brla.gov/resource/7fq7-8j7r.json',
     geocode: 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates',
+    revgeo: 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/reverseGeocode',
     mly: 'https://graph.mapillary.com/images',
     osmBldg: 'https://services6.arcgis.com/Do88DoK2xjTUCXd1/arcgis/rest/services/OSM_NA_Buildings/FeatureServer/0/query',
+    /* California Energy Commission: the sixteen building climate zones (the commission's 2015 boundary layer) */
+    cz: 'https://services3.arcgis.com/bWPjFyq029ChCGur/arcgis/rest/services/BuildingClimateZones_CEC_2015/FeatureServer/0/query',
+    /* CAL FIRE's hosted layers: Fire Hazard Severity Zones (State Responsibility Area, in force April 1, 2024; Local
+       Responsibility Area, the State Fire Marshal's map of March 24, 2025), fire perimeters since 1950, damage inspections */
+    fire: 'https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/',
+    fhszS: 'FHSZSRA_23_3/FeatureServer/0/query', fhszL: 'FHSALRA25_v1_All/FeatureServer/0/query', perim: 'California_Historic_Fire_Perimeters/FeatureServer/2/query', dins: 'POSTFIRE_MASTER_DATA_SHARE/FeatureServer/0/query',
+    /* re-roof permits */
+    ladbs: [['https://data.lacity.org/resource/pi9x-tg5x.json', 2020], ['https://data.lacity.org/resource/dyxf-7hc4.json', 2010], ['https://data.lacity.org/resource/e67z-kt2n.json', 1996]],
+    epicla: 'https://services.arcgis.com/RmCCgQtiZLDCtblq/arcgis/rest/services/EPIC-LA_Case_History_view/FeatureServer/0/query',
+    sfp: 'https://data.sf.gov/resource/i98e-djp9.json',
+    sfroll: 'https://data.sf.gov/resource/wv5m-vpq2.json',
+    sacp: ['https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/BldgPermitIssued_Archive/FeatureServer/0/query', 'https://services5.arcgis.com/54falWtcpty3V47Z/arcgis/rest/services/BldgPermitIssued_CurrentYear/FeatureServer/0/query'],
+    sjp: 'https://data.sanjoseca.gov/api/3/action/datastore_search_sql',
   };
+  /* The county assessors' public parcel layers, by county FIPS, as tested on 2026-11-19 (ArcGIS REST, one envelope query a
+     map square). yb: the year built as the layer gives it; an address and a use where it has them. A layer marked noYb
+     has no year built a browser can read: it still names the building (FEMA's California footprints carry no address).
+     San Francisco is a Socrata table of points (below); Riverside keeps the year and the roof covering in a second table. */
+  const yr4 = v => { const y = parseInt(v, 10); return y >= 1850 && y <= THIS_YEAR + 1 ? y : null; };
+  const PARCEL = {
+    '06037': { n: 'Los Angeles', url: 'https://public.gis.lacounty.gov/public/rest/services/LACounty_Cache/LACounty_Parcel/MapServer/0/query', f: 'AIN,SitusAddress,SitusFullAddress,SitusCity,UseType,UseDescription,YearBuilt1,EffectiveYear1,Units1,SQFTmain1,Roll_Year',
+      m: a => ({ yb: yr4(a.YearBuilt1), eff: yr4(a.EffectiveYear1), situs: a.SitusAddress || a.SitusFullAddress, city: a.SitusCity, use: a.UseDescription || a.UseType, apn: a.AIN, roll: a.Roll_Year, units: +a.Units1 || 0 }) },
+    '06073': { n: 'San Diego', url: 'https://geo.sandag.org/server/rest/services/Hosted/Parcels/FeatureServer/0/query', f: 'apn,situs_address,situs_pre_dir,situs_street,situs_suffix,situs_community,year_effective,nucleus_use_cd,unitqty', q: { maxAllowableOffset: 0.000005 }, two: true,
+      m: a => ({ yy: /^\d{2}$/.test(String(a.year_effective || '').trim()) ? String(a.year_effective).trim() : '', situs: [a.situs_address, a.situs_pre_dir, a.situs_street, a.situs_suffix].filter(x => x != null && String(x).trim() && String(x).trim() !== '0').join(' '), city: a.situs_community, use: sdUse(a.nucleus_use_cd), apn: a.apn, units: +a.unitqty || 0 }) },
+    '06059': { n: 'Orange', url: 'https://www.ocgis.com/arcpub/rest/services/Map_Layers/Parcels/FeatureServer/0/query', f: 'SITE_ADDRESS,ASSESSMENT_NO,YEAR_BUILT', m: a => ({ yb: yr4(a.YEAR_BUILT), situs: a.SITE_ADDRESS, apn: a.ASSESSMENT_NO }) },
+    '06065': { n: 'Riverside', url: 'https://gis.countyofriverside.us/arcgis_mapping/rest/services/OpenData/Assessor/MapServer/50/query', f: 'APN,SITUS_STREET,SITUS_CITY,CLASS_CODE', table: 'https://gis.countyofriverside.us/arcgis_mapping/rest/services/OpenData/Assessor/MapServer/80/query',
+      m: a => ({ situs: a.SITUS_STREET, city: a.SITUS_CITY, use: a.CLASS_CODE, apn: a.APN }) },
+    '06085': { n: 'Santa Clara', url: 'https://services2.arcgis.com/tcv2cMrq63AgvbHF/arcgis/rest/services/Parcels_Public_View/FeatureServer/0/query', f: 'APN,Year_Built,Situs_Address_Full', m: a => ({ yb: yr4(a.Year_Built), situs: a.Situs_Address_Full, apn: a.APN }) },
+    '06013': { n: 'Contra Costa', url: 'https://gis.cccounty.us/arcgis/rest/services/CCMAP/Assessment_Parcels_ArcPro/MapServer/0/query', f: 'APN,full_address_display,s_city,USE_CODE,Description,YR_BUILT,YR_HS_BLT', m: a => ({ yb: yr4(a.YR_HS_BLT) || yr4(a.YR_BUILT), situs: a.full_address_display, city: a.s_city, use: a.Description, apn: a.APN }) },
+    '06077': { n: 'San Joaquin', url: 'https://services2.arcgis.com/GQhSReJEO6f7tsvy/arcgis/rest/services/Parcels/FeatureServer/0/query', f: 'APN,FULL_ADDRESS,YEAR_BUILT,STORIES,NUMBER_UNITS,DESCRIPTION,VALUE_ROLL_YEAR', m: a => ({ yb: yr4(a.YEAR_BUILT), situs: a.FULL_ADDRESS, use: a.DESCRIPTION, apn: a.APN, roll: a.VALUE_ROLL_YEAR, units: +a.NUMBER_UNITS || 0 }) },
+    '06097': { n: 'Sonoma', url: 'https://socogis.sonomacounty.ca.gov/map/rest/services/CRAPublic/ParcelsPublic/FeatureServer/0/query', f: 'APN,SitusFormatted1,UseCodeDescription,BuildingPrimaryYearBuilt,BuildingPrimaryEffectiveYear,BuildingPrimaryUnitCount', m: a => ({ yb: yr4(a.BuildingPrimaryYearBuilt), eff: yr4(a.BuildingPrimaryEffectiveYear), situs: a.SitusFormatted1, use: a.UseCodeDescription, apn: a.APN, units: +a.BuildingPrimaryUnitCount || 0 }) },
+    '06111': { n: 'Ventura', url: 'https://services2.arcgis.com/XJ5Tb7dTYtAMoyYT/arcgis/rest/services/Parcels1955on/FeatureServer/6/query', url2: 'https://services2.arcgis.com/XJ5Tb7dTYtAMoyYT/arcgis/rest/services/ParcelsBefore1955/FeatureServer/7/query', f: 'YR_BLT', roll: 'a snapshot of May 3, 2023', m: a => ({ yb: yr4(a.YR_BLT) }) },
+    '06001': { n: 'Alameda', noYb: true, url: 'https://services5.arcgis.com/ROBnTHSNjoZ2Wm1P/arcgis/rest/services/Parcels/FeatureServer/0/query', f: 'APN,SitusAddress,SitusCity,UseCode', m: a => ({ situs: a.SitusAddress, city: a.SitusCity, apn: a.APN }) },
+    '06067': { n: 'Sacramento', noYb: true, url: 'https://services1.arcgis.com/5NARefyPVtAeuJPU/arcgis/rest/services/Parcels/FeatureServer/0/query', f: 'APN,STREET_NBR,STREET_NAM,CITY,LU_GENERAL,LU_SPECIF', m: a => ({ situs: [a.STREET_NBR, a.STREET_NAM].filter(x => x != null && String(x).trim()).join(' '), city: a.CITY, use: [a.LU_GENERAL, a.LU_SPECIF].filter(Boolean).join(', '), apn: a.APN }) },
+    '06081': { n: 'San Mateo', noYb: true, url: 'https://gis.smcgov.org/maps/rest/services/Common/ACTIVE_PARCELS_APN/FeatureServer/0/query', f: 'APN,SITUS_ADDR', m: a => ({ situs: a.SITUS_ADDR, apn: a.APN }) },
+    '06061': { n: 'Placer', noYb: true, url: 'https://services9.arcgis.com/NENkjkswKTzMfG3A/arcgis/rest/services/County_Parcels_-_Public_View/FeatureServer/0/query', f: 'Apn,SitusAddressFull,UseCodeName', m: a => ({ situs: a.SitusAddressFull, use: a.UseCodeName, apn: a.Apn }) },
+  };
+  /* San Diego's assessor use code (three digits): the first digit is the group */
+  function sdUse(c) { c = String(c == null ? '' : c).trim(); if (!/^\d{3}$/.test(c)) return ''; return c === '111' ? 'Single family residence' : c[0] === '1' ? (+c >= 130 ? 'Multifamily residential' : 'Residential') : c[0] === '2' ? 'Commercial' : c[0] === '3' ? 'Industrial' : c[0] === '4' ? 'Agricultural' : c[0] === '7' ? 'Institutional' : 'Use code ' + c; }
+  /* counties whose assessor publishes no year built a browser can read, and no address either */
+  const NO_ROLL = { '06071': 'San Bernardino', '06019': 'Fresno', '06029': 'Kern' };
+  /* who publishes re-roof permits: the county decides which files a map square asks */
+  const PFILE = { '06037': 'la', '06075': 'sf', '06067': 'sac', '06085': 'sj' };
+  const PFILE_L = { la: 'City of Los Angeles (1996 on) and Los Angeles County\'s unincorporated areas and contract cities (2018 on)', sf: 'San Francisco Department of Building Inspection', sac: 'City of Sacramento (2016 on)', sj: 'City of San Jose (active, expired and under inspection permits only)' };
 
   /* ---------- settings, kept in this browser ---------- */
   const KINDS = { all: 'Every building', home: 'Homes', apt: 'Apartments and lodging', biz: 'Shops, offices and services', ind: 'Industrial and warehouses', inst: 'Schools, worship, health, government', other: 'Everything else' };
-  /* green and orange cut points, set from the atlas's own roof ages (module 17): the average Louisiana roof scores about 21,
-     so orange starts a little under the typical roof and green a fifth above it (the proportions of the sibling DFW atlas), green needs
-     evidence of an older roof (a known roof of about 14 years or more) or open storm damage, and red needs evidence of a
-     newer one (a storm rebuild, a permit or a young building) */
+  /* green and orange cut points, set from the atlas's own roof ages (module 17): orange starts a little under the score of
+     the average California roof and green a fifth above it (the method's note gives the average as the page computes it),
+     so green needs evidence of an older roof or open damage, and red needs evidence of a newer one (a rebuild after a
+     fire, a permit or a young building) */
   const DEF = { imagery: 'esri', heat: 'idx', opacity: 0.55, minZoom: 17, green: 26, orange: 19, arcgisKey: '', mlyToken: '', gKey: '', show: { g: true, o: true, r: true }, kind: 'all', view: null, ai: true, outRec: 'mid' };
   const CFG = (() => {
     const s = store.get(STORE, {}) || {}, o = JSON.parse(JSON.stringify(DEF));
@@ -86,7 +136,7 @@
     if (KINDS[s.kind]) o.kind = s.kind;
     if (typeof s.ai === 'boolean') o.ai = s.ai;
     if (['mid', 'recent', 'long'].includes(s.outRec)) o.outRec = s.outRec;
-    if (s.view && isN(s.view.lat) && isN(s.view.lon) && isN(s.view.z) && Math.abs(s.view.lat - 31) < 2.6 && Math.abs(s.view.lon + 91.5) < 3.6) o.view = { lat: +s.view.lat, lon: +s.view.lon, z: clamp(Math.round(+s.view.z), 7, 22) };
+    if (s.view && isN(s.view.lat) && isN(s.view.lon) && isN(s.view.z) && s.view.lat > G0.maxy - G0.H / G0.sx - 0.5 && s.view.lat < G0.maxy + 0.5 && s.view.lon > G0.minx - 0.5 && s.view.lon < G0.minx + G0.W / (G0.kx * G0.sx) + 0.5) o.view = { lat: +s.view.lat, lon: +s.view.lon, z: clamp(Math.round(+s.view.z), 7, 22) };
     return o;
   })();
   const saveCfg = () => store.set(STORE, CFG);
@@ -99,7 +149,7 @@
     const ks = Object.keys(CK); if (ks.length > 1500) ks.slice(0, ks.length - 1500).forEach(k => delete CK[k]);
     store.set(CHECKS, CK);
   }
-  const CUES = [['tarp', 'Blue tarp or a temporary patch', 'g'], ['missing', 'Missing, lifted or creased shingles', 'g'], ['worn', 'Worn: curling, bare spots, dark streaks or moss', 'g'], ['hail', 'Hail marks: bruised shingles, dented vents or gutters', 'g'], ['ponding', 'Flat roof: ponding, blisters or open seams', 'g'], ['rust', 'Metal roof: rust or backed out fasteners', 'g'], ['new', 'New roof: clean, even colour, fresh flashing', 'r'], ['work', 'Work underway, or a dumpster in the drive', '']];
+  const CUES = [['tarp', 'Tarp or a temporary patch', 'g'], ['missing', 'Missing, lifted or creased shingles', 'g'], ['worn', 'Worn: curling, bare spots, dark streaks or moss', 'g'], ['tile', 'Tile: broken, slipped or missing tiles, open ridge or hip mortar', 'g'], ['shake', 'Wood shakes: split, cupped or missing', 'g'], ['ponding', 'Flat roof: ponding, blisters or open seams', 'g'], ['rust', 'Metal roof: rust or backed out fasteners', 'g'], ['burn', 'Fire: scorched, melted or burned roof, or a cleared lot', 'g'], ['debris', 'Leaves or needles in the valleys and gutters', ''], ['solar', 'Solar panels on the roof (a re-roof means a detach and reset)', ''], ['new', 'New roof: clean, even colour, fresh flashing', 'r'], ['work', 'Work underway, or a dumpster in the drive', '']];
 
   /* ---------- small things ---------- */
   const qs = o => Object.keys(o).filter(k => o[k] != null && o[k] !== '').map(k => encodeURIComponent(k) + '=' + encodeURIComponent(o[k])).join('&');
@@ -129,7 +179,7 @@
   }
   const why = e => String((e && e.message) || e || 'failed').slice(0, 160);
 
-  /* ---------- the atlas's ZIP and parish shapes, back to latitude and longitude ---------- */
+  /* ---------- the atlas's ZIP and county shapes, back to latitude and longitude ---------- */
   /* The SVG paths in DATA.geo are drawn in the atlas's own projection (02_map.js: x = (lon - minx) kx sx, y = (maxy - lat) sx,
      whole pixels, about 210 m each). Inverted here they make the heatmap polygons and answer which ZIP a building is in. */
   const unproj = (x, y) => [G0.maxy - y / G0.sx, G0.minx + x / (G0.kx * G0.sx)];
@@ -158,14 +208,21 @@
   }
   const ZP = Object.entries(G0.zcta || {}).map(([zip, d]) => { const rings = pathRings(d); return { zip, rings, bb: bboxOf(rings) }; }).filter(p => p.rings.length);
   const ZPI = {}; ZP.forEach(p => ZPI[p.zip] = p);
-  const CTY = Object.entries(G0.parish || {}).map(([f, d]) => ({ fips: f, rings: pathRings(d) }));
+  const CTY = Object.entries(G0.parish || G0.county || {}).map(([f, d]) => ({ fips: f, rings: pathRings(d) }));
   const CTYI = {}; CTY.forEach(c => CTYI[c.fips] = c);
   function zipAt(la, lo) {
     for (const p of ZP) if (inBox(la, lo, p.bb) && inRings(la, lo, p.rings)) return p.zip;
     let best = null, bd = 1e9; Z.forEach(z => { if (!isN(z.lat)) return; const d = meters([la, lo], [z.lat, z.lon]); if (d < bd) { bd = d; best = z.zip; } });
     return bd < 6000 ? best : null;
   }
-  const LA_BOUNDS = [[G0.maxy - G0.H / G0.sx, G0.minx], [G0.maxy, G0.minx + G0.W / (G0.kx * G0.sx)]];
+  /* the box the atlas's map is drawn in (California with its neighbours' edges), the state's own outline, and whether a point is in the state */
+  const ST_BOX = { s: G0.maxy - G0.H / G0.sx, w: G0.minx, n: G0.maxy, e: G0.minx + G0.W / (G0.kx * G0.sx) };
+  const ST_BOUNDS = [[ST_BOX.s, ST_BOX.w], [ST_BOX.n, ST_BOX.e]];
+  const ST_RINGS = (() => { try { return pathRings(G0.outline); } catch (e) { return []; } })();
+  const ST_BB = ST_RINGS.length ? bboxOf(ST_RINGS) : [ST_BOX.s, ST_BOX.w, ST_BOX.n, ST_BOX.e];
+  const inState = (la, lo) => isN(la) && isN(lo) && la >= ST_BB[0] - 0.02 && la <= ST_BB[2] + 0.02 && lo >= ST_BB[1] - 0.02 && lo <= ST_BB[3] + 0.02 && (!ST_RINGS.length || inRings(la, lo, ST_RINGS) || !!zipAt(la, lo));
+  /* for the address search: the state's box, and its middle */
+  const GEO_EXT = [ST_BB[1] - 0.05, ST_BB[0] - 0.05, ST_BB[3] + 0.05, ST_BB[2] + 0.05].map(v => v.toFixed(2)).join(','), GEO_MID = ((ST_BB[1] + ST_BB[3]) / 2).toFixed(2) + ',' + ((ST_BB[0] + ST_BB[2]) / 2).toFixed(2);
 
   /* ---------- web mercator tiles ---------- */
   const lon2x = (lo, z) => Math.floor((lo + 180) / 360 * Math.pow(2, z));
@@ -173,15 +230,19 @@
   const tileBox = (z, x, y) => { const n = Math.pow(2, z), n0 = deg(Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n)))), n1 = deg(Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 1) / n)))); return { w: x / n * 360 - 180, e: (x + 1) / n * 360 - 180, n: n0, s: n1 }; };
   const env = b => [b.w, b.s, b.e, b.n].map(v => v.toFixed(6)).join(',');
 
-  /* ---------- addresses: one key for FEMA, the parcel roll and the two permit files ---------- */
-  /* "632 WOODGATE BLVD", "2718 Saint Ann St", "435 E WOODGATE CT BATON ROUGE LA 70808" and "1030 Crete St Apt B" all come
-     down to number|core name: suffixes and directions dropped, units and cities cut off. A New Orleans double's range
-     ("2824-26 St Ann St", "2616/18 St Philip St") keys on its first number, as FEMA and the parcel roll do. */
+  /* ---------- addresses: one key for the parcel rolls, the permit files and CAL FIRE's inspections ---------- */
+  /* "200 N SPRING ST", "200 North Spring Street, Los Angeles, CA 90012", "627 E CALAVERAS ST, ALTADENA, CA 91001" and
+     "1030 Larkin St Apt B" all come down to number|core name: suffixes and directions dropped, units, cities and ZIPs
+     cut off. A range ("2824-26 Mission St", "2616/18 Folsom St") keys on its first number, and so does a half number
+     ("1234 1/2 W 5th St": a rear unit, common in Los Angeles). A city written after the street with no comma is cut
+     off when the caller names it (the parcel rolls give it in its own field). */
   const SUF = { AVENUE: 'AVE', AV: 'AVE', AVE: 'AVE', STREET: 'ST', ST: 'ST', DRIVE: 'DR', DR: 'DR', ROAD: 'RD', RD: 'RD', LANE: 'LN', LN: 'LN', COURT: 'CT', CT: 'CT', CIRCLE: 'CIR', CIR: 'CIR', BOULEVARD: 'BLVD', BLVD: 'BLVD', PLACE: 'PL', PL: 'PL', PARKWAY: 'PKWY', PKWY: 'PKWY', TRAIL: 'TRL', TRL: 'TRL', TERRACE: 'TER', TER: 'TER', HIGHWAY: 'HWY', HWY: 'HWY', FREEWAY: 'FWY', FWY: 'FWY', EXPRESSWAY: 'EXPY', EXPY: 'EXPY', WAY: 'WAY', COVE: 'CV', CV: 'CV', CROSSING: 'XING', XING: 'XING', SQUARE: 'SQ', SQ: 'SQ', POINT: 'PT', PT: 'PT', RIDGE: 'RDG', RDG: 'RDG', LOOP: 'LOOP', PATH: 'PATH', PASS: 'PASS', RUN: 'RUN', ROW: 'ROW', ALLEY: 'ALY', ALY: 'ALY', BEND: 'BND', BND: 'BND', GLEN: 'GLN', GLN: 'GLN', GROVE: 'GRV', GRV: 'GRV', HOLLOW: 'HOLW', HOLW: 'HOLW', LANDING: 'LNDG', LNDG: 'LNDG', PLAZA: 'PLZ', PLZ: 'PLZ', TRACE: 'TRCE', TRCE: 'TRCE', VIEW: 'VW', VW: 'VW', VISTA: 'VIS', WALK: 'WALK', CREEK: 'CRK', CRK: 'CRK', HILL: 'HL', HILLS: 'HLS', MEADOW: 'MDW', MEADOWS: 'MDWS', SPRINGS: 'SPGS', VALLEY: 'VLY', ESTATES: 'ESTS', CANYON: 'CYN', BRANCH: 'BR', BROOK: 'BRK', BLUFF: 'BLF', CREST: 'CRST', FIELD: 'FLD', FIELDS: 'FLDS', GARDENS: 'GDNS', HEIGHTS: 'HTS', MANOR: 'MNR', OVAL: 'OVAL', PIKE: 'PIKE', SPUR: 'SPUR', STRAVENUE: 'STRA' };
   const DIRS = { NORTH: 'N', SOUTH: 'S', EAST: 'E', WEST: 'W', NORTHEAST: 'NE', NORTHWEST: 'NW', SOUTHEAST: 'SE', SOUTHWEST: 'SW', N: 'N', S: 'S', E: 'E', W: 'W', NE: 'NE', NW: 'NW', SE: 'SE', SW: 'SW' };
   const isDir = w => /^(N|S|E|W|NE|NW|SE|SW)$/.test(w), isSuf = w => Object.prototype.hasOwnProperty.call(SUF, w);
-  function addrParts(s) {
-    let t = String(s == null ? '' : s).toUpperCase().split(',')[0].replace(/^\s*(\d+)[A-Z]?\s*[-\/&]\s*\d+[A-Z]?\b/, '$1').replace(/\s+(BATON ROUGE|NEW ORLEANS|LAFAYETTE|BAKER|ZACHARY|CENTRAL|SCOTLANDVILLE)\s+LA\b.*$/, ' ').replace(/\bLA\s+\d{5}(-\d{4})?\s*$/, ' ').replace(/\b(STE|SUITE|UNIT|APT|BLDG|SPC|LOT|RM|FL)\b\s*[:#.]?\s*[A-Z0-9-]*/g, ' ').replace(/#\s*[A-Z0-9-]+/g, ' ').replace(/\bSAINT\b/g, 'ST').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  function addrParts(s, city) {
+    let t = String(s == null ? '' : s).toUpperCase().split(',')[0].replace(/^\s*(\d+)\s+\d\/\d\b/, '$1').replace(/^\s*(\d+)[A-Z]?\s*[-\/&]\s*\d+[A-Z]?\b/, '$1').replace(/\s+CA(LIFORNIA)?\s+9\d{4}(-\d{4})?\s*$/, ' ').replace(/\s+9\d{4}(-\d{4})?\s*$/, ' ');
+    if (city) { const c = String(city).toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ').trim(); if (c && t.replace(/\s+/g, ' ').trim().endsWith(' ' + c)) t = t.replace(/\s+/g, ' ').trim().slice(0, -c.length); }
+    t = t.replace(/\b(STE|SUITE|UNIT|APT|BLDG|SPC|LOT|RM|FL)\b\s*[:#.]?\s*[A-Z0-9-]*/g, ' ').replace(/#\s*[A-Z0-9-]+/g, ' ').replace(/\bSAINT\b/g, 'ST').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
     const w = t.split(' ').filter(Boolean); let num = '';
     if (w.length && /^\d+[A-Z]?$/.test(w[0])) num = w.shift().replace(/[A-Z]$/, '');
     let core = w.map(x => DIRS[x] && x.length > 2 ? DIRS[x] : x);
@@ -574,11 +635,6 @@
 
   /* ---------- the store of buildings and tiles ---------- */
   const B = new Map(), T = new Map();
-  /* parishes whose parcel roll carries a year built in the public parcel layer: Lafayette on most parcels, Vermilion on few
-     (mostly homes built since 2017, in the newer subdivisions), so every tile in either parish asks for its parcels */
-  const PCOV = { '22055': 'yes', '22113': 'yes' };
-  /* parishes with a live roof permit file: Orleans (City of New Orleans) and East Baton Rouge */
-  const PFILE = { '22071': 'nola', '22033': 'ebr' };
   function ingest(fc, t) {
     const out = [];
     (fc.features || []).forEach(f => {

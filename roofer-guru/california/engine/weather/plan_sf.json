@@ -1,0 +1,17 @@
+[
+  { "addr": "400 Van Ness Ave, San Francisco, CA", "shots": [
+    { "name": "sf_0_dry_street", "h": "street", "js": "en.storm('dry')", "steps": 100 },
+    { "name": "sf_1_light_street", "h": "street", "js": "en.storm('light')" },
+    { "name": "sf_2_rain_street", "h": "street", "js": "en.storm('rain')" },
+    { "name": "sf_3_tstorm_street", "h": "street", "js": "en.storm('tstorm'); en.stormKit.freezeFlash = true; en.stormKit.strike(en.engine.camera)" },
+    { "name": "sf_4_ar1_street", "h": "street", "js": "en.stormKit.freezeFlash = false; en.storm('ar1')" },
+    { "name": "sf_5_ar2_street", "h": "street", "js": "en.storm('ar2')" },
+    { "name": "sf_6_ar3_street", "h": "street", "js": "en.storm('ar3')" },
+    { "name": "sf_7_ar4_street", "h": "street", "js": "en.storm('ar4')", "steps": 1200 },
+    { "name": "sf_7_ar4_drone", "h": "drone", "js": "", "steps": 100 },
+    { "name": "sf_7_ar4_bird", "h": "bird", "js": "", "steps": 100 },
+    { "name": "sf_8_ar5_bird", "h": "bird", "js": "en.storm('ar5')", "steps": 1200 },
+    { "name": "sf_8_ar5_street", "h": "street", "js": "", "steps": 100 },
+    { "name": "sf_9_dried_street", "h": "street", "js": "en.storm('dry')", "steps": 4000 }
+  ] }
+]
