@@ -61,8 +61,9 @@ T.PL.forEach(l => {
   if (T.RES_LINES && T.COM_LINES) ok((l.seg === 'res') === T.RES_LINES.includes(l.key) || (l.seg === 'com') === T.COM_LINES.includes(l.key), `PL ${l.key} seg vs RES/COM lines`);
   if (T.META && T.META.model && T.META.model.GRADE && T.META.model.GRADE[l.key] && T.META.model.GRADE[l.key] !== l.g) console.log(`  note: PL ${l.key} grade ${l.g} vs META.model.GRADE ${T.META.model.GRADE[l.key]}`);
 });
-Object.keys(T.LAWPUB).forEach(k => { const L = T.LAWPUB[k]; ok(ids.has(k), 'LAWPUB key not a LAWX id: ' + k); ok(Array.isArray(L) && L.length === 4 && L.slice(0, 3).every(s => typeof s === 'string' && s), 'LAWPUB shape ' + k); ok(!T.DASH_RE.test(L[0] + L[1] + L[2]), 'LAWPUB hyphen: ' + k); });
-T.LAWFAQ.forEach(f => { ok(f.length === 3 && f[2].every(id => ids.has(id)), 'LAWFAQ ids'); ok(!T.DASH_RE.test(f[0] + f[1]), 'LAWFAQ hyphen: ' + f[0]); });
+const CLASS_RE = /\b[ABCD]-\d{1,2}[A-Za-z]?\b/g;   /* licence classifications keep their hyphen (integration pass) */
+Object.keys(T.LAWPUB).forEach(k => { const L = T.LAWPUB[k]; ok(ids.has(k), 'LAWPUB key not a LAWX id: ' + k); ok(Array.isArray(L) && L.length === 4 && L.slice(0, 3).every(s => typeof s === 'string' && s), 'LAWPUB shape ' + k); ok(!T.DASH_RE.test((L[0] + L[1] + L[2]).replace(CLASS_RE, 'C39')), 'LAWPUB hyphen: ' + k); });
+T.LAWFAQ.forEach(f => { ok(f.length === 3 && f[2].every(id => ids.has(id)), 'LAWFAQ ids'); ok(!T.DASH_RE.test((f[0] + f[1]).replace(CLASS_RE, 'C39')), 'LAWFAQ hyphen: ' + f[0]); });
 // angles: lengths and house style, with a sample company (plainly invented)
 Object.assign(T.BRAND, { name: 'Sample Roofing Company', short: 'Sample Roofing', lic: '1234567', city: 'Sacramento', phone: '9165550100' });
 let angN = 0; const ctxSelf = T.satCtx({});

@@ -264,12 +264,13 @@
     const qlo = la => QLA / Math.cos(la * RAD) * 0.998, snap = (la, lo, m) => { const a = QLA * m, b = qlo(Math.round(la / a) * a) * m, cla = Math.round(la / a) * a; return [cla, Math.round(lo / b) * b, a, b]; };
     const here = () => [S.lat0 - S.z / S.ky, S.lon0 + S.x / S.kx];
     /* the streets round a point: the tile it is in, with 320 m to spare all round; asked once, then kept */
-    TF.ask = async (la, lo) => { const t = snap(la, lo, 1), k = t[0].toFixed(5) + ',' + t[1].toFixed(5); cur = t; askFwy(la, lo); let p = tiles.get(k); if (!p) { p = env.roads(t[0], t[1], 820); tiles.set(k, p); p.catch(() => tiles.delete(k)); if (tiles.size > 30) tiles.delete(tiles.keys().next().value); } const list = await p; if (list && list.tiger) tiles.delete(k);   /* the Census fallback is not kept: OpenStreetMap is asked again next time */ return list; };
+    let inAsk = 0;
+    TF.ask = async (la, lo) => { const t = snap(la, lo, 1), k = t[0].toFixed(5) + ',' + t[1].toFixed(5); cur = t; inAsk++; const fp = askFwy(la, lo); let p = tiles.get(k); if (!p) { p = env.roads(t[0], t[1], 820); tiles.set(k, p); p.catch(() => tiles.delete(k)); if (tiles.size > 30) tiles.delete(tiles.keys().next().value); } let list; try { list = await p; /* the freeways are given five seconds to arrive first, so the world is built once and not twice */ if (fp) await Promise.race([fp, new Promise(r => setTimeout(r, 5000))]); } finally { inAsk--; } if (list && list.tiger) tiles.delete(k);   /* the Census fallback is not kept: OpenStreetMap is asked again next time */ return list; };
     TF.stale = () => { if (S.hero && S.hero.on && Math.abs(S.hero.speed || 0) > 45) { const q = here(); if (fcur && (Math.abs(q[0] - fcur[0]) > fcur[2] * 0.62 || Math.abs(q[1] - fcur[1]) > fcur[3] * 0.62)) askFwy(q[0], q[1]); return false; }   /* over 100 mph the street set stays as it is and only the freeways keep coming */
       if (!cur) return !!S.roadsAt && Math.hypot(S.x - S.roadsAt[0], S.z - S.roadsAt[1]) > 230; const [la, lo] = here(); if (fcur && (Math.abs(la - fcur[0]) > fcur[2] * 0.62 || Math.abs(lo - fcur[1]) > fcur[3] * 0.62)) askFwy(la, lo); return Math.abs(la - cur[0]) > cur[2] * 0.62 || Math.abs(lo - cur[1]) > cur[3] * 0.62; };
     /* the freeways for several kilometres round, on their own: a small answer, and the far traffic has a road to run on */
-    function askFwy(la, lo) { const t = snap(la, lo, QF), k = t[0].toFixed(4) + ',' + t[1].toFixed(4); if (fcur && fcur.k === k) return; t.k = k; fcur = t; const my = ++fwyAsk, g = S.gen; let p = ftiles.get(k); if (!p) { try { p = Promise.resolve(env.roads(t[0], t[1], 3600, { only: 'freeway' })); } catch (e) { p = Promise.resolve([]); } ftiles.set(k, p); p.catch(() => ftiles.delete(k)); }
-      p.then(list => { if (my !== fwyAsk || g !== S.gen || !list) return; fwyRaw = list.filter(r => r.kind === 'freeway' || r.kind === 'ramp'); fwyRaw.tiger = !!list.tiger; rebuild(); H.need(); }).catch(() => {}); }
+    function askFwy(la, lo) { const t = snap(la, lo, QF), k = t[0].toFixed(4) + ',' + t[1].toFixed(4); if (fcur && fcur.k === k) return null; t.k = k; fcur = t; const my = ++fwyAsk, g = S.gen; let p = ftiles.get(k); if (!p) { try { p = Promise.resolve(env.roads(t[0], t[1], 3600, { only: 'freeway' })); } catch (e) { p = Promise.resolve([]); } ftiles.set(k, p); p.catch(() => ftiles.delete(k)); }
+      return p.then(list => { if (my !== fwyAsk || g !== S.gen || !list) return; fwyRaw = list.filter(r => r.kind === 'freeway' || r.kind === 'ramp'); fwyRaw.tiger = !!list.tiger; if (rebuild() && !inAsk && H.replan) H.replan();   /* trees and doors are laid out again round the new freeways */ H.need(); }).catch(() => {}); }
     /* what the world's street builder gets: the surface streets, in local metres, with what the traffic needs on them */
     TF.take = list => { if (gen !== S.gen) { gen = S.gen; F.clear(); fwyKey = ''; } strRaw = list || [];
       const loc = strRaw.filter(r => r.kind !== 'freeway' && r.kind !== 'ramp' && r.kind !== 'cable').map(r => Object.assign({}, r, { name: r.name || '', pts: r.pts.map(p => S.toL(p[0], p[1])) })).filter(r => r.pts.length >= 2), roads = RP.prep(loc);
@@ -317,10 +318,10 @@
         else if (!up) next = Math.max(next, acc + l + 14); acc += l; }
       return Y; }
     function rebuild() {
-      if (!H.root()) return; if (!group) group = scene.createEntity('Freeways and their traffic (generated)', { parent: H.root(), transient: true });
+      if (!H.root()) return false; if (!group) group = scene.createEntity('Freeways and their traffic (generated)', { parent: H.root(), transient: true });
       /* the freeway set: what the wide answer gave, and whatever the street answer holds besides */
       const seen = new Set(), raw = []; fwyRaw.concat(strRaw.filter(r => r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable')).forEach(r => { const k = r.id != null ? r.id : r.pts[0].join() + r.pts.length; if (seen.has(k)) return; seen.add(k); raw.push(r); });
-      const key = S.gen + ':' + raw.length + ':' + raw.reduce((a, r) => (a + (typeof r.id === 'number' ? r.id : r.pts.length * 7919)) % 1e9, 0) + ':' + (TF.streets ? TF.streets.filter(r => r.up).length : 0); if (key === fwyKey) return; fwyKey = key;
+      const key = S.gen + ':' + raw.length + ':' + raw.reduce((a, r) => (a + (typeof r.id === 'number' ? r.id : r.pts.length * 7919)) % 1e9, 0) + ':' + (TF.streets ? TF.streets.filter(r => r.up).length : 0); if (key === fwyKey) return false; fwyKey = key;
       const loc = raw.map(r => Object.assign({}, r, { pts: r.pts.map(p => S.toL(p[0], p[1])) })); if (fwyRaw.tiger || strRaw.tiger) RP.pairDirs(loc);
       const roads = RP.prep(loc); RP.high(roads); RP.ground(roads); F.setRoads(roads); TF.roads = roads; clear(); demandAt = null;
       const Bd = new MeshBuilder({ aux: true }), Bs = new MeshBuilder(), Pt = new MeshBuilder();
@@ -335,7 +336,7 @@
       (TF.streets || []).forEach(r => { if (!r.up) return; const P = r.pts, N = P.map((p, i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [-(b[1] - a[1]) / l, (b[0] - a[0]) / l]; }), hw = (r.w || (K.ROADW[r.kind] || K.ROADW.street)[0]) / 2;
         const Y = deck(Bd, Bs, Pt, P, N, r.dk, hw, () => 0, { surf: r.span ? 'concrete' : 'asphalt' }); if (r.kind === 'major' && !r.ow) { strip(Pt, P, N, Y, () => -0.2, () => -0.08, 0.135, yel); strip(Pt, P, N, Y, () => 0.08, () => 0.2, 0.135, yel); } });
       [['Freeway and bridge decks', Bd, M.road], ['Bridge structure', Bs, mStruct], ['Freeway paint', Pt, M.paint]].forEach(([name, b, mat]) => { if (b.empty) return; const mesh = b.build(dev, { name, clusters: 320 }), e = scene.createEntity(name, { parent: group, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.castShadow = mat === mStruct; mr.pickable = false; parts.push({ e, mesh }); });
-      fleetInit(); TF.stats = { pieces: F.segs.length, laneKm: +F.laneKm.toFixed(1), raised: roads.filter(r => r.up).length };
+      fleetInit(); TF.stats = { pieces: F.segs.length, laneKm: +F.laneKm.toFixed(1), raised: roads.filter(r => r.up).length }; return true;
     }
 
     /* ---------- the hour and the counts: how full each road should be ---------- */

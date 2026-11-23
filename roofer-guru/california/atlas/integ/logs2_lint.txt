@@ -1,0 +1,64 @@
+{
+ "S_desk": {
+  "note": "Campaign Desk: 26 assets across 6 platforms. 26 items screened.",
+  "kpis": "CONFIRMED 0 fix before anything runs CANDIDATES 0 open question to close CLEARED 0 by a control or by hand NOT OBSERVABLE 8 check in person INTELLIGENCE 0 held in house ANSWER Yes Campaign Desk",
+  "rows": [
+   "NOT OBSERVABLE CONT1 ✔ Contracts Contracts and estimates Contracts and estimates 1",
+   "NOT OBSERVABLE TV1 ◐ Truth in advertising Television, radio and video spots Television, radio and video 1",
+   "NOT OBSERVABLE DOOR1 ✔ CSLB Door to door sales and canvassing Door to door and canvassing 1",
+   "NOT OBSERVABLE CALL1 ◐ FTC Calls, texts and lead vendors Calls, texts and lead vendors 1",
+   "NOT OBSERVABLE WARR1 ✔ Contracts Written roof warranties Roof warranties 1",
+   "NOT OBSERVABLE SIGN1 ✔ CSLB Yard signs, door hangers, truck wraps and mailers Signs, hangers, wraps and mail 1",
+   "NOT OBSERVABLE PRICE1 ✔ California law Pricing after an emergency declaration Pricing after a declaration 1",
+   "NOT OBSERVABLE SAFE1 ✔ Cal/OSHA Job site photos and crews on the roof Job sites and job photos 1",
+   "Your own fix list The marketing owner and the qualifying individual The finding and the fix The ad, page, script or contract is corrected before it runs",
+   "Contractors State License Board Complaint to the CSLB Dated evidence: the ad, sign or contract, the company name as shown, the license lookup result Investigation of unlicensed advertising and contracting, contract and down paymen",
+   "California Department of Insurance Referral for unlicensed public adjusting or a deductible scheme Evidence of an offer to negotiate or settle claims, a deductible discount, or referral money to agents or adjusters Public adjuster",
+   "Attorney General or the county district attorney Consumer complaint A price charged after a declaration against the pre emergency price, or a deceptive claim and a consumer who relied on it Price gouging is a misdemeanor and unfai",
+   "Local building department Inquiry or complaint to the city or county The address, the work seen, and whether a permit is posted Enforcement of permits, fire zone roof rules and local wood roofing bans",
+   "Cal/OSHA Complaint to the Division of Occupational Safety and Health A hazard seen in person: crews on a roof with no fall protection, the address and the date Inspection and citations under Title 8"
+  ],
+  "bad": ""
+ },
+ "S_forge": {
+  "note": "Site Forge: 34 pages. 34 items screened.",
+  "kpis": "CONFIRMED 0 fix before anything runs CANDIDATES 0 open question to close CLEARED 0 by a control or by hand NOT OBSERVABLE 8 check in person INTELLIGENCE 10 held in house ANSWER Yes Site Forge",
+  "rows": [
+   "NOT OBSERVABLE CONT1 ✔ Contracts Contracts and estimates Contracts and estimates 1",
+   "NOT OBSERVABLE TV1 ◐ Truth in advertising Television, radio and video spots Television, radio and video 1",
+   "NOT OBSERVABLE DOOR1 ✔ CSLB Door to door sales and canvassing Door to door and canvassing 1",
+   "NOT OBSERVABLE CALL1 ◐ FTC Calls, texts and lead vendors Calls, texts and lead vendors 1",
+   "NOT OBSERVABLE WARR1 ✔ Contracts Written roof warranties Roof warranties 1",
+   "NOT OBSERVABLE SIGN1 ✔ CSLB Yard signs, door hangers, truck wraps and mailers Signs, hangers, wraps and mail 1",
+   "NOT OBSERVABLE PRICE1 ✔ California law Pricing after an emergency declaration Pricing after a declaration 1",
+   "NOT OBSERVABLE SAFE1 ✔ Cal/OSHA Job site photos and crews on the roof Job sites and job photos 1",
+   "INTEL SOL2 ✔ Fire and energy claims Solar removal and reinstallation offered Site Forge · Site Forge · Home · Home 1",
+   "INTEL FTC2 ◐ FTC \"Free\" needs its conditions Site Forge · Site Forge · Service · Fire hardened roofs 1",
+   "INTEL SOL2 ✔ Fire and energy claims Solar removal and reinstallation offered Site Forge · Site Forge · Service · Solar detach and reset reroofs 8",
+   "INTEL SOL2 ✔ Fire and energy claims Solar removal and reinstallation offered Site Forge · Site Forge · City · Paradise, California 1",
+   "INTEL SOL2 ✔ Fire and energy claims Solar removal and reinstallation offered Site Forge · Site Forge · City · Magalia, California 1",
+   "INTEL SOL2 ✔ Fire and energy claims Solar removal and reinstallation offered Site Forge · Site Forge · City · Oroville, California 1"
+  ],
+  "bad": ""
+ },
+ "cool": [
+  " The Chico ZIP codes are in energy climate zone 11, where the cool roof rule applies to steep and low slope house reroofs of more than half the roof.",
+  " The Chico ZIP codes are in energy climate zone 11, where the cool roof rule applies to steep and low slope house reroofs of more than half the roof.",
+  " The Chico ZIP codes are in energy climate zone 11, where the cool roof rule applies to steep and low slope house reroofs of more than half the roof.",
+  " The Paradise ZIP codes are in energy climate zone 11, where the cool roof rule applies to steep and low slope house reroofs of more than half the roof.",
+  " The Paradise ZIP codes are in energy climate zone 11, where the cool roof rule applies to steep and low slope house reroofs of more than half the roof."
+ ],
+ "czFact": [],
+ "lic": [
+  "CSLB license 1234567",
+  "censed by the Contractors State License Board under license 1234567. Our work covers roof replacement, leak repair, wind and ra",
+  "Golden Poppy Roofing holds California contractor license 1234567 from the Contractors State License Board. You can look it u"
+ ],
+ "hyph": [
+  "C-39",
+  "C-10",
+  "C-46"
+ ],
+ "camp": " of the Paradise and Magalia area 19,558 acres inside the perimeter of the Camp Fire About 153,000 Where the Camp Fire did the most damage in the area Paradise 14,917 595 3,086 Magalia 2,619 80 2,491 Oroville 872 46 14,975 Chico 396 33 30,538 Roofs that stood through the Camp Fire have had more summers and winters since. A shingle roof near twenty years old, or a tile roof 25 years old or more, is worth an inspection before the rainy season. Any roofing job of $1,000 or more needs a licensed contractor and a written contract, the down payment may not exceed $1,000 or 10 percent of the price, whichever is less, and whether a reroof needs a permit is set by the city or county. What it means now Fire and replacement work we do Inspections after a wildfire, repairs to heat and ember damage, and roofs for rebuilt homes to the fire zone code. Wildfire damage and rebuild roofing Class A roof assemblies, ember resistant vents, enclosed eaves and noncombustible gutters for homes in fire zones. Fire hardened roofs Full reroofs for homes, with an itemized estimate, a written contract and the permit where one is required. Roof replacement Leaks, flashing, vents, skylights, cracked tile and worn underlayment, found at the source. Roof repair and leaks New underlayment and flashings under your existing clay or concrete tile, with broken tile replaced. Tile lift and relay How it works Look up the zone. We check whether the address is in a State Responsibility Area or a Fire Hazard Severity Zone, which decides what the code requires when the roof is replaced. Roof edge survey. We check the covering and its fire class, the underlayment, every vent, the eaves, the gutters, the valleys and where debris collects, and photograph each. Written scope with the listings. An itemized estimate that names the Class A assembly, the listed vents and the gutter work, so you can show it to your insurer. Install and document. We do the work and give you photos, the product listings and the certificate of the roof's fire class to keep and to send to your insurer. Questions owners ask How do I know if my home is in a Fire Hazard Severity Zone? The State Fire Marshal maps the zones. The State Responsibility Area map took effect on April 1, 2024, and the Local Responsibility Area maps dated 2025 are adopted by each city or county by ordinance, so check the address with the local building or fire department. About 56% of the land in the Chico ZIP codes is mapped as a High or Very High Fire Hazard Severity Zone. CAL FIRE damage inspections record 869 structures destroyed and 71 damaged by wildfire there from 2013 to 2025, most of them in the Park Fire of 2024. Does my roof already count as Class A? Often yes. Class A is a test rating for the whole assembly, and most composition shingle, tile and metal roofs carry it. Roofs of wood shakes do not count under the Safer from Wildfires rule. The installer's certificate or the product listing is the proof. Will a new roof lower my insurance premium? That is up to your insurer. The rule requires insurers that price on wildfire risk to refl"
+}
+PAGE ERRORS (0): none

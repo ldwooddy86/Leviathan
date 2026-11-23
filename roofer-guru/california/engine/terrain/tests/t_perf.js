@@ -17,6 +17,7 @@ const FILE = process.argv[2], LABEL = process.argv[3] || 'page', Q = process.arg
   out.script = await T.ev(() => { const en = MODI.rooftops.api.en(), E = en.engine, S = en.world, r = {}; E.stop(); en.setHeight('walk'); S.yaw = 81; S.keys.fwd = true; const ts = []; for (let i = 0; i < 400; i++) { const t0 = performance.now(); E.emit('update', 0.033); ts.push(performance.now() - t0); } S.keys.fwd = false; ts.sort((a, b) => a - b);
     r.updateMedianMs = +ts[200].toFixed(3); r.updateP95Ms = +ts[380].toFixed(2); r.updateMaxMs = +ts[399].toFixed(1);
     if (S.gy) { let acc = 0; const t0 = performance.now(); for (let i = 0; i < 200000; i++) acc += S.gy(S.x + (i % 200) - 100, S.z + ((i / 200) % 200) - 100); r.gyNs = +((performance.now() - t0) / 200000 * 1e6).toFixed(0); const t1 = performance.now(); for (let i = 0; i < 200000; i++) acc += S.gy(S.x + (i * 7919 % 9000) - 4500, S.z + (i * 104729 % 9000) - 4500); r.gyFarNs = +((performance.now() - t1) / 200000 * 1e6).toFixed(0); r.terrain = en.state().terrain; }
+    { const t0 = performance.now(); en.setGraphics({ life: false }); const t1 = performance.now(); en.setGraphics({ life: true }); r.roadsPlainMs = +(t1 - t0).toFixed(1); r.roadsWithLifeMs = +(performance.now() - t1).toFixed(1); }
     r.roads = S.roads.length; r.cells = en.debug().cells.length; r.far = en.debug().far; r.buffers = en.debug().buffers; en.start(); return r; });
   console.log(JSON.stringify(out));
   console.log('errors', T.errs.length ? T.errs.slice(0, 3) : 'none');

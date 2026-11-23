@@ -87,7 +87,7 @@
           e => { active--; t.going = false; t.st = 'err'; t.at = performance.now(); t.tries++; t.why = String((e && e.message) || e).slice(0, 80); T.stats.err++; tellSoon(); pumpNet(); }); }
     }
     function request(li, x, y) {
-      const n = 1 << LAD[li]; if (!T.on || x < 0 || y < 0 || x >= n || y >= n) return null; const k = x * 65536 + y; let t = TILES[li].get(k); if (t) { t.used = clock; if (t.st === 'err' && performance.now() - t.at > Math.min(60000, 4000 * Math.pow(2, t.tries))) { t.st = 'load'; t.at = performance.now(); NETQ.push(t); pumpNet(); } return t; }   /* a tile that failed is asked for again after 8, 16, 32, then every 60 seconds, for as long as something wants it */
+      const n = 1 << LAD[li]; if (!T.on || x < 0 || y < 0 || x >= n || y >= n) return null; const k = x * 65536 + y; let t = TILES[li].get(k); if (t) { t.used = clock; if (t.st === 'err' && performance.now() - t.at > Math.min(30000, 4000 * Math.pow(2, t.tries))) { t.st = 'load'; t.at = performance.now(); NETQ.push(t); pumpNet(); } return t; }   /* a tile that failed is asked for again after 8 and 16 seconds, then every 30, for as long as something wants it */
       t = { li, x, y, st: 'load', d: null, at: performance.now(), tries: 0, used: clock, going: false }; TILES[li].set(k, t); total++; NETQ.push(t); pumpNet(); return t;
     }
     /* no more than 72 tiles are held (about 19 MB): the ones longest unread go first */

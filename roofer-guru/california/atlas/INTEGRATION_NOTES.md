@@ -72,3 +72,23 @@ Test page: CA/atlas/integ/page.html (build_ca.py with la_engine.js). Tests: CA/a
   14. AR landfalls a year: 31.4 labelled by stretch of coast, 23.5 statewide merge stated (m02).
   15. Cesar Chavez Day -> Farmworkers Day (2026-03-31 SoS; 2027-04-09 courts' schedule).
   16. PL commercial text: typed "5,602 licenses ... November 19" -> data's 5,587 active licenses (CSLB License Master).
+- Also: m12/Forge fire names with "#" print as "Number n" (they tripped SUP1); Forge deploy table has a placeholder row;
+  law and Forge harnesses updated for the C-39 hyphen and the two real fires named Louisiana and Hurricane;
+  meta.assume media market line reworded (data rebuilt from step 6; 128 checks, 0 failed).
+
+## FINAL STATE (2026-11-23)
+- node --check: all 42 parts pass.
+- integ/run_all.js on the full page (build_ca.py with la_engine.js): 17 modules, 0 page errors, 0 flags
+  (no undefined / NaN / [object Object] / null in text or attributes, no empty svg, no empty table). Same on
+  integ/atlas_only.html (the atlas with no module 18 at all): the atlas does not depend on module 18.
+- Jobs' tests on the final page: work_core/test_core.js no errors (155 layers, 13 lines); work_desk/harness.js 65/65;
+  work_ledger/t_page.js 0 page errors, t_nws.js ok; law_work/harness.js ALL CHECKS PASSED; ca_forge_work/test/harness.js
+  real data: 1,802 pages (1,660 event pages on hz), 0 problems, no block or warn finding.
+- Hand-off probes: p_hand.js, p_hand2.js, p_lint.js, p_law.js, p_cons.js, p_new.js, p_tok.js (run with integ/ev.js).
+- Word search of atlas/src: only DATA['parishes'] and GEO['parish'].
+- Left as found (decisions): 02_map.js SEGS line layer (documented map API, data ships `seg` empty); FCOPY.LAW_SWAPPED
+  guard kept (now empty); empty data keys routes/rlist/sids/zstorm still shipped (no reader); real California records
+  that carry the word "Tropical Storm" (FEMA declarations for Hilary 2023 and Kathleen 1976; a Storm Events record
+  type in ts.zone_county) and the Weather Service's own discussion text (which can say "storm surge") are data, shown
+  only when a user opens them.
+- Not done: module 18 untouched (others own it); engine/scout word leftovers in the assembled page are theirs.

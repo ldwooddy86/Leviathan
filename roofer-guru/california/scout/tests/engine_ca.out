@@ -1,0 +1,156 @@
+{
+ "engine": {
+  "built": 83,
+  "queued": 0,
+  "roads": 152,
+  "mode": "street"
+ },
+ "has": {
+  "wx": false,
+  "air": false,
+  "m3": false,
+  "elev": false
+ },
+ "rows": [
+  {
+   "label": "Roof View",
+   "buttons": [
+    "Off",
+    "Covering",
+    "Shingle style",
+    "Thermal",
+    "Wear",
+    "Weather",
+    "Fire",
+    "Solar and cool roof",
+    "Time"
+   ],
+   "sliders": []
+  },
+  {
+   "label": "Move",
+   "buttons": [
+    "Street",
+    "On foot",
+    "Drone",
+    "Bird",
+    "Metro",
+    "Orbit",
+    "Alta X",
+    "Flying saucer",
+    "The Tic Tac"
+   ],
+   "sliders": []
+  },
+  {
+   "label": "Weather",
+   "buttons": [
+    "Sound off"
+   ],
+   "sliders": [
+    "scEnRain"
+   ]
+  }
+ ],
+ "lens": {
+  "cover": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Covering: what each roof is most likely made of Each roof takes its covering's colour, stronger the surer it is, and its pattern at a common size of that covering: fly close and the courses, tiles, seams and ribs show. Asphalt shingles Clay tile Concrete tile Wood shakes or shingles Metal on a house Low slope, dark (cap sheet, built up, modified bitumen) Low slope, white (TPO, PVC or a cool coating) Manufactured home"
+  },
+  "style": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Shingle style: three tab or laminated Laminated (architectural) shingles were 7% of those sold in 1984, 46% in 2000, about 70% in 2010 and 95% in 2025 (makers' filings and investor reports; Fine Homebuilding for 2010; national). Each shingle roof takes the style its likely years of roofing make more probable. Three tab strip: 12 inch tabs, 5 inch exposure Laminated: uneven tabs, 5 5/8 inch exposure Most likely not sh"
+  },
+  "thermal": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Thermal: how hot each roof plane runs Today, 14:59 by the sun, clear sky · air 73°F, the November normal here (NOAA's stations blended by distance and height; the nearest is Los Angeles (downtown), and the ground here is taken at 450 ft) 40°F 80 120 160 200°F From an energy balance on each plane: the sun it takes at this hour (its slope and bearing, the trees and buildings that shade it), the covering's reflectance ("
+  },
+  "wear": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Wear: what age and weather have taken so far Today. The share of its service life each roof has used (for tile, of the underlayment's), worked harder on the planes that run hottest and in the hotter places, plus the gust days it has stood through, wind, hail and fire damage on record near it, damp and salt. sound half worn worn out wind at ridge and edges worn patches moss and algae rust, or fire damage 1618 N Las Pa"
+  },
+  "storm": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Weather: Dry and calm Set the rain scale, the wind scale or the sky in the Weather row to see what each would do to each roof. Odds from records and stated judgments, not a forecast of a storm, and not an inspection."
+  },
+  "fire": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Fire: the class of roof, the zone, the embers Each roof takes the colour of the fire class it most likely carries as an assembly, by its covering and the age of the roof; the specks are where embers lodge (edges, valleys, ridge, under a crown), more of them the higher its Fire Hazard Severity Zone and the nearer CAL FIRE's record puts fire. Class A B or C unrated where embers lodge 1618 N Las Palmas Ave Low slope mem"
+  },
+  "solar": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Solar and cool roof: the sun each plane takes in a year Clear sky sunlight on each plane through a normal year, with the sky clear this place's share of the time; trees and neighbours are not counted. A re-roof under panels means a detach and reset (the atlas's solar line), and a re-roof of more than half the roof must meet the Energy Code's cool roof minimums in the covered climate zones. 600 1,000 1,450 1,900 2,300"
+  },
+  "time": {
+   "n": 43,
+   "pend": 0,
+   "on": true,
+   "leg": "Time: 2031, 5 years from now Each roof takes the colour of the damage most likely to have reached each part of it by then, brighter as the chance grows. From the gust days, rain, atmospheric rivers, fire losses and hail on record for this ZIP, and the roof's age and kind. Wind (offshore wind and winter storms) under 1% Rain and leaks 18% Wildfire under 1% Heat, sun and age 11% Hail under 1% Rust (metal, salt air) 2% "
+  }
+ },
+ "rain1": {
+  "wx": {
+   "rain": "light",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": false
+  },
+  "line": "Light rain · snow above about 5,600 ft",
+  "fly": "Alta X can fly",
+  "flyTitle": "Freefly designs the Alta X to withstand light rain (IP43)",
+  "altaTitle": "Fly a Freefly Alta X Gen2, built to its published dimensions: it takes off, holds position, lands on roofs, and runs its batteries down in the published time. It flies dry or in light rain only",
+  "engStorm": 1,
+  "engName": "Light rain",
+  "leg": "Weather: Light rain Rain takes no roof by itself. It finds the leaks a roof has: each roof shows its chance of a leak call in a storm like this (3% of a year's calls at its age: a judgment). Above about 5,600 ft this storm snows, and a roof there shows the load it adds against the ground snow load t"
+ },
+ "rain6": {
+  "wx": {
+   "rain": "ar3",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": false
+  },
+  "line": "Atmospheric river, rank 3 (strong) · gusts near 45 mph · snow above about 6,600 ft · this engine draws an atmospheric river as heavy rain; the roof readings use the rank chosen",
+  "fly": "Alta X grounded",
+  "flyTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "altaTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "engStorm": 2,
+  "engName": "Heavy rain",
+  "leg": "Weather: Atmospheric river, rank 3 (strong), gusts near 45 mph A day with gusts near 45 mph damages about under 1 in 2,000 of roofs enough for a roofer: the atlas's stated rates at 58 and 75 mph. Each roof shows its own chance, by its covering and age. Rain takes no roof by itself. It finds the leak"
+ },
+ "rain8": {
+  "wx": {
+   "rain": "ar5",
+   "wind": "calm",
+   "sky": "none",
+   "elev": null,
+   "engine": false
+  },
+  "line": "Atmospheric river, rank 5 (exceptional) · gusts near 65 mph · snow above about 7,900 ft · this engine draws an atmospheric river as heavy rain; the roof readings use the rank chosen",
+  "fly": "Alta X grounded",
+  "flyTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "altaTitle": "Don't waste a $40,000 drone, stupid. Use the UAPs.",
+  "engStorm": 2,
+  "engName": "Heavy rain",
+  "leg": "Weather: Atmospheric river, rank 5 (exceptional), gusts near 65 mph A day with gusts near 65 mph damages about 0.1% of roofs enough for a roofer: the atlas's stated rates at 58 and 75 mph. Each roof shows its own chance, by its covering and age. Rain takes no roof by itself. It finds the leaks a roo"
+ },
+ "where": "At bird height, 120 m up, looking east · 104 buildings · 43 roofs read in the time view · 41 frames a second, 207,501 triangles. Drag to look; W S move, A D turn, Q E rise and come down, X the roof views, [ ] the year; click the ground to go there, a building to read it.",
+ "barText": "LIKELY NEEDS ROOF WORK 1618 N Las Palmas Ave Office or professional services · Low slope membrane · Replacement · score 26 ROOF VIEW Off Covering Shingle style Thermal Wear Weather Fire Solar and cool roof Time ▶ Play 2031 · in 5 years The next 15 years: the damage most likely to reach each roof by each year (wind, rain and leaks, wildfire, heat and age, hail, rust), from this ZIP's gust, rain, fire and hail record and the roof's age and kind. MOVE Street On foot Drone Bird Metro Orbit Alta X Flying saucer The Tic Tac WEATHER Rain Dry Light Rain T-storm AR 1 AR 2 AR 3 AR 4 AR 5 Alta X can fly Sound off Dry and calm · the sky is the Scene menu's. Slide the rain scale for rain and atmospheric rivers. ◀ 1 of 4 ▶ Face it Likely Maybe Not likely Scene: Low ⤢ Full window Classic 3D Back to satellite At bird height, 120 m up, looking east · 104 buildings · 43 roofs read in the time view · 42 fr"
+}
+PAGE ERRORS: none

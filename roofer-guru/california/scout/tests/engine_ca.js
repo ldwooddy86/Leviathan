@@ -36,6 +36,12 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
       const setR = async v => { await page.evaluate(x => { const r = document.querySelector('#scEnRain'); r.value = x; r.dispatchEvent(new Event('input', { bubbles: true })); r.dispatchEvent(new Event('change', { bubbles: true })); }, v); await wait(6000); return page.evaluate(() => { const e = document.querySelector('.se-legend, .se-leg'), en = MODI.rooftops.api.en(), g2 = en.graphics(); return { wx: Object.assign({}, MODI.rooftops.api.wx), line: document.querySelector('#scEnStormO').innerText.slice(0, 200), fly: document.querySelector('.sc-fly').textContent, flyTitle: document.querySelector('.sc-fly').title, altaTitle: document.querySelector('#scEnBar [data-h="alta"]').title, engStorm: g2.storm, engName: g2.stormInfo && g2.stormInfo.name, leg: e ? e.innerText.replace(/\s+/g, ' ').slice(0, 300) : '' }; }); };
       out.rain1 = await setR(1); out.rain6 = await setR(6); out.rain8 = await setR(8);
       await setR(0);
+      if (out.has.wx) {
+        out.windSky = await page.evaluate(async () => { const api = MODI.rooftops.api, w = ms => new Promise(r => setTimeout(r, ms)), o = {}; const sl = document.querySelector('#scEnWind'); o.windSlider = !!sl; o.skyButtons = [...document.querySelectorAll('#scEnBar [data-sky]')].map(b => b.textContent);
+          if (sl) { sl.value = 4; sl.dispatchEvent(new Event('input', { bubbles: true })); sl.dispatchEvent(new Event('change', { bubbles: true })); } await w(3000); const sb = document.querySelector('#scEnBar [data-sky="smoke"]'); if (sb) sb.click(); await w(6000);
+          const en = api.en(), st = en.state(), e = document.querySelector('.se-legend, .se-leg'); o.wx = Object.assign({}, api.wx); o.state = { stormKey: st.stormKey, windKey: st.windKey, sky: st.sky, gustMph: st.gustMph, altaCanFly: st.altaCanFly, elevationM: st.elevationM }; o.line = document.querySelector('#scEnStormO').innerText.slice(0, 500); o.fly = document.querySelector('.sc-fly').textContent; o.leg = e ? e.innerText.replace(/\s+/g, ' ').slice(0, 500) : ''; o.patterns = en.lensPatterns; o.engx = api.lens.engx.pat;
+          api.setWind('calm'); api.setSky('none'); await w(1500); o.after = Object.assign({}, api.wx); return o; });
+      }
     }
   }
   out.where = await page.evaluate(() => (document.querySelector('#scEnWhere') || {}).innerText || '');

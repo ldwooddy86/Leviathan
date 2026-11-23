@@ -226,7 +226,7 @@ registerModule({
       return null;
     };
     const evLine = e => { const k = DESK_EV[e.kind].line; return PLI[k] ? k : PLI.storm ? 'storm' : PL[0].key; };
-    const fireName = e => String(e.name || '').replace(/\s+fire$/i, '').trim();
+    const fireName = e => String(e.name || '').replace(/\s+fire$/i, '').replace(/\s*#\s?(\d+)/g, ' Number $1').trim();   /* "#1" in a fire's name would read as a ranking claim in an ad */
     root.innerHTML = mastHTML({ eyebrow: 'Module 08 · Campaign Desk', title: 'Campaign Desk', dek: 'The atlas\'s ZIPs turned into media buys for a California roofing company: a budget allocated by ZIP and platform and paced to each line\'s season, targeting lists with each platform\'s identifiers and bid modifiers computed for the plan\'s own lines, keyword and negative sets, ads written to every platform\'s limits with the company name, the CSLB license number and an office city built in, event ad groups for heavy rain, high wind, wildfire rebuilding and mountain snow, Spanish where the ZIPs need it and plain advice for Chinese, Vietnamese, Tagalog and Korean, and a bulk file or build sheet for every ads manager.',
       meta: [`<b>${N(ZR.length)}</b> ZIPs available as markets`, `<b>${N(Z.filter(z => z.gid).length)}</b> with Google criterion IDs`, `<b>6</b> platforms · <b>${PL.length}</b> service lines · English and Spanish`, '<b>No keyword volumes pulled</b>'],
       bar: 'Campaign Desk', barsub: 'Plan, build, export', actions: [['dkPlanX', '↓ Plan'], ['dkG', '↓ Google'], ['dkL', '↓ LSA'], ['dkDg', '↓ YouTube'], ['dkM', '↓ Meta'], ['dkMs', '↓ Microsoft'], ['dkT', '↓ TikTok'], ['dkCr', '↓ Creative'], ['dkKw', '↓ Keywords'], ['dkSave', '⤓ Save'], ['dkLoad', '⤒ Load']].map(([id, label]) => ({ id, label })) }) +

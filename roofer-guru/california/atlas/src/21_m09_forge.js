@@ -88,7 +88,8 @@ const FORGE = (() => {
        landfalls, a stretch of coast lat0 to lat1); wind with zn = indexes into zones[].zips. Absent from the file, no event page is planned. */
     const RAW = DATA.hz || DATA.hazard_events || {};
     const arr = x => Array.isArray(x) ? x : (x && Array.isArray(x.events) ? x.events : []);
-    const fireName = n => { n = String(n || '').trim(); return /\b(fire|complex)$/i.test(n) ? n : n + ' Fire'; };
+    /* a numbered fire ("Canyon #1") prints as "Canyon Number 1": the sign reads as a ranking claim in copy and trips the superlative rule */
+    const fireName = n => { n = String(n || '').trim().replace(/\s*#\s?(\d+)/g, ' Number $1'); return /\b(fire|complex)$/i.test(n) ? n : n + ' Fire'; };
     const monthOf = e => e.month || (e.start ? +String(e.start).slice(5, 7) : null) || 1;
     const WINDN = { santa_ana: ' Santa Ana wind event', diablo: ' Diablo wind event', sundowner: ' sundowner wind event', mono: ' Mono wind event', winter: ' winter windstorm' };
     function norm(e, kind) {

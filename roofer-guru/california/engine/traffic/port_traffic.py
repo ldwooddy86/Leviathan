@@ -98,7 +98,7 @@ rex(r"fleet\[c\.ty\]\.sets\[dc < 55 \? 'mnear' : 'mfar'\]\.add\(c\.x, [^;]*?, c\
 
 # ---- (3) the world ----
 rep("const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];",
-    "const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];\n    /* California traffic (SE.TrafficKit): made the first time the streets are set */\n    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root }));")
+    "const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];\n    /* California traffic (SE.TrafficKit): made the first time the streets are set */\n    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); } }));")
 rep("function setRoads(list) { S.roads = list.map(r => ({ name: r.name || '', kind: r.kind, pts: r.pts.map(([la, lo]) => toL(la, lo)) })).filter(r => r.pts.length >= 2); buildRoads(); }",
     "function setRoads(list) { S.roads = tf().take(list); buildRoads(); }   /* the surface streets, with lanes, direction, limit, level and width on each; freeways, ramps and cable car tracks stay with the kit */")
 rep("S.roads.forEach(r => { const spec = K.ROADW[r.kind] || K.ROADW.street;", "S.roads.forEach(r => { if (r.up) return; const spec = K.ROADW[r.kind] || K.ROADW.street;")   # [buildRoads] a street on a bridge is the kit's
@@ -109,6 +109,8 @@ rep("if (!S.fast && S.roadsAt && Math.hypot(S.x - S.roadsAt[0], S.z - S.roadsAt[
 rep("moving = engine.playing && engine.awake && engine.live, onFoot", "moving = (S.hero && S.hero.on && engine.wake(), engine.playing && engine.awake && engine.live), onFoot")   # [update] the traffic stays awake while the car is driven
 rep("if (ST.update(dt, cam.entity.transform.position, { night, moving,", "if (tf().update(dt, cam.entity.transform.position, { night, moving })) need(); if (ST.update(dt, cam.entity.transform.position, { night, moving,")
 rep("S.roads.forEach((r, ri) => { if (r.kind !== 'street' && r.kind !== 'major') return; const w = (K.ROADW[r.kind] || K.ROADW.street)[0] / 2 + 1.1;", "S.roads.forEach((r, ri) => { if ((r.kind !== 'street' && r.kind !== 'major') || r.up) return; const w = (r.w || (K.ROADW[r.kind] || K.ROADW.street)[0]) / 2 + 1.1;")   # [lamps]
+
+rep("S.roads.forEach(rd => { const w = (K.ROADW[rd.kind] || K.ROADW.street)[0]; g.lineWidth", "S.roads.concat((S.traffic && S.traffic.roads) || []).forEach(rd => { const w = rd.w || (K.ROADW[rd.kind] || K.ROADW.street)[0]; g.lineWidth")   # [the trees' mask] no trees on a freeway
 
 open(sys.argv[2], 'w', encoding='utf-8').write(s)
 print('wrote', sys.argv[2], len(s))

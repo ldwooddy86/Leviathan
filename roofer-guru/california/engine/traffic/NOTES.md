@@ -36,3 +36,4 @@ spawn, enter, populate, step: signal clock, extras, obstacle scan, parked scan, 
 StreetKit (network: hw, n.signal; TT + exports; X.build: raised ways skipped, lane paint; X.update: TT[c.ty], car placement line);
 world (WALK line + tf(), setRoads, buildRoads: r.up skip, r.w width, cars; loadRoads; after; update handler: moving + tf().update; lamps).
 Known limits: see report.
+- trees kept off freeways (mask patch + replan hook); ask() waits up to 5 s for freeways. needs one more browser sanity run

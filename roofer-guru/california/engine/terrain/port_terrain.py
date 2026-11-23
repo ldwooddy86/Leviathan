@@ -95,6 +95,9 @@ rep("Sd.quad([a[0], y0, a[2]], [b[0], y0, b[2]], b, a, [nx / nl, 0, nz / nl], [[
     "              else Sd.quad([a[0], y0, a[2]], [b[0], y0, b[2]], b, a, [nx / nl, 0, nz / nl], [[0, 0], [1, 0], [1, 0.05], [0, 0.05]], [0.86, 0.86, 0.86, 1], AX); } });")
 rep("const bar = (d0, d1, a, b, col) => Pt.quad([n.x + dx * d0 + rt[0] * a, 0.117, n.z + dz * d0 + rt[1] * a], [n.x + dx * d1 + rt[0] * a, 0.117, n.z + dz * d1 + rt[1] * a], [n.x + dx * d1 + rt[0] * b, 0.117, n.z + dz * d1 + rt[1] * b], [n.x + dx * d0 + rt[0] * b, 0.117, n.z + dz * d0 + rt[1] * b], [0, 1, 0], null, col);",
     "const bar = (d0, d1, a, b, col) => { const q = (d, sd2) => [n.x + dx * d + rt[0] * sd2, 0.117, n.z + dz * d + rt[1] * sd2]; if (S.terr) S.terr.drapeQuad(Pt, q(d0, a), q(d1, a), q(d1, b), q(d0, b), 0.117, null, col, null); else Pt.quad(q(d0, a), q(d1, a), q(d1, b), q(d0, b), [0, 1, 0], null, col); };")
+# the cars' solid boxes stand on the ground too, and "is this body in the traffic's way" is asked above the ground
+rep("V3.set(b.pos, c.x, t.H / 2, c.z);", "V3.set(b.pos, c.x, t.H / 2 + (S.gy ? S.gy(c.x, c.z) : 0), c.z);", 2)
+rep("if (b.pos[1] - (b.max[1] - b.min[1]) / 2 > 1.6) continue;", "if (b.pos[1] - (b.max[1] - b.min[1]) / 2 - (S.gy ? S.gy(b.pos[0], b.pos[2]) : 0) > 1.6) continue;")
 rep("if (n.signal) sig[TR.phase(n, dx, dz)].add(px, 0, pz, yaw, 1, 1, 1); else stops.add(px, 0, pz, yaw, 1, 1, 1);",
     "const py = S.gy ? S.gy(px, pz) : 0; if (n.signal) sig[TR.phase(n, dx, dz)].add(px, py, pz, yaw, 1, 1, 1); else stops.add(px, py, pz, yaw, 1, 1, 1);")
 

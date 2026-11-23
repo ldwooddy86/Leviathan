@@ -192,6 +192,7 @@ html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
 .sc .sc-roofview .sc-ldot.l-fire{background:linear-gradient(135deg,#1f7a4d,#e6c53a,#b3261e)}
 .sc .sc-roofview .sc-ldot.l-solar{background:linear-gradient(135deg,#3b2f7d,#d9725a,#fff7c2)}
 .sc .sc-roofview .sc-ldot.l-storm{background:linear-gradient(135deg,#1fb3a8,#58c0ff,#d9c23a,#cf2a22)}
+.sc .sc-wxrow .sc-airline{flex:1 1 100%;min-width:0;line-height:1.4}
 .sc .sc-ev.sc-wx li{margin-bottom:7px}
 .sc .sc-ev.sc-wx li>b:first-child{font-weight:700}
 </style>
