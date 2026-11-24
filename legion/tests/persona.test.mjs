@@ -8,7 +8,7 @@ import {
   persona, personality, traitBasis, big5Prior, traitWords, codeSwitchOf, archetypeOf, valuesOf, windBlowsHere, builtBefore1940,
   SCHWARTZ_VALUES, PROTECTED_FIELDS, REF_YEAR, LOCAL_STATION_KM,
 } from '../src/engine/persona.mjs';
-import { Rng } from '../src/engine/rng.mjs';
+import { Rng, Alias } from '../src/engine/rng.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world, { seed: LEGION_SEED });
@@ -810,22 +810,24 @@ test('limited English: the fillers and sayings are in their own language (exp-83
 
 test('no single hazard is everyone\'s first worry in a region: hazards weigh on the people they reach (exp-76)', () => {
   const HAZARDS = new Set(['fire', 'storms', 'flooding', 'heat', 'smoke', 'wind', 'snow', 'earthquakes']);
-  const regions = {
-    ba: ['94110', '94601', '94501', '95014', '94303', '94558', '94952', '94566', '95123', '94080'],
-    sj: ['93721', '93727', '93301', '95350', '93277', '93230', '93309', '95207', '93637', '93611'],
-  };
-  for (const [region, zips] of Object.entries(regions)) {
+  // adults drawn uniformly over a region's people (ZIPs by their household population), as the review sampled them:
+  // the Bay Area's storms led for 58% of its adults; the Valley's heat, its real dominant hazard, is held to 55%
+  for (const [region, bound] of [['ba', 0.5], ['sj', 0.55]]) {
+    const zis = world.zipsOfRegion(region).filter(i => pop.householdCount(i) > 0);
+    const alias = new Alias(zis.map(i => Math.max(pop.expectedPersons(i), 0)));
+    const rng = new Rng(77);
     const lead = {};
     let n = 0;
-    for (const zip of zips) {
-      for (const npc of adults(zip, 18)) {
-        const top = P(npc).concerns[0];
-        if (!top) continue;
-        n++;
-        lead[top.topic] = (lead[top.topic] || 0) + 1;
-      }
+    for (let tries = 0; n < 240 && tries < 2000; tries++) {
+      const [npc] = pop.sample(zis[alias.draw(rng)], 1, rng.next());
+      if (!npc || npc.age < 18) continue;
+      const top = P(npc).concerns[0];
+      if (!top) continue;
+      n++;
+      lead[top.topic] = (lead[top.topic] || 0) + 1;
     }
-    for (const [topic, k] of Object.entries(lead)) if (HAZARDS.has(topic)) assert.ok(k / n <= 0.5, `${region}: ${topic} leads for ${Math.round(100 * k / n)}% of ${n} adults (${JSON.stringify(lead)})`);
-    assert.ok(Object.keys(lead).length >= 4, `${region}: ${JSON.stringify(lead)}`);
+    assert.ok(n >= 200, `${region}: ${n} adults`);
+    for (const [topic, k] of Object.entries(lead)) if (HAZARDS.has(topic)) assert.ok(k / n <= bound, `${region}: ${topic} leads for ${Math.round(100 * k / n)}% of ${n} adults (${JSON.stringify(lead)})`);
+    assert.ok(Object.keys(lead).length >= 5, `${region}: ${JSON.stringify(lead)}`);
   }
 });

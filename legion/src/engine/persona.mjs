@@ -1383,7 +1383,7 @@ const ORIGIN_TRADITIONS = {
 // Cross-faith regional festivals tied to the language a family speaks at home, never to a faith.
 const LANGUAGE_TRADITIONS = { malayalam: 'Onam', bengali: 'Pohela Boishakh', punjabi: 'Lohri bonfires in January' };
 // Quinceañeras are a family event: only where the household has a girl about to turn fifteen.
-const QUINCE_HERITAGES = new Set(['mexican', 'salvadoran', 'guatemalan', 'honduran', 'nicaraguan', 'puertorican', 'cuban', 'dominican', 'southamerican', 'latino', 'spanish']);
+const QUINCE_HERITAGES = new Set(['mexican', 'salvadoran', 'guatemalan', 'honduran', 'nicaraguan', 'puertorican', 'cuban', 'dominican', 'southamerican', 'latino']);
 const TRADITION_P = { 1: 0.32, 2: 0.22, 3: 0.09 };
 
 /**
@@ -1598,7 +1598,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const outdoor = L.outdoor;
   // a hazard weighs on the people it reaches (exp-76): the heat on outdoor workers and the old more than on someone
   // who spends the summer indoors at work or school
-  const heatExposure = outdoor ? 1.35 : age >= 65 ? 1.25 : 0.85;
+  const heatExposure = outdoor ? 1.35 : age >= 65 ? 1.25 : 0.75;
   add('heat', (0.05 + 0.75 * heat + (heatAlert ? alertBoost(heatAlert) : 0)) * heatExposure * (adult ? 1 : 0.6),
     `about ${Math.round(h100)} days a year reach 100°F here (h100) and ${Math.round(h90)} reach 90°F (h90); July highs average ${fmt1(tjul)}°F (tjul)${outdoor ? `; works outdoors ${jobWords(L)} (occupation)` : ''}${heatAlert ? `; a ${heatAlert.event} is out now (NWS)` : ''}`);
   // storms and flooding (atmospheric rivers, flood reports, alerts now)

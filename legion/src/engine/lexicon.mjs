@@ -219,9 +219,11 @@ export function pickLine(dialect, category, rng, opts = {}) {
   const local = es ? [] : linesFor(d, category, { ...ctx, regional: true });
   const fillOpts = { capitalize: !WORD_CATEGORIES.includes(category) };
   const pcat = `${d.key}:${es ? 'es:' : ''}${category}${category === 'weather' && condition ? ':' + condition : ''}`;
-  // a Spanish line fills only with its gloss: both or neither
+  // a Spanish line fills only with its gloss: both or neither; and never with a name that carries an English article
+  // ("Aquí en the Mission"): that line is skipped, the English gloss would not be
+  const esSlots = es ? Object.fromEntries(Object.entries(slots || {}).map(([k, v]) => [k, typeof v === 'string' && /^the\s/i.test(v) ? null : v])) : slots;
   const fillOne = t => {
-    const text = fill(t, slots, fillOpts);
+    const text = fill(t, es ? esSlots : slots, fillOpts);
     if (!text || !es) return text ? { text } : null;
     const gloss = fill(glossOf(t), slots, fillOpts);
     return gloss ? { text, gloss } : null;

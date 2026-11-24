@@ -1149,6 +1149,11 @@ test('Spanish regional lines: 12+ per Spanish-heavy family, glossed, tagged, thr
   const rng = new Rng(9);
   const hit = pickLine('la-eastside', 'prideLines', rng, { lang: 'es', slots: { neighborhood: 'Boyle Heights' }, age: 40, county: 'Los Angeles' });
   assert.ok(hit && hit.lang === 'es' && hit.gloss && !/\{/.test(hit.text + hit.gloss), JSON.stringify(hit));
+  // a name with an English article never lands in a Spanish sentence
+  for (let i = 0; i < 40; i++) {
+    const h = pickLine('eastbay', 'prideLines', new Rng(i), { lang: 'es', slots: { neighborhood: 'the Mission' }, age: 40 });
+    assert.ok(!h || !/\bthe\b/i.test(h.text), JSON.stringify(h));
+  }
   const fog = linesFor('fresno', 'weather', { lang: 'es', condition: 'fog', month: 12 });
   assert.ok(fog.some(t => /neblina/.test(t)));
   assert.deepEqual(linesFor('fresno', 'weather', { lang: 'es', condition: 'fog', month: 7 }).filter(t => /neblina/.test(t) && lineTags(t)), [], 'tule fog lines keep their months');

@@ -177,3 +177,33 @@ test('voice: a ClaudeVoice with the world, streaming through an injected client 
   assert.equal(params.messages.at(-1).role, 'system', 'the situation note follows the player message');
   assert.equal(params.system.length, 2);
 });
+
+// ---------------------------------------------------------------- final review fixes
+
+test('situation(id, t) and the export for game engines: the day plan, the mind and the situation template (exp-70)', () => {
+  const [n] = legion.sample('Fresno', 1, { seed: 3 });
+  const t = T + 18 * 3600000;
+  const note = legion.situation(n.id, t);
+  assert.match(note, /^\[Situation for this turn/);
+  assert.equal(note, legion.prompt(n.id, { t }).situation, 'the note prompt() carries');
+  assert.match(note, /Local time: Tuesday, November 24, 2026/);
+  // with a mind that heard the player, their words bring up memories
+  const m = legion.mind(n.id, { t });
+  m.observe({ from: 'player', text: 'I work as a nurse at the hospital downtown.', t });
+  assert.match(legion.situation(n.id, t + 60000, { said: 'Do you remember what I do?' }), /What you know about the player: they work as a nurse/);
+  assert.throws(() => legion.situation('00000-0-0', t), /No NPC/);
+  const e = legion.exportPersona(n.id);
+  assert.equal(e.date, '2026-11-23', 'the export is for the platform\'s day by default');
+  assert.ok(Array.isArray(e.dayPlan) && e.dayPlan.length >= 3 && e.dayPlan.every(x => Number.isFinite(x.place.lat)));
+  assert.deepEqual(e.dayPlan.map(x => x.kind), legion.dayPlan(n.id, T).map(x => x.kind));
+  assert.ok(e.mind && e.situationTemplate && /Local time: Monday, November 23, 2026, 2:38 PM/.test(e.situationTemplate.example));
+  assert.equal(legion.exportPersona(n.id, { t }).date, '2026-11-24');
+});
+
+test('sampling a county weighs every ZIP with households, even one whose household size the pack leaves out (eng-47)', () => {
+  const s = legion.sample('Sierra County', 1000, { seed: 4 });
+  const by = {};
+  for (const x of s) by[x.zip] = (by[x.zip] || 0) + 1;
+  assert.ok((by['95944'] || 0) >= 15, JSON.stringify(by));
+  assert.equal(new Set(s.map(x => x.id)).size, s.length, 'distinct');
+});

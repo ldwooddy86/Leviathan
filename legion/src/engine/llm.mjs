@@ -1052,7 +1052,10 @@ function weatherLines(wx, t, coastKm = null) {
   const climate = !!wx.stale || kind === 'climate';
   const src = text(wx.point) || (basis ? text(basis.point) : '');
   if (climate) {
-    if (temp !== null) out.push(`Weather: no forecast covers ${wx.stale ? 'this date' : 'your area'}; a typical day here would be around ${Math.round(temp)}°F. Talk about the weather only in general terms ("probably around ${Math.round(temp)}"), without forecast numbers.`);
+    // past the forecast's week it is the date; within it, a climate estimate means no forecast point is near enough
+    const fetched = Date.parse(wx.fetched ?? '');
+    const pastForecast = num(t) !== null && Number.isFinite(fetched) ? t - fetched > 6.5 * 86400000 : !!wx.stale;
+    if (temp !== null) out.push(`Weather: no forecast covers ${pastForecast || kind !== 'climate' ? 'this date' : 'your area'}; a typical day here would be around ${Math.round(temp)}°F. Talk about the weather only in general terms ("probably around ${Math.round(temp)}"), without forecast numbers.`);
   } else {
     const bits = [];
     if (temp !== null) bits.push(approx ? `probably around ${Math.round(temp)}°F` : `${Math.round(temp)}°F`);
