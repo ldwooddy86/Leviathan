@@ -154,3 +154,9 @@ FOUND, NOT FIXED (other owners, or a model question):
  - mapclick.js log text still says "click 70503" (it clicks 95816).
 - 08:10 tests/check_open.js on the final build (sha1 1e49cea9eb50): all pass, no page errors. run_final.sh started.
 - 08:20 wordsearch_ca.js on the final build: no Louisiana, hurricane or surge word in the tab (111,800 characters with every detail opened), the bar in four modes, all eight legends, the engine's tables; no page errors.
+- 08:35 bar_m3.js on the final build: 20 ok, 3 FAIL, none a bar fault: (a) brake on the pad for 1.6 s took 17.5 to 13.9 mph on grass (the test wanted 5 mph), (b) after Back onto the road beside a building the pad's throttle moved the car only 0.3 mph in 7 s once (the W key drove it after the next reset): the car job's carLane may put it against something: look, (c) the test switched traffic on through the API, which does not redraw the bar, so the Traffic caption was not there yet (the Scene menu's own switch redraws it).
+- 08:50 bar_wx.js (full) on the final build: 34 ok; its one FAIL was the test's own (it expected the camera at eye height; the bar's ground reading, 20 ft, was right): test corrected. Aircraft switch 3 s.
+- 09:05 bar_warp.js on the final build: all 27 pass (address, coordinates, Mammoth Lakes, Palm Springs, Santa Cruz; ground 9 / 1,208 / 2,402 / 146 /
+  6.5 m; craft 60 m over the ground; AR3 stepped with the arrow keys reads snow at Mammoth and rain at Palm Springs; Las Vegas refused).
+  FINAL BUILD VERIFIED: scout_integ/ca.html sha1 1e49cea9eb50 (check_open, wordsearch, bar_m3, bar_wx, bar_warp). Report handed back.
+  What is left is the NEXT list (b, c, d) and the FOUND, NOT FIXED list in the handover state above.
