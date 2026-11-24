@@ -310,7 +310,7 @@ const WORRY_Q = new RegExp([
   "\\bwhat (?:are|were) you (?:most )?(?:worried|concerned|anxious|stressed|nervous|scared|afraid|stressing|worrying|freaking out) (?:about|of|over)\\b",
   "\\b(?:are|r) (?:you|u) (?:worried|concerned|stressed|anxious) about anything\\b|\\b(?:any|got any|have any|do you have any) (?:worries|concerns)\\b",
   "\\banything (?:worry|worrying|stressing|bothering|bugging|eating at|weighing on) (?:you|ya)\\b|\\bwhat(?:'s| is| has)? ?(?:been )?(?:stressing you(?: out)?|worrying you|weighing on you|eating at you|bugging you)\\b",
-  "\\bwhat(?:'s| is| has been) on your mind\\b",
+  "\\bwhat(?:'s| is| has)?(?: been)? on your mind\\b",
 ].join('|'));
 
 // Topics with a planner of their own: a worry about one of them is answered by it.

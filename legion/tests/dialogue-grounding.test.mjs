@@ -22,6 +22,7 @@ import { Conversation, barkBetween, understand, templates } from '../src/engine/
 import { makeVoice } from '../src/engine/dialogue/voice.mjs';
 import { roadFacts, roadScore, recordFacts, arFacts, weatherFacts } from '../src/engine/dialogue/ground.mjs';
 import { homelandOf } from '../src/engine/dialogue/plan.mjs';
+import { activityAt } from '../src/engine/schedule.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world, { seed: LEGION_SEED });
@@ -289,6 +290,108 @@ test('who says what: "home with the kids" only with kids under 18 at home; greet
       }
     }
   }
+});
+
+test('worries: every common way of asking gets the NPC\'s own worry; a worry named in the question gets that topic', () => {
+  const asks = ['What worries you these days?', 'What are you worried about?', 'Anything stressing you out lately?', 'What keeps you up at night?',
+    "What's your biggest concern?", "What's been on your mind?", 'Do you have any worries?', 'What are you afraid of?'];
+  for (const q of asks) {
+    const u = understand(q, { world });
+    assert.equal(u.intent, 'opinion', q);
+    assert.ok(u.flags.worry, q);
+  }
+  // the topic named is the one answered
+  for (const [q, intent] of [['What are you worried about with the fires?', 'fire'], ['What do you worry about with the rent?', 'rent'], ['What worries you about the heat here?', 'heat']]) {
+    assert.equal(understand(q, { world }).intent, intent, q);
+  }
+  const DEFLECT = /\b(?:didn'?t understand|don'?t speak much English|a bit personal|talk your ear off|say that again|let me think about how to answer)\b/i;
+  let n = 0;
+  for (const zip of ['93701', '94108', '92262', '93706', '90005']) {
+    for (const npc of some(zip, 2, n => adult(n) && (P(n).concerns || []).length, 5)) {
+      for (const q of asks.slice(0, 5)) {
+        const line = conv(npc, 3).reply(q);
+        n++;
+        assert.ok(line.facts.includes('persona.concerns') && !DEFLECT.test(en(line)), `${npc.id} "${q}": "${line.text}"`);
+      }
+    }
+  }
+  assert.ok(n >= 40, `${n} answers`);
+});
+
+test('names and doings: an NPC goes by the name the panel shows (with the one on paper), and says where they are', () => {
+  let nicks = 0;
+  for (const zip of ['92683', '90005', '93706', '92262', '90022', '95116']) {
+    for (const npc of some(zip, 3, n => n.age >= 18 && n.name.nick && n.name.nick !== n.name.first, 7, 600)) {
+      nicks++;
+      for (const seed of [3, 9]) {
+        const c = conv(npc, seed);
+        const hello = c.greet();
+        const text = `${hello.text} ${hello.gloss || ''}`;
+        // a greeting that gives a name gives the one they go by
+        if (new RegExp(`(?<![\\p{L}])${npc.name.first}(?![\\p{L}])`, 'u').test(text)) assert.ok(text.includes(npc.name.nick), `${npc.id} goes by ${npc.name.nick}: "${text}"`);
+        const line = c.reply("Hi! I'm Sam. What's your name?");
+        const said = `${line.text} ${line.gloss || ''}`;
+        assert.ok(said.includes(npc.name.nick), `${npc.id} (${npc.name.display}) says ${npc.name.nick}: "${said}"`);
+        assert.ok(said.includes(npc.name.first), `${npc.id} gives the name on paper too: "${said}"`);
+      }
+    }
+  }
+  assert.ok(nicks >= 6, `${nicks} NPCs with a nickname`);
+  // what they are doing is where the schedule has them: the laundromat is never "the store"
+  let out = 0;
+  for (const zip of ['90005', '92683', '90011', '93702']) {
+    for (const npc of pop.sample(world.indexOf(zip), 200, 4).filter(p => p.age >= 18)) {
+      for (const h of [10, 13, 17]) {
+        const t = T + (h - 14) * 3600000;
+        const a = activityAt(npc, P(npc), t);
+        if (!a || !['errand', 'leisure'].includes(a.kind)) continue;
+        out++;
+        const c = conv(npc, 5, t);
+        const where = a.traveling && a.place && a.place.kind === 'home' ? a.from : a.place;
+        c.greet();
+        const line = c.reply('What are you doing right now?');
+        const all = `${line.text} ${line.gloss || ''}`;
+        if (where && where.kind !== 'grocery') assert.ok(!/\bthe store\b|\bla tienda\b/.test(all), `${npc.id} at ${where.label}: "${all}"`);
+        if (where && where.kind === 'laundromat') assert.match(all, /laundromat|lavander[ií]a|errands|mandados/i, `${npc.id}: "${all}"`);
+      }
+    }
+  }
+  assert.ok(out >= 60, `${out} NPCs out on an errand or an outing`);
+});
+
+test('where they live: by the neighborhood people there call it inside the big cities; a year here is never "one years"', () => {
+  let named = 0, asked = 0;
+  for (const zip of ['94110', '90033', '90005', '92104']) {
+    const z = world.zip(world.indexOf(zip));
+    assert.ok(z.neighborhood, zip);
+    for (const npc of some(zip, 4, n => adult(n), 3, 200)) {
+      const c = conv(npc, 5);
+      const line = c.reply('Where do you live?');
+      const all = `${line.text} ${line.gloss || ''}`;
+      asked++;
+      if (all.includes(z.neighborhood)) named++;
+      // the city is never named instead of the neighborhood in English ("Here in Los Angeles" from Boyle Heights)
+      if (!line.gloss && /\bhere in\b/i.test(line.text)) assert.ok(line.text.includes(z.neighborhood), `${npc.id}: "${line.text}"`);
+      // and Spanish never carries an English "the" ("en the Mission")
+      if (line.gloss) assert.ok(!/\ben the\b/.test(line.text), `${npc.id}: "${line.text}"`);
+    }
+  }
+  assert.ok(named >= asked / 3, `${named} of ${asked} name the neighborhood`);
+  let n = 0;
+  for (const zip of ['94110', '92104', '93702']) {
+    for (const npc of pop.sample(world.indexOf(zip), 400, 5).filter(x => x.age >= 18)) {
+      const res = P(npc).residence || {};
+      const year = new Date(T).getUTCFullYear();
+      if (!(res.zipSince >= year - 1 || npc.household.yearMoved >= year - 1)) continue;
+      n++;
+      const c = conv(npc, 5);
+      for (const q of ['How long have you lived here?', 'When did you move in?']) {
+        const line = c.reply(q);
+        assert.ok(!/\bone years\b|\b1 años\b|\b1 years\b/i.test(`${line.text} ${line.gloss || ''}`), `${npc.id}: "${line.text}" [${line.gloss || ''}]`);
+      }
+    }
+  }
+  assert.ok(n >= 10, `${n} people who moved in a year ago or less`);
 });
 
 test('barks: a reply never repeats the opener word for word, and a "how are you?" gets an answer', () => {

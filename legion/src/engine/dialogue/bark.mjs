@@ -49,8 +49,20 @@ export const BARK_EN = compileBank({
     @hot Hot enough for you?
     @hot It's {temp} out. Stay cool.
     @cold Chilly one today.
-    @mild Nice out today, huh?
-    Beautiful day.
+    @mild @cloudless Nice out today, huh?
+    @mild @cloudless Beautiful day.
+  `,
+  // now and then a word about the place or the day, said in passing ({place}: their neighborhood or town)
+  'bark.passPlace': `
+    Another day in {place}.
+    @morning Morning! Another day in {place}.
+    @senior Hello there! Another day in {place}.
+  `,
+  'bark.passDay': `
+    @mild @cloudless Beautiful day in {place}, huh?
+    @mild @cloudless Can't beat a day like this.
+    @hot Hot one in {place} today.
+    @cold Cold one today, huh?
   `,
   'bark.alert': `
     Did you hear about the {alert}?
@@ -146,7 +158,16 @@ export const BARK_ES = compileBank({
     Estamos a {temp} grados. || It's {temp} degrees.
     @hot ¡Qué calor! || So hot!
     @cold ¡Qué frío! || So cold!
-    @mild Qué bonito día. || What a nice day.
+    @mild @cloudless Qué bonito día. || What a nice day.
+  `,
+  'bark.passPlace': `
+    ¡Otro día más en {place}! || Another day in {place}!
+    @morning ¡Buenos días! Otro día más en {place}. || Good morning! Another day in {place}.
+  `,
+  'bark.passDay': `
+    @mild @cloudless Qué bonito día, ¿verdad? || What a nice day, right?
+    @hot ¡Qué calor hace hoy! || It's so hot today!
+    @cold ¡Qué frío hace hoy! || It's so cold today!
   `,
   'bark.alert': `
     ¿Ya supo de la alerta del clima? || Did you hear about the weather alert?
@@ -347,6 +368,13 @@ function barkLine(world, persona, context = {}) {
   if (situation === 'wait') { const p = sayBark(S, 'bark.wait'); if (p) return done(p, 'grumble'); }
   if (situation === 'work' && v.speaker.works) { const p = sayBark(S, 'bark.work', slots); if (p) return done(p, 'grumble'); }
   if (situation === 'home') { const p = sayBark(S, 'bark.home'); if (p) return done(p, 'home'); }
+  // now and then a word about the place or the day ("Another day in Fresno."; "Hot one in Indio today.")
+  if (situation === 'pass' && v.age >= 13 && rng.chance(0.2)) {
+    const day = rng.chance(0.5) ? sayBark(S, 'bark.passDay') : null;
+    if (day) return done(day, 'weather');
+    const place = sayBark(S, 'bark.passPlace');
+    if (place) return done(place, 'greet');
+  }
   // a plain greeting, the dialect's or the bank's, sometimes with a question
   let p = null;
   if (v.lang.mode === 'en' && v.age >= 13 && rng.chance(0.35)) {

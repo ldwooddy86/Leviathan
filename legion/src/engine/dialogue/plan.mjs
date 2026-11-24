@@ -331,6 +331,12 @@ function ownerWords(v) {
   };
 }
 
+/** Where they live as people there name it: z.neighborhood || z.placeName || z.city (the lexicon's reading first). */
+function hoodOf(v) {
+  const z = v.z || {};
+  return (v.lex && v.lex.values && v.lex.values.neighborhood) || z.neighborhood || (v.lex && v.lex.values && v.lex.values.place) || z.placeName || z.city || null;
+}
+
 /**
  * The slots every template may use: names, place, home, the Spanish gender ending. The years are the speaker's own:
  * yearMoved and yearsHere are when they came to this home (never before they came to the ZIP: someone who joined the
@@ -346,11 +352,17 @@ export function baseSlots(v) {
   const zipYears = zipSince !== null && year - zipSince >= 1 ? year - zipSince : null;
   return {
     first: v.first, given: v.given, full: v.full, display: v.display, nick: v.nick, place: v.lex.values.place || v.z.city, city: v.z.city, county: v.z.countyName,
+    // where they live, as people there name it: the neighborhood inside the big cities ("the Mission", "Boyle Heights"),
+    // else the place or the town; in Spanish a name with an English "the" gives way to the town
+    // (plain English shows only the English side, so it keeps the neighborhood)
+    hood: hoodOf(v), hoodCap: capFirst(hoodOf(v)),
+    hoodEs: v.lang.mode !== 'simple' && /^the /i.test(hoodOf(v) || '') ? v.lex.values.place || v.z.city : hoodOf(v),
     region: v.lex.values.region, homeWord: v.homeWord, aHome: withArticle(v.homeWord === 'apartment' && v.hh.dwelling === 'small-apartment' ? 'small apartment' : v.homeWord),
     unHomeEs: { house: 'una casa', apartment: 'un apartamento', 'mobile home': 'una casa móvil', place: 'una casa' }[v.homeWord] || 'una casa',
-    yearMoved, yearsHere: isNum(yearMoved) && year - yearMoved >= 1 ? numWord(year - yearMoved) : null,
-    yearsNum: isNum(yearMoved) && year - yearMoved >= 1 ? year - yearMoved : null, hhYear,
-    zipSince, zipYears: zipYears !== null ? numWord(zipYears) : null, zipYearsNum: zipYears,
+    // (a count of years is said as "N years" from two on: a year here is told by its year, "since 2025", never "one years")
+    yearMoved, yearsHere: isNum(yearMoved) && year - yearMoved >= 2 ? numWord(year - yearMoved) : null,
+    yearsNum: isNum(yearMoved) && year - yearMoved >= 2 ? year - yearMoved : null, hhYear,
+    zipSince, zipYears: zipYears !== null && zipYears >= 2 ? numWord(zipYears) : null, zipYearsNum: zipYears !== null && zipYears >= 2 ? zipYears : null,
     countySince: isNum(res.countySince) ? res.countySince : null,
     age: v.age, nextAge: v.age + 1, o: v.sex === 'F' ? 'a' : 'o',
     // (an estimated temperature is said only by the weather lines that hedge it: "probably around 45")

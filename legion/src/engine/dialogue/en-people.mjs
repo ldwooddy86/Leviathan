@@ -496,8 +496,8 @@ export const PEOPLE = compileBank({
 
   // ---------------------------------------------------------------- about them
   'about.bornHere': `
-    Born and raised right here in {place}.
-    I was born here. {place}, my whole life.
+    Born and raised right here in {hood}.
+    I was born here. {hoodCap}, my whole life.
     I've lived in this {homeWord} my whole life.
     I'm from here. Never really left.
     @kid I was born here!
@@ -613,10 +613,10 @@ export const PEOPLE = compileBank({
     @young {age}. Still figuring things out.
   `,
   'about.years': `
-    I've been in {place} {zipYears} years now.
-    {zipYearsCap} years in {place}.
-    I've lived in {place} since {zipSince}.
-    I've been in {place} since {zipSince}. So, {zipYears} years.
+    I've been in {hood} {zipYears} years now.
+    {zipYearsCap} years in {hood}.
+    I've lived in {hood} since {zipSince}.
+    I've been in {hood} since {zipSince}. So, {zipYears} years.
   `,
   // "what brought you here?" once they've said where they're from: the year, and that they stayed (no reason the record
   // doesn't hold)
@@ -668,9 +668,9 @@ export const PEOPLE = compileBank({
     Ha, I'm from there. I was born in {birthplace}.
   `,
   'about.newHere': `
-    I'm pretty new to {place}, actually. Since {zipSince}.
-    I only moved to {place} in {zipSince}. Still learning my way around.
-    New-ish. I got to {place} in {zipSince}.
+    I'm pretty new to {hood}, actually. Since {zipSince}.
+    I only moved to {hood} in {zipSince}. Still learning my way around.
+    New-ish. I got to {hood} in {zipSince}.
   `,
   'about.interestsIntro': `
     @works When I'm not working, you can usually find me {doingThing}.
@@ -1504,10 +1504,10 @@ export const PEOPLE = compileBank({
     @farm We've got a mobile home out on the place. It does the job.
   `,
   'home.where': `
-    Right here in {place}.
-    Here in {place}.
+    Right here in {hood}.
+    Here in {hood}.
     Just around the corner, actually.
-    Not far. Here in {place}.
+    Not far. Here in {hood}.
   `,
   'home.guarded': `
     Around here.

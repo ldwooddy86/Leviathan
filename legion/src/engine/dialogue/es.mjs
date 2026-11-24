@@ -641,7 +641,7 @@ export const SPANISH = compileBank({
 
   // ---------------------------------------------------------------- about them
   'about.bornHere': `
-    Nací aquí mismo, en {place}. || I was born right here, in {place}.
+    Nací aquí mismo, en {hoodEs}. || I was born right here, in {hoodEs}.
     Soy de aquí, de toda la vida. || I'm from here, my whole life.
     Aquí nací y aquí crecí. || I was born and raised here.
   `,
@@ -677,9 +677,9 @@ export const SPANISH = compileBank({
     Tengo {age} años cumplidos. || I'm a full {age} years old.
   `,
   'about.years': `
-    Vivo en {place} desde {zipSince}. || I've lived in {place} since {zipSince}.
-    Llevo {zipYearsNum} años en {place}. || I've been in {place} {zipYearsNum} years.
-    Ya son {zipYearsNum} años en {place}. || It's been {zipYearsNum} years in {place}.
+    Vivo en {hoodEs} desde {zipSince}. || I've lived in {hoodEs} since {zipSince}.
+    Llevo {zipYearsNum} años en {hoodEs}. || I've been in {hoodEs} {zipYearsNum} years.
+    Ya son {zipYearsNum} años en {hoodEs}. || It's been {zipYearsNum} years in {hoodEs}.
   `,
   'about.whyHere': `
     Es una historia larga. Llegué en {cameYear} y aquí me quedé. || Long story. I came in {cameYear} and stayed.
@@ -722,9 +722,9 @@ export const SPANISH = compileBank({
     Claro, yo soy de allá. Nací en {birthplace}. || Of course, I'm from there. I was born in {birthplace}.
   `,
   'about.newHere': `
-    Llegué a {place} apenas en {zipSince}. || I only got to {place} in {zipSince}.
-    Soy nuev{o} en {place}. Llegué en {zipSince}. || I'm new in {place}. I arrived in {zipSince}.
-    Llevo poco tiempo en {place}, desde {zipSince}. || I've only been in {place} a little while, since {zipSince}.
+    Llegué a {hoodEs} apenas en {zipSince}. || I only got to {hoodEs} in {zipSince}.
+    Soy nuev{o} en {hoodEs}. Llegué en {zipSince}. || I'm new in {hoodEs}. I arrived in {zipSince}.
+    Llevo poco tiempo en {hoodEs}, desde {zipSince}. || I've only been in {hoodEs} a little while, since {zipSince}.
   `,
   'about.interestsIntro': `
     {interestEs} || {interestEn}
@@ -1116,9 +1116,9 @@ export const SPANISH = compileBank({
     Vivimos en una casa móvil. || We live in a mobile home.
   `,
   'home.where': `
-    Aquí en {place}. || Here in {place}.
+    Aquí en {hoodEs}. || Here in {hoodEs}.
     Aquí cerquita. || Right near here.
-    Por aquí cerca, en {place}. || Near here, in {place}.
+    Por aquí cerca, en {hoodEs}. || Near here, in {hoodEs}.
   `,
   'home.guarded': `
     Por aquí. || Around here.

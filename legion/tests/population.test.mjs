@@ -362,6 +362,22 @@ test('small ZIPs keep their own totals: no phantom group quarters, children in s
   for (let h = 0; h < world.z.hh[ryde]; h++) assert.equal(pop.householdCore(ryde, h).size, 1);
 });
 
+test('homes where the median is the ACS top code (built 1939 or earlier): most predate 1940, none piled on the code', () => {
+  for (const zip of ['94110', '94117', '94118']) {
+    const z = zi(zip), wz = world.zip(z);
+    assert.ok((wz && wz.ybBefore1940 === true) || world.z.yb_med[z] <= 1939, `${zip} is top-coded`);
+    const years = [];
+    for (let h = 0; h < 400; h++) years.push(pop.household(z, h).yearBuilt);
+    const pre = share(years, y => y <= 1939), at = share(years, y => y === 1938 || y === 1939);
+    assert.ok(pre >= 0.5, `${zip}: ${pts(pre)}% built before 1940`);
+    assert.ok(at < 0.02, `${zip}: ${pts(at)}% in 1938-1939`);
+    assert.ok(share(years, y => y < 1920) > 0.15, `${zip}: the stock reaches back past 1920`);
+    // the place record names the neighborhood when the pack has one (the Mission, the Haight, the Richmond)
+    const place = pop.person(z, 0, 0).place;
+    assert.equal(place.neighborhood, (wz && wz.neighborhood) || null);
+  }
+});
+
 test('heritage follows the tables: Armenian Glendale, Vietnamese Westminster, Filipino Daly City, Sikh Yuba City, Hmong Fresno', () => {
   const households = (zip, set) => {
     const z = zi(zip), c = {};
@@ -393,7 +409,7 @@ test('heritage follows the tables: Armenian Glendale, Vietnamese Westminster, Fi
 
 test('households are realistic: adults at the head, parents a couple, spouses near in age, children younger', () => {
   const gap = [], child = [], alone = [], rooms = [];
-  let big = 0, bigMulti = 0, small = 0, smallMulti = 0, stepGap = 0, kids = 0;
+  let big = 0, bigMulti = 0, small = 0, smallMulti = 0, stepGap = 0, kids = 0, momKids = 0, oldMom = 0;
   for (const zip of ['90001', '94110', '92617', '93727', '92683', '90011', '93245']) {
     const z = zi(zip);
     for (let h = 0; h < 2500; h++) {
@@ -409,6 +425,9 @@ test('households are realistic: adults at the head, parents a couple, spouses ne
       for (const p of c.members) {
         if (p.role === 'spouse') gap.push(Math.abs(p.age - hd.age));
         if (p.role === 'child') { child.push(hd.age - p.age); kids++; if (sp && p.age > sp.age - 15) stepGap++; }
+        // their mother here (a woman at the head, or the wife or partner) was no older than 48 at the birth
+        const mom = hd.sex === 'F' ? hd : sp && sp.sex === 'F' ? sp : null;
+        if (p.role === 'child' && mom) { momKids++; if (mom.age - p.age > 48) oldMom++; }
         if (p.role === 'roommate' && zip === '92617') rooms.push(p.age);
         if (p.role === 'spouse' || p.role === 'partner' || p.role === 'roommate') assert.ok(p.age >= 18, `${c.id}: a ${p.role} of ${p.age}`);
       }
@@ -417,6 +436,7 @@ test('households are realistic: adults at the head, parents a couple, spouses ne
   assert.ok(share(gap, g => g <= 12) > 0.95, 'spouses within 12 years');
   assert.ok(Math.min(...child) >= 16, 'children at least 16 years younger than the householder');
   assert.ok(stepGap / kids < 0.002, `children nearly as old as the spouse: ${stepGap} of ${kids}`);
+  assert.ok(oldMom / momKids < 0.0005, `children born to a mother here over 48: ${oldMom} of ${momKids}`);
   assert.ok(share(rooms, a => a >= 18 && a < 35) > 0.7, 'roommates near a campus are young adults');
   assert.ok(mean(alone) > mean(rooms) + 15, 'people living alone are older than roommates');
   assert.ok(bigMulti / big > 1.5 * smallMulti / small, 'parents and grandchildren live in the larger family households');
@@ -907,6 +927,25 @@ test('nobody is born in the 50 states before their origin\'s community began (Hm
   console.log(`${camp} people born in refugee camps or Long Cheng`);
   assert.ok(camp > 60, `${camp} born in a camp`);
   assert.deepEqual(outside.slice(0, 6), [], `born in a camp outside its years (${outside.length})`);
+  // nor in a city after its community left: the Armenians of Baku fled in 1988-1990, the Assyrians and Chaldeans of
+  // Mosul in 2014
+  const LEFT = { armenian: ['Baku, Azerbaijan', 1990], assyrian: ['Mosul, Iraq', 2014] };
+  let left = 0;
+  const after = [];
+  for (const zip of ['91205', '91206', '91201', '92020', '92021', '95382']) {
+    const z = zi(zip);
+    for (let h = 0; h < Math.min(pop.householdCount(z), 1500); h++) {
+      if (!pop.householdCore(z, h).members.some(p => LEFT[p.heritage])) continue;
+      for (const p of pop.members(z, h)) {
+        const k = LEFT[p.heritage];
+        if (!k || p.birthplace !== k[0]) continue;
+        left++;
+        if (p.birthYear > k[1]) after.push(`${p.id} ${p.heritage} born ${p.birthYear} in ${p.birthplace}`);
+      }
+    }
+  }
+  assert.ok(left > 50, `${left} born in Baku or Mosul`);
+  assert.deepEqual(after.slice(0, 6), [], `born after the community left (${after.length})`);
 });
 
 test('who is whose parent: siblings of an age to be their parents\' children, parents-in-law on the spouse\'s side, no twin names', () => {
@@ -930,6 +969,8 @@ test('who is whose parent: siblings of an age to be their parents\' children, pa
         }
         // a brother or sister's listed parents are 14 or more years older (a mother at most 47, a father 62)
         if (x.role === 'sibling') for (const j of x.parents) { sibLinks++; const gap = mem[j].age - x.age; if (gap < 14 || gap > (mem[j].sex === 'F' ? 47 : 62)) bad.push(`${x.id} sibling of ${x.age} listed with a parent of ${mem[j].age}`); }
+        // anyone's listed mother was 14 to 50 at their birth (no 65-year-old mother of a 7-year-old)
+        for (const j of x.parents) if (mem[j].sex === 'F' && (mem[j].age - x.age < 14 || mem[j].age - x.age > 50)) bad.push(`${x.id} ${x.role} of ${x.age} listed with a mother of ${mem[j].age}`);
       }
       // brothers and sisters are not given the same name
       for (const role of ['child', 'grandchild']) {
@@ -1117,10 +1158,12 @@ test('names, birthplaces and languages agree: European immigrants by origin, Iu 
   }
   assert.ok(mien > 300 && clan / mien > 0.8, `Mien with a clan name: ${clan} of ${mien}`);
   // a European immigrant householder's surname is of their origin's (or family language's) pool, never another country's
+  // (the twenty ZIPs with the most householders of the European heritage, from wine country to the Westside)
   let eu = 0, euOk = 0;
   const bad = [];
-  for (let z = 0; z < world.N; z += 3) {
-    for (let h = 0; h < Math.min(pop.householdCount(z), 60); h++) {
+  const EU_ZIPS = ['95452', '95938', '96146', '93243', '95043', '93437', '90035', '94037', '90049', '91356', '92315', '94548', '94705', '94946', '90048', '94574', '95318', '95636', '90274', '94592'];
+  for (const z of EU_ZIPS.map(zi)) {
+    for (let h = 0; h < Math.min(pop.householdCount(z), 400); h++) {
       const c = pop.householdCore(z, h);
       if (c.members[0].heritage !== 'european') continue;
       const p = pop.person(z, h, 0);
@@ -1133,11 +1176,13 @@ test('names, birthplaces and languages agree: European immigrants by origin, Iu 
       else if (bad.length < 5) bad.push(`${p.id} ${p.name.full} ${p.origin} ${p.birthplace} ${p.languages.home}`);
     }
   }
-  assert.ok(eu > 40 && euOk / eu > 0.9, `European immigrants named by their origin: ${euOk} of ${eu}; ${bad.join('; ')}`);
-  // other-race immigrants: born in Brazil, Portuguese at home; in Mexico City or Lima, Spanish
+  assert.ok(eu > 80 && euOk / eu > 0.9, `European immigrants named by their origin: ${euOk} of ${eu}; ${bad.join('; ')}`);
+  // other-race immigrants: born in Brazil, Portuguese at home; in Mexico City or Lima, Spanish (the twelve ZIPs with the
+  // most households of the other race)
   let other = 0;
-  for (let z = 0; z < world.N && other < 60; z += 2) {
-    for (let h = 0; h < Math.min(pop.householdCount(z), 80); h++) {
+  const OTHER_ZIPS = ['96093', '95039', '95468', '95637', '95454', '95538', '94528', '90290', '95439', '94020', '90035', '95689'];
+  for (const z of OTHER_ZIPS.map(zi)) {
+    for (let h = 0; h < Math.min(pop.householdCount(z), 300); h++) {
       const c = pop.householdCore(z, h);
       if (!c.members.some(m => m.heritage === 'other')) continue;
       for (const p of pop.members(z, h)) {
@@ -1147,22 +1192,28 @@ test('names, birthplaces and languages agree: European immigrants by origin, Iu 
       }
     }
   }
-  assert.ok(other > 10, `${other} other-race immigrants`);
+  assert.ok(other > 60, `${other} other-race immigrants`);
   // a child born abroad who came with a parent of another heritage speaks that parent's language and carries both in the label
   let along = 0, comb = 0, mixed = 0;
   for (const zip of ['95823', '92683', '94606', '95111', '93727', '90022']) {
-    for (const mem of householdsOf(zip, 1500)) for (const p of mem) {
-      if (p.nativity !== 'foreign' || !(p.role === 'child' || p.role === 'grandchild')) continue;
-      // born in the country of the parent of the other heritage, and not in one of a parent of their own
-      const country = x => x.birthplace.split(', ').pop(), par = p.parents.map(j => mem[j]);
-      const with_ = par.find(q => q.nativity === 'foreign' && q.arrivalYear === p.arrivalYear && q.heritage !== p.heritage && country(q) === country(p));
-      if (!with_ || par.some(q => q.heritage === p.heritage && q.nativity === 'foreign' && country(q) === country(p))) continue;
-      // (a Multiracial child's label already says so, and the other-race label, plain 'American', has no '... American'
-      // form to combine)
-      const combinable = / American$/.test(p.heritageLabel) && / American$/.test(with_.heritageLabel);
-      along++;
-      if (p.languages.home !== 'english' && with_.languages.home !== 'english') assert.equal(p.languages.home, with_.languages.home, `${p.id} ${p.heritageLabel} came with ${with_.id}`);
-      if (combinable) { comb++; if (/ and /.test(p.heritageLabel)) mixed++; }
+    const z = zi(zip);
+    for (let h = 0; h < Math.min(pop.householdCount(z), 1500); h++) {
+      const core = pop.householdCore(z, h);
+      if (core.members.every(m => m.heritage === core.members[0].heritage)) continue;   // one heritage: nobody to come with
+      const mem = pop.members(z, h);
+      for (const p of mem) {
+        if (p.nativity !== 'foreign' || !(p.role === 'child' || p.role === 'grandchild')) continue;
+        // born in the country of the parent of the other heritage, and not in one of a parent of their own
+        const country = x => x.birthplace.split(', ').pop(), par = p.parents.map(j => mem[j]);
+        const with_ = par.find(q => q.nativity === 'foreign' && q.arrivalYear === p.arrivalYear && q.heritage !== p.heritage && country(q) === country(p));
+        if (!with_ || par.some(q => q.heritage === p.heritage && q.nativity === 'foreign' && country(q) === country(p))) continue;
+        // (a Multiracial child's label already says so, and the other-race label, plain 'American', has no '... American'
+        // form to combine)
+        const combinable = / American$/.test(p.heritageLabel) && / American$/.test(with_.heritageLabel);
+        along++;
+        if (p.languages.home !== 'english' && with_.languages.home !== 'english') assert.equal(p.languages.home, with_.languages.home, `${p.id} ${p.heritageLabel} came with ${with_.id}`);
+        if (combinable) { comb++; if (/ and /.test(p.heritageLabel)) mixed++; }
+      }
     }
   }
   assert.ok(along > 50, `${along} children born abroad who came with a parent of another heritage`);
