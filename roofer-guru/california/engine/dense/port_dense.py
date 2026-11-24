@@ -13,6 +13,8 @@ What is applied, by anchored replacements (each anchor must occur exactly once):
                          are given the true time between drawn frames
   Engine._watch          the black-picture watch reads its nine points through a pixel buffer and a fence, not straight
                          back (Engine._watchAsk, Engine._watchRead); the straight read stays as the fallback
+  WorldKit cvs()         the canvases of photographs and masks are made for reading back (willReadFrequently), so
+                         the tree reader's getImageData does not wait for the GPU process
   Engine constructor     a lost context clears the fences and marks the engine as not drawing
   the world              the lost and the returned context are said in the view (dense_world.js)
 New code: dense_engine.js (methods of class Engine), dense_world.js. It applies to la_engine.js alone and at the end of
@@ -49,10 +51,20 @@ rep("if (px[0] + px[1] + px[2] > 0) lit = true; }\n", "if (px[0] + px[1] + px[2]
 rep("    /* on Auto: frames that run long for a while step the quality down once, and say so */\n",
     eng + "    /* on Auto: frames that run long for a while step the quality down once, and say so */\n")
 
+# ---- the photographs and masks the engine reads back are kept in memory, not on the card ----
+# K.detectTrees and the wider city's tree reader call getImageData on these canvases. On a canvas the browser keeps on
+# the card that call waits for the GPU process: 7.8 s of 8.6 s of frame time while 14 cells' trees were read at
+# 600 W Broadway, San Diego, on the software renderer (out/g_sd.log). The browser's own advice for a canvas that is
+# read back is willReadFrequently; the option counts only at the first getContext, so it is given where the canvas is made.
+rep("c.width = w; c.height = h || w; if (fill) { const g = c.getContext('2d');",
+    "c.width = w; c.height = h || w; c.getContext('2d', { willReadFrequently: true }); if (fill) { const g = c.getContext('2d');")
+
 # ---- a lost context ----
 rep("onLost: () => this.emit('lost'), onRestored: () => { this.emit('restored'); }",
-    "onLost: () => { this._ctxGone(); this.emit('lost'); }, onRestored: () => { this._ctxGone(); this.broken = 'the graphics context was lost, and what the engine had built on the card went with it.'; this.emit('restored'); }")
+    "onLost: () => { this._ctxGone(); this.emit('lost'); }, onRestored: () => { this._ctxGone(); this.broken = this._ctxDead = 'the graphics context was lost, and what the engine had built on the card went with it.'; this.emit('restored'); }")
 rep("    engine.on('fatal', msg => {", wld + "    engine.on('fatal', msg => {")
+# a quality change clears "broken" (a new try with fewer effects); not after a lost context, where nothing is left to draw with
+rep("this.quality = q; this.broken = null;", "this.quality = q; this.broken = this._ctxDead || null;")
 
 open(out, 'w', encoding='utf-8').write(s)
 # the new parts parse as methods of a class and as statements, and so does the whole (which may sit in its <script> tag)

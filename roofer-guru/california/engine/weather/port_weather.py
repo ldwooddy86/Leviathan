@@ -43,7 +43,7 @@ cut("#ifdef WATER\n  /* flood water: brown with silt", "  s.albedo = base.rgb; s
      and flat roofs under water that has nowhere to go. It is decided face by face from the slope alone, so on real
      terrain a hillside sheds it and a flat valley floor holds it. A picture of street flooding, not a flood map. And the
      water starts to run on gentler slopes: a street with any fall to it carries a stream. */
-  { vec3 gN = normalize(v_normal); float up = smoothstep(0.35, 0.9, N.y) * u_wetness * u_wetMask, fw = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz))), pond = u_snowK.w * smoothstep(0.985, 0.9995, gN.y);
+  { vec3 gN = normalize(v_normal); float up = smoothstep(0.35, 0.9, N.y) * u_wetness * max(u_wetMask, 0.0), fw = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz))), pond = u_snowK.w * smoothstep(0.985, 0.9995, gN.y);
     if (up > 0.001) { float pt = 0.52 - 0.36 * pond, pud = up * smoothstep(pt, pt + 0.16, fbm(v_wpos.xz * 0.19)); base.rgb *= mix(1.0, 0.58, up); base.rgb = mix(base.rgb, vec3(0.2, 0.18, 0.14), pud * pond * 0.5); s.roughness = mix(mix(s.roughness, 0.16, up * 0.85), 0.035, pud); N = normalize(mix(N, vec3(0.0, 1.0, 0.0), pud * 0.9));
       if (u_rainK.x > 0.001) { vec2 p = v_wpos.xz; float nearK = 1.0 - smoothstep(0.02, 0.085, fw), k = u_rainK.x;
         if (nearK > 0.001) { vec3 rr = rainRings(p, u_time, k); float on = mix(0.3, 1.0, pud) * up * nearK; N = normalize(N + vec3(rr.x, 0.0, rr.y) * (0.55 * on)); base.rgb += vec3(0.5, 0.55, 0.6) * (rr.z * on * 0.22);
@@ -53,15 +53,34 @@ cut("#ifdef WATER\n  /* flood water: brown with silt", "  s.albedo = base.rgb; s
         s.roughness = mix(s.roughness, max(s.roughness, 0.12), k * (1.0 - nearK) * up * 0.6); } }
     /* snow: above the snow level, whatever faces the sky goes white, first in patches and then all over; steep faces and
        walls stay bare. The level is a world height (u_snowK.y), broken up a little so it is not a ruled line across a
-       mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, and on the crowns of trees. */
-    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(u_wetMask, leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = N.y;
+       mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, on the crowns of trees, and on
+       the far ground (a surface whose wet mask is negative takes snow and no wetness). Far off, where a pixel covers metres
+       of ground, the fine break-up is let go and a coarser one stands in, so the line does not shimmer. */
+    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(abs(u_wetMask), leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = u_wetMask < 0.0 ? gN.y : N.y;
     /* a tree's crown: which way a face looks is taken from the face itself as the camera sees it, not from the crown's own normals, which are made for light through leaves */
     if (leafy && u_snowK.x > 0.001) { sN = normalize(cross(dFdx(v_wpos), dFdy(v_wpos))); if (dot(sN, u_camPos - v_wpos) < 0.0) sN = -sN; skyward = sN.y; }
-    if (u_snowK.x > 0.001 && snowOn > 0.0) { float ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0);
-      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * fbm(v_wpos.xz * 0.6)), 0.0, 1.0);
+    if (u_snowK.x > 0.001 && snowOn > 0.0) { float nearF = 1.0 - smoothstep(1.5, 9.0, fw), ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0 * nearF + (vnoise(v_wpos.xz * 0.0021) - 0.5) * 70.0);
+      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * mix(0.5, fbm(v_wpos.xz * 0.6), 1.0 - smoothstep(0.3, 2.0, fw))), 0.0, 1.0);
         base.rgb = mix(base.rgb, vec3(0.9, 0.92, 0.96) * (0.95 + 0.05 * vnoise(v_wpos.xz * 2.7)), cov); s.roughness = mix(s.roughness, 0.85, cov); s.metallic *= 1.0 - cov; N = normalize(mix(N, normalize(sN + vec3(0.0, 0.6, 0.0)), cov * (leafy ? 1.0 : 0.7))); } } }
 """)
 rep("u_wetness: env.wetness, u_rainK: env.rainK || ZERO4,", "u_wetness: env.wetness, u_rainK: env.rainK || ZERO4, u_snowK: env.snowK || ZERO4,")
+# the far ground and the wider city's ground take snow, not wetness (a negative wet mask)
+rep("mat = new Material({ name: 'Far ground', albedoMap: tex, roughness: 0.95, castShadow: false, wet: 0 });", "mat = new Material({ name: 'Far ground', albedoMap: tex, roughness: 0.95, castShadow: false, wet: -1 });")
+rep("new Material({ name: 'Wider city: ground and lids', albedoMap: tex, roughness: 0.94, castShadow: false, wet: 0 });", "new Material({ name: 'Wider city: ground and lids', albedoMap: tex, roughness: 0.94, castShadow: false, wet: -1 });")
+
+# ---- haze from a base height, and no thicker below it (the lighting chunk, both haze functions, the lit volume, the uniforms); clouds from a base height ----
+rep("uniform vec4 u_fog; uniform float u_frame;\n",
+    "uniform vec4 u_fog; uniform float u_frame, u_fogB;\n"
+    "/* how much haze lies along a line from the camera (height yc) to a point (height yp) dist away, as a length at full density: the haze is at its\n"
+    "   full density up to the base height u_fogB (the ground under the camera, or the top of a fog layer) and thins above it with the scale 1 / u_fog.y */\n"
+    "float fogPath(float yc, float yp, float dist) { float k = u_fog.y, a = yc - u_fogB, b = yp - u_fogB, lo = min(a, b), hi = max(a, b), span = hi - lo; if (span < 1e-3) return dist * exp(-max(lo, 0.0) * k);\n"
+    "  float fb = lo < 0.0 ? (min(hi, 0.0) - lo) / span : 0.0, a0 = max(lo, 0.0), a1 = max(hi, 0.0), fa = a1 > a0 ? (exp(-k * a0) - exp(-k * a1)) / (k * span) : 0.0; return dist * (fb + fa); }\n")
+rep("float dy = d.y * u_fog.y, f = abs(dy) > 1e-3 ? (1.0 - exp(-dy)) / dy : 1.0, od = u_fog.x * exp(-max(u_camPos.y, 0.0) * u_fog.y) * dist * f", "float od = u_fog.x * fogPath(u_camPos.y, wpos.y, dist)", 2)
+rep("float dens = u_fog.x * exp(-max(p.y, 0.0) * u_fog.y), Tr = exp(-dens * dt)", "float dens = u_fog.x * exp(-max(p.y - u_fogB, 0.0) * u_fog.y), Tr = exp(-dens * dt)")
+rep("u_fog: [env.fogDensity, 1 / Math.max(env.fogHeight, 1), env.fogSun, s.fog ? 1 : 0],", "u_fog: [env.fogDensity, 1 / Math.max(env.fogHeight, 1), env.fogSun, s.fog ? 1 : 0], u_fogB: env.fogBase || 0,")
+rep("float ry = RE + max(u_camPos.y, 0.0), b = ry * dir.y,", "float ry = RE + max(u_camPos.y - u_cl.w, 0.0), b = ry * dir.y,")   # u_cl.w: the height the cloud layer is measured from
+rep("vec3 p = u_camPos + dir * (t0 + st * (float(i) + j));", "vec3 p = u_camPos - vec3(0.0, u_cl.w, 0.0) + dir * (t0 + st * (float(i) + j));")
+rep("this.fresh || r.reset ? 0 : (r.camMoved ? 0.88 : 0.94), 0] });", "this.fresh || r.reset ? 0 : (r.camMoved ? 0.88 : 0.94), env.cloudBase || 0] });")
 
 # ---- the kit itself, in the place of the Louisiana one ----
 cut("  /* ==== rooftop scout on the engine: the weather on a storm scale, from light rain to a Category 5 hurricane ==== */\n",
@@ -87,7 +106,10 @@ cut("    /* The storm scale: 0 is the weather chosen above; 1 to 9 run from ligh
       if (e == null || !isFinite(e)) e = S.elev; return e == null || !isFinite(e) ? null : e - g;
     }
     const WX0 = () => WEATHER[gfx.weather] || WEATHER.clear;
-    const wxOpts = () => { const ll = S.ok ? toLL(S.x, S.z) : [null, null], t = S.sunTime || new Date(), lo = ll[1] == null ? -120 : ll[1]; return { wind: S.wind, sky: S.sky, snowLevel: S.snowLevel, y0: S.y0msl, lat: ll[0], lon: ll[1], hour: (((t.getUTCHours() + t.getUTCMinutes() / 60 + lo / 15) % 24) + 24) % 24 }; };
+    /* the lowest ground within about 12 km, metres above sea level (the tule fog lies on it); null when no heights are known */
+    let wxLowAt = null, wxLowV = null; function regionLow() { if (!S.ok || typeof S.elevAt !== 'function') return null; if (wxLowAt && wxLowAt[2] === S.gen && Math.hypot(S.x - wxLowAt[0], S.z - wxLowAt[1]) < 2500 && performance.now() - wxLowAt[3] < 20000) return wxLowV;
+      const ll = toLL(S.x, S.z), dla = 3000 / S.ky, dlo = 3000 / S.kx; let lo = Infinity; try { for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++) { const e = S.elevAt(ll[0] + i * dla, ll[1] + j * dlo); if (e != null && isFinite(e) && e < lo) lo = e; } } catch (err) { lo = Infinity; } wxLowAt = [S.x, S.z, S.gen, performance.now()]; wxLowV = isFinite(lo) ? lo : null; return wxLowV; }
+    const wxOpts = () => { const ll = S.ok ? toLL(S.x, S.z) : [null, null], t = S.sunTime || new Date(), lo = ll[1] == null ? -120 : ll[1]; return { wind: S.wind, sky: S.sky, snowLevel: S.snowLevel, y0: S.y0msl, low: S.sky === 2 ? regionLow() : null, lat: ll[0], lon: ll[1], hour: (((t.getUTCHours() + t.getUTCMinutes() / 60 + lo / 15) % 24) + 24) % 24 }; };
     function setSun() {
       const la = S.lat0 || 38.58, lo = S.lon0 || -121.49, t = sunTime(gfx.sun, la, lo), p = solarPosition(t, la, lo); S.sunAlt = p.alt; S.sunTime = t;
       S.sunNote = p.alt < -1 ? 'The sun is down here at that hour: the scene is lit by the moon, the lamps and the windows.' : '';
@@ -96,7 +118,7 @@ cut("    /* The storm scale: 0 is the weather chosen above; 1 to 9 run from ligh
       lampsLit(); need(2);
     }
     /* the camera has moved a way, or better elevation has come in: the height of the ground and the name the wind goes by are asked again. The sky's light is not touched. */
-    function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
+    function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; const low = S.sky === 2 ? regionLow() : null; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName && (low == null) === (SK.low == null) && (low == null || Math.abs(low - SK.low) < 12)) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
     /* The Alta X flies in the dry and in light rain, and in an offshore wind only up to its limit. Otherwise it comes down where it is, and will not take off. */
     const canFly = () => !!SE.STORM[S.storm].fly && !!SE.WIND[S.wind].fly;
     const wxShort = () => [S.storm ? SE.STORM[S.storm].s : '', S.wind ? SE.WIND[S.wind].s : '', S.sky ? SE.SKY[S.sky].s : ''].filter(Boolean).join(', ') || 'Dry';
@@ -121,7 +143,7 @@ rep("UAP.update(dt, { floor: (x, z) => Math.max(floorTop(x, z), fl), block: bloc
 sub(r"floor: \(x, z\) => Math\.max\(floorTop\(x, z\), " + FL + r"\), block: blockAt,", "floor: floorTop, block: blockAt,")
 sub(r"\n[^\n]*the flood's surface as a world height[^\n]*\n[^\n]*const surgeY = [^\n]*", "", n=s.count('const surgeY = '))
 rep("      if (S.storm && S.surgeAt && Math.hypot(S.x - S.surgeAt[0], S.z - S.surgeAt[1]) > 700) surgeHere();\n",
-    "      if (S.storm || S.wind) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }\n")
+    "      if (S.storm || S.wind || S.sky) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }\n")
 rep("ensureAt = null; ensureSoon(); surgeHere(); warpEl.className", "ensureAt = null; ensureSoon(); wxHere(); warpEl.className")
 
 # ---- what the roof views, the heads-up display, state() and graphics() are told ----

@@ -27,6 +27,13 @@ sub("In the\n     Louisiana Roofing Atlas only what stands out of doors is drawn
 sub("is left out of the Louisiana engine:", "is left out of this engine:")
 sub("most often carries in the Gulf South (as a card would give it", "most often carries (as a card would give it")
 sub("the mix of cars on California's roads is not Louisiana's: fewer full-size pickups", "the mix of cars on California's roads: fewer full-size pickups than the engine's first edition drew", must=False)
+# ---- integration: what a street build costs, kept where a test or the bar can read it (en.world.roadCost) ----
+if "tf().regrade();" in s and "S.roadTV = terrRoadVer(); lamps(); planSoon(); need();\n    }" in s:
+    sub("      tf().regrade();   /* the decks' heights over the ground as it now is (the traffic kit) */\n", "      const rc0 = performance.now(); tf().regrade();   /* the decks' heights over the ground as it now is (the traffic kit) */\n")
+    sub("      ST.build(S.roads, root, { life: gfx.life,", "      const rc1 = performance.now(); ST.build(S.roads, root, { life: gfx.life,")
+    sub("S.roadTV = terrRoadVer(); lamps(); planSoon(); need();\n    }",
+        "S.roadTV = terrRoadVer(); const rc2 = performance.now(); lamps(); planSoon(); need();\n"
+        "      { const n = performance.now(), c = S.roadCost || (S.roadCost = { n: 0, worst: 0, sum: 0 }); c.n++; c.ms = n - rc0; c.ribbons = rc1 - rc0; c.street = rc2 - rc1; c.lamps = n - rc2; c.sum += c.ms; if (c.ms > c.worst) c.worst = c.ms; }\n    }")
 open(out, 'w', encoding='utf-8').write(s)
 left = {w: len(re.findall(w, s)) for w in ['Louisiana', 'Gulf', 'hurricane', 'Hurricane', 'surge', 'parish', 'Baton Rouge', 'New Orleans']}
 print('engine', len(s.encode('utf-8')), 'bytes; words left', {k: v for k, v in left.items() if v})

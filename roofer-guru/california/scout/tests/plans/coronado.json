@@ -1,0 +1,72 @@
+[
+{
+"name": "cover",
+"lens": "cover",
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat18_drone",
+"pat": 18
+},
+{
+"name": "pat18_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat14_close",
+"pat": 14
+},
+{
+"name": "pat13_close",
+"pat": 13
+},
+{
+"name": "style",
+"lens": "style",
+"pat": 0,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "thermal_july",
+"lens": "thermal",
+"day": "summer",
+"sun": 14
+},
+{
+"name": "wear",
+"lens": "wear"
+},
+{
+"name": "wx_ar4",
+"lens": "storm",
+"rain": "ar4"
+},
+{
+"name": "wx_marine",
+"rain": "dry",
+"sky": "marine"
+},
+{
+"name": "wx_breeze",
+"sky": "none",
+"wind": "breeze"
+},
+{
+"name": "fire",
+"lens": "fire",
+"wind": "calm"
+},
+{
+"name": "solar",
+"lens": "solar"
+},
+{
+"name": "time15",
+"lens": "time",
+"year": 15
+}
+]

@@ -51,3 +51,18 @@ apply (outputs in CA/scout_work/tmp). Do not write the literal name of the terra
 refuses a file that contains it.
 Tests: tests/*.js with outputs tests/*.out. Engine runs: engine_ca.out (LA engine), engine_ca_wx.out (weather engine
 with the views port): all eight views read 43 roofs, no page errors.
+
+## Integration pass (2026-11-24): resume here
+Own build: `bash CA/scout_integ/assemble.sh CA/scout_integ/ca.html` (W = scout_integ/w, D = scout_integ/d). Rebuild before each test session.
+Edits are made directly in scout.js (Edit tool, or scout_integ/ed.py <file> <edits.json>); after each: `python3 -I tools/check.py`.
+Tests: tests/lib.js (launch, find, engine, shot), one browser at a time, `NODE_PATH=/opt/node-tools/node_modules timeout 900 node tests/X.js scout_integ/ca.html`.
+Order of work: 1 bar, 2 roof views (pictures in scout_integ/shots), 3 card + data, 4 Louisiana suites ported, 5 word search + method text.
+
+### 1. bar (in progress)
+- DONE: M3 pad (padFor: Throttle/Brake/Steer + Handbrake button, Climb hidden), car buttons (Camera named, Traction control: on/off,
+  Reverse, Back onto the road) read from en.car.input (carSync), status sentence (road: mph, gear/reverse, rpm, traction control, off the
+  road, grip, against X), captions (#scEnWhat: traffic measured/chosen/generated, the M3), aircraft line rewritten (uses info().drawn;
+  military field says no flights drawn there).
+- tests/bar_m3.js: all but the handbrake checks passed on the 2nd run (the test had steered into a building); rerun after fix.
+- NEXT: tests/bar_wx.js (scales by arrow keys, sky, Alta X rule, air switch, sound), tests/bar_warp.js (not written yet).
+- Seen in pictures: wind slider track dark vs the rain slider's light (style), "Dry wind" label wraps.

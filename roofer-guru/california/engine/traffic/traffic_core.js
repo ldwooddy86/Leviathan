@@ -51,7 +51,7 @@
     const DEF = { motorway: [4, 29.06], motorway_link: [1, 20.1], trunk: [4, 24.6], trunk_link: [1, 15.6], primary: [4, 15.65], primary_link: [1, 13.4], secondary: [4, 15.65], secondary_link: [1, 13.4], tertiary: [2, 13.4], tertiary_link: [1, 11.2], residential: [2, 11.2], unclassified: [2, 11.2], living_street: [2, 6.7], road: [2, 11.2] };
     P.LW = LW; P.LEVEL = LEVEL;
     /* list: [{ name, kind, pts: [[x, z]...] (local metres), hw, lanes, oneway, maxspeed (m/s), layer, bridge, tunnel, ref, id, hov }] */
-    P.prep = list => {
+    P.prep = (list, o) => {
       const out = [];
       for (const r0 of list) { if (!r0.pts || r0.pts.length < 2) continue; const r = Object.assign({}, r0), fw = r.kind === 'freeway' || r.kind === 'ramp', d = DEF[r.hw] || (fw ? DEF[r.kind === 'ramp' ? 'motorway_link' : 'motorway'] : r.kind === 'major' ? DEF.primary : DEF.residential);
         r.ow = r.oneway === -1 ? -1 : (r.oneway === 1 || (fw && r.oneway !== 0) || r.kind === 'cable') ? 1 : 0; if (r.ow < 0) { r.pts = r.pts.slice().reverse(); r.ow = 1; }
@@ -59,23 +59,49 @@
         r.sp = r.maxspeed > 2 ? r.maxspeed : d[1]; r.lv = r.tunnel ? Math.min(-1, r.layer || -1) : r.bridge ? Math.max(1, r.layer || 1) : 0; r.span = r.lv > 0;
         if (fw) r.w = r.ln * LW + (r.kind === 'ramp' ? 3.6 : 4.8); else if (r.kind === 'cable') r.w = 0; else if (r.kind === 'major') r.w = clamp(r.ln * 3.25 + 1.2, 9.5, 27); else if (r.kind === 'street' && r.ln > 2) r.w = clamp(r.ln * 3.1 + 2.6, 8.2, 20);
         out.push(r); }
-      P.decks(out); return out; };
+      P.decks(out, o); return out; };
     /* how high each point of each road stands above the ground: a bridge at its level, and the roads that lead to it rising at a grade */
-    P.decks = roads => {
-      const N = new Map(); roads.forEach(r => { r.dk = r.pts.map(() => (r.span ? r.lv * LEVEL : 0)); if (r.kind === 'path' || r.kind === 'cable') return; r.pts.forEach((p, i) => { const k = key(p), v = N.get(k); if (v === undefined || r.dk[i] > v) N.set(k, r.dk[i]); }); });
-      for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (r.kind === 'path' || r.kind === 'cable') return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk;
-          for (let i = 0; i < n; i++) { const v = N.get(key(r.pts[i])); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
-          for (let i = 1; i < n; i++) { const v = h[i - 1] - g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
-          for (let i = n - 2; i >= 0; i--) { const v = h[i + 1] - g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
-          for (let i = 0; i < n; i++) { const k = key(r.pts[i]); if (h[i] > N.get(k) + 0.01) { N.set(k, h[i]); ch = true; } } }); }
+    /* o.sky(x, z, hx, hz) (optional): where a landmark bridge is built as a structure of its own (the aircraft, ships and bridges
+       kit: S.deckAt), the height of its deck above the ground at that point for a road running along it, else null. Such points
+       are given: nothing here raises or lowers them, the road is marked r.sky (r.sk[i] = 1 at each such point), and the roads
+       that lead on from the deck's end come away from its height at a grade (up to their own bridge's level, or down to the ground). */
+    P.decks = (roads, o) => {
+      const sky = o && o.sky, N = new Map(), FX = new Map(), drive = r => r.kind !== 'path' && r.kind !== 'cable';
+      const skyOn = r => { const P2 = r.pts, n = P2.length; let any = 0, run = 0, best = 0; const sk = new Uint8Array(n); for (let i = 0; i < n; i++) { const a = P2[Math.max(0, i - 1)], b = P2[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, v = sky(P2[i][0], P2[i][1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (v != null) { r.dk[i] = v; sk[i] = 1; any++; run++; if (run > best) best = run; } else run = 0; } r.sk = best >= 2 ? sk : null; r.sky = best >= 2; if (!r.sky && any) for (let i = 0; i < n; i++) if (sk[i]) r.dk[i] = r.span ? r.lv * LEVEL : 0; };
+      roads.forEach(r => { r.dk = r.pts.map(() => (r.span ? r.lv * LEVEL : 0)); r.sky = false; r.sk = null; if (sky && r.kind !== 'cable') skyOn(r); if (!drive(r)) return;
+        r.pts.forEach((p, i) => { const k = key(p); if (r.sk && r.sk[i]) { FX.set(k, r.dk[i]); N.set(k, r.dk[i]); return; } if (FX.has(k)) return; const v = N.get(k); if (v === undefined || r.dk[i] > v) N.set(k, r.dk[i]); }); });
+      for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (!drive(r)) return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk, sk = r.sk;
+          for (let i = 0; i < n; i++) { if (sk && sk[i]) continue; const k = key(r.pts[i]), f = FX.get(k); if (f !== undefined) { if (h[i] !== f) { h[i] = f; ch = true; } continue; } const v = N.get(k); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
+          for (let i = 1; i < n; i++) { if (sk && sk[i]) continue; if (FX.has(key(r.pts[i]))) continue; const v = h[i - 1] - g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
+          for (let i = n - 2; i >= 0; i--) { if (sk && sk[i]) continue; if (FX.has(key(r.pts[i]))) continue; const v = h[i + 1] - g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
+          for (let i = 0; i < n; i++) { const k = key(r.pts[i]); if (!FX.has(k) && h[i] > N.get(k) + 0.01) { N.set(k, h[i]); ch = true; } } }); }
+      /* away from a given deck's end a road may not stand higher than the grade allows: a viaduct that carries on from a landmark bridge meets it, and does not step up to its own level */
+      if (FX.size) { const C = new Map(FX); for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (!drive(r)) return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk, c = new Float64Array(n); let any = false;
+            for (let i = 0; i < n; i++) { const v = C.get(key(r.pts[i])); c[i] = v === undefined ? 1e9 : v; if (v !== undefined) any = true; } if (!any) return;
+            for (let i = 1; i < n; i++) c[i] = Math.min(c[i], c[i - 1] + g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = n - 2; i >= 0; i--) c[i] = Math.min(c[i], c[i + 1] + g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]));
+            for (let i = 0; i < n; i++) { if (c[i] > 40) continue; if (!(r.sk && r.sk[i]) && h[i] > c[i] + 0.01) h[i] = c[i]; if (i === 0 || i === n - 1) { const k = key(r.pts[i]), v = C.get(k); if (v === undefined || v > c[i] + 0.01) { C.set(k, c[i]); ch = true; } } } }); } }
       /* a tunnel dips under the ground from its two mouths */
-      roads.forEach(r => { if (r.lv >= 0 || r.kind === 'path' || r.kind === 'cable') return; const n = r.pts.length, a = [0]; for (let i = 1; i < n; i++) a.push(a[i - 1] + Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = 0; i < n; i++) r.dk[i] = -LEVEL * Math.min(1, Math.min(a[i], a[n - 1] - a[i]) / 40); });
-      roads.forEach(r => { r.up = r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up || r.lv < 0; });
+      roads.forEach(r => { if (r.lv >= 0 || r.kind === 'path' || r.kind === 'cable' || r.sky) return; const n = r.pts.length, a = [0]; for (let i = 1; i < n; i++) a.push(a[i - 1] + Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = 0; i < n; i++) r.dk[i] = -LEVEL * Math.min(1, Math.min(a[i], a[n - 1] - a[i]) / 40); });
+      roads.forEach(r => { r.up = r.sky || r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up || r.lv < 0; });
       /* long gaps between points are filled, so a rise is a slope and not a step, and a deck can follow the ground */
-      roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]]; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(24, Math.floor(l / 16)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); } p2.push(b); d2.push(r.dk[i]); } r.pts = p2; r.dk = d2; }); };
+      roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]]; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(24, Math.floor(l / 16)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); } p2.push(b); d2.push(r.dk[i]); } r.pts = p2; r.dk = d2;
+        /* on a given deck every point is read again: its profile is a curve, not a line between the map's points */
+        if (r.sky) { const n = p2.length, sk = new Uint8Array(n); for (let i = 0; i < n; i++) { const a = p2[Math.max(0, i - 1)], b = p2[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, v = sky(p2[i][0], p2[i][1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (v != null) { d2[i] = v; sk[i] = 1; } } r.sk = sk; } }); };
+    /* A bridge is straight from one abutment to the other: where the ground falls away under it (a river, a canyon, a cutting) its
+       deck does not follow the ground down. gy(x, z): the ground's height. Bridge ways that meet end to end are taken together; where
+       they meet other roads (or stop) the deck stands at its level over the ground there; between, heights run evenly, and no point
+       of the deck comes lower over the ground than its level. Points on a given deck (r.sk) are left as they are. */
+    P.level = (roads, gy) => { const sp = roads.filter(r => r.span && r.kind !== 'path' && r.kind !== 'cable' && r.pts.length > 1); if (!sp.length) return 0; const other = new Set(); roads.forEach(r => { if (r.span || r.kind === 'path' || r.kind === 'cable') return; other.add(key(r.pts[0])); other.add(key(r.pts[r.pts.length - 1])); });
+      const ND = new Map(), nd = (p, h) => { const k = key(p); let n = ND.get(k); if (!n) ND.set(k, n = { y: gy(p[0], p[1]) + h, e: [], fix: other.has(k), deg: 0 }); n.deg++; return n; };
+      /* a road partly on a given deck is taken in its other parts only, each from the deck's own height where it leaves it */
+      const E = []; sp.forEach(r => { const n = r.pts.length, sk = r.sk, runs = []; if (!sk) runs.push([0, n - 1]); else { let i = 0; while (i < n) { if (sk[i]) { i++; continue; } let j = i; while (j + 1 < n && !sk[j + 1]) j++; runs.push([Math.max(0, i - 1), Math.min(n - 1, j + 1)]); i = j + 1; } }
+        runs.forEach(([i0, i1]) => { if (i1 <= i0) return; const at = i => (sk && sk[i] ? { y: gy(r.pts[i][0], r.pts[i][1]) + r.dk[i], e: [], fix: true, deg: 2 } : nd(r.pts[i], r.dk[i])), acc = [0]; let len = 0; for (let i = i0 + 1; i <= i1; i++) { len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); acc.push(len); } const a = at(i0), b = at(i1), w = 1 / Math.max(len, 1); a.e.push([b, w]); b.e.push([a, w]); E.push({ r, a, b, acc, len, i0, i1 }); }); });
+      const free = []; ND.forEach(n => { if (n.deg < 2) n.fix = true; if (!n.fix) free.push(n); });
+      for (let it = 0; it < 80 && free.length; it++) { let mv = 0; for (const n of free) { let sw = 0, sy = 0; for (const [m, w] of n.e) { sw += w; sy += w * m.y; } const y = sy / sw; mv = Math.max(mv, Math.abs(y - n.y)); n.y = y; } if (mv < 0.02) break; }
+      let ch = 0; E.forEach(({ r, a, b, acc, len, i0, i1 }) => { for (let i = i0; i <= i1; i++) { if (r.sk && r.sk[i]) continue; const v = a.y + (b.y - a.y) * (len ? acc[i - i0] / len : 0) - gy(r.pts[i][0], r.pts[i][1]); if (v > r.dk[i] + 0.05) { r.dk[i] = v; ch++; } } if (ch) r.up = r.up || r.dk.some(v => v > 0.3); }); return ch; };
     /* a long bridge that the map names as a bridge (the Coronado, the Bay Bridge, the Golden Gate) climbs to let ships under:
        up to 55 m at the middle of its length (the Coronado's deck is 61 m over the channel). Viaducts over land stay at their level. */
-    P.high = roads => { const sp = roads.filter(r => r.span && /bridge/i.test(r.name || '') && (r.kind === 'freeway' || r.kind === 'major')), par = sp.map((r, i) => i), find = i => { while (par[i] !== i) i = par[i] = par[par[i]]; return i; }, ends = new Map();
+    P.high = roads => { const sp = roads.filter(r => r.span && !r.sky && /bridge/i.test(r.name || '') && (r.kind === 'freeway' || r.kind === 'major')), par = sp.map((r, i) => i), find = i => { while (par[i] !== i) i = par[i] = par[par[i]]; return i; }, ends = new Map();
       sp.forEach((r, i) => [r.pts[0], r.pts[r.pts.length - 1]].forEach(p => { const k = key(p), j = ends.get(k); if (j === undefined) ends.set(k, i); else par[find(i)] = find(j); }));
       const G = new Map(); sp.forEach((r, i) => { const g = find(i); let o = G.get(g); if (!o) G.set(g, o = { len: 0, rs: [], pts: [] }); for (let q = 1; q < r.pts.length; q++) o.len += Math.hypot(r.pts[q][0] - r.pts[q - 1][0], r.pts[q][1] - r.pts[q - 1][1]); o.rs.push(r); o.pts.push(r.pts[0], r.pts[r.pts.length - 1]); });
       G.forEach(o => { if (o.len < 900) return; let A = o.pts[0], B = o.pts[1], bd = 0; for (const p of o.pts) for (const q of o.pts) { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d > bd) { bd = d; A = p; B = q; } } const hm = clamp((o.len - 600) / 45, 0, 55), ux = (B[0] - A[0]) / bd, uz = (B[1] - A[1]) / bd;
@@ -111,8 +137,8 @@
     F.setRoads = roads => {
       const use = new Map(), ways = roads.filter(r => (r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable') && r.pts.length > 1);
       ways.forEach(r => r.pts.forEach((p, i) => { const k = key(p); use.set(k, (use.get(k) || 0) + (i === 0 || i === r.pts.length - 1 ? 1 : 2)); }));
-      const segs = [], mk = (r, a, b, rev) => { let pts = r.pts.slice(a, b + 1), dk = r.dk.slice(a, b + 1); if (rev) { pts.reverse(); dk.reverse(); } const n = pts.length, acc = [0]; for (let i = 1; i < n; i++) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); if (acc[n - 1] < 0.6) return;
-        const ln = r.ow ? r.ln : Math.max(1, Math.floor(r.ln / 2)), s = { id: segs.length, r, kind: r.kind, pts, dk, acc, len: acc[n - 1], n: ln, lim: r.kind === 'cable' ? 4.25 : r.sp, hov: !!r.hov && ln > 2, hide: r.lv < 0, from: key(pts[0]), to: key(pts[n - 1]), ins: [], outs: [], conn: [], L: [], nx: [], nz: [], vc: new Float32Array(n), act: true, e0: 0, e1: 0, b0: 1, b1: 1, k: 8, vt: r.sp, truck: 0.04, feed: null, shiftX: r.ow ? 0 : (r.ln / 4) * LW };
+      const segs = [], mk = (r, a, b, rev) => { let pts = r.pts.slice(a, b + 1), dk = r.dk.slice(a, b + 1), sk = r.sk ? Array.from(r.sk.slice(a, b + 1)) : null; if (rev) { pts.reverse(); dk.reverse(); if (sk) sk.reverse(); } const n = pts.length, acc = [0]; for (let i = 1; i < n; i++) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); if (acc[n - 1] < 0.6) return;
+        const ln = r.ow ? r.ln : Math.max(1, Math.floor(r.ln / 2)), s = { id: segs.length, r, kind: r.kind, pts, dk, sk, acc, len: acc[n - 1], n: ln, lim: r.kind === 'cable' ? 4.25 : r.sp, hov: !!r.hov && ln > 2, hide: r.lv < 0, from: key(pts[0]), to: key(pts[n - 1]), ins: [], outs: [], conn: [], L: [], nx: [], nz: [], vc: new Float32Array(n), act: true, e0: 0, e1: 0, b0: 1, b1: 1, k: 8, vt: r.sp, truck: 0.04, feed: null, shiftX: r.ow ? 0 : (r.ln / 4) * LW };
         for (let i = 0; i < ln; i++) s.L.push([]);
         for (let i = 0; i < n; i++) { const p = pts[Math.max(0, i - 1)], q = pts[Math.min(n - 1, i + 1)], a0 = pts[i]; let ax = a0[0] - p[0], az = a0[1] - p[1], bx = q[0] - a0[0], bz = q[1] - a0[1]; const al = Math.hypot(ax, az), bl = Math.hypot(bx, bz); if (al > 1e-6) { ax /= al; az /= al; } if (bl > 1e-6) { bx /= bl; bz /= bl; } if (al <= 1e-6) { ax = bx; az = bz; } if (bl <= 1e-6) { bx = ax; bz = az; }
           let mx = -(az + bz), mz = ax + bx; const ml = Math.hypot(mx, mz) || 1; mx /= ml; mz /= ml; const cs = Math.max(0.6, mx * -az + mz * ax); s.nx.push(mx / cs); s.nz.push(mz / cs);
@@ -156,7 +182,7 @@
     function pose(c) { const s = c.seg, A = s.acc; let i = c.i || 0; if (i > A.length - 2) i = A.length - 2; while (i > 0 && A[i] > c.s) i--; while (i < A.length - 2 && A[i + 1] < c.s) i++; c.i = i;
       const t = clamp((c.s - A[i]) / (A[i + 1] - A[i] || 1), 0, 1), off = (c.lane - (s.n - 1) / 2) * LW + F.shiftAt(s, c.s) + c.lat, a = s.pts[i], b = s.pts[i + 1], ax = a[0] + s.nx[i] * off, az = a[1] + s.nz[i] * off, bx = b[0] + s.nx[i + 1] * off, bz = b[1] + s.nz[i + 1] * off;
       let hx = bx - ax, hz = bz - az; const hl = Math.hypot(hx, hz) || 1; hx /= hl; hz /= hl; if (c.lat) { const sk = clamp(-c.latV / Math.max(c.v, 3), -0.25, 0.25); const rx = -hz, rz = hx; hx += rx * sk; hz += rz * sk; const l2 = Math.hypot(hx, hz); hx /= l2; hz /= l2; }
-      c.x = ax + (bx - ax) * t; c.z = az + (bz - az) * t; c.hx = hx; c.hz = hz; c.yaw = Math.atan2(hx, hz); c.dk = s.dk[i] + (s.dk[i + 1] - s.dk[i]) * t; c.vcap = s.vc[i] + (s.vc[i + 1] - s.vc[i]) * t; }
+      c.x = ax + (bx - ax) * t; c.z = az + (bz - az) * t; c.hx = hx; c.hz = hz; c.yaw = Math.atan2(hx, hz); c.dk = s.dk[i] + (s.dk[i + 1] - s.dk[i]) * t; c.gi = i; c.vcap = s.vc[i] + (s.vc[i + 1] - s.vc[i]) * t; }
     F.shiftAt = (s, d) => s.shiftX + (s.e0 ? s.e0 * (1 - smoothstep(0, s.b0, d)) : 0) + (s.e1 ? s.e1 * smoothstep(s.len - s.b1, s.len, d) : 0);
     F.pose = pose;
     const TYPE = { car: [4.8, 1.86, A_CAR, TH], truck: [20.4, 2.6, A_TRUCK, 1.8], box: [8.2, 2.5, 0.8, 1.6], bus: [12.2, 2.6, 0.8, 1.6], cable: [8.4, 2.44, 0.6, 2.0] };

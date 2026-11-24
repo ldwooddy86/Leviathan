@@ -31,7 +31,7 @@ rep("placeCamera(); pump();\n",
     "      if (SKY.update(dt, cam.entity.transform.position, { night: smoothstep(2, -6, S.sunAlt), moving: engine.playing && engine.awake && engine.live, on: gfx.air !== false })) need();\n")
 rep("built: S.built, roads: S.roads.length,", "air: SKY.state(), built: S.built, roads: S.roads.length,")
 rep("live: engine.live, gpu: dev.caps.gpu,", "air: gfx.air !== false, live: engine.live, gpu: dev.caps.gpu,")
-rep("        saveGfx(); need(3); return graphics();", "        if (o.air != null && !!o.air !== (gfx.air !== false)) { gfx.air = !!o.air; SKY.set(gfx.air); }\n        saveGfx(); need(3); return graphics();")
+rep("        saveGfx(); need(3); return graphics();", "        if (o.air != null && !!o.air !== (gfx.air !== false)) { gfx.air = !!o.air; SKY.set(gfx.air); if (S.roads.length) buildRoads();   /* roads on the landmark bridges take or lose their decks */ }\n        saveGfx(); need(3); return graphics();")
 rep("      dropCrate, engine, canvas: cv,", "      /* the sky and the harbour: sky.info() says the nearest airport, the runways in use and what is in the air */\n      sky: SKY,\n      dropCrate, engine, canvas: cv,")
 open(dst, 'w', encoding='utf-8').write(s)
 print('sky ok', len(s))

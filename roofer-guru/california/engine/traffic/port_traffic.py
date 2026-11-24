@@ -101,6 +101,7 @@ rep("const WALK = new Set(['street', 'major', 'alley', 'service']); let roadPart
     "const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];\n    /* California traffic (SE.TrafficKit): made the first time the streets are set */\n    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); } }));")
 rep("function setRoads(list) { S.roads = list.map(r => ({ name: r.name || '', kind: r.kind, pts: r.pts.map(([la, lo]) => toL(la, lo)) })).filter(r => r.pts.length >= 2); buildRoads(); }",
     "function setRoads(list) { S.roads = tf().take(list); buildRoads(); }   /* the surface streets, with lanes, direction, limit, level and width on each; freeways, ramps and cable car tracks stay with the kit */")
+rep("function buildRoads() {\n", "function buildRoads() {\n      tf().regrade();   /* the decks' heights over the ground as it now is (the traffic kit) */\n")   # [buildRoads]
 rep("S.roads.forEach(r => { const spec = K.ROADW[r.kind] || K.ROADW.street;", "S.roads.forEach(r => { if (r.up) return; const spec = K.ROADW[r.kind] || K.ROADW.street;")   # [buildRoads] a street on a bridge is the kit's
 rex(r"K\.ribbon\(Bd, r\.pts, spec\[0\], ", "K.ribbon(Bd, r.pts, r.w || spec[0], ", 'road width per road')   # [buildRoads] SHARED
 rep("cars: { ultra: 110, high: 80, medium: 45, low: 22 }[engine.quality] || 60 });", "cars: tf().streetCars() });")

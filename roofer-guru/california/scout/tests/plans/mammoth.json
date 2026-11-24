@@ -1,0 +1,69 @@
+[
+{
+"name": "off",
+"lens": "off",
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "cover",
+"lens": "cover"
+},
+{
+"name": "wx_ar3",
+"lens": "storm",
+"rain": "ar3"
+},
+{
+"name": "wx_ar5",
+"rain": "ar5"
+},
+{
+"name": "wx_rain",
+"rain": "rain"
+},
+{
+"name": "wx_tstorm",
+"rain": "tstorm"
+},
+{
+"name": "off_ar3_snow",
+"lens": "off",
+"rain": "ar3"
+},
+{
+"name": "wx_sa3",
+"lens": "storm",
+"rain": "dry",
+"wind": "sa3"
+},
+{
+"name": "thermal_jan",
+"lens": "thermal",
+"wind": "calm",
+"day": "winter",
+"sun": 13
+},
+{
+"name": "wear",
+"lens": "wear"
+},
+{
+"name": "fire",
+"lens": "fire"
+},
+{
+"name": "solar",
+"lens": "solar"
+},
+{
+"name": "time15",
+"lens": "time",
+"year": 15
+},
+{
+"name": "style",
+"lens": "style"
+}
+]

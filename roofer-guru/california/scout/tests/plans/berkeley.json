@@ -1,0 +1,67 @@
+[
+{
+"name": "cover",
+"lens": "cover",
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat17_drone",
+"pat": 17
+},
+{
+"name": "pat17_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat8_close",
+"pat": 8
+},
+{
+"name": "pat7_close",
+"pat": 7
+},
+{
+"name": "style",
+"lens": "style",
+"pat": 0,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "thermal_jan",
+"lens": "thermal",
+"day": "winter",
+"sun": 13
+},
+{
+"name": "wear",
+"lens": "wear"
+},
+{
+"name": "wx_ar4",
+"lens": "storm",
+"rain": "ar4"
+},
+{
+"name": "wx_smoke",
+"rain": "dry",
+"sky": "smoke"
+},
+{
+"name": "fire",
+"lens": "fire",
+"sky": "none"
+},
+{
+"name": "solar",
+"lens": "solar"
+},
+{
+"name": "time8",
+"lens": "time",
+"year": 8
+}
+]

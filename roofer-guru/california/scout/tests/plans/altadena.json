@@ -1,0 +1,59 @@
+[
+{
+"name": "off",
+"lens": "off",
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "cover",
+"lens": "cover"
+},
+{
+"name": "fire",
+"lens": "fire"
+},
+{
+"name": "fire_close",
+"dist": 16,
+"pitch": -45
+},
+{
+"name": "wx_sa4_smoke",
+"lens": "storm",
+"wind": "sa4",
+"sky": "smoke",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "wx_sa1",
+"wind": "sa1",
+"sky": "none"
+},
+{
+"name": "wear",
+"lens": "wear",
+"wind": "calm"
+},
+{
+"name": "thermal",
+"lens": "thermal",
+"day": "summer",
+"sun": 15
+},
+{
+"name": "solar",
+"lens": "solar"
+},
+{
+"name": "time15",
+"lens": "time",
+"year": 15
+},
+{
+"name": "style",
+"lens": "style"
+}
+]

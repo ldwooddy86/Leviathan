@@ -1,12 +1,25 @@
-# Dense downtowns (the downtown Los Angeles crash): notes for resuming
+# Dense downtowns (the downtown Los Angeles "crash"): notes
 
-Job: find why the Scout Engine closes the headless browser at "200 N Spring St, Los Angeles, CA", fix it as
-port_dense.py <in.js> <out.js> (anchored, applies to la_engine.js alone and at the end of the full stack), prove it.
+STATE (04:20): finished. Port written, applied, proved. Nothing is running. The report has been handed back.
 
-Rules I keep: one browser at a time, every run under `timeout`, the browser capped
-(--js-flags=--max-old-space-size=2048), never a browser left in the background, `free -m` watched.
-The container restarted once already just after I began (maybe memory pressure from the crashing browser).
+## In short
+- Cause: not a crash, not memory, not geometry. The engine hands frames to the GPU process faster than the software
+  renderer draws them and nothing holds it back (headless Chromium does not hold requestAnimationFrame back): the
+  queue of undrawn frames grows without bound (317 s of drawing queued after 26 s), and the page freezes whenever
+  something waits for the picture: the engine's own black-picture watch (readPixels, 47.8 s in one call), the tree
+  reader's getImageData, a screenshot. The test's `timeout 500` then ends node, Playwright closes the browser, and the
+  pending call reports "Target page, context or browser has been closed". Downtown LA "fails" where Coronado
+  "passes" only because testbed_open.js leaves its wait loop early when `built > 20` and this address has exactly 20
+  buildings in reach, so all 30 rounds run behind a frozen page.
+- Fix (port_dense.py, 12 anchors, each once): Engine._frame holds the draw while frames are in flight (fence gate,
+  the update still runs); the watch reads through a pixel buffer and a fence; the photo canvases are made with
+  willReadFrequently; a lost context is said in the view and the engine stops drawing.
+- Files: port_dense.py, dense_engine.js, dense_world.js, build_pages.sh, tests/ (diag.js and probes), out/ (logs,
+  pictures, pages; out/runs.txt lists every run of the lead's testbed_open.js).
+- For the lead: add `dense` after `views` in build/assemble_ca.sh's two job lists (the path rule $E/$j/port_$j.py
+  already fits). It must come before build/finish_engine.py.
 
+## Log (times are my clock, not the machine's)
 ## Found
 (nothing yet)
 
@@ -93,3 +106,61 @@ The container restarted once already just after I began (maybe memory pressure f
 ## Next
 - build out/testbed_dense.html (build/testbed.py) and out/ca_dense.html (finish_engine.py + build_ca.py into my own
   folder, never CA/engine/out), then run tests/diag.js on them: LA drone/street/bird, pace probe, SF, SD, Coronado.
+- 02:32 FIRST PROOF (out/e1.log, out/testbed_dense.html = la_engine.js + port, downtown LA, machine load 2 to 4):
+  the engine opened in 30 s (was 65 to 95 s), every one of 120 once-a-second calls to the page answered (before: most
+  "busy"), camera turning 30 s: 36 frames drawn, longest main thread freeze 109 ms (was 47,878), queue at the end
+  0.79 s (was 316.9 s), the watch 3 ms (was 47,792). pacing(): 1 frame in flight, frame 832 ms, 3,613 turns held.
+  The picture step failed for a reason of my script (it picked a hidden canvas); fixed in tests/diag.js.
+- 02:36 THE REPRODUCE COMMAND PASSES on out/testbed_dense.html, drone: exit 0, 2 min 16 s, "PAGE ERRORS: none",
+  picture out/la_base_drone.png (the Civic Center from 38 m). Next: street, bird on base; then the stacked page.
+- 02:42 base page, street: exit 0 in 136 s (out/la_base_street.png); bird: exit 0 in 144 s (out/la_base_bird.png).
+  Machine load 8.5 during both. Results are appended to out/runs.txt by tests/run_open.sh.
+- Next: the stacked California page out/ca_dense.html (stack_views.js of 01:52 + port), drone, street, bird.
+- 02:46 STACKED page out/ca_dense.html, drone: exit 0 in 173 s, clean, out/la_stack_drone.png. Next: stacked street, bird.
+- 02:53 STACKED street: exit 0 in 175 s (out/la_stack_street.png); bird: exit 0 in 165 s (out/la_stack_bird.png). All six LA runs pass. Next: cell numbers probe, SF, SD, Coronado, context loss test, control run of out/ca_in.html (no port).
+- 03:00 cell numbers at downtown LA (out/f_la.log, tests/probe_cells.js, ported base page): 12 cells, 20 buildings,
+  6,202 triangles and 844 KB in all the cells' own meshes; heaviest cell 44972/104671: 1,406 triangles, 193 KB,
+  10 meshes; rebuilding all 20 buildings 28 ms of K.addBuilding in total, slowest building 14.2 ms, longest update
+  17.4 ms; JS heap 75 MB. The port does not touch cell building, so these are the same before and after.
+  (The 1.3 M triangles a frame are instances and shadow passes: trees, cars, lamps, drawn again in each cascade.)
+- 03:08 downtown SF (555 California St) and SD (600 W Broadway) open on the ported base page (out/f_sf.log, f_sd.log,
+  pictures out/f_sf.png, out/f_sd.png). SF: 121 buildings, 14 cells, 18,333 triangles, 2.56 MB in the cells; heaviest
+  cell 3,317 triangles, 465 KB; all buildings 66 ms; slowest 17.9 ms; heap 126 to 149 MB. SD: 41 buildings, 14 cells,
+  13,625 triangles, 1.78 MB; heaviest cell 2,536 triangles, 325 KB; all buildings 38 ms; heap 82 to 130 MB.
+- Left to explain: at SD three updates of about 1.5 s each during the rebuild, though K.addBuilding took 38 ms in all,
+  and 6 or 7 of about 65 once-a-second calls answered late. Suspect: getImageData of the tree reader waiting for the
+  one frame in flight. Next: profile it (profon, probe_cells, profoff at SD).
+- 03:16 the slow updates explained (out/g_sd.log profile): getImageData in K.detectTrees (growTrees, pump): 7,819 ms of
+  8,623 ms of _frame time. The photo canvases live on the card, so each read waits for the GPU process (one frame
+  with the gate, the whole queue before). Added to the port: WorldKit's cvs() makes its canvases with
+  willReadFrequently (one anchor, present once in base, stack, terrain, car outputs).
+- 03:22 with the canvas change (out/g_sd2.log, SD): getImageData gone from the profile (was 7,819 ms), no Canvas2D
+  warnings, longest update 18.1 ms (was 1,588), 2 of 70 calls late (was 6 of 67). Picture out/g_sd2.png fine.
+  Pages rebuilt with the final port (build_pages.sh). The six LA runs above were made BEFORE the canvas change:
+  rerun at least drone on base and stack with the final port, then Coronado, context loss, control.
+- 03:28 FINAL PORT: LA drone base exit 0 in 127 s (load 12.7), LA drone stack exit 0 in 143 s (load 10.7); out/la_base_drone_final.png, out/la_stack_drone_final.png. Next: Coronado, context loss, control.
+- 03:33 Coronado on the ported base page: testbed_open drone exit 0 in 64 s, built 219, clean (out/cor_base_drone.png);
+  13 cells, 219 buildings, as before the port (out/d7.log). Cells there: 50,626 triangles, 6.6 MB, heaviest cell
+  5,886 triangles, 705 KB, slowest building 72 ms, all buildings 261 ms, heap 170 to 196 MB (out/f_cor.log): an
+  ordinary neighbourhood is heavier than any of the three downtowns.
+- 03:40 context loss test (tests/probe_lost.js, out/lost_testbed_dense.log, out/lost_ca_dense.log): after loseContext
+  the note and the alert say so; after restoreContext the note says to reload; engine.broken set (now kept through a
+  quality change: one more anchor, `this.quality = q; this.broken = null;`); the page's timers run (20 ticks a second);
+  no page error. On the stacked page 8 console errors "shader ... did not build" at the moment of loss (programs asked
+  for while there was no context): words only. No automatic rebuild: said in the report.
+- 03:50 CONTROL: out/ca_in.html (the same stack, no port), same command, drone: exit 124 after 500 s, no picture,
+  "page.evaluate: Target page, context or browser has been closed" (out/la_stack_noport_drone.log). With the port the
+  same stack passes in 143 to 173 s.
+- Next: final-port runs of street and bird on base and stack (4 runs), drone on stack once more; then report.
+- 03:58 FINAL PORT on the stack: drone 151 s, street 146 s, bird 144 s, all exit 0 and clean (load 12 to 13). Next: base street and bird (final), SF and SD on the stack, then report.
+- 04:05 FINAL PORT on base: street 127 s, bird 125 s, exit 0, clean. SF on the stack, drone: exit 0 in 76 s, 121 buildings (out/sf_stack_drone.png). Next: SD and Coronado on the stack; port check against the newest stack; report.
+- 04:10 settle cap exempted while the watch is in doubt; pages rebuilt; port applies to every stage (stack_terrain,
+  weather, traffic, car, sky, views, terrain/out/engine_terrain.js, car/out/engine_car.js, la_engine.js).
+- 04:18 last runs with the final port: LA drone stack 140 s, base 127 s, exit 0, clean. Pacing on the stack
+  (out/e2.log): 14 frames drawn in 30 s (2.2 s a frame at load 11, 1.9 M triangles), longest freeze 387 ms, queue at
+  the end 1.18 s, watch 4 ms; JS heap 363 MB, renderer 726 MB, GPU process 623 MB.
+
+## Not done
+- No rebuild of the engine after the browser gives a lost context back (the view says to reload).
+- No cut of the software renderer's cost per frame (0.6 to 2.2 s here): it is the renderer's limit.
+- Not tried on a real graphics card (none here): the gate's behaviour there is reasoned, not measured.

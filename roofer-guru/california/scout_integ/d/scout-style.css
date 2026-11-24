@@ -186,7 +186,8 @@ html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
 .sc .sc-wxrow .sc-stormw .sc-stormt{grid-template-columns:repeat(9,1fr)}
 .sc .sc-wxrow .sc-stormw.sc-windw{flex:0 1 300px;min-width:200px}
 .sc .sc-wxrow .sc-stormw.sc-windw .sc-stormt{grid-template-columns:repeat(6,1fr)}
-.sc .sc-wxrow .sc-stormw.sc-windw input[type=range]{accent-color:#c9801f}
+.sc .sc-wxrow .sc-stormw.sc-windw input[type=range]{accent-color:#9a5200}
+.sc .sc-wxrow .sc-wxs>.mini{white-space:nowrap}
 .sc .sc-wxrow .sc-stormw.sc-windw .sc-stormt i.on{color:#9a5200}
 .sc .sc-wxrow output{flex:1 1 100%;min-width:0;font:12px/1.4 var(--sans);color:var(--ink-2)}
 .sc .sc-roofview .sc-ldot.l-fire{background:linear-gradient(135deg,#1f7a4d,#e6c53a,#b3261e)}
@@ -195,6 +196,11 @@ html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
 .sc .sc-wxrow .sc-airline{flex:1 1 100%;min-width:0;line-height:1.4}
 .sc .sc-ev.sc-wx li{margin-bottom:7px}
 .sc .sc-ev.sc-wx li>b:first-child{font-weight:700}
+.sc .sc-3dpad.sc-padcar button[data-k="down"]{grid-column:1/4;width:auto;font:700 11.5px/1 var(--sans);letter-spacing:.02em}
+.sc .sc-enw .sc-en .sc-3dpad{bottom:44px}
+.sc .sc-enw .sc-en .sc-3dnote{left:152px;bottom:46px}
+.sc .sc-svbar .sc-gen{color:var(--ink-3)}
+.sc .sc-svwhere.sc-what b{font-weight:650}
 /* ==== scout topo ==== */
 /* The terrain control, the place names on the map and the terrain section of the building card. */
 .sc .sc-topo-mul{mix-blend-mode:multiply}

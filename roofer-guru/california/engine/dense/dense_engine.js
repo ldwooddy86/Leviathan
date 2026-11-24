@@ -29,7 +29,7 @@
       const G = this._gate; if (!G || G.off || this.device.lost) return; const gl = this.device.gl, t = performance.now();
       try { const s = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); if (s) { G.q.push({ s, t, seen: false }); gl.flush(); } } catch (e) {}
       G.dt = G.wait && G.last ? Math.min(4, Math.max(0.0001, (t - G.last) / 1000)) : 0; G.wait = false; G.last = t; G.drawn++;
-      if (G.ms > 250 && this._settle > 16) this._settle = 16;
+      if (G.ms > 250 && this._settle > 16 && !(this._watchS && (this._watchS.black || this._watchS.pend))) this._settle = 16;   /* not while the watch is in doubt: its second look is 24 frames on */
     }
     /* for tests and the status line: how the drawing is paced */
     pacing() { const G = this._gate; return G ? { inFlight: G.q.length, frameMs: Math.round(G.ms), allowed: G.ms > 100 ? 1 : 2, held: G.held, drawn: G.drawn, longestHoldMs: Math.round(G.longest), let: G.valve, off: G.off } : null; }

@@ -936,7 +936,7 @@ Surface readSurface() {
      and flat roofs under water that has nowhere to go. It is decided face by face from the slope alone, so on real
      terrain a hillside sheds it and a flat valley floor holds it. A picture of street flooding, not a flood map. And the
      water starts to run on gentler slopes: a street with any fall to it carries a stream. */
-  { vec3 gN = normalize(v_normal); float up = smoothstep(0.35, 0.9, N.y) * u_wetness * u_wetMask, fw = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz))), pond = u_snowK.w * smoothstep(0.985, 0.9995, gN.y);
+  { vec3 gN = normalize(v_normal); float up = smoothstep(0.35, 0.9, N.y) * u_wetness * max(u_wetMask, 0.0), fw = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz))), pond = u_snowK.w * smoothstep(0.985, 0.9995, gN.y);
     if (up > 0.001) { float pt = 0.52 - 0.36 * pond, pud = up * smoothstep(pt, pt + 0.16, fbm(v_wpos.xz * 0.19)); base.rgb *= mix(1.0, 0.58, up); base.rgb = mix(base.rgb, vec3(0.2, 0.18, 0.14), pud * pond * 0.5); s.roughness = mix(mix(s.roughness, 0.16, up * 0.85), 0.035, pud); N = normalize(mix(N, vec3(0.0, 1.0, 0.0), pud * 0.9));
       if (u_rainK.x > 0.001) { vec2 p = v_wpos.xz; float nearK = 1.0 - smoothstep(0.02, 0.085, fw), k = u_rainK.x;
         if (nearK > 0.001) { vec3 rr = rainRings(p, u_time, k); float on = mix(0.3, 1.0, pud) * up * nearK; N = normalize(N + vec3(rr.x, 0.0, rr.y) * (0.55 * on)); base.rgb += vec3(0.5, 0.55, 0.6) * (rr.z * on * 0.22);
@@ -946,12 +946,14 @@ Surface readSurface() {
         s.roughness = mix(s.roughness, max(s.roughness, 0.12), k * (1.0 - nearK) * up * 0.6); } }
     /* snow: above the snow level, whatever faces the sky goes white, first in patches and then all over; steep faces and
        walls stay bare. The level is a world height (u_snowK.y), broken up a little so it is not a ruled line across a
-       mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, and on the crowns of trees. */
-    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(u_wetMask, leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = N.y;
+       mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, on the crowns of trees, and on
+       the far ground (a surface whose wet mask is negative takes snow and no wetness). Far off, where a pixel covers metres
+       of ground, the fine break-up is let go and a coarser one stands in, so the line does not shimmer. */
+    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(abs(u_wetMask), leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = u_wetMask < 0.0 ? gN.y : N.y;
     /* a tree's crown: which way a face looks is taken from the face itself as the camera sees it, not from the crown's own normals, which are made for light through leaves */
     if (leafy && u_snowK.x > 0.001) { sN = normalize(cross(dFdx(v_wpos), dFdy(v_wpos))); if (dot(sN, u_camPos - v_wpos) < 0.0) sN = -sN; skyward = sN.y; }
-    if (u_snowK.x > 0.001 && snowOn > 0.0) { float ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0);
-      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * fbm(v_wpos.xz * 0.6)), 0.0, 1.0);
+    if (u_snowK.x > 0.001 && snowOn > 0.0) { float nearF = 1.0 - smoothstep(1.5, 9.0, fw), ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0 * nearF + (vnoise(v_wpos.xz * 0.0021) - 0.5) * 70.0);
+      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * mix(0.5, fbm(v_wpos.xz * 0.6), 1.0 - smoothstep(0.3, 2.0, fw))), 0.0, 1.0);
         base.rgb = mix(base.rgb, vec3(0.9, 0.92, 0.96) * (0.95 + 0.05 * vnoise(v_wpos.xz * 2.7)), cov); s.roughness = mix(s.roughness, 0.85, cov); s.metallic *= 1.0 - cov; N = normalize(mix(N, normalize(sN + vec3(0.0, 0.6, 0.0)), cov * (leafy ? 1.0 : 0.7))); } } }
   s.albedo = base.rgb; s.alpha = base.a; s.N = N; s.roughness = clamp(s.roughness, 0.03, 1.0);
   return s;
@@ -1194,7 +1196,11 @@ float depthAt(inout vec2 uv) { ivec2 q = clamp(ivec2(uv * u_fullRes), ivec2(0), 
 uniform mat4 u_view; uniform vec3 u_sunDir, u_sunColor; uniform vec3 u_sh[9]; uniform samplerCube u_envMap; uniform float u_envLevels;
 uniform sampler2DShadow u_shadowMap; uniform mat4 u_shadowMat[4]; uniform vec4 u_splits, u_cascadeTexel, u_shadowParams;
 uniform sampler2D u_lightData, u_clusterGrid, u_clusterIdx; uniform vec4 u_clusterParams; uniform vec2 u_invRes;
-uniform vec4 u_fog; uniform float u_frame;
+uniform vec4 u_fog; uniform float u_frame, u_fogB;
+/* how much haze lies along a line from the camera (height yc) to a point (height yp) dist away, as a length at full density: the haze is at its
+   full density up to the base height u_fogB (the ground under the camera, or the top of a fog layer) and thins above it with the scale 1 / u_fog.y */
+float fogPath(float yc, float yp, float dist) { float k = u_fog.y, a = yc - u_fogB, b = yp - u_fogB, lo = min(a, b), hi = max(a, b), span = hi - lo; if (span < 1e-3) return dist * exp(-max(lo, 0.0) * k);
+  float fb = lo < 0.0 ? (min(hi, 0.0) - lo) / span : 0.0, a0 = max(lo, 0.0), a1 = max(hi, 0.0), fa = a1 > a0 ? (exp(-k * a0) - exp(-k * a1)) / (k * span) : 0.0; return dist * (fb + fa); }
 #ifndef SURFACE_DECL
 uniform vec3 u_camPos;
 #endif
@@ -1278,7 +1284,7 @@ vec3 shadeSurface(vec3 albedo, vec3 N, vec3 V, float rough, float metal, float a
 vec3 applyFog(vec3 c, vec3 wpos) {
   if (u_fog.w < 0.5) return c;
   vec3 d = wpos - u_camPos; float dist = length(d); vec3 dir = d / max(dist, 1e-4);
-  float dy = d.y * u_fog.y, f = abs(dy) > 1e-3 ? (1.0 - exp(-dy)) / dy : 1.0, od = u_fog.x * exp(-max(u_camPos.y, 0.0) * u_fog.y) * dist * f;
+  float od = u_fog.x * fogPath(u_camPos.y, wpos.y, dist);
   vec3 hz = skyRadiance(normalize(vec3(dir.x, max(dir.y, 0.0) * 0.4 + 0.03, dir.z)));
   vec3 fc = hz + u_sunColor * (u_fog.z * 0.03 * pow(clamp(dot(dir, u_sunDir), 0.0, 1.0), 8.0));
   return mix(c, fc, 1.0 - exp(-od));
@@ -1329,7 +1335,7 @@ uniform sampler2D u_clouds;
 uniform sampler2D u_volFog; uniform vec4 u_volP;   /* reach, the fog picture's width and height */
 vec3 applyFogVol(vec3 c, vec3 wpos, float viewZ) {
   if (u_fog.w < 0.5) return c; vec3 d = wpos - u_camPos; float dist = length(d); vec3 dir = d / max(dist, 1e-4);
-  float dy = d.y * u_fog.y, f = abs(dy) > 1e-3 ? (1.0 - exp(-dy)) / dy : 1.0, od = u_fog.x * exp(-max(u_camPos.y, 0.0) * u_fog.y) * dist * f, Tt = exp(-od);
+  float od = u_fog.x * fogPath(u_camPos.y, wpos.y, dist), Tt = exp(-od);
   vec3 hz = skyRadiance(normalize(vec3(dir.x, max(dir.y, 0.0) * 0.4 + 0.03, dir.z))), fc = hz + u_sunColor * (u_fog.z * 0.03 * pow(clamp(dot(dir, u_sunDir), 0.0, 1.0), 8.0));
   vec2 hp = v_uv * u_volP.yz - 0.5; ivec2 b = ivec2(floor(hp + 0.5)), mx = ivec2(u_volP.yz) - 1; vec2 fr = hp - vec2(b); vec4 acc = vec4(0.0); float ws = 0.0, md = min(dist, u_volP.x), zr = dist / max(viewZ, 1e-3);
   for (int i = 0; i < 9; i++) { ivec2 o = ivec2(i % 3 - 1, i / 3 - 1), q = clamp(b + o, ivec2(0), mx); vec2 dd = vec2(o) - fr; float zq = tapZ(q, u_volP.yz), z = zq > 59000.0 ? u_volP.x : min(zq * zr, u_volP.x), w = exp(-dot(dd, dd) * 0.9) + 0.01; w *= 1.0 / (1e-3 + abs(z - md) / max(md, 1.0) * 16.0); acc += texelFetch(u_volFog, q, 0) * w; ws += w; }
@@ -1735,7 +1741,7 @@ void main() {
       const sky = this.sky, s = this.settings, env = this.env, S = SE.shaders.CL;
       p.sets({ u_view: cam.view, u_sunDir: sky.lightDir, u_sunColor: sky.lightColor, u_sh: sky.sh, u_envMap: sky.env, u_envLevels: sky.levels, u_skyLUT: sky.lut, u_shadowMap: this.atlas, u_shadowMat: this.shadowMats, u_splits: this.splits, u_cascadeTexel: this.cascadeTexel,
         u_shadowParams: [0.5 / this.atlasSize, s.shadowSoftness, s.shadows && this.shadowOn ? 1 : 0, 0], u_lightData: this.lightTex, u_clusterGrid: this.gridTex, u_clusterIdx: this.idxTex, u_clusterParams: [S.NEAR, S.Z / Math.log(S.FAR / S.NEAR), this.lightCount, 0], u_invRes: [1 / this.w, 1 / this.h],
-        u_fog: [env.fogDensity, 1 / Math.max(env.fogHeight, 1), env.fogSun, s.fog ? 1 : 0], u_frame: this.noiseFrame, u_camPos: cam.position });
+        u_fog: [env.fogDensity, 1 / Math.max(env.fogHeight, 1), env.fogSun, s.fog ? 1 : 0], u_fogB: env.fogBase || 0, u_frame: this.noiseFrame, u_camPos: cam.position });
     }
 
     /* ---------- the frame ---------- */
@@ -2056,7 +2062,7 @@ void main() {
   vec3 L = vec3(0.0); float T = 1.0, tPrev = 0.0;
   for (int i = 0; i < 32; i++) { if (i >= N) break;
     float f = (float(i) + j) / float(N), t = tMax * f * f, dt = t - tPrev; tPrev = t; vec3 p = u_camPos + dir * t;
-    float dens = u_fog.x * exp(-max(p.y, 0.0) * u_fog.y), Tr = exp(-dens * dt), vz = t * zPer, sh = shadow1(p, vz);
+    float dens = u_fog.x * exp(-max(p.y - u_fogB, 0.0) * u_fog.y), Tr = exp(-dens * dt), vz = t * zPer, sh = shadow1(p, vz);
 #ifdef VOL_CLOUDS
     sh *= cloudShadow(p, u_sunDir);
 #endif
@@ -2085,9 +2091,9 @@ float hg(float mu, float g) { return (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g *
 void main() {
   vec4 wp = u_invViewProj * vec4(v_uv * 2.0 - 1.0, 1.0, 1.0); vec3 dir = normalize(wp.xyz / wp.w - u_camPos); vec4 outc = vec4(0.0, 0.0, 0.0, 1.0);
   if (dir.y > 0.006 && u_cloudP.x > 0.01) {
-    float ry = RE + max(u_camPos.y, 0.0), b = ry * dir.y, c0 = ry * ry - (RE + C0) * (RE + C0), c1 = ry * ry - (RE + C1) * (RE + C1), t0 = -b + sqrt(max(b * b - c0, 0.0)), t1 = min(-b + sqrt(max(b * b - c1, 0.0)), 70000.0);
+    float ry = RE + max(u_camPos.y - u_cl.w, 0.0), b = ry * dir.y, c0 = ry * ry - (RE + C0) * (RE + C0), c1 = ry * ry - (RE + C1) * (RE + C1), t0 = -b + sqrt(max(b * b - c0, 0.0)), t1 = min(-b + sqrt(max(b * b - c1, 0.0)), 70000.0);
     if (t1 > t0) { int N = int(u_cl.x); float st = (t1 - t0) / float(N), j = ign(gl_FragCoord.xy, u_cl.y), mu = dot(dir, u_sunDir), ph = min(mix(hg(mu, 0.76), hg(mu, -0.2), 0.45) * 0.26, 2.2), T = 1.0, h; vec3 L = vec3(0.0); const float SIG = 0.011;
-      for (int i = 0; i < 48; i++) { if (i >= N || T < 0.02) break; vec3 p = u_camPos + dir * (t0 + st * (float(i) + j)); float d = density(p, true, h); if (d <= 0.001) continue;
+      for (int i = 0; i < 48; i++) { if (i >= N || T < 0.02) break; vec3 p = u_camPos - vec3(0.0, u_cl.w, 0.0) + dir * (t0 + st * (float(i) + j)); float d = density(p, true, h); if (d <= 0.001) continue;
         /* a short walk toward the sun: how much of its light reaches this point through the cloud above */
         float od = 0.0, hh, ls = 70.0; vec3 lp = p; for (int k = 0; k < 5; k++) { lp += u_sunDir * ls; od += density(lp, false, hh) * ls; ls *= 1.75; }
         od *= SIG; float sunT = max(exp(-od), 0.62 * exp(-0.2 * od)), powder = 1.0 - exp(-od * 2.0 - d * 3.0);
@@ -2129,7 +2135,7 @@ void main() {
       const night = sky.night || 0, a0 = [sky.sh[0], sky.sh[1], sky.sh[2]], glowUp = [0.05 * night, 0.032 * night, 0.016 * night];
       dev.passBegin('clouds'); dev.bind(this.cloudT[this.ci]); dev.state({ depthTest: false, cull: 'none' });
       p.use().sets({ u_noise: this.noise, u_weather: this.weather, u_hist: this.cloud[this.ci ^ 1], u_invViewProj: cam.invViewProj, u_reproj: r.reproj, u_camPos: cam.position, u_sunDir: sky.lightDir, u_sunColor: sky.lightColor,
-        u_ambTop: a0.map(v => v * 2.5), u_ambBot: a0.map((v, i) => v * 1.25 + glowUp[i]), u_cloudP: this.params(env, time), u_cl: [Math.min(48, s.cloudSteps), r.noiseFrame, this.fresh || r.reset ? 0 : (r.camMoved ? 0.88 : 0.94), 0] });   /* at rest the clouds gather for longer: they drift slowly, and fewer steps then look like more */
+        u_ambTop: a0.map(v => v * 2.5), u_ambBot: a0.map((v, i) => v * 1.25 + glowUp[i]), u_cloudP: this.params(env, time), u_cl: [Math.min(48, s.cloudSteps), r.noiseFrame, this.fresh || r.reset ? 0 : (r.camMoved ? 0.88 : 0.94), env.cloudBase || 0] });   /* at rest the clouds gather for longer: they drift slowly, and fewer steps then look like more */
       dev.fullscreen(p); dev.passEnd(); this.fresh = false; return this.cloud[this.ci];
     }
   }
@@ -4142,7 +4148,7 @@ const lanePointW = (w, off, dir, d, out) => { const A = w.acc, L = laneLine(w, o
     const baseOf = P => { let lo = Infinity, hi = -Infinity; for (const p of P) { const y = S.gy(p[0], p[1]); if (y < lo) lo = y; if (y > hi) hi = y; } return { lo, y: hi }; }, liftB = (Bd, from, dy) => { if (!dy) return; const a = Bd.p.a; for (let i = from + 1; i < Bd.p.n; i += 3) a[i] += dy; };
     const DATA = new Map(), VER = new Map();      /* tile key -> features in latitude and longitude, kept across a recentre; and how many times each has arrived */
     let active = 0; const buildQ = [];
-    const roofMat = tex => new Material({ name: 'Wider city: ground and lids', albedoMap: tex, roughness: 0.94, castShadow: false, wet: 0 });
+    const roofMat = tex => new Material({ name: 'Wider city: ground and lids', albedoMap: tex, roughness: 0.94, castShadow: false, wet: -1 });
     const skyRoof = new Material({ name: 'Skyline lids', albedo: '#8d8f90', roughness: 0.9, castShadow: false });
     const ringOf = f => { let P = f.ring.map(q => S.toL(q[0], q[1])); if (P.length > 1) { const a = P[0], z = P[P.length - 1]; if (Math.abs(a[0] - z[0]) < 1e-6 && Math.abs(a[1] - z[1]) < 1e-6) P = P.slice(0, -1); }
       if (P.length < 3) return null; const ar = Poly.area(P); if (Math.abs(ar) < 4) return null; if (ar < 0) P.reverse();
@@ -4665,9 +4671,9 @@ const lanePointW = (w, off, dir, d, out) => { const A = w.acc, L = laneLine(w, o
   const SKY = [
     { k: 'none', l: 'As the weather sets it', s: 'None', note: 'No sky state: the sky is the one chosen under Weather, or the storm\'s.' },
     { k: 'marine', l: 'Marine layer (June gloom)', s: 'Marine layer', vis: 6,
-      note: 'A low stratus deck off the ocean: flat, cool, grey light and no rain. It is full at night and in the morning, thins from mid morning and is gone by early afternoon on most days, then comes back in the evening (drawn by the sun\'s hour: full before 9:30, gone by 13:00, back from 17:30). No record of the marine layer was collected for this atlas: every figure here is a choice. The deck is drawn at the engine\'s cloud height, higher than a real one (a few hundred metres). It is held off while rain or offshore wind is set: an offshore wind pushes it out to sea.' },
+      note: 'A low stratus deck off the ocean: flat, cool, grey light and no rain. It is full at night and in the morning, thins from mid morning and is gone by early afternoon on most days, then comes back in the evening (drawn by the sun\'s hour: full before 9:30, gone by 13:00, back from 17:30). No record of the marine layer was collected for this atlas: every figure here is a choice. The layer is drawn as grey air from the sea up to 450 m above sea level (a choice: real decks top out between about 300 and 900 m), with the overcast above it only for someone under it: a hill or a craft higher than that stands in the sun over a white sea. It is held off while rain or offshore wind is set: an offshore wind pushes it out to sea.' },
     { k: 'tule', l: 'Tule fog', s: 'Tule fog', vis: 0.2,
-      note: 'The Central Valley\'s winter ground fog, under a strong inversion in still air. Storm Events gives visibility under a quarter mile at Merced, Madera, Fresno and Visalia, under 200 ft in many places, and 50 ft at worst. It is drawn at an eighth of a mile (200 m) so the roofs can still be seen, and about 60 m deep (a choice), so a craft climbs out of it. It is held off while rain or offshore wind is set: it does not survive wind.' },
+      note: 'The Central Valley\'s winter ground fog, under a strong inversion in still air. Storm Events gives visibility under a quarter mile at Merced, Madera, Fresno and Visalia, under 200 ft in many places, and 50 ft at worst. It is drawn at an eighth of a mile (200 m) so the roofs can still be seen, and it fills the low ground to about 110 m over the lowest ground for some 12 km round (a choice), so a craft climbs out of it and the foothills stand clear. It is held off while rain or offshore wind is set: it does not survive wind.' },
     { k: 'smoke', l: 'Wildfire smoke', s: 'Smoke', vis: 2.4,
       note: 'A sky under wildfire smoke: orange light, a dimmed sun, visibility drawn at about 2.4 km, ash falling, and embers blowing through in the two strongest offshore wind steps. It is a picture of a smoke day, not of a fire at this address; every figure is a choice. Embers are what take most houses in a wind driven fire (the roofing evidence file, C1).' },
   ];
@@ -4744,12 +4750,14 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
      y = 0 stands above sea level in metres (null when nobody knows: then no snow is drawn) and snowLevel, if given, takes
      the place of the step's own. */
   function StormKit(engine, o) {
-    o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '' };
+    o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '', top: null, above: false, low: null };
+    /* the marine layer's top, metres above sea level, and how deep the tule fog lies over the lowest ground near (both choices) */
+    const MARINE_TOP = 450, TULE_DEEP = 110;
     const COUNT = { ultra: 30000, high: 20000, medium: 12000, low: 5000 }, SPRAY = { ultra: 900, high: 620, medium: 340, low: 130 }, DEBRIS = { ultra: 1, high: 0.8, medium: 0.5, low: 0.28 };
     /* what is on the screen now, eased toward what the steps ask for, so the scales slide */
     const RS = engine.renderer.settings, G0 = { stars: env.stars == null ? 1 : env.stars, exposure: RS.exposure || 0, saturation: RS.saturation, temperature: RS.temperature || 0, contrast: RS.contrast };
-    const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340 };
-    let want = Object.assign({}, now), dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
+    const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340, base: 0, cbase: 0 };
+    let want = Object.assign({}, now), baseSet = false, dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
     const offs = [0, 1, 2, 3, 4, 5].map(() => [0, 1, 2, 3].map(() => [0, 0, 0])), drift = [0, 0], vel = [[0, -6, 0], [0, 0.3, 0], [0, -1.2, 0], [0, -1.2, 0], [0, -0.7, 0], [0, 0.5, 0]];
     /* one quad, drawn many times: each copy finds its own place from its number */
     const vao = gl.createVertexArray(), quad = gl.createBuffer(); dev.vao(vao); gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); dev.vao(null);
@@ -4796,7 +4804,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
     K.set = (level, w0, o2) => {
       o2 = o2 || {}; level = stepOf(STORM, level); const wl = stepOf(WIND, o2.wind), sk = stepOf(SKY, o2.sky), s = STORM[level], w = WIND[wl], first = !started; started = true; K.level = level; K.windLevel = wl; K.sky = sk;
       K.y0 = o2.y0 == null || !isFinite(o2.y0) ? null : +o2.y0; K.snowOver = o2.snowLevel == null || !isFinite(o2.snowLevel) ? null : +o2.snowLevel; K.snowLine = level ? (K.snowOver != null ? K.snowOver : s.snow) : null;
-      const nm = SE.windName(o2.lat, o2.lon); K.windName = nm[0]; K.hour = o2.hour == null ? null : o2.hour;
+      const nm = SE.windName(o2.lat, o2.lon); K.windName = nm[0]; K.hour = o2.hour == null ? null : o2.hour; K.w0 = w0; K.o2 = o2; K.low = o2.low == null || !isFinite(o2.low) ? null : +o2.low;
       const dryWind = wl >= 2 && !level, gust = Math.max(s.gustMs, w.gustMs), ms = Math.max(s.ms, w.ms);
       let fog = w0.fogDensity, fogH = 90, clouds = w0.clouds, turb = w0.turbidity, sunI = w0.sunIntensity, skyI = w0.skyIntensity, dark = 0, temp = 0, sat = 0, expo = 0, ash = 0, ember = 0;
       /* a dry offshore wind: the air is clear and the sky nearly bare, until the dust is up */
@@ -4804,8 +4812,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (level) { fog = Math.max(s.fog, fog); fogH = 420; clouds = 1; turb = 5 + level * 0.35; sunI = s.sun; skyI = s.sky; dark = s.dark; }
       K.held = ''; K.burn = 0;
       if (sk === 1 || sk === 2) { if (level) K.held = 'held off while it rains'; else if (wl >= 2) K.held = sk === 1 ? 'pushed out to sea by the offshore wind' : 'it does not survive wind'; }
-      if (sk === 1 && !K.held) { const m = marineAt(K.hour); K.burn = 1 - m; clouds = lerp(clouds, 1, m); sunI = lerp(sunI, 0.13, m); skyI = lerp(skyI, 1.45, m); turb = lerp(turb, 5, m); fog = Math.max(fog, 0.00065 * m); fogH = 260; dark = 0.16 * m; temp = -0.9 * m; sat = -0.1 * m; }
-      if (sk === 2 && !K.held) { fog = 3.912 / 200; fogH = 60; sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; }
+      /* The marine layer and the tule fog are layers with a top (K.top, metres above sea level; with no height known, metres over y = 0). The haze
+         fills the air below the top and thins quickly over it; the grey light belongs to whoever is under it (K.above: the camera is over the top). */
+      K.top = null; const under = K.above ? 0 : 1;
+      if (sk === 1 && !K.held) { const m = marineAt(K.hour), mu = m * under; K.burn = 1 - m; K.top = MARINE_TOP; clouds = lerp(clouds, 1, mu); sunI = lerp(sunI, 0.13, mu); skyI = lerp(skyI, 1.45, mu); turb = lerp(turb, 5, mu); fog = Math.max(fog, 0.0011 * m); fogH = 55; dark = 0.16 * mu; temp = -0.9 * mu; sat = -0.1 * mu; }
+      if (sk === 2 && !K.held) { K.top = (K.low != null ? K.low : K.y0 != null ? K.y0 + (o.ground ? o.ground() : 0) : 0) + TULE_DEEP; fog = 3.912 / 200; fogH = 25; if (under) { sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; } }
+      if (K.top == null) K.above = false;
       if (sk === 3) { fog = Math.max(fog, 3.912 / 2400); fogH = Math.max(fogH, 800); turb = 13; sunI *= 0.22; skyI *= 0.55; clouds *= 0.6; dark = Math.max(dark, 0.2); temp += 3.4; sat -= 0.02; ash = 1; ember = wl >= 4 ? (wl - 3) / 2 : 0; }
       want = { dark, rain: s.rain, ms, gf: ms > 0.1 ? Math.max(1, gust / ms) : 1, fall: s.fall || 6, fog, fogH, clouds, wet: level ? 1 : w0.wetness, sway: Math.max(level ? s.sway : 0.35, w.sway),
         spray: level ? clamp((gust - 20) / 40, 0, 1) : 0, dust: dryWind ? w.dust : 0, debris: level ? (gust > 22 ? clamp((gust - 22) / 14, 0, 1) * 130 : 0) : w.leaf, roofing: gust >= 44 ? 0.4 : gust >= 35 ? 0.25 : gust >= 29 ? 0.1 : 0, frond: level ? 0.06 : 0.22,
@@ -4815,8 +4827,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (level || wl) sounds(); engine.requestRender(4);
       return { turbidity: turb, sunIntensity: sunI, skyIntensity: skyI };
     };
+    /* How a tyre holds the road in this weather at a height (local y): 1 dry; a wet road about 0.8, less as the rain gets heavy enough to stand on it
+       (0.62 in the heaviest); lying snow 0.3. Choices, in the range road tests give for wet asphalt and packed snow; the car's own model does the rest. */
+    K.snowAt = y => { const line = K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9; return K.level ? now.snow * smoothstep(line - 40, line + 40, y) : 0; };
+    K.grip = y => { const wet = clamp(now.wet, 0, 1), g = 1 - 0.2 * wet - 0.18 * wet * clamp(now.rain / 25, 0, 1), sn = K.snowAt(y == null ? 0 : y); return g + (0.3 - g) * clamp(sn * 1.4, 0, 1); };
     let graded = false, wasQuiet = false;
-    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
+    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.fogBase = now.base; env.cloudBase = now.cbase; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
       env.snowK = [now.snow, K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9, 45, now.pond];
       const d = now.dark, on = d > 0.001 || Math.abs(now.temp) > 0.001 || Math.abs(now.sat) > 0.001 || Math.abs(now.expo) > 0.001;
       if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo + 1.25 * snowAir * now.snow;   /* a snow scene is bright under any sky: the meter would turn it grey, as a camera does, so it is opened up a stop and a bit */ RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
@@ -4830,6 +4846,10 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       { const d = want.snow - now.snow; if (Math.abs(d) > 0.004) { now.snow += d * (1 - Math.exp(-dt / (d > 0 ? 22 : 30))); moving = true; } else now.snow = want.snow; }
       { const d = want.pond - now.pond; if (Math.abs(d) > 0.004) { now.pond += d * (1 - Math.exp(-dt / (d > 0 ? 9 : 16))); moving = true; } else now.pond = want.pond; }
       { let d = want.bear - now.bear; d -= Math.round(d / 360) * 360; if (Math.abs(d) > 0.3) { now.bear += d * k; moving = true; } else now.bear = want.bear; }
+      /* Where the haze is measured from: the ground under the camera, or the top of a layer; the clouds from the ground under the camera. Both slide, so nothing jumps as the ground changes. */
+      { const g = o.ground ? o.ground() || 0 : 0, tb = K.top != null ? K.top - (K.y0 != null ? K.y0 : 0) : g, kb = baseSet ? 1 - Math.exp(-dt / 2.5) : 1; baseSet = true; if (Math.abs(tb - now.base) > 0.3 || Math.abs(g - now.cbase) > 0.3) { now.base += (tb - now.base) * kb; now.cbase += (g - now.cbase) * kb; moving = true; }
+        /* over the top of the layer, or back under it: the light is worked out again (with some slack, so it does not flicker at the top) */
+        if (K.top != null && K.w0) { const c = (K.y0 != null ? K.y0 : 0) + cam.position[1], ab = K.above ? c > K.top - 15 : c > K.top + 60; if (ab !== K.above) { K.above = ab; const r = K.set(K.level, K.w0, K.o2); Object.assign(env, r); if (scene.envChanged) scene.envChanged(); moving = true; } } }
       /* is it snow or rain where the camera is: snow above the snow level, rain below, a mix across about 80 m */
       const cp = cam.position, line = K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9; snowAir = K.level ? smoothstep(line - 40, line + 40, cp[1]) : 0; K.snowAir = snowAir;
       /* with nothing set and nothing sliding, the air is left alone: the editor's world settings stay as a person set them */
@@ -4899,7 +4919,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       return { level: K.level, key: s.k, name: s.l, short: s.s, ar: s.ar || 0, ivt: s.ivt || null, cw3e: s.cw3e || '', mph: s.mph, gust: s.gust, rain: s.rain, rainIn: s.rainIn, bolt: s.bolt || 0, dropMm: +s.dropMm.toFixed(2), fall: n1(s.fall), note: s.note,
         snowLevelM: K.snowLine, snowLevelFt: ft(K.snowLine), snowLevelStepM: s.snow, snowForced: K.snowOver != null, elevationM: grdM == null ? null : Math.round(grdM), cameraM: camM == null ? null : Math.round(camM), precip, snowCover: +now.snow.toFixed(2) * (snowGround > 0.5 ? 1 : 0), snowInAir: +(K.snowAir || 0).toFixed(2), pond: +now.pond.toFixed(2),
         wind: { level: K.windLevel, key: w.k, name: w.l, short: w.s, local: K.windName || 'Santa Ana', mph: w.mph, gust: w.gust, fly: w.fly, note: w.note },
-        sky: { level: K.sky, key: sk.k, name: sk.l, short: sk.s, on: !!skyOn, held: K.held, burn: +(K.burn || 0).toFixed(2), note: sk.note },
+        sky: { level: K.sky, key: sk.k, name: sk.l, short: sk.s, on: !!skyOn, held: K.held, burn: +(K.burn || 0).toFixed(2), topM: K.top == null ? null : Math.round(K.top), above: !!K.above, note: sk.note },
         /* what a roof here is under: the stronger of the two winds, and the rain that reaches it */
         sustainedMph: mph, gustMph: gust, rainMmH: precip === 'snow' ? 0 : s.rain, rainInH: precip === 'snow' ? 0 : s.rainIn, snowing: precip !== 'rain' && precip !== 'none', windNowMph: n1((K.wind || 0) / 0.44704), windToward: Math.round(((now.bear % 360) + 360) % 360), visKm: visKm >= 99 ? null : +visKm.toFixed(2),
         fly, flyWhy: fly ? '' : !s.fly ? 'past light rain' : `gusts over the ${Math.round(ALTA_GUST_MS / 0.44704)} mph taken as its wind limit`, altaGustLimitMph: Math.round(ALTA_GUST_MS / 0.44704), flash: !!flash, text: parts.join('. ') + '. ' + (fly ? 'The Alta X can fly.' : 'The Alta X stays down.') };
@@ -5424,7 +5444,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       FARZ.forEach(L => { if (S.fast && L.z === 17) return; const [cX, cY] = cellOf(S.x, S.z, L.z), r0 = rectOf(cX, cY, L.z), size = Math.abs(r0.x1 - r0.x0), n = Math.ceil(L.reach / size), lim = 1 << L.z;
         for (let dy = -n; dy <= n; dy++) for (let dx = -n; dx <= n; dx++) { const X = cX + dx, Y = cY + dy; if (X < 0 || Y < 0 || X >= lim || Y >= lim) continue; const r = rectOf(X, Y, L.z), dr = Math.hypot(Math.max(r.x0 - S.x, 0, S.x - r.x1), Math.max(r.zN - S.z, 0, S.z - r.zS)), key = L.z + '/' + X + '/' + Y;
           if (dr > L.reach * 1.1 + 60 || (dr > L.reach && !FAR.has(key))) continue; want.add(key); if (FAR.has(key)) continue;   /* a tile is made within reach and kept a little beyond it */
-          const tex = dev.lazyTexture(env.tileURL(L.z, X, Y), { srgb: true, wrap: 'clamp', fill: [111, 119, 100, 255], onLoad: () => need() }), mat = new Material({ name: 'Far ground', albedoMap: tex, roughness: 0.95, castShadow: false, wet: 0 });
+          const tex = dev.lazyTexture(env.tileURL(L.z, X, Y), { srgb: true, wrap: 'clamp', fill: [111, 119, 100, 255], onLoad: () => need() }), mat = new Material({ name: 'Far ground', albedoMap: tex, roughness: 0.95, castShadow: false, wet: -1 });
           FAR.set(key, { tex, g: TERR.ground(L.z, X, Y, { parent: gFar, mat }) }); } });
       FAR.forEach((f, key) => { if (!want.has(key)) { TERR.drop(f.g); f.tex.dispose(); FAR.delete(key); } });
     }
@@ -5695,7 +5715,10 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (e == null || !isFinite(e)) e = S.elev; return e == null || !isFinite(e) ? null : e - g;
     }
     const WX0 = () => WEATHER[gfx.weather] || WEATHER.clear;
-    const wxOpts = () => { const ll = S.ok ? toLL(S.x, S.z) : [null, null], t = S.sunTime || new Date(), lo = ll[1] == null ? -120 : ll[1]; return { wind: S.wind, sky: S.sky, snowLevel: S.snowLevel, y0: S.y0msl, lat: ll[0], lon: ll[1], hour: (((t.getUTCHours() + t.getUTCMinutes() / 60 + lo / 15) % 24) + 24) % 24 }; };
+    /* the lowest ground within about 12 km, metres above sea level (the tule fog lies on it); null when no heights are known */
+    let wxLowAt = null, wxLowV = null; function regionLow() { if (!S.ok || typeof S.elevAt !== 'function') return null; if (wxLowAt && wxLowAt[2] === S.gen && Math.hypot(S.x - wxLowAt[0], S.z - wxLowAt[1]) < 2500 && performance.now() - wxLowAt[3] < 20000) return wxLowV;
+      const ll = toLL(S.x, S.z), dla = 3000 / S.ky, dlo = 3000 / S.kx; let lo = Infinity; try { for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++) { const e = S.elevAt(ll[0] + i * dla, ll[1] + j * dlo); if (e != null && isFinite(e) && e < lo) lo = e; } } catch (err) { lo = Infinity; } wxLowAt = [S.x, S.z, S.gen, performance.now()]; wxLowV = isFinite(lo) ? lo : null; return wxLowV; }
+    const wxOpts = () => { const ll = S.ok ? toLL(S.x, S.z) : [null, null], t = S.sunTime || new Date(), lo = ll[1] == null ? -120 : ll[1]; return { wind: S.wind, sky: S.sky, snowLevel: S.snowLevel, y0: S.y0msl, low: S.sky === 2 ? regionLow() : null, lat: ll[0], lon: ll[1], hour: (((t.getUTCHours() + t.getUTCMinutes() / 60 + lo / 15) % 24) + 24) % 24 }; };
     function setSun() {
       const la = S.lat0 || 38.58, lo = S.lon0 || -121.49, t = sunTime(gfx.sun, la, lo), p = solarPosition(t, la, lo); S.sunAlt = p.alt; S.sunTime = t;
       S.sunNote = p.alt < -1 ? 'The sun is down here at that hour: the scene is lit by the moon, the lamps and the windows.' : '';
@@ -5704,7 +5727,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       lampsLit(); need(2);
     }
     /* the camera has moved a way, or better elevation has come in: the height of the ground and the name the wind goes by are asked again. The sky's light is not touched. */
-    function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
+    function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; const low = S.sky === 2 ? regionLow() : null; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName && (low == null) === (SK.low == null) && (low == null || Math.abs(low - SK.low) < 12)) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
     /* The Alta X flies in the dry and in light rain, and in an offshore wind only up to its limit. Otherwise it comes down where it is, and will not take off. */
     const canFly = () => !!SE.STORM[S.storm].fly && !!SE.WIND[S.wind].fly;
     const wxShort = () => [S.storm ? SE.STORM[S.storm].s : '', S.wind ? SE.WIND[S.wind].s : '', S.sky ? SE.SKY[S.sky].s : ''].filter(Boolean).join(', ') || 'Dry';
@@ -5780,7 +5803,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       placeCamera(); pump();
       /* the storm: its rain, wind and lightning move whether or not the camera does, so while one is on the engine stays awake */
       { const moving = SK.update(dt, cam, engine.playing && engine.live); if (moving === 2) need(); if (moving && engine.live && engine.playing && engine.onScreen) engine.wake(); }
-      if (S.storm || S.wind) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }
+      if (S.storm || S.wind || S.sky) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }
       if (LAMP.at && Math.hypot(S.x - LAMP.at[0], S.z - LAMP.at[1]) > 18) lampsLit();
       /* the street's life: signals, traffic, and at night the headlights of the cars nearest the camera */
       if (gfx.life) { const night = smoothstep(2, -6, S.sunAlt), moving = engine.playing && engine.awake && engine.live, onFoot = S.mode === 'street' || S.mode === 'walk'; if (ST.update(dt, cam.entity.transform.position, { night, moving, viewer: onFoot ? [S.x, S.z] : null, reach: S.mode === 'metro' ? 900 : S.mode === 'bird' || S.mode === 'drone' || S.mode === 'alta' ? 600 : 330 })) need();

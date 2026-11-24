@@ -936,7 +936,7 @@ Surface readSurface() {
      and flat roofs under water that has nowhere to go. It is decided face by face from the slope alone, so on real
      terrain a hillside sheds it and a flat valley floor holds it. A picture of street flooding, not a flood map. And the
      water starts to run on gentler slopes: a street with any fall to it carries a stream. */
-  { vec3 gN = normalize(v_normal); float up = smoothstep(0.35, 0.9, N.y) * u_wetness * u_wetMask, fw = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz))), pond = u_snowK.w * smoothstep(0.985, 0.9995, gN.y);
+  { vec3 gN = normalize(v_normal); float up = smoothstep(0.35, 0.9, N.y) * u_wetness * max(u_wetMask, 0.0), fw = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz))), pond = u_snowK.w * smoothstep(0.985, 0.9995, gN.y);
     if (up > 0.001) { float pt = 0.52 - 0.36 * pond, pud = up * smoothstep(pt, pt + 0.16, fbm(v_wpos.xz * 0.19)); base.rgb *= mix(1.0, 0.58, up); base.rgb = mix(base.rgb, vec3(0.2, 0.18, 0.14), pud * pond * 0.5); s.roughness = mix(mix(s.roughness, 0.16, up * 0.85), 0.035, pud); N = normalize(mix(N, vec3(0.0, 1.0, 0.0), pud * 0.9));
       if (u_rainK.x > 0.001) { vec2 p = v_wpos.xz; float nearK = 1.0 - smoothstep(0.02, 0.085, fw), k = u_rainK.x;
         if (nearK > 0.001) { vec3 rr = rainRings(p, u_time, k); float on = mix(0.3, 1.0, pud) * up * nearK; N = normalize(N + vec3(rr.x, 0.0, rr.y) * (0.55 * on)); base.rgb += vec3(0.5, 0.55, 0.6) * (rr.z * on * 0.22);
@@ -946,12 +946,14 @@ Surface readSurface() {
         s.roughness = mix(s.roughness, max(s.roughness, 0.12), k * (1.0 - nearK) * up * 0.6); } }
     /* snow: above the snow level, whatever faces the sky goes white, first in patches and then all over; steep faces and
        walls stay bare. The level is a world height (u_snowK.y), broken up a little so it is not a ruled line across a
-       mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, and on the crowns of trees. */
-    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(u_wetMask, leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = N.y;
+       mountain. Snow is matte, and it hides the wet shine under it. It lies on what rain wets, on the crowns of trees, and on
+       the far ground (a surface whose wet mask is negative takes snow and no wetness). Far off, where a pixel covers metres
+       of ground, the fine break-up is let go and a coarser one stands in, so the line does not shimmer. */
+    bool leafy = u_shadeModel > 1.5 && u_shadeModel < 2.5; float snowOn = max(abs(u_wetMask), leafy ? 0.9 : 0.0); vec3 sN = gN; float skyward = u_wetMask < 0.0 ? gN.y : N.y;
     /* a tree's crown: which way a face looks is taken from the face itself as the camera sees it, not from the crown's own normals, which are made for light through leaves */
     if (leafy && u_snowK.x > 0.001) { sN = normalize(cross(dFdx(v_wpos), dFdy(v_wpos))); if (dot(sN, u_camPos - v_wpos) < 0.0) sN = -sN; skyward = sN.y; }
-    if (u_snowK.x > 0.001 && snowOn > 0.0) { float ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0);
-      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * fbm(v_wpos.xz * 0.6)), 0.0, 1.0);
+    if (u_snowK.x > 0.001 && snowOn > 0.0) { float nearF = 1.0 - smoothstep(1.5, 9.0, fw), ln = smoothstep(u_snowK.y - u_snowK.z, u_snowK.y + u_snowK.z, v_wpos.y + (fbm(v_wpos.xz * 0.045) - 0.5) * 30.0 * nearF + (vnoise(v_wpos.xz * 0.0021) - 0.5) * 70.0);
+      if (ln > 0.001) { float cov = clamp(ln * snowOn * smoothstep(0.15, 0.6, skyward) * smoothstep(0.0, 0.35, u_snowK.x * 1.5 - 0.5 * mix(0.5, fbm(v_wpos.xz * 0.6), 1.0 - smoothstep(0.3, 2.0, fw))), 0.0, 1.0);
         base.rgb = mix(base.rgb, vec3(0.9, 0.92, 0.96) * (0.95 + 0.05 * vnoise(v_wpos.xz * 2.7)), cov); s.roughness = mix(s.roughness, 0.85, cov); s.metallic *= 1.0 - cov; N = normalize(mix(N, normalize(sN + vec3(0.0, 0.6, 0.0)), cov * (leafy ? 1.0 : 0.7))); } } }
   s.albedo = base.rgb; s.alpha = base.a; s.N = N; s.roughness = clamp(s.roughness, 0.03, 1.0);
   return s;
@@ -1194,7 +1196,11 @@ float depthAt(inout vec2 uv) { ivec2 q = clamp(ivec2(uv * u_fullRes), ivec2(0), 
 uniform mat4 u_view; uniform vec3 u_sunDir, u_sunColor; uniform vec3 u_sh[9]; uniform samplerCube u_envMap; uniform float u_envLevels;
 uniform sampler2DShadow u_shadowMap; uniform mat4 u_shadowMat[4]; uniform vec4 u_splits, u_cascadeTexel, u_shadowParams;
 uniform sampler2D u_lightData, u_clusterGrid, u_clusterIdx; uniform vec4 u_clusterParams; uniform vec2 u_invRes;
-uniform vec4 u_fog; uniform float u_frame;
+uniform vec4 u_fog; uniform float u_frame, u_fogB;
+/* how much haze lies along a line from the camera (height yc) to a point (height yp) dist away, as a length at full density: the haze is at its
+   full density up to the base height u_fogB (the ground under the camera, or the top of a fog layer) and thins above it with the scale 1 / u_fog.y */
+float fogPath(float yc, float yp, float dist) { float k = u_fog.y, a = yc - u_fogB, b = yp - u_fogB, lo = min(a, b), hi = max(a, b), span = hi - lo; if (span < 1e-3) return dist * exp(-max(lo, 0.0) * k);
+  float fb = lo < 0.0 ? (min(hi, 0.0) - lo) / span : 0.0, a0 = max(lo, 0.0), a1 = max(hi, 0.0), fa = a1 > a0 ? (exp(-k * a0) - exp(-k * a1)) / (k * span) : 0.0; return dist * (fb + fa); }
 #ifndef SURFACE_DECL
 uniform vec3 u_camPos;
 #endif
@@ -1278,7 +1284,7 @@ vec3 shadeSurface(vec3 albedo, vec3 N, vec3 V, float rough, float metal, float a
 vec3 applyFog(vec3 c, vec3 wpos) {
   if (u_fog.w < 0.5) return c;
   vec3 d = wpos - u_camPos; float dist = length(d); vec3 dir = d / max(dist, 1e-4);
-  float dy = d.y * u_fog.y, f = abs(dy) > 1e-3 ? (1.0 - exp(-dy)) / dy : 1.0, od = u_fog.x * exp(-max(u_camPos.y, 0.0) * u_fog.y) * dist * f;
+  float od = u_fog.x * fogPath(u_camPos.y, wpos.y, dist);
   vec3 hz = skyRadiance(normalize(vec3(dir.x, max(dir.y, 0.0) * 0.4 + 0.03, dir.z)));
   vec3 fc = hz + u_sunColor * (u_fog.z * 0.03 * pow(clamp(dot(dir, u_sunDir), 0.0, 1.0), 8.0));
   return mix(c, fc, 1.0 - exp(-od));
@@ -1329,7 +1335,7 @@ uniform sampler2D u_clouds;
 uniform sampler2D u_volFog; uniform vec4 u_volP;   /* reach, the fog picture's width and height */
 vec3 applyFogVol(vec3 c, vec3 wpos, float viewZ) {
   if (u_fog.w < 0.5) return c; vec3 d = wpos - u_camPos; float dist = length(d); vec3 dir = d / max(dist, 1e-4);
-  float dy = d.y * u_fog.y, f = abs(dy) > 1e-3 ? (1.0 - exp(-dy)) / dy : 1.0, od = u_fog.x * exp(-max(u_camPos.y, 0.0) * u_fog.y) * dist * f, Tt = exp(-od);
+  float od = u_fog.x * fogPath(u_camPos.y, wpos.y, dist), Tt = exp(-od);
   vec3 hz = skyRadiance(normalize(vec3(dir.x, max(dir.y, 0.0) * 0.4 + 0.03, dir.z))), fc = hz + u_sunColor * (u_fog.z * 0.03 * pow(clamp(dot(dir, u_sunDir), 0.0, 1.0), 8.0));
   vec2 hp = v_uv * u_volP.yz - 0.5; ivec2 b = ivec2(floor(hp + 0.5)), mx = ivec2(u_volP.yz) - 1; vec2 fr = hp - vec2(b); vec4 acc = vec4(0.0); float ws = 0.0, md = min(dist, u_volP.x), zr = dist / max(viewZ, 1e-3);
   for (int i = 0; i < 9; i++) { ivec2 o = ivec2(i % 3 - 1, i / 3 - 1), q = clamp(b + o, ivec2(0), mx); vec2 dd = vec2(o) - fr; float zq = tapZ(q, u_volP.yz), z = zq > 59000.0 ? u_volP.x : min(zq * zr, u_volP.x), w = exp(-dot(dd, dd) * 0.9) + 0.01; w *= 1.0 / (1e-3 + abs(z - md) / max(md, 1.0) * 16.0); acc += texelFetch(u_volFog, q, 0) * w; ws += w; }
@@ -1735,7 +1741,7 @@ void main() {
       const sky = this.sky, s = this.settings, env = this.env, S = SE.shaders.CL;
       p.sets({ u_view: cam.view, u_sunDir: sky.lightDir, u_sunColor: sky.lightColor, u_sh: sky.sh, u_envMap: sky.env, u_envLevels: sky.levels, u_skyLUT: sky.lut, u_shadowMap: this.atlas, u_shadowMat: this.shadowMats, u_splits: this.splits, u_cascadeTexel: this.cascadeTexel,
         u_shadowParams: [0.5 / this.atlasSize, s.shadowSoftness, s.shadows && this.shadowOn ? 1 : 0, 0], u_lightData: this.lightTex, u_clusterGrid: this.gridTex, u_clusterIdx: this.idxTex, u_clusterParams: [S.NEAR, S.Z / Math.log(S.FAR / S.NEAR), this.lightCount, 0], u_invRes: [1 / this.w, 1 / this.h],
-        u_fog: [env.fogDensity, 1 / Math.max(env.fogHeight, 1), env.fogSun, s.fog ? 1 : 0], u_frame: this.noiseFrame, u_camPos: cam.position });
+        u_fog: [env.fogDensity, 1 / Math.max(env.fogHeight, 1), env.fogSun, s.fog ? 1 : 0], u_fogB: env.fogBase || 0, u_frame: this.noiseFrame, u_camPos: cam.position });
     }
 
     /* ---------- the frame ---------- */
@@ -2065,7 +2071,7 @@ void main() {
   vec3 L = vec3(0.0); float T = 1.0, tPrev = 0.0;
   for (int i = 0; i < 32; i++) { if (i >= N) break;
     float f = (float(i) + j) / float(N), t = tMax * f * f, dt = t - tPrev; tPrev = t; vec3 p = u_camPos + dir * t;
-    float dens = u_fog.x * exp(-max(p.y, 0.0) * u_fog.y), Tr = exp(-dens * dt), vz = t * zPer, sh = shadow1(p, vz);
+    float dens = u_fog.x * exp(-max(p.y - u_fogB, 0.0) * u_fog.y), Tr = exp(-dens * dt), vz = t * zPer, sh = shadow1(p, vz);
 #ifdef VOL_CLOUDS
     sh *= cloudShadow(p, u_sunDir);
 #endif
@@ -2094,9 +2100,9 @@ float hg(float mu, float g) { return (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g *
 void main() {
   vec4 wp = u_invViewProj * vec4(v_uv * 2.0 - 1.0, 1.0, 1.0); vec3 dir = normalize(wp.xyz / wp.w - u_camPos); vec4 outc = vec4(0.0, 0.0, 0.0, 1.0);
   if (dir.y > 0.006 && u_cloudP.x > 0.01) {
-    float ry = RE + max(u_camPos.y, 0.0), b = ry * dir.y, c0 = ry * ry - (RE + C0) * (RE + C0), c1 = ry * ry - (RE + C1) * (RE + C1), t0 = -b + sqrt(max(b * b - c0, 0.0)), t1 = min(-b + sqrt(max(b * b - c1, 0.0)), 70000.0);
+    float ry = RE + max(u_camPos.y - u_cl.w, 0.0), b = ry * dir.y, c0 = ry * ry - (RE + C0) * (RE + C0), c1 = ry * ry - (RE + C1) * (RE + C1), t0 = -b + sqrt(max(b * b - c0, 0.0)), t1 = min(-b + sqrt(max(b * b - c1, 0.0)), 70000.0);
     if (t1 > t0) { int N = int(u_cl.x); float st = (t1 - t0) / float(N), j = ign(gl_FragCoord.xy, u_cl.y), mu = dot(dir, u_sunDir), ph = min(mix(hg(mu, 0.76), hg(mu, -0.2), 0.45) * 0.26, 2.2), T = 1.0, h; vec3 L = vec3(0.0); const float SIG = 0.011;
-      for (int i = 0; i < 48; i++) { if (i >= N || T < 0.02) break; vec3 p = u_camPos + dir * (t0 + st * (float(i) + j)); float d = density(p, true, h); if (d <= 0.001) continue;
+      for (int i = 0; i < 48; i++) { if (i >= N || T < 0.02) break; vec3 p = u_camPos - vec3(0.0, u_cl.w, 0.0) + dir * (t0 + st * (float(i) + j)); float d = density(p, true, h); if (d <= 0.001) continue;
         /* a short walk toward the sun: how much of its light reaches this point through the cloud above */
         float od = 0.0, hh, ls = 70.0; vec3 lp = p; for (int k = 0; k < 5; k++) { lp += u_sunDir * ls; od += density(lp, false, hh) * ls; ls *= 1.75; }
         od *= SIG; float sunT = max(exp(-od), 0.62 * exp(-0.2 * od)), powder = 1.0 - exp(-od * 2.0 - d * 3.0);
@@ -2138,7 +2144,7 @@ void main() {
       const night = sky.night || 0, a0 = [sky.sh[0], sky.sh[1], sky.sh[2]], glowUp = [0.05 * night, 0.032 * night, 0.016 * night];
       dev.passBegin('clouds'); dev.bind(this.cloudT[this.ci]); dev.state({ depthTest: false, cull: 'none' });
       p.use().sets({ u_noise: this.noise, u_weather: this.weather, u_hist: this.cloud[this.ci ^ 1], u_invViewProj: cam.invViewProj, u_reproj: r.reproj, u_camPos: cam.position, u_sunDir: sky.lightDir, u_sunColor: sky.lightColor,
-        u_ambTop: a0.map(v => v * 2.5), u_ambBot: a0.map((v, i) => v * 1.25 + glowUp[i]), u_cloudP: this.params(env, time), u_cl: [Math.min(48, s.cloudSteps), r.noiseFrame, this.fresh || r.reset ? 0 : (r.camMoved ? 0.88 : 0.94), 0] });   /* at rest the clouds gather for longer: they drift slowly, and fewer steps then look like more */
+        u_ambTop: a0.map(v => v * 2.5), u_ambBot: a0.map((v, i) => v * 1.25 + glowUp[i]), u_cloudP: this.params(env, time), u_cl: [Math.min(48, s.cloudSteps), r.noiseFrame, this.fresh || r.reset ? 0 : (r.camMoved ? 0.88 : 0.94), env.cloudBase || 0] });   /* at rest the clouds gather for longer: they drift slowly, and fewer steps then look like more */
       dev.fullscreen(p); dev.passEnd(); this.fresh = false; return this.cloud[this.ci];
     }
   }
@@ -3659,7 +3665,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     const DEF = { motorway: [4, 29.06], motorway_link: [1, 20.1], trunk: [4, 24.6], trunk_link: [1, 15.6], primary: [4, 15.65], primary_link: [1, 13.4], secondary: [4, 15.65], secondary_link: [1, 13.4], tertiary: [2, 13.4], tertiary_link: [1, 11.2], residential: [2, 11.2], unclassified: [2, 11.2], living_street: [2, 6.7], road: [2, 11.2] };
     P.LW = LW; P.LEVEL = LEVEL;
     /* list: [{ name, kind, pts: [[x, z]...] (local metres), hw, lanes, oneway, maxspeed (m/s), layer, bridge, tunnel, ref, id, hov }] */
-    P.prep = list => {
+    P.prep = (list, o) => {
       const out = [];
       for (const r0 of list) { if (!r0.pts || r0.pts.length < 2) continue; const r = Object.assign({}, r0), fw = r.kind === 'freeway' || r.kind === 'ramp', d = DEF[r.hw] || (fw ? DEF[r.kind === 'ramp' ? 'motorway_link' : 'motorway'] : r.kind === 'major' ? DEF.primary : DEF.residential);
         r.ow = r.oneway === -1 ? -1 : (r.oneway === 1 || (fw && r.oneway !== 0) || r.kind === 'cable') ? 1 : 0; if (r.ow < 0) { r.pts = r.pts.slice().reverse(); r.ow = 1; }
@@ -3667,23 +3673,47 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
         r.sp = r.maxspeed > 2 ? r.maxspeed : d[1]; r.lv = r.tunnel ? Math.min(-1, r.layer || -1) : r.bridge ? Math.max(1, r.layer || 1) : 0; r.span = r.lv > 0;
         if (fw) r.w = r.ln * LW + (r.kind === 'ramp' ? 3.6 : 4.8); else if (r.kind === 'cable') r.w = 0; else if (r.kind === 'major') r.w = clamp(r.ln * 3.25 + 1.2, 9.5, 27); else if (r.kind === 'street' && r.ln > 2) r.w = clamp(r.ln * 3.1 + 2.6, 8.2, 20);
         out.push(r); }
-      P.decks(out); return out; };
+      P.decks(out, o); return out; };
     /* how high each point of each road stands above the ground: a bridge at its level, and the roads that lead to it rising at a grade */
-    P.decks = roads => {
-      const N = new Map(); roads.forEach(r => { r.dk = r.pts.map(() => (r.span ? r.lv * LEVEL : 0)); if (r.kind === 'path' || r.kind === 'cable') return; r.pts.forEach((p, i) => { const k = key(p), v = N.get(k); if (v === undefined || r.dk[i] > v) N.set(k, r.dk[i]); }); });
-      for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (r.kind === 'path' || r.kind === 'cable') return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk;
-          for (let i = 0; i < n; i++) { const v = N.get(key(r.pts[i])); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
-          for (let i = 1; i < n; i++) { const v = h[i - 1] - g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
-          for (let i = n - 2; i >= 0; i--) { const v = h[i + 1] - g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
-          for (let i = 0; i < n; i++) { const k = key(r.pts[i]); if (h[i] > N.get(k) + 0.01) { N.set(k, h[i]); ch = true; } } }); }
+    /* o.sky(x, z, hx, hz) (optional): where a landmark bridge is built as a structure of its own (the aircraft, ships and bridges
+       kit: S.deckAt), the height of its deck above the ground at that point for a road running along it, else null. Such points
+       are given: nothing here raises or lowers them, the road is marked r.sky (r.sk[i] = 1 at each such point), and the roads
+       that lead on from the deck's end come away from its height at a grade (up to their own bridge's level, or down to the ground). */
+    P.decks = (roads, o) => {
+      const sky = o && o.sky, N = new Map(), FX = new Map(), drive = r => r.kind !== 'path' && r.kind !== 'cable';
+      const skyOn = r => { const P2 = r.pts, n = P2.length; let any = 0, run = 0, best = 0; const sk = new Uint8Array(n); for (let i = 0; i < n; i++) { const a = P2[Math.max(0, i - 1)], b = P2[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, v = sky(P2[i][0], P2[i][1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (v != null) { r.dk[i] = v; sk[i] = 1; any++; run++; if (run > best) best = run; } else run = 0; } r.sk = best >= 2 ? sk : null; r.sky = best >= 2; if (!r.sky && any) for (let i = 0; i < n; i++) if (sk[i]) r.dk[i] = r.span ? r.lv * LEVEL : 0; };
+      roads.forEach(r => { r.dk = r.pts.map(() => (r.span ? r.lv * LEVEL : 0)); r.sky = false; r.sk = null; if (sky && r.kind !== 'cable') skyOn(r); if (!drive(r)) return;
+        r.pts.forEach((p, i) => { const k = key(p); if (r.sk && r.sk[i]) { FX.set(k, r.dk[i]); N.set(k, r.dk[i]); return; } if (FX.has(k)) return; const v = N.get(k); if (v === undefined || r.dk[i] > v) N.set(k, r.dk[i]); }); });
+      for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (!drive(r)) return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk, sk = r.sk;
+          for (let i = 0; i < n; i++) { if (sk && sk[i]) continue; const k = key(r.pts[i]), f = FX.get(k); if (f !== undefined) { if (h[i] !== f) { h[i] = f; ch = true; } continue; } const v = N.get(k); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
+          for (let i = 1; i < n; i++) { if (sk && sk[i]) continue; if (FX.has(key(r.pts[i]))) continue; const v = h[i - 1] - g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
+          for (let i = n - 2; i >= 0; i--) { if (sk && sk[i]) continue; if (FX.has(key(r.pts[i]))) continue; const v = h[i + 1] - g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
+          for (let i = 0; i < n; i++) { const k = key(r.pts[i]); if (!FX.has(k) && h[i] > N.get(k) + 0.01) { N.set(k, h[i]); ch = true; } } }); }
+      /* away from a given deck's end a road may not stand higher than the grade allows: a viaduct that carries on from a landmark bridge meets it, and does not step up to its own level */
+      if (FX.size) { const C = new Map(FX); for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (!drive(r)) return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk, c = new Float64Array(n); let any = false;
+            for (let i = 0; i < n; i++) { const v = C.get(key(r.pts[i])); c[i] = v === undefined ? 1e9 : v; if (v !== undefined) any = true; } if (!any) return;
+            for (let i = 1; i < n; i++) c[i] = Math.min(c[i], c[i - 1] + g * Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = n - 2; i >= 0; i--) c[i] = Math.min(c[i], c[i + 1] + g * Math.hypot(r.pts[i][0] - r.pts[i + 1][0], r.pts[i][1] - r.pts[i + 1][1]));
+            for (let i = 0; i < n; i++) { if (c[i] > 40) continue; if (!(r.sk && r.sk[i]) && h[i] > c[i] + 0.01) h[i] = c[i]; if (i === 0 || i === n - 1) { const k = key(r.pts[i]), v = C.get(k); if (v === undefined || v > c[i] + 0.01) { C.set(k, c[i]); ch = true; } } } }); } }
       /* a tunnel dips under the ground from its two mouths */
-      roads.forEach(r => { if (r.lv >= 0 || r.kind === 'path' || r.kind === 'cable') return; const n = r.pts.length, a = [0]; for (let i = 1; i < n; i++) a.push(a[i - 1] + Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = 0; i < n; i++) r.dk[i] = -LEVEL * Math.min(1, Math.min(a[i], a[n - 1] - a[i]) / 40); });
-      roads.forEach(r => { r.up = r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up || r.lv < 0; });
+      roads.forEach(r => { if (r.lv >= 0 || r.kind === 'path' || r.kind === 'cable' || r.sky) return; const n = r.pts.length, a = [0]; for (let i = 1; i < n; i++) a.push(a[i - 1] + Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = 0; i < n; i++) r.dk[i] = -LEVEL * Math.min(1, Math.min(a[i], a[n - 1] - a[i]) / 40); });
+      roads.forEach(r => { r.up = r.sky || r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up || r.lv < 0; });
       /* long gaps between points are filled, so a rise is a slope and not a step, and a deck can follow the ground */
-      roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]]; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(24, Math.floor(l / 16)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); } p2.push(b); d2.push(r.dk[i]); } r.pts = p2; r.dk = d2; }); };
+      roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]]; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(24, Math.floor(l / 16)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); } p2.push(b); d2.push(r.dk[i]); } r.pts = p2; r.dk = d2;
+        /* on a given deck every point is read again: its profile is a curve, not a line between the map's points */
+        if (r.sky) { const n = p2.length, sk = new Uint8Array(n); for (let i = 0; i < n; i++) { const a = p2[Math.max(0, i - 1)], b = p2[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, v = sky(p2[i][0], p2[i][1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (v != null) { d2[i] = v; sk[i] = 1; } } r.sk = sk; } }); };
+    /* A bridge is straight from one abutment to the other: where the ground falls away under it (a river, a canyon, a cutting) its
+       deck does not follow the ground down. gy(x, z): the ground's height. Bridge ways that meet end to end are taken together; where
+       they meet other roads (or stop) the deck stands at its level over the ground there; between, heights run evenly, and no point
+       of the deck comes lower over the ground than its level. Points on a given deck (r.sk) are left as they are. */
+    P.level = (roads, gy) => { const sp = roads.filter(r => r.span && r.kind !== 'path' && r.kind !== 'cable' && r.pts.length > 1); if (!sp.length) return 0; const other = new Set(); roads.forEach(r => { if (r.span || r.kind === 'path' || r.kind === 'cable') return; other.add(key(r.pts[0])); other.add(key(r.pts[r.pts.length - 1])); });
+      const ND = new Map(), nd = (p, h) => { const k = key(p); let n = ND.get(k); if (!n) ND.set(k, n = { y: gy(p[0], p[1]) + h, e: [], fix: other.has(k), deg: 0 }); n.deg++; return n; };
+      const E = sp.map(r => { const n = r.pts.length; let len = 0; const acc = [0]; for (let i = 1; i < n; i++) { len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); acc.push(len); } const a = nd(r.pts[0], r.dk[0]), b = nd(r.pts[n - 1], r.dk[n - 1]), w = 1 / Math.max(len, 1); a.e.push([b, w]); b.e.push([a, w]); if (r.sk && r.sk[0]) a.fix = true; if (r.sk && r.sk[n - 1]) b.fix = true; return { r, a, b, acc, len }; });
+      const free = []; ND.forEach(n => { if (n.deg < 2) n.fix = true; if (!n.fix) free.push(n); });
+      for (let it = 0; it < 80 && free.length; it++) { let mv = 0; for (const n of free) { let sw = 0, sy = 0; for (const [m, w] of n.e) { sw += w; sy += w * m.y; } const y = sy / sw; mv = Math.max(mv, Math.abs(y - n.y)); n.y = y; } if (mv < 0.02) break; }
+      let ch = 0; E.forEach(({ r, a, b, acc, len }) => { for (let i = 0; i < r.pts.length; i++) { if (r.sk && r.sk[i]) continue; const v = a.y + (b.y - a.y) * (len ? acc[i] / len : 0) - gy(r.pts[i][0], r.pts[i][1]); if (v > r.dk[i] + 0.05) { r.dk[i] = v; ch++; } } if (ch) r.up = r.up || r.dk.some(v => v > 0.3); }); return ch; };
     /* a long bridge that the map names as a bridge (the Coronado, the Bay Bridge, the Golden Gate) climbs to let ships under:
        up to 55 m at the middle of its length (the Coronado's deck is 61 m over the channel). Viaducts over land stay at their level. */
-    P.high = roads => { const sp = roads.filter(r => r.span && /bridge/i.test(r.name || '') && (r.kind === 'freeway' || r.kind === 'major')), par = sp.map((r, i) => i), find = i => { while (par[i] !== i) i = par[i] = par[par[i]]; return i; }, ends = new Map();
+    P.high = roads => { const sp = roads.filter(r => r.span && !r.sky && /bridge/i.test(r.name || '') && (r.kind === 'freeway' || r.kind === 'major')), par = sp.map((r, i) => i), find = i => { while (par[i] !== i) i = par[i] = par[par[i]]; return i; }, ends = new Map();
       sp.forEach((r, i) => [r.pts[0], r.pts[r.pts.length - 1]].forEach(p => { const k = key(p), j = ends.get(k); if (j === undefined) ends.set(k, i); else par[find(i)] = find(j); }));
       const G = new Map(); sp.forEach((r, i) => { const g = find(i); let o = G.get(g); if (!o) G.set(g, o = { len: 0, rs: [], pts: [] }); for (let q = 1; q < r.pts.length; q++) o.len += Math.hypot(r.pts[q][0] - r.pts[q - 1][0], r.pts[q][1] - r.pts[q - 1][1]); o.rs.push(r); o.pts.push(r.pts[0], r.pts[r.pts.length - 1]); });
       G.forEach(o => { if (o.len < 900) return; let A = o.pts[0], B = o.pts[1], bd = 0; for (const p of o.pts) for (const q of o.pts) { const d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d > bd) { bd = d; A = p; B = q; } } const hm = clamp((o.len - 600) / 45, 0, 55), ux = (B[0] - A[0]) / bd, uz = (B[1] - A[1]) / bd;
@@ -3719,8 +3749,8 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     F.setRoads = roads => {
       const use = new Map(), ways = roads.filter(r => (r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable') && r.pts.length > 1);
       ways.forEach(r => r.pts.forEach((p, i) => { const k = key(p); use.set(k, (use.get(k) || 0) + (i === 0 || i === r.pts.length - 1 ? 1 : 2)); }));
-      const segs = [], mk = (r, a, b, rev) => { let pts = r.pts.slice(a, b + 1), dk = r.dk.slice(a, b + 1); if (rev) { pts.reverse(); dk.reverse(); } const n = pts.length, acc = [0]; for (let i = 1; i < n; i++) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); if (acc[n - 1] < 0.6) return;
-        const ln = r.ow ? r.ln : Math.max(1, Math.floor(r.ln / 2)), s = { id: segs.length, r, kind: r.kind, pts, dk, acc, len: acc[n - 1], n: ln, lim: r.kind === 'cable' ? 4.25 : r.sp, hov: !!r.hov && ln > 2, hide: r.lv < 0, from: key(pts[0]), to: key(pts[n - 1]), ins: [], outs: [], conn: [], L: [], nx: [], nz: [], vc: new Float32Array(n), act: true, e0: 0, e1: 0, b0: 1, b1: 1, k: 8, vt: r.sp, truck: 0.04, feed: null, shiftX: r.ow ? 0 : (r.ln / 4) * LW };
+      const segs = [], mk = (r, a, b, rev) => { let pts = r.pts.slice(a, b + 1), dk = r.dk.slice(a, b + 1), sk = r.sk ? Array.from(r.sk.slice(a, b + 1)) : null; if (rev) { pts.reverse(); dk.reverse(); if (sk) sk.reverse(); } const n = pts.length, acc = [0]; for (let i = 1; i < n; i++) acc.push(acc[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); if (acc[n - 1] < 0.6) return;
+        const ln = r.ow ? r.ln : Math.max(1, Math.floor(r.ln / 2)), s = { id: segs.length, r, kind: r.kind, pts, dk, sk, acc, len: acc[n - 1], n: ln, lim: r.kind === 'cable' ? 4.25 : r.sp, hov: !!r.hov && ln > 2, hide: r.lv < 0, from: key(pts[0]), to: key(pts[n - 1]), ins: [], outs: [], conn: [], L: [], nx: [], nz: [], vc: new Float32Array(n), act: true, e0: 0, e1: 0, b0: 1, b1: 1, k: 8, vt: r.sp, truck: 0.04, feed: null, shiftX: r.ow ? 0 : (r.ln / 4) * LW };
         for (let i = 0; i < ln; i++) s.L.push([]);
         for (let i = 0; i < n; i++) { const p = pts[Math.max(0, i - 1)], q = pts[Math.min(n - 1, i + 1)], a0 = pts[i]; let ax = a0[0] - p[0], az = a0[1] - p[1], bx = q[0] - a0[0], bz = q[1] - a0[1]; const al = Math.hypot(ax, az), bl = Math.hypot(bx, bz); if (al > 1e-6) { ax /= al; az /= al; } if (bl > 1e-6) { bx /= bl; bz /= bl; } if (al <= 1e-6) { ax = bx; az = bz; } if (bl <= 1e-6) { bx = ax; bz = az; }
           let mx = -(az + bz), mz = ax + bx; const ml = Math.hypot(mx, mz) || 1; mx /= ml; mz /= ml; const cs = Math.max(0.6, mx * -az + mz * ax); s.nx.push(mx / cs); s.nz.push(mz / cs);
@@ -3764,7 +3794,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     function pose(c) { const s = c.seg, A = s.acc; let i = c.i || 0; if (i > A.length - 2) i = A.length - 2; while (i > 0 && A[i] > c.s) i--; while (i < A.length - 2 && A[i + 1] < c.s) i++; c.i = i;
       const t = clamp((c.s - A[i]) / (A[i + 1] - A[i] || 1), 0, 1), off = (c.lane - (s.n - 1) / 2) * LW + F.shiftAt(s, c.s) + c.lat, a = s.pts[i], b = s.pts[i + 1], ax = a[0] + s.nx[i] * off, az = a[1] + s.nz[i] * off, bx = b[0] + s.nx[i + 1] * off, bz = b[1] + s.nz[i + 1] * off;
       let hx = bx - ax, hz = bz - az; const hl = Math.hypot(hx, hz) || 1; hx /= hl; hz /= hl; if (c.lat) { const sk = clamp(-c.latV / Math.max(c.v, 3), -0.25, 0.25); const rx = -hz, rz = hx; hx += rx * sk; hz += rz * sk; const l2 = Math.hypot(hx, hz); hx /= l2; hz /= l2; }
-      c.x = ax + (bx - ax) * t; c.z = az + (bz - az) * t; c.hx = hx; c.hz = hz; c.yaw = Math.atan2(hx, hz); c.dk = s.dk[i] + (s.dk[i + 1] - s.dk[i]) * t; c.vcap = s.vc[i] + (s.vc[i + 1] - s.vc[i]) * t; }
+      c.x = ax + (bx - ax) * t; c.z = az + (bz - az) * t; c.hx = hx; c.hz = hz; c.yaw = Math.atan2(hx, hz); c.dk = s.dk[i] + (s.dk[i + 1] - s.dk[i]) * t; c.gi = i; c.vcap = s.vc[i] + (s.vc[i + 1] - s.vc[i]) * t; }
     F.shiftAt = (s, d) => s.shiftX + (s.e0 ? s.e0 * (1 - smoothstep(0, s.b0, d)) : 0) + (s.e1 ? s.e1 * smoothstep(s.len - s.b1, s.len, d) : 0);
     F.pose = pose;
     const TYPE = { car: [4.8, 1.86, A_CAR, TH], truck: [20.4, 2.6, A_TRUCK, 1.8], box: [8.2, 2.5, 0.8, 1.6], bus: [12.2, 2.6, 0.8, 1.6], cable: [8.4, 2.44, 0.6, 2.0] };
@@ -3855,6 +3885,14 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
   SE.TrafficKit = function (engine, K, S, ST, env, gfx, H) {
     const dev = engine.device, scene = engine.scene, D = SE.TrafficData, RP = SE.RoadPrep, LW = RP.LW, TF = {}, F = SE.Flow(), TR = ST.traffic, TYPES = ST.TYPES, CK = ST.CK, R = rng(90210);
     const GY = (x, z) => (S.gy ? S.gy(x, z) : 0), RAD = Math.PI / 180;
+    /* The landmark bridges are built by the aircraft, ships and bridges kit, which gives their decks' heights (S.deckAt). A road that
+       runs along such a deck rides it: skyY is the deck's height in local y under (x, z) for a road heading (hx, hz), or null (no deck,
+       or a road that only passes under it). Where a bridge has two decks, traffic heading east takes the lower one (the Bay Bridge's west span). */
+    const SKQ = { info: true }, skyY = (x, z, hx, hz) => { if (!S.deckAt) return null; const d = S.deckAt(x, z, SKQ); if (!d) return null; if (hx != null && Math.abs(hx * d.tx + hz * d.tz) < 0.8) return null; return d.lower && hx > 0.15 ? d.y - d.lower : d.y; };
+    const PREP = { sky: (x, z, hx, hz) => { const y = skyY(x, z, hx, hz); return y == null ? null : y - GY(x, z); } };
+    /* where a vehicle of the freeway model stands: on the landmark deck if its piece runs on one, else on its own deck over the ground */
+    const yOn = c => { if (c.seg && c.seg.sk) { const y = skyY(c.x, c.z, c.hx, c.hz); if (y != null) return y; } return GY(c.x, c.z) + c.dk; };
+    TF.skyY = skyY; TF.yOn = yOn;
     TF.flow = F; S.traffic = TF;
     /* the mix of cars on California's roads: fewer full-size pickups than the engine's first edition drew, more sedans and electric cars (a choice, not a count) */
     [0.28, 0.3, 0.12, 0.14, 0.16].forEach((v, i) => { if (TYPES[i]) TYPES[i].share = v; });
@@ -3875,9 +3913,13 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     /* the freeways for several kilometres round, on their own: a small answer, and the far traffic has a road to run on */
     function askFwy(la, lo) { const t = snap(la, lo, QF), k = t[0].toFixed(4) + ',' + t[1].toFixed(4); if (fcur && fcur.k === k) return null; t.k = k; fcur = t; const my = ++fwyAsk, g = S.gen; let p = ftiles.get(k); if (!p) { try { p = Promise.resolve(env.roads(t[0], t[1], 3600, { only: 'freeway' })); } catch (e) { p = Promise.resolve([]); } ftiles.set(k, p); p.catch(() => ftiles.delete(k)); }
       return p.then(list => { if (my !== fwyAsk || g !== S.gen || !list) return; fwyRaw = list.filter(r => r.kind === 'freeway' || r.kind === 'ramp'); fwyRaw.tiger = !!list.tiger; if (rebuild() && !inAsk && H.replan) H.replan();   /* trees and doors are laid out again round the new freeways */ H.need(); }).catch(() => {}); }
+    /* The ground firms up as its tiles arrive, the datum moves, and the landmark bridges can be switched off: the heights of the decks over
+       the ground are worked out again then, on the roads as they stand (the world calls this at the head of its street build). */
+    let gradeV = ''; const gradeNow = () => (S.terr && S.terr.verOf ? S.terr.verOf({ x0: S.x - 600, x1: S.x + 600, zN: S.z - 600, zS: S.z + 600 }, 0) : 0) + '/' + (S.y0 || 0) + '/' + (S.deckAt && S.deckAt.live && S.deckAt.live() ? 1 : 0);
+    TF.regrade = () => { const v = gradeNow(); if (v === gradeV || !TF.streets) return false; gradeV = v; RP.decks(TF.streets, PREP); RP.level(TF.streets, GY); fwyKey = ''; rebuild(); return true; };
     /* what the world's street builder gets: the surface streets, in local metres, with what the traffic needs on them */
     TF.take = list => { if (gen !== S.gen) { gen = S.gen; F.clear(); fwyKey = ''; } strRaw = list || [];
-      const loc = strRaw.filter(r => r.kind !== 'freeway' && r.kind !== 'ramp' && r.kind !== 'cable').map(r => Object.assign({}, r, { name: r.name || '', pts: r.pts.map(p => S.toL(p[0], p[1])) })).filter(r => r.pts.length >= 2), roads = RP.prep(loc);
+      const loc = strRaw.filter(r => r.kind !== 'freeway' && r.kind !== 'ramp' && r.kind !== 'cable').map(r => Object.assign({}, r, { name: r.name || '', pts: r.pts.map(p => S.toL(p[0], p[1])) })).filter(r => r.pts.length >= 2), roads = RP.prep(loc, PREP); RP.level(roads, GY); gradeV = gradeNow();
       /* signals stand where the map says they do, when the map came with its signals */
       if (strRaw.osm && strRaw.signals) { const G = new Set(); strRaw.signals.forEach(p => { const q = S.toL(p[0], p[1]); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) G.add((Math.round(q[0] / 14) + i) + ':' + (Math.round(q[1] / 14) + j)); }); roads.sig = (x, z) => G.has(Math.round(x / 14) + ':' + Math.round(z / 14)); }
       TF.streets = roads; rebuild(); return roads; };
@@ -3903,20 +3945,23 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     const put = SE.tput = (ib, x, y, z, hx, hz, sp, col, a, sc) => { ib._grow(ib.count + 1); const d = ib.data, o = ib.count * 16, cp = Math.sqrt(1 - sp * sp), k = sc || 1; d[o] = hz * k; d[o + 1] = -hx * sp * k; d[o + 2] = hx * cp * k; d[o + 3] = x; d[o + 4] = 0; d[o + 5] = cp * k; d[o + 6] = sp * k; d[o + 7] = y; d[o + 8] = -hx * k; d[o + 9] = -hz * sp * k; d[o + 10] = hz * cp * k; d[o + 11] = z; d[o + 12] = col[0]; d[o + 13] = col[1]; d[o + 14] = col[2]; d[o + 15] = a == null ? 1 : a; ib.dirty = true; ib.count++; };
     /* how much a vehicle's nose is up, from the ground under its two ends and the deck it is on */
     const pitchOf = (c, hl) => { if (!S.gy) return 0; const a = GY(c.x + c.hx * hl, c.z + c.hz * hl), b = GY(c.x - c.hx * hl, c.z - c.hz * hl); return clamp((a - b) / (2 * hl), -0.4, 0.4); };
+    /* on a deck: the slope of the deck itself, from the two points of its piece the vehicle is between */
+    const deckPitch = c => { const s = c.seg, i = c.gi; if (!s || i == null || i + 1 >= s.pts.length) return 0; const a = s.pts[i], b = s.pts[i + 1], l = s.acc[i + 1] - s.acc[i] || 1; return clamp((GY(b[0], b[1]) + s.dk[i + 1] - GY(a[0], a[1]) - s.dk[i]) / l, -0.4, 0.4); };
     /* the street traffic's cars are placed through here too (the port routes StreetKit's own line to it): on the ground or the deck under them, nose up or down with the slope */
     /* where the terrain kit has taken a buffer in hand (S.terr.onGround: it lifts and tilts what is added), the car goes through it, with its deck height if it is on one */
-    SE.carPut = (ib, Sx, c, alpha) => { if (ib._onGround) ib.add(c.x, c.dk ? GY(c.x, c.z) + c.dk : 0, c.z, c.yaw, 1, 1, 1, c.col[0], c.col[1], c.col[2], alpha); else put(ib, c.x, GY(c.x, c.z) + (c.dk || 0), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, c.hl || 2.4), c.col, alpha); };
+    const yStreet = c => { if (c.dk > 0.3 && S.deckAt) { const y = skyY(c.x, c.z, c.hx, c.hz); if (y != null) return y; } return GY(c.x, c.z) + (c.dk || 0); };
+    SE.carPut = (ib, Sx, c, alpha) => { if (ib._onGround && !(c.dk > 0.3)) ib.add(c.x, 0, c.z, c.yaw, 1, 1, 1, c.col[0], c.col[1], c.col[2], alpha); else put(ib, c.x, yStreet(c), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, c.hl || 2.4), c.col, alpha); };
 
     /* ---------- building: the decks, the paint, the piers ---------- */
     const yel = K.hexRGB('#d9a92e'), wht = K.hexRGB('#e6e4dc'), conc = [0.62, 0.61, 0.58, 1], concD = [0.5, 0.49, 0.47, 1];
     function clear() { parts.forEach(p => { p.e.destroy(); p.mesh.dispose(); }); parts = []; }
     /* a strip along a line at sideways offsets a..b (right of the heading is positive), lifted by `lift` over the deck */
-    const strip = (B, P, N, Y, a, b, lift, col, aux, d0, d1, acc) => { for (let i = 0; i + 1 < P.length; i++) { if (acc && (acc[i + 1] < d0 || acc[i] > d1)) continue; const A = [P[i][0] + N[i][0] * b(i), Y[i] + lift, P[i][1] + N[i][1] * b(i)], Bq = [P[i][0] + N[i][0] * a(i), Y[i] + lift, P[i][1] + N[i][1] * a(i)], C = [P[i + 1][0] + N[i + 1][0] * a(i + 1), Y[i + 1] + lift, P[i + 1][1] + N[i + 1][1] * a(i + 1)], E = [P[i + 1][0] + N[i + 1][0] * b(i + 1), Y[i + 1] + lift, P[i + 1][1] + N[i + 1][1] * b(i + 1)]; B.quad(A, Bq, C, E, [0, 1, 0], aux ? [[A[0] / 4, A[2] / 4], [Bq[0] / 4, Bq[2] / 4], [C[0] / 4, C[2] / 4], [E[0] / 4, E[2] / 4]] : null, col || WHITE, aux); } };
+    const strip = (B, P, N, Y, a, b, lift, col, aux, d0, d1, acc, sk) => { for (let i = 0; i + 1 < P.length; i++) { if (acc && (acc[i + 1] < d0 || acc[i] > d1)) continue; if (sk && sk[i] && sk[i + 1]) continue; const A = [P[i][0] + N[i][0] * b(i), Y[i] + lift, P[i][1] + N[i][1] * b(i)], Bq = [P[i][0] + N[i][0] * a(i), Y[i] + lift, P[i][1] + N[i][1] * a(i)], C = [P[i + 1][0] + N[i + 1][0] * a(i + 1), Y[i + 1] + lift, P[i + 1][1] + N[i + 1][1] * a(i + 1)], E = [P[i + 1][0] + N[i + 1][0] * b(i + 1), Y[i + 1] + lift, P[i + 1][1] + N[i + 1][1] * b(i + 1)]; B.quad(A, Bq, C, E, [0, 1, 0], aux ? [[A[0] / 4, A[2] / 4], [Bq[0] / 4, Bq[2] / 4], [C[0] / 4, C[2] / 4], [E[0] / 4, E[2] / 4]] : null, col || WHITE, aux); } };
     const wall = (B, P, N, Y, off, y0, y1, col) => { for (let i = 0; i + 1 < P.length; i++) { const o0 = off(i), o1 = off(i + 1), ax = P[i][0] + N[i][0] * o0, az = P[i][1] + N[i][1] * o0, bx = P[i + 1][0] + N[i + 1][0] * o1, bz = P[i + 1][1] + N[i + 1][1] * o1, nx = N[i][0], nz = N[i][1]; B.quad([ax, Y[i] + y0, az], [bx, Y[i + 1] + y0, bz], [bx, Y[i + 1] + y1, bz], [ax, Y[i] + y1, az], [nx, 0, nz], null, col); B.quad([bx, Y[i + 1] + y0, bz], [ax, Y[i] + y0, az], [ax, Y[i] + y1, az], [bx, Y[i + 1] + y1, bz], [-nx, 0, -nz], null, col); } };
     function deck(Bd, Bs, Pt, P, N, DK, hw, shift, o) { const Y = P.map((p, i) => GY(p[0], p[1]) + DK[i]), AXL = [0, 0, 0, K.LAYER[o.surf || 'asphalt']], AX = [AXL, AXL, AXL, AXL], L = i => shift(i) - hw, Rr = i => shift(i) + hw;
-      if (!o.hide) strip(Bd, P, N, Y, L, Rr, 0.11, null, AX);
+      const sk = o.sk || null; if (!o.hide) strip(Bd, P, N, Y, L, Rr, 0.11, null, AX, undefined, undefined, null, sk);
       /* where the road stands clear of the ground: a slab, a parapet each side, and piers under it */
-      let acc = 0, next = 14; for (let i = 0; i + 1 < P.length; i++) { const up = DK[i] > 1.2 || DK[i + 1] > 1.2, sl = [P[i], P[i + 1]], sn = [N[i], N[i + 1]], sy = [Y[i], Y[i + 1]], l = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+      let acc = 0, next = 14; for (let i = 0; i + 1 < P.length; i++) { const up = (DK[i] > 1.2 || DK[i + 1] > 1.2) && !(sk && sk[i] && sk[i + 1]), sl = [P[i], P[i + 1]], sn = [N[i], N[i + 1]], sy = [Y[i], Y[i + 1]], l = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
         if (up && !o.hide) { const a = j => (j ? shift(i + 1) : shift(i)) - hw, b = j => (j ? shift(i + 1) : shift(i)) + hw; wall(Bs, sl, sn, sy, a, -1.2, 0.95, conc); wall(Bs, sl, sn, sy, b, -1.2, 0.95, conc); strip(Bs, sl, sn, sy.map(v => v - 1.2), b, a, 0, concD);
           while (next < acc + l) { const t = (next - acc) / l, dk = DK[i] + (DK[i + 1] - DK[i]) * t; if (dk > 2.6) { const cx = P[i][0] + (P[i + 1][0] - P[i][0]) * t, cz = P[i][1] + (P[i + 1][1] - P[i][1]) * t, nx = N[i][0], nz = N[i][1], sh = shift(i), yaw = Math.atan2(nx, nz), cols = hw > 8 ? [-hw * 0.5, hw * 0.5] : [0]; cols.forEach(q => { const px = cx + nx * (sh + q), pz = cz + nz * (sh + q), g = GY(px, pz), top = sy[0] + (sy[1] - sy[0]) * t - 1.2; if (top - g > 1) Bs.box(px, (top + g) / 2, pz, Math.min(1.6, 0.7 + dk * 0.03), (top - g) / 2, 0.8, yaw, concD); }); if (hw > 5) Bs.box(cx + nx * sh, sy[0] + (sy[1] - sy[0]) * t - 1.75, cz + nz * sh, hw * 0.92, 0.55, 0.9, yaw, concD); } next += dk > 30 ? 60 : 32; } }
         else if (!up) next = Math.max(next, acc + l + 14); acc += l; }
@@ -3925,12 +3970,12 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       if (!H.root()) return false; if (!group) group = scene.createEntity('Freeways and their traffic (generated)', { parent: H.root(), transient: true });
       /* the freeway set: what the wide answer gave, and whatever the street answer holds besides */
       const seen = new Set(), raw = []; fwyRaw.concat(strRaw.filter(r => r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable')).forEach(r => { const k = r.id != null ? r.id : r.pts[0].join() + r.pts.length; if (seen.has(k)) return; seen.add(k); raw.push(r); });
-      const key = S.gen + ':' + raw.length + ':' + raw.reduce((a, r) => (a + (typeof r.id === 'number' ? r.id : r.pts.length * 7919)) % 1e9, 0) + ':' + (TF.streets ? TF.streets.filter(r => r.up).length : 0); if (key === fwyKey) return false; fwyKey = key;
+      const key = S.gen + ':' + raw.length + ':' + raw.reduce((a, r) => (a + (typeof r.id === 'number' ? r.id : r.pts.length * 7919)) % 1e9, 0) + ':' + (TF.streets ? TF.streets.filter(r => r.up).length : 0) + ':' + gradeV; if (key === fwyKey) return false; fwyKey = key;
       const loc = raw.map(r => Object.assign({}, r, { pts: r.pts.map(p => S.toL(p[0], p[1])) })); if (fwyRaw.tiger || strRaw.tiger) RP.pairDirs(loc);
-      const roads = RP.prep(loc); RP.high(roads); RP.ground(roads); F.setRoads(roads); TF.roads = roads; clear(); demandAt = null;
+      const roads = RP.prep(loc, PREP); RP.high(roads); RP.ground(roads); RP.level(roads, GY); F.setRoads(roads); TF.roads = roads; clear(); demandAt = null;
       const Bd = new MeshBuilder({ aux: true }), Bs = new MeshBuilder(), Pt = new MeshBuilder();
       F.segs.forEach(s => { if (s.kind === 'cable') return; const P = s.pts, N = P.map((p, i) => [s.nx[i], s.nz[i]]), sh = i => F.shiftAt(s, s.acc[i]), hw = s.n * LW / 2, sho = s.kind === 'ramp' ? 1.8 : 2.4;
-        const Y = deck(Bd, Bs, Pt, P, N, s.dk, hw + sho, sh, { hide: s.hide, surf: s.r.span ? 'concrete' : 'asphalt' }); if (s.hide) return;
+        const Y = deck(Bd, Bs, Pt, P, N, s.dk, hw + sho, sh, { hide: s.hide, sk: s.sk, surf: s.r.span ? 'concrete' : 'asphalt' }); if (s.hide) return;
         /* freeway paint: a yellow line on the left edge, a white one on the right, and between the lanes four raised dots and a gap (Botts' dots), 48 ft from one group to the next */
         strip(Pt, P, N, Y, i => sh(i) - hw - 0.08, i => sh(i) - hw + 0.08, 0.135, yel); strip(Pt, P, N, Y, i => sh(i) + hw - 0.08, i => sh(i) + hw + 0.08, 0.135, wht);
         for (let ln = 1; ln < s.n; ln++) { const off = (ln - s.n / 2) * LW; if (s.hov && ln === 1) { strip(Pt, P, N, Y, i => sh(i) + off - 0.2, i => sh(i) + off - 0.08, 0.135, wht); strip(Pt, P, N, Y, i => sh(i) + off + 0.08, i => sh(i) + off + 0.2, 0.135, wht); continue; }
@@ -3938,7 +3983,8 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
             for (let q = 0; q < 4; q++) { const a = q * 1.22, b = a + 0.32, w = 0.075; Pt.quad([x + ux * a - uz * w, y + sl * a, z + uz * a + ux * w], [x + ux * a + uz * w, y + sl * a, z + uz * a - ux * w], [x + ux * b + uz * w, y + sl * b, z + uz * b - ux * w], [x + ux * b - uz * w, y + sl * b, z + uz * b + ux * w], [0, 1, 0], null, wht); } } } });
       /* surface streets that cross on a bridge: their own deck, a centre line, and the rise to it */
       (TF.streets || []).forEach(r => { if (!r.up) return; const P = r.pts, N = P.map((p, i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [-(b[1] - a[1]) / l, (b[0] - a[0]) / l]; }), hw = (r.w || (K.ROADW[r.kind] || K.ROADW.street)[0]) / 2;
-        const Y = deck(Bd, Bs, Pt, P, N, r.dk, hw, () => 0, { surf: r.span ? 'concrete' : 'asphalt' }); if (r.kind === 'major' && !r.ow) { strip(Pt, P, N, Y, () => -0.2, () => -0.08, 0.135, yel); strip(Pt, P, N, Y, () => 0.08, () => 0.2, 0.135, yel); } });
+        if (r.kind === 'path') return;   /* a footway on a landmark bridge: the bridge's own deck is all there is to draw */
+        const Y = deck(Bd, Bs, Pt, P, N, r.dk, hw, () => 0, { sk: r.sk, surf: r.span ? 'concrete' : 'asphalt' }); if (r.kind === 'major' && !r.ow && !r.sky) { strip(Pt, P, N, Y, () => -0.2, () => -0.08, 0.135, yel); strip(Pt, P, N, Y, () => 0.08, () => 0.2, 0.135, yel); } });
       [['Freeway and bridge decks', Bd, M.road], ['Bridge structure', Bs, mStruct], ['Freeway paint', Pt, M.paint]].forEach(([name, b, mat]) => { if (b.empty) return; const mesh = b.build(dev, { name, clusters: 320 }), e = scene.createEntity(name, { parent: group, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.castShadow = mat === mStruct; mr.pickable = false; parts.push({ e, mesh }); });
       fleetInit(); TF.stats = { pieces: F.segs.length, laneKm: +F.laneKm.toFixed(1), raised: roads.filter(r => r.up).length }; return true;
     }
@@ -3970,7 +4016,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       p = -dx * b.hz + dz * b.hx; o = b.hw + al * s + aw * c - Math.abs(p); if (o <= 0) return null; if (o < best) { best = o; nx = -b.hz * (p < 0 ? -1 : 1); nz = b.hx * (p < 0 ? -1 : 1); }
       return [best, -nx, -nz]; };
     S.trafficHit = TF.hit = (x, z, yaw, o) => { const h = S.hero || {}, y = (yaw || 0) * RAD, hx = Math.sin(y), hz = -Math.cos(y), hl = (h.len || 4.8) / 2, hw = (h.wid || 1.9) / 2; let best = null, bd = 1e9;
-      const dkH = h.dk != null ? h.dk : null, test = (c, kind) => { if (c.out || Math.abs(c.x - x) > 16 || Math.abs(c.z - z) > 16 || (dkH != null && Math.abs((c.dk || 0) - dkH) > 3)) return; const r = sat(x, z, hx, hz, hl, hw, c); if (!r) return; const d = Math.hypot(c.x - x, c.z - z); if (d < bd) { bd = d; best = { nx: r[1], nz: r[2], depth: r[0], x: c.x, z: c.z, yaw: c.yaw, hx: c.hx, hz: c.hz, v: c.v, hl: c.hl, hw: c.hw, kind, car: c }; } };
+      const dkH = h.dk != null ? h.dk : h.y != null ? h.y - GY(x, z) : null   /* how high the car stands over the ground: what is on another level (under a bridge, on one) is not struck */, test = (c, kind) => { if (c.out || Math.abs(c.x - x) > 16 || Math.abs(c.z - z) > 16 || (dkH != null && Math.abs((c.dk || 0) - dkH) > 3)) return; const r = sat(x, z, hx, hz, hl, hw, c); if (!r) return; const d = Math.hypot(c.x - x, c.z - z); if (d < bd) { bd = d; best = { nx: r[1], nz: r[2], depth: r[0], x: c.x, z: c.z, yaw: c.yaw, hx: c.hx, hz: c.hz, v: c.v, hl: c.hl, hw: c.hw, kind, car: c }; } };
       for (const c of F.cars) test(c, c.kind); for (const c of TR.cars) test(c, 'car'); for (const c of (TR.parked || [])) if (Math.abs(c.x - x) < 16) test(c, 'parked');
       if (best && !(o && o.stop === false) && best.kind !== 'parked' && best.depth > 0.03) { const c = best.car; c.v = 0; if (c.legs) c.crash = 3; else { c.a = 0; c.halt = 3; } } return best; };
 
@@ -3982,13 +4028,13 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       if (o.moving) { const n = Math.max(1, Math.min(3, Math.ceil(dt / 0.034))); for (let i = 0; i < n; i++) F.step(dt / n, eye); }
       fleet.forEach(f => { f.near.clear(); f.far.clear(); }); for (const k in big) big[k].clear(); dots.head.clear(); dots.tail.clear();
       const lit = night > 0.12, bodyR = CAP()[2]; mHead.emissiveIntensity = 60 * night; mTail.emissiveIntensity = 26 * night; const ey = cam[1], white = WHITE;
-      for (const c of F.cars) { if (c.seg.hide) continue; const dx = c.x - eye[0], dz = c.z - eye[1], y = GY(c.x, c.z) + c.dk, d = Math.sqrt(dx * dx + dz * dz + (ey - y) * (ey - y)); if (c.halt > 0) { c.halt -= dt; c.v = 0; }
-        const sp = d < 400 ? (S.gy && c.dk < 0.3 ? pitchOf(c, c.hl) : c.dkS || 0) : 0;
+      for (const c of F.cars) { if (c.seg.hide) continue; const dx = c.x - eye[0], dz = c.z - eye[1], y = yOn(c), d = Math.sqrt(dx * dx + dz * dz + (ey - y) * (ey - y)); if (c.halt > 0) { c.halt -= dt; c.v = 0; }
+        const sp = d < 400 ? (c.dk < 0.3 && !c.seg.sk ? (S.gy ? pitchOf(c, c.hl) : 0) : deckPitch(c)) : 0;
         if (c.kind === 'car') { if (d < bodyR) put(fleet[c.ty][d < 150 ? 'near' : 'far'], c.x, y, c.z, c.hx, c.hz, sp, c.col, c.halt > 0 ? 0.5 : c.brake ? 0.75 : 1); else if (night < 0.6) big.speck.add(c.x, y + 0.25, c.z, c.yaw, c.hw * 2, 1.25, c.hl * 2, c.col[0], c.col[1], c.col[2], 1); }
         else { if (!c.col) c.col = c.kind === 'bus' ? TF.busCol() : c.kind === 'cable' ? white : [[0.95, 0.95, 0.93], [0.8, 0.82, 0.85], [0.75, 0.2, 0.15], [0.2, 0.35, 0.6], [0.93, 0.8, 0.25]][Math.floor(c.tint * 5)]; put(big[c.kind], c.x, y, c.z, c.hx, c.hz, sp, c.col, 1); }
         if (lit && d > 110) { const k = clamp(d / 240, 1, 7); put(dots.head, c.x + c.hx * (c.hl + 0.1), y + 0.7, c.z + c.hz * (c.hl + 0.1), c.hx, c.hz, 0, white, 1, k); put(dots.tail, c.x - c.hx * (c.hl + 0.1), y + 0.85, c.z - c.hz * (c.hl + 0.1), c.hx, c.hz, 0, white, 1, k * (c.brake ? 1.35 : 0.9)); } }
       /* the street traffic's buses (StreetKit hands over what its own five bodies cannot draw) */
-      if (ST.bigCars) { for (const c of ST.bigCars) put(big.bus, c.x, GY(c.x, c.z) + (c.dk || 0), c.z, c.hx, c.hz, pitchOf(c, c.hl), c.bcol || (c.bcol = TF.busCol()), 1); ST.bigCars.length = 0; }
+      if (ST.bigCars) { for (const c of ST.bigCars) put(big.bus, c.x, yStreet(c), c.z, c.hx, c.hz, pitchOf(c, c.hl), c.bcol || (c.bcol = TF.busCol()), 1); ST.bigCars.length = 0; }
       return !!o.moving && F.cars.length > 0;
     };
     /* bus colours by city: Muni silver (with the red stripe the mesh carries), Los Angeles Metro orange, San Diego white and red; elsewhere white */
@@ -4561,7 +4607,7 @@ const lanePointW = (w, off, dir, d, out) => { const A = w.acc, L = laneLine(w, o
     const baseOf = P => { let lo = Infinity, hi = -Infinity; for (const p of P) { const y = S.gy(p[0], p[1]); if (y < lo) lo = y; if (y > hi) hi = y; } return { lo, y: hi }; }, liftB = (Bd, from, dy) => { if (!dy) return; const a = Bd.p.a; for (let i = from + 1; i < Bd.p.n; i += 3) a[i] += dy; };
     const DATA = new Map(), VER = new Map();      /* tile key -> features in latitude and longitude, kept across a recentre; and how many times each has arrived */
     let active = 0; const buildQ = [];
-    const roofMat = tex => new Material({ name: 'Wider city: ground and lids', albedoMap: tex, roughness: 0.94, castShadow: false, wet: 0 });
+    const roofMat = tex => new Material({ name: 'Wider city: ground and lids', albedoMap: tex, roughness: 0.94, castShadow: false, wet: -1 });
     const skyRoof = new Material({ name: 'Skyline lids', albedo: '#8d8f90', roughness: 0.9, castShadow: false });
     const ringOf = f => { let P = f.ring.map(q => S.toL(q[0], q[1])); if (P.length > 1) { const a = P[0], z = P[P.length - 1]; if (Math.abs(a[0] - z[0]) < 1e-6 && Math.abs(a[1] - z[1]) < 1e-6) P = P.slice(0, -1); }
       if (P.length < 3) return null; const ar = Poly.area(P); if (Math.abs(ar) < 4) return null; if (ar < 0) P.reverse();
@@ -5084,9 +5130,9 @@ const lanePointW = (w, off, dir, d, out) => { const A = w.acc, L = laneLine(w, o
   const SKY = [
     { k: 'none', l: 'As the weather sets it', s: 'None', note: 'No sky state: the sky is the one chosen under Weather, or the storm\'s.' },
     { k: 'marine', l: 'Marine layer (June gloom)', s: 'Marine layer', vis: 6,
-      note: 'A low stratus deck off the ocean: flat, cool, grey light and no rain. It is full at night and in the morning, thins from mid morning and is gone by early afternoon on most days, then comes back in the evening (drawn by the sun\'s hour: full before 9:30, gone by 13:00, back from 17:30). No record of the marine layer was collected for this atlas: every figure here is a choice. The deck is drawn at the engine\'s cloud height, higher than a real one (a few hundred metres). It is held off while rain or offshore wind is set: an offshore wind pushes it out to sea.' },
+      note: 'A low stratus deck off the ocean: flat, cool, grey light and no rain. It is full at night and in the morning, thins from mid morning and is gone by early afternoon on most days, then comes back in the evening (drawn by the sun\'s hour: full before 9:30, gone by 13:00, back from 17:30). No record of the marine layer was collected for this atlas: every figure here is a choice. The layer is drawn as grey air from the sea up to 450 m above sea level (a choice: real decks top out between about 300 and 900 m), with the overcast above it only for someone under it: a hill or a craft higher than that stands in the sun over a white sea. It is held off while rain or offshore wind is set: an offshore wind pushes it out to sea.' },
     { k: 'tule', l: 'Tule fog', s: 'Tule fog', vis: 0.2,
-      note: 'The Central Valley\'s winter ground fog, under a strong inversion in still air. Storm Events gives visibility under a quarter mile at Merced, Madera, Fresno and Visalia, under 200 ft in many places, and 50 ft at worst. It is drawn at an eighth of a mile (200 m) so the roofs can still be seen, and about 60 m deep (a choice), so a craft climbs out of it. It is held off while rain or offshore wind is set: it does not survive wind.' },
+      note: 'The Central Valley\'s winter ground fog, under a strong inversion in still air. Storm Events gives visibility under a quarter mile at Merced, Madera, Fresno and Visalia, under 200 ft in many places, and 50 ft at worst. It is drawn at an eighth of a mile (200 m) so the roofs can still be seen, and it fills the low ground to about 110 m over the lowest ground for some 12 km round (a choice), so a craft climbs out of it and the foothills stand clear. It is held off while rain or offshore wind is set: it does not survive wind.' },
     { k: 'smoke', l: 'Wildfire smoke', s: 'Smoke', vis: 2.4,
       note: 'A sky under wildfire smoke: orange light, a dimmed sun, visibility drawn at about 2.4 km, ash falling, and embers blowing through in the two strongest offshore wind steps. It is a picture of a smoke day, not of a fire at this address; every figure is a choice. Embers are what take most houses in a wind driven fire (the roofing evidence file, C1).' },
   ];
@@ -5163,12 +5209,14 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
      y = 0 stands above sea level in metres (null when nobody knows: then no snow is drawn) and snowLevel, if given, takes
      the place of the step's own. */
   function StormKit(engine, o) {
-    o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '' };
+    o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '', top: null, above: false, low: null };
+    /* the marine layer's top, metres above sea level, and how deep the tule fog lies over the lowest ground near (both choices) */
+    const MARINE_TOP = 450, TULE_DEEP = 110;
     const COUNT = { ultra: 30000, high: 20000, medium: 12000, low: 5000 }, SPRAY = { ultra: 900, high: 620, medium: 340, low: 130 }, DEBRIS = { ultra: 1, high: 0.8, medium: 0.5, low: 0.28 };
     /* what is on the screen now, eased toward what the steps ask for, so the scales slide */
     const RS = engine.renderer.settings, G0 = { stars: env.stars == null ? 1 : env.stars, exposure: RS.exposure || 0, saturation: RS.saturation, temperature: RS.temperature || 0, contrast: RS.contrast };
-    const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340 };
-    let want = Object.assign({}, now), dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
+    const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340, base: 0, cbase: 0 };
+    let want = Object.assign({}, now), baseSet = false, dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
     const offs = [0, 1, 2, 3, 4, 5].map(() => [0, 1, 2, 3].map(() => [0, 0, 0])), drift = [0, 0], vel = [[0, -6, 0], [0, 0.3, 0], [0, -1.2, 0], [0, -1.2, 0], [0, -0.7, 0], [0, 0.5, 0]];
     /* one quad, drawn many times: each copy finds its own place from its number */
     const vao = gl.createVertexArray(), quad = gl.createBuffer(); dev.vao(vao); gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); dev.vao(null);
@@ -5215,7 +5263,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
     K.set = (level, w0, o2) => {
       o2 = o2 || {}; level = stepOf(STORM, level); const wl = stepOf(WIND, o2.wind), sk = stepOf(SKY, o2.sky), s = STORM[level], w = WIND[wl], first = !started; started = true; K.level = level; K.windLevel = wl; K.sky = sk;
       K.y0 = o2.y0 == null || !isFinite(o2.y0) ? null : +o2.y0; K.snowOver = o2.snowLevel == null || !isFinite(o2.snowLevel) ? null : +o2.snowLevel; K.snowLine = level ? (K.snowOver != null ? K.snowOver : s.snow) : null;
-      const nm = SE.windName(o2.lat, o2.lon); K.windName = nm[0]; K.hour = o2.hour == null ? null : o2.hour;
+      const nm = SE.windName(o2.lat, o2.lon); K.windName = nm[0]; K.hour = o2.hour == null ? null : o2.hour; K.w0 = w0; K.o2 = o2; K.low = o2.low == null || !isFinite(o2.low) ? null : +o2.low;
       const dryWind = wl >= 2 && !level, gust = Math.max(s.gustMs, w.gustMs), ms = Math.max(s.ms, w.ms);
       let fog = w0.fogDensity, fogH = 90, clouds = w0.clouds, turb = w0.turbidity, sunI = w0.sunIntensity, skyI = w0.skyIntensity, dark = 0, temp = 0, sat = 0, expo = 0, ash = 0, ember = 0;
       /* a dry offshore wind: the air is clear and the sky nearly bare, until the dust is up */
@@ -5223,8 +5271,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (level) { fog = Math.max(s.fog, fog); fogH = 420; clouds = 1; turb = 5 + level * 0.35; sunI = s.sun; skyI = s.sky; dark = s.dark; }
       K.held = ''; K.burn = 0;
       if (sk === 1 || sk === 2) { if (level) K.held = 'held off while it rains'; else if (wl >= 2) K.held = sk === 1 ? 'pushed out to sea by the offshore wind' : 'it does not survive wind'; }
-      if (sk === 1 && !K.held) { const m = marineAt(K.hour); K.burn = 1 - m; clouds = lerp(clouds, 1, m); sunI = lerp(sunI, 0.13, m); skyI = lerp(skyI, 1.45, m); turb = lerp(turb, 5, m); fog = Math.max(fog, 0.00065 * m); fogH = 260; dark = 0.16 * m; temp = -0.9 * m; sat = -0.1 * m; }
-      if (sk === 2 && !K.held) { fog = 3.912 / 200; fogH = 60; sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; }
+      /* The marine layer and the tule fog are layers with a top (K.top, metres above sea level; with no height known, metres over y = 0). The haze
+         fills the air below the top and thins quickly over it; the grey light belongs to whoever is under it (K.above: the camera is over the top). */
+      K.top = null; const under = K.above ? 0 : 1;
+      if (sk === 1 && !K.held) { const m = marineAt(K.hour), mu = m * under; K.burn = 1 - m; K.top = MARINE_TOP; clouds = lerp(clouds, 1, mu); sunI = lerp(sunI, 0.13, mu); skyI = lerp(skyI, 1.45, mu); turb = lerp(turb, 5, mu); fog = Math.max(fog, 0.0011 * m); fogH = 55; dark = 0.16 * mu; temp = -0.9 * mu; sat = -0.1 * mu; }
+      if (sk === 2 && !K.held) { K.top = (K.low != null ? K.low : K.y0 != null ? K.y0 + (o.ground ? o.ground() : 0) : 0) + TULE_DEEP; fog = 3.912 / 200; fogH = 25; if (under) { sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; } }
+      if (K.top == null) K.above = false;
       if (sk === 3) { fog = Math.max(fog, 3.912 / 2400); fogH = Math.max(fogH, 800); turb = 13; sunI *= 0.22; skyI *= 0.55; clouds *= 0.6; dark = Math.max(dark, 0.2); temp += 3.4; sat -= 0.02; ash = 1; ember = wl >= 4 ? (wl - 3) / 2 : 0; }
       want = { dark, rain: s.rain, ms, gf: ms > 0.1 ? Math.max(1, gust / ms) : 1, fall: s.fall || 6, fog, fogH, clouds, wet: level ? 1 : w0.wetness, sway: Math.max(level ? s.sway : 0.35, w.sway),
         spray: level ? clamp((gust - 20) / 40, 0, 1) : 0, dust: dryWind ? w.dust : 0, debris: level ? (gust > 22 ? clamp((gust - 22) / 14, 0, 1) * 130 : 0) : w.leaf, roofing: gust >= 44 ? 0.4 : gust >= 35 ? 0.25 : gust >= 29 ? 0.1 : 0, frond: level ? 0.06 : 0.22,
@@ -5234,8 +5286,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (level || wl) sounds(); engine.requestRender(4);
       return { turbidity: turb, sunIntensity: sunI, skyIntensity: skyI };
     };
+    /* How a tyre holds the road in this weather at a height (local y): 1 dry; a wet road about 0.8, less as the rain gets heavy enough to stand on it
+       (0.62 in the heaviest); lying snow 0.3. Choices, in the range road tests give for wet asphalt and packed snow; the car's own model does the rest. */
+    K.snowAt = y => { const line = K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9; return K.level ? now.snow * smoothstep(line - 40, line + 40, y) : 0; };
+    K.grip = y => { const wet = clamp(now.wet, 0, 1), g = 1 - 0.2 * wet - 0.18 * wet * clamp(now.rain / 25, 0, 1), sn = K.snowAt(y == null ? 0 : y); return g + (0.3 - g) * clamp(sn * 1.4, 0, 1); };
     let graded = false, wasQuiet = false;
-    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
+    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.fogBase = now.base; env.cloudBase = now.cbase; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
       env.snowK = [now.snow, K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9, 45, now.pond];
       const d = now.dark, on = d > 0.001 || Math.abs(now.temp) > 0.001 || Math.abs(now.sat) > 0.001 || Math.abs(now.expo) > 0.001;
       if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo + 1.25 * snowAir * now.snow;   /* a snow scene is bright under any sky: the meter would turn it grey, as a camera does, so it is opened up a stop and a bit */ RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
@@ -5249,6 +5305,10 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       { const d = want.snow - now.snow; if (Math.abs(d) > 0.004) { now.snow += d * (1 - Math.exp(-dt / (d > 0 ? 22 : 30))); moving = true; } else now.snow = want.snow; }
       { const d = want.pond - now.pond; if (Math.abs(d) > 0.004) { now.pond += d * (1 - Math.exp(-dt / (d > 0 ? 9 : 16))); moving = true; } else now.pond = want.pond; }
       { let d = want.bear - now.bear; d -= Math.round(d / 360) * 360; if (Math.abs(d) > 0.3) { now.bear += d * k; moving = true; } else now.bear = want.bear; }
+      /* Where the haze is measured from: the ground under the camera, or the top of a layer; the clouds from the ground under the camera. Both slide, so nothing jumps as the ground changes. */
+      { const g = o.ground ? o.ground() || 0 : 0, tb = K.top != null ? K.top - (K.y0 != null ? K.y0 : 0) : g, kb = baseSet ? 1 - Math.exp(-dt / 2.5) : 1; baseSet = true; if (Math.abs(tb - now.base) > 0.3 || Math.abs(g - now.cbase) > 0.3) { now.base += (tb - now.base) * kb; now.cbase += (g - now.cbase) * kb; moving = true; }
+        /* over the top of the layer, or back under it: the light is worked out again (with some slack, so it does not flicker at the top) */
+        if (K.top != null && K.w0) { const c = (K.y0 != null ? K.y0 : 0) + cam.position[1], ab = K.above ? c > K.top - 15 : c > K.top + 60; if (ab !== K.above) { K.above = ab; const r = K.set(K.level, K.w0, K.o2); Object.assign(env, r); if (scene.envChanged) scene.envChanged(); moving = true; } } }
       /* is it snow or rain where the camera is: snow above the snow level, rain below, a mix across about 80 m */
       const cp = cam.position, line = K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9; snowAir = K.level ? smoothstep(line - 40, line + 40, cp[1]) : 0; K.snowAir = snowAir;
       /* with nothing set and nothing sliding, the air is left alone: the editor's world settings stay as a person set them */
@@ -5318,7 +5378,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       return { level: K.level, key: s.k, name: s.l, short: s.s, ar: s.ar || 0, ivt: s.ivt || null, cw3e: s.cw3e || '', mph: s.mph, gust: s.gust, rain: s.rain, rainIn: s.rainIn, bolt: s.bolt || 0, dropMm: +s.dropMm.toFixed(2), fall: n1(s.fall), note: s.note,
         snowLevelM: K.snowLine, snowLevelFt: ft(K.snowLine), snowLevelStepM: s.snow, snowForced: K.snowOver != null, elevationM: grdM == null ? null : Math.round(grdM), cameraM: camM == null ? null : Math.round(camM), precip, snowCover: +now.snow.toFixed(2) * (snowGround > 0.5 ? 1 : 0), snowInAir: +(K.snowAir || 0).toFixed(2), pond: +now.pond.toFixed(2),
         wind: { level: K.windLevel, key: w.k, name: w.l, short: w.s, local: K.windName || 'Santa Ana', mph: w.mph, gust: w.gust, fly: w.fly, note: w.note },
-        sky: { level: K.sky, key: sk.k, name: sk.l, short: sk.s, on: !!skyOn, held: K.held, burn: +(K.burn || 0).toFixed(2), note: sk.note },
+        sky: { level: K.sky, key: sk.k, name: sk.l, short: sk.s, on: !!skyOn, held: K.held, burn: +(K.burn || 0).toFixed(2), topM: K.top == null ? null : Math.round(K.top), above: !!K.above, note: sk.note },
         /* what a roof here is under: the stronger of the two winds, and the rain that reaches it */
         sustainedMph: mph, gustMph: gust, rainMmH: precip === 'snow' ? 0 : s.rain, rainInH: precip === 'snow' ? 0 : s.rainIn, snowing: precip !== 'rain' && precip !== 'none', windNowMph: n1((K.wind || 0) / 0.44704), windToward: Math.round(((now.bear % 360) + 360) % 360), visKm: visKm >= 99 ? null : +visKm.toFixed(2),
         fly, flyWhy: fly ? '' : !s.fly ? 'past light rain' : `gusts over the ${Math.round(ALTA_GUST_MS / 0.44704)} mph taken as its wind limit`, altaGustLimitMph: Math.round(ALTA_GUST_MS / 0.44704), flash: !!flash, text: parts.join('. ') + '. ' + (fly ? 'The Alta X can fly.' : 'The Alta X stays down.') };
@@ -7505,7 +7565,7 @@ function M3Body() {
     const tbl = T => s => { if (s <= T[0][0]) return T[0][1]; for (let i = 0; i < T.length - 1; i++) if (s <= T[i + 1][0]) { const u = (s - T[i][0]) / (T[i + 1][0] - T[i][0]); return lerp(T[i][1], T[i + 1][1], u); } return T[T.length - 1][1]; };
     /* o: { name, pts [[lat, lon]], half, prof(s, L, K) -> metres above sea level, rampA, rampB (metres over which the end meets the ground), flatOnly (an approach drawn only on the flat world), lower } */
     function deck(o) { o.loc = null; DECKS.push(o); return o; }
-    function locate(d) { const P = d.pts.map(p => toL(p[0], p[1])), cum = [0]; let x0 = 1e18, z0 = 1e18, x1 = -1e18, z1 = -1e18; P.forEach((p, i) => { if (i) cum.push(cum[i - 1] + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1])); x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); z0 = Math.min(z0, p[1]); z1 = Math.max(z1, p[1]); }); const m = d.half + 3; d.loc = { P, cum, L: cum[cum.length - 1], bb: [x0 - m, z0 - m, x1 + m, z1 + m], K: {} }; if (d.marks) for (const k in d.marks) d.loc.K[k] = nearestOn(d, toL(d.marks[k][0], d.marks[k][1]))[0]; return d.loc; }
+    function locate(d) { const P = d.pts.map(p => toL(p[0], p[1])), cum = [0]; let x0 = 1e18, z0 = 1e18, x1 = -1e18, z1 = -1e18; P.forEach((p, i) => { if (i) cum.push(cum[i - 1] + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1])); x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); z0 = Math.min(z0, p[1]); z1 = Math.max(z1, p[1]); }); const m = d.half + 3; d.loc = { P, cum, L: cum[cum.length - 1], bb: [x0 - m, z0 - m, x1 + m, z1 + m], K: {} }; d.loc.end = d.loc.L - (terr() && d.cutBT ? d.cutBT : 0);   /* cutBT: on the terrain the structure stops this far short of the mapped end, where its carriageways part and the traffic kit's ramps carry on */ if (d.marks) for (const k in d.marks) d.loc.K[k] = nearestOn(d, toL(d.marks[k][0], d.marks[k][1]))[0]; return d.loc; }
     function nearestOn(d, p) { const { P, cum } = d.loc; let bs = 0, bd = 1e18, side = 0; for (let i = 0; i < P.length - 1; i++) { const ax = P[i][0], az = P[i][1], dx = P[i + 1][0] - ax, dz = P[i + 1][1] - az, l2 = dx * dx + dz * dz || 1e-9, u = clamp(((p[0] - ax) * dx + (p[1] - az) * dz) / l2, 0, 1), qx = ax + dx * u, qz = az + dz * u, dd = Math.hypot(p[0] - qx, p[1] - qz); if (dd < bd) { bd = dd; bs = cum[i] + Math.sqrt(l2) * u; side = dx * (p[1] - az) - dz * (p[0] - ax); } } return [bs, bd, side]; }
     function pointAt(d, s) { const { P, cum, L } = d.loc; s = clamp(s, 0, L); let i = 0; while (i < P.length - 2 && cum[i + 1] < s) i++; const l = cum[i + 1] - cum[i] || 1, u = (s - cum[i]) / l, tx = (P[i + 1][0] - P[i][0]) / l, tz = (P[i + 1][1] - P[i][1]) / l; return { x: P[i][0] + (P[i + 1][0] - P[i][0]) * u, z: P[i][1] + (P[i + 1][1] - P[i][1]) * u, tx, tz, s }; }
     /* the deck's height in local y, s metres along it. Within rampA of its start (rampB of its end) the deck is moved to meet the ground at that end, the move fading out along the ramp:
@@ -7516,11 +7576,11 @@ function M3Body() {
     const geoNow = () => S.gen + '/' + S.lat0 + '/' + S.lon0 + '/' + (terr() ? S.y0 : 'flat');
     function relocate() { DECKS.forEach(d => { d.loc = null; }); }
     /* the deck under or over a point: its height in local y, or null. o.lower: the lower of two decks where there are two; o.info: return { y, name, half, s } */
-    X.deckAt = (x, z, o) => { if (!X.on || !S.kx) return null; for (const d of DECKS) { if (d.flatOnly && terr()) continue; const lc = d.loc || locate(d), b = lc.bb; if (x < b[0] || x > b[2] || z < b[1] || z > b[3]) continue; const n = nearestOn(d, [x, z]); if (n[1] > d.half + 0.75) continue; if ((n[0] <= 0.01 || n[0] >= lc.L - 0.01) && n[1] > 2) { const e = pointAt(d, n[0]); if (Math.abs((x - e.x) * e.tx + (z - e.z) * e.tz) > 1) continue; }
-        const y = deckY(d, n[0], x, z) - (o && o.lower && d.lower ? d.lower : 0); return o && o.info ? { y, name: d.name, half: d.half, s: n[0], lower: d.lower || 0 } : y; } return null; };
-    S.deckAt = X.deckAt;
+    X.deckAt = (x, z, o) => { if (!X.on || !S.kx) return null; for (const d of DECKS) { if (d.flatOnly && terr()) continue; const lc = d.loc || locate(d), b = lc.bb; if (x < b[0] || x > b[2] || z < b[1] || z > b[3]) continue; const n = nearestOn(d, [x, z]); if (n[1] > d.half + 0.75 || n[0] > lc.end) continue; if ((n[0] <= 0.01 || n[0] >= lc.L - 0.01) && n[1] > 2) { const e = pointAt(d, n[0]); if (Math.abs((x - e.x) * e.tx + (z - e.z) * e.tz) > 1) continue; }
+        const y = deckY(d, n[0], x, z) - (o && o.lower && d.lower ? d.lower : 0); if (o && o.info) { const e = pointAt(d, n[0]); return { y, name: d.name, half: d.half, s: n[0], L: lc.end, lower: d.lower || 0, tx: e.tx, tz: e.tz, lat: n[2] < 0 ? -n[1] : n[1] }; } return y; } return null; };
+    S.deckAt = X.deckAt; X.deckAt.live = () => X.on && !!S.kx;   /* with { info: true } the answer is { y, name, half, s, L (metres along and the deck's length), lower, tx, tz (the way the deck runs there), lat (metres to the side of its line, signed along (-tz, tx)) } */
     /* samples along a deck every `step` metres (and at its corners), each with its side direction */
-    function samples(d, step, s0, s1) { const lc = d.loc || locate(d); s0 = s0 == null ? 0 : s0; s1 = s1 == null ? lc.L : s1; const cut = [s0, s1]; lc.cum.forEach(c => { if (c > s0 && c < s1) cut.push(c); }); for (let s = s0 + step; s < s1; s += step) cut.push(s); cut.sort((a, b) => a - b); const out = []; let last = -1;
+    function samples(d, step, s0, s1) { const lc = d.loc || locate(d); s0 = s0 == null ? 0 : s0; s1 = s1 == null ? lc.end : s1; const cut = [s0, s1]; lc.cum.forEach(c => { if (c > s0 && c < s1) cut.push(c); }); for (let s = s0 + step; s < s1; s += step) cut.push(s); cut.sort((a, b) => a - b); const out = []; let last = -1;
       cut.forEach(s => { if (s - last < 0.5) return; last = s; const p = pointAt(d, s); p.y = deckY(d, s, p.x, p.z); out.push(p); });
       out.forEach((p, i) => { const a = out[Math.max(0, i - 1)], b = out[Math.min(out.length - 1, i + 1)], l = Math.hypot(b.x - a.x, b.z - a.z) || 1; p.nx = -(b.z - a.z) / l; p.nz = (b.x - a.x) / l; }); return out; }
     const ROAD = [0.17, 0.17, 0.18, 0], CONC = [0.7, 0.69, 0.66, 0], LINEW = [0.86, 0.86, 0.82, 0];
@@ -7529,7 +7589,7 @@ function M3Body() {
     /* a wall along the line at an offset, from dy0 to dy1 below or above the deck, facing the side `out` (+1 or -1) */
     const wall = (B, sm, off, dy0, dy1, col, out) => { for (let i = 0; i < sm.length - 1; i++) { const a = sm[i], b = sm[i + 1]; B.quad([a.x + a.nx * off, a.y + dy0, a.z + a.nz * off], [b.x + b.nx * off, b.y + dy0, b.z + b.nz * off], [b.x + b.nx * off, b.y + dy1, b.z + b.nz * off], [a.x + a.nx * off, a.y + dy1, a.z + a.nz * off], [a.nx * out, 0, a.nz * out], null, col); } };
     /* a roadway: surface, edge lines, kerb rails, and a box under it (half width hb, depth t) */
-    function roadway(B, sm, half, o) { o = o || {}; strip(B, sm, -half, half, 0, ROAD); strip(B, sm, -0.15, 0.15, 0.04, o.mid || [0.8, 0.66, 0.12, 0]); [-1, 1].forEach(s => { strip(B, sm, s * (half - 1.1) - 0.1, s * (half - 1.1) + 0.1, 0.04, LINEW); wall(B, sm, s * half, -(o.slab || 1), 1.0, o.rail || CONC, s); wall(B, sm, s * (half - 0.3), 0, 1.0, o.rail || CONC, -s); strip(B, sm, s * (half - 0.3), s * half, 1.0, o.rail || CONC); });
+    function roadway(B, sm, half, o) { o = o || {}; const lines = !S.traffic;   /* where the traffic kit is, it paints the lanes of the roads that run on the deck: no second set of lines */ strip(B, sm, -half, half, 0, ROAD); if (lines) strip(B, sm, -0.15, 0.15, 0.04, o.mid || [0.8, 0.66, 0.12, 0]); [-1, 1].forEach(s => { if (lines) strip(B, sm, s * (half - 1.1) - 0.1, s * (half - 1.1) + 0.1, 0.04, LINEW); wall(B, sm, s * half, -(o.slab || 1), 1.0, o.rail || CONC, s); wall(B, sm, s * (half - 0.3), 0, 1.0, o.rail || CONC, -s); strip(B, sm, s * (half - 0.3), s * half, 1.0, o.rail || CONC); });
       const hb = o.hb == null ? half : o.hb, t = o.t || 2, sl = o.slab || 1; if (hb < half) { strip(B, sm, -half, -hb, -sl, o.under || CONC, true); strip(B, sm, hb, half, -sl, o.under || CONC, true); } [-1, 1].forEach(s => wall(B, sm, s * hb, -t, -sl, o.box || CONC, s)); strip(B, sm, -hb, hb, -t, o.box || CONC, true); }
     /* a pier under a sample: two columns and a cap, from the ground (or the water) up to the underside */
     function pier(B, p, top, o) { o = o || {}; const g = Math.min(gy(p.x, p.z), top - 1) - 1.5, gap = o.gap || 4.2, w = o.w || 2.4, l = o.l || 3.2, col = o.col || CONC, P = (off, y, al) => [p.x + p.nx * off + p.tx * (al || 0), y, p.z + p.nz * off + p.tz * (al || 0)]; if (top - g < 3) return;
@@ -7584,10 +7644,10 @@ function M3Body() {
         if (c.base) B.box(p.x, wy + c.base[2] / 2 - 1, p.z, c.base[0] / 2, c.base[2] / 2 + 1, c.base[1] / 2, Math.atan2(nx, nz), CONC); void yd; });
     };
     /* San Diego-Coronado Bridge: 200 ft (61 m) clear over the channel, 4.67 per cent up from Coronado, the 80 degree curve (its mapped line), blue girders on tall concrete piers */
-    if (BR.cor) { const c = BR.cor, D1 = deck({ name: 'San Diego-Coronado Bridge', pts: c.line, half: 10.2, marks: { ch: c.channel }, rampA: 260, rampB: 400, rampAT: 60, rampBT: 120, crest: 69, low: [6, 12],
+    if (BR.cor) { const c = BR.cor, D1 = deck({ name: 'San Diego-Coronado Bridge', pts: c.line, half: 10.2, marks: { ch: c.channel }, rampA: 260, rampB: 400, rampAT: 60, rampBT: 120, cutBT: 317, crest: 69, low: [6, 12],
       prof: (s, L, K) => { const k = 2.5, mn = (a, b) => -k * Math.log(Math.exp(-a / k) + Math.exp(-b / k)), top = 69.5, up = 6 + 0.0467 * s, dn = 12 + (top - 12) * (L - s) / Math.max(1, L - (K.ch + 150)); return mn(mn(up, top), dn); } });
       site('San Diego-Coronado Bridge', 32.692, -117.153, 30000, s => { const sm = samples(D1, 14), B = new MeshBuilder(), BLUE = [0.16, 0.37, 0.62, 0], K = D1.loc.K, L = D1.loc.L; roadway(B, sm, D1.half, { hb: 4.6, t: 5.4, slab: 1.1, box: BLUE, under: BLUE, rail: CONC });
-        const gap = 98, k0 = Math.ceil((40 - K.ch) / gap); for (let s2 = K.ch + k0 * gap; s2 < L - 30; s2 += gap) { const p = pointAt(D1, s2); p.nx = -p.tz; p.nz = p.tx; pier(B, p, deckY(D1, s2, p.x, p.z) - 5.4, { gap: 4.2, w: 2.6, l: 3.4, arch: true }); }
+        const gap = 98, k0 = Math.ceil((40 - K.ch) / gap); for (let s2 = K.ch + k0 * gap; s2 < D1.loc.end - 8; s2 += gap) { const p = pointAt(D1, s2); p.nx = -p.tz; p.nz = p.tx; pier(B, p, deckY(D1, s2, p.x, p.z) - 5.4, { gap: 4.2, w: 2.6, l: 3.4, arch: true }); }
         solid(s, B, 'San Diego-Coronado Bridge'); s.note = 'crest ' + D1.crest + ' m, ' + Math.round(L) + ' m of mapped bridge'; }); }
     /* Golden Gate Bridge: towers 746 ft (227 m) above the water, 4,200 ft (1,280 m) between them, side spans 1,125 ft (343 m), 90 ft (27 m) wide, roadway about 246 ft up at the towers, International Orange */
     if (BR.gg) { const g = BR.gg, ORANGE = [0.94, 0.29, 0.02, 0], D1 = deck({ name: 'Golden Gate Bridge', pts: g.line, half: 13.5, marks: { S: g.towers[0], N: g.towers[1] }, rampAT: 40, rampBT: 40, prof: (s, L, K) => { if (K.t === undefined) K.t = tbl([[0, 67], [K.S, 75], [K.S + 320, 77.7], [(K.S + K.N) / 2 - 150, 78.8], [(K.S + K.N) / 2, 79], [(K.S + K.N) / 2 + 150, 78.8], [K.N - 320, 77.7], [K.N, 75], [L, 73]]); return K.t(s); } });
@@ -7799,7 +7859,7 @@ function M3Body() {
       FARZ.forEach(L => { if (S.fast && L.z === 17) return; const [cX, cY] = cellOf(S.x, S.z, L.z), r0 = rectOf(cX, cY, L.z), size = Math.abs(r0.x1 - r0.x0), n = Math.ceil(L.reach / size), lim = 1 << L.z;
         for (let dy = -n; dy <= n; dy++) for (let dx = -n; dx <= n; dx++) { const X = cX + dx, Y = cY + dy; if (X < 0 || Y < 0 || X >= lim || Y >= lim) continue; const r = rectOf(X, Y, L.z), dr = Math.hypot(Math.max(r.x0 - S.x, 0, S.x - r.x1), Math.max(r.zN - S.z, 0, S.z - r.zS)), key = L.z + '/' + X + '/' + Y;
           if (dr > L.reach * 1.1 + 60 || (dr > L.reach && !FAR.has(key))) continue; want.add(key); if (FAR.has(key)) continue;   /* a tile is made within reach and kept a little beyond it */
-          const tex = dev.lazyTexture(env.tileURL(L.z, X, Y), { srgb: true, wrap: 'clamp', fill: [111, 119, 100, 255], onLoad: () => need() }), mat = new Material({ name: 'Far ground', albedoMap: tex, roughness: 0.95, castShadow: false, wet: 0 });
+          const tex = dev.lazyTexture(env.tileURL(L.z, X, Y), { srgb: true, wrap: 'clamp', fill: [111, 119, 100, 255], onLoad: () => need() }), mat = new Material({ name: 'Far ground', albedoMap: tex, roughness: 0.95, castShadow: false, wet: -1 });
           FAR.set(key, { tex, g: TERR.ground(L.z, X, Y, { parent: gFar, mat }) }); } });
       FAR.forEach((f, key) => { if (!want.has(key)) { TERR.drop(f.g); f.tex.dispose(); FAR.delete(key); } });
     }
@@ -8000,14 +8060,16 @@ function M3Body() {
     let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); } }));
     function setRoads(list) { S.roads = tf().take(list); buildRoads(); }   /* the surface streets, with lanes, direction, limit, level and width on each; freeways, ramps and cable car tracks stay with the kit */
     function buildRoads() {
+      const rc0 = performance.now(); tf().regrade();   /* the decks' heights over the ground as it now is (the traffic kit) */
       TERR.center(S.x, S.z);   /* the streets near here are cut to the ground's triangles; the far ones are laid whole */
       roadParts.forEach(p => { p.e.destroy(); p.mesh.dispose(); }); roadParts = [];
       const Bd = new MeshBuilder({ aux: true }), Pt = new MeshBuilder(), yel = K.hexRGB('#e0b13c'), wht = K.hexRGB('#e9e7e0');
       S.roads.forEach(r => { if (r.up) return; const spec = K.ROADW[r.kind] || K.ROADW.street; K.ribbon(Bd, r.pts, r.w || spec[0], spec[1], spec[2]); if (r.kind === 'major' && !gfx.life) { K.ribbon(Pt, r.pts, 0.11, 0.115, null, 0.12, yel); K.ribbon(Pt, r.pts, 0.11, 0.115, null, -0.12, yel); K.ribbon(Pt, r.pts, 0.12, 0.115, null, 5.4, wht); K.ribbon(Pt, r.pts, 0.12, 0.115, null, -5.4, wht); } });
       [['Asphalt and concrete', Bd, M.road], ['Paint', Pt, M.paint]].forEach(([name, b, mat]) => { if (b.empty) return; const mesh = b.build(dev, { name, clusters: 320 }), e = scene.createEntity(name, { parent: gRoads, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.castShadow = false; mr.pickable = false; roadParts.push({ e, mesh }); });
       /* what stands and moves on the streets: sidewalks, crossings, signals, parked cars, traffic (generated, not observed) */
-      ST.build(S.roads, root, { life: gfx.life, center: [S.x, S.z], blocked: (x, z) => phys.prismsIn(x, z, x, z, []).some(p => Poly.contains(p.ring, x, z)), cars: tf().streetCars() });
-      S.graph = S.roads.filter(r => WALK.has(r.kind)); S.on = null; S.roadsVer++; S.roadTV = terrRoadVer(); lamps(); planSoon(); need();
+      const rc1 = performance.now(); ST.build(S.roads, root, { life: gfx.life, center: [S.x, S.z], blocked: (x, z) => phys.prismsIn(x, z, x, z, []).some(p => Poly.contains(p.ring, x, z)), cars: tf().streetCars() });
+      S.graph = S.roads.filter(r => WALK.has(r.kind)); S.on = null; S.roadsVer++; S.roadTV = terrRoadVer(); const rc2 = performance.now(); lamps(); planSoon(); need();
+      { const n = performance.now(), c = S.roadCost || (S.roadCost = { n: 0, worst: 0, sum: 0 }); c.n++; c.ms = n - rc0; c.ribbons = rc1 - rc0; c.street = rc2 - rc1; c.lamps = n - rc2; c.sum += c.ms; if (c.ms > c.worst) c.worst = c.ms; }
     }
     async function loadRoads() {
       const gen = S.gen, ask = S.roadsAsk = (S.roadsAsk || 0) + 1, [la, lo] = toLL(S.x, S.z); S.roadsAt = [S.x, S.z]; if (!S.roads.length) note('Loading the streets and alleys…');
@@ -8073,7 +8135,10 @@ function M3Body() {
       if (e == null || !isFinite(e)) e = S.elev; return e == null || !isFinite(e) ? null : e - g;
     }
     const WX0 = () => WEATHER[gfx.weather] || WEATHER.clear;
-    const wxOpts = () => { const ll = S.ok ? toLL(S.x, S.z) : [null, null], t = S.sunTime || new Date(), lo = ll[1] == null ? -120 : ll[1]; return { wind: S.wind, sky: S.sky, snowLevel: S.snowLevel, y0: S.y0msl, lat: ll[0], lon: ll[1], hour: (((t.getUTCHours() + t.getUTCMinutes() / 60 + lo / 15) % 24) + 24) % 24 }; };
+    /* the lowest ground within about 12 km, metres above sea level (the tule fog lies on it); null when no heights are known */
+    let wxLowAt = null, wxLowV = null; function regionLow() { if (!S.ok || typeof S.elevAt !== 'function') return null; if (wxLowAt && wxLowAt[2] === S.gen && Math.hypot(S.x - wxLowAt[0], S.z - wxLowAt[1]) < 2500 && performance.now() - wxLowAt[3] < 20000) return wxLowV;
+      const ll = toLL(S.x, S.z), dla = 3000 / S.ky, dlo = 3000 / S.kx; let lo = Infinity; try { for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++) { const e = S.elevAt(ll[0] + i * dla, ll[1] + j * dlo); if (e != null && isFinite(e) && e < lo) lo = e; } } catch (err) { lo = Infinity; } wxLowAt = [S.x, S.z, S.gen, performance.now()]; wxLowV = isFinite(lo) ? lo : null; return wxLowV; }
+    const wxOpts = () => { const ll = S.ok ? toLL(S.x, S.z) : [null, null], t = S.sunTime || new Date(), lo = ll[1] == null ? -120 : ll[1]; return { wind: S.wind, sky: S.sky, snowLevel: S.snowLevel, y0: S.y0msl, low: S.sky === 2 ? regionLow() : null, lat: ll[0], lon: ll[1], hour: (((t.getUTCHours() + t.getUTCMinutes() / 60 + lo / 15) % 24) + 24) % 24 }; };
     function setSun() {
       const la = S.lat0 || 38.58, lo = S.lon0 || -121.49, t = sunTime(gfx.sun, la, lo), p = solarPosition(t, la, lo); S.sunAlt = p.alt; S.sunTime = t;
       S.sunNote = p.alt < -1 ? 'The sun is down here at that hour: the scene is lit by the moon, the lamps and the windows.' : '';
@@ -8082,7 +8147,7 @@ function M3Body() {
       lampsLit(); need(2);
     }
     /* the camera has moved a way, or better elevation has come in: the height of the ground and the name the wind goes by are asked again. The sky's light is not touched. */
-    function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
+    function wxHere() { const y0 = seaLevel(), nm = S.ok ? SE.windName.apply(null, toLL(S.x, S.z))[0] : ''; const low = S.sky === 2 ? regionLow() : null; S.wxAt = [S.x, S.z]; if ((y0 == null) === (S.y0msl == null) && (y0 == null || Math.abs(y0 - S.y0msl) < 2) && nm === S.wxName && (low == null) === (SK.low == null) && (low == null || Math.abs(low - SK.low) < 12)) return; S.y0msl = y0; S.wxName = nm; SK.set(S.storm, WX0(), wxOpts()); need(2); if (env.onGraphics) env.onGraphics(graphics()); }
     /* The Alta X flies in the dry and in light rain, and in an offshore wind only up to its limit. Otherwise it comes down where it is, and will not take off. */
     const canFly = () => !!SE.STORM[S.storm].fly && !!SE.WIND[S.wind].fly;
     const wxShort = () => [S.storm ? SE.STORM[S.storm].s : '', S.wind ? SE.WIND[S.wind].s : '', S.sky ? SE.SKY[S.sky].s : ''].filter(Boolean).join(', ') || 'Dry';
@@ -8135,7 +8200,10 @@ function M3Body() {
     function carNear(x, z, sp) {
       const reach = 45 + sp * 0.6; if (CARW.at && CARW.ver === S.roadsVer && Math.hypot(x - CARW.at[0], z - CARW.at[1]) < 12 && reach <= CARW.at[2]) return;
       CARW.at = [x, z, reach + 20]; CARW.ver = S.roadsVer; const segs = CARW.segs = [], poles = CARW.poles = [], R2 = reach + 20;
-      for (const r of S.roads) { if (r.kind === 'path' || r.kind === 'cable') continue; const sp2 = carRoadSpec(r), P = r.pts; for (let i = 0; i + 1 < P.length; i++) { const a = P[i], b = P[i + 1]; if (Math.min(a[0], b[0]) > x + R2 || Math.max(a[0], b[0]) < x - R2 || Math.min(a[1], b[1]) > z + R2 || Math.max(a[1], b[1]) < z - R2) continue; segs.push([a[0], a[1], b[0] - a[0], b[1] - a[1], sp2[0], sp2[1], r, r.dk ? +r.dk[i] || 0 : 0, r.dk ? +r.dk[i + 1] || 0 : 0]); } }
+      /* a piece: [x, z, dx, dz, half width, thickness, road, deck height over the land at each end, on a landmark deck?, and for a road the traffic kit
+         draws (a freeway, a ramp, a street on a bridge) the height of its drawn surface at each end: the car rides that line, as the traffic does] */
+      const take = (r, own) => { if (r.kind === 'path' || r.kind === 'cable' || r.pts.length < 2) return; const sp2 = carRoadSpec(r), P = r.pts, dk = r.dk, sk = r.sk; for (let i = 0; i + 1 < P.length; i++) { const a = P[i], b = P[i + 1]; if (Math.min(a[0], b[0]) > x + R2 || Math.max(a[0], b[0]) < x - R2 || Math.min(a[1], b[1]) > z + R2 || Math.max(a[1], b[1]) < z - R2) continue; const d0 = dk ? Math.max(0, +dk[i] || 0) : 0, d1 = dk ? Math.max(0, +dk[i + 1] || 0) : 0; segs.push([a[0], a[1], b[0] - a[0], b[1] - a[1], sp2[0], own ? 0.11 : sp2[1], r, d0, d1, sk && sk[i] && sk[i + 1] ? 1 : 0, own ? carLand(a[0], a[1]) + d0 + 0.11 : null, own ? carLand(b[0], b[1]) + d1 + 0.11 : null]); } };
+      for (const r of S.roads) take(r, !!r.up); if (S.traffic && S.traffic.roads) for (const r of S.traffic.roads) take(r, true);
       /* a post or a trunk that the generated street furniture stood on a carriageway (it happens at junctions) is not solid */
       const clear = (px, pz) => { for (const s of segs) { const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((px - s[0]) * s[2] + (pz - s[1]) * s[3]) / l2, 0, 1) : 0; if (Math.hypot(px - s[0] - s[2] * t, pz - s[1] - s[3] * t) <= s[4] + 0.3) return false; } return true; };
       for (const s of LAMP.spots) if (Math.abs(s[0] - x) < R2 && Math.abs(s[1] - z) < R2 && clear(s[0], s[1])) poles.push([s[0], s[1], 0.1]);
@@ -8143,8 +8211,13 @@ function M3Body() {
     }
     /* the road under a point: null off the road, else [height of its surface over the land, the road] */
     /* where roads cross on bridges (the traffic's decks, r.dk) the one nearest the height the car is at is the one it is on */
-    function carRoadAt(x, z) { let best = null, bd = 1e9; const cur = CARW.lift || 0; for (const s of CARW.segs) { const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((x - s[0]) * s[2] + (z - s[1]) * s[3]) / l2, 0, 1) : 0, d = Math.hypot(x - s[0] - s[2] * t, z - s[1] - s[3] * t); if (d > s[4]) continue; const lift = s[5] + s[7] + (s[8] - s[7]) * t, e = Math.abs(lift - cur); if (e < bd) { bd = e; best = [lift, s[6]]; } } return best; }
-    const carGround = (x, z) => { const r = carRoadAt(x, z); return carLand(x, z) + (r ? r[0] : 0); };
+    function carRoadAt(x, z, offDeck) { let best = null, bd = 1e9; const cur = CARW.lift || 0, land = carLand(x, z); for (const s of CARW.segs) { if (offDeck && s[9]) continue; const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((x - s[0]) * s[2] + (z - s[1]) * s[3]) / l2, 0, 1) : 0, d = Math.hypot(x - s[0] - s[2] * t, z - s[1] - s[3] * t); if (d > s[4]) continue; const lift = s[10] != null ? Math.max(0.02, s[10] + (s[11] - s[10]) * t - land) : s[5] + s[7] + (s[8] - s[7]) * t, e = Math.abs(lift - cur); if (e < bd) { bd = e; best = [lift, s[6], s]; } } return best; }
+    /* a landmark bridge's deck under the car (S.deckAt, from the aircraft, ships and bridges kit): the car is on it when it is at the deck's height
+       (it drove on at the end), not when it passes far beneath; when the car is being set down, when the road it is set on runs on the deck */
+    const CARDQ = { info: true };
+    function carDeck(x, z, r) { if (!S.deckAt) return null; const d = S.deckAt(x, z, CARDQ); if (!d) return null; const ref = CARW.placing ? (r && r[2][9] ? 1e9 : -1e9) : (CAR ? CAR.state.y : 0) + 1.6; if (d.y <= ref) return d.y + 0.03; if (d.lower && d.y - d.lower <= ref) return d.y - d.lower + 0.03; return null; }
+    const carGround = (x, z) => { const r = carRoadAt(x, z), d = carDeck(x, z, r); return d != null ? d : carLand(x, z) + (r ? r[0] : 0); };
+    const carGroundAt = (x, z) => { CARW.placing = true; try { return carGround(x, z); } finally { CARW.placing = false; } };
     /* walls: a circle swept from (x0, z0) to (x1, z1). The answer pushes the circle's END place out of what it struck. */
     function carHit(x0, z0, x1, z1, r) {
       const idx = CARW.hitN++ % 3, dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz), n = Math.max(1, Math.ceil(len / (r * 0.5))), cy = CAR ? CAR.state.y : 0;
@@ -8154,23 +8227,27 @@ function M3Body() {
       for (const q of CARW.poles) { const rr = r + q[2]; if (Math.min(x0, x1) - rr > q[0] || Math.max(x0, x1) + rr < q[0] || Math.min(z0, z1) - rr > q[1] || Math.max(z0, z1) + rr < q[1]) continue;
         const l2 = len * len, t = l2 > 1e-8 ? clamp(((q[0] - x0) * dx + (q[1] - z0) * dz) / l2, 0, 1) : 1, cx = x0 + dx * t, cz = z0 + dz * t, d = Math.hypot(cx - q[0], cz - q[1]); if (d >= rr) continue;
         let nx = (cx - q[0]) / (d || 1), nz = (cz - q[1]) / (d || 1); if (d < 1e-4 && len > 1e-4) { nx = -dx / len; nz = -dz / len; } CARW.what = q[2] > 0.11 ? 'a tree' : 'a lamp post'; return { nx, nz, depth: Math.max(0.002, rr - d + (cx - x1) * nx + (cz - z1) * nz) }; }
+      if (S.deckAt) { const d1 = S.deckAt(x1, z1, CARDQ); if (d1) { const yd = d1.lower && cy < d1.y - d1.lower + 2.2 ? d1.y - d1.lower : d1.y, m = d1.half - 0.45 - r, al = Math.abs(d1.lat); if (Math.abs(yd - cy) < 2.2 && al > m && d1.s > 1 && d1.s < d1.L - 1 && !carRoadAt(x1 + (d1.lat > 0 ? 1 : -1) * -d1.tz * (r + 1.6), z1 + (d1.lat > 0 ? 1 : -1) * d1.tx * (r + 1.6), true)) {   /* not where a road leaves the deck through its side */ const sg = d1.lat > 0 ? -1 : 1; CARW.what = 'the bridge rail'; return { nx: sg * -d1.tz, nz: sg * d1.tx, depth: Math.max(0.002, al - m) }; } } }
       return null;
     }
     /* the nearest lane a car may stand in: its middle, and the way it runs (the side of the road traffic keeps to, turned the way the camera looks) */
     function carLane(x, z, yaw, maxD) {
-      const list = S.roads.filter(r => r.kind !== 'path' && r.kind !== 'drive' && r.kind !== 'cable' && r.pts.length > 1), o = nearestOnRoads(x, z, maxD || 120, list); if (!o) return null;
-      const r = list[o.ri], a = r.pts[o.si], b = r.pts[o.si + 1], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, y = Rd(yaw), one = r.ow || r.oneway === true || r.oneway === 1 || r.oneway === 'yes' ? 1 : r.oneway === -1 ? -1 : 0, dk = r.dk ? (+r.dk[o.si] || 0) + ((+r.dk[o.si + 1] || 0) - (+r.dk[o.si] || 0)) * o.t : 0;
+      const list = S.roads.concat((S.traffic && S.traffic.roads) || []).filter(r => r.kind !== 'path' && r.kind !== 'drive' && r.kind !== 'cable' && r.pts.length > 1), o = nearestOnRoads(x, z, maxD || 120, list); if (!o) return null;
+      const r = list[o.ri], a = r.pts[o.si], b = r.pts[o.si + 1], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, y = Rd(yaw), one = r.ow || r.oneway === true || r.oneway === 1 || r.oneway === 'yes' ? 1 : r.oneway === -1 ? -1 : 0, dk = r.dk ? Math.max(0, (+r.dk[o.si] || 0) + ((+r.dk[o.si + 1] || 0) - (+r.dk[o.si] || 0)) * o.t) : 0;
       const dir = one || ((dx * Math.sin(y) - dz * Math.cos(y)) >= 0 ? 1 : -1), hx = dx / l * dir, hz = dz / l * dir, hw = carRoadSpec(r)[0], off = one ? 0 : Math.min(hw * 0.5, Math.max(1.6, hw - 1.9));
       /* the street map and the footprints do not always agree: where a wall stands in the lane the car is put nearer the middle, or over it */
       const free = q => { for (const d of [1.45, 0, -1.45]) { const x = o.x - hz * q + hx * d, z = o.z + hx * q + hz * d; for (const p of phys.prismsIn(x - 1.3, z - 1.3, x + 1.3, z + 1.3, CARW.pr)) if (p.y1 > 0.5 && phys._prismSide(p, x, z, 1.25)) return false; } return true; };
       let use = off; for (const q of [off, off * 0.5, 0, -off * 0.5, -off]) if (free(q)) { use = q; break; }
-      return { x: o.x - hz * use, z: o.z + hx * use, yaw: (DEG * Math.atan2(hx, -hz) + 360) % 360, road: r, lift: carRoadSpec(r)[1] + dk };
+      let px = o.x - hz * use, pz = o.z + hx * use; const yw = (DEG * Math.atan2(hx, -hz) + 360) % 360;
+      /* not on top of the traffic: back along the lane, a car's length at a time, to a clear place */
+      if (S.trafficHit) { const hy = S.hero ? S.hero.y : null; if (S.hero) S.hero.y = carLand(px, pz) + carRoadSpec(r)[1] + dk; try { for (let k = 0; k < 6 && S.trafficHit(px, pz, yw, { stop: false }); k++) { px -= hx * 7; pz -= hz * 7; } } catch (e) { /* the traffic is not ready */ } if (S.hero) S.hero.y = hy; }
+      return { x: px, z: pz, yaw: yw, road: r, lift: carRoadSpec(r)[1] + dk };
     }
     function carMake() { if (!CAR) { CAR = SE.M3Kit(engine); R.warm && R.warm(Object.values(CAR.materials)); } return CAR; }
     /* take the car out: where it stands if it is near, else on the nearest lane to the camera */
     function carEnter(yaw, fresh) {
       carMake(); const near = !fresh && CAR.out && Math.hypot(CAR.state.x - S.x, CAR.state.z - S.z) < 60;
-      if (!near) { const L = carLane(S.x, S.z, yaw != null ? yaw : S.yaw, 140); CARW.at = null; if (L) { CARW.lift = L.lift; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); CARW.snap = false; } else { CAR.place(S.x, S.z, yaw != null ? yaw : S.yaw, carLand(S.x, S.z)); CARW.snap = true; } }
+      if (!near) { const L = carLane(S.x, S.z, yaw != null ? yaw : S.yaw, 140); CARW.at = null; if (L) { CARW.lift = L.lift; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGroundAt(L.x, L.z)); CARW.snap = false; } else { CAR.place(S.x, S.z, yaw != null ? yaw : S.yaw, carLand(S.x, S.z)); CARW.snap = true; } }
       CAR.show(true); CARW.drive = true; CARW.script = null; S.cchase.yaw = 0; S.cchase.oyaw = (CAR.state.yaw + 150) % 360; if (S.cchase.pitch < -60) S.cchase.pitch = -9; S.x = CAR.state.x; S.z = CAR.state.z; S.on = null; S.fov = 65; engine.playing = true; engine.wake(); carHero(); need(3);
     }
     /* leave it where it is: it brakes to rest by itself and stays there, solid for the traffic */
@@ -8178,7 +8255,7 @@ function M3Body() {
     function carHero() { if (!CAR || !CAR.out) { S.hero = null; return; } const a = CAR.state, h = S.hero || (S.hero = { x: 0, z: 0, yaw: 0, speed: 0, len: 4.8, wid: 1.9, on: true }); h.x = a.x; h.z = a.z; h.yaw = a.yaw; h.speed = a.forward; h.len = 4.8; h.wid = 1.9; h.on = true; h.driving = CARW.drive; h.y = a.y; }
     function carEnv() {
       const a = CAR.state, wet = clamp(scene.env.wetness || 0, 0, 1), sn = SE.STORM[S.storm] || {}, heavy = SK.now && SK.now.rain ? clamp(SK.now.rain, 0, 1) : 0, road = carRoadAt(a.x, a.z);
-      let grip = sn.grip != null ? +sn.grip : clamp(1 - 0.4 * wet - 0.12 * heavy * heavy, 0.35, 1); if (!road) grip *= 0.62;
+      let grip = typeof SK.grip === 'function' ? SK.grip(a.y) : sn.grip != null ? +sn.grip : clamp(1 - 0.4 * wet - 0.12 * heavy * heavy, 0.35, 1); if (!road) grip *= 0.62;   /* the weather kit says how the road holds: wet, standing water, lying snow at the car's height */
       CARW.lift = road ? road[0] : 0; return { ground: carGround, grip, hit: carHit, night: smoothstep(2, -6, S.sunAlt), wet, onRoad: !!road, road: road ? road[1] : null, live: CARW.drive };
     }
     /* what the driver asks for: keys while the view has the focus, the on-screen pad (S.keys), a game pad, or a script (en.car.drive) */
@@ -8201,7 +8278,7 @@ function M3Body() {
     /* one step of the car while it is being driven */
     function carStep(dt) {
       if (!CAR) return false; const a = CAR.state, px = a.x, pz = a.z;
-      if (CARW.snap && S.roads.length) { const L = carLane(a.x, a.z, a.yaw, 140); if (L && a.atRest) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); } CARW.snap = false; }
+      if (CARW.snap && S.roads.length) { const L = carLane(a.x, a.z, a.yaw, 140); if (L && a.atRest) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGroundAt(L.x, L.z)); } CARW.snap = false; }
       const asked = carInput(); carNear(a.x, a.z, a.speed);
       CARW.hitN = 0; CARW.tHit = null; if (S.trafficHit) { let t = null; try { t = S.trafficHit(a.x, a.z, a.yaw); } catch (e) { t = null; } if (t && t.nx == null && isFinite(t.x) && isFinite(t.z)) { const y = Rd(a.yaw), fx = Math.sin(y), fz = -Math.cos(y), ex = a.x - t.x, ez = a.z - t.z, d = Math.hypot(ex, ez) || 1, nx = ex / d, nz = ez / d, ohx = t.hx != null ? t.hx : 0, ohz = t.hz != null ? t.hz : 1, eo = Math.abs(nx * ohx + nz * ohz) * (t.hl || 2.4) + Math.abs(-nx * ohz + nz * ohx) * (t.hw || 0.95), eh = Math.abs(nx * fx + nz * fz) * 2.4 + Math.abs(-nx * fz + nz * fx) * 0.95; t = { nx, nz, depth: clamp(eo + eh - d, 0.03, 1.5), x: t.x, z: t.z }; }
       if (t && isFinite(t.nx) && isFinite(t.nz) && t.depth > 0) { let at = 1; if (isFinite(t.x) && isFinite(t.z)) { const y = Rd(a.yaw), along = (t.x - a.x) * Math.sin(y) - (t.z - a.z) * Math.cos(y); at = along > 0.8 ? 0 : along < -0.8 ? 2 : 1; } CARW.tHit = { nx: +t.nx, nz: +t.nz, depth: Math.min(+t.depth, 3), at }; } }
@@ -8242,14 +8319,14 @@ function M3Body() {
     function carKey(code) {
       if (!CAR) return; if (code === 'KeyC') { S.carCam = CAR.CAMS[(CAR.CAMS.indexOf(S.carCam) + 1) % CAR.CAMS.length]; S.cchase.yaw = 0; if (S.carCam === 'orbit') S.cchase.oyaw = (CAR.state.yaw + 150) % 360; if (env.onGraphics) env.onGraphics(graphics()); }
       else if (code === 'KeyR') CAR.input.reverse = !CAR.input.reverse; else if (code === 'KeyT') CAR.input.tc = CAR.input.tc === false;
-      else if (code === 'KeyB') { const a = CAR.state, L = carLane(a.x, a.z, a.yaw, 400); if (L) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); S.x = L.x; S.z = L.z; after(); } }
+      else if (code === 'KeyB') { const a = CAR.state, L = carLane(a.x, a.z, a.yaw, 400); if (L) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGroundAt(L.x, L.z)); S.x = L.x; S.z = L.z; after(); } }
       engine.playing = true; engine.wake(); need();
     }
     const carState = () => { if (!CAR || !CAR.out) return null; const a = CAR.state, ll = toLL(a.x, a.z); return { mph: a.mph, speed: a.speed, gear: a.reverse ? -1 : a.gear, rpm: a.rpm, throttle: a.throttle, brake: a.brake, steer: a.steer, gLong: a.gLong, gLat: a.gLat, tc: a.tcMode, abs: a.abs, drifting: a.drifting, hit: a.hit, hits: a.hits, struck: a.hit ? CARW.what || '' : '', atRest: a.atRest, onRoad: a.onRoad, grip: a.grip, wet: a.wet, lamps: !!a.lamps, braking: !!a.braking, yaw: a.yaw, lat: ll[0], lon: ll[1], y: a.y, odo: a.odo, topMph: a.topMph, top: 251, driving: CARW.drive, cam: S.carCam, fast: S.fast }; };
     /* the public handle (en.car) */
     const carApi = { get craft() { return CAR; }, get state() { return CAR ? CAR.state : null; }, get input() { return CAR ? CAR.input : null; }, spec: () => carMake().SPEC, keys: CAR_KEYS, note: CAR_NOTE, short: CAR_SHORT, cams: ['chase', 'bonnet', 'cockpit', 'orbit'],
       /* put the car at a latitude and longitude, heading yaw (degrees from north); snapped to the nearest lane unless o.exact */
-      place(lat, lon, yaw, o) { carMake(); const p = toL(lat, lon), L = o && o.exact ? null : carLane(p[0], p[1], yaw != null ? yaw : CAR.state.yaw, 60), q = L || { x: p[0], z: p[1], yaw: yaw != null ? yaw : CAR.state.yaw }; CARW.lift = L ? L.lift : 0; CARW.at = null; carNear(q.x, q.z, 0); CAR.place(q.x, q.z, q.yaw, carGround(q.x, q.z)); CAR.show(true); CARW.snap = false; if (S.mode === 'm3') { S.x = q.x; S.z = q.z; after(); } carHero(); need(3); return carState(); },
+      place(lat, lon, yaw, o) { carMake(); const p = toL(lat, lon), L = o && o.exact ? null : carLane(p[0], p[1], yaw != null ? yaw : CAR.state.yaw, 60), q = L || { x: p[0], z: p[1], yaw: yaw != null ? yaw : CAR.state.yaw }; CARW.lift = L ? L.lift : 0; CARW.at = null; carNear(q.x, q.z, 0); CAR.place(q.x, q.z, q.yaw, carGroundAt(q.x, q.z)); CAR.show(true); CARW.snap = false; if (S.mode === 'm3') { S.x = q.x; S.z = q.z; after(); } carHero(); need(3); return carState(); },
       camera(c) { if (!CAR) return S.carCam; if (c && CAR.CAMS.includes(c)) { S.carCam = c; S.cchase.yaw = 0; } else if (!c) carKey('KeyC'); need(); return S.carCam; },
       reset() { carKey('KeyB'); }, tc(on) { if (CAR) CAR.input.tc = on == null ? CAR.input.tc === false : !!on; return CAR ? CAR.input.tc !== false : true; }, reverse(on) { if (CAR) CAR.input.reverse = on == null ? !CAR.input.reverse : !!on; },
       /* a script at the wheel: { throttle, brake, steer, handbrake, reverse }, or null to give the wheel back */
@@ -8306,7 +8383,7 @@ function M3Body() {
       if (SKY.update(dt, cam.entity.transform.position, { night: smoothstep(2, -6, S.sunAlt), moving: engine.playing && engine.awake && engine.live, on: gfx.air !== false })) need();
       /* the storm: its rain, wind and lightning move whether or not the camera does, so while one is on the engine stays awake */
       { const moving = SK.update(dt, cam, engine.playing && engine.live); if (moving === 2) need(); if (moving && engine.live && engine.playing && engine.onScreen) engine.wake(); }
-      if (S.storm || S.wind) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }
+      if (S.storm || S.wind || S.sky) { const tn = performance.now(); if (!S.wxAt || tn - (S.wxT || 0) > 2500 || Math.hypot(S.x - S.wxAt[0], S.z - S.wxAt[1]) > 400) { S.wxT = tn; wxHere(); } }
       if (LAMP.at && Math.hypot(S.x - LAMP.at[0], S.z - LAMP.at[1]) > 18) lampsLit();
       /* the street's life: signals, traffic, and at night the headlights of the cars nearest the camera */
       if (gfx.life) { const night = smoothstep(2, -6, S.sunAlt), moving = (S.hero && S.hero.on && engine.wake(), engine.playing && engine.awake && engine.live), onFoot = S.mode === 'street' || S.mode === 'walk'; if (tf().update(dt, cam.entity.transform.position, { night, moving })) need(); if (ST.update(dt, cam.entity.transform.position, { night, moving, viewer: onFoot ? [S.x, S.z] : null, reach: S.mode === 'metro' ? 900 : S.mode === 'bird' || S.mode === 'drone' || S.mode === 'alta' ? 600 : 330 })) need();
@@ -8454,7 +8531,7 @@ function M3Body() {
         if (o.trees != null && !!o.trees !== gfx.trees) { gfx.trees = !!o.trees; CELLS.forEach(c => { if (gfx.trees) { c.treeWait = performance.now(); if (!treeQ.includes(c)) treeQ.push(c); } else disposeTrees(c); }); WIDE.treesAll(); }
         if (o.lamps != null && !!o.lamps !== gfx.lamps) { gfx.lamps = !!o.lamps; lamps(); } if (o.life != null && !!o.life !== gfx.life) { gfx.life = !!o.life; buildRoads(); HEAD.forEach(e => e.setActive(false)); } if (o.glow && o.glow !== gfx.glow) { gfx.glow = o.glow; K.setGlow(gfx.glow); } if (o.live != null) { gfx.live = engine.live = !!o.live; } if (o.lens != null && o.lens !== gfx.lens) setLens(o.lens); if (o.year != null) setYear(o.year, true); if (o.roofKit != null && !!o.roofKit !== (gfx.roofKit !== false)) { gfx.roofKit = !!o.roofKit; planSoon(); } if (o.carCam && carApi.cams.includes(o.carCam)) S.carCam = o.carCam; if (o.altaCam && (o.altaCam === 'chase' || o.altaCam === 'payload')) S.altaCam = o.altaCam; if (o.treeCap != null) { S.treeCap = +o.treeCap; WIDE.treesAll(); } if (o.wide != null && !!o.wide !== gfx.wide) { gfx.wide = !!o.wide; WIDE.set(gfx.wide, wideReach()); farTiles(); }
         if (o.view && R.viewModes.includes(o.view)) R.settings.viewMode = o.view; if (o.playing != null) engine.playing = !!o.playing;
-        if (o.air != null && !!o.air !== (gfx.air !== false)) { gfx.air = !!o.air; SKY.set(gfx.air); }
+        if (o.air != null && !!o.air !== (gfx.air !== false)) { gfx.air = !!o.air; SKY.set(gfx.air); if (S.roads.length) buildRoads();   /* roads on the landmark bridges take or lose their decks */ }
         saveGfx(); need(3); return graphics();
       },
       /* the weather: each takes a step's number or its id, and answers with the facts of what is now set (stormKit.info()) */

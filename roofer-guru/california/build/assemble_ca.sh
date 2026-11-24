@@ -1,16 +1,16 @@
 #!/bin/bash
 # California Roofer Guru: stack the engine ports, patch the Scout script, assemble the page.
-#   bash assemble_ca.sh <out.html> [jobs...]      jobs default: terrain weather traffic car sky views
-# The engine is the Louisiana engine with each job's port applied in this order: terrain, weather, traffic, car, sky,
+#   bash assemble_ca.sh <out.html> [jobs...]      jobs default: terrain weather traffic car sky views dense
+# The engine is the Louisiana engine with each job's port applied in this order: terrain, weather, traffic, car, sky, views, dense (frame pacing).
 # views. Naming a shorter list builds without the others (used while a job is unfinished).
 set -e
 SP=/tmp/claude-0/-home-user-Leviathan/3de4e742-518d-5f10-b5db-2b34e6723642/scratchpad
 CA=$SP/ca; E=$CA/engine; W=$E/out; S=$CA/scout
 OUT=${1:-/home/user/Leviathan/california-roofer-guru.html}; shift || true
-JOBS=${@:-terrain weather traffic car sky views}
+JOBS=${@:-terrain weather traffic car sky views dense}
 mkdir -p $W $CA/build/out/scout
 cur=$E/la_engine.js
-for j in terrain weather traffic car sky views; do
+for j in terrain weather traffic car sky views dense; do
   case " $JOBS " in *" $j "*) ;; *) continue;; esac
   if [ $j = views ]; then port=$E/views/port_views_ca.py; else port=$E/$j/port_$j.py; fi
   nxt=$W/stack_$j.js

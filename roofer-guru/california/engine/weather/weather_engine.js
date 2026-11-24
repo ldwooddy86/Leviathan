@@ -94,9 +94,9 @@
   const SKY = [
     { k: 'none', l: 'As the weather sets it', s: 'None', note: 'No sky state: the sky is the one chosen under Weather, or the storm\'s.' },
     { k: 'marine', l: 'Marine layer (June gloom)', s: 'Marine layer', vis: 6,
-      note: 'A low stratus deck off the ocean: flat, cool, grey light and no rain. It is full at night and in the morning, thins from mid morning and is gone by early afternoon on most days, then comes back in the evening (drawn by the sun\'s hour: full before 9:30, gone by 13:00, back from 17:30). No record of the marine layer was collected for this atlas: every figure here is a choice. The deck is drawn at the engine\'s cloud height, higher than a real one (a few hundred metres). It is held off while rain or offshore wind is set: an offshore wind pushes it out to sea.' },
+      note: 'A low stratus deck off the ocean: flat, cool, grey light and no rain. It is full at night and in the morning, thins from mid morning and is gone by early afternoon on most days, then comes back in the evening (drawn by the sun\'s hour: full before 9:30, gone by 13:00, back from 17:30). No record of the marine layer was collected for this atlas: every figure here is a choice. The layer is drawn as grey air from the sea up to 450 m above sea level (a choice: real decks top out between about 300 and 900 m), with the overcast above it only for someone under it: a hill or a craft higher than that stands in the sun over a white sea. It is held off while rain or offshore wind is set: an offshore wind pushes it out to sea.' },
     { k: 'tule', l: 'Tule fog', s: 'Tule fog', vis: 0.2,
-      note: 'The Central Valley\'s winter ground fog, under a strong inversion in still air. Storm Events gives visibility under a quarter mile at Merced, Madera, Fresno and Visalia, under 200 ft in many places, and 50 ft at worst. It is drawn at an eighth of a mile (200 m) so the roofs can still be seen, and about 60 m deep (a choice), so a craft climbs out of it. It is held off while rain or offshore wind is set: it does not survive wind.' },
+      note: 'The Central Valley\'s winter ground fog, under a strong inversion in still air. Storm Events gives visibility under a quarter mile at Merced, Madera, Fresno and Visalia, under 200 ft in many places, and 50 ft at worst. It is drawn at an eighth of a mile (200 m) so the roofs can still be seen, and it fills the low ground to about 110 m over the lowest ground for some 12 km round (a choice), so a craft climbs out of it and the foothills stand clear. It is held off while rain or offshore wind is set: it does not survive wind.' },
     { k: 'smoke', l: 'Wildfire smoke', s: 'Smoke', vis: 2.4,
       note: 'A sky under wildfire smoke: orange light, a dimmed sun, visibility drawn at about 2.4 km, ash falling, and embers blowing through in the two strongest offshore wind steps. It is a picture of a smoke day, not of a fire at this address; every figure is a choice. Embers are what take most houses in a wind driven fire (the roofing evidence file, C1).' },
   ];
@@ -173,12 +173,14 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
      y = 0 stands above sea level in metres (null when nobody knows: then no snow is drawn) and snowLevel, if given, takes
      the place of the step's own. */
   function StormKit(engine, o) {
-    o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '' };
+    o = o || {}; const dev = engine.device, gl = dev.gl, scene = engine.scene, env = scene.env, K = { level: 0, windLevel: 0, sky: 0, y0: null, snowLine: null, held: '', top: null, above: false, low: null };
+    /* the marine layer's top, metres above sea level, and how deep the tule fog lies over the lowest ground near (both choices) */
+    const MARINE_TOP = 450, TULE_DEEP = 110;
     const COUNT = { ultra: 30000, high: 20000, medium: 12000, low: 5000 }, SPRAY = { ultra: 900, high: 620, medium: 340, low: 130 }, DEBRIS = { ultra: 1, high: 0.8, medium: 0.5, low: 0.28 };
     /* what is on the screen now, eased toward what the steps ask for, so the scales slide */
     const RS = engine.renderer.settings, G0 = { stars: env.stars == null ? 1 : env.stars, exposure: RS.exposure || 0, saturation: RS.saturation, temperature: RS.temperature || 0, contrast: RS.contrast };
-    const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340 };
-    let want = Object.assign({}, now), dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
+    const now = { dark: 0, rain: 0, ms: 0, gf: 1, fall: 6, fog: env.fogDensity, fogH: env.fogHeight || 90, clouds: env.clouds, wet: env.wetness, sway: env.wind, spray: 0, dust: 0, debris: 0, roofing: 0, frond: 0, snow: 0, pond: 0, ash: 0, ember: 0, temp: 0, sat: 0, expo: 0, bear: 340, base: 0, cbase: 0 };
+    let want = Object.assign({}, now), baseSet = false, dir = [0.8, 0.6], gustT = 0, phase = 0, started = false, snowAir = 0;
     const offs = [0, 1, 2, 3, 4, 5].map(() => [0, 1, 2, 3].map(() => [0, 0, 0])), drift = [0, 0], vel = [[0, -6, 0], [0, 0.3, 0], [0, -1.2, 0], [0, -1.2, 0], [0, -0.7, 0], [0, 0.5, 0]];
     /* one quad, drawn many times: each copy finds its own place from its number */
     const vao = gl.createVertexArray(), quad = gl.createBuffer(); dev.vao(vao); gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); dev.vao(null);
@@ -225,7 +227,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
     K.set = (level, w0, o2) => {
       o2 = o2 || {}; level = stepOf(STORM, level); const wl = stepOf(WIND, o2.wind), sk = stepOf(SKY, o2.sky), s = STORM[level], w = WIND[wl], first = !started; started = true; K.level = level; K.windLevel = wl; K.sky = sk;
       K.y0 = o2.y0 == null || !isFinite(o2.y0) ? null : +o2.y0; K.snowOver = o2.snowLevel == null || !isFinite(o2.snowLevel) ? null : +o2.snowLevel; K.snowLine = level ? (K.snowOver != null ? K.snowOver : s.snow) : null;
-      const nm = SE.windName(o2.lat, o2.lon); K.windName = nm[0]; K.hour = o2.hour == null ? null : o2.hour;
+      const nm = SE.windName(o2.lat, o2.lon); K.windName = nm[0]; K.hour = o2.hour == null ? null : o2.hour; K.w0 = w0; K.o2 = o2; K.low = o2.low == null || !isFinite(o2.low) ? null : +o2.low;
       const dryWind = wl >= 2 && !level, gust = Math.max(s.gustMs, w.gustMs), ms = Math.max(s.ms, w.ms);
       let fog = w0.fogDensity, fogH = 90, clouds = w0.clouds, turb = w0.turbidity, sunI = w0.sunIntensity, skyI = w0.skyIntensity, dark = 0, temp = 0, sat = 0, expo = 0, ash = 0, ember = 0;
       /* a dry offshore wind: the air is clear and the sky nearly bare, until the dust is up */
@@ -233,8 +235,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (level) { fog = Math.max(s.fog, fog); fogH = 420; clouds = 1; turb = 5 + level * 0.35; sunI = s.sun; skyI = s.sky; dark = s.dark; }
       K.held = ''; K.burn = 0;
       if (sk === 1 || sk === 2) { if (level) K.held = 'held off while it rains'; else if (wl >= 2) K.held = sk === 1 ? 'pushed out to sea by the offshore wind' : 'it does not survive wind'; }
-      if (sk === 1 && !K.held) { const m = marineAt(K.hour); K.burn = 1 - m; clouds = lerp(clouds, 1, m); sunI = lerp(sunI, 0.13, m); skyI = lerp(skyI, 1.45, m); turb = lerp(turb, 5, m); fog = Math.max(fog, 0.00065 * m); fogH = 260; dark = 0.16 * m; temp = -0.9 * m; sat = -0.1 * m; }
-      if (sk === 2 && !K.held) { fog = 3.912 / 200; fogH = 60; sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; }
+      /* The marine layer and the tule fog are layers with a top (K.top, metres above sea level; with no height known, metres over y = 0). The haze
+         fills the air below the top and thins quickly over it; the grey light belongs to whoever is under it (K.above: the camera is over the top). */
+      K.top = null; const under = K.above ? 0 : 1;
+      if (sk === 1 && !K.held) { const m = marineAt(K.hour), mu = m * under; K.burn = 1 - m; K.top = MARINE_TOP; clouds = lerp(clouds, 1, mu); sunI = lerp(sunI, 0.13, mu); skyI = lerp(skyI, 1.45, mu); turb = lerp(turb, 5, mu); fog = Math.max(fog, 0.0011 * m); fogH = 55; dark = 0.16 * mu; temp = -0.9 * mu; sat = -0.1 * mu; }
+      if (sk === 2 && !K.held) { K.top = (K.low != null ? K.low : K.y0 != null ? K.y0 + (o.ground ? o.ground() : 0) : 0) + TULE_DEEP; fog = 3.912 / 200; fogH = 25; if (under) { sunI *= 0.4; skyI = Math.max(skyI, 1.2); turb = 6; dark = 0.1; sat = -0.22; } }
+      if (K.top == null) K.above = false;
       if (sk === 3) { fog = Math.max(fog, 3.912 / 2400); fogH = Math.max(fogH, 800); turb = 13; sunI *= 0.22; skyI *= 0.55; clouds *= 0.6; dark = Math.max(dark, 0.2); temp += 3.4; sat -= 0.02; ash = 1; ember = wl >= 4 ? (wl - 3) / 2 : 0; }
       want = { dark, rain: s.rain, ms, gf: ms > 0.1 ? Math.max(1, gust / ms) : 1, fall: s.fall || 6, fog, fogH, clouds, wet: level ? 1 : w0.wetness, sway: Math.max(level ? s.sway : 0.35, w.sway),
         spray: level ? clamp((gust - 20) / 40, 0, 1) : 0, dust: dryWind ? w.dust : 0, debris: level ? (gust > 22 ? clamp((gust - 22) / 14, 0, 1) * 130 : 0) : w.leaf, roofing: gust >= 44 ? 0.4 : gust >= 35 ? 0.25 : gust >= 29 ? 0.1 : 0, frond: level ? 0.06 : 0.22,
@@ -244,8 +250,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       if (level || wl) sounds(); engine.requestRender(4);
       return { turbidity: turb, sunIntensity: sunI, skyIntensity: skyI };
     };
+    /* How a tyre holds the road in this weather at a height (local y): 1 dry; a wet road about 0.8, less as the rain gets heavy enough to stand on it
+       (0.62 in the heaviest); lying snow 0.3. Choices, in the range road tests give for wet asphalt and packed snow; the car's own model does the rest. */
+    K.snowAt = y => { const line = K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9; return K.level ? now.snow * smoothstep(line - 40, line + 40, y) : 0; };
+    K.grip = y => { const wet = clamp(now.wet, 0, 1), g = 1 - 0.2 * wet - 0.18 * wet * clamp(now.rain / 25, 0, 1), sn = K.snowAt(y == null ? 0 : y); return g + (0.3 - g) * clamp(sn * 1.4, 0, 1); };
     let graded = false, wasQuiet = false;
-    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
+    function apply() { env.fogDensity = now.fog * (1 + 1.2 * snowAir); env.fogHeight = now.fogH; env.fogBase = now.base; env.cloudBase = now.cbase; env.clouds = now.clouds; env.wetness = now.wet; env.stars = G0.stars * (1 - 0.92 * now.ash);
       env.snowK = [now.snow, K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9, 45, now.pond];
       const d = now.dark, on = d > 0.001 || Math.abs(now.temp) > 0.001 || Math.abs(now.sat) > 0.001 || Math.abs(now.expo) > 0.001;
       if (on) { graded = true; RS.exposure = G0.exposure - 0.95 * d + now.expo + 1.25 * snowAir * now.snow;   /* a snow scene is bright under any sky: the meter would turn it grey, as a camera does, so it is opened up a stop and a bit */ RS.saturation = G0.saturation - 0.3 * d + now.sat; RS.temperature = G0.temperature - 0.1 * d + now.temp; RS.contrast = G0.contrast + 0.07 * d; }
@@ -259,6 +269,10 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       { const d = want.snow - now.snow; if (Math.abs(d) > 0.004) { now.snow += d * (1 - Math.exp(-dt / (d > 0 ? 22 : 30))); moving = true; } else now.snow = want.snow; }
       { const d = want.pond - now.pond; if (Math.abs(d) > 0.004) { now.pond += d * (1 - Math.exp(-dt / (d > 0 ? 9 : 16))); moving = true; } else now.pond = want.pond; }
       { let d = want.bear - now.bear; d -= Math.round(d / 360) * 360; if (Math.abs(d) > 0.3) { now.bear += d * k; moving = true; } else now.bear = want.bear; }
+      /* Where the haze is measured from: the ground under the camera, or the top of a layer; the clouds from the ground under the camera. Both slide, so nothing jumps as the ground changes. */
+      { const g = o.ground ? o.ground() || 0 : 0, tb = K.top != null ? K.top - (K.y0 != null ? K.y0 : 0) : g, kb = baseSet ? 1 - Math.exp(-dt / 2.5) : 1; baseSet = true; if (Math.abs(tb - now.base) > 0.3 || Math.abs(g - now.cbase) > 0.3) { now.base += (tb - now.base) * kb; now.cbase += (g - now.cbase) * kb; moving = true; }
+        /* over the top of the layer, or back under it: the light is worked out again (with some slack, so it does not flicker at the top) */
+        if (K.top != null && K.w0) { const c = (K.y0 != null ? K.y0 : 0) + cam.position[1], ab = K.above ? c > K.top - 15 : c > K.top + 60; if (ab !== K.above) { K.above = ab; const r = K.set(K.level, K.w0, K.o2); Object.assign(env, r); if (scene.envChanged) scene.envChanged(); moving = true; } } }
       /* is it snow or rain where the camera is: snow above the snow level, rain below, a mix across about 80 m */
       const cp = cam.position, line = K.y0 != null && K.snowLine != null ? K.snowLine - K.y0 : 1e9; snowAir = K.level ? smoothstep(line - 40, line + 40, cp[1]) : 0; K.snowAir = snowAir;
       /* with nothing set and nothing sliding, the air is left alone: the editor's world settings stay as a person set them */
@@ -328,7 +342,7 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       return { level: K.level, key: s.k, name: s.l, short: s.s, ar: s.ar || 0, ivt: s.ivt || null, cw3e: s.cw3e || '', mph: s.mph, gust: s.gust, rain: s.rain, rainIn: s.rainIn, bolt: s.bolt || 0, dropMm: +s.dropMm.toFixed(2), fall: n1(s.fall), note: s.note,
         snowLevelM: K.snowLine, snowLevelFt: ft(K.snowLine), snowLevelStepM: s.snow, snowForced: K.snowOver != null, elevationM: grdM == null ? null : Math.round(grdM), cameraM: camM == null ? null : Math.round(camM), precip, snowCover: +now.snow.toFixed(2) * (snowGround > 0.5 ? 1 : 0), snowInAir: +(K.snowAir || 0).toFixed(2), pond: +now.pond.toFixed(2),
         wind: { level: K.windLevel, key: w.k, name: w.l, short: w.s, local: K.windName || 'Santa Ana', mph: w.mph, gust: w.gust, fly: w.fly, note: w.note },
-        sky: { level: K.sky, key: sk.k, name: sk.l, short: sk.s, on: !!skyOn, held: K.held, burn: +(K.burn || 0).toFixed(2), note: sk.note },
+        sky: { level: K.sky, key: sk.k, name: sk.l, short: sk.s, on: !!skyOn, held: K.held, burn: +(K.burn || 0).toFixed(2), topM: K.top == null ? null : Math.round(K.top), above: !!K.above, note: sk.note },
         /* what a roof here is under: the stronger of the two winds, and the rain that reaches it */
         sustainedMph: mph, gustMph: gust, rainMmH: precip === 'snow' ? 0 : s.rain, rainInH: precip === 'snow' ? 0 : s.rainIn, snowing: precip !== 'rain' && precip !== 'none', windNowMph: n1((K.wind || 0) / 0.44704), windToward: Math.round(((now.bear % 360) + 360) % 360), visKm: visKm >= 99 ? null : +visKm.toFixed(2),
         fly, flyWhy: fly ? '' : !s.fly ? 'past light rain' : `gusts over the ${Math.round(ALTA_GUST_MS / 0.44704)} mph taken as its wind limit`, altaGustLimitMph: Math.round(ALTA_GUST_MS / 0.44704), flash: !!flash, text: parts.join('. ') + '. ' + (fly ? 'The Alta X can fly.' : 'The Alta X stays down.') };
