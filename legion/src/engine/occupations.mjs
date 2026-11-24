@@ -10,7 +10,12 @@
 // table grapes or citrus or works a dairy, on the Central Coast strawberries or lettuce, on the North Coast
 // works in forestry or on a fishing boat; software jobs concentrate in the Bay Area, film and TV crews in Los
 // Angeles, warehouses in the Inland Empire and longshore work at the ports. Wages scale with experience,
-// education and the county's income level. Nothing here depends on a person's heritage.
+// education and the county's income level, and never fall below California's minimum wage for full-time work
+// (population.mjs pays part-timers for their hours, never below the hourly minimum either). Licensed titles
+// (nurses, physicians, attorneys, teachers, engineers...) carry their degree always: population.mjs picks the title
+// first (chooseTitle) and draws education within it, then the wage (titleWage). A worker who works from home gets a
+// title that can be done from home, and only home-based work (a home daycare, a cottage-food baker) is never done
+// elsewhere. Nothing here depends on a person's heritage.
 
 /** The 25 Census occupation groups (C24010 leaves), in the pack's order (world.acsLabels('occ')). */
 export const OCC_GROUPS = ['management', 'business', 'computer', 'engineering', 'science', 'social', 'legal', 'education', 'arts',
@@ -22,6 +27,11 @@ export const EDUCATION_LEVELS = ['nohs', 'hs', 'somecollege', 'associate', 'bach
 
 /** Shift keys used by population.mjs and the catalog. */
 export const SHIFTS = ['early', 'day', 'mid', 'evening', 'night', 'h24'];
+
+/** California's minimum wage in 2026 (Department of Industrial Relations): dollars an hour. */
+export const MIN_WAGE_HOURLY = 16.9;
+/** The least a full-time (40 hours a week, 52 weeks) job pays in California in 2026, rounded up to $500. */
+export const MIN_WAGE_FULL_TIME = Math.ceil(MIN_WAGE_HOURLY * 2080 / 500) * 500;
 
 /**
  * Work patterns of each occupation group (plus active-duty military), used by population.mjs for layer 0.
@@ -64,14 +74,30 @@ export const GROUP_PROFILES = {
 const SH = { e: 'early', d: 'day', m: 'mid', v: 'evening', n: 'night', h: 'h24' };
 const ED = Object.fromEntries(EDUCATION_LEVELS.map((k, i) => [k, i]));
 
+// Titles whose education is a license or credential requirement (the degree is never missing), and the youngest
+// age at which each level is usually finished
+const LICENSED = new Set(['registered-nurse', 'telehealth-nurse', 'family-physician', 'er-physician', 'telemedicine-physician', 'pharmacist',
+  'dentist', 'physical-therapist', 'nurse-practitioner', 'physician-assistant', 'respiratory-therapist', 'veterinarian', 'speech-pathologist',
+  'occupational-therapist', 'chiropractor', 'lvn', 'rad-tech', 'dental-hygienist', 'sonographer', 'surgical-tech', 'paramedic', 'attorney', 'judge',
+  'psychologist', 'family-therapist', 'architect', 'elementary-teacher', 'middle-school-teacher', 'high-school-teacher', 'special-ed-teacher',
+  'school-counselor', 'school-principal', 'professor', 'cc-instructor', 'librarian', 'civil-engineer', 'mechanical-engineer', 'electrical-engineer',
+  'aerospace-engineer', 'hardware-engineer', 'environmental-engineer', 'process-engineer', 'research-scientist', 'military-officer']);
+const EDU_AGE = [16, 18, 19, 20, 22, 24, 25, 26];
+const WAGE_FLOOR = 35200;   // every catalog range starts at or above a full-time minimum-wage salary
+
 /**
  * A title: t(key, title, sector, employers, [wageLo, wageHi], shifts ('edmvnh' letters), wfh (0 never, 1 possible,
- * 2 typical, e.g. owners who work where they live), minimum education, weight, affinities, female share, minimum age).
- * Affinities: r region multipliers (r0 for regions not listed), e establishment-share exponents, and [where true,
- * elsewhere] multipliers for coast, dense (urban) / rural, desert, snow, port, fire (fire country), hot, inst.
+ * 2 typical, 3 always: the work is at home, like a home daycare), minimum education, weight, affinities, female
+ * share, minimum age). Affinities: r region multipliers (r0 for regions not listed), e establishment-share
+ * exponents, and [where true, elsewhere] multipliers for coast, dense (urban) / rural, desert, snow, port, fire
+ * (fire country), hot, inst. Licensed titles (LICENSED) hold their degree always, so they start no younger than it.
  */
 function t(key, title, sector, employers, wage, shifts, wfh, edu, weight, aff = {}, fs = 0.5, minAge = 16) {
-  return { key, title, sector, employers: Array.isArray(employers) ? employers : [employers], wage, shifts: [...shifts].map(c => SH[c]), wfh, edu: ED[edu], weight, aff, fs, minAge };
+  const e = ED[edu], licensed = LICENSED.has(key), lo = Math.max(wage[0], WAGE_FLOOR);
+  return {
+    key, title, sector, employers: Array.isArray(employers) ? employers : [employers], wage: [lo, Math.max(wage[1], lo + 2000)],
+    shifts: [...shifts].map(c => SH[c]), wfh, edu: e, licensed, weight, aff, fs, minAge: licensed ? Math.max(minAge, EDU_AGE[e]) : minAge,
+  };
 }
 
 const FARM_REGIONS_LOW = { la: 0.15, oc: 0.05, ba: 0.4 };
@@ -210,6 +236,8 @@ export const OCCUPATION_CATALOG = {
     t('speech-pathologist', 'speech-language pathologist', 'health care', ['the school district', 'a pediatric clinic'], [95000, 140000], 'ed', 0, 'master', 1, {}, 0.95),
     t('occupational-therapist', 'occupational therapist', 'health care', ['a rehabilitation hospital', 'the school district'], [95000, 135000], 'd', 0, 'master', 0.8, {}, 0.85),
     t('chiropractor', 'chiropractor', 'health care', ['their own practice'], [70000, 140000], 'd', 0, 'professional', 0.5, {}, 0.3),
+    t('telehealth-nurse', 'telehealth nurse', 'health care', ["a health plan's nurse advice line", 'a telehealth service', 'a hospital system'], [110000, 160000], 'dvn', 2, 'associate', 0.5, {}, 0.9),
+    t('telemedicine-physician', 'telemedicine physician', 'health care', ['a telehealth service', 'a medical group'], [220000, 320000], 'dv', 2, 'professional', 0.25, {}, 0.5, 30),
   ],
   healthtech: [
     t('lvn', 'licensed vocational nurse', 'health care', ['a skilled nursing facility', 'a clinic', 'a home health agency', 'a state prison clinic'], [60000, 85000], 'edvn', 0, 'somecollege', 5, { inst: [1.6, 1] }, 0.85),
@@ -235,6 +263,8 @@ export const OCCUPATION_CATALOG = {
     t('pt-aide', 'physical therapy aide', 'health care', ['an outpatient clinic'], [35000, 45000], 'd', 0, 'hs', 0.8, {}, 0.6),
     t('psych-tech', 'psychiatric technician', 'health care', ['a state hospital', 'a behavioral health center'], [55000, 80000], 'edvn', 0, 'somecollege', 0.8, { inst: [3, 1] }, 0.55),
     t('vet-assistant', 'veterinary assistant', 'animal care', ['an animal hospital', 'a boarding kennel'], [34000, 42000], 'd', 0, 'hs', 0.8, {}, 0.8),
+    t('family-caregiver', 'in-home caregiver for a family member', 'home care', ['the county in-home supportive services program'], [35200, 45000], 'edv', 3, 'nohs', 1.2, {}, 0.8, 18),
+    t('medical-transcriptionist', 'medical transcriptionist', 'health care', ['a medical transcription service', 'a hospital system', 'a radiology group'], [40000, 58000], 'dm', 2, 'somecollege', 0.4, {}, 0.85),
   ],
   firefighting: [
     t('security-guard', 'security guard', 'security', ['a security company', 'a hospital', 'a shopping center', 'an office tower', 'a construction site'], [36000, 52000], 'edvn', 0, 'hs', 6, { dense: [1.3, 0.7] }, 0.25),
@@ -247,6 +277,7 @@ export const OCCUPATION_CATALOG = {
     t('animal-control', 'animal control officer', 'government', ['the county animal services department'], [50000, 75000], 'd', 0, 'hs', 0.4, {}, 0.5),
     t('loss-prevention', 'loss prevention officer', 'retail', ['a department store', 'a big-box store'], [38000, 52000], 'dmv', 0, 'hs', 0.8, { e: { retail: 0.8 } }, 0.35),
     t('fire-inspector', 'fire inspector', 'fire service', ['the city fire department'], [80000, 120000], 'd', 0, 'associate', 0.4, {}, 0.15),
+    t('alarm-monitor', 'security alarm monitor', 'security', ['a security monitoring company'], [38000, 54000], 'edvn', 1, 'hs', 0.4, {}, 0.45),
   ],
   police: [
     t('police-officer', 'police officer', 'law enforcement', ['the city police department'], [95000, 160000], 'edvn', 0, 'somecollege', 4, { dense: [1.3, 0.6] }, 0.15),
@@ -270,6 +301,7 @@ export const OCCUPATION_CATALOG = {
     t('cafeteria-cook', 'cafeteria cook', 'education', ['a school district kitchen', 'a hospital cafeteria'], [34000, 46000], 'e', 0, 'nohs', 1.2, {}, 0.7),
     t('host', 'restaurant host', 'restaurants', ['a family restaurant', 'a steakhouse'], [33000, 38000], 'mv', 0, 'hs', 1.2, {}, 0.75),
     t('baker-cafe', 'pastry cook', 'restaurants', ['a panadería', 'a neighborhood bakery', 'a hotel kitchen'], [35000, 50000], 'e', 0, 'nohs', 0.8, {}, 0.55),
+    t('cottage-baker', 'home baker', 'cottage food', ['their own cottage food kitchen'], [35200, 52000], 'em', 3, 'nohs', 0.4, {}, 0.75),
   ],
   cleaning: [
     t('janitor', 'janitor', 'building services', ['a janitorial contractor', 'a school district', 'an office building', 'a hospital'], [36000, 50000], 'evn', 0, 'nohs', 6, {}, 0.4),
@@ -283,7 +315,7 @@ export const OCCUPATION_CATALOG = {
   ],
   personalcare: [
     t('childcare-worker', 'childcare worker', 'childcare', ['a daycare center', 'a preschool', 'an after-school program'], [33000, 42000], 'ed', 0, 'hs', 4, {}, 0.92),
-    t('family-childcare', 'family childcare provider', 'childcare', ['their own home daycare'], [35000, 60000], 'ed', 2, 'hs', 2, {}, 0.97, 21),
+    t('family-childcare', 'family childcare provider', 'childcare', ['their own home daycare'], [35000, 60000], 'ed', 3, 'hs', 2, {}, 0.97, 21),
     t('hairstylist', 'hairstylist', 'personal services', ['a hair salon', 'their own salon chair'], [32000, 70000], 'dm', 0, 'hs', 3, {}, 0.85),
     t('barber', 'barber', 'personal services', ['a neighborhood barbershop'], [32000, 65000], 'dm', 0, 'hs', 1.5, {}, 0.15),
     t('nail-technician', 'nail technician', 'personal services', ['a nail salon'], [32000, 45000], 'dm', 0, 'nohs', 2, {}, 0.85),
@@ -397,6 +429,7 @@ export const OCCUPATION_CATALOG = {
     t('meat-cutter', 'meat cutter', 'food processing', ['a grocery store meat counter', 'a meat packing plant'], [40000, 60000], 'ed', 0, 'nohs', 1, {}, 0.2),
     t('cabinetmaker', 'cabinetmaker', 'manufacturing', ['a cabinet shop'], [42000, 65000], 'ed', 0, 'nohs', 0.8, {}, 0.1),
     t('water-operator', 'water treatment plant operator', 'utilities', ['the water district', 'the city wastewater plant'], [75000, 115000], 'edvn', 0, 'hs', 0.8, {}, 0.15),
+    t('home-seamstress', 'alterations seamstress', 'apparel', ['their own alterations business'], [35200, 52000], 'd', 3, 'nohs', 0.4, {}, 0.85),
   ],
   transport: [
     t('truck-driver', 'truck driver', 'trucking', ['a trucking company', 'a freight carrier', 'a grocery distribution fleet'], [55000, 90000], 'edn', 0, 'hs', 6, { r: { ie: 1.5, sj: 1.4 }, port: [1.5, 1] }, 0.05),
@@ -505,46 +538,100 @@ function placeWeights(world, zi, group) {
 }
 const OCC_GROUP_INDEX = Object.fromEntries([...OCC_GROUPS, 'military'].map((g, i) => [g, i]));
 
+// per group: whether any title can be done from home, and whether any can be done away from home
+const ANY_REMOTE = Object.fromEntries(Object.entries(OCCUPATION_CATALOG).map(([g, list]) => [g, list.some(x => x.wfh > 0)]));
+const ANY_ONSITE = Object.fromEntries(Object.entries(OCCUPATION_CATALOG).map(([g, list]) => [g, list.some(x => x.wfh < 3)]));
+
+/** An education key or index as an index into EDUCATION_LEVELS ('in school' counts as some college); undefined passes through. */
+function eduIndex(e) {
+  if (e === undefined || e === null) return undefined;
+  if (typeof e === 'number') return e;
+  return e in ED ? ED[e] : e === 'in school' ? 2 : 1;
+}
+
 /**
- * A specific job for a worker.
+ * A catalog title for a worker: by the place (region, establishments, landscape), sex, age, shift and whether the
+ * work is done from home. Working from home picks only titles that can be (when the group has any) and working
+ * away from home never picks an always-at-home title (a home daycare). A known education rules out licensed titles
+ * the person lacks the degree for and makes others less likely the further short it falls; eduMax (the most
+ * schooling the person's age allows) rules out titles needing more. When nothing fits, the group's least demanding
+ * titles stand in.
+ * @param {import('./rng.mjs').Rng} rng
+ * @param {{group: string, world?: object, zi?: number, sex?: 'F'|'M', age?: number, education?: string|number,
+ *   eduMax?: string|number, shift?: string, wfh?: boolean}} opts
+ * @returns {object} the catalog entry (key, title, sector, employers, wage range, shifts, wfh, edu, licensed, ...)
+ */
+export function chooseTitle(rng, { group, world, zi, sex = 'F', age = 40, education, eduMax, shift, wfh } = {}) {
+  const g = OCCUPATION_CATALOG[group] ? group : 'office';
+  const list = OCCUPATION_CATALOG[g];
+  const base = world && zi >= 0 ? placeWeights(world, zi, g) : null;
+  const edu = eduIndex(education), cap = eduIndex(eduMax);
+  const w = new Float64Array(list.length);
+  let tot = 0;
+  for (let i = 0; i < list.length; i++) {
+    const x = list[i];
+    let v = base ? base[i] : x.weight;
+    v *= sex === 'F' ? 0.3 + 1.4 * x.fs : 0.3 + 1.4 * (1 - x.fs);
+    if (edu !== undefined && edu < x.edu) v *= x.licensed ? 0 : edu === x.edu - 1 ? 0.2 : 0.02;
+    if (cap !== undefined && cap < x.edu) v = 0;
+    if (age < x.minAge) v *= x.licensed ? 0 : 0.02;
+    if (shift && !x.shifts.includes(shift)) v *= 0.1;
+    if (wfh === true) v *= x.wfh === 0 ? (ANY_REMOTE[g] ? 0 : 1) : x.wfh === 1 ? 1 : 2;
+    else if (wfh === false && x.wfh === 3 && ANY_ONSITE[g]) v = 0;
+    w[i] = v; tot += v;
+  }
+  if (!(tot > 0)) {
+    // no title meets every requirement (an education the person lacks): the least demanding titles that still fit
+    // working from home or not, and the age a license needs; the education rules alone are relaxed
+    const fits = x => (wfh !== true || !ANY_REMOTE[g] || x.wfh > 0) && !(wfh === false && x.wfh === 3 && ANY_ONSITE[g]);
+    const old = x => !x.licensed || age >= x.minAge;
+    let pool = list.filter(x => fits(x) && old(x));
+    if (!pool.length) pool = list.filter(fits);
+    if (!pool.length) pool = list;
+    let lo = Infinity; for (const x of pool) if (x.edu < lo) lo = x.edu;
+    for (let i = 0; i < list.length; i++) { const x = list[i]; w[i] = x.edu === lo && pool.includes(x) ? (base ? base[i] : x.weight) : 0; tot += w[i]; }
+  }
+  let last = list.length - 1;
+  while (last > 0 && !(w[last] > 0)) last--;
+  let u = rng.float() * tot, k = 0;
+  while (k < last && (u >= w[k] || !(w[k] > 0))) { u -= w[k]; k++; }
+  return list[k];
+}
+
+/**
+ * The annual wage of a title for a person: its California range by experience (age), education beyond the
+ * title's minimum and a personal draw u, scaled by the county's income level, never below a full-time minimum-wage
+ * salary (MIN_WAGE_FULL_TIME; the population pays part-timers by their hours).
+ * @param {object} title a catalog entry
+ * @param {{world?: object, zi?: number, age?: number, education?: string|number}} who
+ * @param {number} u a uniform in [0, 1)
+ * @returns {number} dollars a year, a multiple of $500
+ */
+export function titleWage(title, { world, zi, age = 40, education } = {}, u = 0.5) {
+  const f = world && zi >= 0 ? zipFeatures(world, zi) : null;
+  const edu = eduIndex(education) ?? title.edu;
+  const exp = Math.pow(Math.min(1, Math.max(0, (age - 18) / 25)), 0.7);
+  const pos = Math.min(1, Math.max(0, 0.12 + 0.6 * exp + 0.07 * Math.max(0, edu - title.edu) + 0.3 * (u - 0.5)));
+  const wage = Math.round((title.wage[0] + (title.wage[1] - title.wage[0]) * pos) * (f ? f.wage : 1) / 500) * 500;
+  return Math.max(MIN_WAGE_FULL_TIME, wage);
+}
+
+/**
+ * A specific job for a worker (chooseTitle, then an employer, the shift and titleWage).
  * @param {import('./rng.mjs').Rng} rng
  * @param {{group: string, world: object, zi: number, sex?: 'F'|'M', age?: number, education?: string,
  *   shift?: string, wfh?: boolean}} opts group: a Census occupation group or 'military'; zi: the ZIP where the
- *   job is (the workplace when known); education: a B15003 key ('in school' counts as some college);
- *   shift and wfh, when given, are honored (titles that fit them are preferred) and returned unchanged.
+ *   job is (the workplace when known); education: a B15003 key ('in school' counts as some college); shift and
+ *   wfh, when given, are honored (titles that fit them are preferred) and returned unchanged.
  * @returns {{key: string, title: string, sector: string, employer: string, shift: string, wfh: boolean, wage: number}}
  */
-export function pickOccupation(rng, { group, world, zi, sex = 'F', age = 40, education = 'hs', shift, wfh } = {}) {
-  const g = OCCUPATION_CATALOG[group] ? group : 'office';
-  const list = OCCUPATION_CATALOG[g];
-  const base = world && zi >= 0 ? placeWeights(world, zi, g) : Float64Array.from(list, x => x.weight);
-  const eduIdx = education in ED ? ED[education] : education === 'in school' ? 2 : 1;
-  let tot = 0;
-  const w = new Float64Array(list.length);
-  for (let i = 0; i < list.length; i++) {
-    const x = list[i];
-    let v = base[i];
-    v *= sex === 'F' ? 0.3 + 1.4 * x.fs : 0.3 + 1.4 * (1 - x.fs);
-    if (eduIdx < x.edu) v *= eduIdx === x.edu - 1 ? 0.2 : 0.02;
-    if (age < x.minAge) v *= 0.02;
-    if (shift && !x.shifts.includes(shift)) v *= 0.1;
-    if (wfh === true) v *= x.wfh === 2 ? 2 : x.wfh === 1 ? 1 : 0.05;
-    w[i] = v; tot += v;
-  }
-  let u = rng.float() * tot, k = 0;
-  while (k < list.length - 1 && u >= w[k]) { u -= w[k]; k++; }
-  const x = list[k];
+export function pickOccupation(rng, opts = {}) {
+  const { world, zi, age = 40, education = 'hs', shift, wfh } = opts;
+  const x = chooseTitle(rng, { ...opts, education });
   const employer = x.employers[rng.int(x.employers.length)];
-  const f = world && zi >= 0 ? zipFeatures(world, zi) : null;
-  const exp = Math.pow(Math.min(1, Math.max(0, (age - 18) / 25)), 0.7);
-  const pos = Math.min(1, Math.max(0, 0.12 + 0.6 * exp + 0.07 * Math.max(0, eduIdx - x.edu) + 0.3 * (rng.float() - 0.5)));
-  const wage = Math.round((x.wage[0] + (x.wage[1] - x.wage[0]) * pos) * (f ? f.wage : 1) / 500) * 500;
-  return {
-    key: x.key, title: x.title, sector: x.sector, employer,
-    shift: shift || x.shifts[rng.int(x.shifts.length)],
-    wfh: typeof wfh === 'boolean' ? wfh : x.wfh === 2,
-    wage,
-  };
+  const sh = shift || x.shifts[rng.int(x.shifts.length)];
+  const wage = titleWage(x, { world, zi, age, education }, rng.float());
+  return { key: x.key, title: x.title, sector: x.sector, employer, shift: sh, wfh: typeof wfh === 'boolean' ? wfh : x.wfh >= 2, wage };
 }
 
 /** A typical California wage for an occupation group (dollars per year), for ranking household earnings. */
