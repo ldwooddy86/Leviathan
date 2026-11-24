@@ -512,6 +512,19 @@ test('service members: the branch of the installation they report to, and on-bas
     }
   }
   assert.ok(n > 300, `${n} service members drive 20 minutes or more`);
+  // on a base most service members are men (about a fifth women), and the civilian jobs are split between the sexes
+  // as C24010 counts them: the husbands who do not serve hold theirs, the wives most of the rest
+  for (const zip of ['92310', '93437', '94535', '95903', '93523']) {
+    const z = zi(zip), occ = world.acs(z, 'occ');
+    let acsM = 0, acsF = 0, civM = 0, civF = 0, milM = 0, milF = 0;
+    for (let k = 0; k < 25; k++) { acsM += occ[k]; acsF += occ[25 + k]; }
+    for (let h = 0; h < pop.householdCount(z); h++) for (const p of pop.householdCore(z, h).members) {
+      if (p.military) { if (p.sex === 'M') milM++; else milF++; } else if (p.worker) { if (p.sex === 'M') civM++; else civF++; }
+    }
+    const women = milF / (milM + milF), menCiv = civM / (civM + civF), want = acsM / (acsM + acsF);
+    assert.ok(women > 0.1 && women < 0.3, `${zip}: ${pts(women)}% of the service members are women`);
+    assert.ok(menCiv > want - 0.2, `${zip}: men hold ${pts(menCiv)}% of the civilian jobs (C24010 ${pts(want)}%)`);
+  }
 });
 
 test('farm work is in farm country: farming jobs of city residents are in the fields or a city\'s farming jobs', () => {

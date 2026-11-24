@@ -25,10 +25,12 @@
 //   * Tenure, dwelling and vehicles: logistic tenure by type and age calibrated to own_sh; dwelling by IPF of
 //     tenure against sfd_sh/mf5_sh/mh_sh; vehicles by IPF of size class against B25044 within tenure.
 //   * School (B14001 rates by single year of age), work (B23025 by a national age-sex profile shifted to the
-//     ZIP), active duty, occupation (C24010 by sex, IPF against an age profile that keeps teenagers out of
-//     licensed work), working from home (by occupation, shifted to the ZIP's B08301 share; never in a group with
-//     no remote-capable job), the other commute modes (B08301 split by car access) and travel time (B08303, IPF
-//     of mode against time), and departure times from the occupation group's shift pattern (occupations.mjs).
+//     ZIP; on a base, each sex shifted to its own civilians by C24010 plus its service members), active duty
+//     (a woman about a third as likely to serve as a man), occupation (C24010 by sex, IPF against an age profile
+//     that keeps teenagers out of licensed work), working from home (by occupation, shifted to the ZIP's B08301
+//     share; never in a group with no remote-capable job), the other commute modes (B08301 split by car access)
+//     and travel time (B08303, IPF of mode against time), and departure times from the occupation group's shift
+//     pattern (occupations.mjs).
 //   * Destinations agree with the trip. A worker's mode and minutes imply a distance: a trip under 15 km ends that
 //     far from the home itself, at a workplace chosen by establishments among a few directions; a longer one at a
 //     ZIP chosen by a gravity model over establishments in that distance band (precomputed per ZIP). Service
@@ -2400,10 +2402,28 @@ export class Population {
       const p = popT[s * 100 + a], st = a >= 17 ? M.colRate[a] + M.gradRate[a] : 0;
       n.push(p * (1 - st), p * st); off.push(EMP_LOGIT[s * 100 + a], EMP_LOGIT[s * 100 + a] + STUDENT_WORK);
     }
-    const nTot = n.reduce((x, y) => x + y, 0);
-    const aWork = solveShift(n, off, nTot * (emp[0] + emp[2]) / e16);
+    const nTot = n.reduce((x, y) => x + y, 0), wTot = nTot * (emp[0] + emp[2]) / e16;
+    // one shift of the log-odds of working for both sexes; but on a base (service members a quarter of the workers or
+    // more) the men serve and their wives hold most of the civilian jobs, so each sex gets its own: its workers are its
+    // civilians (C24010's men-to-women split) and its service members (a woman MIL_F as likely to serve as a man)
+    const aW = [0, 0];
+    aW[0] = aW[1] = solveShift(n, off, wTot);
+    const civC = this.world.acs(zi, 'occ');
+    let cm = 0, cf = 0;
+    if (civC) for (let k = 0; k < 25; k++) { cm += civC[k] || 0; cf += civC[25 + k] || 0; }
+    if (emp[2] >= 0.25 * (emp[0] + emp[2]) && cm + cf >= 30 && wTot > 20) {
+      let pm = 0, pf = 0;
+      for (let a = 16; a <= MAX_AGE; a++) { const q = sigmoid(MIL_LOGIT(a)); pm += popT[a] * q; pf += popT[100 + a] * q * MIL_F; }
+      const half = n.length / 2, cap = s => 0.97 * n.slice(s * half, (s + 1) * half).reduce((x, y) => x + y, 0);
+      let wm = (nTot * emp[0] / e16) * cm / (cm + cf) + (nTot * emp[2] / e16) * (pm + pf > 0 ? pm / (pm + pf) : 0.5);
+      wm = Math.min(wm, cap(0));
+      const wf = Math.min(wTot - wm, cap(1));
+      wm = Math.min(wTot - wf, cap(0));
+      aW[0] = solveShift(n.slice(0, half), off.slice(0, half), wm);
+      aW[1] = solveShift(n.slice(half), off.slice(half), wf);
+    }
     M.pWork = new Float32Array(400);
-    for (let st = 0; st < 2; st++) for (let s = 0; s < 2; s++) for (let a = 16; a <= MAX_AGE; a++) M.pWork[st * 200 + s * 100 + a] = sigmoid(aWork + EMP_LOGIT[s * 100 + a] + (st ? STUDENT_WORK : 0));
+    for (let st = 0; st < 2; st++) for (let s = 0; s < 2; s++) for (let a = 16; a <= MAX_AGE; a++) M.pWork[st * 200 + s * 100 + a] = sigmoid(aW[s] + EMP_LOGIT[s * 100 + a] + (st ? STUDENT_WORK : 0));
     M.pMil = null;
     const milTarget = nTot * emp[2] / e16;
     const workers = new Float64Array(200);
