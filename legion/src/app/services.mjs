@@ -44,6 +44,15 @@ export const ENGINE_MODULES = Object.freeze([
   { key: 'weather', file: 'src/app/nws-live.mjs', title: 'Live weather', provides: 'fresh NWS forecasts and alerts from api.weather.gov, when you allow it', pending: 'Live weather is not loaded in this page; the weather comes from the NWS snapshot in the pack.' },
 ]);
 
+/**
+ * A fire's name as people say it, with CAL FIRE unit codes in capitals: 'Camp' is "the Camp Fire", 'Scu Lightning
+ * Complex' is "the SCU Lightning Complex" (the lexicon's fireLabel, the one the dialogue speaks with); null for an
+ * unnamed or number-only fire.
+ * @param {string|{name: string}} fire
+ * @returns {string|null}
+ */
+export function fireLabel(fire) { return lexiconModule.fireLabel(fire); }
+
 /** Claude models offered in Settings when the Claude bridge does not list its own. */
 export const CLAUDE_MODELS = Object.freeze([
   { id: 'claude-opus-5-5', label: 'Claude Opus 5.5', note: 'Default' },
@@ -65,6 +74,10 @@ const DEFAULT_MODULES = Object.freeze({
 const ok = value => ({ ok: true, value });
 const fail = (reason, message, extra = {}) => ({ ok: false, reason, message, ...extra });
 const HOUR = 3600000;
+/** How long (real ms) a street exchange's answer waits for the one it answers to be asked (the street asks after 1.4 s). */
+const BARK_REPLY_MS = 10000;
+/** Real time, for pairing street lines only (animation, never what an NPC is or says). */
+const realNow = () => (typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now());
 
 /** True for a Result that holds a value. */
 export function isOk(result) { return !!(result && result.ok); }
@@ -556,10 +569,12 @@ export function createServices(options = {}) {
       const t = simTime(context.t);
       const minute = Math.floor(t / 60000);
       if (context.replyTo) {
+        // the answer kept for this pair: B is asked a moment (in real time) after A spoke, and at 3600x a moment is
+        // an hour of simulated time, so the pair is matched in real time, or by the simulated minute A spoke in
         const key = `${idA}|${idB}`;
         const kept = barks.get(key);
         barks.delete(key);
-        if (kept && Math.abs(kept.minute - minute) <= 5) return kept.line;
+        if (kept && (realNow() - kept.at <= BARK_REPLY_MS || Math.abs(kept.minute - minute) <= 5)) return kept.line;
       }
       const a = svc.persona(idA, { t, any: true }), b = idB ? svc.persona(idB, { t, any: true }) : null;
       if (!a.ok) return null;
@@ -567,7 +582,7 @@ export function createServices(options = {}) {
       try {
         if (b && b.ok && typeof mods.dialogue.barkBetween === 'function' && !context.replyTo) {
           const [lineA, lineB] = mods.dialogue.barkBetween(wxWorld(), a.value, b.value, ctx);
-          if (lineB) { barks.set(`${idB}|${idA}`, { minute, line: lineB }); if (barks.size > 200) barks.delete(barks.keys().next().value); }
+          if (lineB) { barks.set(`${idB}|${idA}`, { minute, at: realNow(), line: lineB }); if (barks.size > 200) barks.delete(barks.keys().next().value); }
           if (lineA) return lineA;
           return null;
         }

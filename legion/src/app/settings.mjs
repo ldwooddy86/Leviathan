@@ -278,7 +278,7 @@ export function mountSettingsDialog(dialog, deps) {
     const s = settings.get();
     const build = deps.getBuild ? deps.getBuild() : null;
     if (build && build.building) return `Building ${fmtPct((build.rate ?? s.density) * 100)}…`;
-    if (build && build.agents >= 0) return `Built: ${fmtInt(build.agents)} agents at ${fmtPct((build.rate ?? s.density) * 100)}${build.ms ? ` in ${(build.ms / 1000).toFixed(1)} s` : ''}.`;
+    if (build && build.agents >= 0) return `Built: ${fmtInt(build.agents)} agents at ${fmtPct((build.rate ?? s.density) * 100)}${build.ms ? ` in ${(build.ms / 1000).toFixed(1)} s` : ''}${build.summary && build.summary.cached ? ', kept on this device from an earlier visit' : ''}.`;
     return 'The crowd builds when the map opens.';
   }
 

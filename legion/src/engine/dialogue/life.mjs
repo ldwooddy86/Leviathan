@@ -55,7 +55,7 @@ const INTERESTS = [
   [/^the county fair$/, I('fair food', 'at the county fair', ['I never miss the county fair.', 'The county fair every year. The food alone is worth it.'], [['Nunca me pierdo la feria del condado.', 'I never miss the county fair.']])],
   [/^the harvest$/, I('harvest work', 'out in the fields', ['Harvest time is my favorite time of year, even with the hours.'], [['La cosecha es mi temporada favorita.', 'The harvest is my favorite season.']])],
   [/^4-H with the kids$/, I('4-H', 'at 4-H with the kids', ['The kids are in 4-H, so that keeps our weekends full.'], [['Los niños están en 4-H y eso nos tiene ocupados.', 'The kids are in 4-H and that keeps us busy.']])],
-  [/^trying new restaurants$/, I('restaurant hunting', 'trying some new restaurant', ["I'm always trying new restaurants.", 'Trying new places to eat. There is always somewhere new.'], [['Me gusta probar restaurantes nuevos.', 'I like trying new restaurants.']])],
+  [/^trying new restaurants$/, I('restaurant hunting', 'trying some new restaurant', ["I'm always trying new restaurants.", 'Trying new places to eat. There\'s always somewhere new.'], [['Me gusta probar restaurantes nuevos.', 'I like trying new restaurants.']])],
   [/^live music$/, I('live music', 'at a show', ['I go see live music whenever I can.', 'Live music. Small shows are the best.'], [['Me gusta ir a escuchar música en vivo.', 'I like going to hear live music.']])],
   [/^the farmers market$/, I('farmers market runs', 'at the farmers market', ["I'm at the farmers market every weekend."], [['Voy al mercado de los agricultores cada fin de semana.', 'I go to the farmers market every weekend.']])],
   [/^biking around town$/, I('biking', 'on my bike', ['I bike everywhere I can.', 'Biking around town. Faster than driving, half the time.'], [['Me gusta andar en bicicleta.', 'I like to ride my bike.']])],
@@ -321,7 +321,40 @@ export function heritageLabelEs(label, sex) {
   return hit ? hit[sex === 'F' ? 1 : 0] : String(label || '');
 }
 
-/** School level words: [English, Spanish]. */
+/**
+ * A trail's label in Spanish: "a trailhead in the Santa Monica Mountains" → "un sendero en las montañas de Santa
+ * Monica", "the trail up Mount Diablo" → "el sendero que sube a Mount Diablo".
+ * @param {string|null} label
+ * @returns {string|null}
+ */
+export function trailEs(label) {
+  if (typeof label !== 'string' || !label) return null;
+  const range = n => {
+    let m;
+    if ((m = /^(.+) Mountains$/.exec(n))) return `las montañas de ${m[1]}`;
+    if ((m = /^(.+) Mountain$/.exec(n))) return `el monte ${m[1]}`;
+    if ((m = /^(.+) Hills$/.exec(n))) return `las lomas de ${m[1]}`;
+    if ((m = /^(.+) (Range|Sierra)$/.exec(n))) return `la sierra de ${m[1]}`;
+    return n;
+  };
+  let m;
+  if ((m = /^a trailhead (?:in the|on) (.+)$/.exec(label))) return `un sendero en ${range(m[1])}`;
+  if ((m = /^the trail up (.+)$/.exec(label))) return `el sendero que sube a ${m[1]}`;
+  if ((m = /^the trail near (.+)$/.exec(label))) return `el sendero cerca de ${m[1]}`;
+  return label.replace(/^the /i, '');
+}
+
+/** "the fifties" → "los años cincuenta": a decade as decadeWords says it, in Spanish. */
+export function decadeEs(decade) {
+  const words = { 'the teens': 'los años diez', 'the twenties': 'los años veinte', 'the thirties': 'los años treinta', 'the forties': 'los años cuarenta', 'the fifties': 'los años cincuenta',
+    'the sixties': 'los años sesenta', 'the seventies': 'los años setenta', 'the eighties': 'los años ochenta', 'the nineties': 'los años noventa' };
+  const d = String(decade || '');
+  if (words[d]) return words[d];
+  const m = /^the (\d{4})s$/.exec(d);
+  return m ? `los ${m[1]}` : null;
+}
+
+/** School level words: [English, Spanish]. *//** School level words: [English, Spanish]. */
 export const SCHOOL_WORDS = Object.freeze({
   preschool: ['preschool', 'kínder'], elementary: ['elementary school', 'primaria'], middle: ['middle school', 'secundaria'],
   high: ['high school', 'preparatoria'], college: ['college', 'universidad'], grad: ['grad school', 'posgrado'],

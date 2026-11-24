@@ -33,6 +33,46 @@ const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
 const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 const str = v => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
+// a wind "around 0 mph" (with its direction, light or not): the NWS text generator's way of saying calm
+const CALM_WIND = /(^|[.!?]\s+|\s)(?:light\s+)?(?:(?:north|south|east|west|northeast|northwest|southeast|southwest|variable)\s+)?winds? around 0 mph\b/gi;
+
+/**
+ * NWS forecast text as a person would read it. The NWS text generator leaves template placeholders in when a value
+ * is missing ("Mostly sunny. {{missing_temperature_data}}. East wind around 0 mph."), in the pack's snapshot and in
+ * live answers alike: placeholders and markup asterisks go, the punctuation they leave is tidied, a wind "around 0
+ * mph" is the calm wind NWS means by it, and text longer than `max` characters ends at a word with an ellipsis.
+ * @param {string} s
+ * @param {{max?: number}} [opts]
+ * @returns {string}
+ */
+export function cleanForecastText(s, { max = 600 } = {}) {
+  let out = String(s ?? '').replace(/\{\{[^}]*\}\}/g, ' ').replace(/\*/g, ' ').replace(/\s+/g, ' ').trim()
+    .replace(/\s+([.,;:])/g, '$1').replace(/([.,;:])(?:\s*[.,;:])+/g, '$1').replace(/^[.,;:\s]+/, '')
+    .replace(CALM_WIND, (all, lead) => `${lead}${!lead || /[.!?]\s*$/.test(lead) ? 'C' : 'c'}alm wind`);
+  if (out.length > max) out = out.slice(0, max).replace(/\s+\S*$/, '') + '…';
+  return out;
+}
+
+/** NWS events that only touch the shore: coastal floods, surf, rip currents, beach hazards, tsunamis, sneaker waves. */
+export const COASTAL_EVENT = /coastal|surf|rip current|beach|tsunami|sneaker wave|lakeshore/i;
+
+/** How far from the coast (km, the pack's coast_km) a shore-only alert still concerns a ZIP: the dialogue's own 8 km. */
+export const COASTAL_ALERT_KM = 8;
+
+/**
+ * The alerts that concern a ZIP. NWS issues alerts for whole forecast zones and counties, so a Coastal Flood Advisory
+ * for Los Angeles County reaches Lancaster, 80 km inland; a shore-only event (COASTAL_EVENT) is left out more than
+ * COASTAL_ALERT_KM from the coast, the rule the offline dialogue and the conversation starters follow. A ZIP whose
+ * distance is unknown keeps every alert.
+ * @param {object[]} alerts world.weatherAt(...).alerts
+ * @param {number|null} coastKm the ZIP's coast_km
+ * @returns {object[]}
+ */
+export function alertsForZip(alerts, coastKm) {
+  const inland = Number.isFinite(Number(coastKm)) && coastKm !== null && Number(coastKm) > COASTAL_ALERT_KM;
+  return (Array.isArray(alerts) ? alerts : []).filter(a => a && a.event && !(inland && COASTAL_EVENT.test(String(a.event))));
+}
+
 /** Degrees F from an NWS temperature and its unit ('F', 'C', or a WMO unit code). */
 export function toF(value, unit) {
   const v = num(value);
@@ -55,7 +95,7 @@ export function periodOf(p) {
   if (!isObj(p) || !str(p.startTime) || !str(p.endTime)) return null;
   return {
     name: str(p.name) || '', start: p.startTime, end: p.endTime, isDay: !!p.isDaytime, tempF: toF(p.temperature, p.temperatureUnit),
-    short: str(p.shortForecast) || '', pop: quantity(p.probabilityOfPrecipitation) ?? 0, wind: str(p.windSpeed) || '', detail: str(p.detailedForecast) || '',
+    short: str(p.shortForecast) || '', pop: quantity(p.probabilityOfPrecipitation) ?? 0, wind: str(p.windSpeed) || '', detail: cleanForecastText(str(p.detailedForecast) || ''),
   };
 }
 

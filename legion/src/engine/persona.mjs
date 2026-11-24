@@ -441,24 +441,42 @@ function shiftOf(label, departMin, commuteMin) {
 
 const ADULT_ROLES = new Set(['householder', 'spouse', 'partner']);
 
-/** The household seen from this NPC: partner, kids, grandkids, parents, siblings, roommates (no names). */
+/**
+ * The household seen from this NPC: partner, kids, grandkids, parents, in-laws, stepparents, grandparents, siblings,
+ * roommates and other relatives (no names). Census roles say how each member is related to the householder; the
+ * NPC's own parents are the ones the record lists (npc.parents, layer 1: the householder's parents are the
+ * householder's, the spouse's parents are the householder's in-laws, a spouse who is not a child's parent is a
+ * stepparent). Without that list (a record made by hand) the roles alone decide, as they did before it existed.
+ */
 function relationsOf(npc, members) {
   const me = Number.isInteger(npc?.m) ? npc.m : -1;
   const others = (Array.isArray(members) ? members : []).filter(x => x && x.m !== me);
   const by = (...roles) => others.filter(x => roles.includes(x.role));
-  const out = { partner: null, kids: [], grandkids: [], parents: [], grandparents: [], siblings: [], roommates: [], relatives: [] };
+  const out = { partner: null, kids: [], grandkids: [], parents: [], inLaws: [], stepparents: [], grandparents: [], siblings: [], roommates: [], relatives: [] };
   const role = npc?.role || 'householder';
+  const listed = Array.isArray(npc?.parents) ? new Set(npc.parents) : null;
+  const mine = x => listed.has(x.m);
   if (role === 'householder') {
     out.partner = by('spouse')[0] || by('partner')[0] || null;
-    out.kids = by('child'); out.grandkids = by('grandchild'); out.parents = by('parent');
+    out.kids = by('child'); out.grandkids = by('grandchild');
+    out.parents = listed ? by('parent').filter(mine) : by('parent');
+    out.inLaws = listed ? by('parent').filter(x => !mine(x)) : [];
     out.siblings = by('sibling'); out.roommates = by('roommate'); out.relatives = by('relative');
   } else if (role === 'spouse' || role === 'partner') {
     out.partner = by('householder')[0] || null;
     out.kids = by('child'); out.grandkids = by('grandchild'); out.roommates = by('roommate');
-    out.relatives = by('parent', 'sibling', 'relative');
+    if (listed) {
+      out.parents = by('parent').filter(mine);
+      out.inLaws = by('parent').filter(x => !mine(x));
+      out.relatives = by('sibling', 'relative');
+    } else out.relatives = by('parent', 'sibling', 'relative');
   } else if (role === 'child') {
-    out.parents = by('householder', 'spouse', 'partner'); out.siblings = by('child'); out.grandparents = by('parent');
-    out.relatives = by('grandchild', 'sibling', 'relative');
+    const adults = by('householder', 'spouse', 'partner');
+    out.parents = listed ? adults.filter(mine) : adults;
+    // married to their parent: a stepparent; a parent's unmarried partner stays among the relatives
+    out.stepparents = listed ? adults.filter(x => !mine(x) && x.role !== 'partner' && out.parents.length) : [];
+    out.siblings = by('child'); out.grandparents = by('parent');
+    out.relatives = [...by('grandchild', 'sibling', 'relative'), ...(listed ? adults.filter(x => !mine(x) && !out.stepparents.includes(x)) : [])];
   } else if (role === 'grandchild') {
     out.grandparents = by('householder', 'spouse', 'partner'); out.siblings = by('grandchild');
     out.relatives = by('child', 'parent', 'sibling', 'relative');
@@ -466,8 +484,9 @@ function relationsOf(npc, members) {
     out.kids = by('householder', 'sibling'); out.grandkids = by('child'); out.partner = by('parent')[0] || null;
     out.relatives = by('spouse', 'partner', 'grandchild', 'relative');
   } else if (role === 'sibling') {
-    out.siblings = by('householder', 'sibling'); out.parents = by('parent');
-    out.relatives = by('spouse', 'partner', 'child', 'grandchild', 'relative');
+    out.siblings = by('householder', 'sibling');
+    out.parents = listed ? by('parent').filter(mine) : by('parent');
+    out.relatives = [...by('spouse', 'partner', 'child', 'grandchild', 'relative'), ...(listed ? by('parent').filter(x => !mine(x)) : [])];
   } else if (role === 'roommate') {
     out.roommates = others;
   } else {
@@ -910,11 +929,33 @@ function churchgoersOf(ctx, view) {
   return [...grown, ...kids].map(x => x.m).sort((a, b) => a - b);
 }
 
-/** This member's own churchgoing ({label, day, why}) or null; never read from heritage. */
+/**
+ * Where a household's churchgoers go, in words. The atlas counts congregations of every faith (its 'church' column),
+ * and Legion never infers a faith from heritage, so the practice is "religious services", with one exception: the
+ * Census Asian group 'sikh' (B02015) is itself a faith, and a household of that group goes to "the gurdwara" (the
+ * lexicon's faithFor says the same). The household's heritage decides, so the family goes to one place together.
+ * @returns {{place: string, faith: string|null}}
+ */
+function worshipOf(ctx) {
+  const hk = ctx.core && ctx.core.hh && typeof ctx.core.hh.heritage === 'string' ? ctx.core.hh.heritage : str(ctx.npc.heritage);
+  return hk === 'sikh' ? { place: 'the gurdwara', faith: 'sikh' } : { place: 'religious services', faith: null };
+}
+
+/**
+ * This member's own practice, or null: {label, place, interest, faith, day, why}. label is what they do ("religious
+ * services on Sunday mornings", "Sunday services at the gurdwara"), place the schedule's word for where they go,
+ * interest the name it takes among their interests, faith 'sikh' or null (worshipOf). Who practices is never read
+ * from heritage (churchgoersOf); only the gurdwara's name is, for the one Census group that names a faith.
+ */
 function practiceOf(ctx, L, churchgoers) {
   const { zc, npc } = ctx;
   if (!churchgoers.includes(Number.isInteger(npc.m) ? npc.m : 0)) return null;
-  return { label: 'church', day: 0, why: `${num(ctx.z.church)} congregations in ${ctx.z.zip} (church), ${fmt1(zc.churchPer10k)} per 10,000 people` };
+  const w = worshipOf(ctx);
+  return {
+    label: w.faith === 'sikh' ? 'Sunday services at the gurdwara' : 'religious services on Sunday mornings',
+    place: w.place, interest: w.faith === 'sikh' ? 'Sunday services at the gurdwara' : 'Sunday services', faith: w.faith, day: 0,
+    why: `${num(ctx.z.church)} congregations of every faith in ${ctx.z.zip} (church), ${fmt1(zc.churchPer10k)} per 10,000 people`,
+  };
 }
 
 // ---------------------------------------------------------------- teams
@@ -1218,7 +1259,7 @@ function householdPlaces(ctx, churchgoers) {
   }
   if (churchgoers.length) {
     const c = pickZipPoint(world, home, dens >= 500 ? 8 : 30, (j, d) => num(world.z.church[j]) * Math.exp(-d / 4), r, hash2(key, 0xc4c4));
-    if (c) out.church = Object.assign({ kind: 'church', label: 'church' }, c);
+    if (c) out.church = Object.assign({ kind: 'church', label: worshipOf(ctx).place }, c);
   }
   const fam = pickZipPoint(world, home, 40, (j, d) => (j === zi ? 0 : num(world.z.pop[j]) * Math.exp(-d / 15)), r, hash2(key, 0xfa111));
   if (fam) out.family = Object.assign({ kind: 'family', label: `family in ${fam.city}` }, fam);
@@ -1410,7 +1451,7 @@ function interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places
   if (C > 0.65 && a >= 14 && a <= 70) add('running', 0.2 + 0.2 * (C - 0.65), 'conscientiousness');
   if (archetype === 'retired gardener') add('gardening', 1.2, 'retired, with a house and a yard');
   if (archetype === 'snowbird') add('golf', 0.5, `a seasonal town: ${Math.round(100 * L.seasonalShare)}% of homes are seasonal (seas)`);
-  if (practice) add('church on Sundays', a < 13 ? 0.08 : 0.3 + 0.22 * smoothstep(40, 80, a), practice.why);
+  if (practice) add(practice.interest, a < 13 ? 0.08 : 0.3 + 0.22 * smoothstep(40, 80, a), practice.why);
   teams.forEach((t, k) => add(t.label, (k === 0 ? 0.52 : 0.3) + 0.15 * (E - 0.5) + (L.sex === 'M' ? 0.04 : 0), `${t.name} fan base (team home ${t.lat.toFixed(2)}, ${t.lon.toFixed(2)})`));
   const ranked = [...cands.values()].map(c => ({ c, s: c.w * (0.75 + 0.5 * r.float()) })).sort((x, y) => y.s - x.s || (x.c.name < y.c.name ? -1 : 1)).map(x => x.c);
   const n = clamp(3 + (E > 0.6 ? 1 : 0) + (O > 0.6 ? 1 : 0), 3, 5);
@@ -2025,6 +2066,7 @@ function familyOf(ctx) {
   const named = x => (x ? { m: x.m, role: x.role, name: memberName(x), age: isNum(x.age) ? x.age : null, sex: x.sex === 'F' || x.sex === 'M' ? x.sex : null } : null);
   return {
     partner: named(rel.partner), kids: rel.kids.map(named), grandkids: rel.grandkids.map(named), parents: rel.parents.map(named),
+    inLaws: rel.inLaws.map(named), stepparents: rel.stepparents.map(named),
     grandparents: rel.grandparents.map(named), siblings: rel.siblings.map(named), roommates: rel.roommates.map(named), relatives: rel.relatives.map(named),
   };
 }
@@ -2047,6 +2089,8 @@ function householdPhrase(L, fam, P) {
   if (fam.partner) parts.push(`${P.pos} ${L.role === 'partner' || fam.partner.role === 'partner' ? 'partner' : fam.partner.sex === 'F' ? 'wife' : fam.partner.sex === 'M' ? 'husband' : 'spouse'}`);
   if (fam.kids.length) parts.push(fam.kids.length === 1 ? `${P.pos} ${fam.kids[0].sex === 'F' ? 'daughter' : 'son'}` : `${numWord(fam.kids.length)} kids`);
   if (fam.parents.length) parts.push(fam.parents.length >= 2 ? `${P.pos} parents` : `${P.pos} ${fam.parents[0].sex === 'F' ? 'mother' : 'father'}`);
+  if (fam.stepparents && fam.stepparents.length) parts.push(fam.stepparents.length >= 2 ? `${P.pos} stepparents` : `${P.pos} ${fam.stepparents[0].sex === 'F' ? 'stepmother' : 'stepfather'}`);
+  if (fam.inLaws && fam.inLaws.length) parts.push(fam.inLaws.length >= 2 ? `${P.pos} in-laws` : `${P.pos} ${fam.inLaws[0].sex === 'F' ? 'mother' : 'father'}-in-law`);
   if (fam.grandparents.length) parts.push(fam.grandparents.length >= 2 ? `${P.pos} grandparents` : `${P.pos} ${fam.grandparents[0].sex === 'F' ? 'grandmother' : 'grandfather'}`);
   if (fam.siblings.length) parts.push(kinPhrase(fam.siblings, k => (k.sex === 'F' ? 'sister' : 'brother'), 'siblings', P));
   if (fam.grandkids.length) parts.push(fam.grandkids.length === 1 ? `a grandchild` : `${numWord(fam.grandkids.length)} grandchildren`);
@@ -2109,7 +2153,12 @@ const CONCERN_WORDS = {
 
 // ---------------------------------------------------------------- hooks
 
-/** Three to five things they would bring up unprompted: the weather or an alert, a worry, an interest, a memory, family. */
+/**
+ * Three to five things they would bring up unprompted: the weather or an alert, a worry, an interest, a memory,
+ * family. Returns {hooks, lasting}: `lasting` are the ones that hold whatever the hour (the same draw every hour, so
+ * a cached Claude sheet built from them stays byte-identical as the clock moves); `hooks` puts the moment's weather
+ * or alert first, when there is one, in place of the last of them.
+ */
 function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
   const r = rngFor(ctx.seed, S.hooks);
   const E = num(big5.E, 0.5);
@@ -2117,11 +2166,14 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
   const near = relevantAlerts(wx && wx.alerts, ctx.z.coast_km);
   const alert = near.length ? near.slice().sort((a, b) => alertBoost(b) - alertBoost(a))[0] : null;
   const now = wx && wx.now ? wx.now : null;
-  if (alert && L.age >= 13) items.push({ kind: 'weather', topic: 'weather', text: `the ${alert.event} the weather service has out`, w: 0.9 + alertBoost(alert) });
+  const n = clamp(3 + (E > 0.55 ? 1 : 0) + (E > 0.7 ? 1 : 0), 3, 5);
+  let moment = null;
+  if (alert && L.age >= 13) moment = { kind: 'weather', topic: 'weather', text: `the ${alert.event} the weather service has out` };
   else if (now && isNum(now.tempF)) {
     const short = String(now.short || (wx.period && wx.period.short) || '').toLowerCase();
     const hot = now.tempF >= 95, cold = now.tempF <= 40, wet = /rain|shower|storm|drizzle|snow/.test(short);
-    items.push({ kind: 'weather', topic: 'weather', text: hot ? `the heat today, ${now.tempF}°F` : cold ? `the cold today, ${now.tempF}°F` : wet ? `the ${/snow/.test(short) ? 'snow' : 'rain'} today` : `the weather today, ${short || 'mild'} and ${now.tempF}°F`, w: hot || cold || wet ? 0.8 : 0.45 });
+    // weather worth mentioning is everyone's hook; a mild day only the talkative bring up
+    if (hot || cold || wet || n >= 4) moment = { kind: 'weather', topic: 'weather', text: hot ? `the heat today, ${now.tempF}°F` : cold ? `the cold today, ${now.tempF}°F` : wet ? `the ${/snow/.test(short) ? 'snow' : 'rain'} today` : `the weather today, ${short || 'mild'} and ${now.tempF}°F` };
   }
   if (concerns[0] && L.age >= 13) items.push({ kind: 'concern', topic: concerns[0].area, text: CONCERN_WORDS[concerns[0].topic] || concerns[0].topic, w: 0.6 + 0.4 * concerns[0].weight });
   const interest = interests.find(i => !i.tradition);
@@ -2139,8 +2191,8 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
   for (const i of interests) if (items.length < 3 && !i.tradition && !items.some(x => x.text === i.name)) items.push({ kind: 'interest', topic: 'interest', text: i.name, w: 0.3 });
   for (const m of memories) if (items.length < 3 && L.age >= 10 && !items.some(x => x.text === (m.title || m.text))) items.push({ kind: 'memory', topic: 'history', text: m.title || m.text, w: 0.25 });
   if (items.length < 3) items.push({ kind: 'place', topic: 'neighborhood', text: `life in ${ctx.knowledge.neighborhood}`, w: 0.2 });
-  const n = clamp(3 + (E > 0.55 ? 1 : 0) + (E > 0.7 ? 1 : 0), 3, 5);
-  return items.map(x => ({ x, s: x.w * (0.85 + 0.3 * r.float()) })).sort((a, b) => b.s - a.s).slice(0, n).map(({ x }) => ({ kind: x.kind, topic: x.topic, text: x.text }));
+  const lasting = items.map(x => ({ x, s: x.w * (0.85 + 0.3 * r.float()) })).sort((a, b) => b.s - a.s).slice(0, n).map(({ x }) => ({ kind: x.kind, topic: x.topic, text: x.text }));
+  return { lasting, hooks: moment ? [moment, ...lasting.slice(0, n - 1)] : lasting };
 }
 
 // ---------------------------------------------------------------- the persona
@@ -2157,7 +2209,8 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
  * @property {string[]} interests          3 to 6 interests
  * @property {{name:string, why:string, tradition?:boolean}[]} interestDetails   the datum behind each interest
  * @property {{name:string, sport:string}[]} teams
- * @property {{label:string, day:number, why:string}|null} practice   their own churchgoing
+ * @property {{label:string, place:string, interest:string, faith:string|null, day:number, why:string}|null} practice   their own
+ *   practice: religious services (the atlas counts congregations of every faith), the gurdwara for the Census group 'sikh'
  * @property {{topic:string, weight:number, why:string, area:string}[]} concerns
  * @property {{year:number, date:string|null, kind:string, text:string, weight:number, source:string, title?:string, fact?:string, experience?:string|null, scope?:string}[]} memories
  *   events: text = fact (from the pack) + experience (their own, never repeated within one persona); life events: text alone
@@ -2170,6 +2223,8 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
  * @property {string} bio
  * @property {string[]} hooks              things they would bring up unprompted
  * @property {{kind:string, topic:string, text:string}[]} hookDetails
+ * @property {{kind:string, topic:string, text:string}[]} lastingHooks   the hooks that hold whatever the hour (no weather
+ *   or alert of the moment): the same in every hour's persona, for prompts cached across hours
  * @property {{zipSince:number, countySince:number, grewUpHere:boolean, bornHere:boolean, householdCounty:number, yearsInZip:number, yearsInCounty:number}} residence
  *   householdCounty: when the household came to the county (the same for every member; its children never predate it)
  * @property {{age:number, material:string, solar:boolean, installed:number, original:boolean, why:string}|null} roof
@@ -2228,7 +2283,7 @@ export function persona(world, npc, opts = {}) {
   const memories = memoriesOf(ctx, L, residence, roof, fam);
   const speech = speechOf(ctx, L, big5, opts.dialectFor, interestItems, teams);
   const bio = bioOf(ctx, L, archetype, residence, interestItems, concerns, knowledge, fam);
-  const hookDetails = hooksOf(ctx, L, big5, interestItems, concerns, memories, fam, wx);
+  const { hooks: hookDetails, lasting: lastingHooks } = hooksOf(ctx, L, big5, interestItems, concerns, memories, fam, wx);
   const routine = routineOf(ctx, L, places, householdRoutineOf(ctx, L, view, churchgoers, shared), practice);
 
   return {
@@ -2241,7 +2296,7 @@ export function persona(world, npc, opts = {}) {
     teams: teams.map(tm => ({ name: tm.name, sport: tm.sport })),
     practice,
     concerns, memories, knowledge, speech, bio,
-    hooks: hookDetails.map(h => h.text), hookDetails,
+    hooks: hookDetails.map(h => h.text), hookDetails, lastingHooks,
     residence, roof, routine, t,
   };
 }

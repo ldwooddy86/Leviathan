@@ -28,7 +28,7 @@ What you see when you open it:
 
 ## Open it
 
-`Legion.html` is one self-contained file (about 4.6 MB): the world pack, the code and the Anthropic SDK are inside
+`Legion.html` is one self-contained file (about 4.8 MB): the world pack, the code and the Anthropic SDK are inside
 it. Double-click it, or drag it into a browser window. It needs a current Chrome, Edge, Firefox or Safari (WebGL2
 for the map; without it the map falls back to a slower Canvas 2D drawing) and no network: everything except the
 optional features below runs offline.
@@ -70,7 +70,9 @@ what NPC conversations need (Legion's models, a capped `max_tokens`, text messag
     when you leave. A line in another language shows its English gloss underneath; the small (i) under a line lists
     the facts it used and where they come from. The starters are about what their data holds (no question about a
     fire where none burned, no snow question where it doesn't snow). Switch between the offline engine and Claude at
-    the top of the tab; the line under the switch says who is speaking.
+    the top of the tab; the line under the switch says who is speaking. A conversation happens in real time: while
+    the Talk tab is open the clock runs at 1× (the 1× button is marked), and your speed comes back when you leave the
+    tab or pick a speed yourself. Come back hours later on the clock and it is a new conversation, about that moment.
   * **Prompt**: the exact system blocks Claude receives (the platform rules shared by every NPC, then this NPC's
     character sheet) and the situation message of this moment, with a token estimate and a Copy button.
   * **JSON**: the record, the persona and the mind as JSON (copy or download), and the **Game-engine export**: the
@@ -84,8 +86,10 @@ what NPC conversations need (Legion's models, a capped `max_tokens`, text messag
   NPC's voice. The offline engine remembers too: what you said and what you talked about.
 * **The street view.** "Walk the streets" in the Place panel opens the neighborhood at the town center; the street
   icon in the NPC panel opens it at their home and follows them (if they are at work across town, a note says where
-  they are). Click anyone on the street to open their panel; "Back to the map" or `Escape` returns. The clock, its
-  speed and the theme are the map's.
+  they are, and when they live elsewhere, a link to walk their own streets). Click anyone on the street to open their
+  panel; a click on open ground stops following but keeps them selected while their panel is open. "Back to the
+  map" or `Escape` (from anywhere, the street canvas included) returns. The clock, its speed and the theme are the
+  map's; while the street view is open the statewide map under it is not drawn at all.
 * **Settings**: crowd density (0.5% to 10%; 2.5%, about a million people, is the default), theme (dark, light or
   the system's), Claude, and the network permissions, all off by default: the Claude API, **Live NWS weather**
   (fetches the forecast and alerts for the place you look at from api.weather.gov, at most every 15 minutes; it
@@ -233,10 +237,32 @@ docs/         CONTRACTS.md (every module's API)
   shader computes where everyone is from the simulation clock alone, so a million people move with no per-frame work
   on the CPU; a JavaScript twin of the same function answers picks and counts. The agents are built in a pool of
   Web Workers (one per spare core, at most four) that start decoding the pack while the page boots; the ZIPs are
-  dealt out region by region, the region in view first, and the crowd appears as the chunks stream in.
-* **Determinism and caching.** Personas are rebuilt per simulated hour (their concerns mention that hour's alerts);
-  minds advance with the clock; a conversation happens at the moment it starts. The street view, the crowd and the
-  NPC panel all read the same schedule, so a person is where the crowd says they are.
+  dealt out region by region, the region in view first, and the crowd appears as the chunks stream in. A finished
+  crowd is kept on the device (IndexedDB, under the build id of Legion.html): the next visit at the same density
+  loads it in well under a second instead of fitting every ZIP's models again, after the same spot check against
+  the page's population. Without a usable GPU (software WebGL: virtual machines, blocklisted drivers, headless
+  browsers) the base map is drawn once per view into a texture and only the people the level of detail keeps are
+  drawn, so a frame costs about 0.2 s there instead of 1.2 s.
+
+  Measured on a 4-vCPU container at the 2.5% default (961,500 agents), from opening the page:
+
+  | | first people on the map | all of them |
+  |---|---|---|
+  | first visit, headless Chromium (three Workers) | 1.6 to 1.8 s | 5.3 to 5.4 s |
+  | second visit (the kept crowd) | 1.1 to 1.4 s | 1.4 to 1.5 s |
+  | first visit, software WebGL (SwiftShader) | 4.3 to 4.6 s | 7.2 to 7.5 s |
+  | second visit, software WebGL | 3.5 to 3.7 s | 4.0 to 4.1 s |
+
+  A first visit is bound by fitting each ZIP's models (3.7 s on one core, 1.2 to 2.4 s in each of three Workers
+  that share these cores) and building the agents (2.9 s on one core); the page stays responsive throughout (its
+  longest task is about 0.2 s).
+* **Determinism and caching.** Personas are rebuilt per simulated hour (their concerns mention that hour's alerts),
+  while the character sheet Claude caches is built only from what holds whatever the hour, so it stays byte-identical
+  as the clock moves; minds advance with the clock; a conversation happens in real time. The NPC panel and the street
+  view read each person's schedule (their persona's day, built on layer 0's commute); the crowd moves everyone by
+  layer 0 alone (the commute, school, errands drawn by hash), so the two agree on the commute and the work or school
+  day, while the schedule's own outings (services, the gym, a visit) belong to the panel: the selected person's
+  marker follows them there.
 
 ## Rebuilding
 

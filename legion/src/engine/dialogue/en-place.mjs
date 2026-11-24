@@ -203,8 +203,8 @@ export const PLACE = compileBank({
     Plenty. Roofs here are designed for {psf} pounds of snow per square foot, and they need it.
   `,
   'wx.climate.someSnow': `
-    Some, in a cold winter. Not like up in the high country.
-    We get a little most winters. It doesn't stick around long.
+    We get some snow in a cold winter. Not like up in the high country.
+    We get a little snow most winters. A few inches at a time, usually.
   `,
   'wx.climate.noSnow': `
     Snow? Not down here. You can see it on {peak} after a storm, though.
@@ -527,6 +527,10 @@ export const PLACE = compileBank({
     I remember the {title}. {exp}
     I'll never forget the {title}. {exp}
   `,
+  'storm.femaLivedThen': `
+    Then the {title}. {exp}
+    And then the {title}. {exp}
+  `,
   'storm.rainRecord': `
     The record for one day is {rainRec} inches, back in {when}.
     The most rain in a single day here was {rainRec} inches, in {when}.
@@ -641,13 +645,18 @@ export const PLACE = compileBank({
     You're looking at {value} for a house here.
   `,
   'house.bought': `
-    We bought in {yearMoved}. I don't think we could afford it now.
-    We got in back in {yearMoved}. Lucky timing.
-    I bought in {yearMoved}. If I had to buy today, forget it.
+    We bought in {hhYear}. I don't think we could afford it now.
+    We got in back in {hhYear}. Lucky timing.
+    I bought in {hhYear}. If I had to buy today, forget it.
+  `,
+  // the owner bought before the speaker moved in
+  'house.boughtJoined': `
+    {ownerCap} bought in {hhYear}. Nobody could buy here at today's prices.
+    {ownerCap} bought the place in {hhYear}, back when people still could.
   `,
   'house.boughtLong': `
-    We bought our place in {yearMoved}, back when normal people could.
-    {yearMoved}. That's when we bought. Different world.
+    We bought our place in {hhYear}, back when normal people could.
+    {hhYear}. That's when we bought. Different world.
   `,
   'house.kidsFuture': `
     My kids will never be able to afford to live here.
@@ -824,11 +833,17 @@ export const PLACE = compileBank({
     For {dish}, ask around. Everybody here has their spot.
     I'm not the best one to ask about {dish}, honestly. Follow the crowd.
   `,
-  // a dish that is their family's cooking
+  // after the where: a word for home cooking, from an older generation whose family makes the dish (never the answer)
   'food.dishHome': `
-    Honestly? Nothing beats homemade {dish}.
-    For {dish}, nothing beats homemade. That's how I grew up.
-    {dishCap}? The best I've had was at home, to be honest.
+    Though honestly, nothing beats homemade {dish}.
+    Me, I still like homemade {dish} best.
+    Though nothing beats {dish} made at home, if you ask me.
+  `,
+  // after the where: someone who likes to cook makes it themselves
+  'food.dishCook': `
+    Me, I'd rather make my own {dish}, honestly.
+    I usually just make {dish} myself.
+    Honestly, I make my own {dish} most of the time.
   `,
   'food.few': `
     Not many restaurants out here. Most of us cook.
@@ -1165,9 +1180,10 @@ export const PLACE = compileBank({
     {town}, {miles} {dir}. You take {road}.
   `,
   'place.bigTownFar': `
-    Out here you plan your trips to town.
-    Nobody runs to town for one thing. You make a list.
+    @rural Out here you plan your trips to town.
+    @rural Nobody runs to town for one thing. You make a list.
     It's a drive, so you make it count.
+    @!rural It's a ways, so I don't go often.
   `,
   'place.bigTownHere': `
     {place} is the big town around here.

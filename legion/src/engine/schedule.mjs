@@ -2,7 +2,7 @@
 //
 // dayPlan(npc, persona, t) lays out the Pacific calendar day holding t as a list of items that tile it exactly,
 // midnight to midnight, with no gaps and no overlaps: sleep, time at home, the commute and the shift or the
-// school day, errands, leisure, exercise, church and visits. The commute is layer 0's (departMin, commuteMin,
+// school day, errands, leisure, exercise, religious services and visits. The commute is layer 0's (departMin, commuteMin,
 // dwellMin and the day mask from pop.householdCore, which persona.routine carries), so the crowd, the street view
 // and this plan always agree on where a person is. A shift that runs past midnight spills into the next day's
 // plan; one that runs into the next day's departure (24-hour shifts on back-to-back days) keeps them at work
@@ -12,7 +12,8 @@
 // adult takes which young child to school on which days (driving, walking or biking alongside, or walking them
 // to the school bus stop); those legs go into the adult's plan before anything else, and a work-from-home day is
 // carved around them. familyOutings(household, t) draws the day's outings the household makes together, Sunday
-// church for its churchgoers and a trip with the young children (the park, the store, the beach, relatives),
+// services for its churchgoers (the place persona.practice names: religious services, or the gurdwara) and a trip
+// with the young children (the park, the store, the beach, relatives),
 // with one grown-up whose own day leaves them free; every member who goes holds the same outing at the same time.
 // Children under ten never go out on their own: only to school (escorted when young) and with the household.
 //
@@ -364,7 +365,7 @@ function computeFamilyOutings(hh, day) {
   const busyAt = (x, s, e) => overlapsAny(memberBusy(hh, x, dow), s, e) || overlapsAny(taken.get(x.m), s, e);
   const P = hh.places || {};
   const out = [];
-  // Sunday church for the household's churchgoers: the young ones only with a grown-up
+  // Sunday services for the household's churchgoers (persona.practice): the young ones only with a grown-up
   const goersAll = (hh.churchgoers || []).map(m => byM.get(m)).filter(Boolean);
   if (dow === 0 && P.church && goersAll.length && rng.float() < 0.85) {
     const start = SERVICES[rng.int(SERVICES.length)], stay = FAMILY_STAY.church[0] + rng.int(FAMILY_STAY.church[1] - FAMILY_STAY.church[0] + 1);
@@ -374,7 +375,7 @@ function computeFamilyOutings(hh, day) {
     const grown = free.filter(x => num(x.age) >= 18);
     const go = free.filter(x => num(x.age) >= ALONE_AGE || grown.length);
     if (go.length) {
-      out.push({ key: 'church', kind: 'worship', place: P.church, label: 'church', start: s, travel, stay, mode, members: go.map(x => x.m), escort: grown.length ? grown[0].m : null, kids: go.filter(x => num(x.age) < ALONE_AGE).map(x => x.m) });
+      out.push({ key: 'church', kind: 'worship', place: P.church, label: P.church.label || 'religious services', start: s, travel, stay, mode, members: go.map(x => x.m), escort: grown.length ? grown[0].m : null, kids: go.filter(x => num(x.age) < ALONE_AGE).map(x => x.m) });
       for (const x of go) taken.get(x.m).push([s, e]);
     }
   }
@@ -406,7 +407,7 @@ function computeFamilyOutings(hh, day) {
 }
 
 /**
- * The outings a household makes together on the Pacific day holding t: Sunday church for its churchgoers (the
+ * The outings a household makes together on the Pacific day holding t: Sunday services for its churchgoers (the
  * young ones only with a grown-up) and, on some days, a trip with the children under ten (the park, the grocery
  * store, the beach, relatives) with the first grown-up of the household whose layer 0 day, school runs and
  * work at home leave them free. Deterministic in the household's key and the date, so every member's plan
@@ -617,8 +618,9 @@ function planOutings(rt, persona, npc, day, rng, ctx) {
   };
   const dow = day.dow;
   const practice = persona && persona.practice;
-  // church: with the household (familyOutings) when the routine has one; on their own otherwise
-  if (!rt.household && practice && dow === (num(practice.day, 0)) && P.church && rng.float() < 0.85) mk(P.church, 'worship', 'church', 'church', 8 * 60 + 30, 12 * 60 + 45, 'church');
+  // services (religious services, or the gurdwara: persona.practice.place): with the household (familyOutings) when
+  // the routine has one; on their own otherwise
+  if (!rt.household && practice && dow === (num(practice.day, 0)) && P.church && rng.float() < 0.85) mk(P.church, 'worship', 'church', 'church', 8 * 60 + 30, 12 * 60 + 45, P.church.label || practice.place || 'religious services');
   const kid = age < 13, teen = age >= 13 && age < 18;
   // leisure from interests
   const opts = leisureOptions(rt, persona);

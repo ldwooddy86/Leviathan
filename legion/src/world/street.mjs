@@ -576,7 +576,8 @@ export class StreetView {
       else if (e.key === 'ArrowUp') this.panBy(0, step); else if (e.key === 'ArrowDown') this.panBy(0, -step);
       else if (e.key === '+' || e.key === '=') this.zoomBy(1.4); else if (e.key === '-' || e.key === '_') this.zoomBy(1 / 1.4);
       else if (e.key === 'f' || e.key === 'F') this.follow(!this.following);
-      else if (e.key === 'Escape') this.select(null);
+      // Escape clears a selection; with nothing selected it is left to the page (the app goes back to the map)
+      else if (e.key === 'Escape' && this.selectedId) this.select(null);
       else return;
       e.preventDefault();
     };

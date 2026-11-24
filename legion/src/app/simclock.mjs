@@ -3,6 +3,9 @@
 // The clock starts at the NWS snapshot time (the moment the pack's weather was fetched), so the forecast, the
 // alerts and the crowd all describe the same California afternoon. Real time only drives the animation; every
 // time the engine sees is this clock's epoch ms, read through clock.mjs.
+//
+// A conversation happens in real time: while the player talks with an NPC the page holds the clock at 1x (hold),
+// and the speed they chose comes back when the conversation ends (release). Choosing a speed ends a hold.
 
 import { pacific, atPacific } from '../engine/clock.mjs';
 import { EVENTS } from './bus.mjs';
@@ -24,6 +27,8 @@ export class SimClock {
     this.t0 = t0;
     this.t = t0;
     this.speed = SPEEDS.includes(speed) ? speed : 60;
+    /** The speed a hold caps the clock at (hold), or null. */
+    this.held = null;
     this.playing = !!playing;
     this.bus = bus;
     this._lastEmitReal = -Infinity;
@@ -31,10 +36,13 @@ export class SimClock {
     this._listeners = new Set();
   }
 
+  /** The speed the clock runs at now: the chosen speed, or less while a hold caps it. */
+  get rate() { return this.held !== null ? Math.min(this.held, this.speed) : this.speed; }
+
   /** Advance by realMs of wall time (when playing); returns true when the simulated minute changed. */
   advance(realMs) {
     if (!this.playing || !(realMs > 0)) return false;
-    this.t += realMs * this.speed;
+    this.t += realMs * this.rate;
     const minute = Math.floor(this.t / 60000);
     if (minute === this._lastMinute) return false;
     this._lastMinute = minute;
@@ -59,8 +67,25 @@ export class SimClock {
     this.set(atPacific(p.year, p.month, p.day, Math.floor(m / 60), m % 60) + (this.t % 60000));
   }
 
-  /** Set the speed (one of SPEEDS). */
-  setSpeed(speed) { if (SPEEDS.includes(speed) && speed !== this.speed) { this.speed = speed; this._emit(); } }
+  /** Set the speed (one of SPEEDS). The player's choice: it also ends a hold. */
+  setSpeed(speed) {
+    if (!SPEEDS.includes(speed) || (speed === this.speed && this.held === null)) return;
+    this.speed = speed; this.held = null;
+    this._emit();
+  }
+
+  /**
+   * Run at most at `speed` (one of SPEEDS; real time by default) until release(), keeping the chosen speed for then:
+   * the page holds the clock while the player talks with an NPC, whose words describe one moment.
+   */
+  hold(speed = 1) {
+    if (!SPEEDS.includes(speed) || this.held === speed) return;
+    this.held = speed;
+    this._emit();
+  }
+
+  /** End a hold: the clock runs at the chosen speed again. */
+  release() { if (this.held !== null) { this.held = null; this._emit(); } }
 
   /** Start the clock. */
   play() { if (!this.playing) { this.playing = true; this._emit(); } }
@@ -78,7 +103,7 @@ export class SimClock {
   subscribe(fn) { this._listeners.add(fn); return () => this._listeners.delete(fn); }
 
   _emit() {
-    const payload = { t: this.t, speed: this.speed, playing: this.playing };
+    const payload = { t: this.t, speed: this.speed, rate: this.rate, held: this.held, playing: this.playing };
     for (const fn of [...this._listeners]) { try { fn(payload); } catch (e) { console.error('[legion] clock listener failed', e); } }
     if (this.bus) this.bus.emit(EVENTS.TIME_CHANGE, payload);
   }
@@ -117,7 +142,7 @@ export function mountClockControls(host, clock) {
     resetBtn);
   host.append(element);
 
-  let shown = { minute: -1, playing: null, speed: null };
+  let shown = { minute: -1, playing: null, speed: null, held: undefined };
   function update() {
     const p = clock.parts();
     const minute = Math.floor(clock.t / 60000);
@@ -136,10 +161,14 @@ export function mountClockControls(host, clock) {
       playBtn.setAttribute('aria-pressed', String(clock.playing));
       playBtn.classList.toggle('is-playing', clock.playing);
     }
-    if (clock.speed !== shown.speed) {
-      shown.speed = clock.speed;
-      const input = speedInputs.get(clock.speed);
+    // the speed the clock runs at is the one checked; a hold (a conversation in real time) says so
+    if (clock.rate !== shown.speed || clock.held !== shown.held) {
+      shown.speed = clock.rate; shown.held = clock.held;
+      const input = speedInputs.get(clock.rate);
       if (input && !input.checked) input.checked = true;
+      const held = clock.held !== null && clock.rate < clock.speed;
+      speeds.classList.toggle('is-held', held);
+      speeds.title = held ? `Real time while you talk; back to ${clock.speed}× when the conversation ends (or choose a speed)` : '';
     }
   }
   clock.subscribe(update);

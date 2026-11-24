@@ -109,7 +109,9 @@ the world pack. Never invent a statistic, a named event or a date. Opinions and 
    (with an English gloss shown in brackets) or plain, correct, simple English.
 4. Dialect markers are regional ("hella", "the 405", "tule fog", "June Gloom"), not ethnic.
 5. Politics stays local and mild (housing costs, insurance, traffic, water, fire). No content that demeans any
-   group. Religion appears only as an NPC's own practice (church on Sunday), never as a judgment.
+   group. Religion appears only as an NPC's own practice, never as a judgment, and never inferred from heritage: the
+   atlas counts congregations of every faith, so a practicing NPC goes to "religious services" (on Sunday); the one
+   exception is the Census Asian group 'sikh', itself a faith, whose households go to "the gurdwara".
 6. Names are synthetic combinations from common-name pools; no real individuals. Public places, highways,
    natural features and named historical disasters from the data are fine to mention. Businesses are generic
    ("the taco truck on the corner", "a pho place"), not brands.
@@ -320,7 +322,11 @@ p = {
   archetype,                              // a life-role label: 'early-shift regular', 'retired gardener', 'new parent' …
   values: [ … ],                          // top 3 Schwartz values (SCHWARTZ_VALUES)
   interests: [ … ], interestDetails: [ {name, why, tradition?} ],   // grounded in place, age, income, household
-  teams: [ {name, sport} ], practice,     // practice: their own churchgoing {label, day, why} or null
+  teams: [ {name, sport} ], practice,     // practice: their own {label, place, interest, faith, day, why} or null: 'religious
+                                          // services on Sunday mornings' (place 'religious services', faith null), or for a
+                                          // household of the Census group 'sikh' 'Sunday services at the gurdwara' (place
+                                          // 'the gurdwara', faith 'sikh'); the household goes to one place, so every member's
+                                          // persona names it alike (routine.places.church.label, the schedule's worship label)
   concerns: [ { topic, weight, why, area } ],   // `why` cites the columns in parentheses ("(nonren_sh)"); area: the dialogue topic
   memories: [ { year, date, kind, text, weight, source, title?, fact?, experience?, scope? } ],
                                           // fires, ARs, wind events, FEMA disasters, records of their ZIP and county while they lived
@@ -328,7 +334,9 @@ p = {
   knowledge: { neighborhood, city, zip, county, countyLabel, region, regionThe, province, coastKm, landmarks, roads, nearbyPlaces,
                workCity, workZip, records },
   speech: { dialect, register, verbosity, slang, humor, humorStyle, directness, codeSwitch: { lang, rate } | null, fillers, catchphrases },
-  bio, hooks: [ … ], hookDetails: [ {kind, topic, text} ],
+  bio, hooks: [ … ], hookDetails: [ {kind, topic, text} ],   // 3-5; the moment's weather or alert first when worth saying
+  lastingHooks: [ {kind, topic, text} ],  // the hooks that hold whatever the hour: the Claude sheet is built from these, so
+                                          // the cached sheet is byte-identical from hour to hour
   residence: { zipSince, countySince, grewUpHere, bornHere, householdCounty, yearsInZip, yearsInCounty },
   roof,                                   // owners: {age, material, solar, installed, original, why} or null
   routine,                                // what schedule.mjs reads (layer 0's commute, the occupation group, school runs, the household)
@@ -442,10 +450,15 @@ rate, seed, bytesPerAgent, pickBytes, pickBytesPerAgent, ms}`. Drivers going ove
 network; non-commuters run errands near home by hash. The JS position function (`agentPhase`, `agentPosition`) and
 its GLSL twin (`agentGLSL`) must change together.
 
-`crowd.mjs`: `new Crowd(mapView, {world, population, rate, seed, pack, worker, workers, maxAgents})`;
-`await crowd.build({rate, onProgress(fraction, agents), focus})` → the summary plus `{mode: 'worker'|'main', workers,
-pack, totalMs, rateCapped, rate, bytesPerAgent, pickBytesPerAgent, mainBytesPerAgent, workerBytesPerAgent,
-workerLoadMs, verified, verifyMaxMs}` or `{cancelled: true}`; `setTime(t)`, `setVisible(kinds)` (`walk drive bike
+`crowd.mjs`: `new Crowd(mapView, {world, population, rate, seed, pack, worker, workers, maxAgents, cache})`;
+`await crowd.build({rate, onProgress(fraction, agents), focus})` → the summary plus `{mode: 'worker'|'main'|'cache',
+workers, pack, totalMs, rateCapped, rate, bytesPerAgent, pickBytesPerAgent, mainBytesPerAgent, workerBytesPerAgent,
+workerLoadMs, verified, verifyMaxMs, cached}` or `{cancelled: true}`. `cache` (a key naming this build of the code and
+the pack: the app passes Legion.html's build id, nothing in development) keeps a finished build in IndexedDB
+(`readCachedCrowd`, `writeCachedCrowd`, `clearCachedCrowds`; one build kept, up to `CACHE_MAX_AGENTS`): the next visit at
+the same rate and seeds loads it (`mode: 'cache'`) after the same spot check against the page's population, and
+`crowd.cacheWrite` resolves true once a fresh build is kept. On software WebGL (`map.software`) only the agents the
+level of detail keeps are drawn (an index buffer of `lodValue(i) < keep`); `setTime(t)`, `setVisible(kinds)` (`walk drive bike
 transit errand home`), `visibleKinds()`, `pick(x, y, radiusUnits)` → `{id, zip, zi, h, m, mode, travel, commuteMode,
 state, school, kind, x, y, dist, index}`, `positionOf(id)`, `stats()` → `{agents, moving: {walk, drive, bike,
 transit, errand}, movingTotal, atHome, atWork, atErrand, toWork, toHome, t}`, `setQuality({keep, auto})`, `gpuEval`,
@@ -454,13 +467,15 @@ in build order (the region under the camera first) are dealt to them in turn, ch
 first chunk from each), and a spot check against the page's population resolves it. `prewarmCrowd({pack, popSeed,
 workers})` starts the pool and its pack decoding at page boot; the first Crowd adopts it. Worker messages:
 `prepare`, `build {zips, …}`, `stats`, `cancel` in; `prepared`, `loaded`, `chunk`, `progress`, `done`, `error`,
-`stats` out.
+`stats` out; `adopt {chunks}` hands the Workers the state arrays of a kept build for stats.
 
 `map.mjs`: `new MapView(container, {world, theme, maxDpr, labels})`; `camera {x, y, zoom}`, `flyTo`, `fitState`,
 `setCamera`, `zoomBy`, `screenToWorld`, `worldToScreen`, `viewBounds`, `setTheme`, `setShade`, `requestRender`,
 `render`, `addLayer` / `removeLayer` (layers draw after the base map; `layer.pick` answers clicks), `pickAt`,
 `getGL`, `resize`, `destroy`; events `move`, `click` (with `hit`), `hover`, `leave`, `theme`, `resize`. Dark and light
-themes from CSS custom properties (`--map-*`, `--crowd-*`).
+themes from CSS custom properties (`--map-*`, `--crowd-*`). On software WebGL (`softwareGL(gl)`: SwiftShader, llvmpipe)
+the base map (fills and lines) is drawn into a texture once per view (camera, size, palette) and copied each frame,
+under the night shade and the layers.
 
 ## 9. Street view (`street.mjs`)
 
@@ -472,7 +487,8 @@ view.open(x, y, {radiusM})` (world units; ~1.2 km across) → `{x, y, radiusM, z
 'procedural'|'osm', osm, buildMs, households, residents, buildings, streets, streetKm}` or null; `close()`,
 `destroy()`, `select(id)`, `selectAt(px, py)`, `follow(on)`, `setTheme(theme)`, `setTime(t)`, `zoomBy`, `panBy`,
 `agentAt`, `stats()`, `agentsOnScreen()`, `conditions()`, `brightness()`; events `select {id}`, `hover {id}`, `open`,
-`close`, `stats`, `follow {on, id}`, `error {message}`. Streets: OpenStreetMap ways from Overpass when allowed
+`close`, `stats`, `follow {on, id}`, `error {message}`. Keys on the view: arrows pan, `+`/`-` zoom, `F` follows, Escape
+clears a selection (with nothing selected it is left to the page, which goes back to the map). Streets: OpenStreetMap ways from Overpass when allowed
 (cached per tile), else a deterministic procedural network shaped by the ZIP's density, dwelling mix and era. Houses
 for the households whose homes fall in view; residents follow their plans; in-commuters, through traffic, buses and
 shoppers are real NPCs too. Day/night lighting and rain from the weather.
@@ -486,13 +502,15 @@ totals and medians; languages, heritage and commute mixes; twelve residents; Cen
 the streets") and an **NPC** panel with tabs **Profile**, **Mind** (Big Five in plain words, traits, archetype,
 values, interests, concerns with their data, memories with year and source, mood, needs, the relationship and what
 they know about you), **Talk** (offline engine or Claude, streaming; glosses under lines in other languages; each
-line's facts a tap away; starters only about what the NPC's data holds), **Prompt** (the system blocks and the
-situation note, token estimate, copy) and **JSON** (record, persona and mind; the game-engine export). Settings:
+line's facts a tap away; starters only about what the NPC's data holds; a conversation happens in real time, the
+clock held at 1× while the tab is open, and one the clock has left 15 minutes behind starts again at the present),
+**Prompt** (the system blocks and the situation note, token estimate, copy) and **JSON** (record, persona and mind;
+the game-engine export). Escape leaves the street view from anywhere in it. Settings:
 crowd density (2.5% default, about a million agents), theme, Claude key (session only unless remembered), model,
 effort, network permissions (Claude, live NWS weather, OpenStreetMap; all off by default).
 
 `app/services.mjs` (the page's one door to the engine; every hook returns `{ok, value}` or `{ok: false, reason,
-message}`): `init`, `setClock(fn)`, `npc`, `residents`, `persona(id, {t, any})` (per simulated hour), `mind(id,
+message}`; it also exports `fireLabel(name)`, the lexicon's fire names for the panels): `init`, `setClock(fn)`, `npc`, `residents`, `persona(id, {t, any})` (per simulated hour), `mind(id,
 {t})`, `saveMind`, `observe(id, event)`, `reflectOffline(id, {t})`, `conversation(id, {t})`, `voice(settings)`,
 `history()`, `reflect(id, transcript, settings, {t})` (Claude reflection through `Mind.applyReflection`),
 `prompt(id, {t, said})` → `{blocks, text, situation}`, `exportPersona(id, settings)`, `dayPlan`, `activityAt`,
@@ -504,15 +522,20 @@ message}`): `init`, `setClock(fn)`, `npc`, `residents`, `persona(id, {t, any})` 
 `app/nws-live.mjs`: `new LiveWeather({world, fetch, enabled, ttlMs, now})` → `refresh(zi)` (api.weather.gov
 `/points/{lat},{lon}`, its `forecastHourly` and `forecast`, `/alerts/active?point=`; cached 15 minutes a ZIP),
 `weatherAt(zi, t)` (world.weatherAt's shape with `live: true`, or null outside the live hours), `status(zi, t)`,
-`world()` (a view of the world whose weatherAt answers live where it can); `adaptLive`, `liveWeatherAt`, `liveWorld`.
+`world()` (a view of the world whose weatherAt answers live where it can); `adaptLive`, `liveWeatherAt`, `liveWorld`;
+`cleanForecastText(s)` (NWS text without the generator's `{{placeholders}}`, for every panel), `alertsForZip(alerts,
+coastKm)` (shore-only events, `COASTAL_EVENT`, left out more than `COASTAL_ALERT_KM` = 8 km inland: the Place panel, the
+starters and the dialogue agree).
 
 `app/bus.mjs`: `on(event, fn)`, `off`, `once`, `emit(event, payload)`. Events: `npc:select {id, source}`, `npc:hover
-{id, mode}`, `view:change {mode: 'map'|'street', x, y, zoom}`, `time:change {t, speed, playing}`, `settings:change
+{id, mode}`, `view:change {mode: 'map'|'street', x, y, zoom}`, `time:change {t, speed, rate, held, playing}` (`rate` the speed the
+clock runs at: `SimClock.hold(1)` caps it at real time while a conversation is on screen, `release()` ends that, and
+choosing a speed ends it too), `settings:change
 {settings, changed}` (no key in the payload), `place:select {zi, kind, key, title, source}`, `weather:change {zi,
 status}`.
 
 `tools/build.mjs`: esbuild bundles `src/app/main.mjs` and the crowd Worker (as an inline string), inlines the CSS and
-the world pack (gzip, base64) and writes `Legion.html` (deterministic bytes; about 4.5 MB). `--check` verifies the
+the world pack (gzip, base64) and writes `Legion.html` (deterministic bytes; about 4.8 MB). `--check` verifies the
 page is self-contained and that the pack loads in Node as far as the engine goes.
 
 `cli/legion.mjs`: `sample <zip|city|county|region|CA> [n]`, `npc <id>`, `persona <id>`, `prompt <id>`, `plan <id>

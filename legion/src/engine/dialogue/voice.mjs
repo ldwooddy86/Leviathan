@@ -34,8 +34,10 @@ export function stageOf(age) {
 }
 
 /**
- * The household as this member sees it (the same reading persona.mjs uses): partner, kids, grandkids, parents,
- * grandparents, siblings, roommates and other relatives, each {m, role, name, age, sex}.
+ * The household as this member sees it: partner, kids, grandkids, parents, grandparents, siblings, roommates and
+ * other relatives, each {m, role, name, age, sex}. Roles say how each member stands to the householder; the parents
+ * are the ones the record lists (npc.parents, contract §5) whatever their role, so a grandchild's mother (the
+ * householder's daughter) is a parent here, not a relative, with a child's householder and spouse kept as parents too.
  * @param {object} npc
  * @returns {{partner: object|null, kids: object[], grandkids: object[], parents: object[], grandparents: object[], siblings: object[], roommates: object[], relatives: object[]}}
  */
@@ -73,6 +75,14 @@ export function relationsOf(npc) {
     out.roommates = others;
   } else {
     out.relatives = others;
+  }
+  // the parents the record lists, mother first, then any the roles add (a stepparent is "my parents" too)
+  const listed = (Array.isArray(npc && npc.parents) ? npc.parents : []).map(i => others.find(x => x.m === i)).filter(Boolean);
+  if (listed.length) {
+    const ids = new Set(listed.map(x => x.m));
+    out.parents = [...listed, ...out.parents.filter(x => !ids.has(x.m))];
+    for (const k of ['kids', 'grandkids', 'grandparents', 'siblings', 'roommates', 'relatives']) out[k] = out[k].filter(x => !ids.has(x.m));
+    if (out.partner && ids.has(out.partner.m)) out.partner = null;
   }
   const myAge = isNum(npc && npc.age) ? npc.age : 40;
   out.kids = out.kids.filter(k => isNum(k.age) && k.age <= myAge - 15);
@@ -214,6 +224,7 @@ export function makeVoice(world, persona, opts = {}) {
     wfh: mode0 === 'wfh',
     outdoor: routine.outdoor === true,
     kids: kids.length > 0, littleKids: kids.some(k => isNum(k.age) && k.age < 6), teens: kids.some(k => isNum(k.age) && k.age >= 13 && k.age < 18),
+    minorKids: kids.some(k => isNum(k.age) && k.age < 18),
     grandkids: rel.grandkids.length > 0, partner: !!rel.partner, alone: num(hh.size, 1) <= 1,
     immigrant: npc.nativity === 'foreign',
     transit: ['bus', 'rail', 'ferry'].includes(mode0),
@@ -261,7 +272,9 @@ export function makeVoice(world, persona, opts = {}) {
     lex, context, wx, alerts, sky, offshore, tempF: wx && wx.now && isNum(wx.now.tempF) ? wx.now.tempF : null,
     activity,
     // the words of their own life a player may name ("which hospital?", "how's the harvest?")
-    vocab: selfVocab({ title: occ && occ.title, employer: occ && occ.employer, interests, concerns: (persona.concerns || []).map(c => c && c.topic).filter(Boolean) }),
+    // (and whether school is their own: "how's school?" to a student is about their school, not the local schools)
+    vocab: Object.assign(selfVocab({ title: occ && occ.title, employer: occ && occ.employer, interests, concerns: (persona.concerns || []).map(c => c && c.topic).filter(Boolean) }),
+      { student: !!(flags.student || npc.school) }),
     // refreshed every turn
     mood: { valence: 0, arousal: 0.4, emotion: 'neutral', tired: false, tense: false },
     relq: { known: false, affinity: 0, trust: 0, familiarity: 0, guarded: false, name: null, feelings: 'neutral', facts: [] },

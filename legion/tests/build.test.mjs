@@ -567,8 +567,15 @@ test('conversation starters are grounded in the pack: a fire only where one burn
   assert.ok(startersFor(world, { ...mission, occupation: null, school: null, status: 'retired' }).includes('What keeps you busy these days?'));
   assert.ok(!startersFor(world, { ...mission, occupation: null, status: 'child', school: 'elementary' }).includes('What do you do for work?'));
   assert.equal(fireName('Camp'), 'the Camp Fire');
-  assert.equal(fireName('Btu Lightning Complex'), 'the Btu Lightning Complex');
+  // CAL FIRE unit codes in capitals, as the dialogue says them; a name that is only a code or a number is no name
+  assert.equal(fireName('Btu Lightning Complex'), 'the BTU Lightning Complex');
+  assert.equal(fireName('Scu Lightning Complex'), 'the SCU Lightning Complex');
   assert.equal(fireName('Unnamed'), null);
+  assert.equal(fireName('241 Incident'), null);
+  assert.equal(fireName('58 Complex'), 'the 58 Complex');
+  const scu = pop.sample(world.indexOf('94603'), 1, 1)[0];
+  assert.ok(startersFor(world, scu).some(q => /the [A-Z]{3} Lightning Complex|the \w+ Fire/.test(q)), startersFor(world, scu).join(' | '));
+  assert.ok(!startersFor(world, scu).some(q => /\b(Scu|Btu|Czu|Lnu)\b/.test(q)), startersFor(world, scu).join(' | '));
 });
 
 test('services: a conversation without a time runs on the simulation epoch, not the wall clock', async t => {

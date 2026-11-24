@@ -73,10 +73,12 @@ export function movingTotal(stats) {
 export class Stage {
   /**
    * @param {{root: HTMLElement, mapEl: HTMLElement, services: object, bus: object, theme: string,
-   *   getTime: () => number}} deps
+   *   getTime: () => number, crowdCache?: string|null}} deps crowdCache: the key the crowd keeps finished builds under
+   *   for the next visit (the build id of Legion.html; null in development, where the code changes under it)
    */
-  constructor({ root, mapEl, services, bus, theme, getTime }) {
+  constructor({ root, mapEl, services, bus, theme, getTime, crowdCache = null }) {
     this.root = root; this.mapEl = mapEl; this.services = services; this.bus = bus; this.getTime = getTime;
+    this.crowdCache = crowdCache;
     this.world = services.world;
     this.theme = theme;
     this.map = null; this.crowd = null;
@@ -144,7 +146,7 @@ export class Stage {
     let summary = null;
     try {
       if (!this.crowd) {
-        this.crowd = this.services.createCrowd(this.map, { rate });
+        this.crowd = this.services.createCrowd(this.map, { rate, cache: this.crowdCache });
         this._renderLegend();
       }
       summary = await this.crowd.build({ rate, onProgress: (p, agents) => { if (token === this._buildToken) this._showProgress(p, rate, agents); } });
@@ -434,6 +436,16 @@ export class Stage {
   }
 
   // ------------------------------------------------ per frame
+
+  /**
+   * Make the next frame() redraw the overlay and move the crowd to the clock's time even if neither seems to have
+   * changed (after the street view covered the map, during which the page skipped frame()). The map redraws too.
+   */
+  invalidate() {
+    this._dirty = true;
+    this._lastT = null;
+    if (this.map && typeof this.map.requestRender === 'function') { try { this.map.requestRender(); } catch { /* a lost context redraws on restore */ } }
+  }
 
   /** Advance the crowd to simulated time t and redraw the overlay when the camera or selection changed. */
   frame(t) {

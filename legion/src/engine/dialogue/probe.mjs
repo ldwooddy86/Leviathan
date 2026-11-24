@@ -2,9 +2,11 @@
 //
 // Some lines from a player are not questions to answer but tests of the NPC: a generalization about a group of
 // people ("Are Mexicans lazy?", "What do you think about immigrants?"), a probe of someone's immigration status
-// ("Do you have papers?"), a demand that they leave ("Go back to your country"), a slur, or a declared hate
-// ("I'm a nazi"). probeOf() reads them. The engine never answers one with "I don't know" or a shrug of an
-// opinion: it declines and pushes back, and the hostile ones count as insults (contract §3, rule 5).
+// ("Do you have papers?", "Did you cross the border?"), a demand that they leave ("Go back to your country"), a
+// slur, a declared hate ("I'm a nazi"), or an accusation that leans on a stereotype ("Are you a terrorist?", "Do
+// you sell drugs?", "Is it true you guys eat dogs?"). probeOf() reads them. The engine never answers one with "I
+// don't know", a shrug of an opinion or a coy "why do you ask?": it declines or denies, and pushes back, and the
+// hostile ones count as insults (contract §3, rule 5).
 //
 // The same goes for what the player says about themselves. A name, a job or a hometown the NPC learns is later
 // said back to the player and kept in the mind, so screenValue() refuses profanity, slurs, hate terms and joke
@@ -63,7 +65,12 @@ const GENERALIZING = /\b(why|how come|is it true|isn'?t it true|all|most|every|a
 // "Do a lot of Mexicans live around here?" is a neighbor question, answered with the languages spoken nearby.
 const DEMOGRAPHIC = new RegExp(`\\b(?:do|are there|is there)\\s+(?:a lot of|many|lots of|any|a big|a large)\\s+(?:${GROUP}|[a-z]+ (?:community|population|people))\\b[^.?!]*\\b(?:live|living|here|around|nearby)\\b`);
 
-const NEGATIVE = /\b(lazy|dirty|filthy|criminals?|crime|crimes|steal\w*|thie(?:f|ves)|illegal\w*|stupid|dumb|ugly|smell\w*|stink\w*|violent|dangerous|gangs?|gangsters?|terroris\w*|cheap|greedy|bad drivers?|can'?t drive|rude|loud|ruin\w*|destroy\w*|(?:take|taking|took) (?:our|all the|american|my) jobs|invad\w*|invasion|breed\w*|animals|savages?|vermin|disease\w*|inferior|(?:the|a) problem|hate|go back|deport\w*|kick (?:them|em) out|don'?t belong|shouldn'?t be here|not welcome|get out|parasites?|leech\w*|freeloaders?|trash|scum|worthless|useless|liars?|cheat\w*|untrustworthy|can'?t be trusted|backwards?|uncivilized|primitive|creepy|nasty|evil|bad|worse|worst|weird|annoying|fake|sneaky|taking over|too many|all the same|control|run everything|own everything|smelly|gross|disgusting|terrible)\b/;
+const NEGATIVE = /\b(lazy|dirty|filthy|criminals?|crime|crimes|steal\w*|thie(?:f|ves)|illegal\w*|stupid|dumb|ugly|smell\w*|stink\w*|violent|dangerous|gangs?|gangsters?|terroris\w*|cheap|greedy|bad drivers?|can'?t drive|rude|loud|ruin\w*|destroy\w*|(?:take|taking|took) (?:our|all the|american|my) jobs|invad\w*|invasion|breed\w*|animals|savages?|vermin|disease\w*|inferior|(?:the|a) problem|hate|go back|deport\w*|kick (?:them|em) out|don'?t belong|shouldn'?t be here|not welcome|get out|parasites?|leech\w*|freeloaders?|trash|scum|worthless|useless|liars?|cheat\w*|untrustworthy|can'?t be trusted|backwards?|uncivilized|primitive|creepy|nasty|evil|bad|worse|worst|weird|annoying|fake|sneaky|taking over|too many|all the same|control|run everything|own everything|smelly|gross|disgusting|terrible|eat (?:dogs?|cats?|pets|dog meat|cat meat|puppies|kittens))\b/;
+// The stereotypes themselves, without the everyday words ("a bad day", "a loud party") the list above also holds: what
+// makes "you guys" or "your people" a group being judged rather than the household being asked about.
+const STEREOTYPE = /\b(lazy|dirty|filthy|criminals?|steal\w*|thie(?:f|ves)|illegal\w*|stupid|dumb|smell\w*|stink\w*|violent|terroris\w*|cheap|greedy|bad drivers?|can'?t drive|(?:take|taking|took) (?:our|all the|american|my) jobs|invad\w*|breed\w*|animals|savages?|vermin|parasites?|freeloaders?|on welfare|anchor bab\w*|eat (?:dogs?|cats?|pets|dog meat|cat meat|puppies|kittens))\b/;
+// The listener addressed as one of a group ("you guys", "your people", "your culture").
+const YOU_GROUP = /\b(?:you guys|you all|y'?all|your people|your kind|your culture|your community|people like you)\b/;
 const POSITIVE = /\b(good at|smart|hard ?working|hard workers?|nice|polite|great|better|best|family[- ]oriented|good cooks?|clean|rich|frugal|good|funny|beautiful|pretty|strong)\b/;
 
 // ------------------------------------------------------------------ status, leaving, hate
@@ -73,6 +80,36 @@ const PAPERS = /\b(?:have|got|show|carry|need|where are)\b[^.?!]{0,14}\bpapers\b
 const STATUS_HOSTILE = /\b(illegals?|illegally|illegal (?:alien|immigrant)s?|anchor bab(?:y|ies)|deport\w*|la migra)\b/;
 const STATUS_ASKED = /\b(?:are|were) you\b[^.?!]{0,20}\b(?:legal(?:ly)?|a citizen|an? (?:legal |permanent )?resident|undocumented|documented|here legally|on a visa)\b|\bdid you (?:come|get here|enter|cross|immigrate)\b[^.?!]{0,20}\b(?:legal(?:ly)?|illegal(?:ly)?|the right way)\b|\b(?:do|did) you have (?:a |your )?(?:green card|visa|work permit|citizenship|social security number|documents)\b|\byour (?:immigration |legal )?status\b|\bare you (?:a |an )?(?:us |american |u\.s\. )?citizen\b/;
 const STATUS_GENERAL = /\b(undocumented|immigration status|green cards?|daca|dreamers?|border patrol|immigration raids?|ice raids?|deportations?)\b/;
+// "Did you cross the border?", "did you swim over?": the same insinuation as "are you illegal?", without the word.
+const BORDER = /\b(?:did|have|do) (?:you|ya|u|your (?:parents|family|husband|wife|mom|dad|mother|father|people))\s+(?:ever |really |actually )?(?:cross|crossed|jump|jumped|hop|hopped|sneak|snuck|sneaked|swim|swam|run|ran|climb|climbed) (?:over |across |under |through )?(?:the |a )?(?:border|fence|wall|river|line|rio grande)\b|\bhow did you (?:cross|get across|get over) the border\b|\b(?:are|were) you (?:a |an )?(?:wetback|border jumper|border crosser)s?\b/;
+
+// ------------------------------------------------------------------ accusations
+// Questions that accuse the NPC, their family or "their people" of a crime, terror, drugs, a gang or eating pets. A
+// person answers those with a plain no and a word about the question, never with "why do you ask?" or "that's a long
+// story", which would read as an evasion or an admission. Who is accused: the listener, their family, or a group the
+// listener is lumped into.
+const ACCUSED = "(?:you|ya|u|you guys|you all|y'?all|your (?:people|family|kind|husband|wife|son|sons|daughter|daughters|kids|children|dad|father|mom|mother|parents|brother|brothers|sister|sisters|boyfriend|girlfriend|partner|friends|cousins?|uncle|aunt|grandpa|grandma|grandkids|relatives|community|culture|neighbors))";
+const CRIMINAL_NOUNS = '(?:terrorists?|bombers?|suicide bombers?|jihadis?|jihadists?|extremists?|criminals?|crooks?|thie(?:f|ves)|robbers?|burglars?|shoplifters?|pickpockets?|drug (?:dealers?|lords?|mules?|traffickers?|smugglers?|addicts?)|smugglers?|traffickers?|pushers?|gang ?(?:members?|bangers?)|gangsters?|thugs?|cholos?|felons?|convicts?|ex-?cons?|murderers?|killers?|rapists?|pedophiles?|molesters?|pimps?|prostitutes?|hookers?|junkies?|crackheads?|tweakers?|addicts?|cartel members?|narcos?|mobsters?|mafiosos?)';
+const GANGS = '(?:gang|gangs|cartel|cartels|mafia|the mob|a mob|triad|triads|yakuza|taliban|isis|al[- ]?qaeda|hamas|hezbollah|ms-?13|the crips|the bloods|crips|bloods|sure[nñ]os|nortenos|norte[nñ]os)';
+// (not cannabis, which is legal here, and not words with an everyday meaning: a Coke, a crack in the windshield, pills)
+const DRUGS = '(?:drugs|crystal meth|meth|cocaine|heroin|fentanyl)';
+const WEAPONS = '(?:bombs?(?! (?:shelters?|cyclones?|pops?|threats?|squads?))|explosives?|grenades?|suicide vests?|ieds?|dynamite)';
+const ACCUSE = new RegExp([
+  // "are you a terrorist?", "is your husband in a gang?", "you're a drug dealer, right?"
+  `\\b(?:are|were|is|aren'?t|isn'?t|was) ${ACCUSED} (?:really |actually |secretly |also )?(?:a |an |one of (?:the|those) |part of (?:a |an |the )?|with (?:a |an |the )?|in (?:a |an |the )?)?(?:${CRIMINAL_NOUNS}|${GANGS})\\b`,
+  `\\b(?:you'?re|you are|ur|u r) (?:a |an |one of (?:the|those) |part of (?:a |an |the )?|in (?:a |an |the )?)(?:${CRIMINAL_NOUNS}|${GANGS})\\b`,
+  // "do you have a bomb?", "do you sell drugs?", "did your son steal it?"
+  `\\b(?:do|did|does|have|has|will|would) ${ACCUSED} (?:ever |still |really |actually |secretly )?(?:have|got|own|carry|keep|make|build|hide|plant|sell|sold|deal|dealt|push|pushed|smuggle|smuggled|traffic|trafficked|run|ran|move|moved|cook|cooked|grow|grew|do|did|use|used|take|took) (?:a |any |some |the )?(?:${WEAPONS}|${DRUGS})\\b`,
+  `\\b(?:do|did|does|have|has) ${ACCUSED} (?:ever )?(?:steal(?! (?:my heart|the show|a kiss|a base|second|third|home))|stole(?! (?:my heart|the show|a kiss|a base|second|third|home))|stolen|rob|robbed|shoplift|shoplifted|burglarize|break into (?:houses|cars|homes)|smuggle people|traffic people|support terror\\w*|fund terror\\w*|bomb (?:people|things|places)|blow (?:things|stuff|something|people) up)\\b`,
+  `\\b(?:did|do|does) ${ACCUSED} steal (?:that|this|it|them|those)\\b`,
+  `\\b(?:have|has) ${ACCUSED} (?:ever )?been (?:to|in) (?:jail|prison|juvie)\\b|\\b(?:are|is) ${ACCUSED} (?:on|out on) (?:parole|probation)\\b|\\bdo (?:you|you guys) have a (?:criminal|police) record\\b|\\bdo (?:you|you guys) have a record\\s*\\??$`,
+  `\\b(?:are|is) ${ACCUSED} (?:a |an )?(?:member|part) of (?:a |an |the )?${GANGS}\\b|\\b(?:are|is) ${ACCUSED} (?:on|high on|using) ${DRUGS}\\b`,
+  // "is it true you guys eat dogs?", "do you eat cats?"
+  `\\b(?:do|did|does|will|would|is it true(?: that)?|i heard(?: that)?) ${ACCUSED} (?:really |actually |still |ever |all )?eat (?:dogs?|cats?|pets|dog meat|cat meat|puppies|kittens)\\b(?! (?:food|treats|biscuits))`,
+  `\\b${ACCUSED} (?:all |really |actually )?eat (?:dogs?|cats?|pets|dog meat|cat meat)\\b(?! (?:food|treats|biscuits))`,
+].join('|'));
+// The accusation is aimed at a group the listener is lumped into ("you guys", "your people"), not at the listener alone.
+const ACCUSE_GROUP = /\b(?:you guys|you all|y'?all|your (?:people|kind|culture|community)|is it true|i heard)\b/;
 const COUNTRIES = '(?:mexico|china|africa|asia|india|korea|japan|vietnam|the philippines|iran|iraq|syria|armenia|russia|el salvador|guatemala|honduras|europe|the middle east|your country)';
 const LEAVE = new RegExp([
   "\\bgo back (?:to )?where (?:you|ya) (?:came|come) from\\b",
@@ -109,10 +146,12 @@ const HERITAGE_Q = new RegExp(`\\b(?:are you|is your family|are your parents|you
 
 /**
  * Read a player's line for a probe: a generalization about a group of people, an immigration-status question, a
- * demand to leave the country, a slur or a declared hate, or a question about prejudice. Null for an ordinary line.
- * hostile: the line insults or demeans (the engine treats it as an insult); positive: a flattering stereotype.
+ * demand to leave the country, a slur or a declared hate, an accusation aimed at the NPC (a crime, terror, drugs, a
+ * gang, eating pets), or a question about prejudice. Null for an ordinary line.
+ * hostile: the line insults or demeans (the engine treats it as an insult); positive: a flattering stereotype;
+ * group (accusations): the listener is lumped into a group ("you guys", "your people").
  * @param {string} norm the line, lower case, spaces collapsed (understand.mjs norm)
- * @returns {{kind: 'group'|'status'|'leave'|'hate'|'slur'|'bias'|'selfBias', hostile: boolean, positive?: boolean}|null}
+ * @returns {{kind: 'group'|'status'|'leave'|'hate'|'slur'|'accuse'|'bias'|'selfBias', hostile: boolean, positive?: boolean, group?: boolean}|null}
  */
 export function probeOf(norm) {
   const s = String(norm || '').toLowerCase();
@@ -123,10 +162,14 @@ export function probeOf(norm) {
   if (LEAVE.test(s)) return { kind: 'leave', hostile: true };
   const you = SECOND_PERSON.test(s);
   if ((STATUS_HOSTILE.test(s) || (PAPERS.test(s) && you)) && (you || ANY_GROUP.test(s) || /\billegals\b/.test(s))) return { kind: 'status', hostile: true };
+  if (BORDER.test(s)) return { kind: 'status', hostile: true };
   if (STATUS_ASKED.test(s)) return { kind: 'status', hostile: false };
+  if (ACCUSE.test(s)) return { kind: 'accuse', hostile: true, group: ACCUSE_GROUP.test(s) };
   if (HATE_FRAME.test(s)) return { kind: 'group', hostile: true };
   const neg = NEGATIVE.test(s), pos = POSITIVE.test(s);
   if ((SINGULAR.test(s) && neg && !asksHeritage(s)) || TYPICAL.test(s)) return { kind: 'group', hostile: true };
+  // "why are you guys so lazy?": the listener lumped into a group and judged as one
+  if (YOU_GROUP.test(s) && STEREOTYPE.test(s)) return { kind: 'group', hostile: true };
   const framed = OPINION_FRAME.test(s) || ((GENERAL_LEAD.test(s) || GENERAL_TAIL.test(s)) && (neg || pos || GENERALIZING.test(s)))
     || /\b(?:you people|your kind)\b/.test(s) || ((GENDER_LEAD.test(s) || GENDER_TAIL.test(s)) && (neg || pos));
   if (framed && !DEMOGRAPHIC.test(s)) return { kind: 'group', hostile: neg, positive: !neg && pos };

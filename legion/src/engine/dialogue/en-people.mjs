@@ -39,6 +39,12 @@ export const PEOPLE = compileBank({
     @casual Hey, how you doing?
     @formal Hello. Can I help you with something?
   `,
+  // a hello in a language the speaker does not speak
+  'greet.foreign': `
+    Ha, hi! I don't speak {langName}, but hello to you too.
+    Hello! Sorry, I don't speak {langName}.
+    Hi there! I don't know any {langName}, I'm afraid.
+  `,
   'greet.again': `
     Oh hey, {player}! Good to see you again.
     {player}! You're back.
@@ -187,7 +193,7 @@ export const PEOPLE = compileBank({
     Not much. Taking it easy at home.
     Just puttering around.
     @house Doing a little yard work.
-    @kids Trying to keep the kids out of trouble.
+    @minorkids Trying to keep the kids out of trouble.
     @kid Just playing.
     @teen Nothing. Bored.
   `,
@@ -510,7 +516,7 @@ export const PEOPLE = compileBank({
   'about.fromAbroad': `
     I was born in {birthplace}.
     I'm from {birthplace}, originally.
-    I came here from {birthplace}.
+    Originally? {birthplace}.
   `,
   'about.arrived': `
     I came to the States in {arrivalYear}.
@@ -529,26 +535,59 @@ export const PEOPLE = compileBank({
     @young {age}. Still figuring things out.
   `,
   'about.years': `
-    I've been in {place} {yearsHere} years now.
-    {yearsHere} years in {place}.
-    I've lived here since {zipSince}.
-    Since {zipSince}. So, {yearsHere} years.
+    I've been in {place} {zipYears} years now.
+    {zipYearsCap} years in {place}.
+    I've lived in {place} since {zipSince}.
+    I've been in {place} since {zipSince}. So, {zipYears} years.
+  `,
+  // "did you grow up here?" of someone who didn't: a plain no before where they are from
+  'about.notLocal': `
+    No.
+    Nope, not here.
+    No, not here.
+  `,
+  // "are you a morning person?", from their schedule and their nature
+  'about.morningYes': `
+    Have to be. My day starts before the sun's up.
+    I am. I'm up early for work anyway.
+  `,
+  'about.nightOwl': `
+    Not at all. I work nights, so I'm more of a night owl.
+    Ha, no. Nights are my normal.
+  `,
+  'about.morningNature': `
+    I am, actually. Up early every day, even when I don't have to be.
+    Pretty much. I like the quiet in the morning.
+  `,
+  'about.morningNot': `
+    Not really. I'm slow in the mornings.
+    Not without coffee.
+  `,
+  // "have you been to Mexico?" of someone born there
+  'home.bornThere': `
+    Been there? I was born there!
+    Ha, I'm from there. I was born in {birthplace}.
   `,
   'about.newHere': `
-    I'm pretty new here, actually. Since {zipSince}.
-    I only moved here in {zipSince}. Still learning my way around.
-    New-ish. I got here in {zipSince}.
+    I'm pretty new to {place}, actually. Since {zipSince}.
+    I only moved to {place} in {zipSince}. Still learning my way around.
+    New-ish. I got to {place} in {zipSince}.
   `,
   'about.interestsIntro': `
     @works When I'm not working, you can usually find me {doingThing}.
     In my free time? {interestLine}
     {interestLine}
-    Mostly? {interestLine}
+    Me? {interestLine}
   `,
   'about.interestYes': `
     {interestLine}
     @works When I'm not working, you can usually find me {doingThing}.
     Ask anyone. You can usually find me {doingThing}.
+  `,
+  // after a yes already said: the interest itself
+  'about.interestMore': `
+    {interestLine}
+    You can usually find me {doingThing}.
   `,
   'about.team': `
     And I'm a big {teamName} fan.
@@ -606,6 +645,12 @@ export const PEOPLE = compileBank({
     I live where I work. The farm's right here.
     No commute. I walk out the door and I'm at work.
     My office is the field.
+  `,
+  // "where do you work?": the place, said plainly
+  'job.whereAt': `
+    At {employer}, over in {workCity}.
+    At {employer}.
+    {employerCap}. It's in {workCity}.
   `,
   'job.which': `
     {employerCap}, over in {workCity}.
@@ -847,7 +892,7 @@ export const PEOPLE = compileBank({
   'job.feel.education': `
     The kids keep me on my toes.
     It's exhausting and I love it.
-    Every year I say I'll retire, and every year I come back.
+    @older Every year I say I'll retire, and every year I come back.
     You never know what's going to happen in a day.
   `,
   'job.feel.food': `
@@ -1111,6 +1156,10 @@ export const PEOPLE = compileBank({
     I've got {schoolsList}.
     It's {schoolsList}. Different schedules for everybody.
   `,
+  'fam.someInSchool': `
+    {schoolsListCap}. The rest are done with school.
+    There's {schoolsList}. The older ones are done with school.
+  `,
   'fam.noneInSchool': `
     Nobody's in school right now.
     They're past school age, or not there yet.
@@ -1218,6 +1267,11 @@ export const PEOPLE = compileBank({
     Some, yes, back in {homeland}. We keep in touch.
     A few. I call when I can.
   `,
+  // asked again after "most of my family is still back in Michoacán"
+  'home.familyThereAgain': `
+    Yes, like I said. Most of them are still in {homeland}.
+    They are. Most of my family is still back there.
+  `,
   'home.missSome': `
     Sometimes. But this is home now.
     I miss {homeland} sometimes. The food, the people.
@@ -1276,14 +1330,20 @@ export const PEOPLE = compileBank({
 
   // ---------------------------------------------------------------- home
   'home.ownHouse': `
-    We own a house here. Bought it in {yearMoved}.
-    I own my place. Have since {yearMoved}.
-    We bought the house in {yearMoved}.
-    Our house is here. We've had it since {yearMoved}.
+    We own a house here. Bought it in {hhYear}.
+    I own my place. Have since {hhYear}.
+    We bought the house in {hhYear}.
+    Our house is here. We've had it since {hhYear}.
   `,
   'home.ownOther': `
-    I own a {homeWord} here. Since {yearMoved}.
-    We own our {homeWord}. Got it in {yearMoved}.
+    I own a {homeWord} here. Since {hhYear}.
+    We own our {homeWord}. Got it in {hhYear}.
+  `,
+  // a spouse or partner who moved into a home the household already had: the purchase is theirs, the years are mine
+  'home.ownJoined': `
+    {ownerCap} bought the house in {hhYear}. I came along in {zipSince}.
+    {ownerCap} has had this place since {hhYear}. I've been here since {zipSince}.
+    It's been {ownerPos} place since {hhYear}. I moved here in {zipSince}.
   `,
   'home.rent': `
     I rent {aHome} here.
@@ -1302,8 +1362,8 @@ export const PEOPLE = compileBank({
   `,
   'home.since': `
     Since {yearMoved}. So, {yearsHere} years.
-    {yearsHere} years in the same {homeWord}.
-    We moved in back in {yearMoved}.
+    {yearsHereCap} years in the same {homeWord}.
+    I've been in this {homeWord} since {yearMoved}.
   `,
   'home.built': `
     The house was built in {yearBuilt}.
@@ -1335,7 +1395,8 @@ export const PEOPLE = compileBank({
   `,
   'home.mobile': `
     It's a mobile home, but it's ours.
-    We're in a mobile home park. Good people.
+    @!farm We're in a mobile home park. Good people.
+    @farm We've got a mobile home out on the place. It does the job.
   `,
   'home.where': `
     Right here in {place}.
@@ -1528,6 +1589,16 @@ export const PEOPLE = compileBank({
     If the weather holds, {interestShort} this weekend.
     I'm thinking {interestShort} this weekend. We'll see.
   `,
+  // a team the player named that the speaker does not root for
+  'small.otherTeamFan': `
+    {askedTeamCap}? Nah, I'm a {teamName} fan.
+    Not really. I'm more of a {teamName} person.
+    {askedTeamCap}? I root for {team}, so no.
+  `,
+  'small.notAFan': `
+    {askedTeamCap}? I don't really follow them.
+    Not really. I don't follow sports much.
+  `,
   'small.sports': `
     Did you catch the {teamName} game?
     {team}, man. They're going to give me a heart attack.
@@ -1607,8 +1678,9 @@ export const PEOPLE = compileBank({
     I'd better head home.
   `,
   'bye.commute': `
-    I've got a drive ahead of me.
-    I'd better get going if I want to beat the traffic.
+    @drives I've got a drive ahead of me.
+    @drives I'd better get going if I want to beat the traffic.
+    @!drives I've got to catch my ride.
   `,
   'bye.next': `
     Come by again sometime.
@@ -1633,12 +1705,14 @@ export const PEOPLE = compileBank({
     @kid I don't know.
     @teen Idk. I mean, I don't know.
   `,
+  // a yes-or-no question about them the engine has no reading for: a light non-answer, never a suspicious one
   'unk.aboutMeYesNo': `
     Ha. Why, {aux} you?
-    Why do you ask?
-    Now why would you want to know that?
-    @plain May I ask why you want to know?
-    @kid Why?
+    Hm, can't say I've given it much thought.
+    Ha, that's one I'd have to think about.
+    Not something I think about much, to be honest.
+    @plain Hm. I'd have to think about that one.
+    @kid Hmm. Maybe!
   `,
   'about.heritageYes': `
     I am, yeah.
@@ -1689,6 +1763,137 @@ export const PEOPLE = compileBank({
     @guarded I'd rather keep that to myself.
     @plain That's a bit personal, if you don't mind.
     @kid That's a secret.
+  `,
+
+  // "do you work at a liquor store?": their work, or no and what they do
+  'job.workAtYes': `
+    I do, yeah. I'm {aJob}.
+    That's me. I'm {aJob}.
+  `,
+  'job.workAtNo': `
+    No, I'm {aJob}.
+    Nope. I'm {aJob}.
+    No. I work as {aJob}.
+  `,
+  'job.todayOff': `
+    Not today. It's my day off.
+    Nope, day off.
+    Not today, thank goodness.
+  `,
+  'job.todayNow': `
+    I am. Right now, technically.
+    Yep. I'm on the clock, so I can't stay long.
+    @wfh I am. From home, so I can sneak a break.
+  `,
+  'job.todayDone': `
+    I was. I just got off.
+    Already done for the day.
+  `,
+  'job.todayHeading': `
+    I am. I'm on my way in.
+    Yep, heading in now.
+  `,
+  'job.todayYes': `
+    I am, yeah.
+    Yeah, it's a work day.
+    Yep. Today's a work day.
+  `,
+  'home.yesHere': `
+    I do, yeah.
+    Yep, right around here.
+    Sure do.
+  `,
+  'place.cityTrips': `
+    Now and then. {town} is {miles} {dir} of here.
+    When I have to. {town} is {miles} away.
+    Once in a while. It's {miles} to {town}.
+  `,
+  // ---------------------------------------------------------------- holidays (the record decides: the schedule, the household)
+  'greet.holiday': `
+    Happy {holiday} to you too!
+    You too! Happy {holiday}.
+    Thanks, and happy {holiday} to you!
+    @kid Happy {holiday}!
+  `,
+  'greet.holidayEarly': `
+    You too! Can you believe it's {holidaySoon} already?
+    Happy {holiday}! A little early, but I'll take it.
+    Thanks! {holiday} snuck up on me this year.
+  `,
+  'greet.holidayLate': `
+    Thanks, you too. Hope yours was a good one.
+    Ha, you too. That went by fast.
+  `,
+  'ask.holiday': `
+    Doing anything for {holiday}?
+    Got plans for {holiday}?
+    What about you? Any plans?
+  `,
+  'hol.working': `
+    I'm working on {holiday}, actually. Somebody has to.
+    Work, believe it or not. {holidayCap} is a regular day for me.
+    I'm on the schedule that day. The job doesn't stop.
+  `,
+  // (said after hol.working: the meal waits for the shift)
+  'hol.after': `
+    @!alone We'll eat when I get off.
+    @kids The family's saving me a plate.
+    @!alone Dinner waits till I get home.
+    @alone After that, a quiet night at home.
+  `,
+  'hol.farm': `
+    The animals don't know it's {holiday}. Chores first, then dinner.
+    Work in the morning, same as always. Then dinner.
+  `,
+  'hol.off': `
+    I've got the day off, thank goodness.
+    I'm off that day.
+    No work that day. I'm looking forward to it.
+  `,
+  'hol.stay': `
+    Not going anywhere. Staying home.
+    No, staying put this year.
+    Nowhere. Home is fine by me.
+  `,
+  'hol.hosting': `
+    Everybody's at our place. It'll be a full house.
+    Dinner at our house, the whole family. It's a lot of food.
+    We're hosting, like always. The whole house will be full.
+  `,
+  'hol.family': `
+    Dinner with the family, at home.
+    Just family, at home. The usual.
+    Family dinner at our place. Nothing fancy.
+  `,
+  'hol.couple': `
+    Just the two of us, probably. Something small.
+    A quiet one this year. Just us.
+  `,
+  'hol.alone': `
+    Keeping it quiet this year.
+    Probably a quiet one. That's fine by me.
+    Nothing big. A quiet day.
+  `,
+  'hol.roommates': `
+    Not sure yet. My roommates and I might do something.
+    We'll see. Maybe something at the apartment with my roommates.
+  `,
+  'hol.kid': `
+    No school! And a lot of food.
+    Family stuff. There's going to be so much food.
+    @teen Family stuff. Mostly eating.
+  `,
+  'hol.cook': `
+    I'm doing the cooking, as usual. I wouldn't have it any other way.
+    I'll be in the kitchen all day. I love it.
+  `,
+  'hol.notCook': `
+    Not me. Somebody else handles the cooking, thank goodness.
+    I'm not the cook in the family. I just show up hungry.
+  `,
+  'hol.notCookAlone': `
+    A whole turkey, just for me? Probably not.
+    Not for just me. Something simple.
   `,
 
   // ---------------------------------------------------------------- probes: groups, status, prejudice (declined, pushed back)
@@ -1764,6 +1969,25 @@ export const PEOPLE = compileBank({
     You don't talk like that around me.
     I'm not going to talk to somebody who uses words like that.
     @kid You said a bad word!
+  `,
+  // an accusation (a crime, terror, drugs, a gang): a plain no, and a word about the question
+  'probe.accuse': `
+    No. And that's an ugly thing to ask.
+    No. What kind of question is that?
+    Of course not. That's a pretty insulting thing to ask somebody.
+    No. I don't know where that came from, but it's not okay.
+    @blunt No. And don't ask people that.
+    @gentle No. That really isn't a nice thing to ask anybody.
+    @plain No. That is an offensive question.
+    @kid No! That's mean.
+  `,
+  // the same, aimed at a whole group ("you guys", "your people")
+  'probe.accuseGroup': `
+    No. And that's a stereotype, not a question.
+    No. That's an old, ugly stereotype.
+    No. People say that kind of thing to put people down.
+    @plain No. And I won't listen to people talked about that way.
+    @kid No! That's mean.
   `,
   'name.rude': `
     I'm not calling you that.
@@ -1843,7 +2067,7 @@ export const PEOPLE = compileBank({
   `,
   'concern.schools.calm': `
     @!kids I don't have kids in school, so I don't follow it much.
-    @kids The kids' school is fine. The teachers work hard.
+    @minorkids The kids' school is fine. The teachers work hard.
     @minor School's school.
   `,
   'concern.abroad': `
@@ -2011,6 +2235,12 @@ export const PEOPLE = compileBank({
     Huh. I don't know it, but it sounds nice.
     Oh, cool. Never been.
     Is that far from here? I don't know it.
+  `,
+  // a place outside California
+  'react.from.away': `
+    Oh, {playerPlace}! That's a long way from here.
+    {playerPlace}, huh? That's a long way off.
+    {playerPlace}! You're a long way from home, then.
   `,
   'react.job': `
     {aPlayerJobCap}! That's great.
@@ -2210,25 +2440,30 @@ export const PEOPLE = compileBank({
   `,
 
   // ---------------------------------------------------------------- family: a parent's work, grandkids at home
+  // each names the parent, so two of them can follow each other ("My mom's a nurse. My dad's retired.")
   'fam.parentJob': `
-    {parentPronoun}'s {aParentJob}.
-    My {parentWord}? {aParentJob}.
     My {parentWord}'s {aParentJob}.
+    My {parentWord}? {aParentJob}.
+    My {parentWord} works as {aParentJob}.
   `,
   'fam.parentWorks': `
-    {parentPronoun} works. {parentPronoun}'s always busy.
     My {parentWord} works. Long days, too.
-    {parentPronoun} works, so I don't see {parentObj} much during the week.
+    My {parentWord} works, so I don't see {parentObj} much during the week.
+    My {parentWord} works. Always busy.
   `,
   'fam.parentHome': `
-    {parentPronoun}'s home right now.
     My {parentWord} isn't working right now.
-    {parentPronoun}'s home most of the day.
+    My {parentWord}'s home these days.
+    My {parentWord} stays home.
   `,
   'fam.parentRetired': `
-    {parentPronoun}'s retired.
+    My {parentWord}'s retired.
     My {parentWord} retired a while back.
-    {parentPronoun} doesn't work anymore. Retired.
+    My {parentWord} doesn't work anymore. Retired.
+  `,
+  'fam.noGrandparents': `
+    My grandparents don't live with us.
+    Not here, no. My grandparents live somewhere else.
   `,
   'fam.grandkidsHere': `
     I do. My {gkWord}, {gkName}, lives with us.

@@ -277,6 +277,8 @@ button.chip:hover { border-color: var(--accent-line); color: var(--ink); backgro
 .segmented input:checked + label { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
 .segmented input:focus-visible + label { outline: 2px solid var(--focus); outline-offset: 1px; }
 .segmented.small label { min-height: 26px; font-size: 12px; }
+/* a conversation holds the clock at real time: the 1x it runs at is marked, the chosen speed waits */
+.speeds.is-held input:checked + label { background: var(--accent-soft); color: var(--ink); }
 
 .text-input, .select, .talk-input {
   width: 100%; min-height: 36px; padding: 7px 10px;
@@ -472,11 +474,17 @@ button.legend-chip[aria-pressed="false"] .legend-dot { background: transparent !
 .street-title strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .street-title .muted { color: var(--ink-3); font-size: 11.5px; }
 .street-follow { background: var(--panel); }
+/* the note never takes a click meant for the people under it: only its link is clickable. It sits in the middle of
+   the street the panels leave visible (the stage's --inset-* properties). */
 .street-presence {
-  position: absolute; z-index: 4; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: min(560px, calc(100% - 32px));
+  position: absolute; z-index: 4; bottom: 18px; transform: translateX(-50%);
+  left: calc((100% + var(--inset-left, 0px) - var(--inset-right, 0px)) / 2);
+  max-width: min(560px, calc(100% - var(--inset-left, 0px) - var(--inset-right, 0px) - 32px));
   padding: 7px 14px; border-radius: 12px; background: var(--panel-glass); border: 1px solid var(--line); box-shadow: var(--shadow-sm);
-  font-size: 12.5px; color: var(--ink-2); text-align: center;
+  font-size: 12.5px; color: var(--ink-2); text-align: center; pointer-events: none;
 }
+.street-presence[hidden] { display: none; }
+.street-presence .link-btn { pointer-events: auto; }
 .street-follow[aria-pressed="true"] { background: var(--accent-soft); color: var(--ink); }
 body[data-street-open] .map-ui { visibility: hidden; }
 body[data-street-open][data-place-open] .street-bar { left: calc(var(--inset-left, 0px) + 12px); }
@@ -883,6 +891,8 @@ button.member:hover { background: var(--sunk); }
   .legend-chip { flex: none; padding: 3px 7px; font-size: 12px; }
   .street-bar { top: 8px; left: var(--gutter); right: var(--gutter); }
   .street-title { display: none; }
+  /* the NPC and Place sheets cover the bottom of a phone: the note goes under the street bar instead */
+  .street-presence { top: 56px; bottom: auto; left: 50%; max-width: calc(100% - 2 * var(--gutter)); }
   .map-tip { display: none; }
 
   .panel, .place-panel, .npc-panel {

@@ -311,8 +311,11 @@ function grandchildParent(members) {
 }
 
 /**
- * How a household member relates to the NPC, from both roles (which are relative to the householder).
- * @param {{role: string, m?: number}} self the NPC
+ * How a household member relates to the NPC, from both roles (which are relative to the householder) and, when the
+ * record lists them (npc.parents, layer 1), the NPC's own parents: a householder's live-in 'parent' who is not theirs
+ * is the spouse's (a mother- or father-in-law), a spouse's own parent is a mother or father, and a householder's
+ * spouse who is not a child's parent is the child's stepparent.
+ * @param {{role: string, m?: number, parents?: number[]|null}} self the NPC
  * @param {{role: string, sex?: string, m?: number}} other another member
  * @param {object|null} gcParent grandchildParent(members)
  */
@@ -322,14 +325,19 @@ function relation(self, other, gcParent) {
   const r = other.role;
   const selfRole = self.role;
   const isParentOfGrandkids = x => !!gcParent && Number.isInteger(x.m) && x.m === gcParent.m;
+  const listed = Array.isArray(self.parents) ? self.parents : null;
+  const mine = listed && Number.isInteger(other.m) ? listed.includes(other.m) : null;   // null: the record does not say
   switch (selfRole) {
     case 'householder':
+      if (r === 'parent' && mine === false) return g('mother-in-law', 'father-in-law');
       return { spouse: g('wife', 'husband'), partner: 'partner', child: g('daughter', 'son'), grandchild: g('granddaughter', 'grandson'), parent: g('mother', 'father'), sibling: g('sister', 'brother'), roommate: 'roommate' }[r] || 'relative';
     case 'spouse':
     case 'partner':
+      if (r === 'parent' && mine === true) return g('mother', 'father');
       return { householder: selfRole === 'spouse' ? g('wife', 'husband') : 'partner', child: g('daughter', 'son'), grandchild: g('granddaughter', 'grandson'), parent: g('mother-in-law', 'father-in-law'), sibling: g('sister-in-law', 'brother-in-law'), roommate: 'roommate' }[r] || 'relative';
     case 'child':
       if (r === 'grandchild') return isParentOfGrandkids(self) ? g('daughter', 'son') : g('niece', 'nephew');
+      if ((r === 'householder' || r === 'spouse') && mine === false && listed.length) return r === 'spouse' ? g('stepmother', 'stepfather') : "parent's spouse";
       return { householder: g('mother', 'father'), spouse: g('mother', 'father'), partner: "parent's partner", child: g('sister', 'brother'), parent: g('grandmother', 'grandfather'), sibling: g('aunt', 'uncle'), roommate: 'roommate' }[r] || 'relative';
     case 'grandchild':
       if (r === 'child') return isParentOfGrandkids(other) ? g('mother', 'father') : g('aunt', 'uncle');
@@ -337,6 +345,7 @@ function relation(self, other, gcParent) {
     case 'parent':
       return { householder: g('daughter', 'son'), spouse: g('daughter-in-law', 'son-in-law'), partner: "child's partner", child: g('granddaughter', 'grandson'), grandchild: g('great-granddaughter', 'great-grandson'), parent: g('wife', 'husband'), sibling: g('daughter', 'son'), roommate: 'roommate' }[r] || 'relative';
     case 'sibling':
+      if (r === 'parent' && mine === false) return 'relative';
       return { householder: g('sister', 'brother'), spouse: g('sister-in-law', 'brother-in-law'), partner: "sibling's partner", child: g('niece', 'nephew'), grandchild: g('grandniece', 'grandnephew'), parent: g('mother', 'father'), sibling: g('sister', 'brother'), roommate: 'roommate' }[r] || 'relative';
     case 'roommate':
       return r === 'roommate' || r === 'householder' ? 'roommate' : `roommate's ${r === 'spouse' ? g('wife', 'husband') : r === 'child' ? g('daughter', 'son') : 'relative'}`;
@@ -453,7 +462,7 @@ function householdLines(npc, persona, world) {
     const people = others.map(o => {
       const nm = text(o.name);
       const age = num(o.age);
-      return `your ${relation({ role: self, m: npc.m }, o, gcParent)}${nm ? ` ${nm}` : ''}${age !== null ? ` (${age})` : ''}`;
+      return `your ${relation({ role: self, m: npc.m, parents: Array.isArray(npc.parents) ? npc.parents : null }, o, gcParent)}${nm ? ` ${nm}` : ''}${age !== null ? ` (${age})` : ''}`;
     });
     out.push(`- You live with ${joinList(people)}.`);
   } else if (num(hh.size) === 1 || hh.type === 'alone') {
@@ -640,7 +649,9 @@ const MOMENT_HOOK = /\bthe weather service has out\b|^the (?:heat|cold|weather|r
  * are turned around to the sheet's "you".
  */
 function hookLines(persona) {
-  const details = Array.isArray(persona.hookDetails) && persona.hookDetails.some(isObj) ? persona.hookDetails.filter(isObj) : null;
+  // the persona's lasting hooks are the same in every hour's persona; hookDetails carry the moment's weather too
+  const lasting = Array.isArray(persona.lastingHooks) && persona.lastingHooks.some(isObj) ? persona.lastingHooks.filter(isObj) : null;
+  const details = lasting || (Array.isArray(persona.hookDetails) && persona.hookDetails.some(isObj) ? persona.hookDetails.filter(isObj) : null);
   const items = details
     ? details.filter(h => text(h.kind) !== 'weather').map(h => text(h.text))
     : list(persona.hooks).map(nameOf);

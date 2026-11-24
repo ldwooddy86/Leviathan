@@ -24,7 +24,8 @@
 //   crowd.setQuality({keep, auto})    share of agents drawn (keep, 0..1) and whether it adapts to the frame rate
 //   crowd.gpuEval(chunk, minute, dow, first, count) -> Float32Array [x, y, state, kind] × count, read back from the
 //                                     vertex shader with transform feedback (tests compare it with the JS twin)
-//   crowd.chunks, crowd.count, crowd.summary, crowd.building, crowd.mode ('worker' | 'main')
+//   crowd.chunks, crowd.count, crowd.summary, crowd.building, crowd.mode ('worker' | 'main' | 'cache'), crowd.cacheWrite
+//                                     (a promise of true once a finished build is kept for the next visit)
 //
 // Worker hand-off. The single-file build exposes the bundled crowd-worker.mjs (an IIFE) as the string
 // window.__LEGION_WORKER_SRC__; the crowd starts it from a Blob URL. Unbundled (dev pages over http) it starts
@@ -46,9 +47,16 @@
 // Memory: the agent record is AGENT_BYTES (32) per agent on the main thread and on the GPU, plus the pick index
 // (summary.pickBytesPerAgent, about 3.5 statewide); summary.mainBytesPerAgent is the sum. A Worker build also keeps
 // a 14-byte copy of the state arrays per agent in the Worker for stats (summary.workerBytesPerAgent).
+//
+// The agent cache. Agents are a pure function of the pack, the code, the rate and the seeds, so a finished build is
+// kept in IndexedDB (the `cache` option: a key naming the build of the page, such as Legion.html's build id; none
+// in development, where the code changes under it). The next visit at the same density loads it in a few hundred
+// milliseconds instead of fitting every ZIP's models again; the same spot check runs against the page's
+// population, and a mismatch drops the cache and builds. One build is kept (the newest), up to CACHE_MAX_AGENTS.
+// The Workers take copies of the state arrays for stats, as after their own build.
 
 import {
-  buildRoadNet, buildAgentsGen, agentGLSL, agentPosition, agentPhase, agentKind, colorClass, pickNearest, decodeId,
+  buildRoadNet, buildAgentsGen, agentGLSL, agentPosition, agentPhase, agentKind, colorClass, pickNearest, decodeId, lodValue,
   accumulateStates, statsFrom, emptyStats, simTime, modeCode, commuteTiming, newPhase, zipOrder,
   MODES, KINDS, STATES, KIND_BIT, CLASS_BIT, STUDENT_BIT, S_OUT, S_BACK, S_EOUT, S_EBACK, AGENT_BYTES,
 } from './crowd-build.mjs';
@@ -257,6 +265,122 @@ export function mergeSummaries(parts) {
 /** Bytes per agent of the Worker's copy of the state arrays (days, timing, errand, eoff, mode) for stats. */
 const WORKER_STATS_BYTES = 14;
 
+// ---------------------------------------------------------------- the agent cache (IndexedDB)
+
+const CACHE_DB = 'legion-crowd';
+/** Bump when the stored chunk layout changes. */
+const CACHE_FORMAT = 1;
+/** Builds larger than this are not kept (about 140 MB). */
+export const CACHE_MAX_AGENTS = 4e6;
+
+/** Open the cache database, or null when this page has no IndexedDB (or it is blocked: private windows, file policies). */
+function openCacheDB() {
+  return new Promise(resolve => {
+    let req;
+    try { if (typeof indexedDB === 'undefined') { resolve(null); return; } req = indexedDB.open(CACHE_DB, CACHE_FORMAT); } catch { resolve(null); return; }
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      for (const name of ['builds', 'chunks']) if (!db.objectStoreNames.contains(name)) db.createObjectStore(name);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+    req.onblocked = () => resolve(null);
+  });
+}
+
+/** Run one request in a transaction of `db`; resolves with its result, or null on any failure. */
+function idbRequest(db, stores, mode, make) {
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(stores, mode);
+      const req = make(tx);
+      let out = null;
+      if (req) req.onsuccess = () => { out = req.result; };
+      tx.oncomplete = () => resolve(out === undefined ? null : out);
+      tx.onerror = tx.onabort = () => resolve(null);
+    } catch { resolve(null); }
+  });
+}
+
+/** The data of a chunk as stored: everything but the GPU objects and its place in this page's crowd. */
+function storedChunk(c) {
+  const { gpu: _gpu, start: _start, ...data } = c;
+  return data;
+}
+
+/**
+ * Read a kept build: {manifest, chunks} or null (none under this key, or anything failed). The manifest is read
+ * first and alone, so a miss costs one small request before a build starts.
+ * @param {string} key
+ */
+export async function readCachedCrowd(key) {
+  const db = await openCacheDB();
+  if (!db) return null;
+  try {
+    const manifest = await idbRequest(db, ['builds'], 'readonly', tx => tx.objectStore('builds').get(key));
+    if (!manifest || manifest.format !== CACHE_FORMAT || !(manifest.chunks > 0)) return null;
+    const chunks = [];
+    const ok = await new Promise(resolve => {
+      try {
+        const tx = db.transaction(['chunks'], 'readonly'), store = tx.objectStore('chunks');
+        for (let i = 0; i < manifest.chunks; i++) { const r = store.get(`${key}#${i}`); r.onsuccess = () => { chunks[i] = r.result; }; }
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = tx.onabort = () => resolve(false);
+      } catch { resolve(false); }
+    });
+    if (!ok || chunks.length !== manifest.chunks || chunks.some(c => !c || !(c.count >= 0) || !c.home)) return null;
+    return { manifest, chunks };
+  } finally { db.close(); }
+}
+
+/**
+ * Keep a finished build under `key`, replacing any other (one build is kept). Chunks are written one per idle
+ * moment, the manifest last, so a visit that reads while this writes finds nothing rather than half a crowd.
+ * @param {string} key
+ * @param {object[]} chunks the crowd's chunks
+ * @param {object} summary the build summary
+ * @returns {Promise<boolean>} true when kept
+ */
+export async function writeCachedCrowd(key, chunks, summary) {
+  const agents = chunks.reduce((a, c) => a + (c.count || 0), 0);
+  if (!agents || agents > CACHE_MAX_AGENTS) return false;
+  const db = await openCacheDB();
+  if (!db) return false;
+  try {
+    // one build is kept: drop everything first, the chunks of an earlier write a closed page left unfinished included
+    await idbRequest(db, ['builds', 'chunks'], 'readwrite', tx => { tx.objectStore('builds').clear(); tx.objectStore('chunks').clear(); return null; });
+    for (let i = 0; i < chunks.length; i++) {
+      await new Promise(r => idle(r));
+      const done = await new Promise(resolve => {
+        try {
+          const tx = db.transaction(['chunks'], 'readwrite');
+          tx.objectStore('chunks').put(storedChunk(chunks[i]), `${key}#${i}`);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = tx.onabort = () => resolve(false);
+        } catch { resolve(false); }
+      });
+      if (!done) return false;
+    }
+    const { cancelled: _c, ...kept } = summary || {};
+    const manifest = { key, format: CACHE_FORMAT, chunks: chunks.length, agents, savedAt: Date.now(), summary: kept };
+    return !!(await new Promise(resolve => {
+      try {
+        const tx = db.transaction(['builds'], 'readwrite');
+        tx.objectStore('builds').put(manifest, key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = tx.onabort = () => resolve(false);
+      } catch { resolve(false); }
+    }));
+  } finally { db.close(); }
+}
+
+/** Forget every kept build (Settings, tests). */
+export async function clearCachedCrowds() {
+  const db = await openCacheDB();
+  if (!db) return false;
+  try { return (await idbRequest(db, ['builds', 'chunks'], 'readwrite', tx => { tx.objectStore('builds').clear(); tx.objectStore('chunks').clear(); return null; })) !== false; } finally { db.close(); }
+}
+
 /** The GPU crowd layer of a MapView: builds agents (in a Worker when it can), draws them, counts and picks them. */
 export class Crowd {
   /**
@@ -270,8 +394,10 @@ export class Crowd {
    * @param {boolean} [opts.worker] build in Workers when possible (default true)
    * @param {number} [opts.workers] how many Workers share a build (default defaultWorkerCount())
    * @param {number} [opts.maxAgents] cap on agents (the rate is lowered to fit)
+   * @param {string|null} [opts.cache] a key naming this build of the code and the pack (Legion.html's build id): finished
+   *   builds are kept in IndexedDB under it and the next visit loads them; null (the default) keeps nothing
    */
-  constructor(mapView, { world, population, rate = 0.025, seed = 1, pack = null, worker = true, workers = null, maxAgents = 5e6 } = {}) {
+  constructor(mapView, { world, population, rate = 0.025, seed = 1, pack = null, worker = true, workers = null, maxAgents = 5e6, cache = null } = {}) {
     if (!mapView || !world || !population) throw new Error('Crowd needs a map, a world and a population');
     this.map = mapView;
     this.world = world;
@@ -282,6 +408,8 @@ export class Crowd {
     this.useWorker = worker !== false;
     this.poolSize = Math.max(1, Math.min(8, Number.isInteger(workers) && workers > 0 ? workers : defaultWorkerCount()));
     this.maxAgents = maxAgents;
+    this.cacheKey = typeof cache === 'string' && cache ? cache : null;
+    this._adopted = false;
     this.net = buildRoadNet(world);
     this.chunks = [];
     this.count = 0;
@@ -365,6 +493,7 @@ export class Crowd {
     const id = ++this._buildId;
     if (this._job) { this._job.cancelled = true; this._job.resolve({ cancelled: true, agents: this.count }); }
     this._clear();
+    this._adopted = false;
     const est = rate * this.world.totalPop;
     const capped = est > this.maxAgents;
     this.rate = capped ? this.maxAgents / this.world.totalPop : rate;
@@ -373,7 +502,11 @@ export class Crowd {
     this.building = true;
     let summary;
     try {
-      if (this.useWorker && this._ensureWorkers()) {
+      // a build this page's code and pack made before, at this density: loaded, checked, done
+      const kept = this.cacheKey ? await this._fromCache(id, onProgress) : null;
+      if (id !== this._buildId) return { cancelled: true, agents: this.count };
+      if (kept) { summary = kept; this.mode = 'cache'; }
+      else if (this.useWorker && this._ensureWorkers()) {
         try { summary = await this._buildInWorkers(id, onProgress, f); this.mode = 'worker'; }
         catch (e) {
           if (id !== this._buildId) return { cancelled: true, agents: this.count };
@@ -388,12 +521,85 @@ export class Crowd {
     summary = Object.assign({}, summary, {
       mode: this.mode, pack: this.mode === 'worker' ? this.packKind : null, totalMs: Math.round(performance.now() - t0), rateCapped: capped, rate: this.rate,
       bytesPerAgent: AGENT_BYTES, pickBytesPerAgent: +pickPer.toFixed(3), mainBytesPerAgent: +(AGENT_BYTES + pickPer).toFixed(3),
-      workerBytesPerAgent: this.mode === 'worker' ? WORKER_STATS_BYTES : 0, workers: this.mode === 'worker' ? this._workers.length : 0,
+      workerBytesPerAgent: this.mode === 'worker' || this._adopted ? WORKER_STATS_BYTES : 0, workers: this.mode === 'worker' ? this._workers.length : 0,
+      cached: this.mode === 'cache',
     });
     this.summary = summary;
     this._requestStats(true);
     this.map.requestRender();
+    // keep a fresh build for the next visit, a chunk per idle moment once the page has settled (cacheWrite resolves
+    // true once it is kept)
+    if (this.cacheKey && this.mode !== 'cache') {
+      const key = this._cacheKeyFor(), chunks = this.chunks.slice(), kept = summary;
+      this.cacheWrite = new Promise(r => setTimeout(r, 400)).then(() => (!this._destroyed && id === this._buildId ? writeCachedCrowd(key, chunks, kept) : false)).catch(() => false);
+    } else this.cacheWrite = Promise.resolve(this.mode === 'cache');
     return summary;
+  }
+
+  /** The cache key of the current build: the page's build key, the rate, the crowd's and the population's seeds. */
+  _cacheKeyFor() { return `${this.cacheKey}|${this.rate}|${this.seed}|${this._popSeed()}`; }
+
+  /**
+   * Load a kept build (readCachedCrowd) into the crowd, then check a few agents against the page's population as
+   * after a Worker build; a mismatch (or any failure) clears the crowd and the cache and returns null, and the
+   * build runs as usual. The Workers, when there are any, take copies of the state arrays for stats.
+   */
+  async _fromCache(id, onProgress) {
+    const t0 = performance.now();
+    let kept = null;
+    try { kept = await readCachedCrowd(this._cacheKeyFor()); } catch { kept = null; }
+    if (!kept || id !== this._buildId) return null;
+    for (const c of kept.chunks) this._addChunk(c);
+    if (onProgress) onProgress(0.98, this.count);
+    const ok = await this._verifyChunks(kept.chunks, id);
+    if (id !== this._buildId) return null;
+    if (!ok) { this._clear(); clearCachedCrowds().catch(() => false); return null; }
+    this._adoptStats(kept.chunks);
+    return Object.assign({}, kept.manifest.summary, { ms: Math.round(performance.now() - t0), verified: VERIFY_SAMPLES, savedAt: kept.manifest.savedAt });
+  }
+
+  /**
+   * Check VERIFY_SAMPLES agents of the first chunk with agents against the page's population, one per task (a few
+   * milliseconds each, the first fitting its ZIP's models): not in idle time, which slow frames can hold back for
+   * seconds while the kept crowd is already on the map.
+   */
+  _verifyChunks(chunks, id) {
+    const c = chunks.find(x => x && x.count);
+    if (!c) return Promise.resolve(true);
+    const n = c.count, step = Math.max(1, Math.floor(n / VERIFY_SAMPLES)), samples = [];
+    for (let i = 0; i < n && samples.length < VERIFY_SAMPLES; i += step) samples.push(i);
+    return new Promise(resolve => {
+      const next = k => {
+        if (id !== this._buildId || this._destroyed) { resolve(false); return; }
+        if (k >= samples.length) { resolve(true); return; }
+        const i = samples[k];
+        let ok = false;
+        try {
+          const { zi, h, m } = decodeId(c, i, this.world);
+          const core = this.population.householdCore(zi, h);
+          const mem = core && core.members && core.members.find((x, j) => (x.m == null ? j : x.m) === m);
+          if (mem && modeCode(mem.mode) === (c.mode[i] & 15)) {
+            const tm = commuteTiming(mem);
+            ok = tm[0] === c.timing[3 * i] && tm[1] === c.timing[3 * i + 1] && tm[2] === c.timing[3 * i + 2];
+          }
+        } catch { ok = false; }
+        if (!ok) { resolve(false); return; }
+        nextTask().then(() => next(k + 1));
+      };
+      nextTask().then(() => next(0));
+    });
+  }
+
+  /** Give the Workers (when the page has them) copies of the state arrays, chunk by chunk in turn, for stats. */
+  _adoptStats(chunks) {
+    this._adopted = false;
+    if (!this.useWorker || !this._ensureWorkers()) return;
+    const K = this._workers.length, shares = this._workers.map(() => []);
+    chunks.forEach((c, k) => shares[k % K].push({ count: c.count, unitKm: c.unitKm, days: c.days.slice(), timing: c.timing.slice(), errand: c.errand.slice(), eoff: c.eoff.slice(), mode: c.mode.slice() }));
+    try {
+      this._workers.forEach((slot, k) => slot.w.postMessage({ type: 'adopt', chunks: shares[k] }, shares[k].flatMap(c => [c.days.buffer, c.timing.buffer, c.errand.buffer, c.eoff.buffer, c.mode.buffer])));
+      this._adopted = true;
+    } catch { this._adopted = false; }
   }
 
   /** The build Workers (adopting prewarmed ones first), or null when this page cannot run Workers. */
@@ -627,8 +833,9 @@ export class Crowd {
 
   _runStats() {
     if (this._destroyed || !this._statsDirty) return;
-    // the Workers hold copies of the state arrays once their build is done; during and without it, the main thread counts
-    if (this._workers.length && this.mode === 'worker' && !this.building) {
+    // the Workers hold copies of the state arrays once their build is done (or once they adopted a kept build's);
+    // during and without it, the main thread counts
+    if (this._workers.length && (this.mode === 'worker' || (this.mode === 'cache' && this._adopted)) && !this.building) {
       if (this._statsInFlight) return;
       this._statsDirty = false; this._statsInFlight = true; this._statsAt = performance.now();
       const seq = ++this._statsSeq;
@@ -803,9 +1010,33 @@ export class Crowd {
       if (!c.gpu) this._upload(gl, c);
       gl.bindVertexArray(c.gpu.vao);
       gl.uniform1ui(P.u.u_base, c.start);
-      gl.drawArrays(gl.POINTS, 0, c.count);
+      // software WebGL runs the vertex shader on the CPU for every vertex drawn: draw only the agents the level of
+      // detail keeps (lodValue, the hash the shader tests), as indices, rather than all of them with most skipped
+      const kept = this.software && this.keep < 0.999 ? this._keptIndex(gl, c) : null;
+      if (kept) { if (kept.n) gl.drawElements(gl.POINTS, kept.n, gl.UNSIGNED_INT, 0); }
+      else gl.drawArrays(gl.POINTS, 0, c.count);
     }
     gl.bindVertexArray(null);
+  }
+
+  /**
+   * The indices of a chunk's agents the current keep fraction draws, in an element buffer of the chunk's vertex
+   * array (bound by the caller), made again when keep changes: {n}. Null when it cannot be made.
+   */
+  _keptIndex(gl, c) {
+    const g = c.gpu;
+    if (g.keptFor === this.keep && g.kept) return g.kept;
+    try {
+      const idx = new Uint32Array(c.count);
+      let n = 0;
+      for (let i = 0; i < c.count; i++) if (lodValue(c.start + i) < this.keep) idx[n++] = i;
+      if (!g.kbuf) { g.kbuf = gl.createBuffer(); g.bufs.push(g.kbuf); }
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, g.kbuf);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx.subarray(0, Math.max(1, n)), gl.DYNAMIC_DRAW);
+      g.kept = { n };
+      g.keptFor = this.keep;
+      return g.kept;
+    } catch { return null; }
   }
 
   /** Lower the drawn share when frames run long while the clock is animating; raise it back when there is headroom. */

@@ -10,6 +10,7 @@ import { h, icon, clear } from './dom.mjs';
 import { fmtInt, fmtMoney, fmtPct, fmtCompact, displayName, initials, label, capitalize, STATUS, OCCUPATION_GROUP } from './format.mjs';
 import { placeStats, fidelityValueText } from './census.mjs';
 import { rankedBars, segmentedBar, pairedBars, pairedLegend } from './charts.mjs';
+import { cleanForecastText, alertsForZip } from './nws-live.mjs';
 
 const KIND_WORD = { zip: 'ZIP code', place: 'City', city: 'Postal city', county: 'County', region: 'Region' };
 const idle = fn => (typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, { timeout: 600 }) : setTimeout(fn, 60));
@@ -154,7 +155,10 @@ export class PlacePanel {
     if (!wx || !wx.now) return;
     const now = wx.now;
     const z = this.world.zip(zi);
-    const alerts = (wx.alerts || []).slice(0, 3);
+    // alerts are issued for whole zones and counties: a shore-only one is not shown far inland (the NPCs' own rule)
+    const alerts = alertsForZip(wx.alerts, this.world.z.coast_km ? this.world.z.coast_km[zi] : null).slice(0, 3);
+    // the NWS text generator leaves placeholders in when a value is missing ("{{missing_temperature_data}}")
+    const detail = wx.period && !wx.stale && wx.period.detail ? cleanForecastText(wx.period.detail) : '';
     // where this weather comes from: the snapshot, or live when allowed (with a note when it could not be used)
     const live = typeof this.services.weatherStatus === 'function' ? this.services.weatherStatus(zi, t) : { state: 'off' };
     const where = wx.stale ? 'Climate estimate (past the forecast)' : `${wx.live ? 'Live NWS' : 'NWS'} ${wx.point || wx.office || ''}${this.scope && this.scope.zis.length > 1 ? ` · ${z.city}` : ''}`;
@@ -165,7 +169,7 @@ export class PlacePanel {
         h('span.wx-temp', Number.isFinite(now.tempF) ? `${now.tempF}°F` : '—'),
         h('span.wx-short', now.short || ''),
         h('span.wx-where', where)),
-      wx.period && !wx.stale && wx.period.detail ? h('p.wx-detail', `${wx.period.name}: ${wx.period.detail}`) : null,
+      detail ? h('p.wx-detail', `${wx.period.name}: ${detail}`) : null,
       alerts.length ? h('ul.wx-alerts', { 'aria-label': 'Weather alerts' }, alerts.map(a => h('li', { class: `sev-${String(a.severity || '').toLowerCase()}` }, icon('alert', { size: 14 }), h('span', a.event)))) : null,
       wx.fireWeather && wx.fireWeather.level > 0 ? h('p.wx-fire', icon('alert', { size: 14 }), `Fire weather: ${wx.fireWeather.name}`) : null,
       live && live.state === 'live' ? h('p.wx-note.is-live', h('span', live.note)) : null,

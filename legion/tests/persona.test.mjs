@@ -565,3 +565,62 @@ test('memories do not repeat themselves, and merge the declarations of one disas
   }
   assert.ok(people > 600 && merged > 50, JSON.stringify({ people, merged }));
 });
+
+test('practice: religious services (congregations of every faith), the gurdwara only for the Census group that names a faith', async () => {
+  const { dayPlan } = await import('../src/engine/schedule.mjs');
+  const SUN = Date.UTC(2026, 10, 29, 19, 0);   // Sunday Nov 29, 11 AM Pacific
+  let practicing = 0, gurdwara = 0, sunday = 0;
+  const check = (npc, p, hk) => {
+    if (!p.practice) return;
+    practicing++;
+    const text = JSON.stringify([p.practice, p.interests, p.bio, p.routine.places.church && p.routine.places.church.label]);
+    assert.ok(!/church/i.test(text.replace(/\(church\)/g, '')), `${npc.id} (${npc.heritage}): ${text}`);
+    if (hk === 'sikh') {
+      gurdwara++;
+      assert.equal(p.practice.place, 'the gurdwara', npc.id);
+      assert.equal(p.practice.faith, 'sikh', npc.id);
+    } else {
+      assert.equal(p.practice.place, 'religious services', `${npc.id} (${npc.heritage}): no faith is read from any other heritage`);
+      assert.equal(p.practice.faith, null);
+    }
+    assert.equal(p.routine.places.church.label, p.practice.place, `${npc.id}: the place is named as the practice is`);
+    for (const it of dayPlan(npc, p, SUN).filter(x => x.kind === 'worship' && !x.travel)) { sunday++; assert.equal(it.label, p.practice.place, `${npc.id} Sunday: ${it.label}`); }
+  };
+  // a statewide spread, and the Central Valley and East Bay ZIPs where the Census counts Sikh households
+  for (const zip of [...SPREAD, '95376', '95206', '93722', '95363', '94538', '95991']) {
+    const zi = world.indexOf(zip);
+    for (let h = 0; h < Math.min(world.z.hh[zi] || 0, 260); h++) {
+      const core = pop.householdCore(zi, h);
+      for (const x of core.members) { const npc = pop.person(zi, h, x.m); check(npc, P(npc), core.heritage); }
+    }
+  }
+  assert.ok(practicing > 200 && gurdwara >= 1 && sunday > 20, JSON.stringify({ practicing, gurdwara, sunday }));
+});
+
+test("the family from each one's side: the spouse's parents are in-laws, a parent's spouse a stepparent", () => {
+  let inLaw = 0, own = 0, step = 0;
+  for (const zip of ['91950', '93611', '90631', '95111', '91342', '95116', '90001', '94110', '92335', '95131']) {
+    const zi = world.indexOf(zip);
+    for (let h = 0; h < Math.min(world.z.hh[zi] || 0, 1500); h++) {
+      const core = pop.householdCore(zi, h);
+      if (!core.members.some(x => x.role === 'parent' || x.role === 'spouse')) continue;
+      for (const x of core.members) {
+        if (!['householder', 'spouse', 'child'].includes(x.role)) continue;
+        const npc = pop.person(zi, h, x.m);
+        if (!Array.isArray(npc.parents)) continue;
+        const listed = new Set(npc.parents);
+        const others = npc.household.members.filter(o => o.m !== npc.m);
+        const sentence = P(npc).bio;
+        if (npc.role === 'householder' || npc.role === 'spouse') {
+          const theirs = others.filter(o => o.role === 'parent' && listed.has(o.m)), inLaws = others.filter(o => o.role === 'parent' && !listed.has(o.m));
+          if (inLaws.length && !theirs.length) { inLaw++; assert.match(sentence, /-in-law|in-laws/, `${npc.id}: ${sentence}`); assert.doesNotMatch(sentence, /with [^.]*(?:his|her) (?:mother|father|parents)\b(?!-in-law)/, `${npc.id}: ${sentence}`); }
+          if (theirs.length && !inLaws.length) { own++; assert.match(sentence, /(?:his|her) (?:mother|father|parents)\b(?!-in-law)/, `${npc.id}: ${sentence}`); }
+        } else if (npc.role === 'child' && npc.age < 18) {
+          const stepparent = others.find(o => o.role === 'spouse' && !listed.has(o.m)) && others.some(o => listed.has(o.m));
+          if (stepparent) { step++; assert.match(sentence, /step(?:mother|father|parents)/, `${npc.id}: ${sentence}`); }
+        }
+      }
+    }
+  }
+  assert.ok(inLaw >= 1 && own >= 5 && step >= 5, JSON.stringify({ inLaw, own, step }));
+});

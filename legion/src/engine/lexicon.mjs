@@ -30,7 +30,7 @@ import { dialectFor, explainDialect, dialectTable, DIALECT_KEYS } from './lexico
 import { roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE } from './lexicon/roads.mjs';
 import { SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands } from './lexicon/slots.mjs';
 import { DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES } from './lexicon/dialects.mjs';
-import { lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM } from './lexicon/tags.mjs';
+import { parseTagged, lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM } from './lexicon/tags.mjs';
 import {
   LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
   FAITHS, TIMES_OF_DAY, resolveLanguage, varietyFor, faithFor,
@@ -41,7 +41,7 @@ export {
   roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE,
   SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands,
   DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
-  lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM,
+  parseTagged, lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM,
   LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
   FAITHS, TIMES_OF_DAY, resolveLanguage, varietyFor, faithFor,
 };

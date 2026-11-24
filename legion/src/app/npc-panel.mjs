@@ -20,6 +20,8 @@ import {
 } from './format.mjs';
 import { meter } from './charts.mjs';
 import { factLabel, concernSourceText, memorySource } from './provenance.mjs';
+import { alertsForZip } from './nws-live.mjs';
+import { fireLabel } from './services.mjs';
 
 /** The tabs, in order. */
 export const NPC_TABS = Object.freeze([
@@ -56,14 +58,19 @@ export function big5Words(key, v) {
 
 const NEEDS = ['energy', 'social', 'fun', 'comfort', 'money'];
 const DRIVING = new Set(['drive', 'carpool', 'motorcycle', 'taxi']);
-// Coastal alerts cover whole counties but only touch the shore: they are not news 8 km inland (the dialogue's rule).
-const COASTAL_EVENT = /coastal|surf|rip current|beach|tsunami|sneaker wave|lakeshore/i;
 
-/** A fire as people name it: "Camp" is "the Camp Fire", "Btu Lightning Complex" keeps its own word; null if unnamed. */
+/**
+ * A fire as people name it, the way the dialogue says it (the lexicon's fireLabel): "Camp" is "the Camp Fire",
+ * "Btu Lightning Complex" is "the BTU Lightning Complex"; null for an unnamed fire or one whose name is only a code
+ * or a number ("241 Incident"), which no one asks about by name.
+ * @param {string} name a pack fire name (world.firesOf)
+ * @returns {string|null}
+ */
 export function fireName(name) {
-  const n = String(name || '').trim();
+  const n = String(name || '').trim().replace(/\s+/g, ' ').replace(/\s+Incident$/i, '');
   if (!n || /^unnamed\b/i.test(n)) return null;
-  return /\b(fire|fires|complex|incident)$/i.test(n) ? `the ${n}` : `the ${n} Fire`;
+  if (!/^\d+ Complex$/i.test(n) && !/[A-Za-z]{3,}/.test(n.replace(/\b(?:complex|fire)\b/gi, ''))) return null;
+  return fireLabel(n);
 }
 
 /**
@@ -85,9 +92,8 @@ export function startersFor(world, npc, { weather = null } = {}) {
   else if (npc.status === 'retired') out.push('What keeps you busy these days?');
   else out.push('What do you like to do around here?');
   const zi0 = Number.isInteger(npc.zi) ? npc.zi : world.indexOf(npc.zip);
-  const coastKm = zi0 >= 0 && world.z && world.z.coast_km ? Number(world.z.coast_km[zi0]) : NaN;
-  const nearShore = !(coastKm > 8);
-  const alert = weather && Array.isArray(weather.alerts) ? weather.alerts.find(a => a && a.event && (nearShore || !COASTAL_EVENT.test(a.event))) : null;
+  // coastal alerts cover whole counties but only touch the shore: not news 8 km inland (the dialogue's rule)
+  const alert = weather ? alertsForZip(weather.alerts, zi0 >= 0 && world.z && world.z.coast_km ? world.z.coast_km[zi0] : null)[0] || null : null;
   out.push(alert ? `Heard about the ${alert.event}?` : 'How’s the weather treating you?');
   const c = npc.commute || {};
   const road = DRIVING.has(c.mode) ? roadLabel(c.road) : null;
@@ -202,7 +208,20 @@ async function copyWithToast(text, done) {
 
 /** A fresh conversation state (one visit to an NPC; leaving ends it). */
 function newTalk(engine) {
-  return { engine, conv: null, history: null, lines: [], busy: false, ended: false, claudeTurns: 0, offlineTurns: 0, seeded: false, abort: null, greeted: false, used: new Set() };
+  return { engine, conv: null, history: null, lines: [], busy: false, ended: false, claudeTurns: 0, offlineTurns: 0, seeded: false, abort: null, greeted: false, used: new Set(), rerender: false };
+}
+
+/**
+ * How far (simulated minutes) the clock may move from the moment an offline conversation is about before its next
+ * line belongs to a new conversation. The offline engine speaks of one moment (the weather, what the NPC is doing);
+ * while the Talk tab is open the clock runs in real time, so only leaving the tab with the clock running, a jump of
+ * the clock or a speed chosen mid-conversation gets this far.
+ */
+export const TALK_STALE_MIN = 15;
+
+/** True when an offline conversation that started at convT (epoch ms) no longer describes simulated time t. */
+export function talkIsStale(convT, t, staleMin = TALK_STALE_MIN) {
+  return Number.isFinite(convT) && Number.isFinite(t) && Math.abs(t - convT) > staleMin * 60000;
 }
 
 /** The NPC panel. */
@@ -210,7 +229,9 @@ export class NpcPanel {
   /**
    * @param {{el: HTMLElement, services: object, bus: object, settings: object, getTime: () => number,
    *   onLocate?: (npc: object) => void, onWalk?: (npc: object) => void, onBack?: () => void, onClose?: () => void,
-   *   openSettings?: () => void}} deps onWalk opens the street view at the NPC's home, following them
+   *   openSettings?: () => void, onTalk?: (active: boolean) => void}} deps onWalk opens the street view at the NPC's
+   *   home, following them; onTalk says when a conversation is on screen and when it is not (the page runs the clock
+   *   in real time meanwhile)
    */
   constructor(deps) {
     Object.assign(this, { services: deps.services, bus: deps.bus, settings: deps.settings, getTime: deps.getTime });
@@ -240,8 +261,10 @@ export class NpcPanel {
     this.bus.on(EVENTS.SETTINGS_CHANGE, ({ changed }) => {
       if (!this.id) return;
       if (changed.some(k => k.startsWith('claude') || k.startsWith('network'))) {
-        // the engine line and the setup note depend on these; a conversation in progress is kept
+        // the engine line and the setup note depend on these; a conversation in progress is kept, and a reply on its
+        // way is not cut from the screen: the tab is redrawn once it has arrived
         this.rendered.delete('talk'); this.rendered.delete('prompt');
+        if (this.tab === 'talk' && this.talk && this.talk.busy) { this.talk.rerender = true; return; }
         if (this.tab === 'talk' || this.tab === 'prompt') this._renderTab(this.tab);
       }
     });
@@ -275,6 +298,7 @@ export class NpcPanel {
     this.el.hidden = false;
     this.select(this.tab, { focusTab: false });
     if (focus) this._focusName();
+    this._talkChanged();
     return true;
   }
 
@@ -287,7 +311,19 @@ export class NpcPanel {
     this.el.hidden = true;
     this.id = null; this.npc = null;
     this.talk = null;
+    this._talkChanged();
     if (this.deps.onClose) this.deps.onClose();
+  }
+
+  /** True while a conversation is on screen: the Talk tab of the open panel, the conversation not ended. */
+  talking() { return this.isOpen() && this.tab === 'talk' && !!this.talk && !this.talk.ended; }
+
+  /** Tell the page when a conversation comes on screen or leaves it (the clock runs in real time meanwhile). */
+  _talkChanged() {
+    const on = this.talking();
+    if (on === !!this._talkOn) return;
+    this._talkOn = on;
+    if (this.deps.onTalk) { try { this.deps.onTalk(on); } catch (e) { console.error('[legion] onTalk failed', e); } }
   }
 
   /** Switch tabs. */
@@ -300,8 +336,12 @@ export class NpcPanel {
       this.panels[t.key].hidden = !on;
     }
     if (focusTab) this.tabButtons[key].focus();
+    // an offline conversation the clock has left behind (the tab was away while the clock ran, or the clock jumped)
+    // ends, and the NPC greets anew at the present moment
+    if (key === 'talk' && this._talkStale()) this._resumeLater();
     // Mind and Prompt show the moment: redrawn whenever they are opened
-    if (!this.rendered.has(key) || key === 'mind' || key === 'prompt') this._renderTab(key);
+    else if (!this.rendered.has(key) || key === 'mind' || key === 'prompt') this._renderTab(key);
+    this._talkChanged();
   }
 
   _tabKeys(e) {
@@ -558,8 +598,9 @@ export class NpcPanel {
 
     for (const line of T.lines) this._bubble(line);
 
-    // the offline engine greets as the conversation opens (not when the player switches to it mid-conversation)
-    const started = T.lines.some(l => l.who === 'player' || l.who === 'npc');
+    // the offline engine greets as the conversation opens (not when the player switches to it mid-conversation);
+    // the lines after the last divider are this conversation's, those before it earlier ones'
+    const started = T.lines.slice(T.lines.map(l => l.who).lastIndexOf('divider') + 1).some(l => l.who === 'player' || l.who === 'npc');
     if (T.engine === 'offline' && !T.greeted && !T.ended && !started && this._ensureConv()) {
       T.greeted = true;
       try { this._addNpcLine(T.conv.greet(), 'offline'); this.services.saveMind(this.id); } catch (e) { this._systemLine(`The greeting failed: ${e && e.message ? e.message : e}`); }
@@ -574,7 +615,9 @@ export class NpcPanel {
     const foot = T.ended
       ? h('button.btn.small', { type: 'button', on: { click: () => this._restartTalk() } }, icon('reset', { size: 15 }), 'Talk again')
       : h('button.btn.ghost.small', { type: 'button', disabled: !T.lines.length, on: { click: () => this._goodbye() } }, 'Say goodbye');
-    root.append(log, starters, form, h('div.talk-foot', status, foot));
+    // what the clock does meanwhile (the page holds it at real time while a conversation is on screen)
+    const clockNote = T.ended ? null : h('p.talk-note.talk-clock', 'While you talk, the clock runs in real time; your speed comes back when you leave.');
+    root.append(log, starters, form, clockNote, h('div.talk-foot', status, foot));
     return root;
   }
 
@@ -633,15 +676,21 @@ export class NpcPanel {
     return entry;
   }
 
-  _systemLine(text) {
+  /**
+   * A line from Legion itself into conversation T (default the one on screen). A conversation the player has left
+   * (another NPC is open now) keeps the line in its own record, and nothing of it reaches the screen.
+   */
+  _systemLine(text, T = this.talk) {
     const entry = { who: 'system', text: String(text || 'Something went wrong.'), error: true };
-    if (this.talk) this.talk.lines.push(entry);
-    return this._bubble(entry);
+    if (T) T.lines.push(entry);
+    return T && T === this.talk ? this._bubble(entry) : null;
   }
 
   async _send(raw) {
-    const T = this.talk, ui = this._talkUI;
     const text = String(raw || '').trim();
+    // the moment the offline conversation is about has passed: this line opens a new one, at the present
+    if (text && this.talk && !this.talk.busy && this._talkStale()) this._resumeLater();
+    const T = this.talk, ui = this._talkUI;
     if (!T || !ui || !text || T.busy || T.ended) return;
     T.used.add(text);
     const entry = { who: 'player', text };
@@ -684,11 +733,14 @@ export class NpcPanel {
    */
   async _claudeTurn(text) {
     const T = this.talk, ui = this._talkUI, id = this.id;
+    // the player may open someone else while the reply streams (leaving aborts it): from then on nothing of this
+    // turn touches the panel, which shows the other conversation
+    const here = () => this.talk === T && this.id === id;
     const v = this.services.voice(this.settings.get());
-    if (!v.ok) { this._systemLine(v.message); return; }
+    if (!v.ok) { this._systemLine(v.message, T); return; }
     const time = this.getTime();
     const p = this.services.persona(id, { t: time });
-    if (!p.ok) { this._systemLine(p.message); return; }
+    if (!p.ok) { this._systemLine(p.message, T); return; }
     const m = this.services.mind(id, { t: time });
     if (!T.history) T.history = this.services.history();
     this._seedHistory();
@@ -724,7 +776,7 @@ export class NpcPanel {
       if (refused || !reply) {
         entry.text = '';
         dropEmpty();
-        this._systemLine(refused ? (result.refusal && result.refusal.message) || 'Claude declined to answer that. Try another topic.' : (result && result.notice) || 'No reply came back from Claude.');
+        this._systemLine(refused ? (result.refusal && result.refusal.message) || 'Claude declined to answer that. Try another topic.' : (result && result.notice) || 'No reply came back from Claude.', T);
       } else {
         entry.text = reply; textEl.textContent = reply;
         // a voice that does not record the exchange itself: keep the history here
@@ -739,12 +791,15 @@ export class NpcPanel {
       el.classList.remove('is-streaming');
       if (entry.text) { entry.meta = 'cut off'; el.append(h('p.bubble-meta', entry.meta)); }
       dropEmpty();
-      this._systemLine(e && e.message ? e.message : String(e));
+      // a reply cancelled because the player left goes in the old conversation's record, never on screen
+      this._systemLine(e && e.message ? e.message : String(e), T);
       ui.status.textContent = '';
     } finally {
       el.classList.remove('is-streaming');
       stop.remove();
       T.busy = false; T.abort = null; ui.send.disabled = false;
+      // settings changed while the reply streamed: the tab is redrawn now that it is in
+      if (T.rerender && here() && this.tab === 'talk') { T.rerender = false; this._renderTab('talk'); }
     }
   }
 
@@ -765,16 +820,37 @@ export class NpcPanel {
     this._settle(T, this.id);
     T.ended = true;
     this._renderTab('talk');
+    this._talkChanged();
   }
 
-  _restartTalk() {
+  _restartTalk(word = 'New conversation') {
     const old = this.talk;
     const engine = old ? old.engine : 'offline';
     const next = newTalk(engine);
     next.lines = old ? old.lines.slice() : [];
-    next.lines.push({ who: 'divider', text: `New conversation · ${fmtMinute(this.services.clock.pacific(this.getTime()).minuteOfDay)}` });
+    next.lines.push({ who: 'divider', text: `${word} · ${fmtMinute(this.services.clock.pacific(this.getTime()).minuteOfDay)}` });
     this.talk = next;
     this._renderTab('talk');
+    this._talkChanged();
+  }
+
+  /** True when the offline conversation in progress speaks of a moment the clock has left (TALK_STALE_MIN). */
+  _talkStale() {
+    const T = this.talk;
+    return !!(T && T.engine === 'offline' && T.conv && !T.ended && !T.busy && talkIsStale(T.conv.t, this.getTime()));
+  }
+
+  /**
+   * The conversation the clock left behind ends as if the two had parted (the NPC's mind keeps it), and a new one
+   * starts at the present: a divider with the time, then a fresh greeting about this moment's weather and doings.
+   */
+  _resumeLater() {
+    const T = this.talk;
+    if (!T || T.ended) return;
+    if (T.conv && !T.farewelled) { try { T.conv.farewell(); T.farewelled = true; } catch { /* the mind keeps what it heard */ } }
+    this._settle(T, this.id);
+    T.ended = true;
+    this._restartTalk('Later');
   }
 
   /**

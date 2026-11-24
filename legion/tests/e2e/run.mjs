@@ -417,43 +417,197 @@ async function desktop(browser) {
     return `${id}: "${reply.slice(0, 70)}" ${gloss.at(-1).slice(0, 70)}`;
   });
 
+  await step('desktop: while you talk the clock runs in real time, and your speed comes back when you leave the tab', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    const start = await page.evaluate(() => window.legion.clock.t);
+    await page.click('#npc-tab-profile');
+    // the player's speed is 600x; the clock plays only while the Talk tab is open (the later steps keep their hour)
+    await page.evaluate(() => { window.legion.clock.pause(); window.legion.clock.setSpeed(600); });
+    try {
+      await page.click('#npc-tab-talk');
+      await page.locator('#npc-tabpanel-talk .talk-clock').waitFor({ timeout: 3000 });
+      await page.evaluate(() => window.legion.clock.play());
+      const held = await page.evaluate(() => [window.legion.clock.rate, window.legion.clock.speed, document.querySelector('.speeds').classList.contains('is-held'), document.querySelector('.speeds input:checked').value]);
+      expect(held[0] === 1 && held[1] === 600 && held[2] && held[3] === '1', `talking: rate ${held[0]}, speed ${held[1]}, marked ${held[2]}, checked ${held[3]}`);
+      const t0 = await page.evaluate(() => window.legion.clock.t);
+      await page.waitForTimeout(1000);
+      const ran = await page.evaluate(t => window.legion.clock.t - t, t0);
+      await page.evaluate(() => window.legion.clock.pause());
+      expect(ran > 200 && ran < 5000, `the clock ran ${ran} ms in a second of talking`);
+      await page.click('#npc-tab-profile');
+      const back = await page.evaluate(() => [window.legion.clock.rate, document.querySelector('.speeds input:checked').value]);
+      expect(back[0] === 600 && back[1] === '600', `after leaving the tab: rate ${back[0]}, checked ${back[1]}`);
+      return `${id}: 1× while talking (${Math.round(ran)} ms in 1 s), 600× again after`;
+    } finally {
+      await page.evaluate(t => { const c = window.legion.clock; c.pause(); c.setSpeed(60); c.set(t); }, start);
+    }
+  });
+
+  await step('desktop: a Claude reply cut short by opening someone else stays with its own conversation', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    const other = await page.evaluate(i => { const L = window.legion, n = L.services.npc(i); return L.services.residents({ kind: 'zip', zi: n.zi, zis: [n.zi], key: n.zip, title: n.zip }, 3, 4).map(x => x.id).find(x => x !== i); }, id);
+    expect(other, 'no second NPC in the ZIP');
+    await page.evaluate(() => {
+      const svc = window.legion.services;
+      window.__realVoice = svc.voice;
+      // a voice whose reply streams a few words, then waits until it is cancelled
+      const fake = {
+        stream(p, m, hist, text, o) {
+          return new Promise((resolve, reject) => {
+            let said = '', k = 0;
+            const words = ['Well, ', 'let me ', 'think '];
+            const tick = setInterval(() => { if (k < words.length) { said += words[k++]; o.onText(words[k - 1], said); } }, 80);
+            o.signal.addEventListener('abort', () => { clearInterval(tick); const e = new Error('The reply was cancelled.'); e.code = 'aborted'; reject(e); });
+          });
+        },
+        reflect: async () => ({ summary: 'We talked.', facts_about_player: [], affinity_delta: 0, trust_delta: 0, mood: 'neutral', memorable_line: '', follow_up: '' }),
+      };
+      svc.voice = () => ({ ok: true, value: fake });
+    });
+    try {
+      await page.click('#npc-tab-talk');
+      await page.click('label[for="talk-engine-claude"]');
+      await page.locator('#npc-tabpanel-talk .talk-input').fill('Hello there, what is new?');
+      await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+      await page.waitForFunction(() => { const b = document.querySelector('#npc-tabpanel-talk .bubble.from-npc.is-streaming .bubble-text'); return b && b.textContent.length > 3; }, null, { timeout: 5000 });
+      // the player opens someone else mid-reply
+      await page.evaluate(i => window.legion.bus.emit('npc:select', { id: i, source: 'place' }), other);
+      await page.waitForFunction(i => window.legion.npcPanel.id === i, other, { timeout: 5000 });
+      await page.waitForTimeout(400);
+      const now = await page.evaluate(() => ({
+        bubbles: [...document.querySelectorAll('#npc-tabpanel-talk .bubble')].map(b => b.textContent),
+        lines: (window.legion.npcPanel.talk ? window.legion.npcPanel.talk.lines : []).map(l => `${l.who}: ${l.text}`),
+      }));
+      expect(!now.bubbles.some(t => /cancelled|let me/.test(t)) && !now.lines.some(t => /cancelled|let me/.test(t)), `the new conversation shows ${JSON.stringify(now)}`);
+      return `${other}'s Talk tab: ${now.bubbles.length} bubbles, none from ${id}'s cancelled reply`;
+    } finally {
+      await page.evaluate(() => { const svc = window.legion.services; if (window.__realVoice) svc.voice = window.__realVoice; });
+      await page.evaluate(i => window.legion.bus.emit('npc:select', { id: i, source: 'place' }), id).catch(() => {});
+      await page.click('#npc-tab-talk').catch(() => {});
+      await page.click('label[for="talk-engine-offline"]').catch(() => {});
+      await page.click('#npc-tab-profile').catch(() => {});
+    }
+  });
+
+  // Close the street view if a failed step left it open, so one failure cannot cascade into the steps after it.
+  const leaveStreet = async () => {
+    await page.evaluate(() => { const b = document.querySelector('.street-back'); if (b) b.click(); }).catch(() => {});
+    await page.waitForFunction(() => !window.legion.street && !document.querySelector('.street-layer'), null, { timeout: 5000 }).catch(() => {});
+  };
+  /** Calls the page makes to stage.frame (the statewide map and crowd) during `ms` of real time. */
+  const mapFramesDuring = ms => page.evaluate(wait => new Promise(resolve => {
+    const s = window.legion.stage, own = Object.prototype.hasOwnProperty.call(s, 'frame'), orig = s.frame;
+    let n = 0;
+    s.frame = function (...a) { n++; return orig.apply(this, a); };
+    setTimeout(() => { if (own) s.frame = orig; else delete s.frame; resolve(n); }, wait);
+  }), ms);
+
   await step('desktop: the street view opens from the NPC panel, agents move, and picking one opens its profile', async () => {
     const id = await page.evaluate(() => window.legion.npcPanel.id);
     await page.click('#npc-tab-profile');
     await page.click('.walk-btn');
-    await page.locator('.street-layer').waitFor({ timeout: 5000 });
-    await page.waitForFunction(() => { const v = window.legion.street; return v && v.scene && v.stats().agents > 0; }, null, { timeout: 60000 });
-    const followed = await page.evaluate(() => window.legion.street.selectedId);
-    expect(followed === id, `the view follows ${followed}, not ${id}`);
-    // the clock runs: people move on the street
-    await page.evaluate(() => { window.legion.clock.setSpeed(60); window.legion.clock.play(); });
-    const before = await page.evaluate(() => window.legion.street.agentsOnScreen().map(a => [a.id, a.px, a.py]));
-    await page.waitForTimeout(1500);
-    const after = await page.evaluate(() => window.legion.street.agentsOnScreen().map(a => [a.id, a.px, a.py]));
-    const moved = after.filter(([aid, x, y]) => { const b = before.find(q => q[0] === aid); return b && Math.hypot(b[1] - x, b[2] - y) > 1; }).length;
-    expect(after.length > 0 && moved > 0, `${after.length} agents on screen, ${moved} moved`);
-    // a click on another person there opens their profile (the clock paused so they stand still for the click)
-    await page.evaluate(() => window.legion.clock.pause());
-    await page.waitForTimeout(200);
-    // the person the click must open is whoever the view picks at that point: people overlap (a family walking
-    // together, a car's length around its driver), so that is not always the one whose centre was aimed at
-    const target = await page.evaluate(sel => {
-      const v = window.legion.street, r = v.canvas.getBoundingClientRect();
-      const a = v.agentsOnScreen().find(x => x.id !== sel && x.px > 60 && x.py > 90 && x.px < r.width - 480 && x.py < r.height - 60);
-      const hit = a ? v.agentAt(a.px, a.py) : null;
-      return a && hit ? { id: a.id, pick: hit.id, x: r.left + a.px, y: r.top + a.py } : null;
-    }, id);
-    if (!target) return `followed ${id}; ${moved} of ${after.length} agents moved; no second agent clear of the panels to click`;
-    await page.mouse.click(target.x, target.y);
-    await page.waitForFunction(want => window.legion.npcPanel.id === want, target.pick, { timeout: 5000 }).catch(() => {});
-    const opened = await page.evaluate(() => [window.legion.npcPanel.id, window.legion.street.selectedId]);
-    expect(opened[0] === target.pick && opened[1] === target.pick && /^\d{5}-\d+-\d+$/.test(opened[0]),
-      `clicked at ${target.id} (picks ${target.pick}); panel ${opened[0]}, street ${opened[1]}`);
-    expect(await page.locator('#npc-tab-profile').getAttribute('aria-selected') === 'true', 'the profile is not the tab shown');
-    // and the way back
-    await page.click('.street-back');
-    await page.waitForFunction(() => !window.legion.street && !document.querySelector('.street-layer'), null, { timeout: 5000 });
-    return `followed ${id}; ${moved} of ${after.length} agents moved; clicked ${target.pick}${target.pick === target.id ? '' : ` (beside ${target.id})`} → panel ${opened[0]}`;
+    try {
+      await page.locator('.street-layer').waitFor({ timeout: 5000 });
+      await page.waitForFunction(() => { const v = window.legion.street; return v && v.scene && v.stats().agents > 0; }, null, { timeout: 60000 });
+      const followed = await page.evaluate(() => window.legion.street.selectedId);
+      expect(followed === id, `the view follows ${followed}, not ${id}`);
+      // the clock runs: people move on the street
+      await page.evaluate(() => { window.legion.clock.setSpeed(60); window.legion.clock.play(); });
+      const before = await page.evaluate(() => window.legion.street.agentsOnScreen().map(a => [a.id, a.px, a.py]));
+      // meanwhile the statewide map under the street view is neither advanced nor drawn
+      const hiddenFrames = await mapFramesDuring(1500);
+      const after = await page.evaluate(() => window.legion.street.agentsOnScreen().map(a => [a.id, a.px, a.py]));
+      const moved = after.filter(([aid, x, y]) => { const b = before.find(q => q[0] === aid); return b && Math.hypot(b[1] - x, b[2] - y) > 1; }).length;
+      const when = await page.evaluate(() => { const c = window.legion.clock; return `${c.parts().label} at ${c.rate}x${c.playing ? '' : ' (paused)'}`; });
+      expect(after.length > 0 && moved > 0, `${after.length} agents on screen, ${moved} moved (${when})`);
+      expect(hiddenFrames === 0, `the hidden map was drawn ${hiddenFrames} times under the street view`);
+      // a note about someone away never takes a click meant for the people under it
+      const noteBlocks = await page.evaluate(() => { const n = document.querySelector('.street-presence'); return n && !n.hidden ? getComputedStyle(n).pointerEvents : 'none'; });
+      expect(noteBlocks === 'none', `the presence note takes clicks (pointer-events ${noteBlocks})`);
+      // a click on another person there opens their profile (the clock paused so they stand still for the click)
+      await page.evaluate(() => window.legion.clock.pause());
+      await page.waitForTimeout(200);
+      // the person the click must open is whoever the view picks at that point (people overlap: a family walking
+      // together, a car's length around its driver), among the people a click can reach: not under a panel, the
+      // street bar or a note
+      const target = await page.evaluate(sel => {
+        const v = window.legion.street, r = v.canvas.getBoundingClientRect();
+        for (const a of v.agentsOnScreen()) {
+          if (a.id === sel) continue;
+          const x = r.left + a.px, y = r.top + a.py;
+          if (document.elementFromPoint(x, y) !== v.canvas) continue;
+          const hit = v.agentAt(a.px, a.py);
+          if (hit && hit.id !== sel) return { id: a.id, pick: hit.id, x, y };
+        }
+        return null;
+      }, id);
+      if (!target) return `followed ${id}; ${moved} of ${after.length} agents moved; map frames under the street view ${hiddenFrames}; no second agent a click can reach`;
+      await page.mouse.click(target.x, target.y);
+      await page.waitForFunction(want => window.legion.npcPanel.id === want, target.pick, { timeout: 5000 }).catch(() => {});
+      const opened = await page.evaluate(() => [window.legion.npcPanel.id, window.legion.street.selectedId]);
+      expect(opened[0] === target.pick && opened[1] === target.pick && /^\d{5}-\d+-\d+$/.test(opened[0]),
+        `clicked at ${target.id} (picks ${target.pick}); panel ${opened[0]}, street ${opened[1]}`);
+      expect(await page.locator('#npc-tab-profile').getAttribute('aria-selected') === 'true', 'the profile is not the tab shown');
+      // and the way back: the map is drawn again at once
+      await page.click('.street-back');
+      await page.waitForFunction(() => !window.legion.street && !document.querySelector('.street-layer'), null, { timeout: 5000 });
+      await page.evaluate(() => window.legion.clock.play());
+      const shownFrames = await mapFramesDuring(800);
+      await page.evaluate(() => window.legion.clock.pause());
+      expect(shownFrames > 0, 'the map was not drawn again after the street view closed');
+      return `followed ${id}; ${moved} of ${after.length} agents moved; map frames under the street view ${hiddenFrames}, after ${shownFrames}; clicked ${target.pick}${target.pick === target.id ? '' : ` (beside ${target.id})`} → panel ${opened[0]}`;
+    } finally {
+      await page.evaluate(() => window.legion.clock.pause()).catch(() => {});
+      await leaveStreet();
+    }
+  });
+
+  await step('desktop: Escape in the street view goes back to the map, from the canvas, with someone selected', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    expect(id && await page.locator('#place-panel').isVisible(), 'an NPC and a place are open');
+    await page.click('#place-panel .walk-streets');
+    try {
+      await page.waitForFunction(() => { const v = window.legion.street; return v && v.scene; }, null, { timeout: 60000 });
+      // the NPC panel's person is the one selected there; the canvas has the focus
+      await page.waitForFunction(i => window.legion.street.selectedId === i, id, { timeout: 5000 });
+      expect(await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('street-canvas')), 'the street canvas does not have the focus');
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !window.legion.street && !document.querySelector('.street-layer'), null, { timeout: 3000 });
+      const after = await page.evaluate(() => [window.legion.npcPanel.isOpen(), window.legion.npcPanel.id, document.activeElement && document.activeElement.id]);
+      expect(after[0] && after[1] === id, `after Escape the NPC panel shows ${after[1]}`);
+      // a second visit, nobody selected: Escape still goes back
+      await page.evaluate(() => window.legion.npcPanel.close());
+      await page.click('#place-panel .walk-streets');
+      await page.waitForFunction(() => { const v = window.legion.street; return v && v.scene; }, null, { timeout: 60000 });
+      await page.locator('.street-canvas').focus();
+      await page.keyboard.press('Escape');
+      await page.waitForFunction(() => !window.legion.street, null, { timeout: 3000 });
+      expect(await page.locator('#place-panel').isVisible(), 'Escape in the street view closed the Place panel too');
+      // put the NPC back for the steps after this one
+      await page.evaluate(i => window.legion.bus.emit('npc:select', { id: i, source: 'place' }), id);
+      await page.locator('#npc-panel').waitFor({ state: 'visible', timeout: 5000 });
+      return `back to the map with ${id} still open; then with no one selected`;
+    } finally { await leaveStreet(); }
+  });
+
+  await step('desktop: the Place panel weather reads clean, and shore-only alerts stay on the coast', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    try {
+      // Truckee's forecast point has a template placeholder in the snapshot's period text
+      await page.evaluate(() => window.legion.place('96161'));
+      await page.locator('#place-panel .wx-detail').waitFor({ timeout: 5000 });
+      const truckee = (await page.locator('#place-panel .wx-detail').textContent()).trim();
+      expect(!/\{\{|\}\}|\.\s*\./.test(truckee) && /Calm wind/.test(truckee), `Truckee reads "${truckee}"`);
+      // Lancaster is 81 km inland: the county's coastal alerts are not its weather
+      await page.evaluate(() => window.legion.place('93534'));
+      await page.locator('#place-panel .wx-temp').waitFor({ timeout: 5000 });
+      const alerts = await page.locator('#place-panel .wx-alerts li').allTextContents();
+      expect(!alerts.some(a => /coastal|surf|rip current|beach/i.test(a)), `Lancaster lists ${alerts.join(', ')}`);
+      return `Truckee: "${truckee}"; Lancaster alerts: ${alerts.join(', ') || 'none'}`;
+    } finally {
+      await page.evaluate(i => { const L = window.legion, n = L.services.npc(i); if (n) L.place(n.zip); L.bus.emit('npc:select', { id: i, source: 'place' }); }, id).catch(() => {});
+      await page.locator('#npc-panel').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+    }
   });
 
   await step('desktop: a failed copy says so, and the JSON size counts bytes', async () => {
@@ -619,6 +773,35 @@ async function desktop(browser) {
   });
 
   await step('desktop: no page errors', async () => { expect(!errors.length, errors.slice(0, 3).join(' | ')); return 'none'; });
+
+  // The finished crowd is kept on the device (IndexedDB, under this build of Legion.html): the next visit loads it
+  // instead of fitting every ZIP's models again, after the same spot check against the page's population.
+  await step('desktop: a second visit loads the crowd kept on this device, the same agents', async () => {
+    const first = await page.evaluate(async () => {
+      const L = window.legion, kept = L.crowd && L.crowd.cacheWrite ? await L.crowd.cacheWrite : false;
+      return { kept, agents: L.stage.build.agents, ms: L.stage.build.ms, mode: L.stage.build.summary && L.stage.build.summary.mode };
+    });
+    expect(first.kept === true, `the first build was not kept (${JSON.stringify(first)})`);
+    const t0 = Date.now();
+    await page.reload();
+    await page.waitForFunction(() => document.documentElement.dataset.state === 'ready', null, { timeout: 90000 });
+    const b = await waitForCrowd(page);
+    const took = Date.now() - t0;
+    const s = await page.evaluate(() => { const x = window.legion.stage.build.summary || {}; return { mode: x.mode, cached: x.cached, verified: x.verified, agents: window.legion.crowd.count }; });
+    expect(s.mode === 'cache' && s.cached === true && s.verified > 0, `second visit built in mode ${s.mode} (${JSON.stringify(s)})`);
+    expect(b.agents === first.agents && s.agents === first.agents, `${b.agents} agents now, ${first.agents} the first time`);
+    // the kept crowd is the crowd: a pick works on it
+    const picked = await page.evaluate(() => {
+      const c = window.legion.crowd, ch = c.chunks.find(x => x.count && !(x.ids[0] & 0x80000000));
+      if (!ch) return null;
+      const u = ch.ids[0] >>> 0, id = `${window.legion.world.zips[u >>> 20]}-${(u >>> 4) & 0xffff}-${u & 15}`, p = c.positionOf(id);
+      return p && p.id === id ? id : `none for ${id}`;
+    });
+    expect(picked && !/^none/.test(picked), `the kept crowd cannot find its own agent: ${picked}`);
+    await page.evaluate(() => window.legion.clock.pause());
+    return `${first.agents} agents in ${Math.round(first.ms)} ms the first time (${first.mode}); ${Math.round(b.ms)} ms from this device the second (page ready to crowd: ${took} ms)`;
+  });
+  await step('desktop: no page errors after the second visit', async () => { expect(!errors.length, errors.slice(0, 3).join(' | ')); return 'none'; });
   await context.close();
 }
 

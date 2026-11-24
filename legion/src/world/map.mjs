@@ -300,6 +300,29 @@ void main() { o = v_color; }`;
 const SHADE_VS = `#version 300 es
 void main() { gl_Position = vec4(gl_VertexID == 1 ? 3.0 : -1.0, gl_VertexID == 2 ? 3.0 : -1.0, 0.0, 1.0); }`;
 
+// the cached base map, copied to the canvas with one full-screen triangle
+const COPY_VS = `#version 300 es
+out vec2 v_uv;
+void main() {
+  vec2 p = vec2(gl_VertexID == 1 ? 3.0 : -1.0, gl_VertexID == 2 ? 3.0 : -1.0);
+  v_uv = p * 0.5 + 0.5;
+  gl_Position = vec4(p, 0.0, 1.0);
+}`;
+const COPY_FS = `#version 300 es
+precision mediump float;
+uniform sampler2D u_tex;
+in vec2 v_uv;
+out vec4 o;
+void main() { o = texture(u_tex, v_uv); }`;
+
+/** True for a WebGL context drawn by the CPU (SwiftShader, llvmpipe, Microsoft's Basic Render Driver). */
+export function softwareGL(gl) {
+  try {
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    return /swiftshader|llvmpipe|software|basic render/i.test(String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || ''));
+  } catch { return false; }
+}
+
 /** Compile and link a program; throws with the info log on failure. */
 export function createProgram(gl, vsSrc, fsSrc, opts = {}) {
   const sh = (type, src) => {
@@ -694,6 +717,11 @@ export class MapView {
 
   _initGL() {
     const gl = this.gl, w = this.world;
+    // On software WebGL the base map (fills and several hundred thousand line segments) costs most of a second a
+    // frame, so it is drawn once per view into a texture and copied (_drawGL); a GPU draws it every frame.
+    this.software = softwareGL(gl);
+    this._base = null;
+    this._copyP = this.software ? createProgram(gl, COPY_VS, COPY_FS) : null;
     this._fill = createProgram(gl, FILL_VS, COLOR_FS);
     this._line = createProgram(gl, LINE_VS, LINE_FS);
     this._shadeP = createProgram(gl, SHADE_VS, COLOR_FS);
@@ -788,7 +816,78 @@ export class MapView {
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 24, 16);
   }
 
+  /**
+   * The offscreen target the base map is kept in on software WebGL: a texture the size of the canvas with a stencil
+   * buffer (the even-odd fills use it), made again when the canvas changes size. Null when it cannot be made (the
+   * map then draws straight to the canvas, as on a GPU).
+   */
+  _baseTarget() {
+    const gl = this.gl, b = this._base;
+    if (b && b.w === this.W && b.h === this.H) return b;
+    if (b) { gl.deleteFramebuffer(b.fbo); gl.deleteTexture(b.tex); gl.deleteRenderbuffer(b.stencil); }
+    this._base = null;
+    try {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, this.W, this.H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+      const stencil = gl.createRenderbuffer();
+      gl.bindRenderbuffer(gl.RENDERBUFFER, stencil);
+      gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH24_STENCIL8, this.W, this.H);
+      gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, stencil);
+      const complete = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      if (!complete) { gl.deleteFramebuffer(fbo); gl.deleteTexture(tex); gl.deleteRenderbuffer(stencil); this._copyP = null; return null; }
+      this._base = { fbo, tex, stencil, w: this.W, h: this.H, key: null };
+      return this._base;
+    } catch { this._copyP = null; return null; }
+  }
+
+  /** What the base map depends on: the view, the canvas, the palette and whether the ZIP outlines are in. */
+  _baseKey(frame) {
+    const c = frame.camera;
+    return `${this.W}x${this.H}|${c.x}|${c.y}|${c.zoom}|${this.theme}|${this._palArr.join(',')}|${this._zipL ? 1 : 0}`;
+  }
+
   _drawGL(frame) {
+    const gl = this.gl;
+    // software WebGL: the base map from its cache (drawn again only when the view changed), then the shade
+    const target = this.software && this._copyP ? this._baseTarget() : null;
+    if (target) {
+      const key = this._baseKey(frame);
+      if (target.key !== key) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
+        this._drawBase(frame);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        target.key = key;
+      }
+      gl.viewport(0, 0, this.W, this.H);
+      gl.disable(gl.DEPTH_TEST);
+      gl.disable(gl.BLEND);
+      gl.disable(gl.STENCIL_TEST);
+      const P = this._copyP;
+      gl.useProgram(P.program);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, target.tex);
+      gl.uniform1i(P.u.u_tex, 0);
+      gl.bindVertexArray(this._emptyVao);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.bindVertexArray(null);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+    } else this._drawBase(frame);
+    this._drawShade();
+  }
+
+  /** The base map (fills and lines) into the bound framebuffer. */
+  _drawBase(frame) {
     const gl = this.gl, pal = this._palArr, z = frame.zoom;
     gl.viewport(0, 0, this.W, this.H);
     gl.clearColor(pal[0], pal[1], pal[2], 1);
@@ -834,15 +933,19 @@ export class MapView {
     this._drawLines(this._coastL, frame, Math.min(1.6, 0.95 + 0.1 * Math.max(0, lz)), 1);
     this._drawLines(this._roadL, frame, Math.min(3.2, Math.max(0.55, 0.62 + 0.3 * lz)), 1);
     gl.bindVertexArray(null);
-    // night
-    if (this.shade > 0) {
-      const S = this._shadeP, c = this.palette.shade, a = this.shade;
-      gl.useProgram(S.program);
-      gl.uniform4f(S.u.u_color, c[0] * a, c[1] * a, c[2] * a, a);
-      gl.bindVertexArray(this._emptyVao);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-      gl.bindVertexArray(null);
-    }
+  }
+
+  /** The night shade over the base map (it changes with the clock, so it is never part of the cached base). */
+  _drawShade() {
+    if (!(this.shade > 0)) return;
+    const gl = this.gl, S = this._shadeP, c = this.palette.shade, a = this.shade;
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(S.program);
+    gl.uniform4f(S.u.u_color, c[0] * a, c[1] * a, c[2] * a, a);
+    gl.bindVertexArray(this._emptyVao);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindVertexArray(null);
   }
 
   // ------------------------------------------------ ZIP outlines (built in idle time, drawn when zoomed in)

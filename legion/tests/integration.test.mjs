@@ -6,9 +6,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { createServices, applyReflection } from '../src/app/services.mjs';
-import { LiveWeather, adaptLive, liveWeatherAt, liveWorld, toF, LIVE_TTL_MS } from '../src/app/nws-live.mjs';
+import { LiveWeather, adaptLive, liveWeatherAt, liveWorld, toF, LIVE_TTL_MS, cleanForecastText, alertsForZip, periodOf } from '../src/app/nws-live.mjs';
 import { factLabel, concernSources, concernSourceText, memorySource } from '../src/app/provenance.mjs';
-import { startersFor, big5Words, estimateTokens, activityLine } from '../src/app/npc-panel.mjs';
+import { startersFor, big5Words, estimateTokens, activityLine, talkIsStale, TALK_STALE_MIN } from '../src/app/npc-panel.mjs';
+import { SimClock } from '../src/app/simclock.mjs';
 import { zipScope } from '../src/app/census.mjs';
 import { History } from '../src/engine/llm.mjs';
 
@@ -298,7 +299,10 @@ test('services: with live weather on, conversations, personas and the Place pane
 
 test('provenance: fact ids, concern columns and memory sources in words', () => {
   assert.equal(factLabel('fire:Station:2009'), 'the Station Fire, 2009 (CAL FIRE perimeters)');
-  assert.equal(factLabel('fire:Btu Lightning Complex:2020'), 'the Btu Lightning Complex, 2020 (CAL FIRE perimeters)');
+  assert.equal(factLabel('fire:Btu Lightning Complex:2020'), 'the BTU Lightning Complex, 2020 (CAL FIRE perimeters)');
+  assert.equal(factLabel('acs.density'), 'how densely people live here (Census ACS)');
+  assert.equal(factLabel('schedule.activity'), 'what they are doing now (their schedule)');
+  assert.equal(factLabel('household.members'), 'who they live with (their record)');
   assert.equal(factLabel('weather.now'), 'the forecast for this hour (NWS)');
   assert.equal(factLabel('road:I-210'), 'I-210 (Caltrans 2024 traffic census)');
   assert.equal(factLabel('aadt:I-210'), 'daily traffic on I-210 (Caltrans 2024 traffic census)');
@@ -333,4 +337,133 @@ test('NPC panel helpers: Big Five in words, token estimates, starters only about
   assert.ok(!startersFor(world, inland, { weather: coastal }).some(s => /Coastal/.test(s)));
   assert.ok(startersFor(world, residentOf(svc, '90291'), { weather: coastal }).includes('Heard about the Coastal Flood Advisory?'));
   assert.equal(activityLine({ kind: 'work', label: 'work in Palmdale', place: { label: 'Palmdale' }, endMin: 990 }), 'At work in Palmdale · until 4:30 PM');
+});
+
+// ------------------------------------------------------------------ review fixes: weather text, alerts, sources, barks, talk time
+
+test('forecast text: NWS template placeholders never reach the panels, live answers are cleaned at the source', () => {
+  // the Truckee forecast point of the snapshot (84 ZIPs read it at the default time)
+  const zi = world.indexOf('96161');
+  const raw = world.weatherAt(zi, T).period.detail;
+  assert.match(raw, /\{\{missing_temperature_data\}\}/, 'the snapshot still carries the placeholder this guards against');
+  assert.equal(cleanForecastText(raw), 'Mostly sunny. Calm wind.');
+  assert.equal(cleanForecastText('Sunny, with a high near 45. Light east wind around 0 mph.'), 'Sunny, with a high near 45. Calm wind.');
+  assert.equal(cleanForecastText('Rain likely.  Chance of precipitation is 60%.'), 'Rain likely. Chance of precipitation is 60%.');
+  assert.equal(cleanForecastText('Snow. North winds 10 to 15 mph.'), 'Snow. North winds 10 to 15 mph.');
+  assert.ok(cleanForecastText('word '.repeat(300), { max: 40 }).endsWith('…'));
+  const live = periodOf({ name: 'Tonight', startTime: '2026-11-24T18:00:00-08:00', endTime: '2026-11-25T06:00:00-08:00', isDaytime: false, temperature: 30, temperatureUnit: 'F', windSpeed: '0 mph', shortForecast: 'Clear', detailedForecast: 'Clear. {{missing_temperature_data}}. West wind around 0 mph.' });
+  assert.equal(live.detail, 'Clear. Calm wind.');
+  // every period of every ZIP of the snapshot reads clean
+  let periods = 0;
+  for (let i = 0; i < world.N; i += 7) {
+    const wx = world.weatherAt(i, T);
+    for (const p of [wx.period, ...(wx.next || [])].filter(Boolean)) { periods++; assert.doesNotMatch(cleanForecastText(p.detail || ''), /\{\{|\}\}|\.\s*\.|\s,/, `${world.zips[i]}: ${p.detail}`); }
+  }
+  assert.ok(periods > 200);
+});
+
+test('alerts: a shore-only alert is not news far inland, in the Place panel as in the starters and the dialogue', () => {
+  const coastal = [{ event: 'Coastal Flood Advisory' }, { event: 'High Surf Warning' }, { event: 'Wind Advisory' }];
+  const lancaster = world.indexOf('93534'), venice = world.indexOf('90291');
+  assert.ok(world.z.coast_km[lancaster] > 60 && world.z.coast_km[venice] < 3);
+  assert.deepEqual(alertsForZip(coastal, world.z.coast_km[lancaster]).map(a => a.event), ['Wind Advisory']);
+  assert.deepEqual(alertsForZip(coastal, world.z.coast_km[venice]).map(a => a.event), coastal.map(a => a.event));
+  assert.equal(alertsForZip(coastal, null).length, 3, 'an unknown distance keeps every alert');
+  // at the snapshot time, no ZIP more than 8 km inland is shown a shore-only alert
+  let inland = 0;
+  for (let i = 0; i < world.N; i++) {
+    if (!(world.z.coast_km[i] > 8)) continue;
+    const shown = alertsForZip(world.weatherAt(i, T).alerts, world.z.coast_km[i]);
+    inland++;
+    assert.ok(!shown.some(a => /coastal|surf|rip current|beach|sneaker/i.test(a.event)), `${world.zips[i]}: ${shown.map(a => a.event)}`);
+  }
+  assert.ok(inland > 500);
+});
+
+test('provenance: every concern a persona has names the data behind it', () => {
+  const svc = services();
+  let concerns = 0;
+  for (const npc of svc.population.sampleState(160, 5)) {
+    const p = svc.persona(npc.id, { t: T });
+    assert.ok(p.ok, p.message);
+    for (const c of p.value.concerns) {
+      concerns++;
+      assert.ok(concernSourceText(c.why), `${npc.id} ${c.topic}: no source in "${c.why}"`);
+    }
+  }
+  assert.ok(concerns > 300, `${concerns} concerns`);
+  assert.equal(concernSourceText('the Gifford Fire burned 131,614 acres 23.6 km from 93444 in 2025 (firesOf)'), 'CAL FIRE perimeters');
+  assert.equal(concernSourceText('came to the US in 2025 (arrivalYear) from Chandigarh, India (birthplace)'), 'their Census-calibrated record');
+  assert.equal(concernSourceText('the valley holds smoke (province: Great Valley)'), 'California Geological Survey provinces');
+  assert.equal(concernSourceText('unemployment in 92127 is 3.5% (ACS B23025)'), 'Census ACS 2020–2024');
+});
+
+test('street barks: the answer kept for a pair is the one given, however fast the clock runs', async () => {
+  const { barkBetween } = await import('../src/engine/dialogue.mjs');
+  const svc = services();
+  const scope = zipScope(world, world.indexOf('90011'));
+  const people = svc.residents(scope, 24, 9);
+  let pairs = 0, matched = 0;
+  for (let k = 0; k + 1 < people.length; k += 2) {
+    const [a, b] = [people[k], people[k + 1]];
+    const t = T + k * 3600000;
+    const first = svc.bark(a.id, b.id, { t, situation: 'pass' });
+    if (!first) continue;
+    // the answer barkBetween gives for this opener (deterministic in the two personas and the moment)
+    const [lineA, lineB] = barkBetween(world, svc.persona(a.id, { t, any: true }).value, svc.persona(b.id, { t, any: true }).value, { t, situation: 'pass' });
+    assert.equal(first.text, lineA.text);
+    if (!lineB) continue;
+    pairs++;
+    // the street asks B 1.4 s of real time later: at 3600x that is 84 simulated minutes, and a caller may give no
+    // time at all; either way B answers with the line that goes with A's
+    const reply = svc.bark(b.id, a.id, k % 4 ? { t: t + 84 * 60000, replyTo: first.text } : { replyTo: first.text });
+    if (reply && reply.text === lineB.text) matched++;
+  }
+  assert.ok(pairs >= 4 && matched === pairs, JSON.stringify({ pairs, matched }));
+});
+
+test('talk time: a conversation happens in real time, and one the clock has left behind is stale', () => {
+  const bus = { events: [], emit(e, p) { this.events.push([e, p]); } };
+  const clock = new SimClock({ t0: T, speed: 600, playing: true, bus });
+  clock.hold(1);
+  assert.equal(clock.rate, 1);
+  assert.equal(clock.speed, 600, 'the chosen speed waits');
+  clock.advance(2000);
+  assert.equal(clock.t, T + 2000, 'two real seconds are two simulated seconds while held');
+  clock.release();
+  assert.equal(clock.rate, 600);
+  clock.advance(1000);
+  assert.equal(clock.t, T + 2000 + 600000);
+  clock.hold(1);
+  clock.setSpeed(600);   // the player chooses a speed: the hold ends
+  assert.equal(clock.held, null);
+  assert.equal(clock.rate, 600);
+  assert.ok(bus.events.some(([, p]) => p.held === 1 && p.rate === 1), 'the hold is in the time:change payload');
+  assert.equal(talkIsStale(T, T + (TALK_STALE_MIN - 1) * 60000), false);
+  assert.equal(talkIsStale(T, T + (TALK_STALE_MIN + 1) * 60000), true);
+  assert.equal(talkIsStale(T, T - 3 * 3600000), true, 'the clock set back is another moment too');
+  assert.equal(talkIsStale(NaN, T), false);
+});
+
+test('the persona sheet Claude caches stays byte-identical as the hours pass (the moment goes in the situation note)', () => {
+  const svc = services();
+  const ids = [...['96161', '94603', '90011', '92101', '95969'].flatMap(z => svc.residents(zipScope(world, world.indexOf(z)), 3, 2).map(n => n.id))];
+  let transitions = 0;
+  for (const id of ids) {
+    let prev = null;
+    for (let h = 0; h < 48; h += 1) {
+      const t = T + h * 3600000;
+      const r = svc.prompt(id, { t });
+      assert.ok(r.ok, r.message);
+      const sheet = r.value.blocks[1].text;
+      if (prev !== null) { transitions++; assert.equal(sheet, prev, `${id}: the sheet changed between hours ${h - 1} and ${h}`); }
+      prev = sheet;
+      // the hour's own weather is still there for the persona's hooks, first, when it is worth mentioning
+      const p = svc.persona(id, { t }).value;
+      assert.ok(p.hooks.length >= 3 && p.hooks.length <= 5, `${id}: ${p.hooks}`);
+      if (p.hookDetails[0].kind === 'weather') assert.deepEqual(p.hookDetails.slice(1).map(x => x.text), p.lastingHooks.slice(0, p.hooks.length - 1).map(x => x.text));
+      else assert.deepEqual(p.hookDetails, p.lastingHooks);
+    }
+  }
+  assert.ok(transitions > 600);
 });

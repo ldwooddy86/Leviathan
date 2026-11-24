@@ -185,7 +185,9 @@ function mount(world) {
 
   // ---- stage and panels
   const stageEl = $('#stage');
-  const stage = new Stage({ root: stageEl, mapEl: $('#map'), services, bus, theme: settings.resolvedTheme(), getTime });
+  // a finished crowd is kept on this device for the next visit, under this build of the page (none in development)
+  const build = buildId();
+  const stage = new Stage({ root: stageEl, mapEl: $('#map'), services, bus, theme: settings.resolvedTheme(), getTime, crowdCache: build && build !== 'dev' ? `legion-${build}` : null });
   stage.start();
 
   let scope = null;
@@ -211,6 +213,8 @@ function mount(world) {
     onBack: () => npcPanel.close(),
     onClose: () => { stage.setNpc(null); if (street && street.view.selectedId) street.view.select(null); layoutChanged(); restoreFocus(npcOpener); },
     openSettings: () => dialog.open(),
+    // a conversation happens in real time: the clock runs at 1x while one is on screen, then at the chosen speed again
+    onTalk: on => { if (on) clock.hold(1); else clock.release(); },
   });
   const dialog = mountSettingsDialog($('#settings-dialog'), {
     settings, services, world, buildId: buildId(),
@@ -306,13 +310,16 @@ function mount(world) {
     });
   }
 
-  // where the selected NPC is now: the crowd's own position when the NPC is in it (so the marker sits on their
-  // dot), else the schedule's (when wired): on the move, or at the place of the activity
+  // where the selected NPC is now. The crowd moves everyone by their layer 0 day (the commute, school, errands drawn
+  // by hash); the schedule adds the persona's own outings (services, a store, the gym, a visit) that the crowd does
+  // not know. During one of those the marker goes where the panel's "Now:" line says; otherwise it sits on their dot
+  // when they are in the crowd, else at the schedule's position (on the move, or at the place of the activity).
+  const OUTINGS = new Set(['errand', 'leisure', 'exercise', 'worship', 'visit']);
   function nowMarker(t) {
     const a = npcPanel.refreshNow(t);
     let pos = null;
     const crowd = stage.crowd;
-    if (crowd && typeof crowd.positionOf === 'function' && npcPanel.id) { try { pos = crowd.positionOf(npcPanel.id); } catch { pos = null; } }
+    if (!(a && OUTINGS.has(a.kind)) && crowd && typeof crowd.positionOf === 'function' && npcPanel.id) { try { pos = crowd.positionOf(npcPanel.id); } catch { pos = null; } }
     if (!pos && a) pos = a.position || (a.place && Number.isFinite(a.place.x) ? a.place : null);
     stage.setNpcNow(pos);
   }
@@ -352,17 +359,23 @@ function mount(world) {
 
   async function openStreetView(target) {
     if (street) closeStreetView({ quiet: true });
-    const canvas = h('canvas.street-canvas', { 'aria-label': `Street view: ${target.title}. Click a person to meet them.` });
+    const canvas = h('canvas.street-canvas', { 'aria-label': `Street view: ${target.title}. Click a person to meet them. Escape returns to the map.` });
+    let view = null;
     const r = services.streetView(canvas, {
       getTime, theme: settings.resolvedTheme(), allowNetwork: settings.values.network.osm,
-      onSelect: id => { if (id && id !== npcPanel.id) bus.emit(EVENTS.NPC_SELECT, { id, source: 'street' }); },
+      onSelect: id => {
+        if (id && id !== npcPanel.id) { bus.emit(EVENTS.NPC_SELECT, { id, source: 'street' }); return; }
+        // the view's selection is the NPC panel's person: a click on open ground stops following them but keeps them
+        // selected while their panel is open (the panel's close button, or a click on someone else, changes that)
+        if (!id && npcPanel.isOpen()) queueMicrotask(() => { if (street && street.view === view && !view.selectedId && npcPanel.isOpen()) view.select(npcPanel.id); });
+      },
     });
     if (!r.ok) { toast(r.message, { kind: 'error' }); return; }
-    const view = r.value;
+    view = r.value;
     const back = h('button.btn.street-back', { type: 'button', title: 'Back to the map (Esc)', on: { click: () => closeStreetView() } }, icon('back', { size: 16 }), 'Back to the map');
     const followBtn = h('button.btn.small.street-follow', { type: 'button', hidden: true, 'aria-pressed': 'false', on: { click: () => view.follow(!view.following) } }, 'Follow');
     const title = h('div.street-title', h('strong', target.title), h('span.muted', `ZIP ${world.zips[target.zi]} · ${world.z.city[target.zi]}`));
-    const presence = h('p.street-presence', { role: 'status', hidden: true });
+    const presence = h('div.street-presence', { role: 'status', hidden: true });
     const layer = h('div.street-layer', canvas, h('div.street-bar', back, title, followBtn), presence);
     stageEl.append(layer);
     document.body.toggleAttribute('data-street-open', true);
@@ -372,32 +385,51 @@ function mount(world) {
       view.on('stats', st => { street.stats = st; updateCounts(); streetPresence(); }),
       view.on('error', ({ message }) => toast(`Street view: ${message}`, { kind: 'error' })),
     ];
-    street = { view, layer, off, stats: null, target, presence };
+    street = { view, layer, off, stats: null, target, presence, summary: null, presenceKey: '' };
     bus.emit(EVENTS.VIEW_CHANGE, { mode: 'street', x: target.x, y: target.y, zoom: null });
     let summary = null;
     try { summary = await view.open(target.x, target.y); } catch (e) { summary = null; toast(`Street view failed: ${e && e.message ? e.message : e}`, { kind: 'error' }); }
     if (!street || street.view !== view) return;   // closed or replaced while it was building
     if (!summary) { if (!view.scene) closeStreetView({ quiet: true }); return; }
+    street.summary = summary;
     const pick = target.follow || (npcPanel.isOpen() ? npcPanel.id : null);
     if (pick) { view.select(pick); if (target.follow) view.follow(true); }
     canvas.focus({ preventScroll: true });
   }
 
+  /** True when world point p lies inside the open street scene (a square radiusM meters from its center each way). */
+  function inStreetScene(p) {
+    const s = street && street.summary;
+    if (!s || !p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return false;
+    const m = 1000 * world.unitKm, half = (Number(s.radiusM) || 600) + 25;
+    return Math.abs(p.x - s.x) * m <= half && Math.abs(p.y - s.y) * m <= half;
+  }
+
   /**
    * The selected NPC may not be out on these streets right now (at work across town, or indoors): say where they
-   * are, from their schedule, so following them never looks broken.
+   * are, from their schedule, so following them never looks broken. Their home is "in view" only when it is in this
+   * scene; someone who lives elsewhere gets where they live and a way to walk their own streets.
    */
   function streetPresence() {
     if (!street) return;
     const { view, presence } = street;
     const id = view.selectedId;
     const here = id && view.sim && typeof view.sim.agentOf === 'function' ? view.sim.agentOf(id) : null;
-    if (!id || here) { presence.hidden = true; return; }
+    if (!id || here) { presence.hidden = true; street.presenceKey = ''; return; }
     const npc = services.npc(id), a = services.activityAt(id, clock.t);
     const line = a.ok ? activityLine(a.value) : null;
     const first = npc && npc.name ? String(npc.name.first || displayName(npc.name)).split(' ')[0] : 'They';
-    const text = `${first} is not out on these streets right now${line ? ` (${line.charAt(0).toLowerCase()}${line.slice(1)})` : ''}. Their home is in view; follow them when they come out.`;
-    if (presence.textContent !== text) presence.textContent = text;
+    const home = npc && npc.household && npc.household.home;
+    const homeHere = inStreetScene(home);
+    const away = `${first} is not out on these streets right now${line ? ` (${line.charAt(0).toLowerCase()}${line.slice(1)})` : ''}.`;
+    const text = homeHere ? `${away} Their home is in view; follow them when they come out.`
+      : `${away} ${npc && npc.zi >= 0 ? `They live in ${world.z.city[npc.zi]} (${npc.zip}).` : ''}`.trim();
+    const key = `${id}|${text}`;
+    if (street.presenceKey !== key) {
+      street.presenceKey = key;
+      const walk = !homeHere && npc ? h('button.link-btn.street-walk-home', { type: 'button', on: { click: () => openStreetView(npcTarget(npc)) } }, 'Walk their streets') : null;
+      presence.replaceChildren(...[h('span', text), walk ? ' ' : null, walk].filter(Boolean));
+    }
     presence.hidden = false;
   }
 
@@ -409,6 +441,9 @@ function mount(world) {
     try { view.destroy(); } catch (e) { console.error('[legion] street view close failed', e); }
     layer.remove();
     document.body.toggleAttribute('data-street-open', false);
+    // the map was not drawn while the street view covered it: bring it to the clock's time and redraw it now
+    stage.invalidate();
+    stage.frame(clock.t);
     updateCounts();
     if (quiet) return;
     const c = stage.map && stage.map.camera;
@@ -496,10 +531,20 @@ function mount(world) {
   // ---- keyboard
 
   const interactive = el => !!(el && el.closest && el.closest('input, textarea, select, button, a[href], summary, [contenteditable=""], [contenteditable="true"], [role="tab"], [role="radio"], [role="switch"], [role="option"], [role="button"], dialog'));
+  // text entry only (a focused radio, checkbox or range is not typing: '/' and Escape act as usual there)
+  const typingIn = el => !!(el && el.closest && el.closest('textarea, select, [contenteditable=""], [contenteditable="true"], input:not([type]), input[type=text], input[type=search], input[type=email], input[type=password], input[type=url], input[type=tel], input[type=number]'));
+  // Escape in the street view goes back to the map, wherever the focus is (the street canvas included, whose own
+  // handler would only clear its selection): caught on the way down, before any element below handles it
+  document.addEventListener('keydown', e => {
+    if (!street || e.key !== 'Escape' || e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+    if (dialog.isOpen() || typingIn(e.target)) return;   // the dialog and a field take their own Escape first
+    e.preventDefault();
+    e.stopPropagation();
+    closeStreetView();
+  }, true);
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
-    // text entry only (a focused radio, checkbox or range is not typing: '/' and Escape act as usual there)
-    const typing = e.target && e.target.closest && e.target.closest('textarea, select, [contenteditable=""], [contenteditable="true"], input:not([type]), input[type=text], input[type=search], input[type=email], input[type=password], input[type=url], input[type=tel], input[type=number]');
+    const typing = typingIn(e.target);
     if (e.key === '/' && !typing) { e.preventDefault(); search.focus(); return; }
     if ((e.key === ' ' || e.code === 'Space') && !interactive(e.target)) { e.preventDefault(); clock.toggle(); return; }
     if (e.key === 'Escape') {
@@ -527,7 +572,9 @@ function mount(world) {
   // in headless Chromium a 0.5% build took 17 s drawing every frame and 7 s paused. So while a build runs and drawn
   // frames are slow, the map is drawn a quarter of the time at most. A drawn frame's cost is the time to the next
   // callback (the browser holds the next frame until the last one is on screen). The clock and its display keep
-  // real time either way.
+  // real time either way. While the street view is open it covers the map completely, so the statewide map and the
+  // crowd are not advanced or drawn at all (closeStreetView brings them back to the clock's time); the street view
+  // runs its own loop on the same clock.
   const SLOW_FRAME_MS = 40, BUILDING_DUTY = 0.25;
   let last = performance.now(), lastCounts = 0, lastDraw = -Infinity, drawCost = 16, drew = false;
   function frame(now) {
@@ -536,7 +583,7 @@ function mount(world) {
     last = now;
     clock.advance(dt);
     clockUI.update();
-    drew = !(stage.build.building && drawCost > SLOW_FRAME_MS && now - lastDraw < drawCost / BUILDING_DUTY);
+    drew = !street && !(stage.build.building && drawCost > SLOW_FRAME_MS && now - lastDraw < drawCost / BUILDING_DUTY);
     if (drew) { lastDraw = now; stage.frame(clock.t); }
     if (now - lastCounts > 500) { lastCounts = now; updateCounts(); }
     requestAnimationFrame(frame);

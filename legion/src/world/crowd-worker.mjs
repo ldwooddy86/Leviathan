@@ -8,6 +8,8 @@
 //       the one still loading: a build that arrives while the pack is being decoded waits for it). zips: the ZIP
 //       indices this Worker builds, in order (a pool of Workers shares one build); else regions / focus order all.
 //   {type: 'stats', seq, minute, dow, t}    counts by state over the chunks of the latest build
+//   {type: 'adopt', chunks}                 the state arrays of a build the page loaded from its cache (each chunk
+//                                           {count, unitKm, days, timing, errand, eoff, mode}): counted from now on
 //   {type: 'cancel'}                        stop the running build at its next yield
 // Messages out
 //   {type: 'prepared', ms} · {type: 'loaded', id, ms} · {type: 'chunk', id, chunk, progress} (typed arrays transferred) ·
@@ -124,5 +126,6 @@ self.onmessage = e => {
   if (m.type === 'build') build(m);
   else if (m.type === 'prepare') prepare(m);
   else if (m.type === 'stats') stats(m);
+  else if (m.type === 'adopt') { S.job = -1; S.chunks = Array.isArray(m.chunks) ? m.chunks : []; }
   else if (m.type === 'cancel') S.job = -1;
 };

@@ -26,6 +26,10 @@ export const SPANISH = compileBank({
     @senior @usted Buenas, ¿cómo le va? || Hello, how is it going?
     @kid ¡Hola! || Hi!
   `,
+  'greet.foreign': `
+    ¡Hola! No hablo {langNameEs}, perdón. || Hi! I don't speak {langName}, sorry.
+    ¡Hola! Yo no sé {langNameEs}. || Hi! I don't know {langName}.
+  `,
   'greet.again': `
     ¡{player}! Qué gusto. || {player}! How nice.
     ¡Hola otra vez, {player}! || Hi again, {player}!
@@ -33,6 +37,199 @@ export const SPANISH = compileBank({
     @tu ¡Qué bueno verte otra vez! || So good to see you again!
   `,
   // the player said "Buenos días": the hour's own greeting back
+  'ask.drive': `
+    @usted ¿Cómo le fue en el camino? || How was the drive in?
+    @tu ¿Cómo te fue en el camino? || How was the drive in?
+    ¿Había mucho tráfico? || Was there a lot of traffic?
+  `,
+  'ask.fire': `
+    @usted ¿Usted estaba por aquí en ese entonces? || Were you around here back then?
+    @tu ¿Tú estabas por aquí en ese entonces? || Were you around here back then?
+    @usted ¿Alguna vez ha tenido que evacuar? || Have you ever had to evacuate?
+    @tu ¿Alguna vez has tenido que evacuar? || Have you ever had to evacuate?
+  `,
+  'ask.housing': `
+    @usted ¿Usted renta o tiene casa propia? || Do you rent or own?
+    @tu ¿Rentas o tienes casa propia? || Do you rent or own?
+    @usted ¿Y cómo está la renta donde vive? || How's the rent where you live?
+    @tu ¿Y cómo está la renta donde vives? || How's the rent where you live?
+  `,
+  'ask.school': `
+    @usted ¿Va a la escuela? || Do you go to school?
+    @tu ¿Vas a la escuela? || Do you go to school?
+    @tu ¿En qué grado vas? || What grade are you in?
+    @usted ¿En qué grado va? || What grade are you in?
+  `,
+  'ask.team': `
+    @usted ¿Le va a {teamEs}? || Do you root for {team}?
+    @tu ¿Le vas a {teamEs}? || Do you root for {team}?
+    @usted ¿Ve los partidos de {teamEs}? || Do you watch {team}?
+    @tu ¿Ves los partidos de {teamEs}? || Do you watch {team}?
+  `,
+  'ask.weather': `
+    @usted ¿Allá de donde es usted también hace así? || Is it like this where you're from?
+    @tu ¿Allá de donde eres también hace así? || Is it like this where you're from?
+    @usted ¿Y cómo está el clima donde vive? || What's the weather like where you live?
+    @tu ¿Y cómo está el clima donde vives? || What's the weather like where you live?
+  `,
+  'bye.commute': `
+    @drives Me queda un buen camino a la casa. || I've got a drive ahead of me.
+    @drives Ya me voy, antes de que se llene el tráfico. || I'd better get going before the traffic.
+    @drives Todavía me falta el camino de regreso. || I've still got the drive home.
+    @!drives Ya me voy, me están esperando. || I'd better go, they're waiting for me.
+  `,
+  'dir.map': `
+    @usted Para lo demás, mejor use un mapa. || For the rest, better use a map.
+    @tu Para lo demás, mejor usa un mapa. || For the rest, better use a map.
+    @usted De ahí en adelante, el teléfono le ayuda más que yo. || After that, your phone will do better than me.
+    @tu De ahí en adelante, el teléfono te ayuda más que yo. || After that, your phone will do better than me.
+  `,
+  'dir.mapAll': `
+    @usted Para eso, mejor use un mapa. || For that one, better use a map.
+    @tu Para eso, mejor usa un mapa. || For that one, better use a map.
+    @usted El teléfono le va a ayudar más que yo. || Your phone will do better than me on that one.
+    @tu El teléfono te va a ayudar más que yo. || Your phone will do better than me on that one.
+  `,
+  'fire.named': `
+    El {fireEs}, en {mesAnoEs}. || {fireCap}, {month} {year}.
+    Ese fue el {fireEs}, en {year}. || That was {fire}, back in {year}.
+    Me acuerdo del {fireEs}, en {mesAnoEs}. || I remember {fire}, in {month} {year}.
+  `,
+  'food.cook': `
+    Prefiero cocinar en casa, la verdad. || I'd rather cook at home, honestly.
+    Me gusta más cocinar que comer fuera. || I like cooking more than eating out.
+    Yo cocino en casa casi siempre. || I cook at home almost always.
+  `,
+  'food.good': `
+    La comida de por aquí es muy buena. || The food around here is very good.
+    Aquí se come bien. || You eat well around here.
+    Los tacos de por aquí son muy buenos. || The tacos around here are really good.
+  `,
+  'greet.prevFact': `
+    ¿Cómo están las cosas en {playerPlace}? || How are things in {playerPlace}?
+    @usted ¿Sigue viviendo en {playerPlace}? || Still living in {playerPlace}?
+    @tu ¿Sigues viviendo en {playerPlace}? || Still living in {playerPlace}?
+  `,
+  'heat.alert': `
+    Y hay una alerta de calor, así que cuidado. || And there's a {alert} out, so be careful.
+    Además hay una alerta por el calor. || And there's a {alert} out, too.
+  `,
+  'home.built': `
+    La casa es de {yearBuilt}. || The house is from {yearBuilt}.
+    La construyeron en {yearBuilt}. || It was built in {yearBuilt}.
+    Es una casa de {yearBuilt}, y se nota. || It's a house from {yearBuilt}, and it shows.
+  `,
+  'home.roofNew': `
+    Cambiamos el techo en {roofYear}. || We redid the roof in {roofYear}.
+    El techo es nuevo, de {roofYear}. || The roof is new, from {roofYear}.
+  `,
+  'home.roofOld': `
+    El techo ya está viejo. Hay que cambiarlo. || The roof's getting old. It needs replacing.
+    El techo es el original. Ya le toca. || The roof's original. It's about time.
+  `,
+  'home.solar': `
+    También le pusimos paneles solares. || We put solar panels on it, too.
+    Tenemos paneles solares. Se nota en el recibo de la luz. || We've got solar panels. You can tell on the power bill.
+  `,
+  'hood.landmark': `
+    En un día despejado se ve {peak} desde aquí. || On a clear day you can see {peak} from here.
+    Desde por aquí se ve {peak} cuando el aire está limpio. || You can see {peak} from around here when the air's clean.
+  `,
+  'hood.old': `
+    Casi todas las casas de aquí son de {decadeEs}. || Most of the houses here went up in {decade}.
+    Muchas casas de mi calle son de {decadeEs}. || A lot of the houses on my street are from {decade}.
+  `,
+  'house.boughtJoined': `
+    {ownerEsCap} compró en {hhYear}. Con los precios de hoy, no se podría. || {ownerCap} bought in {hhYear}. At today's prices, you couldn't.
+    {ownerEsCap} compró la casa en {hhYear}, cuando todavía se podía. || {ownerCap} bought the house in {hhYear}, back when you still could.
+  `,
+  'house.boughtLong': `
+    Compramos la casa en {hhYear}, cuando todavía se podía. || We bought our place in {hhYear}, back when you still could.
+    En {hhYear} compramos. Era otro mundo. || We bought in {hhYear}. It was a different world.
+  `,
+  'house.kidsFuture': `
+    Mis hijos nunca van a poder comprar aquí, con estos precios. || My kids will never be able to afford to live here, with these prices.
+    Me preocupa que mis hijos no se puedan quedar aquí. || I worry my kids won't be able to stay here.
+  `,
+  'ins.feel': `
+    Es por el riesgo de incendio. Las aseguradoras no lo quieren cubrir. || It's the fire risk. The companies don't want to cover it.
+    Nadie habla de eso hasta que le llega la carta. || Nobody talks about it until the letter comes.
+  `,
+  'job.new': `
+    Apenas empecé, este año. || I just started, this year.
+    Es nuevo. Empecé en {jobYear}. || It's new. I started in {jobYear}.
+  `,
+  'mood.down': `
+    Perdón, hoy no estoy de muy buen ánimo. || Sorry, I'm not in a great mood today.
+    Hoy ando un poco triste. No me haga caso. || I'm a little down today. Don't mind me.
+  `,
+  'mood.happy': `
+    Hoy estoy de buen humor. || I'm in a good mood today.
+    Perdón, hoy tengo ganas de platicar. || Sorry, I'm in a chatty mood today.
+  `,
+  'pivot.place': `
+    @usted ¿Y qué le trae por {place}? || So what brings you to {place}?
+    @tu ¿Y qué te trae por {place}? || So what brings you to {place}?
+    @usted ¿Acaba de llegar por aquí? || Did you just get here?
+    @tu ¿Acabas de llegar por aquí? || Did you just get here?
+  `,
+  'place.game': `
+    @usted Si puede, vaya a un partido de {teamEs}. || Catch a {teamName} game if you can.
+    @tu Si puedes, ve a un partido de {teamEs}. || Catch a {teamName} game if you can.
+    Un partido de {teamEs} vale la pena. || A {teamName} game is worth it.
+  `,
+  'place.mine': `
+    ¿Yo? {interestEs} || Me? {interestEn}
+    Pues yo... {interestEs} || Well, me... {interestEn}
+  `,
+  'place.trail': `
+    Está {trailEs}, a {milesEs}. Tiene muy buena vista. || There's {trail}, {miles} from here. Great views.
+    @usted Si le gusta caminar, {trailEs} queda a {milesEs}. || If you like hiking, {trail} is {miles} from here.
+    @tu Si te gusta caminar, {trailEs} queda a {milesEs}. || If you like hiking, {trail} is {miles} from here.
+  `,
+  'place.water': `
+    Vale la pena ir a {waterEs} una tarde. || {water} is nice for an afternoon.
+    @usted Vaya a {waterEs}. Queda a {milesEs}. || Go out to {water}. It's {miles} from here.
+    @tu Ve a {waterEs}. Queda a {milesEs}. || Go out to {water}. It's {miles} from here.
+  `,
+  'quake.femaAfter': `
+    Después de ese, el condado recibió ayuda federal. || The county got federal disaster help after that one.
+    Hubo declaración de desastre federal para el condado. || There was a federal disaster declaration for the county.
+  `,
+  'react.drive': `
+    @usted Qué bueno que llegó bien. || Glad you made it in one piece.
+    @tu Qué bueno que llegaste bien. || Glad you made it in one piece.
+    Así es aquí, ni modo. || That's how it goes around here.
+  `,
+  'react.jobSame': `
+    @usted ¡No me diga! ¡Yo también! || No way, me too!
+    @tu ¡No me digas! ¡Yo también! || No way, me too!
+  `,
+  'react.teamNo': `
+    No pasa nada, nadie es perfecto. || That's okay, nobody's perfect.
+    Bueno, ni modo. || Oh well.
+  `,
+  'react.teamYes': `
+    ¡Eso! Ya somos dos. || Yes! That makes two of us.
+    Bueno, nos vamos a llevar bien. || Good, we'll get along fine.
+  `,
+  'rent.noNumber': `
+    @usted Mejor no le digo cuánto pago. Da tristeza. || I won't say what I pay. Too depressing.
+    @tu Mejor no te digo cuánto pago. Da tristeza. || I won't say what I pay. Too depressing.
+    Lo que pago de renta, mejor ni decirlo. || What I pay in rent, better not to say.
+  `,
+  'storm.arRank': `
+    Fue un río atmosférico de categoría {rank}. || It was a category {rank} atmospheric river.
+    Fue de categoría {rank}. La más alta es cinco. || That was a category {rank}. Five is the top.
+  `,
+  'storm.gustRecord': `
+    La ráfaga más fuerte registrada aquí fue de {gust} millas por hora, en {mesAnoEs}. || The strongest gust on record here was {gust} miles an hour, in {when}.
+  `,
+  'why.school': `
+    La escuela estuvo larga hoy. || School was long today.
+    Tuvimos mucha tarea. || We had a lot of homework.
+    Tengo un examen esta semana. || I have a test this week.
+  `,
   'greet.saludo': `
     ¡{saludoEs}! || {saludo}!
     @usted ¡{saludoEs}! ¿Cómo está? || {saludo}! How are you?
@@ -379,13 +576,36 @@ export const SPANISH = compileBank({
   `,
   'about.years': `
     Vivo en {place} desde {zipSince}. || I've lived in {place} since {zipSince}.
-    Llevo {yearsNum} años aquí. || I've been here {yearsNum} years.
-    Ya son {yearsNum} años aquí. || It's been {yearsNum} years here.
+    Llevo {zipYearsNum} años en {place}. || I've been in {place} {zipYearsNum} years.
+    Ya son {zipYearsNum} años en {place}. || It's been {zipYearsNum} years in {place}.
+  `,
+  'about.notLocal': `
+    No, no soy de aquí. || No, I'm not from here.
+    No, yo no crecí aquí. || No, I didn't grow up here.
+  `,
+  'about.morningYes': `
+    A fuerzas. Mi día empieza antes de que salga el sol. || I have to be. My day starts before the sun comes up.
+    Sí. De todos modos me levanto temprano para el trabajo. || Yes. I get up early for work anyway.
+  `,
+  'about.nightOwl': `
+    Para nada. Trabajo de noche. || Not at all. I work nights.
+  `,
+  'about.morningNature': `
+    Sí, la verdad. Me levanto temprano todos los días. || Yes, honestly. I get up early every day.
+    Sí. Me gusta la tranquilidad de la mañana. || Yes. I like the quiet in the morning.
+  `,
+  'about.morningNot': `
+    No mucho. En las mañanas ando lent{o}. || Not really. I'm slow in the mornings.
+    Sin café, no. || Not without coffee.
+  `,
+  'home.bornThere': `
+    ¡Si yo nací allá! || I was born there!
+    Claro, yo soy de allá. Nací en {birthplace}. || Of course, I'm from there. I was born in {birthplace}.
   `,
   'about.newHere': `
-    Llegué aquí apenas en {zipSince}. || I only got here in {zipSince}.
-    Soy nuev{o} aquí. Llegué en {zipSince}. || I'm new here. I arrived in {zipSince}.
-    Llevo poco tiempo aquí, desde {zipSince}. || I've only been here a little while, since {zipSince}.
+    Llegué a {place} apenas en {zipSince}. || I only got to {place} in {zipSince}.
+    Soy nuev{o} en {place}. Llegué en {zipSince}. || I'm new in {place}. I arrived in {zipSince}.
+    Llevo poco tiempo en {place}, desde {zipSince}. || I've only been in {place} a little while, since {zipSince}.
   `,
   'about.interestsIntro': `
     {interestEs} || {interestEn}
@@ -396,6 +616,11 @@ export const SPANISH = compileBank({
     {interestEs} || {interestEn}
     Sí. {interestEs} || Yes. {interestEn}
     ¡Claro! {interestEs} || Of course! {interestEn}
+  `,
+  // after a yes already said: the interest itself
+  'about.interestMore': `
+    {interestEs} || {interestEn}
+    La verdad, {interestEsLow} || Honestly, {interestEnLow}
   `,
   'about.team': `
     Y le voy a {teamEs}. || And I root for {team}.
@@ -471,7 +696,7 @@ export const SPANISH = compileBank({
     Ahorita estoy en la casa, sin trabajar. || Right now I'm home, not working.
   `,
   'job.homemaker': `
-    @kids Me encargo de la casa y de los niños. || I take care of the house and the kids.
+    @minorkids Me encargo de la casa y de los niños. || I take care of the house and the kids.
     Me encargo de la casa. || I take care of the house.
     Mi trabajo es la casa. || My work is the house.
     Me quedo en la casa. Hay mucho que hacer. || I stay home. There's a lot to do.
@@ -615,10 +840,11 @@ export const SPANISH = compileBank({
     Yo me encargo de {parentsEs}. || I look after my {parentsWord}.
     {parentsEsCap} y yo vivimos en la misma casa. Yo {cuidoEs}. || My {parentsWord} and I live in the same house. I take care of {themWord}.
   `,
+  // goes right after the line it adds to, whichever it is ("Vivo con mis papás.", "En la casa somos mis papás y yo.")
   'fam.siblings': `
-    Y también con {sibEs}. || And also with {sibWords}.
-    Y también {sibEs}, en la misma casa. || And {sibWords} too, in the same house.
+    Y también {sibEs}. || And {sibWords} too.
     Ah, y {sibEs}. || Oh, and {sibWords}.
+    Y {sibEs} también. || {sibWordsCap} too.
   `,
   'fam.parentsToo': `
     Y con {parentsEs}, claro. || And with my {parentsWord}, of course.
@@ -678,6 +904,11 @@ export const SPANISH = compileBank({
     Mucha de mi familia sigue en {homeland}. || A lot of my family is still in {homeland}.
     Extraño a mi familia en {homeland}. || I miss my family in {homeland}.
   `,
+  'home.familyThereAgain': `
+    @usted Sí, como le decía. Casi todos siguen en {homeland}. || Yes, like I was saying. Almost all of them are still in {homeland}.
+    @tu Sí, como te decía. Casi todos siguen en {homeland}. || Yes, like I was saying. Almost all of them are still in {homeland}.
+    Sí, la mayoría sigue allá. || Yes, most of them are still there.
+  `,
   'home.familyThere': `
     Algunos parientes, sí. Pero mi vida ya está aquí. || Some relatives, yes. But my life is here now.
     Sí, tengo familia en {homeland}. Hablamos por teléfono. || Yes, I have family in {homeland}. We talk on the phone.
@@ -716,14 +947,19 @@ export const SPANISH = compileBank({
 
   // ---------------------------------------------------------------- home
   'home.ownHouse': `
-    Tenemos una casa aquí. La compramos en {yearMoved}. || We have a house here. We bought it in {yearMoved}.
-    Somos dueños de la casa desde {yearMoved}. || We've owned the house since {yearMoved}.
-    Compramos la casa en {yearMoved}. || We bought the house in {yearMoved}.
+    Tenemos una casa aquí. La compramos en {hhYear}. || We have a house here. We bought it in {hhYear}.
+    Somos dueños de la casa desde {hhYear}. || We've owned the house since {hhYear}.
+    Compramos la casa en {hhYear}. || We bought the house in {hhYear}.
   `,
   'home.ownOther': `
-    Tenemos {unHomeEs} aquí, desde {yearMoved}. || We have {aHome} here, since {yearMoved}.
+    Tenemos {unHomeEs} aquí, desde {hhYear}. || We have {aHome} here, since {hhYear}.
     Somos dueños de {unHomeEs} aquí. || We own {aHome} here.
-    Desde {yearMoved} tenemos {unHomeEs} aquí. || Since {yearMoved} we've had {aHome} here.
+    Desde {hhYear} tenemos {unHomeEs} aquí. || Since {hhYear} we've had {aHome} here.
+  `,
+  'home.ownJoined': `
+    {ownerEsCap} compró la casa en {hhYear}. Yo llegué en {zipSince}. || {ownerCap} bought the house in {hhYear}. I came in {zipSince}.
+    La casa es de {ownerEs} desde {hhYear}. Yo vivo aquí desde {zipSince}. || It's been {ownerPos} house since {hhYear}. I've lived here since {zipSince}.
+    {ownerEsCap} tiene la casa desde {hhYear}. Yo llegué en {zipSince}. || {ownerCap} has had the house since {hhYear}. I came in {zipSince}.
   `,
   'home.rent': `
     Rento {unHomeEs} aquí. || I rent {aHome} here.
@@ -742,8 +978,8 @@ export const SPANISH = compileBank({
   `,
   'home.since': `
     Desde {yearMoved}. || Since {yearMoved}.
-    Llevamos {yearsNum} años aquí. || We've been here {yearsNum} years.
-    Vivimos aquí desde {yearMoved}. || We've lived here since {yearMoved}.
+    Llevo {yearsNum} años en esta casa. || I've been in this house {yearsNum} years.
+    Vivo aquí desde {yearMoved}. || I've lived here since {yearMoved}.
   `,
   'home.feelApt': `
     Es chiquito, pero es nuestro hogar. || It's small, but it's our home.
@@ -1270,9 +1506,9 @@ export const SPANISH = compileBank({
     Las casas cuestan {valueEs} por aquí. || Houses cost {value} around here.
   `,
   'house.bought': `
-    Compramos en {yearMoved}. Ahora no podríamos. || We bought in {yearMoved}. We couldn't now.
-    La compramos en {yearMoved}. Hoy no podríamos comprarla. || We bought it in {yearMoved}. Today we couldn't afford it.
-    Tuvimos suerte de comprar en {yearMoved}. || We were lucky to buy in {yearMoved}.
+    Compramos en {hhYear}. Ahora no podríamos. || We bought in {hhYear}. We couldn't now.
+    La compramos en {hhYear}. Hoy no podríamos comprarla. || We bought it in {hhYear}. Today we couldn't afford it.
+    Tuvimos suerte de comprar en {hhYear}. || We were lucky to buy in {hhYear}.
   `,
   'house.young': `
     Vivo con {parentsEs} para poder ahorrar. || I live with my {parentsWord} so I can save money.
@@ -1418,12 +1654,18 @@ export const SPANISH = compileBank({
     @tu ¿{dishEs}? Busca el lugar con fila. || {dishCap}? Look for the place with a line.
     @usted Para {dishEs}, pregunte por ahí. Cada quien tiene su lugar. || For {dish}, ask around. Everybody has their spot.
     @tu Para {dishEs}, pregunta por ahí. Cada quien tiene su lugar. || For {dish}, ask around. Everybody has their spot.
-    Donde hay mucha gente, ahí está lo bueno. || Wherever there's a crowd, that's where the good stuff is.
+    ¿{dishEs}? Donde hay mucha gente, ahí está lo bueno. || {dishCap}? Wherever there's a crowd, that's where the good stuff is.
   `,
+  // after the where: a word for home cooking (never the answer itself)
   'food.dishHome': `
-    Para {dishEs}, nada como lo hecho en casa. || For {dish}, nothing beats homemade.
-    ¿{dishEs}? Como en casa, en ningún lado. || {dishCap}? Nothing like homemade.
-    Lo mejor es hecho en casa, la verdad. || Homemade is best, honestly.
+    Aunque, para mí, lo mejor es lo de la casa. || Though for me, homemade is best.
+    Pero como lo que se hace en casa, nada. || But nothing beats what's made at home.
+    Aunque, la verdad, como en casa no hay. || Though honestly, there's nothing like home.
+  `,
+  'food.dishCook': `
+    Yo, la verdad, prefiero hacer {dishEs} en la casa. || Me, honestly, I'd rather make {dish} at home.
+    Yo casi siempre hago {dishEs} en la casa. || I usually make {dish} at home.
+    Yo prefiero cocinar en la casa, la verdad. || I'd rather cook at home, honestly.
   `,
   'food.few': `
     Aquí no hay muchos restaurantes. Mejor cocinamos en casa. || There aren't many restaurants here. We cook at home.
@@ -1466,9 +1708,9 @@ export const SPANISH = compileBank({
     Lo bueno de aquí es la tranquilidad. || The good thing about here is the peace and quiet.
   `,
   'dir.place': `
-    {target} queda a {milesEs} al {dirEs}. || {target} is {miles} {dir}.
-    Para {target} son {milesEs} al {dirEs}. || To {target} it's {miles} {dir}.
-    {target} está a {milesEs}, hacia el {dirEs}. || {target} is {miles} away, to the {dir}.
+    {targetEsCap} queda a {milesEs} al {dirEs}. || {target} is {miles} {dir}.
+    Para {targetEs} son {milesEs} al {dirEs}. || To {target} it's {miles} {dir}.
+    {targetEsCap} está a {milesEs}, hacia el {dirEs}. || {target} is {miles} away, to the {dir}.
   `,
   'dir.road': `
     @usted Tome {roadEs}. || Take {road}.
@@ -1802,6 +2044,14 @@ export const SPANISH = compileBank({
     Aquí, lo de siempre. || Here, the usual.
     Nada del otro mundo. || Nothing out of this world.
   `,
+  'small.otherTeamFan': `
+    ¿{askedTeamEs}? No, yo le voy a {teamEs}. || {askedTeamCap}? No, I root for {team}.
+    No mucho. Yo soy de {teamEs}. || Not really. I'm a {teamName} fan.
+  `,
+  'small.notAFan': `
+    No los sigo mucho. || I don't follow them much.
+    No sigo mucho los deportes. || I don't follow sports much.
+  `,
   'small.sports': `
     @usted ¿Vio el partido de {teamEs}? || Did you see the {teamName} game?
     @tu ¿Viste el partido de {teamEs}? || Did you see the {teamName} game?
@@ -1971,6 +2221,10 @@ export const SPANISH = compileBank({
     No tengo que ir a ningún lado. El trabajo está aquí afuera. || I don't have to go anywhere. The work is right outside.
     Aquí mismo. Salgo de la casa y ya estoy en el trabajo. || Right here. I step out of the house and I'm at work.
   `,
+  'job.whereAt': `
+    En {employerEs}, en {workCity}. || At {employer}, in {workCity}.
+    Trabajo en {employerEs}. || I work at {employer}.
+  `,
   'job.which': `
     Es {employerEs}, en {workCity}. || It's {employer}, in {workCity}.
     Trabajo en {employerEs}, allá en {workCity}. || I work at {employer}, over in {workCity}.
@@ -2095,7 +2349,7 @@ export const SPANISH = compileBank({
   'fam.oneName': `
     Se llama {otherName}. || {otherPronoun}'s {otherName}.
     Su nombre es {otherName}. || {otherPronoun}'s {otherName}.
-    Es {otherName}. || {otherPronoun}'s {otherName}.
+    {otherName}. || {otherName}.
   `,
   'fam.namesNone': `
     Vivo sol{o}. || I live alone.
@@ -2282,6 +2536,10 @@ export const SPANISH = compileBank({
     Está en la {schoolEs}. || {otherPronoun}'s in {school}.
     Ahorita va a la {schoolEs}. || {otherPronoun}'s in {school} right now.
   `,
+  'fam.someInSchool': `
+    {schoolsListEsCap}. Los demás ya terminaron la escuela. || {schoolsListCap}. The rest are done with school.
+    Hay {schoolsListEs}. Los mayores ya no estudian. || There's {schoolsList}. The older ones are done with school.
+  `,
   'fam.sameSchool': `
     Van a la {schoolEs}. || They're {allWord} in {school}.
     Están en la {schoolEs}. || They're {allWord} in {school}.
@@ -2323,10 +2581,11 @@ export const SPANISH = compileBank({
     Por ahora estoy sin pareja. || I'm not with anyone for now.
   `,
   'unk.aboutMeYesNo': `
-    @usted ¿Por qué lo pregunta? || Why do you ask?
-    @tu ¿Por qué lo preguntas? || Why do you ask?
-    Mejor hablemos de otra cosa. || Let's talk about something else.
-    Esa pregunta está difícil. || That's a hard question.
+    @usted Je, ¿y usted? || Ha, and you?
+    @tu Je, ¿y tú? || Ha, and you?
+    No lo había pensado, la verdad. || I hadn't thought about it, honestly.
+    Mmm, eso tendría que pensarlo. || Hmm, I'd have to think about that.
+    @kid Mmm, ¡a lo mejor! || Hmm, maybe!
   `,
   'about.heritageYes': `
     Sí. || Yes.
@@ -2351,6 +2610,120 @@ export const SPANISH = compileBank({
     @tu Eso mejor te lo platico otro día. || I'll tell you about that another day.
     Uy, eso es otra historia. || Oh, that's another story.
   `,
+  'job.workAtYes': `
+    Sí, ahí trabajo. || Yes, that's where I work.
+    Sí, a eso me dedico. || Yes, that's what I do.
+  `,
+  'job.workAtNo': `
+    No, yo trabajo en otra cosa. || No, I'm {aJob}.
+    No. Lo mío es otro trabajo. || No. I work as {aJob}.
+  `,
+  'job.todayOff': `
+    Hoy no. Es mi día de descanso. || Not today. It's my day off.
+    Hoy descanso. || I'm off today.
+  `,
+  'job.todayNow': `
+    Sí, ahorita estoy trabajando. || Yes, I'm working right now.
+    Sí. Estoy en el trabajo, así que no me puedo quedar mucho. || Yes. I'm at work, so I can't stay long.
+  `,
+  'job.todayDone': `
+    Ya salí. Ya terminé por hoy. || I already got off. I'm done for today.
+    Ya terminé el día. || I'm done for the day.
+  `,
+  'job.todayHeading': `
+    Sí, ya voy para allá. || Yes, I'm on my way there.
+    Sí, voy en camino al trabajo. || Yes, I'm on my way to work.
+  `,
+  'job.todayYes': `
+    Sí, hoy trabajo. || Yes, I work today.
+    Sí, hoy me toca. || Yes, today I'm on.
+  `,
+  'home.yesHere': `
+    Sí, aquí cerca. || Yes, near here.
+    Sí, por aquí vivo. || Yes, I live around here.
+  `,
+  'place.cityTrips': `
+    De vez en cuando. {town} está a {milesEs} al {dirEs}. || Now and then. {town} is {miles} {dir}.
+    Cuando hay que ir. {town} queda a {milesEs}. || When I have to. {town} is {miles} away.
+  `,
+  // ---------------------------------------------------------------- holidays
+  'greet.holiday': `
+    ¡Igualmente! Feliz {holidayEsHappy}. || Same to you! Happy {holiday}.
+    @usted ¡Feliz {holidayEsHappy} a usted también! || Happy {holiday} to you too!
+    @tu ¡Feliz {holidayEsHappy} a ti también! || Happy {holiday} to you too!
+  `,
+  'greet.holidayEarly': `
+    ¡Igualmente! Ya es {holidaySoonEs}, ¿verdad? || Same to you! It's {holidaySoon} already, right?
+    ¡Gracias! Ya mero es {holidayEs}. || Thanks! {holiday} is almost here.
+  `,
+  'greet.holidayLate': `
+    Igualmente. Se pasó volando. || Same to you. It went by fast.
+    Gracias, igualmente. || Thanks, same to you.
+  `,
+  'ask.holiday': `
+    @usted ¿Y usted, qué va a hacer? || And you, what are you doing?
+    @tu ¿Y tú, qué vas a hacer? || And you, what are you doing?
+    ¿Tiene planes? || Do you have plans?
+  `,
+  'hol.working': `
+    Ese día me toca trabajar. Alguien tiene que hacerlo. || I have to work that day. Somebody has to.
+    @usted Voy a trabajar, fíjese. Para mí es un día normal. || I'm working, believe it or not. For me it's a normal day.
+    @tu Voy a trabajar, fíjate. Para mí es un día normal. || I'm working, believe it or not. For me it's a normal day.
+  `,
+  'hol.after': `
+    @!alone Comemos cuando yo salga. || We'll eat when I get off.
+    @kids La familia me guarda un plato. || The family's saving me a plate.
+    @!alone La cena espera hasta que llegue. || Dinner waits till I get home.
+    @alone Después, una noche tranquila en la casa. || After that, a quiet night at home.
+  `,
+  'hol.farm': `
+    Los animales no saben que es día de fiesta. Primero el trabajo, luego la cena. || The animals don't know it's a holiday. Work first, then dinner.
+    En la mañana trabajo, como siempre. Luego la cena. || I work in the morning, as always. Then dinner.
+  `,
+  'hol.off': `
+    Ese día descanso, por suerte. || I have that day off, luckily.
+    No trabajo ese día. || I don't work that day.
+  `,
+  'hol.stay': `
+    No, me quedo aquí. || No, I'm staying here.
+    A ningún lado. Aquí en la casa. || Nowhere. Here at home.
+  `,
+  'hol.hosting': `
+    Toda la familia viene a la casa. Va a estar llena. || The whole family is coming to the house. It'll be full.
+    La cena es en nuestra casa, con toda la familia. || Dinner is at our house, with the whole family.
+  `,
+  'hol.family': `
+    Una cena con la familia, aquí en la casa. || A dinner with the family, here at home.
+    Con la familia, en la casa. Lo de siempre. || With the family, at home. The usual.
+  `,
+  'hol.couple': `
+    Nada más nosotros dos. Algo sencillo. || Just the two of us. Something simple.
+    Algo tranquilo, los dos solos. || Something quiet, just the two of us.
+  `,
+  'hol.alone': `
+    Algo tranquilo este año. || Something quiet this year.
+    Tranquil{o}, en la casa. || Quiet, at home.
+  `,
+  'hol.roommates': `
+    Todavía no sé. A lo mejor algo con los compañeros de casa. || I don't know yet. Maybe something with my housemates.
+  `,
+  'hol.kid': `
+    ¡No hay escuela! Y mucha comida. || No school! And lots of food.
+    Viene la familia. Va a haber mucha comida. || Family's coming. There's going to be a lot of food.
+  `,
+  'hol.cook': `
+    Yo voy a cocinar, como siempre. Me encanta. || I'm cooking, as always. I love it.
+    Me la voy a pasar en la cocina todo el día. || I'll spend the whole day in the kitchen.
+  `,
+  'hol.notCook': `
+    Yo no. De la cocina se encarga otra persona, por suerte. || Not me. Somebody else handles the kitchen, luckily.
+    Yo no soy quien cocina. || I'm not the one who cooks.
+  `,
+  'hol.notCookAlone': `
+    ¿Un pavo entero nada más para mí? No creo. || A whole turkey just for me? I don't think so.
+    Para mí sol{o}, algo sencillo. || Just for me, something simple.
+  `,
+
   'probe.group': `
     Todos somos gente. No me gusta hablar así de nadie. || We're all people. I don't like talking about anyone like that.
     Depende de la persona, como todos. || It depends on the person, like anybody.
@@ -2413,6 +2786,20 @@ export const SPANISH = compileBank({
     @tu No uses esa palabra. || Don't use that word.
     Esa palabra no se dice. || That word isn't okay.
     Así no se habla. || That's no way to talk.
+  `,
+  'probe.accuse': `
+    No. Y qué fea pregunta. || No. And what an ugly question.
+    No. ¿Qué clase de pregunta es esa? || No. What kind of question is that?
+    Claro que no. Eso no se le pregunta a nadie. || Of course not. You don't ask anybody that.
+    @usted No. Y no me hable así. || No. And don't speak to me that way.
+    @tu No. Y no me hables así. || No. And don't speak to me that way.
+    @kid ¡No! Eso es feo. || No! That's mean.
+  `,
+  'probe.accuseGroup': `
+    No. Eso es puro estereotipo. || No. That's just a stereotype.
+    No. Esas son cosas que se dicen para ofender. || No. Those are things people say to offend.
+    No. Eso es un estereotipo muy feo. || No. That's a very ugly stereotype.
+    @kid ¡No! Eso es feo. || No! That's mean.
   `,
   'name.rude': `
     @usted No le voy a decir así. || I'm not calling you that.
@@ -2488,7 +2875,7 @@ export const SPANISH = compileBank({
   `,
   'concern.schools.calm': `
     @!kids No tengo niños en la escuela. || I don't have kids in school.
-    @kids Los maestros trabajan duro. || The teachers work hard.
+    @minorkids Los maestros trabajan duro. || The teachers work hard.
   `,
   'concern.abroad': `
     Me preocupa mi familia allá. || I worry about my family back home.
@@ -2711,6 +3098,11 @@ export const SPANISH = compileBank({
     Ah, no sé dónde queda eso. || Oh, I don't know where that is.
     No lo conozco, pero qué bien. || I don't know it, but nice.
   `,
+  'react.from.away': `
+    ¡Ah, {playerPlace}! Eso queda lejos. || Oh, {playerPlace}! That's far away.
+    ¿{playerPlace}? Eso está muy lejos de aquí. || {playerPlace}? That's very far from here.
+    ¡{playerPlace}! Qué lejos. || {playerPlace}! So far away.
+  `,
   'react.job': `
     ¡Qué bien! || That's great!
     Qué buen trabajo. || What a good job.
@@ -2885,25 +3277,30 @@ export const SPANISH = compileBank({
   `,
 
   // ---------------------------------------------------------------- family: a parent's work, grandkids at home
+  // the job said in Spanish (a description from the title), with the title itself in the English
   'fam.parentJob': `
-    {elloEs} es {aParentJob}. || {parentPronoun}'s {aParentJob}.
-    ¿{parentEsCap}? {aParentJob}. || My {parentWord}? {aParentJob}.
-    {parentEsCap} es {aParentJob}. || My {parentWord}'s {aParentJob}.
+    ¿{parentEsCap}? {parentJobEsCap}. || My {parentWord}? {aParentJob}.
+    {parentEsCap} {parentJobEs}. || My {parentWord}'s {aParentJob}.
+    {parentEsCap} {parentJobEs}, desde hace años. || My {parentWord}'s {aParentJob}, for years now.
   `,
   'fam.parentWorks': `
-    {elloEs} trabaja. Siempre anda ocupad{parentO}. || {parentPronoun} works. Always busy.
+    {parentEsCap} trabaja. Siempre anda ocupad{parentO}. || My {parentWord} works. Always busy.
     {parentEsCap} trabaja todo el día. || My {parentWord} works all day.
     {parentEsCap} trabaja, así que casi no está entre semana. || My {parentWord} works, so {parentObj}'s not around much during the week.
   `,
   'fam.parentHome': `
-    {elloEs} está en la casa ahorita. || {parentPronoun}'s home right now.
     {parentEsCap} no está trabajando ahorita. || My {parentWord} isn't working right now.
-    {elloEs} se queda en la casa. || {parentPronoun} stays home.
+    {parentEsCap} está en la casa estos días. || My {parentWord}'s home these days.
+    {parentEsCap} se queda en la casa. || My {parentWord} stays home.
   `,
   'fam.parentRetired': `
-    {elloEs} ya se jubiló. || {parentPronoun}'s retired.
+    {parentEsCap} ya se jubiló. || My {parentWord}'s retired.
     {parentEsCap} ya no trabaja. Está jubilad{parentO}. || My {parentWord} doesn't work anymore. Retired.
     {parentEsCap} se jubiló hace tiempo. || My {parentWord} retired a while back.
+  `,
+  'fam.noGrandparents': `
+    Mis abuelos no viven con nosotros. || My grandparents don't live with us.
+    Aquí no. Mis abuelos viven en otro lado. || Not here. My grandparents live somewhere else.
   `,
   'fam.grandkidsHere': `
     Sí. {nietoEsCap}, {gkName}, vive con nosotros. || Yes. My {gkWord}, {gkName}, lives with us.
@@ -2984,9 +3381,10 @@ export const SPANISH = compileBank({
     {town}, a {milesEs}. Se va por {roadEs}. || {town}, {miles} away. You take {road}.
   `,
   'place.bigTownFar': `
-    Aquí uno planea bien sus vueltas al pueblo. || Out here you plan your trips to town.
-    Nadie va al pueblo por una sola cosa. Se hace una lista. || Nobody goes to town for just one thing. You make a list.
+    @rural Aquí uno planea bien sus vueltas al pueblo. || Out here you plan your trips to town.
+    @rural Nadie va al pueblo por una sola cosa. Se hace una lista. || Nobody goes to town for just one thing. You make a list.
     Es un viaje largo, así que hay que aprovecharlo. || It's a long trip, so you make the most of it.
+    @!rural Queda lejos, así que no voy seguido. || It's far, so I don't go often.
   `,
   'place.bigTownHere': `
     {place} es el pueblo grande de por aquí. || {place} is the big town around here.

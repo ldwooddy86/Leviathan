@@ -8,14 +8,18 @@
 // the home language with an English gloss). It never says the same line twice in a conversation, and the mind
 // remembers what was talked about, so a returning player hears about it. A player may also speak Spanish: a
 // Spanish speaker answers that turn in Spanish (with the English gloss), anyone else gets the everyday words
-// (hola, gracias, ¿cómo está?) and says so for the rest.
+// (hola, gracias, ¿cómo está?) and says so for the rest. A hello in another language ("안녕하세요!") is answered in
+// kind by someone whose language it is, and kindly in English by anyone else. Holidays ("Happy Thanksgiving!", "what
+// are you doing for Thanksgiving?") are answered from the calendar, the household and the work schedule.
 //
-// Some things an NPC will not do. A line that sorts people into groups, probes immigration status or tells them to
-// leave (dialogue/probe.mjs) is declined and pushed back on, and a hostile one costs the player like an insult. A
-// crude, hateful or joke name, job or hometown is never learned or said back. A follow-up ("how old are they?",
-// "which hospital?") is answered from the NPC's own record, never with "I don't know". No claim rests on missing
-// data: no record of an earthquake is not "nothing happened here", and past the forecast window the weather is an
-// estimate and nothing more.
+// Some things an NPC will not do. A line that sorts people into groups, probes immigration status, tells them to
+// leave or accuses them of a crime on a stereotype (dialogue/probe.mjs) is declined or denied and pushed back on,
+// never met with a coy "why do you ask?", and a hostile one costs the player like an insult. A crude, hateful or joke
+// name, job or hometown is never learned or said back, nor is a reaction ("Cool.") taken for a hometown. A follow-up
+// ("how old are they?", "which hospital?", "what does your mom do?") is answered from the NPC's own record about the
+// people it names, never with "I don't know". The NPC says "you asked me that already" only when the player did. No
+// claim rests on missing data: no record of an earthquake is not "nothing happened here", and past the forecast
+// window the weather is an estimate and nothing more.
 //
 // Lines: {text, gloss, intent, topics, emotion, facts}. gloss is the English meaning when the line (or part of it)
 // is in another language, null otherwise. facts lists the ids of the pack facts the line used (see
@@ -66,8 +70,10 @@ const TOPIC_PHRASE = {
 
 const TOPIC_TAGS = /^(fire|road|landmark|place):/;
 
-// Lines that run every reading pattern once, for the constructor's warm-up.
-const WARM_UP = ['hello', 'Hi! How old are they? What do you think about immigrants? Which one?', 'Are Mexicans lazy? Do you have papers? How far is your work? Where are you from?'];
+// Lines that run every reading pattern once, for the constructor's warm-up. (One carries accents: a folded line is a
+// two-byte string, and V8 compiles each pattern separately for those.)
+const WARM_UP = ['hello', 'Hi! How old are they? What do you think about immigrants? Which one?', 'Are Mexicans lazy? Do you have papers? How far is your work? Where are you from?',
+  'Buenos días, ¿cómo está? Ça va.'];
 
 // What anyone in California understands in Spanish, whatever languages they speak.
 const EVERYDAY_SPANISH = new Set(['greeting', 'how-are-you', 'name', 'thanks', 'goodbye', 'apology', 'insult']);
@@ -214,7 +220,8 @@ export class Conversation {
     const S = this._session(rng);
     let u = null, intent, line;
     if (kind === 'reply') {
-      u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name, alias: cleanFireName(f.name) })), lastIntent: st.pivotIntent || st.lastIntent, pending: st.pending, self: v.vocab });
+      // (recent: the topic was the last turn's, so "really?" or "wow" still means it; several turns on, it doesn't)
+      u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name, alias: cleanFireName(f.name) })), lastIntent: st.pivotIntent || st.lastIntent, recent: !!st.pivotIntent || !st.prevIntent || st.prevIntent === st.lastIntent, pending: st.pending, self: v.vocab });
       intent = u.intent;
       // a hostile probe stings like an insult, though the mind's appraisal hears no swearing in it
       if (u.flags.probe && u.flags.probe.hostile) affront(this.mind, this.t, ['slur', 'hate', 'leave'].includes(u.flags.probe.kind) ? 1.4 : 1);
@@ -264,7 +271,7 @@ export class Conversation {
         line = compose(S2, intent, again, u);
       }
       // still nothing new: the NPC owns the repeat ("Like I said, ..."), then says so and moves on, then lets it go
-      if (stale(line)) line = this._repeat(intent, line, rng);
+      if (stale(line)) line = this._repeat(intent, line, rng, u, plan);
       return this._finish(kind, text, intent, line, u, plan);
     } finally {
       v.lang.mode = mode0;
@@ -276,25 +283,29 @@ export class Conversation {
    * of owning it once; then a word that it was asked already and a move to something else; then, when even those
    * are used up, a small gesture. Never a line or a sentence said before in this conversation.
    */
-  _repeat(intent, line, rng) {
+  _repeat(intent, line, rng, u = null, plan = null) {
     const st = this.st, v = this.voice;
     st.repeats += 1;
     const S = this._session(new Rng(hashAll(this.rngSeed, this.idHash, st.turn, 'repeat', st.repeats)));
     const base = { facts: [], ask: null, answered: true, mems: [], keys: [] };
-    if (!NO_RESTATE.has(intent)) {
-      const before = [...this.history].reverse().find(h => h.role === 'npc' && h.intent === intent && h.text && !h.repeat);
+    const topics = (plan && plan.topics) || [];
+    const restate = !NO_RESTATE.has(intent) || topics.some(t => RESTATE_TOPICS.has(t));
+    if (restate) {
+      const before = [...this.history].reverse().find(h => h.role === 'npc' && h.intent === intent && h.text && !h.repeat && (!NO_RESTATE.has(intent) || (h.topics || []).some(t => topics.includes(t))));
       const core = before ? restatable(before, v.relq.name) : null;
       const r = core ? repeatLine(v, core, st) : null;
       if (r) return Object.assign({}, line, base, r, { facts: before.facts.slice(), repeat: true });
     }
-    const ack = say(S, 'repeat.ack');
-    if (ack) {
-      const p = rng.chance(0.6) ? pivot(S) : null;
-      const parts = [ack, p].filter(Boolean);
-      const text = tidy(parts.map(x => terminate(x.text)).join(' '));
-      const gloss = parts.some(x => x.gloss) ? tidy(parts.map(x => terminate(x.gloss || x.text)).join(' ')) : null;
-      if (!st.said.has(text)) return Object.assign({}, line, base, { text, gloss, facts: parts.flatMap(x => x.facts || []), repeat: true });
-    }
+    // "You asked me that already" only when the player did ask it already; a new question with nothing left to say
+    // gets something else on their mind, or a gesture
+    const ack = askedAgain(this.history, intent, u) ? say(S, 'repeat.ack') : null;
+    const lead = ack || gesture(v, st, rng);
+    // (after a conversation ended in anger, nothing more is offered: no new subject)
+    const p = st.ended || (ack && !rng.chance(0.6)) ? null : pivot(S);
+    const parts = [lead, p && !st.said.has(p.text) ? p : null].filter(Boolean);
+    const text = tidy(parts.map(x => terminate(x.text)).join(' '));
+    const gloss = parts.some(x => x.gloss) ? tidy(parts.map(x => terminate(x.gloss || x.text)).join(' ')) : null;
+    if (!st.said.has(text)) return Object.assign({}, line, base, { text, gloss, facts: parts.flatMap(x => x.facts || []), repeat: true });
     return Object.assign({}, line, base, gesture(v, st, rng), { repeat: true });
   }
 
@@ -342,7 +353,7 @@ export class Conversation {
     if (!(plan && plan.parts && plan.parts.some(p => p && /^pivot/.test(p.key || '')))) st.pivotIntent = null;
     if (plan.learnedName) S_learnName(this, plan.learnedName);
     const tAt = this.t;
-    if (text !== null) this.history.push({ role: 'player', text, intent, t: tAt });
+    if (text !== null) this.history.push(Object.assign({ role: 'player', text, intent, t: tAt }, u && u.flags && u.flags.sub ? { sub: u.flags.sub } : {}));
     this.history.push(Object.assign({ role: 'npc', text: out.text, gloss: out.gloss, intent, topics, emotion, facts: out.facts.slice(), t: tAt }, line.repeat ? { repeat: true } : {}));
     this.mind.observe({ kind: 'utterance', from: 'self', text: out.text, t: tAt, tags: [intent] });
     if (kind === 'reply' && TOPICAL.has(intent) && TOPIC_PHRASE[intent]) {
@@ -356,8 +367,36 @@ export class Conversation {
   }
 }
 
+// A sentence that only continues the one before it ("Plus three siblings.", "Y también mis hermanos.").
+const CONTINUATION = /^(?:plus|also|oh, and|and also|and|y también|también|ah, y|además)\b/i;
+
 // Intents whose earlier answer is not worth restating ("Like I said, thanks" is not a thing people say).
 const NO_RESTATE = new Set(['unknown', 'greeting', 'goodbye', 'thanks', 'apology', 'compliment', 'insult', 'probe', 'joke', 'smalltalk']);
+// Topics of those intents whose answers are worth restating all the same ("Like I said, dinner with the family").
+const RESTATE_TOPICS = new Set(['holiday']);
+
+/**
+ * Whether the player asked this before: an earlier line of theirs with the same intent that says the same thing, word
+ * for word or nearly (the same content words), or the same sub-question.
+ */
+function askedAgain(history, intent, u) {
+  if (!u) return false;
+  const key = sentenceKey(u.norm || u.text || '', null, 1);
+  const words = contentWords(key);
+  for (const h of history) {
+    if (h.role !== 'player' || h.intent !== intent || !h.text) continue;
+    const k = sentenceKey(String(h.text).toLowerCase(), null, 1);
+    if (k && k === key) return true;
+    const cw = contentWords(k);
+    if (words.size && cw.size) {
+      let both = 0;
+      for (const x of words) if (cw.has(x)) both++;
+      if (both / (words.size + cw.size - both) >= 0.6) return true;
+    }
+    if (u.flags && u.flags.sub && h.sub && h.sub === u.flags.sub) return true;
+  }
+  return false;
+}
 // Fact ids of events a memory can be about: the line that tells the event tells the memory.
 const TOLD_EVENT = /^(fire|ar|wind|fema):|^record\./;
 
@@ -367,7 +406,8 @@ const TOLD_EVENT = /^(fire|ar|wind|fema):|^record\./;
  */
 function restatable(h, name) {
   const ts = sentencesOf(h.text), gs = h.gloss ? sentencesOf(h.gloss) : [];
-  const i = ts.findIndex(s => sentenceKey(s, name) && !/\?$/.test(s));
+  // (never a continuation: "Like I said, plus three siblings" says nothing)
+  const i = ts.findIndex(s => sentenceKey(s, name) && !/\?$/.test(s) && !CONTINUATION.test(s));
   if (i < 0) return null;
   return { text: ts[i], gloss: h.gloss ? (gs.length === ts.length ? gs[i] : gs.find(s => sentenceKey(s, name)) || null) : null };
 }
@@ -396,7 +436,11 @@ const GESTURES_ES = [['se encoge de hombros', 'shrugs'], ['sonríe', 'smiles'], 
   ['ladea la cabeza', 'tilts {his} head'], ['mira hacia la calle', 'looks down the street'], ['revisa su teléfono', 'checks {his} phone'], ['se cruza de brazos', 'folds {his} arms'],
   ['suspira', 'sighs'], ['sonríe con cortesía', 'smiles politely'], ['hace un gesto con la mano', 'waves a hand']];
 
-/** A gesture not made before in this conversation: one action, or two ("She shrugs and smiles."). */
+// What part of a person a gesture uses: two of the same never go together ("shakes her head and nods").
+const GESTURE_PART = g => (/\b(nods?|head|asiente|cabeza)\b/i.test(g) ? 'head' : /\b(smiles?|laughs?|chuckles|sonr[ií]e|r[ií]e)\b/i.test(g) ? 'face'
+  : /\b(looks?|glances|eyebrow|ceja|mira)\b/i.test(g) ? 'eyes' : /\b(arms|hand|phone|brazos|mano|tel[eé]fono)\b/i.test(g) ? 'hands' : g);
+
+/** A gesture not made before in this conversation: one action, or two that go together ("She shrugs and smiles."). */
 function gesture(v, st, rng) {
   const he = v.sex === 'F' ? 'She' : 'He', his = v.sex === 'F' ? 'her' : 'his';
   const es = v.lang.mode === 'es';
@@ -404,7 +448,7 @@ function gesture(v, st, rng) {
   const cands = [];
   for (let i = 0; i < acts.length; i++) {
     cands.push([acts[i]]);
-    for (let j = 0; j < acts.length; j++) if (j !== i) cands.push([acts[i], acts[j]]);
+    for (let j = 0; j < acts.length; j++) if (j !== i && GESTURE_PART(acts[i][1]) !== GESTURE_PART(acts[j][1])) cands.push([acts[i], acts[j]]);
   }
   const order = rng.shuffle(cands.map((c, k) => k));
   for (const k of order) {

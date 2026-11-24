@@ -256,12 +256,16 @@ export const TAG_TESTS = Object.freeze({
   house: v => !!v.flags.house, apartment: v => !!v.flags.apartment, mobile: v => !!v.flags.mobile,
   newcomer: v => !!v.flags.newcomer, longtime: v => !!v.flags.longtime, retired: v => !!v.flags.retired, student: v => !!v.flags.student,
   wfh: v => !!v.flags.wfh, outdoor: v => !!v.flags.outdoor, kids: v => !!v.flags.kids, littlekids: v => !!v.flags.littleKids,
+  // kids still under 18 at home (keeping them out of trouble, their school), not grown ones
+  minorkids: v => !!v.flags.minorKids,
   teens: v => !!v.flags.teens, grandkids: v => !!v.flags.grandkids, partner: v => !!v.flags.partner, alone: v => !!v.flags.alone,
   immigrant: v => !!v.flags.immigrant, transit: v => !!v.flags.transit, nights: v => !!v.flags.nights, early: v => !!v.flags.early,
   commuter: v => !!v.flags.commuter, coast: v => !!v.flags.coast, inland: v => !v.flags.coast, rural: v => !!v.flags.rural,
   urban: v => !!v.flags.urban, suburban: v => !!v.flags.suburban, churchgoer: v => !!v.flags.churchgoer, fan: v => !!v.flags.fan,
   firezone: v => !!v.flags.fireZone, hotplace: v => !!v.flags.hotPlace, snowplace: v => !!v.flags.snowPlace, desert: v => !!v.flags.desert,
   withparents: v => !!v.flags.withParents, widowed: v => !!v.flags.widowed, male: v => v.sex === 'M', female: v => v.sex === 'F',
+  // works their own farm or ranch from home
+  farm: v => !!v.flags.onFarm,
   // the relationship with the player
   stranger: v => !v.relq.known, known: v => !!v.relq.known, friendly: v => v.relq.affinity >= 0.15, guarded: v => !!v.relq.guarded,
   named: v => !!v.relq.name,
@@ -420,6 +424,11 @@ const LIFE_CHECKS = [
   [/\bmy (boss|manager)\b|\b(before|till|until) (somebody|someone|anybody|anyone) notices\b/i, v => !v.flags.selfEmployed && (v.speaker.works === true || (v.speaker.works === undefined && v.age >= 18))],
   [/\bmy (shift|coworkers?|paycheck)\b|\b(at|before|after|from|to|on the way to) work\b|\bmy office\b/i, v => v.speaker.works === true || (v.speaker.works === undefined && v.age >= 18)],
   [/\bmy commute\b|\bon my way (in|to work)\b/i, v => !!v.flags.commuter],
+  // the train or the bus, taken by someone whose commute is the train or the bus (or who has no car to drive)
+  [/\b(?:took|take|ride|rode|riding|catch|caught|hop on|hopped on) (?:the )?(?:metrolink|bart|caltrain|muni|amtrak|light rail|train|bus|metro|ferry|expo line|gold line|red line|trolley|coaster)\b/i,
+    v => !!(v.flags && v.flags.transit) || !SPEAKER_NEEDS.drives.test(v.speaker)],
+  // the carpool lane is for someone who carpools
+  [/\bcarpool lane\b[^.!?]*\b(?:I|I'm|me|my)\b|\b(?:I|I'm|my)\b[^.!?]*\bcarpool lane\b|\bI (?:carpool|vanpool)\b|\bmy carpool\b/i, v => !!(v.commute && v.commute.mode === 'carpool')],
   [/\b(my|our) (car|truck|steering wheel|windshield|tires?)\b|\bI (drove|drive)\b|\bI'?m driving\b|\bwhen I drive\b/i, v => SPEAKER_NEEDS.drives.test(v.speaker)],
   // born here (in this county), not only raised here: "born and raised", "my whole life"
   [/\bborn and raised\b|\b(here|county|town|place|house|home|area|city|valley|neighborhood|neck of the woods),? (my whole life|all my life)\b|\bmy whole life (here|in (this|the) (county|town|area|valley|city|neighborhood))\b|\blived (here|in this (county|town|area|valley|city|neighborhood)) (my|all my) (whole )?life\b/i,
@@ -431,7 +440,7 @@ const LIFE_CHECKS = [
 ];
 
 // Lines that treat the listener as an old acquaintance; fine for neighbors, not for a stranger.
-const FAMILIAR = /\b(long time|haven't seen you|in forever|look who it is|good to see you( again)?|you still (living|around)|you made it|you make it back|how'?s the family|how'?s work been|how'?ve you been|you'?re back|been a while|(?:seen|talked to|heard from) you in a while|how'?s everybody|well, hey, stranger|hey, stranger|your side of (town|the bay)|on your side|tell your (folks|mom|dad|mother|father|family|wife|husband|kids|parents)|say hi to your|how'?s your (mom|dad|mother|father|family|folks|wife|husband|kids|parents))\b/i;
+const FAMILIAR = /\b(long time|haven't seen you|in forever|look who it is|good to see you( again)?|you still (living|around)|you made it|you make it back|how'?s the family|how'?s work been|how'?ve you been|you'?re back|been a while|(?:seen|talked to|heard from) you in a while|how'?s everybody|well, hey, stranger|hey, stranger|your side of (town|the bay)|on your side|tell your (folks|mom|dad|mother|father|family|wife|husband|kids|parents)|say hi to your|how'?s your (mom|dad|mother|father|family|folks|wife|husband|kids|parents)|how'?s the (fishing|hunting|garden|harvest|crop|crops|family|new job|new place)( been)?)\b/i;
 
 /**
  * True when a line fits the speaker's life and the relationship: no first-person claim the record contradicts,
@@ -497,6 +506,8 @@ const SKY_WORDS = [
   [/\b(scorching|triple digits|melting|baking|sweltering)\b|\bhot (enough|out|today|one)\b/i, v => v.sky === 'heat' || (isNum(v.tempF) && v.tempF >= 88)],
   [/\b(freezing|frost|frosty|cold snap|scrape the windshield)\b/i, v => v.sky === 'cold' || (isNum(v.tempF) && v.tempF <= 45)],
 ];
+// "I was just about to head out": only from someone at home, not already on the way somewhere or at work.
+const HEADING_OUT = /\b(?:just )?about to (?:head|go) out\b|\bwas (?:just )?(?:leaving|heading out)\b|\bon my way out\b/i;
 const HABIT = /\bafter (a|the) (rain|storm|big storm)\b|\bevery (winter|summer|spring|fall|year|time)\b|\bwhen (it|the|they) \w+|\bwhenever\b|\bin the morning, \w+ by\b/i;
 // A sky without a single cloud: only under a plain "Sunny" or "Clear" forecast.
 const CLOUDLESS = /\bnot a (single )?cloud\b|\bcloudless\b|\bno clouds\b/i;
@@ -541,6 +552,7 @@ export function lexiconLineFits(text, v, category = '') {
   }
   if (COAST_ONLY.test(s) && !(v.flags && v.flags.coast)) return false;
   if (INCIDENT.test(s)) return false;
+  if (HEADING_OUT.test(s) && v.activity && (v.activity.traveling || !['home', 'sleep', 'leisure'].includes(v.activity.kind) || (v.activity.place && v.activity.place.kind !== 'home'))) return false;
   return true;
 }
 
