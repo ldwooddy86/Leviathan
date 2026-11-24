@@ -23,3 +23,6 @@ Scout: port_traffic_scout.py and topo/port_topo.py are applied to CA/scout/scout
 | Engine dense downtowns (LA crash) | ac82217a66f3a502b | CA/engine/dense |
 | Engine stack integration | ab07c3bb925e96889 | CA/engine/{terrain,weather,traffic,car,sky}, finish_engine.py |
 | Scout integration | ae948f014f20eb083 | CA/scout, CA/engine/views, CA/scout/topo |
+| Legion: survey and embeddable library | a21c5b0ecf36121bf | CA/legion |
+| Legion on the Scout map and card (bridge SLG) | ae06560332a72fd8b | CA/scout |
+| Legion in the Scout Engine (people) | a70b8d8e550f34a32 | CA/engine/people |

@@ -21,6 +21,7 @@ NWS = opt('--nws', os.path.join(CA, 'data', 'hazard', 'out', 'ca_nws_snapshot.js
 ENGINE = opt('--engine', os.path.join(CA, 'engine', 'out', 'engine.js'))
 ESTYLE = opt('--engine-style', os.path.join(CA, 'engine', 'out', 'engine-style.css'))
 SCOUT = opt('--scout-dir', os.path.join(CA, 'scout'))
+LEGION = opt('--legion', os.path.join(CA, 'legion', 'out', 'legion.embed.html'))
 OUT = args[0] if args else '/home/user/Leviathan/california-roofer-guru.html'
 def rd(p):
     with open(p, encoding='utf-8') as f: return f.read()
@@ -55,13 +56,15 @@ assert page.count(anchor) == 1, 'shell anchor not found exactly once'
 blk = ['<!-- rooftop-scout:start (module 18: the heatmaps on satellite imagery, Street View from the road, every roof read) -->\n',
        vendor('leaflet.css'), own(os.path.join(S, 'scout-style.css')), own(ESTYLE), vendor('leaflet.js'), own(os.path.join(S, 'scout.js')),
        '<!-- rooftop-scout:end (its 3D and AI parts are at the end of the body) -->\n']
+# Legion as a library (the user's NPC app; CA/legion/port_legion.py): strings only at page load, used by module 18
+legion = [nl(rd(LEGION))] if LEGION and LEGION != 'none' and os.path.exists(LEGION) else []
 end = ['<!-- rooftop-scout:3d-ai:start (module 18: the 3D view, the AI tracing and AI detail, parsed after the first module draws) -->\n',
        vendor('three.js'), vendor('data.js'), vendor('ort-wasm.js'), vendor('ort-webgpu.js'), own(os.path.join(S, 'trace.js')),
        vendor('tf.js'), vendor('sr.js'), own(os.path.join(S, 'scout3d.js')), own(ENGINE), '<!-- rooftop-scout:3d-ai:end -->\n']
 page = page.replace(anchor, ''.join(blk) + anchor)
 i = page.rfind('</body>')
 assert i > 0 and page[i:].replace('\n', '') == '</body></html>', 'the closing body tag is not the last tag'
-page = page[:i] + ''.join(end) + page[i:]
+page = page[:i] + ''.join(legion) + ''.join(end) + page[i:]
 with open(OUT, 'w', encoding='utf-8') as f: f.write(page)
 print('wrote', OUT, len(page.encode('utf-8')), 'bytes; sha1', hashlib.sha1(page.encode('utf-8')).hexdigest()[:12])
 # words that must not be in a California page (reported, not fatal: vendor code and quoted law may hold some)

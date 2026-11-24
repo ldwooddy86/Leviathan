@@ -1,0 +1,21 @@
+const L = window.legion, S = L.services, W = S.world, P = S.population;
+const out = {};
+out.keys = Object.keys(L);
+out.build = L.build;
+out.world = { N: W.N, totalPop: W.totalPop, totalHH: W.totalHH, unitKm: W.unitKm, snapshot: new Date(W.snapshotTime).toISOString(), seed: S.seed };
+out.settings = L.settings.public();
+out.clock = { t: L.clock.t, iso: new Date(L.clock.t).toISOString(), keys: Object.keys(L.clock), proto: Object.getOwnPropertyNames(Object.getPrototypeOf(L.clock)) };
+out.status = S.status();
+out.stage = { build: L.stage.build, counts: L.stage.counts(), crowd: L.crowd && { count: L.crowd.count, rate: L.crowd.rate, mode: L.crowd.mode, chunks: L.crowd.chunks.length, keep: L.crowd.keep, software: L.crowd.software, summary: L.crowd.summary } };
+const zi = W.indexOf('90012');
+out.hh = { count: P.householdCount(zi), expected: P.expectedPersons(zi), pop: W.z.pop[zi] };
+const t0 = performance.now(); const core = P.householdCore(zi, 0); out.coreMs = performance.now() - t0; out.core = core;
+out.household = P.household(zi, 0);
+const p = S.npc('90012-0-0'); out.npc = p;
+const per = S.persona(p.id); out.personaOk = per.ok; if (per.ok) { out.personaKeys = Object.keys(per.value); out.persona = JSON.parse(JSON.stringify(per.value, (k, v) => k === 'npc' ? undefined : v)); }
+const act = S.activityAt(p.id, L.clock.t); out.activity = act;
+const plan = S.dayPlan(p.id, L.clock.t); out.plan = plan.ok ? plan.value : plan;
+out.mem = performance.memory ? { used: performance.memory.usedJSHeapSize, total: performance.memory.totalJSHeapSize } : null;
+out.ls = Object.keys(localStorage);
+out.idb = indexedDB.databases ? (await indexedDB.databases()).map(d => d.name) : null;
+return out;
