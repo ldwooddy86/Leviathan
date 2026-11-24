@@ -165,7 +165,7 @@ export const COMMON = {
       @drives Chains in the trunk, just in case.
       Fresh snow up high. Everybody's going to head up this weekend.
       Somebody's going to try to drive up in the snow without chains. Every time.
-      @m10-5 Snow up high means more water this summer. Hopefully.
+      Snow up high means more water later. Hopefully.
       Everybody's posting pictures of the snow on {peak}.
     `),
     clear: lines(`

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Population, LEGION_SEED } from '../src/engine/population.mjs';
 import { persona } from '../src/engine/persona.mjs';
-import { dayPlan, activityAt, dayInfo, rhythmOf, PLAN_KINDS } from '../src/engine/schedule.mjs';
+import { dayPlan, activityAt, dayInfo, rhythmOf, familyOutings, busyIntervals, PLAN_KINDS } from '../src/engine/schedule.mjs';
 import { atPacific, pacific } from '../src/engine/clock.mjs';
 
 const world = await loadDefaultWorld();
@@ -122,34 +122,110 @@ test('weekends differ from weekdays', () => {
   assert.ok(n >= 30, `weekday commuters: ${n}`);
 });
 
-test('young children ride to school with the household adult the routine assigns', () => {
-  let runs = 0;
-  for (const zip of ZIPS) {
+// Every member of a household with children, with persona and the plans of a whole week (Sunday 22 .. Saturday 28).
+const WEEK = [0, 1, 2, 3, 4, 5, 6].map(d => atPacific(2026, 11, 22 + d, 12, 0));
+function householdsWithKids(zips, maxHH, maxAge = 11) {
+  const out = [];
+  for (const zip of zips) {
     const zi = world.indexOf(zip);
-    for (let h = 0; h < 1500 && runs < 12; h++) {
+    for (let h = 0; h < Math.min(maxHH, world.z.hh[zi] || 0); h++) {
       const core = pop.householdCore(zi, h);
-      for (const kid of core.members) {
-        if (kid.age >= 11 || !kid.student || kid.departMin === null || !['carpool', 'drive'].includes(kid.mode)) continue;
-        const adults = core.members.filter(a => a.age >= 18).map(a => pop.person(zi, h, a.m));
-        const driver = adults.map(a => ({ a, p: P(a) })).find(x => x.p.routine.schoolRuns.some(r => r.child === kid.m));
-        const kidP = P(pop.person(zi, h, kid.m));
-        if (!driver) { assert.equal(kidP.routine.ride, null); continue; }
-        assert.equal(kidP.routine.ride.driver, driver.a.m, 'the child and the driver agree');
-        const plan = dayPlan(driver.a, driver.p, TUE);
-        const drop = plan.find(it => it.label === 'school drop-off');
-        if (!(kid.days & (1 << 2))) continue;
-        assert.ok(drop, `${driver.a.id} drives ${kid.m} to school`);
-        assert.equal(drop.startMin, kid.departMin);
-        assert.ok(Math.abs(drop.place.x - kid.work.x) < 1e-9 && Math.abs(drop.place.y - kid.work.y) < 1e-9);
-        const kplan = dayPlan(pop.person(zi, h, kid.m), kidP, TUE);
-        const school = kplan.find(it => it.kind === 'school');
-        assert.ok(school, 'the child is at school on a school day');
-        assert.ok(!dayPlan(pop.person(zi, h, kid.m), kidP, SAT).some(it => it.kind === 'school'), 'no school on Saturday');
-        runs++;
+      if (!core.members.some(x => x.age < maxAge)) continue;
+      const ms = core.members.map(x => { const npc = pop.person(zi, h, x.m); return { npc, p: P(npc), core: x }; });
+      out.push({ core, ms, week: WEEK.map(t => new Map(ms.map(x => [x.npc.m, dayPlan(x.npc, x.p, t)]))) });
+    }
+  }
+  return out;
+}
+const HOUSEHOLDS = householdsWithKids(['94110', '90001', '91342', '93721', '92335', '95814', '93230', '92101', '96161', '95521'], 220);
+
+test('school runs: every ride is in the driver\'s plan all week, siblings ride together, work at home steps aside', () => {
+  let rides = 0, merged = 0, walking = 0, busStop = 0, wfhDrivers = 0, together = 0;
+  for (const { core, ms, week } of HOUSEHOLDS) {
+    for (let dow = 0; dow < 7; dow++) {
+      const plans = week[dow];
+      for (const kid of ms) {
+        const ride = kid.p.routine.ride;
+        if (!ride) continue;
+        for (const leg of ride.legs) {
+          if (!(leg.days & (1 << dow))) continue;
+          rides++;
+          const items = plans.get(leg.driver).filter(it => it.run === leg.kind && it.escort && it.escort.includes(kid.npc.m));
+          assert.ok(items.length, `${kid.npc.id}: ${leg.kind} by member ${leg.driver} on day ${dow} is in the driver's plan`);
+          if (leg.kind === 'drop-off') {
+            const first = items[0];
+            assert.ok(first.startMin <= kid.core.departMin && first.startMin >= kid.core.departMin - 15, `${kid.npc.id} leaves with the run (${first.startMin} vs ${kid.core.departMin})`);
+            const { from, place } = first, w = kid.core.work;
+            // to the school, or to the bus stop on the child's own way there
+            const cross = (w.x - from.x) * (place.y - from.y) - (w.y - from.y) * (place.x - from.x);
+            assert.ok(Math.abs(cross) < 1e-6 * Math.max(1, (w.x - from.x) ** 2 + (w.y - from.y) ** 2), 'the run heads for the child\'s school');
+            if (first.escort.length >= 2) merged++;
+            if (leg.mode === 'walk') walking++;
+            if (leg.mode === 'bus-stop') busStop++;
+          }
+        }
+      }
+      for (const adult of ms) {
+        const plan = plans.get(adult.npc.m);
+        // what the routine says this adult takes today, the plan holds; never on top of their own layer 0 day
+        for (const run of adult.p.routine.schoolRuns) {
+          if (!(run.days & (1 << dow))) continue;
+          assert.ok(plan.some(it => it.run === run.kind && it.escort && run.children.every(c => it.escort.includes(c))), `${adult.npc.id} ${run.kind} on day ${dow}`);
+          for (const it of plan.filter(x => x.run)) for (const [a, b] of busyIntervals(adult.core, dow)) assert.ok(!(it.startMin < b && it.endMin > a), `${adult.npc.id} runs while at work`);
+        }
+        const drops = plan.filter(it => it.run === 'drop-off' && it.travel && it.place.kind === 'school');
+        for (let i = 1; i < drops.length; i++) assert.ok(!(drops[i].place.x === drops[i - 1].place.x && drops[i].startMin - drops[i - 1].startMin < 15), `${adult.npc.id}: siblings at one school ride together`);
+        if (plan.some(it => it.label === 'working from home') && plan.some(it => it.run)) wfhDrivers++;
+      }
+      // a walking escort and the child move together
+      for (const kid of ms) {
+        const leg = kid.p.routine.ride && kid.p.routine.ride.legs.find(l => l.kind === 'drop-off' && l.mode === 'walk' && (l.days & (1 << dow)));
+        if (!leg) continue;
+        const own = plans.get(kid.npc.m).find(it => it.anchor === 'layer0' && it.leg === 'out');
+        const esc = plans.get(leg.driver).find(it => it.run === 'drop-off' && it.travel && it.escort.includes(kid.npc.m));
+        if (!own || own.startMin !== esc.startMin) continue; // a sibling leaving a few minutes after the lead
+        const t = Math.floor((own.start + own.end) / 2);
+        const a = activityAt(kid.npc, kid.p, t).position, b = activityAt(ms.find(x => x.npc.m === leg.driver).npc, ms.find(x => x.npc.m === leg.driver).p, t).position;
+        assert.ok(Math.hypot(a.x - b.x, a.y - b.y) < 1e-6, `${kid.npc.id} walks with ${leg.driver}`);
+        together++;
       }
     }
   }
-  assert.ok(runs >= 3, `school runs checked: ${runs}`);
+  assert.ok(rides >= 400, `ride-days checked: ${rides}`);
+  assert.ok(merged > 0 && walking > 0 && busStop > 0 && wfhDrivers > 0 && together > 0, JSON.stringify({ merged, walking, busStop, wfhDrivers, together }));
+});
+
+test('children under ten go out only to school and with a grown-up of the household, who has the same outing', () => {
+  let legs = 0, churches = 0, school = 0;
+  for (const { ms, week } of HOUSEHOLDS) {
+    for (let dow = 0; dow < 7; dow++) {
+      const plans = week[dow];
+      for (const kid of ms.filter(x => x.npc.age < 10)) {
+        for (const it of plans.get(kid.npc.m)) {
+          if (!it.travel) continue;
+          if (it.anchor === 'layer0') { school++; continue; }
+          assert.ok(it.together, `${kid.npc.id} goes to ${it.label} on day ${dow} on their own`);
+          const grown = ms.filter(a => a.npc.age >= 18 && it.escort.includes(a.npc.m));
+          assert.ok(grown.length, `${kid.npc.id} ${it.label}: a grown-up goes`);
+          for (const a of grown) {
+            const same = plans.get(a.npc.m).find(x => x.together === it.together && x.startMin === it.startMin && x.endMin === it.endMin);
+            assert.ok(same && same.place.x === it.place.x && same.place.y === it.place.y && same.mode === it.mode, `${a.npc.id} has ${kid.npc.id}'s ${it.label}`);
+            for (const [s, e] of busyIntervals(a.core, dow)) assert.ok(!(it.startMin < e && it.endMin > s), `${a.npc.id} is free for ${it.label}`);
+          }
+          legs++;
+          if (it.kind === 'worship') { assert.equal(dow, 0, 'church is on Sunday'); churches++; }
+        }
+      }
+    }
+  }
+  assert.ok(legs > 200 && school > 200 && churches > 0, JSON.stringify({ legs, school, churches }));
+  // every member's persona describes the same household: the same outings, drawn from any member
+  for (const { ms } of HOUSEHOLDS.slice(0, 60)) {
+    for (const t of WEEK) {
+      const views = ms.map(x => JSON.stringify(familyOutings(x.p.routine.household, t)));
+      assert.ok(views.every(v => v === views[0]), `${ms[0].npc.hid} household outings agree`);
+    }
+  }
 });
 
 test('errands go to nearby ZIPs with stores, and the faithful go to church on Sunday', () => {

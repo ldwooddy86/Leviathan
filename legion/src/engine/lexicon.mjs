@@ -285,13 +285,30 @@ const RELATION_ALIASES = {
   dad: 'father', papa: 'father', auntie: 'aunt', aunty: 'aunt', buddy: 'friend',
 };
 
-function entryOk(e, opts, lang) {
+// Hours (local, inclusive, wrapping) when a time-of-day phrase is said: "Buenos días" in the morning only.
+const TIME_HOURS = { morning: [4, 11], day: [10, 17], afternoon: [12, 18], evening: [17, 23], night: [20, 3] };
+
+function hourIn(h, [a, b]) {
+  return a <= b ? h >= a && h <= b : h >= a || h <= b;
+}
+
+function hourOf(opts) {
+  if (Number.isInteger(opts.hour)) return opts.hour;
+  if (Number.isFinite(opts.t)) return pacific(opts.t).hour;
+  return null;
+}
+
+// opts.variety: undefined means the language's default variety (most California Spanish is Mexican); null means
+// a speaker whose variety is unknown or none of the declared ones, who gets only the shared, untagged entries.
+function entryOk(e, opts, lang, hour) {
   if (e.sex && e.sex !== opts.sex) return false;
   if (e.to && e.to !== opts.to) return false;
   if (e.region) {
-    const v = opts.variety || lang.defaultVariety;
+    const v = opts.variety === undefined ? lang.defaultVariety : opts.variety;
     if (!v || !e.region.includes(v)) return false;
   }
+  if (e.faith && e.faith !== opts.faith) return false;
+  if (e.time && !(hour !== null && hourIn(hour, TIME_HOURS[e.time]))) return false;
   if ((opts.register === 'respect' || opts.register === 'formal') && e.register === 'casual') return false;
   return true;
 }
@@ -311,17 +328,38 @@ function choose(pool, rng, picker, category) {
 }
 
 /**
+ * The entries of a language for an intent that this speaker can say now: the filtering codeSwitch applies,
+ * without the random choice (for tools, tests and prompt examples). Null for an unknown language or intent.
+ * @param {string} lang a LANGUAGES key or alias
+ * @param {string} intent
+ * @param {object} [opts] codeSwitch's options
+ * @returns {object[]|null}
+ */
+export function phrasesFor(lang, intent, opts = {}) {
+  const key = resolveLanguage(lang, opts.seed !== undefined ? opts.seed : 0);
+  const L = key && LANGUAGES[key];
+  if (!L) return null;
+  const all = poolFor(L, intent);
+  if (!all) return null;
+  const hour = hourOf(opts);
+  return all.filter(x => entryOk(x, opts, L, hour));
+}
+
+/**
  * A phrase in the speaker's language for an intent, for code-switching into a line:
  * {text, roman (non-Latin scripts), gloss, lang, intent}, or null when the language has nothing suitable.
  * Intents: greeting, how_are_you, thanks, farewell, yes, no, surprise, frustration, delight, affection,
- * polite, food, and every PHRASE_INTENTS entry. Entries tied to the speaker's gender (opts.sex), the
- * listener's (opts.to) or a regional variety (opts.variety; else the language's default) are used only when
- * they match; opts.register 'respect' or 'formal' avoids casual forms. Call this only for a speaker who
- * actually speaks the language.
+ * polite, food, and every PHRASE_INTENTS entry (thank_god, god_willing and blessing only where culturally
+ * natural). Entries tied to the speaker's gender (opts.sex), the listener's (opts.to), a regional variety
+ * (opts.variety: a varietyFor() result; undefined means the language's default, null only the shared entries),
+ * a faith (opts.faith: the speaker's own, see faithFor; faith formulas are never used without it) or a time of
+ * day (opts.hour, or opts.t in epoch ms; "Buenos días" only in the morning, and never without a time) are used
+ * only when they match; opts.register 'respect' or 'formal' avoids casual forms. Call this only for a speaker
+ * who actually speaks the language.
  * @param {string} lang a LANGUAGES key or alias (ambiguous aliases resolve by opts.seed, else rng.seed)
  * @param {string} intent
  * @param {Rng} rng
- * @param {{sex?: 'F'|'M', to?: 'F'|'M', variety?: string, register?: string, seed?: number, picker?: Picker}} [opts]
+ * @param {{sex?: 'F'|'M', to?: 'F'|'M', variety?: string|null, faith?: string|null, hour?: number, t?: number, register?: string, seed?: number, picker?: Picker}} [opts]
  * @returns {{text: string, roman?: string, gloss: string, lang: string, intent: string}|null}
  */
 export function codeSwitch(lang, intent, rng, opts = {}) {
@@ -330,7 +368,8 @@ export function codeSwitch(lang, intent, rng, opts = {}) {
   if (!L || !rng) return null;
   const all = poolFor(L, intent);
   if (!all) return null;
-  const e = choose(all.filter(x => entryOk(x, opts, L)), rng, opts.picker, `cs:${key}:${intent}`);
+  const hour = hourOf(opts);
+  const e = choose(all.filter(x => entryOk(x, opts, L, hour)), rng, opts.picker, `cs:${key}:${intent}`);
   return e ? { ...e, lang: key, intent } : null;
 }
 
@@ -341,7 +380,7 @@ export function codeSwitch(lang, intent, rng, opts = {}) {
  * @param {string} lang
  * @param {string} relation
  * @param {Rng} rng
- * @param {{sex?: 'F'|'M', to?: 'F'|'M', variety?: string, register?: string, seed?: number, picker?: Picker}} [opts]
+ * @param {{sex?: 'F'|'M', to?: 'F'|'M', variety?: string|null, faith?: string|null, register?: string, seed?: number, picker?: Picker}} [opts]
  * @returns {{text: string, roman?: string, gloss: string, lang: string, relation: string}|null}
  */
 export function familyTerm(lang, relation, rng, opts = {}) {
@@ -351,7 +390,8 @@ export function familyTerm(lang, relation, rng, opts = {}) {
   const rel = RELATION_ALIASES[relation] || relation;
   const all = L.family[rel];
   if (!all) return null;
-  const e = choose(all.filter(x => entryOk(x, opts, L)), rng, opts.picker, `fam:${key}:${rel}`);
+  const hour = hourOf(opts);
+  const e = choose(all.filter(x => entryOk(x, opts, L, hour)), rng, opts.picker, `fam:${key}:${rel}`);
   return e ? { ...e, lang: key, relation: rel } : null;
 }
 
@@ -379,6 +419,31 @@ export function weatherCondition(wx) {
   if (/frost|freeze/.test(alerts) || (t !== null && t <= 42)) return 'cold';
   if (/sunny|clear|fair/.test(s)) return 'clear';
   return null;
+}
+
+// Santa Ana, Diablo and sundowner winds blow from the north and east, down off the deserts and the mountains;
+// the onshore sea breeze and the winds ahead of a winter storm come from the west and the south.
+const OFFSHORE_DIR = /\b(north|north northeast|northeast|east northeast|east)\s+wind\b/i;
+const OFFSHORE_KIND = { sa: 'santa_ana', di: 'diablo', su: 'sundowner' };
+
+/**
+ * The offshore wind blowing now, by the ZIP's regime, or null: 'santa_ana' | 'diablo' | 'sundowner' when the
+ * ZIP has an offshore wind regime (off_kind) and the current forecast period has a north-to-east wind of at
+ * least 10 mph (or gusts of 20, or a wind or red flag alert). Lines tagged @offshore need it.
+ * @param {object} wx world.weatherAt() output
+ * @param {{off_kind?: string}} z the ZIP (world.zip)
+ * @returns {string|null}
+ */
+export function offshoreWind(wx, z) {
+  const kind = z && OFFSHORE_KIND[z.off_kind];
+  if (!kind || !wx) return null;
+  const detail = String((wx.period && wx.period.detail) || '');
+  if (!OFFSHORE_DIR.test(detail)) return null;
+  const speeds = [...detail.matchAll(/(\d+)\s*(?:to\s*(\d+)\s*)?mph/gi)].map(m => +(m[2] || m[1]));
+  const gust = /gusts? (?:as high as |up to |to )?(\d+)/i.exec(detail);
+  const windy = Math.max(0, ...speeds) >= 10 || (gust && +gust[1] >= 20)
+    || (wx.alerts || []).some(a => /wind|red flag/i.test(String(a && a.event)));
+  return windy ? kind : null;
 }
 
 const ARTICLE_SUFFIX = /\b(Mountains|Hills|Range|Buttes|Peaks|Crags|Alps|Valley|Basin|Desert|River|Ocean|Sea|Channel|Strait|Delta|Slough|Islands|Canyon|Bluffs)$/;
@@ -451,13 +516,15 @@ function seasonLabel(z, month) {
 /**
  * Slot values for ZIP zi from the world pack, ready for fill(): the town, county and region, the nearest busy
  * highway as locals say it, a named stretch, a landmark, the current temperature, forecast and alert, the
- * most destructive fire on record with its year, the month, weekday and season, and a local team. Missing
- * data stays null, so templates that need it are skipped. `facts` names the pack facts each slot came from.
- * Callers may override any slot (a persona's own memory of a fire, the team the NPC follows).
+ * most destructive fire on record with its year, the month, weekday and season, and a local team (with and
+ * without its article). Missing data stays null, so templates that need it are skipped. `facts` names the pack
+ * facts each slot came from. `context` is the situation linesFor and pickLine check line tags against: {t,
+ * month, hour, condition, alerts, offshore, offshoreKind, coastKm, county}. Callers may override any slot (a
+ * persona's own memory of a fire; opts.team, the team the NPC follows, as a string or a persona team object).
  * @param {import('./world.mjs').World} world
  * @param {number|string} zi ZIP index or code
- * @param {{t?: number, rng?: Rng, dialect?: string, team?: string}} [opts]
- * @returns {{values: Record<string, string|number|null>, facts: Record<string, string|null>}|null}
+ * @param {{t?: number, rng?: Rng, dialect?: string, team?: string|{name?: string, label?: string}}} [opts]
+ * @returns {{values: Record<string, string|number|null>, facts: Record<string, string|null>, context: object}|null}
  */
 export function slotsFor(world, zi, opts = {}) {
   if (typeof zi === 'string') zi = world.indexOf(zi);
@@ -511,7 +578,66 @@ export function slotsFor(world, zi, opts = {}) {
   values.month = p.monthName;
   values.day = p.dayName;
   values.season = seasonLabel(z, p.month);
-  // Teams are listed most-followed first.
-  values.team = opts.team || (d && d.teams.length ? (rng ? d.teams[rng.weighted(d.teams.map((_, k) => 1 / (k + 1)))] : d.teams[0]) : null);
-  return { values, facts };
+  // Teams are listed most-followed first. A persona's team object says it as {label: 'the Dodgers', name: 'Dodgers'}.
+  const team = opts.team || (d && d.teams.length ? (rng ? d.teams[rng.weighted(d.teams.map((_, k) => 1 / (k + 1)))] : d.teams[0]) : null);
+  values.team = team && typeof team === 'object' ? (team.label || team.name || null) : team;
+  values.teamName = teamName(team);
+
+  const offshoreKind = offshoreWind(wx, z);
+  const context = {
+    t, month: p.month, hour: p.hour,
+    condition: weatherCondition(wx),
+    alerts: wx && wx.alerts ? wx.alerts.map(a => String(a.event || '')).filter(Boolean) : [],
+    offshore: !!offshoreKind, offshoreKind,
+    coastKm: Number.isFinite(z.coast_km) ? z.coast_km : null,
+    county: z.countyName || null,
+  };
+  return { values, facts, context };
+}
+
+const HEAD_ROLES = new Set(['householder', 'spouse', 'partner']);
+
+/**
+ * The facts about a speaker that lines presuppose (see SPEAKER_NEEDS), from a layer 1 NPC record and, when
+ * given, its persona: {age, drives, works, tenure, parent, nativeHere, generation}. tenure is the speaker's own
+ * housing ('own' or 'rent' for a householder or spouse, 'rent' for a roommate, null for anyone who neither owns
+ * nor pays rent, such as a grown child at home); parent means raising children under 18 at home; nativeHere
+ * comes from persona.residence.grewUpHere. A fact the record does not settle stays undefined.
+ * @param {object} npc a layer 1 NPC (population.mjs)
+ * @param {object} [persona] its persona (persona.mjs)
+ * @returns {{age?: number, drives?: boolean, works?: boolean, tenure?: 'own'|'rent'|null, parent?: boolean, nativeHere?: boolean, generation?: number}}
+ */
+export function speakerFacts(npc, persona = null) {
+  if (!npc || typeof npc !== 'object') return {};
+  const out = {};
+  const age = Number.isFinite(npc.age) ? npc.age : undefined;
+  if (age !== undefined) out.age = age;
+  const hh = npc.household && typeof npc.household === 'object' ? npc.household : {};
+  const members = Array.isArray(hh.members) ? hh.members : [];
+  const mode = npc.commute && npc.commute.mode;
+  const vehicles = Number.isFinite(hh.vehicles) ? hh.vehicles : undefined;
+  if (age !== undefined && age < 16) out.drives = false;
+  else if (vehicles === 0) out.drives = false;
+  else if (mode === 'drive' || mode === 'motorcycle') out.drives = true;
+  else if (vehicles > 0) out.drives = age !== undefined && age >= 18;
+
+  if (npc.status === 'employed' || npc.status === 'military' || npc.occupation) out.works = true;
+  else if (typeof npc.status === 'string') out.works = false;
+
+  const head = HEAD_ROLES.has(npc.role);
+  if (hh.tenure === 'own' || hh.tenure === 'rent') {
+    if (head) out.tenure = hh.tenure;
+    else if (npc.role === 'roommate') out.tenure = 'rent';
+    else if (typeof npc.role === 'string') out.tenure = null;
+  }
+  const minor = role => members.some(x => x && x.role === role && Number.isFinite(x.age) && x.age < 18 && x.m !== npc.m);
+  if (head) out.parent = minor('child');
+  else if (npc.role === 'child' && age >= 18) out.parent = minor('grandchild');
+  else if (typeof npc.role === 'string') out.parent = false;
+
+  const res = persona && persona.residence;
+  if (res && typeof res.grewUpHere === 'boolean') out.nativeHere = res.grewUpHere;
+  else if (npc.nativity === 'foreign') out.nativeHere = false;
+  if (Number.isFinite(npc.generation)) out.generation = npc.generation;
+  return out;
 }

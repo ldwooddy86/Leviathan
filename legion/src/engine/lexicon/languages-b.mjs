@@ -14,10 +14,10 @@ export const SOURCES_B = {
       ['Բարև', 'barev', 'Hi', { region: EAST }],
       ['Բարեւ', 'parev', 'Hi', { region: WEST }],
       ['Բարև ձեզ', 'barev dzez', 'Hello (polite)', { region: EAST, register: 'respect' }],
-      ['Բարի լույս', 'bari luys', 'Good morning', { region: EAST }],
-      ['Բարի լոյս', 'pari luys', 'Good morning', { region: WEST }],
-      ['Բարի երեկո', 'bari yereko', 'Good evening', { region: EAST }],
-      ['Բարի իրիկուն', 'pari irigun', 'Good evening', { region: WEST }],
+      ['Բարի լույս', 'bari luys', 'Good morning', { region: EAST, time: 'morning' }],
+      ['Բարի լոյս', 'pari luys', 'Good morning', { region: WEST, time: 'morning' }],
+      ['Բարի երեկո', 'bari yereko', 'Good evening', { region: EAST, time: 'evening' }],
+      ['Բարի իրիկուն', 'pari irigun', 'Good evening', { region: WEST, time: 'evening' }],
       ['Ողջույն', 'voghjuyn', 'Greetings', { region: EAST }],
     ],
     howAreYou: [
@@ -37,7 +37,7 @@ export const SOURCES_B = {
       ['Ցտեսություն', 'tstesutyun', 'Goodbye', { region: EAST }],
       ['Ցտեսութիւն', 'tsdesutyun', 'Goodbye', { region: WEST }],
       ['Առայժմ', 'arayzhm', 'Bye for now', { region: EAST }],
-      ['Բարի գիշեր', 'bari gisher', 'Good night', { region: EAST }],
+      ['Բարի գիշեր', 'bari gisher', 'Good night', { region: EAST, time: 'night' }],
     ],
     yes: [
       ['Այո', 'ayo', 'Yes'],
@@ -142,6 +142,9 @@ export const SOURCES_B = {
         ['Աստված տա', 'Astvats ta', 'God willing (literally, may God grant it)', { region: EAST }],
         ['Աստուած տայ', 'Asdvadz da', 'God willing', { region: WEST }],
       ],
+      thank_god: [
+        ['Փառք Աստծո', 'parq Astso', 'Thank God (literally, glory to God)', { region: EAST }],
+      ],
       congratulations: [
         ['Շնորհավորում եմ', 'shnorhavorum em', 'Congratulations', { region: EAST }],
         ['Շնորհավոր', 'shnorhavor', 'Congrats!', { region: EAST }],
@@ -155,9 +158,9 @@ export const SOURCES_B = {
     notes: 'Iranian Americans in Los Angeles (Westwood, the San Fernando Valley), Irvine and the South Bay. Spoken Tehrani Persian differs from the written language ("khune" for "khane", home). Taarof, ritual courtesy, shapes everyday talk: offers are refused before they are accepted.',
     greetings: [
       ['سلام', 'salâm', 'Hello'],
-      ['صبح بخیر', 'sobh bekheyr', 'Good morning'],
-      ['عصر بخیر', 'asr bekheyr', 'Good afternoon'],
-      ['شب بخیر', 'shab bekheyr', 'Good night'],
+      ['صبح بخیر', 'sobh bekheyr', 'Good morning', { time: 'morning' }],
+      ['عصر بخیر', 'asr bekheyr', 'Good afternoon', { time: 'afternoon' }],
+      ['شب بخیر', 'shab bekheyr', 'Good evening, good night', { time: 'evening' }],
       ['درود', 'dorud', 'Greetings (formal)', { register: 'formal' }],
     ],
     howAreYou: [
@@ -299,7 +302,10 @@ export const SOURCES_B = {
       ],
       god_willing: [
         ['ان‌شاءالله', 'enshâllâh', 'God willing'],
-        ['به امید خدا', 'be omid-e khodâ', 'With hope in God'],
+        ['به امید خدا', 'be omid-e khodâ', "Hopefully, with God's help (literally, with hope in God)"],
+      ],
+      thank_god: [
+        ['خدا رو شکر', 'khodâ ro shokr', 'Thank God'],
       ],
       congratulations: [
         ['تبریک می‌گم', 'tabrik migam', 'Congratulations'],
@@ -315,7 +321,7 @@ export const SOURCES_B = {
     greetings: [
       ['سلام', 'salâm', 'Hello'],
       ['السلام علیکم', 'assalâmu alaykum', 'Peace be upon you'],
-      ['صبح بخیر', 'sobh bakhayr', 'Good morning'],
+      ['صبح بخیر', 'sobh bakhayr', 'Good morning', { time: 'morning' }],
       ['مانده نباشی', 'mânda nabâshi', 'Hello (to someone working; literally, may you not be tired)'],
     ],
     howAreYou: [
@@ -388,7 +394,8 @@ export const SOURCES_B = {
       see_you: [['باز می‌بینمت', 'bâz mebinamet', 'See you again']],
       no_problem: [['مشکل نیست', 'moshkel nist', 'No problem'], ['پروا ندارد', 'parwâ nadârad', "It doesn't matter, no worries"]],
       its_expensive: [['بسیار قیمت است', 'besyâr qimat ast', "It's very expensive"]],
-      god_willing: [['انشاءالله', 'inshâllâh', 'God willing'], ['الحمدلله', 'alhamdulillâh', 'Thank God']],
+      god_willing: [['انشاءالله', 'inshâllâh', 'God willing']],
+      thank_god: [['الحمدلله', 'alhamdulillâh', 'Thank God']],
       congratulations: [['مبارک باشد', 'mubârak bâshad', 'Congratulations'], ['تبریک', 'tabrik', 'Congratulations']],
     },
   },
@@ -460,22 +467,23 @@ export const SOURCES_B = {
       see_you: [['بیا به سره ووینو', 'byâ ba sara wowino', "We'll see each other again"]],
       no_problem: [['کومه خبره نه ده', 'kuma khabara na da', "It's nothing, no problem"]],
       its_expensive: [['ډېر ګران دی', 'ḍer grân day', "It's very expensive"]],
-      god_willing: [['ان شاء الله', 'inshâllâh', 'God willing'], ['الحمدلله', 'alhamdulillâh', 'Thank God']],
+      god_willing: [['ان شاء الله', 'inshâllâh', 'God willing']],
+      thank_god: [['الحمدلله', 'alhamdulillâh', 'Thank God']],
       congratulations: [['مبارک شه', 'mubârak sha', 'Congratulations']],
     },
   },
 
   arabic: {
     name: 'Arabic', native: 'العربية', script: 'Arab', romanization: 'informal (ā ī ū long vowels, ḥ ʿ for the deep h and ayn)',
-    notes: 'Arab Californians are Lebanese, Syrian, Palestinian, Jordanian, Egyptian, Iraqi and Yemeni. Everyday speech is dialect, not the standard written language; entries here are pan-Arabic or Levantine unless marked. Many phrases change with the listener: kīfak to a man, kīfik to a woman.',
+    notes: 'Arab Californians are Lebanese, Syrian, Palestinian, Jordanian, Egyptian, Iraqi and Yemeni, Christian and Muslim. Everyday speech is dialect, not the standard written language; entries here are pan-Arabic or Levantine unless marked. Many phrases change with the listener: kīfak to a man, kīfik to a woman. The Islamic greeting as-salāmu ʿalaykum is tagged Muslim (many Arab Christians greet with marḥaba or ṣabāḥ al-khayr); in-shāʾ allāh and al-ḥamdu lillāh are said across faiths.',
     greetings: [
-      ['السلام عليكم', 'as-salāmu ʿalaykum', 'Peace be upon you'],
-      ['وعليكم السلام', 'wa ʿalaykum as-salām', 'And upon you peace (the reply)'],
+      ['السلام عليكم', 'as-salāmu ʿalaykum', 'Peace be upon you', { faith: 'muslim' }],
+      ['وعليكم السلام', 'wa ʿalaykum as-salām', 'And upon you peace (the reply)', { faith: 'muslim' }],
       ['مرحبا', 'marḥaba', 'Hello'],
       ['أهلاً', 'ahlan', 'Hi, welcome'],
-      ['صباح الخير', 'ṣabāḥ al-khayr', 'Good morning'],
-      ['صباح النور', 'ṣabāḥ an-nūr', 'Good morning (the reply; literally, morning of light)'],
-      ['مساء الخير', 'masāʾ al-khayr', 'Good evening'],
+      ['صباح الخير', 'ṣabāḥ al-khayr', 'Good morning', { time: 'morning' }],
+      ['صباح النور', 'ṣabāḥ an-nūr', 'Good morning (the reply; literally, morning of light)', { time: 'morning' }],
+      ['مساء الخير', 'masāʾ al-khayr', 'Good evening', { time: 'evening' }],
     ],
     howAreYou: [
       ['كيف الحال؟', 'kayf al-ḥāl?', 'How are you?'],
@@ -615,8 +623,12 @@ export const SOURCES_B = {
       ],
       god_willing: [
         ['إن شاء الله', 'in shāʾ allāh', 'God willing'],
+      ],
+      thank_god: [
         ['الحمد لله', 'al-ḥamdu lillāh', 'Thank God'],
-        ['ما شاء الله', 'mā shāʾ allāh', 'God has willed it (said in admiration)'],
+      ],
+      blessing: [
+        ['ما شاء الله', 'mā shāʾ allāh', 'God has willed it (said in admiration of good news, a child, a new home)'],
       ],
       congratulations: [
         ['مبروك', 'mabrūk', 'Congratulations'],
@@ -635,7 +647,7 @@ export const SOURCES_B = {
     ],
     howAreYou: [
       ['Dakhi wit?', 'How are you? (to a man)', { to: 'M' }],
-      ['Dakhi wita?', 'How are you? (to a woman)', { to: 'F' }],
+      ['Dakhi wat?', 'How are you? (to a woman)', { to: 'F' }],
     ],
     thanks: [
       ['Tawdi', 'Thank you'],
@@ -643,7 +655,7 @@ export const SOURCES_B = {
       ['Basima', 'Thanks (literally, pleasant, sweet)'],
     ],
     farewells: [
-      ['Pash bshena', 'Stay well (said by the one leaving)'],
+      ['Push bshena', 'Stay in peace (said by the one leaving)'],
       ['Zil bshena', 'Go well (said to the one leaving)'],
     ],
     yes: [['Eh', 'Yes']],
@@ -681,12 +693,12 @@ export const SOURCES_B = {
 
   amharic: {
     name: 'Amharic', native: 'አማርኛ', script: 'Ethi', romanization: 'informal',
-    notes: 'Ethiopian Californians live in Oakland, San Jose and around Fairfax Avenue in Los Angeles. Amharic marks the listener\'s gender in many everyday phrases (indet neh to a man, indet nesh to a woman), and elders get the polite forms.',
+    notes: 'Ethiopian Californians live in Oakland, San Jose and around Fairfax Avenue in Los Angeles. Amharic marks the listener\'s gender in many everyday phrases (indet neh to a man, indet nesh to a woman), and elders get the polite forms. Phrases naming Egziabher, the Ethiopian Christian name for God, are tagged Christian; Ethiopian Muslims say inshallah and alhamdulillah instead.',
     greetings: [
       ['ሰላም', 'selam', 'Hello (literally, peace)'],
       ['ጤና ይስጥልኝ', 'tena yistilign', 'Hello (formal; literally, may God give you health for me)', { register: 'formal' }],
-      ['እንደምን አደርክ?', 'indemin aderk?', 'Good morning (to a man; literally, how did you spend the night?)', { to: 'M' }],
-      ['እንደምን አደርሽ?', 'indemin adersh?', 'Good morning (to a woman)', { to: 'F' }],
+      ['እንደምን አደርክ?', 'indemin aderk?', 'Good morning (to a man; literally, how did you spend the night?)', { to: 'M', time: 'morning' }],
+      ['እንደምን አደርሽ?', 'indemin adersh?', 'Good morning (to a woman)', { to: 'F', time: 'morning' }],
     ],
     howAreYou: [
       ['እንዴት ነህ?', 'indet neh?', 'How are you? (to a man)', { to: 'M' }],
@@ -778,8 +790,10 @@ export const SOURCES_B = {
       no_problem: [['ችግር የለም', 'chigir yelem', 'No problem'], ['ምንም አይደል', 'minim aydel', "It's nothing"]],
       its_expensive: [['በጣም ውድ ነው', 'betam wid new', "It's very expensive"]],
       god_willing: [
-        ['እግዚአብሔር ቢፈቅድ', 'igziabher bifekid', 'If God permits'],
-        ['እግዚአብሔር ይመስገን', 'igziabher yimesgen', 'Thank God'],
+        ['እግዚአብሔር ቢፈቅድ', 'igziabher bifekid', 'If God permits (God willing)', { faith: 'christian' }],
+      ],
+      thank_god: [
+        ['እግዚአብሔር ይመስገን', 'igziabher yimesgen', 'Thank God', { faith: 'christian' }],
       ],
       congratulations: [
         ['እንኳን ደስ አለህ', 'inkuan des aleh', 'Congratulations (to a man)', { to: 'M' }],

@@ -2,13 +2,17 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Rng } from '../src/engine/rng.mjs';
+import { atPacific } from '../src/engine/clock.mjs';
 import {
-  dialectFor, explainDialect, dialectTable, DIALECT_KEYS, DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
+  dialectFor, explainDialect, dialectTable, DIALECT_KEYS, DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
   roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE,
-  SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, BRAND_BLACKLIST, findBrands,
-  LANGUAGES, LANGUAGE_KEYS, PHRASE_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS, resolveLanguage, varietyFor,
-  Picker, linesFor, pickLine, slangFor, codeSwitch, familyTerm, weatherCondition, slotsFor, landmarkLabel, dialectSummary,
+  SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands,
+  lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS,
+  LANGUAGES, LANGUAGE_KEYS, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS, FAITHS, TIMES_OF_DAY,
+  resolveLanguage, varietyFor, faithFor,
+  Picker, linesFor, pickLine, slangFor, codeSwitch, familyTerm, phrasesFor, weatherCondition, offshoreWind, slotsFor, speakerFacts, landmarkLabel, dialectSummary,
 } from '../src/engine/lexicon.mjs';
+import { parseTagged, registerLine } from '../src/engine/lexicon/tags.mjs';
 
 const world = await loadDefaultWorld();
 
@@ -45,8 +49,25 @@ function languageEntries(L) {
 const FULL_SLOTS = {
   road: 'the 405', stretch: 'the Grapevine', place: 'Fresno', city: 'Fresno', neighborhood: 'the Tower District', landmark: 'Mount Diablo',
   peak: 'Mount Baldy', county: 'Fresno', region: 'the Valley', temp: 104, fire: 'the Creek Fire', year: '2020', team: 'the Giants',
-  weather: 'sunny', season: 'summer', month: 'July', day: 'Monday', alert: 'Heat Advisory',
+  teamName: 'Giants', weather: 'sunny', season: 'summer', month: 'July', day: 'Monday', alert: 'Heat Advisory',
 };
+
+// A situation in which every situational tag can pass: lines are then only filtered by the speaker.
+const ANY_SITUATION = { alerts: ['Red Flag Warning', 'Flash Flood Warning', 'Frost Advisory', 'Excessive Heat Warning', 'Wind Advisory', 'Winter Storm Warning'], offshore: true };
+
+// The source block (statewide, family or key) each dialect key's lines come from, to find which keys say a line.
+function keysSaying(template) {
+  return DIALECT_KEYS.filter(k => templatesOf(DIALECTS[k]).includes(template));
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// How Californians use the season words: generous, overlapping months (winter in the mountains starts in October).
+const SEASON_MONTHS = { spring: [2, 3, 4, 5, 6], summer: [5, 6, 7, 8, 9, 10], fall: [9, 10, 11, 12], autumn: [9, 10, 11, 12], winter: [10, 11, 12, 1, 2, 3, 4] };
+const SEASON_RE = /\b(spring|summers?|fall|autumn|winters?)\b/gi;
+const MONTH_RE = new RegExp(`\\b(${MONTH_NAMES.join('|')})\\b`, 'g');
+const SEASONAL_RE = /\b(spring|summers?|fall|autumn|winters?|seasons?|harvest|holidays?|snowbirds?|bloom\w*|blossoms?|New Year|Christmas)\b/i;
+const seasonsNamed = t => [...new Set([...t.matchAll(SEASON_RE)].map(m => m[1].toLowerCase().replace(/s$/, '')))];
+const monthsNamed = t => [...new Set([...t.matchAll(MONTH_RE)].map(m => MONTH_NAMES.indexOf(m[1]) + 1))];
 
 // ------------------------------------------------------------------ dialect geography
 
@@ -72,6 +93,17 @@ test('known ZIPs get their dialects', () => {
 test('more of the map: Glendale is the 818, Palo Alto the Peninsula, Watsonville the Salinas Valley, Big Bear the mountains', () => {
   const cases = { 91205: 'sfv', 94301: 'peninsula', 95076: 'salinas', 92315: 'socal-mountains', 96161: 'tahoe', 93101: 'santa-barbara', 93454: 'central-coast', 93950: 'monterey-bay', 95482: 'north-inland', 93534: 'antelope-valley', 91355: 'santa-clarita', 93030: 'ventura', 92225: 'low-desert', 93555: 'high-desert', 93644: 'sierra-foothills', 90028: 'la-central', 92683: 'oc-inland', 92648: 'oc-coast' };
   for (const [zip, key] of Object.entries(cases)) assert.equal(dialectFor(world, zip), key, `${zip}: ${JSON.stringify(explainDialect(world, zip))}`);
+});
+
+test('the Tehachapi Mountains are mountain towns, not the Bakersfield valley floor', () => {
+  for (const zip of ['93561', '93581', '93518', '93531']) {
+    assert.equal(dialectFor(world, zip), 'sierra-foothills', `${zip}: ${JSON.stringify(explainDialect(world, zip))}`);
+    assert.match(explainDialect(world, zip).rule, /Tehachapi/);
+  }
+  for (const zip of ['93301', '93306', '93307', '93215', '93203', '93263', '93268']) assert.equal(dialectFor(world, zip), 'kern', zip);
+  // No valley-floor fog or orchard lines and no Bakersfield temperature for Tehachapi.
+  const teh = linesFor('sierra-foothills', 'weather', { condition: 'fog', ignoreTags: true }).concat(linesFor('sierra-foothills', 'weather', { condition: 'heat', ignoreTags: true }), linesFor('sierra-foothills', 'weather', { condition: 'cold', ignoreTags: true }));
+  for (const t of teh) assert.ok(!/tule fog|on 99|wind machines|Bako/i.test(t), t);
 });
 
 test('dialectFor is stable and rejects bad input', () => {
@@ -266,7 +298,8 @@ test('every template uses only documented slots, and fill never leaves a brace',
   for (const k of DIALECT_KEYS) {
     for (const t of templatesOf(DIALECTS[k])) {
       for (const s of templateSlots(t)) assert.ok(SLOT_NAMES.includes(s), `${k}: unknown slot {${s}} in "${t}"`);
-      assert.ok(!/[{}]/.test(t.replace(/\{[a-z_]+\}/g, '')), `stray brace in "${t}"`);
+      assert.ok(!/[{}]/.test(t.replace(/\{[A-Za-z_]+\}/g, '')), `stray brace in "${t}"`);
+      assert.ok(!/^@/.test(t), `${k}: tags left in the text of "${t}"`);
       const full = fill(t, FULL_SLOTS);
       assert.ok(full && !/[{}]/.test(full), `${k}: "${t}" -> ${full}`);
       assert.ok(/^[A-Z0-9¡¿"']/.test(full) || /^[a-z]/.test(t) === false, `${k}: "${full}" should start capitalized`);
@@ -345,7 +378,11 @@ test('age-graded lines and slang', () => {
   assert.ok(teen.includes('Hella.') && !adult.includes('Hella.'));
   assert.ok(elder.includes("That's the truth.") && !adult.includes("Isn't that the truth."));
   assert.ok(teen.length > adult.length && elder.length > adult.length);
-  assert.deepEqual(linesFor('sf', 'weather', { condition: 'fog' }), [...DIALECTS.sf.weather.fog]);
+  assert.deepEqual(linesFor('sf', 'weather', { condition: 'fog', ignoreTags: true }), [...DIALECTS.sf.weather.fog]);
+  // With no time, place or weather given, only lines that hold in any situation come back.
+  const bare = linesFor('sf', 'weather', { condition: 'fog' });
+  assert.ok(bare.length >= 8 && bare.length < DIALECTS.sf.weather.fog.length);
+  for (const t of bare) { const g = lineTags(t); assert.ok(!g || (!g.months && !g.hours && !g.wx && !g.alerts && !g.counties && !g.flags.some(f => f !== 'anytime')), t); }
   assert.deepEqual(linesFor('sf', 'weather'), []);
   assert.deepEqual(linesFor('nowhere', 'greetings'), []);
   let regional = 0;
@@ -391,14 +428,16 @@ test('Picker avoids repeats until a category is exhausted, then never repeats th
 
 test('pickLine fills from the world and never repeats inside a conversation', () => {
   const zi = world.indexOf('93721');
-  const slots = slotsFor(world, zi).values;
+  const { values: slots, context } = slotsFor(world, zi);
   const picker = new Picker(77), rng = new Rng(77);
   const seen = new Set();
-  const n = DIALECTS.fresno.traffic.filter(t => fill(t, slots)).length;
+  const n = linesFor('fresno', 'traffic', context).filter(t => fill(t, slots)).length;
+  assert.ok(n >= 15, `fresno traffic has ${n} lines that fit`);
   for (let i = 0; i < n; i++) {
-    const l = pickLine('fresno', 'traffic', rng, { slots, picker });
+    const l = pickLine('fresno', 'traffic', rng, { ...context, slots, picker });
     assert.ok(l && l.text && !/[{}]/.test(l.text));
     assert.ok(!seen.has(l.text), `repeat: ${l.text}`);
+    assert.ok(lineFits(l.template, context), l.template);
     seen.add(l.text);
   }
   const a = pickLine('kern', 'prideLines', new Rng(5), { slots: slotsFor(world, world.indexOf('93301')).values });
@@ -506,9 +545,9 @@ test('every language has the required fields, and every entry has text, a gloss 
   for (const k of ['spanish', 'tagalog', 'vietnamese', 'korean', 'cantonese', 'mandarin', 'japanese', 'russian', 'hindi', 'farsi', 'arabic', 'portuguese', 'armenian', 'punjabi']) {
     assert.ok(languageEntries(LANGUAGES[k]).length >= 90, `${k} has ${languageEntries(LANGUAGES[k]).length} entries`);
   }
-  // The big languages carry the full intent set.
+  // The big languages carry the full intent set (the religious ones only where culturally natural).
   for (const k of ['spanish', 'tagalog', 'vietnamese', 'korean', 'cantonese', 'mandarin', 'japanese', 'russian', 'hindi', 'farsi', 'arabic', 'portuguese']) {
-    for (const intent of PHRASE_INTENTS.filter(i => i !== 'god_willing')) assert.ok(LANGUAGES[k].phrases[intent] && LANGUAGES[k].phrases[intent].length, `${k}.phrases.${intent}`);
+    for (const intent of PHRASE_INTENTS.filter(i => !RELIGIOUS_INTENTS.includes(i))) assert.ok(LANGUAGES[k].phrases[intent] && LANGUAGES[k].phrases[intent].length, `${k}.phrases.${intent}`);
     for (const r of FAMILY_RELATIONS) assert.ok(LANGUAGES[k].family[r] && LANGUAGES[k].family[r].length, `${k}.family.${r}`);
   }
 });
@@ -614,11 +653,13 @@ test('familyTerm, with aliases and speaker-dependent terms', () => {
 
 test('the lexicon is fast enough for a 20 ms dialogue turn', () => {
   const rng = new Rng(1), picker = new Picker(1);
-  const slots = slotsFor(world, world.indexOf('90044')).values;
+  const { values: slots, context } = slotsFor(world, world.indexOf('90044'));
   const t0 = performance.now();
   for (let i = 0; i < 2000; i++) {
-    pickLine('la-south', LINE_CATEGORIES[i % LINE_CATEGORIES.length], rng, { slots, picker, age: 20 + (i % 60) });
-    codeSwitch('spanish', PHRASE_INTENTS[i % PHRASE_INTENTS.length], rng, { sex: 'F' });
+    const speaker = { age: 20 + (i % 60), drives: i % 3 > 0, works: i % 4 > 0, tenure: i % 2 ? 'rent' : 'own' };
+    pickLine('la-south', LINE_CATEGORIES[i % LINE_CATEGORIES.length], rng, { ...context, speaker, slots, picker });
+    pickLine('la-south', 'weather', rng, { ...context, speaker, slots, picker });
+    codeSwitch('spanish', PHRASE_INTENTS[i % PHRASE_INTENTS.length], rng, { sex: 'F', t: context.t, variety: 'sv' });
     slangFor('la-south', 20 + (i % 50), rng);
   }
   const per = (performance.now() - t0) / 2000;

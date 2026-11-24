@@ -14,17 +14,22 @@ const MX = ['mx'];
 export const SOURCES_A = {
   spanish: {
     name: 'Spanish', native: 'español', script: 'Latn', defaultVariety: 'mx',
-    varieties: { mx: 'Mexican', sv: 'Salvadoran', gt: 'Guatemalan', hn: 'Honduran', ni: 'Nicaraguan' },
-    notes: 'California Spanish is mostly Mexican, with large Salvadoran and Guatemalan communities and Honduran and Nicaraguan ones. In Salvadoran, Guatemalan, Honduran and Nicaraguan informal speech "vos" replaces "tú" (voseo): "¿Y vos, cómo estás?", "¿Qué hacés?", "Cuidate". "Usted" is the respectful form for elders and strangers everywhere. "Renta" is rent in Mexican and US Spanish.',
+    varieties: {
+      mx: 'Mexican', sv: 'Salvadoran', gt: 'Guatemalan', hn: 'Honduran', ni: 'Nicaraguan',
+      cu: 'Cuban', pr: 'Puerto Rican', do: 'Dominican', sa: 'South American', es: 'Spain',
+    },
+    notes: 'California Spanish is mostly Mexican, with large Salvadoran and Guatemalan communities, Honduran and Nicaraguan ones, and smaller Cuban, Puerto Rican, Dominican, South American and Spanish ones. Untagged entries are shared by every variety; Mexican regionalisms (¡No manches!, Órale, Simón) are tagged Mexican and stay with Mexican speakers. In Salvadoran, Guatemalan, Honduran and Nicaraguan informal speech "vos" replaces "tú" (voseo): "¿Y vos, cómo estás?", "¿Qué hacés?", "Cuidate". "Usted" is the respectful form for elders and strangers everywhere. "Renta" is rent in Mexican and US Spanish.',
     greetings: [
       ['¡Hola!', 'Hi!'],
-      ['Buenos días.', 'Good morning.'],
-      ['Buenas tardes.', 'Good afternoon.'],
-      ['Buenas noches.', 'Good evening.'],
+      ['Buenos días.', 'Good morning.', { time: 'morning' }],
+      ['Buenas tardes.', 'Good afternoon.', { time: 'afternoon' }],
+      ['Buenas noches.', 'Good evening.', { time: 'evening' }],
       ['¡Buenas!', 'Hi there! (casual, any time of day)'],
       ['¿Qué tal?', "How's it going?"],
       ['¿Qué onda?', "What's up?", { region: MX, register: 'casual' }],
       ['¿Quiubo?', "What's up?", { register: 'casual' }],
+      ['¿Qué bolá?', "What's up? (Cuban)", { region: ['cu'], register: 'casual' }],
+      ['¿Qué lo que?', "What's up? (Dominican)", { region: ['do'], register: 'casual' }],
     ],
     howAreYou: [
       ['¿Cómo estás?', 'How are you?'],
@@ -56,12 +61,14 @@ export const SOURCES_A = {
       ['Ahí nos vemos.', 'See you around.', { register: 'casual' }],
       ['Cuidate.', 'Take care. (voseo)', { region: CA }],
       ['Dale, pues.', 'Okay then, see you.', { region: CA, register: 'casual' }],
+      ['Venga, hasta luego.', 'Okay, see you later. (Spain)', { region: ['es'], register: 'casual' }],
     ],
     yes: [
       ['Sí.', 'Yes.'],
       ['Claro.', 'Sure.'],
       ['Claro que sí.', 'Of course.'],
       ['De acuerdo.', 'Agreed.'],
+      ['Vale.', 'Okay. (Spain)', { region: ['es'] }],
       ['Órale.', 'Okay, sure.', { region: MX, register: 'casual' }],
       ['Sale.', 'Deal.', { region: MX, register: 'casual' }],
       ['Va.', 'Okay.', { region: MX, register: 'casual' }],
@@ -84,6 +91,7 @@ export const SOURCES_A = {
         ['¡Híjole!', 'Oh man! / Wow!', { region: MX }],
         ['¡Órale!', 'Whoa!', { region: MX }],
         ['¡Puchica!', 'Wow! / Darn! (mild)', { region: ['sv', 'gt', 'hn'] }],
+        ['¡Ay, bendito!', 'Oh, dear! (surprise or sympathy, Puerto Rican)', { region: ['pr'] }],
       ],
       frustration: [
         ['¡Ay, no!', 'Oh, no!'],
@@ -101,6 +109,9 @@ export const SOURCES_A = {
         ['¡Qué chido!', 'Cool!', { region: MX, register: 'casual' }],
         ['¡Qué chivo!', 'How cool!', { region: ['sv'] }],
         ['¡Qué chilero!', 'How cool!', { region: ['gt'] }],
+        ['¡Qué chévere!', 'How cool!', { region: ['cu', 'pr', 'do'] }],
+        ['¡Wepa!', 'Woo-hoo! (Puerto Rican)', { region: ['pr'], register: 'casual' }],
+        ['¡Qué guay!', 'How cool! (Spain)', { region: ['es'], register: 'casual' }],
       ],
     },
     family: {
@@ -117,6 +128,7 @@ export const SOURCES_A = {
         ['compa', 'buddy', { region: MX, register: 'casual' }],
         ['carnal', 'bro (close friend)', { region: MX, register: 'casual' }],
         ['chero', 'buddy', { region: ['sv'], register: 'casual' }],
+        ['asere', 'buddy (Cuban)', { region: ['cu'], register: 'casual' }],
       ],
       godparent: [['compadre', 'co-godfather; a close family friend'], ['comadre', 'co-godmother; a close family friend']],
     },
@@ -230,6 +242,16 @@ export const SOURCES_A = {
         ['Ojalá.', 'Hopefully.'],
         ['Dios mediante.', 'God willing.'],
       ],
+      thank_god: [
+        ['Gracias a Dios.', 'Thank God.'],
+        ['Bendito sea Dios.', 'Thank God. (literally, blessed be God)'],
+      ],
+      blessing: [
+        ['Que Dios te bendiga.', 'God bless you.'],
+        ['Dios te bendiga.', 'God bless you.'],
+        ['Que Dios lo bendiga.', 'God bless you. (respectful, to a man)', { to: 'M', register: 'respect' }],
+        ['Que Dios la bendiga.', 'God bless you. (respectful, to a woman)', { to: 'F', register: 'respect' }],
+      ],
       congratulations: [
         ['¡Felicidades!', 'Congratulations!'],
         ['¡Felicitaciones!', 'Congratulations!'],
@@ -243,10 +265,10 @@ export const SOURCES_A = {
     notes: 'Filipino Americans mix English and Tagalog freely (Taglish). "Po" and "opo" mark respect to elders and strangers; "kuya" and "ate" (older brother, older sister) are used for any older person, family or not.',
     greetings: [
       ['Kumusta!', 'Hi! / How are you?'],
-      ['Magandang umaga.', 'Good morning.'],
-      ['Magandang umaga po.', 'Good morning. (respectful)', { register: 'respect' }],
-      ['Magandang hapon.', 'Good afternoon.'],
-      ['Magandang gabi.', 'Good evening.'],
+      ['Magandang umaga.', 'Good morning.', { time: 'morning' }],
+      ['Magandang umaga po.', 'Good morning. (respectful)', { register: 'respect', time: 'morning' }],
+      ['Magandang hapon.', 'Good afternoon.', { time: 'afternoon' }],
+      ['Magandang gabi.', 'Good evening.', { time: 'evening' }],
       ['Uy!', 'Hey!', { register: 'casual' }],
       ['Musta?', 'How are you? (casual, short for kumusta)', { register: 'casual' }],
     ],
@@ -416,8 +438,14 @@ export const SOURCES_A = {
       ],
       god_willing: [
         ['Kung loloobin ng Diyos.', 'God willing.'],
-        ['Sa awa ng Diyos.', "By God's mercy."],
         ['Sana.', 'Hopefully.'],
+      ],
+      thank_god: [
+        ['Salamat sa Diyos.', 'Thank God.'],
+        ['Sa awa ng Diyos.', "By God's mercy. (thank God)"],
+      ],
+      blessing: [
+        ['Pagpalain ka ng Diyos.', 'God bless you.'],
       ],
       congratulations: [
         ['Binabati kita!', 'Congratulations!'],
@@ -774,7 +802,7 @@ export const SOURCES_A = {
     notes: 'Written here in traditional characters with Jyutping (tone numbers 1 to 6). Cantonese was the language of the old Chinatowns of San Francisco, Oakland and Los Angeles and is still spoken across the Bay Area and the San Gabriel Valley. 唔該 (m4 goi1) thanks someone for a service or favor; 多謝 (do1 ze6) thanks someone for a gift.',
     greetings: [
       ['你好。', 'nei5 hou2', 'Hello.'],
-      ['早晨！', 'zou2 san4', 'Good morning!'],
+      ['早晨！', 'zou2 san4', 'Good morning!', { time: 'morning' }],
       ['食咗飯未呀？', 'sik6 zo2 faan6 mei6 aa3?', 'Have you eaten yet? (a friendly greeting)'],
     ],
     howAreYou: [
@@ -924,8 +952,8 @@ export const SOURCES_A = {
     notes: 'Written here in simplified characters with pinyin; speakers from Taiwan write traditional characters. Mandarin is now the most common Chinese language among newer arrivals in the San Gabriel Valley, Irvine and the South Bay.',
     greetings: [
       ['你好！', 'nǐ hǎo!', 'Hello!'],
-      ['早上好！', 'zǎoshang hǎo!', 'Good morning!'],
-      ['早！', 'zǎo!', 'Morning!', { register: 'casual' }],
+      ['早上好！', 'zǎoshang hǎo!', 'Good morning!', { time: 'morning' }],
+      ['早！', 'zǎo!', 'Morning!', { register: 'casual', time: 'morning' }],
       ['嗨！', 'hāi!', 'Hi!', { register: 'casual' }],
       ['吃饭了吗？', 'chīfàn le ma?', 'Have you eaten? (a friendly greeting)'],
     ],
@@ -1090,10 +1118,11 @@ export const SOURCES_A = {
     name: 'Japanese', native: '日本語', script: 'Jpan', romanization: 'Hepburn',
     notes: 'Japanese Californians are mostly several generations here (Nisei, Sansei, Yonsei) and speak English at home; Japanese is spoken by newer arrivals and by families who work for Japanese companies, especially in Torrance and Gardena. Japanese American families often call their grandparents bachan and jichan.',
     greetings: [
-      ['こんにちは。', 'konnichiwa', 'Hello.'],
-      ['おはようございます。', 'ohayō gozaimasu', 'Good morning.'],
-      ['おはよう！', 'ohayō!', 'Morning!', { register: 'casual' }],
-      ['こんばんは。', 'konbanwa', 'Good evening.'],
+      ['こんにちは。', 'konnichiwa', 'Hello. (in the daytime)', { time: 'day' }],
+      ['おはようございます。', 'ohayō gozaimasu', 'Good morning.', { time: 'morning' }],
+      ['おはよう！', 'ohayō!', 'Morning!', { register: 'casual', time: 'morning' }],
+      ['こんばんは。', 'konbanwa', 'Good evening.', { time: 'evening' }],
+      ['どうも。', 'dōmo', 'Hi. (casual, any time of day)', { register: 'casual' }],
     ],
     howAreYou: [
       ['お元気ですか？', 'ogenki desu ka?', 'How are you?'],

@@ -234,7 +234,7 @@ export const FAMILIES = {
       `),
       snow: lines(`
         Fresh snow! The plow better come early.
-        The berm at the end of my driveway is up to my waist.
+        @adult The berm at the end of my driveway is up to my waist.
         Sierra cement, heavy and wet. Your back will feel it.
         This much snow, there'll be chain control on {road}.
       `),
@@ -271,7 +271,7 @@ export const FAMILIES = {
       @adult Fire insurance up here is impossible.
       The power goes out every time the wind blows.
       Second homes sit empty while locals can't find a rental.
-      Everything costs more up here, even groceries.
+      @adult Everything costs more up here, even groceries.
       @anytime Winter's beautiful until you have to shovel it.
       @anytime Every fall the smoke comes in and stays.
     `),
@@ -338,7 +338,7 @@ export const KEYS = {
     complaintLines: lines(`
       Every retiree from LA moved here.
       Students take every rental in town.
-      You can't buy a house in SLO on a teacher's salary.
+      @adult You can't buy a house in SLO on a teacher's salary.
     `),
     food: lines(`
       Tri-tip over red oak with pinquito beans. That's the Santa Maria way.
@@ -383,8 +383,8 @@ export const KEYS = {
       The Mission at sunset, with the mountains behind it.
     `),
     complaintLines: lines(`
-      Nobody who works here can afford to live here.
-      Rent in IV for a shared room is insane.
+      @adult Nobody who works here can afford to live here.
+      @adult Rent in IV for a shared room is insane.
       Every time there's a sundowner, I think about the fires.
       Half the town commutes in from Ventura.
     `),
@@ -431,7 +431,7 @@ export const KEYS = {
       Hollister's got that small-town thing going.
     `),
     complaintLines: lines(`
-      Monterey's right over the hill and costs twice as much.
+      @adult Monterey's right over the hill and costs twice as much.
       @adult Field work is hard and the rent's still high.
       Everybody drives through and nobody stops.
       A lot of families out here worry about the spraying in the fields.
@@ -527,7 +527,7 @@ export const KEYS = {
     complaintLines: lines(`
       Short-term rentals ate up all the housing.
       Bay Area traffic every weekend, all year.
-      Workers can't afford to live in the town they work in.
+      @adult Workers can't afford to live in the town they work in.
       @anytime Parking anywhere near the beach in July, forget it.
     `),
     food: lines(`
@@ -590,6 +590,7 @@ export const KEYS = {
       Highway 41 | road | the road up to Yosemite through Oakhurst
       the Kern | place | the Kern River; swimming in it can kill you
       the lake | place | Bass Lake, Shaver Lake or Lake Isabella
+      Tehachapi Pass | road | Highway 58 over the mountains between Bakersfield and the Mojave: wind farms, freight trains, chain control
     `),
     weather: {
       heat: lines(`
@@ -615,7 +616,7 @@ export const KEYS = {
       @anytime Every fire season we wonder if this is the one.
       Visitors come up in flip-flops and don't respect the mountains.
       The nearest big hospital is a long drive down the hill.
-      Fire insurance, power shutoffs, smoke. Every year.
+      @adult Fire insurance, power shutoffs, smoke. Every year.
     `),
     food: lines(`
       Coffee and pie on the drive up the hill.

@@ -10,16 +10,30 @@ import { SOURCES_A } from './languages-a.mjs';
 import { SOURCES_B } from './languages-b.mjs';
 import { SOURCES_C } from './languages-c.mjs';
 
-/** Intents with phrase lists under LANGUAGES[lang].phrases (god_willing only where culturally natural). */
-export const PHRASE_INTENTS = Object.freeze(['weather_hot', 'weather_cold', 'weather_rain', 'tired', 'busy', 'welcome', 'good_luck', 'take_care', 'see_you', 'no_problem', 'its_expensive', 'traffic_bad', 'god_willing', 'congratulations']);
+/**
+ * Intents with phrase lists under LANGUAGES[lang].phrases. The religious ones (RELIGIOUS_INTENTS) exist only
+ * where culturally natural: god_willing is "if God wills" or "hopefully" about something to come; thank_god is
+ * gratitude for something that turned out well ("Thank God", "by God's grace"); blessing is a blessing or the
+ * admiring formula said over good news ("God bless you", mashallah).
+ */
+export const PHRASE_INTENTS = Object.freeze(['weather_hot', 'weather_cold', 'weather_rain', 'tired', 'busy', 'welcome', 'good_luck', 'take_care', 'see_you', 'no_problem', 'its_expensive', 'traffic_bad', 'god_willing', 'thank_god', 'blessing', 'congratulations']);
+/** The phrase intents that invoke God, present only where culturally natural. */
+export const RELIGIOUS_INTENTS = Object.freeze(['god_willing', 'thank_god', 'blessing']);
 /** The core family relations; some languages add more (older_brother, older_sister, godparent, …). */
 export const FAMILY_RELATIONS = Object.freeze(['grandmother', 'grandfather', 'mother', 'father', 'aunt', 'uncle', 'son', 'daughter', 'friend']);
 /** Interjection kinds. */
 export const INTERJECTION_KINDS = Object.freeze(['surprise', 'frustration', 'delight']);
 /** The list fields every language has. */
 export const LANGUAGE_LIST_FIELDS = Object.freeze(['greetings', 'howAreYou', 'thanks', 'farewells', 'yes', 'no', 'affection', 'polite', 'food']);
+/**
+ * Faiths an entry can belong to (option `faith`): a formula of one religion's practice ("Sat Sri Akal",
+ * "Waheguru", Amharic Egziabher) is said only by a speaker whose own faith the caller passes.
+ */
+export const FAITHS = Object.freeze(['sikh', 'hindu', 'muslim', 'christian']);
+/** Times of day an entry can be tied to (option `time`): "Buenos días" in the morning, "Good night" at night. */
+export const TIMES_OF_DAY = Object.freeze(['morning', 'day', 'afternoon', 'evening', 'night']);
 
-const OPT_KEYS = new Set(['sex', 'to', 'region', 'register', 'note']);
+const OPT_KEYS = new Set(['sex', 'to', 'region', 'register', 'faith', 'time', 'note']);
 const REGISTERS = new Set(['formal', 'casual', 'respect']);
 
 // Unicode script of each language's native text, for the load-time check.
@@ -56,11 +70,13 @@ function expandEntry(lang, script, raw, where) {
     if (opts.sex !== undefined && opts.sex !== 'F' && opts.sex !== 'M') throw new Error(`lexicon: ${lang} ${where}: bad sex`);
     if (opts.to !== undefined && opts.to !== 'F' && opts.to !== 'M') throw new Error(`lexicon: ${lang} ${where}: bad to`);
     if (opts.register !== undefined && !REGISTERS.has(opts.register)) throw new Error(`lexicon: ${lang} ${where}: bad register`);
+    if (opts.faith !== undefined && !FAITHS.includes(opts.faith)) throw new Error(`lexicon: ${lang} ${where}: bad faith ${opts.faith}`);
+    if (opts.time !== undefined && !TIMES_OF_DAY.includes(opts.time)) throw new Error(`lexicon: ${lang} ${where}: bad time ${opts.time}`);
     if (opts.region !== undefined) {
       if (!Array.isArray(opts.region) || !opts.region.length) throw new Error(`lexicon: ${lang} ${where}: region must be a non-empty array`);
       e.region = Object.freeze(opts.region.slice());
     }
-    for (const k of ['sex', 'to', 'register', 'note']) if (opts[k] !== undefined) e[k] = opts[k];
+    for (const k of ['sex', 'to', 'register', 'faith', 'time', 'note']) if (opts[k] !== undefined) e[k] = opts[k];
   }
   return Object.freeze(e);
 }
@@ -102,7 +118,8 @@ function buildLanguage(key, src) {
  * varieties, defaultVariety, greetings, howAreYou, thanks, farewells, yes, no, interjections: {surprise,
  * frustration, delight}, family: {grandmother, grandfather, mother, father, aunt, uncle, son, daughter,
  * friend, …}, affection, polite, food, phrases: {weather_hot, …, congratulations} }, every entry a frozen
- * { text, roman (non-Latin scripts), gloss, sex?, to?, region?, register?, note? }.
+ * { text, roman (non-Latin scripts), gloss, sex?, to?, region?, register?, faith?, time?, note? }. Read them
+ * through codeSwitch, familyTerm or phrasesFor (lexicon.mjs), which honor the variety, faith and time tags.
  * @type {Readonly<Record<string, object>>}
  */
 export const LANGUAGES = Object.freeze(Object.fromEntries(
@@ -148,20 +165,68 @@ export function resolveLanguage(lang, seed = 0) {
   return a[a.length - 1][0];
 }
 
+// Every Hispanic heritage key gets its own variety, so Mexican regionalisms (¡No manches!, Órale, Simón) stay with
+// Mexican speakers. 'latino' (origin not given) has none: it gets the shared Spanish every variety uses, unless
+// the birthplace says more.
 const VARIETY_BY_HERITAGE = {
-  spanish: { mexican: 'mx', salvadoran: 'sv', guatemalan: 'gt', honduran: 'hn', nicaraguan: 'ni' },
+  spanish: {
+    mexican: 'mx', salvadoran: 'sv', guatemalan: 'gt', honduran: 'hn', nicaraguan: 'ni',
+    cuban: 'cu', puertorican: 'pr', dominican: 'do', southamerican: 'sa', spanish: 'es',
+  },
   portuguese: { portuguese: 'pt', brazilian: 'br', southamerican: 'br' },
+  armenian: { armenian: 'east', iranian: 'east', russian: 'east', arab: 'west' },
+  punjabi: { sikh: 'in', indian: 'in', pakistani: 'pk' },
 };
 
+// Birthplaces that settle a variety the heritage leaves open (population birthplaces are "City, Region" or
+// "City, Country"; Mexican ones name the state).
+const MEXICAN_STATES = 'Aguascalientes|Baja California|Campeche|Chiapas|Chihuahua|Coahuila|Colima|Durango|Guanajuato|Guerrero|Hidalgo|Jalisco|Michoac[aá]n|Morelos|Nayarit|Nuevo Le[oó]n|Oaxaca|Puebla|Quer[eé]taro|Quintana Roo|San Luis Potos[ií]|Sinaloa|Sonora|Tabasco|Tamaulipas|Tlaxcala|Veracruz|Yucat[aá]n|Zacatecas|Mexico|M[eé]xico';
+const VARIETY_BY_BIRTHPLACE = {
+  spanish: [
+    [new RegExp(`\\b(${MEXICAN_STATES})\\b`), 'mx'], [/El Salvador/, 'sv'], [/Guatemala/, 'gt'], [/Honduras/, 'hn'], [/Nicaragua/, 'ni'],
+    [/Cuba/, 'cu'], [/Puerto Rico/, 'pr'], [/Dominican Republic/, 'do'], [/Spain/, 'es'],
+    [/Colombia|Peru|Argentina|Ecuador|Venezuela|Chile|Bolivia|Uruguay|Paraguay/, 'sa'],
+  ],
+  portuguese: [[/Brazil/, 'br'], [/Portugal|Azores|Madeira/, 'pt']],
+  armenian: [[/Lebanon|Syria|Turkey|Egypt|Jerusalem|Israel|Cyprus|Jordan|Iraq/, 'west'], [/Armenia|Iran|Russia|Azerbaijan|Georgia|Ukraine/, 'east']],
+  punjabi: [[/Pakistan/, 'pk'], [/India/, 'in']],
+};
+
+// Languages whose speakers always have some variety: an Armenian speaker of unknown background speaks the
+// Eastern Armenian most Armenian Californians speak, never "no Armenian".
+const VARIETY_FALLBACK = { armenian: 'east' };
+
+// Where the heritage key is coarser than the birthplace: Armenians from Beirut speak Western Armenian and
+// Armenians from Yerevan Eastern under the same heritage, and the population files Brazilians and Portuguese
+// under one Portuguese heritage. Elsewhere the heritage names the group and wins.
+const BIRTHPLACE_FIRST = new Set(['armenian', 'portuguese']);
+
 /**
- * The regional variety a speaker of this heritage uses for a language (Salvadoran Spanish, Brazilian
- * Portuguese), or null when the heritage says nothing about it.
+ * The regional variety a speaker uses for a language (Salvadoran Spanish, Brazilian Portuguese, Western
+ * Armenian, Pakistani Punjabi), from the heritage and opts.birthplace. Null when neither says (pass it on as
+ * is: codeSwitch then uses only the entries every variety shares).
  * @param {string} lang a LANGUAGES key or alias
+ * @param {string} heritage a population heritage key
+ * @param {{birthplace?: string}} [opts]
+ * @returns {string|null}
+ */
+export function varietyFor(lang, heritage, opts = {}) {
+  const k = resolveLanguage(lang);
+  if (!k) return null;
+  const born = typeof opts.birthplace === 'string' ? opts.birthplace : '';
+  const hit = born ? (VARIETY_BY_BIRTHPLACE[k] || []).find(([re]) => re.test(born)) : null;
+  const byPlace = hit ? hit[1] : null;
+  const byHeritage = (VARIETY_BY_HERITAGE[k] && VARIETY_BY_HERITAGE[k][heritage]) || null;
+  const v = BIRTHPLACE_FIRST.has(k) ? (byPlace || byHeritage) : (byHeritage || byPlace);
+  return v || VARIETY_FALLBACK[k] || null;
+}
+
+/**
+ * The faith a heritage key itself names (the Census 'Sikh' group), or null: Legion never guesses a religion
+ * from ancestry. A caller that knows the NPC's own practice passes that faith to codeSwitch instead.
  * @param {string} heritage a population heritage key
  * @returns {string|null}
  */
-export function varietyFor(lang, heritage) {
-  const k = resolveLanguage(lang);
-  const t = k && VARIETY_BY_HERITAGE[k];
-  return (t && t[heritage]) || null;
+export function faithFor(heritage) {
+  return heritage === 'sikh' ? 'sikh' : null;
 }

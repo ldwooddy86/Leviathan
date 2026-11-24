@@ -198,7 +198,8 @@ test('nobody remembers an event from before they lived in the county (unless the
   const pl = P(local);
   assert.equal(pl.residence.grewUpHere, true);
   const w = pl.memories.find(m => /Woolsey/.test(m.text));
-  assert.ok(w && w.scope === 'county' && /elsewhere in Los Angeles County/.test(w.text), pl.memories.map(m => m.text).join(' | '));
+  // they lived elsewhere in the county then: a county-scope memory, told from across the county, not an evacuation
+  assert.ok(w && w.scope === 'county' && /county/i.test(w.experience) && !/evacuat/.test(w.experience), pl.memories.map(m => m.text).join(' | '));
 });
 
 test('facts in memories and concerns come from the pack', () => {
@@ -428,4 +429,136 @@ test('county-wide coastal alerts reach only people near the shore', async () => 
   assert.ok(malibu.some(p => p.hooks.some(h => /Coastal Flood/.test(h)) || p.concerns.some(c => /Coastal Flood/.test(c.why))));
   assert.ok(!glendale.some(p => p.hooks.some(h => /Coastal/.test(h)) || p.concerns.some(c => /Coastal/.test(c.why))));
   assert.equal(glendale[0].knowledge.coastKm, world.zip('91205').coast_km);
+});
+
+// ---------------------------------------------------------------- review regressions (real population)
+
+test('work is read by Census group from layer 0: the life roles of the brief appear', () => {
+  const zips = ['93230', '93721', '90210', '95991', '92335', '94110', '90001', '93901', '95814', '92101', '96161', '91342'];
+  const roles = new Map();
+  let workers = 0, outdoorHeat = 0;
+  for (const zip of zips) {
+    for (const npc of peopleOf(zip, 220, p => p.status === 'employed', 2500)) {
+      const core = pop.householdCore(npc.zi, npc.h).members[npc.m];
+      const p = P(npc);
+      workers++;
+      assert.equal(p.routine.occKey, core.occ, `${npc.id}: the group is layer 0's (${core.occ}), not the job key ${npc.occupation && npc.occupation.key}`);
+      roles.set(p.archetype, (roles.get(p.archetype) || 0) + 1);
+      if (core.occ === 'farming' && core.departMin < 390 && !/logger|forestry|fishing|deckhand/.test(npc.occupation.title)) assert.equal(p.archetype, 'farmworker on the morning crew', npc.id);
+      const heat = p.concerns.find(c => c.topic === 'heat');
+      if (p.routine.outdoor && heat) { assert.match(heat.why, /works outdoors/, npc.id); outdoorHeat++; }
+      if (p.routine.outdoor !== undefined) assert.equal(typeof p.routine.outdoor, 'boolean');
+    }
+  }
+  assert.ok(workers > 1500, `workers: ${workers}`);
+  for (const r of ['farmworker on the morning crew', 'teacher', 'nurse', 'long-haul trucker', 'early-shift regular', 'remote worker', 'line cook', 'mechanic']) {
+    assert.ok(roles.get(r) > 0, `${r} occurs: ${[...roles].map(([k, v]) => `${k} ${v}`).join(', ')}`);
+  }
+  assert.ok((roles.get('nine-to-fiver') || 0) / workers < 0.1, `nine-to-fivers ${roles.get('nine-to-fiver')}/${workers}`);
+  assert.ok(outdoorHeat > 20, `outdoor workers who worry about the heat because of it: ${outdoorHeat}`);
+});
+
+test('without a population the group comes from the job catalog, then the title; titles are kept unless placeholders', () => {
+  const base = adults('93721', 1, p => p.status === 'employed' && p.occupation)[0];
+  const as = occupation => Object.assign(structuredClone(base), { occupation: Object.assign({ sector: 'x', employer: 'a regional hospital', shift: 'day', wfh: false, wage: 60000 }, occupation) });
+  const free = npc => persona(world, npc, {});
+  assert.equal(free(as({ key: 'registered-nurse', title: 'registered nurse' })).routine.occKey, 'practitioner', 'catalog key');
+  assert.equal(free(as({ key: 'tractor-driver', title: 'tractor driver' })).routine.occKey, 'farming', 'catalog key');
+  assert.equal(free(as({ key: 'no-such-job', title: 'Registered Nurse' })).routine.occKey, 'practitioner', 'title');
+  assert.equal(free(as({ key: 'no-such-job', title: 'loan officer' })).routine.occKey, 'business', 'a loan officer is not police');
+  assert.equal(free(as({ key: 'construction', title: 'construction' })).routine.occKey, 'construction', 'a group as the key');
+  // a one-word title equal to its key is a real title; a Census group label standing in for one is not
+  const pastor = free(as({ key: 'pastor', title: 'pastor', employer: 'a church' }));
+  assert.match(pastor.bio, /works as a pastor/);
+  assert.ok(pastor.memories.some(m => /started working as a pastor at a church/.test(m.text)), pastor.memories.map(m => m.text).join(' | '));
+  const placeholder = free(as({ key: 'office', title: 'office', employer: 'a local employer' }));
+  assert.ok(!/works as an office\b/.test(placeholder.bio), placeholder.bio);
+  // employers are written in the first person in their own memories
+  const farmer = free(as({ key: 'farmer', title: 'farmer', employer: 'their family farm' }));
+  const job = farmer.memories.find(m => /started working/.test(m.text));
+  assert.ok(job && /on my family's farm/.test(job.text) && !/\btheir\b/.test(job.text), job && job.text);
+  assert.equal(farmer.routine.occKey, 'management');
+  assert.ok(farmer.concerns.some(c => c.topic === 'water' && /farmer \(occupation\)/.test(c.why)) || farmer.concerns.length >= 6, 'a farmer worries about water');
+});
+
+test('concern reasons say what the pack\'s statistics measure', () => {
+  const malibu = adults('90265', 40, p => p.household && p.household.tenure === 'own' && ['householder', 'spouse'].includes(p.role)).map(P);
+  const ins = malibu.map(p => p.concerns.find(c => c.topic === 'insurance')).filter(Boolean);
+  assert.ok(ins.length >= 5);
+  for (const c of ins) {
+    assert.match(c.why, /FAIR Plan home policies per 100 homes here \(fair_sh\)/);
+    assert.match(c.why, /% of residential policies up for renewal in 90265 were not renewed in 2023 \(nonren_sh\)/);
+    assert.ok(!/% of policies here are with the FAIR Plan|insurers non-renewed/.test(c.why), c.why);
+  }
+  const wet = adults('94110', 40).map(P).flatMap(p => p.concerns.filter(c => /flood_n10/.test(c.why)));
+  assert.ok(wet.length > 0);
+  for (const c of wet) assert.match(c.why, /located flood, flash-flood and debris-flow reports? within 10 km since 1996 \(flood_n10\)/);
+  // "only N% own" is said only where owners are the minority
+  for (const zip of ['94110', '92262', '93230', '95014']) {
+    const own = world.zip(zip).own_sh;
+    for (const p of adults(zip, 30, x => x.household && x.household.tenure === 'rent').map(P)) {
+      const rent = p.concerns.find(c => c.topic === 'rent');
+      if (rent && own >= 50) assert.ok(!/only .*own_sh/.test(rent.why), rent.why);
+    }
+  }
+  const truckee = adults('96161', 30, p => p.household && p.household.tenure === 'own' && ['householder', 'spouse'].includes(p.role)).map(P);
+  const snow = truckee.map(p => p.concerns.find(c => c.topic === 'snow')).filter(Boolean);
+  assert.ok(snow.length > 5 && snow.every(c => !/the roof carries/.test(c.why)) && snow.some(c => /designed for a \d+ psf ground snow load \(snow_psf\)/.test(c.why)));
+});
+
+test('the household agrees: when the family came to the county, the wedding year, who goes to church', () => {
+  let kids = 0, couples = 0, churchHouseholds = 0;
+  for (const zip of ['94110', '90001', '93721', '92335', '95814', '90265', '93230', '91342', '95521', '92101']) {
+    const zi = world.indexOf(zip);
+    for (let h = 0; h < 160; h++) {
+      const core = pop.householdCore(zi, h);
+      const ms = core.members.map(x => { const npc = pop.person(zi, h, x.m); return { npc, p: P(npc) }; });
+      const parents = ms.filter(x => ['householder', 'spouse', 'partner'].includes(x.npc.role));
+      for (const kid of ms.filter(x => x.npc.role === 'child' && x.npc.age < 18)) {
+        if (!parents.length) continue;
+        kids++;
+        const first = Math.min(...parents.map(x => x.p.residence.countySince));
+        assert.ok(kid.p.residence.countySince >= first, `${kid.npc.id} came to the county (${kid.p.residence.countySince}) before both parents (${first})`);
+        for (const m of kid.p.memories) if (m.kind !== 'life') assert.ok(m.year >= first, `${kid.npc.id} remembers ${m.title} from before the family came`);
+      }
+      const hh = ms.find(x => x.npc.role === 'householder'), sp = ms.find(x => x.npc.role === 'spouse');
+      if (hh && sp) {
+        const wed = x => (x.p.memories.find(m => /got married in/.test(m.text)) || {}).year ?? null;
+        if (wed(hh) !== null || wed(sp) !== null) { couples++; assert.equal(wed(hh), wed(sp), `${core.id}: the couple married in one year`); }
+      }
+      const goers = ms.filter(x => x.p.practice).map(x => x.npc);
+      if (goers.length) {
+        churchHouseholds++;
+        if (goers.some(x => x.age < 13)) assert.ok(goers.some(x => x.age >= 18), `${core.id}: children go to church with a grown-up`);
+        const churches = new Set(ms.filter(x => x.p.practice).map(x => `${x.p.routine.places.church && x.p.routine.places.church.x}`));
+        assert.equal(churches.size, 1, `${core.id}: one church for the household`);
+      }
+    }
+  }
+  assert.ok(kids > 200 && couples > 100 && churchHouseholds > 20, JSON.stringify({ kids, couples, churchHouseholds }));
+});
+
+test('memories do not repeat themselves, and merge the declarations of one disaster', () => {
+  let people = 0, merged = 0;
+  for (const zip of ['90265', '95521', '93721', '92262', '96161', '94110', '92101', '95814']) {
+    const zi = world.indexOf(zip), fema = world.femaOf(zi);
+    for (const npc of peopleOf(zip, 120, p => p.age >= 18)) {
+      const p = P(npc);
+      people++;
+      const exps = p.memories.map(m => m.experience).filter(Boolean);
+      assert.equal(new Set(exps).size, exps.length, `${npc.id} repeats an experience: ${exps.join(' | ')}`);
+      const decl = p.memories.filter(m => m.source.startsWith('femaOf'));
+      for (let i = 0; i < decl.length; i++) for (let j = i + 1; j < decl.length; j++) {
+        if (decl[i].kind !== decl[j].kind) continue;
+        assert.ok(Math.abs(Date.parse(decl[i].date) - Date.parse(decl[j].date)) > 120 * 86400000, `${npc.id}: ${decl[i].title} and ${decl[j].title}`);
+      }
+      for (const m of decl) {
+        const parts = m.source.replace(/^femaOf\(\d+\): /, '').split(' + ');
+        if (parts.length > 1) { merged++; assert.match(m.fact, /^Federal disaster declarations for/); }
+        for (const part of parts) assert.ok(fema.some(f => part === `${f[0]} ${f[2].replace(/\s+/g, ' ')}` && m.fact.includes(f[2].replace(/\s+/g, ' '))), `${npc.id}: ${part}`);
+      }
+      for (const m of p.memories) assert.ok(!/\btheir (own|family)\b/.test(m.text), `${npc.id}: ${m.text}`);
+    }
+  }
+  assert.ok(people > 600 && merged > 50, JSON.stringify({ people, merged }));
 });

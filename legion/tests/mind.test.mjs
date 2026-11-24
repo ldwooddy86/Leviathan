@@ -194,11 +194,17 @@ test('needs and mood move with simulated time, weather and activity', () => {
   assert.ok(lone.needs.social > 0.4, 'company refills social');
   // comfort: 108°F outdoors at work is hard; the same heat at home is easier
   const hot = { now: { tempF: 108, short: 'Sunny', wind: '5 mph' }, alerts: [] };
-  const outside = new Mind(Object.assign({}, p, { npc: Object.assign({}, p.npc, { occupation: { key: 'construction' } }) }), { t: T0 });
-  outside.tick(T0, {}); outside.tick(T0 + 3 * H, { weather: hot, activity: { kind: 'work', place: { kind: 'work' } } });
+  const atWork = { kind: 'work', place: { kind: 'work' } };
+  const comfortAtWork = persona => { const x = new Mind(persona, { t: T0 }); x.tick(T0, {}); x.tick(T0 + 3 * H, { weather: hot, activity: atWork }); return x.needs.comfort; };
+  const outside = new Mind(Object.assign({}, p, { routine: Object.assign({}, p.routine, { outdoor: true }) }), { t: T0 });
+  outside.tick(T0, {}); outside.tick(T0 + 3 * H, { weather: hot, activity: atWork });
   const inside = new Mind(p, { t: T0 });
   inside.tick(T0, {}); inside.tick(T0 + 3 * H, { weather: hot, activity: { kind: 'home', place: { kind: 'home' } } });
   assert.ok(outside.needs.comfort < 0.4 && outside.needs.comfort < inside.needs.comfort - 0.2, `${outside.needs.comfort} vs ${inside.needs.comfort}`);
+  // the job is read by Census group (routine.occKey), never by the layer 1 job key, which is a slug like 'tractor-driver'
+  const byGroup = (occKey, jobKey) => Object.assign({}, p, { routine: Object.assign({}, p.routine, { outdoor: undefined, occKey }), npc: Object.assign({}, p.npc, { occupation: { key: jobKey, title: 'x' } }) });
+  assert.ok(comfortAtWork(byGroup('construction', 'roofer')) < 0.4, 'a construction worker works outside');
+  assert.ok(comfortAtWork(byGroup('office', 'construction')) > 0.6, 'the Census group decides, not a job key that happens to look like one');
   // mood returns to the personality baseline after an upset
   const calm = new Mind(p, { t: T0 });
   calm.observe({ from: 'player', text: 'You are pathetic and stupid', t: T0 });
@@ -324,4 +330,64 @@ test("the NPC's own lines are remembered without moving its mood or making a rel
   const r = m.recall('rent', 1, { background: false })[0];
   assert.match(r.text, /^I said: "/);
   assert.ok(r.tags.includes('self') && r.tags.includes('rent'));
+});
+
+test('hostility: everyday, sympathetic and teasing lines are not insults', () => {
+  const calm = [
+    'Did the fire hurt you?', 'Can the smoke hurt you?', 'This heat will kill you out here.', 'The Dodgers are going to beat you this year.',
+    'Do you know when garbage day is?', 'Can you help me? I feel like such a fool.', 'I love shiitake mushrooms', "I'd beat you at chess any day.",
+    'I would never hurt you.', 'Did you freak out when the power went off?', "You're nobody's fool.", 'My uncle Dick is visiting this weekend.',
+    'What a stupid question, sorry.', 'This weather is stupid.', 'My boss is an idiot.', 'Is the trash pickup on Tuesday?', 'Shut up! No way!',
+    "Shut up, that's amazing!", 'That class was a pain.',
+  ];
+  for (const line of calm) {
+    const a = appraise(line);
+    assert.ok(!a.intents.includes('insult'), `${line} → ${a.intents}`);
+    assert.ok(a.toxicity < 0.3, `${line} → toxicity ${a.toxicity}`);
+  }
+  for (const line of ['Did the fire hurt you?', 'This heat will kill you out here.', 'Do you know when garbage day is?', 'I love shiitake mushrooms']) assert.equal(appraise(line).toxicity, 0, line);
+  // the real thing still registers, aimed at the listener
+  const hostile = ["You're an idiot.", 'you idiot', 'Idiot!', 'Thank you, idiot.', 'Are you stupid?', 'You look like a clown.', 'your house is ugly',
+    "I'll hurt you", "I'm gonna punch you", 'Go to hell', 'Shut up and listen.', 'You suck', 'Screw you', 'Nobody likes you.'];
+  for (const line of hostile) assert.ok(appraise(line).intents.includes('insult'), line);
+  // swearing about something else is not an insult, and stings only a little
+  const swear = appraise('fuck this traffic');
+  assert.ok(!swear.intents.includes('insult') && swear.toxicity > 0 && swear.toxicity < 0.45);
+  // a Malibu neighbor asked about the fires in a friendly way does not end up hurt
+  const p = P(npcAt('90265'));
+  const m = new Mind(p, { t: T0 });
+  ['Hi! I heard about the Woolsey Fire.', 'Did the fire hurt you?', 'Can the smoke hurt you?', "I'm Mexican, by the way.", 'Do you know when garbage day is?']
+    .forEach((text, i) => m.observe({ from: 'player', text, t: T0 + i * 60000 }));
+  const r = m.relationship('player');
+  assert.ok(r.affinity >= 0 && r.trust >= 0 && r.grievance === 0, JSON.stringify(r));
+  assert.ok(['neutral', 'warm', 'fond'].includes(m.feelingsToward('player')), m.feelingsToward('player'));
+  assert.notEqual(m.emotion, 'angry');
+  m.reflect(T0 + 10 * 60000, { force: true });
+  assert.ok(!m.beliefs.some(b => b.topic === 'rude'), JSON.stringify(m.beliefs));
+  assert.ok(m.beliefs.some(b => b.topic === 'fire'), 'they asked about fire twice');
+});
+
+test('facts: names only from introductions, jobs only from job words, never a heritage', () => {
+  const none = ["I'm Mexican, by the way.", "I'm Korean too.", 'Call me crazy, but I love the heat.', 'Call me later.', 'Call me back when you can.',
+    'My name is not important.', "It's Monday.", 'This is California.', 'Hello, I am Tired', "I'm Catholic.", "Hi, I'm Filipino-American."];
+  for (const line of none) assert.ok(!appraise(line).facts.some(f => f.key === 'name'), `${line} → ${JSON.stringify(appraise(line).facts)}`);
+  const names = [["Hi, I'm Sam.", 'Sam'], ['Call me Ishmael.', 'Ishmael'], ["I'm Ana, nice to meet you.", 'Ana'], ["Nice to meet you, I'm Jun.", 'Jun'],
+    ["I'm Lupe, by the way.", 'Lupe'], ['hi im sam', 'Sam'], ['My name is Rosa Delgado.', 'Rosa Delgado'], ['Everyone calls me Bud.', 'Bud'], ["I'm Mei.", 'Mei']];
+  for (const [line, want] of names) assert.deepEqual(appraise(line).facts.find(f => f.key === 'name'), { key: 'name', value: want }, line);
+  const noJob = ["I'm a mother.", "I'm a vegetarian.", "I'm a grandfather and I love it.", "I'm a Californian.", "I'm a hard worker.", "I'm a good cook.",
+    "I'm a member of the church.", "I'm a beginner at surfing.", "I'm a Dodgers fan."];
+  for (const line of noJob) assert.ok(!appraise(line).facts.some(f => f.key === 'job'), `${line} → ${JSON.stringify(appraise(line).facts)}`);
+  const jobs = [["I'm a registered nurse.", 'registered nurse'], ['I work as a dental hygienist.', 'dental hygienist'], ["I'm a farm worker.", 'farm worker'],
+    ["I'm a truck driver.", 'truck driver'], ["I'm a stay-at-home mom.", 'stay-at-home mom'], ["I'm retired.", 'retired'], ["I'm a student at Fresno State.", 'student']];
+  for (const [line, want] of jobs) assert.deepEqual(appraise(line).facts.find(f => f.key === 'job'), { key: 'job', value: want }, line);
+  // what the mind learns, and so what reaches the Claude prompt, carries no heritage as a name
+  const m = new Mind(P(npcAt('90265')), { t: T0 });
+  m.observe({ from: 'player', text: "I'm Mexican, by the way.", t: T0 });
+  m.observe({ from: 'player', text: "I'm a mother of two.", t: T0 + 60000 });
+  m.observe({ from: 'player', text: "I'm a student, actually.", t: T0 + 120000 });
+  const facts = m.relationship('player').facts;
+  assert.ok(!facts.some(f => f.key === 'name'), JSON.stringify(facts));
+  assert.deepEqual(facts.map(f => f.text), ['They are a student.']);
+  m.reflect(T0 + 5 * 60000, { force: true });
+  assert.ok(!m.beliefs.some(b => /Mexican|mother/.test(b.text)), JSON.stringify(m.beliefs));
 });

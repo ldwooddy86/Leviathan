@@ -115,6 +115,7 @@ export function sentimentOf(text) {
     if (INTENSIFIER_USE.has(w) && i + 1 < ws.length && LEX[ws[i + 1]] !== undefined) continue; // intensifier use
     if (w === 'killing') continue;                                                     // read through the idioms below
     if (w === 'fair' && ws[i + 1] === 'plan') continue;                                // the FAIR Plan is a name
+    if ((w === 'garbage' || w === 'trash') && /^(day|days|truck|trucks|can|cans|pickup|bin|bins|collection|service|bag|bags|night)$/.test(ws[i + 1] || '')) continue; // garbage day
     if (w === 'hell' && (ws[i + 1] === 'yeah' || ws[i + 1] === 'yes')) s = 2;
     if (w === 'sick' && /\b(that'?s|so|was) sick\b/.test(raw.toLowerCase())) s = 2; // slang praise
     let m = 1;
@@ -139,35 +140,64 @@ export function sentimentOf(text) {
 
 // ---------------------------------------------------------------- hostility (insults, profanity, aggression; no slurs)
 
-const PROFANITY_STRONG = [/\bf+u+c+k+\w*/, /\bf[*#@!_.\-]{1,3}k\w*/, /\bf[*#@!]{2,4}(?![\w*#@!])/, /\bs[*#@!]{2,3}t\b/, /\bmotherf\w*/, /\bsh[i1!*]+t+\w*/, /\bb[i1!*]tch\w*/, /\bass(hole|hat|wipe|holes)?\b/, /\bdick(head)?s?\b/, /\bbastards?\b/, /\bprick\b/, /\bwtf\b/, /\bstfu\b/, /\bgtfo\b/];
-const PROFANITY_MILD = [/\bdamn(ed|it)?\b/, /\bhell\b/, /\bcrap(py)?\b/, /\bpiss(ed)?\b/, /\bfreaking\b/, /\bfrickin\w*/];
-const INSULT_WORDS = 'idiot idiots stupid dumb dumbass moron morons loser losers pathetic ugly worthless useless jerk fool clown creep trash garbage scum freak lame weirdo imbecile airhead bozo nitwit dimwit numbskull coward liar hypocrite parasite clueless incompetent';
-const INSULT_SET = new Set(INSULT_WORDS.split(' '));
-const AGGRESSION = [
-  [/\b(kill|hurt|beat|punch|smash|destroy) (you|u)\b.*|\bi('ll| will| am going to|'m gonna) (kill|hurt|beat|punch|smash|find) (you|u)\b/, 0.85],
-  [/\b(kill yourself|kys|drop dead)\b/, 0.9],
-  [/\b(f+u+c+k+|f[*#@!_.\-]{1,3}k|screw) (you|u|off)\b|\bf[*#@!]{2,4} (you|u|off)\b/, 0.6],
-  [/\bgo to hell\b/, 0.5], [/\bi hate (you|u)\b/, 0.5], [/\bnobody (likes|cares about|wants) (you|u)\b/, 0.5],
-  [/\byou suck\b|\bu suck\b/, 0.45], [/\bshut (up|it)\b/, 0.4], [/\bpiece of (crap|sh\w*|garbage|trash|work)\b/, 0.4],
-  [/\byou stink\b/, 0.35], [/\bget lost\b|\bbeat it\b|\bpiss off\b|\bbuzz off\b/, 0.35], [/\bgo away\b|\bleave me alone\b/, 0.25],
-  [/\bwho asked\b|\bnobody asked\b/, 0.25], [/\bwhat'?s wrong with you\b/, 0.25],
+// Profanity as whole words only: "shiitake", "Dickens" and "class" are not profanity.
+const PROFANITY_STRONG = [
+  /\bf+u+c+k+(?:s|ed|er|ers|ing|in'?|face|head|wit)?\b/, /\bf[*#@!_.\-]{1,3}k(?:ing|in'?|er|ed|s)?\b/, /\bf[*#@!]{2,4}(?![\w*#@!])/,
+  /\bs[*#@!]{2,3}t\b/, /\bmotherf\w*/, /\bsh[i1!*]t(?:s|ty|tier|ting|head|heads|show|load)?\b/, /\bbull ?sh[i1!*]t\b/,
+  /\bb[i1!*]tch(?:es|y|ing|in'?)?\b/, /\bass(?:hole|holes|hat|hats|wipe)\b/, /\bdick(?:head|heads|s)?\b/, /\bbastards?\b/, /\bprick\b/,
+  /\bwtf\b/, /\bstfu\b/, /\bgtfo\b/,
 ];
-const SECOND_PERSON = /\b(you|your|you're|youre|ur|u|yourself|ya)\b/;
+const PROFANITY_MILD = [/\bdamn(?:ed|it)?\b/, /\bhell\b/, /\bcrap(?:py)?\b/, /\bpiss(?:ed)?\b/, /\bfreaking\b/, /\bfrickin\w*/, /\bass\b/];
 
-/** Hostility of a text in 0..1, and whether it reads as an insult aimed at the listener. */
+// Insults count only when aimed at the listener: as a predicate ("you're an idiot", "are you stupid?"), a
+// vocative ("you idiot", "Idiot!") or about their things ("your house is ugly"). The same words about the weather,
+// a question or oneself ("I feel like such a fool", "garbage day") are not hostility.
+const INSULT_NOUNS = 'idiots?|morons?|losers?|jerks?|fools?|clowns?|creeps?|freaks?|weirdos?|imbeciles?|airheads?|bozos?|nitwits?|dimwits?|numbskulls?|cowards?|liars?|hypocrites?|parasites?|scum|dumbass(?:es)?|jackass(?:es)?|dorks?';
+const INSULT_THINGS = 'trash|garbage|a joke|a disgrace|a failure|a nobody|a waste of space';
+const INSULT_ADJS = 'stupid|dumb|ugly|pathetic|worthless|useless|disgusting|incompetent|clueless|ignorant|fat|lazy|brainless|hopeless';
+const INSULT_MILD = 'weird|boring|annoying|lame|gross|rude|creepy|mean';
+const SOFTENERS = '(?:(?:such|so|really|very|totally|completely|being|just|a|an|the|total|complete|real|absolute|big|little|fucking|freaking|damn|stupid|dumb|useless|pathetic|ugly|lazy|worthless)\\s+){0,4}';
+const YOU_ARE = "(?:\\byou(?:'re| are| r| were| was)|\\byoure|\\bur|\\bu r|\\bare you,?|\\byou (?:look|sound|act|seem)(?: like)?)\\s+";
+const RE_PREDICATE = new RegExp(`${YOU_ARE}${SOFTENERS}(?:${INSULT_NOUNS}|${INSULT_THINGS}|${INSULT_ADJS})\\b(?!')`);
+const RE_PREDICATE_MILD = new RegExp(`${YOU_ARE}${SOFTENERS}(?:${INSULT_MILD})\\b`);
+const RE_VOCATIVE = new RegExp(`\\b(?:you|ya),?\\s+(?:(?:stupid|dumb|little|big|fucking|freaking|damn|absolute|complete|total|ugly|lazy|pathetic|useless|worthless)\\s+){0,2}(?:${INSULT_NOUNS})\\b(?!\\s+(?:out|me|us|him|her|them|it|around|off)\\b)`);
+const RE_OPENING = new RegExp(`^(?:(?:you|ya)\\s+)?(?:(?:stupid|dumb|little|fucking|freaking|damn|absolute|complete|total)\\s+){0,2}(?:${INSULT_NOUNS})\\s*(?:[,!.?]|$)`);
+const RE_THEIR_THINGS = new RegExp(`\\byour\\s+(?:(?:${INSULT_ADJS}|lame|trashy)\\s+[a-z]+|[a-z]+(?:\\s+[a-z]+)?\\s+(?:is|are|looks?|was|were|smells?)\\s+(?:(?:so|really|such|a|total|like|kind of|pretty)\\s+)*(?:${INSULT_ADJS}|trash|garbage|a joke|lame|gross))\\b`);
+// Threats need the speaker as the subject: "Did the fire hurt you?" asks, "This heat will kill you" warns,
+// "The Dodgers are going to beat you" teases, "I'd beat you at chess" competes.
+const RE_THREAT = /\bi(?:'ll|'m gonna|'m going to|'d| will| am gonna| am going to| would| want to| wanna| gonna)\s+(?:(?!never\b|not\b|n't\b)[a-z]+\s+)?(?:kill|hurt|beat up|beat|punch|smash|stab|shoot|slap|strangle|choke|destroy|end)\s+(?:you|u|ya)\b(?!\s+(?:at|in|on|to|there|when|if|in a)\b)/;
+const RE_CURSE = /\b(?:f+u+c+k+|f[*#@!_.\-]{1,3}k|screw)\s+(?:you|u|off|ya)\b|\bf[*#@!]{2,4}\s+(?:you|u|off)\b/;
+const SURPRISE = "(?:no way|really|seriously|for real|are you serious|you'?re kidding|you'?re joking|that'?s (?:amazing|awesome|great|incredible|so cool|crazy))";
+const RE_SHUT_UP_SURPRISE = new RegExp(`\\bshut up(?:\\s*!+\\s*(?:$|${SURPRISE})|,?\\s+${SURPRISE})`);
+
+/** Hostility of a text in 0..1, and whether it reads as an insult or a threat aimed at the listener. */
 function hostility(text) {
   const raw = String(text || '');
-  const t = raw.toLowerCase().replace(/[’‘`]/g, "'");
-  const ws = words(t);
-  const aimed = SECOND_PERSON.test(t);
+  const t = raw.toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
   let score = 0, insult = false;
-  for (const re of PROFANITY_STRONG) { const n = (t.match(new RegExp(re.source, 'g')) || []).length; score += 0.3 * n; }
-  for (const re of PROFANITY_MILD) { if (re.test(t) && !/\bhell (yeah|yes|of a)\b/.test(t)) score += 0.1; }
-  for (const w of ws) if (INSULT_SET.has(w)) { score += aimed ? 0.35 : 0.15; if (aimed) insult = true; }
-  if (/\b(you('re| are)|ur|u r|youre)\s+(an? |so |such an? |really |very |the |a total |a complete )?(idiot|stupid|dumb|moron|loser|ugly|pathetic|useless|worthless|jerk|fool|clown|creep|trash|garbage|lame|boring|annoying|weird|weirdo|freak|liar|joke|disgrace|disgusting|nobody|nothing|clueless|incompetent)\b/.test(t)) { score += 0.3; insult = true; }
-  for (const [re, w] of AGGRESSION) if (re.test(t)) { score += w; insult = true; }
+  const aimed = w => { score += w; insult = true; };
+  const prof = raw.replace(/\bDick\b/g, ' ').toLowerCase().replace(/[’‘`]/g, "'"); // a capitalized Dick is a name
+  for (const re of PROFANITY_STRONG) score += 0.3 * (prof.match(new RegExp(re.source, 'g')) || []).length;
+  for (const re of PROFANITY_MILD) if (re.test(prof) && !/\bhell (?:yeah|yes|of a)\b/.test(prof)) score += 0.1;
+  if (RE_PREDICATE.test(t) || RE_VOCATIVE.test(t) || RE_OPENING.test(t)) aimed(0.55);
+  else if (RE_PREDICATE_MILD.test(t)) aimed(0.3);
+  if (RE_THEIR_THINGS.test(t)) aimed(0.3);
+  if (RE_THREAT.test(t)) aimed(0.85);
+  if (/\bkick your (?:ass|butt)\b(?! (?:at|in)\b)/.test(t)) aimed(0.5);
+  if (/\b(?:kill yourself|kys|go die|drop dead)\b/.test(t)) aimed(0.9);
+  if (RE_CURSE.test(t)) aimed(0.6);
+  if (/\bgo to hell\b/.test(t)) aimed(0.5);
+  if (/\bi hate (?:you|u|ya)\b|\bi hate your guts\b/.test(t)) aimed(0.5);
+  if (/\bnobody (?:likes|cares about|wants|loves) (?:you|u)\b/.test(t)) aimed(0.5);
+  else if (/\b(?:nobody|who) cares\b/.test(t)) aimed(0.2);
+  if (/\b(?:you|u) (?:suck|stink)\b/.test(t)) aimed(0.45);
+  // "shut up" is hostile, except in surprise ("Shut up! No way!", "Shut up, that's amazing")
+  if (/\bshut (?:up|it)\b/.test(t)) { if (RE_SHUT_UP_SURPRISE.test(t)) score += 0.1; else aimed(0.4); }
+  // dismissive, not an insult
+  if (/(?:^|[.!?,] )(?:just )?(?:get lost|go away|buzz off|piss off)\b|\bleave me alone\b|\b(?:who|nobody) asked\b/.test(t)) score += 0.25;
+  if (/\bwhat'?s wrong with (?:you|u)\b/.test(t)) score += 0.15;
   const letters = raw.replace(/[^A-Za-z]/g, '');
-  if (letters.length >= 8 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6) score += 0.1;
+  if (score > 0 && letters.length >= 8 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6) score += 0.1; // shouting
   return { toxicity: round(clamp(score, 0, 1), 3), insult };
 }
 
@@ -189,28 +219,103 @@ const P = {
   request: /^(please|can you|could you|would you|will you|would you mind|tell me|show me|give me|help me|let me|let'?s|i need|i'?d like|i want|where can i|how do i|do you know (where|how|if|what))\b|\bplease\b|^(tell|show|give|help|take(?! care)|bring|find|explain|describe|recommend|suggest|teach|lend|point|share)\b/,
 };
 
-const NOT_NAMES = new Set('good fine ok okay tired happy sorry here new from a an the not so just back sure glad great well also really very going gonna trying looking at in on doing done busy hungry ready lost confused retired married single bored home sick worried scared excited curious interested'.split(' '));
-const JOB_WORDS = /^(nurse|teacher|doctor|student|chef|cook|driver|engineer|farmer|farmworker|lawyer|firefighter|cop|police officer|officer|mechanic|carpenter|electrician|plumber|roofer|artist|writer|musician|programmer|developer|designer|manager|cashier|waiter|waitress|server|barista|janitor|gardener|landscaper|nanny|caregiver|veteran|retiree|realtor|accountant|banker|pilot|soldier|sailor|marine|scientist|researcher|professor|librarian|pharmacist|dentist|therapist|contractor|welder|trucker|truck driver|bartender|baker|housekeeper|analyst|consultant|journalist|photographer|reporter|paramedic|EMT|clerk|secretary|assistant|technician|tech|coder|freelancer|entrepreneur|business owner|homemaker|stay-at-home \w+|\w+(er|or|ist|ian|ant|ent))$/i;
+// Words that follow "I'm" or "my name is" without being a name: states, moods, fillers, places in a sentence.
+const NOT_NAMES = new Set(('good fine ok okay alright tired happy sorry here there new from a an the not no so just back sure glad great well also '
+  + 'really very still only actually pretty kind kinda quite too going gonna trying looking at in on doing done busy hungry thirsty ready lost '
+  + 'confused retired married single divorced widowed pregnant bored home sick worried scared afraid excited curious interested late early '
+  + 'off out over up down outside inside around nearby about almost never always usually staying visiting moving leaving heading calling '
+  + 'asking talking telling working living waiting walking driving thinking feeling getting coming um uh like yes yeah nope hey hi hello thanks '
+  + 'free open closed broke rich poor old young cold hot warm wet cool sad mad angry upset stressed fine stuck safe okay certain positive '
+  + 'nobody somebody someone anyone everyone nothing something everything here this that it what who').split(' '));
+// Nationalities, heritages, faiths and regions: "I'm Mexican" or "I'm Catholic" is not a name, and the NPC must
+// never call the player by one.
+const IDENTITY_WORDS = new Set(('mexican salvadoran guatemalan honduran nicaraguan puerto rican cuban dominican south central american spanish '
+  + 'latino latina latinx hispanic chicano chicana chinese taiwanese filipino filipina pinoy pinay vietnamese korean japanese indian hmong cambodian '
+  + 'khmer lao laotian thai pakistani bangladeshi sikh punjabi afghan burmese indonesian asian african ethiopian eritrean nigerian somali '
+  + 'caribbean jamaican haitian black white armenian iranian persian arab arabic assyrian russian ukrainian polish irish italian german '
+  + 'english british scottish welsh french portuguese dutch scandinavian swedish norwegian danish finnish greek european american californian '
+  + 'native indigenous hawaiian samoan tongan pacific islander jewish muslim catholic christian buddhist hindu mormon protestant baptist '
+  + 'evangelical atheist agnostic canadian australian brazilian israeli turkish lebanese egyptian syrian iraqi palestinian cantonese mandarin '
+  + 'texan southern southerner midwestern midwesterner mixed biracial multiracial hapa local immigrant gay straight lesbian queer trans '
+  + 'california cali socal norcal').split(' '));
+const NOT_NAME_TIMES = new Set('monday tuesday wednesday thursday friday saturday sunday today tomorrow yesterday tonight january february march july september october november december christmas easter'.split(' '));
+// What follows "call me" in idioms, not a name: "call me crazy", "call me later", "call me back".
+const CALL_IDIOMS = new Set('crazy later back anytime sometime tomorrow tonight maybe old old-fashioned whatever anything a an the if when whenever on at in up over again every around first after before soon now please out sometimes ishmaelite stupid silly naive paranoid lucky'.split(' '));
+
+/** True when a word can be a person's name: not a state, a time, a nationality, a faith or a verb form. */
+function nameWord(w) {
+  const lw = String(w || '').toLowerCase().replace(/'s$/, '');
+  if (lw.length < 2 || NOT_NAMES.has(lw) || NOT_NAME_TIMES.has(lw) || /ing$|ed$/.test(lw) && lw.length > 4) return false;
+  return !lw.split('-').some(part => IDENTITY_WORDS.has(part));
+}
+const titleCase = w => w.split('-').map(p => (p ? p[0].toUpperCase() + p.slice(1).toLowerCase() : p)).join('-');
+
+// Jobs a person can say they are ("I'm a nurse"): head nouns, read from the end of the phrase.
+const JOB_HEADS = new Set(('nurse teacher doctor physician surgeon dentist pharmacist therapist counselor chef cook baker barista bartender server '
+  + 'waiter waitress driver trucker pilot mechanic electrician plumber carpenter roofer painter welder machinist engineer developer programmer '
+  + 'coder designer architect scientist researcher professor instructor librarian accountant bookkeeper lawyer attorney paralegal judge clerk '
+  + 'cashier manager supervisor director administrator consultant analyst realtor agent broker banker teller firefighter officer cop deputy '
+  + 'detective guard soldier sailor marine airman farmer farmworker rancher gardener landscaper janitor housekeeper cleaner nanny caregiver aide '
+  + 'assistant receptionist secretary technician tech emt paramedic medic hygienist contractor builder laborer foreman inspector surveyor writer '
+  + 'reporter journalist editor photographer artist musician actor actress dancer filmmaker animator entrepreneur owner freelancer student '
+  + 'homemaker housewife hairstylist stylist barber butcher fisherman logger longshoreman stocker postman courier salesperson salesman saleswoman '
+  + 'rep representative pastor priest minister rabbi imam chaplain veterinarian vet tutor coach trainer lifeguard dispatcher operator picker '
+  + 'principal programmer translator interpreter chemist biologist geologist economist psychologist planner adjuster auditor recruiter').split(' '));
+// "a farm worker" and "a social worker" are jobs; "a hard worker" is not
+const WORKER_KINDS = new Set('farm field social construction factory warehouse tech health care home office steel dock retail county city state federal postal sanitation restaurant hotel oil road rail transit cannery nursery vineyard dairy'.split(' '));
+// Evaluations, not jobs: "a good cook", "a terrible driver"
+const NOT_JOB_ADJ = new Set('good bad great terrible awful amazing decent careful safe fast slow hard real true proud big huge total complete better worse best worst'.split(' '));
+// Who someone is to their family, what they eat, believe or support: not a job
+const NOT_JOBS = new Set('mother father mom dad parent grandmother grandfather grandma grandpa grandparent sister brother son daughter aunt uncle cousin wife husband widow widower vegetarian vegan californian american member believer beginner fan resident local native immigrant patient customer neighbor newcomer veteran retiree christian catholic democrat republican'.split(' '));
+
+/** A job phrase the speaker gave ("registered nurse", "farm worker", "stay-at-home mom"), or null. */
+function jobPhrase(phrase, sure) {
+  const p = String(phrase || '').toLowerCase().trim().replace(/\s+/g, ' ');
+  if (!p) return null;
+  if (/^stay-at-home (?:mom|dad|parent|mother|father)$/.test(p)) return p;
+  const ws = p.split(' ');
+  if (ws.some(w => NOT_JOBS.has(w)) || NOT_JOB_ADJ.has(ws[0])) return null;
+  const head = ws[ws.length - 1];
+  if (head === 'worker') return ws.length > 1 && WORKER_KINDS.has(ws[ws.length - 2]) ? p : null;
+  if (JOB_HEADS.has(head)) return p;
+  // "I work as a ..." says it is a job; take a short phrase there as said
+  return sure && ws.length <= 3 && /^[a-z][a-z -]*$/.test(p) ? p : null;
+}
+
+const GREETING_START = '^(?:hi|hello|hey|heya|hiya|howdy|yo|greetings|good (?:morning|afternoon|evening)|morning|evening)(?:\\s+(?:there|all|everyone|neighbor))?[\\s,!.]+';
 
 /** Facts a speaker gives about themselves: name, where they are from or live, their work. */
 function factsOf(text) {
-  const raw = String(text || '').replace(/[’‘`]/g, "'");
+  const raw = String(text || '').replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
   const out = [];
   const add = (key, value) => { const v = String(value || '').trim().replace(/\s+/g, ' ').replace(/[.,!?;:]+$/, ''); if (v && !out.some(f => f.key === key)) out.push({ key, value: v }); };
-  let m = /\b(?:my name is|my name's|call me|i'?m called|i am called|they call me|name's)\s+([A-Za-z][A-Za-z'-]{1,20})/i.exec(raw);
-  if (m) {
+  // names: "my name is", "they call me"; "call me X" only for a name, not an idiom ("call me crazy", "call me later")
+  let m = /\b(?:my name is|my name's|name's|i'?m called|i am called|they call me|everyone calls me|people call me|friends call me)\s+([A-Za-z][A-Za-z'-]{1,20})/i.exec(raw);
+  if (m && nameWord(m[1])) {
     const rest = /^\s+([A-Z][A-Za-z'-]{1,20})\b/.exec(raw.slice(m.index + m[0].length));
-    const first = m[1][0].toUpperCase() + m[1].slice(1);
-    add('name', rest && !NOT_NAMES.has(rest[1].toLowerCase()) ? `${first} ${rest[1]}` : first);
+    add('name', rest && nameWord(rest[1]) ? `${titleCase(m[1])} ${titleCase(rest[1])}` : titleCase(m[1]));
   }
-  else if ((m = /\b(?:I'?m|I am|it'?s|this is)\s+([A-Z][a-z'-]{1,20})\b/.exec(raw)) && !NOT_NAMES.has(m[1].toLowerCase())) add('name', m[1]);
+  if (!out.length && (m = /(?:^|[.!?]\s+|\b(?:you can|just|please)\s+)call me\s+([A-Za-z][A-Za-z'-]{1,20})(?=\s*(?:[,.!?]|$|\s+(?:for short|instead)\b))/i.exec(raw))
+    && nameWord(m[1]) && !CALL_IDIOMS.has(m[1].toLowerCase())) add('name', titleCase(m[1]));
+  // "I'm X" only where it introduces someone: after a greeting, with "nice to meet you", "by the way", or alone
+  if (!out.length) {
+    const intro = [
+      new RegExp(`${GREETING_START}(?:i'?m|i am|it'?s|this is|my name'?s)\\s+([A-Za-z][A-Za-z'-]{1,20})\\b`, 'i'),
+      /^(?:[Ii]'?m|[Ii] am)\s+([A-Z][A-Za-z'-]{1,20})\s*[,.!]?\s*(?:(?:[Ii]t'?s )?(?:[Nn]ice|[Pp]leased|[Gg]ood|[Gg]reat) to meet you|[Bb]y the way|btw)\b/,
+      /\b(?:nice|pleased|good|great) to meet you[,.!]*\s+(?:i'?m|i am)\s+([A-Z][A-Za-z'-]{1,20})\b/i,
+      /\blet me introduce myself[,.:!]*\s+(?:i'?m|i am)\s+([A-Za-z][A-Za-z'-]{1,20})\b/i,
+      /^(?:[Ii]'?m|[Ii] am)\s+([A-Z][A-Za-z'-]{1,20})\s*[.!]*$/,
+    ];
+    for (const re of intro) { const x = re.exec(raw); if (x && nameWord(x[1])) { add('name', titleCase(x[1])); break; } }
+  }
   m = /\b(?:i'?m|i am|i come|i came|we'?re|we are)\s+(?:originally\s+)?from\s+([A-Za-z][\w .'-]{1,40}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so|though|originally)\b))/i.exec(raw);
   if (m) add('from', m[1]);
   m = /\bi (?:live|stay|grew up) (?:in|on|over in|near|by)\s+([A-Za-z][\w .'-]{1,40}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so|now|these)\b))/i.exec(raw);
   if (m) add('lives', m[1]);
-  m = /\bi work (?:as an?|as)\s+([a-z][\w '-]{1,40}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so|at|in|for)\b))/i.exec(raw)
-    || /\bi(?:'m| am) an?\s+([a-z][\w -]{1,30}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so|at|in|for|by|from)\b))/i.exec(raw);
-  if (m && JOB_WORDS.test(m[1].trim())) add('job', m[1]);
+  const said = /\bi work (?:as an?|as)\s+([a-z][\w '-]{1,40}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so|at|in|for)\b))/i.exec(raw);
+  const am = /\bi(?:'m| am) an?\s+([a-z][\w -]{1,30}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so|at|in|for|by|from|with|who)\b))/i.exec(raw);
+  const job = (said && jobPhrase(said[1], true)) || (am && jobPhrase(am[1], false));
+  if (job) add('job', job);
   else if ((m = /\bi work (?:at|for|in)\s+([A-Za-z][\w .'&-]{1,40}?)(?=\s*(?:[,.!?;]|$|\s+(?:and|but|so)\b))/i.exec(raw))) add('workplace', m[1]);
   if (/\bi'?m retired\b|\bi am retired\b/i.test(raw)) add('job', 'retired');
   if ((m = /\bi(?:'m| am) new (?:in|to) (town|the area|the neighborhood|here|california|the city)\b/i.exec(raw))) add('newcomer', `new to ${m[1].toLowerCase()}`);
@@ -267,7 +372,7 @@ export function appraise(text) {
   if (/\?\s*$/.test(t) || /\?/.test(t) || P.questionStart.test(t)) push('question');
   if (P.compliment.some(re => re.test(t))) push('compliment');
   const host = hostility(raw);
-  if (host.insult || host.toxicity >= 0.45) push('insult');
+  if (host.insult || host.toxicity >= 0.6) push('insult');
   if (P.thanks.test(t)) push('thanks');
   if (P.apology.test(t) && !/\bsorry (to hear|for your|about your)\b/.test(t)) push('apology');
   if (P.farewell.test(t) || P.shortLater.test(t)) push('farewell');
@@ -609,7 +714,8 @@ export class Mind {
     let dv = 0.12 * ap.sentiment * (0.6 + 0.8 * A), da = 0.04 * Math.abs(ap.sentiment);
     if (I.has('compliment')) dv += 0.12;
     if (I.has('thanks')) dv += 0.05;
-    if (I.has('insult') || ap.toxicity >= 0.3) { dv -= (0.2 + 0.25 * ap.toxicity) * (0.5 + N); da += 0.2 * (0.5 + N); }
+    if (I.has('insult')) { dv -= (0.2 + 0.25 * ap.toxicity) * (0.5 + N); da += 0.2 * (0.5 + N); }
+    else if (ap.toxicity > 0) { dv -= 0.1 * ap.toxicity; da += 0.05 * ap.toxicity; } // swearing about something else
     st.mood.valence = round(clamp(st.mood.valence + dv, -1, 1));
     st.mood.arousal = round(clamp(st.mood.arousal + da, 0, 1));
   }
@@ -632,7 +738,8 @@ export class Mind {
     const I = new Set(ap.intents);
     r.interactions += 1;
     r.familiarity = round(clamp(r.familiarity + 0.01, 0, 1));
-    let da = 0.03 * ap.sentiment, dt = 0;
+    // asking about something hard ("Did the fire hurt you?") is sympathy, not coldness: only warmth moves a question
+    let da = 0.03 * (I.has('question') ? Math.max(0, ap.sentiment) : ap.sentiment), dt = 0;
     if (I.has('compliment')) { da += 0.1 * (0.7 + 0.6 * A); dt += 0.02; }
     if (I.has('thanks')) { da += 0.06; dt += 0.02; }
     if (I.has('greeting')) da += 0.01;
@@ -641,7 +748,7 @@ export class Mind {
       if (r.grievance > 0) { const f = 0.3 + 0.5 * A; da += 0.15 * f; dt += 0.12 * f; r.grievance = round(r.grievance * (1 - f)); }
       else da += 0.02;
     }
-    if (I.has('insult') || ap.toxicity >= 0.3) {
+    if (I.has('insult')) {
       const sting = 0.7 + 0.6 * N;
       da -= 0.2 * sting + 0.15 * ap.toxicity;
       dt -= 0.15 * sting;
@@ -652,7 +759,7 @@ export class Mind {
     r.trust = round(clamp(r.trust + dt, -1, 1));
     for (const f of ap.facts) {
       const text = f.key === 'name' ? `Their name is ${f.value}.` : f.key === 'from' ? `They are from ${f.value}.` : f.key === 'lives' ? `They live in ${f.value}.`
-        : f.key === 'job' ? (f.value === 'retired' ? 'They are retired.' : `They work as ${/^[aeiou]/i.test(f.value) ? 'an' : 'a'} ${f.value}.`)
+        : f.key === 'job' ? (f.value === 'retired' ? 'They are retired.' : /^(student|homemaker|housewife|stay-at-home .+)$/.test(f.value) ? `They are ${/^[aeiou]/i.test(f.value) ? 'an' : 'a'} ${f.value}.` : `They work as ${/^[aeiou]/i.test(f.value) ? 'an' : 'a'} ${f.value}.`)
           : f.key === 'newcomer' ? `They are ${f.value}.` : `They work at ${f.value}.`;
       const have = r.facts.find(x => x.key === f.key);
       if (have) Object.assign(have, { value: f.value, t: isNum(t) ? t : have.t, text });

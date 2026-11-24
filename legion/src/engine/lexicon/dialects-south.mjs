@@ -107,7 +107,7 @@ export const FAMILIES = {
       `),
       smoke: lines(`
         Smoke's coming over the hills from somewhere.
-        Ash on my car this morning. There must be a fire close by.
+        @drives Ash on my car this morning. There must be a fire close by.
         The sun's red from the smoke. Scary.
         I keep checking the evacuation maps, just in case.
       `),
@@ -147,10 +147,10 @@ export const FAMILIES = {
       There's nowhere else like this city.
     `),
     complaintLines: lines(`
-      Rent in LA is criminal.
+      @adult Rent in LA is criminal.
       Traffic is a full-time job.
       @drives I spend more time in my car than at home.
-      Everything's getting more expensive and nothing's getting better.
+      @adult Everything's getting more expensive and nothing's getting better.
       @adult You can't buy a house anywhere near where you work.
       @drives Parking tickets in this city are a racket.
       Every time it's windy now, I worry about fires.
@@ -480,7 +480,7 @@ export const FAMILIES = {
       @wx:heat Hey! Staying cool?
       @h4-11 @m4-10 Morning! Get your walk in before the heat?
       Hey there, how's it going?
-      @m9-12 Well, hey! Haven't seen you since spring.
+      @m10-12 Well, hey! You're back! Haven't seen you in months.
       @m10-12 Hey! You back for the season?
       @h4-11 @wx:heat Morning! Gonna be a scorcher.
       @wx:heat Hi! How's the heat treating you?
@@ -707,9 +707,9 @@ export const FAMILIES = {
     `),
     complaintLines: lines(`
       @adult The sunshine tax is real.
-      Rent near the beach is impossible.
-      Military pay doesn't go far here.
-      Everything good costs a fortune.
+      @adult Rent near the beach is impossible.
+      @adult Military pay doesn't go far here.
+      @adult Everything good costs a fortune.
       The traffic is getting as bad as LA.
     `),
     food: lines(`
@@ -757,7 +757,7 @@ export const KEYS = {
       Venice is weird and wonderful.
     `),
     complaintLines: lines(`
-      A one-bedroom near the beach costs more than a house almost anywhere.
+      @adult A one-bedroom near the beach costs more than a house almost anywhere.
       Everything's a twenty-minute drive that takes forty.
       @drives Parking at the beach costs as much as lunch.
       The fires in the canyons scare me more every year.
@@ -847,7 +847,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       The freeways cut right through the neighborhood.
-      Rents keep going up and the old families are getting pushed out.
+      @adult Rents keep going up and the old families are getting pushed out.
       The trucks from the port make the air terrible.
       The city forgets about east of the river.
     `),
@@ -973,7 +973,7 @@ export const KEYS = {
       Everybody knows everybody on my block.
     `),
     complaintLines: lines(`
-      They put a stadium up and the rents shot up.
+      @adult They put a stadium up and the rents shot up.
       Grocery stores with real produce are too far.
       The bus takes forever.
       Developers want everything, and they're pushing families out.
@@ -1014,7 +1014,7 @@ export const KEYS = {
       PV on a clear day, you can see Catalina.
     `),
     complaintLines: lines(`
-      Beach city rent is out of control.
+      @adult Beach city rent is out of control.
       The refinery smell when the wind's wrong.
       Trucks from the port everywhere.
       @anytime Parking near the pier in summer, forget it.
@@ -1059,7 +1059,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       The air near the port is terrible.
-      Rent by the beach went crazy.
+      @adult Rent by the beach went crazy.
       The trucks never stop.
       Parking in Belmont Shore is impossible.
     `),
@@ -1154,7 +1154,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       @anytime Fire season in the canyons terrifies everybody.
-      Housing's gotten as expensive as LA.
+      @adult Housing's gotten as expensive as LA.
       The 101 is the only way anywhere.
     `),
     food: lines(`
@@ -1194,8 +1194,8 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       @anytime Tourists all summer, every summer.
-      Beach parking costs more than lunch.
-      Rent at the beach is out of reach.
+      @adult Beach parking costs more than lunch.
+      @adult Rent at the beach is out of reach.
     `),
     food: lines(`
       Fish tacos at the pier.
@@ -1242,7 +1242,7 @@ export const KEYS = {
       Downtown Santa Ana is the real OC.
     `),
     complaintLines: lines(`
-      Irvine is beautiful and you can't afford a thing.
+      @adult Irvine is beautiful and you can't afford a thing.
       The beach is close, but parking is a nightmare.
       Every field became a housing tract.
       Tourist traffic around the resort, all year.
@@ -1319,7 +1319,7 @@ export const KEYS = {
       @adult @anytime Summer power bills are unreal.
       The Salton Sea smell when the wind's wrong.
       @anytime Everything shuts down in summer.
-      The workers can't afford to live anywhere near the resorts.
+      @adult The workers can't afford to live anywhere near the resorts.
     `),
     food: lines(`
       Date shake in Indio.
@@ -1485,7 +1485,7 @@ export const KEYS = {
     complaintLines: lines(`
       @anytime The heat in summer is deadly.
       The air is bad from the dust and the dry lakebed.
-      @anytime The jobs are seasonal and the pay is low.
+      @anytime @adult The jobs are seasonal and the pay is low.
       San Diego forgets we're part of the same region.
     `),
     food: lines(`

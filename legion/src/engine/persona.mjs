@@ -864,8 +864,8 @@ function roofOf(ctx, L) {
   const material = r.weightedKey({ tile, 'wood shake': wood, metal, 'composition shingle': Math.max(5, 100 - tile - wood - metal) });
   return {
     age, material, solar: r.float() * 100 < num(z.solar_sh), installed: REF_YEAR - age, original: age >= houseAge,
-    why: [isNum(z.ra20_sh) ? `${fmt1(z.ra20_sh)}% of roofs in ${z.zip} are 20 or more years old (ra20_sh)` : null,
-      isNum(z.roof_age) ? `the median roof here is ${z.roof_age} years old (roof_age)` : null].filter(Boolean).join('; '),
+    why: [isNum(z.ra20_sh) ? `an estimated ${fmt1(z.ra20_sh)}% of single-family roofs in ${z.zip} are 20 or more years old (ra20_sh)` : null,
+      isNum(z.roof_age) ? `the median roof here is an estimated ${z.roof_age} years old (roof_age)` : null].filter(Boolean).join('; '),
   };
 }
 
@@ -1405,8 +1405,8 @@ function interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places
 
 /** "gusts of 58 mph or more about 1.4 times a year (g58)" / "... about once every 12 years (g58 0.08)". */
 function gustRate(g58) {
-  if (g58 >= 0.95) return `gusts of 58 mph or more about ${fmt1(g58)} times a year (g58)`;
-  if (g58 > 0) return `gusts of 58 mph or more about once every ${Math.round(1 / g58)} years (g58 ${g58})`;
+  if (g58 >= 0.95) return `about ${fmt1(g58)} days a year with gusts of 58 mph or more (g58)`;
+  if (g58 > 0) return `a day with gusts of 58 mph or more about once every ${Math.round(1 / g58)} years (g58 ${g58})`;
   return 'gusts of 58 mph or more almost never (g58 0)';
 }
 
@@ -1439,9 +1439,9 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
     let risk = 0.5 * smoothstep(7, 18, nonren) + 0.5 * smoothstep(1, 30, fair) + 0.25 * smoothstep(10, 60, wf);
     const shake = roof && roof.material === 'wood shake' && num(z.fhsz_any) > 20;
     if (shake) risk += 0.2;
-    const why = [isNum(z.nonren_sh) ? `insurers non-renewed ${fmt1(nonren)}% of homeowner policies in ${zip} (nonren_sh)` : null,
-      isNum(z.fair_sh) ? `${fmt1(fair)}% of policies here are with the FAIR Plan (fair_sh)` : null,
-      isNum(z.prem) && z.prem > 0 ? `the typical premium is ${fmtMoney(z.prem)} (prem)` : null,
+    const why = [isNum(z.nonren_sh) ? `${fmt1(nonren)}% of residential policies up for renewal in ${zip} were not renewed in 2023 (nonren_sh)` : null,
+      isNum(z.fair_sh) ? `there are ${fmt1(fair)} FAIR Plan home policies per 100 homes here (fair_sh)` : null,
+      isNum(z.prem) && z.prem > 0 ? `the average homeowners premium here was ${fmtMoney(z.prem)} in 2023 (prem)` : null,
       shake ? `a wood shake roof in a fire hazard zone (roof, fhsz_any ${fmt1(num(z.fhsz_any))}%)` : null].filter(Boolean).join('; ');
     add('insurance', 0.1 + 0.75 * Math.min(1, risk), why);
   }
@@ -1457,7 +1457,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
       : `none of ${zip} is in a mapped fire hazard zone (fhsz_any 0), but the ${z.fire_near ? fireName(z.fire_near).replace(/^the /, '') : 'nearest fire'} burned ${fmt1(num(z.fire_km))} km away${z.fire_near_yr ? ` in ${z.fire_near_yr}` : ''} (fire_near, fire_km)`;
   if (recentLoss) fireWhy += `; ${fireName(recentLoss.name)} destroyed ${fmtInt(recentLoss.destInZip)} structures here in ${recentLoss.year} (firesOf)`;
   const lostHomes = num(z.fire_dest_res);
-  if (lostHomes > 0) fireWhy += `; ${fmtInt(lostHomes)} ${lostHomes === 1 ? 'home' : 'homes'} lost to fire here on record (fire_dest_res)`;
+  if (lostHomes > 0) fireWhy += `; ${fmtInt(lostHomes)} ${lostHomes === 1 ? 'home' : 'homes'} here destroyed by wildfire since 2013 (fire_dest_res)`;
   if (fireAlert) fireWhy += `; a ${fireAlert.event} is out now (NWS)`;
   const fw = 0.08 + 0.6 * fireRisk + 0.3 * lossW + 0.1 * smoothstep(0, 300, lostHomes) + 0.12 * smoothstep(5, 50, num(z.burn_sh)) + (fireAlert ? alertBoost(fireAlert) : 0);
   if (age >= 13 || fw > 0.6) add('fire', fw * (owner ? 1.1 : 0.9) * (adult ? 1 : 0.6), fireWhy);
@@ -1483,7 +1483,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const stw = 0.05 + 0.4 * ar + 0.3 * fl + (stormAlert ? alertBoost(stormAlert) : 0);
   const stTopic = fl > ar + 0.15 ? 'flooding' : 'storms';
   add(stTopic, stw * (owner ? 1.1 : 0.95) * (adult ? 1 : 0.6),
-    `about ${fmt1(arN)} atmospheric rivers a year make landfall at this latitude (ar_n) and ${floodN} flood ${floodN === 1 ? 'report' : 'reports'} in ten years (flood_n10)${stormAlert ? `; the NWS has a ${stormAlert.event} out now` : ''}`);
+    `about ${fmt1(arN)} atmospheric rivers a year come ashore on the nearest stretch of coast (ar_n), and ${fmtInt(floodN)} located flood, flash-flood and debris-flow ${floodN === 1 ? 'report' : 'reports'} within 10 km since 1996 (flood_n10)${stormAlert ? `; the NWS has a ${stormAlert.event} out now` : ''}`);
   // wind and power shutoffs
   const off = z.off_kind;
   const offName = { sa: 'Santa Ana', di: 'Diablo', su: 'sundowner' }[off] || null;
@@ -1499,7 +1499,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const s = isNum(snowIn) ? smoothstep(12, 150, snowIn) : smoothstep(60, 300, psf) * (num(z.elev_m) >= 1200 ? 1 : 0.4);
   if (s > 0.02) {
     const road = L.vehicles > 0 ? knowledge.roads.find(x => !x.commute) || knowledge.roads[0] : null;
-    const why = (isNum(snowIn) ? `about ${fmt1(snowIn)} inches of snow a year (snowfall_in)` : `a ${psf} psf ground snow load at ${num(z.elev_m)} m (snow_psf, elev_m)`) + (owner && psf >= 100 ? `; the roof carries a ${psf} psf snow load (snow_psf)` : '') + (road ? `; drives ${road.name} through the winter (roadsNear)` : '');
+    const why = (isNum(snowIn) ? `about ${fmt1(snowIn)} inches of snow a year (snowfall_in)` : `a ${psf} psf design ground snow load at ${num(z.elev_m)} m (snow_psf, elev_m)`) + (owner && psf >= 100 && isNum(snowIn) ? `; roofs here are designed for a ${psf} psf ground snow load (snow_psf)` : '') + (road ? `; drives ${road.name} through the winter (roadsNear)` : '');
     add('snow', (0.1 + 0.7 * s + (owner && psf >= 100 ? 0.08 : 0) + (L.vehicles > 0 && adult ? 0.06 : 0)) * (adult ? 1 : 0.6), why,
       L.vehicles > 0 && s > 0.3 ? { detail: 'chain controls and closures on the drive' } : owner && psf >= 100 ? { detail: 'shoveling the roof after big storms' } : null);
   }
@@ -1509,11 +1509,11 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   if (value > 0 && adult) {
     if (L.tenure === 'rent' && (head || age >= 22)) {
       add('rent', 0.1 + 0.6 * smoothstep(3, 12, ratio) + (age >= 20 && age <= 40 ? 0.12 : 0),
-        `homes here run about ${fmtMoney(value)} (value) against their household's income of ${fmtMoney(hinc)} (householdIncome)${isNum(z.own_sh) ? `, and only ${fmt1(z.own_sh)}% of households own (own_sh)` : ''}`);
+        `homes here run about ${fmtMoney(value)} (value) against their household's income of ${fmtMoney(hinc)} (householdIncome)${isNum(z.own_sh) && z.own_sh < 50 ? `, and only ${fmt1(z.own_sh)}% of households here own their home (own_sh)` : ''}`);
     } else if (owner && owns) {
       const recent = isNum(L.yearMoved) && L.yearMoved >= 2019;
       const w = recent ? 0.1 + 0.5 * smoothstep(4, 10, ratio) : age >= 50 ? 0.08 + 0.35 * smoothstep(4, 10, ratio) : 0.06 + 0.25 * smoothstep(4, 10, ratio);
-      add('housing', w, `the median home here is worth ${fmtMoney(value)} (value)${isNum(z.val1m_sh) ? ` and ${fmt1(z.val1m_sh)}% of homes are worth over $1 million (val1m_sh)` : ''}${recent ? `; they bought in ${L.yearMoved} (yearMoved)` : ''}`);
+      add('housing', w, `the median home here is worth ${fmtMoney(value)} (value)${isNum(z.val1m_sh) ? ` and ${fmt1(z.val1m_sh)}% of owner homes are worth $1 million or more (val1m_sh)` : ''}${recent ? `; they bought in ${L.yearMoved} (yearMoved)` : ''}`);
     }
   }
   // the commute
@@ -1533,7 +1533,8 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const quakeDecl = zc.fema.find(f => f && f[1] === 'Earthquake');
   const oldStock = isNum(z.yb_med) && z.yb_med < 1960;
   add('earthquakes', 0.12 + (quakeDecl ? 0.18 : 0) + 0.1 * smoothstep(0, 20, num(z.fema_quake)) + (oldStock ? 0.08 : 0) + (owner ? 0.04 : 0),
-    (quakeDecl ? `the ${quakeDecl[2]} brought a federal disaster declaration to ${z.countyName} County in ${parseDate(quakeDecl[0]).y} (femaOf); fema_quake ${num(z.fema_quake)}` : `the statewide baseline (fema_quake ${num(z.fema_quake)} here)`)
+    (quakeDecl ? `the ${clean(quakeDecl[2])} brought a federal disaster declaration to ${z.countyName} County in ${parseDate(quakeDecl[0]).y} (femaOf)` : 'the statewide baseline')
+      + `; ${fmtInt(num(z.fema_quake))} FEMA earthquake-disaster ${num(z.fema_quake) === 1 ? 'registration' : 'registrations'} from ${zip} (fema_quake)`
       + (isNum(z.yb_med) ? `; half the homes in ${zip} were built before ${z.yb_med} (yb_med)` : ''));
   // jobs
   if (L.unemployed) add('jobs', 0.75, `out of work (status)${zc.urate !== null ? `; unemployment in ${zip} is ${fmt1(zc.urate)}% (ACS B23025)` : ''}`);
@@ -1579,13 +1580,92 @@ function voiceOf(L) {
 
 const HOME_WORD = { house: 'house', 'small-apartment': 'apartment', apartment: 'apartment', 'mobile-home': 'mobile home' };
 
+// What it was like, by event and by how the person lived it. The facts come from the pack; these lines are the
+// person's own (fiction, chosen to fit where they lived and how old they were). Slots: {We} {we} {were} {Our}
+// {our} {us} (their household's voice), {age} (their age then), {county}, {vantage}, {days}.
+const LINES = {
+  fire: {
+    county: ['{We} {were} living elsewhere in {county} County then, and the smoke hung over everything for days.',
+      'Back then {we} lived in another part of {county} County; {we} followed it on the news every night.',
+      '{We} lived across the county then, and ash dusted the cars for days.',
+      'I remember the smoke drifting over from the other side of the county.'],
+    childSchool: ['I was {age}. I remember the sky going orange and school closing.',
+      'I was {age}, and they canceled school for days because of the smoke.',
+      'I was {age}; we had to stay inside at recess for a week.'],
+    childNear: ['I was {age}. I remember the helicopters going over all day.',
+      'I was {age}, and I remember my parents packing the car in a hurry.'],
+    child: ['I was {age}. I remember the sun turning red through the smoke.',
+      'I was {age}, and I remember the ash on the cars.',
+      'I was {age}; I was not allowed to play outside for days.'],
+    rebuilt: ['{We} lost the house and rebuilt.'],
+    severe: ['{We} evacuated with whatever fit in the car, and some of the neighbors lost everything.',
+      '{We} {were} evacuated for {days} days, and when {we} came back houses down the road were gone.',
+      '{We} left in the middle of the night and did not know for days if the house made it.'],
+    close: ['{We} packed the car and waited for the evacuation order.',
+      '{Our} street was under an evacuation warning for a couple of days.',
+      '{We} kept the car packed and the important papers by the door for a week.'],
+    far: ['I watched the smoke from {vantage}.', 'Ash fell on the cars for days.',
+      'The air was so bad {we} kept the windows shut for a week.', 'The sunsets were red from the smoke for days.'],
+  },
+  storm: {
+    child: ['I remember the rain going sideways and the creek running high.',
+      'I was {age}; the gutters overflowed and the street turned into a creek.',
+      'I was {age}, and I remember the power going out and playing cards by flashlight.'],
+    house: ['The roof leaked over the kitchen.', 'The gutters overflowed and the yard turned into a pond.',
+      '{We} {were} up all night with buckets and towels.', 'A big branch came down on the fence.'],
+    commute: ['The streets flooded on the way to work.'],
+    any: ['The power went out for most of a day.', 'It rained so hard the storm drains backed up.',
+      'Water came in under the door.', 'The wind and the rain kept {us} up all night.'],
+  },
+  wind: {
+    psps: ['The utility shut {our} power off ahead of it for {days}.', 'The power company cut {our} electricity for {days} before the wind came.'],
+    house: ["Half the fence ended up in the neighbor's yard.", 'Shingles from up the street landed in {our} yard.'],
+    any: ['{We} lost power for {days}.', 'A big tree came down across the street.', 'Trash cans were rolling down the middle of the street.',
+      'It sounded like a train going by all night.'],
+  },
+  fema: {
+    flood: ['Roads around here flooded.', "{We} couldn't get across town for a day.", 'The creek came over its banks.'],
+    snow: ['The snow piled up past the windows.', '{We} {were} snowed in for days.'],
+    storm: ['The storms knocked out the power and closed roads.', 'Mud and rocks came down onto the roads.', 'It felt like it rained for a month straight.'],
+    quake: ['The shaking woke {us} up.', 'Pictures fell off the walls.', '{We} stood in the doorway until it stopped.'],
+    fire: ['The smoke kept everyone indoors.', 'The air was brown for a week.', 'Everyone was watching the fire maps.'],
+  },
+  record: {
+    heat: ['I remember that day; nobody went outside.', 'The AC ran all day and still lost.', 'The pavement felt soft under your shoes.'],
+    rain: ['The gutters could not keep up.', 'The street turned into a river.', 'It came down in sheets all day.'],
+    gust: ['Branches were down everywhere the next morning.', 'It sounded like a train going by all night.', 'The patio furniture ended up across the yard.'],
+  },
+};
+
+/**
+ * Experience lines for one persona: a template is used at most once, so no two of their memories share a
+ * sentence. pick(vars, ...pools) fills an unused template from the first pool that still has one; null when
+ * every pool is used up (the memory then keeps its fact alone).
+ */
+class LinePicker {
+  constructor(r, voice) { this.r = r; this.voice = voice; this.used = new Set(); }
+  pick(vars, ...pools) {
+    for (const pool of pools) {
+      const fresh = (pool || []).filter(t => !this.used.has(t));
+      if (!fresh.length) continue;
+      const t = fresh[this.r.int(fresh.length)];
+      this.used.add(t);
+      const all = Object.assign({}, this.voice, vars);
+      return t.replace(/\{(\w+)\}/g, (m, k) => (all[k] !== undefined && all[k] !== null ? String(all[k]) : m));
+    }
+    return null;
+  }
+}
+
+const SCHOOL_MONTHS = new Set([1, 2, 3, 4, 5, 9, 10, 11, 12]);
+
+/** A fire they lived through: the pack's facts, and how it reached them (by where they lived and their age). */
 function fireMemory(f, ctx, L, res, r) {
   const dt = parseDate(f.start) || { y: f.year, m: null, d: null, iso: null };
   const year = num(f.year, dt.y);
   const zip = ctx.z.zip, county = ctx.z.countyName;
   const inZip = year >= res.zipSince;
   const ageThen = year - L.birthYear;
-  const v = voiceOf(L);
   const dest = num(f.destInZip), pct = num(f.pct), km = num(f.km, 99);
   const facts = [];
   if (dest > 0) facts.push(`it destroyed ${fmtInt(dest)} ${dest === 1 ? 'structure' : 'structures'} in ${zip}`);
@@ -1594,30 +1674,32 @@ function fireMemory(f, ctx, L, res, r) {
   if (num(f.acres) > 0) facts.push(`${fmtInt(f.acres)} acres in all`);
   const fact = `${cap(fireName(f.name))} started ${dt.m ? fullDate(dt) : `in ${year}`}; ${facts.join(', ')}.`;
   const rebuilt = inZip && dest >= 10 && pct >= 1 && L.tenure === 'own' && isNum(L.yearBuilt) && L.yearBuilt > year && L.yearBuilt <= REF_YEAR;
-  const vantage = L.hasHouse ? 'the backyard' : r.pick(['the balcony', 'the parking lot', 'the window']);
-  let exp;
-  if (!inZip) exp = `${v.We} ${v.were} living elsewhere in ${county} County then, and the smoke hung over everything for days.`;
-  else if (ageThen < 16) exp = `I was ${ageThen}. I remember the sky going orange and school closing.`;
-  else if (rebuilt) exp = `${v.We} lost the house and rebuilt.`;
-  else if (dest >= 20 && pct >= 3) exp = r.pick([`${v.We} evacuated with whatever fit in the car, and some of the neighbors lost everything.`, `${v.We} ${v.were} evacuated for ${r.pick(['four', 'five', 'six'])} days, and when ${v.we} came back houses down the road were gone.`]);
-  else if (pct > 0 || km <= 2) exp = r.pick([`${v.We} packed the car and waited for the evacuation order.`, `${v.Our} street was under an evacuation warning for a couple of days.`]);
-  else exp = r.pick([`I watched the smoke from ${vantage}.`, 'Ash fell on the cars for days.']);
+  const near = inZip && (pct > 0 || km <= 5);
+  const F = LINES.fire;
+  let pools;
+  if (!inZip) pools = [F.county, F.far];
+  else if (ageThen < 16) pools = [...(near && dt.m && SCHOOL_MONTHS.has(dt.m) ? [F.childSchool] : []), ...(near ? [F.childNear] : []), F.child];
+  else if (rebuilt) pools = [F.rebuilt, F.severe];
+  else if (dest >= 20 && pct >= 3) pools = [F.severe, F.close];
+  else if (pct > 0 || km <= 2) pools = [F.close, F.far];
+  else pools = [F.far];
+  const vars = { age: ageThen, county, vantage: L.hasHouse ? 'the backyard' : r.pick(['the balcony', 'the parking lot', 'the window']), days: r.pick(['four', 'five', 'six']) };
   const weight = clamp(0.3 + (inZip ? 0.22 : 0) + 0.3 * Math.min(1, Math.log10(dest + 1) / 3) + (pct >= 10 ? 0.1 : 0) + (rebuilt ? 0.2 : 0) + 0.05 * smoothstep(1000, 100000, num(f.acres)), 0, 1);
-  return { year, date: dt.iso, kind: 'fire', title: `${fireName(f.name)} in ${year}`, text: `${fact} ${exp}`, weight: round(weight, 2), source: `firesOf(${zip}): ${f.name} ${year}`, fact, experience: exp, scope: inZip ? 'zip' : 'county' };
+  return { year, date: dt.iso, kind: 'fire', title: `${fireName(f.name)} in ${year}`, weight: round(weight, 2), source: `firesOf(${zip}): ${f.name} ${year}`, fact, scope: inZip ? 'zip' : 'county', pools, vars };
 }
 
 function arMemory(a, ctx, L, r) {
   const dt = parseDate(a.start);
   if (!dt) return null;
-  const v = voiceOf(L);
   const fact = `The atmospheric river that came ashore ${fullDate(dt)} was a category ${a.rank} storm${clean(a.peakAt) ? `, strongest at ${clean(a.peakAt)}` : ''}${isNum(a.hours) ? `, ${a.hours} hours long` : ''}.`;
   const ageThen = dt.y - L.birthYear;
-  const exp = ageThen < 16 ? 'I remember the rain going sideways and the creek running high.'
-    : L.tenure === 'own' && L.hasHouse ? r.pick(['The roof leaked over the kitchen.', 'The gutters overflowed and the yard turned into a pond.', `${v.We} ${v.were} up all night with buckets and towels.`])
-      : r.pick(['The power went out for most of a day.', 'The streets flooded on the way to work.', 'It rained so hard the storm drains backed up.']);
+  const St = LINES.storm;
+  const pools = ageThen < 16 ? [St.child, St.any]
+    : L.tenure === 'own' && L.hasHouse ? [St.house, St.any]
+      : [...(L.worker && ageThen >= 18 ? [St.commute] : []), St.any];
   const exposure = 0.35 + 0.65 * smoothstep(3, 12, num(ctx.z.ar_n));
   const weight = (0.22 + 0.08 * (num(a.rank) - 3) + 0.15 * Math.min(1, Math.log10(num(a.dmg) + 1) / 8) + (num(a.deaths) > 0 ? 0.06 : 0)) * exposure;
-  return { year: dt.y, date: dt.iso, kind: 'storm', title: `the atmospheric river of ${monthYear(dt)}`, text: `${fact} ${exp}`, weight: round(clamp(weight, 0, 1), 2), source: `arsOf(${ctx.z.zip}): ${a.start} rank ${a.rank}`, fact, experience: exp, scope: 'county' };
+  return { year: dt.y, date: dt.iso, kind: 'storm', title: `the atmospheric river of ${monthYear(dt)}`, weight: round(clamp(weight, 0, 1), 2), source: `arsOf(${ctx.z.zip}): ${a.start} rank ${a.rank}`, fact, scope: 'county', pools, vars: { age: ageThen } };
 }
 
 const WIND_NAMES = { santa_ana: 'the Santa Ana winds', diablo: 'the Diablo winds', sundowner: 'the sundowner winds', mono: 'the Mono winds', winter: 'the winter windstorm', other: 'the windstorm' };
@@ -1625,62 +1707,110 @@ const WIND_NAMES = { santa_ana: 'the Santa Ana winds', diablo: 'the Diablo winds
 function windMemory(w, ctx, L, r) {
   const dt = parseDate(w.start);
   if (!dt) return null;
-  const v = voiceOf(L);
   const where = wherePhrase(w.where);
   const counties = Array.isArray(w.fips) ? w.fips.length : 1;
   const name = cap(WIND_NAMES[w.kind] || 'the windstorm');
   const gust = isNum(w.gust) ? `${w.gust} mph` : null;
   const peak = gust ? `the strongest gust, ${gust}, was recorded${where ? ' ' + where : ''}` : where ? `it was strongest ${where}` : null;
   const fact = counties > 1
-    ? `${name} of ${monthYear(dt)} hit ${ctx.z.countyName} County and ${counties - 1 === 1 ? 'one other county' : `${counties - 1} other counties`}${peak ? `; ${peak}` : ''}.`
+    ? `${name} of ${monthYear(dt)} hit ${ctx.z.countyName} County and ${counties - 1 === 1 ? 'one other county' : `${numWord(counties - 1)} other counties`}${peak ? `; ${peak}` : ''}.`
     : `${name} of ${monthYear(dt)} ${gust ? `gusted to ${gust}${where ? ' ' + where : ''}` : `hit ${ctx.z.countyName} County`}.`;
   const psps = (w.kind === 'santa_ana' || w.kind === 'diablo') && dt.y >= 2019 && num(ctx.z.fhsz_any) > 20;
-  const exp = psps ? `The utility shut ${v.our} power off ahead of it for ${r.pick(['a day', 'two days', 'three days'])}.`
-    : r.pick([`${v.We} lost power for ${r.pick(['a day', 'two days', 'three days'])}.`, 'A big tree came down across the street.', L.hasHouse ? 'Half the fence ended up in the neighbor\'s yard.' : 'Trash cans were rolling down the middle of the street.']);
+  const W = LINES.wind;
+  const pools = psps ? [W.psps, W.any] : L.hasHouse ? [W.any, W.house] : [W.any];
   const weight = 0.22 + 0.12 * smoothstep(60, 120, num(w.gust)) + 0.15 * Math.min(1, Math.log10(num(w.dmg) + 1) / 7) + (num(w.deaths) > 0 ? 0.08 : 0);
-  return { year: dt.y, date: dt.iso, kind: 'wind', title: `${WIND_NAMES[w.kind] || 'the windstorm'} of ${monthYear(dt)}`, text: `${fact} ${exp}`, weight: round(clamp(weight, 0, 1), 2), source: `windsOf(${ctx.z.zip}): ${w.kind} ${w.start}`, fact, experience: exp, scope: 'county' };
+  return { year: dt.y, date: dt.iso, kind: 'wind', title: `${WIND_NAMES[w.kind] || 'the windstorm'} of ${monthYear(dt)}`, weight: round(clamp(weight, 0, 1), 2), source: `windsOf(${ctx.z.zip}): ${w.kind} ${w.start}`, fact, scope: 'county', pools, vars: { days: r.pick(['a day', 'two days', 'three days']) } };
 }
 
-function femaMemory(f, ctx, L, r) {
-  const dt = parseDate(f[0]);
-  if (!dt) return null;
-  const kind = f[1], title = clean(f[2]) || kind;
-  const v = voiceOf(L);
-  const fact = `Federal disaster declaration for ${ctx.z.countyName} County, ${monthYear(dt)}: ${title}.`;
+const FEMA_KIND = k => (k === 'Fire' ? 'fire' : k === 'Earthquake' ? 'quake' : 'storm');
+const DAY_MS = 86400000;
+
+/**
+ * FEMA declarations as events: declarations of the same kind (fire, quake, storm, where floods and winter and
+ * severe storms are all storms) within 120 days of the one before are one event, latest first.
+ */
+function femaEvents(list) {
+  const items = [];
+  for (const f of list) { const dt = f && parseDate(f[0]); if (dt && dt.iso) items.push({ f, dt, ms: Date.parse(dt.iso), kind: FEMA_KIND(f[1]) }); }
+  items.sort((a, b) => a.ms - b.ms);
+  const groups = [];
+  for (const it of items) {
+    let g = null;
+    for (let k = groups.length - 1; k >= 0; k--) if (groups[k].kind === it.kind) { g = groups[k]; break; }
+    if (g && it.ms - g.last <= 120 * DAY_MS) { g.items.push(it); g.last = it.ms; } else groups.push({ kind: it.kind, items: [it], last: it.ms });
+  }
+  return groups.sort((a, b) => b.last - a.last);
+}
+
+function femaMemory(g, ctx, L) {
+  const first = g.items[0], last = g.items[g.items.length - 1];
+  const dt = first.dt, dt2 = last.dt;
+  const titles = [...new Set(g.items.map(x => clean(x.f[2]) || x.f[1]))];
+  const county = ctx.z.countyName;
+  const when = monthYear(dt) === monthYear(dt2) ? monthYear(dt)
+    : dt.y === dt2.y && dt.m && dt2.m ? `${MONTHS[dt.m - 1]} to ${MONTHS[dt2.m - 1]} ${dt.y}` : `${monthYear(dt)} to ${monthYear(dt2)}`;
+  const fact = g.items.length > 1 ? `Federal disaster declarations for ${county} County, ${when}: ${titles.join('; ')}.` : `Federal disaster declaration for ${county} County, ${when}: ${titles[0]}.`;
   const snowy = num(ctx.z.snowfall_in) >= 60 || num(ctx.z.snow_psf) >= 200;
-  const exp = kind === 'Flood' ? r.pick(['Roads around here flooded.', `${v.We} couldn't get across town for a day.`])
-    : kind === 'Winter Storm' && snowy ? 'The snow piled up past the windows.'
-      : kind === 'Severe Storm' || kind === 'Winter Storm' ? r.pick(['The storms knocked out the power and closed roads.', 'Mud and rocks came down onto the roads.'])
-        : kind === 'Earthquake' ? `The shaking woke ${v.us} up.`
-          : r.pick(['The smoke kept everyone indoors.', 'The air was brown for a week.']);
-  const weight = kind === 'Fire' ? 0.24 : kind === 'Earthquake' ? 0.5 : 0.4;
-  return { year: dt.y, date: dt.iso, kind: kind === 'Fire' ? 'fire' : kind === 'Earthquake' ? 'quake' : 'storm', title: /^the\b/i.test(title) ? title : `the ${/^(Winter|Autumn|Severe)\b/.test(title) ? lowerFirst(title) : title}`, text: `${fact} ${exp}`, weight, source: `femaOf(${ctx.z.zip}): ${f[0]} ${title}`, fact, experience: exp, scope: 'county' };
+  const kinds = new Set(g.items.map(x => x.f[1]));
+  const Fm = LINES.fema;
+  const pools = g.kind === 'fire' ? [Fm.fire] : g.kind === 'quake' ? [Fm.quake]
+    : kinds.has('Winter Storm') && snowy ? [Fm.snow, Fm.storm] : kinds.has('Flood') ? [Fm.flood, Fm.storm] : [Fm.storm, Fm.flood];
+  const weight = g.kind === 'fire' ? 0.24 : g.kind === 'quake' ? 0.5 : 0.4 + (g.items.length > 1 ? 0.05 : 0);
+  const one = titles[0];
+  const title = g.items.length > 1 ? `the ${g.kind === 'fire' ? 'fires' : 'storms'} of ${when}` : /^the\b/i.test(one) ? one : `the ${/^(Winter|Autumn|Severe)\b/.test(one) ? lowerFirst(one) : one}`;
+  return {
+    year: dt.y, date: dt.iso, kind: g.kind === 'fire' ? 'fire' : g.kind === 'quake' ? 'quake' : 'storm', title, weight,
+    source: `femaOf(${ctx.z.zip}): ${g.items.map(x => `${x.f[0]} ${clean(x.f[2]) || x.f[1]}`).join(' + ')}`, fact, scope: 'county', pools, vars: {},
+  };
 }
 
-function recordMemories(ctx, L, res, r, can) {
+function recordMemories(ctx, L, res, can) {
   const out = [];
   for (const rec of ctx.knowledge.records) {
     const dt = parseDate(rec.date);
     if (!dt || !can(dt.y, 'county')) continue;
     const at = rec.station ? ` at ${rec.station}` : '';
-    let fact, exp, weight;
-    if (rec.kind === 'heat') {
-      fact = `The record high${at} is ${rec.value}°F, set ${fullDate(dt)}.`;
-      exp = r.pick(['I remember that day; nobody went outside.', 'The AC ran all day and still lost.', 'The pavement felt soft under your shoes.']);
-      weight = 0.42;
-    } else if (rec.kind === 'rain') {
-      fact = `The one-day rain record${at} is ${rec.value} inches, set ${fullDate(dt)}.`;
-      exp = r.pick(['The gutters could not keep up.', 'The street turned into a river.']);
-      weight = 0.36;
-    } else {
-      fact = `The strongest gust on record${at} is ${rec.value} mph, on ${fullDate(dt)}.`;
-      exp = r.pick(['Branches were down everywhere the next morning.', 'It sounded like a train going by all night.']);
-      weight = 0.34;
-    }
+    let fact, weight;
+    if (rec.kind === 'heat') { fact = `The record high${at} is ${rec.value}°F, set ${fullDate(dt)}.`; weight = 0.42; }
+    else if (rec.kind === 'rain') { fact = `The one-day rain record${at} is ${rec.value} inches, set ${fullDate(dt)}.`; weight = 0.36; }
+    else { fact = `The strongest gust on record${at} is ${rec.value} mph, on ${fullDate(dt)}.`; weight = 0.34; }
     const title = rec.kind === 'heat' ? `the record ${rec.value}°F day in ${dt.y}` : rec.kind === 'rain' ? `the record rain of ${monthYear(dt)}` : `the ${rec.value} mph gust of ${monthYear(dt)}`;
-    out.push({ year: dt.y, date: dt.iso, kind: rec.kind, title, text: `${fact} ${exp}`, weight, source: `zip ${ctx.z.zip}: ${rec.source} ${rec.date}`, fact, experience: exp, scope: 'county' });
+    out.push({ year: dt.y, date: dt.iso, kind: rec.kind, title, weight, source: `zip ${ctx.z.zip}: ${rec.source} ${rec.date}`, fact, scope: 'county', pools: [LINES.record[rec.kind] || LINES.record.gust], vars: {} });
   }
   return out;
+}
+
+/**
+ * The couple's wedding year, the same in both partners' personas: drawn from the household and the couple, from
+ * both partners' ages as the household lists them and the household's children young enough to be both of
+ * theirs (an older child of one partner does not bound it). Married couples only: the householder and spouse, or
+ * the householder's two parents. Null otherwise.
+ */
+function weddingYear(ctx, L, family) {
+  const p = family.partner;
+  if (!p || !isNum(p.age) || L.age < 19) return null;
+  const elders = L.role === 'parent' && p.role === 'parent';
+  const couple = elders || (L.role === 'householder' && p.role === 'spouse') || (L.role === 'spouse' && p.role === 'householder');
+  if (!couple) return null;
+  if (L.marital ? L.marital !== 'married' : elders || L.hhType !== 'married') return null;
+  const younger = Math.min(L.age, p.age);
+  if (younger < 18) return null;
+  const members = Array.isArray(ctx.hh.members) ? ctx.hh.members : [];
+  const kids = members.filter(x => x && isNum(x.age) && (elders ? x.role === 'householder' || x.role === 'sibling' : x.role === 'child') && x.age <= younger - 15).map(x => x.age);
+  const hr = new Rng(hash3(S.marry, ctx.zi, num(ctx.npc.h) * 2 + (elders ? 1 : 0)));
+  let at = clamp(Math.round(hr.normal(28, 4.5)), 19, 45);
+  if (at > younger) at = younger - hr.int(Math.min(6, younger - 18) + 1); // married in the last few years
+  let y = REF_YEAR - younger + at;
+  if (kids.length) y = Math.min(y, REF_YEAR - Math.max(...kids) - hr.range(0, 3));
+  return clamp(y, REF_YEAR - younger + 18, REF_YEAR);
+}
+
+/** "at a winery", "on my family's farm", "at my own shop": an employer in the first person, or null. */
+function employerPhrase(employer) {
+  let e = clean(employer);
+  if (!e || /^a local employer$/i.test(e)) return null;
+  e = e.replace(/^their own\b/i, 'my own').replace(/^their family\b/i, "my family's").replace(/^their\b/i, 'my');
+  return `${/\b(farm|ranch|orchard|vineyard|boat|crew)\b/i.test(e) ? 'on' : 'at'} ${e}`;
 }
 
 /** Life events: arrival, the move, growing up here, kids' births, the wedding, retirement, the job, the roof. */
@@ -1690,9 +1820,9 @@ function lifeMemories(ctx, L, res, roof, family) {
   const v = voiceOf(L);
   const out = [];
   const push = (year, kind, text, weight, source) => { if (isNum(year) && year <= REF_YEAR && year >= L.birthYear) out.push({ year, date: null, kind, title: text.replace(/\.$/, ''), text, weight, source }); };
-  if (npc.nativity === 'foreign' && isNum(npc.arrivalYear)) push(npc.arrivalYear, 'life', `I came to the US in ${npc.arrivalYear}${str(npc.birthplace) ? ` from ${npc.birthplace}` : ''}.`, 0.85, 'npc.arrivalYear');
+  if (npc.nativity === 'foreign' && isNum(npc.arrivalYear)) push(npc.arrivalYear, 'life', `I came to the US in ${npc.arrivalYear}${str(npc.birthplace) ? ` from ${clean(npc.birthplace)}` : ''}.`, 0.85, 'npc.arrivalYear');
   if (!res.bornHere && res.zipSince > L.birthYear) push(res.zipSince, 'life', `${L.role === 'roommate' ? 'I' : v.We} moved into this ${HOME_WORD[L.dwelling] || 'place'} in ${res.zipSince}.`, 0.55, 'household.yearMoved');
-  if (res.grewUpHere && L.age >= 12) push(L.birthYear, 'life', res.bornHere ? `I have lived in this ${HOME_WORD[L.dwelling] || 'home'} my whole life.` : `I grew up in ${ctx.z.countyName} County.`, 0.45, res.bornHere ? 'household.yearMoved' : 'npc.birthplace');
+  if (res.grewUpHere && L.age >= 12) push(L.birthYear, 'life', res.bornHere ? `I have lived in this ${HOME_WORD[L.dwelling] || 'home'} my whole life.` : `I grew up in ${ctx.z.countyName} County.`, 0.45, res.bornHere ? 'household.yearMoved' : 'residence.countySince');
   for (const k of family.kids) {
     const y = REF_YEAR - k.age;
     if (y - L.birthYear >= 15) push(y, 'life', `${k.name || (k.sex === 'F' ? 'My daughter' : 'My son')} was born in ${y}.`, 0.9, 'household.members');
@@ -1702,16 +1832,8 @@ function lifeMemories(ctx, L, res, roof, family) {
     const y = REF_YEAR - g.age;
     if (y - L.birthYear >= 34) push(y, 'life', g.name ? `My grandchild ${g.name} was born in ${y}.` : `My ${g.sex === 'F' ? 'granddaughter' : 'grandson'} was born in ${y}.`, 0.8, 'household.members');
   }
-  if ((L.marital === 'married' || ((L.role === 'householder' || L.role === 'spouse') && L.hhType === 'married')) && family.partner && L.age >= 19) {
-    // the wedding year belongs to the couple: drawn from the household, bounded by both ages and the kids
-    const hr = new Rng(hash3(S.marry, ctx.zi, num(npc.h)));
-    const youngerBirth = Math.max(L.birthYear, isNum(family.partner.age) ? REF_YEAR - family.partner.age : L.birthYear);
-    const oldestKid = family.kids.length ? Math.max(...family.kids.map(k => k.age)) : null;
-    let y = youngerBirth + clamp(Math.round(hr.normal(28, 4)), 19, 45);
-    if (oldestKid !== null) y = Math.min(y, REF_YEAR - oldestKid - hr.range(0, 3));
-    y = clamp(y, youngerBirth + 18, REF_YEAR);
-    push(y, 'life', `${family.partner.name || (family.partner.sex === 'F' ? 'My wife' : 'My husband')} and I got married in ${y}.`, 0.8, 'npc.marital');
-  }
+  const wed = weddingYear(ctx, L, family);
+  if (wed !== null) push(wed, 'life', `${family.partner.name || (family.partner.sex === 'F' ? 'My wife' : 'My husband')} and I got married in ${wed}.`, 0.8, 'npc.marital');
   if (L.retired && L.age >= 55) {
     const y = clamp(L.birthYear + r.range(58, 67), REF_YEAR - 30, REF_YEAR - (L.age >= 67 ? 1 : 0));
     push(y, 'life', `I retired in ${y}.`, 0.6, 'npc.status');
@@ -1720,9 +1842,9 @@ function lifeMemories(ctx, L, res, roof, family) {
     const tenure = clamp(Math.round(r.lognormal(Math.log(2.5 + Math.max(0, L.age - 25) / 6), 0.6)), 0, L.age - 16);
     const y = REF_YEAR - tenure;
     const occ = npc.occupation && typeof npc.occupation === 'object' ? npc.occupation : {};
-    const title = L.jobTitle;
-    const at = str(occ.employer) && !/^a local employer$/i.test(occ.employer) ? `at ${clean(occ.employer)}` : title ? `as ${article(title)} ${lowerFirst(title)}` : 'my current job';
-    push(y, 'life', `I started ${at === 'my current job' ? at : 'working ' + at} in ${y}.`, 0.4, 'npc.occupation');
+    const title = L.jobTitle, where = employerPhrase(occ.employer);
+    const what = title ? `working as ${article(title)} ${lowerFirst(title)}${where ? ` ${where}` : ''}` : where ? `working ${where}` : 'my current job';
+    push(y, 'life', `I started ${what} in ${y}.`, 0.4, 'npc.occupation');
   }
   if (roof && !roof.original && roof.installed >= Math.max(res.zipSince, L.birthYear + 20)) push(roof.installed, 'life', `${v.We} had the roof redone in ${roof.installed}${roof.solar ? ' and put solar on it' : ''}.`, 0.35, 'roof');
   return out;
@@ -1748,19 +1870,29 @@ function memoriesOf(ctx, L, res, roof, family) {
     .slice(0, num(ctx.z.ar_n) >= 6 ? 2 : 1).map(a => arMemory(a, ctx, L, r)).filter(Boolean);
   const winds = zc.winds.filter(w => can(parseDate(w.start)?.y, 'county') && (num(w.dmg) >= 250000 || num(w.deaths) > 0 || ((w.kind === 'santa_ana' || w.kind === 'diablo') && num(w.gust) >= 80)))
     .slice(0, 1).map(w => windMemory(w, ctx, L, r)).filter(Boolean);
+  // federal declarations, minus the fires and storms already remembered by name or date, merged into events
   const fireNames = fires.map(m => m.source.split(': ')[1].replace(/ \d{4}$/, '').toLowerCase());
-  const nearAr = (d) => ars.some(m => m.date && Math.abs(Date.parse(m.date) - Date.parse(d)) < 60 * 86400000);
-  const fema = zc.fema.filter(f => f && can(parseDate(f[0])?.y, 'county'))
+  const nearAr = d => ars.some(m => m.date && Math.abs(Date.parse(m.date) - Date.parse(d)) < 60 * DAY_MS);
+  const declared = zc.fema.filter(f => f && can(parseDate(f[0])?.y, 'county'))
     .filter(f => !(f[1] === 'Fire' && fireNames.some(n => String(f[2]).toLowerCase().includes(n))))
-    .filter(f => !((f[1] === 'Severe Storm' || f[1] === 'Winter Storm' || f[1] === 'Flood') && nearAr(f[0])))
-    .sort((a, b) => (a[1] === 'Fire' ? 1 : 0) - (b[1] === 'Fire' ? 1 : 0) || (a[0] < b[0] ? 1 : -1))
-    .slice(0, 2).map(f => femaMemory(f, ctx, L, r)).filter(Boolean);
-  events.push(...ars, ...winds, ...fema, ...recordMemories(ctx, L, res, r, can).slice(0, 2));
+    .filter(f => !(FEMA_KIND(f[1]) === 'storm' && nearAr(parseDate(f[0]).iso)));
+  const fema = femaEvents(declared).sort((a, b) => (a.kind === 'fire' ? 1 : 0) - (b.kind === 'fire' ? 1 : 0) || b.last - a.last)
+    .slice(0, 2).map(g => femaMemory(g, ctx, L));
+  events.push(...ars, ...winds, ...fema, ...recordMemories(ctx, L, res, can).slice(0, 2));
   // how much each event marked this person: the same storm is a story for one neighbor and a footnote for another
   const mark = rngFor(ctx.seed, S.memories ^ 0x3a3a);
   for (const m of events) m.weight = round(clamp(m.weight * (0.85 + 0.3 * mark.float()), 0, 1), 2);
+  const kept = events.sort((a, b) => b.weight - a.weight).slice(0, 7);
+  // their own experience of each, most important first, never the same sentence twice
+  const lines = new LinePicker(rngFor(ctx.seed, S.lines), voiceOf(L));
+  for (const m of kept) {
+    const exp = lines.pick(m.vars, ...m.pools);
+    m.experience = exp;
+    m.text = exp ? `${m.fact} ${exp}` : m.fact;
+    delete m.pools; delete m.vars;
+  }
   const life = lifeMemories(ctx, L, res, roof, family);
-  const all = [...events.sort((a, b) => b.weight - a.weight).slice(0, 7), ...life.sort((a, b) => b.weight - a.weight).slice(0, 5)];
+  const all = [...kept, ...life.sort((a, b) => b.weight - a.weight).slice(0, 5)];
   return all.sort((a, b) => b.weight - a.weight || b.year - a.year);
 }
 

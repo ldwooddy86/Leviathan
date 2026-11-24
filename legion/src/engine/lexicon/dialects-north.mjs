@@ -88,7 +88,7 @@ export const FAMILIES = {
       rain: lines(`
         Feels like one of those atmospheric rivers.
         The hills are finally going to turn green.
-        Good for the reservoirs, bad for my commute.
+        @works Good for the reservoirs, bad for my commute.
         Rain like this, I worry about the hillsides sliding.
       `),
       wind: lines(`
@@ -145,7 +145,7 @@ export const FAMILIES = {
       @adult @native Rent is insane. Everybody I grew up with moved to Sacramento or out of state.
       @adult A million dollars for a two-bedroom fixer. A million.
       @rents My landlord raised the rent again.
-      The cost of living is pushing everybody out.
+      @adult The cost of living is pushing everybody out.
       They keep building and none of it's for regular people.
       BART is great when it works.
       Tech money changed everything around here.
@@ -162,7 +162,7 @@ export const FAMILIES = {
       Banh mi from the little spot by the station.
       The ramen line was out the door again.
       Saturday farmers market, then a long walk.
-      Boba run after work. It's a whole ritual.
+      @works Boba run after work. It's a whole ritual.
     `),
     youth: {
       greetings: lines(`
@@ -521,7 +521,7 @@ export const FAMILIES = {
       Water's always the fight. Always.
       Nobody in Sacramento or LA thinks about the Valley.
       The heat keeps getting worse.
-      Bay Area money moved in and the rents went with it.
+      @adult Bay Area money moved in and the rents went with it.
       @adult Jobs here are hard work for not enough pay.
       The dust gets into everything.
       They forget we're here until they need the food.
@@ -743,7 +743,7 @@ export const KEYS = {
       You can see the whole bay from the top of the hill on a clear day.
     `),
     complaintLines: lines(`
-      A burrito costs what a whole dinner used to.
+      @adult A burrito costs what a whole dinner used to.
       These hills are killing my knees.
       @drives @rents Parking tickets are basically my second rent.
       @rents My studio costs more than my parents' mortgage ever did.
@@ -911,7 +911,7 @@ export const KEYS = {
       Pacifica's the best-kept secret on the coast.
     `),
     complaintLines: lines(`
-      Everything costs a fortune, even in the small towns.
+      @adult Everything costs a fortune, even in the small towns.
       @anytime The fog in Daly City never leaves in summer.
       @adult Teachers and nurses can't afford to live where they work.
       Somebody's always tearing down a house to build a bigger one.
@@ -972,7 +972,7 @@ export const KEYS = {
       @adult Insurance companies don't want to cover anybody up here anymore.
       @anytime Tourists drive like they're the only ones on the road during harvest.
       @anytime The fires changed everything. You feel it every fall.
-      The people who work the vineyards can't afford to live near them.
+      @adult The people who work the vineyards can't afford to live near them.
       @drives The bridge toll keeps going up.
     `),
     food: lines(`
@@ -1006,6 +1006,11 @@ export const KEYS = {
         Float the American when it's this hot. That's the only answer.
       `),
     },
+    farewells: lines(`
+      @m5-9 @h10-20 See you around, enjoy the Delta breeze tonight.
+      All right, see you downtown.
+      Okay, go Kings.
+    `),
     traffic: lines(`
       The Causeway was backed up to Davis.
       Business 80 is a parking lot by four.
@@ -1048,6 +1053,10 @@ export const KEYS = {
       the Feather River | place | Oroville, the dam, the salmon
       the Ridge | place | Paradise, Magalia and the towns up the hill from Chico
       Chico State | school | the university that runs half of Chico's life
+    `),
+    farewells: lines(`
+      All right, see you at the Saturday market.
+      Okay, watch for tractors on the way home.
     `),
     weather: {
       heat: lines(`
@@ -1121,7 +1130,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       @works @drives Half my paycheck goes to gas for the Bay commute.
-      Bay Area prices followed everybody over the hill.
+      @adult Bay Area prices followed everybody over the hill.
       @works @parent I see my kids for an hour a day because of the commute.
     `),
     food: lines(`
