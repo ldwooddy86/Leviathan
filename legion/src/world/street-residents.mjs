@@ -217,10 +217,12 @@ const now = () => (typeof performance !== 'undefined' ? performance.now() : Date
 /**
  * A real NPC to drive a vehicle through the view at minute-of-day `minute`: drawn from nearby households by
  * hash, preferring an adult who drives to work and is on the road at that hour; falling back to any driving
- * adult, then any adult. With `job` ('transport') a bus driver is preferred.
+ * adult, then any adult. With `job` ('transport') a bus driver is preferred; with `walk` someone on foot.
+ * `exclude(id)` turns people away (already on the street, or living in the view).
+ * @param {{job?: string|null, walk?: boolean, tries?: number, exclude?: ((id: string) => boolean)|null}} [opts]
  * @returns {{id:string, zi:number, h:number, m:number, member:object}|null}
  */
-export function pickDriver(world, population, near, h, minute, { job = null, walk = false, tries = 7 } = {}) {
+export function pickDriver(world, population, near, h, minute, { job = null, walk = false, tries = 7, exclude = null } = {}) {
   let fallback = null, anyAdult = null;
   for (let k = 0; k < tries; k++) {
     const hk = hash2(h, k + 1);
@@ -231,7 +233,9 @@ export function pickDriver(world, population, near, h, minute, { job = null, wal
     const core = population.householdCore(zi, hh);
     for (const m of core.members) {
       if (m.age < (walk ? 12 : 16)) continue;
-      const cand = { id: `${world.zips[zi]}-${hh}-${m.m}`, zi, h: hh, m: m.m, member: m, home: core.home };
+      const id = `${world.zips[zi]}-${hh}-${m.m}`;
+      if (exclude && exclude(id)) continue;
+      const cand = { id, zi, h: hh, m: m.m, member: m, home: core.home };
       if (!anyAdult) anyAdult = cand;
       if (job && m.occ === job) return cand;
       const fits = walk ? (m.mode === 'walk' || m.mode === 'bus' || m.mode === 'rail' || !m.worker) : CAR_MODES.has(m.mode);

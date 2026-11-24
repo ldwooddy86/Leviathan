@@ -24,6 +24,87 @@ const MIN = 60000;
 const IDM = { car: { a: 1.6, b: 2.4, s0: 2.2, T: 1.25 }, bus: { a: 1.0, b: 1.9, s0: 3.0, T: 1.6 }, bike: { a: 1.0, b: 2.0, s0: 1.4, T: 1.0 } };
 const MIN_GAP = 1.0;
 const WALK_SPEED = 1.35;
+/** Shortest exercise loop worth walking (meters, out and back). */
+const MIN_LOOP = 30;
+/** Below this speed (m/s) a vehicle is standing, not approaching. */
+const STANDING = 0.5;
+/** A bus's average speed along its route, stops included (m/s): its timetable through the view. */
+const BUS_V = 7;
+/** The longest anyone waits at a bus stop before giving up on it (seconds). */
+const MAX_WAIT = 25 * 60;
+/** Fastest walker (m/s): anyone who arrived longer ago than their route takes at this speed is through. */
+const WALK_MAX = 1.6;
+/** Arrivals per minute at one entry, at most (a guard; the busiest freeway sees about a hundred). */
+const MAX_PER_MINUTE = 600;
+/** After a jump, at most this many vehicles per entry and walkers in all are back-filled (newest first). */
+const JUMP_SPAWNS = 60, JUMP_WALKERS = 160;
+/** A vehicle that cannot enter the view for this long (ms) takes another way. */
+const MAX_HOLD = 20000;
+/** Routes kept from the view's entries (to exits and to stores). */
+const ROUTE_CACHE = 12000;
+/** People per ten simulated minutes who drive or walk the vehicles a fast clock back-fills (see _driverFor). */
+const POOL = 384, POOL_BUCKET = 10 * MIN;
+
+/**
+ * A deterministic arrival process: for every epoch minute, arrival times drawn as exponential gaps at that
+ * minute's rate, each gap from a hash of (salt, minute, index). Stepping walks a cursor through the lists and a
+ * jump back-fills from the same lists, so the same vehicle arrives whichever way the clock got there, and every
+ * arrival has a key of its own for who and what it is.
+ */
+class Arrivals {
+  /**
+   * @param {number} salt
+   * @param {(t: number) => number} rate arrivals per second at epoch ms t
+   */
+  constructor(salt, rate) { this.salt = salt >>> 0; this.rate = rate; this.lists = new Map(); this.cm = null; this.ci = 0; this.hold = -Infinity; }
+  /** Arrivals during epoch minute m, in seconds into the minute, ascending (the last few minutes are kept). */
+  minute(m) {
+    let list = this.lists.get(m);
+    if (list) return list;
+    const r = this.rate(m * MIN + MIN / 2);
+    list = [];
+    if (r > 0) {
+      const h = hash2(this.salt, m);
+      let s = 0;
+      for (let i = 0; i < MAX_PER_MINUTE; i++) { s += -Math.log(1 - u01(hash2(h, i)) * 0.999) / r; if (s >= 60) break; list.push(s); }
+    }
+    if (this.lists.size >= 8) this.lists.delete(this.lists.keys().next().value);
+    this.lists.set(m, list);
+    return list;
+  }
+  /** The key of arrival i of minute m. */
+  key(m, i) { return hash3(hash2(this.salt, m), i, 0x5eed); }
+  /** Put the cursor on the first arrival after t. */
+  seek(t) {
+    this.cm = Math.floor(t / MIN);
+    const list = this.minute(this.cm);
+    let i = 0;
+    while (i < list.length && this.cm * MIN + list[i] * 1000 <= t) i++;
+    this.ci = i; this.hold = -Infinity;
+  }
+  /** Time of the arrival under the cursor (moving on to later minutes when this one has no more). */
+  peek() {
+    for (let g = 0; g < 240; g++) {
+      const list = this.minute(this.cm);
+      if (this.ci < list.length) return this.cm * MIN + list[this.ci] * 1000;
+      this.cm++; this.ci = 0;
+    }
+    return Infinity;
+  }
+  /** Key of the arrival under the cursor. */
+  cursorKey() { return this.key(this.cm, this.ci); }
+  /** Every arrival in (from, to], newest first: fn(tArr, key) returns false to stop. */
+  backfill(from, to, fn) {
+    for (let m = Math.floor(to / MIN); m >= Math.floor(from / MIN); m--) {
+      const list = this.minute(m);
+      for (let i = list.length - 1; i >= 0; i--) {
+        const tArr = m * MIN + list[i] * 1000;
+        if (tArr > to || tArr <= from) continue;
+        if (fn(tArr, this.key(m, i)) === false) return;
+      }
+    }
+  }
+}
 
 const VEHICLES = [
   { body: 'sedan', len: 4.7, wid: 1.85, w: 34 }, { body: 'suv', len: 4.9, wid: 1.95, w: 26 }, { body: 'compact', len: 4.2, wid: 1.78, w: 16 },
@@ -116,6 +197,12 @@ export class StreetSim {
     this.barkLog = new Map();
     this.lastBarkMs = -Infinity;
     this.stats0 = { spawned: 0, finished: 0, jumps: 0, steps: 0 };
+    /** NPC ids on the street now (with how many agents: never more than one), and shoppers inside a store. */
+    this.activeIds = new Map();
+    this.shoppers = new Set();
+    this._pendingReturns = []; this._nextReturn = Infinity;
+    /** Someone who cannot be picked to drive or walk through: on the street already, shopping here, or one of the view's own people. */
+    this._busyId = id => this.activeIds.has(id) || this.shoppers.has(id) || this.personIds.has(id);
     this.near = nearbyZips(world, this.frame.cx, this.frame.cy, 25);
     /** Milliseconds of planner calls allowed per step (Infinity for the fast fallback planner). */
     this.evalBudgetMs = Infinity;
@@ -133,8 +220,9 @@ export class StreetSim {
     for (let ri = 0; ri < sc.residents.length; ri++) {
       const r = sc.residents[ri];
       const hh = sc.households[r.hh];
-      this.persons.push({ pid: this.persons.length, id: r.id, role: 'resident', member: r.member, hh: r.hh, b: r.b, agent: null, next: 0, look: null, veh: -1, spot: -1, ext: false });
+      this.persons.push({ pid: this.persons.length, id: r.id, role: 'resident', member: r.member, hh: r.hh, b: r.b, agent: null, next: 0, look: null, veh: -1, spot: -1, awaySpot: -1, awayB: -1, ext: false });
     }
+    this.personIds = new Set(this.persons.map(p => p.id));
     // household drivers: car commuters first, then other adults; vehicle k belongs to driver k
     for (const hh of sc.households) {
       if (!hh) continue;
@@ -154,8 +242,9 @@ export class StreetSim {
       let best = null, bd = Infinity;
       for (const b of nb) { const d = Math.hypot(b.cx - c.workX, b.cy - c.workY); if (d < bd) { bd = d; best = b; } }
       if (!best || bd > 260 || !best.access) continue;
-      const p = { pid: this.persons.length, id: c.id, role: 'commuter', member: c.member, hh: -1, b: best.id, workB: best.id, agent: null, next: 0, look: null, veh: CAR_MODES.has(c.member.mode) ? 0 : -1, spot: -1, homeW: c.home, ext: false };
+      const p = { pid: this.persons.length, id: c.id, role: 'commuter', member: c.member, hh: -1, b: best.id, workB: best.id, agent: null, next: 0, look: null, veh: CAR_MODES.has(c.member.mode) ? 0 : -1, spot: -1, awaySpot: -1, awayB: -1, homeW: c.home, ext: false };
       this.persons.push(p);
+      this.personIds.add(p.id);
       this._schedule(p, this.t);
     }
   }
@@ -179,7 +268,9 @@ export class StreetSim {
       if (perHour <= 0) continue;
       const dir = n.adj[0].end === 0 ? 1 : -1;     // travel into the view leaves the exit node
       if (lanesIn(E, dir) <= 0 && !E.shared) continue;
-      this.entries.push({ node: n.id, e: E.id, dir, cls: E.cls, perHour, next: -1, k: 0, name: E.name, freeway: E.freeway });
+      const en = { node: n.id, e: E.id, dir, cls: E.cls, perHour, name: E.name, freeway: E.freeway };
+      en.arr = new Arrivals(hash2(this.seed, n.id * 7919 + 13), t => this._rate(en, t));
+      this.entries.push(en);
     }
     this.carExits = net.nodes.filter(n => n.exit && net.edges[n.adj[0].e].car).map(n => n.id);
     this.walkExits = net.nodes.filter(n => n.exit && net.edges[n.adj[0].e].foot).map(n => n.id);
@@ -188,6 +279,7 @@ export class StreetSim {
     // pedestrians passing through and shopping: dense places only
     const walkShare = this._walkShare();
     this.footRate = dens > 6000 ? clamp(dens / 25000, 0.25, 1.6) * (0.6 + walkShare * 6) * 40 : dens > 2500 ? 8 : 0;   // per hour per exit at peak
+    this.foot = new Arrivals(hash2(this.seed, 0xf00d), t => this._footRate(t));
     this.routeCache = new Map();
   }
 
@@ -224,7 +316,8 @@ export class StreetSim {
         if (!path || path.length < 400) continue;
         const stops = this._placeStops(path);
         const headway = (busShare > 0.08 ? 8 : busShare > 0.03 ? 14 : 28) * 60;
-        this.busRoutes.push({ path, from, to, stops, headway, phase: u01(hash3(this.seed, from, to)) * headway, k: 0, name: net.edges[net.nodes[from].adj[0].e].name });
+        for (const sid of stops) this.stops[sid].route = this.busRoutes.length;
+        this.busRoutes.push({ path, from, to, stops, headway, phase: u01(hash3(this.seed, from, to)) * headway, k: null, name: net.edges[net.nodes[from].adj[0].e].name });
       }
       used.add(a); used.add(b);
     }
@@ -242,7 +335,7 @@ export class StreetSim {
         const p = this._stepPoint(st, d, {});
         const E = this.net.edges[st.e];
         const off = sidewalkOffset(E) - 0.6;
-        const stop = { id: this.stops.length, k, d, x: p.x - p.ty * off, y: p.y + p.tx * off, ang: Math.atan2(p.ty, p.tx), e: st.e, waiting: new Set(), served: 0 };
+        const stop = { id: this.stops.length, k, d, at: acc + d, route: -1, x: p.x - p.ty * off, y: p.y + p.tx * off, ang: Math.atan2(p.ty, p.tx), e: st.e, waiting: new Set(), served: 0 };
         this.stops.push(stop);
         out.push(stop.id);
         nextAt += 320;
@@ -273,6 +366,9 @@ export class StreetSim {
     this.t = t;
     this.agents.length = 0;
     this.byUid.clear();
+    this.activeIds.clear();
+    this.shoppers.clear();
+    this._pendingReturns = []; this._nextReturn = Infinity;
     this.queues.clear();
     this.inside.fill(0);
     for (const w of this.waiting) w.length = 0;
@@ -286,18 +382,22 @@ export class StreetSim {
       hh.spots.forEach((sid, k) => { this.spotCar[sid] = hash3(this.seed, hh.zi, hh.h * 8 + k); });
     }
     this._absorbed = 0;
-    for (const p of this.persons) { p.agent = null; p.away = false; }
+    for (const p of this.persons) { p.agent = null; p.away = false; p.awaySpot = -1; p.awayB = -1; }
     this.persons.length = this.residentCount;
     this._absorbCommuters();
+    this._bulk = true;
     if (this.external && !this.hybrid && this.evalBudgetMs < Infinity) {
       // a slow external planner without the layer-0 head start: everyone goes on the heap and is placed over frames
       for (const p of this.persons) this._schedule(p, t);
       this._processEvents(t, true);
-    } else for (const p of this.persons) this._evaluate(p, t, true);
+    } else for (const p of this.persons) this._evaluateSafe(p, t, true);
     this._upOrder = null; this._upK = 0;
-    for (const en of this.entries) en.next = -1;
-    for (const r of this.busRoutes) r.k = 0;
+    // the buses on their routes and the traffic already on the road
+    for (const r of this.busRoutes) r.k = null;
     this._streamsJump(t, 900);
+    this._buses(t);
+    this._bulk = false;
+    this._rebuildQueues();
     this._settleQueues();
   }
 
@@ -315,17 +415,27 @@ export class StreetSim {
     return { steps: need, jumped: false };
   }
 
-  /** Move to time t without stepping: agents slide to their schedule positions, events fire, streams fill. */
+  /**
+   * Move to time t without stepping: agents slide to their schedule positions, events fire, streams fill. Cars
+   * are placed first and the queues ordered once at the end (a fast clock jumps every frame).
+   */
   jumpTo(t) {
     const t0 = this.t;
     this.t = t;
     this.stats0.jumps++;
-    this._processEvents(t, true);
+    this._bulk = true; this._fast = true;
+    this.queues.clear();
+    for (const a of this.agents) a.q = null;
     for (let i = this.agents.length - 1; i >= 0; i--) {
       const a = this.agents[i];
       if (!this._placeOnSchedule(a, t)) this._finish(a, i);
     }
+    this._processEvents(t, true);
+    this._returns(t, true);
     this._streamsJump(t, Math.min(900, (t - t0) / 1000));
+    this._buses(t);
+    this._bulk = false; this._fast = false;
+    this._rebuildQueues();
     this._settleQueues();
   }
 
@@ -336,12 +446,30 @@ export class StreetSim {
     this._processEvents(this.t, false);
     this._streams(this.t);
     this._buses(this.t);
+    this._returns(this.t, false);
     this._sortQueues();
     const agents = this.agents;
     for (let i = agents.length - 1; i >= 0; i--) {
       const a = agents[i];
-      const done = this._move(a, DT);
+      let done;
+      try { done = this._move(a, DT); } catch (err) { this._fault(a, err); i = Math.min(i, agents.length); continue; }
       if (done) this._finish(a, i);
+    }
+  }
+
+  /**
+   * Contain a failure in one agent's update: take it (and any other agent whose route state no longer reads)
+   * off the street, count it, and keep the simulation running. The person is planned again as usual.
+   */
+  _fault(a, err) {
+    this.stats0.faults = (this.stats0.faults || 0) + 1;
+    this.lastFault = { id: a ? a.id : null, kind: a ? a.kind : null, phase: a ? a.phase : null, message: String(err && err.message || err), t: this.t };
+    const bad = new Set(a ? [a] : []);
+    for (const b of this.agents) if (!agentReadable(b)) bad.add(b);
+    for (const b of bad) {
+      const i = this.agents.indexOf(b);
+      if (i < 0) continue;
+      try { this._finish(b, i); } catch { this.agents.splice(i, 1); this.byUid.delete(b.uid); this._untrack(b); if (b.q !== null && b.q !== undefined) { const q = this.queues.get(b.q); if (q) { const k = q.indexOf(b); if (k >= 0) q.splice(k, 1); } } }
     }
   }
 
@@ -380,7 +508,18 @@ export class StreetSim {
       const pid = heap.pop();
       const p = this.persons[pid];
       if (!p || p.agent || p.next !== key) continue;      // stale entry: the person was rescheduled since
-      this._evaluate(p, t, jumping);
+      this._evaluateSafe(p, t, jumping);
+    }
+  }
+
+  /** _evaluate, with a plan that cannot be followed (malformed activity, a route that does not read) looked at again in an hour. */
+  _evaluateSafe(p, t, jumping) {
+    try { this._evaluate(p, t, jumping); }
+    catch (err) {
+      this.stats0.faults = (this.stats0.faults || 0) + 1;
+      this.lastFault = { id: p.id, kind: 'plan', phase: null, message: String(err && err.message || err), t };
+      if (p.agent) { const i = this.agents.indexOf(p.agent); if (i >= 0) this._finish(p.agent, i); p.agent = null; }
+      this._schedule(p, t + 60 * MIN);
     }
   }
 
@@ -457,7 +596,11 @@ export class StreetSim {
     const drove = !travel && !stayHome && CAR_MODES.has(p.member.mode);
     const away = carTrip || drove;
     if (away) this.spotCar[p.spot] = -1;
-    else if (this.spotCar[p.spot] === -1) this.spotCar[p.spot] = this._carLookId(p);
+    else {
+      // home by the plan: a car still drawn in a stall elsewhere in view (a trip back the plan did not drive) is home too
+      if (p.awaySpot >= 0) { if (this.spotCar[p.awaySpot] === p.awayLook) this.spotCar[p.awaySpot] = -1; p.awaySpot = -1; p.awayB = -1; }
+      if (this.spotCar[p.spot] === -1) this.spotCar[p.spot] = this._carLookId(p);
+    }
   }
 
   _carLookId(p) { const hh = this.scene.households[p.hh]; return hh ? hash3(this.seed, hh.zi, hh.h * 8 + Math.max(0, p.veh)) : hash2(this.seed, idHash(p.id)); }
@@ -579,15 +722,25 @@ export class StreetSim {
     return best;
   }
 
-  /** An exercise loop from home: out along a meandering route and back by the shortest way. */
+  /**
+   * An exercise loop from home: out along a meandering route and back by the shortest way. Null (the person
+   * stays in) when the street gives no walk worth the name, e.g. a home at the end of a private lane whose only
+   * way out is the lane itself.
+   */
   _loopTrip(p, act, t) {
     const b = this.scene.buildings[p.b];
     if (!b || !b.access) return null;
     const net = this.net;
+    const E0 = net.edges[b.access.e];
+    if (!E0 || !E0.foot) return null;
     const durS = (act.end - act.start) / 1000;
     const half = clamp(durS * WALK_SPEED * 0.45, 150, 1400);
-    let e = b.access.e, node = hf2(this.seed, idHash(p.id), act.start) < 0.5 ? net.edges[e].a : net.edges[e].b;
-    let acc = 0, prevE = e, guard = 0;
+    // set off toward an end of the home's street that leads somewhere (not a dead end, not out of the view)
+    const goes = n => net.nodes[n].adj.length > 1 && !net.nodes[n].exit;
+    const ends = [E0.a, E0.b].filter(goes);
+    if (!ends.length) return null;
+    let node = ends.length === 1 ? ends[0] : hf2(this.seed, idHash(p.id), act.start) < 0.5 ? ends[0] : ends[1];
+    let acc = 0, prevE = E0.id, guard = 0;
     const h0 = hash3(this.seed, idHash(p.id), Math.floor(act.start / MIN));
     while (acc < half && guard++ < 40) {
       const opts = net.nodes[node].adj.filter(a => a.e !== prevE && net.edges[a.e].foot && !net.nodes[net.other(a.e, node)].exit);
@@ -597,8 +750,9 @@ export class StreetSim {
     }
     const out = this.router.path('foot', { e: b.access.e, s: b.access.s }, { node });
     const back = this.router.path('foot', { node }, { e: b.access.e, s: b.access.s });
-    if (!out || !back) return null;
+    if (!out || !back || !out.steps.length || !back.steps.length) return null;
     const path = { steps: out.steps.concat(back.steps), length: out.length + back.length, cost: out.cost + back.cost };
+    if (path.length < MIN_LOOP) return null;
     const vNom = clamp(path.length / Math.max(60, durS - 10), 0.7, 1.7);
     return { kind: 'walk', mode: 'walk', path, t0: act.start, dur: path.length / vNom + 8, vNom, fromB: b, toB: b, exit: -1, entry: -1, busStop: -1, purpose: 'walk', oIn: true, dIn: true, exitDur: 4, enterDur: 4, loop: true, dog: !!act.dog };
   }
@@ -639,10 +793,11 @@ export class StreetSim {
     const a = Object.assign({
       uid: this.uid++, kind: 'walk', role: 'resident', id: '', person: -1, act: null, trip: null, path: null, k: 0, d: 0, v: 0, vmax: 1.4, lane: 0,
       phase: 'route', pu: 0, pdur: 1, from: null, to: null, len: 0.5, wid: 0.5, look: null, brake: false, blink: 0, stopT: -1, inBox: -1,
-      age: 30, x: 0, y: 0, hx: 1, hy: 0, walked: 0, bubble: null, wait: 0, t0: this.t,
+      age: 30, x: 0, y: 0, hx: 1, hy: 0, walked: 0, bubble: null, wait: 0, t0: this.t, toSpot: -1, arrived: false,
     }, props);
     this.agents.push(a);
     this.byUid.set(a.uid, a);
+    this.activeIds.set(a.id, (this.activeIds.get(a.id) || 0) + 1);
     this.stats0.spawned++;
     return a;
   }
@@ -678,11 +833,15 @@ export class StreetSim {
     const entryPose = this._routePose(a, 0, 0);
     if (a.kind === 'car') {
       let sx = b.access.curbX, sy = b.access.curbY, ang = Math.atan2(entryPose.y - sy, entryPose.x - sx);
-      const sp = p.role === 'resident' && p.spot >= 0 ? this.scene.spots[p.spot] : null;
-      if (sp) { sx = sp.x; sy = sp.y; ang = sp.ang; this.spotCar[sp.id] = -1; a.fromSpot = sp.id; }
-      else if (b.access.driveX !== undefined) { sx = b.access.driveX; sy = b.access.driveY; ang = b.access.driveAng; }
+      // the car leaves from where it stands: its space at home, or the stall it was parked in on arriving here
+      const spotId = p.role === 'resident' && p.spot >= 0 && b.id === p.b ? p.spot : p.awaySpot >= 0 && p.awayB === b.id ? p.awaySpot : -1;
+      const sp = spotId >= 0 ? this.scene.spots[spotId] : null;
+      if (sp) {
+        sx = sp.x; sy = sp.y; ang = sp.ang; this.spotCar[sp.id] = -1; a.fromSpot = sp.id;
+        if (sp.id === p.awaySpot) { p.awaySpot = -1; p.awayB = -1; }
+      } else if (b.access.driveX !== undefined) { sx = b.access.driveX; sy = b.access.driveY; ang = b.access.driveAng; }
       a.from = { x: sx, y: sy, hx: Math.cos(ang), hy: Math.sin(ang) };
-      a.phase = 'exit'; a.pu = 0; a.pdur = trip.exitDur; a.reverse = !!(sp && sp.kind === 'driveway') || b.access.driveX !== undefined;
+      a.phase = 'exit'; a.pu = 0; a.pdur = trip.exitDur; a.reverse = sp ? sp.kind === 'driveway' : b.access.driveX !== undefined;
     } else {
       a.from = { x: b.access.doorX, y: b.access.doorY, hx: 0, hy: 0 };
       a.phase = 'exit'; a.pu = 0; a.pdur = trip.exitDur;
@@ -696,15 +855,28 @@ export class StreetSim {
     this._leaveQueue(a);
     this._releaseBox(a);
     a.stopT = -1; a.passed = false;
-    if (a.busWait) { return el < tr.dur + 25 * 60; }
+    if (a.busStop >= 0 && !tr.dIn) {
+      // a bus rider: still walking to the stop, waiting there, or gone on the first bus that came after they got there
+      const now = t / 1000, atStop = tr.t0 / 1000 + (tr.oIn ? tr.exitDur : 0) + tr.path.length / tr.vNom;
+      if (now >= atStop) {
+        if (now - atStop > MAX_WAIT || this._nextBusAt(a.busStop, atStop) <= now) return false;
+        this._toEnd(a);
+        if (!a.busWait && !this._arriveAtStop(a)) return false;
+        a.wait = now - atStop;
+        return true;
+      }
+    }
     if (tr.oIn) {
       if (el < tr.exitDur) { a.phase = 'exit'; a.pu = clamp(el / tr.exitDur, 0, 1); return true; }
       el -= tr.exitDur;
     }
     const dist = el * tr.vNom;
     if (dist >= tr.path.length) {
-      if (tr.dIn) { const rest = el - tr.path.length / tr.vNom; if (rest < tr.enterDur && !tr.loop) { this._toEnd(a); a.phase = 'enter'; this._beginEnter(a); a.pu = clamp(rest / tr.enterDur, 0, 1); return true; } }
-      if (a.busStop >= 0 && !tr.dIn) { this._toEnd(a); return this._arriveAtStop(a); }
+      if (tr.dIn) {
+        const rest = el - tr.path.length / tr.vNom;
+        if (rest < tr.enterDur && !tr.loop) { this._toEnd(a); a.phase = 'enter'; this._beginEnter(a); a.pu = clamp(rest / tr.enterDur, 0, 1); return true; }
+        a.arrived = true;
+      }
       return false;
     }
     // walk the steps to the distance
@@ -739,7 +911,8 @@ export class StreetSim {
       let sx = b.access.curbX, sy = b.access.curbY, ang = 0;
       const p = this.persons[a.person];
       let sp = null;
-      if (p && p.role === 'resident' && p.spot >= 0 && b.id === p.b) sp = this.scene.spots[p.spot];
+      if (a.toSpot >= 0 && this.spotCar[a.toSpot] === -2) sp = this.scene.spots[a.toSpot];       // reserved already (placed again after a jump)
+      else if (p && p.role === 'resident' && p.spot >= 0 && b.id === p.b) sp = this.scene.spots[p.spot];
       if (!sp) sp = this._freeSpotNear(b);
       if (sp) { sx = sp.x; sy = sp.y; ang = sp.ang; a.toSpot = sp.id; this.spotCar[sp.id] = -2; }
       else if (b.access.driveX !== undefined) { sx = b.access.driveX; sy = b.access.driveY; ang = b.access.driveAng + Math.PI; }
@@ -770,6 +943,7 @@ export class StreetSim {
     const key = this._qkey(a);
     let q = this.queues.get(key); if (!q) this.queues.set(key, q = []);
     a.q = key;
+    if (this._bulk) { q.push(a); return; }            // ordered once, by _rebuildQueues
     const al = this._along(a);
     let i = q.length;
     while (i > 0 && this._along(q[i - 1]) < al) i--;
@@ -781,6 +955,15 @@ export class StreetSim {
     const q = this.queues.get(a.q);
     if (q) { const i = q.indexOf(a); if (i >= 0) q.splice(i, 1); }
     a.q = null;
+  }
+
+  /** Order every queue front to back in one sort each (after a reset or a jump placed cars unordered). */
+  _rebuildQueues() {
+    for (const q of this.queues.values()) {
+      if (q.length < 2) continue;
+      for (const a of q) a.al = this._along(a);
+      q.sort((x, y) => y.al - x.al);
+    }
   }
 
   _sortQueues() {
@@ -873,16 +1056,27 @@ export class StreetSim {
       if (this.t - a.stopT < (a.kind === 'bike' ? 400 : 900)) return false;
       if (a.passed) return true;
       if (this.inside[node] > 0) return false;
+      // first come, first served among those who can go: an earlier arrival whose way ahead is blocked lets the
+      // next one take its turn (otherwise one car waiting for room on a full street would hold the corner)
       const w = this.waiting[node];
-      if (w.length && w[0] !== a.uid) {
-        // first come, first served; drop stale entries of agents no longer waiting at this node
-        while (w.length && !this._waitingAt(w[0], node)) w.shift();
-        if (w.length && w[0] !== a.uid) return false;
+      for (let i = 0; i < w.length;) {
+        const uid = w[i];
+        if (uid === a.uid) break;
+        if (!this._waitingAt(uid, node)) { w.splice(i, 1); continue; }     // stale: no longer at this line
+        if (this._wouldGo(this.byUid.get(uid))) return false;
+        i++;
       }
-      if (n.ctrl === 'twoway' && !this._majorClear(node)) return false;
+      if (n.ctrl === 'twoway' && !this._majorClear(node, a)) return false;
       return true;
     }
     return true;
+  }
+
+  /** Whether a vehicle waiting at a stop line could pull out if it had the turn (its next street has room). */
+  _wouldGo(o) {
+    if (!o || o.kind === 'bike') return true;
+    const nx = o.path.steps[o.k + 1];
+    return !nx || this._entryOpen(o, nx);
   }
 
   /** True while agent uid is stopped at the line of node `node`. */
@@ -893,9 +1087,17 @@ export class StreetSim {
     return (st.dir > 0 ? E.b : E.a) === node;
   }
 
-  /** At a two-way stop: no car on a free approach within 4.5 s of the node. */
-  _majorClear(node) {
+  /**
+   * At a two-way stop: no car coming through on a free approach within 4.5 s of the node. A car standing at
+   * the corner (queued behind traffic, or waiting for room to turn into the side street) is not coming through;
+   * counting it would let a turn that waits on the side street and the side street that waits on the turn hold
+   * each other forever.
+   */
+  _majorClear(node, a = null) {
     const n = this.net.nodes[node];
+    // a right turn merges with the traffic headed into the same lanes; a left turn or a crossing meets all of it
+    const nx = a && a.path ? a.path.steps[a.k + 1] : null;
+    const rightTurn = !!nx && a.turnK === a.k && a.turnS === 1;
     for (const ad of n.adj) {
       const E = this.net.edges[ad.e];
       const end = ad.end;
@@ -904,9 +1106,15 @@ export class StreetSim {
       for (let lane = 0; lane < 4; lane++) {
         const q = this.queues.get(E.id * 32 + (dir > 0 ? 0 : 16) + lane);
         if (!q || !q.length) continue;
-        const f = q[0];
-        const dist = E.len - this._along(f);
-        if (dist / Math.max(f.v, 2) < 4.5) return false;
+        for (const f of q) {
+          if (f.v < STANDING) break;                                  // the lane is held up at the corner
+          const fs = f.path.steps;
+          if (f.k >= fs.length - 1) continue;                         // parking on this block, short of the corner
+          if (rightTurn) { const fn = fs[f.k + 1]; if (fn.e !== nx.e || fn.dir !== nx.dir) continue; }
+          const dist = E.len - this._along(f);
+          if (dist / Math.max(f.v, 2) < 4.5) return false;
+          break;
+        }
       }
     }
     return true;
@@ -933,7 +1141,7 @@ export class StreetSim {
     }
     if (a.phase === 'enter') {
       a.pu += dt / a.pdur;
-      if (a.pu >= 1) return true;
+      if (a.pu >= 1) { a.arrived = true; return true; }
       return false;
     }
     if (a.kind === 'walk') return this._moveWalker(a, dt);
@@ -1097,10 +1305,9 @@ export class StreetSim {
   _moveWalker(a, dt) {
     const steps = a.path.steps;
     let st = steps[a.k], L = stepLen(st);
-    const last = a.k === steps.length - 1;
     let v = a.vmax;
     // wait at red lights on corners
-    if (!last) {
+    if (a.k < steps.length - 1) {
       const E = this.net.edges[st.e];
       const node = st.dir > 0 ? E.b : E.a;
       const clr = Math.min(this._clear(node, st.e), L);
@@ -1110,10 +1317,13 @@ export class StreetSim {
     a.v = v;
     a.d += v * dt;
     a.walked += v * dt;
+    // one tick can cover several steps (corners a few centimeters apart, zero-length steps at a dead end), so
+    // whether this is the last step is asked again after every transition
     while (a.d >= L) {
-      if (last) {
+      if (a.k >= steps.length - 1) {
+        a.d = L;
         if (a.busStop >= 0 && !a.trip.dIn) return this._arriveAtStop(a) ? false : true;
-        if (a.trip && a.trip.dIn) { a.d = L; a.phase = 'enter'; a.pu = 0; a.pdur = a.trip.enterDur; this._beginEnter(a); return false; }
+        if (a.trip && a.trip.dIn) { a.phase = 'enter'; a.pu = 0; a.pdur = a.trip.enterDur; this._beginEnter(a); return false; }
         return true;
       }
       a.d -= L;
@@ -1161,7 +1371,7 @@ export class StreetSim {
     a.wait += dt;
     const s = this.stops[a.busStop];
     if (a.boarded) { if (s) s.waiting.delete(a.uid); return true; }
-    if (a.wait > 25 * 60) { if (s) s.waiting.delete(a.uid); return true; }
+    if (a.wait > MAX_WAIT) { if (s) s.waiting.delete(a.uid); return true; }
     return false;
   }
 
@@ -1189,17 +1399,14 @@ export class StreetSim {
   _finish(a, i) {
     this._leaveQueue(a);
     this._releaseBox(a);
-    if (a.toSpot !== undefined && a.toSpot >= 0) this.spotCar[a.toSpot] = a.lookH !== undefined ? a.lookH : hash2(this.seed, a.uid);
-    else if (a.kind === 'car' && a.trip && a.trip.dIn && a.person >= 0) {
-      // a car that reached home while time jumped: it is parked in its spot
-      const p = this.persons[a.person];
-      if (p && p.role === 'resident' && p.spot >= 0 && a.trip.toB && a.trip.toB.id === p.b) this.spotCar[p.spot] = this._carLookId(p);
-    }
+    if (a.kind === 'car' && a.arrived) this._parkArrived(a);
+    else if (a.toSpot >= 0 && this.spotCar[a.toSpot] === -2) this.spotCar[a.toSpot] = -1;      // a reserved stall it never reached
     if (a.busStop >= 0) { const s = this.stops[a.busStop]; if (s) s.waiting.delete(a.uid); }
     const last = this.agents.length - 1;
     if (i !== last) this.agents[i] = this.agents[last];
     this.agents.pop();
     this.byUid.delete(a.uid);
+    this._untrack(a);
     this.stats0.finished++;
     if (a.person >= 0) {
       const p = this.persons[a.person];
@@ -1209,200 +1416,329 @@ export class StreetSim {
         this._schedule(p, Math.max(this.t + 1000, end));
       }
     }
-    if (a.visitorDwell) this._visitorReturn(a);
+    if (a.visitorDwell && a.arrived) this._visitorReturn(a);
+  }
+
+  /** An agent's id leaves the street. */
+  _untrack(a) { const n = this.activeIds.get(a.id); if (n > 1) this.activeIds.set(a.id, n - 1); else this.activeIds.delete(a.id); }
+
+  /**
+   * A car that reached a building in view is parked where it is drawn from then on: the stall it pulled into,
+   * else (it arrived while the clock jumped) the household's own space at home or a free stall near the
+   * building. A stall away from home is remembered, so the next trip from there starts from it.
+   */
+  _parkArrived(a) {
+    const p = a.person >= 0 ? this.persons[a.person] : null;
+    const b = a.trip && a.trip.toB;
+    const home = !!p && p.role === 'resident' && p.spot >= 0 && !!b && b.id === p.b;
+    let spot = a.toSpot >= 0 ? a.toSpot : home ? p.spot : -1;
+    if (spot < 0 && b) { const s = this._freeSpotNear(b); if (s) spot = s.id; }
+    if (spot < 0) return;
+    const atHome = home && spot === p.spot;
+    this.spotCar[spot] = atHome ? this._carLookId(p) : a.lookH !== undefined ? a.lookH : hash2(this.seed, a.uid);
+    a.toSpot = spot;
+    if (p) { p.awaySpot = atHome ? -1 : spot; p.awayB = atHome || !b ? -1 : b.id; p.awayLook = this.spotCar[spot]; }
   }
 
   // ------------------------------------------------ through traffic, visitors, buses
 
+  /** Vehicles per second entering at an entry at time t (the hour's profile and the view's traffic scale). */
   _rate(en, t) {
     const pc = pacific(t);
     const wk = pc.dow === 0 || pc.dow === 6;
     return en.perHour * trafficProfile(pc.minuteOfDay, wk) * this.trafficScale / 3600;
   }
 
-  /** Deterministic arrival times at an entry: Poisson-like gaps from hashes of (entry, k). */
-  _nextArrival(en, after) {
-    const r = Math.max(1e-6, this._rate(en, after));
-    const u = u01(hash3(this.seed, en.node * 7919 + 13, en.k++));
-    return after + (-Math.log(1 - u * 0.999) / r) * 1000;
-  }
-
+  /** Stepping: vehicles whose arrival has come enter at the view's edge, into a gap only. */
   _streams(t) {
     for (const en of this.entries) {
-      if (en.next < 0) en.next = this._nextArrival(en, t);
-      let guard = 0;
-      while (en.next <= t && guard++ < 8) {
-        if (!this._spawnThrough(en, en.next, t, false)) { en.next += 1500; break; }
-        en.next = this._nextArrival(en, en.next);
+      const A = en.arr;
+      if (A.cm === null) A.seek(t);
+      for (let guard = 0; guard < 8 && A.hold <= t; guard++) {
+        const tArr = A.peek();
+        if (tArr > t) break;
+        // a vehicle kept out by a full lane at the edge for long has gone another way
+        if (t - tArr <= MAX_HOLD && this._spawnThrough(en, tArr, t, false, A.cursorKey()) === 'blocked') { A.hold = t + 1500; break; }
+        A.ci++;
       }
     }
     this._footStreams(t);
   }
 
-  /** After a jump: put the through traffic that would be on the road at t onto it (back-filled `span` seconds). */
+  /**
+   * After a reset or a jump: the through traffic that would be on the road at t is put on it, from the arrivals
+   * of the last `span` seconds (newest first, at most JUMP_SPAWNS per entry). Arrivals that have driven through by
+   * now are passed over before anyone is looked up to drive them.
+   */
   _streamsJump(t, span) {
     for (const en of this.entries) {
-      en.next = -1;
-      const r = this._rate(en, t);
-      if (r <= 0) continue;
-      let ta = t - Math.min(span, en.freeway ? 120 : 260) * 1000;
-      for (let guard = 0; guard < 400; guard++) {
-        const u = u01(hash3(this.seed, en.node * 7919 + 17, Math.floor(ta / 1000)));
-        ta += (-Math.log(1 - u * 0.999) / r) * 1000;
-        if (ta > t) break;
-        this._spawnThrough(en, ta, t, true);
-      }
+      let n = 0;
+      en.arr.backfill(t - Math.min(span, en.freeway ? 120 : 260) * 1000, t, (tArr, key) => {
+        if (this._spawnThrough(en, tArr, t, true, key) === 'spawned') n++;
+        return n < JUMP_SPAWNS;
+      });
+      en.arr.seek(t);
     }
     this._footJump(t, Math.min(span, 600));
   }
 
   /**
-   * One vehicle arriving at an entry at tArr. While stepping it enters at the view's edge, into a gap only; after
-   * a jump (`placed`) it is put where it would be by now.
+   * One vehicle arriving at an entry at tArr, its driver, vehicle and route drawn from the arrival's key. While
+   * stepping it enters at the view's edge, into a gap only ('blocked' otherwise); after a jump (`placed`) it is
+   * put where it would be by now, or passed over ('skip') when it is through already. A shopper already in the
+   * store has their car in a stall and comes back out later.
+   * @returns {'spawned'|'blocked'|'skip'}
    */
-  _spawnThrough(en, tArr, now, placed = false) {
+  _spawnThrough(en, tArr, now, placed, key) {
     const net = this.net;
-    const h = hash3(this.seed, en.node, Math.floor(tArr / 250));
+    const h = key;
     const minute = pacific(tArr).minuteOfDay;
     // a shopper headed for a store in view, or traffic passing through toward another exit
-    let path = null, toB = null, exit = -1;
+    let path = null, toB = null;
     if (!en.freeway && this.shops.length && u01(hash2(h, 1)) < 0.12 * trafficProfile(minute, false, SHOPPING)) {
       toB = this.shops[hash2(h, 2) % this.shops.length];
       path = this._route('car', en.node, toB);
+      if (!path) toB = null;
     }
     if (!path) {
-      exit = this._throughExit(en, h);
-      if (exit < 0) return true;
+      const exit = this._throughExit(en, h);
+      if (exit < 0) return 'skip';
       path = this._route('car', en.node, exit);
     }
-    if (!path) return true;
-    const drv = pickDriver(this.world, this.pop, this.near, h, minute);
-    if (!drv) return true;
+    if (!path) return 'skip';
+    const vNom = en.freeway ? 25 : 10, enterDur = 7;
+    const el = placed ? Math.max(0, (now - tArr) / 1000) : 0;
+    const through = path.length / vNom + (toB ? enterDur : 0);
+    if (placed && el >= through) {
+      if (toB) this._shopperInside(h, toB, tArr + through * 1000, minute, now);
+      return 'skip';
+    }
     const vlook = vehicleLook(hash2(h, 5), this.rural);
-    const el = placed ? (now - tArr) / 1000 : 0;
     const lane0 = Math.floor(u01(hash2(h, 7)) * Math.max(1, lanesIn(net.edges[en.e], en.dir)));
-    if (el <= 0.5) {
+    if (!placed && !this._bulk) {
       const st = path.steps[0];
       const q = this.queues.get(st.e * 32 + (st.dir > 0 ? 0 : 16) + Math.min(lane0, 7));
-      if (q && q.length) { const lastCar = q[q.length - 1]; if (this._along(lastCar) - lastCar.len < vlook.len + 4) return false; }
+      if (q && q.length) { const lastCar = q[q.length - 1]; if (this._along(lastCar) - lastCar.len < vlook.len + 4) return 'blocked'; }
     }
-    const a = this._newAgent({ kind: 'car', role: toB ? 'visitor' : 'through', id: drv.id, person: -1, path, trip: { path, t0: tArr, vNom: en.freeway ? 25 : 10, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur: 7, dur: path.length / 10 + 7 }, age: drv.member.age, vmax: (en.freeway ? 31 : 15) + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH: hash2(h, 5), lane: lane0, look: personLook(drv.id, drv.member.age) });
+    const drv = this._driverFor(h, tArr, minute, false);
+    if (!drv) return 'skip';
+    const a = this._newAgent({ kind: 'car', role: toB ? 'visitor' : 'through', id: drv.id, person: -1, path, trip: { path, t0: placed ? tArr : now, vNom, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur, dur: through }, age: drv.member.age, vmax: (en.freeway ? 31 : 15) + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH: hash2(h, 5), lane: lane0, look: personLook(drv.id, drv.member.age) });
     if (toB) { a.visitorDwell = (15 + u01(hash2(h, 8)) * 45) * 60000; a.visitB = toB.id; }
     a.k = 0; a.d = 0; a.phase = 'route'; a.v = Math.min(a.vmax, net.edges[en.e].speed);
-    if (el > 0.5) { if (!this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return true; } }
+    if (placed && el > 0.5) { if (!this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return 'skip'; } }
     else this._joinQueue(a);
-    return true;
+    return 'spawned';
   }
 
-  /** A shopper who parked comes back out after shopping and drives off toward an exit. */
+  /**
+   * Who drives (or walks) an arrival with key h at tArr: a nearby NPC by pickDriver, never someone already on the
+   * street, shopping here, or living in the view. While a fast clock jumps, hundreds of vehicles are back-filled
+   * every frame, too many to look each one up: they are drawn from a pool of POOL people per ten simulated
+   * minutes instead, filled lazily by the same rules and handed out by the arrival's key.
+   */
+  _driverFor(h, tArr, minute, walk) {
+    if (this._fast) {
+      const bucket = Math.floor(tArr / POOL_BUCKET);
+      let P = walk ? this._walkPool : this._drivePool;
+      if (!P || P.bucket !== bucket) { P = { bucket, list: new Array(POOL) }; if (walk) this._walkPool = P; else this._drivePool = P; }
+      for (let probe = 0; probe < 6; probe++) {
+        const j = (h + probe * 7919) % POOL;
+        let d = P.list[j];
+        if (d === undefined) d = P.list[j] = pickDriver(this.world, this.pop, this.near, hash3(this.seed ^ (walk ? 0x3a1c : 0xd71e), bucket, j), minute, { walk }) || null;
+        if (d && !this._busyId(d.id)) return d;
+      }
+    }
+    return pickDriver(this.world, this.pop, this.near, h, minute, { walk, tries: this._bulk ? 3 : 7, exclude: this._busyId });
+  }
+
+  /** A shopper who parked during the span a jump skipped: the car in a stall near the store, the person inside until done. */
+  _shopperInside(h, b, tIn, minute, now) {
+    const tBack = tIn + (15 + u01(hash2(h, 8)) * 45) * 60000;
+    if (tBack <= now) return;
+    const drv = this._driverFor(h, tIn, minute, false);
+    if (!drv) return;
+    const vlook = vehicleLook(hash2(h, 5), this.rural), lookH = hash2(h, 5);
+    const stall = this._freeSpotNear(b);
+    if (stall) this.spotCar[stall.id] = lookH;
+    this._addReturn({ t: tBack, b, prev: { id: drv.id, uid: h, age: drv.member.age, vmax: 15 + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH, look: personLook(drv.id, drv.member.age), toSpot: stall ? stall.id : -1 } });
+  }
+
+  /** A shopper who parked goes into the store; they come back out after shopping and drive off toward an exit. */
   _visitorReturn(a) {
     const b = this.scene.buildings[a.visitB];
     if (!b || !b.access) return;
-    const tBack = this.t + a.visitorDwell;
-    this._pendingReturns = this._pendingReturns || [];
-    this._pendingReturns.push({ t: tBack, a, b });
+    // in the store since the car was parked: now while stepping, at its scheduled arrival when the clock jumped
+    const tIn = this._bulk && a.trip ? Math.min(this.t, a.trip.t0 + a.trip.dur * 1000) : this.t;
+    this._addReturn({ t: tIn + a.visitorDwell, b, prev: { id: a.id, uid: a.uid, age: a.age, vmax: a.vmax, len: a.len, wid: a.wid, body: a.body, color: a.color, lookH: a.lookH, look: a.look, toSpot: a.toSpot } });
   }
 
+  _addReturn(x) {
+    this._pendingReturns.push(x);
+    this.shoppers.add(x.prev.id);
+    if (x.t < this._nextReturn) this._nextReturn = x.t;
+  }
+
+  /**
+   * Shoppers whose time in the store is up come out to their cars. After a jump, one who came out more than a
+   * minute before has driven off already: the stall is simply empty now.
+   */
+  _returns(t, jumping) {
+    if (!this._pendingReturns.length || this._nextReturn > t) return;
+    const due = [], keep = [];
+    let next = Infinity;
+    for (const x of this._pendingReturns) { if (x.t <= t) due.push(x); else { keep.push(x); if (x.t < next) next = x.t; } }
+    this._pendingReturns = keep; this._nextReturn = next;
+    for (const x of due) {
+      this.shoppers.delete(x.prev.id);
+      if (jumping && t - x.t > 60000) {
+        if (x.prev.toSpot >= 0 && this.spotCar[x.prev.toSpot] === x.prev.lookH) this.spotCar[x.prev.toSpot] = -1;
+        continue;
+      }
+      this._spawnVisitorBack(x.prev, x.b, Math.min(x.t, t), t);
+    }
+  }
+
+  /** The exit a vehicle entering at `en` leaves by: the same road most often, else another of its rank (weights kept per entry). */
   _throughExit(en, h) {
-    const net = this.net;
-    const name = en.name;
-    const cands = this.carExits.filter(id => id !== en.node);
-    if (!cands.length) return -1;
-    const w = cands.map(id => {
-      const E = net.edges[net.nodes[id].adj[0].e];
-      const same = E.name && E.name === name ? 6 : 1;
-      const rank = E.freeway === net.edges[en.e].freeway ? (E.rank >= 6 ? 3 : E.rank >= 5 ? 1.5 : 0.25) : 0;
-      return same * rank;
-    });
-    let tot = w.reduce((x, y) => x + y, 0);
-    if (!(tot > 0)) return -1;
-    let x = u01(hash2(h, 3)) * tot;
+    if (!en.exits) {
+      const net = this.net, freeway = net.edges[en.e].freeway;
+      en.exits = this.carExits.filter(id => id !== en.node);
+      en.exitW = en.exits.map(id => {
+        const E = net.edges[net.nodes[id].adj[0].e];
+        const same = E.name && E.name === en.name ? 6 : 1;
+        const rank = E.freeway === freeway ? (E.rank >= 6 ? 3 : E.rank >= 5 ? 1.5 : 0.25) : 0;
+        return same * rank;
+      });
+      en.exitTot = en.exitW.reduce((x, y) => x + y, 0);
+    }
+    const cands = en.exits, w = en.exitW;
+    if (!cands.length || !(en.exitTot > 0)) return -1;
+    let x = u01(hash2(h, 3)) * en.exitTot;
     for (let i = 0; i < cands.length; i++) { x -= w[i]; if (x <= 0) return cands[i]; }
     return cands[cands.length - 1];
   }
 
+  /** A route from a node to an exit node or a building, cached (the oldest routes give way when the cache is full). */
   _route(mode, fromNode, to) {
-    const key = mode + ':' + fromNode + ':' + (typeof to === 'number' ? 'n' + to : 'b' + to.id);
-    if (this.routeCache.has(key)) return this.routeCache.get(key);
+    const key = (mode === 'car' ? 0 : mode === 'bike' ? 1 : 2) + 3 * (fromNode + 100003 * (typeof to === 'number' ? to * 2 : to.id * 2 + 1));
+    const hit = this.routeCache.get(key);
+    if (hit !== undefined) return hit;
     let p = null;
     if (typeof to === 'number') p = this.router.path(mode, { node: fromNode }, { node: to });
     else if (to.access) p = this.router.path(mode, { node: fromNode }, { e: to.access.e, s: to.access.s });
-    if (this.routeCache.size > 3000) this.routeCache.clear();
+    if (this.routeCache.size >= ROUTE_CACHE) { let k = 0; for (const old of this.routeCache.keys()) { this.routeCache.delete(old); if (++k >= ROUTE_CACHE / 8) break; } }
     this.routeCache.set(key, p);
     return p;
+  }
+
+  /** People on foot per second entering the view at t (dense places only; shopping hours). */
+  _footRate(t) {
+    if (!this.footRate || !this.walkExits.length) return 0;
+    return this.footRate * trafficProfile(pacific(t).minuteOfDay, false, SHOPPING) * this.trafficScale / 3600 * Math.min(12, this.walkExits.length) / 12;
   }
 
   /** People on foot passing through or going to the shops (dense places). */
   _footStreams(t) {
     if (!this.footRate || !this.walkExits.length) return;
-    const pc = pacific(t);
-    const r = this.footRate * trafficProfile(pc.minuteOfDay, false, SHOPPING) * this.trafficScale / 3600 * Math.min(12, this.walkExits.length) / 12;
-    if (this._footNext === undefined || this._footNext < 0) this._footNext = t + (-Math.log(1 - u01(hash2(this.seed, this._footK = (this._footK || 0) + 1)) * 0.999) / Math.max(1e-6, r)) * 1000;
-    let guard = 0;
-    while (this._footNext <= t && guard++ < 6) {
-      this._spawnWalker(this._footNext, t);
-      this._footNext += (-Math.log(1 - u01(hash2(this.seed, this._footK = (this._footK || 0) + 1)) * 0.999) / Math.max(1e-6, r)) * 1000;
+    const A = this.foot;
+    if (A.cm === null) A.seek(t);
+    for (let guard = 0; guard < 6; guard++) {
+      const tArr = A.peek();
+      if (tArr > t) break;
+      this._spawnWalker(tArr, t, A.cursorKey(), false);
+      A.ci++;
     }
   }
 
   _footJump(t, span) {
     if (!this.footRate || !this.walkExits.length) return;
-    this._footNext = -1;
-    const pc = pacific(t);
-    const r = this.footRate * trafficProfile(pc.minuteOfDay, false, SHOPPING) * this.trafficScale / 3600 * Math.min(12, this.walkExits.length) / 12;
-    if (r <= 0) return;
-    let ta = t - span * 1000;
-    for (let g = 0; g < 300; g++) { ta += (-Math.log(1 - u01(hash3(this.seed, 0xf00, Math.floor(ta / 1000))) * 0.999) / r) * 1000; if (ta > t) break; this._spawnWalker(ta, t); }
+    let n = 0;
+    this.foot.backfill(t - span * 1000, t, (tArr, key) => { if (this._spawnWalker(tArr, t, key, true)) n++; return n < JUMP_WALKERS; });
+    this.foot.seek(t);
   }
 
-  _spawnWalker(tArr, now) {
-    const h = hash3(this.seed, 0xbeef, Math.floor(tArr / 100));
+  /** A person on foot entering at an edge at tArr (placed by schedule after a jump); true when they are on the street. */
+  _spawnWalker(tArr, now, key, placed) {
+    const h = key;
     const ex = this.walkExits;
     const from = ex[h % ex.length];
     let toB = null, path = null;
-    if (this.shops.length && u01(hash2(h, 1)) < 0.55) { toB = this.shops[hash2(h, 2) % this.shops.length]; path = this._route('foot', from, toB); }
-    if (!path) { const to = ex[hash2(h, 3) % ex.length]; if (to === from) return; path = this._route('foot', from, to); }
-    if (!path) return;
-    const drv = pickDriver(this.world, this.pop, this.near, h, pacific(tArr).minuteOfDay, { walk: true });
-    if (!drv) return;
+    if (this.shops.length && u01(hash2(h, 1)) < 0.55) { toB = this.shops[hash2(h, 2) % this.shops.length]; path = this._route('foot', from, toB); if (!path) toB = null; }
+    if (!path) { const to = ex[hash2(h, 3) % ex.length]; if (to === from) return false; path = this._route('foot', from, to); }
+    if (!path) return false;
+    const el = placed ? (now - tArr) / 1000 : 0;
+    if (el * WALK_MAX >= path.length + (toB ? 4 * WALK_MAX : 0)) return false;          // through already, whoever it was
+    const drv = this._driverFor(h, tArr, pacific(tArr).minuteOfDay, true);
+    if (!drv) return false;
     const vmax = walkSpeed(drv.member.age, drv.id);
-    const a = this._newAgent({ kind: 'walk', role: 'visitor', id: drv.id, person: -1, path, trip: { path, t0: tArr, vNom: vmax, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur: 4, dur: path.length / vmax + 4 }, age: drv.member.age, vmax, look: personLook(drv.id, drv.member.age) });
+    const a = this._newAgent({ kind: 'walk', role: 'visitor', id: drv.id, person: -1, path, trip: { path, t0: placed ? tArr : now, vNom: vmax, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur: 4, dur: path.length / vmax + 4 }, age: drv.member.age, vmax, look: personLook(drv.id, drv.member.age) });
     a.k = 0; a.d = 0; a.phase = 'route';
     a.sides = new Int8Array(path.steps.length);
-    if ((now - tArr) / 1000 > 0.5 && !this._placeOnSchedule(a, now)) this._finish(a, this.agents.length - 1);
+    if (el > 0.5 && !this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return false; }
+    return true;
   }
 
+  /** Whether buses run at epoch ms t (no owl service in a street view: none from 1:00 to 5:00). */
+  _busesRun(t) { const hr = pacific(t).hour; return hr < 1 || hr >= 5; }
+
+  /**
+   * Departures from each route's first stop up to t: one per headway, from the phase of the route. After a reset
+   * or a jump the departures still on the route are put where their timetable has them; older ones are skipped.
+   */
   _buses(t) {
+    const tt = t / 1000;
     for (const r of this.busRoutes) {
-      const tt = t / 1000;
       const due = Math.floor((tt - r.phase) / r.headway);
-      if (r.k === 0) r.k = due;
+      const first = Math.floor((tt - r.path.length / BUS_V - r.phase) / r.headway);
+      if (r.k === null || r.k < first) r.k = first;
       while (r.k < due) {
+        const dep = (r.phase + (r.k + 1) * r.headway) * 1000;
+        // a bus that finds its first block backed up to the edge pulls in when there is room (or gives the run up)
+        if (this._busesRun(dep) && this._spawnBus(r, dep, t) === 'blocked' && t - dep < 3 * MAX_HOLD) break;
         r.k++;
-        const pc = pacific(t);
-        if (pc.hour >= 1 && pc.hour < 5) continue;   // no owl service in this view
-        this._spawnBus(r, (r.phase + r.k * r.headway) * 1000, t);
-      }
-    }
-    if (this._pendingReturns && this._pendingReturns.length) {
-      const due = this._pendingReturns.filter(x => x.t <= t);
-      if (due.length) {
-        this._pendingReturns = this._pendingReturns.filter(x => x.t > t);
-        for (const x of due) this._spawnVisitorBack(x.a, x.b, t);
       }
     }
   }
 
+  /**
+   * When the first bus after tSec (epoch seconds) reaches stop `sid` by its timetable (departure plus the run to
+   * the stop at BUS_V), in epoch seconds; Infinity when no bus serves the stop.
+   */
+  _nextBusAt(sid, tSec) {
+    const s = this.stops[sid];
+    const r = s ? this.busRoutes[s.route] : null;
+    if (!r) return Infinity;
+    const run = s.at / BUS_V;
+    let k = Math.ceil((tSec - run - r.phase) / r.headway);
+    for (let g = 0; g < 64; g++, k++) {
+      const dep = r.phase + k * r.headway;
+      if (this._busesRun(dep * 1000)) return dep + run;
+    }
+    return Infinity;
+  }
+
+  /**
+   * A bus leaving the route's first stop at tArr. After a reset or a jump it is put where its timetable has it;
+   * while stepping it pulls in at the start of the route when the lane has room ('blocked' otherwise).
+   * @returns {'spawned'|'blocked'|'skip'}
+   */
   _spawnBus(r, tArr, now) {
+    const st0 = r.path.steps[0], E0 = this.net.edges[st0.e];
+    const lane = Math.max(0, lanesIn(E0, st0.dir) - 1), len = 12.2;
+    const placed = this._bulk;
+    if (!placed) {
+      const q = this.queues.get(st0.e * 32 + (st0.dir > 0 ? 0 : 16) + Math.min(lane, 7));
+      if (q && q.length) { const l = q[q.length - 1]; if (this._along(l) - l.len - (st0.dir > 0 ? st0.from : E0.len - st0.from) < len + MIN_GAP + 1) return 'blocked'; }
+    }
     const h = hash3(this.seed, r.from * 31 + r.to, Math.floor(tArr / 1000));
-    const drv = pickDriver(this.world, this.pop, this.near, h, pacific(tArr).minuteOfDay, { job: 'transport' });
-    if (!drv) return;
-    const E0 = this.net.edges[r.path.steps[0].e];
-    const a = this._newAgent({ kind: 'bus', role: 'bus', id: drv.id, person: -1, path: r.path, trip: { path: r.path, t0: tArr, vNom: 7, oIn: false, dIn: false, exitDur: 0, enterDur: 0, dur: r.path.length / 7 }, age: drv.member.age, vmax: 13, len: 12.2, wid: 2.6, color: '#d9b310', route: r, look: personLook(drv.id, drv.member.age), lane: Math.max(0, lanesIn(E0, r.path.steps[0].dir) - 1) });
-    a.k = 0; a.d = 0; a.phase = 'route'; a.v = 8;
+    const drv = pickDriver(this.world, this.pop, this.near, h, pacific(tArr).minuteOfDay, { job: 'transport', exclude: this._busyId });
+    if (!drv) return 'skip';
+    const a = this._newAgent({ kind: 'bus', role: 'bus', id: drv.id, person: -1, path: r.path, trip: { path: r.path, t0: placed ? tArr : now, vNom: BUS_V, oIn: false, dIn: false, exitDur: 0, enterDur: 0, dur: r.path.length / BUS_V }, age: drv.member.age, vmax: 13, len, wid: 2.6, color: '#d9b310', route: r, look: personLook(drv.id, drv.member.age), lane });
+    a.k = 0; a.d = 0; a.phase = 'route'; a.v = placed ? 8 : 6;
     this._nextBusStop(a, true);
-    if ((now - tArr) / 1000 > 0.5) { if (!this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return; } this._nextBusStop(a, true); }
+    if (placed && (now - tArr) / 1000 > 0.5) { if (!this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return 'skip'; } this._nextBusStop(a, true); }
     else this._joinQueue(a);
+    return 'spawned';
   }
 
   _nextBusStop(a, fromStart = false) {
@@ -1423,17 +1759,21 @@ export class StreetSim {
     s.served++;
   }
 
-  _spawnVisitorBack(prev, b, now) {
+  /** A shopper back at their car at tOut drives off toward an exit (placed by schedule when that was before now). */
+  _spawnVisitorBack(prev, b, tOut, now) {
+    const sp = prev.toSpot >= 0 ? this.scene.spots[prev.toSpot] : null;
+    if (sp && this.spotCar[sp.id] === prev.lookH) this.spotCar[sp.id] = -1;
+    if (this.activeIds.has(prev.id)) return;
     const exit = this._throughExitFromB(b, prev.uid);
     if (exit < 0) return;
     const path = this.router.pathTo('car', { e: b.access.e, s: b.access.s }, exit);
     if (!path) return;
-    const a = this._newAgent({ kind: 'car', role: 'visitor', id: prev.id, person: -1, path, trip: { path, t0: now, vNom: 10, oIn: true, dIn: false, fromB: b, exitDur: 7, enterDur: 0, dur: path.length / 10 + 7 }, age: prev.age, vmax: prev.vmax, len: prev.len, wid: prev.wid, body: prev.body, color: prev.color, lookH: prev.lookH, look: prev.look });
+    const a = this._newAgent({ kind: 'car', role: 'visitor', id: prev.id, person: -1, path, trip: { path, t0: tOut, vNom: 10, oIn: true, dIn: false, fromB: b, exitDur: 7, enterDur: 0, dur: path.length / 10 + 7 }, age: prev.age, vmax: prev.vmax, len: prev.len, wid: prev.wid, body: prev.body, color: prev.color, lookH: prev.lookH, look: prev.look });
     a.k = 0; a.d = 0;
-    const sp = prev.toSpot >= 0 ? this.scene.spots[prev.toSpot] : null;
-    if (sp) { this.spotCar[sp.id] = -1; a.from = { x: sp.x, y: sp.y, hx: Math.cos(sp.ang), hy: Math.sin(sp.ang) }; a.reverse = false; }
+    if (sp) { a.from = { x: sp.x, y: sp.y, hx: Math.cos(sp.ang), hy: Math.sin(sp.ang) }; a.reverse = false; }
     else a.from = { x: b.access.curbX, y: b.access.curbY, hx: 1, hy: 0 };
     a.phase = 'exit'; a.pu = 0; a.pdur = 7;
+    if ((now - tOut) / 1000 > 0.5 && !this._placeOnSchedule(a, now)) this._finish(a, this.agents.length - 1);
   }
 
   _throughExitFromB(b, h) {
@@ -1629,6 +1969,13 @@ export class StreetSim {
 
 /** Length of a path step. */
 export function stepLen(st) { return Math.abs(st.to - st.from); }
+
+/** True when an agent's route state can be read (its step exists and its position is a number). */
+function agentReadable(a) {
+  if (!a) return false;
+  if (a.phase === 'wander' || a.phase === 'wait') return Number.isFinite(a.x) && Number.isFinite(a.y);
+  return !!(a.path && a.path.steps && a.path.steps[a.k] && Number.isFinite(a.d));
+}
 const smooth = u => u * u * (3 - 2 * u);
 /** Point and heading on a cubic Bezier; `rear` flips the heading (the vehicle moves backward). */
 function cubic(x0, y0, x1, y1, x2, y2, x3, y3, s, rear) {

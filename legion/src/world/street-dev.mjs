@@ -68,7 +68,7 @@ async function main() {
     const summary = await view.open(x, y, { radiusM: q.has('r') ? +q.get('r') : 600 });
     if (!summary) return;
     const z = world.zip(zi);
-    const rows = [['ZIP', `${z.zip} ${z.city}`], ['County', z.countyName], ['Streets', `${summary.style} · ${summary.source}`], ['Street length', summary.streetKm + ' km'], ['Households', summary.households], ['Residents', summary.residents], ['Buildings', summary.buildings], ['Built in', summary.buildMs + ' ms'], ['Year built (median)', z.yb_med], ['Density', Math.round(z.density) + ' / sq mi']];
+    const rows = [['ZIP', `${z.zip} ${z.city}`], ['County', z.countyName], ['Streets', `${summary.style} · ${summary.source}${summary.osm ? ` (OpenStreetMap ${summary.osm})` : ''}`], ['Street length', summary.streetKm + ' km'], ['Households', summary.households], ['Residents', summary.residents], ['Buildings', summary.buildings], ['Built in', summary.buildMs + ' ms'], ['Year built (median)', z.yb_med], ['Density', Math.round(z.density) + ' / sq mi']];
     $('place').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v ?? '—'}</dd>`).join('');
     dev.summary = summary;
     dev.ready = true;

@@ -15,7 +15,7 @@ const ERA_YEARS = [1948, 1971, 1990, 2012];
 const NAME_RE = /^\p{L}[\p{L}'’.\- ]*\p{L}\.?$|^\p{L}$/u;
 const draw = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 const share = (arr, pred) => arr.filter(pred).length / arr.length;
-const namesOf = (str) => String(str || '').split(',').map(s => s.trim().replace(/:[\d.]+$/, '')).filter(Boolean);
+const namesOf = (str) => String(str || '').split(',').map(s => s.trim().replace(/[:*][\d.]+$/, '')).filter(Boolean);
 const generalSet = (sex, era) => new Set(givenPool('other', sex, era, 3).map(x => x.name));
 
 test('every contract heritage key is covered, with nothing extra', () => {

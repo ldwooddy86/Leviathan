@@ -853,11 +853,16 @@ const PARK_WORDS = ['Park', 'Park', 'Playground', 'Commons', 'Green', 'Community
 const SCHOOL_WORDS = ['Elementary School', 'Elementary School', 'Middle School', 'Elementary School', 'High School', 'K-8 School'];
 
 /** A park's name from the namer's pools ("Sycamore Park", "Las Flores Playground"). */
-function parkName(ctx, h) { const base = ctx.namer.street(hash2(h, 0x9a), 'local').split(' ').slice(0, -1).join(' ') || 'Neighborhood'; return `${base} ${PARK_WORDS[h % PARK_WORDS.length]}`; }
+function parkName(ctx, h) { return `${placeStem(ctx, hash2(h, 0x9a), 'Neighborhood')} ${PARK_WORDS[h % PARK_WORDS.length]}`; }
 /** A school's name from the namer's pools ("Laurel Elementary School"). */
-function schoolName(ctx, h) { const base = ctx.namer.street(hash2(h, 0x5c), 'local').split(' ').slice(0, -1).join(' ') || 'Valley'; return `${base} ${SCHOOL_WORDS[h % SCHOOL_WORDS.length]}`; }
-function centerName(ctx, h) { const base = ctx.namer.street(hash2(h, 0xce), 'collector').split(' ').slice(0, -1).join(' ') || 'Village'; return `${base} ${['Plaza', 'Village Center', 'Marketplace', 'Shopping Center', 'Square'][h % 5]}`; }
-function aptName(ctx, h) { const base = ctx.namer.street(hash2(h, 0xa7), 'local').split(' ').slice(0, -1).join(' ') || 'Park'; return `${base} ${['Apartments', 'Apartment Homes', 'Villas', 'Court', 'Commons'][h % 5]}`; }
-function mhName(ctx, h) { const base = ctx.namer.street(hash2(h, 0x3f), 'local').split(' ').slice(0, -1).join(' ') || 'Valley'; return `${base} ${['Mobile Estates', 'Mobile Home Park', 'Village', 'Manufactured Home Community'][h % 4]}`; }
+function schoolName(ctx, h) { return `${placeStem(ctx, hash2(h, 0x5c), 'Valley')} ${SCHOOL_WORDS[h % SCHOOL_WORDS.length]}`; }
+/** A shopping center's name ("Valencia Plaza"). */
+function centerName(ctx, h) { return `${placeStem(ctx, hash2(h, 0xce), 'Village')} ${['Plaza', 'Village Center', 'Marketplace', 'Shopping Center', 'Square'][h % 5]}`; }
+/** An apartment complex's name ("Silverbrook Apartments"). */
+function aptName(ctx, h) { return `${placeStem(ctx, hash2(h, 0xa7), 'Park')} ${['Apartments', 'Apartment Homes', 'Villas', 'Court', 'Commons'][h % 5]}`; }
+/** A mobile-home park's name ("Oak Knoll Mobile Estates"). */
+function mhName(ctx, h) { return `${placeStem(ctx, hash2(h, 0x3f), 'Valley')} ${['Mobile Estates', 'Mobile Home Park', 'Village', 'Manufactured Home Community'][h % 4]}`; }
+/** The stem of a place's name from the namer (no street suffix to strip), or a plain word without one. */
+function placeStem(ctx, h, fallback) { return (ctx.namer && ctx.namer.place(h)) || fallback; }
 
 export { parkName, schoolName };

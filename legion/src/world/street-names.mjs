@@ -27,6 +27,18 @@ const SPANISH = ['Alameda', 'Alvarado', 'Valencia', 'Guerrero', 'Dolores', 'Hida
 const SPANISH_SHORT = ['Lucia', 'Sonora', 'Verde', 'Del Sol', 'Lido', 'Serena', 'Marina', 'Paloma', 'Aurora', 'Brisa',
   'Cielo', 'Estrella', 'Luna', 'Rosa', 'Alegre', 'Bonita', 'Hermosa', 'Montaña', 'Oro', 'Plata', 'Pradera', 'Sombra',
   'Tierra', 'Ventana', 'Linda', 'Amapola', 'Azul', 'Corta', 'Larga', 'Vista', 'Fresca', 'Esperanza', 'Gaviota', 'Cresta'];
+/**
+ * The adjectives of SPANISH_SHORT in their masculine forms. Calle and Via are feminine (Calle Serena, Via
+ * Bonita), Camino and Paseo masculine, so an adjective after them agrees: Camino Corto, Paseo Hermoso. Nouns in
+ * apposition (Camino Estrella, Paseo Luna) and adjectives with one form (Verde, Alegre, Azul) stay as they are.
+ */
+const SPANISH_MASC = { Serena: 'Sereno', Bonita: 'Bonito', Hermosa: 'Hermoso', Linda: 'Lindo', Corta: 'Corto', Larga: 'Largo', Fresca: 'Fresco' };
+const MASCULINE_PREFIX = new Set(['Camino', 'Paseo']);
+
+/** A Spanish-style street name: a prefix (Calle, Via, Camino, Paseo) and a word that agrees with it. */
+export function spanishStreet(prefix, word) {
+  return `${prefix} ${MASCULINE_PREFIX.has(prefix) && SPANISH_MASC[word] ? SPANISH_MASC[word] : word}`;
+}
 const PEOPLE = ['Lincoln', 'Washington', 'Jefferson', 'Madison', 'Franklin', 'Grant', 'Jackson', 'Monroe', 'Adams',
   'Harrison', 'Garfield', 'Cleveland', 'McKinley', 'Roosevelt', 'Wilson', 'Taft', 'Hamilton', 'Webster', 'Fremont',
   'Sutter', 'Muir', 'Stanford', 'Bancroft', 'Burbank', 'Huntington', 'Mason', 'Taylor', 'Powell', 'Hyde', 'Polk',
@@ -146,11 +158,16 @@ export function createNamer(world, zi, style) {
     street(h, cls, shape = 'street') {
       return fresh(g => {
         g = hash2(seed, g);
-        if (south && style === 'curvi' && (g % 5) === 0 && cls !== 'arterial') return `${pick(['Calle', 'Via', 'Camino', 'Paseo'], g >>> 4)} ${pick(SPANISH_SHORT, g >>> 9)}`;
-        if (style === 'curvi' && cls !== 'arterial' && (g % 7) === 3) return `${pick(['Via', 'Calle'], g >>> 3)} ${pick(SPANISH_SHORT, g >>> 11)}`;
+        if (south && style === 'curvi' && (g % 5) === 0 && cls !== 'arterial') return spanishStreet(pick(['Calle', 'Via', 'Camino', 'Paseo'], g >>> 4), pick(SPANISH_SHORT, g >>> 9));
+        if (style === 'curvi' && cls !== 'arterial' && (g % 7) === 3) return spanishStreet(pick(['Via', 'Calle'], g >>> 3), pick(SPANISH_SHORT, g >>> 11));
         return `${plainName(g)} ${suffixFor(cls, g >>> 2, shape)}`;
       }, h);
     },
+    /**
+     * The stem of a place's name (a park, a school, a shopping center, an apartment complex): a name from the
+     * place's pools with no street suffix to strip ("Sycamore", "Las Flores", "San Miguel", "Silverbrook").
+     */
+    place(h) { return plainName(hash2(seed, (h ^ 0x9e3779b9) >>> 0)); },
     /** A rural road: county numbers in the valley ("Road 24"), named roads elsewhere. */
     rural(h, axis = null, index = 0) {
       if (valley && axis) return axis === 'u' ? `Road ${Math.abs(index * 2 + (seed % 40) + 10)}` : `Avenue ${Math.abs(index * 2 + ((seed >>> 6) % 40) + 8)}`;

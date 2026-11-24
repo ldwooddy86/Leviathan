@@ -452,9 +452,9 @@ export function markExits(net) {
 
 /**
  * Intersection control from the classes meeting at each node: signals where two arterial-class roads cross
- * (or by chance where a collector crosses one), two-way stops where a minor road meets a major one, all-way
- * stops among equals in grids, free flow at bends and dead ends. Signal approaches are split into two phase
- * groups by heading.
+ * and where a collector crosses an arterial that runs on through the corner (by chance where a collector
+ * only tees into one), two-way stops where a minor road meets a major one, all-way stops among equals in
+ * grids, free flow at bends and dead ends. Signal approaches are split into two phase groups by heading.
  */
 export function assignControl(net, { seed = 7, allWayShare = 0.65 } = {}) {
   for (const n of net.nodes) {
@@ -478,9 +478,13 @@ export function assignControl(net, { seed = 7, allWayShare = 0.65 } = {}) {
     const crossRanks = heads.filter(o => !through.has(o)).map(o => o.x.E.rank);
     const crossTop = crossRanks.length ? Math.max(...crossRanks) : 0;
     const rural = inc.some(x => x.E.cls === 'rural' || x.E.cls === 'lane');
+    // a collector crossing (not just meeting) an arterial that continues on both sides: a side street with a
+    // stop sign cannot get across six lanes of rush-hour traffic, which is why such corners carry signals
+    const arterialThrough = !!partner && partner.x.E.rank >= 6 && lead.x.E.rank >= 6;
+    const crossing = inc.length >= 4 && crossRanks.filter(r => r === 5).length >= 2;
     let kind;
     if (crossTop >= 6 && top >= 6 && !rural) kind = 'signal';                       // two arterial-class roads cross
-    else if (top >= 6 && crossTop === 5 && !rural && hf(h, 1) < 0.55) kind = 'signal'; // arterial and collector
+    else if (top >= 6 && crossTop === 5 && !rural && ((arterialThrough && crossing) || hf(h, 1) < 0.55)) kind = 'signal'; // arterial and collector
     else if (top === 5 && crossTop === 5 && !rural && inc.length >= 4 && hf(h, 2) < 0.3) kind = 'signal';
     else if (top > crossTop || inc.length === 3) kind = 'twoway';                     // minor road stops for the through road
     else kind = hf(h, 3) < allWayShare ? 'allway' : 'twoway';                          // equals: four-way stop or two-way
@@ -654,7 +658,7 @@ export class Router {
     }
     if (startStep[n]) steps.push(startStep[n]);
     steps.reverse();
-    return finishPath(steps, best);
+    return finishPath(net, steps, best);
   }
 
   /**
@@ -714,7 +718,7 @@ export class Router {
       steps.push({ e, dir: d, from: d > 0 ? 0 : E.len, to: d > 0 ? E.len : 0 });
       n = d > 0 ? E.b : E.a;
     }
-    return finishPath(steps, bc);
+    return finishPath(net, steps, bc);
   }
 
   /** The path from a node to a place, read off a forward search (A*), for arrivals from an exit. */
@@ -722,11 +726,27 @@ export class Router {
 }
 
 const N_GUARD = 1e6;
+/** Partial steps (the first or last piece of an edge, to or from a place mid-street) shorter than this are dropped. */
+const MIN_PARTIAL = 0.5;
 
-function finishPath(steps, cost) {
+/**
+ * Tidy a path's steps: a partial step after the first that is shorter than MIN_PARTIAL (a destination a few
+ * centimeters past an intersection, a zero-length step at a dead end) is dropped, so every later step moves the
+ * traveler. Whole edges are always kept, which keeps the path contiguous; the first step is kept because it
+ * says which street the trip starts on.
+ */
+function finishPath(net, steps, cost) {
   let length = 0;
   const clean = [];
-  for (const s of steps) { const L = Math.abs(s.to - s.from); if (L < 1e-6 && clean.length) continue; length += L; clean.push(s); }
+  for (const s of steps) {
+    const L = Math.abs(s.to - s.from);
+    if (clean.length && L < MIN_PARTIAL) {
+      const E = net.edges[s.e];
+      const whole = E && Math.abs(L - E.len) < 1e-9;
+      if (!whole) continue;
+    }
+    length += L; clean.push(s);
+  }
   return { steps: clean, cost, length };
 }
 

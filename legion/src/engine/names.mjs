@@ -2,11 +2,13 @@
 // generation in the US.
 //
 // Every name is a synthetic combination drawn from common-name pools; no record of a real person is used,
-// surnames that point to a single famous family are left out of the pools, and full names that would point
-// to a famous person are refused when the surname is known (isReservedName). Pools are ranked by popularity
-// and drawn on a Zipf-like curve (or explicit weights where frequencies are well known, e.g. Nguyen), so
-// common names are common and rare names are rare. Nothing here reads the clock or Math.random: every draw
-// comes from the Rng passed in, so the same NPC always gets the same name.
+// surnames that point to a single famous family are left out of the pools, full names that would point to a
+// famous person (or make a stock joke name) are refused when the surname is known (isReservedName), and no
+// pool holds a word that reads as a slur in American English (BLOCKED_NAMES). Pools are ranked by popularity
+// and drawn on a Zipf-like curve, flatter where a culture's names are diverse and for later birth cohorts,
+// with explicit weights where frequencies are well known (Nguyen, José, María), so common names are common
+// and rare names are rare. Nothing here reads the clock or Math.random: every draw comes from the Rng passed
+// in, so the same NPC always gets the same name.
 //
 // How a given name is chosen (givenName):
 //   * the birth cohort picks the era list (e1 born before 1960, e2 1960-1979, e3 1980-1999, e4 2000 and
@@ -69,27 +71,27 @@ GIVEN.general = {
 
 GIVEN.mexican = {
   M: [
-    'José,Juan,Jesús,Manuel,Francisco,Antonio,Pedro,Miguel,Rafael,Ramón,Luis,Javier,Salvador,Guadalupe,Alfredo,Roberto,Carlos,Jorge,Raúl,Armando,Ricardo,Ignacio,Enrique,Felipe,Alberto,Fernando,Arturo,Rubén,Ernesto,Mario,Sergio,Héctor,Andrés,Martín,Gilberto,Alejandro,Agustín,Rodolfo,Ramiro,Rogelio,Margarito,Refugio,Gabriel,Víctor,Joaquín,Ezequiel,Benjamín,Eduardo,Humberto,Tomás,Abel,Isidro,Esteban,Gregorio,Silvestre,Florentino,Anselmo',
-    'José,Juan,Jesús,Francisco,Miguel,Luis,Antonio,Javier,Jorge,Manuel,Carlos,Alejandro,Martín,Ricardo,Pedro,Raúl,Roberto,Sergio,Fernando,Rafael,Arturo,Mario,Eduardo,Óscar,Víctor,Salvador,Ramón,Armando,Alfredo,Enrique,Héctor,Rubén,Gerardo,Jaime,Gustavo,Daniel,Alberto,Guillermo,Rogelio,Ignacio,Adrián,Gabriel,Efraín,Ernesto,Hugo,Leonel,Omar,Rodolfo,Felipe,Abel,Joel,Israel,Moisés,César,Teodoro,Rigoberto',
-    'José,Juan,Luis,Jesús,Miguel,Carlos,Francisco,Jorge,Alejandro,Antonio,Daniel,Eduardo,Óscar,Ricardo,Fernando,Javier,Martín,Omar,Víctor,Mario,Raúl,Adrián,Sergio,Manuel,Rafael,Pedro,Erik,Iván,Edgar,Gerardo,Armando,Cristian,Alberto,Rubén,Roberto,Hugo,Julio,Arturo,Israel,Gabriel,Diego,Jonathan,Uriel,Ulises,Alan,Abraham,Enrique,Saúl,Héctor,Ángel,Marco,Rigoberto,Josué,Rodrigo',
+    'José*2.5,Juan,Jesús,Manuel,Francisco,Antonio,Pedro,Miguel,Rafael,Ramón,Luis,Javier,Salvador,Guadalupe,Alfredo,Roberto,Carlos,Jorge,Raúl,Armando,Ricardo,Ignacio,Enrique,Felipe,Alberto,Fernando,Arturo,Rubén,Ernesto,Mario,Sergio,Héctor,Andrés,Martín,Gilberto,Alejandro,Agustín,Rodolfo,Ramiro,Rogelio,Margarito,Refugio,Gabriel,Víctor,Joaquín,Ezequiel,Benjamín,Eduardo,Humberto,Tomás,Abel,Isidro,Esteban,Gregorio,Silvestre,Florentino,Anselmo',
+    'José*2.5,Juan,Jesús,Francisco,Miguel,Luis,Antonio,Javier,Jorge,Manuel,Carlos,Alejandro,Martín,Ricardo,Pedro,Raúl,Roberto,Sergio,Fernando,Rafael,Arturo,Mario,Eduardo,Óscar,Víctor,Salvador,Ramón,Armando,Alfredo,Enrique,Héctor,Rubén,Gerardo,Jaime,Gustavo,Daniel,Alberto,Guillermo,Rogelio,Ignacio,Adrián,Gabriel,Efraín,Ernesto,Hugo,Leonel,Omar,Rodolfo,Felipe,Abel,Joel,Israel,Moisés,César,Teodoro,Rigoberto',
+    'José*1.8,Juan,Luis,Jesús,Miguel,Carlos,Francisco,Jorge,Alejandro,Antonio,Daniel,Eduardo,Óscar,Ricardo,Fernando,Javier,Martín,Omar,Víctor,Mario,Raúl,Adrián,Sergio,Manuel,Rafael,Pedro,Erik,Iván,Edgar,Gerardo,Armando,Cristian,Alberto,Rubén,Roberto,Hugo,Julio,Arturo,Israel,Gabriel,Diego,Jonathan,Uriel,Ulises,Alan,Abraham,Enrique,Saúl,Héctor,Ángel,Marco,Rigoberto,Josué,Rodrigo',
     'José,Ángel,Luis,Juan,Diego,Miguel,Carlos,Jesús,Jorge,Alejandro,Daniel,Santiago,Leonardo,Emiliano,Mateo,Sebastián,Matías,Iker,Kevin,Brayan,Alexis,Christopher,Jonathan,Adrián,Emmanuel,Fernando,Eduardo,Francisco,Ricardo,Iván,Ian,Gael,Axel,Uriel,Erick,Óscar,Alan,Javier,Antonio,Rodrigo,Andrés,Isaac,Josué,Joel,David,Héctor,Aarón,Yahir,Dylan,Maximiliano',
   ],
   F: [
-    'María,Guadalupe,Juana,Rosa,Josefina,Margarita,Carmen,Teresa,Elena,Martha,Ana,Francisca,Antonia,Socorro,Dolores,Esperanza,Gloria,Alicia,Irma,Isabel,Lucía,Graciela,Leticia,Raquel,Consuelo,Silvia,Estela,Angelina,Rafaela,Concepción,Rosario,Victoria,Elvira,Delia,Celia,Amparo,Ofelia,Natividad,Catalina,Esther,Petra,Herminia,Aurora,Eva,Beatriz,Hortensia,Imelda,Yolanda,Bertha,Lidia,Oralia,Ramona,Refugio,Trinidad',
-    'María,Guadalupe,Rosa,Patricia,Leticia,Verónica,Martha,Silvia,Yolanda,Elizabeth,Gabriela,Laura,Adriana,Claudia,Alejandra,Ana,Teresa,Araceli,Margarita,Lourdes,Juana,Norma,Elena,Sandra,Irma,Carmen,Beatriz,Lorena,Alicia,Sonia,Maribel,Rocío,Graciela,Mónica,Gloria,Isabel,Angélica,Josefina,Esperanza,Blanca,Raquel,Cecilia,Susana,Liliana,Marisela,Olga,Reyna,Rosalba,Socorro,Eva,Bertha,Lucía,Hilda',
-    'María,Guadalupe,Ana,Verónica,Adriana,Alejandra,Gabriela,Claudia,Elizabeth,Erika,Karina,Diana,Jessica,Mónica,Leticia,Laura,Rosa,Sandra,Brenda,Araceli,Yesenia,Yolanda,Patricia,Maribel,Liliana,Vanessa,Lorena,Marisol,Griselda,Rocío,Lizbeth,Nancy,Beatriz,Daniela,Paola,Fabiola,Karla,Cecilia,Angélica,Wendy,Elena,Silvia,Andrea,Martha,Esmeralda,Alma,Lucía,Itzel,Viridiana,Elvia,Janet,Maricela',
+    'María*3.5,Guadalupe,Juana,Rosa,Josefina,Margarita,Carmen,Teresa,Elena,Martha,Ana,Francisca,Antonia,Socorro,Dolores,Esperanza,Gloria,Alicia,Irma,Isabel,Lucía,Graciela,Leticia,Raquel,Consuelo,Silvia,Estela,Angelina,Rafaela,Concepción,Rosario,Victoria,Elvira,Delia,Celia,Amparo,Ofelia,Natividad,Catalina,Esther,Petra,Herminia,Aurora,Eva,Beatriz,Hortensia,Imelda,Yolanda,Bertha,Lidia,Oralia,Ramona,Refugio,Trinidad',
+    'María*3,Guadalupe,Rosa,Patricia,Leticia,Verónica,Martha,Silvia,Yolanda,Elizabeth,Gabriela,Laura,Adriana,Claudia,Alejandra,Ana,Teresa,Araceli,Margarita,Lourdes,Juana,Norma,Elena,Sandra,Irma,Carmen,Beatriz,Lorena,Alicia,Sonia,Maribel,Rocío,Graciela,Mónica,Gloria,Isabel,Angélica,Josefina,Esperanza,Blanca,Raquel,Cecilia,Susana,Liliana,Marisela,Olga,Reyna,Rosalba,Socorro,Eva,Bertha,Lucía,Hilda',
+    'María*2,Guadalupe,Ana,Verónica,Adriana,Alejandra,Gabriela,Claudia,Elizabeth,Erika,Karina,Diana,Jessica,Mónica,Leticia,Laura,Rosa,Sandra,Brenda,Araceli,Yesenia,Yolanda,Patricia,Maribel,Liliana,Vanessa,Lorena,Marisol,Griselda,Rocío,Lizbeth,Nancy,Beatriz,Daniela,Paola,Fabiola,Karla,Cecilia,Angélica,Wendy,Elena,Silvia,Andrea,Martha,Esmeralda,Alma,Lucía,Itzel,Viridiana,Elvia,Janet,Maricela',
     'Sofía,Valentina,Camila,Ximena,Regina,Fernanda,Daniela,Valeria,Mariana,Guadalupe,Andrea,Natalia,Renata,Victoria,Isabella,Paola,Dulce,Jimena,Ana,Lucía,Melanie,Yaretzi,Abril,Alejandra,Itzel,Kimberly,Michelle,Leslie,Brenda,Karla,Diana,Montserrat,Alexa,Danna,Ashley,Arely,Gabriela,Joselyn,Nayeli,Citlali,Fátima,Estrella,Evelyn,Lizeth,Yamileth,María',
   ],
   us: {
     M: [
-      'Jose,Robert,Frank,Manuel,Richard,Joe,Raymond,Ernest,Rudy,Arthur,Henry,Gilbert,Ruben,Johnny,Tony,Daniel,Albert,Alfred,Louis,Edward,Ralph,Jesse,Armando,Ramon,Pete,Gabriel,Alex,Rudolph,Lawrence,Carlos,Fernando,Juan',
-      'Jose,David,Michael,Robert,Daniel,Richard,Juan,Frank,Steven,Anthony,Joe,Raymond,Ruben,Arthur,Carlos,Edward,Gilbert,Mario,Ricardo,Ernest,Gabriel,Albert,Fernando,Sergio,Victor,Jesse,Manuel,Rudy,Martin,Hector,Johnny,Eddie,Gerardo,Armando,Javier,Rene,Henry,Roberto,Rafael',
+      'Jose,Robert,Frank,Manuel,Richard,Joe,Raymond,Ernest,Rudy,Arthur,Henry,Gilbert,Ruben,Johnny,Tony,Daniel,Albert,Alfred,Louis,Edward,Ralph,Jesse,Armando,Ramon,Pete,Gabriel,Alex,Rudolph,Lawrence,Carlos,Fernando,Juan,Ray,Eddie,Paul,Mike,David,Joseph,Ernie,Victor',
+      'Jose,David,Michael,Robert,Daniel,Richard,Juan,Frank,Steven,Anthony,Joe,Raymond,Ruben,Arthur,Carlos,Edward,Gilbert,Mario,Ricardo,Ernest,Gabriel,Albert,Fernando,Sergio,Victor,Jesse,Manuel,Rudy,Martin,Hector,Johnny,Eddie,Gerardo,Armando,Javier,Rene,Henry,Roberto,Rafael,Joseph,Paul',
       'Daniel,Jose,Anthony,Christopher,David,Michael,Jonathan,Luis,Juan,Carlos,Adrian,Jesus,Andrew,Kevin,Eric,Joseph,Brian,Steven,Victor,Miguel,Richard,Alexander,Gabriel,Oscar,Edgar,Mario,Ricardo,Fernando,Sergio,Eduardo,Francisco,Javier,Ruben,Angel,Erik,Alex,Raul,Cesar,Manuel,Omar,Alejandro,Isaac,Marco,Ivan',
       'Mateo,Santiago,Sebastian,Daniel,Diego,Angel,Adrian,Julian,Jayden,Anthony,Leonardo,Gael,Emiliano,Gabriel,Isaac,Elijah,Ethan,Joshua,Christopher,Jesus,Jose,Luis,Ivan,Adriel,Aaron,Josiah,Liam,Noah,Alexander,Nathan,Jacob,Damian,Andres,Matias,Axel,Isaiah,Eduardo,Joel,Christian,Bryan',
     ],
     F: [
-      'Maria,Mary,Rose,Dolores,Gloria,Josephine,Carmen,Yolanda,Esther,Irene,Teresa,Elena,Alice,Helen,Lucy,Virginia,Linda,Rosemary,Sylvia,Martha,Stella,Frances,Delia,Angie,Eva,Lydia,Ruth,Anita,Olivia,Victoria,Christine,Bertha,Ramona,Lupe',
-      'Maria,Patricia,Yolanda,Elizabeth,Rosa,Martha,Linda,Veronica,Sandra,Laura,Lisa,Teresa,Diana,Gloria,Irma,Monica,Cynthia,Elena,Angela,Christina,Michelle,Lorraine,Sylvia,Norma,Leticia,Alicia,Margarita,Gabriela,Lucy,Anna,Carmen,Rachel,Marisa,Adriana,Rosemary,Barbara,Josephine,Celia,Debbie',
+      'Maria,Mary,Rose,Dolores,Gloria,Josephine,Carmen,Yolanda,Esther,Irene,Teresa,Elena,Alice,Helen,Lucy,Virginia,Linda,Rosemary,Sylvia,Martha,Stella,Frances,Delia,Angie,Eva,Lydia,Ruth,Anita,Olivia,Victoria,Christine,Bertha,Ramona,Lupe,Margaret,Anna,Julia,Celia,Connie,Bernice,Esperanza,Lucille',
+      'Maria,Patricia,Yolanda,Elizabeth,Rosa,Martha,Linda,Veronica,Sandra,Laura,Lisa,Teresa,Diana,Gloria,Irma,Monica,Cynthia,Elena,Angela,Christina,Michelle,Lorraine,Sylvia,Norma,Leticia,Alicia,Margarita,Gabriela,Lucy,Anna,Carmen,Rachel,Marisa,Adriana,Rosemary,Barbara,Josephine,Celia,Debbie,Rose,Denise',
       'Jessica,Stephanie,Vanessa,Jennifer,Elizabeth,Maria,Michelle,Ashley,Jasmine,Daniela,Andrea,Monica,Veronica,Diana,Erika,Cynthia,Alejandra,Gabriela,Natalie,Leslie,Karina,Priscilla,Brenda,Yesenia,Melissa,Crystal,Amanda,Alyssa,Marisol,Christina,Bianca,Adriana,Claudia,Jacqueline,Angelica,Desiree,Samantha,Esmeralda,Lizette,Marlene,Yvette,Valerie,Evelyn',
       'Sofia,Valentina,Isabella,Camila,Mia,Emily,Ashley,Natalie,Victoria,Valeria,Daniela,Ximena,Genesis,Melanie,Leah,Jasmine,Kimberly,Alexa,Arianna,Abigail,Mariana,Andrea,Emma,Luna,Elena,Gianna,Aaliyah,Angelina,Isabel,Lucia,Esmeralda,Nayeli,Jocelyn,Giselle,Jazmin,Brianna,Adriana,Penelope,Scarlett,Aylin,Renata,Amaya,Itzel,Dulce',
     ],
@@ -100,16 +102,16 @@ GIVEN.mexican = {
 // names popular there since the 1960s (William, Nelson, Edwin, Wilmer, Jefferson, Kimberly, Génesis).
 GIVEN.centralam = {
   M: [
-    'José,Juan,Carlos,Luis,Francisco,Manuel,Jorge,Mario,Pedro,Miguel,Rafael,Antonio,Ricardo,Julio,Roberto,Ramón,Raúl,Rigoberto,Salvador,Santos,Félix,Ernesto,Alfredo,Óscar,Rolando,Armando,Guillermo,René,Hugo,Arnoldo,Gilberto,Saúl,Tomás,Domingo,Marcos,Alberto,Héctor,Víctor,Enrique,Rodolfo,Leonel,Eusebio,Abelino',
-    'José,Carlos,Juan,Luis,Mario,Jorge,Óscar,Miguel,William,Wilfredo,Nelson,Edwin,Mauricio,Francisco,Ricardo,Julio,René,Douglas,Rolando,Walter,Roberto,Manuel,Víctor,Danilo,Elmer,Hugo,Ernesto,Rafael,Milton,Fredy,Marvin,Wilber,Rigoberto,Herbert,Armando,Santos,Salvador,Alexander,Henry,Héctor,Gustavo,Alfredo,Erasmo',
-    'José,Carlos,Juan,Luis,Kevin,Jonathan,Edwin,Christian,Erick,Josué,Bryan,Jorge,Óscar,Miguel,Wilmer,Elmer,Nelson,Marvin,Henry,Jefferson,Alexander,Wilson,Walter,Selvin,Byron,Mauricio,Francisco,Ronald,Brayan,Eduardo,Denis,Alex,Darwin,Ever,Wilber,Geovanny,Melvin,Danilo,Douglas,Kelvin,Anderson,Yovani',
+    'José*2.5,Juan,Carlos,Luis,Francisco,Manuel,Jorge,Mario,Pedro,Miguel,Rafael,Antonio,Ricardo,Julio,Roberto,Ramón,Raúl,Rigoberto,Salvador,Santos,Félix,Ernesto,Alfredo,Óscar,Rolando,Armando,Guillermo,René,Hugo,Arnoldo,Gilberto,Saúl,Tomás,Domingo,Marcos,Alberto,Héctor,Víctor,Enrique,Rodolfo,Leonel,Eusebio,Abelino',
+    'José*2,Carlos,Juan,Luis,Mario,Jorge,Óscar,Miguel,William,Wilfredo,Nelson,Edwin,Mauricio,Francisco,Ricardo,Julio,René,Douglas,Rolando,Walter,Roberto,Manuel,Víctor,Danilo,Elmer,Hugo,Ernesto,Rafael,Milton,Fredy,Marvin,Wilber,Rigoberto,Herbert,Armando,Santos,Salvador,Alexander,Henry,Héctor,Gustavo,Alfredo,Erasmo',
+    'José*1.5,Carlos,Juan,Luis,Kevin,Jonathan,Edwin,Christian,Erick,Josué,Bryan,Jorge,Óscar,Miguel,Wilmer,Elmer,Nelson,Marvin,Henry,Jefferson,Alexander,Wilson,Walter,Selvin,Byron,Mauricio,Francisco,Ronald,Brayan,Eduardo,Denis,Alex,Darwin,Ever,Wilber,Geovanny,Melvin,Danilo,Douglas,Kelvin,Anderson,Yovani',
     'José,Ángel,Kevin,Jonathan,Brayan,Christopher,Josué,Carlos,Luis,Jefferson,Anthony,Dylan,Joshua,Steven,Alexander,Justin,Erick,Jairo,Mateo,Santiago,Daniel,Jason,Bryan,Elmer,Wilmer,Cristian,Diego,Jordy,Ismael,Adonay,Gerson,Óscar,Juan,Miguel,Emanuel,Isaac,Fernando,Héctor,Eduardo,Samuel',
   ],
   F: [
-    'María,Ana,Rosa,Carmen,Marta,Gloria,Blanca,Teresa,Juana,Concepción,Dolores,Mercedes,Amanda,Reina,Morena,Sonia,Elsa,Isabel,Margarita,Silvia,Alicia,Lucía,Julia,Victoria,Esperanza,Graciela,Elena,Paula,Olga,Antonia,Francisca,Dora,Haydée,Socorro,Adela,Celia,Hilda,Aminta,Zoila,Esther,Bertila',
-    'María,Ana,Rosa,Sandra,Sonia,Blanca,Patricia,Claudia,Gladys,Morena,Reina,Delmy,Iris,Marlene,Roxana,Xiomara,Carmen,Silvia,Marta,Glenda,Evelyn,Ingrid,Lorena,Elizabeth,Verónica,Karla,Ruth,Marina,Lilian,Dinora,Norma,Telma,Yolanda,Wendy,Mirna,Brenda,Maritza,Zulma,Lidia,Elsa,Aracely,Vilma',
-    'Ana,María,Karla,Jessica,Katherine,Wendy,Yesenia,Evelyn,Johana,Jennifer,Lesly,Glenda,Iris,Brenda,Kenia,Carolina,Diana,Ingrid,Mayra,Cindy,Paola,Stephanie,Gabriela,Yanira,Marleny,Heidy,Dayana,Ashley,Andrea,Fátima,Nancy,Daniela,Sandra,Lucía,Alejandra,Melissa,Elsy,Sindy,Yeimy,Marisol',
-    'Ashley,Génesis,Dayana,Kimberly,Nicole,Michelle,Valeria,Sofía,Allison,Fernanda,Emily,Camila,Katherine,Daniela,Melany,Joselyn,Yaritza,Jennifer,Andrea,Lesly,Britany,Ángela,Valentina,María,Ana,Hellen,Dariana,Abigail,Naomi,Esther,Keyla,Yareli,Mía,Nathaly,Alison,Sarai,Jimena,Paola,Danna',
+    'María*3,Ana,Rosa,Carmen,Marta,Gloria,Blanca,Teresa,Juana,Concepción,Dolores,Mercedes,Amanda,Reina,Morena,Sonia,Elsa,Isabel,Margarita,Silvia,Alicia,Lucía,Julia,Victoria,Esperanza,Graciela,Elena,Paula,Olga,Antonia,Francisca,Dora,Haydée,Socorro,Adela,Celia,Hilda,Aminta,Zoila,Esther,Bertila',
+    'María*2.5,Ana,Rosa,Sandra,Sonia,Blanca,Patricia,Claudia,Gladys,Morena,Reina,Delmy,Iris,Marlene,Roxana,Xiomara,Carmen,Silvia,Marta,Glenda,Evelyn,Ingrid,Lorena,Elizabeth,Verónica,Karla,Ruth,Marina,Lilian,Dinora,Norma,Telma,Yolanda,Wendy,Mirna,Brenda,Maritza,Zulma,Lidia,Elsa,Aracely,Vilma',
+    'Ana,María*1.6,Karla,Jessica,Katherine,Wendy,Yesenia,Evelyn,Johana,Jennifer,Lesly,Glenda,Iris,Brenda,Kenia,Carolina,Diana,Ingrid,Mayra,Cindy,Paola,Stephanie,Gabriela,Yanira,Marleny,Heidy,Dayana,Ashley,Andrea,Fátima,Nancy,Daniela,Sandra,Lucía,Alejandra,Melissa,Elsy,Sindy,Yeimy,Marisol',
+    'Ashley,Génesis,Dayana,Kimberly,Nicole,Michelle,Valeria,Sofía,Allison,Fernanda,Emily,Camila,Katherine,Daniela,Melany,Joselyn,Yaritza,Jennifer,Andrea,Lesly,Britany,Ángela,Valentina,María,Ana,Hellen,Dariana,Abigail,Naomi,Esther,Keyla,Yareli,Mía,Nathaly,Alison,Sarai,Jimena,Paola,Danna,Yoselin,Wendy',
   ],
 };
 
@@ -117,15 +119,15 @@ GIVEN.centralam = {
 // (Cuba's Y- names from the 1970s on, Dominican Altagracia and Yokasta, Puerto Rican Migdalia and Wilfredo).
 GIVEN.caribhisp = {
   M: [
-    'José,Luis,Juan,Carlos,Rafael,Manuel,Pedro,Jorge,Ramón,Ángel,Miguel,Antonio,Francisco,Raúl,Roberto,Héctor,Orlando,Armando,Alberto,Julio,Félix,Osvaldo,Rubén,Ernesto,Agustín,Gilberto,Pablo,Arturo,Efraín,Fernando,Mario,Eduardo,Andrés,Guillermo,Rolando,Wilfredo,Israel,Víctor,Domingo,Radamés',
-    'José,Luis,Carlos,Juan,Jorge,Miguel,Ángel,Rafael,Héctor,Edwin,Wilfredo,Pedro,Ramón,Manuel,Francisco,Roberto,Orlando,Alexis,Raúl,Freddy,Alberto,Ricardo,Eduardo,Nelson,Wilson,Julio,Osvaldo,Reinaldo,Félix,Rubén,Fernando,Ernesto,Rolando,Alfredo,Víctor,Yoel,Lázaro,Wilfrido,Ariel,Gerardo,Danny',
+    'José*2.5,Luis,Juan,Carlos,Rafael,Manuel,Pedro,Jorge,Ramón,Ángel,Miguel,Antonio,Francisco,Raúl,Roberto,Héctor,Orlando,Armando,Alberto,Julio,Félix,Osvaldo,Rubén,Ernesto,Agustín,Gilberto,Pablo,Arturo,Efraín,Fernando,Mario,Eduardo,Andrés,Guillermo,Rolando,Wilfredo,Israel,Víctor,Domingo,Radamés',
+    'José*2,Luis,Carlos,Juan,Jorge,Miguel,Ángel,Rafael,Héctor,Edwin,Wilfredo,Pedro,Ramón,Manuel,Francisco,Roberto,Orlando,Alexis,Raúl,Freddy,Alberto,Ricardo,Eduardo,Nelson,Wilson,Julio,Osvaldo,Reinaldo,Félix,Rubén,Fernando,Ernesto,Rolando,Alfredo,Víctor,Yoel,Lázaro,Wilfrido,Ariel,Gerardo,Danny',
     'José,Luis,Carlos,Juan,Jorge,Miguel,Ángel,Yunior,Alexis,Yoel,Yasmani,Yoandry,Reinier,Yordanis,Alexander,Jonathan,Christian,Edwin,Francisco,Rafael,Eddy,Henry,Wilson,Ramón,Héctor,Félix,Pedro,Javier,Ernesto,Jesús,Daniel,Yeison,Starlin,Junior,Osmany,Yuniel,Raúl,David,Manuel,Roberto',
     'José,Luis,Ángel,Carlos,Juan,Jorge,Adrián,Daniel,Diego,Alejandro,Sebastián,Gabriel,Jayden,Kevin,Christopher,Anthony,Justin,Jonathan,Javier,Yandel,Leonel,Erick,Fernando,Mateo,Santiago,Emmanuel,Yadiel,Joel,Samuel,Alexander,Dylan,Isaac,Bryan,Jeremy,Steven,Ian,Liam,Josué,Jesús,Héctor',
   ],
   F: [
-    'María,Carmen,Ana,Rosa,Gloria,Mercedes,Altagracia,Teresa,Josefina,Ramona,Juana,Luz,Caridad,Margarita,Esperanza,Isabel,Milagros,Rosario,Dolores,Lourdes,Gladys,Nilda,Elba,Iris,Mirta,Marta,Zoraida,Hilda,Olga,Ada,Haydée,Lucía,Julia,Celia,Aida,Raquel,Amparo,Silvia,Mercedita,Yolanda',
-    'María,Ana,Carmen,Rosa,Maritza,Migdalia,Marisol,Yolanda,Lourdes,Mayra,Iris,Gladys,Elizabeth,Sandra,Wanda,Ivelisse,Yamilé,Odalys,Mildred,Damaris,Daisy,Nancy,Yanet,Mirna,Mercedes,Teresa,Milagros,Zoraida,Evelyn,Lisette,Ileana,Belkis,Mariela,Arelis,Yudith,Margarita,Raquel,Norma,Gisela,Xiomara,Miriam',
-    'María,Ana,Yanet,Yesenia,Jessica,Yaneisy,Mayelín,Yaimara,Yudelka,Yokasta,Yaniris,Massiel,Johanna,Elizabeth,Melissa,Jennifer,Stephanie,Vanessa,Paola,Karla,Carolina,Kimberly,Yarelis,Darlenys,Arianna,Leidy,Patricia,Claudia,Gabriela,Diana,Yanelis,Mariela,Odalis,Rosanna,Wendy,Liliana,Yaritza,Daisy,Glenda,Lisbeth',
+    'María*3,Carmen,Ana,Rosa,Gloria,Mercedes,Altagracia,Teresa,Josefina,Ramona,Juana,Luz,Caridad,Margarita,Esperanza,Isabel,Milagros,Rosario,Dolores,Lourdes,Gladys,Nilda,Elba,Iris,Mirta,Marta,Zoraida,Hilda,Olga,Ada,Haydée,Lucía,Julia,Celia,Aida,Raquel,Amparo,Silvia,Mercedita,Yolanda',
+    'María*2.5,Ana,Carmen,Rosa,Maritza,Migdalia,Marisol,Yolanda,Lourdes,Mayra,Iris,Gladys,Elizabeth,Sandra,Wanda,Ivelisse,Yamilé,Odalys,Mildred,Damaris,Daisy,Nancy,Yanet,Mirna,Mercedes,Teresa,Milagros,Zoraida,Evelyn,Lisette,Ileana,Belkis,Mariela,Arelis,Yudith,Margarita,Raquel,Norma,Gisela,Xiomara,Miriam',
+    'María*1.5,Ana,Yanet,Yesenia,Jessica,Yaneisy,Mayelín,Yaimara,Yudelka,Yokasta,Yaniris,Massiel,Johanna,Elizabeth,Melissa,Jennifer,Stephanie,Vanessa,Paola,Karla,Carolina,Kimberly,Yarelis,Darlenys,Arianna,Leidy,Patricia,Claudia,Gabriela,Diana,Yanelis,Mariela,Odalis,Rosanna,Wendy,Liliana,Yaritza,Daisy,Glenda,Lisbeth',
     'Génesis,Camila,Valentina,Sofía,Isabella,Mía,Ashley,Emily,Victoria,Valeria,Brianna,Nicole,Alondra,Gabriela,Daniela,Arianna,Natalia,Amanda,Melany,Nathalie,Kiara,Yamilet,Adriana,Leah,Ariana,Angelina,Samantha,Kimberly,Laura,Andrea,Yaretzi,Lía,Zoe,Luna,Mariangel,Esther,Chloe,Lucía,Danna,Elena',
   ],
 };
@@ -133,14 +135,14 @@ GIVEN.caribhisp = {
 // South America (Colombia, Peru, Argentina, Venezuela, Ecuador, Chile, Brazil's Spanish-speaking neighbors).
 GIVEN.southam = {
   M: [
-    'José,Luis,Carlos,Juan,Jorge,Manuel,Héctor,Julio,Alberto,Hernán,Óscar,Mario,Ricardo,Fernando,Eduardo,Raúl,Rodolfo,Gustavo,Alfredo,Enrique,Rafael,Alfonso,Guillermo,Arturo,Hugo,Ernesto,Jaime,Germán,Gonzalo,Fabio,Rubén,Orlando,Rodrigo,Mariano,Nelson,Horacio,Darío,Edgar,Ramiro,Aníbal',
+    'José*2,Luis,Carlos,Juan,Jorge,Manuel,Héctor,Julio,Alberto,Hernán,Óscar,Mario,Ricardo,Fernando,Eduardo,Raúl,Rodolfo,Gustavo,Alfredo,Enrique,Rafael,Alfonso,Guillermo,Arturo,Hugo,Ernesto,Jaime,Germán,Gonzalo,Fabio,Rubén,Orlando,Rodrigo,Mariano,Nelson,Horacio,Darío,Edgar,Ramiro,Aníbal',
     'Carlos,Luis,Juan,José,Jorge,Fernando,Ricardo,Eduardo,Andrés,Javier,Alejandro,Diego,Gustavo,Pablo,Marcelo,Mauricio,Fabián,Gabriel,Óscar,Mario,Sergio,Raúl,Hernán,Martín,Rodrigo,Daniel,William,Wilson,Fredy,Edgar,Gonzalo,Patricio,Claudio,Walter,Jaime,César,Iván,Alberto,Hugo,Julián',
     'Juan,Carlos,Andrés,Luis,Diego,Jorge,Daniel,Sebastián,Alejandro,David,Felipe,Javier,Cristian,Jonathan,Santiago,Nicolás,Camilo,Mauricio,Julián,Gabriel,Fernando,Esteban,Ricardo,Óscar,Pablo,Rodrigo,Gonzalo,Martín,Iván,Miguel,Jhon,Edwin,Héctor,Kevin,Brayan,Wilmer,Leonardo,Facundo,Matías,Lucas',
     'Santiago,Sebastián,Samuel,Matías,Nicolás,Alejandro,Mateo,Emiliano,Tomás,Benjamín,Thiago,Martín,Lucas,Joaquín,Gabriel,Daniel,David,Juan,Diego,Felipe,Agustín,Maximiliano,Emmanuel,Jerónimo,Dylan,Isaac,Bautista,Ian,Ángel,Simón,Valentino,Francisco,Leonardo,Andrés,Luciano,Liam,Gael,Iker,Joshua,Adrián',
   ],
   F: [
-    'María,Ana,Rosa,Carmen,Luz,Gloria,Martha,Blanca,Elena,Beatriz,Graciela,Teresa,Lucía,Cecilia,Mercedes,Alicia,Inés,Silvia,Leonor,Esther,Olga,Isabel,Amparo,Margarita,Dora,Elsa,Nelly,Raquel,Matilde,Aurora,Norma,Irma,Rosario,Celia,Lidia,Haydée,Victoria,Susana,Emilia,Marina',
-    'María,Claudia,Patricia,Sandra,Martha,Gloria,Luz,Adriana,Ana,Carolina,Liliana,Mónica,Andrea,Sonia,Diana,Marcela,Viviana,Gabriela,Paola,Lorena,Natalia,Carmen,Silvia,Rocío,Beatriz,Alejandra,Verónica,Elizabeth,Fabiola,Yolanda,Mariela,Angélica,Nancy,Lucía,Ximena,Pilar,Rosa,Johana,Milena,Rosalba',
+    'María*3,Ana,Rosa,Carmen,Luz,Gloria,Martha,Blanca,Elena,Beatriz,Graciela,Teresa,Lucía,Cecilia,Mercedes,Alicia,Inés,Silvia,Leonor,Esther,Olga,Isabel,Amparo,Margarita,Dora,Elsa,Nelly,Raquel,Matilde,Aurora,Norma,Irma,Rosario,Celia,Lidia,Haydée,Victoria,Susana,Emilia,Marina',
+    'María*2,Claudia,Patricia,Sandra,Martha,Gloria,Luz,Adriana,Ana,Carolina,Liliana,Mónica,Andrea,Sonia,Diana,Marcela,Viviana,Gabriela,Paola,Lorena,Natalia,Carmen,Silvia,Rocío,Beatriz,Alejandra,Verónica,Elizabeth,Fabiola,Yolanda,Mariela,Angélica,Nancy,Lucía,Ximena,Pilar,Rosa,Johana,Milena,Rosalba',
     'Daniela,Andrea,Paola,Natalia,Carolina,María,Ana,Laura,Valentina,Catalina,Juliana,Camila,Diana,Alejandra,Paula,Lina,Gabriela,Melissa,Jessica,Jennifer,Vanessa,Stephanie,Karen,Tatiana,Lorena,Johana,Viviana,Mariana,Fernanda,Florencia,Lucía,Sofía,Yesenia,Leidy,Kelly,Angie,Estefanía,Manuela,Ximena,Milagros',
     'Sofía,Valentina,Isabella,Mariana,Valeria,Luciana,Martina,Camila,Salomé,Sara,Emma,Antonella,Daniela,Gabriela,Victoria,Mía,Catalina,Abigail,Emilia,Juliana,Lucía,Renata,Allison,Zoe,Amanda,Florencia,Agustina,Paulina,Luna,Danna,Elena,Regina,Samantha,Ximena,Fernanda,Delfina,Josefina,Julieta,Alma,Violeta',
   ],
@@ -149,14 +151,14 @@ GIVEN.southam = {
 // Spain-born Californians.
 GIVEN.spain = {
   M: [
-    'José,Antonio,Manuel,Francisco,Juan,Jesús,Miguel,Pedro,Ángel,Rafael,Luis,Fernando,Joaquín,Ramón,Vicente,Enrique,Andrés,Julián,Agustín,Emilio,Tomás,Santiago,Ignacio,Felipe,Alfonso,Gregorio,Eduardo,Alberto,Salvador,Jaime,Pablo,Mariano,Lorenzo,Cristóbal,Domingo,Ricardo,Félix,Benito,Ernesto,Valentín',
-    'José,David,Javier,Antonio,Francisco,Juan,Manuel,Carlos,Jorge,Alberto,Fernando,Luis,Miguel,Sergio,Ángel,Pedro,Jesús,Rafael,Pablo,Óscar,Ignacio,Raúl,Enrique,Vicente,Alfonso,Rubén,Eduardo,Andrés,Joaquín,Jordi,Íñigo,Xavier,Ramón,Gonzalo,Marcos,Emilio,Roberto,Tomás,Ricardo,Félix',
+    'José*2,Antonio*1.6,Manuel,Francisco,Juan,Jesús,Miguel,Pedro,Ángel,Rafael,Luis,Fernando,Joaquín,Ramón,Vicente,Enrique,Andrés,Julián,Agustín,Emilio,Tomás,Santiago,Ignacio,Felipe,Alfonso,Gregorio,Eduardo,Alberto,Salvador,Jaime,Pablo,Mariano,Lorenzo,Cristóbal,Domingo,Ricardo,Félix,Benito,Ernesto,Valentín',
+    'José*1.6,David,Javier,Antonio,Francisco,Juan,Manuel,Carlos,Jorge,Alberto,Fernando,Luis,Miguel,Sergio,Ángel,Pedro,Jesús,Rafael,Pablo,Óscar,Ignacio,Raúl,Enrique,Vicente,Alfonso,Rubén,Eduardo,Andrés,Joaquín,Jordi,Íñigo,Xavier,Ramón,Gonzalo,Marcos,Emilio,Roberto,Tomás,Ricardo,Félix',
     'Alejandro,David,Daniel,Javier,Pablo,Sergio,Carlos,Adrián,Álvaro,Jorge,Rubén,Iván,Mario,Raúl,Diego,Alberto,Manuel,Víctor,Miguel,Antonio,Marcos,Óscar,Fernando,Jesús,Juan,Rafael,Ignacio,Guillermo,Jaime,Gonzalo,Borja,Íñigo,Aitor,Unai,Marc,Pau,Jordi,Hugo,Héctor,Samuel',
     'Hugo,Martín,Lucas,Mateo,Leo,Daniel,Alejandro,Pablo,Manuel,Álvaro,Adrián,David,Mario,Enzo,Diego,Marcos,Izan,Javier,Marco,Álex,Bruno,Oliver,Miguel,Thiago,Antonio,Marc,Carlos,Ángel,Juan,Gonzalo,Gael,Sergio,Nicolás,Dylan,Gabriel,Jorge,Iker,Aitor,Pau,Unai',
   ],
   F: [
-    'María,Carmen,Josefa,Isabel,Dolores,Pilar,Teresa,Ana,Francisca,Antonia,Rosa,Mercedes,Concepción,Encarnación,Manuela,Juana,Ángeles,Rosario,Remedios,Amparo,Asunción,Consuelo,Montserrat,Margarita,Julia,Luisa,Esperanza,Soledad,Victoria,Inmaculada,Lucía,Elena,Josefina,Matilde,Paz,Purificación,Trinidad,Natividad,Emilia,Rafaela',
-    'María,Cristina,Laura,Marta,Elena,Ana,Raquel,Silvia,Pilar,Montserrat,Begoña,Nuria,Susana,Mónica,Isabel,Carmen,Rosa,Beatriz,Patricia,Eva,Sonia,Teresa,Yolanda,Mercedes,Inmaculada,Rocío,Lourdes,Esther,Gloria,Concepción,Ángeles,Marina,Natalia,Victoria,Lucía,Margarita,Amparo,Sara,Belén,Rebeca',
+    'María*3.5,Carmen,Josefa,Isabel,Dolores,Pilar,Teresa,Ana,Francisca,Antonia,Rosa,Mercedes,Concepción,Encarnación,Manuela,Juana,Ángeles,Rosario,Remedios,Amparo,Asunción,Consuelo,Montserrat,Margarita,Julia,Luisa,Esperanza,Soledad,Victoria,Inmaculada,Lucía,Elena,Josefina,Matilde,Paz,Purificación,Trinidad,Natividad,Emilia,Rafaela',
+    'María*3,Cristina,Laura,Marta,Elena,Ana,Raquel,Silvia,Pilar,Montserrat,Begoña,Nuria,Susana,Mónica,Isabel,Carmen,Rosa,Beatriz,Patricia,Eva,Sonia,Teresa,Yolanda,Mercedes,Inmaculada,Rocío,Lourdes,Esther,Gloria,Concepción,Ángeles,Marina,Natalia,Victoria,Lucía,Margarita,Amparo,Sara,Belén,Rebeca',
     'Laura,Lucía,Paula,Andrea,Marta,Sara,Cristina,María,Irene,Alba,Elena,Noelia,Patricia,Raquel,Natalia,Claudia,Ana,Nerea,Carmen,Silvia,Beatriz,Sandra,Rocío,Lorena,Miriam,Alicia,Verónica,Julia,Ainhoa,Marina,Carla,Esther,Isabel,Tamara,Rebeca,Leire,Judith,Inés,Celia,Teresa',
     'Lucía,Sofía,Martina,María,Julia,Paula,Valeria,Emma,Daniela,Carla,Alba,Noa,Alma,Sara,Carmen,Vega,Lara,Mía,Valentina,Olivia,Claudia,Jimena,Lola,Chloe,Aitana,Abril,Ana,Laia,Triana,Elena,Candela,Alejandra,Vera,Manuela,Adriana,Irene,Marina,Ariadna,Nora,África',
   ],
@@ -168,62 +170,65 @@ GIVEN.spain = {
 // passports write them), plus the English names many Hong Kong and Taiwan-born people carry as their legal
 // first names. The mix by cohort follows the waves: Cantonese-speaking before 1980, mainland after.
 GIVEN['chinese-cmn'] = {
+  z: 0.2,   // mainland given names are among the most diverse anywhere
   M: [
-    'Jianguo,Guoqiang,Jianhua,Zhiqiang,Guoliang,Jianjun,Yongqiang,Jianping,Guohua,Zhiming,Deming,Zhenhua,Weiguo,Jianzhong,Liming,Jianxin,Guoping,Guangming,Yonggang,Zhongming,Wenming,Baoguo,Jiahua,Jinsheng,Rongsheng,Fusheng,Changsheng,Zhaohui,Shengli,Xuezhong,Yongming,Zhenguo,Qingshan,Wenbin,Dezhong',
-    'Wei,Jun,Jian,Yong,Tao,Bin,Gang,Hui,Ming,Qiang,Lei,Feng,Hai,Bo,Peng,Liang,Dong,Ping,Chao,Xin,Jie,Hongwei,Xiaodong,Jianming,Weidong,Xiaojun,Zhigang,Haitao,Jianbo,Xiaolong,Yonghong,Zhiwei,Xiaogang,Weimin,Hongbin,Zhihong,Liqiang,Wenjun,Xiaobing',
+    'Jianguo,Guoqiang,Jianhua,Zhiqiang,Guoliang,Jianjun,Yongqiang,Jianping,Guohua,Zhiming,Deming,Zhenhua,Weiguo,Jianzhong,Liming,Jianxin,Guoping,Guangming,Yonggang,Zhongming,Wenming,Baoguo,Jiahua,Jinsheng,Rongsheng,Fusheng,Changsheng,Zhaohui,Shengli,Xuezhong,Yongming,Zhenguo,Qingshan,Wenbin,Dezhong,Aiguo,Jianmin,Xinmin,Jiangang,Huaming,Shaoming,Guozhong,Baoshan',
+    'Wei,Jun,Jian,Yong,Tao,Bin,Gang,Hui,Ming,Qiang,Lei,Feng,Hai,Bo,Peng,Liang,Dong,Ping,Chao,Xin,Jie,Hongwei,Xiaodong,Jianming,Weidong,Xiaojun,Zhigang,Haitao,Jianbo,Xiaolong,Yonghong,Zhiwei,Xiaogang,Weimin,Hongbin,Zhihong,Liqiang,Wenjun,Xiaobing,Jianhui,Haibo,Xiaowei',
     'Hao,Lei,Peng,Tao,Jie,Yang,Chao,Xin,Bo,Long,Yu,Kai,Fan,Hang,Rui,Yi,Zhe,Jiawei,Tianyu,Haoyu,Yifan,Jiahao,Zhiyuan,Yuxiang,Junjie,Wenjie,Yiming,Zhenyu,Junhao,Jinlong,Shuai,Bowen,Yuhang,Xiang,Kun,Pengfei,Wenhao,Lin,Zhihao,Haiyang',
-    'Haoran,Yuxuan,Zirui,Yichen,Haoyu,Zihao,Yuhang,Junhao,Muchen,Yize,Zimo,Haoxuan,Jiarui,Siyuan,Hongyu,Boyu,Yuze,Zeyu,Kaiwen,Jinhao,Ruixuan,Zixuan,Mingze,Yuchen,Tianrui,Bohan,Ziyang,Yuheng,Shengyang,Jingyu,Hanwen,Yunfei,Zhiyang,Chenxi,Tianyou,Yifeng,Ruize,Junyi',
+    'Haoran,Yuxuan,Zirui,Yichen,Haoyu,Zihao,Yuhang,Junhao,Muchen,Yize,Zimo,Haoxuan,Jiarui,Siyuan,Hongyu,Boyu,Yuze,Zeyu,Kaiwen,Jinhao,Ruixuan,Zixuan,Mingze,Yuchen,Tianrui,Bohan,Ziyang,Yuheng,Shengyang,Jingyu,Hanwen,Yunfei,Zhiyang,Chenxi,Tianyou,Yifeng,Ruize,Junyi,Ruichen,Haoming,Jiaming,Zhihan',
   ],
   F: [
-    'Shuzhen,Guiying,Yulan,Xiuying,Guilan,Yuying,Xiulan,Suzhen,Fengying,Shulan,Guizhen,Yuzhen,Lihua,Xiuzhen,Meiying,Shufen,Shuying,Guifang,Yuhua,Cuiying,Yufang,Xiuhua,Aihua,Yumei,Huizhen,Shuhua,Meilan,Xiuqin,Lanying,Baozhen,Jinhua,Yuxiu,Fenglan,Suhua,Peizhen',
-    'Li,Yan,Hong,Ping,Hua,Ling,Jing,Hui,Mei,Xia,Juan,Yun,Fang,Min,Na,Qin,Lan,Hongmei,Xiaohong,Yanping,Lijuan,Xiaoyan,Haiyan,Chunmei,Lihong,Yanhong,Xiaoli,Liping,Weiwei,Yanli,Hongyan,Dongmei,Xiaomei,Ying,Rong,Yali,Xiaoping,Qiong,Lili',
+    'Shuzhen,Guiying,Yulan,Xiuying,Guilan,Yuying,Xiulan,Suzhen,Fengying,Shulan,Guizhen,Yuzhen,Lihua,Xiuzhen,Meiying,Shufen,Shuying,Guifang,Yuhua,Cuiying,Yufang,Xiuhua,Aihua,Yumei,Huizhen,Shuhua,Meilan,Xiuqin,Lanying,Baozhen,Jinhua,Yuxiu,Fenglan,Suhua,Peizhen,Shuqin,Guiqin,Xiufang,Yuezhen,Fengzhen,Shuyun,Yulian,Guirong',
+    'Li,Yan,Hong,Ping,Hua,Ling,Jing,Hui,Mei,Xia,Juan,Yun,Fang,Min,Na,Qin,Lan,Hongmei,Xiaohong,Yanping,Lijuan,Xiaoyan,Haiyan,Chunmei,Lihong,Yanhong,Xiaoli,Liping,Weiwei,Yanli,Hongyan,Dongmei,Xiaomei,Ying,Rong,Yali,Xiaoping,Qiong,Lili,Xiaohua,Chunyan,Meifang',
     'Jing,Yan,Ting,Xue,Qian,Lu,Dan,Yue,Yang,Jia,Xin,Wen,Shan,Yu,Meng,Yuting,Jingjing,Tingting,Xiaoxue,Yingying,Shanshan,Yaqi,Mengyao,Jiayi,Qianqian,Wenjing,Xiaoyu,Shuang,Huan,Lingling,Mengmeng,Xinyu,Yiwen,Siyu,Yujie,Jie,Ning,Xiaoqian,Wenwen,Ruoyu',
-    'Yutong,Zihan,Xinyi,Yixuan,Ruoxi,Shiyu,Yuxin,Keer,Yinuo,Xinyue,Siqi,Yuqi,Yiran,Mengqi,Jiaxin,Zhiruo,Ruotong,Yuhan,Chenxi,Yanxi,Anqi,Jingyi,Yunxi,Yaxuan,Xinran,Shuyi,Jiaqi,Muxi,Xiyue,Siyu,Yuyan,Ruoxuan,Zixin,Mengxuan,Jiayi,Qingyi,Yuning,Ziqi',
+    'Yutong,Zihan,Xinyi,Yixuan,Ruoxi,Shiyu,Yuxin,Keer,Yinuo,Xinyue,Siqi,Yuqi,Yiran,Mengqi,Jiaxin,Zhiruo,Ruotong,Yuhan,Chenxi,Yanxi,Anqi,Jingyi,Yunxi,Yaxuan,Xinran,Shuyi,Jiaqi,Muxi,Xiyue,Siyu,Yuyan,Ruoxuan,Zixin,Mengxuan,Jiayi,Qingyi,Yuning,Ziqi,Yihan,Xinyan,Shiqi,Yuxi',
   ],
 };
 
 GIVEN['chinese-yue'] = {
+  z: 0.2,   // two-syllable Cantonese names: no name is common
   M: [
-    'Kwok-wah,Chi-keung,Wai-man,Kam-wing,Kwok-keung,Yiu-wah,Siu-ming,Chi-ming,Kin-wah,Wing-hong,Kwok-leung,Wai-keung,Kam-chuen,Kwong-wah,Tak-wing,Chi-wai,Wing-cheung,Hon-ming,Yuk-lun,Shu-kei,Ping-kwan,Sai-cheong,Hing-wah,Chun-hung,Man-yiu,Kai-ming,Pak-lam,Yiu-kwong,Ting-fai,Sun-wah,Kin-man,Fook-wing,Kwan-yiu,Wai-chung',
-    'Wai-ming,Chi-wing,Ka-wai,Man-kit,Chun-kit,Kin-fai,Wing-kin,Ka-ming,Siu-fung,Wai-kit,Kwok-hung,Chi-hang,Ho-yin,Man-hon,Tsz-wai,Chun-wai,Kam-fai,Wai-lun,Yat-ming,Chi-kin,Hon-wai,Kwan-ho,Wing-lok,Kin-ping,Chun-yip,Ka-lok,Ming-fai,Pui-kei,Hung-fai,Wai-hung,Kwok-ming,Siu-keung,Kar-wai',
-    'Ka-ho,Chun-hei,Tsz-chun,Ka-lok,Ho-yin,Chun-yin,Wing-hei,Tsz-hin,Pak-hei,Ka-chun,Chi-hin,Cheuk-hin,Yat-hei,Tsz-kit,Ho-lam,Ka-fai,Man-chun,Chun-lok,Ka-yiu,Hiu-fung,Ho-ming,Tsz-ho,Kwan-lok,Wai-hin,Chi-lok',
-    'Tsz-chun,Chun-hei,Ho-yin,Lok-hin,Pak-yin,Tsz-hin,Chi-lok,Yat-long,Ka-chun,Cheuk-lam,Tsz-long,Shing-hei,Ho-lam,Chun-ho,Hok-yin,Long-hin,Yu-hin,Pak-ho,Lok-yiu,Hin-yu',
+    'Kwok-wah,Chi-keung,Wai-man,Kam-wing,Kwok-keung,Yiu-wah,Siu-ming,Chi-ming,Kin-wah,Wing-hong,Kwok-leung,Wai-keung,Kam-chuen,Kwong-wah,Tak-wing,Chi-wai,Wing-cheung,Hon-ming,Yuk-lun,Shu-kei,Ping-kwan,Sai-cheong,Hing-wah,Chun-hung,Man-yiu,Kai-ming,Pak-lam,Yiu-kwong,Ting-fai,Sun-wah,Kin-man,Fook-wing,Kwan-yiu,Wai-chung,Kwok-chu,Yiu-ming,Wing-kwong,Chi-hung,Ka-keung,Shiu-kee,Hon-kwong,Kam-tong',
+    'Wai-ming,Chi-wing,Ka-wai,Man-kit,Chun-kit,Kin-fai,Wing-kin,Ka-ming,Siu-fung,Wai-kit,Kwok-hung,Chi-hang,Ho-yin,Man-hon,Tsz-wai,Chun-wai,Kam-fai,Wai-lun,Yat-ming,Chi-kin,Hon-wai,Kwan-ho,Wing-lok,Kin-ping,Chun-yip,Ka-lok,Ming-fai,Pui-kei,Hung-fai,Wai-hung,Kwok-ming,Siu-keung,Kar-wai,Kwok-wai,Chi-kwong,Man-lung,Wing-fai,Chun-man,Siu-lung,Kin-wai,Yiu-fai,Ka-kit',
+    'Ka-ho,Chun-hei,Tsz-chun,Ka-lok,Ho-yin,Chun-yin,Wing-hei,Tsz-hin,Pak-hei,Ka-chun,Chi-hin,Cheuk-hin,Yat-hei,Tsz-kit,Ho-lam,Ka-fai,Man-chun,Chun-lok,Ka-yiu,Hiu-fung,Ho-ming,Tsz-ho,Kwan-lok,Wai-hin,Chi-lok,Chun-kit,Ka-hei,Tsz-yin,Wing-chun,Lok-man,Ho-fai,Chi-yan,Yat-fung,Ka-wing,Ming-hin,Hin-wai,Tsz-lok,Chun-fai,Man-hin,Kwok-kei,Wai-lok,Pak-yin,Chun-ting',
+    'Tsz-chun,Chun-hei,Ho-yin,Lok-hin,Pak-yin,Tsz-hin,Chi-lok,Yat-long,Ka-chun,Cheuk-lam,Tsz-long,Shing-hei,Ho-lam,Chun-ho,Hok-yin,Long-hin,Yu-hin,Pak-ho,Lok-yiu,Hin-yu,Ho-tin,Chun-yu,Hei-yin,Tsz-yeung,Lok-yin,Pak-hin,Chun-long,Yat-hin,Ka-long,Ho-long,Hin-lok,Tin-yau,Chun-lam,Sze-chun,Man-hei,Yiu-hin,Pui-hin,Cheuk-yin,Ho-hin,Ka-hin,Tsz-wang,Chi-yin',
   ],
   F: [
-    'Mei-ling,Wai-ling,Yuk-lan,Siu-wan,Lai-ching,Yuk-ying,Wai-fong,Mei-lan,Kam-ying,Suk-fong,Yuk-mui,Lai-ha,Siu-ying,Wai-yee,Kit-ling,Yin-ping,Kwai-fong,Sau-ling,Shuk-yee,Lai-kuen,Wai-kuen,Siu-lan,Yuk-kam,Fung-ying,Sau-fong,Oi-lin,Bik-yuk,Choi-ha,Lin-fong,Wai-chun,So-ching',
-    'Wai-yee,Mei-yee,Ka-yan,Lai-yee,Pui-ling,Wing-yan,Man-yee,Suk-yee,Ka-man,Sze-man,Wai-man,Hoi-yan,Pui-yee,Siu-man,Wai-han,Ching-yee,Mei-kuen,Shuk-fan,Man-wai,Ka-yee,Kit-yee,Wing-sze,Sau-man,Yee-man,Kwan-yee,Lai-fong,Fung-yee,Yuen-ling',
-    'Hiu-yan,Tsz-yan,Hoi-ching,Sze-wing,Hiu-tung,Pui-shan,Ka-yi,Yan-ting,Tsz-ching,Man-ching,Ching-man,Wai-shan,Lok-yee,Yuen-ting,Hiu-ching,Tsz-ying,Ka-wing,Cheuk-yan,Sze-ki,Hoi-yan,Wing-yan,Ka-man',
-    'Hiu-lam,Tsz-yu,Lok-yan,Wing-tung,Hoi-tung,Tsz-kiu,Hei-tung,Ching-yi,Sum-yu,Yan-yu,Hei-man,Ching-lam,Yuet-tung,Hiu-yu,Cheuk-yiu,Ka-hei,Yan-ching,Tsz-ching,Hoi-ching,Sze-wing',
+    'Mei-ling,Wai-ling,Yuk-lan,Siu-wan,Lai-ching,Yuk-ying,Wai-fong,Mei-lan,Kam-ying,Suk-fong,Yuk-mui,Lai-ha,Siu-ying,Wai-yee,Kit-ling,Yin-ping,Kwai-fong,Sau-ling,Shuk-yee,Lai-kuen,Wai-kuen,Siu-lan,Yuk-kam,Fung-ying,Sau-fong,Oi-lin,Bik-yuk,Choi-ha,Lin-fong,Wai-chun,So-ching,Wai-yin,Yuk-chun,Siu-fong,Kam-lin,Mei-fong,Yuk-ling,Lai-wah,So-fong,Wai-lan,Sau-ying,Yuet-ying',
+    'Wai-yee,Mei-yee,Ka-yan,Lai-yee,Pui-ling,Wing-yan,Man-yee,Suk-yee,Ka-man,Sze-man,Wai-man,Hoi-yan,Pui-yee,Siu-man,Wai-han,Ching-yee,Mei-kuen,Shuk-fan,Man-wai,Ka-yee,Kit-yee,Wing-sze,Sau-man,Yee-man,Kwan-yee,Lai-fong,Fung-yee,Yuen-ling,Man-yi,Pui-wah,Siu-ling,Ka-ling,Wing-yee,Suk-ching,Lai-man,Yuk-yee,Sau-wai,Kit-man,Wai-ying,Hoi-ling,Mei-wah',
+    'Hiu-yan,Tsz-yan,Hoi-ching,Sze-wing,Hiu-tung,Pui-shan,Ka-yi,Yan-ting,Tsz-ching,Man-ching,Ching-man,Wai-shan,Lok-yee,Yuen-ting,Hiu-ching,Tsz-ying,Ka-wing,Cheuk-yan,Sze-ki,Hoi-yan,Wing-yan,Ka-man,Wing-sze,Ka-yee,Sze-man,Hiu-man,Hoi-ying,Yan-yee,Man-yan,Ka-ching,Wai-ting,Tsz-wai,Pui-man,Lok-man,Sum-yee,Kit-ying,Hoi-man,Ching-lam,Hiu-wai,Yuen-yi,Sze-ching,Mei-ki',
+    'Hiu-lam,Tsz-yu,Lok-yan,Wing-tung,Hoi-tung,Tsz-kiu,Hei-tung,Ching-yi,Sum-yu,Yan-yu,Hei-man,Ching-lam,Yuet-tung,Hiu-yu,Cheuk-yiu,Ka-hei,Yan-ching,Tsz-ching,Hoi-ching,Sze-wing,Lok-yee,Hei-yan,Yan-tung,Ching-yan,Hoi-lam,Sum-yi,Tsz-yan,Ka-yan,Hiu-wing,Cheuk-lam,Sze-lok,Yuet-yi,Hei-yu,Tin-yu,Lok-yi,Hoi-yu,Yan-lam,Ka-yu,Sze-yu,Hiu-lok,Pui-yan,Wing-lam',
   ],
 };
 
 GIVEN['chinese-tw'] = {
+  z: 0.2,   // likewise
   M: [
-    'Chih-ming,Wen-hsiung,Chun-hsiung,Kuo-hua,Yung-fu,Chien-kuo,Kuo-ching,Ming-te,Chin-lung,Tien-fu,Wen-pin,Cheng-hsiung,Kuo-liang,Ming-chang,Chung-hsin,Yao-tsung,Te-ming,Wen-chung,Hsien-chang,Jung-hua,Sheng-hsiung,Yung-ching,Chin-fa,Ching-hsiung,Shu-ming,Chia-hsiang,Tsung-hsien,Chao-ming',
-    'Chih-wei,Chien-hung,Chun-hung,Chih-hung,Wen-chieh,Chia-hung,Chih-cheng,Wei-ming,Cheng-hsien,Yu-cheng,Chien-chih,Chih-hao,Wen-hsien,Ming-chieh,Chia-ming,Yung-chang,Chung-yi,Tsung-yu,Chih-yuan,Cheng-wei,Chun-chieh,Wen-hao,Ming-hung,Kuo-wei,Shih-hao,Chun-yi',
-    'Chia-hao,Kuan-ting,Tsung-han,Yu-hsiang,Chun-hao,Po-yu,Chia-wei,Cheng-han,Kuan-yu,Chen-yu,Tzu-hao,Po-han,Hsiang-yu,Chun-yu,Yu-chieh,Kai-wen,Tsung-wei,Shao-wei,Wei-ting,Pin-yu,Chih-hao,Yu-cheng',
-    'Po-yu,Yu-chen,Chen-yu,Pin-yu,Yu-hsiang,Cheng-en,Yu-en,Po-yen,Chen-hsi,Yi-chen,Chun-yu,Tzu-hsuan,Kuan-yu,Po-han,Ping-hsun,Yu-shen,Chia-hsun,Tzu-yang,En-hsi,Yu-ting',
+    'Chih-ming,Wen-hsiung,Chun-hsiung,Kuo-hua,Yung-fu,Chien-kuo,Kuo-ching,Ming-te,Chin-lung,Tien-fu,Wen-pin,Cheng-hsiung,Kuo-liang,Ming-chang,Chung-hsin,Yao-tsung,Te-ming,Wen-chung,Hsien-chang,Jung-hua,Sheng-hsiung,Yung-ching,Chin-fa,Ching-hsiung,Shu-ming,Chia-hsiang,Tsung-hsien,Chao-ming,Wen-hua,Kuo-tung,Chin-tsai,Ming-hsiung,Tsai-fu,Chin-yuan,Ching-fu,Shih-chang,Kun-shan,Jui-lin,Te-sheng,Tien-lai,Kuo-jung',
+    'Chih-wei,Chien-hung,Chun-hung,Chih-hung,Wen-chieh,Chia-hung,Chih-cheng,Wei-ming,Cheng-hsien,Yu-cheng,Chien-chih,Chih-hao,Wen-hsien,Ming-chieh,Chia-ming,Yung-chang,Chung-yi,Tsung-yu,Chih-yuan,Cheng-wei,Chun-chieh,Wen-hao,Ming-hung,Kuo-wei,Shih-hao,Chun-yi,Chih-kang,Chun-liang,Kun-hung,Jui-chang,Yao-ting,Chen-hung,Wen-lung,Ming-yuan,Cheng-chung,Shih-chieh,Kuo-chang,Chung-hsien,Yu-lin,Chien-liang',
+    'Chia-hao,Kuan-ting,Tsung-han,Yu-hsiang,Chun-hao,Po-yu,Chia-wei,Cheng-han,Kuan-yu,Chen-yu,Tzu-hao,Po-han,Hsiang-yu,Chun-yu,Yu-chieh,Kai-wen,Tsung-wei,Shao-wei,Wei-ting,Pin-yu,Chih-hao,Yu-cheng,Cheng-yu,Wei-chieh,Tsung-jen,Chun-wei,Jui-hsiang,Po-wei,Hao-yu,Tzu-wei,Kuan-lin,Yi-hsiang,Hung-yu,Shih-han,Cheng-yi,Wen-chih,Chieh-yu,Ting-wei,Yu-hao,Chung-han,Yao-chung',
+    'Po-yu,Yu-chen,Chen-yu,Pin-yu,Yu-hsiang,Cheng-en,Yu-en,Po-yen,Chen-hsi,Yi-chen,Chun-yu,Tzu-hsuan,Kuan-yu,Po-han,Ping-hsun,Yu-shen,Chia-hsun,Tzu-yang,En-hsi,Yu-ting,Chen-en,Po-chun,Tzu-chieh,Chih-en,Cheng-hao,Wei-cheng,Kuan-hung,Yen-chen,Shang-en,Chun-hsien,Po-hsiang,Hsin-hung,Tzu-en,Ping-yu,Che-yu,Kai-en,Hsuan-yu,Yu-an,Chen-wei,Yu-lun,Pin-hung,Shao-yu',
   ],
   F: [
-    'Mei-hua,Hsiu-ying,Shu-fen,Yu-lan,Su-chen,Li-hua,Hsiu-lan,Mei-yu,Shu-hui,Yueh-ying,Hsiu-chen,Chin-lien,Pao-chu,Shu-chen,Yu-chu,Mei-ling,Li-chu,Hui-ying,Chiu-hsiang,Hsueh-mei,Lan-ying,Yu-mei,Shu-ying,Chin-hua,Ah-lien,Su-mei',
-    'Shu-fen,Mei-hui,Hui-ling,Mei-ling,Li-chun,Ya-ping,Shu-ling,Hsiu-chuan,Pei-ling,Hui-chen,Ya-hui,Shu-hui,Yu-ling,Li-hua,Su-ching,Ching-yi,Shu-chuan,Pei-chi,Li-ling,Wen-ling,Ya-ling,Hui-ju,Hsin-yi,Mei-fang,Chia-ling,Yi-ling',
-    'Ya-ting,Yi-chen,Hsin-yi,Yu-ting,Chia-hui,Pei-yu,Yu-hsuan,Yi-ting,Chia-ying,Ting-yu,Pei-shan,Yi-hsuan,Chia-yi,Wan-ting,Hsiao-wen,Chia-yu,Yen-ting,Szu-yu,Pei-hsuan,Ching-wen,Tzu-ying,Ya-wen,Yi-ju,Yu-han',
-    'Yu-tung,Pin-yu,Yu-chen,Tzu-han,Yi-hsuan,Pin-yi,Yun-chen,En-hsi,Yu-en,Chia-en,Hsin-yu,Yu-hsin,Ssu-han,Yu-shan,Wei-ning,Tzu-chi,Yi-an,Pei-en,Yu-tzu,Chen-hsi',
+    'Mei-hua,Hsiu-ying,Shu-fen,Yu-lan,Su-chen,Li-hua,Hsiu-lan,Mei-yu,Shu-hui,Yueh-ying,Hsiu-chen,Chin-lien,Pao-chu,Shu-chen,Yu-chu,Mei-ling,Li-chu,Hui-ying,Chiu-hsiang,Hsueh-mei,Lan-ying,Yu-mei,Shu-ying,Chin-hua,Ah-lien,Su-mei,Hsiu-mei,Chiu-yueh,Su-yun,Yueh-o,Pi-hsia,Shu-chin,Mei-chu,Chin-mei,Li-yun,Hsiu-feng,Yu-chin,Pao-yu,Chiung-ying,Tsui-o',
+    'Shu-fen,Mei-hui,Hui-ling,Mei-ling,Li-chun,Ya-ping,Shu-ling,Hsiu-chuan,Pei-ling,Hui-chen,Ya-hui,Shu-hui,Yu-ling,Li-hua,Su-ching,Ching-yi,Shu-chuan,Pei-chi,Li-ling,Wen-ling,Ya-ling,Hui-ju,Hsin-yi,Mei-fang,Chia-ling,Yi-ling,Hui-wen,Shu-mei,Li-hsiang,Mei-chen,Ya-chi,Pei-ying,Hsiao-ping,Chun-mei,Hui-mei,Ling-yu,Yi-ping,Su-fen,Hsiu-yun,Yu-feng',
+    'Ya-ting,Yi-chen,Hsin-yi,Yu-ting,Chia-hui,Pei-yu,Yu-hsuan,Yi-ting,Chia-ying,Ting-yu,Pei-shan,Yi-hsuan,Chia-yi,Wan-ting,Hsiao-wen,Chia-yu,Yen-ting,Szu-yu,Pei-hsuan,Ching-wen,Tzu-ying,Ya-wen,Yi-ju,Yu-han,Hui-ting,Ya-han,Pei-chen,Yi-hsin,Shu-ting,Ting-ting,Yu-wen,Yun-ting,Chia-wen,Pei-wen,Hsiao-ting,Szu-han,Yi-wen,Mei-hsuan,Chih-ying,Shih-ting,Yi-chun',
+    'Yu-tung,Pin-yu,Yu-chen,Tzu-han,Yi-hsuan,Pin-yi,Yun-chen,En-hsi,Yu-en,Chia-en,Hsin-yu,Yu-hsin,Ssu-han,Yu-shan,Wei-ning,Tzu-chi,Yi-an,Pei-en,Yu-tzu,Chen-hsi,Pin-hsuan,Yi-tung,Tzu-yun,Yun-hsi,Pin-chen,Yu-hsiu,Tzu-hsuan,Ching-en,En-yu,Yu-chi,Chia-hsin,Yu-fei,Hsin-ning,Yu-ning,Pei-yun,Yi-ning,An-chi,Wei-an,Hsin-tung,Ting-an,Hsin-yun,Pin-yun',
   ],
 };
 
 GIVEN['chinese-en'] = {
   M: [
-    'Peter,Frank,Henry,George,Kenneth,Raymond,Patrick,Stanley,Albert,Wilson,Philip,Simon,Edmond,Alfred,Victor,Thomas,Francis,Benjamin,Edward,Ronald,Dennis,Alan,Anthony,Gary,Johnny,Michael,Paul,Jimmy,Andrew,William,Lawrence,Danny,Tony,Samuel,Leonard,Gordon',
-    'Kenneth,Raymond,Patrick,Peter,Eric,Kevin,Vincent,Tony,Alan,Gary,Dennis,Danny,Johnny,Jimmy,Andy,Simon,Stanley,Wilson,Edmond,Philip,Derek,Ivan,Samuel,Michael,Thomas,Francis,Eddie,Alex,Benny,Calvin,Alvin,Kenny,Terry,Jacky,Felix,Nelson',
-    'Kevin,Eric,Jason,Jack,Leo,Vincent,Kenny,Andy,Ivan,Calvin,Alvin,Brian,Terry,Jacky,Sunny,Ken,Tony,Hugo,Felix,Oscar,Justin,Alex,Daniel,Ryan,Max,Jerry,Allen,Steven,Edwin,Marco,Matthew,Harry,Louis,Nelson,Desmond,Gary',
-    'Kevin,Jason,Leo,Ryan,Max,Lucas,Ethan,Jack,Eric,Oscar,Hugo,Felix,Justin,Ivan,Daniel,Matthew,Marcus,Aaron,Ian,Sean,Alex,Louis,Henry,Leon,Brian,Vincent,Andy,Jerry,Jayden,Kelvin,Chris,Victor,Owen,Harry,Edison,Tommy',
+    'Peter,Frank,Henry,George,Kenneth,Raymond,Patrick,Stanley,Albert,Wilson,Philip,Simon,Edmond,Alfred,Victor,Thomas,Francis,Benjamin,Edward,Ronald,Dennis,Alan,Anthony,Gary,Johnny,Michael,Paul,Jimmy,Andrew,William,Lawrence,Danny,Tony,Samuel,Leonard,Gordon,Arthur,Eugene,Herbert,Louis,Walter',
+    'Kenneth,Raymond,Patrick,Peter,Eric,Kevin,Vincent,Tony,Alan,Gary,Dennis,Danny,Johnny,Jimmy,Andy,Simon,Stanley,Wilson,Edmond,Philip,Derek,Ivan,Samuel,Michael,Thomas,Francis,Eddie,Alex,Benny,Calvin,Alvin,Kenny,Terry,Jacky,Felix,Nelson,Ken,Ricky,Ben,Henry,Joseph',
+    'Kevin,Eric,Jason,Jack,Leo,Vincent,Kenny,Andy,Ivan,Calvin,Alvin,Brian,Terry,Jacky,Sunny,Ken,Tony,Hugo,Felix,Oscar,Justin,Alex,Daniel,Ryan,Max,Jerry,Allen,Steven,Edwin,Marco,Matthew,Harry,Louis,Nelson,Desmond,Gary,Jeffrey,Roy,Wilson,Patrick,Andrew',
+    'Kevin,Jason,Leo,Ryan,Max,Lucas,Ethan,Jack,Eric,Oscar,Hugo,Felix,Justin,Ivan,Daniel,Matthew,Marcus,Aaron,Ian,Sean,Alex,Louis,Henry,Leon,Brian,Vincent,Andy,Jerry,Jayden,Kelvin,Chris,Victor,Owen,Harry,Edison,Tommy,Isaac,Nathan,Aiden,Adrian,Dylan',
   ],
   F: [
-    'Mary,Helen,Grace,Lily,Rose,Alice,Margaret,Nancy,Betty,Jenny,Linda,Susan,Amy,Annie,Joyce,Wendy,Irene,Rebecca,Winnie,Teresa,Josephine,Catherine,Agnes,Anita,Carmen,Doris,Esther,Fanny,Iris,Judy,Kitty,May,Monica,Peggy,Ruby,Sylvia,Vivian,Yvonne,Connie',
-    'Wendy,Winnie,Irene,Joyce,Amy,Annie,Jenny,Linda,Susan,Grace,Helen,Iris,Vivian,Teresa,Monica,Carmen,Anita,Cindy,Tina,Kitty,Ada,Yvonne,Connie,Doris,Fanny,Agnes,Esther,Sylvia,Josephine,Rebecca,Christina,Elaine,Karen,Sharon,Shirley,Mandy',
-    'Cindy,Tina,Vivian,Joyce,Iris,Winnie,Fiona,Cherry,Coco,Vicky,Crystal,Candy,Mandy,Ivy,Jessie,Kelly,Bonnie,Emily,Grace,Amy,Angela,Michelle,Jessica,Karen,Elaine,Phoebe,Venus,Gloria,Sharon,Natalie,Stella,Chloe,Carrie,Tiffany,Ruby,Zoe',
-    'Chloe,Emily,Grace,Amy,Zoe,Stella,Fiona,Phoebe,Natalie,Sophia,Ivy,Ruby,Cherry,Jessie,Coco,Vivian,Iris,Angela,Hannah,Kelly,Tiffany,Crystal,Winnie,Hazel,Lily,Emma,Bella,Elsa,Cindy,Mia,Sharon,Bonnie,Elaine,Sabrina,Yvonne,Sylvia',
+    'Mary,Helen,Grace,Lily,Rose,Alice,Margaret,Nancy,Betty,Jenny,Linda,Susan,Amy,Annie,Joyce,Wendy,Irene,Rebecca,Winnie,Teresa,Josephine,Catherine,Agnes,Anita,Carmen,Doris,Esther,Fanny,Iris,Judy,Kitty,May,Monica,Peggy,Ruby,Sylvia,Vivian,Yvonne,Connie,Lucy,Pauline',
+    'Wendy,Winnie,Irene,Joyce,Amy,Annie,Jenny,Linda,Susan,Grace,Helen,Iris,Vivian,Teresa,Monica,Carmen,Anita,Cindy,Tina,Kitty,Ada,Yvonne,Connie,Doris,Fanny,Agnes,Esther,Sylvia,Josephine,Rebecca,Christina,Elaine,Karen,Sharon,Shirley,Mandy,Alice,Lily,Rose,Maggie',
+    'Cindy,Tina,Vivian,Joyce,Iris,Winnie,Fiona,Cherry,Coco,Vicky,Crystal,Candy,Mandy,Ivy,Jessie,Kelly,Bonnie,Emily,Grace,Amy,Angela,Michelle,Jessica,Karen,Elaine,Phoebe,Venus,Gloria,Sharon,Natalie,Stella,Chloe,Carrie,Tiffany,Ruby,Zoe,Sandy,Wendy,Rachel,Jenny',
+    'Chloe,Emily,Grace,Amy,Zoe,Stella,Fiona,Phoebe,Natalie,Sophia,Ivy,Ruby,Cherry,Jessie,Coco,Vivian,Iris,Angela,Hannah,Kelly,Tiffany,Crystal,Winnie,Hazel,Lily,Emma,Bella,Elsa,Cindy,Mia,Sharon,Bonnie,Elaine,Sabrina,Yvonne,Sylvia,Ella,Claire,Hailey,Kayla',
   ],
 };
 
@@ -256,27 +261,27 @@ GIVEN.chinese = {
 // the -el / -lyn blends of the 1960s-90s, and today's Prince, Angel and Althea.
 GIVEN.filipino = {
   M: [
-    'Jose,Juan,Pedro,Antonio,Ricardo,Rodolfo,Romeo,Ernesto,Rolando,Eduardo,Roberto,Manuel,Francisco,Alfredo,Danilo,Reynaldo,Florencio,Rogelio,Leonardo,Benjamin,Arturo,Rodrigo,Mario,Domingo,Felipe,Vicente,Gregorio,Teodoro,Rufino,Marcelino,Ramon,Fernando,Virgilio,Emilio,Nestor,Lorenzo,Celestino,Alberto,Jesus,Wilfredo,Restituto,Crisanto',
+    'Jose*2,Juan,Pedro,Antonio,Ricardo,Rodolfo,Romeo,Ernesto,Rolando,Eduardo,Roberto,Manuel,Francisco,Alfredo,Danilo,Reynaldo,Florencio,Rogelio,Leonardo,Benjamin,Arturo,Rodrigo,Mario,Domingo,Felipe,Vicente,Gregorio,Teodoro,Rufino,Marcelino,Ramon,Fernando,Virgilio,Emilio,Nestor,Lorenzo,Celestino,Alberto,Jesus,Wilfredo,Restituto,Crisanto',
     'Jose,Ronaldo,Romeo,Rolando,Reynaldo,Eduardo,Ricardo,Danilo,Edgardo,Rodel,Rommel,Arnel,Ariel,Ramon,Antonio,Roberto,Manuel,Alfredo,Joel,Noel,Allan,Dennis,Rey,Ferdinand,Jaime,Nestor,Elmer,Edwin,Ruel,Arnold,Randy,Jerome,Raymond,Michael,Mark,Marlon,Renato,Rodrigo,Bernard,Francis,Oscar',
     'Mark,John,Michael,Christian,Jerome,Joseph,Ryan,Kevin,Jayson,Marvin,Christopher,Paolo,Joshua,Angelo,Carlo,Daniel,Jonathan,Kenneth,Jeffrey,Ronald,Rodel,Raymond,Bryan,Mico,Patrick,Gerald,Jericho,Jhon,Neil,Aldrin,Jomar,Jasper,Rex,Kristoffer,Jan,Vincent,Jeric,Rommel,Arvin,Ralph',
     'John,Mark,Joshua,Christian,Angelo,Nathaniel,Gabriel,Ethan,Kyle,Ian,James,Justin,Carl,Prince,Jacob,Andrei,Sean,Kurt,Lance,Joaquin,Miguel,Rafael,Adrian,Daniel,Matthew,Liam,Elijah,Jared,Gian,Kian,Zion,Raphael,Jhon,Jericho,Ezekiel,Clarence,Vince,Lorenzo,Xian,Josiah',
   ],
   F: [
-    'Maria,Teresita,Lourdes,Erlinda,Corazon,Rosario,Leticia,Remedios,Josefina,Carmelita,Evangeline,Natividad,Milagros,Felicidad,Concepcion,Rosalinda,Lolita,Gloria,Perla,Luzviminda,Purita,Estrella,Fe,Erlina,Norma,Elena,Victoria,Aurora,Cecilia,Flordeliza,Virginia,Adelaida,Nenita,Precy,Zenaida,Thelma,Rosita,Linda,Imelda,Editha,Charito,Lilia',
-    'Maria,Marites,Maricel,Marilou,Rowena,Lorna,Jocelyn,Mylene,Rosemarie,Maribel,Emily,Elizabeth,Annabelle,Gemma,Cristina,Jennifer,Rachelle,Ruby,Grace,Leah,Analyn,Arlene,Evelyn,Ofelia,Marivic,Edna,Susan,Liza,Cynthia,Rosalie,Melinda,Gina,Vilma,Divina,Nora,Sheila,Rhodora,Daisy,Myrna,Josephine,Rebecca,Agnes',
+    'Maria*2.5,Teresita,Lourdes,Erlinda,Corazon,Rosario,Leticia,Remedios,Josefina,Carmelita,Evangeline,Natividad,Milagros,Felicidad,Concepcion,Rosalinda,Lolita,Gloria,Perla,Luzviminda,Purita,Estrella,Fe,Erlina,Norma,Elena,Victoria,Aurora,Cecilia,Flordeliza,Virginia,Adelaida,Nenita,Precy,Zenaida,Thelma,Rosita,Linda,Imelda,Editha,Charito,Lilia',
+    'Maria*2,Marites,Maricel,Marilou,Rowena,Lorna,Jocelyn,Mylene,Rosemarie,Maribel,Emily,Elizabeth,Annabelle,Gemma,Cristina,Jennifer,Rachelle,Ruby,Grace,Leah,Analyn,Arlene,Evelyn,Ofelia,Marivic,Edna,Susan,Liza,Cynthia,Rosalie,Melinda,Gina,Vilma,Divina,Nora,Sheila,Rhodora,Daisy,Myrna,Josephine,Rebecca,Agnes',
     'Kristine,Jennifer,Angelica,Michelle,Jasmine,Joanna,Christine,Princess,Kimberly,Camille,Patricia,Katherine,Rose,Rachel,Jennylyn,Mae,Sheena,Jessa,Joy,Lovely,April,Diana,Shiela,Charmaine,Cherry,Jenny,Maricar,Abigail,Rhea,Shirley,Jamie,Clarissa,Stephanie,Mariel,Bea,Kathleen,Erika,Aileen,Lyka,Mary',
     'Angel,Princess,Althea,Andrea,Nicole,Samantha,Bea,Angela,Sofia,Ashley,Jasmine,Kyla,Mikaela,Janelle,Kristine,Bianca,Erica,Angeline,Gabrielle,Trisha,Hannah,Chloe,Isabella,Alexa,Kaye,Zia,Lara,Jillian,Danica,Sophia,Faith,Hazel,Jane,Rhian,Julia,Pia,Ysabel,Margarette,Shane,Aubrey',
   ],
   us: {
     M: [
-      'Joseph,John,Robert,Richard,Edward,Ernest,Frank,Raymond,Alfred,Rudy,Benjamin,Vincent,Anthony,Rodney,Rogelio,Danilo',
-      'Joseph,Michael,Ronald,Raymond,Rodney,Mark,Jerome,Dennis,Allan,Edwin,Ferdinand,Noel,Francis,Paul,Anthony,Romeo,Jaime,Rommel',
+      'Joseph,John,Robert,Richard,Edward,Ernest,Frank,Raymond,Alfred,Rudy,Benjamin,Vincent,Anthony,Rodney,Rogelio,Danilo,Paul,Charles,Ricardo,Francisco,Manuel,Leonard,Vicente',
+      'Joseph,Michael,Ronald,Raymond,Rodney,Mark,Jerome,Dennis,Allan,Edwin,Ferdinand,Noel,Francis,Paul,Anthony,Romeo,Jaime,Rommel,Edgar,Arnold,Ricardo,Rodel,Rey,Victor',
       'Paolo,Miguel,Angelo,Carlo,Rafael,Gabriel,Joaquin,Marco,Francis,Ryan,Kevin,Jerome,Christian,Mark,Joseph,Paul,John,Vincent,Jason,Darren,Brandon,Jared',
       'Gabriel,Joaquin,Miguel,Elijah,Ethan,Lucas,Nathaniel,Isaiah,Josiah,Rafael,Angelo,Matthew,Aiden,Jayden,Liam,Adrian,Caleb,Joshua,Christian,Lorenzo,Mateo,Kai',
     ],
     F: [
-      'Mary,Rose,Josephine,Gloria,Carmen,Lillian,Juanita,Teresa,Linda,Lourdes,Rosemary,Virginia,Evelyn,Cecilia,Dolores,Corazon',
-      'Maria,Elizabeth,Lisa,Jennifer,Michelle,Christine,Theresa,Maricel,Rowena,Gina,Liza,Rachelle,Cynthia,Annabelle,Melissa,Grace,Leah,Rebecca',
+      'Mary,Rose,Josephine,Gloria,Carmen,Lillian,Juanita,Teresa,Linda,Lourdes,Rosemary,Virginia,Evelyn,Cecilia,Dolores,Corazon,Leonora,Remedios,Florence,Anita,Alice,Helen',
+      'Maria,Elizabeth,Lisa,Jennifer,Michelle,Christine,Theresa,Maricel,Rowena,Gina,Liza,Rachelle,Cynthia,Annabelle,Melissa,Grace,Leah,Rebecca,Marilou,Josephine,Annette,Marivic,Rosemarie,Divina',
       'Kristine,Angelica,Jasmine,Camille,Nicole,Bianca,Patricia,Michelle,Christine,Joanna,Melissa,Gabrielle,Alyssa,Kristina,Stephanie,Jessica,Leah,Danielle,Jennifer,Kimberly,Erica,Monica',
       'Isabella,Sofia,Bea,Mikaela,Ysabel,Leah,Gabrielle,Chloe,Olivia,Sophia,Bianca,Jasmine,Angelina,Alyssa,Nicole,Kayla,Arianna,Mia,Ella,Hailey,Andrea,Julianna',
     ],
@@ -286,6 +291,7 @@ GIVEN.filipino = {
 // Vietnamese: given names as most Vietnamese Californians register them, without tone marks. Women's
 // names are often recorded with the middle name Thi, men's with Van or a generation name (see middleName).
 GIVEN.vietnamese = {
+  z: 0.25,   // a few names (Minh, Anh, Linh) are common, none dominant
   M: [
     'Hung,Thanh,Minh,Son,Hai,Tam,Long,Quang,Duc,Binh,Phuoc,Loc,Tho,Hoa,Nghia,Khai,Chau,Dinh,Phuc,Vinh,Hoang,Tuan,Dung,Trung,Cuong,Thang,Hien,Lam,Ba,Tai,Sang,Hieu,Tri,Nam,Lanh,Thuan,Toan,Dat,Danh,Quy',
     'Tuan,Minh,Hung,Dung,Thanh,Hai,Nam,Long,Quang,Hieu,Phuc,Duc,Huy,Trung,Vinh,Son,Cuong,Thang,Hoang,Binh,Khanh,Phong,Tri,Tai,Loc,Toan,Dat,Tam,Hoa,Thinh,Vu,Tien,Nghia,Viet,Tung,Quoc,Kiet,Phat,Thai,Bao',
@@ -301,13 +307,13 @@ GIVEN.vietnamese = {
   us: {
     M: [
       'Peter,Paul,John,Joseph,Thomas,Michael,Steven,David,Daniel,Tony,Johnny,Jimmy,Henry,Minh,Danny,Kevin,Andrew,Francis,Vincent,Anthony,Richard,Robert',
-      'Tony,Peter,Paul,John,Joseph,Thomas,Michael,Steven,David,Daniel,Kevin,Danny,Johnny,Jimmy,Henry,Minh,Vincent,Andrew',
+      'Tony,Peter,Paul,John,Joseph,Thomas,Michael,Steven,David,Daniel,Kevin,Danny,Johnny,Jimmy,Henry,Minh,Vincent,Andrew,Bryan,Eric,Jason,Hung,Tuan',
       'Kevin,Tony,Peter,Andrew,Vincent,Jimmy,Johnny,Steven,Jonathan,Brian,Kenny,Michael,Joseph,Paul,John,Thomas,Danny,David,Daniel,Eric,Henry,Minh,Bao,Huy,Khoa,An',
       'Ethan,Ryan,Kevin,Andrew,Brandon,Aiden,Jayden,Nathan,Lucas,Justin,Vincent,Bryan,Daniel,Kenny,Tony,Bao,Minh,Khoi,Kai,Huy,Ivan,Joseph',
     ],
     F: [
-      'Maria,Theresa,Anna,Linda,Lisa,Mary,Catherine,Kim,Mai,Lan,Christine,Tina,Elizabeth,Monica,Cecilia,Rose,Agnes,Helen',
-      'Linda,Lisa,Tina,Kathy,Theresa,Maria,Cindy,Amy,Annie,Tracy,Jennifer,Christina,Mai,Lan,Kim,Julie',
+      'Maria,Theresa,Anna,Linda,Lisa,Mary,Catherine,Kim,Mai,Lan,Christine,Tina,Elizabeth,Monica,Cecilia,Rose,Agnes,Helen,Teresa,Julie,Nancy,Margaret,Lucy,Hoa',
+      'Linda,Lisa,Tina,Kathy,Theresa,Maria,Cindy,Amy,Annie,Tracy,Jennifer,Christina,Mai,Lan,Kim,Julie,Nancy,Michelle,Christine,Hoa,Thuy,Anna',
       'Vivian,Tiffany,Jenny,Michelle,Christina,Tracy,Jennifer,Cindy,Amy,Tina,Linda,Lisa,Annie,Kathy,Theresa,Maria,Vy,Mai,Linh,Kim,Thao,Jessica',
       'Emily,Chloe,Sophia,Vivian,Tiffany,Jessica,Kayla,Ashley,Jasmine,Angela,Isabella,Natalie,Michelle,Hannah,Vy,Mai,Linh,Anh,Emma,Olivia,Kaitlyn,Angelina',
     ],
@@ -317,6 +323,7 @@ GIVEN.vietnamese = {
 // Korean: Korea-born given names hyphenated as Korean Americans write them (Young-ho, Ji-hoon, Min-jung);
 // the US-born generation largely carries English and Biblical names from church (Daniel, Grace, Esther).
 GIVEN.korean = {
+  z: 0.2,   // the most popular Korean name of a year is given to 1-2% of babies
   M: [
     'Young-ho,Sung-ho,Jong-soo,Young-soo,Kwang-ho,Jae-ho,Young-chul,Myung-soo,Sang-ho,Byung-ho,Yong-soo,Jung-ho,Seung-ho,Dong-soo,Chang-ho,Hyun-soo,Young-sik,Jong-ho,Sang-chul,Kwang-soo,Byung-chul,Jae-sung,Tae-ho,Ki-young,Yong-ho,Chul-soo,Jin-ho,Kyung-ho,Sung-soo,Chang-soo,Won-ho,Han-soo,Il-hwan,Moon-ho,Hak-soo,Duk-soo,Man-ho,Ki-ho,Soon-ho,Hee-soo',
     'Jung-hoon,Sung-min,Young-jin,Jae-hoon,Sang-woo,Jin-woo,Hyun-woo,Dong-hyun,Seung-hoon,Min-soo,Jun-ho,Sung-hoon,Jae-won,Joon-young,Sang-min,Hyun-jun,Ki-hyun,Dong-wook,Jae-hyun,Young-min,Sung-jin,Kyung-soo,Seung-woo,Chang-min,Tae-hoon,Jong-min,Hyung-jin,Joon-ho,Byung-hoon,Jin-soo,Kwang-min,Seok-jin,Yong-jun,Woo-jin,Sang-hyun,Jae-young,Dong-hoon,Min-ho,Sung-woo,Hyun-sik',
@@ -331,13 +338,13 @@ GIVEN.korean = {
   ],
   us: {
     M: [
-      'David,Daniel,Paul,Peter,John,James,Samuel,Joseph,Thomas,Richard,Charles,Philip,Edward,Robert,Henry,Harry',
-      'David,Daniel,Paul,Peter,John,James,Steven,Michael,Richard,Thomas,Andrew,Samuel,Joseph,Charles,Edward,Philip,Timothy,Eugene',
+      'David,Daniel,Paul,Peter,John,James,Samuel,Joseph,Thomas,Richard,Charles,Philip,Edward,Robert,Henry,Harry,George,Frank,Walter,Albert,Kenneth,Young,Moses',
+      'David,Daniel,Paul,Peter,John,James,Steven,Michael,Richard,Thomas,Andrew,Samuel,Joseph,Charles,Edward,Philip,Timothy,Eugene,Jason,Kevin,Mark,Brian,Sam,Jin',
       'Daniel,David,John,Paul,Andrew,Joseph,Samuel,James,Peter,Michael,Brian,Justin,Eugene,Jason,Steven,Kevin,Jonathan,Timothy,Joshua,Edward,Sean,Christopher,Eric,Richard,Albert',
       'Daniel,Ethan,Andrew,Ryan,Joshua,Lucas,Jayden,Caleb,Isaac,Nathan,Aiden,Samuel,Joseph,Brandon,Justin,Jonathan,Aaron,Jacob,Elijah,Noah,Matthew,David,Joon',
     ],
     F: [
-      'Grace,Esther,Mary,Helen,Ruth,Martha,Alice,Margaret,Jane,Anna,Dorothy,Rose,Lillian,Elizabeth,Florence,Sarah',
+      'Grace,Esther,Mary,Helen,Ruth,Martha,Alice,Margaret,Jane,Anna,Dorothy,Rose,Lillian,Elizabeth,Florence,Sarah,Agnes,Lucy,Susie,Elsie,Clara,Ella,Young',
       'Grace,Esther,Susan,Julie,Christine,Helen,Jane,Mary,Ann,Sarah,Rebecca,Rachel,Elizabeth,Jennifer,Sharon,Michelle,Joanne,Eunice,Ruth,Hannah',
       'Grace,Esther,Christine,Jennifer,Sarah,Hannah,Rachel,Eunice,Julie,Michelle,Joanne,Christina,Stephanie,Jane,Susie,Angela,Jessica,Helen,Elizabeth,Rebecca,Sharon,Diane,Irene,Joyce',
       'Grace,Chloe,Hannah,Sophia,Emily,Claire,Olivia,Esther,Sarah,Rachel,Isabella,Abigail,Ellie,Emma,Ashley,Erin,Audrey,Joanne,Rebekah,Faith,Joy,Sophie,Yuna',
@@ -348,6 +355,7 @@ GIVEN.korean = {
 // Japanese: Japan-born names by era (Showa -ko names, Heisei and Reiwa favorites); Japanese Californians
 // are mostly third and fourth generation, whose families mixed American and Japanese names.
 GIVEN.japanese = {
+  z: 0.2,   // Japanese names are diverse (and many written forms share a reading)
   M: [
     'Hiroshi,Takashi,Kazuo,Minoru,Shigeru,Isamu,Takeshi,Masao,Yoshio,Akira,Tadashi,Toshio,Kenji,Haruo,Mitsuo,Susumu,Noboru,Yutaka,Osamu,Satoshi,Hideo,Kiyoshi,Saburo,Ichiro,Jiro,Masaru,Makoto,Shoji,Teruo,Yoshiaki,Fumio,Katsumi,Tetsuo,Nobuo,Hajime,Tomio,Yasuo,Masami,Toru,Seiji',
     'Hiroshi,Takashi,Makoto,Kenji,Tetsuya,Kazuhiro,Hideki,Masahiro,Satoshi,Naoki,Akira,Yoshihiro,Toshiyuki,Kenichi,Koji,Shinji,Hiroyuki,Takeshi,Yuji,Tomohiro,Masato,Tsuyoshi,Atsushi,Kazuya,Nobuyuki,Junichi,Yasuhiro,Manabu,Shigeki,Ryoichi,Kiyoshi,Noriyuki,Hitoshi,Kazunori,Hiroki,Takuya,Shuji,Keiichi,Mitsuru,Osamu',
@@ -383,44 +391,47 @@ const IN_E4_M = 'Aarav,Vivaan,Arjun,Reyansh,Ishaan,Aditya,Sai,Krishna,Aryan,Roha
 const IN_E4_F = 'Saanvi,Aadhya,Ananya,Diya,Pari,Anika,Myra,Sara,Kiara,Aaradhya,Navya,Ira,Ishita,Riya,Shreya,Prisha,Avni,Kavya,Tara,Anvi,Siya,Meera,Aditi,Isha,Naina,Aanya,Tanvi,Nitya,Advika,Mahi,Khushi,Pihu,Riddhi,Ahana,Janvi,Shanaya,Trisha,Vanya,Mira,Saisha,Amaira';
 
 GIVEN['indian-north'] = {
+  z: 0.2,   // Indian names are diverse within every region
   M: [
-    'Ram,Shyam,Krishan,Omprakash,Ramesh,Suresh,Rajendra,Vijay,Ashok,Anil,Prakash,Satish,Subhash,Mahesh,Narendra,Surendra,Harish,Dinesh,Rakesh,Mohan,Gopal,Jagdish,Kishore,Pradeep,Prem,Ravi,Rajkumar,Arun,Vinod,Sushil,Kailash,Naresh,Devendra,Shiv,Hari,Inder,Kamal,Raj',
-    'Rajesh,Sanjay,Sunil,Anil,Ajay,Manoj,Vinod,Ashok,Rakesh,Sanjeev,Rajeev,Deepak,Pankaj,Alok,Amit,Ashish,Atul,Vikas,Sandeep,Vivek,Nitin,Neeraj,Sachin,Arvind,Vijay,Sameer,Pradeep,Anurag,Mukesh,Rajiv,Sudhir,Sumit,Gaurav,Manish,Ravi,Naveen,Praveen,Puneet,Tarun',
+    'Ram,Shyam,Krishan,Omprakash,Ramesh,Suresh,Rajendra,Vijay,Ashok,Anil,Prakash,Satish,Subhash,Mahesh,Narendra,Surendra,Harish,Dinesh,Rakesh,Mohan,Gopal,Jagdish,Kishore,Pradeep,Prem,Ravi,Rajkumar,Arun,Vinod,Sushil,Kailash,Naresh,Devendra,Shiv,Hari,Inder,Kamal,Raj,Balraj,Madan,Brij',
+    'Rajesh,Sanjay,Sunil,Anil,Ajay,Manoj,Vinod,Ashok,Rakesh,Sanjeev,Rajeev,Deepak,Pankaj,Alok,Amit,Ashish,Atul,Vikas,Sandeep,Vivek,Nitin,Neeraj,Sachin,Arvind,Vijay,Sameer,Pradeep,Anurag,Mukesh,Rajiv,Sudhir,Sumit,Gaurav,Manish,Ravi,Naveen,Praveen,Puneet,Tarun,Hemant,Rajan',
     'Rahul,Amit,Rohit,Ankit,Abhishek,Gaurav,Vikas,Nikhil,Varun,Saurabh,Akshay,Ankur,Sumit,Kunal,Mohit,Vishal,Ashish,Pranav,Siddharth,Arjun,Karan,Aman,Vivek,Tarun,Anuj,Mayank,Sahil,Shubham,Rishabh,Harsh,Aditya,Prateek,Rajat,Sachin,Nitin,Puneet,Neeraj,Vaibhav,Akash,Deepak',
     IN_E4_M,
   ],
   F: [
-    'Sita,Kamla,Shanti,Savitri,Sushila,Sarla,Usha,Asha,Pushpa,Kanta,Krishna,Saroj,Shakuntala,Nirmala,Santosh,Vimla,Urmila,Kusum,Shobha,Leela,Manju,Kiran,Pratibha,Sudha,Uma,Radha,Gita,Sarojini,Vidya,Lata,Meera,Kanchan,Suman,Indira,Prem,Raj',
-    'Sunita,Anita,Rekha,Neelam,Seema,Poonam,Anju,Manju,Sangeeta,Kavita,Ritu,Meena,Neeta,Archana,Alka,Mamta,Shalini,Renu,Sarita,Nisha,Deepa,Rashmi,Vandana,Sonia,Monika,Madhu,Preeti,Shilpa,Suman,Asha,Usha,Kiran,Rajni,Ranjana,Babita,Jyoti,Sapna,Sudha',
-    'Priya,Pooja,Neha,Shweta,Swati,Anjali,Nidhi,Divya,Ankita,Shruti,Megha,Sneha,Ritika,Richa,Shikha,Aarti,Nikita,Sonam,Payal,Pallavi,Garima,Komal,Ruchi,Tanvi,Isha,Simran,Ritu,Preeti,Nisha,Kirti,Deepika,Monika,Sakshi,Akanksha,Bhavna,Jyoti,Priyanka,Rashmi,Sonali',
+    'Sita,Kamla,Shanti,Savitri,Sushila,Sarla,Usha,Asha,Pushpa,Kanta,Krishna,Saroj,Shakuntala,Nirmala,Santosh,Vimla,Urmila,Kusum,Shobha,Leela,Manju,Kiran,Pratibha,Sudha,Uma,Radha,Gita,Sarojini,Vidya,Lata,Meera,Kanchan,Suman,Indira,Prem,Raj,Kamini,Prabha,Sharda,Sudesh,Raksha',
+    'Sunita,Anita,Rekha,Neelam,Seema,Poonam,Anju,Manju,Sangeeta,Kavita,Ritu,Meena,Neeta,Archana,Alka,Mamta,Shalini,Renu,Sarita,Nisha,Deepa,Rashmi,Vandana,Sonia,Monika,Madhu,Preeti,Shilpa,Suman,Asha,Usha,Kiran,Rajni,Ranjana,Babita,Jyoti,Sapna,Sudha,Vibha,Neelu,Shashi',
+    'Priya,Pooja,Neha,Shweta,Swati,Anjali,Nidhi,Divya,Ankita,Shruti,Megha,Sneha,Ritika,Richa,Shikha,Aarti,Nikita,Sonam,Payal,Pallavi,Garima,Komal,Ruchi,Tanvi,Isha,Simran,Ritu,Preeti,Nisha,Kirti,Deepika,Monika,Sakshi,Akanksha,Bhavna,Jyoti,Priyanka,Rashmi,Sonali,Shivani,Kriti',
     IN_E4_F,
   ],
 };
 
 GIVEN['indian-west'] = {
+  z: 0.2,
   M: [
-    'Ramesh,Mahendra,Jayant,Dilip,Bharat,Kishor,Navin,Pravin,Hasmukh,Arvind,Dinesh,Kantilal,Chandrakant,Vasant,Suresh,Prakash,Anant,Shashikant,Vinayak,Madhukar,Jitendra,Pramod,Bhupendra,Natwar,Kanu,Ishwar,Rasik,Mukund,Narayan,Harshad',
-    'Jignesh,Hitesh,Paresh,Nilesh,Mukesh,Jayesh,Kalpesh,Rakesh,Bhavesh,Ketan,Mehul,Nirav,Sanjay,Dharmesh,Tushar,Sameer,Amol,Sachin,Rajesh,Manish,Chirag,Nitin,Yogesh,Vipul,Hemant,Mitesh,Pankaj,Shailesh,Viral,Kaushik',
-    'Nirav,Chirag,Parth,Harsh,Dhruv,Kunal,Ronak,Hardik,Jay,Pratik,Sagar,Rushabh,Keyur,Vishal,Ankit,Mihir,Rohan,Aniket,Tejas,Omkar,Siddhesh,Akshay,Prasad,Nikhil,Shreyas,Saurabh,Darshan,Amey,Yash,Neel',
+    'Ramesh,Mahendra,Jayant,Dilip,Bharat,Kishor,Navin,Pravin,Hasmukh,Arvind,Dinesh,Kantilal,Chandrakant,Vasant,Suresh,Prakash,Anant,Shashikant,Vinayak,Madhukar,Jitendra,Pramod,Bhupendra,Natwar,Kanu,Ishwar,Rasik,Mukund,Narayan,Harshad,Ramanlal,Jayantilal,Mohanlal,Shantilal,Vasudev,Prabhakar,Vithal,Dattatray,Shripad,Manubhai,Govind,Dinkar',
+    'Jignesh,Hitesh,Paresh,Nilesh,Mukesh,Jayesh,Kalpesh,Rakesh,Bhavesh,Ketan,Mehul,Nirav,Sanjay,Dharmesh,Tushar,Sameer,Amol,Sachin,Rajesh,Manish,Chirag,Nitin,Yogesh,Vipul,Hemant,Mitesh,Pankaj,Shailesh,Viral,Kaushik,Anil,Mahesh,Rajendra,Dipak,Ajit,Sunil,Prashant,Vijay,Satish,Milind,Kiran',
+    'Nirav,Chirag,Parth,Harsh,Dhruv,Kunal,Ronak,Hardik,Jay,Pratik,Sagar,Rushabh,Keyur,Vishal,Ankit,Mihir,Rohan,Aniket,Tejas,Omkar,Siddhesh,Akshay,Prasad,Nikhil,Shreyas,Saurabh,Darshan,Amey,Yash,Neel,Karan,Nishant,Sunny,Gaurav,Rahul,Abhishek,Hiren,Jainil,Dhaval,Pranav,Ashish,Vivek',
     IN_E4_M,
   ],
   F: [
-    'Jayshree,Hansa,Kokila,Manjula,Sarla,Pushpa,Bharti,Nirmala,Kusum,Vimla,Shobha,Kanchan,Sushila,Leela,Mangala,Sunanda,Vasanti,Sulochana,Kamal,Lata,Asha,Usha,Pramila,Saroj,Indu,Jyotsna,Madhuri,Vidya,Shalini,Hemlata',
-    'Hetal,Falguni,Bhavna,Nisha,Rupal,Darshana,Jigna,Sejal,Komal,Varsha,Swati,Rupa,Meena,Sonal,Mamta,Shital,Kalpana,Hema,Ami,Trupti,Manisha,Deepali,Vaishali,Ashwini,Smita,Madhavi,Archana,Nilam,Rashmi,Prachi',
-    'Krupa,Dhara,Khushbu,Riddhi,Siddhi,Pooja,Nidhi,Payal,Ami,Shreya,Kinjal,Hiral,Foram,Drashti,Prachi,Aditi,Sneha,Shruti,Ketaki,Mrunal,Rucha,Gauri,Sayali,Tanvi,Radhika,Sakshi,Kavya,Disha,Isha,Janvi',
+    'Jayshree,Hansa,Kokila,Manjula,Sarla,Pushpa,Bharti,Nirmala,Kusum,Vimla,Shobha,Kanchan,Sushila,Leela,Mangala,Sunanda,Vasanti,Sulochana,Kamal,Lata,Asha,Usha,Pramila,Saroj,Indu,Jyotsna,Madhuri,Vidya,Shalini,Hemlata,Sumitra,Shanta,Kamla,Sharda,Prabha,Malati,Anandi,Kalavati,Savita,Kanta,Rekha',
+    'Hetal,Falguni,Bhavna,Nisha,Rupal,Darshana,Jigna,Sejal,Komal,Varsha,Swati,Rupa,Meena,Sonal,Mamta,Shital,Kalpana,Hema,Ami,Trupti,Manisha,Deepali,Vaishali,Ashwini,Smita,Madhavi,Archana,Nilam,Rashmi,Prachi,Sangita,Kavita,Mina,Nita,Rita,Hina,Jyoti,Pratibha,Rekha,Nayana,Vidya',
+    'Krupa,Dhara,Khushbu,Riddhi,Siddhi,Pooja,Nidhi,Payal,Ami,Shreya,Kinjal,Hiral,Foram,Drashti,Prachi,Aditi,Sneha,Shruti,Ketaki,Mrunal,Rucha,Gauri,Sayali,Tanvi,Radhika,Sakshi,Kavya,Disha,Isha,Janvi,Mansi,Nikita,Bhumi,Neha,Avani,Hetvi,Riya,Krisha,Urvi,Devangi,Zalak',
     IN_E4_F,
   ],
 };
 
 GIVEN['indian-south'] = {
+  z: 0.2,
   M: [
-    'Srinivasan,Krishnamurthy,Subramaniam,Narayanan,Ramaswamy,Venkataraman,Raghavan,Rangarajan,Sundaram,Balakrishnan,Ramachandran,Rajagopal,Seshadri,Govindarajan,Chandrasekhar,Satyanarayana,Venkateswarlu,Nageswara,Ramakrishna,Prabhakar,Gopalakrishnan,Muthu,Nagaraj,Ravindran,Thomas,Joseph,Mathew,Varghese,Kurian,Madhavan,Unnikrishnan,Raman,Gopal,Subba,Hanumantha',
-    'Venkatesh,Srinivas,Ramesh,Suresh,Ganesh,Rajesh,Mahesh,Sridhar,Prakash,Murali,Ravi,Srikanth,Kumar,Sathish,Senthil,Prasad,Krishna,Shankar,Balaji,Anand,Raghu,Vijay,Sunil,Babu,Madhu,Raju,Mohan,Sudheer,Jayakumar,Gopi,Narayana,Siva,Kannan,Vinod,Jose,Biju,Shaji,Sajan,Rajan',
+    'Srinivasan,Krishnamurthy,Subramaniam,Narayanan,Ramaswamy,Venkataraman,Raghavan,Rangarajan,Sundaram,Balakrishnan,Ramachandran,Rajagopal,Seshadri,Govindarajan,Chandrasekhar,Satyanarayana,Venkateswarlu,Nageswara,Ramakrishna,Prabhakar,Gopalakrishnan,Muthu,Nagaraj,Ravindran,Thomas,Joseph,Mathew,Varghese,Kurian,Madhavan,Unnikrishnan,Raman,Gopal,Subba,Hanumantha,Anantha,Murugan,Ponnusamy,Venugopal,Rangaswamy,Kesavan',
+    'Venkatesh,Srinivas,Ramesh,Suresh,Ganesh,Rajesh,Mahesh,Sridhar,Prakash,Murali,Ravi,Srikanth,Kumar,Sathish,Senthil,Prasad,Krishna,Shankar,Balaji,Anand,Raghu,Vijay,Sunil,Babu,Madhu,Raju,Mohan,Sudheer,Jayakumar,Gopi,Narayana,Siva,Kannan,Vinod,Jose,Biju,Shaji,Sajan,Rajan,Saravanan,Rajkumar',
     'Karthik,Arun,Vignesh,Pradeep,Praveen,Naveen,Sandeep,Harish,Ashwin,Rajesh,Kiran,Sai,Vamsi,Chaitanya,Anil,Raviteja,Phani,Sriram,Balaji,Vivek,Deepak,Arjun,Aravind,Prashanth,Santhosh,Manoj,Dinesh,Gautham,Aditya,Varun,Abhinav,Rohit,Akhil,Nithin,Venkat,Mahesh,Sunil,Jithin,Anoop,Srikanth',
     IN_E4_M,
   ],
   F: [
-    'Lakshmi,Saraswathi,Kamala,Meenakshi,Parvathi,Jayalakshmi,Vijayalakshmi,Padmavathi,Rukmini,Kalyani,Annapurna,Sita,Savithri,Janaki,Sarojini,Seetha,Vasantha,Sulochana,Pushpa,Leela,Rajeswari,Bhagyalakshmi,Susheela,Indira,Mary,Annamma,Mariamma,Thankamma,Saramma,Shantha,Visalakshi,Kanaka,Radha,Rama,Prema,Usha',
+    'Lakshmi,Saraswathi,Kamala,Meenakshi,Parvathi,Jayalakshmi,Vijayalakshmi,Padmavathi,Rukmini,Kalyani,Annapurna,Sita,Savithri,Janaki,Sarojini,Seetha,Vasantha,Sulochana,Pushpa,Leela,Rajeswari,Bhagyalakshmi,Susheela,Indira,Mary,Annamma,Mariamma,Thankamma,Saramma,Shantha,Visalakshi,Kanaka,Radha,Rama,Prema,Usha,Kamakshi,Lalitha,Gomathi,Ponnamma,Parimala',
     'Lakshmi,Padma,Uma,Geetha,Latha,Sudha,Shanthi,Vasanthi,Revathi,Sujatha,Anuradha,Kavitha,Srividya,Sangeetha,Vidya,Rekha,Malathi,Jayanthi,Radhika,Hema,Chitra,Bhavani,Vani,Rani,Usha,Asha,Suma,Sunitha,Sheela,Bindu,Shobha,Jaya,Sumathi,Nalini,Shyamala,Ambika,Mini,Sindhu,Mercy,Elizabeth',
     'Divya,Priya,Swathi,Deepika,Sowmya,Keerthi,Ramya,Harini,Anusha,Bhavya,Sravani,Pavani,Lavanya,Shruthi,Nandini,Aishwarya,Sindhuja,Vaishnavi,Pooja,Meghana,Sneha,Mounika,Kavya,Gayathri,Sahithi,Haritha,Spandana,Archana,Madhuri,Neha,Anjali,Vidya,Revathi,Niveditha,Akhila,Asha,Reshma,Anitha,Sushma,Jyothi',
     IN_E4_F,
@@ -435,14 +446,14 @@ GIVEN.indian = {
   ],
   us: {
     M: [
-      'Raj,Ravi,Anand,Vijay,Ajay,Sunil,Amar,Sanjay,Ashok,Arun,Kiran,Dev,Prem,Vikram,David,Thomas',
-      'Raj,Ravi,Anand,Vijay,Ajay,Sunil,Amar,Sanjay,Vikram,Neil,Nikhil,Rahul,Sameer,Kiran,Dev,Arun,Ashwin,Jay',
+      'Raj,Ravi,Anand,Vijay,Ajay,Sunil,Amar,Sanjay,Ashok,Arun,Kiran,Dev,Prem,Vikram,David,Thomas,Ram,Mohan,Gopal,Krishna,Shiv,Suresh',
+      'Raj,Ravi,Anand,Vijay,Ajay,Sunil,Amar,Sanjay,Vikram,Neil,Nikhil,Rahul,Sameer,Kiran,Dev,Arun,Ashwin,Jay,Ramesh,Suresh,Deepak,Rajesh,Vivek,Satish',
       'Rohan,Arjun,Neil,Nikhil,Raj,Sanjay,Vikram,Ravi,Anand,Dev,Kiran,Ajay,Amar,Sameer,Rahul,Kabir,Aditya,Jay,Varun,Akash,Ashwin,Siddharth,Rishi,Arun,Sunil',
       'Arjun,Rohan,Ishaan,Aarav,Dev,Neil,Krish,Rishi,Kabir,Aditya,Veer,Nikhil,Ayaan,Vihaan,Ethan,Ryan,Aiden,Dhruv,Shiv,Jay,Kiran,Anay',
     ],
     F: [
-      'Asha,Usha,Leela,Meera,Radha,Uma,Sita,Lata,Gita,Kamala,Mary,Indira',
-      'Asha,Sonia,Nisha,Anjali,Priya,Rina,Meera,Neela,Sapna,Leela,Maya,Tara,Anita,Kiran,Uma,Sheila',
+      'Asha,Usha,Leela,Meera,Radha,Uma,Sita,Lata,Gita,Kamala,Mary,Indira,Lakshmi,Shanti,Kamini,Sarla,Nirmala,Pushpa,Savitri,Kiran,Rani,Shobha',
+      'Asha,Sonia,Nisha,Anjali,Priya,Rina,Meera,Neela,Sapna,Leela,Maya,Tara,Anita,Kiran,Uma,Sheila,Lakshmi,Seema,Neeta,Rekha,Sunita,Vandana,Meena',
       'Priya,Anjali,Neha,Maya,Asha,Nisha,Sonia,Tara,Leela,Anika,Riya,Divya,Meera,Kavya,Isha,Shreya,Sana,Anya,Mira,Sapna,Rina,Simran,Pooja,Monica',
       'Anika,Diya,Maya,Riya,Isha,Tara,Kavya,Anya,Mira,Ananya,Saanvi,Sara,Kiara,Aria,Leela,Naina,Ira,Sophia,Avani,Asha,Nila,Zara',
     ],
@@ -467,14 +478,14 @@ GIVEN.sikh = {
   ],
   us: {
     M: [
-      'Harry,Bob,Jagjit,Sukhdev,Gurdev,Ajit,Darshan,Didar,Major,Bachan,Sohan,Ranjit,Joginder,Baldev,Iqbal,Kartar',
-      'Gurpreet,Harjit,Ranjit,Sukhdev,Jasbir,Kuldeep,Daljit,Paramjit,Harpal,Rajinder,Sunny,Bobby,Harry,Ricky,Manjit,Satnam',
+      'Harry,Bob,Jagjit,Sukhdev,Gurdev,Ajit,Darshan,Didar,Major,Bachan,Sohan,Ranjit,Joginder,Baldev,Iqbal,Kartar,Mohinder,Surinder,Harbhajan,Gurbachan,Balwant,Jaswant',
+      'Gurpreet,Harjit,Ranjit,Sukhdev,Jasbir,Kuldeep,Daljit,Paramjit,Harpal,Rajinder,Sunny,Bobby,Harry,Ricky,Manjit,Satnam,Sukhwinder,Kulwinder,Jaswinder,Gurdeep,Mandeep,Ravinder',
       'Gurpreet,Harpreet,Amandeep,Manpreet,Jaspreet,Navdeep,Sandeep,Jagdeep,Ramandeep,Arjun,Jasdeep,Simranjit,Sunny,Harry,Gurjeet,Karan,Raj,Jason,Kevin,Navjot',
       'Arjun,Jaskaran,Gurnoor,Sehaj,Fateh,Ekam,Harman,Arman,Rajveer,Karanveer,Jasraj,Angad,Ranveer,Gurveer,Nihal,Zorawar,Jayden,Ryan,Aiden,Sartaj',
     ],
     F: [
-      'Surjit,Amarjit,Jasbir,Gurmeet,Manjit,Harbans,Kamaljit,Paramjit,Rajinder,Swaran,Inderjit,Pritam',
-      'Sukhwinder,Kulwinder,Jaswinder,Paramjit,Rajwinder,Kamaljit,Manjit,Navneet,Rupinder,Ranjit,Pinky,Rani,Neena,Simi',
+      'Surjit,Amarjit,Jasbir,Gurmeet,Manjit,Harbans,Kamaljit,Paramjit,Rajinder,Swaran,Inderjit,Pritam,Kuldip,Satwant,Balbir,Gurdial,Kulwant,Tejinder,Harjit,Sukhwant,Narinder,Darshan',
+      'Sukhwinder,Kulwinder,Jaswinder,Paramjit,Rajwinder,Kamaljit,Manjit,Navneet,Rupinder,Ranjit,Pinky,Rani,Neena,Simi,Harjinder,Kuldeep,Baljit,Gurmeet,Satwinder,Jasvir,Parminder,Rajinder',
       'Harpreet,Manpreet,Gurpreet,Jaspreet,Amandeep,Navneet,Simran,Jasleen,Harleen,Kirandeep,Ramandeep,Navjot,Mandeep,Jasmine,Sonia,Kiran,Simi,Rupinder,Gurleen,Jasmeet',
       'Simran,Jasleen,Harleen,Gurnoor,Mehak,Jasmine,Navleen,Harnoor,Prabhleen,Amrit,Kirat,Mannat,Noor,Sehaj,Avneet,Simrat,Jannat,Seerat,Anahat,Asees,Sophia,Ava',
     ],
@@ -484,10 +495,10 @@ GIVEN.sikh = {
 // Pakistan.
 GIVEN.pakistani = {
   M: [
-    'Muhammad,Abdul,Ghulam,Mohammad,Ahmed,Ali,Aslam,Akram,Bashir,Rashid,Saleem,Naeem,Arshad,Shafiq,Mushtaq,Zafar,Anwar,Iqbal,Javed,Pervez,Tariq,Khalid,Mahmood,Nazir,Rafiq,Shaukat,Sultan,Yusuf,Riaz,Ijaz,Nasir,Habib,Latif,Hameed,Majeed,Amjad,Imtiaz,Liaqat,Sajjad,Zahid',
-    'Muhammad,Imran,Asif,Tariq,Khalid,Faisal,Shahid,Naveed,Kamran,Adnan,Nadeem,Waqar,Rizwan,Javed,Sohail,Zubair,Farhan,Asad,Kashif,Amir,Yasir,Atif,Junaid,Fahad,Usman,Omer,Sajid,Babar,Ahmed,Ali,Hassan,Shoaib,Mansoor,Irfan,Salman,Naeem,Arif,Waseem,Zeeshan,Tahir',
-    'Muhammad,Usman,Bilal,Hamza,Zain,Saad,Hassan,Ali,Ahmed,Umair,Talha,Hamid,Danish,Fahad,Junaid,Haris,Shahzaib,Omer,Faizan,Awais,Waleed,Zeeshan,Arslan,Ammar,Hasnain,Shoaib,Moiz,Asad,Kashif,Taimur,Rehan,Salman,Adeel,Sami,Haseeb,Farhan,Yasir,Owais,Uzair,Daniyal',
-    'Muhammad,Ayaan,Rayyan,Abdullah,Ibrahim,Hamza,Zaid,Ali,Ahmed,Hassan,Hussain,Musa,Yusuf,Zain,Omar,Mustafa,Ayan,Arham,Rohaan,Haider,Zohaib,Saad,Zayan,Ahad,Sufyan,Usman,Taha,Shayan,Ismail,Adam,Haris,Dawood,Armaan,Fahad,Sameer,Zaviyar,Azaan,Ammar,Daniyal,Eesa',
+    'Muhammad*1.6,Abdul,Ghulam,Mohammad,Ahmed,Ali,Aslam,Akram,Bashir,Rashid,Saleem,Naeem,Arshad,Shafiq,Mushtaq,Zafar,Anwar,Iqbal,Javed,Pervez,Tariq,Khalid,Mahmood,Nazir,Rafiq,Shaukat,Sultan,Yusuf,Riaz,Ijaz,Nasir,Habib,Latif,Hameed,Majeed,Amjad,Imtiaz,Liaqat,Sajjad,Zahid',
+    'Muhammad*1.6,Imran,Asif,Tariq,Khalid,Faisal,Shahid,Naveed,Kamran,Adnan,Nadeem,Waqar,Rizwan,Javed,Sohail,Zubair,Farhan,Asad,Kashif,Amir,Yasir,Atif,Junaid,Fahad,Usman,Omer,Sajid,Babar,Ahmed,Ali,Hassan,Shoaib,Mansoor,Irfan,Salman,Naeem,Arif,Waseem,Zeeshan,Tahir',
+    'Muhammad*1.6,Usman,Bilal,Hamza,Zain,Saad,Hassan,Ali,Ahmed,Umair,Talha,Hamid,Danish,Fahad,Junaid,Haris,Shahzaib,Omer,Faizan,Awais,Waleed,Zeeshan,Arslan,Ammar,Hasnain,Shoaib,Moiz,Asad,Kashif,Taimur,Rehan,Salman,Adeel,Sami,Haseeb,Farhan,Yasir,Owais,Uzair,Daniyal',
+    'Muhammad*1.6,Ayaan,Rayyan,Abdullah,Ibrahim,Hamza,Zaid,Ali,Ahmed,Hassan,Hussain,Musa,Yusuf,Zain,Omar,Mustafa,Ayan,Arham,Rohaan,Haider,Zohaib,Saad,Zayan,Ahad,Sufyan,Usman,Taha,Shayan,Ismail,Adam,Haris,Dawood,Armaan,Fahad,Sameer,Zaviyar,Azaan,Ammar,Daniyal,Eesa',
   ],
   F: [
     'Fatima,Zainab,Khadija,Bushra,Nasreen,Rukhsana,Parveen,Shamim,Naheed,Yasmeen,Kausar,Razia,Shahida,Zubaida,Tahira,Akhtar,Begum,Shabana,Gulnaz,Kishwar,Nusrat,Sultana,Farhat,Rehana,Zahida,Saeeda,Naseem,Mumtaz,Rashida,Anwari,Hamida,Jamila,Safia,Sakina,Bilqees,Iffat,Musarrat,Tasneem,Zarina,Khalida',
@@ -500,32 +511,32 @@ GIVEN.pakistani = {
 // Bangladesh (shares the common Muslim South Asian names, with Bengali ones of its own).
 GIVEN.bangladeshi = {
   M: [
-    'Mohammad,Abdul,Mohammed,Rafiq,Kamal,Jamal,Anis,Shafiqul,Aminul,Mizanur,Habibur,Mahbub,Rezaul,Abul,Nurul,Siddiqur,Mostafa,Golam,Azizul,Shahidul,Jahangir,Alamgir,Fazlul,Mujibur,Ziaur,Rashidul,Aftab,Delwar,Harun,Monir',
-    'Mohammad,Saiful,Tanvir,Imtiaz,Shakil,Kamrul,Mahmud,Rezaul,Masud,Mizanur,Rafiqul,Aminul,Habib,Faruk,Anwar,Nazrul,Shahin,Mamun,Rubel,Sohel,Sumon,Babul,Liton,Shamim,Jahid,Rashed,Belal,Mostafizur,Shafiqul,Arif',
-    'Mohammad,Rakib,Sabbir,Fahim,Tanvir,Shakil,Rasel,Sakib,Nayeem,Arif,Mehedi,Imran,Rifat,Shuvo,Tamim,Ashik,Rubel,Sohag,Mahfuz,Sajid,Shihab,Tarek,Nahid,Jubayer,Raihan,Mahin,Sifat,Tushar,Redwan,Ashraful',
-    'Mohammad,Ayan,Rafsan,Nafis,Tahmid,Ayaan,Rayyan,Arham,Zayan,Arian,Yusuf,Ibrahim,Abdullah,Saad,Zarif,Tahsin,Fardin,Nahian,Samin,Sadman,Ahnaf,Fahad,Wasif,Mahir,Tanzim,Rizwan,Labib,Shadman,Raiyan,Musa',
+    'Mohammad*2,Abdul,Mohammed,Rafiq,Kamal,Jamal,Anis,Shafiqul,Aminul,Mizanur,Habibur,Mahbub,Rezaul,Abul,Nurul,Siddiqur,Mostafa,Golam,Azizul,Shahidul,Jahangir,Alamgir,Fazlul,Mujibur,Ziaur,Rashidul,Aftab,Delwar,Harun,Monir,Abdur,Shamsul,Nazrul,Anwarul,Matiur,Lutfur,Ataur,Khairul,Shahjahan,Sirajul,Moinul,Fazlur',
+    'Mohammad*2,Saiful,Tanvir,Imtiaz,Shakil,Kamrul,Mahmud,Rezaul,Masud,Mizanur,Rafiqul,Aminul,Habib,Faruk,Anwar,Nazrul,Shahin,Mamun,Rubel,Sohel,Sumon,Babul,Liton,Shamim,Jahid,Rashed,Belal,Mostafizur,Shafiqul,Arif,Jahangir,Selim,Mizan,Zahid,Shahid,Kabir,Monir,Alamgir,Jewel,Rana,Sabuj,Anis',
+    'Mohammad*2,Rakib,Sabbir,Fahim,Tanvir,Shakil,Rasel,Sakib,Nayeem,Arif,Mehedi,Imran,Rifat,Shuvo,Tamim,Ashik,Rubel,Sohag,Mahfuz,Sajid,Shihab,Tarek,Nahid,Jubayer,Raihan,Mahin,Sifat,Tushar,Redwan,Ashraful,Rony,Asif,Faisal,Hasan,Sumon,Saiful,Nasir,Tanim,Shariful,Rakibul,Ahsan,Mamun',
+    'Mohammad*2,Ayan,Rafsan,Nafis,Tahmid,Ayaan,Rayyan,Arham,Zayan,Arian,Yusuf,Ibrahim,Abdullah,Saad,Zarif,Tahsin,Fardin,Nahian,Samin,Sadman,Ahnaf,Fahad,Wasif,Mahir,Tanzim,Rizwan,Labib,Shadman,Raiyan,Musa,Adnan,Rafi,Zaid,Ayman,Rehan,Imran,Nabil,Rahat,Siam,Taseen,Ilham',
   ],
   F: [
-    'Rokeya,Shamima,Nasrin,Shirin,Fatema,Hasina,Khaleda,Rahima,Jahanara,Ayesha,Rasheda,Monowara,Anowara,Selina,Halima,Kulsum,Sufia,Amena,Rabeya,Mumtaz,Begum,Nurjahan,Hosneara,Firoza,Shahana,Nazma,Salma,Parveen,Rehana,Delwara',
-    'Nasrin,Shirin,Shamima,Fahmida,Sultana,Nazma,Ruma,Salma,Farhana,Shahnaz,Rumana,Tahmina,Lucky,Nasima,Shilpi,Rupa,Mukta,Beauty,Rina,Shapla,Nazneen,Rozina,Kohinoor,Dilruba,Morium,Sharmin,Shahida,Parvin,Jesmin,Taslima',
-    'Tasnim,Farhana,Sabrina,Nusrat,Tahmina,Sharmin,Jannatul,Sumaiya,Raisa,Tanjila,Mithila,Lamia,Sadia,Fariha,Anika,Nabila,Tania,Mim,Afroza,Ishrat,Shanta,Moushumi,Tamanna,Nadia,Sanjida,Rumana,Faria,Tanzila,Fatema,Sumi',
-    'Ayesha,Fatima,Maryam,Zara,Anaya,Inaya,Sumaiya,Raisa,Nusaiba,Tasfia,Ariba,Samiha,Labiba,Nuha,Ruqaiya,Safa,Marwa,Aaliyah,Humaira,Zainab,Tahiya,Arisha,Mehjabin,Nafisa,Anisha,Tanha,Rifa,Afia,Lamisa,Sara',
+    'Rokeya,Shamima,Nasrin,Shirin,Fatema,Hasina,Khaleda,Rahima,Jahanara,Ayesha,Rasheda,Monowara,Anowara,Selina,Halima,Kulsum,Sufia,Amena,Rabeya,Mumtaz,Begum,Nurjahan,Hosneara,Firoza,Shahana,Nazma,Salma,Parveen,Rehana,Delwara,Sakina,Zohra,Laila,Shahida,Johura,Asma,Bilkis,Majeda,Nurun,Afroza,Momena',
+    'Nasrin,Shirin,Shamima,Fahmida,Sultana,Nazma,Ruma,Salma,Farhana,Shahnaz,Rumana,Tahmina,Lucky,Nasima,Shilpi,Rupa,Mukta,Beauty,Rina,Shapla,Nazneen,Rozina,Kohinoor,Dilruba,Morium,Sharmin,Shahida,Parvin,Jesmin,Taslima,Laila,Nilufar,Dilara,Rokshana,Lovely,Popy,Sonia,Shima,Mousumi,Rozy,Jharna',
+    'Tasnim,Farhana,Sabrina,Nusrat,Tahmina,Sharmin,Jannatul,Sumaiya,Raisa,Tanjila,Mithila,Lamia,Sadia,Fariha,Anika,Nabila,Tania,Mim,Afroza,Ishrat,Shanta,Moushumi,Tamanna,Nadia,Sanjida,Rumana,Faria,Tanzila,Fatema,Sumi,Afsana,Rima,Riya,Sumaya,Maliha,Nowshin,Tasneem,Jannat,Mahmuda,Lubna,Shathi',
+    'Ayesha,Fatima,Maryam,Zara,Anaya,Inaya,Sumaiya,Raisa,Nusaiba,Tasfia,Ariba,Samiha,Labiba,Nuha,Ruqaiya,Safa,Marwa,Aaliyah,Humaira,Zainab,Tahiya,Arisha,Mehjabin,Nafisa,Anisha,Tanha,Rifa,Afia,Lamisa,Sara,Hafsa,Aisha,Nusrat,Mariam,Jannat,Adiba,Afrin,Rumaisa,Tasnim,Nuzhat,Tahsina',
   ],
 };
 
 // Afghanistan (Pashtun and Tajik families; Fremont and Hayward hold the largest community in the US).
 GIVEN.afghan = {
   M: [
-    'Mohammad,Abdul,Ahmad,Ghulam,Mahmood,Najib,Rahim,Wali,Habib,Aziz,Karim,Sayed,Nasir,Bashir,Latif,Rashid,Yousuf,Sharif,Shafiq,Hamid,Gul,Jan,Zalmai,Rahmatullah,Qadir,Hafiz,Noor,Amanullah,Safiullah,Akbar',
-    'Mohammad,Ahmad,Abdul,Najib,Hamid,Wahid,Zalmai,Khalid,Farid,Habib,Jawad,Aziz,Qais,Shafiq,Wali,Nasir,Sayed,Omid,Mirwais,Ajmal,Bashir,Fawad,Haroon,Idris,Jamshid,Karim,Latif,Masood,Nawid,Sohrab',
-    'Mohammad,Ahmad,Omid,Nawid,Fawad,Jawad,Hamid,Ajmal,Mirwais,Farhad,Wahid,Ehsan,Tamim,Yama,Zia,Obaid,Bilal,Haroon,Sohail,Shekib,Hamed,Mustafa,Qudrat,Rahmat,Sameer,Belal,Rameen,Masih,Javid,Elyas',
-    'Mohammad,Ahmad,Mustafa,Yousuf,Ibrahim,Omar,Ali,Hamza,Rayan,Ayan,Zaid,Arman,Sami,Elias,Adam,Hasib,Haris,Yasin,Idris,Daniel,Arian,Bilal,Qais,Rahim,Ismail,Imran,Faisal,Murtaza,Sahil,Zakaria',
+    'Mohammad*2,Abdul,Ahmad,Ghulam,Mahmood,Najib,Rahim,Wali,Habib,Aziz,Karim,Sayed,Nasir,Bashir,Latif,Rashid,Yousuf,Sharif,Shafiq,Hamid,Gul,Jan,Zalmai,Rahmatullah,Qadir,Hafiz,Noor,Amanullah,Safiullah,Akbar,Abdullah,Mir,Shah,Sultan,Fazel,Qasim,Hayat,Daud,Ismail,Hakim,Jalal,Saleh',
+    'Mohammad*2,Ahmad,Abdul,Najib,Hamid,Wahid,Zalmai,Khalid,Farid,Habib,Jawad,Aziz,Qais,Shafiq,Wali,Nasir,Sayed,Omid,Mirwais,Ajmal,Bashir,Fawad,Haroon,Idris,Jamshid,Karim,Latif,Masood,Nawid,Sohrab,Zabihullah,Sharif,Dawood,Hashmat,Fahim,Akbar,Rashid,Sultan,Najibullah,Yasin,Wahidullah,Asad',
+    'Mohammad*2,Ahmad,Omid,Nawid,Fawad,Jawad,Hamid,Ajmal,Mirwais,Farhad,Wahid,Ehsan,Tamim,Yama,Zia,Obaid,Bilal,Haroon,Sohail,Shekib,Hamed,Mustafa,Qudrat,Rahmat,Sameer,Belal,Rameen,Masih,Javid,Elyas,Ali,Hussain,Jamal,Kamal,Naveed,Wais,Hasib,Nasim,Arash,Ramin,Fardin,Sadiq',
+    'Mohammad*2,Ahmad,Mustafa,Yousuf,Ibrahim,Omar,Ali,Hamza,Rayan,Ayan,Zaid,Arman,Sami,Elias,Adam,Hasib,Haris,Yasin,Idris,Daniel,Arian,Bilal,Qais,Rahim,Ismail,Imran,Faisal,Murtaza,Sahil,Zakaria,Abdullah,Yasir,Karim,Musa,Yahya,Zakir,Hamid,Adnan,Hassan,Amir,Ilyas',
   ],
   F: [
-    'Fatima,Maryam,Zahra,Bibi,Gul,Nazifa,Shakila,Zarghona,Mahbooba,Rahima,Sabira,Zohra,Homa,Parwin,Nooria,Aziza,Hamida,Nasima,Saliha,Malalai,Lailuma,Fahima,Soraya,Zainab,Hakima,Mastura,Gulalai,Bilqis,Amina,Sharifa',
-    'Fatima,Maryam,Freshta,Mariam,Nargis,Parwana,Shabnam,Soraya,Laila,Mursal,Nazia,Roya,Sahar,Shakila,Shukria,Tamana,Wahida,Zarmina,Farzana,Homa,Khatera,Lima,Madina,Nadia,Nilofar,Palwasha,Rahima,Sitara,Yalda,Arezo',
-    'Freshta,Mursal,Tamana,Mariam,Sahar,Yalda,Arezo,Mahnaz,Shabnam,Nilofar,Lima,Madina,Mina,Hasina,Zarmina,Mujgan,Sabrina,Roya,Wajiha,Sadaf,Nazanin,Marwa,Muska,Sana,Zuhal,Nazira,Shogofa,Tahmina,Fariba,Mahtab',
-    'Maryam,Fatima,Sana,Zahra,Marwa,Muska,Yasmin,Aisha,Hadia,Zainab,Mahsa,Sahar,Arezo,Ayda,Elaha,Nazanin,Asal,Diana,Laila,Sabrina,Madina,Raihana,Mina,Parisa,Malika,Setara,Hanifa,Noor,Hawa,Rabia',
+    'Fatima,Maryam,Zahra,Bibi,Gul,Nazifa,Shakila,Zarghona,Mahbooba,Rahima,Sabira,Zohra,Homa,Parwin,Nooria,Aziza,Hamida,Nasima,Saliha,Malalai,Lailuma,Fahima,Soraya,Zainab,Hakima,Mastura,Gulalai,Bilqis,Amina,Sharifa,Khadija,Halima,Sakina,Nafisa,Gulbadan,Marzia,Nasrin,Habiba,Latifa,Jamila,Rabia',
+    'Fatima,Maryam,Freshta,Mariam,Nargis,Parwana,Shabnam,Soraya,Laila,Mursal,Nazia,Roya,Sahar,Shakila,Shukria,Tamana,Wahida,Zarmina,Farzana,Homa,Khatera,Lima,Madina,Nadia,Nilofar,Palwasha,Rahima,Sitara,Yalda,Arezo,Zainab,Hafiza,Nasima,Sima,Sabira,Shirin,Rahela,Najiba,Fariba,Nazanin,Habiba',
+    'Freshta,Mursal,Tamana,Mariam,Sahar,Yalda,Arezo,Mahnaz,Shabnam,Nilofar,Lima,Madina,Mina,Hasina,Zarmina,Mujgan,Sabrina,Roya,Wajiha,Sadaf,Nazanin,Marwa,Muska,Sana,Zuhal,Nazira,Shogofa,Tahmina,Fariba,Mahtab,Fatima,Zahra,Laila,Diana,Parisa,Ariana,Hadia,Sadia,Nargis,Hila,Shukria',
+    'Maryam,Fatima,Sana,Zahra,Marwa,Muska,Yasmin,Aisha,Hadia,Zainab,Mahsa,Sahar,Arezo,Ayda,Elaha,Nazanin,Asal,Diana,Laila,Sabrina,Madina,Raihana,Mina,Parisa,Malika,Setara,Hanifa,Noor,Hawa,Rabia,Ayesha,Hira,Zohal,Nadia,Mahnoor,Sofia,Hasina,Tamana,Liza,Ariana,Lina',
   ],
 };
 
@@ -535,7 +546,7 @@ GIVEN.hmong = {
   M: [
     'Tou,Chue,Neng,Pao,Xai,Chong,Kou,Teng,Cher,Fue,Nhia,Seng,Va,Xeng,Yia,Chia,Lue,Shoua,Doua,Ger,Hue,Kao,Kong,Koua,Leng,Long,Meng,Nao,Nou,Pheng,Sai,Shong,Song,Tong,Toua,True,Wa,Xia,Yee,Yeng,Yer,Zong',
     'Tou,Kou,Pao,Neng,Chong,Fue,Teng,Xai,Chue,Nhia,Seng,Kao,Meng,Pheng,Xeng,Yeng,Lue,Long,Cher,Kong,Koua,Leng,Toua,Tong,Yia,Zong,Bee,Blong,Chao,Cheng,Chou,Dang,Fong,Ger,Hue,Sai,Song,True,Xia,Yee,Sue,Ying',
-    'Kou,Tou,Pao,Neng,Chong,Fue,Kao,Meng,Pheng,Xeng,Teng,Yeng,Lue,Long,Jer,Ka,Leng,Nhia,Sai,Seng,Thai,Xai,Yia,Ying,Zong,Bee,Blong,Chao,Cheng,Chou,Dang,Fong,Kong,Tong,Toua,Doua,Ger,Lee,Chai',
+    'Kou,Tou,Pao,Neng,Chong,Fue,Kao,Meng,Pheng,Xeng,Teng,Yeng,Lue,Long,Jer,Ka,Leng,Nhia,Sai,Seng,Thai,Xai,Yia,Ying,Zong,Bee,Blong,Chao,Cheng,Chou,Dang,Fong,Kong,Tong,Toua,Doua,Ger,Lee,Chai,Nou,Kia,Dao',
     'Kou,Tou,Chue,Ge,Kong,Nhia,Fue,Tong,Xeng,Yeng,Kao,Neng,Chai,Lue,Dao,Pheng,Seng,Teng,Toua,Yia,Zong,Blong,Leng,Meng,Ying,Ka,Nou,Pao,Chong,Jer,Long,Sai,Xai,Doua,Cheng,Fong,Kia,Thai,Ger,Nao',
   ],
   F: [
@@ -548,49 +559,52 @@ GIVEN.hmong = {
 
 // Cambodia (Long Beach, Stockton): Khmer names as Cambodian Americans romanize them.
 GIVEN.cambodian = {
+  z: 0.22,
   M: [
-    'Sokha,Vannak,Sophal,Chantha,Dara,Visal,Rithy,Sovann,Phirun,Vuthy,Sambath,Sarath,Sokhom,Chhay,Kosal,Piseth,Vibol,Rathana,Sothea,Bunthan,Samnang,Sophat,Savuth,Sopheak,Chamroeun,Sarun,Saroeun,Thol,Yorn,Sophon,Chhorn,Heng,Soeun,Bunna,Narith,Vanna,Sambo,Kimsan,Pheap,Sinoeun',
-    'Sokha,Dara,Vannak,Sophal,Visal,Rithy,Sovann,Piseth,Vibol,Rathana,Sothea,Samnang,Sopheak,Bunthoeun,Chanthy,Kosal,Sarath,Sokhom,Phalla,Narith,Vuthy,Kimheng,Seyha,Rotha,Sokhon,Chhay,Sambath,Ratanak,Sophoan,Vanthy',
-    'Dara,Visal,Ratanak,Piseth,Vibol,Sokha,Kosal,Seyha,Rotha,Vannak,Bunthoeun,Sovannarith,Sokhon,Vicheka,Panha,Vireak,Rithy,Kimhong,Chantha,Samnang,Sophal,Theara,Monyrath,Sopheaktra,Veasna,Sakal,Pheakdey,Vathana,Sopheap,Chandara',
-    'Panha,Vireak,Rithy,Visal,Dara,Pisith,Vicheka,Sokha,Ratanak,Seyha,Davith,Kimsour,Sovann,Bunrith,Rotha,Lyhour,Menghour,Sakal,Vathana,Kakada,Sereyvuth,Vanthorn,Sokunthy,Puthea,Raksa,Chanthou,Sopheaktra,Monyrath,Theara,Pheakdey',
+    'Sokha,Vannak,Sophal,Chantha,Dara,Visal,Rithy,Sovann,Phirun,Vuthy,Sambath,Sarath,Sokhom,Chhay,Kosal,Piseth,Vibol,Rathana,Sothea,Bunthan,Samnang,Sophat,Savuth,Sopheak,Chamroeun,Sarun,Saroeun,Thol,Yorn,Sophon,Chhorn,Heng,Soeun,Bunna,Narith,Vanna,Mony,Kimsan,Pheap,Sinoeun',
+    'Sokha,Dara,Vannak,Sophal,Visal,Rithy,Sovann,Piseth,Vibol,Rathana,Sothea,Samnang,Sopheak,Bunthoeun,Chanthy,Kosal,Sarath,Sokhom,Phalla,Narith,Vuthy,Kimheng,Seyha,Rotha,Sokhon,Chhay,Sambath,Ratanak,Sophoan,Vanthy,Sovannara,Sarith,Chanthan,Sokheng,Vichet,Bunrith,Sophearith,Narin,Sokleng,Visoth,Rattanak',
+    'Dara,Visal,Ratanak,Piseth,Vibol,Sokha,Kosal,Seyha,Rotha,Vannak,Bunthoeun,Sovannarith,Sokhon,Vicheka,Panha,Vireak,Rithy,Kimhong,Chantha,Samnang,Sophal,Theara,Monyrath,Sopheaktra,Veasna,Sakal,Pheakdey,Vathana,Sopheap,Chandara,Bunthay,Kimleang,Ratha,Phanith,Sovanndara,Vathanak,Sereyrath,Dararith,Chanrith,Kimseng,Bora,Sothy',
+    'Panha,Vireak,Rithy,Visal,Dara,Pisith,Vicheka,Sokha,Ratanak,Seyha,Davith,Kimsour,Sovann,Bunrith,Rotha,Lyhour,Menghour,Sakal,Vathana,Kakada,Sereyvuth,Vanthorn,Sokunthy,Puthea,Raksa,Chanthou,Sopheaktra,Monyrath,Theara,Pheakdey,Bunheng,Sothy,Visoth,Kimlong,Ponleu,Lyheng,Daro,Panharith,Sovath,Chamnan,Sokleng',
   ],
   F: [
     'Sophea,Sreymom,Channary,Bopha,Thida,Malis,Sophy,Kunthea,Sokunthea,Chanthou,Srey,Sokha,Vanna,Sophal,Chantha,Phally,Sopheap,Kolab,Sarun,Neang,Ry,Thavy,Chenda,Somaly,Savy,Sitha,Navy,Pov,Sinat,Kim,Ratha,Davy,Rany,Leakhena,Mealea,Sophorn,Chanthy,Sokhalay,Yeng,Phan',
-    'Sophea,Sreymom,Channary,Bopha,Thida,Malis,Sophy,Kunthea,Sokunthea,Sopheap,Chenda,Somaly,Savy,Leakhena,Mealea,Sophorn,Chanthy,Phalla,Sreyleak,Sreypov,Navy,Chantrea,Rachana,Socheata,Sreyneang,Dany,Sokhalay,Kanha,Sothy,Bophal',
-    'Sreyneang,Sreyleak,Sreypov,Socheata,Sokunthea,Chantrea,Rachana,Leakhena,Sopheak,Bopha,Kanha,Pisey,Sreymao,Sokha,Malina,Sreynich,Chanlina,Sreyroth,Monika,Dalin,Lida,Sovanna,Rathana,Kalyan,Daravy,Sreyoun,Bunnary,Chandara,Sophany,Raksmey',
-    'Sreynich,Sreyroth,Rachana,Chanlina,Pisey,Kanha,Sokunthea,Bopha,Malina,Dalin,Lida,Raksmey,Sovanna,Chanbormey,Monyneath,Sreypich,Sotheary,Nika,Molika,Sreylin,Chanmony,Kimleng,Ratana,Theary,Somaly,Lyna,Kanika,Sreymao,Daravy,Bunnary',
+    'Sophea,Sreymom,Channary,Bopha,Thida,Malis,Sophy,Kunthea,Sokunthea,Sopheap,Chenda,Somaly,Savy,Leakhena,Mealea,Sophorn,Chanthy,Phalla,Sreyleak,Sreypov,Navy,Chantrea,Rachana,Socheata,Sreyneang,Dany,Sokhalay,Kanha,Sothy,Bophal,Kimly,Sokny,Vanny,Sreymean,Dalis,Sinoun,Rattana,Sotheavy,Kimheang,Bunly,Sophany',
+    'Sreyneang,Sreyleak,Sreypov,Socheata,Sokunthea,Chantrea,Rachana,Leakhena,Sopheak,Bopha,Kanha,Pisey,Sreymao,Sokha,Malina,Sreynich,Chanlina,Sreyroth,Monika,Dalin,Lida,Sovanna,Rathana,Kalyan,Daravy,Sreyoun,Bunnary,Chandara,Sophany,Raksmey,Kimly,Sokny,Vannary,Chandy,Sreyda,Sothavy,Phearom,Chanthavy,Sovanny,Nary,Sreynoch,Sokleap',
+    'Sreynich,Sreyroth,Rachana,Chanlina,Pisey,Kanha,Sokunthea,Bopha,Malina,Dalin,Lida,Raksmey,Sovanna,Chanbormey,Monyneath,Sreypich,Sotheary,Nika,Molika,Sreylin,Chanmony,Kimleng,Ratana,Theary,Somaly,Lyna,Kanika,Sreymao,Daravy,Bunnary,Sreyka,Chanvatey,Pichmony,Kimhour,Socheat,Sreymeas,Vatey,Leakena,Sovannary,Chanreaksmey,Sreypheak,Mealea',
   ],
 };
 
 // Laos (Lao families in Sacramento, Stockton, Fresno, San Diego).
 GIVEN.lao = {
+  z: 0.2,   // Lao and Thai given names are long and diverse
   M: [
-    'Somphone,Souksavanh,Khamphet,Bounmy,Phonsavanh,Vilay,Somsack,Khamla,Phouthone,Bounthavy,Sisouk,Thongsavanh,Khamphanh,Somboun,Bounchanh,Kongkeo,Phetsamone,Vongphet,Bounleuth,Khamsing,Somchith,Thongchanh,Soulivong,Chanthavong,Saysana,Phoxay,Keo,Somsanith,Bounkham,Khamsouk,Inthavong,Sengphet,Bouasone,Kham,Oudom,Vanhxay,Sounthone',
-    'Somphone,Souksavanh,Phonsavanh,Vilay,Somsack,Bounmy,Khamphet,Sisouk,Saysana,Phoutthavong,Soulivong,Vongsavanh,Khampheng,Bounthanh,Somkhit,Thongphet,Sengsavanh,Anousone,Phetsamay,Viengsavanh,Khonesavanh,Sounthone,Vanhxay,Kongkeo,Chanthaphone,Bouasone,Somphet,Khamsay,Oudom,Phonepasith',
-    'Anousone,Khonesavanh,Phonepasith,Somphone,Souksavanh,Vilay,Phonsavanh,Saysana,Khamphet,Sengsavanh,Viengxay,Thongsavanh,Anoulak,Phoutsady,Sitthideth,Bounthavy,Somsack,Vanhxay,Sounthone,Phetsamone,Sinxay,Phonexay,Bounkong,Souphanh,Somchay,Chanthaphone,Vongsavanh,Khamsay,Kittiphone,Daovong',
-    'Anoulak,Sitthideth,Phoutsady,Khonesavanh,Phonepasith,Somphone,Souksavanh,Sengsavanh,Viengxay,Phonexay,Kittiphong,Vanhxay,Sinxay,Anousith,Somsack,Phetsamone,Vilaysack,Thongsavanh,Bounkong,Khamphet,Saysana,Phonsavanh,Vongsavanh,Chanthaphone,Sounthone,Souphanh,Bounthavy,Thanousone,Phetdavanh,Kittiphone,Phouvong,Thipphakone,Khamsavath,Vannasone,Alounsavath',
+    'Somphone,Souksavanh,Khamphet,Bounmy,Phonsavanh,Vilay,Somsack,Khamla,Phouthone,Bounthavy,Sisouk,Thongsavanh,Khamphanh,Somboun,Bounchanh,Kongkeo,Phetsamone,Vongphet,Bounleuth,Khamsing,Somchith,Thongchanh,Soulivong,Chanthavong,Saysana,Phoxay,Keo,Somsanith,Bounkham,Khamsouk,Inthavong,Sengphet,Bouasone,Kham,Oudom,Vanhxay,Sounthone,Bounphanh,Khamphouang,Somsy,Vongsa',
+    'Somphone,Souksavanh,Phonsavanh,Vilay,Somsack,Bounmy,Khamphet,Sisouk,Saysana,Phoutthavong,Soulivong,Vongsavanh,Khampheng,Bounthanh,Somkhit,Thongphet,Sengsavanh,Anousone,Phetsamay,Viengsavanh,Khonesavanh,Sounthone,Vanhxay,Kongkeo,Chanthaphone,Bouasone,Somphet,Khamsay,Oudom,Phonepasith,Khamphouang,Bounthong,Somdy,Phouvanh,Khamsone,Vongdara,Sisavanh,Thongkham,Bounsou,Phetsavanh,Vilasack',
+    'Anousone,Khonesavanh,Phonepasith,Somphone,Souksavanh,Vilay,Phonsavanh,Saysana,Khamphet,Sengsavanh,Viengxay,Thongsavanh,Anoulak,Phoutsady,Sitthideth,Bounthavy,Somsack,Vanhxay,Sounthone,Phetsamone,Sinxay,Phonexay,Bounkong,Souphanh,Somchay,Chanthaphone,Vongsavanh,Khamsay,Kittiphone,Daovong,Phonephet,Saysavanh,Anousack,Kongsavanh,Thanongsack,Douangphet,Vilayphone,Sinthavong,Bounyang,Sitthixay,Somvang,Khampha',
+    'Anoulak,Sitthideth,Phoutsady,Khonesavanh,Phonepasith,Somphone,Souksavanh,Sengsavanh,Viengxay,Phonexay,Kittiphong,Vanhxay,Sinxay,Anousith,Somsack,Phetsamone,Vilaysack,Thongsavanh,Bounkong,Khamphet,Saysana,Phonsavanh,Vongsavanh,Chanthaphone,Sounthone,Souphanh,Bounthavy,Thanousone,Phetdavanh,Kittiphone,Phouvong,Thipphakone,Khamsavath,Vannasone,Alounsavath,Phetsakone,Sitthiphone,Phonesavanh,Kittisack,Bounyong,Thipphachanh,Akkhaphone',
   ],
   F: [
-    'Bounmy,Chanthala,Manivanh,Ketsana,Sengdao,Vongdeuane,Khamla,Bouavanh,Chansamone,Khamphouy,Phouangmala,Souvanny,Thongdy,Vanna,Viengkham,Bouachanh,Manichanh,Phayvanh,Somchanh,Kesone,Ounkham,Noy,Sengchanh,Viengsamay,Chanthavy,Douangchanh,Khamphone,Soudalay,Bouaphanh,Malaythong',
-    'Chanthala,Manivanh,Ketsana,Sengdao,Vongdeuane,Bouavanh,Chansamone,Phouangmala,Souvanny,Viengkham,Manichanh,Phayvanh,Somchanh,Kesone,Chanthavy,Douangchanh,Viengsamay,Sengchanh,Khamphouy,Soukanya,Malayvanh,Latsamy,Daovy,Somsanouk,Sisomphone,Vilayvanh,Sonesavanh,Phoungeun,Kongkham,Soudalay',
-    'Latsamy,Soukanya,Malayvanh,Daovy,Vilayvanh,Sonesavanh,Chanthala,Manivanh,Ketsana,Viengsamay,Phonevilay,Souksakhone,Alounny,Dalavanh,Phetmany,Sengaloun,Amphone,Khanthaly,Somsamay,Daoheuang,Vanida,Davone,Toukta,Manola,Saysamone,Thipphavanh,Bouakham,Nalinh,Sengmany,Chindavanh',
-    'Alounny,Phonevilay,Souksakhone,Dalavanh,Phetmany,Sengaloun,Khanthaly,Vanida,Davone,Toukta,Manola,Thipphavanh,Malayvanh,Soukanya,Latsamy,Daovy,Vilayvanh,Sonesavanh,Noudeng,Phoudsavanh,Somsamay,Anousa,Chindavanh,Nalinh,Sengmany,Phonesouda,Kesone,Chanthaly,Bounlay,Amphone,Keomany,Sounantha,Viengkeo,Bouasavanh,Chansouda',
+    'Bounmy,Chanthala,Manivanh,Ketsana,Sengdao,Vongdeuane,Khamla,Bouavanh,Chansamone,Khamphouy,Phouangmala,Souvanny,Thongdy,Vanna,Viengkham,Bouachanh,Manichanh,Phayvanh,Somchanh,Kesone,Ounkham,Noy,Sengchanh,Viengsamay,Chanthavy,Douangchanh,Khamphone,Soudalay,Bouaphanh,Malaythong,Khamsy,Bouakham,Khamphan,Somsy,Douangdy,Ketkeo,Khamvanh,Chanpheng,Bounlom,Kongkham,Phonsy,Sengkham',
+    'Chanthala,Manivanh,Ketsana,Sengdao,Vongdeuane,Bouavanh,Chansamone,Phouangmala,Souvanny,Viengkham,Manichanh,Phayvanh,Somchanh,Kesone,Chanthavy,Douangchanh,Viengsamay,Sengchanh,Khamphouy,Soukanya,Malayvanh,Latsamy,Daovy,Somsanouk,Sisomphone,Vilayvanh,Sonesavanh,Phoungeun,Kongkham,Soudalay,Khamsy,Bounmy,Douangdy,Ketkeo,Somphavanh,Bouasy,Chandala,Viengphet,Sengthong,Phetmala,Ammala,Malivanh',
+    'Latsamy,Soukanya,Malayvanh,Daovy,Vilayvanh,Sonesavanh,Chanthala,Manivanh,Ketsana,Viengsamay,Phonevilay,Souksakhone,Alounny,Dalavanh,Phetmany,Sengaloun,Amphone,Khanthaly,Somsamay,Daoheuang,Vanida,Davone,Toukta,Manola,Saysamone,Thipphavanh,Bouakham,Nalinh,Sengmany,Chindavanh,Thipsavanh,Khampheuy,Sengdavanh,Ketmany,Vilaykham,Chanthavone,Souphaphone,Inthavanh,Manyvanh,Soulinthone,Somphavanh',
+    'Alounny,Phonevilay,Souksakhone,Dalavanh,Phetmany,Sengaloun,Khanthaly,Vanida,Davone,Toukta,Manola,Thipphavanh,Malayvanh,Soukanya,Latsamy,Daovy,Vilayvanh,Sonesavanh,Noudeng,Phoudsavanh,Somsamay,Anousa,Chindavanh,Nalinh,Sengmany,Phonesouda,Kesone,Chanthaly,Bounlay,Amphone,Keomany,Sounantha,Viengkeo,Bouasavanh,Chansouda,Thipsavanh,Ketmany,Vilaykham,Souphaphone,Manyvanh,Soulinthone,Amaly',
   ],
 };
 
 // Thailand (Thai Town in Hollywood, the Valley, Orange County).
 GIVEN.thai = {
+  z: 0.2,
   M: [
     'Somchai,Somsak,Prasert,Wichai,Anan,Somporn,Surachai,Prayoon,Sombat,Boonmee,Chalerm,Sompong,Prasit,Kasem,Sakda,Sunthorn,Thawee,Chaiwat,Udom,Wirat,Banyat,Boonsong,Charoen,Manop,Narong,Prachuap,Samai,Somboon,Suchart,Thongchai,Vichit,Yuthana,Pichai,Sawat,Adul,Kamol,Pairoj,Prapan,Somkiat,Thanom',
-    'Somchai,Somsak,Chaiyaporn,Surachai,Supachai,Pongsak,Sompong,Arthit,Apichat,Chatchai,Pichit,Wirat,Kittisak,Sakchai,Wanchai,Nopporn,Prasert,Piyawat,Sutep,Somkid,Chaiwat,Narongrit,Teerapong,Paisan,Weerawat,Sarawut,Yutthana,Thawatchai,Anuchit,Somkiat',
-    'Nattapong,Thanawat,Kittisak,Thanakorn,Chaiyaporn,Apichat,Teerapat,Wuttichai,Sarawut,Nattawut,Pongsakorn,Jakkrit,Peerapong,Thitipong,Anuwat,Kritsada,Surasak,Wiwat,Ekkachai,Sittichai,Natthaphon,Panupong,Supakorn,Weerachai,Chatchawan,Sirichai,Tanapat,Rattapong,Sakda,Arthit',
-    'Thanakrit,Thanapat,Nattawat,Pakorn,Kittipat,Chayanon,Teerapat,Phumipat,Kittiphong,Thanawin,Nattakit,Pakin,Sirawit,Tanakorn,Chanon,Napat,Phurin,Thitiwat,Wachirawit,Kanin,Siwakorn,Tawan,Jirayu,Peeranat,Krittin,Rachata,Thanapon,Sorawit,Akkarawat,Nattapong',
+    'Somchai,Somsak,Chaiyaporn,Surachai,Supachai,Pongsak,Sompong,Arthit,Apichat,Chatchai,Pichit,Wirat,Kittisak,Sakchai,Wanchai,Nopporn,Prasert,Piyawat,Sutep,Somkid,Chaiwat,Narongrit,Teerapong,Paisan,Weerawat,Sarawut,Yutthana,Thawatchai,Anuchit,Somkiat,Pornchai,Surapong,Wichian,Thanin,Suriya,Nattapol,Kriangkrai,Chatree,Surasit,Supoj,Boonlert,Prasong',
+    'Nattapong,Thanawat,Kittisak,Thanakorn,Chaiyaporn,Apichat,Teerapat,Wuttichai,Sarawut,Nattawut,Pongsakorn,Jakkrit,Peerapong,Thitipong,Anuwat,Kritsada,Surasak,Wiwat,Ekkachai,Sittichai,Natthaphon,Panupong,Supakorn,Weerachai,Chatchawan,Sirichai,Tanapat,Rattapong,Sakda,Arthit,Chanin,Kittipong,Pakpoom,Nuttapon,Pongpat,Anon,Chakrit,Worawut,Tanawat,Pongthep,Siwat,Sutthipong',
+    'Thanakrit,Thanapat,Nattawat,Pakorn,Kittipat,Chayanon,Teerapat,Phumipat,Kittiphong,Thanawin,Nattakit,Pakin,Sirawit,Tanakorn,Chanon,Napat,Phurin,Thitiwat,Wachirawit,Kanin,Siwakorn,Tawan,Jirayu,Peeranat,Krittin,Rachata,Thanapon,Sorawit,Akkarawat,Nattapong,Phupha,Kittitat,Pawat,Ratchanon,Theeradon,Pongsathorn,Supakit,Warit,Chaiyot,Thanadol,Kantaphon,Weerapat',
   ],
   F: [
     'Somsri,Malee,Siriporn,Nittaya,Wanida,Kanya,Pornthip,Ratana,Suda,Supaporn,Achara,Busaba,Duangjai,Jintana,Nongnuch,Orawan,Prapai,Rungnapa,Suwanna,Waraporn,Yupa,Pranee,Kulap,Sumalee,Somjai,Boonruen,Chanpen,Lamai,Mali,Nuanchan,Sunee,Thongbai,Wanna,Saowanee,Ubon,Prayong,Sompit,Chamnong,Bualai,Kesorn',
-    'Siriporn,Supaporn,Kanokwan,Nittaya,Wanida,Pornthip,Ratana,Jintana,Rungnapa,Orawan,Waraporn,Duangjai,Achara,Busaba,Nongnuch,Sirinya,Suwanna,Kanya,Somsri,Malee,Pimpa,Jiraporn,Sasithorn,Patcharee,Wilaiwan,Kanchana,Saowalak,Benjawan,Nantana,Chutima',
-    'Kanokwan,Pimchanok,Jiraporn,Sasithorn,Patcharee,Wilaiwan,Saowalak,Benjawan,Nantana,Chutima,Natthaya,Supattra,Pornpimol,Sirirat,Kornkanok,Thitima,Wannisa,Arisa,Chonticha,Pattaraporn,Nuttida,Ploypailin,Jutamas,Kamonchanok,Sunisa,Ratchanee,Duangporn,Siriluck,Apinya,Thanyarat',
-    'Pimchanok,Natthaya,Chonticha,Pattaraporn,Nuttida,Ploypailin,Kamonchanok,Thanyarat,Phitchaya,Pimnipa,Napasorn,Kanyarat,Chanakan,Supitcha,Panida,Nichapat,Pornchanok,Sirada,Thitirat,Warisara,Jidapa,Kanyanat,Natcha,Sutasinee,Wipada,Peerada,Pichaya,Chalisa,Panisara,Lalita',
+    'Siriporn,Supaporn,Kanokwan,Nittaya,Wanida,Pornthip,Ratana,Jintana,Rungnapa,Orawan,Waraporn,Duangjai,Achara,Busaba,Nongnuch,Sirinya,Suwanna,Kanya,Somsri,Malee,Pimpa,Jiraporn,Sasithorn,Patcharee,Wilaiwan,Kanchana,Saowalak,Benjawan,Nantana,Chutima,Ampai,Lamduan,Pensri,Nongluck,Suparat,Kanjana,Wanpen,Chanida,Sirinapa,Anchalee,Pornpen,Saowapa',
+    'Kanokwan,Pimchanok,Jiraporn,Sasithorn,Patcharee,Wilaiwan,Saowalak,Benjawan,Nantana,Chutima,Natthaya,Supattra,Pornpimol,Sirirat,Kornkanok,Thitima,Wannisa,Arisa,Chonticha,Pattaraporn,Nuttida,Ploypailin,Jutamas,Kamonchanok,Sunisa,Ratchanee,Duangporn,Siriluck,Apinya,Thanyarat,Sukanya,Pornpan,Wipawee,Sutida,Kanittha,Rattikarn,Kesinee,Orathai,Nuchjaree,Piyanuch,Supaluck,Thanaporn',
+    'Pimchanok,Natthaya,Chonticha,Pattaraporn,Nuttida,Ploypailin,Kamonchanok,Thanyarat,Phitchaya,Pimnipa,Napasorn,Kanyarat,Chanakan,Supitcha,Panida,Nichapat,Pornchanok,Sirada,Thitirat,Warisara,Jidapa,Kanyanat,Natcha,Sutasinee,Wipada,Peerada,Pichaya,Chalisa,Panisara,Lalita,Pimpisa,Phatsorn,Chayanit,Kanokporn,Nattacha,Pornnapa,Sasima,Thanchanok,Wanwisa,Yada,Nichakorn,Kunlanat',
   ],
 };
 
@@ -598,37 +612,38 @@ GIVEN.thai = {
 // part of the personal name, the last name the final part (see SURNAMES.burmese).
 GIVEN.burmese = {
   M: [
-    'Aung,Kyaw,Tun,Than,Hla,Thein,Win,Myint,Soe,Maung,Ba,Sein,Khin,Mya,Ohn,San,Tin,Nyunt,Saw,Thaung,Chit,Htay,Kyi,Sann,Pe,Shwe,Zaw,Myo,Lwin',
-    'Aung,Kyaw,Zaw,Min,Myo,Win,Tun,Thein,Soe,Naing,Hlaing,Than,Htun,Myint,Ko,Thet,Nyein,Lwin,Ye,Thura,Moe,Wai,Htay,Tint,Thant,Sithu,Kyi,Zin,Hein,Phyo',
-    'Htet,Kaung,Min,Pyae,Khant,Hein,Zaw,Aung,Kyaw,Phyo,Thant,Sithu,Arkar,Zeyar,Thura,Paing,Nay,Yan,Linn,Thiha,Wai,Myat,Soe,Ye,Ko,Naing,Htoo,Thet,Wint,Zin',
-    'Htet,Kaung,Pyae,Khant,Hein,Min,Thant,Arkar,Zeyar,Paing,Nay,Yan,Linn,Thiha,Myat,Sithu,Phone,Aung,Kyaw,Zaw,Thura,Ye,Wai,Htoo,Bhone,Thuta,Shin,Lin,Kyal,Zwe,Swan,Htin,Lynn,Naung,Yarzar',
+    'Aung,Kyaw,Tun,Than,Hla,Thein,Win,Myint,Soe,Maung,Ba,Sein,Khin,Mya,Ohn,San,Tin,Nyunt,Saw,Thaung,Chit,Htay,Kyi,Sann,Pe,Shwe,Zaw,Myo,Lwin,Htun,Nyi,Tint,Khaing,Hlaing,Ne,Sai,Kan,Thar,Nay,Ye,Hein',
+    'Aung,Kyaw,Zaw,Min,Myo,Win,Tun,Thein,Soe,Naing,Hlaing,Than,Htun,Myint,Ko,Thet,Nyein,Lwin,Ye,Thura,Moe,Wai,Htay,Tint,Thant,Sithu,Kyi,Zin,Hein,Phyo,Nyan,Zeya,Thiha,Sai,Maung,Khin,Hla,Tin,Sein,Ba,Naung,Swe',
+    'Htet,Kaung,Min,Pyae,Khant,Hein,Zaw,Aung,Kyaw,Phyo,Thant,Sithu,Arkar,Zeyar,Thura,Paing,Nay,Yan,Linn,Thiha,Wai,Myat,Soe,Ye,Ko,Naing,Htoo,Thet,Wint,Zin,Zwe,Htin,Shin,Naung,Kyal,Swan,Bhone,Nyan,Thuta,Moe,Tun,Lwin',
+    'Htet,Kaung,Pyae,Khant,Hein,Min,Thant,Arkar,Zeyar,Paing,Nay,Yan,Linn,Thiha,Myat,Sithu,Phone,Aung,Kyaw,Zaw,Thura,Ye,Wai,Htoo,Bhone,Thuta,Shin,Lin,Kyal,Zwe,Swan,Htin,Lynn,Naung,Yarzar,Nyan,Thet,Hlaing,Myo,Ko,Sai,Win',
   ],
   F: [
-    'Khin,Aye,Mya,Than,Tin,Hla,San,Ohn,Nu,Nwe,Kyi,Thein,May,Mar,Sein,Yi,Cho,Mi,Win,Myint,Shwe,Hnin,Thida,Pyone,Htay,Sandar,Thet,Su',
-    'Khin,Aye,Thida,May,Su,Hnin,Nwe,Mya,Ei,Phyu,Thandar,Sandar,Moe,Thiri,Wai,Nilar,Cho,Hla,Thuzar,Ohnmar,Khaing,San,Sanda,Yamin,Thinzar,Nandar,Ingyin,Hsu,Mon,Lay',
-    'Thandar,Ei,Phyu,Myat,Su,Hnin,Yadanar,Zin,Thiri,Wai,Thinzar,Yamin,Nandar,Hsu,Wint,Phoo,Htet,Thet,Nyein,Chit,Eaindra,Pwint,Shwe,Moe,May,Aye,Sandar,Khin,Yu,Mon',
-    'Yadanar,Thiri,Myat,Hsu,Wint,Phoo,Htet,Eaindra,Pwint,Shwe,Thet,Nyein,Chit,Zin,Ei,Phyu,Su,Hnin,Moe,May,Thinzar,Yamin,Nandar,Khin,Mon,Yoon,Sandi,Thazin,Myo,Lin,Wutyi,Nway,Khine,Hayman,Sabai',
+    'Khin,Aye,Mya,Than,Tin,Hla,San,Ohn,Nu,Nwe,Kyi,Thein,May,Mar,Sein,Yi,Cho,Mi,Win,Myint,Shwe,Hnin,Thida,Pyone,Htay,Sandar,Thet,Su,Nyunt,Kyin,Myat,Nan,Nang,Tint,Ei,Khaing,Moe,Wai,Zin,Lay,Ngwe',
+    'Khin,Aye,Thida,May,Su,Hnin,Nwe,Mya,Ei,Phyu,Thandar,Sandar,Moe,Thiri,Wai,Nilar,Cho,Hla,Thuzar,Ohnmar,Khaing,San,Sanda,Yamin,Thinzar,Nandar,Ingyin,Hsu,Mon,Lay,Yin,Nyo,Myat,Htay,Tin,Ngwe,Nan,Nang,Wint,Phoo,Myo,Kyi',
+    'Thandar,Ei,Phyu,Myat,Su,Hnin,Yadanar,Zin,Thiri,Wai,Thinzar,Yamin,Nandar,Hsu,Wint,Phoo,Htet,Thet,Nyein,Chit,Eaindra,Pwint,Shwe,Moe,May,Aye,Sandar,Khin,Yu,Mon,Nan,Nang,Ngwe,Kyi,Thuzar,Ohnmar,Nilar,Sanda,Ingyin,Thida,Cho,Hla',
+    'Yadanar,Thiri,Myat,Hsu,Wint,Phoo,Htet,Eaindra,Pwint,Shwe,Thet,Nyein,Chit,Zin,Ei,Phyu,Su,Hnin,Moe,May,Thinzar,Yamin,Nandar,Khin,Mon,Yoon,Sandi,Thazin,Myo,Lin,Wutyi,Nway,Khine,Hayman,Sabai,Nan,Nang,Ngwe,Thuzar,Ingyin,Thida,Kyi',
   ],
 };
 
 // Indonesia (much of the California community is Chinese-Indonesian, with Christian and Indonesian names).
 GIVEN.indonesian = {
   M: [
-    'Budi,Agus,Bambang,Joko,Hadi,Sutrisno,Slamet,Sugeng,Teguh,Hartono,Gunawan,Darmawan,Supriyadi,Haryanto,Suparman,Wahyu,Herman,Hendra,Irwan,Yusuf,Ahmad,Rudy,Halim,Effendi,Santoso,Sutanto,Johan,Robert,Yohanes,Paulus',
-    'Budi,Agus,Hendra,Andi,Dedi,Eko,Rudi,Joko,Wahyu,Hadi,Teguh,Irwan,Taufik,Arief,Yudi,Iwan,Hari,Benny,Johan,Hendrik,Robby,Ferry,Steven,Willy,Henry,Edwin,Gunawan,Sugianto,Kurniawan,Antonius',
-    'Rizky,Fajar,Dimas,Bayu,Dwi,Andre,Kevin,Michael,Yohanes,Ricky,Reza,Adi,Aditya,Rio,Rendy,Fikri,Ilham,Arif,Yoga,Hendra,Indra,Wahyu,Eko,Agung,Rangga,Dodi,Ivan,Jonathan,Felix,Calvin',
-    'Muhammad,Rafi,Raka,Bima,Arya,Daffa,Rizky,Farel,Kenzo,Nathan,Jason,Kevin,Christian,Matthew,Darren,Vincent,Bryan,Gilbert,Alvaro,Rafael,Aldo,Fauzan,Haikal,Reyhan,Dimas,Galih,Satria,Zidane,Kenneth,Jayden',
+    'Budi,Agus,Bambang,Joko,Hadi,Sutrisno,Slamet,Sugeng,Teguh,Hartono,Gunawan,Darmawan,Supriyadi,Haryanto,Suparman,Wahyu,Herman,Hendra,Irwan,Yusuf,Ahmad,Rudy,Halim,Effendi,Santoso,Sutanto,Johan,Robert,Yohanes,Paulus,Suryadi,Purnomo,Darmono,Sudarsono,Rahmat,Mulyadi,Kusnadi,Tjahjono,Andreas,Petrus,Harsono,Sukardi',
+    'Budi,Agus,Hendra,Andi,Dedi,Eko,Rudi,Joko,Wahyu,Hadi,Teguh,Irwan,Taufik,Arief,Yudi,Iwan,Hari,Benny,Johan,Hendrik,Robby,Ferry,Steven,Willy,Henry,Edwin,Gunawan,Sugianto,Kurniawan,Antonius,Wawan,Heru,Didik,Edi,Ronny,Danny,Albert,Hendri,Freddy,Teddy,Yanto,Sutrisno',
+    'Rizky,Fajar,Dimas,Bayu,Dwi,Andre,Kevin,Michael,Yohanes,Ricky,Reza,Adi,Aditya,Rio,Rendy,Fikri,Ilham,Arif,Yoga,Hendra,Indra,Wahyu,Eko,Agung,Rangga,Dodi,Ivan,Jonathan,Felix,Calvin,Rizal,Andika,Bagus,Yudha,Irfan,Gilang,Rendra,Kristian,Stefanus,Tommy,Billy,Erick',
+    'Muhammad,Rafi,Raka,Bima,Arya,Daffa,Rizky,Farel,Kenzo,Nathan,Jason,Kevin,Christian,Matthew,Darren,Vincent,Bryan,Gilbert,Alvaro,Rafael,Aldo,Fauzan,Haikal,Reyhan,Dimas,Galih,Satria,Zidane,Kenneth,Jayden,Fadli,Alif,Arkan,Elang,Gibran,Daniel,Samuel,Timothy,Evan,Ryan,Nicholas,Kenzie',
   ],
   F: [
-    'Sri,Siti,Dewi,Nur,Sumiati,Suharti,Sulastri,Kartini,Endang,Sutinah,Lestari,Wati,Yanti,Ratna,Ningsih,Rahayu,Suryani,Hartati,Sumarni,Murni,Tuti,Lilis,Erna,Lina,Lanny,Lily,Maria,Yuliana,Theresia,Susana',
-    'Dewi,Sri,Siti,Ratna,Indah,Wulan,Rina,Yanti,Lestari,Sari,Fitri,Kartika,Maya,Nina,Desi,Lina,Mega,Intan,Ayu,Diana,Yuli,Novi,Yenny,Lisa,Susanti,Yuliani,Sinta,Linda,Herlina,Elisabeth',
-    'Putri,Ayu,Dewi,Indah,Fitri,Intan,Dian,Rani,Nadia,Anisa,Citra,Mega,Novita,Rizka,Sinta,Tiara,Vina,Yuni,Amelia,Angela,Cindy,Jessica,Stephanie,Vanessa,Felicia,Michelle,Natalia,Grace,Cynthia,Wulan',
-    'Aisyah,Nabila,Salsabila,Zahra,Alya,Keisha,Naura,Azzahra,Khanza,Aurelia,Kayla,Nayla,Putri,Clarissa,Michelle,Jessica,Angelina,Felicia,Celine,Gabriella,Valerie,Vanessa,Cindy,Natasha,Sherly,Tasya,Bella,Shania,Cantika,Adinda',
+    'Sri,Siti,Dewi,Nur,Sumiati,Suharti,Sulastri,Kartini,Endang,Sutinah,Lestari,Wati,Yanti,Ratna,Ningsih,Rahayu,Suryani,Hartati,Sumarni,Murni,Tuti,Lilis,Erna,Lina,Lanny,Lily,Maria,Yuliana,Theresia,Susana,Endah,Ninik,Nanik,Sutini,Kustini,Margaretha,Agnes,Lucia,Helena,Wiwik,Tini,Sumiyati',
+    'Dewi,Sri,Siti,Ratna,Indah,Wulan,Rina,Yanti,Lestari,Sari,Fitri,Kartika,Maya,Nina,Desi,Lina,Mega,Intan,Ayu,Diana,Yuli,Novi,Yenny,Lisa,Susanti,Yuliani,Sinta,Linda,Herlina,Elisabeth,Anita,Yulia,Ratih,Retno,Evi,Liliana,Indriani,Fransiska,Veronika,Melinda,Yohana,Wiwik',
+    'Putri,Ayu,Dewi,Indah,Fitri,Intan,Dian,Rani,Nadia,Anisa,Citra,Mega,Novita,Rizka,Sinta,Tiara,Vina,Yuni,Amelia,Angela,Cindy,Jessica,Stephanie,Vanessa,Felicia,Michelle,Natalia,Grace,Cynthia,Wulan,Lia,Siska,Melati,Kirana,Laras,Dinda,Monica,Priscilla,Sarah,Agustina,Veronica,Shinta',
+    'Aisyah,Nabila,Salsabila,Zahra,Alya,Keisha,Naura,Azzahra,Khanza,Aurelia,Kayla,Nayla,Putri,Clarissa,Michelle,Jessica,Angelina,Felicia,Celine,Gabriella,Valerie,Vanessa,Cindy,Natasha,Sherly,Tasya,Bella,Shania,Cantika,Adinda,Nadine,Alicia,Kirana,Salma,Hana,Zaskia,Najwa,Freya,Kezia,Grace,Clara,Olivia',
   ],
 };
 
 // Other Asian origins (Nepal, Sri Lanka, Mongolia, Tibet, Malaysia, Bhutan ...): one era-neutral pool.
 GIVEN['asian-other'] = {
+  z: 0.2,   // many countries in one pool
   base: {
     M: 'Prakash,Bishnu,Hari,Krishna,Suman,Bikash,Sanjay,Dipak,Sunil,Binod,Sagar,Prabin,Sujan,Nabin,Bibek,Saroj,Nimal,Chaminda,Kasun,Ruwan,Nuwan,Saman,Lakshman,Chathura,Tharindu,Tenzin,Dorje,Pema,Karma,Sonam,Tashi,Dawa,Bat,Bold,Ganbaatar,Batbayar,Erdene,Ahmad,Hafiz,Azman,Faizal,Kumar,Rajan,Kelvin,Wei',
     F: 'Sita,Gita,Sunita,Laxmi,Sarita,Anita,Puja,Srijana,Sabina,Rina,Bimala,Shanti,Manju,Kabita,Asmita,Pratima,Rojina,Dilini,Nadeesha,Chamari,Sanduni,Nirosha,Ishara,Thilini,Kumari,Malini,Anoma,Tenzin,Pema,Dolma,Lhamo,Yangchen,Sonam,Tuya,Oyun,Saraa,Enkhjargal,Nurul,Siti,Aisyah,Farah,Mei,Priya,Shalini',
@@ -661,33 +676,35 @@ GIVEN['african-american'] = {
 
 // Ethiopia and Eritrea (Amharic, Tigrinya and Oromo names; Oakland, San Jose and Los Angeles).
 GIVEN.ethiopian = {
+  z: 0.25,
   M: [
     'Abebe,Tesfaye,Getachew,Tadesse,Girma,Alemayehu,Kebede,Mulugeta,Mekonnen,Haile,Bekele,Tekle,Berhane,Gebre,Yohannes,Solomon,Assefa,Alemu,Desta,Wondimu,Tilahun,Lemma,Negash,Shiferaw,Worku,Asfaw,Ayele,Demissie,Fikre,Gebremedhin,Habte,Kidane,Mengesha,Tsegaye,Woldemariam,Zewdu,Amare,Belay,Taye,Teshome',
     'Dawit,Yohannes,Solomon,Daniel,Samuel,Tewodros,Bereket,Mesfin,Yonas,Henok,Elias,Fikru,Habtamu,Mulugeta,Getachew,Tesfaye,Biniam,Tekle,Berhane,Tesfay,Goitom,Yemane,Haile,Mekonnen,Abraham,Ephrem,Wondwossen,Zelalem,Ermias,Girma,Kibrom,Mehari,Michael,Million,Nebiyu,Tadele,Teklu,Yared,Zerihun,Fitsum',
     'Dawit,Yonas,Henok,Biniam,Abel,Natnael,Robel,Amanuel,Kidus,Eyob,Nahom,Mikias,Fitsum,Ermias,Filmon,Samson,Haben,Bereket,Yared,Nebiyu,Elias,Daniel,Samuel,Michael,Yohannes,Solomon,Tewodros,Kaleb,Naod,Yafet,Abenezer,Dagim,Mussie,Semere,Yosef,Biruk,Leul,Tesfalem,Sirak,Tsegay',
-    'Kidus,Nahom,Natnael,Abel,Eyob,Yafet,Naod,Abenezer,Dagim,Kaleb,Mikias,Amanuel,Robel,Biruk,Leul,Yosef,Elias,Henok,Yonas,Nathan,Barok,Ezana,Haben,Bemnet,Samuel,Daniel,Abraham,Isaiah,Kirubel,Mussie',
+    'Kidus,Nahom,Natnael,Abel,Eyob,Yafet,Naod,Abenezer,Dagim,Kaleb,Mikias,Amanuel,Robel,Biruk,Leul,Yosef,Elias,Henok,Yonas,Nathan,Barok,Ezana,Haben,Bemnet,Samuel,Daniel,Abraham,Isaiah,Kirubel,Mussie,Yonatan,Bisrat,Eyasu,Fasil,Dagmawi,Mesay,Ermiyas,Yared,Bereket,Dawit,Michael,Solomon',
   ],
   F: [
     'Almaz,Tsehay,Genet,Abeba,Aster,Mulu,Yeshi,Zewditu,Belaynesh,Etenesh,Tiruwork,Askale,Tsige,Hirut,Konjit,Tigist,Werknesh,Alem,Azeb,Elsa,Saba,Senait,Mebrat,Lemlem,Tsega,Yeshimebet,Zenebech,Wubit,Bizunesh,Meseret,Shewaye,Tirunesh,Abebech,Asnakech,Birtukan,Emebet,Fantaye,Workinesh,Tsedale,Amsale',
     'Tigist,Hiwot,Meron,Selam,Hana,Bethlehem,Mahlet,Rahel,Saba,Senait,Martha,Tsion,Meseret,Kidist,Helen,Elsa,Hirut,Konjit,Genet,Azeb,Mekdes,Selamawit,Lidya,Ruth,Yordanos,Eden,Sara,Netsanet,Frehiwot,Mihret,Nardos,Tirsit,Winta,Feven,Luwam,Semhar,Ruta,Yodit,Wudase,Abrehet',
     'Bethlehem,Mahlet,Meron,Hiwot,Selam,Tsion,Liya,Ruth,Eden,Helen,Hana,Rahel,Saba,Feven,Winta,Selamawit,Lidya,Bilen,Eyerusalem,Mekdes,Nardos,Mihret,Kidist,Yordanos,Tizita,Semhar,Luwam,Ruta,Yodit,Senait,Bezawit,Hermela,Metasebia,Rediet,Samrawit,Sara,Ariam,Danait,Hanna,Betelhem',
-    'Liya,Eden,Hermela,Bethel,Arsema,Abigiya,Ruhama,Yeabsira,Kalkidan,Mekdelawit,Hosana,Rediet,Bemnet,Fenet,Hana,Selam,Tsion,Nardos,Mahlet,Mihret,Feven,Winta,Ariam,Danait,Ruta,Saron,Elsabet,Lydia,Sofia,Meklit',
+    'Liya,Eden,Hermela,Bethel,Arsema,Abigiya,Ruhama,Yeabsira,Kalkidan,Mekdelawit,Hosana,Rediet,Bemnet,Fenet,Hana,Selam,Tsion,Nardos,Mahlet,Mihret,Feven,Winta,Ariam,Danait,Ruta,Saron,Elsabet,Lydia,Sofia,Meklit,Meron,Hiwot,Bethlehem,Selamawit,Mariamawit,Rahel,Kidist,Helen,Eyerusalem,Yordanos,Mekdes,Ruth',
   ],
 };
 
 // Nigeria (Yoruba, Igbo and Hausa names alongside the English Christian names in wide use).
 GIVEN.nigerian = {
+  z: 0.2,   // Yoruba and Igbo names are diverse (the English Christian names less so)
   M: [
     'Olusegun,Adebayo,Babatunde,Oluwole,Adewale,Olufemi,Akinwale,Oladipo,Chukwuemeka,Nnamdi,Ikechukwu,Obinna,Emmanuel,Samuel,John,Joseph,Peter,Michael,Godwin,Sunday,Felix,Gabriel,Ibrahim,Musa,Abdullahi,Aliyu,Usman,Ifeanyi,Chinedu,Okechukwu,Adeyemi,Oluseyi,Kayode,Ayodele,Kehinde,Taiwo,Festus,Augustine,Cyril,Christopher',
     'Oluwaseun,Olumide,Adebayo,Babatunde,Oluwafemi,Tunde,Femi,Segun,Kunle,Emeka,Chukwuemeka,Chinedu,Obinna,Ikenna,Nnamdi,Uche,Chidi,Ifeanyi,Tochukwu,Kelechi,Ayodele,Ibrahim,Musa,Emmanuel,Samuel,Daniel,David,Joseph,Michael,John,Victor,Godwin,Gbenga,Rotimi,Yemi,Kayode,Dapo,Wale,Abiodun,Ikechukwu',
     'Oluwaseun,Oluwatobi,Damilola,Ebuka,Chibuzo,Chukwudi,Somto,Ifeanyi,Obinna,Kelechi,Tochukwu,Emeka,Nnamdi,Ikenna,Tobi,Seyi,Tolu,Femi,Kunle,Tayo,Dayo,Bayo,Abdul,Ahmed,Ibrahim,Emmanuel,David,Daniel,Samuel,Victor,Joshua,Michael,Stephen,Anthony,Kingsley,Collins,Chinonso,Chiedu,Ugochukwu,Opeyemi',
-    'David,Daniel,Emmanuel,Joshua,Samuel,Divine,Toluwani,Ayomide,Oluwadamilare,Inioluwa,Feranmi,Chidubem,Chukwuebuka,Kamsiyochukwu,Somtochukwu,Munachi,Ifeoluwa,Mubarak,Ibrahim,Ahmed,Elijah,Isaac,Jeremiah,Joel,Nathan,Tobenna,Chimdi,Ebube,Tomiwa,Ayodeji,Kolade,Fikayomi',
+    'David,Daniel,Emmanuel,Joshua,Samuel,Divine,Toluwani,Ayomide,Oluwadamilare,Inioluwa,Feranmi,Chidubem,Chukwuebuka,Kamsiyochukwu,Somtochukwu,Munachi,Ifeoluwa,Mubarak,Ibrahim,Ahmed,Elijah,Isaac,Jeremiah,Joel,Nathan,Tobenna,Chimdi,Ebube,Tomiwa,Ayodeji,Kolade,Fikayomi,Michael,Victor,Godswill,Tobiloba,Oreoluwa,Kenechukwu,Olamide,Ademola,Zion,Caleb',
   ],
   F: [
     'Folake,Funmilayo,Yetunde,Bukola,Ngozi,Nkechi,Chinwe,Ifeoma,Ijeoma,Uchenna,Titilayo,Abimbola,Omolara,Morenike,Aisha,Fatima,Hauwa,Zainab,Grace,Esther,Mercy,Comfort,Patience,Felicia,Victoria,Elizabeth,Mary,Juliana,Christiana,Bose,Iyabo,Kemi,Toyin,Bisi,Adunni,Modupe,Olufunke,Ebere,Nneka,Chioma',
     'Folake,Funmilayo,Funke,Yetunde,Bukola,Adaeze,Chioma,Ngozi,Nkechi,Amaka,Chinwe,Ifeoma,Ijeoma,Adaobi,Uchenna,Chiamaka,Oluwakemi,Kemi,Titilayo,Toyin,Bisi,Abimbola,Omolara,Temitope,Damilola,Oluwaseun,Morenike,Aisha,Fatima,Hauwa,Zainab,Blessing,Grace,Esther,Mercy,Joy,Patience,Comfort,Faith,Gift',
     'Chiamaka,Adaeze,Chioma,Ifeoma,Ngozi,Nneka,Amarachi,Chinonso,Chidinma,Ebere,Uju,Oluwatoyin,Temitope,Damilola,Oluwaseun,Tolulope,Opeyemi,Bolanle,Funmilola,Yewande,Adenike,Folasade,Ayomide,Blessing,Precious,Favour,Peace,Joy,Grace,Esther,Deborah,Ruth,Aisha,Zainab,Fatima,Halima,Khadijat,Bukola,Ifeoluwa,Oyinkansola',
-    'Favour,Precious,Blessing,Esther,Deborah,Goodness,Miracle,Praise,Divine,Chimamanda,Zikora,Adaora,Chiamaka,Amara,Ifeoluwa,Oluwanifemi,Fikayomi,Tiwatope,Ayomide,Inioluwa,Morayo,Oyinkansola,Ireoluwa,Tamilore,Simisola,Anuoluwapo,Fatima,Aisha,Maryam,Zainab,Halima,Hadiza,Chisom,Kamsi,Nkem,Ebube,Munachi,Olivia',
+    'Favour,Precious,Blessing,Esther,Deborah,Goodness,Miracle,Praise,Divine,Chimamanda,Zikora,Adaora,Chiamaka,Amara,Ifeoluwa,Oluwanifemi,Fikayomi,Tiwatope,Ayomide,Inioluwa,Morayo,Oyinkansola,Ireoluwa,Tamilore,Simisola,Anuoluwapo,Fatima,Aisha,Maryam,Zainab,Halima,Hadiza,Chisom,Kamsi,Nkem,Ebube,Munachi,Olivia,Temiloluwa,Ifunanya,Kosisochukwu,Oluwatosin',
   ],
 };
 
@@ -709,6 +726,7 @@ GIVEN.caribbean = {
 
 // Other African origins (Ghana, Kenya, Somalia, Senegal and Mali, Cameroon, Uganda, Zimbabwe, South Africa).
 GIVEN.african = {
+  z: 0.2,   // many countries in one pool
   base: {
     M: 'Kwame,Kofi,Kwabena,Yaw,Kojo,Kwaku,Kwasi,Kwadwo,Nana,Kamau,Mwangi,Otieno,Odhiambo,Ochieng,Kariuki,Njoroge,Wafula,Mutua,Abdi,Ahmed,Hassan,Abdirahman,Abdullahi,Mohamed,Omar,Ali,Yusuf,Mamadou,Moussa,Ibrahima,Ousmane,Abdoulaye,Amadou,Cheikh,Modou,Lamine,Boubacar,Emmanuel,Samuel,Joseph,Daniel,Isaac,Patrick,Francis,Godfrey,Felix,Moses,Peter,Charles,Thabo,Sipho,Tendai,Tafadzwa,Jean-Pierre',
     F: 'Ama,Abena,Akosua,Adwoa,Efua,Afia,Yaa,Akua,Esi,Adjoa,Wanjiru,Njeri,Wambui,Wanjiku,Achieng,Akinyi,Atieno,Nyambura,Muthoni,Hodan,Fadumo,Halima,Asha,Hawa,Sahra,Ayan,Sagal,Ifrah,Maryan,Amina,Fatoumata,Aminata,Mariama,Aissatou,Kadiatou,Awa,Binta,Ndeye,Grace,Esther,Mercy,Joyce,Faith,Gladys,Florence,Agnes,Christine,Josephine,Rose,Nomsa,Thandiwe,Rudo,Chipo,Nyasha',
@@ -716,14 +734,14 @@ GIVEN.african = {
   M: [
     '',
     '',
-    'Emmanuel,Samuel,Daniel,David,Kelvin,Brian,Dennis,Collins,Felix,Eric,Kevin,Victor,Abdi,Mohamed,Ibrahim,Moussa,Kwame,Kofi,Yaw,Otieno',
-    'Jayden,Ethan,Daniel,David,Samuel,Elijah,Joshua,Isaac,Nathan,Ryan,Ayaan,Yusuf,Mohamed,Abdirahman,Ibrahim,Kwame,Kofi,Nana,Jordan,Liam',
+    'Emmanuel,Samuel,Daniel,David,Kelvin,Brian,Dennis,Collins,Felix,Eric,Kevin,Victor,Abdi,Mohamed,Ibrahim,Moussa,Kwame,Kofi,Yaw,Otieno,Allan,Alex,Bernard,Hassan,Musa,Martin',
+    'Jayden,Ethan,Daniel,David,Samuel,Elijah,Joshua,Isaac,Nathan,Ryan,Ayaan,Yusuf,Mohamed,Abdirahman,Ibrahim,Kwame,Kofi,Nana,Jordan,Liam,Amir,Adam,Joel,Caleb,Kwesi,Noah',
   ],
   F: [
     '',
     '',
-    'Grace,Faith,Mercy,Joyce,Sharon,Diana,Brenda,Esther,Christine,Lilian,Hodan,Ifrah,Sagal,Ayan,Fatoumata,Aminata,Abena,Ama,Wanjiru,Achieng',
-    'Ella,Zoe,Abigail,Hannah,Naomi,Grace,Faith,Precious,Amani,Imani,Nia,Zuri,Amina,Hafsa,Ayan,Sumaya,Ama,Abena,Akosua,Wanjiru',
+    'Grace,Faith,Mercy,Joyce,Sharon,Diana,Brenda,Esther,Christine,Lilian,Hodan,Ifrah,Sagal,Ayan,Fatoumata,Aminata,Abena,Ama,Wanjiru,Achieng,Sandra,Purity,Winnie,Fatuma,Aisha,Linda',
+    'Ella,Zoe,Abigail,Hannah,Naomi,Grace,Faith,Precious,Amani,Imani,Nia,Zuri,Amina,Hafsa,Ayan,Sumaya,Ama,Abena,Akosua,Wanjiru,Aaliyah,Zainab,Maryam,Ruth,Emmanuella,Joy',
   ],
 };
 
@@ -735,24 +753,24 @@ GIVEN.armenian = {
     'Hagop,Garabed,Krikor,Kevork,Sarkis,Hovhannes,Bedros,Haroutioun,Avedis,Vartan,Levon,Ara,Aram,Armen,Mihran,Nishan,Antranig,Zaven,Vahe,Hrant,Ohannes,Setrak,Toros,Yervant,Asadour,Dikran,Manoug,Misak,Nerses,Onnig,Shahe,Vazken,Yeghia,Zareh,Ashot,Grigor,Gevorg,Samvel,Vardan,Karapet,Suren,Hakob,Mkrtich,Khachatur',
     'Armen,Ara,Aram,Ashot,Artur,Arsen,Gevorg,Grigor,Hayk,Karen,Levon,Mher,Raffi,Sarkis,Sevak,Tigran,Vahe,Vahan,Vazgen,Hrant,Samvel,Suren,Gagik,Garnik,Artak,Davit,Edgar,Hakob,Harutyun,Hovhannes,Norayr,Robert,Ruben,Sargis,Varuzhan,Vardan,Shant,Sako,Vrej,Garo,Hagop,Kevork,Viken,Armenak',
     'Narek,Arman,Davit,Gor,Hayk,Tigran,Arsen,Erik,Edgar,Gevorg,Aram,Armen,Arthur,Hovhannes,Levon,Mher,Raffi,Sevak,Shant,Vahe,Vardan,Aren,Areg,Karen,Robert,Ruben,Samvel,Sargis,Vrezh,Hrach,Artyom,Garen,Ara,Alex,Arno,Vahagn,Gagik,Harut,Hakob,Hovsep',
-    'Narek,Davit,Mark,Arman,Hayk,Tigran,Gor,Erik,Alex,Aren,Areg,Mher,Levon,Hovhannes,Gevorg,Samvel,Aram,Arsen,Daniel,Robert,Ruben,Vahe,Vahagn,Leo,Raffi,Arthur,Sevak,Armen,Albert,Edgar,Michael,Gabriel,Garen,Harut,Ashot,Hakob,Sarkis,Grigor',
+    'Narek,Davit,Mark,Arman,Hayk,Tigran,Gor,Erik,Alex,Aren,Areg,Mher,Levon,Hovhannes,Gevorg,Samvel,Aram,Arsen,Daniel,Robert,Ruben,Vahe,Vahagn,Leo,Raffi,Arthur,Sevak,Armen,Albert,Edgar,Michael,Gabriel,Garen,Harut,Ashot,Hakob,Sarkis,Grigor,Artyom,Henrik,Mikael,Vardan',
   ],
   F: [
     'Arpi,Siranoush,Anahid,Zabel,Araksi,Nvard,Gohar,Hasmik,Haykanoush,Ani,Arshaluys,Sirarpi,Houri,Silva,Takouhi,Mariam,Lusine,Seta,Vartouhi,Azniv,Anoush,Knarik,Shoushan,Rose,Alice,Satenik,Varsenik,Zaruhi,Astghik,Margarit,Sona,Hripsime,Ovsanna,Armenouhi,Arousiag,Hermine,Lucine,Nazeli,Marie,Elmast',
     'Anahit,Ani,Anush,Armine,Arpi,Astghik,Gayane,Hasmik,Karine,Lilit,Lusine,Marine,Mariam,Narine,Nune,Ruzanna,Seda,Sona,Siranush,Tamar,Taguhi,Zara,Arevik,Hripsime,Knarik,Shushan,Satenik,Silva,Talin,Nairi,Maral,Lucine,Sossi,Houri,Rubina,Sirarpi,Ruzan,Gohar,Emma,Elen',
     'Ani,Lilit,Anna,Mariam,Tatevik,Nare,Arpine,Lusine,Armine,Anahit,Meri,Hasmik,Tamar,Talin,Nairi,Sevana,Arev,Gayane,Sona,Seda,Christine,Lena,Elen,Milena,Lianna,Narine,Kristine,Diana,Elena,Silva,Maral,Karina,Marine,Lucine,Ruzanna,Astghik,Anush,Gohar,Shushanik,Natalie',
-    'Mariam,Ani,Nare,Lilit,Elen,Milena,Anna,Mane,Eva,Yeva,Arpi,Tatev,Sofia,Emma,Mila,Ariana,Lia,Nairi,Talin,Sevana,Arev,Areni,Anahit,Seda,Maria,Diana,Victoria,Alina,Arina,Eliza,Liana,Isabella,Arsine,Lucine,Natalie,Angela,Gayane,Lusine',
+    'Mariam,Ani,Nare,Lilit,Elen,Milena,Anna,Mane,Eva,Yeva,Arpi,Tatev,Sofia,Emma,Mila,Ariana,Lia,Nairi,Talin,Sevana,Arev,Areni,Anahit,Seda,Maria,Diana,Victoria,Alina,Arina,Eliza,Liana,Isabella,Arsine,Lucine,Natalie,Angela,Gayane,Lusine,Meri,Nane,Elina,Marie',
   ],
   us: {
     M: [
-      'Ara,Aram,Armen,Haig,Hagop,Garo,Vahe,Levon,Raffi,George,Arthur,Harry,Edward,Charles,Richard,Kirk',
-      'Ara,Aram,Armen,Raffi,Shant,Haig,Garo,Vahe,Levon,Arthur,Michael,David,Mark,Steven,Paul,Robert,Gregory,Hovsep',
+      'Ara,Aram,Armen,Haig,Hagop,Garo,Vahe,Levon,Raffi,George,Arthur,Harry,Edward,Charles,Richard,Kirk,Vartan,Krikor,Sarkis,Hovsep,Leon,Martin',
+      'Ara,Aram,Armen,Raffi,Shant,Haig,Garo,Vahe,Levon,Arthur,Michael,David,Mark,Steven,Paul,Robert,Gregory,Hovsep,Vartan,Krikor,Sarkis,Nishan,Kevork',
       'Raffi,Aram,Armen,Shant,Ara,Levon,Narek,Areg,Hayk,Tigran,Davit,Alex,Erik,Mark,Andre,Christopher,Michael,Daniel,George,Gabriel,Adrian,Arin,Sevak,Vahe',
       'Narek,Aram,Raffi,Levon,Areg,Aren,Hayk,Tigran,Davit,Alex,Erik,Mark,Leo,Adrian,Gabriel,Daniel,Michael,Christopher,Arman,Sevan,Vahan,Ethan,Adam,Gor',
     ],
     F: [
-      'Alice,Rose,Mary,Anna,Helen,Lucy,Grace,Margaret,Virginia,Arpi,Siran,Zabel,Seta,Silva,Ani,Nevart',
-      'Talin,Lori,Christine,Nairi,Ani,Arpi,Lucine,Maral,Tamar,Seta,Silva,Karine,Nicole,Diana,Lisa,Michelle,Sossi,Houry',
+      'Alice,Rose,Mary,Anna,Helen,Lucy,Grace,Margaret,Virginia,Arpi,Siran,Zabel,Seta,Silva,Ani,Nevart,Araxie,Victoria,Elizabeth,Lucine,Mariam,Sona',
+      'Talin,Lori,Christine,Nairi,Ani,Arpi,Lucine,Maral,Tamar,Seta,Silva,Karine,Nicole,Diana,Lisa,Michelle,Sossi,Houry,Sona,Lena,Linda,Susan,Arpine,Hasmik',
       'Talin,Nairi,Ani,Sevana,Lucine,Maral,Tamar,Nareh,Sona,Lena,Natalie,Ariana,Mariam,Christine,Karine,Nicole,Diana,Seda,Arpi,Anahid,Lilit,Melanie,Tiffany,Arineh',
       'Ani,Nairi,Talin,Sevana,Ariana,Mariam,Ella,Lilit,Anahid,Sona,Lena,Natalie,Sofia,Isabella,Mila,Eva,Areni,Nareh,Arev,Lucine,Emma,Sophia,Liana,Victoria',
     ],
@@ -778,10 +796,10 @@ GIVEN.iranian = {
 // The Arab world (Lebanon, Syria, Palestine, Jordan, Iraq, Egypt, Yemen; Muslim and Christian families).
 GIVEN.arab = {
   M: [
-    'Mohammed,Ahmad,Ali,Mahmoud,Hassan,Hussein,Ibrahim,Mustafa,Khalil,Youssef,Abdullah,Salim,Saleh,Jamil,Fouad,Nabil,Sami,Adel,Khaled,Farouk,Walid,Nasser,Samir,Fawzi,Elias,Georges,Michel,Antoine,Joseph,Naim,Emile,Faris,Hanna,Issa,Suleiman,Aziz,Kamal,Majid,Rashid,Tawfiq',
-    'Mohammed,Ahmad,Ali,Omar,Khaled,Mahmoud,Mustafa,Hassan,Hussein,Ibrahim,Youssef,Samir,Nabil,Walid,Karim,Tarek,Fadi,Rami,Bassam,Ziad,Imad,Hani,Jamal,Majed,Nasser,Sami,Adel,Amjad,Bilal,Elias,George,Fouad,Michel,Tony,Maher,Raed,Wael,Haitham,Marwan,Emad',
-    'Mohammed,Ahmad,Omar,Ali,Khaled,Mahmoud,Mustafa,Hamza,Bilal,Yazan,Anas,Zaid,Ammar,Ibrahim,Youssef,Hassan,Hussein,Fadi,Rami,Tarek,Karim,Sami,Ziad,Majd,Mohannad,Laith,Mazen,Firas,Nader,Hadi,Ayman,Osama,Saif,Basel,Ihab,Elie,Georges,Charbel,Rabih,Fares',
-    'Mohammed,Adam,Omar,Ali,Yousef,Ahmad,Hamza,Zaid,Yazan,Ibrahim,Abdullah,Karim,Hadi,Rayan,Elias,Malik,Sami,Amir,Hassan,Hussein,Mustafa,Khalid,Jad,Ryan,Taim,Tamer,Zain,Majd,Laith,Ismail,Bilal,Anas,Ammar,Charbel,Joseph,Daniel,Fares,Yahya,Eyad,Kenan',
+    'Mohammed*1.5,Ahmad,Ali,Mahmoud,Hassan,Hussein,Ibrahim,Mustafa,Khalil,Youssef,Abdullah,Salim,Saleh,Jamil,Fouad,Nabil,Sami,Adel,Khaled,Farouk,Walid,Nasser,Samir,Fawzi,Elias,Georges,Michel,Antoine,Joseph,Naim,Emile,Faris,Hanna,Issa,Suleiman,Aziz,Kamal,Majid,Rashid,Tawfiq',
+    'Mohammed*1.5,Ahmad,Ali,Omar,Khaled,Mahmoud,Mustafa,Hassan,Hussein,Ibrahim,Youssef,Samir,Nabil,Walid,Karim,Tarek,Fadi,Rami,Bassam,Ziad,Imad,Hani,Jamal,Majed,Nasser,Sami,Adel,Amjad,Bilal,Elias,George,Fouad,Michel,Tony,Maher,Raed,Wael,Haitham,Marwan,Emad',
+    'Mohammed*1.5,Ahmad,Omar,Ali,Khaled,Mahmoud,Mustafa,Hamza,Bilal,Yazan,Anas,Zaid,Ammar,Ibrahim,Youssef,Hassan,Hussein,Fadi,Rami,Tarek,Karim,Sami,Ziad,Majd,Mohannad,Laith,Mazen,Firas,Nader,Hadi,Ayman,Osama,Saif,Basel,Ihab,Elie,Georges,Charbel,Rabih,Fares',
+    'Mohammed*1.5,Adam,Omar,Ali,Yousef,Ahmad,Hamza,Zaid,Yazan,Ibrahim,Abdullah,Karim,Hadi,Rayan,Elias,Malik,Sami,Amir,Hassan,Hussein,Mustafa,Khalid,Jad,Ryan,Taim,Tamer,Zain,Majd,Laith,Ismail,Bilal,Anas,Ammar,Charbel,Joseph,Daniel,Fares,Yahya,Eyad,Kenan',
   ],
   F: [
     'Fatima,Amina,Khadija,Zeinab,Aisha,Mariam,Samira,Nadia,Laila,Najwa,Souad,Wafa,Hanan,Huda,Amal,Salwa,Siham,Nawal,Fadia,Hayat,Jamila,Wadad,Afaf,Ibtisam,Hind,Raja,Inaam,Samia,Mona,Ghada,Nabila,Georgette,Marie,Therese,Hasna,Fairuz,Nuha,Najat,Sabah,Layla',
@@ -798,16 +816,16 @@ GIVEN.assyrian = {
     F: 'Shamiram,Ninva,Atour,Ninwe,Bella,Juliet,Lena,Maryam,Martha,Ramina,Shamiran,Sonia,Linda,Nahrain,Ninorta,Neshmaya,Esther,Rosa,Helen,Jandark,Klara,Layla,Nadia,Nancy,Natalie,Nisreen,Atra,Ashurina,Nineveh,Elishwa,Warda,Susan,Victoria,Diana,Christina,Janet,Nina,Samira,Mariam,Shlama',
   },
   M: [
-    'Odisho,Khoshaba,Youkhana,Gewargis,Hormiz,Yacoub,Shimon,Aprim,Isho,Toma,Khamis,Yonan,Hanna,Dinkha,Benyamin,Lazar,Elias,Joseph,George,Albert',
-    'Sargon,Ashur,Ninos,Wilson,Edison,Raymond,Alfred,Sami,Fadi,Ramsin,Nimrod,Yousif,Daniel,David,Emmanuel,Peter,Albert,Ashour,Narsai,Atniel',
-    'Ninos,Sargon,Ashur,Ramsin,Nineb,Daniel,David,Andrew,Michael,Steven,Christopher,Johnny,Fadi,Sami,Ashour,Nimrod,Emmanuel,Wilson,Edison,Raymond',
-    'Ninos,Sargon,Ashur,Ramsin,Nineb,Daniel,David,Adam,Andrew,Michael,Elijah,Gabriel,Adrian,Christian,Ethan,Lucas,Atour,Nathan,Noah,Ryan',
+    'Odisho,Khoshaba,Youkhana,Gewargis,Hormiz,Yacoub,Shimon,Aprim,Isho,Toma,Khamis,Yonan,Hanna,Dinkha,Benyamin,Lazar,Elias,Joseph,George,Albert,Zaia,Shlimon,Polus,Oraham,Ablahad,Yaqo,Ishaya,Shmouel',
+    'Sargon,Ashur,Ninos,Wilson,Edison,Raymond,Alfred,Sami,Fadi,Ramsin,Nimrod,Yousif,Daniel,David,Emmanuel,Peter,Albert,Ashour,Narsai,Atniel,Basim,Nabil,Sabri,Raad,Samir,Emad,Romeo,Edmond',
+    'Ninos,Sargon,Ashur,Ramsin,Nineb,Daniel,David,Andrew,Michael,Steven,Christopher,Johnny,Fadi,Sami,Ashour,Nimrod,Emmanuel,Wilson,Edison,Raymond,Rami,Martin,Mark,Andre,Remon,Sargis,Paulus,Robin',
+    'Ninos,Sargon,Ashur,Ramsin,Nineb,Daniel,David,Adam,Andrew,Michael,Elijah,Gabriel,Adrian,Christian,Ethan,Lucas,Atour,Nathan,Noah,Ryan,Isaac,Aiden,Yousif,Elias,Benjamin,Raphael,Luca,Zaia',
   ],
   F: [
-    'Maryam,Martha,Esther,Shamiran,Warda,Elishwa,Helen,Rosa,Klara,Juliet,Victoria,Susan,Layla,Samira,Mariam,Nadia,Shlama,Linda,Sonia,Janet',
-    'Shamiram,Ninva,Atour,Bella,Juliet,Lena,Ramina,Sonia,Linda,Nahrain,Jandark,Nancy,Nisreen,Diana,Christina,Janet,Nina,Samira,Nadia,Natalie',
-    'Ninva,Atour,Shamiram,Ninorta,Nahrain,Neshmaya,Ramina,Natalie,Christina,Nancy,Jessica,Monica,Diana,Lena,Nina,Bella,Atra,Ashurina,Nineveh,Sonia',
-    'Ninva,Atour,Shamiram,Ninorta,Nahrain,Neshmaya,Atra,Ashurina,Nineveh,Natalie,Sophia,Isabella,Mia,Ella,Emma,Lena,Bella,Nina,Mariam,Ava',
+    'Maryam,Martha,Esther,Shamiran,Warda,Elishwa,Helen,Rosa,Klara,Juliet,Victoria,Susan,Layla,Samira,Mariam,Nadia,Shlama,Linda,Sonia,Janet,Sarah,Shmoni,Rachel,Yonia,Lucia,Najiba,Jamila,Margaret',
+    'Shamiram,Ninva,Atour,Bella,Juliet,Lena,Ramina,Sonia,Linda,Nahrain,Jandark,Nancy,Nisreen,Diana,Christina,Janet,Nina,Samira,Nadia,Natalie,Suzan,Nawal,Rana,Hala,Dina,Rita,Marlin,Samar',
+    'Ninva,Atour,Shamiram,Ninorta,Nahrain,Neshmaya,Ramina,Natalie,Christina,Nancy,Jessica,Monica,Diana,Lena,Nina,Bella,Atra,Ashurina,Nineveh,Sonia,Sandra,Rita,Nadine,Marina,Lina,Rana,Sarah,Rebecca',
+    'Ninva,Atour,Shamiram,Ninorta,Nahrain,Neshmaya,Atra,Ashurina,Nineveh,Natalie,Sophia,Isabella,Mia,Ella,Emma,Lena,Bella,Nina,Mariam,Ava,Arianna,Hannah,Leah,Zoe,Layla,Sarah,Maria,Lydia',
   ],
 };
 
@@ -833,48 +851,49 @@ GIVEN.russian = {
 // gave their California-born children Biblical names).
 GIVEN.ukrainian = {
   M: [
-    'Volodymyr,Mykola,Ivan,Vasyl,Petro,Mykhailo,Stepan,Hryhoriy,Fedir,Anatoliy,Yuriy,Viktor,Pavlo,Leonid,Borys,Oleksandr,Andriy,Taras,Bohdan,Yaroslav,Myroslav,Orest,Roman,Ostap,Dmytro,Semen,Yakiv,Kostiantyn,Danylo',
-    'Oleksandr,Serhiy,Andriy,Volodymyr,Oleh,Ihor,Yuriy,Mykola,Viktor,Vitaliy,Ruslan,Vadym,Dmytro,Oleksiy,Roman,Vasyl,Petro,Ivan,Taras,Bohdan,Yaroslav,Valentyn,Yevhen,Maksym,Denys,Pavel,Sergey,Vasiliy,Nikolay,Anatoliy',
-    'Oleksandr,Andriy,Dmytro,Serhiy,Maksym,Oleksiy,Artem,Vladyslav,Denys,Yevhen,Ivan,Mykola,Roman,Taras,Bohdan,Yaroslav,Volodymyr,Vitaliy,Ruslan,Vadym,Nazar,Kyrylo,Illia,Danylo,Pavlo,Yuriy,Igor,Pavel,Daniel,David',
-    'Maksym,Artem,Oleksandr,Matviy,Danylo,Nazar,Bohdan,Tymofiy,Mark,Ivan,Dmytro,Kyrylo,Illia,Andriy,Roman,Yaroslav,Denys,Mykhailo,Daniel,David,Timothy,Samuel,Nathan,Benjamin,Eli,Joel,Ruslan,Taras,Ostap',
+    'Volodymyr,Mykola,Ivan,Vasyl,Petro,Mykhailo,Stepan,Hryhoriy,Fedir,Anatoliy,Yuriy,Viktor,Pavlo,Leonid,Borys,Oleksandr,Andriy,Taras,Bohdan,Yaroslav,Myroslav,Orest,Roman,Ostap,Dmytro,Semen,Yakiv,Kostiantyn,Danylo,Yosyp,Ihnat,Zinoviy,Lev,Oleksiy,Serhiy,Heorhiy,Yevhen,Tymofiy,Vitaliy,Anton,Kyrylo',
+    'Oleksandr,Serhiy,Andriy,Volodymyr,Oleh,Ihor,Yuriy,Mykola,Viktor,Vitaliy,Ruslan,Vadym,Dmytro,Oleksiy,Roman,Vasyl,Petro,Ivan,Taras,Bohdan,Yaroslav,Valentyn,Yevhen,Maksym,Denys,Pavel,Sergey,Vasiliy,Nikolay,Anatoliy,Mykhailo,Stepan,Valeriy,Hennadiy,Leonid,Borys,Arkadiy,Kostiantyn,Eduard,Stanislav',
+    'Oleksandr,Andriy,Dmytro,Serhiy,Maksym,Oleksiy,Artem,Vladyslav,Denys,Yevhen,Ivan,Mykola,Roman,Taras,Bohdan,Yaroslav,Volodymyr,Vitaliy,Ruslan,Vadym,Nazar,Kyrylo,Illia,Danylo,Pavlo,Yuriy,Igor,Pavel,Daniel,David,Mykhailo,Oleh,Ihor,Viktor,Stanislav,Rostyslav,Eduard,Tymur,Valeriy,Petro,Stepan',
+    'Maksym,Artem,Oleksandr,Matviy,Danylo,Nazar,Bohdan,Tymofiy,Mark,Ivan,Dmytro,Kyrylo,Illia,Andriy,Roman,Yaroslav,Denys,Mykhailo,Daniel,David,Timothy,Samuel,Nathan,Benjamin,Eli,Joel,Ruslan,Taras,Ostap,Volodymyr,Vladyslav,Yehor,Oleksiy,Artur,Davyd,Sviatoslav,Platon,Makar,Tymur,Lev,Vadym',
   ],
   F: [
-    'Hanna,Mariya,Olha,Nadiya,Halyna,Kateryna,Valentyna,Liudmyla,Nina,Zoya,Raisa,Tamara,Vira,Lyubov,Oleksandra,Paraska,Yevdokiya,Motrya,Odarka,Hafiya,Teklia,Sofiya,Daria,Nataliya,Larysa,Iryna,Svitlana,Lidiya,Antonina,Uliana',
-    'Olena,Nataliya,Tetiana,Iryna,Oksana,Svitlana,Mariya,Liudmyla,Nadiya,Larysa,Halyna,Valentyna,Olha,Yuliya,Kateryna,Anna,Vira,Lyubov,Hanna,Inna,Alla,Lesya,Natalya,Tatyana,Lyudmila,Galina,Svetlana,Oxana,Zhanna,Marta',
-    'Yuliya,Kateryna,Anastasiya,Oksana,Olena,Iryna,Tetiana,Nataliya,Khrystyna,Viktoriya,Yana,Alina,Mariya,Anna,Daryna,Sofiya,Solomiya,Diana,Veronika,Inna,Marta,Olha,Svitlana,Halyna,Lesya,Ruth,Esther,Nadia,Lilia,Irina',
-    'Sofiya,Anna,Solomiya,Zlata,Mariya,Anastasiya,Viktoriya,Veronika,Daryna,Uliana,Vasylyna,Myroslava,Bohdana,Yaroslava,Oleksandra,Diana,Kateryna,Polina,Eva,Milana,Ruth,Esther,Hannah,Sarah,Abigail,Leah,Naomi,Elizabeth,Emily,Nadia',
+    'Hanna,Mariya,Olha,Nadiya,Halyna,Kateryna,Valentyna,Liudmyla,Nina,Zoya,Raisa,Tamara,Vira,Lyubov,Oleksandra,Paraska,Yevdokiya,Motrya,Odarka,Hafiya,Teklia,Sofiya,Daria,Nataliya,Larysa,Iryna,Svitlana,Lidiya,Antonina,Uliana,Yevheniya,Kseniya,Stefaniya,Olena,Marfa,Anastasiya,Marta,Ustyna,Melaniya,Yustyna,Varvara',
+    'Olena,Nataliya,Tetiana,Iryna,Oksana,Svitlana,Mariya,Liudmyla,Nadiya,Larysa,Halyna,Valentyna,Olha,Yuliya,Kateryna,Anna,Vira,Lyubov,Hanna,Inna,Alla,Lesya,Natalya,Tatyana,Lyudmila,Galina,Svetlana,Oxana,Zhanna,Marta,Zoya,Raisa,Tamara,Lidiya,Antonina,Oleksandra,Viktoriya,Olesya,Ruslana,Myroslava,Uliana',
+    'Yuliya,Kateryna,Anastasiya,Oksana,Olena,Iryna,Tetiana,Nataliya,Khrystyna,Viktoriya,Yana,Alina,Mariya,Anna,Daryna,Sofiya,Solomiya,Diana,Veronika,Inna,Marta,Olha,Svitlana,Halyna,Lesya,Ruth,Esther,Nadia,Lilia,Irina,Olesya,Ruslana,Kseniya,Liliya,Anhelina,Valeriya,Karyna,Kristina,Snizhana,Oleksandra,Marharyta,Yevheniya',
+    'Sofiya,Anna,Solomiya,Zlata,Mariya,Anastasiya,Viktoriya,Veronika,Daryna,Uliana,Vasylyna,Myroslava,Bohdana,Yaroslava,Oleksandra,Diana,Kateryna,Polina,Eva,Milana,Ruth,Esther,Hannah,Sarah,Abigail,Leah,Naomi,Elizabeth,Emily,Nadia,Alisa,Yeva,Emiliya,Varvara,Kira,Mila,Stefaniya,Liliia,Alina,Margaryta,Taisiya',
   ],
 };
 
 // Poland (written without diacritics, as Polish Californians usually write them).
 GIVEN.polish = {
   M: [
-    'Jan,Stanislaw,Jozef,Tadeusz,Jerzy,Zbigniew,Henryk,Kazimierz,Ryszard,Andrzej,Wladyslaw,Edward,Zdzislaw,Czeslaw,Marian,Mieczyslaw,Boleslaw,Bogdan,Janusz,Leszek,Wojciech,Franciszek,Antoni,Jacek,Roman,Waclaw,Witold,Eugeniusz,Lech,Romuald',
-    'Andrzej,Krzysztof,Marek,Piotr,Tomasz,Pawel,Jacek,Grzegorz,Dariusz,Mariusz,Slawomir,Janusz,Robert,Jaroslaw,Zbigniew,Wojciech,Artur,Waldemar,Miroslaw,Leszek,Rafal,Adam,Marcin,Jerzy,Michal,Jan,Ryszard,Wieslaw,Cezary,Tadeusz',
-    'Tomasz,Pawel,Michal,Marcin,Lukasz,Piotr,Krzysztof,Grzegorz,Jakub,Mateusz,Adam,Kamil,Dawid,Bartosz,Rafal,Maciej,Damian,Daniel,Sebastian,Przemyslaw,Wojciech,Szymon,Patryk,Karol,Mariusz,Robert,Marek,Arkadiusz,Konrad,Adrian',
-    'Jakub,Kacper,Szymon,Filip,Jan,Antoni,Franciszek,Mikolaj,Aleksander,Wiktor,Igor,Oskar,Mateusz,Michal,Adam,Bartosz,Piotr,Dawid,Kamil,Maksymilian,Tymon,Stanislaw,Ignacy,Leon,Nikodem,Julian,Hubert,Wojciech,Krzysztof,Tomasz',
+    'Jan,Stanislaw,Jozef,Tadeusz,Jerzy,Zbigniew,Henryk,Kazimierz,Ryszard,Andrzej,Wladyslaw,Edward,Zdzislaw,Czeslaw,Marian,Mieczyslaw,Boleslaw,Bogdan,Janusz,Leszek,Wojciech,Franciszek,Antoni,Jacek,Roman,Waclaw,Witold,Eugeniusz,Lech,Romuald,Stefan,Ignacy,Feliks,Wieslaw,Zygmunt,Bronislaw,Ludwik,Aleksander,Piotr,Krzysztof,Jaroslaw',
+    'Andrzej,Krzysztof,Marek,Piotr,Tomasz,Pawel,Jacek,Grzegorz,Dariusz,Mariusz,Slawomir,Janusz,Robert,Jaroslaw,Zbigniew,Wojciech,Artur,Waldemar,Miroslaw,Leszek,Rafal,Adam,Marcin,Jerzy,Michal,Jan,Ryszard,Wieslaw,Cezary,Tadeusz,Ireneusz,Henryk,Stanislaw,Bogdan,Roman,Zdzislaw,Witold,Jozef,Kazimierz,Boguslaw,Lech',
+    'Tomasz,Pawel,Michal,Marcin,Lukasz,Piotr,Krzysztof,Grzegorz,Jakub,Mateusz,Adam,Kamil,Dawid,Bartosz,Rafal,Maciej,Damian,Daniel,Sebastian,Przemyslaw,Wojciech,Szymon,Patryk,Karol,Mariusz,Robert,Marek,Arkadiusz,Konrad,Adrian,Krystian,Norbert,Hubert,Mikolaj,Emil,Radoslaw,Wiktor,Filip,Bartlomiej,Jaroslaw,Jan',
+    'Jakub,Kacper,Szymon,Filip,Jan,Antoni,Franciszek,Mikolaj,Aleksander,Wiktor,Igor,Oskar,Mateusz,Michal,Adam,Bartosz,Piotr,Dawid,Kamil,Maksymilian,Tymon,Stanislaw,Ignacy,Leon,Nikodem,Julian,Hubert,Wojciech,Krzysztof,Tomasz,Marcel,Tymoteusz,Patryk,Dominik,Oliwer,Milosz,Bruno,Gabriel,Daniel,Maciej,Natan',
   ],
   F: [
-    'Maria,Krystyna,Anna,Barbara,Teresa,Elzbieta,Janina,Zofia,Jadwiga,Danuta,Halina,Irena,Helena,Stanislawa,Wanda,Genowefa,Kazimiera,Bronislawa,Czeslawa,Leokadia,Henryka,Alicja,Marianna,Jozefa,Aniela,Wladyslawa,Regina,Lucyna,Bogumila,Feliksa',
-    'Ewa,Malgorzata,Elzbieta,Grazyna,Bozena,Jolanta,Agnieszka,Katarzyna,Joanna,Beata,Dorota,Iwona,Renata,Anna,Barbara,Teresa,Danuta,Mariola,Wioletta,Aneta,Izabela,Marzena,Monika,Agata,Magdalena,Krystyna,Bogumila,Halina,Urszula,Hanna',
-    'Katarzyna,Agnieszka,Anna,Magdalena,Joanna,Monika,Aleksandra,Justyna,Natalia,Karolina,Paulina,Marta,Ewelina,Agata,Dominika,Sylwia,Kamila,Patrycja,Malgorzata,Martyna,Weronika,Izabela,Emilia,Klaudia,Kinga,Beata,Dorota,Ewa,Alicja,Julia',
-    'Zuzanna,Julia,Maja,Lena,Hanna,Zofia,Amelia,Alicja,Oliwia,Wiktoria,Natalia,Aleksandra,Laura,Pola,Nikola,Maria,Emilia,Antonina,Gabriela,Helena,Liliana,Martyna,Nadia,Kornelia,Weronika,Michalina,Jagoda,Iga,Anna,Lucja',
+    'Maria,Krystyna,Anna,Barbara,Teresa,Elzbieta,Janina,Zofia,Jadwiga,Danuta,Halina,Irena,Helena,Stanislawa,Wanda,Genowefa,Kazimiera,Bronislawa,Czeslawa,Leokadia,Henryka,Alicja,Marianna,Jozefa,Aniela,Wladyslawa,Regina,Lucyna,Bogumila,Feliksa,Grazyna,Bozena,Ewa,Urszula,Jolanta,Lidia,Emilia,Zdzislawa,Rozalia,Stefania,Waleria',
+    'Ewa,Malgorzata,Elzbieta,Grazyna,Bozena,Jolanta,Agnieszka,Katarzyna,Joanna,Beata,Dorota,Iwona,Renata,Anna,Barbara,Teresa,Danuta,Mariola,Wioletta,Aneta,Izabela,Marzena,Monika,Agata,Magdalena,Krystyna,Bogumila,Halina,Urszula,Hanna,Wieslawa,Lucyna,Edyta,Zofia,Alicja,Lidia,Irena,Jadwiga,Maria,Ilona,Sylwia',
+    'Katarzyna,Agnieszka,Anna,Magdalena,Joanna,Monika,Aleksandra,Justyna,Natalia,Karolina,Paulina,Marta,Ewelina,Agata,Dominika,Sylwia,Kamila,Patrycja,Malgorzata,Martyna,Weronika,Izabela,Emilia,Klaudia,Kinga,Beata,Dorota,Ewa,Alicja,Julia,Edyta,Anita,Milena,Paula,Iwona,Marlena,Aneta,Malwina,Zaneta,Ilona,Sandra',
+    'Zuzanna,Julia,Maja,Lena,Hanna,Zofia,Amelia,Alicja,Oliwia,Wiktoria,Natalia,Aleksandra,Laura,Pola,Nikola,Maria,Emilia,Antonina,Gabriela,Helena,Liliana,Martyna,Nadia,Kornelia,Weronika,Michalina,Jagoda,Iga,Anna,Lucja,Nina,Marcelina,Blanka,Ksenia,Klara,Dominika,Karolina,Kinga,Agata,Magdalena,Roza',
   ],
 };
 
 // Greece (Greek Orthodox families: names honor grandparents, so the old names stay common).
 GIVEN.greek = {
+  z: 0.5,   // Greek families name children after their grandparents: Georgios, Maria and a few others stay dominant
   M: [
     'Georgios,Ioannis,Konstantinos,Dimitrios,Nikolaos,Panagiotis,Vasileios,Christos,Athanasios,Evangelos,Spyridon,Michail,Petros,Antonios,Stavros,Theodoros,Charalampos,Apostolos,Ilias,Emmanouil,Stylianos,Anastasios,Sotirios,Andreas,Pavlos,Kyriakos,Nektarios,Gerasimos,Stefanos,Efstathios,Fotios,Haralambos,Aristotelis,Leonidas,Periklis,Sarantis,Lampros,Zisis,Christoforos,Diamantis',
-    'Georgios,Ioannis,Konstantinos,Dimitrios,Nikolaos,Panagiotis,Vasileios,Christos,Athanasios,Evangelos,Michail,Spyridon,Theodoros,Antonios,Stavros,Petros,Ilias,Charalampos,Apostolos,Emmanouil,Anastasios,Alexandros,Andreas,Stylianos,Kyriakos,Sotirios,Pavlos,Stefanos,Thomas,Grigorios',
-    'Georgios,Dimitrios,Konstantinos,Ioannis,Nikolaos,Panagiotis,Christos,Vasileios,Athanasios,Alexandros,Michail,Evangelos,Spyridon,Theodoros,Antonios,Stavros,Emmanouil,Ilias,Charalampos,Apostolos,Stylianos,Andreas,Petros,Anastasios,Kyriakos,Pavlos,Stefanos,Marios,Angelos,Thomas,Aristeidis,Lefteris,Iason,Prodromos,Sarantis',
-    'Georgios,Konstantinos,Dimitrios,Ioannis,Nikolaos,Alexandros,Panagiotis,Christos,Vasileios,Athanasios,Michail,Evangelos,Spyridon,Angelos,Stefanos,Theodoros,Emmanouil,Ilias,Marios,Petros,Antonios,Stavros,Andreas,Pavlos,Orestis,Aris,Lefteris,Rafail,Filippos,Odysseas,Iason,Aristeidis,Prodromos,Christoforos,Zisis,Viktor',
+    'Georgios,Ioannis,Konstantinos,Dimitrios,Nikolaos,Panagiotis,Vasileios,Christos,Athanasios,Evangelos,Michail,Spyridon,Theodoros,Antonios,Stavros,Petros,Ilias,Charalampos,Apostolos,Emmanouil,Anastasios,Alexandros,Andreas,Stylianos,Kyriakos,Sotirios,Pavlos,Stefanos,Thomas,Grigorios,Nektarios,Gerasimos,Efstathios,Fotios,Dionysios,Eleftherios,Leonidas,Christoforos,Markos,Achilleas,Kosmas',
+    'Georgios,Dimitrios,Konstantinos,Ioannis,Nikolaos,Panagiotis,Christos,Vasileios,Athanasios,Alexandros,Michail,Evangelos,Spyridon,Theodoros,Antonios,Stavros,Emmanouil,Ilias,Charalampos,Apostolos,Stylianos,Andreas,Petros,Anastasios,Kyriakos,Pavlos,Stefanos,Marios,Angelos,Thomas,Aristeidis,Lefteris,Iason,Prodromos,Sarantis,Nektarios,Gerasimos,Dionysios,Fotios,Efstratios,Markos',
+    'Georgios,Konstantinos,Dimitrios,Ioannis,Nikolaos,Alexandros,Panagiotis,Christos,Vasileios,Athanasios,Michail,Evangelos,Spyridon,Angelos,Stefanos,Theodoros,Emmanouil,Ilias,Marios,Petros,Antonios,Stavros,Andreas,Pavlos,Orestis,Aris,Lefteris,Rafail,Filippos,Odysseas,Iason,Aristeidis,Prodromos,Christoforos,Zisis,Viktor,Nektarios,Dionysios,Gerasimos,Markos,Kosmas',
   ],
   F: [
-    'Maria,Eleni,Aikaterini,Vasiliki,Georgia,Sofia,Anastasia,Dimitra,Ioanna,Konstantina,Panagiota,Paraskevi,Evangelia,Christina,Athanasia,Kyriaki,Theodora,Angeliki,Chrysoula,Eirini,Despoina,Stavroula,Fotini,Alexandra,Antonia,Kalliopi,Efthymia,Stamatia,Theodosia,Penelope,Argyro,Glykeria,Sevasti,Olympia,Eleftheria',
-    'Maria,Eleni,Aikaterini,Vasiliki,Georgia,Sofia,Anastasia,Dimitra,Ioanna,Konstantina,Panagiota,Paraskevi,Evangelia,Christina,Athanasia,Kyriaki,Theodora,Angeliki,Eirini,Despoina,Stavroula,Fotini,Alexandra,Chrysoula,Stella,Anna,Nikoletta,Zoi,Olga,Argyro',
-    'Maria,Eleni,Aikaterini,Georgia,Sofia,Vasiliki,Konstantina,Ioanna,Dimitra,Christina,Anastasia,Despoina,Evangelia,Panagiota,Paraskevi,Eirini,Angeliki,Theodora,Athina,Kyriaki,Alexandra,Stavroula,Chrysa,Anna,Nikoletta,Marina,Ioulia,Elisavet,Danai,Iliana',
-    'Maria,Eleni,Georgia,Sofia,Konstantina,Ioanna,Aikaterini,Dimitra,Vasiliki,Anastasia,Christina,Despoina,Athina,Evangelia,Eirini,Zoi,Myrto,Danai,Iliana,Marina,Natalia,Panagiota,Theodora,Angeliki,Alexandra,Ariadni,Melina,Faidra,Elpida,Chara,Eleftheria,Olympia,Kalliopi,Artemis,Afroditi',
+    'Maria,Eleni,Aikaterini,Vasiliki,Georgia,Sofia,Anastasia,Dimitra,Ioanna,Konstantina,Panagiota,Paraskevi,Evangelia,Christina,Athanasia,Kyriaki,Theodora,Angeliki,Chrysoula,Eirini,Despoina,Stavroula,Fotini,Alexandra,Antonia,Kalliopi,Efthymia,Stamatia,Theodosia,Penelope,Argyro,Glykeria,Sevasti,Olympia,Eleftheria,Anna,Magdalini,Varvara,Zoi,Styliani,Ourania',
+    'Maria,Eleni,Aikaterini,Vasiliki,Georgia,Sofia,Anastasia,Dimitra,Ioanna,Konstantina,Panagiota,Paraskevi,Evangelia,Christina,Athanasia,Kyriaki,Theodora,Angeliki,Eirini,Despoina,Stavroula,Fotini,Alexandra,Chrysoula,Stella,Anna,Nikoletta,Zoi,Olga,Argyro,Kalliopi,Styliani,Magdalini,Varvara,Efthymia,Ourania,Antonia,Spyridoula,Eleftheria,Dionysia,Sotiria',
+    'Maria,Eleni,Aikaterini,Georgia,Sofia,Vasiliki,Konstantina,Ioanna,Dimitra,Christina,Anastasia,Despoina,Evangelia,Panagiota,Paraskevi,Eirini,Angeliki,Theodora,Athina,Kyriaki,Alexandra,Stavroula,Chrysa,Anna,Nikoletta,Marina,Ioulia,Elisavet,Danai,Iliana,Styliani,Magdalini,Varvara,Kalliopi,Ourania,Efthymia,Evdokia,Zoi,Antonia,Eleftheria,Marianna',
+    'Maria,Eleni,Georgia,Sofia,Konstantina,Ioanna,Aikaterini,Dimitra,Vasiliki,Anastasia,Christina,Despoina,Athina,Evangelia,Eirini,Zoi,Myrto,Danai,Iliana,Marina,Natalia,Panagiota,Theodora,Angeliki,Alexandra,Ariadni,Melina,Faidra,Elpida,Chara,Eleftheria,Olympia,Kalliopi,Artemis,Afroditi,Styliani,Antonia,Varvara,Stella,Nefeli,Ioulia',
   ],
   us: {
     M: [
@@ -897,89 +916,89 @@ GIVEN.greek = {
 // are the names of those born in Europe, and the heritage names their American families kept.
 GIVEN.irish = {
   M: [
-    'John,Patrick,Michael,James,Thomas,Joseph,Sean,Martin,Brendan,Liam,Noel,Kevin,Gerard,Francis,Peter,Daniel,Denis,Kieran,Eamon,Declan,Brian,Hugh,Colm,Seamus,Padraig,Dermot,Donal,Cornelius,Timothy,Desmond,Fergus,Cathal',
-    'John,Michael,Patrick,Paul,David,Sean,Brian,Declan,Kevin,Martin,Thomas,Gerard,Peter,Joseph,Anthony,Noel,Brendan,Ciaran,Fergal,Niall,Colm,Conor,Damien,Kieran,Alan,Mark,Barry,Dermot,Shane,Eamonn',
-    'David,Michael,John,Mark,Stephen,Paul,Patrick,Sean,Daniel,Kevin,Thomas,Brian,Conor,Ciaran,Shane,Niall,Darren,Barry,Colm,Eoin,Ronan,Cian,Darragh,Gavin,Keith,Declan,Aidan,Rory,Dylan,Cillian',
-    'Jack,Sean,Conor,James,Adam,Daniel,Cian,Darragh,Oisin,Fionn,Luke,Ryan,Dylan,Aaron,Eoin,Ronan,Rory,Cillian,Michael,Thomas,Callum,Evan,Liam,Oscar,Tadhg,Senan,Ruairi,Patrick,Finn,Charlie',
+    'John*1.3,Patrick,Michael,James,Thomas,Joseph,Sean,Martin,Brendan,Liam,Noel,Kevin,Gerard,Francis,Peter,Daniel,Denis,Kieran,Eamon,Declan,Brian,Hugh,Colm,Seamus,Padraig,Dermot,Donal,Cornelius,Timothy,Desmond,Fergus,Cathal,Christopher,William,Edward,Matthew,Jeremiah,Bernard,Laurence,Vincent,Anthony,Charles',
+    'John,Michael,Patrick,Paul,David,Sean,Brian,Declan,Kevin,Martin,Thomas,Gerard,Peter,Joseph,Anthony,Noel,Brendan,Ciaran,Fergal,Niall,Colm,Conor,Damien,Kieran,Alan,Mark,Barry,Dermot,Shane,Eamonn,James,Francis,Daniel,Eoin,Aidan,Ronan,Enda,Padraig,Cormac,Liam,Diarmuid,Donal',
+    'David,Michael,John,Mark,Stephen,Paul,Patrick,Sean,Daniel,Kevin,Thomas,Brian,Conor,Ciaran,Shane,Niall,Darren,Barry,Colm,Eoin,Ronan,Cian,Darragh,Gavin,Keith,Declan,Aidan,Rory,Dylan,Cillian,James,Alan,Graham,Kieran,Padraig,Fergal,Enda,Brendan,Cathal,Oisin,Diarmuid,Peter',
+    'Jack,Sean,Conor,James,Adam,Daniel,Cian,Darragh,Oisin,Fionn,Luke,Ryan,Dylan,Aaron,Eoin,Ronan,Rory,Cillian,Michael,Thomas,Callum,Evan,Liam,Oscar,Tadhg,Senan,Ruairi,Patrick,Finn,Charlie,Noah,Harry,Alex,Shane,Kyle,Matthew,Nathan,Jamie,David,Ben,Cathal,Donnacha',
   ],
   F: [
-    'Mary,Margaret,Bridget,Kathleen,Catherine,Anne,Patricia,Eileen,Teresa,Josephine,Maureen,Sheila,Noreen,Joan,Elizabeth,Rose,Nora,Ellen,Deirdre,Bernadette,Philomena,Agnes,Helen,Monica,Frances,Geraldine,Carmel,Nuala,Una,Brigid',
-    'Mary,Catherine,Margaret,Anne,Siobhan,Deirdre,Bernadette,Patricia,Elizabeth,Geraldine,Fiona,Sinead,Niamh,Aine,Orla,Clare,Grainne,Yvonne,Sharon,Karen,Caroline,Jacqueline,Louise,Martina,Michelle,Susan,Paula,Breda,Eimear,Aisling',
-    'Sarah,Aoife,Ciara,Niamh,Emma,Laura,Rachel,Sinead,Aisling,Claire,Lisa,Louise,Roisin,Orla,Gillian,Grainne,Eimear,Siobhan,Caoimhe,Clodagh,Fiona,Michelle,Nicola,Sharon,Deirdre,Katie,Amy,Lorna,Edel,Maeve',
-    'Emma,Sophie,Grace,Ava,Aoife,Ella,Chloe,Ciara,Niamh,Sarah,Lucy,Caoimhe,Saoirse,Roisin,Orla,Ellie,Hannah,Katie,Amelia,Mia,Kate,Molly,Ruby,Freya,Clodagh,Fiadh,Aisling,Eabha,Ailbhe,Siofra',
+    'Mary*1.6,Margaret,Bridget,Kathleen,Catherine,Anne,Patricia,Eileen,Teresa,Josephine,Maureen,Sheila,Noreen,Joan,Elizabeth,Rose,Nora,Ellen,Deirdre,Bernadette,Philomena,Agnes,Helen,Monica,Frances,Geraldine,Carmel,Nuala,Una,Brigid,Ann,Julia,Hannah,Johanna,Breda,Siobhan,Marie,Annie,Winifred,Brid,Eithne',
+    'Mary,Catherine,Margaret,Anne,Siobhan,Deirdre,Bernadette,Patricia,Elizabeth,Geraldine,Fiona,Sinead,Niamh,Aine,Orla,Clare,Grainne,Yvonne,Sharon,Karen,Caroline,Jacqueline,Louise,Martina,Michelle,Susan,Paula,Breda,Eimear,Aisling,Ann,Eileen,Kathleen,Maura,Mairead,Noeleen,Rita,Joan,Gillian,Sandra,Maria,Ita',
+    'Sarah,Aoife,Ciara,Niamh,Emma,Laura,Rachel,Sinead,Aisling,Claire,Lisa,Louise,Roisin,Orla,Gillian,Grainne,Eimear,Siobhan,Caoimhe,Clodagh,Fiona,Michelle,Nicola,Sharon,Deirdre,Katie,Amy,Lorna,Edel,Maeve,Aine,Elaine,Emer,Mary,Catherine,Joanne,Tara,Jennifer,Ailbhe,Eilis,Nora',
+    'Emma,Sophie,Grace,Ava,Aoife,Ella,Chloe,Ciara,Niamh,Sarah,Lucy,Caoimhe,Saoirse,Roisin,Orla,Ellie,Hannah,Katie,Amelia,Mia,Kate,Molly,Ruby,Freya,Clodagh,Fiadh,Aisling,Eabha,Ailbhe,Siofra,Lily,Leah,Anna,Isabelle,Zoe,Eva,Aoibhinn,Doireann,Muireann,Sadhbh,Clara',
   ],
   us: {
     M: [
-      'Patrick,John,James,Michael,Thomas,Joseph,Francis,Edward,William,Daniel,Dennis,Timothy,Kevin,Brian,Eugene,Raymond',
-      'Patrick,Sean,Kevin,Brian,Michael,Timothy,Dennis,Daniel,Thomas,Kieran,Brendan,Francis,Shawn,Terence,Kelly,Ryan',
-      'Ryan,Sean,Patrick,Kevin,Brian,Brendan,Connor,Kyle,Shane,Kieran,Declan,Aidan,Liam,Michael,Timothy,Dennis,Casey,Riley',
-      'Liam,Aidan,Connor,Declan,Finn,Rory,Owen,Patrick,Sean,Brendan,Ryan,Kieran,Riley,Quinn,Callum,Desmond,Ronan,Cormac',
+      'Patrick,John,James,Michael,Thomas,Joseph,Francis,Edward,William,Daniel,Dennis,Timothy,Kevin,Brian,Eugene,Raymond,Martin,Gerald,Lawrence,Hugh,Cornelius,Matthew',
+      'Patrick,Sean,Kevin,Brian,Michael,Timothy,Dennis,Daniel,Thomas,Kieran,Brendan,Francis,Shawn,Terence,Kelly,Ryan,John,James,Joseph,Mark,Paul,Matthew',
+      'Ryan,Sean,Patrick,Kevin,Brian,Brendan,Connor,Kyle,Shane,Kieran,Declan,Aidan,Liam,Michael,Timothy,Dennis,Casey,Riley,Colin,Owen,Matthew,Daniel,Mark,Conor',
+      'Liam,Aidan,Connor,Declan,Finn,Rory,Owen,Patrick,Sean,Brendan,Ryan,Kieran,Riley,Quinn,Callum,Desmond,Ronan,Cormac,Gavin,Colin,Killian,Nolan,Brady,Keegan',
     ],
     F: [
-      'Mary,Margaret,Kathleen,Eileen,Maureen,Bridget,Catherine,Anne,Rose,Helen,Nora,Ellen,Agnes,Frances,Patricia,Joan',
-      'Kathleen,Colleen,Maureen,Eileen,Patricia,Mary,Margaret,Bridget,Kelly,Shannon,Erin,Kerry,Tara,Moira,Deirdre,Sheila',
-      'Erin,Shannon,Kelly,Colleen,Megan,Caitlin,Kathleen,Bridget,Molly,Tara,Kerry,Siobhan,Kiera,Fiona,Maureen,Meghan,Kaitlyn,Brenna',
-      'Nora,Maeve,Fiona,Molly,Riley,Quinn,Caitlin,Erin,Bridget,Kiera,Aisling,Siobhan,Sloane,Delaney,Reagan,Teagan,Keira,Clare',
+      'Mary,Margaret,Kathleen,Eileen,Maureen,Bridget,Catherine,Anne,Rose,Helen,Nora,Ellen,Agnes,Frances,Patricia,Joan,Mae,Theresa,Elizabeth,Julia,Katherine,Annie',
+      'Kathleen,Colleen,Maureen,Eileen,Patricia,Mary,Margaret,Bridget,Kelly,Shannon,Erin,Kerry,Tara,Moira,Deirdre,Sheila,Theresa,Ann,Noreen,Elizabeth,Sharon,Nora',
+      'Erin,Shannon,Kelly,Colleen,Megan,Caitlin,Kathleen,Bridget,Molly,Tara,Kerry,Siobhan,Kiera,Fiona,Maureen,Meghan,Kaitlyn,Brenna,Maeve,Brianna,Nora,Sinead,Kayleigh,Kathryn',
+      'Nora,Maeve,Fiona,Molly,Riley,Quinn,Caitlin,Erin,Bridget,Kiera,Aisling,Siobhan,Sloane,Delaney,Reagan,Teagan,Keira,Clare,Brigid,Saoirse,Niamh,Aoife,Eileen,Rose',
     ],
   },
 };
 
 GIVEN.italian = {
   M: [
-    'Giuseppe,Giovanni,Antonio,Mario,Francesco,Luigi,Angelo,Vincenzo,Pietro,Salvatore,Carlo,Domenico,Bruno,Paolo,Franco,Sergio,Giorgio,Aldo,Gino,Enzo,Carmine,Raffaele,Alfredo,Renato,Michele,Rocco,Gaetano,Nicola,Umberto,Dante',
-    'Giuseppe,Giovanni,Antonio,Marco,Paolo,Francesco,Roberto,Stefano,Massimo,Andrea,Luca,Alessandro,Claudio,Maurizio,Fabio,Mauro,Riccardo,Davide,Daniele,Luigi,Salvatore,Vincenzo,Sergio,Alberto,Gianluca,Fabrizio,Enrico,Domenico,Carlo,Massimiliano',
-    'Andrea,Marco,Alessandro,Luca,Matteo,Francesco,Davide,Simone,Federico,Lorenzo,Stefano,Daniele,Giuseppe,Antonio,Roberto,Fabio,Giovanni,Riccardo,Michele,Nicola,Emanuele,Paolo,Alberto,Valerio,Gabriele,Mattia,Tommaso,Pietro,Filippo,Giacomo',
-    'Leonardo,Francesco,Alessandro,Lorenzo,Mattia,Andrea,Gabriele,Riccardo,Tommaso,Edoardo,Matteo,Giuseppe,Antonio,Federico,Diego,Davide,Giovanni,Pietro,Filippo,Samuele,Christian,Luca,Marco,Simone,Nicolo,Alessio,Emanuele,Giacomo,Elia,Michele,Gioele,Manuel,Enea,Jacopo,Achille,Ettore',
+    'Giuseppe*1.5,Giovanni,Antonio,Mario,Francesco,Luigi,Angelo,Vincenzo,Pietro,Salvatore,Carlo,Domenico,Bruno,Paolo,Franco,Sergio,Giorgio,Aldo,Gino,Enzo,Carmine,Raffaele,Alfredo,Renato,Michele,Rocco,Gaetano,Nicola,Umberto,Dante,Giacomo,Ernesto,Armando,Lorenzo,Silvio,Guido,Elio,Remo,Ugo,Emilio,Fausto,Romano',
+    'Giuseppe,Giovanni,Antonio,Marco,Paolo,Francesco,Roberto,Stefano,Massimo,Andrea,Luca,Alessandro,Claudio,Maurizio,Fabio,Mauro,Riccardo,Davide,Daniele,Luigi,Salvatore,Vincenzo,Sergio,Alberto,Gianluca,Fabrizio,Enrico,Domenico,Carlo,Massimiliano,Pietro,Gianni,Michele,Angelo,Nicola,Franco,Giorgio,Raffaele,Emanuele,Gianfranco,Piero,Marcello',
+    'Andrea,Marco,Alessandro,Luca,Matteo,Francesco,Davide,Simone,Federico,Lorenzo,Stefano,Daniele,Giuseppe,Antonio,Roberto,Fabio,Giovanni,Riccardo,Michele,Nicola,Emanuele,Paolo,Alberto,Valerio,Gabriele,Mattia,Tommaso,Pietro,Filippo,Giacomo,Massimo,Salvatore,Vincenzo,Domenico,Claudio,Alessio,Luigi,Carlo,Enrico,Giorgio,Manuel,Christian',
+    'Leonardo,Francesco,Alessandro,Lorenzo,Mattia,Andrea,Gabriele,Riccardo,Tommaso,Edoardo,Matteo,Giuseppe,Antonio,Federico,Diego,Davide,Giovanni,Pietro,Filippo,Samuele,Christian,Luca,Marco,Simone,Nicolo,Alessio,Emanuele,Giacomo,Elia,Michele,Gioele,Manuel,Enea,Jacopo,Achille,Ettore,Cristian,Raffaele,Vincenzo,Salvatore,Domenico',
   ],
   F: [
-    'Maria,Anna,Giuseppina,Rosa,Angela,Giovanna,Teresa,Lucia,Carmela,Francesca,Antonietta,Concetta,Caterina,Rosaria,Elena,Franca,Bruna,Luisa,Adriana,Gabriella,Marisa,Graziella,Silvana,Lina,Carla,Rita,Vittoria,Assunta,Filomena,Annunziata',
-    'Maria,Anna,Paola,Laura,Patrizia,Daniela,Cristina,Roberta,Giovanna,Francesca,Barbara,Monica,Alessandra,Elena,Simona,Antonella,Rosa,Silvia,Manuela,Raffaella,Stefania,Lucia,Sabrina,Tiziana,Federica,Elisabetta,Emanuela,Loredana,Carla,Claudia',
-    'Francesca,Chiara,Sara,Valentina,Giulia,Federica,Silvia,Elisa,Martina,Alessandra,Laura,Elena,Roberta,Anna,Maria,Marta,Serena,Ilaria,Valeria,Michela,Paola,Erica,Veronica,Giorgia,Claudia,Simona,Eleonora,Alice,Arianna,Beatrice',
-    'Sofia,Giulia,Aurora,Alice,Ginevra,Emma,Giorgia,Beatrice,Greta,Martina,Chiara,Anna,Sara,Matilde,Gaia,Vittoria,Noemi,Francesca,Ludovica,Arianna,Camilla,Elisa,Nicole,Rebecca,Bianca,Viola,Elena,Mia,Adele,Marta',
+    'Maria*1.8,Anna,Giuseppina,Rosa,Angela,Giovanna,Teresa,Lucia,Carmela,Francesca,Antonietta,Concetta,Caterina,Rosaria,Elena,Franca,Bruna,Luisa,Adriana,Gabriella,Marisa,Graziella,Silvana,Lina,Carla,Rita,Vittoria,Assunta,Filomena,Annunziata,Margherita,Giulia,Elisa,Iolanda,Nella,Ida,Pasqualina,Immacolata,Maddalena,Carolina,Agnese,Clara',
+    'Maria,Anna,Paola,Laura,Patrizia,Daniela,Cristina,Roberta,Giovanna,Francesca,Barbara,Monica,Alessandra,Elena,Simona,Antonella,Rosa,Silvia,Manuela,Raffaella,Stefania,Lucia,Sabrina,Tiziana,Federica,Elisabetta,Emanuela,Loredana,Carla,Claudia,Rita,Valeria,Marina,Angela,Rosanna,Gabriella,Teresa,Caterina,Donatella,Nadia',
+    'Francesca,Chiara,Sara,Valentina,Giulia,Federica,Silvia,Elisa,Martina,Alessandra,Laura,Elena,Roberta,Anna,Maria,Marta,Serena,Ilaria,Valeria,Michela,Paola,Erica,Veronica,Giorgia,Claudia,Simona,Eleonora,Alice,Arianna,Beatrice,Daniela,Cristina,Ilenia,Debora,Jessica,Katia,Barbara,Monica,Elisabetta,Stefania,Sabrina,Irene',
+    'Sofia,Giulia,Aurora,Alice,Ginevra,Emma,Giorgia,Beatrice,Greta,Martina,Chiara,Anna,Sara,Matilde,Gaia,Vittoria,Noemi,Francesca,Ludovica,Arianna,Camilla,Elisa,Nicole,Rebecca,Bianca,Viola,Elena,Mia,Adele,Marta,Irene,Asia,Carlotta,Benedetta,Giada,Anita,Ilaria,Lucia,Miriam,Cecilia,Angelica',
   ],
   us: {
     M: [
-      'Joseph,Anthony,Frank,Louis,Salvatore,Dominic,Vincent,Angelo,John,Peter,Carmine,Michael,Sam,Ralph,Albert,Mario',
-      'Anthony,Joseph,Vincent,Dominic,Michael,Frank,Nicholas,Paul,Louis,Mark,Thomas,Steven,Richard,John,Robert,Carl,Gino,Victor',
-      'Anthony,Nicholas,Joseph,Vincent,Dominic,Michael,Matthew,Christopher,Marco,Frank,Paul,Daniel,Mark,Gino,Angelo,Luca,Mario,Steven',
-      'Luca,Nicholas,Dominic,Anthony,Vincent,Leonardo,Marco,Gabriel,Matteo,Joseph,Lorenzo,Giovanni,Enzo,Gianni,Rocco,Michael,Mason,Santino',
+      'Joseph,Anthony,Frank,Louis,Salvatore,Dominic,Vincent,Angelo,John,Peter,Carmine,Michael,Sam,Ralph,Albert,Mario,Charles,Nicholas,Rocco,Carl,Guy,Pasquale',
+      'Anthony,Joseph,Vincent,Dominic,Michael,Frank,Nicholas,Paul,Louis,Mark,Thomas,Steven,Richard,John,Robert,Carl,Gino,Victor,Salvatore,Angelo,Carmine,Gerard,Peter,Ralph',
+      'Anthony,Nicholas,Joseph,Vincent,Dominic,Michael,Matthew,Christopher,Marco,Frank,Paul,Daniel,Mark,Gino,Angelo,Luca,Mario,Steven,Salvatore,Antonio,Giovanni,Carlo,Jason,Robert',
+      'Luca,Nicholas,Dominic,Anthony,Vincent,Leonardo,Marco,Gabriel,Matteo,Joseph,Lorenzo,Giovanni,Enzo,Gianni,Rocco,Michael,Mason,Santino,Antonio,Nico,Dante,Mario,Matthew,Roman',
     ],
     F: [
-      'Mary,Rose,Josephine,Theresa,Angela,Anna,Lucy,Carmela,Antoinette,Frances,Margaret,Helen,Marie,Philomena,Jennie,Concetta',
-      'Maria,Theresa,Angela,Rose,Lisa,Gina,Donna,Marie,Christina,Anna,Catherine,Diana,Joanne,Annette,Linda,Lucia,Paula,Rosemary',
-      'Nicole,Christina,Gina,Maria,Angela,Lisa,Francesca,Jennifer,Theresa,Danielle,Michelle,Lauren,Gianna,Alexandra,Victoria,Andrea,Elena,Bianca',
-      'Gianna,Isabella,Sophia,Francesca,Giuliana,Bella,Ava,Mia,Olivia,Lucia,Gabriella,Alessandra,Victoria,Arianna,Angelina,Elena,Valentina,Giada',
+      'Mary,Rose,Josephine,Theresa,Angela,Anna,Lucy,Carmela,Antoinette,Frances,Margaret,Helen,Marie,Philomena,Jennie,Concetta,Grace,Anne,Lena,Rita,Viola,Gloria',
+      'Maria,Theresa,Angela,Rose,Lisa,Gina,Donna,Marie,Christina,Anna,Catherine,Diana,Joanne,Annette,Linda,Lucia,Paula,Rosemary,Carla,Lori,Laura,Denise,Gloria,Teresa',
+      'Nicole,Christina,Gina,Maria,Angela,Lisa,Francesca,Jennifer,Theresa,Danielle,Michelle,Lauren,Gianna,Alexandra,Victoria,Andrea,Elena,Bianca,Laura,Marissa,Nina,Carla,Stephanie,Alyssa',
+      'Gianna,Isabella,Sophia,Francesca,Giuliana,Bella,Ava,Mia,Olivia,Lucia,Gabriella,Alessandra,Victoria,Arianna,Angelina,Elena,Valentina,Giada,Ella,Chiara,Aria,Mila,Lena,Siena',
     ],
   },
 };
 
 GIVEN.german = {
   M: [
-    'Hans,Karl,Heinz,Klaus,Peter,Wolfgang,Gerhard,Werner,Günter,Manfred,Dieter,Horst,Helmut,Jürgen,Walter,Kurt,Rolf,Bernd,Friedrich,Hermann,Otto,Ernst,Wilhelm,Rudolf,Erich,Siegfried,Reinhard,Herbert,Josef,Heinrich',
-    'Thomas,Michael,Andreas,Stefan,Frank,Peter,Klaus,Jürgen,Uwe,Ralf,Jörg,Matthias,Martin,Thorsten,Markus,Holger,Christian,Bernd,Wolfgang,Dirk,Rainer,Carsten,Joachim,Olaf,Detlef,Sven,Oliver,Volker,Torsten,Harald',
-    'Christian,Michael,Daniel,Tobias,Stefan,Sebastian,Alexander,Jan,Florian,Patrick,Dennis,Markus,Matthias,Philipp,Benjamin,Marcel,Kevin,Tim,Simon,Dominik,Felix,Thomas,Andreas,Martin,David,Lukas,Fabian,Julian,Moritz,Sven',
-    'Lukas,Leon,Finn,Jonas,Paul,Ben,Luca,Felix,Noah,Elias,Maximilian,Luis,Tim,Julian,Niklas,Moritz,Jakob,Alexander,Philipp,David,Emil,Anton,Leo,Theo,Jan,Tom,Erik,Matteo,Oskar,Henry',
+    'Hans,Karl,Heinz,Klaus,Peter,Wolfgang,Gerhard,Werner,Günter,Manfred,Dieter,Horst,Helmut,Jürgen,Walter,Kurt,Rolf,Bernd,Friedrich,Hermann,Otto,Ernst,Wilhelm,Rudolf,Erich,Siegfried,Reinhard,Herbert,Josef,Heinrich,Gerd,Hubert,Alfred,Johann,Fritz,Willi,Günther,Lothar,Rainer,Hartmut,Eberhard,Georg',
+    'Thomas,Michael,Andreas,Stefan,Frank,Peter,Klaus,Jürgen,Uwe,Ralf,Jörg,Matthias,Martin,Thorsten,Markus,Holger,Christian,Bernd,Wolfgang,Dirk,Rainer,Carsten,Joachim,Olaf,Detlef,Sven,Oliver,Volker,Torsten,Harald,Ulrich,Jens,Lars,Kai,Achim,Ralph,Gerd,Axel,Bernhard,Hans-Peter,Ingo,Norbert',
+    'Christian,Michael,Daniel,Tobias,Stefan,Sebastian,Alexander,Jan,Florian,Patrick,Dennis,Markus,Matthias,Philipp,Benjamin,Marcel,Kevin,Tim,Simon,Dominik,Felix,Thomas,Andreas,Martin,David,Lukas,Fabian,Julian,Moritz,Sven,Johannes,Christoph,Manuel,Steffen,Benedikt,Sascha,Marco,Andre,Jens,Nico,Robert',
+    'Lukas,Leon,Finn,Jonas,Paul,Ben,Luca,Felix,Noah,Elias,Maximilian,Luis,Tim,Julian,Niklas,Moritz,Jakob,Alexander,Philipp,David,Emil,Anton,Leo,Theo,Jan,Tom,Erik,Matteo,Oskar,Henry,Henri,Lennard,Mats,Karl,Johann,Mika,Linus,Ole,Carl,Jonathan,Liam,Samuel',
   ],
   F: [
-    'Ursula,Helga,Gisela,Ingrid,Renate,Christa,Monika,Karin,Brigitte,Erika,Elisabeth,Margarete,Gertrud,Hildegard,Inge,Anneliese,Irmgard,Edith,Elfriede,Waltraud,Rosemarie,Marianne,Hannelore,Gudrun,Barbara,Gerda,Christel,Heidi,Lieselotte,Sigrid',
-    'Sabine,Petra,Claudia,Andrea,Susanne,Birgit,Martina,Stefanie,Nicole,Anja,Kerstin,Katrin,Heike,Silke,Tanja,Sandra,Ute,Gabriele,Kirsten,Simone,Bettina,Christine,Manuela,Angelika,Cornelia,Iris,Daniela,Michaela,Dagmar,Karin',
-    'Julia,Katharina,Sarah,Anna,Lisa,Laura,Christina,Jennifer,Sandra,Nadine,Stefanie,Melanie,Nicole,Jessica,Vanessa,Kathrin,Franziska,Johanna,Lena,Lea,Sophie,Theresa,Verena,Carina,Jana,Nina,Svenja,Janina,Miriam,Anja',
-    'Mia,Emma,Hannah,Sofia,Lea,Lena,Emilia,Marie,Anna,Lina,Mila,Clara,Leonie,Johanna,Ella,Amelie,Charlotte,Luisa,Maja,Paula,Laura,Lara,Nele,Ida,Greta,Frieda,Mathilda,Lilly,Sophie,Lotta',
+    'Ursula,Helga,Gisela,Ingrid,Renate,Christa,Monika,Karin,Brigitte,Erika,Elisabeth,Margarete,Gertrud,Hildegard,Inge,Anneliese,Irmgard,Edith,Elfriede,Waltraud,Rosemarie,Marianne,Hannelore,Gudrun,Barbara,Gerda,Christel,Heidi,Lieselotte,Sigrid,Doris,Ilse,Ruth,Johanna,Anna,Maria,Martha,Hedwig,Bärbel,Erna,Elke,Uta',
+    'Sabine,Petra,Claudia,Andrea,Susanne,Birgit,Martina,Stefanie,Nicole,Anja,Kerstin,Katrin,Heike,Silke,Tanja,Sandra,Ute,Gabriele,Kirsten,Simone,Bettina,Christine,Manuela,Angelika,Cornelia,Iris,Daniela,Michaela,Dagmar,Karin,Elke,Bärbel,Regina,Ulrike,Doris,Heidi,Antje,Britta,Jutta,Annette,Marion,Silvia',
+    'Julia,Katharina,Sarah,Anna,Lisa,Laura,Christina,Jennifer,Sandra,Nadine,Stefanie,Melanie,Nicole,Jessica,Vanessa,Kathrin,Franziska,Johanna,Lena,Lea,Sophie,Theresa,Verena,Carina,Jana,Nina,Svenja,Janina,Miriam,Anja,Annika,Kristina,Maria,Isabel,Carolin,Sabrina,Tina,Kerstin,Ramona,Simone,Eva',
+    'Mia,Emma,Hannah,Sofia,Lea,Lena,Emilia,Marie,Anna,Lina,Mila,Clara,Leonie,Johanna,Ella,Amelie,Charlotte,Luisa,Maja,Paula,Laura,Lara,Nele,Ida,Greta,Frieda,Mathilda,Lilly,Sophie,Lotta,Marlene,Elena,Emily,Pia,Mara,Zoe,Hanna,Luise,Helena,Anni,Romy,Nora',
   ],
 };
 
 GIVEN.english = {
   M: [
-    'John,David,Michael,Peter,Robert,Anthony,Brian,Alan,William,James,Richard,Kenneth,Roger,Keith,Colin,Christopher,Geoffrey,Graham,Derek,Malcolm,Barry,Terence,Trevor,Nigel,Stephen,Raymond,Dennis,Frederick,Leslie,Ronald',
-    'David,Paul,Andrew,Mark,John,Michael,Stephen,Ian,Robert,Richard,Christopher,Peter,Simon,Gary,Neil,Martin,Kevin,Darren,Jonathan,Nicholas,Timothy,Philip,Lee,Anthony,Graham,Jason,Matthew,Nigel,Adrian,Russell',
-    'Daniel,James,Thomas,Christopher,Matthew,David,Michael,Andrew,Adam,Luke,Benjamin,Jonathan,Oliver,Samuel,Ryan,Robert,Joshua,Alexander,Jack,Liam,Ashley,Jamie,Craig,Lewis,Sam,Tom,Joe,Callum,Nathan,Scott',
-    'Oliver,Jack,Harry,George,Charlie,Thomas,James,William,Noah,Leo,Jacob,Oscar,Alfie,Freddie,Archie,Henry,Joshua,Max,Theo,Arthur,Ethan,Lucas,Isaac,Alexander,Samuel,Daniel,Joseph,Edward,Finley,Teddy',
+    'John,David,Michael,Peter,Robert,Anthony,Brian,Alan,William,James,Richard,Kenneth,Roger,Keith,Colin,Christopher,Geoffrey,Graham,Derek,Malcolm,Barry,Terence,Trevor,Nigel,Stephen,Raymond,Dennis,Frederick,Leslie,Ronald,George,Thomas,Edward,Arthur,Harold,Norman,Gordon,Philip,Roy,Ernest,Eric,Bernard',
+    'David,Paul,Andrew,Mark,John,Michael,Stephen,Ian,Robert,Richard,Christopher,Peter,Simon,Gary,Neil,Martin,Kevin,Darren,Jonathan,Nicholas,Timothy,Philip,Lee,Anthony,Graham,Jason,Matthew,Nigel,Adrian,Russell,Steven,Craig,Wayne,Carl,Jeremy,Julian,Robin,Shaun,Dean,Alan,Keith,Stuart',
+    'Daniel,James,Thomas,Christopher,Matthew,David,Michael,Andrew,Adam,Luke,Benjamin,Jonathan,Oliver,Samuel,Ryan,Robert,Joshua,Alexander,Jack,Liam,Ashley,Jamie,Craig,Lewis,Sam,Tom,Joe,Callum,Nathan,Scott,Richard,Mark,Paul,Stephen,Edward,Gareth,Dean,Jordan,Aaron,Carl,Kieran,Simon',
+    'Oliver,Jack,Harry,George,Charlie,Thomas,James,William,Noah,Leo,Jacob,Oscar,Alfie,Freddie,Archie,Henry,Joshua,Max,Theo,Arthur,Ethan,Lucas,Isaac,Alexander,Samuel,Daniel,Joseph,Edward,Finley,Teddy,Logan,Riley,Mason,Harrison,Benjamin,Dylan,Jake,Tyler,Sebastian,Reuben,Louie,Elliot',
   ],
   F: [
-    'Margaret,Patricia,Susan,Christine,Elizabeth,Mary,Jean,Janet,Ann,Linda,Barbara,Pauline,Valerie,Sandra,Gillian,Carol,Sheila,Maureen,Brenda,Jennifer,Joan,Dorothy,Kathleen,Shirley,Irene,Joyce,Marion,Jacqueline,Sylvia,Doreen',
-    'Susan,Julie,Karen,Sarah,Amanda,Deborah,Alison,Nicola,Helen,Joanne,Elizabeth,Claire,Tracey,Jacqueline,Lisa,Catherine,Jane,Michelle,Caroline,Angela,Wendy,Dawn,Sharon,Mandy,Kim,Joanna,Louise,Samantha,Rachel,Emma',
-    'Sarah,Emma,Laura,Rebecca,Claire,Gemma,Charlotte,Hannah,Amy,Jessica,Lauren,Nicola,Kelly,Rachel,Victoria,Natalie,Katie,Sophie,Lucy,Stacey,Jennifer,Danielle,Hayley,Zoe,Kirsty,Joanne,Holly,Amanda,Emily,Stephanie',
-    'Olivia,Amelia,Isla,Ava,Emily,Sophia,Grace,Mia,Poppy,Ella,Lily,Isabella,Evie,Charlotte,Jessica,Sophie,Freya,Daisy,Ruby,Florence,Alice,Phoebe,Matilda,Isabelle,Chloe,Millie,Rosie,Sienna,Holly,Harriet',
+    'Margaret,Patricia,Susan,Christine,Elizabeth,Mary,Jean,Janet,Ann,Linda,Barbara,Pauline,Valerie,Sandra,Gillian,Carol,Sheila,Maureen,Brenda,Jennifer,Joan,Dorothy,Kathleen,Shirley,Irene,Joyce,Marion,Jacqueline,Sylvia,Doreen,Jane,Hazel,Wendy,Anne,Rosemary,June,Eileen,Beryl,Audrey,Joy,Lesley,Judith',
+    'Susan,Julie,Karen,Sarah,Amanda,Deborah,Alison,Nicola,Helen,Joanne,Elizabeth,Claire,Tracey,Jacqueline,Lisa,Catherine,Jane,Michelle,Caroline,Angela,Wendy,Dawn,Sharon,Mandy,Kim,Joanna,Louise,Samantha,Rachel,Emma,Diane,Lorraine,Julia,Anne,Kerry,Debbie,Beverley,Andrea,Sally,Melanie,Tracy',
+    'Sarah,Emma,Laura,Rebecca,Claire,Gemma,Charlotte,Hannah,Amy,Jessica,Lauren,Nicola,Kelly,Rachel,Victoria,Natalie,Katie,Sophie,Lucy,Stacey,Jennifer,Danielle,Hayley,Zoe,Kirsty,Joanne,Holly,Amanda,Emily,Stephanie,Kate,Jade,Leanne,Kerry,Lisa,Louise,Samantha,Helen,Clare,Elizabeth,Kayleigh,Abigail',
+    'Olivia,Amelia,Isla,Ava,Emily,Sophia,Grace,Mia,Poppy,Ella,Lily,Isabella,Evie,Charlotte,Jessica,Sophie,Freya,Daisy,Ruby,Florence,Alice,Phoebe,Matilda,Isabelle,Chloe,Millie,Rosie,Sienna,Holly,Harriet,Evelyn,Lola,Willow,Scarlett,Elsie,Eliza,Ivy,Hannah,Maisie,Imogen,Martha,Esme',
   ],
 };
 
@@ -993,45 +1012,45 @@ GIVEN.scottish = { mix: [['scottish-own', [0.45, 0.45, 0.45, 0.45]], ['english',
 
 GIVEN.french = {
   M: [
-    'Jean,Pierre,Michel,André,Jacques,Bernard,Claude,Gérard,René,Robert,Daniel,Roger,Marcel,Henri,Louis,Paul,Guy,Alain,Georges,Maurice,Yves,Raymond,Christian,Jean-Pierre,Jean-Claude,Jean-Paul,Lucien,Gilbert,Serge,Marc',
-    'Philippe,Christophe,Pascal,Patrick,Thierry,Laurent,Éric,Frédéric,Stéphane,Olivier,Didier,Bruno,Nicolas,Jean-Marc,Dominique,François,Sébastien,Vincent,Emmanuel,Fabrice,Franck,Hervé,Jérôme,Marc,Gilles,Denis,Alain,Pierre,Lionel,Thomas',
-    'Nicolas,Julien,Sébastien,Thomas,Guillaume,Maxime,Alexandre,Romain,Mathieu,Antoine,Kevin,Jérémy,Anthony,Florian,Benjamin,Pierre,Adrien,Vincent,Clément,Jonathan,Damien,Cédric,Ludovic,Arnaud,Mickaël,Yann,Quentin,Hugo,Lucas,Louis',
-    'Lucas,Hugo,Louis,Gabriel,Arthur,Jules,Nathan,Raphaël,Léo,Adam,Ethan,Tom,Paul,Théo,Mathis,Noah,Enzo,Maël,Liam,Sacha,Victor,Clément,Antoine,Baptiste,Maxime,Thomas,Axel,Timéo,Nolan,Martin',
+    'Jean,Pierre,Michel,André,Jacques,Bernard,Claude,Gérard,René,Robert,Daniel,Roger,Marcel,Henri,Louis,Paul,Guy,Alain,Georges,Maurice,Yves,Raymond,Christian,Jean-Pierre,Jean-Claude,Jean-Paul,Lucien,Gilbert,Serge,Marc,Joseph,François,Jean-Louis,Jean-Marie,Roland,Albert,Philippe,Patrick,Jean-Jacques,Gaston,Émile,Fernand',
+    'Philippe,Christophe,Pascal,Patrick,Thierry,Laurent,Éric,Frédéric,Stéphane,Olivier,Didier,Bruno,Nicolas,Jean-Marc,Dominique,François,Sébastien,Vincent,Emmanuel,Fabrice,Franck,Hervé,Jérôme,Marc,Gilles,Denis,Alain,Pierre,Lionel,Thomas,Jean-Luc,Jean-François,Jean-Michel,Christian,Bernard,Michel,Joël,Jacques,Daniel,Yannick,Serge',
+    'Nicolas,Julien,Sébastien,Thomas,Guillaume,Maxime,Alexandre,Romain,Mathieu,Antoine,Kevin,Jérémy,Anthony,Florian,Benjamin,Pierre,Adrien,Vincent,Clément,Jonathan,Damien,Cédric,Ludovic,Arnaud,Mickaël,Yann,Quentin,Hugo,Lucas,Louis,Jean,David,Fabien,Grégory,Sylvain,Jérôme,Laurent,Christophe,Aurélien,Benoît,Raphaël,Rémi',
+    'Lucas,Hugo,Louis,Gabriel,Arthur,Jules,Nathan,Raphaël,Léo,Adam,Ethan,Tom,Paul,Théo,Mathis,Noah,Enzo,Maël,Liam,Sacha,Victor,Clément,Antoine,Baptiste,Maxime,Thomas,Axel,Timéo,Nolan,Martin,Gabin,Valentin,Malo,Rayan,Noé,Aaron,Eliott,Mathéo,Lenny,Nino,Évan',
   ],
   F: [
-    'Marie,Jeanne,Monique,Françoise,Nicole,Jacqueline,Catherine,Christiane,Annie,Michèle,Danielle,Simone,Suzanne,Denise,Madeleine,Colette,Yvette,Odette,Germaine,Paulette,Hélène,Geneviève,Jeannine,Josette,Claudine,Brigitte,Marguerite,Anne-Marie,Huguette,Renée',
-    'Isabelle,Sylvie,Nathalie,Catherine,Christine,Véronique,Valérie,Sandrine,Patricia,Martine,Brigitte,Corinne,Pascale,Florence,Laurence,Dominique,Anne,Sophie,Carole,Céline,Muriel,Karine,Stéphanie,Virginie,Hélène,Nadine,Agnès,Béatrice,Chantal,Claire',
-    'Julie,Aurélie,Émilie,Céline,Stéphanie,Caroline,Marie,Laura,Élodie,Audrey,Sophie,Camille,Pauline,Mélanie,Sarah,Charlotte,Claire,Anaïs,Marion,Amandine,Virginie,Delphine,Laetitia,Jennifer,Manon,Lucie,Mathilde,Clémence,Justine,Chloé',
-    'Emma,Jade,Louise,Alice,Chloé,Lina,Léa,Rose,Anna,Mila,Inès,Ambre,Julia,Mia,Léna,Manon,Juliette,Lou,Zoé,Camille,Agathe,Lola,Eva,Romane,Sarah,Charlotte,Margaux,Clara,Jeanne,Louna',
+    'Marie,Jeanne,Monique,Françoise,Nicole,Jacqueline,Catherine,Christiane,Annie,Michèle,Danielle,Simone,Suzanne,Denise,Madeleine,Colette,Yvette,Odette,Germaine,Paulette,Hélène,Geneviève,Jeannine,Josette,Claudine,Brigitte,Marguerite,Anne-Marie,Huguette,Renée,Yvonne,Lucienne,Andrée,Raymonde,Gisèle,Bernadette,Marie-Claude,Marcelle,Thérèse,Arlette,Ginette',
+    'Isabelle,Sylvie,Nathalie,Catherine,Christine,Véronique,Valérie,Sandrine,Patricia,Martine,Brigitte,Corinne,Pascale,Florence,Laurence,Dominique,Anne,Sophie,Carole,Céline,Muriel,Karine,Stéphanie,Virginie,Hélène,Nadine,Agnès,Béatrice,Chantal,Claire,Marie,Christelle,Évelyne,Nadia,Sabine,Françoise,Marie-Christine,Fabienne,Sylviane,Annick',
+    'Julie,Aurélie,Émilie,Céline,Stéphanie,Caroline,Marie,Laura,Élodie,Audrey,Sophie,Camille,Pauline,Mélanie,Sarah,Charlotte,Claire,Anaïs,Marion,Amandine,Virginie,Delphine,Laetitia,Jennifer,Manon,Lucie,Mathilde,Clémence,Justine,Chloé,Élise,Marine,Anne-Sophie,Coralie,Jessica,Alexandra,Nathalie,Sandrine,Hélène,Vanessa,Charlène,Emmanuelle',
+    'Emma,Jade,Louise,Alice,Chloé,Lina,Léa,Rose,Anna,Mila,Inès,Ambre,Julia,Mia,Léna,Manon,Juliette,Lou,Zoé,Camille,Agathe,Lola,Eva,Romane,Sarah,Charlotte,Margaux,Clara,Jeanne,Louna,Léonie,Lucie,Nina,Margot,Adèle,Victoire,Capucine,Élise,Alix,Iris,Elsa',
   ],
 };
 
 // Portugal, above all the Azores: the dairy and farming families of the Central Valley and the coast.
 GIVEN.portuguese = {
   M: [
-    'José,Manuel,António,João,Francisco,Joaquim,Fernando,Luís,Carlos,Jorge,Alfredo,Albano,Armando,Agostinho,Mário,Américo,Artur,Augusto,Domingos,Ernesto,Hélio,Henrique,Jaime,Júlio,Leonel,Mateus,Orlando,Raul,Serafim,Vitorino',
-    'José,Manuel,António,João,Paulo,Carlos,Luís,Jorge,Fernando,Rui,Nuno,Pedro,Francisco,Mário,Sérgio,Ricardo,Joaquim,Vítor,Filipe,Miguel,Alberto,Eduardo,Hélder,Fausto,Duarte,Gilberto,Norberto,Marco,Fernão,Délio',
-    'João,Pedro,Tiago,Nuno,Ricardo,Rui,Bruno,Hugo,Miguel,Paulo,André,Diogo,Luís,Marco,Daniel,Filipe,Sérgio,Carlos,Gonçalo,Vasco,Rafael,Fábio,Jorge,José,Duarte,Fernando,Hélio,Manuel,António,Francisco',
-    'Francisco,Santiago,João,Rodrigo,Martim,Tomás,Afonso,Duarte,Lourenço,Gonçalo,Guilherme,Miguel,Gabriel,Salvador,Pedro,Tiago,Diogo,Rafael,Vicente,Simão,Lucas,Dinis,Henrique,Gustavo,Leonardo,Manuel,Bernardo,David,Mateus,Vasco',
+    'José*2.2,Manuel*1.8,António*1.4,João,Francisco,Joaquim,Fernando,Luís,Carlos,Jorge,Alfredo,Albano,Armando,Agostinho,Mário,Américo,Artur,Augusto,Domingos,Ernesto,Hélio,Henrique,Jaime,Júlio,Leonel,Mateus,Orlando,Raul,Serafim,Vitorino,Alberto,Abílio,Adelino,Aníbal,Gilberto,Jacinto,Lourenço,Laurindo,Rui,Valdemar,Vasco,Silvino',
+    'José*2,Manuel*1.5,António,João,Paulo,Carlos,Luís,Jorge,Fernando,Rui,Nuno,Pedro,Francisco,Mário,Sérgio,Ricardo,Joaquim,Vítor,Filipe,Miguel,Alberto,Eduardo,Hélder,Fausto,Duarte,Gilberto,Norberto,Marco,Fernão,Délio,Armando,Jaime,Luciano,Mateus,Daniel,Agostinho,Artur,Avelino,Henrique,Domingos,Fábio,Hugo',
+    'João,Pedro,Tiago,Nuno,Ricardo,Rui,Bruno,Hugo,Miguel,Paulo,André,Diogo,Luís,Marco,Daniel,Filipe,Sérgio,Carlos,Gonçalo,Vasco,Rafael,Fábio,Jorge,José,Duarte,Fernando,Hélio,Manuel,António,Francisco,Ivo,Joel,Telmo,Vítor,Mário,Alexandre,Gil,David,Emanuel,Leandro,Mauro,Samuel',
+    'Francisco,Santiago,João,Rodrigo,Martim,Tomás,Afonso,Duarte,Lourenço,Gonçalo,Guilherme,Miguel,Gabriel,Salvador,Pedro,Tiago,Diogo,Rafael,Vicente,Simão,Lucas,Dinis,Henrique,Gustavo,Leonardo,Manuel,Bernardo,David,Mateus,Vasco,Enzo,Tomé,Xavier,Matias,Isaac,Noah,Daniel,André,Samuel,Rúben,Lorenzo,Benjamim',
   ],
   F: [
-    'Maria,Ana,Conceição,Fátima,Rosa,Manuela,Lurdes,Glória,Teresa,Isabel,Fernanda,Natália,Filomena,Graça,Margarida,Alzira,Albertina,Aurora,Celeste,Deolinda,Emília,Ermelinda,Gracinda,Helena,Laura,Lucinda,Olívia,Rosalina,Zulmira,Hermínia',
-    'Maria,Ana,Paula,Sandra,Sónia,Cristina,Susana,Isabel,Fátima,Teresa,Manuela,Fernanda,Helena,Lúcia,Carla,Elisabete,Graça,Rosa,Natália,Célia,Margarida,Anabela,Lurdes,Conceição,Alexandra,Cláudia,Rita,Patrícia,Luísa,Dulce',
-    'Ana,Joana,Sara,Catarina,Inês,Marta,Rita,Patrícia,Andreia,Vanessa,Daniela,Diana,Filipa,Mariana,Sofia,Cláudia,Carla,Raquel,Liliana,Tânia,Sílvia,Sónia,Cátia,Susana,Mónica,Bruna,Ângela,Juliana,Bárbara,Beatriz',
-    'Maria,Leonor,Matilde,Beatriz,Carolina,Mariana,Ana,Inês,Margarida,Sofia,Francisca,Benedita,Alice,Lara,Laura,Constança,Clara,Madalena,Luana,Joana,Rita,Diana,Camila,Íris,Eva,Mafalda,Vitória,Gabriela,Lia,Letícia',
+    'Maria*3.5,Ana,Conceição,Fátima,Rosa,Manuela,Lurdes,Glória,Teresa,Isabel,Fernanda,Natália,Filomena,Graça,Margarida,Alzira,Albertina,Aurora,Celeste,Deolinda,Emília,Ermelinda,Gracinda,Helena,Laura,Lucinda,Olívia,Rosalina,Zulmira,Hermínia,Amélia,Belmira,Cecília,Clotilde,Dulce,Esperança,Idalina,Irene,Joaquina,Leonor,Lúcia,Rosário',
+    'Maria*3,Ana,Paula,Sandra,Sónia,Cristina,Susana,Isabel,Fátima,Teresa,Manuela,Fernanda,Helena,Lúcia,Carla,Elisabete,Graça,Rosa,Natália,Célia,Margarida,Anabela,Lurdes,Conceição,Alexandra,Cláudia,Rita,Patrícia,Luísa,Dulce,Sílvia,Sofia,Odete,Rosário,Olga,Ilda,Lina,Elsa,Emília,Alice,Irene',
+    'Ana,Joana,Sara,Catarina,Inês,Marta,Rita,Patrícia,Andreia,Vanessa,Daniela,Diana,Filipa,Mariana,Sofia,Cláudia,Carla,Raquel,Liliana,Tânia,Sílvia,Sónia,Cátia,Susana,Mónica,Bruna,Ângela,Juliana,Bárbara,Beatriz,Maria,Paula,Helena,Lúcia,Vera,Mafalda,Teresa,Isabel,Carolina,Margarida,Rute',
+    'Maria*2,Leonor,Matilde,Beatriz,Carolina,Mariana,Ana,Inês,Margarida,Sofia,Francisca,Benedita,Alice,Lara,Laura,Constança,Clara,Madalena,Luana,Joana,Rita,Diana,Camila,Íris,Eva,Mafalda,Vitória,Gabriela,Lia,Letícia,Yara,Bianca,Mia,Carlota,Aurora,Valentina,Bruna,Teresa,Alícia,Rafaela,Luísa',
   ],
   us: {
     M: [
-      'Manuel,Joe,Tony,Frank,John,Joseph,Anthony,Louis,Antone,Manny,Jack,Alfred,Lawrence,Ernest,Arthur,Albert',
-      'Tony,Joe,Frank,Manuel,John,Joseph,Anthony,Mike,Steve,David,Richard,Ronald,Gary,Dennis,Daniel,Robert,Paul,Mark',
-      'Anthony,Joseph,Jason,Ryan,Matthew,David,Daniel,Michael,John,Steven,Justin,Eric,Jeremy,Joshua,Nicholas,Brian,Manuel,Frank',
-      'Mateo,Lucas,Gabriel,Anthony,Joseph,Daniel,Nathan,Logan,Ethan,Ryan,Tyler,Andrew,Noah,Joao,Rafael,Tiago,Diego,Leo',
+      'Manuel,Joe,Tony,Frank,John,Joseph,Anthony,Louis,Antone,Manny,Jack,Alfred,Lawrence,Ernest,Arthur,Albert,George,Edward,Henry,Charles,Raymond,William',
+      'Tony,Joe,Frank,Manuel,John,Joseph,Anthony,Mike,Steve,David,Richard,Ronald,Gary,Dennis,Daniel,Robert,Paul,Mark,Lawrence,Edward,Kenneth,Carl,Larry,Raymond',
+      'Anthony,Joseph,Jason,Ryan,Matthew,David,Daniel,Michael,John,Steven,Justin,Eric,Jeremy,Joshua,Nicholas,Brian,Manuel,Frank,Christopher,Mark,Adam,Kevin,Tony,Aaron',
+      'Mateo,Lucas,Gabriel,Anthony,Joseph,Daniel,Nathan,Logan,Ethan,Ryan,Tyler,Andrew,Noah,Joao,Rafael,Tiago,Diego,Leo,Luca,Benjamin,Elijah,Isaac,Dominic,Matthew',
     ],
     F: [
-      'Mary,Rose,Maria,Isabel,Alice,Evelyn,Dolores,Lucille,Virginia,Florence,Mabel,Olive,Laura,Helen,Bernice,Emily',
-      'Mary,Linda,Diane,Maria,Lisa,Debra,Patricia,Susan,Karen,Cindy,Christina,Teresa,Sandra,Pamela,Donna,Annette,Paula,Rosemary',
-      'Christina,Ana,Michelle,Nicole,Jessica,Natalie,Amanda,Melissa,Jennifer,Sarah,Stephanie,Vanessa,Alexandra,Andrea,Danielle,Monica,Kristina,Maria',
-      'Sofia,Isabella,Gabriela,Mariana,Alexandra,Olivia,Ava,Emma,Victoria,Natalie,Leah,Chloe,Bianca,Ariana,Elena,Lara,Ines,Clara',
+      'Mary,Rose,Maria,Isabel,Alice,Evelyn,Dolores,Lucille,Virginia,Florence,Mabel,Olive,Laura,Helen,Bernice,Emily,Lucy,Margaret,Josephine,Theresa,Mae,Irene',
+      'Mary,Linda,Diane,Maria,Lisa,Debra,Patricia,Susan,Karen,Cindy,Christina,Teresa,Sandra,Pamela,Donna,Annette,Paula,Rosemary,Deborah,Lorraine,Janet,Elaine,Lucy,Julie',
+      'Christina,Ana,Michelle,Nicole,Jessica,Natalie,Amanda,Melissa,Jennifer,Sarah,Stephanie,Vanessa,Alexandra,Andrea,Danielle,Monica,Kristina,Maria,Ashley,Lauren,Melanie,Elizabeth,Brittany,Kristen',
+      'Sofia,Isabella,Gabriela,Mariana,Alexandra,Olivia,Ava,Emma,Victoria,Natalie,Leah,Chloe,Bianca,Ariana,Elena,Lara,Ines,Clara,Mia,Lucia,Madison,Abigail,Julia,Sophia',
     ],
   },
 };
@@ -1039,32 +1058,32 @@ GIVEN.portuguese = {
 // The Netherlands (the Dutch dairy families of Chino, Artesia and the Central Valley).
 GIVEN.dutch = {
   M: [
-    'Jan,Johannes,Cornelis,Hendrik,Willem,Gerrit,Pieter,Jacobus,Dirk,Klaas,Adrianus,Hendrikus,Theodorus,Gerardus,Wilhelmus,Petrus,Jacob,Hans,Henk,Kees,Wim,Gert,Arie,Bert,Ton,Frans,Joop,Piet,Teun,Sjoerd',
-    'Peter,Jan,Hans,Johan,Marco,Erik,Paul,Rob,Frank,Martin,Mark,Ronald,Rene,Michel,Edwin,Richard,Patrick,Dennis,Jeroen,Arjan,Marcel,Gerard,Robert,Bas,Wouter,Maarten,Bart,Sander,Ruud,Remco',
-    'Thomas,Tim,Mark,Kevin,Jeroen,Dennis,Michael,Stefan,Bas,Niels,Rick,Bart,Sander,Joost,Martijn,Ruben,Daan,Thijs,Wouter,Maarten,Jasper,Koen,Lars,Robin,Tom,Jesse,Sven,Bram,Stijn,Pieter',
-    'Daan,Sem,Lucas,Levi,Finn,Milan,Luuk,Bram,Jesse,Thomas,Noah,Liam,Sam,Lars,Thijs,Ruben,Max,Stijn,Julian,Gijs,Teun,Jayden,Tim,Mees,Siem,Hugo,Jens,Floris,Sven,Jasper',
+    'Jan,Johannes,Cornelis,Hendrik,Willem,Gerrit,Pieter,Jacobus,Dirk,Klaas,Adrianus,Hendrikus,Theodorus,Gerardus,Wilhelmus,Petrus,Jacob,Hans,Henk,Kees,Wim,Gert,Arie,Bert,Ton,Frans,Joop,Piet,Teun,Sjoerd,Gerard,Antonius,Martinus,Johan,Leendert,Evert,Harm,Jaap,Rinus,Herman,Albert,Jos',
+    'Peter,Jan,Hans,Johan,Marco,Erik,Paul,Rob,Frank,Martin,Mark,Ronald,Rene,Michel,Edwin,Richard,Patrick,Dennis,Jeroen,Arjan,Marcel,Gerard,Robert,Bas,Wouter,Maarten,Bart,Sander,Ruud,Remco,Arjen,Erwin,Hendrik,Raymond,Wim,Theo,Henk,Jos,Leon,Roel,Gijs',
+    'Thomas,Tim,Mark,Kevin,Jeroen,Dennis,Michael,Stefan,Bas,Niels,Rick,Bart,Sander,Joost,Martijn,Ruben,Daan,Thijs,Wouter,Maarten,Jasper,Koen,Lars,Robin,Tom,Jesse,Sven,Bram,Stijn,Pieter,Jan,Peter,Martin,Erik,Mike,Nick,Jelle,Wesley,Roy,Jeffrey,Patrick,Marco',
+    'Daan,Sem,Lucas,Levi,Finn,Milan,Luuk,Bram,Jesse,Thomas,Noah,Liam,Sam,Lars,Thijs,Ruben,Max,Stijn,Julian,Gijs,Teun,Jayden,Tim,Mees,Siem,Hugo,Jens,Floris,Sven,Jasper,Adam,Mats,Noud,Ties,Olivier,Luca,Jurre,Dex,Boaz,Hidde,Jip,Gerrit',
   ],
   F: [
-    'Maria,Johanna,Cornelia,Anna,Elisabeth,Hendrika,Wilhelmina,Geertruida,Adriana,Catharina,Jacoba,Petronella,Aaltje,Grietje,Trijntje,Neeltje,Annie,Riet,Ria,Truus,Joke,Tineke,Gerda,Ineke,Corrie,Bep,Mien,Dineke,Willemijn,Marijke',
-    'Monique,Petra,Marjolein,Ingrid,Anja,Sandra,Esther,Linda,Marieke,Mirjam,Annemieke,Wendy,Claudia,Saskia,Ellen,Karin,Patricia,Yvonne,Marja,Astrid,Jolanda,Anita,Brigitte,Hanneke,Ilse,Margriet,Nicole,Sylvia,Jacqueline,Marloes',
-    'Anne,Lisa,Laura,Linda,Kim,Sanne,Esther,Marieke,Femke,Iris,Ilse,Eva,Lotte,Maaike,Anouk,Mirjam,Sarah,Charlotte,Nina,Fleur,Floor,Lieke,Roos,Inge,Manon,Joyce,Melissa,Kelly,Danielle,Bianca',
-    'Emma,Julia,Tess,Sophie,Zoë,Mila,Sara,Anna,Eva,Noor,Evi,Lotte,Lisa,Fenna,Saar,Nora,Liv,Yara,Isa,Fleur,Femke,Roos,Lieke,Sanne,Lynn,Maud,Elin,Nina,Jasmijn,Lauren',
+    'Maria,Johanna,Cornelia,Anna,Elisabeth,Hendrika,Wilhelmina,Geertruida,Adriana,Catharina,Jacoba,Petronella,Aaltje,Grietje,Trijntje,Neeltje,Annie,Riet,Ria,Truus,Joke,Tineke,Gerda,Ineke,Corrie,Bep,Mien,Dineke,Willemijn,Marijke,Margaretha,Agatha,Helena,Gerarda,Antonia,Dirkje,Hilda,Lies,Jannetje,Gerritje,Hennie,Thea',
+    'Monique,Petra,Marjolein,Ingrid,Anja,Sandra,Esther,Linda,Marieke,Mirjam,Annemieke,Wendy,Claudia,Saskia,Ellen,Karin,Patricia,Yvonne,Marja,Astrid,Jolanda,Anita,Brigitte,Hanneke,Ilse,Margriet,Nicole,Sylvia,Jacqueline,Marloes,Mariska,Miranda,Anneke,Marjan,Carla,Dorien,Inge,Wilma,Bianca,Ilona,Mieke',
+    'Anne,Lisa,Laura,Linda,Kim,Sanne,Esther,Marieke,Femke,Iris,Ilse,Eva,Lotte,Maaike,Anouk,Mirjam,Sarah,Charlotte,Nina,Fleur,Floor,Lieke,Roos,Inge,Manon,Joyce,Melissa,Kelly,Danielle,Bianca,Marloes,Jolien,Annelies,Kirsten,Suzanne,Merel,Rianne,Chantal,Natasja,Jessica,Debora',
+    'Emma,Julia,Tess,Sophie,Zoë,Mila,Sara,Anna,Eva,Noor,Evi,Lotte,Lisa,Fenna,Saar,Nora,Liv,Yara,Isa,Fleur,Femke,Roos,Lieke,Sanne,Lynn,Maud,Elin,Nina,Jasmijn,Lauren,Fien,Noa,Sarah,Iris,Fay,Lara,Puck,Isabella,Esmee,Lot,Ilse,Benthe',
   ],
 };
 
 // Sweden, Norway and Denmark (written without the special letters, as US records usually write them).
 GIVEN.scandinavian = {
   M: [
-    'Lars,Anders,Nils,Per,Erik,Karl,Olof,Sven,Johan,Gunnar,Bengt,Goran,Leif,Kjell,Bjorn,Ole,Arne,Knut,Jens,Hans,Soren,Poul,Niels,Torben,Henrik,Rolf,Lennart,Ingvar,Stig,Einar',
-    'Lars,Anders,Per,Erik,Mikael,Johan,Peter,Thomas,Jan,Henrik,Magnus,Mats,Stefan,Fredrik,Jens,Morten,Bjorn,Ole,Rune,Tor,Svein,Kim,Niels,Soren,Jesper,Torben,Martin,Tommy,Patrik,Ulf',
-    'Erik,Johan,Andreas,Daniel,Fredrik,Marcus,Martin,Mattias,Jonas,Christian,Kristian,Thomas,Mikkel,Rasmus,Anders,Henrik,Magnus,Simon,Emil,Mads,Kasper,Jesper,Niklas,Oskar,Viktor,Sindre,Even,Eirik,Joakim,Petter',
-    'William,Lucas,Oscar,Liam,Elias,Noah,Hugo,Oliver,Alexander,Emil,Theo,Filip,Isak,Jakob,Magnus,Mathias,Aksel,Henrik,Sander,Olav,Viktor,Leo,Felix,Malte,Carl,Alfred,Frederik,Anton,Ludvig,August',
+    'Lars,Anders,Nils,Per,Erik,Karl,Olof,Sven,Johan,Gunnar,Bengt,Goran,Leif,Kjell,Bjorn,Ole,Arne,Knut,Jens,Hans,Soren,Poul,Niels,Torben,Henrik,Rolf,Lennart,Ingvar,Stig,Einar,Ake,Bo,Gustav,Harald,Jon,Kristian,Magnus,Oskar,Ragnar,Svend,Tage,Torsten',
+    'Lars,Anders,Per,Erik,Mikael,Johan,Peter,Thomas,Jan,Henrik,Magnus,Mats,Stefan,Fredrik,Jens,Morten,Bjorn,Ole,Rune,Tor,Svein,Kim,Niels,Soren,Jesper,Torben,Martin,Tommy,Patrik,Ulf,Bo,Claus,Dag,Geir,Hakan,Jorgen,Kenneth,Lennart,Odd,Ola,Pal,Steen',
+    'Erik,Johan,Andreas,Daniel,Fredrik,Marcus,Martin,Mattias,Jonas,Christian,Kristian,Thomas,Mikkel,Rasmus,Anders,Henrik,Magnus,Simon,Emil,Mads,Kasper,Jesper,Niklas,Oskar,Viktor,Sindre,Even,Eirik,Joakim,Petter,Alexander,Benjamin,David,Gustav,Jakob,Jonathan,Kristoffer,Lars,Peter,Robin,Tobias',
+    'William,Lucas,Oscar,Liam,Elias,Noah,Hugo,Oliver,Alexander,Emil,Theo,Filip,Isak,Jakob,Magnus,Mathias,Aksel,Henrik,Sander,Olav,Viktor,Leo,Felix,Malte,Carl,Alfred,Frederik,Anton,Ludvig,August,Adam,Elliot,Gustav,Mikkel,Nikolai,Olle,Sixten,Valdemar,Vilhelm,Arvid,Lukas',
   ],
   F: [
-    'Kerstin,Birgitta,Ingrid,Karin,Margareta,Eva,Anna,Kristina,Elisabeth,Marianne,Inger,Gunilla,Ulla,Britt,Solveig,Astrid,Liv,Randi,Kari,Bente,Grete,Hanne,Kirsten,Lene,Inge,Mette,Birthe,Jytte,Gerd,Sigrid',
-    'Anna,Maria,Annika,Helena,Susanne,Camilla,Malin,Sofia,Lena,Anette,Karin,Mette,Lene,Hanne,Pia,Tina,Charlotte,Trine,Heidi,Marit,Hege,Kristin,Siri,Ingrid,Ann,Helle,Linda,Eva,Jenny,Therese',
-    'Emma,Sara,Hanna,Ida,Julia,Linnea,Elin,Johanna,Matilda,Amanda,Maja,Sofie,Camilla,Line,Maria,Kristine,Ingrid,Silje,Marte,Thea,Nora,Malin,Frida,Josefin,Louise,Mette,Cecilie,Karoline,Stine,Ane',
-    'Alice,Maja,Elsa,Astrid,Wilma,Freja,Ella,Olivia,Ebba,Saga,Alma,Agnes,Nora,Emma,Sofia,Ingrid,Sofie,Ida,Clara,Frida,Selma,Ellen,Iben,Karla,Liva,Thea,Aurora,Linnea,Vera,Signe',
+    'Kerstin,Birgitta,Ingrid,Karin,Margareta,Eva,Anna,Kristina,Elisabeth,Marianne,Inger,Gunilla,Ulla,Britt,Solveig,Astrid,Liv,Randi,Kari,Bente,Grete,Hanne,Kirsten,Lene,Inge,Mette,Birthe,Jytte,Gerd,Sigrid,Agneta,Asa,Berit,Birgit,Elsa,Gun,Harriet,Ingegerd,Karen,Lis,Marit,Ruth',
+    'Anna,Maria,Annika,Helena,Susanne,Camilla,Malin,Sofia,Lena,Anette,Karin,Mette,Lene,Hanne,Pia,Tina,Charlotte,Trine,Heidi,Marit,Hege,Kristin,Siri,Ingrid,Ann,Helle,Linda,Eva,Jenny,Therese,Asa,Berit,Birgitte,Cecilia,Christina,Gro,Hanna,Kristina,Lise,Ulrika,Tove',
+    'Emma,Sara,Hanna,Ida,Julia,Linnea,Elin,Johanna,Matilda,Amanda,Maja,Sofie,Camilla,Line,Maria,Kristine,Ingrid,Silje,Marte,Thea,Nora,Malin,Frida,Josefin,Louise,Mette,Cecilie,Karoline,Stine,Ane,Anna,Caroline,Emilie,Hanne,Jenny,Julie,Karin,Kristin,Lisa,Malene,Sanna',
+    'Alice,Maja,Elsa,Astrid,Wilma,Freja,Ella,Olivia,Ebba,Saga,Alma,Agnes,Nora,Emma,Sofia,Ingrid,Sofie,Ida,Clara,Frida,Selma,Ellen,Iben,Karla,Liva,Thea,Aurora,Linnea,Vera,Signe,Elin,Emilie,Hedda,Julie,Mathilde,Sara,Tilde,Vilma,Liv,Ronja,Stella,Lea',
   ],
 };
 
@@ -1088,16 +1107,16 @@ GIVEN.european = {
 // names, and Chamorro families' Spanish names.
 GIVEN.pacific = {
   M: [
-    'Sione,Tevita,Viliami,Siaosi,Semisi,Tomasi,Ioane,Iosefa,Pita,Lisiate,Mosese,Paulo,Falaniko,Malakai,Isileli,Keoni,Kawika,Kimo,Makana,Kalani,Joseph,John,Peter,Samuel,Henry,Vicente,Juan,Jose,Francisco,Ignacio,Jesus,Pedro',
-    'Sione,Tevita,Viliami,Siaosi,Semisi,Iosefa,Ioane,Pita,Paulo,Mosese,Malakai,Isileli,Tomasi,Lisiate,Taniela,Keoni,Kawika,Kimo,Kalani,Kekoa,Makoa,Kainoa,Michael,David,Joseph,Daniel,John,Vincent,Jesse,Frank,Juan,Jesus',
-    'Sione,Tevita,Viliami,Siaosi,Iosefa,Taniela,Malakai,Kekoa,Kainoa,Ikaika,Koa,Keanu,Kai,Makoa,Kalani,Nainoa,Kawika,Keoni,Michael,Joshua,Daniel,David,Isaiah,Jordan,Christopher,Anthony,Jacob,Joseph,Lopeti,Samuela',
-    'Kai,Koa,Kekoa,Kainoa,Makoa,Ikaika,Nalu,Keanu,Kanoa,Isaia,Sione,Tevita,Viliami,Siaosi,Iosefa,Taniela,Malakai,Elijah,Isaiah,Josiah,Joshua,Noah,Jayden,Zion,Micah,Ezekiel,Elisha,Samuela,Lopeti,Kahiau',
+    'Sione,Tevita,Viliami,Siaosi,Semisi,Tomasi,Ioane,Iosefa,Pita,Lisiate,Mosese,Paulo,Falaniko,Malakai,Isileli,Keoni,Kawika,Kimo,Makana,Kalani,Joseph,John,Peter,Samuel,Henry,Vicente,Juan,Jose,Francisco,Ignacio,Jesus,Pedro,Sefo,Tavita,Elia,Manase,Saia,Sitani,Mikaele,Akoni,Kaleo,Antonio,Ramon',
+    'Sione,Tevita,Viliami,Siaosi,Semisi,Iosefa,Ioane,Pita,Paulo,Mosese,Malakai,Isileli,Tomasi,Lisiate,Taniela,Keoni,Kawika,Kimo,Kalani,Kekoa,Makoa,Kainoa,Michael,David,Joseph,Daniel,John,Vincent,Jesse,Frank,Juan,Jesus,Saia,Sefo,Tavita,Manase,Elia,Afa,Kaleo,Akoni,Edward,Robert,Peter,Ramon',
+    'Sione,Tevita,Viliami,Siaosi,Iosefa,Taniela,Malakai,Kekoa,Kainoa,Ikaika,Koa,Keanu,Kai,Makoa,Kalani,Nainoa,Kawika,Keoni,Michael,Joshua,Daniel,David,Isaiah,Jordan,Christopher,Anthony,Jacob,Joseph,Lopeti,Samuela,Saia,Sefo,Tavita,Semisi,Paulo,Mosese,Kaleo,Akoni,Noa,Justin,Brandon,Jesse',
+    'Kai,Koa,Kekoa,Kainoa,Makoa,Ikaika,Nalu,Keanu,Kanoa,Isaia,Sione,Tevita,Viliami,Siaosi,Iosefa,Taniela,Malakai,Elijah,Isaiah,Josiah,Joshua,Noah,Jayden,Zion,Micah,Ezekiel,Elisha,Samuela,Lopeti,Kahiau,Kaleo,Akoni,Keola,Nainoa,Kawika,Saia,Sefo,Tavita,Manase,Semisi,Caleb,Liam',
   ],
   F: [
-    'Mele,Salote,Losaline,Ana,Lose,Sela,Seini,Ofa,Malia,Lavinia,Fetu,Sina,Leilani,Noelani,Pualani,Iolana,Kanoe,Keala,Mary,Rosa,Maria,Josefina,Carmen,Dolores,Teresa,Lupe,Amelia,Ruta,Losana,Akanesi',
-    'Mele,Salote,Losaline,Ana,Lose,Sela,Seini,Ofa,Malia,Lavinia,Sina,Leilani,Noelani,Kanoe,Keala,Pualani,Kehaulani,Lani,Moana,Teuila,Mary,Elizabeth,Christina,Michelle,Lisa,Angela,Tina,Linda,Losana,Vika',
-    'Leilani,Kailani,Noelani,Kehaulani,Malia,Mele,Ana,Lose,Sela,Seini,Ofa,Lavinia,Salote,Losaline,Teuila,Moana,Alana,Keala,Kanoe,Makana,Kiana,Iolana,Kalena,Tiare,Sina,Vailea,Jessica,Ashley,Crystal,Brittany',
-    'Leilani,Kailani,Moana,Kalea,Malia,Mele,Kiana,Alana,Keala,Nalani,Makana,Kehaulani,Iolana,Kaimana,Noelani,Tiare,Teuila,Sela,Salote,Lavinia,Ana,Lose,Seini,Ofa,Aaliyah,Isabella,Faith,Grace,Taliah,Aria,Mahina,Nohea,Kanani,Losana,Mana',
+    'Mele,Salote,Losaline,Ana,Lose,Sela,Seini,Ofa,Malia,Lavinia,Fetu,Sina,Leilani,Noelani,Pualani,Iolana,Kanoe,Keala,Mary,Rosa,Maria,Josefina,Carmen,Dolores,Teresa,Lupe,Amelia,Ruta,Losana,Akanesi,Silia,Mata,Sui,Pua,Leinaala,Healani,Esther,Elena,Lusia,Tilisa,Anita',
+    'Mele,Salote,Losaline,Ana,Lose,Sela,Seini,Ofa,Malia,Lavinia,Sina,Leilani,Noelani,Kanoe,Keala,Pualani,Kehaulani,Lani,Moana,Teuila,Mary,Elizabeth,Christina,Michelle,Lisa,Angela,Tina,Linda,Losana,Vika,Silia,Lusia,Tilisa,Mata,Pua,Healani,Leinaala,Iolana,Kalena,Esther,Ruta,Akanesi',
+    'Leilani,Kailani,Noelani,Kehaulani,Malia,Mele,Ana,Lose,Sela,Seini,Ofa,Lavinia,Salote,Losaline,Teuila,Moana,Alana,Keala,Kanoe,Makana,Kiana,Iolana,Kalena,Tiare,Sina,Vailea,Jessica,Ashley,Crystal,Brittany,Lusia,Tilisa,Silia,Healani,Lani,Leinaala,Pua,Nani,Vika,Esther,Amanda,Stephanie',
+    'Leilani,Kailani,Moana,Kalea,Malia,Mele,Kiana,Alana,Keala,Nalani,Makana,Kehaulani,Iolana,Kaimana,Noelani,Tiare,Teuila,Sela,Salote,Lavinia,Ana,Lose,Seini,Ofa,Aaliyah,Isabella,Faith,Grace,Taliah,Aria,Mahina,Nohea,Kanani,Losana,Mana,Lusia,Tilisa,Nani,Lani,Healani,Kalena,Hokulani',
   ],
 };
 
@@ -1159,10 +1178,10 @@ SURNAMES.indian = { mix: [['indian-north', 0.36], ['indian-west', 0.3], ['indian
 SURNAMES.sikh = 'Sandhu:5,Gill:5,Dhillon:4,Sidhu:3.6,Grewal:2.8,Bains:2.2,Johal:1.8,Atwal:1.5,Mann:1.6,Brar:1.6,Cheema:1.5,Dhaliwal:1.5,Randhawa:1.4,Sangha:1.3,Virk:1.2,Sekhon:1.2,Hundal:1.1,Bal:1,Aulakh:1,Chahal:1,Toor,Kang,Bhullar,Purewal,Khaira,Sahota,Basra,Dhami,Kaler,Mangat,Uppal,Thind,Pannu,Badesha,Bhangu,Deol,Gosal,Heer,Jhutti,Khehra,Malhi,Nijjar,Rai,Samra,Takhar,Tiwana,Sran,Dhindsa,Chatha,Sohal';
 
 // Pakistan.
-SURNAMES.pakistani = 'Khan:8,Ahmed:5,Ali:4.5,Hussain:3.5,Malik:3,Chaudhry:2.4,Sheikh:2,Qureshi:1.8,Siddiqui:1.6,Akhtar:1.5,Iqbal:1.5,Raza:1.4,Shah:1.4,Mirza:1.3,Baig:1.2,Abbasi:1.2,Awan:1.1,Rana:1.1,Javed:1,Mahmood:1,Rehman,Aslam,Anwar,Haider,Rizvi,Naqvi,Zaidi,Jafri,Hashmi,Farooq,Rashid,Saleem,Bhatti,Cheema,Gondal,Janjua,Khokhar,Tarar,Warraich,Bajwa,Memon,Ansari,Usmani,Durrani,Khattak,Niazi,Kazmi,Bukhari,Gilani,Nawaz,Lodhi';
+SURNAMES.pakistani = 'Khan:5.5,Ahmed:5,Ali:4.5,Hussain:3.5,Malik:3,Chaudhry:2.4,Sheikh:2,Qureshi:1.8,Siddiqui:1.6,Akhtar:1.5,Iqbal:1.5,Raza:1.4,Shah:1.4,Mirza:1.3,Baig:1.2,Abbasi:1.2,Awan:1.1,Rana:1.1,Javed:1,Mahmood:1,Rehman,Aslam,Anwar,Haider,Rizvi,Naqvi,Zaidi,Jafri,Hashmi,Farooq,Rashid,Saleem,Bhatti,Cheema,Gondal,Janjua,Khokhar,Tarar,Warraich,Bajwa,Memon,Ansari,Usmani,Durrani,Khattak,Niazi,Kazmi,Bukhari,Gilani,Nawaz,Lodhi';
 
 // Bangladesh.
-SURNAMES.bangladeshi = 'Rahman:6,Hossain:5,Islam:4.5,Ahmed:4,Khan:3,Uddin:3,Chowdhury:2.5,Alam:2.2,Miah:1.8,Haque:1.5,Sarker:1.2,Karim:1.2,Talukder:1,Sheikh,Mollah,Bhuiyan,Siddique,Hasan,Kabir,Ali,Barua,Das,Roy,Saha,Paul,Biswas,Mondal,Majumder,Mahmud,Rashid,Hoque,Malik,Patwary,Shikder,Khondaker,Munshi,Babu,Matin,Zaman,Bari,Kazi,Sikder,Faruque,Pramanik,Ghosh,Dey';
+SURNAMES.bangladeshi = 'Rahman:4.5,Hossain:4.2,Islam:4,Ahmed:4,Khan:3,Uddin:3,Chowdhury:2.5,Alam:2.2,Miah:1.8,Haque:1.5,Sarker:1.2,Karim:1.2,Talukder:1,Sheikh,Mollah,Bhuiyan,Siddique,Hasan,Kabir,Ali,Barua,Das,Roy,Saha,Paul,Biswas,Mondal,Majumder,Mahmud,Rashid,Hoque,Malik,Patwary,Shikder,Khondaker,Munshi,Babu,Matin,Zaman,Bari,Kazi,Sikder,Faruque,Pramanik,Ghosh,Dey';
 
 // Afghanistan (tribal and place names became surnames only in the 20th century, many ending in -i or -zai).
 SURNAMES.afghan = 'Ahmadi:3,Mohammadi:2.5,Rahimi:2,Hashimi:1.5,Karimi:1.5,Wardak:1.2,Noori:1.2,Amiri:1.1,Azizi:1.1,Popal:1,Stanekzai:1,Ahmadzai:1,Sultani:1,Haidari:1,Hakimi:1,Hussaini:1,Jalali,Kabuli,Kakar,Mohmand,Niazi,Nuristani,Omari,Popalzai,Qaderi,Rahmani,Rasuli,Safi,Saberi,Sadat,Samadi,Sharifi,Shinwari,Siddiqi,Wahidi,Zazai,Zaheer,Barakzai,Durrani,Hotak,Andar,Ludin,Mujaddidi,Faizi,Nazari,Habibi,Akbari,Azimi,Faqiri,Nawabi';
@@ -1174,10 +1193,10 @@ SURNAMES.hmong = 'Vang:15,Xiong:14,Yang:12,Lee:10,Lor:7,Thao:7,Moua:6,Her:5,Vue:
 SURNAMES.cambodian = 'Sok:4,Chea:3,Kim:2.5,Heng:2.5,Lim:2,Meas:1.8,Ly:1.8,Chan:1.5,Keo:1.5,Seng:1.4,Prak:1.3,Sam:1.3,Pich:1.2,Chhay:1,Ouk:1,Pen:1,Phan:1,Sin:1,Nhem:0.9,Long:0.8,Mao:0.8,Chhun:0.8,Hem:0.8,Kong:0.8,Leng:0.7,Mam:0.7,Nou:0.7,Sao:0.7,Thach:0.7,Touch:0.7,Yim:0.7,Choeun:0.6,Om:0.6,Phon:0.6,Ros:0.6,Sor:0.6,Tep:0.6,Un:0.6,Ung:0.6,You:0.6,Svay:0.6,Bun:0.6,Tan:0.6,Uy:0.5,Yin:0.5,Khem:0.5,Nhim:0.5,Pov:0.5,Muth:0.5,Chann:0.5,Hok:0.5,Lay:0.5,Moeun:0.5,Nget:0.5,Sim:0.5,Vong:0.5';
 
 // Laos (family names, often long and particular to the family).
-SURNAMES.lao = 'Phommachanh,Sengsavang,Keomany,Vongsavath,Phanthavong,Sisavath,Souvannavong,Chanthavong,Inthavong,Phengsavanh,Keophilavong,Souliyavong,Vongphachanh,Sayavong,Phimmasone,Sengchanh,Douangpanya,Thammavong,Khounborine,Sihavong,Luangrath,Manivong,Philavanh,Rattanavong,Sayasith,Sengdara,Sithideth,Soukhaseum,Sourinthone,Thongsavath,Vilaysane,Vongkhamsao,Xayavong,Chounlamany,Keovilay,Phomsavanh,Rasavong,Siharath,Southammavong,Phothisane,Somphanith,Vongxay,Saechao,Phanakhone,Bounkeua';
+SURNAMES.lao = 'Phommachanh,Sengsavang,Keomany,Vongsavath,Phanthavong,Sisavath,Souvannavong,Chanthavong,Inthavong,Phengsavanh,Keophilavong,Souliyavong,Vongphachanh,Sayavong,Phimmasone,Sengchanh,Douangpanya,Thammavong,Khounborine,Sihavong,Luangrath,Manivong,Philavanh,Rattanavong,Sayasith,Sengdara,Sithideth,Soukhaseum,Sourinthone,Thongsavath,Vilaysane,Vongkhamsao,Xayavong,Chounlamany,Keovilay,Phomsavanh,Rasavong,Siharath,Southammavong,Phothisane,Somphanith,Vongxay,Saechao,Phanakhone,Bounkeua,Keodara,Khamvongsa,Phetsavong,Vongphakdy,Sisouphanh,Phanouvong,Chanthaphone,Phetsavanh,Sengmany,Keosavang,Vilayvong,Douangdara,Bounpraseuth,Keobounphanh,Sengkhammee,Phommasack,Inthirath,Khounthavong,Souksavath,Phanthaxay,Sanavongsay,Viravong,Phrasavath,Xaysana,Kongmany,Thongvanh,Phengsy,Chanthavisouk,Southichack,Phonsavath,Douangmala,Inthalangsy,Keokhamphoui,Sisombath,Vongsouthi,Phimmachack,Khamphouvong,Pathammavong,Souvanlasy,Thipphavong,Sengphachanh,Vongsakoun,Sihalath,Sengkeo,Phommavong,Vannasy,Luangxay,Xaiyavong,Thepsouvanh,Mounivong,Keopaseuth,Sayarath,Phoummachak,Somsavath,Bouaphakeo,Inthanousay,Saengsavang,Rattanasack';
 
 // Thailand (surnames are particular to families; these are among the more common, incl. Thai-Chinese Sae-).
-SURNAMES.thai = 'Saetang,Saelim,Saelee,Saeheng,Saeyang,Srisuk,Wongsawat,Charoensuk,Sukjai,Thongdee,Jaidee,Boonmee,Srisawat,Rattanakul,Sriwong,Phongsri,Chantarasak,Suwannarat,Kaewmanee,Prasertsuk,Wongpanich,Jitpraphai,Somboon,Limsakul,Tangsiri,Kongkaew,Phromma,Panyawong,Siriwat,Chaiyasit,Thongsuk,Ruangrit,Kittikul,Inthasorn,Boonyarat,Pongpanich,Manee,Sanguansak,Promsiri,Wattanakul,Yodsuwan,Thanasak,Chokchai,Saechin';
+SURNAMES.thai = 'Saetang,Saelim,Saelee,Saeheng,Saeyang,Srisuk,Wongsawat,Charoensuk,Sukjai,Thongdee,Jaidee,Boonmee,Srisawat,Rattanakul,Sriwong,Phongsri,Chantarasak,Suwannarat,Kaewmanee,Prasertsuk,Wongpanich,Jitpraphai,Somboon,Limsakul,Tangsiri,Kongkaew,Phromma,Panyawong,Siriwat,Chaiyasit,Thongsuk,Ruangrit,Kittikul,Inthasorn,Boonyarat,Pongpanich,Manee,Sanguansak,Promsiri,Wattanakul,Yodsuwan,Thanasak,Chokchai,Saechin,Saeung,Saechua,Saelao,Saetan,Sukprasert,Sirisuk,Wongsuwan,Rattanaphon,Thongprasert,Siripong,Boonsri,Kaewkla,Pattanapong,Sukkasem,Srisombat,Rungruang,Charoenphol,Jaroensuk,Suksawat,Sutthiwong,Wongwai,Phanthong,Inthawong,Chaisiri,Boonyaporn,Nakprasert,Sangthong,Kaewsri,Ruangsri,Sawangwong,Pongsiri,Chanthawong,Wiriyakul,Tanasombat,Jitsuwan,Kaewprasert,Tongthai,Rojanasakul,Prasongsuk,Udomsak,Saengthong,Thongkham,Sombatsiri,Chaiprasert,Kongsiri,Supsin,Rakthai,Wongsiri,Mahasuk,Phetchara,Panyarat,Boonchai,Thammasiri,Srichai,Kaewkamol,Nimmanit,Sakulrat,Wannasiri,Yimsiri,Phuangthong';
 
 // Burma: no family names; the last part of the personal name serves as the surname in US records.
 SURNAMES.burmese = 'Aung:4,Win:3,Htun:2.5,Oo:2.5,Myint:2,Kyaw:2,Thein:1.8,Soe:1.8,Lwin:1.5,Naing:1.5,Zaw:1.5,Maung:1.4,Tun:1.4,Hlaing:1.3,Min:1.2,Htwe:1.1,Nyunt:1,Khaing:1,Hla:1,Shwe,Lin,Myo,Thu,Sein,Than,Mya,Htay,Nwe,Moe,Khin,Aye,Chit,Htoo,Paw,Hein,Phyo,Thet,Wai,Nyein,Zin,Tin,Ko,Ye,Thaung,Yee,Lay';
@@ -1193,16 +1212,16 @@ SURNAMES.asian = { mix: [['asian-other', 0.32], ['chinese', 0.25], ['indian', 0.
 SURNAMES['african-american'] = 'Williams:4.5,Johnson:4,Smith:3.5,Jones:3.2,Brown:3,Jackson:2.6,Davis:2.5,Thomas:2,Harris:1.9,Robinson:1.7,Taylor:1.6,Wilson:1.5,Moore:1.4,White:1.3,Washington:1.3,Thompson:1.2,Lewis:1.2,Green:1.1,Walker:1.1,Allen:1,Young,King,Wright,Scott,Hill,Clark,Mitchell,Carter,Turner,Coleman,Edwards,Henderson,Simmons,Freeman,Banks,Gaines,Hayes,Patterson,Bell,Bryant,Brooks,Sanders,Ford,Griffin,Butler,Graham,Perry,Reed,Howard,Daniels,Foster,Hall,Hunter,Wallace,Woods,Morris,Hamilton,Holmes,Jenkins,Gordon,Matthews,Spencer,Stewart,Watson,Bradley,Dixon,Gray,Lee,Cooper,Grant,Hawkins,Mason,Pierce,Rogers,Tucker,Wade,Owens,Payne,Joseph,James,Jefferson,Franklin,Booker,Mack';
 
 // Ethiopia and Eritrea: the surname is the father's given name (and in the US often the grandfather's).
-SURNAMES.ethiopian = 'Bekele,Tadesse,Haile,Gebremariam,Gebremedhin,Tesfaye,Alemu,Kebede,Wolde,Assefa,Abebe,Desta,Ayele,Getachew,Mekonnen,Woldemariam,Berhe,Tekle,Gebreyesus,Negash,Asfaw,Demissie,Hailu,Worku,Yohannes,Tsegaye,Fikre,Mulugeta,Belay,Amare,Ghebremichael,Tesfamariam,Ghebre,Kidane,Habte,Mehari,Tewolde,Zerihun,Lemma,Shiferaw,Mamo,Gebru,Tefera,Alemayehu,Wondimu,Teshome,Taye,Bogale,Kassa,Girma,Tilahun,Gebreegziabher,Hagos,Weldemichael,Abraha,Tsegay,Berhane,Kahsay';
+SURNAMES.ethiopian = 'Bekele,Tadesse,Haile,Gebremariam,Gebremedhin,Tesfaye,Alemu,Kebede,Wolde,Assefa,Abebe,Desta,Ayele,Getachew,Mekonnen,Woldemariam,Berhe,Tekle,Gebreyesus,Negash,Asfaw,Demissie,Hailu,Worku,Yohannes,Tsegaye,Fikre,Mulugeta,Belay,Amare,Ghebremichael,Tesfamariam,Ghebre,Kidane,Habte,Mehari,Tewolde,Zerihun,Lemma,Shiferaw,Mamo,Gebru,Tefera,Alemayehu,Wondimu,Teshome,Taye,Bogale,Kassa,Girma,Tilahun,Gebreegziabher,Hagos,Weldemichael,Abraha,Tsegay,Berhane,Kahsay,Abate,Admasu,Alemseged,Asrat,Ayalew,Bayu,Bezabih,Birhanu,Dagne,Debebe,Degefa,Demeke,Endale,Eshete,Fantahun,Fekadu,Gebrehiwot,Gebrekidan,Gessesse,Habtemariam,Kassahun,Lakew,Legesse,Mersha,Mesfin,Moges,Negussie,Seyoum,Shibeshi,Tadele,Tamirat,Tekeste,Tesfai,Teferi,Tekola,Woldegiorgis,Workneh,Yigzaw,Zeleke,Zewde,Andemariam,Tesfamichael,Weldegiorgis,Tsegai,Habtom,Kifle,Mebrahtu,Mehreteab,Russom,Woldu,Zerai,Ghirmay,Okbamichael,Tewelde,Asmelash,Beyene,Hailemariam,Gebremichael,Tessema';
 
 // Nigeria (Igbo, Yoruba and Hausa-Fulani family names).
-SURNAMES.nigerian = 'Okafor,Okonkwo,Nwosu,Eze,Okeke,Obi,Nwachukwu,Okoro,Chukwu,Ogunleye,Adeyemi,Adebayo,Ogunbiyi,Olawale,Oladipo,Afolabi,Adeleke,Balogun,Bello,Ibrahim,Abubakar,Mohammed,Usman,Okoye,Nnaji,Igwe,Ugwu,Akinola,Akinwale,Ojo,Adewale,Ogunyemi,Oyebanji,Babalola,Anyanwu,Ezeh,Ogbonna,Uzoma,Chukwuma,Nwankwo,Ibe,Agu,Ezenwa,Onuoha,Adeniyi,Ogundipe,Olaniyan,Oyewole,Odukoya,Ekwueme,Nwafor,Nwogu,Adesanya,Oyelaran';
+SURNAMES.nigerian = 'Okafor,Okonkwo,Nwosu,Eze,Okeke,Obi,Nwachukwu,Okoro,Chukwu,Ogunleye,Adeyemi,Adebayo,Ogunbiyi,Olawale,Oladipo,Afolabi,Adeleke,Balogun,Bello,Ibrahim,Abubakar,Mohammed,Usman,Okoye,Nnaji,Igwe,Ugwu,Akinola,Akinwale,Ojo,Adewale,Ogunyemi,Oyebanji,Babalola,Anyanwu,Ezeh,Ogbonna,Uzoma,Chukwuma,Nwankwo,Ibe,Agu,Ezenwa,Onuoha,Adeniyi,Ogundipe,Olaniyan,Oyewole,Odukoya,Ekwueme,Nwafor,Nwogu,Adesanya,Oyelaran,Adekunle,Adegoke,Adeoye,Adesina,Adewumi,Ajayi,Akande,Akinyemi,Alabi,Aluko,Amadi,Anozie,Arinze,Azubuike,Chikwendu,Dike,Egwu,Ekpo,Emenike,Ibekwe,Iwu,Mbanefo,Nwabueze,Nwadike,Obiora,Odum,Ogbu,Ogunbanjo,Okoli,Okpara,Olaleye,Olayinka,Omotoso,Onwuka,Onyeka,Salako,Sanni,Shittu,Sule,Udeh,Udoh,Ukpabi,Umeh,Bakare,Durojaiye,Ogundele,Ogunlana,Omole,Onabanjo,Opara,Osuji,Uzor,Okwu,Nwoye,Abiodun,Olowu,Fagbemi,Ezeani,Oyedele';
 
 // The Black Caribbean (Jamaican, Trinidadian and Barbadian surnames from British naming; Haitian French ones).
 SURNAMES.caribbean = 'Campbell:2.5,Brown:2.4,Williams:2.2,Smith:2,Thompson:1.8,Johnson:1.6,Reid:1.4,Morgan:1.2,Clarke:1.2,Francis:1.1,Pierre:1.4,Jean:1.3,Joseph:1.3,Charles:1.2,Louis:1,Gordon,Grant,Henry,James,Lewis,McKenzie,Palmer,Robinson,Stewart,Walker,Wright,Spencer,Morrison,Bailey,Allen,Edwards,Graham,Ferguson,Bennett,Barnes,Baptiste,Jean-Baptiste,Desir,Etienne,Augustin,Celestin,Noel,Michel,Simon,Paul,Dorsainvil,Jean-Louis,Fils-Aime,Hylton,Samuels,Bryan,Wilson,Daley,Facey,Gayle,Lindo,McFarlane,Richards,Rowe,Sinclair,Tomlinson,Whyte,Chin,Mohammed';
 
 // Other African origins.
-SURNAMES.african = 'Mensah,Boateng,Owusu,Asante,Osei,Appiah,Agyeman,Ofori,Darko,Amoah,Kamau,Mwangi,Otieno,Odhiambo,Ochieng,Kariuki,Njoroge,Mutua,Kiprotich,Cheruiyot,Mohamed,Abdi,Hassan,Ali,Warsame,Farah,Ahmed,Omar,Yusuf,Hussein,Diallo,Traore,Konate,Ndiaye,Diop,Sow,Ba,Fofana,Camara,Keita,Toure,Coulibaly,Kone,Sylla,Nkosi,Dlamini,Ndlovu,Moyo,Banda,Phiri,Okello,Mugisha,Habimana,Tshabalala,Fotso,Mbah,Nyambura,Wekesa';
+SURNAMES.african = 'Mensah,Boateng,Owusu,Asante,Osei,Appiah,Agyeman,Ofori,Darko,Amoah,Kamau,Mwangi,Otieno,Odhiambo,Ochieng,Kariuki,Njoroge,Mutua,Kiprotich,Cheruiyot,Mohamed,Abdi,Hassan,Ali,Warsame,Farah,Ahmed,Omar,Yusuf,Hussein,Diallo,Traore,Konate,Ndiaye,Diop,Sow,Ba,Fofana,Camara,Keita,Toure,Coulibaly,Kone,Sylla,Nkosi,Dlamini,Ndlovu,Moyo,Banda,Phiri,Okello,Mugisha,Habimana,Tshabalala,Fotso,Mbah,Nyambura,Wekesa,Adjei,Ansah,Boakye,Frimpong,Gyamfi,Kyei,Kwarteng,Ofosu,Opoku,Sarpong,Tetteh,Quaye,Amponsah,Antwi,Baah,Bonsu,Addo,Oduro,Nyarko,Wanjala,Kipchumba,Kimani,Kibet,Korir,Langat,Muriuki,Ndungu,Gitau,Maina,Macharia,Onyango,Owino,Omondi,Wambua,Chebet,Rotich,Aden,Elmi,Guled,Jama,Mohamud,Nur,Osman,Samatar,Dahir,Bah,Barry,Cisse,Diarra,Doumbia,Fall,Gueye,Mbaye,Niang,Sangare,Seck,Sene,Thiam,Kamara,Sesay,Bangura,Conteh,Kargbo,Jalloh,Mbarga,Essomba,Ngono,Nkeng,Nsubuga,Kato,Mukasa,Wasswa,Tumusiime,Sibanda,Ncube,Mutasa,Dube,Mpofu,Khumalo,Mokoena,Mthembu,Mukendi,Tshibangu,Ilunga,Uwimana,Niyonzima';
 
 // ------------------------------------------------------------------ surnames: Armenian, Iranian, Arab, Assyrian
 // Armenian: Eastern -yan forms (Armenia, and most recent arrivals) and Western -ian forms (the older
@@ -1248,7 +1267,7 @@ SURNAMES.native = { mix: [['general', 0.5], ['mexican', 0.25], ['native-own', 0.
 
 // Pacific Islanders: Samoan and Tongan families (the largest groups in California), Native Hawaiian,
 // Chamorro (Guam) and Fijian, including the Indo-Fijian families of Sacramento.
-SURNAMES.pacific = 'Faleolo,Fuimaono,Leota,Mataafa,Tauiliili,Faamausili,Tuialii,Aumua,Fonoti,Seumalo,Taufa,Fifita,Vaipulu,Havili,Moala,Latu,Hufanga,Pulu,Mahe,Tonga,Fonua,Vake,Lolo,Afamasaga,Amituanai,Iosefa,Faleafa,Fanene,Lauina,Leiataua,Masoe,Paepae,Sefo,Soliai,Tagaloa,Toleafoa,Tuimavave,Kealoha,Akana,Kalani,Kamakana,Kahale,Kanahele,Kaleo,Keawe,Makua,Kamaka,Kahananui,Cruz,Santos,Camacho,Blas,Taitano,Quinata,Sablan,Aguon,San Nicolas,Mendiola,Guerrero,Borja,Toves,Unpingco,Salas,Babauta,Tenorio,Charfauros,Duenas,Pangelinan,Quitugua,Prasad,Chand,Lal,Naidu,Tuivaga,Naivalu,Tabua';
+SURNAMES.pacific = 'Faleolo,Fuimaono,Leota,Mataafa,Tauiliili,Faamausili,Tuialii,Aumua,Fonoti,Seumalo,Taufa,Fifita,Vaipulu,Havili,Moala,Latu,Hufanga,Pulu,Mahe,Tonga,Fonua,Vake,Lolo,Afamasaga,Amituanai,Iosefa,Faleafa,Fanene,Lauina,Leiataua,Masoe,Paepae,Sefo,Soliai,Tagaloa,Toleafoa,Tuimavave,Kealoha,Akana,Kalani,Kamakana,Kahale,Kanahele,Kaleo,Keawe,Makua,Kamaka,Kahananui,Cruz,Santos,Camacho,Blas,Taitano,Quinata,Sablan,Aguon,San Nicolas,Mendiola,Guerrero,Borja,Toves,Unpingco,Salas,Babauta,Tenorio,Charfauros,Duenas,Pangelinan,Quitugua,Prasad,Chand,Lal,Naidu,Tuivaga,Naivalu,Tabua,Afualo,Alapati,Aiono,Faamau,Lefiti,Leaupepe,Matagi,Sopoaga,Taamu,Toala,Lauvao,Pouesi,Ioane,Matautia,Mulitalo,Lealofi,Talataina,Kaufusi,Lolohea,Mafi,Maka,Manu,Naufahu,Pahulu,Taufahema,Tuipulotu,Vainikolo,Vea,Fakatava,Kata,Palelei,Kalua,Kealamakia,Keomaka,Makaiau,Nakoa,Pahia,Kapule,Kauhane,Kamakau,Kekumu,Kanoho,Aflague,Atoigue,Cepeda,Crisostomo,Leon Guerrero,Manibusan,Muna,Taimanglo,Terlaje,Tedtaotao,Quenga,Nakarawa,Delana,Waqa,Qiolevu,Tuimoala,Vakaloloma,Kumar,Narayan';
 
 // California at large, for Californians of more than one heritage and of other or unstated origin.
 SURNAMES.california = { mix: [['general', 0.46], ['mexican', 0.24], ['african-american', 0.06], ['chinese', 0.05], ['filipino', 0.05], ['vietnamese', 0.03], ['korean', 0.02], ['japanese', 0.02], ['indian', 0.03], ['armenian', 0.01], ['iranian', 0.01], ['german', 0.02]] };
@@ -1311,7 +1330,7 @@ const NAMING = Object.freeze({
   russian: cfg('russian', 'russian', [0.97, 0.35, 0.1], ['ru', 'en']),
   ukrainian: cfg('ukrainian', 'ukrainian', [0.97, 0.4, 0.12], ['uk', 'ru', 'en']),
   polish: cfg('polish', 'polish', [0.97, 0.25, 0.05], ['pl', 'en']),
-  irish: cfg('irish', 'irish', [0.97, 0.3, 0.15], EN),
+  irish: cfg('irish', 'irish', [0.97, 0.3, 0.15], ['ie', 'en']),
   italian: cfg('italian', 'italian', [0.97, 0.35, 0.15], ['it', 'en']),
   german: cfg('german', 'german', [0.97, 0.2, 0.05], ['de', 'en']),
   english: cfg('english', 'english', [0.97, 0.15, 0.05], EN),
@@ -1350,7 +1369,7 @@ const MULTI_MIX = [['mexican', 0.34], ['african-american', 0.2], ['filipino', 0.
 const NICKNAMES = {
   es: {
     jose: 'Pepe+,Joe,Chepe+,Pepito~', francisco: 'Pancho,Paco,Frank-,Kiko~', jesus: 'Chuy,Chucho', guadalupe: 'Lupe,Lupita@F~',
-    roberto: 'Beto,Bob+', alberto: 'Beto', humberto: 'Beto', gilberto: 'Beto,Gil', ignacio: 'Nacho', enrique: 'Kike,Henry-',
+    roberto: 'Beto,Bob+', alberto: 'Beto', humberto: 'Beto', gilberto: 'Beto,Gil', ignacio: 'Nacho', enrique: 'Quique,Henry-',
     eduardo: 'Lalo,Eddie', gerardo: 'Lalo,Jerry', alfredo: 'Freddy,Fredo', guillermo: 'Memo,Willy', federico: 'Fede',
     rosario: 'Chayo', consuelo: 'Chelo', socorro: 'Coco', concepcion: 'Concha,Conchita', dolores: 'Lola,Lolita~',
     graciela: 'Chela', isabel: 'Chabela,Isa', mercedes: 'Meche', margarita: 'Mago,Maggie-', rafael: 'Rafa',
@@ -1367,12 +1386,12 @@ const NICKNAMES = {
     armando: 'Mando', osvaldo: 'Ozzie',
   },
   en: {
-    william: 'Bill+,Will,Billy~,Willie+', robert: 'Bob+,Rob,Bobby,Robbie~', richard: 'Rick,Rich,Dick+,Richie~', james: 'Jim,Jimmy,Jamie-',
+    william: 'Bill+,Will,Billy~,Willie+', robert: 'Bob+,Rob,Bobby,Robbie~', richard: 'Rick,Rich,Richie~', james: 'Jim,Jimmy,Jamie-',
     john: 'Johnny,Jack+', michael: 'Mike,Mikey~,Mick+', thomas: 'Tom,Tommy', joseph: 'Joe,Joey', charles: 'Charlie,Chuck+', christopher: 'Chris',
     matthew: 'Matt', daniel: 'Dan,Danny', david: 'Dave', anthony: 'Tony,Ant-', edward: 'Ed,Eddie,Ted+', benjamin: 'Ben,Benny~',
     nicholas: 'Nick,Nicky~', alexander: 'Alex,Xander-', samuel: 'Sam,Sammy~', jonathan: 'Jon,Johnny', andrew: 'Andy,Drew-', steven: 'Steve',
     stephen: 'Steve', timothy: 'Tim,Timmy~', kenneth: 'Ken,Kenny', ronald: 'Ron,Ronnie', donald: 'Don,Donnie', gerald: 'Jerry',
-    lawrence: 'Larry', raymond: 'Ray', gregory: 'Greg', jeffrey: 'Jeff', patrick: 'Pat,Paddy+', peter: 'Pete', zachary: 'Zach',
+    lawrence: 'Larry', raymond: 'Ray', gregory: 'Greg', jeffrey: 'Jeff', patrick: 'Pat', peter: 'Pete', zachary: 'Zach',
     joshua: 'Josh', jacob: 'Jake', nathan: 'Nate', nathaniel: 'Nate,Nat', frederick: 'Fred,Freddie', henry: 'Hank+,Harry',
     theodore: 'Theo,Ted+,Teddy~', elizabeth: 'Liz,Beth,Betty+,Lizzie~,Eliza-', katherine: 'Kate,Katie,Kathy+,Kat-', catherine: 'Cathy+,Cat-,Kate',
     kathryn: 'Kathy,Kate,Katie', margaret: 'Peggy+,Maggie,Meg,Margie+', jennifer: 'Jen,Jenny', jessica: 'Jess,Jessie', rebecca: 'Becky,Becca-',
@@ -1386,6 +1405,11 @@ const NICKNAMES = {
     reginald: 'Reggie', elijah: 'Eli', gabriel: 'Gabe', jeremiah: 'Jerry', isaiah: 'Ike+,Zay-', maximilian: 'Max', leonardo: 'Leo',
     sebastian: 'Seb,Bash-', cameron: 'Cam', jordan: 'Jordy~', mackenzie: 'Kenzie', alyssa: 'Aly', danielle: 'Dani', gabriela: 'Gabby',
     beverly: 'Bev', bernadette: 'Bernie', geraldine: 'Gerry', gwendolyn: 'Gwen',
+  },
+  // Irish families' own diminutives (Paddy reads as an ethnic label outside them, so it lives here).
+  ie: {
+    patrick: 'Paddy+', padraig: 'Paudie', cornelius: 'Con+,Connie+', seamus: 'Shay', bridget: 'Bridie+', brigid: 'Bridie+',
+    finbarr: 'Barry',
   },
   fil: {
     rodolfo: 'Rudy,Dolfo', roberto: 'Bobby,Bert', antonio: 'Tony,Anton', jose: 'Pepe,Joey,Jojo', rolando: 'Lando,Roly', reynaldo: 'Rey,Naldo',
@@ -1489,7 +1513,7 @@ const NICKNAMES = {
   },
   ng: {
     oluwaseun: 'Seun', oluwafemi: 'Femi', olufemi: 'Femi', babatunde: 'Tunde', olumide: 'Mide', adebayo: 'Bayo', oluwatobi: 'Tobi',
-    chukwuemeka: 'Emeka', ifeanyi: 'Ify', oluwakemi: 'Kemi', funmilayo: 'Funmi', abimbola: 'Bimbo', temitope: 'Tope', damilola: 'Dami',
+    chukwuemeka: 'Emeka', ifeanyi: 'Ify', oluwakemi: 'Kemi', funmilayo: 'Funmi', abimbola: 'Bola', temitope: 'Tope', damilola: 'Dami',
     adaeze: 'Ada', chiamaka: 'Amaka', chukwudi: 'Chudi', tochukwu: 'Tochi', obinna: 'Obi', ikechukwu: 'Ike', oluseyi: 'Seyi', olufunke: 'Funke',
     titilayo: 'Titi', omolara: 'Lara', oluwatoyin: 'Toyin', ayodele: 'Ayo', oladipo: 'Dipo', olusegun: 'Segun', oluwole: 'Wole', adewale: 'Wale',
     akinwale: 'Wale', kayode: 'Kay', chukwuebuka: 'Ebuka', kamsiyochukwu: 'Kamsi', somtochukwu: 'Somto', oluwanifemi: 'Nifemi', ifeoluwa: 'Ife',
@@ -1537,7 +1561,7 @@ const PET_NAMES = {
   lo: { M: 'Noy,Keo,Phet,Lek,Bee,Tou', F: 'Noy,Nok,Keo,Mone,Vanh,Nang', minAge: 0, p: 0.3 },
 };
 // Chance that a person whose name has a nickname in a custom goes by it.
-const NICK_P = { es: 0.3, en: 0.25, fil: 0.35, ja: 0.35, in: 0.3, pa: 0.35, hy: 0.3, fa: 0.25, ar: 0.25, ru: 0.35, uk: 0.35, pl: 0.3, it: 0.3, pt: 0.3, el: 0.35, de: 0.25, fr: 0.2, ng: 0.4, et: 0.2, vi: 0.3, ko: 0.3, zh: 0.25 };
+const NICK_P = { es: 0.3, en: 0.25, ie: 0.3, fil: 0.35, ja: 0.35, in: 0.3, pa: 0.35, hy: 0.3, fa: 0.25, ar: 0.25, ru: 0.35, uk: 0.35, pl: 0.3, it: 0.3, pt: 0.3, el: 0.35, de: 0.25, fr: 0.2, ng: 0.4, et: 0.2, vi: 0.3, ko: 0.3, zh: 0.25 };
 
 // ------------------------------------------------------------------ famous names
 // Surnames that point to a single famous family are not in any pool (tests check this list), and full names
@@ -1586,12 +1610,45 @@ const RESERVED_NAMES = ('Cesar Chavez|Dolores Huerta|Jennifer Lopez|George Lopez
   'Shaquille O\'Neal|Tiger Woods|LeBron James|Oprah Winfrey|Denzel Washington|Malcolm X|Rosa Parks|Ice Cube|Kendrick Lamar|' +
   'Tupac Shakur|Snoop Dogg|Prince Harry|Taylor Swift|Elvis Presley|Johnny Cash|Bob Dylan|Bob Marley|Paul McCartney|John Lennon|' +
   'Ringo Starr|Elton John|David Bowie|Freddie Mercury|Ed Sheeran|Harry Styles|Mark Zuckerberg|Larry Page|Sergey Brin|Steve Jobs|' +
-  'Walt Disney|Jeff Bezos|Elon Musk|Warren Buffett|Mike Tyson|Floyd Mayweather|Lionel Messi|Cristiano Ronaldo|David Beckham').split('|');
+  'Walt Disney|Jeff Bezos|Elon Musk|Warren Buffett|Mike Tyson|Floyd Mayweather|Lionel Messi|Cristiano Ronaldo|David Beckham|' +
+  'Rodney King|Mujibur Rahman|Ziaur Rahman|Pat Brown|Ted Williams|Bill Walsh|Pancho Villa').split('|');
+
+/** Stock joke names (the kind a prank caller gives), refused like famous names when the surname is known. */
+const JOKE_NAMES = Object.freeze(('Mike Hunt|Mike Hawk|Mike Rotch|Mike Oxlong|Ben Dover|Hugh Jass|Hugh Janus|Harry Cox|Wayne Kerr|' +
+  'Seymour Butts|Phil McCracken|Moe Lester|Anita Bath|Jack Hoff|Jack Meoff|Ivana Tinkle|Dixie Normous|Peter File|Willie Stroker|' +
+  'Harry Balls|Hugh Mungus|Al Coholic').split('|'));
+
+/**
+ * Words never emitted as a name or as part of one: US English slurs and crude words that coincide with
+ * names elsewhere (the Spanish nickname for Enrique is written Quique here, not Kike; Khmer Sambo and Yoruba
+ * Bimbo are left out). Tests check every pool, nickname and pet name against this list.
+ */
+const BLOCKED_NAMES = Object.freeze(('kike kyke sambo coon spic spick chink gook jap nip wop dago kraut nigger nigga negro negra ' +
+  'negrito beaner wetback greaser spook jigaboo darkie darky pickaninny coolie paki raghead towelhead kaffir chinaman slant ' +
+  'zipperhead gyppo hymie yid heeb sheeny polack bohunk honky cracker redskin squaw injun halfbreed mulatto wigger golliwog ' +
+  'fag faggot dyke homo tranny poof bimbo slut whore skank bitch twat cunt dick cock prick pecker').split(' '));
 
 // ------------------------------------------------------------------ pools and weighted draws
 
-const Z_GIVEN = 0.6;      // Zipf exponent over a ranked given-name list: the top name holds about 8% of its pool
-const Z_SURNAME = 0.75;   // surnames are more concentrated than given names
+// Zipf exponents of the popularity curve over a ranked given-name list, by birth era. Names grew more diverse
+// in every tradition over the century (the top name of a California birth cohort held about 4% of births in
+// the 1950s and under 2% since 2000), so later lists are flatter; with these, the top name of a 40-80 name
+// list holds 3-5% of its cohort. A tradition may set its own exponent (GIVEN[t].z, a number or one per era):
+// flatter where names are diverse (Korean, Chinese, Indian ...), steeper where a few names dominate (Greek
+// families name children after their grandparents). Where one name is known to dominate a cohort (José and
+// María among Mexico-born Californians, Muhammad among Pakistani men) the list marks it "Name*k": k times its
+// place on the curve, the names after it unaffected.
+const Z_GIVEN = Object.freeze([0.4, 0.35, 0.3, 0.2]);
+// The heritage names US-born families choose (a short list per cohort, mixed with the general pool) are
+// about equally popular among themselves.
+const Z_US = 0.25;
+const Z_MIDDLE = 0.6;     // middle names concentrate on a few (Marie, Ann, Lynn; Luis, Guadalupe)
+const Z_SURNAME = 0.75;   // the curve continued after a surname list's explicit head weights
+// Surname lists without explicit weights whose cultures have diverse family names: Lao and Thai surnames are
+// particular to families, Ethiopian and Eritrean ones are fathers' given names, and the Nigerian, other
+// African, Pacific, other Asian and other European pools mix many countries. Nearly flat, so no single name
+// takes more than about 3% of its heritage (Z_SURNAME would give the first-listed name 12-15%).
+const SURNAME_CURVE = Object.freeze({ lao: 0.2, thai: 0.2, ethiopian: 0.3, nigerian: 0.25, african: 0.2, pacific: 0.25, 'asian-other': 0.25, 'europe-other': 0.25, 'native-own': 0.4 });
 const ERA_START = [-Infinity, 1960, 1980, 2000];
 const BLEND_YEARS = 4;    // within this many years of an era boundary the next era's fashions blend in
 const REF_YEAR = 2026;    // the population's reference year (birthYear = 2026 - age)
@@ -1601,6 +1658,10 @@ const NEIGHBOR_ERA = 0.12, BASE_SHARE = 0.5;   // shares of the neighbouring era
 export const ERAS = Object.freeze(['born before 1960', 'born 1960-1979', 'born 1980-1999', 'born 2000 and later']);
 
 const FOLD = { 'ł': 'l', 'Ł': 'L', 'ø': 'o', 'Ø': 'O', 'æ': 'ae', 'Æ': 'Ae', 'ß': 'ss', 'đ': 'd', 'Đ': 'D', 'ı': 'i' };
+
+// Every table here is a plain object looked up with keys that can come from callers (heritage keys, given
+// names): only own entries count, so 'constructor' or '__proto__' fall back like any unknown key.
+const own = (obj, key) => (obj != null && Object.hasOwn(obj, key) ? obj[key] : undefined);
 
 /**
  * Fold a name for lookups: accents dropped, lowercase ASCII, hyphens and other separators as single spaces
@@ -1638,7 +1699,10 @@ function eraDraw(rng, birthYear) {
 
 const eraIndex = x => { const n = Number(x); if (n >= 1800) return eraOf(n); return Math.max(0, Math.min(3, Number.isFinite(n) ? Math.floor(n) : 2)); };
 
-// "A,B:3,C" → names with weights: explicit where given, otherwise the Zipf curve continued from the previous.
+const NUMBER = /^\d*\.?\d+$/;
+
+// "A,B:3,C*2,D" → names with weights: B explicit (3), the others on the Zipf curve with exponent s continued
+// from the previous name's weight, C at twice its place on the curve (D continues from C's unboosted place).
 function parseRanked(str, s) {
   const names = [], w = [];
   if (!str) return { names, w };
@@ -1646,12 +1710,13 @@ function parseRanked(str, s) {
   for (const raw of String(str).split(',')) {
     const item = raw.trim();
     if (!item) continue;
-    const k = item.lastIndexOf(':');
-    let name = item, wt = null;
-    if (k > 0 && /^\d*\.?\d+$/.test(item.slice(k + 1))) { name = item.slice(0, k).trim(); wt = +item.slice(k + 1); }
+    let name = item, wt = null, boost = 1;
+    const k = item.lastIndexOf(':'), b = item.lastIndexOf('*');
+    if (k > 0 && NUMBER.test(item.slice(k + 1))) { name = item.slice(0, k).trim(); wt = +item.slice(k + 1); }
+    else if (b > 0 && NUMBER.test(item.slice(b + 1))) { name = item.slice(0, b).trim(); boost = +item.slice(b + 1); }
     const rank = names.length + 1;
     if (wt === null) wt = names.length === 0 ? 1 : last * Math.pow(lastRank / rank, s);
-    names.push(name); w.push(wt); last = wt; lastRank = rank;
+    names.push(name); w.push(wt * boost); last = wt; lastRank = rank;
   }
   return { names, w };
 }
@@ -1664,27 +1729,39 @@ class Pool {
 
 const poolCache = new Map();
 
-// Merge ranked lists into one pool: each list's weights normalized to its share, a name keeping its best share.
+// Merge ranked lists [str, share, exponent] into one pool: each list's weights normalized to its share, a name
+// keeping its best share.
 function mergedPool(parts) {
   const m = new Map();
-  for (const [str, share] of parts) {
+  for (const [str, share, s] of parts) {
     if (!str || !(share > 0)) continue;
-    const { names, w } = parseRanked(str, Z_GIVEN);
+    const { names, w } = parseRanked(str, s);
     let tot = 0; for (const x of w) tot += x;
     names.forEach((n, i) => { const v = share * w[i] / tot; if (!(m.get(n) >= v)) m.set(n, v); });
   }
   return m.size ? new Pool(m) : null;
 }
 
+// The curve exponent of tradition T's lists for era e: Z_US for US-born children's lists, otherwise the
+// tradition's own (T.z) or the era's.
+function zOf(T, e, kind) {
+  if (kind === 'us') return Z_US;
+  const era = Math.max(0, Math.min(3, e)), z = T.z;
+  return z === undefined ? Z_GIVEN[era] : Array.isArray(z) ? z[era] : z;
+}
+
 // The given-name pool of one leaf tradition, sex, era and kind ('origin' or 'us').
 function leafPool(trad, sex, era, kind) {
   const key = `G|${trad}|${sex}|${era}|${kind}`;
   if (poolCache.has(key)) return poolCache.get(key);
-  const T = GIVEN[trad] || {};
+  const T = own(GIVEN, trad) || {};
   const lists = (kind === 'us' ? (T.us && T.us[sex]) : T[sex]) || [];
-  const own = lists[era];
+  const mine = lists[era];
   const base = kind === 'us' ? null : T.base && T.base[sex];
-  const pool = mergedPool([[own, 1], [base, own ? BASE_SHARE : 1], [lists[era - 1], NEIGHBOR_ERA], [lists[era + 1], NEIGHBOR_ERA]]);
+  const pool = mergedPool([
+    [mine, 1, zOf(T, era, kind)], [base, mine ? BASE_SHARE : 1, zOf(T, era, kind)],
+    [lists[era - 1], NEIGHBOR_ERA, zOf(T, era - 1, kind)], [lists[era + 1], NEIGHBOR_ERA, zOf(T, era + 1, kind)],
+  ]);
   poolCache.set(key, pool);
   return pool;
 }
@@ -1692,17 +1769,17 @@ function leafPool(trad, sex, era, kind) {
 function listPool(key) {
   const k = 'S|' + key;
   if (poolCache.has(k)) return poolCache.get(k);
-  const { names, w } = parseRanked(SURNAMES[key], Z_SURNAME);
+  const { names, w } = parseRanked(own(SURNAMES, key), own(SURNAME_CURVE, key) ?? Z_SURNAME);
   const m = new Map(); names.forEach((n, i) => m.set(n, (m.get(n) || 0) + w[i]));
   const pool = m.size ? new Pool(m) : null;
   poolCache.set(k, pool);
   return pool;
 }
 
-const isAlias = spec => typeof spec === 'string' && !spec.includes(',') && SURNAMES[spec] !== undefined;
+const isAlias = spec => typeof spec === 'string' && !spec.includes(',') && own(SURNAMES, spec) !== undefined;
 
 function drawSurname(rng, key, depth = 0) {
-  const spec = SURNAMES[key];
+  const spec = own(SURNAMES, key);
   if (spec === undefined || depth > 6) return listPool('general').draw(rng);
   if (isAlias(spec)) return drawSurname(rng, spec, depth + 1);
   if (spec.mix) { const i = rng.weighted(spec.mix.map(m => m[1])); return drawSurname(rng, spec.mix[Math.max(0, i)][0], depth + 1); }
@@ -1726,7 +1803,7 @@ function surnameKeysOf(name) {
 const reachCache = new Map();
 function reach(key, depth = 0) {
   if (reachCache.has(key)) return reachCache.get(key);
-  const spec = SURNAMES[key], out = new Set([key]);
+  const spec = own(SURNAMES, key), out = new Set([key]);
   if (depth < 6 && spec !== undefined) {
     if (isAlias(spec)) for (const k of reach(spec, depth + 1)) out.add(k);
     else if (spec.mix) for (const [k] of spec.mix) for (const x of reach(k, depth + 1)) out.add(x);
@@ -1742,7 +1819,7 @@ const TRADITION_SURNAMES = { centralam: ['salvadoran', 'guatemalan', 'honduran',
 // key, list or mix, that holds it; null when the heritage's surnames are not a mix or the name is unknown.
 function hintFor(cfg, last) {
   if (!last) return null;
-  const spec = SURNAMES[cfg.sur];
+  const spec = own(SURNAMES, cfg.sur);
   if (!spec || !spec.mix) return null;
   const keys = surnameKeysOf(last);
   if (!keys) return null;
@@ -1751,7 +1828,7 @@ function hintFor(cfg, last) {
   return hint.size ? hint : null;
 }
 
-const hinted = (hint, k) => hint.has(k) || (TRADITION_SURNAMES[k] || []).some(x => hint.has(x));
+const hinted = (hint, k) => hint.has(k) || (own(TRADITION_SURNAMES, k) || []).some(x => hint.has(x));
 
 function pickMix(rng, mix, era, hint) {
   const weightOf = ws => (Array.isArray(ws) ? ws[era] : ws);
@@ -1762,7 +1839,7 @@ function pickMix(rng, mix, era, hint) {
 }
 
 function drawFromTradition(rng, trad, sex, era, kind, hint) {
-  const T = GIVEN[trad];
+  const T = own(GIVEN, trad);
   if (!T) return null;
   if (kind === 'us' && T.us) { const p = leafPool(trad, sex, era, 'us'); return p ? p.draw(rng) : null; }
   if (T.mix) return drawFromTradition(rng, pickMix(rng, T.mix, era, hint), sex, era, kind, hint);
@@ -1771,9 +1848,9 @@ function drawFromTradition(rng, trad, sex, era, kind, hint) {
 }
 
 const generalGiven = (rng, sex, era) => leafPool('general', sex, era, 'origin').draw(rng);
-const usTradition = cfg => (GIVEN[cfg.given] && GIVEN[cfg.given].us ? cfg.given : (cfg.us || cfg.given));
-const configOf = heritage => NAMING[heritage] || NAMING.other;
-const heritageKey = heritage => (NAMING[heritage] ? heritage : 'other');
+const usTradition = cfg => (own(GIVEN, cfg.given) && own(GIVEN, cfg.given).us ? cfg.given : (cfg.us || cfg.given));
+const configOf = heritage => own(NAMING, heritage) || NAMING.other;
+const heritageKey = heritage => (own(NAMING, heritage) ? heritage : 'other');
 
 function sexKey(rng, sex) {
   const s = String(sex == null ? '' : sex).toLowerCase();
@@ -1803,7 +1880,7 @@ function coreGiven(rng, cfg, sex, era, gen, last, parents) {
 // Multiracial Californians: mostly the general pool of their cohort, otherwise one parent's tradition
 // (given in opts.parents, or drawn from the combinations most common in California).
 function multiGiven(rng, sex, era, gen, parents) {
-  const list = Array.isArray(parents) ? parents.filter(p => NAMING[p] && !NAMING[p].multi) : [];
+  const list = Array.isArray(parents) ? parents.filter(p => own(NAMING, p) && !own(NAMING, p).multi) : [];
   let pcfg = null;
   if (list.length) { if (rng.chance(gen === 1 ? 0.85 : 0.45)) pcfg = NAMING[list[rng.int(list.length)]]; }
   else if (!rng.chance(gen === 1 ? 0.4 : 0.7)) pcfg = NAMING[MULTI_MIX[Math.max(0, rng.weighted(MULTI_MIX.map(m => m[1])))][0]];
@@ -1847,20 +1924,22 @@ function personalSurname(rng, family, heritage, sex, gen) {
   const cfg = configOf(heritage);
   if (cfg.religiousName) return rng.chance(0.3) ? cfg.religiousName[sex] : family;
   if (heritage === 'bangladeshi' && sex === 'F' && gen === 1 && rng.chance(0.35)) return BD_WOMEN[rng.int(BD_WOMEN.length)];
-  if (sex === 'F' && FEMININE[heritage]) {
+  if (sex === 'F' && own(FEMININE, heritage)) {
     const p = gen === 1 ? 1 : gen === 2 ? 0.25 : 0;
     if (p > 0 && rng.chance(p)) return adaptSurname(family, { heritage, sex });
   }
   return family;
 }
 
-// Feminine surname forms, applied in order (first match wins).
-const FEMININE = {
+// Feminine surname forms, applied in order (first match wins). Greek: -opoulos → -opoulou, -as → -a, the
+// patronymic -idis / -iadis / -adis → -idou / -iadou / -adou (Georgiadis → Georgiadou), other -is → -i
+// (Papadakis → Papadaki); -es is the older transliteration of the same -is ending.
+const FEMININE = Object.freeze({
   russian: [[/(sk|tsk|ck)(?:y|iy|ii|i)$/, '$1aya'], [/oy$/, 'aya'], [/(ov|ev|in|yn)$/, '$1a']],
   ukrainian: [[/sk(?:yi|yy|iy|y)$/, 'ska'], [/(ov|ev|in)$/, '$1a']],
   polish: [[/dzki$/, 'dzka'], [/cki$/, 'cka'], [/ski$/, 'ska']],
-  greek: [[/os$/, 'ou'], [/as$/, 'a'], [/is$/, 'i'], [/es$/, 'ou']],
-};
+  greek: [[/os$/, 'ou'], [/as$/, 'a'], [/d[ie]s$/, 'dou'], [/[ie]s$/, 'i']],
+});
 
 /**
  * The form of a family name a woman carries where the language marks it (Russian Ivanov → Ivanova,
@@ -1870,9 +1949,10 @@ const FEMININE = {
  * @param {{heritage?: string, sex?: 'F'|'M'}} [opts]
  * @returns {string}
  */
-export function adaptSurname(name, { heritage, sex } = {}) {
+export function adaptSurname(name, opts) {
+  const { heritage, sex } = opts || {};
   if (!name || sex !== 'F') return name;
-  const rules = FEMININE[heritage];
+  const rules = own(FEMININE, heritage);
   if (!rules) return name;
   for (const [re, rep] of rules) if (re.test(name)) return name.replace(re, rep);
   return name;
@@ -1891,7 +1971,8 @@ export function adaptSurname(name, { heritage, sex } = {}) {
  *   surname?: string, last?: string, parents?: string[], religiousName?: boolean}} [opts]
  * @returns {string}
  */
-export function givenName(rng, opts = {}) {
+export function givenName(rng, opts) {
+  opts = opts || {};
   const cfg = configOf(heritageKey(opts.heritage));
   const sex = sexKey(rng, opts.sex);
   const gen = generationOf(opts.generation, opts.nativity);
@@ -1920,7 +2001,8 @@ export function givenName(rng, opts = {}) {
  * @param {{heritage?: string, age?: number, sex?: 'F'|'M', surname?: string}} [opts]
  * @returns {string|null}
  */
-export function nickname(rng, given, opts = {}) {
+export function nickname(rng, given, opts) {
+  opts = opts || {};
   if (!given || typeof given !== 'string') return null;
   const cands = cachedCandidates(given, opts);
   const u = rng.float();
@@ -1952,7 +2034,8 @@ function cachedCandidates(given, opts) {
  * @param {{heritage?: string, age?: number, sex?: 'F'|'M'}} [opts]
  * @returns {Array<{nick: string, custom: string, weight: number}> & {p: number}}
  */
-export function nicknameCandidates(given, opts = {}) {
+export function nicknameCandidates(given, opts) {
+  opts = opts || {};
   const out = []; out.p = 0;
   const head = String(given || '').trim().split(/\s+/)[0];
   if (!head) return out;
@@ -1968,22 +2051,22 @@ export function nicknameCandidates(given, opts = {}) {
   };
   cfg.nick.forEach((custom, order) => {
     const scale = 1 / (1 + 0.25 * order);
-    if (PET_NAMES[custom]) {
-      const pet = PET_NAMES[custom];
+    const pet = own(PET_NAMES, custom);
+    if (pet) {
       if (sex && age >= pet.minAge) pet[sex].split(',').forEach(n => push(n, custom, 0.3 * scale, pet.p));
       return;
     }
     let raw = null;
-    if (custom === 'vi') raw = sex && age >= 18 ? NICKNAMES.vi[sex][key] : null;
-    else if (custom === 'ko') raw = sex && age >= 18 && head.includes('-') ? NICKNAMES.ko[sex][key.split(' ')[0]] : null;
+    if (custom === 'vi') raw = sex && age >= 18 ? own(NICKNAMES.vi[sex], key) : null;
+    else if (custom === 'ko') raw = sex && age >= 18 && head.includes('-') ? own(NICKNAMES.ko[sex], key.split(' ')[0]) : null;
     else if (custom === 'zh') raw = sex && age >= 18 ? chineseEnglishNames(head, sex, age) : null;
-    else raw = NICKNAMES[custom] ? NICKNAMES[custom][key] : null;
-    if (!raw) return;
+    else raw = own(own(NICKNAMES, custom), key);
+    if (typeof raw !== 'string' || !raw) return;
     raw.split(',').map(s => s.trim()).filter(Boolean).forEach((item, i) => {
       const m = /^(.*?)(?:@([MF]))?([+\-~^])?$/.exec(item), nick = m[1], only = m[2], mark = m[3];
       if (only && only !== sex) return;
       if ((mark === '+' && age < 40) || (mark === '-' && age >= 40) || (mark === '~' && age >= 16) || (mark === '^' && age < 16)) return;
-      push(nick, custom, (mark === '~' ? 2 : 1) * scale / (1 + i), NICK_P[custom] || 0.25);
+      push(nick, custom, (mark === '~' ? 2 : 1) * scale / (1 + i), own(NICK_P, custom) || 0.25);
     });
   });
   return out;
@@ -2042,7 +2125,7 @@ const HISPANIC = new Set(['mexican', 'salvadoran', 'guatemalan', 'honduran', 'ni
 const HERITAGE_MIDDLE = new Set(['chinese', 'korean', 'japanese', 'indian', 'hmong', 'cambodian', 'lao', 'thai', 'armenian', 'iranian', 'arab', 'assyrian', 'greek', 'ethiopian', 'nigerian', 'pakistani', 'bangladeshi', 'afghan', 'pacific']);
 
 const rankedDraw = (rng, key, str) => {
-  if (!poolCache.has(key)) { const { names, w } = parseRanked(str, Z_GIVEN); const m = new Map(); names.forEach((n, i) => m.set(n, w[i])); poolCache.set(key, new Pool(m)); }
+  if (!poolCache.has(key)) { const { names, w } = parseRanked(str, Z_MIDDLE); const m = new Map(); names.forEach((n, i) => m.set(n, w[i])); poolCache.set(key, new Pool(m)); }
   return poolCache.get(key).draw(rng);
 };
 
@@ -2056,7 +2139,8 @@ const rankedDraw = (rng, key, str) => {
  * @param {{heritage?: string, sex?: 'F'|'M', birthYear?: number, generation?: number, nativity?: string, surname?: string, first?: string}} [opts]
  * @returns {string}
  */
-export function middleName(rng, opts = {}) {
+export function middleName(rng, opts) {
+  opts = opts || {};
   const heritage = heritageKey(opts.heritage), cfg = configOf(heritage);
   const sex = sexKey(rng, opts.sex), gen = generationOf(opts.generation, opts.nativity);
   const era = eraDraw(rng, opts.birthYear), last = opts.surname || opts.last || '', first = normName(opts.first || '');
@@ -2086,7 +2170,8 @@ export function middleName(rng, opts = {}) {
  *   nativity?: 'native'|'foreign', surname?: string, parents?: string[]}} [opts]
  * @returns {{first: string, middle: string, last: string, full: string, display: string, nick: string|null}}
  */
-export function nameFor(rng, opts = {}) {
+export function nameFor(rng, opts) {
+  opts = opts || {};
   const heritage = heritageKey(opts.heritage), cfg = configOf(heritage);
   const sex = sexKey(rng, opts.sex), gen = generationOf(opts.generation, opts.nativity);
   const birthYear = Number.isFinite(Number(opts.birthYear)) && opts.birthYear !== null ? Number(opts.birthYear)
@@ -2119,7 +2204,7 @@ export function givenPool(heritage, sex, era, generation = 1) {
   const out = new Map();
   const add = (pool, scale) => { if (pool) for (const { name, weight } of pool.entries()) out.set(name, (out.get(name) || 0) + weight * scale); };
   const walk = (trad, kind, scale) => {
-    const T = GIVEN[trad];
+    const T = own(GIVEN, trad);
     if (!T) return;
     if (kind === 'us' && T.us) return add(leafPool(trad, S, e, 'us'), scale);
     if (T.mix) { const tot = T.mix.reduce((a, m) => a + m[1][e], 0); for (const m of T.mix) walk(m[0], kind, scale * m[1][e] / tot); return; }
@@ -2138,7 +2223,7 @@ export function givenPool(heritage, sex, era, generation = 1) {
 export function surnamePool(heritage) {
   const out = new Map();
   const walk = (key, scale, depth) => {
-    const spec = SURNAMES[key];
+    const spec = own(SURNAMES, key);
     if (spec === undefined || depth > 6) return;
     if (isAlias(spec)) return walk(spec, scale, depth + 1);
     if (spec.mix) { const tot = spec.mix.reduce((a, m) => a + m[1], 0); for (const m of spec.mix) walk(m[0], scale * m[1] / tot, depth + 1); return; }
@@ -2148,11 +2233,12 @@ export function surnamePool(heritage) {
   return [...out].map(([name, weight]) => ({ name, weight })).sort((a, b) => b.weight - a.weight);
 }
 
-const RESERVED = new Set(RESERVED_NAMES.map(normName));
+const RESERVED = new Set([...RESERVED_NAMES, ...JOKE_NAMES].map(normName));
 
 /**
- * True when first + last would name a famous person (e.g. "Michael Jordan", "Cesar Chavez"); accents,
- * case and hyphens do not matter, and only the first word of a multi-word given name counts as well.
+ * True when first + last would name a famous person (e.g. "Michael Jordan", "Cesar Chavez") or make a stock
+ * joke name ("Mike Hunt"); accents, case and hyphens do not matter, and the first word of a multi-word given
+ * name is checked on its own as well ("Harpreet Kaur").
  * @param {string} first
  * @param {string} last
  * @returns {boolean}
@@ -2163,6 +2249,9 @@ export function isReservedName(first, last) {
   return RESERVED.has(`${f} ${l}`) || RESERVED.has(`${f.split(' ')[0]} ${l}`);
 }
 
-Object.freeze(GIVEN); Object.freeze(SURNAMES); Object.freeze(NICKNAMES);
+Object.freeze(GIVEN); Object.freeze(SURNAMES); Object.freeze(NICKNAMES); Object.freeze(PET_NAMES);
 
-export { GIVEN, SURNAMES, NAMING, NICKNAMES, EXCLUDED_SURNAMES, RESERVED_NAMES };
+/** The middle-name lists of middleName (Vietnamese, classic American, second Hispanic given names), for tests. */
+const MIDDLE_NAMES = Object.freeze({ vietnamese: VN_MIDDLE, classic: CLASSIC_MIDDLE, hispanic: HISPANIC_SECOND, bangladeshiWomen: BD_WOMEN.join(',') });
+
+export { GIVEN, SURNAMES, NAMING, NICKNAMES, PET_NAMES, MIDDLE_NAMES, EXCLUDED_SURNAMES, RESERVED_NAMES, JOKE_NAMES, BLOCKED_NAMES };

@@ -230,11 +230,13 @@ export class StreetView {
 
   /**
    * Open the street view at a world point (units). Resolves with a summary once the scene is built and the
-   * people are on the street.
+   * people are on the street: {x, y, radiusM, zip, city, style, source ('procedural' | 'osm'), osm (null when
+   * real streets were not asked for, else 'loaded' | 'cached' | 'unavailable' | 'unusable'), buildMs, households,
+   * residents, buildings, streets, streetKm}; null when a later open() replaced this one or the scene failed.
    * @param {number} x
    * @param {number} y
    * @param {{radiusM?: number}} [opts]
-   * @returns {Promise<object>}
+   * @returns {Promise<object|null>}
    */
   async open(x, y, { radiusM = DEFAULT_RADIUS } = {}) {
     this.close();
@@ -242,10 +244,13 @@ export class StreetView {
     this._status('Building the neighborhood…');
     await nextFrame();
     if (token !== this._openToken) return null;
-    let osmElements = null;
+    let osmElements = null, osm = null;
     if (this.allowNetwork) {
       this._status('Loading streets from OpenStreetMap…');
-      try { const r = await fetchOSM(this.world, new Frame(this.world, x, y), radiusM); osmElements = r ? r.elements : null; } catch { osmElements = null; }
+      let r = null;
+      try { r = await fetchOSM(this.world, new Frame(this.world, x, y), radiusM); } catch { r = null; }
+      osmElements = r ? r.elements : null;
+      osm = r ? (r.cached ? 'cached' : 'loaded') : 'unavailable';
       if (token !== this._openToken) return null;
       this._status('Building the neighborhood…');
       await nextFrame();
@@ -275,15 +280,27 @@ export class StreetView {
     this._wxAt = -Infinity;
     this._status('');
     this._start();
+    // real streets were asked for: say so when the view had to fall back to generated ones
+    if (osm && scene.source !== 'osm') osm = osm === 'unavailable' ? 'unavailable' : 'unusable';
+    if (osm === 'unavailable') this._flash('OpenStreetMap could not be reached; showing generated streets', 5000);
+    else if (osm === 'unusable') this._flash('OpenStreetMap has too few streets here; showing generated streets', 5000);
     const z = scene.zi >= 0 ? this.world.zip(scene.zi) : null;
     const summary = {
-      x, y, radiusM, zip: z ? z.zip : null, city: z ? z.city : null, style: scene.style, source: scene.source, buildMs: Math.round(scene.buildMs),
+      x, y, radiusM, zip: z ? z.zip : null, city: z ? z.city : null, style: scene.style, source: scene.source, osm, buildMs: Math.round(scene.buildMs),
       households: scene.households.filter(Boolean).length, residents: scene.residents.length, buildings: scene.buildings.length, streets: scene.net.edges.length,
       streetKm: +scene.metrics.streetKm.toFixed(2),
     };
     this.summary = summary;
     this._emit('open', summary);
     return summary;
+  }
+
+  /** Show a short notice over the view for `ms` milliseconds. */
+  _flash(text, ms = 4000) {
+    this._status(text);
+    if (this._flashTimer) clearTimeout(this._flashTimer);
+    const token = this._openToken;
+    this._flashTimer = setTimeout(() => { this._flashTimer = 0; if (token === this._openToken && this.statusEl && this.statusEl.textContent === text) this._status(''); }, ms);
   }
 
   /** Stop and clear the view (the canvas stays for the next open). */
@@ -303,6 +320,7 @@ export class StreetView {
   /** Remove the view and its listeners for good. */
   destroy() {
     this.close();
+    if (this._flashTimer) { clearTimeout(this._flashTimer); this._flashTimer = 0; }
     this._unbind && this._unbind();
     if (this._ro) this._ro.disconnect();
     if (this.tip) this.tip.remove();
@@ -317,8 +335,28 @@ export class StreetView {
 
   _start() {
     if (typeof requestAnimationFrame !== 'function') return;
-    const loop = (ts) => { if (!this.scene) return; this._frame(ts); this._raf = requestAnimationFrame(loop); };
+    // the next frame is always requested, whatever this one ran into: a failure is reported, never a frozen view
+    const loop = (ts) => {
+      if (!this.scene) return;
+      try { this._frame(ts); } catch (err) { this._frameError(err); }
+      if (this.scene) this._raf = requestAnimationFrame(loop);
+    };
     this._raf = requestAnimationFrame(loop);
+  }
+
+  /** Report a failed frame (at most once every five seconds) and keep the clock moving. */
+  _frameError(err) {
+    const t = now();
+    this._lastFrame = t;
+    if (this.sim) {
+      // whatever stopped the frame, the simulation is not left behind the clock
+      try { const target = this._time(); if (Math.abs(target - this.sim.t) > 1000) this.sim.reset(target); } catch { /* reported below */ }
+    }
+    if (this._errAt && t - this._errAt < 5000) return;
+    this._errAt = t;
+    const message = String(err && err.message || err);
+    if (typeof console !== 'undefined') console.error('[street] frame failed', err);
+    this._emit('error', { message });
   }
 
   /** Advance the simulation to t within this frame's budget (jumping when the clock runs faster than it). */

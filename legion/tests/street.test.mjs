@@ -10,9 +10,11 @@ import { buildScene, sceneContext } from '../src/world/street-scene.mjs';
 import { StreetNet, buildNet, Router, dijkstra, pathCost, pathIsContiguous, components, netFingerprint, finishNet, signalState } from '../src/world/street-net.mjs';
 import { StreetSim, stepLen } from '../src/world/street-sim.mjs';
 import { createFallbackPlanner, isTravel, normalizeActivity } from '../src/world/street-plan.mjs';
-import { sunPosition, lightAt, weatherEffects, pointSegDist, clipToSquare, Frame } from '../src/world/street-geo.mjs';
-import { createNamer, ordinal, shortName } from '../src/world/street-names.mjs';
-import { parseOSM, overpassQuery, readCache, writeCache, tilesFor, viewBox, clearMemoryCache, wayClass } from '../src/world/street-osm.mjs';
+import { sunPosition, lightAt, weatherEffects, pointSegDist, clipToSquare, Frame, groundGrid, seaNear, GROUND } from '../src/world/street-geo.mjs';
+import { createNamer, ordinal, shortName, spanishStreet } from '../src/world/street-names.mjs';
+import { parseOSM, overpassQuery, readCache, writeCache, tilesFor, viewBox, clearMemoryCache, wayClass, fetchOSM, STORE_PREFIX } from '../src/world/street-osm.mjs';
+import { vegetation } from '../src/world/street-lots.mjs';
+import { parkName, schoolName } from '../src/world/street-gen.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world);
@@ -352,10 +354,12 @@ test('simulation: through traffic, buses and parked cars at night (90001, 22:00)
 });
 
 test('performance: a step with two thousand agents fits a frame', () => {
-  const sim = new StreetSim(sceneOf('94110'), { world, population: pop, trafficScale: 3.5 });
-  sim.reset(atPacific(2026, 11, 24, 8, 0));
-  for (let i = 0; i < 1500 && sim.agents.length < 2000; i++) sim.step();
-  assert.ok(sim.agents.length >= 1500, `agents ${sim.agents.length}`);
+  // Nob Hill at the morning rush with six times the data-calibrated through traffic and every in-commuter
+  const sim = new StreetSim(sceneOf('94109'), { world, population: pop, trafficScale: 6 });
+  sim.reset(atPacific(2026, 11, 24, 7, 50));
+  sim.scanCommuters(Infinity);
+  for (let i = 0; i < 3000 && sim.agents.length < 2000; i++) sim.step();
+  assert.ok(sim.agents.length >= 2000, `agents ${sim.agents.length}`);
   const t = performance.now();
   for (let i = 0; i < 100; i++) sim.step();
   const ms = (performance.now() - t) / 100;
@@ -379,7 +383,9 @@ test('chatter: residents passing each other trade lines through bark, rate-limit
   assert.equal(lines[0][2].kind, 'passing');
   assert.ok(sim.bubbles.length >= 1 && (a.bubble || b.bubble));
   assert.equal(sim.chatter(1200, bark, { minGapMs: 1500 }), null, 'rate limited');
-  assert.equal(sim.chatter(5000, bark, { minGapMs: 1500 }), null, 'the same two do not repeat');
+  const again = sim.chatter(5000, bark, { minGapMs: 1500 });
+  const pair = r => [r.a, r.b].sort().join('|');
+  assert.ok(again === null || pair(again) !== pair(first), 'the same two do not repeat');
 });
 
 // ---------------------------------------------------------------- light and weather

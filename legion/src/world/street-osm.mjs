@@ -1,11 +1,13 @@
 // Legion · real streets and buildings from OpenStreetMap (opt-in).
 //
 // Only when the user allows network access: the street view asks the Overpass API for the highway ways and building
-// footprints in the view's box (`out geom`, so each way comes with its node ids and coordinates), caches the
-// answer per 0.01-degree tile in memory and, when the browser lets it, in localStorage, and builds the street
-// graph from the ways. Ways connect only where they share an OSM node, so bridges and tunnels do not create
-// intersections that are not there. Any failure (offline, timeout, HTTP error, unexpected data) returns null and
-// the view falls back to the procedural streets. Parsing is DOM-free and tested in Node with a fixture.
+// footprints in the view's box (`out body geom`: each way with its tags, its node ids and their coordinates;
+// the `tags` verbosity would drop the node ids), caches the answer per 0.01-degree tile in memory and, when the
+// browser lets it, in localStorage, and builds the street graph from the ways. Ways connect only where they share
+// an OSM node, so bridges and tunnels do not create intersections that are not there; a response without node
+// ids is joined where ways share a vertex position instead (OSM ways that meet share the node, hence the exact
+// coordinates). Any failure (offline, timeout, HTTP error, unexpected data) returns null and the view falls back
+// to the procedural streets. Parsing is DOM-free and tested in Node with fixtures.
 
 import { StreetNet, finishNet } from './street-net.mjs';
 import { clipToSquare, cumLengths } from './street-geo.mjs';
@@ -14,13 +16,19 @@ import { clipToSquare, cumLengths } from './street-geo.mjs';
 export const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 /** Cache tile size in degrees. */
 export const TILE_DEG = 0.01;
-const STORE_PREFIX = 'legion.osm.v1.';
+/** localStorage key prefix of cached tiles (v1 tiles were written without node ids and are never read). */
+export const STORE_PREFIX = 'legion.osm.v2.';
+const LEGACY_PREFIXES = ['legion.osm.v1.'];
 const memory = new Map();
+let legacyPurged = false;
 
-/** The Overpass QL query for highways and buildings in a box (south, west, north, east). */
+/**
+ * The Overpass QL query for highways and buildings in a box (south, west, north, east). `out body geom` prints
+ * every way's tags, node ids and coordinates; the node ids are what joins the ways into a graph.
+ */
 export function overpassQuery(s, w, n, e, timeout = 25) {
   const b = [s, w, n, e].map(v => v.toFixed(6)).join(',');
-  return `[out:json][timeout:${timeout}];(way["highway"](${b});way["building"](${b}););out geom tags;`;
+  return `[out:json][timeout:${timeout}];(way["highway"](${b});way["building"](${b}););out body geom;`;
 }
 
 /** Lat/lon box of a view: {s, w, n, e}. */
@@ -73,8 +81,20 @@ export function readCache(keys, store = storage()) {
   return [...els.values()];
 }
 
+/** Remove tiles cached under an older key format (once per session; guarded like every storage access). */
+function purgeLegacy(store) {
+  if (legacyPurged || !store) return;
+  legacyPurged = true;
+  try {
+    const old = [];
+    for (let i = 0; i < store.length; i++) { const key = store.key(i); if (key && LEGACY_PREFIXES.some(p => key.startsWith(p))) old.push(key); }
+    for (const key of old) store.removeItem(key);
+  } catch { /* storage blocked: nothing to clean */ }
+}
+
 /** Split elements into tiles and cache them (memory always; localStorage guarded, evicting old tiles when full). */
 export function writeCache(elements, keys, store = storage()) {
+  purgeLegacy(store);
   const tiles = new Map(keys.map(k => [k, []]));
   for (const el of elements) {
     if (el.type !== 'way' || !el.geometry || !el.geometry.length) continue;
@@ -170,12 +190,16 @@ export function wayClass(tags) {
 export function parseOSM(elements, world, frame, R) {
   const toLocal = (lat, lon) => { const p = world.project(lat, lon); return frame.toLocal(p.x, p.y); };
   const ways = [], buildings = [];
+  // node ids join the ways; when any highway way comes without them (a response printed without node ids, or
+  // trimmed by a proxy), every way is keyed by vertex position instead so the two schemes never mix
+  const highways = elements.filter(el => el.type === 'way' && el.geometry && el.geometry.length >= 2 && el.tags && el.tags.highway);
+  const byId = highways.every(el => Array.isArray(el.nodes) && el.nodes.length === el.geometry.length);
   for (const el of elements) {
     if (el.type !== 'way' || !el.geometry || el.geometry.length < 2 || !el.tags) continue;
     if (el.tags.highway) {
       const a = wayClass(el.tags);
       if (!a) continue;
-      let geom = el.geometry, nodes = el.nodes && el.nodes.length === geom.length ? el.nodes : geom.map((_, i) => -(el.id * 1000 + i));
+      let geom = el.geometry, nodes = byId ? el.nodes : geom.map(vertexKey);
       if (a.reverse) { geom = geom.slice().reverse(); nodes = nodes.slice().reverse(); }
       const pts = [];
       for (const p of geom) { const q = toLocal(p.lat, p.lon); pts.push(q.x, q.y); }
@@ -236,6 +260,9 @@ function addOsmEdge(net, a, b, pts, w) {
   e.osmId = w.id;
   return e;
 }
+
+/** A graph key for a way vertex by its position (1e-7 degree, about a centimeter): ways sharing a node share it. */
+function vertexKey(p) { return 'v' + Math.round(p.lat * 1e7) + ':' + Math.round(p.lon * 1e7); }
 
 function w2pts(pts, i0, i1) { return pts.slice(2 * i0, 2 * i1 + 2); }
 function cumLen(pts) { const c = cumLengths(pts); return c[c.length - 1]; }

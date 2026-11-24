@@ -812,7 +812,8 @@ class Builder {
       const ring = [L.fx - L.tx * L.width / 2, L.fy - L.ty * L.width / 2, L.fx + L.tx * L.width / 2, L.fy + L.ty * L.width / 2,
         L.fx + L.tx * L.width / 2 + L.nx * depth, L.fy + L.ty * L.width / 2 + L.ny * depth, L.fx - L.tx * L.width / 2 + L.nx * depth, L.fy - L.ty * L.width / 2 + L.ny * depth];
       for (const s of c.r) { s.use = 'mhpark'; s.done = true; }
-      const area = { id: this.out.areas.length, kind: 'mhpark', ring: Float64Array.from(ring), cells: 0, name: 'Mobile Home Park', slot: L.slot, front: L };
+      const stem = this.ctx.namer ? this.ctx.namer.place(hash3(this.ctx.zseed, Math.round(L.fx), Math.round(L.fy))) : '';
+      const area = { id: this.out.areas.length, kind: 'mhpark', ring: Float64Array.from(ring), cells: 0, name: stem ? `${stem} Mobile Home Park` : 'Mobile Home Park', slot: L.slot, front: L };
       this.occ.eachInConvex(ring, k => { if (this.occ.code[k] === FREE || this.occ.code[k] === LOT) { this.occ.code[k] = AREA; this.occ.owner[k] = area.id; area.cells++; } });
       this.out.areas.push(area);
       got += L.width * depth;
@@ -1203,6 +1204,9 @@ export function classifyOsm(t, area) {
   return area > 2500 ? 'commercial' : 'apartment';
 }
 
+/** Inches of rain a year below which the high country is high desert rather than forest. */
+const HIGH_DESERT_RAIN = 14;
+
 /**
  * Vegetation of the place from its climate and region: street-tree share, palms, and what grows on open land
  * (species codes: 0 broadleaf, 1 conifer, 2 palm, 3 oak, 4 scrub, 5 orchard).
@@ -1211,11 +1215,16 @@ export function vegetation(ctx) {
   const z = ctx.z || {};
   const cz = z.cz || 9, rain = z.rain_in || 15, region = z.regionKey || '', elev = z.elev_m || 100;
   const desert = cz === 14 || cz === 15;
-  const mountain = cz === 16 || elev > 1300;
+  // the high country (climate zone 16, or over 1,300 m) is conifer forest where the rain allows; in its rain
+  // shadow (the Owens Valley, the Kern Plateau, the Modoc plateau) it is sagebrush and juniper
+  const high = cz === 16 || elev > 1300;
+  const mountain = high && rain >= HIGH_DESERT_RAIN;
+  const highDesert = high && !mountain;
   const south = ['la', 'oc', 'sd', 'ie'].includes(region);
   const valley = ['sv', 'sj'].includes(region);
   let open = 3, openDensity = 0.22;
   if (desert) { open = 4; openDensity = 0.18; }
+  else if (highDesert) { open = 4; openDensity = 0.3; }
   else if (mountain) { open = 1; openDensity = 0.75; }
   else if (cz === 1 || (rain > 40 && !south)) { open = 1; openDensity = 0.45; }
   else if (valley && ctx.reliefPerKm < 30) { open = 5; openDensity = 0.9; }
@@ -1224,10 +1233,10 @@ export function vegetation(ctx) {
   if (cz === 1 && ctx.reliefPerKm < 60 && !mountain) { open = 0; openDensity = 0.06; }   // north-coast pasture with a few trees
   return {
     open, openDensity,
-    street: desert ? 0.35 : ctx.style === 'grid' ? 0.45 : ctx.style === 'curvi' ? 0.8 : 0.65,
-    palm: desert ? 0.7 : south ? 0.3 : region === 'cc' ? 0.12 : 0.03,
+    street: desert ? 0.35 : highDesert ? 0.4 : ctx.style === 'grid' ? 0.45 : ctx.style === 'curvi' ? 0.8 : 0.65,
+    palm: highDesert ? 0 : desert ? 0.7 : south ? 0.3 : region === 'cc' ? 0.12 : 0.03,
     streetSp: mountain ? 1 : 0, yardSp: mountain ? 1 : (valley || south) && hf(ctx.zseed, 3) < 0.4 ? 3 : 0, parkSp: mountain ? 1 : 0,
-    yard: desert ? 0.3 : mountain ? 0.6 : 1,
+    yard: desert ? 0.3 : highDesert ? 0.5 : mountain ? 0.6 : 1,
   };
 }
 
