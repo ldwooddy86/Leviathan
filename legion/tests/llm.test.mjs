@@ -188,10 +188,10 @@ describe('platform rules and persona sheet', () => {
       '116°F on August 5, 1997', 'the Santa Ana winds', 'speak Spanish at home', 'I-210 (',
     ];
     for (const s of expect) assert.ok(sheet.includes(s), `sheet includes: ${s}`);
-    // nonren_sh as the atlas defines it (residential policies, insurer- and owner-initiated together), in the
-    // facts section and in the concern that cites it
+    // nonren_sh and fair_sh as the atlas defines them, in the facts section and, worded by persona.mjs, in the
+    // concern that cites them (passed through as the persona states it)
     assert.match(sheet, /- Insurance: 9\.\d% of the residential policies up for renewal in 2023 were not renewed \(insurer- and owner-initiated together\)/);
-    assert.match(sheet, /Home insurance \(a big worry\): 9\.8% of the residential policies up for renewal in 91042 in 2023 were not renewed \(nonren_sh; insurer- and owner-initiated together\)/);
+    assert.match(sheet, /Home insurance \(a big worry\): 9\.8% of residential policies up for renewal in 91042 were not renewed in 2023 \(nonren_sh\); there are 13\.7 FAIR Plan home policies per 100 homes here \(fair_sh\)\./);
     assert.doesNotMatch(sheet, /insurers non-renewed/);
     assert.doesNotMatch(sheet, /Los Angeles County \(Los Angeles County\)/);
     const wildfire = sheet.indexOf('Wildfire (a big worry)'), insurance = sheet.indexOf('Home insurance (a big worry)');
@@ -199,13 +199,15 @@ describe('platform rules and persona sheet', () => {
     assert.ok(sheet.indexOf('- 2009: The Station') < sheet.indexOf('- 2017:'), 'memories in time order');
   });
 
-  test('deterministic, and the system blocks are exactly [rules, sheet + cache_control]', () => {
+  test('deterministic, and the system blocks are exactly [rules + cache_control, sheet + cache_control]', () => {
     assert.equal(personaSheet(persona, world), personaSheet(structuredClone(persona), world));
     const blocks = systemBlocks(persona, world);
+    // the rules carry their own breakpoint, so the entry they write is read by the first turn with any other NPC
     assert.deepEqual(blocks, [
-      { type: 'text', text: PLATFORM_RULES },
+      { type: 'text', text: PLATFORM_RULES, cache_control: { type: 'ephemeral' } },
       { type: 'text', text: personaSheet(persona, world), cache_control: { type: 'ephemeral' } },
     ]);
+    assert.ok(PLATFORM_RULES.length / 4 > 512, 'the rules alone pass the 512-token cache minimum');
     assert.equal(systemPrompt(persona, world), `${PLATFORM_RULES}\n\n${personaSheet(persona, world)}`);
     assert.ok(!personaSheet(persona).includes('Facts about ZIP'), 'world facts only with a world');
     assert.ok(blocks.map(b => b.text).join('').length / 4 > 512, 'comfortably over the 512-token cache minimum');
@@ -284,10 +286,9 @@ describe('real personas (persona.mjs)', () => {
         if (typeof p.bio === 'string' && p.bio) assert.ok(sheet.includes(p.bio.trim().slice(0, 40)), `${npc.id} bio`);
         for (const c of (p.concerns || []).slice(0, 3)) {
           if (!c || !c.why) continue;
-          // the data reasons appear as given, except the two misstated columns, which are restated
+          // the data reasons appear as the persona words them (only an "out now" alert clause is dropped)
           const lead = c.why.trim().split(/;\s+/)[0];
-          if (/insurers non-renewed/.test(lead)) assert.match(sheet, /were not renewed \((?:nonren_sh; )?insurer- and owner-initiated together\)/, `${npc.id} insurance`);
-          else if (!/FAIR Plan|out now/.test(lead)) assert.ok(sheet.includes(lead.slice(0, 30)), `${npc.id} concern ${c.topic}`);
+          if (!/out now/.test(lead)) assert.ok(sheet.includes(lead.slice(0, 30)), `${npc.id} concern ${c.topic}`);
         }
         // nothing in the cached sheet goes stale with the clock, and nothing misstates the insurance data
         assert.doesNotMatch(sheet, /weather service has out|\bout now\b|^- The (?:heat|cold|weather|rain|snow) today/m, `${npc.id} no moment-bound text`);
@@ -509,18 +510,18 @@ describe('the sheet: nothing that goes stale, the data as the atlas states it, f
     assert.deepEqual(hooks(personaSheet(p, world)).slice(0, 2), ['- Your kids, Daniela and Mateo', '- The Station Fire in 2009']);
   });
 
-  test('concerns: alerts "out now" are dropped and the insurance columns are restated', () => {
+  test('concerns: alerts "out now" are dropped and the data reasons pass through as the persona words them', () => {
     const p = structuredClone(persona);
     p.concerns = [
-      { topic: 'insurance', weight: 0.8, why: 'insurers non-renewed 9.8% of homeowner policies in 91042 (nonren_sh); 13.7% of policies here are with the FAIR Plan (fair_sh); the typical premium is $1,582 (prem)' },
+      { topic: 'insurance', weight: 0.8, why: '9.8% of residential policies up for renewal in 91042 were not renewed in 2023 (nonren_sh); there are 13.7 FAIR Plan home policies per 100 homes here (fair_sh); the average homeowners premium here was $1,582 in 2023 (prem)' },
       { topic: 'fire', weight: 0.7, why: "13% of 91042 is in a fire hazard severity zone (fhsz_any); a Red Flag Warning is out now (NWS)" },
       { topic: 'storms', weight: 0.4, why: 'about 9.1 atmospheric rivers a year make landfall at this latitude (ar_n); the NWS has a Flood Watch out now' },
     ];
     const sheet = personaSheet(p, world);
-    assert.ok(sheet.includes('- Insurance (a big worry): 9.8% of the residential policies up for renewal in 91042 in 2023 were not renewed (nonren_sh; insurer- and owner-initiated together); there are 13.7 FAIR Plan home policies per 100 housing units here (fair_sh); the typical premium is $1,582 (prem).'));
+    assert.ok(sheet.includes('- Insurance (a big worry): 9.8% of residential policies up for renewal in 91042 were not renewed in 2023 (nonren_sh); there are 13.7 FAIR Plan home policies per 100 homes here (fair_sh); the average homeowners premium here was $1,582 in 2023 (prem).'));
     assert.ok(sheet.includes('- Fire (a big worry): 13% of 91042 is in a fire hazard severity zone (fhsz_any).'));
     assert.ok(sheet.includes('- Storms (on your mind): about 9.1 atmospheric rivers a year make landfall at this latitude (ar_n).'));
-    assert.doesNotMatch(sheet, /out now|insurers non-renewed|% of policies here/);
+    assert.doesNotMatch(sheet, /out now/);
   });
 
   test('facts: bottom-coded income, and a region that is its county is not named twice', () => {
@@ -582,8 +583,10 @@ describe('ClaudeVoice requests', () => {
         assert.ok(!('betas' in params) && !('fallbacks' in params), 'no fallback for Haiku');
       }
       assert.deepEqual(params.system, systemBlocks(persona, world));
-      assert.equal(params.system[0].cache_control, undefined);
+      // three breakpoints: the shared rules, this NPC's sheet and the newest player message (four are allowed)
+      assert.deepEqual(params.system[0].cache_control, { type: 'ephemeral' });
       assert.deepEqual(params.system[1].cache_control, { type: 'ephemeral' });
+      assert.equal(JSON.stringify(params).match(/"cache_control"/g).length, 3);
       const [user, sys] = params.messages.slice(-2);
       assert.equal(user.role, 'user');
       assert.deepEqual(user.content, [{ type: 'text', text: 'Hi! How is the drive?', cache_control: { type: 'ephemeral' } }]);

@@ -34,6 +34,7 @@ and the Anthropic SDK inline), plus the Node tooling.
 ```
 legion/
   Legion.html              built single-file app (tools/build.mjs writes it)
+  README.md                what Legion is and how to use it
   data/world.json.gz       the world pack (tools/build_pack.py writes it) — read-only for everyone
   data/acs/*.dat.gz        cached ACS tables (California ZCTAs)
   docs/CONTRACTS.md        this file
@@ -42,27 +43,29 @@ legion/
     world.mjs              [foundation] pack loading, ZIP access, geometry, raster, lookups, weather
     clock.mjs              [foundation] Pacific time helpers
     population.mjs         [population] households and people (layer 0 core, layer 1 full)
-    names.mjs              [population] name pools by heritage, sex, birth cohort
+    names.mjs              [population] name pools by heritage, sex, birth cohort, generation and language
     occupations.mjs        [population] job titles by Census occupation group, sector, region, shift, wages
-    persona.mjs            [persona] personality, interests, concerns, memories, speech profile, bio
+    persona.mjs            [persona] personality, interests, concerns, memories, speech profile, bio, routine
     schedule.mjs           [persona] daily routines and activity at a time
-    mind.mjs               [persona] mood, needs, memory stream, relationships, appraisal
-    lexicon.mjs            [lexicon] regional dialects, road naming, multilingual phrase banks
-    dialogue.mjs           [dialogue] the offline dialogue engine, barks
-    llm.mjs                [llm] Claude bridge: prompts, streaming, reflection, model list
+    mind.mjs               [persona] mood, needs, memory stream, relationships, appraisal, reflection
+    lexicon.mjs            [lexicon] regional dialects, road naming, multilingual phrase banks (content in lexicon/)
+    dialogue.mjs           [dialogue] the offline dialogue engine, barks (the engine's parts in dialogue/)
+    llm.mjs                [llm] Claude bridge: prompts, streaming, reflection, model list, exports
     platform.mjs           [integration] the public facade (createLegion) tying it all together
   src/world/               browser-only rendering
     map.mjs                [crowd] WebGL2 statewide map: base layers, camera, labels
-    crowd.mjs              [crowd] GPU crowd renderer and picking
-    crowd-build.mjs        [crowd] agent buffer builder (runs in a Worker; pure, testable in Node)
-    street.mjs             [street] neighborhood simulation and renderer
-  src/app/                 [app] the page: layout, panels, settings, styles, boot
+    crowd.mjs              [crowd] GPU crowd renderer, picking, the Worker pool
+    crowd-build.mjs        [crowd] agent buffer builder (runs in Workers; pure, testable in Node)
+    crowd-worker.mjs       [crowd] the build Worker
+    street.mjs             [street] neighborhood simulation and renderer (parts in street-*.mjs)
+  src/app/                 [app] the page: layout, panels, settings, styles, boot, services (the engine's one door),
+                           nws-live.mjs (the optional live weather), provenance.mjs (facts and sources in words)
   tools/build_pack.py      [foundation] world pack compiler
   tools/build.mjs          [app] bundles everything into Legion.html (esbuild)
-  cli/legion.mjs           [app] Node CLI
-  server/serve.mjs         [app] local server + Claude proxy
-  tests/*.test.mjs         one file per module (node tests/run.mjs runs them all)
-  tests/e2e/run.mjs        Playwright end-to-end on the built Legion.html
+  cli/legion.mjs           [integration] Node CLI
+  server/serve.mjs         [llm] local server + Claude proxy
+  tests/*.test.mjs         one file per module (node tests/run.mjs runs them all); integration, platform, cli
+  tests/e2e/run.mjs        Playwright end-to-end on the built Legion.html (crowd.e2e.mjs, street.e2e.mjs: the dev pages)
 ```
 
 A module's owner writes only its own files (and its own tests). If you need something from a module you do not
@@ -80,8 +83,9 @@ simulation loop may use real time and randomness for animation only.)
 **Environment.** `src/engine` modules are plain ES modules that run unchanged in Node 22 and modern browsers:
 no DOM, no Node built-ins at import time (lazy `await import('node:...')` inside a Node-only code path is fine),
 no dependencies except each other (and `@anthropic-ai/sdk` in `llm.mjs` only). `src/world` and `src/app` are
-browser-only. No network calls except: `llm.mjs` (Claude), the optional live NWS refresh and the optional
-OpenStreetMap (Overpass) street fetch, each behind an explicit user setting and each with an offline fallback.
+browser-only. No network calls except: `llm.mjs` (Claude), the optional live NWS refresh (`src/app/nws-live.mjs`,
+api.weather.gov) and the optional OpenStreetMap (Overpass) street fetch, each behind an explicit user setting
+(all off by default) and each with an offline fallback.
 
 **Performance budgets.** World load + init < 1 s. `householdCore` ≤ 5 µs average. `person` ≤ 0.3 ms.
 `persona` ≤ 3 ms. An offline dialogue reply ≤ 20 ms. Crowd: one million agents built in < 3 s (in a Worker),
@@ -198,19 +202,22 @@ America/Los_Angeles; `atPacific(year, month, day, hour, minute)` → epoch ms; `
 ## 5. Population (`population.mjs`, `names.mjs`, `occupations.mjs`)
 
 ```js
-import { Population, parseId, LEGION_SEED } from './population.mjs';
-const pop = new Population(world, { seed: LEGION_SEED });
+import { Population, parseId, LEGION_SEED, POPULATION_YEAR, HERITAGE_KEYS, originInfo } from './population.mjs';
+const pop = new Population(world, { seed: LEGION_SEED, cache: 2048 });   // LEGION_SEED = 1849; cache: layer 1 households kept
 ```
 
-Addressing. Households of ZIP `zi` are `h = 0 … world.z.hh[zi]-1`. A person is `(zi, h, m)` with
-`m = 0 … size-1`. Ids are strings: household `"94110-123"`, person `"94110-123-0"` (ZIP, household, member, in
-decimal). `parseId(id)` → `{zip, zi, h, m}` (or null). The total over ZIPs of household sizes is the ZIP's
-household population (≈ `hh × hhsize`, ≈ `pop`).
+Addressing. Households of ZIP `zi` are `h = 0 … world.z.hh[zi]-1` (`pop.householdCount(zi)`). A person is `(zi, h,
+m)` with `m = 0 … size-1`. Ids are strings: household `"94110-123"`, person `"94110-123-0"` (ZIP, household, member,
+in decimal). `parseId(id[, world])` → `{zip, zi, h, m}` (m null for a household id; zi -1 for a ZIP not in the
+world) or null; `pop.parseId(id)` uses the population's world. The total over households of their sizes is the
+ZIP's household population (`pop.expectedPersons(zi)` ≈ `hh × hhsize`; group-quarters residents are not in
+households and are left out, see `validate`).
 
 Two layers, consistent by construction: layer 0 is everything the crowd needs, computed fast; layer 1 adds the
-rest and never contradicts layer 0 (it reads layer 0 and conditions on it).
+rest and never contradicts layer 0 (it reads layer 0 and conditions on it). Each ZIP's models are fitted lazily on
+first use and cached (about 2 ms a ZIP for layer 0: the cost of a cold statewide crowd build, see section 8).
 
-**Layer 0** — `pop.householdCore(zi, h)` (≤ 5 µs, no caching needed), `pop.householdSize(zi, h)` (O(1)):
+**Layer 0** — `pop.householdCore(zi, h)` (≤ 5 µs warm), `pop.householdSize(zi, h)` (O(1)):
 
 ```js
 HouseholdCore = {
@@ -218,7 +225,7 @@ HouseholdCore = {
   size,                      // persons
   type,                      // 'married' | 'father' | 'mother' | 'alone' | 'roommates'   (B11001)
   tenure,                    // 'own' | 'rent'                                           (own_sh)
-  dwelling,                  // 'house' | 'small-apartment' | 'apartment' | 'mobile-home'  (sfd_sh, mf5_sh, mh_sh; owners mostly houses)
+  dwelling,                  // 'house' | 'small-apartment' | 'apartment' | 'mobile-home'  (sfd_sh, mf5_sh, mh_sh)
   vehicles,                  // 0..5                                                     (B25044 by tenure)
   home: {x, y},              // world.homeFor(zi, h)
   heritage,                  // household heritage key (below); members inherit with some mixing
@@ -226,225 +233,319 @@ HouseholdCore = {
 }
 PersonCore = {
   m, role,                   // 'householder' | 'spouse' | 'partner' | 'child' | 'grandchild' | 'parent' | 'sibling' | 'relative' | 'roommate'
-  sex,                       // 'F' | 'M'
-  age,                       // integer years
-  heritage,                  // usually the household's
+  sex, age, heritage,        // 'F' | 'M'; integer years; usually the household's heritage
   worker, military,          // booleans (B23025, by age)
-  occ,                       // Census occupation leaf (acsLabels('occ')) for workers, else null (C24010 by sex)
+  occ,                       // Census occupation group (acsLabels('occ')) for civilian workers, else null (C24010 by sex)
   student,                   // null | 'preschool' | 'k12' | 'college' | 'grad'          (B14001, by age)
   mode,                      // 'drive' | 'carpool' | 'bus' | 'rail' | 'ferry' | 'taxi' | 'motorcycle' | 'bike' | 'walk' | 'other' | 'wfh' | null
-  commuteMin,                // one way, minutes (B08303); 0 for wfh; school trips get short times
-  departMin,                 // minutes after local midnight when they leave on a commute day, or null
-  dwellMin,                  // minutes spent at work or school
-  days,                      // bit mask of commute days, Sun=1, Mon=2, Tue=4 … Sat=64 (matches clock dow: 1 << dow)
-  workZi,                    // ZIP index of the workplace or school, -1 if none or wfh
-  work                       // {x, y} of the workplace or school, or null
+  commuteMin,                // one way, minutes (B08303); 0 for wfh
+  departMin, dwellMin,       // minutes after midnight they leave on a commute day (or null); minutes at work or school
+  days,                      // commute days, bit mask Sun=1 … Sat=64 (1 << clock dow); 0 when they work from home
+  workDays,                  // the days they work or attend school (wfh included)
+  shift,                     // 'early' | 'day' | 'mid' | 'evening' | 'night' | 'h24' | null: the shift behind departMin
+  workZi, work               // ZIP index and {x, y} of the workplace or school (-1 / null if none or wfh)
 }
 ```
 
-Calibration targets (tests check these on a few thousand generated households per ZIP, for a spread of ZIPs):
-household type shares ≈ B11001; mean household size ≈ `hhsize`; age-sex pyramid of persons ≈ B01001 (median
-age within ±3 years, shares under 18 and 65+ within ±5 points); race shares ≈ B03002 (±4 points per group);
-workers per adult ≈ B23025; commute mode shares among workers ≈ B08301 (±4 points); commute times ≈ B08303;
-occupation mix by sex ≈ C24010; tenure ≈ `own_sh`; vehicles ≈ B25044. Work places: a gravity choice over ZIPs
-weighted by establishments (`est`) at a distance consistent with the commute time and mode (precompute per-ZIP
-alias tables by distance band; never search all ZIPs per person). Departure times: by occupation group
-(construction and farming early, food service and health care with evening and night shifts, offices 7-9),
-spread by the person's hash. Children go to school on weekdays (8:00 ± 20 min, back mid afternoon), mostly
-nearby (walk, carpool/drive with a parent, bus). Retirees and others have no commute (mode null); their errands
-are the schedule module's job.
+Calibration targets (tests check these per ZIP on thousands of households): household types ≈ B11001; mean size ≈
+`hhsize`; the age-sex pyramid ≈ B01001 (with group quarters removed); race ≈ B03002; workers ≈ B23025; commute modes
+≈ B08301; commute times ≈ B08303; occupations by sex ≈ C24010; tenure ≈ `own_sh`; vehicles ≈ B25044. A worker's mode
+and minutes imply a distance: trips under 15 km end that far from home; longer ones at a ZIP chosen by a gravity model
+over establishments in that distance band; service members at a base within reach. Children go to the nearest school
+of their level; departures follow the occupation group's shift pattern.
 
-**Heritage keys** (shared vocabulary for names, lexicon, persona, dialogue):
+**Heritage keys** (shared vocabulary for names, lexicon, persona, dialogue; `HERITAGE_KEYS`):
 Hispanic `mexican salvadoran guatemalan honduran nicaraguan puertorican cuban dominican southamerican spanish
-latino`; Asian `chinese filipino vietnamese korean japanese indian hmong cambodian lao thai pakistani
-bangladeshi sikh afghan burmese indonesian asian`; Black `african-american ethiopian nigerian caribbean
-african`; White by ancestry `armenian iranian arab assyrian russian ukrainian polish irish italian german
-english scottish french portuguese dutch scandinavian greek european american`; `native` (American Indian,
-California tribes); `pacific` (Native Hawaiian and Pacific Islander); `multiracial`; `other`.
-Race from B03002; the Hispanic origin from B03001; the Asian group from B02015; among non-Hispanic white and
-Black people the ancestry from B04006 (people of Armenian, Iranian, Arab and Assyrian ancestry are mostly
-reported as white; African and Caribbean ancestries among Black people). Glendale and Burbank should produce
-many Armenian households; Irvine and Westwood Iranian; Fresno and Sacramento Hmong; Long Beach Cambodian;
-Little Saigon (Westminster, Garden Grove) Vietnamese; Daly City Filipino; the Central Valley Punjabi Sikh
-(Yuba City, Live Oak); Ethiopian and Eritrean communities in Oakland and San Jose — all because the tables say
-so, never because the code names the place.
+latino`; Asian `chinese filipino vietnamese korean japanese indian hmong cambodian lao thai pakistani bangladeshi
+sikh afghan burmese indonesian asian`; Black `african-american ethiopian nigerian caribbean african`; White by
+ancestry `armenian iranian arab assyrian russian ukrainian polish irish italian german english scottish french
+portuguese dutch scandinavian greek european american`; `native`; `pacific`; `multiracial`; `other`. Race from
+B03002, the Hispanic origin from B03001, the Asian group from B02015, ancestry from B04006 — never from a list of
+places in the code. `npc.origin` refines it (`originInfo(key)`: e.g. 'taiwanese', 'oaxacan' … with a label).
 
-**Layer 1** — `pop.household(zi, h)` and `pop.person(zi, h, m)` (≤ 0.3 ms, LRU-cached), `pop.get(id)`,
-`pop.members(zi, h)`:
+**Layer 1** — `pop.household(zi, h)`, `pop.person(zi, h, m)` (≤ 0.3 ms warm, LRU-cached), `pop.get(id)` (a household
+id gives the householder; null for no one), `pop.members(zi, h)`:
 
 ```js
 NPC = {
   id, hid, zip, zi, h, m,
-  role, sex, age, birthYear,                       // from layer 0 (birthYear = 2026 - age, give or take the birthday)
-  pronouns,                                        // 'she/her' | 'he/him'
+  role, sex, age, birthYear, pronouns,             // birthYear = 2026 - age, give or take the birthday; 'she/her' | 'he/him'
   race,                                            // 'hispanic' | 'white' | 'black' | 'asian' | 'aian' | 'nhpi' | 'multi' | 'other'
-  heritage, heritageLabel,                         // e.g. 'salvadoran', 'Salvadoran American'
-  nativity, generation, arrivalYear, birthplace,   // 'native'|'foreign'; 1 (immigrant), 2, 3 (or more); arrival for immigrants; 'Guadalajara, Jalisco' / 'Bakersfield, California' / 'Ohio'
-  name: { first, last, full, display, nick },      // names.mjs, by heritage, sex, birth cohort and generation
-  languages: { home, english, list },              // home language key (english spanish chinese vietnamese tagalog korean arabic armenian farsi russian punjabi hindi hmong khmer lao japanese portuguese other …); english: 'only' | 'very well' | 'limited'
-  education,                                       // edu label for 25+; 'in school' or 'child' otherwise   (B15003)
+  heritage, heritageLabel, origin,                 // 'salvadoran', 'Salvadoran American', a finer origin key
+  nativity, generation, arrivalYear, birthplace,   // 'native'|'foreign'; 1, 2, 3 (or more); arrival for immigrants; 'San Miguel, El Salvador'
+  mainlandYear,                                    // born in Puerto Rico, Guam or American Samoa (native born): the year they moved, else null
+  name: { first, last, full, display, nick },      // names.mjs, by heritage, sex, cohort, generation, home language and origin
+  languages: { home, english, list },              // home: 'english' or the language key (spanish tagalog vietnamese korean cantonese
+                                                   // mandarin armenian farsi arabic russian punjabi hindi urdu hmong khmer lao japanese
+                                                   // portuguese telugu tamil … and 'other'); english: 'only' | 'very well' | 'limited'
+  education,                                       // 'nohs' … 'doctorate' for 25+ (B15003, never short of the job's degree); 'in school' or 'child'
   school,                                          // null | 'preschool' | 'elementary' | 'middle' | 'high' | 'college' | 'grad'
   status,                                          // 'employed' | 'unemployed' | 'retired' | 'student' | 'homemaker' | 'child' | 'military' | 'not working'
-  occupation,                                      // null or { key, title, sector, employer, shift, wfh, wage }   (occupations.mjs; region-aware titles)
-  income, householdIncome,                         // personal and household annual dollars   (B19001 brackets)
-  commute,                                         // { mode, minutes, departMin, dwellMin, days, workZi, workZip, workCity, work, road }   (road: the highway a driver takes, from world.roadsNear)
-  marital, veteran,                                // (B12001 by sex; B21001 by sex and age); consistent with role (householder and spouse are married)
-  household: { id, size, type, tenure, dwelling, vehicles, yearMoved, yearBuilt, home: {x, y, lat, lon}, members: [{m, role, name, age, sex}] },
+  occupation,                                      // null or { key, title, sector, employer, shift, wfh, wage, hours } (wage: a year's pay for
+                                                   // `hours` a week, never under the minimum wage)
+  income, householdIncome,                         // personal and household annual dollars (B19001)
+  commute: { mode, minutes, departMin, dwellMin, days, workDays, workZi, workZip, workCity, work,
+             road },                               // road: the state highway a driver takes, an object {name, route, kind, distKm, aadt}
+                                                   // (a world.roadsNear record; consumers read road.name), or null
+  marital, veteran,                                // B12001 by sex; B21001 by sex and age
+  parents,                                         // member indices of the parents who live in the household, mother first
+  household: { id, size, type, tenure, dwelling, vehicles, yearMoved, yearBuilt, home: {x, y, lat, lon},
+               members: [{m, role, name, first, age, sex}] },
   place: { zip, city, place, countyName, countyFips, region, regionName, province, zone },
   seed                                             // uint32 for the persona
 }
 ```
 
-`pop.sample(zi, n, seed)` → n distinct NPCs uniform over persons; `pop.sampleState(n, seed)`;
-`pop.includes(zi, h, rate)` (the crowd's deterministic household sample: `u01(hash3(seed ^ 0xC0, zi, h)) <
-rate`); `pop.validate(zi, households)` → `{generated, acs}` share tables for tests and the UI's fidelity panel.
+`pop.sample(zi, n, seed)` → n distinct NPCs uniform over persons; `pop.sampleState(n, seed)`; `pop.includes(zi, h,
+rate)` (the crowd's deterministic household sample: `u01(hash3(seed ^ 0xC0, zi, h)) < rate`); `pop.validate(zi,
+households)` → `{zi, zip, city, households, persons, gq: {persons, share}, generated, acs, target, scalars}` (share
+tables `hht tenure veh dwelling hinc sex age race heritage hisp asian nat lang lep emp comm ctime occM occF edu mar vet
+sch`; scalars `hhsize medianAge under18 over65 foreign own`, each `{generated, acs, target}`).
+
+`names.mjs`: `surname(rng, heritage, opts)`, `givenName(rng, opts)`, `nickname(rng, given, opts)`, `surnameCustoms`,
+`marriedSurname`, `nameFor`, `isReservedName` and the pools (see its header). `occupations.mjs`: `OCC_GROUPS`,
+`GROUP_PROFILES`, `OCCUPATION_CATALOG`, `chooseTitle`, `titleWage`, `pickOccupation`, `MIN_WAGE_HOURLY`.
 
 ## 6. Persona, schedule, mind (`persona.mjs`, `schedule.mjs`, `mind.mjs`)
 
 ```js
 import { persona } from './persona.mjs';
-const p = persona(world, npc, { population: pop });   // deterministic from npc.seed and the pack, ≤ 3 ms
+import { dialectFor } from './lexicon.mjs';
+const p = persona(world, npc, { population: pop, dialectFor, t });   // deterministic from npc.seed, the pack and t; ≈ 0.5-3 ms
 p = {
-  id, npc,
-  big5: { O, C, E, A, N },                // 0..1; priors by age and sex (small) and region/density (small) + individual spread; never by heritage
-  traits: [ 'warm', 'blunt', … ],         // 3-5 adjectives derived from big5
-  archetype,                              // a short role-in-life label, e.g. 'early-shift regular', 'retired gardener', 'new parent'
-  values: [ … ],                          // top 3 Schwartz values (benevolence, security, self-direction …)
-  interests: [ … ],                       // grounded in place, age, income, household: surfing (coast_km), skiing (snowfall_in), fishing (water nearby), hiking (peaks), gardening (house), soccer, church (church count), car shows, wine country, farmers markets, the local team …
-  concerns: [ { topic, weight, why } ],   // from the data: insurance non-renewals (nonren_sh, fair_sh), wildfire (fhsz_any, firesOf), heat (h100), floods (ar_n, flood_n10), housing costs (value/inc, tenure), rent, commute (minutes), roof age (owners, roof_age, ra20_sh), smoke, water/drought (farming), jobs (unemployed) …; `why` names the datum
-  memories: [ { year, date, kind, text, weight, source } ],   // the fires, ARs, wind events, FEMA disasters, heat/rain/gust records of their ZIP and county that happened while they lived there (by age and yearMoved), plus life events (moved here, kids, retirement)
-  knowledge: { neighborhood, county, region, landmarks, roads, nearbyPlaces },
-  speech: { dialect, register, verbosity, slang, humor, directness, codeSwitch: { lang, rate } | null, fillers, catchphrases },
-  bio,                                    // two or three sentences
-  hooks: [ … ]                            // things they would bring up unprompted
+  v, id, npc,                             // v = PERSONA_VERSION
+  big5: { O, C, E, A, N },                // 0..1; from age and sex (small effects), region and density (small) and individual spread;
+                                          // never from race, heritage, nativity, language, religion or name (PROTECTED_FIELDS)
+  traits: [ 'warm', 'blunt', … ],         // 3-5 adjectives from big5
+  archetype,                              // a life-role label: 'early-shift regular', 'retired gardener', 'new parent' …
+  values: [ … ],                          // top 3 Schwartz values (SCHWARTZ_VALUES)
+  interests: [ … ], interestDetails: [ {name, why, tradition?} ],   // grounded in place, age, income, household
+  teams: [ {name, sport} ], practice,     // practice: their own churchgoing {label, day, why} or null
+  concerns: [ { topic, weight, why, area } ],   // `why` cites the columns in parentheses ("(nonren_sh)"); area: the dialogue topic
+  memories: [ { year, date, kind, text, weight, source, title?, fact?, experience?, scope? } ],
+                                          // fires, ARs, wind events, FEMA disasters, records of their ZIP and county while they lived
+                                          // there, and life events; source: 'firesOf(91042): Station 2009', 'household.yearMoved' …
+  knowledge: { neighborhood, city, zip, county, countyLabel, region, regionThe, province, coastKm, landmarks, roads, nearbyPlaces,
+               workCity, workZip, records },
+  speech: { dialect, register, verbosity, slang, humor, humorStyle, directness, codeSwitch: { lang, rate } | null, fillers, catchphrases },
+  bio, hooks: [ … ], hookDetails: [ {kind, topic, text} ],
+  residence: { zipSince, countySince, grewUpHere, bornHere, householdCounty, yearsInZip, yearsInCounty },
+  roof,                                   // owners: {age, material, solar, installed, original, why} or null
+  routine,                                // what schedule.mjs reads (layer 0's commute, the occupation group, school runs, the household)
+  t                                       // the time the weather-dependent parts (alert clauses, weather hooks) were computed for
 }
 ```
 
-`schedule.mjs`: `dayPlan(npc, persona, t)` → `[{start, end, kind, place:{kind, x, y, label}, mode}]` for the
-Pacific day containing `t` (kinds `sleep home commute work school errand leisure exercise worship visit`),
-built from layer 0's commute fields plus errands and leisure drawn from the persona; `activityAt(npc, persona,
-t)` → the current item plus `{progress, position:{x,y}}` while traveling.
+`schedule.mjs`: `dayPlan(npc, persona, t)` → frozen items tiling the Pacific day holding t, midnight to midnight:
+`{start, end, startMin, endMin, kind, place: {kind, x, y, label}, mode, travel, from, label, anchor?, leg?, escort?,
+run?, together?}` (kinds `PLAN_KINDS`: `sleep home commute work school errand leisure exercise worship visit`);
+`activityAt(npc, persona, t)` → the item plus `{progress, traveling, position: {x, y}}`; also `dayInfo`,
+`busyIntervals`, `familyOutings`, `routineOf`, `rhythmOf`, `NIGHT_REST`, `ALONE_AGE`.
 
-`mind.mjs`: `new Mind(persona, {state})` with `state` (serializable): `mood {valence, arousal}` and an emotion
-label, `needs {energy, social, fun, comfort, money}` (0..1), `memory` (stream of `{t, kind, text, importance,
-tags}`), `relationships` (`{player: {affinity, trust, familiarity, met, lastSeen, facts:[…]}}`).
-Methods: `tick(t, {weather, activity})`, `observe(event)`, `appraise(text)` → `{sentiment, intents, topics,
-toxicity}`, `remember(text, importance, tags)`, `recall(query, k)` (recency × importance × lexical relevance),
-`reflect(t)` (offline consolidation into beliefs), `feelingsToward('player')`, `toJSON()`.
-`MindStore` interface: `get(id)`, `put(id, state)` with an in-memory default, a localStorage one in the app,
-a JSON-file one in Node.
+`mind.mjs`: `new Mind(persona, {state} | {t})` with a serializable state (`MIND_VERSION`): `mood {valence, arousal}`
+and an `emotion` label, `needs {energy, social, fun, comfort, money}` (0..1), `memory` (`{id, t, kind, text,
+importance, tags}`), `relationships` (`{player: {affinity, trust, familiarity, met, lastSeen, facts: [{key, value, t,
+text}], interactions, grievance, lastInsult}}`), `beliefs`. Methods: `tick(t, {weather, activity})`, `observe(event)`
+(`{kind: 'utterance', from: 'player'|'self'|id, text, t}`, `'meet'`, `'gift'`, `'help'`, `'alert'`),
+`appraise(text)` → `{sentiment, intents, topics, toxicity, facts}`, `remember(text, importance, tags, {t, kind})`,
+`recall(query, k, {t})`, `reflect(t, {force})` (offline consolidation into beliefs), `applyReflection(r, t)` (stores
+a Claude reflection: memories, affinity and trust, facts, a nudge to the mood), `relationship(who)`,
+`feelingsToward(who)`, `toJSON()`, `Mind.fromJSON(json, persona)`, `Mind.load(store, persona)`, `mind.save(store)`.
+MindStores (`get(id)`, `put(id, state)`, `delete`, `keys`): `MemoryStore`, `LocalStorageStore` (every access
+guarded), `FileStore(path)` (Node; atomic writes). The app keeps its own guarded `LocalMindStore` (src/app/store.mjs).
 
 ## 7. Voice (`lexicon.mjs`, `dialogue.mjs`, `llm.mjs`)
 
-`lexicon.mjs` (content-heavy, data-driven):
-* `dialectFor(world, zi)` → a dialect key at sub-regional grain (e.g. `sf eastbay southbay peninsula northbay
-  sacramento valley-north valley-south fresno kern la-westside la-eastside sfv la-south southbay-la longbeach sgv
-  oc-coast oc-inland ie desert-cv high-desert sd-coast sd-inland imperial central-coast salinas north-coast
-  far-north tahoe gold-country eastern-sierra`), decided from county, place, density, coast and terrain.
-* `DIALECTS[key]` → `{ name, the: true|false (SoCal "the 405"), words: {…regional vocabulary}, greetings,
-  farewells, fillers, intensifiers, weather: {fog, heat, rain, wind, cold}, localTerms, prideLines,
-  complaintLines }` — slot templates like `"{road} was a parking lot"`.
-* `roadName(road, dialectKey)` → "the 405" / "405" / "Highway 99" / "the 99" / "PCH" / "the 1" — California
-  usage by region.
-* `LANGUAGES[lang]` → `{ name, greetings, thanks, farewells, interjections, family: {grandmother, …},
-  affection, food: [...], phrases: {intent: [[native, gloss]]} }` for spanish tagalog vietnamese korean
-  cantonese mandarin armenian farsi arabic russian ukrainian punjabi hindi hmong khmer lao japanese portuguese
-  and more; every phrase correct in its language with an English gloss.
-* `codeSwitch(lang, intent, rng)` → `{text, gloss}`.
+`lexicon.mjs` (content in `lexicon/*.mjs`; data-driven, regional, never ethnic):
+* `dialectFor(world, zi)` → one of `DIALECT_KEYS` (42): `sf eastbay southbay peninsula northbay sacramento
+  valley-north valley-south fresno kern la-westside la-central la-eastside sfv santa-clarita la-south southbay-la
+  longbeach sgv ventura oc-coast oc-inland ie desert-cv high-desert antelope-valley low-desert imperial sd-coast
+  sd-inland central-coast santa-barbara salinas monterey-bay north-coast north-inland far-north tahoe gold-country
+  sierra-foothills eastern-sierra socal-mountains`, from county, place, density, coast and terrain
+  (`explainDialect`, `dialectTable`).
+* `DIALECTS[key]` → `{key, name, region, regionThe, family, familyName, areaCodes, the, theShare, pch, roadStyle,
+  register, words, greetings, farewells, fillers, intensifiers, agreement, surprise, traffic, prideLines,
+  complaintLines, food, weather: {fog, heat, rain, wind, cold, smoke, snow, clear}, regional, youth, elder, slang,
+  teams, teamNames, localTerms}`. Lines are slot templates (`SLOT_NAMES`: `road stretch place city neighborhood
+  landmark peak county region temp fire year team teamName weather season month day alert`) and may carry leading
+  tags (`parseTagged`, `lineTags`, `lineFits`): `@m11-2` months, `@h6-9` hours, `@wx:fog,rain` conditions
+  (`WEATHER_CONDITIONS`), `@alert:redflag` (`ALERT_KINDS`: `redflag flashflood frost heat wind winter`),
+  `@county:Kern`, `@coast` / `@inland` / `@offshore`, and what the line presupposes of the speaker
+  (`SPEAKER_NEEDS`: `@adult @drives @works @owns @rents @parent @native @rooted`). `linesFor` and `pickLine` leave out
+  a line the moment or the speaker contradicts; `Picker` never repeats within a conversation; `slotsFor(world, zi,
+  {t, rng})` → `{values, context, facts}`; `speakerFacts(npc, persona)`; `slangFor`; `dialectSummary`.
+* `roadName(road, dialectKey)` → "the 405" / "405" / "Highway 99" / "the 99" / "PCH" — California usage by region;
+  `roadNames`, `freewayName`, `namedStretch`, `stretchesNear`, `NAMED_STRETCHES`.
+* `LANGUAGES[lang]` → `{key, name, native, script, notes, varieties, defaultVariety, greetings, howAreYou, thanks,
+  farewells, yes, no, affection, polite, food, interjections, family, phrases: {intent: [[native, gloss]]}}` for
+  `LANGUAGE_KEYS` (`spanish tagalog vietnamese korean cantonese mandarin japanese armenian farsi dari pashto arabic
+  assyrian amharic russian ukrainian punjabi hindi urdu hmong khmer lao thai portuguese samoan tongan`); intents
+  `PHRASE_INTENTS`; religious formulas (`RELIGIOUS_INTENTS`) only for a speaker of that faith (`faithFor`).
+* `codeSwitch(lang, intent, rng, {sex, t, variety, faith})` → `{text, gloss, lang, intent}`; `phrasesFor`,
+  `familyTerm`, `resolveLanguage`, `varietyFor`, `weatherCondition`, `offshoreWind`, `findBrands`, `fireLabel`.
 
-`dialogue.mjs` (the offline engine; no network):
-* `new Conversation({ world, persona, mind, t, rngSeed })` with `greet()`, `reply(text)` → `Line`,
-  `farewell()`; `Line = { text, gloss?, intent, topics, emotion, facts: [ids of pack facts used] }`.
-* Understanding: intents (greeting, how-are-you, name, job, family, weather, traffic, fire, housing, rent,
-  insurance, recommend food / place, directions, opinion, history/memory, compliment, insult, joke, goodbye,
-  unknown) and topics from keywords and the mind's appraisal; small talk works without the player asking.
-* Generation: plan (intent → content from persona + world facts + memories + current weather and activity) →
-  realize (templates with slots, many variants) → style (register, verbosity, dialect words, fillers,
-  code-switching per speech.codeSwitch, mood coloring). Never the same line twice in a conversation.
-* `bark(world, persona, context)` → a short line for a speech bubble (two NPCs passing, waiting at a light,
-  reacting to the weather or an alert).
+`dialogue.mjs` (the offline engine; no network; a reply in a few milliseconds):
+* `new Conversation({ world, persona, mind, t, rngSeed, population })` with `greet()`, `reply(text)`, `farewell()`
+  → `Line = { text, gloss, intent, topics, emotion, facts }` (gloss: the English when the line or part of it is in
+  another language, else null; facts: ids of the pack facts used, e.g. `fire:Station:2009`, `weather.now`,
+  `road:I-210`, `acs.lang.spanish`, `npc.occupation` — see dialogue/ground.mjs); `toJSON()`. The mind hears the
+  player's lines (observe) and the NPC's own; `farewell()` remembers the conversation. Intents `INTENTS`, emotions
+  `EMOTIONS`, `DIALOGUE_VERSION`.
+* `bark(world, persona, {t, other, situation})` → `{text, gloss}` or null; `barkBetween(world, personaA, personaB,
+  context)` → `[lineA, lineB]` that agree; `BARK_SITUATIONS` (`pass wait weather alert traffic work home`);
+  `templates()`, `lintTemplates()`, `understand(text, ctx)`.
 
-`llm.mjs` (Claude; the official `@anthropic-ai/sdk`):
-* `MODELS` — `claude-opus-5-5` (default), `claude-sonnet-5-5`, `claude-haiku-5-5`, `claude-fable-5-2`. Use the
-  exact ids. Default effort `low` for conversation (`output_config: {effort}`); thinking is adaptive (omit the
-  parameter; never send `budget_tokens`, never `thinking: {type: 'disabled'}`, no sampling parameters, no
-  assistant prefill).
-* `systemBlocks(persona, world)` → `[platform rules (stable for every NPC), persona sheet (stable per NPC,
-  cache_control ephemeral)]`. Per-turn situation (time, weather, mood, activity, recalled memories) goes in a
-  mid-conversation `{role: 'system'}` message after the player's turn, so the cached prefix never changes.
-* `new ClaudeVoice({ apiKey, model, effort, baseURL, proxyURL, dangerouslyAllowBrowser })` →
-  `stream(persona, mind, history, playerText, {t, weather, onText})` (streams, returns `{text, usage,
-  stopReason, model}`; handles `refusal`), `reflect(persona, transcript)` → structured output
-  (`output_config.format` JSON schema: `{summary, facts_about_player[], affinity_delta, trust_delta, mood,
-  memorable_line, follow_up}`) that the mind stores. Server-side refusal fallback on by default for Opus, Sonnet
-  and Fable (`betas: ['server-side-fallback-2026-07-01']`, `fallbacks: 'default'`); typed SDK errors mapped to
-  plain messages.
-* `exportPersona(persona)` → the JSON a game engine needs (the persona, the system prompt, the voice settings).
+`llm.mjs` (Claude through the official `@anthropic-ai/sdk`):
+* `MODELS` — `[{id, label, note, fallback, price: {input, output}}]` for `claude-opus-5-5` (default),
+  `claude-sonnet-5-5`, `claude-haiku-5-5` (no server-side refusal fallback), `claude-fable-5-2`; `modelInfo`,
+  `normalizeModel`, `EFFORTS` (`low … max`), `DEFAULTS` (`effort: 'low'`, maxTokens 1024 …), `PROMPT_VERSION`,
+  `FALLBACK_BETA`, `fallbackParams(model)` (`betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default'`).
+  Thinking is adaptive (never sent), effort is `output_config.effort`, no sampling parameters, no prefill.
+* `PLATFORM_RULES` (byte-identical for every NPC), `personaSheet(persona, world)`, `systemBlocks(persona, world)` →
+  `[rules + cache_control, sheet + cache_control]`, `systemPrompt`. With the breakpoint on the newest player message,
+  a turn uses three cache breakpoints: the rules (shared by every NPC), the sheet (per NPC), the conversation.
+* `situation(persona, mind, {t, weather, activity, recalled, world})` — the per-turn `{role: 'system'}` message after
+  the player's turn; `recallFor(mind, said, t)`; `History` (append-only, trimmed from the oldest end in chunks).
+* `new ClaudeVoice({ apiKey, model, effort, maxTokens, baseURL, proxyURL, dangerouslyAllowBrowser, client, world,
+  fallbacks, reflectEffort, reflectMaxTokens, historyBudget, timeout, maxRetries })` → `request(...)` (the exact
+  request, unsent), `stream(persona, mind, history, playerText, {t, weather, activity, recalled, onText, signal})` →
+  `{text, usage, stopReason, model, refusal, truncated, fallback, cacheHit, situation, id}`, `reflect(persona,
+  transcript)` → `{summary, facts_about_player, affinity_delta, trust_delta, mood, memorable_line, follow_up}`
+  (`REFLECTION_SCHEMA`, `validateReflection`, `MOODS`), `ping()`. Errors are `VoiceError {code, message, retryable,
+  status, retryAfter}` (`describeError`); through `proxyURL` the page holds no key (`PROXY_DUMMY_KEY`).
+* `exportPersona(persona, world, {model, effort, maxTokens})` → `{format: 'legion.persona/1', promptVersion, id,
+  name, persona, systemPrompt, system, defaults, headers, voice, turnProtocol}`; `exportJSONL(personas, world, opts)`.
 
-## 8. Crowd and map (`map.mjs`, `crowd.mjs`, `crowd-build.mjs`)
+## 8. Crowd and map (`map.mjs`, `crowd.mjs`, `crowd-build.mjs`, `crowd-worker.mjs`)
 
-`crowd-build.mjs` (pure; runs in a Worker and in Node tests): `buildAgents(world, pop, {rate, seed})` →
-typed arrays for every person of every household `pop.includes(zi, h, rate)` selects:
-`home Float32Array(2n)`, `dest Float32Array(2n)` (workplace or school), `route` (highway leg for drivers on
-long trips: polyline id, start and end arc length), `timing Uint16Array` (departMin, commuteMin, dwellMin),
-`days Uint8Array`, `mode Uint8Array`, `ids Uint32Array` (zi << 20 | h << 4 | m when h < 65536 and m < 16, plus a
-side table for the rare overflow), with a summary (counts by mode, ZIPs covered). Drivers going over ~8 km take
-the state highway network: on-ramp near home, along a `world.roads` polyline, off-ramp near the destination.
-Non-commuters run errands near home at midday by hash. Built progressively (by region, statewide in under 3 s
-for a million agents).
+`crowd-build.mjs` (pure; runs in Workers and in Node tests): `buildAgentsGen(world, pop, {rate, seed, zips, regions,
+focus, chunkTarget, firstChunkTarget, byRegion, pickIndex, roadNet})` yields `{type: 'chunk', chunk, progress}` and
+`{type: 'tick', progress}` and returns the summary; `buildAgents(...)` builds synchronously. Every person of every
+household `pop.includes(zi, h, rate)` selects is one agent, 32 bytes, as a structure of arrays per chunk:
 
-`crowd.mjs`: WebGL2 points, positions computed in the vertex shader from the simulation clock (minute of day,
-day of week) and the per-agent arrays, colored by mode (walkers, drivers, cyclists, transit, people out on
-errands), people at home and at work hidden (optionally shown dim as the population layer). Picking: the CPU
-mirrors the shader's position function for the agents near the cursor and returns the NPC id.
+```
+home    Uint16Array(2n)  x, y fixed point over the projection extent (q / 65535 × proj.W | proj.H, ~15 m), zipAt-safe
+dest    Uint16Array(2n)  workplace or school, same encoding (= home for people without commute trips)
+timing  Uint16Array(3n)  departMin (0xFFFF = none), commuteMin, dwellMin            (commuteTiming(member))
+days    Uint8Array(n)    commute days, bit (1 << dow); 0 = no commute trips
+mode    Uint8Array(n)    MODES code in bits 0-3 (mode & 15); bit 4 (STUDENT_BIT) = the destination is a school
+route   Uint16Array(3n)  highway leg: polyline + 1 (0 = none), entry and exit arc length as q / 65535 of the polyline
+errand  Uint32Array(n)   start minute | dwell / 2 << 11 | days << 18 | drives << 25 | jitter << 26
+eoff    Int8Array(2n)    errand point minus home, in quarter units (±31.75 units, ~±6 km)
+ids     Uint32Array(n)   zi << 20 | h << 4 | m, or 0x80000000 | k for overflow[3k .. 3k+2] = (zi, h, m)
+```
 
-`map.mjs`: the statewide canvas: state outline, neighbors, water, county lines, highways (width by AADT), ZIP
-outlines when zoomed, place labels by population and zoom; pan, zoom (wheel, pinch, keys), `flyTo`; dark and
-light themes from CSS custom properties.
+plus a pick index per chunk (`chunk.pick`: cells crossed by each agent's paths, delta-varint coded, ~3.5 bytes an
+agent) and `{count, households, region, zis, byMode, commuters, highway, errands, overflow, start}`. The summary:
+`{agents, households, zips, zipsWithAgents, chunks, byMode, byKind, commuters, highway, errands, overflow, regions,
+rate, seed, bytesPerAgent, pickBytes, pickBytesPerAgent, ms}`. Drivers going over ~8 km take the state highway
+network; non-commuters run errands near home by hash. The JS position function (`agentPhase`, `agentPosition`) and
+its GLSL twin (`agentGLSL`) must change together.
+
+`crowd.mjs`: `new Crowd(mapView, {world, population, rate, seed, pack, worker, workers, maxAgents})`;
+`await crowd.build({rate, onProgress(fraction, agents), focus})` → the summary plus `{mode: 'worker'|'main', workers,
+pack, totalMs, rateCapped, rate, bytesPerAgent, pickBytesPerAgent, mainBytesPerAgent, workerBytesPerAgent,
+workerLoadMs, verified, verifyMaxMs}` or `{cancelled: true}`; `setTime(t)`, `setVisible(kinds)` (`walk drive bike
+transit errand home`), `visibleKinds()`, `pick(x, y, radiusUnits)` → `{id, zip, zi, h, m, mode, travel, commuteMode,
+state, school, kind, x, y, dist, index}`, `positionOf(id)`, `stats()` → `{agents, moving: {walk, drive, bike,
+transit, errand}, movingTotal, atHome, atWork, atErrand, toWork, toHome, t}`, `setQuality({keep, auto})`, `gpuEval`,
+`destroy()`. A build runs in a pool of Workers (`defaultWorkerCount()`: one per spare core, at most four): the ZIPs
+in build order (the region under the camera first) are dealt to them in turn, chunks draw as they arrive (a small
+first chunk from each), and a spot check against the page's population resolves it. `prewarmCrowd({pack, popSeed,
+workers})` starts the pool and its pack decoding at page boot; the first Crowd adopts it. Worker messages:
+`prepare`, `build {zips, …}`, `stats`, `cancel` in; `prepared`, `loaded`, `chunk`, `progress`, `done`, `error`,
+`stats` out.
+
+`map.mjs`: `new MapView(container, {world, theme, maxDpr, labels})`; `camera {x, y, zoom}`, `flyTo`, `fitState`,
+`setCamera`, `zoomBy`, `screenToWorld`, `worldToScreen`, `viewBounds`, `setTheme`, `setShade`, `requestRender`,
+`render`, `addLayer` / `removeLayer` (layers draw after the base map; `layer.pick` answers clicks), `pickAt`,
+`getGL`, `resize`, `destroy`; events `move`, `click` (with `hit`), `hover`, `leave`, `theme`, `resize`. Dark and light
+themes from CSS custom properties (`--map-*`, `--crowd-*`).
 
 ## 9. Street view (`street.mjs`)
 
-`new StreetView(canvas, { world, population, persona, schedule, dialogue, getTime })` with `open(x, y)`
-(world units) and `close()`. Streets: OpenStreetMap ways from Overpass when the user allows network (cached
-per tile), else a deterministic procedural street network shaped by the ZIP's density, dwelling mix and era
-(grids for pre-war cores, curvilinear subdivisions, rural roads). Houses are placed along streets for the
-households whose homes fall in view; residents follow `schedule.dayPlan`; pedestrians use sidewalks, drivers
-use lanes with simple car following and stops at intersections; speech bubbles from `dialogue.bark` when NPCs
-meet. Click an NPC to select it (emits `npc:select`). Day/night lighting and rain from the weather.
+`new StreetView(container, { world, population, getTime, planFor, bark, persona, allowNetwork, theme, trafficScale,
+schedule, dialogue, onSelect, onHover })`: `container` is an element to fill or a canvas; `planFor(id, t)` the
+schedule activity of an NPC (the app passes `schedule.activityAt` with the NPC's persona), `bark(idA, idB, context)`
+a bubble line (the app's agrees through `dialogue.barkBetween`), `persona(id)` the persona lookup. `await
+view.open(x, y, {radiusM})` (world units; ~1.2 km across) → `{x, y, radiusM, zip, city, style, source:
+'procedural'|'osm', osm, buildMs, households, residents, buildings, streets, streetKm}` or null; `close()`,
+`destroy()`, `select(id)`, `selectAt(px, py)`, `follow(on)`, `setTheme(theme)`, `setTime(t)`, `zoomBy`, `panBy`,
+`agentAt`, `stats()`, `agentsOnScreen()`, `conditions()`, `brightness()`; events `select {id}`, `hover {id}`, `open`,
+`close`, `stats`, `follow {on, id}`, `error {message}`. Streets: OpenStreetMap ways from Overpass when allowed
+(cached per tile), else a deterministic procedural network shaped by the ZIP's density, dwelling mix and era. Houses
+for the households whose homes fall in view; residents follow their plans; in-commuters, through traffic, buses and
+shoppers are real NPCs too. Day/night lighting and rain from the weather.
 
 ## 10. The app (`src/app`, `tools/build.mjs`, `cli`, `server`)
 
-One page: a top bar (Legion, search by ZIP/city/county, the simulation clock with pause and speed, the
-count of NPCs on screen and moving, settings), the map (crowd or street view), and a side panel for the
-selected NPC with tabs **Profile** (identity, household, work, commute, home), **Mind** (Big Five, values,
-interests, concerns, memories, mood, relationship), **Talk** (offline engine or Claude, streaming), **Prompt**
-(the generated system prompt), **JSON** (export). A **Place** panel summarizes the ZIP under the cursor (the
-data behind its people: Census shares vs. generated shares). Settings: crowd density, Claude key (session only
-unless "remember on this device"), model, effort, network permissions (Claude, live weather, OpenStreetMap).
+One page: a top bar (Legion, search by ZIP/city/county/region/NPC id, the simulation clock with play, pause, speed
+1×–3600× and a time-of-day scrubber, the counts of NPCs simulated and moving, the theme and settings), the map with
+the crowd (or the street view), a **Place** panel (the weather, live or from the snapshot with a note saying which;
+totals and medians; languages, heritage and commute mixes; twelve residents; Census versus generated tables; "Walk
+the streets") and an **NPC** panel with tabs **Profile**, **Mind** (Big Five in plain words, traits, archetype,
+values, interests, concerns with their data, memories with year and source, mood, needs, the relationship and what
+they know about you), **Talk** (offline engine or Claude, streaming; glosses under lines in other languages; each
+line's facts a tap away; starters only about what the NPC's data holds), **Prompt** (the system blocks and the
+situation note, token estimate, copy) and **JSON** (record, persona and mind; the game-engine export). Settings:
+crowd density (2.5% default, about a million agents), theme, Claude key (session only unless remembered), model,
+effort, network permissions (Claude, live NWS weather, OpenStreetMap; all off by default).
 
-`app/bus.mjs`: `on(event, fn)`, `off`, `emit(event, payload)`. Events: `npc:select {id}`, `npc:hover {id}`,
-`view:change {mode, x, y, zoom}`, `time:change {t}`, `settings:change {…}`, `place:select {zi}`.
+`app/services.mjs` (the page's one door to the engine; every hook returns `{ok, value}` or `{ok: false, reason,
+message}`): `init`, `setClock(fn)`, `npc`, `residents`, `persona(id, {t, any})` (per simulated hour), `mind(id,
+{t})`, `saveMind`, `observe(id, event)`, `reflectOffline(id, {t})`, `conversation(id, {t})`, `voice(settings)`,
+`history()`, `reflect(id, transcript, settings, {t})` (Claude reflection through `Mind.applyReflection`),
+`prompt(id, {t, said})` → `{blocks, text, situation}`, `exportPersona(id, settings)`, `dayPlan`, `activityAt`,
+`bark(idA, idB, context)`, `streetView(canvas, opts)`, `weather(zi, t)` (live-aware), `setLiveWeather(on)`,
+`refreshWeather(zi, t)`, `weatherStatus(zi, t)` → `{state: 'off'|'idle'|'loading'|'live'|'outside'|'error', note}`,
+`validate`, `createMap`, `createCrowd`, `prewarmCrowd(pack)`, `models`, `efforts`, `dialectName`, `wire(modules)`,
+`status()`.
 
-`tools/build.mjs`: esbuild bundles `src/app/main.mjs` (and the crowd Worker as an inline string) into one
-script, inlines the CSS and the world pack (gzip, base64) and writes `Legion.html`. `--check` verifies the
-output loads in Node (no DOM) as far as the engine goes.
+`app/nws-live.mjs`: `new LiveWeather({world, fetch, enabled, ttlMs, now})` → `refresh(zi)` (api.weather.gov
+`/points/{lat},{lon}`, its `forecastHourly` and `forecast`, `/alerts/active?point=`; cached 15 minutes a ZIP),
+`weatherAt(zi, t)` (world.weatherAt's shape with `live: true`, or null outside the live hours), `status(zi, t)`,
+`world()` (a view of the world whose weatherAt answers live where it can); `adaptLive`, `liveWeatherAt`, `liveWorld`.
 
-`cli/legion.mjs`: `sample <zip|city> [n]`, `npc <id>`, `persona <id>`, `prompt <id>`, `talk <id>` (offline, or
-Claude with `ANTHROPIC_API_KEY` / `--model`), `export <zip> <n> > personas.jsonl`, `stats <zip>`.
+`app/bus.mjs`: `on(event, fn)`, `off`, `once`, `emit(event, payload)`. Events: `npc:select {id, source}`, `npc:hover
+{id, mode}`, `view:change {mode: 'map'|'street', x, y, zoom}`, `time:change {t, speed, playing}`, `settings:change
+{settings, changed}` (no key in the payload), `place:select {zi, kind, key, title, source}`, `weather:change {zi,
+status}`.
 
-`server/serve.mjs`: serves `Legion.html` and `POST /api/claude` (streams; the key from the server's
-environment, never sent to the page), `GET /api/health`.
+`tools/build.mjs`: esbuild bundles `src/app/main.mjs` and the crowd Worker (as an inline string), inlines the CSS and
+the world pack (gzip, base64) and writes `Legion.html` (deterministic bytes; about 4.5 MB). `--check` verifies the
+page is self-contained and that the pack loads in Node as far as the engine goes.
+
+`cli/legion.mjs`: `sample <zip|city|county|region|CA> [n]`, `npc <id>`, `persona <id>`, `prompt <id>`, `plan <id>
+[--date YYYY-MM-DD]`, `talk <id>` (offline REPL; `--claude` with `ANTHROPIC_API_KEY` or the SDK's credential chain,
+`--model`, `--effort`, `--proxy URL` for a Legion server, `--store FILE` to keep the mind), `export <where> <n>`
+(JSON Lines of `exportPersona`), `stats <zip>`; `--json` for every command, `--seed`, `--t`, `--help`.
+
+`server/serve.mjs`: serves `Legion.html` (and `legion/` for development); `GET /api/health` (`{service: 'legion',
+keyConfigured, credential, proxy: '/api/anthropic', models, defaultModel, maxTokens}`); the SDK-compatible proxy
+`POST /api/anthropic/v1/messages` (streaming or not; `POST /api/claude` is the same) and `GET
+/api/anthropic/v1/models/{id}`, with the key from the server's environment, never sent to the page. Same-origin
+only, bound to 127.0.0.1 by default. `createServer({root, clientFactory, env, log, …})` for tests.
 
 ## 11. Integration facade (`platform.mjs`)
 
 ```js
-const legion = await createLegion({ pack, seed });   // world + population
-legion.npc(id)            // NPC (layer 1)
-legion.persona(id)        // persona
-legion.mind(id)           // Mind (from the store)
-legion.conversation(id, {t})
-legion.voice(options)     // ClaudeVoice
-legion.sample(where, n)   // where: zip | city | county | region key
-legion.dayPlan(id, t)
-legion.weather(zip, t)
+import { createLegion } from './src/engine/platform.mjs';
+const legion = await createLegion({ pack, seed, store, t });  // pack: object | bytes | base64 | path | URL; omitted: data/world.json.gz
+                                                             // in Node, window.__LEGION_PACK__ in a page; store: a MindStore
+legion.world, legion.population, legion.seed, legion.store, legion.clock
+legion.npc(id)                      // NPC (layer 1), or null
+legion.persona(id, {t})             // persona for the hour holding t (with the lexicon's dialectFor)
+legion.mind(id, {t})                // Mind (from the store, kept live); legion.saveMind(id), legion.forgetMind(id)
+legion.conversation(id, {t})        // offline Conversation with the NPC's mind
+legion.voice(options)               // ClaudeVoice with this world
+legion.reflect(id, voice, history)  // a Claude reflection stored in the mind (Mind.applyReflection) and saved
+legion.prompt(id, {t})              // {blocks, text, situation}
+legion.exportPersona(id, options)   // the game-engine export
+legion.sample(where, n, {seed})     // where: ZIP | city | Census place | county (name or FIPS) | region key or name | 'CA'
+legion.resolve(where)               // {kind, key, title, zis}
+legion.dayPlan(id, t), legion.activityAt(id, t)
+legion.weather(zip, t)              // world.weatherAt for a ZIP code or index
+legion.bark(idA, idB, {t})          // [A's line, B's answer] (dialogue.barkBetween)
 ```
+
+Methods that take an id throw a clear Error for an id that names no one; times default to the NWS snapshot.

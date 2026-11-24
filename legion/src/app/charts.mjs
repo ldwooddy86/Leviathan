@@ -72,12 +72,13 @@ export function pairedLegend() {
  * A labeled 0..1 meter; the value prints as 0-100.
  * @param {string} label
  * @param {number} value 0..1
- * @param {{low?: string, high?: string, slot?: number}} [opts] words for the two ends
+ * @param {{low?: string, high?: string, slot?: number, note?: string}} [opts] words for the two ends, and a plain-language
+ *   reading of the value shown beside the label (and read out as the meter's value text)
  */
-export function meter(label, value, { low, high, slot = 1 } = {}) {
+export function meter(label, value, { low, high, slot = 1, note } = {}) {
   const v = Math.max(0, Math.min(1, Number(value) || 0));
-  return h('div.meter', { role: 'meter', 'aria-label': label, 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(v * 100)) },
-    h('div.meter-head', h('span.meter-label', label), h('span.meter-value', String(Math.round(v * 100)))),
+  return h('div.meter', { role: 'meter', 'aria-label': label, 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(v * 100)), 'aria-valuetext': note ? `${Math.round(v * 100)}: ${note}` : null },
+    h('div.meter-head', h('span.meter-label', label, note ? h('span.meter-note', ` · ${note}`) : null), h('span.meter-value', String(Math.round(v * 100)))),
     h('div.meter-track', { 'aria-hidden': 'true', style: { '--meter-color': `var(--s${slot})` } }, h('span', { style: { width: `${Math.max(1, v * 100)}%` } })),
     low || high ? h('div.meter-ends', { 'aria-hidden': 'true' }, h('span', low || ''), h('span', high || '')) : null);
 }

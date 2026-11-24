@@ -257,10 +257,10 @@ async function servicesModule(t) {
   }
 }
 
-test('services: modules that are not wired yet answer with a clear result, never an exception', async t => {
+test('services: modules that are not wired answer with a clear result, never an exception', async t => {
   const mod = await servicesModule(t);
   if (!mod) return;
-  const svc = mod.createServices({ modules: { persona: null, mind: null, schedule: null, dialogue: null, llm: null, street: null } });
+  const svc = mod.createServices({ modules: { persona: null, mind: null, schedule: null, dialogue: null, llm: null, street: null, weather: null } });
   svc.init(world);
   const npc = svc.residents(zipScope(world, world.indexOf('94110')), 1, 1)[0];
   assert.ok(npc && npc.id);
@@ -269,9 +269,12 @@ test('services: modules that are not wired yet answer with a clear result, never
   for (const [name, r] of [['persona', svc.persona(npc.id)], ['mind', svc.mind(npc.id)], ['conversation', svc.conversation(npc.id)], ['voice', svc.voice({})], ['prompt', svc.prompt(npc.id)], ['dayPlan', svc.dayPlan(npc.id, world.snapshotTime)], ['streetView', svc.streetView(null)]]) {
     assert.equal(r.ok, false, name);
     assert.equal(r.reason, 'missing', name);
-    assert.match(r.message, /next build/, name);
+    assert.match(r.message, /is not loaded in this page/, name);
   }
   assert.deepEqual(svc.status().map(m => [m.key, m.available]), [['persona', false], ['mind', false], ['schedule', false], ['dialogue', false], ['llm', false], ['street', false], ['weather', false]]);
+  // without the live layer the weather is the pack's snapshot, and says so
+  assert.equal(svc.weather(world.indexOf('94110'), world.snapshotTime).live, undefined);
+  assert.equal(svc.weatherStatus(world.indexOf('94110')).state, 'off');
   assert.deepEqual(svc.models().map(m => m.id), ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-fable-5-2']);
   assert.deepEqual(svc.efforts(), ['low', 'medium', 'high']);
   assert.equal(mod.npcIdFrom(world, (world.indexOf('94110') << 20) | (123 << 4) | 2), '94110-123-2');
@@ -540,7 +543,7 @@ test('the Legion server: its advertised proxy is used only when it holds a key',
   assert.match(claudeStatus(s, { bridge: true, server: { keyConfigured: false } }), /server has no Anthropic key\. Add your own key/);
   assert.match(claudeStatus({ ...s, claude: { apiKey: 'sk-ant-x', proxyURL: '' } }, { bridge: true, server: { keyConfigured: false } }), /use yours/);
   assert.match(claudeStatus({ ...s, claude: { apiKey: '', proxyURL: '/api/anthropic' } }, { bridge: true, server: { keyConfigured: true } }), /proxy/);
-  assert.match(claudeStatus(s, { bridge: false }), /next build/);
+  assert.match(claudeStatus(s, { bridge: false }), /Claude bridge is not loaded in this page/);
   assert.match(claudeStatus({ ...s, network: { claude: false } }, { bridge: true }), /off until you allow/);
 });
 

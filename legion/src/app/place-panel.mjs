@@ -1,8 +1,9 @@
 // Legion · the Place panel: a ZIP, city, county or region and the data behind its people.
 //
 // Totals and medians from the atlas columns; languages, heritage and the commute mix from the Census blocks;
-// the weather at the simulated time from the NWS snapshot; twelve residents to meet; and, when the population
-// can report it, Census versus generated fidelity bars for the ZIP.
+// the weather at the simulated time (the NWS snapshot in the pack, or live from api.weather.gov when Settings allows
+// it, with a note saying which and why); twelve residents to meet; the street view; and, when the population can
+// report it, Census versus generated fidelity bars for the ZIP.
 
 import { EVENTS } from './bus.mjs';
 import { h, icon, clear } from './dom.mjs';
@@ -29,11 +30,12 @@ export function residentLine(npc) {
 export class PlacePanel {
   /**
    * @param {{el: HTMLElement, services: object, bus: object, getTime: () => number,
-   *   onStreetView?: (scope: object) => void, onClose?: () => void}} deps
+   *   onStreetView?: (scope: object) => void, onNow?: () => void, onClose?: () => void}} deps onNow sets the clock to
+   *   the present (offered when the live forecast does not cover the simulated time)
    */
-  constructor({ el, services, bus, getTime, onStreetView, onClose }) {
+  constructor({ el, services, bus, getTime, onStreetView, onNow, onClose }) {
     this.el = el; this.services = services; this.bus = bus; this.getTime = getTime;
-    this.onStreetView = onStreetView; this.onClose = onClose;
+    this.onStreetView = onStreetView; this.onNow = onNow; this.onClose = onClose;
     this.world = services.world;
     this.scope = null; this.seed = 1; this._hour = null; this._token = 0;
     el.classList.add('panel', 'place-panel');
@@ -43,6 +45,12 @@ export class PlacePanel {
     this.body = h('div.panel-body');
     el.append(h('div.sheet-grip', { 'aria-hidden': 'true' }), this.head, this.body);
     bus.on(EVENTS.TIME_CHANGE, ({ t }) => this._onTime(t));
+    // live weather arrived (or failed, or was switched): redraw the weather of the place shown
+    bus.on(EVENTS.WEATHER_CHANGE, ({ zi } = {}) => {
+      if (!this.scope || this.el.hidden) return;
+      const main = this.scope.kind === 'zip' ? this.scope.zi : this._mainZip(this.scope);
+      if (zi === -1 || zi === main) this._renderWeather(main);
+    });
   }
 
   /** True while showing a place. */
@@ -111,7 +119,7 @@ export class PlacePanel {
     sections.push(this._fidelitySlot);
     if (scope.zis.length > 1) sections.push(this._zipChips(scope));
     sections.push(this._streetBlock(scope));
-    sections.push(h('p.fine.sources', 'Census ACS 2020–2024 by ZIP; atlas columns for income, home value and density; weather from the NWS snapshot in the pack.'));
+    sections.push(h('p.fine.sources', 'Census ACS 2020–2024 by ZIP; atlas columns for income, home value and density; weather from the NWS snapshot in the pack, or live from api.weather.gov when Settings allows it.'));
     clear(this.body).append(...sections.filter(Boolean));
     this.body.scrollTop = 0;
     this._fillResidents(residents);
@@ -147,14 +155,21 @@ export class PlacePanel {
     const now = wx.now;
     const z = this.world.zip(zi);
     const alerts = (wx.alerts || []).slice(0, 3);
-    el.append(h('div.weather', { class: wx.stale ? 'is-stale' : null },
+    // where this weather comes from: the snapshot, or live when allowed (with a note when it could not be used)
+    const live = typeof this.services.weatherStatus === 'function' ? this.services.weatherStatus(zi, t) : { state: 'off' };
+    const where = wx.stale ? 'Climate estimate (past the forecast)' : `${wx.live ? 'Live NWS' : 'NWS'} ${wx.point || wx.office || ''}${this.scope && this.scope.zis.length > 1 ? ` · ${z.city}` : ''}`;
+    const note = live && live.note && live.state !== 'live' ? h('p.wx-note', { role: 'note' }, icon('info', { size: 14 }), h('span', live.note),
+      live.state === 'outside' && this.onNow ? h('button.link-btn', { type: 'button', on: { click: () => this.onNow() } }, 'Set the clock to now') : null) : null;
+    el.append(h('div.weather', { class: [wx.stale ? 'is-stale' : null, wx.live ? 'is-live' : null].filter(Boolean).join(' ') || null, dataset: { source: wx.live ? 'live' : wx.stale ? 'climate' : 'snapshot' } },
       h('div.wx-now',
         h('span.wx-temp', Number.isFinite(now.tempF) ? `${now.tempF}°F` : '—'),
         h('span.wx-short', now.short || ''),
-        h('span.wx-where', wx.stale ? 'Climate estimate (past the forecast)' : `NWS ${wx.point || wx.office || ''}${this.scope && this.scope.zis.length > 1 ? ` · ${z.city}` : ''}`)),
+        h('span.wx-where', where)),
       wx.period && !wx.stale && wx.period.detail ? h('p.wx-detail', `${wx.period.name}: ${wx.period.detail}`) : null,
       alerts.length ? h('ul.wx-alerts', { 'aria-label': 'Weather alerts' }, alerts.map(a => h('li', { class: `sev-${String(a.severity || '').toLowerCase()}` }, icon('alert', { size: 14 }), h('span', a.event)))) : null,
-      wx.fireWeather && wx.fireWeather.level > 0 ? h('p.wx-fire', icon('alert', { size: 14 }), `Fire weather: ${wx.fireWeather.name}`) : null));
+      wx.fireWeather && wx.fireWeather.level > 0 ? h('p.wx-fire', icon('alert', { size: 14 }), `Fire weather: ${wx.fireWeather.name}`) : null,
+      live && live.state === 'live' ? h('p.wx-note.is-live', h('span', live.note)) : null,
+      note));
   }
 
   _onTime(t) {
@@ -226,8 +241,10 @@ export class PlacePanel {
   _streetBlock(scope) {
     const ready = this.services.available('street');
     return h('section.p-section.street-block',
-      h('button.btn.wide', { type: 'button', disabled: !ready, 'aria-describedby': ready ? null : 'street-note', on: { click: () => { if (ready && this.onStreetView) this.onStreetView(scope); } } }, icon('street', { size: 16 }), `Walk the streets of ${scope.kind === 'zip' ? scope.key : scope.title}`),
-      ready ? null : h('p.fine#street-note', 'Street view arrives with the next build: residents walking the sidewalks and driving the streets, chatting as they pass.'));
+      h('button.btn.wide.walk-streets', { type: 'button', disabled: !ready, 'aria-describedby': 'street-note', on: { click: () => { if (ready && this.onStreetView) this.onStreetView(scope); } } }, icon('street', { size: 16 }), `Walk the streets of ${scope.kind === 'zip' ? scope.key : scope.title}`),
+      h('p.fine#street-note', ready
+        ? 'The neighborhood up close, on the same clock: the residents of the homes in view walk the sidewalks and drive the streets on their own schedules, chatting as they pass.'
+        : 'The street view is not loaded in this page.'));
   }
 }
 

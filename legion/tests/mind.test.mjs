@@ -391,3 +391,28 @@ test('facts: names only from introductions, jobs only from job words, never a he
   m.reflect(T0 + 5 * 60000, { force: true });
   assert.ok(!m.beliefs.some(b => /Mexican|mother/.test(b.text)), JSON.stringify(m.beliefs));
 });
+
+test('a Claude reflection is stored through applyReflection: memories, deltas, facts once, mood toward it', () => {
+  const m = new Mind(P(npcAt('94110', 9)), { t: T0 });
+  const before = { ...m.relationship('player') };   // relationship() is the live record: copy it
+  const r = { summary: 'We talked about the fog and the Muni.', facts_about_player: ['works at the port', 'has a dog named Lu', 'works at the port'], affinity_delta: 0.3, trust_delta: -0.1, mood: 'happy', memorable_line: 'Fog is free air conditioning.', follow_up: 'Ask about Lu.' };
+  const v0 = m.mood.valence;
+  const rel = m.applyReflection(r, T0 + H);
+  assert.equal(rel.affinity, Math.round((before.affinity + 0.3) * 1000) / 1000);
+  assert.equal(rel.trust, Math.round((before.trust - 0.1) * 1000) / 1000);
+  assert.deepEqual(rel.facts.map(f => f.text), ['works at the port', 'has a dog named Lu'], 'each fact once');
+  const mem = m.toJSON().memory.slice(-3);
+  assert.deepEqual(mem.map(x => x.kind), ['conversation', 'dialogue', 'intention']);
+  assert.equal(mem[0].text, 'We talked about the fog and the Muni.');
+  assert.equal(mem[1].text, 'The player said: "Fog is free air conditioning."');
+  assert.equal(mem[2].text, 'Next time I see the player: Ask about Lu.');
+  assert.ok(mem.every(x => x.t === T0 + H));
+  assert.ok(m.mood.valence > v0, 'a happy reflection lifts the mood a little');
+  // applied again: the facts are not duplicated, the deltas add up, and nothing breaks on an empty reflection
+  m.applyReflection({ facts_about_player: ['has a dog named Lu'], affinity_delta: 0.9 }, T0 + 2 * H);
+  assert.equal(m.relationship('player').facts.length, 2);
+  assert.equal(m.relationship('player').affinity, 1, 'clamped');
+  assert.equal(m.applyReflection(null), null);
+  // the state stays plain JSON
+  assert.deepEqual(Mind.fromJSON(JSON.stringify(m.toJSON()), m.persona).toJSON(), m.toJSON());
+});

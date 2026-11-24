@@ -295,7 +295,10 @@ export const DIALECT = {
   'oc-inland': 'Inland Orange County', ie: 'Inland Empire', 'desert-cv': 'Coachella Valley', 'high-desert': 'High Desert',
   'sd-coast': 'Coastal San Diego', 'sd-inland': 'Inland San Diego', imperial: 'Imperial Valley', 'central-coast': 'Central Coast',
   salinas: 'Salinas Valley', 'north-coast': 'North Coast', 'far-north': 'Far North', tahoe: 'Tahoe', 'gold-country': 'Gold Country',
-  'eastern-sierra': 'Eastern Sierra', la: 'Los Angeles', oc: 'Orange County', sd: 'San Diego', ba: 'Bay Area',
+  'eastern-sierra': 'Eastern Sierra', 'la-central': 'Central LA', 'santa-clarita': 'Santa Clarita Valley', ventura: 'Ventura County',
+  'antelope-valley': 'Antelope Valley', 'low-desert': 'Colorado River and low desert', 'santa-barbara': 'Santa Barbara',
+  'monterey-bay': 'Monterey Bay', 'north-inland': 'Inland Mendocino and Lake County', 'sierra-foothills': 'Southern Sierra foothills',
+  'socal-mountains': 'Southern California mountains', la: 'Los Angeles', oc: 'Orange County', sd: 'San Diego', ba: 'Bay Area',
 };
 
 /**

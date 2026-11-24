@@ -1,9 +1,16 @@
 // Legion · the NPC panel: one Californian, in five tabs.
 //
 // Profile renders the NPC record (identity, languages, household, home, work and commute, education, income).
-// Mind, Talk and Prompt render what services provide (persona, mind, the offline dialogue engine, the Claude
-// bridge) or say plainly that the module arrives with the next build. JSON shows the record with copy and
-// download. The tabs follow the ARIA tabs pattern: arrows, Home and End move between them.
+// Mind renders the persona (Big Five in plain words, traits, archetype, values, interests, concerns with the data
+// behind them, memories with their year and source) and the live mind (mood, needs, the relationship with you and
+// what they have learned about you). Talk is a conversation with the offline dialogue engine or with Claude:
+// offline, the NPC greets when the tab opens, answers every line (with an English gloss under a line in another
+// language and the pack facts it used a tap away) and says goodbye when you leave, and the mind consolidates what
+// was said (mind.reflect); with Claude, the reply streams in, the voice keeps the history and each turn carries
+// the moment's situation, and leaving reflects the conversation into the NPC's memory (llm.reflect). Both record
+// what you say in the NPC's mind. Prompt shows the exact system blocks Claude gets and the situation note of the
+// moment, with a token estimate. JSON exports the record, the persona and the mind, and the game-engine export.
+// The tabs follow the ARIA tabs pattern: arrows, Home and End move between them.
 
 import { EVENTS } from './bus.mjs';
 import { h, icon, clear, copyText, downloadText, safeJSON, toast } from './dom.mjs';
@@ -12,6 +19,7 @@ import {
   HH_TYPE, ROLE, MODE_VERB, EDUCATION, SCHOOL, STATUS, ENGLISH, MARITAL, GENERATION, LANGUAGE, OCCUPATION_GROUP, DIALECT,
 } from './format.mjs';
 import { meter } from './charts.mjs';
+import { factLabel, concernSourceText, memorySource } from './provenance.mjs';
 
 /** The tabs, in order. */
 export const NPC_TABS = Object.freeze([
@@ -22,15 +30,34 @@ export const NPC_TABS = Object.freeze([
   { key: 'json', label: 'JSON' },
 ]);
 
-const BIG5 = [
-  ['O', 'Openness', 'Conventional', 'Curious'],
-  ['C', 'Conscientiousness', 'Easygoing', 'Organized'],
-  ['E', 'Extraversion', 'Reserved', 'Outgoing'],
-  ['A', 'Agreeableness', 'Challenging', 'Accommodating'],
-  ['N', 'Neuroticism', 'Calm', 'Sensitive'],
-];
+/** The Big Five as the Mind tab shows them: key, name, the low and the high end in plain words. */
+export const BIG5 = Object.freeze([
+  ['O', 'Openness', 'prefers the familiar', 'curious, open to new things'],
+  ['C', 'Conscientiousness', 'easygoing, spontaneous', 'organized, dependable'],
+  ['E', 'Extraversion', 'reserved, recharges alone', 'outgoing, energized by people'],
+  ['A', 'Agreeableness', 'blunt, competitive', 'warm, accommodating'],
+  ['N', 'Neuroticism', 'calm, even-keeled', 'sensitive, worries easily'],
+]);
+
+/**
+ * One Big Five score (0..1) in plain words: 'very curious, open to new things', 'in between', 'easygoing,
+ * spontaneous'.
+ * @param {string} key O C E A or N
+ * @param {number} v 0..1
+ * @returns {string}
+ */
+export function big5Words(key, v) {
+  const row = BIG5.find(r => r[0] === key);
+  if (!row || !Number.isFinite(v)) return '';
+  if (v >= 0.4 && v <= 0.6) return 'in between';
+  const side = v > 0.6 ? row[3] : row[2];
+  return v > 0.8 || v < 0.2 ? `very ${side}` : side;
+}
+
 const NEEDS = ['energy', 'social', 'fun', 'comfort', 'money'];
 const DRIVING = new Set(['drive', 'carpool', 'motorcycle', 'taxi']);
+// Coastal alerts cover whole counties but only touch the shore: they are not news 8 km inland (the dialogue's rule).
+const COASTAL_EVENT = /coastal|surf|rip current|beach|tsunami|sneaker wave|lakeshore/i;
 
 /** A fire as people name it: "Camp" is "the Camp Fire", "Btu Lightning Complex" keeps its own word; null if unnamed. */
 export function fireName(name) {
@@ -43,8 +70,9 @@ export function fireName(name) {
  * Conversation starters for one NPC, each about something the pack holds for them (CONTRACTS section 3), so a
  * starter never invites the dialogue engine or Claude to describe an event the data does not contain: work, school
  * or the days by their status; the weather, or an NWS alert active in their ZIP right now; traffic, on their own
- * highway when they drive one; food; and the most destructive fire that touched or came near their ZIP when the pack
- * records one, else how long they have lived there.
+ * highway when they drive one; food; the most destructive fire that touched or came near their ZIP when the pack
+ * records one, else how long they have lived there; and one question about the place's climate the data supports
+ * (snow only where it snows, the heat only where it is hot).
  * @param {object} world
  * @param {object} npc a layer 1 NPC
  * @param {{weather?: object|null}} [context] world.weatherAt for the NPC's ZIP at the simulated time
@@ -56,7 +84,10 @@ export function startersFor(world, npc, { weather = null } = {}) {
   else if (npc.school || npc.status === 'student') out.push('How’s school going?');
   else if (npc.status === 'retired') out.push('What keeps you busy these days?');
   else out.push('What do you like to do around here?');
-  const alert = weather && Array.isArray(weather.alerts) ? weather.alerts.find(a => a && a.event) : null;
+  const zi0 = Number.isInteger(npc.zi) ? npc.zi : world.indexOf(npc.zip);
+  const coastKm = zi0 >= 0 && world.z && world.z.coast_km ? Number(world.z.coast_km[zi0]) : NaN;
+  const nearShore = !(coastKm > 8);
+  const alert = weather && Array.isArray(weather.alerts) ? weather.alerts.find(a => a && a.event && (nearShore || !COASTAL_EVENT.test(a.event))) : null;
   out.push(alert ? `Heard about the ${alert.event}?` : 'How’s the weather treating you?');
   const c = npc.commute || {};
   const road = DRIVING.has(c.mode) ? roadLabel(c.road) : null;
@@ -66,7 +97,21 @@ export function startersFor(world, npc, { weather = null } = {}) {
   let fire = null;
   if (zi >= 0 && typeof world.firesOf === 'function') for (const f of world.firesOf(zi)) { fire = fireName(f.name); if (fire) break; }
   out.push(fire ? `What was ${fire} like?` : 'How long have you lived here?');
+  const z = zi >= 0 && world.z ? world.z : null;
+  const snowNow = weather && weather.now && /snow/i.test(String(weather.now.short || ''));
+  if (z && (snowyPlace(z, zi) || snowNow)) out.push('Does it snow much up here?');
+  else if (z && (Number(z.h100[zi]) || 0) >= 10) out.push('How do you handle the heat here?');
   return out;
+}
+
+/**
+ * True where it snows enough to talk about: a foot or more a year (snowfall_in), or, where no station measures
+ * snowfall, a heavy design snow load (snow_psf, 60 lb/ft² and up) in the mountains (1,200 m and up).
+ */
+export function snowyPlace(z, zi) {
+  const fall = z.snowfall_in[zi];
+  if (fall !== null && fall !== undefined && Number.isFinite(Number(fall))) return Number(fall) >= 12;
+  return (Number(z.snow_psf[zi]) || 0) >= 60 && (Number(z.elev_m[zi]) || 0) >= 1200;
 }
 
 /** "Rents in an apartment building", "Owns a house". */
@@ -125,6 +170,16 @@ export function activityLine(a) {
   return [what, how, until].filter(Boolean).join(' · ') || null;
 }
 
+/** A rough token count of text (4 characters a token, the usual estimate for English prose). */
+export function estimateTokens(text) { return Math.ceil(String(text ?? '').length / 4); }
+
+/** The size of text as a file (UTF-8 bytes, which is what Download writes), in words: "18,472 bytes", "1.2 MB". */
+export function byteSize(text) {
+  const n = new TextEncoder().encode(String(text ?? '')).length;
+  if (n < 100 * 1024) return `${fmtInt(n)} bytes`;
+  return n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
+}
+
 function row(term, ...value) {
   const v = value.flat().filter(x => x !== null && x !== undefined && x !== '');
   return v.length ? h('div.dl-row', h('dt', term), h('dd', ...v)) : null;
@@ -145,18 +200,17 @@ async function copyWithToast(text, done) {
   return copied;
 }
 
-/** The size of text as a file (UTF-8 bytes, which is what Download writes), in words: "18,472 bytes", "1.2 MB". */
-export function byteSize(text) {
-  const n = new TextEncoder().encode(String(text ?? '')).length;
-  if (n < 100 * 1024) return `${fmtInt(n)} bytes`;
-  return n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
+/** A fresh conversation state (one visit to an NPC; leaving ends it). */
+function newTalk(engine) {
+  return { engine, conv: null, history: null, lines: [], busy: false, ended: false, claudeTurns: 0, offlineTurns: 0, seeded: false, abort: null, greeted: false, used: new Set() };
 }
 
 /** The NPC panel. */
 export class NpcPanel {
   /**
    * @param {{el: HTMLElement, services: object, bus: object, settings: object, getTime: () => number,
-   *   onLocate?: (npc: object) => void, onBack?: () => void, onClose?: () => void, openSettings?: () => void}} deps
+   *   onLocate?: (npc: object) => void, onWalk?: (npc: object) => void, onBack?: () => void, onClose?: () => void,
+   *   openSettings?: () => void}} deps onWalk opens the street view at the NPC's home, following them
    */
   constructor(deps) {
     Object.assign(this, { services: deps.services, bus: deps.bus, settings: deps.settings, getTime: deps.getTime });
@@ -185,7 +239,11 @@ export class NpcPanel {
     el.append(h('div.sheet-grip', { 'aria-hidden': 'true' }), this.head, this.tablist, this.body);
     this.bus.on(EVENTS.SETTINGS_CHANGE, ({ changed }) => {
       if (!this.id) return;
-      if (changed.some(k => k.startsWith('claude') || k.startsWith('network'))) { this.rendered.delete('talk'); if (this.tab === 'talk') this._renderTab('talk'); }
+      if (changed.some(k => k.startsWith('claude') || k.startsWith('network'))) {
+        // the engine line and the setup note depend on these; a conversation in progress is kept
+        this.rendered.delete('talk'); this.rendered.delete('prompt');
+        if (this.tab === 'talk' || this.tab === 'prompt') this._renderTab(this.tab);
+      }
     });
   }
 
@@ -207,7 +265,7 @@ export class NpcPanel {
       if (focus) this._focusName();
       return true;
     }
-    if (this.id && this.id !== npc.id) this._leave();   // reflect and save the conversation with the one before
+    if (this.id && this.id !== npc.id) this._leave();   // say goodbye, reflect and save the conversation before
     this.talk = null;
     this.id = npc.id; this.npc = npc;
     if (wantTab) this.tab = wantTab;
@@ -222,13 +280,13 @@ export class NpcPanel {
 
   _focusName() { const n = this.head.querySelector('#npc-name'); if (n) n.focus(); }
 
-  /** Hide the panel (a Claude conversation is reflected into the NPC's memory first). */
+  /** Hide the panel (the conversation is closed: goodbye, reflection into the NPC's memory, saved). */
   close() {
     if (this.el.hidden) return;
     this._leave();
     this.el.hidden = true;
     this.id = null; this.npc = null;
-    this.talk = null;   // reflected and saved by _leave(): a new visit starts a new conversation
+    this.talk = null;
     if (this.deps.onClose) this.deps.onClose();
   }
 
@@ -242,7 +300,8 @@ export class NpcPanel {
       this.panels[t.key].hidden = !on;
     }
     if (focusTab) this.tabButtons[key].focus();
-    if (!this.rendered.has(key)) this._renderTab(key);
+    // Mind and Prompt show the moment: redrawn whenever they are opened
+    if (!this.rendered.has(key) || key === 'mind' || key === 'prompt') this._renderTab(key);
   }
 
   _tabKeys(e) {
@@ -257,6 +316,7 @@ export class NpcPanel {
 
   _renderHead() {
     const npc = this.npc, name = displayName(npc.name);
+    const canWalk = this.services.available('street') && this.deps.onWalk;
     clear(this.head).append(
       h('button.icon-btn.npc-back', { type: 'button', 'aria-label': 'Back to the place', title: 'Back to the place', on: { click: () => this.deps.onBack && this.deps.onBack() } }, icon('back')),
       h('span.avatar', { 'aria-hidden': 'true' }, initials(name)),
@@ -266,12 +326,13 @@ export class NpcPanel {
         h('p.npc-id.mono', npc.id),
         this.nowEl = h('p.npc-now', { hidden: true, 'aria-live': 'off' })),
       h('div.head-actions',
+        canWalk ? h('button.icon-btn.walk-btn', { type: 'button', 'aria-label': `Walk the streets with ${name.split(' ')[0]}`, title: 'Walk the streets (follows them)', on: { click: () => this.deps.onWalk(this.npc) } }, icon('street')) : null,
         h('button.icon-btn', { type: 'button', 'aria-label': 'Show home and work on the map', title: 'Show on the map', on: { click: () => this.deps.onLocate && this.deps.onLocate(npc) } }, icon('locate')),
         h('button.icon-btn', { type: 'button', 'aria-label': 'Close NPC', title: 'Close (Esc)', on: { click: () => this.close() } }, icon('close'))));
   }
 
   /**
-   * Refresh the "right now" line from the schedule (when wired) for simulated time t; returns the activity or null.
+   * Refresh the "right now" line from the schedule for simulated time t; returns the activity or null.
    * Called by the page as the clock moves.
    */
   refreshNow(t) {
@@ -354,11 +415,10 @@ export class NpcPanel {
   // ------------------------------------------------ Mind
 
   _mind() {
-    const p = this.services.persona(this.id);
-    const m = this.services.mind(this.id, { t: this.getTime() });
-    if (!p.ok && !m.ok) {
-      return placeholder('people', 'Personality and mind', p.reason === 'missing' ? `${p.message} Each NPC will carry Big Five traits, values, interests, concerns drawn from their ZIP’s data (insurance, fire, heat, rent, the commute), memories of the real fires and storms that happened while they lived there, a mood, needs and a relationship with you.` : p.message);
-    }
+    const t = this.getTime();
+    const p = this.services.persona(this.id, { t });
+    const m = this.services.mind(this.id, { t });
+    if (!p.ok && !m.ok) return placeholder('people', 'Personality and mind', p.message);
     const out = h('div.mind');
     if (p.ok) out.append(...this._personaSections(p.value));
     else out.append(h('p.muted', p.message));
@@ -371,12 +431,15 @@ export class NpcPanel {
     const s = [];
     if (p.bio) s.push(h('p.bio', p.bio));
     if (p.archetype) s.push(h('p.archetype', h('span.eyebrow', 'Archetype'), ' ', p.archetype));
-    if (p.big5) s.push(h('section.p-section', h('h3', 'Personality'), h('div.meters', BIG5.map(([k, name, lo, hi]) => (Number.isFinite(p.big5[k]) ? meter(name, p.big5[k], { low: lo, high: hi }) : null)))));
+    if (p.big5) {
+      s.push(h('section.p-section.big5', h('h3', 'Personality'), h('p.fine', 'The Big Five, from age, sex, region and individual chance; never from heritage.'),
+        h('div.meters', BIG5.map(([k, name, lo, hi]) => (Number.isFinite(p.big5[k]) ? meter(name, p.big5[k], { low: lo, high: hi, note: big5Words(k, p.big5[k]) }) : null)))));
+    }
     if (p.traits && p.traits.length) s.push(h('section.p-section', h('h3', 'Traits'), chips(p.traits)));
     if (p.values && p.values.length) s.push(h('section.p-section', h('h3', 'Values'), chips(p.values)));
     if (p.residence && Number.isFinite(p.residence.zipSince)) {
       const r = p.residence, z = this.npc.zip;
-      s.push(h('p.residence', [r.bornHere ? `Born here` : r.grewUpHere ? 'Grew up in the county' : null, `in ${z} since ${r.zipSince}`, Number.isFinite(r.countySince) && r.countySince < r.zipSince ? `in the county since ${r.countySince}` : null].filter(Boolean).join(' · ')));
+      s.push(h('p.residence', [r.bornHere ? 'Born here' : r.grewUpHere ? 'Grew up in the county' : null, `in ${z} since ${r.zipSince}`, Number.isFinite(r.countySince) && r.countySince < r.zipSince ? `in the county since ${r.countySince}` : null].filter(Boolean).join(' · ')));
     }
     if (p.interests && p.interests.length) {
       const why = new Map((p.interestDetails || []).map(d => [d.name, d.why]));
@@ -385,21 +448,24 @@ export class NpcPanel {
     }
     if (p.teams && p.teams.length) s.push(h('section.p-section', h('h3', 'Roots for'), chips(p.teams.map(tm => (typeof tm === 'string' ? tm : `${tm.name}${tm.sport ? ` · ${tm.sport}` : ''}`)))));
     if (p.concerns && p.concerns.length) {
-      s.push(h('section.p-section', h('h3', 'Concerns'), h('ul.concerns', p.concerns.slice(0, 6).map(c => h('li',
-        h('div.concern-head', h('span.concern-topic', capitalize(c.topic || String(c))), Number.isFinite(c.weight) ? h('span.concern-weight', `${Math.round(c.weight * 100)}`) : null),
-        c.why ? h('div.concern-why', c.why) : null)))));
+      s.push(h('section.p-section', h('h3', 'Concerns'), h('p.fine', 'What worries them, and the data behind each worry.'), h('ul.concerns', p.concerns.slice(0, 6).map(c => {
+        const src = concernSourceText(c.why);
+        return h('li',
+          h('div.concern-head', h('span.concern-topic', capitalize(c.topic || String(c))), Number.isFinite(c.weight) ? h('span.concern-weight', { title: 'How much it weighs on them (0-100)' }, `${Math.round(c.weight * 100)}`) : null),
+          c.why ? h('div.concern-why', c.why) : null,
+          src ? h('div.concern-src', `Data: ${src}`) : null);
+      }))));
     }
     if (p.memories && p.memories.length) {
       s.push(h('section.p-section', h('h3', 'Memories'), h('ol.timeline', p.memories.slice(0, 8).map(mem => h('li',
         h('span.tl-year', String(mem.year || (mem.date || '').slice(0, 4) || '')),
         h('span.tl-text', mem.text || ''),
-        mem.source ? h('span.tl-source', mem.source) : null)))));
+        h('span.tl-source', { title: mem.source || '' }, memorySource(mem)))))));
     }
     const sp = p.speech;
     if (sp) {
       const cs = sp.codeSwitch && sp.codeSwitch.lang ? `switches into ${label(LANGUAGE, sp.codeSwitch.lang)}${Number.isFinite(sp.codeSwitch.rate) ? ` about ${Math.round(sp.codeSwitch.rate * 100)}% of the time` : ''}` : null;
-      const region = sp.dialect && this.world.regionByKey ? this.world.regionByKey[sp.dialect] : null;
-      const dialect = sp.dialect ? (region ? region.name : label(DIALECT, sp.dialect)) : null;
+      const dialect = sp.dialect ? (this.services.dialectName && this.services.dialectName(sp.dialect)) || label(DIALECT, sp.dialect) : null;
       s.push(h('section.p-section', h('h3', 'How they talk'), h('dl.dl',
         row('Dialect', dialect),
         row('Register', sp.register ? capitalize(String(sp.register)) : null),
@@ -418,19 +484,21 @@ export class NpcPanel {
     const mood = st.mood || {};
     const emotion = st.emotion || mood.emotion || mood.label;
     if (emotion || Number.isFinite(mood.valence)) {
-      s.push(h('section.p-section', h('h3', 'Right now'), h('dl.dl',
+      s.push(h('section.p-section.mood', h('h3', 'Right now'), h('dl.dl',
         row('Feeling', emotion ? capitalize(String(emotion)) : null),
-        Number.isFinite(mood.valence) ? row('Mood', `${mood.valence >= 0 ? 'positive' : 'negative'} (${mood.valence.toFixed(2)}), ${Number.isFinite(mood.arousal) ? (mood.arousal > 0.5 ? 'energized' : 'calm') : ''}`.replace(/, $/, '')) : null)));
+        Number.isFinite(mood.valence) ? row('Mood', `${mood.valence >= 0.15 ? 'good' : mood.valence <= -0.15 ? 'low' : 'level'} (${mood.valence.toFixed(2)})${Number.isFinite(mood.arousal) ? `, ${mood.arousal > 0.55 ? 'keyed up' : mood.arousal < 0.3 ? 'quiet' : 'steady'}` : ''}`) : null)));
     }
     if (st.needs) s.push(h('section.p-section', h('h3', 'Needs'), h('div.meters', NEEDS.map(k => (Number.isFinite(st.needs[k]) ? meter(capitalize(k), st.needs[k], { slot: 3 }) : null)))));
     const rel = st.relationships && st.relationships.player;
     let feelings = null;
     try { feelings = typeof mind.feelingsToward === 'function' ? mind.feelingsToward('player') : null; } catch { feelings = null; }
     if (rel || feelings) {
-      s.push(h('section.p-section', h('h3', 'With you'),
-        typeof feelings === 'string' ? h('p.feelings', `Feels ${feelings} toward you${rel && rel.met ? '' : ' (you have not met yet)'}.`) : null,
+      s.push(h('section.p-section.relationship', h('h3', 'With you'),
+        typeof feelings === 'string' ? h('p.feelings', `Feels ${feelings} toward you${rel && rel.met ? `; you have met ${rel.met === 1 ? 'once' : `${fmtInt(rel.met)} times`}` : ' (you have not met yet)'}.`) : null,
         rel ? h('div.meters', ['affinity', 'trust', 'familiarity'].map(k => (Number.isFinite(rel[k]) ? meter(capitalize(k), (rel[k] + (k === 'familiarity' ? 0 : 1)) / (k === 'familiarity' ? 1 : 2), { slot: 2 }) : null))) : null,
-        rel && rel.facts && rel.facts.length ? h('ul.hooks', rel.facts.slice(-5).map(f => h('li', typeof f === 'string' ? f : (f.text || JSON.stringify(f))))) : null));
+        rel && rel.facts && rel.facts.length
+          ? [h('h4.sub-head', 'What they know about you'), h('ul.hooks.learned', rel.facts.slice(-8).map(f => h('li', typeof f === 'string' ? f : (f.text || f.value || JSON.stringify(f)))))]
+          : h('p.fine', 'They have not learned anything about you yet. Tell them your name, your work, where you live.')));
     }
     const beliefs = Array.isArray(st.beliefs) ? st.beliefs.slice().sort((a, b) => (b.strength || 0) - (a.strength || 0)).slice(0, 4) : [];
     if (beliefs.length) s.push(h('section.p-section', h('h3', 'Has come to think'), h('ul.hooks', beliefs.map(b => h('li', b.text || String(b))))));
@@ -448,134 +516,202 @@ export class NpcPanel {
 
   // ------------------------------------------------ Talk
 
+  /** Who is speaking for the NPC, in words, and whether Claude can answer now. */
+  _engineInfo(engine) {
+    if (engine === 'offline') return { ok: true, text: 'Speaking: the offline engine, in this browser (no network).' };
+    const s = this.settings.get();
+    const v = this.services.voice(s);
+    if (!v.ok) return { ok: false, text: v.message };
+    const model = (this.services.models().find(m => m.id === s.claude.model) || {}).label || s.claude.model;
+    return { ok: true, text: `Speaking: ${model}, ${s.claude.proxyURL ? 'through the Legion server (the key stays there)' : 'with your API key, straight to api.anthropic.com'}.` };
+  }
+
   _talk() {
     const offline = this.services.available('dialogue');
     const claudeWired = this.services.available('llm');
-    if (!offline && !claudeWired) {
-      return placeholder('send', 'Talk', `The dialogue engine arrives with the next build. When it lands, ${displayName(this.npc.name).split(' ')[0]} will answer in their own regional voice, offline, and with Claude when you allow it.`);
-    }
-    const t = this.talk || (this.talk = { engine: offline ? 'offline' : 'claude', conv: null, history: [], lines: [], busy: false, ended: false });
-    const root = h('div.talk');
-    const log = h('div.talk-log', { role: 'log', 'aria-live': 'polite', 'aria-label': 'Conversation' });
-    const input = h('textarea.talk-input', { rows: '1', placeholder: `Say something to ${displayName(this.npc.name).split(' ')[0]}…`, 'aria-label': 'Your message', maxlength: '600' });
-    const send = h('button.btn.primary.send-btn', { type: 'submit', 'aria-label': 'Send' }, icon('send', { size: 16 }));
+    const first = displayName(this.npc.name).split(' ')[0];
+    if (!offline && !claudeWired) return placeholder('send', 'Talk', `Talking needs the offline dialogue engine or the Claude bridge, and neither is loaded in this page.`);
+    const T = this.talk || (this.talk = newTalk(offline ? 'offline' : 'claude'));
+    if (!offline) T.engine = 'claude';
+    if (!claudeWired) T.engine = 'offline';
+    const root = h('div.talk', { dataset: { engine: T.engine } });
+    const log = h('div.talk-log', { role: 'log', 'aria-live': 'polite', 'aria-label': `Conversation with ${first}` });
+    const input = h('textarea.talk-input', { rows: '1', placeholder: `Say something to ${first}…`, 'aria-label': 'Your message', maxlength: '600', disabled: T.ended });
+    const send = h('button.btn.primary.send-btn', { type: 'submit', 'aria-label': 'Send', title: 'Send (Enter)' }, icon('send', { size: 16 }));
     const form = h('form.talk-form', input, send);
     const status = h('p.talk-status', { role: 'status' });
+    this._talkUI = { root, log, input, send, status };
 
-    // engine choice
+    // who answers
+    const info = this._engineInfo(T.engine);
+    const engineLine = h('p.talk-engine', { class: info.ok ? null : 'is-blocked' }, info.text,
+      info.ok ? null : [' ', h('button.link-btn', { type: 'button', on: { click: () => this.deps.openSettings && this.deps.openSettings() } }, 'Open settings')]);
     if (offline && claudeWired) {
-      const voice = this.services.voice(this.settings.get());
       root.append(h('div.talk-engines',
         h('div.segmented.small', { role: 'radiogroup', 'aria-label': 'Who answers' },
           ['offline', 'claude'].flatMap(k => {
             const id = `talk-engine-${k}`;
-            return [h('input', { type: 'radio', name: 'talk-engine', id, checked: t.engine === k, on: { change: () => { t.engine = k; this._renderTab('talk'); } } }), h('label', { for: id }, k === 'offline' ? 'Offline engine' : 'Claude')];
+            return [h('input', { type: 'radio', name: 'talk-engine', id, checked: T.engine === k, disabled: T.busy, on: { change: () => this._switchEngine(k) } }), h('label', { for: id }, k === 'offline' ? 'Offline engine' : 'Claude')];
           })),
-        t.engine === 'claude' && !voice.ok ? h('p.talk-note', voice.message, ' ', h('button.link-btn', { type: 'button', on: { click: () => this.deps.openSettings && this.deps.openSettings() } }, 'Open settings')) : null));
-    } else if (!offline) {
-      t.engine = 'claude';
-      const voice = this.services.voice(this.settings.get());
-      root.append(h('p.talk-note', 'The offline engine arrives with the next build; Claude answers for now.', voice.ok ? null : [' ', voice.message, ' ', h('button.link-btn', { type: 'button', on: { click: () => this.deps.openSettings && this.deps.openSettings() } }, 'Open settings')]));
-    } else {
-      root.append(h('p.talk-note', 'Offline engine: no network. Claude joins once the Claude bridge is wired.'));
+        engineLine));
+    } else root.append(engineLine);
+
+    for (const line of T.lines) this._bubble(line);
+
+    // the offline engine greets as the conversation opens (not when the player switches to it mid-conversation)
+    const started = T.lines.some(l => l.who === 'player' || l.who === 'npc');
+    if (T.engine === 'offline' && !T.greeted && !T.ended && !started && this._ensureConv()) {
+      T.greeted = true;
+      try { this._addNpcLine(T.conv.greet(), 'offline'); this.services.saveMind(this.id); } catch (e) { this._systemLine(`The greeting failed: ${e && e.message ? e.message : e}`); }
     }
 
-    // three voices in the log: the player, the NPC, and Legion itself (errors, Claude declining), which is never
-    // dressed as the NPC: screen readers hear "Legion:", not the character's name
-    const firstName = displayName(this.npc.name).split(' ')[0];
-    const bubble = line => {
-      const who = line.who === 'player' ? 'You' : line.who === 'system' ? 'Legion' : firstName;
-      const el = h('div.bubble', { class: `from-${line.who}${line.error ? ' is-error' : ''}` },
-        h('span.sr-only', `${who}: `),
-        line.who === 'system' ? icon('alert', { size: 14 }) : null,
-        h('p.bubble-text', line.text || ''),
-        line.gloss ? h('p.bubble-gloss', `[${line.gloss}]`) : null,
-        line.meta ? h('p.bubble-meta', line.meta) : null);
-      log.append(el);
-      requestAnimationFrame(() => { if (el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); });
-      return el;
-    };
-    for (const line of t.lines) bubble(line);
-
-    const addNpcLine = line => {
-      if (!line) return;
-      const meta = [line.emotion, line.intent && line.intent !== 'unknown' ? line.intent : null].filter(Boolean).join(' · ');
-      const entry = { who: 'npc', text: line.text, gloss: line.gloss, meta };
-      t.lines.push(entry);
-      bubble(entry);
-    };
-    const systemLine = text => {
-      const entry = { who: 'system', text: String(text || 'Something went wrong.'), error: true };
-      t.lines.push(entry);
-      return bubble(entry);
-    };
-
-    const ensureConv = () => {
-      if (t.conv) return true;
-      const r = this.services.conversation(this.id, { t: this.getTime() });
-      if (!r.ok) { status.textContent = r.message; return false; }
-      t.conv = r.value;
-      return true;
-    };
-
-    if (t.engine === 'offline' && !t.lines.length && ensureConv()) {
-      try { addNpcLine(t.conv.greet()); this.services.saveMind(this.id); } catch (e) { status.textContent = `The greeting failed: ${e.message || e}`; }
-    }
-
-    const sendText = async text => {
-      text = String(text || '').trim();
-      if (!text || t.busy) return;
-      const entry = { who: 'player', text };
-      t.lines.push(entry); bubble(entry);
-      input.value = '';
-      if (t.engine === 'offline') {
-        if (!ensureConv()) return;
-        try { addNpcLine(t.conv.reply(text)); this.services.saveMind(this.id); } catch (e) { systemLine(`The dialogue engine failed: ${e && e.message ? e.message : e}`); }
-        return;
-      }
-      await this._claudeTurn(t, text, { bubble, systemLine, status, send });
-    };
-
-    form.addEventListener('submit', e => { e.preventDefault(); sendText(input.value); });
-    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(input.value); } });
+    form.addEventListener('submit', e => { e.preventDefault(); this._send(input.value); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this._send(input.value); } });
     input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(120, input.scrollHeight)}px`; });
 
-    const prompts = startersFor(this.world, this.npc, { weather: this.services.weather(this.npc.zi, this.getTime()) });
-    const starters = h('div.chip-row.starters', { 'aria-label': 'Conversation starters' }, prompts.map(s => h('button.chip', { type: 'button', on: { click: () => sendText(s) } }, s)));
-    const goodbye = t.engine === 'offline' ? h('button.btn.ghost.small', { type: 'button', on: { click: () => { if (ensureConv() && typeof t.conv.farewell === 'function') { try { addNpcLine(t.conv.farewell()); this.services.saveMind(this.id); } catch (e) { status.textContent = String(e.message || e); } } } } }, 'Say goodbye') : null;
-    root.append(log, starters, form, h('div.talk-foot', status, goodbye));
+    const prompts = startersFor(this.world, this.npc, { weather: this.services.weather(this.npc.zi, this.getTime()) }).filter(s => !T.used.has(s));
+    const starters = h('div.chip-row.starters', { 'aria-label': 'Conversation starters', hidden: T.ended }, prompts.map(s => h('button.chip', { type: 'button', on: { click: () => this._send(s) } }, s)));
+    const foot = T.ended
+      ? h('button.btn.small', { type: 'button', on: { click: () => this._restartTalk() } }, icon('reset', { size: 15 }), 'Talk again')
+      : h('button.btn.ghost.small', { type: 'button', disabled: !T.lines.length, on: { click: () => this._goodbye() } }, 'Say goodbye');
+    root.append(log, starters, form, h('div.talk-foot', status, foot));
     return root;
   }
 
+  _ensureConv() {
+    const T = this.talk;
+    if (T.conv) return true;
+    const r = this.services.conversation(this.id, { t: this.getTime() });
+    if (!r.ok) { this._systemLine(r.message); return false; }
+    T.conv = r.value;
+    return true;
+  }
+
+  _switchEngine(k) {
+    const T = this.talk;
+    if (!T || T.busy || T.engine === k) return;
+    T.engine = k;
+    this._renderTab('talk');
+  }
+
+  /** One bubble in the log; returns its element. Lines from Legion itself (errors, Claude declining) are never the NPC's. */
+  _bubble(line) {
+    const ui = this._talkUI;
+    if (!ui) return null;
+    const first = displayName(this.npc.name).split(' ')[0];
+    const who = line.who === 'player' ? 'You' : line.who === 'system' ? 'Legion' : line.who === 'divider' ? '' : first;
+    if (line.who === 'divider') {
+      const el = h('div.talk-divider', { role: 'separator' }, line.text);
+      ui.log.append(el);
+      return el;
+    }
+    const facts = Array.isArray(line.facts) ? line.facts.filter(Boolean) : [];
+    let factsEl = null;
+    const factsBtn = facts.length ? h('button.fact-btn', {
+      type: 'button', title: `From the data: ${facts.map(factLabel).join('; ')}`, 'aria-label': `Where this comes from (${facts.length})`, 'aria-expanded': 'false',
+      on: { click: e => { const open = factsEl.hidden; factsEl.hidden = !open; e.currentTarget.setAttribute('aria-expanded', String(open)); } },
+    }, icon('info', { size: 13 })) : null;
+    if (facts.length) factsEl = h('ul.bubble-facts', { hidden: true }, facts.map(f => h('li', factLabel(f))));
+    const el = h('div.bubble', { class: `from-${line.who}${line.error ? ' is-error' : ''}`, dataset: line.engine ? { engine: line.engine } : null },
+      h('span.sr-only', `${who}: `),
+      line.who === 'system' ? icon('alert', { size: 14 }) : null,
+      h('p.bubble-text', line.text || ''),
+      line.gloss ? h('p.bubble-gloss', `[${line.gloss}]`) : null,
+      line.meta || factsBtn ? h('p.bubble-meta', line.meta || '', factsBtn) : null,
+      factsEl);
+    ui.log.append(el);
+    requestAnimationFrame(() => { if (el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); });
+    return el;
+  }
+
+  _addNpcLine(line, engine) {
+    if (!line) return null;
+    const meta = [engine === 'offline' ? 'offline' : null, line.emotion && line.emotion !== 'neutral' ? line.emotion : null].filter(Boolean).join(' · ');
+    const entry = { who: 'npc', text: line.text, gloss: line.gloss || null, meta, facts: line.facts || [], engine };
+    this.talk.lines.push(entry);
+    this._bubble(entry);
+    return entry;
+  }
+
+  _systemLine(text) {
+    const entry = { who: 'system', text: String(text || 'Something went wrong.'), error: true };
+    if (this.talk) this.talk.lines.push(entry);
+    return this._bubble(entry);
+  }
+
+  async _send(raw) {
+    const T = this.talk, ui = this._talkUI;
+    const text = String(raw || '').trim();
+    if (!T || !ui || !text || T.busy || T.ended) return;
+    T.used.add(text);
+    const entry = { who: 'player', text };
+    T.lines.push(entry); this._bubble(entry);
+    ui.input.value = ''; ui.input.style.height = 'auto';
+    const goodbye = ui.root.querySelector('.talk-foot .btn');
+    if (goodbye) goodbye.disabled = false;
+    if (T.engine === 'offline') {
+      if (!this._ensureConv()) return;
+      try {
+        const line = T.conv.reply(text);
+        T.offlineTurns++;
+        this._addNpcLine(line, 'offline');
+        this.services.saveMind(this.id);
+      } catch (e) { this._systemLine(`The dialogue engine failed: ${e && e.message ? e.message : e}`); }
+      return;
+    }
+    await this._claudeTurn(text);
+  }
+
+  /** The offline exchanges so far as the Claude history's first turns (a conversation that switches engines keeps its thread). */
+  _seedHistory() {
+    const T = this.talk;
+    if (T.seeded) return;
+    T.seeded = true;
+    if (!T.history || typeof T.history.append !== 'function' || Array.isArray(T.history)) return;
+    const lines = T.lines.filter(l => (l.who === 'player' || (l.who === 'npc' && l.engine === 'offline')));
+    for (let i = 0; i + 1 < lines.length; i++) {
+      if (lines[i].who === 'player' && lines[i + 1].who === 'npc') {
+        try { T.history.append({ user: lines[i].text, assistant: lines[i + 1].text }); } catch { /* a malformed pair is skipped */ }
+        i++;
+      }
+    }
+  }
+
   /**
-   * One Claude turn: stream the NPC's reply into a bubble. What Legion itself has to say (Claude not allowed or not
-   * set up, a refusal, a failed request) goes in a system line, never in the NPC's voice; a reply cut off by an
-   * error keeps what the NPC had said.
+   * One Claude turn: the player's line goes into the NPC's mind, then the reply streams into a bubble. What Legion
+   * itself has to say (Claude not allowed or not set up, a refusal, a failed request) goes in a system line, never
+   * in the NPC's voice; a reply cut off by an error keeps what the NPC had said.
    */
-  async _claudeTurn(t, text, { bubble, systemLine, status, send }) {
+  async _claudeTurn(text) {
+    const T = this.talk, ui = this._talkUI, id = this.id;
     const v = this.services.voice(this.settings.get());
-    if (!v.ok) { systemLine(v.message); return; }
-    const p = this.services.persona(this.id);
-    if (!p.ok) { systemLine(p.message); return; }
-    const m = this.services.mind(this.id, { t: this.getTime() });
-    const entry = { who: 'npc', text: '' };
-    t.lines.push(entry);
-    const el = bubble(entry);
+    if (!v.ok) { this._systemLine(v.message); return; }
+    const time = this.getTime();
+    const p = this.services.persona(id, { t: time });
+    if (!p.ok) { this._systemLine(p.message); return; }
+    const m = this.services.mind(id, { t: time });
+    if (!T.history) T.history = this.services.history();
+    this._seedHistory();
+    // the mind hears the player in both engines (the offline Conversation does it itself)
+    if (m.ok) this.services.observe(id, { kind: 'utterance', from: 'player', text, t: time });
+    const entry = { who: 'npc', text: '', engine: 'claude' };
+    T.lines.push(entry);
+    const el = this._bubble(entry);
     el.classList.add('is-streaming');
     const textEl = el.querySelector('.bubble-text');
-    // the streaming bubble belongs to the NPC only once they say something; otherwise it gives way to a system line
-    const dropEmpty = () => { if (entry.text) return; el.remove(); const k = t.lines.indexOf(entry); if (k >= 0) t.lines.splice(k, 1); };
-    t.busy = true; send.disabled = true; status.textContent = 'Claude is answering…';
+    const dropEmpty = () => { if (entry.text) return; el.remove(); const k = T.lines.indexOf(entry); if (k >= 0) T.lines.splice(k, 1); };
+    T.busy = true; ui.send.disabled = true; ui.status.textContent = 'Claude is answering…';
+    const stop = h('button.btn.ghost.small.stop-btn', { type: 'button', on: { click: () => { if (T.abort) T.abort.abort(); } } }, 'Stop');
+    ui.status.after(stop);
+    T.abort = typeof AbortController === 'function' ? new AbortController() : null;
     let acc = '';
-    const time = this.getTime();
-    const before = t.history.length;
     try {
-      const activity = this.services.activityAt(this.id, time);
-      // the voice appends the finished exchange to this same array (with its situation note), so pass it as is
-      const result = await v.value.stream(p.value, m.ok ? m.value : null, t.history, text, {
+      const activity = this.services.activityAt(id, time);
+      const result = await v.value.stream(p.value, m.ok ? m.value : null, T.history, text, {
         t: time,
         weather: this.services.weather(this.npc.zi, time),
         activity: activity.ok ? activity.value : undefined,
+        signal: T.abort ? T.abort.signal : undefined,
         onText: (delta, soFar) => {
           acc = typeof soFar === 'string' ? soFar : acc + String(delta ?? '');
           entry.text = acc;
@@ -588,59 +724,110 @@ export class NpcPanel {
       if (refused || !reply) {
         entry.text = '';
         dropEmpty();
-        systemLine(refused ? 'Claude declined to answer that. Try another topic.' : 'No reply came back from Claude.');
+        this._systemLine(refused ? (result.refusal && result.refusal.message) || 'Claude declined to answer that. Try another topic.' : (result && result.notice) || 'No reply came back from Claude.');
       } else {
         entry.text = reply; textEl.textContent = reply;
         // a voice that does not record the exchange itself: keep the history here
-        if (t.history.length === before) t.history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
-        t.claudeTurns = (t.claudeTurns || 0) + 1;
-        this.services.saveMind(this.id);
-        entry.meta = [result && result.model ? `${result.model}${result.fallback ? ' (fallback)' : ''}` : null, result && result.truncated ? 'cut short at the length limit' : null].filter(Boolean).join(' · ');
-        if (entry.meta) el.append(h('p.bubble-meta', entry.meta));
+        if (Array.isArray(T.history) && !T.history.some(x => x && x.role === 'assistant' && x.content === reply)) T.history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
+        T.claudeTurns++;
+        if (m.ok) this.services.observe(id, { kind: 'utterance', from: 'self', text: reply, t: time });
+        entry.meta = [result && result.model ? `${result.model}${result.fallback ? ' (fallback)' : ''}` : 'claude', result && result.cacheHit ? 'cached prefix' : null, result && result.truncated ? 'cut short at the length limit' : null].filter(Boolean).join(' · ');
+        el.append(h('p.bubble-meta', entry.meta));
       }
-      status.textContent = '';
+      ui.status.textContent = '';
     } catch (e) {
       el.classList.remove('is-streaming');
       if (entry.text) { entry.meta = 'cut off'; el.append(h('p.bubble-meta', entry.meta)); }
       dropEmpty();
-      systemLine(e && e.message ? e.message : String(e));
-      status.textContent = '';
+      this._systemLine(e && e.message ? e.message : String(e));
+      ui.status.textContent = '';
     } finally {
       el.classList.remove('is-streaming');
-      t.busy = false; send.disabled = false;
+      stop.remove();
+      T.busy = false; T.abort = null; ui.send.disabled = false;
     }
   }
 
-  /** Leaving an NPC: reflect a Claude conversation into their mind (in the background) and save it. */
+  /** The NPC says goodbye (offline engine) and the conversation ends; "Talk again" starts a new one. */
+  _goodbye() {
+    const T = this.talk;
+    if (!T || T.ended || T.busy) return;
+    if (T.engine === 'offline' && this._ensureConv()) {
+      try { this._addNpcLine(T.conv.farewell(), 'offline'); T.farewelled = true; } catch (e) { this._systemLine(String(e && e.message || e)); }
+    }
+    this._endTalk();
+  }
+
+  /** Close the conversation: the mind consolidates it (offline) and Claude's reflection is stored (Claude). */
+  _endTalk() {
+    const T = this.talk;
+    if (!T || T.ended) return;
+    this._settle(T, this.id);
+    T.ended = true;
+    this._renderTab('talk');
+  }
+
+  _restartTalk() {
+    const old = this.talk;
+    const engine = old ? old.engine : 'offline';
+    const next = newTalk(engine);
+    next.lines = old ? old.lines.slice() : [];
+    next.lines.push({ who: 'divider', text: `New conversation · ${fmtMinute(this.services.clock.pacific(this.getTime()).minuteOfDay)}` });
+    this.talk = next;
+    this._renderTab('talk');
+  }
+
+  /**
+   * Leaving an NPC ends the conversation: the offline NPC says goodbye (their mind records the conversation), the
+   * mind consolidates it (mind.reflect), a Claude conversation is reflected into the NPC's memory (llm.reflect, in
+   * the background), and the mind is saved.
+   */
   _leave() {
-    const t = this.talk, id = this.id;
+    const T = this.talk, id = this.id;
     if (!id) return;
+    if (T && !T.ended) {
+      if (T.conv && !T.farewelled && (T.offlineTurns > 0 || T.greeted)) { try { T.conv.farewell(); T.farewelled = true; } catch { /* a goodbye that fails still leaves */ } }
+      this._settle(T, id);
+      T.ended = true;
+    }
+    if (T && T.abort) T.abort.abort();
     this.services.saveMind(id);
-    if (t && t.claudeTurns >= 2 && this.services.available('mind')) {
-      this.services.reflect(id, t.history.slice(), this.settings.get(), { t: this.getTime() }).then(r => {
+  }
+
+  _settle(T, id) {
+    const t = this.getTime();
+    if (T.offlineTurns > 0 || T.farewelled) this.services.reflectOffline(id, { t });
+    if (T.claudeTurns >= 1 && T.history && this.services.available('mind')) {
+      const transcript = Array.isArray(T.history) ? T.history.slice() : T.history;
+      this.services.reflect(id, transcript, this.settings.get(), { t }).then(r => {
         if (!r.ok && r.reason !== 'missing') toast(`Could not save the conversation to memory: ${r.message}`, { kind: 'error' });
       });
     }
+    this.services.saveMind(id);
   }
 
   // ------------------------------------------------ Prompt
 
   _prompt() {
-    const r = this.services.prompt(this.id);
-    if (!r.ok) {
-      return placeholder('key', 'System prompt', r.reason === 'missing'
-        ? `${r.message} It turns this NPC’s persona into the prompt Claude speaks from: shared platform rules first, then this NPC’s persona sheet (cached per NPC), with the moment’s weather, mood and memories added each turn.`
-        : r.message);
-    }
-    const { blocks, text } = r.value;
-    const names = ['Platform rules · shared by every NPC', 'Persona sheet · cached per NPC'];
+    const T = this.talk;
+    const lastSaid = T ? [...T.lines].reverse().find(l => l.who === 'player') : null;
+    const r = this.services.prompt(this.id, { t: this.getTime(), said: lastSaid ? lastSaid.text : '' });
+    if (!r.ok) return placeholder('key', 'System prompt', r.message);
+    const { blocks, text, situation } = r.value;
+    const names = ['Platform rules · the same for every NPC', 'Persona sheet · this NPC'];
+    const total = estimateTokens(text) + estimateTokens(situation);
+    const all = `${text}${situation ? `\n\n[Situation message]\n${situation}` : ''}`;
     return h('div.prompt',
+      h('p.fine', 'What Claude receives: two cached system blocks, then each player message followed by a short system message with the moment’s situation. Tokens are estimated at four characters each.'),
       h('div.btn-row',
-        h('button.btn.small', { type: 'button', on: { click: () => copyWithToast(text, 'Prompt copied') } }, icon('copy', { size: 15 }), 'Copy'),
-        h('span.muted.small', `${fmtInt(text.length)} characters · ${blocks.length} block${blocks.length === 1 ? '' : 's'}`)),
+        h('button.btn.small', { type: 'button', on: { click: () => copyWithToast(all, 'Prompt copied') } }, icon('copy', { size: 15 }), 'Copy'),
+        h('span.muted.small.prompt-size', `≈ ${fmtInt(total)} tokens · ${fmtInt(all.length)} characters · ${blocks.length} system block${blocks.length === 1 ? '' : 's'}`)),
       blocks.map((b, k) => h('section.prompt-block',
-        h('h3', names[k] || `Block ${k + 1}`, b.cache_control ? h('span.ranked-tag', 'cached') : null),
-        h('pre.code', b.text || ''))));
+        h('h3', names[k] || `Block ${k + 1}`, h('span.ranked-tag', `≈ ${fmtInt(estimateTokens(b.text))} tokens`), b.cache_control ? h('span.ranked-tag', 'cache breakpoint') : null),
+        h('pre.code', b.text || ''))),
+      situation ? h('section.prompt-block.situation',
+        h('h3', 'Situation message · this turn', h('span.ranked-tag', `≈ ${fmtInt(estimateTokens(situation))} tokens`)),
+        h('pre.code', situation)) : null);
   }
 
   // ------------------------------------------------ JSON
@@ -657,8 +844,9 @@ export class NpcPanel {
       h('div.btn-row',
         h('button.btn.small', { type: 'button', on: { click: () => copyWithToast(text, 'JSON copied') } }, icon('copy', { size: 15 }), 'Copy'),
         h('button.btn.small', { type: 'button', on: { click: () => downloadText(`${this.id}.json`, text) } }, icon('download', { size: 15 }), 'Download'),
-        ex.ok ? h('button.btn.small', { type: 'button', on: { click: () => downloadText(`${this.id}.persona.json`, safeJSON(ex.value, 2)) } }, icon('download', { size: 15 }), 'Game-engine export') : null,
+        ex.ok ? h('button.btn.small.export-btn', { type: 'button', title: 'The persona, the system prompt and the request settings a game engine needs (llm.exportPersona)', on: { click: () => downloadText(`${this.id}.persona.json`, safeJSON(ex.value, 2)) } }, icon('download', { size: 15 }), 'Game-engine export') : null,
         h('span.muted.small.json-size', byteSize(text))),
+      h('p.fine', 'The NPC record, their persona and their mind as it stands now. The game-engine export adds the system prompt and the Claude request settings.'),
       h('pre.code.json-code', { tabindex: '0', 'aria-label': 'NPC record as JSON' }, text));
   }
 }

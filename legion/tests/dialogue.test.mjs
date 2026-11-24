@@ -13,9 +13,13 @@ import { DIALECTS as DIALECT_BANKS, LINE_CATEGORIES, WEATHER_CONDITIONS } from '
 import { atPacific } from '../src/engine/clock.mjs';
 import { Conversation, bark, barkBetween, understand, INTENTS, EMOTIONS, templates, lintTemplates } from '../src/engine/dialogue.mjs';
 import { probeOf, screenValue } from '../src/engine/dialogue/probe.mjs';
-import { lexiconLineFits, fitsLife, claimedMinutes } from '../src/engine/dialogue/core.mjs';
-import { keySentence } from '../src/engine/dialogue/ground.mjs';
+import { lexiconLineFits, fitsLife, claimedMinutes, sentencesOf, sentenceKey, lintText, TAG_TESTS } from '../src/engine/dialogue/core.mjs';
+import { keySentence, cleanFireName, fireName } from '../src/engine/dialogue/ground.mjs';
 import { makeVoice } from '../src/engine/dialogue/voice.mjs';
+import { compose, say, homeWord, memTitleOf, factsOfTemplate, SPANISH, EN, TU_FORMS } from '../src/engine/dialogue/plan.mjs';
+import { placeEs, heritageLabelEs } from '../src/engine/dialogue/life.mjs';
+import { phrasesFor } from '../src/engine/lexicon.mjs';
+import { Rng } from '../src/engine/rng.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world, { seed: LEGION_SEED });
@@ -790,3 +794,347 @@ test('turned-back questions and small personal questions get real answers', () =
   }
 });
 
+// ------------------------------------------------------------------ fix pass 2 (findings 10-23)
+
+const spanishLimited = npc => adult(npc) && npc.languages.home === 'spanish' && npc.languages.english === 'limited';
+const bilingualCs = npc => adult(npc) && npc.languages.home === 'spanish' && npc.languages.english === 'very well' && !!P(npc).speech.codeSwitch && P(npc).speech.codeSwitch.rate >= 0.2;
+const fold = s => String(s || '').toLowerCase().normalize('NFD').replace(/\p{M}+/gu, '');
+
+test('natural phrasings are heard as their topic: food, things to do, goodbyes, commutes, Spanish questions, home', () => {
+  const self = { job: /\b(?:cattle|ranch|ranches|ranching)\b/, interests: [{ name: 'the grandkids', re: /\bgrandkids\b/ }], concerns: ['water'] };
+  const CASES = [
+    ["Where's a good place to get tamales around here?", 'food'], ['Any good pupusas nearby?', 'food'], ['Where can I get ramen?', 'food'], ['Know any good dim sum places?', 'food'],
+    ['Is there a brewery around here?', 'food'], ['Best ice cream in town?', 'food'], ['Any good banh mi spots?', 'food'], ['Is that a good place to get tamales?', 'food'],
+    ["What's there to do in Riverside on the weekend?", 'place'], ["What's there to see around here?", 'place'], ['Any good hikes nearby?', 'place'],
+    ['What do people do for fun around here?', 'place'], ["What's the closest big town?", 'place'],
+    ['Cool, nice meeting you. Later!', 'goodbye'], ['Nice meeting you!', 'goodbye'], ['Later!', 'goodbye'], ['Gotta run, nice chatting.', 'goodbye'], ['Okay, I should let you go.', 'goodbye'],
+    ['how do you get to school', 'traffic'], ['How do you get to work?', 'traffic'], ['Do you drive to work?', 'traffic'], ['How do you get around without a car?', 'traffic'],
+    ['¿Le gusta vivir en Salinas?', 'neighborhood'], ['¿Le gusta vivir aquí?', 'neighborhood'], ['¿Te gusta vivir aquí?', 'neighborhood'], ['¡Buenas tardes!', 'greeting'],
+    ['Hi! You look tired, long day?', 'how-are-you'], ['Rough day?', 'how-are-you'],
+    ['What was it like when you first came here?', 'history'], ['What was it like back then?', 'history'],
+    ['Do you have grandkids?', 'family'], ["what's your mom do", 'family'], ['What does your dad do?', 'family'], ['How old is he?', 'family', 'family'],
+    ["How's the water situation for ranching?", 'opinion'], ['How many head of cattle do you run?', 'job'], ['Do you work from home or go into the office?', 'job'],
+    ['What is your background?', 'about-them'], ['Do you miss home?', 'about-them'], ['Do you go back to visit?', 'about-them'],
+    ['Do you still have family back home?', 'about-them'], ['Is your family still there?', 'about-them'], ['Do you go back to work tomorrow?', 'job'],
+  ];
+  const bad = [];
+  for (const [text, want, last = 'weather'] of CASES) {
+    const u = understand(text, { world, self, lastIntent: last });
+    if (u.intent !== want) bad.push(`"${text}": ${u.intent}, not ${want}`);
+  }
+  assert.deepEqual(bad, []);
+  // which part of home the question asks about
+  assert.equal(understand('Do you miss home?', { world }).entities.homeland, 'miss');
+  assert.equal(understand('Do you go back to visit?', { world }).entities.homeland, 'visit');
+  assert.equal(understand('Is your family still there?', { world }).entities.homeland, 'family');
+  assert.equal(understand('Would you ever move back?', { world }).entities.homeland, 'return');
+  assert.equal(understand('Do you go back to work tomorrow?', { world }).entities.homeland, null);
+  // a line with a topic of its own is not taken as "that" of the last topic
+  const u = understand('Is that a good place to get tamales?', { world, lastIntent: 'traffic' });
+  assert.equal(u.flags.followUp, false);
+});
+
+test('accented Spanish never trips the English patterns: "Buenos días" is a greeting, "as hot as" names no team', () => {
+  for (const text of ['Buenos días', '¡Buenos días!', 'Buenos días, ¿cómo está?']) {
+    const u = understand(text, { world });
+    assert.equal(u.entities.team, null, text);
+    assert.ok(['greeting', 'how-are-you'].includes(u.intent), `${text}: ${u.intent}`);
+  }
+  assert.equal(understand('Is it as hot as yesterday?', { world }).entities.team, null);
+  assert.equal(understand("Are you a fan of the A's?", { world }).entities.team, "a's");
+  assert.ok(!understand('La renta está carísima.', { world }).scores.traffic, '"carísima" holds no "car"');
+  const SPORTS = /\b(game|games|team|season|playoffs|partidos?|equipo|temporada)\b/i;
+  const people = [...residents('90265', 2, npc => adult(npc) && englishOnly(npc)), ...residents('90011', 2, spanishLimited)];
+  for (const npc of people) {
+    for (const seed of [1, 2, 3]) {
+      const c = conv(npc, seed);
+      c.greet();
+      const line = c.reply('Buenos días');
+      assert.ok(!SPORTS.test(line.text), `${npc.id}: "${line.text}"`);
+    }
+  }
+});
+
+test('ordinary words are not places: "Nice!" or "Cool" after "Where are you from?"; "I\'m from Weed" still is', () => {
+  for (const text of ['Nice.', 'Nice!', 'Cool.', 'Cool, nice meeting you.', 'Weed.', "That's a challenge.", 'Likely.']) {
+    assert.deepEqual(understand(text, { world }).entities.places.map(p => p.name), [], text);
+  }
+  for (const [text, name] of [["I'm from Paradise.", 'Paradise'], ["I'm from Weed.", 'Weed'], ['I live in Riverside.', 'Riverside']]) {
+    assert.ok(understand(text, { world }).entities.places.some(p => p.name === name), text);
+  }
+  const npc = residents('90265', 1, n => adult(n) && englishOnly(n))[0];
+  const mind = new Mind(P(npc), { t: T });
+  const c = conv(npc, 3, mind);
+  c.greet();
+  for (let i = 0; i < 6; i++) { c.reply('Where are you from?'); c.reply('Nice!'); }
+  const facts = mind.relationship('player').facts;
+  assert.ok(!facts.some(f => /nice/i.test(String(f.value))), JSON.stringify(facts));
+});
+
+test('no sentence is said twice: 30 varied turns, and one question asked 40 times', () => {
+  const SCRIPT = ['How are you?', "What's your name?", 'What do you do?', 'Do you like it?', 'Where are you from?', 'Do you have kids?', "How's the weather?",
+    'What about tomorrow?', 'How bad is the traffic?', 'Any fires around here?', 'Tell me about the old days.', 'Where should I eat?', "What's rent like?",
+    'How are you?', 'What do you do?', 'Any fires around here?', "How's the weather?", 'What do you think of this neighborhood?', 'Tell me more.', 'Really?',
+    'Do you have kids?', 'Where should I eat?', 'How hot does it get?', 'When was the last big storm?', 'Do you worry about earthquakes?', 'Where are you from?',
+    'Tell me about the old days.', 'How bad is the traffic?', "What's rent like?", 'Thanks!'];
+  assert.equal(SCRIPT.length, 30);
+  const people = [
+    ...residents('90265', 2, n => adult(n) && englishOnly(n)), ...residents('90011', 2, spanishLimited),
+    ...residents('93905', 1, n => adult(n) && n.languages.home === 'spanish' && n.languages.english === 'very well'), ...residents('96001', 1, adult),
+  ];
+  // sentences of four words or more; a restatement asked for by a repeated question ("Like I said, ...") is not counted
+  const keysOf = c => c.history.filter(h => h.role === 'npc' && !h.repeat).flatMap(h => sentencesOf(h.text).map(x => sentenceKey(x, null, 4)).filter(Boolean));
+  const dups = keys => keys.filter((k, i) => keys.indexOf(k) !== i);
+  for (const npc of people) {
+    const c = conv(npc, 11);
+    c.greet();
+    for (const text of SCRIPT) c.reply(text);
+    assert.deepEqual(dups(keysOf(c)), [], `${npc.id} said a sentence twice`);
+  }
+  for (const npc of [people[0], people[2]]) {
+    const c = conv(npc, 5);
+    c.greet();
+    for (let i = 0; i < 40; i++) c.reply("What's the weather like today?");
+    const lines = c.history.filter(h => h.role === 'npc').map(h => h.text);
+    assert.equal(new Set(lines).size, lines.length, `${npc.id}: no whole line twice`);
+    assert.deepEqual(dups(keysOf(c)), [], `${npc.id}: no sentence twice in 40 askings`);
+  }
+});
+
+test('code-switching: a family word in the home language comes at the speaker\'s rate and stays the same all conversation', () => {
+  const bi = residents('93905', 2, bilingualCs);
+  for (const npc of bi) {
+    const rate = P(npc).speech.codeSwitch.rate;
+    let used = 0;
+    const words = new Set();
+    for (let seed = 1; seed <= 60; seed++) {
+      const S = conv(npc, seed)._session(new Rng(seed));
+      const a = homeWord(S, 'mom', 'mom');
+      assert.deepEqual(homeWord(S, 'mom', 'mom'), a, 'one word per relation for the whole conversation');
+      if (!a) continue;
+      used++;
+      words.add(a.t);
+      assert.equal(a.g, 'mom');
+      assert.ok(!/madre|materna|paterna/i.test(a.t), `an everyday word, not "${a.t}"`);
+    }
+    assert.ok(Math.abs(used / 60 - rate) < 0.2, `used in ${used} of 60 conversations at rate ${rate}`);
+    assert.equal(words.size, 1, `the persona's own word: ${[...words]}`);
+  }
+  for (const npc of residents('90265', 2, n => adult(n) && englishOnly(n))) assert.equal(homeWord(conv(npc, 1)._session(new Rng(1)), 'mom', 'mom'), null);
+});
+
+test('a surprise phrase in the home language never comes before an "I didn\'t catch that" line', () => {
+  const npc = residents('93905', 1, bilingualCs)[0];
+  let before = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const a = conv(npc, seed);
+    a.voice.lang.cs = Object.assign({}, a.voice.lang.cs, { rate: 1 });
+    const S = a._session(new Rng(seed));
+    const unk = say(S, 'unk.confused');
+    assert.ok(unk, 'an "I didn\'t catch that" line');
+    S.st.cs = 'surprise';
+    const r = compose(S, 'unknown', { parts: [unk], ask: null, noAsk: true }, null);
+    assert.equal(r.gloss, null, `no phrase before "${unk.text}": "${r.text}"`);
+    const b = conv(npc, seed);
+    b.voice.lang.cs = Object.assign({}, b.voice.lang.cs, { rate: 1 });
+    const S2 = b._session(new Rng(seed));
+    const ok = say(S2, 'hay.good');
+    S2.st.cs = 'surprise';
+    if (compose(S2, 'how-are-you', { parts: [ok], ask: null, noAsk: true }, null).gloss) before++;
+  }
+  assert.ok(before > 0, 'the same phrase does come before an ordinary answer');
+});
+
+test('memory titles: a raw declaration gains its "of", a full title stays, a fire is named as people say it', () => {
+  assert.equal(memTitleOf({ title: 'the winter storms 2005', source: 'femaOf(06037): DR-1577' }), 'the winter storms of 2005');
+  assert.equal(memTitleOf({ title: 'the storms of January to April 2023', source: 'femaOf(06037): DR-4699' }), 'the storms of January to April 2023');
+  assert.equal(memTitleOf({ title: 'the record rain of January 2010' }), 'the record rain of January 2010');
+  assert.equal(memTitleOf({ title: 'x', source: 'firesOf(06037): Nelson (W-1) 2012' }), 'the Nelson Fire in 2012');
+  // the Spanish says it in a form that agrees with any title, singular or plural
+  for (const l of SPANISH['hist.event']) assert.ok(!/\bse me olvida\b/.test(l.text), l.text);
+  assert.equal(cleanFireName('Czu Lightning Complex'), 'CZU Lightning Complex');
+  assert.equal(cleanFireName('Mclaughlin'), 'McLaughlin');
+  assert.equal(cleanFireName('Nelson (W-1)'), 'Nelson');
+  assert.equal(cleanFireName('Parker2'), 'Parker 2');
+  assert.equal(fireName('241 Incident'), null);
+  assert.equal(fireName('58 Complex'), 'the 58 Complex');
+  // in conversation: no "the of", no doubled "the"
+  for (const npc of [...residents('90265', 3, n => n.age >= 40), ...residents('95060', 2, n => n.age >= 40)]) {
+    const c = conv(npc, 4);
+    for (const text of ['Any fires around here?', 'When was the last big storm?', 'What do you remember from the old days?', 'Tell me more.']) {
+      const line = c.reply(text);
+      assert.ok(!/\bthe the\b|\bthe of\b|\bof of\b/i.test(line.text), line.text);
+    }
+  }
+});
+
+test('style: no doubled intensifier, and "How about you?" only after saying how they are', () => {
+  const DOUBLE = /\b(pretty|hella|real|super|mad|wicked|way) \1\b/i;
+  const BACK = /\b(How about you|And you|What about you|And how are you)\?/;
+  for (const zip of ['90265', '94110', '93702', '96001', '92262']) {
+    for (const npc of residents(zip, 3, n => adult(n) && englishOnly(n))) {
+      for (const seed of [1, 2]) {
+        const c = conv(npc, seed);
+        for (const text of ['Hi!', 'How are you?', "How's the weather?", 'How bad is the traffic?', 'Is it always this hot?', 'What do you do?', "How's it going?", 'Where should I eat?']) {
+          const line = c.reply(text);
+          assert.ok(!DOUBLE.test(line.text), `${npc.id}: "${line.text}"`);
+          if (BACK.test(line.text)) assert.ok(['how-are-you', 'greeting'].includes(line.intent), `${npc.id} asked back after ${line.intent}: "${line.text}"`);
+        }
+      }
+    }
+  }
+});
+
+test('"Not a cloud in the sky" only under a plain Sunny or Clear forecast', () => {
+  const sky = short => ({ wx: { now: { short } } });
+  assert.equal(TAG_TESTS.cloudless(sky('Sunny')), true);
+  assert.equal(TAG_TESTS.cloudless(sky('Clear')), true);
+  for (const short of ['Mostly Sunny', 'Partly Sunny', 'Mostly Clear', 'Partly Cloudy', '']) assert.equal(TAG_TESTS.cloudless(sky(short)), false, short);
+  const npc = residents('92262', 1, adult)[0];
+  const v = conv(npc, 1).voice;
+  for (const [short, fits] of [['Sunny', true], ['Mostly Sunny', false], ['Partly Cloudy', false]]) {
+    const vv = Object.assign({}, v, { wx: Object.assign({}, v.wx, { now: Object.assign({}, (v.wx && v.wx.now) || {}, { short }) }) });
+    assert.equal(lexiconLineFits('Not a cloud in the sky.', vv, 'weather'), fits, short);
+  }
+});
+
+test('Spanish wordplay is told only in Spanish: a speaker in plain English never tells an @es joke', () => {
+  const wordplay = ['joke.pun', 'joke.kid'].flatMap(k => SPANISH[k] || []).filter(l => l.tags.some(([neg, t]) => !neg && t === 'es'));
+  assert.ok(wordplay.length >= 3, 'the Spanish bank has its wordplay');
+  const starts = wordplay.map(l => l.gloss.split('?')[0]);
+  const simple = residents('92683', 2, n => adult(n) && n.languages.english === 'limited' && !['spanish', 'english'].includes(n.languages.home));
+  let jokes = 0;
+  for (const npc of simple) {
+    for (let seed = 1; seed <= 12; seed++) {
+      const c = conv(npc, seed);
+      c.greet();
+      const line = c.reply('Tell me a joke.');
+      assert.ok(!starts.some(st => line.text.includes(st)), `${npc.id}: "${line.text}"`);
+      if (line.intent === 'joke') jokes++;
+    }
+  }
+  assert.ok(jokes > 0);
+});
+
+test('barks: no phrase for an elder said to someone younger, no tú forms from a speaker who says usted', () => {
+  const ELDER = new Set();
+  for (const intent of ['greeting', 'how_are_you', 'farewell']) {
+    for (const sex of ['M', 'F']) for (const e of phrasesFor('spanish', intent, { sex }) || []) if (/to an (elder|older)/i.test(e.gloss)) ELDER.add(e.text);
+  }
+  const people = residents('90011', 16, n => n.age >= 13 && n.languages.home === 'spanish');
+  let checked = 0;
+  for (let i = 0; i < people.length; i++) {
+    for (let j = 0; j < people.length; j++) {
+      if (i === j || (i + j) % 3) continue;
+      const A = people[i], B = people[j];
+      const va = makeVoice(world, P(A), { t: T }), vb = makeVoice(world, P(B), { t: T });
+      for (let k = 0; k < 3; k++) {
+        const [a, b] = barkBetween(world, P(A), P(B), { t: T + k * 60000 });
+        for (const [line, v, vo] of [[a, va, vb], [b, vb, va]]) {
+          if (!line || !line.gloss) continue;
+          checked++;
+          const head = line.text.replace(/[.!?]+$/, '');
+          if ([...ELDER].some(e => e.replace(/[.!?]+$/, '') === head)) assert.ok(vo.age - v.age >= 8, `"${line.text}" from ${v.age} to ${vo.age}`);
+          if (v.lang.usted) assert.ok(!TU_FORMS.test(line.text), `tú form from an usted speaker: "${line.text}"`);
+        }
+      }
+    }
+  }
+  assert.ok(checked > 10, `${checked} Spanish barks checked`);
+});
+
+test('facts only for what a line names: per-slot facts, and place facts named in the words', () => {
+  const facts = { '': ['acs.food'], town: 'place:Salinas' };
+  assert.deepEqual(factsOfTemplate(facts, { text: 'There are a lot of places here.', gloss: null }), ['acs.food']);
+  assert.deepEqual(factsOfTemplate(facts, { text: '{townCap} has a lot of places.', gloss: null }), ['acs.food', 'place:Salinas']);
+  assert.deepEqual(factsOfTemplate(facts, { text: 'Hay de todo en {townEs}.', gloss: 'There is everything in {town}.' }), ['acs.food', 'place:Salinas']);
+  assert.deepEqual(factsOfTemplate(['a', null, 'b'], { text: 'x', gloss: null }), ['a', 'b']);
+  for (const zip of ['93905', '96001', '92262', '95060', '90011']) {
+    for (const npc of residents(zip, 2, adult)) {
+      const c = conv(npc, 6);
+      for (const text of ['What should I see around here?', 'Where should I eat?', "What's the closest big town?", "What's it like living around here?", 'Any good hikes nearby?']) {
+        const line = c.reply(text);
+        const said = fold(`${line.text} ${line.gloss || ''}`);
+        for (const f of line.facts) {
+          const m = /^(?:place|landmark):(.+)$/.exec(f);
+          if (!m) continue;
+          const name = fold(m[1]).replace(/\s+\d{5}$/, '');
+          assert.ok(said.includes(name) || said.includes(name.replace(/^(?:mount|mt\.?) /, '')) || said.includes(name.replace(/ (?:mountain|mountains|range|peak|lake|river|creek|bay)$/, '')), `${f} cited by "${line.text}"`);
+        }
+      }
+    }
+  }
+});
+
+test('lexicon lines in replies pass the template lint: no brands, no accent spellings', () => {
+  for (const zip of ['90265', '94110', '93702', '96001', '92262', '95501', '93546']) {
+    for (const npc of residents(zip, 2, n => n.age >= 13 && englishOnly(n))) {
+      const c = conv(npc, 33);
+      for (const text of ['Hi!', "How's the weather?", 'Is it always like this?', 'How bad is the traffic?', 'What do you think about this place?', 'Bye!']) {
+        const line = c.reply(text);
+        assert.deepEqual(lintText(line.text, findBrands), [], `${npc.id}: "${line.text}"`);
+      }
+    }
+  }
+});
+
+test('food: "not many places to eat" only out in the country, never in a dense city ZIP', () => {
+  const few = (EN['food.few'] || []).map(l => l.text.replace(/\{[^}]+\}.*$/, '').trim()).filter(Boolean);
+  assert.ok(few.length >= 2);
+  for (const zip of ['90011', '94110', '92683']) {
+    for (const npc of residents(zip, 3, n => adult(n) && englishOnly(n))) {
+      for (const seed of [1, 2, 3]) {
+        const line = conv(npc, seed).reply('Where should I eat around here?');
+        assert.ok(!few.some(f => line.text.includes(f)), `${zip}: "${line.text}"`);
+      }
+    }
+  }
+});
+
+test('barks do not depend on which call came first in a ten-minute window', () => {
+  const t0 = Math.floor(T / 3600000) * 3600000 + 30 * 60000; // half past the hour: the nearest forecast hour is a tie
+  for (const npc of [...residents('90265', 2, adult), ...residents('94110', 2, adult)]) {
+    for (const situation of ['weather', 'pass', 'wait']) {
+      const primed = persona(world, npc, { population: pop, dialectFor });
+      bark(world, primed, { t: t0, situation });
+      const a = bark(world, primed, { t: t0 + 9 * 60000, situation });
+      const fresh = persona(world, npc, { population: pop, dialectFor });
+      const b = bark(world, fresh, { t: t0 + 9 * 60000, situation });
+      assert.deepEqual(a, b, `${npc.id} ${situation}`);
+    }
+  }
+});
+
+test('home: "Do you miss home?" and "Is your family still there?" are answered from the birthplace, in Spanish names in Spanish', () => {
+  assert.equal(placeEs('Mexico City'), 'la Ciudad de México');
+  assert.equal(placeEs('Toluca, State of Mexico'), 'Toluca, Estado de México');
+  assert.equal(placeEs('the State of Mexico'), 'el Estado de México');
+  assert.equal(placeEs('Manila, Philippines'), 'Manila, Filipinas');
+  assert.equal(placeEs('Morelia, Michoacán'), 'Morelia, Michoacán');
+  assert.equal(heritageLabelEs('Hispanic', 'F'), 'hispana');
+  assert.equal(heritageLabelEs('Latino', 'M'), 'latino');
+  const CONFUSED = /no le entendí|no te entendí|no hablo mucho inglés|I don'?t know/i;
+  const es = [...anyResidents('90011', 6, n => spanishLimited(n) && n.nativity === 'foreign', 17, 400), ...anyResidents('90022', 4, n => spanishLimited(n) && n.nativity === 'foreign', 17, 400)];
+  assert.ok(es.length >= 4);
+  for (const npc of es) {
+    const c = conv(npc, 9);
+    c.greet();
+    const from = c.reply('Where are you from?');
+    assert.ok(!/Mexico City|State of Mexico|Guatemala City/.test(from.text), `Spanish names in Spanish: "${from.text}"`);
+    assert.ok(!/\bde el\b/.test(from.text), from.text);
+    for (const text of ['Do you miss home?', 'Do you go back to visit?', 'Is your family still there?']) {
+      const line = c.reply(text);
+      assert.ok(!CONFUSED.test(line.text), `${npc.id} to "${text}": "${line.text}"`);
+    }
+  }
+  const city = anyResidents('90011', 1, n => spanishLimited(n) && /^Mexico City$|State of Mexico/.test(n.birthplace || ''), 3, 600);
+  for (const npc of city) assert.match(conv(npc, 2).reply('Where are you from?').text, /Ciudad de México|Estado de México/);
+  for (const npc of residents('90265', 3, n => adult(n) && englishOnly(n))) {
+    const c = conv(npc, 9);
+    for (const text of ['Do you miss home?', 'Would you ever move back?', 'What is your background?']) {
+      const line = c.reply(text);
+      assert.equal(line.intent, 'about-them', text);
+      assert.ok(!CONFUSED.test(line.text), `${npc.id} to "${text}": "${line.text}"`);
+    }
+  }
+});

@@ -10,14 +10,14 @@
 //
 // Fact ids: 'weather.now', 'weather.next', 'weather.keyMessage', 'weather.fireOutlook', 'alert:<event>',
 // 'fire:<name>:<year>', 'ar:<start>', 'wind:<kind>:<start>', 'fema:<date>', 'record.heat' | 'record.rain' |
-// 'record.gust', 'clim.h100' | 'clim.h90' | 'clim.tjul' | 'clim.rain' | 'clim.snow' | 'clim.flood' | 'clim.ar',
+// 'record.gust', 'clim.h100' | 'clim.h90' | 'clim.tjul' | 'clim.rain' | 'clim.snow' | 'clim.flood' | 'clim.ar', 'clim.winter' (world.climateAt),
 // 'fhsz', 'road:<name>', 'aadt:<name>', 'stretch:<name>', 'landmark:<name>', 'place:<name>', 'acs.lang.<key>',
 // 'acs.comm.<mode>', 'acs.own', 'acs.value', 'acs.yb', 'biz.food', 'ins.fair', 'ins.nonren', 'ins.prem', and
 // for the speaker's own record 'npc.occupation', 'npc.commute', 'npc.household', 'npc.residence', 'npc.origin',
 // 'persona.memory', 'persona.interests', 'persona.teams'.
 
 import { roadName, roadNames, namedStretch, fireLabel, landmarkLabel } from '../lexicon.mjs';
-import { pacific, fmtClock } from '../clock.mjs';
+import { pacific, fmtClock, atPacific } from '../clock.mjs';
 import {
   isNum, num, str, parseDate, approx, money, miles, compass, MONTHS, lowerFirst, fmtInt,
 } from './core.mjs';
@@ -246,6 +246,56 @@ export function weatherFacts(v) {
 
 // ------------------------------------------------------------------ fires, storms, wind, quakes, records
 
+/**
+ * A fire's name as people say it, from the incident name in the records: the name in quotes or in parentheses when
+ * the rest is a unit code ("Lt-17(Backbone)" → "Backbone", "Spi #3 \"Sourgrass\"" → "Sourgrass"), unit codes and
+ * assist numbers dropped ("Nelson (W-1)" → "Nelson", "Ca-Wsf-22000274 Grayson" → "Grayson", "Con Assist 11_Dolan" →
+ * "Dolan", "Rru/Howard" → "Howard"), numbers set apart ("Parker2" → "Parker 2", "Border#50" → "Border 50"), and
+ * the usual capitals ("Pg&E" → "PG&E", "Mccain" → "McCain", "Scu" → "SCU", "Hwy" → "Highway").
+ * @param {string} name
+ * @returns {string}
+ */
+export function cleanFireName(name) {
+  let n = String(name || '').trim();
+  if (!n) return n;
+  const quoted = /"([A-Za-z][A-Za-z' -]+)"/.exec(n);
+  if (quoted) n = quoted[1];
+  const paren = /^(.*?)\s*\(([^)]*)\)\s*(.*)$/.exec(n);
+  if (paren) {
+    const outerCode = /\d/.test(paren[1]) || /^[A-Za-z]{1,3}(-\d+)?$/.test(paren[1].trim());
+    n = /^[A-Za-z][A-Za-z' ]+$/.test(paren[2].trim()) && outerCode ? paren[2].trim() : `${paren[1]} ${paren[3]}`.trim();
+  }
+  if (n.includes('/')) {
+    const segs = n.split('/').map(s => s.trim()).filter(Boolean);
+    n = segs.find(s => !/\d/.test(s) && !/^[A-Za-z]{1,3}$/.test(s)) || segs[0];
+  }
+  // an assist or unit number before an underscore is a code ("Con Assist 11_Dolan"); otherwise _ is a space
+  n = n.replace(/^(?:con ass(?:is)?t\.?\s*\d*|[A-Za-z]*\d[\w-]*)_(?=[A-Za-z])/i, '').replace(/_/g, ' ');
+  n = n.replace(/\s+Incident$/i, '');
+  // a leading code before a real name ("W-5 Cold Springs", "4-2 Cahto", "Ca-Wsf-22000274 Grayson"), but not the
+  // number that is the name ("58 Complex")
+  n = n.replace(/^(?:[A-Za-z]{1,4}-)*[A-Za-z]{0,4}-?\d[\w-]*\s+(?=[A-Z][a-z])(?!(?:Complex|Fire|Lightning Complex)$)/, '');
+  // "Hwy 120 #1": a number after a number is a count, not part of the name; elsewhere "#4" is "4"
+  n = n.replace(/(\d)\s*#\s*\d+\s*$/, '$1').replace(/\s*#\s*(\d+)/g, ' $1');
+  n = n.replace(/^I-?(\d{1,3})$/i, 'I-$1').replace(/([a-z])(\d)/g, '$1 $2').replace(/(\d)(Th|St|Nd|Rd)\b/g, (m, d, s) => d + s.toLowerCase());
+  n = n.replace(/\bHwy\b/g, 'Highway').replace(/\bPt\b\.?/g, 'Point').replace(/\bPg&e\b/gi, 'PG&E');
+  n = n.replace(/\bMc([a-z])/g, (m, c) => `Mc${c.toUpperCase()}`);
+  // two- and three-letter unit codes have no vowel but a final u ("Scu", "Czu", "Knp", "Pv")
+  const code = w => /^[A-Z][a-z]{1,2}$/.test(w) && /^[^aeiou]+u?$/.test(w.toLowerCase()) && !/y/.test(w.toLowerCase());
+  n = n.split(' ').map(w => (code(w) ? w.toUpperCase() : w)).join(' ');
+  return n.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * "the Parker 2 Fire": a fire's name as said in a sentence, cleaned (cleanFireName) and labeled by the lexicon; null
+ * for an incident known only by a number or a code ("241 Incident"), which nobody names in conversation.
+ */
+export function fireName(name) {
+  const n = cleanFireName(name);
+  if (!/^\d+ Complex$/.test(n) && !/[A-Za-z]{3,}/.test(n.replace(/\b(Complex|Fire|Incident)\b/g, ''))) return null;
+  return fireLabel(n);
+}
+
 function memoryFor(v, source) {
   const ms = Array.isArray(v.p.memories) ? v.p.memories : [];
   return ms.find(m => m && typeof m.source === 'string' && m.source.includes(source)) || null;
@@ -255,7 +305,7 @@ function memoryFor(v, source) {
 export function fireFacts(v) {
   const out = [];
   for (const f of v.world.firesOf(v.zi)) {
-    const label = fireLabel(f.name);
+    const label = fireName(f.name);
     if (!label || !isNum(f.year)) continue;
     const dt = parseDate(f.start) || { y: f.year, m: null, d: null };
     const mem = memoryFor(v, `: ${f.name} ${f.year}`);
@@ -277,7 +327,7 @@ export function mainFire(v, fires = fireFacts(v)) {
 /** The nearest fire on record when none burned in the ZIP (fire_near, fire_km). */
 export function nearestFire(v) {
   const z = v.z;
-  const label = fireLabel(z.fire_near);
+  const label = fireName(z.fire_near);
   if (!label || !isNum(z.fire_near_yr)) return null;
   return { label, year: z.fire_near_yr, km: num(z.fire_km, null), id: `fire:${z.fire_near}:${z.fire_near_yr}` };
 }
@@ -351,6 +401,22 @@ export function recordFacts(v) {
     out[r.kind] = { value: r.value, dt, station: str(r.station), id: `record.${r.kind}`, memory: memoryFor(v, `zip ${v.z.zip}: ${r.source}`) };
   }
   return out;
+}
+
+/**
+ * A winter's day as the world's climate estimate gives it (world.climateAt for mid-January at dawn and mid
+ * afternoon, from the ZIP's July mean, coast distance and elevation): {low, high, id: 'clim.winter'}, or null. An
+ * estimate: lines that use it say so.
+ * @param {object} v a voice
+ * @returns {{low: number, high: number, id: string}|null}
+ */
+export function winterFacts(v) {
+  if (!v.world || typeof v.world.climateAt !== 'function') return null;
+  const year = v.P.month >= 7 ? v.P.year + 1 : v.P.year;
+  try {
+    const dawn = v.world.climateAt(v.zi, atPacific(year, 1, 15, 6, 30)), noon = v.world.climateAt(v.zi, atPacific(year, 1, 15, 14, 30));
+    return isNum(dawn.tempF) && isNum(noon.tempF) ? { low: Math.round(dawn.tempF), high: Math.round(noon.tempF), id: 'clim.winter' } : null;
+  } catch { return null; }
 }
 
 /** The ZIP's climate numbers. */
@@ -448,7 +514,8 @@ export function censusFacts(v) {
   if (isNum(z.own_sh)) out.own = { share: z.own_sh / 100, id: 'acs.own' };
   if (isNum(z.value) && z.value > 0) out.value = { value: z.value, words: z.value >= 2000001 ? money(z.value) : `about ${money(z.value)}`, id: 'acs.value' };
   if (isNum(z.yb_med) && z.yb_med > 1900) out.yb = { year: z.yb_med, decade: decadeWords(z.yb_med), id: 'acs.yb' };
-  if (isNum(z.food) && isNum(z.pop) && z.pop > 0) out.food = { count: z.food, per10k: z.food / z.pop * 10000, id: 'biz.food' };
+  // restaurants per resident and per square mile: a dense city block can have few per head and still be full of them
+  if (isNum(z.food) && isNum(z.pop) && z.pop > 0) out.food = { count: z.food, per10k: z.food / z.pop * 10000, perSqmi: isNum(z.sqmi) && z.sqmi > 0 ? z.food / z.sqmi : 0, id: 'biz.food' };
   return out;
 }
 
@@ -483,15 +550,26 @@ export function oneIn(pct) {
 
 const ERRAND_WORDS = { grocery: 'grocery store', pharmacy: 'pharmacy', laundromat: 'laundromat', hardware: 'hardware store', 'post-office': 'post office' };
 
+/**
+ * A place label as said: a range named for a single mountain is "on" it, without "the" ("a trailhead in the San
+ * Bruno Mountain" → "a trailhead on San Bruno Mountain"); every other label comes back as it is.
+ * @param {string|null} label
+ * @returns {string|null}
+ */
+export function fixPlaceLabel(label) {
+  if (typeof label !== 'string') return label;
+  return label.replace(/\b(a trailhead|hiking|the trails?|trails?) in the ((?:[A-Z][\w'.-]*\s)+Mountain)\b(?!s)/g, '$1 on $2');
+}
+
 /** Places the speaker knows: the routine's beach, trail, water, park, game, gym, errands, church; landmarks and towns. */
 export function placeFacts(v) {
   const r = v.routine && v.routine.places ? v.routine.places : {};
   const k = v.p.knowledge || {};
-  const pt = p => (p && isNum(p.x) && isNum(p.y) ? p : null);
+  const pt = p => (p && isNum(p.x) && isNum(p.y) ? (typeof p.label === 'string' ? Object.assign({}, p, { label: fixPlaceLabel(p.label) }) : p) : null);
   const out = {
     beach: pt(r.beach), trail: pt(r.trailhead), water: pt(r.water), park: pt(r.park), game: pt(r.game), gym: pt(r.gym), church: pt(r.church),
     errands: Array.isArray(r.errands) ? r.errands.filter(pt).map(e => Object.assign({ word: ERRAND_WORDS[e.kind] || e.kind }, e)) : [],
-    landmarks: (Array.isArray(k.landmarks) ? k.landmarks : []).filter(l => l && l.name).map(l => ({ ...l, label: landmarkLabel(l), id: `landmark:${l.name}` })),
+    landmarks: (Array.isArray(k.landmarks) ? k.landmarks : []).filter(l => l && l.name).map(l => ({ ...l, label: fixPlaceLabel(landmarkLabel(l)), id: `landmark:${l.name}` })),
     towns: (Array.isArray(k.nearbyPlaces) ? k.nearbyPlaces : []).filter(p => p && p.name).map(p => ({ ...p, id: `place:${p.name}` })),
   };
   return out;

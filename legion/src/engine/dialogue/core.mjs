@@ -171,6 +171,60 @@ export function wordsOf(s) {
   return String(s || '').toLowerCase().replace(/[’‘`]/g, "'").match(/[\p{L}\p{N}][\p{L}\p{N}'-]*/gu) || [];
 }
 
+// ------------------------------------------------------------------ sentences already said
+
+/** The sentences of a line ("Hi. It's 63 out!" → ["Hi.", "It's 63 out!"]), in any of the scripts the banks use. */
+export function sentencesOf(text) {
+  return String(text || '').split(/(?<=[.!?…。！？։።؟।])\s+|(?<=[。！？])/u).map(s => s.trim()).filter(Boolean);
+}
+
+// Discourse openers that do not change what a sentence says ("Honestly, it's 63." is "It's 63.").
+const OPENERS = /^(?:(?:well|so|oh|hmm|um|uh|honestly|basically|actually|like|look|anyway|anyhow|you know|i mean|mind you|to be fair|the thing is|let me tell you|i'll tell you|i tell you|let's see|let me think|good question|ah|eh|okay|ok|sure|yeah|pues|bueno|mire|mira|a ver|la verdad|este|ay|oiga|fíjese|fíjate)[,.…!]*\s+)+/iu;
+// Words that carry no content, for comparing what two sentences say.
+const LIGHT = new Set(('a an the and or but so of to in on at by for with from about as is are was were be been am it its it\'s that that\'s this '
+  + 'there there\'s here i i\'m i\'ve i\'d i\'ll me my we we\'re our you you\'re your they they\'re their he she his her him them '
+  + 'do does did have has had just really very pretty so too also still now then out up down over around off again '
+  + 'el la los las un una unos unas de del y o pero que en con por para a al es son está están lo le les se me mi mis su sus nos muy ya').split(' '));
+
+/**
+ * A sentence as compared for repeats: lower case, accents folded, opening discourse words and a trailing
+ * vocative (", Daniel") removed, punctuation dropped. Empty for a sentence of fewer than min words (three by
+ * default: "Oh, that." may come up twice in a conversation, but never twice in one reply).
+ * @param {string} sentence
+ * @param {string|null} [name] the listener's name, dropped where it is used as a vocative
+ * @param {number} [min] the fewest words a sentence needs to be compared
+ * @returns {string}
+ */
+export function sentenceKey(sentence, name = null, min = 3) {
+  let s = String(sentence || '').toLowerCase().replace(/[’‘`]/g, "'").normalize('NFD').replace(/\p{M}+/gu, '');
+  if (name) {
+    const n = String(name).toLowerCase().normalize('NFD').replace(/\p{M}+/gu, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    s = s.replace(new RegExp(`,\\s*${n}(?=[.!?…]*$)`), '').replace(new RegExp(`^${n},\\s*`), '');
+  }
+  s = s.replace(/^[¿¡"'(\s]+/, '').replace(OPENERS, '').replace(/[^\p{L}\p{N}'\s]+/gu, ' ').replace(/\s+/g, ' ').trim();
+  return s && s.split(' ').length >= min ? s : '';
+}
+
+/** The content words of a sentence key, for a near-repeat test. */
+export function contentWords(key) {
+  return new Set(String(key || '').split(' ').filter(w => w && !LIGHT.has(w)));
+}
+
+/**
+ * True when two sentences say nearly the same thing: at least four content words each, and nearly all of them
+ * shared ("It's 21 minutes to Jurupa Valley on a good day" and "It's 21 minutes to Jurupa Valley on the 60, on a
+ * good day").
+ * @param {Set<string>} a contentWords() of one
+ * @param {Set<string>} b contentWords() of the other
+ * @returns {boolean}
+ */
+export function nearlySame(a, b) {
+  if (a.size < 4 || b.size < 4) return false;
+  let both = 0;
+  for (const w of a) if (b.has(w)) both++;
+  return both / (a.size + b.size - both) >= 0.75;
+}
+
 // ------------------------------------------------------------------ tags
 
 /**
@@ -213,11 +267,15 @@ export const TAG_TESTS = Object.freeze({
   named: v => !!v.relq.name,
   // the moment
   hot: v => isNum(v.tempF) && v.tempF >= 90, cold: v => isNum(v.tempF) && v.tempF <= 48, mild: v => isNum(v.tempF) && v.tempF > 55 && v.tempF < 85,
+  // a plain "Sunny" or "Clear" forecast: "not a cloud in the sky" is not said under a mostly or partly sunny one
+  cloudless: v => /^\s*(sunny|clear)\s*$/i.test(String((v.wx && v.wx.now && v.wx.now.short) || '')),
   alert: v => v.alerts.length > 0, night: v => v.hour >= 21 || v.hour < 5, morning: v => v.hour >= 5 && v.hour < 12,
   afternoon: v => v.hour >= 12 && v.hour < 17, evening: v => v.hour >= 17 && v.hour < 21, daytime: v => v.hour >= 7 && v.hour < 19,
   weekend: v => !!v.weekend, weekday: v => !v.weekend,
   // Spanish address forms
   usted: v => !!(v.lang && v.lang.usted), tu: v => !(v.lang && v.lang.usted),
+  // said in Spanish: wordplay that only works in Spanish is not told in plain English ('simple' mode)
+  es: v => !!(v.lang && v.lang.mode === 'es'),
 });
 
 const TAG_RE = /^@(!?)([a-z0-9]+)$/;
@@ -373,7 +431,7 @@ const LIFE_CHECKS = [
 ];
 
 // Lines that treat the listener as an old acquaintance; fine for neighbors, not for a stranger.
-const FAMILIAR = /\b(long time|haven't seen you|in forever|look who it is|good to see you( again)?|you still (living|around)|you made it|you make it back|how'?s the family|how'?s work been|how'?ve you been|you'?re back|been a while|in a while|how'?s everybody|well, hey, stranger|hey, stranger|your side of (town|the bay)|on your side|tell your (folks|mom|dad|mother|father|family|wife|husband|kids|parents)|say hi to your|how'?s your (mom|dad|mother|father|family|folks|wife|husband|kids|parents))\b/i;
+const FAMILIAR = /\b(long time|haven't seen you|in forever|look who it is|good to see you( again)?|you still (living|around)|you made it|you make it back|how'?s the family|how'?s work been|how'?ve you been|you'?re back|been a while|(?:seen|talked to|heard from) you in a while|how'?s everybody|well, hey, stranger|hey, stranger|your side of (town|the bay)|on your side|tell your (folks|mom|dad|mother|father|family|wife|husband|kids|parents)|say hi to your|how'?s your (mom|dad|mother|father|family|folks|wife|husband|kids|parents))\b/i;
 
 /**
  * True when a line fits the speaker's life and the relationship: no first-person claim the record contradicts,
@@ -440,6 +498,8 @@ const SKY_WORDS = [
   [/\b(freezing|frost|frosty|cold snap|scrape the windshield)\b/i, v => v.sky === 'cold' || (isNum(v.tempF) && v.tempF <= 45)],
 ];
 const HABIT = /\bafter (a|the) (rain|storm|big storm)\b|\bevery (winter|summer|spring|fall|year|time)\b|\bwhen (it|the|they) \w+|\bwhenever\b|\bin the morning, \w+ by\b/i;
+// A sky without a single cloud: only under a plain "Sunny" or "Clear" forecast.
+const CLOUDLESS = /\bnot a (single )?cloud\b|\bcloudless\b|\bno clouds\b/i;
 // A hedge about somewhere else ("and I bet it's foggy in the city") claims nothing about here and now.
 const HEDGED = /\b(I bet|probably|maybe|must have|must be)\b[^.!?]*|\blike (?:it'?s )?(?:a |an )?(?:blizzard|snow|ice rink|oven|sauna|furnace)\b|\b(?:no|not a|without|zero) (?:\w+ )?(?:fog|rain|wind|snow|smoke|cloud)s?\b/gi;
 // Lexicon categories that speak about right now; prideLines, complaintLines and food are habits and opinions.
@@ -476,6 +536,8 @@ export function lexiconLineFits(text, v, category = '') {
   if (NOW_CATEGORIES.has(category) && !HABIT.test(s)) {
     const here = s.replace(HEDGED, '');
     for (const [re, ok] of SKY_WORDS) if (re.test(here) && !ok(v)) return false;
+    // (read before the hedges are taken out: "not a cloud" is itself one)
+    if (CLOUDLESS.test(s) && !TAG_TESTS.cloudless(v)) return false;
   }
   if (COAST_ONLY.test(s) && !(v.flags && v.flags.coast)) return false;
   if (INCIDENT.test(s)) return false;

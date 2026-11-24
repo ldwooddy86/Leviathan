@@ -18,6 +18,8 @@
 //                                     second (in the Worker when there is one)
 //   crowd.destroy()
 // Extras
+//   prewarmCrowd({pack, popSeed, workers}) start the build Workers (and their pack decoding) before the page has a
+//                                     map; the first Crowd adopts them. defaultWorkerCount() is the pool size used.
 //   crowd.positionOf(id)              -> {x, y, state, kind} of an NPC id 'ZIP-h-m' now (null when not in the crowd)
 //   crowd.setQuality({keep, auto})    share of agents drawn (keep, 0..1) and whether it adapts to the frame rate
 //   crowd.gpuEval(chunk, minute, dow, first, count) -> Float32Array [x, y, state, kind] × count, read back from the
@@ -26,7 +28,7 @@
 //
 // Worker hand-off. The single-file build exposes the bundled crowd-worker.mjs (an IIFE) as the string
 // window.__LEGION_WORKER_SRC__; the crowd starts it from a Blob URL. Unbundled (dev pages over http) it starts
-// crowd-worker.mjs as a module worker. Without Workers it builds on the main thread in time slices. The Worker gets
+// crowd-worker.mjs as a module worker. Without Workers it builds on the main thread in time slices. Each Worker gets
 // the pack (the `pack` option: gzip bytes, base64 string or object; else window.__LEGION_PACK__; else world.pack)
 // and builds its own World and Population with the population's seed. Chunks draw as they arrive; meanwhile a few
 // agents of the first chunk are checked against the main thread's population, one per idle callback (a cold check
@@ -34,13 +36,20 @@
 // check passes; a mismatch rebuilds on the main thread. The crowd also warms world.raster() in idle time when it is
 // created, so the check's first sample does not pay for it while chunks stream in.
 //
+// A pool of Workers. A cold build is dominated by fitting each ZIP's population models (about 2 ms a ZIP, 3.5 s
+// statewide on one core), so the build is split over `workers` Workers (default defaultWorkerCount(): one per spare
+// core, at most four): the ZIPs in build order (the region under the camera first) are dealt to them in turn, so
+// every Worker starts on the region in view and it fills in several times faster. Who the agents are does not depend
+// on the split (each is a pure function of its ZIP, household and member). prewarmCrowd() starts the pool and its
+// pack decoding at boot, while the page is still unpacking its own copy.
+//
 // Memory: the agent record is AGENT_BYTES (32) per agent on the main thread and on the GPU, plus the pick index
 // (summary.pickBytesPerAgent, about 3.5 statewide); summary.mainBytesPerAgent is the sum. A Worker build also keeps
 // a 14-byte copy of the state arrays per agent in the Worker for stats (summary.workerBytesPerAgent).
 
 import {
   buildRoadNet, buildAgentsGen, agentGLSL, agentPosition, agentPhase, agentKind, colorClass, pickNearest, decodeId,
-  accumulateStates, statsFrom, emptyStats, simTime, modeCode, commuteTiming, newPhase,
+  accumulateStates, statsFrom, emptyStats, simTime, modeCode, commuteTiming, newPhase, zipOrder,
   MODES, KINDS, STATES, KIND_BIT, CLASS_BIT, STUDENT_BIT, S_OUT, S_BACK, S_EOUT, S_EBACK, AGENT_BYTES,
 } from './crowd-build.mjs';
 import { createProgram, parseColor } from './map.mjs';
@@ -153,6 +162,15 @@ function nextTask() {
   return new Promise(r => setTimeout(r, 0));
 }
 
+/** Two stats objects (emptyStats shape) added together. */
+function addStats(a, b) {
+  const out = Object.assign(emptyStats(), a);
+  out.moving = Object.assign({}, a.moving);
+  for (const k of ['agents', 'movingTotal', 'atHome', 'atWork', 'atErrand', 'toWork', 'toHome']) out[k] = (a[k] || 0) + (b[k] || 0);
+  for (const k of Object.keys(b.moving || {})) out.moving[k] = (out.moving[k] || 0) + (b.moving[k] || 0);
+  return out;
+}
+
 /** Run fn when the main thread is idle (within 250 ms at the latest). */
 function idle(fn) {
   if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: 250 });
@@ -161,6 +179,81 @@ function idle(fn) {
 
 /** Agents of a Worker build checked against the main thread's population (one per idle callback). */
 const VERIFY_SAMPLES = 6;
+
+/**
+ * Workers for a build: one per core the page can spare (the main thread keeps one), at most four, and at most two
+ * on a device that reports little memory (each Worker holds its own decoded pack, about 15 MB, and its ZIPs' models).
+ * @returns {number}
+ */
+export function defaultWorkerCount() {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const cores = Number(nav.hardwareConcurrency) || 2;
+  let n = Math.max(1, Math.min(4, cores - 1));
+  if (Number(nav.deviceMemory) > 0 && Number(nav.deviceMemory) < 4) n = Math.min(n, 2);
+  return n;
+}
+
+/** Start one build Worker (from the inline bundle in the single file, else the module file); null when impossible. */
+function spawnWorker(url) {
+  try {
+    if (url) return new Worker(url, { name: 'legion-crowd' });
+    return new Worker(new URL('./crowd-worker.mjs', import.meta.url), { type: 'module', name: 'legion-crowd' });
+  } catch { return null; }
+}
+
+/** A Blob URL of the inline worker source, or null (unbundled pages start the module file). */
+function workerURL() {
+  const src = typeof window !== 'undefined' ? window.__LEGION_WORKER_SRC__ : undefined;
+  if (typeof src !== 'string' || !src.length) return null;
+  try { return URL.createObjectURL(new Blob([src], { type: 'text/javascript' })); } catch { return null; }
+}
+
+// Workers started by prewarmCrowd, waiting for the first Crowd to adopt them.
+let PREWARMED = null;
+
+/**
+ * Start the crowd's build Workers now and have them decode the pack and build their World and Population, so the
+ * first build starts at once (the page calls this at boot, before it unpacks its own copy of the pack). The first
+ * Crowd adopts them; calling it again, or with no Worker support, does nothing.
+ * @param {{pack?: Uint8Array|ArrayBuffer|string|object, popSeed?: number|null, workers?: number}} [opts]
+ *   pack: as the Crowd's `pack` option (default window.__LEGION_PACK__); popSeed: the population's seed
+ * @returns {number} the Workers started
+ */
+export function prewarmCrowd({ pack = null, popSeed = null, workers = defaultWorkerCount() } = {}) {
+  if (PREWARMED || typeof Worker === 'undefined') return 0;
+  const p = pack != null ? pack : (typeof window !== 'undefined' && typeof window.__LEGION_PACK__ === 'string' ? window.__LEGION_PACK__ : null);
+  if (p == null) return 0;
+  const url = workerURL();
+  const list = [];
+  for (let k = 0; k < Math.max(1, workers | 0); k++) {
+    const w = spawnWorker(url);
+    if (!w) break;
+    // each Worker gets its own copy: bytes are copied, a string or an object is cloned by postMessage
+    const copy = p instanceof ArrayBuffer ? p.slice(0) : ArrayBuffer.isView(p) ? new Uint8Array(p.buffer.slice(p.byteOffset, p.byteOffset + p.byteLength)) : p;
+    try { w.postMessage({ type: 'prepare', pack: copy, popSeed: popSeed == null ? null : popSeed >>> 0 }); } catch { w.terminate(); break; }
+    list.push(w);
+  }
+  if (!list.length) { if (url) URL.revokeObjectURL(url); return 0; }
+  PREWARMED = { workers: list, url, popSeed: popSeed == null ? null : popSeed >>> 0, packKind: pack != null ? 'option' : 'window', at: typeof performance !== 'undefined' ? performance.now() : 0 };
+  return list.length;
+}
+
+/** Sum the build summaries of a pool's Workers (each built a share of the ZIPs) into one. */
+export function mergeSummaries(parts) {
+  const list = parts.filter(Boolean);
+  if (!list.length) return null;
+  if (list.length === 1) return list[0];
+  const out = { ...list[0], byMode: { ...list[0].byMode }, byKind: { ...list[0].byKind }, regions: { ...list[0].regions } };
+  for (const p of list.slice(1)) {
+    for (const k of ['agents', 'households', 'zips', 'zipsWithAgents', 'chunks', 'commuters', 'highway', 'errands', 'overflow', 'pickBytes']) out[k] = (out[k] || 0) + (p[k] || 0);
+    for (const [k, v] of Object.entries(p.byMode || {})) out.byMode[k] = (out.byMode[k] || 0) + v;
+    for (const [k, v] of Object.entries(p.byKind || {})) out.byKind[k] = (out.byKind[k] || 0) + v;
+    for (const [k, v] of Object.entries(p.regions || {})) out.regions[k] = (out.regions[k] || 0) + v;
+    out.ms = Math.max(out.ms || 0, p.ms || 0);
+  }
+  out.pickBytesPerAgent = out.agents ? +(out.pickBytes / out.agents).toFixed(3) : 0;
+  return out;
+}
 /** Bytes per agent of the Worker's copy of the state arrays (days, timing, errand, eoff, mode) for stats. */
 const WORKER_STATS_BYTES = 14;
 
@@ -174,10 +267,11 @@ export class Crowd {
    * @param {number} [opts.rate] share of households drawn (pop.includes)
    * @param {number} [opts.seed] crowd seed (errands, lanes)
    * @param {Uint8Array|ArrayBuffer|string|object} [opts.pack] the world pack for the Worker
-   * @param {boolean} [opts.worker] build in a Worker when possible (default true)
+   * @param {boolean} [opts.worker] build in Workers when possible (default true)
+   * @param {number} [opts.workers] how many Workers share a build (default defaultWorkerCount())
    * @param {number} [opts.maxAgents] cap on agents (the rate is lowered to fit)
    */
-  constructor(mapView, { world, population, rate = 0.025, seed = 1, pack = null, worker = true, maxAgents = 5e6 } = {}) {
+  constructor(mapView, { world, population, rate = 0.025, seed = 1, pack = null, worker = true, workers = null, maxAgents = 5e6 } = {}) {
     if (!mapView || !world || !population) throw new Error('Crowd needs a map, a world and a population');
     this.map = mapView;
     this.world = world;
@@ -186,6 +280,7 @@ export class Crowd {
     this.seed = seed >>> 0;
     this.packSource = pack;
     this.useWorker = worker !== false;
+    this.poolSize = Math.max(1, Math.min(8, Number.isInteger(workers) && workers > 0 ? workers : defaultWorkerCount()));
     this.maxAgents = maxAgents;
     this.net = buildRoadNet(world);
     this.chunks = [];
@@ -199,7 +294,7 @@ export class Crowd {
     this._stats = Object.assign(emptyStats(), { t: null });
     this._statsSeq = 0; this._statsInFlight = false; this._statsAt = 0; this._statsTimer = 0; this._mainStats = null;
     this._buildId = 0; this._job = null;
-    this._worker = null; this._workerHasPack = false;
+    this._workers = []; this._workerUrl = null; this._statsWait = null;
     this._gl = null; this._frameT = 0; this._slow = 0; this._fast = 0;
     this._destroyed = false;
     this._readColors();
@@ -278,12 +373,12 @@ export class Crowd {
     this.building = true;
     let summary;
     try {
-      if (this.useWorker && this._ensureWorker()) {
-        try { summary = await this._buildInWorker(id, onProgress, f); this.mode = 'worker'; }
+      if (this.useWorker && this._ensureWorkers()) {
+        try { summary = await this._buildInWorkers(id, onProgress, f); this.mode = 'worker'; }
         catch (e) {
           if (id !== this._buildId) return { cancelled: true, agents: this.count };
           console.warn('Legion crowd: the worker build failed, building on the main thread instead.', e && e.message || e);
-          this._killWorker(); this._clear();
+          this._killWorkers(); this._clear();
           summary = await this._buildOnMain(id, onProgress, f); this.mode = 'main';
         }
       } else { summary = await this._buildOnMain(id, onProgress, f); this.mode = 'main'; }
@@ -293,7 +388,7 @@ export class Crowd {
     summary = Object.assign({}, summary, {
       mode: this.mode, pack: this.mode === 'worker' ? this.packKind : null, totalMs: Math.round(performance.now() - t0), rateCapped: capped, rate: this.rate,
       bytesPerAgent: AGENT_BYTES, pickBytesPerAgent: +pickPer.toFixed(3), mainBytesPerAgent: +(AGENT_BYTES + pickPer).toFixed(3),
-      workerBytesPerAgent: this.mode === 'worker' ? WORKER_STATS_BYTES : 0,
+      workerBytesPerAgent: this.mode === 'worker' ? WORKER_STATS_BYTES : 0, workers: this.mode === 'worker' ? this._workers.length : 0,
     });
     this.summary = summary;
     this._requestStats(true);
@@ -301,39 +396,49 @@ export class Crowd {
     return summary;
   }
 
-  _ensureWorker() {
-    if (this._worker) return this._worker;
+  /** The build Workers (adopting prewarmed ones first), or null when this page cannot run Workers. */
+  _ensureWorkers() {
+    if (this._workers.length) return this._workers;
     if (typeof Worker === 'undefined') return null;
-    let w = null, url = null;
-    try {
-      const src = typeof window !== 'undefined' ? window.__LEGION_WORKER_SRC__ : undefined;
-      if (typeof src === 'string' && src.length) {
-        url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
-        w = new Worker(url, { name: 'legion-crowd' });
-      } else {
-        // unbundled ES modules (dev pages over http); unreachable inside the IIFE bundle, which ships the source above
-        w = new Worker(new URL('./crowd-worker.mjs', import.meta.url), { type: 'module', name: 'legion-crowd' });
-      }
-    } catch (e) {
-      if (url) URL.revokeObjectURL(url);
-      return null;
+    const seed = this._popSeed();
+    if (PREWARMED && PREWARMED.popSeed === seed) {
+      const pre = PREWARMED;
+      PREWARMED = null;
+      this._workerUrl = pre.url; this.packKind = pre.packKind;
+      for (const w of pre.workers) this._adopt(w, true);
+    } else if (PREWARMED) {
+      // started for another population: of no use here
+      for (const w of PREWARMED.workers) w.terminate();
+      if (PREWARMED.url) URL.revokeObjectURL(PREWARMED.url);
+      PREWARMED = null;
     }
-    this._worker = w; this._workerUrl = url; this._workerHasPack = false;
-    w.onmessage = e => this._onWorkerMessage(e.data);
-    w.onerror = e => {
-      e.preventDefault && e.preventDefault();
-      const job = this._job;
-      this._killWorker();
-      if (job && !job.cancelled) job.reject(new Error(e.message || 'crowd worker failed to load'));
-    };
-    w.onmessageerror = () => { const job = this._job; if (job) job.reject(new Error('crowd worker message could not be read')); };
-    return w;
+    if (!this._workers.length) {
+      this._workerUrl = workerURL();
+      for (let k = 0; k < this.poolSize; k++) { const w = spawnWorker(this._workerUrl); if (!w) break; this._adopt(w, false); }
+      if (!this._workers.length) { if (this._workerUrl) URL.revokeObjectURL(this._workerUrl); this._workerUrl = null; return null; }
+    }
+    return this._workers;
   }
 
-  _killWorker() {
-    if (this._worker) { this._worker.onmessage = null; this._worker.onerror = null; this._worker.terminate(); }
+  /** Take a Worker into the pool: its messages, its errors, whether it has the pack already. */
+  _adopt(w, hasPack) {
+    const k = this._workers.length;
+    const slot = { w, k, hasPack, answered: false };
+    w.onmessage = e => this._onWorkerMessage(e.data, slot);
+    w.onerror = e => {
+      if (e && e.preventDefault) e.preventDefault();
+      const job = this._job;
+      this._killWorkers();
+      if (job && !job.cancelled) job.reject(new Error((e && e.message) || 'crowd worker failed to load'));
+    };
+    w.onmessageerror = () => { const job = this._job; if (job) job.reject(new Error('crowd worker message could not be read')); };
+    this._workers.push(slot);
+  }
+
+  _killWorkers() {
+    for (const s of this._workers) { s.w.onmessage = null; s.w.onerror = null; s.w.terminate(); }
     if (this._workerUrl) URL.revokeObjectURL(this._workerUrl);
-    this._worker = null; this._workerUrl = null; this._workerHasPack = false; this._statsInFlight = false;
+    this._workers = []; this._workerUrl = null; this._statsInFlight = false; this._statsWait = null;
   }
 
   _packForWorker() {
@@ -355,46 +460,69 @@ export class Crowd {
     return s == null ? null : s >>> 0;
   }
 
-  _buildInWorker(id, onProgress, focus) {
+  /**
+   * Build in the pool: the ZIPs in build order (the region in view first) dealt to the Workers in turn, so each
+   * starts on the same region; chunks draw as they arrive from any of them; the build resolves when every Worker is
+   * done and the spot check passed.
+   */
+  _buildInWorkers(id, onProgress, focus) {
+    const slots = this._workers, K = slots.length;
+    const order = zipOrder(this.world, { focus });
+    const shares = slots.map(() => []);
+    order.forEach((zi, j) => shares[j % K].push(zi));
+    const weights = shares.map(list => list.reduce((a, zi) => a + this.population.householdCount(zi), 0));
+    const total = weights.reduce((a, b) => a + b, 0) || 1;
     return new Promise((resolve, reject) => {
-      const job = this._job = { id, resolve, reject, onProgress, cancelled: false, verify: null, summary: null };
-      const msg = { type: 'build', id, rate: this.rate, seed: this.seed, popSeed: this._popSeed(), focus, chunkTarget: 131072, pack: null };
-      if (!this._workerHasPack) { msg.pack = this._packForWorker(); this._workerHasPack = true; }
-      try { this._worker.postMessage(msg); } catch (e) { this._workerHasPack = false; reject(e); return; }
+      const job = this._job = { id, resolve, reject, onProgress, cancelled: false, verify: null, summary: null, parts: slots.map(() => ({ progress: 0, summary: null })), weights, total, started: false };
+      job.progress = () => job.parts.reduce((a, p, k) => a + p.progress * job.weights[k], 0) / job.total;
+      for (let k = 0; k < K; k++) {
+        const slot = slots[k];
+        // a small first chunk from each Worker puts people on the map within moments; then 128K-agent chunks
+        const msg = { type: 'build', id, rate: this.rate, seed: this.seed, popSeed: this._popSeed(), focus, zips: shares[k], chunkTarget: 131072, firstChunkTarget: 16384, pack: null };
+        if (!slot.hasPack) { msg.pack = this._packForWorker(); slot.hasPack = true; }
+        try { slot.w.postMessage(msg); } catch (e) { slot.hasPack = false; reject(e); return; }
+      }
       job.timer = setTimeout(() => { if (this._job === job && !job.started) reject(new Error('crowd worker did not start')); }, 20000);
     }).finally(() => { if (this._job && this._job.id === id) clearTimeout(this._job.timer); });
   }
 
-  _onWorkerMessage(m) {
+  _onWorkerMessage(m, slot) {
     if (!m || typeof m !== 'object') return;
-    if (m.type === 'stats') {
-      this._statsInFlight = false;
-      if (m.seq === this._statsSeq) this._stats = Object.assign(m.stats, { t: m.t });
-      if (this._statsDirty) this._requestStats();
-      return;
+    if (m.type === 'stats') { this._onStats(m, slot); return; }
+    if (!slot.answered) {
+      slot.answered = true;
+      // every Worker has fetched the script once each has answered: the Blob URL can go
+      if (this._workerUrl && this._workers.every(s => s.answered)) { URL.revokeObjectURL(this._workerUrl); this._workerUrl = null; }
     }
-    if (this._workerUrl) { URL.revokeObjectURL(this._workerUrl); this._workerUrl = null; }
+    if (m.type === 'prepared') return;
     const job = this._job;
     if (!job || m.id !== job.id || job.cancelled) return;
     job.started = true;
+    const part = job.parts && job.parts[slot.k];
     switch (m.type) {
       case 'chunk': {
         const c = m.chunk;
         this._addChunk(c);
         if (!job.verify && c.count) this._queueVerify(job, c);
-        if (job.onProgress) job.onProgress(m.progress, this.count);
+        if (part) part.progress = m.progress;
+        if (job.onProgress) job.onProgress(job.progress ? job.progress() : m.progress, this.count);
         break;
       }
-      case 'progress': if (job.onProgress) job.onProgress(m.progress, this.count); break;
-      case 'loaded': job.loadMs = m.ms; break;
+      case 'progress':
+        if (part) part.progress = m.progress;
+        if (job.onProgress) job.onProgress(job.progress ? job.progress() : m.progress, this.count);
+        break;
+      case 'loaded': job.loadMs = Math.max(job.loadMs || 0, m.ms); break;
       case 'done': {
+        if (part) { part.summary = m.summary; part.progress = 1; }
+        if (job.parts.some(p => !p.summary)) break;
         const v = job.verify;
-        job.summary = Object.assign(m.summary, { workerLoadMs: job.loadMs });
+        job.summary = Object.assign(mergeSummaries(job.parts.map(p => p.summary)), { workerLoadMs: job.loadMs });
         // an empty crowd has nothing to check; otherwise the last sample to check out resolves the build
         if (!v || v.done) this._resolveVerified(job);
         break;
       }
-      case 'error': this._workerHasPack = false; job.reject(new Error(m.message)); break;
+      case 'error': slot.hasPack = false; job.reject(new Error(m.message)); break;
       default: break;
     }
   }
@@ -440,7 +568,7 @@ export class Crowd {
   }
 
   async _buildOnMain(id, onProgress, focus) {
-    const gen = buildAgentsGen(this.world, this.population, { rate: this.rate, seed: this.seed, focus, chunkTarget: 131072, byRegion: true, roadNet: this.net });
+    const gen = buildAgentsGen(this.world, this.population, { rate: this.rate, seed: this.seed, focus, chunkTarget: 131072, firstChunkTarget: 16384, byRegion: true, roadNet: this.net });
     const job = this._job = { id, cancelled: false, resolve: () => {}, reject: () => {}, onProgress };
     let r, sliceStart = performance.now();
     while (!(r = gen.next()).done) {
@@ -478,6 +606,17 @@ export class Crowd {
   /** Latest counts by state (see the header); recomputed a few times a second as time moves. */
   stats() { return this._stats; }
 
+  /** One Worker's counts: summed with the others' answers to the same request, then published. */
+  _onStats(m, slot) {
+    const wait = this._statsWait;
+    if (!wait || m.seq !== wait.seq) { if (!wait) this._statsInFlight = false; return; }
+    wait.acc = wait.acc ? addStats(wait.acc, m.stats) : m.stats;
+    if (--wait.left > 0) return;
+    this._statsInFlight = false; this._statsWait = null;
+    if (wait.seq === this._statsSeq) this._stats = Object.assign(wait.acc, { t: m.t });
+    if (this._statsDirty) this._requestStats();
+  }
+
   _requestStats(force = false) {
     this._statsDirty = true;
     if (!this.count) { this._stats = Object.assign(emptyStats(), { t: this.t }); return; }
@@ -488,11 +627,13 @@ export class Crowd {
 
   _runStats() {
     if (this._destroyed || !this._statsDirty) return;
-    // the worker holds copies of the state arrays once its build is done; during and without it, the main thread counts
-    if (this._worker && this.mode === 'worker' && !this.building) {
+    // the Workers hold copies of the state arrays once their build is done; during and without it, the main thread counts
+    if (this._workers.length && this.mode === 'worker' && !this.building) {
       if (this._statsInFlight) return;
       this._statsDirty = false; this._statsInFlight = true; this._statsAt = performance.now();
-      this._worker.postMessage({ type: 'stats', seq: ++this._statsSeq, minute: this.minute, dow: this.dow, t: this.t });
+      const seq = ++this._statsSeq;
+      this._statsWait = { seq, left: this._workers.length, acc: null, t: this.t };
+      for (const s of this._workers) s.w.postMessage({ type: 'stats', seq, minute: this.minute, dow: this.dow, t: this.t });
       return;
     }
     this._statsDirty = false; this._statsAt = performance.now();
@@ -758,7 +899,7 @@ export class Crowd {
     if (this._job) { this._job.cancelled = true; this._job.resolve({ cancelled: true, agents: this.count }); }
     if (this._statsTimer) clearTimeout(this._statsTimer);
     this._mainStats = null;
-    this._killWorker();
+    this._killWorkers();
     const gl = this._gl;
     if (gl && !gl.isContextLost()) {
       this._clear();

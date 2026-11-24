@@ -12,11 +12,11 @@ import { SimClock, mountClockControls } from './simclock.mjs';
 import { mountSearch } from './search.mjs';
 import { Stage } from './stage.mjs';
 import { PlacePanel } from './place-panel.mjs';
-import { NpcPanel } from './npc-panel.mjs';
+import { NpcPanel, activityLine } from './npc-panel.mjs';
 import { LocalMindStore } from './store.mjs';
 import { zipScope, scopeFromSearch, scopeFromKey, scopeBBox } from './census.mjs';
 import { h, $, icon, logoMark, toast, prefersReducedMotion } from './dom.mjs';
-import { fmtInt, fmtCompact } from './format.mjs';
+import { fmtInt, fmtCompact, displayName } from './format.mjs';
 
 const STEPS = [
   ['pack', 'Unpacking the world pack'],
@@ -119,7 +119,10 @@ async function boot() {
     }
     ui.start('pack');
     await paint();
-    const pack = await unpack(await packSource());
+    const source = await packSource();
+    // the crowd's Workers start decoding their own copies now, while this thread decodes and mounts the page
+    services.prewarmCrowd(source.data);
+    const pack = await unpack(source);
     mark('pack');
     ui.done('pack');
 
@@ -166,6 +169,9 @@ function mount(world) {
   applyTheme(settings.values.theme);
   const clock = new SimClock({ t0: world.snapshotTime, speed: 60, playing: !prefersReducedMotion(), bus });
   const getTime = () => clock.t;
+  // every engine hook given no time reads this clock (never the wall clock)
+  services.setClock(getTime);
+  services.setLiveWeather(settings.values.network.nws);
   const wide = () => window.matchMedia('(min-width: 1180px)').matches;
 
   // ---- top bar
@@ -194,14 +200,16 @@ function mount(world) {
   }
   const placePanel = new PlacePanel({
     el: $('#place-panel'), services, bus, getTime,
-    onStreetView: s => openStreetView(s),
+    onStreetView: s => openStreetView(placeTarget(s)),
+    onNow: () => { clock.set(Date.now()); toast('The clock is at the present: live weather applies.'); },
     onClose: () => { scope = null; stage.setScope(null); layoutChanged(); restoreFocus(null); },
   });
   const npcPanel = new NpcPanel({
     el: $('#npc-panel'), services, bus, settings, getTime,
-    onLocate: npc => locate(npc),
+    onLocate: npc => { if (street) closeStreetView(); locate(npc); },
+    onWalk: npc => openStreetView(npcTarget(npc)),
     onBack: () => npcPanel.close(),
-    onClose: () => { stage.setNpc(null); layoutChanged(); restoreFocus(npcOpener); },
+    onClose: () => { stage.setNpc(null); if (street && street.view.selectedId) street.view.select(null); layoutChanged(); restoreFocus(npcOpener); },
     openSettings: () => dialog.open(),
   });
   const dialog = mountSettingsDialog($('#settings-dialog'), {
@@ -233,7 +241,10 @@ function mount(world) {
       else if (r.left - sr.left < sr.width * 0.4) left = Math.max(left, r.right - sr.left);
       else right = Math.max(right, sr.right - r.left);
     }
-    stage.setInsets({ left, right, bottom, top: 0 });
+    // on a phone the counts chip sits over the map's top edge: keep flown-to places and NPC labels below it
+    const chip = document.querySelector('.counts-mobile');
+    const top = chip && getComputedStyle(chip).display !== 'none' ? Math.max(0, chip.getBoundingClientRect().bottom - sr.top + 6) : 0;
+    stage.setInsets({ left, right, bottom, top });
     stageEl.style.setProperty('--inset-left', `${Math.round(left)}px`);
     stageEl.style.setProperty('--inset-right', `${Math.round(right)}px`);
     stageEl.style.setProperty('--inset-bottom', `${Math.round(bottom)}px`);
@@ -281,8 +292,19 @@ function mount(world) {
     if ((kind === 'zip' || !kind) && Number.isInteger(zi) && zi >= 0) next = zipScope(world, zi, { title });
     else if (kind && key) next = scopeFromKey(world, kind, key);
     if (!next) { if (source === 'map') placePanel.close(); return; }
-    showPlace(next, { fly: source !== 'map' });
+    showPlace(next, { fly: source !== 'map' && !street });
+    refreshLive(next.kind === 'zip' ? next.zi : mainZip(next));
   });
+
+  // ---- live NWS weather (when allowed): fetched for the place and the NPC in view, cached 15 minutes per ZIP
+  function mainZip(s) { return s.zis.reduce((a, b) => ((world.z.pop[b] || 0) > (world.z.pop[a] || 0) ? b : a), s.zis[0]); }
+  function refreshLive(zi) {
+    if (!settings.values.network.nws || !(zi >= 0)) return;
+    services.refreshWeather(zi, clock.t).then(status => {
+      bus.emit(EVENTS.WEATHER_CHANGE, { zi, status });
+      if (status && status.state === 'error') toast(status.note, { kind: 'error', timeout: 4200 });
+    });
+  }
 
   // where the selected NPC is now: the crowd's own position when the NPC is in it (so the marker sits on their
   // dot), else the schedule's (when wired): on the move, or at the place of the activity
@@ -304,39 +326,94 @@ function mount(world) {
     const npc = npcPanel.npc;
     stage.setNpc(npc);
     nowMarker(clock.t);
-    if (source === 'search' || source === 'link') {
+    refreshLive(npc.zi);
+    // in the street view, the NPC chosen anywhere is the one highlighted there (the view's own pick is already)
+    if (street && street.view.selectedId !== npc.id) street.view.select(npc.id);
+    if ((source === 'search' || source === 'link') && !street) {
       showPlace(zipScope(world, npc.zi), { fly: false, keepNpc: true });
       locate(npc);
     }
     layoutChanged();
   });
 
-  // ---- street view (when the module is wired)
+  // ---- street view: the neighborhood up close, on the same clock and theme as the map
 
-  function openStreetView(s) {
-    const zi = s.kind === 'zip' ? s.zi : s.zis.reduce((a, b) => ((world.z.pop[b] || 0) > (world.z.pop[a] || 0) ? b : a), s.zis[0]);
-    const canvas = h('canvas.street-canvas', { 'aria-label': `Street view of ${s.title}` });
-    const r = services.streetView(canvas, {
-      getTime, bus, allowNetwork: settings.values.network.osm,
-      onSelect: id => bus.emit(EVENTS.NPC_SELECT, { id, source: 'street' }),
-    });
-    if (!r.ok) { toast(r.message, { kind: 'error' }); return; }
-    const layer = h('div.street-layer', { style: 'position:absolute;inset:0;z-index:3;background:var(--map-bg)' }, canvas,
-      h('button.btn', { type: 'button', style: 'position:absolute;top:12px;left:12px', on: { click: () => closeStreetView() } }, icon('back', { size: 16 }), 'Back to the map'));
-    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%';
-    stageEl.append(layer);
-    street = { view: r.value, layer };
-    try { r.value.open(world.z.tx[zi], world.z.ty[zi]); } catch (e) { toast(`Street view failed: ${e.message || e}`, { kind: 'error' }); closeStreetView(); return; }
-    bus.emit(EVENTS.VIEW_CHANGE, { mode: 'street', x: world.z.tx[zi], y: world.z.ty[zi], zoom: null });
+  /** Where the street view opens for a place: the town point of the scope's main ZIP. */
+  function placeTarget(s) {
+    const zi = s.kind === 'zip' ? s.zi : mainZip(s);
+    return { x: world.z.tx[zi], y: world.z.ty[zi], title: s.title, zi };
+  }
+  /** Where it opens for an NPC: their home, following them. */
+  function npcTarget(npc) {
+    const home = npc.household && npc.household.home;
+    const ok = home && Number.isFinite(home.x);
+    return { x: ok ? home.x : world.z.tx[npc.zi], y: ok ? home.y : world.z.ty[npc.zi], title: `${npc.name && npc.name.display ? npc.name.display : npc.id}’s street`, zi: npc.zi, follow: npc.id };
   }
 
-  function closeStreetView() {
+  async function openStreetView(target) {
+    if (street) closeStreetView({ quiet: true });
+    const canvas = h('canvas.street-canvas', { 'aria-label': `Street view: ${target.title}. Click a person to meet them.` });
+    const r = services.streetView(canvas, {
+      getTime, theme: settings.resolvedTheme(), allowNetwork: settings.values.network.osm,
+      onSelect: id => { if (id && id !== npcPanel.id) bus.emit(EVENTS.NPC_SELECT, { id, source: 'street' }); },
+    });
+    if (!r.ok) { toast(r.message, { kind: 'error' }); return; }
+    const view = r.value;
+    const back = h('button.btn.street-back', { type: 'button', title: 'Back to the map (Esc)', on: { click: () => closeStreetView() } }, icon('back', { size: 16 }), 'Back to the map');
+    const followBtn = h('button.btn.small.street-follow', { type: 'button', hidden: true, 'aria-pressed': 'false', on: { click: () => view.follow(!view.following) } }, 'Follow');
+    const title = h('div.street-title', h('strong', target.title), h('span.muted', `ZIP ${world.zips[target.zi]} · ${world.z.city[target.zi]}`));
+    const presence = h('p.street-presence', { role: 'status', hidden: true });
+    const layer = h('div.street-layer', canvas, h('div.street-bar', back, title, followBtn), presence);
+    stageEl.append(layer);
+    document.body.toggleAttribute('data-street-open', true);
+    const off = [
+      view.on('follow', ({ on }) => { followBtn.setAttribute('aria-pressed', String(on)); followBtn.textContent = on ? 'Following' : 'Follow'; }),
+      view.on('select', ({ id }) => { followBtn.hidden = !id; streetPresence(); }),
+      view.on('stats', st => { street.stats = st; updateCounts(); streetPresence(); }),
+      view.on('error', ({ message }) => toast(`Street view: ${message}`, { kind: 'error' })),
+    ];
+    street = { view, layer, off, stats: null, target, presence };
+    bus.emit(EVENTS.VIEW_CHANGE, { mode: 'street', x: target.x, y: target.y, zoom: null });
+    let summary = null;
+    try { summary = await view.open(target.x, target.y); } catch (e) { summary = null; toast(`Street view failed: ${e && e.message ? e.message : e}`, { kind: 'error' }); }
+    if (!street || street.view !== view) return;   // closed or replaced while it was building
+    if (!summary) { if (!view.scene) closeStreetView({ quiet: true }); return; }
+    const pick = target.follow || (npcPanel.isOpen() ? npcPanel.id : null);
+    if (pick) { view.select(pick); if (target.follow) view.follow(true); }
+    canvas.focus({ preventScroll: true });
+  }
+
+  /**
+   * The selected NPC may not be out on these streets right now (at work across town, or indoors): say where they
+   * are, from their schedule, so following them never looks broken.
+   */
+  function streetPresence() {
     if (!street) return;
-    try { street.view.close(); } catch (e) { console.error('[legion] street view close failed', e); }
-    street.layer.remove();
+    const { view, presence } = street;
+    const id = view.selectedId;
+    const here = id && view.sim && typeof view.sim.agentOf === 'function' ? view.sim.agentOf(id) : null;
+    if (!id || here) { presence.hidden = true; return; }
+    const npc = services.npc(id), a = services.activityAt(id, clock.t);
+    const line = a.ok ? activityLine(a.value) : null;
+    const first = npc && npc.name ? String(npc.name.first || displayName(npc.name)).split(' ')[0] : 'They';
+    const text = `${first} is not out on these streets right now${line ? ` (${line.charAt(0).toLowerCase()}${line.slice(1)})` : ''}. Their home is in view; follow them when they come out.`;
+    if (presence.textContent !== text) presence.textContent = text;
+    presence.hidden = false;
+  }
+
+  function closeStreetView({ quiet = false } = {}) {
+    if (!street) return;
+    const { view, layer, off } = street;
     street = null;
+    for (const f of off) { try { f(); } catch { /* already gone */ } }
+    try { view.destroy(); } catch (e) { console.error('[legion] street view close failed', e); }
+    layer.remove();
+    document.body.toggleAttribute('data-street-open', false);
+    updateCounts();
+    if (quiet) return;
     const c = stage.map && stage.map.camera;
     bus.emit(EVENTS.VIEW_CHANGE, { mode: 'map', x: c && c.x, y: c && c.y, zoom: c && c.zoom });
+    $('#map').focus({ preventScroll: true });
   }
 
   // ---- theme, settings, density
@@ -353,6 +430,7 @@ function mount(world) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
       if (settings.values.theme !== 'system') return;
       applyTheme('system'); stage.setTheme(settings.resolvedTheme()); syncThemeButton();
+      if (street) street.view.setTheme(settings.resolvedTheme());
     });
   } catch { /* old browsers: the theme follows on reload */ }
 
@@ -381,9 +459,18 @@ function mount(world) {
   }
 
   bus.on(EVENTS.SETTINGS_CHANGE, ({ changed }) => {
-    if (changed.includes('theme')) { applyTheme(settings.values.theme); stage.setTheme(settings.resolvedTheme()); syncThemeButton(); }
+    if (changed.includes('theme')) {
+      applyTheme(settings.values.theme); stage.setTheme(settings.resolvedTheme()); syncThemeButton();
+      if (street) street.view.setTheme(settings.resolvedTheme());
+    }
     if (changed.includes('density')) rebuildCrowd();
     if (changed.includes('network.claude')) detectProxy();
+    if (changed.includes('network.nws')) {
+      services.setLiveWeather(settings.values.network.nws);
+      bus.emit(EVENTS.WEATHER_CHANGE, { zi: -1 });
+      if (scope) refreshLive(scope.kind === 'zip' ? scope.zi : mainZip(scope));
+      if (npcPanel.npc) refreshLive(npcPanel.npc.zi);
+    }
     dialog.refresh();
   });
 
@@ -391,8 +478,13 @@ function mount(world) {
 
   const countEls = ['#count-agents', '#count-moving', '#count-agents-m', '#count-moving-m'].map(s => $(s));
   function updateCounts() {
-    const c = stage.counts();
-    const pending = stage.build.building && !c.agents;
+    // in the street view the top bar counts the people on screen there
+    const st = street && street.stats;
+    const c = st ? { agents: st.agents ?? st.onScreen ?? 0, moving: st.moving ?? 0, byKind: null } : stage.counts();
+    const pending = !st && stage.build.building && !c.agents;
+    const label = $('#count-agents') && $('#count-agents').nextElementSibling;
+    const want = st ? 'out on these streets' : 'NPCs simulated';
+    if (label && label.textContent !== want) label.textContent = want;
     const set = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
     set(countEls[0], pending ? '…' : fmtInt(c.agents));
     set(countEls[1], pending ? '…' : fmtInt(c.moving));
@@ -430,13 +522,22 @@ function mount(world) {
   window.addEventListener('unhandledrejection', e => report(e.reason && e.reason.message ? e.reason.message : String(e.reason)));
 
   // ---- the animation loop
-  let last = performance.now(), lastCounts = 0;
+  // A frame drawn by software WebGL (no usable GPU: some virtual machines, blocklisted drivers, headless browsers)
+  // costs the CPU tens to hundreds of milliseconds on every core, which the crowd's Workers need while they build:
+  // in headless Chromium a 0.5% build took 17 s drawing every frame and 7 s paused. So while a build runs and drawn
+  // frames are slow, the map is drawn a quarter of the time at most. A drawn frame's cost is the time to the next
+  // callback (the browser holds the next frame until the last one is on screen). The clock and its display keep
+  // real time either way.
+  const SLOW_FRAME_MS = 40, BUILDING_DUTY = 0.25;
+  let last = performance.now(), lastCounts = 0, lastDraw = -Infinity, drawCost = 16, drew = false;
   function frame(now) {
+    if (drew) drawCost = 0.7 * drawCost + 0.3 * Math.min(2000, now - lastDraw);
     const dt = Math.min(250, Math.max(0, now - last));
     last = now;
     clock.advance(dt);
     clockUI.update();
-    stage.frame(clock.t);
+    drew = !(stage.build.building && drawCost > SLOW_FRAME_MS && now - lastDraw < drawCost / BUILDING_DUTY);
+    if (drew) { lastDraw = now; stage.frame(clock.t); }
     if (now - lastCounts > 500) { lastCounts = now; updateCounts(); }
     requestAnimationFrame(frame);
   }
@@ -458,6 +559,8 @@ function mount(world) {
     get world() { return services.world; },
     get map() { return stage.map; },
     get crowd() { return stage.crowd; },
+    /** The street view while it is open (StreetView), else null. */
+    get street() { return street ? street.view : null; },
     build: buildId(),
     /** Open an NPC by id. */
     select(id) { bus.emit(EVENTS.NPC_SELECT, { id, source: 'link' }); },

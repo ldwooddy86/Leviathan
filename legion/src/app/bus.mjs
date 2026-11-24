@@ -12,6 +12,8 @@
  * - `time:change` `{t, speed, playing}`: the simulation clock changed (epoch ms).
  * - `settings:change` `{settings, changed}`: settings changed (the API key is never in the payload).
  * - `place:select` `{zi, kind, key}`: a place was chosen (`zi` for a ZIP; `kind` 'zip' | 'city' | 'county' | 'region').
+ * - `weather:change` `{zi, status?}`: live NWS weather for ZIP zi arrived or failed (status: services.weatherStatus), or
+ *   the live layer was switched on or off (`zi` -1).
  */
 export const EVENTS = Object.freeze({
   NPC_SELECT: 'npc:select',
@@ -20,6 +22,7 @@ export const EVENTS = Object.freeze({
   TIME_CHANGE: 'time:change',
   SETTINGS_CHANGE: 'settings:change',
   PLACE_SELECT: 'place:select',
+  WEATHER_CHANGE: 'weather:change',
 });
 
 /**

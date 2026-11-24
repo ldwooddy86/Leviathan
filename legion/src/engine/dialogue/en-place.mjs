@@ -58,6 +58,30 @@ export const PLACE = compileBank({
     They're saying {pop} percent chance of rain {when}.
     Maybe some rain {when}. {pop} percent, they say.
   `,
+  // a forecast of 70 percent or more
+  'wx.rainLikely': `
+    Yeah, rain's coming {when}. They're saying {pop} percent.
+    Looks like it. {pop} percent chance of rain {when}.
+    Rain {when}, {pop} percent. Better find your umbrella.
+  `,
+  // the same forecast, told unasked
+  'wx.rainLikelyFc': `
+    Rain's coming {when}, {pop} percent.
+    They're calling for rain {when}. {pop} percent.
+    {pop} percent chance of rain {when}, so it's coming.
+  `,
+  // asked about rain, and the forecast has none
+  'wx.noRain': `
+    No rain in the forecast, not through tomorrow anyway.
+    Doesn't look like it. Dry through tomorrow night.
+    Not that I've seen. The forecast's dry for now.
+  `,
+  // the player's word for the weather ("this foggy") that the sky does not bear out
+  'wx.notReally': `
+    {claimWordCap}? Not right now. It's {temp} and {sky}.
+    Not today, actually. It's {temp} and {sky} out.
+    {claimWordCap}? Not at the moment. {temp} degrees and {sky}.
+  `,
   'wx.keyMsg': `
     The weather service says {keyMsg}
     According to the forecast, {keyMsg}
@@ -101,7 +125,7 @@ export const PLACE = compileBank({
     @loose It's a {very} pretty day.
     This is why we live here.
     Perfect day to be outside.
-    Not a cloud in the sky.
+    @cloudless Not a cloud in the sky.
     @worrier Enjoy it while it lasts.
     @kid It's a good day for the park!
   `,
@@ -156,6 +180,18 @@ export const PLACE = compileBank({
   'wx.climate.rain': `
     We get about {rainIn} inches of rain a year.
     Something like {rainIn} inches of rain in a year here.
+  `,
+  // the coast with a cool July: the marine layer
+  'wx.climate.fog': `
+    We get our share of fog, mostly in the summer.
+    The fog comes in a lot, especially summer mornings.
+    Summer's the foggy season here. The marine layer.
+  `,
+  // the world's climate estimate for a January day: said as an estimate
+  'wx.climate.winter': `
+    On a winter morning it gets down to around {winterLow} here, I'd say.
+    In January you're looking at {winterLow} or so at dawn, maybe {winterHigh} in the afternoon.
+    Winter mornings, figure around {winterLow}. It warms up to about {winterHigh} by afternoon.
   `,
   'wx.climate.snow': `
     We get snow, about {snowIn} inches a year.
@@ -288,9 +324,15 @@ export const PLACE = compileBank({
   `,
   'tr.road': `
     {road} is the big one around here. {aadtCap}.
-    {roadCap} carries {aadt}. You can hear it from my street.
     Around here it's all about {road}. {aadtCap}, they say.
     {roadCap} is the main way in and out of here. {aadtCap}.
+    {roadCap} carries {aadt}, if you can believe it.
+  `,
+  // only for a road a few blocks from home
+  'tr.roadNear': `
+    {roadCap} carries {aadt}. You can hear it from my street.
+    {roadCap} runs right by us. {aadtCap}.
+    I live a few blocks from {road}. {aadtCap}, and I hear a lot of them.
   `,
   'tr.roadSmall': `
     {road} is the main road around here.
@@ -482,7 +524,8 @@ export const PLACE = compileBank({
     There was a disaster declaration for the {title}, {when}.
   `,
   'storm.femaLived': `
-    The {title}. {exp}
+    I remember the {title}. {exp}
+    I'll never forget the {title}. {exp}
   `,
   'storm.rainRecord': `
     The record for one day is {rainRec} inches, back in {when}.
@@ -775,6 +818,18 @@ export const PLACE = compileBank({
     There's a decent spread of places to eat around here.
     We've got a few good spots. Not a ton, but good ones.
   `,
+  // a dish the player named, when it is not the speaker's family's cooking: no restaurant is made up
+  'food.dishAsk': `
+    {dishCap}? Look for the place with a line out the door.
+    For {dish}, ask around. Everybody here has their spot.
+    I'm not the best one to ask about {dish}, honestly. Follow the crowd.
+  `,
+  // a dish that is their family's cooking
+  'food.dishHome': `
+    Honestly? Nothing beats homemade {dish}.
+    For {dish}, nothing beats homemade. That's how I grew up.
+    {dishCap}? The best I've had was at home, to be honest.
+  `,
   'food.few': `
     Not many restaurants out here. Most of us cook.
     For restaurants, people mostly drive to {nearTown}.
@@ -930,6 +985,9 @@ export const PLACE = compileBank({
     @adult It's changed a lot since {zipSince}. Prices, mostly.
     @adult When I moved here in {zipSince} it was a different place. Same streets, different prices.
     @minor It's changed a little since we moved here in {zipSince}. More traffic.
+    @adult It's changed a lot since I moved in. Prices, mostly.
+    @adult It's not the same place it was when I got here.
+    @minor It's changed a little since we moved here. More traffic.
   `,
   'hood.safe': `
     I feel safe here. People look out for each other.
@@ -964,7 +1022,7 @@ export const PLACE = compileBank({
   `,
   'hist.event': `
     You know what I remember? {memTitleCap}. {exp}
-    {memTitleCap}. {exp}
+    I think about {memTitle} sometimes. {exp}
     I'll never forget {memTitle}. {exp}
     I remember {memTitle}. {exp}
   `,
@@ -1061,5 +1119,85 @@ export const PLACE = compileBank({
     I don't have a strong opinion on that one.
     Depends who you ask. Everybody's got an opinion.
     @blunt I don't think about it much, honestly.
+  `,
+
+  // ---------------------------------------------------------------- getting to work and school, by length and way
+  // getting around without a car: from the household's cars and whether they drive
+  'tr.getAroundDrive': `
+    Honestly, around here you need a car.
+    I drive everywhere. Without a car it would be tough.
+    I couldn't do it without a car, not here.
+  `,
+  'tr.getAroundRide': `
+    @!alone I don't drive much anymore. Family takes me where I need to go.
+    @!alone I get rides from family. It works out.
+    @!alone Somebody in the family usually drives me.
+    @alone I get rides when I need them, or I take the bus.
+  `,
+  'tr.carpoolLocal': `
+    I carpool with people from work. About {commuteMin} minutes.
+    A few of us carpool. {commuteMin} minutes, give or take.
+    We carpool. It's {commuteMin} minutes, and it saves on gas.
+  `,
+  'tr.driveTown': `
+    It's about {commuteMin} minutes across town.
+    Work's in town, but it's still {commuteMin} minutes with traffic.
+    {commuteMin} minutes, depending on the lights.
+  `,
+  'tr.kidBike': `
+    I ride my bike to school. It's about {commuteMin} minutes.
+    I bike. {commuteMin} minutes if I don't stop anywhere.
+    Bike. It's faster than waiting for a ride.
+  `,
+
+  // ---------------------------------------------------------------- fires the records know only by a code
+  'fire.unnamed': `
+    There have been fires around here over the years. Nothing I could tell you much about.
+    We've had a few fires nearby, but none with a name I remember.
+    Some fires over the years, sure. I couldn't give you the details.
+  `,
+
+  // ---------------------------------------------------------------- the big town
+  'place.bigTown': `
+    The closest real town is {town}. It's {miles} {dir} of here.
+    {town}. That's {miles} {dir}.
+    For a bigger town you go to {town}, {miles} {dir}.
+    {town}, {miles} {dir}. You take {road}.
+  `,
+  'place.bigTownFar': `
+    Out here you plan your trips to town.
+    Nobody runs to town for one thing. You make a list.
+    It's a drive, so you make it count.
+  `,
+  'place.bigTownHere': `
+    {place} is the big town around here.
+    This is it. {place} is the town.
+    You're in it. {place} is where everybody comes.
+  `,
+
+  // ---------------------------------------------------------------- food in a crowded neighborhood
+  'food.fewCity': `
+    For a neighborhood with this many people, there aren't that many restaurants.
+    There are fewer places to eat around here than you'd think, for how many people live here.
+    Lots of people, not many restaurants. Most of us cook at home.
+  `,
+
+  // ---------------------------------------------------------------- the old days
+  // what it was like when they first came (the year from the record: arrival in the country, else the county)
+  'hist.firstCame': `
+    When I first came, in {year}, everything was new to me.
+    I got here in {year}. It took a while to feel at home.
+    @immigrant I came in {year}. New country, new language. It was hard at first.
+    Back in {year}, when I first got here, I didn't know anybody.
+  `,
+  'hist.firstCameKid': `
+    I was little when we came, in {year}. I barely remember it.
+    We came in {year}. I was just a kid, so it was all I knew.
+  `,
+  'hist.then': `
+    It was a different place back then.
+    Everything was cheaper, I'll tell you that.
+    It was quieter. Fewer people, fewer cars.
+    People knew their neighbors more, I think.
   `,
 });

@@ -826,6 +826,8 @@ function addHouseholds(B, pop, zi, h, H, rate) {
  * @param {number[]} [opts.zips] ZIP indices to build, in order (default zipOrder(world, opts))
  * @param {string[]} [opts.regions] @param {{x:number,y:number}} [opts.focus] build order (zipOrder)
  * @param {number} [opts.chunkTarget] start a new chunk past this many agents (default: one chunk)
+ * @param {number} [opts.firstChunkTarget] the first chunk closes sooner, past this many agents, so a progressive build
+ *   shows people on the map within moments (default chunkTarget)
  * @param {boolean} [opts.byRegion] start a new chunk at every region boundary
  * @param {boolean} [opts.pickIndex] build the pick index (default true)
  * @param {RoadNet} [opts.roadNet] a prebuilt buildRoadNet(world)
@@ -836,6 +838,7 @@ export function* buildAgentsGen(world, pop, opts = {}) {
   const net = opts.roadNet || buildRoadNet(world);
   const zipList = opts.zips ? Array.from(opts.zips, Number) : zipOrder(world, opts);
   const chunkTarget = opts.chunkTarget > 0 ? opts.chunkTarget : Infinity;
+  const firstTarget = opts.firstChunkTarget > 0 ? Math.min(opts.firstChunkTarget, chunkTarget) : chunkTarget;
   const byRegion = !!opts.byRegion;
   const B = new ChunkBuilder(world, net, seed, opts.pickIndex !== false);
   const z = world.z;
@@ -872,7 +875,7 @@ export function* buildAgentsGen(world, pop, opts = {}) {
     scanned += H;
     const progress = totalHH ? scanned / totalHH : 1;
     const next = zipList[j + 1];
-    const boundary = next === undefined || B.n >= chunkTarget || (byRegion && z.region[next] !== B.region);
+    const boundary = next === undefined || B.n >= (index === 0 ? firstTarget : chunkTarget) || (byRegion && z.region[next] !== B.region);
     if (boundary && (B.n > 0 || (next === undefined && index === 0))) {
       // a build always yields at least one chunk (possibly empty) so callers can rely on chunk 0
       const c = B.finish(index++, start);

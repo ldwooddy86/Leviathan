@@ -2,14 +2,17 @@
 //
 // Every NPC can talk through Claude. The persona (persona.mjs, CONTRACTS §6) and the person behind it (§5)
 // become a system prompt in two blocks: PLATFORM_RULES, the same bytes for every Californian, then the persona
-// sheet, the same bytes for one Californian, which carries the system prompt's cache breakpoint. Everything that
-// changes from turn to turn (the local time, what the NPC is doing, the weather and alerts, mood, feelings
-// toward the player, memories that surface) goes into a mid-conversation {role: 'system'} message placed after
-// the player's message, and the sheet holds nothing that goes stale with the clock (no "today" weather, no
-// alerts). The conversation itself is append-only, so every request starts with the byte-identical prefix of
-// the one before it and long conversations are read back from the cache instead of being paid for again.
-// (A cache read can only land where an earlier request wrote a breakpoint, so the rules are cached as part of
-// each NPC's prefix; they are not shared between NPCs.)
+// sheet, the same bytes for one Californian. Everything that changes from turn to turn (the local time, what the
+// NPC is doing, the weather and alerts, mood, feelings toward the player, memories that surface) goes into a
+// mid-conversation {role: 'system'} message placed after the player's message, and the sheet holds nothing that
+// goes stale with the clock (no "today" weather, no alerts). The conversation itself is append-only, so every
+// request starts with the byte-identical prefix of the one before it and long conversations are read back from
+// the cache instead of being paid for again.
+//
+// Three cache breakpoints, at the three stability boundaries: the rules (about 1,100 tokens, past the 512-token
+// minimum, so one cache entry serves every NPC a player talks to), the persona sheet (one entry per NPC, read on
+// every later turn with them) and the newest player message (the whole conversation so far). A cache read can
+// only land where an earlier request wrote a breakpoint, which is why the rules carry their own.
 //
 // Requests go through the official SDK (@anthropic-ai/sdk), streaming with client.beta.messages.stream so the
 // server-side refusal fallback (a beta parameter) can ride along. Thinking on these models is adaptive and
@@ -83,8 +86,8 @@ export function fallbackParams(model, enabled = true) {
 
 /**
  * The stable first system block, byte-identical for every NPC: who an NPC in Legion is, how they talk, where
- * their facts come from, the representation rules, kindness and safety. It is cached as the start of each NPC's
- * system prompt (the breakpoint sits on the persona sheet after it), not as an entry shared between NPCs.
+ * their facts come from, the representation rules, kindness and safety. It carries its own cache breakpoint
+ * (systemBlocks), so the cache entry it writes is read by the first turn with every other NPC too.
  */
 export const PLATFORM_RULES = `You are a non-player character (NPC) in Legion, a simulation of California built from public data. Every Californian in Legion is generated from the U.S. Census (American Community Survey) tables for their ZIP code, and their world comes from National Weather Service forecasts, CAL FIRE and FEMA disaster records, Caltrans traffic counts and USGS place names. The person you play is described in the character sheet that follows. A player has walked up and is talking with you, wherever you happen to be.
 
@@ -593,32 +596,15 @@ function interestLines(persona) {
   return out.length ? ['', 'Interests', ...out] : [];
 }
 
-// Two columns that are easy to misstate, restated the way the atlas defines them, wherever a persona's concern
-// text phrases them otherwise. nonren_sh: California Department of Insurance residential policies, non-renewals
-// over renewals plus non-renewals in 2023, insurer- and owner-initiated together (the file does not split
-// them). fair_sh: FAIR Plan dwelling policies in force on 2026-09-30 per 100 housing units, not a share of
-// policies. The sheet's facts section says the same, so the two never contradict each other.
-const DATA_WORDING = [
-  [/\binsurers non-renewed ([\d.]+)% of (?:the )?homeowners?(?: insurance)? policies(?: up for renewal)?(?: in (\d{5}))?(?: in 2023)?(?: \((nonren_sh)\))?/gi,
-    (_, pct, zip, col) => `${pct}% of the residential policies up for renewal${zip ? ` in ${zip}` : ''} in 2023 were not renewed (${col ? `${col}; ` : ''}insurer- and owner-initiated together)`],
-  [/\b([\d.]+)% of (?:the )?(?:home |homeowners? )?policies here are with the FAIR Plan\b/gi,
-    (_, n) => `there are ${n} FAIR Plan home policies per 100 housing units here`],
-];
-
-function correctDataWording(s) {
-  let out = s;
-  for (const [re, fix] of DATA_WORDING) out = out.replace(re, fix);
-  return out;
-}
-
 /**
- * Concern text for the sheet: the data reasons with any "is out now (NWS)" clause removed, since an alert that
- * was out when the persona was built goes stale while the sheet stays cached (the situation note carries the
- * alerts in effect at each turn), and with the two misstated columns corrected.
+ * Concern text for the sheet: the data reasons as the persona words them (persona.mjs states nonren_sh and fair_sh
+ * the way the atlas defines them), with any "is out now (NWS)" clause removed, since an alert that was out when
+ * the persona was built goes stale while the sheet stays cached (the situation note carries the alerts in effect
+ * at each turn).
  */
 function concernWhy(why) {
   const parts = text(why).split(/;\s+/).filter(p => p && !/\bout now\b/i.test(p));
-  return correctDataWording(parts.join('; ').replace(/[\s;,]+$/, ''));
+  return parts.join('; ').replace(/[\s;,]+$/, '');
 }
 
 function concernLines(persona) {
@@ -805,16 +791,17 @@ export function personaSheet(persona, world = null) {
 }
 
 /**
- * The two system blocks for an NPC: PLATFORM_RULES (shared by everyone) and the persona sheet, which carries
- * the cache breakpoint so the whole system prompt is read from the cache on every later turn.
+ * The two system blocks for an NPC, each with a cache breakpoint: PLATFORM_RULES (byte-identical for everyone, so
+ * its cache entry is shared by every NPC) and the persona sheet (one entry per NPC, read on every later turn).
+ * With the breakpoint ClaudeVoice puts on the newest player message, a turn uses three of the four allowed.
  * @param {object} persona
  * @param {object} [world]
- * @returns {Array<{type: 'text', text: string, cache_control?: {type: 'ephemeral'}}>}
+ * @returns {Array<{type: 'text', text: string, cache_control: {type: 'ephemeral'}}>}
  */
 export function systemBlocks(persona, world = null) {
   const sheet = personaSheet(persona, world);
   return [
-    { type: 'text', text: PLATFORM_RULES },
+    { type: 'text', text: PLATFORM_RULES, cache_control: { type: 'ephemeral' } },
     { type: 'text', text: sheet, cache_control: { type: 'ephemeral' } },
   ];
 }

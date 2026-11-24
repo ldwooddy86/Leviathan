@@ -9,13 +9,18 @@
 // Checks: boot without page errors; the map canvas draws pixels; '/' focuses search and '94110' flies the map to
 // the Mission and opens the Place panel (San Francisco); Census versus generated reads in words (key figures, six
 // tables, the rest folded, no raw keys); a resident opens the NPC panel on Profile with a name and an age; every tab
-// renders; with small fake engine modules wired, Talk keeps its conversation when the open NPC is chosen again, its
-// starters are the NPC's own, and Claude errors speak as Legion; a failed copy says so and the JSON size counts
-// bytes; the theme toggles both ways; Settings opens with density, theme, Claude and network (live weather shown as
-// a later build) and closes on Escape; Space pauses the clock; Escape closes the panels; search finds counties by
-// name and Census places by their own ZIPs. A damaged inline pack fails with a plain message at the step that
-// failed. Served by server/serve.mjs with and without a key, the page uses the proxy the server advertises only
-// when it holds a key. The phone layout has no horizontal scroll and shows the panels as sheets.
+// renders; Talk (the real offline engine) greets, keeps its conversation when the open NPC is chosen again, and its
+// starters are the NPC's own; Claude errors speak as Legion; the Mind tab shows the Big Five in words, concerns with
+// their data and memories with their year and source; five offline exchanges, the weather answer stating the Place
+// panel's temperature; a Spanish speaker with limited English answers with a gloss; the street view opens from the
+// NPC panel following them, its people move, and clicking one opens their profile; a failed copy says so and the
+// JSON size counts bytes; the theme toggles both ways; Settings opens with density, theme, Claude and network (live
+// weather off by default, every engine module ready) and closes on Escape; Space pauses the clock; Escape closes
+// the panels; search finds counties by name and Census places by their own ZIPs. A damaged inline pack fails with a
+// plain message at the step that failed. Served by server/serve.mjs with and without a key, the page uses the proxy
+// the server advertises only when it holds a key; with a fake Anthropic upstream behind the server, a Claude reply
+// streams into the Talk tab and the conversation is reflected into the NPC's mind. The phone layout has no
+// horizontal scroll, shows the panels as sheets and keeps the legend inside the screen.
 // Screenshots: tests/e2e/app.png and tests/e2e/app-phone.png. Works with the provisional crowd stub (0 agents) and
 // with the real crowd. Exits 1 on any failure.
 
@@ -284,25 +289,30 @@ async function desktop(browser) {
     return 'written';
   });
 
-  // The page's dialogue and Claude modules arrive with a later build; services.wire plugs small fakes in for these
-  // steps (and unplugs them after), so the Talk tab runs its real code against them.
+  // The Talk tab with the real engine: the offline Conversation greets, answers and keeps its lines when the NPC
+  // already open is chosen again; Claude, not allowed yet, answers through a Legion note, never the NPC's voice.
   const reopenNpc = async id => {
     await page.evaluate(() => window.legion.bus.emit('npc:select', { id: null }));
     await page.locator(`#place-panel .resident[data-id="${id}"]`).click();
     await page.locator('#npc-panel').waitFor({ state: 'visible', timeout: 5000 });
   };
   const talkBubbles = () => page.locator('#npc-tabpanel-talk .talk-log .bubble').count();
+  const say = async text => {
+    const before = await page.locator('#npc-tabpanel-talk .talk-log .bubble.from-npc').count();
+    await page.locator('#npc-tabpanel-talk .talk-input').fill(text);
+    await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+    await page.waitForFunction(n => document.querySelectorAll('#npc-tabpanel-talk .talk-log .bubble.from-npc').length > n, before, { timeout: 5000 });
+    return (await page.locator('#npc-tabpanel-talk .talk-log .bubble.from-npc .bubble-text').last().textContent()).trim();
+  };
 
   await step('desktop: Talk keeps the conversation when the open NPC is chosen again', async () => {
     const id = await page.evaluate(() => window.legion.npcPanel.id);
-    await page.evaluate(() => window.legion.services.wire({
-      persona: { persona: (world, npc) => ({ id: npc.id, npc }) },
-      dialogue: { Conversation: class { greet() { return { text: 'Hey, good to meet you.', intent: 'greeting' }; } reply(text) { return { text: `You said: ${text}`, intent: 'unknown' }; } farewell() { return { text: 'Take care.' }; } } },
-    }));
-    await reopenNpc(id);
     await page.click('#npc-tab-talk');
-    await page.locator('#npc-tabpanel-talk .talk-input').fill('How is the fog today?');
-    await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+    // the offline engine greets as the tab opens, and says which engine is speaking
+    await page.locator('#npc-tabpanel-talk .bubble.from-npc').first().waitFor({ timeout: 5000 });
+    const engine = (await page.locator('#npc-tabpanel-talk .talk-engine').textContent()).trim();
+    expect(/offline engine/.test(engine), `engine line "${engine}"`);
+    await say('How is the fog today?');
     expect(await talkBubbles() === 3, `${await talkBubbles()} bubbles after one exchange`);
     // the same NPC again: from the resident list, from their dot on the map, and from search
     await page.locator(`#place-panel .resident[data-id="${id}"]`).click();
@@ -311,19 +321,20 @@ async function desktop(browser) {
     const after = await page.evaluate(() => [window.legion.npcPanel.tab, window.legion.npcPanel.talk && window.legion.npcPanel.talk.lines.length]);
     expect(after[0] === 'talk' && after[1] === 3, `after choosing the same NPC again: tab ${after[0]}, ${after[1]} lines`);
     expect(await talkBubbles() === 3, `${await talkBubbles()} bubbles shown`);
-    // the starters are this NPC's: the Mission has no fire in the pack, so none asks about one
+    // the starters are this NPC's: the Mission has no fire and no snow in the pack, so none asks about either
     const starters = await page.locator('#npc-tabpanel-talk .starters .chip').allTextContents();
-    expect(starters.length >= 5 && !starters.some(s => /fire/i.test(s)), `starters ${starters.join(' | ')}`);
+    expect(starters.length >= 5 && !starters.some(s => /fire|snow/i.test(s)), `starters ${starters.join(' | ')}`);
     expect(starters.includes('How long have you lived here?'), `starters ${starters.join(' | ')}`);
     return `3 lines kept; starters: ${starters.join(' | ')}`;
   });
 
   await step('desktop: Claude errors speak as Legion, not as the NPC', async () => {
     const id = await page.evaluate(() => window.legion.npcPanel.id);
-    await page.evaluate(() => window.legion.services.wire({ llm: { ClaudeVoice: class { async stream() { return { text: 'unused' }; } } } }));
     await reopenNpc(id);
     await page.click('#npc-tab-talk');
     await page.click('label[for="talk-engine-claude"]');
+    const engine = (await page.locator('#npc-tabpanel-talk .talk-engine').textContent()).trim();
+    expect(/Allow the Claude API in Settings/.test(engine), `engine line "${engine}"`);
     await page.locator('#npc-tabpanel-talk .talk-input').fill('Hi');
     await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
     const system = page.locator('#npc-tabpanel-talk .bubble.from-system');
@@ -332,10 +343,117 @@ async function desktop(browser) {
     expect(/^Legion:\s*Allow the Claude API in Settings/.test(said), `system line "${said}"`);
     const npcSays = await page.locator('#npc-tabpanel-talk .bubble.from-npc').allTextContents();
     expect(!npcSays.some(t => /Allow the Claude API/.test(t)), 'the error was put in the NPC’s mouth');
-    await page.evaluate(() => window.legion.services.wire({ persona: null, dialogue: null, llm: null }));
-    await reopenNpc(id);
+    await page.click('label[for="talk-engine-offline"]');
     await page.click('#npc-tab-profile');
     return `"${said.replace(/\s+/g, ' ')}"`;
+  });
+
+  await step('desktop: the Mind tab shows the Big Five in words, concerns with their data, memories with year and source', async () => {
+    await page.click('#npc-tab-mind');
+    const panel = page.locator('#npc-tabpanel-mind');
+    await panel.locator('.big5 .meter').first().waitFor({ timeout: 5000 });
+    const meters = await panel.locator('.big5 .meter').evaluateAll(ms => ms.map(m => [m.getAttribute('aria-label'), m.getAttribute('aria-valuetext')]));
+    expect(meters.length === 5 && meters.map(m => m[0]).join() === 'Openness,Conscientiousness,Extraversion,Agreeableness,Neuroticism', `meters ${JSON.stringify(meters)}`);
+    expect(meters.every(([, v]) => /^\d{1,3}: (very )?[a-z]|in between/.test(v || '')), `plain words ${JSON.stringify(meters)}`);
+    const text = await panel.textContent();
+    for (const word of ['Traits', 'Values', 'Interests', 'Concerns', 'Memories', 'Right now', 'Needs', 'With you']) expect(text.includes(word), `Mind is missing "${word}"`);
+    const years = await panel.locator('.timeline').first().locator('.tl-year').allTextContents();
+    expect(years.length > 0 && years.every(y => /^\d{4}$/.test(y.trim())), `memory years ${years.join(',')}`);
+    const sources = await panel.locator('.timeline').first().locator('.tl-source').allTextContents();
+    expect(sources.length === years.length && sources.every(s => s.trim().length > 3), `memory sources ${sources.join(' | ')}`);
+    const dataLines = await panel.locator('.concern-src').allTextContents();
+    expect(dataLines.length > 0 && dataLines.every(d => /^Data: /.test(d)), `concern sources ${dataLines.join(' | ')}`);
+    // the player has been talking to them: the mind counts the meeting
+    expect(/Feels \w+ toward you; you have met/.test(text), 'the relationship does not show the meeting');
+    await page.click('#npc-tab-profile');
+    return `${meters.map(m => m[1]).join(' · ')}; ${years.length} memories (${sources[0]}); ${dataLines.length} concerns with data`;
+  });
+
+  await step('desktop: Talk offline, five exchanges; the weather answer states the Place panel’s temperature', async () => {
+    await page.evaluate(() => window.legion.clock.pause());
+    const zip = await page.evaluate(() => window.legion.npcPanel.npc.zip);
+    // the Place panel of the NPC's own ZIP, at this (paused) moment
+    await page.evaluate(z => window.legion.place(z), zip);
+    await page.locator('#place-panel .wx-temp').waitFor({ timeout: 5000 });
+    const temp = (await page.locator('#place-panel .wx-temp').textContent()).trim().replace('°F', '');
+    expect(/^\d{1,3}$/.test(temp), `Place panel temperature "${temp}"`);
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    // a fresh conversation (a new visit) at the paused time
+    await reopenNpc(id);
+    await page.click('#npc-tab-talk');
+    await page.locator('#npc-tabpanel-talk .bubble.from-npc').first().waitFor({ timeout: 5000 });
+    const replies = [];
+    for (const q of ['Hi! I’m Sam.', 'How’s the weather today?', 'What do you do for work?', 'How long have you lived here?', 'Where should I eat around here?']) replies.push(await say(q));
+    expect(replies.length === 5 && replies.every(r => r.length > 1), `replies ${JSON.stringify(replies)}`);
+    expect(new Set(replies).size === 5, 'a line was repeated');
+    expect(replies[1].includes(temp), `the weather reply "${replies[1]}" does not say ${temp}°F`);
+    // each line shows where its facts come from
+    const facts = await page.locator('#npc-tabpanel-talk .bubble.from-npc .fact-btn').count();
+    expect(facts >= 1, 'no line shows its facts');
+    const firstFacts = await page.locator('#npc-tabpanel-talk .bubble.from-npc .fact-btn').first().getAttribute('title');
+    expect(/^From the data: /.test(firstFacts || ''), `facts title "${firstFacts}"`);
+    return `${temp}°F in "${replies[1].slice(0, 90)}"; ${facts} lines with facts (${firstFacts.slice(0, 80)})`;
+  });
+
+  await step('desktop: a Spanish speaker with limited English answers in Spanish, with the English gloss', async () => {
+    const id = await page.evaluate(() => {
+      const L = window.legion, w = L.world;
+      for (const zip of ['90011', '90255', '93235', '90001', '92335']) {
+        const zi = w.indexOf(zip);
+        if (zi < 0) continue;
+        const n = L.services.population.sample(zi, 80, 1).find(x => x.age >= 25 && x.languages.home === 'spanish' && x.languages.english === 'limited');
+        if (n) return n.id;
+      }
+      return null;
+    });
+    expect(id, 'no Spanish speaker with limited English found');
+    await page.evaluate(i => window.legion.bus.emit('npc:select', { id: i, source: 'link' }), id);
+    await page.locator('#npc-panel').waitFor({ state: 'visible', timeout: 5000 });
+    await page.click('#npc-tab-talk');
+    await page.locator('#npc-tabpanel-talk .bubble.from-npc').first().waitFor({ timeout: 5000 });
+    const reply = await say('How are you doing today?');
+    const gloss = await page.locator('#npc-tabpanel-talk .bubble.from-npc .bubble-gloss').allTextContents();
+    expect(gloss.length >= 1 && gloss.every(g => /^\[.+\]$/.test(g.trim())), `glosses ${JSON.stringify(gloss)}`);
+    return `${id}: "${reply.slice(0, 70)}" ${gloss.at(-1).slice(0, 70)}`;
+  });
+
+  await step('desktop: the street view opens from the NPC panel, agents move, and picking one opens its profile', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    await page.click('#npc-tab-profile');
+    await page.click('.walk-btn');
+    await page.locator('.street-layer').waitFor({ timeout: 5000 });
+    await page.waitForFunction(() => { const v = window.legion.street; return v && v.scene && v.stats().agents > 0; }, null, { timeout: 60000 });
+    const followed = await page.evaluate(() => window.legion.street.selectedId);
+    expect(followed === id, `the view follows ${followed}, not ${id}`);
+    // the clock runs: people move on the street
+    await page.evaluate(() => { window.legion.clock.setSpeed(60); window.legion.clock.play(); });
+    const before = await page.evaluate(() => window.legion.street.agentsOnScreen().map(a => [a.id, a.px, a.py]));
+    await page.waitForTimeout(1500);
+    const after = await page.evaluate(() => window.legion.street.agentsOnScreen().map(a => [a.id, a.px, a.py]));
+    const moved = after.filter(([aid, x, y]) => { const b = before.find(q => q[0] === aid); return b && Math.hypot(b[1] - x, b[2] - y) > 1; }).length;
+    expect(after.length > 0 && moved > 0, `${after.length} agents on screen, ${moved} moved`);
+    // a click on another person there opens their profile (the clock paused so they stand still for the click)
+    await page.evaluate(() => window.legion.clock.pause());
+    await page.waitForTimeout(200);
+    // the person the click must open is whoever the view picks at that point: people overlap (a family walking
+    // together, a car's length around its driver), so that is not always the one whose centre was aimed at
+    const target = await page.evaluate(sel => {
+      const v = window.legion.street, r = v.canvas.getBoundingClientRect();
+      const a = v.agentsOnScreen().find(x => x.id !== sel && x.px > 60 && x.py > 90 && x.px < r.width - 480 && x.py < r.height - 60);
+      const hit = a ? v.agentAt(a.px, a.py) : null;
+      return a && hit ? { id: a.id, pick: hit.id, x: r.left + a.px, y: r.top + a.py } : null;
+    }, id);
+    if (!target) return `followed ${id}; ${moved} of ${after.length} agents moved; no second agent clear of the panels to click`;
+    await page.mouse.click(target.x, target.y);
+    await page.waitForFunction(want => window.legion.npcPanel.id === want, target.pick, { timeout: 5000 }).catch(() => {});
+    const opened = await page.evaluate(() => [window.legion.npcPanel.id, window.legion.street.selectedId]);
+    expect(opened[0] === target.pick && opened[1] === target.pick && /^\d{5}-\d+-\d+$/.test(opened[0]),
+      `clicked at ${target.id} (picks ${target.pick}); panel ${opened[0]}, street ${opened[1]}`);
+    expect(await page.locator('#npc-tab-profile').getAttribute('aria-selected') === 'true', 'the profile is not the tab shown');
+    // and the way back
+    await page.click('.street-back');
+    await page.waitForFunction(() => !window.legion.street && !document.querySelector('.street-layer'), null, { timeout: 5000 });
+    return `followed ${id}; ${moved} of ${after.length} agents moved; clicked ${target.pick}${target.pick === target.id ? '' : ` (beside ${target.id})`} → panel ${opened[0]}`;
   });
 
   await step('desktop: a failed copy says so, and the JSON size counts bytes', async () => {
@@ -383,10 +501,12 @@ async function desktop(browser) {
     expect(await dialog.locator('select').inputValue() === 'claude-opus-5-5', 'Opus is not the default');
     const efforts = await dialog.locator('input[name=effort]').evaluateAll(o => o.filter(x => x.checked).map(x => x.value));
     expect(efforts[0] === 'low', `effort ${efforts}`);
-    // nothing in this build refreshes the weather live, so its switch says so instead of pretending
+    // live weather is real now: allowed by its own switch, off until the player turns it on
     const nws = dialog.locator('.toggle-row', { hasText: 'Live NWS weather' });
     const nwsState = await nws.evaluate(row => [row.classList.contains('is-pending'), row.querySelector('input').disabled, row.querySelector('input').checked, row.textContent]);
-    expect(nwsState[0] && nwsState[1] && !nwsState[2] && /later build/i.test(nwsState[3]), `NWS switch ${JSON.stringify(nwsState)}`);
+    expect(!nwsState[0] && !nwsState[1] && !nwsState[2] && /api\.weather\.gov/.test(nwsState[3]), `NWS switch ${JSON.stringify(nwsState)}`);
+    const modules = await dialog.locator('.module-list li').evaluateAll(li => li.map(x => [x.querySelector('.module-name').textContent, x.querySelector('.module-state').textContent]));
+    expect(modules.length === 7 && modules.every(m => m[1] === 'Ready'), `engine modules ${JSON.stringify(modules)}`);
     expect(await dialog.locator('.toggle-row', { hasText: 'OpenStreetMap streets' }).locator('input').isEnabled(), 'the OpenStreetMap switch is disabled');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => !document.getElementById('settings-dialog').open, null, { timeout: 2000 });
@@ -600,6 +720,100 @@ async function served(browser) {
   }
 }
 
+// ------------------------------------------------------------------ Claude through the Legion server
+
+/** A fake Anthropic upstream for server/serve.mjs: streams a reply slowly, answers the reflection, records requests. */
+function fakeUpstream() {
+  const calls = [];
+  const chunks = ['Hey there! ', 'The fog rolled in early today, ', 'but it should burn off ', 'by noon.'];
+  const reflection = { summary: 'A visitor named Sam asked me about the fog.', facts_about_player: ['is named Sam'], affinity_delta: 0.1, trust_delta: 0.05, mood: 'content', memorable_line: 'Will the fog burn off?', follow_up: 'Ask Sam how the visit went.' };
+  async function* events(model) {
+    yield { type: 'message_start', message: { id: 'msg_e2e', type: 'message', role: 'assistant', model, content: [], stop_reason: null, stop_sequence: null, usage: { input_tokens: 41, output_tokens: 1, cache_read_input_tokens: 1300, cache_creation_input_tokens: 0 } } };
+    yield { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } };
+    for (const c of chunks) { await new Promise(r => setTimeout(r, 350)); yield { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: c } }; }
+    yield { type: 'content_block_stop', index: 0 };
+    yield { type: 'message_delta', delta: { stop_reason: 'end_turn', stop_sequence: null }, usage: { output_tokens: 18 } };
+    yield { type: 'message_stop' };
+  }
+  return {
+    calls, reply: chunks.join(''), reflection,
+    factory: () => ({
+      beta: { messages: { create: async params => {
+        calls.push(params);
+        if (params.stream) return events(params.model);
+        return { id: 'msg_r', type: 'message', role: 'assistant', model: params.model, content: [{ type: 'text', text: JSON.stringify(reflection) }], stop_reason: 'end_turn', usage: { input_tokens: 30, output_tokens: 60 } };
+      } } },
+      models: { retrieve: async id => ({ id, type: 'model', display_name: id }) },
+    }),
+  };
+}
+
+async function claude(browser) {
+  const { createServer } = await import(pathToFileURL(path.join(LEGION, 'server/serve.mjs')).href);
+  const up = fakeUpstream();
+  // the key in the server's environment only makes /api/health report one; the fake upstream answers every request
+  const server = createServer({ root: LEGION, env: { ANTHROPIC_API_KEY: 'sk-ant-e2e-placeholder' }, clientFactory: up.factory, log: () => {} });
+  await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const { context, page, errors } = await openPage(browser, { viewport: { width: 1280, height: 800 } });
+  try {
+    await step('Claude through the Legion server: the reply streams into the Talk tab, and the mind keeps the conversation', async () => {
+      await boot(page, `${origin}/`);
+      await page.evaluate(() => { window.legion.clock.pause(); window.legion.settings.set({ network: { claude: true } }); });
+      await page.waitForFunction(() => window.legion.settings.proxyURL === '/api/anthropic', null, { timeout: 5000 });
+      await page.evaluate(() => window.legion.place('94110'));
+      await page.locator('#place-panel .resident').first().click();
+      await page.locator('#npc-panel').waitFor({ state: 'visible', timeout: 5000 });
+      const id = await page.evaluate(() => window.legion.npcPanel.id);
+      await page.click('#npc-tab-talk');
+      await page.click('label[for="talk-engine-claude"]');
+      const engine = (await page.locator('#npc-tabpanel-talk .talk-engine').textContent()).trim();
+      expect(/Claude Opus 5\.5, through the Legion server/.test(engine), `engine line "${engine}"`);
+      await page.locator('#npc-tabpanel-talk .talk-input').fill('Hi, I’m Sam. Will the fog burn off?');
+      await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+      // mid-stream: part of the reply is on screen while the bubble is still streaming
+      const partial = await page.waitForFunction(full => {
+        const b = document.querySelector('#npc-tabpanel-talk .bubble.from-npc.is-streaming .bubble-text');
+        const t = b ? b.textContent : '';
+        return t && t.length < full.length ? t : null;
+      }, up.reply, { timeout: 10000 }).then(h => h.jsonValue());
+      await page.waitForFunction(full => {
+        const b = [...document.querySelectorAll('#npc-tabpanel-talk .bubble.from-npc')].pop();
+        return b && !b.classList.contains('is-streaming') && b.querySelector('.bubble-text').textContent === full;
+      }, up.reply, { timeout: 15000 });
+      const meta = (await page.locator('#npc-tabpanel-talk .bubble.from-npc .bubble-meta').last().textContent()).trim();
+      expect(/claude-opus-5-5/.test(meta), `meta "${meta}"`);
+      // what reached Anthropic: three cache breakpoints, the situation after the player's line, no key from the page
+      const turn = up.calls.find(c => c.stream);
+      expect(turn && turn.system.length === 2 && turn.system.every(b => b.cache_control), 'the system blocks');
+      expect(JSON.stringify(turn).match(/"cache_control"/g).length === 3, 'three cache breakpoints');
+      expect(turn.messages.at(-1).role === 'system' && /Situation for this turn/.test(turn.messages.at(-1).content), 'the situation note');
+      // a second turn carries the first as history
+      await page.locator('#npc-tabpanel-talk .talk-input').fill('Thanks!');
+      await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+      await page.waitForFunction(() => document.querySelectorAll('#npc-tabpanel-talk .bubble.from-npc:not(.is-streaming)').length >= 2 && !document.querySelector('#npc-tabpanel-talk .is-streaming'), null, { timeout: 15000 });
+      const turns = up.calls.filter(c => c.stream);
+      expect(turns.length === 2 && turns[1].messages.length === turns[0].messages.length + 3, 'the history of the first turn');
+      // leaving reflects the conversation into the NPC's mind (llm.reflect, stored through the mind)
+      await page.click('#npc-panel [aria-label="Close NPC"]');
+      await page.waitForFunction(i => {
+        const m = window.legion.services.mind(i);
+        return m.ok && m.value.toJSON().memory.some(x => x.text === 'A visitor named Sam asked me about the fog.');
+      }, id, { timeout: 10000 });
+      const mind = await page.evaluate(i => { const m = window.legion.services.mind(i).value; return { facts: m.relationship('player').facts.map(f => f.text), heard: m.toJSON().memory.filter(x => /The player said/.test(x.text)).length }; }, id);
+      expect(mind.facts.includes('is named Sam'), `facts ${JSON.stringify(mind.facts)}`);
+      expect(mind.heard >= 2, 'the player\'s lines are not in the mind');
+      expect(up.calls.some(c => !c.stream && c.output_config && c.output_config.format), 'no reflection request');
+      return `streamed "${partial}" … "${up.reply}"; ${turns.length} turns; reflected into ${id}`;
+    });
+    await step('Claude through the Legion server: no page errors', async () => { expect(!errors.length, errors.slice(0, 3).join(' | ')); return 'none'; });
+  } finally {
+    await context.close();
+    if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
+}
+
 // ------------------------------------------------------------------ phone
 
 async function phone(browser) {
@@ -607,10 +821,12 @@ async function phone(browser) {
   if (!await step('phone: boots to ready', async () => { await boot(page); return 'ready'; })) { await context.close(); return; }
   await waitForCrowd(page).catch(() => {});
   await page.keyboard.press(' ');   // pause: a still page keeps software WebGL from slowing every tap
-  await step('phone: 390 px wide with no horizontal scroll', async () => {
+  await step('phone: 390 px wide with no horizontal scroll, and the legend inside the screen', async () => {
     const w = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
     expect(w[0] <= 390 && w[1] === 390, `scrollWidth ${w[0]}, innerWidth ${w[1]}`);
-    return `${w[0]} px`;
+    const chips = await page.locator('.legend .legend-chip').evaluateAll(cs => cs.map(c => { const r = c.getBoundingClientRect(); return [c.textContent.trim(), Math.round(r.left), Math.round(r.right)]; }));
+    expect(chips.length >= 5 && chips.every(([, l, r]) => l >= 0 && r <= 390), `legend chips ${JSON.stringify(chips)}`);
+    return `${w[0]} px; ${chips.length} legend chips inside`;
   });
   await step('phone: search opens the Place sheet and a resident opens the NPC sheet', async () => {
     await page.locator('#search-input').tap();
@@ -655,6 +871,7 @@ async function main() {
     await desktop(browser);
     await damaged(browser);
     await served(browser);
+    await claude(browser);
     await phone(browser);
   } finally {
     await browser.close();

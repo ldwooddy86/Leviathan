@@ -1,13 +1,16 @@
 // Legion · the crowd Worker: builds the agents off the main thread and answers stats queries.
 //
 // Messages in
-//   {type: 'build', id, pack, popSeed, rate, seed, focus, regions, chunkTarget}
+//   {type: 'prepare', pack, popSeed}         decode the pack and build the World, Population, road net and raster
+//                                           now, so the first build starts at once (the page prewarms at boot)
+//   {type: 'build', id, pack, popSeed, rate, seed, focus, regions, zips, chunkTarget, firstChunkTarget}
 //       pack: gzip bytes, a base64 gzip string or the parsed pack object (null: reuse the world already loaded, or
-//       the one still loading: a build that arrives while the pack is being decoded waits for it)
+//       the one still loading: a build that arrives while the pack is being decoded waits for it). zips: the ZIP
+//       indices this Worker builds, in order (a pool of Workers shares one build); else regions / focus order all.
 //   {type: 'stats', seq, minute, dow, t}    counts by state over the chunks of the latest build
 //   {type: 'cancel'}                        stop the running build at its next yield
 // Messages out
-//   {type: 'loaded', id, ms} · {type: 'chunk', id, chunk, progress} (typed arrays transferred) ·
+//   {type: 'prepared', ms} · {type: 'loaded', id, ms} · {type: 'chunk', id, chunk, progress} (typed arrays transferred) ·
 //   {type: 'progress', id, progress} · {type: 'done', id, summary} · {type: 'error', id, message} ·
 //   {type: 'stats', seq, stats, t}
 //
@@ -47,6 +50,29 @@ function startLoading(pack) {
   return S.loading;
 }
 
+/** The Population for a seed (kept between builds: its fitted models are the expensive part), the road net, the raster. */
+function ready(popSeed) {
+  const key = popSeed == null ? 'default' : String(popSeed);
+  if (!S.pop || S.popKey !== key) { S.pop = new Population(S.world, popSeed == null ? {} : { seed: popSeed }); S.popKey = key; }
+  if (!S.net) S.net = buildRoadNet(S.world);
+  S.world.raster();
+}
+
+async function prepare(m) {
+  const t0 = performance.now();
+  try {
+    if (m.pack != null) startLoading(m.pack);
+    if (S.loading) await S.loading;
+    if (!S.world) throw new Error('no world pack');
+    ready(m.popSeed);
+    // the population's one-time tables (county lists, the first model fit's set-up) are built now, not in the build
+    if (S.world.N) S.pop.householdSize(0, 0);
+    post({ type: 'prepared', ms: Math.round(performance.now() - t0) });
+  } catch (err) {
+    post({ type: 'error', id: -1, message: String((err && (err.stack || err.message)) || err) });
+  }
+}
+
 async function build(m) {
   const id = m.id;
   S.job = id;
@@ -56,15 +82,12 @@ async function build(m) {
     if (S.loading) await S.loading;
     if (S.job !== id) return;
     if (!S.world) throw new Error('no world pack');
-    const key = m.popSeed == null ? 'default' : String(m.popSeed);
-    if (!S.pop || S.popKey !== key) { S.pop = new Population(S.world, m.popSeed == null ? {} : { seed: m.popSeed }); S.popKey = key; }
-    if (!S.net) S.net = buildRoadNet(S.world);
-    S.world.raster();
+    ready(m.popSeed);
     post({ type: 'loaded', id, ms: Math.round(performance.now() - t0) });
     S.chunks = [];
     const gen = buildAgentsGen(S.world, S.pop, {
-      rate: m.rate, seed: m.seed, focus: m.focus || null, regions: m.regions || null,
-      chunkTarget: m.chunkTarget || 131072, byRegion: true, roadNet: S.net, pickIndex: true,
+      rate: m.rate, seed: m.seed, focus: m.focus || null, regions: m.regions || null, zips: Array.isArray(m.zips) ? m.zips : null,
+      chunkTarget: m.chunkTarget || 131072, firstChunkTarget: m.firstChunkTarget || 0, byRegion: true, roadNet: S.net, pickIndex: true,
     });
     let r, last = 0, sliceAt = performance.now();
     while (!(r = gen.next()).done) {
@@ -99,6 +122,7 @@ function stats(m) {
 self.onmessage = e => {
   const m = e.data || {};
   if (m.type === 'build') build(m);
+  else if (m.type === 'prepare') prepare(m);
   else if (m.type === 'stats') stats(m);
   else if (m.type === 'cancel') S.job = -1;
 };

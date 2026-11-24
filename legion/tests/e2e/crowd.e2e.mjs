@@ -313,15 +313,21 @@ test('the main-thread fallback builds the same crowd', { timeout: 300000 }, asyn
   const rate = 0.002;
   const a = await openDev(`rate=${rate}&keep=1&worker=0`);
   const b = await openDev(`rate=${rate}&keep=1`);
+  // every agent's record hashed, then summed: the same people give the same signature whatever the chunking (a pool
+  // of Workers deals the ZIPs out, so its chunks hold the agents in another order than one main-thread pass)
   const sig = page => page.evaluate(() => {
     const c = window.__legionDev.crowd, s = window.__legionDev.summary;
-    let h = 0;
-    for (const ch of c.chunks) for (const k of ['ids', 'home', 'dest', 'timing', 'route', 'errand']) { const v = ch[k]; for (let i = 0; i < v.length; i += 7) h = (Math.imul(h, 31) + v[i]) | 0; }
-    return { mode: s.mode, agents: s.agents, highway: s.highway, h };
+    let h = 0, h2 = 0;
+    for (const ch of c.chunks) for (let i = 0; i < ch.count; i++) {
+      let a = ch.ids[i] | 0;
+      for (const [k, w] of [['home', 2], ['dest', 2], ['timing', 3], ['route', 3], ['errand', 1], ['days', 1], ['mode', 1]]) for (let j = 0; j < w; j++) a = (Math.imul(a, 31) + ch[k][w * i + j]) | 0;
+      h = (h + a) | 0; h2 = (h2 + Math.imul(a, a | 1)) | 0;
+    }
+    return { mode: s.mode, agents: s.agents, highway: s.highway, h, h2 };
   });
   const [sa, sb] = [await sig(a.page), await sig(b.page)];
   assert.equal(sa.mode, 'main'); assert.equal(sb.mode, 'worker');
-  assert.equal(sa.agents, sb.agents); assert.equal(sa.highway, sb.highway); assert.equal(sa.h, sb.h);
+  assert.equal(sa.agents, sb.agents); assert.equal(sa.highway, sb.highway); assert.equal(sa.h, sb.h); assert.equal(sa.h2, sb.h2);
   assert.deepEqual(a.errors, []); assert.deepEqual(b.errors, []);
   await a.page.close(); await b.page.close();
 });

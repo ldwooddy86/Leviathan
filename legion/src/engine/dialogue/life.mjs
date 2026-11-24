@@ -16,7 +16,8 @@ import { MESES } from './core.mjs';
  * @returns {{short: string, doing: string, en: string[], es: Array<[string, string]>}|null}
  */
 export function interestTalk(name, opts = {}) {
-  const n = String(name || '').trim();
+  // "hiking in the San Bruno Mountain" is said "hiking on San Bruno Mountain"
+  const n = String(name || '').trim().replace(/\bhiking in the ((?:[A-Z][\w'.-]*\s)+Mountain)\b(?!s)/, 'hiking on $1');
   if (!n) return null;
   if (opts.tradition) {
     return {
@@ -47,7 +48,7 @@ const INTERESTS = [
   [/^skiing and snowboarding$/, I('skiing', 'up on the slopes', ["I ski all winter, whenever there's snow.", 'Skiing, as much as I can in the winter.'], [['En invierno me gusta esquiar.', 'In winter I like to ski.']])],
   [/^snowshoeing$/, I('snowshoeing', 'out on the snow', ["I snowshoe in the winter. It's quiet out there."], [['En invierno salgo a caminar en la nieve.', 'In winter I go walking in the snow.']])],
   [/^ski trips up to (.+)$/, m => ({ short: 'skiing', doing: `skiing up in ${m[1]}`, en: [`We try to get up to ${m[1]} to ski every winter.`, `Ski trips up to ${m[1]} when there's snow.`], es: [[`En invierno vamos a esquiar a ${m[1]}.`, `In winter we go skiing in ${m[1]}.`]] })],
-  [/^hiking (up|near|in the) (.+)$/, m => ({ short: 'hiking', doing: `hiking ${m[1]} ${m[2]}`, en: [`I hike ${m[1]} ${m[2]} a lot.`, `I love hiking, especially ${m[1]} ${m[2]}.`], es: [['Me gusta salir de excursión.', 'I like to go hiking.']] })],
+  [/^hiking (up|near|in the|on) (.+)$/, m => ({ short: 'hiking', doing: `hiking ${m[1]} ${m[2]}`, en: [`I hike ${m[1]} ${m[2]} a lot.`, `I love hiking, especially ${m[1]} ${m[2]}.`], es: [['Me gusta salir de excursión.', 'I like to go hiking.']] })],
   [/^fishing at (.+)$/, m => ({ short: 'fishing', doing: `fishing at ${m[1]}`, en: [`I fish at ${m[1]} when I get the chance.`, `Fishing. ${m[1]} is my spot.`], es: [[`Me gusta ir a pescar a ${m[1]}.`, `I like to go fishing at ${m[1]}.`]] })],
   [/^stargazing out in the desert$/, I('stargazing', 'out in the desert looking at the stars', ['I like driving out to look at the stars. No city lights out there.'], [['Me gusta ver las estrellas en el desierto.', 'I like looking at the stars in the desert.']])],
   [/^off-roading$/, I('off-roading', 'out off-roading in the desert', ['I go off-roading in the desert on weekends.'], [['Los fines de semana salgo al desierto en el carro.', 'On weekends I drive out into the desert.']])],
@@ -203,20 +204,25 @@ export function jobSpanish(group, title, sex) {
   return G[group] || ['Tengo un buen trabajo.', 'I have a good job.'];
 }
 
-// Titles whose work the Census group misdescribes: a farmer counts as management, but the job is farming.
+// Titles whose work the Census group misdescribes: a farmer counts as management, but the job is farming; cattle and
+// a ranch are ranching (no harvest to follow).
 const FEEL_BY_TITLE = [
-  [/\b(farmer|rancher|grower|farm|orchard|vineyard|dairy|cattle)\b/, 'farming'],
+  [/\b(rancher|ranch hand|cattle|cowboy|livestock|herd)\b/, 'ranching'],
+  [/\b(farmer|grower|farm|orchard|vineyard|dairy)\b/, 'farming'],
 ];
 
 /**
- * Which "job.feel" bank fits a job: by title first (a farmer is farming, whatever the Census group), else by the
- * Census occupation group.
+ * Which "job.feel" bank fits a job: by title (and the employer, which says a farmer's farm is a cattle ranch) first,
+ * else by the Census occupation group.
  * @param {string|null} group a Census occupation group (persona routine.occKey)
  * @param {string|null} [title] the job title
+ * @param {string|null} [employer] the employer ("their cattle ranch")
  * @returns {string} a template key, 'job.feel.<kind>'
  */
-export function feelKey(group, title = null) {
+export function feelKey(group, title = null, employer = null) {
   const t = String(title || '').toLowerCase();
+  const e = String(employer || '').toLowerCase();
+  if (/\bfarmer\b|\bowner\b|\bmanager\b/.test(t) && /\b(cattle|ranch|livestock)\b/.test(e)) return 'job.feel.ranching';
   for (const [re, k] of FEEL_BY_TITLE) if (re.test(t)) return `job.feel.${k}`;
   const K = {
     farming: 'farming', construction: 'construction', practitioner: 'health', healthtech: 'health', healthsupport: 'health',
@@ -226,6 +232,93 @@ export function feelKey(group, title = null) {
     science: 'science', social: 'social',
   };
   return `job.feel.${K[group] || 'any'}`;
+}
+
+// A workplace as named in Spanish, from the catalog's English employer ("a regional hospital" → "un hospital
+// regional"): [pattern, Spanish]. The first match wins, so the specific kinds come first.
+const EMPLOYER_ES = [
+  [/\bcounty hospital\b/, 'el hospital del condado'], [/\bchildren'?s hospital\b/, 'un hospital de niños'], [/\bregional hospital\b/, 'un hospital regional'],
+  [/\bhospital\b/, 'un hospital'], [/\b(urgent care|clinic|health center|medical (office|group|center))\b/, 'una clínica'],
+  [/\b(nursing home|assisted living|care home|senior (home|center|living)|skilled nursing)\b/, 'una casa de reposo'], [/\bdental\b/, 'un consultorio dental'],
+  [/\b(community college)\b/, 'un colegio comunitario'], [/\b(university|college|campus)\b/, 'la universidad'], [/\b(school district|elementary|middle school|high school|school|preschool|daycare)\b/, 'una escuela'],
+  [/\b(packing ?house|packing plant|cannery|processing plant)\b/, 'una empacadora'], [/\b(warehouse|distribution center|fulfillment center|logistics)\b/, 'una bodega'],
+  [/\b(dairy)\b/, 'una lechería'], [/\b(winery|vineyard)\b/, 'un viñedo'], [/\b(grower|farm|ranch|orchard|field|nursery|greenhouse)\b/, 'un rancho'],
+  [/\b(restaurant|diner|taqueria|caf[eé]|bakery|kitchen|food truck)\b/, 'un restaurante'], [/\b(grocery|supermarket|market)\b/, 'un supermercado'],
+  [/\b(store|shop|mall|retailer|boutique)\b/, 'una tienda'], [/\b(factory|plant|manufactur\w*|assembly)\b/, 'una fábrica'],
+  [/\b(construction|contractor|builder|roofing|plumbing|electric)\b/, 'una compañía de construcción'], [/\b(hotel|motel|resort|inn)\b/, 'un hotel'],
+  [/\b(bank|credit union)\b/, 'un banco'], [/\b(airport)\b/, 'el aeropuerto'], [/\b(port|harbor|terminal)\b/, 'el puerto'], [/\b(casino)\b/, 'un casino'],
+  [/\b(church|parish)\b/, 'una iglesia'], [/\b(city|county|state agency|government|post office)\b/, 'el gobierno'],
+  [/\b(auto shop|body shop|garage|dealership)\b/, 'un taller'], [/\b(salon|barbershop|spa)\b/, 'un salón de belleza'],
+  [/\b(office|firm|agency|company|startup|consultancy)\b/, 'una compañía'],
+];
+
+/**
+ * A workplace in Spanish for a catalog employer ("a regional hospital" → "un hospital regional", "their own
+ * orchard" → "mi propio rancho"), or null when the kind of place is not known.
+ * @param {string|null} employer
+ * @returns {string|null}
+ */
+export function employerEs(employer) {
+  const e = String(employer || '').toLowerCase().trim();
+  if (!e || /^a local employer$/.test(e)) return null;
+  const own = /^their own\b/.test(e), family = /^their family'?s?\b/.test(e);
+  for (const [re, es] of EMPLOYER_ES) {
+    if (!re.test(e)) continue;
+    const noun = es.replace(/^(un|una|el|la) /, '');
+    if (own) return `mi propi${/^(una|la) /.test(es) ? 'a' : 'o'} ${noun}`;
+    if (family) return `${/^(una|la) /.test(es) ? 'la' : 'el'} ${noun} de mi familia`;
+    return es;
+  }
+  return null;
+}
+
+// Places Spanish names its own way. The rest of the record's birthplaces (Michoacán, El Salvador, Jalisco) are
+// already Spanish names; a name with its own article keeps it only when it comes first ("la Ciudad de México").
+const PLACE_ES = {
+  'mexico city': 'la Ciudad de México', 'state of mexico': 'el Estado de México', mexico: 'México', 'guatemala city': 'la Ciudad de Guatemala',
+  'panama city': 'la Ciudad de Panamá', panama: 'Panamá', peru: 'Perú', philippines: 'Filipinas', spain: 'España', brazil: 'Brasil',
+  'dominican republic': 'la República Dominicana', 'united states': 'Estados Unidos', japan: 'Japón', 'south korea': 'Corea del Sur',
+  korea: 'Corea', canada: 'Canadá', germany: 'Alemania', italy: 'Italia', france: 'Francia', england: 'Inglaterra',
+  'united kingdom': 'el Reino Unido', ireland: 'Irlanda', portugal: 'Portugal', yucatan: 'Yucatán', 'nuevo leon': 'Nuevo León',
+  queretaro: 'Querétaro', michoacan: 'Michoacán', 'san luis potosi': 'San Luis Potosí', cambodia: 'Camboya', thailand: 'Tailandia',
+  lebanon: 'el Líbano', iran: 'Irán', armenia: 'Armenia', russia: 'Rusia', ukraine: 'Ucrania', poland: 'Polonia', egypt: 'Egipto',
+  ethiopia: 'Etiopía', haiti: 'Haití', belize: 'Belice', 'new york': 'Nueva York', 'new mexico': 'Nuevo México',
+};
+
+/**
+ * A place name as a Spanish speaker says it: "Mexico City" → "la Ciudad de México", "Toluca, State of Mexico" →
+ * "Toluca, Estado de México", "the Philippines" → "Filipinas". Names Spanish shares ("Michoacán", "Fresno") come back
+ * unchanged.
+ * @param {string|null} name
+ * @returns {string|null}
+ */
+export function placeEs(name) {
+  if (name === null || name === undefined) return name;
+  const parts = String(name).split(',').map(x => x.trim());
+  return parts.map((p, i) => {
+    const es = PLACE_ES[p.toLowerCase().replace(/^the /, '')];
+    if (!es) return p;
+    return i === 0 ? es : es.replace(/^(el|la) /, '');
+  }).join(', ');
+}
+
+// Whole background labels in Spanish, by the speaker's sex: [man, woman].
+const HERITAGE_WHOLE_ES = {
+  'african american': ['afroamericano', 'afroamericana'], 'native american': ['indígena', 'indígena'], 'asian american': ['asiático-americano', 'asiático-americana'],
+  'pacific islander': ['de las islas del Pacífico', 'de las islas del Pacífico'], 'native hawaiian': ['hawaiano', 'hawaiana'],
+  'alaska native': ['nativo de Alaska', 'nativa de Alaska'], latino: ['latino', 'latina'], latina: ['latina', 'latina'], hispanic: ['hispano', 'hispana'],
+};
+
+/**
+ * A background label as a Spanish speaker says it of themself ("Hispanic" → "hispana" for a woman), or the label
+ * itself when Spanish has no settled word for it.
+ * @param {string} label
+ * @param {'M'|'F'} sex
+ * @returns {string}
+ */
+export function heritageLabelEs(label, sex) {
+  const hit = HERITAGE_WHOLE_ES[String(label || '').toLowerCase().trim()];
+  return hit ? hit[sex === 'F' ? 1 : 0] : String(label || '');
 }
 
 /** School level words: [English, Spanish]. */

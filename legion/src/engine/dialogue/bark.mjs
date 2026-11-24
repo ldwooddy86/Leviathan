@@ -13,7 +13,7 @@ import { Rng, hashAll } from '../rng.mjs';
 import { Picker, phrasesFor, LANGUAGES } from '../lexicon.mjs';
 import { compileBank, isNum, cleanGloss, cleanText, terminate, tidy, fillLine, tagsHold, fitsLife } from './core.mjs';
 import { makeVoice } from './voice.mjs';
-import { lex, baseSlots } from './plan.mjs';
+import { lex, baseSlots, AUDIENCE_NOTE, TU_FORMS } from './plan.mjs';
 import * as G from './ground.mjs';
 
 /** The bark bank: English lines, and Spanish lines with their English. */
@@ -196,13 +196,19 @@ export const BARK_SITUATIONS = Object.freeze(['pass', 'wait', 'weather', 'alert'
 const voices = new WeakMap();
 const WINDOW = 10 * 60000;
 
+/**
+ * The speaker's voice for the ten-minute window holding t, built at the middle of the window whatever time asked
+ * first: a bark depends on the window and the minute, never on which call came before it (at exactly half past the
+ * hour the nearest forecast hour is a tie, and a voice built then would carry the earlier hour into the window).
+ * Windows start on the ten minutes, so one never straddles an hour.
+ */
 function voiceFor(world, persona, t) {
   const key = Math.floor(t / WINDOW);
   let byWorld = voices.get(persona);
   if (!byWorld) voices.set(persona, byWorld = new WeakMap());
   const hit = byWorld.get(world);
   if (hit && hit.key === key) return hit.v;
-  const v = makeVoice(world, persona, { t });
+  const v = makeVoice(world, persona, { t: key * WINDOW + WINDOW / 2 });
   byWorld.set(world, { key, v });
   return v;
 }
@@ -245,9 +251,35 @@ function sayFrom(S, list, key, slots, facts) {
   return null;
 }
 
-function phrase(v, lang, intent, rng) {
-  const list = (phrasesFor(lang, intent, { sex: v.sex, t: v.t, variety: v.lang.known === lang ? v.lang.variety : undefined, faith: v.lang.faith }) || [])
-    .filter(e => !e.to && !/\((to a (man|woman|boy|girl)|to someone|said when)/i.test(e.gloss));
+/**
+ * Whether a phrase said to someone in particular ("Hello (to an elder)", "(to a man)") fits the neighbor it is said
+ * to: an elder's greeting only to someone well older, a man's only to a grown man, and nothing meant for a friend, a
+ * stranger or a customer between neighbors passing on the street.
+ */
+function audienceFits(gloss, v, vo) {
+  if (!AUDIENCE_NOTE.test(gloss)) return true;
+  if (!vo) return false;
+  const g = String(gloss).toLowerCase(), older = vo.age - v.age, adult = vo.age >= 18;
+  if (/to an (elder|older)/.test(g)) return older >= 15 || (vo.age >= 65 && older >= 8);
+  if (/to a (younger|child|kid)/.test(g)) return older <= -15 || vo.age < 13;
+  if (/to a man\b/.test(g)) return vo.sex === 'M' && adult;
+  if (/to a woman\b/.test(g)) return vo.sex === 'F' && adult;
+  if (/to a boy\b/.test(g)) return vo.sex === 'M' && !adult;
+  if (/to a girl\b/.test(g)) return vo.sex === 'F' && !adult;
+  return false;
+}
+
+/**
+ * A phrase in a shared language for a bark, fit for the speaker and the neighbor they say it to (vo, their voice):
+ * the listener's sex and age decide the phrases tied to them, and a speaker who says usted to strangers, or anyone
+ * talking to someone much older, keeps to the respectful forms (no "¿Qué onda?" from a grandmother).
+ */
+function phrase(v, lang, intent, rng, vo = null) {
+  const respect = !!v.lang.usted || (vo && vo.age - v.age >= 15);
+  const opts = { sex: v.sex, t: v.t, variety: v.lang.known === lang ? v.lang.variety : undefined, faith: v.lang.faith, to: vo ? vo.sex : undefined, register: respect ? 'respect' : undefined };
+  const list = (phrasesFor(lang, intent, opts) || [])
+    .filter(e => (!e.to || (vo && e.to === vo.sex)) && audienceFits(e.gloss, v, vo)
+      && (lang !== 'spanish' || (respect ? !TU_FORMS.test(e.text) : true)));
   const e = rng.pick(list);
   return e ? { text: e.text, gloss: cleanGloss(e.gloss) } : null;
 }
@@ -269,15 +301,16 @@ function barkLine(world, persona, context = {}) {
   const W = G.weatherFacts(v);
   const slots = { temp: W.temp, alert: W.alerts[0] ? W.alerts[0].event : null };
   const done = (p, kind, lang = null) => (p && p.text ? { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null, kind, lang, question: /\?$/.test(p.text.trim()) } : null);
+  // the neighbor they say it to, whose age and sex some phrases depend on
+  let vo = null;
+  if (other) { try { vo = voiceFor(world, other, t); } catch { vo = null; } }
 
   // neighbors who share a home language sometimes greet in it
   if (situation === 'pass' && other) {
-    let vo = null;
-    try { vo = voiceFor(world, other, t); } catch { vo = null; }
     const shared = vo ? sharedLanguage(v, vo) : null;
     if (shared && v.age >= 5) {
       const both = v.lang.mode !== 'en' || (vo && vo.lang.mode !== 'en');
-      const p = both || rng.chance(0.5 + (v.lang.cs ? v.lang.cs.rate : 0)) ? phrase(v, shared, rng.chance(0.7) ? 'greeting' : 'how_are_you', rng) : null;
+      const p = both || rng.chance(0.5 + (v.lang.cs ? v.lang.cs.rate : 0)) ? phrase(v, shared, rng.chance(0.7) ? 'greeting' : 'how_are_you', rng, vo) : null;
       if (p) return done(p, 'greet', shared);
     }
   }
@@ -293,7 +326,7 @@ function barkLine(world, persona, context = {}) {
     if (v.lang.mode === 'simple' || (v.lang.cs && rng.chance(v.lang.cs.rate))) {
       const lang = v.lang.known || v.lang.cs.lang;
       const intent = W.cond === 'heat' ? 'weather_hot' : W.cond === 'cold' ? 'weather_cold' : W.cond === 'rain' ? 'weather_rain' : null;
-      const p = intent && lang ? phrase(v, lang, intent, rng) : null;
+      const p = intent && lang ? phrase(v, lang, intent, rng, vo) : null;
       if (p) return done(p, 'weather', lang);
     }
     const p = sayBark(S, 'bark.weather', slots, ['weather.now']);
@@ -316,7 +349,7 @@ function barkLine(world, persona, context = {}) {
   if (!p) p = rng.chance(0.3) ? sayBark(S, 'bark.passQ') : sayBark(S, 'bark.pass');
   if (!p) return null;
   if (v.lang.mode === 'en' && v.lang.cs && rng.chance(v.lang.cs.rate * 0.5)) {
-    const ph = phrase(v, v.lang.cs.lang, 'greeting', rng);
+    const ph = phrase(v, v.lang.cs.lang, 'greeting', rng, vo);
     if (ph) return done({ text: ph.text, gloss: ph.gloss }, 'greet', v.lang.cs.lang);
   }
   return done(p, 'greet');
@@ -335,16 +368,18 @@ export function bark(world, persona, context = {}) {
   return b ? { text: b.text, gloss: b.gloss } : null;
 }
 
-function replyTo(world, persona, opener, context) {
+function replyTo(world, persona, opener, context, from = null) {
   const t = timeOf(world, persona, context);
   let v;
   try { v = voiceFor(world, persona, t); } catch { return null; }
   if (v.age < 3) return null;
+  let vo = null;
+  if (from) { try { vo = voiceFor(world, from, t); } catch { vo = null; } }
   const rng = new Rng(hashAll('reply', persona.id || '', opener ? opener.text : '', Math.floor(t / 60000)));
   const S = session(v, rng);
   const W = G.weatherFacts(v);
   if (opener && opener.lang && (v.lang.known === opener.lang || (v.lang.cs && v.lang.cs.lang === opener.lang))) {
-    const p = phrase(v, opener.lang, opener.question ? 'how_are_you' : 'greeting', rng) || phrase(v, opener.lang, 'greeting', rng);
+    const p = phrase(v, opener.lang, opener.question ? 'how_are_you' : 'greeting', rng, vo) || phrase(v, opener.lang, 'greeting', rng, vo);
     if (p) return { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null };
   }
   let key = 'bark.replyGreet';
@@ -376,7 +411,7 @@ export function barkBetween(world, personaA, personaB, context = {}) {
     const b = barkLine(world, personaB, Object.assign({}, ctx, { other: personaA, situation: ctx.situation || 'pass' }));
     return [null, b ? { text: b.text, gloss: b.gloss } : null];
   }
-  const b = replyTo(world, personaB, a, ctx);
+  const b = replyTo(world, personaB, a, ctx, personaA);
   return [{ text: a.text, gloss: a.gloss }, b];
 }
 

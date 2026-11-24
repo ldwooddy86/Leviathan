@@ -1,6 +1,6 @@
 // Legion · crowd development page (src/world/dev.html, served over http from legion/).
 //
-// URL parameters: rate (share of households, default 0.01), theme (dark | light), t (epoch ms or a Pacific
+// URL parameters: rate (share of households, default 0.01), workers (Workers sharing a build), theme (dark | light), t (epoch ms or a Pacific
 // 'YYYY-MM-DDTHH:MM'), play (1 to start the clock), speed (sim seconds per second), worker (0 = build on the main
 // thread), pack (0 = do not hand the fetched pack to the Crowd: it uses window.__LEGION_PACK__ or world.pack), keep
 // (0..1 drawn share, fixed), build (0 = do not start a build; call window.__legionDev.build(rate)).
@@ -51,7 +51,7 @@ async function main() {
   const world = createWorld(await loadPack(bytes));
   const pop = new Population(world, { seed: LEGION_SEED });
   const map = new MapView($('map'), { world, theme });
-  const crowd = new Crowd(map, { world, population: pop, rate, seed: 1, pack: qs.get('pack') === '0' ? null : bytes, worker: qs.get('worker') !== '0' });
+  const crowd = new Crowd(map, { world, population: pop, rate, seed: 1, pack: qs.get('pack') === '0' ? null : bytes, worker: qs.get('worker') !== '0', workers: qs.has('workers') ? +qs.get('workers') : null });
   if (qs.has('keep')) crowd.setQuality({ keep: +qs.get('keep'), auto: false });
   Object.assign(dev, { world, pop, map, crowd, atPacific, loadMs: Math.round(performance.now() - t0) });
 

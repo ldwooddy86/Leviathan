@@ -105,7 +105,7 @@ function slurRe() {
 // Heritage and background questions about the NPC: answered plainly from the record, not probes.
 // (religions are their own question: "are you Catholic?" is about faith, not family background)
 const HERITAGE_ADJ = ADJECTIVES.filter(a => !/^(illegal|undocumented|foreign|immigrant|gay|lesbian|trans|transgender|queer|jewish|muslim|christian|catholic|mormon|hindu|buddhist|sikh)$/.test(a));
-const HERITAGE_Q = new RegExp(`\\b(?:are you|is your family|are your parents|you'?re) (?:a |an )?(?:${HERITAGE_ADJ.join('|')}|mixed|biracial)\\b(?! (?:food|restaurant|place|market|church|community|guy|people))|\\bwhat'?s your (?:ethnicity|background|heritage|nationality|race)\\b|\\bwhere (?:are|is|was) your (?:family|parents|folks|people|mom|dad) from\\b|\\bwhat (?:nationality|ethnicity|race|background) are you\\b|\\bwhere'?s your family from\\b`);
+const HERITAGE_Q = new RegExp(`\\b(?:are you|is your family|are your parents|you'?re) (?:a |an )?(?:${HERITAGE_ADJ.join('|')}|mixed|biracial)\\b(?! (?:food|restaurant|place|market|church|community|guy|people))|\\bwhat(?:'?s| is) your (?:family'?s )?(?:ethnicity|ethnic background|background|heritage|nationality|race)\\b|\\bwhere (?:are|is|was) your (?:family|parents|folks|people|mom|dad) from\\b|\\bwhat (?:nationality|ethnicity|race|background) are you\\b|\\bwhere'?s your family from\\b`);
 
 /**
  * Read a player's line for a probe: a generalization about a group of people, an immigration-status question, a

@@ -415,6 +415,14 @@ const OUTDOOR_OCC = new Set(['farming', 'construction', 'transport', 'moving', '
 const OUTDOOR_PLACES = new Set(['beach', 'trailhead', 'water', 'park', 'stadium']);
 const SEVERITY = { Extreme: 0.35, Severe: 0.25, Moderate: 0.15, Minor: 0.08 };
 
+// Where the moods a Claude reflection reports (llm.MOODS) sit on valence and arousal, for applyReflection.
+const MOOD_OF = {
+  happy: [0.6, 0.6], content: [0.45, 0.3], calm: [0.3, 0.15], grateful: [0.55, 0.35], amused: [0.5, 0.55], excited: [0.6, 0.85],
+  proud: [0.5, 0.55], hopeful: [0.4, 0.45], affectionate: [0.55, 0.4], neutral: [0, 0.35], curious: [0.2, 0.55], surprised: [0.1, 0.75],
+  confused: [-0.15, 0.5], bored: [-0.2, 0.1], tired: [-0.15, 0.1], uneasy: [-0.3, 0.55], anxious: [-0.45, 0.75], worried: [-0.4, 0.6],
+  sad: [-0.55, 0.25], lonely: [-0.45, 0.2], embarrassed: [-0.3, 0.6], annoyed: [-0.4, 0.6], frustrated: [-0.5, 0.7], angry: [-0.65, 0.85], hurt: [-0.6, 0.5],
+};
+
 const COASTAL_EVENT = /coastal|surf|rip current|beach|tsunami|sneaker wave|lakeshore/i;
 
 /**
@@ -901,6 +909,40 @@ export class Mind {
     for (const b of out) this.remember(b.text, 0.6, ['reflection', b.about, b.topic], { t: when, kind: 'reflection' });
     st.reflection = { pending: 0, last: isNum(when) ? when : st.reflection.last, lastSeq: st.seq };
     return out;
+  }
+
+  /**
+   * Store what the NPC made of a conversation with Claude (llm.ClaudeVoice.reflect, REFLECTION_SCHEMA): the summary,
+   * the line they will remember and what they mean to bring up next time become memories; the player relationship
+   * takes the affinity and trust changes and learns the facts the player gave (each once); the reported mood colors
+   * the mood a little. Deterministic; nothing is invented beyond the reflection itself.
+   * @param {{summary?: string, facts_about_player?: string[], affinity_delta?: number, trust_delta?: number, mood?: string,
+   *   memorable_line?: string|null, follow_up?: string|null}} r
+   * @param {number} [t] epoch ms (simulation time; default the mind's current time)
+   * @returns {Object|null} the player relationship afterwards (a copy), or null for no reflection
+   */
+  applyReflection(r, t) {
+    if (!r || typeof r !== 'object') return null;
+    const st = this.state;
+    const when = isNum(t) ? t : st.now;
+    const say = s => (typeof s === 'string' ? s.trim() : '');
+    if (say(r.summary)) this.remember(say(r.summary), 0.6, ['conversation', 'player', 'reflection'], { t: when, kind: 'conversation' });
+    if (say(r.memorable_line)) this.remember(`The player said: "${say(r.memorable_line).slice(0, 280)}"`, 0.55, ['player', 'quote'], { t: when, kind: 'dialogue' });
+    if (say(r.follow_up)) this.remember(`Next time I see the player: ${say(r.follow_up)}`, 0.5, ['player', 'follow-up'], { t: when, kind: 'intention' });
+    const rel = this.relationship('player');
+    if (isNum(r.affinity_delta)) rel.affinity = round(clamp(rel.affinity + clamp(r.affinity_delta, -1, 1), -1, 1));
+    if (isNum(r.trust_delta)) rel.trust = round(clamp(rel.trust + clamp(r.trust_delta, -1, 1), -1, 1));
+    for (const f of Array.isArray(r.facts_about_player) ? r.facts_about_player : []) {
+      const text = say(f);
+      if (text && !rel.facts.some(x => x && (x.text === text || x.value === text))) rel.facts.push({ key: text.toLowerCase().slice(0, 48), value: text, t: isNum(when) ? when : null, text });
+    }
+    const target = MOOD_OF[say(r.mood).toLowerCase()];
+    if (target) {
+      st.mood.valence = round(clamp(0.7 * st.mood.valence + 0.3 * target[0], -1, 1));
+      st.mood.arousal = round(clamp(0.7 * st.mood.arousal + 0.3 * target[1], 0, 1));
+      st.emotion = emotionLabel(st.mood.valence, st.mood.arousal, st.needs, this._stung());
+    }
+    return clone(rel);
   }
 
   /** The relationship record with someone ('player' by default), created on first use. */

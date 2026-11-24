@@ -77,7 +77,7 @@
   "values": ["benevolence", "security", "achievement"],
   "interests": ["gardening", "hiking in the Verdugo Mountains", "Dodgers games", "cooking for the family on Sundays"],
   "concerns": [
-    { "topic": "home insurance", "weight": 0.72, "why": "insurers non-renewed 9.8% of the homeowners policies up for renewal in 91042 in 2023 (nonren_sh), and there are 13.7 FAIR Plan policies per 100 housing units (fair_sh)" },
+    { "topic": "home insurance", "weight": 0.72, "why": "9.8% of residential policies up for renewal in 91042 were not renewed in 2023 (nonren_sh); there are 13.7 FAIR Plan home policies per 100 homes here (fair_sh)" },
     { "topic": "wildfire", "weight": 0.86, "why": "13% of the ZIP's land is in a Fire Hazard Severity Zone (fhsz_any); the Station Fire (2009) and the La Tuna Fire (2017) burned within 1.3 km of the ZIP" },
     { "topic": "commute", "weight": 0.38, "why": "35 minutes each way to North Hollywood (commute.minutes)" }
   ],

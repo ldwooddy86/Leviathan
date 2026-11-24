@@ -740,7 +740,7 @@ export const PEOPLE = compileBank({
     I work from home, mostly.
     Remote. My commute is down the hallway.
     I'm home all day. Remote work.
-    @funny I work from home. My coworkers are the dog and the fridge.
+    @funny I work from home. My coworkers are the coffee maker and the fridge.
   `,
   'job.nights': `
     I work nights, so I'm a bit upside down.
@@ -798,7 +798,7 @@ export const PEOPLE = compileBank({
     I'm in {school}.
     I go to {school}.
     {school}.
-    @teen I'm in {school}. Counting the days.
+    @teen I'm in {school} right now.
   `,
   'job.kidFeel': `
     My favorite part is recess.
@@ -942,7 +942,7 @@ export const PEOPLE = compileBank({
   'fam.partner': `
     I live with my {partnerWord}, {partnerName}.
     It's me and my {partnerWord}, {partnerName}.
-    {partnerName}, my {partnerWord}, and me.
+    At home it's {partnerName}, my {partnerWord}, and me.
   `,
   'fam.married': `
     {partnerName} and I got married in {weddingYear}.
@@ -1211,7 +1211,37 @@ export const PEOPLE = compileBank({
   'fam.abroad': `
     Most of my family is still back in {homeland}.
     I've got family back in {homeland}. I call them every week.
-    My parents are still in {homeland}. I miss them.
+    @!senior My parents are still in {homeland}. I miss them.
+  `,
+  'home.familyThere': `
+    Some relatives, yes. But my life is here now.
+    Some, yes, back in {homeland}. We keep in touch.
+    A few. I call when I can.
+  `,
+  'home.missSome': `
+    Sometimes. But this is home now.
+    I miss {homeland} sometimes. The food, the people.
+    Every now and then. My life is here now.
+  `,
+  'home.visitBack': `
+    When I can. It's not cheap to go.
+    Not as often as I'd like.
+    When there's money and time, which isn't often.
+  `,
+  'home.stayHere': `
+    No, this is home now.
+    I don't think so. My life is here.
+    Maybe to visit, but this is home.
+  `,
+  'home.isHere': `
+    This is home. I'm from right here.
+    I'm from here, so there's nothing to miss.
+    This is home for me.
+  `,
+  'home.missUS': `
+    I miss {birthplace} sometimes, but this is home now.
+    Now and then. But I've been here a while now.
+    Sometimes. {birthplace} will always be where I started.
   `,
   'fam.guarded': `
     I keep my family stuff private, if that's okay.
@@ -1503,6 +1533,26 @@ export const PEOPLE = compileBank({
     {team}, man. They're going to give me a heart attack.
     I'm a {teamName} fan. It's a lifelong condition.
     Don't get me started on {team}.
+  `,
+  // "did you see the game last night?", from a fan of the team, in season
+  'small.sawGame': `
+    I caught some of it. {team}, man.
+    Had it on in the background. Don't ask.
+    I caught the end. My heart can't take it.
+    Of course. I don't miss {teamName} games.
+  `,
+  'small.offSeason': `
+    There's no {teamName} game, it's the off-season. I'm counting the days.
+    {teamName} season's over for now. I'm already waiting on next year.
+  `,
+  'small.otherTeam': `
+    Not my team. I'm more of a {teamName} person.
+    I heard about it. I'm {team} all the way, though.
+  `,
+  'small.noGame': `
+    Nah, I missed it. I don't really follow sports.
+    No, sports aren't really my thing.
+    I didn't. I couldn't tell you who won.
   `,
   'small.noSports': `
     I don't really follow sports.
@@ -1855,12 +1905,19 @@ export const PEOPLE = compileBank({
     That's a big one around here.
     @plain That's a serious subject here.
   `,
+  // after their own answer to how they are; without one, ask.howAreYouFresh
   'ask.howAreYou': `
     How about you?
     And you?
+    @plain And how are you?
+    What about you?
+  `,
+  'ask.howAreYouFresh': `
     How are you doing?
     How's your day going?
-    @plain And how are you?
+    How are things with you?
+    @plain How are you today?
+    @loose How's your day been?
   `,
   'ask.name': `
     I didn't catch your name.
@@ -2097,5 +2154,100 @@ export const PEOPLE = compileBank({
   'mood.down': `
     Sorry, I'm not much company today.
     I'm a little down today. Don't mind me.
+  `,
+
+  // ---------------------------------------------------------------- asked again, with nothing new to say
+  'repeat.ack': `
+    I think I already told you that one.
+    We covered that one, didn't we?
+    Same answer as before, I'm afraid.
+    You asked me that already.
+    Ha, are you testing my memory?
+    That's all I've got on that one.
+    I don't have anything new on that.
+    Still the same answer.
+    Nothing's changed since you asked.
+    You've got me repeating myself.
+    I told you what I know about that.
+    Ask me something else.
+    Didn't we just go over that?
+    I'm starting to feel like a broken record.
+    @funny Is this a quiz? This feels like a quiz.
+    @kid You already asked me that!
+  `,
+
+  // ---------------------------------------------------------------- work: where it happens, how much of it
+  'job.wfhYes': `
+    I work from home. The office is my kitchen table.
+    From home. No commute for me.
+    Home, every day. I just walk down the hall.
+    @funny From home. My coworkers are the coffee maker and the fridge.
+  `,
+  'job.goIn': `
+    I go in. It's {commuteMin} minutes to {workCity}.
+    No working from home for me. I go in, {commuteMin} minutes each way.
+    I go in to work. {commuteMin} minutes, door to door.
+    In person. You can't do my job from a laptop.
+  `,
+  'job.howMany': `
+    Enough to keep me busy, believe me.
+    More than I can count on a busy day.
+    Enough. Trust me, it's enough.
+    Ha. Ask me on a slow day.
+  `,
+  'job.howManyFarm': `
+    Out here that's like asking how much money is in my bank account.
+    Enough to keep me up before sunrise.
+    Not as many as the big outfits, but plenty for us.
+    Enough that I don't get a day off.
+  `,
+  'job.feel.ranching': `
+    Cattle don't take weekends off.
+    Early mornings and long days, but I wouldn't trade it.
+    The animals come first. Always.
+    It's a good life. Not an easy one.
+    You learn to watch the sky and the price of hay.
+  `,
+
+  // ---------------------------------------------------------------- family: a parent's work, grandkids at home
+  'fam.parentJob': `
+    {parentPronoun}'s {aParentJob}.
+    My {parentWord}? {aParentJob}.
+    My {parentWord}'s {aParentJob}.
+  `,
+  'fam.parentWorks': `
+    {parentPronoun} works. {parentPronoun}'s always busy.
+    My {parentWord} works. Long days, too.
+    {parentPronoun} works, so I don't see {parentObj} much during the week.
+  `,
+  'fam.parentHome': `
+    {parentPronoun}'s home right now.
+    My {parentWord} isn't working right now.
+    {parentPronoun}'s home most of the day.
+  `,
+  'fam.parentRetired': `
+    {parentPronoun}'s retired.
+    My {parentWord} retired a while back.
+    {parentPronoun} doesn't work anymore. Retired.
+  `,
+  'fam.grandkidsHere': `
+    I do. My {gkWord}, {gkName}, lives with us.
+    Yes. {gkName} lives right here with us.
+    My {gkWord} {gkName} lives with us. {gkAge} already.
+    I do. {gkCountCap} of them under this roof: {gkNames}.
+    Yes, {gkCount}: {gkNames}. They live with us.
+  `,
+
+  // ---------------------------------------------------------------- sports they play
+  'small.playYes': `
+    Yeah. {sportLine}
+    {sportLine} Not very well, but I do.
+    Some. {sportLine}
+  `,
+  'small.playNo': `
+    Not really. I'm more of a watcher.
+    @fan Not really. I'd rather watch {team}.
+    Me? No. I'm not much of an athlete.
+    @older Not anymore. My knees retired before I did.
   `,
 });

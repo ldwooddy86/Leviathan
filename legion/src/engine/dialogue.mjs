@@ -30,14 +30,14 @@
 //   bark(world, p, { t, other: q, situation: 'pass' });   // {text: 'Morning!', gloss: null}
 
 import { Rng, hashAll, hash2 } from './rng.mjs';
-import { Picker, findBrands, fireLabel } from './lexicon.mjs';
+import { Picker, findBrands } from './lexicon.mjs';
 import { Mind } from './mind.mjs';
 import { makeVoice, refreshVoice } from './dialogue/voice.mjs';
 import { understand, TOPICAL } from './dialogue/understand.mjs';
-import { PLANNERS, compose, answerPending, smallChild, say, baseSlots, EN, SPANISH, tagHash } from './dialogue/plan.mjs';
-import { fireFacts, weatherFacts } from './dialogue/ground.mjs';
+import { PLANNERS, compose, answerPending, smallChild, say, baseSlots, EN, SPANISH, tagHash, pivot, memoryFact } from './dialogue/plan.mjs';
+import { fireFacts, weatherFacts, fireName, cleanFireName } from './dialogue/ground.mjs';
 import { bark, barkBetween, BARK_EN, BARK_ES, BARK_SITUATIONS } from './dialogue/bark.mjs';
-import { isNum, lintText, fitsLife, lexiconLineFits } from './dialogue/core.mjs';
+import { isNum, lintText, fitsLife, lexiconLineFits, sentencesOf, sentenceKey, contentWords, tidy, terminate, capFirst } from './dialogue/core.mjs';
 import { screenValue } from './dialogue/probe.mjs';
 
 export { bark, barkBetween, BARK_SITUATIONS, understand };
@@ -77,8 +77,8 @@ function topicFromFacts(intent, facts) {
   const fire = facts.find(f => /^fire:/.test(f));
   if (intent === 'fire' && fire) {
     const [, name, year] = fire.split(':');
-    const label = fireLabel(name);
-    if (label) return [`${label} in ${year}`, `el incendio ${name.replace(/\s+(Fire|Complex)$/i, '')} de ${year}`, fire];
+    const label = fireName(name);
+    if (label) return [`${label} in ${year}`, `el incendio ${cleanFireName(name).replace(/\s+(Fire|Complex)$/i, '')} de ${year}`, fire];
   }
   const p = TOPIC_PHRASE[intent];
   return p ? [p[0], p[1], null] : null;
@@ -141,8 +141,10 @@ export class Conversation {
     this.st = {
       turn: 0, said: new Set(), used: new Set(), usedMemories: new Set(), usedInterests: new Set(), hooksUsed: new Set(), asked: new Set(),
       pending: null, nameUses: 0, moodSaid: false, greeted: false, gaveName: false, ended: false, closed: false, insults: 0,
-      depth: {}, lastIntent: null, lastAsked: false, mentionedPrev: false, calledBack: new Set(), convTag, cs: null, pivotIntent: null, noSpanish: 0,
+      depth: {}, lastIntent: null, lastAsked: false, mentionedPrev: false, calledBack: new Set(), convTag, cs: undefined, pivotIntent: null, noSpanish: 0,
       prev: prev.length ? topicOfMemory(prev[0]) : null,
+      // what has been said: every sentence (as sentenceKey), their content words, the facts told, the repeats owned
+      sentences: new Set(), sentWords: [], saidFacts: new Set(), repeats: 0, homeWords: new Map(), familyFocus: null,
     };
     if (this.st.prev && !this.st.prev.topic) this.st.prev = null;
     // the name index, the voice caches and the big patterns warm here (V8 compiles a pattern to native code on its
@@ -212,7 +214,7 @@ export class Conversation {
     const S = this._session(rng);
     let u = null, intent, line;
     if (kind === 'reply') {
-      u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name })), lastIntent: st.pivotIntent || st.lastIntent, pending: st.pending, self: v.vocab });
+      u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name, alias: cleanFireName(f.name) })), lastIntent: st.pivotIntent || st.lastIntent, pending: st.pending, self: v.vocab });
       intent = u.intent;
       // a hostile probe stings like an insult, though the mind's appraisal hears no swearing in it
       if (u.flags.probe && u.flags.probe.hostile) affront(this.mind, this.t, ['slur', 'hate', 'leave'].includes(u.flags.probe.kind) ? 1.4 : 1);
@@ -252,18 +254,48 @@ export class Conversation {
       const cb = kind === 'reply' && !noSpanish ? this._callback(S, intent, u) : null;
       if (cb) plan.parts.unshift(cb);
       line = compose(S, intent, plan, u);
-      // never the same line twice: if planning landed on a line already said, plan again with a fresh draw
-      for (let k = 1; k <= 3 && st.said.has(line.text); k++) {
+      // never the same line twice, nor a sentence said before: when planning landed on a line already said, or had
+      // nothing new left to say, plan again with a fresh draw
+      const stale = l => st.said.has(l.text) || (kind === 'reply' && !l.answered);
+      for (let k = 1; k <= 3 && stale(line); k++) {
         const S2 = this._session(new Rng(hashAll(this.rngSeed, this.idHash, st.turn, kind, text || '', k)));
         const again = noSpanish ? { parts: [say(S2, st.noSpanish > 2 ? 'unk.noSpanishAgain' : 'unk.noSpanish')], topics: [], noAsk: true }
           : (PLANNERS[intent] || PLANNERS.unknown)(S2, u || { norm: '', text: '', entities: { years: [], fires: [], roads: [], places: [], routine: [] }, flags: {}, topics: [], scores: {}, appraisal: { facts: [], sentiment: 0, toxicity: 0, intents: [] } }, kind === 'greet' ? { initiated: true } : {});
         line = compose(S2, intent, again, u);
       }
-      if (st.said.has(line.text)) line = Object.assign({}, line, repeatLine(v, line, st.said));
+      // still nothing new: the NPC owns the repeat ("Like I said, ..."), then says so and moves on, then lets it go
+      if (stale(line)) line = this._repeat(intent, line, rng);
       return this._finish(kind, text, intent, line, u, plan);
     } finally {
       v.lang.mode = mode0;
     }
+  }
+
+  /**
+   * A reply with nothing new left in it. First the earlier answer, owned as a repeat ("Like I said, ..."), each way
+   * of owning it once; then a word that it was asked already and a move to something else; then, when even those
+   * are used up, a small gesture. Never a line or a sentence said before in this conversation.
+   */
+  _repeat(intent, line, rng) {
+    const st = this.st, v = this.voice;
+    st.repeats += 1;
+    const S = this._session(new Rng(hashAll(this.rngSeed, this.idHash, st.turn, 'repeat', st.repeats)));
+    const base = { facts: [], ask: null, answered: true, mems: [], keys: [] };
+    if (!NO_RESTATE.has(intent)) {
+      const before = [...this.history].reverse().find(h => h.role === 'npc' && h.intent === intent && h.text && !h.repeat);
+      const core = before ? restatable(before, v.relq.name) : null;
+      const r = core ? repeatLine(v, core, st) : null;
+      if (r) return Object.assign({}, line, base, r, { facts: before.facts.slice(), repeat: true });
+    }
+    const ack = say(S, 'repeat.ack');
+    if (ack) {
+      const p = rng.chance(0.6) ? pivot(S) : null;
+      const parts = [ack, p].filter(Boolean);
+      const text = tidy(parts.map(x => terminate(x.text)).join(' '));
+      const gloss = parts.some(x => x.gloss) ? tidy(parts.map(x => terminate(x.gloss || x.text)).join(' ')) : null;
+      if (!st.said.has(text)) return Object.assign({}, line, base, { text, gloss, facts: parts.flatMap(x => x.facts || []), repeat: true });
+    }
+    return Object.assign({}, line, base, gesture(v, st, rng), { repeat: true });
   }
 
   _callback(S, intent, u) {
@@ -286,6 +318,23 @@ export class Conversation {
     const emotion = plan.emotion || this.mind.emotion || 'neutral';
     const out = { text: line.text, gloss: line.gloss || null, intent, topics, emotion, facts: line.facts || [] };
     st.said.add(out.text);
+    // every sentence said, the facts told and the memories recounted: none of them is said again
+    const name = this.voice.relq ? this.voice.relq.name : null;
+    for (const s of sentencesOf(out.text)) {
+      const k = sentenceKey(s, name);
+      if (!k) continue;
+      st.sentences.add(k);
+      const cw = contentWords(k);
+      if (cw.size >= 4) st.sentWords.push(cw);
+    }
+    for (const f of out.facts) st.saidFacts.add(f);
+    for (const m of line.mems || []) st.usedMemories.add(m);
+    for (const m of this.persona.memories || []) {
+      if (!m || m.kind === 'life') continue;
+      const id = memoryFact(m);
+      if (id && TOLD_EVENT.test(id) && out.facts.includes(id)) st.usedMemories.add(m.source);
+    }
+    if (plan && plan.familyFocus !== undefined) st.familyFocus = plan.familyFocus;
     st.pending = line.ask || null;
     st.lastAsked = !!line.ask;
     if (TOPICAL.has(intent)) { st.lastIntent = intent; st.depth[intent] = (st.depth[intent] || 0) + 1; }
@@ -294,7 +343,7 @@ export class Conversation {
     if (plan.learnedName) S_learnName(this, plan.learnedName);
     const tAt = this.t;
     if (text !== null) this.history.push({ role: 'player', text, intent, t: tAt });
-    this.history.push({ role: 'npc', text: out.text, gloss: out.gloss, intent, topics, emotion, facts: out.facts.slice(), t: tAt });
+    this.history.push(Object.assign({ role: 'npc', text: out.text, gloss: out.gloss, intent, topics, emotion, facts: out.facts.slice(), t: tAt }, line.repeat ? { repeat: true } : {}));
     this.mind.observe({ kind: 'utterance', from: 'self', text: out.text, t: tAt, tags: [intent] });
     if (kind === 'reply' && TOPICAL.has(intent) && TOPIC_PHRASE[intent]) {
       const tp = topicFromFacts(intent, out.facts);
@@ -307,17 +356,64 @@ export class Conversation {
   }
 }
 
+// Intents whose earlier answer is not worth restating ("Like I said, thanks" is not a thing people say).
+const NO_RESTATE = new Set(['unknown', 'greeting', 'goodbye', 'thanks', 'apology', 'compliment', 'insult', 'probe', 'joke', 'smalltalk']);
+// Fact ids of events a memory can be about: the line that tells the event tells the memory.
+const TOLD_EVENT = /^(fire|ar|wind|fema):|^record\./;
+
 /**
- * A line said a second time, owned as such: "Like I said, ..." in the speaker's language, with another way of
- * owning it each time (said is the set of lines already said).
+ * The sentence of an earlier answer worth saying again: its first sentence of three or more words, with the
+ * matching sentence of the gloss. Null when there is none.
  */
-function repeatLine(v, line, said = new Set()) {
+function restatable(h, name) {
+  const ts = sentencesOf(h.text), gs = h.gloss ? sentencesOf(h.gloss) : [];
+  const i = ts.findIndex(s => sentenceKey(s, name) && !/\?$/.test(s));
+  if (i < 0) return null;
+  return { text: ts[i], gloss: h.gloss ? (gs.length === ts.length ? gs[i] : gs.find(s => sentenceKey(s, name)) || null) : null };
+}
+
+/**
+ * A line said a second time, owned as such: "Like I said, ..." in the speaker's language, each way of owning it at
+ * most once (st: the conversation state, with the lines and sentences already said). Null when every way is used.
+ */
+function repeatLine(v, line, st) {
   const low = s => (/^(I|I'm|I've|I'd|I'll)\b/.test(s) || /^\p{Lu}\p{Lu}/u.test(s) ? s : s[0].toLowerCase() + s.slice(1));
   const ways = v.lang.mode === 'es'
-    ? [[v.lang.usted ? 'Como le decía' : 'Como te decía', 'Like I was saying'], ['Ya le dije', 'I already told you'], ['Otra vez', 'Again'], ['Lo repito', "I'll say it again"]]
+    ? [[v.lang.usted ? 'Como le decía' : 'Como te decía', 'Like I was saying'], [v.lang.usted ? 'Ya le dije' : 'Ya te dije', 'I already told you'], ['Otra vez', 'Again'], ['Lo repito', "I'll say it again"]]
       .map(([es, en]) => ({ text: `${es}, ${low(line.text)}`, gloss: `${en}, ${low(line.gloss || line.text)}` }))
     : ['Like I said', 'Like I told you', 'Again', 'As I said'].map(w => ({ text: `${w}, ${low(line.text)}`, gloss: line.gloss ? `${w}, ${low(line.gloss)}` : null }));
-  return ways.find(x => !said.has(x.text)) || ways[ways.length - 1];
+  const name = v.relq ? v.relq.name : null;
+  return ways.find(x => !st.said.has(x.text) && !sentencesOf(x.text).some(s => { const k = sentenceKey(s, name); return k && st.sentences.has(k); })) || null;
+}
+
+// Small gestures, when there is truly nothing left to say: English for English and plain-English speakers, Spanish
+// with its English for Spanish speakers. {his} is the speaker's possessive.
+const GESTURES_EN = ['shrugs', 'smiles', 'laughs a little', 'nods', 'raises an eyebrow', 'waits for you to go on', 'glances at the time', 'gives you a long look',
+  'chuckles', 'shakes {his} head, smiling', 'tilts {his} head', 'looks down the street', 'checks {his} phone', 'folds {his} arms', 'scratches {his} chin',
+  'lets out a little sigh', 'smiles politely', 'looks at you, amused', 'waves a hand', 'leans back'];
+const GESTURES_ES = [['se encoge de hombros', 'shrugs'], ['sonríe', 'smiles'], ['se ríe un poco', 'laughs a little'], ['asiente', 'nods'], ['levanta una ceja', 'raises an eyebrow'],
+  ['se queda esperando', 'waits'], ['mira la hora', 'glances at the time'], ['se queda pensando', 'thinks it over'], ['niega con la cabeza, sonriendo', 'shakes {his} head, smiling'],
+  ['ladea la cabeza', 'tilts {his} head'], ['mira hacia la calle', 'looks down the street'], ['revisa su teléfono', 'checks {his} phone'], ['se cruza de brazos', 'folds {his} arms'],
+  ['suspira', 'sighs'], ['sonríe con cortesía', 'smiles politely'], ['hace un gesto con la mano', 'waves a hand']];
+
+/** A gesture not made before in this conversation: one action, or two ("She shrugs and smiles."). */
+function gesture(v, st, rng) {
+  const he = v.sex === 'F' ? 'She' : 'He', his = v.sex === 'F' ? 'her' : 'his';
+  const es = v.lang.mode === 'es';
+  const acts = (es ? GESTURES_ES : GESTURES_EN.map(a => [a, a])).map(([a, g]) => [a, g.replace(/\{his\}/g, his)]);
+  const cands = [];
+  for (let i = 0; i < acts.length; i++) {
+    cands.push([acts[i]]);
+    for (let j = 0; j < acts.length; j++) if (j !== i) cands.push([acts[i], acts[j]]);
+  }
+  const order = rng.shuffle(cands.map((c, k) => k));
+  for (const k of order) {
+    const c = cands[k];
+    const en = `(${he} ${c.map(x => x[1]).join(' and ')}.)`;
+    const text = es ? `(${capFirst(c.map(x => x[0]).join(' y '))}.)` : en;
+    if (!st.said.has(text)) return { text, gloss: es ? en : null };
+  }
+  return { text: `(${he} says nothing.)`, gloss: null };
 }
 
 const HEAVY_IMPORTANCE = { fire: 0.7, storm: 0.6, earthquake: 0.6, insurance: 0.6, history: 0.55, family: 0.55, job: 0.5, rent: 0.55, housing: 0.5 };

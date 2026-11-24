@@ -57,7 +57,7 @@ export function serverFromHealth(body) {
  *   what the Legion server reported (null when the page is not served by one)
  */
 export function claudeStatus(s, { bridge, server = null }) {
-  if (!bridge) return 'The Claude bridge arrives with the next build; your choices here are kept for it.';
+  if (!bridge) return 'The Claude bridge is not loaded in this page; your choices here are kept for when it is.';
   if (!s.network.claude) return 'Claude is off until you allow the Claude API under Network.';
   if (s.claude.proxyURL) return 'Using the Legion server’s Claude proxy: the key stays on the server.';
   if (server && !server.keyConfigured) {
@@ -236,14 +236,14 @@ function segmented(name, options, value, onChange, ariaLabel) {
 }
 
 /**
- * A switch with its label and description. A `pending` feature (nothing in this build would act on it) is shown
- * off and disabled, with `pending` saying when it arrives; its stored value is kept for then.
+ * A switch with its label and description. A `pending` feature (nothing in this page would act on it: its module is
+ * not loaded) is shown off and disabled, with `pending` saying so; its stored value is kept.
  */
 function toggle(label, description, checked, onChange, { pending = null } = {}) {
   const id = nextId('toggle');
   return h('div.toggle-row', { class: pending ? 'is-pending' : null },
     h('input.switch', { type: 'checkbox', role: 'switch', id, checked: pending ? false : checked, disabled: !!pending, on: { change: e => onChange(e.target.checked) } }),
-    h('label', { for: id }, h('span.toggle-label', label, pending ? h('span.toggle-tag', 'Later build') : null), h('span.toggle-desc', pending || description)));
+    h('label', { for: id }, h('span.toggle-label', label, pending ? h('span.toggle-tag', 'Not loaded') : null), h('span.toggle-desc', pending || description)));
 }
 
 /**
@@ -354,14 +354,14 @@ export function mountSettingsDialog(dialog, deps) {
       section('Network',
         h('p.set-help', 'Legion runs offline from the data in this file. Each of these reaches out only when you allow it.'),
         toggle('Claude API', 'Sends the conversation and the NPC’s persona to api.anthropic.com.', s.network.claude, v => { settings.set({ network: { claude: v } }); update(); }),
-        toggle('Live NWS weather', 'Refreshes forecasts and alerts from api.weather.gov. Off: the NWS snapshot in the pack.', s.network.nws, v => settings.set({ network: { nws: v } }),
-          { pending: services.available('weather') ? null : 'Live forecasts and alerts from api.weather.gov arrive with a later build. Until then the weather comes from the NWS snapshot in this file.' }),
-        toggle('OpenStreetMap streets', `Loads real streets for the street view from the Overpass API. Off: streets drawn from the ZIP’s data.${services.available('street') ? '' : ' Takes effect with the street view, which arrives with the next build.'}`, s.network.osm, v => settings.set({ network: { osm: v } }))),
+        toggle('Live NWS weather', 'Fetches the forecast and alerts for the place you look at from api.weather.gov (every 15 minutes at most). It follows the clock: set the clock to now to see today’s. Off: the NWS snapshot in the pack.', s.network.nws, v => settings.set({ network: { nws: v } }),
+          { pending: services.available('weather') ? null : 'Live weather is not loaded in this page; the weather comes from the NWS snapshot in this file.' }),
+        toggle('OpenStreetMap streets', `Loads real streets for the street view from the Overpass API. Off: streets drawn from the ZIP’s data.${services.available('street') ? '' : ' The street view is not loaded in this page.'}`, s.network.osm, v => settings.set({ network: { osm: v } }))),
       section('Engine',
         h('ul.module-list', services.status().map(m => h('li', { class: m.available ? 'is-ready' : 'is-pending' },
           h('span.module-dot', { 'aria-hidden': 'true' }),
           h('span.module-name', m.title),
-          h('span.module-state', m.available ? 'Ready' : m.later ? 'Later build' : 'Next build'),
+          h('span.module-state', m.available ? 'Ready' : 'Not loaded'),
           h('span.module-desc', m.provides))))),
       section('Data',
         h('p.set-help', `${fmtInt(world.totalPop)} Californians in ${fmtInt(world.totalHH)} households across ${fmtInt(world.N)} ZIPs: Census ACS 2020–2024 tables by ZIP, the California atlas’s housing, climate and wildfire columns, the Caltrans 2024 traffic census, the USGS gazetteer and the NWS snapshot of ${Number.isFinite(world.snapshotTime) ? `${fmtTime(world.snapshotTime)} PT` : 'the pack'}.`),
