@@ -16,7 +16,7 @@ export const PEOPLE = compileBank({
     Hey, how's it going?
     Hey! How are you?
     Oh, hi!
-    Hello.
+    @plain Hello.
     @loose Hey there.
     @loose Hey. What's up?
     @morning Morning!
@@ -146,6 +146,10 @@ export const PEOPLE = compileBank({
     I'm off to {placeLabel}.
     Going to {placeLabel} for a bit.
   `,
+  'act.exerciseBack': `
+    Just got back from {placeLabel}.
+    Coming back from {placeLabel}. I'm beat.
+  `,
   'act.exercise': `
     I'm getting some exercise in.
     Out for {placeLabel}.
@@ -177,6 +181,8 @@ export const PEOPLE = compileBank({
   // ---------------------------------------------------------------- how are you
   'hay.good': `
     Pretty good, actually.
+    @loose Doing {very} good, thanks.
+    @loose I'm {very} good today, actually.
     Doing great, thanks.
     Can't complain.
     Good! Really good.
@@ -394,9 +400,10 @@ export const PEOPLE = compileBank({
     @kid I was born here!
   `,
   'about.grewUpCounty': `
-    I grew up in {county} County.
+    @adult I grew up in {county} County.
     I'm a {county} County kid, born and raised.
-    I grew up around here. {county} County, my whole life.
+    @adult I grew up around here. {county} County, my whole life.
+    @minor I've lived in {county} County my whole life.
   `,
   'about.fromUS': `
     I'm originally from {birthplace}.
@@ -463,6 +470,11 @@ export const PEOPLE = compileBank({
     Oh yeah.
     Yes!
     All the time.
+  `,
+  'about.instead': `
+    I'm more into {interestShort}.
+    {interestShortCap} is more my speed.
+    Give me {interestShort} instead.
   `,
   'about.doNo': `
     Not really.
@@ -567,6 +579,11 @@ export const PEOPLE = compileBank({
     We have a class pet. It's a lizard.
     I like my teacher.
     Lunch is my favorite subject.
+  `,
+  'job.collegeFeel': `
+    I like it. It's a lot of work, but I like it.
+    Some classes are great. Some, I'm just getting through.
+    It's hard, honestly. But it's worth it.
   `,
   'job.teenFeel': `
     School's fine. I'm counting down.
@@ -743,7 +760,7 @@ export const PEOPLE = compileBank({
   'fam.parents': `
     I live with my {parentsWord}.
     It's me and my {parentsWord}.
-    @kid My {parentsWord}.
+    @kid I live with my {parentsWord}.
   `,
   'fam.parentsAdult': `
     I'm back with my {parentsWord} for now. It's the only way to save anything.
@@ -791,21 +808,22 @@ export const PEOPLE = compileBank({
   'fam.noKids': `
     No kids.
     No kids, no.
-    No kids. Never happened for me.
+    @older No kids. Never happened for me.
     No kids of my own.
   `,
   'fam.noKidsHome': `
     My kids are grown and gone.
     Not at home, no. They're grown.
   `,
-  'fam.kidSelf': `
-    I have {sibWords}.
-    I live with my {parentsWord}.
+  'fam.noSiblings': `
+    No brothers or sisters at home.
+    Not at home, no.
+    @minor Nope. Just me.
   `,
-  'fam.kidsAsk': `
-    You have kids?
-    Do you have kids?
-    You have a family?
+  'fam.kidSelfNo': `
+    Kids? I'm {age}!
+    Ha, no. I'm {age}.
+    @kid No! I'm a kid!
   `,
 
   // ---------------------------------------------------------------- home
@@ -886,6 +904,7 @@ export const PEOPLE = compileBank({
   // ---------------------------------------------------------------- compliments, insults, jokes, thanks, apologies
   'comp.thanks': `
     Aw, thank you.
+    @loose Aw, that's {very} sweet of you.
     That's nice of you to say.
     Thanks! That's sweet.
     Well, thank you.
@@ -997,6 +1016,20 @@ export const PEOPLE = compileBank({
   'joke.local.house': `
     Owning a house is great. Every weekend I get to discover a new thing that's broken.
   `,
+  'joke.thanks': `
+    Ha! Thank you, thank you. I'll be here all week.
+    Glad somebody laughed.
+    Ha, I knew you'd like that one.
+    @kid Ha! I know a hundred more.
+  `,
+  'react.positive': `
+    Right?
+    I know!
+    Glad you think so.
+    Ha, exactly.
+    @plain I'm glad you think so.
+    @kid Yeah!
+  `,
   'joke.laugh': `
     Ha! Okay, that was a bad one.
     I'll be here all week.
@@ -1064,11 +1097,6 @@ export const PEOPLE = compileBank({
     Oh, you know. The usual.
     @retired Nothing much. I've got all the time in the world and nothing to fill it with.
     @kid Nothing.
-  `,
-  'small.whatBrings': `
-    What brings you around here?
-    Are you visiting, or did you just move here?
-    You from around here?
   `,
 
   // ---------------------------------------------------------------- goodbyes
@@ -1174,15 +1202,6 @@ export const PEOPLE = compileBank({
     That's a big one around here.
     @plain That's a serious subject here.
   `,
-  'open.light': `
-    Oh, sure.
-    Ha, okay.
-    Sure.
-    Oh!
-  `,
-  'open.name': `
-    {player},
-  `,
   'ask.howAreYou': `
     How about you?
     And you?
@@ -1255,10 +1274,6 @@ export const PEOPLE = compileBank({
   'ask.housing': `
     Do you rent or own?
     How's the rent where you are?
-  `,
-  'ask.place': `
-    Have you been to {placeName} before?
-    First time in {place}?
   `,
   'ask.school': `
     Do you go to school?
@@ -1399,6 +1414,13 @@ export const PEOPLE = compileBank({
   'pivot.place': `
     Anyway, what brings you to {place}?
     So, are you new around here?
+  `,
+
+  'warm.aside': `
+    Always good talking with you.
+    You're easy to talk to, you know that?
+    I like these little chats.
+    @named It's good to see you, {player}.
   `,
 
   // ---------------------------------------------------------------- mood asides

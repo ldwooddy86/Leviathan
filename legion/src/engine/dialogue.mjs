@@ -208,7 +208,7 @@ export class Conversation {
       const again = (PLANNERS[intent] || PLANNERS.unknown)(S2, u || { norm: '', text: '', entities: { years: [], fires: [], roads: [], places: [], routine: [] }, flags: {}, topics: [], scores: {}, appraisal: { facts: [], sentiment: 0, toxicity: 0, intents: [] } }, kind === 'greet' ? { initiated: true } : {});
       line = compose(S2, intent, again, u);
     }
-    if (st.said.has(line.text)) line = Object.assign({}, line, { text: `Like I said, ${line.text[0].toLowerCase()}${line.text.slice(1)}`, gloss: line.gloss ? `Like I said, ${line.gloss[0].toLowerCase()}${line.gloss.slice(1)}` : null });
+    if (st.said.has(line.text)) line = Object.assign({}, line, repeatLine(v, line));
     return this._finish(kind, text, intent, line, u, plan);
   }
 
@@ -235,6 +235,7 @@ export class Conversation {
     st.pending = line.ask || null;
     st.lastAsked = !!line.ask;
     if (TOPICAL.has(intent)) { st.lastIntent = intent; st.depth[intent] = (st.depth[intent] || 0) + 1; }
+    st.prevIntent = intent;
     if (!(plan && plan.parts && plan.parts.some(p => p && /^pivot/.test(p.key || '')))) st.pivotIntent = null;
     if (plan.learnedName) S_learnName(this, plan.learnedName);
     const tAt = this.t;
@@ -250,6 +251,13 @@ export class Conversation {
     }
     return out;
   }
+}
+
+/** A line said a second time, owned as such: "Like I said, ..." in the speaker's language. */
+function repeatLine(v, line) {
+  const low = s => (/^(I|I'm|I've|I'd|I'll)\b/.test(s) || /^\p{Lu}\p{Lu}/u.test(s) ? s : s[0].toLowerCase() + s.slice(1));
+  if (v.lang.mode === 'es') return { text: `${v.lang.usted ? 'Como le decía' : 'Como te decía'}, ${low(line.text)}`, gloss: `Like I was saying, ${low(line.gloss || line.text)}` };
+  return { text: `Like I said, ${low(line.text)}`, gloss: line.gloss ? `Like I said, ${low(line.gloss)}` : null };
 }
 
 const HEAVY_IMPORTANCE = { fire: 0.7, storm: 0.6, earthquake: 0.6, insurance: 0.6, history: 0.55, family: 0.55, job: 0.5, rent: 0.55, housing: 0.5 };

@@ -7,9 +7,12 @@
 // sidewalk, or backing the household car out of its driveway or curb space. Cars keep lanes and follow the car
 // ahead (intelligent driver model), stop for red lights and at stop signs (first come, first served, with the
 // box kept clear), and park at the other end; pedestrians walk the sidewalks and cross at corners; cyclists
-// ride the curb edge; bus riders wait at stops for real buses. Through traffic, buses and shoppers are real NPCs
-// from nearby households. The simulation advances in fixed 0.2 s steps; when the clock runs faster than the
-// step budget allows, everyone jumps to where the schedule puts them. Deterministic, DOM-free.
+// ride the curb edge; bus riders wait at stops for real buses that run to a timetable. Through traffic, buses,
+// shoppers and passers-by are real NPCs from nearby households, each on at most one agent at a time; their
+// arrivals at the view's edges are drawn per minute from hashes (Arrivals), so stepping and jumping put the same
+// vehicles on the road. The simulation advances in fixed 0.2 s steps; when the clock runs faster than the step
+// budget allows, everyone jumps to where the schedule puts them. A failure in one agent's update takes that agent
+// off the street (counted in stats().faults) instead of stopping the clock. Deterministic, DOM-free.
 
 import { hash2, hash3, u01, clamp } from '../engine/rng.mjs';
 import { pacific } from '../engine/clock.mjs';
@@ -191,8 +194,9 @@ export class StreetSim {
     const nN = this.net.nodes.length;
     this.inside = new Int16Array(nN);
     this.waiting = Array.from({ length: nN }, () => []);
-    this.spotCar = new Int32Array(scene.spots.length).fill(-1);    // parked car look id (hash) or -1
-    this.spotLook = new Map();
+    // the look (a uint32 hash) of the car parked in each space, -1 when empty, -2 while a car pulls in; a Float64Array
+    // holds every uint32 exactly (in an Int32Array half the looks turned negative and read as empty spaces)
+    this.spotCar = new Float64Array(scene.spots.length).fill(-1);
     this.bubbles = [];
     this.barkLog = new Map();
     this.lastBarkMs = -Infinity;
@@ -385,18 +389,20 @@ export class StreetSim {
     for (const p of this.persons) { p.agent = null; p.away = false; p.awaySpot = -1; p.awayB = -1; }
     this.persons.length = this.residentCount;
     this._absorbCommuters();
-    this._bulk = true;
-    if (this.external && !this.hybrid && this.evalBudgetMs < Infinity) {
-      // a slow external planner without the layer-0 head start: everyone goes on the heap and is placed over frames
-      for (const p of this.persons) this._schedule(p, t);
-      this._processEvents(t, true);
-    } else for (const p of this.persons) this._evaluateSafe(p, t, true);
     this._upOrder = null; this._upK = 0;
-    // the buses on their routes and the traffic already on the road
     for (const r of this.busRoutes) r.k = null;
-    this._streamsJump(t, 900);
-    this._buses(t);
-    this._bulk = false;
+    this._bulk = true;
+    try {
+      if (this.external && !this.hybrid && this.evalBudgetMs < Infinity) {
+        // a slow external planner without the layer-0 head start: everyone goes on the heap and is placed over frames
+        for (const p of this.persons) this._schedule(p, t);
+        this._processEvents(t, true);
+      } else for (const p of this.persons) this._evaluateSafe(p, t, true);
+      // the buses on their routes and the traffic already on the road
+      this._streamsJump(t, 900);
+      this._buses(t);
+    } catch (err) { this.repair(err); }
+    finally { this._bulk = false; }
     this._rebuildQueues();
     this._settleQueues();
   }
@@ -426,15 +432,19 @@ export class StreetSim {
     this._bulk = true; this._fast = true;
     this.queues.clear();
     for (const a of this.agents) a.q = null;
-    for (let i = this.agents.length - 1; i >= 0; i--) {
-      const a = this.agents[i];
-      if (!this._placeOnSchedule(a, t)) this._finish(a, i);
-    }
-    this._processEvents(t, true);
-    this._returns(t, true);
-    this._streamsJump(t, Math.min(900, (t - t0) / 1000));
-    this._buses(t);
-    this._bulk = false; this._fast = false;
+    try {
+      for (let i = this.agents.length - 1; i >= 0; i--) {
+        const a = this.agents[i];
+        let keep;
+        try { keep = this._placeOnSchedule(a, t); } catch (err) { this._fault(a, err); i = Math.min(i, this.agents.length); continue; }
+        if (!keep) this._finish(a, i);
+      }
+      this._processEvents(t, true);
+      this._returns(t, true);
+      this._streamsJump(t, Math.min(900, (t - t0) / 1000));
+      this._buses(t);
+    } catch (err) { this.repair(err); }
+    finally { this._bulk = false; this._fast = false; }
     this._rebuildQueues();
     this._settleQueues();
   }
@@ -1908,7 +1918,9 @@ export class StreetSim {
       else if (a.role === 'visitor') out.visitors++;
     }
     for (let i = 0; i < this.spotCar.length; i++) if (this.spotCar[i] >= 0) out.parked++;
-    return Object.assign(out, this.stats0);
+    Object.assign(out, this.stats0);
+    if (this.lastFault) out.lastFault = this.lastFault;
+    return out;
   }
 
   // ------------------------------------------------ chatter

@@ -86,6 +86,9 @@ export const SPANISH = compileBank({
   'act.leisure': `
     Voy a dar una vuelta. || I'm going out for a bit.
   `,
+  'act.exerciseBack': `
+    Vengo de hacer ejercicio. || I'm coming back from exercising.
+  `,
   'act.exercise': `
     Salí a caminar un rato. || I came out for a walk.
   `,
@@ -221,8 +224,10 @@ export const SPANISH = compileBank({
     @tu {first}. No te preocupes, a mí también se me olvidan los nombres. || {first}. Don't worry, I forget names too.
   `,
   'name.guarded': `
-    ¿Para qué quiere saber? || Why do you want to know?
-    {first}. ¿Y usted? || {first}. And you?
+    @usted ¿Para qué quiere saber? || Why do you want to know?
+    @tu ¿Para qué quieres saber? || Why do you want to know?
+    @usted {first}. ¿Y usted? || {first}. And you?
+    @tu {first}. ¿Y tú? || {first}. And you?
   `,
   'name.yours': `
     @usted Claro, usted es {player}. || Of course, you're {player}.
@@ -261,7 +266,7 @@ export const SPANISH = compileBank({
   `,
   'about.years': `
     Vivo en {place} desde {zipSince}. || I've lived in {place} since {zipSince}.
-    Llevo {yearsHere} años aquí. || I've been here {yearsHere} years.
+    Llevo {yearsNum} años aquí. || I've been here {yearsNum} years.
   `,
   'about.newHere': `
     Llegué aquí apenas en {zipSince}. || I only got here in {zipSince}.
@@ -276,6 +281,9 @@ export const SPANISH = compileBank({
   'about.doYes': `
     Sí, claro. || Yes, of course.
     ¡Sí! || Yes!
+  `,
+  'about.instead': `
+    {interestEs} || {interestEn}
   `,
   'about.doNo': `
     No, la verdad no. || No, not really.
@@ -420,6 +428,12 @@ export const SPANISH = compileBank({
   'fam.relatives': `
     Vivo con unos parientes. || I live with some relatives.
   `,
+  'fam.kidSelfNo': `
+    ¿Hijos? ¡Tengo {age} años! || Kids? I'm {age}!
+  `,
+  'fam.noSiblings': `
+    No tengo hermanos aquí. || I don't have brothers or sisters here.
+  `,
   'fam.noKids': `
     No tengo hijos. || I don't have kids.
   `,
@@ -451,7 +465,7 @@ export const SPANISH = compileBank({
   `,
   'home.since': `
     Desde {yearMoved}. || Since {yearMoved}.
-    Llevamos {yearsHere} años aquí. || We've been here {yearsHere} years.
+    Llevamos {yearsNum} años aquí. || We've been here {yearsNum} years.
   `,
   'home.feelApt': `
     Es chiquito, pero es nuestro hogar. || It's small, but it's our home.
@@ -588,7 +602,7 @@ export const SPANISH = compileBank({
   `,
   'tr.road': `
     {roadEs} es la autopista principal por aquí. || {road} is the main freeway around here.
-    Por {roadEs} pasan {aadtEs} carros al día. || {aadtCap} go by on {road} every day.
+    Por {roadEs} pasan {aadtEs} carros al día. || {aadtCap} go by on {road}.
   `,
   'tr.roadSmall': `
     Por aquí usamos {roadEs}. || Around here we use {road}.
@@ -625,6 +639,19 @@ export const SPANISH = compileBank({
   'fire.size': `
     Se quemaron {acresEs}. || {acresCap} burned.
   `,
+  'fire.remember': `
+    Me acuerdo del {fireEs}, en {year}. || I remember {fire}, in {year}.
+    El {fireEs}, en {mesAnoEs}. Eso no se olvida. || {fireCap}, in {when}. You don't forget that.
+  `,
+  'fire.distance': `
+    Se quemó a {milesEs} de aquí. || It burned {miles} from here.
+  `,
+  'fire.livedTeen': `
+    Tenía {ageThen} años cuando pasó el {fireEs}, en {year}. || I was {ageThen} when {fire} happened, in {year}.
+  `,
+  'fire.tollThere': `
+    Destruyó {destEs} en {place}. || It destroyed {dest} in {place}.
+  `,
   'fire.before': `
     El {fireEs} fue en {year}, antes de que yo viviera aquí. || {fireCap} was in {year}, before I lived here.
   `,
@@ -633,6 +660,13 @@ export const SPANISH = compileBank({
   `,
   'fire.near': `
     Aquí no hay muchos incendios. El más cercano fue el {fireEs}, en {year}. || There aren't many fires here. The closest was {fire}, in {year}.
+  `,
+  'fire.kidMore': `
+    @usted Es todo lo que sé. Pregúntele a {parentEs}. || That's all I know. Ask my {parentWord}.
+    @tu Es todo lo que sé. Pregúntale a {parentEs}. || That's all I know. Ask my {parentWord}.
+  `,
+  'fire.nothingMore': `
+    Es todo lo que sé. Aquí hemos tenido suerte. || That's all I know. We've been lucky here.
   `,
   'fire.none': `
     Aquí casi no hay incendios, por suerte. || There are hardly any fires here, luckily.
@@ -657,7 +691,7 @@ export const SPANISH = compileBank({
     Cada año da miedo. || It's scary every year.
   `,
   'fire.kid': `
-    Mi {parentEs} dice que hubo un incendio grande aquí. || My {parentWord} says there was a big fire here.
+    {parentEs} me contó que hubo un incendio grande aquí. || My {parentWord} told me there was a big fire here.
   `,
 
   // ---------------------------------------------------------------- storms
@@ -758,6 +792,9 @@ export const SPANISH = compileBank({
   'ins.renter': `
     Yo rento, así que no sé mucho de eso. || I rent, so I don't know much about that.
   `,
+  'ins.notMine': `
+    Yo no me encargo del seguro. Eso lo ve el dueño. || I don't deal with the insurance. The owner handles that.
+  `,
   'ins.minor': `
     No sé nada de eso. || I don't know anything about that.
   `,
@@ -847,7 +884,8 @@ export const SPANISH = compileBank({
     No sé dónde queda eso, perdón. || I don't know where that is, sorry.
   `,
   'dir.kid': `
-    No sé. Pregúntele a mi {parentEs}. || I don't know. Ask my {parentWord}.
+    @usted No sé. Pregúntele a {parentEs}. || I don't know. Ask my {parentWord}.
+    @tu No sé. Pregúntale a {parentEs}. || I don't know. Ask my {parentWord}.
   `,
 
   // ---------------------------------------------------------------- neighborhood and history
@@ -862,6 +900,7 @@ export const SPANISH = compileBank({
   `,
   'hood.lang': `
     Aquí {shareVerbEs} {langEs} en casa. || {shareCap} speak {langName} at home.
+    En mi cuadra se oye mucho {langEs}. || On my block you hear a lot of {langName}.
   `,
   'hood.like': `
     Me gusta vivir aquí. || I like living here.
@@ -966,7 +1005,8 @@ export const SPANISH = compileBank({
     @tu Ya te dije que no. || I already told you no.
   `,
   'insult.shrug': `
-    Bueno, que le vaya bien. || Well, have a good day.
+    @usted Bueno, que le vaya bien. || Well, have a good day.
+    @tu Bueno, que te vaya bien. || Well, have a good day.
   `,
   'joke.decline': `
     Yo no sé contar chistes. || I don't know how to tell jokes.
@@ -980,6 +1020,16 @@ export const SPANISH = compileBank({
   'joke.kid': `
     ¿Qué le dijo el uno al diez? Para ser como yo, tienes que ser sincero. || What did the one say to the ten? To be like me, you have to be sincere (it sounds like "without a zero").
     ¿Qué le dijo una uva verde a una uva morada? ¡Respira, respira! || What did a green grape say to a purple grape? Breathe, breathe!
+  `,
+  'joke.thanks': `
+    ¡Ja! Qué bueno que le gustó. || Ha! I'm glad you liked it.
+  `,
+  'react.positive': `
+    ¿Verdad que sí? || Right?
+    Así es. || That's right.
+  `,
+  'job.collegeFeel': `
+    Me gusta, aunque es mucho trabajo. || I like it, even though it's a lot of work.
   `,
   'joke.laugh': `
     ¡Ja! Ese estuvo malo. || Ha! That was a bad one.
@@ -1005,7 +1055,8 @@ export const SPANISH = compileBank({
     Nada nuevo. Lo mismo de siempre. || Nothing new. Same as always.
   `,
   'small.sports': `
-    ¿Vio el partido de {teamEs}? || Did you see the {teamName} game?
+    @usted ¿Vio el partido de {teamEs}? || Did you see the {teamName} game?
+    @tu ¿Viste el partido de {teamEs}? || Did you see the {teamName} game?
     Soy aficionad{o} de {teamEs}. || I'm a fan of {team}.
   `,
   'small.noSports': `
@@ -1174,6 +1225,10 @@ export const SPANISH = compileBank({
   `,
   'pivot.interest': `
     {interestEs} || {interestEn}
+  `,
+  'warm.aside': `
+    @usted Qué gusto platicar con usted. || It's nice talking with you.
+    @tu Qué gusto platicar contigo. || It's nice talking with you.
   `,
   'mood.tired': `
     Perdón, estoy muy cansad{o} hoy. || Sorry, I'm very tired today.

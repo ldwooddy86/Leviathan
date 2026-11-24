@@ -15,21 +15,30 @@ import { MESES } from './core.mjs';
  * @param {string} name a persona interest
  * @returns {{short: string, doing: string, en: string[], es: Array<[string, string]>}|null}
  */
-export function interestTalk(name) {
+export function interestTalk(name, opts = {}) {
   const n = String(name || '').trim();
   if (!n) return null;
+  if (opts.tradition) {
+    return {
+      short: n, doing: `celebrating ${n}`, place: false, tradition: true,
+      en: [`In my family we never miss ${n}.`, `${n[0].toUpperCase()}${n.slice(1)} is a big deal in my family.`],
+      es: [['En mi familia guardamos nuestras tradiciones.', 'In my family we keep our traditions.']],
+    };
+  }
   for (const [re, f] of INTERESTS) {
     const m = re.exec(n);
-    if (m) return f(m);
+    if (m) return Object.assign(f(m), { place: PLACE_INTERESTS.test(n) });
   }
   return {
     short: n, doing: `doing ${n}`.replace(/^doing (the |a )/, 'at $1'),
     en: [`I'm really into ${n}.`, `${n[0].toUpperCase()}${n.slice(1)}, mostly.`],
-    es: [['Me gusta pasar mi tiempo libre en casa.', 'I like spending my free time at home.']],
+    es: [['Me gusta pasar mi tiempo libre en casa.', 'I like spending my free time at home.']], place: false,
   };
 }
 
 const I = (short, doing, en, es) => () => ({ short, doing, en, es });
+// Interests that happen at a place someone could go (they can be recommended): see interestTalk().place.
+const PLACE_INTERESTS = /^(surfing|the beach|sailing|skiing and snowboarding|snowshoeing|stargazing out in the desert|off-roading|the county fair|the farmers market|live music|museums|car shows|golf|wine tasting|swap meets|trying new restaurants|hunting|four-wheeling|walking|running|birdwatching|biking around town|concerts|tennis|ski trips up to .+|hiking .+|fishing at .+)$/;
 
 const INTERESTS = [
   [/^surfing$/, I('surfing', 'out on a surfboard', ['I surf whenever the waves cooperate.', 'I try to surf a few mornings a week.', 'Surfing. The ocean is my therapy.'], [['Me gusta surfear.', 'I like to surf.']])],
@@ -83,11 +92,11 @@ const INTERESTS = [
   [/^walking$/, I('walking', 'out for a walk', ['I walk every day.', 'I take a long walk every morning.'], [['Salgo a caminar todos los días.', 'I go for a walk every day.']])],
   [/^crossword puzzles$/, I('crosswords', 'with the crossword', ['I do the crossword every morning.'], [['Hago crucigramas todas las mañanas.', 'I do crosswords every morning.']])],
   [/^birdwatching$/, I('birdwatching', 'watching the birds', ["I watch birds. You'd be surprised what comes through here."], [['Me gusta ver los pájaros.', 'I like watching birds.']])],
-  [/^the grandkids$/, I('time with the grandkids', 'with the grandkids', ['My grandkids keep me busy, and I love it.'], [['Mis nietos me tienen ocupado.', 'My grandkids keep me busy.']])],
+  [/^the grandkids$/, I('time with the grandkids', 'with the grandkids', ['My grandkids keep me busy, and I love it.'], [['Paso mucho tiempo con mis nietos.', 'I spend a lot of time with my grandkids.']])],
   [/^gardening$/, I('gardening', 'in the garden', ['I spend a lot of time in the garden.', 'Gardening. My tomatoes are my pride and joy.'], [['Me gusta trabajar en el jardín.', 'I like working in the garden.']])],
   [/^houseplants$/, I('plant care', 'watering my plants', ['My place is basically a jungle. Houseplants everywhere.'], [['Tengo muchas plantas en la casa.', 'I have a lot of plants at home.']])],
   [/^the kids' soccer games$/, I("the kids' soccer games", "at the kids' soccer games", ["I'm at the kids' soccer games every Saturday."], [['Los sábados voy a los partidos de fútbol de los niños.', "On Saturdays I go to the kids' soccer games."]])],
-  [/^baby milestones$/, I('baby time', 'with the baby', ["We've got a baby at home, so that's everything right now."], [['Tenemos un bebé en la casa, así que eso es todo ahorita.', "We have a baby at home, so that's everything right now."]])],
+  [/^baby milestones$/, I('baby time', 'with the baby', ["We've got a baby at home, so that's everything right now."], [['Tenemos un bebé en la casa, así que eso es todo ahora.', "We have a baby at home, so that's everything right now."]])],
   [/^woodworking$/, I('woodworking', 'in the garage with my tools', ['I do some woodworking on the weekends.'], [['Me gusta trabajar la madera.', 'I like woodworking.']])],
   [/^working on cars$/, I('car work', 'under the hood of a car', ["I'm always working on cars."], [['Siempre estoy trabajando en carros.', "I'm always working on cars."]])],
   [/^tech gadgets$/, I('gadget shopping', 'reading about some new gadget', ['I like tech gadgets. Probably too much.'], [['Me gustan los aparatos electrónicos.', 'I like electronic gadgets.']])],
@@ -98,7 +107,7 @@ const INTERESTS = [
   [/^board games$/, I('board games', 'at a board game night', ['Board games with friends.'], [['Me gustan los juegos de mesa.', 'I like board games.']])],
   [/^hosting friends$/, I('hosting', 'with friends over at my place', ['I like having people over.'], [['Me gusta invitar a mis amigos a la casa.', 'I like having my friends over.']])],
   [/^church on Sundays$/, I('church', 'at church', ['I go to church every Sunday.'], [['Voy a la iglesia los domingos.', 'I go to church on Sundays.']])],
-  [/^(the old Oakland A's|the [A-Z][A-Za-z0-9' ]+|LAFC|San Diego FC|UCLA football|USC football)$/, m => ({ short: 'watching the game', doing: `watching ${m[1]}`, en: [`I never miss ${m[1]} if I can help it.`, `I follow ${m[1]}. Win or lose.`], es: [['Me gusta ver los partidos.', 'I like watching the games.']] })],
+  [/^(the old Oakland A's|the [A-Z0-9][A-Za-z0-9' ]+|LAFC|San Diego FC|San Diego State|[A-Z][a-z]+ State football|UCLA football|USC football|Stanford football|Cal football)$/, m => ({ short: `${m[1].replace(/^the (old Oakland )?/, '')} games`, doing: `watching ${m[1]}`, en: [`I never miss ${m[1]} if I can help it.`, `I follow ${m[1]}. Win or lose.`], es: [['Me gusta ver los partidos.', 'I like watching the games.']] })],
 ];
 
 /** How people put each persona worry in a sentence (persona concern topics), English and Spanish. */
@@ -111,28 +120,73 @@ export const CONCERN_WORDS = Object.freeze({
   schools: ['the schools', 'las escuelas'], 'family abroad': ['my family back home', 'mi familia allá'],
 });
 
-/** A plain description of the work by Census occupation group: [Spanish, English]. Title keywords refine a few. */
+// Common titles first ([pattern, Spanish for a man, Spanish for a woman, English]); the group map catches the rest.
+const JOB_TITLES_ES = [
+  [/tractor/, 'Manejo un tractor en el campo.', 'Manejo un tractor en el campo.', 'I drive a tractor on a farm.'],
+  [/picker|harvester|field worker|farmworker|orchard|vineyard worker|grove|irrigation|ranch hand|nursery and greenhouse|cannabis|date palm/, 'Trabajo en el campo.', 'Trabajo en el campo.', 'I work in the fields.'],
+  [/dairy/, 'Trabajo en una lechería.', 'Trabajo en una lechería.', 'I work at a dairy.'],
+  [/produce sorter|packing house|food processing|hand packager/, 'Trabajo en una empacadora.', 'Trabajo en una empacadora.', 'I work at a packing plant.'],
+  [/winery/, 'Trabajo en una bodega de vino.', 'Trabajo en una bodega de vino.', 'I work at a winery.'],
+  [/bakery|pastry|baker/, 'Trabajo en una panadería.', 'Trabajo en una panadería.', 'I work at a bakery.'],
+  [/dishwasher/, 'Lavo platos en un restaurante.', 'Lavo platos en un restaurante.', 'I wash dishes at a restaurant.'],
+  [/\bserver\b|waiter|waitress/, 'Soy mesero.', 'Soy mesera.', "I'm a server."],
+  [/bartender/, 'Soy cantinero.', 'Soy cantinera.', "I'm a bartender."],
+  [/barista/, 'Preparo café en una cafetería.', 'Preparo café en una cafetería.', 'I make coffee at a café.'],
+  [/fast food/, 'Trabajo en un restaurante de comida rápida.', 'Trabajo en un restaurante de comida rápida.', 'I work at a fast food restaurant.'],
+  [/restaurant host/, 'Recibo a los clientes en un restaurante.', 'Recibo a los clientes en un restaurante.', 'I greet customers at a restaurant.'],
+  [/\bcook\b|chef/, 'Soy cocinero.', 'Soy cocinera.', "I'm a cook."],
+  [/sewing|seamstress|tailor/, 'Soy costurero.', 'Soy costurera.', 'I sew clothes.'],
+  [/meat cutter|butcher/, 'Soy carnicero.', 'Soy carnicera.', "I'm a meat cutter."],
+  [/welder/, 'Soy soldador.', 'Soy soldadora.', "I'm a welder."],
+  [/assembly/, 'Trabajo en una fábrica, en la línea.', 'Trabajo en una fábrica, en la línea.', 'I work on the line at a factory.'],
+  [/pool service/, 'Limpio albercas.', 'Limpio albercas.', 'I clean pools.'],
+  [/pest control/, 'Trabajo en control de plagas.', 'Trabajo en control de plagas.', 'I work in pest control.'],
+  [/landscap|gardener|groundskeep|tree trimmer/, 'Trabajo en jardinería.', 'Trabajo en jardinería.', 'I work in landscaping.'],
+  [/housekeep|maid|janitor|custodian|house cleaner|cleaner/, 'Hago limpieza.', 'Hago limpieza.', 'I do cleaning.'],
+  [/drywall/, 'Instalo tablaroca.', 'Instalo tablaroca.', 'I hang drywall.'],
+  [/roofer/, 'Trabajo en techos.', 'Trabajo en techos.', 'I work on roofs.'],
+  [/concrete/, 'Trabajo con concreto.', 'Trabajo con concreto.', 'I work with concrete.'],
+  [/heavy equipment/, 'Manejo maquinaria pesada.', 'Manejo maquinaria pesada.', 'I run heavy equipment.'],
+  [/carpenter|cabinetmaker/, 'Soy carpintero.', 'Soy carpintera.', "I'm a carpenter."],
+  [/painter/, 'Soy pintor.', 'Soy pintora.', "I'm a painter."],
+  [/electrician/, 'Soy electricista.', 'Soy electricista.', "I'm an electrician."],
+  [/plumber/, 'Soy plomero.', 'Soy plomera.', "I'm a plumber."],
+  [/construction laborer|construction foreman/, 'Trabajo en la construcción.', 'Trabajo en la construcción.', 'I work in construction.'],
+  [/auto body/, 'Trabajo en un taller de hojalatería.', 'Trabajo en un taller de hojalatería.', 'I work at an auto body shop.'],
+  [/mechanic/, 'Soy mecánico.', 'Soy mecánica.', "I'm a mechanic."],
+  [/caregiver|home health aide/, 'Cuido a personas mayores.', 'Cuido a personas mayores.', 'I take care of older people.'],
+  [/nursing assistant/, 'Soy asistente de enfermería.', 'Soy asistente de enfermería.', "I'm a nursing assistant."],
+  [/medical assistant/, 'Soy asistente médico.', 'Soy asistente médica.', "I'm a medical assistant."],
+  [/\bnurse\b/, 'Soy enfermero.', 'Soy enfermera.', "I'm a nurse."],
+  [/child ?care|nanny|daycare/, 'Cuido niños.', 'Cuido niños.', 'I take care of children.'],
+  [/teaching assistant/, 'Ayudo en una escuela.', 'Ayudo en una escuela.', 'I help out at a school.'],
+  [/teacher/, 'Soy maestro.', 'Soy maestra.', "I'm a teacher."],
+  [/hair|barber|stylist|nail/, 'Trabajo en un salón de belleza.', 'Trabajo en un salón de belleza.', 'I work at a beauty salon.'],
+  [/warehouse|forklift|freight/, 'Trabajo en una bodega.', 'Trabajo en una bodega.', 'I work in a warehouse.'],
+  [/grocery stocker|stock clerk/, 'Acomodo mercancía en una tienda.', 'Acomodo mercancía en una tienda.', 'I stock shelves at a store.'],
+  [/car wash/, 'Trabajo en un lavado de carros.', 'Trabajo en un lavado de carros.', 'I work at a car wash.'],
+  [/refuse/, 'Recojo la basura.', 'Recojo la basura.', 'I collect the trash.'],
+  [/longshore|container crane/, 'Trabajo en el puerto.', 'Trabajo en el puerto.', 'I work at the port.'],
+  [/truck driver/, 'Manejo un tráiler.', 'Manejo un tráiler.', 'I drive a truck.'],
+  [/delivery/, 'Hago entregas.', 'Hago entregas.', 'I make deliveries.'],
+  [/bus driver/, 'Manejo un autobús.', 'Manejo un autobús.', 'I drive a bus.'],
+  [/rideshare/, 'Manejo para una aplicación de viajes.', 'Manejo para una aplicación de viajes.', 'I drive for a ride app.'],
+  [/driver/, 'Soy chofer.', 'Soy chofer.', "I'm a driver."],
+  [/cashier/, 'Soy cajero.', 'Soy cajera.', "I'm a cashier."],
+  [/retail sales/, 'Trabajo en una tienda.', 'Trabajo en una tienda.', 'I work at a store.'],
+  [/street vendor/, 'Vendo en la calle.', 'Vendo en la calle.', 'I sell on the street.'],
+  [/security guard/, 'Soy guardia de seguridad.', 'Soy guardia de seguridad.', "I'm a security guard."],
+  [/customer service/, 'Trabajo en servicio al cliente.', 'Trabajo en servicio al cliente.', 'I work in customer service.'],
+  [/small business owner/, 'Tengo mi propio negocio.', 'Tengo mi propio negocio.', 'I have my own business.'],
+  [/^farmer$/, 'Soy agricultor.', 'Soy agricultora.', "I'm a farmer."],
+];
+
+/** A plain description of the work: [Spanish, English], by title for common jobs, else by Census occupation group. */
 export function jobSpanish(group, title, sex) {
   const t = String(title || '').toLowerCase();
-  const o = sex === 'F' ? 'a' : 'o';
-  if (/driver|trucker|chauffeur/.test(t)) return ['Soy chofer.', "I'm a driver."];
-  if (/cashier/.test(t)) return [`Soy cajer${o}.`, "I'm a cashier."];
-  if (/mechanic/.test(t)) return ['Soy mecánico.'.replace('mecánico', sex === 'F' ? 'mecánica' : 'mecánico'), "I'm a mechanic."];
-  if (/nurse/.test(t)) return [`Soy enfermer${o}.`, "I'm a nurse."];
-  if (/cook|chef/.test(t)) return [`Soy cociner${o}.`, "I'm a cook."];
-  if (/landscap|gardener|groundskeep|tree trimmer/.test(t)) return ['Trabajo en jardinería.', 'I work in landscaping.'];
-  if (/housekeep|maid|janitor|custodian|cleaner/.test(t)) return ['Hago limpieza.', 'I do cleaning.'];
-  if (/teacher/.test(t)) return [`Soy maestr${o}.`, "I'm a teacher."];
-  if (/hair|barber|stylist|nail|cosmet/.test(t)) return ['Trabajo en un salón de belleza.', 'I work at a beauty salon.'];
-  if (/child ?care|nanny|daycare|preschool/.test(t)) return ['Cuido niños.', 'I take care of children.'];
-  if (/farm|field|crop|harvest|agricultur|ranch|vineyard|orchard|nursery/.test(t)) return ['Trabajo en el campo.', 'I work in the fields.'];
-  if (/carpenter/.test(t)) return [`Soy carpinter${o}.`, "I'm a carpenter."];
-  if (/painter/.test(t)) return [`Soy pintor${sex === 'F' ? 'a' : ''}.`, "I'm a painter."];
-  if (/electrician/.test(t)) return [`Soy electricista.`, "I'm an electrician."];
-  if (/plumber/.test(t)) return ['Soy plomero.'.replace('plomero', sex === 'F' ? 'plomera' : 'plomero'), "I'm a plumber."];
-  if (/warehouse|stocker|packer|loader|forklift|material/.test(t)) return ['Trabajo en una bodega.', 'I work in a warehouse.'];
+  for (const [re, m, f, en] of JOB_TITLES_ES) if (re.test(t)) return [sex === 'F' ? f : m, en];
   const G = {
-    management: [`Soy gerente.`, "I'm a manager."], business: ['Trabajo en una oficina.', 'I work in an office.'],
+    management: ['Soy gerente.', "I'm a manager."], business: ['Trabajo en una oficina.', 'I work in an office.'],
     computer: ['Trabajo con computadoras.', 'I work with computers.'], engineering: ['Trabajo en ingeniería.', 'I work in engineering.'],
     science: ['Trabajo en ciencias.', 'I work in science.'], social: ['Trabajo en servicios sociales.', 'I work in social services.'],
     legal: ['Trabajo en el área legal.', 'I work in the legal field.'], education: ['Trabajo en una escuela.', 'I work at a school.'],
@@ -194,6 +248,7 @@ export function cieloEs(short) {
   if (/smoke|haze/.test(l)) return ['hay humo', 'con humo'];
   if (/wind|breez|blust/.test(l)) return ['hace viento', 'con viento'];
   if (/mostly sunny|mostly clear/.test(l)) return ['casi no hay nubes', 'mayormente soleado'];
+  if (/partly sunny/.test(l)) return ['hay sol y nubes', 'parcialmente soleado'];
   if (/partly/.test(l)) return ['está medio nublado', 'parcialmente nublado'];
   if (/cloudy|overcast/.test(l)) return ['está nublado', 'nublado'];
   if (/sunny/.test(l)) return ['hace sol', 'soleado'];
@@ -224,7 +279,7 @@ export function millasEs(milesPhrase) {
   const s = String(milesPhrase || '');
   if (s === 'a few blocks') return 'unas cuadras';
   if (s === 'less than a mile') return 'menos de una milla';
-  if (s === 'about a mile') return 'como una milla';
+  if (s === 'about a mile') return 'una milla, más o menos';
   const m = /about (\d+) miles/.exec(s);
   return m ? `unas ${m[1]} millas` : null;
 }

@@ -56,7 +56,11 @@ export class StreetRenderer {
     this.scene = null;
     this.P = null;
     this.sunKey = '';
+    this._sunAt = -Infinity;
     this.renderBudgetMs = 7;
+    /** The shadows baked into tiles follow the sun at most this often (real ms): a fast clock does not redraw every frame. */
+    this.sunHoldMs = 1500;
+    this._staleLeft = 1;
     this.lastStats = { tilesDrawn: 0, tilesRendered: 0, agentsDrawn: 0 };
   }
 
@@ -65,6 +69,7 @@ export class StreetRenderer {
     this.scene = scene;
     this.P = P;
     this.tiles.clear(); this.lights.clear();
+    this.sunKey = ''; this._sunAt = -Infinity;
     const R = scene.R;
     this.ext = R + 60;
     const idx = { edges: new FeatureGrid(), buildings: new FeatureGrid(), lots: new FeatureGrid(), areas: new FeatureGrid(), trees: new FeatureGrid(32), spots: new FeatureGrid(), pools: new FeatureGrid(), lamps: new FeatureGrid() };
@@ -162,8 +167,11 @@ export class StreetRenderer {
       const key = this._tileKey(level, tx, ty);
       const t = cache.get(key);
       if (t && t.want === want) continue;
-      if (now() > deadline && t) continue;          // stale but drawable: refresh in a later frame
-      if (now() > deadline && !t && this._haveAny(cache, level, tx, ty, want)) continue;
+      if (t) {
+        // stale but drawable: refreshed one at a time, within the frame's budget, the rest in later frames
+        if (this._staleLeft <= 0 || now() > deadline) continue;
+        this._staleLeft--;
+      } else if (now() > deadline && this._haveAny(cache, level, tx, ty, want)) continue;
       const cv = this._renderTile(level, tx, ty, kind);
       cache.set(key, { cv, want, level, tx, ty, used: now() });
       this.lastStats.tilesRendered++;
@@ -220,7 +228,9 @@ export class StreetRenderer {
    * Draw one frame.
    * @param {{x:number, y:number, z:number, dpr:number, W:number, H:number}} cam center (local m), zoom (CSS px per m), device pixels
    * @param {object} sim StreetSim
-   * @param {{t:number, light:object, fx:object, nowMs:number, selected?:number, hover?:number, labels?:boolean, theme:object}} env
+   * @param {{t:number, light:object, fx:object, nowMs:number, selected?:number, hover?:number, labels?:boolean, theme:object,
+   *   staleTiles?:number, clockRate?:number}} env staleTiles: how many out-of-date tiles (sun moved, theme changed) may be
+   *   redrawn this frame (default 1; missing tiles are always drawn); clockRate: simulated time per real time
    */
   frame(cam, sim, env) {
     const g = this.g, P = this.P, scene = this.scene;
@@ -228,14 +238,24 @@ export class StreetRenderer {
     this._cam = cam;
     this.lastStats = { tilesDrawn: 0, tilesRendered: 0, agentsDrawn: 0 };
     this.stops = sim ? sim.stops : null;
+    this._staleLeft = env.staleTiles === undefined ? 1 : env.staleTiles;
     // the sun for shadows and roof shading, bucketed so tiles are not redrawn every minute
     const L = env.light;
     const el = L.elevation, az = L.azimuth * Math.PI / 180;
     // direct sunlight: none under an overcast or rainy sky, partial through broken clouds
     const strength = clamp(el / 20, 0, 1) * Math.pow(1 - clamp(env.fx ? env.fx.cloud : 0, 0, 1), 1.5);
-    const azB = Math.round(L.azimuth / 20) * 20 * Math.PI / 180, elB = el < 0 ? -1 : Math.round(Math.min(el, 60) / 10) * 10;
-    this.sun = { az: azB, el: Math.max(5, elB), strength: elB < 0 ? 0 : Math.round(strength * 4) / 4, dx: -Math.sin(azB), dy: Math.cos(azB) };
-    this.sunKey = elB < 0 ? 'night' : `${Math.round(azB * 100)}:${elB}:${this.sun.strength}`;
+    // buckets: 20 degrees of azimuth and 10 of elevation; while the clock runs fast (more than a hundred times real
+    // time) 45 and 20, so the baked shadows are redrawn every few seconds rather than continuously
+    const fast = (env.clockRate || 1) > 100, azStep = fast ? 45 : 20, elStep = fast ? 20 : 10;
+    const azB = Math.round(L.azimuth / azStep) * azStep * Math.PI / 180, elB = el < 0 ? -1 : Math.round(Math.min(el, 60) / elStep) * elStep;
+    const sunKey = elB < 0 ? 'night' : `${azB.toFixed(2)}:${elB}:${Math.round(strength * 4) / 4}`;
+    const realMs = env.nowMs || now();
+    // a new sun bucket is taken up at most every sunHoldMs of real time, so a fast clock redraws tiles now and then
+    if (sunKey !== this.sunKey && (!this.sunKey || realMs - this._sunAt >= this.sunHoldMs || realMs < this._sunAt)) {
+      this.sun = { az: azB, el: Math.max(5, elB), strength: elB < 0 ? 0 : Math.round(strength * 4) / 4, dx: -Math.sin(azB), dy: Math.cos(azB) };
+      this.sunKey = sunKey;
+      this._sunAt = realMs;
+    }
     const W = cam.W, H = cam.H, s = cam.z * cam.dpr;
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;

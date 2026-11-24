@@ -66,11 +66,12 @@ const P = {
   ],
   neighborhood: [
     [/\bneighbou?rhoods?\b|\bneighbou?rs?\b|\bthis (area|town|city|place|block|part of town|street)\b|\baround here\b|\bthe area\b|\bcommunity\b/, 2.5],
-    [/\bwhat'?s (it|life) like (living |to live |growing up )?(here|in|around)\b|\bwhat'?s [a-z .'-]{2,28} like\s*\??$/, 4], [/\bis it (safe|nice|good|quiet|loud|busy|walkable|friendly)\b/, 3],
+    [/\bwhat'?s (it|life) like (living |to live |growing up )?(here|in|around)\b/, 4], [/\bwhat'?s [a-z .'-]{2,28} like\s*\??$/, 2.5], [/\bis it (safe|nice|good|quiet|loud|busy|walkable|friendly)\b/, 3],
     [/\bdo you like (it )?(here|living here|this place|the area|this town|this neighborhood)\b/, 4], [/\b(best|worst) (thing|part) about\b/, 3.5],
     [/\bpeople (here|around here)\b|\bwho lives (here|around here)\b|\bwhat language\b|\bspeak spanish\b/, 3],
   ],
   weather: [
+    [/\b(weather|forecast)\b/, 1.5],
     [/\b(weather|forecast|temperature|degrees|rain|raining|rainy|sunny|cloudy|clouds|fog|foggy|marine layer|june gloom|may gray|windy|breezy|chilly|freezing|snowing|humid|humidity|umbrella|jacket weather|sweater weather|drizzle)\b/, 3],
     [/\bhot (today|out|outside|enough)\b|\bwarm (today|out)\b|\bcold (today|out|outside)\b|\bnice (day|out|weather)\b|\bbeautiful day\b|\bgorgeous day\b/, 3],
     [/\b(wind|cold|snow|sun)\b/, 1.5], [/\bwill it rain\b|\bis it going to (rain|be hot|be cold)\b|\bwhat'?s it like out\b/, 3.5],
@@ -104,6 +105,7 @@ const P = {
     [/\bwhere (should|can|do) (i|we|you) eat\b|\bgood place to eat\b|\bbest (tacos?|burgers?|pizza|food|place to eat|restaurant)\b|\bfavou?rite food\b|\bwhat should i eat\b/, 4.5],
   ],
   place: [
+    [/\bfun to do\b|\bto do around here\b|\bwhat can (i|we|you) do\b|\bfun (things|stuff|places)\b|\bwhere do people go\b/, 4],
     [/\bwhat should i (see|do|visit|check out)\b|\bthings to do\b|\bwhat (is there )?to do\b|\bwhere should i go\b|\bworth (seeing|visiting|a visit|checking out)\b|\bplaces to (go|visit|see|hang out)\b|\bsights(eeing)?\b|\btourist\b|\battractions?\b|\bday trip\b|\bhidden gems?\b|\bfun (place|spot|stuff)\b|\bdate (night|spot)\b/, 4],
     [/\b(hike|hiking|trails?|beach(es)?|parks?|museums?|views?|scenic|lake|go out|hang out)\b/, 2], [/\brecommend\b|\bsuggest\b/, 1.5],
   ],
@@ -131,12 +133,15 @@ const P = {
   ],
 };
 
+// A question about whatever was just said: "is it always like this?", "do you like it?", "is that normal?"
+const ABOUT_THAT = /\b(is it|is that) always like this\b|\balways like this\b|\bis (that|this) (normal|typical|usual)\b|\b(do|how do) you (like|enjoy|love) (it|that|that job|the job|your job|work|school|living here)\b|\bis it (fun|good|hard|nice|tough|stressful)\b|\bwhy is that\b|\bhow come\b/;
+
 const MORE = /^(and|so)?\s*(tell me more|more|go on|keep going|really|seriously|why|why not|how so|what happened( next| then)?|and then|then what|like what|such as|for example|oh yeah|is that right|wow|huh|interesting|no way|what do you mean|how come|what else|anything else|and)\s*[?!.]*$/;
 const YES = /^(yes|yeah|yep|yup|sure|of course|definitely|absolutely|i do|i am|i have|uh huh|mhm|si|sí|correct|right|totally|kind of|sort of|a little)\b/;
 const NO = /^(no|nope|nah|not really|not at all|i don'?t|i'?m not|i haven'?t|never|negative)\b/;
 
 // The commonest English words: a line with none of them, no known name and no intent reads as unclear.
-const COMMON_WORDS = new Set(('a an the and or but if so of to in on at by for with from about as is are was were be been am i me my we us our you your '
+const COMMON_WORDS = new Set(('that\'s it\'s what\'s funny hilarious true right exactly interesting cool nice awesome great sweet lovely a an the and or but if so of to in on at by for with from about as is are was were be been am i me my we us our you your '
   + 'he him his she her it its they them their this that these those there here what which who when where why how do does did have has had '
   + 'can could would should will not no yes yeah yep nope ok okay oh hi hey hello bye thanks thank please sorry well like just really very '
   + 'good great nice bad fine sure maybe much many more most some any all one two get got go going went come came know think say said tell '
@@ -279,7 +284,7 @@ export function understand(text, ctx = {}) {
   if (AI.has('greeting')) scores.greeting = Math.max(scores.greeting || 0, 2.5);
   if (AI.has('apology')) scores.apology = Math.max(scores.apology || 0, 3);
   if (ap.facts.some(f => f.key === 'name')) scores.name = Math.max(scores.name || 0, 4);
-  const question = /\?/.test(raw) || /^(who|what|when|where|why|how|which|whose|do|does|did|is|are|was|were|can|could|would|will|should|have|has|any|anything|ever|you)\b/.test(norm);
+  const question = /\?/.test(raw) || /^(who|what|when|where|why|how|which|whose|do|does|did|is|are|was|were|can|could|would|will|should|have|has|any|anything|ever)\b/.test(norm);
 
   // entities
   const from = ctx.home || null;
@@ -307,9 +312,11 @@ export function understand(text, ctx = {}) {
     religion: /\breligio\w*|\bgod\b|\bpray\w*|\bfaith\b|\bbelieve in\b|\bchurch\b/.test(norm),
     aboutPlayer: /\bwhat do you think of me\b|\bdo you like me\b|\bam i (annoying|boring|nice)\b/.test(norm),
     unclear: false,
+    aboutThat: ABOUT_THAT.test(norm),
+    likeIt: /\b(do|how do) you (like|enjoy|love) (it|that|that job|the job|your job|work|school|living here)\b|\bis it (fun|good|hard|nice|tough|stressful)\b/.test(norm),
   };
   const ws = norm.match(/[\p{L}']+/gu) || [];
-  flags.unclear = !ws.length || (!Object.keys(scores).length && !places.length && !roads.length && !years.length && ws.length <= 4 && !ws.some(w => COMMON_WORDS.has(w)));
+  flags.unclear = !ws.length || (!Object.keys(scores).length && !places.length && !roads.length && !years.length && ws.length <= 4 && !ws.some(w => COMMON_WORDS.has(w.replace(/'(s|re|ve|ll|d|m|t)$/, '')) || COMMON_WORDS.has(w)));
 
   // resolve combinations the way a person hears them
   const ranked = INTENTS.filter(k => scores[k] > 0).sort((a, b) => scores[b] - scores[a] || INTENTS.indexOf(a) - INTENTS.indexOf(b));
@@ -330,7 +337,7 @@ export function understand(text, ctx = {}) {
   if (intent === 'housing' && scores.rent >= 4) intent = 'rent';
   if (intent === 'weather' && scores.heat >= 3.5 && !/\b(today|now|right now|outside|out there)\b/.test(norm)) intent = 'heat';
   if (intent === 'about-them' && /\bwho are you\b/.test(norm) && !/\babout\b/.test(norm)) intent = 'name';
-  if (flags.more && ctx.lastIntent && TOPICAL.has(ctx.lastIntent) && ranked.every(k => strongest(k) < 3)) intent = ctx.lastIntent;
+  if ((flags.more || flags.aboutThat) && ctx.lastIntent && TOPICAL.has(ctx.lastIntent) && ranked.every(k => strongest(k) < 3.5)) intent = ctx.lastIntent;
   if (!ranked.length && ctx.lastIntent && flags.more) intent = ctx.lastIntent;
 
   const topics = new Set(ap.topics);

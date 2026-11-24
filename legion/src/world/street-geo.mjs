@@ -618,10 +618,22 @@ export function waterOutlines(grid) {
       if (chain.length < 3) continue;
       const flat = [];
       for (const k of chain) { const p = toLocal(k); flat.push(p[0], p[1]); }
-      // label by the water cell next to the middle of the line
-      const mid = Math.floor(chain.length / 2), mp = toLocal(chain[mid]);
-      let wk = GROUND.OCEAN;
-      for (const [dx, dy] of [[cell, 0], [-cell, 0], [0, cell], [0, -cell]]) { const g = grid.at(mp[0] + dx * 0.6, mp[1] + dy * 0.6); if (g === GROUND.LAKE || g === GROUND.OCEAN) { wk = g; break; } }
+      // the kind of water it bounds: the only kind in view, else the kind most cells beside the line hold
+      let wk;
+      if (!grid.hasOcean) wk = GROUND.LAKE;
+      else if (!grid.hasLake) wk = GROUND.OCEAN;
+      else {
+        let lakeN = 0, oceanN = 0;
+        const stride = Math.max(1, Math.floor(chain.length / 24));
+        for (let c = 0; c < chain.length; c += stride) {
+          const mp = toLocal(chain[c]);
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]]) {
+            const g = grid.at(mp[0] + dx * cell * 0.8, mp[1] + dy * cell * 0.8);
+            if (g === GROUND.LAKE) lakeN++; else if (g === GROUND.OCEAN) oceanN++;
+          }
+        }
+        wk = lakeN > oceanN ? GROUND.LAKE : GROUND.OCEAN;
+      }
       const smooth = closed ? chaikinClosed(Float64Array.from(flat), 3) : chaikin(Float64Array.from(flat), 3);
       out.push({ pts: smooth, kind: wk, closed });
     }

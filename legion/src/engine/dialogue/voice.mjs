@@ -180,7 +180,7 @@ export function makeVoice(world, persona, opts = {}) {
     newcomer: isNum(res.yearsInZip) && res.yearsInZip <= 3 && !res.bornHere,
     longtime: isNum(res.yearsInZip) && res.yearsInZip >= 15,
     retired: npc.status === 'retired', student: npc.status === 'student' || !!npc.school,
-    wfh: mode0 === 'wfh' || !!(occ && occ.wfh && mode0 === 'wfh'),
+    wfh: mode0 === 'wfh',
     outdoor: routine.outdoor === true,
     kids: kids.length > 0, littleKids: kids.some(k => isNum(k.age) && k.age < 6), teens: kids.some(k => isNum(k.age) && k.age >= 13 && k.age < 18),
     grandkids: rel.grandkids.length > 0, partner: !!rel.partner, alone: num(hh.size, 1) <= 1,

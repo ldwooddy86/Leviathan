@@ -385,7 +385,12 @@ export class StreetView {
     this._lastFrame = nowMs;
     this._fps = this._fps * 0.92 + (1000 / Math.max(1, dtReal)) * 0.08;
     const t = this._time();
+    // how fast simulated time runs against real time (smoothed), for the renderer's choice of detail
+    if (this._lastT !== undefined && dtReal > 0) this._clockRate = (this._clockRate || 1) * 0.9 + Math.min(1e4, Math.abs(t - this._lastT) / dtReal) * 0.1;
+    this._lastT = t;
+    const simAt = now();
     this._advance(t);
+    const simMs = now() - simAt;
     const sim = this.sim;
     if (!sim) return;
     // season and weather
@@ -410,7 +415,8 @@ export class StreetView {
     this._resize();
     if (!this.tip.parentElement) this._attachOverlays();
     const cam = { x: c.x, y: c.y, z: c.z, dpr: this.dpr, W: this.canvas.width, H: this.canvas.height };
-    this.renderer.frame(cam, sim, { t, light, fx: this._fx, nowMs, selected: this.selectedUid, hover: this.hoverUid, labels: true, theme: this.theme });
+    // an out-of-date tile (the sun moved) is redrawn only in a frame the simulation left room in
+    this.renderer.frame(cam, sim, { t, light, fx: this._fx, nowMs, selected: this.selectedUid, hover: this.hoverUid, labels: true, theme: this.theme, staleTiles: simMs > 8 ? 0 : 1, clockRate: this._clockRate || 1 });
     this._lastCam = cam;
     this._light = light;
     if (this.hoverUid >= 0) this._placeTip();

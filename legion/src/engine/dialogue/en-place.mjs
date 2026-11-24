@@ -75,6 +75,8 @@ export const PLACE = compileBank({
   `,
   'wx.feel.clear': `
     Can't complain about weather like this.
+    It's {very} nice out.
+    @loose It's a {very} pretty day.
     This is why we live here.
     Perfect day to be outside.
     Not a cloud in the sky.
@@ -88,6 +90,7 @@ export const PLACE = compileBank({
   `,
   'wx.feel.fog': `
     The fog's thick today.
+    It's {very} foggy. Drive careful.
     Can't see much past the end of the block.
     Foggy mornings are just part of life here.
   `,
@@ -99,12 +102,14 @@ export const PLACE = compileBank({
   `,
   'wx.feel.heat': `
     It's brutal out there.
+    It's {very} hot. Stay inside if you can.
     Stay in the shade if you can.
     Drink some water. I mean it.
     @outdoor Rough day to work outside.
   `,
   'wx.feel.cold': `
     Cold for here, anyway.
+    It's {very} cold this morning. Well, for here.
     Sweatshirt weather.
     I had to dig out a jacket this morning.
   `,
@@ -133,9 +138,6 @@ export const PLACE = compileBank({
   'wx.climate.snow': `
     We get snow, too. About {snowIn} inches a year.
     About {snowIn} inches of snow in a normal year.
-  `,
-  'wx.climate.fog': `
-    The fog rolls in most summer mornings.
   `,
 
   // ---------------------------------------------------------------- traffic and the commute
@@ -208,10 +210,10 @@ export const PLACE = compileBank({
   `,
   'tr.teenDrive': `
     I don't have my license yet.
-    I'm learning to drive. It's scary.
+    I can't drive yet. A couple more years.
   `,
   'tr.road': `
-    {road} is the big one around here. Something like {aadt}.
+    {road} is the big one around here. {aadtCap}.
     {roadCap} carries {aadt}. You can hear it from my street.
     Around here it's all about {road}. {aadtCap}, they say.
     {roadCap} is the main way in and out of here. {aadtCap}.
@@ -242,17 +244,13 @@ export const PLACE = compileBank({
     I don't drive {roadQ} much. It's a ways from here.
     {roadQ}? Never on it, honestly.
   `,
-  'tr.modes': `
-    Around here {share} drive to work.
-    Most people here drive. {shareCap} drive alone.
-  `,
   'tr.transitShare': `
-    A lot of people here take the bus. About {pctWords}.
-    You see a lot of people on the bus here.
+    {shareCap} take {transit} to work.
+    Plenty of people here ride {transit}. {shareCap} take it to work.
   `,
   'tr.wfhShare': `
     {shareCap} work from home now, so mornings are quieter.
-    A lot of people here work from home these days.
+    {shareCap} work from home these days. The streets are emptier at eight than they used to be.
   `,
   'tr.feel': `
     Traffic around here is just part of life.
@@ -272,6 +270,23 @@ export const PLACE = compileBank({
   'fire.livedChild': `
     I was little when {fire} happened, in {year}.
     I remember {fire} in {year}. I was just a kid.
+  `,
+  'fire.livedTeen': `
+    I was {ageThen} when {fire} happened, in {year}.
+    {fireCap}, in {year}. I was {ageThen}.
+  `,
+  'fire.tollThere': `
+    It destroyed {dest} in {place}.
+    It took out {dest} in {place}.
+  `,
+  'fire.remember': `
+    I remember {fire}, in {year}.
+    {fireCap}, {month} {year}. I remember it well.
+    {fireCap} in {year}. It wasn't right here, but everybody felt it.
+  `,
+  'fire.distance': `
+    It burned {miles} from here.
+    The closest it got was {miles} away.
   `,
   'fire.toll': `
     It destroyed {dest} around here.
@@ -298,6 +313,14 @@ export const PLACE = compileBank({
     We don't really get fires right in {place}. The closest was {fire}, back in {year}, {miles} away.
     Fire's not really our problem here. The nearest one I know of was {fire} in {year}, {miles} off.
     Not in town. {fireCap} in {year} was the closest, {miles} away.
+  `,
+  'fire.kidMore': `
+    That's all I know. Ask my {parentWord}.
+    I don't remember much else. Ask my {parentWord}.
+  `,
+  'fire.nothingMore': `
+    That's really all there is to tell. We've been lucky.
+    Honestly, that's about it. Fire's never come right through here.
   `,
   'fire.none': `
     Fire's not really a thing right here. Earthquakes, maybe.
@@ -336,7 +359,7 @@ export const PLACE = compileBank({
   `,
   'fire.kid': `
     There was a big fire here once. My {parentWord} told me about it.
-    My {parentWord} says there was a big fire before I was born.
+    My {parentWord} told me there was a big fire here before I was born.
   `,
 
   // ---------------------------------------------------------------- storms, floods, wind
@@ -349,6 +372,10 @@ export const PLACE = compileBank({
   'storm.arLived': `
     I remember the one in {when}. {exp}
     The storm in {when}, I remember. {exp}
+  `,
+  'storm.arRank': `
+    It was a category {rank} atmospheric river.
+    That was a category {rank}, the strongest kind.
   `,
   'storm.fema': `
     The county got a federal disaster declaration for the {title}.
@@ -485,6 +512,7 @@ export const PLACE = compileBank({
   `,
   'rent.feel': `
     Rent goes up every year.
+    Rent here is {very} expensive. That's just how it is.
     Rent is the first thing I pay and the last thing I stop thinking about.
     @works Most of my paycheck goes to rent.
     I'd love to buy someday. Not around here, though.
@@ -520,8 +548,12 @@ export const PLACE = compileBank({
     @worrier I'm scared to open the mail from the insurance company.
   `,
   'ins.renter': `
-    I just have renter's insurance. The homeowners around here have it way worse.
-    I rent, so it's just renter's insurance for me. Owners are getting hammered.
+    @rents I just have renter's insurance. The homeowners around here have it way worse.
+    @rents I rent, so it's just renter's insurance for me. Owners are getting hammered.
+  `,
+  'ins.notMine': `
+    I don't deal with the insurance. That's whoever owns the place.
+    It's not my house, so I stay out of that. But I hear the complaints.
   `,
   'ins.minor': `
     I don't know anything about that. Ask my {parentWord}.
@@ -543,7 +575,12 @@ export const PLACE = compileBank({
     Remember the {title}? {year}. The county got federal disaster help for that one.
   `,
   'quake.lived': `
-    I felt the {title}. {exp}
+    I felt the {title}, in {year}. {exp}
+    The {title}, {year}. I remember it. {exp}
+  `,
+  'quake.femaAfter': `
+    The county got federal disaster help after that one.
+    There was a federal disaster declaration for the county after it.
   `,
   'quake.prep': `
     We keep water and a flashlight in the garage.
@@ -581,6 +618,11 @@ export const PLACE = compileBank({
     Nothing beats the {dish} at home.
     My family makes the best {dish}.
     Come by on a holiday and you'll get {dish}.
+  `,
+  'food.good': `
+    The food around here is {very} good.
+    Honestly, the tacos around here are so good.
+    @loose The burritos around here are {very} good. I'm not even kidding.
   `,
   'food.lots': `
     You won't go hungry around here. There's food on every block.
@@ -693,9 +735,6 @@ export const PLACE = compileBank({
     You'll want a map for the rest.
     Your phone will do better than me after that.
   `,
-  'dir.downtown': `
-    Downtown {town} is {miles} {dir} of here.
-  `,
 
   // ---------------------------------------------------------------- the neighborhood
   'hood.urban': `
@@ -730,8 +769,9 @@ export const PLACE = compileBank({
     You can see {peak} from around here when the air's clean.
   `,
   'hood.change': `
-    It's changed a lot since {zipSince}. Prices, mostly.
-    When I moved here in {zipSince} it was a different place. Same streets, different prices.
+    @adult It's changed a lot since {zipSince}. Prices, mostly.
+    @adult When I moved here in {zipSince} it was a different place. Same streets, different prices.
+    @minor It's changed a little since we moved here in {zipSince}. More traffic.
   `,
   'hood.safe': `
     I feel safe here. People look out for each other.
@@ -740,6 +780,7 @@ export const PLACE = compileBank({
   `,
   'hood.like': `
     I like it here. It's home.
+    I love it here. It's {very} easy to live here.
     I wouldn't live anywhere else.
     It has its problems, but I love it.
     @prickly It's fine. It's a place to live.

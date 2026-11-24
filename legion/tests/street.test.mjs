@@ -422,6 +422,10 @@ test('simulation: through traffic, buses and parked cars at night (90001, 22:00)
   for (let i = 0; i < 900; i++) night.step();
   const s = night.stats();
   assert.ok(s.car > 5 && s.parked > 500, JSON.stringify(s));
+  // at 22:00 most household cars are home, and every one of them is drawn (looks are uint32 hashes: none may read as empty)
+  const spaces = night.scene.households.reduce((n, hh) => n + (hh ? hh.spots.length : 0), 0);
+  assert.ok(s.parked >= 0.8 * spaces, `${s.parked} parked of ${spaces} household spaces`);
+  for (const v of night.spotCar) assert.ok(v === -1 || v === -2 || (Number.isInteger(v) && v >= 0 && v < 2 ** 32));
   checkSim(night);
   const rural = new StreetSim(sceneOf(...RURAL), { world, population: pop });
   rural.reset(atPacific(2026, 11, 24, 12, 0));
@@ -556,8 +560,10 @@ test('streams: arrivals are spread in time, nobody is on two agents, and shopper
   assert.ok(sim._pendingReturns.length > 20, 'shoppers in the stores');
   const t7 = atPacific(2026, 11, 24, 7, 0);
   sim.advance(t7);
-  assert.ok(sim._pendingReturns.every(x => x.t > t7), 'only shoppers of the new hour');
-  assert.ok(sim._pendingReturns.length < 20, `${sim._pendingReturns.length} pending at 7:00`);
+  // noon's shoppers (back out at 12:20 and later) are gone; whoever is in a store now came in this morning
+  assert.ok(sim._pendingReturns.every(x => x.t > t7 && x.t < t7 + 65 * 60000), 'only shoppers of the new hour');
+  for (const x of sim._pendingReturns) assert.ok(sim.shoppers.has(x.prev.id));
+  assert.equal(sim.shoppers.size, new Set(sim._pendingReturns.map(x => x.prev.id)).size);
   sim.advance(atPacific(2026, 11, 24, 8, 30));
   sim.step();
   const leaving = sim.agents.filter(a => a.role === 'visitor' && a.kind === 'car' && a.phase === 'exit').length;
@@ -570,8 +576,8 @@ test('parking: a car leaves from where it was parked, at home or in a stall wher
   const sim = new StreetSim(sceneOf('94110'), { world, population: pop });
   sim.reset(atPacific(2026, 11, 24, 11, 0));
   const p = sim.persons.find(q => q.role === 'resident' && q.veh >= 0 && q.spot >= 0 && !q.agent);
-  const shop = sim.shops.find(b => Math.hypot(b.cx - sim.scene.buildings[p.b].cx, b.cy - sim.scene.buildings[p.b].cy) > 200);
-  assert.ok(p && shop);
+  const shop = sim.shops.find(b => Math.hypot(b.cx - sim.scene.buildings[p.b].cx, b.cy - sim.scene.buildings[p.b].cy) > 200 && sim._freeSpotNear(b));
+  assert.ok(p && shop, 'a driver at home and a store with a free stall');
   // the driver arrives at the store and parks
   const arrive = sim.router.path('car', { node: sim.carExits[0] }, { e: shop.access.e, s: shop.access.s });
   const a = sim._newAgent({ kind: 'car', role: 'resident', id: p.id, person: p.pid, path: arrive, trip: { path: arrive, t0: sim.t, vNom: 10, oIn: false, dIn: true, toB: shop, exitDur: 7, enterDur: 7, dur: 60 }, lookH: sim._carLookId(p), len: 4.7 });

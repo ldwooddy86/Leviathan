@@ -308,7 +308,7 @@ export function censusFacts(v) {
     if (workers >= 200) for (const k of Object.keys(C)) out.modes[k] = { share: num(C[k]) / workers, id: `acs.comm.${k}` };
   } catch { /* a ZIP without the block */ }
   if (isNum(z.own_sh)) out.own = { share: z.own_sh / 100, id: 'acs.own' };
-  if (isNum(z.value) && z.value > 0) out.value = { value: z.value, words: money(z.value), id: 'acs.value' };
+  if (isNum(z.value) && z.value > 0) out.value = { value: z.value, words: z.value >= 2000001 ? money(z.value) : `about ${money(z.value)}`, id: 'acs.value' };
   if (isNum(z.yb_med) && z.yb_med > 1900) out.yb = { year: z.yb_med, decade: decadeWords(z.yb_med), id: 'acs.yb' };
   if (isNum(z.food) && isNum(z.pop) && z.pop > 0) out.food = { count: z.food, per10k: z.food / z.pop * 10000, id: 'biz.food' };
   return out;
@@ -402,7 +402,7 @@ export function femaTitle(title) {
 export function destWords(n) {
   if (!isNum(n) || n <= 0) return null;
   if (n === 1) return 'one building';
-  if (n < 10) return `${['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][n]} homes and buildings`;
+  if (n < 10) return `${['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][n]} buildings`;
   return `${approx(n)} homes and buildings`;
 }
 
