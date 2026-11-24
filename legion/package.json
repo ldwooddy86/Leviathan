@@ -1,0 +1,21 @@
+{
+  "name": "legion",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Legion: the California NPC engine. Every Californian in the atlas data as a deterministic, data-grounded NPC, a GPU crowd of millions walking and driving, a street-level simulation and an AI dialogue platform (offline engine plus Claude).",
+  "type": "module",
+  "scripts": {
+    "pack": "python3 tools/build_pack.py",
+    "build": "node tools/build.mjs",
+    "test": "node tests/run.mjs",
+    "e2e": "node tests/e2e/run.mjs",
+    "serve": "node server/serve.mjs",
+    "cli": "node cli/legion.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.13.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
