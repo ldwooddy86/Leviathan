@@ -13,8 +13,11 @@ import { SPEAKER_NEEDS } from '../lexicon/tags.mjs';
 
 // ------------------------------------------------------------------ small helpers
 
+/** True for a finite number. */
 export const isNum = v => typeof v === 'number' && Number.isFinite(v);
+/** v when it is a finite number, else d. */
 export const num = (v, d = 0) => (isNum(v) ? v : d);
+/** A trimmed non-empty string, or null. */
 export const str = v => (typeof v === 'string' && v.trim() ? v.trim() : null);
 
 /** Upper-case the first letter (after any opening Spanish punctuation or quote). */
@@ -26,7 +29,7 @@ export function capFirst(s) {
 /** Lower-case the first letter of a phrase that will continue a sentence ("The weather service says ..."). */
 export function lowerFirst(s) {
   if (!s) return s;
-  return /^\p{Lu}\p{Ll}/u.test(s) && !/^(I|I'm|I've|I'd|I'll)\b/.test(s) ? s[0].toLowerCase() + s.slice(1) : s;
+  return /^(\p{Lu}\p{Ll}|A\s)/u.test(s) && !/^(I|I'm|I've|I'd|I'll)\b/.test(s) ? s[0].toLowerCase() + s.slice(1) : s;
 }
 
 /** "a" or "an" for a phrase. */
@@ -108,9 +111,10 @@ export function compass(dx, dy) {
   return COMPASS[k];
 }
 
+/** English month names, January first. */
 export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+/** Spanish month names, enero first. */
 export const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-export const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
 
 /** 'YYYYMMDD' / 'YYYY-MM-DD' / 'YYYY' → {y, m, d} (m and d may be null), or null. */
 export function parseDate(s) {
@@ -349,18 +353,27 @@ const LIFE_CHECKS = [
   [/\b(my|our) (studio|apartment|building|unit)\b/i, v => !!v.flags.apartment],
   [/\b(my|our) (kids?|son|daughter|children|baby|boy|girl|teenagers?)\b/i, v => !!v.flags.kids],
   [/\b(my|our) (grandkids?|grandchildren|grandson|granddaughter|grandbaby)\b/i, v => !!v.flags.grandkids],
-  [/\bmy (wife|husband|spouse|partner)\b/i, v => !!v.flags.partner],
-  [/\bmy (boss|shift|coworkers?|paycheck|manager)\b|\b(at|before|after|from|to|on the way to) work\b|\bmy office\b/i, v => v.speaker.works === true || (v.speaker.works === undefined && v.age >= 18)],
+  // a wife is a woman they are married to, a husband a man; a partner is either
+  [/\bmy wife\b/i, v => (v.flags.spouseSex !== undefined ? v.flags.spouseSex === 'F' : !!v.flags.partner)],
+  [/\bmy husband\b/i, v => (v.flags.spouseSex !== undefined ? v.flags.spouseSex === 'M' : !!v.flags.partner)],
+  [/\bmy spouse\b/i, v => (v.flags.married !== undefined ? !!v.flags.married : !!v.flags.partner)],
+  [/\bmy partner\b/i, v => !!v.flags.partner],
+  // nobody to hide from at their own farm or business
+  [/\bmy (boss|manager)\b|\b(before|till|until) (somebody|someone|anybody|anyone) notices\b/i, v => !v.flags.selfEmployed && (v.speaker.works === true || (v.speaker.works === undefined && v.age >= 18))],
+  [/\bmy (shift|coworkers?|paycheck)\b|\b(at|before|after|from|to|on the way to) work\b|\bmy office\b/i, v => v.speaker.works === true || (v.speaker.works === undefined && v.age >= 18)],
   [/\bmy commute\b|\bon my way (in|to work)\b/i, v => !!v.flags.commuter],
   [/\b(my|our) (car|truck|steering wheel|windshield|tires?)\b|\bI (drove|drive)\b|\bI'?m driving\b|\bwhen I drive\b/i, v => SPEAKER_NEEDS.drives.test(v.speaker)],
-  [/\b(born and raised|grew up (here|in this|right here))\b/i, v => v.speaker.nativeHere !== false],
+  // born here (in this county), not only raised here: "born and raised", "my whole life"
+  [/\bborn and raised\b|\b(here|county|town|place|house|home|area|city|valley|neighborhood|neck of the woods),? (my whole life|all my life)\b|\bmy whole life (here|in (this|the) (county|town|area|valley|city|neighborhood))\b|\blived (here|in this (county|town|area|valley|city|neighborhood)) (my|all my) (whole )?life\b/i,
+    v => (v.flags.bornInCounty !== undefined ? !!v.flags.bornInCounty : v.speaker.nativeHere !== false)],
+  [/\bgrew up (here|in this|right here)\b/i, v => v.speaker.nativeHere !== false],
   [/\bmy (teacher|class|homework|classes|professor)\b/i, v => !!v.flags.student || v.age < 19],
   [/\b(I|we) surf\b|\bsurfing before work\b|\bcatch any waves\b|\bpaddle(d)? out\b|\bmy board\b/i, v => !!v.flags.surfs],
   [/\bchurch\b.*\b(I|we)\b|\b(I|we) (go to|went to) church\b|\bat church\b/i, v => !!v.flags.churchgoer],
 ];
 
 // Lines that treat the listener as an old acquaintance; fine for neighbors, not for a stranger.
-const FAMILIAR = /\b(long time|haven't seen you|in forever|look who it is|good to see you( again)?|you still (living|around)|you made it|how'?s the family|how'?s work been|how'?ve you been|you'?re back|been a while|in a while|how'?s everybody|well, hey, stranger|hey, stranger|your side of (town|the bay)|on your side)\b/i;
+const FAMILIAR = /\b(long time|haven't seen you|in forever|look who it is|good to see you( again)?|you still (living|around)|you made it|you make it back|how'?s the family|how'?s work been|how'?ve you been|you'?re back|been a while|in a while|how'?s everybody|well, hey, stranger|hey, stranger|your side of (town|the bay)|on your side|tell your (folks|mom|dad|mother|father|family|wife|husband|kids|parents)|say hi to your|how'?s your (mom|dad|mother|father|family|folks|wife|husband|kids|parents))\b/i;
 
 /**
  * True when a line fits the speaker's life and the relationship: no first-person claim the record contradicts,
@@ -373,6 +386,99 @@ export function fitsLife(text, v, opts = {}) {
   const s = String(text || '');
   for (const [re, ok] of LIFE_CHECKS) if (re.test(s) && !ok(v)) return false;
   if (FAMILIAR.test(s) && !(opts.familiar || (v.relq && v.relq.known))) return false;
+  return true;
+}
+
+// ------------------------------------------------------------------ the dialect's lines, checked against the moment
+
+// What a regional line can still assume that its tags do not say: how long the commute is and where it goes, what the
+// sky is doing right now, a pier or a surf break, an accident on the freeway this minute. Each test takes the voice.
+const WORD_NUM = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 };
+
+/**
+ * Minutes a line claims ("two hours each way" → 120, "an hour and a half" → 90, "45 minutes" → 45), or null.
+ * @param {string} text
+ * @returns {number|null}
+ */
+export function claimedMinutes(text) {
+  const s = String(text || '').toLowerCase();
+  let m;
+  if (/\bhalf an hour\b/.test(s)) return 30;
+  if ((m = /\b(an?|one|two|three|\d+) and a half hours?\b|\b(an?|one) hour and a half\b/.exec(s))) {
+    const w = m[1] || m[2];
+    return 60 * ((WORD_NUM[w] !== undefined ? WORD_NUM[w] : +w) + 0.5);
+  }
+  if ((m = /\b(an?|one|two|three|four|five|six|\d+) hours?\b/.exec(s))) return 60 * (WORD_NUM[m[1]] !== undefined ? WORD_NUM[m[1]] : +m[1]);
+  if ((m = /\b(\d+) minutes?\b/.exec(s))) return +m[1];
+  return null;
+}
+
+// What people call the places they work.
+const PLACE_NICKNAMES = { la: 'Los Angeles', 'l.a': 'Los Angeles', sf: 'San Francisco', 'the city': 'San Francisco', oc: 'Orange', sd: 'San Diego' };
+
+/** True when the speaker's workplace is in this town or county (a name as a line says it: "LA", "San Diego"). */
+function worksIn(v, place) {
+  const c = v.commute || {};
+  const p = String(place || '').trim().replace(/\.$/, '');
+  if (!p) return true;
+  const want = (PLACE_NICKNAMES[p.toLowerCase()] || p).toLowerCase();
+  const city = String(c.workCity || '').toLowerCase();
+  let county = '';
+  try { if (v.world && Number.isInteger(c.workZi) && c.workZi >= 0) county = String((v.world.countyOf(c.workZi) || {}).name || '').toLowerCase(); } catch { county = ''; }
+  return !!want && (city === want || county === want);
+}
+
+const skyShort = v => String((v.wx && v.wx.now && v.wx.now.short) || '');
+// The weather a line names must be the weather now (a line about what happens after a storm is a habit, not a report).
+const SKY_WORDS = [
+  [/\b(fog|foggy|fogged|marine layer|mist|misty|soupy|pea soup)\b/i, v => v.sky === 'fog' || /fog|mist|haze/i.test(skyShort(v))],
+  [/\b(rain|raining|rainy|drizzle|drizzling|downpour|showers?|wet roads?|puddles?)\b|\bit'?s pouring\b|\bpouring (rain|down)\b|\b(bring|grab|need) (an |your )?umbrella\b/i, v => v.sky === 'rain' || /rain|shower|drizzle|storm|thunder/i.test(skyShort(v))],
+  [/\b(wind|windy|gusts?|gusty|breezy)\b(?! machines?)/i, v => v.sky === 'wind' || !!v.offshore || /wind|breez|gust|blust/i.test(skyShort(v)) || (v.alerts || []).some(a => /wind|red flag/i.test(String(a.event)))],
+  [/\b(snow|snowing|snowed|flurries)\b/i, v => v.sky === 'snow' || /snow|flurr/i.test(skyShort(v))],
+  [/\b(smoke|smoky|ash|hazy)\b/i, v => v.sky === 'smoke' || /smoke|haze/i.test(skyShort(v)) || (v.alerts || []).some(a => /smoke|air quality/i.test(String(a.event)))],
+  [/\b(scorching|triple digits|melting|baking|sweltering)\b|\bhot (enough|out|today|one)\b/i, v => v.sky === 'heat' || (isNum(v.tempF) && v.tempF >= 88)],
+  [/\b(freezing|frost|frosty|cold snap|scrape the windshield)\b/i, v => v.sky === 'cold' || (isNum(v.tempF) && v.tempF <= 45)],
+];
+const HABIT = /\bafter (a|the) (rain|storm|big storm)\b|\bevery (winter|summer|spring|fall|year|time)\b|\bwhen (it|the|they) \w+|\bwhenever\b|\bin the morning, \w+ by\b/i;
+// A hedge about somewhere else ("and I bet it's foggy in the city") claims nothing about here and now.
+const HEDGED = /\b(I bet|probably|maybe|must have|must be)\b[^.!?]*|\blike (?:it'?s )?(?:a |an )?(?:blizzard|snow|ice rink|oven|sauna|furnace)\b|\b(?:no|not a|without|zero) (?:\w+ )?(?:fog|rain|wind|snow|smoke|cloud)s?\b/gi;
+// Lexicon categories that speak about right now; prideLines, complaintLines and food are habits and opinions.
+const NOW_CATEGORIES = new Set(['weather', 'greetings', 'farewells', 'traffic', 'agreement', 'surprise']);
+// Where only someone who lives on the coast goes as a matter of course.
+const COAST_ONLY = /\b(?:by|on|at|off|down at|out at|from|to) the (?:pier|boardwalk|wharf|harbor|marina|shore|bluffs?|cliffs|tide ?pools?)\b|\bafter (?:a |my )?surf(?:ing)?\b|\bsurfing (?:before|after) work\b|\bI(?:'m| am)? surf(?:ing)?\b|\bgo catch(?:ing)? (?:some )?waves\b|\bpaddle out\b/i;
+// An incident made up on the spot: a crash, a SigAlert, a closure this minute.
+const INCIDENT = /\bthere'?s (?:a |an )?(?:sigalert|accident|crash|wreck|car fire|brush fire|police chase|chase|closure|lane closure|spill|stalled car|jackknifed (?:truck|big rig)) (?:on|at|near|by|in|up)\b|\bsigalert on\b/i;
+const COMMUTE_TALK = /\beach way\b|\bcommute\b|\bto work in\b/i;
+
+/**
+ * True when a regional line from the lexicon fits this speaker and this moment beyond its tags: a commute it claims
+ * matches theirs (its length within about a third, and the place they work), the weather it names is the weather
+ * now (for the lines about the moment: weather, greetings, farewells, traffic, agreement, surprise), a pier or a surf
+ * break belongs to people on the coast, and no line reports an incident nobody saw. A line that claims what the
+ * record cannot back is not said.
+ * @param {string} text the filled line
+ * @param {object} v a voice (voice.mjs)
+ * @param {string} [category] the lexicon category it came from
+ * @returns {boolean}
+ */
+export function lexiconLineFits(text, v, category = '') {
+  const s = String(text || '');
+  if (COMMUTE_TALK.test(s)) {
+    const real = v.commute && isNum(v.commute.minutes) ? v.commute.minutes : null;
+    const claim = claimedMinutes(s);
+    if (claim !== null) {
+      if (!(v.flags && v.flags.commuter) || real === null) return false;
+      if (Math.abs(claim - real) > Math.max(15, 0.35 * real)) return false;
+    }
+    const where = /\bto work in ((?:the )?[A-Z][\w.]*(?: [A-Z][\w.]*)*)/.exec(s);
+    if (where && !worksIn(v, where[1])) return false;
+  }
+  if (NOW_CATEGORIES.has(category) && !HABIT.test(s)) {
+    const here = s.replace(HEDGED, '');
+    for (const [re, ok] of SKY_WORDS) if (re.test(here) && !ok(v)) return false;
+  }
+  if (COAST_ONLY.test(s) && !(v.flags && v.flags.coast)) return false;
+  if (INCIDENT.test(s)) return false;
   return true;
 }
 

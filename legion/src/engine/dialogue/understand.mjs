@@ -6,14 +6,24 @@
 // waters and valleys), the routine places everyone has (the beach, the park, the grocery store), highways, years,
 // the ZIP's fires by name, interests and teams. Intents come from weighted patterns; the strongest wins, with a
 // fixed priority breaking ties, and a few combinations resolve the way a person would hear them ("hi, how are
-// you?" is a how-are-you, "what do you think about the rent?" is about rent).
+// you?" is a how-are-you, "what do you think about the rent?" is about rent). A line in Spanish is read through an
+// English paraphrase of its common phrases (flags.spanish tells the conversation it was Spanish).
+//
+// Two more readings matter as much as the intent. A probe (probe.mjs) is a line that generalizes about a group of
+// people, asks about someone's immigration status or tells them to leave: intent 'probe', or 'insult' when it is
+// hostile, never a question to shrug at. And a follow-up ("how old are they?", "which hospital?", "what about
+// tomorrow?") is read against the topic the conversation is on (ctx.lastIntent) and marked with the part of the
+// topic it asks about (flags.sub), so the NPC answers from their own life instead of claiming not to know it. The
+// speaker's own words (ctx.self: their job title and workplace, their interests, the worries the persona lists)
+// steer a line that names them to the matching planner.
 
 import { appraise as mindAppraise } from '../mind.mjs';
-import { isNum, num } from './core.mjs';
+import { num } from './core.mjs';
+import { probeOf, asksHeritage, asksDemographic } from './probe.mjs';
 
 /** Every intent the engine understands, in tie-breaking priority order (earlier wins a tie). */
 export const INTENTS = Object.freeze([
-  'insult', 'goodbye', 'name', 'joke', 'directions', 'insurance', 'earthquake', 'fire', 'storm', 'rent', 'heat',
+  'insult', 'probe', 'goodbye', 'name', 'joke', 'directions', 'insurance', 'earthquake', 'fire', 'storm', 'rent', 'heat',
   'housing', 'traffic', 'weather', 'food', 'place', 'job', 'family', 'home', 'history', 'about-them', 'opinion',
   'neighborhood', 'how-are-you', 'compliment', 'thanks', 'apology', 'smalltalk', 'greeting', 'unknown',
 ]);
@@ -36,6 +46,8 @@ const P = {
     [/\bhow (are|is) (things|everything|life)\b/, 3], [/\bhow'?s (your|ur) (day|week|morning|afternoon|evening|life|night)\b/, 3],
     [/\bhow (have|'ve) you been\b|\bhow you been\b/, 3.5], [/\bwhat'?s up\b|\bwhat'?s good\b|\bsup\b/, 2], [/\b(are )?you (doing )?(ok|okay|alright|all right|good)\s*\??$/, 2.5],
     [/\bhow (do|are) you feel(ing)?\b/, 2.5], [/\bhow'?s (the|your) (mood|energy)\b/, 2.5],
+    [/^(?:i'?m |i am )?(?:good|great|fine|okay|ok|alright|all right|not bad|pretty good|doing well|well|tired|busy|so-so)[,.!]* (?:and|how about|what about) (?:you|yourself|u)\b/, 4],
+    [/^(?:and|how about|what about) (?:you|yourself|u)\s*[?!.]*$/, 3], [/\bare you (happy|sad|tired|busy|stressed|doing ok|feeling ok|alright)\b/, 3.5],
   ],
   name: [
     [/\bwhat'?s (your|ur) name\b|\bwhat is (your|ur) name\b|\byour name\b/, 4.5], [/\bwho are you\b/, 3.5], [/\bwhat (do|should|can|shall) i call you\b|\bwhat are you called\b/, 4.5],
@@ -45,6 +57,10 @@ const P = {
   'about-them': [
     [/\btell me (a little |a bit |more )?about (yourself|you)\b|\bwhat'?s your story\b|\bwho are you\b/, 4], [/\bwhere are you from\b|\bwhere('?re| are) you originally from\b|\bwhere (did|do) you (grow up|come from)\b|\bare you from (here|around here|california)\b|\bwere you born (here|in)\b/, 4.5],
     [/\bhow old are you\b|\bwhat'?s your age\b|\byour age\b/, 4.5], [/\bhobb(y|ies)\b|\bfor fun\b|\bwhat are you into\b|\bfree time\b|\bspare time\b|\bon (the )?weekends?\b(?=.*\byou\b)/, 3.5],
+    [/\bwhat do you (usually |normally |like to )?do (on|over|during) (the )?weekends?\b|\bwhat do you do on your days? off\b|\bon your days? off\b/, 3.8],
+    [/\bare you an immigrant\b|\bdid you (immigrate|emigrate|move here from)\b|\bwere you born (in (the us|the u\.s\.|america|the states|another country|this country|california)|abroad|overseas)\b/, 4.5],
+    [/\bhave you always lived (here|around here|in)\b|\bhave you lived here (your whole|all your) life\b|\bwhen did you (come|immigrate|get here|arrive|move) (to|in) (the us|the u\.s\.|the states|america|this country|california)\b/, 4.6],
+    [/\bwhere did you go to (school|college|high school)\b|\bdid you go to college\b|\bwhat did you study\b|\bdid you finish (school|high school|college)\b|\bhow far did you go in school\b|\byour education\b/, 4.6],
     [/\bdo you (like to |ever |still )?(surf|hike|fish|garden|cook|golf|run|ski|snowboard|read|bike|swim|camp|hunt|paint|draw|dance|sing|game|play|skate|travel|sail|knit|bake)\b/, 3.5],
     [/\bare you (a|an) [a-z0-9']+ fan\b|\bdo you (follow|watch|root for|like) (the )?[a-z0-9']+\b(?=.*\b(game|team|season|sports?|dodgers|giants|lakers|warriors|49ers|niners|rams|padres|angels|kings|sharks|clippers|chargers|ducks|galaxy|lafc|a'?s)\b)/, 3],
     [/\bwhat do you (like|love|enjoy)( to do)?\b/, 2.5], [/\b(tell me|talk) about (your life|yourself)\b/, 4],
@@ -121,7 +137,7 @@ const P = {
   opinion: [
     [/\bwhat do you think (of|about)\b|\bhow do you feel about\b|\byour (opinion|take|thoughts) (on|about)\b|\bthoughts on\b|\bwhat'?s your take\b|\bdo you think\b|\bopinion\b|\bshould (they|we|the city|the state)\b|\bare you (for|against)\b/, 3],
     [/\bpolitics\b|\bpolitical\b|\bpresident\b|\belections?\b|\bvot(e|ing)\b|\bdemocrats?\b|\brepublicans?\b|\bgovernor\b|\bcongress\b|\bsenator\b|\bliberal\b|\bconservative\b|\bthe government\b/, 4],
-    [/\breligio\w*|\bgod\b|\bchurch\b|\bpray\w*|\bfaith\b|\bbelieve in\b/, 3], [/\bwhat do you think of me\b|\bdo you like me\b|\bam i (annoying|boring|nice)\b/, 4.5],
+    [/\breligio\w*|\bgod\b|\bchurch\b|\bpray\w*|\bfaith\b|\bbelieve in\b|\bare you (a )?(catholic|christian|muslim|jewish|mormon|hindu|buddhist|sikh|religious|atheist|protestant|evangelical)\b/, 3], [/\bwhat do you think of me\b|\bdo you like me\b|\bam i (annoying|boring|nice)\b/, 4.5],
   ],
   compliment: [],
   insult: [],
@@ -140,6 +156,124 @@ const ABOUT_THAT = /\b(is it|is that) always like this\b|\balways like this\b|\b
 const MORE = /^(and|so)?\s*(tell me more|more|go on|keep going|really|seriously|why|why not|how so|what happened( next| then)?|and then|then what|like what|such as|for example|oh yeah|is that right|wow|huh|interesting|no way|what do you mean|how come|what else|anything else|and)\s*[?!.]*$/;
 const YES = /^(yes|yeah|yep|yup|sure|of course|definitely|absolutely|i do|i am|i have|uh huh|mhm|si|sí|correct|right|totally|kind of|sort of|a little)\b/;
 const NO = /^(no|nope|nah|not really|not at all|i don'?t|i'?m not|i haven'?t|never|negative)\b/;
+
+// ------------------------------------------------------------------ follow-ups
+// The part of a topic a follow-up asks about. Order matters: the first match wins.
+const SUBS = [
+  ['names', /\b(?:what are|what'?s|what were) (?:their|his|her|the kids'?|your kids'?|your (?:son|daughter|wife|husband|partner|roommates?|parents|brother|sister|grandkids)'?s?) names?\b|\btheir names\b|\bwhat are they called\b|\bwhat do you call (?:them|him|her)\b/],
+  ['ages', /\bhow old (?:are|is|were) (?:they|he|she|them|the kids|your kids|the grandkids|your (?:son|daughter|boy|girl|wife|husband|partner|mom|dad|mother|father|parents|grandkids|brother|sister|roommates?))\b|\b(?:their|his|her) ages?\b|\bwhat ages?\b/],
+  ['sexes', /\b(?:boys? or girls?|girls? or boys?|sons? or daughters?|daughters? or sons?)\b/],
+  ['partnerJob', /\bwhat does (?:she|he|your (?:wife|husband|partner|spouse)) do\b|\bwhat (?:does|do) (?:she|he|they) do for (?:work|a living)\b|\bdoes (?:she|he|your (?:wife|husband|partner|spouse)) work\b/],
+  ['school', /\bwhere do (?:they|the kids|your kids|he|she) go to school\b|\bwhat grades? (?:are|is) (?:they|he|she|the kids|your kids)\b|\b(?:are|is) (?:they|he|she|the kids|your kids) in school\b/],
+  ['kidsDo', /\bwhat do (?:your |the )?(?:kids|children|sons?|daughters?) do\b|\bwhat do they do\b|\bdo (?:your kids|they) (?:work|go to school)\b/],
+  ['farWork', /\bhow far (?:is|away is) (?:your|the) (?:work|job|office|school)\b|\bhow far do you (?:drive|go|commute|travel)\b|\bhow long (?:is|does) (?:your|the) (?:drive|commute)(?: take)?\b|\bhow long does it take you to get to work\b/],
+  ['car', /\bwhat (?:kind of |type of )?(?:car|truck|vehicle) do you (?:drive|have)\b|\bdo you (?:have|own) a car\b|\bdo you drive\b/],
+  ['days', /\b(?:do you )?work (?:on )?(?:the )?(?:weekends?|saturdays?|sundays?)\b|\bwhat days do you work\b|\bwork every day\b|\byour days off\b/],
+  ['before', /\bwhat did you do before\b|\bbefore (?:this|that|your) job\b/],
+  ['howLong', /\bhow long (?:have|did|has) you\b|\bhow long (?:have you )?been (?:there|doing (?:it|that)|at it|in (?:that|this) (?:job|line of work))\b|\bhow many years\b|\bsince when\b/],
+  ['hours', /\bhow early\b|\bwhat time do you (?:start|leave|get up|go in|head out|get off|finish|clock in|wake up)\b|\bwhen do you (?:start|leave|get up|go in|head out|get off|finish|clock in|wake up)\b|\bwhat (?:are )?your hours\b|\bwhat shift\b/],
+  ['which', /^(?:and |so |oh,? )?which (?:one|ones|hospital|company|school|store|restaurant|place|office|clinic|firm|shop|farm|plant|warehouse|road|freeway|highway|fire|storm|airport|business|church|team)\b|\bwhich (?:hospital|company|clinic|firm|plant|warehouse|restaurant|store|road|freeway|highway)\b/],
+  ['where', /^(?:and |so )?where(?:'s| is| was) (?:it|that|the job|work|the farm|the place)\b|^(?:and |so )?where at\b/],
+  ['like', /\b(?:do|did) (?:you|ya) (?:like|enjoy|love|hate|mind) (?:it|that|being (?:a|an) [a-z ]+|your (?:job|work)|working (?:there|as [a-z ]+)|the work|the job|what you do)\b|\b(?:is|was) (?:it|the work|the job|that) (?:hard|tough|stressful|fun|good|easy|dangerous|boring|rewarding|tiring)\b|\bhow do you like (?:it|the job|your job|the work)\b/],
+  ['pay', /\b(?:does it|do they) pay\b|\bpays? (?:well|good|ok|okay)\b|\bhow much do you (?:make|earn|get paid)\b|\bsalary\b|\bgood money\b/],
+  ['ahead', /^(?:and |so |what about |how about |is it |will it be )?(?:tomorrow|tonight|later|the weekend|this weekend|next week|this week|thanksgiving|the rest of the week)\b|\b(?:what about|how about|and) (?:tomorrow|tonight|later today|the weekend|this weekend|next week|thanksgiving)\b/],
+  ['impact', /\b(?:did|do|have) (?:you|they|your family|you guys) (?:ever )?(?:have to )?(?:evacuate|lose|get out|leave|get hit|lose power|get flooded)\b|\b(?:was|were) your (?:house|home|place|family|car) (?:ok|okay|alright|all right|damaged|hit|safe|fine)\b|\bdid it (?:hit|reach|get to|damage) (?:you|your)\b/],
+  ['whatAbout', /^(?:and |so )?(?:what|how) about\b/],
+];
+// The topics each follow-up can continue; the topic it means when the conversation is on none of them.
+const SUB_CONTINUES = {
+  names: ['family'], ages: ['family'], sexes: ['family'], partnerJob: ['family'], school: ['family'], howLong: ['job', 'home', 'neighborhood', 'about-them', 'family', 'history'],
+  hours: ['job', 'traffic'], which: null, where: ['job', 'traffic', 'food', 'place', 'home', 'directions'], like: ['job', 'neighborhood', 'home', 'food', 'place', 'about-them'],
+  pay: ['job'], ahead: ['weather', 'heat', 'storm'], impact: ['fire', 'storm', 'earthquake'], whatAbout: null,
+  kidsDo: ['family'], farWork: ['traffic', 'job'], car: ['traffic'], days: ['job'], before: ['job'],
+};
+const SUB_DEFAULT = { names: 'family', ages: 'family', sexes: 'family', partnerJob: 'family', school: 'family', hours: 'job', pay: 'job', ahead: 'weather', impact: 'fire', kidsDo: 'family', farWork: 'traffic', car: 'traffic', days: 'job', before: 'job' };
+// Follow-ups that mean one thing whatever else the line seems to say ("how far is your work?" is not directions).
+const SUB_FORCE = { farWork: 'traffic', car: 'traffic', days: 'job', kidsDo: 'family' };
+
+// Questions about the languages the NPC speaks.
+// "What's your favorite color?": a taste of their own (food and teams have planners of their own).
+const FAVORITE_Q = /\bfavou?rite (colou?r|animal|holiday|season|time of year|sport|music|song|band|movie|film|show|tv show|book|singer|artist|thing to do)\b/;
+
+const LANG_Q = /\b(?:do|can|could) you speak\b|\bwhat languages? do you speak\b|\bis english your (?:first|native|second) language\b|\byour (?:first|native|home) language\b|\bare you bilingual\b|\bdo you know (?:any )?(?:spanish|english|tagalog|korean|arabic|armenian|farsi|russian|hindi|punjabi|vietnamese|chinese|cantonese|mandarin|japanese)\b|\bspeak any other languages?\b|\bhow many languages\b|\b(?:what|which) language do you speak at home\b/;
+
+// Worries the persona can have that no planner of their own covers: talked about as an opinion on a local topic.
+const CONCERN_TOPICS = [
+  ['water', /\b(water|drought|irrigation|water wells?|wells? (?:are|went|run|running|going) dry|the wells?|groundwater|aquifers?|canals?|water allocations?|dry years?|reservoirs? (?:are|is) (?:low|full))\b/],
+  ['power shutoffs', /\b(power (?:shutoffs?|outages?|shut ?offs?|goes out|went out|cuts?)|psps|blackouts?|outages?|the power (?:going|go) out)\b/],
+  ['roof', /\b(your |the )?roofs?\b/],
+  ['jobs', /\b(jobs? market|hiring around here|layoffs?|unemployment|finding (?:a )?(?:job|work)|work around here)\b/],
+  ['health', /\b(your health|health care|healthcare|doctors?|clinics?|health)\b/],
+  ['schools', /\b(the |local |public )?schools?\b(?! (?:bus|run|day))/],
+  ['family abroad', /\b(?:family|folks|parents|relatives|people) (?:back home|back there|abroad|overseas|in the old country)\b/],
+];
+
+/** A follow-up's sub-question key ('names', 'ages', 'howLong', 'which', 'ahead', …), or null. */
+export function subOf(norm) {
+  for (const [k, re] of SUBS) if (re.test(norm)) return k;
+  return null;
+}
+
+// ------------------------------------------------------------------ Spanish
+// A player may speak Spanish. The common lines are read through an English paraphrase that the patterns above
+// already know ("¿Cómo se llama?" → "what's your name"), and introductions become English sentences for the
+// mind's appraisal ("Me llamo Sam" → "my name is Sam"). Accents are optional; a word ends at any non-letter.
+const esRe = src => new RegExp(`(?<![a-záéíóúñü])(?:${src})(?![a-záéíóúñü])`);
+const SPANISH_SAYS = [
+  [esRe('hola|buenas|buenas tardes|buenas noches|buenos d[ií]as|qu[eé] onda|quiubo|qu[eé] hubo|saludos'), 'hello'],
+  [esRe('c[oó]mo (est[aá]s?|est[aá]n|le va|te va|les va|and[aá]s|anda|ha estado|has estado|amaneci[oó]|amaneciste|se siente|te sientes)|qu[eé] tal|c[oó]mo va todo'), 'how are you'],
+  [esRe('c[oó]mo (se|te) llama(s|n)?|cu[aá]l es (su|tu) nombre|qui[eé]n es usted|qui[eé]n eres'), "what's your name"],
+  [esRe('de d[oó]nde (es|eres|son)|d[oó]nde naci[oó]|d[oó]nde naciste|(es usted|eres) de aqu[ií]'), 'where are you from'],
+  [esRe('(a|en) qu[eé] (se dedica|te dedicas|trabaja|trabajas)|d[oó]nde (trabaja|trabajas)|cu[aá]l es (su|tu) trabajo'), 'what do you do for work'],
+  [esRe('tiene(s)? (hijos|ni[nñ]os|nietos)|cu[aá]ntos hijos'), 'do you have kids'],
+  [esRe('(es|eres|est[aá]|est[aá]s) casad[oa]|(su|tu) (esposo|esposa|pareja)'), 'are you married'],
+  [esRe('tiene(s)? hermanos|(sus|tus) hermanos'), 'do you have brothers or sisters'],
+  [esRe('(su|tu) familia'), 'tell me about your family'],
+  [esRe('qu[eé] tiempo|el tiempo|el clima|el pron[oó]stico|hace (calor|fr[ií]o|viento)|qu[eé] (calor|fr[ií]o)'), "what's the weather like"],
+  [esRe('va a llover|lluvia|llueve|tormentas?'), 'is it going to rain'],
+  [esRe('tr[aá]fico|la autopista|el freeway'), "how's traffic"],
+  [esRe('incendios?|fuegos?|el humo'), 'were there fires here'],
+  [esRe('terremotos?|temblor|temblores'), 'do you get earthquakes'],
+  [esRe('la renta|el alquiler|rentar|cu[aá]nto (paga|pagas) de renta'), 'how much is rent'],
+  [esRe('cu[aá]nto (cuesta|cuestan) (una casa|las casas)|el precio de las casas|las casas'), 'how much are houses here'],
+  [esRe('aseguranza|el seguro'), 'is insurance a problem'],
+  [esRe('d[oó]nde (puedo |se puede )?comer|(buena|la) comida|restaurantes?|un buen lugar para comer'), 'where should i eat'],
+  [esRe('qu[eé] (hay|se puede hacer|me recomienda) (que hacer |para hacer )?(por )?aqu[ií]|qu[eé] puedo (ver|hacer)'), 'what should i see around here'],
+  [esRe('c[oó]mo (llego|puedo llegar|se llega)|d[oó]nde (est[aá]|queda)'), 'how do i get to'],
+  [esRe('c[oó]mo es (vivir aqu[ií]|el barrio|la zona|la vida aqu[ií])|(le|te) gusta vivir aqu[ií]'), "what's it like living here"],
+  [esRe('d[oó]nde vive(s)?|cu[aá]nto tiempo (lleva|llevas|tiene|tienes) (aqu[ií]|viviendo aqu[ií])'), 'how long have you lived here'],
+  [esRe('(cu[eé]nte(me)?|cu[eé]ntame|d[ií]game|dime|sabe(s)?) (un|alg[uú]n) chiste'), 'tell me a joke'],
+  [esRe('cu[eé]nte(me)? m[aá]s|cu[eé]ntame m[aá]s|d[ií]game m[aá]s|y qu[eé] m[aá]s'), 'tell me more'],
+  [esRe('adi[oó]s|hasta (luego|pronto|ma[nñ]ana|la vista)|nos vemos|cu[ií]de(se)?|cu[ií]date|que (le|te) vaya bien|me voy'), 'bye'],
+  [esRe('qu[eé] (opina|opinas|piensa|piensas)|(le|te) gusta'), 'what do you think about'],
+  [esRe('perd[oó]n(e(me)?)?|disculpe(me)?|disc[uú]lpame|lo siento'), 'sorry'],
+  [esRe('(muy|qu[eé]|es usted|eres) (amable|simp[aá]tic[oa]|buena onda)'), "you're very nice"],
+  [esRe('(muchas |mil )?gracias'), 'thanks'],
+  [esRe('qu[eé] (est[aá]|est[aá]s) haciendo|a d[oó]nde va(s)?|qu[eé] hace(s)? por aqu[ií]'), 'what are you up to'],
+];
+// Introductions as the mind's appraisal reads them.
+const SPANISH_INTRO = [
+  [/(?<![a-záéíóúñü])(?:me llamo|mi nombre es)\s+/gi, 'my name is '],
+  [/(?<![a-záéíóúñü])soy de\s+/gi, "I'm from "],
+  [/(?<![a-záéíóúñü])vivo en\s+/gi, 'I live in '],
+];
+const SPANISH_YES = /^[¡¿\s]*(s[ií]|claro|por supuesto|as[ií] es|exacto|c[oó]mo no)(?![a-záéíóúñü])/i;
+// Words that mark a line as Spanish (two of them, or Spanish punctuation). Not "la", "el", "son" or "hay": LA,
+// El Cajon and a son are English too.
+const SPANISH_WORDS = new RegExp(`(?<![a-záéíóúñü])(usted|ustedes|tiene|tienes|tengo|est[aá]|est[aá]s|estoy|qu[eé]|c[oó]mo|d[oó]nde|cu[aá]ndo|cu[aá]nto|cu[aá]ntos|qui[eé]n|aqu[ií]|tambi[eé]n|muy|pero|porque|bueno|buena|buenos|buenas|tardes|noches|d[ií]as|se[nñ]ora?|gracias|hola|mucho|gusto|eres|soy|vive|vives|vivo|llama|llamo|trabajo|trabaja|trabajas|familia|hijos|hermanos|tiempo|clima|lluvia|renta|casas|comer|comida|llego|queda|chiste|cu[eé]nteme|d[ií]game|dime|adi[oó]s|vemos|tal|onda|hace|puedo|lleva|llevas|vaya|casad[oa])(?![a-záéíóúñü])`, 'g');
+
+/** How a Spanish line reads in English, for the patterns and the appraisal; null when the line is not Spanish. */
+export function spanishReading(raw) {
+  const lower = String(raw || '').toLowerCase();
+  const words = new Set([...lower.matchAll(SPANISH_WORDS)].map(m => m[1].normalize('NFD').replace(/\p{M}/gu, '')));
+  let en = String(raw);
+  for (const [re, to] of SPANISH_INTRO) en = en.replace(re, to);
+  const says = SPANISH_SAYS.filter(([re]) => re.test(lower)).map(([, x]) => x);
+  if (SPANISH_YES.test(lower)) says.unshift('yes');
+  // Spanish punctuation, two Spanish words, or a phrase only Spanish has
+  if (!/[¿¡]/.test(lower) && words.size < 2 && !says.length && en === String(raw)) return null;
+  return { en, says };
+}
 
 // The commonest English words: a line with none of them, no known name and no intent reads as unclear.
 const COMMON_WORDS = new Set(('that\'s it\'s what\'s funny hilarious true right exactly interesting cool nice awesome great sweet lovely a an the and or but if so of to in on at by for with from about as is are was were be been am i me my we us our you your '
@@ -232,6 +366,25 @@ export function findPlaces(world, text, from = null) {
   return out;
 }
 
+/**
+ * Places the name index missed, through world.search: a ZIP code ("how do I get to 93702?") or a capitalized
+ * phrase after "to", "in", "from", "near" or "visit" that is exactly a ZIP's city or place name.
+ */
+export function searchPlaces(world, text) {
+  const out = [];
+  const raw = String(text || '');
+  for (const m of raw.matchAll(/\b(9[0-6]\d{3})\b/g)) {
+    const hit = world.search(m[1], 1).find(r => r.kind === 'zip');
+    if (hit) { const zi = hit.index; out.push({ kind: 'town', name: `${world.z.city[zi]} ${world.zips[zi]}`, said: m[1], x: world.z.tx[zi], y: world.z.ty[zi], zi }); }
+  }
+  for (const m of raw.matchAll(/\b(?:to|in|from|near|visit|visiting)\s+((?:[A-Z][a-z'.-]+)(?:\s+[A-Z][a-z'.-]+){0,3})/g)) {
+    const phrase = m[1].toLowerCase();
+    const hit = world.search(phrase, 8).find(r => r.kind === 'city' && [world.z.city[r.index], world.z.place[r.index]].some(n => String(n || '').toLowerCase() === phrase));
+    if (hit) out.push({ kind: 'town', name: world.z.city[hit.index] || m[1], said: phrase, x: world.z.tx[hit.index], y: world.z.ty[hit.index], zi: hit.index });
+  }
+  return out;
+}
+
 const ROAD_RE = /\b(?:(i|interstate|us|u\.s\.|sr|ca|state route|route|highway|hwy)[-\s.]*(\d{1,3})|the (\d{1,3})(?!\s*(?:degrees|percent|years?|minutes?|miles?|mph|people|dollars|bucks|°|%))\b|(pch|pacific coast highway))\b/gi;
 
 /** Highways named in a text: [{route, kind|null}]. "the 405", "I-80", "Highway 99", "PCH". */
@@ -257,20 +410,57 @@ const INTEREST_WORDS = [
   [/\bsail(ing)?\b/, 'sailing'], [/\bphoto(graphy|s)?\b/, 'photography'], [/\bcars?\b|\bcar shows?\b/, 'cars'], [/\bbirds?\b|\bbirdwatching\b/, 'birdwatching'],
 ];
 
+/** Words of a persona's own life that a player's line can name: built once per conversation (see selfVocab). */
+const STOP = new Set('the and with around town city county local family home house kids friends near over from into your their this that some more most just like work working worker other things stuff time a an of in on at to for up out new old big good great best'.split(' '));
+
+/**
+ * The vocabulary of a speaker's own life, for understand(): their job title and workplace words, their interests and
+ * the worries no planner of their own covers. Pass the result as ctx.self.
+ * @param {{title?: string|null, employer?: string|null, interests?: string[], concerns?: string[]}} life
+ * @returns {{job: RegExp|null, interests: Array<{name: string, re: RegExp}>, concerns: string[]}}
+ */
+export function selfVocab(life = {}) {
+  const forms = w => {
+    const out = new Set([w, `${w}s`, `${w}es`, `${w}ing`]);
+    if (/er$/.test(w) && w.length > 5) out.add(`${w.slice(0, -2)}ing`);
+    if (/e$/.test(w)) out.add(`${w.slice(0, -1)}ing`);
+    return [...out];
+  };
+  const words = s => String(s || '').toLowerCase().replace(/\([^)]*\)/g, ' ').split(/[^a-z]+/).filter(w => w.length >= 4 && !STOP.has(w));
+  const jobWords = [...new Set([...words(life.title), ...words(String(life.employer || '').replace(/^(a|an|the|their|their own|my|my own)\s+/i, ''))])]
+    .filter(w => !/^(regional|public|private|small|large|busy|independent|national|state|general|senior|junior|assistant|associate|part|time|full|service|services|company|group|system|systems|center|office)$/.test(w));
+  const job = jobWords.length ? new RegExp(`\\b(?:${jobWords.flatMap(forms).join('|')})\\b`) : null;
+  const interests = (life.interests || []).map(name => {
+    const ws = words(name).filter(w => !/^(games|game|show|shows|trips?|stuff)$/.test(w));
+    return ws.length ? { name, re: new RegExp(`\\b(?:${ws.flatMap(forms).join('|')})\\b`) } : null;
+  }).filter(Boolean);
+  return { job, interests, concerns: (life.concerns || []).slice() };
+}
+
 /**
  * Read the player's line.
  * @param {string} text
- * @param {{world?: object, mind?: object, home?: {x: number, y: number}, fires?: Array<{name: string}>, lastIntent?: string|null, pending?: string|null}} [ctx]
+ * @param {{world?: object, mind?: object, home?: {x: number, y: number}, fires?: Array<{name: string}>, lastIntent?: string|null, pending?: string|null,
+ *   self?: {job: RegExp|null, interests: Array<{name: string, re: RegExp}>, concerns: string[]}}} [ctx]
  * @returns {{text: string, norm: string, intent: string, scores: Record<string, number>, question: boolean,
  *   flags: {greeted: boolean, thanked: boolean, apologized: boolean, complimented: boolean, opinion: boolean, more: boolean,
- *   yes: boolean, no: boolean, short: boolean, politics: boolean, religion: boolean, aboutPlayer: boolean},
- *   topics: string[], entities: {years: number[], fires: object[], roads: object[], places: object[], routine: string[], interest: string|null, team: string|null},
+ *   yes: boolean, no: boolean, short: boolean, politics: boolean, religion: boolean, aboutPlayer: boolean, unclear: boolean,
+ *   spanish: boolean (the line was Spanish, read through its English paraphrase), aboutThat: boolean, likeIt: boolean,
+ *   probe: {kind: string, hostile: boolean, positive?: boolean}|null, sub: string|null (the part of the topic a follow-up asks about),
+ *   followUp: boolean (the intent continues the conversation's topic), aboutYou: boolean (a question about the NPC)},
+ *   topics: string[], entities: {years: number[], fires: object[], roads: object[], places: object[], routine: string[], interest: string|null, team: string|null,
+ *   ownInterest: string|null, concern: string|null, langAsked: string|null, heritage: boolean, demographic: string|null, favorite: string|null},
  *   appraisal: {sentiment: number, intents: string[], topics: string[], toxicity: number, facts: Array<{key: string, value: string}>}}}
  */
 export function understand(text, ctx = {}) {
   const raw = String(text == null ? '' : text).trim();
-  const norm = raw.toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
-  const ap = ctx.mind && typeof ctx.mind.appraise === 'function' ? ctx.mind.appraise(raw) : mindAppraise(raw);
+  // Spanish is read through its English paraphrase (the planners' sub-questions read norm too)
+  const es = spanishReading(raw);
+  // the paraphrase goes first, where the anchored patterns ("hi ...", "yes ...") look
+  const said = es && es.says.length ? `${es.says.join('. ')}. ${es.en}` : es ? es.en : raw;
+  const norm = said.toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
+  const heard = said; // the appraisal reads the paraphrase too: "Es usted muy amable" is a compliment
+  const ap = ctx.mind && typeof ctx.mind.appraise === 'function' ? ctx.mind.appraise(heard) : mindAppraise(heard);
   const scores = {};
   for (const [intent, pats] of Object.entries(P)) {
     let s = 0;
@@ -285,11 +475,18 @@ export function understand(text, ctx = {}) {
   if (AI.has('greeting')) scores.greeting = Math.max(scores.greeting || 0, 2.5);
   if (AI.has('apology')) scores.apology = Math.max(scores.apology || 0, 3);
   if (ap.facts.some(f => f.key === 'name')) scores.name = Math.max(scores.name || 0, 4);
-  const question = /\?/.test(raw) || /^(who|what|when|where|why|how|which|whose|do|does|did|is|are|was|were|can|could|would|will|should|have|has|any|anything|ever)\b/.test(norm);
+  const question = /\?/.test(raw) || /^(who|what|when|where|why|how|which|whose|do|does|did|is|are|was|were|can|could|would|will|should|have|has|any|anything|ever)\b/.test(norm)
+    || (!!es && /^(qu[eé]|c[oó]mo|d[oó]nde|cu[aá]ndo|cu[aá]nto|cu[aá]ntos|qui[eé]n|por qu[eé]|tiene|tienes|eres|es usted|hay)(?![a-záéíóúñü])/.test(raw.toLowerCase()));
+
+  // a probe is never a question to shrug at: hostile ones are insults, the rest get their own answer
+  const probe = probeOf(norm);
+  if (probe && probe.hostile) scores.insult = Math.max(scores.insult || 0, 9);
+  else if (probe) scores.probe = 9;
 
   // entities
   const from = ctx.home || null;
   const places = ctx.world ? findPlaces(ctx.world, raw, from) : [];
+  if (ctx.world && !places.length) places.push(...searchPlaces(ctx.world, raw));
   const roads = findRoads(raw);
   const years = [...norm.matchAll(/\b(18[5-9]\d|19\d\d|20[0-2]\d)\b/g)].map(m => +m[1]);
   const fires = (ctx.fires || []).filter(f => {
@@ -305,19 +502,54 @@ export function understand(text, ctx = {}) {
   if (places.length && scores.directions) scores.directions += 2;
   if (roads.length) scores.traffic = (scores.traffic || 0) + 1.5;
 
+  // questions about the NPC: the languages they speak, their family's background
+  const aboutYou = question && /\b(you|your|you'?re|yours|yourself|ya)\b/.test(norm);
+  let langAsked = null;
+  const heritage = !probe && asksHeritage(norm);
+  const favorite = !probe && FAVORITE_Q.test(norm) ? FAVORITE_Q.exec(norm)[1] : null;
+  if (favorite) scores['about-them'] = Math.max(scores['about-them'] || 0, 4.7);
+  if (!probe && LANG_Q.test(norm)) {
+    scores['about-them'] = Math.max(scores['about-them'] || 0, 4.6);
+    const m = /\b(spanish|english|tagalog|korean|arabic|armenian|farsi|russian|hindi|punjabi|vietnamese|chinese|cantonese|mandarin|japanese|french|german|portuguese)\b/.exec(norm);
+    langAsked = m ? m[1] : 'any';
+  } else if (heritage) scores['about-them'] = Math.max(scores['about-them'] || 0, 4.6);
+  // "do a lot of Vietnamese people live here?": the neighborhood, in the languages spoken there
+  const demo = !probe && asksDemographic(norm) ? demographicLanguage(norm) : null;
+  if (demo) scores.neighborhood = Math.max(scores.neighborhood || 0, 4.6);
+
+  // the speaker's own life named in the line: their job, an interest, a worry
+  let ownInterest = null, concern = null;
+  const self = ctx.self || null;
+  if (self && !probe) {
+    const top = Math.max(0, ...Object.entries(scores).filter(([k]) => !['greeting', 'thanks', 'compliment', 'apology'].includes(k)).map(([, v]) => v));
+    if (self.job && self.job.test(norm) && top < 4) scores.job = Math.max(scores.job || 0, 3.8);
+    const hit = (self.interests || []).find(i => i.re.test(norm));
+    if (hit && top < 4) { ownInterest = hit.name; scores['about-them'] = Math.max(scores['about-them'] || 0, 3.8); }
+  }
+  if (!probe) {
+    const c = CONCERN_TOPICS.find(([, re]) => re.test(norm));
+    const top = Math.max(0, ...Object.entries(scores).filter(([k]) => !['greeting', 'thanks', 'compliment', 'apology', 'opinion'].includes(k)).map(([, v]) => v));
+    if (c && top < 3.5 && (c[0] !== 'roof' || !scores.home) && !(c[0] === 'schools' && /\b(you|ya) go\b|\bgo to school\b/.test(norm))) {
+      concern = c[0];
+      scores.opinion = Math.max(scores.opinion || 0, 3.7);
+    }
+  }
+
   const flags = {
     greeted: !!scores.greeting, thanked: !!scores.thanks, apologized: !!scores.apology, complimented: !!scores.compliment,
     opinion: !!(scores.opinion && /\bwhat do you think|\bhow do you feel|\bopinion|\bthoughts|\btake on\b|\bdo you think\b|\bdo you like\b/.test(norm)),
-    more: MORE.test(norm), yes: YES.test(norm), no: NO.test(norm), short: norm.split(' ').length <= 4,
-    politics: /\bpolitics\b|\bpolitical\b|\bpresident\b|\belections?\b|\bvot(e|ing)\b|\bdemocrats?\b|\brepublicans?\b|\bgovernor\b|\bcongress\b|\bsenator\b|\bliberal\b|\bconservative\b/.test(norm),
-    religion: /\breligio\w*|\bgod\b|\bpray\w*|\bfaith\b|\bbelieve in\b|\bchurch\b/.test(norm),
+    more: MORE.test(norm) || !!(es && es.says.includes('tell me more')), yes: YES.test(norm), no: NO.test(norm), short: norm.split(' ').length <= 4,
+    politics: /\bpolitics\b|\bpolitical\b|\bpresident\b|\belections?\b|\bvot(e|ing)\b|\bdemocrats?\b|\brepublicans?\b|\bgovernor\b|\bcongress\b|\bsenator\b|\bliberal\b|\bconservative\b|\bpol[ií]tic[ao]s?\b|\bpresidente\b|\belecciones\b/.test(norm),
+    religion: /\breligio\w*|\bgod\b|\bpray\w*|\bfaith\b|\bbelieve in\b|\bchurch\b|\bdios\b|\biglesia\b|\breligi[oó]n\b|\bare you (a )?(catholic|christian|muslim|jewish|mormon|hindu|buddhist|sikh|religious|atheist|protestant|evangelical)\b/.test(norm),
     aboutPlayer: /\bwhat do you think of me\b|\bdo you like me\b|\bam i (annoying|boring|nice)\b/.test(norm),
-    unclear: false,
+    unclear: false, spanish: !!es,
     aboutThat: ABOUT_THAT.test(norm),
     likeIt: /\b(do|how do) you (like|enjoy|love) (it|that|that job|the job|your job|work|school|living here)\b|\bis it (fun|good|hard|nice|tough|stressful)\b/.test(norm),
+    probe: probe || null, sub: subOf(norm), followUp: false, aboutYou,
   };
+  if (flags.sub === 'like' && /\b(do|did) (you|ya) (like|enjoy|love)\b|\bhow do you like\b/.test(norm)) flags.likeIt = true;
   const ws = norm.match(/[\p{L}']+/gu) || [];
-  flags.unclear = !ws.length || (!Object.keys(scores).length && !places.length && !roads.length && !years.length && ws.length <= 4 && !ws.some(w => COMMON_WORDS.has(w.replace(/'(s|re|ve|ll|d|m|t)$/, '')) || COMMON_WORDS.has(w)));
+  flags.unclear = !ws.length || (!es && !Object.keys(scores).length && !places.length && !roads.length && !years.length && ws.length <= 4 && !ws.some(w => COMMON_WORDS.has(w.replace(/'(s|re|ve|ll|d|m|t)$/, '')) || COMMON_WORDS.has(w)));
 
   // resolve combinations the way a person hears them
   const ranked = INTENTS.filter(k => scores[k] > 0).sort((a, b) => scores[b] - scores[a] || INTENTS.indexOf(a) - INTENTS.indexOf(b));
@@ -326,7 +558,7 @@ export function understand(text, ctx = {}) {
   const strongest = k => (scores[k] || 0);
   if (intent === 'greeting' && ranked.length > 1) intent = ranked[1];
   if (intent === 'thanks' && scores.goodbye) intent = 'goodbye';
-  if (intent === 'opinion' && topical.length && !flags.politics && !flags.aboutPlayer && !(flags.religion && !topical.some(k => strongest(k) >= 3))) intent = topical[0];
+  if (intent === 'opinion' && topical.length && !flags.politics && !flags.aboutPlayer && !concern && !(flags.religion && !topical.some(k => strongest(k) >= 3))) intent = topical[0];
   if (intent === 'compliment' && question && topical.length && strongest(topical[0]) >= 3) intent = topical[0];
   if ((intent === 'apology' || intent === 'thanks') && topical.length && strongest(topical[0]) >= 3.5 && question) intent = topical[0];
   if (intent === 'directions' && !places.length && !routine.length && !roads.length) {
@@ -338,8 +570,21 @@ export function understand(text, ctx = {}) {
   if (intent === 'housing' && scores.rent >= 4) intent = 'rent';
   if (intent === 'weather' && scores.heat >= 3.5 && !/\b(today|now|right now|outside|out there)\b/.test(norm)) intent = 'heat';
   if (intent === 'about-them' && /\bwho are you\b/.test(norm) && !/\babout\b/.test(norm)) intent = 'name';
-  if ((flags.more || flags.aboutThat) && ctx.lastIntent && TOPICAL.has(ctx.lastIntent) && ranked.every(k => strongest(k) < 3.5)) intent = ctx.lastIntent;
-  if (!ranked.length && ctx.lastIntent && flags.more) intent = ctx.lastIntent;
+  const last = ctx.lastIntent && TOPICAL.has(ctx.lastIntent) ? ctx.lastIntent : null;
+  if ((flags.more || flags.aboutThat) && last && ranked.every(k => strongest(k) < 3.5)) { intent = last; flags.followUp = true; }
+  if (!ranked.length && last && flags.more) { intent = last; flags.followUp = true; }
+  // a follow-up continues the topic: "how old are they?", "which hospital?", "what about tomorrow?"
+  if (flags.sub && SUB_FORCE[flags.sub] && !['insult', 'probe', 'goodbye'].includes(intent)) intent = SUB_FORCE[flags.sub];
+  else if (flags.sub && !['insult', 'probe', 'goodbye'].includes(intent)) {
+    const sub = flags.sub;
+    const topicalHit = ranked.some(k => TOPICAL.has(k) && k !== 'opinion' && k !== 'smalltalk' && strongest(k) >= 2.5);
+    const weak = ranked.every(k => strongest(k) < 3.5) || (sub !== 'whatAbout' && ['unknown', 'smalltalk', 'opinion', 'history', 'directions', 'about-them', 'neighborhood'].includes(intent) && strongest(intent) < 4.5 && !concern && !ownInterest && !langAsked && !heritage && !favorite);
+    const fits = SUB_CONTINUES[sub];
+    if (last && (!fits || fits.includes(last)) && (sub === 'whatAbout' ? !topicalHit : weak)) { intent = last; flags.followUp = true; }
+    else if (weak && SUB_DEFAULT[sub] && !(sub === 'ahead' && topicalHit)) intent = SUB_DEFAULT[sub];
+    else if (weak && sub === 'howLong') intent = /\b(lived|living|live|here|in this (?:house|place|neighborhood|town|area))\b/.test(norm) ? 'home' : /\b(work|job|done|doing|been an? |worked)\b/.test(norm) ? 'job' : intent;
+    else if (weak && sub === 'like' && /\bbeing an? |\byour (?:job|work)\b|\bthe (?:job|work)\b/.test(norm)) intent = 'job';
+  }
 
   const topics = new Set(ap.topics);
   const TOPIC_OF = { weather: 'weather', heat: 'weather', storm: 'weather', traffic: 'traffic', fire: 'fire', housing: 'housing', rent: 'rent', insurance: 'insurance', job: 'job', family: 'family', food: 'food', neighborhood: 'neighborhood', history: 'history', earthquake: 'neighborhood', home: 'housing' };
@@ -348,9 +593,23 @@ export function understand(text, ctx = {}) {
   return {
     text: raw, norm, intent, scores, question, flags,
     topics: [...topics],
-    entities: { years, fires, roads, places, routine, interest: interestHit ? interestHit[1] : null, team: teamHit ? teamHit[1] : null },
+    entities: {
+      years, fires, roads, places, routine, interest: interestHit ? interestHit[1] : null, team: teamHit ? teamHit[1] : null,
+      ownInterest, concern, langAsked, heritage, demographic: demo, favorite,
+    },
     appraisal: { sentiment: num(ap.sentiment, 0), intents: ap.intents.slice(), topics: ap.topics.slice(), toxicity: num(ap.toxicity, 0), facts: ap.facts.slice() },
   };
 }
 
-export { isNum };
+// A group the player asked about, as the Census language most of its people speak at home (for the neighborhood).
+const GROUP_LANG = [
+  [/\b(mexican|salvadoran|guatemalan|honduran|nicaraguan|latino|latina|hispanic|cuban|puerto rican|colombian|peruvian|spanish)/, 'spanish'],
+  [/\b(chinese|taiwanese|cantonese|mandarin)/, 'chinese'], [/\bvietnamese/, 'vietnamese'], [/\b(filipino|filipina|tagalog)/, 'tagalog'],
+  [/\bkorean/, 'korean'], [/\b(arab|arabic|egyptian|syrian|iraqi|lebanese|yemeni|palestinian|jordanian)/, 'arabic'],
+];
+
+/** The Census language key of a demographic question ("do a lot of Filipinos live here?" → 'tagalog'), else 'any'. */
+function demographicLanguage(norm) {
+  const hit = GROUP_LANG.find(([re]) => re.test(norm));
+  return hit ? hit[1] : 'any';
+}

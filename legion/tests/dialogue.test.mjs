@@ -9,7 +9,13 @@ import { Population, LEGION_SEED } from '../src/engine/population.mjs';
 import { persona } from '../src/engine/persona.mjs';
 import { Mind } from '../src/engine/mind.mjs';
 import { dialectFor, roadNames, findBrands, fireLabel, DIALECTS } from '../src/engine/lexicon.mjs';
+import { DIALECTS as DIALECT_BANKS, LINE_CATEGORIES, WEATHER_CONDITIONS } from '../src/engine/lexicon.mjs';
+import { atPacific } from '../src/engine/clock.mjs';
 import { Conversation, bark, barkBetween, understand, INTENTS, EMOTIONS, templates, lintTemplates } from '../src/engine/dialogue.mjs';
+import { probeOf, screenValue } from '../src/engine/dialogue/probe.mjs';
+import { lexiconLineFits, fitsLife, claimedMinutes } from '../src/engine/dialogue/core.mjs';
+import { keySentence } from '../src/engine/dialogue/ground.mjs';
+import { makeVoice } from '../src/engine/dialogue/voice.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world, { seed: LEGION_SEED });
@@ -21,6 +27,12 @@ function P(npc) {
   let p = personaCache.get(npc.id);
   if (!p) { p = persona(world, npc, { population: pop, dialectFor }); personaCache.set(npc.id, p); }
   return p;
+}
+
+/** Like residents(), for a filter that may match nobody in the sample (no assertion). */
+function anyResidents(zip, n, filter, seed = 17, sample = 300) {
+  const zi = world.indexOf(zip);
+  return zi < 0 ? [] : pop.sample(zi, sample, seed).filter(filter).slice(0, n);
 }
 
 /** The first n NPCs of a ZIP that pass a filter, from a deterministic sample. */
@@ -56,7 +68,7 @@ const PROBES = [
   ['heat', 'How hot does it get in the summer?'], ['housing', 'Can people afford to buy a house here?'], ['rent', "What's rent like around here?"],
   ['insurance', 'Is home insurance a problem here?'], ['earthquake', 'Do you worry about earthquakes?'], ['food', 'Where should I eat around here?'],
   ['place', 'What should I see while I am in town?'], ['directions', 'How do I get to Sacramento?'], ['history', 'What do you remember from the old days?'],
-  ['opinion', 'What do you think about politics?'], ['compliment', 'You are so nice.'], ['insult', 'You are an idiot.'], ['joke', 'Tell me a joke.'],
+  ['opinion', 'What do you think about politics?'], ['compliment', 'You are so nice.'], ['insult', 'You are an idiot.'], ['probe', 'What do you think about immigrants?'], ['joke', 'Tell me a joke.'],
   ['thanks', 'Thank you!'], ['apology', 'Sorry about that.'], ['smalltalk', 'What are you up to?'], ['goodbye', 'Goodbye!'], ['unknown', 'Purple monkey dishwasher.'],
 ];
 
@@ -235,6 +247,41 @@ test('a bilingual speaker code-switches now and then, always with the English in
     }
   }
   assert.ok(switched > 0, 'some Spanish slips in for bilingual speakers');
+});
+
+test('a player speaking Spanish: understood, answered in Spanish by Spanish speakers, politely declined by others', () => {
+  // the Spanish lines read through their English paraphrase
+  for (const [text, intent] of [['¿Cómo está?', 'how-are-you'], ['¿Cómo se llama?', 'name'], ['¿Tiene hijos?', 'family'], ['¿Qué tiempo hace?', 'weather'],
+    ['¿Hay mucho tráfico por aquí?', 'traffic'], ['¿Dónde puedo comer?', 'food'], ['Cuénteme un chiste', 'joke'], ['Hasta luego', 'goodbye'], ['Gracias', 'thanks']]) {
+    const u = understand(text, { world });
+    assert.equal(u.intent, intent, `"${text}"`);
+    assert.ok(u.flags.spanish, `"${text}" reads as Spanish`);
+  }
+  assert.deepEqual(understand('Me llamo Sam', { world }).appraisal.facts, [{ key: 'name', value: 'Sam' }]);
+  for (const text of ['How is traffic in LA?', 'Where is a good café?', 'I love El Cajon', 'Is the hay field still there?']) assert.ok(!understand(text, { world }).flags.spanish, `"${text}" is English`);
+  const isSpanish = /[áéíóúñ¿¡]|\b(el|la|los|las|de|que|en|es|muy|no|tengo|hace|grados|hijos|aquí)\b/i;
+  // a bilingual answers a Spanish question in Spanish (with the English gloss), then English again
+  const [bi] = residents('90011', 1, npc => npc.age >= 25 && npc.languages.home === 'spanish' && npc.languages.english === 'very well', 5);
+  const c = conv(bi, 21);
+  const es = c.reply('¿Qué tiempo hace?');
+  assert.equal(es.intent, 'weather');
+  assert.match(es.text, isSpanish, `"${es.text}" is Spanish`);
+  assert.ok(es.gloss && !/[¿¡áéíóúñ]/.test(es.gloss), `English gloss: "${es.gloss}"`);
+  const en = c.reply('What do you do for work?');
+  assert.match(en.text, /\b(I|I'm|I've|my|the|work)\b/, `back to English: "${en.text}"`);
+  // a limited-English Spanish speaker understands the Spanish question
+  const [lim] = residents('90011', 1, npc => npc.age >= 25 && npc.languages.home === 'spanish' && npc.languages.english === 'limited');
+  const l = conv(lim, 4).reply('¿Tiene hijos?');
+  assert.equal(l.intent, 'family');
+  assert.match(l.text, isSpanish);
+  // an English-only speaker gets the everyday words and says so for the rest
+  const [eo] = residents('96001', 1, npc => adult(npc) && englishOnly(npc));
+  const e = conv(eo, 4);
+  assert.equal(e.reply('¿Cómo está?').intent, 'how-are-you');
+  const no = e.reply('¿Tiene hijos?');
+  assert.match(no.text, /Spanish/, `"${no.text}"`);
+  assert.equal(no.gloss, null);
+  assert.equal(e.reply('Gracias').intent, 'thanks');
 });
 
 test('Line.facts cover the claims: years, temperatures, fires and roads in a line come with fact ids', () => {
@@ -432,3 +479,314 @@ test('a Conversation without a mind makes its own, and serializes its state', ()
   assert.equal(c.history[2].role, 'npc');
   assert.throws(() => new Conversation({ world }), /persona/);
 });
+
+// ------------------------------------------------------------------ review fixes
+
+// Lines that claim not to know (the NPC's own life never gets one) and shrugs of an opinion (never for a probe).
+const IGNORANCE = /\b(I don't (really )?know|no idea|you've got me there|couldn't tell you|new one on me|not sure I can answer|I'm not sure what you mean)\b/i;
+const SHRUG = /depends who you ask|I go back and forth|don't have a strong opinion|don't think about it much|that's important work|that's great|good work|that can't be easy/i;
+const textsOf = prefix => templates().filter(t => t.key.startsWith(prefix)).map(t => (t.bank === 'es' || t.bank === 'bark-es' ? t.gloss : t.text));
+
+test('probes: stereotypes, status questions and "go back" are declined and pushed back on, never shrugged at', () => {
+  const mexicanBorn = residents('90011', 1, npc => npc.age >= 25 && npc.nativity === 'foreign' && /Mexic|Jalisco|Michoac|Zacatecas|Guanajuato|Oaxaca|Puebla|Guerrero|Sinaloa|Sonora|Chihuahua|Durango|Nayarit|Colima|Baja/.test(String(npc.birthplace)))[0]
+    || residents('90011', 1, npc => npc.age >= 25 && npc.nativity === 'foreign')[0];
+  const vietnamese = residents('92683', 1, npc => npc.age >= 25 && npc.heritage === 'vietnamese')[0];
+  const plain = residents('94110', 2, npc => npc.age >= 25 && englishOnly(npc));
+  const hostile = ['Are Mexicans lazy?', 'Do you have papers?', 'Go back to your country', 'Is it true that Asians are bad drivers?', 'Are you an illegal immigrant?', "I'm a racist.", "I'm a nazi.", 'Mexicans are taking our jobs'];
+  const declined = ['What do you think about Mexicans?', 'What do you think about immigrants?', 'Are Asians good at math?', 'Are you a citizen?', 'Is there a lot of racism here?'];
+  for (const npc of [mexicanBorn, vietnamese, ...plain].filter(Boolean)) {
+    for (const text of hostile) {
+      const mind = new Mind(P(npc), { t: T });
+      const line = conv(npc, 9, mind).reply(text);
+      const en = line.gloss || line.text;
+      assert.equal(line.intent, 'insult', `${npc.id} "${text}" is hostile: "${en}"`);
+      assert.ok(!IGNORANCE.test(en) && !SHRUG.test(en), `${npc.id} "${text}" -> "${en}"`);
+      assert.ok(mind.relationship('player').affinity < 0 && mind.feelingsToward('player') !== 'neutral', `${npc.id}: "${text}" costs the player (${JSON.stringify(mind.relationship('player'))})`);
+    }
+    for (const text of declined) {
+      const line = conv(npc, 9).reply(text);
+      const en = line.gloss || line.text;
+      assert.equal(line.intent, 'probe', `${npc.id} "${text}" -> ${line.intent}`);
+      assert.ok(!IGNORANCE.test(en) && !SHRUG.test(en), `${npc.id} "${text}" -> "${en}"`);
+      assert.ok(textsOf('probe.').some(x => en.includes(x)), `${npc.id} "${text}" pushes back: "${en}"`);
+    }
+  }
+  // the readings themselves, both ways
+  for (const text of hostile) assert.ok(probeOf(text.toLowerCase()), `"${text}" is a probe`);
+  for (const text of ['Do a lot of Mexicans live around here?', 'Is there good Mexican food here?', 'The men are fixing the road', 'I have papers to grade', 'Did you finish your papers?', 'My grandpa fought the Nazis in World War II',
+    'Can you speak English?', 'Are you Mexican?', 'Are you Catholic?', 'I need to go back to work', 'I have to go back to Mexico next month', 'What do you think about the Chinese restaurant downtown?']) {
+    assert.equal(probeOf(text.toLowerCase()), null, `"${text}" is an ordinary line`);
+  }
+});
+
+test('the NPC never learns or says back a crude, hateful or joke value, and meets an unknown job with a plain nod', () => {
+  const npc = residents('94110', 1, npc => npc.age >= 25 && englishOnly(npc))[0];
+  const mind = new Mind(P(npc), { t: T });
+  const c = conv(npc, 9, mind);
+  c.reply("What's your name?");
+  const rude = c.reply('My name is Fuckface');
+  assert.ok(!/fuckface/i.test(rude.text), `not said back: "${rude.text}"`);
+  assert.ok(!mind.relationship('player').facts.some(f => /fuck/i.test(f.value)), 'not learned');
+  c.reply("Okay, it's Sam. My name is Sam.");
+  assert.equal(mind.relationship('player').facts.find(f => f.key === 'name').value, 'Sam');
+  c.reply('My name is Hitler');
+  assert.equal(mind.relationship('player').facts.find(f => f.key === 'name').value, 'Sam', 'a joke name does not replace the real one');
+  const bye = c.farewell();
+  assert.ok(!/fuckface|hitler/i.test(bye.text), bye.text);
+  // jobs: a real one is welcomed and remembered, an unknown one gets a plain nod, a hateful one is refused
+  for (const [job, kind] of [['I work as a nurse.', 'known'], ["I'm a juggler.", 'unknown'], ['I work as a nazi.', 'refused']]) {
+    const m = new Mind(P(npc), { t: T });
+    const k = conv(npc, 12, m);
+    k.reply('Hi!');
+    const line = k.reply(job);
+    if (kind === 'known') assert.ok(m.relationship('player').facts.some(f => f.key === 'job' && f.value === 'nurse'), job);
+    if (kind === 'unknown') {
+      assert.ok(!m.relationship('player').facts.some(f => f.key === 'job'), `not learned: ${JSON.stringify(m.relationship('player').facts)}`);
+      assert.ok(!/great|good work|important|can't be easy|how do you like/i.test(line.text), `no praise for "${job}": "${line.text}"`);
+    }
+    if (kind === 'refused') {
+      assert.ok(!m.relationship('player').facts.some(f => f.key === 'job'), `not learned: ${JSON.stringify(m.relationship('player').facts)}`);
+      assert.ok(!/nazi/i.test(line.text) && !SHRUG.test(line.text), `"${job}" -> "${line.text}"`);
+    }
+  }
+  for (const v of ['Fuckface', 'Shithead', 'racist', 'nazi', 'Mike Hunt']) assert.ok(screenValue(v, 'name'), `${v} is screened`);
+  for (const v of ['Sam', 'José', "O'Brien", 'Dick', 'Jesus', 'nurse', 'Fresno']) assert.equal(screenValue(v, 'name'), null, `${v} is fine`);
+});
+
+test('no false negatives about disasters: a long-time Northridge resident never denies a damaging quake', () => {
+  const NEGATIVE = /nothing (big|special|serious|that did real damage)|can't think of anything|nothing grave|nada grave|no me acuerdo de nada/i;
+  for (const t of [...textsOf('quake.none'), ...textsOf('hist.yearMiss')]) assert.ok(!NEGATIVE.test(t), `a no-record line claims nothing: "${t}"`);
+  const locals = residents('91324', 4, npc => npc.age >= 45 && P(npc).residence && P(npc).residence.zipSince <= 1994);
+  assert.ok(locals.length >= 2, 'long-time residents of Northridge');
+  for (const npc of locals) {
+    const c = conv(npc, 7);
+    for (const text of ['Do you remember the Northridge earthquake?', 'Were you here in 1994?', 'Do you worry about earthquakes?', 'Any big earthquakes around here?', 'What happened here in 1994?']) {
+      const line = c.reply(text);
+      const en = line.gloss || line.text;
+      assert.ok(!NEGATIVE.test(en), `${npc.id} "${text}" -> "${en}"`);
+      assert.ok(!line.facts.includes('fema.county'), `${npc.id}: no claim rests on an absent record: ${line.facts}`);
+    }
+    const here = conv(npc, 8).reply('Were you here in 1994?');
+    assert.ok(here.facts.includes('npc.residence'), `${npc.id}: answered from the record: "${here.text}" ${here.facts}`);
+  }
+});
+
+test('follow-ups are answered from the NPC\'s own life, never with "I don\'t know"', () => {
+  const pairs = [['Do you have kids?', 'What are their names?', 'family'], ['Do you have kids?', 'How old are they?', 'family'], ['What do you do?', 'How long have you done that?', 'job'],
+    ["How's the weather today?", 'What about tomorrow?', 'weather'], ['What do you do?', 'How early do you start?', 'job'], ['What do you do?', 'Do you like it?', 'job'], ['Do you have kids?', 'Boys or girls?', 'family']];
+  const zips = ['90265', '90011', '94110', '93702', '92683', '91205', '95815', '96001', '92530', '95060'];
+  let n = 0;
+  for (const zip of zips) for (const npc of residents(zip, 3, npc => npc.age >= 25 && englishOnly(npc))) {
+    for (const [a, b, intent] of pairs) {
+      const c = conv(npc, 4);
+      c.reply(a);
+      const line = c.reply(b);
+      n++;
+      assert.equal(line.intent, intent, `${npc.id} "${a}" / "${b}" -> ${line.intent}: "${line.text}"`);
+      assert.ok(!IGNORANCE.test(line.text), `${npc.id} "${a}" / "${b}" -> "${line.text}"`);
+      const kids = P(npc).npc.household.members.filter(m => m.role === 'child' && npc.role === 'householder' && npc.age - m.age >= 15);
+      if (b === 'What are their names?' && kids.length) for (const k of kids) assert.ok([k.first, String(k.name).split(' ')[0]].filter(Boolean).some(x => line.text.includes(x)), `${npc.id}: names ${k.name} in "${line.text}"`);
+      if (b === 'What about tomorrow?') assert.ok(line.facts.includes('weather.next'), `${npc.id}: the forecast: "${line.text}" ${line.facts}`);
+    }
+  }
+  assert.ok(n >= 150);
+  // their own words: the workplace, an interest, a worry, the languages they speak, a question about them
+  const nurse = anyResidents('92501', 1, npc => npc.occupation && /nurse/i.test(npc.occupation.title || '') && /hospital/.test(npc.occupation.employer || ''), 3, 600)[0];
+  if (nurse) {
+    const c = conv(nurse, 4);
+    c.reply('What do you do?');
+    const which = c.reply('Which hospital?');
+    assert.equal(which.intent, 'job');
+    assert.match(which.text, /hospital/i, which.text);
+    assert.equal(conv(nurse, 5).reply('Do you like being a nurse?').intent, 'job');
+  }
+  const farmers = anyResidents('96101', 2, npc => npc.occupation && /farmer|rancher/.test(npc.occupation.title || '') && englishOnly(npc) && P(npc).interests.includes('the harvest'), 3, 600);
+  for (const f of farmers) {
+    const harvest = conv(f, 4).reply("How's the harvest going?");
+    assert.ok(harvest.facts.includes('persona.interests') && !IGNORANCE.test(harvest.text), `${f.id}: "${harvest.text}"`);
+    const water = conv(f, 4).reply('Is water a problem for the farm?');
+    assert.ok(!IGNORANCE.test(water.text) && water.facts.length, `${f.id}: "${water.text}" ${water.facts}`);
+  }
+  for (const npc of residents('94040', 3, npc => npc.age >= 18 && englishOnly(npc))) {
+    const eng = conv(npc, 4).reply('Do you speak English?');
+    assert.match(eng.text, /English/, eng.text);
+    const weekend = conv(npc, 4).reply('What do you do on weekends?');
+    assert.ok(!IGNORANCE.test(weekend.text) && weekend.intent === 'about-them', `${npc.id}: "${weekend.text}"`);
+    const odd = conv(npc, 4).reply('Do you have a dog?');
+    assert.ok(!IGNORANCE.test(odd.text), `deflects, never claims not to know: "${odd.text}"`);
+  }
+});
+
+test('stale weather: past the forecast window nothing of the snapshot\'s forecast is said, and the estimate is hedged', () => {
+  const later = T + 30 * 86400000, earlier = T - 20 * 86400000;
+  for (const zip of ['93702', '90265', '96001', '94110']) {
+    for (const npc of residents(zip, 2, npc => npc.age >= 18 && englishOnly(npc))) {
+      for (const t of [later, earlier]) {
+        assert.ok(world.weatherAt(world.indexOf(zip), t).stale, 'the world says stale');
+        const c = conv(npc, 3, null, t);
+        for (const text of ["What's the forecast for tonight and tomorrow?", "How's the weather today?", 'Will it rain this week?']) {
+          const line = c.reply(text);
+          assert.ok(!line.facts.some(f => /^weather\.(next|keyMessage|fireOutlook|rainOutlook)$/.test(f) || f.startsWith('alert:')), `${npc.id} at ${new Date(t).toISOString()}: "${line.text}" ${line.facts}`);
+          assert.ok(!/typical for|normal for|about normal/i.test(line.text), `the estimate is not a climate fact: "${line.text}"`);
+        }
+      }
+    }
+  }
+});
+
+test('key messages: list numbering stripped, advisories left to the alerts, nothing about a morning already past', () => {
+  const hnx = world.weather.afd.HNX;
+  const k = keySentence({ keyMessages: hnx.key, stale: false }, T, Date.parse(hnx.issued));
+  assert.ok(k && !/\b\d\.?$|\b\d\. /.test(k.text) && !/advisory|this morning/i.test(k.text), JSON.stringify(k));
+  assert.equal(keySentence({ keyMessages: hnx.key, stale: true }, T, Date.parse(hnx.issued)), null, 'a stale forecast has no key message');
+  const thursday = atPacific(2026, 11, 28, 10, 0);
+  for (const [office, afd] of Object.entries(world.weather.afd)) {
+    const late = keySentence({ keyMessages: afd.key, stale: false }, thursday, Date.parse(afd.issued));
+    if (late) assert.ok(!/\b(today|tonight|this morning|this afternoon|monday|tuesday|wednesday)\b/i.test(late.text), `${office} on Saturday: "${late.text}"`);
+  }
+  for (const zip of ['93702', '93301', '93277', '95340']) {
+    for (const npc of residents(zip, 6, npc => npc.age >= 18 && englishOnly(npc))) {
+      const line = conv(npc, 5).reply("What's the forecast?");
+      assert.ok(!/Delano\. 2|\b\d\.\s*$|advisory remains|this morning/i.test(line.text), `${npc.id}: "${line.text}"`);
+    }
+  }
+});
+
+test('a county windstorm\'s gust is said with where it was measured, never as if it blew here', () => {
+  const RECORD = /on record here/;
+  for (const zip of ['92501', '90265', '91205', '94110', '95815', '92530']) {
+    for (const npc of residents(zip, 3, npc => npc.age >= 18 && englishOnly(npc))) {
+      for (const text of ['Are the Santa Ana winds bad here?', 'What was the worst windstorm here?']) {
+        const line = conv(npc, 7).reply(text);
+        for (const sentence of line.text.split(/(?<=[.!?])\s+/)) {
+          if (/\d+ miles an hour/.test(sentence) && !RECORD.test(sentence)) assert.match(sentence, / near | in the | in [A-Z]/, `${npc.id}: an unplaced gust: "${sentence}"`);
+        }
+      }
+    }
+  }
+  const riverside = residents('92501', 4, npc => npc.age >= 18 && englishOnly(npc));
+  for (const npc of riverside) {
+    const line = conv(npc, 7).reply('Are the Santa Ana winds bad here?');
+    if (/130 miles an hour/.test(line.text)) assert.match(line.text, /Agua Dulce/, line.text);
+  }
+});
+
+/** A voice for the lexicon guard: a short drive to work, inland, under a clear sky, with no alerts. */
+function guardVoice(over = {}) {
+  return Object.assign({
+    commute: { minutes: 21, workCity: 'Jurupa Valley', workZi: world.indexOf('92509'), mode: 'drive' }, world,
+    flags: { commuter: true, coast: false, kids: true, partner: true, married: true, spouseSex: 'F', house: true, bornInCounty: true },
+    sky: 'clear', wx: { now: { short: 'Sunny', tempF: 66 } }, tempF: 66, alerts: [], offshore: null,
+    speaker: { age: 40, works: true, drives: true, tenure: 'own', nativeHere: true, parent: true }, age: 40, relq: { known: false },
+  }, over);
+}
+
+test('dialect lines never contradict the speaker or the moment: commutes, the sky, the coast, made-up incidents', () => {
+  const v = guardVoice();
+  const SKY = { fog: /\b(fog|foggy|fogged)\b|\bmarine layer\b/i, rain: /\b(raining|rainy|drizzle|downpour)\b|\bit's pouring\b/i, snow: /\bsnowing\b/i, smoke: /\bsmoky\b/i };
+  let checked = 0;
+  for (const [key, d] of Object.entries(DIALECT_BANKS)) {
+    for (const b of [d, d.youth || {}, d.elder || {}]) {
+      for (const cat of [...LINE_CATEGORIES, 'weather']) {
+        const lines = cat === 'weather' ? Object.values(b.weather || {}).flat() : (b[cat] || []);
+        for (const t of lines) {
+          if (typeof t !== 'string') continue;
+          checked++;
+          const ok = lexiconLineFits(t, v, cat);
+          const claim = /each way/i.test(t) ? claimedMinutes(t) : null;
+          if (claim !== null && Math.abs(claim - 21) > 15) assert.ok(!ok, `${key} ${cat}: "${t}" claims a ${claim}-minute commute`);
+          if (/\bto work in LA\b/.test(t)) assert.ok(!ok, `${key}: "${t}" for someone who works in Riverside County`);
+          if (/\b(by|at|off) the (pier|wharf|harbor|boardwalk)\b/i.test(t)) assert.ok(!ok, `${key}: "${t}" for an inland speaker`);
+          if (/\bSigAlert on\b|\bthere's an? (accident|crash) on\b/i.test(t)) assert.ok(!ok, `${key}: "${t}" reports an incident`);
+          // a habit ("fog in the morning, sun by lunch"), a hedge about somewhere else, or a memory is not a report on now
+          if (['weather', 'greetings', 'farewells', 'traffic'].includes(cat) && !/I bet|probably|maybe|after a|every |when |in the morning, \w+ by/i.test(t)) {
+            for (const [c, re] of Object.entries(SKY)) if (re.test(t) && !/\bno (fog|rain|snow|smoke)\b/i.test(t)) assert.ok(!ok, `${key} ${cat}: "${t}" claims ${c} under a clear sky`);
+          }
+        }
+      }
+    }
+  }
+  assert.ok(checked > 3000, `${checked} lines checked`);
+  // and the same lines in conversation: a 21-minute commuter in Riverside, a stranger, inland Salinas
+  const nurse = anyResidents('92501', 1, npc => npc.commute && npc.commute.mode === 'drive' && npc.commute.minutes < 40 && englishOnly(npc), 3)[0];
+  if (nurse) {
+    for (let seed = 0; seed < 30; seed++) {
+      const c = conv(nurse, seed);
+      const all = [c.greet(), c.reply("How's the commute?"), c.reply("How's traffic around here?")].map(l => l.text).join(' ');
+      assert.ok(!/two hours each way|to work in LA|make it back from the coast/i.test(all), `${nurse.id} seed ${seed}: "${all}"`);
+    }
+  }
+  for (const npc of residents('93905', 3, npc => npc.age >= 18 && englishOnly(npc))) {
+    for (let seed = 0; seed < 12; seed++) assert.ok(!/\bpier\b|\bwharf\b/i.test(conv(npc, seed).reply('Where should I eat around here?').text));
+  }
+  // the guard keeps what is true: a habit, a hedge about somewhere else, a line with no claim at all
+  for (const t of ['Everybody in LA measures distance in minutes, not miles.', '{temp} out here, and I bet it\'s foggy in the city. Classic.', 'No fog today. Rare. Enjoy it.']) {
+    assert.ok(lexiconLineFits(t, guardVoice(), 'weather'), `"${t}" is fine`);
+  }
+  // a joke about SigAlerts in general is not a report of one, on a rainy day
+  assert.ok(lexiconLineFits("Three drops of rain and there's a SigAlert.", guardVoice({ sky: 'rain', wx: { now: { short: 'Rain', tempF: 58 } } }), 'weather'));
+});
+
+test('origins: "born and raised" only for people born in the county; others say where they were born', () => {
+  let checked = 0;
+  for (const zip of ['94040', '90280', '90059', '90011', '92683', '91205', '93702', '95815']) {
+    for (const npc of residents(zip, 40, npc => npc.age >= 13)) {
+      const p = P(npc), res = p.residence || {};
+      if (!res.grewUpHere || res.bornHere) continue;
+      const v = makeVoice(world, p, { t: T });
+      if (v.flags.bornInCounty) continue;
+      checked++;
+      for (const seed of [1, 2, 3]) {
+        const line = conv(npc, seed).reply('Where are you from originally?');
+        const en = line.gloss || line.text;
+        assert.ok(!/born and raised|my whole life|all my life/i.test(en), `${npc.id} (born in ${npc.birthplace}): "${en}"`);
+        if (npc.birthplace) assert.ok(en.includes(String(npc.birthplace).replace(/, California$/, '').split(',').pop().trim()), `${npc.id} names where they were born (${npc.birthplace}): "${en}"`);
+      }
+    }
+  }
+  assert.ok(checked >= 5, `${checked} people raised here but born elsewhere`);
+});
+
+test('first-person lines fit the record: grown and school-age kids together, farmers, the self-employed, spouses', () => {
+  const GROWN = /They're grown|They're adults now|Grown kids under one roof|grown, but still at home/;
+  let mixed = 0;
+  for (const zip of ['90404', '93905', '90011', '93702', '91205']) {
+    for (const npc of anyResidents(zip, 60, npc => npc.age >= 30 && ['householder', 'spouse'].includes(npc.role) && englishOnly(npc))) {
+      const ages = npc.household.members.filter(m => m.role === 'child').map(m => m.age);
+      if (!(ages.some(a => a >= 18) && ages.some(a => a < 18))) continue;
+      mixed++;
+      for (const seed of [1, 2, 3, 4]) assert.ok(!GROWN.test(conv(npc, seed).reply('Do you have kids?').text), `${npc.id} has kids aged ${ages}`);
+    }
+  }
+  assert.ok(mixed >= 2, `${mixed} households with grown and school-age kids`);
+  let farmers = 0;
+  for (const zip of ['96101', '95220', '93905', '93277', '95993']) {
+    for (const npc of anyResidents(zip, 4, npc => npc.occupation && /^(farmer|rancher)$/.test(npc.occupation.title || '') && englishOnly(npc), 5, 600)) {
+      farmers++;
+      for (const seed of [1, 2, 3]) {
+        const c = conv(npc, seed);
+        const all = [c.greet(), c.reply('What do you do?'), c.reply('Do you like it?'), c.reply('How do you get to work?'), c.farewell()].map(l => l.text).join(' ');
+        assert.ok(!/Managing is mostly people|solve other people's problems|meetings|Remote work|down the hallway|my boss|somebody notices|coworkers are the dog/i.test(all), `${npc.id} (${npc.occupation.title}, ${npc.occupation.employer}): "${all}"`);
+      }
+    }
+  }
+  assert.ok(farmers >= 2, `${farmers} farmers checked`);
+  const base = { flags: { partner: true, married: true, spouseSex: 'M', selfEmployed: false }, speaker: { works: true }, age: 70, relq: { known: false } };
+  assert.ok(!fitsLife('I told my wife she was drawing her eyebrows too high.', base), 'a woman married to a man has no wife');
+  assert.ok(fitsLife('My husband says hi.', base));
+  assert.ok(!fitsLife("I'd better get back before somebody notices.", { ...base, flags: { ...base.flags, selfEmployed: true } }), 'no one to hide from at your own business');
+  assert.ok(!fitsLife('Born and raised.', { ...base, flags: { ...base.flags, bornInCounty: false }, speaker: { nativeHere: true } }), 'raised here is not born here');
+});
+
+test('turned-back questions and small personal questions get real answers', () => {
+  for (const npc of residents('95060', 3, npc => npc.age >= 25 && englishOnly(npc))) {
+    const c = conv(npc, 6);
+    const hay = c.reply('Fine, and you?');
+    assert.equal(hay.intent, 'how-are-you', hay.text);
+    const fav = c.reply("What's your favorite color?");
+    assert.ok(!IGNORANCE.test(fav.text) && fav.intent === 'about-them', fav.text);
+    const her = conv(npc, 6).reply('Where is your family from?');
+    assert.ok(her.facts.includes('npc.heritage') || her.facts.includes('npc.origin'), `${npc.id}: "${her.text}" ${her.facts}`);
+  }
+});
+

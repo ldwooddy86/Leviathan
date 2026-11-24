@@ -141,6 +141,11 @@ export const PEOPLE = compileBank({
     Working from home. This counts as my coffee break.
     I'm supposed to be working. From home, so, you know.
   `,
+  'act.onFarm': `
+    Working. Out here the farm is home.
+    Just out working the place.
+    Working. There's always something on a farm.
+  `,
   'act.school': `
     I'm at school.
     We're on a break at school.
@@ -424,6 +429,79 @@ export const PEOPLE = compileBank({
     I grew up in {birthplace}.
     Originally {birthplace}. I've been out here a long time, though.
   `,
+  'about.bornElsewhere': `
+    I was born in {birthplace}, but I grew up here in {county} County.
+    Born in {birthplace}. I grew up here, though. {county} County.
+    @adult I was born in {birthplace}. {county} County is where I grew up.
+    @minor I was born in {birthplace}, but I've grown up here.
+  `,
+  'about.arrivedKid': `
+    My family came over in {arrivalYear}, when I was {arrivalAgeWords}.
+    We came here in {arrivalYear}. I was {arrivalAgeWords}.
+  `,
+  'about.grewUpOnly': `
+    I grew up in {county} County.
+    I grew up around here, in {county} County.
+  `,
+  'about.heritage': `
+    My family's {heritageWord}.
+    I'm {heritageLabel}.
+    {heritageLabel}. My family's {heritageWord}.
+  `,
+  'about.heritageWhole': `
+    I'm {heritageLabel}.
+    {heritageLabel}, yeah.
+  `,
+  'about.heritageFrom': `
+    I'm from {country}. I came here in {arrivalYear}.
+    I was born in {country}.
+    {country}, originally.
+  `,
+  'about.heritageAmerican': `
+    Just American, I guess. My family's been here a long time.
+    American. A little of this and that, way back.
+  `,
+  'about.heritageMixed': `
+    A little bit of everything, honestly.
+    I'm mixed. A little of everything.
+  `,
+  'about.heritageGuarded': `
+    Why do you ask?
+    I'd rather not get into that.
+  `,
+  'lang.englishOnly': `
+    Just English, I'm afraid.
+    English. That's all I've got.
+    Only English. I wish I spoke more.
+    @kid Just English.
+  `,
+  'lang.someOther': `
+    Some {askedName}, yeah. Enough to get by.
+    A little {askedName}. Don't test me on it.
+  `,
+  'lang.notThat': `
+    No, just English, sorry.
+    I don't, no. Just English.
+    @kid No. Just English.
+  `,
+  'lang.limited': `
+    {langName}, mostly. My English is not very good.
+    I speak {langName}. English, only a little.
+  `,
+  'lang.yesEnglish': `
+    Sure. English and {langName}.
+    I do. {langName} at home, English everywhere else.
+    Yes. And {langName}, at home.
+  `,
+  'lang.both': `
+    English and {langName}. {langName} at home, mostly.
+    I do. {langName} with my family, English with everybody else.
+    {langName} and English. I switch back and forth all day.
+  `,
+  'lang.notThatBoth': `
+    Not {askedName}, no. English and {langName}.
+    No {askedName}, sorry. I speak English and {langName}.
+  `,
   'about.cameHere': `
     I've been in {county} County since {countySince}.
     I came out to {county} County in {countySince}.
@@ -462,10 +540,15 @@ export const PEOPLE = compileBank({
     New-ish. I got here in {zipSince}.
   `,
   'about.interestsIntro': `
-    When I'm not working, you can usually find me {doingThing}.
+    @works When I'm not working, you can usually find me {doingThing}.
     In my free time? {interestLine}
     {interestLine}
     Mostly? {interestLine}
+  `,
+  'about.interestYes': `
+    {interestLine}
+    @works When I'm not working, you can usually find me {doingThing}.
+    Ask anyone. You can usually find me {doingThing}.
   `,
   'about.team': `
     And I'm a big {teamName} fan.
@@ -512,6 +595,136 @@ export const PEOPLE = compileBank({
     I'm {aJob}. {employerCap} keeps me busy.
     @plain I work as {aJob}{where?}.
     @loose I'm {aJob}{where?}. It pays the bills.
+  `,
+  'job.own': `
+    I'm {aJob}. I run {ownPlace}.
+    I have {ownPlace}. {aJobCap}, I guess you'd call it.
+    {aJobCap}. It's {ownPlace}, so I'm the one in charge.
+    I run {ownPlace}.
+  `,
+  'job.onFarm': `
+    I live where I work. The farm's right here.
+    No commute. I walk out the door and I'm at work.
+    My office is the field.
+  `,
+  'job.which': `
+    {employerCap}, over in {workCity}.
+    It's {employer}, in {workCity}.
+    {employerCap}. Nothing you'd have heard of.
+    Just {employer}.
+  `,
+  'job.whichFarm': `
+    Right here. I work my own place.
+    It's {employer}. I live right on it.
+    This one, right here. It's home and work both.
+  `,
+  'job.whichHome': `
+    I work from home. My kitchen table, mostly.
+    From home. {employerCap}, but I'm remote.
+    Remote. I'm home most days.
+  `,
+  'job.whereCity': `
+    It's over in {workCity}.
+    The job's in {workCity}.
+  `,
+  'job.whereHere': `
+    Right here in {place}.
+    Close by, here in {place}.
+  `,
+  'job.sinceVague': `
+    A good while now.
+    Long enough to be good at it.
+    Years now. I've lost count.
+  `,
+  'job.hours': `
+    I head out around {departClock}.
+    I leave the house around {departClock}.
+    I'm out the door by {departClock}, most days.
+  `,
+  'job.hoursNight': `
+    I work nights. I head in around {departClock}.
+    Night shift. I leave around {departClock}.
+  `,
+  'job.hoursLong': `
+    I'm there about {dwellHours} hours.
+    Then it's about {dwellHours} hours on the job.
+  `,
+  'job.hoursHome': `
+    I work from home, so I start when the coffee's ready.
+    I'm home, so the hours are mine to set, mostly.
+  `,
+  'job.hoursFarm': `
+    On a farm you start when it's light and stop when it's done.
+    Sunup, most days. The work doesn't wait.
+  `,
+  'job.schoolHours': `
+    I leave for school around {departClock}.
+    School starts early. I'm out the door around {departClock}.
+  `,
+  'job.pay': `
+    It pays the bills.
+    I'd rather not talk money, but it pays the bills.
+    It's enough. Most months.
+  `,
+  'job.payLow': `
+    Not enough, honestly. But it's work.
+    It's tight. I make it work.
+    Not great. Everything costs so much now.
+  `,
+  'job.payHigh': `
+    I can't complain about the pay.
+    It pays well. I won't pretend it doesn't.
+  `,
+  'job.daysWeek': `
+    Monday through Friday.
+    Weekdays. Weekends are mine.
+    Five days a week. Weekends off.
+  `,
+  'job.daysWeekend': `
+    Weekends too, unfortunately.
+    Yeah, I work weekends.
+    Some weekends, yes. That's the job.
+  `,
+  'job.daysSome': `
+    {dayCountCap} days a week.
+    I work {dayCount} days a week.
+  `,
+  'job.daysHome': `
+    I'm home, so the days kind of blur together.
+    Whenever there's work. I set my own days.
+  `,
+  'job.before': `
+    Oh, a little of this and that.
+    This and that. It's a long story.
+  `,
+  'job.hoursOff': `
+    I'm usually home by {offClock}.
+    I'm done around {offClock}, most days.
+    By the time I get home it's about {offClock}.
+  `,
+  'job.retiredSince': `
+    Retired since {retireYear}.
+    I retired in {retireYear}. Haven't looked back.
+  `,
+  'job.retiredVague': `
+    A few years now. I've stopped counting.
+    Long enough to forget what an alarm clock sounds like.
+  `,
+  'job.hoursRetired': `
+    Whenever I want. That's the best part of being retired.
+    I keep my own hours now.
+  `,
+  'job.payRetired': `
+    I'm on a fixed income now. We make it work.
+    Retirement money. You learn to stretch it.
+  `,
+  'job.unemployedMore': `
+    Too long. I'm still looking.
+    Longer than I'd like. Something will turn up.
+  `,
+  'job.homemakerSince': `
+    @kids Ever since the kids came along.
+    For a while now. It's a full-time job.
   `,
   'job.since': `
     I've been doing it since {jobYear}.
@@ -734,7 +947,7 @@ export const PEOPLE = compileBank({
   'fam.married': `
     {partnerName} and I got married in {weddingYear}.
     We've been married since {weddingYear}.
-    {partnerName} and I have been together since {weddingYear}. Married, I mean.
+    We tied the knot in {weddingYear}.
   `,
   'fam.kidOne': `
     One {kidWord}, {kidName}. {kidPronoun}'s {kidAge}.
@@ -745,6 +958,7 @@ export const PEOPLE = compileBank({
     {kidCount} kids. {kidNames}.
     We have {kidCount} kids: {kidNames}.
     {kidCount} kids, {kidNames}. They keep me busy.
+    I've got {kidCount} kids.
   `,
   'fam.kidsFeel.baby': `
     Not a lot of sleep at our house right now.
@@ -766,6 +980,182 @@ export const PEOPLE = compileBank({
     Grown kids under one roof. It works, mostly.
     They're adults now, but they're home. Rent being what it is.
   `,
+  'fam.kidsFeel.mixed': `
+    The oldest is grown, and the youngest is still in school.
+    My oldest is an adult now, but I've still got {youngOne} at home.
+    Grown kids and school kids under one roof. Every age at once.
+  `,
+  'fam.names': `
+    {namesList}.
+    There's {namesList}.
+    {namesList}. They keep me busy.
+  `,
+  'fam.oneName': `
+    {otherName}.
+    {otherPronoun}'s {otherName}.
+  `,
+  'fam.namesNone': `
+    It's just me, so no names to give you.
+    Nobody else at home but me.
+  `,
+  'fam.partnerName': `
+    My {partnerWord}'s name is {partnerName}.
+    {partnerName}. My {partnerWord}, {partnerName}.
+  `,
+  'fam.partnerUnmarried': `
+    Not married, no. But I live with my partner, {partnerName}.
+    We're not married. It's me and {partnerName}, though.
+  `,
+  'fam.neverMarried': `
+    No, I'm not married.
+    Never married. Not yet, anyway.
+    Nope. Single.
+  `,
+  'fam.divorced': `
+    I'm divorced.
+    I was married. Divorced now.
+  `,
+  'fam.spouseAway': `
+    I'm married, but we don't live together right now.
+    Married, yes. We're apart for now. It's a long story.
+  `,
+  'fam.separated': `
+    We're separated. It's complicated.
+    Separated, for now.
+  `,
+  'fam.togetherLong': `
+    A long time now.
+    We've been together a long time.
+  `,
+  'fam.noGrandkidsYoung': `
+    Grandkids? I'm {age}!
+    Ha, no. I'm {age}.
+  `,
+  'fam.noGrandkids': `
+    No grandkids at home.
+    Not living with me, anyway.
+  `,
+  'fam.parentsHere': `
+    They live with me. My {parentsWord}, I mean.
+    Right here. I live with my {parentsWord}.
+  `,
+  'fam.parentsElsewhere': `
+    They don't live with us.
+    Not with me, anyway.
+  `,
+  'fam.kidsDo': `
+    {kidsDoingCap}.
+    Let's see. {kidsDoingCap}.
+  `,
+  'edu.nohs': `
+    I didn't finish high school.
+    I never finished school. Life had other plans.
+  `,
+  'edu.hs': `
+    Just high school.
+    I finished high school, and that was it for me.
+  `,
+  'edu.somecollege': `
+    I did some college. Never finished.
+    A couple of years of college. I didn't finish.
+  `,
+  'edu.associate': `
+    I got my associate's degree.
+    Community college. I got my associate's.
+  `,
+  'edu.bachelor': `
+    I went to college. Got my bachelor's.
+    College. I have a bachelor's degree.
+  `,
+  'edu.master': `
+    I have a master's degree.
+    College, then a master's.
+  `,
+  'edu.professional': `
+    College, then more school after that. A professional degree.
+    A lot of school. College and then a professional degree.
+  `,
+  'edu.doctorate': `
+    I have a PhD. A lot of years of school.
+    All the way through. I have a doctorate.
+  `,
+  'fam.ages': `
+    {agesListCap}.
+    Let's see. {agesListCap}.
+  `,
+  'fam.agesNums': `
+    {agesNums}.
+    They're {agesNums}.
+  `,
+  'fam.oneAge': `
+    {otherPronoun}'s {otherAge}.
+    {otherAge}.
+  `,
+  'fam.partnerAge': `
+    {partnerPronoun}'s {partnerAge}.
+    My {partnerWord}'s {partnerAge}.
+  `,
+  'fam.sexes': `
+    {kidsSexesCap}.
+    I've got {kidsSexes}.
+  `,
+  'fam.oneSchool': `
+    {otherPronoun}'s in {school}.
+    {school}. {otherPronoun} likes it, mostly.
+  `,
+  'fam.sameSchool': `
+    They're {allWord} in {school}.
+    {schoolCap}, {allWord} of them.
+  `,
+  'fam.schools': `
+    I've got {schoolsList}.
+    It's {schoolsList}. Different schedules for everybody.
+  `,
+  'fam.noneInSchool': `
+    Nobody's in school right now.
+    They're past school age, or not there yet.
+  `,
+  'fam.partnerJob': `
+    {partnerPronoun}'s {aPartnerJob}.
+    My {partnerWord}? {aPartnerJob}.
+  `,
+  'fam.partnerWorks': `
+    {partnerPronoun} works too.
+    {partnerPronoun} works. We both do.
+  `,
+  'fam.partnerRetired': `
+    {partnerPronoun}'s retired.
+    {partnerPronoun} retired. Keeps busy, though.
+    My {partnerWord}'s retired now.
+  `,
+  'fam.oneBaby': `
+    {otherPronoun}'s just a baby.
+    Just a few months. {otherPronoun}'s a baby.
+  `,
+  'fam.partnerHome': `
+    {partnerPronoun}'s home these days.
+    {partnerPronoun}'s not working right now.
+  `,
+  'fam.noPartner': `
+    I'm not with anybody right now.
+    No partner. Not right now, anyway.
+    I'm on my own, as far as that goes.
+  `,
+  'fam.kidFeel.small': `
+    Between school and everything else, I'm basically a taxi.
+    {kidPronoun}'s at the age where everything is a question.
+    {kidPronoun} keeps me on my toes.
+  `,
+  'fam.kidFeel.teens': `
+    A teenager. Wish me luck.
+    {kidPronoun}'s a teenager now, so I'm not cool anymore.
+    The grocery bill with a teenager, my goodness.
+  `,
+  'fam.kidFeel.grown': `
+    {kidPronoun}'s grown, but still at home. It's California.
+    A grown kid under one roof. It works, mostly.
+    {kidPronoun}'s an adult now, but still living at home. Rent being what it is.
+  `,
   'fam.grandkids': `
     My grandkids live with us.
     The grandkids are here, so the house is never quiet.
@@ -776,15 +1166,24 @@ export const PEOPLE = compileBank({
     It's me and my {parentsWord}.
     @kid I live with my {parentsWord}.
   `,
+  'fam.parentsToo': `
+    And my {parentsWord}, of course.
+    Plus my {parentsWord}.
+  `,
   'fam.parentsAdult': `
     I'm back with my {parentsWord} for now. It's the only way to save anything.
     I live with my {parentsWord}. Rent around here, you know.
     Still at home with my {parentsWord}. We make it work.
   `,
+  'fam.parentsCare': `
+    I live with my {parentsWord}. I help look after {themWord} these days.
+    My {parentsWord} and I share the house. Family takes care of family.
+    I look after my {parentsWord}. We're under one roof.
+  `,
   'fam.siblings': `
-    And {sibWords} at home too.
     Plus {sibWords}.
-    I've got {sibWords} in the house too.
+    Oh, and {sibWords}.
+    Also {sibWords}.
   `,
   'fam.grandparents': `
     My {gpWord} lives with us too.
@@ -802,8 +1201,8 @@ export const PEOPLE = compileBank({
   `,
   'fam.roommates': `
     No family here. Just roommates.
-    I've got {roomCount} roommates.
-    I share the place with {roomCount} roommates. It's the only way to afford it.
+    I've got {roomWords}.
+    I share the place with {roomWords}. It's the only way to afford it.
   `,
   'fam.relatives': `
     I live with some of my relatives.
@@ -833,6 +1232,11 @@ export const PEOPLE = compileBank({
     No brothers or sisters at home.
     Not at home, no.
     @minor Nope. Just me.
+  `,
+  'fam.siblingsAnswer': `
+    Yeah, {sibWords}.
+    I live with {sibWords}.
+    Yep. {sibWordsCap}.
   `,
   'fam.kidSelfNo': `
     Kids? I'm {age}!
@@ -1179,6 +1583,227 @@ export const PEOPLE = compileBank({
     @kid I don't know.
     @teen Idk. I mean, I don't know.
   `,
+  'unk.aboutMeYesNo': `
+    Ha. Why, {aux} you?
+    Why do you ask?
+    Now why would you want to know that?
+    @plain May I ask why you want to know?
+    @kid Why?
+  `,
+  'about.heritageYes': `
+    I am, yeah.
+    Yes.
+    Yep.
+  `,
+  'about.heritageNo': `
+    No.
+    No, actually.
+    Nope.
+  `,
+  'fav.color': `
+    {favCap}, I guess.
+    Probably {fav}.
+    {favCap}. Always has been.
+  `,
+  'fav.animal': `
+    {favCap}, I think.
+    I've always liked {fav}.
+  `,
+  'fav.holiday': `
+    {favCap}. Everybody's together and nobody's working.
+    I'd say {fav}.
+  `,
+  'fav.season': `
+    {favCap}, I think.
+    I like {fav} best.
+    @hotplace Anything but summer. Fall, I guess.
+  `,
+  'fav.sport': `
+    {favCap}. I follow {team}.
+    {favCap}, for sure. I'm a {teamName} fan.
+  `,
+  'fav.thing': `
+    {favCap}, I think.
+    I'd say {fav}.
+  `,
+  'fav.taste': `
+    Oh, I like a little of everything.
+    Depends on the day, honestly.
+    I'm not picky. Whatever's good.
+  `,
+  'unk.aboutMe': `
+    Ha, that's a long story. Another time, maybe.
+    Oh, I could talk your ear off about that. Some other day.
+    Hmm. Let me think about how to answer that one.
+    That's a whole conversation. Let's save it.
+    @guarded I'd rather keep that to myself.
+    @plain That's a bit personal, if you don't mind.
+    @kid That's a secret.
+  `,
+
+  // ---------------------------------------------------------------- probes: groups, status, prejudice (declined, pushed back)
+  'probe.group': `
+    People are people. I don't sort them like that.
+    I don't go in for that. Everybody's different.
+    Depends on the person, same as anybody.
+    Those are somebody's neighbors you're talking about. They're just people.
+    I'd rather take people one at a time.
+    @plain I don't think it's fair to talk about people that way.
+    @blunt That's not a real question. People are people.
+    @kid That's not nice.
+  `,
+  'probe.groupPositive': `
+    That's still a stereotype. People are just people.
+    I don't think you can say that about a whole group. Everybody's different.
+    Some are, some aren't. Same as anybody.
+    @kid I don't know. Everybody's different.
+  `,
+  'probe.status': `
+    That's not something I talk about.
+    That's a pretty personal question.
+    I'd rather not get into that with someone I just met.
+    @plain I don't discuss that, if you don't mind.
+    @blunt That's nobody's business.
+    @kid I don't know.
+  `,
+  'probe.bias': `
+    I try to treat everybody the same. Most people here do.
+    You'll find good and bad anywhere. I try to be one of the good ones.
+    People mostly get along around here. That's how I want it.
+  `,
+  'probe.selfBias': `
+    No. Everybody's just people to me.
+    I hope not. I try to treat everybody the same.
+    No. I judge people by how they treat people.
+  `,
+  'probe.again': `
+    I'm not going to keep talking about this.
+    Can we drop it? I'm not getting into that.
+    I already told you. I'm done with that subject.
+  `,
+  'probe.hostile': `
+    Wow. No. People are people.
+    That's an ugly thing to say.
+    I don't want to hear that kind of talk.
+    Those are somebody's neighbors you're talking about.
+    @plain I won't listen to people talked about that way.
+    @blunt Not around me, you don't.
+    @kid That's mean!
+  `,
+  'probe.statusHostile': `
+    That's none of your business.
+    You don't get to ask me that.
+    What kind of question is that?
+    @plain That is not an appropriate question.
+    @kid That's mean.
+  `,
+  'probe.leave': `
+    This is my home.
+    I live here. This is my home, same as yours.
+    Wow. Okay. This is my home.
+    @kid I live here!
+  `,
+  'probe.hate': `
+    I don't want anything to do with that.
+    No. Not around me.
+    I won't talk to you about that.
+    @kid That's bad.
+  `,
+  'probe.slur': `
+    Don't use that word.
+    You don't talk like that around me.
+    I'm not going to talk to somebody who uses words like that.
+    @kid You said a bad word!
+  `,
+  'name.rude': `
+    I'm not calling you that.
+    Nice try. What's your real name?
+    Ha. No.
+    @plain I won't be calling you that.
+    @kid That's not a real name!
+  `,
+  'react.notBuying': `
+    Uh huh. Sure.
+    Okay, if you say so.
+    Right.
+    @kid Nuh-uh.
+  `,
+  'react.jobOther': `
+    Oh, okay.
+    Huh. Okay.
+    Is that right?
+    @plain I see.
+    @kid Oh.
+  `,
+
+  // ---------------------------------------------------------------- worries that no other planner covers
+  'concern.water': `
+    Water's everything out here. A dry year and you feel it.
+    @outdoor Every farmer I know watches the water. It's what keeps you up at night.
+    We're always one dry winter away from trouble.
+    I watch the reservoirs like other people watch the news.
+  `,
+  'concern.water.calm': `
+    We try not to waste water. It's California.
+    I don't think about it much until the rain doesn't come.
+    Everybody here learns to be careful with water.
+  `,
+  'concern.power': `
+    The power shutoffs are a real pain. We keep flashlights and a cooler ready.
+    When the wind picks up, they can shut the power off. You learn to plan for it.
+    I keep the phone charged and a lantern handy, just in case.
+  `,
+  'concern.power.calm': `
+    We keep flashlights around, just in case.
+    I don't worry about it much. We've got candles somewhere.
+  `,
+  'concern.roof': `
+    @owns The roof's getting old. That's next on the list.
+    @owns Roofs aren't cheap, and ours is getting up there.
+    @owns I keep putting off the roof. One of these years.
+    @rents That's the landlord's problem, thank goodness.
+  `,
+  'concern.roof.calm': `
+    @owns I try not to think about the roof until it leaks.
+    @rents That's the landlord's problem, thank goodness.
+    @minor That's my parents' department.
+  `,
+  'concern.jobs': `
+    Work's hard to find right now. I'm still looking.
+    It's tough out there. Everybody's looking.
+  `,
+  'concern.jobs.calm': `
+    People seem to find work around here, mostly.
+    @works I've got work, so I can't complain.
+    @retired I'm retired, so I'm out of that rat race.
+  `,
+  'concern.health': `
+    I'm watching my health more these days.
+    I've been trying to take better care of myself.
+    @older You get to a certain age, and the doctor knows you by name.
+  `,
+  'concern.health.calm': `
+    Good enough, knock on wood.
+    Can't complain. Knock on wood.
+  `,
+  'concern.schools': `
+    @parent The schools matter to us. The kids come first.
+    @parent I keep an eye on the schools. We're always at some meeting.
+    The schools are a big deal around here.
+  `,
+  'concern.schools.calm': `
+    @!kids I don't have kids in school, so I don't follow it much.
+    @kids The kids' school is fine. The teachers work hard.
+    @minor School's school.
+  `,
+  'concern.abroad': `
+    I worry about my family back home. I call them every week.
+    My family back home is always on my mind.
+  `,
+  'concern.abroad.calm': `
+    Family's family, wherever they are.
+    I try to keep in touch with everybody.
+  `,
   'unk.statement': `
     Huh.
     Is that right?
@@ -1197,6 +1822,20 @@ export const PEOPLE = compileBank({
     You lost me there.
     @plain I'm sorry, I didn't understand.
     @kid What?
+  `,
+  'unk.noSpanish': `
+    Sorry, I don't really speak Spanish.
+    My Spanish isn't very good, sorry. English?
+    I only know a little Spanish. Not enough for that, sorry.
+    @kid I don't speak Spanish.
+  `,
+  'unk.noSpanishAgain': `
+    Still no Spanish here, sorry.
+    I really can't help you in Spanish.
+    Sorry. English, if you can?
+    I wish I could help. I just don't speak it.
+    (A shrug and an apologetic smile.)
+    @kid I don't know what that means.
   `,
 
   // ---------------------------------------------------------------- openers and follow-ups

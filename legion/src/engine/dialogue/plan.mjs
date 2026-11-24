@@ -9,21 +9,25 @@
 // (extraversion and agreeableness), a word or phrase in the home language at the persona's rate (with the English
 // in the gloss), and the facts used.
 
-import { pickLine, phrasesFor, familyTerm, templateSlots, linesFor, slangFor, LANGUAGES } from '../lexicon.mjs';
-import { pacific } from '../clock.mjs';
+import { pickLine, phrasesFor, codeSwitch, familyTerm, templateSlots, linesFor, slangFor, resolveLanguage, LANGUAGES } from '../lexicon.mjs';
 import { hashStr } from '../rng.mjs';
+import { OCCUPATION_CATALOG } from '../occupations.mjs';
+import { wherePhrase } from '../persona.mjs';
 import { PEOPLE } from './en-people.mjs';
 import { PLACE } from './en-place.mjs';
 import { SPANISH } from './es.mjs';
 import {
-  isNum, num, str, capFirst, withArticle, listJoin, numWord, fillLine, tagsHold, cleanText, fitsLife, terminate, tidy,
+  isNum, num, str, capFirst, withArticle, listJoin, numWord, fillLine, tagsHold, cleanText, fitsLife, lexiconLineFits, lintText, terminate, tidy,
   cleanGloss, fullDate, monthYear, partOfMonth, mesAno, parseDate, MONTHS, MESES, approx, compass,
 } from './core.mjs';
 import * as G from './ground.mjs';
-import { employerPhrase, teamLabel } from './voice.mjs';
+import { employerPhrase } from './voice.mjs';
+import { screenValue } from './probe.mjs';
 import {
   interestTalk, CONCERN_WORDS, jobSpanish, feelKey, SCHOOL_WORDS, DIR_ES, LANG_ES, shareVerbEs, cieloEs, cuandoEs, mesEs, millasEs, approxEs,
 } from './life.mjs';
+
+const NO_BRANDS = () => [];
 
 /** Every English template bank by key (people and place). */
 export const EN = Object.freeze(Object.assign({}, PEOPLE, PLACE));
@@ -32,6 +36,9 @@ export { SPANISH };
 const HEAVY = new Set(['fire', 'storm', 'earthquake', 'insurance']);
 
 // ------------------------------------------------------------------ the realizer
+
+// A template's frame and a memory's own words saying the same thing twice ("I remember that day. I remember ...").
+const ECHO = /\b(I remember|I'll never forget|I was here for)\b[\s\S]*\b\1\b/i;
 
 /**
  * One sentence from a template bank for the speaker's language mode, or null.
@@ -53,7 +60,7 @@ export function say(S, key, slots = {}, facts = []) {
   const hit = S.picker.pickWhere(`${mode === 'en' ? 'en' : 'es'}:${key}`, usable, line => {
     if (mode === 'en') {
       const a = fillLine(line.text, all);
-      if (!a || !cleanText(a.text) || !fitsLife(a.gloss, v)) return null;
+      if (!a || !cleanText(a.text) || !fitsLife(a.gloss, v) || ECHO.test(a.text)) return null;
       return { text: a.text, gloss: a.foreign ? a.gloss : null };
     }
     const es = fillLine(line.text, all), en = fillLine(line.gloss, all);
@@ -88,10 +95,14 @@ export function lex(S, category, extra = {}, extraFacts = {}) {
   if (v.lang.mode !== 'en') return null;
   const slots = Object.assign({}, v.lex.values, extra);
   const opts = Object.assign({}, v.context, { speaker: v.speaker, slots, picker: S.picker, regionalShare: 0.65, age: v.age });
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 6; i++) {
     const hit = pickLine(v.key, category, S.rng, opts);
     if (!hit) return null;
-    if (!cleanText(hit.text) || !fitsLife(hit.text, v) || S.st.said.has(hit.text)) continue;
+    // the dialect's lines carry a few tags; what they still assume (a commute, today's sky, a pier, a crash on the
+    // freeway right now) is checked against the speaker's record and the world here
+    if (!cleanText(hit.text) || !fitsLife(hit.text, v) || !lexiconLineFits(hit.text, v, category) || S.st.said.has(hit.text)) continue;
+    // the engine's own style rules hold for borrowed lines too: no "gonna", no mock foreign words
+    if (lintText(hit.text, NO_BRANDS, { english: true }).length) continue;
     const facts = templateSlots(hit.template).map(s => extraFacts[s] || (v.lex.facts && v.lex.facts[s]) || null).filter(Boolean);
     if (templateSlots(hit.template).includes('temp')) facts.push('weather.now');
     return { text: hit.text, gloss: null, facts, key: `lex:${category}` };
@@ -113,12 +124,17 @@ export function homePhrase(S, intent, fits = null) {
   const v = S.v, lang = v.lang.cs ? v.lang.cs.lang : v.lang.known;
   if (!lang || !LANGUAGES[lang]) return null;
   const opts = { sex: v.sex, t: v.t, variety: v.lang.variety, faith: v.lang.faith, register: v.lang.usted ? 'respect' : undefined };
-  const list = (phrasesFor(lang, intent, opts) || []).filter(e => !e.to && !AUDIENCE_NOTE.test(e.gloss)
+  const ok = e => !!e && !e.to && !AUDIENCE_NOTE.test(e.gloss)
     && (v.lang.faith || !/\bGod\b|\bbless/i.test(e.gloss))
     && (lang !== 'spanish' || (v.lang.usted ? !TU_FORMS.test(e.text) : !USTED_FORMS.test(e.text)))
-    && (!fits || fits.test(e.gloss)));
-  if (!list.length) return null;
-  const e = S.picker.pick(`cs:${lang}:${intent}`, list, S.rng);
+    && (!fits || fits.test(e.gloss));
+  // the lexicon's own choice first (it honors gender, variety, faith, register and the hour), kept when it fits
+  // this listener and topic and has not been said yet; else a fitting phrase from the same filtered bank
+  let e = codeSwitch(lang, intent, S.rng, Object.assign({ picker: S.picker }, opts));
+  if (!ok(e)) {
+    const list = (phrasesFor(lang, intent, opts) || []).filter(ok);
+    e = list.length ? S.picker.pick(`cs:${lang}:${intent}:fit`, list, S.rng) : null;
+  }
   if (!e) return null;
   const alts = String(e.gloss).replace(/\s*\([^)]*\)/g, '').split(' / ').map(x => x.trim()).filter(Boolean);
   const gloss = (fits && alts.find(a => fits.test(a))) || cleanGloss(e.gloss);
@@ -198,6 +214,16 @@ export function memoryFact(m) {
   if (/countySince/.test(s)) return 'npc.residence';
   if (/roof/.test(s)) return 'persona.roof';
   return 'persona.memory';
+}
+
+/**
+ * A memory's title as said in a sentence: a federal declaration's "the winter storms 2005" becomes "the winter
+ * storms of 2005"; other titles stay as the persona wrote them.
+ */
+export function memTitleOf(m) {
+  const t = String((m && (m.title || m.text)) || '');
+  if (!/\d{4}$/.test(t) || /\b(of|in)\s+((January|February|March|April|May|June|July|August|September|October|November|December)\s+)?\d{4}$/.test(t)) return t;
+  return `the ${G.femaTitle(t)}`;
 }
 
 /** A memory's title in Spanish (the persona's titles are English). */
@@ -330,6 +356,12 @@ function worksToday(v) {
 P.name = (S, u) => {
   const v = S.v, st = S.st, parts = [];
   const given = u.appraisal.facts.find(f => f.key === 'name');
+  if (given && screenValue(given.value, 'name')) {
+    // a crude or hateful "name" is neither learned nor said back
+    parts.push(say(S, 'name.rude'));
+    S.st.cs = false;
+    return { parts, topics: [], noAsk: true, emotion: 'annoyed' };
+  }
   if (given) {
     const first = String(given.value).split(/\s+/)[0];
     parts.push(say(S, 'name.meet', { player: first }) || say(S, 'react.name', { player: first }));
@@ -350,14 +382,30 @@ P.name = (S, u) => {
   return { parts, topics: ['self'], ask: v.relq.name ? null : 'name', askBoost: 0.4 };
 };
 
-/** Where they're from, in their own words. */
+/** "a baby", "little", "seven": how old they were when the family came, as said after "when I was". */
+function arrivalAgeWords(age) {
+  if (!isNum(age) || age < 0) return null;
+  if (age <= 1) return { en: 'a baby', es: 'bebé' };
+  if (age <= 5) return { en: 'little', es: null };
+  return { en: numWord(age), es: null };
+}
+
+/** Where they're from, in their own words: born here, born elsewhere and raised here, or come from somewhere else. */
 function originParts(S) {
   const v = S.v, res = v.res || {}, npc = v.npc, out = [];
   const facts = [REC.origin, REC.residence];
   const birthplace = str(npc.birthplace);
+  const foreign = npc.nativity === 'foreign';
   if (res.bornHere) out.push(say(S, 'about.bornHere', {}, facts));
-  else if (res.grewUpHere) out.push(say(S, 'about.grewUpCounty', {}, facts));
-  else if (npc.nativity === 'foreign' && birthplace) {
+  else if (res.grewUpHere && v.flags.bornInCounty) out.push(say(S, 'about.grewUpCounty', {}, facts));
+  else if (res.grewUpHere && birthplace) {
+    // born somewhere else, raised here: never "born and raised"
+    out.push(say(S, 'about.bornElsewhere', { birthplace: birthplace.replace(/, California$/, '') }, facts));
+    const age = foreign && isNum(npc.arrivalYear) && isNum(npc.birthYear) ? npc.arrivalYear - npc.birthYear : null;
+    const w = arrivalAgeWords(age);
+    if (w) out.push(say(S, 'about.arrivedKid', { arrivalYear: npc.arrivalYear, arrivalAgeWords: w.en, arrivalAgeEs: w.es, arrivalAgeNum: age >= 2 ? age : null }, facts));
+  } else if (res.grewUpHere) out.push(say(S, 'about.grewUpOnly', {}, facts));
+  else if (foreign && birthplace) {
     out.push(say(S, 'about.fromAbroad', { birthplace }, facts));
     if (isNum(npc.arrivalYear)) out.push(say(S, 'about.arrived', { arrivalYear: npc.arrivalYear }, facts));
   } else if (birthplace) {
@@ -391,14 +439,119 @@ function interestParts(S, n = 1) {
   return out;
 }
 
+/** The languages they speak, from the record: English only, English and a home language, or mostly the home language. */
+function languageParts(S, asked) {
+  const v = S.v, L = v.npc.languages || {}, facts = ['npc.languages'];
+  const home = str(L.home) || 'english';
+  const langName = v.lang.known && LANGUAGES[v.lang.known] ? String(LANGUAGES[v.lang.known].name).replace(/\s*\(.*\)$/, '') : home !== 'english' ? capFirst(home) : null;
+  // the languages on their record, resolved the way the voice resolves its own ("chinese" may be Cantonese)
+  const theirs = new Set(['english', ...[home, ...(Array.isArray(L.list) ? L.list : [])].map(x => resolveLanguage(x, v.npc.seed >>> 0) || String(x).toLowerCase())]);
+  if (v.lang.spanish) theirs.add('spanish');
+  const want = asked === 'chinese' ? ['cantonese', 'mandarin', 'chinese'] : [asked];
+  const speaksAsked = asked !== 'any' && want.some(x => theirs.has(x));
+  const askedName = asked && asked !== 'any' ? capFirst(asked) : null;
+  if (home === 'english' || !langName) {
+    if (asked === 'any' || asked === 'english') return [say(S, 'lang.englishOnly', {}, facts)];
+    if (speaksAsked) return [say(S, 'lang.someOther', { askedName }, facts)];
+    return [say(S, 'lang.notThat', { askedName }, facts)];
+  }
+  if (L.english === 'limited') return [say(S, 'lang.limited', { langName, langEs: LANG_ES[langName] || langName.toLowerCase() }, facts)];
+  if (asked === 'english') return [say(S, 'lang.yesEnglish', { langName }, facts)];
+  if (asked === 'any' || speaksAsked) return [say(S, 'lang.both', { langName }, facts)];
+  return [say(S, 'lang.notThatBoth', { askedName, langName }, facts)];
+}
+
+// Spanish for the Latin American backgrounds, as "mi familia es ___" (feminine, after familia).
+const HERITAGE_ES = {
+  Mexican: 'mexicana', Salvadoran: 'salvadoreña', Guatemalan: 'guatemalteca', Honduran: 'hondureña', Nicaraguan: 'nicaragüense', Cuban: 'cubana',
+  'Puerto Rican': 'puertorriqueña', Dominican: 'dominicana', Colombian: 'colombiana', Peruvian: 'peruana', Ecuadorian: 'ecuatoriana', Venezuelan: 'venezolana',
+  Argentinian: 'argentina', Argentine: 'argentina', Chilean: 'chilena', Bolivian: 'boliviana', 'Costa Rican': 'costarricense', Panamanian: 'panameña', Spanish: 'española',
+};
+
+// Labels that are a whole name for a background ("African American"), not "<country> American".
+const WHOLE_LABELS = /^(African American|Native American|Asian American|Pacific Islander|Native Hawaiian|Alaska Native|Latino|Latina|Hispanic)$/i;
+
+// Broad groups as the record's race field holds them, for "are you Asian?"-style questions.
+const RACE_WORDS = { asian: 'asian', black: 'black', 'african american': 'black', white: 'white', latino: 'hispanic', latina: 'hispanic', hispanic: 'hispanic', native: 'aian', 'native american': 'aian' };
+
+/** Whether "are you X?" is true of them: true, false, or null when the record cannot say plainly (mixed families). */
+function heritageAnswer(npc, word) {
+  const w = String(word || '').toLowerCase();
+  if (!w) return null;
+  if (w === 'american') return npc.nativity === 'native' ? true : null;
+  if (w === 'mixed' || w === 'biracial') return npc.race === 'multi' || /multiracial/i.test(String(npc.heritageLabel || ''));
+  if (npc.race === 'multi' || /multiracial/i.test(String(npc.heritageLabel || ''))) return null;
+  if (RACE_WORDS[w]) return npc.race === RACE_WORDS[w];
+  const label = String(npc.heritageLabel || '').toLowerCase(), her = String(npc.heritage || '').toLowerCase();
+  return label.includes(w) || her === w;
+}
+
+/** Their family's background, plainly, from the record (a modest answer to a direct question, never more). */
+function heritageParts(S, u) {
+  const v = S.v, npc = v.npc, facts = ['npc.heritage'];
+  if (v.relq.guarded) return [say(S, 'about.heritageGuarded')];
+  const asked = u ? /\b(?:are you|you'?re|is your family|are your parents) (?:a |an )?(african american|native american|[a-z]+)\b/.exec(u.norm) : null;
+  const yes = asked ? heritageAnswer(npc, asked[1]) : null;
+  return [yes === null ? null : say(S, yes ? 'about.heritageYes' : 'about.heritageNo', {}, facts), ...heritageLines(S)].filter(Boolean);
+}
+
+/** The background lines themselves: born abroad, American a long way back, mixed, or the family's heritage. */
+function heritageLines(S) {
+  const v = S.v, npc = v.npc, facts = ['npc.heritage'];
+  const label = str(npc.heritageLabel);
+  const birthplace = str(npc.birthplace);
+  const country = npc.nativity === 'foreign' && birthplace ? birthplace.split(',').map(x => x.trim()).pop() : null;
+  if (country && !/California/.test(country)) {
+    return [say(S, 'about.heritageFrom', { country, arrivalYear: isNum(npc.arrivalYear) ? npc.arrivalYear : null }, [...facts, REC.origin])];
+  }
+  if (!label || /^(American|Other)$/i.test(label)) return [say(S, 'about.heritageAmerican', {}, facts)];
+  if (/^(Multiracial|Mixed)$/i.test(label)) return [say(S, 'about.heritageMixed', {}, facts)];
+  const word = WHOLE_LABELS.test(label) ? null : label.replace(/\s+American$/, '');
+  return [(word ? say(S, 'about.heritage', { heritageWord: word, heritageLabel: label, heritageWordEs: HERITAGE_ES[word] || null }, facts) : null) || say(S, 'about.heritageWhole', { heritageLabel: label }, facts)];
+}
+
+// Schooling by the record's education level (ACS B15003 groups), as said.
+const EDU_KEYS = { nohs: 'edu.nohs', hs: 'edu.hs', somecollege: 'edu.somecollege', associate: 'edu.associate', bachelor: 'edu.bachelor', master: 'edu.master', professional: 'edu.professional', doctorate: 'edu.doctorate' };
+
+/** How far they went in school, from the record; students and children answer with the school they are in. */
+function educationParts(S) {
+  const v = S.v, npc = v.npc;
+  const key = EDU_KEYS[npc.education];
+  if (key) return [say(S, key, {}, ['npc.education'])];
+  if (npc.school && npc.school !== 'college' && npc.school !== 'grad') {
+    const w = SCHOOL_WORDS[npc.school] || SCHOOL_WORDS.elementary;
+    return [say(S, 'job.k12', { school: w[0], schoolEs: w[1] }, ['npc.school'])];
+  }
+  if (npc.school === 'college' || npc.school === 'grad') return [say(S, npc.school === 'grad' ? 'job.grad' : 'job.college', {}, ['npc.school'])];
+  return [say(S, 'unk.aboutMe')];
+}
+
 P['about-them'] = (S, u) => {
   const v = S.v, parts = [];
   const q = u.norm;
   let ask = 'from';
+  if (u.entities.favorite) { const fav = favoriteParts(S, u); if (fav) return { parts: fav, topics: ['self'], ask: null, noOpener: true }; }
+  if (u.entities.langAsked) return { parts: languageParts(S, u.entities.langAsked), topics: ['self'], ask: 'from', askBoost: 0.1, noOpener: true };
+  if (u.entities.heritage) return { parts: heritageParts(S, u), topics: ['self'], ask: null, noAsk: !!v.relq.guarded, noOpener: true };
+  if (u.entities.ownInterest && !(u.entities.interest && /\bdo you\b|\bare you\b/.test(q))) {
+    // their own interest, named: "how's the harvest going?"
+    const name = u.entities.ownInterest;
+    const talk = interestTalk(name);
+    if (talk) {
+      const es = S.rng.pick(talk.es);
+      parts.push(say(S, 'about.interestYes', { interestLine: S.rng.pick(talk.en), doingThing: talk.doing, interestEs: es[0], interestEn: es[1] }, ['persona.interests']));
+      S.st.usedInterests.add(name);
+      if (/harvest|farm/.test(name) && S.rng.chance(0.6)) parts.push(say(S, 'job.feel.farming'));
+      return { parts, topics: ['self'], ask: 'weekend' };
+    }
+  }
   if (/how old|your age/.test(q)) {
     parts.push(say(S, 'about.age', {}, ['npc.age']));
     ask = 'job';
-  } else if (/where are you from|grow up|grew up|born|originally|come from|from here|from around here|from california/.test(q)) {
+  } else if (/where did you go to (school|college|high school)|did you go to college|what did you study|did you finish (school|high school|college)|how far did you go in school|your education/.test(q)) {
+    parts.push(...educationParts(S));
+    ask = 'job';
+  } else if (/where are you from|grow up|grew up|born|originally|come from|from here|from around here|from california|always lived|lived here (your whole|all your) life|immigra|when did you (come|get here|arrive|move)/.test(q)) {
     parts.push(...originParts(S));
     ask = 'from';
   } else if (u.entities.interest && /\bdo you\b|\bare you\b/.test(q)) {
@@ -407,7 +560,7 @@ P['about-them'] = (S, u) => {
     if (has) {
       parts.push(say(S, 'about.doYes'));
       const talk = interestTalk(has);
-      if (talk) { const es = S.rng.pick(talk.es); parts.push(say(S, 'about.interestsIntro', { interestLine: S.rng.pick(talk.en), doingThing: talk.doing, interestEs: es[0], interestEn: es[1] }, ['persona.interests'])); S.st.usedInterests.add(has); }
+      if (talk) { const es = S.rng.pick(talk.es); parts.push(say(S, 'about.interestYes', { interestLine: S.rng.pick(talk.en), doingThing: talk.doing, interestEs: es[0], interestEn: es[1] }, ['persona.interests'])); S.st.usedInterests.add(has); }
     } else {
       parts.push(say(S, 'about.doNo'));
       const trad = new Set((v.p.interestDetails || []).filter(d => d.tradition).map(d => d.name));
@@ -418,9 +571,11 @@ P['about-them'] = (S, u) => {
     ask = 'weekend';
   } else if (u.entities.team || /\bfan\b|\bfollow\b|\broot for\b/.test(q)) {
     return P.smalltalk(S, Object.assign({}, u, { norm: `${u.norm} sports` }));
-  } else if (/hobb|for fun|free time|spare time|into|like to do|enjoy|weekend/.test(q)) {
+  } else if (/hobb|for fun|free time|spare time|into|like to do|enjoy|weekend|days? off/.test(q)) {
     parts.push(...interestParts(S, 2));
-    if (v.team && S.rng.chance(0.5)) parts.push(say(S, 'about.team', {}, ['persona.teams']));
+    // the team, unless one of the interests just said was the team
+    const teamSaid = v.team && [...S.st.usedInterests].some(i => String(i).toLowerCase().includes(String(v.team.name || '').toLowerCase()));
+    if (v.team && !teamSaid && S.rng.chance(0.5)) parts.push(say(S, 'about.team', {}, ['persona.teams']));
     ask = 'weekend';
   } else {
     if (!S.st.gaveName) { parts.push(say(S, 'name.give')); S.st.gaveName = true; }
@@ -434,36 +589,132 @@ P['about-them'] = (S, u) => {
   return { parts, topics: ['self'], ask };
 };
 
+/** "9:10", "5:40 in the morning", "noon": a minute of the day to the nearest five minutes, as said after "around". */
+function clockSaid(min) {
+  if (!isNum(min)) return null;
+  const m = ((Math.round(min / 5) * 5) % 1440 + 1440) % 1440;
+  if (m === 720) return 'noon';
+  if (m === 0) return 'midnight';
+  const base = G.clockWords(m).replace(/ (AM|PM)$/, '');
+  const h = m / 60;
+  const part = h < 12 ? (h < 8 ? 'in the morning' : '') : h < 17 ? 'in the afternoon' : h < 21 ? 'in the evening' : 'at night';
+  return part ? `${base} ${part}` : base;
+}
+
+/** "las 9:10", "las 5:40 de la mañana", "mediodía": clockSaid in Spanish, after "como a". */
+function clockSaidEs(min) {
+  if (!isNum(min)) return null;
+  const m = ((Math.round(min / 5) * 5) % 1440 + 1440) % 1440;
+  if (m === 720) return 'mediodía';
+  if (m === 0) return 'medianoche';
+  const h = Math.floor(m / 60), mm = m % 60, h12 = ((h + 11) % 12) + 1;
+  const part = h < 12 ? 'de la mañana' : h < 19 ? 'de la tarde' : 'de la noche';
+  return `${h12 === 1 ? 'la' : 'las'} ${h12}${mm ? `:${String(mm).padStart(2, '0')}` : ''} ${part}`;
+}
+
+/** The employer as they would name it, first person: "a regional hospital", "my own orchard", or null. */
+function employerSaid(occ) {
+  const e = str(occ && occ.employer);
+  if (!e || /^a local employer$/i.test(e)) return null;
+  return e.replace(/^their own\b/i, 'my own').replace(/^their family\b/i, "my family's").replace(/^their\b/i, 'my');
+}
+
+/** Follow-ups about the work: which place, since when, what hours, the pay. Null when the question is not one of them. */
+function jobSub(S, sub, u = null) {
+  const v = S.v, npc = v.npc, occ = v.occ, c = v.commute || {}, facts = [REC.job];
+  S.uNorm = u ? u.norm : '';
+  const workCity = c.workCity && c.workCity !== v.z.city ? c.workCity : null;
+  if (sub === 'which' || sub === 'where') {
+    const emp = employerSaid(occ);
+    if (v.flags.onFarm) return [say(S, 'job.whichFarm', { employer: emp }, facts)];
+    if (v.flags.wfh) return [say(S, 'job.whichHome', { employer: emp }, [REC.job, REC.commute])];
+    if (emp) return [say(S, 'job.which', { employer: emp, employerCap: capFirst(emp), workCity }, workCity ? [REC.job, REC.commute] : facts)];
+    return [say(S, workCity ? 'job.whereCity' : 'job.whereHere', { workCity }, [REC.commute])];
+  }
+  if (sub === 'howLong') {
+    const started = lifeYear(v, 'npc.occupation');
+    if (isNum(started)) {
+      const years = v.P.year - started;
+      return [years <= 0 ? say(S, 'job.new', { jobYear: started }, facts) : say(S, 'job.since', { jobYear: started, jobYears: years >= 2 ? years : null }, facts)];
+    }
+    return [say(S, 'job.sinceVague')];
+  }
+  if (sub === 'hours') {
+    const dep = isNum(c.departMin) && c.mode !== 'wfh' ? c.departMin : null;
+    if (dep === null) return [say(S, v.flags.onFarm ? 'job.hoursFarm' : 'job.hoursHome')];
+    // "what time do you get off?": out the door, there and back, done
+    if (S.uNorm && /\bget off|\bfinish|\bdone for the day|\boff work|\bget home\b/.test(S.uNorm) && isNum(c.dwellMin) && isNum(c.minutes)) {
+      const off = dep + c.minutes + c.dwellMin;
+      return [say(S, 'job.hoursOff', { offClock: clockSaid(off), offClockEs: clockSaidEs(off) }, [REC.commute])];
+    }
+    const hours = isNum(c.dwellMin) ? Math.round(c.dwellMin / 60) : null;
+    const out = [say(S, v.flags.nights ? 'job.hoursNight' : 'job.hours', { departClock: clockSaid(dep), departClockEs: clockSaidEs(dep) }, [REC.commute])];
+    if (isNum(hours) && hours >= 3) out.push(say(S, 'job.hoursLong', { dwellHours: numWord(hours), dwellHoursNum: hours }, [REC.commute]));
+    if (v.flags.early && S.rng.chance(0.6)) out.push(say(S, 'job.early', {}, [REC.commute]));
+    return out;
+  }
+  if (sub === 'days') {
+    const days = num(c.workDays !== undefined ? c.workDays : c.days, 0);
+    if (!days) return [say(S, v.flags.wfh ? 'job.daysHome' : 'job.sinceVague')];
+    const weekend = (days & 1) || (days & 64), weekdays = [1, 2, 3, 4, 5].filter(d => days & (1 << d)).length;
+    return [say(S, weekend ? 'job.daysWeekend' : weekdays >= 5 ? 'job.daysWeek' : 'job.daysSome', { dayCount: numWord(weekdays + ((days & 1) ? 1 : 0) + ((days & 64) ? 1 : 0)) }, [REC.commute])];
+  }
+  if (sub === 'before') return [say(S, 'job.before')];
+  if (sub === 'pay') {
+    const inc = num(npc.income, null);
+    return [say(S, isNum(inc) && inc < 35000 ? 'job.payLow' : isNum(inc) && inc >= 150000 ? 'job.payHigh' : 'job.pay', {}, isNum(inc) ? ['npc.income'] : [])];
+  }
+  return null;
+}
+
 P.job = (S, u, opts = {}) => {
   const v = S.v, npc = v.npc, occ = v.occ, parts = [];
   const facts = [REC.job];
   const school = npc.school;
+  const sub = !opts.brief && u && u.flags ? u.flags.sub : null;
+  const likeIt = !!(u && u.flags && u.flags.likeIt);
   if (v.stage === 'toddler' || school === 'preschool') { parts.push(say(S, 'job.preschool')); return { parts, topics: ['school'] }; }
   if (v.age < 18 && school && school !== 'college') {
     const w = SCHOOL_WORDS[school] || SCHOOL_WORDS.elementary;
-    if (u && u.flags && u.flags.likeIt) return { parts: [say(S, v.age < 13 ? 'job.kidFeel' : 'job.teenFeel')], topics: ['school'], ask: null };
+    if (likeIt) return { parts: [say(S, v.age < 13 ? 'job.kidFeel' : 'job.teenFeel')], topics: ['school'], ask: null };
+    if ((sub === 'hours' || sub === 'howLong') && isNum(v.commute.departMin)) return { parts: [say(S, 'job.schoolHours', { departClock: clockSaid(v.commute.departMin), departClockEs: clockSaidEs(v.commute.departMin) }, [REC.commute])], topics: ['school'], ask: null };
     parts.push(say(S, 'job.k12', { school: w[0], schoolEs: w[1] }, ['npc.school']));
     if (!opts.brief) parts.push(say(S, v.age < 13 ? 'job.kidFeel' : 'job.teenFeel'));
     if (occ && occ.title && v.age >= 14) parts.push(say(S, 'job.studentWorks', { aJob: withArticle(String(occ.title).replace(/\s*\([^)]*\)\s*$/, '')) }, facts));
     return { parts, topics: ['school'], ask: v.age >= 13 ? 'school' : null };
   }
   if (school === 'college' || school === 'grad' || (npc.status === 'student' && v.age >= 18)) {
-    if (u && u.flags && u.flags.likeIt) return { parts: [say(S, 'job.collegeFeel')], topics: ['school'], ask: 'job' };
+    if (likeIt) return { parts: [say(S, 'job.collegeFeel')], topics: ['school'], ask: 'job' };
+    if (occ && occ.title && ['which', 'where', 'hours', 'pay', 'days'].includes(sub)) { const p = jobSub(S, sub, u); if (p) return { parts: p, topics: ['job'], ask: null }; }
     parts.push(say(S, school === 'grad' ? 'job.grad' : 'job.college', {}, ['npc.school']));
     if (occ && occ.title) parts.push(say(S, 'job.studentWorks', { aJob: withArticle(String(occ.title).replace(/\s*\([^)]*\)\s*$/, '')) }, facts));
     return { parts, topics: ['school'], ask: 'job' };
   }
   if (npc.status === 'retired') {
-    parts.push(say(S, 'job.retired', { retireYear: lifeYear(v, 'npc.status') }, ['npc.status']));
+    const year = lifeYear(v, 'npc.status');
+    if (sub === 'howLong') return { parts: [year ? say(S, 'job.retiredSince', { retireYear: year }, ['npc.status']) : say(S, 'job.retiredVague')], topics: ['job'], ask: null };
+    if (sub === 'hours') return { parts: [say(S, 'job.hoursRetired')], topics: ['job'], ask: null };
+    if (sub === 'pay') return { parts: [say(S, 'job.payRetired')], topics: ['job'], ask: null };
+    if (likeIt) return { parts: [say(S, 'why.retired')], topics: ['job'], ask: 'job' };
+    parts.push(say(S, 'job.retired', { retireYear: year }, ['npc.status']));
     if (!opts.brief) parts.push(...interestParts(S, 1));
     return { parts, topics: ['job'], ask: 'job' };
   }
-  if (npc.status === 'unemployed') { parts.push(say(S, 'job.unemployed', {}, ['npc.status'])); return { parts, topics: ['job'], ask: 'job', emotion: 'down' }; }
+  if (npc.status === 'unemployed') {
+    if (sub === 'howLong' || sub === 'pay') return { parts: [say(S, 'job.unemployedMore')], topics: ['job'], ask: null, emotion: 'down' };
+    if (sub === 'hours' || sub === 'days') return { parts: [say(S, 'job.unemployed', {}, ['npc.status'])], topics: ['job'], ask: null, emotion: 'down' };
+    parts.push(say(S, 'job.unemployed', {}, ['npc.status'])); return { parts, topics: ['job'], ask: 'job', emotion: 'down' };
+  }
   if (npc.status === 'military' && !(occ && occ.title)) { parts.push(say(S, 'job.military', {}, ['npc.status'])); return { parts, topics: ['job'], ask: 'job' }; }
   if (!occ || !occ.title) {
+    if (sub === 'howLong' && v.flags.kids && v.age >= 18) return { parts: [say(S, 'job.homemakerSince')], topics: ['job'], ask: null };
     if (v.flags.kids && v.age >= 18) parts.push(say(S, 'job.homemaker', {}, ['npc.status']));
     else parts.push(say(S, 'job.notWorking', {}, ['npc.status']));
     return { parts, topics: ['job'], ask: 'job' };
+  }
+  if (sub && sub !== 'like') {
+    const p = jobSub(S, sub, u);
+    if (p && p.filter(Boolean).length) return { parts: p, topics: ['job'], ask: null };
   }
   const titleRaw = String(occ.title).trim();
   const detail = /\(([^)]+)\)\s*$/.exec(titleRaw);
@@ -475,17 +726,22 @@ P.job = (S, u, opts = {}) => {
   const workCity = v.commute.workCity && v.commute.workCity !== v.z.city ? v.commute.workCity : null;
   const where = emp ? ` ${emp}` : workCity && v.commute.mode !== 'wfh' ? ` in ${workCity}` : '';
   const [jobEs, jobEn] = jobSpanish(v.occKey, title, v.sex);
-  if (((S.st.depth.job || 0) > 0 || (u && u.flags && u.flags.likeIt)) && !opts.brief) {
-    const more = [say(S, feelKey(v.occKey)) || say(S, 'job.feel.any')];
+  const feel = feelKey(v.occKey, title);
+  if (((S.st.depth.job || 0) > 0 || likeIt) && !opts.brief) {
+    const more = [say(S, feel) || say(S, 'job.feel.any')];
     if (workCity && num(v.commute.minutes) >= 20 && !v.flags.wfh) more.push(say(S, 'job.commute', { workCity, commuteMin: v.commute.minutes }, [REC.commute]));
     if (v.flags.nights) more.push(say(S, 'job.nights', {}, facts)); else if (v.flags.early) more.push(say(S, 'job.early', {}, [REC.commute]));
     if (more.filter(Boolean).length) return { parts: more, topics: ['job'], ask: 'job' };
   }
-  parts.push(say(S, 'job.title', { aJob: withArticle(title), job: title, where, employer: occ.employer ? String(occ.employer).replace(/^their /, 'my ') : null, workCity, jobEs, jobEn }, facts));
+  // their own farm or business: "I run my own orchard", not "I'm a farmer on my orchard"
+  const own = v.flags.selfEmployed && /^their\b/i.test(String(occ.employer || '')) ? employerSaid(occ) : null;
+  if (own) parts.push(say(S, 'job.own', { aJob: withArticle(title), aJobCap: capFirst(withArticle(title)), ownPlace: own, jobEs, jobEn }, facts));
+  if (!own || !parts.filter(Boolean).length) parts.push(say(S, 'job.title', { aJob: withArticle(title), job: title, where, employer: occ.employer ? String(occ.employer).replace(/^their /, 'my ') : null, workCity, jobEs, jobEn }, facts));
   if (detail && v.lang.mode === 'en') parts.push({ text: `Mostly ${detail[1]}.`, gloss: null, facts, key: 'job.detail' });
   if (opts.brief) return { parts, topics: ['job'] };
   const extra = [];
-  if (v.flags.wfh) extra.push(say(S, 'job.wfh', {}, [REC.commute]));
+  if (v.flags.onFarm) extra.push(say(S, 'job.onFarm', {}, [REC.commute]));
+  else if (v.flags.wfh) extra.push(say(S, 'job.wfh', {}, [REC.commute]));
   else if (v.flags.nights) extra.push(say(S, 'job.nights', {}, facts));
   else if (v.flags.early) extra.push(say(S, 'job.early', {}, [REC.commute]));
   const started = lifeYear(v, 'npc.occupation');
@@ -493,72 +749,243 @@ P.job = (S, u, opts = {}) => {
     const years = v.P.year - started;
     extra.push(years <= 0 ? say(S, 'job.new', { jobYear: started }, facts) : say(S, 'job.since', { jobYear: started, jobYears: years >= 2 ? years : null }, facts));
   }
-  extra.push(say(S, feelKey(v.occKey)) || say(S, 'job.feel.any'));
+  extra.push(say(S, feel) || say(S, 'job.feel.any'));
   if (workCity && num(v.commute.minutes) >= 20 && !v.flags.wfh) extra.push(say(S, 'job.commute', { workCity, commuteMin: v.commute.minutes }, [REC.commute]));
   for (const x of S.rng.shuffle(extra.filter(Boolean))) parts.push(x);
   return { parts, topics: ['job'], ask: 'job' };
 };
 
+/** School level by age, as said: "elementary school", "high school", or null for the youngest and the grown. */
+function schoolOfAge(age) {
+  if (!isNum(age) || age < 5) return null;
+  if (age <= 10) return SCHOOL_WORDS.elementary;
+  if (age <= 13) return SCHOOL_WORDS.middle;
+  if (age <= 17) return SCHOOL_WORDS.high;
+  return null;
+}
+
+/** "Maria's 14 and Jose's 9": names with ages, from the household record. */
+function agesSaid(list) {
+  return listJoin(list.map(k => (k.name ? `${k.name}'s ${num(k.age) < 1 ? 'just a baby' : k.age}` : null)).filter(Boolean));
+}
+
+/** Follow-ups about the household: names, ages, boys or girls, what the partner does, the kids' schools. */
+function familySub(S, sub, u) {
+  const v = S.v, R = v.rel, facts = [REC.home], q = u ? u.norm : '';
+  const kids = R.kids.slice().sort((a, b) => num(b.age) - num(a.age));
+  const p = R.partner;
+  const pron = x => (x && x.sex === 'F' ? 'She' : 'He');
+  const partnerWord = p ? (p.role === 'partner' || v.npc.role === 'partner' ? 'partner' : p.sex === 'F' ? 'wife' : 'husband') : null;
+  const partnerEs = p ? (partnerWord === 'partner' ? 'pareja' : p.sex === 'F' ? 'esposa' : 'esposo') : null;
+  const aboutPartner = !!p && (/\b(wife|husband|partner|spouse|she|her|he|his|him)\b/.test(q) || (!kids.length && !/\b(kids|children|they|them|their)\b/.test(q)));
+  // the people "they" means: the kids, else whoever else lives with them
+  const others = kids.length ? kids : R.grandkids.length ? R.grandkids : R.parents.length ? R.parents : R.siblings.length ? R.siblings : R.roommates;
+  if (sub === 'partnerJob') {
+    if (!p) return [say(S, v.flags.widowed ? 'fam.widowed' : 'fam.noPartner', { lostWord: v.sex === 'F' ? 'husband' : 'wife' }, facts)];
+    const job = partnerJob(S, p);
+    const slots = { partnerPronoun: pron(p), partnerWord, partnerEs, aPartnerJob: job.title ? withArticle(job.title) : null, elloEs: p.sex === 'F' ? 'Ella' : 'Él' };
+    if (job.title) return [say(S, 'fam.partnerJob', slots, ['npc.household', 'household.occupation'])];
+    if (job.worker) return [say(S, 'fam.partnerWorks', slots, facts)];
+    return [say(S, num(p.age) >= 65 ? 'fam.partnerRetired' : 'fam.partnerHome', slots, facts)];
+  }
+  if (sub === 'names') {
+    if (/\b(wife|husband|spouse|partner)\b/.test(q) && !p) return [notMarried(S)];
+    if (aboutPartner) return [say(S, 'fam.partnerName', { partnerName: p.name, partnerWord, partnerEs }, facts)];
+    const named = others.filter(x => x.name);
+    if (!named.length) return [say(S, 'fam.namesNone', {}, facts)];
+    if (named.length === 1) return [say(S, 'fam.oneName', { otherName: named[0].name, otherPronoun: pron(named[0]) }, facts)];
+    const names = named.map(x => x.name);
+    return [say(S, 'fam.names', { namesList: listJoin(names), namesListEs: listJoin(names, /^h?i(?![aeiou])/i.test(names[names.length - 1]) ? 'e' : 'y') }, facts)];
+  }
+  if (sub === 'ages') {
+    if (aboutPartner && isNum(p.age)) return [say(S, 'fam.partnerAge', { partnerWord, partnerEs, partnerAge: p.age, partnerPronoun: pron(p) }, facts)];
+    const aged = others.filter(x => isNum(x.age));
+    if (!aged.length) return [say(S, 'fam.namesNone', {}, facts)];
+    if (aged.length === 1) return [num(aged[0].age) < 1 ? say(S, 'fam.oneBaby', { otherPronoun: pron(aged[0]) }, facts) : say(S, 'fam.oneAge', { otherPronoun: pron(aged[0]), otherAge: aged[0].age, otherName: aged[0].name }, facts)];
+    const said = agesSaid(aged);
+    const nums = { agesNums: listJoin(aged.map(x => String(x.age))), agesNumsEs: listJoin(aged.map(x => String(x.age)), 'y') };
+    return [said ? say(S, 'fam.ages', Object.assign({ agesList: said, agesListCap: capFirst(said) }, nums), facts) : say(S, 'fam.agesNums', nums, facts)];
+  }
+  if (sub === 'sexes') {
+    if (!kids.length) return [say(S, R.grandkids.length ? 'fam.noKidsHome' : 'fam.noKids', {}, facts)];
+    const girls = kids.filter(k => k.sex === 'F').length, boys = kids.length - girls;
+    const part = (n, one, many) => (n ? `${n === 1 ? 'one' : numWord(n)} ${n === 1 ? one : many}` : null);
+    const NUM_ES = ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'];
+    const parte = (n, one, many) => (n ? `${n === 1 ? (one === 'niña' ? 'una' : 'un') : NUM_ES[n] || n} ${n === 1 ? one : many}` : null);
+    const kidsSexes = listJoin([part(girls, 'girl', 'girls'), part(boys, 'boy', 'boys')]);
+    return [say(S, 'fam.sexes', { kidsSexes, kidsSexesCap: capFirst(kidsSexes), kidsSexesEs: listJoin([parte(girls, 'niña', 'niñas'), parte(boys, 'niño', 'niños')], 'y') }, facts)];
+  }
+  if (sub === 'kidsDo') {
+    if (!kids.length) return [say(S, R.grandkids.length ? 'fam.noKidsHome' : 'fam.noKids', {}, facts)];
+    const members = (v.routine && v.routine.household && v.routine.household.members) || [];
+    const doing = k => {
+      const m = members.find(x => x && x.m === k.m) || {};
+      if (num(k.age) < 5) return ['still little', 'todavía está chiquit' + (k.sex === 'F' ? 'a' : 'o')];
+      const w = schoolOfAge(k.age);
+      if (w) return [`in ${w[0]}`, `va a la ${w[1]}`];
+      if (m.student === 'college' || m.student === 'grad') return ['in college', 'va a la universidad'];
+      if (m.worker) return ['working', 'trabaja'];
+      return ['home with us', 'está en la casa'];
+    };
+    const named = kids.filter(k => k.name);
+    if (!named.length) return [say(S, 'fam.kidsMany', { kidCount: numWord(kids.length) }, facts)];
+    const en = named.map(k => `${k.name}'s ${doing(k)[0]}`), es = named.map(k => `${k.name} ${doing(k)[1]}`);
+    return [say(S, 'fam.kidsDo', { kidsDoing: listJoin(en), kidsDoingCap: capFirst(listJoin(en)), kidsDoingEs: listJoin(es, 'y') }, ['npc.household', 'household.members'])];
+  }
+  if (sub === 'howLong' && /\bmarried\b|\btogether\b/.test(q)) {
+    if (!p || (/\bmarried\b/.test(q) && !v.flags.married)) return [notMarried(S)];
+    const wed = (v.p.memories || []).find(m => m.kind === 'life' && /got married in (\d{4})/.test(m.text || ''));
+    return [wed ? say(S, 'fam.married', { partnerName: p.name, weddingYear: wed.year }, ['npc.household']) : say(S, 'fam.togetherLong', { partnerWord, partnerEs }, facts)];
+  }
+  if (sub === 'school') {
+    const inSchool = kids.map(k => ({ k, w: schoolOfAge(k.age) })).filter(x => x.w);
+    if (!inSchool.length) return [say(S, kids.length ? 'fam.noneInSchool' : 'fam.noKids', {}, facts)];
+    if (inSchool.length === 1) return [say(S, 'fam.oneSchool', { otherPronoun: pron(inSchool[0].k), school: inSchool[0].w[0], schoolEs: inSchool[0].w[1] }, facts)];
+    const levels = [...new Set(inSchool.map(x => x.w[0]))];
+    const count = l => inSchool.filter(x => x.w[0] === l).length;
+    const schoolsList = listJoin(levels.map(l => `${count(l) === 1 ? 'one' : numWord(count(l))} in ${l}`));
+    return [say(S, levels.length === 1 ? 'fam.sameSchool' : 'fam.schools', { school: levels[0], schoolCap: capFirst(levels[0]), allWord: inSchool.length === 2 ? 'both' : 'all', schoolsList, schoolEs: inSchool[0].w[1] }, facts)];
+  }
+  return null;
+}
+
+/** Not married, as the record says it: never married, divorced, separated, widowed, or living with a partner. */
+function notMarried(S) {
+  const v = S.v, R = v.rel, marital = v.npc.marital, facts = ['npc.marital'];
+  if (R.partner) return say(S, 'fam.partnerUnmarried', { partnerName: R.partner.name }, ['npc.household']);
+  if (marital === 'widowed' || v.flags.widowed) return say(S, 'fam.widowed', { lostWord: v.sex === 'F' ? 'husband' : 'wife' }, facts);
+  if (marital === 'divorced') return say(S, 'fam.divorced', {}, facts);
+  if (marital === 'absent') return say(S, 'fam.spouseAway', {}, facts);
+  if (marital === 'separated') return say(S, 'fam.separated', {}, facts);
+  return say(S, 'fam.neverMarried', {}, facts);
+}
+
+/** What their partner does, from the household's record: {title, worker}. The population, when the conversation has one, gives the title. */
+function partnerJob(S, p) {
+  const v = S.v;
+  let title = null, worker = null;
+  const pop = S.population;
+  if (pop && typeof pop.person === 'function' && Number.isInteger(v.npc.zi) && Number.isInteger(v.npc.h)) {
+    try {
+      const rec = pop.person(v.npc.zi, v.npc.h, p.m);
+      if (rec && rec.occupation && rec.occupation.title) title = String(rec.occupation.title).replace(/\s*\([^)]*\)\s*$/, '');
+      if (rec) worker = rec.status === 'employed' || rec.status === 'military' || !!rec.occupation;
+    } catch { title = null; }
+  }
+  if (worker === null) {
+    const m = ((v.routine && v.routine.household && v.routine.household.members) || []).find(x => x && x.m === p.m);
+    worker = m ? !!m.worker : null;
+  }
+  return { title, worker };
+}
+
 P.family = (S, u) => {
   const v = S.v, R = v.rel, parts = [];
   const facts = [REC.home];
   const stranger = !v.relq.known;
-  if (v.relq.guarded || (stranger && v.big5.E < 0.3 && v.big5.A < 0.4 && S.rng.chance(0.6))) {
+  if (v.relq.guarded || (stranger && v.big5.E < 0.3 && v.big5.A < 0.4 && S.rng.chance(0.6) && !(u && u.flags && u.flags.followUp))) {
     parts.push(say(S, 'fam.guarded'));
     return { parts, topics: ['family'], noAsk: true };
   }
+  const sub = u && u.flags ? u.flags.sub : null;
+  if (sub && v.age >= 18 && ['names', 'ages', 'sexes', 'partnerJob', 'school', 'kidsDo', 'howLong'].includes(sub)) {
+    const sp = familySub(S, sub, u);
+    if (sp && sp.filter(Boolean).length) return { parts: sp, topics: ['family'], ask: sub === 'partnerJob' ? 'job' : 'kids' };
+  }
+  const q0 = u ? u.norm : '';
+  if (v.age >= 18) {
+    // the question asked, answered first: married? grandkids? where are your parents?
+    if (/\bare you (married|single|seeing anyone|dating anyone)\b|\bis there a (mr|mrs)\b/.test(q0) && (!R.partner || !v.flags.married)) return { parts: [notMarried(S)], topics: ['family'], ask: 'kids' };
+    if (/\bgrand(kids|children|sons?|daughters?|babies)\b/.test(q0) && !R.grandkids.length) {
+      const p = [say(S, v.age < 40 ? 'fam.noGrandkidsYoung' : 'fam.noGrandkids', {}, facts)];
+      return { parts: p, topics: ['family'], ask: 'kids' };
+    }
+    if (/\byour (parents|mom|dad|mother|father|folks)\b/.test(q0) && !/\bkids?\b|\bchildren\b/.test(q0)) {
+      const pw = parentsWords(S);
+      if (pw) return { parts: [say(S, 'fam.parentsHere', { parentsWord: pw.en, parentsEs: pw.es }, facts)], topics: ['family'], ask: null };
+      const abroad = (v.p.concerns || []).some(c => c.topic === 'family abroad') && v.npc.nativity === 'foreign';
+      const homeland = abroad && str(v.npc.birthplace) ? String(v.npc.birthplace).split(',').map(x => x.trim()).pop() : null;
+      return { parts: [homeland ? say(S, 'fam.abroad', { homeland }, [REC.origin]) : say(S, 'fam.parentsElsewhere', {}, facts)], topics: ['family'], ask: null };
+    }
+  }
   const pw = parentsWords(S);
   const sib = siblingWords(R.siblings);
-  if (/\b(brothers?|sisters?|siblings?)\b/.test(u ? u.norm : '')) {
-    if (sib) parts.push(say(S, 'fam.siblings', { sibWords: sib.en, sibEs: sib.es }, facts));
+  const q = u ? u.norm : '';
+  let sibSaid = false;
+  if (/\b(brothers?|sisters?|siblings?)\b/.test(q)) {
+    if (sib) parts.push(say(S, 'fam.siblingsAnswer', { sibWords: sib.en, sibEs: sib.es }, facts));
     else parts.push(say(S, 'fam.noSiblings', {}, facts));
+    sibSaid = true;
   }
   if (v.age < 18) {
-    if (/\b(do you have|have any|got any) (kids|children)\b|\bare you married\b/.test(u ? u.norm : '')) parts.push(say(S, 'fam.kidSelfNo'));
+    if (/\b(do you have|have any|got any) (kids|children)\b|\bare you married\b/.test(q)) parts.push(say(S, 'fam.kidSelfNo'));
     if (pw) {
       const term = pw.rel ? homeWord(S, pw.rel, pw.en) : null;
-      parts.push(say(S, 'fam.parents', { parentsWord: term || pw.en, parentsEs: pw.es }, facts));
+      parts.push(say(S, sibSaid ? 'fam.parentsToo' : 'fam.parents', { parentsWord: term || pw.en, parentsEs: pw.es }, facts));
     } else if (R.grandparents.length) parts.push(say(S, 'fam.grandparents', gpSlots(S, R.grandparents), facts));
-    if (sib) parts.push(say(S, 'fam.siblings', { sibWords: sib.en, sibEs: sib.es }, facts));
-    return { parts, topics: ['family'], ask: v.age >= 13 ? 'kids' : null };
+    if (sib && !sibSaid) parts.push(say(S, 'fam.siblings', { sibWords: sib.en, sibEs: sib.es }, facts));
+    return { parts, topics: ['family'], ask: null };
   }
+  // the partner and the kids, in the order the question asked about them
+  const partnerParts = [], kidParts = [];
   if (R.partner) {
     const p = R.partner;
     const partnerWord = p.role === 'partner' || v.npc.role === 'partner' ? 'partner' : p.sex === 'F' ? 'wife' : 'husband';
     const partnerEs = partnerWord === 'partner' ? 'pareja' : p.sex === 'F' ? 'esposa' : 'esposo';
-    parts.push(say(S, 'fam.partner', { partnerWord, partnerEs, partnerName: p.name }, facts));
+    partnerParts.push(say(S, 'fam.partner', { partnerWord, partnerEs, partnerName: p.name }, facts));
     const wed = (v.p.memories || []).find(m => m.kind === 'life' && /got married in (\d{4})/.test(m.text || ''));
-    if (wed && S.rng.chance(0.6)) parts.push(say(S, 'fam.married', { partnerName: p.name, weddingYear: wed.year }, ['npc.household']));
+    if (wed && S.rng.chance(0.6)) partnerParts.push(say(S, 'fam.married', { partnerName: p.name, weddingYear: wed.year }, ['npc.household']));
   }
   const kids = R.kids.slice().sort((a, b) => num(a.age) - num(b.age));
-  if (!kids.length && /\bkids?\b|\bchildren\b/.test(u ? u.norm : '')) parts.unshift(say(S, R.grandkids.length ? 'fam.noKidsHome' : 'fam.noKids', {}, facts));
+  const askedKids = /\bkids?\b|\bchildren\b|\b(sons?|daughters?)\b/.test(q);
+  if (!kids.length && askedKids) kidParts.push(say(S, R.grandkids.length ? 'fam.noKidsHome' : 'fam.noKids', {}, facts));
   if (kids.length === 1) {
     const k = kids[0];
-    parts.push(say(S, 'fam.kidOne', {
+    kidParts.push(say(S, 'fam.kidOne', {
       kidWord: k.sex === 'F' ? 'daughter' : 'son', kidName: k.name, kidAge: k.age, kidPronoun: k.sex === 'F' ? 'She' : 'He',
       unKidEs: k.sex === 'F' ? 'una hija' : 'un hijo',
     }, facts));
   } else if (kids.length > 1) {
     const names = kids.map(k => k.name).filter(Boolean);
-    parts.push(say(S, 'fam.kidsMany', {
+    kidParts.push(say(S, 'fam.kidsMany', {
       kidCount: numWord(kids.length), kidNames: names.length === kids.length ? listJoin(names) : null,
+      // Spanish "y" turns to "e" before an i sound: "Jessica e Isabel"
+      kidNamesEs: names.length === kids.length ? listJoin(names, /^h?i(?![aeiou])/i.test(names[names.length - 1]) ? 'e' : 'y') : null,
       kidCountEs: ['', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho'][kids.length] || String(kids.length),
       hijosEs: kids.every(k => k.sex === 'F') ? 'hijas' : 'hijos',
     }, facts));
   }
   if (kids.length) {
     const young = num(kids[0].age, 10), old = num(kids[kids.length - 1].age, 10);
-    const band = young < 2 ? 'baby' : old >= 18 ? 'grown' : young >= 13 ? 'teens' : 'small';
-    parts.push(say(S, `fam.kidsFeel.${band}`));
+    // grown kids still at home alongside school-age ones are their own case, not "they're adults now"
+    const band = young < 2 ? 'baby' : old >= 18 && young < 18 ? 'mixed' : old >= 18 ? 'grown' : young >= 13 ? 'teens' : 'small';
+    const one = kids.length === 1 && band !== 'baby';
+    const oldest = kids[kids.length - 1], youngest = kids[0];
+    kidParts.push(say(S, one ? `fam.kidFeel.${band}` : `fam.kidsFeel.${band}`, one ? { kidPronoun: kids[0].sex === 'F' ? 'She' : 'He', adultoEs: kids[0].sex === 'F' ? 'adulta' : 'adulto' } : {
+      youngOne: youngest.age >= 13 ? 'a teenager' : youngest.age >= 5 ? 'one in school' : 'a little one',
+      mayorEs: oldest.sex === 'F' ? 'La mayor' : 'El mayor', adultoEs: oldest.sex === 'F' ? 'adulta' : 'adulto', menorEs: youngest.sex === 'F' ? 'la menor' : 'el menor',
+    }));
+  }
+  const askedPartner = /\b(married|wife|husband|partner|spouse|single|dating|girlfriend|boyfriend)\b/.test(q);
+  const focus = askedKids && !askedPartner ? 'kids' : askedPartner && !askedKids ? 'partner' : sibSaid ? 'siblings' : null;
+  const order = focus === 'kids' ? [['kids', kidParts], ['partner', partnerParts]] : [['partner', partnerParts], ['kids', kidParts]];
+  for (const [k, ps] of order) {
+    // what they already told, and not what was asked now, is not told again
+    if (!ps.length || (focus && focus !== k && S.st.used.has(`fam:${k}`))) continue;
+    parts.push(...ps);
+    S.st.used.add(`fam:${k}`);
   }
   if (R.grandkids.length) parts.push(say(S, 'fam.grandkids', {}, facts));
   if (!R.partner && !kids.length) {
     if (pw) {
       const term = pw.rel ? homeWord(S, pw.rel, pw.en) : null;
-      parts.push(say(S, 'fam.parentsAdult', { parentsWord: term || pw.en, parentsEs: pw.es }, facts));
-      if (sib) parts.push(say(S, 'fam.siblings', { sibWords: sib.en, sibEs: sib.es }, facts));
+      // a householder's parents moved in with them, and at middle age it is the child who looks after them
+      const care = v.npc.role === 'householder' || v.age >= 45;
+      const them = pw.rel ? { themWord: pw.rel === 'mother' ? 'her' : 'him', cuidoEs: pw.rel === 'mother' ? 'la cuido' : 'lo cuido' } : { themWord: 'them', cuidoEs: 'los cuido' };
+      parts.push(say(S, care ? 'fam.parentsCare' : 'fam.parentsAdult', Object.assign({ parentsWord: term || pw.en, parentsEs: pw.es }, them), facts));
+      if (sib && !sibSaid) parts.push(say(S, 'fam.siblings', { sibWords: sib.en, sibEs: sib.es }, facts));
     } else if (v.flags.alone) parts.push(say(S, v.flags.widowed ? 'fam.widowed' : 'fam.alone', { lostWord: v.sex === 'F' ? 'husband' : 'wife' }, facts));
-    else if (R.roommates.length) parts.push(say(S, 'fam.roommates', { roomCount: numWord(R.roommates.length) }, facts));
+    else if (R.roommates.length) parts.push(say(S, 'fam.roommates', { roomWords: R.roommates.length === 1 ? 'a roommate' : `${numWord(R.roommates.length)} roommates` }, facts));
     else if (R.relatives.length || R.siblings.length) parts.push(say(S, 'fam.relatives', {}, facts));
   }
   if (R.grandparents.length && v.age >= 18) parts.push(say(S, 'fam.grandparents', gpSlots(S, R.grandparents), facts));
@@ -585,7 +1012,7 @@ P.home = (S, u) => {
   const q = u.norm;
   const head = ['householder', 'spouse', 'partner'].includes(v.npc.role) && v.age >= 18;
   const res = v.res || {};
-  if (/how long/.test(q)) {
+  if (/how long|when did you move|since when|have you always/.test(q)) {
     if (res.bornHere) parts.push(say(S, 'about.bornHere', {}, [REC.residence]));
     else parts.push(say(S, 'home.since', {}, facts) || say(S, 'about.years', {}, [REC.residence]));
     if (res.grewUpHere && !res.bornHere) parts.push(say(S, 'about.grewUpCounty', {}, [REC.residence]));
@@ -616,6 +1043,22 @@ P.neighborhood = (S, u) => {
   const v = S.v, parts = [];
   const q = u.norm;
   const census = G.censusFacts(v);
+  if (u.entities && u.entities.demographic) {
+    // "do a lot of Vietnamese people live here?": the languages heard on the block, the way a neighbor knows them
+    const want = u.entities.demographic;
+    const lang = want === 'any' ? census.langs.find(l => l.key !== 'english') : census.langs.find(l => l.key === want);
+    const shareOf = census.langShare || {};
+    if (lang) {
+      parts.push(say(S, 'hood.lang', { langName: lang.name, langNameCap: lang.name, share: G.shareWords(lang.share), shareVerbEs: shareVerbEs(lang.share), langEs: LANG_ES[lang.name] }, [lang.id]));
+      S.st.used.add(lang.id);
+    } else if (want !== 'any' && isNum(shareOf[want])) {
+      const name = { spanish: 'Spanish', chinese: 'Chinese', vietnamese: 'Vietnamese', tagalog: 'Tagalog', korean: 'Korean', arabic: 'Arabic' }[want];
+      parts.push(say(S, 'hood.langFew', { langName: name, langEs: LANG_ES[name] }, [`acs.lang.${want}`]));
+    } else if (isNum(shareOf.english) && shareOf.english >= 0.7) parts.push(say(S, 'hood.langEnglish', {}, ['acs.lang.english']));
+    else parts.push(say(S, 'hood.mixed', {}, ['acs.lang']));
+    parts.push(say(S, v.flags.urban ? 'hood.urban' : v.flags.rural ? 'hood.rural' : 'hood.suburban', {}, ['acs.density']));
+    return { parts, topics: ['neighborhood'], ask: 'lives' };
+  }
   if (/safe/.test(q)) parts.push(say(S, 'hood.safe'));
   if (/do you like|best|love/.test(q) || u.flags.likeIt) parts.push(say(S, 'hood.like'), lex(S, 'prideLines'));
   if (/worst|hate|bad|problem/.test(q)) parts.push(lex(S, 'complaintLines') || say(S, 'hood.like'));
@@ -633,14 +1076,32 @@ P.neighborhood = (S, u) => {
   return { parts, topics: ['neighborhood'], ask: 'lives' };
 };
 
+/**
+ * Past the end of the forecast the NPC has no forecast to quote: the temperature is the world's rough climate
+ * estimate (hedged), and the rest is the climate the pack does know (the wettest month, the July average).
+ */
+function staleWeather(S, W, ahead) {
+  const v = S.v, parts = [];
+  parts.push(say(S, 'wx.stale', { temp: W.temp }, [W.ids.now]));
+  if (ahead) parts.push(say(S, 'wx.noForecast'));
+  const C = G.climateFacts(v);
+  const wet = isNum(v.z.rain_wet_m) && v.z.rain_wet_m >= 1 && v.z.rain_wet_m <= 12 ? v.z.rain_wet_m : null;
+  if (wet && (wet === v.P.month || wet === (v.P.month % 12) + 1)) parts.push(say(S, wet === v.P.month ? 'wx.climate.wetNow' : 'wx.climate.wetNext', { wetMonth: MONTHS[wet - 1], wetMonthEs: MESES[wet - 1] }, ['clim.wetMonth']));
+  else if (isNum(C.tjul) && v.P.month >= 6 && v.P.month <= 9) parts.push(say(S, 'wx.climate.tjul', { tjul: Math.round(C.tjul) }, ['clim.tjul']));
+  else if (isNum(C.rain)) parts.push(say(S, 'wx.climate.rain', { rainIn: Math.round(C.rain) }, ['clim.rain']));
+  return { parts, topics: ['weather'], ask: 'weather', keep: 1 };
+}
+
 P.weather = (S, u) => {
   const v = S.v, W = G.weatherFacts(v), parts = [];
   const q = u.norm;
   const nowFacts = [W.ids.now];
+  const aheadQ = u.flags.sub === 'ahead' || /tomorrow|tonight|weekend|forecast|later|will it|going to|this week|thanksgiving/.test(q);
+  if (W.stale && !/\bair\b|\bsmog\b|\baqi\b|\bsmoke\b|\bsnow/.test(q)) return staleWeather(S, W, aheadQ);
   if (W.stale) parts.push(say(S, 'wx.stale', { temp: W.temp }, nowFacts));
   else {
     const ce = cieloEs(W.short);
-    parts.push(say(S, W.sky ? 'wx.now' : 'wx.nowPlain', { temp: W.temp, sky: W.sky, cieloEs: ce[0] }, nowFacts) || say(S, 'wx.nowPlain', { temp: W.temp }, nowFacts));
+    parts.push(say(S, W.sky ? 'wx.now' : 'wx.nowPlain', { temp: W.temp, sky: W.sky, skyAdj: G.skyAdj(W.sky), cieloEs: ce[0] }, nowFacts) || say(S, 'wx.nowPlain', { temp: W.temp }, nowFacts));
   }
   if (/\bair\b|\bsmog\b|\baqi\b|\bsmoke\b/.test(q)) {
     const aq = W.alerts.find(a => /air quality|smoke/i.test(a.event));
@@ -662,18 +1123,19 @@ P.weather = (S, u) => {
     if (v.sky === 'snow') sp.push(say(S, 'wx.feel.snow'));
     return { parts: sp, topics: ['weather'], ask: 'weather' };
   }
-  const ahead = /tomorrow|tonight|weekend|forecast|later|will it|going to|this week|thanksgiving/.test(q);
+  const ahead = aheadQ;
   const fc = [];
   const night = W.periods.find(p => !p.isDay && p.when === 'tonight');
   const day = W.periods.find(p => p.isDay && p.when !== 'later today');
   if (night && isNum(night.temp)) fc.push(say(S, 'wx.tonight', { low: night.temp, nextSky: night.sky }, [W.ids.next]));
   if (day && isNum(day.temp) && day.sky) {
     const ce = cieloEs(day.sky.replace(/^a (slight )?chance of /, 'chance '));
-    fc.push(say(S, 'wx.next', { when: day.when, whenCap: capFirst(day.when), nextSky: day.sky, high: day.temp, nextCieloEs: ce[1], cuandoEs: capFirst(cuandoEs(day.when)) }, [W.ids.next]));
+    fc.push(say(S, 'wx.next', { when: day.when, whenCap: capFirst(day.when), nextSky: day.sky, nextSkyAdj: G.skyAdj(day.sky), high: day.temp, nextCieloEs: ce[1], cuandoEs: capFirst(cuandoEs(day.when)) }, [W.ids.next]));
   }
   const wet = W.periods.find(p => isNum(p.pop) && p.pop >= 30);
   if (wet) fc.push(say(S, 'wx.rainChance', { pop: wet.pop, when: wet.when, cuandoEs: cuandoEs(wet.when) }, [W.ids.next]));
-  if (W.key && S.rng.chance(ahead ? 0.7 : 0.35)) fc.push(say(S, 'wx.keyMsg', { keyMsg: G.lowerFirst(W.key), keyMsgCap: W.key }, [W.ids.key]));
+  // a headline or a sentence that opens with a name goes after "I saw the forecast." (keyMsg is null then)
+  if (W.key && S.rng.chance(ahead ? 0.7 : 0.35)) fc.push(say(S, 'wx.keyMsg', { keyMsg: W.keyLower, keyMsgCap: W.key }, [W.ids.key]));
   const alert = W.alerts.find(a => !S.st.used.has(a.id));
   const alertParts = [];
   if (alert) {
@@ -718,6 +1180,28 @@ P.traffic = (S, u) => {
   const commuteRoad = roads.find(r => r.commute) || null;
   const mainRoad = roads[0] || null;
   const rd = r => ({ road: r.name, roadEs: roadEs(r.name), roadQ: r.name });
+  // follow-ups: which road, what time they leave
+  const sub = u.flags && u.flags.sub;
+  if (sub === 'which' && v.age >= 16 && (commuteRoad || mainRoad)) {
+    const r = commuteRoad || mainRoad;
+    return { parts: [say(S, commuteRoad && ['drive', 'carpool', 'motorcycle', 'taxi'].includes(mode) ? 'tr.whichMine' : 'tr.which', rd(r), [r.id])], topics: ['traffic'], ask: null };
+  }
+  if (sub === 'car') {
+    if (v.age < 16) return { parts: [say(S, 'tr.teenDrive')], topics: ['traffic'], ask: null };
+    if (num(v.hh.vehicles, 1) === 0) return { parts: [say(S, 'tr.noCar', {}, [REC.home])], topics: ['traffic'], ask: null };
+    return { parts: [say(S, v.speaker.drives === true ? 'tr.car' : 'tr.carShared', {}, [REC.home])], topics: ['traffic'], ask: 'drive' };
+  }
+  if (sub === 'farWork') {
+    const work = c.work && isNum(c.work.x) ? c.work : null;
+    if (v.flags.wfh) return { parts: [say(S, v.flags.onFarm ? 'job.onFarm' : 'job.wfh', {}, [REC.commute])], topics: ['traffic'], ask: null };
+    if (!work || !isNum(c.minutes) || !c.minutes) return { parts: [say(S, v.flags.retired ? 'tr.retired' : 'job.notWorking', mainRoad ? rd(mainRoad) : {}, mainRoad ? [mainRoad.id] : ['npc.status'])].filter(Boolean), topics: ['traffic'], ask: null };
+    const R = G.routeTo(v, work);
+    const school = v.npc.school && v.age < 18;
+    return { parts: [say(S, school ? 'tr.farSchool' : 'tr.farWork', { miles: R.miles, milesEs: millasEs(R.miles), commuteMin: c.minutes, workCity: c.workCity && c.workCity !== v.z.city ? c.workCity : null }, [REC.commute])], topics: ['traffic'], ask: 'drive' };
+  }
+  if (sub === 'hours' && v.flags.commuter && isNum(c.departMin)) {
+    return { parts: [say(S, 'tr.leave', { departClock: clockSaid(c.departMin), departClockEs: clockSaidEs(c.departMin), commuteMin: c.minutes }, [REC.commute])], topics: ['traffic'], ask: null };
+  }
   // a road the player named
   if (u.entities.roads.length) {
     const want = u.entities.roads[0];
@@ -744,7 +1228,7 @@ P.traffic = (S, u) => {
   } else if (v.age < 16) {
     parts.push(kidRide(S) || say(S, 'tr.teenDrive'));
   } else if (v.flags.wfh && mainRoad) {
-    parts.push(say(S, 'tr.wfh', rd(mainRoad), [mainRoad.id, REC.commute]));
+    parts.push(say(S, v.flags.onFarm ? 'tr.onFarm' : 'tr.wfh', rd(mainRoad), [mainRoad.id, REC.commute]));
   } else if (v.flags.commuter) {
     const min = c.minutes, workCity = c.workCity && c.workCity !== v.z.city ? c.workCity : null;
     if (['drive', 'taxi', 'motorcycle'].includes(mode) || (mode === 'carpool')) {
@@ -756,8 +1240,8 @@ P.traffic = (S, u) => {
     } else if (['bus', 'rail', 'ferry'].includes(mode)) {
       const t = transitWord(v, mode);
       parts.push(say(S, 'tr.transit', { transit: t.en, transitCap: capFirst(t.en), transitEs: t.es, workCity: workCity || 'work', commuteMin: min }, [REC.commute]));
-    } else if (mode === 'bike') parts.push(say(S, 'tr.bike', { commuteMin: min }, [REC.commute]));
-    else if (mode === 'walk') parts.push(say(S, 'tr.walk', { commuteMin: min }, [REC.commute]));
+    } else if (mode === 'bike') parts.push(say(S, 'tr.bike', { commuteMin: isNum(min) && min <= 75 ? min : null }, [REC.commute]));
+    else if (mode === 'walk') parts.push(say(S, 'tr.walk', { commuteMin: isNum(min) && min <= 50 ? min : null }, [REC.commute]));
   } else if (v.flags.retired && mainRoad) {
     parts.push(say(S, 'tr.retired', rd(mainRoad), [mainRoad.id]));
   } else if (num(v.hh.vehicles, 1) === 0) {
@@ -850,6 +1334,22 @@ P.fire = (S, u) => {
     return { parts, topics: ['fire'], noAsk: true };
   }
   const named = u.entities.fires.length ? fires.find(f => u.entities.fires.some(x => x.name === f.name)) : null;
+  // follow-ups on the fire just talked about: which one it was, and what it did to them
+  const sub = u.flags && u.flags.sub;
+  const last = fires.filter(f => st.used.has(f.id));
+  if (sub === 'which' && last.length) {
+    const f = last[last.length - 1];
+    return { parts: [say(S, 'fire.which', fireSlots(f), [f.id])], topics: ['fire'], ask: null };
+  }
+  if (sub === 'impact') {
+    const f = named || last.find(x => x.memory && x.memory.experience) || G.mainFire(v, fires);
+    if (f && f.memory && f.memory.experience && v.lang.mode === 'en' && !st.usedMemories.has(f.memory.source)) {
+      st.usedMemories.add(f.memory.source);
+      st.used.add(f.id);
+      return { parts: [say(S, 'fire.impact', Object.assign({ exp: f.memory.experience }, fireSlots(f)), [f.id, 'persona.memory'])], topics: ['fire'], ask: 'fire', emotion: 'wistful', keep: 2 };
+    }
+    if (f && f.before) return { parts: [say(S, 'fire.beforeMe', fireSlots(f), [f.id, REC.residence])], topics: ['fire'], ask: null };
+  }
   const unused = fires.filter(f => !st.used.has(f.id));
   const f = named || (depth === 0 ? G.mainFire(v, fires) : null) || unused.find(x => x.memory) || unused[0] || null;
   if (f) {
@@ -858,12 +1358,15 @@ P.fire = (S, u) => {
     const ageThen = f.year - (v.npc.birthYear || (v.P.year - v.age));
     const here = f.destInZip > 0 || f.pct > 0 || f.km <= 1;
     const childMemory = f.memory && ageThen < 18;
-    if (childMemory && !(f.memory.experience && v.lang.mode === 'en')) parts.push(say(S, ageThen < 10 ? 'fire.livedChild' : 'fire.livedTeen', Object.assign({ ageThen }, slots), [f.id]));
-    else if (childMemory) parts.push(say(S, 'fire.remember', slots, [f.id]));
+    const exp = f.memory && f.memory.experience && v.lang.mode === 'en' ? f.memory.experience : null;
+    // their own words follow; when those already say "I remember", the line before does not
+    const remember = (exp && /\bI remember\b/i.test(exp) ? 'fire.named' : 'fire.remember') + (here ? '' : 'Away');
+    if (childMemory && !exp) parts.push(say(S, ageThen < 10 ? 'fire.livedChild' : 'fire.livedTeen', Object.assign({ ageThen }, slots), [f.id]));
+    else if (childMemory) parts.push(say(S, remember, slots, [f.id]));
     else if (f.memory && f.lived && here) parts.push(say(S, 'fire.lived', slots, [f.id]));
-    else if (f.memory || !f.before) parts.push(say(S, 'fire.remember', slots, [f.id]));
+    else if (f.memory || !f.before) parts.push(say(S, remember, slots, [f.id]));
     else parts.push(say(S, 'fire.before', slots, [f.id]));
-    if (f.memory && f.memory.experience && v.lang.mode === 'en') parts.push({ text: f.memory.experience, gloss: null, facts: ['persona.memory'], key: 'memory' });
+    if (exp) parts.push({ text: exp, gloss: null, facts: ['persona.memory'], key: 'memory' });
     if (f.destInZip > 0) parts.push(say(S, f.lived ? 'fire.toll' : 'fire.tollThere', slots, [f.id]));
     else if (!here && f.km < 60) parts.push(say(S, 'fire.distance', slots, [f.id]));
     else if (f.acres > 0 && !parts.some(p => p && slots.acres && p.text.includes(slots.acres))) parts.push(say(S, 'fire.size', slots, [f.id]));
@@ -908,9 +1411,38 @@ P.storm = (S, u) => {
   const C = G.climateFacts(v);
   const rec = G.recordFacts(v);
   if (/wind|santa ana|diablo|gust/.test(q)) {
-    const w = G.windFacts(v).find(x => !st.used.has(x.id) && isNum(x.gust));
-    if (w) { parts.push(say(S, 'storm.wind', { windName: w.name.replace(/^the /, ''), when: monthYear(w.dt), gust: w.gust }, [w.id])); st.used.add(w.id); }
+    // the offshore wind they asked about, as it is here: the Santa Anas in the south, the Diablo winds in the Bay Area
+    const off = v.z.off_kind || '';
+    const askedSa = /santa ana/.test(q), askedDi = /diablo/.test(q);
+    if ((askedSa && off !== 'sa') || (askedDi && off !== 'di')) {
+      parts.push(say(S, off === 'sa' ? 'storm.offshoreSa' : off === 'di' ? 'storm.offshoreDi' : 'storm.noOffshore', { offAsked: askedSa ? 'the Santa Anas' : 'the Diablo winds', offAskedCap: askedSa ? 'The Santa Anas' : 'The Diablo winds' }, ['clim.offKind']));
+    }
+    // a county's windstorm peaked somewhere in it: the gust is said with the place it was measured, and only when that
+    // place is near enough to count as theirs; never as if it blew here (the ZIP's own record is a separate fact)
+    const winds = G.windFacts(v).filter(x => !st.used.has(x.id) && isNum(x.gust));
+    const wantKind = askedSa ? 'santa_ana' : askedDi ? 'diablo' : null;
+    const w = (wantKind && winds.find(x => x.kind === wantKind)) || winds.find(x => isNum(x.km) && x.km <= 120) || winds[0];
+    if (w) {
+      const windWhere = w.where && isNum(w.km) && w.km <= 120 ? wherePhrase(w.where) || null : null;
+      const slots = {
+        windName: w.name.replace(/^the /, ''), windNameCap: capFirst(w.name), when: monthYear(w.dt), gust: w.gust, windWhere, mesAnoEs: mesAno(w.dt),
+        windEs: { santa_ana: 'vientos de Santa Ana', diablo: 'vientos del Diablo', sundowner: 'vientos sundowner', mono: 'vientos Mono', winter: 'vientos del temporal', other: 'vientos' }[w.kind] || 'vientos',
+        windWhereEs: windWhere && /^near /.test(windWhere) ? windWhere.replace(/^near /, 'cerca de ') : null,
+      };
+      const exp = w.memory && w.memory.experience && v.lang.mode === 'en' ? w.memory.experience : null;
+      const lived = exp ? say(S, 'storm.windLived', Object.assign({ exp }, slots), [w.id, 'persona.memory']) : null;
+      if (lived) { parts.push(lived); if (w.memory.source) st.usedMemories.add(w.memory.source); }
+      // after their own memory of it, the gust and where it blew, without saying the date again
+      if (lived && slots.windWhere) parts.push(say(S, 'storm.windGust', slots, [w.id]));
+      else if (!lived) parts.push((slots.windWhere ? say(S, 'storm.wind', slots, [w.id]) : null) || say(S, 'storm.windCounty', slots, [w.id]));
+      st.used.add(w.id);
+    }
     if (rec.gust && !st.used.has(rec.gust.id)) { parts.push(say(S, 'storm.gustRecord', { gust: rec.gust.value, when: monthYear(rec.gust.dt) }, [rec.gust.id])); st.used.add(rec.gust.id); }
+    // a question about the wind is answered about the wind
+    if (parts.filter(Boolean).length) {
+      if (S.rng.chance(0.4)) parts.push(say(S, 'storm.prep'));
+      return { parts, topics: ['weather'], ask: 'weather' };
+    }
   }
   const ar = G.arFacts(v).filter(a => !st.used.has(a.id)).sort((a, b) => (b.memory ? 1 : 0) - (a.memory ? 1 : 0) || b.rank - a.rank || (b.start > a.start ? 1 : -1))[0];
   if (ar && (C.ar === null || C.ar >= 1)) {
@@ -983,7 +1515,7 @@ P.housing = (S, u, opts = {}) => {
   const head = ['householder', 'spouse', 'partner'].includes(v.npc.role) && v.age >= 18;
   const pw = parentsWords(S);
   const value = census.value ? say(S, 'house.value', { value: census.value.words, valueEs: valueEs(census.value.value) }, [census.value.id]) : null;
-  if (v.age < 18) { parts.push(say(S, 'house.minor', { parentsWord: pw ? pw.en : 'parents', parentsEs: pw ? pw.es : 'mis papás' })); return { parts, topics: ['housing'], noAsk: true }; }
+  if (v.age < 18) { parts.push(say(S, 'house.minor', { parentsWord: pw ? pw.en : 'parents', parentsEs: pw ? pw.es : 'mis papás' })); S.st.cs = false; return { parts, topics: ['housing'], noAsk: true }; }
   const rent = opts.rent || u.intent === 'rent';
   if (head && v.hh.tenure === 'own') {
     if (rent) parts.push(say(S, 'rent.ownerSide', {}, [REC.home]));
@@ -1005,7 +1537,7 @@ P.housing = (S, u, opts = {}) => {
     else if (census.own.share >= 0.7 && S.rng.chance(0.5)) parts.push(say(S, 'house.owners', {}, [census.own.id]));
   }
   if (u.flags.opinion || S.rng.chance(0.45)) parts.push(say(S, 'house.opinion'));
-  S.st.cs = 'its_expensive';
+  S.st.cs = !census.value || census.value.value >= 450000 ? 'its_expensive' : false;
   return { parts, topics: rent ? ['rent', 'housing'] : ['housing'], ask: 'housing' };
 };
 
@@ -1023,17 +1555,20 @@ P.insurance = (S, u) => {
   const I = G.insuranceFacts(v);
   const head = ['householder', 'spouse', 'partner'].includes(v.npc.role) && v.age >= 18;
   const pw = parentsWords(S);
-  if (v.age < 18) { parts.push(say(S, 'ins.minor', { parentWord: pw ? pw.en : 'parents', parentEs: 'papás' })); return { parts, topics: ['insurance'], noAsk: true }; }
+  if (v.age < 18) { parts.push(say(S, 'ins.minor', { parentWord: pw ? pw.en : 'parents' })); S.st.cs = false; return { parts, topics: ['insurance'], noAsk: true }; }
   const fair = I.fair && I.fair.per100 >= 5 ? I.fair : null;
   const nonren = I.nonren && I.nonren.pct >= 8 ? I.nonren : null;
   if (!(head && v.hh.tenure === 'own')) {
-    parts.push(head || v.npc.role === 'roommate' ? say(S, 'ins.renter', {}, [REC.home]) : say(S, 'ins.notMine', {}, [REC.home]));
+    parts.push(head || v.npc.role === 'roommate' ? say(S, 'ins.renter', {}, [REC.home])
+      : pw ? say(S, 'ins.family', { parentWord: pw.en }, [REC.home]) : say(S, 'ins.notMine', {}, [REC.home]));
     if (fair) parts.push(say(S, 'ins.fair', fairSlots(fair), [fair.id]));
+    S.st.cs = fair ? 'its_expensive' : false;
     return { parts, topics: ['insurance'], ask: 'housing' };
   }
   if (!fair && !nonren) {
     parts.push(say(S, 'ins.low', {}, [I.fair && I.fair.id, I.nonren && I.nonren.id].filter(Boolean)));
     if (I.prem) parts.push(say(S, 'ins.prem', { prem: I.prem.words }, [I.prem.id]));
+    S.st.cs = false; // not a complaint, so no "¡Está carísimo!"
     return { parts, topics: ['insurance'], ask: 'housing' };
   }
   if (fair) parts.push(say(S, 'ins.fair', fairSlots(fair), [fair.id]));
@@ -1061,7 +1596,14 @@ P.earthquake = (S, u) => {
       parts.push(say(S, 'quake.lived', { title, exp: q.memory.experience, year: q.dt.y }, [q.id, 'persona.memory']));
       parts.push(say(S, 'quake.femaAfter', { year: q.dt.y }, [q.id]));
     } else parts.push(say(S, 'quake.fema', { title, titleCap: capFirst(title), year: q.dt.y }, [q.id]));
-  } else parts.push(say(S, 'quake.none', {}, ['fema.county']));
+  } else {
+    // The pack's disaster declarations start in 2003 and cover a few counties: no record is not "nothing happened".
+    // A quake the player names, or one older than the records, gets the speaker's own years here, and no claim.
+    const year = u.entities.years[0];
+    if (isNum(year)) parts.push(residenceInYear(S, year));
+    else if (/\b(remember|were you|did you feel|have you felt|been through|lived through)\b/.test(u.norm)) parts.push(residenceLine(S));
+    parts.push(say(S, 'quake.none'));
+  }
   const first = S.rng.chance(0.5) ? 'quake.prep' : 'quake.feel';
   parts.push(say(S, first));
   if (S.rng.chance(0.4)) parts.push(say(S, first === 'quake.prep' ? 'quake.feel' : 'quake.prep'));
@@ -1102,7 +1644,8 @@ P.place = (S, u) => {
   if (F.beach) cands.push(() => say(S, 'place.beach', { beach: F.beach.label, miles: G.miles(F.beach.distKm), milesEs: millasEs(G.miles(F.beach.distKm)) }, [`place:${F.beach.label}`]));
   if (F.trail) cands.push(() => say(S, 'place.trail', { trail: F.trail.label, miles: G.miles(F.trail.distKm) }, [`landmark:${F.trail.name}`]));
   for (const l of F.landmarks.filter(l => l.rank <= 2 || (l.kind === 'peak' && num(l.elev) >= 500)).slice(0, 2)) cands.push(() => say(S, 'place.landmark', { landmark: l.label }, [l.id]));
-  if (F.water) cands.push(() => say(S, 'place.water', { water: F.water.label, miles: G.miles(F.water.distKm) }, [`landmark:${F.water.name}`]));
+  // a bay's landmark point can be miles offshore: no distance for open water
+  if (F.water) cands.push(() => say(S, 'place.water', { water: F.water.label, miles: /\b(Bay|Ocean|Sea|Channel|Strait|Sound)\b/.test(F.water.label) ? null : G.miles(F.water.distKm) }, [`landmark:${F.water.name}`]));
   if (F.game && v.team) cands.push(() => say(S, 'place.game', {}, ['persona.teams']));
   for (const t of F.towns.filter(t => num(t.pop) >= 15000).slice(0, 2)) {
     const p = v.world.places.find(x => x.name === t.name);
@@ -1128,7 +1671,7 @@ P.directions = (S, u) => {
   if (place) {
     const own = [v.z.city, v.z.place, v.lex.values.place].filter(Boolean).map(s => s.toLowerCase());
     if (place.kind === 'town' && own.includes(place.name.toLowerCase())) { parts.push(say(S, 'dir.here')); return { parts, topics: ['directions'], ask: 'visiting' }; }
-    target = { x: place.x, y: place.y }; label = place.kind === 'landmark' ? (G.lowerFirst(place.name) === place.name ? place.name : place.name) : place.name;
+    target = { x: place.x, y: place.y }; label = place.name;
     id = place.kind === 'landmark' ? `landmark:${place.name}` : `place:${place.name}`;
   } else if (u.entities.routine.length) {
     const k = u.entities.routine[0];
@@ -1158,8 +1701,9 @@ P.directions = (S, u) => {
   if (R.km < 3) parts.push(say(S, 'dir.near', slots, [id]));
   else if (R.km > 160) parts.push(say(S, 'dir.far', slots, [id]));
   else parts.push(say(S, 'dir.place', slots, [id]));
-  if (R.road) parts.push(say(S, 'dir.road', slots, [R.roadId]));
-  if (R.km >= 3 && S.rng.chance(0.4)) parts.push(say(S, 'dir.map'));
+  const roadSaid = !!(R.road && R.km <= 160);
+  if (roadSaid) parts.push(say(S, 'dir.road', slots, [R.roadId]));
+  if (R.km >= 3 && (R.km > 160 || S.rng.chance(0.4))) parts.push(say(S, roadSaid ? 'dir.map' : 'dir.mapAll'));
   return { parts, topics: ['directions'], ask: 'visiting' };
 };
 
@@ -1173,8 +1717,12 @@ P.history = (S, u) => {
   const year = u.entities.years[0];
   if (isNum(year)) {
     const ev = eventsOfYear(v, year);
+    // "were you here in 1994?" is about them: their record answers it
+    const here = /\b(were|was) (you|ya) (here|around|living|in|alive|born)\b|\bdid you (live|grow up) (here|around)\b|\bwhere were you\b/.test(u.norm);
+    if (here || !ev) parts.push(residenceInYear(S, year));
+    // a year the records hold an event for; for any other year nothing is claimed either way
     if (ev) parts.push(say(S, 'hist.yearHit', { year, event: ev.en, eventEs: ev.es }, [ev.id]));
-    else parts.push(say(S, 'hist.yearMiss', { year }, ['fires.zip', 'ars.coast', 'fema.county']));
+    else if (!here) parts.push(say(S, 'hist.yearMiss', { year }));
     return { parts, topics: ['history'], ask: null };
   }
   const res = v.res || {};
@@ -1190,8 +1738,9 @@ P.history = (S, u) => {
     st.usedMemories.add(m.source);
     const id = memoryFact(m);
     if (id) st.used.add(id);
-    parts.push(say(S, 'hist.event', { memTitle: m.title, memTitleCap: capFirst(m.title), exp: m.experience || null, memEs: memoryEs(m) }, [id, 'persona.memory'])
-      || say(S, 'hist.event', { memTitle: m.title, memTitleCap: capFirst(m.title), exp: '', memEs: memoryEs(m) }, [id]));
+    const title = memTitleOf(m);
+    parts.push(say(S, 'hist.event', { memTitle: title, memTitleCap: capFirst(title), exp: m.experience || null, memEs: memoryEs(m) }, [id, 'persona.memory'])
+      || say(S, 'hist.event', { memTitle: title, memTitleCap: capFirst(title), exp: '', memEs: memoryEs(m) }, [id]));
   } else {
     const life = (v.p.memories || []).filter(x => x.kind === 'life' && !st.usedMemories.has(x.source + x.year));
     if (life[0] && v.lang.mode === 'en') { st.usedMemories.add(life[0].source + life[0].year); parts.push(say(S, 'hist.life', { lifeLine: life[0].text }, [memoryFact(life[0])])); }
@@ -1200,6 +1749,26 @@ P.history = (S, u) => {
   if (v.flags.longtime && !res.bornHere && S.rng.chance(0.3)) parts.push(say(S, 'hist.change', {}, [REC.residence]));
   return { parts, topics: ['history'], ask: 'from', emotion: 'wistful', keep: 2 };
 };
+
+/** Where they were in a given year, from the record: not born yet, here already, in the county, or not here yet. */
+function residenceInYear(S, year) {
+  const v = S.v, npc = v.npc, res = v.res || {};
+  const born = isNum(npc.birthYear) ? npc.birthYear : v.P.year - v.age;
+  const slots = { year, zipSince: isNum(res.zipSince) ? res.zipSince : null, countySince: isNum(res.countySince) ? res.countySince : null, arrivalYear: isNum(npc.arrivalYear) ? npc.arrivalYear : null };
+  if (year < born) return say(S, 'hist.yearUnborn', slots, ['npc.age']);
+  if (res.bornHere || (isNum(res.zipSince) && year >= res.zipSince)) return say(S, res.bornHere ? 'hist.yearHereAlways' : 'hist.yearHere', slots, [REC.residence]);
+  if (isNum(res.countySince) && year >= res.countySince) return say(S, 'hist.yearCounty', slots, [REC.residence]);
+  if (npc.nativity === 'foreign' && isNum(npc.arrivalYear) && year < npc.arrivalYear) return say(S, 'hist.yearAbroad', slots, [REC.origin]);
+  return say(S, 'hist.yearAway', slots, [REC.residence]);
+}
+
+/** How long they have lived around here, for a question about something that happened before the records. */
+function residenceLine(S) {
+  const v = S.v, res = v.res || {};
+  if (res.bornHere || v.flags.bornInCounty) return say(S, 'quake.residenceLife', {}, [REC.residence]);
+  if (isNum(res.countySince)) return say(S, 'quake.residence', { countySince: res.countySince }, [REC.residence]);
+  return null;
+}
 
 function eventsOfYear(v, year) {
   for (const f of G.fireFacts(v)) if (f.year === year) return { en: f.label, es: fireEs(f.name), id: f.id };
@@ -1210,8 +1779,33 @@ function eventsOfYear(v, year) {
   return null;
 }
 
+// Worries a persona can carry that have no planner of their own, by concern topic: the bank key for a speaker who
+// worries about it, and the grounded fact that can follow.
+const CONCERN_KEYS = { water: 'concern.water', 'power shutoffs': 'concern.power', roof: 'concern.roof', jobs: 'concern.jobs', health: 'concern.health', schools: 'concern.schools', 'family abroad': 'concern.abroad' };
+
+/** A local worry, in the speaker's own words, with what the pack knows about it. */
+function concernTalk(S, topic) {
+  const v = S.v, parts = [];
+  const c = (v.p.concerns || []).find(x => x && x.topic === topic);
+  const key = CONCERN_KEYS[topic] || 'concern.health';
+  parts.push((c ? say(S, key, {}, ['persona.concerns']) : null) || say(S, `${key}.calm`) || say(S, key, {}, ['persona.concerns']));
+  if (topic === 'water') {
+    const C = G.climateFacts(v);
+    if (isNum(C.rain) && S.rng.chance(0.7)) parts.push(say(S, 'wx.climate.rain', { rainIn: Math.round(C.rain) }, ['clim.rain']));
+  } else if (topic === 'roof' && v.flags.house && v.speaker.tenure === 'own') {
+    const roof = v.p.roof;
+    if (roof && !roof.original && isNum(roof.installed)) parts.push(say(S, 'home.roofNew', { roofYear: roof.installed }, ['persona.roof']));
+    else if (roof && num(roof.age) >= 15) parts.push(say(S, 'home.roofOld', {}, ['persona.roof']));
+  } else if (topic === 'family abroad' && v.npc.nativity === 'foreign') {
+    const homeland = str(v.npc.birthplace) ? String(v.npc.birthplace).split(',').map(x => x.trim()).pop() : null;
+    if (homeland && !/California/.test(homeland)) parts.push(say(S, 'fam.abroad', { homeland }, [REC.origin]));
+  } else if (topic === 'jobs' && v.npc.status === 'unemployed') parts.push(say(S, 'job.unemployed', {}, ['npc.status']));
+  return { parts, topics: [topic === 'jobs' ? 'job' : topic === 'schools' ? 'school' : topic === 'health' ? 'health' : 'neighborhood'], ask: null, emotion: c && c.weight >= 0.4 ? 'worried' : null };
+}
+
 P.opinion = (S, u) => {
   const v = S.v, parts = [];
+  if (u.entities && u.entities.concern && !u.flags.politics) return concernTalk(S, u.entities.concern);
   if (u.flags.politics) { parts.push(say(S, 'op.politics')); parts.push(pivot(S, { prefer: ['concern'] })); return { parts, topics: ['opinion'], noAsk: true }; }
   if (u.flags.aboutPlayer) {
     const f = v.relq.feelings;
@@ -1237,17 +1831,51 @@ P.compliment = (S, u) => {
   return { parts, topics: ['self'], emotion: 'pleased', ask: null };
 };
 
+// Hostile probes, by kind: what the NPC says back.
+const PROBE_HOSTILE = { group: 'probe.hostile', status: 'probe.statusHostile', leave: 'probe.leave', hate: 'probe.hate', slur: 'probe.slur' };
+
 P.insult = (S, u) => {
   const v = S.v, st = S.st, parts = [];
   st.insults += 1;
   const tox = u.appraisal.toxicity;
   if (st.ended) { parts.push(say(S, 'insult.after') || say(S, 'insult.end')); return { parts, topics: [], noAsk: true, emotion: 'angry' }; }
+  const pr = u.flags && u.flags.probe;
+  if (pr) {
+    // a stereotype, a status probe, "go back", a slur, a declared hate: pushed back on, never played along with;
+    // the worst of them end the conversation at once
+    st.cs = false;
+    parts.push(say(S, PROBE_HOSTILE[pr.kind] || 'probe.hostile') || say(S, 'probe.hostile'));
+    const severe = ['slur', 'hate', 'leave'].includes(pr.kind);
+    if (severe || st.insults >= 2) { parts.push(say(S, 'insult.end')); st.ended = true; }
+    return { parts, topics: [], noAsk: true, emotion: severe || st.insults >= 2 ? 'angry' : v.big5.A >= 0.55 ? 'hurt' : 'annoyed' };
+  }
   if (/\b(f+u+c+k|shit|bitch|ass(hole)?|damn|crap|dick|bastard)\w*/i.test(u.text) && S.rng.chance(0.5)) parts.push(say(S, 'insult.language'));
   const feelings = v.relq.feelings;
   if (st.insults >= 2 || tox >= 0.8) { parts.push(say(S, 'insult.end')); st.ended = true; return { parts, topics: [], noAsk: true, emotion: feelings === 'hurt' ? 'hurt' : 'angry' }; }
   if (v.humor >= 0.6 && v.big5.A >= 0.55 && tox < 0.5 && S.rng.chance(0.4)) parts.push(say(S, 'insult.shrug'));
   else parts.push(say(S, feelings === 'hurt' || v.big5.A >= 0.55 ? 'insult.hurt' : 'insult.annoyed'));
   return { parts, topics: [], noAsk: true, emotion: feelings === 'hurt' || v.big5.A >= 0.55 ? 'hurt' : 'annoyed' };
+};
+
+/**
+ * A question that sorts people into groups, asks about immigration status or prejudice: the NPC declines and pushes
+ * back, in their own register, and moves on; a player who keeps at it loses the conversation.
+ */
+P.probe = (S, u) => {
+  const v = S.v, st = S.st, parts = [];
+  const pr = (u && u.flags && u.flags.probe) || { kind: 'group' };
+  st.probes = (st.probes || 0) + 1;
+  st.cs = false;
+  if (st.probes >= 3) {
+    st.insults += 1;
+    parts.push(say(S, 'probe.again'));
+    if (st.insults >= 2) { parts.push(say(S, 'insult.end')); st.ended = true; }
+    return { parts, topics: [], noAsk: true, emotion: 'annoyed' };
+  }
+  const key = pr.kind === 'status' ? 'probe.status' : pr.kind === 'bias' ? 'probe.bias' : pr.kind === 'selfBias' ? 'probe.selfBias' : pr.positive ? 'probe.groupPositive' : 'probe.group';
+  parts.push(say(S, key) || say(S, 'probe.group'));
+  if (st.probes === 1 && !v.relq.guarded && pr.kind !== 'status' && S.rng.chance(0.5)) parts.push(pivot(S));
+  return { parts, topics: [], noAsk: true, emotion: pr.kind === 'status' ? 'tense' : null };
 };
 
 P.joke = (S, u) => {
@@ -1259,7 +1887,13 @@ P.joke = (S, u) => {
   const r = G.roadFacts(v)[0];
   if (r && (v.flags.commuter || v.speaker.drives)) opts.push(['joke.local.traffic', { road: r.name }, [r.id]]);
   if (v.flags.coast && num(v.z.tjul, 80) < 75) opts.push(['joke.local.coast', {}, ['clim.tjul']]);
-  if (v.flags.hotPlace) opts.push(['joke.local.heat', { temp: Math.max(100, Math.round(num(v.z.tjul, 95))) }, ['clim.tjul']]);
+  if (v.flags.hotPlace) {
+    // the number in the joke is a real one: the July average high when it is that hot, else the record
+    const tj = isNum(v.z.tjul) ? Math.round(v.z.tjul) : null;
+    const rh = G.recordFacts(v).heat;
+    const hot = tj !== null && tj >= 98 ? { temp: tj, id: 'clim.tjul' } : rh ? { temp: rh.value, id: rh.id } : null;
+    opts.push(['joke.local.heat', { temp: hot ? hot.temp : null }, hot ? [hot.id] : []]);
+  }
   if (v.speaker.tenure === 'rent') opts.push(['joke.local.rent', {}, []]);
   if (v.speaker.tenure === 'own' && v.flags.house) opts.push(['joke.local.house', {}, []]);
   if (v.humorStyle === 'dry' || v.humorStyle === 'wry') opts.push(['joke.dry', {}, []]);
@@ -1328,22 +1962,69 @@ P.goodbye = (S, u) => {
 P.unknown = (S, u) => {
   const v = S.v, parts = [];
   const letters = (u.text.match(/\p{L}/gu) || []).length;
-  if (letters < 2 || u.flags.unclear || (v.lang.mode !== 'en' && S.rng.chance(0.6))) {
-    parts.push(say(S, 'unk.confused'));
+  if (letters < 2 || u.flags.unclear || (v.lang.limited && !u.flags.spanish && S.rng.chance(0.6))) {
+    parts.push(say(S, u.flags.spanish && v.lang.mode === 'es' ? 'unk.confusedEs' : 'unk.confused'));
     parts.push(pivot(S));
     return { parts, topics: [], ask: null };
   }
   const short = u.norm.split(' ').length <= 6;
   if (!u.question && S.st.prevIntent === 'joke' && (u.appraisal.sentiment >= 0.1 || /\b(ha|haha|lol|lmao|funny|hilarious|good one)\b/.test(u.norm))) return { parts: [say(S, 'joke.thanks')], topics: ['joke'], emotion: 'amused', ask: null };
   if (!u.question && short && u.appraisal.sentiment >= 0.25) { parts.push(say(S, 'react.positive') || say(S, 'unk.statement')); if (S.rng.chance(0.5)) parts.push(pivot(S)); return { parts, topics: [], ask: null }; }
+  const fav = favoriteParts(S, u);
+  if (fav) return { parts: fav, topics: ['self'], ask: null };
+  if (u.question && u.flags.aboutYou) {
+    // a question about their own life the engine has no reading for: they deflect and move on; they never claim
+    // not to know their own life. A yes-or-no question gets turned back ("Why, do you?").
+    const aux = /^(do|does|did|are|is|were|was|have|has|can|could|would|will)\s+you\b/.exec(u.norm);
+    const AUX = { does: 'do', is: 'are', was: 'were', has: 'have' };
+    parts.push((aux ? say(S, 'unk.aboutMeYesNo', { aux: AUX[aux[1]] || aux[1] }) : null) || say(S, 'unk.aboutMe'));
+    const p = pivot(S);
+    if (p) parts.push(p);
+    S.st.cs = false;
+    return { parts, topics: [], ask: p ? null : 'visiting' };
+  }
   if (u.question) parts.push(say(S, 'unk.question'));
   else if (u.appraisal.sentiment <= -0.25) parts.push(say(S, 'hay.answerBad'));
   else if (u.appraisal.sentiment >= 0.3 && v.lang.mode === 'en' && S.rng.chance(0.5)) parts.push(lex(S, 'agreement') || say(S, 'unk.statement'));
   else parts.push((v.lang.mode === 'en' && S.rng.chance(0.3) ? lex(S, 'surprise') : null) || say(S, 'unk.statement'));
   if (S.rng.chance(0.75)) parts.push(pivot(S));
-  S.st.cs = u.question ? null : 'surprise';
+  S.st.cs = u.question ? false : 'surprise';
   return { parts, topics: [], ask: S.rng.chance(0.5) ? null : 'visiting' };
 };
+
+// Favorite things are tastes, the speaker's own: drawn from their id so they never change, and from their life where it
+// says something (their team's sport, their family's holidays). No titles, so no brands.
+const FAVORITES = {
+  color: ['blue', 'green', 'red', 'purple', 'yellow', 'orange', 'black', 'gray', 'brown', 'teal'],
+  animal: ['dogs', 'cats', 'horses', 'birds', 'elephants', 'otters', 'turtles', 'owls'],
+  holiday: ['Thanksgiving', 'the Fourth of July', "New Year's", 'Halloween'],
+  season: ['spring', 'summer', 'fall', 'winter'],
+};
+const TEAM_SPORT = /Dodgers|Giants|Padres|Angels|Athletics|A's/i;
+const FAV_RE = /\bfavou?rite (colou?r|animal|holiday|season|time of year|sport|music|song|band|movie|film|show|tv show|book|singer|artist|thing to do)\b/;
+
+/** An answer to "what's your favorite ___?", or null. */
+function favoriteParts(S, u) {
+  const m = FAV_RE.exec(u.norm);
+  if (!m) return null;
+  S.st.cs = false;
+  const v = S.v, kind = m[1].replace(/colour/, 'color').replace(/time of year/, 'season').replace(/tv show/, 'show');
+  const pick = list => list[hashStr(`${v.p.id}:fav:${kind}`) % list.length];
+  if (kind === 'sport') {
+    if (!v.team) return [say(S, 'small.noSports')];
+    const sport = TEAM_SPORT.test(v.team.name) ? 'baseball' : /Lakers|Warriors|Clippers|Kings$|Sacramento Kings/i.test(v.team.name) && !/LA Kings/.test(v.team.name) ? 'basketball' : /Rams|Chargers|49ers|Niners/i.test(v.team.name) ? 'football' : /Sharks|Ducks|LA Kings/i.test(v.team.name) ? 'hockey' : /Galaxy|LAFC|FC/i.test(v.team.name) ? 'soccer' : null;
+    return [sport ? say(S, 'fav.sport', { fav: sport }, ['persona.teams']) : say(S, 'about.team', {}, ['persona.teams'])];
+  }
+  if (kind === 'holiday') {
+    const trad = (v.p.interestDetails || []).find(d => d.tradition);
+    if (trad) return [say(S, 'fav.thing', { fav: trad.name, favCap: capFirst(trad.name) }, ['persona.interests'])];
+  }
+  if (FAVORITES[kind]) {
+    const fav = pick(FAVORITES[kind]);
+    return [say(S, `fav.${kind}`, { fav, favCap: capFirst(fav) }) || say(S, 'fav.thing', { fav, favCap: capFirst(fav) }) || say(S, 'fav.taste')];
+  }
+  return [say(S, 'fav.taste')];
+}
 
 /** "Just heading to the grocery store": what they are doing right now. */
 export function activityLine(S) {
@@ -1356,7 +2037,7 @@ export function activityLine(S) {
   switch (a.kind) {
     case 'commute': return a.leg === 'back' ? say(S, a.place && a.place.kind === 'home' && v.npc.school && v.age < 18 ? 'act.schoolBack' : 'act.commuteBack', slots, facts)
       : say(S, v.npc.school && v.age < 18 ? 'act.schoolOut' : 'act.commuteOut', slots, facts);
-    case 'work': return say(S, a.place && a.place.kind === 'home' ? 'act.wfh' : 'act.work', slots, facts);
+    case 'work': return say(S, a.place && a.place.kind === 'home' ? (v.flags.onFarm ? 'act.onFarm' : 'act.wfh') : 'act.work', slots, facts);
     case 'school': return say(S, 'act.school', slots, facts);
     case 'errand': return say(S, back ? 'act.errandBack' : 'act.errand', slots, facts);
     case 'leisure': return say(S, back ? 'act.errandBack' : 'act.leisure', slots, facts);
@@ -1406,7 +2087,7 @@ export function pivot(S, opts = {}) {
       if (p) st.pivotIntent = 'about-them';
     } else if (h.kind === 'memory') {
       const m = (v.p.memories || []).find(x => (x.title || x.text) === h.text);
-      if (m) { p = say(S, 'pivot.memory', { memTitle: m.title || h.text, memEs: memoryEs(m) }, [memoryFact(m)]); if (p) st.usedMemories.add(m.source); }
+      if (m) { p = say(S, 'pivot.memory', { memTitle: memTitleOf(m), memEs: memoryEs(m) }, [memoryFact(m)]); if (p) st.usedMemories.add(m.source); }
       if (p) st.pivotIntent = m && m.kind === 'fire' ? 'fire' : 'history';
     } else if (h.kind === 'family') {
       p = say(S, 'pivot.family', {}, [REC.home]);
@@ -1425,12 +2106,70 @@ export const PLANNERS = P;
 
 // ------------------------------------------------------------------ answers to the NPC's own questions
 
+// Jobs a player can name, from the occupation catalog (titles and their head nouns) plus the everyday ones.
+const EVERYDAY_JOBS = ('nurse teacher doctor physician surgeon dentist pharmacist therapist counselor lawyer attorney paralegal judge engineer developer '
+  + 'programmer coder designer architect scientist researcher professor librarian accountant bookkeeper cashier server waiter waitress bartender '
+  + 'barista cook chef baker driver trucker pilot mechanic electrician plumber carpenter roofer painter welder machinist firefighter officer cop '
+  + 'deputy detective guard soldier sailor marine farmer farmworker rancher gardener landscaper janitor housekeeper cleaner nanny caregiver aide '
+  + 'assistant receptionist secretary technician tech emt paramedic hygienist contractor builder laborer foreman inspector writer reporter '
+  + 'journalist editor photographer artist musician actor actress dancer animator entrepreneur owner freelancer student homemaker housewife '
+  + 'hairstylist stylist barber butcher fisherman logger longshoreman stocker courier salesperson salesman saleswoman pastor priest minister '
+  + 'rabbi imam chaplain veterinarian vet tutor coach trainer lifeguard dispatcher operator picker principal translator interpreter manager '
+  + 'supervisor director administrator consultant analyst realtor agent broker banker teller clerk retired').split(' ');
+let JOB_WORDS = null;
+
+/** True for a job a person could have ("registered nurse", "farm worker", "teacher"), not an evaluation or a joke. */
+export function knownJob(job) {
+  if (!JOB_WORDS) {
+    JOB_WORDS = new Set(EVERYDAY_JOBS);
+    for (const list of Object.values(OCCUPATION_CATALOG || {})) for (const o of list || []) {
+      const t = String(o && o.title || '').toLowerCase().replace(/\s*\([^)]*\)/g, '').trim();
+      if (t) { JOB_WORDS.add(t); JOB_WORDS.add(t.split(/\s+/).pop()); }
+    }
+  }
+  const j = String(job || '').toLowerCase().trim().replace(/^(a|an)\s+/, '').replace(/[.!?]+$/, '');
+  if (!j || /^(good|bad|great|terrible|awful|amazing|decent|hard|real|true|proud|big|huge|total|complete|better|worse|best|worst|nice|cool|lucky|happy|sad|tired|bored|busy)\b/.test(j)) return false;
+  return JOB_WORDS.has(j) || JOB_WORDS.has(j.split(/\s+/).pop()) || /^stay-at-home (mom|dad|parent|mother|father)$/.test(j);
+}
+
+/** The NPC's own answer to the question they just asked, when the player turns it back ("good, and you?"). */
+function answerBack(S, key, u) {
+  const v = S.v;
+  const take = (plan, n = 1) => (plan && plan.parts ? plan.parts.filter(Boolean).slice(0, n) : []);
+  switch (key) {
+    case 'howAreYou': return take(P['how-are-you'](S, u));
+    case 'from': return originParts(S).slice(0, 1);
+    case 'lives': return [say(S, 'home.where')];
+    case 'job': return take(P.job(S, null, { brief: true }));
+    case 'kids': return take(P.family(S, Object.assign({}, u, { norm: 'do you have kids', flags: Object.assign({}, u.flags, { sub: null }) })), 2);
+    case 'weekend': return interestParts(S, 1);
+    case 'food': return [say(S, 'food.mine')];
+    case 'team': return v.team ? [say(S, 'about.team', {}, ['persona.teams'])] : [say(S, 'small.noSports')];
+    case 'name': return S.st.gaveName ? [] : [say(S, 'name.give')];
+    default: return [];
+  }
+}
+
+const TURNED_BACK = /\b(?:and|how about|what about) (?:you|yourself|u)\b[?.!]*$|^(?:you|and you|u)\?*$/;
+
 /**
  * When the NPC asked the player something last turn and the player answers it, react to the answer and
- * remember it. Returns a plan, or null when the player's line is not an answer.
+ * remember it (never a crude, hateful or joke value). Returns a plan, or null when the player's line is not an answer.
+ * @param {object} S the session
+ * @param {object} u understand() output
+ * @returns {object|null}
  */
 export function answerPending(S, u) {
+  const plan = answerPending0(S, u);
+  if (!plan || !S.st.pendingAsked) return plan;
+  // "Good, and you?": the NPC answers its own question too
+  if (TURNED_BACK.test(u.norm)) plan.parts.push(...answerBack(S, S.st.pendingAsked, u));
+  return plan;
+}
+
+function answerPending0(S, u) {
   const v = S.v, st = S.st;
+  st.pendingAsked = st.pending;
   let key = st.pending;
   if (!key) {
     // "I'm from Fresno", "I'm a nurse": volunteered, not asked, but worth the same reaction
@@ -1441,7 +2180,7 @@ export function answerPending(S, u) {
   }
   const strong = Object.entries(u.scores).some(([k, s]) => s >= 3.5 && !['greeting', 'thanks', 'apology', 'compliment', 'name'].includes(k));
   if (strong && !(key === 'job' && u.appraisal.facts.some(f => f.key === 'job'))) return null;
-  if (u.intent === 'insult' || u.intent === 'goodbye' || u.flags.more) return null;
+  if (u.intent === 'insult' || u.intent === 'probe' || u.intent === 'goodbye' || u.flags.more) return null;
   const words = u.norm.split(' ').length;
   const parts = [];
   const learn = (k, value, text) => S.learn(k, value, text);
@@ -1450,6 +2189,7 @@ export function answerPending(S, u) {
     const bare = /^([A-Z][a-z'-]{1,20})[.!]?$/.exec(u.text.trim());
     const nm = f ? String(f.value).split(/\s+/)[0] : bare && !/^(Yes|No|Yeah|Nope|Sure|Hi|Hey|Hello|Thanks|Okay|Ok)$/i.test(bare[1]) ? bare[1] : null;
     if (!nm) return null;
+    if (screenValue(f ? f.value : nm, 'name')) { parts.push(say(S, 'name.rude')); st.cs = false; return { parts, topics: [], intent: 'name', ask: null, emotion: 'annoyed' }; }
     if (!f) learn('name', nm, `Their name is ${nm}.`);
     parts.push(say(S, 'react.name', { player: nm }));
     return { parts, topics: ['self'], intent: 'name', learnedName: nm, ask: null };
@@ -1469,10 +2209,14 @@ export function answerPending(S, u) {
     }
     if (key === 'lives' && (u.flags.yes || u.flags.no)) { parts.push(say(S, u.flags.yes ? 'react.yes' : 'react.no')); return { parts, topics: ['neighborhood'], intent: 'smalltalk', ask: u.flags.no ? 'visiting' : null }; }
     if (words <= 4 && !u.question && /^[A-Z][A-Za-z'-]*(\s+[A-Z][A-Za-z'-]*)*[.!]?$/.test(u.text.trim()) && !/^(Yes|No|Yeah|Nope|Sure|Okay|Ok|Thanks|Hi|Hey|Hello|Tell|What|Why|How|Where|Who)\b/.test(u.text.trim())) {
-      learn('from', u.text.trim().replace(/[.!]$/, ''), `They are from ${u.text.trim().replace(/[.!]$/, '')}.`);
+      const place = u.text.trim().replace(/[.!]$/, '');
+      if (screenValue(place, 'from')) { parts.push(say(S, 'react.notBuying')); st.cs = false; return { parts, topics: [], intent: 'smalltalk', ask: null, emotion: 'annoyed' }; }
+      learn('from', place, `They are from ${place}.`);
       parts.push(say(S, 'react.from.unknown'));
       return { parts, topics: ['neighborhood'], intent: 'smalltalk', ask: null };
     }
+    const told = u.appraisal.facts.find(x => x.key === 'from' || x.key === 'lives');
+    if (told && screenValue(told.value, told.key)) { parts.push(say(S, 'react.notBuying')); st.cs = false; return { parts, topics: [], intent: 'smalltalk', ask: null, emotion: 'annoyed' }; }
     return null;
   }
   if (key === 'job') {
@@ -1483,10 +2227,14 @@ export function answerPending(S, u) {
       if (m && !/^(yes|no|nothing|not much|good|fine|okay|ok|sure|nope|yeah)$/.test(m[1])) job = m[1].trim();
     }
     if (!job) return null;
-    if (!f) learn('job', job, `They work as ${withArticle(job)}.`);
+    // a hateful or crude "job" is not learned, praised or repeated; one that is no job they know gets a plain nod
+    if (screenValue(job, 'job')) { parts.push(say(S, 'react.notBuying')); st.cs = false; return { parts, topics: [], intent: 'job', ask: null, emotion: 'annoyed' }; }
+    const known = job === 'retired' || knownJob(job);
+    if (!f && known) learn('job', job, `They work as ${withArticle(job)}.`);
     if (job === 'retired') parts.push(say(S, 'react.retired'));
-    else if (v.occ && v.occ.title && v.occ.title.toLowerCase().includes(job.toLowerCase())) parts.push(say(S, 'react.jobSame'));
-    else parts.push(say(S, 'react.job', { aPlayerJob: withArticle(job), aPlayerJobCap: capFirst(withArticle(job)) }));
+    else if (known && v.occ && v.occ.title && v.occ.title.toLowerCase().includes(job.toLowerCase())) parts.push(say(S, 'react.jobSame'));
+    else if (known) parts.push(say(S, 'react.job', { aPlayerJob: withArticle(job), aPlayerJobCap: capFirst(withArticle(job)) }));
+    else parts.push(say(S, 'react.jobOther'));
     return { parts, topics: ['job'], intent: 'job', ask: null };
   }
   if (key === 'howAreYou') {
@@ -1499,6 +2247,8 @@ export function answerPending(S, u) {
     return { parts, topics: ['self'], intent: 'how-are-you', ask: null };
   }
   if (!(u.flags.yes || u.flags.no || words <= 6) || (u.question && words > 3)) return null;
+  // "Boys or girls?" asks something back; only a yes, a no or a statement answers the NPC
+  if (u.question && !u.flags.yes && !u.flags.no && !TURNED_BACK.test(u.norm)) return null;
   const R = { kids: ['react.kidsYes', 'react.kidsNo', 'family'], team: ['react.teamYes', 'react.teamNo', 'smalltalk'], drive: ['react.drive', 'react.drive', 'traffic'], food: ['react.food', 'react.food', 'food'] }[key];
   if (key === 'visiting') {
     if (/visit|vacation|trip|passing|tourist|just here|holiday|seeing family|in town/.test(u.norm)) parts.push(say(S, 'react.visiting'));
@@ -1540,14 +2290,18 @@ const YOUNG_FILLERS = /^(like|dude|bro|so yeah|basically)$/i;
 /** Now and then a sentence opens with one of the speaker's fillers ("Honestly, it's ..."). */
 function fillerUp(S, parts, intent) {
   const v = S.v, rng = S.rng;
-  if (['greeting', 'goodbye', 'thanks', 'insult', 'name', 'joke'].includes(intent)) return parts;
+  if (['greeting', 'goodbye', 'thanks', 'insult', 'name', 'joke', 'probe'].includes(intent)) return parts;
+  // one discourse word per reply: an opener ("Well, let's see.") already took the slot
+  if (parts.some(p => p && /^(well|oh|hmm|good question|so|honestly|you know|anyway|look|let me|let's see|don't get me started|that's a big one)\b/i.test(p.text))) return parts;
   if (!rng.chance(0.06 + 0.22 * v.verb + (v.reg === 'casual' ? 0.06 : 0))) return parts;
   const own = v.fillers.filter(f => FILLER_STARTS.test(f));
   const local = v.reg === 'formal' ? [] : (linesForSafe(v, 'fillers').filter(f => FILLER_STARTS.test(f) && (!YOUNG_FILLERS.test(f) || v.age < 35)));
   const pool = own.length && rng.chance(0.7) ? own : local.length ? local : own;
   const f = rng.pick(pool);
   if (!f) return parts;
-  const i = parts.findIndex(p => p && startsCommon(p.text) && !/^(oh|well|so|hmm|good question)/i.test(p.text));
+  const later = /^(anyway|anyhow|mind you|so yeah|to be fair|actually|the thing is)$/i.test(f);
+  // never on a sentence that already opens with a discourse word ("You know, you know what's been on my mind?")
+  const i = parts.findIndex((p, k) => p && (!later || k > 0) && !/\?$/.test(p.text) && startsCommon(p.text) && !/^(oh|well|so|hmm|good question|you know|honestly|anyway|actually|look|basically|i mean|like|to be fair|the thing is)\b/i.test(p.text) && !/^(no|yes|yeah|nope|yep|nah)[,.!]/i.test(p.text));
   if (i < 0) return parts;
   const p = parts[i];
   const word = f[0].toUpperCase() + f.slice(1);
@@ -1565,7 +2319,7 @@ const SLANG_GOOD = new Set(['fire', 'dope', 'rad', 'goated', 'gnarly']);
 function slangUp(S, parts, intent) {
   const v = S.v, rng = S.rng, st = S.st;
   if (v.age >= 45 || v.reg === 'formal' || st.slangTurn === st.turn - 1 || !rng.chance(Math.min(0.5, v.slang * 0.45))) return parts;
-  if (['insult', 'name', 'goodbye'].includes(intent)) return parts;
+  if (['insult', 'probe', 'name', 'goodbye'].includes(intent)) return parts;
   for (let k = 0; k < 4; k++) {
     const sl = slangFor(v.key, v.age, rng);
     if (!sl) return parts;
@@ -1577,7 +2331,7 @@ function slangUp(S, parts, intent) {
       if (SLANG_GOOD.has(t)) text = p.text.replace(/\b(is|are|was|were|'s) (so |really |super |pretty )?(good|great|amazing|awesome)\b/, `$1 ${t}`);
       else if (t === 'bussin' && /food|eat|taco|burrito/.test(p.text)) text = p.text.replace(/\b(is|are) (so |really )?(good|great|delicious)\b/, '$1 bussin');
       else if (t === 'stoked') text = p.text.replace(/\b(I'm|I am) (so |really )?(excited|happy|glad)\b/, '$1 $2stoked');
-      else if (t === 'no cap' && /\.$/.test(p.text) && !/\?/.test(p.text) && p.text.length < 90 && /^(best|nothing|the best|you can't|you won't|there's|it's|honestly)/i.test(p.text)) text = p.text.replace(/\.$/, ', no cap.');
+      else if (t === 'no cap' && /\.$/.test(p.text) && !/\?/.test(p.text) && p.text.length < 90 && /^(best|nothing|the best|you can't|you won't|there's (nothing|no)|it's (the best|so|really|super|hella|pretty|actually)|honestly)\b/i.test(p.text)) text = p.text.replace(/\.$/, ', no cap.');
       else if ((t === 'lowkey' || t === 'highkey') && /^I (love|like|want|miss|need)\b/.test(p.text)) text = p.text.replace(/^I /, `I ${t} `);
       else if ((t === 'dude' || t === 'bro' || t === 'brah') && i === 0 && /\.$/.test(p.text) && p.text.split(' ').length <= 9 && !/,/.test(p.text)) text = p.text.replace(/\.$/, `, ${t}.`);
       else if (t === 'hella' && /\b(so|really|very) (good|hot|cold|busy|crowded|expensive|nice)\b/.test(p.text)) text = p.text.replace(/\b(so|really|very) (good|hot|cold|busy|crowded|expensive|nice)\b/, 'hella $2');
@@ -1629,16 +2383,20 @@ export function compose(S, intent, plan, u) {
   const v = S.v, st = S.st, rng = S.rng;
   let parts = plan.parts.filter(p => p && p.text);
   const budget = budgetOf(v, intent, plan);
+  const all0 = parts;
   parts = parts.slice(0, budget);
+  // the last conversation, mentioned in a greeting that the sentence budget then cut: it has not been mentioned
+  if (all0.some(p => p.key === 'greet.prev') && !parts.some(p => p.key === 'greet.prev')) st.mentionedPrev = false;
   // the player's name, now and then, at the end of the first sentence
-  if (v.relq.name && parts.length && !['insult'].includes(intent) && (st.nameUses === 0 ? rng.chance(0.5) : rng.chance(0.1)) && !parts[0].text.includes(v.relq.name)) {
+  if (v.relq.name && parts.length && !['insult', 'probe'].includes(intent) && (st.nameUses === 0 ? rng.chance(0.5) : rng.chance(0.1)) && !parts[0].text.includes(v.relq.name)) {
     const p = parts[0];
     const add = s => s.replace(/([.!?]+)?$/, (m0, pun) => `, ${v.relq.name}${pun || '.'}`);
     if (!/[,:;]$/.test(p.text) && p.text.split(/[.!?]/).filter(Boolean).length === 1) { parts[0] = Object.assign({}, p, { text: add(p.text), gloss: p.gloss ? add(p.gloss) : null }); st.nameUses += 1; }
   }
   // an opener before an answer to a question
-  if (u && u.question && parts.length && rng.chance(0.22) && v.age >= 13 && !plan.noAsk && !(v.age < 18 && HEAVY.has(intent)) && !['goodbye', 'greeting', 'thanks', 'insult', 'name'].includes(intent)) {
-    const o = say(S, HEAVY.has(intent) ? 'open.heavy' : 'open.question');
+  if (u && u.question && parts.length && !plan.noOpener && !/^(?:(?:ha|oh|no|nope|yes|yeah|yep|not|well|hmm|um|i am|sure|just)\b|kids\?)/i.test(parts[0].text) && rng.chance(0.22) && v.age >= 13 && !plan.noAsk && !(v.age < 18 && HEAVY.has(intent)) && !['goodbye', 'greeting', 'thanks', 'insult', 'name', 'smalltalk', 'unknown', 'how-are-you', 'compliment', 'joke', 'apology'].includes(intent)) {
+    const light = /none|nothingMore|beforeMe|noOffshore|\.low$|\.calm$/.test(parts[0].key || '');
+    const o = say(S, HEAVY.has(intent) && !light ? 'open.heavy' : 'open.question');
     if (o) {
       if (/,$/.test(o.text)) {
         if (startsCommon(parts[0].text)) parts[0] = Object.assign({}, parts[0], { text: `${o.text} ${G.lowerFirst(parts[0].text)}`, gloss: parts[0].gloss ? `${o.gloss || o.text} ${G.lowerFirst(parts[0].gloss)}` : null });
@@ -1646,7 +2404,7 @@ export function compose(S, intent, plan, u) {
     }
   }
   // a mood aside, once in a while and once per conversation
-  if (!st.moodSaid && v.age >= 13 && !['insult', 'goodbye', 'thanks'].includes(intent) && rng.chance(0.18)) {
+  if (!st.moodSaid && v.age >= 13 && !['insult', 'probe', 'goodbye', 'thanks'].includes(intent) && rng.chance(0.18)) {
     const m = v.mood;
     const key = m.tired ? 'mood.tired' : v.alerts.length && m.tense ? 'mood.alert' : isNum(v.tempF) && v.tempF >= 95 && m.valence < 0.1 ? 'mood.hot' : m.valence >= 0.45 ? 'mood.happy' : m.valence <= -0.35 ? 'mood.down' : null;
     const p = key ? say(S, key, { alert: v.alerts[0] && v.alerts[0].event, temp: v.tempF }) : null;
@@ -1673,14 +2431,15 @@ export function compose(S, intent, plan, u) {
     parts = fillerUp(S, parts, intent);
     parts = slangUp(S, parts, intent);
     // warmth for someone they like, once a conversation
-    if (!st.warmSaid && ['fond', 'warm'].includes(v.relq.feelings) && !['insult', 'goodbye'].includes(intent) && rng.chance(0.2)) {
+    if (!st.warmSaid && ['fond', 'warm'].includes(v.relq.feelings) && !['insult', 'probe', 'goodbye'].includes(intent) && rng.chance(0.2)) {
       const w = say(S, 'warm.aside');
       if (w) { parts.push(w); st.warmSaid = true; }
     }
   }
   // the home language
   let pre = null, post = null;
-  const csIntent = st.cs || CS_INTENT[intent] || null;
+  // st.cs: the planner's choice of phrase meaning; false means the answer is no occasion for one
+  const csIntent = st.cs === false ? null : st.cs || CS_INTENT[intent] || null;
   st.cs = null;
   const fits = CS_FITS[intent] || null;
   if (v.lang.mode === 'simple' && csIntent && rng.chance(0.85)) pre = homePhrase(S, csIntent, fits);
@@ -1745,4 +2504,3 @@ export function smallChild(S, intent) {
 /** Stable short hash for tags. */
 export const tagHash = s => (hashStr(String(s)) >>> 0).toString(36);
 
-export { pacific };

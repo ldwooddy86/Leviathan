@@ -1,10 +1,13 @@
 // Population (CONTRACTS section 5): ids, determinism, the two layers, sampling, performance, calibration to the
 // Census tables of thirteen ZIPs (and of small, older and college ZIPs), heritage from the tables, household
-// structure, trips that agree with their minutes, occupations, wages, education and origins.
+// structure, trips that agree with their minutes, occupations, wages, education and origins; and the realism of
+// the people inside a household: who speaks English less than very well, grandchildren and their parents, where
+// children were born, when each community began, and names and surnames by language and family custom.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
-import { Population, parseId, LEGION_SEED, HERITAGE_KEYS } from '../src/engine/population.mjs';
+import { Population, parseId, LEGION_SEED, HERITAGE_KEYS, originInfo } from '../src/engine/population.mjs';
+import { givenPool, surnamePool, adaptSurname } from '../src/engine/names.mjs';
 import { pickOccupation, chooseTitle, titleWage, OCCUPATION_CATALOG, OCC_GROUPS, GROUP_PROFILES, EDUCATION_LEVELS, MIN_WAGE_HOURLY, MIN_WAGE_FULL_TIME } from '../src/engine/occupations.mjs';
 import { Rng, hash3, u01 } from '../src/engine/rng.mjs';
 
@@ -536,4 +539,277 @@ test('occupations fit the place and the person', () => {
     const o = pickOccupation(r, { group: g, world, zi: zi('92683') });
     assert.ok(o.wage >= MIN_WAGE_FULL_TIME && o.wage < 600000 && typeof o.employer === 'string');
   }
+});
+
+// ---------------------------------------------------------------- realism inside households
+// The eight ZIPs the realism review measured: East LA, Glendale, Fresno, Yuba City, Daly City, Westminster, South LA,
+// the Mission. Households are materialized once and shared by the tests below.
+const PEEK = ['90022', '91205', '93727', '95993', '94015', '92683', '90001', '94110'];
+const homes = new Map();
+const householdsOf = (zip, n) => {
+  const key = `${zip}:${n}`;
+  if (!homes.has(key)) { const z = zi(zip), out = []; for (let h = 0; h < Math.min(n, pop.householdCount(z)); h++) out.push(pop.members(z, h)); homes.set(key, out); }
+  return homes.get(key);
+};
+const lastWords = s => s.split(' ');
+
+test('English: US-born adults are fluent; limited English sits with immigrants, by age at arrival, and with young children of immigrants', () => {
+  let nat = 0, natLep = 0, fb = 0, fbLep = 0;
+  const t = { kids: [0, 0], teens: [0, 0], asChild: [0, 0], asAdult: [0, 0], recent: [0, 0], settled: [0, 0], roomyKids: [0, 0] };
+  const add = (k, lim) => { t[k][0]++; if (lim) t[k][1]++; };
+  // ZIPs whose C16001 count their immigrants could hold (limited English at most 0.8 of the foreign-born share), unlike
+  // East LA, Florence and Westminster, where the count outruns the immigrants and the rest falls on the US born
+  const roomy = zip => {
+    const z = zi(zip), L = world.acsNamed(z, 'lang'), nt = world.acsNamed(z, 'nat');
+    let t5 = 0, lep = 0;
+    for (const k of world.acsLabels('lang')) t5 += L[k];
+    for (const k of world.acsLabels('lang_lep')) lep += L[k + '_lep'];
+    return lep / t5 <= 0.8 * nt.foreign / (nt.native + nt.foreign);
+  };
+  for (const zip of PEEK) {
+    const room = roomy(zip);
+    for (const mem of householdsOf(zip, 800)) {
+      for (const p of mem) {
+        if (p.age < 5) continue;
+        const lim = p.languages.english === 'limited', speaks = p.languages.home !== 'english';
+        if (p.nativity === 'native') {
+          if (p.age >= 18) { nat++; if (lim) natLep++; continue; }
+          const immParent = p.parents.some(j => mem[j].nativity === 'foreign');
+          if (speaks && immParent) { add(p.age <= 12 ? 'kids' : 'teens', lim); if (room && p.age <= 12) add('roomyKids', lim); }
+          continue;
+        }
+        if (p.age < 18) continue;
+        fb++; if (lim) fbLep++;
+        if (!speaks) continue;
+        const at = p.arrivalYear - p.birthYear, here = 2026 - p.arrivalYear;
+        if (at < 13) add('asChild', lim);
+        else if (at >= 18) { add('asAdult', lim); if (here <= 5) add('recent', lim); else if (here >= 25) add('settled', lim); }
+      }
+    }
+  }
+  const r = k => t[k][1] / t[k][0];
+  console.log(`US-born adults limited ${pts(natLep / nat)}% of ${nat}; immigrant adults ${pts(fbLep / fb)}%; came as children ${pts(r('asChild'))}%, as adults ${pts(r('asAdult'))}% (recent ${pts(r('recent'))}%, 25+ years ${pts(r('settled'))}%); US-born children of immigrants 5-12 ${pts(r('kids'))}% (${pts(r('roomyKids'))}% where the immigrants can hold the count), 13-17 ${pts(r('teens'))}%`);
+  assert.ok(nat > 3000 && t.kids[0] > 400 && t.asChild[0] > 100 && t.recent[0] > 100 && t.settled[0] > 300);
+  assert.ok(natLep / nat <= 0.04, `US-born adults with limited English: ${pts(natLep / nat)}%`);
+  assert.ok(fbLep / fb > 0.5, `immigrant adults with limited English: ${pts(fbLep / fb)}%`);
+  assert.ok(r('asAdult') > 2 * r('asChild'), 'those who came as adults more often than those who came as children');
+  assert.ok(1 - r('settled') > 2 * (1 - r('recent')), 'those here 25 years are fluent at least twice as often as recent arrivals');
+  assert.ok(r('kids') > r('teens') && r('teens') > natLep / nat, 'young children of immigrants still learning English, teenagers less, adults least');
+  // ... yet most of them speak it very well wherever the immigrants can hold the ZIP's count
+  assert.ok(t.roomyKids[0] > 200 && r('roomyKids') < 0.45, `US-born children of immigrants 5-12 with limited English: ${pts(r('roomyKids'))}% of ${t.roomyKids[0]}`);
+  assert.ok(r('kids') < 0.65, `US-born children of immigrants 5-12 with limited English: ${pts(r('kids'))}%`);
+  // each ZIP's total still matches C16001 (the thirteen calibration ZIPs are checked above; East LA here)
+  const v = pop.validate(zi('90022'), 2000), sumOf = o => Object.values(o).reduce((x, y) => x + y, 0);
+  assert.ok(Math.abs(sumOf(v.generated.lep) - sumOf(v.acs.lep)) < 0.04, `90022 limited English ${pts(sumOf(v.generated.lep))} vs ${pts(sumOf(v.acs.lep))}`);
+});
+
+test('grandchildren live with a parent old enough to be theirs, and nobody is a grandparent too young', () => {
+  let gcs = 0, gcHomes = 0, homes0 = 0, youngHeads = 0;
+  for (let z = 0; z < world.N; z += 3) {
+    for (let h = 0; h < Math.min(pop.householdCount(z), 150); h++) {
+      const c = pop.householdCore(z, h), head = c.members[0], kids = c.members.filter(p => p.role === 'child');
+      homes0++;
+      for (const k of kids) assert.ok(head.age >= k.age + 16, `${c.id}: a child of ${k.age} and a householder of ${head.age}`);
+      const g = c.members.filter(p => p.role === 'grandchild');
+      if (!g.length) continue;
+      gcHomes++;
+      if (head.age < 40) youngHeads++;
+      for (const x of g) {
+        gcs++;
+        assert.ok(kids.some(k => k.age >= x.age + 16 && k.age <= x.age + (k.sex === 'F' ? 45 : 55)), `${c.id}: grandchild of ${x.age} without a parent here (${c.members.map(p => p.role + p.age).join(' ')})`);
+      }
+    }
+  }
+  console.log(`${gcHomes} of ${homes0} households have grandchildren (${gcs}); ${youngHeads} of them a householder under 40`);
+  assert.ok(gcs > 1500 && gcHomes / homes0 > 0.02 && gcHomes / homes0 < 0.1);
+  assert.ok(youngHeads / gcHomes < 0.02, `householders under 40 with grandchildren: ${youngHeads} of ${gcHomes}`);
+  // layer 1 names each grandchild's parent among its parents, the same one for brothers and sisters
+  let named = 0;
+  for (const zip of PEEK) for (const mem of householdsOf(zip, 800)) {
+    const g = mem.filter(p => p.role === 'grandchild');
+    for (const x of g) {
+      const par = x.parents.map(j => mem[j]);
+      assert.ok(par.length >= 1 && par.some(q => q.role === 'child' && q.age >= x.age + 16), `${x.id}: parents ${x.parents}`);
+      named++;
+    }
+    const first = new Set(g.map(x => x.parents.find(j => mem[j].role === 'child')));
+    const oneFits = mem.filter(q => q.role === 'child' && g.every(x => q.age >= x.age + 16 && q.age <= x.age + (q.sex === 'F' ? 45 : 55)));
+    if (g.length > 1 && oneFits.length) assert.equal(first.size, 1, `${g[0].hid}: brothers and sisters share a parent`);
+  }
+  assert.ok(named > 100);
+});
+
+test('nativity is coherent in a household: children are born where their mother was, parents came before a birth here', () => {
+  let usKids = 0, along = 0, bad = 0, badAlong = 0, natives = 0;
+  const examples = [];
+  const placeOfOrigin = new Map();   // origin -> birthplaces of its immigrant adults
+  const all = PEEK.flatMap(zip => householdsOf(zip, 800));
+  for (const mem of all) for (const p of mem) if (p.nativity === 'foreign' && p.age >= 18) { if (!placeOfOrigin.has(p.origin)) placeOfOrigin.set(p.origin, new Set()); placeOfOrigin.get(p.origin).add(p.birthplace); }
+  for (const mem of all) {
+    for (const p of mem) {
+      const par = p.parents.map(j => mem[j]);
+      if (p.nativity === 'native' && p.mainlandYear === null) {
+        if (!par.length) continue;
+        natives++;
+        if (p.role === 'child') usKids++;
+        // the review's check (every immigrant parent here arrived after the birth), and the stricter one: any did
+        const imm = par.filter(q => q.nativity === 'foreign');
+        if (imm.some(q => q.arrivalYear > p.birthYear + 1)) { bad++; if (examples.length < 5) examples.push(`${p.id} born ${p.birthYear}: ${imm.map(q => `${q.role} arrived ${q.arrivalYear}`).join(', ')}`); }
+        continue;
+      }
+      if (p.nativity !== 'foreign' || !(p.role === 'child' || p.role === 'grandchild')) continue;
+      // born abroad: came with the parent who lives here, arrived with them, born in their country
+      const with_ = par.find(q => q.nativity === 'foreign' && q.arrivalYear === p.arrivalYear);
+      if (!with_) continue;
+      along++;
+      const country = s => s.split(', ').pop();
+      const places = placeOfOrigin.get(with_.origin) || new Set();
+      if (!(p.birthplace === with_.birthplace || places.has(p.birthplace) || country(p.birthplace) === country(with_.birthplace))) { badAlong++; if (examples.length < 8) examples.push(`${p.id} born ${p.birthplace}, came with ${with_.id} born ${with_.birthplace}`); }
+      assert.ok(p.birthYear <= p.arrivalYear);
+    }
+  }
+  console.log(`${natives} US-born people living with a parent (${usKids} children of the householder); ${along} children born abroad who came with a parent`);
+  assert.ok(usKids > 2500 && along > 200);
+  assert.equal(bad, 0, `born here before an immigrant parent arrived: ${examples.join('; ')}`);
+  assert.equal(badAlong, 0, `born away from the parent they came with: ${examples.join('; ')}`);
+});
+
+test('nobody is born in the 50 states before their origin\'s community began (Hmong, Cambodian, Lao, Vietnamese, Afghan, Ethiopian ...)', () => {
+  // ZIPs of the Hmong, Cambodian, Lao, Mien, Vietnamese, Afghan, Ethiopian, Eritrean, Salvadoran and Guatemalan communities
+  const zs = ['93727', '93702', '95823', '95828', '90813', '92683', '92844', '94544', '90018', '95207', '94606', '94601', '90011', '90057', '92105', '94541', '95111', '95122'];
+  const seen = {}, olderUS = {};
+  for (const zip of zs) {
+    const z = zi(zip);
+    for (let h = 0; h < Math.min(pop.householdCount(z), 600); h++) {
+      for (const p of pop.members(z, h)) {
+        const info = originInfo(p.origin);
+        assert.ok(info && info.heritage === p.heritage, `${p.id} ${p.origin}`);
+        seen[p.origin] = (seen[p.origin] || 0) + 1;
+        if (p.nativity === 'native' && p.mainlandYear === null && p.birthYear < info.since) olderUS[p.origin] = (olderUS[p.origin] || 0) + 1;
+      }
+    }
+  }
+  for (const k of ['hmong', 'cambodian', 'lao', 'vietnamese', 'afghan', 'ethiopian', 'salvadoran', 'guatemalan']) assert.ok(seen[k] > 50, `${k}: ${seen[k]}`);
+  assert.deepEqual(olderUS, {}, 'US born before the community began');
+  assert.ok(originInfo('hmong').since === 1976 && originInfo('eritrean').since === 1985 && originInfo('constructor') === null);
+});
+
+test('household surnames follow each tradition: fathers to children, married names, clans, patronymics, Singh and Kaur', () => {
+  const zips = [...PEEK, '90018', '95828', '94538', '95111', '92801'];
+  const issues = [], t = { hmong: [0, 0], eastAsia: [0, 0], usBorn: [0, 0], hispanic: [0, 0, 0], patronymic: [0, 0] };
+  const issue = (cond, msg) => { if (!cond && issues.length < 12) issues.push(msg); return cond; };
+  let fatherKids = 0, singleHomes = 0, headFathers = 0, gcChecked = 0;
+  const sikh = p => / (Singh|Kaur)$/.test(p.name.first) || ['Singh', 'Kaur'].includes(p.name.last);
+  // a daughter of an immigrant generation carries the feminine form of her father's name (Ivanova)
+  const fromFather = (k, f) => k.name.last === f.name.last || k.name.last === adaptSurname(f.name.last, { heritage: k.heritage, sex: k.sex })
+    || k.name.last === f.name.first.split(' ')[0] || (sikh(f) && ['Singh', 'Kaur'].includes(k.name.last));
+  for (const zip of zips) {
+    for (const mem of householdsOf(zip, 800)) {
+      const head = mem[0], spouse = mem.find(p => p.role === 'spouse');
+      for (const k of mem) {
+        if (k.role !== 'child' && k.role !== 'grandchild') continue;
+        const par = k.parents.map(j => mem[j]), father = par.find(q => q.sex === 'M' && q.role !== 'partner');
+        if (k.role === 'child' && father) {
+          fatherKids++;
+          // a married daughter living here with her husband may carry his name
+          const married = mem.some(q => q.role === 'relative' && q.sex !== k.sex && q.parents.length === 0 && k.age >= 20 && Math.abs(q.age - k.age) <= 8);
+          issue(fromFather(k, father) || (married && k.sex === 'F'), `${k.id} ${k.name.full}, father ${father.name.full}`);
+          if (father.nativity === 'foreign' && ['ethiopian', 'african'].includes(father.heritage) && /Ethiopia|Eritrea/.test(father.birthplace)) { t.patronymic[0]++; if (k.name.last === father.name.first) t.patronymic[1]++; }
+        }
+        if (k.role === 'grandchild') {
+          gcChecked++;
+          // their own parent's surname (their father's when he lives here), or the one shared by a single mother's children
+          const sibs = mem.filter(q => q.role === 'grandchild' && q.parents[0] === k.parents[0]);
+          issue(par.some(q => fromFather(k, q) || k.name.last === q.name.last) || (!par.some(q => q.sex === 'M') && sibs.every(q => q.name.last === k.name.last)), `${k.id} ${k.name.full}, parents ${par.map(q => q.name.full)}`);
+        }
+      }
+      // single parents: the children carry the parent's surname, or one other (their father's), never several
+      if (head.household.type === 'father' || head.household.type === 'mother') {
+        const kids = mem.filter(p => p.role === 'child' && p.parents.includes(0));
+        if (kids.length >= 2) {
+          singleHomes++;
+          const partner = mem.find(p => p.role === 'partner');
+          const others = new Set(kids.map(k => k.name.last).filter(l => l !== head.name.last && !(partner && l === partner.name.last) && !(sikh(head) && ['Singh', 'Kaur'].includes(l))));
+          issue(others.size <= 1, `${head.hid} single parent ${head.name.full}: children ${kids.map(k => k.name.full)}`);
+        }
+      }
+      // the householder's father carries the householder's family name (his given name where it is patronymic)
+      const dad = head.parents.map(j => mem[j]).find(q => q.sex === 'M');
+      if (dad && head.sex === 'M') { headFathers++; issue(dad.name.last === head.name.last || dad.name.first === head.name.last || (sikh(dad) && sikh(head)), `${head.hid} ${head.name.full}, father ${dad.name.full}`); }
+      // married women by tradition (the wife and husband of the householder's couple)
+      if (spouse && spouse.sex !== head.sex) {
+        const [w, hu] = head.sex === 'F' ? [head, spouse] : [spouse, head];
+        const took = w.name.last === hu.name.last || w.name.last.endsWith(`-${hu.name.last}`);
+        if (w.heritage === 'hmong' && hu.heritage === 'hmong') { t.hmong[0]++; if (w.name.last === hu.name.last) t.hmong[1]++; }
+        if (['korean', 'chinese', 'vietnamese'].includes(w.heritage) && w.nativity === 'foreign' && hu.heritage === w.heritage) { t.eastAsia[0]++; if (took) t.eastAsia[1]++; }
+        if (['american', 'english', 'irish', 'german', 'italian', 'scottish', 'french', 'european', 'african-american'].includes(w.heritage) && w.nativity === 'native' && hu.nativity === 'native') { t.usBorn[0]++; if (took) t.usBorn[1]++; }
+        if (['mexican', 'salvadoran', 'guatemalan'].includes(w.heritage) && w.nativity === 'foreign') { t.hispanic[0]++; if (w.name.last.includes('-')) t.hispanic[1]++; if (!took) t.hispanic[2]++; }
+      }
+    }
+  }
+  const r = (k, j = 1) => t[k][j] / t[k][0];
+  console.log(`children with their father here ${fatherKids}, single-parent homes ${singleHomes}, householders' fathers ${headFathers}, grandchildren ${gcChecked}; wives with the husband's name: Hmong ${pts(r('hmong'))}% of ${t.hmong[0]}, Korean/Chinese/Vietnamese immigrants ${pts(r('eastAsia'))}% of ${t.eastAsia[0]}, US born ${pts(r('usBorn'))}% of ${t.usBorn[0]}; Mexican and Central American immigrant wives joined ${pts(r('hispanic'))}%, kept ${pts(r('hispanic', 2))}% of ${t.hispanic[0]}; Ethiopian and Eritrean children named for their father ${pts(r('patronymic'))}% of ${t.patronymic[0]}`);
+  assert.deepEqual(issues, []);
+  assert.ok(fatherKids > 4000 && singleHomes > 200 && headFathers > 30 && gcChecked > 150);
+  assert.ok(t.hmong[0] > 20 && r('hmong') < 0.1, 'Hmong wives keep their clan name, never the husband\'s clan');
+  assert.ok(t.eastAsia[0] > 100 && r('eastAsia') < 0.4, 'Korean, Chinese and Vietnamese immigrant wives mostly keep their own names');
+  assert.ok(t.usBorn[0] > 100 && r('usBorn') > 0.7, 'most US-born wives carry the husband\'s name');
+  assert.ok(t.hispanic[0] > 200 && r('hispanic') > 0.04 && r('hispanic', 2) > 0.25 && r('hispanic', 2) < 0.65, 'Mexican and Central American immigrant wives keep, join or take');
+  assert.ok(t.patronymic[0] >= 10 && r('patronymic') > 0.9, 'Ethiopian and Eritrean children carry their father\'s given name');
+});
+
+test('names by language and origin: Indian and Pakistani families are named in their own language, children who came along in their country\'s names', () => {
+  const zips = ['95993', '94538', '94536', '95054', '93722', '92618', '95758', '95376', '94086'];
+  const LANGS = ['hindi', 'punjabi', 'bengali', 'gujarati', 'marathi', 'telugu', 'tamil', 'kannada', 'malayalam', 'urdu'];
+  const sikhSur = new Set(surnamePool('sikh').map(x => x.name));
+  const allEras = (heritage, sex, opts) => new Set([0, 1, 2, 3].flatMap(e => givenPool(heritage, sex, e, 1, opts).map(x => x.name)));
+  let n = 0, surOk = 0, givenOk = 0, pk = 0, pkOk = 0;
+  const bad = [];
+  for (const zip of zips) {
+    const z = zi(zip);
+    for (let h = 0; h < Math.min(pop.householdCount(z), 1500); h++) {
+      const c = pop.householdCore(z, h);
+      if (!c.members.some(p => p.heritage === 'indian' || p.heritage === 'pakistani')) continue;
+      const mem = pop.members(z, h);
+      for (const p of mem) {
+        const L = p.languages.home;
+        if (p.nativity !== 'foreign' || p.age < 18) continue;
+        // a woman who took her husband's surname carries his family's name, whatever his origin
+        const couple = p.role === 'householder' ? mem.find(q => q.role === 'spouse') : p.role === 'spouse' ? mem[0] : null;
+        const husband = couple && p.sex === 'F' && couple.sex === 'M' ? couple : null;
+        const hisName = husband && (p.name.last === husband.name.last || p.name.last.endsWith(`-${husband.name.last}`));
+        if (p.heritage === 'pakistani' && ['urdu', 'punjabi', 'pashto'].includes(L)) {
+          pk++;
+          if (surnamePool('pakistani', { language: L }).some(x => x.name === p.name.last)) pkOk++;
+        }
+        if (p.heritage !== 'indian' || !LANGS.includes(L)) continue;
+        n++;
+        const pool = new Set(surnamePool('indian', { language: L }).map(x => x.name));
+        const head = lastWords(p.name.first)[0];
+        const sur = pool.has(p.name.last) || (L === 'punjabi' && (sikhSur.has(p.name.last) || ['Singh', 'Kaur'].includes(p.name.last))) || (hisName && husband.heritage !== 'indian');
+        // (born outside India, they came with a parent from elsewhere and were named there)
+        const given = allEras('indian', p.sex, { language: L }).has(head) || (L === 'punjabi' && allEras('sikh', p.sex).has(head)) || !/India$/.test(p.birthplace);
+        if (sur) surOk++; if (given) givenOk++;
+        if ((!sur || !given) && bad.length < 8) bad.push(`${p.id} ${p.name.full} (${L}, born ${p.birthplace})`);
+      }
+    }
+  }
+  console.log(`${n} India-born adults speaking an Indian language: surname of their language ${pts(surOk / n)}%, given name ${pts(givenOk / n)}%; ${pk} Pakistan-born: surname of their language ${pts(pkOk / pk)}%; exceptions (adopted names, married names), e.g. ${bad.slice(0, 3).join('; ')}`);
+  assert.ok(n > 300 && pk > 20);
+  // a woman married across regions carries her husband's surname, and a few immigrants an adopted American name
+  assert.ok(surOk / n > 0.95, `surnames: ${bad.join('; ')}`);
+  assert.ok(givenOk / n > 0.95, `given names: ${bad.join('; ')}`);
+  assert.ok(pkOk / pk > 0.9);
+  // children born abroad who came with a parent carry names from that parent's country, never an American one
+  let along = 0, alongOk = 0;
+  for (const zip of PEEK) for (const mem of householdsOf(zip, 800)) for (const p of mem) {
+    if (p.nativity !== 'foreign' || p.role !== 'child' || p.age >= 18) continue;
+    const q = p.parents.map(j => mem[j]).find(x => x.nativity === 'foreign' && x.arrivalYear === p.arrivalYear);
+    if (!q || q.heritage === 'indian' || q.heritage === 'sikh') continue;
+    along++;
+    if (allEras(q.heritage, p.sex).has(lastWords(p.name.first)[0])) alongOk++;
+    else if (bad.length < 12) bad.push(`${p.id} ${p.name.full} born ${p.birthplace}, came with ${q.name.full} (${q.heritage})`);
+  }
+  assert.ok(along > 100);
+  assert.equal(alongOk, along, bad.slice(-4).join('; '));
 });

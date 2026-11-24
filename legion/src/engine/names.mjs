@@ -17,15 +17,22 @@
 //     country in the romanization usual in California; their US-born children (generation 2) mostly carry
 //     names popular in California for their cohort and sometimes heritage names as US-born families use
 //     them; the third generation mostly the general California pool of their cohort;
-//   * mixed traditions (Chinese pinyin / Cantonese / Taiwanese romanizations, Indian regions) follow the
-//     household surname when it is passed in, so a Wong is named in Cantonese and a Reddy in Telugu style.
+//   * mixed traditions (Chinese pinyin / Cantonese / Taiwanese romanizations, India's ten regional traditions)
+//     follow the family's home language and origin when they are passed in (opts.language, opts.origin), and the
+//     household surname when it is, so a Wong is named in Cantonese, a Reddy in Telugu style and a Punjabi
+//     family from Ludhiana in Punjabi; Pakistani surnames follow Urdu, Punjabi or Pashto, an Eritrean family's
+//     Tigrinya names the Ethiopian pools;
+//   * an immigrant who came here as a child (opts.arrivalAge under 18) keeps the name given in the origin country.
 //
 // Contract API (docs/CONTRACTS.md §5), unchanged from the provisional stub:
 //   NAME_HERITAGES                                   every heritage key
-//   surname(rng, heritage[, {sex, generation}])      a family name; with sex, adapted to the person
-//                                                    (Sikh Singh / Kaur, Slavic and Greek feminine forms)
-//   givenName(rng, {heritage, sex, birthYear, generation, nativity[, surname]})
+//   surname(rng, heritage[, {sex, generation, language, origin}])   a family name; with sex, adapted to the
+//                                                    person (Sikh Singh / Kaur, Slavic and Greek feminine forms)
+//   givenName(rng, {heritage, sex, birthYear, generation, nativity[, surname, birthSurname, language, origin,
+//     arrivalAge]})
 //   nickname(rng, given, {heritage, age[, sex, surname]})   a diminutive or adopted name, or null
+// Household customs: surnameCustoms(heritage[, {origin}]) (married names, clans, patronymics, Sikh names) and
+// marriedSurname(rng, {heritage, generation, own, husband}) (her husband's name, her own, or both).
 // Extras: nameFor (first, middle, last, full, display, nick in one call), middleName, adaptSurname, eraOf,
 // ERAS, givenPool, surnamePool, nicknameCandidates, isReservedName, normName, and the raw data GIVEN,
 // SURNAMES, NAMING (heritage configuration), NICKNAMES, PET_NAMES, MIDDLE_NAMES, EXCLUDED_SURNAMES,
@@ -33,7 +40,8 @@
 // heritage such as 'constructor' falls back like any unknown key.
 // Callers that know a person's surname (the household's) should pass it as opts.surname to givenName and
 // nickname: Chinese and Indian given names then follow the surname's romanization or region, and full
-// names that would point to a famous person are redrawn.
+// names that would point to a famous person are redrawn; a married woman's birth surname (opts.birthSurname)
+// is the one her given name follows.
 //
 // Pool format: a comma-separated string ranked from most to least common. "Name:12.5" gives an explicit
 // relative weight, and names after it continue the Zipf curve from it; "Name*3" weighs a name at three times
@@ -388,65 +396,194 @@ GIVEN.japanese = {
   },
 };
 
-// India: names differ by region far more than by anything else, so the pool is three regional traditions
-// (north: Hindi belt, Punjabi Hindu, Bengali; west: Gujarati, Marathi; south: Telugu, Tamil, Kannada,
-// Malayali) that follow the surname when it is known. Children born since 2000 share pan-Indian favorites.
+// India: names differ by language and region far more than by anything else, so the pool is ten traditions, one per
+// language (Hindi and the north, Punjabi Hindu, Bengali, Gujarati, Marathi, Telugu, Tamil, Kannada, Malayalam Hindu
+// and Malayali Christian) plus the Urdu-speaking Muslims of Hyderabad and Lucknow, who share the Muslim South Asian
+// names of Pakistan. They follow the family's language when it is known (givenName's `language`) and the surname
+// when it is passed in. Punjabi Sikhs are their own heritage (GIVEN.sikh). Children born since 2000 share pan-Indian
+// favorites (Aarav, Saanvi) with each region's own.
 const IN_E4_M = 'Aarav,Vivaan,Arjun,Reyansh,Ishaan,Aditya,Sai,Krishna,Aryan,Rohan,Vihaan,Ayaan,Atharv,Advik,Shaurya,Dhruv,Kabir,Ansh,Rudra,Arnav,Pranav,Aniruddh,Siddharth,Vedant,Ishan,Rishi,Yash,Dev,Om,Nikhil,Neil,Aarush,Viraj,Akshay,Tanish,Karthik,Laksh,Samarth,Vansh,Agastya,Aadi';
 const IN_E4_F = 'Saanvi,Aadhya,Ananya,Diya,Pari,Anika,Myra,Sara,Kiara,Aaradhya,Navya,Ira,Ishita,Riya,Shreya,Prisha,Avni,Kavya,Tara,Anvi,Siya,Meera,Aditi,Isha,Naina,Aanya,Tanvi,Nitya,Advika,Mahi,Khushi,Pihu,Riddhi,Ahana,Janvi,Shanaya,Trisha,Vanya,Mira,Saisha,Amaira';
+// A region's names for the cohort born since 2000: its own favorites first, then the shared ones it does not hold.
+const withShared = (own, shared) => [...new Set(`${own},${shared}`.split(',').map(s => s.trim()).filter(Boolean))].join(',');
 
-GIVEN['indian-north'] = {
+GIVEN['in-hindi'] = {
   z: 0.2,   // Indian names are diverse within every region
   M: [
-    'Ram,Shyam,Krishan,Omprakash,Ramesh,Suresh,Rajendra,Vijay,Ashok,Anil,Prakash,Satish,Subhash,Mahesh,Narendra,Surendra,Harish,Dinesh,Rakesh,Mohan,Gopal,Jagdish,Kishore,Pradeep,Prem,Ravi,Rajkumar,Arun,Vinod,Sushil,Kailash,Naresh,Devendra,Shiv,Hari,Inder,Kamal,Raj,Balraj,Madan,Brij',
-    'Rajesh,Sanjay,Sunil,Anil,Ajay,Manoj,Vinod,Ashok,Rakesh,Sanjeev,Rajeev,Deepak,Pankaj,Alok,Amit,Ashish,Atul,Vikas,Sandeep,Vivek,Nitin,Neeraj,Sachin,Arvind,Vijay,Sameer,Pradeep,Anurag,Mukesh,Rajiv,Sudhir,Sumit,Gaurav,Manish,Ravi,Naveen,Praveen,Puneet,Tarun,Hemant,Rajan',
-    'Rahul,Amit,Rohit,Ankit,Abhishek,Gaurav,Vikas,Nikhil,Varun,Saurabh,Akshay,Ankur,Sumit,Kunal,Mohit,Vishal,Ashish,Pranav,Siddharth,Arjun,Karan,Aman,Vivek,Tarun,Anuj,Mayank,Sahil,Shubham,Rishabh,Harsh,Aditya,Prateek,Rajat,Sachin,Nitin,Puneet,Neeraj,Vaibhav,Akash,Deepak',
-    IN_E4_M,
+    'Ram,Shyam,Krishan,Omprakash,Ramesh,Suresh,Rajendra,Vijay,Ashok,Anil,Prakash,Satish,Subhash,Mahesh,Narendra,Surendra,Harish,Dinesh,Rakesh,Mohan,Gopal,Jagdish,Kishore,Pradeep,Prem,Ravi,Rajkumar,Arun,Vinod,Sushil,Kailash,Naresh,Devendra,Shiv,Hari,Kamal,Brijesh,Shankar,Rameshwar,Ramprasad,Bhagwan,Ghanshyam,Radheshyam',
+    'Rajesh,Sanjay,Sunil,Anil,Ajay,Manoj,Vinod,Ashok,Rakesh,Sanjeev,Rajeev,Deepak,Pankaj,Alok,Amit,Ashish,Atul,Vikas,Sandeep,Vivek,Nitin,Neeraj,Arvind,Vijay,Sameer,Pradeep,Anurag,Mukesh,Rajiv,Sudhir,Sumit,Gaurav,Manish,Ravi,Naveen,Praveen,Tarun,Hemant,Rajan,Umesh,Yogesh,Dharmendra,Shailendra,Pramod',
+    'Rahul,Amit,Rohit,Ankit,Abhishek,Gaurav,Vikas,Nikhil,Varun,Saurabh,Akshay,Ankur,Sumit,Kunal,Mohit,Vishal,Ashish,Pranav,Siddharth,Arjun,Karan,Aman,Vivek,Tarun,Anuj,Mayank,Shubham,Rishabh,Harsh,Aditya,Prateek,Rajat,Sachin,Nitin,Neeraj,Vaibhav,Akash,Deepak,Utkarsh,Abhinav,Ayush,Himanshu,Shivam,Rajan',
+    withShared('Aarav,Vivaan,Reyansh,Ayaansh,Kabir,Advik,Shaurya,Atharv,Rudra,Ansh,Vihaan,Arnav,Krishna,Divyansh,Yuvan,Ishaan', IN_E4_M),
   ],
   F: [
-    'Sita,Kamla,Shanti,Savitri,Sushila,Sarla,Usha,Asha,Pushpa,Kanta,Krishna,Saroj,Shakuntala,Nirmala,Santosh,Vimla,Urmila,Kusum,Shobha,Leela,Manju,Kiran,Pratibha,Sudha,Uma,Radha,Gita,Sarojini,Vidya,Lata,Meera,Kanchan,Suman,Indira,Prem,Raj,Kamini,Prabha,Sharda,Sudesh,Raksha',
-    'Sunita,Anita,Rekha,Neelam,Seema,Poonam,Anju,Manju,Sangeeta,Kavita,Ritu,Meena,Neeta,Archana,Alka,Mamta,Shalini,Renu,Sarita,Nisha,Deepa,Rashmi,Vandana,Sonia,Monika,Madhu,Preeti,Shilpa,Suman,Asha,Usha,Kiran,Rajni,Ranjana,Babita,Jyoti,Sapna,Sudha,Vibha,Neelu,Shashi',
-    'Priya,Pooja,Neha,Shweta,Swati,Anjali,Nidhi,Divya,Ankita,Shruti,Megha,Sneha,Ritika,Richa,Shikha,Aarti,Nikita,Sonam,Payal,Pallavi,Garima,Komal,Ruchi,Tanvi,Isha,Simran,Ritu,Preeti,Nisha,Kirti,Deepika,Monika,Sakshi,Akanksha,Bhavna,Jyoti,Priyanka,Rashmi,Sonali,Shivani,Kriti',
-    IN_E4_F,
+    'Sita,Kamla,Shanti,Savitri,Sushila,Sarla,Usha,Asha,Pushpa,Kanta,Krishna,Saroj,Shakuntala,Nirmala,Santosh,Vimla,Urmila,Kusum,Shobha,Leela,Manju,Kiran,Pratibha,Sudha,Uma,Radha,Gita,Vidya,Lata,Meera,Kanchan,Suman,Indira,Prabha,Sharda,Raksha,Kamini,Shashi,Sunita,Parvati,Rukmini,Durga',
+    'Sunita,Anita,Rekha,Neelam,Seema,Poonam,Anju,Manju,Sangeeta,Kavita,Ritu,Meena,Neeta,Archana,Alka,Mamta,Shalini,Renu,Sarita,Nisha,Deepa,Rashmi,Vandana,Sonia,Monika,Madhu,Preeti,Shilpa,Suman,Asha,Usha,Kiran,Rajni,Ranjana,Babita,Jyoti,Sapna,Sudha,Vibha,Shashi,Rita,Geeta,Meenakshi',
+    'Priya,Pooja,Neha,Shweta,Swati,Anjali,Nidhi,Divya,Ankita,Shruti,Megha,Sneha,Ritika,Richa,Shikha,Aarti,Nikita,Sonam,Payal,Pallavi,Garima,Komal,Ruchi,Tanvi,Isha,Simran,Preeti,Nisha,Kirti,Deepika,Monika,Sakshi,Akanksha,Bhavna,Jyoti,Priyanka,Rashmi,Sonali,Shivani,Kriti,Ritu,Aditi,Muskan',
+    withShared('Saanvi,Aadhya,Anvi,Pari,Kiara,Myra,Navya,Prisha,Siya,Kavya,Avni,Ira,Riya,Aarohi,Ishita,Vanshika', IN_E4_F),
   ],
 };
 
-GIVEN['indian-west'] = {
+// Punjabi Hindu families (Delhi and the Punjab; the Sikhs are their own heritage).
+GIVEN['in-punjabi'] = {
   z: 0.2,
   M: [
-    'Ramesh,Mahendra,Jayant,Dilip,Bharat,Kishor,Navin,Pravin,Hasmukh,Arvind,Dinesh,Kantilal,Chandrakant,Vasant,Suresh,Prakash,Anant,Shashikant,Vinayak,Madhukar,Jitendra,Pramod,Bhupendra,Natwar,Kanu,Ishwar,Rasik,Mukund,Narayan,Harshad,Ramanlal,Jayantilal,Mohanlal,Shantilal,Vasudev,Prabhakar,Vithal,Dattatray,Shripad,Manubhai,Govind,Dinkar',
-    'Jignesh,Hitesh,Paresh,Nilesh,Mukesh,Jayesh,Kalpesh,Rakesh,Bhavesh,Ketan,Mehul,Nirav,Sanjay,Dharmesh,Tushar,Sameer,Amol,Sachin,Rajesh,Manish,Chirag,Nitin,Yogesh,Vipul,Hemant,Mitesh,Pankaj,Shailesh,Viral,Kaushik,Anil,Mahesh,Rajendra,Dipak,Ajit,Sunil,Prashant,Vijay,Satish,Milind,Kiran',
-    'Nirav,Chirag,Parth,Harsh,Dhruv,Kunal,Ronak,Hardik,Jay,Pratik,Sagar,Rushabh,Keyur,Vishal,Ankit,Mihir,Rohan,Aniket,Tejas,Omkar,Siddhesh,Akshay,Prasad,Nikhil,Shreyas,Saurabh,Darshan,Amey,Yash,Neel,Karan,Nishant,Sunny,Gaurav,Rahul,Abhishek,Hiren,Jainil,Dhaval,Pranav,Ashish,Vivek',
-    IN_E4_M,
+    'Krishan,Omprakash,Jagdish,Madanlal,Prem,Raj,Inder,Balraj,Brij,Ved,Yashpal,Satish,Ramesh,Subhash,Kewal,Tilak,Hansraj,Mohan,Kishan,Sudarshan,Vijay,Ashok,Anil,Surinder,Rajinder,Ravinder,Narinder,Joginder,Virender,Mahinder,Davinder,Harbans,Gulshan,Pawan,Romesh,Darshan,Kuldip,Amar,Chaman,Sham,Bhushan,Rattan,Mulkraj',
+    'Rajesh,Sanjay,Sunil,Anil,Vinod,Ashok,Deepak,Rakesh,Sanjeev,Rajeev,Pankaj,Vivek,Sandeep,Amit,Ajay,Vikas,Naveen,Sameer,Gaurav,Manish,Ravi,Puneet,Rohit,Arun,Vijay,Atul,Neeraj,Vikram,Rahul,Harish,Sachin,Pawan,Gulshan,Rajinder,Surinder,Ashwani,Vipin,Sunny,Bobby,Montu,Lalit,Rajan,Kapil',
+    'Rahul,Rohit,Ankit,Gaurav,Karan,Arjun,Varun,Kunal,Nikhil,Mohit,Vishal,Sahil,Akshay,Abhishek,Kapil,Ritesh,Siddharth,Tarun,Aman,Ashish,Vikas,Puneet,Vaibhav,Ankur,Mayank,Shubham,Harsh,Rishabh,Raghav,Kartik,Dhruv,Yash,Jatin,Hitesh,Sunny,Lucky,Nitin,Deepak,Sumit,Tushar,Gautam,Ishaan',
+    withShared('Arjun,Kabir,Vihaan,Reyansh,Advait,Ayaan,Aarav,Veer,Rehaan,Kian,Ishaan,Arnav,Dhruv,Agastya,Viraj,Yuvan', IN_E4_M),
   ],
   F: [
-    'Jayshree,Hansa,Kokila,Manjula,Sarla,Pushpa,Bharti,Nirmala,Kusum,Vimla,Shobha,Kanchan,Sushila,Leela,Mangala,Sunanda,Vasanti,Sulochana,Kamal,Lata,Asha,Usha,Pramila,Saroj,Indu,Jyotsna,Madhuri,Vidya,Shalini,Hemlata,Sumitra,Shanta,Kamla,Sharda,Prabha,Malati,Anandi,Kalavati,Savita,Kanta,Rekha',
-    'Hetal,Falguni,Bhavna,Nisha,Rupal,Darshana,Jigna,Sejal,Komal,Varsha,Swati,Rupa,Meena,Sonal,Mamta,Shital,Kalpana,Hema,Ami,Trupti,Manisha,Deepali,Vaishali,Ashwini,Smita,Madhavi,Archana,Nilam,Rashmi,Prachi,Sangita,Kavita,Mina,Nita,Rita,Hina,Jyoti,Pratibha,Rekha,Nayana,Vidya',
-    'Krupa,Dhara,Khushbu,Riddhi,Siddhi,Pooja,Nidhi,Payal,Ami,Shreya,Kinjal,Hiral,Foram,Drashti,Prachi,Aditi,Sneha,Shruti,Ketaki,Mrunal,Rucha,Gauri,Sayali,Tanvi,Radhika,Sakshi,Kavya,Disha,Isha,Janvi,Mansi,Nikita,Bhumi,Neha,Avani,Hetvi,Riya,Krisha,Urvi,Devangi,Zalak',
-    IN_E4_F,
+    'Kamla,Santosh,Raj,Pushpa,Kanta,Shakuntala,Krishna,Vimla,Sudesh,Shanti,Sarla,Usha,Asha,Kusum,Prem,Nirmala,Swaran,Satya,Sushila,Raksha,Veena,Kiran,Saroj,Shashi,Urmila,Neelam,Sneh,Darshana,Lajwanti,Bimla,Sharda,Kailash,Uma,Indu,Manorama,Madhu,Sudha,Sarita,Rajni,Chanchal,Kaushalya,Pushpinder',
+    'Neelam,Anju,Sunita,Anita,Seema,Poonam,Renu,Meenu,Rita,Monika,Ritu,Sonia,Neeru,Rajni,Mamta,Madhu,Kavita,Alka,Vandana,Shalini,Archana,Pooja,Preeti,Shilpa,Sapna,Deepa,Rashmi,Nisha,Jyoti,Babita,Meena,Shashi,Veenu,Pinky,Dolly,Rekha,Sangeeta,Manju,Suman,Bindu,Reema,Kanika',
+    'Priya,Pooja,Neha,Shweta,Swati,Anjali,Nidhi,Divya,Ankita,Shruti,Megha,Sneha,Ritika,Richa,Shikha,Aarti,Nikita,Payal,Pallavi,Garima,Komal,Ruchi,Simran,Isha,Kriti,Mehak,Tanya,Sakshi,Bhavna,Jyoti,Priyanka,Sonali,Shivani,Aditi,Muskan,Kanika,Charu,Radhika,Aanchal,Tanvi,Sonam',
+    withShared('Kiara,Myra,Mehar,Ishita,Sara,Anaya,Siya,Ira,Amaira,Tara,Avni,Pihu,Navya,Saanvi,Aanya,Riya', IN_E4_F),
   ],
 };
 
-GIVEN['indian-south'] = {
+GIVEN['in-bengali'] = {
   z: 0.2,
   M: [
-    'Srinivasan,Krishnamurthy,Subramaniam,Narayanan,Ramaswamy,Venkataraman,Raghavan,Rangarajan,Sundaram,Balakrishnan,Ramachandran,Rajagopal,Seshadri,Govindarajan,Chandrasekhar,Satyanarayana,Venkateswarlu,Nageswara,Ramakrishna,Prabhakar,Gopalakrishnan,Muthu,Nagaraj,Ravindran,Thomas,Joseph,Mathew,Varghese,Kurian,Madhavan,Unnikrishnan,Raman,Gopal,Subba,Hanumantha,Anantha,Murugan,Ponnusamy,Venugopal,Rangaswamy,Kesavan',
-    'Venkatesh,Srinivas,Ramesh,Suresh,Ganesh,Rajesh,Mahesh,Sridhar,Prakash,Murali,Ravi,Srikanth,Kumar,Sathish,Senthil,Prasad,Krishna,Shankar,Balaji,Anand,Raghu,Vijay,Sunil,Babu,Madhu,Raju,Mohan,Sudheer,Jayakumar,Gopi,Narayana,Siva,Kannan,Vinod,Jose,Biju,Shaji,Sajan,Rajan,Saravanan,Rajkumar',
-    'Karthik,Arun,Vignesh,Pradeep,Praveen,Naveen,Sandeep,Harish,Ashwin,Rajesh,Kiran,Sai,Vamsi,Chaitanya,Anil,Raviteja,Phani,Sriram,Balaji,Vivek,Deepak,Arjun,Aravind,Prashanth,Santhosh,Manoj,Dinesh,Gautham,Aditya,Varun,Abhinav,Rohit,Akhil,Nithin,Venkat,Mahesh,Sunil,Jithin,Anoop,Srikanth',
-    IN_E4_M,
+    'Subrata,Asit,Amal,Bimal,Kamal,Nirmal,Tapan,Swapan,Ashok,Prabir,Pradip,Gautam,Dilip,Ranjit,Sunil,Anil,Samir,Debashish,Partha,Sankar,Shyamal,Biswajit,Ajit,Sujit,Haradhan,Gopal,Nitai,Satyen,Rabindra,Sukumar,Dipak,Arun,Asok,Bijoy,Santosh,Manas,Sisir,Pranab,Tarun,Amitava,Jayanta,Nikhil',
+    'Debashish,Subhash,Sanjib,Sanjay,Abhijit,Arindam,Indranil,Partha,Sudipto,Saikat,Sourav,Rajib,Prasenjit,Biswajit,Kaushik,Sumit,Amit,Shubhankar,Anirban,Joydeep,Pinaki,Supriyo,Tanmoy,Subhajit,Rajat,Somnath,Sanjoy,Debasis,Shantanu,Sandip,Sujoy,Arnab,Atanu,Dipankar,Goutam,Sudip,Tapas,Ujjal,Utpal,Raja,Bappa,Rana',
+    'Sourav,Arnab,Anirban,Soumya,Rahul,Abhishek,Sayan,Subhankar,Debarshi,Shuvam,Ritwik,Arijit,Kaustav,Sagnik,Avik,Soham,Pritam,Souvik,Rohan,Aritra,Agnibha,Ankan,Anik,Debojyoti,Rajarshi,Sumanta,Swarnava,Tanmay,Tathagata,Rishav,Sudipta,Sounak,Indrajit,Debayan,Abhirup,Arka,Joydip,Ayan,Saurav,Shubhajit,Sohom,Riju',
+    withShared('Aarush,Rishaan,Ayaan,Arnav,Ishan,Shaurya,Reyansh,Adrit,Rian,Aarav,Rudra,Vihaan,Arjun,Kabir,Ahaan,Dhruv', IN_E4_M),
   ],
   F: [
-    'Lakshmi,Saraswathi,Kamala,Meenakshi,Parvathi,Jayalakshmi,Vijayalakshmi,Padmavathi,Rukmini,Kalyani,Annapurna,Sita,Savithri,Janaki,Sarojini,Seetha,Vasantha,Sulochana,Pushpa,Leela,Rajeswari,Bhagyalakshmi,Susheela,Indira,Mary,Annamma,Mariamma,Thankamma,Saramma,Shantha,Visalakshi,Kanaka,Radha,Rama,Prema,Usha,Kamakshi,Lalitha,Gomathi,Ponnamma,Parimala',
-    'Lakshmi,Padma,Uma,Geetha,Latha,Sudha,Shanthi,Vasanthi,Revathi,Sujatha,Anuradha,Kavitha,Srividya,Sangeetha,Vidya,Rekha,Malathi,Jayanthi,Radhika,Hema,Chitra,Bhavani,Vani,Rani,Usha,Asha,Suma,Sunitha,Sheela,Bindu,Shobha,Jaya,Sumathi,Nalini,Shyamala,Ambika,Mini,Sindhu,Mercy,Elizabeth',
-    'Divya,Priya,Swathi,Deepika,Sowmya,Keerthi,Ramya,Harini,Anusha,Bhavya,Sravani,Pavani,Lavanya,Shruthi,Nandini,Aishwarya,Sindhuja,Vaishnavi,Pooja,Meghana,Sneha,Mounika,Kavya,Gayathri,Sahithi,Haritha,Spandana,Archana,Madhuri,Neha,Anjali,Vidya,Revathi,Niveditha,Akhila,Asha,Reshma,Anitha,Sushma,Jyothi',
-    IN_E4_F,
+    'Gita,Rina,Mira,Bina,Krishna,Sabita,Kalpana,Gouri,Arati,Bharati,Chhaya,Jharna,Lakshmi,Maya,Minati,Namita,Nilima,Protima,Rekha,Shanti,Shefali,Shibani,Sobha,Sumitra,Swapna,Tapati,Uma,Anjali,Basanti,Chandana,Dipali,Ila,Jayashree,Kamala,Kanaka,Manju,Nandita,Purnima,Ruma,Sandhya,Anima,Bela',
+    'Mousumi,Sharmila,Sudeshna,Rupa,Moumita,Paromita,Sanchita,Sutapa,Anindita,Debjani,Chandrima,Nandini,Mitali,Mahua,Piyali,Shampa,Shrabani,Soma,Sonali,Swati,Tanushree,Sharmistha,Indrani,Jayanti,Kakoli,Madhumita,Rupali,Sudipta,Sumana,Suparna,Aparna,Bratati,Dola,Ishita,Mithu,Papiya,Sangita,Tanima,Urmi,Rituparna,Sreya,Kasturi',
+    'Ananya,Riya,Shreya,Sohini,Ankita,Moumita,Payel,Priyanka,Rituparna,Sayani,Srijita,Tanushree,Debolina,Ishani,Madhurima,Oindrila,Paramita,Poulami,Sreemoyee,Swagata,Trisha,Upasana,Adrija,Anwesha,Arpita,Debasmita,Esha,Koel,Mohona,Nabanita,Pallabi,Sanjana,Sneha,Sudeshna,Suchismita,Tiyasha,Rupsa,Ahona,Antara,Barnali,Roshni,Mou',
+    withShared('Aishani,Anushka,Ahana,Ishani,Rishika,Shreya,Anwesha,Oishi,Aadrika,Ananya,Riddhima,Saanvi,Aadhya,Diya,Myra,Kiara', IN_E4_F),
   ],
 };
 
+GIVEN['in-gujarati'] = {
+  z: 0.2,
+  M: [
+    'Ramesh,Mahendra,Jayant,Dilip,Bharat,Kishor,Navin,Pravin,Hasmukh,Arvind,Dinesh,Kantilal,Chandrakant,Suresh,Prakash,Jitendra,Bhupendra,Natwar,Kanu,Ishwar,Rasik,Harshad,Ramanlal,Jayantilal,Mohanlal,Shantilal,Manubhai,Govind,Narendra,Vinod,Mukesh,Kirit,Yogesh,Hemant,Pankaj,Rajnikant,Ashwin,Bipin,Ambalal,Babubhai,Chimanlal,Dahyabhai,Kanaiyalal',
+    'Jignesh,Hitesh,Paresh,Nilesh,Mukesh,Jayesh,Kalpesh,Rakesh,Bhavesh,Ketan,Mehul,Nirav,Sanjay,Dharmesh,Tushar,Sameer,Rajesh,Manish,Chirag,Nitin,Yogesh,Vipul,Hemant,Mitesh,Pankaj,Shailesh,Viral,Kaushik,Anil,Mahesh,Rajendra,Dipak,Ajay,Sunil,Vijay,Bhavin,Darshan,Jatin,Kamlesh,Piyush,Sanjiv,Alpesh',
+    'Nirav,Chirag,Parth,Harsh,Dhruv,Kunal,Ronak,Hardik,Jay,Pratik,Sagar,Rushabh,Keyur,Vishal,Ankit,Mihir,Rohan,Nikhil,Karan,Nishant,Sunny,Gaurav,Rahul,Hiren,Jainil,Dhaval,Pranav,Ashish,Vivek,Krunal,Maulik,Ravi,Brijesh,Nirmal,Urvish,Darshil,Smit,Yash,Harshil,Jaimin,Kandarp,Tirth',
+    withShared('Dev,Aarav,Vihaan,Reyansh,Ayaan,Krish,Shlok,Hriday,Aayush,Yug,Neel,Tirth,Kavish,Jash,Dhairya,Rudra', IN_E4_M),
+  ],
+  F: [
+    'Jayshree,Hansa,Kokila,Manjula,Sarla,Pushpa,Bharti,Nirmala,Kusum,Vimla,Shobha,Kanchan,Sushila,Leela,Lata,Asha,Usha,Pramila,Saroj,Indu,Jyotsna,Madhuri,Hemlata,Sumitra,Kamla,Sharda,Prabha,Savita,Kanta,Rekha,Bhanumati,Chandrika,Damayanti,Geeta,Hasumati,Kamini,Lalita,Manorama,Nalini,Ramila,Taraben,Kantaben,Shardaben',
+    'Hetal,Falguni,Bhavna,Nisha,Rupal,Darshana,Jigna,Sejal,Komal,Varsha,Swati,Rupa,Meena,Sonal,Mamta,Shital,Kalpana,Hema,Ami,Trupti,Manisha,Nilam,Rashmi,Sangita,Kavita,Mina,Nita,Rita,Hina,Jyoti,Pratibha,Rekha,Nayana,Bina,Dimple,Kinnari,Mona,Payal,Reena,Vaishali,Jagruti,Purvi',
+    'Krupa,Dhara,Khushbu,Riddhi,Siddhi,Pooja,Nidhi,Payal,Ami,Shreya,Kinjal,Hiral,Foram,Drashti,Prachi,Aditi,Sneha,Shruti,Radhika,Sakshi,Kavya,Disha,Isha,Janvi,Mansi,Nikita,Bhumi,Neha,Avani,Hetvi,Riya,Krisha,Urvi,Devangi,Zalak,Dhwani,Hemali,Jinal,Palak,Purvi,Toral,Vidhi',
+    withShared('Krisha,Hetvi,Dhriti,Mahi,Nysa,Aadhya,Kavya,Prisha,Riya,Vanshika,Diya,Jiya,Anvi,Siya,Mishka,Pari', IN_E4_F),
+  ],
+};
+
+GIVEN['in-marathi'] = {
+  z: 0.2,
+  M: [
+    'Vinayak,Madhukar,Dattatray,Shripad,Prabhakar,Vasant,Sudhakar,Shrikant,Mukund,Ashok,Anant,Shashikant,Vithal,Dinkar,Narayan,Vasudev,Ramchandra,Gangadhar,Sadashiv,Pandurang,Bhaskar,Dilip,Arun,Suresh,Ramesh,Prakash,Vijay,Sharad,Shrinivas,Gopal,Keshav,Laxman,Vishnu,Yashwant,Balasaheb,Dnyaneshwar,Shankar,Ravindra,Avinash,Madhav,Moreshwar,Bhalchandra',
+    'Amol,Sachin,Milind,Prashant,Nitin,Yogesh,Mandar,Sameer,Abhijit,Ajit,Ajay,Sanjay,Rajesh,Sunil,Anand,Deepak,Mahesh,Ganesh,Rahul,Uday,Atul,Kedar,Makarand,Nilesh,Parag,Rohit,Sandeep,Shailesh,Tushar,Vikas,Vivek,Girish,Hemant,Jayant,Kiran,Manoj,Mangesh,Satish,Sudhir,Umesh,Aniruddha,Rajendra',
+    'Omkar,Siddhesh,Tejas,Aniket,Amey,Shreyas,Saurabh,Prasad,Chinmay,Ninad,Akshay,Nikhil,Rohan,Aditya,Pranav,Kaustubh,Mihir,Sarang,Tanmay,Vedant,Ashutosh,Harshal,Ketan,Mayur,Nachiket,Parth,Rushikesh,Sagar,Shantanu,Shubham,Swapnil,Vaibhav,Yash,Gaurav,Hrishikesh,Kunal,Pratik,Rahul,Abhay,Chetan,Sumedh,Tushar',
+    withShared('Aarav,Advait,Arjun,Shlok,Vedant,Atharva,Swaraj,Shivansh,Reyansh,Viraj,Aayush,Om,Shaurya,Arnav,Rudra,Ishaan', IN_E4_M),
+  ],
+  F: [
+    'Mangala,Sunanda,Vasanti,Sulochana,Malati,Shalini,Sumitra,Sushma,Asha,Vidya,Shanta,Kamal,Kusum,Lata,Leela,Mandakini,Nalini,Prabha,Pushpa,Rajani,Saraswati,Shakuntala,Shobha,Sindhu,Sudha,Suman,Sunita,Usha,Vaijayanti,Vandana,Vimal,Anjali,Anuradha,Hemlata,Indumati,Jyoti,Kalpana,Kumud,Madhavi,Shubhangi,Sarojini,Lalita',
+    'Ashwini,Smita,Madhavi,Vaishali,Deepali,Manisha,Sangita,Archana,Swati,Rashmi,Shilpa,Sonali,Anagha,Aparna,Asmita,Bhagyashree,Gauri,Jayashree,Kalpana,Kavita,Manasi,Meenal,Mrinal,Neeta,Pallavi,Pradnya,Prajakta,Rajashree,Rohini,Rupali,Sadhana,Sarika,Seema,Shubhangi,Snehal,Sujata,Supriya,Vandana,Varsha,Vrushali,Madhuri,Smruti',
+    'Ketaki,Mrunal,Rucha,Gauri,Sayali,Prachi,Aditi,Sneha,Shruti,Sukanya,Aishwarya,Amruta,Ankita,Apurva,Ashwini,Bhakti,Dhanashree,Isha,Janhavi,Kalyani,Kshitija,Madhura,Manasi,Mugdha,Neha,Pooja,Priyanka,Pranjal,Radhika,Rutuja,Sakshi,Saloni,Shivani,Shweta,Siddhi,Tejaswini,Urvi,Vaidehi,Vrushali,Sanika,Gayatri,Mitali',
+    withShared('Aaradhya,Anvi,Swara,Mrunmayee,Shravani,Ovi,Rajvi,Gargi,Ira,Myra,Saanvi,Kimaya,Aarya,Ruhi,Sharvari,Tanishka', IN_E4_F),
+  ],
+};
+
+GIVEN['in-telugu'] = {
+  z: 0.2,
+  M: [
+    'Venkateswarlu,Satyanarayana,Nageswara,Ramakrishna,Subba,Hanumantha,Venkata,Rama,Krishna,Prasad,Narasimha,Koteswara,Srinivasa,Suryanarayana,Anjaneyulu,Bhaskara,Chandrasekhar,Gopala,Jagannatham,Lakshmana,Madhava,Mallikarjuna,Nagendra,Narayana,Pullaiah,Raghava,Ranga,Sambasiva,Seshagiri,Sitarama,Sriramulu,Sudhakar,Veeraiah,Venugopal,Yadagiri,Purushotham,Kameswara,Vijaya,Dharma,Bapuji,Gangadhar,Ramachandra',
+    'Srinivas,Venkatesh,Ramesh,Suresh,Srikanth,Sudheer,Rajesh,Ravi,Prasad,Murali,Kishore,Mohan,Naresh,Satish,Ramana,Sridhar,Prabhakar,Chandra,Madhu,Raju,Babu,Nagaraju,Krishna,Sekhar,Siva,Venu,Vijay,Sunil,Anil,Sai,Kiran,Mahesh,Ravindra,Hari,Gopi,Phani,Rambabu,Srihari,Raghu,Uday,Bhaskar,Vamsi',
+    'Vamsi,Chaitanya,Raviteja,Phani,Sai,Naveen,Kiran,Praveen,Harish,Anil,Mahesh,Sandeep,Pradeep,Srikanth,Venkat,Sudheer,Karthik,Ravi,Rakesh,Suresh,Krishna,Abhinav,Akhil,Anvesh,Bharath,Dheeraj,Gopi,Hemanth,Jagadeesh,Kalyan,Manoj,Nikhil,Pavan,Prashanth,Rajesh,Rohith,Sravan,Srinath,Sunil,Vinay,Teja,Sumanth',
+    withShared('Advik,Sai,Abhiram,Karthikeya,Sathvik,Charan,Rishi,Aarav,Viraj,Vihaan,Ishaan,Krish,Nihal,Pranav,Sriram,Dhruv', IN_E4_M),
+  ],
+  F: [
+    'Lakshmi,Padmavathi,Annapurna,Kalyani,Sita,Savithri,Janaki,Seetha,Sulochana,Rajeswari,Bhagyalakshmi,Susheela,Kanaka,Saraswathi,Vijayalakshmi,Venkatalakshmi,Satyavathi,Sarojini,Kamala,Parvathi,Rukmini,Anasuya,Jayalakshmi,Krishnaveni,Mahalakshmi,Nagamani,Padma,Pushpa,Radha,Rama,Ratnamma,Sarada,Seshamma,Subbalakshmi,Sundari,Tulasi,Usha,Varalakshmi,Vimala,Sowbhagya,Hymavathi,Chandramma',
+    'Lakshmi,Padma,Sujatha,Anuradha,Radhika,Rama,Sunitha,Vani,Rani,Madhavi,Sridevi,Jyothi,Kavitha,Latha,Usha,Aruna,Bharathi,Hemalatha,Jhansi,Kalpana,Kumari,Lalitha,Malathi,Mamatha,Neeraja,Prameela,Rajani,Sandhya,Sarada,Shailaja,Sirisha,Sobha,Srilatha,Sudha,Suneetha,Swarna,Uma,Vasantha,Vijaya,Yamuna,Geetha,Sailaja',
+    'Swathi,Sravani,Pavani,Lavanya,Sahithi,Haritha,Spandana,Mounika,Bhavya,Keerthi,Harini,Sindhuja,Meghana,Divya,Priya,Anusha,Deepthi,Sowmya,Ramya,Sushma,Aparna,Bhargavi,Chandana,Hima,Jahnavi,Kavya,Manasa,Navya,Niharika,Pallavi,Prathyusha,Sirisha,Sneha,Supriya,Tejaswi,Vaishnavi,Vineetha,Yamini,Alekhya,Akhila,Sruthi,Lasya',
+    withShared('Sahasra,Aadhya,Hasini,Ishanvi,Sreeja,Tanvi,Nitya,Akshara,Vaishnavi,Harshini,Riya,Saanvi,Anvi,Prisha,Shreya,Diya', IN_E4_F),
+  ],
+};
+
+GIVEN['in-tamil'] = {
+  z: 0.2,
+  M: [
+    'Srinivasan,Krishnamurthy,Subramaniam,Narayanan,Ramaswamy,Venkataraman,Raghavan,Rangarajan,Sundaram,Balakrishnan,Ramachandran,Rajagopal,Seshadri,Govindarajan,Chandrasekhar,Muthu,Ponnusamy,Gopalakrishnan,Ravindran,Raman,Gopal,Murugan,Rangaswamy,Kesavan,Arumugam,Shanmugam,Natarajan,Palaniappan,Sivaraman,Thiagarajan,Vaidyanathan,Kannan,Swaminathan,Sankaran,Duraisamy,Sundararajan,Venkatesan,Viswanathan,Parthasarathy,Kuppusamy,Annamalai,Ramalingam',
+    'Ganesh,Ramesh,Suresh,Rajesh,Mahesh,Senthil,Saravanan,Murali,Shankar,Balaji,Anand,Kumar,Prakash,Venkatesh,Sridhar,Srinivas,Sathish,Sekar,Rajkumar,Karthikeyan,Raja,Elango,Gopinath,Jayakumar,Kannan,Manikandan,Muthukumar,Nagarajan,Prabhu,Ravi,Sankar,Selvam,Sivakumar,Thirumalai,Vasudevan,Vijay,Arul,Babu,Mohan,Bharath,Dhanasekar,Rajasekar',
+    'Karthik,Arun,Vignesh,Ashwin,Sriram,Gautham,Aravind,Prashanth,Santhosh,Balaji,Vivek,Deepak,Dinesh,Hari,Harish,Kishore,Lokesh,Manoj,Naveen,Pradeep,Praveen,Raghav,Rajesh,Ramesh,Sanjay,Sathish,Shyam,Siddharth,Subash,Surya,Vasanth,Venkat,Vijay,Vikram,Vinoth,Yuvaraj,Arvind,Bharath,Gokul,Kiran,Prasanna,Sudharsan',
+    withShared('Aadhav,Kavin,Mithran,Nilan,Yazhan,Ilan,Tharun,Sharvesh,Rithvik,Aarav,Dhruv,Advaith,Kabilan,Pranav,Krish,Ishaan', IN_E4_M),
+  ],
+  F: [
+    'Meenakshi,Kamakshi,Visalakshi,Lalitha,Gomathi,Saraswathi,Kamala,Janaki,Seetha,Vasantha,Lakshmi,Parvathi,Jayalakshmi,Vijayalakshmi,Rukmini,Savithri,Sarojini,Rajeswari,Indira,Shantha,Prema,Usha,Radha,Rama,Parimala,Ponnammal,Muthulakshmi,Valli,Thilagavathi,Sivagami,Alamelu,Andal,Kalyani,Kanaka,Mangalam,Padmini,Ranganayaki,Sundari,Thangam,Pappa,Rajam,Gowri',
+    'Geetha,Latha,Shanthi,Revathi,Kavitha,Sangeetha,Malathi,Jayanthi,Chitra,Bhavani,Vasanthi,Sujatha,Anuradha,Srividya,Vidya,Rekha,Hema,Uma,Sudha,Padma,Lakshmi,Usha,Rani,Selvi,Valli,Shobana,Kalpana,Jaya,Sumathi,Nalini,Shyamala,Ambika,Rajeswari,Saradha,Devi,Gowri,Kala,Meena,Prabha,Vanitha,Kalaivani,Kanimozhi',
+    'Divya,Priya,Deepika,Sowmya,Ramya,Harini,Aishwarya,Nandini,Gayathri,Vaishnavi,Keerthana,Pavithra,Preethi,Sandhya,Sangeetha,Shruthi,Sindhu,Subhashini,Swetha,Vidhya,Abirami,Akshaya,Anitha,Bhuvana,Dharani,Hemalatha,Janani,Kavya,Lavanya,Madhumitha,Mythili,Nithya,Pooja,Pradeepa,Ranjani,Revathi,Saranya,Shalini,Sneha,Yamini,Archana,Indhu',
+    withShared('Aadhira,Yazhini,Mithra,Ishani,Kaviya,Nila,Thanvi,Sahana,Advika,Diya,Saanvi,Aadhya,Anika,Tara,Meera,Riya', IN_E4_F),
+  ],
+};
+
+GIVEN['in-kannada'] = {
+  z: 0.2,
+  M: [
+    'Nagaraj,Basavaraj,Mallikarjun,Shivakumar,Raghavendra,Gururaj,Narasimha,Ramakrishna,Venkatesh,Lingappa,Siddappa,Hanumanthappa,Basappa,Channappa,Krishnappa,Muniswamy,Nanjundappa,Ramaiah,Shivanna,Thimmaiah,Anantha,Gopal,Govinda,Jayaram,Keshava,Lakshman,Madhava,Narayana,Prabhakar,Ramesh,Sadashiva,Shankar,Srikanth,Srinivas,Subramanya,Suresh,Vasudev,Vishwanath,Yogananda,Dattatreya,Puttaswamy,Rangappa',
+    'Manjunath,Nagaraj,Shivakumar,Raghavendra,Guruprasad,Prashanth,Ravi,Suresh,Ramesh,Mahesh,Ganesh,Prakash,Rajesh,Sanjay,Sunil,Anil,Kiran,Mohan,Sudhir,Umesh,Satish,Girish,Harish,Jagadish,Mallikarjun,Basavaraj,Chandrashekar,Dinesh,Hemanth,Jayanth,Kumar,Lokesh,Mukund,Naveen,Pradeep,Rajendra,Santosh,Shashidhar,Srinivas,Vinay,Raghu,Sharath',
+    'Puneeth,Darshan,Shashank,Prajwal,Sachin,Abhishek,Akash,Chethan,Deepak,Harsha,Karthik,Kiran,Manoj,Naveen,Nikhil,Pavan,Pradeep,Praveen,Raghu,Rakesh,Rohith,Sagar,Santhosh,Shreyas,Sumanth,Suhas,Tejas,Varun,Vinay,Vishal,Yashwanth,Adarsh,Amith,Bharath,Chiranjeevi,Gagan,Hemanth,Jeevan,Madhusudan,Nithin,Shravan,Vikas',
+    withShared('Advik,Shreyas,Samarth,Tanmay,Dhruva,Pranav,Rishi,Aarav,Vihaan,Ishaan,Arjun,Nihal,Atharv,Krish,Reyansh,Vedanth', IN_E4_M),
+  ],
+  F: [
+    'Shobha,Shantha,Pushpa,Saraswathi,Lakshmi,Kamala,Gowramma,Parvathamma,Sharadamma,Jayamma,Leelavathi,Sarojamma,Nagamma,Rathnamma,Akkamma,Bhagya,Girija,Indira,Janaki,Kamakshi,Kusuma,Lalitha,Mangala,Nirmala,Padmavathi,Prema,Radha,Rukmini,Savithri,Shakuntala,Sharada,Sheela,Sudha,Sulochana,Sumithra,Susheela,Uma,Usha,Vasantha,Vimala,Gangamma,Puttamma',
+    'Savitha,Shilpa,Sushma,Rashmi,Deepa,Asha,Geetha,Jyothi,Kavitha,Latha,Mamatha,Manjula,Nagaveni,Nalini,Padma,Pushpa,Rajeshwari,Rekha,Roopa,Sangeetha,Sarala,Shailaja,Shanthi,Shobha,Sowmya,Sudha,Suma,Sunanda,Sunitha,Uma,Usha,Vani,Veena,Vidya,Vijayalakshmi,Bharathi,Chandrika,Hemavathi,Kalpana,Prathibha,Shubha,Anitha',
+    'Bhavya,Spoorthi,Chaitra,Pooja,Ananya,Anusha,Arpitha,Ashwini,Deepika,Divya,Harshitha,Kavya,Keerthana,Megha,Navya,Nayana,Pallavi,Prathiksha,Priyanka,Ramya,Rashmi,Sahana,Sanjana,Shwetha,Sindhu,Sinchana,Sneha,Sowmya,Supriya,Swathi,Tejaswini,Varsha,Vidya,Yashaswini,Akshatha,Amrutha,Bindu,Chandana,Gagana,Lavanya,Rakshitha,Shruthi',
+    withShared('Samanvi,Prakruthi,Anvitha,Ishika,Sanvi,Navya,Dhanvi,Tanvi,Aadhya,Siri,Riya,Saanvi,Anika,Diya,Avni,Ira', IN_E4_F),
+  ],
+};
+
+// Malayalam: Hindu Malayali families (Nair, Menon, Ezhava ...) and the Syrian Christians (Marthoma, Orthodox,
+// Catholic), who are most of the Malayali families in California and carry biblical and English names.
+GIVEN['in-malayali'] = {
+  z: 0.2,
+  M: [
+    'Unnikrishnan,Madhavan,Gopalakrishnan,Radhakrishnan,Sasidharan,Raghavan,Krishnan,Narayanan,Velayudhan,Kunjikrishnan,Balakrishnan,Damodaran,Gangadharan,Govindan,Kesavan,Kunhiraman,Bhaskaran,Chandrasekharan,Divakaran,Gopinathan,Janardhanan,Karunakaran,Mohandas,Prabhakaran,Purushothaman,Ramachandran,Ravindran,Sankaran,Sivadasan,Sreedharan,Sukumaran,Surendran,Vasudevan,Vijayan,Venugopal,Achuthan,Appukuttan,Haridas,Padmanabhan,Rajagopal,Sreenivasan,Thankappan',
+    'Sreekumar,Ajith,Biju,Sajan,Shaji,Anil,Sunil,Suresh,Rajesh,Ramesh,Santhosh,Manoj,Jayan,Pradeep,Sajeev,Rajeev,Hari,Gopakumar,Sanjay,Vinod,Ajayan,Anilkumar,Binu,Dileep,Girish,Harikumar,Jayakumar,Mahesh,Murali,Pramod,Rajan,Ratheesh,Sabu,Saji,Satheesh,Shibu,Sudheer,Unni,Vijay,Prasanth,Rajeesh,Sreejith',
+    'Arjun,Akhil,Vishnu,Rahul,Anoop,Jithin,Abhijith,Amal,Anand,Aravind,Arun,Ashwin,Gokul,Hari,Kiran,Midhun,Nithin,Pranav,Rohit,Sarath,Sidharth,Sreenath,Sujith,Vineeth,Vipin,Vivek,Akash,Anish,Deepak,Gautham,Jishnu,Karthik,Manu,Nikhil,Praveen,Ranjith,Sachin,Vaisakh,Varun,Adarsh,Abhinav,Sandeep',
+    withShared('Advaith,Adithyan,Aadhi,Niranjan,Devanand,Abhinav,Aarav,Ishaan,Vihaan,Krishna,Pranav,Rishi,Arjun,Aryan,Vedant,Kailas', IN_E4_M),
+  ],
+  F: [
+    'Sreedevi,Lakshmi,Indira,Sarojini,Kamala,Kalyani,Padmini,Parvathy,Radha,Sathyabhama,Savithri,Sharada,Sobha,Sulochana,Usha,Vasanthi,Bhargavi,Devaki,Gomathi,Janaki,Kausalya,Kunjulakshmi,Lalitha,Leela,Malathi,Meenakshi,Nalini,Narayani,Omana,Ponnamma,Prema,Rajalakshmi,Rugmini,Sarada,Seetha,Subhadra,Sumathi,Susheela,Thankam,Vimala,Kamalakshi,Ammini',
+    'Sindhu,Mini,Bindu,Beena,Sheeba,Shobha,Asha,Jayasree,Latha,Preetha,Rekha,Sreeja,Suja,Sunitha,Smitha,Divya,Deepa,Geetha,Jyothi,Kavitha,Lekha,Manju,Maya,Nisha,Priya,Rani,Reshmi,Saritha,Seema,Sreelatha,Suma,Sushama,Usha,Vidya,Anitha,Jaya,Raji,Sheela,Bindhu,Kala,Radhika,Shyama',
+    'Divya,Anjali,Arya,Athira,Aswathy,Revathy,Lakshmi,Gopika,Anagha,Anju,Aparna,Aiswarya,Amritha,Chithra,Devika,Gayathri,Harsha,Krishna,Meera,Neethu,Parvathy,Pooja,Reshma,Saranya,Sreelakshmi,Sruthi,Swathy,Uthara,Vidya,Akhila,Ardra,Archana,Haritha,Keerthana,Nimisha,Remya,Soumya,Sandra,Aathira,Anusree,Malavika,Sneha',
+    withShared('Gauri,Nandana,Devananda,Ananya,Avani,Malavika,Niranjana,Diya,Aadhya,Anika,Ira,Meera,Saanvi,Riya,Kavya,Navya', IN_E4_F),
+  ],
+};
+
+GIVEN['in-malayali-christian'] = {
+  z: 0.25,
+  M: [
+    'Thomas,Joseph,Mathew,George,Abraham,Jacob,Varghese,Kurian,Philip,John,Chacko,Mathai,Oommen,Koshy,Eapen,Zachariah,Ninan,Cherian,Itty,Korah,Mammen,Paulose,Pothen,Scaria,Ouseph,Devasia,Ittoop,Kuriakose,Markose,Peter,Simon,Stephen,Samuel,Daniel,David,Alexander,Varkey,Chandy,Baby,Joy,Antony,Sebastian',
+    'Thomas,Joseph,Mathew,George,Jose,Sunny,Shaji,Biju,Saji,Babu,Joy,Johnson,Philip,Sabu,Tomy,Benny,Binu,Jacob,Abraham,Varghese,Shibu,Raju,Roy,Sam,Reji,Jaison,Jomon,Saju,Bijoy,Shinu,Sunil,Alex,Anil,Joji,Kurian,Mathews,Paul,Rajan,Siju,Wilson,Tony,Jimmy',
+    'Jobin,Jithin,Jestin,Linto,Bibin,Ebin,Tony,Jijo,Jobi,Arun,Sanju,Albin,Anish,Anoop,Ashwin,Basil,Bijo,Bobby,Dony,Eldho,Febin,George,Jeffin,Jinu,Joel,Jomy,Jose,Justin,Kevin,Libin,Martin,Melvin,Nibin,Renjith,Robin,Shijo,Sijo,Tinu,Vinu,Joseph,Thomas,Jibin',
+    'Aaron,Abel,Alan,Alex,Allen,Andrew,Ashwin,Christy,Daniel,David,Ebin,Ethan,Evan,George,Isaac,Jacob,Jaden,Joel,John,Joseph,Joshua,Kevin,Liam,Mathew,Nathan,Neil,Noah,Ryan,Samuel,Sebastian,Thomas,Tom,Benjamin,Christopher,Elijah,Emmanuel,Jeremiah,Jonathan,Mark,Paul,Steve,Jeevan',
+  ],
+  F: [
+    'Mary,Annamma,Mariamma,Thankamma,Saramma,Aleyamma,Elizabeth,Achamma,Kunjamma,Rosamma,Sosamma,Eliamma,Kochuthresia,Mariakutty,Rachel,Susan,Thresiamma,Annakutty,Chinnamma,Leelamma,Omana,Ponnamma,Ammini,Anna,Ruth,Sarah,Esther,Grace,Margaret,Martha,Philomina,Lucy,Clara,Agnes,Celine,Helen,Rosa,Thressia,Mercy,Lilly,Kunjumol,Alice',
+    'Mercy,Susan,Molly,Jessy,Lissy,Beena,Shiny,Ancy,Mini,Sheela,Bindu,Jaya,Laila,Annie,Elsy,Gracy,Jolly,Leena,Maya,Merly,Rosily,Sally,Shirly,Sicily,Sindhu,Sophy,Suja,Sunitha,Teena,Usha,Valsa,Daisy,Betsy,Liji,Shibi,Simi,Sumi,Tessy,Lizy,Mariya,Jincy,Soly',
+    'Jincy,Sherin,Anju,Neethu,Nimmy,Teena,Tintu,Ann,Merin,Ancy,Ashly,Bincy,Bini,Christy,Dincy,Elizabeth,Feba,Jeena,Jency,Jessy,Jisha,Jismy,Joicy,Linta,Liya,Mariya,Mary,Nimisha,Reshma,Riya,Rosmy,Shilpa,Sinu,Sneha,Sonia,Steffy,Teresa,Tincy,Anitha,Dhanya,Mereena,Neenu',
+    'Ann,Anna,Angel,Ashley,Christina,Elizabeth,Emily,Evelyn,Grace,Hannah,Jasmine,Jessica,Joanna,Julia,Leah,Liya,Maria,Mariya,Mary,Mercy,Merin,Naomi,Nia,Olivia,Rachel,Rebecca,Rose,Ruth,Sarah,Sharon,Sophia,Teresa,Abigail,Alina,Ava,Christy,Diya,Elsa,Esther,Mia,Annmariya,Irene',
+  ],
+};
 GIVEN.indian = {
+  // the mix by cohort when the family's language is not known: the Gujarati and Punjabi families who came first,
+  // the Telugu and Tamil engineers of the last decades
   mix: [
-    ['indian-north', [0.4, 0.38, 0.36, 0.34]],
-    ['indian-west', [0.3, 0.27, 0.22, 0.2]],
-    ['indian-south', [0.3, 0.35, 0.42, 0.46]],
+    ['in-hindi', [0.22, 0.24, 0.25, 0.26]],
+    ['in-punjabi', [0.14, 0.12, 0.09, 0.08]],
+    ['in-gujarati', [0.2, 0.17, 0.12, 0.1]],
+    ['in-bengali', [0.05, 0.05, 0.05, 0.05]],
+    ['in-marathi', [0.05, 0.05, 0.05, 0.05]],
+    ['in-telugu', [0.08, 0.11, 0.17, 0.19]],
+    ['in-tamil', [0.1, 0.1, 0.11, 0.11]],
+    ['in-kannada', [0.04, 0.04, 0.05, 0.05]],
+    ['in-malayali', [0.03, 0.03, 0.03, 0.03]],
+    ['in-malayali-christian', [0.06, 0.06, 0.05, 0.05]],
+    ['in-urdu', [0.03, 0.03, 0.03, 0.03]],
   ],
   us: {
     M: [
@@ -511,6 +648,9 @@ GIVEN.pakistani = {
     'Fatima,Ayesha,Maryam,Zainab,Hania,Anaya,Inaya,Alishba,Eman,Hafsa,Khadija,Noor,Zara,Mahnoor,Hoorain,Aleena,Manahil,Abeeha,Dua,Aiza,Anabia,Haniya,Areeba,Zoya,Mishal,Rimsha,Sara,Amna,Aliza,Mehreen,Laiba,Minahil,Inaaya,Ruqayya,Sumaya,Hareem,Aimal,Zunaira,Hira,Yusra',
   ],
 };
+
+// India's Urdu-speaking Muslims (Hyderabad, Lucknow) carry the same Muslim South Asian given names.
+GIVEN['in-urdu'] = GIVEN.pakistani;
 
 // Bangladesh (shares the common Muslim South Asian names, with Bengali ones of its own).
 GIVEN.bangladeshi = {
@@ -1171,18 +1311,31 @@ SURNAMES.korean = 'Kim:21.5,Lee:14,Park:8.4,Choi:4.7,Jung:3,Chung:1.6,Kang:2.3,C
 // Higa, Kaneshiro, Oshiro) in the older spellings families kept (Inouye, Uyeda).
 SURNAMES.japanese = 'Nakamura:2,Tanaka:2,Yamamoto:1.9,Watanabe:1.6,Ito:1.5,Kobayashi:1.5,Sato:1.4,Suzuki:1.4,Takahashi:1.4,Yamaguchi:1.3,Kimura:1.2,Matsumoto:1.2,Inouye:1.1,Shimizu:1.1,Yamada:1.1,Sasaki:1,Hayashi:1,Kato:1,Yoshida:1,Yamashita,Nakano,Okamoto,Fujii,Ishii,Ogawa,Mori,Ikeda,Hashimoto,Murakami,Nishimura,Fujimoto,Okada,Nakagawa,Kondo,Maeda,Goto,Hirano,Ueda,Hamada,Kaneshiro,Higa,Shiroma,Miyashiro,Arakaki,Oshiro,Tamura,Yoshimura,Morimoto,Uyeda,Nishimoto,Kawamoto,Matsuda,Hara,Kubota,Endo,Fukuda,Miyamoto,Okubo,Sakamoto,Takeda,Tsuji,Uchida,Wada,Yokoyama,Abe,Aoki,Fujita,Iwamoto,Masuda,Nagata,Ota,Shimada,Tanimoto,Ishida,Honda,Matsui,Ono';
 
-// India by region: the surname tells the region, and givenName follows it when the surname is passed in.
-SURNAMES['indian-north'] = 'Sharma:3,Gupta:2.5,Kumar:2.5,Singh:2,Verma:1.4,Agarwal:1.3,Jain:1.3,Kapoor:1.1,Khanna:1,Malhotra:1,Arora:1,Bhatia,Sethi,Saxena,Srivastava,Mishra,Pandey,Tiwari,Shukla,Yadav,Chauhan,Goyal,Bansal,Mittal,Tripathi,Dubey,Chaturvedi,Sinha,Banerjee,Chatterjee,Mukherjee,Bose,Das,Dutta,Ghosh,Sen,Roy,Chakraborty,Bhattacharya,Sarkar,Saha,Mitra,Ganguly,Basu,Dey,Biswas,Chopra,Ahuja,Kohli,Mehra,Bhalla,Grover,Sood,Bajaj,Talwar,Anand,Dhawan,Tandon,Chadha,Rastogi,Garg';
-SURNAMES['indian-west'] = 'Patel:9,Shah:4,Desai:2,Mehta:2,Joshi:1.5,Parikh:1.2,Trivedi:1,Pandya,Bhatt,Dave,Vyas,Amin,Panchal,Solanki,Thakkar,Dalal,Kothari,Mistry,Raval,Kulkarni,Deshpande,Patil,Jadhav,Deshmukh,Gokhale,Apte,Bhide,Kale,Chavan,Pawar,Shinde,Gaikwad,More,Sawant,Phadke,Karve,Paranjape,Naik,Parekh,Chokshi,Sheth,Vora,Majmudar,Bhakta,Jani,Rana,Bhagat,Gajjar';
-SURNAMES['indian-south'] = 'Reddy:4,Rao:3.5,Nair:1.8,Iyer:1.5,Krishnan:1.5,Kumar:1.5,Subramanian:1.4,Naidu:1.2,Prasad:1.1,Chowdary:1.1,Raman:1,Murthy:1,Varma,Raju,Venkataraman,Ramachandran,Natarajan,Sundaram,Balasubramanian,Rajagopal,Srinivasan,Narayanan,Swaminathan,Ganesan,Mani,Pillai,Menon,Kurian,Thomas,Mathew,George,Varghese,Joseph,Abraham,Jacob,Cherian,Panicker,Hegde,Shetty,Gowda,Kamath,Bhat,Pai,Shenoy,Nayak,Acharya,Iyengar,Raghavan,Gopalan,Kannan,Chandran,Goud,Kolli,Gaddam,Kodali,Vemula,Katta,Alla,Mandava,Nallapati,Bommareddy,Yalamanchili,Chilukuri';
-SURNAMES.indian = { mix: [['indian-north', 0.36], ['indian-west', 0.3], ['indian-south', 0.34]] };
+// India by language: the surname tells the region (and, in Kerala, the church), and givenName follows it when the
+// surname is passed in. Tamil and many Malayali surnames are a father's given name, as US records write them.
+SURNAMES['in-hindi'] = 'Sharma:3,Gupta:2.5,Kumar:2.5,Singh:2,Verma:1.4,Agarwal:1.3,Jain:1.3,Srivastava:1.1,Mishra:1.1,Pandey:1,Tiwari:1,Yadav:1,Shukla,Saxena,Chauhan,Goyal,Bansal,Mittal,Tripathi,Dubey,Chaturvedi,Sinha,Rastogi,Garg,Maheshwari,Agrawal,Rathore,Thakur,Prasad,Jha,Dwivedi,Upadhyay,Bajpai,Awasthi,Dixit,Nigam,Khandelwal,Goel,Singhal,Jindal,Bhardwaj,Pathak,Ojha,Rai,Mathur,Kushwaha,Chandra,Lal,Kashyap,Vyas';
+SURNAMES['in-punjabi'] = 'Kapoor:2,Arora:2,Malhotra:1.8,Khanna:1.7,Chopra:1.5,Sharma:1.4,Sethi:1.3,Bhatia:1.3,Ahuja:1.2,Mehra:1.1,Kohli:1.1,Anand:1,Bajaj,Talwar,Dhawan,Tandon,Chadha,Grover,Bhalla,Sood,Verma,Bedi,Puri,Suri,Sahni,Ghai,Khurana,Luthra,Nanda,Sachdeva,Wadhwa,Kakkar,Oberoi,Batra,Narang,Gulati,Juneja,Chawla,Taneja,Dua,Mehta,Kumar,Handa,Madan,Marwah,Nagpal,Duggal,Kalra,Makkar,Sabharwal,Kochhar,Aggarwal,Khosla,Sareen,Sehgal,Bhasin,Kapur,Vij';
+SURNAMES['in-bengali'] = 'Banerjee:2,Chatterjee:2,Mukherjee:2,Das:2,Ghosh:1.8,Bose:1.6,Dutta:1.5,Sen:1.5,Roy:1.5,Chakraborty:1.4,Bhattacharya:1.4,Sarkar:1.2,Saha:1.1,Mitra:1,Ganguly,Basu,Dey,Biswas,Chowdhury,Majumdar,Pal,Mondal,Nandi,Guha,Sengupta,Dasgupta,Lahiri,Bagchi,Ray,Sanyal,Bhowmick,Chanda,Datta,Kar,Maitra,Mazumdar,Paul,Kundu,Halder,Ghoshal,Hazra,Bhaduri,Talukdar,Acharya,Goswami,Deb,Nag,Sinha,Raychaudhuri,Bhattacharjee';
+SURNAMES['in-gujarati'] = 'Patel:9,Shah:4,Desai:2,Mehta:2,Joshi:1.5,Parikh:1.2,Trivedi:1,Pandya,Bhatt,Dave,Vyas,Amin,Panchal,Solanki,Thakkar,Dalal,Kothari,Mistry,Raval,Parekh,Chokshi,Sheth,Vora,Majmudar,Bhakta,Jani,Gajjar,Thakor,Rathod,Prajapati,Soni,Gohil,Jadeja,Makwana,Parmar,Vaghela,Zala,Barot,Upadhyay,Contractor,Kapadia,Doshi,Lakhani,Pathak,Bhavsar,Chauhan,Dholakia,Kansara';
+SURNAMES['in-marathi'] = 'Patil:3,Kulkarni:2.5,Deshpande:2,Joshi:2,Jadhav:1.6,Deshmukh:1.5,Pawar:1.3,Shinde:1.3,Chavan:1.2,More:1.1,Gaikwad:1.1,Kale:1,Gokhale,Apte,Bhide,Sawant,Phadke,Karve,Paranjape,Naik,Ranade,Sathe,Bapat,Godbole,Limaye,Joglekar,Kelkar,Dixit,Gadgil,Khare,Kadam,Salunkhe,Thorat,Mane,Mohite,Shirke,Wagh,Kamble,Mahajan,Pathak,Bhagwat,Bhat,Dhumal,Gupte,Karmarkar,Lele,Nadkarni,Oak,Rane,Tambe';
+SURNAMES['in-telugu'] = 'Reddy:6,Rao:5,Naidu:2,Chowdary:2,Raju:1.5,Prasad:1.3,Murthy:1.1,Varma:1,Goud,Kolli,Gaddam,Kodali,Vemula,Katta,Alla,Mandava,Nallapati,Bommareddy,Yalamanchili,Chilukuri,Gunda,Pothula,Kakani,Vadlamudi,Pinnamaneni,Bandi,Madala,Peddi,Talluri,Uppalapati,Yerramilli,Sastry,Ganta,Chennupati,Kondapalli,Palla,Polavarapu,Gorantla,Ravula,Jonnalagadda,Dasari,Kotha,Gollapudi,Ponnam,Tummala,Vallabhaneni,Atluri,Sarma,Annam,Bollineni';
+SURNAMES['in-tamil'] = 'Krishnan:2,Subramanian:2,Iyer:1.8,Ramachandran:1.5,Venkataraman:1.3,Natarajan:1.3,Srinivasan:1.3,Narayanan:1.2,Raman:1.1,Kumar:1.1,Sundaram:1,Balasubramanian,Rajagopal,Swaminathan,Ganesan,Raghavan,Gopalan,Kannan,Chandran,Mani,Murugan,Arumugam,Shanmugam,Ramasamy,Selvaraj,Rajendran,Muthu,Palani,Iyengar,Pillai,Chettiar,Gounder,Nadar,Mudaliar,Sivakumar,Ravichandran,Velu,Annamalai,Ramalingam,Sekar,Kandasamy,Periyasamy,Karuppiah,Ramanathan,Venkatesan,Sankaran,Parthasarathy,Rangarajan,Seshadri,Vaidyanathan';
+SURNAMES['in-kannada'] = 'Hegde:2,Shetty:2,Gowda:2,Rao:1.6,Bhat:1.5,Kamath:1.3,Pai:1.2,Shenoy:1.1,Nayak:1.1,Acharya:1,Murthy:1,Prasad,Kulkarni,Joshi,Hebbar,Karanth,Adiga,Upadhya,Rai,Kini,Patil,Shastry,Hosmane,Kudva,Prabhu,Puranik,Shanbhag,Bhandary,Naik,Poojary,Kotian,Salian,Suvarna,Alva,Ballal,Hiremath,Swamy,Somayaji,Udupa,Holla,Tantri,Kedilaya,Aithal,Bhagwat,Nadig,Raju,Kumar,Shivappa';
+SURNAMES['in-malayali'] = 'Nair:4,Menon:3,Pillai:2.5,Kurup:1.3,Panicker:1.2,Nambiar:1.2,Warrier:1,Namboothiri,Kartha,Unnithan,Varma,Thampi,Kaimal,Kumar,Krishnan,Das,Raj,Gopinath,Nambeesan,Marar,Potti,Kutty,Mohan,Narayanan,Sivan,Sasidharan,Babu,Chandran,Gopalan,Madhavan,Achary,Asari,Ezhuthachan,Kesavan,Panikkar,Pisharody,Poduval,Prabhakaran,Rajan,Ravi,Sreedharan,Vijayan,Unni,Haridas,Balan,Sukumaran,Radhakrishnan';
+SURNAMES['in-malayali-christian'] = 'Thomas:3,Mathew:2.5,George:2.5,Varghese:2.2,Joseph:2.2,Abraham:1.8,Jacob:1.8,John:1.6,Philip:1.5,Kurian:1.4,Cherian:1.3,Chacko:1.2,Oommen:1.1,Koshy:1,Mathai:1,Eapen,Zachariah,Ninan,Alexander,Samuel,Daniel,Paul,Peter,Simon,Joy,Sebastian,Antony,Kuriakose,Paulose,Markose,Itty,Korah,Mammen,Pothen,Scaria,Varkey,Kunjumon,Mathews,Chandy,Devasia,Ittycheria,Puthenpurackal,Thekkekara,Vadakkel,Kallarakal,Parayil,Elavathingal,Kizhakkethil,Vettukallel';
+SURNAMES['in-urdu'] = 'Khan:3,Ahmed:2.5,Syed:2.2,Siddiqui:2,Hussain:1.8,Ali:1.8,Qureshi:1.5,Ansari:1.4,Shaikh:1.3,Mirza:1.2,Baig:1.1,Rizvi:1,Naqvi,Hashmi,Farooqui,Pasha,Quadri,Hasan,Rahman,Jafri,Abbas,Zaidi,Kazmi,Usmani,Mohiuddin,Uddin,Hussaini,Shareef,Razvi,Lateef,Habib,Iqbal,Akhtar,Aziz,Javed,Kareem,Moin,Nawab,Abidi,Bukhari,Chishti,Fatmi,Ghori,Haque,Jamal,Khalid,Malik,Nizami,Raza,Saeed';
+SURNAMES.indian = { mix: [['in-hindi', 0.24], ['in-punjabi', 0.1], ['in-gujarati', 0.15], ['in-bengali', 0.05], ['in-marathi', 0.05], ['in-telugu', 0.15], ['in-tamil', 0.1], ['in-kannada', 0.04], ['in-malayali', 0.04], ['in-malayali-christian', 0.05], ['in-urdu', 0.03]] };
 
 // Punjabi Sikh family names (gotras). Singh and Kaur are not family names; they come with the person
 // (givenName, middleName, or surname with {sex}).
 SURNAMES.sikh = 'Sandhu:5,Gill:5,Dhillon:4,Sidhu:3.6,Grewal:2.8,Bains:2.2,Johal:1.8,Atwal:1.5,Mann:1.6,Brar:1.6,Cheema:1.5,Dhaliwal:1.5,Randhawa:1.4,Sangha:1.3,Virk:1.2,Sekhon:1.2,Hundal:1.1,Bal:1,Aulakh:1,Chahal:1,Toor,Kang,Bhullar,Purewal,Khaira,Sahota,Basra,Dhami,Kaler,Mangat,Uppal,Thind,Pannu,Badesha,Bhangu,Deol,Gosal,Heer,Jhutti,Khehra,Malhi,Nijjar,Rai,Samra,Takhar,Tiwana,Sran,Dhindsa,Chatha,Sohal';
 
-// Pakistan.
-SURNAMES.pakistani = 'Khan:5.5,Ahmed:5,Ali:4.5,Hussain:3.5,Malik:3,Chaudhry:2.4,Sheikh:2,Qureshi:1.8,Siddiqui:1.6,Akhtar:1.5,Iqbal:1.5,Raza:1.4,Shah:1.4,Mirza:1.3,Baig:1.2,Abbasi:1.2,Awan:1.1,Rana:1.1,Javed:1,Mahmood:1,Rehman,Aslam,Anwar,Haider,Rizvi,Naqvi,Zaidi,Jafri,Hashmi,Farooq,Rashid,Saleem,Bhatti,Cheema,Gondal,Janjua,Khokhar,Tarar,Warraich,Bajwa,Memon,Ansari,Usmani,Durrani,Khattak,Niazi,Kazmi,Bukhari,Gilani,Nawaz,Lodhi';
+// Pakistan by language: the Urdu-speaking families of Karachi (Siddiqui, Qureshi, Rizvi), the Punjabi Muslim clans
+// (Chaudhry, Malik, Bhatti, Cheema, and Jat clan names shared with the Sikhs) and the Pashtun tribes (Afridi, Khattak).
+SURNAMES['pk-urdu'] = 'Khan:4,Ahmed:3.5,Siddiqui:2.5,Qureshi:2,Hussain:2,Ali:2,Sheikh:1.8,Syed:1.6,Rizvi:1.4,Naqvi:1.3,Zaidi:1.2,Jafri:1.1,Hashmi:1.1,Ansari:1,Usmani:1,Memon,Farooqui,Kazmi,Bukhari,Gilani,Mirza,Baig,Abbasi,Akhtar,Iqbal,Raza,Rehman,Anwar,Haider,Rashid,Saleem,Shah,Javed,Mahmood,Aziz,Hameed,Karim,Latif,Zaman,Ashraf,Hasan,Abidi,Alvi,Ghauri,Jilani,Kirmani,Lodhi,Sabzwari,Siddiqi';
+SURNAMES['pk-punjabi'] = 'Chaudhry:3,Malik:2.5,Bhatti:1.8,Cheema:1.5,Gondal:1.3,Bajwa:1.3,Awan:1.3,Rana:1.2,Mughal:1.1,Dar:1,Mir,Janjua,Khokhar,Tarar,Warraich,Virk,Chattha,Sahi,Ghuman,Goraya,Arain,Gujjar,Ahmed,Ali,Khan,Iqbal,Akhtar,Javed,Aslam,Riaz,Nawaz,Mehmood,Rasheed,Saleem,Shafiq,Hussain,Sheikh,Qureshi,Bhutta,Kahlon,Randhawa,Sandhu,Gill,Toor,Sial,Hanjra,Joiya,Kharal,Langah';
+SURNAMES['pk-pashto'] = 'Khan:6,Afridi:1.5,Khattak:1.5,Durrani:1.2,Niazi:1.2,Wazir:1,Mohmand:1,Shinwari:1,Bangash:1,Marwat,Orakzai,Achakzai,Kakar,Mehsud,Swati,Tanoli,Jadoon,Ghauri,Gandapur,Kundi,Babar,Safi,Tareen,Barech,Kasi,Lodhi,Ahmadzai,Ali,Gul,Jan,Shah,Hussain,Ahmed,Rehman,Zaman,Dawar,Bettani,Kakakhel,Yousafi,Mashwani,Khalil,Mohammadzai';
+SURNAMES.pakistani = { mix: [['pk-urdu', 0.48], ['pk-punjabi', 0.4], ['pk-pashto', 0.12]] };
 
 // Bangladesh.
 SURNAMES.bangladeshi = 'Rahman:4.5,Hossain:4.2,Islam:4,Ahmed:4,Khan:3,Uddin:3,Chowdhury:2.5,Alam:2.2,Miah:1.8,Haque:1.5,Sarker:1.2,Karim:1.2,Talukder:1,Sheikh,Mollah,Bhuiyan,Siddique,Hasan,Kabir,Ali,Barua,Das,Roy,Saha,Paul,Biswas,Mondal,Majumder,Mahmud,Rashid,Hoque,Malik,Patwary,Shikder,Khondaker,Munshi,Babu,Matin,Zaman,Bari,Kazi,Sikder,Faruque,Pramanik,Ghosh,Dey';
@@ -1283,53 +1436,68 @@ SURNAMES.other = 'california';
 // generation 1 / 2 / 3+ carries a name from the heritage tradition rather than the general California pool
 // of their cohort (immigrants nearly always; their US-born children often; grandchildren seldom, more so
 // where heritage names stay strong in the US, e.g. Sikh, Arab, Armenian families), `us` = the tradition
-// whose US-born lists the second and third generations draw heritage names from, and `nick` = the nickname
-// customs that apply (see NICKNAMES).
+// whose US-born lists the second and third generations draw heritage names from, `nick` = the nickname
+// customs that apply (see NICKNAMES), and the surname customs: `wife` = [[keep, join] for an immigrant, [keep, join]
+// for the US born], the chance a married woman keeps her own surname or joins both (the rest take the husband's);
+// `patronymic` = a child's surname is the father's given name; `clan` = spouses are of different clans and a wife
+// keeps hers; `religiousName` = names every member carries (Sikh Singh and Kaur).
 
-const cfg = (given, sur, keep, nick, extra) => Object.freeze(Object.assign({ given, sur, keep: Object.freeze(keep), nick: Object.freeze(nick) }, extra || {}));
+// Most Californian wives take the husband's name; women from Latin America, China, Korea, Vietnam, Iran, the Arab
+// world and Ethiopia keep their own at home and many keep it here; Japan's law requires one family name; Hmong women
+// keep their clan name for life.
+const WIFE_DEFAULT = [[0.06, 0.02], [0.12, 0.07]];
+const WIFE_HISPANIC = [[0.45, 0.12], [0.2, 0.12]];
+const WIFE_EAST_ASIA = [[0.85, 0.02], [0.35, 0.07]];
+const WIFE_MIDDLE_EAST = [[0.55, 0.03], [0.25, 0.08]];
+const WIFE_SOUTH_ASIA_MUSLIM = [[0.45, 0.02], [0.25, 0.06]];
+const WIFE_ETHIOPIA = [[0.95, 0], [0.6, 0.05]];
+const WIFE_JAPAN = [[0.02, 0.01], [0.1, 0.05]];
+const WIFE_CLAN = [[0.97, 0], [0.85, 0.03]];
+
+const cfg = (given, sur, keep, nick, extra) => Object.freeze(Object.assign({ given, sur, keep: Object.freeze(keep), nick: Object.freeze(nick), wife: WIFE_DEFAULT }, extra || {}));
 const ES = ['es', 'en'], EN = ['en'];
 
-/** Naming configuration per heritage key: {given, sur, keep: [generation 1, 2, 3+], nick, us?, multi?, religiousName?}. */
+/** Naming configuration per heritage key: {given, sur, keep: [generation 1, 2, 3+], nick, wife, us?, multi?, religiousName?, patronymic?, clan?}. */
 const NAMING = Object.freeze({
-  mexican: cfg('mexican', 'mexican', [0.97, 0.5, 0.18], ES),
-  salvadoran: cfg('centralam', 'salvadoran', [0.97, 0.45, 0.15], ES, { us: 'mexican' }),
-  guatemalan: cfg('centralam', 'guatemalan', [0.97, 0.45, 0.15], ES, { us: 'mexican' }),
-  honduran: cfg('centralam', 'honduran', [0.97, 0.45, 0.15], ES, { us: 'mexican' }),
-  nicaraguan: cfg('centralam', 'nicaraguan', [0.97, 0.45, 0.15], ES, { us: 'mexican' }),
-  puertorican: cfg('caribhisp', 'puertorican', [0.95, 0.4, 0.15], ES, { us: 'mexican' }),
-  cuban: cfg('caribhisp', 'cuban', [0.97, 0.4, 0.15], ES, { us: 'mexican' }),
-  dominican: cfg('caribhisp', 'dominican', [0.97, 0.45, 0.15], ES, { us: 'mexican' }),
-  southamerican: cfg('southam', 'southamerican', [0.96, 0.4, 0.12], ES, { us: 'mexican' }),
-  spanish: cfg('spain', 'spanish', [0.95, 0.3, 0.1], ES, { us: 'mexican' }),
-  latino: cfg('latino', 'latino', [0.96, 0.45, 0.15], ES, { us: 'mexican' }),
+  mexican: cfg('mexican', 'mexican', [0.97, 0.5, 0.18], ES, { wife: WIFE_HISPANIC }),
+  salvadoran: cfg('centralam', 'salvadoran', [0.97, 0.45, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  guatemalan: cfg('centralam', 'guatemalan', [0.97, 0.45, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  honduran: cfg('centralam', 'honduran', [0.97, 0.45, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  nicaraguan: cfg('centralam', 'nicaraguan', [0.97, 0.45, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  puertorican: cfg('caribhisp', 'puertorican', [0.95, 0.4, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  cuban: cfg('caribhisp', 'cuban', [0.97, 0.4, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  dominican: cfg('caribhisp', 'dominican', [0.97, 0.45, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  southamerican: cfg('southam', 'southamerican', [0.96, 0.4, 0.12], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  spanish: cfg('spain', 'spanish', [0.95, 0.3, 0.1], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
+  latino: cfg('latino', 'latino', [0.96, 0.45, 0.15], ES, { us: 'mexican', wife: WIFE_HISPANIC }),
 
-  chinese: cfg('chinese', 'chinese', [0.97, 0.22, 0.08], ['zh', 'en']),
+  chinese: cfg('chinese', 'chinese', [0.97, 0.22, 0.08], ['zh', 'en'], { wife: WIFE_EAST_ASIA }),
   filipino: cfg('filipino', 'filipino', [0.98, 0.45, 0.2], ['fil', 'es', 'en', 'filpet']),
-  vietnamese: cfg('vietnamese', 'vietnamese', [0.98, 0.35, 0.1], ['vi', 'en']),
-  korean: cfg('korean', 'korean', [0.97, 0.5, 0.2], ['ko', 'en']),
-  japanese: cfg('japanese', 'japanese', [0.97, 0.35, 0.18], ['ja', 'en']),
+  vietnamese: cfg('vietnamese', 'vietnamese', [0.98, 0.35, 0.1], ['vi', 'en'], { wife: WIFE_EAST_ASIA }),
+  korean: cfg('korean', 'korean', [0.97, 0.5, 0.2], ['ko', 'en'], { wife: WIFE_EAST_ASIA }),
+  japanese: cfg('japanese', 'japanese', [0.97, 0.35, 0.18], ['ja', 'en'], { wife: WIFE_JAPAN }),
   indian: cfg('indian', 'indian', [0.98, 0.65, 0.35], ['in', 'en']),
-  hmong: cfg('hmong', 'hmong', [0.98, 0.35, 0.12], EN),
-  cambodian: cfg('cambodian', 'cambodian', [0.98, 0.3, 0.1], EN),
+  hmong: cfg('hmong', 'hmong', [0.98, 0.35, 0.12], EN, { wife: WIFE_CLAN, clan: true }),
+  cambodian: cfg('cambodian', 'cambodian', [0.98, 0.3, 0.1], EN, { wife: [[0.6, 0], [0.3, 0.05]] }),
   lao: cfg('lao', 'lao', [0.98, 0.3, 0.1], ['lo', 'en']),
   thai: cfg('thai', 'thai', [0.98, 0.3, 0.1], ['th', 'en']),
-  pakistani: cfg('pakistani', 'pakistani', [0.98, 0.75, 0.5], ['in', 'ar', 'en']),
-  bangladeshi: cfg('bangladeshi', 'bangladeshi', [0.98, 0.75, 0.5], ['in', 'ar', 'en']),
-  sikh: cfg('sikh', 'sikh', [0.99, 0.8, 0.55], ['pa', 'in', 'en', 'papet'], { religiousName: { M: 'Singh', F: 'Kaur' }, religiousKeep: [0.97, 0.9, 0.75] }),
-  afghan: cfg('afghan', 'afghan', [0.98, 0.75, 0.5], ['ar', 'fa', 'en']),
-  burmese: cfg('burmese', 'burmese', [0.98, 0.35, 0.1], EN),
-  indonesian: cfg('indonesian', 'indonesian', [0.97, 0.3, 0.1], EN),
+  pakistani: cfg('pakistani', 'pakistani', [0.98, 0.75, 0.5], ['in', 'ar', 'en'], { wife: WIFE_SOUTH_ASIA_MUSLIM }),
+  bangladeshi: cfg('bangladeshi', 'bangladeshi', [0.98, 0.75, 0.5], ['in', 'ar', 'en'], { wife: WIFE_SOUTH_ASIA_MUSLIM }),
+  sikh: cfg('sikh', 'sikh', [0.99, 0.8, 0.55], ['pa', 'in', 'en', 'papet'], { religiousName: { M: 'Singh', F: 'Kaur' }, religiousKeep: [0.97, 0.9, 0.75], wife: [[0.15, 0], [0.15, 0.05]] }),
+  afghan: cfg('afghan', 'afghan', [0.98, 0.75, 0.5], ['ar', 'fa', 'en'], { wife: WIFE_MIDDLE_EAST }),
+  burmese: cfg('burmese', 'burmese', [0.98, 0.35, 0.1], EN, { wife: [[0.9, 0], [0.4, 0.05]] }),
+  indonesian: cfg('indonesian', 'indonesian', [0.97, 0.3, 0.1], EN, { wife: [[0.5, 0.02], [0.3, 0.05]] }),
   asian: cfg('asian', 'asian', [0.95, 0.25, 0.08], ['zh', 'en']),
 
   'african-american': cfg('african-american', 'african-american', [0.7, 0.62, 0.6], EN),
-  ethiopian: cfg('ethiopian', 'ethiopian', [0.98, 0.6, 0.3], ['et', 'en']),
+  ethiopian: cfg('ethiopian', 'ethiopian', [0.98, 0.6, 0.3], ['et', 'en'], { wife: WIFE_ETHIOPIA, patronymic: true }),
   nigerian: cfg('nigerian', 'nigerian', [0.97, 0.55, 0.3], ['ng', 'en']),
   caribbean: cfg('caribbean', 'caribbean', [0.95, 0.4, 0.2], EN),
   african: cfg('african', 'african', [0.95, 0.5, 0.25], ['ar', 'en']),
 
   armenian: cfg('armenian', 'armenian', [0.98, 0.55, 0.3], ['hy', 'ru', 'en']),
-  iranian: cfg('iranian', 'iranian', [0.98, 0.45, 0.2], ['fa', 'en']),
-  arab: cfg('arab', 'arab', [0.98, 0.6, 0.3], ['ar', 'en']),
+  iranian: cfg('iranian', 'iranian', [0.98, 0.45, 0.2], ['fa', 'en'], { wife: WIFE_MIDDLE_EAST }),
+  arab: cfg('arab', 'arab', [0.98, 0.6, 0.3], ['ar', 'en'], { wife: WIFE_MIDDLE_EAST }),
   assyrian: cfg('assyrian', 'assyrian', [0.98, 0.55, 0.3], ['ar', 'en']),
   russian: cfg('russian', 'russian', [0.97, 0.35, 0.1], ['ru', 'en']),
   ukrainian: cfg('ukrainian', 'ukrainian', [0.97, 0.4, 0.12], ['uk', 'ru', 'en']),
@@ -1362,6 +1530,28 @@ GIVEN.latino = {
   mix: [['mexican', [0.62, 0.62, 0.6, 0.6]], ['centralam', [0.16, 0.18, 0.2, 0.2]], ['southam', [0.12, 0.12, 0.12, 0.12]], ['caribhisp', [0.1, 0.08, 0.08, 0.08]]],
 };
 const MULTI_MIX = [['mexican', 0.34], ['african-american', 0.2], ['filipino', 0.1], ['japanese', 0.08], ['chinese', 0.06], ['korean', 0.05], ['pacific', 0.05], ['irish', 0.04], ['italian', 0.04], ['portuguese', 0.02], ['armenian', 0.02]];
+
+// Where a heritage's names differ by the family's home language or by its finer origin (population.mjs's origin
+// keys), the given-name traditions (GIVEN keys) and surname pools (SURNAMES keys) the family's names come from, as
+// 'key:weight ...'. A key that is only a surname pool narrows the surnames alone (Pakistan's given names are shared
+// by its languages). An origin's entry takes precedence over the language's (Taiwan-born Mandarin speakers).
+const LANGUAGE_NAMING = Object.freeze({
+  indian: { hindi: 'in-hindi', punjabi: 'in-punjabi', bengali: 'in-bengali', gujarati: 'in-gujarati', marathi: 'in-marathi', telugu: 'in-telugu', tamil: 'in-tamil', kannada: 'in-kannada', malayalam: 'in-malayali:2 in-malayali-christian:3', urdu: 'in-urdu' },
+  pakistani: { urdu: 'pk-urdu', punjabi: 'pk-punjabi', pashto: 'pk-pashto' },
+  chinese: { cantonese: 'chinese-yue', taishanese: 'chinese-yue', mandarin: 'chinese-cmn', hokkien: 'chinese-tw' },
+  asian: {
+    tagalog: 'filipino', ilocano: 'filipino', cebuano: 'filipino', cantonese: 'chinese-yue', taishanese: 'chinese-yue', mandarin: 'chinese-cmn',
+    hokkien: 'chinese-tw', korean: 'korean', vietnamese: 'vietnamese', thai: 'thai', hindi: 'in-hindi', tamil: 'in-tamil',
+    nepali: 'asian-other', sinhala: 'asian-other', malay: 'asian-other', mongolian: 'asian-other', uzbek: 'asian-other', russian: 'asian-other',
+  },
+  african: { tigrinya: 'ethiopian', amharic: 'ethiopian', oromo: 'ethiopian' },
+});
+const ORIGIN_NAMING = Object.freeze({
+  chinese: { taiwanese: 'chinese-tw' },
+  african: { eritrean: 'ethiopian' },
+});
+// Origins that keep another heritage's surname customs (Eritreans name children as Ethiopians do).
+const CUSTOM_ORIGINS = Object.freeze({ eritrean: 'ethiopian' });
 
 // ------------------------------------------------------------------ nicknames
 // Keys are given names folded to lowercase ASCII (normName). Values list nicknames, most usual first, with
@@ -1643,6 +1833,18 @@ const RESERVED_NAMES = Object.freeze(('Cesar Chavez|Dolores Huerta|Jennifer Lope
   // business, science and exploration
   'Tim Cook|Howard Hughes|Henry Ford|Gordon Moore|Phil Knight|Ted Turner|Neil Armstrong|Ellen Ochoa|Sunita Williams|' +
   'Sanjay Gupta|Deepak Chopra|Alexander Bell|Leif Erickson|Leif Erikson|' +
+  // South Asia: film, music, sport and public life (the regional pools make these combinations possible)
+  'Shahid Afridi|Shaheen Afridi|Imran Niazi|Kalpana Chawla|Juhi Chawla|Madhuri Dixit|Sourav Ganguly|Narayana Murthy|' +
+  'Narayan Murthy|Sudha Murthy|Vivek Murthy|Javed Akhtar|Farhan Akhtar|Shoaib Akhtar|Virat Kohli|Harbhajan Singh|' +
+  'Yuvraj Singh|Ranveer Singh|Jagjit Singh|Manmohan Singh|Arijit Singh|Navjot Sidhu|Hardeep Nijjar|Kapil Sharma|' +
+  'Rohit Sharma|Anushka Sharma|Akshay Kumar|Bobby Jindal|Bobby Deol|Sunny Deol|Vinod Khosla|Mahesh Babu|Shashi Kapoor|' +
+  'Sonam Kapoor|Shahid Kapoor|Kareena Kapoor|Ranbir Kapoor|Karisma Kapoor|Wasim Akram|Waseem Akram|Atif Aslam|' +
+  'Usha Vance|Amit Shah|Ravi Shankar|Anoushka Shankar|Mamata Banerjee|Mamta Banerjee|Abhijit Banerjee|Pranab Mukherjee|' +
+  'Rani Mukherjee|Mithun Chakraborty|Prasenjit Chatterjee|Arnab Goswami|Subhash Bose|Subhas Bose|Satyajit Ray|' +
+  'Sania Mirza|Nawaz Sharif|Sadiq Khan|Irfan Khan|Zaheer Khan|Ayub Khan|Hardik Pandya|Krunal Pandya|Kiran Desai|' +
+  'Anita Desai|Sharad Pawar|Ajit Pawar|Smita Patil|Pratibha Patil|Mohan Bhagwat|Sarojini Naidu|Narasimha Rao|' +
+  'Viswanathan Anand|Shilpa Shetty|Sunil Shetty|Rohit Shetty|Anushka Shetty|Pooja Hegde|Ramakrishna Hegde|Vijay Mallya|' +
+  'Oommen Chandy|Vasudevan Nair|Yash Chopra|Aditya Chopra|Varun Dhawan|' +
   // heads of state and government, and notorious figures
   'Hugo Chavez|Manuel Zelaya|Xiomara Castro|Jimmy Morales|Rafael Correa|Gordon Brown|David Cameron|Diana Spencer|' +
   'Gerry Adams|Enda Kenny|Abdoulaye Wade|Somchai Wongsawat|Khaleda Zia|Nazrul Islam|Ne Win|Than Shwe|Thein Sein|' +
@@ -1887,6 +2089,43 @@ const usTradition = cfg => (own(GIVEN, cfg.given) && own(GIVEN, cfg.given).us ? 
 const configOf = heritage => own(NAMING, heritage) || NAMING.other;
 const heritageKey = heritage => (own(NAMING, heritage) ? heritage : 'other');
 
+// The [[key, weight]] a heritage's names narrow to for opts.origin or opts.language (LANGUAGE_NAMING,
+// ORIGIN_NAMING), or null when neither narrows it. Cached by (heritage, language, origin).
+const profileCache = new Map();
+function profileOf(heritage, opts) {
+  const language = opts && typeof opts.language === 'string' ? opts.language : '', origin = opts && typeof opts.origin === 'string' ? opts.origin : '';
+  if (!language && !origin) return null;
+  const key = `${heritage}|${language}|${origin}`;
+  if (profileCache.has(key)) return profileCache.get(key);
+  const spec = (origin && own(own(ORIGIN_NAMING, heritage), origin)) || (language && own(own(LANGUAGE_NAMING, heritage), language)) || null;
+  const prof = typeof spec === 'string' ? Object.freeze(spec.split(/\s+/).filter(Boolean).map(p => { const [k, w] = p.split(':'); return Object.freeze([k, w === undefined ? 1 : +w]); })) : null;
+  if (profileCache.size > 4096) profileCache.clear();
+  profileCache.set(key, prof);
+  return prof;
+}
+
+// An origin-country given name from the traditions a profile allows: the heritage's own mix narrowed to them (an
+// English-name share stays where it goes with one of them, as for Hong Kong and Taiwan), else the profile's own
+// traditions; the surname, when it points to one of them, picks it (a Thomas among Malayalam speakers is Christian).
+function drawProfiled(rng, cfg, prof, sex, era, last) {
+  const keys = new Set(prof.map(p => p[0])), sHint = hintFor(cfg, last), T = own(GIVEN, cfg.given);
+  let mix = T && T.mix ? T.mix.filter(([k, , keepWith]) => keys.has(k) || (keepWith && keepWith.some(x => keys.has(x)))) : [];
+  if (!mix.length) mix = prof.filter(([k]) => own(GIVEN, k));
+  if (!mix.length) return drawFromTradition(rng, cfg.given, sex, era, 'origin', sHint);
+  const hint = sHint && mix.some(([k]) => hinted(sHint, k)) ? sHint : keys;
+  return drawFromTradition(rng, pickMix(rng, mix, era, hint), sex, era, 'origin', null);
+}
+
+// A family name from the surname pools a profile allows (by their weights), else the heritage's own.
+function drawProfiledSurname(rng, cfg, prof) {
+  const pools = prof.filter(([k]) => own(SURNAMES, k) !== undefined);
+  if (!pools.length) return drawSurname(rng, cfg.sur);
+  return drawSurname(rng, pools.length === 1 ? pools[0][0] : pools[Math.max(0, rng.weighted(pools.map(p => p[1])))][0]);
+}
+
+// True for someone born abroad who came here as a child (opts.arrivalAge under 18): their name was given there.
+const cameAsChild = opts => typeof opts.arrivalAge === 'number' && Number.isFinite(opts.arrivalAge) && opts.arrivalAge < 18;
+
 function sexKey(rng, sex) {
   const s = String(sex == null ? '' : sex).toLowerCase();
   if (s === 'm' || s === 'male' || s === 'man') return 'M';
@@ -1900,13 +2139,15 @@ function generationOf(generation, nativity) {
   return nativity === 'foreign' ? 1 : 3;
 }
 
-// A given name before any religious name is added.
-function coreGiven(rng, cfg, sex, era, gen, last, parents) {
+// A given name before any religious name is added. An immigrant who came as a child keeps the name given in the
+// origin country (never an adopted American one); prof narrows the origin's traditions (profileOf).
+function coreGiven(rng, cfg, sex, era, gen, last, parents, prof = null, early = false) {
   if (cfg.multi) return multiGiven(rng, sex, era, gen, parents);
-  const keep = cfg.keep[gen - 1];
+  const keep = gen === 1 && early ? 1 : cfg.keep[gen - 1];
   if (keep > 0 && rng.chance(keep)) {
     const kind = gen === 1 ? 'origin' : 'us';
-    const name = drawFromTradition(rng, kind === 'us' ? usTradition(cfg) : cfg.given, sex, era, kind, hintFor(cfg, last));
+    const name = kind === 'origin' && prof ? drawProfiled(rng, cfg, prof, sex, era, last)
+      : drawFromTradition(rng, kind === 'us' ? usTradition(cfg) : cfg.given, sex, era, kind, hintFor(cfg, last));
     if (name) return name;
   }
   return generalGiven(rng, sex, era);
@@ -1940,15 +2181,19 @@ const isReligiousSurname = (cfg, last) => !!(cfg.religiousName && last && [cfg.r
  * sometimes carry Singh or Kaur as the surname; immigrant women of Russian, Ukrainian, Polish and Greek
  * families carry the feminine form (Ivanova, Kowalska, Papadopoulou); some Bangladeshi immigrant women
  * carry Akter, Begum, Khatun or Sultana. If a Sikh person's surname came out as Singh or Kaur, pass it to
- * givenName as opts.surname so the religious name is not repeated.
+ * givenName as opts.surname so the religious name is not repeated. With opts.language (the family's home
+ * language) or opts.origin (a finer origin key, as population.mjs's npc.origin), heritages whose names differ by
+ * them draw from that language's or origin's pools: a Telugu-speaking Indian family is a Reddy or a Rao, a
+ * Punjabi-speaking Pakistani family a Chaudhry or a Bhatti, a Taiwanese family is spelled Hsu, an Eritrean one
+ * carries a Tigrinya name.
  * @param {import('./rng.mjs').Rng} rng
  * @param {string} heritage a key of NAME_HERITAGES (unknown keys fall back to the California mix)
- * @param {{sex?: 'F'|'M', generation?: number, nativity?: 'native'|'foreign'}} [opts]
+ * @param {{sex?: 'F'|'M', generation?: number, nativity?: 'native'|'foreign', language?: string, origin?: string}} [opts]
  * @returns {string}
  */
 export function surname(rng, heritage, opts) {
-  const key = heritageKey(heritage), cfg = configOf(key);
-  const family = drawSurname(rng, cfg.sur);
+  const key = heritageKey(heritage), cfg = configOf(key), prof = profileOf(key, opts);
+  const family = prof ? drawProfiledSurname(rng, cfg, prof) : drawSurname(rng, cfg.sur);
   if (!opts || (opts.sex !== 'M' && opts.sex !== 'F')) return family;
   return personalSurname(rng, family, key, opts.sex, generationOf(opts.generation, opts.nativity));
 }
@@ -1993,6 +2238,40 @@ export function adaptSurname(name, opts) {
   return name;
 }
 
+// The heritage configuration whose surname customs a person follows (an Eritrean names children as Ethiopians do).
+const customsConfig = (heritage, opts) => { const o = opts && typeof opts.origin === 'string' ? own(CUSTOM_ORIGINS, opts.origin) : undefined; return o ? NAMING[o] : configOf(heritageKey(heritage)); };
+
+/**
+ * How families of a heritage carry surnames in California (no draw): `wife.keep` and `wife.join` are the chances,
+ * for an immigrant and for the US born ([generation 1, generation 2+]), that a married woman keeps her own surname
+ * or joins both (the rest take the husband's; marriedSurname draws it); `patronymic`: a child's surname is the
+ * father's given name (Ethiopian and Eritrean families); `clan`: spouses belong to different clans and a wife keeps
+ * hers for life (the Hmong); `religious`: the names members carry (Sikh Singh and Kaur), else null.
+ * @param {string} heritage
+ * @param {{origin?: string}} [opts] origin: a finer origin key (an Eritrean family follows the Ethiopian customs)
+ * @returns {{wife: {keep: number[], join: number[]}, patronymic: boolean, clan: boolean, religious: {M: string, F: string}|null}}
+ */
+export function surnameCustoms(heritage, opts) {
+  const c = customsConfig(heritage, opts);
+  return { wife: { keep: [c.wife[0][0], c.wife[1][0]], join: [c.wife[0][1], c.wife[1][1]] }, patronymic: !!c.patronymic, clan: !!c.clan, religious: c.religiousName ? { ...c.religiousName } : null };
+}
+
+/**
+ * The surname a married woman carries, by her own tradition and generation (surnameCustoms): her husband's, her own,
+ * or both joined, hers first, as Californians hyphenate them ("Lopez-Garcia"). One uniform draw, always.
+ * @param {import('./rng.mjs').Rng} rng
+ * @param {{heritage?: string, origin?: string, generation?: number, nativity?: 'native'|'foreign', own: string, husband: string}} opts
+ *   own: the surname she was born with (in the form she carries it); husband: his surname
+ * @returns {string}
+ */
+export function marriedSurname(rng, opts) {
+  opts = opts || {};
+  const u = rng.float(), mine = opts.own || '', his = opts.husband || '';
+  if (!mine || !his || normName(mine) === normName(his)) return mine || his;
+  const c = customsConfig(opts.heritage, opts), [keep, join] = c.wife[generationOf(opts.generation, opts.nativity) === 1 ? 0 : 1];
+  return u < keep ? mine : u < keep + join ? `${mine}-${his}` : his;
+}
+
 /**
  * A given name for a person of this heritage, sex, birth cohort and generation in the US. Immigrants
  * (generation 1, or nativity 'foreign') carry names from the origin country in the romanization usual in
@@ -2001,22 +2280,28 @@ export function adaptSurname(name, opts) {
  * traditions follow it (a Wong gets a Cantonese-style name, a Reddy a Telugu one) and names that would make
  * a famous person's full name are redrawn. For Sikh heritage the religious name is part of the returned
  * given name, as in "Harpreet Kaur" or "Gurpreet Singh" (opts.religiousName === false leaves it off).
+ * opts.language (the family's home language) and opts.origin (a finer origin key) pick the origin pools where a
+ * heritage's names differ by them (a Punjabi speaker from Ludhiana is not named in Tamil); opts.birthSurname, the
+ * surname a married woman was born with, is the one her given name follows (her parents chose it); opts.arrivalAge,
+ * for someone born abroad, keeps a child who came here with their parents (under 18) on the origin's names.
  * @param {import('./rng.mjs').Rng} rng
  * @param {{heritage?: string, sex?: 'F'|'M', birthYear?: number, generation?: number, nativity?: 'native'|'foreign',
- *   surname?: string, last?: string, parents?: string[], religiousName?: boolean}} [opts]
+ *   surname?: string, last?: string, birthSurname?: string, parents?: string[], religiousName?: boolean,
+ *   language?: string, origin?: string, arrivalAge?: number}} [opts]
  * @returns {string}
  */
 export function givenName(rng, opts) {
   opts = opts || {};
-  const cfg = configOf(heritageKey(opts.heritage));
+  const heritage = heritageKey(opts.heritage), cfg = configOf(heritage);
   const sex = sexKey(rng, opts.sex);
   const gen = generationOf(opts.generation, opts.nativity);
   const era = eraDraw(rng, opts.birthYear);
-  const last = opts.surname || opts.last || null;
+  const last = opts.surname || opts.last || null, birth = opts.birthSurname || last;
+  const prof = profileOf(heritage, opts), early = cameAsChild(opts);
   let first = '';
   for (let k = 0; k < 8; k++) {
-    first = coreGiven(rng, cfg, sex, era, gen, last, opts.parents);
-    if (!last || !clashes(first, last)) break;
+    first = coreGiven(rng, cfg, sex, era, gen, birth, opts.parents, prof, early);
+    if ((!last || !clashes(first, last)) && (!birth || birth === last || !clashes(first, birth))) break;
   }
   if (cfg.religiousName && opts.religiousName !== false && !isReligiousSurname(cfg, last) && rng.chance(cfg.religiousKeep[gen - 1])) {
     first = `${first} ${cfg.religiousName[sex]}`;
@@ -2169,9 +2454,10 @@ const rankedDraw = (rng, key, str) => {
  * Van or another Vietnamese middle name for Vietnamese immigrants; the mother's maiden surname for
  * Filipinos; a second given name for many Latin American immigrants (José Luis, María Guadalupe); a
  * heritage name for many US-born children of Asian, Middle Eastern and African families; otherwise a
- * common American middle name.
+ * common American middle name. opts.language and opts.origin narrow the heritage names as in givenName.
  * @param {import('./rng.mjs').Rng} rng
- * @param {{heritage?: string, sex?: 'F'|'M', birthYear?: number, generation?: number, nativity?: string, surname?: string, first?: string}} [opts]
+ * @param {{heritage?: string, sex?: 'F'|'M', birthYear?: number, generation?: number, nativity?: string, surname?: string,
+ *   first?: string, language?: string, origin?: string}} [opts]
  * @returns {string}
  */
 export function middleName(rng, opts) {
@@ -2190,7 +2476,10 @@ export function middleName(rng, opts) {
     if (gen === 1) return rng.chance(0.45) ? other(() => rankedDraw(rng, 'HS|' + sex, HISPANIC_SECOND[sex])) : '';
     return rng.chance(0.5) ? other(() => drawFromTradition(rng, usTradition(cfg), sex, era, 'us', null)) : '';
   }
-  if (HERITAGE_MIDDLE.has(heritage) && gen >= 2 && rng.chance(0.4)) return other(() => drawFromTradition(rng, cfg.given, sex, era, 'origin', hintFor(cfg, last)));
+  if (HERITAGE_MIDDLE.has(heritage) && gen >= 2 && rng.chance(0.4)) {
+    const prof = profileOf(heritage, opts);
+    return other(() => (prof ? drawProfiled(rng, cfg, prof, sex, era, last) : drawFromTradition(rng, cfg.given, sex, era, 'origin', hintFor(cfg, last))));
+  }
   if (gen === 1 && (HERITAGE_MIDDLE.has(heritage) || cfg.keep[0] > 0)) return '';
   if (!rng.chance(0.75)) return '';
   return other(() => (rng.chance(0.5) ? rankedDraw(rng, 'CM|' + sex, CLASSIC_MIDDLE[sex]) : generalGiven(rng, sex, era)));
@@ -2199,10 +2488,11 @@ export function middleName(rng, opts) {
 /**
  * A whole name in one call: {first, middle, last, full, display, nick}. The surname is drawn for the person
  * (or taken from opts.surname, e.g. the household's), the given name follows it, famous full names are
- * avoided, and display is what people call them ("Beto Hernandez").
+ * avoided, and display is what people call them ("Beto Hernandez"). language, origin and arrivalAge work as in
+ * surname and givenName.
  * @param {import('./rng.mjs').Rng} rng
  * @param {{heritage?: string, sex?: 'F'|'M', birthYear?: number, age?: number, generation?: number,
- *   nativity?: 'native'|'foreign', surname?: string, parents?: string[]}} [opts]
+ *   nativity?: 'native'|'foreign', surname?: string, parents?: string[], language?: string, origin?: string, arrivalAge?: number}} [opts]
  * @returns {{first: string, middle: string, last: string, full: string, display: string, nick: string|null}}
  */
 export function nameFor(rng, opts) {
@@ -2212,11 +2502,11 @@ export function nameFor(rng, opts) {
   const birthYear = Number.isFinite(Number(opts.birthYear)) && opts.birthYear !== null ? Number(opts.birthYear)
     : Number.isFinite(Number(opts.age)) && opts.age !== null ? REF_YEAR - Number(opts.age) : 1985;
   const age = Number.isFinite(Number(opts.age)) && opts.age !== null ? Number(opts.age) : REF_YEAR - birthYear;
-  const last = opts.surname || opts.last || surname(rng, heritage, { sex, generation: gen });
-  const era = eraDraw(rng, birthYear);
+  const last = opts.surname || opts.last || surname(rng, heritage, { sex, generation: gen, language: opts.language, origin: opts.origin });
+  const era = eraDraw(rng, birthYear), prof = profileOf(heritage, opts), early = cameAsChild(opts);
   let first = '';
-  for (let k = 0; k < 8; k++) { first = coreGiven(rng, cfg, sex, era, gen, last, opts.parents); if (!clashes(first, last)) break; }
-  const middle = middleName(rng, { heritage, sex, birthYear, generation: gen, surname: last, first });
+  for (let k = 0; k < 8; k++) { first = coreGiven(rng, cfg, sex, era, gen, last, opts.parents, prof, early); if (!clashes(first, last)) break; }
+  const middle = middleName(rng, { heritage, sex, birthYear, generation: gen, surname: last, first, language: opts.language, origin: opts.origin });
   const nick = nickname(rng, first, { heritage, age, sex, surname: last });
   return { first, middle, last, full: [first, middle, last].filter(Boolean).join(' '), display: `${nick || first} ${last}`, nick };
 }
@@ -2227,15 +2517,17 @@ export function nameFor(rng, opts) {
  * The effective given-name pool a heritage draws from for one sex, era and generation, as shares that sum
  * to 1, most common first (mixed traditions merged by their weights for that era). Generation 1 is the
  * origin-country pool, 2 and 3 the heritage names US-born families use; heritages that use the general
- * pool (American, Native American, multiracial, other) return the general California pool.
+ * pool (American, Native American, multiracial, other) return the general California pool. opts.language and
+ * opts.origin narrow the origin-country pool as they narrow givenName.
  * @param {string} heritage
  * @param {'F'|'M'} sex
  * @param {number} era index 0..3, or a birth year
  * @param {number} [generation=1]
+ * @param {{language?: string, origin?: string}} [opts]
  * @returns {Array<{name: string, weight: number}>}
  */
-export function givenPool(heritage, sex, era, generation = 1) {
-  const cfg = configOf(heritageKey(heritage)), S = sex === 'M' ? 'M' : 'F', e = eraIndex(era), gen = generationOf(generation);
+export function givenPool(heritage, sex, era, generation = 1, opts) {
+  const key = heritageKey(heritage), cfg = configOf(key), S = sex === 'M' ? 'M' : 'F', e = eraIndex(era), gen = generationOf(generation);
   const out = new Map();
   const add = (pool, scale) => { if (pool) for (const { name, weight } of pool.entries()) out.set(name, (out.get(name) || 0) + weight * scale); };
   const walk = (trad, kind, scale) => {
@@ -2245,17 +2537,27 @@ export function givenPool(heritage, sex, era, generation = 1) {
     if (T.mix) { const tot = T.mix.reduce((a, m) => a + m[1][e], 0); for (const m of T.mix) walk(m[0], kind, scale * m[1][e] / tot); return; }
     add(leafPool(trad, S, e, 'origin'), scale);
   };
+  const prof = gen === 1 ? profileOf(key, opts) : null;
   if (cfg.multi || !(cfg.keep[gen - 1] > 0)) walk('general', 'origin', 1);
-  else walk(gen === 1 ? cfg.given : usTradition(cfg), gen === 1 ? 'origin' : 'us', 1);
+  else if (prof) {
+    // the narrowed mix drawProfiled uses (the heritage's mix filtered to the profile, else the profile's traditions)
+    const keys = new Set(prof.map(p => p[0])), T = own(GIVEN, cfg.given);
+    let mix = T && T.mix ? T.mix.filter(([k, , keepWith]) => keys.has(k) || (keepWith && keepWith.some(x => keys.has(x)))) : [];
+    if (!mix.length) mix = prof.filter(([k]) => own(GIVEN, k));
+    if (!mix.length) walk(cfg.given, 'origin', 1);
+    else { const wt = m => (Array.isArray(m[1]) ? m[1][e] : m[1]), tot = mix.reduce((a, m) => a + wt(m), 0); for (const m of mix) walk(m[0], 'origin', wt(m) / tot); }
+  } else walk(gen === 1 ? cfg.given : usTradition(cfg), gen === 1 ? 'origin' : 'us', 1);
   return [...out].map(([name, weight]) => ({ name, weight })).sort((a, b) => b.weight - a.weight);
 }
 
 /**
- * The surname distribution of a heritage as shares that sum to 1, most common first (mixed pools merged).
+ * The surname distribution of a heritage as shares that sum to 1, most common first (mixed pools merged);
+ * opts.language and opts.origin narrow it as they narrow surname.
  * @param {string} heritage
+ * @param {{language?: string, origin?: string}} [opts]
  * @returns {Array<{name: string, weight: number}>}
  */
-export function surnamePool(heritage) {
+export function surnamePool(heritage, opts) {
   const out = new Map();
   const walk = (key, scale, depth) => {
     const spec = own(SURNAMES, key);
@@ -2264,7 +2566,9 @@ export function surnamePool(heritage) {
     if (spec.mix) { const tot = spec.mix.reduce((a, m) => a + m[1], 0); for (const m of spec.mix) walk(m[0], scale * m[1] / tot, depth + 1); return; }
     for (const { name, weight } of listPool(key).entries()) out.set(name, (out.get(name) || 0) + weight * scale);
   };
-  walk(configOf(heritageKey(heritage)).sur, 1, 0);
+  const key = heritageKey(heritage), prof = profileOf(key, opts), pools = prof ? prof.filter(([k]) => own(SURNAMES, k) !== undefined) : [];
+  if (pools.length) { const tot = pools.reduce((a, p) => a + p[1], 0); for (const [k, w] of pools) walk(k, w / tot, 0); }
+  else walk(configOf(key).sur, 1, 0);
   return [...out].map(([name, weight]) => ({ name, weight })).sort((a, b) => b.weight - a.weight);
 }
 

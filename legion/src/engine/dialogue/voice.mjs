@@ -10,7 +10,8 @@
 // Language mode: 'en' for English speakers (with code-switching at the persona's rate when they have another home
 // language), 'es' for Spanish speakers with limited English (they answer in Spanish, with an English gloss), and
 // 'simple' for speakers of another language with limited English (short, plain English, opening with a phrase
-// in their own language where one fits).
+// in their own language where one fits). A Spanish speaker the player addresses in Spanish answers that turn in
+// Spanish (dialogue.mjs switches the mode for the turn); one who speaks no Spanish says so.
 
 import {
   dialectFor, DIALECTS, slotsFor, speakerFacts, weatherCondition, offshoreWind,
@@ -19,6 +20,7 @@ import {
 import { activityAt } from '../schedule.mjs';
 import { pacific } from '../clock.mjs';
 import { isNum, num, str } from './core.mjs';
+import { selfVocab } from './understand.mjs';
 
 /** Life stages by age: 'baby' (0-1), 'toddler' (2-4), 'kid' (5-12), 'teen' (13-17), 'adult' (18-64), 'senior' (65+). */
 export function stageOf(age) {
@@ -102,6 +104,33 @@ export function teamLabel(name) {
 
 const HOME_WORD = { house: 'house', 'small-apartment': 'apartment', apartment: 'apartment', 'mobile-home': 'mobile home' };
 
+const cityCounties = new WeakMap();
+
+/**
+ * True when a birthplace ("Rialto, California") is a town of the given county (by index): the pack's cities and
+ * Census places name the county of each town. A birthplace outside California, or one the pack does not know, is not.
+ * @param {import('../world.mjs').World} world
+ * @param {number} countyIndex
+ * @param {string} birthplace
+ * @returns {boolean}
+ */
+export function bornInCounty(world, countyIndex, birthplace) {
+  const m = /^(.+?),\s*(California|CA)\s*$/i.exec(String(birthplace || '').trim());
+  if (!m || !world) return false;
+  let map = cityCounties.get(world);
+  if (!map) {
+    map = new Map();
+    for (const c of (world.pack && world.pack.cities) || []) if (c && c[0]) map.set(String(c[0]).toLowerCase(), c[1]);
+    for (const p of world.places || []) if (p && p.name && !map.has(p.name.toLowerCase())) map.set(p.name.toLowerCase(), p.county);
+    cityCounties.set(world, map);
+  }
+  const ci = map.get(m[1].trim().toLowerCase());
+  return ci !== undefined && ci === countyIndex;
+}
+
+// Work on one's own land: a farmer, a rancher, a grower, or the family farm or vineyard.
+const FARM_WORK = /\b(farm|farmer|ranch|rancher|orchard|vineyard|dairy|grower|cattle)\b/i;
+
 /** "at the district attorney's office", "on a farm": the employer with its preposition, first person. */
 export function employerPhrase(employer) {
   let e = str(employer);
@@ -151,6 +180,8 @@ export function makeVoice(world, persona, opts = {}) {
   const known = resolved && LANGUAGES[resolved] ? resolved : null;
   const limited = langs.english === 'limited' && homeLang !== 'english';
   const mode = limited && known === 'spanish' ? 'es' : limited ? 'simple' : 'en';
+  // they speak Spanish: their home language, or one of the languages on their record (a player's Spanish reaches them)
+  const spanish = known === 'spanish' || (Array.isArray(langs.list) && langs.list.some(l => resolveLanguage(l, npc.seed >>> 0) === 'spanish'));
   const csRaw = speech.codeSwitch && typeof speech.codeSwitch === 'object' ? speech.codeSwitch : null;
   const csLang = csRaw ? (resolveLanguage(csRaw.lang, npc.seed >>> 0) || null) : null;
   const cs = csLang && LANGUAGES[csLang] && age >= 3 ? { lang: csLang, rate: Math.max(0, Math.min(1, num(csRaw.rate, 0))) } : null;
@@ -197,7 +228,16 @@ export function makeVoice(world, persona, opts = {}) {
     desert: /desert/i.test(String(z.provinceName || '')),
     withParents: rel.parents.length > 0 && age >= 18, widowed: npc.marital === 'widowed',
     surfs: interests.includes('surfing'),
+    // born in this county (or in this home): "born and raised" and "my whole life" need it, growing up here does not
+    bornInCounty: !!res.bornHere || (npc.nativity !== 'foreign' && bornInCounty(world, z.county, npc.birthplace)),
+    // their own business, farm or practice: no boss to hide from
+    selfEmployed: !!(occ && (/^their\b/i.test(String(occ.employer || '')) || /\b(owner|farmer|rancher)\b/i.test(String(occ.title || '')))),
+    // working at home means the farm or the ranch, not a laptop at the kitchen table
+    onFarm: mode0 === 'wfh' && !!(occ && (FARM_WORK.test(String(occ.title || '')) || FARM_WORK.test(String(occ.employer || '')))),
+    married: !!rel.partner && (npc.role === 'spouse' || rel.partner.role === 'spouse' || (npc.role === 'parent' && rel.partner.role === 'parent')),
   };
+  flags.spouseSex = flags.married ? rel.partner.sex : null;
+  flags.partnerSex = rel.partner ? rel.partner.sex : null;
 
   // the dialect's world-grounded slots (the persona's own team, or none: a non-fan does not cheer)
   const team = teams[0] ? { name: teams[0].name, label: teamLabel(teams[0].name) } : null;
@@ -217,9 +257,11 @@ export function makeVoice(world, persona, opts = {}) {
     catchphrases: Array.isArray(speech.catchphrases) ? speech.catchphrases.slice() : [],
     big5, speaker, flags, rel, home, res, hh, occ, occKey, commute, routine, interests, teams, team,
     homeWord: HOME_WORD[hh.dwelling] || 'place',
-    lang: { mode, home: homeLang, known, cs, variety, faith, usted, limited },
+    lang: { mode, home: homeLang, known, cs, variety, faith, usted, limited, spanish },
     lex, context, wx, alerts, sky, offshore, tempF: wx && wx.now && isNum(wx.now.tempF) ? wx.now.tempF : null,
     activity,
+    // the words of their own life a player may name ("which hospital?", "how's the harvest?")
+    vocab: selfVocab({ title: occ && occ.title, employer: occ && occ.employer, interests, concerns: (persona.concerns || []).map(c => c && c.topic).filter(Boolean) }),
     // refreshed every turn
     mood: { valence: 0, arousal: 0.4, emotion: 'neutral', tired: false, tense: false },
     relq: { known: false, affinity: 0, trust: 0, familiarity: 0, guarded: false, name: null, feelings: 'neutral', facts: [] },

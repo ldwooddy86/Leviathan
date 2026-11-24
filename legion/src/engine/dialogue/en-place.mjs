@@ -14,7 +14,7 @@ export const PLACE = compileBank({
     It's {temp} out right now, {sky}.
     {temp} degrees and {sky}.
     Right now it's {temp} and {sky}.
-    It's {sky}, about {temp} degrees.
+    It's {skyAdj}, about {temp} degrees.
     @loose {temp} and {sky}. Not bad.
     @plain It's {temp} degrees at the moment, and {sky}.
     @kid It's {temp} degrees!
@@ -25,8 +25,22 @@ export const PLACE = compileBank({
     It's about {temp} out.
   `,
   'wx.stale': `
-    It's about {temp} out. Pretty typical for {month}.
-    Around {temp}, I'd guess. About normal for {month}.
+    Feels like it's around {temp} out, I'd guess.
+    Probably around {temp} right now. I haven't checked.
+    I'd say it's {temp} or so out there.
+  `,
+  'wx.noForecast': `
+    I haven't looked at the forecast, honestly.
+    No idea what the forecast says. I'll find out when I walk outside.
+    I haven't checked the forecast. Ask me tomorrow.
+  `,
+  'wx.climate.wetNow': `
+    This is usually the wettest month here.
+    {wetMonth} is usually when we get the most rain.
+  `,
+  'wx.climate.wetNext': `
+    {wetMonth} is usually the wettest month here, so it's coming.
+    The rain usually picks up in {wetMonth}.
   `,
   'wx.tonight': `
     Supposed to get down to {low} tonight.
@@ -35,9 +49,9 @@ export const PLACE = compileBank({
     Bring a jacket later. It's going down to {low}.
   `,
   'wx.next': `
-    {whenCap} it's supposed to be {nextSky}, around {high}.
+    {whenCap} it's supposed to be {nextSkyAdj}, around {high}.
     The forecast says {nextSky} {when}, with a high near {high}.
-    {whenCap} looks {nextSky}. High of {high} or so.
+    {whenCap} looks {nextSkyAdj}. High of {high} or so.
   `,
   'wx.rainChance': `
     There's a {pop} percent chance of rain {when}.
@@ -187,6 +201,7 @@ export const PLACE = compileBank({
   'tr.bike': `
     I bike to work. {commuteMin} minutes and no traffic.
     I ride my bike in. {commuteMin} minutes, best part of my day.
+    I bike to work. No traffic, no parking.
   `,
   'tr.walk': `
     I walk to work. Best commute there is.
@@ -195,6 +210,43 @@ export const PLACE = compileBank({
   'tr.motorcycle': `
     I ride my motorcycle to {workCity}. Lane splitting saves my sanity.
     Motorcycle to {workCity}, {commuteMin} minutes.
+  `,
+  'tr.which': `
+    {roadCap}, mostly.
+    Around here it's {road}.
+    {roadCap}. That's the one everybody takes.
+  `,
+  'tr.whichMine': `
+    {roadCap}, every day.
+    I take {road}.
+    {roadCap}. Same road, every morning.
+  `,
+  'tr.leave': `
+    I leave around {departClock}. It's {commuteMin} minutes from there.
+    I'm out the door around {departClock}, and it's {commuteMin} minutes in.
+    Around {departClock}. That gets me there in {commuteMin} minutes, usually.
+  `,
+  'tr.onFarm': `
+    I work right here on the farm, so I mostly stay off {road}.
+    No commute for me. {roadCap} is for when I have to go to town.
+  `,
+  'tr.car': `
+    Nothing fancy. It gets me where I need to go.
+    Just a regular car. It runs, and that's all I ask.
+    An ordinary car. Nobody's going to be impressed.
+  `,
+  'tr.carShared': `
+    We've got a car at home. I'm not the one who drives it most.
+    There's a family car. I don't drive much.
+  `,
+  'tr.farWork': `
+    It's about {miles}. {commuteMin} minutes, door to door.
+    Work's {miles} away. {commuteMin} minutes on a good day.
+    {commuteMin} minutes. It's {miles} from here.
+  `,
+  'tr.farSchool': `
+    School's {miles} away. {commuteMin} minutes.
+    It's close. {commuteMin} minutes to school.
   `,
   'tr.wfh': `
     I work from home, so I mostly skip {road}.
@@ -304,7 +356,31 @@ export const PLACE = compileBank({
   'fire.remember': `
     I remember {fire}, in {year}.
     {fireCap}, {month} {year}. I remember it well.
+  `,
+  'fire.rememberAway': `
+    I remember {fire}, in {year}.
+    {fireCap}, {month} {year}. I remember it well.
     {fireCap} in {year}. It wasn't right here, but everybody felt it.
+  `,
+  'fire.named': `
+    {fireCap}, {month} {year}.
+    That was {fire}, back in {year}.
+  `,
+  'fire.namedAway': `
+    {fireCap}, {month} {year}.
+    {fireCap} in {year}. It wasn't right here, but everybody felt it.
+  `,
+  'fire.which': `
+    {fireCap}, in {year}.
+    That was {fire}, {year}.
+  `,
+  'fire.impact': `
+    {fireCap}? {exp}
+    With {fire}, in {year}... {exp}
+  `,
+  'fire.beforeMe': `
+    That was before I lived here. I moved in after {fire}.
+    I wasn't living here yet for {fire}.
   `,
   'fire.distance': `
     It burned {miles} from here.
@@ -394,6 +470,7 @@ export const PLACE = compileBank({
   'storm.arLived': `
     I remember the one in {when}. {exp}
     The storm in {when}, I remember. {exp}
+    The storm in {when}. {exp}
   `,
   'storm.arRank': `
     It was a category {rank} atmospheric river.
@@ -430,8 +507,33 @@ export const PLACE = compileBank({
     @worrier I can't sleep when the wind's howling.
   `,
   'storm.wind': `
-    The {windName} of {when} gusted to {gust} miles an hour.
-    The worst wind I can think of was {when}. Gusts of {gust} miles an hour.
+    The {windName} of {when} gusted to {gust} miles an hour {windWhere}.
+    In {when}, the {windName} hit {gust} miles an hour {windWhere}.
+    The worst one I know of was {when}. Gusts of {gust} miles an hour {windWhere}.
+  `,
+  'storm.windCounty': `
+    The {windName} of {when} hit {county} County hard.
+    {windNameCap} in {when}. That was a bad one for {county} County.
+  `,
+  'storm.noOffshore': `
+    We don't really get {offAsked} here.
+    {offAskedCap}? Not out here.
+  `,
+  'storm.offshoreSa': `
+    Down here it's the Santa Anas you watch for.
+    Here it's the Santa Anas. Same idea, hot and dry out of the east.
+  `,
+  'storm.offshoreDi': `
+    Up here it's the Diablo winds.
+    Around here we call them the Diablo winds.
+  `,
+  'storm.windGust': `
+    The worst gust was {gust} miles an hour, {windWhere}.
+    It gusted to {gust} miles an hour {windWhere}.
+  `,
+  'storm.windLived': `
+    I remember the {windName} of {when}. {exp}
+    The {windName}, {when}. {exp}
   `,
   'storm.gustRecord': `
     The strongest gust on record here was {gust} miles an hour, in {when}.
@@ -581,6 +683,10 @@ export const PLACE = compileBank({
     I don't deal with the insurance. That's whoever owns the place.
     It's not my house, so I stay out of that. But I hear the complaints.
   `,
+  'ins.family': `
+    I leave that to my {parentWord}. I just hear about it at dinner.
+    That's not my department. I hear my {parentWord} talk about it, though.
+  `,
   'ins.minor': `
     I don't know anything about that. Ask my {parentWord}.
     That's grown-up stuff.
@@ -621,8 +727,18 @@ export const PLACE = compileBank({
     @worrier Every truck that goes by, I think it's starting.
   `,
   'quake.none': `
-    We feel the little ones now and then. Nothing big that I remember here.
-    Small ones, sure. Nothing that did real damage around here.
+    It's California. You never know when the next one's coming.
+    I try not to think about it too much.
+    You keep a kit ready and you hope.
+    @worrier I think about the big one more than I should.
+  `,
+  'quake.residence': `
+    I've been around here since {countySince}.
+    I've lived in {county} County since {countySince}.
+  `,
+  'quake.residenceLife': `
+    I've been in {county} County my whole life.
+    I've lived in {county} County all my life.
   `,
 
   // ---------------------------------------------------------------- food
@@ -703,8 +819,8 @@ export const PLACE = compileBank({
     Drive over to {town}, {miles} {dir}. Nice place.
   `,
   'place.mine': `
-    Honestly, my favorite thing around here is {doingThing}.
-    If you ask me, {doingThing} is the best way to spend a day here.
+    Honestly, I'm happiest {doingThing}.
+    Me? You'll usually find me {doingThing}.
   `,
   'place.none': `
     There's not a ton to do right here, honestly. But it's quiet.
@@ -761,6 +877,10 @@ export const PLACE = compileBank({
     You'll want a map for the rest.
     Your phone will do better than me after that.
   `,
+  'dir.mapAll': `
+    You'll want a map for that one.
+    Your phone will do better than me on that one.
+  `,
 
   // ---------------------------------------------------------------- the neighborhood
   'hood.urban': `
@@ -784,6 +904,18 @@ export const PLACE = compileBank({
     You hear a lot of {langName} on my block. {shareCap} speak it at home.
     {shareCap} speak {langName} at home.
     {langNameCap} is everywhere around here. {shareCap} speak it at home.
+  `,
+  'hood.langFew': `
+    Not so many on my block, as far as I can tell. You don't hear a lot of {langName} around here.
+    Not a lot, that I know of.
+  `,
+  'hood.langEnglish': `
+    It's mostly English around here.
+    Mostly English-speaking, this neighborhood.
+  `,
+  'hood.mixed': `
+    It's a mix around here. You hear a little of everything.
+    A little of everybody, honestly.
   `,
   'hood.old': `
     Most of the houses here went up in {decade}.
@@ -844,8 +976,34 @@ export const PLACE = compileBank({
     {year}... that's {event}.
   `,
   'hist.yearMiss': `
-    {year}? Nothing special that I remember, honestly.
-    I can't think of anything big in {year}.
+    {year}? I'd have to think about that one.
+    {year}... let me think on that one.
+    @older {year}. That's a while back. Give me a minute.
+  `,
+  'hist.yearUnborn': `
+    {year}? I wasn't even born yet.
+    I wasn't around yet in {year}.
+  `,
+  'hist.yearHere': `
+    I was. I've been here since {zipSince}.
+    Sure, I was here. I moved in back in {zipSince}.
+    I was living here, yes. Since {zipSince}.
+  `,
+  'hist.yearHereAlways': `
+    I was. I've been here my whole life.
+    Sure. I've never lived anywhere else.
+  `,
+  'hist.yearCounty': `
+    I was in {county} County, but I didn't move to this neighborhood until {zipSince}.
+    Not on this street yet, but I was in {county} County. I came here in {zipSince}.
+  `,
+  'hist.yearAbroad': `
+    No, I came to the States in {arrivalYear}.
+    I wasn't here yet. I got here in {arrivalYear}.
+  `,
+  'hist.yearAway': `
+    No, I didn't come here until {countySince}.
+    I wasn't here yet. I came to {county} County in {countySince}.
   `,
   'hist.kid': `
     I'm only {age}. I don't remember much.

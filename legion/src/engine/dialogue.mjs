@@ -6,7 +6,16 @@
 // neighborhood), realizes (a large template library, first person, many variants per intent and topic, the
 // dialect's own lines), and styles (register, verbosity, slang, humor, mood, the relationship, code-switching into
 // the home language with an English gloss). It never says the same line twice in a conversation, and the mind
-// remembers what was talked about, so a returning player hears about it.
+// remembers what was talked about, so a returning player hears about it. A player may also speak Spanish: a
+// Spanish speaker answers that turn in Spanish (with the English gloss), anyone else gets the everyday words
+// (hola, gracias, ¿cómo está?) and says so for the rest.
+//
+// Some things an NPC will not do. A line that sorts people into groups, probes immigration status or tells them to
+// leave (dialogue/probe.mjs) is declined and pushed back on, and a hostile one costs the player like an insult. A
+// crude, hateful or joke name, job or hometown is never learned or said back. A follow-up ("how old are they?",
+// "which hospital?") is answered from the NPC's own record, never with "I don't know". No claim rests on missing
+// data: no record of an earthquake is not "nothing happened here", and past the forecast window the weather is an
+// estimate and nothing more.
 //
 // Lines: {text, gloss, intent, topics, emotion, facts}. gloss is the English meaning when the line (or part of it)
 // is in another language, null otherwise. facts lists the ids of the pack facts the line used (see
@@ -21,23 +30,26 @@
 //   bark(world, p, { t, other: q, situation: 'pass' });   // {text: 'Morning!', gloss: null}
 
 import { Rng, hashAll, hash2 } from './rng.mjs';
-import { Picker, findBrands, BRAND_BLACKLIST } from './lexicon.mjs';
+import { Picker, findBrands, fireLabel } from './lexicon.mjs';
 import { Mind } from './mind.mjs';
 import { makeVoice, refreshVoice } from './dialogue/voice.mjs';
-import { understand, INTENTS as INTENT_ORDER, TOPICAL } from './dialogue/understand.mjs';
-import { PLANNERS, compose, answerPending, smallChild, say, baseSlots, EN, SPANISH, tagHash, memoryFact } from './dialogue/plan.mjs';
-import { fireFacts } from './dialogue/ground.mjs';
+import { understand, TOPICAL } from './dialogue/understand.mjs';
+import { PLANNERS, compose, answerPending, smallChild, say, baseSlots, EN, SPANISH, tagHash } from './dialogue/plan.mjs';
+import { fireFacts, weatherFacts } from './dialogue/ground.mjs';
 import { bark, barkBetween, BARK_EN, BARK_ES, BARK_SITUATIONS } from './dialogue/bark.mjs';
-import { isNum, lintText, slotNames, cleanText, capFirst } from './dialogue/core.mjs';
-import { fireLabel } from './lexicon.mjs';
+import { isNum, lintText, fitsLife, lexiconLineFits } from './dialogue/core.mjs';
+import { screenValue } from './dialogue/probe.mjs';
 
 export { bark, barkBetween, BARK_SITUATIONS, understand };
 
 /** Bumped when the engine's behavior or Line shape changes. */
 export const DIALOGUE_VERSION = 1;
 
-/** The intents the engine understands (Line.intent is one of these). */
-export const INTENTS = Object.freeze(['greeting', 'how-are-you', 'name', 'about-them', 'job', 'family', 'home', 'neighborhood', 'weather', 'traffic', 'fire', 'storm', 'heat', 'housing', 'rent', 'insurance', 'earthquake', 'food', 'place', 'directions', 'history', 'opinion', 'compliment', 'insult', 'joke', 'thanks', 'apology', 'smalltalk', 'goodbye', 'unknown']);
+/**
+ * The intents the engine understands (Line.intent is one of these). 'probe' is a line that sorts people into groups,
+ * asks about immigration status or prejudice: the NPC declines and pushes back (a hostile one is an 'insult').
+ */
+export const INTENTS = Object.freeze(['greeting', 'how-are-you', 'name', 'about-them', 'job', 'family', 'home', 'neighborhood', 'weather', 'traffic', 'fire', 'storm', 'heat', 'housing', 'rent', 'insurance', 'earthquake', 'food', 'place', 'directions', 'history', 'opinion', 'compliment', 'insult', 'probe', 'joke', 'thanks', 'apology', 'smalltalk', 'goodbye', 'unknown']);
 
 /** Line.emotion values: the mind's emotion labels plus a few the content sets (amused, pleased, hurt, annoyed, worried, wistful). */
 export const EMOTIONS = Object.freeze(['tired', 'excited', 'happy', 'cheerful', 'relaxed', 'content', 'tense', 'calm', 'neutral', 'irritated', 'anxious', 'bored', 'down', 'angry', 'upset', 'sad', 'amused', 'pleased', 'hurt', 'annoyed', 'worried', 'wistful']);
@@ -54,8 +66,14 @@ const TOPIC_PHRASE = {
 
 const TOPIC_TAGS = /^(fire|road|landmark|place):/;
 
-/** The fact a topic memory should name: the fire or road the line was about, said the local way. */
-function topicFromFacts(intent, facts, line) {
+// Lines that run every reading pattern once, for the constructor's warm-up.
+const WARM_UP = ['hello', 'Hi! How old are they? What do you think about immigrants? Which one?', 'Are Mexicans lazy? Do you have papers? How far is your work? Where are you from?'];
+
+// What anyone in California understands in Spanish, whatever languages they speak.
+const EVERYDAY_SPANISH = new Set(['greeting', 'how-are-you', 'name', 'thanks', 'goodbye', 'apology', 'insult']);
+
+/** The fact a topic memory should name: the fire the line was about, else the topic in general. */
+function topicFromFacts(intent, facts) {
   const fire = facts.find(f => /^fire:/.test(f));
   if (intent === 'fire' && fire) {
     const [, name, year] = fire.split(':');
@@ -73,11 +91,19 @@ function earlierTopics(mind, convTag) {
     .sort((a, b) => (b.t ?? 0) - (a.t ?? 0) || b.id - a.id);
 }
 
+const titleWords = s => String(s).replace(/\b\p{Ll}/gu, c => c.toUpperCase());
+
+/** What an earlier conversation was about, from its memory: {topic, topicEs, intent, facts}. */
 function topicOfMemory(m) {
   const x = /^The player asked me about (.+)\.$/.exec(String(m.text || ''));
   if (!x) return null;
-  const es = (m.tags || []).find(t => t.startsWith('es:'));
-  return { topic: x[1], topicEs: es ? es.slice(3).replace(/_/g, ' ') : null, intent: (m.tags || []).find(t => INTENTS.includes(t)) || null, facts: (m.tags || []).filter(t => TOPIC_TAGS.test(t)) };
+  const tags = m.tags || [];
+  const intent = tags.find(t => INTENTS.includes(t)) || null;
+  // tags are stored in lower case: names come back in title case ("fire:woolsey:2018" is the Woolsey Fire)
+  const facts = tags.filter(t => TOPIC_TAGS.test(t)).map(t => t.replace(/^(fire|road|landmark|place):([^:]+)/, (a, k, n) => `${k}:${k === 'road' ? n.toUpperCase() : titleWords(n)}`));
+  const fire = facts.find(f => f.startsWith('fire:'));
+  const topicEs = fire ? `el incendio ${fire.split(':')[1].replace(/\s+(Fire|Complex)$/i, '')} de ${fire.split(':')[2]}` : intent && TOPIC_PHRASE[intent] ? TOPIC_PHRASE[intent][1] : null;
+  return { topic: x[1], topicEs, intent, facts };
 }
 
 /**
@@ -101,7 +127,9 @@ export class Conversation {
     this.mind = opts.mind || new Mind(persona, { t: this.t });
     /** The turns: {role: 'player'|'npc', text, intent, t} plus, for the NPC, {gloss, topics, emotion, facts}. */
     this.history = [];
-    this.picker = new Picker(hash2(this.rngSeed, 0x70696b));
+    // the speaker's id goes into every draw, so two people given the same seed still talk differently
+    this.idHash = hashAll(persona.id || '');
+    this.picker = new Picker(hash2(this.rngSeed ^ this.idHash, 0x70696b));
     this.voice = makeVoice(world, persona, { t: this.t });
     const st = this.mind.state || {};
     if (typeof this.mind.tick === 'function' && (st.lastTick === null || st.lastTick === undefined || this.t >= st.lastTick)) {
@@ -113,12 +141,17 @@ export class Conversation {
     this.st = {
       turn: 0, said: new Set(), used: new Set(), usedMemories: new Set(), usedInterests: new Set(), hooksUsed: new Set(), asked: new Set(),
       pending: null, nameUses: 0, moodSaid: false, greeted: false, gaveName: false, ended: false, closed: false, insults: 0,
-      depth: {}, lastIntent: null, lastAsked: false, mentionedPrev: false, calledBack: new Set(), convTag, cs: null, pivotIntent: null,
+      depth: {}, lastIntent: null, lastAsked: false, mentionedPrev: false, calledBack: new Set(), convTag, cs: null, pivotIntent: null, noSpanish: 0,
       prev: prev.length ? topicOfMemory(prev[0]) : null,
     };
     if (this.st.prev && !this.st.prev.topic) this.st.prev = null;
-    // the name index and voice caches warm here, so the first reply is as quick as the rest
-    understand('hello', { world, home: this.voice.home });
+    // the name index, the voice caches and the big patterns warm here (V8 compiles a pattern to native code on its
+    // second use), so the first reply is as quick as the rest
+    for (let k = 0; k < 2; k++) {
+      for (const w of WARM_UP) understand(w, { world, home: this.voice.home, self: this.voice.vocab, lastIntent: 'family' });
+      weatherFacts(this.voice);
+      for (const w of WARM_UP) { fitsLife(w, this.voice); lexiconLineFits(w, this.voice, 'weather'); }
+    }
   }
 
   /** The NPC opens the conversation. @returns {Line} */
@@ -154,7 +187,7 @@ export class Conversation {
   _session(rng) {
     const v = this.voice;
     return {
-      v, rng, picker: this.picker, st: this.st, mind: this.mind, base: baseSlots(v), world: this.world,
+      v, rng, picker: this.picker, st: this.st, mind: this.mind, base: baseSlots(v), world: this.world, population: this.population,
       learn: (key, value, text) => {
         const r = typeof this.mind.relationship === 'function' ? this.mind.relationship('player') : null;
         if (!r) return;
@@ -168,52 +201,73 @@ export class Conversation {
   _turn(kind, text) {
     const st = this.st, v = this.voice;
     st.turn += 1;
-    const rng = new Rng(hashAll(this.rngSeed, st.turn, kind, text || ''));
-    if (kind === 'reply') this.mind.observe({ kind: 'utterance', from: 'player', text, t: this.t });
-    else if (kind === 'greet') this.mind.observe({ kind: 'meet', from: 'player', t: this.t });
+    const rng = new Rng(hashAll(this.rngSeed, this.idHash, st.turn, kind, text || ''));
+    if (kind === 'reply') {
+      // the mind learns what the player says about themselves; a crude, hateful or joke value is taken back out
+      const before = playerFacts(this.mind);
+      this.mind.observe({ kind: 'utterance', from: 'player', text, t: this.t });
+      scrubFacts(this.mind, before);
+    } else if (kind === 'greet') this.mind.observe({ kind: 'meet', from: 'player', t: this.t });
     refreshVoice(v, this.mind, { metBefore: !!st.prev });
     const S = this._session(rng);
     let u = null, intent, line;
     if (kind === 'reply') {
-      u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name })), lastIntent: st.pivotIntent || st.lastIntent, pending: st.pending });
+      u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name })), lastIntent: st.pivotIntent || st.lastIntent, pending: st.pending, self: v.vocab });
       intent = u.intent;
+      // a hostile probe stings like an insult, though the mind's appraisal hears no swearing in it
+      if (u.flags.probe && u.flags.probe.hostile) affront(this.mind, this.t, ['slur', 'hate', 'leave'].includes(u.flags.probe.kind) ? 1.4 : 1);
     } else intent = kind === 'greet' ? 'greeting' : 'goodbye';
 
-    if (v.age < 5) {
-      const text0 = smallChild(S, intent);
-      line = { text: text0, gloss: null, facts: [], ask: null };
-      return this._finish(kind, text, intent, line, u, { topics: [], emotion: null });
+    // A line in Spanish: a Spanish speaker answers that turn in Spanish; one who speaks none says so, except for
+    // the everyday words everybody here knows (hola, gracias, adiós, ¿cómo está?).
+    const mode0 = v.lang.mode;
+    const switchEs = !!(u && u.flags.spanish && v.lang.spanish && mode0 !== 'es');
+    const noSpanish = !!(u && u.flags.spanish && !v.lang.spanish && !EVERYDAY_SPANISH.has(intent));
+    if (switchEs) v.lang.mode = 'es';
+    try {
+      if (v.age < 5) {
+        const text0 = smallChild(S, intent);
+        line = { text: text0, gloss: null, facts: [], ask: null };
+        return this._finish(kind, text, intent, line, u, { topics: [], emotion: null });
+      }
+      let plan = null;
+      if (noSpanish) {
+        intent = 'unknown';
+        st.noSpanish += 1;
+        plan = { parts: [say(S, st.noSpanish > 2 ? 'unk.noSpanishAgain' : 'unk.noSpanish') || say(S, 'unk.noSpanish')], topics: [], noAsk: true };
+      } else if (u) {
+        plan = answerPending(S, u);
+        if (plan && plan.intent) intent = plan.intent;
+      }
+      if (!plan) {
+        if (st.ended && kind === 'reply' && !['apology', 'insult', 'goodbye'].includes(intent)) plan = { parts: [say(S, 'insult.after')], topics: [], noAsk: true, emotion: 'annoyed' };
+        else if (kind === 'greet') plan = PLANNERS.greeting(S, null, { initiated: true });
+        else if (kind === 'farewell') plan = PLANNERS.goodbye(S, null);
+        else plan = (PLANNERS[intent] || PLANNERS.unknown)(S, u);
+      }
+      if (u && u.flags.greeted && intent !== 'greeting' && !st.greeted && v.lang.mode === 'en') {
+        st.greeted = true;
+        plan.parts.unshift(say(S, 'greet.first'));
+      }
+      const cb = kind === 'reply' && !noSpanish ? this._callback(S, intent, u) : null;
+      if (cb) plan.parts.unshift(cb);
+      line = compose(S, intent, plan, u);
+      // never the same line twice: if planning landed on a line already said, plan again with a fresh draw
+      for (let k = 1; k <= 3 && st.said.has(line.text); k++) {
+        const S2 = this._session(new Rng(hashAll(this.rngSeed, this.idHash, st.turn, kind, text || '', k)));
+        const again = noSpanish ? { parts: [say(S2, st.noSpanish > 2 ? 'unk.noSpanishAgain' : 'unk.noSpanish')], topics: [], noAsk: true }
+          : (PLANNERS[intent] || PLANNERS.unknown)(S2, u || { norm: '', text: '', entities: { years: [], fires: [], roads: [], places: [], routine: [] }, flags: {}, topics: [], scores: {}, appraisal: { facts: [], sentiment: 0, toxicity: 0, intents: [] } }, kind === 'greet' ? { initiated: true } : {});
+        line = compose(S2, intent, again, u);
+      }
+      if (st.said.has(line.text)) line = Object.assign({}, line, repeatLine(v, line, st.said));
+      return this._finish(kind, text, intent, line, u, plan);
+    } finally {
+      v.lang.mode = mode0;
     }
-    let plan = null;
-    if (u) {
-      plan = answerPending(S, u);
-      if (plan && plan.intent) intent = plan.intent;
-    }
-    if (!plan) {
-      if (st.ended && kind === 'reply' && !['apology', 'insult', 'goodbye'].includes(intent)) plan = { parts: [say(S, 'insult.after')], topics: [], noAsk: true, emotion: 'annoyed' };
-      else if (kind === 'greet') plan = PLANNERS.greeting(S, null, { initiated: true });
-      else if (kind === 'farewell') plan = PLANNERS.goodbye(S, null);
-      else plan = (PLANNERS[intent] || PLANNERS.unknown)(S, u);
-    }
-    if (u && u.flags.greeted && intent !== 'greeting' && !st.greeted && v.lang.mode === 'en') {
-      st.greeted = true;
-      plan.parts.unshift(say(S, 'greet.first'));
-    }
-    const cb = kind === 'reply' ? this._callback(S, intent, u) : null;
-    if (cb) plan.parts.unshift(cb);
-    line = compose(S, intent, plan, u);
-    // never the same line twice: if planning landed on a line already said, plan again with a fresh draw
-    for (let k = 1; k <= 3 && st.said.has(line.text); k++) {
-      const S2 = this._session(new Rng(hashAll(this.rngSeed, st.turn, kind, text || '', k)));
-      const again = (PLANNERS[intent] || PLANNERS.unknown)(S2, u || { norm: '', text: '', entities: { years: [], fires: [], roads: [], places: [], routine: [] }, flags: {}, topics: [], scores: {}, appraisal: { facts: [], sentiment: 0, toxicity: 0, intents: [] } }, kind === 'greet' ? { initiated: true } : {});
-      line = compose(S2, intent, again, u);
-    }
-    if (st.said.has(line.text)) line = Object.assign({}, line, repeatLine(v, line));
-    return this._finish(kind, text, intent, line, u, plan);
   }
 
   _callback(S, intent, u) {
-    const st = this.st, v = this.voice;
+    const st = this.st;
     if (!TOPICAL.has(intent) || st.calledBack.has(intent) || (st.mentionedPrev && st.prev && st.prev.intent === intent)) return null;
     let hits = [];
     try { hits = this.mind.recall(`${u.text} ${intent} ${u.topics.join(' ')}`, 8, { t: this.t, kinds: ['conversation'], background: false }); } catch { hits = []; }
@@ -223,11 +277,11 @@ export class Conversation {
     if (!topic) return null;
     st.calledBack.add(intent);
     st.mentionedPrev = true;
-    return say(S, 'recall.prev', { prevTopic: topic.topic, prevTopicEs: topic.topicEs }, topic.facts.map(f => f.replace(/^fire:([^:]+)/, (a, n) => `fire:${n.replace(/\b\w/g, c => c.toUpperCase())}`)));
+    return say(S, 'recall.prev', { prevTopic: topic.topic, prevTopicEs: topic.topicEs }, topic.facts);
   }
 
   _finish(kind, text, intent, line, u, plan) {
-    const st = this.st, v = this.voice;
+    const st = this.st;
     const topics = [...new Set([...(plan.topics || []), ...((u && u.topics) || [])])].filter(Boolean);
     const emotion = plan.emotion || this.mind.emotion || 'neutral';
     const out = { text: line.text, gloss: line.gloss || null, intent, topics, emotion, facts: line.facts || [] };
@@ -243,9 +297,9 @@ export class Conversation {
     this.history.push({ role: 'npc', text: out.text, gloss: out.gloss, intent, topics, emotion, facts: out.facts.slice(), t: tAt });
     this.mind.observe({ kind: 'utterance', from: 'self', text: out.text, t: tAt, tags: [intent] });
     if (kind === 'reply' && TOPICAL.has(intent) && TOPIC_PHRASE[intent]) {
-      const tp = topicFromFacts(intent, out.facts, out);
+      const tp = topicFromFacts(intent, out.facts);
       if (tp) {
-        const tags = ['player', 'asked', intent, st.convTag, `es:${tp[1].replace(/\s+/g, '_')}`, ...(tp[2] ? [tp[2].toLowerCase()] : []), ...topics];
+        const tags = ['player', 'asked', intent, st.convTag, ...(tp[2] ? [tp[2]] : []), ...topics];
         this.mind.remember(`The player asked me about ${tp[0]}.`, HEAVY_IMPORTANCE[intent] || 0.45, tags, { t: tAt, kind: 'conversation' });
       }
     }
@@ -253,14 +307,51 @@ export class Conversation {
   }
 }
 
-/** A line said a second time, owned as such: "Like I said, ..." in the speaker's language. */
-function repeatLine(v, line) {
+/**
+ * A line said a second time, owned as such: "Like I said, ..." in the speaker's language, with another way of
+ * owning it each time (said is the set of lines already said).
+ */
+function repeatLine(v, line, said = new Set()) {
   const low = s => (/^(I|I'm|I've|I'd|I'll)\b/.test(s) || /^\p{Lu}\p{Lu}/u.test(s) ? s : s[0].toLowerCase() + s.slice(1));
-  if (v.lang.mode === 'es') return { text: `${v.lang.usted ? 'Como le decía' : 'Como te decía'}, ${low(line.text)}`, gloss: `Like I was saying, ${low(line.gloss || line.text)}` };
-  return { text: `Like I said, ${low(line.text)}`, gloss: line.gloss ? `Like I said, ${low(line.gloss)}` : null };
+  const ways = v.lang.mode === 'es'
+    ? [[v.lang.usted ? 'Como le decía' : 'Como te decía', 'Like I was saying'], ['Ya le dije', 'I already told you'], ['Otra vez', 'Again'], ['Lo repito', "I'll say it again"]]
+      .map(([es, en]) => ({ text: `${es}, ${low(line.text)}`, gloss: `${en}, ${low(line.gloss || line.text)}` }))
+    : ['Like I said', 'Like I told you', 'Again', 'As I said'].map(w => ({ text: `${w}, ${low(line.text)}`, gloss: line.gloss ? `${w}, ${low(line.gloss)}` : null }));
+  return ways.find(x => !said.has(x.text)) || ways[ways.length - 1];
 }
 
 const HEAVY_IMPORTANCE = { fire: 0.7, storm: 0.6, earthquake: 0.6, insurance: 0.6, history: 0.55, family: 0.55, job: 0.5, rent: 0.55, housing: 0.5 };
+
+/** The player's facts in the mind as {key: value}, before a turn (to restore what a crude value overwrote). */
+function playerFacts(mind) {
+  const r = mind && typeof mind.relationship === 'function' ? mind.relationship('player') : null;
+  return r && Array.isArray(r.facts) ? r.facts.map(f => Object.assign({}, f)) : [];
+}
+
+/** Take back any fact the mind just learned whose value is crude, hateful or a joke, restoring what it replaced. */
+function scrubFacts(mind, before) {
+  const r = mind && typeof mind.relationship === 'function' ? mind.relationship('player') : null;
+  if (!r || !Array.isArray(r.facts)) return;
+  for (let i = r.facts.length - 1; i >= 0; i--) {
+    const f = r.facts[i];
+    if (!f || !screenValue(f.value, f.key)) continue;
+    const prev = before.find(b => b.key === f.key && !screenValue(b.value, b.key));
+    if (prev) r.facts[i] = prev; else r.facts.splice(i, 1);
+  }
+}
+
+/** What an insult does to the relationship (the mind's own rule), for a hostile line its appraisal does not catch. */
+function affront(mind, t, weight = 1) {
+  const r = mind && typeof mind.relationship === 'function' ? mind.relationship('player') : null;
+  if (!r) return;
+  const N = mind.persona && mind.persona.big5 && isNum(mind.persona.big5.N) ? mind.persona.big5.N : 0.5;
+  const sting = (0.7 + 0.6 * N) * weight;
+  const clamp1 = x => Math.max(-1, Math.min(1, Math.round(x * 1000) / 1000));
+  r.affinity = clamp1((r.affinity || 0) - 0.2 * sting);
+  r.trust = clamp1((r.trust || 0) - 0.15 * sting);
+  r.grievance = Math.max(0, Math.min(2, Math.round(((r.grievance || 0) + 0.3 * weight) * 1000) / 1000));
+  if (isNum(t)) r.lastInsult = t;
+}
 
 function S_learnName(conv, name) {
   const r = typeof conv.mind.relationship === 'function' ? conv.mind.relationship('player') : null;
@@ -292,7 +383,6 @@ export function lintTemplates() {
   return out;
 }
 
-export { BRAND_BLACKLIST, slotNames, cleanText, capFirst, memoryFact };
 
 /**
  * @typedef {Object} Line

@@ -21,10 +21,29 @@ import { pacific, fmtClock } from '../clock.mjs';
 import {
   isNum, num, str, parseDate, approx, money, miles, compass, MONTHS, lowerFirst, fmtInt,
 } from './core.mjs';
+import { findPlaces } from './understand.mjs';
 
 // ------------------------------------------------------------------ weather
 
-/** A short NWS forecast as it goes after "66 degrees and": "sunny", "partly cloudy", "foggy", "a chance of showers". */
+/**
+ * Sky words that can follow "it's" or "looks" ("rainy", "mostly sunny"); null for a phrase that cannot ("a chance
+ * of rain"), whose sentence then names it another way.
+ * @param {string|null} words skyWords() output
+ * @returns {string|null}
+ */
+export function skyAdj(words) {
+  if (!words) return null;
+  const map = { stormy: 'stormy', snowing: 'snowy', 'rain likely': 'rainy', 'showers likely': 'showery', pouring: 'really wet', raining: 'rainy' };
+  if (map[words]) return map[words];
+  if (/^a (slight )?chance of|^a light rain$/.test(words)) return null;
+  return words;
+}
+
+/**
+ * A short NWS forecast as it goes after "66 degrees and": "sunny", "partly cloudy", "foggy", "a chance of showers".
+ * @param {string|null} short the NWS short forecast ("Patchy Fog", "Slight Chance Rain Showers")
+ * @returns {string|null}
+ */
 export function skyWords(short) {
   const s = String(short || '').trim();
   if (!s) return null;
@@ -76,15 +95,100 @@ export function untilWords(ends, t) {
 
 const JARGON = /\b(ensemble|guidance|model|models|nbm|gfs|ecmwf|trough|ridge|500\s?mb|mb\b|upper[- ]level|low pressure system|cutoff|cut-off|percentile|probabilit|cluster|deterministic|confidence|forecast area|cwa|nws|wfo|ivt|qpf|pops?\b|hrrr|nam\b|mos\b|isobar|vort|jet stream|layer|inversion)\b/i;
 
-/** One plain sentence of the forecast office's key messages, or null. */
-export function keySentence(wx) {
-  const msgs = (wx && Array.isArray(wx.keyMessages) ? wx.keyMessages : []).map(String);
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const DAY_MS = 86400000;
+
+/** Midnight (Pacific) of the day holding t, as a day number (days since the epoch, Pacific calendar). */
+function pacDay(t) { const p = pacific(t); return Math.round(Date.UTC(p.year, p.month - 1, p.day) / DAY_MS); }
+
+/** The fourth Thursday of November of a year, as a Pacific day number. */
+function thanksgiving(year) {
+  const first = new Date(Date.UTC(year, 10, 1)).getUTCDay();
+  return Math.round(Date.UTC(year, 10, 1 + ((4 - first + 7) % 7) + 21) / DAY_MS);
+}
+
+/**
+ * When a forecast sentence stops being true to say, as epoch-free {day, hour}: the last day (Pacific day number)
+ * and hour it speaks of. "this morning" ends at noon of the day the office wrote it, "tonight" at six the next
+ * morning, "Tuesday night" the morning after that Tuesday, "Thanksgiving" at the end of that Thursday. Null when the
+ * sentence names no time (it is then as good as the forecast it came with).
+ */
+function sentenceEnds(s, issuedT) {
+  const low = s.toLowerCase();
+  const issueDay = pacDay(issuedT), issueDow = pacific(issuedT).dow;
+  const ends = [];
+  const at = (day, hour) => ends.push(day * 24 + hour);
+  if (/\bthis morning\b/.test(low)) at(issueDay, 12);
+  if (/\bthis afternoon\b/.test(low)) at(issueDay, 18);
+  if (/\btoday\b/.test(low)) at(issueDay, 24);
+  if (/\b(tonight|overnight)\b/.test(low)) at(issueDay + 1, 6);
+  if (/\btomorrow\b/.test(low)) at(issueDay + 1, /\btomorrow night\b/.test(low) ? 30 : 24);
+  // a clock time "through 11AM this morning", "until 2 PM"
+  const clock = /\b(?:through|until|till|by)\s+(\d{1,2})(?::(\d\d))?\s*([ap])\.?m\.?/i.exec(s);
+  if (clock && /\b(this morning|this afternoon|today|tonight)\b/i.test(s)) at(issueDay, (+clock[1] % 12) + (clock[3].toLowerCase() === 'p' ? 12 : 0));
+  for (const m of low.matchAll(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)s?\b(\s+(night|evening|pm))?/g)) {
+    const d = DAY_NAMES.indexOf(m[1]);
+    const day = issueDay + ((d - issueDow + 7) % 7);
+    at(day, m[3] ? 30 : 24);
+  }
+  const p = pacific(issuedT);
+  if (/\bthanksgiving\b/.test(low)) {
+    let tg = thanksgiving(p.year);
+    if (tg < issueDay - 1) tg = thanksgiving(p.year + 1);
+    at(tg + (/\bthanksgiving (holiday )?weekend\b/.test(low) ? 3 : 0), 24);
+  } else if (/\b(this|the|early|holiday) weekend\b/.test(low)) at(issueDay + ((7 - issueDow) % 7), 24);
+  if (/\bthis week\b|\bthe rest of the week\b|\blater (in )?(the|this) week\b/.test(low)) at(issueDay + ((7 - issueDow) % 7), 24);
+  return ends.length ? Math.min(...ends) : null;
+}
+
+// Proper nouns a forecast sentence can open with: they keep their capital after "the weather service says".
+const COMMON_OPENER = /^(A|An|The|Light|Heavy|Dry|Mild|Cold|Cool|Warm|Hot|Strong|Gusty|Breezy|Periods?|Temperatures|Rain|Showers|Snow|Fog|Areas|Patchy|Widespread|Some|Most|Mostly|Partly|Increasing|Decreasing|Gradual|Another|Additional|Next|High|Low|Chances?|Isolated|Scattered|Wet|Windy|Sunny|Clear|Cloudy|Moderate|Weak|Minor|Major|Little|No|Cooler|Warmer|Drier|Wetter|Freezing|Frost)\b/;
+// A sentence with a finite verb reads after "says"; a headline ("Dry conditions expected through Saturday") does not.
+const CLAUSE = /\b(will|is|are|was|were|could|may|might|can|should|would|brings?|builds?|moves?|continues?|remains?|returns?|looks?|appears?|has|have)\b/i;
+const WEATHERY = /\b(rain|showers|dry|warm|warming|cool|cooling|cold|hot|heat|wind|winds|snow|fog|storm|temperatures|frost|freeze|sunny|clouds|mild|breezy|gusty|seasonable)\b/i;
+// The alerts are told on their own, with their end times: a forecast sentence about one is not repeated.
+const ALERT_TALK = /\b(advisory|advisories|warning|warnings|watch|watches|statement|updated at)\b/i;
+
+/**
+ * Items of a forecast office's key-message block, then their sentences: numbered ("1. … 2. …"), dashed (" - "),
+ * bulleted or one per line, with the numbering and bullets stripped.
+ * @param {string} block
+ * @returns {string[]}
+ */
+export function keySentences(block) {
+  const items = String(block || '').replace(/\r/g, '')
+    .split(/\n+|(?:^|\s)[-*•]\s+(?=[A-Z])|(?:^|\s)\d{1,2}[.)]\s+(?=[A-Z])/)
+    .map(x => x.replace(/^\s*(?:[-*•]|\d{1,2}[.)])\s*/, '').trim()).filter(Boolean);
+  return items.flatMap(it => it.split(/(?<=[.!?])\s+(?=[A-Z])/)).map(x => x.trim().replace(/\s+\d{1,2}[.)]?$/, '').trim()).filter(Boolean);
+}
+
+/**
+ * One plain sentence of the forecast office's key messages that is still true to say at time t, or null: no list
+ * numbering, no jargon, no advisory (the alerts cover those), nothing about a morning or a day that has passed.
+ * clause tells whether it reads as a full sentence after "the weather service says"; lower is that form, or null
+ * when the sentence opens with a proper noun.
+ * @param {object} wx world.weatherAt output
+ * @param {number} [t] epoch ms of the conversation
+ * @param {number} [issuedT] epoch ms the office wrote the message (default: t)
+ * @returns {{text: string, clause: boolean, lower: string|null}|null}
+ */
+export function keySentence(wx, t = null, issuedT = null) {
+  if (!wx || wx.stale) return null;
+  const msgs = (Array.isArray(wx.keyMessages) ? wx.keyMessages : []).map(String);
+  const now = isNum(t) ? t : null, issued = isNum(issuedT) ? issuedT : now;
+  if (isNum(now) && isNum(issued) && now < issued - 12 * 3600000) return null; // not written yet
+  const nowHour = isNum(now) ? pacDay(now) * 24 + pacific(now).hour : null;
   for (const m of msgs) {
-    const sentences = m.replace(/^\s*[-*•]\s*/gm, '').split(/(?<=[.!])\s+(?=[A-Z])/).map(s => s.trim()).filter(Boolean);
-    for (const s of sentences) {
-      if (s.length < 25 || s.length > 170 || JARGON.test(s) || /\d{3,}/.test(s) || /[;:()]/.test(s)) continue;
-      if (!/\b(rain|showers|dry|warm|cool|cold|hot|heat|wind|winds|snow|fog|storm|temperatures|frost|freeze|sunny|clouds|mild|breezy|gusty)\b/i.test(s)) continue;
-      return /[.!]$/.test(s) ? s : `${s}.`;
+    for (const s of keySentences(m)) {
+      if (s.length < 25 || s.length > 170 || JARGON.test(s) || /\d{3,}/.test(s) || /[;:()]/.test(s) || ALERT_TALK.test(s)) continue;
+      if (!WEATHERY.test(s)) continue;
+      if (nowHour !== null && isNum(issued)) {
+        const end = sentenceEnds(s, issued);
+        if (end !== null && nowHour >= end) continue;
+      }
+      const text = /[.!]$/.test(s) ? s : `${s}.`;
+      const clause = CLAUSE.test(s);
+      return { text, clause, lower: clause && COMMON_OPENER.test(text) ? lowerFirst(text) : null };
     }
   }
   return null;
@@ -124,11 +228,18 @@ export function weatherFacts(v) {
     coastal: /coastal|surf|rip|beach|sneaker/i.test(a.event), wind: /wind/i.test(a.event), winter: /winter|blizzard|snow|ice/i.test(a.event),
     frost: /frost|freeze/i.test(a.event),
   }));
+  // past the forecast window nothing of the snapshot's forecast is current: no periods, no key message, no outlooks
+  const stale = !!wx.stale;
+  const afd = v.world && v.world.weather && v.world.weather.afd && wx.office ? v.world.weather.afd[wx.office] : null;
+  const issued = afd && afd.issued ? Date.parse(afd.issued) : (v.world ? v.world.snapshotTime : null);
+  const key = stale ? null : keySentence(wx, v.t, isNum(issued) ? issued : null);
+  // the fire and rain outlooks are for the day of the snapshot
+  const dayOne = !stale && v.world && isNum(v.t) && v.t >= v.world.snapshotTime - 10 * 3600000 && v.t <= v.world.snapshotTime + 14 * 3600000;
   return {
-    temp, sky, short: now.short || null, isDay: now.isDay !== false, stale: !!wx.stale, rh: isNum(now.rh) ? now.rh : null,
-    cond: v.sky, periods, alerts, key: keySentence(wx),
-    fireOutlook: wx.fireWeather && wx.fireWeather.level > 0 ? String(wx.fireWeather.name).toLowerCase() : null,
-    rainOutlook: wx.excessiveRain && wx.excessiveRain.level > 0 ? String(wx.excessiveRain.name).replace(/\s*\(.*\)$/, '').toLowerCase() : null,
+    temp, sky, short: now.short || null, isDay: now.isDay !== false, stale, rh: isNum(now.rh) ? now.rh : null,
+    cond: v.sky, periods: stale ? [] : periods, alerts, key: key ? key.text : null, keyLower: key ? key.lower : null,
+    fireOutlook: dayOne && wx.fireWeather && wx.fireWeather.level > 0 ? String(wx.fireWeather.name).toLowerCase() : null,
+    rainOutlook: dayOne && wx.excessiveRain && wx.excessiveRain.level > 0 ? String(wx.excessiveRain.name).replace(/\s*\(.*\)$/, '').toLowerCase() : null,
     ids: { now: 'weather.now', next: 'weather.next', key: 'weather.keyMessage', fire: 'weather.fireOutlook', rain: 'weather.rainOutlook' },
   };
 }
@@ -199,11 +310,34 @@ export function femaFacts(v) {
 
 const WIND_NAMES = { santa_ana: 'the Santa Ana winds', diablo: 'the Diablo winds', sundowner: 'the sundowner winds', mono: 'the Mono winds', winter: 'the winter windstorm', other: 'the windstorm' };
 
-/** Windstorms recorded in the county, strongest first. */
+const wherePlaces = new WeakMap();
+
+/** The place an NWS event location names ("8 S Agua Dulce" is Agua Dulce), from the pack's names, or null. Cached. */
+function placeOfWhere(world, where) {
+  const w = str(where);
+  if (!w || !world) return null;
+  let m = wherePlaces.get(world);
+  if (!m) wherePlaces.set(world, m = new Map());
+  if (m.has(w)) return m.get(w);
+  const name = w.replace(/^\d+\s+[NSEW]{1,3}\s+/i, '').replace(/^(N|S|E|W|Ne|Nw|Se|Sw)\s+/, '').replace(/\bS\.J\./g, 'San Joaquin').trim();
+  let hit = null;
+  try { hit = findPlaces(world, name.replace(/\b\p{Ll}/gu, c => c.toUpperCase()))[0] || null; } catch { hit = null; }
+  m.set(w, hit);
+  return hit;
+}
+
+/**
+ * Windstorms recorded in the county, strongest first. Each gust comes with where it was measured, which can be
+ * anywhere in the event's counties (where), and how far that is from the speaker's home in km (km, null when the
+ * pack does not know the place).
+ */
 export function windFacts(v) {
   return v.world.windsOf(v.zi, 6).map(w => {
     const dt = parseDate(w.start);
-    return dt ? { kind: w.kind, name: WIND_NAMES[w.kind] || 'the windstorm', dt, gust: num(w.gust, null), id: `wind:${w.kind}:${w.start}`, memory: memoryFor(v, `windsOf(${v.z.zip}): ${w.kind} ${w.start}`) } : null;
+    if (!dt) return null;
+    const pl = placeOfWhere(v.world, w.where);
+    const km = pl && isNum(pl.x) ? v.world.distKm(v.home.x, v.home.y, pl.x, pl.y) : null;
+    return { kind: w.kind, name: WIND_NAMES[w.kind] || 'the windstorm', dt, gust: num(w.gust, null), where: str(w.where), km, id: `wind:${w.kind}:${w.start}`, memory: memoryFor(v, `windsOf(${v.z.zip}): ${w.kind} ${w.start}`) };
   }).filter(Boolean);
 }
 
@@ -289,16 +423,20 @@ export function shareWords(share, of = 'my neighbors') {
   return null;
 }
 
-/** Census facts for small talk: home languages, ways to work, owners and renters, home values, the age of homes. */
+/** Census facts for small talk: home languages (the big ones, and every share in langShare), ways to work, owners and renters, home values, the age of homes. */
 export function censusFacts(v) {
   const w = v.world, zi = v.zi, z = v.z;
-  const out = { langs: [], modes: {}, own: null, value: null, yb: null, food: null };
+  const out = { langs: [], langShare: {}, modes: {}, own: null, value: null, yb: null, food: null };
   try {
     const L = w.acsNamed(zi, 'lang');
-    const total = ['english', 'spanish', 'french', 'german', 'slavic', 'indoeuro', 'korean', 'chinese', 'vietnamese', 'tagalog', 'asianpi', 'arabic', 'other'].reduce((s, k) => s + num(L[k]), 0);
-    if (total >= 200) for (const [k, name] of Object.entries(LANG_NAMES)) {
-      const share = num(L[k]) / total;
-      if (share >= 0.1) out.langs.push({ key: k, name, share, id: `acs.lang.${k}` });
+    const keys = ['english', 'spanish', 'french', 'german', 'slavic', 'indoeuro', 'korean', 'chinese', 'vietnamese', 'tagalog', 'asianpi', 'arabic', 'other'];
+    const total = keys.reduce((s, k) => s + num(L[k]), 0);
+    if (total >= 200) {
+      for (const k of keys) out.langShare[k] = num(L[k]) / total;
+      for (const [k, name] of Object.entries(LANG_NAMES)) {
+        const share = num(L[k]) / total;
+        if (share >= 0.1) out.langs.push({ key: k, name, share, id: `acs.lang.${k}` });
+      }
     }
     out.langs.sort((a, b) => b.share - a.share);
   } catch { /* a ZIP without the block */ }

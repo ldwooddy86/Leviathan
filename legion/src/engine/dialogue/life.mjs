@@ -51,7 +51,7 @@ const INTERESTS = [
   [/^fishing at (.+)$/, m => ({ short: 'fishing', doing: `fishing at ${m[1]}`, en: [`I fish at ${m[1]} when I get the chance.`, `Fishing. ${m[1]} is my spot.`], es: [[`Me gusta ir a pescar a ${m[1]}.`, `I like to go fishing at ${m[1]}.`]] })],
   [/^stargazing out in the desert$/, I('stargazing', 'out in the desert looking at the stars', ['I like driving out to look at the stars. No city lights out there.'], [['Me gusta ver las estrellas en el desierto.', 'I like looking at the stars in the desert.']])],
   [/^off-roading$/, I('off-roading', 'out off-roading in the desert', ['I go off-roading in the desert on weekends.'], [['Los fines de semana salgo al desierto en el carro.', 'On weekends I drive out into the desert.']])],
-  [/^the county fair$/, I('county fair season', 'at the county fair', ['I never miss the county fair.', 'The county fair every year. The food alone is worth it.'], [['Nunca me pierdo la feria del condado.', 'I never miss the county fair.']])],
+  [/^the county fair$/, I('fair food', 'at the county fair', ['I never miss the county fair.', 'The county fair every year. The food alone is worth it.'], [['Nunca me pierdo la feria del condado.', 'I never miss the county fair.']])],
   [/^the harvest$/, I('harvest work', 'out in the fields', ['Harvest time is my favorite time of year, even with the hours.'], [['La cosecha es mi temporada favorita.', 'The harvest is my favorite season.']])],
   [/^4-H with the kids$/, I('4-H', 'at 4-H with the kids', ['The kids are in 4-H, so that keeps our weekends full.'], [['Los niños están en 4-H y eso nos tiene ocupados.', 'The kids are in 4-H and that keeps us busy.']])],
   [/^trying new restaurants$/, I('restaurant hunting', 'trying some new restaurant', ["I'm always trying new restaurants.", 'Trying new places to eat. There is always somewhere new.'], [['Me gusta probar restaurantes nuevos.', 'I like trying new restaurants.']])],
@@ -203,8 +203,21 @@ export function jobSpanish(group, title, sex) {
   return G[group] || ['Tengo un buen trabajo.', 'I have a good job.'];
 }
 
-/** Which "job.feel" bank fits a Census occupation group. */
-export function feelKey(group) {
+// Titles whose work the Census group misdescribes: a farmer counts as management, but the job is farming.
+const FEEL_BY_TITLE = [
+  [/\b(farmer|rancher|grower|farm|orchard|vineyard|dairy|cattle)\b/, 'farming'],
+];
+
+/**
+ * Which "job.feel" bank fits a job: by title first (a farmer is farming, whatever the Census group), else by the
+ * Census occupation group.
+ * @param {string|null} group a Census occupation group (persona routine.occKey)
+ * @param {string|null} [title] the job title
+ * @returns {string} a template key, 'job.feel.<kind>'
+ */
+export function feelKey(group, title = null) {
+  const t = String(title || '').toLowerCase();
+  for (const [re, k] of FEEL_BY_TITLE) if (re.test(t)) return `job.feel.${k}`;
   const K = {
     farming: 'farming', construction: 'construction', practitioner: 'health', healthtech: 'health', healthsupport: 'health',
     education: 'education', food: 'food', office: 'office', business: 'office', computer: 'tech', engineering: 'tech',

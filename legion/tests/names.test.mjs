@@ -5,8 +5,8 @@ import { Rng } from '../src/engine/rng.mjs';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import {
   NAME_HERITAGES, surname, givenName, nickname, nameFor, middleName, adaptSurname, eraOf, givenPool, surnamePool,
-  nicknameCandidates, isReservedName, normName, GIVEN, SURNAMES, NICKNAMES, PET_NAMES, MIDDLE_NAMES, EXCLUDED_SURNAMES,
-  RESERVED_NAMES, JOKE_NAMES, BLOCKED_NAMES,
+  nicknameCandidates, isReservedName, normName, surnameCustoms, marriedSurname, GIVEN, SURNAMES, NICKNAMES, PET_NAMES,
+  MIDDLE_NAMES, EXCLUDED_SURNAMES, RESERVED_NAMES, JOKE_NAMES, BLOCKED_NAMES,
 } from '../src/engine/names.mjs';
 
 const CONTRACT_KEYS = ('mexican salvadoran guatemalan honduran nicaraguan puertorican cuban dominican southamerican spanish latino ' +
@@ -329,13 +329,127 @@ test('romanization: Vietnamese without tone marks, Korean hyphenated, Chinese by
   assert.ok(share(old, n => yue.has(n)) > share(old, n => cmn.has(n)) && share(young, n => cmn.has(n)) > 0.5);
 });
 
-test('India by region: the surname picks the regional naming tradition', () => {
+// Every given name of a tradition (all eras, both lists, the era-neutral one) and every surname of a pool.
+const traditionNames = (trad, sex) => new Set(['M', 'F'].includes(sex) ? [...(GIVEN[trad][sex] || []), ...((GIVEN[trad].base && [GIVEN[trad].base[sex]]) || [])].flatMap(namesOf) : []);
+const poolNames = key => new Set(namesOf(SURNAMES[key]));
+const INDIAN_LANGUAGES = { hindi: ['in-hindi'], punjabi: ['in-punjabi'], bengali: ['in-bengali'], gujarati: ['in-gujarati'], marathi: ['in-marathi'], telugu: ['in-telugu'], tamil: ['in-tamil'], kannada: ['in-kannada'], malayalam: ['in-malayali', 'in-malayali-christian'], urdu: ['in-urdu'] };
+
+test('India and Pakistan by language: surnames and immigrants\' given names come from the family\'s own region', () => {
   const rng = new Rng(17);
-  const south = new Set(GIVEN['indian-south'].M.slice(0, 3).flatMap(namesOf)), west = new Set(GIVEN['indian-west'].M.slice(0, 3).flatMap(namesOf));
+  for (const [language, trads] of Object.entries(INDIAN_LANGUAGES)) {
+    const sur = new Set(trads.flatMap(t => [...poolNames(t)]));
+    const given = sex => new Set(trads.flatMap(t => [...traditionNames(t === 'in-urdu' ? 'pakistani' : t, sex)]));
+    const lasts = draw(1500, () => surname(rng, 'indian', { language }));
+    assert.ok(lasts.every(l => sur.has(l)), `${language}: a surname from another region (${lasts.find(l => !sur.has(l))})`);
+    for (const sex of ['M', 'F']) {
+      const g = given(sex);
+      const firsts = draw(1500, i => { const last = lasts[i]; return givenName(rng, { heritage: 'indian', sex, birthYear: 1950 + (i % 55), generation: 1, nativity: 'foreign', language, surname: last }); });
+      // immigrants keep their region's names (a few adopted American names aside)
+      assert.ok(share(firsts, f => g.has(f)) > 0.95, `${language} ${sex}: ${share(firsts, f => g.has(f))} from the region's names`);
+    }
+    assert.ok(surnamePool('indian', { language }).every(x => sur.has(x.name)));
+  }
+  // the orchestrator's case: a Punjabi speaker is never a Tamil 'Chandran' or a Gujarati 'Trupti'
+  const punjabi = draw(3000, () => { const last = surname(rng, 'indian', { language: 'punjabi' }); return [givenName(rng, { heritage: 'indian', sex: 'F', birthYear: 1975, generation: 1, language: 'punjabi', surname: last }), last]; });
+  assert.ok(punjabi.every(([f, l]) => l !== 'Chandran' && f !== 'Trupti'));
+  // Malayalam speakers are Christian (Thomas, Mathew) or Hindu (Nair, Menon) families, and the given name follows
+  const ml = draw(3000, () => surname(rng, 'indian', { language: 'malayalam' }));
+  const christian = poolNames('in-malayali-christian'), hindu = poolNames('in-malayali');
+  assert.ok(share(ml, l => christian.has(l)) > 0.45 && share(ml, l => hindu.has(l) && !christian.has(l)) > 0.3);
+  const thomas = draw(1000, i => givenName(rng, { heritage: 'indian', sex: i % 2 ? 'F' : 'M', birthYear: 1965, generation: 1, language: 'malayalam', surname: 'Thomas' }));
+  const xn = new Set([...traditionNames('in-malayali-christian', 'M'), ...traditionNames('in-malayali-christian', 'F')]);
+  assert.ok(share(thomas, f => xn.has(f)) > 0.9, 'a Malayali Thomas has a Christian given name');
+  // without a language the surname still picks the region: a Reddy is named in Telugu, a Patel in Gujarati
   const reddy = draw(1000, () => givenName(rng, { heritage: 'indian', sex: 'M', birthYear: 1970, generation: 1, surname: 'Reddy' }));
   const patel = draw(1000, () => givenName(rng, { heritage: 'indian', sex: 'M', birthYear: 1970, generation: 1, surname: 'Patel' }));
-  assert.ok(share(reddy, n => south.has(n)) > 0.9);
-  assert.ok(share(patel, n => west.has(n)) > 0.9);
+  assert.ok(share(reddy, n => traditionNames('in-telugu', 'M').has(n)) > 0.9);
+  assert.ok(share(patel, n => traditionNames('in-gujarati', 'M').has(n)) > 0.9);
+  // Pakistan: Urdu-speaking, Punjabi Muslim and Pashtun families each carry their own surnames
+  for (const [language, key] of [['urdu', 'pk-urdu'], ['punjabi', 'pk-punjabi'], ['pashto', 'pk-pashto']]) {
+    const pool = poolNames(key);
+    assert.ok(draw(1000, () => surname(rng, 'pakistani', { language })).every(l => pool.has(l)), language);
+  }
+  assert.ok(poolNames('pk-punjabi').has('Chaudhry') && poolNames('pk-urdu').has('Siddiqui') && poolNames('pk-pashto').has('Afridi'));
+  // the heritage as a whole (no language) still mixes every region, with no surname dominating
+  const all = surnamePool('indian');
+  assert.ok(all[0].weight < 0.06 && ['Patel', 'Reddy', 'Sharma', 'Nair', 'Banerjee', 'Kulkarni', 'Iyer', 'Hegde', 'Thomas'].every(n => all.some(x => x.name === n)));
+});
+
+test('origins and languages elsewhere: Cantonese and Taiwanese spellings, Eritreans, other Asian families', () => {
+  const rng = new Rng(19);
+  const yue = poolNames('chinese-yue'), cmn = poolNames('chinese-cmn'), tw = poolNames('chinese-tw');
+  assert.ok(draw(800, () => surname(rng, 'chinese', { language: 'cantonese' })).every(l => yue.has(l)));
+  assert.ok(draw(800, () => surname(rng, 'chinese', { language: 'mandarin' })).every(l => cmn.has(l)));
+  assert.ok(draw(800, () => surname(rng, 'chinese', { origin: 'taiwanese', language: 'mandarin' })).every(l => tw.has(l)), 'Taiwan-born Mandarin speakers keep Taiwan\'s spelling');
+  // a Cantonese speaker's given name is Cantonese (or one of the English names Hong Kong people carry), never pinyin
+  const cmnGiven = traditionNames('chinese-cmn', 'M'), yueGiven = traditionNames('chinese-yue', 'M');
+  const hk = draw(1500, () => givenName(rng, { heritage: 'chinese', sex: 'M', birthYear: 1960, generation: 1, language: 'cantonese' }));
+  assert.ok(share(hk, n => cmnGiven.has(n) && !yueGiven.has(n)) < 0.02 && share(hk, n => yueGiven.has(n)) > 0.6);
+  // Eritreans (the 'african' heritage) carry Tigrinya and Ethiopian names, not Ghanaian or Kenyan ones
+  const et = poolNames('ethiopian'), af = poolNames('african');
+  assert.ok(draw(800, () => surname(rng, 'african', { origin: 'eritrean' })).every(l => et.has(l)));
+  const eg = new Set([...traditionNames('ethiopian', 'M'), ...traditionNames('ethiopian', 'F')]);
+  const er = draw(1500, i => givenName(rng, { heritage: 'african', sex: i % 2 ? 'F' : 'M', birthYear: 1975 + (i % 30), generation: 1, origin: 'eritrean', language: 'tigrinya' }));
+  assert.ok(share(er, n => eg.has(n)) > 0.9, `Eritrean names ${share(er, n => eg.has(n))}`);
+  assert.ok(draw(300, () => surname(rng, 'african', { language: 'somali' })).some(l => af.has(l)), 'other African languages keep the African pool');
+  // other Asian families by language: Filipino, Korean, Sri Lankan Tamil
+  const fil = poolNames('filipino');
+  assert.ok(draw(500, () => surname(rng, 'asian', { language: 'tagalog' })).every(l => fil.has(l)));
+  assert.ok(draw(500, () => surname(rng, 'asian', { language: 'korean' })).every(l => poolNames('korean').has(l)));
+  // an unknown language or origin changes nothing
+  const a = new Rng(5), b = new Rng(5);
+  assert.deepEqual(draw(50, () => surname(a, 'indian', { language: 'klingon', origin: 'atlantis' })), draw(50, () => surname(b, 'indian')));
+  assert.equal(surname(new Rng(1), 'indian', { language: 'constructor' }), surname(new Rng(1), 'indian'));
+});
+
+test('children born abroad who came with their parents keep the names they were given there', () => {
+  const rng = new Rng(21);
+  for (const [heritage, sex, birthYear] of [['mexican', 'M', 2012], ['mexican', 'F', 2010], ['vietnamese', 'M', 1985], ['chinese', 'F', 1995], ['guatemalan', 'M', 2008]]) {
+    const pool = new Set(givenPool(heritage, sex, eraOf(birthYear), 1).map(x => x.name));
+    const kids = draw(20000, () => givenName(rng, { heritage, sex, birthYear, generation: 1, nativity: 'foreign', arrivalAge: 6 }));
+    // the origin's names only (a neighbouring cohort's at most): never an American name such as Scott
+    const all = new Set([0, 1, 2, 3].flatMap(e => givenPool(heritage, sex, e, 1).map(x => x.name)));
+    assert.ok(kids.every(k => all.has(k)), `${heritage}: ${kids.find(k => !all.has(k))}`);
+    assert.ok(share(kids, k => pool.has(k)) > 0.95);
+  }
+  // adults who came as adults sometimes carry an adopted American name; a brother born here often does
+  const general = new Set([0, 1, 2, 3].flatMap(e => givenPool('other', 'M', e, 3).map(x => x.name)));
+  const mx = new Set([0, 1, 2, 3].flatMap(e => givenPool('mexican', 'M', e, 1).map(x => x.name)));
+  const adults = draw(20000, () => givenName(rng, { heritage: 'mexican', sex: 'M', birthYear: 1980, generation: 1, arrivalAge: 25 }));
+  assert.ok(adults.some(n => general.has(n) && !mx.has(n)));
+  const brothers = draw(3000, () => givenName(rng, { heritage: 'mexican', sex: 'M', birthYear: 2015, generation: 2 }));
+  assert.ok(share(brothers, n => general.has(n)) > 0.3);
+});
+
+test('surname customs: married names by tradition, Hmong clans, Ethiopian and Eritrean patronymics, Sikh names', () => {
+  const c = h => surnameCustoms(h);
+  assert.ok(c('hmong').clan && c('hmong').wife.keep[0] > 0.9 && !c('mexican').clan);
+  assert.ok(c('ethiopian').patronymic && surnameCustoms('african', { origin: 'eritrean' }).patronymic && !c('african').patronymic);
+  assert.deepEqual(c('sikh').religious, { M: 'Singh', F: 'Kaur' });
+  assert.equal(c('irish').religious, null);
+  assert.equal(c('constructor').patronymic, false);
+  // rates by tradition and generation: [kept her own, joined both, took his]
+  const rates = (heritage, generation) => {
+    const rng = new Rng(23), t = [0, 0, 0];
+    for (let i = 0; i < 20000; i++) {
+      const v = marriedSurname(rng, { heritage, generation, own: 'Own', husband: 'His' });
+      t[v === 'Own' ? 0 : v === 'Own-His' ? 1 : v === 'His' ? 2 : 3]++;
+    }
+    assert.equal(t[3], undefined);
+    return t.map(x => x / 20000);
+  };
+  const [kKeep] = rates('korean', 1), [, , vTake] = rates('vietnamese', 2), [mKeep, mJoin] = rates('mexican', 1), [, , usTake] = rates('american', 3), [, , jpTake] = rates('japanese', 1);
+  assert.ok(kKeep > 0.8, `Korean immigrant wives keep their names: ${kKeep}`);
+  assert.ok(vTake > 0.5, `US-born Vietnamese wives mostly take the husband's: ${vTake}`);
+  assert.ok(mKeep > 0.35 && mKeep < 0.55 && mJoin > 0.08, `Mexican immigrant wives: kept ${mKeep}, joined ${mJoin}`);
+  assert.ok(usTake > 0.75 && usTake < 0.9, `US-born wives mostly take the husband's: ${usTake}`);
+  assert.ok(jpTake > 0.95, `Japan requires one family name: ${jpTake}`);
+  // one draw always, and nothing to choose when the names agree or one is missing
+  const r1 = new Rng(3), r2 = new Rng(3);
+  assert.equal(marriedSurname(r1, { heritage: 'irish', own: 'Kelly', husband: 'Kelly' }), 'Kelly');
+  r2.float();
+  assert.equal(r1.float(), r2.float());
+  assert.equal(marriedSurname(new Rng(1), { heritage: 'irish', own: '', husband: 'Kelly' }), 'Kelly');
 });
 
 test('birth cohorts: names follow their era', () => {
@@ -420,6 +534,11 @@ test('famous full names and stock joke names are avoided when the surname is kno
   never({ heritage: 'african-american', sex: 'M', birthYear: 1968, generation: 3, surname: 'King' }, 'Rodney');
   never({ heritage: 'bangladeshi', sex: 'M', birthYear: 1950, generation: 1, surname: 'Rahman' }, 'Mujibur');
   never({ heritage: 'scottish', sex: 'M', birthYear: 1950, generation: 3, surname: 'Kerr' }, 'Wayne', 5000);
+  // the regional Indian and Pakistani pools make South Asian film, sport and public names possible: refused too
+  for (const [f, l] of [['Kalpana', 'Chawla'], ['Sourav', 'Ganguly'], ['Hardik', 'Pandya'], ['Narayana', 'Murthy'], ['Shahid', 'Afridi'], ['Madhuri', 'Dixit'], ['Harbhajan', 'Singh']]) assert.ok(isReservedName(f, l), `${f} ${l}`);
+  never({ heritage: 'indian', sex: 'F', birthYear: 1983, generation: 1, language: 'punjabi', surname: 'Chopra' }, 'Priyanka', 5000);
+  never({ heritage: 'indian', sex: 'M', birthYear: 2005, generation: 1, language: 'gujarati', surname: 'Patel' }, 'Dev', 5000);
+  never({ heritage: 'indian', sex: 'M', birthYear: 1965, generation: 1, language: 'bengali', surname: 'Ganguly' }, 'Sourav', 5000);
   for (let i = 0; i < 3000; i++) {
     assert.notEqual(nickname(rng, 'Patrick', { heritage: 'american', age: 60, sex: 'M', surname: 'Brown' }), 'Pat');
     assert.notEqual(nickname(rng, 'Theodore', { heritage: 'american', age: 70, sex: 'M', surname: 'Williams' }), 'Ted');
