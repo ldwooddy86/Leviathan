@@ -391,7 +391,8 @@ test('origins and languages elsewhere: Cantonese and Taiwanese spellings, Eritre
   const eg = new Set([...traditionNames('ethiopian', 'M'), ...traditionNames('ethiopian', 'F')]);
   const er = draw(1500, i => givenName(rng, { heritage: 'african', sex: i % 2 ? 'F' : 'M', birthYear: 1975 + (i % 30), generation: 1, origin: 'eritrean', language: 'tigrinya' }));
   assert.ok(share(er, n => eg.has(n)) > 0.9, `Eritrean names ${share(er, n => eg.has(n))}`);
-  assert.ok(draw(300, () => surname(rng, 'african', { language: 'somali' })).some(l => af.has(l)), 'other African languages keep the African pool');
+  assert.ok(draw(300, () => surname(rng, 'african', { language: 'somali' })).every(l => poolNames('af-somali').has(l)), 'Somali speakers carry Somali names');
+  assert.ok(draw(300, () => surname(rng, 'african', { language: 'kikuyu' })).every(l => af.has(l)), 'a language with no pool of its own keeps the African pool');
   // other Asian families by language: Filipino, Korean, Sri Lankan Tamil
   const fil = poolNames('filipino');
   assert.ok(draw(500, () => surname(rng, 'asian', { language: 'tagalog' })).every(l => fil.has(l)));
@@ -400,6 +401,45 @@ test('origins and languages elsewhere: Cantonese and Taiwanese spellings, Eritre
   const a = new Rng(5), b = new Rng(5);
   assert.deepEqual(draw(50, () => surname(a, 'indian', { language: 'klingon', origin: 'atlantis' })), draw(50, () => surname(b, 'indian')));
   assert.equal(surname(new Rng(1), 'indian', { language: 'constructor' }), surname(new Rng(1), 'indian'));
+});
+
+test('heritages that gather many peoples are named by people: Somali, Ghanaian, Yoruba, Igbo, Nepali, Sinhala, Tongan ...', () => {
+  const rng = new Rng(33);
+  // [heritage, options, the GIVEN tradition and SURNAMES pool they narrow to]
+  const cases = [
+    ['african', { origin: 'somali' }, 'af-somali'], ['african', { origin: 'ghanaian', language: 'twi' }, 'af-ghana'], ['african', { origin: 'kenyan' }, 'af-kenya'],
+    ['african', { origin: 'senegalese', language: 'french' }, 'af-senegal'], ['african', { origin: 'cameroonian' }, 'af-cameroon'], ['african', { origin: 'southafrican' }, 'af-southern'],
+    ['african', { language: 'wolof' }, 'af-senegal'], ['nigerian', { language: 'yoruba' }, 'ng-yoruba'], ['nigerian', { language: 'igbo' }, 'ng-igbo'],
+    ['asian', { origin: 'nepali', language: 'nepali' }, 'as-nepali'], ['asian', { origin: 'bhutanese', language: 'nepali' }, 'as-nepali'], ['asian', { language: 'sinhala' }, 'as-sinhala'],
+    ['asian', { origin: 'mongolian' }, 'as-mongol'], ['asian', { language: 'malay' }, 'as-malay'], ['asian', { origin: 'uzbek', language: 'russian' }, 'as-uzbek'],
+    ['pacific', { origin: 'samoan' }, 'pa-samoan'], ['pacific', { origin: 'tongan' }, 'pa-tongan'], ['pacific', { origin: 'chamorro' }, 'pa-chamorro'],
+    ['pacific', { language: 'fijian' }, 'pa-fijian'], ['pacific', { origin: 'nativehawaiian' }, 'pa-hawaiian'],
+  ];
+  for (const [heritage, opts, key] of cases) {
+    const sur = poolNames(key), given = sex => traditionNames(key, sex);
+    assert.ok(draw(400, () => surname(rng, heritage, opts)).every(l => sur.has(l)), `${key}: surnames`);
+    assert.ok(surnamePool(heritage, opts).every(x => sur.has(x.name)), `${key}: surnamePool`);
+    for (const sex of ['M', 'F']) {
+      const g = given(sex);
+      // immigrants: their people's names (a few adopted American names aside)
+      const firsts = draw(600, i => givenName(rng, { heritage, sex, birthYear: 1950 + (i % 60), generation: 1, ...opts }));
+      assert.ok(share(firsts, f => g.has(f)) > 0.9, `${key} ${sex}: ${share(firsts, f => g.has(f))}`);
+      // their US-born children's heritage names are their people's too (these heritages have no US-born list)
+      assert.ok(givenPool(heritage, sex, 3, 2, opts).every(x => g.has(x.name)), `${key} ${sex} US born`);
+    }
+    assert.ok(given('M').size >= 40 && given('F').size >= 40 && sur.size >= 40, key);
+  }
+  // Indo-Fijians are named in Hindi; Sri Lankan Tamils in Tamil; the families of a heritage with a US-born list keep it
+  assert.ok(draw(300, () => surname(rng, 'pacific', { origin: 'fijian', language: 'hindi' })).every(l => poolNames('in-hindi').has(l)));
+  assert.ok(draw(300, () => surname(rng, 'asian', { origin: 'srilankan', language: 'tamil' })).every(l => poolNames('in-tamil').has(l)));
+  const usIndian = new Set(givenPool('indian', 'M', 3, 2).map(x => x.name));
+  assert.deepEqual(givenPool('indian', 'M', 3, 2, { language: 'telugu' }).map(x => x.name).sort(), [...usIndian].sort(), 'Indian-American children keep the US-born Indian list');
+  // Uzbek families' surnames take the Russian-era feminine forms
+  assert.equal(adaptSurname('Karimov', { heritage: 'asian', origin: 'uzbek', sex: 'F' }), 'Karimova');
+  assert.equal(adaptSurname('Karimov', { heritage: 'asian', sex: 'F' }), 'Karimov');
+  assert.ok(surnameCustoms('asian', { origin: 'uzbek' }).feminine && !surnameCustoms('asian').feminine && surnameCustoms('greek').feminine && !surnameCustoms('mexican').feminine);
+  const uz = draw(300, () => surname(rng, 'asian', { origin: 'uzbek', sex: 'F', generation: 1 }));
+  assert.ok(uz.every(l => /(ova|eva)$/.test(l)), uz.find(l => !/(ova|eva)$/.test(l)));
 });
 
 test('children born abroad who came with their parents keep the names they were given there', () => {
@@ -539,6 +579,17 @@ test('famous full names and stock joke names are avoided when the surname is kno
   never({ heritage: 'indian', sex: 'F', birthYear: 1983, generation: 1, language: 'punjabi', surname: 'Chopra' }, 'Priyanka', 5000);
   never({ heritage: 'indian', sex: 'M', birthYear: 2005, generation: 1, language: 'gujarati', surname: 'Patel' }, 'Dev', 5000);
   never({ heritage: 'indian', sex: 'M', birthYear: 1965, generation: 1, language: 'bengali', surname: 'Ganguly' }, 'Sourav', 5000);
+  // the review's South Asian cases, and those the pools by people make possible elsewhere
+  for (const full of ['Rajesh Khanna', 'Vinod Khanna', 'Kishore Kumar', 'Neeraj Chopra', 'Shoaib Malik', 'Sunil Mittal', 'Kunal Kapoor', 'Rahul Khanna',
+    'Biju Menon', 'Anoop Menon', 'Kiran Bedi', 'Kabir Bedi', 'Om Puri', 'Neha Kakkar', 'Shreya Ghoshal', 'Imran Hashmi', 'Ghulam Ali', 'Lakshmi Mittal',
+    'Shiv Nadar', 'Thomas Kurian', 'Rahul Bose', 'Janhvi Kapoor', 'Kofi Annan', 'Ilhan Omar', 'Youssou Ndour', 'Peter Obi', 'Anura Dissanayake', 'Lucky Dube']) {
+    const [f, ...l] = full.split(' ');
+    assert.ok(isReservedName(f, l.join(' ')), full);
+  }
+  never({ heritage: 'indian', sex: 'M', birthYear: 1945, generation: 1, language: 'punjabi', surname: 'Khanna' }, 'Rajesh', 5000);
+  never({ heritage: 'indian', sex: 'M', birthYear: 1935, generation: 1, language: 'bengali', surname: 'Kumar' }, 'Kishore', 5000);
+  never({ heritage: 'african', sex: 'F', birthYear: 1982, generation: 1, origin: 'somali', surname: 'Omar' }, 'Ilhan', 5000);
+  never({ heritage: 'african', sex: 'M', birthYear: 1950, generation: 1, origin: 'ghanaian', surname: 'Annan' }, 'Kofi', 5000);
   for (let i = 0; i < 3000; i++) {
     assert.notEqual(nickname(rng, 'Patrick', { heritage: 'american', age: 60, sex: 'M', surname: 'Brown' }), 'Pat');
     assert.notEqual(nickname(rng, 'Theodore', { heritage: 'american', age: 70, sex: 'M', surname: 'Williams' }), 'Ted');

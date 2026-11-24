@@ -21,7 +21,10 @@
 //     follow the family's home language and origin when they are passed in (opts.language, opts.origin), and the
 //     household surname when it is, so a Wong is named in Cantonese, a Reddy in Telugu style and a Punjabi
 //     family from Ludhiana in Punjabi; Pakistani surnames follow Urdu, Punjabi or Pashto, an Eritrean family's
-//     Tigrinya names the Ethiopian pools;
+//     Tigrinya names the Ethiopian pools; the heritages that gather many peoples are named by people: Somali,
+//     Ghanaian, Kenyan, Senegalese and Cameroonian families within 'african', Yoruba and Igbo within 'nigerian',
+//     Nepali, Sinhala, Mongolian, Malay and Uzbek within 'asian', Samoan, Tongan, Chamorro, Fijian, Indo-Fijian and
+//     Native Hawaiian within 'pacific' (and their US-born children's heritage names with them);
 //   * an immigrant who came here as a child (opts.arrivalAge under 18) keeps the name given in the origin country.
 //
 // Contract API (docs/CONTRACTS.md §5), unchanged from the provisional stub:
@@ -889,6 +892,70 @@ GIVEN.african = {
   ],
 };
 
+// Somalia: Muslim names, most men called by their own and their father's given names.
+GIVEN['af-somali'] = {
+  z: 0.3,
+  base: {
+    M: 'Mohamed:4,Ahmed:2.5,Abdi:2,Ali:2,Hassan:1.6,Abdullahi:1.5,Omar:1.4,Yusuf:1.2,Ibrahim:1.1,Abdirahman:1,Mahamed,Abdikarim,Abdirashid,Abdiaziz,Abdiwahab,Abdulkadir,Abdinasir,Abdisalam,Ismail,Hussein,Osman,Farah,Mustafe,Liban,Bashir,Jama,Nur,Said,Khalid,Hamza,Aden,Guled,Warsame,Sharmarke,Hirsi,Dahir,Mohamud,Abdiqani,Abdifatah,Yasin,Sakariye,Mukhtar,Abdiwali,Mahad,Ayanle,Faisal',
+    F: 'Fadumo:2,Hodan:1.6,Amina:1.6,Asha:1.5,Halima:1.4,Sahra:1.3,Hawa:1.2,Maryan:1.2,Ayan:1.1,Sagal:1,Ifrah,Hibo,Deeqa,Ubah,Nimco,Khadra,Ruqia,Saido,Faiza,Fartun,Muna,Najma,Hamdi,Ikran,Sucaad,Hani,Leyla,Zamzam,Shukri,Idil,Anisa,Bilan,Kowsar,Nasra,Safiya,Samira,Sumaya,Yasmin,Zahra,Hamda,Ladan,Fowsia,Ilhan,Hinda,Hodo,Mulki',
+  },
+};
+// Ghana: Akan day names (Kwame, Kofi, Ama, Akosua) beside the English Christian names in wide use.
+GIVEN['af-ghana'] = {
+  z: 0.3,
+  base: {
+    M: 'Kwame:2,Kofi:2,Kwabena:1.6,Yaw:1.6,Kojo:1.4,Kwaku:1.4,Kwasi:1.3,Kwadwo:1.2,Kwesi:1.1,Nana:1,Kweku,Kobina,Ekow,Fiifi,Akwasi,Kwamena,Emmanuel,Samuel,Joseph,Daniel,Isaac,Francis,Prince,Richard,Eric,Michael,Stephen,Ebenezer,Felix,Benjamin,Bright,Godfred,Nii,Collins,Kelvin,Solomon,Charles,Paul,Peter,Seth,George,Edmund,Albert,Clement',
+    F: 'Ama:2,Abena:1.8,Akosua:1.6,Adwoa:1.5,Efua:1.4,Afia:1.3,Yaa:1.3,Akua:1.2,Esi:1.1,Adjoa:1,Araba,Ekua,Afua,Aba,Naa,Grace,Gifty,Comfort,Mercy,Patience,Esther,Elizabeth,Joyce,Vida,Beatrice,Agnes,Florence,Rita,Dorcas,Linda,Victoria,Priscilla,Rebecca,Felicia,Mavis,Josephine,Cynthia,Belinda,Sandra,Doris,Matilda,Hannah,Lydia,Benedicta',
+  },
+};
+// Kenya: an English Christian name with a Kikuyu, Luo, Kalenjin or Luhya name (Peter Kamau, Grace Achieng).
+GIVEN['af-kenya'] = {
+  z: 0.3,
+  base: {
+    M: 'John,Peter,David,Joseph,James,Daniel,Samuel,Paul,Stephen,Kevin,Brian,Dennis,Collins,Kelvin,Victor,Felix,Moses,Patrick,Francis,George,Kamau,Mwangi,Otieno,Odhiambo,Ochieng,Kariuki,Njoroge,Wafula,Mutua,Kiprono,Kipchumba,Kimani,Wanjala,Omondi,Onyango,Kibet,Cheruiyot,Kiplagat,Muriuki,Gitau,Wekesa,Juma,Baraka,Amani,Evans,Geoffrey,Charles,Martin',
+    F: 'Mary,Grace,Faith,Mercy,Esther,Jane,Lucy,Ann,Joyce,Caroline,Sharon,Diana,Brenda,Purity,Winnie,Lilian,Wanjiru,Njeri,Wambui,Wanjiku,Achieng,Akinyi,Atieno,Nyambura,Muthoni,Wairimu,Nyokabi,Chebet,Jepkoech,Jebet,Auma,Adhiambo,Anyango,Nekesa,Nafula,Zawadi,Neema,Imani,Rehema,Agnes,Margaret,Elizabeth,Catherine,Josephine',
+  },
+};
+// Senegal (Wolof and Fula families, Muslim names in their Senegalese spellings).
+GIVEN['af-senegal'] = {
+  z: 0.35,
+  base: {
+    M: 'Mamadou:2,Moussa:1.6,Ibrahima:1.5,Ousmane:1.4,Abdoulaye:1.4,Amadou:1.2,Cheikh:1.2,Modou:1.1,Lamine:1,Boubacar:1,Babacar,Pape,Alioune,Mohamed,Aliou,Souleymane,Malick,Serigne,Saliou,Assane,Omar,Khadim,Demba,Samba,Djibril,Thierno,Mouhamed,Fallou,Idrissa,Massamba,Oumar,Seydou,Bassirou,Mansour,Daouda,Ibou,Elhadji,Ndiaga,Amath,Habib,Youssou,Ismaila,Abdou,Mamour',
+    F: 'Fatou:2,Aminata:1.6,Mariama:1.5,Aissatou:1.4,Awa:1.3,Khady:1.2,Coumba:1.1,Ndeye:1.1,Astou:1,Fatoumata:1,Binta,Rokhaya,Adama,Sokhna,Mame,Seynabou,Aida,Marieme,Ramatoulaye,Dieynaba,Penda,Yacine,Absa,Khadija,Bineta,Oumou,Kine,Nogaye,Arame,Fama,Maimouna,Ndella,Daba,Anta,Codou,Ngone,Sira,Kadiatou,Hawa,Salimata,Rama,Fatim,Sophie,Marie',
+  },
+};
+// Cameroon (French-speaking and English-speaking families' Christian names).
+GIVEN['af-cameroon'] = {
+  z: 0.3,
+  base: {
+    M: 'Jean,Pierre,Paul,Joseph,Emmanuel,Samuel,Christian,Patrick,Eric,Serge,Thierry,Yannick,Herve,Olivier,Arnaud,Franck,Alain,Didier,Rodrigue,Junior,Steve,Brice,Boris,Landry,Cedric,Guy,Martin,Francis,Ernest,Fabrice,Michel,Rene,Andre,Gilles,Vincent,Bertrand,Sylvain,Blaise,Achille,Romeo,Valentin,Etienne,Hugues,Armand',
+    F: 'Marie,Jeanne,Christine,Sandrine,Nadine,Brigitte,Pauline,Esther,Florence,Grace,Carine,Laure,Josiane,Vanessa,Ornella,Larissa,Gisele,Clarisse,Viviane,Danielle,Francoise,Martine,Odile,Rose,Solange,Yvonne,Mireille,Chantal,Berthe,Christelle,Murielle,Linda,Aurelie,Estelle,Sylvie,Diane,Prisca,Rachel,Lydie,Irene,Annie,Cecile,Nathalie,Judith',
+  },
+};
+// Southern Africa (South Africa's Zulu, Xhosa and Sotho families, Zimbabwe's Shona and Ndebele).
+GIVEN['af-southern'] = {
+  z: 0.3,
+  base: {
+    M: 'Thabo,Sipho,Themba,Mandla,Sibusiso,Bongani,Tshepo,Kagiso,Musa,Jabulani,Sizwe,Thulani,Vusi,Andile,Lwazi,Nkosinathi,Siyabonga,Katlego,Tumelo,Kabelo,Teboho,Tendai,Tafadzwa,Tinashe,Farai,Takudzwa,Tatenda,Tapiwa,Simba,Blessing,Brian,John,Peter,David,Simon,Joseph,Samuel,Daniel,Michael,Paul,Lucky,Godfrey,Elias',
+    F: 'Nomsa,Thandiwe,Lerato,Palesa,Nomvula,Zanele,Ayanda,Precious,Busisiwe,Nokuthula,Lindiwe,Thembi,Naledi,Refilwe,Dineo,Mpho,Kgomotso,Boitumelo,Nthabiseng,Zodwa,Sibongile,Nompumelelo,Rudo,Chipo,Nyasha,Tsitsi,Rutendo,Chiedza,Vimbai,Tariro,Grace,Faith,Mercy,Patience,Elizabeth,Mary,Ruth,Esther,Joyce,Agnes,Nandi,Zinhle,Khanyisile,Nolwazi',
+  },
+};
+// Nigeria by people: Yoruba and Igbo names (with the Christian names both use), for families of each language.
+GIVEN['ng-yoruba'] = {
+  z: 0.2,
+  base: {
+    M: 'Olusegun,Adebayo,Babatunde,Oluwole,Adewale,Olufemi,Akinwale,Oladipo,Adeyemi,Oluseyi,Kayode,Ayodele,Kehinde,Taiwo,Oluwaseun,Olumide,Oluwafemi,Tunde,Femi,Segun,Kunle,Gbenga,Rotimi,Yemi,Dapo,Wale,Abiodun,Oluwatobi,Damilola,Tobi,Seyi,Tolu,Tayo,Dayo,Bayo,Opeyemi,Toluwani,Ayomide,Oluwadamilare,Inioluwa,Feranmi,Ifeoluwa,Tomiwa,Ayodeji,Kolade,Fikayomi,Tobiloba,Oreoluwa,Olamide,Ademola,Emmanuel,Samuel,David,Daniel,Joseph,Michael,John,Peter,Victor,Joshua',
+    F: 'Folake,Funmilayo,Yetunde,Bukola,Titilayo,Abimbola,Omolara,Morenike,Bose,Iyabo,Kemi,Toyin,Bisi,Adunni,Modupe,Olufunke,Funke,Oluwakemi,Temitope,Damilola,Oluwaseun,Oluwatoyin,Tolulope,Opeyemi,Bolanle,Funmilola,Yewande,Adenike,Folasade,Ayomide,Ifeoluwa,Oyinkansola,Oluwanifemi,Fikayomi,Tiwatope,Inioluwa,Morayo,Ireoluwa,Tamilore,Simisola,Anuoluwapo,Temiloluwa,Oluwatosin,Grace,Esther,Blessing,Deborah,Ruth,Mary,Elizabeth,Comfort,Patience',
+  },
+};
+GIVEN['ng-igbo'] = {
+  z: 0.2,
+  base: {
+    M: 'Chukwuemeka,Nnamdi,Ikechukwu,Obinna,Ifeanyi,Chinedu,Okechukwu,Emeka,Ikenna,Uche,Chidi,Tochukwu,Kelechi,Ebuka,Chibuzo,Chukwudi,Somto,Chinonso,Chiedu,Ugochukwu,Kenechukwu,Chidubem,Chukwuebuka,Kamsiyochukwu,Somtochukwu,Munachi,Tobenna,Chimdi,Ebube,Chibueze,Nonso,Obiora,Onyeka,Uchenna,Arinze,Azubuike,Ejike,Nnaemeka,Okwudili,Emmanuel,Samuel,John,Joseph,Michael,Peter,Godwin,Sunday,Felix,Christopher,Kingsley,Collins,Stanley,Victor,Anthony',
+    F: 'Ngozi,Nkechi,Chinwe,Ifeoma,Ijeoma,Uchenna,Ebere,Nneka,Chioma,Adaeze,Amaka,Adaobi,Chiamaka,Amarachi,Chinonso,Chidinma,Uju,Chimamanda,Zikora,Adaora,Amara,Chisom,Kamsi,Nkem,Ebube,Munachi,Ifunanya,Kosisochukwu,Obiageli,Nwakaego,Ogechi,Onyinye,Oluchi,Somadina,Ujunwa,Chinyere,Nnenna,Nkiru,Ukamaka,Chinasa,Grace,Blessing,Favour,Precious,Mercy,Joy,Patience,Comfort,Faith,Gift,Mary,Esther',
+  },
+};
+
 // ------------------------------------------------------------------ given names: Armenian, Iranian, Arab, Assyrian
 // Armenian Californians: Western Armenian forms from the Middle East diaspora (Hagop, Kevork, Garabed) and
 // Eastern forms from Armenia and Iran (Hakob, Gevorg, Karapet), side by side, as in Glendale and Fresno.
@@ -1264,6 +1331,84 @@ GIVEN.pacific = {
   ],
 };
 
+// Nepal (and the Nepali-speaking Lhotshampa of Bhutan).
+GIVEN['as-nepali'] = {
+  z: 0.3,
+  base: {
+    M: 'Ram,Krishna,Hari,Bishnu,Shyam,Gopal,Prakash,Suman,Bikash,Sanjay,Dipak,Sunil,Binod,Sagar,Prabin,Sujan,Nabin,Bibek,Saroj,Rajendra,Ramesh,Suresh,Dinesh,Mahesh,Ganesh,Rabindra,Narayan,Bhim,Tek,Dil,Kamal,Kiran,Rajan,Rohan,Aayush,Anish,Bishal,Nirajan,Pradeep,Santosh,Sudip,Sushil,Umesh,Yuvraj,Bijay,Laxman,Purna,Shiva',
+    F: 'Sita,Gita,Sunita,Laxmi,Sarita,Anita,Puja,Srijana,Sabina,Rina,Bimala,Shanti,Manju,Kabita,Asmita,Pratima,Rojina,Kamala,Radha,Saraswati,Durga,Parbati,Sabitri,Mina,Nirmala,Sangita,Sushila,Tara,Uma,Yamuna,Goma,Kalpana,Muna,Nisha,Pooja,Prabha,Rekha,Samjhana,Sapana,Shristi,Aakriti,Anjali,Bidya,Bindu,Dipa,Januka,Roshani,Sarmila',
+  },
+};
+// Sri Lanka's Sinhala families (Sri Lankan Tamils are named in Tamil).
+GIVEN['as-sinhala'] = {
+  z: 0.3,
+  base: {
+    M: 'Nimal,Chaminda,Kasun,Ruwan,Nuwan,Saman,Lakshman,Chathura,Tharindu,Sunil,Pradeep,Ajith,Ranjith,Sarath,Upul,Asanka,Dinesh,Indika,Janaka,Kamal,Lasantha,Prasad,Roshan,Sampath,Thilina,Udara,Dulan,Isuru,Kavinda,Lahiru,Malith,Pathum,Sachin,Shehan,Tharaka,Viraj,Gamini,Anura,Mahinda,Ranil,Chandana,Dilan,Harsha,Heshan,Jagath,Mahesh,Nalin,Priyantha',
+    F: 'Dilini,Nadeesha,Chamari,Sanduni,Nirosha,Ishara,Thilini,Kumari,Malini,Anoma,Chandani,Damayanthi,Deepika,Gayani,Hasini,Inoka,Kanchana,Lakmali,Madhavi,Nilmini,Priyanka,Ramani,Sandya,Shiromi,Sriyani,Udeshika,Wasana,Achini,Dulani,Hiruni,Imesha,Kaushalya,Nethmi,Piumi,Sachini,Senuri,Thisuri,Yashodha,Chathurika,Dinusha,Erandi,Harshani,Jayani,Lasanthi,Madushani,Nadeeka,Rasika,Sewwandi',
+  },
+};
+// Mongolia: given names, and fathers' given names that serve as surnames in the US.
+GIVEN['as-mongol'] = {
+  z: 0.2,
+  base: {
+    M: 'Bat-Erdene,Batbayar,Ganbaatar,Bold,Erdene,Gantulga,Batbold,Enkhbayar,Tumur,Sukhbaatar,Munkh-Erdene,Otgonbayar,Altankhuyag,Bayarsaikhan,Temuujin,Tsogt,Baatar,Bilguun,Dorj,Ganzorig,Khurelbaatar,Lkhagva,Naranbaatar,Ochir,Purev,Sanjaa,Zorigt,Amarbayasgalan,Battulga,Chinbat,Davaa,Erdenebat,Ganbat,Jargal,Khosbayar,Mendbayar,Nyamdorj,Odbayar,Tsend,Uuganbayar,Enkhbold,Tuvshin,Temuulen,Anar',
+    F: 'Altantsetseg,Oyunchimeg,Enkhjargal,Sarantuya,Bolormaa,Narantsetseg,Tsetsegmaa,Erdenechimeg,Anu,Khulan,Oyun,Tuya,Saraa,Nomin,Ariunaa,Bayarmaa,Delger,Enkhtuya,Gerel,Khongorzul,Munkhtsetseg,Nandin,Narangerel,Odgerel,Otgontsetseg,Sarnai,Solongo,Tsolmon,Undrakh,Uyanga,Zaya,Ankhtsetseg,Battsetseg,Gantsetseg,Khishigjargal,Mungunzul,Nasanjargal,Oyuntsetseg,Tungalag,Enkhmaa,Bolortuya,Gerelmaa,Ulziimaa',
+  },
+};
+// Malaysia's Malay families (Malaysian Chinese and Tamil families are named in their own languages).
+GIVEN['as-malay'] = {
+  z: 0.3,
+  base: {
+    M: 'Ahmad:2,Muhammad:2,Mohd:1.5,Abdul,Hafiz,Azman,Faizal,Ismail,Ibrahim,Hassan,Hussein,Aziz,Amir,Firdaus,Hakim,Haziq,Irfan,Izzat,Khairul,Luqman,Nazri,Rizal,Shahrul,Syafiq,Zulkifli,Azlan,Faris,Fikri,Hairul,Jamal,Kamal,Mazlan,Nizam,Rashid,Roslan,Saiful,Zainal,Ariff,Danial,Haikal,Imran,Iskandar,Rahim,Yusof',
+    F: 'Nurul:2,Siti:2,Nur:1.5,Aisyah,Farah,Fatimah,Aminah,Hafizah,Izzati,Nabilah,Nadia,Najwa,Noraini,Norhayati,Rosnah,Salmah,Suhaila,Syahirah,Zainab,Zarina,Zuraidah,Aina,Alia,Amira,Balqis,Farhana,Hanis,Intan,Liyana,Mardhiah,Nadhirah,Puteri,Raihana,Sarah,Syazwani,Yasmin,Zulaikha,Aishah,Hidayah,Khadijah,Maisarah,Norazlina,Rohani,Wahida',
+  },
+};
+// Uzbekistan (Uzbek names; surnames in the Russian-era forms, a woman's ending in -a).
+GIVEN['as-uzbek'] = {
+  z: 0.3,
+  base: {
+    M: 'Alisher,Jasur,Bekzod,Sardor,Rustam,Farrukh,Bobur,Akmal,Aziz,Dilshod,Javlon,Jamshid,Otabek,Sherzod,Ulugbek,Abdulaziz,Anvar,Bakhodir,Botir,Davron,Eldor,Elyor,Farhod,Ibrohim,Islom,Kamol,Khurshid,Mansur,Murod,Nodir,Oybek,Rashid,Sanjar,Shohruh,Sukhrob,Temur,Umid,Zafar,Behruz,Doniyor,Firdavs,Abbos,Azizbek,Shavkat',
+    F: 'Dilnoza,Gulnora,Nilufar,Shahlo,Madina,Malika,Zarina,Feruza,Gulchehra,Mohira,Nargiza,Nodira,Ozoda,Saida,Sevara,Umida,Yulduz,Zulfiya,Barno,Dildora,Diyora,Durdona,Gulnoza,Iroda,Kamola,Lola,Laylo,Maftuna,Mohinur,Munisa,Nigora,Oydin,Rayhona,Sabina,Sarvinoz,Shoira,Sitora,Zebo,Ziyoda,Gulshan,Dilfuza,Muazzam,Nasiba,Shahnoza',
+  },
+};
+
+// Pacific Islanders by people: Samoan, Tongan, Chamorro (Spanish names), Fijian and Native Hawaiian names.
+GIVEN['pa-samoan'] = {
+  z: 0.3,
+  base: {
+    M: 'Ioane,Iosefa,Pita,Paulo,Tavita,Falaniko,Mikaele,Sefo,Elia,Afa,Tui,Lafaele,Semi,Toa,Sefa,Malaki,Ropati,Siaosi,Tamati,Lui,Sio,Tasi,Uelese,Sione,Petelo,Simi,Savelio,Kolio,Matiu,Peni,Filipo,Aleki,Isaako,Etuale,Manu,Mose,Sanele,Uili,Samuelu,Tevita,John,Joseph,David,Michael,Daniel,Junior',
+    F: 'Mele,Malia,Ana,Sina,Lagi,Fetu,Teuila,Losa,Lusia,Sefina,Mareta,Iulia,Fiafia,Tina,Pua,Silia,Siniva,Vaimoana,Moana,Alofa,Losaline,Matelita,Teresa,Eseta,Ruta,Lupe,Talia,Vailea,Lani,Sera,Akenese,Mata,Sui,Tilisa,Penina,Mary,Grace,Ruth,Elisapeta,Salamasina,Tausala,Seini,Faith,Lisa',
+  },
+};
+GIVEN['pa-tongan'] = {
+  z: 0.3,
+  base: {
+    M: 'Sione,Tevita,Viliami,Siaosi,Semisi,Tomasi,Pita,Lisiate,Mosese,Paula,Malakai,Isileli,Taniela,Sitani,Manase,Saia,Sefo,Elia,Lopeti,Samuela,Feleti,Kalolo,Sitiveni,Siosaia,Nikolasi,Petelo,Inoke,Maake,Penisimani,Sateki,Sifa,Uasi,Vili,Kisione,Mateaki,Aisea,Haloti,Kafoa,Fine,Pausia,John,David,Joseph,Daniel',
+    F: 'Mele,Salote,Losaline,Ana,Lose,Sela,Seini,Ofa,Malia,Lavinia,Akanesi,Silia,Mata,Sui,Lusia,Tilisa,Vika,Losana,Kalolaine,Elenoa,Lesieli,Fane,Siueni,Heilala,Ilaisaane,Kalo,Mana,Meleane,Salome,Sesilia,Toakase,Uini,Moana,Talia,Lupe,Mary,Grace,Ruth,Sinitalia,Luseane,Alisi,Hulita',
+  },
+};
+GIVEN['pa-chamorro'] = {
+  z: 0.35,
+  base: {
+    M: 'Jesus,Jose,Juan,Vicente,Francisco,Ignacio,Pedro,Joaquin,Antonio,Ramon,Manuel,Jesse,Frank,Joe,John,Vince,Joseph,Thomas,Edward,Peter,Henry,Raymond,Ricardo,Roland,Ronald,Anthony,Michael,David,Daniel,Steven,Jeffrey,Benjamin,Gregorio,Eduardo,Felix,Gerardo,Lorenzo,Luis,Mariano,Martin,Nicolas,Rufo,Tomas',
+    F: 'Maria,Rosa,Dolores,Teresa,Carmen,Josefina,Ana,Rita,Concepcion,Magdalena,Lourdes,Remedios,Soledad,Trinidad,Isabel,Antonia,Francisca,Juanita,Mary,Lisa,Tina,Bernadette,Rosalia,Vicenta,Joaquina,Ignacia,Consolacion,Engracia,Margarita,Regina,Patricia,Annette,Jennifer,Christine,Josephine,Rosario,Victoria,Cecilia,Lucia,Elena,Brenda,Doreen,Gloria,Pilar',
+  },
+};
+GIVEN['pa-fijian'] = {
+  z: 0.3,
+  base: {
+    M: 'Jone,Josefa,Sakiasi,Viliame,Semi,Tomasi,Apisai,Ilaisa,Isikeli,Joeli,Jope,Kalivati,Laisenia,Maika,Manasa,Mosese,Napolioni,Osea,Peceli,Sairusi,Samisoni,Sitiveni,Taniela,Timoci,Waisea,Akuila,Alipate,Eroni,Inoke,Isoa,Jese,Kaliova,Lemeki,Marika,Netani,Paula,Penioni,Ropate,Sevanaia,Solomone,Suliano,Tevita,Uraia,Vilikesa',
+    F: 'Mere,Ana,Litia,Losana,Salote,Unaisi,Vani,Asenaca,Ateca,Akanisi,Elenoa,Kelera,Lavenia,Lusiana,Makereta,Merewalesi,Miliakere,Naomi,Nanise,Salanieta,Senimili,Seruwaia,Sisilia,Sainimere,Talica,Torika,Vasiti,Vika,Litiana,Luisa,Mereani,Paulini,Raijieli,Sereana,Silika,Tokasa,Varanisese,Alisi,Kalesi,Mereseini,Akosita,Leba,Titilia,Ilisapeci',
+  },
+};
+GIVEN['pa-hawaiian'] = {
+  z: 0.3,
+  base: {
+    M: 'Keoni,Kawika,Kimo,Makana,Kalani,Kekoa,Makoa,Kainoa,Ikaika,Koa,Keanu,Kai,Nainoa,Kaleo,Akoni,Noa,Nalu,Kanoa,Keola,Kahiau,Kamaka,Kapono,Kaimana,Keahi,Kealoha,Keawe,Mana,Palani,Pono,Kamalei,Kekai,Liko,Kawai,Kanekoa,Kaipo,Kaniela,Kelii,Lopaka,Manu,Kale,Iokepa,Pilipo,David,Michael,John,James',
+    F: 'Leilani,Noelani,Pualani,Iolana,Kanoe,Keala,Kehaulani,Lani,Moana,Kailani,Alana,Kiana,Kalena,Kalea,Nalani,Makana,Mahina,Nohea,Kanani,Hokulani,Healani,Leinaala,Malia,Pua,Nani,Kaimana,Malie,Kapua,Lokelani,Mililani,Olina,Kaulana,Keilani,Kalani,Kamalani,Leialoha,Haunani,Malulani,Puanani,Mele,Kaui,Lehua,Mahealani,Nalu',
+  },
+};
+
 // ------------------------------------------------------------------ surnames: Hispanic
 // Ranked by frequency in each origin; written as California records write them, without accents but with ñ.
 SURNAMES.mexican = 'Hernandez:5.6,Garcia:5.2,Martinez:4.4,Lopez:4.1,Gonzalez:3.8,Rodriguez:3.4,Perez:2.7,Sanchez:2.6,Ramirez:2.5,Flores:1.9,Gomez:1.7,Torres:1.5,Diaz:1.3,Cruz:1.3,Reyes:1.25,Morales:1.2,Gutierrez:1.1,Vazquez:1.05,Jimenez:1,Ruiz:1,Mendoza:0.95,Aguilar:0.95,Ortiz:0.9,Castillo:0.85,Moreno:0.85,Romero:0.85,Alvarez:0.85,Chavez:0.85,Rivera:0.8,Juarez:0.8,Ramos,Dominguez,Herrera,Medina,Castro,Vargas,Guzman,Velazquez,Muñoz,Rojas,Contreras,Salazar,Luna,Ortega,Guerrero,Estrada,Bautista,Delgado,Soto,Cervantes,Rios,Valdez,Cortez,Sandoval,Pacheco,Avila,Ibarra,Zamora,Lara,Rangel,Espinoza,Carrillo,Ayala,Robles,Navarro,Acosta,Cardenas,Campos,Vega,Fuentes,Solis,Padilla,Maldonado,Cabrera,Villanueva,Trujillo,Barajas,Ochoa,Duran,Escobar,Ponce,Becerra,Zuniga,Esparza,Arellano,Villa,Montes,Miranda,Nuñez,Leon,Rosales,Valencia,Orozco,Magaña,Lozano,Saldaña,Hurtado,Galvan,Villegas,Huerta,Andrade,Arroyo,Cisneros';
@@ -1431,6 +1576,27 @@ SURNAMES.california = { mix: [['general', 0.46], ['mexican', 0.24], ['african-am
 SURNAMES.multiracial = { mix: [['general', 0.45], ['mexican', 0.2], ['african-american', 0.1], ['filipino', 0.06], ['japanese', 0.05], ['chinese', 0.05], ['korean', 0.03], ['pacific', 0.03], ['native-own', 0.03]] };
 SURNAMES.other = 'california';
 
+// Other African, Nigerian, other Asian and Pacific families by people (names.mjs ORIGIN_NAMING, LANGUAGE_NAMING): the
+// pools a family's origin or language narrows its heritage's mixed pool to.
+SURNAMES['af-somali'] = 'Mohamed:3,Ahmed:2.5,Ali:2.2,Hassan:2,Abdi:1.8,Omar:1.4,Yusuf:1.3,Hussein:1.2,Farah:1.2,Warsame:1,Osman:1,Ibrahim:1,Jama,Mohamud,Nur,Aden,Elmi,Guled,Samatar,Dahir,Abdullahi,Ismail,Hirsi,Duale,Egal,Hersi,Adan,Abdirahman,Barre,Said,Abdulle,Abdikarim,Awale,Bihi,Dirie,Gedi,Haji,Isse,Jibril,Mahamud,Muse,Noor,Roble,Shire,Warfa,Yasin';
+SURNAMES['af-ghana'] = 'Mensah:3,Boateng:2,Owusu:2,Asante:1.6,Osei:1.6,Appiah:1.4,Agyeman:1.2,Ofori:1.2,Darko:1.1,Amoah:1,Adjei,Ansah,Boakye,Frimpong,Gyamfi,Kyei,Kwarteng,Ofosu,Opoku,Sarpong,Tetteh,Quaye,Amponsah,Antwi,Baah,Bonsu,Addo,Oduro,Nyarko,Acheampong,Asamoah,Donkor,Yeboah,Ampofo,Asare,Danso,Fosu,Gyasi,Kumi,Manu,Nkansah,Obeng,Okyere,Sarfo,Takyi,Twum,Wiredu,Agyei,Anane,Ankrah,Lamptey,Quartey,Aryee,Tagoe,Annan,Ababio,Adomako,Badu,Bekoe';
+SURNAMES['af-kenya'] = 'Kamau:2,Mwangi:2,Otieno:1.8,Odhiambo:1.5,Ochieng:1.5,Kariuki:1.2,Njoroge:1.2,Mutua:1.2,Kimani:1.2,Onyango:1.1,Kiprotich,Cheruiyot,Kibet,Korir,Langat,Muriuki,Ndungu,Gitau,Maina,Macharia,Owino,Omondi,Wambua,Chebet,Rotich,Wanjala,Wekesa,Wafula,Kiplagat,Kipkemboi,Kipchumba,Njeru,Mugo,Kirui,Mutai,Waweru,Karanja,Kinyua,Mbugua,Nyaga,Ochola,Oduor,Okoth,Opiyo,Mutiso,Musyoka,Kilonzo,Juma,Barasa,Simiyu,Kamande,Githinji,Wainaina,Kiptoo';
+SURNAMES['af-senegal'] = 'Diallo:2.5,Ndiaye:2.5,Diop:2.2,Sow:1.6,Ba:1.5,Fall:1.4,Gueye:1.4,Mbaye:1.2,Niang:1.1,Seck:1.1,Sene,Thiam,Faye,Sarr,Cisse,Sy,Kane,Dia,Diouf,Toure,Camara,Diagne,Sylla,Ndao,Mbengue,Dieng,Diatta,Badji,Sambou,Gaye,Lo,Dione,Kebe,Samb,Tall,Diaw,Diakhate,Ndoye,Mboup,Coly,Goudiaby,Manga,Mendy,Sagna,Tine,Diedhiou,Drame';
+SURNAMES['af-southern'] = 'Nkosi,Dlamini,Ndlovu,Mokoena,Khumalo,Mthembu,Ngcobo,Mahlangu,Sithole,Mkhize,Molefe,Mabaso,Nxumalo,Zungu,Cele,Gumede,Hadebe,Masilela,Ntuli,Radebe,Tshabalala,Mofokeng,Mohapi,Motaung,Nhlapo,Maseko,Sibanda,Ncube,Moyo,Dube,Mpofu,Mutasa,Banda,Phiri,Gumbo,Mlambo,Nyathi,Shumba,Tshuma,Chirwa,Zhou,Mabuza,Nkomo,Mazibuko';
+SURNAMES['af-cameroon'] = 'Mbarga,Essomba,Ngono,Nkeng,Fotso,Mbah,Tchinda,Kamga,Tchoumi,Nguema,Ondoa,Atangana,Owona,Ebode,Mbida,Fouda,Abega,Ekambi,Ngassa,Tagne,Djoko,Talla,Wamba,Kenfack,Tsafack,Ndongo,Onana,Nana,Tchakounte,Fokou,Kengne,Mbouda,Ewane,Mvondo,Nlend,Nyobe,Simo,Tamo,Tchatchoua,Zambo,Ayissi,Bekono,Eyenga,Mballa,Ngando,Kamdem,Djeumo,Feudjio';
+SURNAMES['ng-yoruba'] = 'Ogunleye,Adeyemi,Adebayo,Ogunbiyi,Olawale,Oladipo,Afolabi,Adeleke,Balogun,Akinola,Akinwale,Ojo,Adewale,Ogunyemi,Oyebanji,Babalola,Adeniyi,Ogundipe,Olaniyan,Oyewole,Odukoya,Adesanya,Oyelaran,Adekunle,Adegoke,Adeoye,Adesina,Adewumi,Ajayi,Akande,Akinyemi,Alabi,Aluko,Ogunbanjo,Olaleye,Olayinka,Omotoso,Salako,Bakare,Durojaiye,Ogundele,Ogunlana,Omole,Onabanjo,Abiodun,Olowu,Fagbemi,Oyedele,Sanni,Shittu,Lawal,Adebisi,Adeyemo,Oladele,Ogunsola,Fadahunsi,Ige,Ilori,Oyeleke,Akinde';
+SURNAMES['ng-igbo'] = 'Okafor,Okonkwo,Nwosu,Eze,Okeke,Obi,Nwachukwu,Okoro,Chukwu,Okoye,Nnaji,Igwe,Ugwu,Anyanwu,Ezeh,Ogbonna,Uzoma,Chukwuma,Nwankwo,Ibe,Agu,Ezenwa,Onuoha,Ekwueme,Nwafor,Nwogu,Amadi,Anozie,Arinze,Azubuike,Chikwendu,Dike,Egwu,Emenike,Ibekwe,Iwu,Mbanefo,Nwabueze,Nwadike,Obiora,Odum,Ogbu,Okoli,Okpara,Onwuka,Onyeka,Udeh,Ukpabi,Umeh,Opara,Osuji,Uzor,Okwu,Nwoye,Ezeani,Ugwuanyi,Nwaneri,Okpala,Ihejirika,Onyekwere';
+SURNAMES['as-nepali'] = 'Shrestha:3,Gurung:2.2,Tamang:2,Thapa:2,Rai:1.8,Magar:1.5,Sherpa:1.3,Karki:1.2,Adhikari:1.2,Bhattarai:1.1,Poudel:1.1,Khadka:1,Basnet,Lama,Sharma,Koirala,Pandey,Acharya,Bhandari,Dahal,Ghimire,Gautam,Joshi,Khatri,Maharjan,Neupane,Pokharel,Regmi,Rijal,Sapkota,Subedi,Tiwari,Upreti,Chhetri,Limbu,Bista,Thakuri,Dhakal,Aryal,Bajracharya,Shakya,Tuladhar,Pradhan,Subba,Ghale,Pun,Bhujel,Baral,Kafle,Lamsal,Timilsina,Wagle,Kandel';
+SURNAMES['as-sinhala'] = 'Perera:4,Fernando:3,Silva:2.5,Jayasinghe:1.5,Wickramasinghe:1.4,Bandara:1.4,Dissanayake:1.3,Gunawardena:1.2,Ratnayake:1.1,Herath:1.1,Mendis:1,Kumara:1,Jayawardena,Rathnayake,Wijesinghe,Karunaratne,Liyanage,Weerasinghe,Gunasekara,Amarasinghe,Abeysekera,Ekanayake,Samarasinghe,Wijeratne,Peiris,Cooray,Dias,Rodrigo,Gamage,Pathirana,Kodikara,Hettiarachchi,Ranasinghe,Seneviratne,Wanigasekara,Munasinghe,Kularatne,Senaratne,Wickramaratne,Jayakody,Edirisinghe,Kumarasinghe,Ariyaratne,Abeywickrama,Gunathilaka,Hewage,Jayalath,Kariyawasam';
+SURNAMES['as-mongol'] = 'Batbayar,Ganbold,Bold,Batbold,Erdene,Gantulga,Ganbaatar,Munkhbat,Purevdorj,Tsogtbaatar,Bayarsaikhan,Altankhuyag,Enkhbold,Dorjsuren,Lkhagvasuren,Naranbaatar,Otgonbayar,Sukhbat,Tumurbaatar,Davaasuren,Batsaikhan,Chuluun,Dashdorj,Ganzorig,Jargalsaikhan,Khurelbaatar,Myagmar,Nergui,Ochirbat,Sanjaasuren,Zorigt,Battulga,Byambadorj,Erdenebileg,Gombo,Jamsran,Luvsan,Nyamdavaa,Sodnom,Tserendorj,Baatar,Damdinsuren,Gansukh,Munkhjargal,Tsend';
+SURNAMES['as-malay'] = 'Abdullah:2,Ismail:1.5,Ibrahim:1.4,Ahmad:1.4,Hassan:1.2,Rahman:1.2,Hamid:1.1,Hussein:1,Ali:1,Othman,Yusof,Osman,Salleh,Ramli,Razak,Rashid,Zakaria,Jamaluddin,Mohamad,Mustafa,Noor,Omar,Sulaiman,Kassim,Daud,Bakar,Harun,Hashim,Idris,Ishak,Jaafar,Karim,Latif,Mahmud,Musa,Nasir,Rahim,Said,Talib,Yaacob,Zainal,Zulkifli,Aziz,Hamzah,Johari,Mansor,Saad,Shamsuddin,Ghazali,Hanafi';
+SURNAMES['as-uzbek'] = 'Karimov:1.5,Abdullaev:1.3,Rakhimov:1.4,Yusupov:1.4,Usmonov:1.2,Saidov:1.2,Rashidov:1.2,Aliev:1.2,Ismoilov:1.1,Kholmatov:1,Mirzaev,Nazarov,Rahmonov,Sultanov,Tursunov,Umarov,Yuldashev,Ergashev,Akhmedov,Azimov,Bakirov,Juraev,Ganiev,Hamidov,Ibragimov,Kadirov,Khodjaev,Mamatov,Nurmatov,Ochilov,Qodirov,Sadikov,Tojiev,Valiev,Zakirov,Musaev,Normatov,Salimov,Toshmatov,Hasanov,Aminov,Boboev,Davletov,Fayzullaev';
+SURNAMES['pa-samoan'] = 'Faleolo,Leota,Aumua,Fuimaono,Mulitalo,Tagaloa,Fonoti,Seiuli,Tauiliili,Toleafoa,Asiata,Faalogo,Fiso,Iosefa,Lauina,Leiataua,Mapu,Masoe,Salavea,Soliai,Sua,Tago,Taua,Tavita,Tupuola,Vaifale,Amituanai,Aiono,Alofaituli,Fano,Fau,Lemalu,Matagi,Matautia,Paepae,Sefo,Sila,Tafuna,Talataina,Tausaga,Tuimavave,Vaeao,Mataafa,Seumalo,Faamausili,Tuialii,Afamasaga,Fanene,Afualo,Alapati,Faamau,Lefiti,Leaupepe,Sopoaga,Taamu,Toala,Lauvao,Pouesi,Lealofi,Ioane';
+SURNAMES['pa-tongan'] = 'Fifita,Tonga,Vake,Taufa,Kata,Fonua,Mahe,Havili,Moala,Latu,Vea,Pulu,Funaki,Lolohea,Tuipulotu,Fakatava,Faleafa,Lauti,Maka,Fusitua,Taione,Vainikolo,Uasike,Naufahu,Hufanga,Kaufusi,Piutau,Folau,Mateo,Tapueluelu,Kauhalalalo,Mafi,Hopoate,Fonohema,Kioa,Langi,Lavulo,Manu,Otai,Palu,Pole,Tau,Tokotaha,Vaipulu,Veikune,Vi,Afeaki,Taufahema,Pahulu,Palelei,Kaufana,Tuakoi';
+SURNAMES['pa-chamorro'] = 'Cruz:3,Santos:2,Camacho:1.5,Taitano:1.3,Aguon:1.2,Quinata:1.1,Blas:1.1,Leon Guerrero:1.1,Flores:1,Duenas:1,Perez,Mendiola,Sablan,Borja,Castro,Mesa,Reyes,Salas,Tenorio,Aflague,Cepeda,Charfauros,Chargualaf,Concepcion,Diaz,Eclavea,Garrido,Guerrero,Manibusan,Mafnas,Pangelinan,Quitugua,Rosario,Sanchez,Torres,Unpingco,Benavente,Babauta,Atalig,Ada,Arriola,San Nicolas,Toves,Crisostomo,Atoigue,Muna,Taimanglo,Terlaje,Tedtaotao,Quenga,Calvo,Paulino,Rivera,Tainatongo,Topasna,Santiago';
+SURNAMES['pa-fijian'] = 'Waqa,Ravuvu,Vunibaka,Naivalu,Raivalu,Tamani,Lagi,Vosa,Bulai,Delana,Tora,Seru,Nadolo,Lewaravu,Matanitobua,Koroi,Ravai,Vuniwaqa,Naiqama,Naisoro,Tikoisuva,Volavola,Waqanivalu,Bolatini,Daunivalu,Lomani,Nawaqa,Qiolevu,Rokobaro,Saukuru,Tabua,Vakaloloma,Vatu,Waqairatu,Yavala,Tuivaga,Nakarawa,Tuimoala,Cakau,Duguivalu,Kuruvoli,Naqelevuki,Radrodro,Ratuvou,Vulaono';
+SURNAMES['pa-hawaiian'] = 'Kahale,Kealoha,Kahananui,Kanahele,Akana,Kalua,Keawe,Kaleikini,Kekumu,Kamaka,Kaaihue,Kealamakia,Kaawa,Kahele,Kaiwi,Kamai,Kanoho,Kauhane,Keakealani,Keliihoomalu,Kahoohanohano,Kalama,Kamakana,Kamealoha,Kanoa,Kaopua,Kauwe,Keomaka,Mahoe,Makaiwi,Nahale,Naone,Palakiko,Kamakau,Kapule,Pahia,Makaiau,Nakoa,Makua,Kalani,Kaleo,Kaholokula,Kalahiki,Kamauu,Keola,Silva,Souza,Medeiros,Wong,Ching,Lee';
+
 // ------------------------------------------------------------------ heritage configuration
 // For each heritage key: the given-name tradition, the surname pool, `keep` = the chance that a person of
 // generation 1 / 2 / 3+ carries a name from the heritage tradition rather than the general California pool
@@ -1542,13 +1708,17 @@ const LANGUAGE_NAMING = Object.freeze({
   asian: {
     tagalog: 'filipino', ilocano: 'filipino', cebuano: 'filipino', cantonese: 'chinese-yue', taishanese: 'chinese-yue', mandarin: 'chinese-cmn',
     hokkien: 'chinese-tw', korean: 'korean', vietnamese: 'vietnamese', thai: 'thai', hindi: 'in-hindi', tamil: 'in-tamil',
-    nepali: 'asian-other', sinhala: 'asian-other', malay: 'asian-other', mongolian: 'asian-other', uzbek: 'asian-other', russian: 'asian-other',
+    nepali: 'as-nepali', sinhala: 'as-sinhala', malay: 'as-malay', mongolian: 'as-mongol', uzbek: 'as-uzbek', russian: 'asian-other',
   },
-  african: { tigrinya: 'ethiopian', amharic: 'ethiopian', oromo: 'ethiopian' },
+  african: { tigrinya: 'ethiopian', amharic: 'ethiopian', oromo: 'ethiopian', somali: 'af-somali', twi: 'af-ghana', swahili: 'af-kenya', wolof: 'af-senegal', arabic: 'arab' },
+  nigerian: { yoruba: 'ng-yoruba', igbo: 'ng-igbo' },
+  pacific: { samoan: 'pa-samoan', tongan: 'pa-tongan', chamorro: 'pa-chamorro', fijian: 'pa-fijian', hawaiian: 'pa-hawaiian', hindi: 'in-hindi' },
 });
 const ORIGIN_NAMING = Object.freeze({
   chinese: { taiwanese: 'chinese-tw' },
-  african: { eritrean: 'ethiopian' },
+  african: { eritrean: 'ethiopian', somali: 'af-somali', ghanaian: 'af-ghana', kenyan: 'af-kenya', senegalese: 'af-senegal', cameroonian: 'af-cameroon', southafrican: 'af-southern', sudanese: 'arab' },
+  asian: { nepali: 'as-nepali', bhutanese: 'as-nepali', mongolian: 'as-mongol', uzbek: 'as-uzbek' },
+  pacific: { samoan: 'pa-samoan', tongan: 'pa-tongan', chamorro: 'pa-chamorro', nativehawaiian: 'pa-hawaiian' },
 });
 // Origins that keep another heritage's surname customs (Eritreans name children as Ethiopians do).
 const CUSTOM_ORIGINS = Object.freeze({ eritrean: 'ethiopian' });
@@ -1845,6 +2015,51 @@ const RESERVED_NAMES = Object.freeze(('Cesar Chavez|Dolores Huerta|Jennifer Lope
   'Anita Desai|Sharad Pawar|Ajit Pawar|Smita Patil|Pratibha Patil|Mohan Bhagwat|Sarojini Naidu|Narasimha Rao|' +
   'Viswanathan Anand|Shilpa Shetty|Sunil Shetty|Rohit Shetty|Anushka Shetty|Pooja Hegde|Ramakrishna Hegde|Vijay Mallya|' +
   'Oommen Chandy|Vasudevan Nair|Yash Chopra|Aditya Chopra|Varun Dhawan|' +
+  'Rajesh Khanna|Vinod Khanna|Rahul Khanna|Akshaye Khanna|Twinkle Khanna|Mukesh Khanna|Kishore Kumar|Manoj Kumar|Ashok Kumar|' +
+  'Sanjeev Kumar|Rajendra Kumar|Dilip Kumar|Uttam Kumar|Hemant Kumar|Sushil Kumar|Ajith Kumar|Praveen Kumar|Nitish Kumar|' +
+  'Neeraj Chopra|Uday Chopra|Prem Chopra|Parineeti Chopra|Kiran Bedi|Kabir Bedi|Pooja Bedi|Protima Bedi|Bishan Bedi|Om Puri|' +
+  'Hardeep Puri|Neha Kakkar|Shreya Ghoshal|Imran Hashmi|Emraan Hashmi|Shoaib Malik|Sakshi Malik|Ghulam Ali|Lakshmi Mittal|' +
+  'Sunil Mittal|Shiv Nadar|Thomas Kurian|George Kurian|Rahul Bose|Janhvi Kapoor|Kunal Kapoor|Karan Kapoor|Aditya Kapoor|' +
+  'Shraddha Kapoor|Ekta Kapoor|Boney Kapoor|Shammi Kapoor|Biju Menon|Anoop Menon|Esha Deol|Dimple Kapadia|Vidya Balan|' +
+  'Zoya Akhtar|Mahesh Bhatt|Pooja Bhatt|Alia Bhatt|Sidharth Malhotra|Manish Malhotra|Pankaj Tripathi|Vivek Oberoi|Mohit Chauhan|' +
+  'Sunidhi Chauhan|Rakesh Sharma|Ishant Sharma|Varun Sharma|Mohit Sharma|Chetan Sharma|Vijay Sharma|Shikha Sharma|' +
+  'Ravindra Jadeja|Ajay Jadeja|David Dhawan|Shikhar Dhawan|Venkatesh Prasad|Kuldeep Yadav|Umesh Yadav|Akhilesh Yadav|' +
+  'Dinesh Yadav|Sanju Samson|Anju George|Mushtaq Ahmed|Ijaz Ahmed|Hasan Ali|Imtiaz Ali|Rahat Ali|Jahangir Khan|Farah Khan|' +
+  'Sohail Khan|Mansoor Khan|Sanjay Khan|Kabir Khan|Amjad Khan|Saroj Khan|Sara Khan|Younis Khan|Shadab Khan|Maryam Nawaz|' +
+  'Muhammad Iqbal|Allama Iqbal|Chandrashekar Rao|Rama Rao|Piyush Goyal|Navdeep Bains|Ravi Bhalla|Jaspal Bhatti|Lilly Singh|' +
+  'Arshdeep Singh|Pawan Singh|Ranjit Singh|Hari Singh|Tara Singh|Swaran Singh|Gurcharan Singh|Navjot Singh|Robin Singh|' +
+  'Milkha Singh|Bhagat Singh|Rajnath Singh|Digvijaya Singh|Amarinder Singh|Jagmeet Singh|Diljit Dosanjh|Gurdas Maan|' +
+  'Bhagwant Mann|Kiran Mazumdar|Rajat Gupta|Raj Reddy|Jagadish Bose|Aparna Sen|Riya Sen|Raima Sen|Amartya Sen|Jyoti Basu|' +
+  'Asha Parekh|Falguni Pathak|Atul Kulkarni|Sonali Kulkarni|Trisha Krishnan|Ramesh Krishnan|Shankar Nag|Anant Nag|' +
+  'Mayank Agarwal|Ritesh Agarwal|Manish Pandey|Krishna Iyer|Shreyas Iyer|Venkatesh Iyer|Mohanlal Nair|Saurav Ganguly|' +
+  'Sudha Chandran|Jagjit Kaur|Prakash Raj|Anurag Kashyap|Gulshan Grover|Sharmila Thakur|Sharmila Tagore|Yashwant Sinha|' +
+  'Jayant Sinha|Shatrughan Sinha|Sonakshi Sinha|Manoj Tiwari|Amit Mishra|Piyush Chawla|Harshal Patel|Axar Patel|Tilak Varma|' +
+  'Mohit Suri|Nikhil Kamath|Nithin Kamath|Kunal Shah|Sachin Bansal|Mukesh Bansal|Omar Abdullah|Farooq Abdullah|Hamid Ansari|' +
+  'Bushra Ansari|Ali Sethi|Najam Sethi|Hamza Abbasi|Shahid Abbasi|Rashid Latif|Hamid Mir|Javed Chaudhry|Arif Alvi|' +
+  'Shaukat Aziz|Raja Ashraf|Fazlur Rehman|Hafiz Saeed|Mohammad Ali|Mohammed Ali|Mohamed Ali|Liton Das|Soumya Sarkar|' +
+  'Mahendra Chaudhry|Kedar Jadhav|Sachin Tendulkar|Rahul Dravid|Anil Kumble|Sunil Gavaskar|Virender Sehwag|Gautam Gambhir|' +
+  'Irfan Pathan|Yusuf Pathan|Jasprit Bumrah|Mohammed Shami|Mohammed Siraj|Suresh Raina|Dinesh Karthik|Murali Vijay|' +
+  'Mithali Raj|Jhulan Goswami|Saina Nehwal|Leander Paes|Mahesh Bhupathi|Rohan Bopanna|Abhinav Bindra|Sanjay Dutt|Sunil Dutt|' +
+  'Waqar Younis|Javed Miandad|Babar Azam|Mohammad Rizwan|Mohammad Yousuf|Saeed Anwar|Abdul Qadir|Zaheer Abbas|Hanif Mohammad|' +
+  'Sarfaraz Ahmed|Mohammad Amir|Fakhar Zaman|Umar Akmal|Kamran Akmal|Mohammad Hafeez|Jansher Khan|Arshad Nadeem|Abida Parveen|' +
+  'Mehdi Hassan|Mahira Khan|Shehbaz Sharif|Asif Zardari|Sonia Gandhi|Indira Gandhi|Rajiv Gandhi|Arvind Kejriwal|Sushma Swaraj|' +
+  'Arun Jaitley|Shashi Tharoor|Nirmala Sitharaman|Vallabhbhai Patel|Abdul Kalam|Chandrababu Naidu|Venkaiah Naidu|Jagan Reddy|' +
+  'Uddhav Thackeray|Bal Thackeray|Raj Thackeray|Nitin Gadkari|Sachin Pilot|Ashok Gehlot|Kamal Nath|Azim Premji|' +
+  'Nandan Nilekani|Anand Mahindra|Uday Kotak|Indra Nooyi|Shantanu Narayen|Ajay Banga|Vikram Pandit|Nikesh Arora|' +
+  'Vivek Ramaswamy|Kash Patel|Ro Khanna|Pramila Jayapal|Ami Bera|Neel Kashkari|Preet Bharara|Atul Gawande|Hasan Minhaj|' +
+  'Kumail Nanjiani|Padma Lakshmi|Jhumpa Lahiri|Salman Rushdie|Arundhati Roy|Vikram Seth|Amitav Ghosh|Chetan Bhagat|' +
+  'Raghuram Rajan|Homi Bhabha|Vikram Sarabhai|Kamal Haasan|Shruti Haasan|Allu Arjun|Ram Charan|Pawan Kalyan|' +
+  'Mahendra Dhoni|Kapil Dev|Hema Malini|Waheeda Rehman|Mala Sinha|Shabana Azmi|Naseeruddin Shah|Paresh Rawal|Anupam Kher|' +
+  'Kirron Kher|Boman Irani|Smriti Irani|Arshad Warsi|Riteish Deshmukh|Vilasrao Deshmukh|Hrithik Roshan|Rakesh Roshan|' +
+  'Jackie Shroff|Tiger Shroff|Kangana Ranaut|Deepika Padukone|Prakash Padukone|Karan Johar|Lata Mangeshkar|Asha Bhosle|' +
+  'Sonu Nigam|Udit Narayan|Kumar Sanu|Alka Yagnik|Shankar Mahadevan|Bhimsen Joshi|Hariprasad Chaurasia|Manisha Koirala|' +
+  'Girija Koirala|Sushil Koirala|Bidya Bhandari|Paras Khadka|Ranil Wickramasinghe|Ranil Wickremesinghe|Anura Dissanayake|' +
+  'Mahinda Rajapakse|Sanath Jayasuriya|Anwar Ibrahim|Najib Razak|Mahathir Mohamad|Islom Karimov|Islam Karimov|' +
+  'Gulnara Karimova|Alisher Usmanov|Sunil Chhetri|' +
+  // Africa, the Pacific and the islands (the pools by people make these combinations possible)
+  'Kofi Annan|Kwame Nkrumah|Ilhan Omar|Mohamed Farah|Mohamed Barre|Hassan Mohamud|Youssou Ndour|Idrissa Gueye|Cheikh Diop|' +
+  'Ismaila Sarr|Aliou Cisse|Elhadji Diouf|Macky Sall|Sadio Mane|Andre Onana|Tunde Bakare|David Adeleke|Ademola Adeleke|' +
+  'Ayodeji Balogun|Peter Obi|Chinedu Okoli|Naomi Mataafa|Felix Camacho|Joseph Ada|Lucky Dube|' +
   // heads of state and government, and notorious figures
   'Hugo Chavez|Manuel Zelaya|Xiomara Castro|Jimmy Morales|Rafael Correa|Gordon Brown|David Cameron|Diana Spencer|' +
   'Gerry Adams|Enda Kenny|Abdoulaye Wade|Somchai Wongsawat|Khaleda Zia|Nazrul Islam|Ne Win|Than Shwe|Thein Sein|' +
@@ -1885,7 +2100,10 @@ const Z_SURNAME = 0.75;   // the curve continued after a surname list's explicit
 // particular to families, Ethiopian and Eritrean ones are fathers' given names, and the Nigerian, other
 // African, Pacific, other Asian and other European pools mix many countries. Nearly flat, so no single name
 // takes more than about 3% of its heritage (Z_SURNAME would give the first-listed name 12-15%).
-const SURNAME_CURVE = Object.freeze({ lao: 0.2, thai: 0.2, ethiopian: 0.3, nigerian: 0.25, african: 0.2, pacific: 0.25, 'asian-other': 0.25, 'europe-other': 0.25, 'native-own': 0.4 });
+const SURNAME_CURVE = Object.freeze({
+  lao: 0.2, thai: 0.2, ethiopian: 0.3, nigerian: 0.25, african: 0.2, pacific: 0.25, 'asian-other': 0.25, 'europe-other': 0.25, 'native-own': 0.4,
+  'af-cameroon': 0.25, 'af-southern': 0.25, 'ng-yoruba': 0.25, 'ng-igbo': 0.25, 'as-mongol': 0.2, 'pa-samoan': 0.25, 'pa-tongan': 0.25, 'pa-fijian': 0.25, 'pa-hawaiian': 0.3,
+});
 const ERA_START = [-Infinity, 1960, 1980, 2000];
 const BLEND_YEARS = 4;    // within this many years of an era boundary the next era's fashions blend in
 const REF_YEAR = 2026;    // the population's reference year (birthYear = 2026 - age)
@@ -2107,14 +2325,19 @@ function profileOf(heritage, opts) {
 // An origin-country given name from the traditions a profile allows: the heritage's own mix narrowed to them (an
 // English-name share stays where it goes with one of them, as for Hong Kong and Taiwan), else the profile's own
 // traditions; the surname, when it points to one of them, picks it (a Thomas among Malayalam speakers is Christian).
-function drawProfiled(rng, cfg, prof, sex, era, last) {
+function drawProfiled(rng, cfg, prof, sex, era, last, kind = 'origin') {
   const keys = new Set(prof.map(p => p[0])), sHint = hintFor(cfg, last), T = own(GIVEN, cfg.given);
   let mix = T && T.mix ? T.mix.filter(([k, , keepWith]) => keys.has(k) || (keepWith && keepWith.some(x => keys.has(x)))) : [];
   if (!mix.length) mix = prof.filter(([k]) => own(GIVEN, k));
-  if (!mix.length) return drawFromTradition(rng, cfg.given, sex, era, 'origin', sHint);
+  if (!mix.length) return drawFromTradition(rng, cfg.given, sex, era, kind, sHint);
   const hint = sHint && mix.some(([k]) => hinted(sHint, k)) ? sHint : keys;
-  return drawFromTradition(rng, pickMix(rng, mix, era, hint), sex, era, 'origin', null);
+  return drawFromTradition(rng, pickMix(rng, mix, era, hint), sex, era, kind, null);
 }
+
+// True when the names US-born families of a heritage give come from the profile (the family's language's or origin's
+// traditions): for the US born, only where the heritage has no list of its own of the names US-born families give
+// (the African, Nigerian, Pacific and other Asian families, whose children's heritage names are their parents').
+const profiledFor = (cfg, gen) => { if (gen === 1) return true; const T = own(GIVEN, usTradition(cfg)); return !(T && T.us); };
 
 // A family name from the surname pools a profile allows (by their weights), else the heritage's own.
 function drawProfiledSurname(rng, cfg, prof) {
@@ -2146,7 +2369,7 @@ function coreGiven(rng, cfg, sex, era, gen, last, parents, prof = null, early = 
   const keep = gen === 1 && early ? 1 : cfg.keep[gen - 1];
   if (keep > 0 && rng.chance(keep)) {
     const kind = gen === 1 ? 'origin' : 'us';
-    const name = kind === 'origin' && prof ? drawProfiled(rng, cfg, prof, sex, era, last)
+    const name = prof && profiledFor(cfg, gen) ? drawProfiled(rng, cfg, prof, sex, era, last, kind)
       : drawFromTradition(rng, kind === 'us' ? usTradition(cfg) : cfg.given, sex, era, kind, hintFor(cfg, last));
     if (name) return name;
   }
@@ -2195,18 +2418,18 @@ export function surname(rng, heritage, opts) {
   const key = heritageKey(heritage), cfg = configOf(key), prof = profileOf(key, opts);
   const family = prof ? drawProfiledSurname(rng, cfg, prof) : drawSurname(rng, cfg.sur);
   if (!opts || (opts.sex !== 'M' && opts.sex !== 'F')) return family;
-  return personalSurname(rng, family, key, opts.sex, generationOf(opts.generation, opts.nativity));
+  return personalSurname(rng, family, key, opts.sex, generationOf(opts.generation, opts.nativity), opts.origin);
 }
 
 const BD_WOMEN = ['Akter', 'Begum', 'Khatun', 'Sultana'];
 
-function personalSurname(rng, family, heritage, sex, gen) {
+function personalSurname(rng, family, heritage, sex, gen, origin) {
   const cfg = configOf(heritage);
   if (cfg.religiousName) return rng.chance(0.3) ? cfg.religiousName[sex] : family;
   if (heritage === 'bangladeshi' && sex === 'F' && gen === 1 && rng.chance(0.35)) return BD_WOMEN[rng.int(BD_WOMEN.length)];
-  if (sex === 'F' && own(FEMININE, heritage)) {
+  if (sex === 'F' && feminineRules(heritage, origin)) {
     const p = gen === 1 ? 1 : gen === 2 ? 0.25 : 0;
-    if (p > 0 && rng.chance(p)) return adaptSurname(family, { heritage, sex });
+    if (p > 0 && rng.chance(p)) return adaptSurname(family, { heritage, sex, origin });
   }
   return family;
 }
@@ -2220,19 +2443,23 @@ const FEMININE = Object.freeze({
   polish: [[/dzki$/, 'dzka'], [/cki$/, 'cka'], [/ski$/, 'ska']],
   greek: [[/os$/, 'ou'], [/as$/, 'a'], [/d[ie]s$/, 'dou'], [/[ie]s$/, 'i']],
 });
+// Origins inside other heritages whose surnames take the same forms: Uzbek families' Russian-era surnames (Karimova).
+const FEMININE_ORIGINS = Object.freeze({ uzbek: 'russian' });
+const feminineRules = (heritage, origin) => own(FEMININE, heritage) || (typeof origin === 'string' && own(FEMININE_ORIGINS, origin) ? FEMININE[FEMININE_ORIGINS[origin]] : undefined);
 
 /**
  * The form of a family name a woman carries where the language marks it (Russian Ivanov → Ivanova,
- * Ukrainian -skyi → -ska, Polish Kowalski → Kowalska, Greek Papadopoulos → Papadopoulou). Pure: no draw.
- * Unchanged for men, for other heritages and for names the rules do not touch (Kovalenko, Georgiou).
+ * Ukrainian -skyi → -ska, Polish Kowalski → Kowalska, Greek Papadopoulos → Papadopoulou, Uzbek Karimov → Karimova
+ * with opts.origin 'uzbek'). Pure: no draw. Unchanged for men, for other heritages and origins and for names the rules
+ * do not touch (Kovalenko, Georgiou).
  * @param {string} name the family (masculine) form
- * @param {{heritage?: string, sex?: 'F'|'M'}} [opts]
+ * @param {{heritage?: string, sex?: 'F'|'M', origin?: string}} [opts]
  * @returns {string}
  */
 export function adaptSurname(name, opts) {
-  const { heritage, sex } = opts || {};
+  const { heritage, sex, origin } = opts || {};
   if (!name || sex !== 'F') return name;
-  const rules = own(FEMININE, heritage);
+  const rules = feminineRules(heritage, origin);
   if (!rules) return name;
   for (const [re, rep] of rules) if (re.test(name)) return name.replace(re, rep);
   return name;
@@ -2246,14 +2473,19 @@ const customsConfig = (heritage, opts) => { const o = opts && typeof opts.origin
  * for an immigrant and for the US born ([generation 1, generation 2+]), that a married woman keeps her own surname
  * or joins both (the rest take the husband's; marriedSurname draws it); `patronymic`: a child's surname is the
  * father's given name (Ethiopian and Eritrean families); `clan`: spouses belong to different clans and a wife keeps
- * hers for life (the Hmong); `religious`: the names members carry (Sikh Singh and Kaur), else null.
+ * hers for life (the Hmong); `religious`: the names members carry (Sikh Singh and Kaur), else null; `feminine`: the
+ * language gives women a feminine form of a family name (Russian, Ukrainian, Polish, Greek, and the Uzbek origin:
+ * adaptSurname), so a woman of the tradition carries one, and a surname of the tradition has one.
  * @param {string} heritage
  * @param {{origin?: string}} [opts] origin: a finer origin key (an Eritrean family follows the Ethiopian customs)
- * @returns {{wife: {keep: number[], join: number[]}, patronymic: boolean, clan: boolean, religious: {M: string, F: string}|null}}
+ * @returns {{wife: {keep: number[], join: number[]}, patronymic: boolean, clan: boolean, religious: {M: string, F: string}|null, feminine: boolean}}
  */
 export function surnameCustoms(heritage, opts) {
   const c = customsConfig(heritage, opts);
-  return { wife: { keep: [c.wife[0][0], c.wife[1][0]], join: [c.wife[0][1], c.wife[1][1]] }, patronymic: !!c.patronymic, clan: !!c.clan, religious: c.religiousName ? { ...c.religiousName } : null };
+  return {
+    wife: { keep: [c.wife[0][0], c.wife[1][0]], join: [c.wife[0][1], c.wife[1][1]] }, patronymic: !!c.patronymic, clan: !!c.clan,
+    religious: c.religiousName ? { ...c.religiousName } : null, feminine: feminineRules(heritageKey(heritage), opts && opts.origin) !== undefined,
+  };
 }
 
 /**
@@ -2281,7 +2513,8 @@ export function marriedSurname(rng, opts) {
  * a famous person's full name are redrawn. For Sikh heritage the religious name is part of the returned
  * given name, as in "Harpreet Kaur" or "Gurpreet Singh" (opts.religiousName === false leaves it off).
  * opts.language (the family's home language) and opts.origin (a finer origin key) pick the origin pools where a
- * heritage's names differ by them (a Punjabi speaker from Ludhiana is not named in Tamil); opts.birthSurname, the
+ * heritage's names differ by them (a Punjabi speaker from Ludhiana is not named in Tamil, a Somali from Mogadishu
+ * not in Kikuyu), and the heritage names of the US born where the heritage has no US-born list; opts.birthSurname, the
  * surname a married woman was born with, is the one her given name follows (her parents chose it); opts.arrivalAge,
  * for someone born abroad, keeps a child who came here with their parents (under 18) on the origin's names.
  * @param {import('./rng.mjs').Rng} rng
@@ -2518,7 +2751,9 @@ export function nameFor(rng, opts) {
  * to 1, most common first (mixed traditions merged by their weights for that era). Generation 1 is the
  * origin-country pool, 2 and 3 the heritage names US-born families use; heritages that use the general
  * pool (American, Native American, multiracial, other) return the general California pool. opts.language and
- * opts.origin narrow the origin-country pool as they narrow givenName.
+ * opts.origin narrow the pool as they narrow givenName: the origin-country pool always, and the US-born families'
+ * names where the heritage has no list of its own for them (a Somali family's US-born children's heritage names
+ * are Somali names).
  * @param {string} heritage
  * @param {'F'|'M'} sex
  * @param {number} era index 0..3, or a birth year
@@ -2537,16 +2772,16 @@ export function givenPool(heritage, sex, era, generation = 1, opts) {
     if (T.mix) { const tot = T.mix.reduce((a, m) => a + m[1][e], 0); for (const m of T.mix) walk(m[0], kind, scale * m[1][e] / tot); return; }
     add(leafPool(trad, S, e, 'origin'), scale);
   };
-  const prof = gen === 1 ? profileOf(key, opts) : null;
+  const prof = profiledFor(cfg, gen) ? profileOf(key, opts) : null, kind = gen === 1 ? 'origin' : 'us';
   if (cfg.multi || !(cfg.keep[gen - 1] > 0)) walk('general', 'origin', 1);
   else if (prof) {
     // the narrowed mix drawProfiled uses (the heritage's mix filtered to the profile, else the profile's traditions)
     const keys = new Set(prof.map(p => p[0])), T = own(GIVEN, cfg.given);
     let mix = T && T.mix ? T.mix.filter(([k, , keepWith]) => keys.has(k) || (keepWith && keepWith.some(x => keys.has(x)))) : [];
     if (!mix.length) mix = prof.filter(([k]) => own(GIVEN, k));
-    if (!mix.length) walk(cfg.given, 'origin', 1);
-    else { const wt = m => (Array.isArray(m[1]) ? m[1][e] : m[1]), tot = mix.reduce((a, m) => a + wt(m), 0); for (const m of mix) walk(m[0], 'origin', wt(m) / tot); }
-  } else walk(gen === 1 ? cfg.given : usTradition(cfg), gen === 1 ? 'origin' : 'us', 1);
+    if (!mix.length) walk(cfg.given, kind, 1);
+    else { const wt = m => (Array.isArray(m[1]) ? m[1][e] : m[1]), tot = mix.reduce((a, m) => a + wt(m), 0); for (const m of mix) walk(m[0], kind, wt(m) / tot); }
+  } else walk(gen === 1 ? cfg.given : usTradition(cfg), kind, 1);
   return [...out].map(([name, weight]) => ({ name, weight })).sort((a, b) => b.weight - a.weight);
 }
 
