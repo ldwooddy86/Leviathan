@@ -349,8 +349,9 @@ export class StreetView {
     const t = now();
     this._lastFrame = t;
     if (this.sim) {
-      // whatever stopped the frame, the simulation is not left behind the clock
-      try { const target = this._time(); if (Math.abs(target - this.sim.t) > 1000) this.sim.reset(target); } catch { /* reported below */ }
+      // whatever stopped the frame: agents whose state no longer reads leave the street, and the simulation is
+      // not left behind the clock
+      try { this.sim.repair(err); const target = this._time(); if (Math.abs(target - this.sim.t) > 1000) this.sim.reset(target); } catch { /* reported below */ }
     }
     if (this._errAt && t - this._errAt < 5000) return;
     this._errAt = t;

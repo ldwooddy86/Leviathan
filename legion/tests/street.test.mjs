@@ -116,6 +116,65 @@ test('the place shapes the scene: roofs from roof data, shops from establishment
   assert.ok(wet / n < 0.02, `street points in water ${wet}/${n}`);
 });
 
+test('ground in no ZIP: land inland (desert, campus), river channels stay water, the coast keeps its ocean', () => {
+  const ground = (lat, lon, zip) => {
+    let px, py;
+    if (zip) { const zi = world.indexOf(zip); px = world.z.tx[zi]; py = world.z.ty[zi]; } else { const p = world.project(lat, lon); px = p.x; py = p.y; }
+    const f = new Frame(world, px, py);
+    const g = groundGrid(world, f, 600, { cell: 10, seed: 1, margin: 40 });
+    const c = [0, 0, 0, 0]; for (const k of g.kind) c[k]++;
+    return { g, f, ocean: c[GROUND.OCEAN] / g.kind.length, lake: c[GROUND.LAKE] / g.kind.length };
+  };
+  // Independence (the Owens Valley, half the view outside any ZIP) and Riverside's campus hole were drawn as sea
+  for (const zip of ['93526', '92507', '95375']) {
+    const { g, f, ocean } = ground(0, 0, zip);
+    assert.equal(ocean, 0, `${zip} ocean ${ocean}`);
+    assert.equal(g.hasOcean, false);
+    assert.equal(seaNear(world, f, 3140), false);
+  }
+  assert.ok(ground(0, 0, '93526').g.landShare > 0.99);
+  // a channel of the Delta that no ZIP covers is still water (inland water, not ocean)
+  const delta = ground(38.0735, -121.6850);
+  assert.ok(delta.lake > 0.2 && delta.ocean === 0, `delta lake ${delta.lake} ocean ${delta.ocean}`);
+  // the coast is unchanged: Laguna Beach and Ocean Beach have their ocean
+  const laguna = ground(0, 0, '92651');
+  assert.ok(laguna.ocean > 0.1 && laguna.g.hasOcean, `laguna ocean ${laguna.ocean}`);
+  assert.equal(seaNear(world, laguna.f, 3140), true);
+  // and a desert view's streets are not cut at a shore that is not there
+  const owens = sceneOf('93526');
+  assert.equal(owens.ground.hasOcean, false);
+  assert.ok(!owens.net.edges.some(e => e.bridge && !e.freeway), 'no bridges over dry land');
+});
+
+test('names and plants: Spanish forms agree, place names keep their stems, the high desert is not a forest', () => {
+  // Camino and Paseo are masculine: their adjectives agree (Camino Corto), nouns in apposition stay (Paseo Luna)
+  assert.equal(spanishStreet('Camino', 'Corta'), 'Camino Corto');
+  assert.equal(spanishStreet('Paseo', 'Hermosa'), 'Paseo Hermoso');
+  assert.equal(spanishStreet('Calle', 'Serena'), 'Calle Serena');
+  assert.equal(spanishStreet('Paseo', 'Luna'), 'Paseo Luna');
+  assert.equal(spanishStreet('Camino', 'Verde'), 'Camino Verde');
+  const wrong = /^(Camino|Paseo) (Corta|Larga|Bonita|Hermosa|Linda|Serena|Fresca)$/;
+  for (const zip of ['92620', '92651', '91910']) {
+    const namer = createNamer(world, world.indexOf(zip), 'curvi');
+    let spanish = 0;
+    for (let k = 0; k < 4000; k++) {
+      const n = namer.street(k * 7919 + 1, 'local', 'culdesac');
+      if (/^(Calle|Via|Camino|Paseo) /.test(n)) spanish++;
+      assert.ok(!wrong.test(n), `${zip}: ${n}`);
+    }
+    assert.ok(spanish > 200, `${zip}: Spanish street names ${spanish}`);
+    // park and school names are a stem and a word, never a bare prefix ("Calle Park", "Via Elementary School")
+    const ctx = { namer };
+    for (let h = 1; h < 600; h++) {
+      for (const name of [parkName(ctx, h), schoolName(ctx, h)]) assert.ok(!/^(Calle|Via|Camino|Paseo) (Park|Playground|Commons|Green|Community|Recreation|Elementary|Middle|High|K-8)\b/.test(name), name);
+    }
+  }
+  // climate zone 16 in the rain shadow (Independence 5.4 in, Bishop 6.3 in) is sagebrush; Truckee (31.6 in) is forest
+  const veg = zip => vegetation({ z: world.zip(world.indexOf(zip)), zseed: 1, style: 'tract', mode: 'rural', reliefPerKm: 10 });
+  for (const zip of ['93526', '93514', '96101']) assert.equal(veg(zip).open, 4, `${zip} scrub`);
+  for (const zip of ['96161', '96150']) assert.equal(veg(zip).open, 1, `${zip} conifers`);
+});
+
 // ---------------------------------------------------------------- routing
 
 test('pathfinding finds shortest paths (A* against Dijkstra, contiguous, cost recomputed)', () => {
@@ -157,6 +216,24 @@ test('pathfinding finds shortest paths (A* against Dijkstra, contiguous, cost re
   assert.ok(Math.abs(go.length - Math.hypot(200, 200)) < 1, `diagonal ${go.length}`);
   assert.ok(Math.abs(back.length - 400) < 1, `one-way respected ${back.length}`);
   assert.ok(Math.abs(walk.length - Math.hypot(200, 200)) < 1, 'pedestrians ignore one-way signs');
+});
+
+test('paths to a place a few centimeters past a corner end at the corner (no sliver steps), and stay contiguous', () => {
+  const net = sceneOf('94110').net, router = new Router(net);
+  let checked = 0;
+  for (const E of net.edges) {
+    if (checked >= 40 || E.len < 20 || !E.foot) continue;
+    const far = net.nodes.find(n => Math.hypot(n.x - net.nodes[E.a].x, n.y - net.nodes[E.a].y) > 300);
+    for (const s of [0.05, 0.3, E.len - 0.2]) {
+      const p = router.path('foot', { node: far.id }, { e: E.id, s });
+      if (!p) continue;
+      checked++;
+      assert.ok(pathIsContiguous(net, p));
+      p.steps.forEach((st, k) => assert.ok(k === 0 || stepLen(st) >= 0.5 || Math.abs(stepLen(st) - net.edges[st.e].len) < 1e-9, `step ${k} of ${stepLen(st).toFixed(2)} m`));
+      assert.ok(Math.abs(p.length - p.steps.reduce((a, st) => a + stepLen(st), 0)) < 1e-6);
+    }
+  }
+  assert.ok(checked >= 40);
 });
 
 test('intersections are controlled: signals where arterials cross, stop signs elsewhere, phases alternate', () => {
@@ -353,6 +430,170 @@ test('simulation: through traffic, buses and parked cars at night (90001, 22:00)
   assert.ok(rural.stats().agents < 200, 'rural roads are quiet');
 });
 
+test('simulation: mornings in a subdivision and a small town run without a fault or a gridlock (92620, 95536)', () => {
+  // walkers on loop walks from homes at dead ends once ran past the end of their path (Irvine at 7:15, Ferndale at
+  // 7:31); side streets at two-way stops once held each other up until a thousand cars stood still at 8:30
+  for (const [zip, h0, h1] of [['95536', 6, 9], ['92620', 7, 8.5]]) {
+    const sim = new StreetSim(sceneOf(zip), { world, population: pop });
+    sim.reset(atPacific(2026, 11, 24, h0, 0));
+    const end = atPacific(2026, 11, 24, Math.floor(h1), (h1 % 1) * 60);
+    let peak = 0, loops = 0;
+    for (let i = 0; sim.t < end; i++) {
+      sim.step();
+      if (i % 900 === 0) { checkSim(sim); peak = Math.max(peak, sim.agents.length); loops += sim.agents.filter(a => a.trip && a.trip.loop).length; }
+    }
+    const s = sim.stats();
+    assert.equal(s.faults || 0, 0, `${zip} faults: ${JSON.stringify(sim.lastFault)}`);
+    assert.ok((s.gaveUp || 0) <= Math.max(3, s.finished * 0.005), `${zip}: ${s.gaveUp} vehicles gave up of ${s.finished}`);
+    assert.ok(loops > 0, `${zip}: people out for walks`);
+    if (zip === '92620') assert.ok(peak < 800, `92620 peak ${peak} agents (a gridlock piles up thousands)`);
+  }
+  // a loop walk is never a path of zero-length steps, and a walker covering several steps in one tick stops at the end
+  const sim = new StreetSim(sceneOf('95536'), { world, population: pop });
+  sim.reset(atPacific(2026, 11, 24, 6, 0));
+  const net = sim.net, t0 = atPacific(2026, 11, 24, 6, 30);
+  let deadEnd = 0;
+  for (const p of sim.persons) {
+    const b = sim.scene.buildings[p.b];
+    if (!b || !b.access) continue;
+    const E = net.edges[b.access.e];
+    const atEnd = [[E.a, 0], [E.b, E.len]].some(([n, s]) => net.nodes[n].adj.length === 1 && Math.abs(b.access.s - s) < 0.3);
+    if (!atEnd) continue;
+    deadEnd++;
+    const trip = sim._loopTrip(p, { start: t0, end: t0 + 30 * 60000, kind: 'exercise', loop: true }, t0);
+    if (trip) {
+      assert.ok(trip.path.length >= 30, `loop of ${trip.path.length} m`);
+      trip.path.steps.forEach((st, k) => assert.ok(k === 0 || stepLen(st) >= 0.5 || Math.abs(stepLen(st) - net.edges[st.e].len) < 1e-9, 'no sliver steps after the first'));
+    }
+    if (deadEnd > 25) break;
+  }
+  assert.ok(deadEnd > 0, 'homes at the end of lanes');
+  const home = sim.scene.buildings.find(b => b.access && b.kind === 'house');
+  const st = { e: home.access.e, dir: 1, from: home.access.s, to: home.access.s };
+  const a = sim._newAgent({ kind: 'walk', role: 'resident', id: sim.persons[0].id, person: -1, path: { steps: [st, Object.assign({}, st), Object.assign({}, st)], length: 0, cost: 0 }, trip: { dIn: true, toB: home, enterDur: 4, oIn: false, t0: sim.t, vNom: 1.3, path: null }, vmax: 1.3 });
+  a.trip.path = a.path; a.phase = 'route';
+  assert.doesNotThrow(() => sim._move(a, 0.2));
+  assert.equal(a.phase, 'enter');
+  assert.equal(a.k, 2);
+});
+
+test('simulation: a failure in one agent takes it off the street and the clock keeps going', () => {
+  const sim = new StreetSim(sceneOf('90001'), { world, population: pop });
+  sim.reset(atPacific(2026, 11, 24, 8, 0));
+  const victim = sim.agents.find(a => a.phase === 'route' && a.kind === 'walk' && a.path);
+  victim.k = victim.path.steps.length + 5;          // a route state that does not read
+  const t0 = sim.t, n0 = sim.agents.length;
+  assert.doesNotThrow(() => { for (let i = 0; i < 50; i++) sim.step(); });
+  assert.equal(sim.stats().faults, 1);
+  assert.equal(sim.lastFault.id, victim.id);
+  assert.ok(!sim.agents.includes(victim));
+  assert.ok(sim.t > t0 && sim.agents.length > n0 * 0.5);
+  checkSim(sim);
+  // a car in a queue: the queues read it before its own update does; the sweep still takes it off
+  const car = sim.agents.find(a => a.kind === 'car' && a.phase === 'route' && a.q !== null && sim.queues.get(a.q).length > 1);
+  car.k = car.path.steps.length + 5;
+  assert.doesNotThrow(() => { for (let i = 0; i < 20; i++) sim.step(); });
+  assert.ok(!sim.agents.includes(car) && sim.stats().faults >= 2);
+  checkSim(sim);
+});
+
+test('bus riders: after a reset or a jump nobody waits for a bus that has already come, and buses are on their routes', () => {
+  const sim = new StreetSim(sceneOf('94110'), { world, population: pop });
+  assert.ok(sim.busRoutes.length > 0 && sim.stops.length > 0);
+  for (const t of [atPacific(2026, 11, 24, 8, 0), atPacific(2026, 11, 24, 8, 10)]) {
+    if (sim.t === 0) sim.reset(t); else sim.advance(t, { maxSteps: 4 });
+    const now = sim.t / 1000;
+    const waiting = sim.agents.filter(a => a.phase === 'wait');
+    for (const a of waiting) {
+      assert.ok(a.wait >= 0 && a.wait <= 25 * 60, `waited ${a.wait}`);
+      assert.ok(sim._nextBusAt(a.busStop, now - a.wait) > now, 'their bus is still to come');
+    }
+    // before, everyone who had walked to a stop in the past two hours stood there (258 at 8:00) with no bus in view
+    assert.ok(waiting.length < 80, `${waiting.length} waiting`);
+    assert.ok(sim.agents.some(a => a.kind === 'bus'), 'buses already on their routes');
+    checkSim(sim);
+  }
+  // a timetable: the next bus at a stop comes within one headway, never in the hours without service
+  const stop = sim.stops[0], route = sim.busRoutes[stop.route];
+  const t8 = atPacific(2026, 11, 24, 8, 0) / 1000, t3 = atPacific(2026, 11, 24, 3, 0) / 1000;
+  assert.ok(sim._nextBusAt(stop.id, t8) - t8 <= route.headway + 1e-6);
+  assert.ok(sim._nextBusAt(stop.id, t3) >= atPacific(2026, 11, 24, 5, 0) / 1000);
+});
+
+test('streams: arrivals are spread in time, nobody is on two agents, and shoppers do not outlive a reset', () => {
+  const sim = new StreetSim(sceneOf('94110'), { world, population: pop, trafficScale: 3.5 });
+  const unique = (label) => {
+    const seen = new Map();
+    for (const a of sim.agents) seen.set(a.id, (seen.get(a.id) || 0) + 1);
+    const dup = [...seen].filter(([, n]) => n > 1);
+    assert.equal(dup.length, 0, `${label}: ${dup.slice(0, 3).map(([id, n]) => id + ' x' + n).join(', ')}`);
+    for (const a of sim.agents) if (a.person < 0) assert.ok(!sim.personIds.has(a.id), `${label}: a resident drawn as through traffic`);
+  };
+  let t = atPacific(2026, 11, 24, 8, 0);
+  sim.reset(t);
+  unique('reset');
+  // the arrival lists of an entry: no two arrivals at one instant, and the count near the rate
+  const en = sim.entries.reduce((b, e) => (e.perHour > b.perHour ? e : b));
+  const minute = Math.floor(t / 60000);
+  let total = 0, expect = 0;
+  for (let m = minute - 30; m < minute + 30; m++) {
+    const list = en.arr.minute(m);
+    for (let i = 1; i < list.length; i++) assert.ok(list[i] > list[i - 1]);
+    total += list.length; expect += sim._rate(en, m * 60000 + 30000) * 60;
+  }
+  assert.ok(Math.abs(total - expect) < 4 * Math.sqrt(expect) + 3, `${total} arrivals for ${expect.toFixed(0)} expected`);
+  for (let i = 0; i < 1500; i++) sim.step();
+  unique('stepping');
+  // a fast clock: thirty seconds a frame; each jump places a bounded number of new arrivals
+  let most = 0;
+  t = sim.t;
+  for (let f = 0; f < 40; f++) { const s0 = sim.stats0.spawned; t += 30000; sim.advance(t, { maxSteps: 4 }); most = Math.max(most, sim.stats0.spawned - s0); }
+  unique('jumping');
+  assert.ok(most < 450, `${most} placed in one jump`);
+  // shoppers in a store when the clock is set back come out of nowhere no more
+  sim.reset(atPacific(2026, 11, 24, 12, 0));
+  for (let i = 0; i < 3000; i++) sim.step();
+  assert.ok(sim._pendingReturns.length > 20, 'shoppers in the stores');
+  const t7 = atPacific(2026, 11, 24, 7, 0);
+  sim.advance(t7);
+  assert.ok(sim._pendingReturns.every(x => x.t > t7), 'only shoppers of the new hour');
+  assert.ok(sim._pendingReturns.length < 20, `${sim._pendingReturns.length} pending at 7:00`);
+  sim.advance(atPacific(2026, 11, 24, 8, 30));
+  sim.step();
+  const leaving = sim.agents.filter(a => a.role === 'visitor' && a.kind === 'car' && a.phase === 'exit').length;
+  assert.ok(leaving < 15, `${leaving} shoppers pulling out at once`);
+  unique('after resets');
+  checkSim(sim);
+});
+
+test('parking: a car leaves from where it was parked, at home or in a stall where its driver went', () => {
+  const sim = new StreetSim(sceneOf('94110'), { world, population: pop });
+  sim.reset(atPacific(2026, 11, 24, 11, 0));
+  const p = sim.persons.find(q => q.role === 'resident' && q.veh >= 0 && q.spot >= 0 && !q.agent);
+  const shop = sim.shops.find(b => Math.hypot(b.cx - sim.scene.buildings[p.b].cx, b.cy - sim.scene.buildings[p.b].cy) > 200);
+  assert.ok(p && shop);
+  // the driver arrives at the store and parks
+  const arrive = sim.router.path('car', { node: sim.carExits[0] }, { e: shop.access.e, s: shop.access.s });
+  const a = sim._newAgent({ kind: 'car', role: 'resident', id: p.id, person: p.pid, path: arrive, trip: { path: arrive, t0: sim.t, vNom: 10, oIn: false, dIn: true, toB: shop, exitDur: 7, enterDur: 7, dur: 60 }, lookH: sim._carLookId(p), len: 4.7 });
+  p.agent = a;
+  sim._toEnd(a); a.phase = 'enter'; sim._beginEnter(a); a.pu = 1;
+  const stall = a.toSpot;
+  assert.ok(stall >= 0 && sim.spotCar[stall] === -2, 'a stall reserved');
+  sim._move(a, 0.2);
+  sim._finish(a, sim.agents.indexOf(a));
+  assert.equal(sim.spotCar[stall], sim._carLookId(p), 'parked in the stall');
+  assert.equal(p.awaySpot, stall);
+  // the next trip from the store starts from that stall (not from the space at home) and empties it
+  const home = sim.scene.buildings[p.b];
+  const back = sim.router.path('car', { e: shop.access.e, s: shop.access.s }, { e: home.access.e, s: home.access.s });
+  const b = sim._newAgent({ kind: 'car', role: 'resident', id: p.id, person: p.pid, path: back, trip: { path: back, t0: sim.t, vNom: 10, oIn: true, dIn: true, fromB: shop, toB: home, exitDur: 7, enterDur: 7, dur: 60 }, len: 4.7 });
+  sim._beginExit(b, p, b.trip);
+  const sp = sim.scene.spots[stall];
+  assert.ok(Math.hypot(b.from.x - sp.x, b.from.y - sp.y) < 1e-6, 'pulls out of the stall');
+  assert.equal(sim.spotCar[stall], -1);
+  assert.equal(p.awaySpot, -1);
+});
+
 test('performance: a step with two thousand agents fits a frame', () => {
   // Nob Hill at the morning rush with six times the data-calibrated through traffic and every in-commuter
   const sim = new StreetSim(sceneOf('94109'), { world, population: pop, trafficScale: 6 });
@@ -470,6 +711,32 @@ test('OpenStreetMap: ways become a graph at shared nodes (the bridge does not cr
   const fallback = buildScene(world, pop, x, y, { osmElements: els.slice(0, 1) });
   assert.equal(fallback.source, 'procedural');
   assert.match(overpassQuery(37.7, -122.5, 37.8, -122.4), /way\["highway"\]\(37\.700000,-122\.500000,37\.800000,-122\.400000\);way\["building"\]/);
+});
+
+test('OpenStreetMap: the query asks for node ids; a response without them still joins the ways where they share a vertex', async () => {
+  assert.match(overpassQuery(37.7, -122.5, 37.8, -122.4), /out body geom;$/);
+  assert.ok(!/out geom tags/.test(overpassQuery(37.7, -122.5, 37.8, -122.4)), 'the tags verbosity drops node ids');
+  const [x, y] = at('94110');
+  const ctx = sceneContext(world, pop, x, y);
+  const stripped = osmFixture(ctx.frame).map(el => { const c = Object.assign({}, el); delete c.nodes; return c; });
+  const { net } = parseOSM(stripped, world, ctx.frame, ctx.R);
+  assert.equal(net.edges.filter(e => !e.freeway).length, 12, 'the grid joins at its crossings');
+  assert.equal(components(net, e => !e.freeway).count, 1);
+  for (const n of net.nodes) if (n.adj.some(a => net.edges[a.e].freeway)) assert.ok(n.adj.every(a => net.edges[a.e].freeway), 'the bridge still joins nothing');
+  assert.equal(buildScene(world, pop, x, y, { osmElements: stripped }).source, 'osm');
+  // a fetch answered in that shape goes through to OSM streets; the cache is the v2 one and the old tiles are gone
+  clearMemoryCache();
+  const store = new Map([['legion.osm.v1.3774_-12242', '{"t":1,"w":[]}']]);
+  const fake = { getItem: k => (store.has(k) ? store.get(k) : null), setItem: (k, v) => { store.set(k, String(v)); }, removeItem: k => store.delete(k), key: i => [...store.keys()][i] ?? null, get length() { return store.size; } };
+  let body = '';
+  const fetchImpl = async (url, init) => { body = decodeURIComponent(init.body); return { ok: true, json: async () => ({ elements: stripped }) }; };
+  const r = await fetchOSM(world, new Frame(world, x, y), 600, { fetchImpl, store: fake });
+  assert.ok(r && r.elements.length === stripped.length && !r.cached);
+  assert.match(body, /out body geom;/);
+  assert.ok([...store.keys()].some(k => k.startsWith(STORE_PREFIX)) && STORE_PREFIX === 'legion.osm.v2.');
+  assert.ok(![...store.keys()].some(k => k.startsWith('legion.osm.v1.')), 'v1 tiles (no node ids) are dropped');
+  assert.equal(buildScene(world, pop, x, y, { osmElements: r.elements }).source, 'osm');
+  clearMemoryCache();
 });
 
 test('OpenStreetMap cache: tiles round-trip through storage, a full storage never throws', () => {

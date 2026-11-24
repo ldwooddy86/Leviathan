@@ -135,6 +135,15 @@ const MORE = /^(and|so)?\s*(tell me more|more|go on|keep going|really|seriously|
 const YES = /^(yes|yeah|yep|yup|sure|of course|definitely|absolutely|i do|i am|i have|uh huh|mhm|si|sí|correct|right|totally|kind of|sort of|a little)\b/;
 const NO = /^(no|nope|nah|not really|not at all|i don'?t|i'?m not|i haven'?t|never|negative)\b/;
 
+// The commonest English words: a line with none of them, no known name and no intent reads as unclear.
+const COMMON_WORDS = new Set(('a an the and or but if so of to in on at by for with from about as is are was were be been am i me my we us our you your '
+  + 'he him his she her it its they them their this that these those there here what which who when where why how do does did have has had '
+  + 'can could would should will not no yes yeah yep nope ok okay oh hi hey hello bye thanks thank please sorry well like just really very '
+  + 'good great nice bad fine sure maybe much many more most some any all one two get got go going went come came know think say said tell '
+  + 'want need see look make made time day today tonight tomorrow week year home house work job car people place food weather rain sun hot cold '
+  + 'love hate fun cool wow huh hmm lol haha man dude bro friend guy thing things stuff kind way too also still back now then out up down '
+  + 'over around off again never always ever only even right left new old big small little lot lots here there life world city town street').split(' '));
+
 const ROUTINE_WORDS = [
   [/\bthe beach\b|\bbeach\b/, 'beach'], [/\bthe park\b|\ba park\b/, 'park'], [/\bgrocery( store)?\b|\bsupermarket\b|\bthe store\b|\bmarket\b/, 'grocery'],
   [/\bpharmacy\b|\bdrug ?store\b/, 'pharmacy'], [/\blaundromat\b|\blaundry\b/, 'laundromat'], [/\bhardware store\b/, 'hardware'],
@@ -297,7 +306,10 @@ export function understand(text, ctx = {}) {
     politics: /\bpolitics\b|\bpolitical\b|\bpresident\b|\belections?\b|\bvot(e|ing)\b|\bdemocrats?\b|\brepublicans?\b|\bgovernor\b|\bcongress\b|\bsenator\b|\bliberal\b|\bconservative\b/.test(norm),
     religion: /\breligio\w*|\bgod\b|\bpray\w*|\bfaith\b|\bbelieve in\b|\bchurch\b/.test(norm),
     aboutPlayer: /\bwhat do you think of me\b|\bdo you like me\b|\bam i (annoying|boring|nice)\b/.test(norm),
+    unclear: false,
   };
+  const ws = norm.match(/[\p{L}']+/gu) || [];
+  flags.unclear = !ws.length || (!Object.keys(scores).length && !places.length && !roads.length && !years.length && ws.length <= 4 && !ws.some(w => COMMON_WORDS.has(w)));
 
   // resolve combinations the way a person hears them
   const ranked = INTENTS.filter(k => scores[k] > 0).sort((a, b) => scores[b] - scores[a] || INTENTS.indexOf(a) - INTENTS.indexOf(b));

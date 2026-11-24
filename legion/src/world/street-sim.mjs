@@ -443,11 +443,13 @@ export class StreetSim {
   step() {
     this.t += DT * 1000;
     this.stats0.steps++;
-    this._processEvents(this.t, false);
-    this._streams(this.t);
-    this._buses(this.t);
-    this._returns(this.t, false);
-    this._sortQueues();
+    try {
+      this._processEvents(this.t, false);
+      this._streams(this.t);
+      this._buses(this.t);
+      this._returns(this.t, false);
+      this._sortQueues();
+    } catch (err) { this.repair(err); }
     const agents = this.agents;
     for (let i = agents.length - 1; i >= 0; i--) {
       const a = agents[i];
@@ -456,6 +458,13 @@ export class StreetSim {
       if (done) this._finish(a, i);
     }
   }
+
+  /**
+   * Recover from a failure outside one agent's own update (a frame that could not be drawn, a queue that could not
+   * be sorted): every agent whose state no longer reads is taken off the street and the failure is counted.
+   * @param {unknown} err
+   */
+  repair(err) { this._fault(null, err); }
 
   /**
    * Contain a failure in one agent's update: take it (and any other agent whose route state no longer reads)

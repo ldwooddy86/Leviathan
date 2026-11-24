@@ -1194,7 +1194,7 @@ P.goodbye = (S, u) => {
 P.unknown = (S, u) => {
   const v = S.v, parts = [];
   const letters = (u.text.match(/\p{L}/gu) || []).length;
-  if (letters < 2 || (v.lang.mode !== 'en' && S.rng.chance(0.6))) {
+  if (letters < 2 || u.flags.unclear || (v.lang.mode !== 'en' && S.rng.chance(0.6))) {
     parts.push(say(S, 'unk.confused'));
     parts.push(pivot(S));
     return { parts, topics: [], ask: null };
