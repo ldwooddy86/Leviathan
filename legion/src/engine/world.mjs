@@ -7,7 +7,8 @@
 // 37.24 degrees: x = (lon - minx) * kx * sx, y = (maxy - lat) * sx, in "units" of 1/sx degree of latitude
 // (about 0.1975 km). Every x, y in Legion is in these units; world.unitKm converts.
 
-import { Rng, hash2, clamp } from './rng.mjs';
+import { Rng, hash2, hash3, u01, clamp, smoothstep } from './rng.mjs';
+import { pacific } from './clock.mjs';
 
 const KM_PER_DEG = 111.32;
 
@@ -133,7 +134,6 @@ class PointIndex {
   }
 }
 
-const SEASON_TEMP_SHIFT = [-14, -12, -9, -6, -3, 0, 2, 2, 0, -4, -9, -13]; // degrees F from July, a rough California mean
 
 // ---------------------------------------------------------------- the world
 
@@ -488,6 +488,40 @@ export class World {
   }
 
   /**
+   * A climate estimate for ZIP i at time t, for times no forecast covers: the ZIP's July mean high (tjul) brought
+   * down through the year by an annual swing that grows with distance from the coast and with elevation (about
+   * 10 F on the coast, 40 F deep inland), a daily swing that does the same, and a sky chosen deterministically per
+   * ZIP and day from the season and the place (winter rain days in proportion to the ZIP's annual rain, snow
+   * showers when it is cold up high, marine layer mornings at the coast from May to August, tule fog on winter
+   * mornings in the Great Valley). Returns the shape of weatherAt's now, plus climate: true.
+   */
+  climateAt(i, t) {
+    const z = this.z, P = pacific(t);
+    const coast = z.coast_km[i] != null ? z.coast_km[i] : 60, elev = z.elev_m[i] || 0;
+    const inland = smoothstep(0, 90, coast), high_country = elev > 1200 ? 1 : 0;
+    const swingYear = 10 + 30 * inland + 6 * high_country;
+    const season = (1 + Math.cos(2 * Math.PI * (P.month - 7.4) / 12)) / 2;   // 1 in late July, 0 in late January
+    const high = (z.tjul[i] != null ? z.tjul[i] : 80) - swingYear * (1 - season);
+    const swingDay = 12 + 18 * inland + 6 * high_country;
+    const hour = P.hour + P.minute / 60;
+    const diurnal = (1 + Math.cos(2 * Math.PI * (hour - 15) / 24)) / 2;       // 1 at 3 PM, 0 at 3 AM
+    const tempF = Math.round(high - swingDay * (1 - diurnal));
+    // sunrise and sunset, near enough: 7:20 and 16:50 at the winter solstice, 5:45 and 20:30 at the summer one
+    const summer = (1 + Math.cos(2 * Math.PI * (P.month - 6.7) / 12)) / 2;
+    const isDay = hour >= 7.33 - 1.58 * summer && hour < 16.83 + 3.67 * summer;
+    const m = P.month, day = Math.floor((t - 8 * 3600000) / 86400000);
+    const u = u01(hash3(0x534b59, i, day));
+    const wetness = [1, 1, 0.85, 0.45, 0.12, 0.03, 0.01, 0.01, 0.05, 0.25, 0.6, 0.95][m - 1];
+    const rainDay = u < clamp((z.rain_in[i] || 10) / 120, 0.02, 0.4) * wetness;
+    let short;
+    if (rainDay) short = elev > 1400 && high < 46 ? 'Snow Showers' : 'Rain Showers';
+    else if (coast < 12 && m >= 5 && m <= 8 && hour < 11) short = 'Patchy Fog';
+    else if (this.provinces[z.province[i]] === 'Great Valley' && (m === 12 || m === 1) && hour < 11 && u < 0.55) short = 'Fog';
+    else short = isDay ? (u < 0.75 ? 'Sunny' : 'Partly Sunny') : (u < 0.75 ? 'Clear' : 'Partly Cloudy');
+    return { tempF, rh: null, pop: rainDay ? 70 : 5, wind: null, short, isDay, time: new Date(t).toISOString(), climate: true };
+  }
+
+  /**
    * The weather for ZIP i at time t (epoch ms; default the snapshot time): the NWS forecast hour and period
    * of the nearest forecast point (offset by the nearest observing station's difference at the snapshot),
    * active alerts for the ZIP's forecast zone or county, the forecast office's key messages, and the SPC fire
@@ -508,19 +542,17 @@ export class World {
     if (h && bestDt <= 90 * 60000) {
       out.now = { tempF: Math.round(h[1] + offset), rh: h[2], pop: h[3], wind: h[4], short: h[5], isDay: !!h[6], time: h[0] };
     } else {
-      const month = new Date(t).getUTCMonth();
-      const base = (zr.tjul || 75) + SEASON_TEMP_SHIFT[month];
-      const hour = (new Date(t).getUTCHours() + 16) % 24; // Pacific standard, near enough for a fallback
-      const diurnal = -Math.cos((hour - 3) / 24 * 2 * Math.PI) * 9;
-      out.now = { tempF: Math.round(base + diurnal - 4), rh: null, pop: null, wind: null, short: (zr.rain_wet_m === month + 1 && hour % 5 === 0) ? 'Showers' : 'Seasonable', isDay: hour >= 7 && hour < 17, time: new Date(t).toISOString() };
+      out.now = this.climateAt(i, t);
       out.stale = true;
     }
-    if (pt) {
+    out.period = null;
+    out.next = [];
+    if (pt && !out.stale) {
       const periods = pt.periods || [];
       const cur = periods.find(p => Date.parse(p.start) <= t && t < Date.parse(p.end));
       out.period = cur || null;
       const idx = cur ? periods.indexOf(cur) : -1;
-      out.next = idx >= 0 ? periods.slice(idx + 1, idx + 4) : periods.slice(0, 3);
+      out.next = idx >= 0 ? periods.slice(idx + 1, idx + 4) : [];
     }
     out.obs = obs;
     const zone = zr.zone, fips = zr.countyFips ? zr.countyFips.slice(2) : null, fipsFull = zr.countyFips;
@@ -531,9 +563,11 @@ export class World {
     }).map(a => ({ event: a.event, severity: a.severity, headline: a.headline, onset: a.onset, ends: a.ends, description: a.description, instruction: a.instruction }))
       .filter((a, k, all) => all.findIndex(b => b.event === a.event) === k);
     const afd = pt && this.weather.afd[pt.office];
-    out.keyMessages = afd ? afd.key : [];
+    // the forecast office's key messages and the day-1 outlooks speak about the snapshot's own days
+    const outlookDay = !out.stale && t >= this.snapshotTime - 12 * 3600000 && t <= this.snapshotTime + 30 * 3600000;
+    out.keyMessages = afd && !out.stale ? afd.key : [];
     const fireDay = (this.weather.fire.days || {})['1'], eroDay = (this.weather.ero.days || {})['1'];
-    const fl = fireDay && fireDay.levels ? fireDay.levels[fipsFull] : 0, el = eroDay && eroDay.levels ? eroDay.levels[fipsFull] : 0;
+    const fl = outlookDay && fireDay && fireDay.levels ? fireDay.levels[fipsFull] : 0, el = outlookDay && eroDay && eroDay.levels ? eroDay.levels[fipsFull] : 0;
     out.fireWeather = { level: fl || 0, name: (this.weather.fire.names || [])[fl || 0] || 'None' };
     out.excessiveRain = { level: el || 0, name: (this.weather.ero.names || [])[el || 0] || 'None' };
     return out;
