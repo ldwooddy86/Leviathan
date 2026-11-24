@@ -246,8 +246,8 @@ export const FAMILIES = {
       `),
     },
     traffic: lines(`
-      Chain control on {road} again.
-      Everybody from down the hill came up for the snow and nobody can drive in it.
+      @wx:snow Chain control on {road} again.
+      @m11-4 Everybody from down the hill came up for the snow and nobody can drive in it.
       @drives Stuck behind a camper on the two-lane.
       When a big storm hits, they close {road} and that's that.
       @drives Took me two hours to get down the hill.
@@ -694,8 +694,8 @@ export const KEYS = {
       `),
     },
     traffic: lines(`
-      The road up the hill was bumper to bumper with snow-play people.
-      One way up, one way down, and it's closed.
+      @m11-4 The road up the hill was bumper to bumper with snow-play people.
+      One way up, one way down, and when it's closed, you're stuck.
       Down the hill for anything big, that's an hour.
       @m11-4 Everybody from LA came up for the snow and parked in the road.
     `),

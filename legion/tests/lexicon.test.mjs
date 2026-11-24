@@ -376,6 +376,10 @@ test('age-graded lines and slang', () => {
   const rng = new Rng(21);
   const teen = linesFor('sf', 'agreement', { age: 16 }), elder = linesFor('sf', 'agreement', { age: 72 }), adult = linesFor('sf', 'agreement', { age: 40 });
   assert.ok(teen.includes('Hella.') && !adult.includes('Hella.'));
+  // Children get the plain lines, not teen slang.
+  const child = linesFor('sf', 'agreement', { age: 9 });
+  assert.ok(!child.includes('Hella.') && !child.includes('No cap.') && child.includes('For sure.'));
+  assert.ok(!linesFor('fresno', 'greetings', { age: 2 }).includes('Sup.') && linesFor('fresno', 'greetings', { age: 15 }).includes('Sup.'));
   assert.ok(elder.includes("That's the truth.") && !adult.includes("Isn't that the truth."));
   assert.ok(teen.length > adult.length && elder.length > adult.length);
   assert.deepEqual(linesFor('sf', 'weather', { condition: 'fog', ignoreTags: true }), [...DIALECTS.sf.weather.fog]);
@@ -664,4 +668,452 @@ test('the lexicon is fast enough for a 20 ms dialogue turn', () => {
   }
   const per = (performance.now() - t0) / 2000;
   assert.ok(per < 0.5, `${per.toFixed(3)} ms per turn of lexicon work`);
+});
+
+// ------------------------------------------------------------------ review regressions: teams
+
+test('team lines are grammatical with the real team names of every dialect', () => {
+  assert.equal(teamName('the Giants'), 'Giants');
+  assert.equal(teamName('Fresno State'), 'Fresno State');
+  assert.equal(teamName({ name: 'Dodgers', label: 'the Dodgers' }), 'Dodgers');
+  assert.equal(teamName({ name: 'UCLA', label: 'UCLA football' }), 'UCLA');
+  assert.equal(teamName(''), null);
+  assert.equal(teamName(null), null);
+  const bad = /\b(a|an|go|the) the\b|\b(a|an) (LAFC|UCLA|USC|UC|CSUB|UCSB)\b/i;
+  let teamLines = 0;
+  for (const k of DIALECT_KEYS) {
+    const d = DIALECTS[k];
+    assert.equal(d.teamNames.length, d.teams.length);
+    const zi = dialectTable(world).indexOf(k);
+    const { values } = slotsFor(world, zi);
+    assert.equal(values.teamName, teamName(values.team), k);
+    for (const t of templatesOf(d)) {
+      if (!/\{team(Name)?\}/.test(t)) continue;
+      teamLines++;
+      // No indefinite article right before a team slot: "a LAFC game" and "a the Rams game" are both wrong.
+      assert.ok(!/\b(a|an) \{team/i.test(t), `${k}: "${t}"`);
+      for (const team of d.teams) {
+        const s = fill(t, { ...values, team, teamName: teamName(team) });
+        assert.ok(s && !bad.test(s), `${k} / ${team}: "${s}"`);
+      }
+    }
+  }
+  assert.ok(teamLines >= 20, `${teamLines} team lines`);
+  // The review's case: a 30-turn Central LA conversation, with the Picker.
+  const { values, context } = slotsFor(world, '90012');
+  const picker = new Picker(5), rng = new Rng(5);
+  for (let i = 0; i < 30; i++) {
+    const l = pickLine('la-central', 'prideLines', rng, { ...context, slots: values, picker });
+    assert.ok(l && !bad.test(l.text), l && l.text);
+  }
+  assert.equal(fill('Go {teamName}. Always.', slotsFor(world, '94110').values), `Go ${slotsFor(world, '94110').values.teamName}. Always.`);
+});
+
+// ------------------------------------------------------------------ review regressions: temperatures
+
+const BAY = ['sf', 'eastbay', 'southbay', 'peninsula', 'northbay'];
+// A temperature said with a named place is the speaker's own reading, so the place must be where every ZIP of
+// the dialect is.
+const TEMP_PLACES = [
+  [/\bin the Valley\b/, ['sfv']], [/\b[Ii]n the Bay\b/, BAY], [/\bin the 559\b/, ['fresno']], [/\bin the IE\b/, ['ie']],
+  [/\bin the SGV\b/, ['sgv']], [/\bin the SCV\b/, ['santa-clarita']], [/\bin the valley\b/, ['imperial']], [/\binland\b/, ['oc-inland']],
+];
+const PLACE_PHRASE = /\b(?:in|at|down in|by|east of|out in|over in)\s+(?:the\s+)?(?:[A-Z0-9]|valley\b|foothills\b|river\b|lake\b|beach\b|coast\b|desert\b|mountains\b)/;
+
+test('a temperature is never put on a place the speaker does not live in', () => {
+  let checked = 0;
+  for (const k of DIALECT_KEYS) {
+    for (const t of templatesOf(DIALECTS[k])) {
+      if (!t.includes('{temp}')) continue;
+      checked++;
+      const rule = TEMP_PLACES.find(([re]) => re.test(t));
+      if (rule) assert.ok(rule[1].includes(k), `${k} says "${t}"`);
+      else assert.ok(!PLACE_PHRASE.test(t), `${k}: "${t}" puts the temperature on another place`);
+    }
+  }
+  assert.ok(checked > 100);
+  // The review's cases.
+  for (const k of ['la-westside', 'la-central', 'la-eastside', 'sgv', 'longbeach', 'ventura']) assert.ok(!linesFor(k, 'weather', { condition: 'heat', ignoreTags: true }).includes('{temp} in the Valley. Of course.'), k);
+  assert.ok(linesFor('sfv', 'weather', { condition: 'heat' }).includes('{temp} in the Valley. Of course.'));
+  for (const k of DIALECT_KEYS) {
+    const heat = linesFor(k, 'weather', { condition: 'heat', ignoreTags: true }).join('\n');
+    assert.ok(!/\{temp\}[^\n]*\b(in Bako|in Palm Springs|in Anaheim|in East County|in the 916|down in the valley|downtown|east of the river|by the river|at the lake|in the foothills)\b/.test(heat), k);
+  }
+  // Statewide, with each ZIP's own situation on a hot July afternoon.
+  const tab = dialectTable(world), july = atPacific(2026, 7, 20, 15, 0);
+  for (let i = 0; i < world.N; i += 3) {
+    const { values, context } = slotsFor(world, i, { t: july });
+    for (const t of linesFor(tab[i], 'weather', { ...context, condition: 'heat' })) {
+      const s = fill(t, { ...values, temp: 101 });
+      if (!s || !s.includes('101')) continue;
+      const rule = TEMP_PLACES.find(([re]) => re.test(t));
+      if (rule) assert.ok(rule[1].includes(tab[i]), `${world.zips[i]} (${tab[i]}): "${s}"`);
+    }
+  }
+});
+
+// ------------------------------------------------------------------ review regressions: seasons and times
+
+test('every line that names a season, month or holiday says when it is true, and its tags agree with it', () => {
+  let n = 0;
+  for (const k of DIALECT_KEYS) {
+    for (const t of templatesOf(DIALECTS[k])) {
+      if (!SEASONAL_RE.test(t) && !MONTH_RE.test(t)) continue;
+      MONTH_RE.lastIndex = 0;
+      n++;
+      const g = lineTags(t);
+      assert.ok(g && (g.months || g.flags.includes('anytime')), `${k}: "${t}" names a season or month without @m or @anytime`);
+      if (!g.months) continue;
+      const months = monthsNamed(t);
+      if (months.length) assert.ok(months.some(m => g.months.includes(m)), `"${t}" is tagged ${g.months} but names ${months}`);
+      const seasons = seasonsNamed(t);
+      if (seasons.length) {
+        const ok = new Set(seasons.flatMap(s => SEASON_MONTHS[s]));
+        assert.ok(g.months.every(m => ok.has(m)), `"${t}" is tagged ${g.months} but names ${seasons}`);
+      }
+    }
+  }
+  assert.ok(n > 100, `${n} seasonal lines`);
+});
+
+test('for each month, no weather line names another month or season as the present one', () => {
+  for (let month = 1; month <= 12; month++) {
+    for (const k of DIALECT_KEYS) {
+      for (const condition of WEATHER_CONDITIONS) {
+        for (const coastKm of [1, 40]) {
+          const lines = linesFor(k, 'weather', { ...ANY_SITUATION, condition, month, hour: 12, coastKm, county: 'Los Angeles' });
+          for (const t of lines) {
+            const g = lineTags(t);
+            if (g && g.flags.includes('anytime')) continue;
+            const seasons = seasonsNamed(t);
+            if (seasons.length) assert.ok(seasons.some(s => SEASON_MONTHS[s].includes(month)), `${k} in month ${month}: "${t}"`);
+            const months = monthsNamed(t);
+            if (months.length) assert.ok(g && g.months && g.months.includes(month) && months.some(m => g.months.includes(m)), `${k} in month ${month}: "${t}"`);
+          }
+        }
+      }
+    }
+  }
+  // The review's cases, on the pack's own default time (the NWS snapshot, Nov 23).
+  const { context: nov, values: novSlots } = slotsFor(world, '90028');
+  const picker = new Picker(9), rng = new Rng(9);
+  for (let i = 0; i < 200; i++) {
+    for (const [k, condition] of [['la-central', 'fog'], ['sf', 'fog'], ['oc-coast', 'fog'], ['north-coast', 'fog'], ['monterey-bay', 'fog'], ['fresno', 'clear'], ['la-westside', 'clear']]) {
+      const l = pickLine(k, 'weather', rng, { ...nov, condition, coastKm: 2, slots: { ...FULL_SLOTS, ...novSlots }, picker });
+      assert.ok(l && !/June|May Gray|summer|August|It's \w+ and I'm wearing a puffer|Spring|blooming/i.test(l.text), `${k} in November: "${l && l.text}"`);
+    }
+  }
+  const june = { t: atPacific(2026, 6, 10, 9, 0), condition: 'fog', coastKm: 3 };
+  assert.ok(linesFor('la-central', 'weather', june).includes('June Gloom, every single day.'));
+  assert.ok(linesFor('sf', 'weather', { ...june, t: atPacific(2026, 8, 3, 9, 0) }).includes("It's {month} and I'm wearing a puffer."));
+  assert.equal(fill("It's {month} and I'm wearing a puffer.", slotsFor(world, '94110', { t: atPacific(2026, 8, 3, 9, 0) }).values), "It's August and I'm wearing a puffer.");
+});
+
+test('time-of-day lines and phrases only at that time of day', () => {
+  const at = h => ({ month: 11, hour: h, condition: 'clear' });
+  assert.ok(linesFor('fresno', 'greetings', at(8)).includes('Morning!'));
+  for (const h of [13, 20, 23]) assert.ok(!linesFor('fresno', 'greetings', at(h)).some(t => /^(Good )?[Mm]orning/.test(t)), h);
+  assert.ok(linesFor('fresno', 'greetings', at(19)).includes('Evening.'));
+  assert.ok(!linesFor('fresno', 'farewells', at(9)).includes('Have a good night.'));
+  assert.ok(linesFor('fresno', 'farewells', at(21)).includes('Have a good night.'));
+  // A greeting that assumes the weather needs that weather, and so does chain control.
+  assert.ok(!linesFor('ie', 'greetings', { ...at(9), condition: 'rain' }).includes("Hey, what's up? Hot enough for you?"));
+  assert.ok(linesFor('ie', 'greetings', { ...at(9), condition: 'heat' }).includes("Hey, what's up? Hot enough for you?"));
+  assert.ok(!linesFor('sierra-foothills', 'traffic', at(9)).includes('Chain control on {road} again.'));
+  assert.ok(linesFor('sierra-foothills', 'traffic', { ...at(9), condition: 'snow' }).includes('Chain control on {road} again.'));
+  // A Sacramento line stays in Sacramento.
+  assert.ok(templatesOf(DIALECTS.sacramento).includes('I-5 through downtown backs up for no reason at all.'));
+  assert.ok(!templatesOf(DIALECTS['valley-north']).includes('I-5 through downtown backs up for no reason at all.'));
+  // Languages: "Buenos días" in the morning only, never without a time.
+  const greet = o => phrasesFor('spanish', 'greeting', o).map(e => e.text);
+  assert.ok(greet({ hour: 8 }).includes('Buenos días.') && !greet({ hour: 8 }).includes('Buenas noches.'));
+  assert.ok(greet({ hour: 20 }).includes('Buenas noches.') && !greet({ hour: 20 }).includes('Buenos días.'));
+  assert.ok(!greet({}).some(t => /^Buen/.test(t)) && greet({}).includes('¡Hola!'));
+  const t9 = atPacific(2026, 11, 24, 9, 0);
+  for (let i = 0; i < 40; i++) {
+    const e = codeSwitch('japanese', 'greeting', new Rng(i), { t: t9 });
+    assert.ok(e && e.text !== 'こんばんは。', e && e.text);
+  }
+  for (const L of Object.values(LANGUAGES)) for (const f of ['greetings', 'farewells']) for (const e of L[f]) if (e.time) assert.ok(TIMES_OF_DAY.includes(e.time));
+});
+
+// ------------------------------------------------------------------ review regressions: who can say a line
+
+const PRESUPPOSITIONS = [
+  [/\bmy (landlord|studio)\b|\bin rent\b|\bmy (second )?rent\b/i, 'rents'],
+  [/\bmy homeowner|\bmy gutters\b/i, 'owns'],
+  [/\bmy paycheck\b|\bnear work\b|\bafter work\b|\blong shift\b|\bby the office\b|\bjump on a call\b|\bmy commute\b|\bbefore work\b|\b(up|each way) to work\b/i, 'works'],
+  [/\bmy kids\b/i, 'parent'],
+  [/\bborn and raised\b|\braised me\b|\bI grew up with\b/i, 'native'],
+  [/\bfor generations\b/i, 'rooted'],
+  [/\b(took me\b|I left early|I left at|my car\b|my steering wheel|scrape|took the long way|took surface streets|took the toll road|I'm avoiding|side streets over|chains in the trunk|find a spot|my headlights)/i, 'drives'],
+];
+const ADULT_NEEDS = ['drives', 'works', 'owns', 'rents', 'parent', 'adult'];
+
+test('lines that presuppose something about the speaker are tagged with it', () => {
+  for (const [line, tags] of taggedLines()) for (const n of tags.needs) assert.ok(SPEAKER_NEEDS[n], `${line}: ${n}`);
+  for (const k of DIALECT_KEYS) {
+    for (const t of templatesOf(DIALECTS[k])) {
+      for (const [re, need] of PRESUPPOSITIONS) {
+        if (re.test(t)) assert.ok((lineTags(t) || { needs: [] }).needs.includes(need), `${k}: "${t}" needs @${need}`);
+      }
+    }
+  }
+});
+
+test('a nine-year-old renter never gets a grown-up line, and an immigrant never claims to be born here', () => {
+  const kid = { age: 9, tenure: 'rent' };
+  for (const k of DIALECT_KEYS) {
+    for (const c of [...LINE_CATEGORIES, 'weather']) {
+      for (const condition of c === 'weather' ? WEATHER_CONDITIONS : [null]) {
+        for (const t of linesFor(k, c, { ...ANY_SITUATION, condition, month: 7, hour: 12, coastKm: 1, speaker: kid })) {
+          const g = lineTags(t);
+          assert.ok(!g || !g.needs.some(n => ADULT_NEEDS.includes(n)), `${k}.${c}: a 9-year-old says "${t}"`);
+        }
+      }
+    }
+    // Every dialect still has something a child can complain about and be proud of.
+    assert.ok(linesFor(k, 'complaintLines', { speaker: kid }).length >= 3, `${k} kid complaints`);
+    assert.ok(linesFor(k, 'prideLines', { speaker: kid }).length >= 5, `${k} kid pride`);
+  }
+  // The review's case: complaint lines for a Westside nine-year-old.
+  const rng = new Rng(3);
+  for (let i = 0; i < 300; i++) {
+    const l = pickLine('la-westside', 'complaintLines', rng, { age: 9, tenure: 'rent' });
+    assert.ok(l && !/paycheck|homeowner|my car|landlord|rent|afford|insurance|parking/i.test(l.text), l && l.text);
+  }
+  const arrived2019 = { age: 40, nativeHere: false, generation: 1, tenure: 'rent', drives: true, works: true };
+  for (const k of DIALECT_KEYS) {
+    for (const t of linesFor(k, 'prideLines', { ...ANY_SITUATION, county: 'Los Angeles', speaker: arrived2019 })) {
+      assert.ok(!/born and raised|raised me|for generations|I grew up/i.test(t), `${k}: an immigrant says "${t}"`);
+    }
+  }
+  // A renter is never handed a homeowner's line; a retiree who no longer drives no driving or work lines.
+  assert.ok(!linesFor('la-westside', 'complaintLines', { tenure: 'rent' }).includes("My homeowner's insurance went up again."));
+  assert.ok(linesFor('la-westside', 'complaintLines', { tenure: 'own' }).includes("My homeowner's insurance went up again."));
+  const retiree = { age: 74, drives: false, works: false, tenure: 'own', parent: false };
+  for (const t of linesFor('fresno', 'traffic', { ...ANY_SITUATION, month: 8, hour: 9, speaker: retiree }).concat(linesFor('fresno', 'complaintLines', { speaker: retiree }))) {
+    const g = lineTags(t);
+    assert.ok(!g || !g.needs.some(n => ['drives', 'works', 'rents', 'parent'].includes(n)), t);
+  }
+  // Boyle Heights is not where La Mirada grew up: the line names the speaker's own place.
+  assert.ok(!templatesOf(DIALECTS['la-eastside']).includes('Boyle Heights raised me.'));
+  assert.equal(fill(linesFor('la-eastside', 'prideLines', { nativeHere: true }).find(t => /raised me/.test(t)), slotsFor(world, '90638').values), "La Mirada raised me, and I'll never forget it.");
+});
+
+test('speakerFacts reads the NPC record and the persona', () => {
+  const kid = speakerFacts({ age: 9, role: 'child', m: 2, status: 'child', household: { tenure: 'rent', vehicles: 2, members: [] }, nativity: 'native', generation: 2 });
+  assert.deepEqual(kid, { age: 9, drives: false, works: false, tenure: null, parent: false, generation: 2 });
+  const members = [{ m: 0, role: 'householder', age: 41 }, { m: 1, role: 'spouse', age: 39 }, { m: 2, role: 'child', age: 7 }];
+  const mom = speakerFacts({ age: 39, role: 'spouse', m: 1, status: 'employed', occupation: { key: 'healthtech' }, commute: { mode: 'drive' }, household: { tenure: 'own', vehicles: 2, members }, nativity: 'foreign', generation: 1 });
+  assert.deepEqual(mom, { age: 39, drives: true, works: true, tenure: 'own', parent: true, nativeHere: false, generation: 1 });
+  const roommate = speakerFacts({ age: 27, role: 'roommate', m: 3, status: 'employed', commute: { mode: 'rail' }, household: { tenure: 'own', vehicles: 0, members } }, { residence: { grewUpHere: true } });
+  assert.deepEqual(roommate, { age: 27, drives: false, works: true, tenure: 'rent', parent: false, nativeHere: true });
+  const grandpa = speakerFacts({ age: 78, role: 'parent', m: 4, status: 'retired', household: { tenure: 'own', vehicles: 2, members } }, { residence: { grewUpHere: false } });
+  assert.deepEqual(grandpa, { age: 78, drives: true, works: false, tenure: null, parent: false, nativeHere: false });
+  assert.deepEqual(speakerFacts(null), {});
+  // Facts left out stay out, so an adult with an unknown car still fits a driving line.
+  assert.ok(lineFits('Took me forty minutes to go five miles on {road}.', { age: 40 }));
+  assert.ok(!lineFits('Took me forty minutes to go five miles on {road}.', { age: 40, drives: false }));
+  assert.ok(!lineFits('Took me forty minutes to go five miles on {road}.', { age: 12 }));
+});
+
+// ------------------------------------------------------------------ the tag grammar
+
+test('line tags parse strictly and are checked against the situation', () => {
+  const p = parseTagged('@m11-2 @h20-3 @wx:fog,rain @alert:frost @coast @county:San_Luis_Obispo|Fresno @drives Cold night on {road}.');
+  assert.equal(p.text, 'Cold night on {road}.');
+  assert.deepEqual([...p.tags.months], [11, 12, 1, 2]);
+  assert.deepEqual([...p.tags.hours], [20, 21, 22, 23, 0, 1, 2, 3]);
+  assert.deepEqual([...p.tags.wx], ['fog', 'rain']);
+  assert.deepEqual([...p.tags.alerts], ['frost']);
+  assert.deepEqual([...p.tags.counties], ['San Luis Obispo', 'Fresno']);
+  assert.deepEqual([...p.tags.flags], ['coast']);
+  assert.deepEqual([...p.tags.needs], ['drives']);
+  assert.deepEqual(parseTagged('Plain line.'), { text: 'Plain line.', tags: null });
+  for (const bad of ['@m13 Bad month.', '@h24 Bad hour.', '@wx:hail Bad weather.', '@alert:tsunami Bad alert.', '@nonsense Bad tag.', '@m6', '@coast @inland Both.']) {
+    assert.throws(() => parseTagged(bad), /lexicon/, bad);
+  }
+  registerLine('Test line for the registry.', null);
+  assert.throws(() => registerLine('Test line for the registry.', parseTagged('@drives Test line for the registry.').tags), /different tags/);
+  assert.ok(ALERT_KINDS.includes('redflag') && ALERT_KINDS.includes('flashflood'));
+  // Unknown situation leaves situational lines out; t gives the month and hour in Pacific time.
+  const june9 = situationOf({ t: atPacific(2026, 6, 10, 9, 30) });
+  assert.equal(june9.month, 6);
+  assert.equal(june9.hour, 9);
+  assert.ok(!lineFits('June Gloom, every single day.', {}));
+  assert.ok(lineFits('June Gloom, every single day.', { t: atPacific(2026, 6, 10, 9, 30) }));
+  assert.ok(!lineFits('Flash flood warning. Stay out of the washes.', { alerts: ['Coastal Flood Warning'] }));
+  assert.ok(lineFits('Flash flood warning. Stay out of the washes.', { alerts: [{ event: 'Flash Flood Warning' }] }));
+  assert.ok(!lineFits('909 forever.', { county: 'Riverside' }) && lineFits('909 forever.', { slots: { county: 'San Bernardino' } }));
+  assert.ok(!lineFits('Clear enough to see Catalina from the beach.', {}) && lineFits('Clear enough to see Catalina from the beach.', { coastKm: 3 }));
+  assert.ok(!lineFits('Clear enough to see Catalina from the beach.', { coastKm: 25 }));
+});
+
+test('Santa Ana, Diablo and sundowner lines only when the forecast has offshore winds', () => {
+  const santaAna = "Santa Anas are blowing. Everybody's nervous.";
+  assert.ok(linesFor('la-central', 'weather', { condition: 'wind', ignoreTags: true }).includes(santaAna));
+  assert.ok(!linesFor('la-central', 'weather', { condition: 'wind' }).includes(santaAna));
+  assert.ok(!linesFor('la-central', 'weather', { condition: 'wind', offshore: false }).includes(santaAna));
+  assert.ok(linesFor('la-central', 'weather', { condition: 'wind', offshore: true }).includes(santaAna));
+  const z = { off_kind: 'sa' };
+  const wx = (detail, alerts = []) => ({ period: { detail }, alerts });
+  assert.equal(offshoreWind(wx('Sunny. Northeast wind 15 to 25 mph, with gusts as high as 45 mph.'), z), 'santa_ana');
+  assert.equal(offshoreWind(wx('Sunny. North northeast wind 10 to 15 mph.'), { off_kind: 'di' }), 'diablo');
+  assert.equal(offshoreWind(wx('Clear. North wind 20 mph.'), { off_kind: 'su' }), 'sundowner');
+  assert.equal(offshoreWind(wx('Rain. South southeast wind 18 to 23 mph, with gusts as high as 39 mph.', [{ event: 'Wind Advisory' }]), z), null);
+  assert.equal(offshoreWind(wx('Sunny. North wind around 5 mph.'), z), null);
+  assert.equal(offshoreWind(wx('Sunny. North wind around 5 mph.', [{ event: 'Red Flag Warning' }]), z), 'santa_ana');
+  assert.equal(offshoreWind(wx('Northeast wind 20 mph.'), { off_kind: '' }), null);
+  // At the pack's snapshot the wind is a southerly storm: nobody says Santa Ana.
+  for (let i = 0; i < world.N; i += 5) assert.equal(slotsFor(world, i).context.offshore, false, world.zips[i]);
+});
+
+test('slotsFor gives the situation lines are checked against', () => {
+  const { values, context } = slotsFor(world, '94110');
+  assert.equal(context.t, world.snapshotTime);
+  assert.equal(context.month, 11);
+  assert.ok(Number.isInteger(context.hour));
+  assert.equal(context.condition, weatherCondition(world.weatherAt(world.indexOf('94110'), world.snapshotTime)));
+  assert.ok(Array.isArray(context.alerts) && context.alerts.every(a => typeof a === 'string'));
+  assert.ok(context.coastKm >= 0 && context.coastKm < 10);
+  assert.equal(context.county, 'San Francisco');
+  assert.equal(values.county, 'San Francisco');
+  const withTeam = slotsFor(world, '90012', { team: { name: 'Dodgers', label: 'the Dodgers' } }).values;
+  assert.equal(withTeam.team, 'the Dodgers');
+  assert.equal(withTeam.teamName, 'Dodgers');
+  // An ordinary afternoon still leaves every dialect plenty to say, in its most populous ZIP.
+  const tab = dialectTable(world), biggest = {};
+  for (let i = 0; i < world.N; i++) if (biggest[tab[i]] === undefined || world.zip(i).pop > world.zip(biggest[tab[i]]).pop) biggest[tab[i]] = i;
+  for (const k of DIALECT_KEYS) {
+    const zi = biggest[k];
+    const s = slotsFor(world, zi);
+    const adult = { ...s.context, speaker: { age: 45, drives: true, works: true, tenure: 'own', parent: true } };
+    for (const [c, min] of [['greetings', 12], ['farewells', 12], ['prideLines', 15], ['complaintLines', 15], ['food', 10], ['agreement', 12], ['surprise', 12]]) {
+      assert.ok(linesFor(k, c, adult).length >= min, `${k}.${c}: ${linesFor(k, c, adult).length}`);
+    }
+    assert.ok(linesFor(k, 'traffic', adult).filter(t => fill(t, s.values)).length >= 12, `${k} traffic`);
+    for (const condition of WEATHER_CONDITIONS) assert.ok(linesFor(k, 'weather', { ...adult, condition }).length >= 5, `${k}.weather.${condition}`);
+  }
+});
+
+test('fillers and intensifiers come back as they go mid-sentence', () => {
+  const rng = new Rng(2), picker = new Picker(2);
+  for (const c of WORD_CATEGORIES) {
+    for (let i = 0; i < 40; i++) {
+      const l = pickLine('eastbay', c, rng, { age: 19, picker });
+      assert.ok(l && l.text === l.template && !/^[A-Z]/.test(l.text.replace(/^I\b/, 'i')), `${c}: "${l && l.text}"`);
+    }
+  }
+  assert.ok(DIALECTS.eastbay.intensifiers.includes('hella'));
+  assert.equal(fill('hella', {}, { capitalize: false }), 'hella');
+  assert.equal(fill('hella', {}), 'Hella');
+  const line = pickLine('eastbay', 'agreement', rng, { age: 19 });
+  assert.match(line.text, /^[A-Z]/);
+});
+
+// ------------------------------------------------------------------ review regressions: languages
+
+const MX_ONLY = e => e.region && e.region.length === 1 && e.region[0] === 'mx';
+
+function sayable(lang, opts) {
+  const out = [];
+  for (const intent of ['greeting', 'how_are_you', 'thanks', 'farewell', 'yes', 'no', ...INTERJECTION_KINDS, 'affection', 'polite', 'food', ...PHRASE_INTENTS]) {
+    out.push(...phrasesFor(lang, intent, { hour: 9, ...opts }), ...phrasesFor(lang, intent, { hour: 21, ...opts }));
+  }
+  const L = LANGUAGES[lang];
+  for (const rel of Object.keys(L.family)) for (let i = 0; i < 12; i++) { const e = familyTerm(lang, rel, new Rng(i), opts); if (e) out.push(e); }
+  return out;
+}
+
+test('Spanish speakers who are not Mexican never get Mexican regionalisms', () => {
+  const heritages = { cuban: 'cu', puertorican: 'pr', dominican: 'do', southamerican: 'sa', spanish: 'es', salvadoran: 'sv', guatemalan: 'gt', honduran: 'hn', nicaraguan: 'ni', mexican: 'mx' };
+  for (const [h, v] of Object.entries(heritages)) {
+    assert.equal(varietyFor('spanish', h), v, h);
+    assert.ok(LANGUAGES.spanish.varieties[v], v);
+    const said = sayable('spanish', { variety: varietyFor('spanish', h), sex: 'F', to: 'M' });
+    assert.ok(said.length > 60, h);
+    for (const e of said) if (e.region) assert.ok(e.region.includes(v), `${h} says ${e.text}`);
+    if (h !== 'mexican') assert.ok(!said.some(MX_ONLY), `${h} gets a Mexican-only phrase`);
+  }
+  // The review's case: a Cuban grandmother over many picks.
+  const rng = new Rng(4);
+  for (let i = 0; i < 400; i++) {
+    for (const intent of ['yes', 'no', 'greeting', 'surprise', 'frustration', 'delight', 'welcome', 'busy']) {
+      const e = codeSwitch('spanish', intent, rng, { variety: varietyFor('spanish', 'cuban'), sex: 'F', register: 'respect' });
+      if (e) assert.ok(!['¡No manches!', 'Órale.', '¡Órale!', 'Simón.', 'Nel.', '¡Qué chido!', 'Pásale.'].includes(e.text), e.text);
+    }
+  }
+  // 'latino' (origin not given) gets the shared Spanish, unless the birthplace says more; null means exactly that.
+  assert.equal(varietyFor('spanish', 'latino'), null);
+  assert.equal(varietyFor('spanish', 'latino', { birthplace: 'Guadalajara, Jalisco' }), 'mx');
+  assert.equal(varietyFor('spanish', 'latino', { birthplace: 'Lima, Peru' }), 'sa');
+  assert.ok(sayable('spanish', { variety: null }).every(e => !e.region));
+  assert.ok(sayable('spanish', {}).some(MX_ONLY), 'with no variety given, California Spanish defaults to Mexican');
+  // Other languages' varieties from the birthplace.
+  assert.equal(varietyFor('armenian', 'armenian'), 'east');
+  assert.equal(varietyFor('armenian', 'armenian', { birthplace: 'Beirut, Lebanon' }), 'west');
+  assert.equal(varietyFor('portuguese', 'portuguese', { birthplace: 'São Paulo, Brazil' }), 'br');
+  assert.equal(varietyFor('portuguese', 'portuguese', { birthplace: 'Ponta Delgada, Azores' }), 'pt');
+  assert.equal(varietyFor('korean', 'korean'), null);
+  assert.equal(varietyFor('nonsense', 'mexican'), null);
+});
+
+test('God-willing means God willing; thanks to God and blessings have their own intents', () => {
+  for (const intent of RELIGIOUS_INTENTS) assert.ok(PHRASE_INTENTS.includes(intent));
+  for (const [k, L] of Object.entries(LANGUAGES)) {
+    for (const e of L.phrases.god_willing || []) assert.match(e.gloss, /God willing|if God|hopefully|God grant/i, `${k}: ${e.text} (${e.gloss})`);
+    for (const e of L.phrases.thank_god || []) assert.match(e.gloss, /thank|thanks|grace|mercy/i, `${k}: ${e.text} (${e.gloss})`);
+    for (const e of L.phrases.blessing || []) assert.match(e.gloss, /bless|admiration/i, `${k}: ${e.text} (${e.gloss})`);
+  }
+  assert.equal(LANGUAGES.samoan.phrases.god_willing, undefined);
+  assert.equal(LANGUAGES.tongan.phrases.god_willing, undefined);
+  for (const k of ['arabic', 'urdu', 'dari', 'pashto', 'russian', 'ukrainian', 'portuguese', 'tagalog', 'hindi', 'spanish']) assert.ok(LANGUAGES[k].phrases.thank_god.length, `${k} thank_god`);
+  // The review's case: hoping the rain holds off never comes out as "Thank God" or mashallah.
+  const rng = new Rng(6);
+  for (let i = 0; i < 300; i++) {
+    for (const k of ['arabic', 'urdu', 'dari', 'pashto', 'amharic', 'russian', 'ukrainian', 'portuguese', 'punjabi', 'hindi', 'tagalog', 'samoan', 'tongan']) {
+      const e = codeSwitch(k, 'god_willing', rng, { faith: 'christian' });
+      if (e) assert.match(e.gloss, /God willing|if God|hopefully|God grant/i, `${k}: ${e.text}`);
+    }
+  }
+  assert.equal(codeSwitch('samoan', 'god_willing', rng), null);
+  assert.ok(codeSwitch('samoan', 'blessing', rng));
+});
+
+test('faith formulas only for a speaker of that faith', () => {
+  for (const L of Object.values(LANGUAGES)) for (const [, e] of languageEntries(L)) if (e.faith) assert.ok(FAITHS.includes(e.faith), e.text);
+  assert.equal(faithFor('sikh'), 'sikh');
+  for (const h of ['pakistani', 'indian', 'arab', 'ethiopian', 'mexican', 'afghan']) assert.equal(faithFor(h), null, h);
+  assert.equal(varietyFor('punjabi', 'pakistani'), 'pk');
+  assert.equal(varietyFor('punjabi', 'sikh'), 'in');
+  assert.equal(varietyFor('punjabi', 'indian'), 'in');
+  const SIKH_OR_HINDU = /ਸਤ ਸ੍ਰੀ ਅਕਾਲ|ਨਮਸਤੇ|ਵਾਹਿਗੁਰੂ|ਲੰਗਰ/;
+  // A Pakistani-heritage Punjabi speaker, Muslim or of unknown faith, never gets Sikh or Hindu formulas.
+  for (const faith of [null, 'muslim']) {
+    const said = sayable('punjabi', { variety: varietyFor('punjabi', 'pakistani'), faith, sex: 'M' });
+    assert.ok(said.length > 40);
+    assert.ok(!said.some(e => SIKH_OR_HINDU.test(e.text)), `faith ${faith}`);
+    assert.ok(said.some(e => e.text === 'ਸਲਾਮ'));
+  }
+  // A Hindu Punjabi speaker gets no Sikh formula; a Sikh speaker gets Sat Sri Akal and no Namaste.
+  const hindu = sayable('punjabi', { variety: 'in', faith: 'hindu' }).map(e => e.text);
+  assert.ok(hindu.includes('ਨਮਸਤੇ') && !hindu.some(t => /ਸਤ ਸ੍ਰੀ ਅਕਾਲ|ਵਾਹਿਗੁਰੂ/.test(t)));
+  const sikh = sayable('punjabi', { variety: varietyFor('punjabi', 'sikh'), faith: faithFor('sikh') }).map(e => e.text);
+  assert.ok(sikh.includes('ਸਤ ਸ੍ਰੀ ਅਕਾਲ') && sikh.some(t => /ਵਾਹਿਗੁਰੂ/.test(t)) && !sikh.includes('ਨਮਸਤੇ'));
+  // Without a faith, no Punjabi speaker is handed any religious greeting.
+  assert.equal(codeSwitch('punjabi', 'greeting', new Rng(1), { variety: 'in' }), null);
+  // Amharic Egziabher phrases are Christian; Arabic as-salāmu ʿalaykum is Muslim.
+  assert.ok(!sayable('amharic', {}).some(e => /እግዚአብሔር/.test(e.text)));
+  assert.ok(sayable('amharic', { faith: 'christian' }).some(e => /እግዚአብሔር/.test(e.text)));
+  assert.ok(!sayable('arabic', {}).some(e => e.text === 'السلام عليكم'));
+  assert.ok(sayable('arabic', { faith: 'muslim' }).some(e => e.text === 'السلام عليكم'));
+});
+
+test('Assyrian entries are the attested forms', () => {
+  const A = LANGUAGES.assyrian;
+  assert.deepEqual(A.howAreYou.map(e => [e.text, e.to]), [['Dakhi wit?', 'M'], ['Dakhi wat?', 'F']]);
+  assert.ok(A.farewells.some(e => e.text === 'Push bshena'));
+  assert.ok(!languageEntries(A).some(([, e]) => /\bwita\b|\bPash\b/.test(e.text)));
+  for (let i = 0; i < 20; i++) assert.equal(codeSwitch('assyrian', 'how_are_you', new Rng(i), { to: 'F' }).text, 'Dakhi wat?');
 });

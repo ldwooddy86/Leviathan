@@ -331,7 +331,6 @@ export const FAMILIES = {
       Somebody's always crawling up 50 on a ski weekend.
       Fog on {road} this morning, everybody doing thirty.
       @drives The frontage road was faster than the freeway.
-      I-5 through downtown backs up for no reason at all.
       @m7-10 @drives Harvest trucks on the two-lane, so I just settled in.
       {stretch} was backed up again.
     `),
@@ -1013,6 +1012,7 @@ export const KEYS = {
     `),
     traffic: lines(`
       The Causeway was backed up to Davis.
+      I-5 through downtown backs up for no reason at all.
       Business 80 is a parking lot by four.
       Light rail's fine if you're going downtown.
       Everybody leaves the Grid at five at once.

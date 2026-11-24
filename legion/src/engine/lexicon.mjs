@@ -145,9 +145,11 @@ export class Picker {
 
 function dialectOf(d) { return typeof d === 'string' ? DIALECTS[d] || null : d || null; }
 
+const YOUTH_AGES = [13, 29];
+
 /**
  * The templates a speaker of this dialect can use for a category in this situation: the dialect's lines, plus
- * the youth lines for speakers under 30 and the elder lines for speakers 60 and over, minus every line whose
+ * the youth lines for speakers 13 to 29 and the elder lines for speakers 60 and over, minus every line whose
  * tags the situation or the speaker contradicts (see lexicon/tags.mjs). Category 'weather' needs
  * opts.condition (one of WEATHER_CONDITIONS); for other categories the condition only filters lines that
  * assume a kind of weather. opts.regional limits the list to family and local lines; opts.ignoreTags returns
@@ -178,7 +180,8 @@ export function linesFor(dialect, category, opts = {}) {
   const keep = opts.ignoreTags ? () => true : t => lineFits(t, ctx, true);
   const out = base.filter(keep);
   if (AGE_CATEGORIES.includes(category)) {
-    if (age < 30) for (const x of d.youth[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
+    // The youth bank is teen and twenties talk ("Sup.", "No cap."); children get the plain lines.
+    if (age >= YOUTH_AGES[0] && age <= YOUTH_AGES[1]) for (const x of d.youth[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
     if (age >= 60) for (const x of d.elder[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
   }
   return out;

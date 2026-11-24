@@ -447,7 +447,7 @@ export const FAMILIES = {
       The air quality out here is terrible.
       @works The commute is killing me.
       LA and OC people act like we're the middle of nowhere.
-      Summers keep getting hotter.
+      @anytime Summers keep getting hotter.
       @adult Everybody priced out of the coast moved here, and now we're getting priced out too.
     `),
     food: lines(`
@@ -694,7 +694,6 @@ export const FAMILIES = {
       Took the trolley. Way easier.
       The merge where the 5 and the 805 split, the worst.
       Border traffic coming back was long again.
-      @works Took the Coaster up to work and read the whole way.
       The 8 east was stopped at the 805.
     `),
     prideLines: lines(`
@@ -839,7 +838,7 @@ export const KEYS = {
     `),
     prideLines: lines(`
       The Eastside is the heart of LA.
-      @native {place} raised me, and I never forget it.
+      @native {place} raised me, and I'll never forget it.
       Cruising down Whittier Boulevard on a Sunday. The cars are art.
       Everybody knows everybody's family here.
       Highland Park still has that neighborhood feel.
@@ -1511,6 +1510,7 @@ export const KEYS = {
     traffic: lines(`
       PB on a Saturday, nowhere to park.
       @anytime The Coaster's packed with surfboards in summer.
+      @works Took the Coaster up to work and read the whole way.
       The 5 through Del Mar on race day, avoid it.
     `),
     prideLines: lines(`

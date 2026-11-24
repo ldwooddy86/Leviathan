@@ -44,6 +44,7 @@ export const COMMON = {
     Take it easy.
     @h16-3 Have a good night.
     Stay out of trouble.
+    All right, take care. Go {teamName}!
   `),
   fillers: lines(`
     I mean
@@ -211,6 +212,8 @@ export const COMMON = {
     Any kind of food, any kind of people, any kind of weekend. That's California.
     @parent My kids are growing up with the ocean and the mountains in reach.
     When something bad happens here, everybody shows up to help.
+    {team} all the way.
+    I watch every {teamName} game, win or lose.
   `),
   complaintLines: lines(`
     @adult Gas prices are out of control.
