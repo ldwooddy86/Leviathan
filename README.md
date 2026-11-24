@@ -10,6 +10,7 @@ Marketing intelligence atlases, the unified console that holds them, and the bro
 | `FEATURES.md` | Every feature of this build, dashboard by dashboard: the console, the Core, the fourteen atlases and their 228 modules, the Résumé Forge, the browser app, the editions. |
 | `dental-divide-atlas.html` | The Dental Divide Atlas, the dental market companion (single file). |
 | `toothandnail.skill` | The Tooth and Nail skill card: the Dental Divide method packed for Claude. |
+| `legion/` | **Legion**, the California NPC engine: the 38.4 million Californians in the state's 13.5 million households as characters generated from the Census tables of their own ZIP code, each with a home, a job, a commute, the languages spoken at home, a personality, worries drawn from their ZIP's data, memories of the fires and storms that happened there, a mood and a voice. A statewide map with a crowd of about a million of them walking and driving the real state highways on their own schedules, a Place panel for every ZIP (weather, languages, heritage, the commute, the Census next to the generated people), an NPC panel (profile, mind, a conversation with the offline dialogue engine or with Claude, the exact prompt, JSON exports for game engines) and a street view of any neighborhood. One file, `legion/Legion.html` (4.6 MB, runs offline), or `node legion/server/serve.mjs` to keep a Claude key on the server; a CLI (`legion/cli/legion.mjs`) and a platform API (`createLegion`) for other engines. See `legion/README.md`. |
 
 ## Load the browser app
 
