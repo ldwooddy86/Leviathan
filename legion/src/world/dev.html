@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legion crowd · dev</title>
+<style>
+  [data-theme="dark"] { --bg: #0b0f14; --ink: #e6e2dc; --accent: #ff9a4d; --panel: #111821; --line: #243041; --muted: #8b97a8; color-scheme: dark; }
+  [data-theme="light"] { --bg: #f5f2ed; --ink: #22272e; --accent: #d9661e; --panel: #fffdf9; --line: #ddd5c9; --muted: #6b7380; color-scheme: light; }
+  html, body { margin: 0; height: 100%; }
+  body { display: grid; grid-template-rows: auto 1fr; background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header strong { font-size: 15px; letter-spacing: .02em; }
+  .muted { color: var(--muted); }
+  button, select { font: inherit; color: inherit; background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; cursor: pointer; }
+  button:hover, select:hover { border-color: var(--accent); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  #slider { width: min(380px, 40vw); accent-color: var(--accent); }
+  #clock { min-width: 150px; font-variant-numeric: tabular-nums; }
+  .kinds { display: flex; gap: 8px; flex-wrap: wrap; }
+  .kinds label { display: inline-flex; gap: 4px; align-items: center; cursor: pointer; }
+  .sw { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  main { position: relative; min-height: 0; }
+  #map { position: absolute; inset: 0; }
+  #map:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  #panel { position: absolute; right: 12px; top: 12px; width: 290px; max-height: calc(100% - 24px); overflow: auto; box-sizing: border-box;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--panel) 90%, transparent); }
+  #panel h3 { margin: 10px 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  #bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; margin: 6px 0; }
+  #bar > div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  td { padding: 1px 0; } td:last-child { text-align: right; }
+  #tip { position: absolute; pointer-events: none; padding: 4px 8px; border-radius: 6px; background: var(--panel); border: 1px solid var(--line); font-size: 12px; white-space: nowrap; display: none; transform: translate(12px, 12px); }
+  #pick pre { white-space: pre-wrap; margin: 4px 0 0; font: 12px/1.35 ui-monospace, Menlo, Consolas, monospace; }
+  @media (max-width: 720px) { #panel { left: 12px; width: auto; top: auto; bottom: 12px; max-height: 40%; } }
+</style>
+</head>
+<body data-theme="dark">
+<header>
+  <strong>Legion</strong><span class="muted">crowd · dev</span>
+  <button id="play" aria-label="Play or pause the clock">Play</button>
+  <select id="speed" aria-label="Clock speed">
+    <option value="1">1×</option><option value="60" selected>60× (1 min/s)</option><option value="300">300×</option><option value="1800">1800×</option>
+  </select>
+  <input id="slider" type="range" min="0" max="10079" step="1" aria-label="Time of the week">
+  <output id="clock"></output>
+  <label>rate <select id="rate" aria-label="Share of households">
+    <option>0.002</option><option>0.005</option><option>0.01</option><option>0.025</option><option>0.05</option><option>0.1</option>
+  </select></label>
+  <button id="rebuild">Rebuild</button>
+  <button id="theme">Light</button>
+  <span class="kinds" id="kinds"></span>
+</header>
+<main>
+  <div id="map"></div>
+  <aside id="panel" aria-live="polite">
+    <div id="status">Loading the world…</div>
+    <div id="bar"><div></div></div>
+    <h3>Right now</h3>
+    <table id="stats"></table>
+    <h3>Selected</h3>
+    <div id="pick" class="muted">Click a moving dot.</div>
+    <h3>Renderer</h3>
+    <div id="perf" class="muted"></div>
+  </aside>
+  <div id="tip"></div>
+</main>
+<script type="module" src="./dev.mjs"></script>
+</body>
+</html>

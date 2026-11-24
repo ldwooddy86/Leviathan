@@ -1,0 +1,487 @@
+// Legion · lexicon: regional dialects, road naming and multilingual phrase banks.
+//
+// This is the voice material the offline dialogue engine composes lines from and the Claude prompt builder
+// cites. Content lives in ./lexicon/*.mjs; this module re-exports it and adds the helpers a conversation needs:
+// a repeat-avoiding Picker, template filling from world-pack slots, age-graded slang, code-switching into an
+// NPC's home language, and family terms.
+//
+// Representation rules (docs/CONTRACTS.md §3): dialect is regional, never ethnic; a language appears only when
+// the caller passes it for a speaker who speaks it; no accent spelling, no broken English, no brand names.
+//
+// The usual flow for one NPC line:
+//   const key = dialectFor(world, zi);                        // 'fresno'
+//   const { values } = slotsFor(world, zi, { t, rng });       // {road: 'Highway 41', temp: 101, fire: …}
+//   const picker = new Picker(conversationSeed);              // one per conversation, serializable
+//   pickLine(key, 'traffic', rng, { age, slots: values, picker })
+//   pickLine(key, 'weather', rng, { condition: weatherCondition(world.weatherAt(zi, t)), slots: values, picker })
+//   slangFor(key, age, rng); codeSwitch(npcLanguage, 'tired', rng, { sex, variety: varietyFor(lang, heritage) })
+// and for a Claude system prompt, dialectSummary(key) plus DIALECTS[key].words.
+
+import { Rng, clamp } from './rng.mjs';
+import { pacific } from './clock.mjs';
+import { dialectFor, explainDialect, dialectTable, DIALECT_KEYS } from './lexicon/geography.mjs';
+import { roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE } from './lexicon/roads.mjs';
+import { SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, BRAND_BLACKLIST, findBrands } from './lexicon/slots.mjs';
+import { DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES } from './lexicon/dialects.mjs';
+import { LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS, resolveLanguage, varietyFor } from './lexicon/languages.mjs';
+
+export {
+  dialectFor, explainDialect, dialectTable, DIALECT_KEYS,
+  roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE,
+  SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, BRAND_BLACKLIST, findBrands,
+  DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
+  LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
+  resolveLanguage, varietyFor,
+};
+
+// ------------------------------------------------------------------ Picker
+
+const keyOf = x => (typeof x === 'string' ? x : x && typeof x.text === 'string' ? x.text : JSON.stringify(x));
+
+/**
+ * Per-conversation choice without repeats, by category. Within a category an item is not chosen again until
+ * every item has been used; then the category starts over (never repeating the item chosen last). State is
+ * serializable so a conversation can be saved and resumed.
+ */
+export class Picker {
+  /**
+   * @param {number|Rng} [seed] a seed or an Rng to draw with
+   * @param {{used?: Record<string, string[]>, last?: Record<string, string>}} [state] from toJSON()
+   */
+  constructor(seed = 1, state = null) {
+    this.rng = seed instanceof Rng ? seed : new Rng(seed >>> 0);
+    this.used = new Map();
+    this.last = new Map();
+    if (state) {
+      for (const [c, keys] of Object.entries(state.used || {})) this.used.set(c, new Set(keys));
+      for (const [c, k] of Object.entries(state.last || {})) this.last.set(c, k);
+    }
+  }
+
+  _set(category) {
+    let s = this.used.get(category);
+    if (!s) this.used.set(category, s = new Set());
+    return s;
+  }
+
+  /** True when this item was already used in the category (since its last reset). */
+  seen(category, item) { const s = this.used.get(category); return !!s && s.has(keyOf(item)); }
+
+  /** Record an item as used. */
+  mark(category, item) { const k = keyOf(item); this._set(category).add(k); this.last.set(category, k); }
+
+  /**
+   * A random item of `items` not yet used in this category, marked as used; undefined for an empty list.
+   * @template T
+   * @param {string} category
+   * @param {T[]} items
+   * @param {Rng} [rng]
+   * @returns {T|undefined}
+   */
+  pick(category, items, rng = this.rng) {
+    const hit = this.pickWhere(category, items, () => true, rng);
+    return hit ? hit.item : undefined;
+  }
+
+  /**
+   * Like pick, but an item counts only when accept(item) returns something other than null or undefined (a
+   * template that fills, say). Returns {item, value} or null when nothing in the list is acceptable. With
+   * cycle false, a list whose items are all used gives null instead of starting the category over (for trying
+   * a preferred sub-list before the full one).
+   * @template T, V
+   * @param {string} category
+   * @param {T[]} items
+   * @param {(item: T) => V} accept
+   * @param {Rng} [rng]
+   * @param {boolean} [cycle]
+   * @returns {{item: T, value: V}|null}
+   */
+  pickWhere(category, items, accept, rng = this.rng, cycle = true) {
+    if (!items || !items.length) return null;
+    const used = this._set(category);
+    const tryFrom = pool => {
+      const order = rng.shuffle(pool.slice());
+      for (const item of order) {
+        const value = accept(item);
+        if (value !== null && value !== undefined) { this.mark(category, item); return { item, value }; }
+      }
+      return null;
+    };
+    const fresh = items.filter(x => !used.has(keyOf(x)));
+    const hit = fresh.length ? tryFrom(fresh) : null;
+    if (hit || !cycle) return hit;
+    // Every acceptable item has been used: start the category over, but not with the one said last.
+    const last = this.last.get(category);
+    const again = items.filter(x => keyOf(x) !== last);
+    used.clear();
+    return tryFrom(again.length ? again : items);
+  }
+
+  /** Forget the history of one category, or of all of them. */
+  reset(category) { if (category === undefined) { this.used.clear(); this.last.clear(); } else { this.used.delete(category); this.last.delete(category); } }
+
+  /** Serializable state. @returns {{used: Record<string, string[]>, last: Record<string, string>}} */
+  toJSON() {
+    return { used: Object.fromEntries([...this.used].map(([c, s]) => [c, [...s]])), last: Object.fromEntries(this.last) };
+  }
+
+  /** Rebuild a Picker from toJSON() output. */
+  static fromJSON(state, seed = 1) { return new Picker(seed, state); }
+}
+
+// ------------------------------------------------------------------ dialect lines
+
+function dialectOf(d) { return typeof d === 'string' ? DIALECTS[d] || null : d || null; }
+
+/**
+ * The templates a speaker of this dialect and age can use for a category: the dialect's lines, plus the
+ * youth lines for speakers under 30 and the elder lines for speakers 60 and over. category 'weather' needs
+ * opts.condition (one of WEATHER_CONDITIONS). opts.regional limits the list to family and local lines.
+ * @param {string|object} dialect a key or a DIALECTS entry
+ * @param {string} category one of LINE_CATEGORIES, or 'weather'
+ * @param {{age?: number, condition?: string, regional?: boolean}} [opts]
+ * @returns {string[]}
+ */
+export function linesFor(dialect, category, opts = {}) {
+  const d = dialectOf(dialect);
+  if (!d) return [];
+  const { age = 40, condition = null, regional = false } = opts;
+  const bank = regional ? d.regional : d;
+  let base;
+  if (category === 'weather') base = condition && bank.weather[condition] ? bank.weather[condition] : [];
+  else base = bank[category] || [];
+  const out = base.slice();
+  if (AGE_CATEGORIES.includes(category)) {
+    if (age < 30) for (const x of d.youth[category] || []) if (!out.includes(x)) out.push(x);
+    if (age >= 60) for (const x of d.elder[category] || []) if (!out.includes(x)) out.push(x);
+  }
+  return out;
+}
+
+/**
+ * One filled line from a dialect category, or null when no template can be filled from the slots. Leans on
+ * the dialect's own (family and local) lines with probability opts.regionalShare, and uses opts.picker to
+ * avoid repeating a line within a conversation.
+ * @param {string|object} dialect
+ * @param {string} category one of LINE_CATEGORIES, or 'weather'
+ * @param {Rng} rng
+ * @param {{age?: number, condition?: string, slots?: object, picker?: Picker, regionalShare?: number}} [opts]
+ * @returns {{text: string, template: string}|null}
+ */
+export function pickLine(dialect, category, rng, opts = {}) {
+  const { age = 40, condition = null, slots = {}, picker = null, regionalShare = 0.6 } = opts;
+  const d = dialectOf(dialect);
+  if (!d) return null;
+  const all = linesFor(d, category, { age, condition });
+  const local = linesFor(d, category, { age, condition, regional: true });
+  const pcat = `${d.key}:${category}${condition ? ':' + condition : ''}`;
+  const attempt = (pool, cycle) => {
+    if (!pool.length) return null;
+    if (picker) {
+      const hit = picker.pickWhere(pcat, pool, t => fill(t, slots), rng, cycle);
+      return hit ? { text: hit.value, template: hit.item } : null;
+    }
+    for (const t of rng.shuffle(pool.slice())) { const text = fill(t, slots); if (text) return { text, template: t }; }
+    return null;
+  };
+  // The local lines are a preference: once they are used up the full list carries on, and only when that is
+  // used up too does the category start over.
+  if (local.length && rng.chance(clamp(regionalShare, 0, 1))) {
+    const hit = attempt(local, false);
+    if (hit) return hit;
+  }
+  return attempt(all, true);
+}
+
+function defaultSlangLevel(age) {
+  if (age < 13) return 1;
+  if (age < 30) return 3;
+  if (age < 45) return 2;
+  return 1;
+}
+
+/**
+ * An age-appropriate slang term for a speaker of this dialect, or null. Teens and twenties get up to level 3,
+ * thirties and early forties level 2, everyone else and children level 1 (opts.maxLevel overrides; 0 means
+ * none). Regional terms are preferred over statewide ones.
+ * @param {string|object} dialect a key or a DIALECTS entry
+ * @param {number} age
+ * @param {Rng} rng
+ * @param {{maxLevel?: number}} [opts]
+ * @returns {{term: string, level: number, ages: number[], gloss: string, example: string, origin: string}|null}
+ */
+export function slangFor(dialect, age, rng, opts = {}) {
+  const d = dialectOf(dialect);
+  if (!d || !Number.isFinite(age)) return null;
+  const maxLevel = opts.maxLevel !== undefined ? opts.maxLevel : defaultSlangLevel(age);
+  if (!(maxLevel >= 1)) return null;
+  const pool = d.slang.filter(s => age >= s.ages[0] && age <= s.ages[1] && s.level <= maxLevel);
+  if (!pool.length) return null;
+  const s = rng.weightedItem(pool, x => (x.origin === 'common' ? 1 : 2.5));
+  return { ...s, ages: [...s.ages] };
+}
+
+/**
+ * A short description of a dialect for a system prompt: who talks this way, how they say highways, and the
+ * local words with their meanings.
+ * @param {string} key
+ * @param {{maxTerms?: number}} [opts]
+ * @returns {string}
+ */
+export function dialectSummary(key, opts = {}) {
+  const d = DIALECTS[key];
+  if (!d) return '';
+  const maxTerms = opts.maxTerms || 10;
+  const roads = d.the
+    ? (d.theShare < 1 ? 'usually "the" before freeway numbers ("the 99"), sometimes not' : 'always "the" before freeway numbers ("the 405", "the 10")') + (d.pch ? '; SR 1 on the coast is "PCH"' : '')
+    : 'no "the" before highway numbers ("101", "880", "Highway 1")';
+  const terms = d.localTerms.slice(0, maxTerms).map(t => `${t} (${d.words[t].note})`).join('; ');
+  const codes = d.areaCodes.length ? ` Area codes: ${d.areaCodes.join(', ')}.` : '';
+  return `${d.name}, ${d.region}. ${d.register} Highways: ${roads}. Local words: ${terms}.${codes}`;
+}
+
+// ------------------------------------------------------------------ languages
+
+const INTENT_FIELD = {
+  greeting: 'greetings', greetings: 'greetings', hello: 'greetings', hi: 'greetings',
+  how_are_you: 'howAreYou', howareyou: 'howAreYou', howAreYou: 'howAreYou',
+  thanks: 'thanks', thank_you: 'thanks',
+  farewell: 'farewells', farewells: 'farewells', goodbye: 'farewells', bye: 'farewells',
+  yes: 'yes', no: 'no', affection: 'affection', polite: 'polite', food: 'food',
+};
+
+const RELATION_ALIASES = {
+  grandma: 'grandmother', granny: 'grandmother', grandpa: 'grandfather', mom: 'mother', mum: 'mother', mama: 'mother',
+  dad: 'father', papa: 'father', auntie: 'aunt', aunty: 'aunt', buddy: 'friend',
+};
+
+function entryOk(e, opts, lang) {
+  if (e.sex && e.sex !== opts.sex) return false;
+  if (e.to && e.to !== opts.to) return false;
+  if (e.region) {
+    const v = opts.variety || lang.defaultVariety;
+    if (!v || !e.region.includes(v)) return false;
+  }
+  if ((opts.register === 'respect' || opts.register === 'formal') && e.register === 'casual') return false;
+  return true;
+}
+
+function poolFor(lang, intent) {
+  const f = INTENT_FIELD[intent];
+  if (f) return lang[f];
+  if (INTERJECTION_KINDS.includes(intent)) return lang.interjections[intent];
+  if (PHRASE_INTENTS.includes(intent)) return lang.phrases[intent] || [];
+  return null;
+}
+
+function choose(pool, rng, picker, category) {
+  if (!pool.length) return null;
+  if (picker) return picker.pick(category, pool, rng) || null;
+  return rng.pick(pool);
+}
+
+/**
+ * A phrase in the speaker's language for an intent, for code-switching into a line:
+ * {text, roman (non-Latin scripts), gloss, lang, intent}, or null when the language has nothing suitable.
+ * Intents: greeting, how_are_you, thanks, farewell, yes, no, surprise, frustration, delight, affection,
+ * polite, food, and every PHRASE_INTENTS entry. Entries tied to the speaker's gender (opts.sex), the
+ * listener's (opts.to) or a regional variety (opts.variety; else the language's default) are used only when
+ * they match; opts.register 'respect' or 'formal' avoids casual forms. Call this only for a speaker who
+ * actually speaks the language.
+ * @param {string} lang a LANGUAGES key or alias (ambiguous aliases resolve by opts.seed, else rng.seed)
+ * @param {string} intent
+ * @param {Rng} rng
+ * @param {{sex?: 'F'|'M', to?: 'F'|'M', variety?: string, register?: string, seed?: number, picker?: Picker}} [opts]
+ * @returns {{text: string, roman?: string, gloss: string, lang: string, intent: string}|null}
+ */
+export function codeSwitch(lang, intent, rng, opts = {}) {
+  const key = resolveLanguage(lang, opts.seed !== undefined ? opts.seed : rng && rng.seed);
+  const L = key && LANGUAGES[key];
+  if (!L || !rng) return null;
+  const all = poolFor(L, intent);
+  if (!all) return null;
+  const e = choose(all.filter(x => entryOk(x, opts, L)), rng, opts.picker, `cs:${key}:${intent}`);
+  return e ? { ...e, lang: key, intent } : null;
+}
+
+/**
+ * A family term in the speaker's language: {text, roman?, gloss, lang, relation}, or null. Relations:
+ * FAMILY_RELATIONS plus what a language adds (older_brother, older_sister, godparent, …); common English
+ * aliases (grandma, mom, dad, auntie) are accepted. Same filtering options as codeSwitch.
+ * @param {string} lang
+ * @param {string} relation
+ * @param {Rng} rng
+ * @param {{sex?: 'F'|'M', to?: 'F'|'M', variety?: string, register?: string, seed?: number, picker?: Picker}} [opts]
+ * @returns {{text: string, roman?: string, gloss: string, lang: string, relation: string}|null}
+ */
+export function familyTerm(lang, relation, rng, opts = {}) {
+  const key = resolveLanguage(lang, opts.seed !== undefined ? opts.seed : rng && rng.seed);
+  const L = key && LANGUAGES[key];
+  if (!L || !rng || !relation) return null;
+  const rel = RELATION_ALIASES[relation] || relation;
+  const all = L.family[rel];
+  if (!all) return null;
+  const e = choose(all.filter(x => entryOk(x, opts, L)), rng, opts.picker, `fam:${key}:${rel}`);
+  return e ? { ...e, lang: key, relation: rel } : null;
+}
+
+// ------------------------------------------------------------------ world-grounded slots
+
+/**
+ * The dialect weather condition for a forecast: 'fog' | 'heat' | 'rain' | 'wind' | 'cold' | 'smoke' | 'snow' |
+ * 'clear', or null for plain cloudy weather. Reads world.weatherAt() output (or {short, tempF, alerts}).
+ * @param {object} wx
+ * @returns {string|null}
+ */
+export function weatherCondition(wx) {
+  if (!wx) return null;
+  const now = wx.now || wx;
+  const s = String(now.short || '').toLowerCase();
+  const alerts = (wx.alerts || []).map(a => String(a.event || '')).join(' | ').toLowerCase();
+  const t = Number.isFinite(now.tempF) ? now.tempF : null;
+  if (/smoke/.test(s) || /smoke|air quality/.test(alerts)) return 'smoke';
+  if (/snow|blizzard|sleet|flurr/.test(s) || /blizzard|winter storm|winter weather|ice storm/.test(alerts)) return 'snow';
+  // A coastal flood alert means king tides and surf, not rain.
+  if (/rain|shower|drizzle|thunder|storm/.test(s) || /flood/.test(alerts.replace(/coastal flood/g, ''))) return 'rain';
+  if (/heat/.test(alerts) || (t !== null && t >= 92)) return 'heat';
+  if (/wind|breezy|blustery|gust/.test(s) || /wind|red flag/.test(alerts)) return 'wind';
+  if (/fog|mist|haze/.test(s) || /fog/.test(alerts)) return 'fog';
+  if (/frost|freeze/.test(alerts) || (t !== null && t <= 42)) return 'cold';
+  if (/sunny|clear|fair/.test(s)) return 'clear';
+  return null;
+}
+
+const ARTICLE_SUFFIX = /\b(Mountains|Hills|Range|Buttes|Peaks|Crags|Alps|Valley|Basin|Desert|River|Ocean|Sea|Channel|Strait|Delta|Slough|Islands|Canyon|Bluffs)$/;
+
+// What people call a few mountains whose official names nobody uses in conversation.
+const COMMON_NAMES = {
+  'Mount San Antonio': 'Mount Baldy', 'Santiago Peak': 'Saddleback', 'Lassen Peak': 'Lassen',
+  'San Gorgonio Mountain': 'San Gorgonio', 'San Jacinto Peak': 'Mount San Jacinto',
+};
+
+/**
+ * A landmark name as it goes in a sentence: "Mount Diablo", "the San Gabriel Mountains", "the Salton Sea",
+ * and the everyday name where the official one isn't used ("Mount San Antonio" is "Mount Baldy").
+ * @param {{name: string, kind?: string}} lm a landmarksNear entry
+ * @returns {string|null}
+ */
+export function landmarkLabel(lm) {
+  if (!lm || !lm.name) return null;
+  const n = COMMON_NAMES[String(lm.name).trim()] || String(lm.name).trim();
+  if (lm.kind === 'peak' || /^the /i.test(n)) return n;
+  return ARTICLE_SUFFIX.test(n) ? `the ${n}` : n;
+}
+
+// How far away a feature of each gazetteer prominence rank still counts as "in view": Mount Shasta and Mount
+// Whitney from a long way off, a named hill only from close by.
+const VIEW_KM = { 1: 120, 2: 50, 3: 6 };
+const SNOW_PEAK_KM = { 1: 130, 2: 70, 3: 12 };
+const SNOW_LINE_M = 1100;
+
+// weight(l) > 1 favors a feature (the snow peak favors height: Mount Baldy over the Verdugos from Santa Monica).
+function bestLandmark(world, z, kinds, radii, weight = () => 1) {
+  let best = null, bs = Infinity;
+  for (const l of world.landmarksNear(z.tx, z.ty, Math.max(...Object.values(radii)), kinds)) {
+    const r = radii[l.rank] || radii[3];
+    if (l.distKm > r) continue;
+    const w = weight(l);
+    if (!(w > 0)) continue;
+    const s = l.distKm / r / w;
+    if (s < bs) { bs = s; best = l; }
+  }
+  return best;
+}
+
+// A range's height is not in the gazetteer; the highest point of the ZIP it sits in stands in for it.
+function featureElevation(world, l) {
+  if (Number.isFinite(l.elev)) return l.elev;
+  const p = world.project(l.lat, l.lon), zi = world.zipAt(p.x, p.y);
+  return zi >= 0 ? world.z.elev_max_m[zi] : null;
+}
+
+const placePops = new WeakMap();
+function placePop(world, name) {
+  let m = placePops.get(world);
+  if (!m) {
+    m = new Map();
+    for (const p of world.places) if ((m.get(p.name) || 0) < p.pop) m.set(p.name, p.pop);
+    placePops.set(world, m);
+  }
+  return m.get(name) || 0;
+}
+
+function seasonLabel(z, month) {
+  const fireProne = (z.fhsz_any || 0) >= 10;
+  if (month >= 6 && month <= 9) return fireProne && month >= 7 ? 'fire season' : 'summer';
+  if (month === 10 || month === 11) return fireProne ? 'fire season' : 'fall';
+  if (month === 12 || month <= 2) return (z.snowfall_in || 0) >= 60 ? 'ski season' : (z.rain_in || 0) >= 15 ? 'the rainy season' : 'winter';
+  return 'spring';
+}
+
+/**
+ * Slot values for ZIP zi from the world pack, ready for fill(): the town, county and region, the nearest busy
+ * highway as locals say it, a named stretch, a landmark, the current temperature, forecast and alert, the
+ * most destructive fire on record with its year, the month, weekday and season, and a local team. Missing
+ * data stays null, so templates that need it are skipped. `facts` names the pack facts each slot came from.
+ * Callers may override any slot (a persona's own memory of a fire, the team the NPC follows).
+ * @param {import('./world.mjs').World} world
+ * @param {number|string} zi ZIP index or code
+ * @param {{t?: number, rng?: Rng, dialect?: string, team?: string}} [opts]
+ * @returns {{values: Record<string, string|number|null>, facts: Record<string, string|null>}|null}
+ */
+export function slotsFor(world, zi, opts = {}) {
+  if (typeof zi === 'string') zi = world.indexOf(zi);
+  const z = world.zip(zi);
+  if (!z) return null;
+  const t = Number.isFinite(opts.t) ? opts.t : world.snapshotTime;
+  const rng = opts.rng || null;
+  const key = opts.dialect || dialectFor(world, zi);
+  const d = DIALECTS[key];
+  const values = {}, facts = {};
+
+  // A big city's ZIPs are mailed by neighborhood ("Van Nuys", "San Pedro"), and that is what people call home;
+  // elsewhere the Census place ("East Los Angeles", "Lennox") is the more local name.
+  const local = z.place && z.city && z.place !== z.city && placePop(world, z.place) >= 300000 ? z.city : (z.place || z.city);
+  values.place = local || null;
+  values.city = z.city || null;
+  values.neighborhood = local || null;
+  values.county = z.countyName || null;
+  values.region = (d && d.regionThe) || z.regionThe || null;
+
+  const lm = bestLandmark(world, z, ['peak', 'range', 'water', 'island'], VIEW_KM);
+  values.landmark = landmarkLabel(lm);
+  facts.landmark = lm ? `landmark:${lm.name}` : null;
+  const pk = bestLandmark(world, z, ['peak', 'range'], SNOW_PEAK_KM, l => {
+    const e = featureElevation(world, l) || 0;
+    return e >= SNOW_LINE_M ? 1 + (e - SNOW_LINE_M) / 2000 : 0;
+  });
+  values.peak = landmarkLabel(pk);
+  facts.peak = pk ? `landmark:${pk.name}` : null;
+
+  const roads = world.roadsNear(z.tx, z.ty, 15).slice().sort((a, b) => (b.aadt || 0) / (1 + b.distKm / 3) - (a.aadt || 0) / (1 + a.distKm / 3));
+  const road = rng && roads.length > 1 && rng.chance(0.35) ? roads[1] : roads[0] || null;
+  values.road = road ? roadName(road, key, { rng }) : null;
+  facts.road = road ? `road:${road.name}` : null;
+  values.stretch = (road && namedStretch(road, world, zi)) || ((stretchesNear(world, zi)[0] || {}).name) || null;
+  facts.stretch = values.stretch ? `stretch:${values.stretch}` : null;
+
+  const wx = world.weatherAt(zi, t);
+  values.temp = wx && wx.now && Number.isFinite(wx.now.tempF) ? wx.now.tempF : null;
+  values.weather = wx && wx.now && wx.now.short ? String(wx.now.short).toLowerCase() : null;
+  values.alert = wx && wx.alerts && wx.alerts.length ? wx.alerts[0].event : null;
+  facts.weather = wx && wx.now ? `weather:${z.zip}:${wx.now.time}` : null;
+  facts.alert = values.alert ? `alert:${values.alert}` : null;
+
+  const fire = world.firesOf(zi).find(f => fireLabel(f.name) && Number.isFinite(f.year)) || null;
+  values.fire = fire ? fireLabel(fire.name) : null;
+  values.year = fire ? String(fire.year) : null;
+  facts.fire = fire ? `fire:${fire.name}:${fire.year}` : null;
+
+  const p = pacific(t);
+  values.month = p.monthName;
+  values.day = p.dayName;
+  values.season = seasonLabel(z, p.month);
+  // Teams are listed most-followed first.
+  values.team = opts.team || (d && d.teams.length ? (rng ? d.teams[rng.weighted(d.teams.map((_, k) => 1 / (k + 1)))] : d.teams[0]) : null);
+  return { values, facts };
+}

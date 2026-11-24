@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-theme="dark" data-state="loading">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Legion · every Californian as an NPC</title>
+  <meta name="description" content="Legion turns California's Census, housing, climate and wildfire data into 39 million deterministic NPCs: a live crowd walking and driving the state, each person with a home, a job, a commute, a personality and a voice.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#18191c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3.2' fill='%23f0904a'/%3E%3Cg fill='%23978e84'%3E%3Ccircle cx='12' cy='4.6' r='2.2'/%3E%3Ccircle cx='18.4' cy='8.3' r='2.2'/%3E%3Ccircle cx='18.4' cy='15.7' r='2.2'/%3E%3Ccircle cx='12' cy='19.4' r='2.2'/%3E%3Ccircle cx='5.6' cy='15.7' r='2.2'/%3E%3Ccircle cx='5.6' cy='8.3' r='2.2'/%3E%3C/g%3E%3C/svg%3E">
+  <script>
+    // Apply a saved theme before the first paint (dark by default). Storage may be unavailable: ignore it then.
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('legion.settings.v1') || 'null');
+        var t = s && s.theme;
+        if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        else if (t === 'system') document.documentElement.removeAttribute('data-theme');
+      } catch (e) { /* keep the default */ }
+    })();
+  </script>
+  <link rel="stylesheet" href="./app.css" data-legion-inline="css">
+</head>
+<body>
+  <a class="skip" href="#map">Skip to the map</a>
+
+  <header class="topbar" id="topbar">
+    <div class="brand" id="brand"><span class="wordmark">Legion</span></div>
+    <div class="search" role="search">
+      <label class="sr-only" for="search-input">Search a ZIP code, city, county, region or NPC id</label>
+      <span class="search-icon" id="search-icon"></span>
+      <input id="search-input" type="search" placeholder="ZIP, city or county" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-keyshortcuts="/">
+      <kbd class="search-kbd" aria-hidden="true">/</kbd>
+      <ul id="search-list" class="search-list" hidden></ul>
+    </div>
+    <div class="clock-host" id="clock-host"></div>
+    <div class="counts" aria-label="Crowd">
+      <div class="count"><span class="count-value" id="count-agents">—</span><span class="count-label">NPCs simulated</span></div>
+      <div class="count is-moving"><span class="count-value" id="count-moving">—</span><span class="count-label">moving now</span></div>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="theme-button" type="button" aria-label="Switch to the light theme"></button>
+      <button class="icon-btn" id="settings-button" type="button" aria-label="Settings" aria-haspopup="dialog"></button>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <div class="map" id="map" tabindex="0" role="application" aria-roledescription="map" aria-label="Map of California. Drag to pan, scroll or pinch to zoom. Click a person to meet them, or a place to see who lives there."></div>
+    <div class="counts-mobile" aria-hidden="true"><span><strong id="count-agents-m">—</strong> simulated</span><span><strong id="count-moving-m">—</strong> moving</span></div>
+    <aside id="place-panel" aria-label="Place"></aside>
+    <aside id="npc-panel" aria-label="NPC"></aside>
+  </main>
+
+  <dialog class="dialog" id="settings-dialog"></dialog>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <div class="boot" id="boot" role="status" aria-live="polite">
+    <div class="boot-card">
+      <div class="boot-mark" id="boot-mark"></div>
+      <h1 class="boot-title">Legion</h1>
+      <p class="boot-tag">Every Californian, as an NPC.</p>
+      <ol class="boot-steps" id="boot-steps"></ol>
+      <div class="bar" id="boot-bar"><span style="width: 4%"></span></div>
+      <noscript><p class="boot-tag">Legion needs JavaScript to run.</p></noscript>
+    </div>
+  </div>
+
+  <script type="module" src="./main.mjs" data-legion-inline="app"></script>
+</body>
+</html>

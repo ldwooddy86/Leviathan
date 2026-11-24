@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legion Street View</title>
+<style>
+  :root {
+    --bg: #111317; --panel: #1b1e24; --panel2: #232730; --fg: #ecebe6; --muted: #9aa0aa; --accent: #6fb1ff; --line: #2e333d;
+    --street-accent: #ffcf5a;
+  }
+  :root[data-theme="light"] { --bg: #f3f1ec; --panel: #ffffff; --panel2: #f0eee8; --fg: #1f2329; --muted: #5d6470; --accent: #2b6cb0; --line: #dad6cc; --street-accent: #d9480f; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  body { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 14px; margin: 0 6px 0 0; letter-spacing: .02em; }
+  header h1 span { color: var(--muted); font-weight: 400; }
+  label { color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  input[type="text"] { width: 74px; background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; }
+  input[type="range"] { width: 220px; accent-color: var(--accent); }
+  button { background: var(--panel2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 9px; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .group { display: inline-flex; gap: 2px; }
+  .clock { font-variant-numeric: tabular-nums; min-width: 150px; }
+  main { position: relative; display: grid; grid-template-columns: 1fr 280px; min-height: 0; }
+  #view { position: relative; min-height: 0; }
+  aside { background: var(--panel); border-left: 1px solid var(--line); padding: 12px; overflow: auto; }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 14px 0 6px; }
+  aside dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+  aside dt { color: var(--muted); }
+  aside dd { margin: 0; font-variant-numeric: tabular-nums; }
+  .who { font-size: 15px; font-weight: 600; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  @media (max-width: 760px) { main { grid-template-columns: 1fr; grid-template-rows: 1fr auto; } aside { max-height: 34vh; border-left: 0; border-top: 1px solid var(--line); } input[type="range"] { width: 140px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Legion <span>street view</span></h1>
+  <label>ZIP <input id="zip" type="text" inputmode="numeric" maxlength="5"></label>
+  <button id="go">Open</button>
+  <label>Time <input id="slider" type="range" min="0" max="1439" step="1"></label>
+  <span id="clock" class="clock"></span>
+  <span class="group" id="speeds" role="group" aria-label="Speed">
+    <button data-speed="0">❚❚</button><button data-speed="1">1×</button><button data-speed="10">10×</button><button data-speed="60">60×</button><button data-speed="300">300×</button><button data-speed="1800">1800×</button>
+  </span>
+  <button id="follow" aria-pressed="false" title="Follow the selected person (F)">Follow</button>
+  <button id="theme">Light</button>
+  <label><input id="osm" type="checkbox"> OpenStreetMap</label>
+</header>
+<main>
+  <div id="view"></div>
+  <aside>
+    <div class="who" id="who">Click someone on the street</div>
+    <div id="what" class="hint"></div>
+    <h2>Place</h2>
+    <dl id="place"></dl>
+    <h2>On the street</h2>
+    <dl id="stats"></dl>
+    <p class="hint">Drag to pan, wheel or pinch to zoom, double-click a person to follow them, Esc to clear.</p>
+  </aside>
+</main>
+<script type="module" src="./street-dev.mjs"></script>
+</body>
+</html>
