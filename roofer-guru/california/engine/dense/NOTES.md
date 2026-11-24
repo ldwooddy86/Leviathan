@@ -77,3 +77,19 @@ The container restarted once already just after I began (maybe memory pressure f
   requestAnimationFrame back when the GPU process is behind, and the engine does not either. Anything that waits for
   the GPU (screenshot, readPixels, the tab being shown) waits for the whole queue. This is the fault.
 - Next: phase C alone (fence gate) to see the queue held at one frame; then write the port.
+
+### 02:03 the gate tried live (out/d10.log, phase C)
+- Fence gate + watch off, camera turning 30 s: 21 frames started (1.43 s a frame, the real rate), 1,760 animation
+  turns skipped, longest freeze of the main thread 119 ms (was 47,878), queue at the end 1.15 s (was 316.9 s).
+- Design settled: hold the DRAW, keep the update (input, physics, traffic) running each turn so the simulation keeps
+  real time as before; allow 2 frames in flight on fast cards (so a 20 ms card is not halved to 30 fps), 1 when a
+  frame takes over 100 ms; a valve: after 8 s held, draw anyway; watch reads through a pixel buffer and a fence.
+
+## Done
+- 02:20 dense_engine.js (Engine._held, _fence, pacing, _watchAsk, _watchRead, _ctxGone), dense_world.js (lost and
+  restored said in the view), port_dense.py written. Applies (every anchor once) to la_engine.js, to the full stack
+  CA/engine/out/stack_views.js (copied to out/stack_in.js), to terrain/out/engine_terrain.js and car/out/engine_car.js.
+  Outputs: out/base_dense.js, out/stack_dense.js.
+## Next
+- build out/testbed_dense.html (build/testbed.py) and out/ca_dense.html (finish_engine.py + build_ca.py into my own
+  folder, never CA/engine/out), then run tests/diag.js on them: LA drone/street/bird, pace probe, SF, SD, Coronado.

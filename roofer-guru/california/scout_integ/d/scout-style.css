@@ -1,0 +1,252 @@
+<style id="scout-style">
+/* ==== rooftop scout ==== */
+/* Styles for module 18, Rooftop Scout. Everything is scoped under .sc and drawn with the dashboard's own tokens, so it
+   follows the light and dark themes. The building colours are written out because they sit on satellite imagery, not on
+   the page: green, orange and red bright enough to read over roofs, trees and pavement in either theme. One rule reaches
+   outside .sc, and only to the module's own tab: the rail gives it a full width bar of its own under the seventeen. */
+:root{--sc-g:#1fbf4c;--sc-o:#ff9f1a;--sc-r:#f04438;--sc-sel:#ffffff}
+@media (min-width:761px){.rail #tab-rooftops{grid-column:1/-1;flex-direction:row;align-items:baseline;gap:12px;padding:7px 12px}.rail #tab-rooftops .t{white-space:nowrap}.rail #tab-rooftops .d{-webkit-line-clamp:1;flex:1;min-width:0;font-size:11.5px}}
+.sc{overflow-wrap:break-word}
+.sc .sc-grid{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:16px;margin-top:16px;align-items:start}
+@media (max-width:1180px){.sc .sc-grid{grid-template-columns:minmax(0,1fr)}}
+.sc .sc-mapcard{overflow:hidden}
+.sc .sc-map{height:min(74vh,700px);min-height:420px;background:var(--sunk);isolation:isolate;border-radius:var(--r) var(--r) 0 0}
+@media (max-width:760px){.sc .sc-map{height:64vh;min-height:340px}}
+.sc .sc-bar{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;padding:9px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2);background:var(--card)}
+.sc .sc-bar .sc-st{flex:1 1 260px;min-width:0}
+.sc .sc-bar .sc-st b{color:var(--ink);font-weight:600}
+.sc .sc-busy::before{content:"";display:inline-block;width:9px;height:9px;margin-right:7px;border-radius:50%;border:2px solid var(--accent);border-right-color:transparent;animation:scSpin .8s linear infinite;vertical-align:-1px}
+@keyframes scSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.sc .sc-busy::before{animation:none}}
+.sc .sc-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sc .sc-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);border-radius:999px;padding:3px 10px;font-size:11.5px;background:var(--card);color:var(--ink-2);cursor:pointer;user-select:none;white-space:nowrap}
+.sc .sc-chip[aria-pressed="false"]{opacity:.5}
+.sc .sc-chip[aria-pressed="false"] .sc-sw{background:transparent!important}
+.sc .sc-chip b{font-variant-numeric:tabular-nums;color:var(--ink)}
+.sc .sc-sw{display:inline-block;width:11px;height:11px;border-radius:3px;border:2px solid currentColor;flex:none}
+.sc .sc-sw.g{color:var(--sc-g);background:color-mix(in srgb,var(--sc-g) 55%,transparent)}
+/* the atlas's grade chip class .g (monospace, padded, offset) must not reach the green status markers */
+.sc .sc-sw.g,.sc .sc-tdot.g{padding:0;margin-left:0}.sc .sc-sw.g{vertical-align:baseline}.sc .sc-pill.g{font-family:inherit;margin-left:0;vertical-align:baseline;line-height:inherit}
+.sc .sc-sw.o{color:var(--sc-o);background:color-mix(in srgb,var(--sc-o) 55%,transparent)}
+.sc .sc-sw.r{color:var(--sc-r);background:color-mix(in srgb,var(--sc-r) 30%,transparent);border-style:dashed}
+.sc .sc-sw.x{color:var(--ink-3);background:transparent;border-style:dotted}
+.sc .sc-pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:2px solid;white-space:nowrap}
+.sc .sc-pill.g{border-color:var(--sc-g);color:#0f7a2e;background:color-mix(in srgb,var(--sc-g) 12%,var(--card))}
+.sc .sc-pill.o{border-color:var(--sc-o);color:#9a5a00;background:color-mix(in srgb,var(--sc-o) 14%,var(--card))}
+.sc .sc-pill.r{border-color:var(--sc-r);color:#b42318;background:color-mix(in srgb,var(--sc-r) 10%,var(--card));border-style:dashed}
+:root[data-theme="dark"] .sc .sc-pill.g{color:#6ee58f} :root[data-theme="dark"] .sc .sc-pill.o{color:#ffc266} :root[data-theme="dark"] .sc .sc-pill.r{color:#ff8a80}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sc .sc-pill.g{color:#6ee58f}:root:not([data-theme="light"]) .sc .sc-pill.o{color:#ffc266}:root:not([data-theme="light"]) .sc .sc-pill.r{color:#ff8a80}}
+.sc .sc-hd{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.sc .sc-hd h3{overflow-wrap:anywhere}
+.sc .sc-score{font-family:var(--display);font-size:30px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-align:right}
+.sc .sc-score small{display:block;font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
+.sc .sc-sec{margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.sc .sc-sec:first-child{margin-top:0;padding-top:0;border-top:0}
+.sc .sc-k{font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);margin:0 0 5px}
+.sc .sc-sys{font-weight:600;font-size:13.5px;line-height:1.4}
+.sc .sc-sub{font-size:12px;color:var(--ink-2);line-height:1.5;margin-top:3px}
+.sc .sc-bars{display:grid;gap:5px;margin-top:4px}
+.sc .sc-pb{display:grid;grid-template-columns:minmax(0,1fr) 120px 42px;gap:8px;align-items:center;font-size:12px;color:var(--ink-2)}
+.sc .sc-pb i{display:block;height:7px;border-radius:4px;background:var(--sunk-2);overflow:hidden;position:relative}
+.sc .sc-pb i>u{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px}
+.sc .sc-pb b{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.sc .sc-lines{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.sc .sc-ev{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:12.3px;line-height:1.45;color:var(--ink-2)}
+.sc .sc-ev li{padding-left:12px;position:relative}
+.sc .sc-ev li::before{content:"";position:absolute;left:0;top:.62em;width:5px;height:5px;border-radius:50%;background:var(--line-strong)}
+.sc .sc-ev b{color:var(--ink);font-weight:600}
+.sc .sc-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.sc .sc-acts .btn{white-space:normal;text-align:left}
+.sc .sc-check{display:grid;gap:7px}
+.sc .sc-check .seg button{padding:5px 10px}
+.sc .sc-check .seg button[data-v="g"][aria-pressed="true"]{background:var(--sc-g);color:#05290f}
+.sc .sc-check .seg button[data-v="o"][aria-pressed="true"]{background:var(--sc-o);color:#2b1700}
+.sc .sc-check .seg button[data-v="r"][aria-pressed="true"]{background:var(--sc-r);color:#fff}
+.sc .sc-cues{display:flex;gap:6px 12px;flex-wrap:wrap}
+.sc .sc-cues .chk{font-size:12px}
+.sc .sc-check input[type=text]{width:100%}
+.sc .sc-sv{display:grid;gap:8px}
+.sc .sc-svgo{display:block;width:100%;text-align:center;padding:11px 13px;font-size:13.5px}
+.sc .sc-photo{position:relative;aspect-ratio:4/3;background:#0b1014 center/cover no-repeat;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.sc .sc-photo.pano{background-size:400% auto;background-repeat:repeat-x}
+.sc .sc-photo .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 10px 7px;font-size:11px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.72));display:flex;justify-content:space-between;gap:8px}
+.sc .sc-photo .cap a{color:#fff}
+.sc .sc-thumbs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+.sc .sc-thumbs button{aspect-ratio:1;border:2px solid transparent;border-radius:7px;padding:0;background:#0b1014 center/cover no-repeat;cursor:pointer}
+.sc .sc-thumbs button[aria-pressed="true"]{border-color:var(--accent)}
+.sc .sc-note{font-size:11.5px;color:var(--ink-3);line-height:1.5}
+.sc .sc-empty{font-size:12.5px;color:var(--ink-2);line-height:1.6}
+.sc .sc-tblh{display:flex;gap:10px 14px;flex-wrap:wrap;align-items:flex-end;justify-content:space-between}
+.sc .sc-tblh .ctl{min-width:170px}
+.sc table td.sc-a{white-space:normal;min-width:180px;max-width:280px;text-align:left}
+.sc table td.sc-w{white-space:normal;min-width:200px;max-width:340px;text-align:left;line-height:1.35}
+.sc .sc-tdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:2px solid}
+.sc .sc-tdot.g{background:var(--sc-g);border-color:var(--sc-g)} .sc .sc-tdot.o{background:var(--sc-o);border-color:var(--sc-o)} .sc .sc-tdot.r{background:transparent;border-color:var(--sc-r);border-style:dashed}
+.sc .sc-form{display:grid;gap:12px}
+.sc .sc-form .f{display:grid;gap:5px}
+.sc .sc-form .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sc .sc-form input[type=password],.sc .sc-form input[type=text]{flex:1 1 220px;min-width:0}
+.sc .sc-form input[type=range]{flex:1 1 160px}
+.sc .sc-form output{font-variant-numeric:tabular-nums;font-weight:600;min-width:34px}
+.sc .controls input[type=range]{width:150px}
+.sc .controls form{margin:0}
+.sc .controls input[type=search]{width:100%}
+/* Leaflet, dressed in the dashboard's tokens */
+.sc .leaflet-container{font:12px/1.4 var(--sans);background:var(--sunk);color:var(--ink)}
+.sc .leaflet-bar a{background:var(--card);color:var(--ink-2);border-bottom-color:var(--line)}
+.sc .leaflet-bar a:hover{background:var(--sunk);color:var(--ink)}
+.sc .leaflet-bar{border:1px solid var(--line-strong)!important;box-shadow:var(--shadow)!important}
+.sc .leaflet-control-attribution{background:color-mix(in srgb,var(--card) 82%,transparent);color:var(--ink-2);font-size:10.5px;max-width:70%;white-space:normal;line-height:1.35}
+.sc .leaflet-control-attribution a{color:var(--accent)}
+.sc .leaflet-control-scale-line{background:color-mix(in srgb,var(--card) 80%,transparent);border-color:var(--ink-2);color:var(--ink)}
+.sc .sc-hint{background:color-mix(in srgb,var(--card) 90%,transparent);border:1px solid var(--line-strong);border-radius:8px;padding:6px 10px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);max-width:280px;line-height:1.4}
+.sc .sc-hint:empty{display:none}
+.sc .sc-cam{width:18px;height:18px;border-radius:50%;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 2px 6px rgba(0,0,0,.4)}
+@media (max-width:760px){.sc .sc-pb{grid-template-columns:minmax(0,1fr) 80px 40px}.sc .controls input[type=range]{width:100%}}
+/* Street View in the map card's place, and the switch between the two */
+.sc .sc-modebar{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--card);border-radius:var(--r) var(--r) 0 0}
+.sc .sc-modebar .seg button{padding:6px 14px;font-size:12.5px;font-weight:600}
+.sc .sc-mnote{font-size:11.5px;color:var(--ink-3);flex:1 1 240px;line-height:1.4}
+.sc .sc-modebar+.sc-map{border-radius:0}
+.sc .sc-map[hidden],.sc .sc-svw[hidden]{display:none!important}
+.sc .sc-svw{background:#0b1014}
+.sc .sc-svbar{display:grid;gap:7px;padding:9px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.sc .sc-svinfo{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;min-width:0}
+.sc .sc-svinfo b{font-size:14.5px;overflow-wrap:anywhere}
+.sc .sc-svinfo .mini{flex:1 1 260px;min-width:0}
+.sc .sc-svctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.sc .sc-svctl .ibtn{text-decoration:none;display:inline-flex;align-items:center}
+.sc .sc-svctl .seg button{padding:4px 9px}
+.sc .sc-svn{font-variant-numeric:tabular-nums;min-width:52px;text-align:center}
+.sc .sc-svck button[data-ck="g"][aria-pressed="true"]{background:var(--sc-g);color:#05290f}
+.sc .sc-svck button[data-ck="o"][aria-pressed="true"]{background:var(--sc-o);color:#2b1700}
+.sc .sc-svck button[data-ck="r"][aria-pressed="true"]{background:var(--sc-r);color:#fff}
+.sc .sc-svwhere{font-size:11.5px;color:var(--ink-3);line-height:1.45}
+.sc .sc-svf{display:block;width:100%;height:min(66vh,640px);min-height:380px;border:0;background:#0b1014}
+.sc .sc-svq{margin-top:6px;width:100%}
+.sc .sc-mapcard.sc-full{position:fixed;inset:0;z-index:550;border-radius:0;border:0;margin:0;display:flex;flex-direction:column;background:var(--card)}
+.sc .sc-mapcard.sc-full>.sc-svw{flex:1;display:flex;flex-direction:column;min-height:0}
+.sc .sc-mapcard.sc-full .sc-svf{flex:1;height:auto;min-height:0}
+.sc .sc-mapcard.sc-full>.sc-bar,.sc .sc-mapcard.sc-full>.legend,.sc .sc-mapcard.sc-full>.sc-modebar{display:none}
+html.sc-noscroll,html.sc-noscroll body{overflow:hidden}
+/* the shell's toast (400) and tooltip (300) stay above the full window card (550) */
+html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
+@media (max-width:760px){.sc .sc-svf{height:58vh;min-height:300px}}
+/* Street View with glows: Google's panorama in a box of the page, the glow canvas over it, taking no pointer events */
+.sc .sc-svj{position:relative;height:min(66vh,640px);min-height:380px;background:#0b1014;overflow:hidden}
+.sc .sc-svj[hidden],.sc .sc-svf[hidden]{display:none!important}
+.sc .sc-svp{position:absolute;inset:0}
+.sc .sc-svc{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.sc .sc-mapcard.sc-full .sc-svj{flex:1;height:auto;min-height:0}
+.sc .sc-svkey{display:flex;gap:6px 8px;flex-wrap:wrap;align-items:center;font-size:12px;line-height:1.45;color:var(--ink-2);background:color-mix(in srgb,var(--accent) 7%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:8px;padding:8px 10px;margin:0}
+.sc .sc-svkey>span{flex:1 1 100%}
+.sc .sc-svkey input{flex:1 1 220px;min-width:0}
+.sc .sc-svkey a{color:var(--accent)}
+@media (max-width:760px){.sc .sc-svj{height:58vh;min-height:300px}}
+/* the 3D street view: the scene fills the card's place; a walk pad and the credits sit over it */
+.sc .sc-3dw[hidden]{display:none!important}
+.sc .sc-3dw{background:#0b1014}
+.sc .sc-3d{position:relative;height:min(66vh,640px);min-height:380px;overflow:hidden;background:#cfe1ef}
+.sc .sc-3dc{display:block;width:100%;height:100%;outline:none;cursor:grab;touch-action:none}
+.sc .sc-3dc:focus-visible{box-shadow:inset 0 0 0 3px var(--accent)}
+.sc .sc-3dnote{position:absolute;left:10px;top:10px;z-index:3;font-size:11.5px;line-height:1.4;color:#10191f;background:rgba(255,255,255,.86);border-radius:6px;padding:4px 8px;max-width:min(70%,520px);pointer-events:none}
+.sc .sc-3dnote:empty{display:none}
+.sc .sc-3dattr{position:absolute;right:0;bottom:0;z-index:3;font-size:10.5px;color:#10191f;background:rgba(255,255,255,.78);padding:2px 7px;border-top-left-radius:6px;pointer-events:none}
+.sc .sc-3dpad{position:absolute;left:12px;bottom:12px;z-index:3;display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px}
+.sc .sc-3dpad button{width:40px;height:40px;border-radius:9px;border:1px solid rgba(16,25,31,.25);background:rgba(255,255,255,.88);color:#10191f;font-size:15px;line-height:1;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.25);touch-action:none;user-select:none}
+.sc .sc-3dpad button:active{background:#ffffff;transform:translateY(1px)}
+.sc .sc-mapcard.sc-full>.sc-3dw{flex:1;display:flex;flex-direction:column;min-height:0}
+.sc .sc-mapcard.sc-full .sc-3d{flex:1;height:auto;min-height:0}
+.sc .sc-sv .sc-svgo+.sc-svgo{margin-top:6px}
+@media (max-width:760px){.sc .sc-3d{height:58vh;min-height:300px}}
+/* the Graphics menu in the 3D bar */
+.sc .sc-gfx{position:relative}
+.sc .sc-gfx>summary{list-style:none;cursor:pointer;user-select:none}
+.sc .sc-gfx>summary::-webkit-details-marker{display:none}
+.sc .sc-gfx>summary::after{content:" ▾";color:var(--ink-3)}
+.sc .sc-gfx[open]>summary{border-color:var(--line-strong);color:var(--ink)}
+.sc .sc-gfxp{position:absolute;z-index:30;top:calc(100% + 6px);left:0;width:min(380px,calc(100vw - 48px));display:grid;gap:8px;padding:11px 12px;background:var(--card);border:1px solid var(--line-strong);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.sc .sc-gfxr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sc .sc-gfxr>.mini{width:52px;flex:none}
+.sc .sc-gfxp p{margin:0;line-height:1.45}
+/* photoreal: Google's logo and credits on a dark plate, as Google shows them over imagery */
+.sc .sc-3dattr.sc-3dattr-g{color:#fff;background:rgba(8,12,16,.62)}
+.sc .sc-3dattr .sc-glogo{height:15px;vertical-align:-4px;margin-right:3px}
+.sc .seg.sc-warn{outline:1px solid var(--sc-o);outline-offset:1px;border-radius:8px}
+/* AI detail on the satellite map */
+.sc .sc-aictl{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;max-width:min(440px,80vw);padding:5px 8px;border-radius:8px;background:rgba(8,12,16,.72);color:#fff;font-size:11.5px;line-height:1.35;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.sc .sc-aictl[hidden]{display:none}
+.sc .sc-aictl button{font:inherit;font-weight:600;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:2px 8px;cursor:pointer}
+.sc .sc-aictl button[aria-pressed="true"]{background:#2f6fdf;border-color:#2f6fdf}
+.sc .sc-aictl span{opacity:.92}
+.sc .sc-aictl em{flex:1 1 100%;font-style:normal;color:#ffd58a}
+/* California: the Weather row (rain scale, dry wind scale, sky), the Fire and Solar views' dots, the weather statements on the card */
+.sc .sc-wxrow .sc-wxs{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.sc .sc-wxrow .sc-stormw{flex:0 1 430px;min-width:230px}
+.sc .sc-wxrow .sc-stormw .sc-stormt{grid-template-columns:repeat(9,1fr)}
+.sc .sc-wxrow .sc-stormw.sc-windw{flex:0 1 300px;min-width:200px}
+.sc .sc-wxrow .sc-stormw.sc-windw .sc-stormt{grid-template-columns:repeat(6,1fr)}
+.sc .sc-wxrow .sc-stormw.sc-windw input[type=range]{accent-color:#c9801f}
+.sc .sc-wxrow .sc-stormw.sc-windw .sc-stormt i.on{color:#9a5200}
+.sc .sc-wxrow output{flex:1 1 100%;min-width:0;font:12px/1.4 var(--sans);color:var(--ink-2)}
+.sc .sc-roofview .sc-ldot.l-fire{background:linear-gradient(135deg,#1f7a4d,#e6c53a,#b3261e)}
+.sc .sc-roofview .sc-ldot.l-solar{background:linear-gradient(135deg,#3b2f7d,#d9725a,#fff7c2)}
+.sc .sc-roofview .sc-ldot.l-storm{background:linear-gradient(135deg,#1fb3a8,#58c0ff,#d9c23a,#cf2a22)}
+.sc .sc-wxrow .sc-airline{flex:1 1 100%;min-width:0;line-height:1.4}
+.sc .sc-ev.sc-wx li{margin-bottom:7px}
+.sc .sc-ev.sc-wx li>b:first-child{font-weight:700}
+/* ==== scout topo ==== */
+/* The terrain control, the place names on the map and the terrain section of the building card. */
+.sc .sc-topo-mul{mix-blend-mode:multiply}
+.sc .sc-topo-ctl{background:var(--card,#fff);color:var(--ink,#1c2430);border-radius:8px;font:12px/1.35 var(--font,system-ui,sans-serif);max-width:270px}
+.sc .sc-topo-b{display:block;border:0;background:none;color:inherit;font:600 12px/1 var(--font,system-ui,sans-serif);padding:8px 10px;cursor:pointer;width:auto;height:auto}
+.sc .sc-topo-b[aria-expanded="true"]{border-bottom:1px solid var(--line,#d9dee5);width:100%;text-align:left}
+.sc .sc-topo-p{padding:8px 10px 10px;display:grid;gap:6px}
+.sc .sc-topo-p[hidden]{display:none}
+.sc .sc-topo-r{display:grid;grid-template-columns:58px 1fr;align-items:center;gap:6px;margin:0}
+.sc .sc-topo-r select,.sc .sc-topo-r input{width:100%;min-width:0;font-size:12px}
+.sc .sc-topo-c{display:flex;gap:6px;align-items:center;margin:0;cursor:pointer}
+.sc .sc-topo-acts{display:flex;gap:6px;flex-wrap:wrap}
+.sc .sc-topo-acts button{font:600 11.5px/1 var(--font,system-ui,sans-serif);padding:6px 9px;border-radius:6px;border:1px solid var(--line,#c9d0d9);background:var(--bg-2,#f3f5f8);color:inherit;cursor:pointer;width:auto;height:auto}
+.sc .sc-topo-lt{font-weight:600;margin-top:2px}
+.sc .sc-topo-ramp{height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.25)}
+.sc .sc-topo-tk{position:relative;height:14px;font-size:10px;color:var(--ink-3,#5b6675)}
+.sc .sc-topo-tk span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.sc .sc-topo-tk span:first-child{transform:none}.sc .sc-topo-tk span:last-child{transform:translateX(-100%)}
+.sc .sc-topo-sw{display:flex;gap:6px;align-items:center;font-size:11.5px}
+.sc .sc-topo-sw i{width:14px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.sc .sc-topo-ln,.sc .sc-topo-note{font-size:11px;color:var(--ink-3,#5b6675)}
+.sc .sc-topo-note:empty{display:none}
+/* names: light text with a dark edge, so they read on imagery, on the tint and on the street map */
+.sc .sc-tl{pointer-events:none}
+.sc .sc-tl span{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;font:600 11px/1.1 var(--font,system-ui,sans-serif);color:#fff;text-shadow:0 0 2px #000,0 0 3px #000,0 1px 2px #000,1px 0 2px #000,-1px 0 2px #000}
+.sc .sc-tl span i{display:inline-block;width:0;height:0;margin-right:3px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #fff;filter:drop-shadow(0 0 1px #000)}
+.sc .sc-tl-pv span{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#fff7dc}
+.sc .sc-tl-pv6 span{font-size:10.5px;letter-spacing:.1em}
+.sc .sc-tl-r span{font-style:italic;letter-spacing:.04em}
+.sc .sc-tl-d span{color:#ffe2a8;letter-spacing:.06em}
+.sc .sc-tl-v span{color:#d9f2c4}
+.sc .sc-tl-w span,.sc .sc-tl-i span{color:#bfe3ff;font-style:italic}
+.sc .sc-tl-g span i{border-bottom:0;border-top:7px solid #fff}
+/* the card */
+.sc .sc-topo-sec .rowl{gap:10px}
+.sc .sc-topo-v{text-align:right}
+.sc .sc-topo-q{font-size:11px;color:var(--ink-3,#5b6675)}
+.sc .sc-topo-ul{margin-top:8px}
+/* the Topography panel and the profile */
+.sc .sc-topo-card .sc-topo-acts{margin-bottom:10px}
+.sc .leaflet-container.sc-topo-pick{cursor:crosshair}
+.sc .sc-topo-prof{width:100%;height:auto;display:block;margin-top:6px}
+.sc .sc-topo-prof .sc-topo-pl{fill:none;stroke:var(--accent,#c2410c);stroke-width:2;vector-effect:non-scaling-stroke}
+.sc .sc-topo-prof .sc-topo-ar{fill:var(--accent,#c2410c);opacity:.14}
+.sc .sc-topo-prof .sc-topo-gr{stroke:var(--line,#d9dee5);stroke-width:1;vector-effect:non-scaling-stroke}
+.sc .sc-topo-prof .sc-topo-sea{stroke:#2f6fdf;stroke-width:1;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.sc .sc-topo-prof .sc-topo-ax{font:11px var(--font,system-ui,sans-serif);fill:var(--ink-3,#5b6675)}
+.sc .sc-topo-prof .sc-topo-dot{fill:var(--accent,#c2410c);stroke:var(--card,#fff);stroke-width:1.5}
+.sc .sc-topo-ps{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;margin:6px 0 2px}
+.sc .sc-topo-notes{margin:12px 0 8px;display:grid;gap:4px}
+.sc .sc-topo-n{border:1px solid var(--line,#d9dee5);border-radius:8px;padding:7px 10px}
+.sc .sc-topo-n summary{cursor:pointer;font-size:13px}
+.sc .sc-topo-n summary span{color:var(--ink-2,#3d4856)}
+.sc .sc-topo-n p{margin:7px 0 2px;font-size:13px;line-height:1.5}
+</style>

@@ -39,3 +39,18 @@ To rebuild elsewhere, lay these folders out the same way (`louisiana/build` to `
 `louisiana/tests/r11/run_r11.sh <page> <outdir>` runs the twelve suites; `views_unit.js` checks the roof views'
 arithmetic in Node; `r11_smoke.js`, `uap_shots.js`, `storm_shots.js`, `surge_shots.js`, `pattern_shots.js` and
 `review_fix_check2.js` drive the engine in the browser. They were run on a software renderer (no graphics card).
+
+## California
+
+`california-roofer-guru.html` is built from `california/` (a copy of the scratch folder `SP/ca`; downloads and build
+outputs are not kept). `california/DESIGN.md` is the brief every part was built to; `california/AGENTS.md` lists who
+owned what.
+
+| Path | What it is |
+|---|---|
+| `california/atlas/src/` | The seventeen atlas modules as ordered parts (`manifest.json`), rewritten for California. These are the sources: edit them directly. |
+| `california/data/` | The data build (`build_all.sh`, `SCHEMA.md`) and, under `hazard/`, the weather and fire build (`build_hazard.sh`, `HAZARD_SCHEMA.md`). They read downloads listed in `california/research/*.md`. |
+| `california/scout/` | Module 18's dashboard script and parts; `topo/` is the topography block and its port. |
+| `california/engine/<job>/` | One folder per engine job (terrain, weather, traffic, car, sky, views): new code plus a `port_<job>.py` of anchored replacements. |
+| `california/build/` | `assemble_ca.sh` stacks the engine ports on the Louisiana engine (`SP/build/engine.js`, kept here as built by `louisiana/tests/r11/build_r11.sh`), patches the Scout script and calls `build_ca.py`; `ca_smoke.js` is the smoke test. |
+| `california/contract_*.md`, `engine_*_survey.md`, `research/` | The line-by-line contracts of the Louisiana atlas, the engine surveys and the California evidence files the work was built from. |

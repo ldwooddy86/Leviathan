@@ -12,11 +12,11 @@ async () => {
   const frame0 = E._frame, watch0 = E._watch.bind(E);
   let frames = 0, watchMs = 0, watchN = 0, skipped = 0;
   const phase = async (label) => {
-    drain(); frames = 0; watchMs = 0; watchN = 0; skipped = 0; let gap = 0, last = performance.now(); const t0 = last;
+    drain(); const p0 = E.pacing ? E.pacing() : null; frames = 0; watchMs = 0; watchN = 0; skipped = 0; let gap = 0, last = performance.now(); const t0 = last;
     const tick = setInterval(() => { const n = performance.now(); gap = Math.max(gap, n - last); last = n; en.turn(0.7); }, 100);
     while (performance.now() - t0 < SEC * 1000) await nap(250);
     clearInterval(tick); gap = Math.max(gap, performance.now() - last); const wall = Math.round(performance.now() - t0), q = drain();
-    const r = { label, wallMs: wall, framesStarted: frames, skippedTurns: skipped, longestFreezeMs: Math.round(gap), watchCalls: watchN, watchMs: Math.round(watchMs), queueAtEndMs: q, tris: E.renderer.stats.tris, draws: E.renderer.stats.draws };
+    const r = { label, wallMs: wall, framesStarted: frames, skippedTurns: skipped, longestFreezeMs: Math.round(gap), watchCalls: watchN, watchMs: Math.round(watchMs), queueAtEndMs: q, tris: E.renderer.stats.tris, draws: E.renderer.stats.draws, pacing: E.pacing ? E.pacing() : null, drawn: p0 ? E.pacing().drawn - p0.drawn : null };
     say('pace', r); out.push(r); await nap(300);
   };
   /* count frames; time the watch */

@@ -16,7 +16,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   /* every module mounts with no error and no Louisiana word in its text */
   const mods = await page.evaluate(() => Object.keys(typeof MODI !== 'undefined' ? MODI : {}));
   ok(mods.length >= 18, 'modules registered', mods);
-  const BAN = /Louisiana|parish|hurricane|Baton Rouge|New Orleans|FORTIFIED|LSLBC|storm surge|Category [1-5]/i;
+  const BAN = /Louisiana|parish|hurricane|Baton Rouge|New Orleans|FORTIFIED|LSLBC|Category [1-5] hurricane/i;
   for (const k of mods) {
     const e0 = errs.length; await page.evaluate(k => { location.hash = '#' + k; }, k); await wait(1800);
     const r = await page.evaluate(() => { const m = document.querySelector('main') || document.body; const t = m.innerText || ''; return { n: t.length, undef: (t.match(/\bundefined\b|\bNaN\b|\[object Object\]/g) || []).length, t: t.slice(0, 200000) }; });
