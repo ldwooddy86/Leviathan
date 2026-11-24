@@ -125,6 +125,19 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
       console.log('origin moved under a moving car', JSON.stringify(r)); await park(); await wait(8000);
       console.log('world after', JSON.stringify(await ev(() => { const en = MODI.rooftops.api.en(), st = en.state(), d = en.debug(); return { roads: st.roads, cells: st.cells, far: d.far, gl: d.err, note: (st.note || '').slice(0, 50) }; })));
     }
+    if (step === 'keys') {
+      await clearStretch();
+      /* the on-screen pad's hook (en.hold), then real key presses on the focused view, then the one-press keys */
+      const pad = await ev(() => { const en = MODI.rooftops.api.en(); en.hold('fwd', true); let c = en.car.step(1 / 60, 120); const up = c.mph; en.hold('fwd', false); en.hold('right', true); c = en.car.step(1 / 60, 30); const st = en.car.state.steer; en.hold('right', false); en.hold('back', true); for (let i = 0; i < 600 && !en.car.state.atRest; i++) en.car.step(1 / 60, 1); en.hold('back', false); en.hold('down', true); en.car.step(1 / 60, 5); const hb = en.car.input.handbrake; en.hold('down', false); return { mphAfter2sOfFwd: +up.toFixed(1), steerRad: +st.toFixed(3), restAfterBack: en.car.state.atRest, handbrakeOnDown: hb }; });
+      console.log('pad (en.hold)', JSON.stringify(pad));
+      await ev(() => MODI.rooftops.api.en().canvas.focus()); await page.keyboard.down('KeyW'); await wait(7000); const k1 = await car(); await page.keyboard.up('KeyW'); await page.keyboard.down('KeyS'); await wait(6000); await page.keyboard.up('KeyS'); const k2 = await car();
+      console.log('W held 7 s of wall time', JSON.stringify({ mph: k1.mph, odo: k1.odo }), 'then S', JSON.stringify({ mph: k2.mph, gear: k2.gear }));
+      const one = async code => { await page.keyboard.press(code); await wait(400); return ev(() => { const en = MODI.rooftops.api.en(), st = en.state(); return { mode: st.mode, cam: st.car.cam, tc: st.car.tc, rev: en.car.input.reverse }; }); };
+      console.log('C', JSON.stringify(await one('KeyC')), 'T', JSON.stringify(await one('KeyT')), 'R', JSON.stringify(await one('KeyR')), 'Q', JSON.stringify(await one('KeyQ')), 'E', JSON.stringify(await one('KeyE')));
+      await page.keyboard.press('KeyR'); await page.keyboard.press('KeyT'); await ev(() => MODI.rooftops.api.en().car.camera('chase'));
+      const snd = await ev(() => { const en = MODI.rooftops.api.en(); let on = null, err = null; try { on = en.sound(true); en.car.drive({ throttle: 0.5 }); en.car.step(1 / 60, 60); en.car.drive({ brake: 1 }); en.car.step(1 / 60, 120); en.car.drive(null); } catch (e) { err = String(e); } const au = en.engine.audio; const r = { soundReturned: on, audioRunning: !!(au && au.on), err }; en.sound(false); return r; });
+      console.log('sound', JSON.stringify(snd));
+    }
     if (step === 'leave') { await ev(() => { const en = MODI.rooftops.api.en(); en.car.drive(null); en.setHeight('drone'); }); await wait(3000); console.log('left', JSON.stringify(await ev(() => { const en = MODI.rooftops.api.en(), st = en.state(), h = en.world.hero; return { mode: st.mode, car: st.car && { mph: st.car.mph, driving: st.car.driving }, hero: h && { on: h.on, driving: h.driving, speed: h.speed } }; }))); await shot('parked_from_drone', 8000); await ev(() => MODI.rooftops.api.en().setHeight('m3')); await wait(1500); console.log('back in', JSON.stringify(await car())); }
   }
   console.log('PAGE ERRORS:', errs.length ? errs.join('\n') : 'none');

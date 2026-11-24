@@ -61,3 +61,6 @@ Decisions
 - governor: level 250.994 mph, never above 251 (tests/governor_output.txt).
 - stack terrain -> weather -> traffic -> car -> sky applies and parses (out/stack/4.js, 5.js); NOT run as a stack by me.
 - pending at time of writing: run_cor2.log (rain, origin move under a moving car, pictures of the final build).
+- run_cor2.log: rain (storm step 3: grip 0.81, 0-60 3.0 s vs 2.3 dry, stop from 60 in 54 m vs 38), origin moved under the car at
+  47 mph with 0.6 mm step error, no speed jump. run_keys.log: en.hold pad, real W/S keys, C/T/R, Q/E do not change mode, sound on without error.
+- DONE. Report handed back 11-24. Final sources: car_body.js, car_engine.js, car_world.js, port_car.py; out/engine_car.js = la_engine + car.

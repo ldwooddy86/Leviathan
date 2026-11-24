@@ -23,15 +23,16 @@ async () => {
   E._frame = function (now) { frames++; return frame0(now); };
   E._watch = function () { const t = performance.now(); const W = E._watchS; const before = W ? W.left : null; watch0(); const d = performance.now() - t; if (d > 1) { watchMs += d; watchN++; } };
   if (E._watchS) { E._watchS.left = 12; }
-  await phase('A as it is');
+  const PH = String(window.__PACE_PHASES__ || 'ABC');
+  if (PH.includes('A')) await phase('A as it is');
   E._watch = function () {};
-  await phase('B watch off');
+  if (PH.includes('B')) await phase('B watch off');
   let sync = null;
   E._frame = function (now) {
     if (sync) { const st = gl.clientWaitSync(sync, 0, 0); if (st === gl.TIMEOUT_EXPIRED) { skipped++; E._raf = requestAnimationFrame(E._frame); return; } gl.deleteSync(sync); sync = null; }
     frames++; frame0(now); sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); gl.flush();
   };
-  await phase('C watch off, fence gate');
+  if (PH.includes('C')) await phase('C watch off, fence gate');
   E._frame = frame0; E._watch = watch0; if (sync) gl.deleteSync(sync);
   return out;
 }

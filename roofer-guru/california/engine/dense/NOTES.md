@@ -69,3 +69,11 @@ The container restarted once already just after I began (maybe memory pressure f
 - Plan of the fix: (1) the watch reads its pixels without waiting (pixel buffer + fence, answer read a few frames
   later); (2) a fence gate in Engine._frame: no new frame is started until the one before has been drawn, so the
   queue is one frame deep whatever a frame costs; (3) context loss said in words; (4) check dense geometry anyway.
+
+### 01:58 the queue has no bound (out/d9.log)
+- Phase A again: 23 frames started, one watch call froze the page 47.8 s.
+- Phase B (watch off, nothing else changed): 236 frames started in 26 s; at the end ONE readPixels took 316.9 s:
+  that is 317 s of frames handed over and not yet drawn. Chromium (headless, SwiftShader) does not hold
+  requestAnimationFrame back when the GPU process is behind, and the engine does not either. Anything that waits for
+  the GPU (screenshot, readPixels, the tab being shown) waits for the whole queue. This is the fault.
+- Next: phase C alone (fence gate) to see the queue held at one frame; then write the port.
