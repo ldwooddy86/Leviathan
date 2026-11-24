@@ -54,3 +54,7 @@ are lifted and tilted by wrapping their instance buffers in fleetInit), haze/clo
 - [x] Chain check: terrain -> weather -> traffic -> car -> sky ports all apply cleanly and the result parses (engine/terrain/out/chain/s4.js). Weather port already adapts to surgeY().
 - Port now 108 patches (added: cars' physics boxes lifted, 2 + 1 anchors in X.update; Alta terrain following).
 - running: tests/run_places.sh > out/places.log (Twin Peaks passes 261.9 vs 262.1). Then: fetch timeout 25 -> 60 s, diag of failed tiles (S.terr.tiles() shows why), t_perf.js on both pages.
+- FOUND: coarse terrarium tiles (z10, z8) have false spikes at coasts (3096 m in San Diego Bay). Fixed in kit: despike() at decode, tests/despike_check.js. NEXT: rerun dbg_place at Coronado to confirm, then t_perf both pages, grid check for the same artifact.
+- [x] run_places.sh: all 7 places pass ground checks (Twin Peaks 261.9/262.1, S Lake Tahoe 1901.3/1901.6, Coronado 5.3/6.0, Mammoth 2401.4/2399.2, Truckee 1773.3/1773.1, LA 93.0/90.2, Lone Pine 1136.0/1136). One FAIL found and fixed: cells kept beyond reach kept old prisms after their ground was rebuilt (plan() now requeues by c.gv).
+- [x] despike extended inland (overAny 700 m z8 / 350 m z10); scan_spikes.py: 25 near-sea + 4 inland bad pixels in z8 statewide; grid source (z6) clean.
+- running: t_perf.js terrain then base -> out/perf_terrain.log, out/perf_base.log. Then: smoke of chain s4.js (all five ports) in the test bed; final report.

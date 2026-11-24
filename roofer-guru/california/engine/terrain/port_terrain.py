@@ -175,7 +175,7 @@ rep(".join('|') + '#' + S.roadsVer;", ".join('|') + '#' + S.roadsVer + '#' + (c.
 rep("function dropCell(c) { disposeTrees(c); c.group.destroy();", "function dropCell(c) { disposeTrees(c); TERR.drop(c.gnd); c.gnd = null; c.group.destroy();")
 rep("      own.b.quad([rect.x0, 0, rect.zN], [rect.x1, 0, rect.zN], [rect.x1, 0, rect.zS], [rect.x0, 0, rect.zS], [0, 1, 0], [[0, 0], [1, 0], [1, 1], [0, 1]]);\n",
     "      /* the cell's ground: a tile of the terrain kit, with the cell's photograph; it stays while the cell's buildings are rebuilt */\n"
-    "      if (!c.gnd || c.gnd.dead) c.gnd = TERR.ground(CZ, c.X, c.Y, { parent: c.group, mat: c.img.mat, shadow: true }); TERR.ensure(c.gnd);\n")
+    "      if (!c.gnd || c.gnd.dead) c.gnd = TERR.ground(CZ, c.X, c.Y, { parent: c.group, mat: c.img.mat, shadow: true }); TERR.ensure(c.gnd); c.gv = c.gnd.v;\n")
 rep("      B.roofTri = (a, b, d, n) => {\n        if (inR(a)",
     "      B.roofTri = (a, b, d, n) => { const dy = B.dy || 0; if (dy) { a = [a[0], a[1] + dy, a[2]]; b = [b[0], b[1] + dy, b[2]]; d = [d[0], d[1] + dy, d[2]]; }   /* the roof of the building being written, lifted to its floor (copies: one point serves two triangles) */\n        if (inR(a)")
 cut("      for (const b of all) { let g = null; try { g = K.addBuilding(B, b,", "      c.extra = nx;\n",
@@ -190,7 +190,10 @@ cut("      for (const b of all) { let g = null; try { g = K.addBuilding(B, b,", 
 """)
 rep("S.planCell = cX + '/' + cY; queue.length = 0;", "S.planCell = cX + '/' + cY; queue.length = 0; let terrW = false; clearTimeout(terrWaitT);")
 rep("if (!c.built || c.sig !== sigOf(c)) queue.push(c); }", "if (!c.built && TERR.waiting(rect)) terrW = true;   /* a cell is first built when its elevation has come (or has not come in six seconds) */\n        else if (!c.built || c.sig !== sigOf(c)) queue.push(c); }")
-rep("      WIDE.update(); farTiles(); need();\n    }", "      WIDE.update(); farTiles(); TERR.resort(); need(); if (terrW) terrWaitT = setTimeout(plan, 500);\n    }")
+rep("      queue.sort((a, b) => a.d - b.d);\n      CELLS.forEach(c => { if (Math.hypot(c.cx - S.x, c.cz - S.z) > Rm + size * 1.6) dropCell(c); });\n      WIDE.update(); farTiles(); need();\n    }",
+    "      queue.sort((a, b) => a.d - b.d);\n      CELLS.forEach(c => { if (Math.hypot(c.cx - S.x, c.cz - S.z) > Rm + size * 1.6) dropCell(c); });\n"
+    "      CELLS.forEach(c => { if (c.built && c.gnd && c.gv !== c.gnd.v && !queue.includes(c)) queue.push(c); });   /* a cell kept a while beyond reach, whose ground has been made again: its buildings are stood on it again */\n"
+    "      WIDE.update(); farTiles(); TERR.resort(); need(); if (terrW) terrWaitT = setTimeout(plan, 500);\n    }")
 rep("    function pump() {\n      const t0 = performance.now(); let did = false;", "    function pump() {\n      let did = TERR.pump(queue.length ? 2.5 : 5, S.x, S.z); const t0 = performance.now();")
 rep("ib.add(t.x, 0, t.z, j * TAU, t.r * 2, t.h, t.r * 2,", "t.y = S.gy(t.x, t.z); ib.add(t.x, t.y - 0.15, t.z, j * TAU, t.r * 2, t.h, t.r * 2,")
 

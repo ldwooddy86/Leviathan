@@ -20,6 +20,7 @@ DATA = opt('--data', os.path.join(CA, 'data', 'out', 'ca_atlas_data.json'))
 NWS = opt('--nws', os.path.join(CA, 'data', 'hazard', 'out', 'ca_nws_snapshot.json'))
 ENGINE = opt('--engine', os.path.join(CA, 'engine', 'out', 'engine.js'))
 ESTYLE = opt('--engine-style', os.path.join(CA, 'engine', 'out', 'engine-style.css'))
+SCOUT = opt('--scout-dir', os.path.join(CA, 'scout'))
 OUT = args[0] if args else '/home/user/Leviathan/california-roofer-guru.html'
 def rd(p):
     with open(p, encoding='utf-8') as f: return f.read()
@@ -48,7 +49,7 @@ def vendor(f):
         t = t.replace(nc, nc + '\ntry { if (window.leaflet === window.__SCOUT_LEAFLET__) delete window.leaflet; if (window.L === undefined) delete window.L; } catch (e) { /* fine */ }')
     return nl(t)
 def own(p): return nl(rd(p))
-S = os.path.join(CA, 'scout')
+S = SCOUT
 anchor = "<script>\nif (!document.documentElement.lang) document.documentElement.lang = 'en';\n/* ==== 99_shell.js ==== */"
 assert page.count(anchor) == 1, 'shell anchor not found exactly once'
 blk = ['<!-- rooftop-scout:start (module 18: the heatmaps on satellite imagery, Street View from the road, every roof read) -->\n',

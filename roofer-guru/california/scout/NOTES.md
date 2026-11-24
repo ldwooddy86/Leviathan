@@ -41,3 +41,13 @@ Tests in tests/: smoke_ca.js (8 addresses, no page errors), lens_unit_ca.js PASS
 engine_ca.js (needs a quiet machine: software GL), dbg.js / dbg_engine.js helpers.
 Builds: build/out/scout_test.html, scout_unit.html (LA engine), scout_wx.html (weather engine + views port).
 Left: engine_ca.js on the LA engine and on scout_wx.html; a look at a picture of the bar; report.
+
+## State 2026-11-23, night (hand-back state)
+scout.js / scout3d.js / trace.js / scout-style.css are final sources (parse; run on CA/data/out/ca_atlas_data.json).
+Also done: p13 (freeway / ramp / cable kinds in words and in the 3D view; traffic and sky captions), the fire pace cap,
+ZIP fire rebuilds cut off for buildings CAL FIRE inspected, dates YYYYMMDD read, permitCover "remove X, install Y".
+Other jobs' ports checked against this scout.js: engine/traffic/port_traffic_scout.py and scout/topo/port_topo.py both
+apply (outputs in CA/scout_work/tmp). Do not write the literal name of the terrain block's global in scout.js: its port
+refuses a file that contains it.
+Tests: tests/*.js with outputs tests/*.out. Engine runs: engine_ca.out (LA engine), engine_ca_wx.out (weather engine
+with the views port): all eight views read 43 roofs, no page errors.

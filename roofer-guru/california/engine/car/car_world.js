@@ -19,8 +19,10 @@
       const reach = 45 + sp * 0.6; if (CARW.at && CARW.ver === S.roadsVer && Math.hypot(x - CARW.at[0], z - CARW.at[1]) < 12 && reach <= CARW.at[2]) return;
       CARW.at = [x, z, reach + 20]; CARW.ver = S.roadsVer; const segs = CARW.segs = [], poles = CARW.poles = [], R2 = reach + 20;
       for (const r of S.roads) { if (r.kind === 'path' || r.kind === 'cable') continue; const sp2 = carRoadSpec(r), P = r.pts; for (let i = 0; i + 1 < P.length; i++) { const a = P[i], b = P[i + 1]; if (Math.min(a[0], b[0]) > x + R2 || Math.max(a[0], b[0]) < x - R2 || Math.min(a[1], b[1]) > z + R2 || Math.max(a[1], b[1]) < z - R2) continue; segs.push([a[0], a[1], b[0] - a[0], b[1] - a[1], sp2[0], sp2[1], r, r.dk ? +r.dk[i] || 0 : 0, r.dk ? +r.dk[i + 1] || 0 : 0]); } }
-      for (const s of LAMP.spots) if (Math.abs(s[0] - x) < R2 && Math.abs(s[1] - z) < R2) poles.push([s[0], s[1], 0.1]);
-      CELLS.forEach(c => { if (!c.trees || !c.trees.list || Math.hypot(c.cx - x, c.cz - z) > R2 + 140) return; for (const t of c.trees.list) if (Math.abs(t.x - x) < R2 && Math.abs(t.z - z) < R2) poles.push([t.x, t.z, clamp((t.r || 2) * 0.09, 0.12, 0.4)]); });
+      /* a post or a trunk that the generated street furniture stood on a carriageway (it happens at junctions) is not solid */
+      const clear = (px, pz) => { for (const s of segs) { const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((px - s[0]) * s[2] + (pz - s[1]) * s[3]) / l2, 0, 1) : 0; if (Math.hypot(px - s[0] - s[2] * t, pz - s[1] - s[3] * t) <= s[4] + 0.3) return false; } return true; };
+      for (const s of LAMP.spots) if (Math.abs(s[0] - x) < R2 && Math.abs(s[1] - z) < R2 && clear(s[0], s[1])) poles.push([s[0], s[1], 0.1]);
+      CELLS.forEach(c => { if (!c.trees || !c.trees.list || Math.hypot(c.cx - x, c.cz - z) > R2 + 140) return; for (const t of c.trees.list) if (Math.abs(t.x - x) < R2 && Math.abs(t.z - z) < R2 && clear(t.x, t.z)) poles.push([t.x, t.z, clamp((t.r || 2) * 0.09, 0.12, 0.4)]); });
     }
     /* the road under a point: null off the road, else [height of its surface over the land, the road] */
     /* where roads cross on bridges (the traffic's decks, r.dk) the one nearest the height the car is at is the one it is on */
@@ -29,12 +31,12 @@
     /* walls: a circle swept from (x0, z0) to (x1, z1). The answer pushes the circle's END place out of what it struck. */
     function carHit(x0, z0, x1, z1, r) {
       const idx = CARW.hitN++ % 3, dx = x1 - x0, dz = z1 - z0, len = Math.hypot(dx, dz), n = Math.max(1, Math.ceil(len / (r * 0.5))), cy = CAR ? CAR.state.y : 0;
-      const T = CARW.tHit; if (T && CARW.hitN <= 3 && idx === T.at) { CARW.tHit = null; return { nx: T.nx, nz: T.nz, depth: T.depth }; }
+      const T = CARW.tHit; if (T && CARW.hitN <= 3 && idx === T.at) { CARW.tHit = null; CARW.what = 'traffic'; return { nx: T.nx, nz: T.nz, depth: T.depth }; }
       const prisms = phys.prismsIn(Math.min(x0, x1) - r, Math.min(z0, z1) - r, Math.max(x0, x1) + r, Math.max(z0, z1) + r, CARW.pr);
-      if (prisms.length) for (let i = len < 1e-4 ? n : 1; i <= n; i++) { const t = i / n, x = x0 + dx * t, z = z0 + dz * t; for (const p of prisms) { if (p.y1 < cy + 0.3 || p.y0 > cy + 1.5) continue; const h = phys._prismSide(p, x, z, r); if (h) return { nx: h[0], nz: h[1], depth: Math.max(0.002, h[2] + (x - x1) * h[0] + (z - z1) * h[1]) }; } }
+      if (prisms.length) for (let i = len < 1e-4 ? n : 1; i <= n; i++) { const t = i / n, x = x0 + dx * t, z = z0 + dz * t; for (const p of prisms) { if (p.y1 < cy + 0.3 || p.y0 > cy + 1.5) continue; const h = phys._prismSide(p, x, z, r); if (h) { CARW.what = 'a building'; return { nx: h[0], nz: h[1], depth: Math.max(0.002, h[2] + (x - x1) * h[0] + (z - z1) * h[1]) }; } } }
       for (const q of CARW.poles) { const rr = r + q[2]; if (Math.min(x0, x1) - rr > q[0] || Math.max(x0, x1) + rr < q[0] || Math.min(z0, z1) - rr > q[1] || Math.max(z0, z1) + rr < q[1]) continue;
         const l2 = len * len, t = l2 > 1e-8 ? clamp(((q[0] - x0) * dx + (q[1] - z0) * dz) / l2, 0, 1) : 1, cx = x0 + dx * t, cz = z0 + dz * t, d = Math.hypot(cx - q[0], cz - q[1]); if (d >= rr) continue;
-        let nx = (cx - q[0]) / (d || 1), nz = (cz - q[1]) / (d || 1); if (d < 1e-4 && len > 1e-4) { nx = -dx / len; nz = -dz / len; } return { nx, nz, depth: Math.max(0.002, rr - d + (cx - x1) * nx + (cz - z1) * nz) }; }
+        let nx = (cx - q[0]) / (d || 1), nz = (cz - q[1]) / (d || 1); if (d < 1e-4 && len > 1e-4) { nx = -dx / len; nz = -dz / len; } CARW.what = q[2] > 0.11 ? 'a tree' : 'a lamp post'; return { nx, nz, depth: Math.max(0.002, rr - d + (cx - x1) * nx + (cz - z1) * nz) }; }
       return null;
     }
     /* the nearest lane a car may stand in: its middle, and the way it runs (the side of the road traffic keeps to, turned the way the camera looks) */
@@ -42,7 +44,10 @@
       const list = S.roads.filter(r => r.kind !== 'path' && r.kind !== 'drive' && r.kind !== 'cable' && r.pts.length > 1), o = nearestOnRoads(x, z, maxD || 120, list); if (!o) return null;
       const r = list[o.ri], a = r.pts[o.si], b = r.pts[o.si + 1], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1, y = Rd(yaw), one = r.ow || r.oneway === true || r.oneway === 1 || r.oneway === 'yes' ? 1 : r.oneway === -1 ? -1 : 0, dk = r.dk ? (+r.dk[o.si] || 0) + ((+r.dk[o.si + 1] || 0) - (+r.dk[o.si] || 0)) * o.t : 0;
       const dir = one || ((dx * Math.sin(y) - dz * Math.cos(y)) >= 0 ? 1 : -1), hx = dx / l * dir, hz = dz / l * dir, hw = carRoadSpec(r)[0], off = one ? 0 : Math.min(hw * 0.5, Math.max(1.6, hw - 1.9));
-      return { x: o.x - hz * off, z: o.z + hx * off, yaw: (DEG * Math.atan2(hx, -hz) + 360) % 360, road: r, lift: carRoadSpec(r)[1] + dk };
+      /* the street map and the footprints do not always agree: where a wall stands in the lane the car is put nearer the middle, or over it */
+      const free = q => { for (const d of [1.45, 0, -1.45]) { const x = o.x - hz * q + hx * d, z = o.z + hx * q + hz * d; for (const p of phys.prismsIn(x - 1.3, z - 1.3, x + 1.3, z + 1.3, CARW.pr)) if (p.y1 > 0.5 && phys._prismSide(p, x, z, 1.25)) return false; } return true; };
+      let use = off; for (const q of [off, off * 0.5, 0, -off * 0.5, -off]) if (free(q)) { use = q; break; }
+      return { x: o.x - hz * use, z: o.z + hx * use, yaw: (DEG * Math.atan2(hx, -hz) + 360) % 360, road: r, lift: carRoadSpec(r)[1] + dk };
     }
     function carMake() { if (!CAR) { CAR = SE.M3Kit(engine); R.warm && R.warm(Object.values(CAR.materials)); } return CAR; }
     /* take the car out: where it stands if it is near, else on the nearest lane to the camera */
@@ -95,7 +100,7 @@
       const v = CAR.view(kind, kind === 'orbit' ? { yaw: S.cchase.oyaw, pitch: S.cchase.pitch, dist: S.cchase.dist * 1.2 } : kind === 'chase' ? S.cchase : { yaw: S.cchase.yaw, pitch: S.cchase.pitch + 9, dist: 0 }, carGround);
       if (kind === 'chase' || kind === 'orbit') {   /* a building between the car and the camera: the camera comes in to this side of it */
         const o = [a.x, a.y + 1.25, a.z], dx = v.pos[0] - o[0], dy = v.pos[1] - o[1], dz = v.pos[2] - o[2], d = Math.hypot(dx, dy, dz) || 1, h = phys.raycast(o, [dx / d, dy / d, dz / d], d + 0.5);
-        if (h && h.prism && h.t < d + 0.5) { const k = Math.max(1.6, h.t - 0.6) / d; v.pos = [o[0] + dx * k, o[1] + dy * k, o[2] + dz * k]; v.near = 0.2; } }
+        if (h && h.prism && h.t < d + 0.5) { const k = Math.min(1, Math.max(2.6, h.t - 0.6) / d); v.pos = [o[0] + dx * k, o[1] + dy * k + (1 - k) * 1.1, o[2] + dz * k]; v.near = 0.2; } }
       S.yaw = ((v.yaw % 360) + 360) % 360; S.pitch = v.pitch; t.setPosition(v.pos[0], v.pos[1], v.pos[2]); Q.fromEuler(t.rotation, Rd(v.pitch), -Rd(v.yaw), Rd(v.roll || 0)); t.dirty(); cam.fov = v.fov; cam.near = v.near;
       const sd = (QUALITY[engine.quality] || QUALITY.high).shadowDistance * (a.speed > 60 ? 1.5 : 1); if (R.settings.shadowDistance !== sd) R.settings.shadowDistance = sd;
     }
@@ -109,7 +114,7 @@
         hudEl._h = '\u0001m3'; E = CARW.els = {}; hudEl.querySelectorAll('[data-c]').forEach(el => { E[el.getAttribute('data-c')] = el; });
       }
       const set = (k, v) => { if (E[k]._t !== v) { E[k].textContent = v; E[k]._t = v; } }, gr = a.grip, red = a.rpm > 6900;
-      set('st', !CARW.drive ? 'parked' : a.hit ? 'struck' : a.drifting ? 'sliding' : a.governed ? 'at its top speed' : a.atRest ? 'standing' : a.reverse ? 'backing up' : 'driving');
+      set('st', !CARW.drive ? 'parked' : a.hit ? 'struck ' + (CARW.what || 'something') : a.drifting ? 'sliding' : a.governed ? 'at its top speed' : a.atRest ? 'standing' : a.reverse ? 'backing up' : 'driving');
       set('mph', String(Math.round(a.mph))); set('gear', a.reverse ? 'R' : String(a.gear)); set('rpm', String(Math.round(a.rpm / 10) * 10));
       const w = Math.round(clamp(a.rpm / 7200, 0, 1) * 100) + '%'; if (E.bar._w !== w) { E.bar.style.width = w; E.bar._w = w; } if (E.bar._r !== red) { E.bar.style.background = red ? '#ff5a3c' : 'currentColor'; E.bar._r = red; }
       set('g', Math.hypot(a.gLong, a.gLat).toFixed(2) + (Math.abs(a.gLat) > 0.15 ? (a.gLat > 0 ? ' right' : ' left') : a.gLong < -0.15 ? ' braking' : ''));
@@ -122,7 +127,7 @@
       else if (code === 'KeyB') { const a = CAR.state, L = carLane(a.x, a.z, a.yaw, 400); if (L) { CARW.lift = L.lift; CARW.at = null; carNear(L.x, L.z, 0); CAR.place(L.x, L.z, L.yaw, carGround(L.x, L.z)); S.x = L.x; S.z = L.z; after(); } }
       engine.playing = true; engine.wake(); need();
     }
-    const carState = () => { if (!CAR || !CAR.out) return null; const a = CAR.state, ll = toLL(a.x, a.z); return { mph: a.mph, speed: a.speed, gear: a.reverse ? -1 : a.gear, rpm: a.rpm, throttle: a.throttle, brake: a.brake, steer: a.steer, gLong: a.gLong, gLat: a.gLat, tc: a.tcMode, abs: a.abs, drifting: a.drifting, hit: a.hit, hits: a.hits, atRest: a.atRest, onRoad: a.onRoad, grip: a.grip, wet: a.wet, lamps: !!a.lamps, braking: !!a.braking, yaw: a.yaw, lat: ll[0], lon: ll[1], y: a.y, odo: a.odo, topMph: a.topMph, top: 251, driving: CARW.drive, cam: S.carCam, fast: S.fast }; };
+    const carState = () => { if (!CAR || !CAR.out) return null; const a = CAR.state, ll = toLL(a.x, a.z); return { mph: a.mph, speed: a.speed, gear: a.reverse ? -1 : a.gear, rpm: a.rpm, throttle: a.throttle, brake: a.brake, steer: a.steer, gLong: a.gLong, gLat: a.gLat, tc: a.tcMode, abs: a.abs, drifting: a.drifting, hit: a.hit, hits: a.hits, struck: a.hit ? CARW.what || '' : '', atRest: a.atRest, onRoad: a.onRoad, grip: a.grip, wet: a.wet, lamps: !!a.lamps, braking: !!a.braking, yaw: a.yaw, lat: ll[0], lon: ll[1], y: a.y, odo: a.odo, topMph: a.topMph, top: 251, driving: CARW.drive, cam: S.carCam, fast: S.fast }; };
     /* the public handle (en.car) */
     const carApi = { get craft() { return CAR; }, get state() { return CAR ? CAR.state : null; }, get input() { return CAR ? CAR.input : null; }, spec: () => carMake().SPEC, keys: CAR_KEYS, note: CAR_NOTE, short: CAR_SHORT, cams: ['chase', 'bonnet', 'cockpit', 'orbit'],
       /* put the car at a latitude and longitude, heading yaw (degrees from north); snapped to the nearest lane unless o.exact */

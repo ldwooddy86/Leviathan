@@ -731,7 +731,9 @@
 
     /* ---------- streets and alleys: asphalt and concrete on the ground, and the paths the camera walks ---------- */
     const WALK = new Set(['street', 'major', 'alley', 'service']);
-    const ROADW = { major: [12, 0.1, 'asphalt'], street: [8.2, 0.09, 'asphalt'], service: [5.2, 0.085, 'asphalt'], alley: [4.2, 0.08, 'concrete'], drive: [3, 0.075, 'concrete'], path: [1.6, 0.07, 'concrete'] };
+    /* a freeway carriageway and a ramp are roads to look at, not to walk: drawn at 12 ft a lane with shoulders where the map
+       gives the lanes (Caltrans's standard lane; the shoulders are a judgment), else at four lanes and one */
+    const ROADW = { freeway: [19.5, 0.1, 'asphalt'], ramp: [6.1, 0.09, 'asphalt'], major: [12, 0.1, 'asphalt'], street: [8.2, 0.09, 'asphalt'], service: [5.2, 0.085, 'asphalt'], alley: [4.2, 0.08, 'concrete'], drive: [3, 0.075, 'concrete'], path: [1.6, 0.07, 'concrete'] };
     function ribbon(B, pts, w, y, tile, off) {
       const n = pts.length, hw = w / 2, L = [], Rr = [], o = off || 0;
       for (let i = 0; i < n; i++) {
@@ -747,8 +749,8 @@
     }
     function setRoads(list) {
       clearGroup(G.roads); mats();
-      S.roads = list.map(r => ({ name: r.name || '', kind: r.kind, pts: r.pts.map(([la, lo]) => toL(la, lo)) })).filter(r => r.pts.length >= 2);
-      const by = {}; S.roads.forEach(r => { const spec = ROADW[r.kind] || ROADW.street, B = by[r.kind] = by[r.kind] || batch(); ribbon(B, r.pts, spec[0], spec[1], spec[2] === 'asphalt' ? 4 : 3); });
+      S.roads = list.filter(r => r.kind !== 'cable').map(r => ({ name: r.name || '', kind: r.kind, lanes: +r.lanes || 0, pts: r.pts.map(([la, lo]) => toL(la, lo)) })).filter(r => r.pts.length >= 2);   /* a cable car track is not a street */
+      const by = {}; S.roads.forEach(r => { const spec = ROADW[r.kind] || ROADW.street, B = by[r.kind] = by[r.kind] || batch(), w = (r.kind === 'freeway' || r.kind === 'ramp') && r.lanes > 0 ? r.lanes * 3.66 + (r.kind === 'freeway' ? 4.9 : 2.4) : spec[0]; ribbon(B, r.pts, w, spec[1], spec[2] === 'asphalt' ? 4 : 3); });
       Object.entries(by).forEach(([k, B]) => { const spec = ROADW[k] || ROADW.street, m = batchMesh(B, MAT[spec[2]], 'road-' + k); if (m) { m.castShadow = false; m.renderOrder = -1; G.roads.add(m); } });
       const paint = batch(), paintW = batch(); S.roads.filter(r => r.kind === 'major').forEach(r => { ribbon(paint, r.pts, 0.11, 0.115, 1, 0.12); ribbon(paint, r.pts, 0.11, 0.115, 1, -0.12); ribbon(paintW, r.pts, 0.12, 0.115, 1, 5.4); ribbon(paintW, r.pts, 0.12, 0.115, 1, -5.4); });
       [[paint, MAT.paintY], [paintW, MAT.paintW]].forEach(([B, M]) => { const m = batchMesh(B, M, 'paint'); if (m) { m.castShadow = false; G.roads.add(m); } });

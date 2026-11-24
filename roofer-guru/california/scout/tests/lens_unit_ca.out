@@ -2,44 +2,44 @@
  "n": 501,
  "views": {
   "cover": {
-   "label": "Asphalt shingles 76%",
+   "label": "Asphalt shingles 96%",
    "v": [
-    0.722,
+    0.958,
     1,
     8,
     8
    ],
-   "leg": "ned for the hot dry south and Central Valley. It shows mid toned in the satellite photo. The odds are the card's: the 2020 Residential Energy Consumption Survey's California roofs by the era a home was built, leaned by climate, and any covering a county roll, a permit or a fire inspection records. No one has looked at the roof. "
+   "leg": "FIRE&#39;s inspection recorded this covering. It shows mid toned in the satellite photo. The odds are the card's: the 2020 Residential Energy Consumption Survey's California roofs by the era a home was built, leaned by climate, and any covering a county roll, a permit or a fire inspection records. No one has looked at the roof. "
   },
   "style": {
-   "label": "Laminated 83%",
+   "label": "Laminated 74%",
    "v": [
-    0.749,
+    0.603,
     1,
     8,
     16
    ],
-   "leg": "inch exposure Laminated: uneven tabs, 5 5/8 inch exposure Most likely not shingles (its own pattern) 722 Deodara Dr By its likely age the shingles went on around 2019 Laminated 83% · three tab 17% If it is shingles at all (76%) From the roof's likely age and national sales, not from the photo. No split for California was found. "
+   "leg": "exposure Laminated: uneven tabs, 5 5/8 inch exposure Most likely not shingles (its own pattern) 2275 Santa Rosa Ave By its likely age the shingles went on around 2012 Laminated 74% · three tab 26% If it is shingles at all (96%) From the roof's likely age and national sales, not from the photo. No split for California was found. "
   },
   "thermal": {
-   "label": "153°F",
+   "label": "154°F",
    "v": [
-    0.704,
+    0.711,
     0,
     0,
     0
    ],
-   "leg": "plane 153°F (faces south) · coolest 128°F (faces north) Over a normal year heat ages this roof 1.09 times as fast as the average shingles roof here: a darker colour, or planes turned to the sun, cost it years, and this place 1.05 times as fast as the average California roof of its kind (shade is not counted in the yearly rate). "
+   "leg": "plane 154°F (faces south) · coolest 129°F (faces north) Over a normal year heat ages this roof 1.09 times as fast as the average shingles roof here: a darker colour, or planes turned to the sun, cost it years, and this place 1.05 times as fast as the average California roof of its kind (shade is not counted in the yearly rate). "
   },
   "wear": {
-   "label": "47% worn",
+   "label": "60% worn",
    "v": [
-    0.536,
-    0.312,
-    5,
+    0.734,
+    0.139,
+    4,
     1
    ],
-   "leg": " 8% · Metal (standing seam or panels) 4% · Low slope roof on a house 4% About 7 years of a 25 year mean life used (30%) Wind, hail or fire damage on record near it and still open: 31% Worn about 47% on the whole; from 39% to 54% across its planes A model of the odds from records, not an inspection: a roofer on the roof decides. "
+   "leg": "moss and algae rust, or fire damage 2275 Santa Rosa Ave Asphalt shingles 96% About 14 years of a 25 year mean life used (56%) Moss or algae likely on the shaded and north planes (31%) Worn about 60% on the whole; from 46% to 73% across its planes A model of the odds from records, not an inspection: a roofer on the roof decides. "
   },
   "storm": {
    "label": "",
@@ -52,10 +52,10 @@
    "leg": " Weather: Dry and calm Set the rain scale, the wind scale or the sky in the Weather row to see what each would do to each roof. Odds from records and stated judgments, not a forecast of a storm, and not an inspection. "
   },
   "fire": {
-   "label": "Class A 85%",
+   "label": "Class A 90%",
    "v": [
-    0.171,
-    0.11,
+    0.136,
+    0.081,
     5,
     21
    ],
@@ -69,51 +69,51 @@
     0,
     23
    ],
-   "leg": "east 16. This roof most likely reflects about 10% of sunlight (its covering, and how light it shows in the photo): under the 0.20 a re-roof must reach. The climate zone is from the Energy Commission's climate zone map at the building. Exceptions (an attic at R-38, a radiant barrier, insulation above the deck) are not read here. "
+   "leg": "least 16. This roof most likely reflects about 8% of sunlight (its covering, and how light it shows in the photo): under the 0.20 a re-roof must reach. The climate zone is from the Energy Commission's climate zone map at the building. Exceptions (an attic at R-38, a radiant barrier, insulation above the deck) are not read here. "
   },
   "time": {
-   "label": "Age 19%",
+   "label": "Age 35%",
    "v": [
-    0.246,
-    0.283,
+    0.445,
+    0.511,
     3,
     4
    ],
-   "leg": "y 2034: a roofer needed 38% · the roof replaced 25% Most likely: heat, sun and age . Granules wash off, the asphalt dries and cracks, tabs curl and blister; the south and west slopes go first, and faster in the valleys and deserts. Odds at the pace of the record, not a prediction of any one storm or fire, and not an inspection. "
+   "leg": "ed 40% Most likely: heat, sun and age . Granules wash off, the asphalt dries and cracks, tabs curl and blister; the south and west slopes go first, and faster in the valleys and deserts. Moss or algae on the roof then in place: 22% Odds at the pace of the record, not a prediction of any one storm or fire, and not an inspection. "
   }
  },
  "steps": {
   "leak": [
    0,
-   0.00075,
-   0.00249,
-   0.00199,
-   0.00249,
-   0.00448,
-   0.00746,
-   0.01119,
-   0.01492
+   0.00105,
+   0.0035,
+   0.0028,
+   0.0035,
+   0.0063,
+   0.0105,
+   0.01575,
+   0.021
   ],
   "wind": [
    0,
    0,
-   0.000058,
-   0.000216,
-   0.000795,
-   0.003179
+   0.000109,
+   0.000402,
+   0.001483,
+   0.005932
   ],
   "snow": {
    "add": 28.6,
    "pg": 9,
    "label": "Snow +29 psf"
   },
-  "ember": 0.227
+  "ember": 0.167
  },
  "fire": [
-  0.85,
-  0.086,
-  0.053,
-  0.011
+  0.898,
+  0.039,
+  0.061,
+  0.002
  ],
  "cool": [
   [
@@ -123,7 +123,7 @@
    0.2
   ],
   [
-   "ent",
+   "unk",
    9,
    "low",
    0.63
@@ -134,28 +134,28 @@
   1388
  ],
  "house": {
-  "addr": "722 DEODARA DR",
-  "yb": 1924,
+  "addr": "2275 SANTA ROSA AVE",
+  "yb": 1958,
   "keys": [
    [
     "shingle",
-    0.76
+    0.96
    ],
    [
     "wood",
-    0.09
+    0.01
    ],
    [
     "tile",
-    0.08
+    0.01
    ],
    [
     "metal",
-    0.04
+    0.01
    ],
    [
     "flat",
-    0.04
+    0.01
    ]
   ]
  },

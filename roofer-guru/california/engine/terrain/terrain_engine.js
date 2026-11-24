@@ -65,17 +65,35 @@
       if (!cv2) { cv2 = document.createElement('canvas'); cv2.width = cv2.height = 256; g2 = cv2.getContext('2d', { willReadFrequently: true }); }
       g2.globalCompositeOperation = 'copy'; g2.imageSmoothingEnabled = false; g2.drawImage(bmp, 0, 0, 256, 256); if (bmp.close) bmp.close();
       const px = g2.getImageData(0, 0, 256, 256).data, d = new Float32Array(65536), n = 1 << z, lw = x / n * 360 - 180, le = (x + 1) / n * 360 - 180, ln = vLat(y / n), ls = vLat((y + 1) / n);
-      const boxes = INLAND.filter(b => b[0] < ln && b[1] > ls && b[2] < le && b[3] > lw); let bad = 0;
+      const boxes = INLAND.filter(b => b[0] < ln && b[1] > ls && b[2] < le && b[3] > lw), raw = z <= 10 ? new Uint8Array(65536) : null; let bad = 0, sea = 0;
       for (let j = 0, k = 0; j < 256; j++) { const la = boxes.length ? vLat((y + (j + 0.5) / 256) / n) : 0;
         for (let i = 0; i < 256; i++, k++) { let h = px[k * 4] * 256 + px[k * 4 + 1] + px[k * 4 + 2] / 256 - 32768;
-          if (h < 0) { let inl = false; if (boxes.length) { const lo = lw + (le - lw) * (i + 0.5) / 256; for (const b of boxes) if (la >= b[0] && la <= b[1] && lo >= b[2] && lo <= b[3]) { inl = true; break; } } h = inl ? Math.max(h, -95) : 0; }
+          let shore = h <= 3; if (h < 0) { let inl = false; if (boxes.length) { const lo = lw + (le - lw) * (i + 0.5) / 256; for (const b of boxes) if (la >= b[0] && la <= b[1] && lo >= b[2] && lo <= b[3]) { inl = true; break; } } h = inl ? Math.max(h, -95) : 0; if (inl) shore = false; }
           else if (h > 9000) { h = 0; bad++; }
-          d[k] = h; } }
-      if (bad > 60000) throw new Error('not an elevation tile'); return d;
+          d[k] = h; if (raw) { raw[k] = shore ? 1 : 0; if (shore) sea++; } } }
+      if (bad > 60000) throw new Error('not an elevation tile'); if (z <= 10 && sea < 65536) despike(d, raw, z <= 8 ? 150 : 120, z <= 8 ? 700 : 350); return d;
+    }
+    /* The coarse tiles (zoom 10 and 8) carry false heights along the coast: single pixels and small knots of them reading
+       hundreds or thousands of metres where the land is at sea level (San Diego Bay reads 3,096 m in tile 8/44/103; the fine
+       tiles read 0 there). They are where the sea bed and the land were joined. So within three pixels of the sea, a pixel
+       that stands more than `over` metres above all but five of the 24 pixels round it is taken for one of them, and is
+       given the middle value of its sound neighbours. A real slope from the shore is left alone (the pixels inland of it
+       are higher); a real lone crag at the water's edge that fine would be lost at this zoom, and comes back in the finer tiles.
+       A few such pixels stand inland too (by lakes: 1,100 m over their surroundings in tile 8/42/96); anywhere, a pixel more than
+       `overAny` metres above all but five of its 24 neighbours goes the same way: no real summit is that sharp at these pixel sizes. */
+    function despike(d, shore, over, overAny) {
+      const near = new Uint8Array(65536), flag = []; let cur = [];
+      for (let k = 0; k < 65536; k++) if (shore[k]) cur.push(k);
+      for (let ring = 1; ring <= 3; ring++) { const nx = []; for (const k of cur) { const i = k & 255, j = k >> 8; for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) { const x = i + a, y = j + b; if (x < 0 || y < 0 || x > 255 || y > 255) continue; const q = y * 256 + x; if (!shore[q] && !near[q]) { near[q] = ring; nx.push(q); } } } cur = nx; }
+      const w = [];
+      for (let k = 0; k < 65536; k++) { if (shore[k] || d[k] <= over || (!near[k] && d[k] <= overAny)) continue; const i = k & 255, j = k >> 8, lim = d[k] - (near[k] ? over : overAny); let c = 0, n = 0; for (let b = -2; b <= 2; b++) for (let a = -2; a <= 2; a++) { if (!a && !b) continue; const x = i + a, y = j + b; if (x < 0 || y < 0 || x > 255 || y > 255) continue; n++; if (d[y * 256 + x] >= lim) c++; } if (c < Math.min(6, n)) flag.push(k); }
+      if (!flag.length) return 0; const isF = new Uint8Array(65536); for (const k of flag) isF[k] = 1;
+      for (const k of flag) { const i = k & 255, j = k >> 8; w.length = 0; for (let b = -2; b <= 2; b++) for (let a = -2; a <= 2; a++) { const x = i + a, y = j + b; if (x < 0 || y < 0 || x > 255 || y > 255) continue; const q = y * 256 + x; if (!isF[q]) w.push(d[q]); } w.sort((p, q) => p - q); d[k] = w.length ? w[w.length >> 1] : 0; }
+      return flag.length;
     }
     async function load(t) {
       const z = LAD[t.li], url = env.elevURL ? env.elevURL(z, t.x, t.y) : 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/' + z + '/' + t.x + '/' + t.y + '.png';
-      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, tm = setTimeout(() => { if (ctl) ctl.abort(); }, 25000);
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, tm = setTimeout(() => { if (ctl) ctl.abort(); }, 60000);
       try { const r = await fetch(url, { mode: 'cors', credentials: 'omit', referrerPolicy: 'no-referrer', signal: ctl ? ctl.signal : undefined }); if (!r.ok) throw new Error('HTTP ' + r.status);
         const b = await r.blob(); let bmp; try { bmp = await createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }); } catch (e) { bmp = await createImageBitmap(b); }
         return decode(bmp, z, t.x, t.y); } finally { clearTimeout(tm); }
