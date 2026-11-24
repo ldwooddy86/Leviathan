@@ -548,7 +548,9 @@ test('a million agents statewide build in seconds', () => {
   assert.equal(cold.agents, n, 'cold and warm builds agree');
   assert.ok(summary.agents > 850000);
   assert.ok(core > 0 && total > core, 'the warm pass measured householdCore alone');
-  assert.ok(total - core < 1500, `crowd work ${Math.round(total - core)} ms`);
+  // the crowd's own work is about 1.0-1.3 s for a million agents (on a 2.3 GHz Xeon shared with other jobs); the bound
+  // leaves room for a busy machine and still catches a regression of half again
+  assert.ok(total - core < 1800, `crowd work ${Math.round(total - core)} ms`);
   assert.ok(total < 6000, `warm total ${Math.round(total)} ms`);
   assert.ok(coldMs < 20000, `cold total ${Math.round(coldMs)} ms`);
   assert.ok(summary.pickBytesPerAgent < 5 && summary.bytesPerAgent + summary.pickBytesPerAgent < 40, `${summary.bytesPerAgent} + ${summary.pickBytesPerAgent} bytes per agent`);

@@ -168,6 +168,46 @@ test('the crowd lights up Los Angeles and the Bay Area at 8:00 on a Tuesday, and
   assert.ok(Math.hypot(follow.x - pick.hit.x, follow.y - pick.hit.y) < 1e-9);
   assert.equal(await page.evaluate(() => window.__legionDev.crowd.positionOf('90001-999999-0')), null);
 
+  // clicking that pixel: the dev panel names the person and their commute mode (not how they move right now)
+  const click = await page.evaluate(({ best, dpr }) => {
+    const { map, crowd } = window.__legionDev, r = map.container.getBoundingClientRect();
+    const px = (best[0] + 0.5) / dpr, py = (best[1] + 0.5) / dpr, w = map.screenToWorld(px, py);
+    return { x: r.left + px, y: r.top + py, hit: crowd.pick(w.x, w.y, 6 / map.camera.zoom) };
+  }, { best: probe.la.best, dpr: probe.dpr });
+  assert.ok(click.hit, 'an agent under the click');
+  await page.mouse.click(click.x, click.y);
+  await page.waitForFunction(id => document.getElementById('pick').textContent.includes(id), click.hit.id, { timeout: 60000 });
+  const panel = await page.evaluate(() => document.getElementById('pick').textContent);
+  assert.ok(panel.includes(`commute mode: ${click.hit.commuteMode || 'none'}`), panel);
+  // Saturday noon: someone who commutes by other means, driving to an errand. The panel says how they move now and
+  // how they commute, which differ
+  const errand = await page.evaluate(async () => {
+    const CB = await import('/src/world/crowd-build.mjs');
+    const d = window.__legionDev, { map, crowd, world } = d;
+    d.setTime(d.atPacific(2026, 11, 28, 12, 0));
+    const P = CB.newPhase();
+    let id = null;
+    for (const c of crowd.chunks) {
+      for (let i = 0; i < c.count && !id; i++) {
+        const code = c.mode[i] & 15;
+        if (!code || CB.MODES[code] === 'drive' || ((c.errand[i] >>> 25) & 1) !== 1) continue;
+        if (CB.agentPhase(c, i, crowd.minute, crowd.dow, P) === CB.S_EOUT) id = CB.decodeId(c, i, world).id;
+      }
+      if (id) break;
+    }
+    const pos = crowd.positionOf(id);
+    map.setCamera(pos.x, pos.y, 60);
+    map.render();
+    const sp = map.worldToScreen(pos.x, pos.y), r = map.container.getBoundingClientRect();
+    return { id, x: r.left + sp.px, y: r.top + sp.py, travel: pos.travel, commuteMode: pos.commuteMode };
+  });
+  assert.ok(errand.id && errand.travel === 'drive' && errand.commuteMode !== 'drive', JSON.stringify(errand));
+  await page.mouse.click(errand.x, errand.y);
+  await page.waitForFunction(id => document.getElementById('pick').textContent.includes(id), errand.id, { timeout: 60000 });
+  const errandPanel = await page.evaluate(() => document.getElementById('pick').textContent);
+  assert.ok(errandPanel.includes('to-errand by drive') && errandPanel.includes(`commute mode: ${errand.commuteMode}`), errandPanel);
+  await page.evaluate(() => window.__legionDev.map.fitState(0));
+
   // stats: the morning commute against the middle of the night (counted with the shader's function)
   const statsAt = async (h, m) => {
     const t = await page.evaluate(([h, m]) => { const d = window.__legionDev, t = d.atPacific(2026, 11, 24, h, m); d.setTime(t); return t; }, [h, m]);
@@ -220,6 +260,18 @@ test('the crowd lights up Los Angeles and the Bay Area at 8:00 on a Tuesday, and
   assert.ok(near(colors[4], [0.2, 0.4, 0.8, 128 / 255]), `hex with alpha: ${colors[4]}`);
   assert.ok(near(colors[5], [0.4, 0.2, 0.6, 1]), `named: ${colors[5]}`);
   assert.equal(colors[6], null);
+
+  // the legend swatches follow the theme (the light theme's drivers heading out are dark, not near-white)
+  const swatches = await page.evaluate(() => {
+    const drive = () => getComputedStyle(document.querySelectorAll('#kinds .sw')[1]).backgroundImage;
+    const out = { dark: drive() };
+    document.getElementById('theme').click(); out.light = drive();
+    document.getElementById('theme').click(); out.back = drive();
+    return out;
+  });
+  assert.match(swatches.dark, /rgb\(242, 245, 255\) 50%, rgb\(255, 59, 48\) 50%/);
+  assert.match(swatches.light, /rgb\(29, 36, 51\) 50%, rgb\(214, 47, 47\) 50%/);
+  assert.equal(swatches.back, swatches.dark);
 
   // the night shade follows the theme at once, without waiting for the clock to move
   const shade = await page.evaluate(() => {

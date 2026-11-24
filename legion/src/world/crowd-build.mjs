@@ -96,13 +96,15 @@ export const CROWD = Object.freeze({
 
 /** Bytes per agent of the record (see the header; the pick index comes on top, see summary.pickBytes). */
 export const AGENT_BYTES = 32;
-/** Largest distance (units) between an agent's drawn position and the centerline the pick index rasterizes. */
+/**
+ * Largest distance (units) between an agent's drawn position and the path the pick index rasterizes: the lane offset
+ * (at most laneDrive0 + laneDrive1 = 0.4) plus the chord error of a curved trip (at most 0.4, see bezierCells).
+ */
 export const PICK_MARGIN = 1.0;
 
 const MAX_COMMUTE = 360, MAX_SPAN = 1430;
 /** Sampled households between two 'tick' yields inside a ZIP (about 2 ms of work). */
 const TICK_HOUSEHOLDS = 256;
-const LANE_MAX = CROWD.laneDrive0 + CROWD.laneDrive1;
 
 // ---------------------------------------------------------------- small helpers
 
@@ -110,15 +112,6 @@ const clampInt = (v, lo, hi) => { v = Math.round(+v || 0); return v < lo ? lo : 
 
 /** Decode a Uint16 fixed-point coordinate over an extent. */
 export const dequant = (q, ext) => q / 65535 * ext;
-
-/** Encode v over an extent as Uint16, staying inside v's raster cell so ZIP lookups do not change. */
-function quant(v, ext, cell) {
-  let q = Math.round(v / ext * 65535);
-  if (q < 0) q = 0; else if (q > 65535) q = 65535;
-  const c = Math.floor(v / cell), d = Math.floor(dequant(q, ext) / cell);
-  if (d > c && q > 0) q--; else if (d < c && q < 65535) q++;
-  return q;
-}
 
 /** Days of a mask kept with probability p each, one byte of the random words wa (Sun-Wed) and wb (Thu-Sat) per day. */
 function dayMask(mask, p, wa, wb) {
@@ -513,15 +506,15 @@ class ChunkBuilder {
   }
 
   /**
-   * Fixed-point code of (x, y) as qx << 16 | qy (unsigned), keeping world.zipAt's answer. quant() keeps the raster cell,
-   * which settles zipAt wherever the cell names a ZIP. An empty cell (a ZIP smaller than a cell, a sliver along a
-   * coast or a boundary) is decided by the outlines, where a 15 m nudge can cross a line: there the nearest of the
-   * eight neighboring codes that keeps the answer is used. Homes land in empty cells rarely, so the outline tests
-   * cost nothing measurable.
+   * Fixed-point code of (x, y) as qx << 16 | qy (unsigned), keeping world.zipAt's answer. Each axis rounds to the
+   * nearest code, nudged one step back into the point's raster cell when rounding crosses a cell edge; that settles
+   * zipAt wherever the cell names a ZIP. An empty cell (a ZIP smaller than a cell, a sliver along a coast or a
+   * boundary) is decided by the outlines, where a 15 m nudge can cross a line: there the nearest of the eight
+   * neighboring codes that keeps the answer is used. Few points land in empty cells (37 of 928,000 statewide), so the
+   * outline tests cost nothing measurable.
    */
   quantPoint(x, y) {
     const W = this.W, H = this.H, cell = this.rCell;
-    // quant() for both axes, sharing the cell of the point with the raster check below
     const c = Math.floor(x / cell), r = Math.floor(y / cell);
     let qx = Math.round(x / W * 65535), qy = Math.round(y / H * 65535);
     if (qx < 0) qx = 0; else if (qx > 65535) qx = 65535;
@@ -687,7 +680,11 @@ class ChunkBuilder {
     this.addCell(ex, ey);
   }
 
-  /** Cells of a curved trip, as chords close enough that the drawn path stays within PICK_MARGIN. */
+  /**
+   * Cells of a curved trip, as chords close enough that the drawn path stays within PICK_MARGIN. The curve's bulge is
+   * hdev = |cv| k |b - a|, and n chords miss the curve by at most hdev / (2 n²): n = ceil(sqrt(hdev / 0.8)) keeps
+   * that under 0.4 units, up to 24 chords (any trip within the state).
+   */
   bezierCells(ax, ay, bx, by, cv, k) {
     const vx = bx - ax, vy = by - ay;
     const cx = (ax + bx) * 0.5 - vy * (cv * k), cy = (ay + by) * 0.5 + vx * (cv * k);
@@ -695,7 +692,7 @@ class ChunkBuilder {
     // a Bezier curve stays in the convex hull of its control points: one cell holds all three, one cell holds the curve
     if (Math.floor(bx / G) === ca && Math.floor(cx / G) === ca && Math.floor(by / G) === ra && Math.floor(cy / G) === ra) { this.addCell(ca, ra); return; }
     const hdev = Math.abs(cv) * k * Math.sqrt(vx * vx + vy * vy);
-    const n = Math.min(16, Math.max(1, Math.ceil(Math.sqrt(hdev / 0.8))));
+    const n = Math.min(24, Math.max(1, Math.ceil(Math.sqrt(hdev / 0.8))));
     let px = ax, py = ay;
     for (let j = 1; j <= n; j++) {
       const g = j / n, h = 1 - g;
