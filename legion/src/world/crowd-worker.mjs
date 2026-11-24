@@ -7,7 +7,11 @@
 //       pack: gzip bytes, a base64 gzip string or the parsed pack object (null: reuse the world already loaded, or
 //       the one still loading: a build that arrives while the pack is being decoded waits for it). zips: the ZIP
 //       indices this Worker builds, in order (a pool of Workers shares one build); else regions / focus order all.
-//   {type: 'stats', seq, minute, dow, t}    counts by state over the chunks of the latest build
+//   {type: 'topup', id, zips, rate, below, seed, popSeed}   more agents for the ZIPs in a zoomed-in view: the
+//                                           households `rate` takes that `below` (the statewide rate) did not; they
+//                                           replace the previous top-up and are counted with the build
+//   {type: 'droptopup'}                     forget the top-up (the view went back out)
+//   {type: 'stats', seq, minute, dow, t}    counts by state over the chunks of the latest build and its top-up
 //   {type: 'adopt', chunks}                 the state arrays of a build the page loaded from its cache (each chunk
 //                                           {count, unitKm, days, timing, errand, eoff, mode}): counted from now on
 //   {type: 'cancel'}                        stop the running build at its next yield
@@ -26,7 +30,7 @@ import { Population } from '../engine/population.mjs';
 import { buildRoadNet, buildAgentsGen, countStates } from './crowd-build.mjs';
 
 const SLICE_MS = 30;
-const S = { world: null, pop: null, popKey: null, net: null, chunks: [], job: 0, loading: null };
+const S = { world: null, pop: null, popKey: null, net: null, chunks: [], extra: [], job: 0, topJob: 0, loading: null };
 
 const post = (msg, transfer) => self.postMessage(msg, transfer || []);
 const buffersOf = c => [c.home, c.dest, c.timing, c.days, c.mode, c.route, c.errand, c.eoff, c.ids, c.overflow, c.zis, c.byMode]
@@ -86,7 +90,7 @@ async function build(m) {
     if (!S.world) throw new Error('no world pack');
     ready(m.popSeed);
     post({ type: 'loaded', id, ms: Math.round(performance.now() - t0) });
-    S.chunks = [];
+    S.chunks = []; S.extra = []; S.topJob = 0;
     const gen = buildAgentsGen(S.world, S.pop, {
       rate: m.rate, seed: m.seed, focus: m.focus || null, regions: m.regions || null, zips: Array.isArray(m.zips) ? m.zips : null,
       chunkTarget: m.chunkTarget || 131072, firstChunkTarget: m.firstChunkTarget || 0, byRegion: true, roadNet: S.net, pickIndex: true,
@@ -116,8 +120,41 @@ async function build(m) {
   }
 }
 
+/**
+ * A top-up: the households of these ZIPs that `rate` takes and `below` did not, as chunks with their pick index
+ * (the main thread draws them with the rest). A newer top-up, a drop or a new build stops it at its next yield.
+ */
+async function topUp(m) {
+  const id = m.id;
+  S.topJob = id;
+  try {
+    if (S.loading) await S.loading;
+    if (S.topJob !== id || !S.world) return;
+    ready(m.popSeed);
+    S.extra = [];
+    const gen = buildAgentsGen(S.world, S.pop, { rate: m.rate, below: m.below, seed: m.seed, zips: m.zips, chunkTarget: 65536, byRegion: false, roadNet: S.net, pickIndex: true });
+    let r, sliceAt = performance.now();
+    while (!(r = gen.next()).done) {
+      const v = r.value;
+      if (v.type === 'chunk') {
+        const c = v.chunk;
+        S.extra.push({ count: c.count, unitKm: c.unitKm, days: c.days.slice(), timing: c.timing.slice(), errand: c.errand.slice(), eoff: c.eoff.slice(), mode: c.mode.slice() });
+        post({ type: 'topchunk', id, chunk: c, progress: v.progress }, buffersOf(c));
+      }
+      if (v.type === 'chunk' || performance.now() - sliceAt > SLICE_MS) {
+        await nextTask();
+        if (S.topJob !== id) return;
+        sliceAt = performance.now();
+      }
+    }
+    if (S.topJob === id) post({ type: 'topdone', id, summary: r.value });
+  } catch (err) {
+    if (S.topJob === id) post({ type: 'toperror', id, message: String((err && (err.stack || err.message)) || err) });
+  }
+}
+
 function stats(m) {
-  const st = countStates(S.chunks, m.minute, m.dow);
+  const st = countStates(S.extra.length ? S.chunks.concat(S.extra) : S.chunks, m.minute, m.dow);
   post({ type: 'stats', seq: m.seq, stats: st, t: m.t });
 }
 
@@ -126,6 +163,8 @@ self.onmessage = e => {
   if (m.type === 'build') build(m);
   else if (m.type === 'prepare') prepare(m);
   else if (m.type === 'stats') stats(m);
-  else if (m.type === 'adopt') { S.job = -1; S.chunks = Array.isArray(m.chunks) ? m.chunks : []; }
+  else if (m.type === 'topup') topUp(m);
+  else if (m.type === 'droptopup') { S.topJob = -1; S.extra = []; }
+  else if (m.type === 'adopt') { S.job = -1; S.topJob = -1; S.chunks = Array.isArray(m.chunks) ? m.chunks : []; S.extra = []; }
   else if (m.type === 'cancel') S.job = -1;
 };

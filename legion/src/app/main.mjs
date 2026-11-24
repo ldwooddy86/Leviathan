@@ -17,6 +17,7 @@ import { LocalMindStore } from './store.mjs';
 import { zipScope, scopeFromSearch, scopeFromKey, scopeBBox } from './census.mjs';
 import { h, $, icon, logoMark, toast, prefersReducedMotion } from './dom.mjs';
 import { fmtInt, fmtCompact, displayName } from './format.mjs';
+import { placeLabel } from './stage.mjs';
 
 const STEPS = [
   ['pack', 'Unpacking the world pack'],
@@ -80,8 +81,10 @@ function bootScreen() {
   for (const [key, text] of STEPS) { const li = h('li', text); items.set(key, li); steps.append(li); }
   let done = 0;
   return {
-    start(key, text) { const li = items.get(key); if (text) li.textContent = text; li.className = 'is-active'; },
-    done(key) { items.get(key).className = 'is-done'; done++; bar.style.width = `${Math.max(4, Math.round(100 * done / STEPS.length))}%`; },
+    // each step is a long synchronous task: the bar moves without a transition (a transition would only start after the
+    // next task) and the caller waits for a painted frame (paint()) before starting the next step
+    start(key, text) { const li = items.get(key); if (text) li.textContent = text; li.className = 'is-active'; bar.style.transition = 'none'; bar.style.width = `${Math.max(4, Math.round(100 * (done + 0.35) / STEPS.length))}%`; },
+    done(key) { items.get(key).className = 'is-done'; done++; bar.style.transition = 'none'; bar.style.width = `${Math.max(4, Math.round(100 * done / STEPS.length))}%`; },
     finish() { const el = $('#boot'); el.classList.add('is-done'); el.setAttribute('aria-hidden', 'true'); setTimeout(() => el.remove(), 450); },
     fail(error) {
       document.documentElement.dataset.state = 'error';
@@ -205,6 +208,7 @@ function mount(world) {
     onStreetView: s => openStreetView(placeTarget(s)),
     onNow: () => { clock.set(Date.now()); toast('The clock is at the present: live weather applies.'); },
     onClose: () => { scope = null; stage.setScope(null); layoutChanged(); restoreFocus(null); },
+    onResize: () => layoutChanged(),
   });
   const npcPanel = new NpcPanel({
     el: $('#npc-panel'), services, bus, settings, getTime,
@@ -215,6 +219,7 @@ function mount(world) {
     openSettings: () => dialog.open(),
     // a conversation happens in real time: the clock runs at 1x while one is on screen, then at the chosen speed again
     onTalk: on => { if (on) clock.hold(1); else clock.release(); },
+    onResize: () => layoutChanged(),
   });
   const dialog = mountSettingsDialog($('#settings-dialog'), {
     settings, services, world, buildId: buildId(),
@@ -222,6 +227,13 @@ function mount(world) {
     onClearMinds: () => services.resetMinds(),
   });
   settingsBtn.addEventListener('click', () => dialog.open());
+  // Settings hands focus back to what opened it; when that control was redrawn away meanwhile (the Talk tab's "Open
+  // settings" link, gone once Claude is allowed), the NPC panel's tab takes it, else the map, never the page body
+  $('#settings-dialog').addEventListener('close', () => requestAnimationFrame(() => {
+    const a = document.activeElement;
+    if (a && a !== document.body && a.isConnected) return;
+    if (!npcPanel.restoreFocus()) restoreFocus(null);
+  }));
 
   const search = mountSearch({
     input: $('#search-input'), list: $('#search-list'), world, population: services.population,
@@ -270,6 +282,10 @@ function mount(world) {
     writeHash();
   }
   window.addEventListener('resize', () => requestAnimationFrame(updateInsets));
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(() => requestAnimationFrame(updateInsets));
+    ro.observe(placePanel.el); ro.observe(npcPanel.el);
+  }
 
   // ---- selection
 
@@ -341,6 +357,14 @@ function mount(world) {
       locate(npc);
     }
     layoutChanged();
+    // a resident opened from the Place panel: the NPC panel now covers part of the map, so the place is fitted again
+    // into what is left when much of it went under the panels (a dot clicked on the map stays where it is)
+    if (!street && scope && (source === 'place' || source === 'household') && wide()) {
+      requestAnimationFrame(() => {
+        const bb = scopeBBox(world, scope);
+        if (stage.hiddenShare(bb) > 0.3) stage.flyToBBox(bb, { maxScale: scope.kind === 'zip' ? 40 : 30 });
+      });
+    }
   });
 
   // ---- street view: the neighborhood up close, on the same clock and theme as the map
@@ -418,12 +442,25 @@ function mount(world) {
     if (!id || here) { presence.hidden = true; street.presenceKey = ''; return; }
     const npc = services.npc(id), a = services.activityAt(id, clock.t);
     const line = a.ok ? activityLine(a.value) : null;
+    // "Heading home from the school pickup · on foot · until 2:40 PM" as "heading home from the school pickup (on foot,
+    // until 2:40 PM)"
+    const parts = line ? line.split(' · ') : [];
+    const lower = parts.length ? `${parts[0].charAt(0).toLowerCase()}${parts[0].slice(1)}${parts.length > 1 ? ` (${parts.slice(1).join(', ')})` : ''}` : '';
     const first = npc && npc.name ? String(npc.name.first || displayName(npc.name)).split(' ')[0] : 'They';
     const home = npc && npc.household && npc.household.home;
     const homeHere = inStreetScene(home);
-    const away = `${first} is not out on these streets right now${line ? ` (${line.charAt(0).toLowerCase()}${line.slice(1)})` : ''}.`;
-    const text = homeHere ? `${away} Their home is in view; follow them when they come out.`
-      : `${away} ${npc && npc.zi >= 0 ? `They live in ${world.z.city[npc.zi]} (${npc.zip}).` : ''}`.trim();
+    // on the move by their plan but not (yet) on these blocks: say where they are headed, never "not out"
+    const traveling = !!(a.ok && a.value && (a.value.traveling || a.value.travel));
+    const where = npc && npc.zi >= 0 ? `They live in ${placeLabel(world.zip(npc.zi))} (${npc.zip}).` : '';
+    let text;
+    if (traveling) {
+      const dest = a.value.place && Number.isFinite(a.value.place.x) ? a.value.place : null;
+      const soon = dest && inStreetScene(dest) ? ' They will be on these streets soon.' : '';
+      text = `${first} is ${lower || 'on the way'}, not in this part of the neighborhood right now.${soon}${homeHere ? '' : ` ${where}`}`.trim();
+    } else {
+      const away = `${first} is not out on these streets right now${lower ? `: ${lower}` : ''}.`;
+      text = homeHere ? `${away} Their home is in view (outlined); follow them when they come out.` : `${away} ${where}`.trim();
+    }
     const key = `${id}|${text}`;
     if (street.presenceKey !== key) {
       street.presenceKey = key;
@@ -515,17 +552,19 @@ function mount(world) {
   function updateCounts() {
     // in the street view the top bar counts the people on screen there
     const st = street && street.stats;
-    const c = st ? { agents: st.agents ?? st.onScreen ?? 0, moving: st.moving ?? 0, byKind: null } : stage.counts();
+    const c = st ? { agents: st.agents ?? st.onScreen ?? 0, moving: st.moving ?? 0, byKind: null, fresh: true } : stage.counts();
     const pending = !st && stage.build.building && !c.agents;
+    // the moving counts wait for counts that cover the whole crowd (a kept crowd shows "…" for a moment, never 0)
+    const movingPending = pending || c.fresh === false;
     const label = $('#count-agents') && $('#count-agents').nextElementSibling;
     const want = st ? 'out on these streets' : 'NPCs simulated';
     if (label && label.textContent !== want) label.textContent = want;
     const set = (el, text) => { if (el && el.textContent !== text) el.textContent = text; };
     set(countEls[0], pending ? '…' : fmtInt(c.agents));
-    set(countEls[1], pending ? '…' : fmtInt(c.moving));
+    set(countEls[1], movingPending ? '…' : fmtInt(c.moving));
     set(countEls[2], pending ? '…' : fmtCompact(c.agents));
-    set(countEls[3], pending ? '…' : fmtCompact(c.moving));
-    stage.updateLegend(c.byKind);
+    set(countEls[3], movingPending ? '…' : fmtCompact(c.moving));
+    stage.updateLegend(movingPending ? null : c.byKind);
   }
 
   // ---- keyboard
@@ -542,11 +581,14 @@ function mount(world) {
     e.stopPropagation();
     closeStreetView();
   }, true);
+  // the clock's own controls (the time-of-day scrubber, the speed radios) keep focus after a drag or a click, and
+  // neither has a Space action worth keeping: Space plays and pauses there too
+  const clockControl = el => !!(el && el.closest && el.closest('.clock input[type=range], .clock input[type=radio], .clock .scrubber'));
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
     const typing = typingIn(e.target);
     if (e.key === '/' && !typing) { e.preventDefault(); search.focus(); return; }
-    if ((e.key === ' ' || e.code === 'Space') && !interactive(e.target)) { e.preventDefault(); clock.toggle(); return; }
+    if ((e.key === ' ' || e.code === 'Space') && (!interactive(e.target) || clockControl(e.target))) { e.preventDefault(); clock.toggle(); return; }
     if (e.key === 'Escape') {
       if (dialog.isOpen()) return;                       // the dialog closes itself
       if (typing) { e.target.blur(); return; }           // first Escape leaves the field (a draft survives)
@@ -589,17 +631,25 @@ function mount(world) {
     requestAnimationFrame(frame);
   }
 
-  // ---- deep links: #zip=94110, #place=Oakland, #city=… (a postal city), #county=06075, #region=ba, #npc=94110-12-0
-  function openFromHash() {
-    const p = new URLSearchParams(initialHash.slice(1));
-    for (const kind of ['zip', 'place', 'city', 'county', 'region']) {
+  // ---- deep links: #zip=94110, #place=Oakland, #city=… (a postal city), #county=06075 or #county=Alameda,
+  // #region=ba, #npc=94110-12-0. Read at boot and again whenever the hash changes (a link pasted into an open tab);
+  // the page's own writes (history.replaceState) fire no hashchange, so this never answers itself.
+  const KIND_WORDS = { zip: 'ZIP', place: 'place named', city: 'postal city named', county: 'county', region: 'region', neighborhood: 'neighborhood named' };
+  function openFromHash(hash = location.hash) {
+    const p = new URLSearchParams(String(hash || '').replace(/^#/, ''));
+    let missed = null;
+    for (const kind of ['zip', 'place', 'neighborhood', 'city', 'county', 'region']) {
       const key = p.get(kind);
-      const s = key ? scopeFromKey(world, kind, key) : null;
-      if (s) { showPlace(s); break; }
+      if (!key) continue;
+      const s = scopeFromKey(world, kind, key);
+      if (s) { missed = null; showPlace(s); break; }
+      missed = missed || `No ${KIND_WORDS[kind]} ${key} in the data.`;
     }
+    if (missed) toast(missed, { kind: 'error' });
     const id = p.get('npc');
     if (id) bus.emit(EVENTS.NPC_SELECT, { id, source: scope ? 'place' : 'link' });
   }
+  window.addEventListener('hashchange', () => openFromHash(location.hash));
 
   window.legion = Object.freeze({
     services, bus, settings, clock, stage, placePanel, npcPanel, dialog,
@@ -618,7 +668,7 @@ function mount(world) {
   return {
     ready() {
       requestAnimationFrame(frame);
-      openFromHash();
+      openFromHash(initialHash);
       layoutChanged();
       rebuildCrowd();
       detectProxy();

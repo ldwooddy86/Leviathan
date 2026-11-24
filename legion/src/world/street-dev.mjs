@@ -10,6 +10,16 @@ import { Population } from '../engine/population.mjs';
 import { atPacific, pacific, fmtTime } from '../engine/clock.mjs';
 import { StreetView } from './street.mjs';
 
+/**
+ * The ZIP's median year built as the ACS says it: its top code (stored as 1938 or 1939, or flagged ybBefore1940)
+ * means "built 1939 or earlier", never a year of its own.
+ */
+function ybText(z) {
+  const y = Number(z && z.yb_med);
+  if (!Number.isFinite(y) || y <= 0) return '—';
+  return z.ybBefore1940 === true || y <= 1939 ? '1939 or earlier' : String(y);
+}
+
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const dev = { ready: false, selected: null, selects: [], error: null };
@@ -68,7 +78,7 @@ async function main() {
     const summary = await view.open(x, y, { radiusM: q.has('r') ? +q.get('r') : 600 });
     if (!summary) return;
     const z = world.zip(zi);
-    const rows = [['ZIP', `${z.zip} ${z.city}`], ['County', z.countyName], ['Streets', `${summary.style} · ${summary.source}${summary.osm ? ` (OpenStreetMap ${summary.osm})` : ''}`], ['Street length', summary.streetKm + ' km'], ['Households', summary.households], ['Residents', summary.residents], ['Buildings', summary.buildings], ['Built in', summary.buildMs + ' ms'], ['Year built (median)', z.yb_med], ['Density', Math.round(z.density) + ' / sq mi']];
+    const rows = [['ZIP', `${z.zip} ${z.city}`], ['County', z.countyName], ['Streets', `${summary.style} · ${summary.source}${summary.osm ? ` (OpenStreetMap ${summary.osm})` : ''}`], ['Street length', summary.streetKm + ' km'], ['Households', summary.households], ['Residents', summary.residents], ['Buildings', summary.buildings], ['Built in', summary.buildMs + ' ms'], ['Year built (median)', ybText(z)], ['Density', Math.round(z.density) + ' / sq mi']];
     $('place').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v ?? '—'}</dd>`).join('');
     dev.summary = summary;
     dev.ready = true;

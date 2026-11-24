@@ -219,10 +219,16 @@ const now = () => (typeof performance !== 'undefined' ? performance.now() : Date
  * hash, preferring an adult who drives to work and is on the road at that hour; falling back to any driving
  * adult, then any adult. With `job` ('transport') a bus driver is preferred; with `walk` someone on foot.
  * `exclude(id)` turns people away (already on the street, or living in the view).
- * @param {{job?: string|null, walk?: boolean, tries?: number, exclude?: ((id: string) => boolean)|null}} [opts]
+ *
+ * With `accept(candidate)` only a candidate it accepts is returned (their own day has them on the road, or on foot,
+ * at that moment), and null when none of the households drawn has one: no fallback to someone whose schedule says
+ * they are at home or at work, whom a click on the car would then contradict. The caller sends the vehicle through
+ * without a driver to meet instead.
+ * @param {{job?: string|null, walk?: boolean, tries?: number, exclude?: ((id: string) => boolean)|null,
+ *   accept?: ((cand: {id: string, zi: number, h: number, m: number, member: object}) => boolean)|null}} [opts]
  * @returns {{id:string, zi:number, h:number, m:number, member:object}|null}
  */
-export function pickDriver(world, population, near, h, minute, { job = null, walk = false, tries = 7, exclude = null } = {}) {
+export function pickDriver(world, population, near, h, minute, { job = null, walk = false, tries = 7, exclude = null, accept = null } = {}) {
   let fallback = null, anyAdult = null;
   for (let k = 0; k < tries; k++) {
     const hk = hash2(h, k + 1);
@@ -236,9 +242,13 @@ export function pickDriver(world, population, near, h, minute, { job = null, wal
       const id = `${world.zips[zi]}-${hh}-${m.m}`;
       if (exclude && exclude(id)) continue;
       const cand = { id, zi, h: hh, m: m.m, member: m, home: core.home };
+      const fits = walk ? (m.mode === 'walk' || m.mode === 'bus' || m.mode === 'rail' || !m.worker) : CAR_MODES.has(m.mode);
+      if (accept) {
+        if ((job ? m.occ === job : fits) && accept(cand)) return cand;
+        continue;
+      }
       if (!anyAdult) anyAdult = cand;
       if (job && m.occ === job) return cand;
-      const fits = walk ? (m.mode === 'walk' || m.mode === 'bus' || m.mode === 'rail' || !m.worker) : CAR_MODES.has(m.mode);
       if (!fits) continue;
       if (!fallback) fallback = cand;
       if (m.departMin != null) {
@@ -248,7 +258,7 @@ export function pickDriver(world, population, near, h, minute, { job = null, wal
       }
     }
   }
-  return fallback || anyAdult;
+  return accept ? null : fallback || anyAdult;
 }
 
 export { CAR_MODES };

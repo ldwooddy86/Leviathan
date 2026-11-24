@@ -27,9 +27,9 @@ export const FAMILIES = {
     greetings: lines(`
       @wx:cold,fog,rain,wind,snow Hey! You staying warm out there?
       @wx:fog Hey, how's it going? Fog get you this morning?
-      Oh hey, I haven't seen you in forever.
-      Hey, you made it! How was the drive?
-      What's up? You still living in {neighborhood}?
+      @met Oh hey, I haven't seen you in forever.
+      @met Hey, you made it! How was the drive?
+      @met What's up? You still living in {neighborhood}?
       Hey, how's everything on your side of the Bay?
       @wx:heat,rain,wind,cold,smoke,snow Hi! Crazy weather, huh?
       Hey, good timing, I was just about to head out.
@@ -168,7 +168,7 @@ export const FAMILIES = {
       greetings: lines(`
         What's up, what's up.
         Ayy, what's good?
-        Hella long time, what's up?
+        @met Hella long time, what's up?
       `),
       farewells: lines(`
         All right, I'm out, I'm hella tired.
@@ -245,9 +245,9 @@ export const FAMILIES = {
       @wx:heat Hey, how's it going? Staying cool?
       @h4-11 @wx:fog Morning! You see that fog?
       Hey there, how's your week?
-      Oh hey, I didn't know you were back in town.
-      Hey, how's the family doing?
-      Well, hey! Haven't seen you since the river.
+      @met Oh hey, I didn't know you were back in town.
+      @met Hey, how's the family doing?
+      @met Well, hey! Haven't seen you since the river.
       @h4-11 @wx:heat Morning! Supposed to be another warm one.
     `),
     farewells: lines(`
@@ -257,7 +257,7 @@ export const FAMILIES = {
       Okay, I'll see you at the river.
       All right, say hi to everybody for me.
       @wx:heat Okay, take it easy, it's too hot to rush.
-      Later! Drive careful on 99.
+      @county:Sutter|Yuba|Butte|Tehama Later! Drive careful on 99.
     `),
     fillers: lines(`
       like
@@ -326,9 +326,9 @@ export const FAMILIES = {
     },
     traffic: lines(`
       {road} through downtown at five, forget it.
-      Everybody heading up to Tahoe on a Friday turns 80 into a mess.
+      @county:Sacramento|Yolo|Placer|El_Dorado Everybody heading up to Tahoe on a Friday turns 80 into a mess.
       Traffic's nothing like the Bay, but it's getting there.
-      Somebody's always crawling up 50 on a ski weekend.
+      @county:Sacramento|Yolo|Placer|El_Dorado Somebody's always crawling up 50 on a ski weekend.
       Fog on {road} this morning, everybody doing thirty.
       @drives The frontage road was faster than the freeway.
       @m7-10 @drives Harvest trucks on the two-lane, so I just settled in.
@@ -413,8 +413,8 @@ export const FAMILIES = {
       @wx:heat Hey! Hot one today, huh?
       Hey there, how you doing?
       @h4-11 @wx:fog Morning! Fog lift where you're at?
-      Hey, how's the family?
-      Well, hey, I haven't seen you in a while.
+      @met Hey, how's the family?
+      @met Well, hey, I haven't seen you in a while.
       Hey, how's work been?
       @h4-11 @wx:heat Morning! You get any sleep in this heat?
       @m6-10 Hey there! Busy season, huh?
@@ -565,9 +565,9 @@ export const FAMILIES = {
     greetings: lines(`
       Hey there. How you holding up?
       @h4-11 @wx:cold,fog,rain,snow,wind Morning! Cold one today.
-      Hey, good to see you. How's everybody?
+      @met Hey, good to see you. How's everybody?
       Well, hey, stranger.
-      Howdy. Long time.
+      @met Howdy. Long time.
       @wx:rain,wind,snow Hey! You make it through the storm okay?
       @h4-11 Morning. Roads all right coming in?
       Hey, how's the fishing been?
@@ -668,7 +668,7 @@ export const FAMILIES = {
     complaintLines: lines(`
       Sacramento doesn't know we exist.
       The specialists are all hours away.
-      @adult Fire insurance is impossible to get anymore.
+      @ins:high @adult Fire insurance is impossible to get anymore.
       There's no jobs for the kids, so they leave.
       @adult Gas costs more up here and we drive twice as far.
       @anytime The roads close every winter and nobody fixes them fast.
@@ -968,7 +968,7 @@ export const KEYS = {
       Since {fire}, people up here look out for each other differently.
     `),
     complaintLines: lines(`
-      @adult Insurance companies don't want to cover anybody up here anymore.
+      @ins:high @adult Insurance companies don't want to cover anybody up here anymore.
       @anytime Tourists drive like they're the only ones on the road during harvest.
       @anytime The fires changed everything. You feel it every fall.
       @adult The people who work the vineyards can't afford to live near them.
@@ -1073,9 +1073,9 @@ export const KEYS = {
     },
     traffic: lines(`
       @drives Stuck behind a tractor on the two-lane again.
-      99 between here and Yuba City needs another lane.
+      @county:Sutter|Yuba|Butte 99 between here and Yuba City needs another lane.
       @m8-10 Harvest trucks hauling almonds, so you just wait.
-      70 down to Sacramento, and people pass like crazy on the two-lane parts.
+      @county:Yuba|Butte 70 down to Sacramento, and people pass like crazy on the two-lane parts.
     `),
     prideLines: lines(`
       Small-town life, and you still know everybody's name.
@@ -1086,7 +1086,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       Nobody south of Sacramento even knows we're here.
-      @adult Fire insurance up here is impossible now.
+      @ins:high @adult Fire insurance up here is impossible now.
       Water's always a fight between the farms and the cities.
       Jobs are hard to come by unless you farm.
     `),
@@ -1333,7 +1333,7 @@ export const KEYS = {
     complaintLines: lines(`
       We've been through so many fires, people are worn out.
       Everything's a long drive from here.
-      @adult Insurance up here, forget it.
+      @ins:high @adult Insurance up here, forget it.
       There's no work unless it's the vineyards or the county.
     `),
     food: lines(`
@@ -1383,7 +1383,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       The heat's brutal and the smoke's worse.
-      @adult Insurance after the fires is out of reach.
+      @ins:high @adult Insurance after the fires is out of reach.
       Kids move to Sacramento and don't come back.
       Sacramento writes the rules and we live with them.
     `),

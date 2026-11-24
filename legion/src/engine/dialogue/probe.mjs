@@ -73,12 +73,27 @@ const STEREOTYPE = /\b(lazy|dirty|filthy|criminals?|steal\w*|thie(?:f|ves)|illeg
 const YOU_GROUP = /\b(?:you guys|you all|y'?all|your people|your kind|your culture|your community|people like you)\b/;
 const POSITIVE = /\b(good at|smart|hard ?working|hard workers?|nice|polite|great|better|best|family[- ]oriented|good cooks?|clean|rich|frugal|good|funny|beautiful|pretty|strong)\b/;
 
+// Crime, danger or trouble put on a group without naming one: "Which group causes the most crime here?", "Who commits
+// the most crime?", "Is this a bad neighborhood because of the immigrants?". Declined and pushed back on like any
+// generalization, never answered with the languages spoken on the block.
+const BLAME_WORDS = '(?:crime|crimes|problems?|trouble|dangerous|danger|violen\\w*|criminals?|gangs?|lazy|dirty|drugs?|theft|stealing|homeless(?:ness)?|bad)';
+const BLAME = new RegExp([
+  `\\b(?:which|what)\\s+(?:group|groups|race|races|ethnicit\\w*|nationalit\\w*|religions?|kinds? of people|type of people|sort of people|people|community|communities|immigrants)\\b[^?.!]*\\b${BLAME_WORDS}\\b`,
+  `\\bwho\\s+(?:commits|causes|does|brings|makes|is behind|are behind)\\s+(?:all )?(?:the\\s+)?(?:most\\s+)?(?:crime|crimes|problems|trouble|violence)\\b`,
+  `\\b(?:because|cause|blame it on|thanks to|fault of)\\s+(?:of\\s+)?(?:the |all the |these |those |all those |all these )?${GROUP}`,
+  `\\bis (?:this|it|that) a (?:bad|dangerous|rough|sketchy|scary) (?:neighborhood|area|part of town|town|block)\\b[^?.!]*\\b${GROUP}`,
+  `\\b${GROUP}\\b[^?.!]*\\b(?:commit|cause|causes|bring|brings|are behind|responsible for)\\b[^?.!]*\\b(?:crime|crimes|problems|trouble|violence)\\b`,
+].join('|'));
+
 // ------------------------------------------------------------------ status, leaving, hate
 
 const SECOND_PERSON = /\b(you|your|ya|u|yours|yourself)\b/;
 const PAPERS = /\b(?:have|got|show|carry|need|where are)\b[^.?!]{0,14}\bpapers\b(?!\s+(?:to (?:grade|write|sign|file|read)|due|for (?:school|class|work)))|^(?:your )?papers\s*\??$/;
 const STATUS_HOSTILE = /\b(illegals?|illegally|illegal (?:alien|immigrant)s?|anchor bab(?:y|ies)|deport\w*|la migra)\b/;
-const STATUS_ASKED = /\b(?:are|were) you\b[^.?!]{0,20}\b(?:legal(?:ly)?|a citizen|an? (?:legal |permanent )?resident|undocumented|documented|here legally|on a visa)\b|\bdid you (?:come|get here|enter|cross|immigrate)\b[^.?!]{0,20}\b(?:legal(?:ly)?|illegal(?:ly)?|the right way)\b|\b(?:do|did) you have (?:a |your )?(?:green card|visa|work permit|citizenship|social security number|documents)\b|\byour (?:immigration |legal )?status\b|\bare you (?:a |an )?(?:us |american |u\.s\. )?citizen\b/;
+// (the family too: "did your parents come here legally?", "is your husband a citizen?")
+const KIN = '(?:parents|family|folks|mom|dad|mother|father|husband|wife|spouse|kids|children|son|daughter|brother|sister|grandparents|relatives|people)';
+const STATUS_ASKED = new RegExp(`\\b(?:did|do|does|have|has) your ${KIN} (?:ever |really |actually )?(?:come|came|get|got|enter|entered|cross|crossed|immigrate|immigrated|arrive|arrived)\\b[^.?!]{0,24}\\b(?:legal(?:ly)?|illegal(?:ly)?|the right way|with papers|without papers|on a visa)\\b|\\b(?:is|are|was|were) your ${KIN}\\b[^.?!]{0,20}\\b(?:legal(?:ly)?|illegal|a citizen|citizens|an? (?:legal |permanent )?residents?|undocumented|documented|here legally|on a visa|deportable)\\b|\\b(?:do|does) your ${KIN} have (?:a |their |his |her )?(?:green cards?|visas?|work permits?|citizenship|papers|documents)\\b|\\byour ${KIN}(?:'s|') (?:immigration |legal )?status\\b`
+  + '|' + /\b(?:are|were) you\b[^.?!]{0,20}\b(?:legal(?:ly)?|a citizen|an? (?:legal |permanent )?resident|undocumented|documented|here legally|on a visa)\b|\bdid you (?:come|get here|enter|cross|immigrate)\b[^.?!]{0,20}\b(?:legal(?:ly)?|illegal(?:ly)?|the right way)\b|\b(?:do|did) you have (?:a |your )?(?:green card|visa|work permit|citizenship|social security number|documents)\b|\byour (?:immigration |legal )?status\b|\bare you (?:a |an )?(?:us |american |u\.s\. )?citizen\b/.source);
 const STATUS_GENERAL = /\b(undocumented|immigration status|green cards?|daca|dreamers?|border patrol|immigration raids?|ice raids?|deportations?)\b/;
 // "Did you cross the border?", "did you swim over?": the same insinuation as "are you illegal?", without the word.
 const BORDER = /\b(?:did|have|do) (?:you|ya|u|your (?:parents|family|husband|wife|mom|dad|mother|father|people))\s+(?:ever |really |actually )?(?:cross|crossed|jump|jumped|hop|hopped|sneak|snuck|sneaked|swim|swam|run|ran|climb|climbed) (?:over |across |under |through )?(?:the |a )?(?:border|fence|wall|river|line|rio grande)\b|\bhow did you (?:cross|get across|get over) the border\b|\b(?:are|were) you (?:a |an )?(?:wetback|border jumper|border crosser)s?\b/;
@@ -131,10 +146,12 @@ const BIAS = /\b(racis[mt]s?|bigot(?:s|ry)?|discriminat\w*|prejudice\w*|hate cri
 // Entries of the population's name blocklist that are also everyday words, here or in Spanish: never taken as slurs.
 const ORDINARY = new Set(('coon nip slant spook cracker crackers homo negro negra negrito squaw dyke kraut honky poof mulatto greaser coolie '
   + 'bohunk polack redskin jap yid paki gyppo bimbo slut whore skank bitch twat cunt dick cock prick pecker').split(' '));
+// Slurs no name list would hold, because they are not names: said to or about a person.
+const OTHER_SLURS = ['retard', 'retards', 'retarded', 'tard', 'tards'];
 let SLUR_RE = null;
 function slurRe() {
   if (SLUR_RE !== null) return SLUR_RE;
-  const list = Array.isArray(NAMES.BLOCKED_NAMES) ? NAMES.BLOCKED_NAMES.map(w => String(w).toLowerCase().trim()).filter(w => /^[a-z]+$/.test(w) && !ORDINARY.has(w)) : [];
+  const list = [...new Set([...(Array.isArray(NAMES.BLOCKED_NAMES) ? NAMES.BLOCKED_NAMES.map(w => String(w).toLowerCase().trim()) : []), ...OTHER_SLURS])].filter(w => /^[a-z]+$/.test(w) && !ORDINARY.has(w));
   SLUR_RE = list.length ? new RegExp(`(?<![a-z])(?:${list.join('|')})s?(?![a-z])`) : false;
   return SLUR_RE;
 }
@@ -166,6 +183,7 @@ export function probeOf(norm) {
   if (STATUS_ASKED.test(s)) return { kind: 'status', hostile: false };
   if (ACCUSE.test(s)) return { kind: 'accuse', hostile: true, group: ACCUSE_GROUP.test(s) };
   if (HATE_FRAME.test(s)) return { kind: 'group', hostile: true };
+  if (BLAME.test(s)) return { kind: 'group', hostile: ANY_GROUP.test(s) && NEGATIVE.test(s) };
   const neg = NEGATIVE.test(s), pos = POSITIVE.test(s);
   if ((SINGULAR.test(s) && neg && !asksHeritage(s)) || TYPICAL.test(s)) return { kind: 'group', hostile: true };
   // "why are you guys so lazy?": the listener lumped into a group and judged as one

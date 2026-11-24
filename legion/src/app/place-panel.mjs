@@ -6,13 +6,13 @@
 // report it, Census versus generated fidelity bars for the ZIP.
 
 import { EVENTS } from './bus.mjs';
-import { h, icon, clear } from './dom.mjs';
+import { h, icon, clear, sheetGrip } from './dom.mjs';
 import { fmtInt, fmtMoney, fmtPct, fmtCompact, displayName, initials, label, capitalize, STATUS, OCCUPATION_GROUP } from './format.mjs';
-import { placeStats, fidelityValueText } from './census.mjs';
+import { placeTotals, placeMixes, fidelityValueText } from './census.mjs';
 import { rankedBars, segmentedBar, pairedBars, pairedLegend } from './charts.mjs';
 import { cleanForecastText, alertsForZip } from './nws-live.mjs';
 
-const KIND_WORD = { zip: 'ZIP code', place: 'City', city: 'Postal city', county: 'County', region: 'Region' };
+const KIND_WORD = { zip: 'ZIP code', place: 'City', city: 'Postal city', county: 'County', region: 'Region', neighborhood: 'Neighborhood' };
 const idle = fn => (typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, { timeout: 600 }) : setTimeout(fn, 60));
 /** Households the fidelity check generates per ZIP (fewer when the ZIP has fewer). */
 const FIDELITY_HOUSEHOLDS = 600;
@@ -34,9 +34,9 @@ export class PlacePanel {
    *   onStreetView?: (scope: object) => void, onNow?: () => void, onClose?: () => void}} deps onNow sets the clock to
    *   the present (offered when the live forecast does not cover the simulated time)
    */
-  constructor({ el, services, bus, getTime, onStreetView, onNow, onClose }) {
+  constructor({ el, services, bus, getTime, onStreetView, onNow, onClose, onResize }) {
     this.el = el; this.services = services; this.bus = bus; this.getTime = getTime;
-    this.onStreetView = onStreetView; this.onNow = onNow; this.onClose = onClose;
+    this.onStreetView = onStreetView; this.onNow = onNow; this.onClose = onClose; this.onResize = onResize;
     this.world = services.world;
     this.scope = null; this.seed = 1; this._hour = null; this._token = 0;
     el.classList.add('panel', 'place-panel');
@@ -44,7 +44,7 @@ export class PlacePanel {
     el.hidden = true;
     this.head = h('header.panel-head');
     this.body = h('div.panel-body');
-    el.append(h('div.sheet-grip', { 'aria-hidden': 'true' }), this.head, this.body);
+    el.append(sheetGrip(el, { label: 'place', onChange: () => { if (this.onResize) this.onResize(); } }), this.head, this.body);
     bus.on(EVENTS.TIME_CHANGE, ({ t }) => this._onTime(t));
     // live weather arrived (or failed, or was switched): redraw the weather of the place shown
     bus.on(EVENTS.WEATHER_CHANGE, ({ zi } = {}) => {
@@ -80,7 +80,9 @@ export class PlacePanel {
     const scope = this.scope, w = this.world;
     if (!scope) return;
     const token = ++this._token;
-    const stats = placeStats(w, scope);
+    // the totals now; the Census mixes (every ACS row of a big scope: a third of a second for Los Angeles) a moment
+    // later, so the panel and its weather paint at once (ux-1027)
+    const stats = placeTotals(w, scope);
     const zi = scope.kind === 'zip' ? scope.zi : this._mainZip(scope);
     clear(this.head).append(
       h('div.panel-title-block',
@@ -102,19 +104,7 @@ export class PlacePanel {
         h('div.section-head', h('h3', 'Meet the residents'),
           h('button.btn.ghost.small', { type: 'button', title: 'Meet twelve more', on: { click: () => { this.seed++; this._fillResidents(residents); } } }, icon('shuffle', { size: 15 }), 'Others')),
         residents),
-      stats.languages.length ? h('section.p-section',
-        h('div.section-head', h('h3', 'Languages at home'), h('span.section-note', 'people 5+')),
-        rankedBars(stats.languages.slice(0, 6), {
-          ariaLabel: 'Languages spoken at home',
-          note: r => r.key !== 'english' && r.lepShare !== null && r.lepShare >= 1 ? `${fmtPct(r.lepShare)} of them speak English less than very well` : null,
-        })) : null,
-      stats.heritage.length ? h('section.p-section',
-        h('div.section-head', h('h3', 'Heritage'), h('span.section-note', 'share of residents')),
-        rankedBars(stats.heritage.slice(0, 8), { ariaLabel: 'Heritage reported to the Census', tag: r => r.family }),
-        h('p.fine', 'Hispanic origin, Asian group and race tables, plus up to two reported ancestries per person, so groups overlap.')) : null,
-      stats.commute.workers ? h('section.p-section',
-        h('div.section-head', h('h3', 'Getting to work'), h('span.section-note', `${fmtCompact(stats.commute.workers)} workers`)),
-        segmentedBar(stats.commute.groups, { ariaLabel: 'How workers commute' })) : null,
+      this._mixSlot = h('div.mix-slot', { 'aria-busy': 'true' }),
     ];
     this._fidelitySlot = h('div.fidelity-slot');
     sections.push(this._fidelitySlot);
@@ -124,7 +114,31 @@ export class PlacePanel {
     clear(this.body).append(...sections.filter(Boolean));
     this.body.scrollTop = 0;
     this._fillResidents(residents);
+    const slot = this._mixSlot;
+    const fillMixes = () => { if (token === this._token) this._renderMixes(slot, placeMixes(w, scope)); };
+    if (scope.zis.length <= 3) fillMixes(); else idle(fillMixes);
     if (scope.kind === 'zip') idle(() => { if (token === this._token) this._renderFidelity(scope.zi, token); });
+  }
+
+  /** The languages, heritage and commute sections of a scope (placeMixes) into their slot. */
+  _renderMixes(slot, mix) {
+    if (!slot || !mix) return;
+    slot.removeAttribute('aria-busy');
+    clear(slot).append(...[
+      mix.languages.length ? h('section.p-section',
+        h('div.section-head', h('h3', 'Languages at home'), h('span.section-note', 'people 5+')),
+        rankedBars(mix.languages.slice(0, 6), {
+          ariaLabel: 'Languages spoken at home',
+          note: r => r.key !== 'english' && r.lepShare !== null && r.lepShare >= 1 ? `${fmtPct(r.lepShare)} of them speak English less than very well` : null,
+        })) : null,
+      mix.heritage.length ? h('section.p-section',
+        h('div.section-head', h('h3', 'Heritage'), h('span.section-note', 'share of residents')),
+        rankedBars(mix.heritage.slice(0, 8), { ariaLabel: 'Heritage reported to the Census', tag: r => r.family }),
+        h('p.fine', 'Hispanic origin, Asian group and race tables, plus up to two reported ancestries per person, so groups overlap.')) : null,
+      mix.commute.workers ? h('section.p-section',
+        h('div.section-head', h('h3', 'Getting to work'), h('span.section-note', `${fmtCompact(mix.commute.workers)} workers`)),
+        segmentedBar(mix.commute.groups, { ariaLabel: 'How workers commute' })) : null,
+    ].filter(Boolean));
   }
 
   _mainZip(scope) {
@@ -157,19 +171,31 @@ export class PlacePanel {
     const z = this.world.zip(zi);
     // alerts are issued for whole zones and counties: a shore-only one is not shown far inland (the NPCs' own rule)
     const alerts = alertsForZip(wx.alerts, this.world.z.coast_km ? this.world.z.coast_km[zi] : null).slice(0, 3);
+    // where the numbers come from (world.weatherAt's basis): this place's own forecast point, a forecast borrowed from
+    // a point nearby (named, with its distance and the elevation adjustment, never as "here"), or a climate estimate
+    // (past the forecast, or no point close enough on this side of the mountains); `approx` numbers read "about"
+    const basis = wx.basis && typeof wx.basis === 'object' ? wx.basis : null;
+    const climate = !!wx.stale || (basis && basis.kind === 'climate');
+    const borrowed = !climate && basis && basis.kind === 'borrowed';
+    const approx = wx.approx === true || climate || borrowed;
     // the NWS text generator leaves placeholders in when a value is missing ("{{missing_temperature_data}}")
-    const detail = wx.period && !wx.stale && wx.period.detail ? cleanForecastText(wx.period.detail) : '';
+    const detail = wx.period && !climate && wx.period.detail ? cleanForecastText(wx.period.detail) : '';
     // where this weather comes from: the snapshot, or live when allowed (with a note when it could not be used)
     const live = typeof this.services.weatherStatus === 'function' ? this.services.weatherStatus(zi, t) : { state: 'off' };
-    const where = wx.stale ? 'Climate estimate (past the forecast)' : `${wx.live ? 'Live NWS' : 'NWS'} ${wx.point || wx.office || ''}${this.scope && this.scope.zis.length > 1 ? ` · ${z.city}` : ''}`;
+    const nws = wx.live ? 'Live NWS' : 'NWS';
+    const elev = borrowed && Number.isFinite(basis.elevAdjF) && Math.abs(basis.elevAdjF) >= 1 ? `, ${basis.elevAdjF > 0 ? '+' : '−'}${Math.abs(Math.round(basis.elevAdjF))}°F for the elevation` : '';
+    const pointName = borrowed ? (basis.point || wx.point || 'a point nearby') : null;
+    const where = climate ? (wx.stale ? 'Climate estimate (past the forecast)' : 'Climate estimate: no NWS forecast point near enough')
+      : borrowed ? `${nws} forecast for ${pointName}${Number.isFinite(basis.distKm) ? `, ${Math.round(basis.distKm)} km away` : ''}${elev}`
+        : `${nws} ${wx.point || wx.office || ''}${this.scope && this.scope.zis.length > 1 ? ` · ${z.city}` : ''}`;
     const note = live && live.note && live.state !== 'live' ? h('p.wx-note', { role: 'note' }, icon('info', { size: 14 }), h('span', live.note),
       live.state === 'outside' && this.onNow ? h('button.link-btn', { type: 'button', on: { click: () => this.onNow() } }, 'Set the clock to now') : null) : null;
     el.append(h('div.weather', { class: [wx.stale ? 'is-stale' : null, wx.live ? 'is-live' : null].filter(Boolean).join(' ') || null, dataset: { source: wx.live ? 'live' : wx.stale ? 'climate' : 'snapshot' } },
       h('div.wx-now',
-        h('span.wx-temp', Number.isFinite(now.tempF) ? `${now.tempF}°F` : '—'),
+        h('span.wx-temp', Number.isFinite(now.tempF) ? { title: approx ? `About ${now.tempF}°F` : null, 'aria-label': approx ? `about ${now.tempF}°F` : null } : null, Number.isFinite(now.tempF) ? `${approx ? '≈' : ''}${now.tempF}°F` : '—'),
         h('span.wx-short', now.short || ''),
         h('span.wx-where', where)),
-      detail ? h('p.wx-detail', `${wx.period.name}: ${detail}`) : null,
+      detail ? h('p.wx-detail', borrowed ? `${wx.period.name} in ${pointName}: ${detail}` : `${wx.period.name}: ${detail}`) : null,
       alerts.length ? h('ul.wx-alerts', { 'aria-label': 'Weather alerts' }, alerts.map(a => h('li', { class: `sev-${String(a.severity || '').toLowerCase()}` }, icon('alert', { size: 14 }), h('span', a.event)))) : null,
       wx.fireWeather && wx.fireWeather.level > 0 ? h('p.wx-fire', icon('alert', { size: 14 }), `Fire weather: ${wx.fireWeather.name}`) : null,
       live && live.state === 'live' ? h('p.wx-note.is-live', h('span', live.note)) : null,

@@ -9,9 +9,13 @@
 // institutions (a large group-quarters population). So a farmworker in the San Joaquin Valley picks almonds,
 // table grapes or citrus or works a dairy, on the Central Coast strawberries or lettuce, on the North Coast
 // works in forestry or on a fishing boat; software jobs concentrate in the Bay Area, film and TV crews in Los
-// Angeles, warehouses in the Inland Empire and longshore work at the ports. Wages scale with experience,
-// education and the county's income level, and never fall below California's minimum wage for full-time work
-// (population.mjs pays part-timers for their hours, never below the hourly minimum either). Licensed titles
+// Angeles, warehouses in the Inland Empire and longshore work at the ports. Field work is in the fields: in a dense
+// city ZIP the farming group's jobs are the ones a city has (a plant nursery, a wholesale produce market). Wages
+// scale with experience, education and the county's income level, and never fall below California's minimum wage for
+// full-time work (population.mjs pays part-timers for their hours, never below the hourly minimum either, with time
+// and a half over 40 hours a week). Service members are paid by the federal tables, not the state minimum wage: basic
+// pay from a private's (MIL_PAY_FLOOR) up, the same everywhere; each military title belongs to a branch
+// (MILITARY_BRANCHES), which population.mjs takes from the installation a member reports to. Licensed titles
 // (nurses, physicians, attorneys, teachers, engineers...) carry their degree always: population.mjs picks the title
 // first (chooseTitle) and draws education within it, then the wage (titleWage). A worker who works from home gets a
 // title that can be done from home, and only home-based work (a home daycare, a cottage-food baker) is never done
@@ -32,6 +36,18 @@ export const SHIFTS = ['early', 'day', 'mid', 'evening', 'night', 'h24'];
 export const MIN_WAGE_HOURLY = 16.9;
 /** The least a full-time (40 hours a week, 52 weeks) job pays in California in 2026, rounded up to $500. */
 export const MIN_WAGE_FULL_TIME = Math.ceil(MIN_WAGE_HOURLY * 2080 / 500) * 500;
+/**
+ * The least a year of active duty pays in 2026: a private's basic pay (E-1 with over four months of service, about
+ * $2,400 a month on the federal pay table). Service members are federal employees: the state minimum wage does not
+ * apply to them, and housing and food allowances are not wages.
+ */
+export const MIL_PAY_FLOOR = 28900;
+/** The branches of the armed forces: key -> the employer a member's job names. */
+export const MILITARY_BRANCHES = Object.freeze({
+  navy: 'the U.S. Navy', marines: 'the U.S. Marine Corps', army: 'the U.S. Army', airforce: 'the U.S. Air Force',
+  spaceforce: 'the U.S. Space Force', coastguard: 'the U.S. Coast Guard',
+});
+const BRANCH_OF_EMPLOYER = Object.fromEntries(Object.entries(MILITARY_BRANCHES).map(([k, e]) => [e, k]));
 
 /**
  * Work patterns of each occupation group (plus active-duty military), used by population.mjs for layer 0.
@@ -81,9 +97,10 @@ const LICENSED = new Set(['registered-nurse', 'telehealth-nurse', 'family-physic
   'occupational-therapist', 'chiropractor', 'lvn', 'rad-tech', 'dental-hygienist', 'sonographer', 'surgical-tech', 'paramedic', 'attorney', 'judge',
   'psychologist', 'family-therapist', 'architect', 'elementary-teacher', 'middle-school-teacher', 'high-school-teacher', 'special-ed-teacher',
   'school-counselor', 'school-principal', 'professor', 'cc-instructor', 'librarian', 'civil-engineer', 'mechanical-engineer', 'electrical-engineer',
-  'aerospace-engineer', 'hardware-engineer', 'environmental-engineer', 'process-engineer', 'research-scientist', 'military-officer']);
+  'aerospace-engineer', 'hardware-engineer', 'environmental-engineer', 'process-engineer', 'research-scientist', 'navy-officer',
+  'marine-officer', 'army-officer', 'air-force-officer', 'space-force-officer', 'coast-guard-officer']);
 const EDU_AGE = [16, 18, 19, 20, 22, 24, 25, 26];
-const WAGE_FLOOR = 35200;   // every catalog range starts at or above a full-time minimum-wage salary
+const WAGE_FLOOR = 35200;   // every civilian catalog range starts at or above a full-time minimum-wage salary
 
 /**
  * A title: t(key, title, sector, employers, [wageLo, wageHi], shifts ('edmvnh' letters), wfh (0 never, 1 possible,
@@ -91,14 +108,31 @@ const WAGE_FLOOR = 35200;   // every catalog range starts at or above a full-tim
  * share, minimum age). Affinities: r region multipliers (r0 for regions not listed), e establishment-share
  * exponents, and [where true, elsewhere] multipliers for coast, dense (urban) / rural, desert, snow, port, fire
  * (fire country), hot, inst. Licensed titles (LICENSED) hold their degree always, so they start no younger than it.
+ * A military title (sector 'military') starts at federal basic pay (MIL_PAY_FLOOR) and carries its branch, the one
+ * its employer names (MILITARY_BRANCHES).
  */
 function t(key, title, sector, employers, wage, shifts, wfh, edu, weight, aff = {}, fs = 0.5, minAge = 16) {
-  const e = ED[edu], licensed = LICENSED.has(key), lo = Math.max(wage[0], WAGE_FLOOR);
+  const list = Array.isArray(employers) ? employers : [employers], mil = sector === 'military';
+  const e = ED[edu], licensed = LICENSED.has(key), lo = Math.max(wage[0], mil ? MIL_PAY_FLOOR : WAGE_FLOOR);
   return {
-    key, title, sector, employers: Array.isArray(employers) ? employers : [employers], wage: [lo, Math.max(wage[1], lo + 2000)],
+    key, title, sector, employers: list, wage: [lo, Math.max(wage[1], lo + 2000)],
     shifts: [...shifts].map(c => SH[c]), wfh, edu: e, licensed, weight, aff, fs, minAge: licensed ? Math.max(minAge, EDU_AGE[e]) : minAge,
+    branch: mil ? BRANCH_OF_EMPLOYER[list[0]] || null : null,
   };
 }
+
+// Where the farming group's field titles are: in the fields (rural ZIPs, never a dense city ZIP, whose farming jobs
+// are a plant nursery's or a wholesale produce market's)
+const FIELD = [0.005, 1.15];
+// Where each branch's members who work off base are found (an enlisted title and its branch's officers alike)
+const MIL_AFF = {
+  navy: { coast: [3, 0.2], r: { sd: 4, ba: 0.6, la: 0.6, cc: 0.6, sj: 0.6, ie: 0.3 } },
+  marines: { r: { sd: 4, ie: 2, r0: 0.2 }, desert: [1.5, 1] },
+  army: { desert: [3, 0.5], r: { cc: 1.2, si: 0.8 } },
+  airforce: { r: { sv: 3, ba: 1.5, cc: 2, la: 1, ie: 1, sd: 0.4 }, desert: [2, 1] },
+  spaceforce: { r: { cc: 4, la: 2, r0: 0.1 } },
+  coastguard: { coast: [5, 0.05] },
+};
 
 const FARM_REGIONS_LOW = { la: 0.15, oc: 0.05, ba: 0.4 };
 
@@ -361,27 +395,28 @@ export const OCCUPATION_CATALOG = {
     t('dmv-representative', 'motor vehicle representative', 'government', ['the state DMV office'], [45000, 60000], 'd', 0, 'hs', 0.6, {}, 0.65),
   ],
   farming: [
-    t('almond-worker', 'orchard worker (almonds)', 'agriculture', ['an almond grower', 'a farm labor contractor crew'], [34000, 44000], 'e', 0, 'nohs', 3, { r: { sj: 6, sv: 2.5, r0: 0.04 } }, 0.25),
-    t('vineyard-worker', 'vineyard worker', 'agriculture', ['a table grape grower', 'a wine grape vineyard'], [34000, 45000], 'e', 0, 'nohs', 3, { r: { sj: 4, cc: 2.5, ba: 2, nc: 1.5, sv: 1, ie: 1, sd: 0.4, r0: 0.05 } }, 0.3),
-    t('citrus-picker', 'citrus picker', 'agriculture', ['a citrus grower', 'a packing house crew'], [34000, 44000], 'e', 0, 'nohs', 2, { r: { sj: 4, ie: 1.5, sd: 0.8, la: 0.4, cc: 0.3, sv: 0.3, r0: 0.02 } }, 0.25),
-    t('dairy-milker', 'dairy milker', 'agriculture', ['a dairy farm'], [36000, 48000], 'en', 0, 'nohs', 2, { r: { sj: 5, nc: 1.5, sv: 0.8, ba: 0.6, ie: 0.4, cc: 0.3, r0: 0.02 } }, 0.15),
-    t('strawberry-picker', 'strawberry picker', 'agriculture', ['a berry grower', 'a farm labor contractor crew'], [34000, 46000], 'e', 0, 'nohs', 3, { r: { cc: 7, la: 2, sd: 0.3, sj: 0.2, r0: 0.02 } }, 0.4),
-    t('lettuce-harvester', 'lettuce harvester', 'agriculture', ['a vegetable grower', 'a harvest crew'], [34000, 46000], 'e', 0, 'nohs', 2.5, { r: { cc: 6, sd: 1.2, sj: 0.5, r0: 0.02 }, desert: [1.5, 1] }, 0.3),
-    t('vegetable-worker', 'field worker (tomatoes and vegetables)', 'agriculture', ['a vegetable grower', 'a farm labor contractor crew'], [34000, 44000], 'e', 0, 'nohs', 2, { r: { sj: 3, sv: 2, cc: 1.5, sd: 1, r0: 0.1 } }, 0.3),
-    t('rice-worker', 'rice farm worker', 'agriculture', ['a rice farm'], [36000, 50000], 'e', 0, 'nohs', 1, { r: { sv: 6, sj: 0.2, r0: 0.01 } }, 0.1),
-    t('orchard-worker', 'orchard worker (peaches and walnuts)', 'agriculture', ['a fruit and nut orchard'], [34000, 46000], 'e', 0, 'nohs', 2, { r: { sv: 5, sj: 2, r0: 0.03 } }, 0.3),
-    t('date-worker', 'date palm worker', 'agriculture', ['a date grower'], [34000, 46000], 'e', 0, 'nohs', 0.6, { desert: [8, 0.01], r: { ie: 3, sd: 2 } }, 0.15),
-    t('avocado-worker', 'avocado grove worker', 'agriculture', ['an avocado grove'], [35000, 46000], 'e', 0, 'nohs', 1, { r: { sd: 4, la: 2, cc: 1.5, ie: 0.5, r0: 0.02 } }, 0.2),
-    t('nursery-worker', 'nursery and greenhouse worker', 'agriculture', ['a plant nursery', 'a greenhouse grower'], [34000, 44000], 'ed', 0, 'nohs', 1.5, { r: { sd: 2.5, la: 1.5, oc: 1.2, cc: 1.5, ba: 1, ie: 1.2, sj: 0.8 } }, 0.4),
-    t('ranch-hand', 'ranch hand', 'agriculture', ['a cattle ranch'], [36000, 52000], 'e', 0, 'nohs', 1.5, { r: { fn: 6, si: 4, nc: 2, sj: 1.5, cc: 1.2, sv: 1, sd: 0.6, ie: 0.4, r0: 0.02 }, dense: [0.1, 1.6] }, 0.1),
-    t('forestry-technician', 'forestry technician', 'forestry', ['the forest service', 'a timber company'], [40000, 60000], 'e', 0, 'hs', 1.5, { r: { nc: 5, fn: 5, si: 4, r0: 0.03 } }, 0.2),
-    t('logger', 'logger', 'forestry', ['a logging company'], [45000, 70000], 'e', 0, 'nohs', 1, { r: { nc: 5, fn: 5, si: 2, r0: 0.01 } }, 0.05),
+    t('almond-worker', 'orchard worker (almonds)', 'agriculture', ['an almond grower', 'a farm labor contractor crew'], [34000, 44000], 'e', 0, 'nohs', 3, { r: { sj: 6, sv: 2.5, r0: 0.04 }, dense: FIELD }, 0.25),
+    t('vineyard-worker', 'vineyard worker', 'agriculture', ['a table grape grower', 'a wine grape vineyard'], [34000, 45000], 'e', 0, 'nohs', 3, { r: { sj: 4, cc: 2.5, ba: 2, nc: 1.5, sv: 1, ie: 1, sd: 0.4, r0: 0.05 }, dense: FIELD }, 0.3),
+    t('citrus-picker', 'citrus picker', 'agriculture', ['a citrus grower', 'a packing house crew'], [34000, 44000], 'e', 0, 'nohs', 2, { r: { sj: 4, ie: 1.5, sd: 0.8, la: 0.4, cc: 0.3, sv: 0.3, r0: 0.02 }, dense: FIELD }, 0.25),
+    t('dairy-milker', 'dairy milker', 'agriculture', ['a dairy farm'], [36000, 48000], 'en', 0, 'nohs', 2, { r: { sj: 5, nc: 1.5, sv: 0.8, ba: 0.6, ie: 0.4, cc: 0.3, r0: 0.02 }, dense: FIELD }, 0.15),
+    t('strawberry-picker', 'strawberry picker', 'agriculture', ['a berry grower', 'a farm labor contractor crew'], [34000, 46000], 'e', 0, 'nohs', 3, { r: { cc: 7, la: 2, sd: 0.3, sj: 0.2, r0: 0.02 }, dense: FIELD }, 0.4),
+    t('lettuce-harvester', 'lettuce harvester', 'agriculture', ['a vegetable grower', 'a harvest crew'], [34000, 46000], 'e', 0, 'nohs', 2.5, { r: { cc: 6, sd: 1.2, sj: 0.5, r0: 0.02 }, desert: [1.5, 1], dense: FIELD }, 0.3),
+    t('vegetable-worker', 'field worker (tomatoes and vegetables)', 'agriculture', ['a vegetable grower', 'a farm labor contractor crew'], [34000, 44000], 'e', 0, 'nohs', 2, { r: { sj: 3, sv: 2, cc: 1.5, sd: 1, r0: 0.1 }, dense: FIELD }, 0.3),
+    t('rice-worker', 'rice farm worker', 'agriculture', ['a rice farm'], [36000, 50000], 'e', 0, 'nohs', 1, { r: { sv: 6, sj: 0.2, r0: 0.01 }, dense: FIELD }, 0.1),
+    t('orchard-worker', 'orchard worker (peaches and walnuts)', 'agriculture', ['a fruit and nut orchard'], [34000, 46000], 'e', 0, 'nohs', 2, { r: { sv: 5, sj: 2, r0: 0.03 }, dense: FIELD }, 0.3),
+    t('date-worker', 'date palm worker', 'agriculture', ['a date grower'], [34000, 46000], 'e', 0, 'nohs', 0.6, { desert: [8, 0.01], r: { ie: 3, sd: 2 }, dense: FIELD }, 0.15),
+    t('avocado-worker', 'avocado grove worker', 'agriculture', ['an avocado grove'], [35000, 46000], 'e', 0, 'nohs', 1, { r: { sd: 4, la: 2, cc: 1.5, ie: 0.5, r0: 0.02 }, dense: FIELD }, 0.2),
+    t('nursery-worker', 'nursery and greenhouse worker', 'agriculture', ['a plant nursery', 'a greenhouse grower'], [34000, 44000], 'ed', 0, 'nohs', 1.5, { r: { sd: 2.5, la: 1.5, oc: 1.2, cc: 1.5, ba: 1, ie: 1.2, sj: 0.8 }, dense: [2.5, 1] }, 0.4),
+    t('ranch-hand', 'ranch hand', 'agriculture', ['a cattle ranch'], [36000, 52000], 'e', 0, 'nohs', 1.5, { r: { fn: 6, si: 4, nc: 2, sj: 1.5, cc: 1.2, sv: 1, sd: 0.6, ie: 0.4, r0: 0.02 }, dense: [0.005, 1.6] }, 0.1),
+    t('forestry-technician', 'forestry technician', 'forestry', ['the forest service', 'a timber company'], [40000, 60000], 'e', 0, 'hs', 1.5, { r: { nc: 5, fn: 5, si: 4, r0: 0.03 }, dense: FIELD }, 0.2),
+    t('logger', 'logger', 'forestry', ['a logging company'], [45000, 70000], 'e', 0, 'nohs', 1, { r: { nc: 5, fn: 5, si: 2, r0: 0.01 }, dense: FIELD }, 0.05),
     t('fishing-deckhand', 'commercial fishing deckhand', 'fishing', ['a commercial fishing boat', 'a crab boat'], [35000, 70000], 'en', 0, 'nohs', 0.7, { coast: [4, 0.02], r: { nc: 3, cc: 2, ba: 1, la: 0.6, sd: 0.8, oc: 0.4 } }, 0.1),
-    t('cannabis-trimmer', 'cannabis farm trimmer', 'agriculture', ['a licensed cannabis farm'], [34000, 50000], 'd', 0, 'hs', 0.8, { r: { nc: 5, fn: 1.2, cc: 0.8, sj: 0.4, r0: 0.05 } }, 0.45),
-    t('irrigator', 'irrigation worker', 'agriculture', ['a farm', 'the irrigation district'], [38000, 52000], 'e', 0, 'nohs', 1, { r: { sj: 3, sv: 2.5, ie: 1, sd: 1, cc: 1, r0: 0.1 } }, 0.1),
-    t('produce-sorter', 'produce sorter', 'agriculture', ['a packing shed', 'a fruit packing house'], [34000, 42000], 'ed', 0, 'nohs', 1.5, { r: { sj: 4, cc: 3, sv: 2, ie: 1, sd: 1, r0: 0.1 } }, 0.6),
-    t('tractor-driver', 'tractor driver', 'agriculture', ['a farm', 'a custom harvesting outfit'], [38000, 55000], 'e', 0, 'nohs', 1.5, { r: { sj: 4, sv: 3, cc: 2, ie: 1, sd: 1, r0: 0.05 } }, 0.1),
-    t('farmworker', 'farmworker', 'agriculture', ['a farm', 'a farm labor contractor crew'], [34000, 44000], 'e', 0, 'nohs', 1, {}, 0.3),
+    t('cannabis-trimmer', 'cannabis farm trimmer', 'agriculture', ['a licensed cannabis farm'], [34000, 50000], 'd', 0, 'hs', 0.8, { r: { nc: 5, fn: 1.2, cc: 0.8, sj: 0.4, r0: 0.05 }, dense: FIELD }, 0.45),
+    t('irrigator', 'irrigation worker', 'agriculture', ['a farm', 'the irrigation district'], [38000, 52000], 'e', 0, 'nohs', 1, { r: { sj: 3, sv: 2.5, ie: 1, sd: 1, cc: 1, r0: 0.1 }, dense: FIELD }, 0.1),
+    t('produce-sorter', 'produce sorter', 'agriculture', ['a packing shed', 'a fruit packing house'], [34000, 42000], 'ed', 0, 'nohs', 1.5, { r: { sj: 4, cc: 3, sv: 2, ie: 1, sd: 1, r0: 0.1 }, dense: [0.1, 1.2] }, 0.6),
+    t('tractor-driver', 'tractor driver', 'agriculture', ['a farm', 'a custom harvesting outfit'], [38000, 55000], 'e', 0, 'nohs', 1.5, { r: { sj: 4, sv: 3, cc: 2, ie: 1, sd: 1, r0: 0.05 }, dense: FIELD }, 0.1),
+    t('produce-market-worker', 'produce market worker', 'agriculture', ['a wholesale produce market', 'a produce distributor'], [34000, 46000], 'en', 0, 'nohs', 0.5, { dense: [8, 0.05] }, 0.3),
+    t('farmworker', 'farmworker', 'agriculture', ['a farm', 'a farm labor contractor crew'], [34000, 44000], 'e', 0, 'nohs', 1, { dense: FIELD }, 0.3),
   ],
   construction: [
     t('carpenter', 'carpenter', 'construction', ['a homebuilder', 'a framing contractor', 'a general contractor'], [55000, 95000], 'e', 0, 'nohs', 4, { e: { builders: 0.3 } }, 0.03),
@@ -458,14 +493,24 @@ export const OCCUPATION_CATALOG = {
     t('recycling-worker', 'recycling center worker', 'sanitation', ['a recycling center'], [35000, 45000], 'ed', 0, 'nohs', 0.6, {}, 0.3),
     t('ramp-agent', 'airport ramp agent', 'aviation', ['an airline ground crew'], [38000, 55000], 'edvn', 0, 'hs', 0.8, { dense: [1.2, 0.6] }, 0.15),
   ],
+  // Active duty: basic pay by the federal tables (enlisted from a private's to a senior sergeant's, officers from a
+  // second lieutenant's or an ensign's to a colonel's or a captain's), the same in every county. Each title is one
+  // branch's; a member's branch is the installation's they report to (population.mjs), and the affinities here only
+  // place the members who work off base (recruiters, reserve centers, headquarters). About one in six is an officer.
   military: [
-    t('navy-sailor', 'Navy sailor', 'military', ['the U.S. Navy'], [38000, 75000], 'edn', 0, 'hs', 3, { coast: [3, 0.2], r: { sd: 4, ba: 0.6, la: 0.6, cc: 0.6, sj: 0.6, ie: 0.3 } }, 0.2),
-    t('navy-corpsman', 'Navy hospital corpsman', 'military', ['the U.S. Navy'], [40000, 70000], 'edn', 0, 'hs', 0.8, { coast: [3, 0.3], r: { sd: 4 } }, 0.35),
-    t('marine', 'Marine', 'military', ['the U.S. Marine Corps'], [36000, 70000], 'ed', 0, 'hs', 2.5, { r: { sd: 4, ie: 2, r0: 0.2 }, desert: [1.5, 1] }, 0.1),
-    t('army-soldier', 'Army soldier', 'military', ['the U.S. Army'], [36000, 72000], 'ed', 0, 'hs', 1.5, { desert: [3, 0.5], r: { cc: 1.2, si: 0.8 } }, 0.15),
-    t('airman', 'Air Force airman', 'military', ['the U.S. Air Force', 'the U.S. Space Force'], [38000, 75000], 'edn', 0, 'hs', 2, { r: { sv: 3, ba: 1.5, cc: 2, la: 1, ie: 1, sd: 0.4 }, desert: [2, 1] }, 0.2),
-    t('coast-guard', "Coast Guard boatswain's mate", 'military', ['the U.S. Coast Guard'], [40000, 72000], 'edn', 0, 'hs', 0.6, { coast: [5, 0.05] }, 0.15),
-    t('military-officer', 'military officer', 'military', ['the U.S. Navy', 'the U.S. Marine Corps', 'the U.S. Army', 'the U.S. Air Force'], [70000, 140000], 'd', 0, 'bachelor', 1, {}, 0.2, 22),
+    t('navy-sailor', 'Navy sailor', 'military', ['the U.S. Navy'], [28900, 75000], 'edn', 0, 'hs', 3, MIL_AFF.navy, 0.2),
+    t('navy-corpsman', 'Navy hospital corpsman', 'military', ['the U.S. Navy'], [28900, 70000], 'edn', 0, 'hs', 0.8, { coast: [3, 0.3], r: { sd: 4 } }, 0.35),
+    t('marine', 'Marine', 'military', ['the U.S. Marine Corps'], [28900, 72000], 'ed', 0, 'hs', 2.5, MIL_AFF.marines, 0.1),
+    t('army-soldier', 'Army soldier', 'military', ['the U.S. Army'], [28900, 72000], 'ed', 0, 'hs', 1.5, MIL_AFF.army, 0.15),
+    t('airman', 'Air Force airman', 'military', ['the U.S. Air Force'], [28900, 75000], 'edn', 0, 'hs', 2, MIL_AFF.airforce, 0.2),
+    t('guardian', 'Space Force guardian', 'military', ['the U.S. Space Force'], [28900, 80000], 'edn', 0, 'hs', 0.25, MIL_AFF.spaceforce, 0.2),
+    t('coast-guard', "Coast Guard boatswain's mate", 'military', ['the U.S. Coast Guard'], [28900, 72000], 'edn', 0, 'hs', 0.6, MIL_AFF.coastguard, 0.15),
+    t('navy-officer', 'Navy officer', 'military', ['the U.S. Navy'], [48000, 150000], 'd', 0, 'bachelor', 0.7, MIL_AFF.navy, 0.2, 22),
+    t('marine-officer', 'Marine Corps officer', 'military', ['the U.S. Marine Corps'], [48000, 150000], 'd', 0, 'bachelor', 0.45, MIL_AFF.marines, 0.1, 22),
+    t('army-officer', 'Army officer', 'military', ['the U.S. Army'], [48000, 150000], 'd', 0, 'bachelor', 0.3, MIL_AFF.army, 0.2, 22),
+    t('air-force-officer', 'Air Force officer', 'military', ['the U.S. Air Force'], [48000, 150000], 'd', 0, 'bachelor', 0.4, MIL_AFF.airforce, 0.2, 22),
+    t('space-force-officer', 'Space Force officer', 'military', ['the U.S. Space Force'], [48000, 150000], 'd', 0, 'bachelor', 0.15, MIL_AFF.spaceforce, 0.2, 22),
+    t('coast-guard-officer', 'Coast Guard officer', 'military', ['the U.S. Coast Guard'], [48000, 150000], 'd', 0, 'bachelor', 0.12, MIL_AFF.coastguard, 0.2, 22),
   ],
 };
 
@@ -555,21 +600,23 @@ function eduIndex(e) {
  * away from home never picks an always-at-home title (a home daycare). A known education rules out licensed titles
  * the person lacks the degree for and makes others less likely the further short it falls; eduMax (the most
  * schooling the person's age allows) rules out titles needing more. When nothing fits, the group's least demanding
- * titles stand in.
+ * titles stand in. A service member's branch (a MILITARY_BRANCHES key), when given, keeps the draw to its titles.
  * @param {import('./rng.mjs').Rng} rng
  * @param {{group: string, world?: object, zi?: number, sex?: 'F'|'M', age?: number, education?: string|number,
- *   eduMax?: string|number, shift?: string, wfh?: boolean}} opts
- * @returns {object} the catalog entry (key, title, sector, employers, wage range, shifts, wfh, edu, licensed, ...)
+ *   eduMax?: string|number, shift?: string, wfh?: boolean, branch?: string}} opts
+ * @returns {object} the catalog entry (key, title, sector, employers, wage range, shifts, wfh, edu, licensed, branch, ...)
  */
-export function chooseTitle(rng, { group, world, zi, sex = 'F', age = 40, education, eduMax, shift, wfh } = {}) {
+export function chooseTitle(rng, { group, world, zi, sex = 'F', age = 40, education, eduMax, shift, wfh, branch } = {}) {
   const g = OCCUPATION_CATALOG[group] ? group : 'office';
   const list = OCCUPATION_CATALOG[g];
   const base = world && zi >= 0 ? placeWeights(world, zi, g) : null;
   const edu = eduIndex(education), cap = eduIndex(eduMax);
+  const br = g === 'military' && Object.prototype.hasOwnProperty.call(MILITARY_BRANCHES, branch) ? branch : null;
   const w = new Float64Array(list.length);
   let tot = 0;
   for (let i = 0; i < list.length; i++) {
     const x = list[i];
+    if (br && x.branch !== br) continue;
     let v = base ? base[i] : x.weight;
     v *= sex === 'F' ? 0.3 + 1.4 * x.fs : 0.3 + 1.4 * (1 - x.fs);
     if (edu !== undefined && edu < x.edu) v *= x.licensed ? 0 : edu === x.edu - 1 ? 0.2 : 0.02;
@@ -583,7 +630,7 @@ export function chooseTitle(rng, { group, world, zi, sex = 'F', age = 40, educat
   if (!(tot > 0)) {
     // no title meets every requirement (an education the person lacks): the least demanding titles that still fit
     // working from home or not, and the age a license needs; the education rules alone are relaxed
-    const fits = x => (wfh !== true || !ANY_REMOTE[g] || x.wfh > 0) && !(wfh === false && x.wfh === 3 && ANY_ONSITE[g]);
+    const fits = x => (wfh !== true || !ANY_REMOTE[g] || x.wfh > 0) && !(wfh === false && x.wfh === 3 && ANY_ONSITE[g]) && (!br || x.branch === br);
     const old = x => !x.licensed || age >= x.minAge;
     let pool = list.filter(x => fits(x) && old(x));
     if (!pool.length) pool = list.filter(fits);
@@ -601,28 +648,31 @@ export function chooseTitle(rng, { group, world, zi, sex = 'F', age = 40, educat
 /**
  * The annual wage of a title for a person: its California range by experience (age), education beyond the
  * title's minimum and a personal draw u, scaled by the county's income level, never below a full-time minimum-wage
- * salary (MIN_WAGE_FULL_TIME; the population pays part-timers by their hours).
+ * salary (MIN_WAGE_FULL_TIME; the population pays part-timers by their hours). A service member's is federal basic
+ * pay: the same in every county and never below a private's (MIL_PAY_FLOOR), not the state minimum wage.
  * @param {object} title a catalog entry
  * @param {{world?: object, zi?: number, age?: number, education?: string|number}} who
  * @param {number} u a uniform in [0, 1)
  * @returns {number} dollars a year, a multiple of $500
  */
 export function titleWage(title, { world, zi, age = 40, education } = {}, u = 0.5) {
-  const f = world && zi >= 0 ? zipFeatures(world, zi) : null;
+  const mil = title.sector === 'military';
+  const f = !mil && world && zi >= 0 ? zipFeatures(world, zi) : null;
   const edu = eduIndex(education) ?? title.edu;
   const exp = Math.pow(Math.min(1, Math.max(0, (age - 18) / 25)), 0.7);
   const pos = Math.min(1, Math.max(0, 0.12 + 0.6 * exp + 0.07 * Math.max(0, edu - title.edu) + 0.3 * (u - 0.5)));
   const wage = Math.round((title.wage[0] + (title.wage[1] - title.wage[0]) * pos) * (f ? f.wage : 1) / 500) * 500;
-  return Math.max(MIN_WAGE_FULL_TIME, wage);
+  return Math.max(mil ? MIL_PAY_FLOOR : MIN_WAGE_FULL_TIME, wage);
 }
 
 /**
  * A specific job for a worker (chooseTitle, then an employer, the shift and titleWage).
  * @param {import('./rng.mjs').Rng} rng
  * @param {{group: string, world: object, zi: number, sex?: 'F'|'M', age?: number, education?: string,
- *   shift?: string, wfh?: boolean}} opts group: a Census occupation group or 'military'; zi: the ZIP where the
- *   job is (the workplace when known); education: a B15003 key ('in school' counts as some college); shift and
- *   wfh, when given, are honored (titles that fit them are preferred) and returned unchanged.
+ *   shift?: string, wfh?: boolean, branch?: string}} opts group: a Census occupation group or 'military'; zi: the ZIP
+ *   where the job is (the workplace when known); education: a B15003 key ('in school' counts as some college); shift
+ *   and wfh, when given, are honored (titles that fit them are preferred) and returned unchanged; branch: a service
+ *   member's branch (MILITARY_BRANCHES key).
  * @returns {{key: string, title: string, sector: string, employer: string, shift: string, wfh: boolean, wage: number}}
  */
 export function pickOccupation(rng, opts = {}) {

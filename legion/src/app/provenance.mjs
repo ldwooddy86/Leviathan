@@ -201,6 +201,33 @@ export function concernSources(why) {
   return out;
 }
 
+/** True for a token that is a column or record code rather than a word: a COLUMNS key, snake_case, camelCase, a call. */
+function codeLike(token) {
+  const t = String(token || '').replace(/[^\w()]/g, '');
+  const bare = t.replace(/\(.*$/, '');
+  return !!(COLUMNS[bare] || /^[a-z][a-z0-9]*(?:_[a-z0-9]+)+$/.test(bare) || /^[a-z]+[A-Z]\w*$/.test(bare) || /^[a-z]+\w*\(\d*\)$/.test(t));
+}
+
+/**
+ * A concern's or an interest's `why` as a sentence for people: the column codes it cites in parentheses
+ * ("(coast_km)", "(off_kind di)", "(femaOf)") and raw coordinates ("(team home 37.87, -122.26)") are left out; the
+ * panel shows the datasets behind them on their own line (concernSourceText) and keeps the raw text in a tooltip.
+ * Parentheses that hold words ("(about 40%)") stay.
+ * @param {string} why
+ * @returns {string}
+ */
+export function plainWhy(why) {
+  const s = String(why || '');
+  const out = s.replace(/\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)/g, (all, inner) => {
+    const text = inner.trim();
+    if (!text) return '';
+    if (/^(?:team )?home\s+-?\d/i.test(text) || /^-?\d+\.\d+,\s*-?\d+\.\d+$/.test(text)) return '';
+    const parts = text.split(/[,;]\s*/).map(p => p.trim()).filter(Boolean);
+    return parts.length && parts.every(p => codeLike(p.split(/\s+/)[0]) || /^-?\d+(?:\.\d+)?$/.test(p)) ? '' : all;
+  });
+  return out.replace(/\s+([.,;:!?])/g, '$1').replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+
 /** The datasets behind a concern's `why`, as one short phrase: "CAL FIRE hazard zones via the atlas · atlas". */
 export function concernSourceText(why) {
   const names = [...new Set(concernSources(why).map(s => s.source))];

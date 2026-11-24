@@ -15,6 +15,7 @@ import {
   MODELS, DEFAULTS, EFFORTS, FALLBACK_BETA, PLATFORM_RULES, REFLECTION_SCHEMA, MOODS, PROMPT_VERSION, PROXY_DUMMY_KEY,
   modelInfo, normalizeModel, fallbackParams, personaSheet, systemBlocks, systemPrompt, situation, recallFor,
   History, ClaudeVoice, VoiceError, describeError, validateReflection, exportPersona, exportJSONL,
+  SITUATION_TEMPLATE, PERSONA_EXPORT_SCHEMA, EXPORT_FORMAT,
 } from '../src/engine/llm.mjs';
 import { createServer, validateMessagesRequest, logSafe } from '../server/serve.mjs';
 
@@ -1096,7 +1097,12 @@ describe('server and Claude proxy', () => {
     const ok = { model: 'claude-opus-5-5', max_tokens: 100, messages: [{ role: 'user', content: 'hi' }] };
     const cases = [
       [{ ...ok, tools: [{ name: 'x', input_schema: { type: 'object' } }] }, /tools are not available/],
-      [{ ...ok, max_tokens: 100000 }, /max_tokens must be an integer from 0 to 8192/],
+      [{ ...ok, max_tokens: 100000 }, /max_tokens must be an integer from 1 to 8192/],
+      // the API needs at least one token, and a fallback runs on the server's key like the model asked for: only
+      // Legion's own models, never one named in the request (eng-51)
+      [{ ...ok, max_tokens: 0 }, /max_tokens must be an integer from 1 to 8192/],
+      [{ ...ok, fallbacks: [{ model: 'claude-opus-4-1-20250805' }] }, /fallbacks must be "default" or a list/],
+      [{ ...ok, fallbacks: [{ model: 'claude-x' }] }, /fallbacks must be "default" or a list/],
       [{ ...ok, temperature: 0.2 }, /"temperature" is not accepted/],
       [{ ...ok, thinking: { type: 'enabled', budget_tokens: 2048 } }, /thinking is adaptive/],
       [{ ...ok, messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'url', url: 'http://x' } }] }] }, /only text conversations/],
@@ -1127,8 +1133,11 @@ describe('server and Claude proxy', () => {
     assert.equal(nowhere.status, 404);
     assert.equal(up.calls.length, before, 'nothing invalid reached the upstream');
     assert.equal(validateMessagesRequest(ok).ok, true);
-    assert.equal(validateMessagesRequest({ ...ok, fallbacks: [{ model: 'claude-opus-5' }] }).ok, true);
+    assert.equal(validateMessagesRequest({ ...ok, fallbacks: [{ model: 'claude-sonnet-5-5' }] }).ok, true, 'a fallback to one of Legion\'s models');
+    assert.equal(validateMessagesRequest({ ...ok, fallbacks: 'default' }).ok, true);
+    assert.equal(validateMessagesRequest({ ...ok, fallbacks: [{ model: 'claude-opus-5' }] }).ok, false, 'an off-list fallback model is refused (eng-51)');
     assert.equal(validateMessagesRequest({ ...ok, fallbacks: 'everything' }).ok, false);
+    assert.equal(validateMessagesRequest({ ...ok, max_tokens: 0 }).ok, false, 'max_tokens 0 is refused (eng-51)');
   });
 
   test('same origin only, and only for this host', async () => {
@@ -1331,5 +1340,116 @@ describe('static files', () => {
       fs.rmSync(root, { recursive: true, force: true });
       fs.rmSync(outside, { recursive: true, force: true });
     }
+  });
+});
+
+// ---------------------------------------------------------------- final review fixes
+
+const lexicon = await import('../src/engine/lexicon.mjs');
+
+describe('final review: rules, sheet, situation and export', () => {
+  const pop = populationModule ? new populationModule.Population(world, { seed: populationModule.LEGION_SEED }) : null;
+  const real = (id, t) => { const npc = pop.get(id); return personaModule.persona(world, npc, { population: pop, dialectFor: lexicon.dialectFor, t }); };
+  const skip = !(personaModule && populationModule) && 'persona.mjs or population.mjs is not available';
+
+  test('the rules keep immigration status private and keep kids safe with strangers (rep-33, rep-39)', () => {
+    assert.match(PLATFORM_RULES, /never says anyone's immigration or citizenship status, yours included: never state, invent or guess it/);
+    assert.match(PLATFORM_RULES, /papers, status or how someone got here, decline/);
+    assert.match(PLATFORM_RULES, /threat to call immigration on someone is abuse/);
+    for (const needle of ['where you live', 'home alone', 'phone number', 'your school', 'keep a secret', 'go find a grown-up']) assert.ok(PLATFORM_RULES.includes(needle), needle);
+    assert.match(PLATFORM_RULES, /threatens you or anyone else[^.]*end the conversation/);
+    assert.match(PLATFORM_RULES, /if it names no faith, don't supply one/);
+    assert.ok(PLATFORM_RULES.length / 4 > 512, 'still past the cache minimum');
+  });
+
+  test('a missing credential in Node says what to do (eng-49)', () => {
+    const err = new Anthropic.AnthropicError('Could not resolve authentication method. Expected one of apiKey, authToken, credentials, config, or profile to be set.');
+    const d = describeError(err, {});
+    assert.equal(d.code, 'no_key');
+    assert.match(d.message, /ANTHROPIC_API_KEY/);
+    assert.match(d.message, /ant auth login/);
+    assert.match(d.message, /--proxy/);
+    assert.equal(describeError(err, { proxied: true }).code, 'config', 'through a proxy the key is the server\'s business');
+  });
+
+  test('every dialect puts its regional words in the sheet (exp-69)', { skip }, () => {
+    const base = real('94601-673-2');
+    for (const key of lexicon.DIALECT_KEYS) {
+      const p = { ...base, speech: { ...base.speech, dialect: key } };
+      const sheet = personaSheet(p, world);
+      const line = sheet.split('\n').find(l => l.startsWith('- Regional words you actually use: '));
+      assert.ok(line, `${key}: no regional words`);
+      assert.ok(line.split(', ').length >= 5, `${key}: ${line}`);
+      assert.equal(personaSheet(p, world), sheet, 'deterministic');
+    }
+    const p = real('94601-673-2');
+    const later = real('94601-673-2', world.snapshotTime + 5 * 3600000);
+    const words = s => s.split('\n').filter(l => /^- (Regional words|How people around here)/.test(l)).join('\n');
+    assert.equal(words(personaSheet(later, world)), words(personaSheet(p, world)), 'the same at every hour: the cached sheet does not move');
+    assert.match(personaSheet(p, world), /How people around here put things/);
+  });
+
+  test('a limited-English speaker gets one instruction and their own language\'s fillers (exp-83)', { skip }, () => {
+    const sheet = personaSheet(real('92236-11168-0'), world);
+    assert.match(sheet, /Your English is limited/);
+    assert.match(sheet, /You speak mostly Spanish \(your English is limited\)/);
+    assert.doesNotMatch(sheet, /You mix Spanish into your English/);
+    assert.doesNotMatch(sheet, /Fillers you lean on: "(I mean|kind of|you know|honestly)"/);
+    const fillers = sheet.split('\n').find(l => l.startsWith('- Fillers you lean on'));
+    if (fillers) assert.match(fillers, /\(in Spanish\)/);
+  });
+
+  test('the stepparent\'s sheet says stepdaughter (exp-80)', { skip }, () => {
+    const sheet = personaSheet(real('92236-11168-1'), world);
+    assert.match(sheet, /your stepdaughter Arely/);
+    assert.doesNotMatch(sheet, /your daughter Arely/);
+  });
+
+  test('records: a far station is named with its distance and never "here"; year built before 1940 (fid-6, exp-65)', { skip }, () => {
+    const onyx = personaSheet(real('93255-102-0'), world);
+    assert.doesNotMatch(onyx, /hottest day on record nearby 92°F/, 'a 92°F record where it reaches 100°F most years is left out');
+    if (Number.isFinite(world.zip(world.indexOf('93255')).rain_rec_km)) assert.match(onyx, /Records from weather stations farther away[^\n]*Inyokern station, 25 km away/);
+    const mission = personaSheet(real('94110-17454-1'), world);
+    assert.match(mission, /median year homes were built: 1939 or earlier \(before 1940\)/);
+    assert.doesNotMatch(mission, /built (around )?193[89]\b/);
+  });
+
+  test('an estimated forecast is said as an estimate, never as this place\'s own (fid-2)', () => {
+    const base = world.weatherAt(ZI, T);
+    const borrowed = { ...base, approx: true, point: 'Fresno', basis: { kind: 'borrowed', point: 'Fresno', office: 'HNX', distKm: 120, elevAdjF: -8 } };
+    const note = situation(persona, null, { t: T, weather: borrowed });
+    assert.match(note, /probably around \d+°F/);
+    assert.match(note, /never call the Fresno forecast yours/);
+    assert.match(note, /120 km away/);
+    assert.doesNotMatch(note, /Forecast for [^:]*: .*\d/, 'no borrowed numbers');
+    const climate = { ...base, approx: true, basis: { kind: 'climate', point: null, office: 'REV' } };
+    const c = situation(persona, null, { t: T, weather: climate });
+    assert.match(c, /no forecast covers your area/);
+    assert.doesNotMatch(c, /Forecasters' key message/);
+    const own = situation(persona, null, { t: T, weather: { ...base, approx: false, basis: { kind: 'forecast', point: base.point } } });
+    assert.doesNotMatch(own, /probably around|estimate/);
+  });
+
+  test('the export carries the day plan, the mind, a situation template and its schema (exp-70)', { skip }, () => {
+    const p = real('92603-1-0');
+    const e = exportPersona(p, world, { t: world.snapshotTime });
+    assert.equal(e.format, EXPORT_FORMAT);
+    for (const k of PERSONA_EXPORT_SCHEMA.required) assert.ok(k in e, `required ${k}`);
+    for (const k of Object.keys(PERSONA_EXPORT_SCHEMA.properties)) assert.ok(k in e, `described ${k}`);
+    assert.equal(e.date, '2026-11-23');
+    assert.ok(Array.isArray(e.dayPlan) && e.dayPlan.length >= 3);
+    assert.ok(e.dayPlan.every(x => Number.isFinite(x.start) && Number.isFinite(x.place.lat) && Number.isFinite(x.place.lon)), 'places with lat/lon');
+    assert.equal(e.dayPlan[0].startMin, 0);
+    assert.equal(e.dayPlan[e.dayPlan.length - 1].endMin, 1440);
+    assert.ok(e.mind && e.mind.mood && e.mind.needs && Array.isArray(e.mind.memory));
+    const st = e.situationTemplate;
+    assert.equal(st.header, SITUATION_TEMPLATE.header);
+    assert.ok(st.lines.length >= 10 && st.lines.every(l => l.key && l.template));
+    assert.match(st.example, /^\[Situation for this turn/);
+    assert.match(st.example, /Local time: Monday, November 23, 2026, 2:38 PM Pacific/);
+    assert.equal(st.firstName, p.npc.name.nick || p.npc.name.first);
+    // plain JSON all the way down: an engine in any language reads it
+    assert.deepEqual(JSON.parse(JSON.stringify(e)), e);
+    assert.ok(!JSON.stringify(SITUATION_TEMPLATE).includes('=>'));
   });
 });

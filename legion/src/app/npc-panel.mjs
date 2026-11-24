@@ -13,13 +13,14 @@
 // The tabs follow the ARIA tabs pattern: arrows, Home and End move between them.
 
 import { EVENTS } from './bus.mjs';
-import { h, icon, clear, copyText, downloadText, safeJSON, toast } from './dom.mjs';
+import { h, icon, clear, copyText, downloadText, safeJSON, toast, sheetGrip } from './dom.mjs';
 import {
   fmtInt, fmtMoney, fmtDuration, fmtMinute, daysLabel, displayName, initials, label, capitalize, roadLabel, speechWords,
+  householdRelations, memberRelation,
   HH_TYPE, ROLE, MODE_VERB, EDUCATION, SCHOOL, STATUS, ENGLISH, MARITAL, GENERATION, LANGUAGE, OCCUPATION_GROUP, DIALECT,
 } from './format.mjs';
 import { meter } from './charts.mjs';
-import { factLabel, concernSourceText, memorySource } from './provenance.mjs';
+import { factLabel, concernSourceText, memorySource, plainWhy } from './provenance.mjs';
 import { alertsForZip } from './nws-live.mjs';
 import { fireLabel } from './services.mjs';
 
@@ -86,6 +87,11 @@ export function fireName(name) {
  * @returns {string[]}
  */
 export function startersFor(world, npc, { weather = null } = {}) {
+  // babies and toddlers are not asked about traffic or restaurants; small children get questions a child answers
+  const age = Number.isFinite(npc.age) ? npc.age : null;
+  if (age !== null && age < 3) return ['Hi there, little one!', 'Want to play peekaboo?', 'Is that your favorite toy?', 'Can you wave hello?'];
+  if (age !== null && age < 5) return ['Hi! How are you today?', 'What’s your favorite toy?', 'Do you like going to the park?', 'What’s your favorite animal?', 'What’s your favorite food?'];
+  const kid = age !== null && age < 13;
   const out = ['How’s your day going?'];
   if (npc.occupation || npc.status === 'employed' || npc.status === 'military') out.push('What do you do for work?');
   else if (npc.school || npc.status === 'student') out.push('How’s school going?');
@@ -97,11 +103,22 @@ export function startersFor(world, npc, { weather = null } = {}) {
   out.push(alert ? `Heard about the ${alert.event}?` : 'How’s the weather treating you?');
   const c = npc.commute || {};
   const road = DRIVING.has(c.mode) ? roadLabel(c.road) : null;
-  out.push(road ? `How’s traffic on ${road}?` : 'What’s traffic like around here?');
-  out.push('Where should I eat around here?');
+  if (kid) out.push('What do you like to play?', 'What’s your favorite food?');
+  else {
+    out.push(road ? `How’s traffic on ${road}?` : 'What’s traffic like around here?');
+    out.push('Where should I eat around here?');
+  }
   const zi = Number.isInteger(npc.zi) ? npc.zi : world.indexOf(npc.zip);
+  // the fire is one they could remember: they were at least five when it burned
+  const born = Number.isFinite(npc.birthYear) ? npc.birthYear : age !== null ? 2026 - age : null;
   let fire = null;
-  if (zi >= 0 && typeof world.firesOf === 'function') for (const f of world.firesOf(zi)) { fire = fireName(f.name); if (fire) break; }
+  if (zi >= 0 && typeof world.firesOf === 'function') {
+    for (const f of world.firesOf(zi)) {
+      if (born !== null && Number.isFinite(Number(f.year)) && Number(f.year) - born < 5) continue;
+      fire = fireName(f.name);
+      if (fire) break;
+    }
+  }
   out.push(fire ? `What was ${fire} like?` : 'How long have you lived here?');
   const z = zi >= 0 && world.z ? world.z : null;
   const snowNow = weather && weather.now && /snow/i.test(String(weather.now.short || ''));
@@ -131,6 +148,17 @@ export function homePhrase(tenure, dwelling) {
     case 'apartment': return own ? 'Owns a condo in a large building' : `${verb} in an apartment building`;
     default: return own ? 'Owns their home' : tenure === 'rent' ? 'Rents their home' : 'Home';
   }
+}
+
+/**
+ * "built 1962"; in a ZIP whose median is the ACS top code (built 1939 or earlier), a year at the code itself reads
+ * "built before 1940" (the Census does not say which year).
+ */
+export function builtText(year, z) {
+  const y = Number(year);
+  if (!Number.isFinite(y) || y <= 0) return null;
+  const top = z && (z.ybBefore1940 === true || (Number(z.yb_med) > 0 && Number(z.yb_med) <= 1939));
+  return top && (y === 1938 || y === 1939) ? 'built before 1940' : `built ${y}`;
 }
 
 /** The commute as two short lines: how, and when. */
@@ -174,6 +202,17 @@ export function activityLine(a) {
   const how = a.travel && a.mode ? MOVING_BY[a.mode] || null : null;
   const until = Number.isFinite(a.endMin) ? `until ${fmtMinute(a.endMin % 1440)}` : null;
   return [what, how, until].filter(Boolean).join(' · ') || null;
+}
+
+/**
+ * The small line under an NPC's bubble: who spoke and how they feel, in words ("offline engine · feeling content").
+ * An emotion key never stands alone, where "content" would read as the noun.
+ * @param {{emotion?: string}} line
+ * @param {string} engine 'offline' | 'claude'
+ */
+export function lineMeta(line, engine) {
+  const mood = line && line.emotion && line.emotion !== 'neutral' ? `feeling ${String(line.emotion).replace(/[-_]+/g, ' ')}` : null;
+  return [engine === 'offline' ? 'offline engine' : null, mood].filter(Boolean).join(' · ');
 }
 
 /** A rough token count of text (4 characters a token, the usual estimate for English prose). */
@@ -257,7 +296,7 @@ export class NpcPanel {
     }
     this.tablist.addEventListener('keydown', e => this._tabKeys(e));
     this.body = h('div.panel-body.npc-body', Object.values(this.panels));
-    el.append(h('div.sheet-grip', { 'aria-hidden': 'true' }), this.head, this.tablist, this.body);
+    el.append(sheetGrip(el, { label: 'NPC', onChange: () => { this._gripUsed = true; if (deps.onResize) deps.onResize(); } }), this.head, this.tablist, this.body);
     this.bus.on(EVENTS.SETTINGS_CHANGE, ({ changed }) => {
       if (!this.id) return;
       if (changed.some(k => k.startsWith('claude') || k.startsWith('network'))) {
@@ -265,7 +304,7 @@ export class NpcPanel {
         // way is not cut from the screen: the tab is redrawn once it has arrived
         this.rendered.delete('talk'); this.rendered.delete('prompt');
         if (this.tab === 'talk' && this.talk && this.talk.busy) { this.talk.rerender = true; return; }
-        if (this.tab === 'talk' || this.tab === 'prompt') this._renderTab(this.tab);
+        if (this.tab === 'talk' || this.tab === 'prompt') this._renderTab(this.tab, { keepFocus: true });
       }
     });
   }
@@ -336,6 +375,9 @@ export class NpcPanel {
       this.panels[t.key].hidden = !on;
     }
     if (focusTab) this.tabButtons[key].focus();
+    // the Talk tab fills the panel (only the log scrolls); on a phone its sheet opens tall unless the grip was used
+    this.body.classList.toggle('is-talk', key === 'talk');
+    if (!this._gripUsed) this.el.classList.toggle('is-expanded', key === 'talk');
     // an offline conversation the clock has left behind (the tab was away while the clock ran, or the clock jumped)
     // ends, and the NPC greets anew at the present moment
     if (key === 'talk' && this._talkStale()) this._resumeLater();
@@ -384,7 +426,12 @@ export class NpcPanel {
     return r.ok ? r.value : null;
   }
 
-  _renderTab(key) {
+  /**
+   * Draw a tab. With keepFocus (a redraw the player did not ask for, such as a settings change), focus that was
+   * inside the tab, or on the page body because the control that had it is gone, lands back in the tab: the Talk
+   * input, else the tab panel, so a keyboard or screen-reader user keeps their place.
+   */
+  _renderTab(key, { keepFocus = false } = {}) {
     const panel = this.panels[key];
     if (!this.npc) return;
     let content;
@@ -394,8 +441,30 @@ export class NpcPanel {
       console.error(`[legion] ${key} tab failed`, e);
       content = placeholder('alert', 'This tab could not be drawn', String(e && e.message || e));
     }
+    const a = typeof document !== 'undefined' ? document.activeElement : null;
+    const hadFocus = keepFocus && !!a && panel.contains(a);
     clear(panel).append(content);
     this.rendered.add(key);
+    if (hadFocus) this._focusIn(key);
+  }
+
+  /** Focus the tab's main control (the Talk input when it can take text), else the tab panel itself. */
+  _focusIn(key) {
+    const panel = this.panels[key];
+    const input = key === 'talk' ? panel.querySelector('.talk-input:not([disabled])') : null;
+    (input || panel).focus({ preventScroll: true });
+  }
+
+  /**
+   * The page hands focus back after a dialog closes (Settings opened from the Talk tab): when the control that
+   * opened it was redrawn away meanwhile, the tab it was in takes the focus. Returns true when it did.
+   */
+  restoreFocus() {
+    if (!this.isOpen()) return false;
+    const a = typeof document !== 'undefined' ? document.activeElement : null;
+    if (a && a !== document.body && a.isConnected) return false;
+    this._focusIn(this.tab);
+    return true;
   }
 
   // ------------------------------------------------ Profile
@@ -411,13 +480,23 @@ export class NpcPanel {
     const zi = Number.isFinite(n.zi) ? n.zi : w.indexOf(n.zip);
     const placeName = place.place && place.place !== place.city ? `${place.place}, ${place.city}` : (place.city || (zi >= 0 ? w.z.city[zi] : ''));
 
-    const members = (hh.members || []).map(m => {
+    // each member as this NPC's relative ('Aunt', 'Brother'): the Census roles are the householder's, so the
+    // householder's sister reads "Sibling" only from the householder's side; the role stays in the tooltip
+    const relations = new Map(householdRelations(n).map(r => [r.member.m, r.relation]));
+    const allMembers = hh.members || [];
+    const holder = allMembers.find(m => m.role === 'householder');
+    const members = allMembers.map(m => {
       const mname = typeof m.name === 'object' ? displayName(m.name) : (m.name || 'Member');
       const self = m.m === n.m;
-      const text = [h('span.member-name', mname), h('span.member-meta', `${label(ROLE, m.role)} · ${m.age}`)];
+      const census = m.role === 'householder' ? 'Householder' : `Householder’s ${label(ROLE, m.role).toLowerCase()} (Census role)`;
+      // this NPC's own line says how they stand to the householder: "Householder", "Householder's son"
+      const rel = self
+        ? (m.role === 'householder' || !holder ? label(ROLE, m.role) : `Householder’s ${memberRelation({ role: 'householder', m: holder.m }, { ...m, sex: m.sex || n.sex }, allMembers)}`)
+        : capitalize(relations.get(m.m) || label(ROLE, m.role).toLowerCase());
+      const text = [h('span.member-name', mname), h('span.member-meta', { title: census }, `${rel} · ${m.age}`)];
       return h('li', self
         ? h('div.member.is-self', { 'aria-current': 'true' }, ...text, h('span.member-self', 'this NPC'))
-        : h('button.member', { type: 'button', 'aria-label': `Open ${mname}, ${label(ROLE, m.role).toLowerCase()}, ${m.age}`, on: { click: () => this.bus.emit(EVENTS.NPC_SELECT, { id: `${hh.id || n.hid}-${m.m}`, source: 'household' }) } }, ...text));
+        : h('button.member', { type: 'button', 'aria-label': `Open ${mname}, ${rel.toLowerCase()}, ${m.age}`, on: { click: () => this.bus.emit(EVENTS.NPC_SELECT, { id: `${hh.id || n.hid}-${m.m}`, source: 'household' }) } }, ...text));
     });
 
     const job = occ ? [
@@ -438,7 +517,7 @@ export class NpcPanel {
       group('Household',
         row('Household', [label(HH_TYPE, hh.type, null), Number.isFinite(hh.size) ? `${fmtInt(hh.size)} ${hh.size === 1 ? 'person' : 'people'}` : null].filter(Boolean).join(' · ')),
         members.length > 1 ? h('div.dl-row.members-row', h('dt', 'Members'), h('dd', h('ul.members', members))) : null,
-        row('Home', [homePhrase(hh.tenure, hh.dwelling), h('span.dd-sub', [hh.yearBuilt ? `built ${hh.yearBuilt}` : null, hh.yearMoved ? `moved in ${hh.yearMoved}` : null, Number.isFinite(hh.vehicles) ? `${hh.vehicles} vehicle${hh.vehicles === 1 ? '' : 's'}` : null].filter(Boolean).join(' · '))]),
+        row('Home', [homePhrase(hh.tenure, hh.dwelling), h('span.dd-sub', [builtText(hh.yearBuilt, zi >= 0 ? w.zip(zi) : null), hh.yearMoved ? `moved in ${hh.yearMoved}` : null, Number.isFinite(hh.vehicles) ? `${hh.vehicles} vehicle${hh.vehicles === 1 ? '' : 's'}` : null].filter(Boolean).join(' · '))]),
         row('Income', Number.isFinite(n.householdIncome) && n.householdIncome > 0 ? `${fmtMoney(n.householdIncome)} household` : null)),
       group('Where',
         row('Lives in', [`${placeName} ${n.zip || ''}`.trim(), place.countyName ? h('span.dd-sub', `${place.countyName} County${place.regionName ? ` · ${place.regionName}` : ''}`) : null]),
@@ -484,7 +563,10 @@ export class NpcPanel {
     if (p.interests && p.interests.length) {
       const why = new Map((p.interestDetails || []).map(d => [d.name, d.why]));
       s.push(h('section.p-section', h('h3', 'Interests'),
-        h('ul.reasons', p.interests.map(i => { const name = typeof i === 'string' ? i : (i.name || i.label); return h('li', h('span.reason-name', capitalize(name)), why.get(name) ? h('span.reason-why', why.get(name)) : null); }))));
+        h('ul.reasons', p.interests.map(i => {
+          const name = typeof i === 'string' ? i : (i.name || i.label), reason = why.get(name);
+          return h('li', h('span.reason-name', capitalize(name)), reason && plainWhy(reason) ? h('span.reason-why', { title: reason }, plainWhy(reason)) : null);
+        }))));
     }
     if (p.teams && p.teams.length) s.push(h('section.p-section', h('h3', 'Roots for'), chips(p.teams.map(tm => (typeof tm === 'string' ? tm : `${tm.name}${tm.sport ? ` · ${tm.sport}` : ''}`)))));
     if (p.concerns && p.concerns.length) {
@@ -492,7 +574,7 @@ export class NpcPanel {
         const src = concernSourceText(c.why);
         return h('li',
           h('div.concern-head', h('span.concern-topic', capitalize(c.topic || String(c))), Number.isFinite(c.weight) ? h('span.concern-weight', { title: 'How much it weighs on them (0-100)' }, `${Math.round(c.weight * 100)}`) : null),
-          c.why ? h('div.concern-why', c.why) : null,
+          c.why && plainWhy(c.why) ? h('div.concern-why', { title: c.why }, plainWhy(c.why)) : null,
           src ? h('div.concern-src', `Data: ${src}`) : null);
       }))));
     }
@@ -603,7 +685,10 @@ export class NpcPanel {
     const started = T.lines.slice(T.lines.map(l => l.who).lastIndexOf('divider') + 1).some(l => l.who === 'player' || l.who === 'npc');
     if (T.engine === 'offline' && !T.greeted && !T.ended && !started && this._ensureConv()) {
       T.greeted = true;
-      try { this._addNpcLine(T.conv.greet(), 'offline'); this.services.saveMind(this.id); } catch (e) { this._systemLine(`The greeting failed: ${e && e.message ? e.message : e}`); }
+      let hello = null;
+      try { hello = T.conv.greet(); this._addNpcLine(hello, 'offline'); this.services.saveMind(this.id); } catch (e) { this._systemLine(`The greeting failed: ${e && e.message ? e.message : e}`); }
+      // an NPC who will not talk at all (their greeting ends it): the conversation is over before it starts
+      if ((hello && hello.ended === true) || T.conv.ended === true) { T.endedByNpc = true; T.ended = true; T.farewelled = true; this._settle(T, this.id); input.disabled = true; }
     }
 
     form.addEventListener('submit', e => { e.preventDefault(); this._send(input.value); });
@@ -611,13 +696,17 @@ export class NpcPanel {
     input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(120, input.scrollHeight)}px`; });
 
     const prompts = startersFor(this.world, this.npc, { weather: this.services.weather(this.npc.zi, this.getTime()) }).filter(s => !T.used.has(s));
-    const starters = h('div.chip-row.starters', { 'aria-label': 'Conversation starters', hidden: T.ended }, prompts.map(s => h('button.chip', { type: 'button', on: { click: () => this._send(s) } }, s)));
-    const foot = T.ended
-      ? h('button.btn.small', { type: 'button', on: { click: () => this._restartTalk() } }, icon('reset', { size: 15 }), 'Talk again')
-      : h('button.btn.ghost.small', { type: 'button', disabled: !T.lines.length, on: { click: () => this._goodbye() } }, 'Say goodbye');
+    // the starters sit in one scrolling row right above the input, which stays below the log rather than over it
+    const starters = h('div.chip-row.starters', { role: 'group', 'aria-label': 'Conversation starters', hidden: T.ended }, prompts.map(s => h('button.chip', { type: 'button', on: { click: () => this._send(s) } }, s)));
+    // a conversation the NPC ended (they declined a line and left) stays ended for this visit
+    const foot = T.endedByNpc
+      ? h('p.talk-note.talk-left', `${first} has left the conversation.`)
+      : T.ended
+        ? h('button.btn.small', { type: 'button', on: { click: () => this._restartTalk() } }, icon('reset', { size: 15 }), 'Talk again')
+        : h('button.btn.ghost.small', { type: 'button', disabled: !T.lines.length, on: { click: () => this._goodbye() } }, 'Say goodbye');
     // what the clock does meanwhile (the page holds it at real time while a conversation is on screen)
     const clockNote = T.ended ? null : h('p.talk-note.talk-clock', 'While you talk, the clock runs in real time; your speed comes back when you leave.');
-    root.append(log, starters, form, clockNote, h('div.talk-foot', status, foot));
+    root.append(log, h('div.talk-dock', starters, form, clockNote, h('div.talk-foot', status, foot)));
     return root;
   }
 
@@ -655,9 +744,9 @@ export class NpcPanel {
       on: { click: e => { const open = factsEl.hidden; factsEl.hidden = !open; e.currentTarget.setAttribute('aria-expanded', String(open)); } },
     }, icon('info', { size: 13 })) : null;
     if (facts.length) factsEl = h('ul.bubble-facts', { hidden: true }, facts.map(f => h('li', factLabel(f))));
-    const el = h('div.bubble', { class: `from-${line.who}${line.error ? ' is-error' : ''}`, dataset: line.engine ? { engine: line.engine } : null },
+    const el = h('div.bubble', { class: `from-${line.who}${line.error ? ' is-error' : ''}${line.note ? ' is-note' : ''}`, dataset: line.engine ? { engine: line.engine } : null },
       h('span.sr-only', `${who}: `),
-      line.who === 'system' ? icon('alert', { size: 14 }) : null,
+      line.who === 'system' ? icon(line.note ? 'info' : 'alert', { size: 14 }) : null,
       h('p.bubble-text', line.text || ''),
       line.gloss ? h('p.bubble-gloss', `[${line.gloss}]`) : null,
       line.meta || factsBtn ? h('p.bubble-meta', line.meta || '', factsBtn) : null,
@@ -669,10 +758,12 @@ export class NpcPanel {
 
   _addNpcLine(line, engine) {
     if (!line) return null;
-    const meta = [engine === 'offline' ? 'offline' : null, line.emotion && line.emotion !== 'neutral' ? line.emotion : null].filter(Boolean).join(' · ');
-    const entry = { who: 'npc', text: line.text, gloss: line.gloss || null, meta, facts: line.facts || [], engine };
+    const entry = { who: 'npc', text: line.text, gloss: line.gloss || null, meta: lineMeta(line, engine), facts: line.facts || [], engine, safety: line.safety || null };
     this.talk.lines.push(entry);
     this._bubble(entry);
+    // a line that steps out of the scene (someone in crisis): what Legion has to say (988, 911) is a note from Legion
+    // under the NPC's line, never in the NPC's voice
+    if (line.note) this._noteLine(line.note);
     return entry;
   }
 
@@ -684,6 +775,26 @@ export class NpcPanel {
     const entry = { who: 'system', text: String(text || 'Something went wrong.'), error: true };
     if (T) T.lines.push(entry);
     return T && T === this.talk ? this._bubble(entry) : null;
+  }
+
+  /** A note from Legion that is not an error (where to find help): kept in conversation T, shown when it is on screen. */
+  _noteLine(text, T = this.talk) {
+    const entry = { who: 'system', text: String(text), note: true };
+    if (T) T.lines.push(entry);
+    return T && T === this.talk ? this._bubble(entry) : null;
+  }
+
+  /**
+   * The NPC ended the conversation (a line they will not answer: they decline and walk away, a child goes to find a
+   * parent). It stays ended: no input, no starters and no "Talk again" in this visit; their mind keeps what was said.
+   */
+  _endedByNpc(T = this.talk) {
+    if (!T || T.ended) return;
+    if (T.conv && !T.farewelled) { try { T.conv.farewell(); T.farewelled = true; } catch { /* the mind keeps what it heard */ } }
+    T.endedByNpc = true;
+    this._settle(T, this.id);
+    T.ended = true;
+    if (T === this.talk) { this._renderTab('talk'); this._talkChanged(); }
   }
 
   async _send(raw) {
@@ -700,12 +811,14 @@ export class NpcPanel {
     if (goodbye) goodbye.disabled = false;
     if (T.engine === 'offline') {
       if (!this._ensureConv()) return;
+      let line = null;
       try {
-        const line = T.conv.reply(text);
+        line = T.conv.reply(text);
         T.offlineTurns++;
         this._addNpcLine(line, 'offline');
         this.services.saveMind(this.id);
       } catch (e) { this._systemLine(`The dialogue engine failed: ${e && e.message ? e.message : e}`); }
+      if ((line && line.ended === true) || T.conv.ended === true) this._endedByNpc(T);
       return;
     }
     await this._claudeTurn(text);
@@ -756,6 +869,9 @@ export class NpcPanel {
     const stop = h('button.btn.ghost.small.stop-btn', { type: 'button', on: { click: () => { if (T.abort) T.abort.abort(); } } }, 'Stop');
     ui.status.after(stop);
     T.abort = typeof AbortController === 'function' ? new AbortController() : null;
+    // Claude answers someone in crisis itself (the platform rules), and Legion adds the same note the offline engine
+    // gives: where to call or text, under the reply
+    const safety = typeof this.services.safety === 'function' ? this.services.safety(text, { age: this.npc && this.npc.age }) : null;
     let acc = '';
     try {
       const activity = this.services.activityAt(id, time);
@@ -797,6 +913,7 @@ export class NpcPanel {
     } finally {
       el.classList.remove('is-streaming');
       stop.remove();
+      if (safety && safety.note) this._noteLine(safety.note, T);
       T.busy = false; T.abort = null; ui.send.disabled = false;
       // settings changed while the reply streamed: the tab is redrawn now that it is in
       if (T.rerender && here() && this.tab === 'talk') { T.rerender = false; this._renderTab('talk'); }

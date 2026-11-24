@@ -153,6 +153,10 @@ test('Irvine through the morning at 60x: past 7:15 with no page error and no fau
 test('a fast clock keeps the frame within budget at 300x and 1800x', { timeout: 240000 }, async () => {
   for (const traffic of [1, 3.5]) {
     const { page, errors } = await openStreet(`zip=94110&t=2026-11-24T08:00&speed=1&traffic=${traffic}`);
+    // the gap between frames depends on the machine's load as much as on the view: measured against this browser's
+    // own gap at real time a moment before (eng-56), so another busy process does not fail the test; the frame work
+    // the view measures itself stays the strict bound
+    const base = await frameTimes(page, 1, 1500);
     for (const speed of [300, 1800]) {
       const r = await frameTimes(page, speed, 3500);
       // headless Chromium draws the canvas in software: the bounds leave room for that and still catch the
@@ -160,7 +164,7 @@ test('a fast clock keeps the frame within budget at 300x and 1800x', { timeout: 
       assert.ok(r.frames > 120, `${speed}x traffic ${traffic}: ${r.frames} frames`);
       assert.ok(r.median < 12, `${speed}x traffic ${traffic}: median frame work ${r.median.toFixed(1)} ms`);
       assert.ok(r.p95 < 35, `${speed}x traffic ${traffic}: p95 frame work ${r.p95.toFixed(1)} ms`);
-      assert.ok(r.gap < 20, `${speed}x traffic ${traffic}: median frame gap ${r.gap.toFixed(1)} ms`);
+      assert.ok(r.gap < Math.max(20, 1.5 * base.gap + 4), `${speed}x traffic ${traffic}: median frame gap ${r.gap.toFixed(1)} ms (idle ${base.gap.toFixed(1)} ms)`);
       assert.deepEqual(errors, [], `${speed}x traffic ${traffic}`);
       assert.equal(r.stats.faults || 0, 0, `${speed}x traffic ${traffic}: ${JSON.stringify(r.stats.lastFault)}`);
     }

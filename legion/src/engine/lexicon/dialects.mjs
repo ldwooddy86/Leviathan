@@ -6,6 +6,7 @@
 // them (a Fresno NPC should sound like Fresno more often than like anywhere).
 
 import { COMMON } from './dialects-common.mjs';
+import { ES_FAMILIES, ES_KEYS } from './dialects-es.mjs';
 import * as NORTH from './dialects-north.mjs';
 import * as MID from './dialects-mid.mjs';
 import * as SOUTH from './dialects-south.mjs';
@@ -20,6 +21,8 @@ export { WEATHER_CONDITIONS };
 export const LINE_CATEGORIES = Object.freeze(['greetings', 'farewells', 'fillers', 'intensifiers', 'agreement', 'surprise', 'traffic', 'prideLines', 'complaintLines', 'food']);
 /** Word-level categories: single words or short phrases that go mid-sentence, never capitalized as a line. */
 export const WORD_CATEGORIES = Object.freeze(['fillers', 'intensifiers']);
+/** Categories with Spanish (es) variants, plus 'weather' by condition (decision 12): DIALECTS[key].es. */
+export const ES_CATEGORIES = Object.freeze(['food', 'traffic', 'prideLines', 'complaintLines']);
 /** Categories with age-graded extras: `youth` (teens and twenties) and `elder` (sixty and up). */
 export const AGE_CATEGORIES = Object.freeze(['greetings', 'farewells', 'agreement', 'surprise', 'intensifiers', 'fillers']);
 
@@ -86,6 +89,11 @@ function build(key) {
     d[band] = {};
     for (const c of AGE_CATEGORIES) d[band][c] = uniq(k[band] && k[band][c], f[band] && f[band][c], COMMON[band] && COMMON[band][c]);
   }
+  // Spanish variants of the regional lines: the dialect's own first, then its family's (decision 12)
+  const ke = (Object.hasOwn(ES_KEYS, key) && ES_KEYS[key]) || {}, fe = (Object.hasOwn(ES_FAMILIES, k.family) && ES_FAMILIES[k.family]) || {};
+  d.es = { weather: {} };
+  for (const c of ES_CATEGORIES) d.es[c] = uniq(ke[c], fe[c]);
+  for (const w of WEATHER_CONDITIONS) d.es.weather[w] = uniq(ke.weather && ke.weather[w], fe.weather && fe.weather[w]);
   d.slang = mergeSlang(k.slang, f.slang, COMMON.slang);
   d.teams = [...(k.teams || f.teams || [])];
   d.teamNames = d.teams.map(teamName);
@@ -97,7 +105,8 @@ function build(key) {
  * Every dialect by key (see DIALECT_KEYS): { key, name, region, regionThe, family, familyName, areaCodes, the, theShare,
  * pch, roadStyle, register, words: {term: {kind, note}}, localTerms, greetings, farewells, fillers,
  * intensifiers, agreement, surprise, weather: {fog, heat, rain, wind, cold, smoke, snow, clear}, traffic,
- * prideLines, complaintLines, food, regional: {same categories, family and local lines only}, youth: {…},
+ * prideLines, complaintLines, food, regional: {same categories, family and local lines only}, es: {food, traffic,
+ * prideLines, complaintLines, weather: {…}} (Spanish variants with English glosses: lexicon glossOf), youth: {…},
  * elder: {…}, slang: [{term, level, ages, gloss, example, origin}], teams (as said in a sentence, "the Giants"),
  * teamNames (bare, "Giants") }. Lines are {slot} templates; some carry tags (lineTags) saying when and for whom
  * they are true, so read them through linesFor or pickLine rather than straight from these arrays.

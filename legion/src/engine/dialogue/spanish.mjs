@@ -75,6 +75,13 @@ const SAYS = [
   [w(`${POSS} (?:${PARTNER})`), m => `tell me about your ${partnerEn(m[0])}`],
   [w('(?:su|tu) familia'), 'tell me about your family'],
 
+  // ---------------------------------------------------------------- about the player: what the NPC remembers of them
+  [w('(?:se acuerda|te acuerdas|me recuerda|me recuerdas) de mi nombre|como me llamo|(?:sabe|sabes) como me llamo'), "what's my name"],
+  [w('(?:se acuerda|te acuerdas) (?:de )?(?:a que|en que|de que) (?:me dedico|trabajo)|(?:a que|en que) me dedico|(?:sabe|sabes) (?:a que|en que) (?:me dedico|trabajo)'), 'what do i do for work'],
+  [w('(?:se acuerda|te acuerdas) de donde soy|de donde soy(?: yo)?|(?:sabe|sabes) de donde soy'), 'where am i from'],
+  [w('(?:se acuerda|te acuerdas) (?:de )?donde vivo|(?:sabe|sabes) donde vivo'), 'where do i live'],
+  [w('(?:se acuerda|te acuerdas|me recuerda|me recuerdas) de mi|(?:me recuerda|me recuerdas)|ya nos conocemos|nos conocimos'), 'do you remember me'],
+
   // ---------------------------------------------------------------- about them
   [w('cuantos anos (?:tiene|tienes)|que edad (?:tiene|tienes)'), 'how old are you'],
   [w('cuando (?:llego|llegaste|vino|viniste|se vino|te viniste) (?:a|para) (?:los )?(?:estados unidos|este pais|california|aca|aqui|el norte)|cuanto tiempo (?:tiene|tienes|lleva|llevas) en (?:los )?(?:estados unidos|este pais|california|el norte)'), 'when did you come to the us'],
@@ -132,7 +139,8 @@ const SAYS = [
   [w('(?:hace|va a hacer|hara) (?:mucho )?(?:frio|calor|viento) (?:en la noche|esta noche|en la manana|manana)'), m => `is it going to be ${/frio/.test(m[0]) ? 'cold' : /calor/.test(m[0]) ? 'hot' : 'windy'} tonight`],
   [w('va a llover|lluvia|llueve|tormentas?'), 'is it going to rain'],
   [w('que tiempo|el tiempo|el clima|el pronostico|hace (?:calor|frio|viento)|que (?:calor|frio)'), "what's the weather like"],
-  [w('trafico|la autopista|el freeway|la carretera'), "how's traffic"],
+  [w('trafico|la autopista|el freeway|la carretera|las carreteras|el traffic'), "how's traffic"],
+  [w('que (?:le|te) preocupa|(?:cual es )?(?:su|tu) (?:mayor |mas grande )?preocupacion|que (?:le|te) quita el sueno|(?:le|te) preocupa algo'), 'what worries you about living here'],
   [w('incendios?|fuegos?|el humo'), 'were there fires here'],
   [w('terremotos?|temblor|temblores'), 'do you get earthquakes'],
   [w('inundaciones|inundacion|se inunda|se inundo'), 'does it flood here'],
@@ -144,7 +152,7 @@ const SAYS = [
 
   // ---------------------------------------------------------------- food, places, directions, the past
   [w('donde (?:hay|venden|puedo comer|se pueden comer|consigo) (?:unos |unas |buenos |buenas )*(tamales|tacos|pupusas|birria|menudo|pozole|mariscos|tortas|pan dulce|carnitas|pho|pizza|hamburguesas|helado|cafe)'), m => `where can i get ${m[1] === 'hamburguesas' ? 'burgers' : m[1] === 'helado' ? 'ice cream' : m[1] === 'cafe' ? 'coffee' : m[1]}`],
-  [w('que me recomienda comer|donde (?:puedo |se puede )?comer|(?:buena|la) comida|restaurantes?|un buen lugar para comer'), 'where should i eat'],
+  [w('que me recomienda comer|donde (?:puedo |se puede )?comer|donde se come|donde (?:hay|venden) (?:buena )?comida|(?:buena|la) comida|restaurantes?|un buen (?:lugar|sitio) para comer|para comer (?:por aqui|aqui)'), 'where should i eat'],
   [w('donde (?:esta|queda|hay) (?:la |el |una |un )?(?:tienda|mercado|super|supermercado|marqueta)(?: mas cercan[oa])?'), 'where is the grocery store'],
   [w('donde (?:esta|queda|hay) (?:la |el |una |un )?(?:farmacia|botica)(?: mas cercan[oa])?'), 'where is the pharmacy'],
   [w('donde (?:esta|queda|hay) (?:la |el |una |un )?(?:iglesia|parroquia)(?: mas cercan[oa])?'), 'where is the church'],
@@ -166,7 +174,8 @@ const SAYS = [
   [w('(?:muy )?bien,? (?:gracias,? )?y (?:usted|tu)'), 'good, and you'],
   [w('y (?:usted|tu)'), 'and you'],
   [w('hola|buenas|buenas tardes|buenas noches|buenos dias|que onda|quiubo|que hubo|saludos'), 'hello'],
-  [w('como (?:estas?|estan|le va|te va|les va|andas|anda|ha estado|has estado|amanecio|amaneciste|se siente|te sientes)|que tal|como va todo'), 'how are you'],
+  // (not "¿cómo está el tráfico?", "¿qué tal la comida?": those are about the thing named)
+  [w('como (?:estas?|estan|le va|te va|les va|andas|anda|ha estado|has estado|amanecio|amaneciste|se siente|te sientes)(?! +(?:el|la|los|las|su|tu|sus|tus) )|que tal(?! +(?:el|la|los|las|su|tu|sus|tus) )|como va todo'), 'how are you'],
   [w('como (?:se|te) llamas?|cual es (?:su|tu) nombre|quien es usted|quien eres'), "what's your name"],
   [w('adios|hasta (?:luego|pronto|manana|la vista)|nos vemos|cuide(?:se)?|cuidate|que (?:le|te) vaya bien|me voy'), 'bye'],
   [w('perdon(?:e(?:me)?)?|disculpe(?:me)?|disculpame|lo siento'), 'sorry'],

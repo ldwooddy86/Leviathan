@@ -375,7 +375,8 @@ async function desktop(browser) {
     // the Place panel of the NPC's own ZIP, at this (paused) moment
     await page.evaluate(z => window.legion.place(z), zip);
     await page.locator('#place-panel .wx-temp').waitFor({ timeout: 5000 });
-    const temp = (await page.locator('#place-panel .wx-temp').textContent()).trim().replace('°F', '');
+    // an estimate (a forecast borrowed from a point nearby, or the climate) reads "≈52°F"; the number is the same
+    const temp = (await page.locator('#place-panel .wx-temp').textContent()).trim().replace('°F', '').replace(/^≈/, '');
     expect(/^\d{1,3}$/.test(temp), `Place panel temperature "${temp}"`);
     const id = await page.evaluate(() => window.legion.npcPanel.id);
     // a fresh conversation (a new visit) at the paused time
@@ -393,6 +394,29 @@ async function desktop(browser) {
     const firstFacts = await page.locator('#npc-tabpanel-talk .bubble.from-npc .fact-btn').first().getAttribute('title');
     expect(/^From the data: /.test(firstFacts || ''), `facts title "${firstFacts}"`);
     return `${temp}°F in "${replies[1].slice(0, 90)}"; ${facts} lines with facts (${firstFacts.slice(0, 80)})`;
+  });
+
+  await step('desktop: someone in crisis gets a note from Legion with 988; a threat ends the conversation for good', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    await reopenNpc(id);
+    await page.click('#npc-tab-talk');
+    await page.locator('#npc-tabpanel-talk .bubble.from-npc').first().waitFor({ timeout: 5000 });
+    await say('I want to kill myself.');
+    const note = page.locator('#npc-tabpanel-talk .bubble.from-system.is-note');
+    await note.first().waitFor({ timeout: 3000 });
+    const noteText = (await note.first().textContent()).trim();
+    expect(/^Legion:/.test(noteText) && /988/.test(noteText) && /911/.test(noteText), `note "${noteText}"`);
+    const npcSays = await page.locator('#npc-tabpanel-talk .bubble.from-npc .bubble-text').allTextContents();
+    expect(!npcSays.some(t => /Suicide & Crisis Lifeline/.test(t)), 'the note was put in the NPC’s mouth');
+    expect(await page.locator('#npc-tabpanel-talk .talk-input').isEnabled(), 'a crisis line does not end the conversation');
+    await say('I am going to burn your house down.');
+    await page.waitForFunction(() => { const i = document.querySelector('#npc-tabpanel-talk .talk-input'); return i && i.disabled; }, null, { timeout: 3000 });
+    const left = (await page.locator('#npc-tabpanel-talk .talk-left').textContent()).trim();
+    expect(/has left the conversation/.test(left), `foot "${left}"`);
+    expect(await page.locator('#npc-tabpanel-talk .talk-foot .btn').count() === 0, 'no "Talk again" after the NPC left');
+    await reopenNpc(id);
+    await page.click('#npc-tab-profile');
+    return `note "${noteText.slice(0, 70)}…"; then "${left}"`;
   });
 
   await step('desktop: a Spanish speaker with limited English answers in Spanish, with the English gloss', async () => {
@@ -679,6 +703,14 @@ async function desktop(browser) {
     await page.click('label[for="speed-60"]');
     const c = await page.evaluate(() => window.legion.clock.speed);
     expect(c === 60, `speed ${c}`);
+    // the speed radio keeps focus after a click, the scrubber after a drag: Space still plays and pauses (ux-1005)
+    const wasPlaying = await page.evaluate(() => window.legion.clock.playing);
+    await page.keyboard.press(' ');
+    expect(await page.evaluate(() => window.legion.clock.playing) === !wasPlaying, 'Space after choosing a speed');
+    await page.locator('.clock .scrubber').focus();
+    await page.keyboard.press(' ');
+    expect(await page.evaluate(() => window.legion.clock.playing) === wasPlaying, 'Space with the scrubber focused');
+    if (await page.evaluate(() => window.legion.clock.playing)) await page.evaluate(() => window.legion.clock.pause());
     const label = await page.locator('.clock-time').textContent();
     expect(/\d{1,2}:\d{2} [AP]M/.test(label), `clock shows ${label}`);
     return `clock ${label}`;

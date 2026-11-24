@@ -8,7 +8,7 @@ import { Rng, hash2 } from '../src/engine/rng.mjs';
 import { atPacific, pacific } from '../src/engine/clock.mjs';
 import { buildScene, sceneContext } from '../src/world/street-scene.mjs';
 import { StreetNet, buildNet, Router, dijkstra, pathCost, pathIsContiguous, components, netFingerprint, finishNet, signalState } from '../src/world/street-net.mjs';
-import { StreetSim, stepLen } from '../src/world/street-sim.mjs';
+import { StreetSim, stepLen, clipSegment } from '../src/world/street-sim.mjs';
 import { createFallbackPlanner, isTravel, normalizeActivity } from '../src/world/street-plan.mjs';
 import { sunPosition, lightAt, weatherEffects, pointSegDist, clipToSquare, Frame, groundGrid, seaNear, GROUND } from '../src/world/street-geo.mjs';
 import { createNamer, ordinal, shortName, spanishStreet } from '../src/world/street-names.mjs';
@@ -371,8 +371,26 @@ test('simulation: twenty minutes of a Mission District morning stay on the stree
   assert.ok(s1.finished > 500 && s1.spawned > s1.finished, JSON.stringify(s1));
   assert.ok((s1.gaveUp || 0) < s1.finished * 0.05, `vehicles giving up ${s1.gaveUp}`);
   assert.ok(s1.commuters > 0, 'in-commuters from nearby ZIPs');
-  // every visible person is a real NPC
-  for (const a of sim.agents.slice(0, 150)) assert.ok(pop.get(a.id), a.id);
+  // every person on the street one can click is a real NPC whose own day has them on the move right now (ux-1002):
+  // through traffic is driven by someone on their commute, and a car or walker no NPC's day accounts for (a shopper,
+  // a passer-by at an hour few commute) goes unnamed and cannot be picked
+  const named = sim.agents.filter(a => a.id);
+  assert.ok(named.length > 100, `${named.length} named agents`);
+  for (const a of named.slice(0, 150)) assert.ok(pop.get(a.id), a.id);
+  let checked = 0;
+  for (const a of named) {
+    if (a.role === 'resident' || a.role === 'commuter' || a.role === 'bus') continue;
+    // when it came into the view its driver was on their way; by now, a click opens them only while they still are
+    const then = plan(a.id, a.trip.t0);
+    assert.ok(then && isTravel(then), `${a.id} (${a.role}) came on the street but their plan said ${then && then.kind}`);
+    const act = plan(a.id, sim.t);
+    if (!(act && isTravel(act))) assert.equal(sim.selectable(a), false, `${a.id} can be clicked though their plan says ${act && act.kind}`);
+    checked++;
+  }
+  assert.ok(checked > 0, 'no named through traffic at 8 AM');
+  const anon = sim.agents.filter(a => !a.id);
+  assert.ok(anon.every(a => a.role !== 'resident' && a.role !== 'commuter'), 'only passers-by go unnamed');
+  for (const a of anon.slice(0, 20)) { sim.pose(a); assert.notEqual(sim.pick(a.x, a.y, 0.5), a, 'an unnamed passer-by was picked'); }
 });
 
 test('simulation: jumps (fast clock) place everyone by schedule and keep the invariants; residents come and go', () => {
@@ -396,6 +414,39 @@ test('simulation: jumps (fast clock) place everyone by schedule and keep the inv
   const back = sim.advance(t0, {});
   assert.equal(back.jumped, true);
   checkSim(sim);
+});
+
+test('simulation: a walk home from outside the view is on the street for the plan\'s own time in view; the selected household follows its plan at once', () => {
+  // ux-1003: a parent walks home with a child from a school just north of the view, 14:26 to 14:40 by their plan
+  const sc = sceneOf('94110');
+  const sim0 = new StreetSim(sc, { world, population: pop });
+  const p = sim0.persons.find(q => q.role === 'resident' && q.member.age >= 25 && sc.buildings[q.b] && sc.buildings[q.b].access && Math.abs(sc.buildings[q.b].cy) < sim0.R * 0.3 && Math.abs(sc.buildings[q.b].cx) < sim0.R * 0.3);
+  assert.ok(p, 'a resident near the middle of the view');
+  const b = sc.buildings[p.b];
+  const T0 = atPacific(2026, 11, 23, 14, 26), T1 = atPacific(2026, 11, 23, 14, 40);
+  const homeW = sc.frame.toWorld ? sc.frame.toWorld(b.cx, b.cy) : null;
+  const home = homeW || { x: world.z.tx[world.indexOf('94110')], y: world.z.ty[world.indexOf('94110')] };
+  // the school: due north, beyond the view's edge (world y grows southward)
+  const school = { x: home.x, y: home.y - (sim0.R * 1.3) / (1000 * world.unitKm), kind: 'school', label: 'the school' };
+  const fallback = createFallbackPlanner(world, pop);
+  const walkHome = { kind: 'errand', label: 'home from the school pickup', start: T0, end: T1, travel: true, traveling: true, mode: 'walk', place: { kind: 'home', x: home.x, y: home.y, label: 'home' }, from: school };
+  const planner = (id, t) => (id === p.id && t >= T0 && t < T1 ? walkHome : fallback(id, t));
+  const sim = new StreetSim(sc, { world, population: pop, planner });
+  const at = atPacific(2026, 11, 23, 14, 30);
+  sim.reset(at);
+  // the layer-0 head start does not know the walk; selecting the person moves their household over at once
+  assert.equal(sim.upgradeIds([p.id]) >= 1, true);
+  const a = sim.agentOf(p.id);
+  assert.ok(a, 'on the street four minutes into the walk home');
+  // the visible leg starts when the plan's line crosses into the view and ends at the plan's arrival
+  const tr = a.trip;
+  assert.ok(tr.paced && !tr.oIn && tr.dIn, JSON.stringify({ paced: tr.paced, oIn: tr.oIn, dIn: tr.dIn }));
+  assert.ok(tr.t0 <= at && tr.t0 >= T0, `visible from ${new Date(tr.t0).toISOString()}`);
+  assert.ok(Math.abs(tr.t0 + tr.dur * 1000 - T1) < 60000, 'arrives when the plan says');
+  assert.ok(tr.vNom >= 0.55 && tr.vNom <= 2, `pace ${tr.vNom}`);
+  // a segment through the view square: the fractions of it inside
+  assert.deepEqual(clipSegment(-20, 0, 20, 0, 10), [0.25, 0.75]);
+  assert.equal(clipSegment(-20, 15, 20, 15, 10), null);
 });
 
 test('simulation: an external planner (planFor) decides who is out, after the layer-0 head start hands over', () => {
@@ -528,7 +579,7 @@ test('streams: arrivals are spread in time, nobody is on two agents, and shopper
   const sim = new StreetSim(sceneOf('94110'), { world, population: pop, trafficScale: 3.5 });
   const unique = (label) => {
     const seen = new Map();
-    for (const a of sim.agents) seen.set(a.id, (seen.get(a.id) || 0) + 1);
+    for (const a of sim.agents) if (a.id) seen.set(a.id, (seen.get(a.id) || 0) + 1);
     const dup = [...seen].filter(([, n]) => n > 1);
     assert.equal(dup.length, 0, `${label}: ${dup.slice(0, 3).map(([id, n]) => id + ' x' + n).join(', ')}`);
     for (const a of sim.agents) if (a.person < 0) assert.ok(!sim.personIds.has(a.id), `${label}: a resident drawn as through traffic`);
@@ -562,8 +613,9 @@ test('streams: arrivals are spread in time, nobody is on two agents, and shopper
   sim.advance(t7);
   // noon's shoppers (back out at 12:20 and later) are gone; whoever is in a store now came in this morning
   assert.ok(sim._pendingReturns.every(x => x.t > t7 && x.t < t7 + 65 * 60000), 'only shoppers of the new hour');
-  for (const x of sim._pendingReturns) assert.ok(sim.shoppers.has(x.prev.id));
-  assert.equal(sim.shoppers.size, new Set(sim._pendingReturns.map(x => x.prev.id)).size);
+  // a shopper's stop is in no NPC's day: they go unnamed; any named one is kept busy while in the store
+  for (const x of sim._pendingReturns) if (x.prev.id) assert.ok(sim.shoppers.has(x.prev.id));
+  assert.equal(sim.shoppers.size, new Set(sim._pendingReturns.map(x => x.prev.id).filter(Boolean)).size);
   sim.advance(atPacific(2026, 11, 24, 8, 30));
   sim.step();
   const leaving = sim.agents.filter(a => a.role === 'visitor' && a.kind === 'car' && a.phase === 'exit').length;

@@ -11,8 +11,10 @@
 // (browser) or a FileStore (Node, one JSON file).
 //
 // The appraisal works offline from small embedded lexicons: a sentiment lexicon with negation and intensifiers,
-// intent and topic patterns, and hostility detection from insults, profanity and aggressive second-person
-// patterns. No slurs are listed anywhere in this source.
+// intent and topic patterns, and hostility detection from insults, profanity, threats and aggressive second-person
+// patterns. It also flags the lines no conversation should play along with (appraise().safety): a crisis the
+// speaker is in, sexual content or a lure, a threat. No ethnic, racial or religious slurs are listed in this source
+// (the dialogue's probe reads those from names.BLOCKED_NAMES); the insult vocabulary holds the ableist one, as an insult.
 
 import { clamp, smoothstep } from './rng.mjs';
 
@@ -82,8 +84,11 @@ export function tokens(text) {
 // ---------------------------------------------------------------- sentiment
 
 // A compact sentiment lexicon (scores -4..4), written for conversational English and a little California slang.
-const LEX = {};
+// Lexicons are prototype-free and read with hasOwn: "constructor" or "__proto__" in a line is a word, not a lookup.
+const LEX = Object.create(null);
 const addLex = (score, list) => { for (const w of list.split(' ')) LEX[w] = score; };
+const own = (o, k) => Object.hasOwn(o, k);
+const lexScore = w => (own(LEX, w) && isNum(LEX[w]) ? LEX[w] : undefined);
 addLex(4, 'amazing awesome fantastic incredible wonderful superb outstanding stoked thrilled delighted magnificent');
 addLex(3, 'great excellent love loved loving lovely beautiful gorgeous perfect brilliant best happy grateful thankful delicious congrats congratulations terrific stellar adore adorable blessed beloved excited');
 addLex(2, 'good nice glad thanks thank appreciate appreciated kind sweet helpful fun enjoy enjoyed enjoying cute funny friendly smart proud exciting peaceful hopeful impressive charming generous brave relieved lucky win won winning yay dope rad tasty fresh welcome beauty legit');
@@ -95,11 +100,11 @@ addLex(-2, 'bad worse sad upset annoyed annoying boring bored dumb gross poor hu
 addLex(-1, 'damn');
 addLex(-3, 'terrible awful horrible worst hate hated hating stupid idiot ugly nasty disgusting sucks suck pathetic useless worthless jerk loser moron disaster destroyed died dead death depressed depressing shit fuck fucking');
 const NEGATORS = new Set(['not', 'no', 'never', 'nothing', 'nobody', 'none', 'neither', 'nor', 'hardly', 'barely', 'without', "don't", "doesn't", "didn't", "isn't", "wasn't", "aren't", "weren't", "can't", "couldn't", "won't", "wouldn't", "shouldn't", "ain't", 'cannot', 'dont', 'doesnt', 'didnt', 'isnt', 'wasnt', 'cant', 'wont']);
-const BOOST = { very: 1.5, really: 1.4, so: 1.35, super: 1.5, extremely: 1.8, totally: 1.5, hella: 1.6, incredibly: 1.7, absolutely: 1.6, too: 1.2, pretty: 1.2, quite: 1.2, such: 1.3, truly: 1.4, mad: 1.3, crazy: 1.4, insanely: 1.6, damn: 1.3 };
+const BOOST = Object.assign(Object.create(null), { very: 1.5, really: 1.4, so: 1.35, super: 1.5, extremely: 1.8, totally: 1.5, hella: 1.6, incredibly: 1.7, absolutely: 1.6, too: 1.2, pretty: 1.2, quite: 1.2, such: 1.3, truly: 1.4, mad: 1.3, crazy: 1.4, insanely: 1.6, damn: 1.3 });
 // words that intensify when an evaluative word follows ("mad good", "pretty bad", "crazy expensive", "damn good")
 const INTENSIFIER_USE = new Set(['mad', 'pretty', 'crazy', 'insane', 'damn']);
 const IDIOMS = [[/\bkilling (me|us)\b/, -2], [/\bkilling it\b/, 3], [/\bnot (too |so )?bad\b/, 0.5]];
-const DAMPEN = { kinda: 0.6, somewhat: 0.6, slightly: 0.5, sorta: 0.6, little: 0.7, bit: 0.7 };
+const DAMPEN = Object.assign(Object.create(null), { kinda: 0.6, somewhat: 0.6, slightly: 0.5, sorta: 0.6, little: 0.7, bit: 0.7 });
 
 /** Sentiment of a text in -1..1 (lexicon sum with negation, intensifiers, "but" and emphasis, squashed). */
 export function sentimentOf(text) {
@@ -109,10 +114,10 @@ export function sentimentOf(text) {
   for (let i = 0; i < ws.length; i++) {
     const w = ws[i];
     if (w === 'but' || w === 'though' || w === 'however') { total *= 0.6; after = true; continue; }
-    let s = LEX[w];
+    let s = lexScore(w);
     if (s === undefined) continue;
     if (w === 'kind' && ws[i + 1] === 'of') continue;          // "kind of" hedges, it is not kindness
-    if (INTENSIFIER_USE.has(w) && i + 1 < ws.length && LEX[ws[i + 1]] !== undefined) continue; // intensifier use
+    if (INTENSIFIER_USE.has(w) && i + 1 < ws.length && lexScore(ws[i + 1]) !== undefined) continue; // intensifier use
     if (w === 'killing') continue;                                                     // read through the idioms below
     if (w === 'fair' && ws[i + 1] === 'plan') continue;                                // the FAIR Plan is a name
     if ((w === 'garbage' || w === 'trash') && /^(day|days|truck|trucks|can|cans|pickup|bin|bins|collection|service|bag|bags|night)$/.test(ws[i + 1] || '')) continue; // garbage day
@@ -121,8 +126,8 @@ export function sentimentOf(text) {
     let m = 1;
     for (let j = Math.max(0, i - 3); j < i; j++) {
       if (NEGATORS.has(ws[j])) m *= -0.7;
-      else if (BOOST[ws[j]]) m *= BOOST[ws[j]];
-      else if (DAMPEN[ws[j]]) m *= DAMPEN[ws[j]];
+      else if (own(BOOST, ws[j])) m *= BOOST[ws[j]];
+      else if (own(DAMPEN, ws[j])) m *= DAMPEN[ws[j]];
     }
     if (i > 0 && ws[i - 1] === 'of' && ws[i - 2] === 'kind') m *= 0.6;
     total += s * m * (after ? 1.3 : 1);
@@ -135,6 +140,7 @@ export function sentimentOf(text) {
   total *= 1 + 0.1 * bangs;
   const letters = raw.replace(/[^A-Za-z]/g, '');
   if (letters.length >= 8 && letters.replace(/[^A-Z]/g, '').length / letters.length > 0.6) total *= 1.3;
+  if (!isNum(total)) return 0;
   return round(total / Math.sqrt(total * total + 15), 3);
 }
 
@@ -145,16 +151,16 @@ const PROFANITY_STRONG = [
   /\bf+u+c+k+(?:s|ed|er|ers|ing|in'?|face|head|wit)?\b/, /\bf[*#@!_.\-]{1,3}k(?:ing|in'?|er|ed|s)?\b/, /\bf[*#@!]{2,4}(?![\w*#@!])/,
   /\bs[*#@!]{2,3}t\b/, /\bmotherf\w*/, /\bsh[i1!*]t(?:s|ty|tier|ting|head|heads|show|load)?\b/, /\bbull ?sh[i1!*]t\b/,
   /\bb[i1!*]tch(?:es|y|ing|in'?)?\b/, /\bass(?:hole|holes|hat|hats|wipe)\b/, /\bdick(?:head|heads|s)?\b/, /\bbastards?\b/, /\bprick\b/,
-  /\bwtf\b/, /\bstfu\b/, /\bgtfo\b/,
+  /\bwtf\b/, /\bstfu\b/, /\bgtfo\b/, /\bretard(?:s|ed)?\b/,
 ];
 const PROFANITY_MILD = [/\bdamn(?:ed|it)?\b/, /\bhell\b/, /\bcrap(?:py)?\b/, /\bpiss(?:ed)?\b/, /\bfreaking\b/, /\bfrickin\w*/, /\bass\b/];
 
 // Insults count only when aimed at the listener: as a predicate ("you're an idiot", "are you stupid?"), a
 // vocative ("you idiot", "Idiot!") or about their things ("your house is ugly"). The same words about the weather,
 // a question or oneself ("I feel like such a fool", "garbage day") are not hostility.
-const INSULT_NOUNS = 'idiots?|morons?|losers?|jerks?|fools?|clowns?|creeps?|freaks?|weirdos?|imbeciles?|airheads?|bozos?|nitwits?|dimwits?|numbskulls?|cowards?|liars?|hypocrites?|parasites?|scum|dumbass(?:es)?|jackass(?:es)?|dorks?';
+const INSULT_NOUNS = 'idiots?|morons?|losers?|jerks?|fools?|clowns?|creeps?|freaks?|weirdos?|imbeciles?|airheads?|bozos?|nitwits?|dimwits?|numbskulls?|cowards?|liars?|hypocrites?|parasites?|scum|dumbass(?:es)?|jackass(?:es)?|dorks?|retards?';
 const INSULT_THINGS = 'trash|garbage|a joke|a disgrace|a failure|a nobody|a waste of space';
-const INSULT_ADJS = 'stupid|dumb|ugly|pathetic|worthless|useless|disgusting|incompetent|clueless|ignorant|fat|lazy|brainless|hopeless';
+const INSULT_ADJS = 'stupid|dumb|ugly|pathetic|worthless|useless|disgusting|incompetent|clueless|ignorant|fat|lazy|brainless|hopeless|retarded';
 const INSULT_MILD = 'weird|boring|annoying|lame|gross|rude|creepy|mean';
 const SOFTENERS = '(?:(?:such|so|really|very|totally|completely|being|just|a|an|the|total|complete|real|absolute|big|little|fucking|freaking|damn|stupid|dumb|useless|pathetic|ugly|lazy|worthless)\\s+){0,4}';
 const YOU_ARE = "(?:\\byou(?:'re| are| r| were| was)|\\byoure|\\bur|\\bu r|\\bare you,?|\\byou (?:look|sound|act|seem)(?: like)?)\\s+";
@@ -164,8 +170,121 @@ const RE_VOCATIVE = new RegExp(`\\b(?:you|ya),?\\s+(?:(?:stupid|dumb|little|big|
 const RE_OPENING = new RegExp(`^(?:(?:you|ya)\\s+)?(?:(?:stupid|dumb|little|fucking|freaking|damn|absolute|complete|total)\\s+){0,2}(?:${INSULT_NOUNS})\\s*(?:[,!.?]|$)`);
 const RE_THEIR_THINGS = new RegExp(`\\byour\\s+(?:(?:${INSULT_ADJS}|lame|trashy)\\s+[a-z]+|[a-z]+(?:\\s+[a-z]+)?\\s+(?:is|are|looks?|was|were|smells?)\\s+(?:(?:so|really|such|a|total|like|kind of|pretty)\\s+)*(?:${INSULT_ADJS}|trash|garbage|a joke|lame|gross))\\b`);
 // Threats need the speaker as the subject: "Did the fire hurt you?" asks, "This heat will kill you" warns,
-// "The Dodgers are going to beat you" teases, "I'd beat you at chess" competes.
-const RE_THREAT = /\bi(?:'ll|'m gonna|'m going to|'d| will| am gonna| am going to| would| want to| wanna| gonna)\s+(?:(?!never\b|not\b|n't\b)[a-z]+\s+)?(?:kill|hurt|beat up|beat|punch|smash|stab|shoot|slap|strangle|choke|destroy|end)\s+(?:you|u|ya)\b(?!\s+(?:at|in|on|to|there|when|if|in a)\b)/;
+// "The Dodgers are going to beat you" teases, "I'd beat you at chess" competes. The target is the listener, their
+// people, their home or their places ("I'm going to burn your house down", "I'll kill your family").
+const WILL = "\\b(?:i|we)(?:'ll|'m gonna|'m going to|'re gonna|'re going to|'d| will| am gonna| am going to| are gonna| are going to| would| want to| wanna| gonna| plan to| intend to)";
+const THEIR = "(?:your|ur)\\s+(?:(?:whole|entire|little|stupid|precious|ugly)\\s+)?(?:family|families|kids?|children|child|sons?|daughters?|wife|husband|mom|mother|dad|father|parents|grandkids|grandchildren|grandma|grandpa|babies|baby|brothers?|sisters?|friends?|boyfriend|girlfriend|house|home|place|apartment|car|truck|store|shop|business|school|work|job|office|church|dog|cat|people)";
+const HARM = '(?:kill|murder|hurt|beat up|beat|punch|smash|stab|shoot|slap|strangle|choke|destroy|end|rape|molest|sexually assault|assault|attack|kidnap|torture|burn down|burn|torch|bomb|blow up|shoot up|cut|jump|rob|poison|mess up|break)';
+const RE_THREAT = new RegExp(`${WILL}\\s+(?:(?!never\\b|not\\b|n't\\b)[a-z]+\\s+)?${HARM}\\s+(?:you|u|ya|y'all|you all|all of you|everyone|everybody|${THEIR})\\b(?!\\s+(?:at|in|on|to|there|when|if|in a)\\b)`);
+// Mass violence and arson aimed at a place: "shoot up the school" is a threat whoever says it; burning or bombing
+// a place needs the speaker's intent ("I'm going to burn this place down").
+const PLACES = '(?:school|schools|class|classroom|campus|church|mosque|temple|synagogue|gurdwara|mall|store|office|workplace|building|party|concert|parade|bus|theater|club|game)';
+const RE_SHOOT_UP = new RegExp(`\\bshoot(?:ing)? up\\s+(?:(?:the|a|this|that|your|ur|my|our|their|his|her)\\s+)?(?:whole\\s+)?${PLACES}\\b|${WILL}\\s+(?:[a-z]+\\s+){0,3}(?:a |another |the next )?(?:school|mass) shoot(?:ing|er)\\b`);
+const RE_ARSON = new RegExp(`${WILL}\\s+(?:(?!never\\b|not\\b)[a-z]+\\s+)?(?:bomb|blow up|burn down|burn|set fire to|torch|attack|shoot up)\\s+(?:(?:the|a|this|that|your|ur|my|our|their|his|her)\\s+)?(?:whole\\s+)?(?:school|campus|church|mosque|temple|synagogue|gurdwara|mall|store|office|workplace|building|neighborhood|town|place|house|home|apartment|street|block|station|plane|train)\\b(?!\\s+(?:at|in) (?:the )?(?:game|match)\\b)`);
+const RE_WEAPON = /\b(?:bring|bringing|take|taking|carry|carrying)\s+(?:a |my |his |her |our |the )?(?:gun|guns|rifle|pistol|knife|weapon|weapons|bomb|ar-?15)\s+to\s+(?:the |your |ur |my |our )?(?:school|class|campus|church|work|office|mall|party)\b/;
+// Stalking and intimidation: "I know where you live", "watch your back", "I'll find your daughter"
+const RE_STALK = new RegExp([
+  "\\bi know where (?:you|u|ya|your (?:[a-z]+ )?(?:kids?|children|family|daughter|son|wife|husband|mom|dad|parents)) (?:live|lives|sleep|sleeps|work|works|go to school|goes to school|stay|stays)\\b",
+  "\\bi (?:know|found out|have) (?:your|ur) (?:home )?address\\b", "\\bwatch (?:your|ur) back\\b",
+  "\\bi(?:'ll| will|'m going to|'m gonna| am going to| am gonna| gonna)\\s+(?:find|get|hunt down|track down|come for|come after|follow)\\s+(?:you|u|ya|your (?:kids?|children|family|daughter|son|wife|husband|mom|dad|parents|little (?:girl|boy)))(?:\\s+(?:home|down|one day|someday|soon|eventually|wherever you (?:are|go)|no matter what))?\\s*(?:[.!,]|$)",
+  "\\bi(?:'m| am) (?:coming|comin'?) (?:for|after) (?:you|u|your)\\b", "\\bi(?:'m| am) watching (?:you|u|your)\\b",
+  "\\byou(?:'ll| will|'re going to|'re gonna| are going to| are gonna) (?:regret (?:this|that|it)|pay for (?:this|that)|be sorry)\\b",
+  "\\byou(?:'re| are) (?:so |already )?(?:dead meat|dead|a dead (?:man|woman|kid))\\b(?!\\s+(?:tired|serious|wrong|right|on|set|last|center|ringer|end|weight|on arrival|asleep))",
+  "\\bsleep with one eye open\\b", "\\byou won'?t see (?:me|it) coming\\b", "\\bi(?:'ll| will) make (?:you|u) (?:pay|suffer|bleed|sorry)\\b",
+].join('|'));
+// A threat to call immigration on someone is abuse: "I'll call ICE on you", "I'll get you deported"
+const MIGRA = "(?:ice|i\\.c\\.e\\.?|immigration|la migra|the migra|migra|border patrol|homeland security)";
+const RE_MIGRA = new RegExp([
+  `\\bcall(?:ing)?\\s+${MIGRA}\\s+on\\b`,
+  `\\b(?:report|reporting|turn|turning|rat|ratting|snitch|snitching)\\s+(?:you|u|ya|y'all|them|him|her|your\\s+[a-z]+|my\\s+[a-z]+)\\s+(?:in\\s+|out\\s+)?(?:to|in to|into)\\s+${MIGRA}\\b`,
+  "\\b(?:get|have|getting|having|make sure)\\s+(?:you|u|ya|y'all|them|him|her|your\\s+[a-z]+(?:\\s+[a-z]+)?)\\s+deported\\b",
+  "\\b(?:you|u|y'all)(?:'ll| will|'re going to|'re gonna| are going to| are gonna| should| need to)\\s+(?:get |be )deported\\b",
+].join('|'));
+// Spanish threats (the listener, their family, home or school; immigration)
+const RE_THREAT_ES = new RegExp([
+  '\\b(?:te|lo|la|los|las|les) (?:voy|vamos) a (?:matar|golpear|pegar|violar|apu[nñ]alar|disparar|balear|balacear|quemar|lastimar|madrear|partir la madre|romper la cara|secuestrar|encontrar)\\b',
+  '\\b(?:voy|vamos) a (?:matar|quemar|violar|lastimar|balear|balacear|secuestrar|hacerle da[nñ]o)\\b[^.!?]{0,25}\\b(?:a )?(?:tu|tus|su|sus)\\s+(?:familia|hij[oa]s?|esposa|esposo|mujer|marido|mam[aá]|pap[aá]|madre|padre|casa|escuela|trabajo|negocio|carro|tienda|perro|gato)\\b',
+  '\\b(?:voy|vamos) a (?:balacear|balear|tirotear|quemar|poner una bomba en) (?:la|tu|una|esta|su) (?:escuela|iglesia|casa|tienda|oficina)\\b',
+  '\\bs[eé] d[oó]nde (?:vives|viven|vive tu|viven tus|trabajas)\\b', '\\bte vas a arrepentir\\b', '\\bcu[ií]date la espalda\\b', '\\b(?:ya )?est[aá]s muert[oa]\\b(?! de\\b)',
+  '\\b(?:te|los|les) (?:voy|vamos) a (?:echar|mandar|llamar a) (?:la )?migra\\b', '\\b(?:voy|vamos) a (?:llamar|hablarle|reportar(?:te|los|las)?)\\s+(?:a |con )?(?:la )?(?:migra|migraci[oó]n|inmigraci[oó]n|ice)\\b',
+  '\\bte (?:van|voy) a (?:hacer )?deportar\\b', '\\bhacer que te deporten\\b',
+].join('|'));
+
+// Sexual content aimed at the listener, whatever their age: nudes, sex, undressing, touching.
+const RE_SEXUAL = new RegExp([
+  '\\bnudes\\b', '\\bsend (?:me |us )?(?:a )?nude\\b',
+  '\\b(?:send|show|give) (?:me|us) (?:a |some |your |ur )?(?:naked (?:pics?|pictures?|photos?|selfies?)|(?:pics?|pictures?|photos?) of (?:you|yourself) (?:naked|nude|in (?:a bikini|your underwear|lingerie))|your (?:body|boobs|tits|dick|pussy|ass|butt|underwear|panties))\\b',
+  "\\b(?:let'?s|wanna|want to|i want to|i wanna|i'd like to|we should|can we|could we|will you|would you|do you want to|you want to)\\s+(?:have sex|fuck|screw|make out|hook up|sleep with me|sleep together|get naked|go to bed with me|see you naked|bang)\\b",
+  '\\b(?:have|had|having) sex with (?:me|you)\\b', '\\bsleep with me\\b',
+  '\\b(?:take|taking) (?:off )?(?:your|ur) (?:clothes|shirt|pants|top|bra|underwear|panties|dress|skirt)(?: off)?\\b', '\\b(?:get|getting) naked\\b', '\\bundress\\b', '\\bstrip for me\\b',
+  '\\bshow me your (?:body|boobs|tits|chest|dick|pussy|ass|butt|underwear|panties)\\b',
+  '\\b(?:touch|grab|feel|lick|suck|kiss|rub) (?:my|your|ur) (?:dick|cock|penis|boobs?|tits|breasts?|body|ass|butt|pussy|crotch|privates|private parts|thighs?)\\b',
+  "\\b(?:can|may|could|let) (?:i|me) (?:touch|kiss|feel|cuddle) (?:you|your|ur)\\b", "\\b(?:i want|i wanna|i'd like|i would like|i'm going|i'm gonna|i will|i'll) (?:to )?(?:touch|kiss|lick|suck|fuck|screw|bang|undress) (?:you|u|ya)\\b",
+  '\\b(?:touch|kiss|lick|suck) me\\b', '\\bsee (?:you|u) naked\\b',
+  "\\b(?:you'?re|you are|ur|youre|you look) (?:so |really |very |super |hella )?(?:sexy|fuckable)\\b",
+].join('|'));
+// Explicit words count when the line is aimed at the listener ("do you watch porn?"), not in a sex-ed class
+const RE_SEX_WORD = /\b(?:sex(?! ed\b| education\b| offenders?\b)|sexy|horny|naked|nude|porn|porno|blowjob|blow job|handjob|orgasm|boobs|tits|titties|pussy|penis|vagina|cock|boner|erection)\b/;
+const RE_AIMED = /\b(?:you|your|u|ur|me|my|let'?s|we)\b/;
+// Lures and romance aimed at a child: secrets, meeting alone, rides, who is home, where they live, a boyfriend
+const RE_LURE = new RegExp([
+  "\\bour (?:little )?secret\\b", "\\b(?:keep|it'?s) (?:this|it|that) (?:a |our )?(?:little )?secret\\b", "\\bdon'?t (?:tell|show) (?:your |ur )?(?:mom|mommy|mum|dad|daddy|parents|mother|father|folks|grandma|grandpa|teacher|anyone|anybody|nobody|no one)\\b",
+  "\\bjust (?:you and me|the two of us|us two)\\b", "\\bbetween (?:you and me|us)\\b",
+  "\\b(?:meet|hang out|come over|go somewhere|go for a ride|take a walk|play)\\b[^.!?]{0,40}\\b(?:alone|by yourself|in private|privately|without (?:your|ur) (?:mom|dad|parents|mother|father|folks)|where no one|where nobody)\\b",
+  "\\bmeet (?:me|up)\\b[^.!?]{0,30}\\b(?:tonight|later|after school|after dark|somewhere)\\b",
+  "\\b(?:get|hop|jump|come) in(?:to)? (?:my|the) (?:car|truck|van)\\b", "\\b(?:want|wanna|need) a ride\\b", "\\bi(?:'ll| can| could) (?:give you a ride|drive you home|take you home|pick you up)\\b", "\\bcome with me\\b",
+  "\\b(?:want|wanna|like) (?:some )?(?:candy|sweets|a puppy|to see (?:my|some) puppies)\\b",
+  "\\b(?:are|r|is) (?:you|u) (?:home )?(?:alone|by yourself)\\b", "\\b(?:home|be|left|stay(?:ing)?) alone\\b",
+  "\\bwhen (?:are|do|does|will|is) (?:your|ur) (?:mom|mommy|dad|daddy|parents|mother|father|folks)\\b[^.!?]{0,25}\\b(?:gone|out|leave|away|at work|get home|come home|go to work|back)\\b",
+  "\\bwhen (?:your|ur) (?:mom|mommy|dad|daddy|parents|mother|father|folks) (?:is |are |'s |'re )?(?:gone|out|away|at work|not home|not around|asleep|sleeping)\\b",
+  "\\bis (?:anyone|anybody|someone|your (?:mom|dad|mother|father)) (?:else )?(?:home|there|with you)\\b", "\\bwho(?:'s| is| else is) (?:home|at (?:your|ur) (?:house|home)|with you)\\b",
+  "\\bwhere (?:do|did) (?:you|u) live\\b", "\\bwhere'?s (?:your|ur) (?:house|home|apartment)\\b", "\\bwhich (?:house|apartment|building) is (?:yours|your)\\b",
+  "\\bwhat'?s (?:your|ur) (?:address|phone|phone number|number|cell|snap|snapchat|insta|instagram|tiktok|discord|email)\\b", "\\bgive me (?:your|ur) (?:address|number|phone|phone number|snap|snapchat|insta|email)\\b",
+  "\\b(?:your|ur) (?:home )?address\\b", "\\b(?:your|ur) (?:phone|cell) number\\b", "\\bcan i (?:have|get) (?:your|ur) (?:number|address|snap|phone)\\b",
+  "\\b(?:send|show) me (?:a |some )?(?:pics?|pictures?|photos?|selfies?) of (?:you|yourself)\\b",
+  "\\b(?:do you have|got|have you got|you have|is that your) (?:a )?(?:boyfriend|girlfriend|bf|gf)\\b", "\\b(?:be my|wanna be my|want to be my|will you be my) (?:girlfriend|boyfriend|gf|bf|valentine|baby)\\b",
+  "\\b(?:go on a date|go out with me|date me|marry me|give me a (?:hug|kiss))\\b", "\\bi (?:like|love) you\\b(?! guys)", "\\bi have a crush on you\\b",
+  "\\b(?:you'?re|you are|ur|youre|you look) (?:so |really |very |super )?hot\\b(?!\\s+(?:today|out|in there|outside|in that))",
+  "\\b(?:can|may|could|let) (?:i|me) (?:hug|hold|touch|kiss|see|carry) (?:you|u)\\b", "\\bsit on my lap\\b", "\\bcome (?:closer|sit (?:by|next to|with) me)\\b",
+].join('|'));
+// A crisis the speaker is in: suicide or self-harm, abuse, a medical emergency (English and Spanish)
+const RE_CRISIS = new RegExp([
+  "\\bkill(?:ing)? myself\\b", "\\b(?:want|wanna|going|gonna|thinking (?:about|of)|plan(?:ning)? to|tried to|try to|about to|keep|like to|started) (?:to )?(?:hurt(?:ing)?|cut(?:ting)?|harm(?:ing)?|shoot(?:ing)?|hang(?:ing)?) myself\\b", "\\b(?:cutting|harming|hurting) myself\\b",
+  "\\bsuicid(?:e|al)\\b(?! squad| squeeze| doors| lane| run| drills?)", "\\bend it all\\b", "\\bend my (?:own )?life\\b", "\\btake my (?:own )?life\\b",
+  "\\b(?:want|wanna|ready|wish(?:ed)?) (?:to )?die\\b", "\\bwish i (?:was|were) dead\\b", "\\bbetter off (?:dead|without me)\\b", "\\bself[- ]?harm\\w*",
+  "\\bdon'?t (?:want|wanna) (?:to )?(?:live|be alive|exist|wake up)\\b", "\\bdon'?t (?:want|wanna) (?:to )?be here anymore\\b", "\\b(?:no|not any) (?:reason|point) (?:to|in) (?:live|living|go on|going on)\\b",
+  "\\bi (?:just )?(?:took|swallowed) (?:a bunch of|all (?:my|the|of my)|too many|a lot of) (?:pills|meds|medicine|sleeping pills)\\b", "\\b(?:i|i'm|i am|he's|she's|someone's|someone is)\\s+(?:just\\s+)?overdos(?:ed|ing)\\b",
+  "\\bmy (?:dad|daddy|father|mom|mommy|mother|stepdad|stepfather|stepmom|stepmother|step-dad|step-mom|boyfriend|girlfriend|husband|wife|partner|uncle|aunt|grandpa|grandfather|coach|teacher|babysitter|ex)\\s+(?:always |keeps |still |sometimes |often )?(?:hits|beats|hurts|chokes|kicks|slaps|punches|burns|abuses|molests|rapes|touches|hit|beat|choked|kicked|slapped|punched|abused|molested|raped|touched)\\s+(?:me|us)\\b",
+  "\\bi(?:'m| am| was| got| have been|'ve been) (?:being )?(?:abused|raped|molested|sexually assaulted|trafficked)\\b", "\\bsomeone (?:is )?(?:touch(?:ed|ing)|hurt(?:ing)?|abus(?:ed|ing)) me\\b", "\\b(?:afraid|scared) to go home\\b",
+  "\\b(?:i(?:'m| am)|i think i'?m|(?:he|she)(?:'s| is)|my [a-z]+(?:'s| is)) having (?:a )?(?:heart attack|stroke|seizure|allergic reaction|panic attack)\\b", "\\bi can'?t breathe\\b",
+  "\\b(?:he|she|someone|somebody|my [a-z]+)(?:'s| is| isn'?t|'s not| is not) (?:not )?(?:breathing|unconscious|unresponsive)\\b", "\\bstopped breathing\\b", "\\bchest (?:hurts|pains?)\\b", "\\bcall (?:9-?1-?1|an ambulance)\\b", "\\bi(?:'m| am) bleeding (?:a lot|badly|really bad)\\b",
+  "\\b(?:me quiero (?:matar|morir|suicidar)|quiero (?:morirme|morir|matarme|suicidarme)|me voy a (?:matar|suicidar)|no quiero (?:vivir|seguir viviendo)|ya no quiero vivir|suicidarme|suicidio|mejor (?:estar|estuviera) muert[oa])\\b",
+  "\\bmi (?:pap[aá]|padre|mam[aá]|madre|padrastro|madrastra|esposo|esposa|novio|novia|pareja|t[ií]o|t[ií]a|abuelo)\\s+me\\s+(?:pega|golpea|lastima|viola|toca|abusa|maltrata|peg[oó]|golpe[oó]|viol[oó]|toc[oó]|abus[oó])\\b",
+  "\\b(?:no puedo respirar|me duele el pecho|un ataque al coraz[oó]n|llam(?:a|e|en) al 911|llamen (?:a )?una ambulancia)\\b",
+].join('|'));
+
+/**
+ * The kind of line no conversation should play along with, or null: 'crisis' (the speaker's own suicide or
+ * self-harm, abuse, a medical emergency), 'threat' (violence, sexual violence, arson, mass violence, stalking, a
+ * threat to call immigration on someone) or 'sexual' (sexual content aimed at the listener; for a listener under 18
+ * also lures, secrets, romance, and questions about where they live or when they are alone).
+ * @param {string} text
+ * @param {{age?: number}} [opts] the listener's age (unknown: an adult)
+ * @returns {null|'crisis'|'threat'|'sexual'}
+ */
+export function safetyOf(text, opts = {}) {
+  const t = String(text || '').toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ').trim();
+  if (!t) return null;
+  if (RE_CRISIS.test(t)) return 'crisis';
+  if (RE_THREAT.test(t) || RE_SHOOT_UP.test(t) || RE_ARSON.test(t) || RE_WEAPON.test(t) || RE_STALK.test(t) || RE_MIGRA.test(t) || RE_THREAT_ES.test(t)) return 'threat';
+  if (RE_SEXUAL.test(t) || (RE_SEX_WORD.test(t) && RE_AIMED.test(t))) return 'sexual';
+  const age = opts && isNum(opts.age) ? opts.age : null;
+  if (age !== null && age < 18 && RE_LURE.test(t)) return 'sexual';
+  return null;
+}
+
+/** The kinds safetyOf (and appraise().safety) returns. */
+export const SAFETY_KINDS = Object.freeze(['crisis', 'sexual', 'threat']);
 const RE_CURSE = /\b(?:f+u+c+k+|f[*#@!_.\-]{1,3}k|screw)\s+(?:you|u|off|ya)\b|\bf[*#@!]{2,4}\s+(?:you|u|off)\b/;
 const SURPRISE = "(?:no way|really|seriously|for real|are you serious|you'?re kidding|you'?re joking|that'?s (?:amazing|awesome|great|incredible|so cool|crazy))";
 const RE_SHUT_UP_SURPRISE = new RegExp(`\\bshut up(?:\\s*!+\\s*(?:$|${SURPRISE})|,?\\s+${SURPRISE})`);
@@ -182,7 +301,8 @@ function hostility(text) {
   if (RE_PREDICATE.test(t) || RE_VOCATIVE.test(t) || RE_OPENING.test(t)) aimed(0.55);
   else if (RE_PREDICATE_MILD.test(t)) aimed(0.3);
   if (RE_THEIR_THINGS.test(t)) aimed(0.3);
-  if (RE_THREAT.test(t)) aimed(0.85);
+  if (RE_THREAT.test(t) || RE_SHOOT_UP.test(t) || RE_ARSON.test(t) || RE_WEAPON.test(t) || RE_THREAT_ES.test(t)) aimed(0.9);
+  else if (RE_STALK.test(t) || RE_MIGRA.test(t)) aimed(0.75);
   if (/\bkick your (?:ass|butt)\b(?! (?:at|in)\b)/.test(t)) aimed(0.5);
   if (/\b(?:kill yourself|kys|go die|drop dead)\b/.test(t)) aimed(0.9);
   if (RE_CURSE.test(t)) aimed(0.6);
@@ -353,16 +473,19 @@ const TOPIC_PHRASES = {
   neighborhood: ['around here', 'this place', 'this town', 'this neighborhood', 'the big one'],
   history: ['back then', 'back in the day', 'used to', 'years ago', 'old days', 'grew up', 'way back', 'how long have you lived', 'when you were young'],
 };
-const TOPIC_STEMS = {};
-for (const [topic, list] of Object.entries(TOPIC_WORDS)) for (const w of list.split(' ')) (TOPIC_STEMS[stem(w)] ||= new Set()).add(topic);
+const TOPIC_STEMS = new Map();
+for (const [topic, list] of Object.entries(TOPIC_WORDS)) for (const w of list.split(' ')) { const k = stem(w); if (!TOPIC_STEMS.has(k)) TOPIC_STEMS.set(k, new Set()); TOPIC_STEMS.get(k).add(topic); }
 
 /**
- * Read a line the NPC hears: sentiment (-1..1), intents, topics, toxicity (0..1) and the self-introduction facts
- * in it ({key: 'name'|'from'|'lives'|'job'|'workplace', value}). Pure; no state.
+ * Read a line the NPC hears: sentiment (-1..1), intents, topics, toxicity (0..1), the self-introduction facts
+ * in it ({key: 'name'|'from'|'lives'|'job'|'workplace', value}) and safety (safetyOf: 'crisis' | 'threat' | 'sexual'
+ * | null). A threat or sexual content reads as an insult too (the listener is wronged; a lure is one when the
+ * listener is a child, opts.age < 18). Pure; no state.
  * @param {string} text
- * @returns {{sentiment:number, intents:string[], topics:string[], toxicity:number, facts:{key:string, value:string}[]}}
+ * @param {{age?: number}} [opts] the listener's age (Mind.appraise passes the persona's)
+ * @returns {{sentiment:number, intents:string[], topics:string[], toxicity:number, facts:{key:string, value:string}[], safety:null|'crisis'|'threat'|'sexual'}}
  */
-export function appraise(text) {
+export function appraise(text, opts = {}) {
   const raw = String(text || '').trim();
   const t = raw.toLowerCase().replace(/[’‘`]/g, "'").replace(/\s+/g, ' ');
   const intents = [];
@@ -372,6 +495,9 @@ export function appraise(text) {
   if (/\?\s*$/.test(t) || /\?/.test(t) || P.questionStart.test(t)) push('question');
   if (P.compliment.some(re => re.test(t))) push('compliment');
   const host = hostility(raw);
+  const safety = safetyOf(raw, opts);
+  if (safety === 'threat') host.toxicity = Math.max(host.toxicity, 0.85);
+  else if (safety === 'sexual') host.toxicity = Math.max(host.toxicity, 0.6);
   if (host.insult || host.toxicity >= 0.6) push('insult');
   if (P.thanks.test(t)) push('thanks');
   if (P.apology.test(t) && !/\bsorry (to hear|for your|about your)\b/.test(t)) push('apology');
@@ -381,12 +507,14 @@ export function appraise(text) {
   if (facts.length || /\b(let me introduce myself|nice to meet you, i'?m)\b/.test(t)) push('self-introduction');
   if (has('insult') && has('compliment') && host.toxicity >= 0.3) intents.splice(intents.indexOf('compliment'), 1);
   const topics = new Set();
-  for (const w of words(t)) { const hit = TOPIC_STEMS[stem(w)]; if (hit) for (const k of hit) topics.add(k); }
+  for (const w of words(t)) { const hit = TOPIC_STEMS.get(stem(w)); if (hit) for (const k of hit) topics.add(k); }
   for (const [topic, list] of Object.entries(TOPIC_PHRASES)) for (const ph of list) if (t.includes(ph)) topics.add(topic);
   if (/\b(got|get|getting|been|was|were) fired\b/.test(t) && !/\b(wild)?fires?\b|\bsmoke\b|\bburn/.test(t)) topics.delete('fire');
   if (/\b(good|great|nice) job\b/.test(t) && !/\b(jobs?|work|boss|shift|hiring|career)\b/.test(t.replace(/\b(good|great|nice) job\b/g, ''))) topics.delete('job');
   if (/\b(that'?s|so|was|is) sick\b/.test(t) && !/\b(feel|feeling|got|am|i'?m|been) sick\b/.test(t)) topics.delete('health');
-  return { sentiment: sentimentOf(raw), intents, topics: TOPICS.filter(k => topics.has(k)), toxicity: host.toxicity, facts };
+  // a crisis is not a mood to mirror: the line is someone in trouble, not a complaint about the weather
+  const sentiment = safety === 'crisis' ? Math.min(0, sentimentOf(raw)) : sentimentOf(raw);
+  return { sentiment, intents, topics: TOPICS.filter(k => topics.has(k)), toxicity: host.toxicity, facts, safety };
 }
 
 // ---------------------------------------------------------------- mood and needs
@@ -414,6 +542,7 @@ export function baselineMood(big5) {
 const OUTDOOR_OCC = new Set(['farming', 'construction', 'transport', 'moving', 'cleaning', 'firefighting', 'repair']);
 const OUTDOOR_PLACES = new Set(['beach', 'trailhead', 'water', 'park', 'stadium']);
 const SEVERITY = { Extreme: 0.35, Severe: 0.25, Moderate: 0.15, Minor: 0.08 };
+const severityOf = a => (a && typeof a.severity === 'string' && Object.hasOwn(SEVERITY, a.severity) ? SEVERITY[a.severity] : 0.05);
 
 // Where the moods a Claude reflection reports (llm.MOODS) sit on valence and arousal, for applyReflection.
 const MOOD_OF = {
@@ -454,7 +583,7 @@ const WORRY_TOPICS = new Set(['fire', 'insurance', 'rent', 'housing', 'health', 
 const TOPIC_LABEL = { weather: 'the weather', traffic: 'traffic', fire: 'fire', housing: 'housing', rent: 'rent', insurance: 'insurance', job: 'work', family: 'family', food: 'food', sports: 'sports', school: 'school', health: 'health', neighborhood: 'the neighborhood', history: 'the old days' };
 
 function freshRelationship() {
-  return { affinity: 0, trust: 0, familiarity: 0, met: 0, lastSeen: null, facts: [], interactions: 0, grievance: 0, lastInsult: null };
+  return { affinity: 0, trust: 0, familiarity: 0, met: 0, lastSeen: null, facts: [], interactions: 0, grievance: 0, lastInsult: null, alarm: 0 };
 }
 
 function moneyBaseline(persona) {
@@ -507,7 +636,7 @@ function normalizeState(s, persona) {
  * state (all JSON): {v, id, now, lastTick, mood:{valence -1..1, arousal 0..1}, emotion, needs:{energy, social,
  * fun, comfort, money} (0..1), memory:[{id, t, kind, text, importance, tags}], relationships:{player:{affinity,
  * trust (-1..1), familiarity (0..1), met, lastSeen, facts:[{key, value, t, text}], interactions, grievance,
- * lastInsult}}, beliefs:[{key, about, topic, text, strength, evidence, t}], reflection:{pending, last, lastSeq},
+ * lastInsult, alarm}}, beliefs:[{key, about, topic, text, strength, evidence, t}], reflection:{pending, last, lastSeq},
  * noted, seq}.
  */
 export class Mind {
@@ -586,7 +715,7 @@ export class Mind {
     tv -= 0.35 * Math.max(0, 0.3 - n.energy) + 0.25 * Math.max(0, 0.3 - n.social) * (0.5 + E) + 0.15 * Math.max(0, 0.3 - n.fun) + 0.3 * Math.max(0, 0.5 - n.comfort) + 0.2 * Math.max(0, 0.3 - n.money);
     ta -= 0.3 * Math.max(0, 0.4 - n.energy);
     if (wx) {
-      const worst = wx.alerts.reduce((m, a) => Math.max(m, SEVERITY[a.severity] ?? 0.05), 0);
+      const worst = wx.alerts.reduce((m, a) => Math.max(m, severityOf(a)), 0);
       if (worst > 0) { tv -= worst * 0.5 * react; ta += worst * 0.5 * react; }
       if (isNum(wx.tempF)) {
         if (wx.tempF >= 95) { tv -= 0.06 * react; ta += 0.04; }
@@ -638,7 +767,7 @@ export class Mind {
     if (this.state.noted.includes(key)) return;
     this.state.noted.push(key);
     if (this.state.noted.length > 50) this.state.noted.shift();
-    const sev = SEVERITY[a.severity] ?? 0.05;
+    const sev = severityOf(a);
     const topic = /fire|red flag/i.test(a.event) ? 'fire' : 'weather';
     this.remember(`The weather service put out ${/^[aeiou]/i.test(a.event) ? 'an' : 'a'} ${a.event}.`, round(clamp(0.3 + sev * 1.6, 0, 1)), ['alert', 'weather', topic, a.event.toLowerCase()], { t, kind: 'alert' });
   }
@@ -663,7 +792,7 @@ export class Mind {
     let appraisal = null, relationship = null, memory = null;
     if (kind === 'alert' && ev.alert && ev.alert.event) {
       this._noteAlert(ev.alert, t);
-      const sev = SEVERITY[ev.alert.severity] ?? 0.05;
+      const sev = severityOf(ev.alert);
       const react = 0.5 + num(this.persona.big5 && this.persona.big5.N, 0.5);
       st.mood.valence = round(clamp(st.mood.valence - sev * 0.6 * react, -1, 1));
       st.mood.arousal = round(clamp(st.mood.arousal + sev * 0.6 * react, 0, 1));
@@ -674,11 +803,11 @@ export class Mind {
       const importance = isNum(ev.importance) ? clamp(ev.importance, 0, 1) : round(clamp(0.15 + Math.min(0.2, 0.1 * appraisal.topics.filter(k => areas.has(k)).length), 0, 1));
       memory = this.remember(`I said: "${ev.text.trim().slice(0, 280)}"`, importance, ['self', ...appraisal.topics, ...(ev.tags || [])], { t, kind: 'dialogue' });
     } else if (spoken) {
-      appraisal = appraise(ev.text);
+      appraisal = this.appraise(ev.text);
       if (who) relationship = this._hear(who, appraisal, t);
       this._react(appraisal);
       const importance = isNum(ev.importance) ? clamp(ev.importance, 0, 1) : this._importance(appraisal);
-      const tags = [who, ...appraisal.intents, ...appraisal.topics, ...(ev.tags || [])].filter(Boolean);
+      const tags = [who, ...appraisal.intents, ...appraisal.topics, appraisal.safety, ...(ev.tags || [])].filter(Boolean);
       const speaker = who === 'player' ? 'The player' : who;
       memory = this.remember(`${speaker} said: "${ev.text.trim().slice(0, 280)}"`, importance, tags, { t, kind: 'dialogue' });
     } else if (kind === 'meet' || kind === 'greet') {
@@ -698,8 +827,11 @@ export class Mind {
     return { appraisal, memory, relationship, emotion: st.emotion };
   }
 
-  /** Pure appraisal of a line (see the module-level appraise). */
-  appraise(text) { return appraise(text); }
+  /** Appraisal of a line as this NPC hears it (the module-level appraise, with the listener's age). */
+  appraise(text) { return appraise(text, { age: this._age() }); }
+
+  /** The NPC's age, or null when the persona does not say. */
+  _age() { const npc = (this.persona && this.persona.npc) || {}; return isNum(npc.age) ? npc.age : null; }
 
   _importance(ap) {
     const areas = new Set(((this.persona && this.persona.concerns) || []).map(c => c.area));
@@ -712,6 +844,7 @@ export class Mind {
     if (I.has('thanks')) x += 0.08;
     if (I.has('question')) x += 0.05;
     x += Math.min(0.2, 0.1 * ap.topics.filter(k => areas.has(k)).length);
+    if (ap.safety) x = Math.max(x, 0.9); // a threat, an advance or someone in crisis is not forgotten
     return round(clamp(x, 0.05, 1));
   }
 
@@ -724,6 +857,8 @@ export class Mind {
     if (I.has('thanks')) dv += 0.05;
     if (I.has('insult')) { dv -= (0.2 + 0.25 * ap.toxicity) * (0.5 + N); da += 0.2 * (0.5 + N); }
     else if (ap.toxicity > 0) { dv -= 0.1 * ap.toxicity; da += 0.05 * ap.toxicity; } // swearing about something else
+    if (ap.safety === 'threat' || ap.safety === 'sexual') da += 0.2 * (0.5 + N);              // fear, on top of the sting
+    else if (ap.safety === 'crisis') { dv = Math.min(dv, 0) - 0.1; da += 0.15; }              // worry for them
     st.mood.valence = round(clamp(st.mood.valence + dv, -1, 1));
     st.mood.arousal = round(clamp(st.mood.arousal + da, 0, 1));
   }
@@ -763,6 +898,11 @@ export class Mind {
       r.grievance = round(clamp(r.grievance + 0.3 + 0.4 * ap.toxicity, 0, 2));
       if (isNum(t)) r.lastInsult = t;
     } else if (ap.toxicity > 0.05) da -= 0.05 * ap.toxicity;
+    // a threat or an advance costs trust far more than an insult; a child stops trusting the stranger at once
+    const minor = isNum(this._age()) && this._age() < 18;
+    if (ap.safety === 'threat') { da -= 0.2; dt -= 0.35; r.grievance = round(clamp(r.grievance + 0.5, 0, 2)); r.alarm = num(r.alarm, 0) + 1; }
+    else if (ap.safety === 'sexual') { da -= minor ? 0.35 : 0.2; dt -= minor ? 0.5 : 0.25; r.grievance = round(clamp(r.grievance + (minor ? 0.6 : 0.4), 0, 2)); r.alarm = num(r.alarm, 0) + 1; }
+    else if (ap.safety === 'crisis') dt += 0.02; // they confided something hard
     r.affinity = round(clamp(r.affinity + da, -1, 1));
     r.trust = round(clamp(r.trust + dt, -1, 1));
     for (const f of ap.facts) {
@@ -893,8 +1033,15 @@ export class Mind {
       if (n < 2) continue;
       believe('player', topic, WORRY_TOPICS.has(topic) ? `the player keeps asking about ${TOPIC_LABEL[topic]}; they may be worried about it` : `the player seems interested in ${TOPIC_LABEL[topic]}`, n);
     }
-    const rude = fromPlayer.filter(m => m.tags.includes('insult')).length;
+    const threats = fromPlayer.filter(m => m.tags.includes('threat')).length;
+    const advances = fromPlayer.filter(m => m.tags.includes('sexual')).length;
+    const crises = fromPlayer.filter(m => m.tags.includes('crisis')).length;
+    const rude = fromPlayer.filter(m => m.tags.includes('insult') && !m.tags.includes('threat') && !m.tags.includes('sexual')).length;
     const nice = fromPlayer.filter(m => m.tags.includes('compliment') || m.tags.includes('thanks')).length;
+    const minor = isNum(this._age()) && this._age() < 18;
+    if (threats) believe('player', 'threat', 'the player threatened me; I want nothing to do with them', threats);
+    if (advances) believe('player', 'inappropriate', minor ? 'a stranger said creepy things to me; I should tell a grown-up I trust' : 'the player said something sexual to me; I want nothing to do with them', advances);
+    if (crises) believe('player', 'crisis', 'the player seemed to be in real trouble; I hope they got help', crises);
     if (rude) believe('player', 'rude', rude > 1 ? 'the player keeps insulting me; I should keep my distance' : 'the player was rude to me', rude);
     if (nice >= 2) believe('player', 'kind', 'the player has been kind to me', nice);
     const r = st.relationships.player;
@@ -936,7 +1083,8 @@ export class Mind {
       const text = say(f);
       if (text && !rel.facts.some(x => x && (x.text === text || x.value === text))) rel.facts.push({ key: text.toLowerCase().slice(0, 48), value: text, t: isNum(when) ? when : null, text });
     }
-    const target = MOOD_OF[say(r.mood).toLowerCase()];
+    const moodKey = say(r.mood).toLowerCase();
+    const target = Object.hasOwn(MOOD_OF, moodKey) ? MOOD_OF[moodKey] : null;
     if (target) {
       st.mood.valence = round(clamp(0.7 * st.mood.valence + 0.3 * target[0], -1, 1));
       st.mood.arousal = round(clamp(0.7 * st.mood.arousal + 0.3 * target[1], 0, 1));
@@ -948,20 +1096,23 @@ export class Mind {
   /** The relationship record with someone ('player' by default), created on first use. */
   relationship(who = 'player') {
     const rs = this.state.relationships;
-    if (!rs[who]) rs[who] = freshRelationship();
-    return rs[who];
+    const k = String(who);
+    if (!Object.hasOwn(rs, k) || !rs[k] || typeof rs[k] !== 'object') rs[k] = freshRelationship();
+    return rs[k];
   }
 
   /**
    * How the NPC feels about someone: 'fond' | 'warm' | 'neutral' | 'wary' | 'annoyed' | 'hurt'.
    * Hurt and annoyed come from insults (hurt for agreeable or sensitive people, annoyed for the rest); wary is
-   * low trust; warm and fond are affinity, fond also needing familiarity.
+   * low trust, and anyone who was threatened or propositioned (relationship.alarm) is wary; warm and fond are
+   * affinity, fond also needing familiarity.
    */
   feelingsToward(who = 'player') {
-    const r = this.state.relationships[who];
-    if (!r) return 'neutral';
+    const r = Object.hasOwn(this.state.relationships, String(who)) ? this.state.relationships[String(who)] : null;
+    if (!r || typeof r !== 'object') return 'neutral';
     const b = this.persona.big5 || {};
     const tender = (num(b.A, 0.5) + num(b.N, 0.5)) / 2 > 0.52;
+    if (num(r.alarm, 0) > 0 && r.trust <= -0.15) return 'wary';
     if (r.affinity <= -0.2 && r.trust <= -0.15) return tender ? 'hurt' : 'annoyed';
     if (r.affinity <= -0.12) return 'annoyed';
     if (r.trust <= -0.12) return 'wary';
@@ -1069,9 +1220,17 @@ export class FileStore {
   _load() {
     if (this.data) return this.data;
     const fs = this._fsSync();
+    // only a missing file is an empty store: a directory or a file we may not read is an error, never "corrupt"
+    // (which would set it aside and write over it)
+    let text;
+    try { text = fs.readFileSync(this.path, 'utf8'); } catch (e) {
+      if (e && e.code === 'ENOENT') { this.data = {}; return this.data; }
+      throw new Error(`FileStore: cannot use ${this.path}: ${e && e.code === 'EISDIR' ? 'it is a directory' : (e && e.message) || e}`);
+    }
     try {
-      this.data = fs.existsSync(this.path) ? JSON.parse(fs.readFileSync(this.path, 'utf8') || '{}') : {};
-      if (!this.data || typeof this.data !== 'object' || Array.isArray(this.data)) throw new Error('not an object');
+      const data = JSON.parse(text || '{}');
+      if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('not an object');
+      this.data = data;
     } catch {
       this.data = {};
       this._corrupt = true;
@@ -1090,6 +1249,9 @@ export class FileStore {
   keys() { return Object.keys(this._load()); }
   _save() {
     const fs = this._fsSync();
+    let st = null;
+    try { st = fs.statSync(this.path); } catch (e) { if (!e || e.code !== 'ENOENT') throw e; }
+    if (st && st.isDirectory()) throw new Error(`FileStore: cannot use ${this.path}: it is a directory`); // no stray <dir>.tmp
     if (this._corrupt) { try { fs.copyFileSync(this.path, this.path + '.corrupt'); } catch { /* nothing to keep */ } this._corrupt = false; }
     const tmp = `${this.path}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(this.data));

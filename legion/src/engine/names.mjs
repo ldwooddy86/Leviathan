@@ -2063,12 +2063,28 @@ const RESERVED_NAMES = Object.freeze(('Cesar Chavez|Dolores Huerta|Jennifer Lope
   // heads of state and government, and notorious figures
   'Hugo Chavez|Manuel Zelaya|Xiomara Castro|Jimmy Morales|Rafael Correa|Gordon Brown|David Cameron|Diana Spencer|' +
   'Gerry Adams|Enda Kenny|Abdoulaye Wade|Somchai Wongsawat|Khaleda Zia|Nazrul Islam|Ne Win|Than Shwe|Thein Sein|' +
-  'Khin Nyunt|Win Myint|Htin Kyaw|Tin Oo|Saw Maung|Pablo Escobar|Joaquin Guzman|Griselda Blanco').split('|'));
+  'Khin Nyunt|Win Myint|Htin Kyaw|Tin Oo|Saw Maung|Pablo Escobar|Joaquin Guzman|Griselda Blanco|' +
+  // notorious California crimes (and a few the whole country knows): no NPC carries a killer's name
+  'Richard Ramirez|Charles Manson|Scott Peterson|Joseph DeAngelo|Edmund Kemper|Rodney Alcala|Randy Kraft|William Bonin|' +
+  'Kenneth Bianchi|Angelo Buono|Lawrence Bittaker|Herbert Mullin|Juan Corona|Leonard Lake|Charles Ng|Phillip Garrido|Elliot Rodger|' +
+  'Erik Menendez|Lyle Menendez|Sirhan Sirhan|Jim Jones|Ted Kaczynski|Ted Bundy|Jeffrey Dahmer|John Gacy|Dennis Rader|Gary Ridgway|' +
+  'Timothy McVeigh|David Berkowitz|Lee Oswald|' +
+  // California's statewide officials and members of Congress and big-city mayors elected through 2026, by the names
+  // they go by (a voter would take an NPC of that name for them)
+  'Gavin Newsom|Eleni Kounalakis|Rob Bonta|Shirley Weber|Fiona Ma|Malia Cohen|Ricardo Lara|Tony Thurmond|Alex Padilla|Adam Schiff|' +
+  'Barbara Lee|Karen Bass|Todd Gloria|Matt Mahan|Daniel Lurie|London Breed|Rex Richardson|Sheng Thao|Jerry Dyer|Kevin McCarthy|' +
+  'Norma Torres|Derek Tran|Young Kim|Janice Hahn|Kevin de Leon|Raul Ruiz|Juan Vargas|Jimmy Gomez|Judy Chu|Ted Lieu|Zoe Lofgren|' +
+  'Ro Khanna|Ami Bera|Doris Matsui|Mark Takano|Pete Aguilar|Linda Sanchez|Lou Correa|Mike Levin|Sara Jacobs|Julia Brownley|' +
+  'Salud Carbajal|Jim Costa|John Garamendi|Jared Huffman|Kevin Kiley|Doug LaMalfa|Tom McClintock|David Valadao|Vince Fong|' +
+  'Jay Obernolte|Ken Calvert|Darrell Issa|Laura Friedman|Luz Rivas|Nanette Barragan|Maxine Waters|Sydney Kamlager-Dove|' +
+  'Mark DeSaulnier|Eric Swalwell|Kevin Mullin|Lateefah Simon|Adam Gray|Dave Min|George Whitesides|Josh Harder|Toni Atkins|' +
+  'Mike McGuire|Robert Rivas|Kamala Harris|Dianne Feinstein|Jerry Brown|Arnold Schwarzenegger').split('|'));
 
 /** Stock joke names (the kind a prank caller gives), refused like famous names when the surname is known. */
 const JOKE_NAMES = Object.freeze(('Mike Hunt|Mike Hawk|Mike Rotch|Mike Oxlong|Ben Dover|Hugh Jass|Hugh Janus|Harry Cox|Wayne Kerr|' +
   'Seymour Butts|Phil McCracken|Moe Lester|Anita Bath|Jack Hoff|Jack Meoff|Ivana Tinkle|Dixie Normous|Peter File|Willie Stroker|' +
-  'Harry Balls|Hugh Mungus|Al Coholic').split('|'));
+  'Harry Balls|Hugh Mungus|Al Coholic|Holly Wood|Robin Banks|Barb Dwyer|Paige Turner|Crystal Ball|Justin Case|Sandy Beach|' +
+  'Rusty Nail|Candy Barr|Rose Bush|Iona Ford|Bill Board|Pat Mee|Rich Mann|Chris Cross|Doug Hole|Earl Lee|Gene Poole|Ima Hogg').split('|'));
 
 /**
  * Words never emitted as a name or as part of one: US English slurs and crude words that coincide with

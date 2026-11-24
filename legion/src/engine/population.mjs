@@ -62,7 +62,7 @@
 
 import { Rng, hash2, hash3, mix32, u01, clamp } from './rng.mjs';
 import { surname, givenName, nickname, adaptSurname, surnameCustoms, marriedSurname } from './names.mjs';
-import { OCC_GROUPS, GROUP_PROFILES, OCCUPATION_CATALOG, MIN_WAGE_HOURLY, chooseTitle, titleWage } from './occupations.mjs';
+import { OCC_GROUPS, GROUP_PROFILES, OCCUPATION_CATALOG, MIN_WAGE_HOURLY, MIL_PAY_FLOOR, chooseTitle, titleWage } from './occupations.mjs';
 
 /** The default population seed (the year California became a state). */
 export const LEGION_SEED = 1849;
@@ -832,6 +832,7 @@ const EMP_LOGIT = (() => {
 })();
 const STUDENT_WORK = -0.6;   // log-odds of working while in college or graduate school
 const MIL_LOGIT = a => a < 17 ? -40 : a <= 21 ? 0 : a <= 24 ? -0.2 : a <= 29 ? -0.7 : a <= 34 ? -1.3 : a <= 39 ? -1.9 : a <= 44 ? -2.6 : a <= 54 ? -3.6 : -7;
+const MIL_F = 0.35;   // a woman's chance of serving, relative to a man's of her age
 
 // occupation propensity by age band (16-24, 25-34, 35-54, 55-64, 65+), relative within band; teenagers (16-19) get
 // TEEN_OCC times the 16-24 value: no licensed practice or police work, little that needs a degree
@@ -1005,6 +1006,12 @@ const tripSpeed = (mi, urban) => SPEED[mi] * (mi === M_DRIVE || mi === M_CARPOOL
 /** Typical one-way straight-line distance (km) covered by a mode in a given time (its road distance over ROAD). */
 function tripKm(mi, minutes, urban) { return tripSpeed(mi, urban) * Math.max(1, minutes - OVERHEAD[mi]) / 60 / ROAD; }
 
+/**
+ * How much farm country a ZIP of a given density (people per square mile) is: the weight its workplaces get for a
+ * farming worker (fields, orchards, dairies and ranches are where few people live; a dense city ZIP has almost none).
+ */
+const FARM_LAND = density => (density > 800 ? Math.pow(800 / density, 2) : 1);
+
 /** Index of the point in S (x, y pairs) whose straight-line distance from home is closest to D km. */
 function siteNear(S, home, D, M) {
   let best = 0, bd = Infinity;
@@ -1014,6 +1021,46 @@ function siteNear(S, home, D, M) {
   }
   return best;
 }
+
+// California's active-duty installations (public places): [name, lat, lon, radius km of the installation and its
+// training ranges, branch mix of the members who report there]. A service member's branch is the installation's
+// they report to (layer 1): most of a base's members are of its own service, Navy corpsmen serve with the Marines,
+// the language school and the postgraduate school in Monterey train every service. Members who work off base
+// (recruiters, reserve centers, headquarters) keep occupations.mjs's place affinities.
+const INSTALLATIONS = [
+  ['Camp Pendleton', 33.35, -117.40, 22, { marines: 0.88, navy: 0.12 }],
+  ['Marine Corps Air Station Miramar', 32.868, -117.142, 6, { marines: 0.93, navy: 0.07 }],
+  ['Marine Corps Recruit Depot San Diego', 32.741, -117.197, 1.5, { marines: 0.95, navy: 0.05 }],
+  ['Marine Corps Air Ground Combat Center Twentynine Palms', 34.30, -116.15, 35, { marines: 0.9, navy: 0.1 }],
+  ['Marine Corps Logistics Base Barstow', 34.86, -116.92, 6, { marines: 0.9, navy: 0.05, army: 0.05 }],
+  ['Marine Corps Mountain Warfare Training Center', 38.355, -119.52, 12, { marines: 0.95, navy: 0.05 }],
+  ['Naval Base San Diego', 32.684, -117.129, 2.5, { navy: 0.95, marines: 0.03, coastguard: 0.02 }],
+  ['Naval Air Station North Island', 32.699, -117.215, 3, { navy: 0.96, marines: 0.02, coastguard: 0.02 }],
+  ['Naval Amphibious Base Coronado', 32.677, -117.161, 3, { navy: 0.93, marines: 0.07 }],
+  ['Naval Base Point Loma', 32.693, -117.243, 2.5, { navy: 0.9, coastguard: 0.1 }],
+  ['Naval Medical Center San Diego', 32.726, -117.145, 1.2, { navy: 0.97, marines: 0.03 }],
+  ['Naval Air Station Lemoore', 36.333, -119.952, 12, { navy: 0.92, marines: 0.08 }],
+  ['Naval Air Weapons Station China Lake', 35.685, -117.69, 20, { navy: 0.9, marines: 0.05, airforce: 0.05 }],
+  ['Naval Base Ventura County, Point Mugu', 34.12, -119.12, 6, { navy: 0.95, coastguard: 0.05 }],
+  ['Naval Base Ventura County, Port Hueneme', 34.162, -119.207, 2.5, { navy: 0.97, coastguard: 0.03 }],
+  ['Naval Weapons Station Seal Beach', 33.744, -118.087, 3, { navy: 1 }],
+  ['Naval Air Facility El Centro', 32.829, -115.672, 5, { navy: 0.9, marines: 0.1 }],
+  ['Naval Postgraduate School', 36.597, -121.875, 1.2, { navy: 0.6, marines: 0.12, army: 0.12, airforce: 0.1, coastguard: 0.06 }],
+  ['Defense Language Institute, Presidio of Monterey', 36.604, -121.909, 1.5, { army: 0.4, airforce: 0.3, navy: 0.15, marines: 0.15 }],
+  ['Fort Irwin National Training Center', 35.26, -116.68, 45, { army: 0.95, airforce: 0.05 }],
+  ['Fort Hunter Liggett', 35.96, -121.23, 25, { army: 1 }],
+  ['Edwards Air Force Base', 34.905, -117.884, 22, { airforce: 0.95, army: 0.03, navy: 0.02 }],
+  ['Travis Air Force Base', 38.263, -121.927, 6, { airforce: 0.97, army: 0.02, navy: 0.01 }],
+  ['Beale Air Force Base', 39.136, -121.436, 12, { airforce: 1 }],
+  ['Vandenberg Space Force Base', 34.742, -120.573, 22, { spaceforce: 0.55, airforce: 0.45 }],
+  ['Los Angeles Air Force Base', 33.919, -118.381, 1.5, { spaceforce: 0.7, airforce: 0.3 }],
+  ['Coast Guard Island, Alameda', 37.782, -122.249, 1, { coastguard: 1 }],
+  ['Coast Guard Training Center Petaluma', 38.253, -122.75, 4, { coastguard: 1 }],
+  ['Coast Guard Air Station Sacramento', 38.668, -121.40, 2, { coastguard: 1 }],
+  ['Coast Guard Air Station San Francisco', 37.632, -122.384, 1, { coastguard: 1 }],
+  ['Coast Guard Sector Humboldt Bay', 40.976, -124.112, 3, { coastguard: 1 }],
+  ['Coast Guard Base Los Angeles-Long Beach', 33.723, -118.272, 1.5, { coastguard: 1 }],
+].map(([name, lat, lon, km, mix]) => ({ name, lat, lon, km, branches: Object.keys(mix), cum: (() => { let c = 0; const t = Object.values(mix).reduce((a, b) => a + b, 0); return Object.values(mix).map(v => (c += v / t)); })() }));
 
 // ------------------------------------------------------------------ layer 1 data: origins, languages, birthplaces
 
@@ -1033,7 +1080,9 @@ for (const [b, list] of Object.entries({
 
 // origin: [heritage, label, foreign-born share, home-language retention beyond the second generation,
 //          home-language use among immigrants and their children (relative), earliest arrival year,
-//          languages 'key:weight ...', birthplaces 'Place:weight@langs|...', share of US-born adults born in a territory]
+//          languages 'key:weight ...', birthplaces 'Place:weight@langs#from-to|...' (#from-to: the only years anyone of
+//          the origin was born there: a refugee camp's, a city the community left, like the Armenians of Baku by 1990
+//          and the Christians of Mosul in 2014), share of US-born adults born in a territory]
 const ORIGIN_ROWS = {
   mexican: ['mexican', 'Mexican American', 0.36, 0.22, 1, 1900, 'spanish:1 mixtec:.014 zapotec:.009', 'Guadalajara, Jalisco:10|Morelia, Michoacán:6|Uruapan, Michoacán:3|Zamora, Michoacán:3|León, Guanajuato:5|Celaya, Guanajuato:3|Mexico City:6|Zacatecas, Zacatecas:4|Fresnillo, Zacatecas:2|Oaxaca, Oaxaca:3@zapotec,mixtec|Santiago Juxtlahuaca, Oaxaca:2@mixtec|Tijuana, Baja California:4|Mexicali, Baja California:3|Culiacán, Sinaloa:3|Mazatlán, Sinaloa:2|Acapulco, Guerrero:2|Puebla, Puebla:3|Aguascalientes, Aguascalientes:2|San Luis Potosí, San Luis Potosí:2|Querétaro, Querétaro:1|Durango, Durango:2|Tepic, Nayarit:2|Colima, Colima:1|Hermosillo, Sonora:2|Chihuahua, Chihuahua:1|Monterrey, Nuevo León:1|Toluca, State of Mexico:1|Veracruz, Veracruz:1'],
   salvadoran: ['salvadoran', 'Salvadoran American', 0.55, 0.18, 1, 1965, 'spanish:1', 'San Salvador, El Salvador:6|Santa Ana, El Salvador:3|San Miguel, El Salvador:3|Usulután, El Salvador:2|La Unión, El Salvador:2|Chalatenango, El Salvador:1|Sonsonate, El Salvador:1'],
@@ -1103,7 +1152,7 @@ const ORIGIN_ROWS = {
   ugandan: ['african', 'Ugandan American', 0.7, 0.03, 0.4, 1975, 'swahili:1', 'Kampala, Uganda:2|Entebbe, Uganda:1'],
   liberian: ['african', 'Liberian American', 0.7, 0, 0, 1985, '', 'Monrovia, Liberia:2'],
   senegalese: ['african', 'Senegalese American', 0.75, 0.08, 0.9, 1985, 'wolof:.6 french:.4', 'Dakar, Senegal:3|Thiès, Senegal:1'],
-  armenian: ['armenian', 'Armenian American', 0.6, 0.2, 1, 1900, 'armenian:.9 russian:.1', 'Yerevan, Armenia:6@armenian,russian|Gyumri, Armenia:2|Vanadzor, Armenia:1|Tehran, Iran:3@armenian,farsi|Beirut, Lebanon:2@armenian,arabic|Aleppo, Syria:2@armenian,arabic|Baku, Azerbaijan:1@armenian,russian|Moscow, Russia:1@russian'],
+  armenian: ['armenian', 'Armenian American', 0.6, 0.2, 1, 1900, 'armenian:.9 russian:.1', 'Yerevan, Armenia:6@armenian,russian|Gyumri, Armenia:2|Vanadzor, Armenia:1|Tehran, Iran:3@armenian,farsi|Beirut, Lebanon:2@armenian,arabic|Aleppo, Syria:2@armenian,arabic|Baku, Azerbaijan:1@armenian,russian#1900-1990|Moscow, Russia:1@russian'],
   iranian: ['iranian', 'Iranian American', 0.65, 0.1, 0.95, 1960, 'farsi:1', 'Tehran, Iran:8|Shiraz, Iran:2|Isfahan, Iran:2|Mashhad, Iran:1|Tabriz, Iran:1|Rasht, Iran:1'],
   egyptian: ['arab', 'Egyptian American', 0.6, 0.1, 0.9, 1960, 'arabic:1', 'Cairo, Egypt:4|Alexandria, Egypt:2|Asyut, Egypt:1'],
   lebanese: ['arab', 'Lebanese American', 0.5, 0.1, 0.85, 1900, 'arabic:1', 'Beirut, Lebanon:4|Tripoli, Lebanon:1|Zahle, Lebanon:1|Sidon, Lebanon:1'],
@@ -1113,8 +1162,8 @@ const ORIGIN_ROWS = {
   jordanian: ['arab', 'Jordanian American', 0.6, 0.1, 0.95, 1960, 'arabic:1', 'Amman, Jordan:3|Irbid, Jordan:1|Zarqa, Jordan:1'],
   yemeni: ['arab', 'Yemeni American', 0.65, 0.15, 1, 1965, 'arabic:1', 'Sanaa, Yemen:2|Ibb, Yemen:1|Aden, Yemen:1'],
   arab: ['arab', 'Arab American', 0.5, 0.1, 0.9, 1900, 'arabic:1', 'Beirut, Lebanon:1|Cairo, Egypt:1|Baghdad, Iraq:1|Damascus, Syria:1|Amman, Jordan:1'],
-  assyrian: ['assyrian', 'Assyrian American', 0.6, 0.2, 1, 1900, 'assyrian:.85 arabic:.15', 'Baghdad, Iraq:3|Kirkuk, Iraq:1|Mosul, Iraq:1|Urmia, Iran:2|Tehran, Iran:2|Qamishli, Syria:1'],
-  chaldean: ['assyrian', 'Chaldean American', 0.6, 0.2, 1, 1950, 'assyrian:.6 arabic:.4', 'Baghdad, Iraq:3@arabic,assyrian|Telkaif, Iraq:2@assyrian|Mosul, Iraq:1|Alqosh, Iraq:1@assyrian'],
+  assyrian: ['assyrian', 'Assyrian American', 0.6, 0.2, 1, 1900, 'assyrian:.85 arabic:.15', 'Baghdad, Iraq:3|Kirkuk, Iraq:1|Mosul, Iraq:1#1900-2014|Urmia, Iran:2|Tehran, Iran:2|Qamishli, Syria:1'],
+  chaldean: ['assyrian', 'Chaldean American', 0.6, 0.2, 1, 1950, 'assyrian:.6 arabic:.4', 'Baghdad, Iraq:3@arabic,assyrian|Telkaif, Iraq:2@assyrian|Mosul, Iraq:1#1900-2014|Alqosh, Iraq:1@assyrian'],
   russian: ['russian', 'Russian American', 0.5, 0.06, 0.95, 1900, 'russian:1', 'Moscow, Russia:5|Saint Petersburg, Russia:3|Novosibirsk, Russia:1|Yekaterinburg, Russia:1|Vladivostok, Russia:1|Kazan, Russia:1'],
   ukrainian: ['ukrainian', 'Ukrainian American', 0.55, 0.06, 0.95, 1900, 'ukrainian:.55 russian:.45', 'Kyiv, Ukraine:4|Kharkiv, Ukraine:2@russian|Odesa, Ukraine:2@russian|Lviv, Ukraine:2@ukrainian|Dnipro, Ukraine:1'],
   polish: ['polish', 'Polish American', 0.18, 0.02, 0.85, 1900, 'polish:1', 'Warsaw, Poland:3|Kraków, Poland:2|Gdańsk, Poland:1|Wrocław, Poland:1'],
@@ -1255,7 +1304,7 @@ const GREAT_MIGRATION = { Texas: 3, Louisiana: 6, Mississippi: 4, Arkansas: 3, O
 // household gets exactly the stage the calibration measured.
 
 // attribute codes of the hashed uniforms (household seed, member, attribute)
-const KA = { ORIGIN: 1, NAT: 2, NATH: 3, ARR: 4, GEN: 5, BORN: 6, BORN2: 7, LCHOICE: 8, LANG: 9, LANGH: 10, CROSS: 11, LEP: 12, EDU: 13, MAR: 15, VET: 17, UNEMP: 18, STATUS: 19, INC: 20, OCC: 21, NAME: 22, MOVED: 23, BUILT: 24, BDAY: 25, LIST: 26, SPAN: 27, TERR: 28, ARR2: 29, SIKH: 30, CUSTOM: 31, TOWN: 32 };
+const KA = { ORIGIN: 1, NAT: 2, NATH: 3, ARR: 4, GEN: 5, BORN: 6, BORN2: 7, LCHOICE: 8, LANG: 9, LANGH: 10, CROSS: 11, LEP: 12, EDU: 13, MAR: 15, VET: 17, UNEMP: 18, STATUS: 19, INC: 20, OCC: 21, NAME: 22, MOVED: 23, BUILT: 24, BDAY: 25, LIST: 26, SPAN: 27, TERR: 28, ARR2: 29, SIKH: 30, CUSTOM: 31, TOWN: 32, BRANCH: 33, OLD: 34 };
 const uni = (hs, m, k) => u01(hash3(hs, m, k));
 const gaussOf = (hs, m, k) => Math.sqrt(-2 * Math.log(Math.max(1e-12, uni(hs, m, k)))) * Math.cos(2 * Math.PI * uni(hs, m, k + 4096));
 // role name -> role id (the second parent is a 'parent', a grown child who is a grandchild's parent a 'child')
@@ -1592,10 +1641,24 @@ function eduDecide(core, hs, rows, titles) {
   return out;
 }
 
-/** Weekly hours a worker is paid for: their work days times hours at work (a student's after-school job: 12). */
-const weeklyHours = p => p.student === 'k12' ? 12 : popcount(p.workDays || p.days || 62) * Math.min(p.dwellMin || 480, 720) / 60;
-/** The least a worker may be paid in a year for their hours (California's minimum wage), in whole hundreds. */
-const minPayFor = p => Math.ceil(MIN_WAGE_HOURLY * weeklyHours(p) * 52 / 100) * 100;
+/**
+ * Weekly hours a worker is paid for, as their record shows them (occupation.hours): their work days times hours at
+ * work (a student's after-school job: 12), in whole hours.
+ */
+const weeklyHours = p => Math.max(1, Math.round(p.student === 'k12' ? 12 : popcount(p.workDays || p.days || 62) * Math.min(p.dwellMin || 480, 720) / 60));
+/** Hours a week counted at the straight rate: those over 40 count time and a half (California and federal overtime). */
+const paidHours = h => Math.min(h, 40) + 1.5 * Math.max(0, h - 40);
+/**
+ * The least a worker may be paid for `hours` a week over `weeks` weeks, in whole hundreds (rounded up): California's
+ * minimum wage with overtime for a civilian; federal basic pay for a service member (MIL_PAY_FLOOR a year, whatever
+ * the hours: the state minimum wage does not apply to them).
+ */
+const minPayFor = (p, hours, weeks) => Math.ceil((p.military ? MIL_PAY_FLOOR * weeks / 52 : MIN_WAGE_HOURLY * paidHours(hours) * weeks) / 100) * 100;
+// The fewest weeks a worker who has a job now worked in the past twelve months (B19001 counts that year's income: a
+// job begun a few weeks ago, seasonal work); a service member under 25 may have enlisted during the year, an older
+// one served all of it
+const MIN_WEEKS = 6;
+const minWeeksOf = p => (p.military ? (p.age < 25 ? 26 : 52) : MIN_WEEKS);
 const eduLevel = e => e >= 0 ? e : e === -2 ? 2 : 1;   // numeric level for language and wages
 
 /**
@@ -1752,6 +1815,8 @@ const EDU_WAGE = [0.75, 0.85, 0.95, 1.0, 1.25, 1.45, 1.8, 1.7];
 // Veterans (B21001 by sex and age band). Nobody is a veteran before serving a term, so within the 18-34 band the
 // rate rises from 0 at 19 to the full rate at 25, scaled so the band's own rate still comes back.
 const VET_RAMP = a => clamp((a - 19) / 6, 0, 1);
+// B21001's age band of each B01001 bracket (-1 under 18): 18-34, 35-54, 55-64, 65-74, 75+
+const VET_BAND_OF = Int8Array.from(AGE_LO, lo => (lo < 18 ? -1 : lo < 35 ? 0 : lo < 55 ? 1 : lo < 65 ? 2 : lo < 75 ? 3 : 4));
 const VET_RAMP_MEAN = (() => { let s = 0; for (let a = 18; a <= 34; a++) s += VET_RAMP(a); return s / 17; })();
 /** The chance a member is a veteran, from the ZIP's B21001 rate for their sex and age band. */
 function vetRateAt(F, p) {
@@ -1780,10 +1845,43 @@ function incomeAt(cum, q) {
   return Math.round(v / 100) * 100;
 }
 const hincBracket = y => { let b = 0; while (b < 15 && y >= HINC_HI[b]) b++; return b; };
-/** A worker's pay floor: the minimum wage for their hours, and 45% of their job's usual pay. */
+/** A worker's pay floor: the minimum wage for their hours and weeks, and 45% of their job's usual pay for those weeks. */
 const payFloor = (J, i) => J.occ[i] ? Math.max(J.minPay[i], 0.45 * J.pot[i]) : 0;
 /** The least a household earns given its workers' pay floors. */
 const incomeFloor = J => { let f = 0; for (let i = 0; i < J.pot.length; i++) f += payFloor(J, i); return f; };
+/** The least a household earns when each worker worked the fewest weeks their record allows (partYear). */
+const incomeFloorMin = J => {
+  let f = 0;
+  for (let i = 0; i < J.pot.length; i++) {
+    const o = J.occ[i];
+    if (!o) continue;
+    const p = J.mem[i], wk = minWeeksOf(p);
+    f += Math.max(minPayFor(p, o.hours, wk), 0.45 * J.pot[i] * wk / 52);
+  }
+  return f;
+};
+/**
+ * The weeks each worker of a household worked in the past twelve months. A household whose rank in the ZIP (B19001)
+ * gives it less than its workers' full-year pay floors add up to worked part of the year (seasonal work, a job begun
+ * during the year: B19001 wins over a year of full-time pay): every worker's weeks shrink in proportion, in whole weeks
+ * and never below minWeeksOf, and their earning power and pay floors with them. Mutates J (occupation.weeks, pot, minPay).
+ * @param {{occ: Array, pot: Float64Array, minPay: Float64Array, mem: Array}} J _jobs
+ * @param {number} Y the household's income
+ */
+function partYear(J, Y) {
+  const full = incomeFloor(J);
+  if (!(Y < full)) return;
+  const f = Y / full;
+  for (let i = 0; i < J.occ.length; i++) {
+    const o = J.occ[i];
+    if (!o) continue;
+    const p = J.mem[i], wk = clamp(Math.floor(52 * f), minWeeksOf(p), 52);
+    if (wk >= 52) continue;
+    o.weeks = wk;
+    J.pot[i] *= wk / 52;
+    J.minPay[i] = minPayFor(p, o.hours, wk);
+  }
+}
 /**
  * Each member's part of a household income Y (at least incomeFloor(J)): workers near their job's usual pay and
  * others by their earning power, scaled together toward Y but never below a pay floor, so the parts add up to Y
@@ -1927,8 +2025,30 @@ export class Population {
   /** Number of households in ZIP zi. */
   householdCount(zi) { return (zi >= 0 && zi < this.world.N && this.world.z.hh[zi]) || 0; }
 
-  /** Expected household population of ZIP zi (hh x hhsize). */
-  expectedPersons(zi) { const z = this.world.z; return Math.round((z.hh[zi] || 0) * (z.hhsize[zi] || 0)); }
+  /**
+   * Expected household population of ZIP zi: hh x the mean household size its model holds (hhsize; where the pack has
+   * none, people per household, or the county's size when group quarters dominate). 0 for a ZIP without households.
+   */
+  expectedPersons(zi) { const hh = this.householdCount(zi); return hh ? Math.round(hh * this._hhsize(zi)) : 0; }
+
+  /** The mean household size of ZIP zi's model (see expectedPersons). */
+  _hhsize(zi) {
+    const z = this.world.z, hh = z.hh[zi] || 0;
+    let hhsize = z.hhsize[zi];
+    if (!(hhsize > 0)) {
+      // no published size: people per household, unless group quarters dominate (a base, a campus); then the county's
+      const rawPop = sum(this.world.acs(zi, 'age')), cm = this._col(zi, 'hhsize', 2.6);
+      hhsize = hh > 0 && rawPop > 0 && rawPop / hh <= 1.3 * cm ? rawPop / hh : cm;
+    }
+    return clamp(hhsize, 1, 9.5);
+  }
+
+  /** The number of people in ZIP zi's households, counted (O(households) once the ZIP's model is built). */
+  _personsIn(zi) {
+    let n = 0;
+    for (let h = 0, H = this.householdCount(zi); h < H; h++) n += this.householdSize(zi, h);
+    return n;
+  }
 
   /** Parse an id against this population's world. */
   parseId(id) { return parseId(id, this.world); }
@@ -1983,29 +2103,42 @@ export class Population {
 
   /**
    * The household population's age-sex pyramid: B01001 (A, scaled to the ZIP's own population) minus an estimate of
-   * the group-quarters residents (pop - hh x hhsize, when that is clearly more than rounding), taken from the
-   * brackets where the ZIP exceeds the shape of its neighbors.
+   * the group-quarters residents (pop - hh x hhsize, when that is clearly more than rounding). They come first from
+   * the adult men who outnumber the women of their age by more than 15%, from 18 to 64 (a prison's inmates, a
+   * barracks' soldiers: no household population holds that surplus where group quarters are this many; women only
+   * past half again as many as the men, a women's prison), then from the brackets where the ZIP exceeds the shape of
+   * its neighbors (a campus's students, a nursing home's elders), the rest across the pyramid.
    */
   _householdPyramid(zi, A, hhPop) {
     const w = this.world, pop = sum(A), G = pop - hhPop, T = Float64Array.from(A);
     let gq = 0;
     if (G > Math.max(25, 0.02 * pop)) {
-      const S = new Float64Array(NB2);
-      for (const radius of [25, 60]) {
-        S.fill(0);
-        for (const [j] of w.zipsNear(w.z.tx[zi], w.z.ty[zi], radius)) {
-          if (j === zi) continue;
-          const a = w.acs(j, 'age'); for (let b = 0; b < NB2; b++) S[b] += a[b];
-        }
-        if (sum(S) >= 5000) break;
+      const e = new Float64Array(NB2);
+      let E = 0;
+      for (let b = 4; b <= 16; b++) {   // the brackets from 18-19 to 62-64
+        e[b] = Math.max(0, A[b] - 1.15 * A[NB + b]); e[NB + b] = Math.max(0, A[NB + b] - 1.5 * A[b]);
+        E += e[b] + e[NB + b];
       }
-      const st = sum(S);
-      if (st > 0) {
-        const base = pop - G, ex = new Float64Array(NB2);
-        let X = 0;
-        for (let b = 0; b < NB2; b++) { ex[b] = Math.max(0, A[b] - base * S[b] / st); X += ex[b]; }
-        for (let b = 0; b < NB2; b++) T[b] = Math.max(0, A[b] - (X >= G ? G * ex[b] / X : ex[b] + (G - X) * A[b] / pop));
-        gq = G;
+      const r1 = Math.min(G, E), G2 = G - r1;
+      if (r1 > 0) { for (let b = 0; b < NB2; b++) T[b] -= r1 * e[b] / E; gq = G; }
+      if (G2 > 0) {
+        const S = new Float64Array(NB2);
+        for (const radius of [25, 60]) {
+          S.fill(0);
+          for (const [j] of w.zipsNear(w.z.tx[zi], w.z.ty[zi], radius)) {
+            if (j === zi) continue;
+            const a = w.acs(j, 'age'); for (let b = 0; b < NB2; b++) S[b] += a[b];
+          }
+          if (sum(S) >= 5000) break;
+        }
+        const st = sum(S);
+        if (st > 0) {
+          const R = Float64Array.from(T), rest = sum(R), base = pop - G, ex = new Float64Array(NB2);
+          let X = 0;
+          for (let b = 0; b < NB2; b++) { ex[b] = Math.max(0, R[b] - base * S[b] / st); X += ex[b]; }
+          for (let b = 0; b < NB2; b++) T[b] = Math.max(0, R[b] - (X >= G2 ? G2 * ex[b] / X : ex[b] + (G2 - X) * R[b] / rest));
+          gq = G;
+        }
       }
     }
     const s = sum(T);
@@ -2024,18 +2157,14 @@ export class Population {
     // padded pyramid is a shape only, scaled back to the ZIP's population before anything is subtracted from it)
     const rawPop = sum(w.acs(zi, 'age'));
     const shape = this._blk(zi, 'age', 60);
-    let hhsize = z.hhsize[zi];
-    if (!(hhsize > 0)) {
-      // no published size: people per household, unless group quarters dominate (a base, a campus); then the county's
-      const cm = this._col(zi, 'hhsize', 2.6);
-      hhsize = hh > 0 && rawPop > 0 && rawPop / hh <= 1.3 * cm ? rawPop / hh : cm;
-    }
-    hhsize = clamp(hhsize, 1, 9.5);
+    const hhsize = this._hhsize(zi);
     const hhPop = hh > 0 ? hh * hhsize : Math.max(rawPop, 1);
     const pop = rawPop > 0 ? rawPop : hhPop;
     const st = sum(shape) || 1;
     const A = Float64Array.from(shape, v => v * pop / st);
     const { T, gq } = this._householdPyramid(zi, A, hhPop);
+    // the group-quarters residents by age and sex (what the Census person tables count beyond the households)
+    const gqAS = Float64Array.from(A, (v, b) => (gq > 0 ? Math.max(0, v - T[b]) : 0));
     const nh = hh > 0 ? hh : hhPop / hhsize;
     const t = Float64Array.from(T, v => v / nh);
     const hht = this._blk(zi, 'hht', 40);
@@ -2050,7 +2179,7 @@ export class Population {
       for (let ty = 0; ty < 5; ty++) typeShare[ty] = ty === T_ALONE ? alone : rest > 0 ? typeShare[ty] * (1 - alone) / rest : (1 - alone) / 4;
     }
     const { w: cw, pi: mix } = fitComponents(t, typeShare);
-    const M = { zi, hh, hhsize, hhPop, pop, gq, A, shape, T, typeShare, cw, mix, comp: new Table(cw), maxSize: 1 };
+    const M = { zi, hh, hhsize, hhPop, pop, gq, gqAS, A, shape, T, typeShare, cw, mix, comp: new Table(cw), maxSize: 1 };
     // the fitted mix of the child and roommate age kernels, as draw thresholds
     M.piChild = Float64Array.from([mix[RK_CHILD0], mix[RK_CHILD0] + mix[RK_CHILD0 + 1], mix[RK_CHILD0] + mix[RK_CHILD0 + 1] + mix[RK_CHILD0 + 2]]);
     M.piPeer = mix[RK_ROOM0];
@@ -2241,8 +2370,8 @@ export class Population {
     const kg = scaleRate(GRAD_SHAPE, sch[6], capGrad);
     M.gradRate = Float32Array.from(GRAD_SHAPE, (v, a) => Math.min(capGrad[a], kg * v));
 
-    // workers (employed civilians + armed forces among 16+, B23025)
-    const emp = this._blk(zi, 'emp', 60), e16 = sum(emp) || 1;
+    // workers (employed civilians + armed forces among 16+, B23025; on a base, those in households: the barracks out)
+    const emp = this._hhCensus(zi, M).emp, e16 = sum(emp) || 1;
     M.empShares = Float64Array.from(emp, v => v / e16);
     const n = [], off = [];
     for (let s = 0; s < 2; s++) for (let a = 16; a <= MAX_AGE; a++) {
@@ -2261,9 +2390,13 @@ export class Population {
       workers[s * 100 + a] = p * ((1 - st) * M.pWork[s * 100 + a] + st * M.pWork[200 + s * 100 + a]);
     }
     if (milTarget > 0.5) {
-      const mo = Float64Array.from({ length: 200 }, (_, i) => MIL_LOGIT(i % 100) + (i >= 100 ? -1.7 : 0));
-      const b = solveShift(workers, mo, Math.min(milTarget, 0.9 * sum(workers)));
-      M.pMil = Float32Array.from(mo, o => sigmoid(b + o));
+      // a woman is about a third as likely as a man of her age to serve, on a base where most men in the households
+      // serve too (a fixed shift of the log-odds would put half the wives in uniform and leave no civilian men)
+      const goal = Math.min(milTarget, 0.9 * sum(workers)), at = b => { let s = 0; for (let i = 0; i < 200; i++) s += workers[i] * (i >= 100 ? MIL_F : 1) * sigmoid(b + MIL_LOGIT(i % 100)); return s; };
+      let lo = -40, hi = 40;
+      for (let it = 0; it < 60; it++) { const mid = (lo + hi) / 2; if (at(mid) < goal) lo = mid; else hi = mid; }
+      const b = (lo + hi) / 2;
+      M.pMil = Float32Array.from({ length: 200 }, (_, i) => (i >= 100 ? MIL_F : 1) * sigmoid(b + MIL_LOGIT(i % 100)));
     }
 
     // occupation by sex and age band (C24010 against an age profile)
@@ -2397,9 +2530,12 @@ export class Population {
     return (this._bandsCache[zi] = B);
   }
 
-  /** A workplace ZIP for a trip of about D km from ZIP zi (gravity by establishments within the band holding D). */
-  _pickWorkZip(zi, D, u) {
-    const B = this._workBands(zi);
+  /**
+   * A workplace ZIP for a trip of about D km from ZIP zi (gravity by establishments within the band holding D); for
+   * farm work (farm) the establishments are weighed by how much farm country each ZIP is (FARM_LAND).
+   */
+  _pickWorkZip(zi, D, u, farm = false) {
+    const B = this._workBands(zi), cum = farm ? this._farmCum(zi) : B.cum;
     let b = 0;
     while (b < NWB - 1 && D >= BAND_EDGES[b + 1]) b++;
     for (let step = 0; step < NWB; step++) {
@@ -2408,13 +2544,25 @@ export class Population {
         if (bb < 0 || bb >= NWB) continue;
         const s = B.start[bb], e = B.start[bb + 1];
         if (e <= s) continue;
-        const x = u * B.cum[e - 1];
+        const x = u * cum[e - 1];
         let lo = s, hi = e - 1;
-        while (lo < hi) { const mid = (lo + hi) >> 1; if (B.cum[mid] > x) hi = mid; else lo = mid + 1; }
+        while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] > x) hi = mid; else lo = mid + 1; }
         return B.ids[lo];
       }
     }
     return zi;
+  }
+
+  /** The distance bands of _workBands with farm work's weights (establishments times FARM_LAND), built on first use. */
+  _farmCum(zi) {
+    const B = this._workBands(zi);
+    if (B.farm) return B.farm;
+    const z = this.world.z, cum = new Float32Array(B.ids.length);
+    for (let b = 0; b < NWB; b++) {
+      let c = 0;
+      for (let i = B.start[b]; i < B.start[b + 1]; i++) { const j = B.ids[i]; c += ((z.est[j] || 0) + 0.004 * (z.hh[j] || 0) + 0.05) * FARM_LAND(z.density[j] || 0); cum[i] = c; }
+    }
+    return (B.farm = cum);
   }
 
   /**
@@ -2485,15 +2633,69 @@ export class Population {
   _bases(zi) {
     let B = this._baseCache[zi];
     if (B !== undefined) return B;
+    this._milWeights();
+    const near = this._near(zi, 110), ids = [], km = [], wts = [];
+    for (let i = 0; i < near.ids.length; i++) { const j = near.ids[i], m = this._milWeight[j]; if (m > 0) { ids.push(j); km.push(near.km[i]); wts.push(m * Math.exp(-near.km[i] / 35)); } }
+    B = ids.length ? { ids: Uint16Array.from(ids), km: Float32Array.from(km), w: Float64Array.from(wts), home: this._milWeight[zi] > 0 } : null;
+    return (this._baseCache[zi] = B);
+  }
+
+  /** Per ZIP: how much of a base it is (service members times their share squared, where they are 25%+ of the workers). */
+  _milWeights() {
     if (!this._milWeight) {
       const w = this.world;
       this._milWeight = new Float32Array(w.N);
       for (let i = 0; i < w.N; i++) { const e = w.acs(i, 'emp'), m = e[2], share = m / Math.max(1, e[0] + m); if (m >= 30 && share >= 0.25) this._milWeight[i] = m * share * share; }
     }
-    const near = this._near(zi, 110), ids = [], km = [], wts = [];
-    for (let i = 0; i < near.ids.length; i++) { const j = near.ids[i], m = this._milWeight[j]; if (m > 0) { ids.push(j); km.push(near.km[i]); wts.push(m * Math.exp(-near.km[i] / 35)); } }
-    B = ids.length ? { ids: Uint16Array.from(ids), km: Float32Array.from(km), w: Float64Array.from(wts), home: this._milWeight[zi] > 0 } : null;
-    return (this._baseCache[zi] = B);
+    return this._milWeight;
+  }
+
+  /**
+   * The installation (INSTALLATIONS) a workplace at (x, y) in ZIP wz belongs to: the one whose grounds and ranges hold
+   * the point, else, for a workplace in a base ZIP (a base and its housing), the nearest within 60 km; null for a
+   * workplace off base.
+   */
+  _installationAt(x, y, wz) {
+    const w = this.world;
+    if (!this._inst) this._inst = INSTALLATIONS.map(b => ({ ...b, ...w.project(b.lat, b.lon) }));
+    let best = null, bq = Infinity, near = null, nd = Infinity;
+    for (const b of this._inst) {
+      const d = w.distKm(x, y, b.x, b.y);
+      if (d <= b.km && d / b.km < bq) { bq = d / b.km; best = b; }
+      if (d < nd) { nd = d; near = b; }
+    }
+    if (best) return best;
+    return wz >= 0 && this._milWeights()[wz] > 0 && nd <= 60 ? near : null;
+  }
+
+  /**
+   * A point D km from home inside an installation's grounds and ranges (inst, from _installationAt), on the map, in a
+   * direction drawn from r (up to six tries): {x, y, zi}, or null when the grounds do not reach that far from home.
+   */
+  _rangePoint(home, D, M, r, inst) {
+    const w = this.world, R = w.raster();
+    for (let t = 0; t < 6; t++) {
+      const a = 2 * Math.PI * r.float(), x = home.x + Math.cos(a) * D / M.kx, y = home.y + Math.sin(a) * D / M.ky;
+      if (w.distKm(x, y, inst.x, inst.y) > inst.km) continue;
+      const c = Math.floor(x / R.cell), row = Math.floor(y / R.cell);
+      if (c < 0 || row < 0 || c >= R.W || row >= R.H) continue;
+      const g = R.grid[row * R.W + c];
+      if (g) return { x, y, zi: g - 1 };
+    }
+    return null;
+  }
+
+  /**
+   * A service member's branch (a MILITARY_BRANCHES key): the mix of the installation they report to; one who lives on
+   * a base (in a base ZIP) and works off it is of that base's service; null for the others (the place decides).
+   */
+  _branchOf(p, hs, i, zi, home) {
+    const b = (p.work ? this._installationAt(p.work.x, p.work.y, p.workZi) : null) || (this._milWeights()[zi] > 0 ? this._installationAt(home.x, home.y, zi) : null);
+    if (!b) return null;
+    const u = uni(hs, i, KA.BRANCH);
+    let k = 0;
+    while (k < b.cum.length - 1 && u >= b.cum[k]) k++;
+    return b.branches[k];
   }
 
   /**
@@ -2521,9 +2723,9 @@ export class Population {
    * weighted like the gravity model (establishments, then households); in a rural ZIP, whose jobs are in town, its
    * own workplace site when one is about that far from home; else the point itself. {x, y, zi}, or null when every
    * direction is off the map. Measured from the home, not the ZIP's town point, so a trip from the edge of a big
-   * rural ZIP stays its length.
+   * rural ZIP stays its length. Farm work (farm) weighs each direction by how much farm country it lands in (FARM_LAND).
    */
-  _workNear(home, D, M, r) {
+  _workNear(home, D, M, r, farm = false) {
     const R = this.world.raster(), z = this.world.z, cand = SCR_CAND;
     let n = 0, tot = 0;
     for (let t = 0; t < 4; t++) {
@@ -2532,7 +2734,7 @@ export class Population {
       if (c < 0 || row < 0 || c >= R.W || row >= R.H) continue;
       const g = R.grid[row * R.W + c];
       if (!g) continue;
-      const wgt = (z.est[g - 1] || 0) + 0.004 * (z.hh[g - 1] || 0) + 0.05;
+      const wgt = ((z.est[g - 1] || 0) + 0.004 * (z.hh[g - 1] || 0) + 0.05) * (farm ? FARM_LAND(z.density[g - 1] || 0) : 1);
       cand[4 * n] = x; cand[4 * n + 1] = y; cand[4 * n + 2] = g - 1; cand[4 * n + 3] = wgt; tot += wgt; n++;
     }
     if (!n) return null;
@@ -2744,31 +2946,43 @@ export class Population {
     // the distance the mode and minutes imply; service members report to a base about that far
     const D = tripKm(mi, minutes, M.urban) * Math.exp(0.35 * r.gauss());
     const B = p.military ? this._bases(zi) : null;
-    let x, y;
+    // farm work is in the fields: its workplaces are weighed toward farm country (FARM_LAND), not the city's offices
+    const farm = p.occ === 'farming';
+    let x, y, onBase = false;
     // a short trip (a walk, a bike ride, a hop by car) ends that far from home, wherever that is; a trip under 15 km
     // at a workplace that far from the home (not from the ZIP's town point: big rural ZIPs); a service member's on base
-    const pt = B ? (D < 3 && B.home ? this._pointAt(home, D, M, r, true) : null) : D < 3 ? this._pointAt(home, D, M, r) : D < 15 ? this._workNear(home, D, M, r) : null;
-    if (pt) { p.workZi = pt.zi; x = pt.x; y = pt.y; }
+    const pt = B ? (D < 3 && B.home ? this._pointAt(home, D, M, r, true) : null) : D < 3 ? this._pointAt(home, D, M, r) : D < 15 ? this._workNear(home, D, M, r, farm) : null;
+    if (pt) { p.workZi = pt.zi; x = pt.x; y = pt.y; onBase = !!B; }
     else {
       let S, k;
       const base = B ? this._pickBase(B, D, r.float()) : -1;
-      if (base >= 0) { p.workZi = base; S = this._sites(base); k = siteNear(S, home, D, M); }
+      if (base >= 0) { p.workZi = base; S = this._sites(base); k = siteNear(S, home, D, M); onBase = true; }
       else {
-        p.workZi = this._pickWorkZip(zi, D, r.float());
+        p.workZi = this._pickWorkZip(zi, D, r.float(), farm);
         S = this._sites(p.workZi);
         // a shorter trip ends at the workplace about that far from home; a long one at any of the ZIP's workplaces
         k = D < 8 ? siteNear(S, home, D, M) : (mix32(hk + Math.imul(p.m + 1, 0x2545f491)) >>> 0) % (S.length >> 1);
       }
       x = S[2 * k]; y = S[2 * k + 1];
     }
-    const dx = (x - home.x) * M.kx, dy = (y - home.y) * M.ky, km = Math.sqrt(dx * dx + dy * dy);
+    let dx = (x - home.x) * M.kx, dy = (y - home.y) * M.ky, km = Math.sqrt(dx * dx + dy * dy);
+    // a service member whose base workplace is far nearer than the trip's minutes: the installation's ranges about that
+    // far, when its grounds reach so far; else the minutes shrink to the distance (below): members serve at their base
+    if (onBase && D > 4 && km < 0.4 * D) {
+      const inst = this._installationAt(x, y, p.workZi), far = inst ? this._rangePoint(home, D, M, r, inst) : null;
+      if (far) { p.workZi = far.zi; x = far.x; y = far.y; dx = (x - home.x) * M.kx; dy = (y - home.y) * M.ky; km = Math.sqrt(dx * dx + dy * dy); }
+    }
     // a walk or ride longer than an hour and a quarter is made by car instead (a ride when the household has none)
     if ((mi === M_WALK || mi === M_BIKE) && OVER_MIN[mi] + km * ROAD / VMAX[mi] * 60 > 75) {
       mi = vehicles > 0 ? M_DRIVE : M_CARPOOL;
       minutes = Math.max(minutes, Math.round(OVERHEAD[mi] + km * ROAD / tripSpeed(mi, M.urban) * 60));
     }
     const need = Math.ceil(OVER_MIN[mi] + km * ROAD / VMAX[mi] * 60);
-    if (minutes < need) minutes = need + r.int(4);
+    // too few minutes for the distance: the least it takes, plus a little that stays in the same B08303 bracket (a
+    // one-minute drive becomes three or four, not six)
+    if (minutes < need) { let b = 0; while (b < NCT - 1 && need > CT_HI[b]) b++; minutes = need + r.int(Math.max(1, Math.min(4, CT_HI[b] - need + 1))); }
+    // on base the trip takes what its distance does, with the gate, the lot and the walk in (never a crawl)
+    if (onBase) minutes = Math.min(minutes, Math.ceil(OVERHEAD[mi] + 10 + 1.5 * km * ROAD / tripSpeed(mi, M.urban) * 60));
     p.mode = MODES[mi];
     p.commuteMin = Math.min(minutes, 240);
     p.work = { x, y };
@@ -2848,6 +3062,51 @@ export class Population {
   _full(zi) { return this._fulls[zi] || (this._fulls[zi] = this._buildFull(zi)); }
 
   /**
+   * B12001 (marital status, people 15+), B21001 (veterans, civilians 18+) and B23025 (employment, people 16+) of ZIP
+   * zi for its household population: the estimated group-quarters residents (by age and sex, as the age pyramid
+   * leaves them out) taken out of the Census counts. Those under 65 (barracks, dorms, prisons) come mostly from the
+   * never married and from the non-veterans of their age band; those 65 and older (nursing homes) across their sex's
+   * marital statuses. On a base they are the barracks' service members: out of the armed forces of B23025, and never
+   * in B21001, which counts civilians.
+   * @returns {{mar: Float64Array, vet: Float64Array, emp: Float64Array}} the blocks in the pack's layout
+   */
+  _hhCensus(zi, M = this._core(zi)) {
+    const mar = this._blk(zi, 'mar', 60), vet = this._blk(zi, 'vet', 60), emp = this._blk(zi, 'emp', 60), G = M.gqAS;
+    if (!(M.gq > 0) || !G) return { mar, vet, emp };
+    const base = this._milWeights()[zi] > 0;
+    if (base) {
+      let g16 = 0;
+      for (let b = 3; b < NB; b++) g16 += G[b] + G[NB + b];
+      g16 -= (G[3] + G[NB + 3]) / 3;   // 15-17: the 15-year-olds are not 16+
+      const m = Math.min(emp[2], g16);
+      emp[2] -= m; emp[3] = Math.max(0, emp[3] - (g16 - m));
+    }
+    // take `amount` from cells o..o+5 of mar in proportion to weights w, never below zero (the overflow from the rest)
+    const take = (o, amount, w) => {
+      if (!(amount > 0)) return;
+      let tw = 0; for (let k = 0; k < 6; k++) tw += w[k];
+      let left = amount;
+      for (let k = 0; k < 6; k++) { const d = Math.min(mar[o + k], amount * w[k] / tw); mar[o + k] -= d; left -= d; }
+      const rest = sum(mar.subarray(o, o + 6));
+      if (left > 0 && rest > 0) for (let k = 0; k < 6; k++) mar[o + k] -= Math.min(mar[o + k], left * mar[o + k] / rest);
+    };
+    for (let s = 0; s < 2; s++) {
+      let young = 0, old = 0;
+      for (let b = 3; b < NB; b++) { if (b <= 16) young += G[s * NB + b]; else old += G[s * NB + b]; }   // 15+
+      take(s * 6, young, [0.85, 0.05, 0.03, 0, 0, 0.07]);   // never married, married, separated, absent, widowed, divorced
+      take(s * 6, old, Array.from(mar.subarray(s * 6, s * 6 + 6)));
+      if (base) continue;
+      for (let k = 0; k < 5; k++) {
+        let g = 0;
+        for (let b = 4; b < NB; b++) if (VET_BAND_OF[b] === k) g += G[s * NB + b];
+        const cell = s * 10 + 5 + k;
+        vet[cell] = Math.max(0, vet[cell] - g);
+      }
+    }
+    return { mar, vet, emp };
+  }
+
+  /**
    * Layer-1 parameters for ZIP zi, calibrated on SYN_N synthetic households of the ZIP (household indices past the
    * real ones): the nativity shift (B05012), education by occupation class (B15003), language bucket scales and
    * English ability (C16001), unemployment (B23025), marital status by sex and age (B12001), veterans (B21001) and
@@ -2899,15 +3158,40 @@ export class Population {
     F.eduRows = this._fitEducation(syn, this._blk(zi, 'edu', 60));
     for (const x of syn) x.edu = eduDecide(x.core, x.hs, F.eduRows, x.titles);
 
-    // language at home: bucket scales so the 12 non-English shares match C16001 among people 5+
+    // language at home: bucket scales so the 12 non-English shares match C16001 among people 5+. The synthetic people
+    // count by the ZIP's heritage mix (post-stratified: each heritage weighs its share of the ZIP's persons over its share
+    // of the 700 households' people), so the scales fit the ZIP and not the luck of the sample: a sample a few points
+    // short of Hispanic households would otherwise raise Spanish for every Hispanic family of the real ZIP
     const lang = this._blk(zi, 'lang', 60), tot5 = sum(lang.subarray(0, 13)) || 1;
     const target = Float64Array.from({ length: 13 }, (_, b) => lang[b] / tot5);
-    for (const x of syn) { x.L = langPrep(x.core, x.ori, x.N, x.edu, x.hs, F, x.P.by); x.LR = langResult(x.core.size); }
+    const hCount = new Float64Array(NH);
+    let hAll = 0;
+    for (const x of syn) for (const p of x.core.members) { hCount[H_INDEX[p.heritage]]++; hAll++; }
+    const hWeight = Float64Array.from(hCount, (c, h) => (c > 0 ? M.pi[h] * hAll / c : 0));
+    // and within each heritage the foreign born count by their expected share (the draws of 700 households stray from
+    // it; the shift alpha fits the expectation, see foreignShare)
+    const eF = new Float64Array(NH), rF = new Float64Array(NH), nF = new Float64Array(NH);
+    for (const x of syn) {
+      const P = x.P, pOf = i => (P.force[i] === 1 ? 1 : P.force[i] === 2 ? 0 : sigmoid(F.alpha + P.off[i]));
+      for (let i = 0; i < x.core.size; i++) {
+        const h = H_INDEX[x.core.members[i].heritage], role = P.role[i];
+        let e;
+        if (role === R_CHILD || role === R_GRAND) e = x.N.nat[i];
+        else if (i > 0 && P.force[i]) e = P.force[i] === 1 ? 1 : 0;
+        else { const p = pOf(i), pa = pOf(P.anchor[i]); e = i > 0 && (role === R_PARENT || role === R_SIB) ? pa * (1 - (1 - p) * 0.1) + (1 - pa) * p : p; }
+        eF[h] += e; rF[h] += x.N.nat[i]; nF[h]++;
+      }
+    }
+    const natW = (h, f) => clamp(f ? (rF[h] > 0 ? eF[h] / rF[h] : 1) : (nF[h] > rF[h] ? (nF[h] - eF[h]) / (nF[h] - rF[h]) : 1), 0.25, 4);
+    for (const x of syn) {
+      x.L = langPrep(x.core, x.ori, x.N, x.edu, x.hs, F, x.P.by); x.LR = langResult(x.core.size);
+      x.hw = Float64Array.from(x.core.members, (p, i) => { const h = H_INDEX[p.heritage]; return hWeight[h] * natW(h, x.N.nat[i]); });
+    }
     const lambda = new Float64Array(13).fill(1);
     let kappa = 0;
     const shares = () => {
       const g = new Float64Array(13); let t = 0;
-      for (const x of syn) { langDecide(x.L, lambda, kappa, x.LR); for (let i = 0; i < x.core.size; i++) { if (x.L.age[i] < 5) continue; t++; g[x.LR.bucket[i]]++; } }
+      for (const x of syn) { langDecide(x.L, lambda, kappa, x.LR); for (let i = 0; i < x.core.size; i++) { if (x.L.age[i] < 5) continue; t += x.hw[i]; g[x.LR.bucket[i]] += x.hw[i]; } }
       if (t) for (let b = 0; b < 13; b++) g[b] /= t;
       return g;
     };
@@ -2958,8 +3242,9 @@ export class Population {
     for (let it = 0; it < 30; it++) { const mid = (lo + hi) / 2; let s = 0; for (const e of elig) s += Math.min(0.95, mid * e); if (s < uTarget) lo = mid; else hi = mid; }
     F.unemp = (lo + hi) / 2;
 
-    // marital status of people not married by household structure (B12001, by sex and age band)
-    const mar = this._blk(zi, 'mar', 60);
+    // marital status of people not married by household structure (B12001, by sex and age band) and veterans (B21001),
+    // both for the household population (the group-quarters residents taken out, as from the age pyramid)
+    const { mar, vet } = this._hhCensus(zi);
     F.marRows = [];
     for (let s = 0; s < 2; s++) {
       const rowsM = new Float64Array(7);
@@ -2970,15 +3255,14 @@ export class Population {
     }
 
     // veterans by sex and age band (B21001 rates)
-    const vet = this._blk(zi, 'vet', 60);
     F.vetRate = new Float64Array(10);
     for (let s = 0; s < 2; s++) for (let b = 0; b < 5; b++) { const v = vet[s * 10 + b], nv = vet[s * 10 + 5 + b]; F.vetRate[s * 5 + b] = v + nv > 0 ? v / (v + nv) : 0; }
 
     // household income: the rank of a household's earning power among the ZIP's households maps to B19001. Nobody
-    // is paid below the minimum wage for their hours, which lifts a household with workers out of the lowest
-    // brackets; the brackets of the mapping are raked so that the incomes after that lift still give B19001 (the
-    // lowest brackets go to the households without such pay: retirees, students, people between jobs)
-    const inc = syn.map(x => { const J = this._jobs(zi, x.core, x.titles, x.edu), floor = incomeFloor(J); return { s: incomeScore(J.pot, x.hs, floor), floor }; });
+    // is paid below the minimum wage for their hours: a household with workers ranked below a year of that worked part
+    // of the year (partYear), and only one ranked below even the fewest weeks is lifted; the brackets of the mapping are
+    // raked so that the incomes after that lift still give B19001
+    const inc = syn.map(x => { const J = this._jobs(zi, x.core, x.titles, x.edu), floor = incomeFloorMin(J); return { s: incomeScore(J.pot, x.hs, floor), floor }; });
     F.incScores = Float64Array.from(inc, v => v.s).sort();
     const hinc = this._blk(zi, 'hinc', 60), ht = sum(hinc) || 1, goal = Float64Array.from(hinc, v => v / ht), brackets = Float64Array.from(goal), got = new Float64Array(16);
     for (let it = 0; it < 8; it++) {
@@ -3040,7 +3324,9 @@ export class Population {
       const p = mem[i];
       if (!p.worker) continue;
       const rng = new Rng(hash2(hs, i * 64 + KA.OCC));
-      const t = chooseTitle(rng, { group: p.military ? 'military' : p.occ, world: this.world, zi: p.workZi >= 0 ? p.workZi : zi, sex: p.sex, age: p.age, eduMax: eduBounds(p, null)[1], shift: p.shift || 'day', wfh: p.mode === 'wfh' });
+      // a service member's branch is the installation's they report to (none off base: the place affinities decide)
+      const branch = p.military ? this._branchOf(p, hs, i, zi, core.home) : null;
+      const t = chooseTitle(rng, { group: p.military ? 'military' : p.occ, world: this.world, zi: p.workZi >= 0 ? p.workZi : zi, sex: p.sex, age: p.age, eduMax: eduBounds(p, null)[1], shift: p.shift || 'day', wfh: p.mode === 'wfh', branch });
       out[i] = { t, employer: t.employers[rng.int(t.employers.length)], uw: rng.float() };
     }
     return out;
@@ -3085,9 +3371,13 @@ export class Population {
     // own range and the rest of the household's income is the householder's other income (savings, rent, help)
     const J = this._jobs(zi, core, titles, edu);
     D.occupation = J.occ;
-    // a household's bracket holds at least its workers' pay at the minimum wage for their hours: a household ranked
-    // lower than that moves up to the lowest bracket that can (a small shift of B19001), nobody is paid below it
-    const floor = incomeFloor(J), Y = Math.max(this._householdIncome(F, incomeScore(J.pot, hs, floor)), floor);
+    // a household ranked below a full year of its workers' pay at the minimum wage for their hours worked part of the
+    // year (partYear: the weeks shrink, the hourly pay never falls below the minimum); only one ranked below even the
+    // fewest weeks moves up to them
+    const floor = incomeFloorMin(J);
+    let Y = Math.max(this._householdIncome(F, incomeScore(J.pot, hs, floor)), floor);
+    partYear(J, Y);
+    Y = Math.max(Y, incomeFloor(J));
     const inc = allocateIncome(J, Y);
     if (!(sum(inc) > 0)) inc[0] = Y;
     const wages = Float64Array.from(inc, (v, i) => (J.occ[i] ? Math.max(J.minPay[i], Math.round(v / 100) * 100) : 0));
@@ -3111,9 +3401,10 @@ export class Population {
   }
 
   /**
-   * Each worker's job record and every member's earning power: a title's wage (by experience and education, never
-   * below a full-time minimum-wage salary) scaled by the hours worked, never below the minimum wage for those hours;
-   * retirement income from 62. minPay: the least each worker may be paid for their hours.
+   * Each worker's job record and every member's earning power over a full year: a title's wage (by experience and
+   * education, never below a full-time minimum-wage salary; a service member's federal pay) scaled by the hours
+   * worked, never below the minimum wage for those hours (time and a half over 40); retirement income from 62.
+   * minPay: the least each worker may be paid for their hours over the record's weeks (52 until partYear).
    */
   _jobs(zi, core, titles, edu) {
     const mem = core.members, n = mem.length, occ = new Array(n).fill(null), pot = new Float64Array(n), minPay = new Float64Array(n);
@@ -3121,12 +3412,13 @@ export class Population {
       const p = mem[i], T = titles[i];
       if (T) {
         const wage = titleWage(T.t, { world: this.world, zi: p.workZi >= 0 ? p.workZi : zi, age: p.age, education: eduLevel(edu[i]) }, T.uw);
-        minPay[i] = minPayFor(p);
-        occ[i] = { key: T.t.key, title: T.t.title, sector: T.t.sector, employer: T.employer, shift: p.shift || T.t.shifts[0], wfh: p.mode === 'wfh', wage, hours: Math.round(weeklyHours(p)) };
-        pot[i] = Math.max(wage * Math.min(1, weeklyHours(p) / 38), minPay[i]);
+        const hours = weeklyHours(p);
+        minPay[i] = minPayFor(p, hours, 52);
+        occ[i] = { key: T.t.key, title: T.t.title, sector: T.t.sector, employer: T.employer, shift: p.shift || T.t.shifts[0], wfh: p.mode === 'wfh', wage, hours, weeks: 52 };
+        pot[i] = Math.max(wage * Math.min(1, hours / 38), minPay[i]);
       } else pot[i] = p.age >= 62 ? 24000 * Math.pow(EDU_WAGE[eduLevel(edu[i])], 0.8) : p.age >= 18 ? 3000 : 0;
     }
-    return { occ, pot, minPay };
+    return { occ, pot, minPay, mem };
   }
 
   _householdIncome(F, score) {
@@ -3321,7 +3613,9 @@ export class Population {
       if (out[i] !== null) return out[i];
       const p = mem[i], o = ORIGINS[D.ori[i]], u = uni(hs, i, KA.BORN), u2 = uni(hs, i, KA.BORN2);
       let v;
-      const c = N.out[i] ? N.from[i] : -1;
+      // (only a parent born outside the 50 states the same way: an immigrant whose mother was born in American Samoa was
+      // born abroad in their own country, never in her territory, which would make them native born)
+      const c = N.out[i] && N.from[i] >= 0 && N.nat[N.from[i]] === N.nat[i] ? N.from[i] : -1;
       if (c >= 0) {
         // born where the parent they came with lived: the family's town (often the parent's own hometown), else a
         // place of the parent's own country that existed that year
@@ -3490,14 +3784,15 @@ export class Population {
   // ---------------------------------------------------------------- sampling
 
   /**
-   * n distinct NPCs of ZIP zi, uniform over its persons (households drawn in proportion to their size).
-   * The same (zi, seed) gives the same sequence; a smaller n is a prefix of a larger one.
+   * n distinct NPCs of ZIP zi, uniform over its persons (households drawn in proportion to their size): all of them
+   * when the ZIP has n or fewer. The same (zi, seed) gives the same sequence; a smaller n is a prefix of a larger one.
    */
   sample(zi, n, seed = 1) {
     const H = this.householdCount(zi), out = [];
     if (!H || !(n > 0)) return out;
     const M = this._core(zi), r = new Rng(hash3(this.seed ^ 0x5a3e, zi, seed)), seen = new Set();
-    const cap = Math.min(n, Math.max(1, this.expectedPersons(zi)));
+    // at least H people live in H households, so only a ZIP with fewer households than n needs its people counted
+    const cap = H >= n ? n : Math.min(n, this._personsIn(zi));
     for (let tries = 0; out.length < cap && tries < cap * 80 + 200; tries++) {
       const h = r.int(H), size = this.householdSize(zi, h);
       if (r.float() * M.maxSize >= size) continue;
@@ -3513,7 +3808,7 @@ export class Population {
   sampleState(n, seed = 1) {
     const w = this.world, out = [];
     if (!(n > 0)) return out;
-    if (!this._stateTable) this._stateTable = new Table(Float64Array.from({ length: w.N }, (_, i) => (w.z.hh[i] || 0) * (w.z.hhsize[i] || 0)));
+    if (!this._stateTable) this._stateTable = new Table(Float64Array.from({ length: w.N }, (_, i) => this.expectedPersons(i)));
     const r = new Rng(hash2(this.seed ^ 0x57a7e, seed)), seen = new Set();
     for (let tries = 0; out.length < n && tries < n * 80 + 200; tries++) {
       const zi = this._stateTable.pick(r), H = this.householdCount(zi);
@@ -3576,7 +3871,8 @@ export class Population {
         if (p.occ) inc(p.sex === 'F' ? 'occF' : 'occM', p.occ);
         if (p.age >= 25 && D.edu[i] >= 0) inc('edu', EDUCATION_KEYS[D.edu[i]]);
         if (p.age >= 15) inc('mar', `${sx === 'f' ? 'f' : 'm'}_${MARITAL[D.marital[i]]}`);
-        if (p.age >= 18) inc('vet', `${sx}_${D.veteran[i] ? 'vet' : 'non'}${p.age < 35 ? '18-34' : p.age < 55 ? '35-54' : p.age < 65 ? '55-64' : p.age < 75 ? '65-74' : '75+'}`);
+        // B21001 counts civilians: active-duty members are in neither of its columns
+        if (p.age >= 18 && !p.military) inc('vet', `${sx}_${D.veteran[i] ? 'vet' : 'non'}${p.age < 35 ? '18-34' : p.age < 55 ? '35-54' : p.age < 65 ? '55-64' : p.age < 75 ? '65-74' : '75+'}`);
         if (p.age >= 3) inc('sch', SCH_LABEL(p));
       });
     }
@@ -3623,6 +3919,12 @@ export class Population {
     }
     target.sch = norm(sch);
     target.heritage = Object.fromEntries(HERITAGE_KEYS.map((k, i) => [k, M.pi[i]]).filter(([, v]) => v > 0));
+    // marital status and veterans of the household population (the group-quarters residents out of B12001 and B21001)
+    const hc = this._hhCensus(zi), ml = w.acsLabels('mar'), vl = w.acsLabels('vet'), mo = {}, vo = {};
+    ml.forEach((k, j) => { mo['m_' + k] = hc.mar[j]; mo['f_' + k] = hc.mar[ml.length + j]; });
+    vl.forEach((k, j) => { vo['m_vet' + k] = hc.vet[j]; vo['m_non' + k] = hc.vet[5 + j]; vo['f_vet' + k] = hc.vet[10 + j]; vo['f_non' + k] = hc.vet[15 + j]; });
+    target.mar = norm(mo); target.vet = norm(vo);
+    target.emp = norm(Object.fromEntries(w.acsLabels('emp').map((k, j) => [k, hc.emp[j]])));
     // scalars
     ages.sort((a, b) => a - b);
     const medCont = list => { if (!list.length) return 0; const half = list.length / 2; let lo = Math.floor(half); const a = list[Math.min(lo, list.length - 1)]; let below = 0; while (below < list.length && list[below] < a) below++; let at = 0; while (below + at < list.length && list[below + at] === a) at++; return a + (half - below) / Math.max(1, at); };

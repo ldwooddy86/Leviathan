@@ -110,8 +110,10 @@ the world pack. Never invent a statistic, a named event or a date. Opinions and 
 4. Dialect markers are regional ("hella", "the 405", "tule fog", "June Gloom"), not ethnic.
 5. Politics stays local and mild (housing costs, insurance, traffic, water, fire). No content that demeans any
    group. Religion appears only as an NPC's own practice, never as a judgment, and never inferred from heritage: the
-   atlas counts congregations of every faith, so a practicing NPC goes to "religious services" (on Sunday); the one
-   exception is the Census Asian group 'sikh', itself a faith, whose households go to "the gurdwara".
+   atlas counts congregations of every faith, so a practicing NPC goes to "religious services" (no day of the week and
+   no house of worship named for them) and nobody says "church", "iglesia" or "God" unless a faith their record holds
+   is Christian (none does today); the one exception is the Census Asian group 'sikh', itself a faith, whose
+   households go to "the gurdwara". persona.practice.faith is the only source of a faith.
 6. Names are synthetic combinations from common-name pools; no real individuals. Public places, highways,
    natural features and named historical disasters from the data are fine to mention. Businesses are generic
    ("the taco truck on the corner", "a pho place"), not brands.
@@ -394,7 +396,12 @@ guarded), `FileStore(path)` (Node; atomic writes). The app keeps its own guarded
 
 `dialogue.mjs` (the offline engine; no network; a reply in a few milliseconds):
 * `new Conversation({ world, persona, mind, t, rngSeed, population })` with `greet()`, `reply(text)`, `farewell()`
-  → `Line = { text, gloss, intent, topics, emotion, facts }` (gloss: the English when the line or part of it is in
+  → `Line = { text, gloss, intent, topics, emotion, facts, safety?, note?, ended? }` (safety: 'crisis' | 'sexual' |
+  'threat' for a line that is not part of the game, read before any other intent: someone in crisis gets a kind line
+  that steps out of the scene with 988 and 911, and `note`, Legion's own note (988, 911; the app shows it as a note
+  from Legion, never in the NPC's bubble, the CLI on stderr); a sexual line, a lure or a threat ends the conversation,
+  `ended: true`, and it stays ended (the Talk tab offers no "Talk again" in that visit, the server's session answers
+  409); gloss: the English when the line or part of it is in
   another language, else null; facts: ids of the pack facts used, e.g. `fire:Station:2009`, `weather.now`,
   `road:I-210`, `acs.lang.spanish`, `npc.occupation` — see dialogue/ground.mjs); `toJSON()`. The mind hears the
   player's lines (observe) and the NPC's own; `farewell()` remembers the conversation. Intents `INTENTS`, emotions
@@ -438,7 +445,10 @@ timing  Uint16Array(3n)  departMin (0xFFFF = none), commuteMin, dwellMin        
 days    Uint8Array(n)    commute days, bit (1 << dow); 0 = no commute trips
 mode    Uint8Array(n)    MODES code in bits 0-3 (mode & 15); bit 4 (STUDENT_BIT) = the destination is a school
 route   Uint16Array(3n)  highway leg: polyline + 1 (0 = none), entry and exit arc length as q / 65535 of the polyline
-errand  Uint32Array(n)   start minute | dwell / 2 << 11 | days << 18 | drives << 25 | jitter << 26
+errand  Uint32Array(n)   start minute | dwell / 2 << 11 | days << 18 | drives << 25 | lane << 26 (2 bits) | curve << 28
+                         (2 bits) | repeats << 30 (2 bits): on a day without a commute the outing goes again `repeats`
+                         times (half as many on a weekday, at twice the spacing; a weekend's first an hour earlier),
+                         errandJitter, outingsOn, outingPeriod, WEEKEND_EARLY
 eoff    Int8Array(2n)    errand point minus home, in quarter units (±31.75 units, ~±6 km)
 ids     Uint32Array(n)   zi << 20 | h << 4 | m, or 0x80000000 | k for overflow[3k .. 3k+2] = (zi, h, m)
 ```
@@ -450,7 +460,18 @@ rate, seed, bytesPerAgent, pickBytes, pickBytesPerAgent, ms}`. Drivers going ove
 network; non-commuters run errands near home by hash. The JS position function (`agentPhase`, `agentPosition`) and
 its GLSL twin (`agentGLSL`) must change together.
 
-`crowd.mjs`: `new Crowd(mapView, {world, population, rate, seed, pack, worker, workers, maxAgents, cache})`;
+The outings are calibrated to the NPCs' own day plans: at a weekday or Saturday midday the share of the crowd on the
+move is within 30% of the share their schedules have traveling (tests/crowd-build.test.mjs). A commute day's span may
+reach into the day after next (24-hour shifts keep their length; the position function looks back two days). Each
+state highway line has a free-flow speed (`lineSpeedKmh`: interstates and lines carrying 60,000 a day are freeways at
+100 km/h, a state route through dense blocks is a 50 km/h boulevard, a quiet rural one 80 km/h), in `net.lines` (the
+fourth float, which the shader reads) and in `net.info[l].kmh`; the planner and both twins use it. `buildAgentsGen`
+takes `below`: a top-up of only the households `rate` takes that `below` did not.
+
+`crowd.mjs`: `new Crowd(mapView, {world, population, rate, seed, pack, worker, workers, maxAgents, cache})`; `topUp({zis,
+rate})` adds, for a zoomed-in view, the households of those ZIPs the statewide rate left out (built in the Workers,
+drawn, picked and counted with the rest; nobody twice) and `dropTopUp()` removes them (the Stage asks below 60 km
+across, up to 1.5 million more people, 250,000 on software WebGL, and drops them past 90 km; `topUpFor`, `TOPUP`);
 `await crowd.build({rate, onProgress(fraction, agents), focus})` → the summary plus `{mode: 'worker'|'main'|'cache',
 workers, pack, totalMs, rateCapped, rate, bytesPerAgent, pickBytesPerAgent, mainBytesPerAgent, workerBytesPerAgent,
 workerLoadMs, verified, verifyMaxMs, cached}` or `{cancelled: true}`. `cache` (a key naming this build of the code and
@@ -490,8 +511,13 @@ view.open(x, y, {radiusM})` (world units; ~1.2 km across) → `{x, y, radiusM, z
 `close`, `stats`, `follow {on, id}`, `error {message}`. Keys on the view: arrows pan, `+`/`-` zoom, `F` follows, Escape
 clears a selection (with nothing selected it is left to the page, which goes back to the map). Streets: OpenStreetMap ways from Overpass when allowed
 (cached per tile), else a deterministic procedural network shaped by the ZIP's density, dwelling mix and era. Houses
-for the households whose homes fall in view; residents follow their plans; in-commuters, through traffic, buses and
-shoppers are real NPCs too. Day/night lighting and rain from the weather.
+for the households whose homes fall in view; residents follow their plans; in-commuters and bus drivers are real
+NPCs, and through traffic is driven by real NPCs whose own day has them on that commute at that moment (and can be
+clicked only while it still does); a car or a walker no NPC's day accounts for (a shopper, a passer-by at an hour few
+commute) goes unnamed and cannot be picked. A trip that starts or ends outside the view is on the street for the plan's
+own time inside it, at the plan's pace; the person selected and their household follow their schedule at once
+(`sim.upgradeIds`), the rest in order of distance from the camera; someone selected who is indoors at home in view has
+their house outlined (`sim.homeOf`). Day/night lighting and rain from the weather.
 
 ## 10. The app (`src/app`, `tools/build.mjs`, `cli`, `server`)
 
@@ -506,7 +532,8 @@ line's facts a tap away; starters only about what the NPC's data holds; a conver
 clock held at 1× while the tab is open, and one the clock has left 15 minutes behind starts again at the present),
 **Prompt** (the system blocks and the situation note, token estimate, copy) and **JSON** (record, persona and mind;
 the game-engine export). Escape leaves the street view from anywhere in it. Settings:
-crowd density (2.5% default, about a million agents), theme, Claude key (session only unless remembered), model,
+crowd density (2.5% default, about a million agents; a view under 60 km across gets more of the people in it, see
+Crowd.topUp), theme, Claude key (session only unless remembered), model,
 effort, network permissions (Claude, live NWS weather, OpenStreetMap; all off by default).
 
 `app/services.mjs` (the page's one door to the engine; every hook returns `{ok, value}` or `{ok: false, reason,
@@ -517,7 +544,16 @@ message}`; it also exports `fireLabel(name)`, the lexicon's fire names for the p
 `bark(idA, idB, context)`, `streetView(canvas, opts)`, `weather(zi, t)` (live-aware), `setLiveWeather(on)`,
 `refreshWeather(zi, t)`, `weatherStatus(zi, t)` → `{state: 'off'|'idle'|'loading'|'live'|'outside'|'error', note}`,
 `validate`, `createMap`, `createCrowd`, `prewarmCrowd(pack)`, `models`, `efforts`, `dialectName`, `wire(modules)`,
-`status()`.
+`status()`, `safety(text, {age})` (the dialogue engine's reading of a player's line, `{kind, sub, note}` or null: the
+Talk tab adds the note (988, 911) under a Claude reply as it does under the offline engine's line).
+
+Search finds ZIPs, Census places, postal cities, counties, regions, the neighborhoods of the big cities
+(world.neighborhoods: "the Mission", "Boyle Heights"; a scope of kind 'neighborhood'), NPC ids, and everyday short
+names (SF, LA, East LA, the OC); names and queries are folded (accents, St./Mt./Ft., a leading "the"), a query nothing
+matches gets the closest names ("Did you mean"), and one or two digits ask for a third. Deep links (`#zip=`, `#place=`,
+`#neighborhood=`, `#city=`, `#county=` FIPS or name, `#region=`, `#npc=`) are read at boot and on every hashchange; a
+key that names nothing says so. The Place panel names a borrowed forecast's point and distance and marks estimates
+("≈52°F", world.weatherAt's approx and basis), and says "before 1940" for the ACS top code.
 
 `app/nws-live.mjs`: `new LiveWeather({world, fetch, enabled, ttlMs, now})` → `refresh(zi)` (api.weather.gov
 `/points/{lat},{lon}`, its `forecastHourly` and `forecast`, `/alerts/active?point=`; cached 15 minutes a ZIP),
@@ -541,13 +577,25 @@ page is self-contained and that the pack loads in Node as far as the engine goes
 `cli/legion.mjs`: `sample <zip|city|county|region|CA> [n]`, `npc <id>`, `persona <id>`, `prompt <id>`, `plan <id>
 [--date YYYY-MM-DD]`, `talk <id>` (offline REPL; `--claude` with `ANTHROPIC_API_KEY` or the SDK's credential chain,
 `--model`, `--effort`, `--proxy URL` for a Legion server, `--store FILE` to keep the mind), `export <where> <n>`
-(JSON Lines of `exportPersona`), `stats <zip>`; `--json` for every command, `--seed`, `--t`, `--help`.
+(JSON Lines of `exportPersona`), `stats <zip>`; `--json` for every command, `--seed` (0 to 4294967295), `--t` (a
+Pacific wall time that exists, ISO with a zone, epoch ms of 10 digits or more, or now), `--help`. A --store that is a
+directory or in a missing folder is refused before the conversation; a mind that cannot be saved is an error (exit 1).
+In talk, Legion's own notes (988 and 911 for someone in crisis, a failed Claude turn) go to stderr as "(Legion) …"; a
+failed turn that can be retried does not end the conversation; a line the NPC will not answer ends it.
 
 `server/serve.mjs`: serves `Legion.html` (and `legion/` for development); `GET /api/health` (`{service: 'legion',
 keyConfigured, credential, proxy: '/api/anthropic', models, defaultModel, maxTokens}`); the SDK-compatible proxy
 `POST /api/anthropic/v1/messages` (streaming or not; `POST /api/claude` is the same) and `GET
 /api/anthropic/v1/models/{id}`, with the key from the server's environment, never sent to the page. Same-origin
-only, bound to 127.0.0.1 by default. `createServer({root, clientFactory, env, log, …})` for tests.
+only, bound to 127.0.0.1 by default; a fallback model must be one of Legion's too, and max_tokens at least 1. The NPC
+API (`NPC_API`): `GET /api/npc/{id}`, `/api/persona/{id}?t=`, `/api/prompt/{id}?t=`, `/api/situation/{id}?t=&said=`,
+`/api/plan/{id}?date=|t=`, `/api/activity/{id}?t=`, `/api/export/{id}?t=&model=&effort=`, `/api/weather/{zip}?t=`,
+`/api/sample?where=&n=&seed=` and `POST /api/talk/{id} {session?, text?, end?, t?}` → `{session, npc, t, lines, ended}`
+(the offline engine; sessions kept in memory, ended ones answer 409; minds in `--store FILE` when given), on a platform
+(createLegion) made at the first call; same origin, or the origins `--cors` names (never the Claude proxy). Bound to
+any other interface it serves only Legion.html and the API and asks every request for a token made at start
+(`?token=` once, which becomes an HttpOnly cookie, or the `x-legion-token` header) and says so loudly at start.
+`createServer({root, clientFactory, env, log, host, token, corsOrigins, storePath, legion, …})` for tests.
 
 ## 11. Integration facade (`platform.mjs`)
 

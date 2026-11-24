@@ -418,6 +418,15 @@ export class StreetRenderer {
       g.strokeStyle = col; g.lineWidth = 2.2 / s; g.beginPath(); g.arc(a.x, a.y, Math.max(r, 7 / s), 0, Math.PI * 2); g.stroke();
     };
     const accent = env.theme && env.theme.accent ? env.theme.accent : this.P.ui;
+    // the home of the selected person while they are indoors there: outlined, so "their home is in view" shows where
+    const hb = Number.isInteger(env.home) && env.home >= 0 && this.scene ? this.scene.buildings[env.home] : null;
+    if (hb && hb.ring && hb.ring.length >= 6) {
+      g.save();
+      g.strokeStyle = accent; g.lineWidth = 2.4 / s; g.setLineDash([6 / s, 4 / s]);
+      g.globalAlpha = 0.75 + 0.25 * Math.sin((env.nowMs || 0) / 300);
+      g.beginPath(); tracePoly(g, hb.ring, true); g.stroke();
+      g.restore();
+    }
     if (env.hover >= 0) mark(env.hover, 'rgba(255,255,255,0.9)', false);
     if (env.selected >= 0) { mark(env.selected, accent, true); }
   }

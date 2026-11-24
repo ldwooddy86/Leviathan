@@ -389,7 +389,7 @@ export class StreetSim {
     for (const p of this.persons) { p.agent = null; p.away = false; p.awaySpot = -1; p.awayB = -1; }
     this.persons.length = this.residentCount;
     this._absorbCommuters();
-    this._upOrder = null; this._upK = 0;
+    this._upOrder = null; this._upK = 0; this._upDone = -1;
     for (const r of this.busRoutes) r.k = null;
     this._bulk = true;
     try {
@@ -556,29 +556,67 @@ export class StreetSim {
    */
   upgrade(budgetMs = 2) {
     if (!this.external || !this.hybrid) return true;
+    if (this._upDone === this.persons.length) return true;
     const t0 = now();
-    if (!this._upOrder || this._upOrder.length !== this.persons.length) {
+    // the order: people on the street, then by how near their home (or workplace) is to the focus (the camera's
+    // center, set by the view), so the blocks on screen follow their plans first; re-sorted when the focus moves
+    const f = this.focus;
+    const moved = f && this._upFocus && Math.hypot(f.x - this._upFocus.x, f.y - this._upFocus.y) > 150;
+    if (!this._upOrder || this._upOrderN !== this.persons.length || moved) {
       const onStreet = new Set(this.agents.filter(a => a.person >= 0).map(a => a.person));
-      this._upOrder = this.persons.map(p => p.pid).sort((a, b) => (onStreet.has(b) ? 1 : 0) - (onStreet.has(a) ? 1 : 0) || a - b);
-      this._upK = this._upK || 0;
+      const B = this.scene.buildings;
+      const dist = p => { if (!f) return p.pid; const b = B[p.role === 'commuter' ? p.workB : p.b]; return b ? Math.hypot(b.cx - f.x, b.cy - f.y) : 1e9; };
+      const left = this.persons.filter(p => !p.ext);
+      const key = new Map(left.map(p => [p.pid, (onStreet.has(p.pid) ? -1e12 : 0) + dist(p)]));
+      this._upOrder = left.map(p => p.pid).sort((a, b) => key.get(a) - key.get(b) || a - b);
+      this._upK = 0;
+      this._upFocus = f ? { x: f.x, y: f.y } : null;
+      // the order holds only those not moved yet; in-commuters found later rebuild it (the count changes)
+      this._upOrderN = this.persons.length;
     }
     while (this._upK < this._upOrder.length) {
       if (now() - t0 > budgetMs) return false;
       const p = this.persons[this._upOrder[this._upK++]];
       if (!p || p.ext) continue;
-      p.ext = true;
-      let act;
-      try { act = normalizeActivity(this.planner(p.id, this.t), this.t); } catch { act = null; }
-      const a = p.agent;
-      if (a) {
-        const same = act && isTravel(act) && a.act && Math.abs((a.act.start || 0) - act.start) < 6 * MIN;
-        if (same) { a.act = act; continue; }
-        const i = this.agents.indexOf(a);
-        if (i >= 0) { this._finish(a, i); p.agent = null; }
-      }
-      this._evaluate(p, this.t, true);
+      this._upgradeOne(p);
     }
+    this._upDone = this.persons.length;
     return true;
+  }
+
+  /** Move one person over to the external plan now (see upgrade). */
+  _upgradeOne(p) {
+    p.ext = true;
+    let act;
+    try { act = normalizeActivity(this.planner(p.id, this.t), this.t); } catch { act = null; }
+    const a = p.agent;
+    if (a) {
+      const same = act && isTravel(act) && a.act && Math.abs((a.act.start || 0) - act.start) < 6 * MIN;
+      if (same) { a.act = act; return; }
+      const i = this.agents.indexOf(a);
+      if (i >= 0) { this._finish(a, i); p.agent = null; }
+    }
+    this._evaluate(p, this.t, true);
+  }
+
+  /**
+   * Move these people (and everyone in their households who lives in the view) over to the external plan at once:
+   * the person the player selects or follows is where their schedule says, and with them those they travel with
+   * (a parent on the school run and the child).
+   * @param {string[]} ids
+   * @returns {number} how many were moved
+   */
+  upgradeIds(ids) {
+    if (!this.external || !this.hybrid || !ids || !ids.length) return 0;
+    const want = new Set(ids.filter(Boolean));
+    const hhs = new Set();
+    for (const p of this.persons) if (want.has(p.id) && p.hh >= 0) hhs.add(p.hh);
+    let n = 0;
+    for (const p of this.persons) {
+      if (p.ext || !(want.has(p.id) || (p.hh >= 0 && hhs.has(p.hh)))) continue;
+      try { this._upgradeOne(p); n++; } catch (err) { this._fault(p.agent, err); }
+    }
+    return n;
   }
 
   /** Ask the plan about a person at t: spawn them if a visible leg is under way, else schedule the next look. */
@@ -725,13 +763,49 @@ export class StreetSim {
     }
     if (!path || !path.steps.length) return null;
     const exitDur = kind === 'car' ? 7 : 4, enterDur = kind === 'car' ? 7 : 4;
-    const dur = (oIn ? exitDur : 0) + path.length / vNom + (dIn ? enterDur : 0);
     // plans are kept to the minute; people leaving one building in the same minute go out a few seconds apart
     const sec = u01(hash2(this.seed ^ 0x5ec, idHash(p.id))) * 50000;
-    let t0;
-    if (oIn) t0 = act.start + sec;
-    else t0 = Math.max(act.start, act.end - dur * 1000 - sec);
-    return { kind, mode, path, t0, dur, vNom, fromB, toB, exit, entry, busStop, purpose, oIn, dIn, exitDur, enterDur };
+    // The visible leg keeps the plan's own clock: the person is on these streets from the moment their plan has them
+    // step out of the door (or cross into the view, along the plan's line from origin to destination) to the moment
+    // it has them reach the door (or the view's edge), at the pace that takes. A walk home from a school just outside
+    // the view is under way in it for most of the plan's leg, not only its last minutes at a nominal pace.
+    const paced = this._planPace(act, origin, oIn, dIn, path.length, exitDur, enterDur, kind);
+    let t0, v = vNom;
+    if (paced) { v = paced.v; t0 = paced.t0 + (oIn ? Math.min(sec, paced.slack) : -Math.min(sec, paced.slack) * 0.2); }
+    else {
+      const dur0 = (oIn ? exitDur : 0) + path.length / vNom + (dIn ? enterDur : 0);
+      t0 = oIn ? act.start + sec : Math.max(act.start, act.end - dur0 * 1000 - sec);
+    }
+    const dur = (oIn ? exitDur : 0) + path.length / v + (dIn ? enterDur : 0);
+    return { kind, mode, path, t0, dur, vNom: v, fromB, toB, exit, entry, busStop, purpose, oIn, dIn, exitDur, enterDur, paced: !!paced };
+  }
+
+  /**
+   * The plan's timing of a trip's visible leg: `{t0, v, slack}` (start in epoch ms, speed in m/s, seconds of
+   * leeway) from the times the plan's straight line from origin to destination is inside the view, or null when
+   * the plan does not say (no origin, no duration). The speed stays within what the mode allows.
+   */
+  _planPace(act, origin, oIn, dIn, length, exitDur, enterDur, kind) {
+    const span = (act.end - act.start) / 1000;
+    if (!(span > 0) || !origin || !act.place || !Number.isFinite(origin.x) || !Number.isFinite(act.place.x)) return null;
+    let fa = 0, fb = 1;
+    if (!oIn || !dIn) {
+      const o = this.frame.toLocal(origin.x, origin.y), d = this.frame.toLocal(act.place.x, act.place.y);
+      const clip = clipSegment(o.x, o.y, d.x, d.y, this.R * 0.98);
+      if (!clip) return null;
+      [fa, fb] = clip;
+      if (oIn) fa = 0;
+      if (dIn) fb = 1;
+    }
+    const tIn = act.start + fa * span * 1000, tOut = act.start + fb * span * 1000;
+    const moving = (tOut - tIn) / 1000 - (oIn ? exitDur : 0) - (dIn ? enterDur : 0);
+    if (!(moving > 5)) return null;
+    const [lo, hi] = kind === 'car' ? [3, 18] : kind === 'bike' ? [2.5, 8] : [0.55, 2.0];
+    const v = clamp(length / moving, lo, hi);
+    const need = (oIn ? exitDur : 0) + length / v + (dIn ? enterDur : 0);
+    // too far at the fastest pace: arrive on time (enter later); at the slowest: leave on time
+    const t0 = dIn && !oIn ? tOut - need * 1000 : tIn;
+    return { t0, v, slack: Math.max(0, (tOut - tIn) / 1000 - need) * 1000 };
   }
 
   _stopS(stop) {
@@ -825,7 +899,8 @@ export class StreetSim {
   _spawnTrip(p, act, trip, t, jumping) {
     const age = p.member.age;
     const kind = trip.kind;
-    const a = this._newAgent({ kind, role: p.role, id: p.id, person: p.pid, act, trip, path: trip.path, age, vmax: kind === 'walk' ? walkSpeed(age, p.id) : kind === 'bike' ? 4.6 + u01(idHash(p.id)) * 1.2 : 13, look: personLook(p.id, age), dog: trip.dog });
+    const vmax = kind === 'walk' ? (trip.paced ? trip.vNom : walkSpeed(age, p.id)) : kind === 'bike' ? (trip.paced ? trip.vNom : 4.6 + u01(idHash(p.id)) * 1.2) : 13;
+    const a = this._newAgent({ kind, role: p.role, id: p.id, person: p.pid, act, trip, path: trip.path, age, vmax, look: personLook(p.id, age), dog: trip.dog });
     p.agent = a;
     if (kind === 'car') {
       const lookH = p.role === 'resident' && p.veh >= 0 ? this._carLookId(p) : hash2(this.seed, idHash(p.id));
@@ -1539,9 +1614,10 @@ export class StreetSim {
       const q = this.queues.get(st.e * 32 + (st.dir > 0 ? 0 : 16) + Math.min(lane0, 7));
       if (q && q.length) { const lastCar = q[q.length - 1]; if (this._along(lastCar) - lastCar.len < vlook.len + 4) return 'blocked'; }
     }
-    const drv = this._driverFor(h, tArr, minute, false);
-    if (!drv) return 'skip';
-    const a = this._newAgent({ kind: 'car', role: toB ? 'visitor' : 'through', id: drv.id, person: -1, path, trip: { path, t0: placed ? tArr : now, vNom, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur, dur: through }, age: drv.member.age, vmax: (en.freeway ? 31 : 15) + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH: hash2(h, 5), lane: lane0, look: personLook(drv.id, drv.member.age) });
+    // a shopper's stop at a store here is in no NPC's day (their schedules have their own errands): unnamed; through
+    // traffic is someone on their commute when one fits
+    const drv = (!toB && this._driverFor(h, tArr, minute, false)) || this._anonymous(h);
+    const a = this._newAgent({ kind: 'car', role: toB ? 'visitor' : 'through', id: drv.id, person: -1, path, trip: { path, t0: placed ? tArr : now, vNom, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur, dur: through }, age: drv.member.age, vmax: (en.freeway ? 31 : 15) + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH: hash2(h, 5), lane: lane0, look: personLook(drv.id || `anon-${h}`, drv.member.age) });
     if (toB) { a.visitorDwell = (15 + u01(hash2(h, 8)) * 45) * 60000; a.visitB = toB.id; }
     a.k = 0; a.d = 0; a.phase = 'route'; a.v = Math.min(a.vmax, net.edges[en.e].speed);
     if (placed && el > 0.5) { if (!this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return 'skip'; } }
@@ -1556,30 +1632,53 @@ export class StreetSim {
    * minutes instead, filled lazily by the same rules and handed out by the arrival's key.
    */
   _driverFor(h, tArr, minute, walk) {
+    // only someone whose own day has them on this trip right now (a commute leg by car, or on foot): a click on the
+    // car must not open a person whose schedule says they are at home or at work across town (null: no one fits,
+    // and the vehicle or walker goes through without anyone to meet)
+    const accept = cand => this._commutingAt(cand.id, tArr, walk);
     if (this._fast) {
       const bucket = Math.floor(tArr / POOL_BUCKET);
       let P = walk ? this._walkPool : this._drivePool;
       if (!P || P.bucket !== bucket) { P = { bucket, list: new Array(POOL) }; if (walk) this._walkPool = P; else this._drivePool = P; }
+      const mid = (bucket + 0.5) * POOL_BUCKET;
       for (let probe = 0; probe < 6; probe++) {
         const j = (h + probe * 7919) % POOL;
         let d = P.list[j];
-        if (d === undefined) d = P.list[j] = pickDriver(this.world, this.pop, this.near, hash3(this.seed ^ (walk ? 0x3a1c : 0xd71e), bucket, j), minute, { walk }) || null;
-        if (d && !this._busyId(d.id)) return d;
+        if (d === undefined) d = P.list[j] = pickDriver(this.world, this.pop, this.near, hash3(this.seed ^ (walk ? 0x3a1c : 0xd71e), bucket, j), pacific(mid).minuteOfDay, { walk, accept: c => this._commutingAt(c.id, mid, walk) }) || null;
+        if (d && !this._busyId(d.id) && accept(d)) return d;
       }
+      return null;
     }
-    return pickDriver(this.world, this.pop, this.near, h, minute, { walk, tries: this._bulk ? 3 : 7, exclude: this._busyId });
+    return pickDriver(this.world, this.pop, this.near, h, minute, { walk, tries: this._bulk ? 4 : 10, exclude: this._busyId, accept });
   }
+
+  /**
+   * True when person `id` is on a commute leg at t by their layer-0 day (the commute the schedule is built on, so the
+   * NPC panel agrees): by car for a driver, on foot or transit for a walker, and not within a few minutes of either
+   * end of the leg (the schedule's own departure jitter).
+   */
+  _commutingAt(id, t, walk) {
+    let act;
+    try { act = normalizeActivity(this.fallback(id, t), t); } catch { return false; }
+    if (!act || !isTravel(act) || act.kind !== 'commute') return false;
+    const mode = act.mode || '';
+    if (walk ? (CAR_MODES.has(mode) || mode === 'bike') : !CAR_MODES.has(mode)) return false;
+    const margin = Math.min(5 * MIN, 0.25 * (act.end - act.start));
+    return t >= act.start + margin && t <= act.end - margin;
+  }
+
+  /** A stand-in for an arrival no NPC fits: the look of a passer-by, no id (it cannot be picked or followed). */
+  _anonymous(h) { return { id: '', member: { age: 22 + Math.floor(u01(hash2(h, 0xa9e)) * 50) }, anon: true }; }
 
   /** A shopper who parked during the span a jump skipped: the car in a stall near the store, the person inside until done. */
   _shopperInside(h, b, tIn, minute, now) {
     const tBack = tIn + (15 + u01(hash2(h, 8)) * 45) * 60000;
     if (tBack <= now) return;
-    const drv = this._driverFor(h, tIn, minute, false);
-    if (!drv) return;
+    const drv = this._anonymous(h);
     const vlook = vehicleLook(hash2(h, 5), this.rural), lookH = hash2(h, 5);
     const stall = this._freeSpotNear(b);
     if (stall) this.spotCar[stall.id] = lookH;
-    this._addReturn({ t: tBack, b, prev: { id: drv.id, uid: h, age: drv.member.age, vmax: 15 + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH, look: personLook(drv.id, drv.member.age), toSpot: stall ? stall.id : -1 } });
+    this._addReturn({ t: tBack, b, prev: { id: drv.id, uid: h, age: drv.member.age, vmax: 15 + (u01(hash2(h, 6)) - 0.5) * 3, len: vlook.len, wid: vlook.wid, body: vlook.body, color: vlook.color, lookH, look: personLook(drv.id || `anon-${h}`, drv.member.age), toSpot: stall ? stall.id : -1 } });
   }
 
   /** A shopper who parked goes into the store; they come back out after shopping and drive off toward an exit. */
@@ -1593,7 +1692,7 @@ export class StreetSim {
 
   _addReturn(x) {
     this._pendingReturns.push(x);
-    this.shoppers.add(x.prev.id);
+    if (x.prev.id) this.shoppers.add(x.prev.id);
     if (x.t < this._nextReturn) this._nextReturn = x.t;
   }
 
@@ -1687,10 +1786,9 @@ export class StreetSim {
     if (!path) return false;
     const el = placed ? (now - tArr) / 1000 : 0;
     if (el * WALK_MAX >= path.length + (toB ? 4 * WALK_MAX : 0)) return false;          // through already, whoever it was
-    const drv = this._driverFor(h, tArr, pacific(tArr).minuteOfDay, true);
-    if (!drv) return false;
-    const vmax = walkSpeed(drv.member.age, drv.id);
-    const a = this._newAgent({ kind: 'walk', role: 'visitor', id: drv.id, person: -1, path, trip: { path, t0: placed ? tArr : now, vNom: vmax, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur: 4, dur: path.length / vmax + 4 }, age: drv.member.age, vmax, look: personLook(drv.id, drv.member.age) });
+    const drv = (!toB && this._driverFor(h, tArr, pacific(tArr).minuteOfDay, true)) || this._anonymous(h);
+    const vmax = walkSpeed(drv.member.age, drv.id || `anon-${h}`);
+    const a = this._newAgent({ kind: 'walk', role: 'visitor', id: drv.id, person: -1, path, trip: { path, t0: placed ? tArr : now, vNom: vmax, oIn: false, dIn: !!toB, toB, exitDur: 0, enterDur: 4, dur: path.length / vmax + 4 }, age: drv.member.age, vmax, look: personLook(drv.id || `anon-${h}`, drv.member.age) });
     a.k = 0; a.d = 0; a.phase = 'route';
     a.sides = new Int8Array(path.steps.length);
     if (el > 0.5 && !this._placeOnSchedule(a, now)) { this._finish(a, this.agents.length - 1); return false; }
@@ -1782,12 +1880,15 @@ export class StreetSim {
   _spawnVisitorBack(prev, b, tOut, now) {
     const sp = prev.toSpot >= 0 ? this.scene.spots[prev.toSpot] : null;
     if (sp && this.spotCar[sp.id] === prev.lookH) this.spotCar[sp.id] = -1;
-    if (this.activeIds.has(prev.id)) return;
+    if (prev.id && this.activeIds.has(prev.id)) return;
     const exit = this._throughExitFromB(b, prev.uid);
     if (exit < 0) return;
     const path = this.router.pathTo('car', { e: b.access.e, s: b.access.s }, exit);
     if (!path) return;
-    const a = this._newAgent({ kind: 'car', role: 'visitor', id: prev.id, person: -1, path, trip: { path, t0: tOut, vNom: 10, oIn: true, dIn: false, fromB: b, exitDur: 7, enterDur: 0, dur: path.length / 10 + 7 }, age: prev.age, vmax: prev.vmax, len: prev.len, wid: prev.wid, body: prev.body, color: prev.color, lookH: prev.lookH, look: prev.look });
+    // the shopper's own day decides whether the person driving off is someone to meet: an NPC whose plan has them
+    // at home or at work by now leaves unnamed (the car still drives off)
+    const id = prev.id && this._commutingAt(prev.id, tOut, false) ? prev.id : '';
+    const a = this._newAgent({ kind: 'car', role: 'visitor', id, person: -1, path, trip: { path, t0: tOut, vNom: 10, oIn: true, dIn: false, fromB: b, exitDur: 7, enterDur: 0, dur: path.length / 10 + 7 }, age: prev.age, vmax: prev.vmax, len: prev.len, wid: prev.wid, body: prev.body, color: prev.color, lookH: prev.lookH, look: prev.look });
     a.k = 0; a.d = 0;
     if (sp) { a.from = { x: sp.x, y: sp.y, hx: Math.cos(sp.ang), hy: Math.sin(sp.ang) }; a.reverse = false; }
     else a.from = { x: b.access.curbX, y: b.access.curbY, hx: 1, hy: 0 };
@@ -1895,16 +1996,37 @@ export class StreetSim {
   pick(x, y, r = 6) {
     let best = null, bd = r;
     for (const a of this.agents) {
+      if (!a.id) continue;     // a passer-by no NPC fits: nobody to meet
       const p = this.pose(a);
       const rr = a.kind === 'walk' ? 0 : a.len * 0.4;
       const d = Math.max(0, Math.hypot(p.x - x, p.y - y) - rr);
-      if (d < bd) { bd = d; best = a; }
+      if (d < bd && this.selectable(a)) { bd = d; best = a; }
     }
     return best;
   }
 
+  /**
+   * Whether a click on agent a may open its NPC: residents and in-commuters follow their own plans, a bus has its
+   * driver; through traffic only while its driver's own day still has them on their way (a car held up at the
+   * lights after its driver's commute has ended by their schedule is a passer-by now).
+   */
+  selectable(a) {
+    if (!a || !a.id) return false;
+    if (a.role === 'resident' || a.role === 'commuter' || a.role === 'bus') return true;
+    let act;
+    try { act = normalizeActivity(this.fallback(a.id, this.t), this.t); } catch { return false; }
+    return !!act && isTravel(act);
+  }
+
   /** The agent of an NPC id, if it is on the street. */
-  agentOf(id) { return this.agents.find(a => a.id === id) || null; }
+  agentOf(id) { return id ? this.agents.find(a => a.id === id) || null : null; }
+
+  /** The building (id) a resident of the view lives in, or -1 (for marking the home of someone indoors). */
+  homeOf(id) {
+    if (!id) return -1;
+    const p = this.persons.find(q => q.id === id && q.role === 'resident');
+    return p && p.b >= 0 ? p.b : -1;
+  }
 
   /** Counts for the UI: agents by kind, moving, residents out, through traffic. */
   stats() {
@@ -1987,6 +2109,21 @@ export class StreetSim {
 }
 
 // ---------------------------------------------------------------- helpers
+
+/**
+ * The part of the segment (x0, y0)–(x1, y1) inside the square |x|, |y| ≤ r, as fractions [t0, t1] of its length
+ * (Liang–Barsky), or null when it misses the square.
+ */
+export function clipSegment(x0, y0, x1, y1, r) {
+  const dx = x1 - x0, dy = y1 - y0;
+  let t0 = 0, t1 = 1;
+  for (const [p, q] of [[-dx, x0 + r], [dx, r - x0], [-dy, y0 + r], [dy, r - y0]]) {
+    if (p === 0) { if (q < 0) return null; continue; }
+    const t = q / p;
+    if (p < 0) { if (t > t1) return null; if (t > t0) t0 = t; } else { if (t < t0) return null; if (t < t1) t1 = t; }
+  }
+  return t1 > t0 ? [t0, t1] : null;
+}
 
 /** Length of a path step. */
 export function stepLen(st) { return Math.abs(st.to - st.from); }

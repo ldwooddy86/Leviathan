@@ -11,12 +11,17 @@
 //                            the point's raster cell, and where that cell is empty (zipAt tests the outlines there)
 //                            the nearest neighboring code that keeps the answer is used
 //   dest    Uint16Array(2n)  workplace or school, same encoding (= home for people without commute trips)
-//   timing  Uint16Array(3n)  departMin (0xFFFF = none), commuteMin, dwellMin   (commuteTiming(member))
+//   timing  Uint16Array(3n)  departMin (0xFFFF = none), commuteMin, dwellMin   (commuteTiming(member); a day's span
+//                            out, at work and back may reach into the day after next: 24-hour shifts keep their length)
 //   days    Uint8Array(n)    commute days, bit (1 << dow); 0 = no commute trips (wfh, retired, no destination)
 //   mode    Uint8Array(n)    MODES code in bits 0-3; bit 4 (STUDENT_BIT) = the destination is a school
 //   route   Uint16Array(3n)  highway leg: polyline + 1 (0 = none), entry and exit arc length as q / 65535 of the
 //                            polyline's length (RoadNet.lines)
-//   errand  Uint32Array(n)   start minute (bits 0-10) | dwell / 2 (11-17) | days (18-24) | drives (25) | jitter (26-31)
+//   errand  Uint32Array(n)   start minute (bits 0-10) | dwell / 2 (11-17) | days (18-24) | drives (25) | lane (26-27) |
+//                            curve (28-29) | repeats (30-31): on its days the outing goes out, stays and comes back, and
+//                            on a day without a commute it goes again `repeats` times (half as often on a weekday), each
+//                            one outingPeriod later (errandJitter, outingPeriod), so a Saturday has the errands, the
+//                            visits and the leisure the NPCs' schedules have
 //   eoff    Int8Array(2n)    errand point minus home, in quarter units (±31.75 units, about ±6 km)
 //   ids     Uint32Array(n)   zi << 20 | h << 4 | m, or 0x80000000 | k for overflow[3k .. 3k+2] = (zi, h, m)
 // These differ from the plain Float32 layout sketched in CONTRACTS §8 (fixed point, the student bit, quantized arc
@@ -81,12 +86,14 @@ export const CLASS_BIT = Object.freeze([1, 2, 2, 4, 8, 16, 32]);
 export const CROWD = Object.freeze({
   streetKmh: 40,        // street legs of a drive (arterials, lights)
   highwayKmh: 100,      // freeway at free flow; rushFactor slows it
+  boulevardKmh: 50,     // a state route through dense blocks with modest traffic: a boulevard with lights (El Camino)
+  ruralKmh: 80,         // a quiet state route in open country: a two-lane highway
   detour: 1.3,          // street distance over straight-line distance
   rampPenaltyMin: 1.5,  // getting on and off costs time
   highwayMinKm: 8,      // shorter drives stay on streets
   rampMaxKm: 15,        // no on-ramp farther than this from home (or off-ramp from the destination)
   highwaySaving: 0.92,  // take the freeway only when it beats the streets by 8 %
-  errWalkKmh: 4.8, errDriveKmh: 28, errMinTravel: 3,
+  errWalkKmh: 4.8, errDriveKmh: 24, errMinTravel: 3,   // city driving to an outing, parking included
   laneDrive0: 0.10, laneDrive1: 0.30,   // right-hand offset of drivers, units (20-80 m): directions separate
   laneOther0: 0.03, laneOther1: 0.09,   // walkers, cyclists, riders keep to their side too
   curve: 0.08,          // control-point offset of a curved trip, as a share of its length
@@ -102,7 +109,42 @@ export const AGENT_BYTES = 32;
  */
 export const PICK_MARGIN = 1.0;
 
-const MAX_COMMUTE = 360, MAX_SPAN = 1430;
+// a commute day (out, the shift, back) may run into the day after next: a 24-hour shift with its two commutes; the
+// position function looks back two days (fid-26: shorter spans cut 24-hour shifts short by up to an hour)
+const MAX_COMMUTE = 360, MAX_SPAN = 2 * MAX_COMMUTE + 1440;
+
+/**
+ * The jitter fields of an errand word: lane (0..1, the side of the road), cv (-1..1, the bend of the trip's curve)
+ * and repeats (0..3, more outings on a day without a commute; on a weekday half as many, rounded down).
+ * @param {number} e the errand word
+ * @returns {{lane: number, cv: number, repeats: number}}
+ */
+export function errandJitter(e) {
+  const jit = e >>> 26;
+  return { lane: (jit & 3) / 3, cv: ((jit >> 2) & 3) / 3 * 2 - 1, repeats: (jit >> 4) & 3 };
+}
+
+/**
+ * Minutes from the start of one outing to the start of the next on the same day: the outing itself (out, stay, back)
+ * and a pause of 30 to 154 minutes read from the dwell bits (so the shader computes it from the word alone). On a
+ * weekday the next outing waits twice as long (the evening out after a day's errand).
+ * @param {number} e the errand word
+ * @param {number} tt one-way travel minutes (errTravel)
+ */
+export function outingPeriod(e, tt) {
+  const dh = (e >>> 11) & 127;
+  return 2 * tt + dh * 2 + 30 + 4 * (dh & 31);
+}
+
+/** Minutes the first outing of a weekend day starts before the word's start minute (people go out earlier then). */
+export const WEEKEND_EARLY = 60;
+
+/** Outings of an errand word on a day: 1 + repeats on a day without a commute (half the repeats on a weekday), else 1. */
+export function outingsOn(e, dow, commuteDay) {
+  if (commuteDay) return 1;
+  const r = (e >>> 30) & 3;
+  return 1 + (dow === 0 || dow === 6 ? r : r >> 1);
+}
 /** Sampled households between two 'tick' yields inside a ZIP (about 2 ms of work). */
 const TICK_HOUSEHOLDS = 256;
 
@@ -136,7 +178,7 @@ function pickBit(mask, u) {
 
 /**
  * Commute timing of a population member as stored: [departMin (NO_DEPART if none), commuteMin, dwellMin], clamped so a
- * commute day (out, dwell, back) never spans a full day.
+ * commute day (out, dwell, back) stays within MAX_SPAN (two commutes of up to six hours around a shift of up to 24 hours).
  * @param {{departMin:number|null, commuteMin:number, dwellMin:number}} mem
  * @returns {number[]}
  */
@@ -151,7 +193,7 @@ function writeTiming(mem, arr, o) {
   const d = mem.departMin;
   const dep = d == null || !Number.isFinite(+d) ? NO_DEPART : ((Math.round(+d) % 1440) + 1440) % 1440;
   const com = clampInt(mem.commuteMin, 0, MAX_COMMUTE);
-  let dwl = clampInt(mem.dwellMin, 0, 1439);
+  let dwl = clampInt(mem.dwellMin, 0, 1440);
   if (2 * com + dwl > MAX_SPAN) dwl = Math.max(0, MAX_SPAN - 2 * com);
   arr[o] = dep; arr[o + 1] = com; arr[o + 2] = dwl;
 }
@@ -204,12 +246,29 @@ export function lodValue(idx) { return (mix32((idx ^ 0x5bd1e995) >>> 0) >>> 8) /
 const RV_W = 1024, RL_W = 512, VGRID = 16, MEMO_CELL = 12, MAX_NEAR_LINES = 12;
 
 /**
+ * The free-flow speed (km/h) of one state highway line, from what it carries and where it runs (fid-22): interstates
+ * and busy routes (60,000 vehicles a day and up) are freeways; a state route through dense blocks with less traffic
+ * is a boulevard with lights (El Camino Real, Santa Monica Boulevard, PCH through town); a quiet one in open country
+ * is a two-lane highway. The planner and the position function both read it, so drivers no longer take signalized
+ * boulevards as freeway shortcuts.
+ * @param {string} kind 'I' | 'US' | 'SR'
+ * @param {number} aadtK traffic, thousands of vehicles a day (length-weighted mean along the line)
+ * @param {number} density people per square mile of the ZIPs along it (median)
+ * @returns {number}
+ */
+export function lineSpeedKmh(kind, aadtK, density) {
+  if (kind === 'I' || aadtK >= 60) return CROWD.highwayKmh;
+  if (density >= 3000) return CROWD.boulevardKmh;
+  return aadtK < 30 ? CROWD.ruralKmh : 90;
+}
+
+/**
  * The state highway network as polylines with cumulative arc length, laid out for a float texture, plus a vertex
  * grid for ramp search.
  * @param {import('../engine/world.mjs').World} world
  * @returns {RoadNet} {V, L, verts: Float32Array [x, y, s, aadt] × V (padded to the texture), lines: Float32Array
- *   [offset, count, length, road] × L (padded), info: [{road, line, name, kind, route, offset, count, length}],
- *   vertLine, texV: {width, height}, texL: {width, height}, W, H, unitKm}
+ *   [offset, count, length, kmh] × L (padded; kmh the line's free-flow speed, lineSpeedKmh), info: [{road, line, name,
+ *   kind, route, offset, count, length, kmh}], vertLine, texV: {width, height}, texL: {width, height}, W, H, unitKm}
  */
 export function buildRoadNet(world) {
   const xs = [], ys = [], ss = [], aa = [], info = [];
@@ -225,7 +284,14 @@ export function buildRoadNet(world) {
     }
     const count = xs.length - start;
     if (count < 2 || !(s > 0)) { xs.length = start; ys.length = start; ss.length = start; aa.length = start; return; }
-    info.push({ road: ri, line: li, name: rd.name, kind: rd.kind, route: rd.r, offset: start, count, length: Math.fround(s) });
+    // its traffic (length-weighted) and how dense the places it runs through are (median of up to 16 vertices)
+    let akm = 0;
+    for (let k = start + 1; k < xs.length; k++) akm += (ss[k] - ss[k - 1]) * (aa[k] + aa[k - 1]) / 2;
+    const dens = [], step = Math.max(1, Math.floor(count / 16));
+    for (let k = start; k < xs.length; k += step) { const zi = world.zipAt(xs[k], ys[k]); if (zi >= 0) dens.push(+world.z.density[zi] || 0); }
+    dens.sort((a, b) => a - b);
+    const kmh = lineSpeedKmh(rd.kind, akm / s, dens.length ? dens[dens.length >> 1] : 0);
+    info.push({ road: ri, line: li, name: rd.name, kind: rd.kind, route: rd.r, offset: start, count, length: Math.fround(s), kmh });
   }));
   const V = xs.length, L = info.length;
   const vRows = Math.max(1, Math.ceil(V / RV_W)), lRows = Math.max(1, Math.ceil(L / RL_W));
@@ -234,7 +300,7 @@ export function buildRoadNet(world) {
   info.forEach((ln, l) => {
     // the stored length is the float32 arc length at the last vertex, so q / 65535 * length never passes the end
     ln.length = verts[4 * (ln.offset + ln.count - 1) + 2];
-    lines[4 * l] = ln.offset; lines[4 * l + 1] = ln.count; lines[4 * l + 2] = ln.length; lines[4 * l + 3] = ln.road;
+    lines[4 * l] = ln.offset; lines[4 * l + 1] = ln.count; lines[4 * l + 2] = ln.length; lines[4 * l + 3] = ln.kmh;
     for (let k = ln.offset; k < ln.offset + ln.count; k++) vertLine[k] = l;
   });
   const W = world.proj.W, H = world.proj.H;
@@ -366,7 +432,7 @@ export function planHighway(net, hx, hy, dx, dy, out) {
       const ka = A[ia + 1], kb = B[ib + 1];
       const ax = V[4 * ka] - hx, ay = V[4 * ka + 1] - hy, bx = V[4 * kb] - dx, by = V[4 * kb + 1] - dy;
       _cand[4 * nc] = la; _cand[4 * nc + 1] = ka; _cand[4 * nc + 2] = kb;
-      _cand[4 * nc + 3] = DET * (Math.sqrt(ax * ax + ay * ay) + Math.sqrt(bx * bx + by * by)) / VS + Math.abs(V[4 * ka + 2] - V[4 * kb + 2]) / VH;
+      _cand[4 * nc + 3] = DET * (Math.sqrt(ax * ax + ay * ay) + Math.sqrt(bx * bx + by * by)) / VS + Math.abs(V[4 * ka + 2] - V[4 * kb + 2]) / (net.lines[4 * la + 3] || VH);
       nc++; ia += 2; ib += 2;
     }
   }
@@ -378,7 +444,7 @@ export function planHighway(net, hx, hy, dx, dy, out) {
     for (let j = 0; j < nc; j++) if (_cand[4 * j + 3] < cb) { cb = _cand[4 * j + 3]; jb = j; }
     if (jb < 0) break;
     _cand[4 * jb + 3] = Infinity;
-    const line = _cand[4 * jb];
+    const line = _cand[4 * jb], vl = net.lines[4 * line + 3] || VH;
     const ne = projections(net, line, _cand[4 * jb + 1], hx, hy, _pe), nx = projections(net, line, _cand[4 * jb + 2], dx, dy, _px);
     for (let e = 0; e < ne; e++) {
       const de = _pe[4 * e + 3];
@@ -388,7 +454,7 @@ export function planHighway(net, hx, hy, dx, dy, out) {
         if (dX > rampMax) continue;
         const ds = Math.abs(_pe[4 * e] - _px[4 * x]);
         if (!(ds > 0)) continue;
-        const cost = (DET * (de + dX) / VS + ds / VH) * toMin + CROWD.rampPenaltyMin;
+        const cost = (DET * (de + dX) / VS + ds / vl) * toMin + CROWD.rampPenaltyMin;
         if (cost < bestCost) {
           bestCost = cost; bl = line; bs0 = _pe[4 * e]; bs1 = _px[4 * x];
           bonx = _pe[4 * e + 1]; bony = _pe[4 * e + 2]; boffx = _px[4 * x + 1]; boffy = _px[4 * x + 2];
@@ -590,17 +656,24 @@ class ChunkBuilder {
     }
   }
 
-  /** Write the errand word and offset of agent i; returns the errand day mask. */
+  /**
+   * Write the errand word and offset of agent i; returns the errand day mask. The outings are calibrated to the NPCs'
+   * own day plans (schedule.mjs: errands, visits, leisure, worship), so the share of people out and about at a weekday
+   * midday or a Saturday afternoon is close to what their schedules say (tests/crowd-build.test.mjs measures it):
+   * most people go out on most days off, several times on a weekend, and once after work some days.
+   */
   errandPlan(i, zi, h, m, age, vehicles, hx, hy, dmask, dep, com, dwl) {
     const eh = hash3(hash2(this.seed ^ 0x45524e44, zi), h, m);
     this.rs = eh;
-    const jitter = mix32((eh ^ 0x6a09e667) >>> 0) >>> 26;
-    const base = (jitter << 26) >>> 0;
-    this.errand[i] = base; this.eoff[2 * i] = 0; this.eoff[2 * i + 1] = 0;
+    const jw = mix32((eh ^ 0x6a09e667) >>> 0);
+    // lane and curve from the hash; the repeats from their own draw below
+    const laneCurve = (jw >>> 28) & 15;
+    this.errand[i] = (laneCurve << 26) >>> 0; this.eoff[2 * i] = 0; this.eoff[2 * i + 1] = 0;
     if (age < 12) return 0;
     const drive = vehicles > 0 && age >= 16 && this.rnd() < 0.88 ? 1 : 0;
     const r0 = this.rnd();
-    let km = drive ? 0.8 + 3.4 * r0 * Math.sqrt(r0) : 0.25 + 0.85 * r0;
+    // the distances of the schedules' own outings (a store, a park, a friend's place across town)
+    let km = drive ? 1.4 + 4.4 * r0 * Math.sqrt(r0) : 0.4 + 1.2 * r0;
     let dir = mix32((eh ^ 0x510e527f) >>> 0) & 255, qx = 0, qy = 0, ok = false;
     for (let t = 0; t < 6 && !ok; t++) {
       // retries turn by the golden angle (98 of 256) and come closer, until the point is on land
@@ -616,28 +689,31 @@ class ChunkBuilder {
     const need = Math.ceil(2 * tt + dwell);
     let start, eDays;
     const wa = mix32((eh ^ 0x3c6ef372) >>> 0), wb = mix32((eh ^ 0xa54ff53a) >>> 0);
+    const WEEKEND = 65, WEEKDAYS = 62;
     if (dmask) {
       const arrival = dep + 2 * com + dwl, free = 127 & ~dmask;
-      if (arrival < 1260 && this.rnd() < 0.55) {
-        start = arrival + 20 + Math.floor(this.rnd() * 60);
-        eDays = dayMask(dmask, 0.3, wa, wb) | dayMask(free, 0.3, wa, wb);
+      if (arrival < 1260 && this.rnd() < 0.6) {
+        start = arrival + 20 + Math.floor(this.rnd() * 150);
+        eDays = dayMask(dmask, 0.55, wa, wb) | dayMask(free, 0.8, wa, wb);
         if (!eDays) eDays = pickBit(dmask, this.rnd());
         if (start + need > 1439) start = 1439 - need;
         if (start < arrival + 5) eDays &= free;
       } else {
-        start = 570 + Math.floor(this.rnd() * 450);
-        eDays = dayMask(free, 0.55, wa, wb);
+        start = 510 + Math.floor(this.rnd() * 390);
+        eDays = dayMask(free & WEEKEND, 0.92, wa, wb) | dayMask(free & WEEKDAYS, 0.6, wa, wb);
         if (!eDays && free) eDays = pickBit(free, this.rnd());
         if (start + need > 1439) start = 1439 - need;
       }
     } else {
-      start = (age >= 65 ? 510 : 570) + Math.floor((this.rnd() + this.rnd()) * 0.5 * 480);
-      eDays = dayMask(127, age >= 65 ? 0.55 : age < 18 ? 0.35 : 0.5, wa, wb);
+      start = (age >= 65 ? 450 : 480) + Math.floor((this.rnd() + this.rnd()) * 0.5 * 330);
+      eDays = dayMask(WEEKEND, 0.92, wa, wb) | dayMask(WEEKDAYS, age >= 65 ? 0.65 : age < 18 ? 0.45 : 0.6, wa, wb);
       if (!eDays) eDays = 1 << Math.floor(this.rnd() * 7);
       if (start + need > 1439) start = 1439 - need;
     }
     if (!eDays || start < 0) return 0;
-    this.errand[i] = (base | start | ((dwell >> 1) << 11) | (eDays << 18) | (drive << 25)) >>> 0;
+    // more outings on a day off: none for a quarter of people, one to three more for the rest
+    const rr = this.rnd(), repeats = rr < 0.08 ? 0 : rr < 0.35 ? 1 : rr < 0.65 ? 2 : 3;
+    this.errand[i] = (this.errand[i] | (repeats << 30) | start | ((dwell >> 1) << 11) | (eDays << 18) | (drive << 25)) >>> 0;
     this.eoff[2 * i] = qx; this.eoff[2 * i + 1] = qy;
     this.nErrand++;
     return eDays;
@@ -706,7 +782,7 @@ class ChunkBuilder {
     this.cn = 0; this.serial++;
     const G = CROWD.pickCell;
     this.addCell(Math.floor(hx / G), Math.floor(hy / G));
-    const jit = this.errand[i] >>> 26, cv = ((jit >> 3) & 7) / 7 * 2 - 1;
+    const cv = errandJitter(this.errand[i]).cv;
     if (dmask) {
       const line = this.route[3 * i];
       if (line) {
@@ -803,10 +879,11 @@ export function pickIndexBytes(chunk) {
 }
 
 /** Add the sampled households of ZIP zi from household h on, stopping after TICK_HOUSEHOLDS; returns the next h. */
-function addHouseholds(B, pop, zi, h, H, rate) {
+function addHouseholds(B, pop, zi, h, H, rate, below = 0) {
   let added = 0;
   for (; h < H; h++) {
-    if (!pop.includes(zi, h, rate)) continue;
+    // a top-up (below > 0) adds the households a higher rate takes and the base rate did not: nobody twice
+    if (!pop.includes(zi, h, rate) || (below > 0 && pop.includes(zi, h, below))) continue;
     B.household(zi, h, pop.householdCore(zi, h));
     if (++added === TICK_HOUSEHOLDS) return h + 1;
   }
@@ -831,10 +908,12 @@ function addHouseholds(B, pop, zi, h, H, rate) {
  * @param {boolean} [opts.byRegion] start a new chunk at every region boundary
  * @param {boolean} [opts.pickIndex] build the pick index (default true)
  * @param {RoadNet} [opts.roadNet] a prebuilt buildRoadNet(world)
+ * @param {number} [opts.below] a top-up: only the households `rate` takes that this lower rate does not (the agents a
+ *   zoomed-in view adds to the statewide crowd, so the two together are the crowd at `rate` there)
  */
 export function* buildAgentsGen(world, pop, opts = {}) {
   const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  const rate = Math.max(0, +opts.rate || 0), seed = (opts.seed == null ? 1 : opts.seed) >>> 0;
+  const rate = Math.max(0, +opts.rate || 0), seed = (opts.seed == null ? 1 : opts.seed) >>> 0, below = Math.max(0, +opts.below || 0);
   const net = opts.roadNet || buildRoadNet(world);
   const zipList = opts.zips ? Array.from(opts.zips, Number) : zipOrder(world, opts);
   const chunkTarget = opts.chunkTarget > 0 ? opts.chunkTarget : Infinity;
@@ -868,7 +947,7 @@ export function* buildAgentsGen(world, pop, opts = {}) {
     const before = B.n;
     // a tick inside big ZIPs too, so a time-sliced caller never runs more than a few milliseconds between ticks (the
     // loop itself stays out of the generator, where it optimizes better)
-    for (let h = addHouseholds(B, pop, zi, 0, H, rate); h < H; h = addHouseholds(B, pop, zi, h, H, rate)) {
+    for (let h = addHouseholds(B, pop, zi, 0, H, rate, below); h < H; h = addHouseholds(B, pop, zi, h, H, rate, below)) {
       yield { type: 'tick', progress: totalHH ? (scanned + h) / totalHH : 1 };
     }
     if (B.n > before) { summary.zipsWithAgents++; B.zis.push(zi); }
@@ -956,17 +1035,26 @@ export function agentPhase(c, i, minute, dow, P) {
   if (days !== 0) {
     const t = 3 * i, dep = c.timing[t], com = c.timing[t + 1], dwl = c.timing[t + 2];
     let s = commutePhase(days, dep, com, dwl, dow, minute, P);
-    if (s === S_HOME) s = commutePhase(days, dep, com, dwl, dow === 0 ? 6 : dow - 1, minute + 1440, P);
+    if (s === S_HOME) s = commutePhase(days, dep, com, dwl, (dow + 6) % 7, minute + 1440, P);
+    // a span past two midnights (a 24-hour shift that started late): the day before yesterday's trip
+    if (s === S_HOME && dep + 2 * com + dwl > 2880) s = commutePhase(days, dep, com, dwl, (dow + 5) % 7, minute + 2880, P);
     if (s !== S_HOME) return s;
   }
   const e = c.errand[i], ed = (e >>> 18) & 127;
   if (ed !== 0 && ((ed >> dow) & 1) !== 0) {
-    let v = minute - (e & 2047);
-    if (v >= 0) {
-      const tt = errTravel(c.eoff[2 * i] * 0.25, c.eoff[2 * i + 1] * 0.25, (e >>> 25) & 1, c.unitKm);
+    const tt = errTravel(c.eoff[2 * i] * 0.25, c.eoff[2 * i + 1] * 0.25, (e >>> 25) & 1, c.unitKm);
+    // a weekday's second outing comes later in the day (an evening out); a weekend's follow one another
+    const dw = ((e >>> 11) & 127) * 2, period = outingPeriod(e, tt) * (dow === 0 || dow === 6 ? 1 : 2);
+    const n = outingsOn(e, dow, ((days >> dow) & 1) !== 0);
+    // the day's outings, one period apart, each home again before midnight
+    const first = (e & 2047) - (dow === 0 || dow === 6 ? Math.min(WEEKEND_EARLY, e & 2047) : 0);
+    for (let k = 0; k < n; k++) {
+      const s0 = first + k * period;
+      if (k > 0 && s0 + 2 * tt + dw > 1439) break;
+      let v = minute - s0;
+      if (v < 0) break;
       if (v < tt) { P.u = v; P.len = tt; return S_EOUT; }
       v -= tt;
-      const dw = ((e >>> 11) & 127) * 2;
       if (v < dw) { P.u = v; P.len = dw; return S_EAT; }
       v -= dw;
       if (v < tt) { P.u = v; P.len = tt; return S_EBACK; }
@@ -1026,7 +1114,7 @@ export function agentPlace(c, i, s, P, net, out) {
   const ex = hx + c.eoff[2 * i] * 0.25, ey = hy + c.eoff[2 * i + 1] * 0.25;
   if (s === S_EAT) { out.kind = -1; out.x = ex; out.y = ey; return out; }
   const e = c.errand[i], jit = e >>> 26;
-  const lane = (jit & 7) / 7, cv = ((jit >> 3) & 7) / 7 * 2 - 1;
+  const lane = (jit & 3) / 3, cv = ((jit >> 2) & 3) / 3 * 2 - 1;
   const back = s === S_BACK || s === S_EBACK;
   const f = P.u / P.len;
   let px, py, tx, ty, laneOff;
@@ -1049,7 +1137,7 @@ export function agentPlace(c, i, s, P, net, out) {
       const d1 = Math.sqrt(ox * ox + oy * oy), d2 = Math.abs(s1 - s0), d3 = Math.sqrt(fx * fx + fy * fy);
       const dayOff = Math.floor(P.start / 1440), sm = P.start - 1440 * dayOff, rd = (P.day + dayOff) % 7;
       const rf = rushFactor(sm, rd);
-      const T1 = CROWD.detour * d1 / CROWD.streetKmh, T2 = d2 / (CROWD.highwayKmh * rf), T3 = CROWD.detour * d3 / CROWD.streetKmh;
+      const T1 = CROWD.detour * d1 / CROWD.streetKmh, T2 = d2 / ((net.lines[4 * l + 3] || CROWD.highwayKmh) * rf), T3 = CROWD.detour * d3 / CROWD.streetKmh;
       const T = Math.max(T1 + T2 + T3, 1e-6);
       const tau = (back ? 1 - f : f) * T;
       if (tau < T1) {
@@ -1274,6 +1362,7 @@ const float LANE_O0 = ${glf(C.laneOther0)};
 const float LANE_O1 = ${glf(C.laneOther1)};
 const float CURVE = ${glf(C.curve)};
 const float ERR_CURVE = ${glf(C.errCurve)};
+const float WEEKEND_EARLY = ${glf(WEEKEND_EARLY)};
 const int RV_W = ${net.texV.width};
 const int RL_W = ${net.texL.width};
 uniform highp sampler2D u_roadV;
@@ -1358,6 +1447,10 @@ int agentEval(vec2 home, vec2 dest, uvec3 tm, uint days, uint mode, uvec3 route,
       tday = (dow + 6) % 7;
       s = commutePhase(days, dep, com, dwl, tday, minute + 1440.0, u, start);
     }
+    if (s == S_HOME && dep + 2.0 * com + dwl > 2880.0) {
+      tday = (dow + 5) % 7;
+      s = commutePhase(days, dep, com, dwl, tday, minute + 2880.0, u, start);
+    }
     len = com;
   }
   vec2 ep = home + eoff;
@@ -1365,16 +1458,25 @@ int agentEval(vec2 home, vec2 dest, uvec3 tm, uint days, uint mode, uvec3 route,
   if (s == S_HOME) {
     uint ed = (ew >> 18u) & 127u;
     if (ed != 0u && ((ed >> uint(dow)) & 1u) != 0u) {
-      float v = minute - float(ew & 2047u);
-      if (v >= 0.0) {
-        float tt = errTravel(eoff, drives);
-        if (v < tt) { u = v; len = tt; s = S_EOUT; }
-        else {
-          v -= tt;
-          float dw = float((ew >> 11u) & 127u) * 2.0;
-          if (v < dw) { s = S_EAT; }
-          else { v -= dw; if (v < tt) { u = v; len = tt; s = S_EBACK; } }
-        }
+      float tt = errTravel(eoff, drives);
+      uint dh = (ew >> 11u) & 127u;
+      float dw = float(dh) * 2.0;
+      float period = (2.0 * tt + dw + 30.0 + 4.0 * float(dh & 31u)) * ((dow == 0 || dow == 6) ? 1.0 : 2.0);
+      uint rep = (ew >> 30u) & 3u;
+      int n = ((days >> uint(dow)) & 1u) != 0u ? 1 : 1 + int((dow == 0 || dow == 6) ? rep : rep >> 1u);
+      float st = float(ew & 2047u);
+      float first = st - ((dow == 0 || dow == 6) ? min(WEEKEND_EARLY, st) : 0.0);
+      for (int k = 0; k < 4; k++) {
+        if (k >= n) break;
+        float s0 = first + float(k) * period;
+        if (k > 0 && s0 + 2.0 * tt + dw > 1439.0) break;
+        float v = minute - s0;
+        if (v < 0.0) break;
+        if (v < tt) { u = v; len = tt; s = S_EOUT; break; }
+        v -= tt;
+        if (v < dw) { s = S_EAT; break; }
+        v -= dw;
+        if (v < tt) { u = v; len = tt; s = S_EBACK; break; }
       }
     }
   }
@@ -1383,8 +1485,8 @@ int agentEval(vec2 home, vec2 dest, uvec3 tm, uint days, uint mode, uvec3 route,
   if (s == S_WORK) { pos = dest; return s; }
   if (s == S_EAT) { pos = ep; return s; }
   uint jit = ew >> 26u;
-  float lane = float(jit & 7u) / 7.0;
-  float cv = float((jit >> 3u) & 7u) / 7.0 * 2.0 - 1.0;
+  float lane = float(jit & 3u) / 3.0;
+  float cv = float((jit >> 2u) & 3u) / 3.0 * 2.0 - 1.0;
   bool back = (s == S_BACK || s == S_EBACK);
   float f = u / len;
   vec2 p;
@@ -1403,7 +1505,8 @@ int agentEval(vec2 home, vec2 dest, uvec3 tm, uint days, uint mode, uvec3 route,
     laneOff = kind == K_DRIVE ? LANE_D0 + LANE_D1 * lane : LANE_O0 + LANE_O1 * lane;
     if (route.x != 0u) {
       int l = int(route.x) - 1;
-      float L = fetchL(l).z;
+      vec4 LL = fetchL(l);
+      float L = LL.z;
       float s0 = float(route.y) / 65535.0 * L;
       float s1 = float(route.z) / 65535.0 * L;
       vec4 on = roadAt(l, s0);
@@ -1416,7 +1519,7 @@ int agentEval(vec2 home, vec2 dest, uvec3 tm, uint days, uint mode, uvec3 route,
       int rd = (tday + int(dayOff)) % 7;
       float rf = rushFactor(sm, rd);
       float T1 = DETOUR * d1 / VS;
-      float T2 = d2 / (VH * rf);
+      float T2 = d2 / ((LL.w > 0.0 ? LL.w : VH) * rf);
       float T3 = DETOUR * d3 / VS;
       float T = max(T1 + T2 + T3, 1e-6);
       float tau = (back ? 1.0 - f : f) * T;

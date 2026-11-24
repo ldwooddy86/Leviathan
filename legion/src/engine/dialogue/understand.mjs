@@ -22,6 +22,7 @@
 import { appraise as mindAppraise } from '../mind.mjs';
 import { num } from './core.mjs';
 import { probeOf, asksHeritage, asksDemographic } from './probe.mjs';
+import { safetyOf } from './safety.mjs';
 import { spanishReading } from './spanish.mjs';
 import { holidayOf } from './holiday.mjs';
 import { LANGUAGES, LANGUAGE_KEYS } from '../lexicon.mjs';
@@ -41,7 +42,7 @@ const FAMILY_INTEREST = /\b(grandkids|grandchildren|kids|children|family|baby)\b
 
 /** Every intent the engine understands, in tie-breaking priority order (earlier wins a tie). */
 export const INTENTS = Object.freeze([
-  'insult', 'probe', 'goodbye', 'name', 'joke', 'directions', 'insurance', 'earthquake', 'fire', 'storm', 'rent', 'heat',
+  'safety', 'insult', 'probe', 'goodbye', 'about-me', 'name', 'joke', 'directions', 'insurance', 'earthquake', 'fire', 'storm', 'rent', 'heat',
   'housing', 'traffic', 'weather', 'food', 'place', 'job', 'family', 'home', 'history', 'about-them', 'opinion',
   'neighborhood', 'how-are-you', 'compliment', 'thanks', 'apology', 'smalltalk', 'greeting', 'unknown',
 ]);
@@ -165,6 +166,8 @@ const P = {
     [/\bash\b|\bburned\b|\bburnt\b/, 1.5],
   ],
   storm: [
+    // wind as a climate question ("ever get bad wind here?", "how windy does it get?"); "is it windy today?" stays weather
+    [/\b(?:bad|strong|big|crazy|high|worst|any|much|real|serious) winds?\b|\bwinds? (?:here|around here|out here)\b|\bhow windy\b|\b(?:get|gets|getting) (?:really |very |pretty |so )?windy\b|\bgusts?\b|\bsundowners?\b|\bwindiest\b/, 3.6],
     [/\bstorms?\b|\bstormy\b|\bfloods?\b|\bflooded\b|\bflooding\b|\batmospheric rivers?\b|\bmudslides?\b|\blandslides?\b|\bdebris flows?\b|\blevees?\b|\bdownpours?\b|\bdeluge\b|\bking tides?\b|\bhigh surf\b|\bel ni[nñ]o\b|\bthunderstorms?\b|\blightning\b|\brainstorms?\b|\bpower (outage|went out)\b|\blost power\b|\bwindstorms?\b|\bsanta anas?\b|\bdiablo winds?\b/, 3.5],
   ],
   heat: [
@@ -278,6 +281,18 @@ const HOMELAND_Q = [
   ['miss', new RegExp(`\\bdo you (?:ever |still )?miss (?:home|back home|being home|your (?:country|hometown|home ?town|homeland|town|village|old (?:home|town|neighborhood)|family (?:back home|there))|it (?:there|back home)|${HOME_PLACES})\\b|\\b(?:extrana|extranas) (?:a )?(?:su|tu) (?:tierra|pais|pueblo|rancho|familia)\\b`)],
 ];
 
+// Questions about the player, answered from what the NPC's mind keeps of them (relationship facts, earlier talks):
+// "Do you remember me?", "What's my name?", "What do I do?", "Where am I from?", "What did I tell you?". The kind
+// names the part asked about. (Spanish questions arrive through spanish.mjs in these words.)
+const PLAYER_Q = [
+  ['job', /\bwhat do i do(?: for (?:work|a living))?\b|\bwhat(?:'?s| is) my (?:job|work|line of work|profession|occupation)\b|\bwhere do i work\b|\bremember what i do\b|\bknow what i do\b/],
+  ['from', /\bwhere am i from\b|\bremember where i(?:'m| am| come)? from\b|\bwhere do i come from\b|\bknow where i(?:'m| am) from\b/],
+  ['lives', /\bwhere do i live\b|\bremember where i live\b|\bknow where i live\b/],
+  ['name', /\bwhat(?:'?s| is) my name\b|\bremember my name\b|\bknow my name\b|\bwho am i\b/],
+  ['told', /\bwhat (?:did|have) i (?:tell|told) you\b|\bwhat do you (?:know|remember) about me\b|\bwhat have i told you\b|\bwhat did i say (?:last time|before)\b/],
+  ['remember', /\b(?:do|did) you (?:still |even )?remember me\b|\bremember me\b|\bdo you (?:know|recognize) (?:me|who i am)\b|\bhave we met\b|\bdid we (?:ever )?meet\b|\bwe(?:'ve| have) met (?:before)?\b|\bremember who i am\b|\bdon'?t you remember\b|\bremember talking to me\b/],
+];
+
 // Questions about the languages the NPC speaks.
 // "What's your favorite color?": a taste of their own (food and teams have planners of their own).
 const FAVORITE_Q = /\bfavou?rite (colou?r|animal|holiday|season|time of year|sport|music|song|band|movie|film|show|tv show|book|singer|artist|thing to do)\b|\bwhat (?:kind|type|sort) of (music|movies|films|books|shows|tv) do you (?:like|listen to|watch|read)\b/;
@@ -287,6 +302,9 @@ const LANG_Q = /\b(?:do|can|could) you speak\b|\bwhat languages? do you speak\b|
 // The speaker's own school or classes, and the local schools as a subject of their own.
 const OWN_SCHOOL = /\b(?:how'?s|how is|how was|how are|how'?re) (?:school|class|classes|college)\b|\b(?:do|did) (?:you|ya) (?:like|enjoy|love|hate) (?:school|your school|class|your classes|college)\b|\byour (?:school|classes|teachers?|grades)\b|\b(?:school|college|class) going\b/;
 const LOCAL_SCHOOLS = /\b(?:the|local|public|these|those|good|bad) schools?\b(?! going)|\bschools (?:here|around|in)\b|\bschool (?:district|board)\b/;
+
+// "What worries you?", "what's your biggest concern?": their own top worry, whatever it is.
+const WORRY_Q = /\bwhat (?:worries|concerns|bothers|scares|stresses) you\b|\bwhat(?:'s| is| are) (?:your|the) (?:biggest |main |big |number one )?(?:worry|worries|concern|concerns)\b|\bwhat keeps you up at night\b|\bwhat do you worry about\b|\bare you worried about anything\b|\banything (?:worry|worrying) you\b/;
 
 // Worries the persona can have that no planner of their own covers: talked about as an opinion on a local topic.
 const CONCERN_TOPICS = [
@@ -592,19 +610,21 @@ export function selfVocab(life = {}) {
 /**
  * Read the player's line.
  * @param {string} text
- * @param {{world?: object, mind?: object, home?: {x: number, y: number}, fires?: Array<{name: string}>, lastIntent?: string|null, recent?: boolean, pending?: string|null,
+ * @param {{world?: object, mind?: object, home?: {x: number, y: number}, fires?: Array<{name: string}>, lastIntent?: string|null, recent?: boolean, pending?: string|null, age?: number,
  *   self?: {job: RegExp|null, interests: Array<{name: string, re: RegExp}>, concerns: string[]}}} [ctx]
  * @returns {{text: string, norm: string, intent: string, scores: Record<string, number>, question: boolean,
  *   flags: {greeted: boolean, thanked: boolean, apologized: boolean, complimented: boolean, opinion: boolean, more: boolean,
  *   yes: boolean, no: boolean, short: boolean, politics: boolean, religion: boolean, aboutPlayer: boolean, unclear: boolean,
  *   spanish: boolean (the line was Spanish, read through its English paraphrase), aboutThat: boolean, likeIt: boolean,
  *   probe: {kind: string, hostile: boolean, positive?: boolean}|null, sub: string|null (the part of the topic a follow-up asks about),
+ *   safety: {kind: 'crisis'|'sexual'|'threat', sub: string, es: boolean}|null (safety.mjs; the intent is then 'safety'; ctx.age: the NPC's age),
  *   followUp: boolean (the intent continues the conversation's topic), aboutYou: boolean (a question about the NPC),
  *   holidayGreeting: boolean ("Happy Thanksgiving!"), holidayAsk: boolean (a question about their holiday plans)},
  *   topics: string[], entities: {years: number[], fires: object[], roads: object[], places: object[], routine: string[], interest: string|null, team: string|null,
  *   ownInterest: string|null, concern: string|null, langAsked: string|null, heritage: boolean, demographic: string|null, favorite: string|null,
  *     homeland: 'return'|'visit'|'family'|'miss'|null (a question about the place they come from), holiday: string|null (holiday.mjs key),
- *     foreignLangs: string[]|null (the languages of a hello in another language)},
+ *     foreignLangs: string[]|null (the languages of a hello in another language),
+ *     player: 'remember'|'name'|'job'|'from'|'lives'|'told'|null (a question about the player: intent 'about-me')},
  *   appraisal: {sentiment: number, intents: string[], topics: string[], toxicity: number, facts: Array<{key: string, value: string}>}}}
  */
 export function understand(text, ctx = {}) {
@@ -619,13 +639,14 @@ export function understand(text, ctx = {}) {
   const scan = foldAccents(norm).replace(/\b(?:(?:el )?dia de )?accion de gracias\b/g, 'thanksgiving');
   // the appraisal reads the paraphrase too: "Es usted muy amable" is a compliment
   const heard = said.replace(/(?:(?:el )?d[ií]a de )?acci[oó]n de gracias/gi, 'Thanksgiving');
-  const ap = ctx.mind && typeof ctx.mind.appraise === 'function' ? ctx.mind.appraise(heard) : mindAppraise(heard);
+  // (a mind that cannot appraise a line, whatever word trips it, leaves the line unappraised, never unanswered)
+  const ap = appraiseSafely(heard, ctx.mind);
   // "I'm Marcus. What's your name?": a name given in one sentence of a longer line, read a sentence at a time
   if (!ap.facts.some(f => f && f.key === 'name')) {
     const sentences = heard.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
     if (sentences.length > 1) {
       for (const sn of sentences) {
-        const f = (mindAppraise(sn).facts || []).find(x => x && x.key === 'name');
+        const f = (appraiseSafely(sn).facts || []).find(x => x && x.key === 'name');
         if (f) { ap.facts = ap.facts.concat([f]); if (!ap.intents.includes('self-introduction')) ap.intents = ap.intents.concat(['self-introduction']); break; }
       }
     }
@@ -635,6 +656,10 @@ export function understand(text, ctx = {}) {
     let s = 0;
     for (const [re, w] of pats) if (re.test(scan)) s += w;
     if (s > 0) scores[intent] = s;
+  }
+  // "Tell me about your family.": a request names its topic plainly, and the topic it names is what is asked
+  if (/^(?:(?:so|and|now|ok|okay|well),? )?(?:(?:can|could|would|will) you |please )?(?:tell (?:me|us)|talk(?: to me)?|describe|explain)\b/.test(scan)) {
+    for (const k of Object.keys(scores)) if (TOPICAL.has(k) && k !== 'opinion' && k !== 'smalltalk' && scores[k] >= 1.5) scores[k] += 1.5;
   }
   const AI = new Set(ap.intents);
   // "did you have a good day?" asks about their day; "have a good day!" says goodbye
@@ -650,6 +675,8 @@ export function understand(text, ctx = {}) {
   const question = /\?/.test(raw) || /^(who|what|when|where|why|how|which|whose|do|does|did|is|are|was|were|can|could|would|will|should|have|has|any|anything|ever)\b/.test(scan)
     || (!!es && /^(qu[eé]|c[oó]mo|d[oó]nde|cu[aá]ndo|cu[aá]nto|cu[aá]ntos|qui[eé]n|por qu[eé]|tiene|tienes|eres|es usted|hay)(?![a-záéíóúñü])/.test(raw.toLowerCase()));
 
+  // what is not part of the game (a crisis, a sexual line or a lure, a threat) is read before anything else
+  const safety = safetyOf(raw, { age: ctx.age });
   // a probe is never a question to shrug at: hostile ones are insults, the rest get their own answer
   const probe = probeOf(scan);
   // hello in another language: a greeting (or a how-are-you) in any language
@@ -709,6 +736,13 @@ export function understand(text, ctx = {}) {
   const holidayAsk = !!holiday && !holidayGreeting && !otherTopic && (question || /\b(plans?|doing|going|cook|cooking|celebrate|celebrating|spend|spending|host|hosting|working|work|off|travel|traveling|turkey)\b/.test(scan));
   if (holidayGreeting) scores.greeting = Math.max(scores.greeting || 0, 4.6);
   else if (holidayAsk) scores.smalltalk = Math.max(scores.smalltalk || 0, 4.4);
+  // "what worries you?": their own worry (the opinion planner answers it)
+  const worry = !probe && WORRY_Q.test(scan);
+  if (worry) scores.opinion = Math.max(scores.opinion || 0, 5);
+  // a question about the player themselves: what the NPC remembers of them
+  const playerHit = probe ? null : PLAYER_Q.find(([, re]) => re.test(scan));
+  const player = playerHit ? playerHit[0] : null;
+  if (player) scores['about-me'] = Math.max(scores['about-me'] || 0, 5.2);
   // a worry named in the line ("how's the water situation for ranching?") is the subject, whatever work it is for:
   // read first, so the speaker's own job words in the same line do not take it over
   let ownInterest = null, concern = null;
@@ -740,7 +774,7 @@ export function understand(text, ctx = {}) {
     unclear: false, spanish: !!es,
     aboutThat: ABOUT_THAT.test(scan),
     likeIt: /\b(do|how do) you (like|enjoy|love) (it|that|that job|the job|your job|work|school|living here)\b|\bis it (fun|good|hard|nice|tough|stressful)\b/.test(scan),
-    probe: probe || null, sub: subOf(scan), followUp: false, aboutYou, holidayGreeting, holidayAsk,
+    probe: probe || null, sub: subOf(scan), followUp: false, aboutYou, holidayGreeting, holidayAsk, safety, worry,
   };
   if (flags.sub === 'like' && /\b(do|did) (you|ya) (like|enjoy|love)\b|\bhow do you like\b/.test(scan)) flags.likeIt = true;
   // a student asked how school is going: how they feel about it
@@ -755,7 +789,7 @@ export function understand(text, ctx = {}) {
   const strongest = k => (scores[k] || 0);
   if (intent === 'greeting' && ranked.length > 1 && !holidayGreeting) intent = ranked[1];
   if (intent === 'thanks' && scores.goodbye) intent = 'goodbye';
-  if (intent === 'opinion' && topical.length && !flags.politics && !flags.aboutPlayer && !concern && !(flags.religion && !topical.some(k => strongest(k) >= 3))) intent = topical[0];
+  if (intent === 'opinion' && topical.length && !flags.politics && !flags.aboutPlayer && !concern && !worry && !(flags.religion && !topical.some(k => strongest(k) >= 3))) intent = topical[0];
   if (intent === 'compliment' && question && topical.length && strongest(topical[0]) >= 3) intent = topical[0];
   if ((intent === 'apology' || intent === 'thanks') && topical.length && strongest(topical[0]) >= 3.5 && question) intent = topical[0];
   if (intent === 'directions' && !places.length && !routine.length && !roads.length) {
@@ -781,12 +815,20 @@ export function understand(text, ctx = {}) {
     const topicalHit = ranked.some(k => TOPICAL.has(k) && k !== 'opinion' && k !== 'smalltalk' && strongest(k) >= 2.5);
     const weak = ranked.every(k => strongest(k) < 3.5) || (sub !== 'whatAbout' && ['unknown', 'smalltalk', 'opinion', 'history', 'directions', 'about-them', 'neighborhood'].includes(intent) && strongest(intent) < 4.5 && !concern && !ownInterest && !langAsked && !heritage && !homeland && !favorite);
     const fits = SUB_CONTINUES[sub];
-    if (last && (!fits || fits.includes(last)) && (sub === 'whatAbout' ? !topicalHit : weak)) { intent = last; flags.followUp = true; }
+    // ("How is the traffic? Which freeway do you take?" after the weather is about the traffic: a topic named plainly
+    // in the line wins over the one the conversation was on)
+    const otherTopic = ranked.some(k => TOPICAL.has(k) && k !== last && k !== 'opinion' && k !== 'smalltalk' && strongest(k) >= 2.5);
+    if (last && (!fits || fits.includes(last)) && !otherTopic && (sub === 'whatAbout' ? !topicalHit : weak)) { intent = last; flags.followUp = true; }
     else if (weak && SUB_DEFAULT[sub] && !(sub === 'ahead' && topicalHit)) intent = SUB_DEFAULT[sub];
     else if (weak && sub === 'howLong') intent = /\b(lived|living|live|here|in this (?:house|place|neighborhood|town|area))\b/.test(scan) ? 'home' : /\b(work|job|done|doing|been an? |worked)\b/.test(scan) ? 'job' : intent;
     else if (weak && sub === 'like' && /\bbeing an? |\byour (?:job|work)\b|\bthe (?:job|work)\b/.test(scan)) intent = 'job';
   }
 
+  if (safety) { intent = 'safety'; flags.followUp = false; }
+  // a second topic asked in the same breath ("What about rent and insurance?"): told after the first, in a sentence
+  const SAME = { rent: ['housing', 'home'], housing: ['rent', 'home'], home: ['rent', 'housing'], weather: ['heat', 'storm'], heat: ['weather', 'storm'], storm: ['weather', 'heat'] };
+  const also = ['safety', 'insult', 'probe'].includes(intent) || flags.followUp ? [] : ranked.filter(k => k !== intent && TOPICAL.has(k) && !['opinion', 'smalltalk', 'about-them', 'neighborhood'].includes(k)
+    && strongest(k) >= 3.5 && !(SAME[intent] || []).includes(k)).slice(0, 1);
   const topics = new Set(ap.topics);
   const TOPIC_OF = { weather: 'weather', heat: 'weather', storm: 'weather', traffic: 'traffic', fire: 'fire', housing: 'housing', rent: 'rent', insurance: 'insurance', job: 'job', family: 'family', food: 'food', neighborhood: 'neighborhood', history: 'history', earthquake: 'neighborhood', home: 'housing' };
   if (TOPIC_OF[intent]) topics.add(TOPIC_OF[intent]);
@@ -796,10 +838,22 @@ export function understand(text, ctx = {}) {
     topics: [...topics],
     entities: {
       years, fires, roads, places, routine, interest: interestHit ? interestHit[1] : null, team: teamHit ? teamHit[0] : null,
-      ownInterest, concern, langAsked, heritage, demographic: demo, favorite, homeland, holiday, foreignLangs: foreign ? foreign.langs : null,
+      ownInterest, concern, langAsked, heritage, demographic: demo, favorite, homeland, holiday, foreignLangs: foreign ? foreign.langs : null, player,
     },
+    also,
     appraisal: { sentiment: num(ap.sentiment, 0), intents: ap.intents.slice(), topics: ap.topics.slice(), toxicity: num(ap.toxicity, 0), facts: ap.facts.slice() },
   };
+}
+
+const NO_APPRAISAL = Object.freeze({ sentiment: 0, intents: [], topics: [], toxicity: 0, facts: [] });
+
+/** The mind's appraisal of a line, or a neutral one when the appraisal fails or returns something malformed. */
+function appraiseSafely(text, mind = null) {
+  let ap = null;
+  try { ap = mind && typeof mind.appraise === 'function' ? mind.appraise(text) : mindAppraise(text); } catch { ap = null; }
+  if (!ap || typeof ap !== 'object') return { ...NO_APPRAISAL, intents: [], topics: [], facts: [] };
+  const list = x => (Array.isArray(x) ? x.filter(y => typeof y === 'string' || (y && typeof y === 'object')) : []);
+  return { sentiment: num(ap.sentiment, 0), intents: list(ap.intents), topics: list(ap.topics), toxicity: num(ap.toxicity, 0), facts: list(ap.facts).filter(f => f && typeof f === 'object') };
 }
 
 // A group the player asked about, as the Census language most of its people speak at home (for the neighborhood).

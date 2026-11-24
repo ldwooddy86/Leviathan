@@ -115,6 +115,83 @@ export const ROLE = {
   householder: 'Householder', spouse: 'Spouse', partner: 'Partner', child: 'Child', grandchild: 'Grandchild',
   parent: 'Parent', sibling: 'Sibling', relative: 'Relative', roommate: 'Roommate',
 };
+
+/**
+ * The member of the household whose children the grandchildren are, when the record leaves no doubt: the one child
+ * of the householder old enough (15 years or more older than the oldest grandchild). The same rule as the Claude
+ * sheet's (llm.mjs), so the Profile tab and the prompt name the same relatives.
+ */
+function grandchildParent(members) {
+  const all = (Array.isArray(members) ? members : []).filter(x => x && typeof x === 'object');
+  const kids = all.filter(x => x.role === 'grandchild');
+  if (!kids.length || kids.some(k => !isNum(k.age))) return null;
+  const oldest = Math.max(...kids.map(k => k.age));
+  const candidates = all.filter(x => x.role === 'child' && isNum(x.age) && x.age - oldest >= 15);
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+/**
+ * How one household member is related to another, in words ('aunt', 'brother', 'mother-in-law'). Household roles
+ * are the Census's, relative to the householder; this reads both roles (and `self.parents`, the member indices of
+ * the parents who live there, when the record lists them) the way llm.mjs does for the Claude sheet, so a
+ * householder's sister is the aunt of the householder's son, never his "sibling".
+ * @param {{role: string, m?: number, parents?: number[]|null}} self the person the relation is seen from
+ * @param {{role: string, sex?: string, m?: number}} other another member of the household
+ * @param {object[]} [members] the household's members (for grandchildren's parents)
+ * @returns {string}
+ */
+export function memberRelation(self, other, members = []) {
+  if (!self || !other) return 'relative';
+  const f = other.sex === 'F';
+  const g = (female, male) => (f ? female : male);
+  const r = other.role, selfRole = self.role || 'householder';
+  const gcParent = grandchildParent(members);
+  const isParentOfGrandkids = x => !!gcParent && Number.isInteger(x.m) && x.m === gcParent.m;
+  const listed = Array.isArray(self.parents) ? self.parents : null;
+  const mine = listed && Number.isInteger(other.m) ? listed.includes(other.m) : null;   // null: the record does not say
+  switch (selfRole) {
+    case 'householder':
+      if (r === 'parent' && mine === false) return g('mother-in-law', 'father-in-law');
+      return { spouse: g('wife', 'husband'), partner: 'partner', child: g('daughter', 'son'), grandchild: g('granddaughter', 'grandson'), parent: g('mother', 'father'), sibling: g('sister', 'brother'), roommate: 'roommate' }[r] || 'relative';
+    case 'spouse':
+    case 'partner':
+      if (r === 'parent' && mine === true) return g('mother', 'father');
+      return { householder: selfRole === 'spouse' ? g('wife', 'husband') : 'partner', child: g('daughter', 'son'), grandchild: g('granddaughter', 'grandson'), parent: g('mother-in-law', 'father-in-law'), sibling: g('sister-in-law', 'brother-in-law'), roommate: 'roommate' }[r] || 'relative';
+    case 'child':
+      if (r === 'grandchild') return isParentOfGrandkids(self) ? g('daughter', 'son') : g('niece', 'nephew');
+      if ((r === 'householder' || r === 'spouse') && mine === false && listed.length) return r === 'spouse' ? g('stepmother', 'stepfather') : "parent's spouse";
+      return { householder: g('mother', 'father'), spouse: g('mother', 'father'), partner: "parent's partner", child: g('sister', 'brother'), parent: g('grandmother', 'grandfather'), sibling: g('aunt', 'uncle'), roommate: 'roommate' }[r] || 'relative';
+    case 'grandchild':
+      if (r === 'child') return isParentOfGrandkids(other) ? g('mother', 'father') : g('aunt', 'uncle');
+      return { householder: g('grandmother', 'grandfather'), spouse: g('grandmother', 'grandfather'), partner: "grandparent's partner", grandchild: g('sister', 'brother'), parent: g('great-grandmother', 'great-grandfather'), sibling: g('great-aunt', 'great-uncle'), roommate: 'roommate' }[r] || 'relative';
+    case 'parent':
+      return { householder: g('daughter', 'son'), spouse: g('daughter-in-law', 'son-in-law'), partner: "child's partner", child: g('granddaughter', 'grandson'), grandchild: g('great-granddaughter', 'great-grandson'), parent: g('wife', 'husband'), sibling: g('daughter', 'son'), roommate: 'roommate' }[r] || 'relative';
+    case 'sibling':
+      if (r === 'parent' && mine === false) return 'relative';
+      return { householder: g('sister', 'brother'), spouse: g('sister-in-law', 'brother-in-law'), partner: "sibling's partner", child: g('niece', 'nephew'), grandchild: g('grandniece', 'grandnephew'), parent: g('mother', 'father'), sibling: g('sister', 'brother'), roommate: 'roommate' }[r] || 'relative';
+    case 'roommate':
+      return r === 'roommate' || r === 'householder' ? 'roommate' : `roommate's ${r === 'spouse' ? g('wife', 'husband') : r === 'child' ? g('daughter', 'son') : 'relative'}`;
+    default:
+      return 'relative';
+  }
+}
+
+/**
+ * Each other member of an NPC's household with their relation to the NPC: `[{member, relation}]` ('aunt', 'brother').
+ * @param {{m: number, role: string, parents?: number[], household?: {members?: object[]}}} npc
+ */
+export function householdRelations(npc) {
+  const members = (npc && npc.household && Array.isArray(npc.household.members) ? npc.household.members : []).filter(x => x && typeof x === 'object');
+  const self = { role: npc.role, m: npc.m, parents: Array.isArray(npc.parents) ? npc.parents : null };
+  return members.filter(x => x.m !== npc.m).map(member => ({ member, relation: memberRelation(self, member, members) }));
+}
+
+/** "a house", "an apartment", "a unit" (an article for a noun phrase; "u" read as "you" takes "a"). */
+export function withArticle(words) {
+  const w = String(words || '').trim();
+  return `${/^(?:[aeio]|u(?!n[iy]|s[aeu]|r[aeiou]|t[ei]|ku|biq))/i.test(w) || /^hour|^honest/i.test(w) ? 'an' : 'a'} ${w}`;
+}
+
 /** Commute modes as a noun phrase. */
 export const MODE = {
   drive: 'Drives alone', carpool: 'Carpools', bus: 'Bus', rail: 'Train', ferry: 'Ferry', taxi: 'Taxi or rideshare',

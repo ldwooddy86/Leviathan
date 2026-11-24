@@ -181,8 +181,9 @@ export const PEOPLE = compileBank({
     Getting my steps in.
   `,
   'act.worship': `
-    I'm on my way to church.
-    Heading to church.
+    I'm on my way to {worship}.
+    Heading to {worship}.
+    On my way to {worship}, actually.
   `,
   'act.visit': `
     I'm going to see family in {city}.
@@ -415,6 +416,67 @@ export const PEOPLE = compileBank({
     You never told me your name, actually.
     I don't know, you never said.
   `,
+  // ---------------------------------------------------------------- what they remember of the player (the mind's facts)
+  'me.remember': `
+    Of course I remember you, {player}.
+    Sure I do. {player}, right?
+    {player}! Of course I remember.
+    @kid I remember you! You're {player}.
+  `,
+  'me.rememberNoName': `
+    Sure, you look familiar. I don't think I ever got your name, though.
+    I think so. Remind me of your name?
+    @kid I think so!
+  `,
+  'me.notMet': `
+    I don't think we've met, actually.
+    Sorry, I don't think we've met before.
+    Have we met? I don't think so.
+    @kid I don't think I know you.
+  `,
+  'me.facts': `
+    You're {playerFacts}, if I remember right.
+    You're {playerFacts}, right?
+    {playerFactsCap}, if I remember right.
+  `,
+  'me.lastTime': `
+    You asked me about {prevTopic} last time.
+    Last time we talked about {prevTopic}.
+  `,
+  'me.job': `
+    You said you're {aPlayerJob}.
+    You're {aPlayerJob}, right?
+    You work as {aPlayerJob}, you told me.
+  `,
+  'me.jobUnknown': `
+    You never told me what you do.
+    I don't think you've told me what you do.
+  `,
+  'me.from': `
+    You're from {playerPlace}, right?
+    {playerPlace}, you said.
+    You told me {playerPlace}.
+  `,
+  'me.fromUnknown': `
+    You never told me where you're from.
+    I don't think you said where you're from.
+  `,
+  'me.lives': `
+    You live in {playerPlace}, you said.
+    In {playerPlace}, right?
+  `,
+  'me.livesUnknown': `
+    You never told me where you live.
+    I don't think you said where you live.
+  `,
+  'me.name': `
+    Your name's {player}.
+    You're {player}.
+  `,
+  'me.toldNothing': `
+    Not much, honestly. You haven't told me much about yourself.
+    Not a lot. You've been asking about me, mostly.
+  `,
 
   // ---------------------------------------------------------------- about them
   'about.bornHere': `
@@ -641,10 +703,11 @@ export const PEOPLE = compileBank({
     @plain No, I'm afraid not.
     @kid No.
   `,
-  'about.church': `
-    I go to church every Sunday.
-    Church on Sundays. It keeps me grounded.
-    Sunday mornings I'm at church.
+  // their own practice, by the place the record gives ("services", "the gurdwara"): never a church, never a god
+  'about.worship': `
+    I go to {worship} every {worshipDay}.
+    {worshipCap} on {worshipDay}s. It keeps me grounded.
+    {worshipDay} mornings I'm at {worship}.
   `,
 
   // ---------------------------------------------------------------- work and school
@@ -789,7 +852,7 @@ export const PEOPLE = compileBank({
     Longer than I'd like. Something will turn up.
   `,
   'job.homemakerSince': `
-    @kids Ever since the kids came along.
+    @minorkids Ever since the kids came along.
     For a while now. It's a full-time job.
   `,
   'job.since': `
@@ -844,7 +907,7 @@ export const PEOPLE = compileBank({
   `,
   'job.homemaker': `
     I run the house. It's a full-time job, believe me.
-    I'm home with the kids. That's a job and a half.
+    @minorkids I'm home with the kids. That's a job and a half.
     I keep the household going.
   `,
   'job.college': `
@@ -1395,6 +1458,11 @@ export const PEOPLE = compileBank({
     We redid the roof in {roofYear}.
     New roof in {roofYear}. Best money we ever spent.
   `,
+  // redone before the household bought the place
+  'home.roofBefore': `
+    The roof was redone in {roofYear}, before we bought it.
+    The last owners put on a new roof in {roofYear}.
+  `,
   'home.roofOld': `
     The roof's original. That's on my list.
     The roof's getting old. One more thing to worry about.
@@ -1944,7 +2012,7 @@ export const PEOPLE = compileBank({
   `,
   'probe.bias': `
     I try to treat everybody the same. Most people here do.
-    You'll find good and bad anywhere. I try to be one of the good ones.
+    You'll find good and bad anywhere. I just try to treat people right.
     People mostly get along around here. That's how I want it.
   `,
   'probe.selfBias': `
@@ -2010,6 +2078,102 @@ export const PEOPLE = compileBank({
     @plain No. And I won't listen to people talked about that way.
     @kid No! That's mean.
   `,
+  // ---------------------------------------------------------------- safety (dialogue/safety.mjs, care.mjs): never part of the game
+  // a crisis: kind, out of the scene, with 988 and 911 (the line also carries a note from Legion); never a joke, a
+  // pivot or a question back
+  'safe.crisis': `
+    @adult I'm really sorry you're feeling this way. I'm just someone you just met, but please talk to someone who can really help: call or text 988, any time, day or night. If you're in danger right now, call 911.
+    @adult Hey. I'm glad you said something. Please call or text 988 right now; they're there day and night. If you might act on it, call 911.
+    @adult That sounds really heavy, and you shouldn't carry it alone. You can call or text 988 any time, day or night. If you're in danger right now, call 911.
+    @teen That sounds really serious. Please tell an adult you trust, and call or text 988. If you're in danger right now, call 911.
+    @teen Please don't keep that to yourself. Call or text 988, or tell an adult you trust. If you're in danger right now, call 911.
+    @kid That sounds really bad. Please tell a grown-up you trust right now. You can call 988 too, or 911 if you're in danger.
+  `,
+  'safe.abuse': `
+    @adult I'm so sorry. Nobody has the right to hurt you, and it's not your fault. If you're in danger right now, call 911. You can call or text 988 any time too.
+    @adult That's not okay, and it's not your fault. If you're not safe, call 911. You can also call or text 988 to talk to someone.
+    @teen That's not okay, and it's not your fault. Tell an adult you trust, like a teacher, or call 911 if you're in danger. You can call or text 988 too.
+    @kid That's not okay, and it's not your fault. Tell a grown-up you trust, like a teacher. If you're in danger, call 911.
+  `,
+  'safe.emergency': `
+    @adult That sounds like an emergency. Call 911 right now.
+    @adult Call 911 right now. Don't wait.
+    @teen That's an emergency. Call 911 right now!
+    @kid That's an emergency! Call 911!
+  `,
+  // a sexual line, an advance or a lure: an adult declines and leaves; a plain romantic line gets a polite no
+  'safe.sexual': `
+    No. I'm not talking to you about that. We're done.
+    Absolutely not. I'm leaving.
+    No. That's not okay. I'm done with this conversation.
+    @blunt No. Get away from me.
+    @plain I don't appreciate that. This conversation is over.
+  `,
+  'safe.lure': `
+    No. I don't go anywhere with people I don't know. Goodbye.
+    No, thanks. I'm leaving now.
+    @plain No. I'd like you to leave me alone.
+  `,
+  'safe.alone': `
+    Why would you ask me that? I'm done talking.
+    That's not something you ask a stranger. Goodbye.
+    @plain I don't answer questions like that. Goodbye.
+  `,
+  'safe.romance': `
+    Ha. No, thanks.
+    I'm flattered, but no.
+    That's not happening. Let's leave it there.
+    @plain That's kind of you, but no.
+  `,
+  // a minor refuses, says nothing of where they live or who is home, and goes to find a grown-up
+  'safe.minor': `
+    @kid I'm not allowed to talk to strangers about that. I'm going to find {carer}.
+    @kid I don't like that. I'm going to go get {carer}.
+    @kid No! I'm going to tell {carer}.
+    @kid I'm not supposed to talk to strangers. Bye.
+    @teen That's creepy. I'm not talking to you. I'm going to find {carer}.
+    @teen No. I don't talk to strangers about that stuff. I'm leaving.
+    @teen Nope. I'm going to go find {carer} now.
+  `,
+  'safe.minor.where': `
+    @kid I'm not supposed to tell strangers that. I'm going to find {carer}.
+    @kid I'm not allowed to say. I'm going to go get {carer}.
+    @kid I'm not allowed to say. Bye.
+    @teen I don't tell strangers where I live. I'm leaving.
+    @teen That's not something I tell people I don't know. I'm going to find {carer}.
+    @teen Why do you want to know that? I'm out of here.
+  `,
+  // a threat: firm, and the conversation is over; a threat of mass violence gets a word about calling 911
+  'safe.threat': `
+    That's a threat. I'm done talking to you.
+    I'm not listening to threats. Leave me alone.
+    @blunt Get away from me. Now.
+    @plain That is a threat, and I won't stay and listen to it.
+  `,
+  'safe.threat.mass': `
+    That's not a joke. If you mean it, I'm calling 911.
+    If you mean that, I'm calling 911 right now.
+  `,
+  'safe.threat.ice': `
+    That's a threat, and I'm not going to stand here for it.
+    I'm not going to be threatened. We're done.
+    @plain Threatening people is not okay. This conversation is over.
+  `,
+  'safe.threat.minor': `
+    @kid That's scary. I'm going to tell {carer}.
+    @kid I'm telling {carer}!
+    @kid I'm going to go get a grown-up.
+    @teen Whoa. I'm out of here. I'm telling {carer}.
+    @teen That's messed up. I'm leaving.
+  `,
+  // after leaving: a word, never another conversation
+  'safe.after': `
+    I said we're done.
+    I'm not talking to you.
+    Please just go.
+    @plain I have nothing more to say to you.
+  `,
+
   'name.rude': `
     I'm not calling you that.
     Nice try. What's your real name?
@@ -2361,6 +2525,17 @@ export const PEOPLE = compileBank({
     My family keeps me busy, that's for sure.
     I should get home to my family soon.
     I'm always running around for my family.
+  `,
+  // "what worries you?": their biggest worry, first
+  'worry.top': `
+    {concernCap}, honestly.
+    Mostly {concern}.
+    What I worry about most is {concern}.
+    @kid {concernCap}.
+  `,
+  'worry.none': `
+    Not much, honestly. I try not to worry.
+    I don't worry much. Things work out.
   `,
   'pivot.weather': `
     Some weather today, huh? {temp} degrees.

@@ -27,14 +27,14 @@ export const FAMILIES = {
       Amtrak | transit | the Pacific Surfliner out of Union Station, up to Santa Barbara or down to San Diego
     `),
     greetings: lines(`
-      Hey! How's it going? How was the drive?
+      @met Hey! How's it going? How was the drive?
       @wx:heat Hey, what's up? You staying cool?
-      Hi! Long time, how've you been?
+      @met Hi! Long time, how've you been?
       Hey there, how was traffic?
       Oh my gosh, hi!
       Hey, what's going on?
       @h4-11 @wx:fog Morning! You see how gray it is?
-      Hey! You survived the freeway.
+      @met Hey! You survived the freeway.
     `),
     farewells: lines(`
       @drives Okay, I gotta go beat traffic.
@@ -155,7 +155,7 @@ export const FAMILIES = {
       @drives Parking tickets in this city are a racket.
       Every time it's windy now, I worry about fires.
       The Metro's great if it goes where you're going. It doesn't.
-      @adult Insurance companies are pulling out of the hills.
+      @ins:high @adult Insurance companies are pulling out of the hills.
     `),
     food: lines(`
       Taco truck tacos at midnight. That's LA.
@@ -225,12 +225,12 @@ export const FAMILIES = {
     `),
     greetings: lines(`
       Hey! How's it going?
-      Hi! How was the drive?
+      @met Hi! How was the drive?
       Hey, what's up? Beach later?
-      Oh hey! Good to see you!
+      @met Oh hey! Good to see you!
       @wx:clear Hey there! Gorgeous day, huh?
       Hi! How's your week going?
-      Hey! You survived the 405.
+      @met Hey! You survived the 405.
       @h4-11 @wx:fog Morning! Gray at the beach again?
     `),
     farewells: lines(`
@@ -317,7 +317,7 @@ export const FAMILIES = {
       @drives The toll roads cost a fortune.
       Traffic on the 405 is a full-time job.
       Everything's a strip mall.
-      @adult Insurance in the canyons is impossible now.
+      @ins:high @adult Insurance in the canyons is impossible now.
     `),
     food: lines(`
       Pho in Little Saigon is the best anywhere.
@@ -349,11 +349,11 @@ export const FAMILIES = {
     greetings: lines(`
       @wx:heat Hey, what's up? Hot enough for you?
       Hey! How's it going? You working today?
-      What's going on? How was the drive?
-      Hey, long time! You still around here?
+      @met What's going on? How was the drive?
+      @met Hey, long time! You still around here?
       @h4-11 @wx:heat Morning! Already hot, huh?
       Hey there! You beat the traffic?
-      What's up! How's the family?
+      @met What's up! How's the family?
       Hey! You make it back from the coast okay?
     `),
     farewells: lines(`
@@ -480,11 +480,11 @@ export const FAMILIES = {
       @wx:heat Hey! Staying cool?
       @h4-11 @m4-10 Morning! Get your walk in before the heat?
       Hey there, how's it going?
-      @m10-12 Well, hey! You're back! Haven't seen you in months.
+      @met @m10-12 Well, hey! You're back! Haven't seen you in months.
       @m10-12 Hey! You back for the season?
       @h4-11 @wx:heat Morning! Gonna be a scorcher.
       @wx:heat Hi! How's the heat treating you?
-      Hey, good to see you out and about.
+      @met Hey, good to see you out and about.
     `),
     farewells: lines(`
       Stay hydrated out there.
@@ -622,7 +622,7 @@ export const FAMILIES = {
       Hey there! How's everything?
       Oh hey! You heading to the beach?
       Hi! How's your week been?
-      Hey! Long time, what's new?
+      @met Hey! Long time, what's new?
       @h4-11 @wx:clear Morning! Another perfect one.
     `),
     farewells: lines(`

@@ -182,6 +182,41 @@ export function safeJSON(value, space = 2) {
   }, space);
 }
 
+/**
+ * The handle of a bottom sheet (on phones; CSS hides it on wide screens): a button that switches the sheet between
+ * its usual height and nearly the whole screen (the class `is-expanded` on the sheet). A tap toggles; a drag of the
+ * handle up expands and down shrinks. `onChange(expanded)` runs after each change the handle makes; the handle also
+ * follows the class when the panel sets it itself (the NPC panel opens tall on its Talk tab).
+ * @param {HTMLElement} sheet
+ * @param {{label?: string, onChange?: (expanded: boolean) => void}} [options]
+ * @returns {HTMLButtonElement}
+ */
+export function sheetGrip(sheet, { label = 'panel', onChange } = {}) {
+  const btn = h('button.sheet-grip', { type: 'button', 'aria-expanded': 'false', 'aria-label': `Expand the ${label} panel`, title: 'Drag or tap to resize' });
+  const sync = () => {
+    const on = sheet.classList.contains('is-expanded');
+    btn.setAttribute('aria-expanded', String(on));
+    btn.setAttribute('aria-label', `${on ? 'Shrink' : 'Expand'} the ${label} panel`);
+  };
+  const set = on => { sheet.classList.toggle('is-expanded', on); sync(); if (onChange) onChange(on); };
+  let startY = null, dragged = false;
+  btn.addEventListener('pointerdown', e => { startY = e.clientY; dragged = false; try { btn.setPointerCapture(e.pointerId); } catch { /* old browsers */ } });
+  btn.addEventListener('pointermove', e => {
+    if (startY === null) return;
+    const dy = e.clientY - startY;
+    if (Math.abs(dy) >= 24) { dragged = true; startY = null; set(dy < 0); }
+  });
+  const end = () => { startY = null; };
+  btn.addEventListener('pointerup', end);
+  btn.addEventListener('pointercancel', end);
+  btn.addEventListener('click', e => {
+    if (dragged) { dragged = false; e.preventDefault(); return; }
+    set(!sheet.classList.contains('is-expanded'));
+  });
+  if (typeof MutationObserver === 'function') new MutationObserver(sync).observe(sheet, { attributes: true, attributeFilter: ['class'] });
+  return btn;
+}
+
 /** True when the user asked for reduced motion. */
 export function prefersReducedMotion() {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }

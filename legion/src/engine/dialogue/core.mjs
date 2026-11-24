@@ -266,6 +266,8 @@ export const TAG_TESTS = Object.freeze({
   withparents: v => !!v.flags.withParents, widowed: v => !!v.flags.widowed, male: v => v.sex === 'M', female: v => v.sex === 'F',
   // works their own farm or ranch from home
   farm: v => !!v.flags.onFarm,
+  // serves in the military: their commute is to a base
+  military: v => !!v.flags.military,
   // the relationship with the player
   stranger: v => !v.relq.known, known: v => !!v.relq.known, friendly: v => v.relq.affinity >= 0.15, guarded: v => !!v.relq.guarded,
   named: v => !!v.relq.name,

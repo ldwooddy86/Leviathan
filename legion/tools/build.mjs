@@ -23,6 +23,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseArgs } from 'node:util';
 import vm from 'node:vm';
 import zlib from 'node:zlib';
 import crypto from 'node:crypto';
@@ -343,12 +344,31 @@ export async function check(file = OUT_FILE) {
   return { ok: problems.length === 0, problems, info };
 }
 
+/** The command line: `node tools/build.mjs [--out FILE] [--check | --check-only] [--quiet]`. */
+export const USAGE = 'Usage: node tools/build.mjs [--out FILE] [--check | --check-only] [--quiet]';
+
+/**
+ * The options of the command line, or {error} for a usage error: an unknown option, or --out without a file name
+ * (a value that starts with "--" is the next option, never the file).
+ * @param {string[]} args the arguments after the script
+ * @returns {{out: string, check: boolean, checkOnly: boolean, quiet: boolean} | {error: string}}
+ */
+export function parseBuildArgs(args) {
+  let parsed;
+  try {
+    parsed = parseArgs({ args, options: { out: { type: 'string' }, check: { type: 'boolean' }, 'check-only': { type: 'boolean' }, quiet: { type: 'boolean' } }, strict: true, allowPositionals: false });
+  } catch (e) { return { error: e.message }; }
+  const v = parsed.values;
+  if (v.out !== undefined && (!v.out || v.out.startsWith('-'))) return { error: `--out needs a file name, not "${v.out}"` };
+  return { out: v.out ? path.resolve(v.out) : OUT_FILE, check: !!v.check, checkOnly: !!v['check-only'], quiet: !!v.quiet };
+}
+
 async function main(argv) {
-  const args = argv.slice(2);
-  const outAt = args.indexOf('--out');
-  const out = outAt >= 0 && args[outAt + 1] ? path.resolve(args[outAt + 1]) : OUT_FILE;
-  if (!args.includes('--check-only')) await build({ out, quiet: args.includes('--quiet') });
-  if (args.includes('--check') || args.includes('--check-only')) {
+  const o = parseBuildArgs(argv.slice(2));
+  if (o.error) { console.error(`${o.error}\n${USAGE}`); process.exitCode = 2; return; }
+  const out = o.out;
+  if (!o.checkOnly) await build({ out, quiet: o.quiet });
+  if (o.check || o.checkOnly) {
     const r = await check(out);
     if (r.ok) console.log(`check ok: ${MB(r.info.bytes)}, app ${KB(r.info.app)}, ${r.info.worker ? `worker ${KB(r.info.worker)}` : 'no worker'}, pack loads (${r.info.zips} ZIPs, ${r.info.population.toLocaleString('en-US')} people; sampled ${r.info.sampled.join(', ')})`);
     else { console.error(`check failed:\n  - ${r.problems.join('\n  - ')}`); process.exitCode = 1; }

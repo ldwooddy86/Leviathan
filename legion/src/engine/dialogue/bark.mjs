@@ -235,17 +235,22 @@ function sayBark(S, key, slots = {}, facts = []) {
   return list ? sayFrom(S, list, key, slots, facts) : null;
 }
 
+// A line as compared for an echo: letters and digits only, lower case.
+const echoKey = s => String(s || '').toLowerCase().normalize('NFD').replace(/\p{M}+/gu, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
 function sayFrom(S, list, key, slots, facts) {
   const v = S.v;
   const all = Object.assign({}, S.base, slots);
+  // (slots._not: a line the other person just said, which a reply never says back word for word)
+  const not = slots && slots._not ? echoKey(slots._not) : null;
   const usable = S.rng.shuffle(list.filter(l => tagsHold(l, v)));
   for (const line of usable) {
     if (v.lang.mode === 'en') {
       const a = fillLine(line.text, all);
-      if (a && cleanText(a.text) && fitsLife(a.text, v, { familiar: true })) return { text: a.text, gloss: null, facts, key };
+      if (a && cleanText(a.text) && fitsLife(a.text, v, { familiar: true }) && (!not || echoKey(a.text) !== not)) return { text: a.text, gloss: null, facts, key };
     } else {
       const es = fillLine(line.text, all), en = fillLine(line.gloss, all);
-      if (es && en && cleanText(es.text) && cleanText(en.text)) return v.lang.mode === 'es' ? { text: es.text, gloss: en.text, facts, key } : { text: en.text, gloss: null, facts, key };
+      if (es && en && cleanText(es.text) && cleanText(en.text) && (!not || (echoKey(es.text) !== not && echoKey(en.text) !== not))) return v.lang.mode === 'es' ? { text: es.text, gloss: en.text, facts, key } : { text: en.text, gloss: null, facts, key };
     }
   }
   return null;
@@ -274,12 +279,13 @@ function audienceFits(gloss, v, vo) {
  * the listener's sex and age decide the phrases tied to them, and a speaker who says usted to strangers, or anyone
  * talking to someone much older, keeps to the respectful forms (no "¿Qué onda?" from a grandmother).
  */
-function phrase(v, lang, intent, rng, vo = null) {
+function phrase(v, lang, intent, rng, vo = null, not = null) {
   const respect = !!v.lang.usted || (vo && vo.age - v.age >= 15);
   const opts = { sex: v.sex, t: v.t, variety: v.lang.known === lang ? v.lang.variety : undefined, faith: v.lang.faith, to: vo ? vo.sex : undefined, register: respect ? 'respect' : undefined };
+  // (never the very line the other person just said: "¿Qué tal todo?" is not answered "¿Qué tal todo?")
   const list = (phrasesFor(lang, intent, opts) || [])
     .filter(e => (!e.to || (vo && e.to === vo.sex)) && audienceFits(e.gloss, v, vo)
-      && (lang !== 'spanish' || (respect ? !TU_FORMS.test(e.text) : true)));
+      && (lang !== 'spanish' || (respect ? !TU_FORMS.test(e.text) : true)) && (!not || echoKey(e.text) !== echoKey(not)));
   const e = rng.pick(list);
   return e ? { text: e.text, gloss: cleanGloss(e.gloss) } : null;
 }
@@ -299,7 +305,8 @@ function barkLine(world, persona, context = {}) {
   const rng = new Rng(hashAll('bark', persona.id || '', other ? other.id || '' : '', Math.floor(t / 60000), situation, context.salt || 0));
   const S = session(v, rng);
   const W = G.weatherFacts(v);
-  const slots = { temp: W.temp, alert: W.alerts[0] ? W.alerts[0].event : null };
+  // (an estimated temperature is not said as a fact in passing)
+  const slots = { temp: W.tempExact, alert: W.alerts[0] ? W.alerts[0].event : null };
   const done = (p, kind, lang = null) => (p && p.text ? { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null, kind, lang, question: /\?$/.test(p.text.trim()) } : null);
   // the neighbor they say it to, whose age and sex some phrases depend on
   let vo = null;
@@ -379,8 +386,18 @@ function replyTo(world, persona, opener, context, from = null) {
   const S = session(v, rng);
   const W = G.weatherFacts(v);
   if (opener && opener.lang && (v.lang.known === opener.lang || (v.lang.cs && v.lang.cs.lang === opener.lang))) {
-    const p = phrase(v, opener.lang, opener.question ? 'how_are_you' : 'greeting', rng, vo) || phrase(v, opener.lang, 'greeting', rng, vo);
-    if (p) return { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null };
+    // a "how are you?" in Spanish is answered in Spanish ("Bien, gracias. ¿Y usted?"), never with the same question;
+    // a hello in a shared language is answered with a hello of its own
+    if (opener.question && opener.lang === 'spanish') {
+      const mode0 = v.lang.mode;
+      v.lang.mode = 'es';
+      let a = null;
+      try { a = sayBark(S, 'bark.replyHow', { _not: opener.text }); } finally { v.lang.mode = mode0; }
+      if (a) return { text: tidy(terminate(a.text)), gloss: a.gloss ? tidy(terminate(a.gloss)) : null };
+    } else if (!opener.question) {
+      const p = phrase(v, opener.lang, 'greeting', rng, vo, opener.text);
+      if (p) return { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null };
+    }
   }
   let key = 'bark.replyGreet';
   if (opener) {
@@ -390,9 +407,11 @@ function replyTo(world, persona, opener, context, from = null) {
     else if (opener.question) key = 'bark.replyHow';
   }
   let p = null;
+  const not = opener ? opener.text : null;
   if (key === 'bark.replyWeather' && v.lang.mode === 'en' && rng.chance(0.4)) p = lex(S, 'agreement');
-  if (!p) p = sayBark(S, key, { temp: W.temp });
-  if (!p) p = sayBark(S, 'bark.replyGreet', {});
+  if (p && not && echoKey(p.text) === echoKey(not)) p = null;
+  if (!p) p = sayBark(S, key, { temp: W.tempExact, _not: not });
+  if (!p) p = sayBark(S, 'bark.replyGreet', { _not: not });
   return p ? { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null } : null;
 }
 

@@ -136,7 +136,8 @@ export class StreetView {
       this.root = root; this.canvas = cv; this.ownsRoot = true;
     }
     const tip = document.createElement('div');
-    tip.className = 'legion-street-tip';
+    tip.className = 'legion-street-tip street-tip';
+    tip.setAttribute('role', 'tooltip');
     tip.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;display:none;padding:5px 9px;border-radius:8px;font:12px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.25);z-index:3;'
       + 'background:var(--street-tip-bg,var(--panel,rgba(22,24,28,.92)));color:var(--street-tip-fg,var(--fg,#f2f0ea))';
     const status = document.createElement('div');
@@ -389,6 +390,8 @@ export class StreetView {
     if (this._lastT !== undefined && dtReal > 0) this._clockRate = (this._clockRate || 1) * 0.9 + Math.min(1e4, Math.abs(t - this._lastT) / dtReal) * 0.1;
     this._lastT = t;
     const simAt = now();
+    // the people whose homes are on screen are moved over to their own schedules first (see StreetSim.upgrade)
+    if (this.sim) this.sim.focus = { x: this.cam.x, y: this.cam.y };
     this._advance(t);
     const simMs = now() - simAt;
     const sim = this.sim;
@@ -416,7 +419,9 @@ export class StreetView {
     if (!this.tip.parentElement) this._attachOverlays();
     const cam = { x: c.x, y: c.y, z: c.z, dpr: this.dpr, W: this.canvas.width, H: this.canvas.height };
     // an out-of-date tile (the sun moved) is redrawn only in a frame the simulation left room in
-    this.renderer.frame(cam, sim, { t, light, fx: this._fx, nowMs, selected: this.selectedUid, hover: this.hoverUid, labels: true, theme: this.theme, staleTiles: simMs > 8 ? 0 : 1, clockRate: this._clockRate || 1 });
+    // someone selected who is indoors at home in this view: their house is outlined
+    const home = this.selectedId && this.selectedUid < 0 && typeof sim.homeOf === 'function' ? sim.homeOf(this.selectedId) : -1;
+    this.renderer.frame(cam, sim, { t, light, fx: this._fx, nowMs, selected: this.selectedUid, hover: this.hoverUid, home, labels: true, theme: this.theme, staleTiles: simMs > 8 ? 0 : 1, clockRate: this._clockRate || 1 });
     this._lastCam = cam;
     this._light = light;
     if (this.hoverUid >= 0) this._placeTip();
@@ -497,6 +502,8 @@ export class StreetView {
   /** Select an NPC by id (or null to clear); emits 'select'. */
   select(id) {
     this.selectedId = id || null;
+    // the person chosen (and their household) follow their own schedule at once, not after the background hand-over
+    if (id && this.sim && typeof this.sim.upgradeIds === 'function') { try { this.sim.upgradeIds([id]); } catch { /* placed on the next look */ } }
     const a = id && this.sim ? this.sim.agentOf(id) : null;
     this.selectedUid = a ? a.uid : -1;
     if (!id) this.follow(false);

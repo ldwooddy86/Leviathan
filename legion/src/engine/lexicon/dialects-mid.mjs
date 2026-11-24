@@ -26,8 +26,8 @@ export const FAMILIES = {
       Oh hey, I didn't expect to see you here.
       Hey there! You get down to the beach yet?
       @h4-11 @wx:wind Morning! Windy one today.
-      Hey! How was the drive up the coast?
-      Hi! Long time, how's everybody?
+      @met Hey! How was the drive up the coast?
+      @met Hi! Long time, how's everybody?
     `),
     farewells: lines(`
       @wx:clear,heat All right, enjoy the sunshine while it lasts.
@@ -268,7 +268,7 @@ export const FAMILIES = {
     `),
     complaintLines: lines(`
       Tourists park anywhere and leave trash everywhere.
-      @adult Fire insurance up here is impossible.
+      @ins:high @adult Fire insurance up here is impossible.
       The power goes out every time the wind blows.
       Second homes sit empty while locals can't find a rental.
       @adult Everything costs more up here, even groceries.
@@ -569,7 +569,7 @@ export const KEYS = {
       Real community. People here show up.
     `),
     complaintLines: lines(`
-      @adult Fire insurance up here is almost impossible to get now.
+      @ins:high @adult Fire insurance up here is almost impossible to get now.
       @anytime The power shutoffs every fall are a nightmare.
       Commuting down to Sacramento eats your whole day.
       Retirees from the Bay bought up everything.
@@ -616,7 +616,7 @@ export const KEYS = {
       @anytime Every fire season we wonder if this is the one.
       Visitors come up in flip-flops and don't respect the mountains.
       The nearest big hospital is a long drive down the hill.
-      @adult Fire insurance, power shutoffs, smoke. Every year.
+      @ins:high @adult Fire insurance, power shutoffs, smoke. Every year.
     `),
     food: lines(`
       Coffee and pie on the drive up the hill.
@@ -709,7 +709,7 @@ export const KEYS = {
       Weekend crowds trash the forest.
       The fire risk up here never goes away.
       The power goes out with every storm.
-      @adult Insurance companies won't write policies up here anymore.
+      @ins:high @adult Insurance companies won't write policies up here anymore.
     `),
     food: lines(`
       Apple pie in Julian.

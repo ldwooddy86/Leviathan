@@ -63,7 +63,11 @@ export const SPEAKER_NEEDS = Object.freeze({
   rooted: { means: "the speaker grew up here and the family goes back generations", test: c => c.nativeHere !== false && !(Number.isFinite(c.generation) && c.generation < 3) },
 });
 
-const SITUATION_FLAGS = new Set(['offshore', 'coast', 'inland', 'anytime']);
+// @met: the listener is someone the speaker already knows (the dialogue passes met: true from the mind); a greeting
+// such as "Haven't seen you in forever" is never said to a stranger.
+const SITUATION_FLAGS = new Set(['offshore', 'coast', 'inland', 'anytime', 'met']);
+/** Levels a line can require of the ZIP's insurance market with @ins:<level> (situation.insurance, from slotsFor). */
+export const INSURANCE_LEVELS = Object.freeze(['high', 'normal']);
 
 function range(a, b, lo, hi, what, line) {
   const x = +a, y = b === undefined ? x : +b;
@@ -82,7 +86,7 @@ function range(a, b, lo, hi, what, line) {
 export function parseTagged(line) {
   let rest = String(line).trim();
   if (!rest.startsWith('@')) return { text: rest, tags: null };
-  const t = { months: null, hours: null, wx: null, alerts: null, counties: null, flags: [], needs: [] };
+  const t = { months: null, hours: null, wx: null, alerts: null, counties: null, ins: null, flags: [], needs: [] };
   let m;
   while ((m = /^(@\S+)\s+/.exec(rest))) {
     const tok = m[1];
@@ -96,6 +100,9 @@ export function parseTagged(line) {
     } else if ((r = /^@alert:([a-z]+)$/.exec(tok))) {
       if (!ALERT_TESTS[r[1]]) throw new Error(`lexicon: unknown alert kind "${r[1]}" in "${line}"`);
       (t.alerts || (t.alerts = [])).push(r[1]);
+    } else if ((r = /^@ins:([a-z]+)$/.exec(tok))) {
+      if (!INSURANCE_LEVELS.includes(r[1])) throw new Error(`lexicon: unknown insurance level "${r[1]}" in "${line}"`);
+      t.ins = r[1];
     } else if ((r = /^@county:([A-Za-z_|]+)$/.exec(tok))) {
       t.counties = r[1].split('|').filter(Boolean).map(s => s.replace(/_/g, ' '));
       if (!t.counties.length) throw new Error(`lexicon: empty county tag in "${line}"`);
@@ -174,7 +181,9 @@ function fits(tags, c) {
     if (!tags.alerts.every(k => events.some(ALERT_TESTS[k]))) return false;
   }
   if (tags.counties && !tags.counties.includes(c.county)) return false;
+  if (tags.ins && c.insurance !== tags.ins) return false;
   for (const f of tags.flags) {
+    if (f === 'met' && c.met !== true) return false;
     if (f === 'offshore' && c.offshore !== true) return false;
     if (f === 'coast' && !(Number.isFinite(c.coastKm) && c.coastKm <= COAST_KM)) return false;
     if (f === 'inland' && !(Number.isFinite(c.coastKm) && c.coastKm > COAST_KM)) return false;

@@ -7,7 +7,7 @@ import { atPacific } from '../src/engine/clock.mjs';
 import {
   buildAgents, buildRoadNet, planHighway, roadAt, agentPosition, agentPhase, agentPlace, agentKind, colorClass, agentGLSL,
   countStates, pickNearest, pickIndexBytes, decodeId, commuteTiming, modeCode, simTime, rushFactor, errTravel, newPhase,
-  lodValue, zipOrder,
+  lodValue, zipOrder, errandJitter, outingsOn, outingPeriod, WEEKEND_EARLY, lineSpeedKmh,
   MODES, MODE_KIND, KINDS, STATES, CROWD, AGENT_BYTES, NO_DEPART, STUDENT_BIT, CLASS_BIT, PICK_MARGIN,
   K_DRIVE, K_WALK, K_ERRAND, K_HOME, S_HOME, S_OUT, S_WORK, S_BACK, S_EOUT, S_EAT, S_EBACK,
 } from '../src/world/crowd-build.mjs';
@@ -217,7 +217,7 @@ test('the position function matches the expected point at trip midpoints, on sep
     agentPosition(A, i, mOut, dOut, net, o);
     agentPosition(A, i, mBack, dBack, net, o2);
     assert.equal(o.state, S_OUT); assert.equal(o2.state, S_BACK);
-    const jit = A.errand[i] >>> 26, lane = (jit & 7) / 7, cv = ((jit >> 3) & 7) / 7 * 2 - 1;
+    const { lane, cv } = errandJitter(A.errand[i]);
     const kind = MODE_KIND[A.mode[i] & 15];
     const laneOff = kind === K_DRIVE ? CROWD.laneDrive0 + CROWD.laneDrive1 * lane : CROWD.laneOther0 + CROWD.laneOther1 * lane;
     assert.equal(o.kind, kind < 0 ? K_WALK : kind);
@@ -304,10 +304,12 @@ test('errands: near home, on land, inside the day, and never during the commute'
     const start = e & 2047, dwell = ((e >>> 11) & 127) * 2, tt = errTravel(A.eoff[2 * i] * 0.25, A.eoff[2 * i + 1] * 0.25, (e >>> 25) & 1, uk);
     assert.ok(start + 2 * tt + dwell <= 1440, 'home before midnight');
     if (n % 7) continue;
-    // at the errand's midpoint the person is out on it, unless a commute (theirs, from that day or the night before) claims the time
+    // at the errand's midpoint the person is out on it, unless a commute (theirs, from that day or the night before)
+    // claims the time; on a weekend the day's first outing starts WEEKEND_EARLY minutes sooner
     for (let d = 0; d < 7; d++) {
       if (!((eDays >> d) & 1)) continue;
-      const s = agentPhase(A, i, start + tt + dwell / 2, d, P);
+      const first = start - (d === 0 || d === 6 ? Math.min(WEEKEND_EARLY, start) : 0);
+      const s = agentPhase(A, i, first + tt + dwell / 2, d, P);
       assert.ok(s === S_EAT || s === S_OUT || s === S_WORK || s === S_BACK, STATES[s]);
       if (A.days[i] && ((A.days[i] >> d) & 1)) {
         const dep = A.timing[3 * i], span = 2 * A.timing[3 * i + 1] + A.timing[3 * i + 2];
@@ -554,4 +556,117 @@ test('a million agents statewide build in seconds', () => {
   assert.ok(total < 6000, `warm total ${Math.round(total)} ms`);
   assert.ok(coldMs < 20000, `cold total ${Math.round(coldMs)} ms`);
   assert.ok(summary.pickBytesPerAgent < 5 && summary.bytesPerAgent + summary.pickBytesPerAgent < 40, `${summary.bytesPerAgent} + ${summary.pickBytesPerAgent} bytes per agent`);
+});
+
+test('outings: a day off has more of them, each one period after the last and home before midnight (exp-64)', () => {
+  // start 9:00, dwell 30 min, every day, by car, 2 units east, three repeats
+  const word = (540 | (15 << 11) | (127 << 18) | (1 << 25) | (3 << 30)) >>> 0;
+  const c = oneAgent({ days: 0, mode: null, errand: word, eoff: [8, 0] });
+  const tt = errTravel(2, 0, 1, uk), P = newPhase();
+  assert.equal(outingsOn(word, 6, false), 4, 'a Saturday: the outing and three more');
+  assert.equal(outingsOn(word, 3, false), 2, 'a weekday: half the repeats');
+  assert.equal(outingsOn(word, 3, true), 1, 'a commute day: one');
+  const sat = outingPeriod(word, tt), wed = 2 * sat, first = 540 - WEEKEND_EARLY;
+  // Saturday: four outings, an hour earlier
+  for (let k = 0; k < 4; k++) {
+    const s0 = first + k * sat;
+    if (s0 + 2 * tt + 30 > 1439) break;
+    assert.equal(agentPhase(c, 0, s0 + tt / 2, 6, P), S_EOUT, `outing ${k} out`);
+    assert.equal(agentPhase(c, 0, s0 + tt + 15, 6, P), S_EAT, `outing ${k} there`);
+    assert.equal(agentPhase(c, 0, s0 + 1.5 * tt + 30, 6, P), S_EBACK, `outing ${k} back`);
+    assert.equal(agentPhase(c, 0, s0 + 2 * tt + 31, 6, P), S_HOME, `outing ${k} home again`);
+  }
+  // Wednesday: the second outing later in the day
+  assert.equal(agentPhase(c, 0, 540 + wed + tt / 2, 3, P), S_EOUT);
+  assert.equal(agentPhase(c, 0, 540 + sat + tt / 2, 3, P), S_HOME, 'not at the weekend spacing');
+  // the GLSL twin reads the same fields
+  const src = agentGLSL(net);
+  assert.match(src, /uint rep = \(ew >> 30u\) & 3u;/);
+  assert.match(src, /WEEKEND_EARLY/);
+  assert.deepEqual(errandJitter(word), { lane: 0, cv: -1, repeats: 3 });
+});
+
+test('the crowd is out and about when the NPCs\' own schedules are: weekday and Saturday middays within 30% (exp-64)', async () => {
+  const { createLegion } = await import('../src/engine/platform.mjs');
+  const L = await createLegion({ seed: LEGION_SEED });
+  const zips = ['94110', '93710', '92620', '95820'].map(z => world.indexOf(z));
+  const c = buildAgents(world, L.population, { rate: 0.012, seed: LEGION_SEED, zips });
+  const P = newPhase(), moving = s => s === S_OUT || s === S_BACK || s === S_EOUT || s === S_EBACK;
+  const ids = Array.from({ length: c.count }, (_, i) => decodeId(c, i, world).id);
+  for (const [label, t] of [['Tue 11:00', atPacific(2026, 11, 24, 11, 0)], ['Sat 12:00', atPacific(2026, 11, 28, 12, 0)]]) {
+    const { minute, dow } = simTime(t);
+    let crowd = 0, plan = 0;
+    for (let i = 0; i < c.count; i++) {
+      if (moving(agentPhase(c, i, minute, dow, P))) crowd++;
+      const a = L.activityAt(ids[i], t);
+      if (a && (a.traveling || a.travel)) plan++;
+    }
+    assert.ok(plan > 20, `${label}: ${plan} people out by their schedules`);
+    const ratio = crowd / plan;
+    assert.ok(ratio > 0.7 && ratio < 1.3, `${label}: the crowd has ${crowd} moving, the schedules ${plan} (ratio ${ratio.toFixed(2)}) of ${c.count}`);
+  }
+});
+
+test('a zoomed-in top-up adds exactly the households a higher rate takes and the statewide rate did not (exp-63)', () => {
+  const zis = [world.indexOf('94110'), world.indexOf('94103')];
+  const base = buildAgents(world, pop, { rate: 0.025, seed: LEGION_SEED, zips: zis });
+  const top = buildAgents(world, pop, { rate: 0.1, below: 0.025, seed: LEGION_SEED, zips: zis });
+  const full = buildAgents(world, pop, { rate: 0.1, seed: LEGION_SEED, zips: zis });
+  const ids = c => Array.from({ length: c.count }, (_, i) => decodeId(c, i, world).id);
+  const a = new Set(ids(base)), b = ids(top), f = new Set(ids(full));
+  assert.ok(b.length > base.count, `${b.length} added to ${base.count}`);
+  assert.ok(b.every(id => !a.has(id)), 'nobody twice');
+  assert.equal(a.size + b.length, f.size, 'the two together are the crowd at the higher rate');
+  assert.ok(b.every(id => f.has(id)));
+});
+
+test('the 24-hour shift keeps its length: home the morning after, not an hour early (fid-26)', () => {
+  // leaves Tuesday 7:27, 16 minutes each way, a 24-hour shift: on the road home Wednesday 7:43 to 7:59
+  assert.deepEqual(commuteTiming({ departMin: 447, commuteMin: 16, dwellMin: 1440 }), [447, 16, 1440], 'not clamped');
+  const c = oneAgent({ dep: 447, com: 16, dwl: 1440, days: 1 << 2, mode: 'drive' });
+  const P = newPhase();
+  assert.equal(agentPhase(c, 0, 455, 2, P), S_OUT, 'Tuesday 7:35');
+  assert.equal(agentPhase(c, 0, 1200, 2, P), S_WORK, 'Tuesday 8 PM');
+  assert.equal(agentPhase(c, 0, 450, 3, P), S_WORK, 'Wednesday 7:30: still on shift');
+  assert.equal(agentPhase(c, 0, 470, 3, P), S_BACK, 'Wednesday 7:50: driving home');
+  assert.equal(agentPhase(c, 0, 490, 3, P), S_HOME, 'Wednesday 8:10: home');
+  // a shift that starts late reaches into the day after next: 11 PM Tuesday, an hour each way, 24 hours at work
+  const late = oneAgent({ dep: 1380, com: 60, dwl: 1440, days: 1 << 2, mode: 'drive' });
+  assert.equal(agentPhase(late, 0, 30, 4, P), S_BACK, 'Thursday 12:30 AM: on the way home');
+  assert.equal(agentPhase(late, 0, 90, 4, P), S_HOME);
+  // the shader looks back as far
+  assert.match(agentGLSL(net), /minute \+ 2880\.0/);
+});
+
+test('state routes through town are boulevards, not freeways: El Camino carries no more than its share (fid-22)', () => {
+  assert.equal(lineSpeedKmh('I', 20, 9000), CROWD.highwayKmh, 'an interstate is a freeway');
+  assert.equal(lineSpeedKmh('SR', 34, 7092), CROWD.boulevardKmh, 'El Camino Real through the Peninsula');
+  assert.equal(lineSpeedKmh('SR', 73, 641), CROWD.highwayKmh, 'the Antelope Valley Freeway');
+  assert.equal(lineSpeedKmh('SR', 16, 260), CROWD.ruralKmh, 'a quiet coast highway');
+  const camino = net.info.find(l => l.name === 'SR 82' && l.length * uk > 30);
+  assert.ok(camino && camino.kmh === CROWD.boulevardKmh, JSON.stringify(camino));
+  assert.equal(net.lines[4 * net.info.indexOf(camino) + 3], CROWD.boulevardKmh, 'the speed is in the line texture the shader reads');
+  // the Bay Area at 7:45 on a Tuesday: drivers on SR 82 against its share of the region's vehicle-km
+  const c = buildAgents(world, pop, { rate: 0.01, seed: LEGION_SEED, regions: ['ba'], roadNet: net });
+  const { minute, dow } = simTime(atPacific(2026, 11, 24, 7, 45));
+  const P = newPhase();
+  let onRoutes = 0, onCamino = 0;
+  for (let i = 0; i < c.count; i++) {
+    const line = c.route[3 * i];
+    if (!line) continue;
+    const s = agentPhase(c, i, minute, dow, P);
+    if (s !== S_OUT && s !== S_BACK) continue;
+    onRoutes++;
+    if (net.info[line - 1].name === 'SR 82') onCamino++;
+  }
+  let vkm = 0, caminoKm = 0;
+  for (const rd of world.roads) for (const pts of rd.lines) for (let k = 1; k < pts.length; k++) {
+    const zi = world.zipAt((pts[k][0] + pts[k - 1][0]) / 2, (pts[k][1] + pts[k - 1][1]) / 2);
+    if (zi < 0 || world.z.region[zi] !== 'ba') continue;
+    const v = Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]) * ((+pts[k][2] || 0) + (+pts[k - 1][2] || 0)) / 2;
+    vkm += v; if (rd.name === 'SR 82') caminoKm += v;
+  }
+  assert.ok(onRoutes > 200, `${onRoutes} drivers on a state highway leg`);
+  const share = onCamino / onRoutes, real = caminoKm / vkm;
+  assert.ok(share <= 1.5 * real, `SR 82 carries ${(100 * share).toFixed(1)}% of the highway legs against ${(100 * real).toFixed(1)}% of the vehicle-km`);
 });

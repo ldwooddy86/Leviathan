@@ -11,7 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
-import { build, check, bundle, inlineScripts, scriptSafe, jsString, externalResourceProblems, importProblems, OUT_FILE, PATHS } from '../tools/build.mjs';
+import { build, check, bundle, inlineScripts, scriptSafe, jsString, externalResourceProblems, importProblems, OUT_FILE, PATHS, parseBuildArgs } from '../tools/build.mjs';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Population } from '../src/engine/population.mjs';
 import { createBus } from '../src/app/bus.mjs';
@@ -21,8 +21,11 @@ import {
 } from '../src/app/census.mjs';
 import { normalizeSettings, serverFromHealth, claudeStatus, Settings, DEFAULT_SETTINGS, DENSITIES, DEFAULT_PROXY_PATH } from '../src/app/settings.mjs';
 import { daysLabel, fmtPct, fmtMoney, displayName, roadLabel, humanize, incomeBracketLabel, commuteTimeLabel, vehiclesLabel } from '../src/app/format.mjs';
-import { searchItems, normalizeQuery } from '../src/app/search.mjs';
-import { startersFor, fireName, byteSize } from '../src/app/npc-panel.mjs';
+import { searchItems, normalizeQuery, fold, editDistance, MORE_DIGITS } from '../src/app/search.mjs';
+import { startersFor, fireName, byteSize, lineMeta, builtText } from '../src/app/npc-panel.mjs';
+import { memberRelation, householdRelations, withArticle } from '../src/app/format.mjs';
+import { plainWhy } from '../src/app/provenance.mjs';
+import { neighborhoodScope } from '../src/app/census.mjs';
 
 const sha = buf => crypto.createHash('sha256').update(buf).digest('hex');
 const scratch = () => fs.mkdtempSync(path.join(process.env.LEGION_SCRATCH || os.tmpdir(), 'legion-build-'));
@@ -557,8 +560,10 @@ test('conversation starters are grounded in the pack: a fire only where one burn
   assert.ok(!plain.some(s => /fire/i.test(s)), plain.join(' | '));
   assert.ok(plain.includes('How long have you lived here?'));
   assert.ok(plain.includes('How’s the weather treating you?'));
-  const paradise = pop.sample(world.indexOf('95969'), 1, 1)[0];
+  // an adult of Paradise is asked about the Camp Fire (2018); a child born after it is not
+  const paradise = pop.sample(world.indexOf('95969'), 40, 1).find(n => n.age >= 18);
   assert.ok(startersFor(world, paradise).includes('What was the Camp Fire like?'));
+  assert.ok(!startersFor(world, { ...paradise, age: 6, birthYear: 2020, occupation: null, status: 'child', school: 'elementary' }).some(s => /Camp Fire/.test(s)));
   // an NWS alert active there, and the NPC's own highway
   const alerted = startersFor(world, mission, { weather: { alerts: [{ event: 'High Surf Warning' }] } });
   assert.ok(alerted.includes('Heard about the High Surf Warning?'));
@@ -566,6 +571,11 @@ test('conversation starters are grounded in the pack: a fire only where one burn
   assert.ok(startersFor(world, driver).includes('How’s traffic on I-80?'));
   assert.ok(startersFor(world, { ...mission, occupation: null, school: null, status: 'retired' }).includes('What keeps you busy these days?'));
   assert.ok(!startersFor(world, { ...mission, occupation: null, status: 'child', school: 'elementary' }).includes('What do you do for work?'));
+  // babies and small children are not asked about traffic, restaurants or the news (ux-1022)
+  const baby = startersFor(world, { ...mission, age: 0, birthYear: 2026, occupation: null, status: 'child', school: null, commute: {} });
+  assert.ok(baby.length >= 3 && !baby.some(s => /traffic|eat|Heard about|work/i.test(s)), baby.join(' | '));
+  const kid = startersFor(world, { ...mission, age: 8, birthYear: 2018, occupation: null, status: 'child', school: 'elementary', commute: {} }, { weather: { alerts: [{ event: 'High Surf Warning' }] } });
+  assert.ok(!kid.some(s => /traffic|Where should I eat/i.test(s)) && kid.includes('How’s school going?'), kid.join(' | '));
   assert.equal(fireName('Camp'), 'the Camp Fire');
   // CAL FIRE unit codes in capitals, as the dialogue says them; a name that is only a code or a number is no name
   assert.equal(fireName('Btu Lightning Complex'), 'the BTU Lightning Complex');
@@ -657,4 +667,86 @@ test('services: through the Legion server’s proxy the player’s key never rea
   assert.deepEqual(made.at(-1), { apiKey: undefined, proxyURL: '/api/anthropic' });
   assert.ok(svc.voice({ claude: { apiKey: 'sk-ant-player', proxyURL: '', model: 'claude-opus-5-5', effort: 'low' }, network: { claude: true } }).ok);
   assert.deepEqual(made.at(-1), { apiKey: 'sk-ant-player', proxyURL: undefined }, 'without a proxy the player’s key is used');
+});
+
+// ------------------------------------------------------------------ final review fixes
+
+test('search: accents, St./Mt., everyday short names and misspellings find their place (ux-1004)', () => {
+  const pop = new Population(world);
+  const first = q => searchItems(world, pop, q)[0] || {};
+  assert.equal(first('San José').label, 'San Jose');
+  assert.equal(first('La Canada').label, 'La Cañada Flintridge');
+  assert.equal(first('Mt Shasta').label, 'Mount Shasta');
+  assert.equal(first('St. Helena').label, 'Saint Helena');
+  assert.equal(first('SF').label, 'San Francisco');
+  assert.equal(first('LA').label, 'Los Angeles');
+  assert.equal(first('East LA').label, 'East Los Angeles');
+  for (const [typo, name] of [['San Fransisco', 'San Francisco'], ['Oaklnd', 'Oakland'], ['Los Angelos', 'Los Angeles'], ['Frenso', 'Fresno']]) {
+    const r = first(typo);
+    assert.equal(r.label, name, typo);
+    assert.equal(r.fuzzy, true, `${typo} is offered as a suggestion`);
+  }
+  assert.deepEqual(searchItems(world, pop, '94'), [], 'two digits narrow nothing down');
+  assert.match(MORE_DIGITS, /at least 3 digits/);
+  assert.equal(fold('  The  Saint-Helena '), 'saint-helena');
+  assert.equal(fold('Piñon Hills'), 'pinon hills');
+  assert.equal(editDistance('frenso', 'fresno'), 1, 'a swap of two letters is one edit');
+  assert.equal(editDistance('abc', 'xyzw', 2), 3, 'stops past the limit');
+});
+
+test('search: the neighborhoods of the big cities are names too, and open their ZIPs (exp-68)', () => {
+  const pop = new Population(world);
+  const mission = world.indexOf('94110'), boyle = world.indexOf('90033');
+  // the foundation's world.neighborhoods(), or a stand-in with its shape where the pack has none yet
+  const own = typeof world.neighborhoods === 'function' ? world.neighborhoods() : [];
+  const w = own && own.some(n => n.key === 'mission') ? world : Object.create(world, { neighborhoods: { value: () => [
+    { name: 'the Mission', key: 'mission', zis: [mission], city: 'San Francisco', primary: true },
+    { name: 'Boyle Heights', key: 'boyle heights', zis: [boyle], city: 'Los Angeles', primary: true },
+  ] } });
+  const hood = q => searchItems(w, pop, q).find(it => it.kind === 'neighborhood');
+  const m = hood('the Mission');
+  assert.ok(m, 'the Mission is found');
+  assert.equal(searchItems(w, pop, 'Mission')[0].kind, 'neighborhood', 'the exact neighborhood before Mission Viejo');
+  const s = scopeFromSearch(w, m);
+  assert.ok(s.zis.includes(mission));
+  assert.match(s.title, /^The Mission$|Mission/);
+  assert.ok(hood('Boyle'), 'Boyle Heights by its start');
+  const deep = neighborhoodScope(w, 'boyle heights');
+  assert.ok(deep && deep.zis.includes(boyle));
+  assert.ok(scopeFromKey(w, 'neighborhood', 'the Mission'));
+  // deep links: a county by name as well as by FIPS
+  assert.equal(scopeFromKey(world, 'county', 'Alameda').title, 'Alameda County');
+  assert.equal(scopeFromKey(world, 'county', 'Alameda County').key, '06001');
+  assert.equal(scopeFromKey(world, 'county', 'Atlantis'), null);
+});
+
+test('the NPC panel: relatives as the NPC sees them, mood in words, no column codes, the ACS top code (eng-53, ux-1023, ux-1013, exp-65)', () => {
+  // Jon (the householder's son) sees the householder's sister as his aunt and the other child as his brother
+  const members = [{ m: 0, role: 'householder', sex: 'M', age: 57 }, { m: 1, role: 'sibling', sex: 'F', age: 59 }, { m: 2, role: 'child', sex: 'M', age: 21 }, { m: 3, role: 'child', sex: 'M', age: 22 }];
+  const jon = { m: 2, role: 'child', parents: [0], household: { members } };
+  assert.deepEqual(householdRelations(jon).map(r => r.relation), ['father', 'aunt', 'brother']);
+  assert.equal(memberRelation({ role: 'householder', m: 0 }, members[2], members), 'son');
+  assert.equal(withArticle('unit in a small building'), 'a unit in a small building');
+  assert.equal(withArticle('apartment'), 'an apartment');
+  assert.equal(withArticle('house'), 'a house');
+  assert.equal(lineMeta({ emotion: 'content' }, 'offline'), 'offline engine · feeling content');
+  assert.equal(lineMeta({ emotion: 'neutral' }, 'offline'), 'offline engine');
+  assert.equal(plainWhy('2.8 km from the coast (coast_km)'), '2.8 km from the coast');
+  assert.equal(plainWhy('Cal fan base (team home 37.87, -122.26)'), 'Cal fan base');
+  assert.equal(plainWhy('Santa Ana winds (off_kind di) and gusts (g58).'), 'Santa Ana winds and gusts.');
+  assert.equal(plainWhy('homes here run about $1,450,400 (value) against their household income (householdIncome)'), 'homes here run about $1,450,400 against their household income');
+  assert.equal(plainWhy('a rent that doubled (about 40%)'), 'a rent that doubled (about 40%)', 'words in parentheses stay');
+  const top = { yb_med: 1938, ybBefore1940: true }, later = { yb_med: 1962 };
+  assert.equal(builtText(1938, top), 'built before 1940');
+  assert.equal(builtText(1925, top), 'built 1925');
+  assert.equal(builtText(1938, later), 'built 1938');
+});
+
+test('tools/build.mjs: --out needs a file name; the next option is never taken for one (eng-57)', () => {
+  assert.match(parseBuildArgs(['--out', '--check']).error, /--out/);
+  assert.match(parseBuildArgs(['--nope']).error, /nope/);
+  const ok = parseBuildArgs(['--out', 'x.html', '--check']);
+  assert.equal(path.basename(ok.out), 'x.html');
+  assert.equal(ok.check, true);
+  assert.equal(parseBuildArgs([]).out, OUT_FILE);
 });

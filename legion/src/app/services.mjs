@@ -24,6 +24,7 @@ import * as personaModule from '../engine/persona.mjs';
 import * as mindModule from '../engine/mind.mjs';
 import * as scheduleModule from '../engine/schedule.mjs';
 import * as dialogueModule from '../engine/dialogue.mjs';
+import * as safetyModule from '../engine/dialogue/safety.mjs';
 import * as llmModule from '../engine/llm.mjs';
 import * as lexiconModule from '../engine/lexicon.mjs';
 import * as streetModule from '../world/street.mjs';
@@ -63,6 +64,16 @@ export const CLAUDE_MODELS = Object.freeze([
 
 /** Effort levels offered for conversation (low is the default). */
 export const CLAUDE_EFFORTS = Object.freeze(['low', 'medium', 'high']);
+
+/** The kinds of line the offline engine steps out of the scene for (CONTRACTS section 7, Line.safety). */
+const SAFETY_KINDS = new Set(['crisis', 'sexual', 'threat']);
+
+/**
+ * Where to find help, as a note from Legion when someone talking to an NPC says they are in crisis and the dialogue
+ * engine gives no note of its own (988 is the Suicide & Crisis Lifeline: call or text, any time; it answers in
+ * Spanish too).
+ */
+export const CRISIS_NOTE = 'If you are thinking about suicide or hurting yourself, or someone is hurting you, you can call or text 988 (the Suicide & Crisis Lifeline) any time, day or night; it answers in Spanish too. If you or someone else is in danger right now, call 911.';
 
 const DEFAULT_MODULES = Object.freeze({
   persona: personaModule, mind: mindModule, schedule: scheduleModule, dialogue: dialogueModule, llm: llmModule, street: streetModule,
@@ -442,6 +453,36 @@ export function createServices(options = {}) {
         const conv = new mods.dialogue.Conversation({ world: wxWorld(), persona: p.value, mind: m && m.ok ? m.value : null, t: time, rngSeed: rngSeed ?? hashAll(id, Math.floor(time / 60000)), population });
         return ok(conv);
       } catch (e) { return fail('error', `The conversation could not start: ${errorText(e)}`, { module: 'dialogue' }); }
+    },
+
+    /**
+     * What the offline engine's safety check makes of a player's line, for the Claude path (the offline engine acts
+     * on it itself): `{kind: 'crisis'|'sexual'|'threat', note}` or null. For a crisis (suicide, self-harm, abuse, a
+     * medical emergency) `note` is where to find help (988, 911), which the Talk tab shows as a note from Legion
+     * under Claude's reply; the other kinds carry no note. Null when the dialogue engine is not wired or says nothing.
+     * @param {string} text
+     * @returns {{kind: string, note: string|null}|null}
+     */
+    safety(text, { age } = {}) {
+      const D = mods.dialogue;
+      if (!D) return null;
+      try {
+        // the dialogue engine's own reading (dialogue/safety.mjs), the one the offline conversation acts on
+        const own = D === dialogueModule ? safetyModule : D;
+        if (typeof own.safetyOf === 'function') {
+          const r = own.safetyOf(String(text || ''), { age });
+          if (!r || !SAFETY_KINDS.has(r.kind)) return null;
+          const notes = own.SAFETY_NOTES || {};
+          const key = r.kind === 'crisis' ? (r.sub === 'abuse' ? 'abuse' : r.sub === 'emergency' ? 'emergency' : 'crisis') : r.kind === 'threat' && r.sub === 'mass' ? 'mass' : null;
+          const note = key ? (r.es && notes[`${key}Es`]) || notes[key] || (r.kind === 'crisis' ? CRISIS_NOTE : null) : null;
+          return { kind: r.kind, sub: r.sub || null, note };
+        }
+        if (typeof D.understand !== 'function') return null;
+        const u = D.understand(String(text || ''), {});
+        const kind = u && (typeof u.safety === 'string' ? u.safety : SAFETY_KINDS.has(u.intent) ? u.intent : null);
+        if (!kind || !SAFETY_KINDS.has(kind)) return null;
+        return { kind, note: kind === 'crisis' ? (typeof u.note === 'string' && u.note) || CRISIS_NOTE : null };
+      } catch { return null; }
     },
 
     /**

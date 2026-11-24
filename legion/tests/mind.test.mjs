@@ -11,7 +11,7 @@ import { Population, LEGION_SEED } from '../src/engine/population.mjs';
 import { persona } from '../src/engine/persona.mjs';
 import { activityAt } from '../src/engine/schedule.mjs';
 import { atPacific } from '../src/engine/clock.mjs';
-import { Mind, MemoryStore, LocalStorageStore, FileStore, appraise, stem, emotionLabel, baselineMood, TOPICS, INTENTS, FEELINGS } from '../src/engine/mind.mjs';
+import { Mind, MemoryStore, LocalStorageStore, FileStore, appraise, sentimentOf, safetyOf, SAFETY_KINDS, stem, emotionLabel, baselineMood, TOPICS, INTENTS, FEELINGS } from '../src/engine/mind.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world, { seed: LEGION_SEED });
@@ -415,4 +415,125 @@ test('a Claude reflection is stored through applyReflection: memories, deltas, f
   assert.equal(m.applyReflection(null), null);
   // the state stays plain JSON
   assert.deepEqual(Mind.fromJSON(JSON.stringify(m.toJSON()), m.persona).toJSON(), m.toJSON());
+});
+
+test('prototype names are words, not lookups: "constructor" never crashes the appraisal or poisons the mood (eng-46)', () => {
+  const names = new Set([...Object.getOwnPropertyNames(Object.prototype), ...Object.getOwnPropertyNames(Function.prototype), ...Object.getOwnPropertyNames(Array.prototype), '__proto__', 'prototype']);
+  const frames = [w => w, w => `my dad was a ${w}`, w => `${w} great`, w => `I'm a ${w}`, w => `the ${w} is so good`, w => `not ${w} at all`, w => `very ${w}`, w => `you ${w}`];
+  const m = new Mind(P(npcAt('94110')), { t: T0 });
+  let i = 0;
+  for (const name of names) for (const f of frames) {
+    const text = f(name);
+    const a = appraise(text);
+    assert.ok(Number.isFinite(a.sentiment) && Number.isFinite(a.toxicity), `${text}: ${JSON.stringify(a)}`);
+    assert.ok(Number.isFinite(sentimentOf(text)), text);
+    m.observe({ from: 'player', text, t: T0 + (i++) * 1000 });
+  }
+  assert.ok(Number.isFinite(m.mood.valence) && Number.isFinite(m.mood.arousal));
+  assert.equal(sentimentOf('constructor great'), sentimentOf('great'));
+  // a Claude reflection whose mood is a prototype name is ignored, not NaN
+  m.applyReflection({ mood: 'constructor', summary: 'We talked.' }, T0 + i * 1000);
+  assert.ok(Number.isFinite(m.mood.valence));
+  assert.equal(m.feelingsToward('constructor'), 'neutral');
+});
+
+test('threats of every kind read as threats: violence, sexual violence, arson, mass violence, stalking, immigration (rep-29)', () => {
+  const threats = [
+    "I'm going to rape you.", "I'll burn your house down.", "I'm going to shoot up the school tomorrow.", "I'm going to kill your family.",
+    'I know where you live.', 'Watch your back.', "I'll find your daughter.", "I have a gun and I'm going to shoot up your school.",
+    "I'm going to hurt your kids.", "I'm bringing a gun to school.", "I'm going to burn this place down.", "We're going to bomb the church.",
+    "I'm going to call ICE on you.", "I'll get you deported.", "I'll report you to immigration.", "You're dead.", "You'll regret this.",
+    'Te voy a matar.', 'Voy a quemar tu casa.', 'Sé dónde vives.', 'Voy a matar a tu familia.', 'Voy a llamar a la migra.', 'Te van a deportar.',
+  ];
+  for (const line of threats) {
+    const a = appraise(line);
+    assert.equal(a.safety, 'threat', line);
+    assert.ok(a.intents.includes('insult') && a.toxicity >= 0.75, `${line}: ${JSON.stringify(a)}`);
+  }
+  // the same words in a story, a warning, a game or a kindness are not threats
+  const calm = [
+    'My house burned down in the fire.', 'The school shooting last year was terrible.', "I'll burn the leaves this weekend.", 'Did the fire hurt you?',
+    "I'd beat you at chess any day.", "We're going to destroy your school in the game Friday.", "I'll find you a seat.", "You're dead right.",
+    "You're dead tired, go home.", 'My neighbor called ICE on the family next door and it was awful.', 'I need to call immigration about my visa.',
+    'I would never hurt you.', 'This heat will kill you out here.', "I'm going to kill it at the talent show.", "I'll get you a coffee.",
+    'Te voy a buscar a las ocho.', 'Estás muerto de cansancio.',
+  ];
+  for (const line of calm) assert.equal(safetyOf(line), null, line);
+  for (const k of ['crisis', 'sexual', 'threat']) assert.ok(SAFETY_KINDS.includes(k));
+});
+
+test('sexual content reads as sexual for anyone; lures, secrets and romance only when a child hears them (exp-59)', () => {
+  const sexual = ['Send me nudes.', "Let's have sex.", 'Take off your clothes.', 'Do you watch porn?', "You're so sexy.", 'Can I touch you?', 'I want to kiss you.', 'Show me your body.'];
+  for (const line of sexual) for (const age of [8, 13, 17, 30, 70, undefined]) assert.equal(safetyOf(line, { age }), 'sexual', `${line} @${age}`);
+  const lures = [
+    'Can I come to your house when your parents are gone?', "You're cute. Do you have a boyfriend?", "Let's meet somewhere alone, just you and me.",
+    'Where do you live?', "What's your address?", 'Are you home alone?', 'This is our little secret.', "Don't tell your mom.", 'Get in my car.',
+    'Want some candy?', "What's your phone number?", 'When are your parents at work?', "Who's home with you?", 'Send me a picture of yourself.',
+  ];
+  for (const line of lures) {
+    for (const age of [5, 9, 13, 17]) assert.equal(safetyOf(line, { age }), 'sexual', `${line} @${age}`);
+    for (const age of [18, 45]) assert.equal(safetyOf(line, { age }), null, `${line} @${age}: ordinary between adults`);
+  }
+  for (const line of ['What is your favorite subject?', 'Do you like your school?', 'How old are you?', 'Is your dog friendly?', "You're so cute, what a smile!", 'Do you have homework?'])
+    assert.equal(safetyOf(line, { age: 9 }), null, line);
+  // a child's mind stops trusting the stranger at once, and never warms back up from it
+  const kid = pop.sample(world.indexOf('93710'), 400, 7).find(n => n.age >= 9 && n.age <= 13);
+  assert.ok(kid, 'a child in 93710');
+  const m = new Mind(P(kid), { t: T0 });
+  assert.equal(m.appraise('Where do you live?').safety, 'sexual', "Mind.appraise reads with the listener's age");
+  const before = Object.assign({}, m.relationship('player'));
+  m.observe({ from: 'player', text: 'Can I come to your house when your parents are gone?', t: T0 });
+  const r = m.relationship('player');
+  assert.ok(r.trust <= before.trust - 0.5 && r.affinity < before.affinity - 0.3, JSON.stringify(r));
+  assert.equal(m.feelingsToward('player'), 'wary');
+  m.reflect(T0 + 60000, { force: true });
+  assert.ok(m.beliefs.some(b => b.topic === 'inappropriate' && /grown-up/.test(b.text)), JSON.stringify(m.beliefs));
+  // an adult declines an explicit line too
+  const adult = new Mind(P(npcAt('92084', 4606, 1)), { t: T0 });
+  adult.observe({ from: 'player', text: 'Send me nudes.', t: T0 });
+  assert.ok(adult.relationship('player').trust < -0.3 && adult.feelingsToward('player') === 'wary');
+  // a threat costs trust and leaves the NPC wary, with the memory kept
+  const t = new Mind(P(npcAt('92084', 4606, 1)), { t: T0 });
+  t.observe({ from: 'player', text: "I'm going to shoot up the school tomorrow.", t: T0 });
+  assert.ok(t.relationship('player').trust < -0.4 && t.feelingsToward('player') === 'wary');
+  assert.ok(t.recall('school', 3, { background: false }).some(x => x.tags.includes('threat') && x.importance >= 0.9));
+});
+
+test('a player in crisis is not an insult: suicide, self-harm, abuse and emergencies read as crisis (rep-28, exp-58)', () => {
+  const crisis = ['I want to kill myself.', "I've been thinking about hurting myself.", "I don't want to live anymore.", 'I wish I was dead.', 'My dad hits me.',
+    'My stepfather touched me.', "I think I'm having a heart attack.", "I can't breathe.", 'I took all my pills.', 'Me quiero morir.', 'Mi papá me pega.', 'Ya no quiero vivir.'];
+  for (const line of crisis) {
+    const a = appraise(line);
+    assert.equal(a.safety, 'crisis', line);
+    assert.ok(!a.intents.includes('insult') && a.sentiment <= 0, `${line}: ${JSON.stringify(a)}`);
+  }
+  for (const line of ['I hurt myself skateboarding last week.', 'The Giants ran a suicide squeeze.', "I'm going to die of embarrassment.", "I don't want to be here, this party is boring.", 'I cut myself cooking.', 'Me corto el pelo los sábados.'])
+    assert.equal(safetyOf(line), null, line);
+  const m = new Mind(P(npcAt('94110')), { t: T0 });
+  m.observe({ from: 'player', text: "I don't want to live anymore.", t: T0 });
+  assert.ok(m.relationship('player').trust >= 0 && m.relationship('player').affinity >= -0.05, 'no sting for someone in trouble');
+});
+
+test('the ableist slur is an insult when aimed and profanity when not (rep-42)', () => {
+  for (const line of ["You're such a retard.", 'You retard', 'Are you retarded?']) assert.ok(appraise(line).intents.includes('insult'), line);
+  const loose = appraise("That's retarded.");
+  assert.ok(!loose.intents.includes('insult') && loose.toxicity > 0, JSON.stringify(loose));
+});
+
+test('FileStore refuses a directory or an unreadable path instead of writing beside it (eng-48)', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'legion-mind-'));
+  try {
+    const store = new FileStore(dir);
+    assert.throws(() => store.get('x'), /directory/);
+    assert.throws(() => store.put('x', { ok: 1 }), /directory/);
+    assert.ok(!fs.existsSync(`${dir}.tmp`), 'no stray <dir>.tmp');
+    const missing = new FileStore(path.join(dir, 'no', 'such', 'minds.json'));
+    assert.equal(missing.get('x'), null, 'a missing file is an empty store');
+    assert.throws(() => missing.put('x', { ok: 1 }));
+    assert.deepEqual(fs.readdirSync(dir), [], 'nothing written for a missing parent');
+    const m = Mind.load(new FileStore(dir), P(npcAt('94110')), { t: T0 });
+    assert.equal(m.feelingsToward(), 'neutral', 'Mind.load falls back to a fresh mind');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

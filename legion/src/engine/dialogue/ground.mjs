@@ -230,6 +230,12 @@ export function weatherFacts(v) {
   }));
   // past the forecast window nothing of the snapshot's forecast is current: no periods, no key message, no outlooks
   const stale = !!wx.stale;
+  // world.weatherAt says where the numbers come from (basis): the ZIP's own forecast, a city's nearby carried to the
+  // ZIP's height ('borrowed': hedged, and told as that city's forecast, never "here"), or the climate (stale). A
+  // world without the field is read as before: a forecast is the ZIP's own.
+  const basis = wx.basis && typeof wx.basis === 'object' ? wx.basis : null;
+  const approx = stale || wx.approx === true;
+  const borrowed = !stale && !!basis && basis.kind === 'borrowed' && !!str(basis.point);
   const afd = v.world && v.world.weather && v.world.weather.afd && wx.office ? v.world.weather.afd[wx.office] : null;
   const issued = afd && afd.issued ? Date.parse(afd.issued) : (v.world ? v.world.snapshotTime : null);
   const key = stale ? null : keySentence(wx, v.t, isNum(issued) ? issued : null);
@@ -237,6 +243,8 @@ export function weatherFacts(v) {
   const dayOne = !stale && v.world && isNum(v.t) && v.t >= v.world.snapshotTime - 10 * 3600000 && v.t <= v.world.snapshotTime + 14 * 3600000;
   return {
     temp, sky, short: now.short || null, isDay: now.isDay !== false, stale, rh: isNum(now.rh) ? now.rh : null,
+    // tempExact: the temperature to state as a fact (null when it is an estimate, which only hedged lines say)
+    approx, borrowed, fcPlace: borrowed ? str(basis.point) : null, tempExact: approx ? null : temp,
     cond: v.sky, periods: stale ? [] : periods, alerts, key: key ? key.text : null, keyLower: key ? key.lower : null,
     fireOutlook: dayOne && wx.fireWeather && wx.fireWeather.level > 0 ? String(wx.fireWeather.name).toLowerCase() : null,
     rainOutlook: dayOne && wx.excessiveRain && wx.excessiveRain.level > 0 ? String(wx.excessiveRain.name).replace(/\s*\(.*\)$/, '').toLowerCase() : null,
@@ -332,12 +340,19 @@ export function nearestFire(v) {
   return { label, year: z.fire_near_yr, km: num(z.fire_km, null), id: `fire:${z.fire_near}:${z.fire_near_yr}` };
 }
 
-/** Atmospheric rivers of category 4 and 5 for the ZIP's stretch of coast, latest first. */
+/**
+ * Atmospheric rivers that came ashore as a category 4 or 5 on the ZIP's stretch of coast, latest first. rank is the
+ * category felt at the ZIP (world.arsOf rankHere, never above its ar_max), peakRank and peakAt the landfall peak
+ * ("a category 5 at Point Reyes"): a river is "a category N here" only for its rank here.
+ */
 export function arFacts(v) {
+  const max = isNum(v.z.ar_max) ? v.z.ar_max : null;
   return v.world.arsOf(v.zi, 12).filter(a => num(a.rank) >= 4).map(a => {
     const dt = parseDate(a.start);
-    return dt ? { start: a.start, dt, rank: a.rank, hours: num(a.hours, null), id: `ar:${a.start}`, memory: memoryFor(v, `arsOf(${v.z.zip}): ${a.start}`) } : null;
-  }).filter(Boolean).sort((a, b) => (b.start > a.start ? 1 : -1));
+    if (!dt) return null;
+    const here = isNum(a.rankHere) ? a.rankHere : Math.min(num(a.rank), max !== null ? max : num(a.rank));
+    return { start: a.start, dt, rank: here, peakRank: num(a.rank), peakAt: str(a.peakAt), hours: num(a.hours, null), id: `ar:${a.start}`, memory: memoryFor(v, `arsOf(${v.z.zip}): ${a.start}`) };
+  }).filter(a => a && a.rank >= 1).sort((a, b) => (b.start > a.start ? 1 : -1));
 }
 
 const FEMA_STORM = new Set(['Flood', 'Severe Storm', 'Winter Storm', 'Coastal Storm', 'Mud/Landslide', 'Severe Ice Storm', 'Snowstorm', 'Tropical Storm', 'Hurricane']);
@@ -382,7 +397,11 @@ function placeOfWhere(world, where) {
  * pack does not know the place).
  */
 export function windFacts(v) {
-  return v.world.windsOf(v.zi, 6).map(w => {
+  // (the offshore winds only where the ZIP's own record has them: a desert town never "remembers" the Santa Anas of
+  // its county's coastal slope; world.windsOf filters the same way, and this holds with an older world too)
+  const z = v.z || {}, off = z.off_kind || '';
+  const reaches = w => (w.kind === 'santa_ana' ? off === 'sa' || num(z.sa_ep) > 0 : w.kind === 'diablo' ? off === 'di' || num(z.di_ep) > 0 : true);
+  return v.world.windsOf(v.zi, 6).filter(reaches).map(w => {
     const dt = parseDate(w.start);
     if (!dt) return null;
     const pl = placeOfWhere(v.world, w.where);
@@ -391,14 +410,35 @@ export function windFacts(v) {
   }).filter(Boolean);
 }
 
-/** The station records of the ZIP (persona.knowledge.records, from heat_rec_f, rain_rec_in, gust_max). */
+/** A station record is the ZIP's own ("here") within this distance and height of it; beyond, it is the station's. */
+export const LOCAL_RECORD_KM = 15, LOCAL_RECORD_DZ = 300;
+const RECORD_KM = { heat: 'heat_km', rain: 'rain_rec_km', gust: 'gust_km' }, RECORD_DZ = { heat: 'heat_dz', gust: 'gust_dz' };
+
+/**
+ * The station records of the ZIP (persona.knowledge.records, from heat_rec_f, rain_rec_in, gust_max), each with its
+ * station, the station's distance (distKm, from the record or the pack's heat_km, rain_rec_km, gust_km) and local:
+ * true only for a station within LOCAL_RECORD_KM and LOCAL_RECORD_DZ of the ZIP and in its own town (or within 5 km),
+ * whose record may be called "here";
+ * any other is told as that station's, by name and distance. A record the ZIP's own climate contradicts is left out:
+ * a hottest day under 100°F where the ZIP reaches 100°F (h100) or barely above its July normal, a one-day rain above
+ * its whole normal year.
+ */
 export function recordFacts(v) {
   const out = {};
+  const z = v.z || {};
   const recs = (v.p.knowledge && Array.isArray(v.p.knowledge.records)) ? v.p.knowledge.records : [];
   for (const r of recs) {
     const dt = parseDate(r.date);
     if (!dt || !isNum(r.value)) continue;
-    out[r.kind] = { value: r.value, dt, station: str(r.station), id: `record.${r.kind}`, memory: memoryFor(v, `zip ${v.z.zip}: ${r.source}`) };
+    if (r.kind === 'heat' && ((num(z.h100) > 0 && r.value < 100) || (isNum(z.tjul) && r.value < z.tjul + 5))) continue;
+    if (r.kind === 'rain' && isNum(z.rain_in) && z.rain_in > 0 && r.value > z.rain_in) continue;
+    const distKm = isNum(r.distKm) ? r.distKm : isNum(z[RECORD_KM[r.kind]]) && z[RECORD_KM[r.kind]] >= 0 ? z[RECORD_KM[r.kind]] : null;
+    const dz = RECORD_DZ[r.kind] && isNum(z[RECORD_DZ[r.kind]]) ? z[RECORD_DZ[r.kind]] : null;
+    // (a station a few miles off in another town, the airport inland from a beach town, keeps its own name)
+    const station = str(r.station) ? String(r.station).replace(/\bMc([a-z])/g, (m, c) => `Mc${c.toUpperCase()}`) : null;
+    const ownTown = !!station && [z.city, z.place, z.placeName].filter(Boolean).some(n => station.toLowerCase().includes(String(n).toLowerCase()));
+    const local = r.local !== false && isNum(distKm) && distKm <= LOCAL_RECORD_KM && (dz === null || Math.abs(dz) <= LOCAL_RECORD_DZ) && (distKm <= 5 || ownTown);
+    out[r.kind] = { value: r.value, dt, station, distKm, local, id: `record.${r.kind}`, memory: local ? memoryFor(v, `zip ${v.z.zip}: ${r.source}`) : null };
   }
   return out;
 }
@@ -432,7 +472,17 @@ export function climateFacts(v) {
 
 // ------------------------------------------------------------------ roads
 
-/** The speaker's highways in local naming: the commute road first, then the busiest near home. */
+/** How much a highway matters to someone at a distance: its own traffic, discounted by its own distance (km). */
+export function roadScore(r) {
+  return num(r && r.aadt) / (1 + num(r && r.distKm) / 4);
+}
+
+/**
+ * The speaker's highways in local naming: the commute road first, then the ones near home by roadScore (each road's
+ * traffic over its own distance, so the freeway next door outranks a busier one ten kilometers off). Distances are
+ * from home (decision 8); a home with no highway within 12 km looks farther out from home, never from the town point,
+ * so distKm stays true ("the 10 runs right by the house" is said only of a road that does).
+ */
 export function roadFacts(v) {
   const out = [];
   const seen = new Set();
@@ -445,9 +495,9 @@ export function roadFacts(v) {
   };
   const given = v.commute && v.commute.road;
   if (given && ['drive', 'carpool', 'motorcycle', 'taxi', 'bus'].includes(v.commute.mode)) add(typeof given === 'string' ? { name: given } : given, true);
-  const near = v.world.roadsNear(v.home.x, v.home.y, 12).slice().sort((a, b) => num(b.aadt) / (1 + num(a.distKm) / 4) - num(a.aadt) / (1 + num(b.distKm) / 4));
+  const near = v.world.roadsNear(v.home.x, v.home.y, 12).slice().sort((a, b) => roadScore(b) - roadScore(a));
   for (const r of near.slice(0, 5)) add(r, false);
-  if (!out.length) for (const r of v.world.roadsNear(v.z.tx, v.z.ty, 20).slice(0, 2)) add(r, false);
+  if (!out.some(r => !r.commute)) for (const r of v.world.roadsNear(v.home.x, v.home.y, 40).slice().sort((a, b) => num(a.distKm) - num(b.distKm)).slice(0, 2)) add(r, false);
   return out;
 }
 
@@ -513,7 +563,9 @@ export function censusFacts(v) {
   } catch { /* a ZIP without the block */ }
   if (isNum(z.own_sh)) out.own = { share: z.own_sh / 100, id: 'acs.own' };
   if (isNum(z.value) && z.value > 0) out.value = { value: z.value, words: z.value >= 2000001 ? money(z.value) : `about ${money(z.value)}`, id: 'acs.value' };
-  if (isNum(z.yb_med) && z.yb_med > 1900) out.yb = { year: z.yb_med, decade: decadeWords(z.yb_med), id: 'acs.yb' };
+  // the ACS top code "built 1939 or earlier" (stored as 1938 or 1939) is "before 1940", never a decade or a year
+  const prewar = z.ybBefore1940 === true || (isNum(z.yb_med) && z.yb_med <= 1939);
+  if (isNum(z.yb_med) && z.yb_med > 1900) out.yb = { year: prewar ? null : z.yb_med, decade: prewar ? null : decadeWords(z.yb_med), before1940: prewar, id: 'acs.yb' };
   // restaurants per resident and per square mile: a dense city block can have few per head and still be full of them
   if (isNum(z.food) && isNum(z.pop) && z.pop > 0) out.food = { count: z.food, per10k: z.food / z.pop * 10000, perSqmi: isNum(z.sqmi) && z.sqmi > 0 ? z.food / z.sqmi : 0, id: 'biz.food' };
   return out;

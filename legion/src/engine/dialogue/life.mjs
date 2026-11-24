@@ -107,7 +107,6 @@ const INTERESTS = [
   [/^classic cars$/, I('classic cars', 'looking at classic cars', ['I love classic cars.'], [['Me encantan los carros clásicos.', 'I love classic cars.']])],
   [/^board games$/, I('board games', 'at a board game night', ['Board games with friends.'], [['Me gustan los juegos de mesa.', 'I like board games.']])],
   [/^hosting friends$/, I('hosting', 'with friends over at my place', ['I like having people over.'], [['Me gusta invitar a mis amigos a la casa.', 'I like having my friends over.']])],
-  [/^church on Sundays$/, I('church', 'at church', ['I go to church every Sunday.'], [['Voy a la iglesia los domingos.', 'I go to church on Sundays.']])],
   [/^(the old Oakland A's|the [A-Z0-9][A-Za-z0-9' ]+|LAFC|San Diego FC|San Diego State|[A-Z][a-z]+ State football|UCLA football|USC football|Stanford football|Cal football)$/, m => ({ short: `${m[1].replace(/^the (old Oakland )?/, '')} games`, doing: `watching ${m[1]}`, en: [`I never miss ${m[1]} if I can help it.`, `I follow ${m[1]}. Win or lose.`], es: [['Me gusta ver los partidos.', 'I like watching the games.']] })],
 ];
 

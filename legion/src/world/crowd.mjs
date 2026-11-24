@@ -422,6 +422,8 @@ export class Crowd {
     this._stats = Object.assign(emptyStats(), { t: null });
     this._statsSeq = 0; this._statsInFlight = false; this._statsAt = 0; this._statsTimer = 0; this._mainStats = null;
     this._buildId = 0; this._job = null;
+    /** The top-up of a zoomed-in view (topUp): {id, key, zis, rate, agents, done, resolve} or null. */
+    this.top = null; this._topId = 0;
     this._workers = []; this._workerUrl = null; this._statsWait = null;
     this._gl = null; this._frameT = 0; this._slow = 0; this._fast = 0;
     this._destroyed = false;
@@ -695,6 +697,13 @@ export class Crowd {
   _onWorkerMessage(m, slot) {
     if (!m || typeof m !== 'object') return;
     if (m.type === 'stats') { this._onStats(m, slot); return; }
+    if (m.type === 'topchunk' || m.type === 'topdone' || m.type === 'toperror') {
+      const top = this.top;
+      if (!top || m.id !== top.id) return;
+      if (m.type === 'topchunk') this._addTopChunk(m.chunk);
+      else { if (m.summary) top.summaries.push(m.summary); if (--top.left <= 0) this._topFinish(top, top.t0); }
+      return;
+    }
     if (!slot.answered) {
       slot.answered = true;
       // every Worker has fetched the script once each has answered: the Blob URL can go
@@ -799,8 +808,90 @@ export class Crowd {
     this.map.requestRender();
   }
 
+  // ------------------------------------------------ the top-up of a zoomed-in view
+
+  /**
+   * More people in a zoomed-in view: the households of these ZIPs that `rate` takes and the statewide build's rate
+   * did not (so nobody is drawn twice), built in the Workers (or here, time-sliced, without them) and drawn with the
+   * rest, picked and counted with them. It replaces the previous top-up; the same ZIPs at the same rate are kept as
+   * they are. Resolves with {agents, zips, rate, ms} or {cancelled: true}.
+   * @param {{zis: number[], rate: number}} opts
+   */
+  topUp({ zis, rate }) {
+    if (this._destroyed || this.building || !Array.isArray(zis) || !zis.length) return Promise.resolve({ cancelled: true });
+    const r = Math.min(1, +rate || 0);
+    if (!(r > this.rate)) { this.dropTopUp(); return Promise.resolve({ cancelled: true }); }
+    const key = `${r.toFixed(4)}|${zis.length}|${zis[0]}|${zis[zis.length - 1]}|${zis.reduce((a, b) => (a * 31 + b) >>> 0, 7)}`;
+    if (this.top && this.top.key === key) return this.top.promise;
+    this.dropTopUp();
+    const id = ++this._topId, t0 = performance.now();
+    const top = this.top = { id, key, zis: zis.slice(), rate: r, agents: 0, done: false, parts: 0, left: 0, summaries: [] };
+    top.promise = new Promise(resolve => { top.resolve = resolve; });
+    const workers = this.useWorker && this.mode !== 'main' ? this._ensureWorkers() : null;
+    if (workers && workers.length) {
+      const K = workers.length, shares = workers.map(() => []);
+      top.zis.forEach((zi, j) => shares[j % K].push(zi));
+      top.left = shares.filter(s => s.length).length;
+      workers.forEach((slot, k) => {
+        if (!shares[k].length) return;
+        const msg = { type: 'topup', id, zips: shares[k], rate: r, below: this.rate, seed: this.seed, popSeed: this._popSeed() };
+        try { slot.w.postMessage(msg); } catch { top.left--; }
+      });
+      if (!top.left) this._topFinish(top, t0);
+    } else {
+      // no Workers: time-sliced here, a few milliseconds a task
+      (async () => {
+        const gen = buildAgentsGen(this.world, this.population, { rate: r, below: this.rate, seed: this.seed, zips: top.zis, chunkTarget: 65536, roadNet: this.net });
+        let res, slice = performance.now();
+        while (!(res = gen.next()).done) {
+          if (this.top !== top) return;
+          if (res.value.type === 'chunk') this._addTopChunk(res.value.chunk);
+          if (performance.now() - slice > 8) { await nextTask(); slice = performance.now(); }
+        }
+        if (this.top === top) { top.summaries.push(res.value); this._topFinish(top, t0); }
+      })();
+    }
+    top.t0 = t0;
+    return top.promise;
+  }
+
+  /** Forget the top-up (the view went back out, or a new build): its chunks leave the GPU, the counts and the picks. */
+  dropTopUp() {
+    const top = this.top;
+    if (!top) return;
+    this.top = null;
+    if (top.resolve && !top.done) top.resolve({ cancelled: true });
+    for (const s of this._workers) { try { s.w.postMessage({ type: 'droptopup' }); } catch { /* gone */ } }
+    const gl = this._gl;
+    const keep = [];
+    for (const c of this.chunks) {
+      if (!c.topUp) { keep.push(c); continue; }
+      if (c.gpu && gl) { gl.deleteVertexArray(c.gpu.vao); for (const b of c.gpu.bufs) gl.deleteBuffer(b); }
+    }
+    this.chunks = keep;
+    this.count = keep.reduce((a, c) => a + c.count, 0);
+    this._requestStats(true);
+    this.map.requestRender();
+  }
+
+  /** How many agents the top-up added (0 without one). */
+  topUpAgents() { return this.top ? this.top.agents : 0; }
+
+  _addTopChunk(c) {
+    c.topUp = true;
+    if (this.top) this.top.agents += c.count;
+    this._addChunk(c);
+  }
+
+  _topFinish(top, t0) {
+    if (this.top !== top || top.done) return;
+    top.done = true;
+    top.resolve({ agents: top.agents, zips: top.zis.length, rate: top.rate, ms: Math.round(performance.now() - t0) });
+  }
+
   _clear() {
     const gl = this._gl;
+    if (this.top) { const top = this.top; this.top = null; if (top.resolve && !top.done) top.resolve({ cancelled: true }); }
     for (const c of this.chunks) if (c.gpu && gl) { gl.deleteVertexArray(c.gpu.vao); for (const b of c.gpu.bufs) gl.deleteBuffer(b); }
     this.chunks = []; this.count = 0; this.summary = null;
     this._stats = Object.assign(emptyStats(), { t: this.t });

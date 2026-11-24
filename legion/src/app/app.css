@@ -425,11 +425,15 @@ button.legend-chip[aria-pressed="false"] .legend-dot { background: transparent !
 .legend-count { color: var(--ink-3); font-variant-numeric: tabular-nums; font-size: 11.5px; }
 .legend-count:empty { display: none; }
 
+/* the crowd's build progress: a compact card in the top-left corner of the map (over the ocean off the North Coast
+   on the default view), clear of Southern California and the legend */
 .build-card {
-  width: min(320px, 100%); padding: 10px 12px;
+  position: absolute; top: 12px; left: calc(var(--inset-left) + 12px); width: min(260px, calc(100% - 24px)); padding: 8px 11px;
   background: var(--panel-glass); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-sm);
+  transition: left 0.25s ease;
 }
-.build-line { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; margin-bottom: 7px; }
+.build-card[hidden] { display: none; }
+.build-line { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; margin-bottom: 6px; }
 .build-title { font-weight: 600; }
 .build-pct { color: var(--ink-3); font-variant-numeric: tabular-nums; }
 .build-sub { margin-top: 6px; color: var(--ink-3); font-size: 11.5px; }
@@ -514,6 +518,8 @@ body[data-street-open][data-npc-open] .street-bar { right: calc(var(--inset-righ
 
 .p-section { padding: 16px 0 2px; }
 .p-section + .p-section { border-top: 1px solid var(--line); margin-top: 14px; }
+/* the Place panel's Census mixes arrive a moment after the rest, in their own slot: the same rules between sections */
+.mix-slot > .p-section { border-top: 1px solid var(--line); margin-top: 14px; }
 .p-section h3, .set-section h3 { font: 600 11px/1.2 var(--sans); letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .section-head h3 { margin: 0; }
@@ -640,7 +646,7 @@ body[data-street-open][data-npc-open] .street-bar { right: calc(var(--inset-righ
 .tab:hover { color: var(--ink); }
 .tab[aria-selected="true"] { color: var(--ink); }
 .tab[aria-selected="true"]::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
-.tabpanel:focus-visible { outline: none; }
+.tabpanel:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: var(--r-sm); }
 
 .dl { display: flex; flex-direction: column; gap: 8px; margin: 0; }
 .dl-row { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; }
@@ -688,20 +694,31 @@ button.member:hover { background: var(--sunk); }
 .hooks { display: flex; flex-direction: column; gap: 6px; padding-left: 16px; list-style: disc; color: var(--ink-2); }
 
 /* talk */
+/* The Talk tab fills the panel: only the log scrolls, and the starters, the input and the footer sit in a dock under
+   it, never over the conversation (the panel body stops scrolling while Talk is open: .npc-body.is-talk) */
 .talk { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; min-height: 100%; }
+.npc-body.is-talk { overflow: hidden; display: flex; flex-direction: column; padding-bottom: 10px; }
+.npc-body.is-talk > .tabpanel:not([hidden]) { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.npc-body.is-talk .talk { flex: 1 1 auto; min-height: 0; height: 100%; }
+.npc-body.is-talk .talk-log { flex: 1 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; scrollbar-width: thin; }
+.talk-dock { flex: none; display: flex; flex-direction: column; gap: 8px; }
+.talk-left { color: var(--ink-2); font-size: 12.5px; }
 .talk-engines { display: flex; flex-direction: column; gap: 6px; }
 .talk-note, .talk-engine { color: var(--ink-3); font-size: 12.5px; }
 .talk-engine.is-blocked { color: var(--ink-2); }
 .talk-divider { align-self: stretch; display: flex; align-items: center; gap: 10px; color: var(--ink-3); font-size: 11px; letter-spacing: 0.04em; }
 .talk-divider::before, .talk-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .talk-log { display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
-.bubble { max-width: 86%; padding: 9px 12px; border-radius: 14px; background: var(--sunk); align-self: flex-start; scroll-margin-bottom: 84px; /* clear of the sticky input */ }
+.bubble { max-width: 86%; padding: 9px 12px; border-radius: 14px; background: var(--sunk); align-self: flex-start; scroll-margin-bottom: 8px; }
 .bubble.from-player { align-self: flex-end; background: var(--accent-soft); }
 .bubble.is-error { background: transparent; border: 1px solid var(--critical); }
 /* Legion's own messages (Claude not allowed, a failed request): a note across the log, not a speech bubble */
 .bubble.from-system { align-self: stretch; max-width: none; display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: var(--r-sm); font-size: 12.5px; color: var(--ink-2); }
 .bubble.from-system .icon { flex: none; margin-top: 2px; color: var(--critical); }
 .bubble.from-system .bubble-text { flex: 1; min-width: 0; }
+/* a note from Legion that is not an error (where to find help): set apart from the conversation, never alarming */
+.bubble.from-system.is-note { background: var(--accent-soft); color: var(--ink); border: 1px solid var(--accent-line, var(--line)); }
+.bubble.from-system.is-note .icon { color: var(--accent); }
 .bubble.is-streaming .bubble-text::after { content: '▍'; color: var(--accent); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .bubble-text { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -710,8 +727,11 @@ button.member:hover { background: var(--sunk); }
 .fact-btn { display: inline-grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink-3); cursor: pointer; }
 .fact-btn:hover, .fact-btn[aria-expanded="true"] { color: var(--accent); background: var(--accent-soft); }
 .bubble-facts { margin-top: 4px; padding-left: 14px; list-style: disc; color: var(--ink-3); font-size: 11.5px; }
-.starters { margin-top: 4px; }
-.talk-form { display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 0; padding: 8px 0 2px; background: linear-gradient(transparent, var(--panel) 30%); }
+/* the starters: one row that scrolls sideways, right above the input */
+.starters { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: 2px; scrollbar-width: thin; }
+.starters .chip { flex: none; }
+.starters[hidden] { display: none; }
+.talk-form { display: flex; gap: 8px; align-items: flex-end; }
 .talk-input { resize: none; min-height: 40px; max-height: 120px; line-height: 1.4; }
 .send-btn { flex: none; width: 40px; height: 40px; padding: 0; }
 .talk-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
@@ -887,6 +907,9 @@ button.member:hover { background: var(--sunk); }
   .map-controls { top: 10px; right: var(--gutter); flex-direction: row; }
   .map-controls .icon-btn { width: 32px; height: 32px; }
   .map-bottom { left: var(--gutter); right: var(--gutter); }
+  .build-card { top: 48px; left: var(--gutter); width: min(240px, calc(100% - 2 * var(--gutter))); }
+  /* with a sheet open the map above it is short: the legend would sit over the place just selected */
+  body[data-place-open] .legend, body[data-npc-open] .legend { display: none; }
   .legend { flex-wrap: wrap; justify-content: flex-start; gap: 2px 4px; border-radius: 14px; }
   .legend-chip { flex: none; padding: 3px 7px; font-size: 12px; }
   .street-bar { top: 8px; left: var(--gutter); right: var(--gutter); }
@@ -902,7 +925,22 @@ button.member:hover { background: var(--sunk); }
     animation-name: sheet-in;
   }
   @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .sheet-grip { display: block; flex: none; width: 40px; height: 4px; margin: 8px auto 0; border-radius: 99px; background: var(--line-strong); }
+  /* the handle: a tap or a drag switches the sheet between its usual height and nearly the whole screen */
+  .sheet-grip {
+    display: block; flex: none; width: 64px; height: 22px; margin: 0 auto; padding: 0; border: 0; background: none;
+    cursor: grab; touch-action: none;
+  }
+  .sheet-grip::before { content: ''; display: block; width: 40px; height: 4px; margin: 9px auto; border-radius: 99px; background: var(--line-strong); }
+  .sheet-grip:focus-visible { outline-offset: -2px; }
+  .panel.is-expanded { height: calc(100% - 64px); }
+  /* the NPC sheet's header: one line each for the name, the facts and "Now", the actions compact, no avatar */
+  .npc-head { gap: 8px; padding-right: 6px; }
+  .npc-head .avatar { display: none; }
+  .npc-head .head-actions .icon-btn { width: 32px; height: 32px; }
+  .npc-meta, .npc-now { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .npc-now { display: block; }
+  .npc-now::before { display: inline-block; margin-right: 6px; vertical-align: 1px; }
+  .npc-id { display: none; }
   .panel-head { padding: 10px 8px 10px var(--gutter); }
   .panel-body { padding: 4px var(--gutter) calc(18px + env(safe-area-inset-bottom)); }
   .panel-title { font-size: 24px; }

@@ -12,6 +12,15 @@
 // kind by someone whose language it is, and kindly in English by anyone else. Holidays ("Happy Thanksgiving!", "what
 // are you doing for Thanksgiving?") are answered from the calendar, the household and the work schedule.
 //
+// Some lines are not part of the game, and are read before anything else (dialogue/safety.mjs, care.mjs). A player
+// who says they want to die, are hurting themselves, are being hurt or are having an emergency gets a kind line that
+// steps out of the scene with 988 and 911, and the Line carries a note from Legion with the same numbers (Line.note):
+// no joke, no pivot, no question back, and no insult reading of it. A sexual line, an advance on a
+// minor or a lure is declined: an adult disengages, a minor refuses, gives nothing away about where they live or who
+// is home and goes to find a parent, a toddler runs to one. A threat (violence, rape, arson, a school shooting, the
+// NPC's family, stalking, calling immigration on them) ends the conversation firmly. Line.safety says which ('crisis' |
+// 'sexual' | 'threat'); Line.ended is true once the NPC has left, and the conversation stays over.
+//
 // Some things an NPC will not do. A line that sorts people into groups, probes immigration status, tells them to
 // leave or accuses them of a crime on a stereotype (dialogue/probe.mjs) is declined or denied and pushed back on,
 // never met with a coy "why do you ask?", and a hostile one costs the player like an insult. A crude, hateful or joke
@@ -21,8 +30,8 @@
 // claim rests on missing data: no record of an earthquake is not "nothing happened here", and past the forecast
 // window the weather is an estimate and nothing more.
 //
-// Lines: {text, gloss, intent, topics, emotion, facts}. gloss is the English meaning when the line (or part of it)
-// is in another language, null otherwise. facts lists the ids of the pack facts the line used (see
+// Lines: {text, gloss, intent, topics, emotion, facts} (plus safety, note and ended for the lines above). gloss is the
+// English meaning when the line (or part of it) is in another language, null otherwise. facts lists the ids of the pack facts the line used (see
 // dialogue/ground.mjs), so tests and the UI can show provenance.
 //
 // Deterministic given (rngSeed, history) and the mind's state; no network; a reply takes a few milliseconds.
@@ -43,6 +52,8 @@ import { fireFacts, weatherFacts, fireName, cleanFireName } from './dialogue/gro
 import { bark, barkBetween, BARK_EN, BARK_ES, BARK_SITUATIONS } from './dialogue/bark.mjs';
 import { isNum, lintText, fitsLife, lexiconLineFits, sentencesOf, sentenceKey, contentWords, tidy, terminate, capFirst } from './dialogue/core.mjs';
 import { screenValue } from './dialogue/probe.mjs';
+import { safetyOf } from './dialogue/safety.mjs';
+import { careReply, goneReply } from './dialogue/care.mjs';
 
 export { bark, barkBetween, BARK_SITUATIONS, understand };
 
@@ -52,8 +63,10 @@ export const DIALOGUE_VERSION = 1;
 /**
  * The intents the engine understands (Line.intent is one of these). 'probe' is a line that sorts people into groups,
  * asks about immigration status or prejudice: the NPC declines and pushes back (a hostile one is an 'insult').
+ * 'safety' is a line that is not part of the game (a crisis, a sexual line or a lure, a threat): see Line.safety.
+ * 'about-me' is a question about the player ("Do you remember me?", "What do I do?"), answered from the mind's memory.
  */
-export const INTENTS = Object.freeze(['greeting', 'how-are-you', 'name', 'about-them', 'job', 'family', 'home', 'neighborhood', 'weather', 'traffic', 'fire', 'storm', 'heat', 'housing', 'rent', 'insurance', 'earthquake', 'food', 'place', 'directions', 'history', 'opinion', 'compliment', 'insult', 'probe', 'joke', 'thanks', 'apology', 'smalltalk', 'goodbye', 'unknown']);
+export const INTENTS = Object.freeze(['greeting', 'how-are-you', 'name', 'about-them', 'job', 'family', 'home', 'neighborhood', 'weather', 'traffic', 'fire', 'storm', 'heat', 'housing', 'rent', 'insurance', 'earthquake', 'food', 'place', 'directions', 'history', 'opinion', 'compliment', 'insult', 'probe', 'joke', 'thanks', 'apology', 'smalltalk', 'goodbye', 'unknown', 'safety', 'about-me']);
 
 /** Line.emotion values: the mind's emotion labels plus a few the content sets (amused, pleased, hurt, annoyed, worried, wistful). */
 export const EMOTIONS = Object.freeze(['tired', 'excited', 'happy', 'cheerful', 'relaxed', 'content', 'tense', 'calm', 'neutral', 'irritated', 'anxious', 'bored', 'down', 'angry', 'upset', 'sad', 'amused', 'pleased', 'hurt', 'annoyed', 'worried', 'wistful']);
@@ -104,7 +117,8 @@ function topicOfMemory(m) {
   const x = /^The player asked me about (.+)\.$/.exec(String(m.text || ''));
   if (!x) return null;
   const tags = m.tags || [];
-  const intent = tags.find(t => INTENTS.includes(t)) || null;
+  // (the tag 'player' says who the memory is about, not an intent)
+  const intent = tags.find(t => INTENTS.includes(t) && t !== 'player') || null;
   // tags are stored in lower case: names come back in title case ("fire:woolsey:2018" is the Woolsey Fire)
   const facts = tags.filter(t => TOPIC_TAGS.test(t)).map(t => t.replace(/^(fire|road|landmark|place):([^:]+)/, (a, k, n) => `${k}:${k === 'road' ? n.toUpperCase() : titleWords(n)}`));
   const fire = facts.find(f => f.startsWith('fire:'));
@@ -178,7 +192,7 @@ export class Conversation {
 
   /** The NPC closes the conversation. @returns {Line} */
   farewell() {
-    const line = this._turn('farewell', null);
+    const line = this.st.safetyEnded ? this._gone(null) : this._turn('farewell', null);
     const topics = [...new Set(this.history.filter(h => h.role === 'npc').flatMap(h => h.topics || []))].filter(x => x !== 'self');
     this.mind.remember(topics.length ? `I talked with the player about ${topics.slice(0, 4).join(', ')}.` : 'I talked with the player for a bit.', 0.35, ['player', 'conversation', this.st.convTag, ...topics], { t: this.t, kind: 'conversation' });
     return line;
@@ -208,15 +222,20 @@ export class Conversation {
 
   _turn(kind, text) {
     const st = this.st, v = this.voice;
+    // what is not part of the game comes first, before the mind, the topic, a pending question or a toddler's chatter
+    const safety = kind === 'reply' ? safetyOf(text, { age: v.age }) : null;
+    if (safety) return this._safety(text, safety);
+    // an NPC who left the conversation over one of those lines does not come back to it
+    if (kind === 'reply' && st.safetyEnded) return this._gone(text);
     st.turn += 1;
     const rng = new Rng(hashAll(this.rngSeed, this.idHash, st.turn, kind, text || ''));
     if (kind === 'reply') {
       // the mind learns what the player says about themselves; a crude, hateful or joke value is taken back out
       const before = playerFacts(this.mind);
-      this.mind.observe({ kind: 'utterance', from: 'player', text, t: this.t });
-      sentenceName(this.mind, text, this.t);
+      safely(() => this.mind.observe({ kind: 'utterance', from: 'player', text, t: this.t }));
+      safely(() => sentenceName(this.mind, text, this.t));
       scrubFacts(this.mind, before);
-    } else if (kind === 'greet') this.mind.observe({ kind: 'meet', from: 'player', t: this.t });
+    } else if (kind === 'greet') safely(() => this.mind.observe({ kind: 'meet', from: 'player', t: this.t }));
     refreshVoice(v, this.mind, { metBefore: !!st.prev });
     const S = this._session(rng);
     let u = null, intent, line;
@@ -224,8 +243,9 @@ export class Conversation {
       // (recent: the topic was the last turn's, so "really?" or "wow" still means it; several turns on, it doesn't)
       u = understand(text, { world: this.world, mind: this.mind, home: v.home, fires: fireFacts(v).map(f => ({ name: f.name, alias: cleanFireName(f.name) })), lastIntent: st.pivotIntent || st.lastIntent, recent: !!st.pivotIntent || !st.prevIntent || st.prevIntent === st.lastIntent, pending: st.pending, self: v.vocab });
       intent = u.intent;
-      // a hostile probe stings like an insult, though the mind's appraisal hears no swearing in it
-      if (u.flags.probe && u.flags.probe.hostile) affront(this.mind, this.t, ['slur', 'hate', 'leave'].includes(u.flags.probe.kind) ? 1.4 : 1);
+      // a hostile probe stings like an insult, though the mind's appraisal hears no swearing in it (when it does, the
+      // mind has already taken the sting)
+      if (u.flags.probe && u.flags.probe.hostile && !u.appraisal.intents.includes('insult')) affront(this.mind, this.t, ['slur', 'hate', 'leave'].includes(u.flags.probe.kind) ? 1.4 : 1);
     } else intent = kind === 'greet' ? 'greeting' : 'goodbye';
 
     // A line in Spanish: a Spanish speaker answers that turn in Spanish; one who speaks none says so, except for
@@ -247,6 +267,8 @@ export class Conversation {
         plan = { parts: [say(S, st.noSpanish > 2 ? 'unk.noSpanishAgain' : 'unk.noSpanish') || say(S, 'unk.noSpanish')], topics: [], noAsk: true };
       } else if (u) {
         plan = answerPending(S, u);
+        // (a reaction to what the player told about themselves: they did not ask the NPC about it)
+        if (plan) plan.reacted = true;
         if (plan && plan.intent) intent = plan.intent;
       }
       if (!plan) {
@@ -255,6 +277,8 @@ export class Conversation {
         else if (kind === 'farewell') plan = PLANNERS.goodbye(S, null);
         else plan = (PLANNERS[intent] || PLANNERS.unknown)(S, u);
       }
+      // a second topic asked in the same breath ("What about rent and insurance?") gets a sentence of its own
+      if (u && plan && !plan.reacted && !noSpanish && kind === 'reply') this._alsoTopic(S, u, plan);
       if (u && u.flags.greeted && intent !== 'greeting' && !st.greeted && v.lang.mode === 'en') {
         st.greeted = true;
         plan.parts.unshift(say(S, 'greet.first'));
@@ -310,6 +334,86 @@ export class Conversation {
     return Object.assign({}, line, base, gesture(v, st, rng), { repeat: true });
   }
 
+  /**
+   * A line safety.mjs read: the reply comes from care.mjs, outside the planners, the styling and the pending question.
+   * The mind hears it like any line (its own appraisal knows a crisis from a threat: worry for the player, never an
+   * insult); a sexual line or a threat costs the player like an insult when the mind's appraisal did not already
+   * count it (an older mind without that reading).
+   */
+  _safety(text, safety) {
+    const st = this.st, v = this.voice;
+    st.turn += 1;
+    const rng = new Rng(hashAll(this.rngSeed, this.idHash, st.turn, 'safety', text || ''));
+    const before = playerFacts(this.mind);
+    const seen = safely(() => this.mind.observe({ kind: 'utterance', from: 'player', text, t: this.t }));
+    const ap = seen && seen.appraisal ? seen.appraisal : null;
+    const insulted = !!(ap && (ap.safety === 'threat' || ap.safety === 'sexual' || (Array.isArray(ap.intents) && ap.intents.includes('insult'))));
+    scrubFacts(this.mind, before);
+    refreshVoice(v, this.mind, { metBefore: !!st.prev });
+    const mode0 = v.lang.mode;
+    // a Spanish line to a Spanish speaker is answered in Spanish; anyone else answers in their own words
+    if (safety.es && v.lang.spanish && v.age >= 5) v.lang.mode = 'es';
+    try {
+      const S = this._session(rng);
+      const r = careReply(S, safety);
+      if (r.sting > 0 && !insulted) affront(this.mind, this.t, r.sting);
+      const parts = r.parts.filter(p => p && p.text);
+      if (!parts.length) parts.push({ text: v.lang.mode === 'es' ? 'No.' : 'No.', gloss: null });
+      const text1 = tidy(parts.map(p => terminate(p.text)).join(' '));
+      const gloss = parts.some(p => p.gloss) ? tidy(parts.map(p => terminate(p.gloss || p.text)).join(' ')) : null;
+      if (r.ended) { st.ended = true; st.safetyEnded = true; st.safetyKind = safety.kind; st.goneTurns = 0; }
+      st.pending = null; st.lastAsked = false; st.pivotIntent = null;
+      const out = { text: text1, gloss, intent: 'safety', topics: [], emotion: r.emotion, facts: [], safety: safety.kind };
+      if (r.note) out.note = r.note;
+      if (st.safetyEnded) out.ended = true;
+      st.said.add(out.text);
+      this.history.push({ role: 'player', text, intent: 'safety', t: this.t });
+      this.history.push(Object.assign({ role: 'npc', text: out.text, gloss: out.gloss, intent: 'safety', topics: [], emotion: out.emotion, facts: [], t: this.t, safety: out.safety }, out.note ? { note: out.note } : {}, out.ended ? { ended: true } : {}));
+      safely(() => this.mind.observe({ kind: 'utterance', from: 'self', text: out.text, t: this.t, tags: ['safety'] }));
+      return out;
+    } finally {
+      v.lang.mode = mode0;
+    }
+  }
+
+  /** The NPC left the conversation (a sexual line, a lure or a threat): what they say or do when the player goes on. */
+  _gone(text) {
+    const st = this.st, v = this.voice;
+    st.turn += 1;
+    st.goneTurns = (st.goneTurns || 0) + 1;
+    refreshVoice(v, this.mind, { metBefore: !!st.prev });
+    const S = this._session(new Rng(hashAll(this.rngSeed, this.idHash, st.turn, 'gone', text || '')));
+    const p = goneReply(S, st.goneTurns);
+    const out = { text: tidy(terminate(p.text)), gloss: p.gloss ? tidy(terminate(p.gloss)) : null, intent: 'safety', topics: [], emotion: v.age < 18 ? 'anxious' : 'annoyed', facts: [], safety: st.safetyKind || 'sexual', ended: true };
+    st.said.add(out.text);
+    if (text !== null) this.history.push({ role: 'player', text, intent: 'safety', t: this.t });
+    this.history.push({ role: 'npc', text: out.text, gloss: out.gloss, intent: 'safety', topics: [], emotion: out.emotion, facts: [], t: this.t, safety: out.safety, ended: true });
+    return out;
+  }
+
+  /**
+   * The second topic of a two-topic question: the first sentence its planner would say (one that states a fact when
+   * there is one), introduced as such ("As for insurance, ..."), kept within the reply's sentence budget.
+   */
+  _alsoTopic(S, u, plan) {
+    const k = Array.isArray(u.also) ? u.also[0] : null;
+    const words = k ? ALSO_WORDS[k] : null;
+    if (!words || !PLANNERS[k] || !Array.isArray(plan.parts)) return;
+    const st = this.st, cs = st.cs;
+    let more = null;
+    try { more = PLANNERS[k](S, Object.assign({}, u, { intent: k, also: [], flags: Object.assign({}, u.flags, { sub: null, followUp: false }) })); } catch { more = null; }
+    st.cs = cs;
+    const parts = (more && Array.isArray(more.parts) ? more.parts : []).filter(p => p && p.text && !/\?$/.test(p.text));
+    // (what the pack says about the place first: "about 35 in every 100 homes are on the FAIR Plan")
+    const part = parts.find(p => (p.facts || []).some(f => PLACE_FACT_ID.test(f))) || parts.find(p => (p.facts || []).length) || parts[0];
+    if (!part) return;
+    const es = this.voice.lang.mode === 'es';
+    const text = es ? `En cuanto a ${words[1]}, ${lowerFirst(part.text)}` : `As for ${words[0]}, ${lowerFirst(part.text)}`;
+    const gloss = es ? `As for ${words[0]}, ${lowerFirst(part.gloss || part.text)}` : part.gloss ? `As for ${words[0]}, ${lowerFirst(part.gloss)}` : null;
+    plan.parts.splice(Math.min(1, plan.parts.length), 0, Object.assign({}, part, { text, gloss, keep: true }));
+    plan.topics = [...new Set([...(plan.topics || []), ...((more && more.topics) || [])])];
+  }
+
   _callback(S, intent, u) {
     const st = this.st;
     if (!TOPICAL.has(intent) || st.calledBack.has(intent) || (st.mentionedPrev && st.prev && st.prev.intent === intent)) return null;
@@ -356,8 +460,8 @@ export class Conversation {
     const tAt = this.t;
     if (text !== null) this.history.push(Object.assign({ role: 'player', text, intent, t: tAt }, u && u.flags && u.flags.sub ? { sub: u.flags.sub } : {}));
     this.history.push(Object.assign({ role: 'npc', text: out.text, gloss: out.gloss, intent, topics, emotion, facts: out.facts.slice(), t: tAt }, line.repeat ? { repeat: true } : {}));
-    this.mind.observe({ kind: 'utterance', from: 'self', text: out.text, t: tAt, tags: [intent] });
-    if (kind === 'reply' && TOPICAL.has(intent) && TOPIC_PHRASE[intent]) {
+    safely(() => this.mind.observe({ kind: 'utterance', from: 'self', text: out.text, t: tAt, tags: [intent] }));
+    if (kind === 'reply' && !(plan && plan.reacted) && TOPICAL.has(intent) && TOPIC_PHRASE[intent]) {
       const tp = topicFromFacts(intent, out.facts);
       if (tp) {
         const tags = ['player', 'asked', intent, st.convTag, ...(tp[2] ? [tp[2]] : []), ...topics];
@@ -461,6 +565,17 @@ function gesture(v, st, rng) {
   return { text: `(${he} says nothing.)`, gloss: null };
 }
 
+// Fact ids about the place (not the speaker's own record): a sentence that carries one says something about here.
+const PLACE_FACT_ID = /^(?:acs\.|aadt:|clim\.|record\.|ins\.|biz\.|fhsz|fire:|ar:|fema:|wind:|weather\.|road:|alert:|stretch:|landmark:|place:)/;
+
+// A second topic as it is introduced ("As for insurance, ..."), English and Spanish.
+const ALSO_WORDS = {
+  insurance: ['insurance', 'el seguro'], rent: ['the rent', 'la renta'], housing: ['house prices', 'el precio de las casas'], fire: ['fires', 'los incendios'],
+  traffic: ['traffic', 'el tráfico'], weather: ['the weather', 'el clima'], heat: ['the heat', 'el calor'], storm: ['storms', 'las tormentas'],
+  earthquake: ['earthquakes', 'los temblores'], food: ['food', 'la comida'], job: ['work', 'el trabajo'], family: ['family', 'la familia'],
+};
+const lowerFirst = s => (/^(?:I|I'm|I've|I'd|I'll)\b/.test(s) || /^\p{Lu}\p{Lu}/u.test(s) ? s : s ? s[0].toLowerCase() + s.slice(1) : s);
+
 const HEAVY_IMPORTANCE = { fire: 0.7, storm: 0.6, earthquake: 0.6, insurance: 0.6, history: 0.55, family: 0.55, job: 0.5, rent: 0.55, housing: 0.5 };
 
 /** The player's facts in the mind as {key: value}, before a turn (to restore what a crude value overwrote). */
@@ -494,6 +609,11 @@ function scrubFacts(mind, before) {
     const prev = before.find(b => b.key === f.key && !screenValue(b.value, b.key));
     if (prev) r.facts[i] = prev; else r.facts.splice(i, 1);
   }
+}
+
+/** Run a step of the mind's bookkeeping; a mind that fails (an odd word in its lexicon, a broken store) never fails a reply. */
+function safely(fn) {
+  try { return fn(); } catch { return null; }
 }
 
 /** What an insult does to the relationship (the mind's own rule), for a hostile line its appraisal does not catch. */
@@ -548,4 +668,7 @@ export function lintTemplates() {
  * @property {string[]} topics  what it was about (weather, traffic, fire, housing, rent, insurance, job, family, food, sports, school, neighborhood, history, self, …)
  * @property {string} emotion   how the NPC feels saying it (EMOTIONS)
  * @property {string[]} facts   ids of the pack facts and record fields used
+ * @property {'crisis'|'sexual'|'threat'} [safety] set on a line that answers what is not part of the game (safety.mjs)
+ * @property {string} [note]    a note from Legion to show beside the line, not in the NPC's voice (988 and 911 for a crisis)
+ * @property {true} [ended]     the NPC has left the conversation over such a line, and it stays over
  */

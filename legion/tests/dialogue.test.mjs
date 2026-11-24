@@ -74,6 +74,7 @@ const PROBES = [
   ['place', 'What should I see while I am in town?'], ['directions', 'How do I get to Sacramento?'], ['history', 'What do you remember from the old days?'],
   ['opinion', 'What do you think about politics?'], ['compliment', 'You are so nice.'], ['insult', 'You are an idiot.'], ['probe', 'What do you think about immigrants?'], ['joke', 'Tell me a joke.'],
   ['thanks', 'Thank you!'], ['apology', 'Sorry about that.'], ['smalltalk', 'What are you up to?'], ['goodbye', 'Goodbye!'], ['unknown', 'Purple monkey dishwasher.'],
+  ['safety', 'I want to kill myself.'], ['about-me', 'Do you remember me?'],
 ];
 
 // Ten-plus ZIPs from every corner of the state: city, suburb, farm town, coast, desert, mountains, the far north.
@@ -148,7 +149,7 @@ test('grounding: a weather reply carries the temperature world.weatherAt gives, 
 test('grounding: a fire question in 90265 names the Woolsey Fire (2018) or the Palisades Fire (2025)', () => {
   for (const npc of residents('90265', 6, npc => npc.age >= 18)) {
     const line = conv(npc, 9).reply('Has there ever been a big fire around here?');
-    assert.match(line.text + ' ' + (line.gloss || ''), /(Woolsey Fire|incendio Woolsey)[^.]*2018|(Palisades Fire|incendio Palisades)[^.]*2025|2018[^.]*Woolsey|2025[^.]*Palisades/, `${npc.id}: "${line.text}"`);
+    assert.match(line.text + ' ' + (line.gloss || ''), /(Woolsey Fire|incendio Woolsey)\.?[^.]*2018|(Palisades Fire|incendio Palisades)\.?[^.]*2025|2018[^.]*Woolsey|2025[^.]*Palisades/, `${npc.id}: "${line.text}"`);
     assert.ok(line.facts.some(f => f === 'fire:Woolsey:2018' || f === 'fire:Palisades:2025'), `${npc.id}: ${line.facts}`);
   }
 });
@@ -300,7 +301,7 @@ test('Line.facts cover the claims: years, temperatures, fires and roads in a lin
         const facts = new Set(line.facts);
         const where = `${npc.id} "${text}" -> "${line.text}" [${line.facts}]`;
         if (/\b(19|20)\d\d\b/.test(line.text)) assert.ok(line.facts.length > 0, `a year needs a source: ${where}`);
-        if (/\b\d{2,3} degrees\b|\bit's \d{2,3}\b/i.test(line.text)) assert.ok(line.facts.some(f => /^(weather|record|clim)/.test(f)), `a temperature needs a source: ${where}`);
+        if (/\b\d{2,3} degrees\b|\bit's \d{2,3}\b(?! (?:minutes|miles|percent|cars))/i.test(line.text)) assert.ok(line.facts.some(f => /^(weather|record|clim)/.test(f)), `a temperature needs a source: ${where}`);
         for (const f of firesByZip.get(zip)) if (line.text.includes(f.label)) assert.ok(facts.has(f.id) || line.facts.some(x => x.startsWith('persona.memory')), `${f.label} needs ${f.id}: ${where}`);
         if (/\$\d|million dollars/.test(line.text)) assert.ok(line.facts.some(f => /^(acs\.value|ins\.prem)/.test(f)), `money needs a source: ${where}`);
         if (/cars a day/.test(line.text)) assert.ok(line.facts.some(f => f.startsWith('aadt:')), `a traffic count needs a source: ${where}`);
@@ -590,7 +591,10 @@ test('follow-ups are answered from the NPC\'s own life, never with "I don\'t kno
       assert.ok(!IGNORANCE.test(line.text), `${npc.id} "${a}" / "${b}" -> "${line.text}"`);
       const kids = P(npc).npc.household.members.filter(m => m.role === 'child' && npc.role === 'householder' && npc.age - m.age >= 15);
       if (b === 'What are their names?' && kids.length) for (const k of kids) assert.ok([k.first, String(k.name).split(' ')[0]].filter(Boolean).some(x => line.text.includes(x)), `${npc.id}: names ${k.name} in "${line.text}"`);
-      if (b === 'What about tomorrow?') assert.ok(line.facts.includes('weather.next'), `${npc.id}: the forecast: "${line.text}" ${line.facts}`);
+      if (b === 'What about tomorrow?') {
+        if (world.weatherAt(world.indexOf(npc.zip), T).stale) assert.ok(/\b(?:probably|I'd guess|I'd say|or so|haven't (?:looked|checked|seen))\b/i.test(line.text) && !line.facts.includes('weather.next'), `${npc.id}: no forecast in reach, hedged: "${line.text}" ${line.facts}`);
+        else assert.ok(line.facts.includes('weather.next'), `${npc.id}: the forecast: "${line.text}" ${line.facts}`);
+      }
     }
   }
   assert.ok(n >= 150);
@@ -1147,7 +1151,9 @@ test('questions get the answer they ask for: rain, a named dish, last night\'s g
     const wet = W.periods.some(p => typeof p.pop === 'number' && p.pop >= 30);
     const line = c.reply('Is it going to rain this week?');
     const first = sentencesOf(line.gloss || line.text)[0] || '';
-    if (wet) assert.match(line.gloss || line.text, /\d+ percent/, `${npc.id}: "${line.text}"`);
+    // no forecast in reach (a climate estimate): never a "no rain", which nobody here was told
+    if (W.stale) assert.ok(!/^(No rain|Doesn't look like it|Not that I)/.test(first) && /\b(?:probably|I'd guess|I'd say|or so|haven't|about|I think)\b/i.test(line.gloss || line.text), `${npc.id}: "${line.text}"`);
+    else if (wet) assert.match(line.gloss || line.text, /\d+ percent/, `${npc.id}: "${line.text}"`);
     else assert.match(first, /^(No rain|Doesn't look like it|Not that I('ve seen| know of)|Not that I know)/, `${npc.id}: "${line.text}"`);
   }
   // a dish named in the question is the one the answer is about

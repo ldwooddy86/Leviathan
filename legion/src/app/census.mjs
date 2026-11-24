@@ -17,8 +17,9 @@ const isNum = v => typeof v === 'number' && Number.isFinite(v);
 
 /**
  * @typedef {object} Scope
- * @property {'zip'|'place'|'city'|'county'|'region'} kind  'place' is a Census place (a city or a community), 'city' a
- *   postal (USPS) city name, which often differs: mail to "Los Angeles" covers 63 ZIPs, the city of Los Angeles 100
+ * @property {'zip'|'place'|'city'|'county'|'region'|'neighborhood'} kind  'place' is a Census place (a city or a
+ *   community), 'city' a postal (USPS) city name, which often differs: mail to "Los Angeles" covers 63 ZIPs, the city of
+ *   Los Angeles 100; 'neighborhood' a part of a big city by the name residents use ('the Mission')
  * @property {string} key      ZIP code, place or postal city name, county FIPS or region key (stable, used for seeds and links)
  * @property {number[]} zis    ZIP indices covered
  * @property {string} title    the place's name
@@ -97,6 +98,35 @@ export function placeScope(world, name) {
   return { kind: 'place', key: title, zis, title, eyebrow: placeKind(world, title), subtitle: `${countiesWhere(world, zis)} · ${zis.length} ZIPs` };
 }
 
+/**
+ * The scope of a neighborhood of a big city by name ('the Mission', 'Boyle Heights', world.neighborhoods), ignoring
+ * case and a leading "the": its ZIPs, titled with the name. A one-ZIP neighborhood is that ZIP's scope. Null when
+ * the pack has no such neighborhood.
+ */
+export function neighborhoodScope(world, name) {
+  const key = String(name || '').trim().toLowerCase().replace(/^the\s+/, '');
+  if (!key || typeof world.neighborhoods !== 'function') return null;
+  let hoods = [];
+  try { hoods = world.neighborhoods() || []; } catch { hoods = []; }
+  const e = hoods.find(n => n && String(n.key || String(n.name || '').toLowerCase().replace(/^the\s+/, '')) === key);
+  if (!e || !Array.isArray(e.zis) || !e.zis.length) return null;
+  const title = String(e.name).replace(/^the\b/, 'The');
+  if (e.zis.length === 1) return zipScope(world, e.zis[0], { title });
+  return { kind: 'neighborhood', key: e.name, zis: e.zis.slice(), title, eyebrow: 'Neighborhood', subtitle: `${e.city || world.z.city[e.zis[0]]} · ${e.zis.length} ZIPs` };
+}
+
+/** The county named `name` ('Alameda', 'Alameda County'), by its FIPS ('06001', '001'), or null. */
+export function countyByKey(world, key) {
+  const k = String(key || '').trim();
+  if (!k) return null;
+  if (world.countyByFips) {
+    const byFips = world.countyByFips.get(k) || (/^\d{3}$/.test(k) ? world.countyByFips.get(`06${k}`) : null);
+    if (byFips) return byFips;
+  }
+  const want = k.toLowerCase().replace(/\s+county$/, '').trim();
+  return (world.counties || []).find(c => c.name.toLowerCase() === want) || null;
+}
+
 /** The scope of a county (by index). */
 export function countyScope(world, ci) {
   const c = world.county(ci);
@@ -128,6 +158,7 @@ export function scopeFromSearch(world, item) {
   }
   if (item.kind === 'county') return countyScope(world, item.county);
   if (item.kind === 'region') return regionScope(world, item.region);
+  if (item.kind === 'neighborhood') return neighborhoodScope(world, item.key) || (Number.isInteger(item.index) ? zipScope(world, item.index) : null);
   return null;
 }
 
@@ -136,8 +167,9 @@ export function scopeFromKey(world, kind, key) {
   if (kind === 'zip') { const zi = world.indexOf(key); return zi >= 0 ? zipScope(world, zi) : null; }
   if (kind === 'place') return placeScope(world, key);
   if (kind === 'city') return cityScope(world, key);
-  if (kind === 'county') { const c = world.countyByFips && world.countyByFips.get(key); return c ? countyScope(world, c.index) : null; }
-  if (kind === 'region') return regionScope(world, key);
+  if (kind === 'county') { const c = countyByKey(world, key); return c ? countyScope(world, c.index) : null; }
+  if (kind === 'region') return regionScope(world, key) || regionScope(world, ((world.regions || []).find(r => r.name.toLowerCase() === String(key).toLowerCase()) || {}).key);
+  if (kind === 'neighborhood') return neighborhoodScope(world, key);
   return null;
 }
 
@@ -248,10 +280,10 @@ export function commuteShares(world, zis) {
 }
 
 /**
- * Everything the Place panel shows about a scope, from the pack: totals, medians (weighted across ZIPs for
- * multi-ZIP scopes, flagged `weighted`), languages, heritage and the commute mix.
+ * The totals and medians of a scope (cheap: a few columns summed): people, households, density, income, home value,
+ * median age, owners, household size; medians weighted across ZIPs for multi-ZIP scopes (`weighted`).
  */
-export function placeStats(world, scope) {
+export function placeTotals(world, scope) {
   const z = world.z, zis = scope.zis;
   let pop = 0, hh = 0, sqmi = 0, owners = 0, persons = 0;
   for (const i of zis) {
@@ -270,10 +302,34 @@ export function placeStats(world, scope) {
     ageMedian: single ? z.age_med[i0] : weightedMean(world, zis, 'age_med', i => z.pop[i] || 0),
     ownShare: hh > 0 ? 100 * owners / hh : null,
     hhSize: hh > 0 ? persons / hh : null,
-    languages: languageShares(world, zis),
-    heritage: heritageShares(world, zis),
-    commute: commuteShares(world, zis),
   };
+}
+
+const MIXES = new WeakMap();
+
+/**
+ * The Census mixes of a scope: languages, heritage and the commute (the costly part for a big scope: every ACS row
+ * of its ZIPs), kept per world and scope, so a place opened again answers at once.
+ */
+export function placeMixes(world, scope) {
+  let cache = MIXES.get(world);
+  if (!cache) MIXES.set(world, cache = new Map());
+  const key = `${scope.kind}:${scope.key}:${scope.zis.length}`;
+  let v = cache.get(key);
+  if (!v) {
+    v = { languages: languageShares(world, scope.zis), heritage: heritageShares(world, scope.zis), commute: commuteShares(world, scope.zis) };
+    cache.set(key, v);
+    if (cache.size > 24) cache.delete(cache.keys().next().value);
+  }
+  return v;
+}
+
+/**
+ * Everything the Place panel shows about a scope, from the pack: totals, medians (weighted across ZIPs for
+ * multi-ZIP scopes, flagged `weighted`), languages, heritage and the commute mix.
+ */
+export function placeStats(world, scope) {
+  return { ...placeTotals(world, scope), ...placeMixes(world, scope) };
 }
 
 /**
@@ -345,7 +401,7 @@ export const FIDELITY_VIEWS = Object.freeze({
   occM: { rows: OCCUPATION_GROUP, note: 'Share of employed men' },
   occF: { rows: OCCUPATION_GROUP, note: 'Share of employed women' },
   mar: { group: k => String(k).replace(/^[mf]_/i, ''), rows: MARITAL, note: 'Share of people 15 and over' },
-  vet: { group: vetBand, order: true, note: 'Veterans, as a share of people 18 and over' },
+  vet: { group: vetBand, order: true, note: 'Veterans, as a share of civilians 18 and over (the Census table leaves out active-duty service members)' },
   sch: { rows: SCHOOL_ENROLLMENT, order: true, hide: ['none'], note: 'Students, as a share of people 3 and over' },
 });
 

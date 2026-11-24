@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Legion · local server and Claude proxy.
 //
-//   node server/serve.mjs [--port 8787] [--host 127.0.0.1] [--max-tokens 8192] [--allow-host name]
+//   node server/serve.mjs [--port 8787] [--host 127.0.0.1] [--max-tokens 8192] [--allow-host name] [--cors origin]
+//                         [--store minds.json]
 //
 // Serves legion/Legion.html at / (and the files under legion/ for development), and proxies Claude so the API
 // key stays on this machine: the page's ClaudeVoice points the official SDK at http://host:port/api/anthropic
@@ -10,14 +11,24 @@
 // (ANTHROPIC_API_KEY, or the SDK's default credential chain). Streams are relayed one raw event at a time in the
 // server-sent-event framing the SDK's parser reads (event: <type>, data: <json>, blank line).
 //
-// The proxy only takes what Legion's NPC conversations need (a model from MODELS, a capped max_tokens, text
-// messages, no tools, a size limit), binds to 127.0.0.1 by default, refuses cross-origin and foreign-Host
-// requests (no CORS, DNS-rebinding safe), and writes one log line per request. It never logs or returns a key.
+// It also answers the NPC API, JSON over HTTP for game engines and tools in any language (Unity, Unreal, Godot,
+// Python): every Californian's record, persona, Claude prompt, the situation note of a turn, the day plan, what they
+// are doing, the game-engine export, the weather, samples of a place, and offline conversations with the dialogue
+// engine kept in sessions (NPC_API lists the routes; the README shows them in use).
+//
+// The proxy only takes what Legion's NPC conversations need (a model from MODELS, also for fallbacks, a capped
+// max_tokens, text messages, no tools, a size limit), binds to 127.0.0.1 by default, refuses cross-origin and
+// foreign-Host requests (no CORS, DNS-rebinding safe; --cors opens the NPC API, never the proxy, to one origin),
+// and writes one log line per request. It never logs or returns a key. Bound to any other interface (--host
+// 0.0.0.0, a LAN address) it says so loudly, serves only Legion.html and the API, and asks every request for a
+// token it makes at start (in the URL it prints, then a cookie; or the x-legion-token header for scripts).
 
 import http from 'node:http';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import Anthropic from '@anthropic-ai/sdk';
@@ -30,7 +41,21 @@ export const LEGION_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.u
 export const PROXY_PATH = '/api/anthropic';
 
 /** Default limits. */
-export const LIMITS = Object.freeze({ maxBodyBytes: 1 << 20, maxTokens: 8192, maxConcurrent: 6, maxMessages: 2000 });
+export const LIMITS = Object.freeze({ maxBodyBytes: 1 << 20, maxTokens: 8192, maxConcurrent: 6, maxMessages: 2000, maxSample: 200, maxSessions: 500, sessionIdleMs: 30 * 60000 });
+
+/** The NPC API's routes, for /api/health, --help and the README (times are epoch ms or ISO; ids look like 94110-123-0). */
+export const NPC_API = Object.freeze([
+  'GET  /api/npc/{id}                         the NPC record',
+  'GET  /api/persona/{id}?t=                  their persona',
+  'GET  /api/prompt/{id}?t=                   the Claude system blocks and the situation note of the moment',
+  'GET  /api/situation/{id}?t=&said=          the situation note of one turn (what the player said brings memories up)',
+  'GET  /api/plan/{id}?date=YYYY-MM-DD | ?t=  their day plan, midnight to midnight Pacific',
+  'GET  /api/activity/{id}?t=                 what they are doing at t, and where',
+  'GET  /api/export/{id}?t=&model=&effort=    the game-engine export (legion.persona/1)',
+  'GET  /api/weather/{zip}?t=                 the weather of a ZIP',
+  'GET  /api/sample?where=&n=&seed=           n NPCs of a place (a ZIP, city, county, region key or CA; n up to 200)',
+  'POST /api/talk/{id} {session?, text?, end?, t?}   an offline conversation (the dialogue engine), kept in a session',
+]);
 
 const MODEL_IDS = new Set(MODELS.map(m => m.id));
 const ALLOWED_BETAS = new Set([FALLBACK_BETA, 'server-side-fallback-2026-06-01']);
@@ -102,7 +127,7 @@ export function validateMessagesRequest(body, { maxTokens = LIMITS.maxTokens, ma
     if (!ALLOWED_FIELDS.has(k)) return bad(`the field "${k}" is not accepted by the Legion proxy`);
   }
   if (!MODEL_IDS.has(body.model)) return bad(`model must be one of ${[...MODEL_IDS].join(', ')}`);
-  if (!Number.isInteger(body.max_tokens) || body.max_tokens < 0 || body.max_tokens > maxTokens) return bad(`max_tokens must be an integer from 0 to ${maxTokens} on the Legion proxy`);
+  if (!Number.isInteger(body.max_tokens) || body.max_tokens < 1 || body.max_tokens > maxTokens) return bad(`max_tokens must be an integer from 1 to ${maxTokens} on the Legion proxy`);
   if (body.stream !== undefined && typeof body.stream !== 'boolean') return bad('stream must be a boolean');
   if (!Array.isArray(body.messages) || body.messages.length === 0) return bad('messages must be a non-empty array');
   if (body.messages.length > maxMessages) return bad(`too many messages (the Legion proxy takes up to ${maxMessages})`);
@@ -123,8 +148,9 @@ export function validateMessagesRequest(body, { maxTokens = LIMITS.maxTokens, ma
   }
   if (body.fallbacks !== undefined) {
     const f = body.fallbacks;
-    const okEntry = e => isObj(e) && typeof e.model === 'string' && /^claude-[a-z0-9.-]+$/.test(e.model) && Object.keys(e).every(k => k === 'model' || (k === 'max_tokens' && Number.isInteger(e.max_tokens) && e.max_tokens > 0 && e.max_tokens <= maxTokens));
-    if (f !== 'default' && !(Array.isArray(f) && f.length >= 1 && f.length <= 3 && f.every(okEntry))) return bad('fallbacks must be "default" or a list of up to 3 {model} entries');
+    // a fallback runs on the server's key like the model asked for: only Legion's own models (the allowlist holds)
+    const okEntry = e => isObj(e) && typeof e.model === 'string' && MODEL_IDS.has(e.model) && Object.keys(e).every(k => k === 'model' || (k === 'max_tokens' && Number.isInteger(e.max_tokens) && e.max_tokens > 0 && e.max_tokens <= maxTokens));
+    if (f !== 'default' && !(Array.isArray(f) && f.length >= 1 && f.length <= 3 && f.every(okEntry))) return bad(`fallbacks must be "default" or a list of up to 3 {model} entries naming ${[...MODEL_IDS].join(', ')}`);
   }
   if (body.metadata !== undefined && (!isObj(body.metadata) || Object.keys(body.metadata).some(k => k !== 'user_id') || (body.metadata.user_id !== undefined && typeof body.metadata.user_id !== 'string'))) return bad('metadata takes only user_id');
   if (body.stop_sequences !== undefined && (!Array.isArray(body.stop_sequences) || body.stop_sequences.length > 8 || body.stop_sequences.some(s => typeof s !== 'string'))) return bad('stop_sequences must be up to 8 strings');
@@ -239,6 +265,35 @@ function readBody(req, limit) {
 
 const IPV4 = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 
+/** True for an address only this machine can reach. */
+export function isLoopback(host) {
+  const h = String(host || '').toLowerCase().replace(/^\[|\]$/g, '');
+  return h === 'localhost' || h === '::1' || /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h);
+}
+
+/** Constant-time comparison of two strings (a token check that leaks nothing by its timing). */
+function sameSecret(a, b) {
+  const x = Buffer.from(String(a || '')), y = Buffer.from(String(b || ''));
+  return x.length === y.length && x.length > 0 && crypto.timingSafeEqual(x, y);
+}
+
+/** A cookie's value from a Cookie header. */
+function cookieValue(header, name) {
+  for (const part of String(header || '').split(';')) {
+    const i = part.indexOf('=');
+    if (i > 0 && part.slice(0, i).trim() === name) { try { return decodeURIComponent(part.slice(i + 1).trim()); } catch { return null; } }
+  }
+  return null;
+}
+
+/** A simulated time from a query parameter: epoch ms (digits) or an ISO time; undefined when absent, NaN when bad. */
+function queryTime(v) {
+  if (v === null || v === undefined || v === '') return undefined;
+  const s = String(v).trim();
+  const n = /^-?\d{10,}$/.test(s) ? Number(s) : Date.parse(s);
+  return Number.isFinite(n) && Math.abs(n) <= 8.64e15 ? n : NaN;
+}
+
 /**
  * A value made safe for the one-line request log: control characters, line and paragraph separators are
  * escaped (\n, \r, \t, \uXXXX), so nothing a client sends (a model name, a field name quoted in a validation
@@ -293,6 +348,19 @@ export function createServer(options = {}) {
   let inflight = 0;
   let credential = null;
   let credentialAt = 0;
+  // bound beyond this machine: every request needs the token (made here unless given), and only the app is served
+  const lan = !isLoopback(boundHost);
+  const token = lan ? String(options.token || crypto.randomBytes(18).toString('base64url')) : null;
+  const corsOrigins = new Set((options.corsOrigins || []).map(o => String(o).replace(/\/$/, '')));
+  // the NPC API's platform: created on first use (loading the pack takes a moment), or the one given (tests)
+  let legionPromise = null;
+  const getLegion = () => (legionPromise ||= (options.legion ? Promise.resolve(options.legion) : (async () => {
+    const { createLegion } = await import('../src/engine/platform.mjs');
+    let store;
+    if (options.storePath) { const { FileStore } = await import('../src/engine/mind.mjs'); store = await new FileStore(options.storePath).open(); }
+    return createLegion(store ? { store } : {});
+  })()));
+  const sessions = new Map();   // talk sessions: id -> {id, npc, conv, t, ended, last}
 
   const upstream = () => (client ||= clientFactory());
   const credentialStatus = async () => {
@@ -332,17 +400,159 @@ export function createServer(options = {}) {
     let url;
     try { url = new URL(req.url || '/', 'http://localhost'); } catch { return send(res, 400, 'Bad request\n'); }
     const pathname = url.pathname;
+    if (lan) {
+      // the token arrives once in the URL the server printed: it becomes a cookie (the page's own requests, the
+      // Claude proxy's included, then carry it) and the address bar loses it
+      const given = url.searchParams.get('token');
+      if (given !== null && req.method === 'GET' && !pathname.startsWith('/api/')) {
+        if (!sameSecret(given, token)) { note.detail = 'refused: token'; return send(res, 403, 'Forbidden: that token is not this server\'s.\n'); }
+        url.searchParams.delete('token');
+        const rest = url.searchParams.toString();
+        return send(res, 303, '', { location: `${pathname}${rest ? `?${rest}` : ''}`, 'set-cookie': `legion_token=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict` });
+      }
+      if (!sameSecret(req.headers['x-legion-token'], token) && !sameSecret(cookieValue(req.headers.cookie, 'legion_token'), token)) {
+        note.detail = 'refused: no token';
+        return send(res, 401, 'This Legion server is open to the network and answers only with its token: open the address it printed at start (…/?token=…), or send the x-legion-token header.\n');
+      }
+    }
     if (pathname === '/api' || pathname.startsWith('/api/')) {
-      // Same origin only: the page that talks to the proxy must have come from this server.
       const origin = req.headers.origin;
       const site = req.headers['sec-fetch-site'];
-      if ((origin && origin !== `http://${req.headers.host}`) || (site && site !== 'same-origin' && site !== 'none')) {
+      const sameOrigin = !origin || origin === `http://${req.headers.host}`;
+      // the NPC API may be opened to one other origin (--cors); the Claude proxy never is
+      const npcRoute = NPC_ROUTE.test(pathname);
+      const allowed = sameOrigin ? !(site && site !== 'same-origin' && site !== 'none') : npcRoute && corsOrigins.has(origin);
+      if (!allowed) {
         note.detail = 'refused: cross-origin';
         return apiError(res, 403, 'permission_error', 'Cross-origin requests are not allowed: open Legion from this server to use its Claude proxy.');
       }
+      if (npcRoute) {
+        const cors = !sameOrigin ? { 'access-control-allow-origin': origin, vary: 'Origin' } : {};
+        if (req.method === 'OPTIONS') return send(res, 204, '', { ...cors, 'access-control-allow-methods': 'GET, POST', 'access-control-allow-headers': 'content-type, x-legion-token', 'access-control-max-age': '600' });
+        return npcApi(req, res, url, note, cors);
+      }
       return api(req, res, url, note);
     }
+    // on the network only the app itself is served: not the sources, the tests, the data or node_modules
+    if (lan && pathname !== '/' && pathname !== '/Legion.html') return send(res, 404, 'Not found\n');
     return serveStatic(req, res, pathname);
+  }
+
+  // ---------------------------------------------------------------- the NPC API
+
+  /** Answer an NPC API request (NPC_API); cors: the headers a request from an allowed other origin gets. */
+  async function npcApi(req, res, url, note, cors) {
+    const reply = (status, body) => send(res, status, body, cors);
+    const m = NPC_ROUTE.exec(url.pathname);
+    const [, route, rawArg] = m;
+    let arg = null;
+    if (rawArg !== undefined) { try { arg = decodeURIComponent(rawArg); } catch { return reply(400, { error: 'malformed path' }); } }
+    const post = route === 'talk';
+    if (post ? req.method !== 'POST' : req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { error: `use ${post ? 'POST' : 'GET'}` }, { ...cors, allow: post ? 'POST' : 'GET, HEAD' });
+    const q = url.searchParams;
+    const t = queryTime(q.get('t'));
+    if (Number.isNaN(t)) return reply(400, { error: 't must be epoch milliseconds or an ISO time' });
+    let legion;
+    try { legion = await getLegion(); } catch (err) { note.detail = `platform: ${err && err.message}`; return reply(500, { error: 'the world pack could not be loaded' }); }
+    const npcOf = id => (id && /^\d{5}-\d+-\d+$/.test(id) ? legion.npc(id) : null);
+    try {
+      if (route === 'sample') {
+        const where = q.get('where') || 'CA';
+        const n = q.get('n') === null ? 10 : Number(q.get('n'));
+        const seed = q.get('seed') === null ? 1 : Number(q.get('seed'));
+        if (!Number.isInteger(n) || n < 0 || n > LIMITS.maxSample) return reply(400, { error: `n must be a whole number from 0 to ${LIMITS.maxSample}` });
+        if (!Number.isInteger(seed) || seed < 0 || seed > 0xFFFFFFFF) return reply(400, { error: 'seed must be a whole number from 0 to 4294967295' });
+        if (!legion.resolve(where)) return reply(404, { error: `unknown place "${where}"` });
+        return reply(200, legion.sample(where, n, { seed }));
+      }
+      if (route === 'weather') {
+        const zi = legion.world.indexOf(String(arg || ''));
+        if (zi < 0) return reply(404, { error: `unknown ZIP "${arg}"` });
+        return reply(200, legion.weather(zi, t));
+      }
+      const npc = npcOf(arg);
+      if (!npc) return reply(404, { error: `no NPC has the id ${arg} (ids look like 94110-123-0)` });
+      switch (route) {
+        case 'npc': return reply(200, npc);
+        case 'persona': { const { npc: _n, ...p } = legion.persona(npc.id, { t }); return reply(200, { npc: npc.id, ...p }); }
+        case 'prompt': return reply(200, legion.prompt(npc.id, { t }));
+        case 'situation': return reply(200, { id: npc.id, t: t ?? legion.t, situation: typeof legion.situation === 'function' ? legion.situation(npc.id, t, { said: q.get('said') || undefined }) : legion.prompt(npc.id, { t }).situation });
+        case 'plan': {
+          let when = t;
+          const date = q.get('date');
+          if (date) {
+            const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+            const { atPacific } = await import('../src/engine/clock.mjs');
+            if (!d) return reply(400, { error: 'date must be YYYY-MM-DD' });
+            when = atPacific(+d[1], +d[2], +d[3], 12, 0);
+          }
+          return reply(200, legion.dayPlan(npc.id, when));
+        }
+        case 'activity': return reply(200, legion.activityAt(npc.id, t));
+        case 'export': {
+          const model = q.get('model') || undefined, effort = q.get('effort') || undefined;
+          if (model && !MODEL_IDS.has(model)) return reply(400, { error: `model must be one of ${[...MODEL_IDS].join(', ')}` });
+          if (effort && !EFFORTS.includes(effort)) return reply(400, { error: `effort must be one of ${EFFORTS.join(', ')}` });
+          return reply(200, legion.exportPersona(npc.id, { model, effort, t }));
+        }
+        case 'talk': return talkRoute(req, res, legion, npc, t, note, cors);
+        default: return reply(404, { error: 'not found' });
+      }
+    } catch (err) {
+      note.detail = `npc api: ${err && err.message}`;
+      return reply(500, { error: String(err && err.message || err) });
+    }
+  }
+
+  /**
+   * POST /api/talk/{id}: an offline conversation in a session. No session (or an unknown one) starts a new
+   * conversation, which greets; `text` is the player's line and gets the NPC's; `end: true` says goodbye, reflects
+   * the conversation into the NPC's mind and closes the session. A line the NPC will not answer ends the
+   * conversation (ended: true; Legion's note for someone in crisis is in the line's `note`); the session then takes
+   * no more lines. Minds live in the server's store (--store keeps them in a file).
+   */
+  async function talkRoute(req, res, legion, npc, t, note, cors) {
+    const reply = (status, body) => send(res, status, body, cors);
+    if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) return reply(415, { error: 'send the request as application/json' });
+    let body;
+    try { body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8') || '{}'); } catch { return reply(400, { error: 'the body must be JSON: {session?, text?, end?, t?}' }); }
+    if (!isObj(body)) return reply(400, { error: 'the body must be a JSON object' });
+    const text = body.text === undefined || body.text === null ? '' : String(body.text);
+    if (text.length > 2000) return reply(413, { error: 'text is longer than 2000 characters' });
+    const now = Date.now();
+    for (const [k, sx] of sessions) if (now - sx.last > LIMITS.sessionIdleMs) sessions.delete(k);
+    let sess = typeof body.session === 'string' ? sessions.get(body.session) : null;
+    if (sess && sess.npc !== npc.id) return reply(409, { error: `session ${body.session} is a conversation with ${sess.npc}` });
+    const lines = [];
+    if (!sess) {
+      if (sessions.size >= LIMITS.maxSessions) { const oldest = [...sessions.values()].sort((a, b) => a.last - b.last)[0]; if (oldest) sessions.delete(oldest.id); }
+      const tt = Number.isFinite(t) ? t : queryTime(body.t);
+      if (Number.isNaN(tt)) return reply(400, { error: 't must be epoch milliseconds or an ISO time' });
+      const conv = legion.conversation(npc.id, { t: tt });
+      sess = { id: crypto.randomBytes(12).toString('hex'), npc: npc.id, conv, t: conv.t, ended: false, last: now };
+      sessions.set(sess.id, sess);
+      lines.push({ who: 'npc', ...conv.greet() });
+    } else if (sess.ended) {
+      return reply(409, { session: sess.id, ended: true, error: 'this conversation has ended; start a new one without a session' });
+    }
+    sess.last = now;
+    if (text.trim()) {
+      const line = sess.conv.reply(text);
+      lines.push({ who: 'npc', ...line });
+      if ((line && line.ended === true) || sess.conv.ended === true) {
+        sess.ended = true;
+        try { sess.conv.farewell(); } catch { /* the mind keeps what it heard */ }
+      }
+    }
+    if (body.end === true && !sess.ended) {
+      lines.push({ who: 'npc', ...sess.conv.farewell() });
+      sess.ended = true;
+    }
+    // an ended conversation stays ended: its session answers 409 until it expires (a new one starts without a session)
+    if (sess.ended) { try { legion.mind(npc.id).reflect(sess.t); } catch { /* reflection is a bonus */ } }
+    legion.saveMind(npc.id);
+    note.detail = `talk ${npc.id}${sess.ended ? ' ended' : ''}`;
+    return reply(200, { session: sess.id, npc: npc.id, t: sess.t, lines, ended: sess.ended });
   }
 
   async function api(req, res, url, note) {
@@ -360,6 +570,8 @@ export function createServer(options = {}) {
         defaultModel: DEFAULTS.model,
         maxTokens,
         app: fs.existsSync(path.join(root, 'Legion.html')),
+        npcApi: NPC_API.map(r => r.replace(/\s{2,}.*$/, '')),
+        network: lan ? 'open to the network (token required)' : 'this machine only',
       };
       if (!cred.configured) body.hint = 'Start the server with ANTHROPIC_API_KEY set (or sign in with `ant auth login`) to use Claude through it.';
       if (url.searchParams.get('verify') === '1') {
@@ -386,7 +598,7 @@ export function createServer(options = {}) {
       try { id = decodeURIComponent(model[1]); } catch { return apiError(res, 400, 'invalid_request_error', 'Malformed model id.'); }
       return proxyModel(req, res, id, note);
     }
-    return apiError(res, 404, 'not_found_error', `Not found: the Legion proxy answers POST ${PROXY_PATH}/v1/messages and GET ${PROXY_PATH}/v1/models/{model}.`);
+    return apiError(res, 404, 'not_found_error', `Not found: the Legion proxy answers POST ${PROXY_PATH}/v1/messages and GET ${PROXY_PATH}/v1/models/{model}; the NPC API: ${NPC_API.map(r => r.replace(/\s{2,}.*$/, '').replace(/\s+/, ' ')).join(', ')}.`);
   }
 
   async function guardUpstream(res, note) {
@@ -559,28 +771,40 @@ export function createServer(options = {}) {
     res.end(html);
   }
 
+  /** The token this server asks for (null when it listens on this machine only). */
+  server.legionToken = token;
   return server;
 }
 
+/** The NPC API paths: /api/{route}[/{arg}]. */
+const NPC_ROUTE = /^\/api\/(npc|persona|prompt|situation|plan|activity|export|weather|talk|sample)(?:\/([^/]+))?$/;
+
 // ---------------------------------------------------------------- command line
 
-const HELP = `Legion server: serves Legion.html and proxies Claude with the key kept on this machine.
+const HELP = `Legion server: serves Legion.html, proxies Claude with the key kept on this machine, and answers the NPC API.
 
-  node server/serve.mjs [--port 8787] [--host 127.0.0.1] [--max-tokens ${LIMITS.maxTokens}] [--allow-host name]
+  node server/serve.mjs [--port 8787] [--host 127.0.0.1] [--max-tokens ${LIMITS.maxTokens}] [--allow-host name] [--cors origin] [--store file]
 
   --port        port to listen on (default 8787)
-  --host        interface to bind (default 127.0.0.1; 0.0.0.0 to reach it from your LAN by IP address)
+  --host        interface to bind (default 127.0.0.1). Anything else (0.0.0.0 for your LAN) opens the server to the
+                network: anyone who can reach it could spend your Anthropic key, so it then asks every request for a
+                token it prints at start, and serves only Legion.html and the API
   --max-tokens  cap on max_tokens per Claude request (default ${LIMITS.maxTokens})
   --allow-host  an extra Host name to answer to (repeatable), e.g. a hostname on your LAN
+  --cors        let pages from this origin call the NPC API (repeatable; never the Claude proxy), e.g. http://localhost:3000
+  --store       keep the NPCs' minds (what talk sessions taught them) in this JSON file
 
 The Claude proxy uses ANTHROPIC_API_KEY (or your \`ant auth login\` profile). Open http://host:port/ and point
-Claude at this server (proxy URL /api/anthropic) in Settings; the page never sees the key.`;
+Claude at this server (proxy URL /api/anthropic) in Settings; the page never sees the key.
+
+The NPC API (JSON; same origin, or --cors):
+${NPC_API.map(r => `  ${r}`).join('\n')}`;
 
 /** Run the server from the command line. */
 export async function main(argv = process.argv.slice(2)) {
   let args;
   try {
-    args = parseArgs({ args: argv, options: { port: { type: 'string', default: '8787' }, host: { type: 'string', default: '127.0.0.1' }, 'max-tokens': { type: 'string' }, 'allow-host': { type: 'string', multiple: true }, help: { type: 'boolean', short: 'h' } } }).values;
+    args = parseArgs({ args: argv, options: { port: { type: 'string', default: '8787' }, host: { type: 'string', default: '127.0.0.1' }, 'max-tokens': { type: 'string' }, 'allow-host': { type: 'string', multiple: true }, cors: { type: 'string', multiple: true }, store: { type: 'string' }, help: { type: 'boolean', short: 'h' } } }).values;
   } catch (err) {
     console.error(`${err.message}\n\n${HELP}`);
     process.exitCode = 2;
@@ -591,7 +815,8 @@ export async function main(argv = process.argv.slice(2)) {
   const maxTokens = args['max-tokens'] === undefined ? LIMITS.maxTokens : Number(args['max-tokens']);
   if (!Number.isInteger(port) || port < 0 || port > 65535) { console.error(`--port must be a port number, not "${args.port}"`); process.exitCode = 2; return null; }
   if (!Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 128000) { console.error('--max-tokens must be an integer from 1 to 128000'); process.exitCode = 2; return null; }
-  const server = createServer({ host: args.host, maxTokens, allowedHosts: args['allow-host'] || [] });
+  for (const o of args.cors || []) if (!/^https?:\/\/[^/\s]+$/.test(o)) { console.error(`--cors takes an origin like http://localhost:3000, not "${o}"`); process.exitCode = 2; return null; }
+  const server = createServer({ host: args.host, maxTokens, allowedHosts: args['allow-host'] || [], corsOrigins: args.cors || [], storePath: args.store ? path.resolve(args.store) : undefined });
   server.on('error', err => {
     console.error(err.code === 'EADDRINUSE' ? `Port ${port} is already in use on ${args.host}. Try --port ${port + 1}.` : `Server error: ${err.message}`);
     process.exitCode = 1;
@@ -600,7 +825,21 @@ export async function main(argv = process.argv.slice(2)) {
     const addr = server.address();
     const host = args.host.includes(':') ? `[${args.host}]` : args.host;
     const cred = await detectCredential(process.env);
-    console.log(`Legion on http://${host === '0.0.0.0' || host === '[::]' ? '127.0.0.1' : host}:${addr.port}/  ·  Claude proxy at ${PROXY_PATH}  ·  ${cred.configured ? `credential: ${cred.source}` : 'no Anthropic credential (set ANTHROPIC_API_KEY to enable Claude)'}`);
+    const shown = host === '0.0.0.0' || host === '[::]' ? '127.0.0.1' : host;
+    const tok = server.legionToken;
+    console.log(`Legion on http://${shown}:${addr.port}/${tok ? `?token=${tok}` : ''}  ·  Claude proxy at ${PROXY_PATH}  ·  NPC API at /api  ·  ${cred.configured ? `credential: ${cred.source}` : 'no Anthropic credential (set ANTHROPIC_API_KEY to enable Claude)'}`);
+    if (tok) {
+      const lanAddrs = Object.values(os.networkInterfaces()).flat().filter(a => a && a.family === 'IPv4' && !a.internal).map(a => a.address);
+      console.log([
+        '',
+        `WARNING: listening on ${args.host}, open to the network. Anyone who can reach this address could use your`,
+        'Anthropic key through the Claude proxy and talk to every NPC, so each request must carry this token:',
+        `  ${tok}`,
+        ...lanAddrs.map(a => `  open http://${a}:${addr.port}/?token=${tok}`),
+        'Scripts send it as the x-legion-token header. Only Legion.html and the API are served. Use --host 127.0.0.1 to keep it to this machine.',
+        '',
+      ].join('\n'));
+    }
     if (!fs.existsSync(path.join(LEGION_ROOT, 'Legion.html'))) console.log('Legion.html is not built yet: run node tools/build.mjs');
   });
   const stop = () => {

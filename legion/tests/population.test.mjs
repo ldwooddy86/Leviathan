@@ -8,13 +8,15 @@ import assert from 'node:assert/strict';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Population, parseId, LEGION_SEED, HERITAGE_KEYS, originInfo } from '../src/engine/population.mjs';
 import { givenPool, surnamePool, adaptSurname } from '../src/engine/names.mjs';
-import { pickOccupation, chooseTitle, titleWage, OCCUPATION_CATALOG, OCC_GROUPS, GROUP_PROFILES, EDUCATION_LEVELS, MIN_WAGE_HOURLY, MIN_WAGE_FULL_TIME } from '../src/engine/occupations.mjs';
+import { pickOccupation, chooseTitle, titleWage, OCCUPATION_CATALOG, OCC_GROUPS, GROUP_PROFILES, EDUCATION_LEVELS, MIN_WAGE_HOURLY, MIN_WAGE_FULL_TIME, MIL_PAY_FLOOR, MILITARY_BRANCHES } from '../src/engine/occupations.mjs';
 import { Rng, hash3, u01 } from '../src/engine/rng.mjs';
 
 const world = await loadDefaultWorld();
 const pop = new Population(world, { seed: LEGION_SEED });
 const zi = zip => world.indexOf(zip);
-const ZIPS = ['94110', '90001', '96161', '91205', '92683', '93727', '95993', '90813', '92617', '94015', '92252', '95501', '92101'];
+// the calibration ZIPs: the thirteen of the first reviews, Blythe (state prisons: a third of its people in group quarters)
+// and Fort Irwin (an Army post: barracks, and service members among the households)
+const ZIPS = ['94110', '90001', '96161', '91205', '92683', '93727', '95993', '90813', '92617', '94015', '92252', '95501', '92101', '92225', '92310'];
 const HISPANIC = new Set(['mexican', 'salvadoran', 'guatemalan', 'honduran', 'nicaraguan', 'puertorican', 'cuban', 'dominican', 'southamerican', 'spanish', 'latino']);
 const ASIAN = new Set(['chinese', 'filipino', 'vietnamese', 'korean', 'japanese', 'indian', 'hmong', 'cambodian', 'lao', 'thai', 'pakistani', 'bangladeshi', 'sikh', 'afghan', 'burmese', 'indonesian', 'asian']);
 const WHITE = new Set(['armenian', 'iranian', 'arab', 'assyrian', 'russian', 'ukrainian', 'polish', 'irish', 'italian', 'german', 'english', 'scottish', 'french', 'portuguese', 'dutch', 'scandinavian', 'greek', 'european', 'american']);
@@ -173,6 +175,23 @@ test('sample and sampleState: distinct, deterministic, uniform over persons', ()
   assert.deepEqual(pop.sampleState(20, 3).map(p => p.id), st.slice(0, 20).map(p => p.id));
 });
 
+test('every ZIP with households can be sampled, a ZIP the pack gives no household size too', () => {
+  const noSize = [];
+  for (let z = 0; z < world.N; z++) {
+    if (!(world.z.hh[z] > 0)) { assert.equal(pop.expectedPersons(z), 0); continue; }
+    assert.ok(pop.expectedPersons(z) >= 1, `${world.zips[z]} expects people`);
+    if (!(world.z.hhsize[z] > 0)) noSize.push(z);
+  }
+  const people = z => { let n = 0; for (let h = 0; h < pop.householdCount(z); h++) n += pop.householdSize(z, h); return n; };
+  // a small ZIP gives all its people when asked for more (a base's few households, a hamlet of one-person homes)
+  for (const z of [...noSize, zi('93530'), zi('95944'), zi('95680')]) assert.equal(pop.sample(z, 12, 1).length, Math.min(12, people(z)), world.zips[z]);
+  // the expected household population is the generated one, where the pack has a size and where it has none
+  for (const zip of ['93530', '95944', '90001', '96161']) {
+    const z = zi(zip), n = people(z);
+    assert.ok(Math.abs(pop.expectedPersons(z) - n) <= Math.max(3, 0.03 * n), `${zip}: expected ${pop.expectedPersons(z)}, generated ${n}`);
+  }
+});
+
 test('performance: householdCore under 5 microseconds, person under 0.3 ms, a ZIP model in milliseconds', () => {
   const zs = ZIPS.map(zi);
   world.raster(); world.placesIn(zs[0]);           // the world's one-time indexes
@@ -227,8 +246,10 @@ test('calibration: households, ages, race, work and commutes match the Census ta
     assert.ok(tvd(g.dwelling, a.dwelling) < 0.06, `${at} dwellings TVD ${tvd(g.dwelling, a.dwelling).toFixed(3)}`);
     // work: employment (B23025), commute mode (B08301) and time (B08303), occupation by sex (C24010)
     const wk = x => (x.employed || 0) + (x.military || 0);
-    assert.ok(Math.abs(wk(g.emp) - wk(a.emp)) < 0.04, `${at} working 16+ ${pts(wk(g.emp))} vs ${pts(wk(a.emp))}`);
-    assert.ok(Math.abs((g.emp.unemployed || 0) - a.emp.unemployed) < 0.03, `${at} unemployed ${pts(g.emp.unemployed || 0)} vs ${pts(a.emp.unemployed)}`);
+    // (employment of the household population: on a base the barracks' service members are not in households)
+    assert.ok(Math.abs(wk(g.emp) - wk(t.emp)) < 0.04, `${at} working 16+ ${pts(wk(g.emp))} vs ${pts(wk(t.emp))}`);
+    assert.ok(Math.abs((g.emp.unemployed || 0) - t.emp.unemployed) < 0.03, `${at} unemployed ${pts(g.emp.unemployed || 0)} vs ${pts(t.emp.unemployed)}`);
+    if (Object.keys(t.emp).every(k => t.emp[k] === a.emp[k])) assert.ok(Math.abs(wk(g.emp) - wk(a.emp)) < 0.04, `${at} working 16+ vs B23025`);
     for (const k of Object.keys(a.comm)) assert.ok(Math.abs((g.comm[k] || 0) - a.comm[k]) < 0.04, `${at} commute ${k}: ${pts(g.comm[k] || 0)} vs ${pts(a.comm[k])}`);
     assert.ok(tvd(g.ctime, a.ctime) < 0.08, `${at} travel time TVD ${tvd(g.ctime, a.ctime).toFixed(3)}`);
     assert.ok(tvd(g.occM, a.occM) < 0.12 && tvd(g.occF, a.occF) < 0.12, `${at} occupations TVD ${tvd(g.occM, a.occM).toFixed(3)} / ${tvd(g.occF, a.occF).toFixed(3)}`);
@@ -249,9 +270,32 @@ test('calibration: nativity, language, English ability, education, marriage, vet
     assert.ok(tvd(g.hinc, a.hinc) < 0.12, `${at} household income TVD ${tvd(g.hinc, a.hinc).toFixed(3)}`);
     if (gq) continue;   // the Census person tables below count the dorm residents of a campus ZIP; its households are not them
     assert.ok(tvd(g.edu, a.edu) < 0.08, `${at} education TVD ${tvd(g.edu, a.edu).toFixed(3)}`);
-    assert.ok(tvd(g.mar, a.mar) < 0.08, `${at} marital status TVD ${tvd(g.mar, a.mar).toFixed(3)}`);
+    // marital status and veterans of the household population (B12001 and B21001 less the group-quarters residents;
+    // B21001 counts civilians, so active-duty members are in neither of its columns): the published tables where there
+    // are no group quarters
+    const tm = v.target.mar, tv = v.target.vet;
+    if (!v.gq.persons) assert.deepEqual([tm, tv], [a.mar, a.vet], `${at} no group quarters: the targets are the tables`);
+    assert.ok(tvd(g.mar, tm) < 0.08, `${at} marital status TVD ${tvd(g.mar, tm).toFixed(3)}`);
     const vets = (o, sx) => Object.entries(o).filter(([k]) => k.startsWith(sx + '_vet')).reduce((x, [, y]) => x + y, 0);
-    assert.ok(Math.abs(vets(g.vet, 'm') - vets(a.vet, 'm')) < 0.025 && Math.abs(vets(g.vet, 'f') - vets(a.vet, 'f')) < 0.01, `${at} veterans ${pts(vets(g.vet, 'm'))}/${pts(vets(a.vet, 'm'))}`);
+    assert.ok(Math.abs(vets(g.vet, 'm') - vets(tv, 'm')) < 0.025 && Math.abs(vets(g.vet, 'f') - vets(tv, 'f')) < 0.01, `${at} veterans ${pts(vets(g.vet, 'm'))}/${pts(vets(tv, 'm'))}, ${pts(vets(g.vet, 'f'))}/${pts(vets(tv, 'f'))}`);
+  }
+});
+
+test('home languages follow C16001 in mixed ZIPs: the calibration fits the ZIP, not the luck of its sample', () => {
+  // San Jose 95111 (Spanish, Vietnamese, English) and Lakewood 90715 (Spanish, English) were 6 to 7 points off when the
+  // language scales fit the heritage and nativity draws of the 700 calibration households instead of the ZIP's mix
+  for (const zip of ['95111', '90715']) {
+    const v = fidelity(zip), g = v.generated.lang, a = v.acs.lang;
+    for (const k of Object.keys(a)) assert.ok(Math.abs((g[k] || 0) - a[k]) < 0.05, `${zip} ${v.city} ${k}: ${pts(g[k] || 0)} vs ${pts(a[k])}`);
+  }
+});
+
+test('household incomes follow B19001 where seasonal work fills the low brackets, and on a base: no heap at a year of minimum wage', () => {
+  // Huron, Lamont and McFarland (farm towns), Fort Irwin (service members on federal pay)
+  for (const zip of ['93234', '93241', '93250', '92310']) {
+    const v = fidelity(zip), g = v.generated.hinc, a = v.acs.hinc;
+    assert.ok(tvd(g, a) < 0.12, `${zip} ${v.city} household income TVD ${tvd(g, a).toFixed(3)}`);
+    assert.ok(Math.abs((g['35-40k'] || 0) - a['35-40k']) < 0.05, `${zip} ${v.city} $35-40k: ${pts(g['35-40k'] || 0)}% vs ${pts(a['35-40k'])}%`);
   }
 });
 
@@ -413,6 +457,59 @@ test('trips agree with their minutes: no impossible speeds, the nearest school, 
   assert.ok(reports('92058')('92055') > 0.5, 'Oceanside residents serve at Camp Pendleton');
 });
 
+test('service members: the branch of the installation they report to, and on-base trips whose minutes fit the distance', () => {
+  const branchOf = { 'the U.S. Navy': 'navy', 'the U.S. Marine Corps': 'marines', 'the U.S. Army': 'army', 'the U.S. Air Force': 'airforce', 'the U.S. Space Force': 'spaceforce', 'the U.S. Coast Guard': 'coastguard' };
+  const branches = zip => {
+    const z = zi(zip), c = {};
+    let n = 0;
+    for (let h = 0; h < Math.min(2500, pop.householdCount(z)); h++) for (const p of pop.members(z, h)) if (p.status === 'military') { n++; const b = branchOf[p.occupation.employer]; c[b] = (c[b] || 0) + 1; }
+    return { n, share: (...bs) => bs.reduce((s, b) => s + (c[b] || 0), 0) / n };
+  };
+  const want = [['92310', 'Fort Irwin', ['army'], 0.9], ['92277', 'Twentynine Palms', ['marines'], 0.8], ['92058', 'Oceanside (Camp Pendleton)', ['marines'], 0.8],
+    ['92118', 'Coronado', ['navy'], 0.7], ['93245', 'Lemoore (the naval air station)', ['navy'], 0.7], ['93555', 'Ridgecrest (China Lake)', ['navy'], 0.7],
+    ['93437', 'Vandenberg', ['spaceforce', 'airforce'], 0.9], ['93523', 'Edwards', ['airforce'], 0.85], ['94535', 'Travis', ['airforce'], 0.9], ['95903', 'Beale', ['airforce'], 0.9]];
+  for (const [zip, name, bs, min] of want) {
+    const b = branches(zip);
+    assert.ok(b.n > 20 && b.share(...bs) >= min, `${name}: ${pts(b.share(...bs))}% of ${b.n} service members are ${bs.join(' or ')}`);
+  }
+  // on base the minutes fit the distance: nobody drives a few kilometers in an hour and a half
+  let n = 0;
+  for (const zip of ['92310', '92277', '92058', '95903', '94535', '93437', '93523']) {
+    const z = zi(zip);
+    for (let h = 0; h < Math.min(3000, pop.householdCount(z)); h++) {
+      const c = pop.householdCore(z, h);
+      for (const p of c.members) {
+        if (!p.military || !p.work || !['drive', 'carpool', 'motorcycle', 'taxi'].includes(p.mode) || p.commuteMin < 20) continue;
+        n++;
+        const km = world.distKm(c.home.x, c.home.y, p.work.x, p.work.y);
+        assert.ok(km / (p.commuteMin / 60) >= 4, `${c.id}-${p.m} drives ${km.toFixed(1)} km in ${p.commuteMin} minutes`);
+      }
+    }
+  }
+  assert.ok(n > 300, `${n} service members drive 20 minutes or more`);
+});
+
+test('farm work is in farm country: farming jobs of city residents are in the fields or a city\'s farming jobs', () => {
+  const FIELD = /orchard|vineyard|citrus|dairy|strawberry|lettuce|field worker|rice|date palm|avocado|ranch hand|irrigation|tractor|farmworker|cannabis|logger|forestry/;
+  let farm = 0, field = 0, fieldInCity = 0, rural = 0;
+  for (const zip of ['90029', '90032', '93728', '90011', '94110', '93701', '93905']) {
+    const z = zi(zip);
+    for (let h = 0; h < Math.min(4000, pop.householdCount(z)); h++) {
+      const c = pop.householdCore(z, h);
+      for (const pc of c.members) {
+        if (pc.occ !== 'farming' || pc.mode === 'wfh') continue;
+        farm++;
+        const p = pop.person(z, h, pc.m), dens = world.z.density[pc.workZi];
+        if (dens < 1500) rural++;
+        if (FIELD.test(p.occupation.title)) { field++; if (dens >= 4000) fieldInCity++; }
+      }
+    }
+  }
+  assert.ok(farm > 300, `${farm} farming workers`);
+  assert.ok(fieldInCity / farm < 0.02, `field titles at a workplace in a dense city ZIP: ${fieldInCity} of ${farm}`);
+  assert.ok(rural / farm > 0.25 && field / farm > 0.25, `farming workers who live in cities: ${pts(rural / farm)}% work in farm country, ${pts(field / farm)}% in the fields`);
+});
+
 test('commutes: departures fit the job; drives of 45 minutes go far', () => {
   const dep = {}, longDrive = [];
   for (const zip of ['90001', '94110', '93727', '92683', '95993']) {
@@ -437,7 +534,7 @@ test('commutes: departures fit the job; drives of 45 minutes go far', () => {
 });
 
 test('jobs: minimum wage for the hours, licensed titles hold their degree, working from home in a remote job', () => {
-  let workers = 0, wfh = 0, licensed = 0, adults = 0;
+  let workers = 0, wfh = 0, licensed = 0, adults = 0, part = 0, mil = 0;
   for (let z = 0; z < world.N; z += 11) {
     const H = pop.householdCount(z);
     for (let h = 0; h < Math.min(H, 25); h++) {
@@ -447,10 +544,20 @@ test('jobs: minimum wage for the hours, licensed titles hold their degree, worki
         if (!pc.worker) continue;
         workers++;
         const t = TITLE.get(p.occupation.key), e = EDUCATION_LEVELS.indexOf(p.education);
-        // paid hours: the work days times the hours there (a student's after-school job: 12)
+        // paid hours: the work days times the hours there (a student's after-school job: 12), as the record shows them
         const hours = pc.student === 'k12' ? 12 : popcount(pc.workDays) * Math.min(pc.dwellMin, 720) / 60;
         assert.equal(p.occupation.hours, Math.round(hours));
-        assert.ok(p.occupation.wage >= MIN_WAGE_HOURLY * hours * 52 - 1, `${p.id} ${t.title} $${p.occupation.wage} for ${hours} hours a week`);
+        // the year's pay for the record's hours over the weeks worked (B19001 counts the past twelve months: seasonal
+        // work, a job begun during the year): never under the minimum wage, time and a half over 40 hours; a service
+        // member's never under a private's federal basic pay (the state minimum wage does not apply to them)
+        const wk = p.occupation.weeks, hr = p.occupation.hours;
+        assert.ok(Number.isInteger(wk) && wk >= 6 && wk <= 52, `${p.id} worked ${wk} weeks`);
+        if (wk < 52) part++;
+        if (pc.military) { mil++; assert.ok(wk >= (p.age < 25 ? 26 : 52) && p.occupation.wage >= MIL_PAY_FLOOR * wk / 52 - 1, `${p.id} ${t.title} $${p.occupation.wage} over ${wk} weeks`); }
+        else {
+          assert.ok(p.occupation.wage >= MIN_WAGE_HOURLY * (Math.min(hr, 40) + 1.5 * Math.max(0, hr - 40)) * wk - 1, `${p.id} ${t.title} $${p.occupation.wage} for ${hr} hours a week over ${wk} weeks`);
+          if (wk === 52) assert.ok(p.occupation.wage >= MIN_WAGE_HOURLY * hours * 52 - 1, `${p.id} ${t.title} $${p.occupation.wage} for ${hours} hours a week`);
+        }
         if (t.licensed) { licensed++; assert.ok(e >= t.edu, `${p.id} ${t.title} with ${p.education}`); }
         if (p.age >= 25) { adults++; assert.ok(e >= t.edu, `${p.id} ${t.title} needs ${EDUCATION_LEVELS[t.edu]}, has ${p.education}`); }
         if (pc.mode === 'wfh') { wfh++; assert.ok(t.wfh >= 1, `${p.id} works from home as ${t.title}`); }
@@ -459,7 +566,9 @@ test('jobs: minimum wage for the hours, licensed titles hold their degree, worki
       }
     }
   }
-  assert.ok(workers > 5000 && wfh > 300 && licensed > 300 && adults > 4000);
+  assert.ok(workers > 5000 && wfh > 300 && licensed > 300 && adults > 4000 && mil > 5);
+  // most work the whole year; part of the year only where the ZIP's incomes call for it
+  assert.ok(part / workers < 0.3, `part-year workers ${pts(part / workers)}%`);
   // groups none of whose titles can be done from home never work from home
   for (const g of [...OCC_GROUPS, 'military']) if (!OCCUPATION_CATALOG[g].some(t => t.wfh > 0)) assert.ok(['police', 'cleaning', 'farming', 'construction', 'repair', 'transport', 'moving', 'military'].includes(g), g);
 });
@@ -510,8 +619,15 @@ test('occupations fit the place and the person', () => {
   };
   const tulare = titles('farming', '93274');
   assert.ok(tulare('almond-worker') + tulare('vineyard-worker') + tulare('dairy-milker') + tulare('citrus-picker') > 0.5, 'San Joaquin Valley farmwork');
-  const salinas = titles('farming', '93905');
+  // the Salinas Valley's fields grow strawberries and lettuce; field work is in the fields, so the farming jobs whose
+  // workplace is a dense city ZIP (East Salinas, Hollywood, central Fresno) are a city's: a plant nursery, a wholesale
+  // produce market, a packing house
+  const salinas = titles('farming', '93926');
   assert.ok(salinas('strawberry-picker') + salinas('lettuce-harvester') > 0.5, 'Central Coast strawberries and lettuce');
+  for (const zip of ['93905', '90038', '93701']) {
+    const city = titles('farming', zip);
+    assert.ok(city('nursery-worker') + city('produce-market-worker') + city('produce-sorter') + city('fishing-deckhand') > 0.95, `farming jobs at a workplace in ${zip} are a city's`);
+  }
   const eureka = titles('farming', '95501');
   assert.ok(eureka('fishing-deckhand') + eureka('forestry-technician') + eureka('logger') > 0.3, 'North Coast fishing and forestry');
   assert.ok(titles('computer', '94043', 1500, { education: 'bachelor' })('software-developer') > titles('computer', '93727', 1500, { education: 'bachelor' })('software-developer') * 2, 'software in the Bay Area');
@@ -528,16 +644,27 @@ test('occupations fit the place and the person', () => {
   // a licensed title needs its degree: a practitioner with a high school diploma is none of the licensed ones
   for (let k = 0; k < 200; k++) { const o = pickOccupation(r, { group: 'practitioner', world, zi: zi('94110'), age: 40, education: 'master' }); assert.ok(TITLE.get(o.key).edu <= 5, o.key); }
   for (let k = 0; k < 200; k++) { const x = chooseTitle(r, { group: 'legal', world, zi: zi('94110'), age: 40, education: 'bachelor' }); assert.notEqual(x.key, 'attorney'); assert.notEqual(x.key, 'judge'); }
-  // the wage floor: a full-time minimum-wage salary in the lowest-paid county, for the least experienced
+  // the wage floor: a full-time minimum-wage salary in the lowest-paid county, for the least experienced; service members
+  // are paid by the federal tables (from a private's basic pay up, the same in every county), not the state minimum
   assert.equal(MIN_WAGE_FULL_TIME, 35500);
+  assert.ok(MIL_PAY_FLOOR > 25000 && MIL_PAY_FLOOR < MIN_WAGE_FULL_TIME);
   for (const g of [...OCC_GROUPS, 'military']) {
     assert.ok(GROUP_PROFILES[g] && OCCUPATION_CATALOG[g].length >= 6, g);
+    const floor = g === 'military' ? MIL_PAY_FLOOR : MIN_WAGE_FULL_TIME;
     for (const t of OCCUPATION_CATALOG[g]) {
-      assert.ok(t.title && t.sector && t.employers.length && t.wage[0] >= 35200 && t.wage[1] > t.wage[0] && t.shifts.length, `${g} ${t.key}`);
-      assert.ok(titleWage(t, { world, zi: zi('93234'), age: 18, education: 'nohs' }, 0) >= MIN_WAGE_FULL_TIME, `${g} ${t.key} pays the minimum`);
+      assert.ok(t.title && t.sector && t.employers.length && t.wage[0] >= (g === 'military' ? MIL_PAY_FLOOR : 35200) && t.wage[1] > t.wage[0] && t.shifts.length, `${g} ${t.key}`);
+      assert.ok(titleWage(t, { world, zi: zi('93234'), age: 18, education: 'nohs' }, 0) >= floor, `${g} ${t.key} pays the minimum`);
+      if (g !== 'military') continue;
+      assert.ok(MILITARY_BRANCHES[t.branch] && t.employers.every(e => e === MILITARY_BRANCHES[t.branch]), `${t.key} is one branch's`);
+      assert.equal(titleWage(t, { world, zi: zi('94027'), age: 30 }, 0.5), titleWage(t, { world, zi: zi('93234'), age: 30 }, 0.5), `${t.key}: federal pay is the same in every county`);
     }
     const o = pickOccupation(r, { group: g, world, zi: zi('92683') });
-    assert.ok(o.wage >= MIN_WAGE_FULL_TIME && o.wage < 600000 && typeof o.employer === 'string');
+    assert.ok(o.wage >= floor && o.wage < 600000 && typeof o.employer === 'string');
+  }
+  // a branch keeps the draw to its own titles, officers included
+  for (const b of Object.keys(MILITARY_BRANCHES)) for (let k = 0; k < 40; k++) {
+    const o = pickOccupation(r, { group: 'military', world, zi: zi('92310'), age: 20 + (k % 25), education: 'bachelor', branch: b });
+    assert.equal(o.employer, MILITARY_BRANCHES[b]);
   }
 });
 

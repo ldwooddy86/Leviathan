@@ -15,7 +15,7 @@
 
 import {
   dialectFor, DIALECTS, slotsFor, speakerFacts, weatherCondition, offshoreWind,
-  resolveLanguage, varietyFor, faithFor, LANGUAGES, COAST_KM, NAMED_STRETCHES, normalizeRoad,
+  resolveLanguage, varietyFor, LANGUAGES, COAST_KM, NAMED_STRETCHES, normalizeRoad,
 } from '../lexicon.mjs';
 import { activityAt } from '../schedule.mjs';
 import { pacific } from '../clock.mjs';
@@ -149,6 +149,25 @@ export function employerPhrase(employer) {
   return `${/\b(farm|ranch|orchard|vineyard|boat|crew|dairy|field)s?\b/i.test(e) ? 'on' : 'at'} ${e}`;
 }
 
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DOMINGOS = ['domingos', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados'];
+
+/**
+ * The words for someone's own practice: {en: 'services' | 'the gurdwara' | the practice's place, es, day, dayEs}, or
+ * null. Faith-neutral unless the practice itself names its place.
+ * @param {object|null} practice persona.practice
+ * @returns {{en: string, es: string, day: string, dayEs: string}|null}
+ */
+export function worshipOf(practice) {
+  if (!practice) return null;
+  const place = str(practice.place) || 'religious services';
+  const gurdwara = practice.faith === 'sikh' || /gurdwara/i.test(place);
+  const en = gurdwara ? 'the gurdwara' : /^religious services$/i.test(place) ? 'services' : place;
+  const es = gurdwara ? 'el gurdwara' : /^religious services$/i.test(place) ? 'los servicios religiosos' : 'los servicios';
+  const d = Number.isInteger(practice.day) && practice.day >= 0 && practice.day < 7 ? practice.day : 0;
+  return { en, es, day: WEEKDAYS[d], dayEs: DOMINGOS[d] };
+}
+
 /**
  * Build the voice for one persona at time t. Throws when the persona has no NPC record or ZIP in this world.
  * @param {import('../world.mjs').World} world
@@ -196,7 +215,10 @@ export function makeVoice(world, persona, opts = {}) {
   const csLang = csRaw ? (resolveLanguage(csRaw.lang, npc.seed >>> 0) || null) : null;
   const cs = csLang && LANGUAGES[csLang] && age >= 3 ? { lang: csLang, rate: Math.max(0, Math.min(1, num(csRaw.rate, 0))) } : null;
   const variety = known ? varietyFor(known, npc.heritage, { birthplace: npc.birthplace }) : null;
-  const faith = faithFor(npc.heritage) || (persona.practice ? 'christian' : null);
+  // a faith only where the record holds one (persona.practice.faith: 'sikh' for the Census group, else null), never
+  // from heritage and never from going to services (contract §3, rule 5)
+  const practice = persona.practice && typeof persona.practice === 'object' ? persona.practice : null;
+  const faith = practice ? str(practice.faith) : null;
   const reg = age < 13 ? 'casual' : (speech.register === 'formal' || speech.register === 'casual' ? speech.register : 'neutral');
   const usted = !(age >= 13 && age < 30 && reg === 'casual');
 
@@ -230,10 +252,12 @@ export function makeVoice(world, persona, opts = {}) {
     transit: ['bus', 'rail', 'ferry'].includes(mode0),
     nights: (occ && occ.shift === 'night') || routine.shift === 'night',
     early: (occ && occ.shift === 'early') || (isNum(commute.departMin) && commute.departMin < 360 && npc.status === 'employed'),
-    commuter: npc.status === 'employed' && !!mode0 && mode0 !== 'wfh' && isNum(commute.minutes) && commute.minutes > 0,
+    // anyone with a trip of their own on the record: work, the base, or (16 and up) school and college
+    commuter: ['employed', 'military'].concat(age >= 16 ? ['student'] : []).includes(npc.status) && !!mode0 && mode0 !== 'wfh' && isNum(commute.minutes) && commute.minutes > 0,
+    military: npc.status === 'military',
     coast: coastKm <= COAST_KM,
     urban: density >= 4500, rural: density < 700, suburban: density >= 700 && density < 4500,
-    churchgoer: !!persona.practice, fan: teams.length > 0,
+    churchgoer: !!practice, fan: teams.length > 0,
     fireZone: num(z.fhsz_any) >= 20, hotPlace: num(z.h100) >= 10 || num(z.tjul) >= 92,
     snowPlace: isNum(z.snowfall_in) ? z.snowfall_in >= 20 : num(z.snow_psf) >= 100,
     desert: /desert/i.test(String(z.provinceName || '')),
@@ -278,6 +302,8 @@ export function makeVoice(world, persona, opts = {}) {
     catchphrases: Array.isArray(speech.catchphrases) ? speech.catchphrases.slice() : [],
     big5, speaker, flags, rel, home, res, hh, occ, occKey, commute, routine, interests, teams, team,
     homeWord: HOME_WORD[hh.dwelling] || 'place',
+    // where they go to worship, as the practice names it: "services", or "the gurdwara" (null for the rest)
+    worship: worshipOf(practice),
     lang: { mode, home: homeLang, known, cs, variety, faith, usted, limited, spanish },
     lex, context, wx, alerts, sky, offshore, tempF: wx && wx.now && isNum(wx.now.tempF) ? wx.now.tempF : null,
     activity,

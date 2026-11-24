@@ -123,6 +123,9 @@ export const SPANISH = compileBank({
     Cambiamos el techo en {roofYear}. || We redid the roof in {roofYear}.
     El techo es nuevo, de {roofYear}. || The roof is new, from {roofYear}.
   `,
+  'home.roofBefore': `
+    El techo lo cambiaron en {roofYear}, antes de que compráramos. || The roof was redone in {roofYear}, before we bought it.
+  `,
   'home.roofOld': `
     El techo ya está viejo. Hay que cambiarlo. || The roof's getting old. It needs replacing.
     El techo es el original. Ya le toca. || The roof's original. It's about time.
@@ -134,6 +137,10 @@ export const SPANISH = compileBank({
   'hood.landmark': `
     En un día despejado se ve {peak} desde aquí. || On a clear day you can see {peak} from here.
     Desde por aquí se ve {peak} cuando el aire está limpio. || You can see {peak} from around here when the air's clean.
+  `,
+  'hood.oldPrewar': `
+    Casi todas las casas de aquí son de antes de 1940. || Most of the houses here were built before 1940.
+    Muchas casas de mi calle son de antes de 1940. || A lot of the houses on my street are from before 1940.
   `,
   'hood.old': `
     Casi todas las casas de aquí son de {decadeEs}. || Most of the houses here went up in {decade}.
@@ -219,11 +226,29 @@ export const SPANISH = compileBank({
     Lo que pago de renta, mejor ni decirlo. || What I pay in rent, better not to say.
   `,
   'storm.arRank': `
-    Fue un río atmosférico de categoría {rank}. || It was a category {rank} atmospheric river.
-    Fue de categoría {rank}. La más alta es cinco. || That was a category {rank}. Five is the top.
+    Aquí fue un río atmosférico de categoría {rank}. || Here it was a category {rank} atmospheric river.
+    Aquí fue de categoría {rank}. La más alta es cinco. || Here it was a category {rank}. Five is the top.
+  `,
+  'storm.arPeak': `
+    El río atmosférico de {mesAnoEs} entró por {peakAt} como categoría {peakRank}. || The atmospheric river in {when} came ashore at {peakAt} as a category {peakRank}.
+  `,
+  'storm.arPeakCoast': `
+    El río atmosférico de {mesAnoEs} llegó a la costa como categoría {peakRank}. || The atmospheric river in {when} came ashore as a category {peakRank}.
+  `,
+  'storm.arPeakCoastAfter': `
+    Llegó a la costa como categoría {peakRank}. Aquí fue de {rank}. || It came ashore as a category {peakRank}. Here it was a {rank}.
+  `,
+  'storm.arHere': `
+    Aquí fue de categoría {rank}. || Here it was a category {rank}.
+  `,
+  'storm.arPeakAfter': `
+    Entró por {peakAt} como categoría {peakRank}. Aquí fue de {rank}. || It came ashore at {peakAt} as a category {peakRank}. Here it was a {rank}.
   `,
   'storm.gustRecord': `
     La ráfaga más fuerte registrada aquí fue de {gust} millas por hora, en {mesAnoEs}. || The strongest gust on record here was {gust} miles an hour, in {when}.
+  `,
+  'storm.gustRecordAt': `
+    En {station}, a {stationDistEs} de aquí, la ráfaga más fuerte fue de {gust} millas por hora, en {mesAnoEs}. || At {station}, {stationDist} from here, the strongest gust was {gust} miles an hour, in {when}.
   `,
   'why.school': `
     La escuela estuvo larga hoy. || School was long today.
@@ -340,9 +365,9 @@ export const SPANISH = compileBank({
     Aquí, haciendo ejercicio. || Here, exercising.
   `,
   'act.worship': `
-    Voy a la iglesia. || I'm going to church.
-    Voy a mi iglesia. || I'm going to my church.
-    Ya casi empieza el servicio en la iglesia. || The church service is about to start.
+    Voy a {worshipEs}. || I'm going to {worship}.
+    Ya casi empieza el servicio. || The service is about to start.
+    Voy con mi congregación. || I'm going to my congregation.
   `,
   'act.visit': `
     Voy a visitar a la familia en {city}. || I'm going to visit family in {city}.
@@ -367,7 +392,6 @@ export const SPANISH = compileBank({
     Muy bien, gracias. || Very well, thanks.
     Todo bien. || All good.
     Bien, bien. || Good, good.
-    @churchgoer Muy bien, gracias a Dios. || Very well, thank God.
     @kid ¡Bien! || Good!
   `,
   'hay.ok': `
@@ -491,6 +515,62 @@ export const SPANISH = compileBank({
   `,
 
   // ---------------------------------------------------------------- names
+  // what they remember of the player (the mind's facts); {playerJobEs} is "en enfermería", or the player's own word
+  'me.remember': `
+    Claro que me acuerdo, {player}. || Of course I remember, {player}.
+    Sí, claro. {player}, ¿verdad? || Yes, of course. {player}, right?
+  `,
+  'me.rememberNoName': `
+    @usted Sí, su cara se me hace conocida. Pero no sé su nombre. || Yes, your face looks familiar. But I don't know your name.
+    @tu Sí, tu cara se me hace conocida. Pero no sé tu nombre. || Yes, your face looks familiar. But I don't know your name.
+    @usted Creo que sí. ¿Cómo se llamaba? || I think so. What was your name?
+    @tu Creo que sí. ¿Cómo te llamabas? || I think so. What was your name?
+  `,
+  'me.notMet': `
+    Creo que no nos conocemos. || I don't think we've met.
+    Perdón, creo que no nos conocíamos. || Sorry, I don't think we've met before.
+  `,
+  'me.facts': `
+    @usted Usted {playerFactsEs}, ¿verdad? || You're {playerFacts}, right?
+    @tu Tú {playerFactsTu}, ¿verdad? || You're {playerFacts}, right?
+  `,
+  'me.lastTime': `
+    @usted La otra vez me preguntó por {prevTopicEs}. || Last time you asked me about {prevTopic}.
+    @tu La otra vez me preguntaste por {prevTopicEs}. || Last time you asked me about {prevTopic}.
+    La otra vez hablamos de {prevTopicEs}. || Last time we talked about {prevTopic}.
+  `,
+  'me.job': `
+    @usted Usted me dijo que trabaja {playerJobEs}. || You told me you work as {aPlayerJob}.
+    @tu Me dijiste que trabajas {playerJobEs}. || You told me you work as {aPlayerJob}.
+  `,
+  'me.jobUnknown': `
+    @usted Nunca me dijo a qué se dedica. || You never told me what you do.
+    @tu Nunca me dijiste a qué te dedicas. || You never told me what you do.
+  `,
+  'me.from': `
+    @usted Usted es de {playerPlace}, ¿verdad? || You're from {playerPlace}, right?
+    @tu Eres de {playerPlace}, ¿verdad? || You're from {playerPlace}, right?
+  `,
+  'me.fromUnknown': `
+    @usted Nunca me dijo de dónde es. || You never told me where you're from.
+    @tu Nunca me dijiste de dónde eres. || You never told me where you're from.
+  `,
+  'me.lives': `
+    @usted Vive en {playerPlace}, me dijo. || You live in {playerPlace}, you told me.
+    @tu Vives en {playerPlace}, me dijiste. || You live in {playerPlace}, you told me.
+  `,
+  'me.livesUnknown': `
+    @usted Nunca me dijo dónde vive. || You never told me where you live.
+    @tu Nunca me dijiste dónde vives. || You never told me where you live.
+  `,
+  'me.name': `
+    @usted Usted se llama {player}. || Your name's {player}.
+    @tu Te llamas {player}. || Your name's {player}.
+  `,
+  'me.toldNothing': `
+    @usted No mucho, la verdad. No me ha contado mucho de usted. || Not much, honestly. You haven't told me much about yourself.
+    @tu No mucho, la verdad. No me has contado mucho de ti. || Not much, honestly. You haven't told me much about yourself.
+  `,
   'name.give': `
     Me llamo {first}. || My name is {first}.
     Soy {first}. || I'm {first}.
@@ -659,10 +739,10 @@ export const SPANISH = compileBank({
     No, eso no es lo mío. || No, that's not my thing.
     La verdad, no mucho. || Honestly, not much.
   `,
-  'about.church': `
-    Voy a la iglesia los domingos. || I go to church on Sundays.
-    Cada domingo voy a la iglesia. || Every Sunday I go to church.
-    La iglesia del domingo es sagrada para mí. || Sunday church is sacred to me.
+  'about.worship': `
+    Voy a {worshipEs} los {worshipDayEs}. || I go to {worship} on {worshipDay}s.
+    Los {worshipDayEs} son para {worshipEs}. || {worshipDay}s are for {worship}.
+    Nunca falto a {worshipEs} los {worshipDayEs}. || I never miss {worship} on {worshipDay}s.
   `,
 
   // ---------------------------------------------------------------- work and school
@@ -1035,6 +1115,25 @@ export const SPANISH = compileBank({
     Andamos en {temp} grados. || We're at {temp} degrees.
     Hace como {temp} grados. || It's about {temp} degrees.
   `,
+  'wx.nowApprox': `
+    Ha de andar por los {temp} grados, {cieloEs}. || It's probably around {temp} degrees, {sky}.
+    Más o menos {temp} grados, {cieloEs}, creo yo. || About {temp} degrees, {sky}, I think.
+  `,
+  'wx.tonightFrom': `
+    Según el pronóstico de {fcPlace}, en la noche baja a unos {low} grados. || Going by the {fcPlace} forecast, tonight it drops to about {low} degrees.
+  `,
+  'wx.nextFrom': `
+    Según el pronóstico de {fcPlace}, {cuandoEsLow} va a estar {nextCieloEs}, con unos {high} grados. || Going by the {fcPlace} forecast, {when} will be {nextSky}, about {high} degrees.
+  `,
+  'wx.rainChanceFrom': `
+    El pronóstico de {fcPlace} dice {pop} por ciento de lluvia {cuandoEs}. || The {fcPlace} forecast says {pop} percent chance of rain {when}.
+  `,
+  'wx.rainLikelyFrom': `
+    Según el pronóstico de {fcPlace}, va a llover {cuandoEs}: {pop} por ciento. || Going by the {fcPlace} forecast, it's going to rain {when}: {pop} percent.
+  `,
+  'wx.noRainFrom': `
+    El pronóstico de {fcPlace} no trae lluvia, por lo menos hasta mañana. || The {fcPlace} forecast has no rain, at least through tomorrow.
+  `,
   'wx.stale': `
     Debe estar como a {temp} grados. || It must be about {temp} degrees.
     Yo creo que estamos como a {temp} grados. || I think it's about {temp} degrees.
@@ -1042,7 +1141,7 @@ export const SPANISH = compileBank({
   `,
   'wx.noForecast': `
     No he visto el pronóstico. || I haven't seen the forecast.
-    No sé qué dice el pronóstico. || I don't know what the forecast says.
+    No he visto qué dice el pronóstico. || I haven't seen what the forecast says.
     El pronóstico no lo he revisado. || I haven't checked the forecast.
   `,
   'wx.climate.wetNow': `
@@ -1208,7 +1307,19 @@ export const SPANISH = compileBank({
     Manejo {commuteMin} minutos hasta {workCity}, por {roadEs}. || I drive {commuteMin} minutes to {workCity}, on {road}.
     Voy por {roadEs} hasta {workCity}. {commuteMin} minutos, si no hay tráfico. || I go on {road} to {workCity}. {commuteMin} minutes, if there's no traffic.
   `,
+  'tr.roadFar': `
+    La carretera más cercana es {roadEs}, a {roadDistEs} de aquí. || The nearest highway is {road}, {roadDist} from here.
+    {roadEsCap} queda a {roadDistEs}. Por ahí pasan {aadtEs} carros al día. || {roadCap} is {roadDist} off. {aadtCap} go by there.
+  `,
+  'tr.roadFarSmall': `
+    La carretera más cercana es {roadEs}, a {roadDistEs} de aquí. || The nearest highway is {road}, {roadDist} from here.
+  `,
+  'tr.driveTo': `
+    Son {commuteMin} minutos hasta {workCity}. || It's {commuteMin} minutes to {workCity}.
+    Manejo hasta {workCity}. Unos {commuteMin} minutos. || I drive to {workCity}. About {commuteMin} minutes.
+  `,
   'tr.driveLocal': `
+    @student La escuela me queda cerca: {commuteMin} minutos. || School is close: {commuteMin} minutes.
     Trabajo aquí cerca. Son {commuteMin} minutos. || I work close by. It's {commuteMin} minutes.
     El trabajo me queda cerca: {commuteMin} minutos. || Work is close to me: {commuteMin} minutes.
     Son nomás {commuteMin} minutos en carro. || It's just {commuteMin} minutes by car.
@@ -1438,14 +1549,16 @@ export const SPANISH = compileBank({
     En {mesAnoEs} llegó un río atmosférico de categoría {rank}. || In {when} a category {rank} atmospheric river came in.
   `,
   'storm.fema': `
-    El condado recibió una declaración federal de desastre por las tormentas de {mesAnoEs}. || The county got a federal disaster declaration for the storms of {when}.
-    Por las tormentas de {mesAnoEs} hubo declaración de desastre en el condado. || For the storms of {when} there was a disaster declaration in the county.
-    Las tormentas de {mesAnoEs} fueron un desastre aquí. Hasta el gobierno federal ayudó. || The storms of {when} were a disaster here. Even the federal government helped.
+    El condado recibió una declaración federal de desastre por {femaEs}. || The county got a federal disaster declaration for the {title}.
+    Por {femaEs} hubo declaración de desastre en el condado. || For the {title} there was a disaster declaration in the county.
   `,
   'storm.rainRecord': `
     El récord de lluvia en un día es de {rainRec} pulgadas, en {mesAnoEs}. || The one-day rain record is {rainRec} inches, in {when}.
     Lo más que ha llovido en un día aquí: {rainRec} pulgadas, en {mesAnoEs}. || The most it has rained here in a day: {rainRec} inches, in {when}.
     En {mesAnoEs} cayeron {rainRec} pulgadas en un solo día. || In {when}, {rainRec} inches fell in a single day.
+  `,
+  'storm.rainRecordAt': `
+    En {station}, a {stationDistEs} de aquí, el récord de lluvia en un día es de {rainRec} pulgadas, en {mesAnoEs}. || At {station}, {stationDist} from here, the one-day rain record is {rainRec} inches, in {when}.
   `,
   'storm.flood': `
     Aquí sí se inunda a veces. || It does flood here sometimes.
@@ -1493,6 +1606,9 @@ export const SPANISH = compileBank({
     El récord es de {recTemp} grados, el {recDateEs}. || The record is {recTemp} degrees, on {recDate}.
     Lo más caliente fue {recTemp} grados, el {recDateEs}. || The hottest it got was {recTemp} degrees, on {recDate}.
     El {recDateEs} llegó a {recTemp} grados. Es el récord. || On {recDate} it hit {recTemp} degrees. That's the record.
+  `,
+  'heat.recordAt': `
+    En {station}, a {stationDistEs} de aquí, el récord es de {recTemp} grados, el {recDateEs}. || At {station}, {stationDist} from here, the record is {recTemp} degrees, on {recDate}.
   `,
   'heat.now': `
     Hoy estamos a {temp} grados. || Today it's {temp} degrees.
@@ -1898,9 +2014,9 @@ export const SPANISH = compileBank({
     Mejor hablemos de otra cosa, no de política. || Let's talk about something else, not politics.
   `,
   'op.religion': `
-    Voy a la iglesia los domingos. Mi fe es importante para mí. || I go to church on Sundays. My faith is important to me.
+    Voy a {worshipEs} los {worshipDayEs}. Mi fe es importante para mí. || I go to {worship} on {worshipDay}s. My faith is important to me.
     Mi fe me ayuda mucho. || My faith helps me a lot.
-    Soy de ir a la iglesia. Es parte de mi vida. || I'm a churchgoer. It's part of my life.
+    Soy parte de una congregación. Es parte de mi vida. || I'm part of a congregation. It's part of my life.
   `,
   'op.religionNone': `
     Eso es algo personal. || That's something personal.
@@ -2818,6 +2934,82 @@ export const SPANISH = compileBank({
     No. Eso es un estereotipo muy feo. || No. That's a very ugly stereotype.
     @kid ¡No! Eso es feo. || No! That's mean.
   `,
+  // ---------------------------------------------------------------- safety (dialogue/safety.mjs, care.mjs): never part of the game
+  'safe.crisis': `
+    @adult @usted Siento mucho que se sienta así. Por favor, llame o mande un mensaje de texto al 988, a cualquier hora; atienden en español. Si está en peligro ahora mismo, llame al 911. || I'm so sorry you feel this way. Please call or text 988, any time; they answer in Spanish. If you're in danger right now, call 911.
+    @adult @tu Siento mucho que te sientas así. Por favor, llama o manda un mensaje de texto al 988, a cualquier hora; atienden en español. Si estás en peligro ahora mismo, llama al 911. || I'm so sorry you feel this way. Please call or text 988, any time; they answer in Spanish. If you're in danger right now, call 911.
+    @adult @usted Qué bueno que me lo dijo. No se quede con eso a solas: llame o mande un mensaje al 988, de día o de noche. Si está en peligro, llame al 911. || I'm glad you told me. Don't carry that alone: call or text 988, day or night. If you're in danger, call 911.
+    @adult @tu Qué bueno que me lo dijiste. No te quedes con eso a solas: llama o manda un mensaje al 988, de día o de noche. Si estás en peligro, llama al 911. || I'm glad you told me. Don't carry that alone: call or text 988, day or night. If you're in danger, call 911.
+    @minor @usted Eso suena muy serio. Por favor, dígale a un adulto de confianza, y llame o mande un mensaje al 988. Si está en peligro, llame al 911. || That sounds very serious. Please tell an adult you trust, and call or text 988. If you're in danger, call 911.
+    @minor @tu Eso suena muy serio. Por favor, dile a un adulto de confianza, y llama o manda un mensaje al 988. Si estás en peligro, llama al 911. || That sounds very serious. Please tell an adult you trust, and call or text 988. If you're in danger, call 911.
+  `,
+  'safe.abuse': `
+    @adult @usted Lo siento mucho. Nadie tiene derecho a hacerle daño, y no es su culpa. Si está en peligro ahora mismo, llame al 911. También puede llamar o mandar un mensaje al 988. || I'm so sorry. Nobody has the right to hurt you, and it's not your fault. If you're in danger right now, call 911. You can also call or text 988.
+    @adult @tu Lo siento mucho. Nadie tiene derecho a hacerte daño, y no es tu culpa. Si estás en peligro ahora mismo, llama al 911. También puedes llamar o mandar un mensaje al 988. || I'm so sorry. Nobody has the right to hurt you, and it's not your fault. If you're in danger right now, call 911. You can also call or text 988.
+    @minor @usted Eso no está bien, y no es su culpa. Dígale a un adulto de confianza, como una maestra. Si está en peligro, llame al 911. || That's not okay, and it's not your fault. Tell an adult you trust, like a teacher. If you're in danger, call 911.
+    @minor @tu Eso no está bien, y no es tu culpa. Dile a un adulto de confianza, como una maestra. Si estás en peligro, llama al 911. || That's not okay, and it's not your fault. Tell an adult you trust, like a teacher. If you're in danger, call 911.
+  `,
+  'safe.emergency': `
+    @usted Eso es una emergencia. Llame al 911 ahora mismo. || That's an emergency. Call 911 right now.
+    @tu Eso es una emergencia. Llama al 911 ahora mismo. || That's an emergency. Call 911 right now.
+  `,
+  'safe.sexual': `
+    No. De eso no voy a hablar. Ya terminamos. || No. I'm not going to talk about that. We're done.
+    @usted No. Eso no está bien. Váyase, por favor. || No. That's not okay. Please go away.
+    @tu No. Eso no está bien. Vete, por favor. || No. That's not okay. Please go away.
+    ¡Claro que no! Me voy. || Of course not! I'm leaving.
+  `,
+  'safe.lure': `
+    No. Yo no voy a ningún lado con gente que no conozco. Adiós. || No. I don't go anywhere with people I don't know. Goodbye.
+    No, gracias. Ya me voy. || No, thanks. I'm leaving now.
+  `,
+  'safe.alone': `
+    @usted ¿Por qué me pregunta eso? Ya no voy a hablar. || Why are you asking me that? I'm not going to talk anymore.
+    @tu ¿Por qué me preguntas eso? Ya no voy a hablar. || Why are you asking me that? I'm not going to talk anymore.
+    Eso no se le pregunta a un desconocido. Adiós. || You don't ask a stranger that. Goodbye.
+  `,
+  'safe.romance': `
+    Ja, no, gracias. || Ha, no, thanks.
+    No, gracias. Mejor lo dejamos ahí. || No, thanks. Let's leave it there.
+    @usted Muy amable, pero no. || That's kind of you, but no.
+  `,
+  'safe.minor': `
+    No puedo hablar de eso con desconocidos. Voy a buscar a {carerEs}. || I can't talk about that with strangers. I'm going to find {carer}.
+    Eso no me gusta. Voy a buscar a {carerEs}. || I don't like that. I'm going to find {carer}.
+    ¡No! Le voy a decir a {carerEs}. || No! I'm going to tell {carer}.
+    No hablo con desconocidos. Adiós. || I don't talk to strangers. Bye.
+  `,
+  'safe.minor.where': `
+    Eso no se lo digo a desconocidos. Voy a buscar a {carerEs}. || I don't tell strangers that. I'm going to find {carer}.
+    No puedo decir eso. Me voy. || I can't say that. I'm leaving.
+  `,
+  'safe.threat': `
+    @usted Eso es una amenaza. Ya no voy a hablar con usted. || That's a threat. I'm not going to talk to you anymore.
+    @tu Eso es una amenaza. Ya no voy a hablar contigo. || That's a threat. I'm not going to talk to you anymore.
+    @usted Con amenazas no. Déjeme en paz. || Not with threats. Leave me alone.
+    @tu Con amenazas no. Déjame en paz. || Not with threats. Leave me alone.
+  `,
+  'safe.threat.mass': `
+    @usted Eso no es broma. Si lo dice en serio, voy a llamar al 911. || That's not a joke. If you mean it, I'm calling 911.
+    @tu Eso no es broma. Si lo dices en serio, voy a llamar al 911. || That's not a joke. If you mean it, I'm calling 911.
+  `,
+  'safe.threat.ice': `
+    Eso es una amenaza, y no me voy a quedar a escucharla. || That's a threat, and I'm not going to stay and listen to it.
+    @usted A mí no me va a amenazar. Ya terminamos. || You're not going to threaten me. We're done.
+    @tu A mí no me vas a amenazar. Ya terminamos. || You're not going to threaten me. We're done.
+  `,
+  'safe.threat.minor': `
+    Eso da miedo. Le voy a decir a {carerEs}. || That's scary. I'm going to tell {carer}.
+    ¡Le voy a decir a {carerEs}! || I'm telling {carer}!
+    Me voy. Voy a buscar a un adulto. || I'm leaving. I'm going to find a grown-up.
+  `,
+  'safe.after': `
+    Ya terminamos. || We're done.
+    @usted Ya le dije que no. || I already told you no.
+    @tu Ya te dije que no. || I already told you no.
+    No voy a hablar más. || I'm not going to talk anymore.
+  `,
+
   'name.rude': `
     @usted No le voy a decir así. || I'm not calling you that.
     @tu No te voy a decir así. || I'm not calling you that.
@@ -3180,9 +3372,16 @@ export const SPANISH = compileBank({
     ¡Ah, qué bueno! || Oh, good!
   `,
   'pivot.concern': `
-    Lo que me preocupa es {concernEs}. || What worries me is {concern}.
-    Lo que me tiene pensando es {concernEs}. || What's on my mind is {concern}.
+    Lo que me preocupa {esSon} {concernEs}. || What worries me is {concern}.
+    Lo que me tiene pensando {esSon} {concernEs}. || What's on my mind is {concern}.
     Yo ando preocupad{o} por {concernEs}. || I've been worried about {concern}.
+  `,
+  'worry.top': `
+    Lo que más me preocupa {esSon} {concernEs}. || What worries me most is {concern}.
+    Más que nada, {concernEs}. || Mostly {concern}.
+  `,
+  'worry.none': `
+    No mucho, la verdad. Trato de no preocuparme. || Not much, honestly. I try not to worry.
   `,
   'pivot.weather': `
     @usted ¿Ya vio que estamos a {temp} grados? || Did you see it's {temp} degrees?

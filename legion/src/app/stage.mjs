@@ -7,7 +7,7 @@
 // canvas with pointer-events off, drawn through the map's own worldToScreen, so it follows any camera.
 
 import { EVENTS } from './bus.mjs';
-import { h, icon, clear, prefersReducedMotion } from './dom.mjs';
+import { h, icon, clear, replace, prefersReducedMotion } from './dom.mjs';
 import { fmtInt, fmtPct, displayName } from './format.mjs';
 import { scopeRings } from './census.mjs';
 import { npcIdFrom } from './services.mjs';
@@ -43,12 +43,55 @@ function readTokens() {
   return { accent: v('--accent') || '#f0904a', ink: v('--ink') || '#eee', ink3: v('--ink-3') || '#999', panel: v('--panel') || '#18191c', accentSoft: v('--accent-soft') || 'rgba(240,144,74,.15)' };
 }
 
+/**
+ * A ZIP's place as people name it: its neighborhood inside a big city ('the Mission', world.zip(i).neighborhood
+ * when the pack has one), else its Census place, else its postal city.
+ */
+export function placeLabel(z) {
+  if (!z) return '';
+  const n = typeof z.neighborhood === 'string' && z.neighborhood.trim() ? z.neighborhood.trim() : null;
+  const city = z.placeName || z.city || '';
+  return n && city && n !== city ? `${n}, ${city}` : (n || city);
+}
+
 /** Normalize a crowd kind entry (a string or {key, label, color}), filling in the legend's defaults. */
 function kindOf(k) {
   const key = typeof k === 'string' ? k : (k.key || k.id || k.name);
   const known = DEFAULT_KINDS.find(d => d.key === key) || {};
   if (typeof k === 'string') return { ...known, key, label: known.label || key[0].toUpperCase() + key.slice(1) };
   return { ...known, key, label: k.label || known.label || key, color: k.color || known.color || null };
+}
+
+/**
+ * The zoomed-in top-up of the crowd (exp-63): a view under TOPUP_MAX_KM across gets up to this many more people (the
+ * households of the ZIPs in view the statewide rate left out, Crowd.topUp), so a city seen up close is as busy as it
+ * is; fewer where the GPU is a software one, which draws only part of the crowd anyway.
+ */
+export const TOPUP = Object.freeze({ maxKm: 60, dropKm: 90, budget: 1500000, softwareBudget: 250000, waitMs: 700 });
+
+/**
+ * The top-up a view asks for: the ZIPs whose outline box meets the view and the rate that adds at most `budget`
+ * people to them (at most everyone), or null when the view is too wide or adds too little to be worth it.
+ * @param {object} world
+ * @param {{x0: number, y0: number, x1: number, y1: number}} bounds world units
+ * @param {number} baseRate the statewide crowd's rate
+ * @param {number} budget extra agents allowed
+ * @returns {{zis: number[], rate: number, people: number, extra: number}|null}
+ */
+export function topUpFor(world, bounds, baseRate, budget) {
+  const spanKm = Math.max(bounds.x1 - bounds.x0, bounds.y1 - bounds.y0) * world.unitKm;
+  if (!(spanKm > 0) || spanKm > TOPUP.maxKm) return null;
+  const zis = [];
+  let people = 0;
+  for (let i = 0; i < world.N; i++) {
+    const bb = world.zipBBox(i);
+    if (!bb || bb[2] < bounds.x0 || bb[0] > bounds.x1 || bb[3] < bounds.y0 || bb[1] > bounds.y1) continue;
+    zis.push(i); people += world.z.pop[i] || 0;
+  }
+  if (!zis.length || !people) return null;
+  const rate = Math.min(1, baseRate + budget / people);
+  if (rate < baseRate * 1.5) return null;
+  return { zis, rate, people, extra: Math.round(people * (rate - baseRate)) };
 }
 
 /** A count small enough for a legend chip: 950, 1.1K, 12K, 1.2M. */
@@ -96,15 +139,22 @@ export class Stage {
     this.overlay = h('canvas.overlay', { 'aria-hidden': 'true' });
     this.ui = h('div.map-ui');
     this.tooltip = h('div.map-tip', { role: 'tooltip', hidden: true });
-    this.progress = h('div.build-card', { role: 'status', hidden: true });
+    // the card is redrawn on every progress step, so it is not a live region itself: `announce` says the start, each
+    // quarter and the end, once each
+    this.progress = h('div.build-card', { hidden: true });
+    this.announce = h('div.sr-only', { role: 'status', 'aria-live': 'polite' });
+    this._announced = -1;
     this.legend = h('div.legend', { role: 'group', 'aria-label': 'Who is moving' });
     this.banner = h('div.map-banner', { role: 'alert', hidden: true });
     this.controls = h('div.map-controls', { role: 'group', 'aria-label': 'Map controls' },
       h('button.icon-btn', { type: 'button', 'aria-label': 'Zoom in', title: 'Zoom in', on: { click: () => this.zoomBy(1.8) } }, icon('plus')),
       h('button.icon-btn', { type: 'button', 'aria-label': 'Zoom out', title: 'Zoom out', on: { click: () => this.zoomBy(1 / 1.8) } }, icon('minus')),
       h('button.icon-btn', { type: 'button', 'aria-label': 'Show all of California', title: 'Show all of California', on: { click: () => this.fitState() } }, icon('fit')));
-    this.ui.append(this.banner, this.controls, h('div.map-bottom', this.progress, this.legend), this.tooltip);
-    root.append(this.overlay, this.ui);
+    // the build card sits in the top corner, clear of Southern California and the legend; the map's own controls
+    // come right after the map in the page (and the tab order), before the panels
+    this.ui.append(this.banner, this.controls, this.progress, h('div.map-bottom', this.legend), this.tooltip, this.announce);
+    if (mapEl && mapEl.parentNode === root) mapEl.after(this.overlay, this.ui);
+    else root.append(this.overlay, this.ui);
   }
 
   /** Create the map (a failure leaves the page usable: search and the panels still work). */
@@ -119,7 +169,12 @@ export class Stage {
     }
     const map = this.map;
     if (typeof map.on === 'function') {
-      map.on('move', () => { this._dirty = true; const c = map.camera || {}; this.bus.emit(EVENTS.VIEW_CHANGE, { mode: 'map', x: c.x, y: c.y, zoom: c.zoom }); });
+      map.on('move', () => {
+        this._dirty = true; const c = map.camera || {}; this.bus.emit(EVENTS.VIEW_CHANGE, { mode: 'map', x: c.x, y: c.y, zoom: c.zoom });
+        // the view settled closer in (or back out): more people in it, or the statewide crowd again
+        clearTimeout(this._topTimer);
+        this._topTimer = setTimeout(() => this._maybeTopUp(), TOPUP.waitMs);
+      });
       map.on('click', p => this._onClick(p));
     }
     this.mapEl.addEventListener('pointermove', e => this._onPointer(e));
@@ -141,6 +196,7 @@ export class Stage {
     if (!this.map) return null;
     const token = ++this._buildToken;
     this.build = { building: true, agents: null, rate, ms: null, progress: 0 };
+    this._announced = -1;
     this._showProgress(0, rate);
     const t0 = performance.now();
     let summary = null;
@@ -163,6 +219,7 @@ export class Stage {
       this.build = { building: false, agents, rate, ms: performance.now() - t0, progress: 1, summary };
       this.crowdError = null;
       this._finishProgress();
+      this._maybeTopUp();
     } catch (e) {
       if (token !== this._buildToken) return null;
       this.crowdError = e;
@@ -180,21 +237,36 @@ export class Stage {
     else if (p && typeof p === 'object') frac = p.progress ?? p.fraction ?? (p.total ? (p.done || 0) / p.total : 0);
     frac = Math.max(0, Math.min(1, frac || 0));
     this.build.progress = frac;
-    const pct = Math.round(frac * 100);
+    // every agent is built but the build has not resolved: it is checking a sample against the population, so the
+    // card says that rather than 100% next to "Building"
+    const checking = frac >= 0.995;
+    const pct = checking ? 99 : Math.round(frac * 100);
     this.progress.hidden = false;
     this.progress.classList.remove('is-done');
-    clear(this.progress).append(
+    const sub = checking ? 'Checking a sample against the population…'
+      : Number.isFinite(agents) && agents > 0 ? `${fmtInt(agents)} agents so far`
+        : p && typeof p === 'object' && p.label ? String(p.label) : null;
+    // replace() skips a missing child (the native append would print "null")
+    replace(this.progress,
       h('div.build-line', h('span.build-title', `Building the crowd · ${fmtPct(rate * 100)}`), h('span.build-pct', `${pct}%`)),
       h('div.bar', { role: 'progressbar', 'aria-label': 'Crowd build progress', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(pct) }, h('span', { style: { width: `${pct}%` } })),
-      Number.isFinite(agents) && agents > 0 ? h('div.build-sub', `${fmtInt(agents)} agents so far`) : p && typeof p === 'object' && p.label ? h('div.build-sub', String(p.label)) : null);
+      sub ? h('div.build-sub', sub) : null);
+    const quarter = Math.min(3, Math.floor(pct / 25));
+    if (this._announced < 0) this._say(`Building the crowd at ${fmtPct(rate * 100)} density.`, 0);
+    else if (quarter > this._announced && quarter > 0) this._say(`Crowd ${quarter * 25}% built.`, quarter);
   }
+
+  /** Say a build milestone once (the polite live region); level orders them so each is said once per build. */
+  _say(text, level) { this._announced = level; this.announce.textContent = text; }
 
   _finishProgress() {
     const b = this.build;
-    clear(this.progress).append(
+    replace(this.progress,
       h('div.build-line', h('span.build-title', `${fmtInt(b.agents)} NPCs simulated`), h('span.build-pct', b.ms ? `${(b.ms / 1000).toFixed(1)} s` : '')),
       h('div.bar', { role: 'progressbar', 'aria-label': 'Crowd build progress', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': '100' }, h('span', { style: { width: '100%' } })));
     this.progress.classList.add('is-done');
+    this.announce.textContent = `The crowd is ready: ${fmtInt(b.agents)} NPCs simulated.`;
+    this._announced = -1;
     clearTimeout(this._progressTimer);
     this._progressTimer = setTimeout(() => { if (!this.build.building) this.progress.hidden = true; }, 2600);
   }
@@ -204,14 +276,42 @@ export class Stage {
     try { return this.crowd.stats(); } catch { return null; }
   }
 
-  /** `{agents, moving, byKind}` for the top bar and the legend. */
+  /**
+   * A view closer in than TOPUP.maxKm gets the people of its ZIPs the statewide rate left out (Crowd.topUp), up to the
+   * budget; a view wider than TOPUP.dropKm goes back to the statewide crowd. Never while a build runs or the street
+   * view covers the map.
+   */
+  _maybeTopUp() {
+    const c = this.crowd, m = this.map;
+    if (!c || !m || typeof c.topUp !== 'function' || this.build.building) return;
+    let b;
+    try { b = m.viewBounds(); } catch { return; }
+    const spanKm = Math.max(b.x1 - b.x0, b.y1 - b.y0) * this.world.unitKm;
+    if (spanKm > TOPUP.dropKm) { if (typeof c.dropTopUp === 'function') c.dropTopUp(); this.topUp = null; return; }
+    const want = topUpFor(this.world, b, c.rate || this.build.rate || 0, m.software ? TOPUP.softwareBudget : TOPUP.budget);
+    if (!want) return;
+    this.topUp = { ...want, building: true };
+    c.topUp({ zis: want.zis, rate: want.rate }).then(r => {
+      if (this.topUp && this.topUp.rate === want.rate) this.topUp = r && !r.cancelled ? { ...want, building: false, agents: r.agents, ms: r.ms } : null;
+      this._dirty = true;
+    }).catch(() => { this.topUp = null; });
+  }
+
+  /**
+   * `{agents, moving, byKind, fresh}` for the top bar and the legend. `fresh` is false while the counts by state do
+   * not cover the built crowd yet (a kept crowd has loaded and the Workers have not counted it): the page shows "…"
+   * then, never "0 moving".
+   */
   counts() {
     const s = this._stats();
     // the build summary is authoritative once a build is done (a worker's stats can lag a moment behind it)
     const built = !this.build.building && Number.isFinite(this.build.agents) ? this.build.agents : null;
-    const agents = built !== null && built > 0 ? built : (s && Number.isFinite(s.agents) ? s.agents : (built ?? 0));
+    const counted = s && Number.isFinite(s.agents) ? s.agents : 0;
+    // a zoomed-in view's top-up adds to the statewide crowd: the counts then cover both
+    const agents = built !== null && built > 0 ? Math.max(built, counted) : (s && Number.isFinite(s.agents) ? s.agents : (built ?? 0));
     const byKind = s && s.moving && typeof s.moving === 'object' ? s.moving : null;
-    return { agents, moving: movingTotal(s), byKind };
+    const fresh = this.build.building ? counted > 0 : built === null || built === 0 || counted >= built;
+    return { agents, moving: movingTotal(s), byKind, fresh };
   }
 
   _kinds() {
@@ -409,12 +509,16 @@ export class Stage {
     this.mapEl.style.cursor = hit ? 'pointer' : '';
     if (zi < 0 && !hit) { this.tooltip.hidden = true; return; }
     const lines = [];
+    let npc = null;
     if (hit) {
-      const npc = this.services.npc(hit.id);
+      npc = this.services.npc(hit.id);
       lines.push(h('strong', npc ? `${displayName(npc.name)}, ${npc.age}` : hit.id));
       if (hit.mode || hit.state) lines.push(h('span', motionText(hit.mode, hit.state, npc && npc.school && !npc.occupation ? 'school' : 'work')));
+      // where they live (a commuter seen downtown lives elsewhere): their own ZIP, not the one under the cursor
+      const home = npc && npc.zi >= 0 ? this.world.zip(npc.zi) : null;
+      if (home) lines.push(h('span.muted', `lives in ${placeLabel(home)} (${home.zip})`));
     }
-    if (zi >= 0) { const z = this.world.zip(zi); lines.push(h(hit ? 'span.muted' : 'strong', `${z.zip} · ${z.placeName || z.city}`)); }
+    if (zi >= 0 && !(npc && npc.zi === zi)) { const z = this.world.zip(zi); lines.push(h(hit ? 'span.muted' : 'strong', `${hit ? 'here: ' : ''}${z.zip} · ${placeLabel(z)}`)); }
     clear(this.tooltip).append(...lines);
     this.tooltip.hidden = false;
     const tw = this.tooltip.offsetWidth, th = this.tooltip.offsetHeight, rw = this.mapEl.clientWidth;

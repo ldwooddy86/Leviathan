@@ -25,6 +25,44 @@ export function lines(block) {
   return out;
 }
 
+// Spanish template -> its English gloss template (esLines registers them)
+const GLOSS = new Map();
+
+/**
+ * Spanish (es) variants of regional lines: one "tags Spanish || English gloss" per line (decision 12). The tags
+ * apply to both texts, which are registered like lines() registers English ones; the Spanish templates are returned
+ * and glossOf(template) gives the English one, with the same {slots}.
+ * @param {string} block
+ * @returns {string[]}
+ */
+export function esLines(block) {
+  const out = [];
+  for (const raw of block.split('\n')) {
+    const s = raw.trim();
+    if (!s || s.startsWith('//')) continue;
+    const { text, tags } = parseTagged(s);
+    const parts = text.split(' || ');
+    const es = (parts[0] || '').trim(), en = (parts[1] || '').trim();
+    if (parts.length !== 2 || !es || !en) throw new Error(`lexicon: a Spanish line is "Spanish || English": ${s}`);
+    const slots = t => (t.match(/\{\w+\}/g) || []).sort().join();
+    if (slots(es) !== slots(en)) throw new Error(`lexicon: the Spanish line and its gloss need the same slots: ${s}`);
+    registerLine(es, tags);
+    registerLine(en, tags);
+    GLOSS.set(es, en);
+    out.push(es);
+  }
+  return out;
+}
+
+/**
+ * The English gloss template of a Spanish line (esLines), or null.
+ * @param {string} template
+ * @returns {string|null}
+ */
+export function glossOf(template) {
+  return GLOSS.get(template) || null;
+}
+
 /**
  * Regional vocabulary: one "term | kind | note" per line.
  * @param {string} block

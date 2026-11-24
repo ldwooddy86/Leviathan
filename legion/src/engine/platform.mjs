@@ -22,7 +22,7 @@ import { persona as buildPersona } from './persona.mjs';
 import { Mind, MemoryStore } from './mind.mjs';
 import { dayPlan as planDay, activityAt as activityOf } from './schedule.mjs';
 import { Conversation, bark as barkLine, barkBetween } from './dialogue.mjs';
-import { ClaudeVoice, systemBlocks, systemPrompt, exportPersona as exportFor, situation as situationNote } from './llm.mjs';
+import { ClaudeVoice, systemBlocks, systemPrompt, exportPersona as exportFor, situation as situationNote, recallFor } from './llm.mjs';
 import { dialectFor } from './lexicon.mjs';
 import { Rng, Alias, hashAll } from './rng.mjs';
 import * as clock from './clock.mjs';
@@ -255,8 +255,34 @@ export class Legion {
     };
   }
 
-  /** The game-engine export of an NPC (llm.exportPersona: persona, system prompt, request defaults, voice). */
-  exportPersona(id, options = {}) { return exportFor(this.persona(id, { t: options.t }), this.world, options); }
+  /**
+   * The situation note of one turn with an NPC at time t (llm.situation), for an engine that runs the turns itself:
+   * the local time, what they are doing (their day plan), the weather and alerts, their mood and how they feel about
+   * the player, and the memories the player's words bring up (opts.said, read through their mind). The same note
+   * prompt(id, {t}).situation carries.
+   * @param {string} id
+   * @param {number} [t]
+   * @param {{said?: string}} [opts]
+   * @returns {string}
+   */
+  situation(id, t, { said } = {}) {
+    const time = this._time(t);
+    const p = this.persona(id, { t: time }), npc = p.npc;
+    const mind = this._minds.get(npc.id) || null;
+    const recalled = mind && typeof said === 'string' && said.trim() ? recallFor(mind, said, time) : [];
+    return situationNote(p, mind, { t: time, weather: this.world.weatherAt(npc.zi, time), activity: this.activityAt(npc.id, time), recalled, world: this.world });
+  }
+
+  /**
+   * The game-engine export of an NPC (llm.exportPersona: persona, system prompt, request defaults, voice, and for the
+   * day holding options.t, default the platform's time, the day plan, the mind's initial state and the situation
+   * template).
+   */
+  exportPersona(id, options = {}) {
+    const o = options && typeof options === 'object' ? options : {};
+    const time = this._time(o.t);
+    return exportFor(this.persona(id, { t: time }), this.world, { ...o, t: time });
+  }
 
   /**
    * n distinct NPCs of a place, uniform over its people: a ZIP, a postal city or Census place, a county, a region
@@ -278,7 +304,13 @@ export class Legion {
     // ZIPs in proportion to their household population, then a person of the ZIP, each distinct
     const zis = scope.zis.filter(i => pop.householdCount(i) > 0);
     if (!zis.length) return [];
-    const alias = new Alias(zis.map(i => pop.expectedPersons(i)));
+    // a ZIP whose household size the pack leaves out still has people: weigh it by its households at the scope's
+    // mean size rather than not at all
+    const expected = zis.map(i => pop.expectedPersons(i));
+    let persons = 0, households = 0;
+    zis.forEach((i, k) => { if (expected[k] > 0) { persons += expected[k]; households += pop.householdCount(i); } });
+    const meanSize = households > 0 ? persons / households : 2.8;
+    const alias = new Alias(zis.map((i, k) => (expected[k] > 0 ? expected[k] : pop.householdCount(i) * meanSize)));
     const rng = new Rng(hashAll('legion.sample', scope.kind, scope.key, seed));
     const out = [], seen = new Set();
     for (let tries = 0; out.length < count && tries < count * 20 + 50; tries++) {

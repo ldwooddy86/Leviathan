@@ -5,7 +5,8 @@ import { Rng } from '../src/engine/rng.mjs';
 import { atPacific } from '../src/engine/clock.mjs';
 import {
   dialectFor, explainDialect, dialectTable, DIALECT_KEYS, DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
-  roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE,
+  roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE, SURFACE_STREETS,
+  ES_CATEGORIES, glossOf, insuranceLevel, INSURANCE_LEVELS,
   SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands,
   lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS,
   LANGUAGES, LANGUAGE_KEYS, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS, FAITHS, TIMES_OF_DAY,
@@ -191,7 +192,9 @@ test('every road in the pack has a name in every dialect, from the roads near re
       const n = roadName(r, key);
       assert.ok(typeof n === 'string' && n.length >= 2, `${z.zip} ${r.name}`);
       assert.ok(!/\{|\}|undefined|NaN/.test(n), n);
-      assert.ok(String(n).includes(String(r.route)) || n === 'PCH' || n === 'Business 80', `${key} ${r.name} -> ${n}`);
+      // a state route that is a surface street there goes by the street's name (fid-21), and only then
+      const street = r.kind === 'SR' && SURFACE_STREETS.some(x => x.route === r.route && x.name === n && x.keys.includes(key));
+      assert.ok(String(n).includes(String(r.route)) || n === 'PCH' || n === 'Business 80' || street, `${key} ${r.name} -> ${n}`);
     }
   }
 });
@@ -455,12 +458,16 @@ test('pickLine fills from the world and never repeats inside a conversation', ()
 });
 
 test('slotsFor grounds every slot in the pack', () => {
+  let temps = 0;
   for (const zip of ['94110', '90022', '93301', '96150', '92262', '95501', '91401', '92109', '96001', '95814']) {
     const zi = world.indexOf(zip), key = dialectFor(world, zi);
     const { values, facts } = slotsFor(world, zi, { rng: new Rng(1) });
     for (const k of Object.keys(values)) assert.ok(SLOT_NAMES.includes(k), k);
     assert.ok(values.place && values.city && values.county && values.region && values.month && values.day && values.season, zip);
-    assert.ok(Number.isFinite(values.temp), `${zip} temp`);
+    // the temperature is a slot for the ZIP's own forecast; an estimate (borrowed, climate) is not said flatly (decision 1)
+    const wx = world.weatherAt(zi, world.snapshotTime);
+    const own = !wx.stale && wx.approx !== true && !(wx.basis && wx.basis.kind && wx.basis.kind !== 'forecast');
+    if (own) { assert.ok(Number.isFinite(values.temp), `${zip} temp`); temps++; } else assert.equal(values.temp, null, `${zip}: an estimate is not a {temp}`);
     assert.ok(values.road, `${zip} road`);
     if (DIALECTS[key].theShare === 1) assert.ok(values.road.startsWith('the ') || values.road === 'PCH', `${zip} ${values.road}`);
     if (DIALECTS[key].theShare === 0) assert.ok(!values.road.startsWith('the '), `${zip} ${values.road}`);
@@ -470,6 +477,7 @@ test('slotsFor grounds every slot in the pack', () => {
     if (values.fire) assert.ok(world.firesOf(zi).some(f => facts.fire === `fire:${f.name}:${f.year}`), zip);
     for (const t of templatesOf(DIALECTS[key])) { const s = fill(t, values); assert.ok(s === null || !/[{}]/.test(s)); }
   }
+  assert.ok(temps >= 5, `${temps} of 10 ZIPs have their own forecast temperature`);
   assert.equal(slotsFor(world, '91401').values.place, 'Van Nuys');
   assert.equal(slotsFor(world, '90022').values.place, 'East Los Angeles');
   assert.equal(slotsFor(world, '96001').values.peak, 'Mount Shasta');
@@ -1116,4 +1124,114 @@ test('Assyrian entries are the attested forms', () => {
   assert.ok(A.farewells.some(e => e.text === 'Push bshena'));
   assert.ok(!languageEntries(A).some(([, e]) => /\bwita\b|\bPash\b/.test(e.text)));
   for (let i = 0; i < 20; i++) assert.equal(codeSwitch('assyrian', 'how_are_you', new Rng(i), { to: 'F' }).text, 'Dakhi wat?');
+});
+
+// ---------------------------------------------------------------- final review fixes
+
+test('Spanish regional lines: 12+ per Spanish-heavy family, glossed, tagged, through linesFor and pickLine (exp-66)', () => {
+  const families = { la: 'la-eastside', ie: 'ie', sd: 'sd-inland', sjv: 'fresno', cc: 'salinas', bay: 'eastbay', desert: 'desert-cv' };
+  const all = d => [...ES_CATEGORIES.flatMap(c => d.es[c]), ...WEATHER_CONDITIONS.flatMap(w => d.es.weather[w])];
+  for (const [family, key] of Object.entries(families)) {
+    assert.equal(DIALECTS[key].family, family);
+    const lines = all(DIALECTS[key]);
+    assert.ok(lines.length >= 12, `${family}: ${lines.length} Spanish lines`);
+    for (const t of lines) {
+      const g = glossOf(t);
+      assert.ok(g && g !== t, `${t} has an English gloss`);
+      assert.deepEqual(templateSlots(t).sort(), templateSlots(g).sort(), `same slots: ${t}`);
+      // a stranger and a friend alike: no tú or usted, no faith formulas, no brands
+      assert.ok(!/(?<!\p{L})(tú|usted|te|ti|contigo|Dios)(?!\p{L})|bendig/iu.test(t), `neutral to the listener: ${t}`);
+      assert.deepEqual(findBrands(t), [], t);
+      assert.ok(/[a-záéíóúñ]/i.test(t) && !/\{(road|team|teamName|fire|weather|month|day|season|region|stretch|alert|peak|landmark)\}/.test(t), `only names and numbers as slots: ${t}`);
+    }
+    for (const cat of ES_CATEGORIES) assert.ok(DIALECTS[key].es[cat].length >= 1, `${family} ${cat}`);
+  }
+  const rng = new Rng(9);
+  const hit = pickLine('la-eastside', 'prideLines', rng, { lang: 'es', slots: { neighborhood: 'Boyle Heights' }, age: 40, county: 'Los Angeles' });
+  assert.ok(hit && hit.lang === 'es' && hit.gloss && !/\{/.test(hit.text + hit.gloss), JSON.stringify(hit));
+  const fog = linesFor('fresno', 'weather', { lang: 'es', condition: 'fog', month: 12 });
+  assert.ok(fog.some(t => /neblina/.test(t)));
+  assert.deepEqual(linesFor('fresno', 'weather', { lang: 'es', condition: 'fog', month: 7 }).filter(t => /neblina/.test(t) && lineTags(t)), [], 'tule fog lines keep their months');
+  // the tags hold for Spanish as for English: a child does not complain about rent, a non-driver about the freeway
+  for (const t of linesFor('la-eastside', 'complaintLines', { lang: 'es', age: 9 })) assert.ok(!/renta/.test(t), t);
+  for (const t of linesFor('la-eastside', 'traffic', { lang: 'es', drives: false, age: 40 })) assert.ok(!/Agarré el freeway/.test(t), t);
+  // English stays English, and there are no Spanish greetings to mix up with the engine's own
+  assert.ok(pickLine('fresno', 'food', rng, { age: 40 }).gloss === undefined);
+  assert.deepEqual(linesFor('fresno', 'greetings', { lang: 'es' }), []);
+  // a dialect with no Spanish bank gives nothing, not English
+  assert.deepEqual(linesFor('tahoe', 'food', { lang: 'es' }), []);
+});
+
+test('lines that state a fact about insurance play only where the data says so (fid-19)', () => {
+  const eureka = slotsFor(world, '95501').context;
+  assert.equal(eureka.insurance, 'normal', JSON.stringify(eureka));
+  const lines = linesFor('north-coast', 'complaintLines', Object.assign({}, eureka, { age: 50 }));
+  assert.ok(!lines.some(t => /insurance/i.test(t) && /impossible|out of reach|won't|don't want/i.test(t)), lines.join(' | '));
+  const paradise = slotsFor(world, '95969').context;
+  assert.equal(paradise.insurance, 'high');
+  assert.ok(INSURANCE_LEVELS.includes('high'));
+  assert.equal(insuranceLevel({ fair_sh: 9, nonren_sh: 3 }), 'high');
+  assert.equal(insuranceLevel({ fair_sh: 1.7, nonren_sh: 7.4 }), 'normal');
+  assert.equal(insuranceLevel({}), null);
+  for (const [t, tags] of taggedLines()) if (/insurance/i.test(t) && /impossible|out of reach|won't write|don't want to cover|pulling out|forget it/i.test(t)) assert.equal(tags.ins, 'high', t);
+});
+
+test('greetings that presuppose an acquaintance are kept for someone the NPC has met (exp-74)', () => {
+  const acquainted = /\b(back in town|haven'?t seen you|how'?s the family|long time|you made it|still living|good to see you|how was the drive|you survived|how'?s everybody|you'?re back)\b/i;
+  for (const key of DIALECT_KEYS) {
+    const d = DIALECTS[key];
+    for (const g of [...d.greetings, ...(d.youth.greetings || []), ...(d.elder.greetings || [])]) {
+      if (acquainted.test(g)) assert.ok((lineTags(g) || { flags: [] }).flags.includes('met'), `${key}: "${g}" needs @met`);
+    }
+    for (const g of linesFor(key, 'greetings', { age: 40 })) assert.ok(!acquainted.test(g), `${key}: a stranger hears "${g}"`);
+  }
+  assert.ok(linesFor('valley-north', 'greetings', { age: 40, met: true }).some(g => acquainted.test(g)));
+});
+
+test('valley-north and Sacramento-family traffic lines name only the routes of their counties (exp-75)', () => {
+  const routeLine = /\b(80|50|70|99)\b/;
+  // every line a valley-north speaker can draw (their own, the Sacramento Valley family's, the statewide bank)
+  for (const key of ['valley-north']) {
+    for (const t of DIALECTS[key].traffic) {
+      if (!routeLine.test(t) || /\{road\}/.test(t)) continue;
+      assert.ok((lineTags(t) || {}).counties, `${key}: "${t}" names a route and needs a county`);
+    }
+  }
+  const yubaCity = slotsFor(world, '95993').context, chico = slotsFor(world, '95926').context, redding = slotsFor(world, '96001').context;
+  for (const ctx of [yubaCity, chico, redding]) {
+    const lines = linesFor('valley-north', 'traffic', Object.assign({}, ctx, { age: 40, drives: true }));
+    assert.ok(!lines.some(t => /\b80\b|up 50\b/.test(t)), `${ctx.county}: ${lines.join(' | ')}`);
+  }
+  assert.ok(!linesFor('valley-north', 'traffic', Object.assign({}, redding, { age: 40, drives: true })).some(t => /^99 between|^70 down/.test(t)));
+});
+
+test('state routes that are city streets go by their street names (fid-21)', () => {
+  const sr = route => ({ name: `SR ${route}`, route, kind: 'SR' });
+  assert.equal(roadName(sr(39), 'oc-inland'), 'Beach Boulevard');
+  assert.equal(roadName(sr(82), 'peninsula'), 'El Camino Real');
+  assert.equal(roadName(sr(72), 'la-eastside'), 'Whittier Boulevard');
+  assert.equal(roadName(sr(213), 'southbay-la'), 'Western Avenue');
+  assert.equal(roadName(sr(123), 'eastbay'), 'San Pablo Avenue');
+  assert.equal(roadName({ name: 'I-405', route: 405, kind: 'I' }, 'la-westside'), 'the 405');
+  assert.equal(roadName(sr(99), 'fresno'), '99');
+  assert.equal(roadName(sr(39), 'fresno'), 'Highway 39', 'only where the route is that street');
+  for (const x of SURFACE_STREETS) for (const k of x.keys) assert.ok(DIALECT_KEYS.includes(k), `${x.name}: ${k}`);
+});
+
+test('slots: the neighborhood the pack names, roads from the home, no flat temperature for an estimate', () => {
+  const zi = world.indexOf('94110');
+  const z = world.zip(zi);
+  const sl = slotsFor(world, zi);
+  assert.equal(sl.values.neighborhood, z.neighborhood || sl.values.place);
+  // a home far from the town point gets the roads near it
+  const home = { x: z.tx + 30 / world.unitKm, y: z.ty };
+  const far = slotsFor(world, zi, { home });
+  assert.ok(far.values.road === null || far.facts.road !== sl.facts.road || world.roadsNear(home.x, home.y, 15).length > 0);
+  // a temperature is a slot only when it is the ZIP's own forecast
+  const stale = slotsFor(world, zi, { t: world.snapshotTime + 30 * 86400000 });
+  assert.equal(stale.values.temp, null, 'past the forecast the temperature is an estimate: no "It\'s {temp}" line');
+  const now = slotsFor(world, zi, { t: world.snapshotTime });
+  const wx = world.weatherAt(zi, world.snapshotTime);
+  if (!wx.approx && !(wx.basis && wx.basis.kind !== 'forecast')) assert.equal(now.values.temp, Math.round(wx.now.tempF));
+  else assert.equal(now.values.temp, null);
 });

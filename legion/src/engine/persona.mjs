@@ -27,6 +27,7 @@
 import { Rng, hash2, hash3, hashStr, u01, clamp, lerp, smoothstep } from './rng.mjs';
 import * as Occupations from './occupations.mjs';
 import { busyIntervals } from './schedule.mjs';
+import { phrasesFor, varietyFor } from './lexicon.mjs';
 
 /** Bumped when the persona model changes shape or meaning. */
 export const PERSONA_VERSION = 2;
@@ -1071,13 +1072,11 @@ function knowledgeOf(ctx, L) {
     for (const r of world.roadsNear(mx, my, 6).slice(0, 2)) addRoad(r, true);
     for (const r of world.roadsNear(work.x, work.y, 5).slice(0, 1)) addRoad(r, true);
   }
-  const neighborhood = str(z.placeName) || str(z.city) || z.zip;
-  const nearbyPlaces = world.placesNear(home.x, home.y, 25).filter(p => p.name !== neighborhood).slice(0, 5).map(p => ({ name: clean(p.name), distKm: p.distKm, pop: p.pop }));
-  const records = [];
-  const hd = parseDate(z.heat_rec_date), rd = parseDate(z.rain_rec_date), gd = parseDate(z.gust_max_date);
-  if (isNum(z.heat_rec_f) && hd) records.push({ kind: 'heat', value: z.heat_rec_f, unit: '°F', date: hd.iso, year: hd.y, station: stationName(z.heat_st), source: 'heat_rec_f' });
-  if (isNum(z.rain_rec_in) && rd) records.push({ kind: 'rain', value: z.rain_rec_in, unit: 'in', date: rd.iso, year: rd.y, station: stationName(z.rain_rec_st), source: 'rain_rec_in' });
-  if (isNum(z.gust_max) && gd) records.push({ kind: 'gust', value: z.gust_max, unit: 'mph', date: gd.iso, year: gd.y, station: stationName(z.gust_st), source: 'gust_max' });
+  // the neighborhood people call it (the pack's curated name inside the big cities), else the Census place or city
+  const neighborhood = str(z.neighborhood) || str(z.placeName) || str(z.city) || z.zip;
+  const ownTown = new Set([neighborhood, str(z.placeName), str(z.city)].filter(Boolean));
+  const nearbyPlaces = world.placesNear(home.x, home.y, 25).filter(p => !ownTown.has(p.name)).slice(0, 5).map(p => ({ name: clean(p.name), distKm: p.distKm, pop: p.pop }));
+  const records = stationRecords(z);
   const cm = npc.commute || {};
   return {
     neighborhood, city: z.city, zip: z.zip, county: z.countyName, countyLabel: z.countyName ? `${z.countyName} County` : null,
@@ -1086,6 +1085,29 @@ function knowledgeOf(ctx, L) {
     workCity: str(cm.workCity) || (isNum(L.workZi) && L.workZi >= 0 ? world.z.city[L.workZi] : null), workZip: str(cm.workZip),
     records,
   };
+}
+
+/** Station records are local within this distance; farther ones are named with their station and distance. */
+export const LOCAL_STATION_KM = 15;
+
+/**
+ * The ZIP's heat, rain and gust records from the stations the atlas matched (decision 5). Each names its station;
+ * distKm is the station's distance when the pack carries it (heat_km, rain_rec_km, gust_km) and local is true within
+ * LOCAL_STATION_KM, false beyond (null when the pack does not say). A record that contradicts the ZIP's own climate
+ * is left out: a hottest day under 100°F where the ZIP itself reaches 100°F (h100), or barely above its normal July
+ * high (tjul), and a one-day rain record above the ZIP's whole normal year (rain_in). Those come from a station in
+ * another climate, across a ridge or up a mountain, and no one here lived them.
+ */
+function stationRecords(z) {
+  const out = [];
+  const near = k => (isNum(z[k]) && z[k] >= 0 ? { distKm: Math.round(z[k]), local: z[k] <= LOCAL_STATION_KM } : { distKm: null, local: null });
+  const hd = parseDate(z.heat_rec_date), rd = parseDate(z.rain_rec_date), gd = parseDate(z.gust_max_date);
+  const heatOff = isNum(z.heat_rec_f) && ((num(z.h100) > 0 && z.heat_rec_f < 100) || (isNum(z.tjul) && z.heat_rec_f < z.tjul + 5));
+  if (isNum(z.heat_rec_f) && hd && !heatOff) out.push({ kind: 'heat', value: z.heat_rec_f, unit: '°F', date: hd.iso, year: hd.y, station: stationName(z.heat_st), source: 'heat_rec_f', ...near('heat_km') });
+  const rainOff = isNum(z.rain_rec_in) && isNum(z.rain_in) && z.rain_in > 0 && z.rain_rec_in > z.rain_in;
+  if (isNum(z.rain_rec_in) && rd && !rainOff) out.push({ kind: 'rain', value: z.rain_rec_in, unit: 'in', date: rd.iso, year: rd.y, station: stationName(z.rain_rec_st), source: 'rain_rec_in', ...near('rain_rec_km') });
+  if (isNum(z.gust_max) && gd) out.push({ kind: 'gust', value: z.gust_max, unit: 'mph', date: gd.iso, year: gd.y, station: stationName(z.gust_st), source: 'gust_max', ...near('gust_km') });
+  return out;
 }
 
 /** A deterministic point near (x, y) at 0.4..1.2 km, for the neighborhood park. */
@@ -1328,35 +1350,64 @@ const popcount = v => { let n = 0; for (let x = v >>> 0; x; x &= x - 1) n++; ret
 
 // ---------------------------------------------------------------- interests
 
-// Cultural traditions by heritage key: offered at a modest probability modulated by generation, never as one
-// of the first two interests (representation rule 2).
+// Cultural and civic traditions by heritage key: offered at a modest probability modulated by generation, never as
+// one of the first two interests (representation rule 2). No primarily religious observance is ever assigned by
+// heritage (rule 5, decision 9): no Simbang Gabi, La Purísima, Holy Ghost festas, Diwali, Holi, Vaisakhi, Obon,
+// Ramadan or Easter. A faith reaches the persona only as the NPC's own practice (practiceOf).
 const TRADITIONS = {
-  mexican: ['Día de los Muertos', 'quinceañeras', 'el Grito on the night of September 15'],
-  salvadoran: ['quinceañeras', 'the Central American independence parade in September'],
-  guatemalan: ['quinceañeras', 'the Central American independence parade in September'],
-  honduran: ['quinceañeras', 'the Central American independence parade in September'],
-  nicaraguan: ['La Purísima in December', 'quinceañeras'],
+  mexican: ['Día de los Muertos', 'el Grito on the night of September 15'],
+  salvadoran: ['the Central American independence parade in September'], guatemalan: ['the Central American independence parade in September'],
+  honduran: ['the Central American independence parade in September'], nicaraguan: ['the Central American independence parade in September'],
   puertorican: ['parrandas at Christmas'], cuban: ['Nochebuena'], dominican: ['Nochebuena'],
-  southamerican: ['quinceañeras'], latino: ['quinceañeras'],
-  chinese: ['Lunar New Year', 'the Mid-Autumn Festival'], filipino: ['Simbang Gabi', 'parol lanterns at Christmas'],
-  vietnamese: ['Tết', 'the Mid-Autumn Festival'], korean: ['Lunar New Year', 'Chuseok'], japanese: ['Obon festivals', 'mochitsuki at New Year'],
-  indian: ['Diwali', 'Holi'], sikh: ['Vaisakhi'], hmong: ['Hmong New Year'], cambodian: ['Khmer New Year'], lao: ['Lao New Year'],
+  chinese: ['Lunar New Year', 'the Mid-Autumn Festival'], filipino: ['parol lanterns at Christmas', 'the Philippine Independence Day festival in June'],
+  vietnamese: ['Tết', 'the Mid-Autumn Festival'], korean: ['Lunar New Year', 'Chuseok'], japanese: ['mochitsuki at New Year', "Children's Day carp kites in May"],
+  indian: ['the India Day parade in August'], sikh: ['Lohri bonfires in January'], pakistani: ['the Pakistan Independence Day festival in August'],
+  hmong: ['Hmong New Year'], cambodian: ['Khmer New Year'], lao: ['Lao New Year'],
   thai: ['Songkran'], bangladeshi: ['Pohela Boishakh'], afghan: ['Nowruz'], burmese: ['Thingyan'],
   iranian: ['Nowruz', 'Yalda Night'], armenian: ['Vardavar'], assyrian: ['Akitu, the Assyrian New Year'],
   'african-american': ['Juneteenth'], ethiopian: ['Enkutatash'], caribbean: ['Carnival'], native: ['powwows'],
-  irish: ["St. Patrick's Day"], italian: ['the Feast of the Seven Fishes'], german: ['Oktoberfest'], portuguese: ['the Holy Ghost festas'],
+  irish: ["St. Patrick's Day"], italian: ['the Feast of the Seven Fishes'], german: ['Oktoberfest'], portuguese: ['Portugal Day in June'],
   scandinavian: ['Midsummer'], polish: ['Wigilia on Christmas Eve'], scottish: ['the Highland games'], russian: ['New Year with a yolka tree'],
   greek: ['the Greek festival'],
 };
+// A finer origin's own civic festival in place of its heritage's list: South American countries are not one tradition
+// (their independence days), and Brazilians are filed under the Portuguese heritage.
+// Each entry is [the heritage the origin belongs to, its traditions].
+const ORIGIN_TRADITIONS = {
+  colombian: ['southamerican', ['the Colombian independence festival in July']], peruvian: ['southamerican', ['Fiestas Patrias in July']],
+  chilean: ['southamerican', ['Fiestas Patrias in September']], argentinian: ['southamerican', ['the Argentine independence day asado in July']],
+  ecuadorian: ['southamerican', ['the Ecuadorian independence festival in August']], venezuelan: ['southamerican', ['the Venezuelan independence festival in July']],
+  bolivian: ['southamerican', ['the Bolivian independence festival in August']], uruguayan: ['southamerican', ['the Uruguayan independence festival in August']],
+  paraguayan: ['southamerican', ['the Paraguayan independence festival in May']], brazilian: ['portuguese', ['Carnaval']],
+};
+// Cross-faith regional festivals tied to the language a family speaks at home, never to a faith.
+const LANGUAGE_TRADITIONS = { malayalam: 'Onam', bengali: 'Pohela Boishakh', punjabi: 'Lohri bonfires in January' };
+// Quinceañeras are a family event: only where the household has a girl about to turn fifteen.
+const QUINCE_HERITAGES = new Set(['mexican', 'salvadoran', 'guatemalan', 'honduran', 'nicaraguan', 'puertorican', 'cuban', 'dominican', 'southamerican', 'latino', 'spanish']);
 const TRADITION_P = { 1: 0.32, 2: 0.22, 3: 0.09 };
 
-/** The optional cultural tradition (heritage, modulated by generation). */
-function traditionOf(npc, seed) {
-  const list = TRADITIONS[str(npc.heritage) || ''];
-  if (!list) return null;
+/**
+ * The optional cultural tradition (heritage, modulated by generation): the origin's own civic festival or the
+ * heritage's, a regional festival of the home language, and quinceañeras only in a household with a girl of 12 to 16
+ * (her own or a sister's, a daughter's, a granddaughter's).
+ * @returns {{name: string, why: string}|null}
+ */
+function traditionOf(npc, seed, members) {
+  const heritage = str(npc.heritage) || '';
+  const byOrigin = Object.hasOwn(ORIGIN_TRADITIONS, str(npc.origin) || '') ? ORIGIN_TRADITIONS[npc.origin] : null;
+  const list = [...(byOrigin && byOrigin[0] === heritage ? byOrigin[1] : Object.hasOwn(TRADITIONS, heritage) ? TRADITIONS[heritage] : [])];
+  const lang = str(npc.languages && npc.languages.home);
+  const byLang = lang && Object.hasOwn(LANGUAGE_TRADITIONS, lang) ? LANGUAGE_TRADITIONS[lang] : null;
+  if (byLang && !list.includes(byLang)) list.push(byLang);
+  const girl = QUINCE_HERITAGES.has(heritage) ? (Array.isArray(members) ? members : []).find(x => x && x.sex === 'F' && isNum(x.age) && x.age >= 12 && x.age <= 16) : null;
+  if (girl) list.push('quinceañeras');
+  if (!list.length) return null;
   const gen = isNum(npc.generation) ? clamp(Math.round(npc.generation), 1, 3) : npc.nativity === 'foreign' ? 1 : 3;
   const r = rngFor(seed, S.tradition);
-  return r.float() < TRADITION_P[gen] ? r.pick(list) : null;
+  if (!(r.float() < TRADITION_P[gen])) return null;
+  const name = r.pick(list);
+  const who = girl ? (girl.m === npc.m ? 'they turn fifteen soon' : `${memberName(girl) || 'a girl in the family'} turns fifteen soon`) : null;
+  return { name, why: `family tradition (${str(npc.heritageLabel) || 'heritage'}, generation ${isNum(npc.generation) ? npc.generation : '3+'})${name === 'quinceañeras' && who ? `; ${who} (household)` : byLang && name === byLang ? `; ${lang} at home (languages)` : ''}` };
 }
 
 /** Interests grounded in the place, age, income, household, work, personality, teams and practice. */
@@ -1456,11 +1507,9 @@ function interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places
   const ranked = [...cands.values()].map(c => ({ c, s: c.w * (0.75 + 0.5 * r.float()) })).sort((x, y) => y.s - x.s || (x.c.name < y.c.name ? -1 : 1)).map(x => x.c);
   const n = clamp(3 + (E > 0.6 ? 1 : 0) + (O > 0.6 ? 1 : 0), 3, 5);
   const out = ranked.slice(0, n);
-  const tradition = traditionOf(ctx.npc, seed);
-  if (tradition && !out.some(x => x.name === tradition)) {
-    const item = { name: tradition, w: 0.3, why: `family tradition (${str(ctx.npc.heritageLabel) || 'heritage'}, generation ${isNum(ctx.npc.generation) ? ctx.npc.generation : '3+'})`, tradition: true };
-    if (out.length < 5) out.push(item); else out[out.length - 1] = item;
-  }
+  // the tradition is an extra, appended: it never takes the place of an interest (rule 1: heritage changes nothing else)
+  const tradition = traditionOf(ctx.npc, seed, ctx.hh.members);
+  if (tradition && !out.some(x => x.name === tradition.name)) out.push({ name: tradition.name, w: 0.3, why: tradition.why, tradition: true });
   return out;
 }
 
@@ -1479,7 +1528,17 @@ export function relevantAlerts(alerts, coastKm) {
   return (Array.isArray(alerts) ? alerts : []).filter(a => a && a.event && (!COASTAL_EVENT.test(a.event) || num(coastKm, 0) <= 8));
 }
 
+/**
+ * True when the ZIP's median year built is the ACS top code, "built 1939 or earlier" (decision 4): the pack flags it
+ * (ybBefore1940), and an older pack stores the code itself (1938 or 1939). Never a real year: say "before 1940".
+ */
+export function builtBefore1940(z) {
+  return !!z && (z.ybBefore1940 === true || (isNum(z.yb_med) && z.yb_med <= 1939));
+}
+
 const ALERT_BOOST = { Extreme: 0.35, Severe: 0.25, Moderate: 0.15, Minor: 0.08 };
+// Geomorphic provinces (the pack's CGS province) crossed by the San Andreas fault system
+const SEISMIC_PROVINCES = new Set(['Coast Ranges', 'Transverse Ranges', 'Peninsular Ranges']);
 const alertBoost = a => ALERT_BOOST[a && a.severity] ?? 0.05;
 
 /** Worries from the data, each with the datum that drives it. Scaled a little by neuroticism. */
@@ -1537,15 +1596,23 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const heatAlert = alertOf(/heat/i);
   const heat = 0.5 * smoothstep(5, 60, h100) + 0.2 * smoothstep(30, 120, h90) + 0.3 * smoothstep(85, 105, tjul);
   const outdoor = L.outdoor;
-  add('heat', (0.05 + 0.75 * heat + (heatAlert ? alertBoost(heatAlert) : 0)) * (outdoor ? 1.35 : 1) * (age >= 65 ? 1.25 : 1) * (adult ? 1 : 0.6),
+  // a hazard weighs on the people it reaches (exp-76): the heat on outdoor workers and the old more than on someone
+  // who spends the summer indoors at work or school
+  const heatExposure = outdoor ? 1.35 : age >= 65 ? 1.25 : 0.85;
+  add('heat', (0.05 + 0.75 * heat + (heatAlert ? alertBoost(heatAlert) : 0)) * heatExposure * (adult ? 1 : 0.6),
     `about ${Math.round(h100)} days a year reach 100°F here (h100) and ${Math.round(h90)} reach 90°F (h90); July highs average ${fmt1(tjul)}°F (tjul)${outdoor ? `; works outdoors ${jobWords(L)} (occupation)` : ''}${heatAlert ? `; a ${heatAlert.event} is out now (NWS)` : ''}`);
   // storms and flooding (atmospheric rivers, flood reports, alerts now)
   const arN = num(z.ar_n), floodN = num(z.flood_n10);
   const stormAlert = alertOf(/flood|surf|storm|rain|winter|blizzard|tsunami/i);
   const ar = smoothstep(6, 14, arN), fl = smoothstep(5, 40, floodN);
-  const stw = 0.05 + 0.4 * ar + 0.3 * fl + (stormAlert ? alertBoost(stormAlert) : 0);
+  // atmospheric rivers come every winter up north; what makes storms a worry is the water they bring here
+  const stw = 0.05 + 0.2 * ar + 0.3 * fl + (stormAlert ? alertBoost(stormAlert) : 0);
   const stTopic = fl > ar + 0.15 ? 'flooding' : 'storms';
-  add(stTopic, stw * (owner ? 1.1 : 0.95) * (adult ? 1 : 0.6),
+  // storms worry the people they reach: the owner of the roof, the driver on a flooded road, the outdoor worker;
+  // a renter who works from home or no longer commutes mostly watches them from the window
+  const travels = (L.worker || L.student === 'college') && L.mode && L.mode !== 'wfh';
+  const stormExposure = (owner && owns ? 1 : 0.8) + (travels ? 0.1 : 0) + (outdoor ? 0.1 : 0);
+  add(stTopic, stw * stormExposure * (adult ? 1 : 0.6),
     `about ${fmt1(arN)} atmospheric rivers a year come ashore on the nearest stretch of coast (ar_n), and ${fmtInt(floodN)} located flood, flash-flood and debris-flow ${floodN === 1 ? 'report' : 'reports'} within 10 km since 1996 (flood_n10)${stormAlert ? `; the NWS has a ${stormAlert.event} out now` : ''}`);
   // wind and power shutoffs
   const off = z.off_kind;
@@ -1573,7 +1640,8 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const ratio = value > 0 ? value / hinc : 0;
   if (value > 0 && adult) {
     if (L.tenure === 'rent' && (head || age >= 22)) {
-      add('rent', 0.1 + 0.6 * smoothstep(3, 12, ratio) + (age >= 20 && age <= 40 ? 0.12 : 0),
+      // the rent weighs on a low income even where homes are cheap: the burden is the paycheck's, not the market's
+      add('rent', 0.1 + 0.6 * smoothstep(3, 12, ratio) + 0.3 * smoothstep(60000, 20000, hinc) + (age >= 20 && age <= 40 ? 0.12 : 0),
         `homes here run about ${fmtMoney(value)} (value) against their household's income of ${fmtMoney(hinc)} (householdIncome)${isNum(z.own_sh) && z.own_sh < 50 ? `, and only ${fmt1(z.own_sh)}% of households here own their home (own_sh)` : ''}`);
     } else if (owner && owns) {
       const recent = isNum(L.yearMoved) && L.yearMoved >= 2019;
@@ -1597,10 +1665,14 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   // earthquakes: everyone in California carries a little of this
   const quakeDecl = zc.fema.find(f => f && f[1] === 'Earthquake');
   const oldStock = isNum(z.yb_med) && z.yb_med < 1960;
-  add('earthquakes', 0.12 + (quakeDecl ? 0.18 : 0) + 0.1 * smoothstep(0, 20, num(z.fema_quake)) + (oldStock ? 0.08 : 0) + (owner ? 0.04 : 0),
+  // the San Andreas system runs through the Coast, Transverse and Peninsular Ranges: there the next big one is on
+  // people's minds more than in the valley or the desert (the geomorphic province, from the pack)
+  const faultCountry = SEISMIC_PROVINCES.has(z.provinceName);
+  add('earthquakes', 0.12 + (quakeDecl ? 0.18 : 0) + 0.1 * smoothstep(0, 20, num(z.fema_quake)) + (oldStock ? 0.08 : 0) + (owner ? 0.04 : 0) + (faultCountry ? 0.1 : 0),
     (quakeDecl ? `the ${clean(quakeDecl[2])} brought a federal disaster declaration to ${z.countyName} County in ${parseDate(quakeDecl[0]).y} (femaOf)` : 'the statewide baseline')
+      + (faultCountry ? `; ${z.zip} is in the ${z.provinceName}, along the state's major faults (province)` : '')
       + `; ${fmtInt(num(z.fema_quake))} FEMA earthquake-disaster ${num(z.fema_quake) === 1 ? 'registration' : 'registrations'} from ${zip} (fema_quake)`
-      + (isNum(z.yb_med) ? `; half the homes in ${zip} were built before ${z.yb_med} (yb_med)` : ''));
+      + (builtBefore1940(z) ? `; at least half the homes in ${zip} were built before 1940 (yb_med: 1939 or earlier)` : isNum(z.yb_med) ? `; half the homes in ${zip} were built before ${z.yb_med} (yb_med)` : ''));
   // jobs
   if (L.unemployed) add('jobs', 0.75, `out of work (status)${zc.urate !== null ? `; unemployment in ${zip} is ${fmt1(zc.urate)}% (ACS B23025)` : ''}`);
   else if (adult && age < 65 && zc.urate !== null && zc.urate >= 8) add('jobs', 0.12 + 0.3 * smoothstep(8, 16, zc.urate), `unemployment in ${zip} is ${fmt1(zc.urate)}% (ACS B23025)`);
@@ -1609,7 +1681,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
     add('water', 0.3 + 0.4 * smoothstep(20, 5, num(z.rain_in, 15)), `${L.farm ? `works ${jobWords(L)} (occupation)` : `farm country (${z.regionName})`}; about ${fmt1(num(z.rain_in))} inches of rain a year (rain_in)`);
   }
   // aging and health
-  if (age >= 60) add('health', 0.1 + 0.6 * smoothstep(60, 88, age), `age ${age}; ${num(z.health)} health-care establishments in ${zip} (health)`);
+  if (age >= 58) add('health', 0.12 + 0.62 * smoothstep(58, 85, age), `age ${age}; ${num(z.health)} health-care establishments in ${zip} (health)`);
   // schools, for parents of school-age kids
   const schoolKids = L.kidAges.filter(k => k >= 4 && k <= 17).length;
   if (L.isParent && schoolKids > 0) add('schools', 0.25 + 0.15 * Math.min(2, schoolKids - 1) + 0.1 * (num(big5.C, 0.5) - 0.5) * 2, `${numWord(schoolKids)} school-age ${schoolKids === 1 ? 'kid' : 'kids'} at home (household); ${num(z.school)} schools in ${zip} (school)`);
@@ -1679,6 +1751,7 @@ const LINES = {
     house: ['The roof leaked over the kitchen.', 'The gutters overflowed and the yard turned into a pond.',
       '{We} {were} up all night with buckets and towels.', 'A big branch came down on the fence.'],
     commute: ['The streets flooded on the way to work.'],
+    street: ['The street out front flooded.', 'The storm drain on the corner backed up.'],
     any: ['The power went out for most of a day.', 'It rained so hard the storm drains backed up.',
       'Water came in under the door.', 'The wind and the rain kept {us} up all night.'],
   },
@@ -1753,18 +1826,52 @@ function fireMemory(f, ctx, L, res, r) {
   return { year, date: dt.iso, kind: 'fire', title: `${fireName(f.name)} in ${year}`, weight: round(weight, 2), source: `firesOf(${zip}): ${f.name} ${year}`, fact, scope: inZip ? 'zip' : 'county', pools, vars };
 }
 
+/** The category an atmospheric river reached at this ZIP: arsOf's rankHere, else no more than the landfall peak. */
+function arRankHere(a) {
+  return isNum(a.rankHere) ? a.rankHere : num(a.rank);
+}
+
+/**
+ * An atmospheric river they lived through, told as the coastal landfall event it was (decision 6): the rank is the
+ * landfall peak, so the fact names where it came ashore, and it is a "category N here" only at the strength it had
+ * at the ZIP (arsOf's rankHere; without it, when the peak is above the ZIP's own strongest on record, ar_max, it says
+ * the storm was weaker by the time it got here).
+ */
 function arMemory(a, ctx, L, r) {
   const dt = parseDate(a.start);
   if (!dt) return null;
-  const fact = `The atmospheric river that came ashore ${fullDate(dt)} was a category ${a.rank} storm${clean(a.peakAt) ? `, strongest at ${clean(a.peakAt)}` : ''}${isNum(a.hours) ? `, ${a.hours} hours long` : ''}.`;
+  const at = clean(a.landfall) || clean(a.peakAt) || clean(a.place);
+  const rank = num(a.rank);
+  const here = str(ctx.z.placeName) || str(ctx.z.city) || ctx.z.zip;
+  const local = isNum(a.rankHere) ? a.rankHere : null;
+  const weaker = local !== null ? local < rank : isNum(ctx.z.ar_max) && rank > ctx.z.ar_max;
+  const where = local !== null ? `; by the time it reached ${here} it was a category ${local}`
+    : `; it was weaker by the time it reached ${here} (the strongest atmospheric river on record there is a category ${ctx.z.ar_max})`;
+  const fact = `The atmospheric river of ${fullDate(dt)} came ashore${at ? ` at ${at}` : ''} as a category ${rank} storm${isNum(a.hours) ? ` and lasted ${a.hours} hours` : ''}`
+    + `${weaker ? where : ''}.`;
   const ageThen = dt.y - L.birthYear;
   const St = LINES.storm;
+  // a commute line only for someone who commuted (a remote worker had no drive in it)
   const pools = ageThen < 16 ? [St.child, St.any]
     : L.tenure === 'own' && L.hasHouse ? [St.house, St.any]
-      : [...(L.worker && ageThen >= 18 ? [St.commute] : []), St.any];
+      : L.wfh ? [St.street, St.any] : [...(L.worker && ageThen >= 18 ? [St.commute] : []), St.any];
   const exposure = 0.35 + 0.65 * smoothstep(3, 12, num(ctx.z.ar_n));
-  const weight = (0.22 + 0.08 * (num(a.rank) - 3) + 0.15 * Math.min(1, Math.log10(num(a.dmg) + 1) / 8) + (num(a.deaths) > 0 ? 0.06 : 0)) * exposure;
+  const weight = (0.22 + 0.08 * (arRankHere(a) - 3) + 0.15 * Math.min(1, Math.log10(num(a.dmg) + 1) / 8) + (num(a.deaths) > 0 ? 0.06 : 0)) * exposure;
   return { year: dt.y, date: dt.iso, kind: 'storm', title: `the atmospheric river of ${monthYear(dt)}`, weight: round(clamp(weight, 0, 1), 2), source: `arsOf(${ctx.z.zip}): ${a.start} rank ${a.rank}`, fact, scope: 'county', pools, vars: { age: ageThen } };
+}
+
+/**
+ * Offshore wind events reach only the ZIPs whose own data has them (decision 7): Santa Ana events where the offshore
+ * regime is Santa Ana or Santa Ana episodes are counted (off_kind 'sa', sa_ep), Diablo events likewise ('di', di_ep),
+ * sundowners on the Santa Barbara south coast ('su'). A county-wide list would hand the coastal-slope Santa Anas to
+ * the desert. Winter and other storms stay county-wide, told with where they peaked.
+ */
+export function windBlowsHere(w, z) {
+  if (!w || !z) return false;
+  if (w.kind === 'santa_ana') return z.off_kind === 'sa' || num(z.sa_ep) > 0;
+  if (w.kind === 'diablo') return z.off_kind === 'di' || num(z.di_ep) > 0;
+  if (w.kind === 'sundowner') return z.off_kind === 'su';
+  return true;
 }
 
 const WIND_NAMES = { santa_ana: 'the Santa Ana winds', diablo: 'the Diablo winds', sundowner: 'the sundowner winds', mono: 'the Mono winds', winter: 'the winter windstorm', other: 'the windstorm' };
@@ -1833,7 +1940,8 @@ function recordMemories(ctx, L, res, can) {
   const out = [];
   for (const rec of ctx.knowledge.records) {
     const dt = parseDate(rec.date);
-    if (!dt || !can(dt.y, 'county')) continue;
+    // a record from a station farther than LOCAL_STATION_KM is a fact they may know, not a day they lived
+    if (!dt || !can(dt.y, 'county') || rec.local === false) continue;
     const at = rec.station ? ` at ${rec.station}` : '';
     let fact, weight;
     if (rec.kind === 'heat') { fact = `The record high${at} is ${rec.value}°F, set ${fullDate(dt)}.`; weight = 0.42; }
@@ -1846,9 +1954,30 @@ function recordMemories(ctx, L, res, can) {
 }
 
 /**
+ * Layer 1 kinship of the household's members (whose child each one is, nativity, arrival), when a population is
+ * at hand: a Map m → {parents, nativity, arrivalYear}, or null. Every member's persona reads the same records.
+ */
+function householdKin(ctx) {
+  if (ctx.kin !== undefined) return ctx.kin;
+  ctx.kin = null;
+  const pop = ctx.pop, h = ctx.npc.h;
+  if (!pop || typeof pop.person !== 'function' || !Number.isInteger(h)) return null;
+  const out = new Map();
+  for (const x of Array.isArray(ctx.hh.members) ? ctx.hh.members : []) {
+    if (!x || !Number.isInteger(x.m)) continue;
+    let r = null;
+    try { r = pop.person(ctx.zi, h, x.m); } catch { r = null; }
+    if (r) out.set(x.m, { parents: Array.isArray(r.parents) ? r.parents : null, nativity: str(r.nativity), arrivalYear: isNum(r.arrivalYear) ? r.arrivalYear : null });
+  }
+  return (ctx.kin = out.size ? out : null);
+}
+
+/**
  * The couple's wedding year, the same in both partners' personas: drawn from the household and the couple, from
  * both partners' ages as the household lists them and the household's children young enough to be both of
- * theirs (an older child of one partner does not bound it). Married couples only: the householder and spouse, or
+ * theirs (an older child of one partner does not bound it). With the household's kinship at hand, a child of only
+ * one of them (the other's stepchild) dates the wedding after the youngest such child was born, and an immigrant
+ * married to someone born here married after they arrived. Married couples only: the householder and spouse, or
  * the householder's two parents. Null otherwise.
  */
 function weddingYear(ctx, L, family) {
@@ -1861,12 +1990,25 @@ function weddingYear(ctx, L, family) {
   const younger = Math.min(L.age, p.age);
   if (younger < 18) return null;
   const members = Array.isArray(ctx.hh.members) ? ctx.hh.members : [];
-  const kids = members.filter(x => x && isNum(x.age) && (elders ? x.role === 'householder' || x.role === 'sibling' : x.role === 'child') && x.age <= younger - 15).map(x => x.age);
+  const kin = householdKin(ctx);
+  const me = Number.isInteger(ctx.npc.m) ? ctx.npc.m : 0;
+  const theirs = x => { const k = kin && kin.get(x.m); return !k || !k.parents || (k.parents.includes(me) && k.parents.includes(p.m)); };
+  const children = members.filter(x => x && isNum(x.age) && (elders ? x.role === 'householder' || x.role === 'sibling' : x.role === 'child'));
+  const kids = children.filter(x => theirs(x) && x.age <= younger - 15).map(x => x.age);
+  const stepKids = children.filter(x => !theirs(x)).map(x => x.age);
   const hr = new Rng(hash3(S.marry, ctx.zi, num(ctx.npc.h) * 2 + (elders ? 1 : 0)));
   let at = clamp(Math.round(hr.normal(28, 4.5)), 19, 45);
   if (at > younger) at = younger - hr.int(Math.min(6, younger - 18) + 1); // married in the last few years
   let y = REF_YEAR - younger + at;
   if (kids.length) y = Math.min(y, REF_YEAR - Math.max(...kids) - hr.range(0, 3));
+  let after = -Infinity;
+  if (!kids.length && stepKids.length) after = REF_YEAR - Math.min(...stepKids);
+  const a = kin && kin.get(me), b = kin && kin.get(p.m);
+  if (a && b && (a.nativity === 'foreign') !== (b.nativity === 'foreign')) {
+    const arrived = (a.nativity === 'foreign' ? a : b).arrivalYear;
+    if (isNum(arrived) && !kids.length) after = Math.max(after, arrived);
+  }
+  if (after > y) y = after + hr.int(Math.max(1, Math.min(4, REF_YEAR - after + 1)));
   return clamp(y, REF_YEAR - younger + 18, REF_YEAR);
 }
 
@@ -1890,7 +2032,7 @@ function lifeMemories(ctx, L, res, roof, family) {
   if (res.grewUpHere && L.age >= 12) push(L.birthYear, 'life', res.bornHere ? `I have lived in this ${HOME_WORD[L.dwelling] || 'home'} my whole life.` : `I grew up in ${ctx.z.countyName} County.`, 0.45, res.bornHere ? 'household.yearMoved' : 'residence.countySince');
   for (const k of family.kids) {
     const y = REF_YEAR - k.age;
-    if (y - L.birthYear >= 15) push(y, 'life', `${k.name || (k.sex === 'F' ? 'My daughter' : 'My son')} was born in ${y}.`, 0.9, 'household.members');
+    if (!k.step && y - L.birthYear >= 15) push(y, 'life', `${k.name || (k.sex === 'F' ? 'My daughter' : 'My son')} was born in ${y}.`, 0.9, 'household.members');
   }
   if (family.grandkids.length) {
     const g = family.grandkids.slice().sort((a, b) => b.age - a.age)[0];
@@ -1898,7 +2040,13 @@ function lifeMemories(ctx, L, res, roof, family) {
     if (y - L.birthYear >= 34) push(y, 'life', g.name ? `My grandchild ${g.name} was born in ${y}.` : `My ${g.sex === 'F' ? 'granddaughter' : 'grandson'} was born in ${y}.`, 0.8, 'household.members');
   }
   const wed = weddingYear(ctx, L, family);
-  if (wed !== null) push(wed, 'life', `${family.partner.name || (family.partner.sex === 'F' ? 'My wife' : 'My husband')} and I got married in ${wed}.`, 0.8, 'npc.marital');
+  if (wed !== null) {
+    const steps = family.kids.filter(k => k.step);
+    const theirKids = !steps.length ? '' : steps.length === 1
+      ? `, and ${steps[0].name || (family.partner.sex === 'F' ? 'her' : 'his') + ' ' + (steps[0].sex === 'F' ? 'daughter' : 'son')} became my ${steps[0].sex === 'F' ? 'stepdaughter' : 'stepson'}`
+      : `, and ${steps.every(k => k.name) ? listJoin(steps.map(k => k.name)) : `${family.partner.sex === 'F' ? 'her' : 'his'} kids`} became my stepkids`;
+    push(wed, 'life', `${family.partner.name || (family.partner.sex === 'F' ? 'My wife' : 'My husband')} and I got married in ${wed}${theirKids}.`, 0.8, 'npc.marital');
+  }
   if (L.retired && L.age >= 55) {
     const y = clamp(L.birthYear + r.range(58, 67), REF_YEAR - 30, REF_YEAR - (L.age >= 67 ? 1 : 0));
     push(y, 'life', `I retired in ${y}.`, 0.6, 'npc.status');
@@ -1929,11 +2077,12 @@ function memoriesOf(ctx, L, res, roof, family) {
   events.push(...fires);
   const winter = a => { const d = parseDate(a.start); return d ? (d.m >= 7 ? d.y : d.y - 1) : 0; };
   const seenWinter = new Set();
-  const ars = zc.ars.filter(a => num(a.rank) >= 4 && can(parseDate(a.start)?.y, 'county'))
-    .sort((a, b) => num(b.rank) - num(a.rank) || num(b.dmg) - num(a.dmg))
+  // the storms that were strong here (rankHere when arsOf gives it), not the ones that peaked far up the coast
+  const ars = zc.ars.filter(a => arRankHere(a) >= 4 && can(parseDate(a.start)?.y, 'county'))
+    .sort((a, b) => arRankHere(b) - arRankHere(a) || num(b.rank) - num(a.rank) || num(b.dmg) - num(a.dmg))
     .filter(a => { const w = winter(a); if (seenWinter.has(w)) return false; seenWinter.add(w); return true; })
     .slice(0, num(ctx.z.ar_n) >= 6 ? 2 : 1).map(a => arMemory(a, ctx, L, r)).filter(Boolean);
-  const winds = zc.winds.filter(w => can(parseDate(w.start)?.y, 'county') && (num(w.dmg) >= 250000 || num(w.deaths) > 0 || ((w.kind === 'santa_ana' || w.kind === 'diablo') && num(w.gust) >= 80)))
+  const winds = zc.winds.filter(w => windBlowsHere(w, ctx.z) && can(parseDate(w.start)?.y, 'county') && (num(w.dmg) >= 250000 || num(w.deaths) > 0 || ((w.kind === 'santa_ana' || w.kind === 'diablo') && num(w.gust) >= 80)))
     .slice(0, 1).map(w => windMemory(w, ctx, L, r)).filter(Boolean);
   // federal declarations, minus the fires and storms already remembered by name or date, merged into events
   const fireNames = fires.map(m => m.source.split(': ')[1].replace(/ \d{4}$/, '').toLowerCase());
@@ -1985,6 +2134,29 @@ export function codeSwitchOf(npc, seed) {
   const gen = isNum(npc.generation) ? clamp(Math.round(npc.generation), 1, 3) : npc.nativity === 'foreign' ? 1 : 2;
   const [lo, hi] = gen === 1 ? (eng === 'limited' ? [0.55, 0.75] : [0.25, 0.4]) : gen === 2 ? (eng === 'limited' ? [0.16, 0.24] : [0.08, 0.16]) : [0.01, 0.04];
   return { lang, rate: round(lerp(lo, hi, rngFor(seed, S.speech ^ 0xc0de).float()), 3) };
+}
+
+/**
+ * For someone whose English is limited, the habits of speech come in their home language (exp-83): fillers from its
+ * interjections and sayings from its everyday phrases, each with a gloss in brackets, in their own regional variety.
+ * Faith formulas are never among them. Null when the lexicon has no such language.
+ */
+function homeLanguageSpeech(ctx, L, r, nf) {
+  const { npc, z } = ctx;
+  const lang = str(npc.languages && npc.languages.home);
+  if (!lang) return null;
+  const opts = { variety: varietyFor(lang, str(npc.heritage) || '', { birthplace: str(npc.birthplace) || '' }), sex: L.sex || undefined, faith: null };
+  const say = e => (e.roman && e.roman !== e.text ? `${e.text} (${e.roman})` : e.text);
+  const interjections = [];
+  for (const kind of ['surprise', 'frustration', 'delight']) for (const e of phrasesFor(lang, kind, opts) || []) if (e && e.text && !interjections.includes(say(e))) interjections.push(say(e));
+  if (!interjections.length) return null;
+  const sayings = [];
+  const intents = ['no_problem', 'its_expensive', 'busy', ...(num(z.h100) >= 20 ? ['weather_hot'] : []), ...(L.commuteMin >= 45 ? ['traffic_bad'] : [])];
+  for (const intent of intents) {
+    const pool = (phrasesFor(lang, intent, opts) || []).filter(e => e && e.text && e.gloss);
+    if (pool.length) { const e = pool[r.int(pool.length)]; sayings.push(`${say(e)} [${e.gloss}]`); }
+  }
+  return { fillers: r.sample(interjections, Math.min(nf, interjections.length)), catchphrases: r.sample(sayings, Math.min(2, sayings.length)) };
 }
 
 function catchphrasesOf(ctx, L, big5, teams, humorStyle, interests, r) {
@@ -2054,9 +2226,13 @@ function speechOf(ctx, L, big5, dialectFor, interests, teams) {
   }
   const pool = (a < 25 ? FILLERS.young : a < 55 ? FILLERS.mid : FILLERS.old).filter(f => register !== 'formal' || !['like', 'lowkey', 'literally', 'kinda'].includes(f));
   const nf = verbosity >= 0.65 ? 3 : verbosity >= 0.35 ? 2 : 1;
+  const codeSwitch = codeSwitchOf(npc, seed);
+  // limited English: the fillers and sayings are in their own language, not English ones they would not use
+  const limited = codeSwitch && npc.languages && npc.languages.english === 'limited' ? homeLanguageSpeech(ctx, L, r, nf) : null;
+  if (limited) return { dialect, register, verbosity, slang, humor, humorStyle, directness, codeSwitch, fillers: limited.fillers, catchphrases: limited.catchphrases, fillersLang: codeSwitch.lang };
   const fillers = r.sample(pool, nf);
   const catchphrases = catchphrasesOf(ctx, L, big5, teams, humorStyle, interests, r);
-  return { dialect, register, verbosity, slang, humor, humorStyle, directness, codeSwitch: codeSwitchOf(npc, seed), fillers, catchphrases };
+  return { dialect, register, verbosity, slang, humor, humorStyle, directness, codeSwitch, fillers, catchphrases };
 }
 
 // ---------------------------------------------------------------- family (with names, for the bio, memories and hooks)
@@ -2064,8 +2240,12 @@ function speechOf(ctx, L, big5, dialectFor, interests, teams) {
 function familyOf(ctx) {
   const rel = relationsOf(ctx.npc, ctx.hh.members);
   const named = x => (x ? { m: x.m, role: x.role, name: memberName(x), age: isNum(x.age) ? x.age : null, sex: x.sex === 'F' || x.sex === 'M' ? x.sex : null } : null);
+  // a child the record says is not theirs (their partner's from before) is a stepchild
+  const kin = householdKin(ctx);
+  const me = Number.isInteger(ctx.npc.m) ? ctx.npc.m : 0;
+  const kid = x => { const k = named(x); const rec = kin && kin.get(x.m); if (rec && rec.parents && rec.parents.length && !rec.parents.includes(me)) k.step = true; return k; };
   return {
-    partner: named(rel.partner), kids: rel.kids.map(named), grandkids: rel.grandkids.map(named), parents: rel.parents.map(named),
+    partner: named(rel.partner), kids: rel.kids.map(kid), grandkids: rel.grandkids.map(named), parents: rel.parents.map(named),
     inLaws: rel.inLaws.map(named), stepparents: rel.stepparents.map(named),
     grandparents: rel.grandparents.map(named), siblings: rel.siblings.map(named), roommates: rel.roommates.map(named), relatives: rel.relatives.map(named),
   };
@@ -2087,7 +2267,8 @@ function kinPhrase(list, one, many, P) {
 function householdPhrase(L, fam, P) {
   const parts = [];
   if (fam.partner) parts.push(`${P.pos} ${L.role === 'partner' || fam.partner.role === 'partner' ? 'partner' : fam.partner.sex === 'F' ? 'wife' : fam.partner.sex === 'M' ? 'husband' : 'spouse'}`);
-  if (fam.kids.length) parts.push(fam.kids.length === 1 ? `${P.pos} ${fam.kids[0].sex === 'F' ? 'daughter' : 'son'}` : `${numWord(fam.kids.length)} kids`);
+  const step = fam.kids.length > 0 && fam.kids.every(k => k.step) ? 'step' : '';
+  if (fam.kids.length) parts.push(fam.kids.length === 1 ? `${P.pos} ${step}${fam.kids[0].sex === 'F' ? 'daughter' : 'son'}` : `${numWord(fam.kids.length)} ${step}kids`);
   if (fam.parents.length) parts.push(fam.parents.length >= 2 ? `${P.pos} parents` : `${P.pos} ${fam.parents[0].sex === 'F' ? 'mother' : 'father'}`);
   if (fam.stepparents && fam.stepparents.length) parts.push(fam.stepparents.length >= 2 ? `${P.pos} stepparents` : `${P.pos} ${fam.stepparents[0].sex === 'F' ? 'stepmother' : 'stepfather'}`);
   if (fam.inLaws && fam.inLaws.length) parts.push(fam.inLaws.length >= 2 ? `${P.pos} in-laws` : `${P.pos} ${fam.inLaws[0].sex === 'F' ? 'mother' : 'father'}-in-law`);
@@ -2172,8 +2353,10 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
   else if (now && isNum(now.tempF)) {
     const short = String(now.short || (wx.period && wx.period.short) || '').toLowerCase();
     const hot = now.tempF >= 95, cold = now.tempF <= 40, wet = /rain|shower|storm|drizzle|snow/.test(short);
+    // an estimate (a forecast borrowed from another place, a climate guess) is said as one: "probably around 45°F"
+    const deg = `${wx.approx || wx.stale ? 'probably around ' : ''}${Math.round(now.tempF)}°F`;
     // weather worth mentioning is everyone's hook; a mild day only the talkative bring up
-    if (hot || cold || wet || n >= 4) moment = { kind: 'weather', topic: 'weather', text: hot ? `the heat today, ${now.tempF}°F` : cold ? `the cold today, ${now.tempF}°F` : wet ? `the ${/snow/.test(short) ? 'snow' : 'rain'} today` : `the weather today, ${short || 'mild'} and ${now.tempF}°F` };
+    if (hot || cold || wet || n >= 4) moment = { kind: 'weather', topic: 'weather', text: hot ? `the heat today, ${deg}` : cold ? `the cold today, ${deg}` : wet ? `the ${/snow/.test(short) ? 'snow' : 'rain'} today` : `the weather today, ${short || 'mild'} and ${deg}` };
   }
   if (concerns[0] && L.age >= 13) items.push({ kind: 'concern', topic: concerns[0].area, text: CONCERN_WORDS[concerns[0].topic] || concerns[0].topic, w: 0.6 + 0.4 * concerns[0].weight });
   const interest = interests.find(i => !i.tradition);
@@ -2182,8 +2365,9 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
   const memory = events.length ? r.weightedItem(events, m => m.weight) : memories[0];
   if (memory && L.age >= 10) items.push({ kind: 'memory', topic: memory.kind === 'fire' ? 'fire' : 'history', text: memory.title || memory.text, w: 0.45 + 0.4 * memory.weight });
   const kidNames = [...new Set(fam.kids.map(k => k.name).filter(Boolean))];
-  if (fam.kids.length === 1) items.push({ kind: 'family', topic: 'family', text: `their ${fam.kids[0].sex === 'F' ? 'daughter' : 'son'}${kidNames[0] ? ', ' + kidNames[0] : ''}`, w: 0.6 });
-  else if (fam.kids.length) items.push({ kind: 'family', topic: 'family', text: kidNames.length ? `their kids, ${listJoin(kidNames.slice(0, 3))}` : 'their kids', w: 0.6 });
+  const step = fam.kids.length > 0 && fam.kids.every(k => k.step) ? 'step' : '';
+  if (fam.kids.length === 1) items.push({ kind: 'family', topic: 'family', text: `their ${step}${fam.kids[0].sex === 'F' ? 'daughter' : 'son'}${kidNames[0] ? ', ' + kidNames[0] : ''}`, w: 0.6 });
+  else if (fam.kids.length) items.push({ kind: 'family', topic: 'family', text: kidNames.length ? `their ${step}kids, ${listJoin(kidNames.slice(0, 3))}` : `their ${step}kids`, w: 0.6 });
   else if (fam.grandkids.length) items.push({ kind: 'family', topic: 'family', text: 'their grandkids', w: 0.6 });
   else if (fam.partner) items.push({ kind: 'family', topic: 'family', text: `their ${fam.partner.role === 'partner' ? 'partner' : fam.partner.sex === 'F' ? 'wife' : 'husband'}${fam.partner.name ? ', ' + fam.partner.name : ''}`, w: 0.35 });
   if (concerns[1] && L.age >= 18) items.push({ kind: 'concern', topic: concerns[1].area, text: CONCERN_WORDS[concerns[1].topic] || concerns[1].topic, w: 0.35 + 0.3 * concerns[1].weight });
@@ -2234,6 +2418,8 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
  *   commuteMin, stopMin, days}), ride (for a child: {driver, pickup, legs:[{kind, mode, driver, days}]}), household (the
  *   same in every member's persona: members' layer 0 days, the school runs with their drivers, churchgoers and the
  *   shared park, grocery store, church, beach and relatives; schedule.familyOutings reads it) and places
+ * @property {{stepchildren:number[]}} kin   the household members who are this NPC's stepchildren (their partner's children,
+ *   by the household's records), for prose that says "stepdaughter"
  * @property {number} t                    the time the weather-dependent parts were computed for (epoch ms)
  */
 
@@ -2297,6 +2483,8 @@ export function persona(world, npc, opts = {}) {
     practice,
     concerns, memories, knowledge, speech, bio,
     hooks: hookDetails.map(h => h.text), hookDetails, lastingHooks,
-    residence, roof, routine, t,
+    residence, roof, routine,
+    kin: { stepchildren: fam.kids.filter(k => k.step).map(k => k.m) },
+    t,
   };
 }

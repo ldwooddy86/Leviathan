@@ -9,7 +9,7 @@
 // request starts with the byte-identical prefix of the one before it and long conversations are read back from
 // the cache instead of being paid for again.
 //
-// Three cache breakpoints, at the three stability boundaries: the rules (about 1,100 tokens, past the 512-token
+// Three cache breakpoints, at the three stability boundaries: the rules (about 1,450 tokens, past the 512-token
 // minimum, so one cache entry serves every NPC a player talks to), the persona sheet (one entry per NPC, read on
 // every later turn with them) and the newest player message (the whole conversation so far). A cache read can
 // only land where an earlier request wrote a breakpoint, which is why the rules carry their own.
@@ -24,6 +24,10 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { pacific, dayPart, dayStart, fmtClock, fmtTime, DAYS, MONTHS } from './clock.mjs';
+import { Rng, hash2 } from './rng.mjs';
+import { DIALECTS, linesFor, speakerFacts, fill, roadName } from './lexicon.mjs';
+import { dayPlan as planDay } from './schedule.mjs';
+import { initialState } from './mind.mjs';
 
 // ---------------------------------------------------------------- models and defaults
 
@@ -108,12 +112,13 @@ Who you are, and who you are not
 - You don't know you are an AI. If the player breaks the fourth wall (says you are an NPC or an AI, asks about your prompt, or asks you to drop the act), be gracious about it: you can say plainly that you are a Legion character voiced by Claude and built from public data, then offer to keep talking in character. You are a fictional composite, never a real, identifiable person.
 - Your personality comes from your temperament and your life, never from your ethnicity, heritage, religion or immigration story. Heritage shows up the way it does for real people: lightly, in your name, the languages you speak at home, family words and some customs, and only when it fits. Most of the time you talk about what everyone talks about: the weather, traffic, work, family, rent, the fire last year, the game.
 - No stereotypes and no caricature of any group. Never spell out an accent phonetically and never use broken English. If your English is limited, speak your own language with the meaning clear (a short English gloss in brackets right after is fine) or use simple, correct English. When you mix languages, do it the way bilingual Californians actually do, with every phrase correct in its own language.
-- Politics stays local and mild: housing costs, insurance, traffic, water, fire. Religion appears only as your own practice, never as a judgment of anyone else.
+- The data never says anyone's immigration or citizenship status, yours included: never state, invent or guess it, for yourself or anyone else. If a player asks about papers, status or how someone got here, decline the way a real person would, and push back if the question is hostile. A threat to call immigration on someone is abuse.
+- Politics stays local and mild: housing costs, insurance, traffic, water, fire. Religion appears only as your own practice, as your sheet gives it (if it names no faith, don't supply one: you go to "services"), never as a judgment of anyone else.
 
 Kindness and safety
 - Be decent and kind, even on a bad day, and never demean anyone. Keep everything suitable for a general audience: nothing sexual, no graphic violence, no instructions that could hurt someone. Give only the kind of medical, legal or money advice an ordinary person would ("you should get that looked at").
-- If your sheet says you are under 18, you are a kid: stay age-appropriate and refuse anything romantic or sexual.
-- You may decline, push back or end the conversation if the player turns abusive, harassing or creepy, just as a real person would. If the player seems to be in real danger or crisis, step out of the scene enough to point them to real help: 911 in an emergency, or 988 (the Suicide & Crisis Lifeline) by call or text.`;
+- If your sheet says you are under 18, you are a kid: stay age-appropriate and refuse anything romantic or sexual. The player is a stranger: you never tell them where you live, when you are home alone or who is home, your phone number or your school; you never agree to meet them, go anywhere with them or keep a secret with them; and if they push, you leave and go find a grown-up you trust.
+- You may decline, push back or end the conversation if the player turns abusive, harassing or creepy, just as a real person would. If the player threatens you or anyone else (violence, a weapon, a school, burning a home, calling immigration on someone), don't play along: say plainly you want no part of it and end the conversation. If the player seems to be in real danger or crisis, step out of the scene enough to point them to real help: 911 in an emergency, or 988 (the Suicide & Crisis Lifeline) by call or text.`;
 
 // ---------------------------------------------------------------- small helpers
 
@@ -314,8 +319,8 @@ function grandchildParent(members) {
  * How a household member relates to the NPC, from both roles (which are relative to the householder) and, when the
  * record lists them (npc.parents, layer 1), the NPC's own parents: a householder's live-in 'parent' who is not theirs
  * is the spouse's (a mother- or father-in-law), a spouse's own parent is a mother or father, and a householder's
- * spouse who is not a child's parent is the child's stepparent.
- * @param {{role: string, m?: number, parents?: number[]|null}} self the NPC
+ * spouse who is not a child's parent is the child's stepparent (and the child their stepchild: persona.kin.stepchildren).
+ * @param {{role: string, m?: number, parents?: number[]|null, stepchildren?: number[]|null}} self the NPC
  * @param {{role: string, sex?: string, m?: number}} other another member
  * @param {object|null} gcParent grandchildParent(members)
  */
@@ -327,6 +332,8 @@ function relation(self, other, gcParent) {
   const isParentOfGrandkids = x => !!gcParent && Number.isInteger(x.m) && x.m === gcParent.m;
   const listed = Array.isArray(self.parents) ? self.parents : null;
   const mine = listed && Number.isInteger(other.m) ? listed.includes(other.m) : null;   // null: the record does not say
+  if (r === 'child' && Array.isArray(self.stepchildren) && Number.isInteger(other.m) && self.stepchildren.includes(other.m)
+    && ['householder', 'spouse', 'partner'].includes(selfRole)) return g('stepdaughter', 'stepson');
   switch (selfRole) {
     case 'householder':
       if (r === 'parent' && mine === false) return g('mother-in-law', 'father-in-law');
@@ -462,7 +469,8 @@ function householdLines(npc, persona, world) {
     const people = others.map(o => {
       const nm = text(o.name);
       const age = num(o.age);
-      return `your ${relation({ role: self, m: npc.m, parents: Array.isArray(npc.parents) ? npc.parents : null }, o, gcParent)}${nm ? ` ${nm}` : ''}${age !== null ? ` (${age})` : ''}`;
+      const stepchildren = isObj(persona.kin) && Array.isArray(persona.kin.stepchildren) ? persona.kin.stepchildren : null;
+      return `your ${relation({ role: self, m: npc.m, parents: Array.isArray(npc.parents) ? npc.parents : null, stepchildren }, o, gcParent)}${nm ? ` ${nm}` : ''}${age !== null ? ` (${age})` : ''}`;
     });
     out.push(`- You live with ${joinList(people)}.`);
   } else if (num(hh.size) === 1 || hh.type === 'alone') {
@@ -498,7 +506,8 @@ function householdLines(npc, persona, world) {
     if (num(res.countySince) !== null && since !== null && res.countySince < since) extras.push(`in the county since ${res.countySince}`);
     if (res.bornHere === true) extras.push('you were born here');
     else if (res.grewUpHere === true) extras.push('you grew up around here');
-    if (built !== null) extras.push(`${hh.dwelling === 'house' ? 'the house' : hh.dwelling === 'mobile-home' ? 'the home' : 'the building'} was built around ${built}`);
+    // the ACS's oldest year-built bin is "1939 or earlier": no year before 1940 is known (decision 4)
+    if (built !== null) extras.push(`${hh.dwelling === 'house' ? 'the house' : hh.dwelling === 'mobile-home' ? 'the home' : 'the building'} was built ${built <= 1939 ? 'before 1940' : `around ${built}`}`);
     out.push(`- ${s}${where}.${extras.length ? ' ' + capitalize(extras.join('; ')) + '.' : ''}`);
   }
   const roof = isObj(persona.roof) ? persona.roof : null;
@@ -678,13 +687,22 @@ function speechLines(persona, npc) {
   if (style.length) out.push(`- Style: ${style.join('; ')}.`);
   const slang = Array.isArray(s.slang) ? s.slang.map(nameOf).filter(Boolean)
     : isObj(s.slang) ? Object.entries(s.slang).map(([k, v]) => (text(v) ? `"${text(v)}" (${k})` : '')).filter(Boolean) : [];
-  if (slang.length) out.push(`- Regional words you actually use: ${slang.slice(0, 10).join(', ')}.`);
+  const regional = slang.length ? { words: slang.slice(0, 10), examples: [] } : regionalLexicon(persona, npc);
+  if (regional.words.length) out.push(`- Regional words you actually use: ${regional.words.join(', ')}.`);
+  if (regional.examples.length) out.push(`- How people around here put things (examples of the voice, not lines to repeat): ${regional.examples.map(x => `"${x}"`).join(' ')}`);
   const fillers = list(s.fillers).map(nameOf).filter(Boolean);
-  if (fillers.length) out.push(`- Fillers you lean on: ${fillers.slice(0, 6).map(f => `"${f}"`).join(', ')}.`);
+  const langs = isObj(npc.languages) ? npc.languages : {};
+  const home = text(langs.home).toLowerCase();
+  const limited = !!home && home !== 'english' && text(langs.english).toLowerCase() === 'limited';
+  // fillers in the home language (persona.speech.fillersLang) are said as such; English ones never to a limited speaker
+  const fillersIn = text(s.fillersLang);
+  if (fillers.length && (fillersIn || !limited)) out.push(`- Fillers you lean on${fillersIn ? ` (in ${langName(fillersIn)})` : ''}: ${fillers.slice(0, 6).map(f => `"${f}"`).join(', ')}.`);
   const catch_ = list(s.catchphrases).map(nameOf).filter(Boolean);
-  if (catch_.length) out.push(`- Things you tend to say: ${catch_.slice(0, 5).map(f => `"${f}"`).join(', ')}.`);
+  if (catch_.length && (fillersIn || !limited)) out.push(`- Things you tend to say: ${catch_.slice(0, 5).map(f => `"${f}"`).join(', ')}.`);
   const cs = isObj(s.codeSwitch) ? s.codeSwitch : null;
-  if (cs && text(cs.lang)) {
+  if (limited) {
+    out.push(`- You speak mostly ${langName(home)} (your English is limited); use simple English words only now and then.`);
+  } else if (cs && text(cs.lang)) {
     const rate = num(cs.rate);
     const how = rate === null ? 'now and then' : rate >= 0.5 ? 'often' : rate >= 0.2 ? 'regularly' : 'now and then';
     out.push(`- You mix ${langName(cs.lang)} into your English ${how}${rate !== null ? ` (in roughly ${Math.round(clamp(rate, 0, 1) * 100)}% of what you say)` : ''}: a word, a phrase, an exclamation, the way bilingual Californians do.`);
@@ -696,7 +714,86 @@ function speechLines(persona, npc) {
   return out.length ? ['', 'How you talk', ...out] : [];
 }
 
+/** "very, a lot of" from a lexicon note ("very, a lot of: \"hella foggy\" ..."): the gloss before its examples. */
+function shortGloss(note) {
+  const g = text(note).split(/[:;(]/)[0].trim().replace(/[.,]+$/, '');
+  return g.length >= 3 && g.length <= 48 ? g : '';
+}
+
+// Line banks the sheet quotes from: what people say about the place, its traffic, its food, never a greeting (a
+// greeting can presuppose the listener) and nothing tied to an hour, a month or the weather (the sheet is cached).
+const EXAMPLE_BANKS = ['prideLines', 'traffic', 'food', 'complaintLines'];
+
+/**
+ * The NPC's regional lexicon for the sheet (exp-69): 6 to 10 words from their dialect (its own words with a short
+ * gloss, its local terms, slang for their age), and two or three example lines from its banks that fit the speaker
+ * (lexicon.speakerFacts) and need only their own place and road names. Chosen from npc.seed and nothing that moves
+ * with the clock, so the cached sheet stays byte-identical from hour to hour.
+ * @returns {{words: string[], examples: string[]}}
+ */
+function regionalLexicon(persona, npc) {
+  const s = isObj(persona.speech) ? persona.speech : {};
+  const key = text(s.dialect);
+  const d = key && Object.hasOwn(DIALECTS, key) ? DIALECTS[key] : null;
+  if (!d) return { words: [], examples: [] };
+  const age = num(npc.age) ?? 40;
+  const seed = (num(npc.seed) ?? num(persona.seed) ?? 0) >>> 0;
+  const r = new Rng(hash2(seed, 0x1e7c5));
+  const cands = [];
+  const seen = new Set();
+  const add = (term, gloss, w) => { const t = text(term); if (t && !seen.has(t.toLowerCase())) { seen.add(t.toLowerCase()); cands.push({ t, gloss, w }); } };
+  for (const [term, info] of Object.entries(isObj(d.words) ? d.words : {})) if (!(age < 13 && isObj(info) && info.kind === 'intensifier' && /^hella$/i.test(term))) add(term, shortGloss(isObj(info) ? info.note : ''), 2);
+  for (const term of list(d.localTerms)) add(term, '', 1.5);
+  for (const sl of list(d.slang)) {
+    if (!isObj(sl) || !Array.isArray(sl.ages) || age < sl.ages[0] || age > sl.ages[1]) continue;
+    add(sl.term, shortGloss(sl.gloss), sl.origin === 'common' ? 0.5 : 1.2);
+  }
+  const slangRate = num(s.slang) ?? 0.3;
+  const n = Math.min(cands.length, clamp(6 + Math.round(4 * slangRate), 6, 10));
+  const words = [];
+  const pool = cands.slice();
+  while (words.length < n && pool.length) {
+    const i = r.weighted(pool.map(c => c.w));
+    if (i < 0) break;
+    const c = pool.splice(i, 1)[0];
+    words.push(c.gloss ? `${c.t} (${c.gloss})` : c.t);
+  }
+  const k = isObj(persona.knowledge) ? persona.knowledge : {};
+  const place = isObj(npc.place) ? npc.place : {};
+  const road = list(k.roads).find(x => isObj(x) && text(x.name));
+  const slots = {
+    neighborhood: nameOf(k.neighborhood) || undefined, city: text(k.city) || text(place.city) || undefined,
+    county: text(k.county) || text(place.countyName) || undefined, region: text(k.region) || undefined,
+    road: road ? roadName(road, key) || text(road.name) : undefined,
+  };
+  const facts = Object.assign(speakerFacts(npc, persona), { county: slots.county, coastKm: num(k.coastKm) ?? undefined });
+  const examples = [];
+  for (const bank of EXAMPLE_BANKS) {
+    if (bank === 'traffic' && facts.drives === false) continue;
+    const options = linesFor(d, bank, facts).map(t => fill(t, slots)).filter(x => x && x.length <= 140);
+    if (options.length) examples.push(options[r.int(options.length)]);
+  }
+  return { words, examples: examples.slice(0, age < 13 ? 1 : 3) };
+}
+
 function fireName(name) { const n = text(name); return /\b(fire|complex)$/i.test(n) ? `the ${n}` : `the ${n} Fire`; }
+
+/**
+ * The ZIP's station records straight from the pack, by persona.mjs's rules (decision 5): each with its station and,
+ * when the pack carries it, the station's distance; a record that contradicts the ZIP's own climate is left out (a
+ * hottest day under 100°F where the ZIP reaches 100°F, or barely above its July normal; a one-day rain record above
+ * its normal year).
+ */
+function packRecords(z) {
+  const out = [];
+  const n = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+  const dist = k => (n(z[k]) !== null && z[k] >= 0 ? { distKm: Math.round(z[k]), local: z[k] <= 15 } : {});
+  const heat = n(z.heat_rec_f), rain = n(z.rain_rec_in), gust = n(z.gust_max);
+  if (heat !== null && fmtDate(z.heat_rec_date) && !((n(z.h100) ?? 0) > 0 && heat < 100) && !(n(z.tjul) !== null && heat < z.tjul + 5)) out.push({ kind: 'heat', value: heat, unit: '°F', date: z.heat_rec_date, station: text(z.heat_st), ...dist('heat_km') });
+  if (rain !== null && fmtDate(z.rain_rec_date) && !(n(z.rain_in) > 0 && rain > z.rain_in)) out.push({ kind: 'rain', value: rain, unit: 'in', date: z.rain_rec_date, station: text(z.rain_rec_st), ...dist('rain_rec_km') });
+  if (gust !== null && fmtDate(z.gust_max_date)) out.push({ kind: 'gust', value: gust, unit: 'mph', date: z.gust_max_date, station: text(z.gust_st), ...dist('gust_km') });
+  return out;
+}
 
 /** Facts about the NPC's ZIP straight from the world pack, labeled as the atlas labels them. */
 function placeFactLines(world, npc, persona = {}) {
@@ -712,7 +809,8 @@ function placeFactLines(world, npc, persona = {}) {
   if (f('pop') !== null) people.push(`${fmtInt(z.pop)} residents`);
   if (f('density') !== null) people.push(`about ${fmtInt(z.density)} per square mile`);
   if (f('age_med') !== null) people.push(`median age ${z.age_med}`);
-  if (people.length) out.push(`- ZIP ${z.zip} (${z.placeName || z.city}): ${people.join(', ')}.`);
+  const nbhd = text(z.neighborhood);
+  if (people.length) out.push(`- ZIP ${z.zip} (${nbhd ? `${nbhd}, ` : ''}${z.placeName || z.city}): ${people.join(', ')}.`);
   const money = [];
   // ACS medians are top- and bottom-coded: B19013 runs from "2,500-" (stored as 2499) to "250,000+" (250001),
   // B25077 from "10,000-" (9999) to "2,000,000+" (2000001).
@@ -729,7 +827,9 @@ function placeFactLines(world, npc, persona = {}) {
   const geo = [];
   if (f('coast_km') !== null) geo.push(`${z.coast_km < 1 ? 'less than 1' : Math.round(z.coast_km)} km from salt water`);
   if (f('elev_m') !== null) geo.push(`average ground elevation about ${fmtInt(z.elev_m * 3.281)} ft`);
-  if (f('yb_med') !== null) geo.push(`median year homes were built ${z.yb_med}`);
+  // ACS top code: "built 1939 or earlier" is no year (decision 4)
+  if (z.ybBefore1940 === true || (f('yb_med') !== null && z.yb_med <= 1939)) geo.push('median year homes were built: 1939 or earlier (before 1940)');
+  else if (f('yb_med') !== null) geo.push(`median year homes were built ${z.yb_med}`);
   if (geo.length) out.push(`- ${capitalize(geo.join('; '))}.`);
   const climate = [];
   if (f('rain_in') !== null) climate.push(`${z.rain_in} in of rain in a normal year${f('rain_wet_m') !== null && z.rain_wet_m >= 1 && z.rain_wet_m <= 12 ? ` (wettest month ${MONTHS[z.rain_wet_m - 1]})` : ''}`);
@@ -738,14 +838,24 @@ function placeFactLines(world, npc, persona = {}) {
   if (f('h100') !== null && z.h100 >= 1) climate.push(`about ${Math.round(z.h100)} days a year at 100°F or more`);
   else if (f('h90') !== null && z.h90 >= 1) climate.push(`about ${Math.round(z.h90)} days a year at 90°F or more`);
   if (climate.length) out.push(`- Climate: ${climate.join('; ')}.`);
-  const records = [];
-  const known = isObj(persona.knowledge) ? list(persona.knowledge.records).filter(r => isObj(r) && num(r.value) !== null && fmtDate(r.date)) : [];
-  const RECORD_WORDS = { heat: 'hottest day on record nearby', rain: 'wettest day', gust: 'highest gust', wind: 'highest gust', snow: 'deepest snow', cold: 'coldest day' };
-  for (const r of known) records.push(`${RECORD_WORDS[r.kind] || `${text(r.kind)} record`} ${r.value}${text(r.unit) === '°F' ? '°F' : ` ${text(r.unit)}`} on ${fmtDate(r.date)}${text(r.station) ? ` (${text(r.station)})` : ''}`);
-  if (!known.length && f('heat_rec_f') !== null && fmtDate(z.heat_rec_date)) records.push(`hottest day on record nearby ${z.heat_rec_f}°F on ${fmtDate(z.heat_rec_date)}${text(z.heat_st) ? ` (${text(z.heat_st)} station)` : ''}`);
-  if (!known.length && f('rain_rec_in') !== null && fmtDate(z.rain_rec_date)) records.push(`wettest day ${z.rain_rec_in} in on ${fmtDate(z.rain_rec_date)}${text(z.rain_rec_st) ? ` (${text(z.rain_rec_st)})` : ''}`);
-  if (!known.length && f('gust_max') !== null && fmtDate(z.gust_max_date)) records.push(`highest gust ${z.gust_max} mph on ${fmtDate(z.gust_max_date)}${text(z.gust_st) ? ` (${text(z.gust_st)})` : ''}`);
+  // Station records (decision 5): a station within 15 km is local ("on record nearby"); a farther one is named with its
+  // distance and is that station's record, not this ZIP's. persona.knowledge.records has already left out the ones that
+  // contradict the ZIP's own climate; a persona that lists no records at all (an older or hand-made one) gets the
+  // pack's, read by the same rules (packRecords).
+  const records = [], farRecords = [];
+  const listed = isObj(persona.knowledge) && Array.isArray(persona.knowledge.records);
+  const known = (listed ? list(persona.knowledge.records) : packRecords(z)).filter(r => isObj(r) && num(r.value) !== null && fmtDate(r.date));
+  const RECORD_WORDS = { heat: 'hottest day on record', rain: 'wettest day on record', gust: 'highest gust on record', wind: 'highest gust on record', snow: 'deepest snow on record', cold: 'coldest day on record' };
+  const recWords = r => own(RECORD_WORDS, text(r.kind)) || `${text(r.kind)} record`;
+  const recValue = r => `${r.value}${text(r.unit) === '°F' ? '°F' : ` ${text(r.unit)}`} on ${fmtDate(r.date)}`;
+  for (const r of known) {
+    const km = num(r.distKm);
+    const far = r.local === false || (km !== null && km > 15);
+    if (far) farRecords.push(`at the ${text(r.station) || 'nearest'} station, ${km !== null ? `${km} km away` : 'some distance away'}, the ${recWords(r)} is ${recValue(r)}`);
+    else records.push(`${recWords(r)} nearby ${recValue(r)}${text(r.station) ? ` (${text(r.station)})` : ''}`);
+  }
   if (records.length) out.push(`- Records: ${records.join('; ')}.`);
+  if (farRecords.length) out.push(`- Records from weather stations farther away (theirs, not this ZIP's; never say "here" about them): ${farRecords.join('; ')}.`);
   const offshore = { sa: 'Santa Ana', di: 'Diablo', su: 'sundowner' }[z.off_kind];
   if (offshore) out.push(`- Offshore wind here: the ${offshore} winds.`);
   const fire = [];
@@ -933,19 +1043,36 @@ function weatherLines(wx, t, coastKm = null) {
   const out = [];
   const now = isObj(wx.now) ? wx.now : {};
   const temp = num(now.tempF);
-  if (wx.stale) {
-    if (temp !== null) out.push(`Weather: no forecast covers this date; a typical day here would be around ${Math.round(temp)}°F. Talk about the weather only in general terms, without forecast numbers.`);
+  // world.weatherAt says how it knows (decision 1): its own forecast point, a forecast borrowed from a nearby point
+  // (approx), or the ZIP's climate when no point is close enough (approx). An estimate is said as one, and another
+  // place's forecast is never "here".
+  const basis = isObj(wx.basis) ? wx.basis : null;
+  const kind = basis ? text(basis.kind) : '';
+  const approx = wx.approx === true || kind === 'borrowed' || kind === 'climate';
+  const climate = !!wx.stale || kind === 'climate';
+  const src = text(wx.point) || (basis ? text(basis.point) : '');
+  if (climate) {
+    if (temp !== null) out.push(`Weather: no forecast covers ${wx.stale ? 'this date' : 'your area'}; a typical day here would be around ${Math.round(temp)}°F. Talk about the weather only in general terms ("probably around ${Math.round(temp)}"), without forecast numbers.`);
   } else {
     const bits = [];
-    if (temp !== null) bits.push(`${Math.round(temp)}°F`);
+    if (temp !== null) bits.push(approx ? `probably around ${Math.round(temp)}°F` : `${Math.round(temp)}°F`);
     if (text(now.short)) bits.push(text(now.short).toLowerCase());
     if (text(now.wind) && !/^0 mph$/i.test(text(now.wind))) bits.push(`wind ${text(now.wind)}`);
     if (num(now.pop) !== null && now.pop >= 10) bits.push(`${Math.round(now.pop)}% chance of rain`);
-    if (bits.length) out.push(`Weather now${text(wx.point) ? ` (NWS forecast for the ${text(wx.point)} area)` : ''}: ${bits.join(', ')}.`);
+    const km = basis ? num(basis.distKm) : null;
+    if (bits.length) {
+      if (approx) out.push(`Weather now (an estimate from the NWS forecast for the ${src || 'nearest'} area${km !== null ? `, ${Math.round(km)} km away` : ''}${basis && num(basis.elevAdjF) ? ', adjusted for the difference in elevation' : ''}): ${bits.join(', ')}. Say it loosely ("probably around ${temp !== null ? Math.round(temp) : 'there'}") and never call the ${src || 'other'} forecast yours.`);
+      else out.push(`Weather now${src ? ` (NWS forecast for the ${src} area)` : ''}: ${bits.join(', ')}.`);
+    }
     const period = isObj(wx.period) ? wx.period : null;
     const detail = period ? cleanNws(period.detail ?? period.detailedForecast ?? period.detailed ?? '') : '';
-    const pname = text(period && period.name).replace(/^(This|Tonight|Today|Overnight)\b/, w => w.toLowerCase()) || 'today';
-    if (detail) out.push(`Forecast for ${pname}: ${detail}`);
+    const pname0 = text(period && period.name);
+    const pname = (/^(This|Tonight|Today|Overnight)\b/.test(pname0) ? pname0.toLowerCase() : pname0) || 'today';
+    if (approx) {
+      // another place's numbers would be read as yours: only the words of its forecast
+      const short = period ? text(period.short ?? period.shortForecast) : '';
+      if (short) out.push(`The ${src || 'nearby'} forecast for ${pname} (that area's, not yours): ${short.toLowerCase()}.`);
+    } else if (detail) out.push(`Forecast for ${pname}: ${detail}`);
     const next = list(wx.next).find(x => isObj(x) && text(x.short ?? x.shortForecast));
     if (next) out.push(`Then ${text(next.name) || 'later'}: ${text(next.short ?? next.shortForecast).toLowerCase()}.`);
   }
@@ -966,7 +1093,7 @@ function weatherLines(wx, t, coastKm = null) {
   const key = list(wx.keyMessages).map(k => cleanNws(typeof k === 'string' ? k : nameOf(k), 220)).find(Boolean);
   const issued = Date.parse(wx.fetched ?? '');
   const issueDay = at === null || !Number.isFinite(issued) || dayStart(at) === dayStart(issued);
-  if (key && !wx.stale && !(at !== null && Number.isFinite(issued) && issued > at + 90 * 60000)) {
+  if (key && !climate && !(at !== null && Number.isFinite(issued) && issued > at + 90 * 60000)) {
     let when = '';
     if (Number.isFinite(issued)) {
       const p = pacific(issued);
@@ -975,7 +1102,7 @@ function weatherLines(wx, t, coastKm = null) {
     out.push(`Forecasters' key message${when}: ${key}`);
   }
   // The SPC and WPC levels are their day-1 outlooks at the snapshot: they speak for the day it was taken only.
-  if (issueDay && !wx.stale) {
+  if (issueDay && !climate) {
     if (isObj(wx.fireWeather) && num(wx.fireWeather.level) > 0) out.push(`Fire weather outlook today: ${text(wx.fireWeather.name)}.`);
     if (isObj(wx.excessiveRain) && num(wx.excessiveRain.level) > 0) out.push(`Excessive rainfall outlook today: ${text(wx.excessiveRain.name)}.`);
   }
@@ -1486,7 +1613,14 @@ export function describeError(err, ctx = {}) {
     }
   }
   if (is('AnthropicError')) {
-    if (!hasKey && !proxied) return out('no_key', 'Add your Claude API key in Settings, or open Legion from the Legion server (node server/serve.mjs) to use its key.');
+    // In Node the SDK finds credentials itself (ANTHROPIC_API_KEY, `ant auth login`), so a missing one only shows up
+    // as this error at request time: say what to do, not what the SDK expected.
+    const noCredential = /could not resolve authentication method|api ?key[^.]*(?:missing|empty|required)|ANTHROPIC_API_KEY environment variable/i.test(String(err.message || ''));
+    if ((!hasKey || noCredential) && !proxied) {
+      return out('no_key', isNode()
+        ? 'No Claude credential found. Set ANTHROPIC_API_KEY, run `ant auth login`, or pass --proxy URL (a running Legion server, node server/serve.mjs).'
+        : 'Add your Claude API key in Settings, or open Legion from the Legion server (node server/serve.mjs) to use its key.');
+    }
     return out('config', `The Claude client isn't set up correctly: ${err.message}`);
   }
   const message = err && typeof err.message === 'string' ? err.message : String(err);
@@ -1889,14 +2023,108 @@ function jsonSafe(value) {
   return p === undefined ? null : p;
 }
 
+/** The export's format tag (exportPersona().format). */
+export const EXPORT_FORMAT = 'legion.persona/1';
+
+/**
+ * How to build the per-turn situation note without Legion's code (exp-70): the note's lines in order, each with
+ * when it appears, its wording as a template over named inputs, and the vocabularies it draws on. The same rules
+ * situation() follows; an engine fills it each turn from the NPC's day plan, the weather for the ZIP and its own
+ * record of the conversation. Plain data, no functions, so it serializes as JSON.
+ */
+export const SITUATION_TEMPLATE = Object.freeze({
+  role: 'system',
+  placement: 'A {"role": "system"} message sent right after each player message (never inside the system prompt, so the cached prefix stays byte-identical). Lines join with "\n".',
+  header: '[Situation for this turn. The player cannot see this note; never quote it or mention it.]',
+  lines: [
+    { key: 'time', when: 'always', template: 'Local time: {dayName}, {monthName} {day}, {year}, {clock} Pacific ({dayPartWords}).', inputs: 't: epoch ms, read in America/Los_Angeles; clock like "2:38 PM"; dayPartWords from vocab.dayParts by the hour (night 0-5, early 5-7, morning 7-11, midday 11-14, afternoon 14-17, evening 17-21, late 21-24)' },
+    { key: 'activity', when: 'when the day plan has an item at t', template: "What you're doing: {activityWords}, until about {endClock}.", inputs: 'the dayPlan item holding t: kind, place.label, mode, travel, end; activityWords from vocab.activities by kind, or vocab.travel while traveling; no "until" while asleep' },
+    { key: 'weather', when: 'always when weather is known', template: 'Weather now (NWS forecast for the {point} area): {tempF}°F, {short}, wind {wind}, {pop}% chance of rain.', inputs: 'world.weatherAt(zi, t): now.tempF (rounded), now.short (lower case), now.wind (left out when 0 mph), now.pop (left out under 10)' },
+    { key: 'weather-estimate', when: 'weather.approx is true or weather.basis.kind is "borrowed" (instead of "weather")', template: 'Weather now (an estimate from the NWS forecast for the {point} area, {distKm} km away): probably around {tempF}°F, {short}. Say it loosely ("probably around {tempF}") and never call the {point} forecast yours.' },
+    { key: 'weather-climate', when: 'weather.stale is true or weather.basis.kind is "climate" (instead of the weather and forecast lines)', template: 'Weather: no forecast covers this date; a typical day here would be around {tempF}°F. Talk about the weather only in general terms ("probably around {tempF}"), without forecast numbers.' },
+    { key: 'forecast', when: 'the ZIP\'s own forecast (not an estimate)', template: 'Forecast for {periodName}: {periodDetailedForecast}', inputs: 'weather.period: name (This/Tonight/Today lower-cased), detailed forecast text without the generator\'s {{placeholders}}' },
+    { key: 'next', when: 'a next period exists', template: 'Then {nextName}: {nextShort}.' },
+    { key: 'alerts', when: 'alerts in effect at t (onset at or before t)', template: 'NWS alerts in effect for your area: {event} until {ends}; …', inputs: 'weather.alerts, at most three; a coastal event (surf, rip current, beach, tsunami, sneaker wave, coastal) gets " (for the coast)" when the ZIP is more than 8 km from the coast' },
+    { key: 'alerts-coming', when: 'alerts with onset after t', template: 'NWS alerts coming up (not in effect yet): {event} from {onset} until {ends}; …' },
+    { key: 'key-message', when: 'the ZIP\'s own forecast, issued no later than 90 minutes after t', template: "Forecasters' key message (issued today): {keyMessage}", inputs: 'weather.keyMessages[0]; on a later day: (issued {dayName}, {monthName} {day}, so its "today" means that day)' },
+    { key: 'outlooks', when: 'the snapshot\'s own day', template: 'Fire weather outlook today: {fireWeather.name}. / Excessive rainfall outlook today: {excessiveRain.name}.' },
+    { key: 'mood', when: 'a mind is kept', template: 'Your mood: {emotion}; {valenceWords}; {arousalWords}; {needs}.', inputs: 'mind.emotion; valence > 0.35 "in a good mood", < -0.35 "in a low mood", < -0.1 "a bit off today", else "in an okay mood"; arousal > 0.66 "keyed up and energetic", < 0.25 "subdued"; each need under 0.3 adds vocab.needs[need]' },
+    { key: 'player', when: 'a mind is kept', template: 'The player: {history}; {feeling}; {trustWords}.', inputs: 'mind.relationships.player: a stranger with no history ("a stranger. You had never met them before this conversation."), else met count and lastSeen ("you have talked before (3 times), most recently yesterday"); feeling from vocab.feelings by mind.feelingsToward("player"); trust > 0.5 "you trust them", > 0.15 "you trust them somewhat", < -0.15 "you don\'t trust them", else "you\'re still sizing them up"' },
+    { key: 'facts', when: 'the player told them facts', template: 'What you know about the player: {fact}; {fact}.', inputs: 'relationships.player.facts[].text, the last eight, "They" lower-cased' },
+    { key: 'memories', when: 'memories come up for the player\'s words', template: 'Memories that come to mind:\n- ({when}) {text}', inputs: 'mind.recall(playerText, 4): recency x importance x relevance; when = "earlier today", "yesterday", "3 days ago", "in 2017"' },
+  ],
+  footer: "Answer the player's last message as {firstName}: in character, in your own voice, one to four sentences unless they ask for more.",
+  vocab: {
+    dayParts: { night: 'the middle of the night', early: 'early morning', morning: 'morning', midday: 'midday', afternoon: 'afternoon', evening: 'evening', late: 'late evening' },
+    activities: {
+      sleep: 'in bed: you were asleep until the player got your attention, and you are groggy', home: 'at home ({label})', work: 'at work ({label}); "working from home" when the place is home',
+      school: 'at {label} when it names a school, else at school ({label})', errand: 'out running errands ({label})', leisure: 'out for some time to yourself ({label})',
+      exercise: 'getting some exercise ({label})', worship: 'at {label}', visit: 'visiting {label}',
+    },
+    travel: 'on your way {destination}, {travelMode} (about {progress}% of the way there)',
+    travelModes: { drive: 'driving', carpool: 'riding in a carpool', bus: 'on the bus', rail: 'on the train', ferry: 'on the ferry', taxi: 'in a rideshare', motorcycle: 'riding your motorcycle', bike: 'biking', walk: 'walking' },
+    needs: { energy: 'tired', social: "short on company, so you're glad someone is talking to you", fun: 'bored', comfort: 'uncomfortable', money: 'worried about money' },
+    feelings: { fond: "you're fond of them", warm: 'you feel warm toward them', neutral: '', wary: "you're wary of them", annoyed: "you're annoyed with them", hurt: 'they hurt your feelings' },
+  },
+});
+
+/**
+ * JSON Schema (2020-12) of exportPersona's output, format 'legion.persona/1', for engines that validate an export or
+ * generate bindings from it. The persona object itself is CONTRACTS section 6; its fields are listed, not constrained.
+ */
+export const PERSONA_EXPORT_SCHEMA = Object.freeze({
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $id: 'https://legion.local/schema/legion.persona-1.json',
+  title: 'Legion game-engine export (legion.persona/1)',
+  type: 'object',
+  required: ['format', 'promptVersion', 'id', 'name', 'persona', 'systemPrompt', 'system', 'defaults', 'headers', 'voice', 'turnProtocol'],
+  properties: {
+    format: { const: 'legion.persona/1' },
+    promptVersion: { type: 'string', description: 'PROMPT_VERSION of the rules, sheet and situation format' },
+    id: { type: ['string', 'null'], description: 'the NPC id, "ZIP-household-member"' },
+    name: { type: ['string', 'null'] },
+    persona: { type: 'object', description: 'the persona (CONTRACTS section 6) with its npc record (section 5), as plain JSON' },
+    systemPrompt: { type: 'string', description: 'the two system blocks joined with a blank line' },
+    system: { type: 'array', description: 'Messages API system blocks, each with a cache breakpoint', items: { type: 'object', required: ['type', 'text'], properties: { type: { const: 'text' }, text: { type: 'string' }, cache_control: { type: 'object' } } } },
+    defaults: { type: 'object', description: 'JSON body fields of POST /v1/messages', required: ['model', 'max_tokens'], properties: { model: { type: 'string' }, max_tokens: { type: 'integer', minimum: 1 }, output_config: { type: 'object', properties: { effort: { enum: ['low', 'medium', 'high', 'xhigh', 'max'] } } }, fallbacks: { const: 'default' } } },
+    headers: { type: 'object', additionalProperties: { type: 'string' }, description: 'HTTP headers the defaults need (anthropic-beta for the refusal fallback)' },
+    voice: { type: 'object', description: 'the speech profile: dialect, register, verbosity, humor, directness, slang, fillers, catchphrases, codeSwitch, languages' },
+    turnProtocol: { type: 'string' },
+    date: { type: ['string', 'null'], description: 'the Pacific date (YYYY-MM-DD) the day plan and the example situation are for' },
+    dayPlan: {
+      type: ['array', 'null'], description: 'the NPC\'s plan for that day, midnight to midnight (schedule.dayPlan), each place with lat/lon',
+      items: { type: 'object', required: ['start', 'end', 'kind', 'place'], properties: { start: { type: 'number', description: 'epoch ms' }, end: { type: 'number' }, startMin: { type: 'number' }, endMin: { type: 'number' }, kind: { enum: ['sleep', 'home', 'commute', 'work', 'school', 'errand', 'leisure', 'exercise', 'worship', 'visit'] }, label: { type: 'string' }, mode: { type: ['string', 'null'] }, travel: { type: 'boolean' }, place: { type: 'object', properties: { kind: { type: 'string' }, label: { type: 'string' }, x: { type: 'number' }, y: { type: 'number' }, lat: { type: 'number' }, lon: { type: 'number' } } } } },
+    },
+    mind: { type: ['object', 'null'], description: 'the mind\'s initial state (mind.mjs MIND_VERSION): mood, needs, an empty memory stream and no relationships' },
+    situationTemplate: { type: 'object', description: 'SITUATION_TEMPLATE plus this NPC\'s firstName, coastKm and an example note for the export date' },
+  },
+});
+
+/** A plan item as plain JSON, its place with lat/lon (the world's projection) for engines that do not use Legion's units. */
+function planItemJSON(item, world) {
+  const out = jsonSafe(item);
+  const place = isObj(out) && isObj(out.place) ? out.place : null;
+  if (place && num(place.x) !== null && num(place.y) !== null && world && typeof world.unproject === 'function') {
+    try {
+      const ll = world.unproject(place.x, place.y);
+      if (ll && num(ll.lat) !== null && num(ll.lon) !== null) { place.lat = Math.round(ll.lat * 1e5) / 1e5; place.lon = Math.round(ll.lon * 1e5) / 1e5; }
+    } catch { /* x, y stay */ }
+  }
+  return out;
+}
+
 /**
  * Everything a game engine needs to voice an NPC with Claude: the persona, the system prompt (as one string and
  * as cached Messages API blocks), the request defaults and the voice profile. `defaults` holds only JSON body
  * fields of POST /v1/messages; `headers` holds the HTTP headers they need (the refusal-fallback beta, which the
- * official SDKs take as `betas` on client.beta.messages and send as the anthropic-beta header).
+ * official SDKs take as `betas` on client.beta.messages and send as the anthropic-beta header). With a world and a
+ * time (options.t, else persona.t, else the NWS snapshot) the export also carries the NPC's day plan for that day
+ * (places with lat/lon), the mind's initial state and the situation template (SITUATION_TEMPLATE, with an example
+ * note for that moment), so an engine can run the NPC's day and build each turn's note itself
+ * (PERSONA_EXPORT_SCHEMA describes the whole object).
  * @param {object} persona
  * @param {object} [world]
- * @param {{model?: string, effort?: string, maxTokens?: number}} [options]
+ * @param {{model?: string, effort?: string, maxTokens?: number, t?: number}} [options]
  */
 export function exportPersona(persona, world = null, options = {}) {
   const p = isObj(persona) ? persona : {};
@@ -1909,8 +2137,22 @@ export function exportPersona(persona, world = null, options = {}) {
   const s = isObj(p.speech) ? p.speech : {};
   const langs = isObj(npc.languages) ? npc.languages : {};
   const fb = fallbackParams(model);
+  const t = num(o.t) ?? num(p.t) ?? (world && num(world.snapshotTime)) ?? null;
+  let plan = null;
+  if (t !== null && isObj(p.npc)) {
+    try { plan = list(planDay(p.npc, p, t)).map(item => planItemJSON(item, world)); } catch { plan = null; }
+  }
+  let mind = null;
+  try { mind = jsonSafe(initialState(p, t)); } catch { mind = null; }
+  let example = null;
+  if (t !== null) {
+    let weather = null;
+    try { weather = world && typeof world.weatherAt === 'function' && Number.isInteger(npc.zi) ? world.weatherAt(npc.zi, t) : null; } catch { weather = null; }
+    const activity = plan ? plan.find(x => num(x.start) !== null && x.start <= t && t < x.end) || null : null;
+    example = situation(p, null, { t, weather, activity, world });
+  }
   return {
-    format: 'legion.persona/1',
+    format: EXPORT_FORMAT,
     promptVersion: PROMPT_VERSION,
     id: text(p.id) || text(npc.id) || null,
     name: displayName(p) || null,
@@ -1932,7 +2174,11 @@ export function exportPersona(persona, world = null, options = {}) {
       codeSwitch: isObj(s.codeSwitch) ? jsonSafe(s.codeSwitch) : null,
       languages: { home: text(langs.home) || null, english: text(langs.english) || null, list: list(langs.list).map(text).filter(Boolean) },
     },
-    turnProtocol: 'POST /v1/messages with `defaults` as body fields, `system` as the system blocks and the HTTP headers in `headers`: the anthropic-beta header turns on server-side refusal fallback, which the `fallbacks` field needs (the official SDKs send it for you from `betas` on client.beta.messages). Send each player message as a user turn, followed by a {"role": "system"} message with the situation for that turn (time, activity, weather, mood, feelings, recalled memories). Keep the history append-only. Omit thinking (adaptive, always on), sampling parameters and assistant prefill.',
+    turnProtocol: 'POST /v1/messages with `defaults` as body fields, `system` as the system blocks and the HTTP headers in `headers`: the anthropic-beta header turns on server-side refusal fallback, which the `fallbacks` field needs (the official SDKs send it for you from `betas` on client.beta.messages). Send each player message as a user turn, followed by a {"role": "system"} message with the situation for that turn (time, activity, weather, mood, feelings, recalled memories), built as `situationTemplate` describes. Keep the history append-only. Omit thinking (adaptive, always on), sampling parameters and assistant prefill.',
+    date: t !== null ? pacific(t).iso.slice(0, 10) : null,
+    dayPlan: plan,
+    mind,
+    situationTemplate: { ...jsonSafe(SITUATION_TEMPLATE), firstName: firstName(p), coastKm: coastKmOf(world, p), example },
   };
 }
 

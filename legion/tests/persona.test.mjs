@@ -5,8 +5,8 @@ import assert from 'node:assert/strict';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Population, LEGION_SEED } from '../src/engine/population.mjs';
 import {
-  persona, personality, traitBasis, big5Prior, traitWords, codeSwitchOf, archetypeOf, valuesOf,
-  SCHWARTZ_VALUES, PROTECTED_FIELDS, REF_YEAR,
+  persona, personality, traitBasis, big5Prior, traitWords, codeSwitchOf, archetypeOf, valuesOf, windBlowsHere, builtBefore1940,
+  SCHWARTZ_VALUES, PROTECTED_FIELDS, REF_YEAR, LOCAL_STATION_KM,
 } from '../src/engine/persona.mjs';
 import { Rng } from '../src/engine/rng.mjs';
 
@@ -55,7 +55,8 @@ test('persona is deterministic and has the contract shape', () => {
       assert.ok(m.date === null || /^\d{4}-\d{2}-\d{2}$/.test(m.date), m.date);
     }
     const k = a.knowledge;
-    assert.equal(k.neighborhood, world.zip(npc.zi).placeName);
+    // the neighborhood people call it: the pack's name inside the big cities, else the Census place (decision 3)
+    { const z = world.zip(npc.zi); assert.equal(k.neighborhood, z.neighborhood || z.placeName || z.city); }
     assert.equal(k.county, world.zip(npc.zi).countyName);
     assert.ok(k.landmarks.length <= 5 && k.landmarks.every(l => l.name && Number.isFinite(l.distKm)));
     assert.ok(Array.isArray(k.roads) && Array.isArray(k.nearbyPlaces));
@@ -302,7 +303,12 @@ test('missing optional fields never throw', () => {
 });
 
 test('performance: persona under 3 ms on average over 500 NPCs', () => {
-  const sample = pop.sampleState(520, 11).filter(Boolean);
+  // four people each from about 130 ZIPs across the state (every twelfth with households): a statewide mix whose
+  // population models are fitted in a fraction of the time 500 separate ZIPs take (eng-55, the 60 s rule); the
+  // first persona of each ZIP still pays for that ZIP's cold lookups inside the timed loop
+  const zis = [];
+  for (let i = 0; i < world.N; i += 12) if (pop.householdCount(i) > 0) zis.push(i);
+  const sample = zis.flatMap(zi => pop.sample(zi, 4, 11)).filter(Boolean).slice(0, 520);
   for (const npc of sample.slice(0, 20)) P(npc); // first calls build the world's spatial indexes
   const run = sample.slice(20, 520);
   assert.ok(run.length >= 450);
@@ -543,7 +549,8 @@ test('the household agrees: when the family came to the county, the wedding year
 
 test('memories do not repeat themselves, and merge the declarations of one disaster', () => {
   let people = 0, merged = 0;
-  for (const zip of ['90265', '95521', '93721', '92262', '96161', '94110', '92101', '95814']) {
+  // counties whose designated declarations (femaOf, decision 2) include one disaster declared more than once
+  for (const zip of ['90265', '95521', '92262', '94110', '95482', '95060', '93901', '93401']) {
     const zi = world.indexOf(zip), fema = world.femaOf(zi);
     for (const npc of peopleOf(zip, 120, p => p.age >= 18)) {
       const p = P(npc);
@@ -589,7 +596,8 @@ test('practice: religious services (congregations of every faith), the gurdwara 
   // a statewide spread, and the Central Valley and East Bay ZIPs where the Census counts Sikh households
   for (const zip of [...SPREAD, '95376', '95206', '93722', '95363', '94538', '95991']) {
     const zi = world.indexOf(zip);
-    for (let h = 0; h < Math.min(world.z.hh[zi] || 0, 260); h++) {
+    // the spread is for variety and the Sikh ZIPs are for the gurdwara: 120 and 260 households (eng-55)
+    for (let h = 0; h < Math.min(world.z.hh[zi] || 0, SPREAD.includes(zip) ? 120 : 260); h++) {
       const core = pop.householdCore(zi, h);
       for (const x of core.members) { const npc = pop.person(zi, h, x.m); check(npc, P(npc), core.heritage); }
     }
@@ -601,7 +609,8 @@ test("the family from each one's side: the spouse's parents are in-laws, a paren
   let inLaw = 0, own = 0, step = 0;
   for (const zip of ['91950', '93611', '90631', '95111', '91342', '95116', '90001', '94110', '92335', '95131']) {
     const zi = world.indexOf(zip);
-    for (let h = 0; h < Math.min(world.z.hh[zi] || 0, 1500); h++) {
+    // 600 households a ZIP still find hundreds of each case, far past the thresholds below (eng-55)
+    for (let h = 0; h < Math.min(world.z.hh[zi] || 0, 600); h++) {
       const core = pop.householdCore(zi, h);
       if (!core.members.some(x => x.role === 'parent' || x.role === 'spouse')) continue;
       for (const x of core.members) {
@@ -623,4 +632,200 @@ test("the family from each one's side: the spouse's parents are in-laws, a paren
     }
   }
   assert.ok(inLaw >= 1 && own >= 5 && step >= 5, JSON.stringify({ inLaw, own, step }));
+});
+
+// ---------------------------------------------------------------- final review fixes
+
+// observances of a faith: never handed out by heritage, only through the NPC's own practice (rule 5, decision 9)
+const RELIGIOUS = /Simbang Gabi|Purísima|Holy Ghost|Diwali|\bHoli\b|Vaisakhi|Obon|Ramadan|\bEid\b|Easter|\bMass\b|Hanukkah|Passover|Navratri|Lent\b/i;
+
+test('heritage brings cultural and civic traditions only, never a religious observance (rep-31)', () => {
+  for (const [id, not] of [['90703-9581-1', /Holi|Diwali/], ['90703-15-2', /Diwali|Holi/], ['94566-153-0', /Holi|Diwali/]]) {
+    const p = P(pop.get(id));
+    assert.ok(!p.interests.some(i => not.test(i)), `${id}: ${p.interests}`);
+  }
+  // every heritage that had a religious festival, at the generation most likely to keep a tradition
+  const people = SPREAD.slice(0, 6).flatMap(zip => peopleOf(zip, 25, p => p.age >= 10));
+  let seen = 0;
+  for (const heritage of ['filipino', 'nicaraguan', 'portuguese', 'indian', 'sikh', 'japanese', 'mexican', 'southamerican', 'latino']) {
+    for (const npc of people) {
+      const p = P(Object.assign(structuredClone(npc), { heritage, heritageLabel: `${heritage} American`, generation: 1, nativity: 'foreign' }));
+      const t = p.interestDetails.find(d => d.tradition);
+      if (!t) continue;
+      seen++;
+      assert.ok(!RELIGIOUS.test(t.name), `${heritage}: ${t.name}`);
+    }
+  }
+  assert.ok(seen > 100, `${seen} traditions seen`);
+  // a regional festival comes from the home language, across faiths
+  const kerala = P(Object.assign(structuredClone(people[0]), { heritage: 'indian', heritageLabel: 'Indian American', generation: 1, nativity: 'foreign', languages: { home: 'malayalam', english: 'very well', list: ['malayalam', 'english'] } }));
+  const t = kerala.interestDetails.find(d => d.tradition);
+  if (t) assert.ok(['Onam', 'the India Day parade in August'].includes(t.name), t.name);
+});
+
+test('the tradition is an extra: everything else is the same whatever the heritage (rep-37)', () => {
+  const people = SPREAD.flatMap(zip => peopleOf(zip, 12, p => p.age >= 10));
+  let compared = 0;
+  for (const npc of people) {
+    const base = P(Object.assign(structuredClone(npc), { heritage: 'other', heritageLabel: 'American', generation: 3, nativity: 'native' }));
+    const withTrad = P(Object.assign(structuredClone(npc), { heritage: 'vietnamese', heritageLabel: 'Vietnamese American', generation: 1, nativity: 'foreign' }));
+    if (!withTrad.interestDetails.some(d => d.tradition)) continue;
+    compared++;
+    assert.deepEqual(withTrad.interests.filter((_, i) => !withTrad.interestDetails[i].tradition), base.interests, `${npc.id}: ${withTrad.interests} vs ${base.interests}`);
+    assert.equal(withTrad.interestDetails[withTrad.interestDetails.length - 1].tradition, true, 'appended last');
+    assert.ok(withTrad.interests.length <= 6);
+  }
+  assert.ok(compared >= 15, `${compared} people with a tradition`);
+});
+
+test('quinceañeras only in a household with a girl about to turn fifteen (rep-40)', () => {
+  let quince = 0;
+  for (const zip of ['90022', '92236', '93901', '90001']) {
+    for (const npc of peopleOf(zip, 120)) {
+      const p = P(Object.assign(structuredClone(npc), { generation: 1, nativity: 'foreign' }));
+      if (!p.interests.includes('quinceañeras')) continue;
+      quince++;
+      const girl = (npc.household.members || []).find(x => x.sex === 'F' && x.age >= 12 && x.age <= 16);
+      assert.ok(girl, `${npc.id}: quinceañeras without a girl of 12 to 16 at home`);
+      assert.match(p.interestDetails.find(d => d.name === 'quinceañeras').why, /turn(s)? fifteen soon/);
+    }
+  }
+  assert.ok(quince >= 1, 'some families with a girl that age keep it');
+});
+
+test('remote workers do not remember a commute, and a stepparent\'s life events say so (exp-79, exp-80)', () => {
+  for (const zip of ['95123', '94110', '92618', '91364']) {
+    for (const npc of adults(zip, 60, p => p.commute && p.commute.mode === 'wfh')) {
+      for (const m of P(npc).memories) assert.ok(!/on the way to work/.test(m.text), `${npc.id}: ${m.text}`);
+    }
+  }
+  const nancy = P(pop.get('92236-11168-0')), steven = P(pop.get('92236-11168-1'));
+  const wed = p => p.memories.find(m => /got married in (\d{4})/.test(m.text));
+  const y = p => Number(/got married in (\d{4})/.exec(wed(p).text)[1]);
+  assert.equal(y(nancy), y(steven), 'both partners remember the same wedding year');
+  assert.ok(y(nancy) >= 2024, `an immigrant who came in 2024 married her US-born husband after that, not in ${y(nancy)}`);
+  assert.deepEqual(steven.kin.stepchildren, [2, 3, 4]);
+  assert.deepEqual(nancy.kin.stepchildren, []);
+  assert.ok(!steven.memories.some(m => /was born in/.test(m.text)), 'no birth memories of his stepkids');
+  assert.match(wed(steven).text, /became my stepkids/);
+  assert.match(steven.bio, /three stepkids/);
+  assert.ok(nancy.memories.some(m => /Arely was born in 2006/.test(m.text)), 'her own children');
+});
+
+test('atmospheric rivers are landfall events, a category here only at their strength here (fid-5)', () => {
+  let storms = 0;
+  for (const zip of ['90001', '92225', '91001', '92315', '92683', '94110', '93255']) {
+    const zi = world.indexOf(zip), z = world.zip(zi);
+    const ars = world.arsOf(zi, 12);
+    for (const npc of adults(zip, 40)) {
+      for (const m of P(npc).memories.filter(x => x.source.startsWith('arsOf'))) {
+        storms++;
+        assert.match(m.fact, /^The atmospheric river of .+ came ashore( at .+)? as a category \d storm/);
+        assert.doesNotMatch(m.fact, /was a category \d storm/);
+        const a = ars.find(x => m.source.includes(`${x.start} rank`));
+        assert.ok(a, m.source);
+        const here = Number.isFinite(a.rankHere) ? a.rankHere : null;
+        if (here !== null && here < a.rank) assert.match(m.fact, new RegExp(`by the time it reached .+ it was a category ${here}`));
+        if (here === null && Number.isFinite(z.ar_max) && a.rank > z.ar_max) assert.match(m.fact, /weaker by the time it reached/);
+      }
+    }
+  }
+  assert.ok(storms > 10, `${storms} storm memories`);
+});
+
+test('station records: far ones are named and never lived, contradictory ones left out (fid-6)', () => {
+  let far = 0;
+  for (const zip of ['93255', '93449', '93546', '92225', '96161', '95521', '90265']) {
+    const z = world.zip(world.indexOf(zip));
+    for (const npc of adults(zip, 15)) {
+      const p = P(npc);
+      for (const r of p.knowledge.records) {
+        if (r.kind === 'heat') assert.ok(!(z.h100 > 0 && r.value < 100), `${zip}: a ${r.value}°F record where ${z.h100} days a year reach 100°F`);
+        if (r.local === false) { far++; assert.ok(r.distKm > LOCAL_STATION_KM && r.station, JSON.stringify(r)); }
+      }
+      for (const m of p.memories.filter(x => x.source.startsWith(`zip ${zip}`))) {
+        const r = p.knowledge.records.find(x => m.source.includes(x.source));
+        assert.ok(r && r.local !== false, `${npc.id} remembers a record from a station ${r && r.distKm} km away: ${m.text}`);
+      }
+    }
+  }
+  if (Number.isFinite(world.zip(world.indexOf('93255')).heat_km)) assert.ok(far > 0, 'the pack knows the station distances');
+  const onyx = P(adults('93255', 1)[0]);
+  assert.ok(!onyx.knowledge.records.some(r => r.kind === 'heat' && r.value === 92), 'the Lodgepole 92°F record is not Onyx\'s');
+});
+
+test('desert residents never remember Santa Ana winds their ZIP does not get (fid-12)', () => {
+  const desert = ['92225', '92252', '92277', '92310', '92311'];
+  for (const zip of desert) {
+    const z = world.zip(world.indexOf(zip));
+    assert.equal(windBlowsHere({ kind: 'santa_ana' }, z), z.off_kind === 'sa' || z.sa_ep > 0);
+    for (const npc of adults(zip, 60)) {
+      for (const m of P(npc).memories) if (m.source.startsWith('windsOf')) assert.ok(!/santa_ana|diablo/.test(m.source) || windBlowsHere({ kind: m.source.includes('santa_ana') ? 'santa_ana' : 'diablo' }, z), `${npc.id}: ${m.text}`);
+    }
+  }
+  assert.equal(windBlowsHere({ kind: 'santa_ana' }, { off_kind: 'sa', sa_ep: 3 }), true);
+  assert.equal(windBlowsHere({ kind: 'diablo' }, { off_kind: 'sa', sa_ep: 3, di_ep: 0 }), false);
+  assert.equal(windBlowsHere({ kind: 'sundowner' }, { off_kind: 'su' }), true);
+  assert.equal(windBlowsHere({ kind: 'winter' }, { off_kind: null }), true);
+});
+
+test('before 1940, the neighborhood the pack names, and an estimated forecast said as one (exp-65, exp-68, fid-2)', () => {
+  const z = world.zip(world.indexOf('94110'));
+  assert.ok(builtBefore1940(z) && builtBefore1940({ yb_med: 1938 }) && !builtBefore1940({ yb_med: 1941 }));
+  for (const npc of adults('94110', 30)) {
+    const p = P(npc);
+    for (const c of p.concerns) assert.doesNotMatch(c.why, /before 193\d\b/, c.why);
+    const quake = p.concerns.find(c => c.topic === 'earthquakes');
+    if (quake) assert.match(quake.why, /built before 1940 \(yb_med: 1939 or earlier\)/);
+    assert.equal(p.knowledge.neighborhood, z.neighborhood || z.placeName);
+    assert.ok(!p.knowledge.nearbyPlaces.some(x => x.name === 'San Francisco'), 'their own city is not a nearby place');
+  }
+  // Mammoth's weather is an estimate when no forecast point is near: the moment's hook says "probably around"
+  const zi = world.indexOf('93546');
+  const wx = world.weatherAt(zi, world.snapshotTime);
+  if (wx.approx) {
+    let hooks = 0;
+    for (const npc of adults('93546', 30)) {
+      const h = P(npc).hookDetails.find(x => x.kind === 'weather' && /today/.test(x.text));
+      if (h && /°F/.test(h.text)) { hooks++; assert.match(h.text, /probably around \d+°F/); }
+    }
+    assert.ok(hooks > 0);
+  }
+});
+
+test('limited English: the fillers and sayings are in their own language (exp-83)', () => {
+  let n = 0;
+  for (const zip of ['92236', '90022', '93901']) {
+    for (const npc of adults(zip, 200, p => p.languages && p.languages.english === 'limited' && p.languages.home === 'spanish')) {
+      const s = P(npc).speech;
+      n++;
+      assert.equal(s.fillersLang, 'spanish');
+      assert.ok(s.fillers.length >= 1 && s.fillers.every(f => !/^(like|honestly|literally|lowkey|I mean|kinda|you know|basically|kind of|anyway|well|I tell you|mind you|anyhow|let me tell you)$/.test(f)), s.fillers.join());
+      for (const c of s.catchphrases) assert.match(c, /\[[^\]]+\]$/, `a saying with its gloss: ${c}`);
+      if (n >= 30) break;
+    }
+  }
+  assert.ok(n >= 10, `${n} limited-English Spanish speakers`);
+});
+
+test('no single hazard is everyone\'s first worry in a region: hazards weigh on the people they reach (exp-76)', () => {
+  const HAZARDS = new Set(['fire', 'storms', 'flooding', 'heat', 'smoke', 'wind', 'snow', 'earthquakes']);
+  const regions = {
+    ba: ['94110', '94601', '94501', '95014', '94303', '94558', '94952', '94566', '95123', '94080'],
+    sj: ['93721', '93727', '93301', '95350', '93277', '93230', '93309', '95207', '93637', '93611'],
+  };
+  for (const [region, zips] of Object.entries(regions)) {
+    const lead = {};
+    let n = 0;
+    for (const zip of zips) {
+      for (const npc of adults(zip, 18)) {
+        const top = P(npc).concerns[0];
+        if (!top) continue;
+        n++;
+        lead[top.topic] = (lead[top.topic] || 0) + 1;
+      }
+    }
+    for (const [topic, k] of Object.entries(lead)) if (HAZARDS.has(topic)) assert.ok(k / n <= 0.5, `${region}: ${topic} leads for ${Math.round(100 * k / n)}% of ${n} adults (${JSON.stringify(lead)})`);
+    assert.ok(Object.keys(lead).length >= 4, `${region}: ${JSON.stringify(lead)}`);
+  }
 });

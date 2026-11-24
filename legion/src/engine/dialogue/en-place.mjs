@@ -24,6 +24,33 @@ export const PLACE = compileBank({
     {temp} degrees right now.
     It's about {temp} out.
   `,
+  // the forecast of a city nearby, carried to this ZIP's height (world.weatherAt basis 'borrowed'): an estimate,
+  // hedged, and the forecast is that city's, never "here"
+  'wx.nowApprox': `
+    Probably around {temp} out right now, {sky}.
+    It's probably about {temp} and {sky}, give or take.
+    Must be around {temp} out, and {sky}.
+  `,
+  'wx.tonightFrom': `
+    Going by the {fcPlace} forecast, it'll probably drop to around {low} tonight.
+    The forecast for {fcPlace} has it getting down to about {low} tonight.
+  `,
+  'wx.nextFrom': `
+    The forecast for {fcPlace} says {nextSky} {when}, so probably a high around {high}.
+    Going by the {fcPlace} forecast, {when} looks {nextSkyAdj}, with a high of about {high}.
+  `,
+  'wx.rainChanceFrom': `
+    The {fcPlace} forecast has a {pop} percent chance of rain {when}.
+    They're saying {pop} percent chance of rain {when} for {fcPlace}.
+  `,
+  'wx.rainLikelyFrom': `
+    The forecast for {fcPlace} says rain {when}, {pop} percent.
+    Going by the {fcPlace} forecast, rain's likely {when}. {pop} percent.
+  `,
+  'wx.noRainFrom': `
+    The {fcPlace} forecast is dry through tomorrow, anyway.
+    Nothing in the forecast for {fcPlace}, not through tomorrow.
+  `,
   'wx.stale': `
     Feels like it's around {temp} out, I'd guess.
     Probably around {temp} right now. I haven't checked.
@@ -31,7 +58,7 @@ export const PLACE = compileBank({
   `,
   'wx.noForecast': `
     I haven't looked at the forecast, honestly.
-    No idea what the forecast says. I'll find out when I walk outside.
+    Haven't seen the forecast. I'll find out when I walk outside.
     I haven't checked the forecast. Ask me tomorrow.
   `,
   'wx.climate.wetNow': `
@@ -224,6 +251,8 @@ export const PLACE = compileBank({
     I work right here in town, so it's only {commuteMin} minutes.
     Work's close. {commuteMin} minutes, door to door.
     It's a short drive, {commuteMin} minutes. I'm lucky.
+    @student School's close. {commuteMin} minutes.
+    @military The base is close. {commuteMin} minutes, gate to gate.
   `,
   'tr.carpool': `
     I carpool to {workCity}. {commuteMin} minutes, and the carpool lane helps.
@@ -327,6 +356,21 @@ export const PLACE = compileBank({
     Around here it's all about {road}. {aadtCap}, they say.
     {roadCap} is the main way in and out of here. {aadtCap}.
     {roadCap} carries {aadt}, if you can believe it.
+  `,
+  // a highway more than a few miles from home: the nearest, that far off, never "the main way in and out of here"
+  'tr.roadFar': `
+    The nearest highway is {road}, {roadDist} from here. {aadtCap}.
+    {roadCap} is {roadDist} off. It carries {aadt}.
+  `,
+  'tr.roadFarSmall': `
+    The nearest highway is {road}, {roadDist} from here.
+    {roadCap} is {roadDist} off, the closest highway.
+  `,
+  // a drive to another town with no highway on the record: no road named as the way there
+  'tr.driveTo': `
+    It's {commuteMin} minutes to {workCity}.
+    I drive to {workCity}. {commuteMin} minutes, give or take.
+    {commuteMin} minutes to {workCity}, depending on traffic.
   `,
   // only for a road a few blocks from home
   'tr.roadNear': `
@@ -515,8 +559,26 @@ export const PLACE = compileBank({
     The storm in {when}. {exp}
   `,
   'storm.arRank': `
-    It was a category {rank} atmospheric river.
-    That was a category {rank}, the strongest kind.
+    It was a category {rank} atmospheric river here.
+    Here it was a category {rank}.
+  `,
+  // a river that peaked elsewhere on the coast: where and how strong it came ashore, then what it was here
+  'storm.arPeak': `
+    The atmospheric river in {when} came ashore at {peakAt} as a category {peakRank}.
+    {whenCap}, there was an atmospheric river that hit {peakAt} as a category {peakRank}.
+  `,
+  'storm.arPeakCoast': `
+    The atmospheric river in {when} came ashore as a category {peakRank}.
+  `,
+  'storm.arPeakCoastAfter': `
+    It came ashore as a category {peakRank}. Here it was a {rank}.
+  `,
+  'storm.arHere': `
+    Here it was a category {rank}.
+    By the time it got here it was a {rank}.
+  `,
+  'storm.arPeakAfter': `
+    It came ashore at {peakAt} as a category {peakRank}. Here it was a {rank}.
   `,
   'storm.fema': `
     The county got a federal disaster declaration for the {title}.
@@ -534,6 +596,10 @@ export const PLACE = compileBank({
   'storm.rainRecord': `
     The record for one day is {rainRec} inches, back in {when}.
     The most rain in a single day here was {rainRec} inches, in {when}.
+  `,
+  'storm.rainRecordAt': `
+    The one-day rain record at {station}, {stationDist} away, is {rainRec} inches, from {when}.
+    Over at {station}, {stationDist} from here, the most rain in a day was {rainRec} inches, in {when}.
   `,
   'storm.flood': `
     Flooding's a real thing here. There have been {floodWords} flood reports nearby since the nineties.
@@ -585,6 +651,9 @@ export const PLACE = compileBank({
   'storm.gustRecord': `
     The strongest gust on record here was {gust} miles an hour, in {when}.
   `,
+  'storm.gustRecordAt': `
+    The strongest gust on record at {station}, {stationDist} away, was {gust} miles an hour, in {when}.
+  `,
   'storm.none': `
     Big storms aren't really our thing here.
     We're pretty lucky with storms, honestly.
@@ -608,6 +677,11 @@ export const PLACE = compileBank({
     The record is {recTemp}, set {recDate}.
     Hottest day on record here was {recTemp}, back on {recDate}.
     It hit {recTemp} once. {recDateCap}. That's the record.
+  `,
+  // a record from a station farther than 15 km, or far above or below the ZIP: the station's, named, never "here"
+  'heat.recordAt': `
+    The hottest day on record at {station}, {stationDist} away, was {recTemp}, back on {recDate}.
+    Over at {station}, {stationDist} from here, the record is {recTemp}. That was {recDate}.
   `,
   'heat.recordLived': `
     I remember that day. {exp}
@@ -992,6 +1066,12 @@ export const PLACE = compileBank({
     A lot of the houses on my street are from {decade}.
     @funny The houses here are older than I am.
   `,
+  // the ACS top code: half the homes built in 1939 or earlier
+  'hood.oldPrewar': `
+    Most of the houses here were built before 1940.
+    A lot of the houses on my street went up before 1940.
+    @funny The houses here are older than I am.
+  `,
   'hood.landmark': `
     On a clear day you can see {peak} from here.
     You can see {peak} from around here when the air's clean.
@@ -1100,8 +1180,9 @@ export const PLACE = compileBank({
     @kid I don't know. I'm a kid.
   `,
   'op.religion': `
-    I go to church on Sundays. That's between me and God.
+    I go to {worship} on {worshipDay}s. That's my own business, though.
     My faith matters to me, but I don't push it on anybody.
+    I'm part of a congregation. It means a lot to me, but I keep it to myself.
   `,
   'op.religionNone': `
     I don't really talk about religion.

@@ -200,3 +200,158 @@ test('talk --claude through a Legion server (fake upstream): streams, keeps the 
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+// ------------------------------------------------------------------ final review fixes
+
+test('the CLI refuses impossible dates, times and seeds, checks export options, and says why a place has no one (eng-54)', async () => {
+  for (const args of [['plan', '94110-123-0', '--date', '2026-02-30'], ['plan', '94110-123-0', '--date', '2026-13-45'], ['prompt', '94110-123-0', '--t', '2026-11-24T25:00'], ['prompt', '94110-123-0', '--t', '12345'], ['prompt', '94110-123-0', '--t', '99999999999999999'], ['npc', '94110-123-0', '--seed', '4294967297'], ['npc', '94110-123-0', '--seed', '1.5'], ['export', '94110', '1', '--model', 'gpt-x'], ['export', '94110', '1', '--effort', 'turbo']]) {
+    const r = await run(args);
+    assert.equal(r.code, 2, `${args.join(' ')} → ${r.code} ${r.stdout.slice(0, 80)}`);
+  }
+  const empty = await run(['sample', '90071', '3']);
+  assert.equal(empty.code, 1);
+  assert.match(empty.stderr, /has no households \(its [\d,]+ residents live in group quarters/);
+  // the household as this NPC's relatives, the dwelling with its article, the language by name (eng-53)
+  const jon = (await run(['npc', '94110-1686-2'])).stdout;
+  assert.match(jon, /rents a unit in a small building/);
+  assert.doesNotMatch(jon, /\ban unit\b|^\s+(sibling|child|householder): /m);
+  assert.match(jon, /Languages: [A-Z]/);
+});
+
+test('talk --store: a directory or a missing folder stops the command before the conversation (eng-48)', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'legion-cli-'));
+  try {
+    const asDir = await run(['talk', '94110-123-0', '--store', dir], { input: 'hi\n/bye\n' });
+    assert.equal(asDir.code, 2);
+    assert.match(asDir.stderr, /is a directory/);
+    assert.ok(!fs.existsSync(`${dir}.tmp`), 'no stray .tmp file beside the directory');
+    const nowhere = await run(['talk', '94110-123-0', '--store', path.join(dir, 'no', 'such', 'minds.json')], { input: 'hi\n/bye\n' });
+    assert.equal(nowhere.code, 2);
+    assert.match(nowhere.stderr, /does not exist/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('talk --claude: a failed turn is a note from Legion and the conversation goes on; no credential says what to do (eng-49)', async () => {
+  // a Legion server whose upstream fails once with an overload, then answers
+  const up = fakeUpstream();
+  let failures = 1;
+  const factory = () => { const c = up.factory(); const create = c.beta.messages.create; c.beta.messages.create = async params => { if (params.stream && failures-- > 0) { const e = new Error('Overloaded'); e.status = 529; e.error = { error: { type: 'overloaded_error', message: 'Overloaded' } }; throw e; } return create(params); }; return c; };
+  const server = createServer({ root: ROOT, clientFactory: factory, env: {}, log: () => {} });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const proxy = `http://127.0.0.1:${server.address().port}/api/anthropic`;
+    const r = await run(['talk', '94110-123-0', '--claude', '--proxy', proxy], { input: 'Hi!\nIs the fog gone?\n/bye\n' });
+    assert.equal(r.code, 0, r.stderr);
+    assert.match(r.stderr, /\(Legion\) /, 'the failure is a note from Legion');
+    assert.equal(r.stdout.split('\n').filter(l => l.endsWith(up.text)).length, 1, 'the second turn was answered');
+    assert.doesNotMatch(r.stdout, /^\w+: $/m, 'no dangling name before a failed reply');
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('the Legion server: the NPC API answers in JSON, and offline talk keeps a session (exp-70)', async () => {
+  const server = createServer({ root: ROOT, env: {}, log: () => {} });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const get = async p => { const r = await fetch(base + p); return { status: r.status, body: await r.json() }; };
+  const post = async (p, b) => { const r = await fetch(base + p, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }); return { status: r.status, body: await r.json() }; };
+  try {
+    const npc = await get('/api/npc/94110-123-0');
+    assert.equal(npc.status, 200);
+    assert.equal(npc.body.id, '94110-123-0');
+    assert.equal((await get('/api/npc/99999-1-0')).status, 404);
+    const sample = await get('/api/sample?where=Oakland&n=3');
+    assert.equal(sample.body.length, 3);
+    assert.ok(sample.body.every(p => p.place.city === 'Oakland'));
+    assert.equal((await get('/api/sample?where=Atlantis&n=3')).status, 404);
+    assert.equal((await get('/api/sample?where=CA&n=5000')).status, 400);
+    const persona = await get('/api/persona/94110-123-0?t=2026-11-24T16:00:00Z');
+    assert.equal(persona.body.npc, '94110-123-0');
+    assert.ok(persona.body.big5 && persona.body.speech);
+    const prompt = await get('/api/prompt/94110-123-0');
+    assert.equal(prompt.body.blocks.length, 2);
+    const situation = await get('/api/situation/94110-123-0?said=fog');
+    assert.match(situation.body.situation, /Situation for this turn/);
+    const plan = await get('/api/plan/94110-123-0?date=2026-11-25');
+    assert.equal(new Date(plan.body[0].start).toISOString(), '2026-11-25T08:00:00.000Z');
+    const activity = await get('/api/activity/94110-123-0');
+    assert.ok(activity.body.kind);
+    const ex = await get('/api/export/94110-123-0?model=claude-sonnet-5-5');
+    assert.equal(ex.body.format, 'legion.persona/1');
+    assert.equal(ex.body.defaults.model, 'claude-sonnet-5-5');
+    assert.equal((await get('/api/export/94110-123-0?model=gpt-x')).status, 400);
+    assert.ok(Number.isFinite((await get('/api/weather/94110')).body.now.tempF));
+    assert.equal((await get('/api/persona/94110-123-0?t=yesterday')).status, 400);
+    // a conversation: a session greets, answers, says goodbye, then stays ended
+    const start = await post('/api/talk/94110-123-0', {});
+    assert.equal(start.status, 200);
+    assert.ok(start.body.session && start.body.lines.length === 1 && start.body.lines[0].who === 'npc');
+    const turn = await post('/api/talk/94110-123-0', { session: start.body.session, text: 'How is the weather today?' });
+    assert.ok(turn.body.lines[0].facts.includes('weather.now'), JSON.stringify(turn.body.lines[0]));
+    const bye = await post('/api/talk/94110-123-0', { session: start.body.session, end: true });
+    assert.equal(bye.body.ended, true);
+    assert.equal((await post('/api/talk/94110-123-0', { session: start.body.session, text: 'hi' })).status, 409);
+    assert.equal((await post('/api/talk/94110-1686-2', { session: start.body.session, text: 'hi' })).status, 409, 'a session is one NPC');
+    // cross-origin requests are refused unless --cors names the origin
+    const cross = await fetch(`${base}/api/npc/94110-123-0`, { headers: { origin: 'http://localhost:3000' } });
+    assert.equal(cross.status, 403);
+    const health = await get('/api/health');
+    assert.ok(health.body.npcApi.some(r => /\/api\/talk/.test(r)));
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
+  // --cors opens the NPC API (not the Claude proxy) to one origin
+  const open = createServer({ root: ROOT, env: {}, log: () => {}, corsOrigins: ['http://localhost:3000'] });
+  await new Promise(resolve => open.listen(0, '127.0.0.1', resolve));
+  try {
+    const b = `http://127.0.0.1:${open.address().port}`;
+    const ok = await fetch(`${b}/api/weather/94110`, { headers: { origin: 'http://localhost:3000' } });
+    assert.equal(ok.status, 200);
+    assert.equal(ok.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+    const proxy = await fetch(`${b}/api/anthropic/v1/messages`, { method: 'POST', headers: { origin: 'http://localhost:3000', 'content-type': 'application/json' }, body: '{}' });
+    assert.equal(proxy.status, 403);
+  } finally {
+    open.closeAllConnections();
+    await new Promise(resolve => open.close(resolve));
+  }
+});
+
+test('the Legion server on the network asks for its token and serves only the app; the proxy keeps to Legion\'s models (eng-50, eng-51)', async () => {
+  const up = fakeUpstream();
+  const server = createServer({ root: ROOT, host: '0.0.0.0', token: 'test-token-123', clientFactory: up.factory, env: {}, log: () => {} });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port, base = `http://127.0.0.1:${port}`;
+  const body = JSON.stringify({ model: 'claude-opus-5-5', max_tokens: 100, messages: [{ role: 'user', content: 'hi' }] });
+  try {
+    assert.equal(server.legionToken, 'test-token-123');
+    // no token: nothing, the Claude proxy included
+    assert.equal((await fetch(`${base}/api/health`)).status, 401);
+    assert.equal((await fetch(`${base}/api/claude`, { method: 'POST', headers: { 'content-type': 'application/json', host: `192.168.1.50:${port}` }, body })).status, 401);
+    assert.equal(up.calls.length, 0, 'nothing reached the upstream');
+    // the header (scripts) or the cookie the printed URL sets (the page)
+    assert.equal((await fetch(`${base}/api/health`, { headers: { 'x-legion-token': 'test-token-123' } })).status, 200);
+    const visit = await fetch(`${base}/?token=test-token-123`, { redirect: 'manual' });
+    assert.equal(visit.status, 303);
+    const cookie = visit.headers.get('set-cookie');
+    assert.match(cookie, /legion_token=test-token-123; Path=\/; HttpOnly; SameSite=Strict/);
+    assert.equal((await fetch(`${base}/api/health`, { headers: { cookie: 'legion_token=test-token-123' } })).status, 200);
+    assert.equal((await fetch(`${base}/?token=wrong`, { redirect: 'manual' })).status, 403);
+    // on the network only the app is served, not the sources or the data
+    assert.equal((await fetch(`${base}/README.md`, { headers: { 'x-legion-token': 'test-token-123' } })).status, 404);
+    assert.equal((await fetch(`${base}/data/world.json.gz`, { headers: { 'x-legion-token': 'test-token-123' } })).status, 404);
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+  }
+  // the proxy: a fallback must be one of Legion's models too, and max_tokens at least 1
+  const { validateMessagesRequest } = await import('../server/serve.mjs');
+  const ok = { model: 'claude-opus-5-5', max_tokens: 100, messages: [{ role: 'user', content: 'hi' }] };
+  assert.equal(validateMessagesRequest({ ...ok, fallbacks: [{ model: 'claude-sonnet-5-5' }] }).ok, true);
+  assert.equal(validateMessagesRequest({ ...ok, fallbacks: [{ model: 'claude-opus-4-1-20250805' }] }).ok, false);
+  assert.equal(validateMessagesRequest({ ...ok, fallbacks: [{ model: 'claude-x' }] }).ok, false);
+  assert.equal(validateMessagesRequest({ ...ok, fallbacks: 'default' }).ok, true);
+  assert.equal(validateMessagesRequest({ ...ok, max_tokens: 0 }).ok, false);
+});

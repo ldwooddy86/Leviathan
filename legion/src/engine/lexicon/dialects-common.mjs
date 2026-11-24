@@ -17,13 +17,13 @@ export const COMMON = {
     @h4-11 Good morning.
     @h12-17 Afternoon.
     @h17-23 Evening.
-    Hey, good to see you.
+    @met Hey, good to see you.
     Oh, hi!
     Hi, how's your day going?
     How are you doing?
     Hey there, how's everything?
     Well, look who it is.
-    Hey, long time no see.
+    @met Hey, long time no see.
     How's your week been?
     Hi! You doing okay?
   `),

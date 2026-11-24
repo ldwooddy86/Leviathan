@@ -129,11 +129,17 @@ export function mountClockControls(host, clock) {
   const timeEl = h('time.clock-time');
   const dayEl = h('span.clock-day');
   const scrub = h('input.scrubber', { type: 'range', min: '0', max: '1439', step: '1', 'aria-label': 'Time of day (Pacific)' });
-  let dragging = false;
+  // the thumb follows the clock except while the player moves it: during a pointer drag, and for a moment after a key
+  // (a focused scrubber with the clock playing keeps moving; it froze at the clicked time before)
+  let dragging = false, keyUntil = 0;
+  const realNow = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
   scrub.addEventListener('pointerdown', () => { dragging = true; });
   window.addEventListener('pointerup', () => { dragging = false; });
+  window.addEventListener('pointercancel', () => { dragging = false; });
+  scrub.addEventListener('keydown', e => { if (e.key !== ' ') keyUntil = realNow() + 500; });
+  scrub.addEventListener('keyup', () => { keyUntil = Math.min(keyUntil, realNow() + 150); });
   scrub.addEventListener('input', () => clock.setMinuteOfDay(+scrub.value));
-  scrub.addEventListener('blur', () => { dragging = false; });
+  scrub.addEventListener('blur', () => { dragging = false; keyUntil = 0; });
   const resetBtn = h('button.icon-btn.small', { type: 'button', title: 'Back to the NWS snapshot time', 'aria-label': 'Back to the NWS snapshot time', on: { click: () => clock.reset() } }, icon('reset', { size: 16 }));
 
   const element = h('div.clock', { role: 'group', 'aria-label': 'Simulation clock' },
@@ -151,14 +157,17 @@ export function mountClockControls(host, clock) {
       timeEl.textContent = fmtMinute(p.minuteOfDay);
       timeEl.setAttribute('datetime', `${p.iso}`);
       dayEl.textContent = `${p.dayName.slice(0, 3)} ${p.monthName.slice(0, 3)} ${p.day} · PT`;
-      if (!dragging && document.activeElement !== scrub) scrub.value = String(p.minuteOfDay);
+      if (!dragging && realNow() > keyUntil) scrub.value = String(p.minuteOfDay);
       scrub.setAttribute('aria-valuetext', `${fmtMinute(p.minuteOfDay)}, ${p.dayName}`);
     }
     if (clock.playing !== shown.playing) {
       shown.playing = clock.playing;
       playBtn.replaceChildren(icon(clock.playing ? 'pause' : 'play'));
-      playBtn.setAttribute('aria-label', clock.playing ? 'Pause the simulation' : 'Play the simulation');
+      // a toggle button with a fixed name: "Play the simulation, toggle button, pressed" while it plays (a name that
+      // flipped to "Pause" as well read "Pause the simulation, pressed"); the tooltip says what a press does
+      playBtn.setAttribute('aria-label', 'Play the simulation');
       playBtn.setAttribute('aria-pressed', String(clock.playing));
+      playBtn.title = clock.playing ? 'Pause (Space)' : 'Play (Space)';
       playBtn.classList.toggle('is-playing', clock.playing);
     }
     // the speed the clock runs at is the one checked; a hold (a conversation in real time) says so

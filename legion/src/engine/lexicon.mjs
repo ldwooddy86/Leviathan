@@ -27,10 +27,11 @@
 import { Rng, clamp } from './rng.mjs';
 import { pacific } from './clock.mjs';
 import { dialectFor, explainDialect, dialectTable, DIALECT_KEYS } from './lexicon/geography.mjs';
-import { roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE } from './lexicon/roads.mjs';
+import { roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE, SURFACE_STREETS } from './lexicon/roads.mjs';
 import { SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands } from './lexicon/slots.mjs';
-import { DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES } from './lexicon/dialects.mjs';
-import { parseTagged, lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM } from './lexicon/tags.mjs';
+import { DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES, ES_CATEGORIES } from './lexicon/dialects.mjs';
+import { glossOf } from './lexicon/text.mjs';
+import { parseTagged, lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM, INSURANCE_LEVELS } from './lexicon/tags.mjs';
 import {
   LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
   FAITHS, TIMES_OF_DAY, resolveLanguage, varietyFor, faithFor,
@@ -38,10 +39,10 @@ import {
 
 export {
   dialectFor, explainDialect, dialectTable, DIALECT_KEYS,
-  roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE,
+  roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE, SURFACE_STREETS,
   SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands,
-  DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
-  parseTagged, lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM,
+  DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES, ES_CATEGORIES, glossOf,
+  parseTagged, lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM, INSURANCE_LEVELS,
   LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
   FAITHS, TIMES_OF_DAY, resolveLanguage, varietyFor, faithFor,
 };
@@ -161,9 +162,13 @@ const YOUTH_AGES = [13, 29];
  * of the situation is not given. The speaker: age (default 40), drives, works, tenure ('own'|'rent'|null),
  * parent, nativeHere, generation, flat or as opts.speaker (speakerFacts gives them); a fact left undefined
  * counts as fitting for an adult and not for a minor.
+ *
+ * With opts.lang 'es' the Spanish variants of the regional lines come back instead (ES_CATEGORIES and 'weather',
+ * the dialect's and its family's; none for other categories or dialects without them), filtered the same way;
+ * glossOf(template) gives each one's English gloss.
  * @param {string|object} dialect a key or a DIALECTS entry
  * @param {string} category one of LINE_CATEGORIES, or 'weather'
- * @param {object} [opts] {age, condition, regional, ignoreTags, t, month, hour, alerts, offshore, coastKm, county,
+ * @param {object} [opts] {age, condition, regional, ignoreTags, lang, t, month, hour, alerts, offshore, coastKm, county,
  *   drives, works, tenure, parent, nativeHere, generation, speaker}
  * @returns {string[]}
  */
@@ -173,13 +178,15 @@ export function linesFor(dialect, category, opts = {}) {
   const ctx = situationOf(opts);
   const age = Number.isFinite(ctx.age) ? ctx.age : 40;
   const condition = ctx.condition || null;
-  const bank = opts.regional ? d.regional : d;
+  const es = ctx.lang === 'es';
+  const bank = es ? d.es : opts.regional ? d.regional : d;
+  if (!bank) return [];
   let base;
-  if (category === 'weather') base = condition && bank.weather[condition] ? bank.weather[condition] : [];
-  else base = bank[category] || [];
+  if (category === 'weather') base = condition && bank.weather && bank.weather[condition] ? bank.weather[condition] : [];
+  else base = (es && !ES_CATEGORIES.includes(category)) ? [] : bank[category] || [];
   const keep = opts.ignoreTags ? () => true : t => lineFits(t, ctx, true);
   const out = base.filter(keep);
-  if (AGE_CATEGORIES.includes(category)) {
+  if (!es && AGE_CATEGORIES.includes(category)) {
     // The youth bank is teen and twenties talk ("Sup.", "No cap."); children get the plain lines.
     if (age >= YOUTH_AGES[0] && age <= YOUTH_AGES[1]) for (const x of d.youth[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
     if (age >= 60) for (const x of d.elder[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
@@ -192,11 +199,13 @@ export function linesFor(dialect, category, opts = {}) {
  * fills from the slots. Leans on the dialect's own (family and local) lines with probability
  * opts.regionalShare, and uses opts.picker to avoid repeating a line within a conversation. Word-level
  * categories (fillers, intensifiers) come back as they go mid-sentence, not capitalized.
+ * With opts.lang 'es' the line is one of the Spanish variants (linesFor), filled from the same slots, and comes back
+ * with its English gloss filled alike: {text, template, gloss, lang: 'es'}.
  * @param {string|object} dialect
  * @param {string} category one of LINE_CATEGORIES, or 'weather'
  * @param {Rng} rng
- * @param {object} [opts] linesFor's options, plus {slots?: object, picker?: Picker, regionalShare?: number}
- * @returns {{text: string, template: string}|null}
+ * @param {object} [opts] linesFor's options, plus {slots?: object, picker?: Picker, regionalShare?: number, lang?: 'es'}
+ * @returns {{text: string, template: string, gloss?: string, lang?: 'es'}|null}
  */
 export function pickLine(dialect, category, rng, opts = {}) {
   const { slots = {}, picker = null, regionalShare = 0.6 } = opts;
@@ -204,17 +213,27 @@ export function pickLine(dialect, category, rng, opts = {}) {
   if (!d) return null;
   const ctx = situationOf(opts);
   const condition = ctx.condition || null;
+  const es = ctx.lang === 'es';
   const all = linesFor(d, category, ctx);
-  const local = linesFor(d, category, { ...ctx, regional: true });
+  // the Spanish lines are all the family's and the dialect's own: there is no separate regional list
+  const local = es ? [] : linesFor(d, category, { ...ctx, regional: true });
   const fillOpts = { capitalize: !WORD_CATEGORIES.includes(category) };
-  const pcat = `${d.key}:${category}${category === 'weather' && condition ? ':' + condition : ''}`;
+  const pcat = `${d.key}:${es ? 'es:' : ''}${category}${category === 'weather' && condition ? ':' + condition : ''}`;
+  // a Spanish line fills only with its gloss: both or neither
+  const fillOne = t => {
+    const text = fill(t, slots, fillOpts);
+    if (!text || !es) return text ? { text } : null;
+    const gloss = fill(glossOf(t), slots, fillOpts);
+    return gloss ? { text, gloss } : null;
+  };
+  const result = (t, v) => (es ? { text: v.text, template: t, gloss: v.gloss, lang: 'es' } : { text: v.text, template: t });
   const attempt = (pool, cycle) => {
     if (!pool.length) return null;
     if (picker) {
-      const hit = picker.pickWhere(pcat, pool, t => fill(t, slots, fillOpts), rng, cycle);
-      return hit ? { text: hit.value, template: hit.item } : null;
+      const hit = picker.pickWhere(pcat, pool, fillOne, rng, cycle);
+      return hit ? result(hit.item, hit.value) : null;
     }
-    for (const t of rng.shuffle(pool.slice())) { const text = fill(t, slots, fillOpts); if (text) return { text, template: t }; }
+    for (const t of rng.shuffle(pool.slice())) { const v = fillOne(t); if (v) return result(t, v); }
     return null;
   };
   // The local lines are a preference: once they are used up the full list carries on, and only when that is
@@ -517,6 +536,19 @@ function seasonLabel(z, month) {
 }
 
 /**
+ * How hard home insurance is to get in a ZIP, for @ins tags: 'high' where FAIR Plan policies (fair_sh, per 100
+ * homes) reach 8 or residential non-renewals (nonren_sh, %) reach 12, 'normal' where both are known and lower, null
+ * when the pack does not say.
+ * @param {object} z world.zip(i)
+ * @returns {'high'|'normal'|null}
+ */
+export function insuranceLevel(z) {
+  const fair = z && Number.isFinite(z.fair_sh) ? z.fair_sh : null, non = z && Number.isFinite(z.nonren_sh) ? z.nonren_sh : null;
+  if ((fair !== null && fair >= 8) || (non !== null && non >= 12)) return 'high';
+  return fair !== null || non !== null ? 'normal' : null;
+}
+
+/**
  * Slot values for ZIP zi from the world pack, ready for fill(): the town, county and region, the nearest busy
  * highway as locals say it, a named stretch, a landmark, the current temperature, forecast and alert, the
  * most destructive fire on record with its year, the month, weekday and season, and a local team (with and
@@ -526,7 +558,8 @@ function seasonLabel(z, month) {
  * persona's own memory of a fire; opts.team, the team the NPC follows, as a string or a persona team object).
  * @param {import('./world.mjs').World} world
  * @param {number|string} zi ZIP index or code
- * @param {{t?: number, rng?: Rng, dialect?: string, team?: string|{name?: string, label?: string}}} [opts]
+ * opts.home ({x, y}, the speaker's home) puts the road slots on the roads near home rather than near the town point.
+ * @param {{t?: number, rng?: Rng, dialect?: string, team?: string|{name?: string, label?: string}, home?: {x: number, y: number}}} [opts]
  * @returns {{values: Record<string, string|number|null>, facts: Record<string, string|null>, context: object}|null}
  */
 export function slotsFor(world, zi, opts = {}) {
@@ -544,7 +577,8 @@ export function slotsFor(world, zi, opts = {}) {
   const local = z.place && z.city && z.place !== z.city && placePop(world, z.place) >= 300000 ? z.city : (z.place || z.city);
   values.place = local || null;
   values.city = z.city || null;
-  values.neighborhood = local || null;
+  // the neighborhood people call it: the pack's curated name inside the big cities ("the Mission"), else the local name
+  values.neighborhood = (typeof z.neighborhood === 'string' && z.neighborhood.trim()) || local || null;
   values.county = z.countyName || null;
   values.region = (d && d.regionThe) || z.regionThe || null;
 
@@ -558,7 +592,9 @@ export function slotsFor(world, zi, opts = {}) {
   values.peak = landmarkLabel(pk);
   facts.peak = pk ? `landmark:${pk.name}` : null;
 
-  const roads = world.roadsNear(z.tx, z.ty, 15).slice().sort((a, b) => (b.aadt || 0) / (1 + b.distKm / 3) - (a.aadt || 0) / (1 + a.distKm / 3));
+  // roads near the speaker's home when the caller gives it (decision 8), else near the town point
+  const at = opts.home && Number.isFinite(opts.home.x) && Number.isFinite(opts.home.y) ? opts.home : { x: z.tx, y: z.ty };
+  const roads = world.roadsNear(at.x, at.y, 15).slice().sort((a, b) => (b.aadt || 0) / (1 + b.distKm / 3) - (a.aadt || 0) / (1 + a.distKm / 3));
   const road = rng && roads.length > 1 && rng.chance(0.35) ? roads[1] : roads[0] || null;
   values.road = road ? roadName(road, key, { rng }) : null;
   facts.road = road ? `road:${road.name}` : null;
@@ -566,7 +602,10 @@ export function slotsFor(world, zi, opts = {}) {
   facts.stretch = values.stretch ? `stretch:${values.stretch}` : null;
 
   const wx = world.weatherAt(zi, t);
-  values.temp = wx && wx.now && Number.isFinite(wx.now.tempF) ? wx.now.tempF : null;
+  // an estimate (a forecast borrowed from another place, a climate guess) is no number to state flatly: the lines
+  // that say "It's {temp}" are left out then (decision 1)
+  const approx = !!(wx && (wx.approx === true || wx.stale === true || (wx.basis && wx.basis.kind && wx.basis.kind !== 'forecast')));
+  values.temp = wx && wx.now && Number.isFinite(wx.now.tempF) && !approx ? Math.round(wx.now.tempF) : null;
   values.weather = wx && wx.now && wx.now.short ? String(wx.now.short).toLowerCase() : null;
   values.alert = wx && wx.alerts && wx.alerts.length ? wx.alerts[0].event : null;
   facts.weather = wx && wx.now ? `weather:${z.zip}:${wx.now.time}` : null;
@@ -594,6 +633,8 @@ export function slotsFor(world, zi, opts = {}) {
     offshore: !!offshoreKind, offshoreKind,
     coastKm: Number.isFinite(z.coast_km) ? z.coast_km : null,
     county: z.countyName || null,
+    // the ZIP's home-insurance market (fid-19): 'high' trouble where the FAIR Plan or non-renewals run high
+    insurance: insuranceLevel(z),
   };
   return { values, facts, context };
 }

@@ -136,6 +136,9 @@ function neutralForms(r) {
 }
 
 function formsFor(r, key) {
+  // a state route that is a city street where this speaker lives goes by its street name (fid-21)
+  const street = surfaceStreet(r, key);
+  if (street) return [street];
   const u = ROAD_USAGE[key];
   if (!u) return neutralForms(r);
   switch (u.style) {
@@ -198,6 +201,32 @@ const LA_KEYS = ['la-westside', 'la-central', 'la-eastside', 'sfv', 'santa-clari
 const OC_KEYS = ['oc-coast', 'oc-inland'];
 const IE_KEYS = ['ie', 'high-desert', 'desert-cv', 'socal-mountains'];
 const BAY_KEYS = ['sf', 'eastbay', 'southbay', 'peninsula', 'northbay'];
+
+// State routes that are surface streets where these dialects live: locals say the street's name, never "the 39" or
+// "Highway 82" (fid-21). Each entry names the dialects (by DIALECT_KEYS) along that stretch of the route.
+export const SURFACE_STREETS = Object.freeze([
+  { route: 39, name: 'Beach Boulevard', keys: ['oc-coast', 'oc-inland'] },
+  { route: 39, name: 'Azusa Avenue', keys: ['sgv'] },
+  { route: 72, name: 'Whittier Boulevard', keys: ['la-eastside', 'la-central', 'sgv'] },
+  { route: 19, name: 'Lakewood Boulevard', keys: ['longbeach', 'la-south', 'southbay-la', 'la-eastside'] },
+  { route: 164, name: 'Rosemead Boulevard', keys: ['sgv', 'la-eastside'] },
+  { route: 213, name: 'Western Avenue', keys: ['la-central', 'la-south', 'southbay-la'] },
+  { route: 107, name: 'Hawthorne Boulevard', keys: ['southbay-la', 'la-south'] },
+  { route: 187, name: 'Venice Boulevard', keys: ['la-westside', 'la-central'] },
+  { route: 27, name: 'Topanga Canyon Boulevard', keys: ['sfv', 'la-westside'] },
+  { route: 66, name: 'Foothill Boulevard', keys: ['ie', 'sgv'] },
+  { route: 133, name: 'Laguna Canyon Road', keys: ['oc-coast', 'oc-inland'] },
+  { route: 82, name: 'El Camino Real', keys: ['peninsula', 'southbay', 'sf'] },
+  { route: 123, name: 'San Pablo Avenue', keys: ['eastbay'] },
+  { route: 185, name: 'International Boulevard', keys: ['eastbay'] },
+].map(x => Object.freeze({ ...x, keys: Object.freeze(x.keys) })));
+
+/** The street name a state route goes by in this dialect's area, or null (a freeway, or another area). */
+function surfaceStreet(r, key) {
+  if (!r || r.kind !== 'SR') return null;
+  const hit = SURFACE_STREETS.find(s => s.route === r.route && s.keys.includes(key));
+  return hit ? hit.name : null;
+}
 
 // The names older drivers use. `where(lat, lon)` picks the segment when a ZIP is known.
 const FREEWAY_NAMES = [
