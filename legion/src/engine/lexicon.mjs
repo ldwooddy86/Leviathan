@@ -146,54 +146,72 @@ export class Picker {
 function dialectOf(d) { return typeof d === 'string' ? DIALECTS[d] || null : d || null; }
 
 /**
- * The templates a speaker of this dialect and age can use for a category: the dialect's lines, plus the
- * youth lines for speakers under 30 and the elder lines for speakers 60 and over. category 'weather' needs
- * opts.condition (one of WEATHER_CONDITIONS). opts.regional limits the list to family and local lines.
+ * The templates a speaker of this dialect can use for a category in this situation: the dialect's lines, plus
+ * the youth lines for speakers under 30 and the elder lines for speakers 60 and over, minus every line whose
+ * tags the situation or the speaker contradicts (see lexicon/tags.mjs). Category 'weather' needs
+ * opts.condition (one of WEATHER_CONDITIONS); for other categories the condition only filters lines that
+ * assume a kind of weather. opts.regional limits the list to family and local lines; opts.ignoreTags returns
+ * every line regardless of tags (for tools that list the content).
+ *
+ * The situation: t (epoch ms; gives the month and hour) or month and hour, condition, alerts (NWS event names),
+ * offshore, coastKm and county (slotsFor(...).context has them all). Lines that assume a month, an hour, a
+ * kind of weather, an alert, offshore winds, a coast, an inland place or a county are left out when that part
+ * of the situation is not given. The speaker: age (default 40), drives, works, tenure ('own'|'rent'|null),
+ * parent, nativeHere, generation, flat or as opts.speaker (speakerFacts gives them); a fact left undefined
+ * counts as fitting for an adult and not for a minor.
  * @param {string|object} dialect a key or a DIALECTS entry
  * @param {string} category one of LINE_CATEGORIES, or 'weather'
- * @param {{age?: number, condition?: string, regional?: boolean}} [opts]
+ * @param {object} [opts] {age, condition, regional, ignoreTags, t, month, hour, alerts, offshore, coastKm, county,
+ *   drives, works, tenure, parent, nativeHere, generation, speaker}
  * @returns {string[]}
  */
 export function linesFor(dialect, category, opts = {}) {
   const d = dialectOf(dialect);
   if (!d) return [];
-  const { age = 40, condition = null, regional = false } = opts;
-  const bank = regional ? d.regional : d;
+  const ctx = situationOf(opts);
+  const age = Number.isFinite(ctx.age) ? ctx.age : 40;
+  const condition = ctx.condition || null;
+  const bank = opts.regional ? d.regional : d;
   let base;
   if (category === 'weather') base = condition && bank.weather[condition] ? bank.weather[condition] : [];
   else base = bank[category] || [];
-  const out = base.slice();
+  const keep = opts.ignoreTags ? () => true : t => lineFits(t, ctx, true);
+  const out = base.filter(keep);
   if (AGE_CATEGORIES.includes(category)) {
-    if (age < 30) for (const x of d.youth[category] || []) if (!out.includes(x)) out.push(x);
-    if (age >= 60) for (const x of d.elder[category] || []) if (!out.includes(x)) out.push(x);
+    if (age < 30) for (const x of d.youth[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
+    if (age >= 60) for (const x of d.elder[category] || []) if (!out.includes(x) && keep(x)) out.push(x);
   }
   return out;
 }
 
 /**
- * One filled line from a dialect category, or null when no template can be filled from the slots. Leans on
- * the dialect's own (family and local) lines with probability opts.regionalShare, and uses opts.picker to
- * avoid repeating a line within a conversation.
+ * One filled line from a dialect category, or null when no template fits the situation and the speaker and
+ * fills from the slots. Leans on the dialect's own (family and local) lines with probability
+ * opts.regionalShare, and uses opts.picker to avoid repeating a line within a conversation. Word-level
+ * categories (fillers, intensifiers) come back as they go mid-sentence, not capitalized.
  * @param {string|object} dialect
  * @param {string} category one of LINE_CATEGORIES, or 'weather'
  * @param {Rng} rng
- * @param {{age?: number, condition?: string, slots?: object, picker?: Picker, regionalShare?: number}} [opts]
+ * @param {object} [opts] linesFor's options, plus {slots?: object, picker?: Picker, regionalShare?: number}
  * @returns {{text: string, template: string}|null}
  */
 export function pickLine(dialect, category, rng, opts = {}) {
-  const { age = 40, condition = null, slots = {}, picker = null, regionalShare = 0.6 } = opts;
+  const { slots = {}, picker = null, regionalShare = 0.6 } = opts;
   const d = dialectOf(dialect);
   if (!d) return null;
-  const all = linesFor(d, category, { age, condition });
-  const local = linesFor(d, category, { age, condition, regional: true });
-  const pcat = `${d.key}:${category}${condition ? ':' + condition : ''}`;
+  const ctx = situationOf(opts);
+  const condition = ctx.condition || null;
+  const all = linesFor(d, category, ctx);
+  const local = linesFor(d, category, { ...ctx, regional: true });
+  const fillOpts = { capitalize: !WORD_CATEGORIES.includes(category) };
+  const pcat = `${d.key}:${category}${category === 'weather' && condition ? ':' + condition : ''}`;
   const attempt = (pool, cycle) => {
     if (!pool.length) return null;
     if (picker) {
-      const hit = picker.pickWhere(pcat, pool, t => fill(t, slots), rng, cycle);
+      const hit = picker.pickWhere(pcat, pool, t => fill(t, slots, fillOpts), rng, cycle);
       return hit ? { text: hit.value, template: hit.item } : null;
     }
-    for (const t of rng.shuffle(pool.slice())) { const text = fill(t, slots); if (text) return { text, template: t }; }
+    for (const t of rng.shuffle(pool.slice())) { const text = fill(t, slots, fillOpts); if (text) return { text, template: t }; }
     return null;
   };
   // The local lines are a preference: once they are used up the full list carries on, and only when that is

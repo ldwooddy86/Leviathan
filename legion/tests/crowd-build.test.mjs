@@ -521,15 +521,19 @@ test('a million agents statewide build in seconds', () => {
   const cold = buildAgents(world, fresh, { rate, seed: 1, roadNet: buildRoadNet(world), chunkTarget: 131072, onChunk: () => {} }).summary;
   const coldMs = performance.now() - tc;
   // warm: every ZIP's models are fitted now. householdCore alone over the same households, then the whole build;
-  // the difference is the crowd's own work (road network, planner, errands, pick index)
-  let n = 0;
-  const t0 = performance.now();
-  for (let zi = 0; zi < world.N; zi++) { const H = fresh.householdCount(zi); for (let h = 0; h < H; h++) if (fresh.includes(zi, h, rate)) n += fresh.householdCore(zi, h).members.length; }
-  const core = performance.now() - t0;
-  const t1 = performance.now();
-  const chunks = [];
-  const { summary } = buildAgents(world, fresh, { rate, seed: 1, roadNet: buildRoadNet(world), chunkTarget: 131072, onChunk: c => chunks.push(c) });
-  const total = performance.now() - t1;
+  // the difference is the crowd's own work (road network, planner, errands, pick index). Each is timed twice and the
+  // faster run kept, so a busy machine does not decide the result
+  let n = 0, core = Infinity, total = Infinity, chunks = [], summary = null;
+  for (let run = 0; run < 2; run++) {
+    n = 0;
+    const t0 = performance.now();
+    for (let zi = 0; zi < world.N; zi++) { const H = fresh.householdCount(zi); for (let h = 0; h < H; h++) if (fresh.includes(zi, h, rate)) n += fresh.householdCore(zi, h).members.length; }
+    core = Math.min(core, performance.now() - t0);
+    const t1 = performance.now(), got = [];
+    summary = buildAgents(world, fresh, { rate, seed: 1, roadNet: buildRoadNet(world), chunkTarget: 131072, onChunk: c => got.push(c) }).summary;
+    total = Math.min(total, performance.now() - t1);
+    chunks = got;
+  }
   console.log(`statewide: ${summary.agents} agents; cold build ${Math.round(coldMs)} ms (fresh population, its per-ZIP fits included); warm build ${Math.round(total)} ms = householdCore ${Math.round(core)} ms + crowd work ${Math.round(total - core)} ms; ${chunks.length} chunks; record ${summary.bytesPerAgent} B + pick index ${summary.pickBytesPerAgent} B per agent`);
   // picking at the statewide view: 8 pixels at the fit zoom are about 55 units, yet the search settles in the cells
   // by the cursor, so over downtown Los Angeles (the densest cell: freeways from everywhere) it costs about what a
