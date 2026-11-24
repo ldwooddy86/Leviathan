@@ -67,6 +67,10 @@ test('live NWS: the API answer becomes exactly the shape world.weatherAt returns
   for (const k of Object.keys(snap.now)) assert.ok(k in wx.now, `live now has ${k}`);
   assert.equal(wx.live, true);
   assert.equal(wx.stale, false);
+  // the live answer is the forecast for the ZIP's own point: nothing to hedge, nothing borrowed
+  assert.equal(wx.approx, false);
+  assert.equal(wx.basis.kind, 'forecast');
+  assert.equal(wx.basis.point, 'Tujunga');
   assert.ok(wx.now.tempF >= 81 && wx.now.tempF <= 85);
   assert.equal(wx.period.name, 'Today');
   assert.equal(wx.next.length, 2);
@@ -173,6 +177,33 @@ test('services: every engine module is wired, and the persona follows the simula
   svc.setClock(() => T + 7 * 3600000);
   assert.equal(svc.now(), T + 7 * 3600000);
   assert.equal(svc.persona(npc.id).value.t, Math.floor((T + 7 * 3600000) / 3600000) * 3600000);
+});
+
+test('services.safety: a crisis line gets 988 and 911 as a note from Legion on the Claude path too, in Spanish too (rep-28, exp-58)', () => {
+  const svc = services();
+  const crisis = svc.safety('I want to kill myself.', { age: 34 });
+  assert.equal(crisis.kind, 'crisis');
+  assert.match(crisis.note, /988/);
+  assert.match(crisis.note, /911/);
+  const es = svc.safety('Ya no quiero vivir.', { age: 52 });
+  assert.equal(es.kind, 'crisis');
+  assert.match(es.note, /988/);
+  assert.match(es.note, /llame/, 'the note is in Spanish');
+  const teen = svc.safety("I've been cutting myself", { age: 14 });
+  assert.equal(teen.kind, 'crisis', 'at every age');
+  assert.match(teen.note, /988/);
+  // a threat is not part of the game either; it carries no help line of its own
+  const threat = svc.safety("I'm going to burn your house down", { age: 40 });
+  assert.equal(threat && threat.kind, 'threat');
+  // ordinary lines are left alone
+  for (const text of ['How is the weather today?', 'This traffic is killing me', 'I could kill for a burrito', '']) assert.equal(svc.safety(text, { age: 30 }), null, text);
+  // and the offline engine, which acts on the same reading itself, answers with the note and does not pivot
+  const npc = residentOf(svc, '91042');
+  const conv = svc.conversation(npc.id, { t: T }).value;
+  conv.greet();
+  const line = conv.reply('I want to kill myself.');
+  assert.equal(line.safety, 'crisis');
+  assert.match(line.note, /988/);
 });
 
 test('services: an offline conversation hears the persisted mind, and the mind consolidates it', () => {

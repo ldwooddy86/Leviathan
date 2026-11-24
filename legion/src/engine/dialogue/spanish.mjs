@@ -140,7 +140,7 @@ const SAYS = [
   [w('va a llover|lluvia|llueve|tormentas?'), 'is it going to rain'],
   [w('que tiempo|el tiempo|el clima|el pronostico|hace (?:calor|frio|viento)|que (?:calor|frio)'), "what's the weather like"],
   [w('trafico|la autopista|el freeway|la carretera|las carreteras|el traffic'), "how's traffic"],
-  [w('que (?:le|te) preocupa|(?:cual es )?(?:su|tu) (?:mayor |mas grande )?preocupacion|que (?:le|te) quita el sueno|(?:le|te) preocupa algo'), 'what worries you about living here'],
+  [w('que (?:es lo que |cosas? )?(?:mas )?(?:le|te) preocupan?|(?:cual es )?(?:su|tu) (?:mayor |mas grande )?preocupacion|(?:tiene|tienes) (?:alguna |algunas )?preocupacion(?:es)?|que (?:le|te) quita el sueno|(?:le|te) preocupa algo'), 'what worries you about living here'],
   [w('incendios?|fuegos?|el humo'), 'were there fires here'],
   [w('terremotos?|temblor|temblores'), 'do you get earthquakes'],
   [w('inundaciones|inundacion|se inunda|se inundo'), 'does it flood here'],

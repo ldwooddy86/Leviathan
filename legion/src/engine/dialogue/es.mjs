@@ -339,15 +339,36 @@ export const SPANISH = compileBank({
     Ando en clases. || I'm in class.
     Aquí en la escuela. || Here at school.
   `,
+  // a place with no Spanish name here is not named ("la tienda" is said only of the store: act.errandAt)
   'act.errand': `
     Voy a hacer unos mandados. || I'm going to run some errands.
-    Voy a la tienda. || I'm going to the store.
     Ando haciendo mandados. || I'm running errands.
   `,
   'act.errandBack': `
     Vengo de hacer unos mandados. || I'm coming back from some errands.
     Ya hice mis mandados. || I already ran my errands.
-    Voy de regreso de la tienda. || I'm on my way back from the store.
+  `,
+  // the place by name: {placeAEs} "a la lavandería", {placeDeEs} "del parque", {placeEnEs} "en la farmacia"
+  'act.errandAt': `
+    Voy {placeAEs}. || I'm going to {placeLabel}.
+    Ando haciendo mandados. Voy {placeAEs}. || I'm running errands. I'm going to {placeLabel}.
+    Tengo que pasar {placeAEs}. || I have to stop by {placeLabel}.
+  `,
+  'act.errandHere': `
+    Aquí {placeEnEs}, haciendo unos mandados. || Here at {placeLabel}, running some errands.
+    Estoy {placeEnEs}. Luego me voy a la casa. || I'm at {placeLabel}. Then I'm going home.
+  `,
+  'act.errandBackAt': `
+    Vengo {placeDeEs}. || I'm coming back from {placeLabel}.
+    Ya voy de regreso {placeDeEs}. || I'm on my way back from {placeLabel}.
+  `,
+  'act.leisureAt': `
+    Voy {placeAEs} un rato. || I'm going to {placeLabel} for a bit.
+    Voy {placeAEs} a distraerme. || I'm going to {placeLabel} to relax.
+  `,
+  'act.leisureHere': `
+    Aquí {placeEnEs}, un rato. || Here at {placeLabel} for a bit.
+    Estoy {placeEnEs}, distrayéndome un rato. || I'm at {placeLabel}, relaxing for a bit.
   `,
   'act.leisure': `
     Voy a dar una vuelta. || I'm going out for a bit.
@@ -578,11 +599,12 @@ export const SPANISH = compileBank({
     @tu {first}. Mucho gusto. || {first}. Nice to meet you.
     @kid ¡Me llamo {first}! || My name is {first}!
   `,
-  'name.nick': `
-    Pero todos me dicen {nick}. || But everybody calls me {nick}.
-    Mis amigos me dicen {nick}. || My friends call me {nick}.
-    @usted Dígame {nick}, si quiere. || Call me {nick}, if you like.
-    @tu Dime {nick}, si quieres. || Call me {nick}, if you like.
+  'name.giveNick': `
+    Me llamo {given}, pero todos me dicen {first}. || My name is {given}, but everybody calls me {first}.
+    {given}, pero me dicen {first}. || {given}, but they call me {first}.
+    @usted {given}, para servirle. Pero dígame {first}. || {given}, at your service. But call me {first}.
+    @tu Soy {given}, pero dime {first}. || I'm {given}, but call me {first}.
+    @kid ¡Me llamo {given}, pero me dicen {first}! || My name is {given}, but they call me {first}!
   `,
   'name.meet': `
     Mucho gusto, {player}. || Nice to meet you, {player}.
@@ -1948,7 +1970,7 @@ export const SPANISH = compileBank({
     Me acuerdo de {memEs}. Fue muy difícil. || I remember {memTitle}. It was very hard.
     Nunca voy a olvidar {memEs}. || I'll never forget {memTitle}.
     Todavía me acuerdo bien de {memEs}. || I still remember {memTitle} well.
-    Lo que más recuerdo es {memEs}. || What I remember most is {memTitle}.
+    Lo que más recuerdo {esSon} {memEs}. || What I remember most is {memTitle}.
   `,
   'hist.kid': `
     Tengo {age} años. No me acuerdo de mucho. || I'm {age}. I don't remember much.

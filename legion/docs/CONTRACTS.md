@@ -496,7 +496,9 @@ workers})` starts the pool and its pack decoding at page boot; the first Crowd a
 `getGL`, `resize`, `destroy`; events `move`, `click` (with `hit`), `hover`, `leave`, `theme`, `resize`. Dark and light
 themes from CSS custom properties (`--map-*`, `--crowd-*`). On software WebGL (`softwareGL(gl)`: SwiftShader, llvmpipe)
 the base map (fills and lines) is drawn into a texture once per view (camera, size, palette) and copied each frame,
-under the night shade and the layers.
+under the night shade and the layers; `map.idleGapMs` (the crowd sets 500 while it builds) makes a frame only the
+layers asked for wait until the main thread has been free that long (or as long as the last frame took), while a
+camera move, an animation or a theme change draws on the next animation frame.
 
 ## 9. Street view (`street.mjs`)
 
@@ -571,7 +573,7 @@ choosing a speed ends it too), `settings:change
 status}`.
 
 `tools/build.mjs`: esbuild bundles `src/app/main.mjs` and the crowd Worker (as an inline string), inlines the CSS and
-the world pack (gzip, base64) and writes `Legion.html` (deterministic bytes; about 4.8 MB). `--check` verifies the
+the world pack (gzip, base64) and writes `Legion.html` (deterministic bytes; about 5 MB). `--check` verifies the
 page is self-contained and that the pack loads in Node as far as the engine goes.
 
 `cli/legion.mjs`: `sample <zip|city|county|region|CA> [n]`, `npc <id>`, `persona <id>`, `prompt <id>`, `plan <id>

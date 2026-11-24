@@ -61,7 +61,7 @@
 //     only for lines whose language marks them). Brothers and sisters do not share a first name.
 
 import { Rng, hash2, hash3, mix32, u01, clamp } from './rng.mjs';
-import { surname, givenName, nickname, adaptSurname, surnameCustoms, marriedSurname } from './names.mjs';
+import { surname, givenName, nickname, adaptSurname, surnameCustoms, marriedSurname, sameSurnameTradition } from './names.mjs';
 import { OCC_GROUPS, GROUP_PROFILES, OCCUPATION_CATALOG, MIN_WAGE_HOURLY, MIL_PAY_FLOOR, chooseTitle, titleWage } from './occupations.mjs';
 
 /** The default population seed (the year California became a state). */
@@ -1207,7 +1207,7 @@ const ORIGIN_ROWS = {
   marshallese: ['pacific', 'Marshallese American', 0.7, 0.2, 1, 1990, 'marshallese:1', 'Majuro, Marshall Islands:2|Ebeye, Marshall Islands:1'],
   pacificislander: ['pacific', 'Pacific Islander American', 0.3, 0.1, 0.8, 1950, 'samoan:.5 tongan:.5', 'Apia, Samoa:1|Suva, Fiji:1'],
   multiracial: ['multiracial', 'Multiracial', 0.1, 0, 0, 1900, '', 'Manila, Philippines:1|Mexico City:1|Seoul, South Korea:1|London, England:1'],
-  otherrace: ['other', 'American', 0.3, 0.05, 0.5, 1900, 'spanish:.5 portuguese:.5', 'São Paulo, Brazil:1|Mexico City:1|Lima, Peru:1'],
+  otherrace: ['other', 'American', 0.3, 0.05, 0.5, 1900, 'spanish:.5 portuguese:.5', 'São Paulo, Brazil:1@portuguese|Mexico City:1@spanish|Lima, Peru:1@spanish'],
 };
 // Births in the US territories (US citizens or nationals by birth, so native born, never immigrants): where, how many
 // of the origin's US-born adults were born there (the origin row's last field), how often they speak the heritage
@@ -1389,10 +1389,13 @@ function kinship(mem) {
     if (role === 'parent') { if (mem[j].sex === 'F') { if (mom[s] < 0) mom[s] = j; } else if (dad[s] < 0) dad[s] = j; }
   }
   const fits = (q, i) => (q >= 0 && kinGapOk(mem[q].age, mem[q].sex === 'F', mem[i].age) ? q : -1);
+  // the householder or the spouse is a child's parent from 14 years older; a woman no more than 50 years older (else a
+  // stepmother: the wife of a father much older than her)
+  const parentOf = (q, i) => { const d = mem[q].age - mem[i].age; return d >= 14 && (mem[q].sex !== 'F' || d <= 50); };
   const gp = pickGrandParents(mem);
   for (let i = 0; i < n; i++) {
     const role = mem[i].role, age = mem[i].age;
-    if (role === 'child') set(i, mem[0].age >= age + 14 ? 0 : -1, sp > 0 && mem[sp].age >= age + 14 ? sp : -1);
+    if (role === 'child') set(i, parentOf(0, i) ? 0 : -1, sp > 0 && parentOf(sp, i) ? sp : -1);
     else if (i === 0) set(0, mom[0], dad[0]);
     else if (i === sp) set(i, fits(mom[1], i), fits(dad[1], i));
     else if (role === 'sibling') { const s = side[i] ? 1 : 0; set(i, fits(mom[s], i), fits(dad[s], i)); }
@@ -1709,6 +1712,14 @@ function langPrep(core, ori, N, edu, hs, F, by) {
     }
     L.choiceOf[i] = ci;
   }
+  // a child born abroad who came here with a parent of another origin grew up in that parent's language (and is named
+  // in it: _names), not in the language of the heritage layer 0 gave them from their other parent
+  const src = new Int8Array(n);
+  for (let i = 0; i < n; i++) {
+    const c = N.nat[i] ? N.from[i] : -1;
+    src[i] = c >= 0 && ori[c] !== ori[i] && L.choiceOf[c] >= 0 ? c : i;
+    if (src[i] !== i) L.choiceOf[i] = L.choiceOf[c];
+  }
   for (let i = 1; i < n; i++) if (mem[i].role === 'spouse' || mem[i].role === 'partner') { L.spouse = i; break; }
   const outParent = N.out[0] || (L.spouse >= 0 && N.out[L.spouse]);
   for (let i = 0; i < n; i++) {
@@ -1723,7 +1734,8 @@ function langPrep(core, ori, N, edu, hs, F, by) {
     let g = N.gen[i];
     if (terr) g = o.terrNative ? 2 : 1;
     else if (g === 3 && withParent) g = 2;
-    if (L.choiceOf[i] >= 0) L.base[i] = terr ? o.terrLang * o.use : g === 1 ? (p.age >= 18 ? 0.93 : 0.85) * o.use : g === 2 ? (withParent ? 0.66 : 0.42) * o.use : o.retain;
+    const ol = ORIGINS[ori[src[i]]];
+    if (L.choiceOf[i] >= 0) L.base[i] = terr ? o.terrLang * o.use : g === 1 ? (p.age >= 18 ? 0.93 : 0.85) * ol.use : g === 2 ? (withParent ? 0.66 : 0.42) * ol.use : ol.retain;
     // limited English: immigrants (and the Puerto Rico born, who grew up in Spanish) by age at arrival, years here,
     // schooling and age; the US born by age and generation
     const e = eduLevel(edu[i]);
@@ -1824,6 +1836,13 @@ function vetRateAt(F, p) {
   const b = p.age < 35 ? 0 : p.age < 55 ? 1 : p.age < 65 ? 2 : p.age < 75 ? 3 : 4, rate = F.vetRate[(p.sex === 'F' ? 5 : 0) + b];
   return b ? rate : Math.min(1, rate * VET_RAMP(p.age) / VET_RAMP_MEAN);
 }
+
+/** 'Honduran American' + 'Vietnamese American' -> 'Honduran and Vietnamese American' (a label not of that form: the first). */
+const mixedLabel = (a, b) => {
+  const am = / American$/.exec(a), bm = / American$/.exec(b);
+  if (!am || !bm || a === b) return a;
+  return `${a.slice(0, am.index)} and ${b.slice(0, bm.index)} American`;
+};
 
 const SYN_N = 700, SYN_BASE = 0x3f000000;   // synthetic calibration households live past every real household index
 const EDUCATION_KEYS = ['nohs', 'hs', 'somecollege', 'associate', 'bachelor', 'master', 'professional', 'doctorate'];
@@ -1930,8 +1949,11 @@ function schoolOf(p) {
  */
 function pickPlace(places, u, lang, boost, year) {
   let t = 0;
+  // a place tagged with other languages only when none is tagged with the family's (a Portuguese-speaking family from
+  // São Paulo, never Mexico City)
+  const other = lang && places.some(pl => pl.tags.includes(lang)) ? 0 : 0.05;
   const wt = pl => (year !== undefined && pl.from && (year < pl.from || year > pl.to) ? 0 : 1) * pl.w
-    * (!lang || !pl.tags.length ? 1 : pl.tags.includes(lang) ? 4 : 0.05) * (boost && boost[pl.name] ? boost[pl.name] : 1);
+    * (!lang || !pl.tags.length ? 1 : pl.tags.includes(lang) ? 4 : other) * (boost && boost[pl.name] ? boost[pl.name] : 1);
   for (const pl of places) t += wt(pl);
   if (!(t > 0)) return null;
   let x = u * t;
@@ -2805,7 +2827,7 @@ export class Population {
     const roles = SCR_ROLE, sexes = SCR_SEX, ages = SCR_AGE, hers = SCR_HER;
     roles[0] = R_HH; sexes[0] = hs; ages[0] = a0; hers[0] = H;
     let n = 1;
-    let spouseHer = -1, spouseAge = -1, parents = 0, firstParentSex = -1, parentInLaw = false, sibs = false;
+    let spouseHer = -1, spouseAge = -1, spouseSex = -1, parents = 0, firstParentSex = -1, parentInLaw = false, sibs = false;
     // a grown child with children of their own here: once one is drawn (gpar is that member when the householder is
     // old enough to have one) the later slots draw from MIXES_AFTER, and a grandchild's age follows that parent's
     let gpar = -1, gparDrawn = false;
@@ -2836,13 +2858,15 @@ export class Population {
         default: path = P_REL; sex = r.float() < 0.5 ? 0 : 1;
       }
       let age = drawPathAge(path, anchor, r.float());
-      // a child of the couple is also clearly younger than the spouse or partner (up to three redraws: stepchildren
-      // stay possible, a stepparent barely older than the child does not)
-      for (let t = 0; t < 3 && (role === R_CHILD || role === R_GPAR) && spouseAge >= 0 && age > spouseAge - 15; t++) age = drawPathAge(path, a0, r.float());
+      // a child of the couple is also clearly younger than the spouse or partner, and their mother here (the
+      // householder or the wife) no older than 48 at the birth (up to three redraws: stepchildren stay possible, a
+      // stepparent barely older than the child does not, nor a 65-year-old mother of a 7-year-old)
+      const mom = hs ? a0 : spouseSex === 1 ? spouseAge : -1;
+      for (let t = 0; t < 3 && (role === R_CHILD || role === R_GPAR) && ((spouseAge >= 0 && age > spouseAge - 15) || (mom >= 0 && mom - age > 48)); t++) age = drawPathAge(path, a0, r.float());
       let her;
       if (role === R_SPOUSE || role === R_PARTNER) {
         her = r.float() < M.qRace ? (r.float() < Q_KEY[g] ? H : M.herWithin[g].pick(r)) : M.herNotG[g].pick(r);
-        if (spouseHer < 0) { spouseHer = her; spouseAge = age; }
+        if (spouseHer < 0) { spouseHer = her; spouseAge = age; spouseSex = sex; }
       } else if (role === R_CHILD || role === R_GRAND || role === R_GPAR) her = spouseHer < 0 ? H : childHeritage(H, spouseHer, r);
       else if (role === R_ROOM) her = r.float() < 0.45 ? M.herWithin[g].pick(r) : M.herPi.pick(r);
       else {
@@ -3395,6 +3419,14 @@ export class Population {
     D.famLang = mem.map((_, i) => (L.choiceOf[i] >= 0 && L.choices[L.choiceOf[i]].pick ? L.choices[L.choiceOf[i]].pick.key : null));
     this._names(D);
     this._birthplaces(D);
+    // a child whose birthplace (born abroad, come here with a parent) or family name came from the parent of the other
+    // heritage carries both in the label, their own first (layer 0 gave them one parent's heritage)
+    D.labels = mem.map((p, i) => {
+      const own = ORIGINS[ori[i]];
+      if ((p.role !== 'child' && p.role !== 'grandchild') || own.heritage === 'multiracial') return own.label;
+      const other = [N.nat[i] ? N.from[i] : -1, D.line[i]].find(j => j >= 0 && j !== i && ORIGINS[ori[j]].heritage !== own.heritage);
+      return other === undefined ? own.label : mixedLabel(own.label, ORIGINS[ori[other]].label);
+    });
     this._dwellingYears(D);
     D.L = null;   // the language stage's inputs are not needed once English ability is known
     return this._hhLru.set(key, D);
@@ -3457,7 +3489,9 @@ export class Population {
       lang[i] = D.famLang[i]; orig[i] = o.key;
       nh[i] = mem[i].heritage === 'indian' && lang[i] === 'punjabi' && sikhFamily ? 'sikh' : mem[i].heritage;
       gen[i] = N.out[i] && !N.nat[i] ? (o.terrNative ? 2 : 1) : N.gen[i];
-      cust[i] = surnameCustoms(nh[i], { origin: orig[i] });
+      // a native of the 'other' race group is named like any Californian; one born abroad in their country's language
+      if (nh[i] === 'other' && gen[i] !== 1) lang[i] = null;
+      cust[i] = surnameCustoms(nh[i], { origin: orig[i], language: lang[i] });
     }
     const custom = i => cust[i];
     const sikh = i => nh[i] === 'sikh';
@@ -3489,17 +3523,18 @@ export class Population {
       return -1;
     };
 
-    // birth: the surname each was born with; line: the heritage of the family line it came down (its language decides
+    // birth: the surname each was born with; line: the member whose family line it came down (that member's heritage,
+    // origin and language decide
     // whether it has a feminine form)
-    const birth = new Array(n).fill(null), line = new Array(n).fill(null), cur = new Array(n).fill(null), first = new Array(n).fill(null);
-    const absent = new Map();   // a mother's children's absent father: {last, line, given}
+    const birth = new Array(n).fill(null), line = new Int8Array(n).fill(-1), cur = new Array(n).fill(null), first = new Array(n).fill(null);
+    const absent = new Map();   // a mother's children's absent father: {last, line (the member of his people), given}
     const absentFather = (m, i, need) => {
       const pat = custom(i).patronymic;
       if (!(pat || need || uni(hs, m, KA.CUSTOM + 128) < 0.25)) return null;
       if (absent.has(m)) return absent.get(m);
       // a child born abroad who came with their mother: her own people's name
       const s = N.nat[i] && N.from[i] === m ? m : i, r = new Rng(hash2(hs, m * 64 + KA.NAME + 16));
-      const v = { last: surname(r, nh[s], { language: lang[s], origin: orig[s] }), line: nh[s], given: null };
+      const v = { last: surname(r, nh[s], { language: lang[s], origin: orig[s] }), line: s, given: null };
       if (pat) v.given = givenName(r, { heritage: nh[s], sex: 'M', birthYear: by[m] - 3, generation: gen[m], language: lang[s], origin: orig[s], surname: v.last }).split(' ')[0];
       absent.set(m, v);
       return v;
@@ -3509,11 +3544,13 @@ export class Population {
     const birthOf = i => {
       if (birth[i] !== null) return birth[i];
       const role = mem[i].role;
-      let v, ln = nh[i];
+      let v, ln = i;
       if (i === 0 || role === 'spouse' || role === 'partner' || role === 'roommate') {
         v = ownLine(i);
         // spouses of a clan tradition are of different clans
         if ((role === 'spouse' || role === 'partner') && custom(i).clan && custom(0).clan) for (let k = 0; k < 8 && v === birthOf(0); k++) v = ownLine(i);
+        // and of one community where a heritage's families are of several (a Bangladeshi Muslim, Hindu or Buddhist family)
+        if ((role === 'spouse' || role === 'partner') && nh[i] === nh[0]) for (let k = 0; k < 8 && !sameSurnameTradition(nh[i], v, birthOf(0)); k++) v = ownLine(i);
       } else if (role === 'parent') {
         // a father passes the family name down to his child here (his own father's given name where it is patronymic);
         // a mother was born into her own family
@@ -3525,7 +3562,7 @@ export class Population {
       } else if (role === 'sibling') { const c = kid(i); v = birthOf(c); ln = line[c]; }
       else if (role === 'child' || role === 'grandchild') {
         const f = fatherOf(i), m = motherOf(i);
-        if (f >= 0) { v = paternal(f); ln = patronymic(f) ? nh[f] : line[f]; }
+        if (f >= 0) { v = paternal(f); ln = patronymic(f) ? f : line[f]; }
         else if (m >= 0) {
           // a mother's husband living here who is not the child's father (a stepfather): the child has their own father's name
           const a = absentFather(m, i, N.step[i] >= 0 || husbandOf(m) >= 0);
@@ -3539,8 +3576,13 @@ export class Population {
       line[i] = ln;
       return (birth[i] = v);
     };
-    // the feminine form an immigrant woman whose language marks it carries of a surname whose line's language does
-    const fem = (i, name, ln) => (gen[i] === 1 && isF(i) && custom(i).feminine && ln && surnameCustoms(ln).feminine ? adaptSurname(name, { heritage: ln, sex: 'F' }) : name);
+    // the feminine form an immigrant woman whose language marks it carries of a surname whose line's language does too
+    // (the line's heritage, or its origin or language: an Uzbek family's Karimova, a Czech family's Novakova)
+    const fem = (i, name, ln) => {
+      if (!(gen[i] === 1 && isF(i) && custom(i).feminine && ln >= 0)) return name;
+      const o = { origin: orig[ln], language: lang[ln] };
+      return surnameCustoms(nh[ln], o).feminine ? adaptSurname(name, { heritage: nh[ln], sex: 'F', ...o }) : name;
+    };
     function currentOf(i) {
       if (cur[i] !== null) return cur[i];
       const b = birthOf(i);
@@ -3549,7 +3591,7 @@ export class Population {
       else if (isF(i)) {
         const h = husbandOf(i), r = rS(i);
         // the husband's surname: his own, or (a mother whose husband is not here) the family's, which he passed down
-        let his = null, hisLine = null;
+        let his = null, hisLine = -1;
         if (h >= 0) { his = currentOf(h); hisLine = line[h]; }
         else if (h === -2 && !custom(i).patronymic) { const c = kid(i); his = birthOf(c); hisLine = line[c]; }
         if (his !== null) v = marriedSurname(r, { heritage: nh[i], origin: orig[i], generation: gen[i], own: fem(i, b, line[i]), husband: fem(i, his, hisLine) });
@@ -3584,9 +3626,11 @@ export class Population {
     }
     D.names = mem.map((p, i) => {
       const f = givenOf(i), last = currentOf(i);
+      birthOf(i);
       const nick = nickname(new Rng(hash2(hs, i * 64 + KA.NAME + 48)), f, { heritage: nh[i], age: p.age, sex: p.sex, surname: last }) || null;
       return { first: f, last, full: `${f} ${last}`, display: `${nick || f} ${last}`, nick };
     });
+    D.line = line;
   }
 
   /**
@@ -3664,11 +3708,20 @@ export class Population {
     return this._caPlaceCum;
   }
 
-  /** When the household's home was built and when the household moved in. */
+  /**
+   * When the household's home was built and when the household moved in. Around the ZIP's median year built
+   * (yb_med); where that is the Census top code (built 1939 or earlier: world.zip ybBefore1940, the pack's 1938) at
+   * least half the homes are from before 1940, the turn of the century to the thirties, and the rest from the forties on.
+   */
   _dwellingYears(D) {
     const z = this.world.z, zi = D.zi, core = D.core, hs = D.hs;
-    const yb = z.yb_med[zi] || this._col(zi, 'yb_med', 1975);
+    const yb = z.yb_med[zi] || this._col(zi, 'yb_med', 1975), wz = this.world.zip(zi);
     let built = Math.round(yb + 14 * gaussOf(hs, 90, KA.BUILT));
+    if ((wz && wz.ybBefore1940 === true) || yb <= 1939) {
+      built = uni(hs, 90, KA.OLD) < 0.62 && core.dwelling !== 'mobile-home'
+        ? clamp(Math.round(1912 + 12 * gaussOf(hs, 90, KA.BUILT)), 1880, 1939)
+        : clamp(1940 + Math.round(-16 * Math.log(Math.max(1e-6, uni(hs, 92, KA.OLD)))), 1940, YEAR - 1);
+    }
     if (core.dwelling === 'mobile-home') built = clamp(built, 1962, 2022);
     built = clamp(built, 1885, YEAR - 1);
     const owner = core.tenure === 'own';
@@ -3702,7 +3755,9 @@ export class Population {
     const F = this._full(zi);
     if (F.place) return F.place;
     const z = this.world.zip(zi);
-    return (F.place = { zip: z.zip, city: z.city, place: z.placeName, countyName: z.countyName, countyFips: z.countyFips, region: z.regionKey, regionName: z.regionName, province: z.provinceName, zone: z.zoneTitle });
+    // neighborhood: inside the biggest cities, the name residents use for the part of the city the ZIP covers ('the
+    // Mission', 'Boyle Heights'; world.zip), else null; where someone lives is `neighborhood || place || city`
+    return (F.place = { zip: z.zip, city: z.city, place: z.placeName, neighborhood: z.neighborhood || null, countyName: z.countyName, countyFips: z.countyFips, region: z.regionKey, regionName: z.regionName, province: z.provinceName, zone: z.zoneTitle });
   }
 
   /**
@@ -3731,7 +3786,7 @@ export class Population {
     const npc = {
       id: `${c.id}-${m}`, hid: c.id, zip: z.zip, zi, h, m,
       role: p.role, sex: p.sex, age: p.age, birthYear: D.birthYear[m], pronouns: p.sex === 'F' ? 'she/her' : 'he/him',
-      race: RACES[H_GROUP[H_INDEX[p.heritage]]], heritage: p.heritage, heritageLabel: o.label, origin: o.key,
+      race: RACES[H_GROUP[H_INDEX[p.heritage]]], heritage: p.heritage, heritageLabel: D.labels[m], origin: o.key,
       nativity: D.N.nat[m] ? 'foreign' : 'native', generation: D.N.gen[m], arrivalYear: D.N.nat[m] ? D.N.arr[m] : null, birthplace: D.birthplace[m],
       mainlandYear: !D.N.nat[m] && D.N.out[m] ? D.N.arr[m] : null,
       name: { ...D.names[m] },

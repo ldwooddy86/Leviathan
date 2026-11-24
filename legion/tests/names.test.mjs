@@ -693,6 +693,64 @@ test('feminine surname forms for immigrant women of Slavic and Greek families', 
   assert.ok(greek.some(s => /idou$/.test(s)) && greek.every(s => !/i?adi$|idi$/.test(s)), 'no Georgiadi or Michailidi');
 });
 
+test('European immigrants, Iu Mien and other-race families born abroad are named in their own language; one community per Bangladeshi family', () => {
+  const r = new Rng(77);
+  const pool = (h, o) => new Set(surnamePool(h, o).map(x => x.name));
+  const given = (h, sex, o) => new Set([0, 1, 2, 3].flatMap(e => givenPool(h, sex, e, 1, o).map(x => x.name)));
+  // origin (or, for the origins of several languages, the family's language) decides the pools, given names and surnames alike
+  const cases = [
+    ['european', { origin: 'turkish', language: 'turkish' }, 'Yilmaz', 'Mehmet'], ['european', { origin: 'israeli', language: 'hebrew' }, 'Cohen', 'Yosef'],
+    ['european', { origin: 'basque', language: 'basque' }, 'Echeverria', 'Inaki'], ['european', { origin: 'hungarian', language: 'hungarian' }, 'Nagy', 'Laszlo'],
+    ['european', { origin: 'czech', language: 'czech' }, 'Novak', 'Jiri'], ['european', { origin: 'romanian', language: 'romanian' }, 'Popescu', 'Ion'],
+    ['european', { origin: 'european', language: 'serbian' }, 'Jovanovic', 'Dragan'], ['european', { origin: 'european', language: 'bulgarian' }, 'Ivanov', 'Georgi'],
+    ['european', { origin: 'european', language: 'albanian' }, 'Krasniqi', 'Arben'], ['european', { origin: 'european', language: 'finnish' }, 'Korhonen', 'Juha'],
+    ['european', { origin: 'swiss', language: 'french' }, 'Dubois', null], ['european', { origin: 'canadian' }, 'Smith', null],
+    ['lao', { origin: 'mien', language: 'mien' }, 'Saechao', 'Kouichoy'], ['other', { origin: 'otherrace', language: 'portuguese' }, 'Silva', null],
+  ];
+  for (const [h, o, sur, first] of cases) {
+    const sp = pool(h, o), gp = given(h, 'M', o);
+    assert.ok(sp.has(sur), `${h} ${JSON.stringify(o)}: ${sur} in the surname pool`);
+    if (first) assert.ok(gp.has(first), `${h} ${JSON.stringify(o)}: ${first} among the given names`);
+    for (let k = 0; k < 60; k++) {
+      const last = surname(r, h, o);
+      assert.ok(sp.has(last), `${h} ${JSON.stringify(o)} drew ${last}`);
+      const g = givenName(r, { heritage: h, sex: k % 2 ? 'F' : 'M', birthYear: 1975, generation: 1, nativity: 'foreign', surname: last, ...o });
+      if (first && k % 2 === 0) assert.ok(gp.has(g) || generalSet('M', 1).has(g) || givenPool('english', 'M', 1, 1).some(x => x.name === g), `${h} ${JSON.stringify(o)}: ${g} ${last}`);
+    }
+  }
+  // most Mien immigrants carry a Mien clan name; a Turkish one never a Polish or Scandinavian name
+  const mien = draw(400, () => surname(r, 'lao', { origin: 'mien', language: 'mien' }));
+  assert.ok(share(mien, s => /^Sae|^(Chao|Lee|Phan|Fong|Teurn|Liew|Tang|Chin)$/.test(s)) === 1);
+  const turks = draw(400, () => surname(r, 'european', { origin: 'turkish', language: 'turkish' }));
+  assert.ok(turks.every(s => !surnamePool('polish').some(x => x.name === s) && !surnamePool('scandinavian').some(x => x.name === s)));
+  // feminine forms where the language marks them: Czech and Bulgarian immigrant women
+  assert.equal(adaptSurname('Novotny', { heritage: 'european', sex: 'F', origin: 'czech' }), 'Novotna');
+  assert.equal(adaptSurname('Novak', { heritage: 'european', sex: 'F', origin: 'czech' }), 'Novakova');
+  assert.equal(adaptSurname('Prochazka', { heritage: 'european', sex: 'F', origin: 'czech' }), 'Prochazkova');
+  assert.equal(adaptSurname('Ivanov', { heritage: 'european', sex: 'F', origin: 'european', language: 'bulgarian' }), 'Ivanova');
+  assert.equal(adaptSurname('Jovanovic', { heritage: 'european', sex: 'F', origin: 'european', language: 'serbian' }), 'Jovanovic');
+  assert.equal(adaptSurname('Karimov', { heritage: 'asian', sex: 'F', origin: 'uzbek' }), 'Karimova');
+  assert.ok(surnameCustoms('european', { origin: 'czech' }).feminine && surnameCustoms('european', { origin: 'european', language: 'bulgarian' }).feminine && !surnameCustoms('european', { origin: 'turkish' }).feminine);
+  // a Bangladeshi family's given names follow its surname's community: no Mohammad Das, no Abdur Ghosh
+  const hindu = new Set(surnamePool('bangladeshi').map(x => x.name).filter(n => ['Das', 'Roy', 'Saha', 'Ghosh', 'Dey', 'Barua', 'Chakma'].includes(n)));
+  const muslimGiven = new Set([...given('bangladeshi', 'M', { language: 'bengali' })].filter(g => /^(Mohammad|Mohammed|Abdul|Abdur|Rafiq|Kamal|Jamal|Habibur|Mizanur|Shafiqul)$/.test(g)));
+  assert.equal(hindu.size, 7);
+  for (const last of hindu) for (let k = 0; k < 40; k++) {
+    const g = givenName(r, { heritage: 'bangladeshi', sex: 'M', birthYear: 1970, generation: 1, nativity: 'foreign', surname: last });
+    assert.ok(!muslimGiven.has(g), `${g} ${last}`);
+  }
+});
+
+test('notorious Californians, current officials and joke names are refused', () => {
+  for (const [f, l] of [['Richard', 'Ramirez'], ['Richard', 'Ramírez'], ['Charles', 'Manson'], ['Scott', 'Peterson'], ['Barbara', 'Lee'], ['Norma', 'Torres'],
+    ['Derek', 'Tran'], ['Young', 'Kim'], ['Janice', 'Hahn'], ['Shirley', 'Weber'], ['Kevin', 'de León'], ['Raul', 'Ruiz'], ['Juan', 'Vargas'], ['Jimmy', 'Gomez'],
+    ['Karen', 'Bass'], ['Gavin', 'Newsom'], ['Rob', 'Bonta'], ['Holly', 'Wood'], ['Robin', 'Banks']]) assert.ok(isReservedName(f, l), `${f} ${l}`);
+  assert.ok(!isReservedName('Richard', 'Garcia') && !isReservedName('Barbara', 'Lopez'));
+  // the population's draws never land on them (a redraw of the given name when the household surname is known)
+  const r = new Rng(31);
+  for (let k = 0; k < 3000; k++) assert.ok(!isReservedName(givenName(r, { heritage: 'mexican', sex: 'M', birthYear: 1960, generation: 2, surname: 'Ramirez' }), 'Ramirez'));
+});
+
 test('keys that only exist on Object.prototype fall back like any unknown key instead of crashing', () => {
   const rng = new Rng(43);
   for (const key of ['toString', 'constructor', '__proto__', 'hasOwnProperty', 'valueOf']) {

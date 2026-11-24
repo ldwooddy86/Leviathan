@@ -86,7 +86,7 @@ export const PEOPLE = compileBank({
     I'm {first}, by the way.
     I'm {first}.
     I don't think we've met. I'm {first}.
-    @formal I don't believe we've met. I'm {full}.
+    @formal I don't believe we've met. I'm {display}.
     @outgoing I'm {first}. I live around here.
     @kid I'm {first}!
   `,
@@ -165,6 +165,17 @@ export const PEOPLE = compileBank({
   'act.errandBack': `
     Just got back from {placeLabel}.
     Coming back from {placeLabel}.
+  `,
+  // already there: at the store, the pharmacy, the laundromat; at the park, the beach, the game
+  'act.errandHere': `
+    I'm at {placeLabel}, running errands.
+    Just taking care of a few things at {placeLabel}.
+    Errands. {placeLabelCap} right now, then home.
+  `,
+  'act.leisureHere': `
+    I'm at {placeLabel} for a bit.
+    Just spending some time at {placeLabel}.
+    Enjoying {placeLabel} while I can.
   `,
   'act.leisure': `
     Heading to {placeLabel}.
@@ -374,17 +385,22 @@ export const PEOPLE = compileBank({
     {first}.
     Name's {first}.
     It's {first}.
-    @plain My name is {full}.
-    @formal {full}. Pleased to meet you.
+    @plain My name is {display}.
+    @formal {display}. Pleased to meet you.
     @loose I'm {first}. Nice to meet you.
     @kid I'm {first}!
     @kid My name is {first}.
     @senior {first}. {full}, if you want the whole thing.
   `,
-  'name.nick': `
-    Everybody calls me {nick}, though.
-    But call me {nick}. Everybody does.
-    My friends call me {nick}.
+  // they go by a nickname ("Dot", "James"): the name on paper and the one they go by, which the panel shows
+  'name.giveNick': `
+    {given}, but most people call me {first}.
+    It's {given}, but everybody calls me {first}.
+    I'm {first}. {given} on paper, but nobody calls me that.
+    @plain My name is {given}, but people call me {first}.
+    @formal {full}. But please, call me {first}.
+    @kid My name's {given}, but everybody calls me {first}!
+    @senior {first}. {full}, if you want the whole thing.
   `,
   'name.meet': `
     Nice to meet you, {player}.

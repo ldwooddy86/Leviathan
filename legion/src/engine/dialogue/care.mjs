@@ -99,11 +99,11 @@ export function careReply(S, safety) {
   }
   // sexual lines, advances and lures
   if (minor) {
-    const key = safety.sub === 'location' || safety.sub === 'alone' ? 'safe.minor.where' : 'safe.minor';
+    const key = safety.sub === 'location' || safety.sub === 'alone' || safety.sub === 'visit' ? 'safe.minor.where' : 'safe.minor';
     return { parts: [sayAny(S, key, slots) || sayAny(S, 'safe.minor', slots)], note: null, ended: true, emotion: 'anxious', sting: 1.4 };
   }
   if (safety.sub === 'romance') return { parts: [sayAny(S, 'safe.romance', slots)], note: null, ended: false, emotion: 'annoyed', sting: 0 };
-  const key = safety.sub === 'lure' ? 'safe.lure' : safety.sub === 'alone' ? 'safe.alone' : 'safe.sexual';
+  const key = safety.sub === 'lure' ? 'safe.lure' : safety.sub === 'alone' || safety.sub === 'visit' ? 'safe.alone' : 'safe.sexual';
   return { parts: [sayAny(S, key, slots) || sayAny(S, 'safe.sexual', slots)], note: null, ended: true, emotion: 'angry', sting: 1.4 };
 }
 

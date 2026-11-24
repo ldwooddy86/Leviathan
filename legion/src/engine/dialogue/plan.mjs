@@ -345,7 +345,7 @@ export function baseSlots(v) {
   const yearMoved = hhYear !== null && zipSince !== null ? Math.max(hhYear, zipSince) : hhYear !== null ? hhYear : zipSince;
   const zipYears = zipSince !== null && year - zipSince >= 1 ? year - zipSince : null;
   return {
-    first: v.first, full: v.full, nick: v.nick, place: v.lex.values.place || v.z.city, city: v.z.city, county: v.z.countyName,
+    first: v.first, given: v.given, full: v.full, display: v.display, nick: v.nick, place: v.lex.values.place || v.z.city, city: v.z.city, county: v.z.countyName,
     region: v.lex.values.region, homeWord: v.homeWord, aHome: withArticle(v.homeWord === 'apartment' && v.hh.dwelling === 'small-apartment' ? 'small apartment' : v.homeWord),
     unHomeEs: { house: 'una casa', apartment: 'un apartamento', 'mobile home': 'una casa móvil', place: 'una casa' }[v.homeWord] || 'una casa',
     yearMoved, yearsHere: isNum(yearMoved) && year - yearMoved >= 1 ? numWord(year - yearMoved) : null,
@@ -496,6 +496,11 @@ function femaEs(f) {
   const what = FEMA_KIND_ES[f && f.kind] || 'las tormentas';
   const w = titleWhen(f && f.title);
   return w ? `${what} de ${w.m ? mesAno({ y: w.y, m: w.m }) : w.y}` : `${what} que hubo`;
+}
+
+/** "es" or "son", agreeing with a Spanish noun phrase ("son los incendios", "es el incendio Bobcat"). */
+export function copulaEs(phrase) {
+  return /^(?:los|las|mis|sus|tus|unos|unas)\s/i.test(String(phrase || '').trim()) ? 'son' : 'es';
 }
 
 /** "January to April 2023" → "enero a abril de 2023". */
@@ -681,6 +686,16 @@ function worksToday(v) {
   return !!(days & (1 << v.P.dow));
 }
 
+/**
+ * Their name, as they would give it: the one they go by, and when that is a nickname, the one on paper with it
+ * ("Jung-ho, but most people call me James"; "Dot. Dorothy Smith-Hunter, if you want the whole thing").
+ */
+function giveName(S, slots) {
+  const v = S.v;
+  const nick = v.nick && v.given && v.nick !== v.given;
+  return (nick ? say(S, 'name.giveNick', slots) : null) || say(S, 'name.give', slots);
+}
+
 P.name = (S, u) => {
   const v = S.v, st = S.st, parts = [];
   const given = u.appraisal.facts.find(f => f.key === 'name');
@@ -695,7 +710,7 @@ P.name = (S, u) => {
     parts.push(say(S, 'name.meet', { player: first }) || say(S, 'react.name', { player: first }));
     // ("I'm Marcus. What's your name?" is answered, even when the greeting already gave it)
     const asked = /\bwhat'?s your name\b|\bwhat is your name\b|\byour name\?|\bwho are you\b|\band you\?/.test(u.norm);
-    if (!st.gaveName || asked) { parts.push(say(S, 'name.give', { _avoid: /\b(?:meet|pleasure|pleased)\b/i }) || say(S, 'name.give')); st.gaveName = true; }
+    if (!st.gaveName || asked) { parts.push(giveName(S, { _avoid: /\b(?:meet|pleasure|pleased)\b/i }) || giveName(S)); st.gaveName = true; }
     return { parts, topics: ['self'], noAsk: true, learnedName: first };
   }
   if (/remember my name|what'?s my name|who am i/.test(u.norm)) {
@@ -704,10 +719,7 @@ P.name = (S, u) => {
   }
   if (st.gaveName) parts.push(say(S, 'name.again'));
   else if (v.relq.guarded) parts.push(say(S, 'name.guarded'));
-  else {
-    parts.push(say(S, 'name.give'));
-    if (v.nick && v.nick !== v.first) parts.push(say(S, 'name.nick'));
-  }
+  else parts.push(giveName(S));
   st.gaveName = true;
   return { parts, topics: ['self'], ask: v.relq.name ? null : 'name', askBoost: 0.4 };
 };
@@ -1110,7 +1122,7 @@ P['about-them'] = (S, u) => {
     if (v.team && !teamSaid && S.rng.chance(0.5)) parts.push(say(S, 'about.team', {}, ['persona.teams']));
     ask = 'weekend';
   } else {
-    if (!S.st.gaveName) { parts.push(say(S, 'name.give')); S.st.gaveName = true; }
+    if (!S.st.gaveName) { parts.push(giveName(S)); S.st.gaveName = true; }
     const job = P.job(S, u, { brief: true });
     parts.push(...job.parts.slice(0, 1));
     parts.push(...originParts(S).slice(0, 1));
@@ -2826,8 +2838,9 @@ P.history = (S, u) => {
     }
     const id = memoryFact(m);
     const title = memTitleOf(m);
-    const p = say(S, 'hist.event', { memTitle: title, memTitleCap: capFirst(title), exp: m.experience || null, memEs: memoryEs(m) }, [id, 'persona.memory'])
-      || say(S, 'hist.event', { memTitle: title, memTitleCap: capFirst(title), exp: '', memEs: memoryEs(m) }, [id]);
+    const memEs = memoryEs(m), esSon = copulaEs(memEs);
+    const p = say(S, 'hist.event', { memTitle: title, memTitleCap: capFirst(title), exp: m.experience || null, memEs, esSon }, [id, 'persona.memory'])
+      || say(S, 'hist.event', { memTitle: title, memTitleCap: capFirst(title), exp: '', memEs, esSon }, [id]);
     if (p) { p.mem = m.source; parts.push(p); st.usedMemories.add(m.source); if (id) st.used.add(id); }
   }
   if (oldDays && S.rng.chance(0.6)) parts.push(say(S, 'hist.then'));
@@ -2895,10 +2908,12 @@ function concernTalk(S, topic) {
  */
 function worryTalk(S, u) {
   const v = S.v, st = S.st;
+  // "any worries about the schools?": the worry named
+  if (u.entities && u.entities.concern && CONCERN_KEYS[u.entities.concern]) return concernTalk(S, u.entities.concern);
   const c = (v.p.concerns || []).filter(x => x && x.topic).slice().sort((a, b) => num(b.weight) - num(a.weight))[0];
   if (!c) return { parts: [say(S, 'worry.none')], topics: ['opinion'], ask: null };
   const words = CONCERN_WORDS[c.topic] || [c.topic, null];
-  const parts = [say(S, 'worry.top', { concern: words[0], concernCap: capFirst(words[0]), concernEs: words[1], esSon: /^(?:los|las|mis|sus) /.test(String(words[1] || '')) ? 'son' : 'es' }, ['persona.concerns'])];
+  const parts = [say(S, 'worry.top', { concern: words[0], concernCap: capFirst(words[0]), concernEs: words[1], esSon: copulaEs(words[1]) }, ['persona.concerns'])];
   const area = { fire: 'fire', smoke: 'fire', insurance: 'insurance', rent: 'rent', housing: 'housing', commute: 'traffic', heat: 'heat', storms: 'storm', flooding: 'storm', wind: 'storm', earthquakes: 'earthquake' }[c.topic]
     || { fire: 'fire', insurance: 'insurance', rent: 'rent', housing: 'housing', traffic: 'traffic', heat: 'heat', storm: 'storm', earthquake: 'earthquake' }[c.area] || null;
   if (area && P[area]) {
@@ -3237,21 +3252,50 @@ function favoriteParts(S, u) {
   return [say(S, 'fav.taste')];
 }
 
-/** "Just heading to the grocery store": what they are doing right now. */
+// A place an errand or an outing takes them to, in Spanish, by its kind: [article, noun]. A place not here is said
+// without its name ("Ando haciendo mandados"), never as another place ("Voy a la tienda" on the way to the laundromat).
+const PLACE_ES = {
+  grocery: ['la', 'tienda'], pharmacy: ['la', 'farmacia'], laundromat: ['la', 'lavandería'], hardware: ['la', 'ferretería'],
+  'post-office': ['el', 'correo'], park: ['el', 'parque'], gym: ['el', 'gimnasio'], beach: ['la', 'playa'], stadium: ['el', 'estadio'],
+};
+
+/**
+ * "al parque", "de la farmacia", "en la lavandería": a place's Spanish slots. A place known by its own name ("Lake
+ * Casitas", "Santa Monica Bay") is said by it in Spanish too; in plain English only the English side is shown, so any
+ * place will do there. {} when the place has no Spanish here.
+ */
+function placeEsSlots(place, mode) {
+  const e = place && PLACE_ES[place.kind];
+  if (e) {
+    const [art, noun] = e;
+    return { placeAEs: art === 'el' ? `al ${noun}` : `a la ${noun}`, placeDeEs: art === 'el' ? `del ${noun}` : `de la ${noun}`, placeEnEs: `en ${art} ${noun}` };
+  }
+  const label = place && place.kind !== 'home' ? str(place.label) : null;
+  if (label && (mode === 'simple' || (/^[A-Z]/.test(label) && !/^The\b/.test(label)))) return { placeAEs: `a ${label}`, placeDeEs: `de ${label}`, placeEnEs: `en ${label}` };
+  return {};
+}
+
+/** "Just heading to the grocery store", "I'm at the laundromat": what they are doing right now, at the place they are. */
 export function activityLine(S) {
   const v = S.v, a = v.activity;
   if (!a) return say(S, 'act.home');
   const back = a.traveling && a.place && a.place.kind === 'home';
   const label = String(back ? a.label || '' : (a.place && a.place.label) || a.label || '').replace(/^home from /, '');
   const slots = { placeLabel: label, placeLabelCap: capFirst(label), city: a.place && a.place.city ? a.place.city : (str(label) && /^family in (.+)$/.exec(label) || [])[1] || null };
+  // the place by name in Spanish (and in plain English, which reads the Spanish lines' glosses)
+  const es = v.lang.mode !== 'en' ? placeEsSlots(back ? a.from : a.place, v.lang.mode) : {};
+  Object.assign(slots, es);
   const facts = ['schedule.activity'];
+  // there already ("I'm at the laundromat"), on the way ("Heading to the park"), or on the way back
+  const at = !a.traveling && !back && label && a.place && a.place.kind !== 'home';
+  const named = (key, fallback) => (es.placeAEs || (v.lang.mode === 'en' && at) ? say(S, key, slots, facts) : null) || say(S, fallback, slots, facts);
   switch (a.kind) {
     case 'commute': return a.leg === 'back' ? say(S, a.place && a.place.kind === 'home' && v.npc.school && v.age < 18 ? 'act.schoolBack' : 'act.commuteBack', slots, facts)
       : say(S, v.npc.school && v.age < 18 ? 'act.schoolOut' : 'act.commuteOut', slots, facts);
     case 'work': return say(S, a.place && a.place.kind === 'home' ? (v.flags.onFarm ? 'act.onFarm' : 'act.wfh') : 'act.work', slots, facts);
     case 'school': return say(S, 'act.school', slots, facts);
-    case 'errand': return say(S, back ? 'act.errandBack' : 'act.errand', slots, facts);
-    case 'leisure': return say(S, back ? 'act.errandBack' : 'act.leisure', slots, facts);
+    case 'errand': return back ? named('act.errandBackAt', 'act.errandBack') : named(at ? 'act.errandHere' : 'act.errandAt', 'act.errand');
+    case 'leisure': return back ? named('act.errandBackAt', 'act.errandBack') : named(at ? 'act.leisureHere' : 'act.leisureAt', 'act.leisure');
     case 'exercise': return say(S, back ? 'act.exerciseBack' : 'act.exercise', slots, facts);
     case 'worship': return say(S, 'act.worship', slots, facts);
     case 'visit': return say(S, 'act.visit', slots, facts) || say(S, 'act.leisure', slots, facts);
@@ -3287,7 +3331,7 @@ export function pivot(S, opts = {}) {
       const c = (v.p.concerns || []).find(x => (CONCERN_WORDS[x.topic] || [])[0] === h.text || x.area === h.topic);
       const words = c && CONCERN_WORDS[c.topic] ? CONCERN_WORDS[c.topic] : [h.text, null];
       // ("lo que me preocupa son los incendios": the verb agrees with a plural worry)
-      p = say(S, 'pivot.concern', { concern: words[0], concernCap: capFirst(words[0]), concernEs: words[1], esSon: /^(?:los|las|mis|sus) /.test(String(words[1] || '')) ? 'son' : 'es' }, ['persona.concerns']);
+      p = say(S, 'pivot.concern', { concern: words[0], concernCap: capFirst(words[0]), concernEs: words[1], esSon: copulaEs(words[1]) }, ['persona.concerns']);
       if (p) st.pivotIntent = { fire: 'fire', insurance: 'insurance', rent: 'rent', housing: 'housing', traffic: 'traffic', weather: 'weather', job: 'job', family: 'family', neighborhood: 'neighborhood' }[h.topic] || null;
     } else if (h.kind === 'interest') {
       const det = (v.p.interestDetails || []).find(d => d.name === h.text);
@@ -3300,7 +3344,7 @@ export function pivot(S, opts = {}) {
       if (p) st.pivotIntent = 'about-them';
     } else if (h.kind === 'memory') {
       const m = (v.p.memories || []).find(x => (x.title || x.text) === h.text);
-      if (m) { p = say(S, 'pivot.memory', { memTitle: memTitleOf(m), memEs: memoryEs(m) }, [memoryFact(m)]); if (p) st.usedMemories.add(m.source); }
+      if (m) { const memEs = memoryEs(m); p = say(S, 'pivot.memory', { memTitle: memTitleOf(m), memEs, esSon: copulaEs(memEs) }, [memoryFact(m)]); if (p) st.usedMemories.add(m.source); }
       if (p) st.pivotIntent = m && m.kind === 'fire' ? 'fire' : 'history';
     } else if (h.kind === 'family') {
       p = say(S, 'pivot.family', {}, [REC.home]);
@@ -3358,7 +3402,7 @@ function answerBack(S, key, u) {
     case 'weekend': return interestParts(S, 1);
     case 'food': return [say(S, 'food.mine')];
     case 'team': return v.team ? [say(S, 'about.team', {}, ['persona.teams'])] : [say(S, 'small.noSports')];
-    case 'name': return S.st.gaveName ? [] : [say(S, 'name.give')];
+    case 'name': return S.st.gaveName ? [] : [giveName(S)];
     default: return [];
   }
 }

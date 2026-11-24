@@ -292,10 +292,15 @@ export function makeVoice(world, persona, opts = {}) {
   const context = Object.assign({}, lex.context, { condition: sky, alerts: alerts.map(a => String(a.event)) });
 
   const names = npc.name || {};
+  const goBy = str(names.nick) || str(names.first) || (str(names.display) ? String(names.display).split(' ')[0] : null) || 'me';
   const v = {
     world, p: persona, npc, zi, z, t, P, hour: P.hour, month: P.month, weekend: P.dow === 0 || P.dow === 6,
     key, D, age, stage, sex: npc.sex === 'F' ? 'F' : 'M',
-    first: str(names.first) || str(names.display) || 'me', full: str(names.full) || str(names.display) || str(names.first) || null,
+    // the name they go by, the one the panel shows: the nickname when there is one ("Dot", "James"), else the given name;
+    // given is the name on paper ("Dorothy", "Jung-ho"), said along with it when they introduce themselves
+    first: goBy, given: str(names.first) || goBy,
+    full: str(names.full) || str(names.display) || str(names.first) || null,
+    display: str(names.display) || [goBy, str(names.last)].filter(Boolean).join(' '),
     nick: str(names.nick),
     reg, verb: num(speech.verbosity, 0.5), humor: num(speech.humor, 0.4), humorStyle: str(speech.humorStyle) || 'wry',
     direct: num(speech.directness, 0.5), slang: num(speech.slang, 0.2), fillers: Array.isArray(speech.fillers) ? speech.fillers.slice() : [],

@@ -187,6 +187,9 @@ function idle(fn) {
 
 /** Agents of a Worker build checked against the main thread's population (one per idle callback). */
 const VERIFY_SAMPLES = 6;
+// while a build streams in on software WebGL, the main thread is left free at least this long between frames
+// (map.idleGapMs): every chunk asks for a frame, and each frame there takes most of a second
+const BUILD_IDLE_GAP_MS = 500;
 
 /**
  * Workers for a build: one per core the page can spare (the main thread keeps one), at most four, and at most two
@@ -502,6 +505,8 @@ export class Crowd {
     const f = focus === false ? null : focus || { x: this.map.camera.x, y: this.map.camera.y };
     const t0 = performance.now();
     this.building = true;
+    this._expected = Math.min(est, this.maxAgents);
+    this.map.idleGapMs = BUILD_IDLE_GAP_MS;
     let summary;
     try {
       // a build this page's code and pack made before, at this density: loaded, checked, done
@@ -517,7 +522,12 @@ export class Crowd {
           summary = await this._buildOnMain(id, onProgress, f); this.mode = 'main';
         }
       } else { summary = await this._buildOnMain(id, onProgress, f); this.mode = 'main'; }
-    } finally { if (id === this._buildId) { this.building = false; this._job = null; } }
+    } finally {
+      if (id === this._buildId) {
+        this.building = false; this._job = null;
+        if (!this._destroyed) { this.map.idleGapMs = 0; this.map.requestRender(); }
+      }
+    }
     if (!summary || summary.cancelled) return summary || { cancelled: true, agents: this.count };
     const pickPer = summary.agents ? (summary.pickBytes || 0) / summary.agents : 0;
     summary = Object.assign({}, summary, {
@@ -1136,7 +1146,10 @@ export class Crowd {
     this._frameT = now;
     // a software rasterizer draws at most a budget; beyond that, frames that keep coming slowly (an animation, a
     // drag) lower the share and frames with headroom raise it again
-    if (this.software && this.count) this.keep = Math.min(this.keep, Math.max(0.05, 300000 / this.count));
+    // (while a build streams in, by the crowd it will have: a share that fell with every chunk made each frame build
+    // every chunk's index of kept agents again)
+    const n = Math.max(this.count, this.building ? this._expected || 0 : 0);
+    if (this.software && n) this.keep = Math.min(this.keep, Math.max(0.05, 300000 / n));
     if (!(dt > 0) || dt > 400) { this._slow = 0; this._fast = 0; return; }
     if (dt > 26) { this._slow++; this._fast = 0; } else if (dt < 17.5) { this._fast++; this._slow = 0; } else { this._slow = 0; this._fast = 0; }
     if (this._slow > 40) { this.keep = Math.max(0.05, this.keep * 0.8); this._slow = 0; }

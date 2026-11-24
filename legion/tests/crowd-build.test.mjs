@@ -98,9 +98,13 @@ test('ids decode to valid people whose householdCore matches the stored mode and
     checked++;
   }
   assert.ok(checked > 5000);
-  // commuteTiming keeps a commute day shorter than a day and marks "never departs"
+  // commuteTiming marks "never departs", wraps the departure into the day, caps a commute at six hours and the time
+  // away at a day, and keeps a commute day longer than 24 hours whole (the position function looks back two days:
+  // fid-26; it used to cut this one's 900 minutes at work to 710)
   assert.deepEqual(commuteTiming({ departMin: null, commuteMin: 0, dwellMin: 0 }), [NO_DEPART, 0, 0]);
-  assert.deepEqual(commuteTiming({ departMin: 1500, commuteMin: 400, dwellMin: 900 }), [60, 360, 710]);
+  assert.deepEqual(commuteTiming({ departMin: 1500, commuteMin: 400, dwellMin: 900 }), [60, 360, 900]);
+  assert.deepEqual(commuteTiming({ departMin: 447, commuteMin: 16, dwellMin: 1440 }), [447, 16, 1440]);
+  assert.deepEqual(commuteTiming({ departMin: 1500, commuteMin: 400, dwellMin: 1500 }), [60, 360, 1440]);
 });
 
 test('every member of a sampled household is an agent, and nothing else is', () => {

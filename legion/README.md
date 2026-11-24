@@ -17,7 +17,10 @@ What you see when you open it:
 
 * **The state, moving.** A map of California with a crowd of about a million of these people (2.5% of the
   residents by default, from 0.5% to 10%) walking, driving the real state highways, riding transit and cycling on
-  their own daily schedules. At 8 AM on a Tuesday the freeways fill; at 3 AM they empty.
+  their own daily schedules. At 8 AM on a Tuesday the freeways fill; at 3 AM they empty; on a Saturday afternoon the
+  people without a shift are out on errands and visits. Zoom in on a city (a view under 60 km across) and the people
+  who live there fill in, up to 1.5 million more. At the busiest moment, a weekday at 7:45 AM, about 108,000 of the
+  default crowd are on the move at once (11%), 433,000 at the 10% maximum; on a Saturday afternoon about 7%.
 * **Any place, explained.** Click a ZIP (or search a city, county or region) for its weather, its numbers, the
   languages and heritages its residents report to the Census, how they get to work, twelve residents to meet, and
   the Census shares next to the shares of the people Legion generated for it.
@@ -28,7 +31,7 @@ What you see when you open it:
 
 ## Open it
 
-`Legion.html` is one self-contained file (about 4.8 MB): the world pack, the code and the Anthropic SDK are inside
+`Legion.html` is one self-contained file (about 5 MB): the world pack, the code and the Anthropic SDK are inside
 it. Double-click it, or drag it into a browser window. It needs a current Chrome, Edge, Firefox or Safari (WebGL2
 for the map; without it the map falls back to a slower Canvas 2D drawing) and no network: everything except the
 optional features below runs offline.
@@ -46,11 +49,42 @@ the browser. It listens on 127.0.0.1 unless you pass `--host`, refuses requests 
 what NPC conversations need (Legion's models, a capped `max_tokens`, text messages, no tools). `node server/serve.mjs
 --help` lists the options.
 
+Bound to any other interface (`--host 0.0.0.0` for your LAN), anyone who can reach the server could spend your
+Claude credit, so it says so when it starts, serves only `Legion.html` and the API, and asks every request for a
+token it makes at start: open the address it prints (`http://host:8787/?token=…`) once and the token becomes a
+cookie; programs send it in an `x-legion-token` header.
+
+The same server answers an **NPC API** for other programs and game engines (JSON; from the same origin, or from the
+origins you name with `--cors http://localhost:3000`):
+
+```sh
+curl localhost:8787/api/npc/94110-123-0                        # the record
+curl 'localhost:8787/api/persona/94110-123-0?t=2026-11-24T08:00:00-08:00'
+curl localhost:8787/api/prompt/94110-123-0                     # the system blocks Claude gets, and the moment
+curl 'localhost:8787/api/situation/94110-123-0?said=hi'        # one turn's situation note
+curl 'localhost:8787/api/plan/94110-123-0?date=2026-11-24'     # their day, midnight to midnight
+curl localhost:8787/api/activity/94110-123-0                   # what they are doing now, and where
+curl localhost:8787/api/export/94110-123-0                     # the game-engine export
+curl localhost:8787/api/weather/94110
+curl 'localhost:8787/api/sample?where=Fresno&n=20'
+curl -X POST localhost:8787/api/talk/94110-123-0 -H 'content-type: application/json' -d '{"text": "Hi!"}'
+# -> {"session": "…", "npc": "94110-123-0", "t": …, "lines": [{"who": "npc", "text": "…"}, …], "ended": false}
+#    send {"session": "…", "text": "…"} to go on, {"session": "…", "end": true} to say goodbye
+```
+
+`t` is an ISO time or epoch milliseconds (the snapshot's moment by default). Talk uses the offline engine; sessions
+live in the server's memory, and a conversation that has ended (a goodbye, or a threat or a sexual line the NPC
+will not answer) answers 409. With `--store minds.json` the NPCs remember the conversations between runs.
+
 ## Using it
 
 * **Search** (press `/`): a ZIP (`94110`), a city (`Oakland`), a county (`Alameda County`), a Census place
-  (`East Los Angeles`) or an NPC id (`94110-123-0`). The map flies there and the Place panel opens. Links keep the
-  state: `Legion.html#zip=94110&npc=94110-123-0`.
+  (`East Los Angeles`), a neighborhood of the big cities (`the Mission`, `Boyle Heights`), everyday short names
+  (`SF`, `LA`, `East LA`, `the OC`) or an NPC id (`94110-123-0`). Accents and abbreviations do not matter (`San
+  Jose`, `Mt Shasta`, `La Canada`); a misspelling gets "Did you mean" (`San Fransisco`, `Oaklnd`). The map flies there
+  and the Place panel opens. Links keep the state: `Legion.html#zip=94110&npc=94110-123-0` (also `#place=`,
+  `#neighborhood=`, `#city=`, `#county=`, `#region=`); a link that names nothing says so, and the Back button
+  works.
 * **The clock** (top bar). The simulation starts at the moment the pack's weather was fetched, Monday November 23,
   2026, 2:38 PM Pacific. Play and pause with the button or `Space`; run at 1×, 60× (a minute a second, the
   default), 600× or 3600×; drag the scrubber to any time of day; the circular arrow goes back to the snapshot.
@@ -73,6 +107,9 @@ what NPC conversations need (Legion's models, a capped `max_tokens`, text messag
     the top of the tab; the line under the switch says who is speaking. A conversation happens in real time: while
     the Talk tab is open the clock runs at 1× (the 1× button is marked), and your speed comes back when you leave the
     tab or pick a speed yourself. Come back hours later on the clock and it is a new conversation, about that moment.
+    Some lines step out of the game: someone who says they want to hurt themselves gets a kind answer and a note
+    from Legion under it with 988 (call or text) and 911, in English or Spanish, with the offline engine and with
+    Claude; a sexual line, a lure or a threat ends the conversation, and that NPC does not talk again that visit.
   * **Prompt**: the exact system blocks Claude receives (the platform rules shared by every NPC, then this NPC's
     character sheet) and the situation message of this moment, with a token estimate and a Copy button.
   * **JSON**: the record, the persona and the mind as JSON (copy or download), and the **Game-engine export**: the
@@ -87,8 +124,11 @@ what NPC conversations need (Legion's models, a capped `max_tokens`, text messag
 * **The street view.** "Walk the streets" in the Place panel opens the neighborhood at the town center; the street
   icon in the NPC panel opens it at their home and follows them (if they are at work across town, a note says where
   they are, and when they live elsewhere, a link to walk their own streets). Click anyone on the street to open their
-  panel; a click on open ground stops following but keeps them selected while their panel is open. "Back to the
-  map" or `Escape` (from anywhere, the street canvas included) returns. The clock, its speed and the theme are the
+  panel; a click on open ground stops following but keeps them selected while their panel is open. The person you
+  chose and their household are on the street at once, wherever their day has them; someone at home indoors has
+  their house outlined. Cars passing through are driven by people whose own day has them on that commute; a shopper
+  or a passer-by nobody's day accounts for is unnamed and cannot be clicked. "Back to the map" or `Escape` (from
+  anywhere, the street canvas included) returns. The clock, its speed and the theme are the
   map's; while the street view is open the statewide map under it is not drawn at all.
 * **Settings**: crowd density (0.5% to 10%; 2.5%, about a million people, is the default), theme (dark, light or
   the system's), Claude, and the network permissions, all off by default: the Claude API, **Live NWS weather**
@@ -165,6 +205,10 @@ Everything an NPC says about their place comes from the world pack, `data/world.
 
   `--claude` uses `ANTHROPIC_API_KEY` or the SDK's own credential chain (`ant auth login`); `--proxy
   http://127.0.0.1:8787/api/anthropic` goes through a running Legion server instead. `--help` lists everything.
+  In `talk`, Legion's own notes (988 and 911 for someone in crisis, a Claude turn that failed) go to stderr as
+  "(Legion) …"; a failed turn that can be retried keeps the conversation going. Times, seeds and dates are checked
+  (`--t` is a Pacific time that exists, an ISO time with a zone, epoch milliseconds or `now`); a `--store` that is a
+  folder, or in a folder that does not exist, is refused before the conversation starts.
 * **The game-engine export** (`exportPersona`, the JSON tab, `cli export`): the persona, the system prompt as text
   and as cached blocks, the request defaults (model, max tokens, effort, the refusal-fallback field and header) and
   the voice profile, with the turn protocol spelled out, so any engine can voice the NPC with the Messages API.
@@ -191,8 +235,8 @@ Everything an NPC says about their place comes from the world pack, `data/world.
 
   `legion.npc(id)`, `persona(id, {t})`, `mind(id)`, `conversation(id, {t})`, `voice(options)`, `reflect(id, voice,
   history)`, `prompt(id)`, `exportPersona(id)`, `sample(where, n)` (a ZIP, city, county, region key or `CA`),
-  `dayPlan(id, t)`, `activityAt(id, t)`, `weather(zip, t)`, `bark(idA, idB)`. `docs/CONTRACTS.md` documents every
-  module's API.
+  `dayPlan(id, t)`, `activityAt(id, t)`, `situation(id, t, {said})`, `weather(zip, t)`, `bark(idA, idB)`.
+  `docs/CONTRACTS.md` documents every module's API.
 
 ## The rules every NPC follows
 
@@ -220,7 +264,7 @@ src/world/    map (the WebGL2 statewide map) · crowd, crowd-build, crowd-worker
 src/app/      main (boot) · services (the app's one door to the engine) · stage, place-panel, npc-panel,
               settings, search, simclock, census, nws-live (live weather), provenance · bus, store, format,
               charts, dom · app.css · index.html
-cli/          legion.mjs        server/   serve.mjs (the page, /api/health, the Claude proxy)
+cli/          legion.mjs        server/   serve.mjs (the page, /api/health, the Claude proxy, the NPC API)
 tools/        build.mjs (Legion.html) · build_pack.py (the world pack)
 docs/         CONTRACTS.md (every module's API)
 ```
@@ -233,11 +277,17 @@ docs/         CONTRACTS.md (every module's API)
   Census tables on first use (an EM over household compositions, iterative proportional fitting, logistic
   calibrations).
 * **The crowd's GPU motion model.** Each agent is 32 bytes: home and destination, the commute timing and days, the
-  mode, a highway leg (an on-ramp, a stretch of a real state highway, an off-ramp) and an errand plan. The vertex
+  mode, a highway leg (an on-ramp, a stretch of a real state highway, an off-ramp) and an errand plan (on a day
+  without a commute the outing goes out again up to three times on a weekend and half as often on a weekday,
+  calibrated so that at a weekday or Saturday midday the share of the crowd on the move is within 30% of the share
+  the NPCs' own day plans have traveling). Each highway has its own speed: freeways 100
+  km/h, a state route through dense blocks a 50 km/h boulevard, a quiet rural one 80 km/h. The vertex
   shader computes where everyone is from the simulation clock alone, so a million people move with no per-frame work
   on the CPU; a JavaScript twin of the same function answers picks and counts. The agents are built in a pool of
   Web Workers (one per spare core, at most four) that start decoding the pack while the page boots; the ZIPs are
-  dealt out region by region, the region in view first, and the crowd appears as the chunks stream in. A finished
+  dealt out region by region, the region in view first, and the crowd appears as the chunks stream in. A view under
+  60 km across asks the Workers for the rest of its own people (up to 1.5 million more; 250,000 on software WebGL),
+  drawn, picked and counted with the others, and lets them go past 90 km. A finished
   crowd is kept on the device (IndexedDB, under the build id of Legion.html): the next visit at the same density
   loads it in well under a second instead of fitting every ZIP's models again, after the same spot check against
   the page's population. Without a usable GPU (software WebGL: virtual machines, blocklisted drivers, headless
@@ -254,15 +304,20 @@ docs/         CONTRACTS.md (every module's API)
   | second visit, software WebGL | 3.5 to 3.7 s | 4.0 to 4.1 s |
 
   A first visit is bound by fitting each ZIP's models (3.7 s on one core, 1.2 to 2.4 s in each of three Workers
-  that share these cores) and building the agents (2.9 s on one core); the page stays responsive throughout (its
-  longest task is about 0.2 s).
+  that share these cores) and building the agents (2.9 s on one core). The page is not fully responsive while a first
+  visit's crowd streams in on software WebGL, where drawing runs on the CPU: in three runs on this container
+  (headless Chromium, SwiftShader, with other work on the machine) the main thread's longest tasks were 2.0 to 3.0
+  s, and a key pressed right after the boot screen waited up to that long. While a build streams in there, the map
+  leaves the main thread free at least half a second between the frames the new chunks ask for (camera moves still
+  draw at once), which cut the main thread's total time in long tasks from 18 s to 13 to 15 s in those runs. A
+  hardware GPU was not measured here.
 * **Determinism and caching.** Personas are rebuilt per simulated hour (their concerns mention that hour's alerts),
   while the character sheet Claude caches is built only from what holds whatever the hour, so it stays byte-identical
   as the clock moves; minds advance with the clock; a conversation happens in real time. The NPC panel and the street
   view read each person's schedule (their persona's day, built on layer 0's commute); the crowd moves everyone by
   layer 0 alone (the commute, school, errands drawn by hash), so the two agree on the commute and the work or school
-  day, while the schedule's own outings (services, the gym, a visit) belong to the panel: the selected person's
-  marker follows them there.
+  day, and, in numbers, on how many are out at midday and on weekends; the schedule's own outings (services, the gym,
+  a visit) belong to the panel: the selected person's marker follows them there.
 
 ## Rebuilding
 
@@ -291,8 +346,9 @@ The end-to-end tests need Playwright and its Chromium (they look in `PLAYWRIGHT_
 `/opt/pw-browsers`); none of the tests needs the network.
 
 The unit suites cover the world, population, names, lexicon, persona, schedule, mind, dialogue, Claude bridge and
-server (with a fake upstream: nothing reaches Anthropic), crowd builder, street view, the app's services and build,
-the platform, the CLI and the integration of them all. The end-to-end run checks the page's whole path: boot,
+server (with a fake upstream: nothing reaches Anthropic) and its NPC API, crowd builder (including how well the
+crowd's outings agree with the NPCs' schedules), street view, the app's services and build, the platform, the CLI and
+the integration of them all. The end-to-end run checks the page's whole path: boot,
 search, the Place panel, every NPC tab, five offline exchanges (the weather answer states the temperature the
 Place panel shows), a Spanish speaker's gloss, a Claude reply streamed through `server/serve.mjs` from a fake
 upstream and reflected into the NPC's mind, the street view, the phone layout, and no page errors.

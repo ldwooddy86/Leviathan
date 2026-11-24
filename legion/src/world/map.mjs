@@ -19,6 +19,8 @@
 // Extras
 //   map.getGL()                     the WebGL2 context (null in the Canvas 2D fallback)
 //   map.requestRender()             draw on the next animation frame (coalesced); map.render() draws now
+//   map.idleGapMs                   0, or (software WebGL) the least time the main thread is left free between two
+//                                   frames nothing but the layers asked for: the crowd sets it while it builds
 //   map.viewBounds()                {x0, y0, x1, y1} of the visible world
 //   map.setShade(alpha)             night darkening drawn over the base map, under the layers (0..1)
 //   map.setCamera(x, y, zoom)       jump; map.zoomBy(factor, px, py, ms) zoom about a screen point
@@ -374,6 +376,7 @@ export class MapView {
     this.shade = 0;
     this.cssW = 1; this.cssH = 1; this.dpr = 1; this.W = 1; this.H = 1;
     this._raf = 0; this._anim = null; this._lastMove = null; this._labelsDirty = true; this._destroyed = false;
+    this.idleGapMs = 0; this._gapTimer = 0; this._renderMs = 0; this._renderEnd = 0;
     this._pointers = new Map(); this._drag = null; this._hoverPending = null; this._velocity = [];
 
     const cs = getComputedStyle(container);
@@ -665,7 +668,24 @@ export class MapView {
   /** Draw on the next animation frame (coalesced). */
   requestRender() {
     if (this._raf || this._destroyed || this._lost) return;
+    const wait = this._renderWait();
+    if (wait > 0) {
+      if (!this._gapTimer) this._gapTimer = setTimeout(() => { this._gapTimer = 0; this.requestRender(); }, wait);
+      return;
+    }
     this._raf = requestAnimationFrame(t => { this._raf = 0; this._frame(t); });
+  }
+
+  /**
+   * How long a frame waits so the main thread stays free between frames: on software WebGL a frame can take a second
+   * of the main thread, and a crowd streaming in asks for one with every chunk, which left key presses waiting
+   * seconds. Only frames the layers ask for wait (idleGapMs, or as long as the last frame took when that is longer);
+   * a camera move, an animation or a theme change draws on the next animation frame as always.
+   */
+  _renderWait() {
+    if (!(this.idleGapMs > 0) || !this.software || this._anim || this._labelsDirty || !this._renderEnd) return 0;
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    return Math.ceil(this._renderEnd + Math.max(this.idleGapMs, Math.min(2000, this._renderMs)) - now);
   }
 
   _frame(now) {
@@ -711,6 +731,8 @@ export class MapView {
       try { l.draw(frame); } catch (e) { console.error('map layer draw failed', e); }
     }
     if (this._labelsDirty) { this._labelsDirty = false; this._drawLabels(); }
+    const end = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    this._renderMs = end - frame.time; this._renderEnd = end;
   }
 
   // ------------------------------------------------ WebGL base map
@@ -1223,6 +1245,7 @@ export class MapView {
     this._destroyed = true;
     if (this._raf) cancelAnimationFrame(this._raf);
     if (this._hoverRaf) cancelAnimationFrame(this._hoverRaf);
+    if (this._gapTimer) { clearTimeout(this._gapTimer); this._gapTimer = 0; }
     this._stopAnim();
     if (this._ro) this._ro.disconnect();
     if (this._onWinResize) window.removeEventListener('resize', this._onWinResize);

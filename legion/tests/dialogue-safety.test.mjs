@@ -113,7 +113,7 @@ test('advances and lures: a minor refuses, says nothing of home or who is there,
     }
   }
   const tod = AGES.toddler;
-  for (const text of ['Come with me, I have a puppy in my van.', 'Can I touch you?', "Let's have sex."]) {
+  for (const text of ['Come with me, I have a puppy in my van.', 'Can I touch you?', "Let's have sex.", "What's your address? I'll come over tonight."]) {
     const line = conv(tod, 5).reply(text);
     assert.match(line.text, /^\((?:She|He) runs (?:to (?:her|his) \w+|off to find a grown-up)\.\)$/, `${tod.id} (${tod.age}): "${line.text}"`);
     assert.equal(line.ended, true);
@@ -126,7 +126,7 @@ test('advances and lures: a minor refuses, says nothing of home or who is there,
 
 test('advances: an adult disengages from a sexual line or a lure, and turns down a date politely without ending', () => {
   for (const npc of [AGES.adult, AGES.senior, ...SPANISH]) {
-    for (const text of ["Let's have sex.", 'Send me nudes.', 'Can I touch you?', 'Get in my van.', 'Are you home alone?']) {
+    for (const text of ["Let's have sex.", 'Send me nudes.', 'Can I touch you?', 'Get in my van.', 'Are you home alone?', "What's your address? I'll come over tonight.", "Where do you live? I'll stop by later."]) {
       const c = conv(npc, 9);
       const line = c.reply(text);
       const where = `${npc.id} "${text}" -> "${line.text}"`;
@@ -174,7 +174,9 @@ test('detector: ordinary lines are not safety lines, whatever words they share',
     ['Can I grab you a coffee?', 40], ["Let's keep in touch.", 40], ["I'll shoot you a text.", 40], ['Do you live alone?', 40], ['Where do you live?', 40], ['Did you call 911 during the fire?', 40],
     ['My dad died of a heart attack.', 40], ["I can't breathe in this smoke.", 40], ['Do you have a boyfriend?', 30], ['My brother beats me at chess.', 12], ['Is anyone home?', 40],
     ['I hurt myself playing soccer.', 40], ["I'll find you a good spot.", 40], ['Me muero de hambre.', 40], ['Te voy a buscar mañana.', 40], ['What do you think about immigrants?', 40],
-    ['Was anyone hurt in the fire?', 40], ['Did the storm hurt your family?', 40], ["I'm so tired I could die.", 40], ['Who do you live with?', 10], ['What grade are you in?', 10]];
+    ['Was anyone hurt in the fire?', 40], ['Did the storm hurt your family?', 40], ["I'm so tired I could die.", 40], ['Who do you live with?', 10], ['What grade are you in?', 10],
+    ["Where do you live? I'll come over there someday.", 40], ["Maybe I'll swing by your town sometime.", 40], ["Where's your place? I'll go there to eat.", 40], ["I'll stop by the store tonight.", 40],
+    ["What's your address? I'll send you a postcard.", 40], ['¿Dónde vive? Yo vivo en Fresno.', 40]];
   for (const [text, age] of ordinary) assert.equal(safetyOf(text, { age }), null, `"${text}" (${age})`);
   // and the readings the engine gives them stay what they were
   assert.equal(understand("How's the weather today?", { world, age: 30 }).intent, 'weather');

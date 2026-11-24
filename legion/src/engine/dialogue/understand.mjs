@@ -304,7 +304,17 @@ const OWN_SCHOOL = /\b(?:how'?s|how is|how was|how are|how'?re) (?:school|class|
 const LOCAL_SCHOOLS = /\b(?:the|local|public|these|those|good|bad) schools?\b(?! going)|\bschools (?:here|around|in)\b|\bschool (?:district|board)\b/;
 
 // "What worries you?", "what's your biggest concern?": their own top worry, whatever it is.
-const WORRY_Q = /\bwhat (?:worries|concerns|bothers|scares|stresses) you\b|\bwhat(?:'s| is| are) (?:your|the) (?:biggest |main |big |number one )?(?:worry|worries|concern|concerns)\b|\bwhat keeps you up at night\b|\bwhat do you worry about\b|\bare you worried about anything\b|\banything (?:worry|worrying) you\b/;
+const WORRY_Q = new RegExp([
+  "\\bwhat (?:worries|concerns|bothers|scares|stresses|bugs|frightens) you\\b|\\bwhat(?:'s| is| are) (?:your|the) (?:biggest |main |big |number one |greatest )?(?:worry|worries|concern|concerns|fear|fears|stress)\\b",
+  "\\bwhat(?:'s| is| has| keeps)? ?(?:been )?keep(?:s|ing)? you (?:up|awake) at night\\b|\\bwhat do you (?:worry|stress|fret) (?:about|over)\\b|\\bwhat do you (?:get )?(?:worried|stressed|anxious|nervous|scared|afraid) (?:about|of)\\b",
+  "\\bwhat (?:are|were) you (?:most )?(?:worried|concerned|anxious|stressed|nervous|scared|afraid|stressing|worrying|freaking out) (?:about|of|over)\\b",
+  "\\b(?:are|r) (?:you|u) (?:worried|concerned|stressed|anxious) about anything\\b|\\b(?:any|got any|have any|do you have any) (?:worries|concerns)\\b",
+  "\\banything (?:worry|worrying|stressing|bothering|bugging|eating at|weighing on) (?:you|ya)\\b|\\bwhat(?:'s| is| has)? ?(?:been )?(?:stressing you(?: out)?|worrying you|weighing on you|eating at you|bugging you)\\b",
+  "\\bwhat(?:'s| is| has been) on your mind\\b",
+].join('|'));
+
+// Topics with a planner of their own: a worry about one of them is answered by it.
+const WORRY_TOPICS = ['fire', 'heat', 'storm', 'earthquake', 'traffic', 'rent', 'housing', 'insurance', 'weather'];
 
 // Worries the persona can have that no planner of their own covers: talked about as an opinion on a local topic.
 const CONCERN_TOPICS = [
@@ -736,8 +746,9 @@ export function understand(text, ctx = {}) {
   const holidayAsk = !!holiday && !holidayGreeting && !otherTopic && (question || /\b(plans?|doing|going|cook|cooking|celebrate|celebrating|spend|spending|host|hosting|working|work|off|travel|traveling|turkey)\b/.test(scan));
   if (holidayGreeting) scores.greeting = Math.max(scores.greeting || 0, 4.6);
   else if (holidayAsk) scores.smalltalk = Math.max(scores.smalltalk || 0, 4.4);
-  // "what worries you?": their own worry (the opinion planner answers it)
-  const worry = !probe && WORRY_Q.test(scan);
+  // "what worries you?": their own worry (the opinion planner answers it); "what worries you about the fires?" is about
+  // the fires, and the topic it names answers it
+  const worry = !probe && WORRY_Q.test(scan) && !WORRY_TOPICS.some(k => (scores[k] || 0) >= 3);
   if (worry) scores.opinion = Math.max(scores.opinion || 0, 5);
   // a question about the player themselves: what the NPC remembers of them
   const playerHit = probe ? null : PLAYER_Q.find(([, re]) => re.test(scan));

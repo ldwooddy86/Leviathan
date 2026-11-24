@@ -394,6 +394,23 @@ export class Stage {
     this._fly((bb[0] + bb[2]) / 2 - dx / scale, (bb[1] + bb[3]) / 2 - dy / scale, scale, ms);
   }
 
+  /**
+   * The share (0 to 1) of the box [x0, y0, x1, y1] that is off the map or under the panels right now: 0 when all of
+   * it shows in the part the panels leave visible, 1 when none of it does (or there is no map).
+   * @param {number[]} bb world units
+   */
+  hiddenShare(bb) {
+    if (!this.map || typeof this.map.worldToScreen !== 'function' || !bb) return 0;
+    const rect = this.mapEl.getBoundingClientRect(), ins = this.insets;
+    const a = this.map.worldToScreen(bb[0], bb[1]), b = this.map.worldToScreen(bb[2], bb[3]);
+    const x0 = Math.min(a.px, b.px), x1 = Math.max(a.px, b.px), y0 = Math.min(a.py, b.py), y1 = Math.max(a.py, b.py);
+    const area = Math.max(1, (x1 - x0)) * Math.max(1, (y1 - y0));
+    const vx0 = ins.left, vx1 = rect.width - ins.right, vy0 = ins.top, vy1 = rect.height - ins.bottom;
+    const w = Math.max(0, Math.min(x1, vx1) - Math.max(x0, vx0)), h = Math.max(0, Math.min(y1, vy1) - Math.max(y0, vy0));
+    if (!Number.isFinite(w * h) || !Number.isFinite(area)) return 0;
+    return Math.max(0, Math.min(1, 1 - (w * h) / area));
+  }
+
   /** Fly to a point at a scale (pixels per unit), centered in the visible area. */
   flyToPoint(x, y, scale = 24, ms = 800) {
     if (!this.map) return;

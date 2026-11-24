@@ -656,7 +656,7 @@ GIVEN.pakistani = {
 GIVEN['in-urdu'] = GIVEN.pakistani;
 
 // Bangladesh (shares the common Muslim South Asian names, with Bengali ones of its own).
-GIVEN.bangladeshi = {
+GIVEN['bd-muslim'] = {
   M: [
     'Mohammad*2,Abdul,Mohammed,Rafiq,Kamal,Jamal,Anis,Shafiqul,Aminul,Mizanur,Habibur,Mahbub,Rezaul,Abul,Nurul,Siddiqur,Mostafa,Golam,Azizul,Shahidul,Jahangir,Alamgir,Fazlul,Mujibur,Ziaur,Rashidul,Aftab,Delwar,Harun,Monir,Abdur,Shamsul,Nazrul,Anwarul,Matiur,Lutfur,Ataur,Khairul,Shahjahan,Sirajul,Moinul,Fazlur',
     'Mohammad*2,Saiful,Tanvir,Imtiaz,Shakil,Kamrul,Mahmud,Rezaul,Masud,Mizanur,Rafiqul,Aminul,Habib,Faruk,Anwar,Nazrul,Shahin,Mamun,Rubel,Sohel,Sumon,Babul,Liton,Shamim,Jahid,Rashed,Belal,Mostafizur,Shafiqul,Arif,Jahangir,Selim,Mizan,Zahid,Shahid,Kabir,Monir,Alamgir,Jewel,Rana,Sabuj,Anis',
@@ -670,6 +670,23 @@ GIVEN.bangladeshi = {
     'Ayesha,Fatima,Maryam,Zara,Anaya,Inaya,Sumaiya,Raisa,Nusaiba,Tasfia,Ariba,Samiha,Labiba,Nuha,Ruqaiya,Safa,Marwa,Aaliyah,Humaira,Zainab,Tahiya,Arisha,Mehjabin,Nafisa,Anisha,Tanha,Rifa,Afia,Lamisa,Sara,Hafsa,Aisha,Nusrat,Mariam,Jannat,Adiba,Afrin,Rumaisa,Tasnim,Nuzhat,Tahsina',
   ],
 };
+// Bangladesh's Hindu families (Das, Roy, Saha, Ghosh ...) and Buddhist families (Barua): a household is named in
+// its own community's names; the surname, drawn first, points to it (hintFor)
+GIVEN['bd-hindu'] = {
+  z: 0.35,
+  base: {
+    M: 'Sujit,Ratan,Pradip,Dipak,Shyamal,Gopal,Sanjoy,Bikash,Tapan,Ashok,Subrata,Uttam,Prosenjit,Debashish,Partha,Sumon,Arup,Biplob,Shuvo,Joy,Anik,Ritwik,Arnab,Sourav,Pritom,Rahul,Amit,Abhijit,Kartik,Nayan,Bappi,Goutam,Haradhan,Jibon,Kanai,Manik,Nirmal,Paritosh,Ranjit,Sudip,Tanmoy,Utpal',
+    F: 'Rina,Mita,Shikha,Purnima,Shyamoli,Swapna,Anjali,Mousumi,Shampa,Rupa,Tumpa,Priya,Puja,Trisha,Ananya,Moumita,Sraboni,Joya,Rimi,Shreya,Barnali,Lipika,Dipa,Sharmila,Krishna,Gita,Shilpi,Bithi,Antara,Sushmita,Arpita,Chandana,Debjani,Gouri,Ira,Jharna,Kakoli,Lakshmi,Mallika,Nupur,Oindrila,Rakhi',
+  },
+};
+GIVEN['bd-buddhist'] = {
+  z: 0.35,
+  base: {
+    M: 'Sumon,Ratan,Bodhi,Dipankar,Shubho,Rajib,Sujan,Pranab,Prabir,Jyotirmoy,Ananda,Bimal,Shanti,Sugato,Uttam,Tushar,Rupak,Sanjib,Babul,Milton,Ajoy,Anupam,Biman,Dipak,Gautam,Jibon,Kanchan,Mrinal,Nirmal,Palash,Rabindra,Samir,Sudhir,Swapan,Tapas,Utpal,Animesh,Debasish,Pankaj,Shubhankar',
+    F: 'Shanta,Mitali,Rupa,Shampa,Tania,Priya,Sumana,Ashima,Bithi,Kakoli,Dipa,Nandita,Sarbani,Mukta,Rumki,Papiya,Sonali,Tumpa,Jharna,Keya,Ananya,Bandana,Chhanda,Debika,Gopa,Ira,Jaya,Kanika,Lopa,Mahua,Nilima,Oishi,Pratima,Ruma,Sathi,Tanushree,Urmila,Bonani,Sharmistha,Shrabanti',
+  },
+};
+GIVEN.bangladeshi = { mix: [['bd-muslim', [0.9, 0.9, 0.9, 0.9]], ['bd-hindu', [0.08, 0.08, 0.08, 0.08]], ['bd-buddhist', [0.02, 0.02, 0.02, 0.02]]] };
 
 // Afghanistan (Pashtun and Tajik families; Fremont and Hayward hold the largest community in the US).
 GIVEN.afghan = {
@@ -1305,6 +1322,88 @@ GIVEN['europe-other'] = {
     F: 'Zsuzsanna,Katalin,Eva,Ildiko,Erzsebet,Agnes,Jana,Petra,Lucie,Tereza,Elena,Ioana,Mihaela,Andreea,Gabriela,Milica,Jelena,Ivana,Ana,Marija,Snezana,Dragana,Maja,Nina,Vesna,Rasa,Ieva,Inga,Liga,Kristina,Daniela,Simona,Monika,Lenka,Martina,Mirela,Adriana,Diana,Irina,Radka',
   },
 };
+// European origins by language (names.mjs ORIGIN_NAMING and LANGUAGE_NAMING under 'european'): an immigrant family
+// from Turkey, Israel, the Basque Country, Hungary, the Czech Republic, Romania, the former Yugoslavia, Bulgaria,
+// Albania or Finland is named in its own language, given names and surnames alike, in the spelling US records use.
+GIVEN['eu-turkish'] = {
+  z: 0.35,
+  base: {
+    M: 'Mehmet,Mustafa,Ahmet,Ali,Huseyin,Hasan,Ibrahim,Ismail,Osman,Yusuf,Murat,Omer,Ramazan,Halil,Suleyman,Abdullah,Mahmut,Recep,Salih,Fatih,Kadir,Emre,Burak,Serkan,Can,Cem,Kerem,Emir,Mert,Berk,Arda,Deniz,Kaan,Tolga,Baris,Onur,Selim,Erkan,Volkan,Hakan',
+    F: 'Fatma,Ayse,Emine,Hatice,Zeynep,Elif,Meryem,Serife,Zehra,Sultan,Hanife,Merve,Ozlem,Esra,Yasemin,Gul,Leyla,Derya,Ebru,Burcu,Selin,Ece,Defne,Ela,Ceren,Asli,Pinar,Tugba,Seda,Gamze,Nur,Melike,Busra,Kubra,Dilek,Sevgi,Aylin,Deniz,Irem,Nazli',
+  },
+};
+GIVEN['eu-hebrew'] = {
+  z: 0.35,
+  base: {
+    M: 'David,Yosef,Moshe,Avraham,Yaakov,Daniel,Michael,Yonatan,Eitan,Noam,Omer,Itai,Ariel,Uri,Amit,Oren,Guy,Lior,Ido,Tomer,Ron,Gil,Avi,Eyal,Yair,Nir,Asaf,Shai,Ofer,Erez,Ronen,Tal,Yuval,Roee,Alon,Boaz,Doron,Shlomo,Haim,Itzik',
+    F: 'Noa,Tamar,Yael,Michal,Shira,Maya,Sarah,Rivka,Talia,Hila,Inbal,Orly,Keren,Dana,Adi,Liat,Efrat,Galit,Noga,Shani,Ayelet,Rachel,Leah,Hadas,Merav,Sigal,Osnat,Limor,Orit,Shiri,Gali,Roni,Mor,Neta,Yarden,Avital,Naama,Lihi,Hagit,Ilana',
+  },
+};
+GIVEN['eu-basque'] = {
+  z: 0.3,
+  base: {
+    M: 'Jose,Juan,Pedro,Martin,Miguel,Pierre,Jean,Jon,Inaki,Mikel,Xabier,Ander,Unai,Gorka,Iker,Asier,Aitor,Joseba,Koldo,Peio,Josu,Andoni,Imanol,Eneko,Julen,Ibai,Jokin,Oier,Benat,Txomin,Antonio,Francisco,Ramon,Fermin,Javier,Luis,Manuel,Michel,Bernard,Pascal,Domingo,Santiago',
+    F: 'Maria,Carmen,Josefina,Marie,Ainhoa,Amaia,Itziar,Maite,Nerea,Leire,Idoia,Garazi,Miren,Edurne,Arantxa,Begona,Izaskun,Ane,June,Irati,Uxue,Nahia,Haizea,Oihane,Maialen,Arrate,Lorea,Jaione,Ainara,Elixabete,Mercedes,Pilar,Isabel,Teresa,Dolores,Juana,Catherine,Michelle,Jeanne,Nicole,Ana,Elena',
+  },
+};
+GIVEN['eu-hungarian'] = {
+  z: 0.35,
+  base: {
+    M: 'Laszlo,Istvan,Zoltan,Tamas,Gabor,Attila,Janos,Ferenc,Sandor,Jozsef,Peter,Andras,Balazs,Csaba,Zsolt,Gergely,Bence,Mate,Daniel,Adam,Levente,Mihaly,Gyorgy,Imre,Lajos,Bela,Tibor,Gyula,Akos,Kristof,Mark,Norbert,Szabolcs,Roland,Robert,Dezso,Endre,Geza,Karoly,Ervin,Viktor,Arpad',
+    F: 'Zsuzsanna,Katalin,Eva,Ildiko,Erzsebet,Agnes,Maria,Ilona,Judit,Andrea,Krisztina,Aniko,Edit,Marta,Eszter,Anna,Reka,Zsofia,Dora,Fanni,Petra,Viktoria,Boglarka,Nora,Kinga,Orsolya,Timea,Gabriella,Anita,Hajnalka,Szilvia,Beata,Melinda,Tunde,Erika,Klara,Margit,Rozsa,Csilla,Emese,Gyongyi,Noemi',
+  },
+};
+GIVEN['eu-czech'] = {
+  z: 0.35,
+  base: {
+    M: 'Jiri,Jan,Petr,Josef,Pavel,Martin,Tomas,Jaroslav,Miroslav,Zdenek,Vaclav,Michal,Frantisek,Jakub,Milan,Karel,Lukas,David,Ondrej,Vladimir,Ladislav,Roman,Stanislav,Marek,Radek,Daniel,Antonin,Vojtech,Filip,Adam,Jindrich,Bohumil,Oldrich,Rostislav,Ludek,Dusan,Zbynek,Matej,Stepan,Vit,Libor,Igor',
+    F: 'Jana,Marie,Eva,Hana,Anna,Lenka,Katerina,Lucie,Vera,Alena,Petra,Veronika,Jaroslava,Tereza,Martina,Michaela,Jitka,Helena,Ludmila,Zdenka,Ivana,Monika,Eliska,Zuzana,Barbora,Marketa,Klara,Kristyna,Adela,Natalie,Blanka,Dana,Jarmila,Bozena,Libuse,Renata,Sarka,Simona,Pavla,Irena,Olga,Denisa',
+  },
+};
+GIVEN['eu-romanian'] = {
+  z: 0.35,
+  base: {
+    M: 'Ion,Gheorghe,Vasile,Constantin,Nicolae,Mihai,Andrei,Alexandru,Ioan,Florin,Adrian,Dan,Cristian,Marius,Daniel,Stefan,Gabriel,Bogdan,Ionut,Razvan,Catalin,Sorin,Radu,Lucian,Ovidiu,Victor,Emil,Petru,Tudor,Vlad,Liviu,Cosmin,Valentin,Eugen,Silviu,Iulian,Viorel,Doru,Costel,Horia,Mircea,Laurentiu',
+    F: 'Maria,Elena,Ioana,Ana,Mihaela,Andreea,Gabriela,Cristina,Daniela,Alexandra,Georgeta,Florentina,Mariana,Nicoleta,Simona,Adriana,Roxana,Raluca,Alina,Diana,Monica,Camelia,Carmen,Larisa,Bianca,Irina,Oana,Corina,Iuliana,Denisa,Silvia,Liliana,Rodica,Lucia,Doina,Viorica,Valentina,Anca,Claudia,Teodora,Ileana,Sorina',
+  },
+};
+GIVEN['eu-serbocroat'] = {
+  z: 0.35,
+  base: {
+    M: 'Dragan,Milan,Goran,Zoran,Dejan,Marko,Luka,Nikola,Stefan,Ivan,Josip,Ante,Tomislav,Miroslav,Branko,Nenad,Srdjan,Aleksandar,Bojan,Darko,Predrag,Vladimir,Igor,Filip,Petar,Mario,Davor,Zeljko,Mladen,Vuk,Dusan,Milos,Uros,Bogdan,Ranko,Stjepan,Kresimir,Damir,Hrvoje,Dalibor,Sasa,Ognjen',
+    F: 'Milica,Jelena,Ivana,Ana,Marija,Snezana,Dragana,Maja,Nina,Vesna,Tatjana,Gordana,Jasmina,Natasa,Sanja,Biljana,Katarina,Mirjana,Branka,Danijela,Tamara,Sara,Petra,Lucija,Iva,Mia,Ena,Tea,Lana,Dora,Ljiljana,Zorana,Bojana,Jovana,Teodora,Andjela,Martina,Ivona,Kristina,Dubravka,Zrinka,Nevena',
+  },
+};
+GIVEN['eu-bulgarian'] = {
+  z: 0.35,
+  base: {
+    M: 'Georgi,Dimitar,Ivan,Nikolay,Petar,Hristo,Stoyan,Todor,Vasil,Krasimir,Plamen,Stefan,Aleksandar,Martin,Nikola,Kaloyan,Boris,Emil,Lyubomir,Valentin,Atanas,Angel,Iliya,Yordan,Svetoslav,Viktor,Daniel,Bozhidar,Kiril,Radoslav,Ventsislav,Tihomir,Rumen,Lyuben,Miroslav,Zdravko,Momchil,Asen,Tsvetan,Ivaylo,Kamen,Simeon',
+    F: 'Maria,Ivanka,Elena,Yordanka,Penka,Rositsa,Daniela,Desislava,Tsvetelina,Gergana,Kristina,Teodora,Nikol,Viktoriya,Radka,Silviya,Svetla,Galina,Petya,Albena,Margarita,Snezhana,Vanya,Diana,Stefka,Raya,Gabriela,Simona,Yoana,Mila,Antoaneta,Emiliya,Lilyana,Nadezhda,Pavlina,Ralitsa,Veselina,Zornitsa,Boryana,Kalina,Iva,Neli',
+  },
+};
+GIVEN['eu-albanian'] = {
+  z: 0.35,
+  base: {
+    M: 'Arben,Besnik,Fatmir,Gjergj,Ilir,Agron,Artan,Edmond,Ermal,Gentian,Altin,Klodian,Erion,Dritan,Bujar,Fatos,Shpetim,Valon,Blerim,Driton,Endrit,Florian,Arjan,Mergim,Leotrim,Ardit,Enis,Kristi,Elvis,Mario,Agim,Bekim,Ilirjan,Kujtim,Lulzim,Naim,Petrit,Sokol,Visar,Ylli,Arber,Granit',
+    F: 'Arta,Blerta,Drita,Elira,Fjolla,Valbona,Mimoza,Shpresa,Lindita,Vjosa,Teuta,Albana,Anila,Besa,Dafina,Elona,Ermira,Flutura,Jonida,Klea,Kaltrina,Rina,Mirela,Ariana,Enkeleda,Liridona,Nora,Sara,Era,Erisa,Aferdita,Bukurije,Diellza,Edona,Fatbardha,Hana,Leonora,Merita,Nita,Qendresa,Vlora,Zana',
+  },
+};
+GIVEN['eu-finnish'] = {
+  z: 0.35,
+  base: {
+    M: 'Juha,Timo,Matti,Kari,Mikko,Jari,Antti,Jukka,Mika,Markku,Pekka,Hannu,Heikki,Seppo,Janne,Ville,Jussi,Petri,Sami,Tuomas,Teemu,Lauri,Eero,Olli,Joonas,Aleksi,Niko,Eetu,Onni,Elias,Arto,Esa,Ilkka,Jarmo,Kalle,Lasse,Marko,Raimo,Risto,Tapio,Veikko,Ari',
+    F: 'Maria,Anna,Tuula,Paivi,Ritva,Leena,Marja,Kaarina,Pirjo,Sari,Minna,Tiina,Anne,Johanna,Satu,Riikka,Laura,Hanna,Emilia,Aino,Eveliina,Sofia,Venla,Ella,Aada,Iida,Elina,Katja,Heidi,Noora,Helena,Irma,Kirsi,Liisa,Marjatta,Outi,Raija,Sirpa,Terhi,Ulla,Pia,Hilkka',
+  },
+};
+// Iu Mien families (from the mountains of northern Laos, then the camps in Thailand; Oakland, Sacramento, Redding):
+// Mien given names, often of two syllables, the immigrants'; their US-born children mostly carry the general pool's.
+GIVEN['la-mien'] = {
+  z: 0.3,
+  base: {
+    M: 'Kouichoy,Fou Seng,Ching Fou,Nai Chiem,Lai Seng,Kae Fin,Kaota,Yao Fou,Chan Seng,Ong,Sio,Farm,Muang,Seng,Fin,Kao,Yoon,Ouchoy,Liu,Chiem,Sarn,Kouinoi,Fou,Nai,Lao Seng,Ching,Kae,Lai,Fou Chiem,Yao,Kao Chiem,Fou Chan,Seng Fin,Yao Seng,Chan,Kouichiem,Lai Chiem,Ching Seng,Ong Fou,Kae Seng,Nai Seng',
+    F: 'Meuy,Ay,Nai,Kae,Lai,Fey,Muang,Yoon,Lin,Mey,Chio,Kae Lin,Nai Lin,Meuy Fin,Ay Lin,Lai Fin,Fam,Mui,Chiem,Kouy,Seng,Ay Chio,Meuy Lin,Fin,Kae Fin,Nai Fin,Muang Lin,Fey Lin,Yoon Lin,Chio Lin,Mey Fin,Lai Lin,Ay Fin,Fam Lin,Mui Lin,Kouy Lin,Nai Chio,Kae Chio,Meuy Chio,Fey Chio',
+  },
+};
 GIVEN.european = {
   mix: [
     ['europe-other', [0.3, 0.3, 0.3, 0.3]], ['german', [0.14, 0.14, 0.14, 0.14]], ['italian', [0.1, 0.1, 0.1, 0.1]], ['english', [0.1, 0.1, 0.1, 0.1]],
@@ -1483,7 +1582,10 @@ SURNAMES['pk-pashto'] = 'Khan:6,Afridi:1.5,Khattak:1.5,Durrani:1.2,Niazi:1.2,Waz
 SURNAMES.pakistani = { mix: [['pk-urdu', 0.48], ['pk-punjabi', 0.4], ['pk-pashto', 0.12]] };
 
 // Bangladesh.
-SURNAMES.bangladeshi = 'Rahman:4.5,Hossain:4.2,Islam:4,Ahmed:4,Khan:3,Uddin:3,Chowdhury:2.5,Alam:2.2,Miah:1.8,Haque:1.5,Sarker:1.2,Karim:1.2,Talukder:1,Sheikh,Mollah,Bhuiyan,Siddique,Hasan,Kabir,Ali,Barua,Das,Roy,Saha,Paul,Biswas,Mondal,Majumder,Mahmud,Rashid,Hoque,Malik,Patwary,Shikder,Khondaker,Munshi,Babu,Matin,Zaman,Bari,Kazi,Sikder,Faruque,Pramanik,Ghosh,Dey';
+SURNAMES['bd-muslim'] = 'Rahman:4.5,Hossain:4.2,Islam:4,Ahmed:4,Khan:3,Uddin:3,Chowdhury:2.5,Alam:2.2,Miah:1.8,Haque:1.5,Sarker:1.2,Karim:1.2,Talukder:1,Sheikh,Mollah,Bhuiyan,Siddique,Hasan,Kabir,Ali,Mahmud,Rashid,Hoque,Malik,Patwary,Shikder,Khondaker,Munshi,Matin,Zaman,Bari,Kazi,Sikder,Faruque';
+SURNAMES['bd-hindu'] = 'Das:3,Roy:2.5,Saha:2,Paul:1.6,Biswas:1.5,Ghosh:1.4,Dey:1.3,Mondal:1.2,Majumder:1.1,Pramanik,Chakraborty,Bhattacharjee,Debnath,Sen,Nath,Datta,Bose,Mitra,Kundu,Halder';
+SURNAMES['bd-buddhist'] = 'Barua:5,Chakma:1.5,Mutsuddi:0.6,Talukdar:0.5,Singha:0.4';
+SURNAMES.bangladeshi = { mix: [['bd-muslim', 0.9], ['bd-hindu', 0.08], ['bd-buddhist', 0.02]] };
 
 // Afghanistan (tribal and place names became surnames only in the 20th century, many ending in -i or -zai).
 SURNAMES.afghan = 'Ahmadi:3,Mohammadi:2.5,Rahimi:2,Hashimi:1.5,Karimi:1.5,Wardak:1.2,Noori:1.2,Amiri:1.1,Azizi:1.1,Popal:1,Stanekzai:1,Ahmadzai:1,Sultani:1,Haidari:1,Hakimi:1,Hussaini:1,Jalali,Kabuli,Kakar,Mohmand,Niazi,Nuristani,Omari,Popalzai,Qaderi,Rahmani,Rasuli,Safi,Saberi,Sadat,Samadi,Sharifi,Shinwari,Siddiqi,Wahidi,Zazai,Zaheer,Barakzai,Durrani,Hotak,Andar,Ludin,Mujaddidi,Faizi,Nazari,Habibi,Akbari,Azimi,Faqiri,Nawabi';
@@ -1554,6 +1656,18 @@ SURNAMES.dutch = 'De Jong:2,Jansen:1.6,De Vries:1.6,Van den Berg:1.3,Van Dijk:1.
 SURNAMES.scandinavian = 'Anderson:2,Johnson:1.8,Peterson:1.6,Nelson:1.5,Olson:1.4,Larson:1.3,Hanson:1.2,Swanson:1.1,Carlson:1.1,Erickson:1.1,Jensen:1,Christensen:1,Johansson,Andersson,Karlsson,Nilsson,Eriksson,Larsson,Olsson,Persson,Svensson,Gustafsson,Pettersson,Jonsson,Hansson,Bengtsson,Lindberg,Lindstrom,Lindqvist,Lindgren,Berg,Bergstrom,Lundberg,Lundgren,Lund,Holm,Sandberg,Engstrom,Hedlund,Sjoberg,Wallin,Ekstrom,Forsberg,Dahl,Strand,Hansen,Johansen,Olsen,Larsen,Andersen,Pedersen,Nilsen,Kristiansen,Karlsen,Haugen,Halvorsen,Bakken,Solberg,Moen,Eide,Nygaard,Nielsen,Sorensen,Rasmussen,Jorgensen,Petersen,Madsen,Kristensen,Thomsen,Poulsen,Mortensen,Jacobson,Lindquist,Sorenson,Gustafson,Nyberg';
 SURNAMES.greek = 'Papadopoulos:2,Pappas:1.8,Georgiou:1.4,Papadakis:1.2,Nikolaou:1.2,Dimitriou:1.1,Konstantinou:1.1,Ioannou:1.1,Vasileiou:1,Christodoulou:1,Alexiou,Antoniou,Papageorgiou,Karagiannis,Oikonomou,Makris,Papanikolaou,Angelopoulos,Athanasiou,Economou,Theodorou,Michailidis,Georgiadis,Vlachos,Katsaros,Kallas,Kanellos,Karras,Kokkinos,Mavros,Nikas,Panagiotopoulos,Pantazis,Petrakis,Sarris,Spanos,Stavrou,Triantafyllou,Tsakiris,Vasilakis,Zervas,Galanis,Andreou,Daskalakis,Demos,Kouris,Lekkas,Marinos,Pavlou,Raptis,Sotiropoulos,Stamatopoulos,Zografos,Chronis,Gianopoulos,Kalogeropoulos,Pappademos,Lambros';
 SURNAMES['europe-other'] = 'Kovacs,Nagy,Toth,Szabo,Horvath,Varga,Kiss,Molnar,Novak,Svoboda,Dvorak,Novotny,Cerny,Prochazka,Popescu,Ionescu,Popa,Constantin,Dumitru,Stan,Stoica,Gheorghe,Petrovic,Jovanovic,Nikolic,Markovic,Djordjevic,Ilic,Horvat,Kovacevic,Babic,Maric,Georgiev,Dimitrov,Kazlauskas,Jankauskas,Petrauskas,Berzins,Kalnins,Ozols,Tamm,Saar,Gruber,Bauer,Huber,Krasniqi,Gashi,Shehu,Peeters,Janssens,Etxeberria,Lindner,Kowal,Bianco';
+SURNAMES['eu-turkish'] = 'Yilmaz:3,Kaya:2.5,Demir:2.5,Sahin:2,Celik:2,Yildiz:1.8,Yildirim:1.6,Ozturk:1.5,Aydin:1.5,Ozdemir:1.4,Arslan:1.2,Dogan:1.2,Kilic:1.1,Aslan,Cetin,Kara,Koc,Kurt,Ozkan,Simsek,Polat,Ozer,Gunes,Aksoy,Bulut,Keskin,Unal,Tekin,Aktas,Avci,Yavuz,Turan,Cakir,Acar,Karaca,Ucar,Tunc,Sari,Ates,Korkmaz';
+SURNAMES['eu-hebrew'] = 'Cohen:4,Levi:3,Mizrahi:1.8,Peretz:1.5,Biton:1.4,Dahan:1.4,Avraham:1.3,Friedman:1.2,Malka:1.1,Azulay:1.1,Katz:1.1,Yosef,Amar,Ohayon,Gabay,Hadad,Shapira,Ovadia,Golan,Sasson,Elbaz,Vaknin,Ashkenazi,Halevi,Mor,Bar,Shemesh,Levy,Weiss,Klein,Segal,Rosen,Goldberg,Nahum,Ezra,Shalom,Amsalem,Turgeman,Sharabi,Edri';
+SURNAMES['eu-basque'] = 'Echeverria:2,Aguirre:2,Etcheverry:1.6,Etxeberria:1.2,Arrieta,Zubiri,Larranaga,Iturbe,Uriarte,Arana,Elizondo,Garmendia,Goni,Ibarra,Irigoyen,Jauregui,Lasa,Mendizabal,Ochoa,Olano,Sarasola,Urquiza,Zabala,Zuloaga,Etchepare,Elizalde,Goicoechea,Arburua,Iriart,Laxague,Bidart,Inda,Amestoy,Errea,Hualde,Larralde,Oyarzabal,Uhalde';
+SURNAMES['eu-hungarian'] = 'Nagy:2,Kovacs:2,Toth:1.8,Szabo:1.8,Horvath:1.6,Varga:1.4,Kiss:1.3,Molnar:1.2,Nemeth:1.1,Farkas:1.1,Balogh,Papp,Takacs,Juhasz,Lakatos,Meszaros,Olah,Simon,Racz,Fekete,Szilagyi,Torok,Feher,Balazs,Gal,Kis,Szucs,Kocsis,Pinter,Fodor,Szalai,Sipos,Magyar,Lukacs,Gulyas,Biro,Kiraly,Laszlo,Katona';
+SURNAMES['eu-czech'] = 'Novak:2,Svoboda:1.6,Novotny:1.6,Dvorak:1.5,Cerny:1.4,Prochazka:1.3,Kucera:1.2,Vesely:1.1,Horak:1.1,Nemec:1,Marek,Pokorny,Pospisil,Hajek,Jelinek,Kral,Ruzicka,Benes,Fiala,Sedlacek,Dolezal,Zeman,Kolar,Navratil,Cermak,Urban,Vanek,Blazek,Kriz,Kovar';
+SURNAMES['eu-romanian'] = 'Popescu:2,Ionescu:1.6,Popa:1.6,Pop:1.5,Radu:1.3,Dumitru:1.3,Stan:1.2,Stoica:1.2,Gheorghe:1.1,Matei:1.1,Ciobanu,Rusu,Munteanu,Constantin,Mihai,Marin,Tudor,Florea,Dobre,Barbu,Nistor,Ilie,Ene,Lungu,Toma,Moldovan,Sandu,Dinu,Oprea,Lazar';
+SURNAMES['eu-serbocroat'] = 'Jovanovic:1.5,Petrovic:1.4,Nikolic:1.3,Horvat:1.2,Kovacevic:1.2,Markovic:1.2,Djordjevic:1.1,Babic:1.1,Maric:1,Ilic,Stojanovic,Pavlovic,Juric,Knezevic,Vukovic,Lukic,Popovic,Radic,Tomic,Matic,Pavic,Bozic,Blazevic,Grgic,Peric,Saric,Vidovic,Simic,Kovac,Novak';
+SURNAMES['eu-bulgarian'] = 'Ivanov:2,Georgiev:1.8,Dimitrov:1.8,Petrov:1.6,Nikolov:1.4,Hristov:1.3,Stoyanov:1.2,Todorov:1.2,Iliev:1.1,Vasilev:1.1,Atanasov,Petkov,Angelov,Kolev,Yordanov,Marinov,Popov,Stefanov,Mihaylov,Kostov,Dimov,Pavlov,Tsvetkov,Aleksandrov,Kirov,Penev,Genov,Kostadinov,Mladenov,Slavov';
+SURNAMES['eu-albanian'] = 'Krasniqi:2,Gashi:1.8,Berisha:1.5,Shala:1.3,Morina:1.2,Hasani:1.2,Kelmendi:1.1,Bytyqi:1,Rexhepi,Ahmeti,Shehu,Dervishi,Leka,Prifti,Cela,Kola,Marku,Lika,Gjoka,Basha,Xhaferi,Zeqiri,Bajrami,Ismaili,Halili,Osmani,Murati,Kastrati,Mehmeti,Sejdiu';
+SURNAMES['eu-finnish'] = 'Korhonen:1.5,Virtanen:1.5,Makinen:1.4,Nieminen:1.4,Makela:1.3,Hamalainen:1.3,Laine:1.2,Heikkinen:1.2,Koskinen:1.2,Jarvinen:1.1,Lehtonen,Lehtinen,Saarinen,Salminen,Heinonen,Niemi,Heikkila,Kinnunen,Salonen,Turunen,Salo,Laitinen,Tuominen,Rantanen,Karjalainen,Jokinen,Mattila,Savolainen,Lahtinen,Ahonen';
+// Iu Mien clan names: with the Sae- prefix most families were registered under in Thailand, or without it
+SURNAMES['la-mien'] = 'Saechao:12,Saelee:7,Saephan:6,Saeteurn:5,Saefong:4,Saelio:3,Saechin:2,Saeyang:2,Saetern:1.5,Chao:4,Lee:3,Phan:2,Fong:2,Teurn:1,Liew:1,Tang:1,Chin:1';
 SURNAMES.european = { mix: [['europe-other', 0.3], ['german', 0.15], ['italian', 0.1], ['english', 0.1], ['french', 0.08], ['polish', 0.08], ['dutch', 0.05], ['scandinavian', 0.05], ['greek', 0.05], ['portuguese', 0.04]] };
 
 // The general American pool (English, Scots-Irish, German and Scandinavian names as they settled in the US):
@@ -1684,7 +1798,7 @@ const NAMING = Object.freeze({
   native: cfg('general', 'native', [0, 0, 0], EN),
   pacific: cfg('pacific', 'pacific', [0.97, 0.45, 0.3], EN),
   multiracial: cfg('general', 'multiracial', [0, 0, 0], EN, { multi: true }),
-  other: cfg('general', 'other', [0, 0, 0], EN),
+  other: cfg('general', 'other', [0.95, 0, 0], EN),
 });
 
 /** Every heritage key of CONTRACTS §5, the vocabulary shared by names, lexicon, persona and dialogue. */
@@ -1713,12 +1827,29 @@ const LANGUAGE_NAMING = Object.freeze({
   african: { tigrinya: 'ethiopian', amharic: 'ethiopian', oromo: 'ethiopian', somali: 'af-somali', twi: 'af-ghana', swahili: 'af-kenya', wolof: 'af-senegal', arabic: 'arab' },
   nigerian: { yoruba: 'ng-yoruba', igbo: 'ng-igbo' },
   pacific: { samoan: 'pa-samoan', tongan: 'pa-tongan', chamorro: 'pa-chamorro', fijian: 'pa-fijian', hawaiian: 'pa-hawaiian', hindi: 'in-hindi' },
+  lao: { mien: 'la-mien' },
+  european: {
+    turkish: 'eu-turkish', hebrew: 'eu-hebrew', basque: 'eu-basque', spanish: 'eu-basque', hungarian: 'eu-hungarian', czech: 'eu-czech',
+    romanian: 'eu-romanian', serbian: 'eu-serbocroat', croatian: 'eu-serbocroat', bulgarian: 'eu-bulgarian', albanian: 'eu-albanian',
+    finnish: 'eu-finnish', german: 'german', french: 'french', italian: 'italian',
+  },
+  // the Census 'other race' families born abroad name their children in the language of their country (Brazil, Peru)
+  other: { spanish: 'latino', portuguese: 'portuguese' },
 });
+// heritages whose family language names them before their origin does (an origin of several languages)
+const LANGUAGE_FIRST = new Set(['european']);
 const ORIGIN_NAMING = Object.freeze({
   chinese: { taiwanese: 'chinese-tw' },
   african: { eritrean: 'ethiopian', somali: 'af-somali', ghanaian: 'af-ghana', kenyan: 'af-kenya', senegalese: 'af-senegal', cameroonian: 'af-cameroon', southafrican: 'af-southern', sudanese: 'arab' },
   asian: { nepali: 'as-nepali', bhutanese: 'as-nepali', mongolian: 'as-mongol', uzbek: 'as-uzbek' },
   pacific: { samoan: 'pa-samoan', tongan: 'pa-tongan', chamorro: 'pa-chamorro', nativehawaiian: 'pa-hawaiian' },
+  lao: { mien: 'la-mien' },
+  // a European immigrant family is named in its own language (LANGUAGE_NAMING.european first, for the origins of
+  // several: Swiss, Canadian, the Balkans), else by its origin
+  european: {
+    turkish: 'eu-turkish', israeli: 'eu-hebrew', basque: 'eu-basque', hungarian: 'eu-hungarian', czech: 'eu-czech',
+    romanian: 'eu-romanian', australian: 'english', canadian: 'english', swiss: 'german',
+  },
 });
 // Origins that keep another heritage's surname customs (Eritreans name children as Ethiopians do).
 const CUSTOM_ORIGINS = Object.freeze({ eritrean: 'ethiopian' });
@@ -2078,7 +2209,9 @@ const RESERVED_NAMES = Object.freeze(('Cesar Chavez|Dolores Huerta|Jennifer Lope
   'Salud Carbajal|Jim Costa|John Garamendi|Jared Huffman|Kevin Kiley|Doug LaMalfa|Tom McClintock|David Valadao|Vince Fong|' +
   'Jay Obernolte|Ken Calvert|Darrell Issa|Laura Friedman|Luz Rivas|Nanette Barragan|Maxine Waters|Sydney Kamlager-Dove|' +
   'Mark DeSaulnier|Eric Swalwell|Kevin Mullin|Lateefah Simon|Adam Gray|Dave Min|George Whitesides|Josh Harder|Toni Atkins|' +
-  'Mike McGuire|Robert Rivas|Kamala Harris|Dianne Feinstein|Jerry Brown|Arnold Schwarzenegger').split('|'));
+  'Mike McGuire|Robert Rivas|Kamala Harris|Dianne Feinstein|Jerry Brown|Arnold Schwarzenegger|' +
+  // and the famous among the European pools' combinations
+  'Martina Navratilova|Ivan Lendl|Nadia Comaneci|Grigor Dimitrov|Mehmet Oz|Gal Gadot').split('|'));
 
 /** Stock joke names (the kind a prank caller gives), refused like famous names when the surname is known. */
 const JOKE_NAMES = Object.freeze(('Mike Hunt|Mike Hawk|Mike Rotch|Mike Oxlong|Ben Dover|Hugh Jass|Hugh Janus|Harry Cox|Wayne Kerr|' +
@@ -2331,7 +2464,8 @@ function profileOf(heritage, opts) {
   if (!language && !origin) return null;
   const key = `${heritage}|${language}|${origin}`;
   if (profileCache.has(key)) return profileCache.get(key);
-  const spec = (origin && own(own(ORIGIN_NAMING, heritage), origin)) || (language && own(own(LANGUAGE_NAMING, heritage), language)) || null;
+  const byOrigin = () => origin && own(own(ORIGIN_NAMING, heritage), origin), byLanguage = () => language && own(own(LANGUAGE_NAMING, heritage), language);
+  const spec = (LANGUAGE_FIRST.has(heritage) ? byLanguage() || byOrigin() : byOrigin() || byLanguage()) || null;
   const prof = typeof spec === 'string' ? Object.freeze(spec.split(/\s+/).filter(Boolean).map(p => { const [k, w] = p.split(':'); return Object.freeze([k, w === undefined ? 1 : +w]); })) : null;
   if (profileCache.size > 4096) profileCache.clear();
   profileCache.set(key, prof);
@@ -2434,18 +2568,19 @@ export function surname(rng, heritage, opts) {
   const key = heritageKey(heritage), cfg = configOf(key), prof = profileOf(key, opts);
   const family = prof ? drawProfiledSurname(rng, cfg, prof) : drawSurname(rng, cfg.sur);
   if (!opts || (opts.sex !== 'M' && opts.sex !== 'F')) return family;
-  return personalSurname(rng, family, key, opts.sex, generationOf(opts.generation, opts.nativity), opts.origin);
+  return personalSurname(rng, family, key, opts.sex, generationOf(opts.generation, opts.nativity), opts.origin, typeof opts.language === 'string' ? opts.language : undefined);
 }
 
 const BD_WOMEN = ['Akter', 'Begum', 'Khatun', 'Sultana'];
 
-function personalSurname(rng, family, heritage, sex, gen, origin) {
+function personalSurname(rng, family, heritage, sex, gen, origin, language) {
   const cfg = configOf(heritage);
   if (cfg.religiousName) return rng.chance(0.3) ? cfg.religiousName[sex] : family;
-  if (heritage === 'bangladeshi' && sex === 'F' && gen === 1 && rng.chance(0.35)) return BD_WOMEN[rng.int(BD_WOMEN.length)];
-  if (sex === 'F' && feminineRules(heritage, origin)) {
+  // a Muslim Bangladeshi woman's own name in place of the family's (never a Hindu or Buddhist family's)
+  if (heritage === 'bangladeshi' && sex === 'F' && gen === 1 && (surnameKeysOf(family) || new Set()).has('bd-muslim') && rng.chance(0.35)) return BD_WOMEN[rng.int(BD_WOMEN.length)];
+  if (sex === 'F' && feminineRules(heritage, origin, language)) {
     const p = gen === 1 ? 1 : gen === 2 ? 0.25 : 0;
-    if (p > 0 && rng.chance(p)) return adaptSurname(family, { heritage, sex, origin });
+    if (p > 0 && rng.chance(p)) return adaptSurname(family, { heritage, sex, origin, language });
   }
   return family;
 }
@@ -2458,10 +2593,17 @@ const FEMININE = Object.freeze({
   ukrainian: [[/sk(?:yi|yy|iy|y)$/, 'ska'], [/(ov|ev|in)$/, '$1a']],
   polish: [[/dzki$/, 'dzka'], [/cki$/, 'cka'], [/ski$/, 'ska']],
   greek: [[/os$/, 'ou'], [/as$/, 'a'], [/d[ie]s$/, 'dou'], [/[ie]s$/, 'i']],
+  // Czech (in the spelling US records use): Novotny → Novotna, Prochazka → Prochazkova, Novak → Novakova
+  czech: [[/y$/, 'a'], [/a$/, 'ova'], [/([bcdfghjklmnpqrstvwxz])$/, '$1ova']],
+  bulgarian: [[/(ov|ev|in)$/, '$1a']],
 });
-// Origins inside other heritages whose surnames take the same forms: Uzbek families' Russian-era surnames (Karimova).
-const FEMININE_ORIGINS = Object.freeze({ uzbek: 'russian' });
-const feminineRules = (heritage, origin) => own(FEMININE, heritage) || (typeof origin === 'string' && own(FEMININE_ORIGINS, origin) ? FEMININE[FEMININE_ORIGINS[origin]] : undefined);
+// Origins inside other heritages whose surnames take the same forms: Uzbek families' Russian-era surnames (Karimova),
+// Czech families'; and family languages (a Bulgarian-speaking family of the European origins: Ivanova)
+const FEMININE_ORIGINS = Object.freeze({ uzbek: 'russian', czech: 'czech' });
+const FEMININE_LANGUAGES = Object.freeze({ czech: 'czech', bulgarian: 'bulgarian' });
+const feminineRules = (heritage, origin, language) => own(FEMININE, heritage)
+  || (typeof origin === 'string' && own(FEMININE_ORIGINS, origin) ? FEMININE[FEMININE_ORIGINS[origin]] : undefined)
+  || (typeof language === 'string' && own(FEMININE_LANGUAGES, language) ? FEMININE[FEMININE_LANGUAGES[language]] : undefined);
 
 /**
  * The form of a family name a woman carries where the language marks it (Russian Ivanov → Ivanova,
@@ -2473,9 +2615,9 @@ const feminineRules = (heritage, origin) => own(FEMININE, heritage) || (typeof o
  * @returns {string}
  */
 export function adaptSurname(name, opts) {
-  const { heritage, sex, origin } = opts || {};
+  const { heritage, sex, origin, language } = opts || {};
   if (!name || sex !== 'F') return name;
-  const rules = feminineRules(heritage, origin);
+  const rules = feminineRules(heritage, origin, language);
   if (!rules) return name;
   for (const [re, rep] of rules) if (re.test(name)) return name.replace(re, rep);
   return name;
@@ -2500,7 +2642,7 @@ export function surnameCustoms(heritage, opts) {
   const c = customsConfig(heritage, opts);
   return {
     wife: { keep: [c.wife[0][0], c.wife[1][0]], join: [c.wife[0][1], c.wife[1][1]] }, patronymic: !!c.patronymic, clan: !!c.clan,
-    religious: c.religiousName ? { ...c.religiousName } : null, feminine: feminineRules(heritageKey(heritage), opts && opts.origin) !== undefined,
+    religious: c.religiousName ? { ...c.religiousName } : null, feminine: feminineRules(heritageKey(heritage), opts && opts.origin, opts && opts.language) !== undefined,
   };
 }
 
@@ -2821,6 +2963,24 @@ export function surnamePool(heritage, opts) {
   if (pools.length) { const tot = pools.reduce((a, p) => a + p[1], 0); for (const [k, w] of pools) walk(k, w / tot, 0); }
   else walk(configOf(key).sur, 1, 0);
   return [...out].map(([name, weight]) => ({ name, weight })).sort((a, b) => b.weight - a.weight);
+}
+
+/**
+ * True when two family names of a heritage come from the same tradition within it: for a heritage whose surnames
+ * are a mix of communities (Bangladeshi Muslim, Hindu and Buddhist families) the two share one of its pools; always
+ * true for other heritages and for names the pools do not hold. A household's families are of one community.
+ * @param {string} heritage
+ * @param {string} a
+ * @param {string} b
+ * @returns {boolean}
+ */
+export function sameSurnameTradition(heritage, a, b) {
+  const spec = own(SURNAMES, configOf(heritageKey(heritage)).sur);
+  if (!spec || !spec.mix) return true;
+  const ka = surnameKeysOf(a), kb = surnameKeysOf(b);
+  if (!ka || !kb) return true;
+  for (const [k] of spec.mix) if ([...reach(k)].some(x => ka.has(x)) && [...reach(k)].some(x => kb.has(x))) return true;
+  return false;
 }
 
 const RESERVED = new Set([...RESERVED_NAMES, ...JOKE_NAMES].map(normName));

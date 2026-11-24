@@ -119,6 +119,13 @@ const SEXUAL_EN = [
     "\\bwhen (?:are|do|will|does|is) (?:your|ur) (?:parents|mom|dad|mother|father|folks|family) (?:get home|come home|coming home|come back|get back|leave|leaving|go out|go to work|work|get off|go to sleep)\\b",
     "\\b(?:when|while) (?:your|ur) (?:parents|mom|dad|mother|father|folks|family) (?:are|is|aren'?t|isn'?t|'re|'s) (?:gone|away|out|home|at work|not home|not there|asleep|sleeping)\\b",
   ].join('|')), true],
+  // a stranger who asks where you live and says they will come over, or says they will come to your home at night:
+  // every age declines (where you live, asked alone, is only a child's to refuse)
+  ['visit', new RegExp([
+    "\\b(?:what(?:'?s| is) (?:your|ur) (?:home |house |street )?address|where (?:exactly )?do (?:you|u) live|where(?:'?s| is) (?:your|ur) (?:house|home|apartment))\\b[^.?!]{0,30}[.?!]*\\s*[^.?!]{0,30}\\b(?:i(?:'ll| will|'m going to| am going to|'m gonna| gonna| wanna| want to)|let me|can i|could i|may i) (?:come|stop|swing|drop) (?:over|by|around)\\b(?! (?:there|that way|sometime|someday|one day|(?:to )?(?:the|that|this|your|ur) (?:town|city|area|neighborhood|state|county|valley|beach|coast|region)))",
+    "\\bi(?:'ll| will|'m going to| am going to|'m gonna| gonna) (?:come|stop|swing|drop) (?:over|by|around) (?:to )?(?:your|ur) (?:house|home|apartment|room)\\b",
+    "\\bi(?:'ll| will|'m going to| am going to|'m gonna| gonna) (?:come|stop|swing|drop) (?:over|by|around)(?: to (?:your|ur) place)? (?:tonight|late tonight|at night|after dark|when (?:you'?re|you are) (?:alone|asleep|by yourself)|when (?:no ?one|nobody)(?:'s| is) (?:home|around))\\b",
+  ].join('|')), false],
   ['location', new RegExp([
     "\\bwhat(?:'?s| is) (?:your|ur) (?:home |house |street )?address\\b|\\bwhere (?:exactly )?do (?:you|u) live\\b|\\bwhere(?:'?s| is) (?:your|ur) (?:house|home|apartment|room)\\b|\\bwhat street\\b[^.?!]{0,20}\\blive\\b|\\bwhich (?:house|apartment|building|one) (?:is yours|do you live in|is your house)\\b",
     "\\bwhat(?:'?s| is) (?:your|ur) (?:phone |cell )?number\\b|\\b(?:can|could|may) i (?:have|get) (?:your|ur) (?:phone |cell )?number\\b|\\bgive me (?:your|ur) (?:phone |cell )?number\\b|\\b(?:your|ur) (?:snap|snapchat|insta|instagram|tiktok|discord|whatsapp|kik)\\b",
@@ -135,6 +142,7 @@ const SEXUAL_ES = [
   ['lure', /\b(?:ven|vente|venga) conmigo\b|\b(?:tengo|traigo) (?:dulces|un perrito|perritos|un gatito|gatitos|juguetes|helado|regalos)\b|\bnuestro secreto\b|\bes un secreto\b|\bno le (?:digas|cuentes|diga|cuente) a (?:tu mama|tu papa|tus papas|tus padres|su mama|su papa|nadie)\b/, true],
   ['alone', /\b(?:estas|esta) sol[oa] en (?:la |tu |su )?casa\b|\bhay alguien (?:en (?:tu |su |la )?casa|contigo)\b/, false],
   ['alone', /\b(?:estas|esta) sol[oa]\b|\b(?:tus|sus) (?:papas|padres|papa|mama) (?:no )?(?:estan|esta) (?:en (?:la )?casa|ahi|aqui)\b|\bcuando (?:se van|salen|regresan|llegan) (?:tus|sus) (?:papas|padres)\b/, true],
+  ['visit', /\b(?:cual es (?:tu|su) direccion|donde (?:vives|vive))\b[^.?!]{0,30}[.?!]*\s*[^.?!]{0,30}\b(?:voy a ir|voy a pasar|paso|pasare|ire|voy para alla|te visito|lo visito|la visito|te caigo|le caigo)\b|\b(?:voy a ir|voy a pasar|paso|pasare|ire|llego) (?:a|por) (?:tu|su) casa (?:esta noche|en la noche|al rato|cuando (?:estes|este) sol[oa])\b/, false],
   ['location', /\bcual es (?:tu|su) direccion\b|\bdonde (?:vives|vive)\b|\ben que calle (?:vives|vive)\b|\bcual es (?:tu|su) casa\b|\b(?:dame|pasame|cual es) (?:tu|su) (?:numero|telefono|celular|cel)\b/, true],
 ];
 
@@ -192,7 +200,7 @@ const THREAT_ES = [
  * @param {{age?: number}} [opts]
  * @returns {{kind: 'crisis'|'sexual'|'threat', sub: string, es: boolean}|null}
  *   sub: crisis 'suicide' | 'selfharm' | 'abuse' | 'emergency'; sexual 'explicit' | 'romance' | 'lure' | 'alone' |
- *   'location'; threat 'immigration' | 'mass' | 'sexual' | 'arson' | 'violence' | 'stalk'. es: a Spanish reading matched.
+ *   'location' | 'visit' (where you live, and they will come over); threat 'immigration' | 'mass' | 'sexual' | 'arson' | 'violence' | 'stalk'. es: a Spanish reading matched.
  */
 export function safetyOf(text, opts = {}) {
   const s = fold(text);

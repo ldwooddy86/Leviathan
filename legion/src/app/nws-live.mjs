@@ -167,6 +167,12 @@ export function liveWeatherAt(live, t, snapshot = null) {
   return {
     source: `NWS ${live.office || ''} live ${live.fetched}`.replace(/\s+/g, ' '),
     fetched: live.fetched, point: live.point || snap.point || null, office: live.office || snap.office || null, stale: false, live: true,
+    // the API answers for the ZIP's own point (points/{lat,lon}): a forecast for here, not one borrowed from a city
+    approx: false,
+    basis: {
+      kind: 'forecast', point: live.point || snap.point || null, office: live.office || snap.office || null,
+      officeName: (snap.basis && snap.basis.office === live.office && snap.basis.officeName) || live.office || null, distKm: 0, elevAdjF: 0,
+    },
     now: { tempF: best[1], rh: best[2], pop: best[3], wind: best[4], short: best[5], isDay: !!best[6], time: best[0] },
     period: cur ? { ...cur } : null,
     next: idx >= 0 ? periods.slice(idx + 1, idx + 4).map(p => ({ ...p })) : [],
