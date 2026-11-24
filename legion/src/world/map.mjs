@@ -9,8 +9,9 @@
 //   map.fitState(ms = 0)            frame the whole state
 //   map.screenToWorld(px, py)       -> {x, y}; px, py in CSS pixels from the container's top-left
 //   map.worldToScreen(x, y)         -> {px, py}
-//   map.on(event, fn) -> off()      'move' {x, y, zoom} · 'click' {x, y, px, py, hit} · 'hover' {x, y, px, py}
-//                                   · 'theme' {theme, palette} · 'resize' {width, height, dpr}
+//   map.on(event, fn) -> off()      'move' {x, y, zoom} · 'click' {x, y, px, py, hit} · 'hover' {x, y, px, py} (the
+//                                   pointer moved over the map, once per frame at most) · 'leave' {px, py} (it left
+//                                   the map: hide hover UI) · 'theme' {theme, palette} · 'resize' {width, height, dpr}
 //   map.addLayer(layer)             layer.draw(frame) runs after the base layers, in order; optional layer.pick(x, y,
 //                                   radiusUnits) is asked (topmost first) on clicks and its answer is the click's `hit`;
 //                                   optional layer.contextRestored(gl) after a WebGL context loss
@@ -47,20 +48,30 @@ const MIN_HAIR = 1;
 // ---------------------------------------------------------------- color utilities
 
 let _colorCtx = null;
-/** Parse any CSS color to [r, g, b, a] in 0..1, or null when the browser does not understand it. */
+
+/** [r, g, b, a] (0..1) of a '#rgb', '#rgba', '#rrggbb' or '#rrggbbaa' string, or null. */
+function parseHex(v) {
+  const hex = /^#([0-9a-f]{3,8})$/i.exec(v);
+  if (!hex) return null;
+  let h = hex[1];
+  if (h.length === 3 || h.length === 4) h = h.split('').map(c => c + c).join('');
+  if (h.length !== 6 && h.length !== 8) return null;
+  const n = parseInt(h.slice(0, 6), 16), a = h.length === 8 ? parseInt(h.slice(6), 16) / 255 : 1;
+  return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255, a];
+}
+
+/**
+ * Parse any CSS color to [r, g, b, a] in 0..1 (straight, not premultiplied, alpha), or null when the browser does
+ * not understand it. Hex is parsed here; anything else (rgba(), hsl(), named colors, color-mix() …) goes through a 2D
+ * canvas: its fillStyle serializes sRGB colors as '#rrggbb' or 'rgba(r, g, b, a)', read exactly; other color spaces
+ * are drawn to one pixel and read back (getImageData returns un-premultiplied values).
+ */
 export function parseColor(value) {
   if (value == null) return null;
   const v = String(value).trim();
   if (!v) return null;
-  const hex = /^#([0-9a-f]{3,8})$/i.exec(v);
-  if (hex) {
-    let h = hex[1];
-    if (h.length === 3 || h.length === 4) h = h.split('').map(c => c + c).join('');
-    if (h.length === 6 || h.length === 8) {
-      const n = parseInt(h.slice(0, 6), 16), a = h.length === 8 ? parseInt(h.slice(6), 16) / 255 : 1;
-      return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255, a];
-    }
-  }
+  const hex = parseHex(v);
+  if (hex) return hex;
   if (typeof document === 'undefined' && typeof OffscreenCanvas === 'undefined') return null;
   if (!_colorCtx) {
     const c = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas');
@@ -68,14 +79,21 @@ export function parseColor(value) {
     _colorCtx = c.getContext('2d', { willReadFrequently: true });
   }
   const g = _colorCtx;
-  g.fillStyle = '#010203';
-  g.fillStyle = v;
-  if (g.fillStyle === '#010203' && !/^#010203$/i.test(v)) return null;
+  // an invalid value leaves fillStyle alone: set it after two different colors and see whether it stuck
+  g.fillStyle = '#000000'; g.fillStyle = v;
+  const s = g.fillStyle;
+  g.fillStyle = '#ffffff'; g.fillStyle = v;
+  if (g.fillStyle !== s) return null;
+  if (typeof s === 'string') {
+    const h = parseHex(s);
+    if (h) return h;
+    const m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(s);
+    if (m) return [+m[1] / 255, +m[2] / 255, +m[3] / 255, m[4] == null ? 1 : +m[4]];
+  }
   g.clearRect(0, 0, 1, 1);
   g.fillRect(0, 0, 1, 1);
   const d = g.getImageData(0, 0, 1, 1).data;
-  const a = d[3] / 255;
-  return a > 0 ? [d[0] / 255 / a, d[1] / 255 / a, d[2] / 255 / a, a] : [0, 0, 0, 0];
+  return [d[0] / 255, d[1] / 255, d[2] / 255, d[3] / 255];
 }
 
 const mixc = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -374,7 +392,7 @@ export class MapView {
 
   // ------------------------------------------------ events
 
-  /** Subscribe to 'move' | 'click' | 'hover' | 'theme' | 'resize'; returns an unsubscribe function. */
+  /** Subscribe to 'move' | 'click' | 'hover' | 'leave' | 'theme' | 'resize' (payloads in the header); returns an unsubscribe function. */
   on(event, fn) { (this.handlers[event] = this.handlers[event] || []).push(fn); return () => this.off(event, fn); }
   /** Unsubscribe. */
   off(event, fn) { const a = this.handlers[event]; if (a) { const i = a.indexOf(fn); if (i >= 0) a.splice(i, 1); } }
@@ -1023,7 +1041,11 @@ export class MapView {
     };
     on('pointerup', up);
     on('pointercancel', up);
-    on('pointerleave', e => { if (!this._pointers.size) this._hoverPending = null; if (e.pointerType === 'mouse') this.emit('hover', null); });
+    on('pointerleave', e => {
+      if (!this._pointers.size) this._hoverPending = null;
+      // 'hover' always carries a point; leaving the map is its own event
+      if (e.pointerType !== 'touch') { const p = local(e); this.emit('leave', { px: p.px, py: p.py }); }
+    });
     on('wheel', e => {
       e.preventDefault();
       this._stopAnim();

@@ -20,23 +20,23 @@ export const FAMILIES = {
       Amtrak | transit | the Coast Starlight and the Pacific Surfliner, the trains along the coast
     `),
     greetings: lines(`
-      Hey! Did the fog burn off where you are?
-      Morning! Beautiful one, huh?
+      @wx:fog,clear Hey! Did the fog burn off where you are?
+      @h4-11 @wx:clear Morning! Beautiful one, huh?
       Hey, how's it going? Staying busy?
       Oh hey, I didn't expect to see you here.
       Hey there! You get down to the beach yet?
-      Morning! Windy one today.
+      @h4-11 @wx:wind Morning! Windy one today.
       Hey! How was the drive up the coast?
       Hi! Long time, how's everybody?
     `),
     farewells: lines(`
-      All right, enjoy the sunshine while it lasts.
+      @wx:clear,heat All right, enjoy the sunshine while it lasts.
       Okay, drive safe on 101.
       See you at the market.
       Take it easy, catch some waves for me.
       Okay, bring a jacket, it gets cold by the water.
       All right, see you around town.
-      Later! Don't let the wind blow you away.
+      @wx:wind Later! Don't let the wind blow you away.
       Okay, have a good one, say hi to everybody.
     `),
     fillers: lines(`
@@ -60,13 +60,13 @@ export const FAMILIES = {
     `),
     weather: {
       fog: lines(`
-        The marine layer's in until noon, as usual.
+        @h4-11 The marine layer's in until noon, as usual.
         Fog in the morning, sun by lunch, wind by three. That's the coast.
-        You can see the fog bank sitting just offshore.
+        @coast You can see the fog bank sitting just offshore.
         The fog's hugging the hills today.
       `),
       heat: lines(`
-        {temp} inland and cool at the beach. Easy choice.
+        {temp} out here. The beach is the easy call.
         Hot days here mean everybody's at the beach.
         It's warm, but there's always a breeze.
       `),
@@ -76,7 +76,7 @@ export const FAMILIES = {
         Rain's good for the vineyards and bad for the fields.
       `),
       wind: lines(`
-        The afternoon wind's howling again.
+        @h12-19 The afternoon wind's howling again.
         The wind comes up every afternoon like clockwork.
       `),
       cold: lines(`
@@ -84,29 +84,29 @@ export const FAMILIES = {
         The ocean's freezing no matter what month it is.
       `),
       smoke: lines(`
-        Smoke from the fires inland blew out over the coast.
-        Hazy and smoky. The sunset's going to be red.
+        @coast Smoke's blowing out over the coast. Must be a fire inland.
+        @h6-17 Hazy and smoky. The sunset's going to be red.
       `),
       snow: lines(`
         Snow on the mountains inland! Doesn't happen often.
-        You can see snow on {peak} from the beach. Wild.
+        @coast You can see snow on {peak} from the beach. Wild.
       `),
       clear: lines(`
-        Clear day, you can see all the way down the coast.
+        @coast Clear day, you can see all the way down the coast.
         A day like this, the coast is the best place on earth.
         Blue sky, flat water, perfect.
       `),
     },
     traffic: lines(`
       {road} through town was backed up with tourists again.
-      Every winter there's a slide somewhere on Highway 1, and then it's the long way around.
-      Tractor on the road. Harvest season.
+      @anytime Every winter there's a slide somewhere on Highway 1, and then it's the long way around.
+      @m4-11 Tractor on the road. Harvest season.
       Farm trucks on {road} every morning.
-      Holiday weekend, and everybody from LA and the Bay is here.
+      @anytime Every holiday weekend, everybody from LA and the Bay is here.
       Traffic here means waiting for one light twice.
       {stretch} was slow behind a truck again.
-      Summer weekends, {road} is just a line of rental cars.
-      Took the back roads through the fields to skip {road}.
+      @anytime Summer weekends, {road} is just a line of rental cars.
+      @drives Took the back roads through the fields to skip {road}.
     `),
     prideLines: lines(`
       The coast here is the prettiest in the state, and it's not close.
@@ -116,11 +116,11 @@ export const FAMILIES = {
       You can surf in the morning and taste wine in the afternoon.
       The sunsets here are unreal.
       {place} is a real community. People know each other.
-      Whale watching from the cliffs, right in my backyard.
+      @coast Whale watching from the cliffs, right in my backyard.
     `),
     complaintLines: lines(`
-      Housing here is out of reach for anybody who works here.
-      Tourists clog up everything all summer.
+      @adult Housing here is out of reach for anybody who works here.
+      @anytime Tourists clog up everything all summer.
       Everything closes early.
       The wind every afternoon gets old.
       Water's always tight.
@@ -137,7 +137,7 @@ export const FAMILIES = {
     `),
     youth: {
       farewells: lines(`
-        Later, I'm gonna go catch some waves.
+        @coast Later, I'm gonna go catch some waves.
       `),
       agreement: lines(`
         Stoked.
@@ -170,21 +170,21 @@ export const FAMILIES = {
     `),
     greetings: lines(`
       Hey! You make it up okay?
-      Morning! Roads clear coming up?
-      Hey there, you get snowed in?
+      @h4-11 Morning! Roads clear coming up?
+      @wx:snow,cold Hey there, you get snowed in?
       Well, look who made it up the hill.
-      Morning! You get your power back?
-      Hey! Did the plow come by your street yet?
+      @h4-11 @wx:wind,snow,rain Morning! You get your power back?
+      @wx:snow Hey! Did the plow come by your street yet?
       Hi there! Quiet week up here.
-      Hey, how's it going? Staying warm?
+      @wx:cold,snow,wind,rain,fog Hey, how's it going? Staying warm?
     `),
     farewells: lines(`
       Drive safe going down the hill.
-      All right, watch for ice on the curves.
+      @m10-4 All right, watch for ice on the curves.
       Okay, see you next storm.
-      Take care, keep your chains handy.
+      @m10-4 Take care, keep your chains handy.
       All right, see you at the post office.
-      Okay, get home before it starts snowing again.
+      @wx:snow,cold Okay, get home before it starts snowing again.
       Later! Watch for deer on the way down.
       Take it easy, stay warm.
     `),
@@ -222,7 +222,7 @@ export const FAMILIES = {
       `),
       wind: lines(`
         Big wind on the ridge. The power's going to go out.
-        Red flag warning. Everybody's packed and ready.
+        @alert:redflag Red flag warning. Everybody's packed and ready.
       `),
       cold: lines(`
         Below freezing every night now.
@@ -237,10 +237,10 @@ export const FAMILIES = {
         The berm at the end of my driveway is up to my waist.
         Sierra cement, heavy and wet. Your back will feel it.
         This much snow, there'll be chain control on {road}.
-        Bluebird day after the storm. Perfect.
       `),
       clear: lines(`
         Blue sky over the mountains. Can't beat it.
+        @m11-4 Bluebird day after the storm. Perfect.
         Clear and crisp. Best air in the state.
         A day like this, I'll never move.
       `),
@@ -248,10 +248,10 @@ export const FAMILIES = {
     traffic: lines(`
       Chain control on {road} again.
       Everybody from down the hill came up for the snow and nobody can drive in it.
-      Stuck behind a camper on the two-lane.
+      @drives Stuck behind a camper on the two-lane.
       When a big storm hits, they close {road} and that's that.
-      Took me two hours to get down the hill.
-      Holiday weekend, half the state is on {road}.
+      @drives Took me two hours to get down the hill.
+      @anytime Holiday weekends, half the state is on {road}.
       One road in and one road out, and it's always the one that's closed.
       Snow-play traffic is the worst traffic.
       {stretch} was a mess again.
@@ -259,7 +259,7 @@ export const FAMILIES = {
     prideLines: lines(`
       I wake up to the mountains every day.
       Up here, people show up for each other.
-      Fresh air, real seasons, dark skies.
+      @anytime Fresh air, real seasons, dark skies.
       Tourists come for a weekend. We get it all year.
       When the power goes out, the neighbors check on you.
       {place} is the best mountain town there is.
@@ -268,12 +268,12 @@ export const FAMILIES = {
     `),
     complaintLines: lines(`
       Tourists park anywhere and leave trash everywhere.
-      Fire insurance up here is impossible.
+      @adult Fire insurance up here is impossible.
       The power goes out every time the wind blows.
       Second homes sit empty while locals can't find a rental.
-      The nearest real grocery store is down the hill.
-      Winter's beautiful until you have to shovel it.
-      Every fall the smoke comes in and stays.
+      Everything costs more up here, even groceries.
+      @anytime Winter's beautiful until you have to shovel it.
+      @anytime Every fall the smoke comes in and stays.
     `),
     food: lines(`
       Chili after a day in the snow.
@@ -284,7 +284,7 @@ export const FAMILIES = {
     `),
     youth: {
       farewells: lines(`
-        Later, I'm gonna catch first chair.
+        @m12-4 @h5-10 Later, I'm gonna catch first chair.
       `),
       agreement: lines(`
         Send it.
@@ -325,7 +325,7 @@ export const KEYS = {
     },
     traffic: lines(`
       The Cuesta Grade was crawling behind a truck.
-      Pismo on a summer weekend, good luck parking.
+      @anytime Pismo on a summer weekend, good luck parking.
       101 through Santa Maria at five is a mess.
     `),
     prideLines: lines(`
@@ -362,12 +362,12 @@ export const KEYS = {
     `),
     weather: {
       wind: lines(`
-        Sundowner tonight. Everybody's watching the hills.
+        @offshore @h8-22 Sundowner tonight. Everybody's watching the hills.
         When the sundowner kicks up, the fire danger goes through the roof.
       `),
       fog: lines(`
-        May Gray here is real. The mountains just vanish.
-        June Gloom, and then the sun finally comes out in September.
+        @m5 May Gray here is real. The mountains just vanish.
+        @m6-7 June Gloom, and then the sun finally comes out in September.
       `),
     },
     traffic: lines(`
@@ -410,7 +410,7 @@ export const KEYS = {
     `),
     weather: {
       wind: lines(`
-        The afternoon wind's tearing down the valley again.
+        @h12-19 The afternoon wind's tearing down the valley again.
         Wind and dust off the fields by three o'clock.
       `),
       fog: lines(`
@@ -420,7 +420,7 @@ export const KEYS = {
     traffic: lines(`
       68 to Monterey was backed up the whole way.
       Farm buses on the road at five in the morning.
-      Harvest trucks everywhere. You just wait your turn.
+      @m4-11 Harvest trucks everywhere. You just wait your turn.
       101 through Salinas at rush hour is slow.
     `),
     prideLines: lines(`
@@ -432,7 +432,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       Monterey's right over the hill and costs twice as much.
-      Field work is hard and the rent's still high.
+      @adult Field work is hard and the rent's still high.
       Everybody drives through and nobody stops.
       A lot of families out here worry about the spraying in the fields.
     `),
@@ -460,7 +460,7 @@ export const KEYS = {
     weather: {
       fog: lines(`
         Fog's sitting on the bay this morning.
-        Summer fog in Santa Cruz, sun over the hill.
+        @m6-9 Summer fog here, and sun over the hill.
       `),
     },
     traffic: lines(`
@@ -479,7 +479,7 @@ export const KEYS = {
     complaintLines: lines(`
       Tech people from over the hill bought every house.
       Highway 17 is dangerous, and everybody drives it like a racetrack.
-      Rent here is as bad as the Bay.
+      @adult Rent here is as bad as the Bay.
       Tourists all over the Boardwalk every weekend.
     `),
     food: lines(`
@@ -516,19 +516,19 @@ export const KEYS = {
       80 on a Friday night is the whole Bay Area moving to Tahoe.
       Sunday afternoon on 50 coming down the hill is brutal.
       When the summit closes, the whole town fills up with stuck travelers.
-      89 around the lake in July is bumper to bumper.
+      @anytime 89 around the lake in July is bumper to bumper.
     `),
     prideLines: lines(`
       Nothing on earth is as blue as the lake.
-      Ski in the morning, paddle in the afternoon, in the spring.
-      Locals are tough. Winters here aren't for everybody.
-      The lake in summer is the best place in the world.
+      @anytime Ski in the morning, paddle in the afternoon, in the spring.
+      @anytime Locals are tough. Winters here aren't for everybody.
+      @anytime The lake in summer is the best place in the world.
     `),
     complaintLines: lines(`
       Short-term rentals ate up all the housing.
       Bay Area traffic every weekend, all year.
       Workers can't afford to live in the town they work in.
-      Parking anywhere near the beach in July, forget it.
+      @anytime Parking anywhere near the beach in July, forget it.
     `),
     food: lines(`
       Breakfast burrito in the lift line.
@@ -549,7 +549,7 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in the foothills, but at least it cools off at night.
+        {temp} up here, but at least it cools off at night.
       `),
       snow: lines(`
         Snow down to the foothills this morning! The kids are losing it.
@@ -558,19 +558,19 @@ export const KEYS = {
     traffic: lines(`
       Highway 49 through town on a Saturday is all tourists.
       Apple Hill weekends, don't even try 50.
-      Stuck behind a logging truck on 49.
+      @drives Stuck behind a logging truck on 49.
       Everybody going to Tahoe drives right past us.
     `),
     prideLines: lines(`
       Gold rush towns that never stopped being towns.
-      Apple Hill in October, best day of the year.
+      @anytime Apple Hill in October, best day of the year.
       Wine country without the Napa prices.
-      River days all summer.
+      @anytime River days all summer.
       Real community. People here show up.
     `),
     complaintLines: lines(`
-      Fire insurance up here is almost impossible to get now.
-      The power shutoffs every fall are a nightmare.
+      @adult Fire insurance up here is almost impossible to get now.
+      @anytime The power shutoffs every fall are a nightmare.
       Commuting down to Sacramento eats your whole day.
       Retirees from the Bay bought up everything.
     `),
@@ -583,7 +583,7 @@ export const KEYS = {
     teams: ['the Kings', 'the Niners', 'the Giants', 'the Warriors'],
   },
   'sierra-foothills': {
-    family: 'mountain', name: 'Southern Sierra foothills', region: 'Sierra foothills (Oakhurst to the Kern River Valley)', areaCodes: ['559', '760', '661'],
+    family: 'mountain', name: 'Southern Sierra foothills', region: 'Sierra and Tehachapi foothills (Oakhurst and Three Rivers to the Kern River Valley and Tehachapi)', areaCodes: ['559', '760', '661'],
     words: words(`
       the big trees | place | the giant sequoias, a short drive up the hill
       the park | place | Yosemite, Sequoia or Kings Canyon, whichever is closest
@@ -593,32 +593,32 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} down in the valley, so we're doing fine up here.
+        {temp} up here, so the valley must be cooking.
       `),
       snow: lines(`
-        Snow up at the lake, and the whole valley's coming up to play in it.
+        Snow up high, and the whole valley's coming up to play in it.
       `),
     },
     traffic: lines(`
-      Park traffic all summer, every weekend.
-      Everybody going to Yosemite drives right through here.
-      41 down to Fresno is a nice drive until it isn't.
+      @anytime Summer weekends, everybody from down in the valley comes up the hill.
+      Half the cars up here on a weekend are visitors passing through.
+      {road} down to the valley is a nice drive until it isn't.
       When they close the road for a fire, it's the long way around for everybody.
     `),
     prideLines: lines(`
-      The giant sequoias are basically in my backyard.
-      Lake days all summer.
-      Quiet mountain town, but the whole world drives through on the way to the park.
-      The Kern River Valley is the prettiest place nobody's heard of.
+      Pines, clean air, and the valley's an hour down the road.
+      @anytime Lake days all summer.
+      Quiet mountain town, and we like it that way.
+      {place} is the prettiest place nobody's heard of.
     `),
     complaintLines: lines(`
-      Every fire season we wonder if this is the one.
-      Tourists don't respect the river.
-      The nearest big store is an hour down the hill.
+      @anytime Every fire season we wonder if this is the one.
+      Visitors come up in flip-flops and don't respect the mountains.
+      The nearest big hospital is a long drive down the hill.
       Fire insurance, power shutoffs, smoke. Every year.
     `),
     food: lines(`
-      Pie and coffee on the way to the park.
+      Coffee and pie on the drive up the hill.
       Trout from the lake.
       Barbecue at the campground.
     `),
@@ -647,19 +647,19 @@ export const KEYS = {
     },
     traffic: lines(`
       395 on a Friday night is LA coming up to ski.
-      Holiday weekend, everybody from the city is on 395.
+      @anytime Every holiday weekend, everybody from the city is on 395.
       Somebody's always passing on the two-lane.
-      Once Tioga closes for the winter, it's the long way around.
+      @anytime Once Tioga closes for the winter, it's the long way around.
     `),
     prideLines: lines(`
       The east side of the Sierra is the best side.
-      The opener is a bigger deal than Christmas here.
+      @anytime The opener is a bigger deal than Christmas here.
       {landmark} out my window every morning.
       The stars out here are unreal.
     `),
     complaintLines: lines(`
       LA owns the water and half the land out here.
-      Ski season brings the city, and the city brings traffic.
+      @anytime Ski season brings the city, and the city brings traffic.
       The nearest big town is hours away.
       Housing in Mammoth is all second homes now.
     `),
@@ -682,22 +682,21 @@ export const KEYS = {
     `),
     weather: {
       snow: lines(`
-        Fresh snow, so half of LA will be up here by ten.
-        Snow on the Rim. Chains required.
+        @h4-9 Fresh snow, so half of LA will be up here by ten.
+        Snow on the Rim, so it'll be chains required.
       `),
       wind: lines(`
-        Santa Anas up here knock the trees down.
+        @offshore Santa Anas up here knock the trees down.
         Wind's howling through the pines tonight.
       `),
       fog: lines(`
-        We're above the fog. Down the hill is socked in.
       `),
     },
     traffic: lines(`
       The road up the hill was bumper to bumper with snow-play people.
       One way up, one way down, and it's closed.
-      Down the hill for groceries, that's an hour.
-      Everybody from LA came up for the snow and parked in the road.
+      Down the hill for anything big, that's an hour.
+      @m11-4 Everybody from LA came up for the snow and parked in the road.
     `),
     prideLines: lines(`
       I'm close to LA and I've got snow and pine trees.
@@ -709,7 +708,7 @@ export const KEYS = {
       Weekend crowds trash the forest.
       The fire risk up here never goes away.
       The power goes out with every storm.
-      Insurance companies won't write policies up here anymore.
+      @adult Insurance companies won't write policies up here anymore.
     `),
     food: lines(`
       Apple pie in Julian.

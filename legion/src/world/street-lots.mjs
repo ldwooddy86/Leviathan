@@ -15,7 +15,7 @@ import { hash2, hash3, clamp, lerp } from '../engine/rng.mjs';
 import { pointAt, rectCorners, hf, ringArea, ringCentroid, pointInRing, fbm, pointSegDist } from './street-geo.mjs';
 import { sidewalkOffset, parkingOffset } from './street-net.mjs';
 
-// occupancy codes
+/** Occupancy codes of the 2 m raster: free land, road corridor, reserved area, water, lot, building, driveway or pool. */
 const FREE = 0, ROAD = 1, AREA = 2, WATER = 3, LOT = 4, BLDG = 5, DRIVE = 6;
 
 /** A 2 m raster over the view recording roads, areas, water, lots and buildings, so nothing overlaps. */
@@ -207,6 +207,7 @@ export function planLots(ctx, net, { osmBuildings = null, loose = null } = {}) {
     // loose homes first (they sit where their households' homes are), then the street pattern
     for (const site of (loose || [])) B.looseHome(site);
     const slots = frontageSlots(ctx, net, occ, style);
+    B.bulbLots(style);
     B.plan(slots, style);
   }
   for (const area of out.areas) B.fillArea(area);
@@ -510,6 +511,50 @@ class Builder {
     for (let j = k + 1; j < run.length && tot < w; j++) { if (run[j].use) break; group.push(run[j]); tot += run[j].w; }
     if (tot < w * 0.75) return null;
     return group;
+  }
+
+  /**
+   * Pie-shaped lots around the bulb of a cul-de-sac: three to five houses facing the turnaround, their driveways
+   * on the bulb.
+   */
+  bulbLots(style) {
+    const net = this.net;
+    for (const n of net.nodes) {
+      if (n.adj.length !== 1 || n.exit) continue;
+      const E = net.edges[n.adj[0].e];
+      if (E.kind !== 'culdesac' || !takesLots(this.ctx, E)) continue;
+      const [hx, hy] = net.headingFrom(n.id, E.id);          // direction from the bulb back along the street
+      const back = Math.atan2(hy, hx);
+      const k = 3 + (hash2(this.seed, n.id) % 3);
+      for (let i = 0; i < k; i++) {
+        const a = back + Math.PI * (0.45 + 1.1 * (i + 0.5) / k);   // spread around the far side of the bulb
+        const nx = Math.cos(a), ny = Math.sin(a);                   // out from the bulb center
+        const r0 = 11.6, depth = 32, half = 7.5;
+        const tx = -ny, ty = nx;
+        const fx = n.x + nx * r0, fy = n.y + ny * r0;
+        const ring = [fx - tx * half * 0.8, fy - ty * half * 0.8, fx + tx * half * 0.8, fy + ty * half * 0.8, fx + nx * depth + tx * half * 1.7, fy + ny * depth + ty * half * 1.7, fx + nx * depth - tx * half * 1.7, fy + ny * depth - ty * half * 1.7];
+        const lot = this.claimLot(ring, 'house', 0.7);
+        if (!lot) continue;
+        const h = hash3(this.seed, n.id, i + 7);
+        const bw = lerp(11, 16, hf(h, 1)), bd = lerp(10, 13, hf(h, 2)), front = 6;
+        const cx = fx + nx * (front + bd / 2), cy = fy + ny * (front + bd / 2);
+        const roof = pitchedRoof(this.world, this.zipAt(cx, cy), h, style === 'town' ? 'tract' : style);
+        // the house faces the bulb: its "along the street" axis is the tangent of the bulb
+        const b = this.addBuilding({ kind: 'house', cx, cy, ux: tx, uy: ty, hw: bw / 2, hd: bd / 2, stories: hf(h, 3) < 0.3 ? 2 : 1, roof, units: 1 }, lot.id);
+        if (!b) continue;
+        const p = pointAt(E.pts, E.cum, E.a === n.id ? 0 : E.len, {});
+        const slot = { e: E.id, sc: E.a === n.id ? 0.5 : E.len - 0.5, side: 1 };
+        b.access = this.access(slot, fx + nx * front, fy + ny * front);
+        b.access.curbX = n.x + nx * 8.6; b.access.curbY = n.y + ny * 8.6;
+        b.access.walkX = n.x + nx * 10.2; b.access.walkY = n.y + ny * 10.2;
+        const d0x = n.x + nx * 9.4 + tx * 2.5, d0y = n.y + ny * 9.4 + ty * 2.5;
+        b.driveway = [d0x, d0y, d0x + nx * (front + 2.5), d0y + ny * (front + 2.5)];
+        this.stampDriveway(b.driveway, b.id);
+        this.addSpot(d0x + nx * (front * 0.6 + 2), d0y + ny * (front * 0.6 + 2), a, 'driveway', b.id, slot);
+        b.access.driveX = d0x + nx * (front * 0.6 + 2); b.access.driveY = d0y + ny * (front * 0.6 + 2); b.access.driveAng = a;
+        void p;
+      }
+    }
   }
 
   /** Lot ring for a group of consecutive slots: front along the street, back at the slots' depth. */
@@ -1098,50 +1143,46 @@ class Builder {
 const AWNINGS = ['#b23a3a', '#2f6f5e', '#2d4f86', '#c58b2b', '#6b3f7a', '#3d7a3d', '#8a3b2a', '#22313f'];
 
 /**
- * Lanes to homes on their own sites. Homes are taken nearest-first; each joins the nearest street or lane
- * already laid, directly by driveway when that is within `direct` meters, otherwise by a new lane that ends a
- * short driveway from the house, so neighbors farther out share the lanes of those nearer in.
+ * Lanes to homes on their own sites, grown like a minimum spanning tree: again and again the home nearest to what
+ * is already connected (roads and the lanes laid so far) gets a lane from that nearest point to a short driveway's
+ * distance from its door. Homes within `direct` meters of a road or lane need no lane of their own. The result
+ * winds from house to house the way private roads do instead of fanning out from the end of a road.
  * @param {object} ctx scene context (namer, zseed)
  * @param {object} net the street graph without lanes
  * @param {{x:number, y:number, key:string}[]} sites
  * @returns {object[]} lane strokes
  */
 export function laneStrokes(ctx, net, sites, { direct = 70, stop = 16 } = {}) {
-  const segs = [];               // lane segments: [x0, y0, x1, y1]
-  const cell = 60, grid = new Map();
-  const addSeg = (x0, y0, x1, y1) => {
-    const id = segs.length; segs.push([x0, y0, x1, y1]);
-    for (let cx = Math.floor(Math.min(x0, x1) / cell); cx <= Math.floor(Math.max(x0, x1) / cell); cx++) for (let cy = Math.floor(Math.min(y0, y1) / cell); cy <= Math.floor(Math.max(y0, y1) / cell); cy++) {
-      const k = cx * 65536 + cy; let b = grid.get(k); if (!b) grid.set(k, b = []); b.push(id);
-    }
-  };
-  const nearestLane = (x, y, maxD) => {
-    let best = null, bd = maxD;
-    const n = Math.ceil(maxD / cell);
-    for (let i = Math.floor(x / cell) - n; i <= Math.floor(x / cell) + n; i++) for (let j = Math.floor(y / cell) - n; j <= Math.floor(y / cell) + n; j++) {
-      const b = grid.get(i * 65536 + j); if (!b) continue;
-      for (const id of b) { const s = segs[id]; const q = pointSegDist(x, y, s[0], s[1], s[2], s[3]); if (q.d < bd) { bd = q.d; best = q; } }
-    }
-    return best;
-  };
   const roadFilter = E => E.car && !E.freeway && E.cls !== 'ramp';
-  const order = sites.map(s => { const q = net.nearest(s.x, s.y, roadFilter, 2000); return { s, d: q ? q.d : Infinity }; }).sort((a, b) => a.d - b.d);
+  const n = sites.length;
+  const best = sites.map(s => { const q = net.nearest(s.x, s.y, roadFilter, 3000); return q ? { d: q.d, x: q.x, y: q.y } : { d: Infinity, x: 0, y: 0 }; });
+  const done = new Uint8Array(n);
+  for (let i = 0; i < n; i++) if (best[i].d <= direct) done[i] = 1;
   const out = [];
-  for (const { s } of order) {
-    const road = net.nearest(s.x, s.y, roadFilter, 2000);
-    const lane = nearestLane(s.x, s.y, road ? road.d : 2000);
-    const best = lane && (!road || lane.d < road.d) ? lane : road;
-    if (!best || best.d <= direct) continue;
-    // the lane runs from the junction to a point `stop` meters short of the house, with a gentle bend
-    const dx = s.x - best.x, dy = s.y - best.y, d = Math.hypot(dx, dy);
+  for (let guard = 0; guard < n; guard++) {
+    let k = -1, kd = Infinity;
+    for (let i = 0; i < n; i++) if (!done[i] && best[i].d < kd) { kd = best[i].d; k = i; }
+    if (k < 0 || !Number.isFinite(kd)) break;
+    done[k] = 1;
+    const s = sites[k], from = best[k];
+    const dx = s.x - from.x, dy = s.y - from.y, d = Math.hypot(dx, dy) || 1;
     const ex = s.x - dx / d * stop, ey = s.y - dy / d * stop;
     const h = hash3(ctx.zseed, Math.round(s.x), Math.round(s.y));
     const bend = (hf(h, 1) - 0.5) * 0.25 * d;
-    const mx = (best.x + ex) / 2 - dy / d * bend, my = (best.y + ey) / 2 + dx / d * bend;
-    const pts = [best.x, best.y];
-    for (let k = 1; k <= 8; k++) { const t = k / 8, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t; pts.push(a * best.x + b * mx + c * ex, a * best.y + b * my + c * ey); }
-    for (let k = 0; k + 3 < pts.length; k += 2) addSeg(pts[k], pts[k + 1], pts[k + 2], pts[k + 3]);
+    const mx = (from.x + ex) / 2 - dy / d * bend, my = (from.y + ey) / 2 + dx / d * bend;
+    const pts = [from.x, from.y];
+    for (let j = 1; j <= 8; j++) { const t = j / 8, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t; pts.push(a * from.x + b * mx + c * ex, a * from.y + b * my + c * ey); }
     out.push({ pts: Float64Array.from(pts), cls: 'lane', name: ctx.namer ? ctx.namer.lane(h) : 'Private Lane', lanes: 1, park: false });
+    // the new lane may now be the nearest way in for the homes still waiting
+    for (let i = 0; i < n; i++) {
+      if (done[i]) continue;
+      const q = sites[i];
+      for (let j = 0; j + 3 < pts.length; j += 2) {
+        const r = pointSegDist(q.x, q.y, pts[j], pts[j + 1], pts[j + 2], pts[j + 3]);
+        if (r.d < best[i].d) best[i] = { d: r.d, x: r.x, y: r.y };
+      }
+      if (best[i].d <= direct) done[i] = 1;
+    }
   }
   return out;
 }

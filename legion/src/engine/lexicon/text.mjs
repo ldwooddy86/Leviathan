@@ -4,13 +4,25 @@
 // keeps them readable and reviewable (no quote-and-comma noise), and these helpers turn that text into the
 // arrays and objects the rest of Legion uses.
 
+import { parseTagged, registerLine } from './tags.mjs';
+
 /**
- * One entry per non-empty line, trimmed. Lines starting with "//" are comments.
+ * One entry per non-empty line, trimmed. Lines starting with "//" are comments. A line may start with tags
+ * ("@m6-8 @drives ...", see tags.mjs): they are stripped from the text and recorded, so lineTags(text) and
+ * lineFits(text, situation) know when and for whom the line is true.
  * @param {string} block
  * @returns {string[]}
  */
 export function lines(block) {
-  return block.split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('//'));
+  const out = [];
+  for (const raw of block.split('\n')) {
+    const s = raw.trim();
+    if (!s || s.startsWith('//')) continue;
+    const { text, tags } = parseTagged(s);
+    registerLine(text, tags);
+    out.push(text);
+  }
+  return out;
 }
 
 /**
@@ -20,7 +32,7 @@ export function lines(block) {
  */
 export function words(block) {
   const out = {};
-  for (const ln of lines(block)) {
+  for (const ln of untagged(block)) {
     const [term, kind, note] = ln.split(' | ').map(s => s.trim());
     if (!term || !kind || !note) throw new Error(`bad word line: ${ln}`);
     out[term] = { kind, note };
@@ -35,10 +47,15 @@ export function words(block) {
  * @returns {{term: string, level: number, ages: [number, number], gloss: string, example: string}[]}
  */
 export function slang(block) {
-  return lines(block).map(ln => {
+  return untagged(block).map(ln => {
     const [term, level, ages, gloss, example] = ln.split(' | ').map(s => s.trim());
     const m = /^(\d+)-(\d+)$/.exec(ages || '');
     if (!term || !(+level >= 1 && +level <= 3) || !m || !gloss || !example) throw new Error(`bad slang line: ${ln}`);
     return { term, level: +level, ages: [+m[1], +m[2]], gloss, example };
   });
+}
+
+// Vocabulary and slang tables are not spoken lines and take no tags.
+function untagged(block) {
+  return block.split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('//'));
 }

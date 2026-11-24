@@ -288,7 +288,7 @@ export const OCCUPATION_CATALOG = {
     t('barber', 'barber', 'personal services', ['a neighborhood barbershop'], [32000, 65000], 'dm', 0, 'hs', 1.5, {}, 0.15),
     t('nail-technician', 'nail technician', 'personal services', ['a nail salon'], [32000, 45000], 'dm', 0, 'nohs', 2, {}, 0.85),
     t('fitness-trainer', 'fitness trainer', 'fitness', ['a gym', 'a yoga studio', 'their own training business'], [38000, 75000], 'emv', 0, 'hs', 2, {}, 0.5),
-    t('recreation-leader', 'recreation leader', 'recreation', ['the city parks and recreation department', 'a summer camp', 'a YMCA-style community center'], [33000, 45000], 'mv', 0, 'hs', 1.5, {}, 0.55),
+    t('recreation-leader', 'recreation leader', 'recreation', ['the city parks and recreation department', 'a summer camp', 'a community center'], [33000, 45000], 'mv', 0, 'hs', 1.5, {}, 0.55),
     t('amusement-attendant', 'amusement park attendant', 'recreation', ['a theme park', 'a water park', 'a county fair'], [33000, 40000], 'dmv', 0, 'hs', 1, { r: { oc: 3, la: 2, sd: 1.5, ie: 1.2 } }, 0.5),
     t('ski-lift-operator', 'ski lift operator', 'recreation', ['a ski resort'], [36000, 48000], 'ed', 0, 'hs', 0.4, { snow: [40, 0.02] }, 0.3),
     t('ski-instructor', 'ski instructor', 'recreation', ['a ski resort'], [35000, 60000], 'ed', 0, 'hs', 0.3, { snow: [40, 0.02] }, 0.4),

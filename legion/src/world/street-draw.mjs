@@ -27,6 +27,7 @@ export function rgb(c) {
 export function mix(a, b, t) { const A = rgb(a), B = rgb(b); return css(A.map((v, i) => v + (B[i] - v) * t)); }
 /** Scale a color's brightness (f > 1 lighter). */
 export function shade(c, f) { const A = rgb(c); return f >= 1 ? css(A.map(v => v + (255 - v) * (f - 1))) : css(A.map(v => v * f)); }
+/** CSS rgb()/rgba() text for an [r, g, b] triple (clamped). */
 export function css(a, alpha = 1) { const r = Math.round(clamp(a[0], 0, 255)), g = Math.round(clamp(a[1], 0, 255)), b = Math.round(clamp(a[2], 0, 255)); return alpha >= 1 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},${alpha})`; }
 /** Desaturate toward grey by t. */
 export function desat(c, t) { const A = rgb(c), m = (A[0] + A[1] + A[2]) / 3; return css(A.map(v => v + (m - v) * t)); }
@@ -169,9 +170,9 @@ export function drawRoads(g, net, edges, P, lod) {
     for (const n of [e.a, e.b]) {
       const node = net.nodes[n];
       if (node.adj.length !== 1 || node.exit) continue;
-      g.fillStyle = P.sidewalk; g.beginPath(); g.arc(node.x, node.y, 13.5, 0, Math.PI * 2); g.fill();
-      g.fillStyle = surfaceColor(e, P); g.beginPath(); g.arc(node.x, node.y, 11, 0, Math.PI * 2); g.fill();
-      if (lod > 1.5) { g.fillStyle = P.parkway; g.beginPath(); g.arc(node.x, node.y, 3.2, 0, Math.PI * 2); g.fill(); }
+      g.fillStyle = P.sidewalk; g.beginPath(); g.arc(node.x, node.y, 11.2, 0, Math.PI * 2); g.fill();
+      g.fillStyle = surfaceColor(e, P); g.beginPath(); g.arc(node.x, node.y, 9.3, 0, Math.PI * 2); g.fill();
+      if (lod > 1.5) { g.fillStyle = P.parkway; g.beginPath(); g.arc(node.x, node.y, 2.6, 0, Math.PI * 2); g.fill(); }
     }
   }
   // medians
@@ -547,6 +548,7 @@ export function drawTrees(g, trees, idx, P, lod, sun, dark) {
   if (sun.strength > 0.05) {
     // a tree's shadow stretches away from the sun from the foot of its trunk: an ellipse along the shadow direction
     const ang = Math.atan2(sun.dy, sun.dx), stretch = 1 / Math.tan(Math.max(8, sun.el) * Math.PI / 180);
+    g.save(); g.globalAlpha = 0.7 * clamp(sun.strength, 0, 1);   // light comes through crowns; clouds soften all shadows
     g.fillStyle = P.shadow;
     g.beginPath();
     for (const i of idx) {
@@ -560,6 +562,7 @@ export function drawTrees(g, trees, idx, P, lod, sun, dark) {
       g.ellipse(cx, cy, rx, ry, ang, 0, Math.PI * 2);
     }
     g.fill();
+    g.restore();
   }
   for (const i of idx) {
     const x = trees[5 * i], y = trees[5 * i + 1], r = trees[5 * i + 2], sp = trees[5 * i + 3], sh = trees[5 * i + 4];
@@ -604,8 +607,10 @@ export function drawTrees(g, trees, idx, P, lod, sun, dark) {
  */
 export function drawGround(g, scene, P, rect, lod, hillshade) {
   const [x0, y0, x1, y1] = rect;
-  g.fillStyle = P.open; g.fillRect(x0, y0, x1 - x0, y1 - y0);
   const ctx = scene.ctx;
+  // open land is wild (gold in the dry season); in town, unbuilt land is mostly landscaped and watered
+  g.fillStyle = ctx.mode === 'urban' ? mix(P.open, P.lawnTone, 0.72) : P.open;
+  g.fillRect(x0, y0, x1 - x0, y1 - y0);
   if (scene.vegOpen === 5 || (ctx.mode === 'rural' && scene.vegOpen === 0)) {
     // fields: a patchwork of crops aligned to the section grid
     const cell = 200, seed = ctx.zseed;
@@ -613,10 +618,11 @@ export function drawGround(g, scene, P, rect, lod, hillshade) {
       const h = hash3(seed, cx, cy);
       const tones = scene.vegOpen === 0 ? [P.pasture, mix(P.pasture, P.open, 0.4), P.open] : [P.field, mix(P.field, '#7d9a4f', 0.5), mix(P.field, '#c9a96a', 0.5), P.open];
       g.fillStyle = tones[h % tones.length]; g.fillRect(cx * cell + 3, cy * cell + 3, cell - 6, cell - 6);
+      if (lod > 0.6) { g.strokeStyle = 'rgba(90,75,50,0.35)'; g.lineWidth = 0.6; g.strokeRect(cx * cell + 3, cy * cell + 3, cell - 6, cell - 6); }
       if (lod > 0.8 && scene.vegOpen === 5) { g.strokeStyle = 'rgba(70,60,30,0.12)'; g.lineWidth = 0.5; g.beginPath(); for (let k = 6; k < cell; k += 6) { if (h & 1) { g.moveTo(cx * cell + k, cy * cell + 3); g.lineTo(cx * cell + k, cy * cell + cell - 3); } else { g.moveTo(cx * cell + 3, cy * cell + k); g.lineTo(cx * cell + cell - 3, cy * cell + k); } } g.stroke(); }
     }
   }
-  if (hillshade) { g.save(); g.globalAlpha = P.theme === 'dark' ? 0.25 : 0.35; g.imageSmoothingEnabled = true; g.drawImage(hillshade.canvas, hillshade.x0, hillshade.y0, hillshade.w, hillshade.h); g.restore(); }
+  if (hillshade) { g.save(); g.globalAlpha = P.theme === 'dark' ? 0.2 : 0.26; g.imageSmoothingEnabled = true; g.drawImage(hillshade.canvas, hillshade.x0, hillshade.y0, hillshade.w, hillshade.h); g.restore(); }
   drawWater(g, scene, P);
 }
 
@@ -650,8 +656,9 @@ export function makeHillshade(scene, makeCanvas) {
   for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
     const x = -R + (i + 0.5) * cell, y = -R + (j + 0.5) * cell;
     const [gx, gy] = T.grad(x, y);
-    // light from the northwest (cartographic convention), slope exaggerated a little
-    const nx = -gx * 3, ny = -gy * 3, nz = 1;
+    // light from the northwest (cartographic convention); big relief is toned down so it shades, not paints
+    const slopeK = 3 * clamp(140 / T.relief, 0.22, 1);
+    const nx = -gx * slopeK, ny = -gy * slopeK, nz = 1;
     const L = Math.hypot(nx, ny, nz);
     const lum = (nx * -0.6 + ny * -0.6 + nz * 0.55) / L;
     const v = clamp(128 + (lum - 0.55) * 360, 0, 255);

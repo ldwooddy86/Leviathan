@@ -28,8 +28,15 @@
 // window.__LEGION_WORKER_SRC__; the crowd starts it from a Blob URL. Unbundled (dev pages over http) it starts
 // crowd-worker.mjs as a module worker. Without Workers it builds on the main thread in time slices. The Worker gets
 // the pack (the `pack` option: gzip bytes, base64 string or object; else window.__LEGION_PACK__; else world.pack)
-// and builds its own World and Population with the population's seed; the first chunk is checked against the main
-// thread's population, and a mismatch falls back to the main thread.
+// and builds its own World and Population with the population's seed. Chunks draw as they arrive; meanwhile a few
+// agents of the first chunk are checked against the main thread's population, one per idle callback (a cold check
+// fits that ZIP's models, milliseconds each, so it never runs inside a message handler). build() resolves once the
+// check passes; a mismatch rebuilds on the main thread. The crowd also warms world.raster() in idle time when it is
+// created, so the check's first sample does not pay for it while chunks stream in.
+//
+// Memory: the agent record is AGENT_BYTES (32) per agent on the main thread and on the GPU, plus the pick index
+// (summary.pickBytesPerAgent, about 3.5 statewide); summary.mainBytesPerAgent is the sum. A Worker build also keeps
+// a 14-byte copy of the state arrays per agent in the Worker for stats (summary.workerBytesPerAgent).
 
 import {
   buildRoadNet, buildAgentsGen, agentGLSL, agentPosition, agentPhase, agentKind, colorClass, pickNearest, decodeId,
@@ -146,6 +153,17 @@ function nextTask() {
   return new Promise(r => setTimeout(r, 0));
 }
 
+/** Run fn when the main thread is idle (within 250 ms at the latest). */
+function idle(fn) {
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(() => fn(), { timeout: 250 });
+  else setTimeout(fn, 16);
+}
+
+/** Agents of a Worker build checked against the main thread's population (one per idle callback). */
+const VERIFY_SAMPLES = 6;
+/** Bytes per agent of the Worker's copy of the state arrays (days, timing, errand, eoff, mode) for stats. */
+const WORKER_STATS_BYTES = 14;
+
 /** The GPU crowd layer of a MapView: builds agents (in a Worker when it can), draws them, counts and picks them. */
 export class Crowd {
   /**
@@ -185,9 +203,13 @@ export class Crowd {
     this._gl = null; this._frameT = 0; this._slow = 0; this._fast = 0;
     this._destroyed = false;
     this._readColors();
-    this._offTheme = mapView.on('theme', () => { this._readColors(); this.map.requestRender(); });
+    // a theme sets both the colors and how dark the night shade gets
+    this._offTheme = mapView.on('theme', () => { this._readColors(); this._applyShade(); this.map.requestRender(); });
     this.setTime(world.snapshotTime || Date.now());
     mapView.addLayer(this);
+    // householdCore (the Worker check, a main-thread build) needs the ZIP raster: build it now, in idle time, if the
+    // page has not, rather than in the middle of a build
+    idle(() => { if (!this._destroyed) this.world.raster(); });
   }
 
   // ------------------------------------------------ time, visibility, quality
@@ -198,10 +220,13 @@ export class Crowd {
     const st = simTime(this.t);
     this.minute = st.minute; this.dow = st.dow;
     this.night = nightFactor(this.t);
-    this.map.setShade(this.night * (this.map.dark === false ? 0.16 : 0.3));
+    this._applyShade();
     this.map.requestRender();
     this._requestStats();
   }
+
+  /** Night shade of the base map for the current time and theme (lighter in the light theme). */
+  _applyShade() { this.map.setShade(this.night * (this.map.dark === false ? 0.16 : 0.3)); }
 
   /** Which kinds are drawn (and pickable): array of KINDS names or {kind: bool}. 'home' is the population layer. */
   setVisible(kinds) {
@@ -264,7 +289,12 @@ export class Crowd {
       } else { summary = await this._buildOnMain(id, onProgress, f); this.mode = 'main'; }
     } finally { if (id === this._buildId) { this.building = false; this._job = null; } }
     if (!summary || summary.cancelled) return summary || { cancelled: true, agents: this.count };
-    summary = Object.assign({}, summary, { mode: this.mode, pack: this.mode === 'worker' ? this.packKind : null, totalMs: Math.round(performance.now() - t0), rateCapped: capped, rate: this.rate, bytesPerAgent: AGENT_BYTES });
+    const pickPer = summary.agents ? (summary.pickBytes || 0) / summary.agents : 0;
+    summary = Object.assign({}, summary, {
+      mode: this.mode, pack: this.mode === 'worker' ? this.packKind : null, totalMs: Math.round(performance.now() - t0), rateCapped: capped, rate: this.rate,
+      bytesPerAgent: AGENT_BYTES, pickBytesPerAgent: +pickPer.toFixed(3), mainBytesPerAgent: +(AGENT_BYTES + pickPer).toFixed(3),
+      workerBytesPerAgent: this.mode === 'worker' ? WORKER_STATS_BYTES : 0,
+    });
     this.summary = summary;
     this._requestStats(true);
     this.map.requestRender();
@@ -327,7 +357,7 @@ export class Crowd {
 
   _buildInWorker(id, onProgress, focus) {
     return new Promise((resolve, reject) => {
-      const job = this._job = { id, resolve, reject, onProgress, cancelled: false, verified: false };
+      const job = this._job = { id, resolve, reject, onProgress, cancelled: false, verify: null, summary: null };
       const msg = { type: 'build', id, rate: this.rate, seed: this.seed, popSeed: this._popSeed(), focus, chunkTarget: 131072, pack: null };
       if (!this._workerHasPack) { msg.pack = this._packForWorker(); this._workerHasPack = true; }
       try { this._worker.postMessage(msg); } catch (e) { this._workerHasPack = false; reject(e); return; }
@@ -350,36 +380,63 @@ export class Crowd {
     switch (m.type) {
       case 'chunk': {
         const c = m.chunk;
-        if (!job.verified) {
-          job.verified = true;
-          if (!this._verifyChunk(c)) { job.reject(new Error('worker population differs from the main thread population')); return; }
-        }
         this._addChunk(c);
+        if (!job.verify && c.count) this._queueVerify(job, c);
         if (job.onProgress) job.onProgress(m.progress, this.count);
         break;
       }
       case 'progress': if (job.onProgress) job.onProgress(m.progress, this.count); break;
       case 'loaded': job.loadMs = m.ms; break;
-      case 'done': job.resolve(Object.assign(m.summary, { workerLoadMs: job.loadMs })); break;
+      case 'done': {
+        const v = job.verify;
+        job.summary = Object.assign(m.summary, { workerLoadMs: job.loadMs });
+        // an empty crowd has nothing to check; otherwise the last sample to check out resolves the build
+        if (!v || v.done) this._resolveVerified(job);
+        break;
+      }
       case 'error': this._workerHasPack = false; job.reject(new Error(m.message)); break;
       default: break;
     }
   }
 
-  /** The Worker built its own population: spot-check that it is the one the main thread will show. */
-  _verifyChunk(c) {
-    const n = c.count, step = Math.max(1, Math.floor(n / 6));
-    for (let i = 0; i < n; i += step) {
+  /**
+   * The Worker built its own population: queue a spot check, against the main thread's, of agents spread over the
+   * first chunk with agents. The check runs one agent per idle callback (_verifyStep), never in a message handler.
+   */
+  _queueVerify(job, c) {
+    const n = c.count, step = Math.max(1, Math.floor(n / VERIFY_SAMPLES)), samples = [];
+    for (let i = 0; i < n && samples.length < VERIFY_SAMPLES; i += step) {
       const { zi, h, m } = decodeId(c, i, this.world);
-      let core;
-      try { core = this.population.householdCore(zi, h); } catch { return false; }
-      const mem = core && core.members && core.members.find((x, k) => (x.m == null ? k : x.m) === m);
-      if (!mem) return false;
-      if (modeCode(mem.mode) !== (c.mode[i] & 15)) return false;
-      const tm = commuteTiming(mem);
-      if (tm[0] !== c.timing[3 * i] || tm[1] !== c.timing[3 * i + 1] || tm[2] !== c.timing[3 * i + 2]) return false;
+      samples.push({ zi, h, m, mode: c.mode[i] & 15, timing: [c.timing[3 * i], c.timing[3 * i + 1], c.timing[3 * i + 2]] });
     }
-    return true;
+    job.verify = { samples, next: 0, done: false, maxMs: 0 };
+    idle(() => this._verifyStep(job));
+  }
+
+  /** Check one queued agent; reject the job on a mismatch, resolve it after the last one if 'done' came first. */
+  _verifyStep(job) {
+    if (job.cancelled || this._job !== job || this._destroyed) return;
+    const t0 = performance.now(), v = job.verify, s = v.samples[v.next++];
+    let ok = false;
+    try {
+      const core = this.population.householdCore(s.zi, s.h);
+      const mem = core && core.members && core.members.find((x, k) => (x.m == null ? k : x.m) === s.m);
+      if (mem && modeCode(mem.mode) === s.mode) {
+        const tm = commuteTiming(mem);
+        ok = tm[0] === s.timing[0] && tm[1] === s.timing[1] && tm[2] === s.timing[2];
+      }
+    } catch { ok = false; }
+    v.maxMs = Math.max(v.maxMs, performance.now() - t0);
+    if (!ok) { job.reject(new Error(`worker population differs from the main thread population (${this.world.zips[s.zi]}-${s.h}-${s.m})`)); return; }
+    if (v.next < v.samples.length) { idle(() => this._verifyStep(job)); return; }
+    v.done = true;
+    if (job.summary) this._resolveVerified(job);
+  }
+
+  /** Resolve a Worker job whose 'done' arrived and whose check passed, noting the check in the summary. */
+  _resolveVerified(job) {
+    const v = job.verify;
+    job.resolve(Object.assign(job.summary, { verified: v ? v.samples.length : 0, verifyMaxMs: v ? Math.round(v.maxMs * 10) / 10 : 0 }));
   }
 
   async _buildOnMain(id, onProgress, focus) {

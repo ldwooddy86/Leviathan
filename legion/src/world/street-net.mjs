@@ -584,8 +584,9 @@ export class Router {
     if (from.node !== undefined) { out.push({ node: from.node, g: 0, step: null }); return out; }
     const E = net.edges[from.e];
     if (!m.ok(E)) return out;
-    if (m.dirOk(E, -1)) out.push({ node: E.a, g: costOf(m, E, from.s), step: { e: E.id, dir: -1, from: from.s, to: 0 } });
-    if (m.dirOk(E, 1)) out.push({ node: E.b, g: costOf(m, E, E.len - from.s), step: { e: E.id, dir: 1, from: from.s, to: E.len } });
+    // leaving a place mid-street: the first intersection's control counts like every other one
+    if (m.dirOk(E, -1)) out.push({ node: E.a, g: costOf(m, E, from.s) + nodePenalty(m, E, 0), step: { e: E.id, dir: -1, from: from.s, to: 0 } });
+    if (m.dirOk(E, 1)) out.push({ node: E.b, g: costOf(m, E, E.len - from.s) + nodePenalty(m, E, 1), step: { e: E.id, dir: 1, from: from.s, to: E.len } });
     return out;
   }
 
@@ -751,12 +752,13 @@ export function dijkstra(net, mode, src) {
 export function pathCost(net, mode, path) {
   const m = MODES[mode] || MODES.car;
   let c = 0;
-  path.steps.forEach((s, i) => {
+  for (const s of path.steps) {
     const E = net.edges[s.e];
     c += costOf(m, E, Math.abs(s.to - s.from));
+    // every arrival at an intersection pays its control (a path ending mid-street does not arrive)
     const arrivesAtNode = (s.dir > 0 && Math.abs(s.to - E.len) < 1e-9) || (s.dir < 0 && Math.abs(s.to) < 1e-9);
-    if (i < path.steps.length - 1 && arrivesAtNode) c += nodePenalty(m, E, s.dir > 0 ? 1 : 0);
-  });
+    if (arrivesAtNode) c += nodePenalty(m, E, s.dir > 0 ? 1 : 0);
+  }
   return c;
 }
 

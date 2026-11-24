@@ -25,24 +25,24 @@ export const FAMILIES = {
       tech | work | the industry: "she's in tech"
     `),
     greetings: lines(`
-      Hey! You staying warm out there?
-      Hey, how's it going? Fog get you this morning?
+      @wx:cold,fog,rain,wind,snow Hey! You staying warm out there?
+      @wx:fog Hey, how's it going? Fog get you this morning?
       Oh hey, I haven't seen you in forever.
       Hey, you made it! How was the drive?
-      What's up? You still over in {neighborhood}?
+      What's up? You still living in {neighborhood}?
       Hey, how's everything on your side of the Bay?
-      Hi! Crazy weather, huh?
+      @wx:heat,rain,wind,cold,smoke,snow Hi! Crazy weather, huh?
       Hey, good timing, I was just about to head out.
     `),
     farewells: lines(`
       All right, get home safe.
-      Okay, I'm gonna try to beat traffic.
+      @drives Okay, I'm gonna try to beat traffic.
       Later! Bring a jacket, it's going to get cold.
       Okay, see you on the other side of the bridge.
-      Have a good one, stay dry.
+      @wx:rain Have a good one, stay dry.
       All right, catch you next time you're over this way.
       Text me when you get home.
-      Okay, I'm out before the fog rolls back in.
+      @wx:fog,clear Okay, I'm out before the fog rolls back in.
     `),
     fillers: lines(`
       like
@@ -73,9 +73,9 @@ export const FAMILIES = {
       fog: lines(`
         Karl the Fog is back.
         The fog's pouring over the hills again.
-        Sunny on this side of the hill, socked in on the other. Microclimates.
-        It's summer, so of course it's foggy.
-        The foghorns had me up all night.
+        Socked in on this side of the hill, and probably sunny on the other. Microclimates.
+        @m6-8 It's summer, so of course it's foggy.
+        @coast The foghorns had me up all night.
         The fog's sitting right on {landmark}.
         Layers. Always layers.
       `),
@@ -86,23 +86,23 @@ export const FAMILIES = {
         Everybody's at the beach, and it's probably still foggy there.
       `),
       rain: lines(`
-        They're calling it an atmospheric river.
+        Feels like one of those atmospheric rivers.
         The hills are finally going to turn green.
         Good for the reservoirs, bad for my commute.
         Rain like this, I worry about the hillsides sliding.
       `),
       wind: lines(`
-        Diablo winds again. Everybody's on edge.
-        Red flag day. They might shut off the power up in the hills.
-        Wind's whipping right off the bay.
+        @offshore Diablo winds again. Everybody's on edge.
+        @alert:redflag Red flag day. They might shut off the power up in the hills.
+        @coast Wind's whipping right off the bay.
       `),
       cold: lines(`
         Bay Area cold is damp. It gets right into your bones.
         Grab a hoodie, it's going to drop once the fog comes in.
-        It's not that cold, it's the wind off the water.
+        @coast It's not that cold, it's the wind off the water.
       `),
       smoke: lines(`
-        Smoke drifted down from up north again.
+        Smoke again. Probably drifting down from up north.
         When the sky goes orange from the fires, it feels like another planet.
         Masks on for the smoke again.
       `),
@@ -112,22 +112,22 @@ export const FAMILIES = {
       `),
       clear: lines(`
         You can see all the way across the bay today.
-        No fog today. Rare. Enjoy it.
-        Fall is our real summer here.
-        September and October are the best weather we get.
+        @coast No fog today. Rare. Enjoy it.
+        @m9-10 Fall is our real summer here.
+        @m9-10 September and October are the best weather we get.
         Clear day. The bridges look unreal.
       `),
     },
     traffic: lines(`
       Bridge traffic was brutal this morning.
-      The metering lights at the bridge took forever.
+      @drives The metering lights at the bridge took forever.
       {road} was backed up the whole way.
-      Took me an hour to go fifteen miles.
-      The carpool lane is the only reason I'm not late.
+      @drives Took me an hour to go fifteen miles.
+      @drives @works The carpool lane is the only reason I'm not late.
       The tech shuttles were blocking the whole lane again.
       {stretch} was jammed again.
       Nobody in the Bay knows how to merge. Nobody.
-      I left at six to beat traffic and it was already bad at six.
+      @drives I left at six to beat traffic and it was already bad at six.
       {road} through the whole Bay is a nightmare at five.
     `),
     prideLines: lines(`
@@ -137,27 +137,27 @@ export const FAMILIES = {
       Burritos here are better than anywhere. I'll fight about it.
       The views from the hills never get old.
       Everything starts here first. Good and bad.
-      Go {team}. Always.
+      Go {teamName}. Always.
       Once you've lived in the Bay, everywhere else feels small.
       The food here, honestly. You can eat anything from anywhere.
     `),
     complaintLines: lines(`
-      Rent is insane. Everybody I grew up with moved to Sacramento or out of state.
-      A million dollars for a two-bedroom fixer. A million.
-      My landlord raised the rent again.
+      @adult @native Rent is insane. Everybody I grew up with moved to Sacramento or out of state.
+      @adult A million dollars for a two-bedroom fixer. A million.
+      @rents My landlord raised the rent again.
       The cost of living is pushing everybody out.
       They keep building and none of it's for regular people.
       BART is great when it works.
       Tech money changed everything around here.
-      I pay that much in rent and I still have roommates.
-      You need two incomes and a miracle to buy anything here.
+      @rents I pay that much in rent and I still have roommates.
+      @adult You need two incomes and a miracle to buy anything here.
     `),
     food: lines(`
       Mission-style burrito, foil-wrapped, as big as your arm. That's lunch.
       Dim sum on Sunday morning, that's tradition.
       Sourdough from a real bakery. Nothing like it.
       Garlic fries at the ballgame. I don't even care about the score.
-      Dungeness crab season is the best time of year.
+      @anytime Dungeness crab season is the best time of year.
       Pho on a foggy day just makes sense.
       Banh mi from the little spot by the station.
       The ramen line was out the door again.
@@ -198,11 +198,11 @@ export const FAMILIES = {
     },
     elder: {
       greetings: lines(`
-        Well, hello! Isn't this fog something?
-        Good morning! Chilly one today.
+        @wx:fog Well, hello! Isn't this fog something?
+        @h4-11 @wx:cold,fog,rain,wind,snow Good morning! Chilly one today.
       `),
       farewells: lines(`
-        Bundle up out there.
+        @wx:cold,fog,rain,wind,snow Bundle up out there.
         Mind the bridge traffic going home.
       `),
       surprise: lines(`
@@ -241,23 +241,22 @@ export const FAMILIES = {
       Amtrak | transit | the Capitol Corridor trains between Sacramento, Davis and the Bay Area
     `),
     greetings: lines(`
-      Hey! Hot enough for you?
-      Hey, how's it going? Staying cool?
-      Morning! You see that fog?
+      @wx:heat Hey! Hot enough for you?
+      @wx:heat Hey, how's it going? Staying cool?
+      @h4-11 @wx:fog Morning! You see that fog?
       Hey there, how's your week?
       Oh hey, I didn't know you were back in town.
       Hey, how's the family doing?
       Well, hey! Haven't seen you since the river.
-      Morning! Supposed to be another warm one.
+      @h4-11 @wx:heat Morning! Supposed to be another warm one.
     `),
     farewells: lines(`
-      All right, stay cool.
-      Okay, drive safe in the fog.
-      See you around, enjoy the Delta breeze tonight.
-      Have a good one, don't melt.
+      @wx:heat All right, stay cool.
+      @wx:fog Okay, drive safe in the fog.
+      @wx:heat Have a good one, don't melt.
       Okay, I'll see you at the river.
       All right, say hi to everybody for me.
-      Okay, take it easy, it's too hot to rush.
+      @wx:heat Okay, take it easy, it's too hot to rush.
       Later! Drive careful on 99.
     `),
     fillers: lines(`
@@ -285,16 +284,14 @@ export const FAMILIES = {
       fog: lines(`
         Tule fog's so thick I couldn't see the car in front of me.
         Foggy-day schedule at the schools again.
-        Tule fog season. Low beams and patience.
+        @m11-2 Tule fog season. Low beams and patience.
         The fog didn't lift all day.
         You can't see the other side of the field.
       `),
       heat: lines(`
-        {temp} and no Delta breeze tonight. Ugh.
-        Triple digits. Welcome to summer in the valley.
+        @m5-8 Triple digits. Welcome to summer in the valley.
         Everybody says it's a dry heat. It's still an oven.
-        When the Delta breeze kicks in at night, that's the best part of summer.
-        I get everything done before ten in the morning in the summer.
+        @anytime I get everything done before ten in the morning in the summer.
       `),
       rain: lines(`
         When the rivers come up like this, everybody starts watching the levees.
@@ -323,7 +320,7 @@ export const FAMILIES = {
       `),
       clear: lines(`
         Clear day, you can see the Sierra from here.
-        Spring in the valley is perfect. Short, but perfect.
+        @m3-5 Spring in the valley is perfect. Short, but perfect.
         After the rain you can see the mountains for miles.
       `),
     },
@@ -333,41 +330,41 @@ export const FAMILIES = {
       Traffic's nothing like the Bay, but it's getting there.
       Somebody's always crawling up 50 on a ski weekend.
       Fog on {road} this morning, everybody doing thirty.
-      The frontage road was faster than the freeway.
+      @drives The frontage road was faster than the freeway.
       I-5 through downtown backs up for no reason at all.
-      Harvest trucks on the two-lane, so I just settled in.
+      @m7-10 @drives Harvest trucks on the two-lane, so I just settled in.
       {stretch} was backed up again.
     `),
     prideLines: lines(`
       We're close to everything: Tahoe, the coast, the Bay.
       People are friendly here. Not fake friendly.
-      River in the summer, snow in the winter, a couple hours either way.
+      @anytime River in the summer, snow in the winter, a couple hours either way.
       The valley feeds half the country.
       I'll take our sunsets over anybody's.
-      {place} is my town. Born and raised.
+      @native {place} is my town. Born and raised.
       Kids still ride their bikes everywhere here.
       The trees, the rivers, the farms. I love it here.
     `),
     complaintLines: lines(`
-      The summers keep getting hotter.
-      Bay Area people moved here and now we can't afford it either.
+      @anytime The summers keep getting hotter.
+      @adult Bay Area people moved here and now we can't afford it either.
       Traffic used to be nothing. Not anymore.
-      Allergy season here is no joke.
+      @anytime Allergy season here is no joke.
       Everybody talks about the Bay and forgets we exist.
-      The power bill in July is worse than anything in winter.
+      @adult @anytime The power bill in July is worse than anything in winter.
       Our water is always somebody else's fight.
     `),
     food: lines(`
-      Peaches right off the tree in summer.
+      @anytime Peaches right off the tree in summer.
       Sweet corn from a roadside stand.
       Taco trucks everywhere, and they're all good.
       The Sunday farmers market is the best thing in town.
       Rice from up the road, almonds from down the road.
-      Tomatoes in August. Nothing else compares.
+      @anytime Tomatoes in August. Nothing else compares.
     `),
     youth: {
       farewells: lines(`
-        All right, I'm out, it's hella hot.
+        @wx:heat All right, I'm out, it's hella hot.
       `),
       agreement: lines(`
         Hella.
@@ -379,10 +376,10 @@ export const FAMILIES = {
     },
     elder: {
       greetings: lines(`
-        Morning! Gonna be another hot one.
+        @h4-11 @wx:heat Morning! Gonna be another hot one.
       `),
       farewells: lines(`
-        Stay cool, now.
+        @wx:heat Stay cool, now.
       `),
       agreement: lines(`
         You got that right.
@@ -414,24 +411,24 @@ export const FAMILIES = {
       Amtrak | transit | the San Joaquins, the valley's train from Bakersfield up to Sacramento and the Bay Area
     `),
     greetings: lines(`
-      Hey! Hot one today, huh?
+      @wx:heat Hey! Hot one today, huh?
       Hey there, how you doing?
-      Morning! Fog lift where you're at?
+      @h4-11 @wx:fog Morning! Fog lift where you're at?
       Hey, how's the family?
       Well, hey, I haven't seen you in a while.
       Hey, how's work been?
-      Morning! You get any sleep in this heat?
-      Hey there! Busy season, huh?
+      @h4-11 @wx:heat Morning! You get any sleep in this heat?
+      @m6-10 Hey there! Busy season, huh?
     `),
     farewells: lines(`
-      All right, stay cool out there.
-      Okay, careful in the fog.
+      @wx:heat All right, stay cool out there.
+      @wx:fog Okay, careful in the fog.
       See you, tell your folks hi.
       Take it easy, don't work too hard.
       Okay, I'll let you get back to it.
       All right, see you at the game.
       Drive safe on 99, people are crazy.
-      Okay, I gotta get going before it gets any hotter.
+      @wx:heat @h6-15 Okay, I gotta get going before it gets any hotter.
     `),
     fillers: lines(`
       you know
@@ -462,9 +459,9 @@ export const FAMILIES = {
         The fog never burned off today.
       `),
       heat: lines(`
-        {temp} and it's not even noon.
-        Triple digits all week.
-        The Valley in July is no joke.
+        @h4-11 {temp} and it's not even noon.
+        Triple digits, and probably all week.
+        @m6-9 The Valley in {month} is no joke.
         Too hot to work outside after two.
         At least it cools off at night. Sometimes.
       `),
@@ -479,12 +476,12 @@ export const FAMILIES = {
         Windy and dusty. My allergies are wrecked.
       `),
       cold: lines(`
-        Frost warning. The growers will be running the wind machines all night.
-        Cold and foggy, the Valley winter special.
-        Freezing this morning, had to scrape the windshield.
+        @alert:frost Frost warning. The growers will be running the wind machines all night.
+        @m11-2 Cold and foggy, the Valley winter special.
+        @drives Freezing this morning, had to scrape the windshield.
       `),
       smoke: lines(`
-        Smoke from the fires up in the Sierra fills the whole valley.
+        Smoke settles in and fills the whole valley.
         Between the smoke and the dust, the air here is rough.
         You can't even see the mountains with all this smoke.
       `),
@@ -495,16 +492,16 @@ export const FAMILIES = {
       clear: lines(`
         After a rain you can see the Sierra from here. Best view in the state.
         Clear day, you can see {landmark}.
-        Spring, with everything blooming. That's our good season.
+        @m2-4 Spring, with everything blooming. That's our good season.
       `),
     },
     traffic: lines(`
       {road} is all trucks, all the time.
-      Stuck behind a tractor on the two-lane.
-      Took the frontage road to skip the backup.
+      @drives Stuck behind a tractor on the two-lane.
+      @drives Took the frontage road to skip the backup.
       Fog on {road} this morning, nobody could see a thing.
       They've been working on 99 my whole life.
-      Harvest season, there's a truck full of tomatoes in front of me no matter where I go.
+      @m7-10 @drives Harvest season, there's a truck full of tomatoes in front of me no matter where I go.
       Somebody always flies past you on 99 like it's a racetrack.
       Everybody slows down for the cop at the overpass.
       {stretch} was backed up for miles.
@@ -516,34 +513,34 @@ export const FAMILIES = {
       A couple hours to the mountains, a couple hours to the coast.
       Small-town feel, even in the cities.
       You haven't had a peach until you've had one off the tree here.
-      {place} raised me. I'm proud of it.
+      @native {place} raised me. I'm proud of it.
       Nobody outside the Valley gets it, and that's fine.
     `),
     complaintLines: lines(`
-      The air quality in summer is awful.
+      @anytime The air quality in summer is awful.
       Water's always the fight. Always.
       Nobody in Sacramento or LA thinks about the Valley.
       The heat keeps getting worse.
       Bay Area money moved in and the rents went with it.
-      Jobs here are hard work for not enough pay.
+      @adult Jobs here are hard work for not enough pay.
       The dust gets into everything.
       They forget we're here until they need the food.
     `),
     food: lines(`
       Fruit stand peaches. Best in the world.
-      Taco trucks after a long shift, every time.
+      @works Taco trucks after a long shift, every time.
       Tri-tip on the grill every weekend.
       Fresh corn and melons from the stand by the road.
-      There's always somebody selling tamales at the holidays.
-      Cherries in spring, peaches in summer, pomegranates in fall.
+      @anytime There's always somebody selling tamales at the holidays.
+      @anytime Cherries in spring, peaches in summer, pomegranates in fall.
       Almonds from the orchard down the road.
     `),
     elder: {
       greetings: lines(`
-        Morning! Gonna be a hot one.
+        @h4-11 @wx:heat Morning! Gonna be a hot one.
       `),
       farewells: lines(`
-        You take care now, and watch that fog.
+        @wx:fog You take care now, and watch that fog.
       `),
     },
     slang: slang(`
@@ -568,22 +565,22 @@ export const FAMILIES = {
     `),
     greetings: lines(`
       Hey there. How you holding up?
-      Morning! Cold one today.
+      @h4-11 @wx:cold,fog,rain,snow,wind Morning! Cold one today.
       Hey, good to see you. How's everybody?
       Well, hey, stranger.
       Howdy. Long time.
-      Hey! You make it through the storm okay?
-      Morning. Roads all right coming in?
+      @wx:rain,wind,snow Hey! You make it through the storm okay?
+      @h4-11 Morning. Roads all right coming in?
       Hey, how's the fishing been?
     `),
     farewells: lines(`
       All right, drive careful on those curves.
       Okay, see you next time you come through.
-      Take care, stay dry.
+      @wx:rain Take care, stay dry.
       All right, holler if you need anything.
       Okay, watch for deer on the way home.
       See you in town.
-      All right, keep the woodstove going.
+      @m10-4 All right, keep the woodstove going.
       Take it easy. Tell your folks hi.
     `),
     fillers: lines(`
@@ -619,7 +616,7 @@ export const FAMILIES = {
         Old houses up here don't have AC, so we just suffer.
       `),
       rain: lines(`
-        Rain on top of rain. Must be winter.
+        @m11-3 Rain on top of rain. Must be winter.
         The river's coming up fast.
         Every storm, somewhere the highway's got a slide on it.
       `),
@@ -634,13 +631,13 @@ export const FAMILIES = {
       `),
       smoke: lines(`
         Smoke in the canyons so thick you can't see the ridge.
-        Fire season again. Everybody's got the scanner on.
+        @m6-11 Fire season again. Everybody's got the scanner on.
         The smoke's been sitting here for days.
       `),
       snow: lines(`
         Snow on the passes, chains required.
         Snow down low this morning.
-        First snow on the mountain. Winter's here.
+        @m10-12 First snow on the mountain. Winter's here.
       `),
       clear: lines(`
         Clear day, you can see {landmark}.
@@ -649,7 +646,7 @@ export const FAMILIES = {
       `),
     },
     traffic: lines(`
-      Got stuck behind a logging truck on the two-lane.
+      @drives Got stuck behind a logging truck on the two-lane.
       There's one road in and one road out, and when it closes, that's it.
       {road} is all curves. Somebody always gets carsick.
       The construction flagger had us waiting twenty minutes.
@@ -671,19 +668,19 @@ export const FAMILIES = {
     `),
     complaintLines: lines(`
       Sacramento doesn't know we exist.
-      The nearest hospital is an hour away.
-      Fire insurance is impossible to get anymore.
+      The specialists are all hours away.
+      @adult Fire insurance is impossible to get anymore.
       There's no jobs for the kids, so they leave.
-      Gas costs more up here and we drive twice as far.
-      The roads close every winter and nobody fixes them fast.
+      @adult Gas costs more up here and we drive twice as far.
+      @anytime The roads close every winter and nobody fixes them fast.
       Internet out here is a joke.
       Tourists don't know how to drive these roads.
     `),
     food: lines(`
       Fresh-caught salmon on the grill. Best meal there is.
-      Dungeness crab from the docks when the season opens.
-      Venison chili all winter.
-      Blackberries along every road in August.
+      @anytime Dungeness crab from the docks when the season opens.
+      @anytime Venison chili all winter.
+      @anytime Blackberries along every road in August.
       There's one good taco truck in town and everybody knows it.
       Pie at the diner on the highway.
     `),
@@ -720,22 +717,22 @@ export const KEYS = {
     `),
     weather: {
       fog: lines(`
-        Sunny in the Mission, socked in out in the Avenues. Every day.
-        It's August and I'm wearing a puffer.
+        Most days it's sunny in the Mission and socked in out in the Avenues.
+        @m6-9 It's {month} and I'm wearing a puffer.
         Ocean Beach is fogged in, as usual.
         The fog's swallowing the top of Twin Peaks.
       `),
       cold: lines(`
-        Summer in the city means a jacket. Locals know.
+        @anytime Summer in the city means a jacket. Locals know.
       `),
       clear: lines(`
-        Fall heat, finally. October is our July.
+        @m9-10 Fall heat, finally. October is our July.
       `),
     },
     traffic: lines(`
       Muni was late and packed, so, normal.
       Parking in this city is a full-contact sport.
-      Took me twenty minutes to find a spot, then I walked anyway.
+      @drives Took me twenty minutes to find a spot, then I walked anyway.
       Double-parked delivery trucks on every block.
     `),
     prideLines: lines(`
@@ -748,9 +745,9 @@ export const KEYS = {
     complaintLines: lines(`
       A burrito costs what a whole dinner used to.
       These hills are killing my knees.
-      Parking tickets are basically my second rent.
-      My studio costs more than my parents' mortgage ever did.
-      Tourists in shorts, freezing, every single summer.
+      @drives @rents Parking tickets are basically my second rent.
+      @rents My studio costs more than my parents' mortgage ever did.
+      @anytime Tourists in shorts, freezing, every single summer.
     `),
     food: lines(`
       Mission burrito, end of discussion.
@@ -781,11 +778,11 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        It's foggy in the city and {temp} out here. Classic.
+        {temp} out here, and I bet it's foggy in the city. Classic.
         Over the hill it's always hotter. Every time.
       `),
       wind: lines(`
-        Diablo winds and dry hills. Everybody up in the hills is nervous.
+        @offshore Diablo winds and dry hills. Everybody up in the hills is nervous.
       `),
     },
     traffic: lines(`
@@ -804,11 +801,11 @@ export const KEYS = {
       Out in the 925 you still get a backyard.
     `),
     complaintLines: lines(`
-      Rent in the East Bay is catching up with the city.
-      Everybody from the city moved here, and now we can't afford it either.
+      @adult Rent in the East Bay is catching up with the city.
+      @adult Everybody from the city moved here, and now we can't afford it either.
       The commute from East County is two hours some days.
       Living by the freeway means the trucks shake the windows.
-      My car got towed for street sweeping. Again.
+      @drives My car got towed for street sweeping. Again.
     `),
     food: lines(`
       Taco trucks on International Boulevard, the best in the Bay.
@@ -841,15 +838,15 @@ export const KEYS = {
       South County | place | Morgan Hill, San Martin and Gilroy
     `),
     greetings: lines(`
-      Hey! You working from home today or going in?
+      @h5-11 Hey! You working from home today or going in?
     `),
     farewells: lines(`
-      Okay, I gotta jump on a call.
-      All right, I'm gonna beat the traffic on 85.
+      @works @h7-18 Okay, I gotta jump on a call.
+      @drives All right, I'm gonna beat the traffic on 85.
     `),
     weather: {
       heat: lines(`
-        {temp} here and they're wearing jackets in the city.
+        {temp} here, and I bet they're wearing jackets in the city.
       `),
     },
     traffic: lines(`
@@ -868,16 +865,16 @@ export const KEYS = {
       Sharks games get loud. Love it.
     `),
     complaintLines: lines(`
-      A starter home here costs more than a mansion anywhere else.
-      Everyone talks about stock options at the barbecue.
-      Layoffs one month, hiring the next. Hard to plan anything.
+      @adult A starter home here costs more than a mansion anywhere else.
+      @adult Everyone talks about stock options at the barbecue.
+      @works Layoffs one month, hiring the next. Hard to plan anything.
       Downtown empties out at night.
       You need a car for everything down here.
     `),
     food: lines(`
       Pho and banh mi on Story Road, that's the move.
       Garlic everything in Gilroy.
-      The dosa place by the office is packed every lunch.
+      @works The dosa place by the office is packed every lunch.
       Korean barbecue in Santa Clara on a Friday night.
     `),
     teams: ['the Sharks', 'the Earthquakes', 'the Warriors', 'the Niners', 'the Giants', 'San Jose State'],
@@ -896,7 +893,7 @@ export const KEYS = {
     weather: {
       fog: lines(`
         Daly City fog is a whole other level.
-        Over the hill on the coastside it's fogged in all summer.
+        @anytime Over the hill on the coastside it's fogged in all summer.
         The fog's spilling over Skyline again.
       `),
     },
@@ -910,13 +907,13 @@ export const KEYS = {
       Best of both worlds, close to the city and the South Bay.
       Half Moon Bay on a clear day is unreal.
       Quiet little towns, good schools, five minutes from everything.
-      Daly City is home. The fog is part of the deal.
+      {place} is home, and I wouldn't trade it.
       Pacifica's the best-kept secret on the coast.
     `),
     complaintLines: lines(`
       Everything costs a fortune, even in the small towns.
-      The fog in Daly City never leaves in summer.
-      Teachers and nurses can't afford to live where they work.
+      @anytime The fog in Daly City never leaves in summer.
+      @adult Teachers and nurses can't afford to live where they work.
       Somebody's always tearing down a house to build a bigger one.
     `),
     food: lines(`
@@ -947,41 +944,41 @@ export const KEYS = {
     `),
     weather: {
       smoke: lines(`
-        Every fall I pack the go-bag and hope I don't need it.
-        Smoke in the valley again, sitting right on the vineyards.
+        @anytime @adult Every fall I pack the go-bag and hope I don't need it.
+        Smoke's settling in again. You can taste it.
       `),
       wind: lines(`
-        Diablo winds at night, nobody sleeps.
-        When the wind comes out of the northeast like this, I check the fire map every hour.
+        @offshore Diablo winds at night, nobody sleeps.
+        @offshore When the wind comes out of the northeast like this, I check the fire map every hour.
       `),
       heat: lines(`
-        {temp} in the valley and the coast is socked in. Pick your poison.
+        @inland {temp} here, and the coast is probably socked in. Pick your poison.
       `),
     },
     traffic: lines(`
       Highway 37 was backed up from Vallejo.
       Golden Gate traffic coming back on a Sunday, forget it.
-      Tourist traffic on Highway 12 every weekend in harvest.
+      @anytime Tourist traffic on Highway 12 every weekend in harvest.
       The ferry's the only civilized way into the city.
     `),
     prideLines: lines(`
-      Wine country in the fall is the most beautiful place in the world.
+      @anytime Wine country in the fall is the most beautiful place in the world.
       Petaluma's still got that small-town thing.
       Point Reyes on a clear day is unreal.
       Marin's got the redwoods and the beach ten minutes apart.
       Since {fire}, people up here look out for each other differently.
     `),
     complaintLines: lines(`
-      Insurance companies don't want to cover anybody up here anymore.
-      Tourists drive like they're the only ones on the road during harvest.
-      The fires changed everything. You feel it every fall.
+      @adult Insurance companies don't want to cover anybody up here anymore.
+      @anytime Tourists drive like they're the only ones on the road during harvest.
+      @anytime The fires changed everything. You feel it every fall.
       The people who work the vineyards can't afford to live near them.
-      The bridge toll keeps going up.
+      @drives The bridge toll keeps going up.
     `),
     food: lines(`
       Oysters out by the coast on a Sunday.
       Fresh cheese and bread from the farm stand.
-      Harvest dinner out in the vineyard. That's the life.
+      @anytime Harvest dinner out in the vineyard. That's the life.
       Taco trucks by the vineyards at lunch, best food in the valley.
     `),
     teams: ['the Giants', 'the Warriors', 'the Niners', 'Sonoma State'],
@@ -1003,7 +1000,9 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in the 916. Pray for the Delta breeze.
+        {temp} out here. Pray for the Delta breeze.
+        {temp} and no Delta breeze tonight. Ugh.
+        @anytime When the Delta breeze kicks in at night, that's the best part of summer.
         Float the American when it's this hot. That's the only answer.
       `),
     },
@@ -1014,7 +1013,7 @@ export const KEYS = {
       Everybody leaves the Grid at five at once.
     `),
     prideLines: lines(`
-      City of trees, and we mean it.
+      @county:Sacramento City of trees, and we mean it.
       Farm-to-fork capital, and it's not just a slogan.
       Midtown on a warm night is the best.
       The 916 doesn't get enough credit.
@@ -1024,7 +1023,7 @@ export const KEYS = {
     complaintLines: lines(`
       Everybody thinks we're just state workers and lobbyists.
       Downtown parking is a nightmare when there's a game.
-      Rent here used to be cheap. Used to be.
+      @adult Rent here used to be cheap. Used to be.
     `),
     food: lines(`
       Farm-to-fork restaurants everywhere now.
@@ -1053,32 +1052,32 @@ export const KEYS = {
     weather: {
       heat: lines(`
         {temp} in the shade, and the shade's not helping.
-        Creek swimming in Bidwell, that's the only way through August.
+        @m7-8 Creek swimming, that's the only way through {month}.
       `),
       clear: lines(`
         Clear enough to see the Buttes.
         Clear enough to see {landmark} from the orchard.
       `),
       rain: lines(`
-        The rice fields are flooded and the ducks are back.
+        @m11-2 The rice fields are flooded and the ducks are back.
       `),
     },
     traffic: lines(`
-      Stuck behind a tractor on the two-lane again.
+      @drives Stuck behind a tractor on the two-lane again.
       99 between here and Yuba City needs another lane.
-      Harvest trucks hauling almonds, so you just wait.
+      @m8-10 Harvest trucks hauling almonds, so you just wait.
       70 down to Sacramento, and people pass like crazy on the two-lane parts.
     `),
     prideLines: lines(`
       Small-town life, and you still know everybody's name.
-      The orchards in bloom in February. Nothing prettier.
+      @anytime The orchards in bloom in February. Nothing prettier.
       We grow the food. Simple as that.
-      Chico in the spring is the best place in the state.
+      @anytime Chico in the spring is the best place in the state.
       Up here people help each other. After {fire}, everybody showed up.
     `),
     complaintLines: lines(`
       Nobody south of Sacramento even knows we're here.
-      Fire insurance up here is impossible now.
+      @adult Fire insurance up here is impossible now.
       Water's always a fight between the farms and the cities.
       Jobs are hard to come by unless you farm.
     `),
@@ -1110,7 +1109,7 @@ export const KEYS = {
     traffic: lines(`
       The Altamont at five in the morning is already full.
       Half of Tracy is on 580 by six.
-      The 205 to 580 merge, every single morning.
+      @drives @works The 205 to 580 merge, every single morning.
       ACE train's the only way to keep your sanity over the hill.
     `),
     prideLines: lines(`
@@ -1118,15 +1117,15 @@ export const KEYS = {
       Modesto knows how to cruise.
       Stockton gets a bad rap. Come see it for yourself.
       The Delta's a whole world most people never see.
-      Almond blossoms in February. It looks like snow.
+      @anytime Almond blossoms in February. It looks like snow.
     `),
     complaintLines: lines(`
-      Half my paycheck goes to gas for the Bay commute.
+      @works @drives Half my paycheck goes to gas for the Bay commute.
       Bay Area prices followed everybody over the hill.
-      I see my kids for an hour a day because of the commute.
+      @works @parent I see my kids for an hour a day because of the commute.
     `),
     food: lines(`
-      Asparagus season in Stockton, you put it on everything.
+      @anytime Asparagus season in Stockton, you put it on everything.
       Taco trucks by the packing houses at lunch.
       Fresh cherries from Lodi.
       Walnuts from the orchard, still in the shell.
@@ -1147,26 +1146,26 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in the 559 is just a normal summer day.
-        Raisin trays are out in the vineyards. Drying weather.
+        @m5-9 {temp} in the 559 is just a normal summer day.
+        @m8-9 Raisin trays are out in the vineyards. Drying weather.
       `),
     },
     traffic: lines(`
-      41 to Yosemite on a summer weekend, bring snacks.
+      @anytime 41 to Yosemite on a summer weekend, bring snacks.
       Herndon at rush hour is the worst road in town.
       99 through town is always under construction.
     `),
     prideLines: lines(`
       Go Dogs! Fresno State is the whole Valley's team.
-      Fresno, yes. Fresyes.
+      @county:Fresno Fresno, yes. Fresyes.
       Yosemite's practically our backyard.
-      The Blossom Trail in February is gorgeous.
+      @anytime The Blossom Trail in February is gorgeous.
       There's more culture here than people think.
       The 559 forever.
     `),
     complaintLines: lines(`
-      People make Fresno jokes without ever coming here.
-      The summer air here is rough on your lungs.
+      @county:Fresno People make Fresno jokes without ever coming here.
+      @anytime The summer air here is rough on your lungs.
       Nothing to do in the heat but stay inside.
       Water for the farms, water for the city, never enough water.
     `),
@@ -1174,7 +1173,7 @@ export const KEYS = {
       Armenian bakery on the east side, the best lavash anywhere.
       There's a Hmong market with the best papaya salad in town.
       Tri-tip sandwiches at the game.
-      Fresh figs in summer, right off the tree.
+      @anytime Fresh figs in summer, right off the tree.
       Raisins, almonds, pistachios, all grown right here.
     `),
     slang: slang(`
@@ -1195,14 +1194,14 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in Bako, so, a normal summer day.
+        @m5-9 {temp} in {place}, so, a normal summer day.
       `),
       snow: lines(`
         Snow on the Grapevine! They'll close it, watch.
         When it snows, the Grapevine closes and the whole state notices.
       `),
       fog: lines(`
-        Fog in the valley and snow on the Grapevine. Pick a direction.
+        @m11-3 Fog in the valley, maybe snow on the Grapevine. Pick a direction.
       `),
     },
     traffic: lines(`
@@ -1221,7 +1220,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       People only ever see Bakersfield from the freeway.
-      Summers are brutal and getting worse.
+      @anytime Summers are brutal and getting worse.
       The air's bad from the dust and the oil fields.
       Nobody plans for us. The state forgets we exist.
     `),
@@ -1253,8 +1252,8 @@ export const KEYS = {
     `),
     weather: {
       fog: lines(`
-        Fog's in, fog's out, fog's in. That's summer here.
-        Foggy and cool in July while the rest of the state bakes.
+        @m6-9 Fog's in, fog's out, fog's in. That's summer here.
+        @m6-9 Foggy and cool in {month}, and I bet the rest of the state is baking.
       `),
       rain: lines(`
         Sideways rain off the ocean.
@@ -1275,16 +1274,16 @@ export const KEYS = {
       Arcata Plaza on a Saturday is the best.
       Humboldt's weird and we like it that way.
       The coast up here is wild. No crowds, just ocean.
-      Crab season is basically a holiday.
+      @anytime Crab season is basically a holiday.
     `),
     complaintLines: lines(`
       It takes all day to get anywhere else.
-      Housing up here got expensive and the wages didn't.
-      The fog rolls in and stays all summer.
+      @adult Housing up here got expensive and the wages didn't.
+      @anytime The fog rolls in and stays all summer.
       Every big storm knocks the power out for days.
     `),
     food: lines(`
-      Crab feed in winter, the whole town shows up.
+      @anytime Crab feed in winter, the whole town shows up.
       Smoked salmon from the docks.
       Oysters from the bay.
       Clam chowder on a foggy day.
@@ -1304,11 +1303,11 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} at the lake and the water's still nice.
-        The coast is foggy and cool and we're baking.
+        {temp} out here, and the lake's the only place to be.
+        We're baking, and I bet the coast is foggy and cool.
       `),
       smoke: lines(`
-        Smoke in the basin again. It sits right on the lake.
+        Smoke again. It just sits in these valleys.
       `),
     },
     traffic: lines(`
@@ -1325,11 +1324,11 @@ export const KEYS = {
     complaintLines: lines(`
       We've been through so many fires, people are worn out.
       Everything's a long drive from here.
-      Insurance up here, forget it.
+      @adult Insurance up here, forget it.
       There's no work unless it's the vineyards or the county.
     `),
     food: lines(`
-      Pears from the orchard in August.
+      @anytime Pears from the orchard in August.
       Fried catfish at the place by the lake.
       Saturday farmers market in town.
     `),
@@ -1350,14 +1349,14 @@ export const KEYS = {
     weather: {
       heat: lines(`
         {temp} in {place}. Lake day.
-        Summers here are the hottest in the state. I'll swear to it.
+        @anytime Summers here are the hottest in the state. I'll swear to it.
       `),
       snow: lines(`
         When it snows up by Mount Shasta, it's chain control on I-5.
         Snow out in the high desert, and the cattle don't care.
       `),
       cold: lines(`
-        Cold enough to freeze the stock tank this morning.
+        Cold enough to freeze the stock tanks out on the ranches.
       `),
     },
     traffic: lines(`
@@ -1367,22 +1366,22 @@ export const KEYS = {
       Highway 44 to Lassen, you'll see more deer than cars.
     `),
     prideLines: lines(`
-      Mount Shasta out the kitchen window. Can't beat it.
-      Houseboat on Shasta Lake. That's summer.
+      {peak} out the kitchen window. Can't beat it.
+      @anytime Houseboat on Shasta Lake. That's summer.
       Up here we hunt, fish and mind our own business.
       Real ranch country, real cowboys.
       The Sundial Bridge at sunset, I'll take that over any city.
     `),
     complaintLines: lines(`
       The heat's brutal and the smoke's worse.
-      Insurance after the fires is out of reach.
+      @adult Insurance after the fires is out of reach.
       Kids move to Sacramento and don't come back.
       Sacramento writes the rules and we live with them.
     `),
     food: lines(`
       Steak and potatoes, no apologies.
       Trout from the river, cooked right there.
-      Blackberry pie in August.
+      @anytime Blackberry pie in August.
       Huckleberries, if you know where to look.
     `),
     teams: ['the Niners', 'the Giants', 'the Kings'],

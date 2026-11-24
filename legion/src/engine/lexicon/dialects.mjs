@@ -11,11 +11,15 @@ import * as MID from './dialects-mid.mjs';
 import * as SOUTH from './dialects-south.mjs';
 import { DIALECT_KEYS } from './geography.mjs';
 import { ROAD_USAGE } from './roads.mjs';
+import { WEATHER_CONDITIONS } from './tags.mjs';
+import { teamName } from './slots.mjs';
+
+export { WEATHER_CONDITIONS };
 
 /** Line categories every dialect has (arrays of templates). */
 export const LINE_CATEGORIES = Object.freeze(['greetings', 'farewells', 'fillers', 'intensifiers', 'agreement', 'surprise', 'traffic', 'prideLines', 'complaintLines', 'food']);
-/** Weather conditions every dialect has lines for. */
-export const WEATHER_CONDITIONS = Object.freeze(['fog', 'heat', 'rain', 'wind', 'cold', 'smoke', 'snow', 'clear']);
+/** Word-level categories: single words or short phrases that go mid-sentence, never capitalized as a line. */
+export const WORD_CATEGORIES = Object.freeze(['fillers', 'intensifiers']);
 /** Categories with age-graded extras: `youth` (teens and twenties) and `elder` (sixty and up). */
 export const AGE_CATEGORIES = Object.freeze(['greetings', 'farewells', 'agreement', 'surprise', 'intensifiers', 'fillers']);
 
@@ -84,6 +88,7 @@ function build(key) {
   }
   d.slang = mergeSlang(k.slang, f.slang, COMMON.slang);
   d.teams = [...(k.teams || f.teams || [])];
+  d.teamNames = d.teams.map(teamName);
   d.localTerms = uniq(Object.keys(k.words || {}), Object.keys(f.words || {})).slice(0, 18);
   return deepFreeze(d);
 }
@@ -93,7 +98,9 @@ function build(key) {
  * pch, roadStyle, register, words: {term: {kind, note}}, localTerms, greetings, farewells, fillers,
  * intensifiers, agreement, surprise, weather: {fog, heat, rain, wind, cold, smoke, snow, clear}, traffic,
  * prideLines, complaintLines, food, regional: {same categories, family and local lines only}, youth: {…},
- * elder: {…}, slang: [{term, level, ages, gloss, example, origin}], teams }. Lines are {slot} templates.
+ * elder: {…}, slang: [{term, level, ages, gloss, example, origin}], teams (as said in a sentence, "the Giants"),
+ * teamNames (bare, "Giants") }. Lines are {slot} templates; some carry tags (lineTags) saying when and for whom
+ * they are true, so read them through linesFor or pickLine rather than straight from these arrays.
  * Deeply frozen.
  * @type {Readonly<Record<string, object>>}
  */

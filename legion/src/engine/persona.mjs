@@ -8,8 +8,13 @@
 // schedule.mjs turns into a day plan), because the schedule receives no world.
 //
 // Everything is a pure function of the pack, the NPC record (its seed drives the individual draws; household
-// facts such as the roof, the wedding year and churchgoing are drawn from the household id so every member
-// agrees) and the time t used for the weather (default: the NWS snapshot). No Math.random, no clock reads.
+// facts such as the roof, the wedding year, when the family came to the county, churchgoing, the school runs and
+// the family outings are drawn from the household id so every member agrees) and the time t used for the weather
+// (default: the NWS snapshot). No Math.random, no clock reads.
+//
+// Work is read by Census occupation group (layer 0's PersonCore.occ), never by the layer 1 job key: the key is a
+// job slug ('tractor-driver'), the group ('farming') is what archetypes, heat exposure, registers and interests
+// are keyed on. Without a population the group comes from occupations.mjs's catalog, then from the job title.
 //
 // Representation rule 1 is structural here. personality() receives only the basis traitBasis() builds (seed,
 // age, sex, density); archetype and values read a life basis that holds no race, heritage, nativity, language,
@@ -17,7 +22,9 @@
 // optional cultural tradition among the interests (never the first two), code-switching in speech, and, for
 // immigrants, the family-abroad concern and the arrival memory (nativity facts, not traits).
 
-import { Rng, hash2, hash3, hashStr, clamp, lerp, smoothstep } from './rng.mjs';
+import { Rng, hash2, hash3, hashStr, u01, clamp, lerp, smoothstep } from './rng.mjs';
+import * as Occupations from './occupations.mjs';
+import { busyIntervals } from './schedule.mjs';
 
 /** Bumped when the persona model changes shape or meaning. */
 export const PERSONA_VERSION = 1;
@@ -43,7 +50,7 @@ export const CONCERN_AREAS = {
 const S = {
   big5: 0x0b15e5, traits: 0x7a175, values: 0x5c4a12, arch: 0xa7c4e, residence: 0x4e5d1, roof: 0x200f1,
   marry: 0x3a771, practice: 0xc4c4c, teams: 0x7ea35, interests: 0x1a7e5, tradition: 0x7ad17, memories: 0x3e301,
-  speech: 0x5bec4, places: 0x91ace, hooks: 0x400c5, life: 0x11fe0,
+  speech: 0x5bec4, places: 0x91ace, hooks: 0x400c5, life: 0x11fe0, county: 0xc0717, family: 0xfa3117, lines: 0x11e5,
 };
 
 // ---------------------------------------------------------------- small helpers
@@ -150,12 +157,20 @@ function fireName(name) {
   return /\b(fire|complex|fires)$/i.test(n) ? `the ${n}` : `the ${n} Fire`;
 }
 
-/** First name of a household member entry (a string, or {first}/{display}). */
+/**
+ * What the family calls a household member: the nickname of the display name ("Bobby Lee") when it has one, else
+ * the first name; household.members entries carry name (display) and first, older ones a name object.
+ */
 function memberName(x) {
   if (!x) return null;
-  if (typeof x.name === 'string') return str(x.name.split(/\s+/)[0]);
-  if (x.name && typeof x.name === 'object') return str(x.name.first) || str(x.name.display);
-  return null;
+  if (typeof x.name === 'string') {
+    const display = str(x.name), first = str(x.first);
+    // the display name is "<nick or first> <last>": the given name may have more than one word ("Mary Ann")
+    if (display && first && display.startsWith(first + ' ')) return first;
+    return display ? str(display.split(/\s+/)[0]) : first;
+  }
+  if (x.name && typeof x.name === 'object') return str(x.name.nick) || str(x.name.first) || str(x.name.display);
+  return str(x.first);
 }
 
 // ---------------------------------------------------------------- per-world caches (pure functions of the pack)
@@ -180,9 +195,133 @@ function worldInfo(world) {
   const cityCounty = new Map();
   for (const c of world.pack.cities || []) if (c && c[0]) cityCounty.set(String(c[0]).toLowerCase(), c[1]);
   for (const p of world.places || []) if (p && p.name && !cityCounty.has(p.name.toLowerCase())) cityCounty.set(p.name.toLowerCase(), p.county);
-  w = { skiTowns, coast, cityCounty };
+  let labels = null;
+  try { labels = world.acsLabels('occ'); } catch { labels = null; }
+  const groups = new Set(Array.isArray(labels) && labels.length ? labels : OCC_GROUPS_FALLBACK);
+  w = { skiTowns, coast, cityCounty, groups };
   WORLD_INFO.set(world, w);
   return w;
+}
+
+// ---------------------------------------------------------------- occupation groups
+
+// The 25 Census occupation groups (C24010 leaves) in case a pack lacks the label list.
+const OCC_GROUPS_FALLBACK = ['management', 'business', 'computer', 'engineering', 'science', 'social', 'legal', 'education', 'arts',
+  'practitioner', 'healthtech', 'healthsupport', 'firefighting', 'police', 'food', 'cleaning', 'personalcare', 'sales', 'office',
+  'farming', 'construction', 'repair', 'production', 'transport', 'moving'];
+
+let KEY_GROUP = null;
+/** A job key's Census group from occupations.mjs's catalog (read as data: a missing catalog just finds nothing). */
+function catalogGroup(key) {
+  if (!KEY_GROUP) {
+    KEY_GROUP = new Map();
+    const cat = Occupations && Occupations.OCCUPATION_CATALOG;
+    if (cat && typeof cat === 'object') {
+      for (const [group, list] of Object.entries(cat)) {
+        if (!Array.isArray(list)) continue;
+        for (const x of list) if (x && typeof x.key === 'string' && !KEY_GROUP.has(x.key)) KEY_GROUP.set(x.key, group);
+      }
+    }
+  }
+  return KEY_GROUP.get(key) || null;
+}
+
+// A job title's Census group, for records whose key no catalog knows. First match wins, so the specific
+// titles come before the generic words they contain ('loan officer' before 'officer', 'teaching assistant'
+// before 'assistant').
+const TITLE_GROUPS = [
+  [/\b(farmers?|ranchers?|principal|superintendent|administrator|(general|operations|property|restaurant|hotel|construction|financial|marketing|sales|office|plant|store) manager|business owner|executive|ceo|director)\b/, 'management'],
+  [/\b(loan|compliance) officer\b|\b(accountant|auditor|financial analyst|human resources|recruiter|claims adjuster|purchasing|buyer|consultant|event planner|logistics analyst|tax preparer|project manager|labor contractor)\b/, 'business'],
+  [/\b(software|web developer|programmer|coder|data scientist|it support|network admin\w*|cybersecurity|database|qa engineer|actuary|developer)\b/, 'computer'],
+  [/\b(engineer|architect|drafter|surveyor|engineering tech\w*)\b/, 'engineering'],
+  [/\b(scientist|chemist|biologist|geologist|forester|psychologist|economist|urban planner|agricultural inspector|lab technician)\b/, 'science'],
+  [/\b(social worker|counselor|case manager|pastor|minister|priest|rabbi|imam|clergy|chaplain|probation officer|community health worker|family therapist|youth (program )?coordinator)\b/, 'social'],
+  [/\b(attorney|lawyer|paralegal|judge|court reporter|title examiner|legal assistant)\b/, 'legal'],
+  [/\b(teacher|teaching assistant|professor|instructor|lecturer|tutor|librarian)\b/, 'education'],
+  [/\b(designer|actor|actress|writer|musician|photographer|reporter|editor|animator|artist|grip|coach|sound engineer|set carpenter)\b/, 'arts'],
+  [/\b(registered nurse|nurse practitioner|physician(?! assistant)|doctor|surgeon|dentist|pharmacist|veterinarian|chiropractor|physician assistant|(physical|occupational|respiratory) therapist|speech[\w -]*pathologist)\b/, 'practitioner'],
+  [/\b(vocational nurse|lvn|lpn|emt|paramedic|technologist|hygienist|pharmacy tech\w*|sonographer|ultrasound|surgical tech\w*|medical lab|medical records|optician|vet(erinary)? tech\w*)\b/, 'healthtech'],
+  [/\b(nursing assistant|cna|home health|caregiver|medical assistant|dental assistant|phlebotomist|aide|psychiatric tech\w*|veterinary assistant)\b/, 'healthsupport'],
+  [/\b(nurse|rn)\b/, 'practitioner'],
+  [/\b(firefighter|fire captain|fire inspector|security guard|security|lifeguard|crossing guard|screener|animal control|loss prevention)\b/, 'firefighting'],
+  [/\b(police|sheriff|deputy|correctional|detective|highway patrol|game warden|officer)\b/, 'police'],
+  [/\b(cook|chef|server|waiter|waitress|barista|bartender|dishwasher|fast food|restaurant host|pastry)\b/, 'food'],
+  [/\b(janitor|housekeeper|house cleaner|cleaner|landscaper|tree trimmer|groundskeeper|pest control|pool (service )?tech\w*|gardener)\b/, 'cleaning'],
+  [/\b(childcare|nanny|hairstylist|barber|nail tech\w*|fitness trainer|personal trainer|recreation|amusement|ski (lift|instructor)|groomer|tour guide|casino|funeral)\b/, 'personalcare'],
+  [/\b(cashier|sales|retail|real estate|realtor|insurance agent|store supervisor|account executive|vendor|parts counter)\b/, 'sales'],
+  [/\b(clerk|administrative assistant|receptionist|customer service|bookkeeper|dispatcher|bank teller|teller|mail carrier|secretary|eligibility worker|motor vehicle representative)\b/, 'office'],
+  [/\b(farmworker|farm worker|field worker|picker|harvester|orchard|vineyard|dairy|ranch hand|nursery|greenhouse|forestry|logger|fishing|deckhand|trimmer|irrigat\w*|produce sorter|tractor driver)\b/, 'farming'],
+  [/\b(carpenter|electrician|plumber|construction|roofer|painter|drywall|equipment operator|solar panel installer|concrete|ironworker|foreman|building inspector|tile setter|mason|laborer)\b/, 'construction'],
+  [/\b(mechanic|hvac|maintenance tech\w*|lineworker|installer|repair|elevator tech\w*|auto body)\b/, 'repair'],
+  [/\b(assembl\w*|food processing|machinist|welder|packing house|bakery worker|press operator|sewing|quality inspector|refinery|cellar|semiconductor|meat cutter|cabinetmaker|plant operator|production)\b/, 'production'],
+  [/\b(truck|driver|pilot|flight attendant|parking attendant|train operator|tugboat|bus)\b/, 'transport'],
+  [/\b(warehouse|forklift|longshore|crane operator|freight|stocker|packager|refuse|car wash|recycling|ramp agent|mover)\b/, 'moving'],
+];
+
+/** The Census group a job title implies, or null. */
+function titleGroup(title) {
+  const t = String(title || '').toLowerCase();
+  if (!t.trim()) return null;
+  for (const [re, g] of TITLE_GROUPS) if (re.test(t)) return g;
+  return null;
+}
+
+/**
+ * A worker's Census occupation group (acsLabels('occ')): layer 0's PersonCore.occ first (the contract's leaf),
+ * then a record that carries the group itself, then occupations.mjs's catalog by job key, then the title.
+ * Null for people with no group (active duty, not working).
+ */
+function occGroupOf(world, me, occ) {
+  const groups = worldInfo(world).groups;
+  const fromCore = me ? str(me.occ) : null;
+  if (fromCore && groups.has(fromCore)) return fromCore;
+  if (me && me.military) return null;
+  const key = occ ? str(occ.key) : null;
+  if (key && groups.has(key)) return key;
+  const fromCatalog = key ? catalogGroup(key) : null;
+  if (fromCatalog && groups.has(fromCatalog)) return fromCatalog;
+  const fromTitle = occ ? titleGroup(occ.title) : null;
+  return fromTitle && groups.has(fromTitle) ? fromTitle : null;
+}
+
+/**
+ * A job title worth saying in prose: null when it is empty or only a Census group label (a placeholder some
+ * records carry instead of a title). A one-word title equal to its job key ('pastor') is a real title.
+ */
+function jobTitle(world, occ) {
+  const t = occ && typeof occ === 'object' ? clean(occ.title) : null;
+  if (!t) return null;
+  return worldInfo(world).groups.has(t.toLowerCase()) ? null : t;
+}
+
+// Work done outside or exposed to the heat: by group, narrowed by title where the group mixes indoor and outdoor
+// jobs (housekeepers and landscapers are both 'cleaning'; pilots and delivery drivers both 'transport').
+const OUTDOOR_GROUPS = new Set(['farming', 'construction', 'moving']);
+const OUTDOOR_TITLES = {
+  cleaning: /landscap|ground|tree|pool|pest|gardener/, firefighting: /fire|lifeguard|crossing|animal control/,
+  transport: /truck|deliver|tow|refuse|parking|deckhand|tug|bus driver|rideshare|driver/, repair: /line|install|hvac|roof|mechanic|maintenance|elevator|body/,
+  personalcare: /ski|recreation|tour|amusement/, police: /highway patrol|warden|patrol|deputy|police officer/, office: /mail carrier/,
+  sales: /street vendor/, science: /forest|wildlife|environmental|geolog|agricultural/, arts: /grip|set|coach/,
+};
+/** True when the job keeps them outdoors (heat exposure, weather on the shift). */
+function outdoorWork(group, title) {
+  if (!group) return false;
+  if (OUTDOOR_GROUPS.has(group)) return true;
+  const re = OUTDOOR_TITLES[group];
+  if (!re) return false;
+  const t = String(title || '').toLowerCase();
+  // with no title to tell, the groups that are mostly outdoor work count (the Census group alone)
+  return t ? re.test(t) : ['cleaning', 'transport', 'repair', 'firefighting'].includes(group);
+}
+
+/**
+ * True when the job is farm work, whatever its Census group (farmers are managers, farm truck drivers transport);
+ * the farming group's loggers, forestry crews and fishing deckhands are not.
+ */
+function farmWork(group, title) {
+  const t = String(title || '').toLowerCase();
+  if (group === 'farming') return !/\b(logger|forestry|fishing|deckhand)\b/.test(t);
+  return /\b(farm\w*|ranch\w*|orchard|vineyard|dairy|grower|crops?|harvest\w*|agricultur\w*)\b/.test(t);
 }
 
 function safeAcs(world, zi, block) {
@@ -350,14 +489,18 @@ function lifeBasis(ctx) {
   const kidAges = rel.kids.map(k => k.age).filter(isNum);
   const youngest = kidAges.length ? Math.min(...kidAges) : null;
   const isParent = kidAges.some(k => k < 18) && age >= 16; // raising children (grown kids at home do not count)
+  const occKey = worker ? occGroupOf(ctx.world, me, occ) : null;
+  const occTitle = occ ? str(occ.title) : null;
   return {
     age, sex: sexOf(npc), role: str(npc.role) || 'householder', status,
     worker, military, student, school,
     retired: status === 'retired' || (!worker && age >= 62 && !['homemaker', 'unemployed', 'student'].includes(status)),
     homemaker: status === 'homemaker', unemployed: status === 'unemployed',
     education: str(npc.education),
-    occKey: (occ && str(occ.key)) || (me && str(me.occ)) || null,
-    occTitle: occ ? str(occ.title) : null,
+    occKey, occTitle,
+    jobTitle: jobTitle(ctx.world, occ),
+    outdoor: worker && !military && outdoorWork(occKey, occTitle),
+    farm: worker && !military && farmWork(occKey, occTitle),
     wfh: mode === 'wfh' || !!(occ && occ.wfh && mode !== 'drive'),
     mode, departMin: isNum(departMin) ? departMin : null, commuteMin, dwellMin, days,
     shift: shiftOf(occ && occ.shift, isNum(departMin) ? departMin : null, commuteMin),
@@ -458,40 +601,67 @@ export function personality(basis) {
 
 // ---------------------------------------------------------------- archetype and values (life basis + personality)
 
+// A life-role label for workers of a Census group, refined by the job title and the shift. Each entry returns a
+// label or null (null falls through to the schedule-based labels below).
+const LATE = sh => sh === 'night' || sh === 'evening';
+const EARLY_CREW = L => L.shift === 'early' || (isNum(L.departMin) && L.departMin < 390);
+const WORK_ROLES = {
+  farming: (L, t) => /logger/.test(t) ? 'logger' : /fishing|deckhand/.test(t) ? 'fishing-boat deckhand' : /forestry/.test(t) ? 'forestry worker'
+    : EARLY_CREW(L) ? 'farmworker on the morning crew' : 'farmworker',
+  transport: (L, t, r) => /pilot/.test(t) ? 'pilot' : /flight attendant/.test(t) ? 'flight attendant' : /school bus/.test(t) ? 'school bus driver'
+    : /train/.test(t) ? 'train operator' : /\bbus\b|transit/.test(t) ? 'bus driver' : /rideshare/.test(t) ? 'rideshare driver' : /\btow\b/.test(t) ? 'tow truck driver'
+      : /farm truck/.test(t) ? 'farm truck driver' : /tug|deckhand/.test(t) ? 'tugboat deckhand' : /parking/.test(t) ? 'parking attendant'
+        : /truck|tractor-trailer|freight|haul/.test(t) ? (L.commuteMin >= 40 || r.float() < 0.45 ? 'long-haul trucker' : 'local trucker')
+          : L.shift === 'night' ? 'night-shift driver' : 'delivery driver',
+  practitioner: (L, t) => healthRole(L, t, 'practitioner'), healthtech: (L, t) => healthRole(L, t, 'healthtech'), healthsupport: (L, t) => healthRole(L, t, 'healthsupport'),
+  firefighting: (L, t) => /wildland/.test(t) ? 'wildland firefighter' : /fire/.test(t) ? 'firefighter' : /lifeguard/.test(t) ? 'lifeguard'
+    : /crossing guard/.test(t) ? 'crossing guard' : /security|loss prevention/.test(t) ? (L.shift === 'night' ? 'night-shift security guard' : 'security guard')
+      : t ? null : 'firefighter',
+  police: (L, t) => /correctional/.test(t) ? 'correctional officer' : /warden/.test(t) ? 'game warden' : /detective/.test(t) ? 'detective'
+    : /highway patrol/.test(t) ? 'highway patrol officer' : /deputy|sheriff/.test(t) ? "sheriff's deputy" : L.shift === 'night' ? 'night-shift officer' : 'patrol officer',
+  education: (L, t) => /professor|lecturer|instructor/.test(t) ? 'college instructor' : /teaching assistant|aide/.test(t) ? "teacher's aide"
+    : /substitute/.test(t) ? 'substitute teacher' : /tutor/.test(t) ? 'tutor' : /librarian/.test(t) ? 'librarian' : /preschool/.test(t) ? 'preschool teacher' : 'teacher',
+  food: (L, t) => /bartender/.test(t) ? (LATE(L.shift) ? 'late-shift bartender' : 'bartender') : /barista/.test(t) ? 'barista'
+    : /server|waiter|waitress|host/.test(t) ? (LATE(L.shift) ? 'evening-shift server' : 'server') : /fast food/.test(t) ? 'fast-food worker'
+      : LATE(L.shift) ? 'late-shift line cook' : /cook|chef|prep|kitchen|dishwasher|food truck/.test(t) || !t ? 'line cook' : 'restaurant worker',
+  cleaning: (L, t) => /landscap|ground|tree|garden/.test(t) ? 'landscaper' : /pool/.test(t) ? 'pool tech' : /pest/.test(t) ? 'pest control tech'
+    : /housekeep|house cleaner/.test(t) ? 'housekeeper' : L.shift === 'night' ? 'night janitor' : /janitor/.test(t) ? 'janitor' : t ? null : 'housekeeper',
+  construction: (L, t) => (EARLY_CREW(L) ? 'early-shift regular' : /laborer/.test(t) ? 'construction laborer' : 'tradesperson'),
+  computer: L => (L.wfh ? 'remote worker' : 'tech worker'),
+  engineering: L => (L.wfh ? 'remote worker' : /architect/.test(L.occTitle || '') ? 'architect' : 'engineer'),
+  management: (L, t) => (/\b(farmer|rancher)\b/.test(t) ? 'farmer' : /principal/.test(t) ? 'school principal' : /business owner|owner/.test(t) ? 'small-business owner' : null),
+  social: (L, t) => (/pastor|minister|priest|clergy|rabbi|imam/.test(t) ? 'pastor' : /counselor/.test(t) ? 'counselor' : null),
+  personalcare: (L, t) => (/childcare|nanny/.test(t) ? 'childcare worker' : /barber/.test(t) ? 'barber' : /hair|nail/.test(t) ? 'stylist'
+    : /fitness|trainer/.test(t) ? 'fitness trainer' : /\bski\b/.test(t) ? 'ski-resort worker' : /casino/.test(t) ? 'casino dealer' : null),
+  arts: (L, t) => (/coach/.test(t) ? 'coach' : /reporter/.test(t) ? 'reporter' : /grip|set carpenter|sound/.test(t) ? 'film crew member' : null),
+};
+
+function healthRole(L, t, group) {
+  const nurse = /\bnurse\b|\brn\b|\blvn\b|\blpn\b/.test(t) && !/assistant|aide/.test(t);
+  if (L.shift === 'night') return nurse ? 'night-shift nurse' : group === 'healthsupport' ? 'night-shift caregiver' : 'night-shift health worker';
+  if (nurse) return 'nurse';
+  if (/physician(?! assistant)|doctor|surgeon/.test(t)) return 'doctor';
+  if (/dentist/.test(t)) return 'dentist';
+  if (/veterinarian/.test(t)) return 'veterinarian';
+  if (/pharmacist/.test(t)) return 'pharmacist';
+  if (/emt|paramedic/.test(t)) return 'paramedic';
+  return group === 'healthsupport' ? 'caregiver' : 'health-care worker';
+}
+
 function workerArchetype(L, r) {
   const k = L.occKey, title = (L.occTitle || '').toLowerCase(), sh = L.shift;
   if (L.tenure === 'own' && L.dwelling === 'small-apartment' && L.age >= 40 && r.float() < 0.35) return 'small landlord';
-  switch (k) {
-    case 'farming': return sh === 'early' || (isNum(L.departMin) && L.departMin < 390) ? 'farmworker on the morning crew' : 'farmworker';
-    case 'transport':
-      if (/truck|tractor|freight|haul/.test(title)) return L.commuteMin >= 40 || r.float() < 0.45 ? 'long-haul trucker' : 'delivery driver';
-      if (/bus|transit/.test(title)) return 'bus driver';
-      if (/pilot/.test(title)) return 'pilot';
-      return sh === 'night' ? 'night-shift driver' : 'delivery driver';
-    case 'practitioner': case 'healthtech': case 'healthsupport': {
-      const nurse = /\bnurse\b|\brn\b|\blvn\b|\blpn\b/.test(title) && !/assistant|aide/.test(title);
-      if (sh === 'night') return nurse ? 'night-shift nurse' : 'night-shift caregiver';
-      if (nurse) return 'nurse';
-      if (/physician|doctor|surgeon|dentist/.test(title)) return 'doctor';
-      return k === 'healthsupport' ? 'caregiver' : 'health-care worker';
-    }
-    case 'firefighting': return 'firefighter';
-    case 'police': return sh === 'night' ? 'night-shift officer' : 'patrol officer';
-    case 'education': return /professor|lecturer|instructor/.test(title) ? 'college instructor' : 'teacher';
-    case 'food': return sh === 'night' || sh === 'evening' ? 'late-shift line cook' : 'restaurant worker';
-    case 'cleaning': return sh === 'night' ? 'night janitor' : /ground|landscap|garden|tree/.test(title) ? 'landscaper' : 'housekeeper';
-    case 'construction': return sh === 'early' ? 'early-shift regular' : 'tradesperson';
-    case 'computer': case 'engineering': return L.wfh ? 'remote worker' : 'tech worker';
-    default: break;
-  }
+  const byRole = WORK_ROLES[k] ? WORK_ROLES[k](L, title, r) : null;
+  if (byRole) return byRole;
   if (sh === 'night') return 'night-shift worker';
   if (sh === 'early') return 'early-shift regular';
   if (L.wfh) return 'remote worker';
   if (L.commuteMin >= 75) return 'super commuter';
   const byKey = {
-    management: 'manager', business: 'office regular', legal: /paralegal|assistant/.test(title) ? 'paralegal' : 'lawyer',
-    science: 'lab scientist', social: 'social worker', arts: 'creative freelancer', personalcare: 'caregiver',
+    management: 'manager', business: 'office regular', legal: /paralegal|assistant|court reporter|title examiner/.test(title) ? 'paralegal' : /judge/.test(title) ? 'judge' : 'lawyer',
+    science: 'lab scientist', social: 'social worker', arts: 'creative freelancer', personalcare: 'service worker',
     sales: 'retail worker', office: 'office regular', production: 'plant worker', repair: 'mechanic', moving: 'warehouse worker',
+    firefighting: 'security guard', cleaning: 'janitor',
   };
   return byKey[k] || 'nine-to-fiver';
 }
@@ -578,9 +748,71 @@ function birthplaceInCounty(world, zi, birthplace) {
 }
 
 /**
- * When this person started living in the ZIP and in the county. Household members share the household's move
- * year; roommates and live-in parents may have joined later; immigrants cannot predate their arrival; a person
- * who grew up in the county (born after the move, or born in a city of the county) has lived there since birth.
+ * The household as every member must see it: each member's role, age and sex, layer 1's birth facts (birth year,
+ * birthplace, nativity, arrival) and layer 0's day. With a population the other members' records come from it
+ * (the NPC's own record is the one given, which callers may have edited); without one only the NPC's own record
+ * and household.members are known, and the household-level facts rest on ages and roles alone.
+ * @returns {{m:number, role:string, age:number|null, sex:string|null, birthYear:number|null, birthplace:string|null,
+ *   nativity:string|null, arrivalYear:number|null, core:Object|null}[]}
+ */
+function householdView(ctx) {
+  if (ctx.view) return ctx.view;
+  const { npc, core, zi, pop } = ctx;
+  const list = core ? core.hh.members : Array.isArray(ctx.hh.members) ? ctx.hh.members : [];
+  const out = [];
+  for (const x of list) {
+    if (!x || !Number.isInteger(x.m)) continue;
+    let rec = null;
+    if (x.m === npc.m) rec = npc;
+    else if (pop && typeof pop.person === 'function' && Number.isInteger(npc.h)) { try { rec = pop.person(zi, npc.h, x.m) || null; } catch { rec = null; } }
+    const age = x.m === npc.m ? ageOf(npc) : isNum(x.age) ? x.age : rec && isNum(rec.age) ? rec.age : null;
+    out.push({
+      m: x.m, role: str(x.role) || (rec && str(rec.role)) || 'relative', age, sex: x.sex === 'F' || x.sex === 'M' ? x.sex : rec ? sexOf(rec) : null,
+      birthYear: rec && isNum(rec.birthYear) ? Math.round(rec.birthYear) : isNum(age) ? REF_YEAR - age : null,
+      birthplace: rec ? str(rec.birthplace) : null, nativity: rec ? str(rec.nativity) : null,
+      arrivalYear: rec && rec.nativity === 'foreign' && isNum(rec.arrivalYear) ? rec.arrivalYear : null,
+      core: core ? x : null,
+    });
+  }
+  if (!out.some(x => x.m === npc.m)) {
+    const age = ageOf(npc);
+    out.push({ m: Number.isInteger(npc.m) ? npc.m : 0, role: str(npc.role) || 'householder', age, sex: sexOf(npc), birthYear: birthYearOf(npc), birthplace: str(npc.birthplace), nativity: str(npc.nativity), arrivalYear: npc.nativity === 'foreign' && isNum(npc.arrivalYear) ? npc.arrivalYear : null, core: null });
+  }
+  return (ctx.view = out);
+}
+
+/** The first year a person could have started living in the county on their own: birth for natives born there, else 18 (or arrival). */
+function earliestInCounty(world, zi, p) {
+  if (!isNum(p.birthYear)) return -Infinity;
+  if (p.nativity !== 'foreign' && birthplaceInCounty(world, zi, p.birthplace)) return p.birthYear;
+  return Math.max(p.birthYear + 18, isNum(p.arrivalYear) ? p.arrivalYear : -Infinity);
+}
+
+/**
+ * When the household came to the county, drawn once from the household id so every member agrees: the move into
+ * this home, or (most moves stay within a county) some years before it; no later than the birth of a child of
+ * the household born in the county, and no earlier than one of the couple could have come.
+ */
+function householdCounty(ctx, view, hhMoved) {
+  const { world, zi, npc } = ctx;
+  const hr = new Rng(hash3(S.county, zi, num(npc.h)));
+  const couple = view.filter(x => ADULT_ROLES.has(x.role));
+  const immigrants = couple.length > 0 && couple.every(x => x.nativity === 'foreign');
+  const local = hr.float() < (immigrants ? 0.3 : 0.5);
+  let y = local ? hhMoved - hr.range(1, 15) : hhMoved;
+  for (const k of view) {
+    if ((k.role === 'child' || k.role === 'grandchild') && isNum(k.birthYear) && k.nativity !== 'foreign' && birthplaceInCounty(world, zi, k.birthplace)) y = Math.min(y, k.birthYear);
+  }
+  const earliest = couple.map(a => earliestInCounty(world, zi, a)).filter(v => v > -Infinity);
+  if (earliest.length) y = Math.max(y, Math.min(...earliest));
+  return Math.min(y, hhMoved);
+}
+
+/**
+ * When this person started living in the ZIP and in the county. The household shares its move year; roommates
+ * and live-in parents may have joined later; immigrants cannot predate their arrival. The household's children
+ * have been in the county since the household came (or since birth, when born after); the couple came with the
+ * household, or earlier on their own; people born in the county have lived there since birth.
  */
 function residenceOf(ctx, L) {
   const { npc, world, zi, zc, seed } = ctx;
@@ -592,22 +824,33 @@ function residenceOf(ctx, L) {
     const own = num(zc.z.own_yr, 2010);
     hhMoved = clamp(Math.round(own + hr.normal(0, 7)), 1960, REF_YEAR);
   }
-  let zipSince = Math.max(Math.min(hhMoved, REF_YEAR), birthYear);
+  hhMoved = Math.min(hhMoved, REF_YEAR);
+  let zipSince = Math.max(hhMoved, birthYear);
   if (L.role === 'roommate') zipSince = Math.max(zipSince, REF_YEAR - r.range(0, 6));
   if (L.role === 'parent' || L.role === 'relative') zipSince = Math.max(zipSince, REF_YEAR - r.range(0, 12));
   const arrival = npc.nativity === 'foreign' && isNum(npc.arrivalYear) ? npc.arrivalYear : null;
   if (arrival !== null) zipSince = Math.max(zipSince, Math.min(arrival, REF_YEAR));
   zipSince = Math.min(zipSince, REF_YEAR);
   const bornHere = zipSince <= birthYear;
-  const grewUpHere = bornHere || (arrival === null && birthplaceInCounty(world, zi, npc.birthplace));
+  const hhCounty = householdCounty(ctx, householdView(ctx), hhMoved);
+  const earliest = Math.max(L.age >= 18 ? birthYear + 18 : birthYear, arrival ?? -Infinity);
+  const kid = L.role === 'child' || L.role === 'grandchild';
+  const nativeHere = arrival === null && birthplaceInCounty(world, zi, npc.birthplace);
   let countySince;
-  if (grewUpHere) countySince = birthYear;
-  else {
+  if (bornHere) countySince = birthYear;
+  else if (kid) countySince = Math.max(birthYear, hhCounty, arrival ?? -Infinity); // they grow up with the household
+  else if (nativeHere) countySince = birthYear;
+  else if (ADULT_ROLES.has(L.role)) {
+    countySince = Math.max(hhCounty, earliest);
+    // some lived in the county before the household did (a first apartment across town, college)
+    if (r.float() < 0.3) countySince = Math.min(countySince, Math.max(earliest, hhCounty - r.range(1, 12)));
+  } else {
     const local = r.float() < (arrival !== null ? 0.3 : 0.5); // most moves stay within a county
-    const earliest = Math.max(L.age >= 18 ? birthYear + 18 : birthYear, arrival ?? -Infinity);
     countySince = local ? clamp(zipSince - r.range(1, 15), Math.min(earliest, zipSince), zipSince) : zipSince;
   }
-  return { zipSince, countySince: Math.min(countySince, zipSince), grewUpHere, bornHere, yearsInZip: REF_YEAR - zipSince, yearsInCounty: REF_YEAR - Math.min(countySince, zipSince) };
+  countySince = clamp(countySince, birthYear, zipSince);
+  const grewUpHere = bornHere || (nativeHere && !kid) || countySince - birthYear <= 5;
+  return { zipSince, countySince, grewUpHere, bornHere, householdCounty: hhCounty, yearsInZip: REF_YEAR - zipSince, yearsInCounty: REF_YEAR - countySince };
 }
 
 /** The household's roof (owners only): age, material, solar. Drawn from the household id so members agree. */
@@ -626,17 +869,32 @@ function roofOf(ctx, L) {
   };
 }
 
-/** Household churchgoing from the ZIP's congregations per capita and the household's ages (never heritage). */
-function practiceOf(ctx, L) {
-  const { zc, npc } = ctx;
-  const hr = new Rng(hash3(S.practice, ctx.zi, num(npc.h)));
-  const ages = (Array.isArray(ctx.hh.members) ? ctx.hh.members : []).map(x => x && x.age).filter(isNum);
-  const elder = ages.length ? Math.max(...ages) : L.age;
+/**
+ * Who in the household goes to church: decided for the whole household from the household id, the ZIP's
+ * congregations per capita and the household's ages (never heritage), then member by member from the household
+ * id and the member's index, so every member's persona knows who goes. Children under 13 go when a grown-up of
+ * the household does.
+ * @returns {number[]} member indices
+ */
+function churchgoersOf(ctx, view) {
+  const { zc, npc, zi } = ctx;
+  const h = num(npc.h);
+  const hr = new Rng(hash3(S.practice, zi, h));
+  const ages = view.map(x => x.age).filter(isNum);
+  const elder = ages.length ? Math.max(...ages) : ageOf(npc);
   const p = clamp(0.08 + 0.1 * smoothstep(0.5, 5, zc.churchPer10k) + 0.17 * smoothstep(30, 80, elder) + (zc.rural ? 0.03 : 0), 0.05, 0.42);
   const household = hr.float() < p;
-  const r = rngFor(ctx.seed, S.practice);
-  const goes = household ? (L.age < 13 ? true : r.float() < (L.age < 18 ? 0.7 : 0.88)) : L.age >= 18 && r.float() < 0.06;
-  if (!goes) return null;
+  const own = x => u01(hash3(S.practice ^ 0x5a5a, zi, h * 32 + x.m));
+  const grown = view.filter(x => isNum(x.age) && x.age >= 13 && (household ? own(x) < (x.age < 18 ? 0.7 : 0.88) : x.age >= 18 && own(x) < 0.06));
+  const adultGoes = grown.some(x => x.age >= 18);
+  const kids = household && adultGoes ? view.filter(x => isNum(x.age) && x.age < 13) : [];
+  return [...grown, ...kids].map(x => x.m).sort((a, b) => a - b);
+}
+
+/** This member's own churchgoing ({label, day, why}) or null; never read from heritage. */
+function practiceOf(ctx, L, churchgoers) {
+  const { zc, npc } = ctx;
+  if (!churchgoers.includes(Number.isInteger(npc.m) ? npc.m : 0)) return null;
   return { label: 'church', day: 0, why: `${num(ctx.z.church)} congregations in ${ctx.z.zip} (church), ${fmt1(zc.churchPer10k)} per 10,000 people` };
 }
 
@@ -793,39 +1051,30 @@ const ERRANDS = [
   { kind: 'hardware', label: 'the hardware store' }, { kind: 'post-office', label: 'the post office' },
 ];
 
-/** Where their day can take them: errands, the park, the gym, the beach, a trailhead, church, family, the game. */
-function placesOf(ctx, L, knowledge, teams, practice) {
-  const { world, z, zc, home, seed } = ctx;
+/**
+ * Where their day can take them: errands, the park, the gym, the beach, a trailhead, family or friends, the game.
+ * The household shares its park, grocery store, beach and church (shared: householdPlaces); the rest is their own.
+ */
+function placesOf(ctx, L, knowledge, teams, shared) {
+  const { world, zc, home, seed } = ctx;
   const r = rngFor(seed, S.places);
   const dens = zc.density;
   const R = dens >= 3000 ? 5 : dens >= 500 ? 12 : 35;
   const shop = (j, d) => (num(world.z.retail[j]) + num(world.z.food[j])) * Math.exp(-d / (R / 2));
   const errands = [];
   for (const e of ERRANDS) {
+    if (e.kind === 'grocery' && shared.grocery) { errands.push(shared.grocery); continue; }
     const p = pickZipPoint(world, home, R, shop, r, hash2(seed, hashStr(e.kind)));
     if (p) errands.push(Object.assign({ kind: e.kind, label: e.label }, p));
   }
-  const park = Object.assign({ kind: 'park', label: zc.rural ? 'the town park' : 'the park' }, nearbyPoint(world, home.x, home.y, r));
   const gymZ = pickZipPoint(world, home, R, shop, r, hash2(seed, 0x6779));
-  const places = { errands, park, gym: gymZ ? Object.assign({ kind: 'gym', label: 'the gym' }, gymZ) : null };
-  const W = worldInfo(world);
-  if (num(z.coast_km, 999) <= 30) {
-    let best = null, bd = Infinity;
-    for (const c of W.coast) { const d = world.distKm(home.x, home.y, c.x, c.y); if (d < bd) { bd = d; best = c; } }
-    if (best && bd <= 40) {
-      const p = world.homeFor(best.i, (seed ^ 0x5eac4) & 0x3fffffff);
-      places.beach = { kind: 'beach', label: `the beach in ${best.city}`, x: p.x, y: p.y, zi: best.i, city: best.city, distKm: round(bd, 1) };
-    }
-  }
+  const places = { errands, park: shared.park, gym: gymZ ? Object.assign({ kind: 'gym', label: 'the gym' }, gymZ) : null };
+  if (shared.beach) places.beach = shared.beach;
   const lms = ctx.landmarksAll || [];
   const trail = lms.find(l => (l.kind === 'peak' || l.kind === 'range' || l.kind === 'pass') && l.distKm <= 25);
   if (trail) { const p = world.project(trail.lat, trail.lon); places.trailhead = { kind: 'trailhead', label: landmarkLabel(Object.assign({}, trail, { name: clean(trail.name) })), name: clean(trail.name), landmarkKind: trail.kind, x: p.x, y: p.y, distKm: trail.distKm }; }
   const water = lms.find(l => l.kind === 'water' && l.distKm <= 30);
   if (water) { const p = world.project(water.lat, water.lon); places.water = { kind: 'water', label: clean(water.name), name: clean(water.name), x: p.x, y: p.y, distKm: water.distKm }; }
-  if (practice) {
-    const c = pickZipPoint(world, home, dens >= 500 ? 8 : 30, (j, d) => num(world.z.church[j]) * Math.exp(-d / 4), r, hash2(seed, 0xc4c4));
-    if (c) places.church = Object.assign({ kind: 'church', label: 'church' }, c);
-  }
   const fam = pickZipPoint(world, home, 40, (j, d) => (j === ctx.zi ? 0 : num(world.z.pop[j]) * Math.exp(-d / 15)), r, hash2(seed, 0xfa111));
   if (fam) places.visit = Object.assign({ kind: L.age >= 18 && L.age < 30 ? 'friends' : 'family', label: `${L.age >= 18 && L.age < 30 ? 'friends' : 'family'} in ${fam.city}` }, fam);
   const team = teams.find(t => t.sport !== 'college') || teams[0];
@@ -837,44 +1086,147 @@ function placesOf(ctx, L, knowledge, teams, practice) {
   return places;
 }
 
-// ---------------------------------------------------------------- the routine (what schedule.mjs reads)
+// ---------------------------------------------------------------- the household's day (what schedule.mjs reads)
 
-/**
- * School runs: for each young child who rides to school, the household adult free at the child's departure and
- * return takes them. Pure function of layer 0, so the parent's and the child's personas agree.
- */
-function schoolRuns(hhCore) {
-  const ms = (hhCore && Array.isArray(hhCore.members)) ? hhCore.members : [];
-  const adults = ms.filter(x => x && isNum(x.age) && x.age >= 18 && x.role !== 'roommate');
-  const order = ['householder', 'spouse', 'partner', 'parent', 'relative', 'sibling', 'child', 'grandchild'];
-  const runs = [];
-  for (const kid of ms) {
-    if (!kid || !isNum(kid.age) || kid.age >= 11 || !kid.student || !isNum(kid.departMin) || !validPoint(kid.work)) continue;
-    if (!['carpool', 'drive', 'taxi', 'other', 'motorcycle'].includes(kid.mode)) continue;
-    const c = num(kid.commuteMin), dep = kid.departMin, end = dep + c + num(kid.dwellMin);
-    const busy = (a, s, e) => {
-      if (!isNum(a.departMin) || !a.mode || a.mode === 'wfh' || !num(a.commuteMin)) return false;
-      const as = a.departMin, ae = a.departMin + 2 * num(a.commuteMin) + num(a.dwellMin);
-      // a shift that runs past midnight also fills the next morning
-      return (s < ae && e > as) || (ae > 1440 && s < ae - 1440 && e > as - 1440);
-    };
-    const free = (a, s, e) => (num(a.days) & num(kid.days)) === 0 || !busy(a, s, e);
-    const cands = adults.filter(a => free(a, dep - 5, dep + 2 * c + 5)).sort((a, b) => {
-      const wa = (a.worker ? 1 : 0) + (a.mode === 'wfh' ? -0.5 : 0), wb = (b.worker ? 1 : 0) + (b.mode === 'wfh' ? -0.5 : 0);
-      return wa - wb || order.indexOf(a.role) - order.indexOf(b.role) || a.m - b.m;
-    });
-    if (!cands.length) continue;
-    const driver = cands[0];
-    runs.push({
-      driver: driver.m, child: kid.m, childAge: kid.age, departMin: dep, commuteMin: c, dwellMin: num(kid.dwellMin), days: num(kid.days),
-      school: validPoint(kid.work), pickup: free(driver, end - c - 5, end + c + 5),
-    });
-  }
-  return runs;
+const CAR_MODES = new Set(['carpool', 'drive', 'taxi', 'other', 'motorcycle']);
+// Children younger than ESCORT_CAR_AGE who go to school by car are driven by a household adult; younger than
+// ESCORT_WALK_AGE, a household adult walks or bikes there with them, or walks them to the school bus stop.
+const ESCORT_CAR_AGE = 11, ESCORT_WALK_AGE = 9;
+// The oldest household member who still takes the children to school.
+const ESCORT_MAX_AGE = 80;
+const ROLE_ORDER = ['householder', 'spouse', 'partner', 'parent', 'relative', 'sibling', 'child', 'grandchild'];
+const dayBit = d => 1 << d;
+const overlapsAny = (list, s, e) => list.some(([a, b]) => s < b && e > a);
+const samePoint = (a, b) => Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
+
+/** How a household adult takes a child to school: 'drive', 'walk', 'bike', 'bus-stop', or null (on their own). */
+function escortMode(kid, vehicles) {
+  if (!kid || !isNum(kid.age) || !kid.student || !isNum(kid.departMin) || !validPoint(kid.work)) return null;
+  if (CAR_MODES.has(kid.mode)) return kid.age < ESCORT_CAR_AGE && vehicles > 0 ? 'drive' : null; // no car: a neighbor's carpool
+  if (kid.age >= ESCORT_WALK_AGE) return null;
+  if (kid.mode === 'walk' || kid.mode === 'bike') return kid.mode;
+  if (kid.mode === 'bus' || kid.mode === 'rail' || kid.mode === 'ferry') return 'bus-stop'; // the bus takes them on
+  return null;
 }
 
-/** The normalized commute routine and places for schedule.mjs. Layer 0 wins when a population was given. */
-function routineOf(ctx, L, places) {
+/** Who goes first when a child needs taking: those home all day, then remote workers, then commuters; then by role. */
+const escortRank = a => (a.core && a.core.worker ? (a.core.mode === 'wfh' ? 1 : 2) : 0);
+
+/**
+ * The school runs of a household, from layer 0. Children who share a school and a way of getting there and leave
+ * within 15 minutes of each other go together, led by the first to leave (their layer 0 departure and trip time);
+ * children whose school day ends within 20 minutes of each other are picked up together. Each drop-off and pickup
+ * goes, day by day, to a household adult whose own layer 0 day leaves it free (yesterday's night shift and the
+ * sleep after it included), the adult free on the most of those days first, and never two runs at once.
+ * @returns {{kind:'drop-off'|'pickup', mode:string, children:number[], school:{x:number,y:number}, departMin?:number,
+ *   arriveMin?:number, leaveMin?:number, commuteMin:number, stopMin:number|null, days:number, window:number[],
+ *   drivers:{m:number, days:number}[]}[]} only runs someone takes
+ */
+function planSchoolRuns(view, vehicles) {
+  const kids = view.filter(x => x.core && escortMode(x.core, vehicles)).sort((a, b) => a.core.departMin - b.core.departMin || a.m - b.m);
+  if (!kids.length) return [];
+  const groups = [];
+  for (const k of kids) {
+    const c = k.core, mode = escortMode(c, vehicles), school = validPoint(c.work), dep = Math.round(c.departMin);
+    const g = groups.find(x => x.mode === mode && x.days === num(c.days) && samePoint(x.school, school) && dep - x.depart <= 15);
+    if (g) g.kids.push(k);
+    else groups.push({ mode, school, days: num(c.days), depart: dep, commuteMin: Math.max(1, Math.round(num(c.commuteMin))), kids: [k] });
+  }
+  const legs = [];
+  for (const g of groups) {
+    const stop = g.mode === 'bus-stop' ? clamp(Math.round(g.commuteMin / 4), 2, 6) : null;
+    legs.push({
+      kind: 'drop-off', mode: g.mode, children: g.kids.map(k => k.m), school: g.school, departMin: g.depart, commuteMin: g.commuteMin, stopMin: stop,
+      days: g.days, window: [g.depart - 5, g.depart + 2 * (stop || g.commuteMin) + 5],
+    });
+    const ends = g.kids.map(k => ({ m: k.m, c: Math.max(1, Math.round(num(k.core.commuteMin))), end: Math.round(k.core.departMin) + Math.round(num(k.core.commuteMin)) + Math.round(num(k.core.dwellMin)) }))
+      .sort((a, b) => a.end - b.end || a.m - b.m);
+    const clusters = [];
+    for (const e of ends) {
+      const last = clusters[clusters.length - 1];
+      // bus riders get off one at a time; on foot or by car, a parent waits a few minutes for a sibling
+      if (last && e.end - last.arriveMin <= (stop ? 0 : 20)) { last.children.push(e.m); last.leaveMin = e.end; last.commuteMin = e.c; }
+      else clusters.push({ children: [e.m], arriveMin: e.end, leaveMin: e.end, commuteMin: e.c });
+    }
+    for (const cl of clusters) {
+      const c = cl.commuteMin;
+      legs.push({
+        kind: 'pickup', mode: g.mode, children: cl.children, school: g.school, arriveMin: cl.arriveMin, leaveMin: cl.leaveMin, commuteMin: c, stopMin: stop, days: g.days,
+        window: stop ? [cl.leaveMin + c - 2 * stop - 5, cl.leaveMin + c + 5] : [cl.arriveMin - c - 5, cl.leaveMin + c + 5],
+      });
+    }
+  }
+  const adults = view.filter(x => x.core && isNum(x.age) && x.age >= 18 && x.age < ESCORT_MAX_AGE && x.role !== 'roommate' && x.core.student !== 'k12')
+    .sort((a, b) => escortRank(a) - escortRank(b) || ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role) || a.m - b.m);
+  const taken = new Map(adults.map(a => [a.m, [[], [], [], [], [], [], []]]));
+  for (const leg of legs) {
+    const [s, e] = leg.window;
+    const free = (a, d) => !overlapsAny(busyIntervals(a.core, d), s, e) && !overlapsAny(taken.get(a.m)[d], s, e);
+    let left = [0, 1, 2, 3, 4, 5, 6].filter(d => leg.days & dayBit(d));
+    leg.drivers = [];
+    while (left.length) {
+      let best = null, bestDays = [];
+      for (const a of adults) { const ds = left.filter(d => free(a, d)); if (ds.length > bestDays.length) { best = a; bestDays = ds; } }
+      if (!best) break;
+      for (const d of bestDays) taken.get(best.m)[d].push([s, e]);
+      leg.drivers.push({ m: best.m, days: bestDays.reduce((mask, d) => mask | dayBit(d), 0) });
+      left = left.filter(d => !bestDays.includes(d));
+    }
+  }
+  return legs.filter(l => l.drivers.length);
+}
+
+/** The household's shared places: one park, one grocery store, one church, one beach, one set of relatives to visit. */
+function householdPlaces(ctx, churchgoers) {
+  const { world, z, zc, home, zi, npc } = ctx;
+  const key = hash3(S.places, zi, num(npc.h)) >>> 0;
+  const r = new Rng(key);
+  const dens = zc.density, R = dens >= 3000 ? 5 : dens >= 500 ? 12 : 35;
+  const shop = (j, d) => (num(world.z.retail[j]) + num(world.z.food[j])) * Math.exp(-d / (R / 2));
+  const out = { park: Object.assign({ kind: 'park', label: zc.rural ? 'the town park' : 'the park' }, nearbyPoint(world, home.x, home.y, r)) };
+  const g = pickZipPoint(world, home, R, shop, r, hash2(key, hashStr('grocery')));
+  if (g) out.grocery = Object.assign({ kind: 'grocery', label: 'the grocery store' }, g);
+  if (num(z.coast_km, 999) <= 30) {
+    let best = null, bd = Infinity;
+    for (const c of worldInfo(world).coast) { const d = world.distKm(home.x, home.y, c.x, c.y); if (d < bd) { bd = d; best = c; } }
+    if (best && bd <= 40) {
+      const p = world.homeFor(best.i, (key ^ 0x5eac4) & 0x3fffffff);
+      out.beach = { kind: 'beach', label: `the beach in ${best.city}`, x: p.x, y: p.y, zi: best.i, city: best.city, distKm: round(bd, 1) };
+    }
+  }
+  if (churchgoers.length) {
+    const c = pickZipPoint(world, home, dens >= 500 ? 8 : 30, (j, d) => num(world.z.church[j]) * Math.exp(-d / 4), r, hash2(key, 0xc4c4));
+    if (c) out.church = Object.assign({ kind: 'church', label: 'church' }, c);
+  }
+  const fam = pickZipPoint(world, home, 40, (j, d) => (j === zi ? 0 : num(world.z.pop[j]) * Math.exp(-d / 15)), r, hash2(key, 0xfa111));
+  if (fam) out.family = Object.assign({ kind: 'family', label: `family in ${fam.city}` }, fam);
+  return out;
+}
+
+/**
+ * Everything the household's members do together, the same in every member's persona: who is who (layer 0's day
+ * for each), the school runs and who takes them, who goes to church, and the shared places. schedule.mjs draws
+ * the family outings of a day (church, the park or the store with the young children) from it.
+ */
+function householdRoutineOf(ctx, L, view, churchgoers, shared) {
+  const { npc, zi, world, home, zc } = ctx;
+  const names = new Map((Array.isArray(ctx.hh.members) ? ctx.hh.members : []).filter(Boolean).map(x => [x.m, memberName(x)]));
+  const legs = ctx.core ? planSchoolRuns(view, L.vehicles) : [];
+  return {
+    key: hash3(S.family, zi, num(npc.h)) >>> 0, layer0: !!ctx.core, vehicles: L.vehicles, density: zc.density, unitKm: world.unitKm, home,
+    members: view.map(x => {
+      const c = x.core || {};
+      return {
+        m: x.m, role: x.role, age: x.age, name: names.get(x.m) || null, student: c.student ?? null, worker: !!c.worker, mode: c.mode ?? null,
+        departMin: isNum(c.departMin) ? c.departMin : null, commuteMin: num(c.commuteMin), dwellMin: num(c.dwellMin), days: num(c.days),
+      };
+    }),
+    legs, churchgoers, places: shared,
+  };
+}
+
+/** The normalized commute routine, school runs and places for schedule.mjs. Layer 0 wins when a population was given. */
+function routineOf(ctx, L, places, household, practice) {
   const { npc, core, home, world } = ctx;
   const me = core && core.me;
   const cm = npc.commute && typeof npc.commute === 'object' ? npc.commute : {};
@@ -885,21 +1237,33 @@ function routineOf(ctx, L, places) {
     mode: cm.mode ?? null, commuteMin: num(cm.minutes), departMin: isNum(cm.departMin) ? cm.departMin : null,
     dwellMin: num(cm.dwellMin), days: num(cm.days), workZi: isNum(cm.workZi) ? cm.workZi : -1, work: validPoint(cm.work),
   };
-  const names = new Map((Array.isArray(ctx.hh.members) ? ctx.hh.members : []).map(x => [x && x.m, memberName(x)]));
-  const all = core ? schoolRuns(core.hh) : [];
-  const runs = all.filter(run => run.driver === npc.m).map(run => Object.assign(run, { childName: names.get(run.child) || null }));
-  const myRun = all.find(run => run.child === npc.m) || null;
+  const m = Number.isInteger(npc.m) ? npc.m : 0;
+  const nameOf = new Map(household.members.map(x => [x.m, x.name]));
+  const schoolRuns = [];
+  for (const leg of household.legs) {
+    for (const d of leg.drivers) {
+      if (d.m !== m) continue;
+      schoolRuns.push({
+        kind: leg.kind, mode: leg.mode, children: leg.children.slice(), childNames: leg.children.map(k => nameOf.get(k) || null), school: leg.school,
+        departMin: leg.departMin ?? null, arriveMin: leg.arriveMin ?? null, leaveMin: leg.leaveMin ?? null, commuteMin: leg.commuteMin, stopMin: leg.stopMin, days: d.days,
+      });
+    }
+  }
+  const mine = household.legs.filter(leg => leg.children.includes(m));
+  const rideLegs = mine.flatMap(leg => leg.drivers.map(d => ({ kind: leg.kind, mode: leg.mode, driver: d.m, days: d.days })));
+  const drop = rideLegs.filter(x => x.kind === 'drop-off').sort((a, b) => popcount(b.days) - popcount(a.days) || a.driver - b.driver)[0];
+  if (practice && household.places.church) places.church = household.places.church;
   return Object.assign(src, {
-    source: me ? 'layer0' : 'npc', home, student: L.student, worker: L.worker, occKey: L.occKey, shift: L.shift,
+    source: me ? 'layer0' : 'npc', m, home, student: L.student, worker: L.worker, occKey: L.occKey, outdoor: L.outdoor, shift: L.shift,
     vehicles: L.vehicles, age: L.age, density: ctx.zc.density, unitKm: world.unitKm,
-    schoolRuns: runs, ride: myRun ? { driver: myRun.driver, pickup: myRun.pickup } : null,
-    places,
+    schoolRuns, ride: rideLegs.length ? { driver: drop ? drop.driver : rideLegs[0].driver, pickup: rideLegs.some(x => x.kind === 'pickup'), legs: rideLegs } : null,
+    household, places,
   });
 }
 
-// ---------------------------------------------------------------- interests
+const popcount = v => { let n = 0; for (let x = v >>> 0; x; x &= x - 1) n++; return n; };
 
-const OUTDOOR_OCC = new Set(['farming', 'construction', 'transport', 'moving', 'cleaning', 'firefighting', 'repair']);
+// ---------------------------------------------------------------- interests
 
 // Cultural traditions by heritage key: offered at a modest probability modulated by generation, never as one
 // of the first two interests (representation rule 2).
@@ -959,7 +1323,7 @@ function interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places
     if (a >= 16 && a <= 60) add('off-roading', 0.24 + (L.sex === 'M' ? 0.06 : 0), `${z.provinceName || 'desert'} country (province)`);
   }
   const farmCountry = (zc.valley || ['sj', 'sv'].includes(z.regionKey)) && zc.density < 1500;
-  if (L.occKey === 'farming') { add('the county fair', 0.4, 'works in farming (occupation)'); add('the harvest', 0.3, 'works in farming (occupation)'); }
+  if (L.farm) { const w = `works ${L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : 'in farming'} (occupation)`; add('the county fair', 0.4, w); add('the harvest', 0.3, w); }
   else if (farmCountry) add('the county fair', 0.32, `farm country: ${z.provinceName || z.regionName}, ${fmtInt(zc.density)} people per square mile (density)`);
   if (L.isParent && farmCountry && L.kidAges.some(k => k >= 9 && k <= 18)) add('4-H with the kids', 0.3, 'kids at home in farm country');
   if (zc.urban) {
@@ -1109,9 +1473,9 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const h100 = num(z.h100), h90 = num(z.h90), tjul = num(z.tjul, 80);
   const heatAlert = alertOf(/heat/i);
   const heat = 0.5 * smoothstep(5, 60, h100) + 0.2 * smoothstep(30, 120, h90) + 0.3 * smoothstep(85, 105, tjul);
-  const outdoor = L.worker && OUTDOOR_OCC.has(L.occKey);
+  const outdoor = L.outdoor;
   add('heat', (0.05 + 0.75 * heat + (heatAlert ? alertBoost(heatAlert) : 0)) * (outdoor ? 1.35 : 1) * (age >= 65 ? 1.25 : 1) * (adult ? 1 : 0.6),
-    `about ${Math.round(h100)} days a year reach 100°F here (h100) and ${Math.round(h90)} reach 90°F (h90); July highs average ${fmt1(tjul)}°F (tjul)${outdoor ? `; works outdoors (${L.occKey})` : ''}${heatAlert ? `; a ${heatAlert.event} is out now (NWS)` : ''}`);
+    `about ${Math.round(h100)} days a year reach 100°F here (h100) and ${Math.round(h90)} reach 90°F (h90); July highs average ${fmt1(tjul)}°F (tjul)${outdoor ? `; works outdoors ${L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : `in ${L.occKey}`} (occupation)` : ''}${heatAlert ? `; a ${heatAlert.event} is out now (NWS)` : ''}`);
   // storms and flooding (atmospheric rivers, flood reports, alerts now)
   const arN = num(z.ar_n), floodN = num(z.flood_n10);
   const stormAlert = alertOf(/flood|surf|storm|rain|winter|blizzard|tsunami/i);
@@ -1175,8 +1539,8 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   if (L.unemployed) add('jobs', 0.75, `out of work (status)${zc.urate !== null ? `; unemployment in ${zip} is ${fmt1(zc.urate)}% (ACS B23025)` : ''}`);
   else if (adult && age < 65 && zc.urate !== null && zc.urate >= 8) add('jobs', 0.12 + 0.3 * smoothstep(8, 16, zc.urate), `unemployment in ${zip} is ${fmt1(zc.urate)}% (ACS B23025)`);
   // water, for farm work
-  if (L.occKey === 'farming' || (['sj', 'sv'].includes(z.regionKey) && zc.rural && owner)) {
-    add('water', 0.3 + 0.4 * smoothstep(20, 5, num(z.rain_in, 15)), `${L.occKey === 'farming' ? 'works in farming (occupation)' : `farm country (${z.regionName})`}; about ${fmt1(num(z.rain_in))} inches of rain a year (rain_in)`);
+  if (L.farm || (['sj', 'sv'].includes(z.regionKey) && zc.rural && owner)) {
+    add('water', 0.3 + 0.4 * smoothstep(20, 5, num(z.rain_in, 15)), `${L.farm ? `works ${L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : 'in farming'} (occupation)` : `farm country (${z.regionName})`}; about ${fmt1(num(z.rain_in))} inches of rain a year (rain_in)`);
   }
   // aging and health
   if (age >= 60) add('health', 0.1 + 0.6 * smoothstep(60, 88, age), `age ${age}; ${num(z.health)} health-care establishments in ${zip} (health)`);
@@ -1355,9 +1719,9 @@ function lifeMemories(ctx, L, res, roof, family) {
   if (L.worker && L.age >= 18) {
     const tenure = clamp(Math.round(r.lognormal(Math.log(2.5 + Math.max(0, L.age - 25) / 6), 0.6)), 0, L.age - 16);
     const y = REF_YEAR - tenure;
-    const occ = npc.occupation || {};
-    const title = str(occ.title) && occ.title.toLowerCase() !== String(occ.key || '').toLowerCase() ? occ.title : null;
-    const at = str(occ.employer) && !/^a local employer$/i.test(occ.employer) ? `at ${occ.employer}` : title ? `as ${article(title)} ${lowerFirst(title)}` : 'my current job';
+    const occ = npc.occupation && typeof npc.occupation === 'object' ? npc.occupation : {};
+    const title = L.jobTitle;
+    const at = str(occ.employer) && !/^a local employer$/i.test(occ.employer) ? `at ${clean(occ.employer)}` : title ? `as ${article(title)} ${lowerFirst(title)}` : 'my current job';
     push(y, 'life', `I started ${at === 'my current job' ? at : 'working ' + at} in ${y}.`, 0.4, 'npc.occupation');
   }
   if (roof && !roof.original && roof.installed >= Math.max(res.zipSince, L.birthYear + 20)) push(roof.installed, 'life', `${v.We} had the roof redone in ${roof.installed}${roof.solar ? ' and put solar on it' : ''}.`, 0.35, 'roof');
@@ -1444,7 +1808,7 @@ function catchphrasesOf(ctx, L, big5, teams, humorStyle, interests, r) {
     [num(z.coast_km, 99) <= 10 && num(z.tjul, 80) <= 72 ? 0.6 : 0, `Bring a jacket. It's ${place}.`],
     [L.isParent ? 0.5 : 0, 'Kids keep you young.'],
     [L.retired ? 0.6 : 0, "Every day's a Saturday now."],
-    [L.occKey === 'farming' ? 0.7 : 0, 'No farms, no food.'],
+    [L.farm ? 0.7 : 0, 'No farms, no food.'],
     [L.occKey === 'construction' ? 0.6 : 0, 'Measure twice, cut once.'],
     [N > 0.62 ? 0.55 : 0, 'Knock on wood.'],
     [O > 0.62 ? 0.5 : 0, "Life's too short for boring food."],
@@ -1550,8 +1914,7 @@ function bioOf(ctx, L, archetype, res, interests, concerns, knowledge, fam) {
   const P = pronouns(npc);
   const name = (npc.name && (str(npc.name.display) || str(npc.name.full) || str(npc.name.first))) || 'This neighbor';
   const place = knowledge.neighborhood;
-  const occ = npc.occupation && typeof npc.occupation === 'object' ? npc.occupation : null;
-  const title = occ && str(occ.title) && occ.title.toLowerCase() !== String(occ.key || '').toLowerCase() ? occ.title : null;
+  const title = L.jobTitle;
   let s1;
   if (L.age < 5) s1 = `${name} is ${L.age === 0 ? 'a baby' : `${numWord(L.age)} years old`}.`;
   else if (L.worker && title && L.age >= 16) {
@@ -1674,7 +2037,7 @@ export function persona(world, npc, opts = {}) {
   const core = layer0(opts.population, zi, npc);
   const home = validPoint(hh.home) || (core && validPoint(core.hh.home)) || (Number.isInteger(npc.h) ? world.homeFor(zi, npc.h) : { x: z.tx, y: z.ty });
   const t = isNum(opts.t) ? opts.t : world.snapshotTime;
-  const ctx = { world, npc, zi, z, zc, hh, core, home, t, seed: seedOf(npc) };
+  const ctx = { world, npc, zi, z, zc, hh, core, home, t, seed: seedOf(npc), pop: opts.population || null, view: null };
   const L = lifeBasis(ctx);
   L.birthYear = birthYearOf(npc);
   L.workZi = core && core.me ? core.me.workZi : (npc.commute && npc.commute.workZi);
@@ -1684,13 +2047,16 @@ export function persona(world, npc, opts = {}) {
   const archetype = archetypeOf(L, ctx.seed);
   const values = valuesOf(L, big5, ctx.seed);
 
+  const view = householdView(ctx);
   const residence = residenceOf(ctx, L);
   const roof = roofOf(ctx, L);
-  const practice = practiceOf(ctx, L);
+  const churchgoers = churchgoersOf(ctx, view);
+  const practice = practiceOf(ctx, L, churchgoers);
   const knowledge = knowledgeOf(ctx, L);
   ctx.knowledge = knowledge;
   const teams = teamsOf(ctx, L, big5);
-  const places = placesOf(ctx, L, knowledge, teams, practice);
+  const shared = householdPlaces(ctx, churchgoers);
+  const places = placesOf(ctx, L, knowledge, teams, shared);
   const interestItems = interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places);
   const wx = weatherOf(world, zi, t);
   const concerns = concernsOf(ctx, L, big5, residence, roof, wx, knowledge);
@@ -1699,7 +2065,7 @@ export function persona(world, npc, opts = {}) {
   const speech = speechOf(ctx, L, big5, opts.dialectFor, interestItems, teams);
   const bio = bioOf(ctx, L, archetype, residence, interestItems, concerns, knowledge, fam);
   const hookDetails = hooksOf(ctx, L, big5, interestItems, concerns, memories, fam, wx);
-  const routine = routineOf(ctx, L, places);
+  const routine = routineOf(ctx, L, places, householdRoutineOf(ctx, L, view, churchgoers, shared), practice);
 
   return {
     v: PERSONA_VERSION,

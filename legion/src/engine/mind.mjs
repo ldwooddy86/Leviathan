@@ -489,11 +489,19 @@ export class Mind {
     return { mood: this.mood, emotion: st.emotion, needs: this.needs };
   }
 
+  /** True when the persona's job keeps them outdoors: the persona says so (routine.outdoor), else its Census group. */
+  _outdoorJob() {
+    const rt = this.persona.routine || {};
+    if (typeof rt.outdoor === 'boolean') return rt.outdoor;
+    // the Census occupation group (routine.occKey, layer 0's PersonCore.occ); a layer 1 job key is a slug, not a group
+    const npc = this.persona.npc || {};
+    return OUTDOOR_OCC.has(rt.occKey || (npc.occupation && npc.occupation.key));
+  }
+
   _comfortTarget(wx, act) {
     const npc = this.persona.npc || {};
-    const occ = (npc.occupation && npc.occupation.key) || (this.persona.routine && this.persona.routine.occKey);
     const outdoors = act.kind === 'exercise' || (act.kind === 'leisure' && OUTDOOR_PLACES.has(act.place))
-      || (act.travel && ['walk', 'bike', 'bus', 'motorcycle'].includes(act.mode)) || (act.kind === 'work' && OUTDOOR_OCC.has(occ));
+      || (act.travel && ['walk', 'bike', 'bus', 'motorcycle'].includes(act.mode)) || (act.kind === 'work' && this._outdoorJob());
     const exposure = outdoors ? 1 : 0.3;
     let c = 0.85;
     if (wx) {

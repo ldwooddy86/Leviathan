@@ -245,7 +245,8 @@ export function buildScene(world, population, x, y, opts = {}) {
   // homes too thinly spread for a street pattern stand where their households' homes are, on lanes
   let loose = [];
   if (source === 'procedural') {
-    loose = ctx.households.residents.filter(r => ctx.devAt(r.x, r.y) < ctx.devThreshold && ctx.ground.isLand(r.x, r.y))
+    // the same density cut that keeps or prunes minor streets (street-gen pruneUndeveloped)
+    loose = ctx.households.residents.filter(r => ctx.devAt(r.x, r.y) < ctx.devThreshold * 0.7 && ctx.ground.isLand(r.x, r.y))
       .map(r => ({ x: r.x, y: r.y, zi: r.zi, h: r.h, key: r.zi + ':' + r.h, dwelling: r.core.dwelling }));
     if (loose.length) {
       const lanes = laneStrokes(ctx, net, loose);

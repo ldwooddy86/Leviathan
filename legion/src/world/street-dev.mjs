@@ -29,6 +29,8 @@ const clock = {
   setSpeed(s) { this.t0 = this.now(); this.real0 = performance.now(); this.speed = s; },
 };
 
+dev.clock = clock;
+
 async function main() {
   const bytes = new Uint8Array(await (await fetch('../../data/world.json.gz')).arrayBuffer());
   const world = createWorld(await loadPack(bytes));
@@ -36,7 +38,11 @@ async function main() {
   dev.world = world; dev.population = population;
   let theme = q.get('theme') === 'light' ? 'light' : 'dark';
   document.documentElement.dataset.theme = theme;
-  const view = new StreetView($('view'), { world, population, getTime: () => clock.now(), allowNetwork: q.get('net') === '1', theme });
+  const view = new StreetView($('view'), {
+    world, population, getTime: () => clock.now(), allowNetwork: q.get('net') === '1', theme,
+    trafficScale: q.has('traffic') ? +q.get('traffic') : 1,
+    bark: q.get('bark') === '0' ? null : demoBark(world),
+  });
   window.__street = view;
 
   view.on('select', ({ id }) => {
@@ -96,6 +102,25 @@ async function main() {
   };
   tick();
   await openZip($('zip').value.trim());
+}
+
+/**
+ * A stand-in for the dialogue engine on this dev page only, so speech bubbles can be seen: small talk about the
+ * hour, the street and the NWS weather of the place (facts from the pack, no invented numbers).
+ */
+function demoBark(world) {
+  return (idA, idB, ctx) => {
+    const zip = idA.slice(0, 5), zi = world.indexOf(zip);
+    const wx = zi >= 0 ? world.weatherAt(zi, ctx.t) : null;
+    const now = wx && wx.now ? wx.now : null;
+    const hello = ctx.dayPart === 'morning' ? 'Morning!' : ctx.dayPart === 'evening' || ctx.dayPart === 'night' ? 'Evening!' : 'Hey there!';
+    const lines = ctx.replyTo
+      ? ['You too!', 'Take care.', 'Ha, right?', 'See you around.', `Say hi to everyone on ${ctx.where || 'the block'}.`]
+      : [now ? `${hello} ${now.short} today, ${now.tempF}°.` : hello, ctx.where ? `${hello} Busy on ${ctx.where} today.` : hello,
+        wx && wx.alerts && wx.alerts.length ? `Did you see the ${wx.alerts[0].event.toLowerCase()}?` : `${hello} How's it going?`];
+    let h = 0; for (const c of idA + idB) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return { text: lines[h % lines.length], gloss: null };
+  };
 }
 
 main().catch(err => { dev.error = String(err && err.stack || err); console.error(err); document.body.insertAdjacentHTML('beforeend', `<pre style="position:fixed;bottom:0;left:0;color:#f66;background:#000;padding:8px;margin:0">${dev.error}</pre>`); });

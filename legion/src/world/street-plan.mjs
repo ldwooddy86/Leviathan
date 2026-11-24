@@ -13,6 +13,7 @@ import { hash2, hash3, u01, clamp } from '../engine/rng.mjs';
 import { pacific, dayStart } from '../engine/clock.mjs';
 
 const MIN = 60000;
+/** Commute modes that put a person in a car (or on a motorcycle). */
 const CAR = new Set(['drive', 'carpool', 'motorcycle', 'taxi']);
 
 /**

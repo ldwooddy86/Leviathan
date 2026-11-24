@@ -4,15 +4,16 @@
 // Census tables and cached; the same (seed, zi, h, m) gives the same person everywhere.
 //
 // Layer 0 (householdCore) is what the GPU crowd needs, and it has to cost a few microseconds:
-//   * Household structure. A household is one of ~1,400 "components": a type (B11001), a size, the
+//   * Household structure. A household is one of ~1,300 "components": a type (B11001), a size, the
 //     householder's five-year age band and sex, and a variant (nuclear, multigenerational, extended, partner).
 //     Each component carries a fixed analytic kernel: the expected number of members it adds to each of the 46
 //     B01001 age-sex brackets (spouses near the householder's age, children 15 to 50 years younger, parents
-//     15 to 50 years older, roommates mostly young adults). Per ZIP an EM fit picks the component weights that
-//     reproduce the household types exactly, the mean household size exactly and the age-sex pyramid as
-//     closely as the structure allows (kernels factor by role, so a fit is a few dozen thousand
-//     multiply-adds). Group quarters residents (dorms, barracks, prisons, nursing homes) are not in households;
-//     their estimated pyramid is subtracted from B01001 first (the excess over neighboring ZIPs).
+//     15 to 50 years older, roommates mostly young adults). Per ZIP the component weights are fitted so that the
+//     household types, the mean household size and the numbers of children and of people 65 and over per
+//     household match exactly (exponential tilts) and the rest of the age-sex pyramid as closely as the
+//     structure allows (a constrained EM; the kernels factor by role, so a fit costs well under a millisecond).
+//     Group quarters residents (dorms, barracks, prisons, nursing homes) are not in households; their estimated
+//     pyramid (the ZIP's excess over its neighbors' shape) is subtracted from B01001 first.
 //   * Heritage. Race (B03002) refined by Hispanic origin (B03001), Asian group (B02015) and ancestry
 //     (B04006, as relative weights) into the shared heritage keys. Household heritage depends mildly on
 //     household size; the size propensities are recalibrated per ZIP so that persons reproduce B03002.
@@ -20,15 +21,18 @@
 //   * Tenure, dwelling and vehicles: logistic tenure by type and age calibrated to own_sh; dwelling by IPF of
 //     tenure against sfd_sh/mf5_sh/mh_sh; vehicles by IPF of size class against B25044 within tenure.
 //   * School (B14001 rates by single year of age), work (B23025 by a national age-sex profile shifted to the
-//     ZIP), active duty, occupation (C24010 by sex, IPF against an age profile), commute mode (B08301, split by
-//     car access) and time (B08303, IPF of mode against time), workplace by a gravity model over ZIPs
-//     weighted by establishments in distance bands consistent with the trip, and departure times from the
-//     occupation group's shift pattern (occupations.mjs).
+//     ZIP), active duty, occupation (C24010 by sex, IPF against an age profile), working from home (by
+//     occupation, shifted to the ZIP's B08301 share), the other commute modes (B08301 split by car access) and
+//     travel time (B08303, IPF of mode against time), the workplace by a gravity model over ZIPs weighted by
+//     establishments in the distance band the trip implies, and departure times from the occupation group's
+//     shift pattern (occupations.mjs).
 //
 // Layer 1 (household, person) conditions on layer 0 and never contradicts it: nativity and arrival (B05012),
 // language and English ability (C16001), education (B15003), marital status (B12001), veterans (B21001),
 // household income (B19001, by rank of earning power), names (names.mjs), job titles (occupations.mjs) and
-// the highway a driver takes. Those are calibrated on a synthetic sample of the ZIP's own households.
+// the highway a driver takes. Those are calibrated per ZIP on a synthetic sample of the ZIP's own households.
+// Heritage shapes names, home languages and the chance of having been born abroad, only through these tables;
+// it never touches anything else.
 
 import { Rng, hash2, hash3, mix32, u01, clamp } from './rng.mjs';
 import { surname, givenName, nickname } from './names.mjs';
@@ -607,7 +611,7 @@ const occBand = a => a < 25 ? 0 : a < 35 ? 1 : a < 55 ? 2 : a < 65 ? 3 : 4;
 
 // commute modes (B08301 order) and the travel-time brackets (B08303)
 const MODES = ['drive', 'carpool', 'bus', 'rail', 'ferry', 'taxi', 'motorcycle', 'bike', 'walk', 'other', 'wfh'];
-const M_DRIVE = 0, M_CARPOOL = 1, M_BUS = 2, M_RAIL = 3, M_TAXI = 5, M_MOTO = 6, M_BIKE = 7, M_WALK = 8, M_WFH = 10;
+const M_DRIVE = 0, M_CARPOOL = 1, M_TAXI = 5, M_MOTO = 6, M_WFH = 10;
 const NMODE = 11;
 const NOCAR_PRIOR = [0.06, 1.3, 6, 5, 3, 4, 0.2, 3.5, 4.5, 2];
 // working from home by occupation group (national log-odds, shifted per ZIP to its B08301 share); index 25 armed forces
@@ -714,8 +718,9 @@ function tripKm(mi, minutes, urban) {
 
 // ------------------------------------------------------------------ layer 1 data: origins, languages, birthplaces
 
-// Home-language keys by C16001 bucket (1 spanish ... 12 other; 0 is English only).
-const LANG_BUCKETS = ['english', 'spanish', 'french', 'german', 'slavic', 'indoeuro', 'korean', 'chinese', 'vietnamese', 'tagalog', 'asianpi', 'arabic', 'other'];
+// Home-language keys by C16001 bucket, in the pack's order (world.acsLabels('lang')): 0 English only, 1 Spanish,
+// 2 French, 3 German and West Germanic, 4 Slavic, 5 other Indo-European, 6 Korean, 7 Chinese, 8 Vietnamese,
+// 9 Tagalog, 10 other Asian and Pacific Island, 11 Arabic, 12 other.
 const LANG_BUCKET_OF = {};
 for (const [b, list] of Object.entries({
   0: 'english', 1: 'spanish', 2: 'french haitian', 3: 'german dutch yiddish afrikaans',
@@ -912,7 +917,8 @@ const GREAT_MIGRATION = { Texas: 3, Louisiana: 6, Mississippi: 4, Arkansas: 3, O
 // re-run a stage on its synthetic households with new parameters and the same random numbers, and a real
 // household gets exactly the stage the calibration measured.
 
-const KA = { ORIGIN: 1, NAT: 2, NATH: 3, ARR: 4, GEN: 5, BORN: 6, BORN2: 7, LCHOICE: 8, LANG: 9, LANGH: 10, CROSS: 11, LEP: 12, EDU: 13, EDU2: 14, MAR: 15, MAR2: 16, VET: 17, UNEMP: 18, STATUS: 19, INC: 20, OCC: 21, NAME: 22, MOVED: 23, BUILT: 24, BDAY: 25, LIST: 26, SPAN: 27, TERR: 28, BORN3: 29, ROAD: 30 };
+// attribute codes of the hashed uniforms (household seed, member, attribute)
+const KA = { ORIGIN: 1, NAT: 2, NATH: 3, ARR: 4, GEN: 5, BORN: 6, BORN2: 7, LCHOICE: 8, LANG: 9, LANGH: 10, CROSS: 11, LEP: 12, EDU: 13, MAR: 15, VET: 17, UNEMP: 18, STATUS: 19, INC: 20, OCC: 21, NAME: 22, MOVED: 23, BUILT: 24, BDAY: 25, LIST: 26, SPAN: 27, TERR: 28 };
 const uni = (hs, m, k) => u01(hash3(hs, m, k));
 const gaussOf = (hs, m, k) => Math.sqrt(-2 * Math.log(Math.max(1e-12, uni(hs, m, k)))) * Math.cos(2 * Math.PI * uni(hs, m, k + 4096));
 const ROLE_ID = Object.fromEntries(ROLE_NAMES.map((r, i) => [r, i === 9 ? R_PARENT : i]));
@@ -1004,11 +1010,11 @@ const OCC_INDEX = Object.fromEntries(OCC_GROUPS.map((g, i) => [g, i]));
 const EDU_PRIOR = [
   [4, 14, 16, 8, 36, 17, 3, 2], [2, 9, 14, 8, 46, 18, 2, 1], [1, 5, 10, 8, 48, 24, 1, 3], [1, 6, 11, 10, 45, 21, 2, 4],
   [1, 4, 7, 6, 34, 26, 4, 18], [2, 9, 14, 7, 38, 26, 2, 2], [1, 6, 12, 8, 20, 5, 47, 1], [2, 7, 10, 6, 38, 30, 2, 5],
-  [3, 12, 17, 8, 43, 13, 2, 2], [1, 3, 5, 20, 33, 14, 18, 6], [3, 17, 29, 25, 20, 5, 0.5, 0.5], [12, 33, 30, 11, 11, 2, 0.5, 0.5],
-  [7, 33, 30, 11, 15, 3, 0.5, 0.5], [2, 18, 31, 15, 27, 6, 0.5, 0.5], [25, 38, 20, 6, 9, 1.5, 0.25, 0.25], [40, 33, 14, 5, 6, 1.5, 0.25, 0.25],
-  [15, 30, 25, 10, 16, 3.5, 0.25, 0.25], [8, 30, 22, 8, 26, 5, 0.5, 0.5], [6, 30, 26, 11, 22, 4, 0.5, 0.5], [62, 22, 8, 3, 4, 0.8, 0.1, 0.1],
-  [38, 35, 15, 5, 6, 1, 0.25, 0.25], [15, 40, 22, 11, 10, 1.5, 0.25, 0.25], [30, 38, 16, 7, 7, 1.5, 0.25, 0.25], [20, 42, 20, 7, 9, 1.5, 0.25, 0.25],
-  [30, 40, 17, 5, 7, 1, 0.25, 0.25], [2, 30, 30, 12, 20, 5, 0.5, 0.5], [22, 30, 18, 7, 15, 5, 1.5, 1.5], [25, 30, 18, 7, 13, 5, 1, 1],
+  [3, 12, 17, 8, 43, 13, 2, 2], [1, 3, 5, 20, 33, 14, 18, 6], [3, 17, 29, 25, 20, 5, 0.5, 0.5], [12, 33, 30, 11, 11, 2, 0.08, 0.08],
+  [7, 33, 30, 11, 15, 3, 0.08, 0.08], [2, 18, 31, 15, 27, 6, 0.5, 0.5], [25, 38, 20, 6, 9, 1.5, 0.08, 0.08], [40, 33, 14, 5, 6, 1.5, 0.08, 0.08],
+  [15, 30, 25, 10, 16, 3.5, 0.08, 0.08], [8, 30, 22, 8, 26, 5, 0.5, 0.5], [6, 30, 26, 11, 22, 4, 0.5, 0.5], [62, 22, 8, 3, 4, 0.8, 0.08, 0.08],
+  [38, 35, 15, 5, 6, 1, 0.08, 0.08], [15, 40, 22, 11, 10, 1.5, 0.08, 0.08], [30, 38, 16, 7, 7, 1.5, 0.08, 0.08], [20, 42, 20, 7, 9, 1.5, 0.08, 0.08],
+  [30, 40, 17, 5, 7, 1, 0.08, 0.08], [2, 30, 30, 12, 20, 5, 0.5, 0.5], [22, 30, 18, 7, 15, 5, 1.5, 1.5], [25, 30, 18, 7, 13, 5, 1, 1],
   [22, 28, 18, 7, 14, 7, 2, 2],
 ];
 const NEDU = 8, NECLASS = EDU_PRIOR.length;
@@ -1157,29 +1163,14 @@ function maritalDecide(core, hs, F) {
 }
 
 const EDU_WAGE = [0.75, 0.85, 0.95, 1.0, 1.25, 1.45, 1.8, 1.7];
-/** Earning power of a worker (dollars a year before the household's income rank is applied). */
-function workerPotential(p, eduIdx) {
-  const base = p.military ? GROUP_PROFILES.military.median : GROUP_PROFILES[p.occ] ? GROUP_PROFILES[p.occ].median : 50000;
-  const hours = p.days ? popcount(p.days) * Math.min(p.dwellMin || 480, 720) / 60 : 40;
-  const exp = p.age < 18 ? 0.5 : 0.6 + 0.4 * Math.min(1, (p.age - 18) / 20);
-  return base * EDU_WAGE[eduLevel(eduIdx)] * Math.min(1, hours / 38) * exp;
-}
 
 const SYN_N = 700, SYN_BASE = 0x3f000000;   // synthetic calibration households live past every real household index
 const EDUCATION_KEYS = ['nohs', 'hs', 'somecollege', 'associate', 'bachelor', 'master', 'professional', 'doctorate'];
 // chance a married spouse keeps their own surname (custom varies; most take the household's name)
 const SURNAME_KEEP = { korean: 0.6, chinese: 0.5, vietnamese: 0.5, mexican: 0.3, salvadoran: 0.35, guatemalan: 0.35, honduran: 0.35, nicaraguan: 0.35, southamerican: 0.35, spanish: 0.35, latino: 0.3, iranian: 0.3, arab: 0.3 };
 
-/** A household's earning-power score (log dollars plus household luck), the ranking behind B19001. */
-function householdScore(core, edu, hs) {
-  let s = 2000;
-  core.members.forEach((p, i) => {
-    if (p.worker) s += workerPotential(p, edu[i]);
-    else if (p.age >= 62) s += 24000 * Math.pow(EDU_WAGE[eduLevel(edu[i])], 0.8);
-    else if (p.age >= 18) s += 3000;
-  });
-  return Math.log(s) + 0.35 * gaussOf(hs, 97, KA.INC);
-}
+/** A household's earning-power score (log dollars plus household luck): the ranking behind B19001. */
+const incomeScore = (pot, hs) => Math.log(2000 + sum(pot)) + 0.35 * gaussOf(hs, 97, KA.INC);
 
 const HINC_LO = [0, 10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 60000, 75000, 100000, 125000, 150000, 200000];
 const HINC_HI = [10000, 15000, 20000, 25000, 30000, 35000, 40000, 45000, 50000, 60000, 75000, 100000, 125000, 150000, 200000, Infinity];
@@ -1276,9 +1267,10 @@ class LRU {
 export class Population {
   /**
    * @param {import('./world.mjs').World} world
-   * @param {{seed?: number, cache?: number}} [options] cache: how many layer-1 households to keep (default 4096)
+   * @param {{seed?: number, cache?: number}} [options] cache: how many layer-1 households to keep (default 2048; four
+   *   times as many people)
    */
-  constructor(world, { seed = LEGION_SEED, cache = 4096 } = {}) {
+  constructor(world, { seed = LEGION_SEED, cache = 2048 } = {}) {
     if (!world || !world.z || typeof world.acs !== 'function') throw new Error('Population needs a Legion world');
     this.world = world;
     this.seed = seed >>> 0;
@@ -1490,7 +1482,7 @@ export class Population {
       if (sc > 0) for (let k = 0; k < NH; k++) c[k] /= sc; else c[H_INDEX.american] = 1;
       within.push(a); notG.push(b); nonHispOther.push(c);
     }
-    let hispOfNotG = new Float64Array(NRACE);
+    const hispOfNotG = new Float64Array(NRACE);
     for (let g = 0; g < NRACE; g++) { let s = 0; for (let k = 0; k < NH; k++) if (H_GROUP[k] === G_HISP) s += notG[g][k]; hispOfNotG[g] = s; }
     // per group: SP(H) = s_g d_H + V_g ; KID_with_partner(H) = c_g d_H + U_g ; ROOM(H) = 0.45 within_g + 0.55 pi
     const sG = new Float64Array(NRACE), cG = new Float64Array(NRACE), V = [], U = [];
@@ -2113,7 +2105,7 @@ export class Population {
     for (let s = 0; s < 2; s++) for (let b = 0; b < 5; b++) { const v = vet[s * 10 + b], nv = vet[s * 10 + 5 + b]; F.vetRate[s * 5 + b] = v + nv > 0 ? v / (v + nv) : 0; }
 
     // household income: the rank of a household's earning power among the ZIP's households maps to B19001
-    const scores = syn.map(x => householdScore(x.core, x.edu, x.hs));
+    const scores = syn.map(x => incomeScore(this._jobs(zi, x.core, x.edu, x.hs).pot, x.hs));
     F.incScores = Float64Array.from(scores).sort();
     const hinc = this._blk(zi, 'hinc', 60), ht = sum(hinc) || 1;
     let c = 0;
@@ -2154,34 +2146,52 @@ export class Population {
       const by = YEAR - p.age - (uni(hs, i, KA.BDAY) < 0.11 ? 1 : 0);
       D.birthYear.push(by);
     }
-    // jobs and incomes
-    let potTotal = 0;
-    const pot = new Float64Array(n);
-    for (let i = 0; i < n; i++) {
-      const p = mem[i];
-      if (p.worker) {
-        const o = pickOccupation(new Rng(hash2(hs, i * 64 + KA.OCC)), { group: p.military ? 'military' : p.occ, world: w, zi: p.workZi >= 0 ? p.workZi : zi, sex: p.sex, age: p.age, education: edu[i] >= 0 ? EDUCATION_KEYS[edu[i]] : 'in school', shift: p.shift || 'day', wfh: p.mode === 'wfh' });
-        const hours = popcount(p.days || 62) * Math.min(p.dwellMin || 480, 720) / 60;
-        pot[i] = o.wage * Math.min(1, hours / 38);
-        D.occupation.push(o);
-      } else {
-        D.occupation.push(null);
-        const st = D.status[i];
-        pot[i] = st === 'retired' ? 24000 * Math.pow(EDU_WAGE[eduLevel(edu[i])], 0.8) : st === 'unemployed' ? 6000 : p.age >= 18 ? 1500 : 0;
-      }
-      potTotal += pot[i];
+    // jobs and incomes: the household's income comes from its rank in the ZIP (B19001); pay stays near each job's
+    // own range and the rest of the household's income is the householder's other income (savings, rent, help)
+    const J = this._jobs(zi, core, edu, hs);
+    D.occupation = J.occ;
+    const Y = this._householdIncome(F, incomeScore(J.pot, hs));
+    const pot = J.pot, inc = new Float64Array(n);
+    const total = sum(pot), s = total > 0 ? Y / total : 0;
+    for (let i = 0; i < n; i++) inc[i] = pot[i] * (J.occ[i] ? clamp(s, 0.7, 1.35) : clamp(s, 0.5, 2));
+    let assigned = sum(inc);
+    if (!(assigned > 0)) { inc[0] = Y; assigned = Y; }
+    else if (assigned > Y) {
+      // a household below its members' usual pay: fewer hours or lower pay, never below 45% of the job's pay
+      const f = Y / assigned;
+      for (let i = 0; i < n; i++) inc[i] = Math.max(inc[i] * f, J.occ[i] ? 0.45 * pot[i] : 0);
     }
-    const Y = this._householdIncome(F, householdScore(core, edu, hs));
-    D.householdIncome = Y;
+    const wages = Float64Array.from(inc, (v, i) => (J.occ[i] ? Math.max(1000, Math.round(v / 100) * 100) : 0));
+    const other = Math.max(0, Y - sum(inc));
+    const sp = mem.findIndex(p => p.role === 'spouse');
     for (let i = 0; i < n; i++) {
-      const inc = potTotal > 0 ? Y * pot[i] / potTotal : i === 0 ? Y : 0;
-      D.income.push(Math.round(inc / 100) * 100);
-      if (D.occupation[i]) D.occupation[i].wage = Math.max(1000, Math.round(inc / 500) * 500);
+      let v = J.occ[i] ? wages[i] : inc[i];
+      if (i === 0) v += sp > 0 ? other / 2 : other;
+      if (i === sp) v += other / 2;
+      D.income.push(Math.round(v / 100) * 100);
+      if (J.occ[i]) J.occ[i].wage = wages[i];
     }
+    D.householdIncome = D.income.reduce((a, b) => a + b, 0);
     this._names(D);
     this._birthplaces(D);
     this._dwellingYears(D);
+    D.L = null;   // the language stage's inputs are not needed once English ability is known
     return this._hhLru.set(key, D);
+  }
+
+  /** Each worker's job (occupations.mjs) and every member's earning power (full-time pay scaled by hours; retirement). */
+  _jobs(zi, core, edu, hs) {
+    const mem = core.members, n = mem.length, occ = new Array(n).fill(null), pot = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      const p = mem[i];
+      if (p.worker) {
+        const o = pickOccupation(new Rng(hash2(hs, i * 64 + KA.OCC)), { group: p.military ? 'military' : p.occ, world: this.world, zi: p.workZi >= 0 ? p.workZi : zi, sex: p.sex, age: p.age, education: edu[i] >= 0 ? EDUCATION_KEYS[edu[i]] : 'in school', shift: p.shift || 'day', wfh: p.mode === 'wfh' });
+        const hours = popcount(p.days || 62) * Math.min(p.dwellMin || 480, 720) / 60;
+        occ[i] = o;
+        pot[i] = o.wage * Math.min(1, hours / 38);
+      } else pot[i] = p.age >= 62 ? 24000 * Math.pow(EDU_WAGE[eduLevel(edu[i])], 0.8) : p.age >= 18 ? 3000 : 0;
+    }
+    return { occ, pot };
   }
 
   _householdIncome(F, score) {
@@ -2239,8 +2249,14 @@ export class Population {
       // US-born: California for most, the more so for children and the children of immigrants
       const inCA = p.age < 18 ? 0.92 : D.N.gen[i] === 2 ? 0.85 : p.age < 35 ? 0.72 : p.age < 65 ? 0.6 : 0.48;
       if (u < inCA) {
-        if (u2 < 0.5 || !this._caPlaces) return `${z.city}, California`;
-        return `${pickCum(this._caPlaces(), (u2 - 0.5) * 2)}, California`;
+        const local = p.age < 18 ? 0.75 : 0.55;
+        if (u2 < local) return `${z.city}, California`;
+        const v = (u2 - local) / (1 - local);
+        if (v < 0.55) {
+          const near = w.placesNear(D.core.home.x, D.core.home.y, 80).filter(q => q.pop >= 2000 && !q.cdp);
+          if (near.length) { let c = 0; const cum = Float64Array.from(near, q => (c += q.pop)); return `${pickCum({ names: near.map(q => q.name), cum }, v / 0.55)}, California`; }
+        }
+        return `${pickCum(this._caPlaces(), v)}, California`;
       }
       const boost = p.heritage === 'african-american' && p.age >= 50 ? GREAT_MIGRATION : null;
       return pickPlace(US_STATES, u2, null, boost);
@@ -2278,13 +2294,23 @@ export class Population {
    * names. Cached.
    */
   household(zi, h) {
-    const D = this._detail(zi, h), c = D.core, ll = this.world.unproject(c.home.x, c.home.y);
-    return {
+    const D = this._detail(zi, h);
+    if (D.view) return D.view;
+    const c = D.core, ll = this.world.unproject(c.home.x, c.home.y);
+    return (D.view = {
       id: c.id, zi, h, zip: this.world.zips[zi], size: c.size, type: c.type, tenure: c.tenure, dwelling: c.dwelling, vehicles: c.vehicles,
       heritage: c.heritage, income: D.householdIncome, yearMoved: D.yearMoved, yearBuilt: D.yearBuilt,
       home: { x: c.home.x, y: c.home.y, lat: +ll.lat.toFixed(5), lon: +ll.lon.toFixed(5) },
       members: c.members.map((p, i) => ({ m: p.m, role: p.role, name: D.names[i].display, first: D.names[i].first, age: p.age, sex: p.sex })),
-    };
+    });
+  }
+
+  /** The place record shared by a ZIP's NPCs. */
+  _place(zi) {
+    const F = this._full(zi);
+    if (F.place) return F.place;
+    const z = this.world.zip(zi);
+    return (F.place = { zip: z.zip, city: z.city, place: z.placeName, countyName: z.countyName, countyFips: z.countyFips, region: z.regionKey, regionName: z.regionName, province: z.provinceName, zone: z.zoneTitle });
   }
 
   /**
@@ -2319,7 +2345,7 @@ export class Population {
       },
       marital: MARITAL[D.marital[m]], veteran: D.veteran[m],
       household: { id: c.id, size: c.size, type: c.type, tenure: c.tenure, dwelling: c.dwelling, vehicles: c.vehicles, yearMoved: D.yearMoved, yearBuilt: D.yearBuilt, home: hh.home, members: hh.members },
-      place: { zip: z.zip, city: z.city, place: z.placeName, countyName: z.countyName, countyFips: z.countyFips, region: z.regionKey, regionName: z.regionName, province: z.provinceName, zone: z.zoneTitle },
+      place: this._place(zi),
       seed: hash3(hash2(this.seed ^ 0x9e75, zi), h, m),
     };
     return this._personLru.set(key, npc);

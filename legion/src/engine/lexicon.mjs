@@ -6,32 +6,44 @@
 // NPC's home language, and family terms.
 //
 // Representation rules (docs/CONTRACTS.md §3): dialect is regional, never ethnic; a language appears only when
-// the caller passes it for a speaker who speaks it; no accent spelling, no broken English, no brand names.
+// the caller passes it for a speaker who speaks it; no accent spelling, no broken English, no brand names;
+// religious formulas only for a speaker whose own faith they belong to.
+//
+// Data provenance: a line is only said when it is true. Lines carry tags (lexicon/tags.mjs) for the months,
+// hours, weather, alerts and places they assume and for what they presuppose about the speaker; linesFor and
+// pickLine leave out any line the situation or the speaker contradicts.
 //
 // The usual flow for one NPC line:
-//   const key = dialectFor(world, zi);                        // 'fresno'
-//   const { values } = slotsFor(world, zi, { t, rng });       // {road: 'Highway 41', temp: 101, fire: …}
-//   const picker = new Picker(conversationSeed);              // one per conversation, serializable
-//   pickLine(key, 'traffic', rng, { age, slots: values, picker })
-//   pickLine(key, 'weather', rng, { condition: weatherCondition(world.weatherAt(zi, t)), slots: values, picker })
-//   slangFor(key, age, rng); codeSwitch(npcLanguage, 'tired', rng, { sex, variety: varietyFor(lang, heritage) })
+//   const key = dialectFor(world, zi);                                // 'fresno'
+//   const { values, context } = slotsFor(world, zi, { t, rng });      // {road: 'Highway 41', temp: 101, …}, {month, hour, condition, …}
+//   const speaker = speakerFacts(npc, persona);                       // {age, drives, works, tenure, parent, nativeHere, generation}
+//   const picker = new Picker(conversationSeed);                      // one per conversation, serializable
+//   pickLine(key, 'traffic', rng, { ...context, speaker, slots: values, picker })
+//   pickLine(key, 'weather', rng, { ...context, speaker, slots: values, picker })   // context.condition picks the bank
+//   slangFor(key, age, rng)
+//   codeSwitch(lang, 'tired', rng, { sex, t, variety: varietyFor(lang, heritage, { birthplace }), faith: faithFor(heritage) })
 // and for a Claude system prompt, dialectSummary(key) plus DIALECTS[key].words.
 
 import { Rng, clamp } from './rng.mjs';
 import { pacific } from './clock.mjs';
 import { dialectFor, explainDialect, dialectTable, DIALECT_KEYS } from './lexicon/geography.mjs';
 import { roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE } from './lexicon/roads.mjs';
-import { SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, BRAND_BLACKLIST, findBrands } from './lexicon/slots.mjs';
-import { DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES } from './lexicon/dialects.mjs';
-import { LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS, resolveLanguage, varietyFor } from './lexicon/languages.mjs';
+import { SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands } from './lexicon/slots.mjs';
+import { DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES } from './lexicon/dialects.mjs';
+import { lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM } from './lexicon/tags.mjs';
+import {
+  LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
+  FAITHS, TIMES_OF_DAY, resolveLanguage, varietyFor, faithFor,
+} from './lexicon/languages.mjs';
 
 export {
   dialectFor, explainDialect, dialectTable, DIALECT_KEYS,
   roadName, roadNames, freewayName, namedStretch, stretchesNear, normalizeRoad, NAMED_STRETCHES, ROAD_USAGE,
-  SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, BRAND_BLACKLIST, findBrands,
-  DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
-  LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
-  resolveLanguage, varietyFor,
+  SLOTS, SLOT_NAMES, fill, templateSlots, fireLabel, teamName, BRAND_BLACKLIST, findBrands,
+  DIALECTS, DIALECT_FAMILIES, LINE_CATEGORIES, WORD_CATEGORIES, WEATHER_CONDITIONS, AGE_CATEGORIES,
+  lineTags, lineFits, situationOf, taggedLines, SPEAKER_NEEDS, ALERT_KINDS, COAST_KM,
+  LANGUAGES, LANGUAGE_KEYS, LANGUAGE_ALIASES, PHRASE_INTENTS, RELIGIOUS_INTENTS, FAMILY_RELATIONS, INTERJECTION_KINDS, LANGUAGE_LIST_FIELDS,
+  FAITHS, TIMES_OF_DAY, resolveLanguage, varietyFor, faithFor,
 };
 
 // ------------------------------------------------------------------ Picker

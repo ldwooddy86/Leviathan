@@ -548,7 +548,7 @@ function polyLengthOf(p) { const c = cumLengths(p); return c[c.length - 1]; }
  * and parks), run a cul-de-sac from the nearest street toward them. Candidates come in a seeded shuffle so the
  * result is deterministic without favoring one direction.
  */
-function fillGaps(ctx, out, space, points, seed, { gap = 82, reach = 260 } = {}) {
+function fillGaps(ctx, out, space, points, seed, { gap = 72, reach = 260 } = {}) {
   const order = points.map((p, i) => [hf(seed, i * 7 + 1), p]).sort((a, b) => a[0] - b[0]).map(x => x[1]);
   let n = 0;
   for (const [x, y] of order) {
@@ -852,7 +852,9 @@ function splitByLand(ctx, strokes) {
 const PARK_WORDS = ['Park', 'Park', 'Playground', 'Commons', 'Green', 'Community Park', 'Recreation Center'];
 const SCHOOL_WORDS = ['Elementary School', 'Elementary School', 'Middle School', 'Elementary School', 'High School', 'K-8 School'];
 
+/** A park's name from the namer's pools ("Sycamore Park", "Las Flores Playground"). */
 function parkName(ctx, h) { const base = ctx.namer.street(hash2(h, 0x9a), 'local').split(' ').slice(0, -1).join(' ') || 'Neighborhood'; return `${base} ${PARK_WORDS[h % PARK_WORDS.length]}`; }
+/** A school's name from the namer's pools ("Laurel Elementary School"). */
 function schoolName(ctx, h) { const base = ctx.namer.street(hash2(h, 0x5c), 'local').split(' ').slice(0, -1).join(' ') || 'Valley'; return `${base} ${SCHOOL_WORDS[h % SCHOOL_WORDS.length]}`; }
 function centerName(ctx, h) { const base = ctx.namer.street(hash2(h, 0xce), 'collector').split(' ').slice(0, -1).join(' ') || 'Village'; return `${base} ${['Plaza', 'Village Center', 'Marketplace', 'Shopping Center', 'Square'][h % 5]}`; }
 function aptName(ctx, h) { const base = ctx.namer.street(hash2(h, 0xa7), 'local').split(' ').slice(0, -1).join(' ') || 'Park'; return `${base} ${['Apartments', 'Apartment Homes', 'Villas', 'Court', 'Commons'][h % 5]}`; }

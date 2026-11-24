@@ -3,7 +3,9 @@
 // URL parameters: rate (share of households, default 0.01), theme (dark | light), t (epoch ms or a Pacific
 // 'YYYY-MM-DDTHH:MM'), play (1 to start the clock), speed (sim seconds per second), worker (0 = build on the main
 // thread), pack (0 = do not hand the fetched pack to the Crowd: it uses window.__LEGION_PACK__ or world.pack), keep
-// (0..1 drawn share, fixed). window.__legionDev exposes {world, pop, map, crowd, setTime, ready, done, summary}.
+// (0..1 drawn share, fixed), build (0 = do not start a build; call window.__legionDev.build(rate)).
+// window.__legionDev exposes {world, pop, map, crowd, setTime, build, ready, done, summary, error}: done and summary
+// follow the latest build started through build(); ready resolves with the first finished one.
 
 import { loadPack, createWorld } from '../engine/world.mjs';
 import { Population, LEGION_SEED } from '../engine/population.mjs';
@@ -87,43 +89,49 @@ async function main() {
   }
   setPlaying(playing);
 
-  // ---- layers
+  // ---- layers: swatches in the current theme's crowd colors (CSS --crowd-* when set, else the built-in palette)
   const kinds = ['walk', 'drive', 'bike', 'transit', 'errand', 'home'];
-  const swatch = { walk: 'walk', drive: 'drive-out', bike: 'bike', transit: 'transit', errand: 'errand', home: 'home' };
+  const swatchOf = { walk: 'walk', drive: 'drive-out', bike: 'bike', transit: 'transit', errand: 'errand', home: 'home' };
   const visible = new Set(crowd.visibleKinds());
+  const swatches = {};
   for (const k of kinds) {
     const label = document.createElement('label');
     const cb = Object.assign(document.createElement('input'), { type: 'checkbox', checked: visible.has(k) });
-    const sw = document.createElement('span');
+    const sw = swatches[k] = document.createElement('span');
     sw.className = 'sw';
-    sw.style.background = CROWD_COLORS.dark[swatch[k]];
-    if (k === 'drive') sw.style.background = `linear-gradient(90deg, ${CROWD_COLORS.dark['drive-out']} 50%, ${CROWD_COLORS.dark['drive-home']} 50%)`;
     cb.addEventListener('change', () => { cb.checked ? visible.add(k) : visible.delete(k); crowd.setVisible([...visible]); });
     label.append(cb, sw, k === 'home' ? 'at home' : k);
     $('kinds').append(label);
   }
+  const paintSwatches = () => {
+    const pal = CROWD_COLORS[map.theme === 'light' ? 'light' : 'dark'], st = getComputedStyle(map.container);
+    const color = name => st.getPropertyValue('--crowd-' + name).trim() || pal[name];
+    for (const k of kinds) swatches[k].style.background = color(swatchOf[k]);
+    swatches.drive.style.background = `linear-gradient(90deg, ${color('drive-out')} 50%, ${color('drive-home')} 50%)`;
+  };
+  paintSwatches();
 
   $('theme').addEventListener('click', () => {
     const next = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
     document.body.dataset.theme = next;
     map.setTheme(next);
-    crowd.setTime(t);
+    paintSwatches();
     $('theme').textContent = next === 'dark' ? 'Light' : 'Dark';
   });
 
   // ---- picking
   const tip = $('tip');
   map.on('hover', h => {
-    if (!h) { tip.style.display = 'none'; return; }
     const hit = crowd.pick(h.x, h.y, 7 / map.camera.zoom);
     if (!hit) { tip.style.display = 'none'; return; }
     tip.textContent = `${hit.id} · ${hit.state}${hit.travel ? ' · ' + hit.travel : ''}`;
     tip.style.left = `${h.px}px`; tip.style.top = `${h.py}px`; tip.style.display = 'block';
   });
+  map.on('leave', () => { tip.style.display = 'none'; });
   map.on('click', e => {
     const hit = e.hit;
     if (!hit) { $('pick').textContent = 'Nothing there; click a moving dot.'; return; }
-    const lines = [`${hit.id}  (${world.z.city[hit.zi]})`, `${hit.state}${hit.travel ? ' by ' + hit.travel : ''}`, `commute mode: ${hit.mode || 'none'}`];
+    const lines = [`${hit.id}  (${world.z.city[hit.zi]})`, `${hit.state}${hit.travel ? ' by ' + hit.travel : ''}`, `commute mode: ${hit.commuteMode || 'none'}${hit.school ? ' (to school)' : ''}`];
     try {
       const npc = pop.person ? pop.person(hit.zi, hit.h, hit.m) : null;
       if (npc) {
@@ -142,11 +150,12 @@ async function main() {
     const s = crowd.stats();
     $('stats').innerHTML = statRows.map(([k, f]) => `<tr><td>${k}</td><td>${fmt(f(s) || 0)}</td></tr>`).join('');
     const sum = crowd.summary;
-    $('perf').textContent = `${crowd.renderer || 'canvas 2D'}${crowd.software ? ' (software)' : ''} · drawn ${Math.round(crowd.keep * 100)}%${playing ? ` · ${fps.toFixed(0)} fps` : ''}${sum ? ` · built in ${sum.totalMs} ms (${sum.mode})` : ''}`;
+    $('perf').textContent = `${crowd.renderer || 'canvas 2D'}${crowd.software ? ' (software)' : ''} · drawn ${Math.round(crowd.keep * 100)}%${playing ? ` · ${fps.toFixed(0)} fps` : ''}${sum ? ` · built in ${sum.totalMs} ms (${sum.mode}) · ${sum.mainBytesPerAgent} B/agent` : ''}`;
   }, 250);
 
   // ---- build
   const build = async r => {
+    dev.done = false;
     status(`Building the crowd at ${r * 100}% of households…`, 0);
     const summary = await crowd.build({
       rate: r,
@@ -160,9 +169,11 @@ async function main() {
     }
     return summary;
   };
-  $('rebuild').addEventListener('click', () => { rate = +$('rate').value; dev.done = false; build(rate); });
-  $('rate').addEventListener('change', () => { rate = +$('rate').value; dev.done = false; build(rate); });
-  await build(rate);
+  dev.build = build;
+  $('rebuild').addEventListener('click', () => { rate = +$('rate').value; build(rate); });
+  $('rate').addEventListener('change', () => { rate = +$('rate').value; build(rate); });
+  if (qs.get('build') === '0') status('Ready to build.');
+  else await build(rate);
 }
 
 main().catch(err => {

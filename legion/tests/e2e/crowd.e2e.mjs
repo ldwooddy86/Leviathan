@@ -3,9 +3,12 @@
 // Serves legion/ over http, opens src/world/dev.html at a low rate (software WebGL copes), sets Tuesday 8:00, saves
 // tests/e2e/crowd.png, and checks: many lit crowd pixels around Los Angeles and the Bay Area; a pick at a lit pixel
 // returns a valid NPC id of a person on the move; the vertex shader (read back with transform feedback) agrees with
-// the JS position function on every agent; stats peak at 8:00 against 3:00. Then the two other build paths: the
-// main-thread fallback (?worker=0) builds the same agents, and the single-file hand-off (the worker bundled as an IIFE
-// string in window.__LEGION_WORKER_SRC__, the pack as base64 in window.__LEGION_PACK__) runs from a Blob URL.
+// the JS position function on every agent; stats peak at 8:00 against 3:00; no Worker message handler holds the main
+// thread for long while the crowd streams in (the population check runs in idle time); the map's colors, night
+// shade and pointer events. Then the other build paths: the main-thread fallback (?worker=0) builds the same agents;
+// the single-file hand-off (the worker bundled as an IIFE string in window.__LEGION_WORKER_SRC__, the pack as base64
+// in window.__LEGION_PACK__) runs from a Blob URL; a build replaced while the Worker is still decoding the pack stays
+// in the Worker; and a Worker population that differs from the page's is caught and rebuilt on the main thread.
 
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -44,26 +47,64 @@ after(async () => {
   if (server) await new Promise(r => server.close(r));
 });
 
-/** Open the dev page, wait for the crowd build, and collect page errors. */
+/** Time every Worker message handler of the page from its first message: window.__workerMsgs = [[type, ms], …]. */
+function timeWorkerHandlers() {
+  window.__workerMsgs = [];
+  const desc = Object.getOwnPropertyDescriptor(Worker.prototype, 'onmessage');
+  Object.defineProperty(Worker.prototype, 'onmessage', {
+    configurable: true,
+    get() { return desc.get.call(this); },
+    set(fn) {
+      desc.set.call(this, fn && (e => {
+        const t0 = performance.now();
+        try { return fn.call(this, e); } finally { window.__workerMsgs.push([e.data && e.data.type, performance.now() - t0]); }
+      }));
+    },
+  });
+}
+
+/**
+ * Open the dev page and collect page errors and warnings. By default wait for its crowd build; with build=0 in the
+ * query, wait until the page is ready to build (window.__legionDev.build).
+ */
 async function openDev(query, init) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 1 });
-  const errors = [];
+  const errors = [], warnings = [];
   page.on('pageerror', e => errors.push(String(e && e.stack || e)));
-  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+  page.on('console', m => {
+    if (m.type() === 'error') errors.push(m.text());
+    else if (m.type() === 'warning' && !/GL Driver Message|GPU stall/.test(m.text())) warnings.push(m.text());
+  });
   if (init) await page.addInitScript(init.script, init.arg);
   await page.goto(`${base}/src/world/dev.html?${query}`);
-  await page.waitForFunction(() => window.__legionDev && (window.__legionDev.done || window.__legionDev.error), null, { timeout: 240000 });
+  const idle = /(^|&)build=0(&|$)/.test(query);
+  await page.waitForFunction(idle ? () => window.__legionDev && (window.__legionDev.build || window.__legionDev.error) : () => window.__legionDev && (window.__legionDev.done || window.__legionDev.error), null, { timeout: 240000 });
   const err = await page.evaluate(() => window.__legionDev.error);
   assert.equal(err, null, `dev page failed: ${err}`);
-  return { page, errors };
+  return { page, errors, warnings };
 }
 
 test('the crowd lights up Los Angeles and the Bay Area at 8:00 on a Tuesday, and picking finds the people', { timeout: 300000 }, async () => {
-  const { page, errors } = await openDev(`rate=${RATE}&keep=1`);
+  const { page, errors } = await openDev(`rate=${RATE}&keep=1`, { script: timeWorkerHandlers });
   const summary = await page.evaluate(() => window.__legionDev.summary);
   assert.equal(summary.mode, 'worker', 'built in the Worker');
   assert.ok(summary.agents > 100000, `agents ${summary.agents}`);
+  // memory: the 32-byte record plus the pick index, well under 40 bytes per agent on the main thread
   assert.equal(summary.bytesPerAgent, 32);
+  assert.ok(summary.pickBytesPerAgent > 0 && summary.pickBytesPerAgent < 6, `pick index ${summary.pickBytesPerAgent} B/agent`);
+  assert.ok(summary.mainBytesPerAgent < 38, `${summary.mainBytesPerAgent} B/agent`);
+
+  // the cold start: the Worker's population was checked against the page's, in idle-time steps, and no message
+  // handler held the main thread (the check used to run inside the first chunk's handler, 180-230 ms)
+  assert.equal(summary.verified, 6, 'six agents checked against the page population');
+  assert.ok(summary.verifyMaxMs < 150, `longest check step ${summary.verifyMaxMs} ms`);
+  const handlers = await page.evaluate(() => {
+    const by = {};
+    for (const [type, ms] of window.__workerMsgs) by[type] = Math.max(by[type] || 0, ms);
+    return { by, chunks: window.__workerMsgs.filter(([t]) => t === 'chunk').length };
+  });
+  assert.ok(handlers.chunks >= 10, `${handlers.chunks} chunks streamed`);
+  assert.ok(handlers.by.chunk < 50, `longest chunk handler ${handlers.by.chunk.toFixed(1)} ms`);
 
   // set a weekday 8:00, frame the state, and measure the crowd's own pixels (with it minus without it)
   const probe = await page.evaluate(() => {
@@ -164,6 +205,54 @@ test('the crowd lights up Los Angeles and the Bay Area at 8:00 on a Tuesday, and
     assert.ok(r.stateMismatch <= r.n * 1e-4, `${r.at}: ${r.stateMismatch} state mismatches`);
     assert.ok(r.moving > 0 && r.maxErr < 0.05, `${r.at}: GPU and JS positions differ by ${r.maxErr} units`);
   }
+
+  // colors: any CSS color, alpha straight (not premultiplied, not divided twice)
+  const colors = await page.evaluate(async () => {
+    const { parseColor } = await import('/src/world/map.mjs');
+    const cases = ['rgba(255, 0, 0, 0.5)', 'hsl(210 50% 40% / 0.25)', 'color-mix(in srgb, #3366cc 50%, transparent)', 'rgb(1, 2, 3)', '#3366cc80', 'rebeccapurple', 'not-a-color'];
+    return cases.map(v => parseColor(v));
+  });
+  const near = (got, want, tol = 0.006) => got && want.every((w, k) => Math.abs(got[k] - w) <= tol);
+  assert.ok(near(colors[0], [1, 0, 0, 0.5]), `rgba: ${colors[0]}`);
+  assert.ok(near(colors[1], [0.2, 0.4, 0.6, 0.25]), `hsl with alpha: ${colors[1]}`);
+  assert.ok(near(colors[2], [0.2, 0.4, 0.8, 0.5]), `color-mix: ${colors[2]}`);
+  assert.ok(near(colors[3], [1 / 255, 2 / 255, 3 / 255, 1]), `rgb(1, 2, 3): ${colors[3]}`);
+  assert.ok(near(colors[4], [0.2, 0.4, 0.8, 128 / 255]), `hex with alpha: ${colors[4]}`);
+  assert.ok(near(colors[5], [0.4, 0.2, 0.6, 1]), `named: ${colors[5]}`);
+  assert.equal(colors[6], null);
+
+  // the night shade follows the theme at once, without waiting for the clock to move
+  const shade = await page.evaluate(() => {
+    const d = window.__legionDev, { map, crowd } = d;
+    d.setTime(d.atPacific(2026, 11, 24, 21, 0));
+    const out = { night: crowd.night, dark: map.shade };
+    map.setTheme('light'); out.light = map.shade;
+    map.setTheme('dark'); out.back = map.shade;
+    return out;
+  });
+  assert.ok(shade.night > 0.9, `night ${shade.night}`);
+  assert.ok(Math.abs(shade.dark - 0.3 * shade.night) < 1e-6 && Math.abs(shade.light - 0.16 * shade.night) < 1e-6 && Math.abs(shade.back - shade.dark) < 1e-6, JSON.stringify(shade));
+
+  // pointer: 'hover' always carries a point, leaving the map is its own 'leave' event (the tooltip hides)
+  await page.evaluate(() => {
+    const d = window.__legionDev;
+    Object.assign(d, { hovers: 0, badHovers: 0, leaves: 0 });
+    d.map.on('hover', h => { d.hovers++; if (!h || !Number.isFinite(h.x) || !Number.isFinite(h.y) || !Number.isFinite(h.px)) d.badHovers++; });
+    d.map.on('leave', e => { d.leaves++; d.leftAt = e; });
+  });
+  await page.mouse.move(600, 480);
+  await page.mouse.move(640, 500, { steps: 5 });
+  await page.waitForFunction(() => window.__legionDev.hovers > 0, null, { timeout: 60000 });
+  await page.evaluate(() => { document.getElementById('tip').style.display = 'block'; });
+  await page.mouse.move(640, 8, { steps: 3 });
+  await page.waitForFunction(() => window.__legionDev.leaves > 0, null, { timeout: 60000 });
+  const pointer = await page.evaluate(() => {
+    const d = window.__legionDev;
+    return { bad: d.badHovers, leftAt: d.leftAt, tip: getComputedStyle(document.getElementById('tip')).display };
+  });
+  assert.equal(pointer.bad, 0, 'every hover has a point');
+  assert.ok(Number.isFinite(pointer.leftAt.px) && Number.isFinite(pointer.leftAt.py));
+  assert.equal(pointer.tip, 'none', 'the dev tooltip hides on leave');
   assert.deepEqual(errors, []);
   await page.close();
 });
@@ -203,6 +292,56 @@ test('single-file hand-off: an IIFE worker from window.__LEGION_WORKER_SRC__ and
   assert.equal(r.pack, 'window', 'the Worker got the base64 pack');
   assert.ok(r.agents > 50000);
   assert.equal(r.url, null, 'the Blob URL is revoked once the worker answers');
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test('a build replaced while the Worker is still decoding the pack stays in the Worker', { timeout: 300000 }, async () => {
+  const { page, errors, warnings } = await openDev('rate=0.002&keep=1&build=0');
+  const runs = await page.evaluate(async () => {
+    const d = window.__legionDev, Crowd = d.crowd.constructor, pack = d.crowd.packSource;
+    d.crowd.destroy();
+    // a fresh crowd each time: its first build starts the Worker and hands it the pack; the second arrives while the
+    // pack is still being decoded (right away, or 30 ms later)
+    const race = async delay => {
+      const c = new Crowd(d.map, { world: d.world, population: d.pop, rate: 0.002, seed: 1, pack });
+      const first = c.build({ rate: 0.002 });
+      if (delay) await new Promise(r => setTimeout(r, delay));
+      const second = c.build({ rate: 0.003 });
+      const [a, b] = await Promise.all([first, second]);
+      const out = { delay, firstCancelled: !!a.cancelled, mode: b.mode, agents: b.agents, rate: b.rate, verified: b.verified, count: c.count };
+      c.destroy();
+      return out;
+    };
+    return [await race(0), await race(30)];
+  });
+  for (const r of runs) {
+    assert.ok(r.firstCancelled, `the first build gave way (delay ${r.delay} ms)`);
+    assert.equal(r.mode, 'worker', `the replacing build stayed in the Worker (delay ${r.delay} ms)`);
+    assert.equal(r.rate, 0.003);
+    assert.ok(r.agents > 80000 && r.count === r.agents, `${r.agents} agents`);
+    assert.equal(r.verified, 6);
+  }
+  assert.deepEqual(warnings.filter(w => /worker build failed|no world pack/.test(w)), []);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test('a Worker population that differs from the page population is caught and rebuilt on the main thread', { timeout: 300000 }, async () => {
+  const { page, errors, warnings } = await openDev('rate=0.0005&keep=1&build=0');
+  const r = await page.evaluate(async () => {
+    const d = window.__legionDev, pop = d.pop, own = pop.householdCore.bind(pop);
+    // the page's population no longer matches the one the Worker generates: here everyone commutes by ferry
+    pop.householdCore = (zi, h) => { const core = own(zi, h); for (const m of core.members) m.mode = 'ferry'; return core; };
+    const s = await d.build(0.0005);
+    let ferry = 0, n = 0;
+    for (const c of d.crowd.chunks) for (let i = 0; i < c.count; i++, n++) if ((c.mode[i] & 15) === 5) ferry++;
+    return { mode: s.mode, agents: s.agents, n, ferry };
+  });
+  assert.equal(r.mode, 'main', 'rebuilt on the main thread');
+  assert.ok(r.agents > 10000 && r.n === r.agents, `${r.agents} agents`);
+  assert.equal(r.ferry, r.n, 'the crowd is the page population');
+  assert.ok(warnings.some(w => /differs from the main thread population/.test(w)), warnings.join('\n'));
   assert.deepEqual(errors, []);
   await page.close();
 });

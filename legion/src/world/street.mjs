@@ -47,14 +47,26 @@ export class StreetView {
    * @param {boolean} [opts.allowNetwork] fetch real streets from OpenStreetMap (Overpass)
    * @param {'dark'|'light'|object} [opts.theme]
    * @param {number} [opts.trafficScale] multiplier on through traffic and foot traffic (1 = data-calibrated)
+   * @param {object} [opts.schedule] the schedule module (activityAt) — used for the plan when planFor is absent
+   * @param {object} [opts.dialogue] the dialogue module (bark) — used for bubbles when bark is absent
+   * @param {(id: string|null) => void} [opts.onSelect] called with the selected NPC id (also the 'select' event)
+   * @param {(id: string|null) => void} [opts.onHover] called with the hovered NPC id (also the 'hover' event)
    */
-  constructor(container, { world, population, getTime = null, planFor = null, bark = null, persona = null, allowNetwork = false, theme = 'dark', trafficScale = 1 } = {}) {
+  constructor(container, { world, population, getTime = null, planFor = null, bark = null, persona = null, allowNetwork = false, theme = 'dark', trafficScale = 1, schedule = null, dialogue = null, onSelect = null, onHover = null } = {}) {
     if (!world || !population) throw new Error('StreetView needs a world and a population');
     this.world = world; this.population = population;
     this.getTime = typeof getTime === 'function' ? getTime : null;
-    this.planFor = typeof planFor === 'function' ? planFor : null;
-    this.bark = typeof bark === 'function' ? bark : null;
-    this.persona = typeof persona === 'function' ? persona : null;
+    this.onSelect = typeof onSelect === 'function' ? onSelect : null;
+    this.onHover = typeof onHover === 'function' ? onHover : null;
+    // persona: (id) → persona, or the persona module's persona(world, npc, {population}); cached either way
+    this._personas = new Map();
+    this.persona = typeof persona === 'function' ? (persona.length >= 2 ? (id => this._cachedPersona(id, () => persona(world, population.get(id), { population }))) : (id => this._cachedPersona(id, () => persona(id)))) : null;
+    // the plan: planFor(id, t), or the schedule module's activityAt(npc, persona, t) when both modules are given
+    this.planFor = typeof planFor === 'function' ? planFor
+      : schedule && typeof schedule.activityAt === 'function' && this.persona ? ((id, t) => schedule.activityAt(population.get(id), this.persona(id), t)) : null;
+    // barks: bark(idA, idB, context), or the dialogue module's bark(world, persona, context)
+    this.bark = typeof bark === 'function' ? bark
+      : dialogue && typeof dialogue.bark === 'function' && this.persona ? ((a, b, ctx) => dialogue.bark(world, this.persona(a), Object.assign({ other: this.persona(b), otherId: b }, ctx))) : null;
     this.allowNetwork = !!allowNetwork;
     this.trafficScale = trafficScale;
     this._t = Date.now();
@@ -73,6 +85,15 @@ export class StreetView {
     this._stepMs = 0.5;
     this._fps = 60; this._lastFrame = 0; this._statsAt = 0; this._chatAt = 0;
     this._raf = 0;
+  }
+
+  _cachedPersona(id, make) {
+    let p = this._personas.get(id);
+    if (p !== undefined) return p;
+    try { p = make(); } catch { p = null; }
+    if (this._personas.size > 4000) this._personas.delete(this._personas.keys().next().value);
+    this._personas.set(id, p);
+    return p;
   }
 
   // ------------------------------------------------ events
@@ -96,9 +117,13 @@ export class StreetView {
 
   _buildDom(container) {
     if (container && container.tagName === 'CANVAS') {
+      // a canvas from the app: overlays go next to it once it is in the page (see _attachOverlays), keys go to it
       this.canvas = container;
-      this.root = container.parentElement || container;
+      this.root = container;
       this.ownsRoot = false;
+      if (!(container.tabIndex >= 0)) container.tabIndex = 0;
+      container.style.outline = 'none';
+      container.style.touchAction = 'none';
     } else {
       const root = document.createElement('div');
       root.className = 'legion-street';
@@ -110,35 +135,43 @@ export class StreetView {
       container.appendChild(root);
       this.root = root; this.canvas = cv; this.ownsRoot = true;
     }
-    const host = this.ownsRoot ? this.root : (this.root || document.body);
-    if (!this.ownsRoot && getComputedStyle(host).position === 'static') host.style.position = 'relative';
     const tip = document.createElement('div');
     tip.className = 'legion-street-tip';
     tip.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;display:none;padding:5px 9px;border-radius:8px;font:12px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.25);z-index:3;'
       + 'background:var(--street-tip-bg,var(--panel,rgba(22,24,28,.92)));color:var(--street-tip-fg,var(--fg,#f2f0ea))';
-    host.appendChild(tip);
     const status = document.createElement('div');
     status.className = 'legion-street-status';
     status.style.cssText = 'position:absolute;left:50%;top:14px;transform:translateX(-50%);pointer-events:none;display:none;padding:6px 12px;border-radius:999px;font:12px system-ui,sans-serif;z-index:3;'
       + 'background:var(--street-tip-bg,var(--panel,rgba(22,24,28,.88)));color:var(--street-tip-fg,var(--fg,#f2f0ea))';
-    host.appendChild(status);
     this.tip = tip; this.statusEl = status;
+    this._attachOverlays();
     this._ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => this._resize()) : null;
     if (this._ro) this._ro.observe(this.canvas);
     this._resize();
+  }
+
+  /** Put the tooltip and status next to the canvas (on our own root, or the app's canvas's parent once it has one). */
+  _attachOverlays() {
+    const host = this.ownsRoot ? this.root : this.canvas.parentElement;
+    if (!host || (this.tip.parentElement === host && this.statusEl.parentElement === host)) return;
+    if (!this.ownsRoot && typeof getComputedStyle === 'function' && getComputedStyle(host).position === 'static') host.style.position = 'relative';
+    host.appendChild(this.tip); host.appendChild(this.statusEl);
   }
 
   _resize() {
     const dpr = Math.min(3, (typeof devicePixelRatio === 'number' ? devicePixelRatio : 1) || 1);
     const w = Math.max(1, this.canvas.clientWidth || 800), h = Math.max(1, this.canvas.clientHeight || 600);
     const W = Math.round(w * dpr), H = Math.round(h * dpr);
-    if (this.canvas.width !== W || this.canvas.height !== H) { this.canvas.width = W; this.canvas.height = H; }
+    const changed = this.canvas.width !== W || this.canvas.height !== H || this.dpr !== dpr;
+    if (changed) { this.canvas.width = W; this.canvas.height = H; }
     this.dpr = dpr; this.cssW = w; this.cssH = h;
-    if (this.scene) this._clampCam(true);
+    // a new size can put the camera outside the view; otherwise leave it to glide
+    if (changed && this.scene) this._clampCam(false);
   }
 
   _status(text) {
     if (!this.statusEl) return;
+    this._attachOverlays();
     this.statusEl.textContent = text || '';
     this.statusEl.style.display = text ? 'block' : 'none';
   }
@@ -146,7 +179,7 @@ export class StreetView {
   // ------------------------------------------------ theme
 
   _cssVar(name) {
-    try { return getComputedStyle(this.root).getPropertyValue(name).trim(); } catch { return ''; }
+    try { return getComputedStyle(this.canvas).getPropertyValue(name).trim(); } catch { return ''; }
   }
 
   _readTheme() {
@@ -223,14 +256,14 @@ export class StreetView {
     } catch (err) {
       this._status('');
       this._emit('error', { message: String(err && err.message || err) });
-      throw err;
+      if (typeof console !== 'undefined') console.error('[street] could not build the scene', err);
+      return null;
     }
     if (token !== this._openToken) return null;
     this.scene = scene;
     const fallback = createFallbackPlanner(this.world, this.population);
     const planner = this.planFor ? (id, t) => { try { return this.planFor(id, t) || fallback(id, t); } catch { return fallback(id, t); } } : null;
     this.sim = new StreetSim(scene, { world: this.world, population: this.population, planner, trafficScale: this.trafficScale });
-    if (planner) this.sim.evalBudgetMs = 6;
     this.renderer.setScene(scene, this._palette());
     const t = this._time();
     this.sim.reset(t);
@@ -275,6 +308,7 @@ export class StreetView {
     if (this.tip) this.tip.remove();
     if (this.statusEl) this.statusEl.remove();
     if (this.ownsRoot && this.root) this.root.remove();
+    this._personas.clear(); this._names.clear();
     this._handlers.clear();
     this.renderer = null;
   }
@@ -302,6 +336,12 @@ export class StreetView {
 
   _frame(ts) {
     const nowMs = now();
+    this._frameWork(nowMs);
+    this._workMs = (this._workMs || 0) * 0.9 + (now() - nowMs) * 0.1;
+  }
+
+  /** One frame's work: advance the simulation, chatter, follow, draw. */
+  _frameWork(nowMs) {
     const dtReal = this._lastFrame ? nowMs - this._lastFrame : 16;
     this._lastFrame = nowMs;
     this._fps = this._fps * 0.92 + (1000 / Math.max(1, dtReal)) * 0.08;
@@ -329,6 +369,7 @@ export class StreetView {
     const c = this.cam;
     c.x += (c.tx - c.x) * k; c.y += (c.ty - c.y) * k; c.z *= Math.exp((Math.log(c.tz) - Math.log(c.z)) * k);
     this._resize();
+    if (!this.tip.parentElement) this._attachOverlays();
     const cam = { x: c.x, y: c.y, z: c.z, dpr: this.dpr, W: this.canvas.width, H: this.canvas.height };
     this.renderer.frame(cam, sim, { t, light, fx: this._fx, nowMs, selected: this.selectedUid, hover: this.hoverUid, labels: true, theme: this.theme });
     this._lastCam = cam;
@@ -415,6 +456,7 @@ export class StreetView {
     this.selectedUid = a ? a.uid : -1;
     if (!id) this.follow(false);
     this._emit('select', { id: this.selectedId });
+    if (this.onSelect) { try { this.onSelect(this.selectedId); } catch (e) { if (typeof console !== 'undefined') console.error('[street] onSelect failed', e); } }
   }
 
   /** Select whoever is at a CSS pixel point (as a click does); returns the id or null. */
@@ -438,7 +480,7 @@ export class StreetView {
     let drag = null, pinch = null, moved = 0;
     const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
     const down = e => {
-      cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+      try { cv.setPointerCapture(e.pointerId); } catch { /* synthetic or already released pointers cannot be captured */ }
       pointers.set(e.pointerId, pos(e));
       if (pointers.size === 1) { drag = pos(e); moved = 0; cv.style.cursor = 'grabbing'; }
       else if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 }; drag = null; }
@@ -517,6 +559,7 @@ export class StreetView {
       this.hoverUid = uid; this.hoverId = a ? a.id : null;
       this.canvas.style.cursor = a ? 'pointer' : 'grab';
       this._emit('hover', { id: this.hoverId });
+      if (this.onHover) { try { this.onHover(this.hoverId); } catch { /* the app's handler */ } }
       if (a) this.tip.innerHTML = this._tipHtml(a); else this.tip.style.display = 'none';
     }
     if (a) this._placeTip();
@@ -553,7 +596,7 @@ export class StreetView {
     const s = this.sim ? this.sim.stats() : { agents: 0, moving: 0 };
     let onScreen = 0;
     if (this.sim && this._lastCam) { const v = this.renderer._viewRect(this._lastCam); for (const a of this.sim.agents) if (a.x >= v[0] && a.x <= v[2] && a.y >= v[1] && a.y <= v[3]) onScreen++; }
-    return Object.assign({}, s, { onScreen, fps: Math.round(this._fps), zoom: +this.cam.z.toFixed(2), source: this.scene ? this.scene.source : null, style: this.scene ? this.scene.style : null, time: this.sim ? this.sim.t : null });
+    return Object.assign({}, s, { onScreen, fps: Math.round(this._fps), frameMs: +(this._workMs || 0).toFixed(2), zoom: +this.cam.z.toFixed(2), source: this.scene ? this.scene.source : null, style: this.scene ? this.scene.style : null, time: this.sim ? this.sim.t : null });
   }
 
   /** Agents visible on the canvas with their CSS pixel positions: [{id, uid, kind, role, px, py}]. */

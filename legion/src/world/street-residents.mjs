@@ -11,6 +11,7 @@
 import { hash2, hash3, u01, Alias } from '../engine/rng.mjs';
 
 const RES_KINDS = ['house', 'small-apartment', 'apartment', 'mobile-home'];
+/** Commute modes that put a person behind the wheel. */
 const CAR_MODES = new Set(['drive', 'carpool', 'motorcycle', 'taxi']);
 
 /** Uniform grid over items with x, y for nearest-with-predicate queries. */
@@ -94,12 +95,14 @@ export function assignHouseholds(ctx, lots) {
     let bId = looseMap.get(key);
     if (bId === undefined) {
       const want = r.core.dwelling in grids ? r.core.dwelling : 'house';
-      let hit = grids[want].nearest(r.x, r.y, it => it.b.free > 0, 1400);
-      if (!hit) hit = anyGrid.nearest(r.x, r.y, it => it.b.free > 0, 1400);
+      // a home of its kind with room nearby, else any home with room nearby; the street they live on matters
+      // more than the exact building type, so no one is sent across the view to find one
+      let hit = grids[want].nearest(r.x, r.y, it => it.b.free > 0, 250) || anyGrid.nearest(r.x, r.y, it => it.b.free > 0, 250);
       if (hit) take(hit.b);
       else {
-        // every home in reach is taken: an extra unit (an in-law apartment) in the nearest one
-        hit = allGrid.nearest(r.x, r.y, () => true, 5000);
+        // everything nearby is taken: one more unit in a building of its kind close by (apartments grow a unit,
+        // houses an in-law apartment), else in the nearest home of any kind
+        hit = allGrid.nearest(r.x, r.y, it => it.b.kind === want, 300) || allGrid.nearest(r.x, r.y, () => true, 5000);
         if (hit) { hit.b.units++; adu++; }
       }
       if (!hit) { households[i] = null; continue; }

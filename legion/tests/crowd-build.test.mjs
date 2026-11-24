@@ -5,9 +5,10 @@ import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Population, LEGION_SEED } from '../src/engine/population.mjs';
 import { atPacific } from '../src/engine/clock.mjs';
 import {
-  buildAgents, buildRoadNet, planHighway, roadAt, agentPosition, agentPhase, agentGLSL, countStates, pickNearest,
-  decodeId, commuteTiming, modeCode, simTime, rushFactor, errTravel, newPhase, lodValue, zipOrder,
-  MODES, MODE_KIND, KINDS, STATES, CROWD, AGENT_BYTES, NO_DEPART, STUDENT_BIT,
+  buildAgents, buildRoadNet, planHighway, roadAt, agentPosition, agentPhase, agentPlace, agentKind, colorClass, agentGLSL,
+  countStates, pickNearest, pickIndexBytes, decodeId, commuteTiming, modeCode, simTime, rushFactor, errTravel, newPhase,
+  lodValue, zipOrder,
+  MODES, MODE_KIND, KINDS, STATES, CROWD, AGENT_BYTES, NO_DEPART, STUDENT_BIT, CLASS_BIT, PICK_MARGIN,
   K_DRIVE, K_WALK, K_ERRAND, K_HOME, S_HOME, S_OUT, S_WORK, S_BACK, S_EOUT, S_EAT, S_EBACK,
 } from '../src/world/crowd-build.mjs';
 import { triangulate, buildFill, cleanRing } from '../src/world/map.mjs';
@@ -23,6 +24,8 @@ const homeOf = (c, i) => [c.home[2 * i] / 65535 * W, c.home[2 * i + 1] / 65535 *
 const destOf = (c, i) => [c.dest[2 * i] / 65535 * W, c.dest[2 * i + 1] / 65535 * H];
 const ARRAYS = ['home', 'dest', 'timing', 'days', 'mode', 'route', 'errand', 'eoff', 'ids'];
 const TUESDAY = (h, m = 0) => simTime(atPacific(2026, 11, 24, h, m));
+// one fixed-point step (q / 65535 of the extent); a stored point may sit up to a couple of steps from the exact one
+const STEP = Math.max(W, H) / 65535;
 const memberOf = (core, m) => core.members.find((x, k) => (x.m == null ? k : x.m) === m);
 
 /** A one-agent chunk for hand-built cases (home and dest in units). */
@@ -87,10 +90,10 @@ test('ids decode to valid people whose householdCore matches the stored mode and
       assert.equal(A.days[i], mem.days & 127);
       assert.ok(mem.work && mem.departMin != null && MODE_KIND[modeCode(mem.mode)] >= 0);
       const [dx, dy] = destOf(A, i);
-      assert.ok(Math.abs(dx - mem.work.x) < 0.1 && Math.abs(dy - mem.work.y) < 0.1, 'destination is the workplace or school');
+      assert.ok(Math.abs(dx - mem.work.x) < 2.5 * STEP && Math.abs(dy - mem.work.y) < 2.5 * STEP, 'destination is the workplace or school');
     }
     const [hx, hy] = homeOf(A, i);
-    assert.ok(Math.abs(hx - core.home.x) < 0.1 && Math.abs(hy - core.home.y) < 0.1, 'home within the fixed-point step');
+    assert.ok(Math.abs(hx - core.home.x) < 2.5 * STEP && Math.abs(hy - core.home.y) < 2.5 * STEP, 'home within the fixed-point step');
     assert.ok(!seen.has(d.id)); seen.add(d.id);
     checked++;
   }
@@ -117,14 +120,40 @@ test('every member of a sampled household is an agent, and nothing else is', () 
 test('homes lie inside their ZIP (world.zipAt), exactly as the unquantized homes do', () => {
   let inside = 0;
   for (let i = 0; i < A.count; i++) {
-    const d = decodeId(A, i, world), [x, y] = homeOf(A, i);
+    const d = decodeId(A, i, world), core = pop.householdCore(d.zi, d.h), [x, y] = homeOf(A, i);
     if (world.zipAt(x, y) === d.zi) inside++;
+    assert.equal(world.zipAt(x, y), world.zipAt(core.home.x, core.home.y), `home of ${d.id}`);
+    if (A.days[i]) {
+      const mem = memberOf(core, d.m), [dx, dy] = destOf(A, i);
+      assert.equal(world.zipAt(dx, dy), world.zipAt(mem.work.x, mem.work.y), `destination of ${d.id}`);
+    }
   }
   assert.ok(inside / A.count > 0.995, `${inside}/${A.count}`);
-  for (let i = 0; i < A.count; i += 97) {
-    const d = decodeId(A, i, world), core = pop.householdCore(d.zi, d.h), [x, y] = homeOf(A, i);
-    assert.equal(world.zipAt(x, y), world.zipAt(core.home.x, core.home.y));
+});
+
+test('quantized homes keep their ZIP in raster cells no ZIP covers (coastal Carpinteria, 93013)', () => {
+  // the earlier encoding: round, then stay in the raster cell axis by axis. In an empty cell (its center is in the
+  // sea) world.zipAt tests the outline, and that nudge could put a shoreline home outside every ZIP.
+  const R = world.raster();
+  const plain = (v, ext) => {
+    let q = Math.max(0, Math.min(65535, Math.round(v / ext * 65535)));
+    const c = Math.floor(v / R.cell), d = Math.floor(q / 65535 * ext / R.cell);
+    if (d > c && q > 0) q--; else if (d < c && q < 65535) q++;
+    return q / 65535 * ext;
+  };
+  const zi = world.indexOf('93013');
+  const C = buildAgents(world, pop, { rate: 1, seed: SEED, zips: [zi], roadNet: net });
+  assert.equal(C.summary.households, pop.householdCount(zi), 'every household of the ZIP');
+  let emptyCell = 0, plainMoved = 0;
+  for (let i = 0; i < C.count; i++) {
+    const d = decodeId(C, i, world), home = pop.householdCore(d.zi, d.h).home, [x, y] = homeOf(C, i);
+    const want = world.zipAt(home.x, home.y);
+    assert.equal(world.zipAt(x, y), want, d.id);
+    if (R.grid[Math.floor(home.y / R.cell) * R.W + Math.floor(home.x / R.cell)] === 0) emptyCell++;
+    if (world.zipAt(plain(home.x, W), plain(home.y, H)) !== want) plainMoved++;
   }
+  assert.ok(emptyCell > 0, 'some homes lie in empty raster cells');
+  assert.ok(plainMoved > 0, 'where the plain encoding would have moved a home out of its ZIP');
 });
 
 test('long drives take a highway leg whose arc lengths lie within the polyline', () => {
@@ -340,6 +369,92 @@ test('picking returns the nearest drawn agent with a valid id, and respects visi
   assert.ok(all && lodValue(all.chunk.start + all.i) < keep);
 });
 
+/** The nearest drawn agent by scanning every agent: what pickNearest must return (ties to the lowest global index). */
+function pickByScan(chunks, x, y, r, minute, dow, mask, keep) {
+  const P = newPhase(), o = { state: 0, kind: 0, x: 0, y: 0 };
+  let best = null, bd2 = r * r;
+  for (const c of chunks) for (let i = 0; i < c.count; i++) {
+    const g = c.start + i;
+    if (keep < 1 && lodValue(g) >= keep) continue;
+    const s = agentPhase(c, i, minute, dow, P), cls = colorClass(s, agentKind(c, i, s));
+    if (cls < 0 || !(mask & CLASS_BIT[cls])) continue;
+    agentPlace(c, i, s, P, net, o);
+    const d2 = (o.x - x) ** 2 + (o.y - y) ** 2;
+    if (d2 > bd2 || (best && d2 === bd2 && g >= best.g)) continue;
+    bd2 = d2; best = { g, dist: Math.sqrt(d2) };
+  }
+  return best;
+}
+
+test('picking returns exactly what a scan of every agent returns, over one chunk or many', () => {
+  const parts = [];
+  buildAgents(world, pop, { rate: RATE, seed: SEED, zips: REGION, roadNet: net, chunkTarget: 4000, onChunk: c => parts.push(c) });
+  assert.ok(parts.length > 8, 'many chunks: local indices repeat from chunk to chunk');
+  A.start = 0;
+  const times = [TUESDAY(8, 5), TUESDAY(17, 40), simTime(atPacific(2026, 11, 28, 12, 0)), TUESDAY(3)];
+  const P = newPhase(), o = { state: 0, kind: 0, x: 0, y: 0 };
+  let queries = 0, hits = 0;
+  for (const { minute, dow } of times) {
+    // query points: on and beside agents that are out (dense spots), at homes, and spread over the region
+    const pts = [];
+    for (let i = 0, k = 0; i < A.count && k < 6; i += 997) {
+      const s = agentPhase(A, i, minute, dow, P);
+      if (s === S_HOME || s === S_WORK || s === S_EAT) continue;
+      agentPlace(A, i, s, P, net, o);
+      pts.push([o.x, o.y], [o.x + 0.7, o.y - 0.4]); k++;
+    }
+    pts.push(homeOf(A, 0), homeOf(A, Math.floor(A.count / 2)));
+    const [x0, y0] = homeOf(A, 0);
+    for (let k = 0; k < 4; k++) pts.push([x0 + 40 * Math.cos(k * 2.1), y0 + 40 * Math.sin(k * 2.1)]);
+    for (const [x, y] of pts) for (const r of [0.4, 3, 14, 60]) for (const [mask, keep] of [[31, 1], [63, 1], [31, 0.35]]) {
+      for (const chunks of [[A], parts]) {
+        const got = pickNearest(chunks, net, x, y, r, minute, dow, { mask, keep });
+        const want = pickByScan(chunks, x, y, r, minute, dow, mask, keep);
+        queries++;
+        if (!want) { assert.equal(got, null, `nothing within ${r} of (${x}, ${y})`); continue; }
+        hits++;
+        assert.ok(got, `found within ${r}`);
+        assert.equal(got.chunk.start + got.i, want.g, `the same agent at r=${r}, mask ${mask}, keep ${keep}`);
+        assert.equal(got.dist, want.dist);
+      }
+    }
+  }
+  assert.ok(queries > 500 && hits > 300, `${hits}/${queries}`);
+});
+
+test('the pick index is compact: ascending varint lists per non-empty cell, every agent listed at its home', () => {
+  const pk = A.pick, G = pk.cell;
+  assert.equal(G, CROWD.pickCell);
+  for (let k = 1; k < pk.keys.length; k++) assert.ok(pk.keys[k] > pk.keys[k - 1], 'cell keys ascend');
+  assert.equal(pk.offs.length, pk.keys.length + 1);
+  assert.equal(pk.offs[pk.keys.length], pk.bytes.length);
+  const lists = new Map();
+  let entries = 0;
+  for (let k = 0; k < pk.keys.length; k++) {
+    const list = [];
+    let p = pk.offs[k], i = -1;
+    while (p < pk.offs[k + 1]) {
+      let b = pk.bytes[p++], d = b & 127, sh = 7;
+      while (b & 128) { b = pk.bytes[p++]; d |= (b & 127) << sh; sh += 7; }
+      i += d + 1;
+      list.push(i);
+    }
+    assert.ok(list.length > 0 && list[list.length - 1] < A.count);
+    entries += list.length;
+    lists.set(pk.keys[k], new Set(list));
+  }
+  assert.equal(entries, pk.entries);
+  for (let i = 0; i < A.count; i++) {
+    const [hx, hy] = homeOf(A, i), cell = Math.floor(hy / G) * pk.gw + Math.floor(hx / G);
+    assert.ok(lists.get(cell) && lists.get(cell).has(i), `agent ${i} listed at home`);
+  }
+  // about one byte an entry: the index adds a few bytes per agent to the 32-byte record
+  assert.equal(A.summary.pickBytes, pickIndexBytes(A));
+  assert.ok(pk.bytes.length / entries < 1.3, `${(pk.bytes.length / entries).toFixed(2)} bytes per entry`);
+  assert.ok(pickIndexBytes(A) / A.count < 6, `${(pickIndexBytes(A) / A.count).toFixed(2)} bytes per agent`);
+  assert.ok(PICK_MARGIN >= CROWD.laneDrive0 + CROWD.laneDrive1 + 0.4, 'the margin covers the lane offset and the chord error of curves');
+});
+
 test('the GLSL twin is generated from the same constants and steps as the JS function', () => {
   const src = agentGLSL(net);
   for (const [name, v] of [['VS', CROWD.streetKmh], ['VH', CROWD.highwayKmh], ['DETOUR', CROWD.detour], ['LANE_D0', CROWD.laneDrive0], ['CURVE', CROWD.curve], ['ERR_CURVE', CROWD.errCurve]]) {
@@ -399,18 +514,38 @@ test('map fills: ear clipping covers simple rings exactly; others go to the sten
 
 test('a million agents statewide build in seconds', () => {
   const rate = 1e6 / world.totalPop;
-  for (let zi = 0; zi < world.N; zi += 50) pop.householdCore(zi, 0);
-  const t0 = performance.now();
+  // cold: a fresh population fits every ZIP's models as the build reaches it. That cost is the population's, so it is
+  // reported, not held to the crowd's budget
+  const fresh = new Population(world, { seed: LEGION_SEED });
+  const tc = performance.now();
+  const cold = buildAgents(world, fresh, { rate, seed: 1, roadNet: buildRoadNet(world), chunkTarget: 131072, onChunk: () => {} }).summary;
+  const coldMs = performance.now() - tc;
+  // warm: every ZIP's models are fitted now. householdCore alone over the same households, then the whole build;
+  // the difference is the crowd's own work (road network, planner, errands, pick index)
   let n = 0;
-  for (let zi = 0; zi < world.N; zi++) { const H = pop.householdCount(zi); for (let h = 0; h < H; h++) if (pop.includes(zi, h, rate)) n += pop.householdCore(zi, h).members.length; }
+  const t0 = performance.now();
+  for (let zi = 0; zi < world.N; zi++) { const H = fresh.householdCount(zi); for (let h = 0; h < H; h++) if (fresh.includes(zi, h, rate)) n += fresh.householdCore(zi, h).members.length; }
   const core = performance.now() - t0;
   const t1 = performance.now();
-  let chunks = 0;
-  const { summary } = buildAgents(world, pop, { rate, seed: 1, roadNet: buildRoadNet(world), chunkTarget: 131072, onChunk: () => { chunks++; } });
+  const chunks = [];
+  const { summary } = buildAgents(world, fresh, { rate, seed: 1, roadNet: buildRoadNet(world), chunkTarget: 131072, onChunk: c => chunks.push(c) });
   const total = performance.now() - t1;
-  console.log(`statewide: ${summary.agents} agents in ${Math.round(total)} ms (population householdCore alone: ${Math.round(core)} ms; crowd work: ${Math.round(total - core)} ms; ${chunks} chunks)`);
+  console.log(`statewide: ${summary.agents} agents; cold build ${Math.round(coldMs)} ms (fresh population, its per-ZIP fits included); warm build ${Math.round(total)} ms = householdCore ${Math.round(core)} ms + crowd work ${Math.round(total - core)} ms; ${chunks.length} chunks; record ${summary.bytesPerAgent} B + pick index ${summary.pickBytesPerAgent} B per agent`);
+  // picking at the statewide view: 8 pixels at the fit zoom are about 55 units, yet the search settles in the cells
+  // by the cursor, so over downtown Los Angeles (the densest cell: freeways from everywhere) it costs about what a
+  // street-level pick costs
+  const la = world.project(34.05, -118.25), am = TUESDAY(8);
+  const pickMs = r => { const t = performance.now(); for (let k = 0; k < 40; k++) pickNearest(chunks, net, la.x + k * 0.05, la.y, r, am.minute, am.dow); return (performance.now() - t) / 40; };
+  pickMs(55);
+  const wide = pickMs(55), narrow = pickMs(1.6);
+  console.log(`pick over downtown Los Angeles at 8:00: ${wide.toFixed(2)} ms within 55 units, ${narrow.toFixed(2)} ms within 1.6 units`);
+  assert.ok(wide < 2 * narrow + 1, `a wide pick ${wide.toFixed(2)} ms against a narrow one ${narrow.toFixed(2)} ms`);
   assert.equal(summary.agents, n);
+  assert.equal(cold.agents, n, 'cold and warm builds agree');
   assert.ok(summary.agents > 850000);
+  assert.ok(core > 0 && total > core, 'the warm pass measured householdCore alone');
   assert.ok(total - core < 1500, `crowd work ${Math.round(total - core)} ms`);
-  assert.ok(total < 6000, `total ${Math.round(total)} ms`);
+  assert.ok(total < 6000, `warm total ${Math.round(total)} ms`);
+  assert.ok(coldMs < 20000, `cold total ${Math.round(coldMs)} ms`);
+  assert.ok(summary.pickBytesPerAgent < 5 && summary.bytesPerAgent + summary.pickBytesPerAgent < 40, `${summary.bytesPerAgent} + ${summary.pickBytesPerAgent} bytes per agent`);
 });

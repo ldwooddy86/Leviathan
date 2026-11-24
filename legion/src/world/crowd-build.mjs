@@ -7,7 +7,9 @@
 //
 // The record is 32 bytes per agent, as a structure of arrays per chunk:
 //   home    Uint16Array(2n)  x, y as fixed point over the projection extent (q / 65535 * proj.W | proj.H, about
-//                            15 m), nudged so the point stays in its ZIP raster cell (world.zipAt is unchanged)
+//                            15 m), chosen so world.zipAt gives the same ZIP as at the exact point: the code stays in
+//                            the point's raster cell, and where that cell is empty (zipAt tests the outlines there)
+//                            the nearest neighboring code that keeps the answer is used
 //   dest    Uint16Array(2n)  workplace or school, same encoding (= home for people without commute trips)
 //   timing  Uint16Array(3n)  departMin (0xFFFF = none), commuteMin, dwellMin   (commuteTiming(member))
 //   days    Uint8Array(n)    commute days, bit (1 << dow); 0 = no commute trips (wfh, retired, no destination)
@@ -17,6 +19,14 @@
 //   errand  Uint32Array(n)   start minute (bits 0-10) | dwell / 2 (11-17) | days (18-24) | drives (25) | jitter (26-31)
 //   eoff    Int8Array(2n)    errand point minus home, in quarter units (±31.75 units, about ±6 km)
 //   ids     Uint32Array(n)   zi << 20 | h << 4 | m, or 0x80000000 | k for overflow[3k .. 3k+2] = (zi, h, m)
+// These differ from the plain Float32 layout sketched in CONTRACTS §8 (fixed point, the student bit, quantized arc
+// fractions, the errand arrays) to fit the budget; nothing outside this module reads the arrays directly.
+//
+// Beside the record, each chunk carries a pick index (chunk.pick): for every coarse cell (CROWD.pickCell units) an
+// agent's paths cross, the agent's index within the chunk, stored per non-empty cell as ascending deltas in LEB128
+// varints (keys: sorted cell ids, offs: byte offsets, bytes). Statewide that is about 3.5 bytes per agent (1.1 bytes
+// per entry, about 3 entries per agent), so the main thread holds about 35.5 bytes per agent; summary.pickBytes
+// reports the exact figure. The crowd Worker keeps its own 14-byte copy of the state arrays for stats.
 //
 // The position function lives here twice: agentPhase/agentPlace in JS (stats, picking, tests) and agentGLSL(net),
 // its line-for-line GLSL twin compiled into the crowd's vertex shader. Change one, change the other; the e2e test
@@ -84,12 +94,14 @@ export const CROWD = Object.freeze({
   pickCell: 32,         // pick index cell, units (about 6.3 km)
 });
 
-/** Bytes per agent of the record (see the header). */
+/** Bytes per agent of the record (see the header; the pick index comes on top, see summary.pickBytes). */
 export const AGENT_BYTES = 32;
 /** Largest distance (units) between an agent's drawn position and the centerline the pick index rasterizes. */
 export const PICK_MARGIN = 1.0;
 
 const MAX_COMMUTE = 360, MAX_SPAN = 1430;
+/** Sampled households between two 'tick' yields inside a ZIP (about 2 ms of work). */
+const TICK_HOUSEHOLDS = 256;
 const LANE_MAX = CROWD.laneDrive0 + CROWD.laneDrive1;
 
 // ---------------------------------------------------------------- small helpers
@@ -462,7 +474,14 @@ class ChunkBuilder {
     this.gw = Math.ceil(this.W / G); this.gh = Math.ceil(this.H / G);
     this.cl = new Int32Array(4096); this.cn = 0;
     this.stamp = new Int32Array(this.gw * this.gh).fill(-1); this.serial = 0;
-    if (withPick) this.segCache = segmentCells(net, this);
+    if (withPick) {
+      this.segCache = segmentCells(net, this);
+      // scratch of the pick index packer, reused from chunk to chunk
+      this.cellCount = new Uint32Array(this.gw * this.gh + 1);
+      this.cellFill = new Uint32Array(this.gw * this.gh);
+      this.sortItems = new Uint32Array(1 << 16);
+      this.varBuf = new Uint8Array(1 << 18);
+    }
     this.rs = 0;
     this._ra = { x: 0, y: 0, dx: 0, dy: 0, k: 0 }; this._rb = { x: 0, y: 0, dx: 0, dy: 0, k: 0 };
     this._leg = { line: 0, s0: 0, s1: 0, onX: 0, onY: 0, offX: 0, offY: 0, minutes: 0, direct: 0 };
@@ -493,10 +512,43 @@ class ChunkBuilder {
     return c >= 0 && r >= 0 && c < this.rW && r < this.rH && this.rGrid[r * this.rW + c] !== 0;
   }
 
+  /**
+   * Fixed-point code of (x, y) as qx << 16 | qy (unsigned), keeping world.zipAt's answer. quant() keeps the raster cell,
+   * which settles zipAt wherever the cell names a ZIP. An empty cell (a ZIP smaller than a cell, a sliver along a
+   * coast or a boundary) is decided by the outlines, where a 15 m nudge can cross a line: there the nearest of the
+   * eight neighboring codes that keeps the answer is used. Homes land in empty cells rarely, so the outline tests
+   * cost nothing measurable.
+   */
+  quantPoint(x, y) {
+    const W = this.W, H = this.H, cell = this.rCell;
+    // quant() for both axes, sharing the cell of the point with the raster check below
+    const c = Math.floor(x / cell), r = Math.floor(y / cell);
+    let qx = Math.round(x / W * 65535), qy = Math.round(y / H * 65535);
+    if (qx < 0) qx = 0; else if (qx > 65535) qx = 65535;
+    if (qy < 0) qy = 0; else if (qy > 65535) qy = 65535;
+    const dcx = Math.floor(qx / 65535 * W / cell), dcy = Math.floor(qy / 65535 * H / cell);
+    if (dcx > c && qx > 0) qx--; else if (dcx < c && qx < 65535) qx++;
+    if (dcy > r && qy > 0) qy--; else if (dcy < r && qy < 65535) qy++;
+    if (c >= 0 && r >= 0 && c < this.rW && r < this.rH && this.rGrid[r * this.rW + c] === 0) {
+      const world = this.world, want = world.zipAt(x, y);
+      if (world.zipAt(dequant(qx, W), dequant(qy, H)) !== want) {
+        let bx = qx, by = qy, bd = Infinity;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+          const ax = qx + dx, ay = qy + dy;
+          if ((dx === 0 && dy === 0) || ax < 0 || ay < 0 || ax > 65535 || ay > 65535) continue;
+          const px = dequant(ax, W), py = dequant(ay, H), d = (px - x) * (px - x) + (py - y) * (py - y);
+          if (d < bd && world.zipAt(px, py) === want) { bd = d; bx = ax; by = ay; }
+        }
+        qx = bx; qy = by;
+      }
+    }
+    return ((qx << 16) | qy) >>> 0;
+  }
+
   /** Add every member of household (zi, h). */
   household(zi, h, core) {
-    const W = this.W, H = this.H, cell = this.rCell;
-    const qhx = quant(core.home.x, W, cell), qhy = quant(core.home.y, H, cell);
+    const W = this.W, H = this.H;
+    const qh = this.quantPoint(core.home.x, core.home.y), qhx = qh >>> 16, qhy = qh & 0xffff;
     const hx = dequant(qhx, W), hy = dequant(qhy, H);
     const vehicles = core.vehicles | 0;
     const members = core.members;
@@ -525,7 +577,7 @@ class ChunkBuilder {
       this.route[3 * i] = 0; this.route[3 * i + 1] = 0; this.route[3 * i + 2] = 0;
       if (commutes) {
         this.nCommute++;
-        const qdx = quant(work.x, W, cell), qdy = quant(work.y, H, cell);
+        const qd = this.quantPoint(work.x, work.y), qdx = qd >>> 16, qdy = qd & 0xffff;
         this.dest[2 * i] = qdx; this.dest[2 * i + 1] = qdy;
         dx = dequant(qdx, W); dy = dequant(qdy, H);
         if (kind === K_DRIVE) {
@@ -700,22 +752,75 @@ class ChunkBuilder {
       pick: null,
       byMode: this.byMode, households: this.households, highway: this.nHighway, errands: this.nErrand, commuters: this.nCommute,
     };
-    if (this.withPick) {
-      const cells = this.gw * this.gh, cellStart = new Uint32Array(cells + 1), P = this.pairs;
-      for (let j = 0; j < this.np; j++) cellStart[P[2 * j] + 1]++;
-      for (let c = 0; c < cells; c++) cellStart[c + 1] += cellStart[c];
-      const items = new Uint32Array(this.np), fill = cellStart.slice(0, cells);
-      for (let j = 0; j < this.np; j++) items[fill[P[2 * j]]++] = P[2 * j + 1];
-      chunk.pick = { cell: CROWD.pickCell, gw: this.gw, gh: this.gh, start: cellStart, items };
-    }
+    if (this.withPick) chunk.pick = this.packPick();
     this.reset();
     return chunk;
+  }
+
+  /**
+   * The chunk's pick index from the (cell, agent) pairs: a counting sort by cell (agents stay ascending within a
+   * cell, the order they were added in), then per non-empty cell the gaps between successive agent indices as
+   * LEB128 varints. Mostly one byte an entry: a cell lists runs of neighbors from the same ZIPs.
+   * @returns {{cell:number, gw:number, gh:number, keys:Uint32Array, offs:Uint32Array, bytes:Uint8Array, entries:number}}
+   */
+  packPick() {
+    const cells = this.gw * this.gh, np = this.np, P = this.pairs, count = this.cellCount;
+    count.fill(0);
+    for (let j = 0; j < np; j++) count[P[2 * j] + 1]++;
+    let nk = 0;
+    for (let c = 0; c < cells; c++) { if (count[c + 1]) nk++; count[c + 1] += count[c]; }
+    if (this.sortItems.length < np) this.sortItems = new Uint32Array(Math.max(np, this.sortItems.length * 2));
+    const items = this.sortItems, fill = this.cellFill;
+    fill.set(count.subarray(0, cells));
+    for (let j = 0; j < np; j++) items[fill[P[2 * j]]++] = P[2 * j + 1];
+    // a gap below 2^28 takes at most four bytes (chunks are far smaller)
+    if (this.varBuf.length < 4 * np) this.varBuf = new Uint8Array(Math.max(4 * np, this.varBuf.length * 2));
+    const buf = this.varBuf, keys = new Uint32Array(nk), offs = new Uint32Array(nk + 1);
+    let o = 0, k = 0;
+    for (let c = 0; c < cells; c++) {
+      const a = count[c], b = count[c + 1];
+      if (a === b) continue;
+      keys[k] = c; offs[k] = o; k++;
+      let prev = -1;
+      for (let j = a; j < b; j++) {
+        const v = items[j];
+        let d = v - prev - 1;
+        prev = v;
+        while (d >= 128) { buf[o++] = (d & 127) | 128; d >>>= 7; }
+        buf[o++] = d;
+      }
+    }
+    offs[nk] = o;
+    return { cell: CROWD.pickCell, gw: this.gw, gh: this.gh, keys, offs, bytes: buf.slice(0, o), entries: np };
   }
 }
 
 /**
+ * Bytes a chunk's pick index occupies (keys, offsets and the varint stream).
+ * @param {{pick?: {keys:Uint32Array, offs:Uint32Array, bytes:Uint8Array}|null}} chunk
+ * @returns {number}
+ */
+export function pickIndexBytes(chunk) {
+  const pk = chunk && chunk.pick;
+  return pk ? pk.keys.byteLength + pk.offs.byteLength + pk.bytes.byteLength : 0;
+}
+
+/** Add the sampled households of ZIP zi from household h on, stopping after TICK_HOUSEHOLDS; returns the next h. */
+function addHouseholds(B, pop, zi, h, H, rate) {
+  let added = 0;
+  for (; h < H; h++) {
+    if (!pop.includes(zi, h, rate)) continue;
+    B.household(zi, h, pop.householdCore(zi, h));
+    if (++added === TICK_HOUSEHOLDS) return h + 1;
+  }
+  return H;
+}
+
+/**
  * Build agents progressively. Yields {type: 'chunk', chunk, progress} whenever a chunk is complete and
- * {type: 'tick', progress} after every ZIP (so a caller can time-slice); returns the summary.
+ * {type: 'tick', progress} after every ZIP and every 256 sampled households within one (so a caller can time-slice);
+ * returns the summary (agents, households, byMode, byKind, commuters, highway, errands, regions, bytesPerAgent: the
+ * record, pickBytes and pickBytesPerAgent: the pick index, ms …).
  * @param {World} world
  * @param {Population} pop  householdCount, includes, householdCore (CONTRACTS §5)
  * @param {object} [opts]
@@ -744,10 +849,11 @@ export function* buildAgentsGen(world, pop, opts = {}) {
     byMode: Object.fromEntries(MODES.map(m => [m == null ? 'none' : m, 0])),
     byKind: { walk: 0, drive: 0, bike: 0, transit: 0, none: 0 },
     commuters: 0, highway: 0, errands: 0, overflow: 0, regions: {},
-    rate, seed, bytesPerAgent: AGENT_BYTES, ms: 0,
+    rate, seed, bytesPerAgent: AGENT_BYTES, pickBytes: 0, pickBytesPerAgent: 0, ms: 0,
   };
   const absorb = c => {
     summary.agents += c.count; summary.households += c.households; summary.chunks++;
+    summary.pickBytes += pickIndexBytes(c);
     summary.commuters += c.commuters; summary.highway += c.highway; summary.errands += c.errands; summary.overflow += c.overflow.length / 3;
     c.byMode.forEach((v, code) => {
       summary.byMode[code ? MODES[code] : 'none'] += v;
@@ -760,7 +866,11 @@ export function* buildAgentsGen(world, pop, opts = {}) {
     const zi = zipList[j], H = pop.householdCount(zi);
     if (B.region == null) B.region = z.region[zi];
     const before = B.n;
-    for (let h = 0; h < H; h++) if (pop.includes(zi, h, rate)) B.household(zi, h, pop.householdCore(zi, h));
+    // a tick inside big ZIPs too, so a time-sliced caller never runs more than a few milliseconds between ticks (the
+    // loop itself stays out of the generator, where it optimizes better)
+    for (let h = addHouseholds(B, pop, zi, 0, H, rate); h < H; h = addHouseholds(B, pop, zi, h, H, rate)) {
+      yield { type: 'tick', progress: totalHH ? (scanned + h) / totalHH : 1 };
+    }
     if (B.n > before) { summary.zipsWithAgents++; B.zis.push(zi); }
     scanned += H;
     const progress = totalHH ? scanned / totalHH : 1;
@@ -777,6 +887,7 @@ export function* buildAgentsGen(world, pop, opts = {}) {
     }
   }
   if (!zipList.length) { const c = B.finish(index++, start); absorb(c); yield { type: 'chunk', chunk: c, progress: 1 }; }
+  summary.pickBytesPerAgent = summary.agents ? +(summary.pickBytes / summary.agents).toFixed(3) : 0;
   summary.ms = Math.round((typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0);
   return summary;
 }
@@ -1026,34 +1137,95 @@ export function countStates(chunks, minute, dow) {
 
 // ---------------------------------------------------------------- picking
 
+/** Binary search of a sorted Uint32Array; the index of v or -1. */
+function findKey(keys, v) {
+  let lo = 0, hi = keys.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >>> 1, k = keys[mid];
+    if (k === v) return mid;
+    if (k < v) lo = mid + 1; else hi = mid - 1;
+  }
+  return -1;
+}
+
+// Dedupe stamps of pickNearest: an agent whose paths cross several visited cells is evaluated once per call. Indexed
+// by the agent's index within its chunk, so it grows to the largest chunk, not to the crowd.
+let _pickStamp = new Uint32Array(0), _pickSerial = 0;
+let _qCells = new Int32Array(64), _qDist = new Float64Array(64), _qOrder = new Int32Array(64);
+
 /**
  * Nearest drawn agent within r units of (x, y) at a minute and day: {chunk, i, state, kind, x, y, dist} or null.
- * Candidates come from each chunk's pick index (cells the agent's paths cross); only agents the renderer draws
- * count (visibility mask of CLASS_BIT, the level-of-detail keep fraction).
+ * Candidates come from each chunk's pick index (the cells an agent's paths cross). The cells within reach are visited
+ * nearest first, and the search stops at the first cell farther than the best distance found plus PICK_MARGIN (an
+ * agent is never farther than that from a cell that lists it, so nothing beyond can be nearer); in a dense area that
+ * settles within the cell under the cursor. Each agent is evaluated once per call. Only agents the renderer draws
+ * count (the visibility mask of CLASS_BIT, the level-of-detail keep fraction). Ties go to the lowest global index
+ * (chunk.start + i), so the answer does not depend on the visiting order.
  * @param {object[]} chunks @param {RoadNet} net
+ * @param {number} x @param {number} y @param {number} r search radius (units)
+ * @param {number} minute @param {number} dow
  * @param {{mask?:number, keep?:number}} [opts]
  */
 export function pickNearest(chunks, net, x, y, r, minute, dow, opts = {}) {
   const mask = opts.mask == null ? 63 : opts.mask, keep = opts.keep == null ? 1 : opts.keep;
+  if (!(r >= 0) || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+  let pk0 = null;
+  for (const c of chunks) if (c.pick && c.count) { pk0 = c.pick; break; }
+  if (!pk0) return null;
+  // the cells within reach, nearest first (every chunk shares the statewide grid); border cells reach out to
+  // infinity, matching the builder's clamping of points outside the extent
+  const G = pk0.cell, gw = pk0.gw, gh = pk0.gh, rr = r + PICK_MARGIN;
+  const c0 = clampInt(Math.floor((x - rr) / G), 0, gw - 1), c1 = clampInt(Math.floor((x + rr) / G), 0, gw - 1);
+  const r0 = clampInt(Math.floor((y - rr) / G), 0, gh - 1), r1 = clampInt(Math.floor((y + rr) / G), 0, gh - 1);
+  const span = (c1 - c0 + 1) * (r1 - r0 + 1);
+  if (_qCells.length < span) { const m = Math.max(span, 2 * _qCells.length); _qCells = new Int32Array(m); _qDist = new Float64Array(m); _qOrder = new Int32Array(m); }
+  let nq = 0;
+  for (let cy = r0; cy <= r1; cy++) {
+    const y0 = cy === 0 ? -Infinity : cy * G, y1 = cy === gh - 1 ? Infinity : (cy + 1) * G;
+    const ey = y < y0 ? y0 - y : y > y1 ? y - y1 : 0;
+    for (let cx = c0; cx <= c1; cx++) {
+      const x0 = cx === 0 ? -Infinity : cx * G, x1 = cx === gw - 1 ? Infinity : (cx + 1) * G;
+      const ex = x < x0 ? x0 - x : x > x1 ? x - x1 : 0, dc = Math.sqrt(ex * ex + ey * ey);
+      if (dc > rr) continue;
+      _qCells[nq] = cy * gw + cx; _qDist[nq] = dc; _qOrder[nq] = nq; nq++;
+    }
+  }
+  if (!nq) return null;
+  const order = _qOrder.subarray(0, nq).sort((a, b) => _qDist[a] - _qDist[b]);
+  // chunks with the most entries in the nearest cell go first: they set a small best distance for the others
+  const near = _qCells[order[0]], weight = c => { const k = findKey(c.pick.keys, near); return k < 0 ? 0 : c.pick.offs[k + 1] - c.pick.offs[k]; };
+  const list = chunks.filter(c => c.pick && c.count).map(c => [weight(c), c]).sort((a, b) => b[0] - a[0]);
   const P = newPhase(), o = { state: 0, kind: 0, x: 0, y: 0 };
-  let best = null, bd2 = r * r;
-  for (const c of chunks) {
-    const pk = c.pick;
-    if (!pk || !c.count) continue;
-    const G = pk.cell, rr = r + PICK_MARGIN;
-    const c0 = Math.max(0, Math.floor((x - rr) / G)), c1 = Math.min(pk.gw - 1, Math.floor((x + rr) / G));
-    const r0 = Math.max(0, Math.floor((y - rr) / G)), r1 = Math.min(pk.gh - 1, Math.floor((y + rr) / G));
-    for (let cy = r0; cy <= r1; cy++) for (let cx = c0; cx <= c1; cx++) {
-      const cell = cy * pk.gw + cx;
-      for (let j = pk.start[cell], j1 = pk.start[cell + 1]; j < j1; j++) {
-        const i = pk.items[j];
-        if (keep < 1 && lodValue(c.start + i) >= keep) continue;
+  let best = null, bestG = 0, bd2 = r * r, bd = r;
+  for (const [, c] of list) {
+    const pk = c.pick, keys = pk.keys, offs = pk.offs, bytes = pk.bytes, base = c.start | 0;
+    if (_pickStamp.length < c.count) _pickStamp = new Uint32Array(Math.max(c.count, 2 * _pickStamp.length));
+    if (++_pickSerial > 0xfffffff0) { _pickStamp.fill(0); _pickSerial = 1; }
+    const stamp = _pickStamp, serial = _pickSerial;
+    for (let q = 0; q < nq; q++) {
+      const cq = order[q];
+      if (_qDist[cq] > bd + PICK_MARGIN) break;
+      const k = findKey(keys, _qCells[cq]);
+      if (k < 0) continue;
+      let p = offs[k], i = -1;
+      const end = offs[k + 1];
+      while (p < end) {
+        let b = bytes[p++], d = b & 127, sh = 7;
+        while (b & 128) { b = bytes[p++]; d |= (b & 127) << sh; sh += 7; }
+        i += d + 1;
+        if (stamp[i] === serial) continue;
+        stamp[i] = serial;
+        if (keep < 1 && lodValue(base + i) >= keep) continue;
         const s = agentPhase(c, i, minute, dow, P);
         const cls = colorClass(s, agentKind(c, i, s));
         if (cls < 0 || !(mask & CLASS_BIT[cls])) continue;
         agentPlace(c, i, s, P, net, o);
         const ddx = o.x - x, ddy = o.y - y, d2 = ddx * ddx + ddy * ddy;
-        if (d2 <= bd2) { bd2 = d2; best = { chunk: c, i, state: o.state, kind: o.kind, x: o.x, y: o.y, dist: Math.sqrt(d2) }; }
+        if (d2 > bd2) continue;
+        const gi = base + i;
+        if (best !== null && d2 === bd2 && gi >= bestG) continue;
+        bd2 = d2; bd = Math.sqrt(d2); bestG = gi;
+        best = { chunk: c, i, state: o.state, kind: o.kind, x: o.x, y: o.y, dist: bd };
       }
     }
   }

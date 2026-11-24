@@ -6,14 +6,25 @@
 // dwellMin and the day mask from pop.householdCore, which persona.routine carries), so the crowd, the street view
 // and this plan always agree on where a person is. A shift that runs past midnight spills into the next day's
 // plan; one that runs into the next day's departure (24-hour shifts on back-to-back days) keeps them at work
-// while today's layer 0 timing still holds. Sleep follows a chronotype from age and personality and bends around
-// the shift; errands go to nearby ZIPs with stores and restaurants; leisure comes from the persona's interests;
-// weekends differ from weekdays; young children are driven to school by the household adult the persona assigned.
+// while today's layer 0 timing still holds.
+//
+// The household moves together. persona.routine.household (the same in every member's persona) says which
+// adult takes which young child to school on which days (driving, walking or biking alongside, or walking them
+// to the school bus stop); those legs go into the adult's plan before anything else, and a work-from-home day is
+// carved around them. familyOutings(household, t) draws the day's outings the household makes together, Sunday
+// church for its churchgoers and a trip with the young children (the park, the store, the beach, relatives),
+// with one grown-up whose own day leaves them free; every member who goes holds the same outing at the same time.
+// Children under ten never go out on their own: only to school (escorted when young) and with the household.
+//
+// Sleep follows a chronotype from age and personality and bends around the day's first obligation; errands go to
+// nearby ZIPs with stores and restaurants; leisure comes from the persona's interests; weekends differ from
+// weekdays.
 //
 // activityAt(npc, persona, t) is the item at t plus its progress and, while traveling, the position on the
 // straight segment between the two places (the street view routes its own paths).
 //
-// Pure and deterministic: the randomness of a day comes from the NPC's seed and the calendar date.
+// Pure and deterministic: the randomness of a day comes from the NPC's seed (the household's outings from the
+// household's key) and the calendar date.
 
 import { Rng, hashAll, clamp, lerp } from './rng.mjs';
 import { pacific, atPacific } from './clock.mjs';
@@ -21,10 +32,18 @@ import { pacific, atPacific } from './clock.mjs';
 /** The kinds a plan item can have. */
 export const PLAN_KINDS = ['sleep', 'home', 'commute', 'work', 'school', 'errand', 'leisure', 'exercise', 'worship', 'visit'];
 
+/** Minutes after a shift that ran past midnight (the trip home, then a day's sleep) before a person is out again. */
+export const NIGHT_REST = 555;
+
+/** Children younger than this go out only to school and with the household. */
+export const ALONE_AGE = 10;
+
 const isNum = v => typeof v === 'number' && Number.isFinite(v);
 const num = (v, d = 0) => (isNum(v) ? v : d);
 const MIN_DAY = 1440;
 const DEFAULT_UNIT_KM = 0.1975;
+const bit = dow => 1 << dow;
+const overlapsAny = (list, s, e) => list.some(b => s < (b.e ?? b[1]) && e > (b.s ?? b[0]));
 
 // ---------------------------------------------------------------- calendar
 
@@ -45,13 +64,37 @@ function wallToMs(day, min) {
   return clamp(atPacific(day.y, day.mo, day.d, Math.floor(min / 60), min % 60), day.start, day.end);
 }
 
-const bit = dow => 1 << dow;
+/** The day after `day` (its start is `day`'s end). */
+const nextDayOf = day => dayInfo(day.end + 3600000);
+
+// ---------------------------------------------------------------- layer 0's busy times
+
+/**
+ * Layer 0's busy intervals for a person on a day of the week, in that day's minutes ([start, end] pairs; an end
+ * past midnight is kept as it is): the commute and the shift (a student's school day), and the tail of
+ * yesterday's shift if it ran past midnight, followed by the sleep after it (NIGHT_REST). persona.mjs assigns the
+ * school runs with this and familyOutings picks its grown-up with it, so neither ever collides with a shift.
+ * @param {{departMin:number|null, commuteMin:number, dwellMin:number, days:number, mode:string|null}} x a PersonCore or a routine
+ * @param {number} dow 0 Sunday .. 6 Saturday
+ * @returns {number[][]}
+ */
+export function busyIntervals(x, dow) {
+  const out = [];
+  if (!x || !isNum(x.departMin) || !x.mode || x.mode === 'wfh') return out;
+  const c = Math.max(0, Math.round(num(x.commuteMin))), dw = Math.max(0, Math.round(num(x.dwellMin)));
+  if (!(c > 0 || dw > 0)) return out;
+  const dep = Math.round(x.departMin), span = dep + 2 * c + dw;
+  if (num(x.days) & bit(dow)) out.push([dep, span]);
+  if ((num(x.days) & bit((dow + 6) % 7)) && span > MIN_DAY) out.push([0, span - MIN_DAY + NIGHT_REST]);
+  return out;
+}
 
 // ---------------------------------------------------------------- routine and rhythm
 
 /**
- * The routine schedule.mjs works from: persona.routine (layer 0 commute fields, school runs and places, built by
- * persona.mjs), or, for a persona without one, the NPC's own commute record with a minimal set of places.
+ * The routine schedule.mjs works from: persona.routine (layer 0 commute fields, school runs, the household and
+ * places, built by persona.mjs), or, for a persona without one, the NPC's own commute record with a minimal set
+ * of places and no household.
  */
 export function routineOf(npc, persona) {
   const r = persona && persona.routine;
@@ -62,9 +105,9 @@ export function routineOf(npc, persona) {
   const work = cm.work && isNum(cm.work.x) ? { x: cm.work.x, y: cm.work.y } : null;
   return {
     mode: cm.mode ?? null, commuteMin: num(cm.minutes), departMin: isNum(cm.departMin) ? cm.departMin : null, dwellMin: num(cm.dwellMin),
-    days: num(cm.days), workZi: num(cm.workZi, -1), work, source: 'npc', home, student: null, worker: !!(npc && npc.occupation),
-    shift: 'day', vehicles: num(hh.vehicles, 1), age: num(npc && npc.age, 35), density: 2000, unitKm: DEFAULT_UNIT_KM,
-    schoolRuns: [], ride: null, places: { errands: [], park: { kind: 'park', label: 'the park', x: home.x + 3, y: home.y + 3 } },
+    days: num(cm.days), workZi: num(cm.workZi, -1), work, source: 'npc', m: Number.isInteger(npc && npc.m) ? npc.m : 0, home, student: null,
+    worker: !!(npc && npc.occupation), shift: 'day', vehicles: num(hh.vehicles, 1), age: num(npc && npc.age, 35), density: 2000, unitKm: DEFAULT_UNIT_KM,
+    schoolRuns: [], ride: null, household: null, places: { errands: [], park: { kind: 'park', label: 'the park', x: home.x + 3, y: home.y + 3 } },
   };
 }
 
@@ -158,17 +201,49 @@ const commutes = rt => isNum(rt.departMin) && rt.mode && rt.mode !== 'wfh' && (n
 const commuteDay = (rt, dow) => commutes(rt) && (num(rt.days) & bit(dow)) !== 0;
 const wfhDay = (rt, dow) => rt.mode === 'wfh' && rt.worker !== false && ((num(rt.days) || 62) & bit(dow)) !== 0;
 
-/** Minute a day's first fixed obligation starts (for wake times), or null. */
-function firstAnchor(rt, dow) {
-  let a = null;
-  if (commuteDay(rt, dow)) a = Math.round(rt.departMin);
-  else if (wfhDay(rt, dow)) a = isNum(rt.departMin) ? Math.round(rt.departMin) : null;
-  for (const run of rt.schoolRuns || []) if ((num(run.days) & bit(dow)) && (a === null || run.departMin < a)) a = Math.round(run.departMin);
-  return a !== null && a < 14 * 60 ? a : null;
+/** The spot on a bus-riding child's way to school `stopMin` minutes from home: where they are walked to. */
+function stopPoint(home, school, stopMin, commuteMin) {
+  const f = clamp(stopMin / Math.max(1, commuteMin), 0, 1);
+  return { kind: 'bus-stop', x: lerp(home.x, school.x, f), y: lerp(home.y, school.y, f), label: 'the school bus stop' };
+}
+
+/** "Ana's school", "Ana and Leo's school", "the kids' school". */
+function schoolLabel(run) {
+  const names = (run.childNames || []).filter(Boolean);
+  if (names.length && names.length === (run.children || []).length) return `${names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`}'s school`;
+  return (run.children || []).length > 1 ? "the kids' school" : 'the school';
+}
+
+/**
+ * The blocks of one school run on a day the adult takes it (persona.routine.schoolRuns item): out with the
+ * children and back alone for a drop-off, out alone and back with them for a pickup (waiting at the school while
+ * siblings finish), or a short walk along the child's own way to the bus stop and back. Each leg moves exactly
+ * as the child's own layer 0 leg does while they are together, so their positions agree.
+ */
+function runBlocks(run, home) {
+  const school = { kind: 'school', x: run.school.x, y: run.school.y, label: schoolLabel(run) };
+  const c = Math.max(1, Math.round(num(run.commuteMin))), k = run.stopMin ? Math.max(1, Math.round(run.stopMin)) : null;
+  const mode = run.mode === 'drive' ? 'drive' : run.mode === 'bike' ? 'bike' : 'walk';
+  const escort = (run.children || []).slice();
+  const leg = (s, e, from, place, label, travel = true) => ({ s, e, kind: 'errand', travel, from: travel ? from : null, place, mode: travel ? mode : null, label, escort, run: run.kind });
+  if (run.kind === 'drop-off') {
+    const dep = Math.round(run.departMin);
+    if (k) { const stop = stopPoint(home, run.school, k, c); return [leg(dep, dep + k, home, stop, 'walking to the school bus stop'), leg(dep + k, dep + 2 * k, stop, home, 'home from the bus stop')]; }
+    return [leg(dep, dep + c, home, school, 'school drop-off'), leg(dep + c, dep + 2 * c, school, home, 'home from the school drop-off')];
+  }
+  const arrive = Math.round(run.arriveMin), leave = Math.round(run.leaveMin);
+  if (k) {
+    const stop = stopPoint(home, run.school, k, c), meet = leave + c - k;
+    return [leg(meet - k, meet, home, stop, 'meeting the school bus'), leg(meet, meet + k, stop, home, 'home from the bus stop')];
+  }
+  const out = [leg(arrive - c, arrive, home, school, 'school pickup')];
+  if (leave > arrive) out.push(leg(arrive, leave, null, school, 'waiting at school pickup', false));
+  out.push(leg(leave, leave + c, school, home, 'home from the school pickup'));
+  return out;
 }
 
 /** Bedtime on the night that starts at the end of a day of week dow, in that day's wall minutes. */
-function bedtime(rt, rh, dow, nextFirst, lastEnd) {
+function bedtime(rh, dow, nextFirst, lastEnd) {
   let bed = rh.freeBedMin + MIN_DAY + (dow === 5 || dow === 6 ? 50 : 0);
   if (nextFirst !== null) bed = Math.min(bed, nextFirst - rh.prepMin - rh.needMin + MIN_DAY);
   if (lastEnd !== null) bed = Math.max(bed, lastEnd + 20);
@@ -235,6 +310,141 @@ function leisureOptions(rt, persona) {
   return out;
 }
 
+// ---------------------------------------------------------------- the household's outings
+
+const FAMILY_STAY = { park: [60, 100], grocery: [30, 50], beach: [150, 210], family: [150, 240], church: [75, 110] };
+const FAMILY_KIND = { park: 'leisure', grocery: 'errand', beach: 'leisure', family: 'visit', church: 'worship' };
+const FAMILY_CACHE = new WeakMap();
+// Sunday services: the hour the service starts (wall minutes)
+const SERVICES = [510, 540, 570, 600, 630, 660];
+
+/** A household member's busy times today: layer 0's day, the school runs they take, a day of work at home. */
+function memberBusy(hh, x, dow) {
+  const out = [];
+  if (hh.layer0) {
+    out.push(...busyIntervals(x, dow));
+    if (x.mode === 'wfh' && x.worker && ((num(x.days) || 62) & bit(dow))) out.push([7 * 60, 18 * 60]);
+    for (const leg of hh.legs || []) for (const d of leg.drivers || []) if (d.m === x.m && (num(d.days) & bit(dow)) && Array.isArray(leg.window)) out.push(leg.window);
+  } else if (dow !== 0 && dow !== 6) {
+    // no layer 0 at hand: grown-ups under 65 are at work and children 5 to 17 at school on weekdays
+    if (num(x.age) >= 18 && num(x.age) < 65) out.push([7 * 60, 18 * 60 + 30]);
+    else if (num(x.age) >= 5 && num(x.age) < 18) out.push([7 * 60 + 30, 15 * 60 + 30]);
+  }
+  return out;
+}
+
+/** How the household goes somewhere together: on foot nearby in town, by car when it has one, else the bus. */
+function familyTrip(hh, place) {
+  const km = Math.hypot(place.x - hh.home.x, place.y - hh.home.y) * num(hh.unitKm, DEFAULT_UNIT_KM);
+  const mode = km < 1 && num(hh.density) >= 4000 ? 'walk' : num(hh.vehicles) > 0 ? 'drive' : km < 2 ? 'walk' : num(hh.density) >= 2500 ? 'bus' : 'carpool';
+  return { mode, travel: travelMinutes({ density: hh.density }, km, mode) };
+}
+
+/** Windows (wall minutes) for an outing with young children: daytime, around school, never over a toddler's nap. */
+function youngWindows(weekend, toddler) {
+  const base = weekend ? [[600, 1050]] : [[570, 720], [930, 1080]];
+  if (!toddler) return base;
+  const out = [];
+  for (const [a, b] of base) {
+    if (b <= 750 || a >= 900) out.push([a, b]);
+    else { if (750 > a) out.push([a, 750]); if (b > 900) out.push([900, b]); }
+  }
+  return out;
+}
+
+const escortRank = x => (x.worker ? (x.mode === 'wfh' ? 1 : 2) : 0);
+const ROLE_ORDER = ['householder', 'spouse', 'partner', 'parent', 'relative', 'sibling', 'child', 'grandchild'];
+
+function computeFamilyOutings(hh, day) {
+  const rng = new Rng(hashAll('family', num(hh.key) >>> 0, day.key));
+  const dow = day.dow, weekend = dow === 0 || dow === 6;
+  const members = hh.members.filter(x => x && Number.isInteger(x.m));
+  const byM = new Map(members.map(x => [x.m, x]));
+  const taken = new Map(members.map(x => [x.m, []]));
+  const busyAt = (x, s, e) => overlapsAny(memberBusy(hh, x, dow), s, e) || overlapsAny(taken.get(x.m), s, e);
+  const P = hh.places || {};
+  const out = [];
+  // Sunday church for the household's churchgoers: the young ones only with a grown-up
+  const goersAll = (hh.churchgoers || []).map(m => byM.get(m)).filter(Boolean);
+  if (dow === 0 && P.church && goersAll.length && rng.float() < 0.85) {
+    const start = SERVICES[rng.int(SERVICES.length)], stay = FAMILY_STAY.church[0] + rng.int(FAMILY_STAY.church[1] - FAMILY_STAY.church[0] + 1);
+    const { mode, travel } = familyTrip(hh, P.church);
+    const s = start - travel, e = start + stay + travel;
+    const free = goersAll.filter(x => !busyAt(x, s, e));
+    const grown = free.filter(x => num(x.age) >= 18);
+    const go = free.filter(x => num(x.age) >= ALONE_AGE || grown.length);
+    if (go.length) {
+      out.push({ key: 'church', kind: 'worship', place: P.church, label: 'church', start: s, travel, stay, mode, members: go.map(x => x.m), escort: grown.length ? grown[0].m : null, kids: go.filter(x => num(x.age) < ALONE_AGE).map(x => x.m) });
+      for (const x of go) taken.get(x.m).push([s, e]);
+    }
+  }
+  // an outing with the young children and one grown-up whose day leaves them free
+  const young = members.filter(x => isNum(x.age) && x.age < ALONE_AGE);
+  if (young.length && rng.float() < (weekend ? (dow === 6 ? 0.55 : 0.4) : 0.3)) {
+    const opts = [['park', 0.45], ['grocery', 0.25], ['beach', weekend ? 0.15 : 0], ['family', weekend ? 0.15 : 0]].filter(([k, w]) => w > 0 && P[k] && isNum(P[k].x));
+    const pick = rng.weightedItem(opts, o => o[1]);
+    if (pick) {
+      const key = pick[0], place = P[key];
+      const { mode, travel } = familyTrip(hh, place);
+      const [a, b] = FAMILY_STAY[key], stay = a + rng.int(b - a + 1), need = 2 * travel + stay;
+      const spans = youngWindows(weekend, young.some(x => x.age < 4)).filter(([w0, w1]) => w1 - w0 >= need);
+      const grownUps = members.filter(x => isNum(x.age) && x.age >= 18 && x.age < 80 && x.role !== 'roommate')
+        .sort((p, q) => escortRank(p) - escortRank(q) || ROLE_ORDER.indexOf(p.role) - ROLE_ORDER.indexOf(q.role) || p.m - q.m);
+      for (let attempt = 0; attempt < 4 && spans.length; attempt++) {
+        const [w0, w1] = spans[rng.int(spans.length)];
+        const s = w0 + 5 * Math.floor(rng.float() * ((w1 - w0 - need) / 5 + 1)), e = s + need;
+        const kids = young.filter(x => !busyAt(x, s, e));
+        const escort = kids.length ? grownUps.find(x => !busyAt(x, s, e)) : null;
+        if (!escort) continue;
+        const label = key === 'park' ? (place.label || 'the park') : key === 'grocery' ? 'the grocery store' : place.label || key;
+        out.push({ key, kind: FAMILY_KIND[key], place, label, start: s, travel, stay, mode, members: [escort.m, ...kids.map(x => x.m)], escort: escort.m, kids: kids.map(x => x.m) });
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The outings a household makes together on the Pacific day holding t: Sunday church for its churchgoers (the
+ * young ones only with a grown-up) and, on some days, a trip with the children under ten (the park, the grocery
+ * store, the beach, relatives) with the first grown-up of the household whose layer 0 day, school runs and
+ * work at home leave them free. Deterministic in the household's key and the date, so every member's plan
+ * holds the same outing at the same time and place.
+ * @param {Object|null} household  persona.routine.household
+ * @param {number|Object} t        epoch ms (or a dayInfo)
+ * @returns {{key:string, kind:string, place:Object, label:string, start:number, travel:number, stay:number, mode:string,
+ *   members:number[], escort:number|null, kids:number[]}[]} start in wall minutes (leaving home)
+ */
+export function familyOutings(household, t) {
+  if (!household || !Array.isArray(household.members) || !household.home) return [];
+  const day = typeof t === 'object' && t && isNum(t.key) ? t : dayInfo(t);
+  let byDay = FAMILY_CACHE.get(household);
+  if (byDay && byDay.has(day.key)) return byDay.get(day.key);
+  const out = computeFamilyOutings(household, day);
+  if (!byDay) FAMILY_CACHE.set(household, byDay = new Map());
+  if (byDay.size >= 16) byDay.delete(byDay.keys().next().value);
+  byDay.set(day.key, out);
+  return out;
+}
+
+/** The blocks of a household outing for member me: out together, the stay, back together. */
+function outingBlocks(o, home, me, hh) {
+  const kid = (o.kids || []).includes(me);
+  const names = (o.kids || []).map(m => { const x = hh.members.find(y => y.m === m); return x && x.name; });
+  const withKids = !kid && (o.kids || []).length && o.key !== 'church'
+    ? ` with ${names.every(Boolean) ? (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`) : o.kids.length === 1 ? 'the little one' : 'the kids'}` : '';
+  const label = `${o.label}${withKids}`;
+  const place = { kind: o.place.kind || o.key, x: o.place.x, y: o.place.y, label: o.label };
+  const escort = o.members.slice();
+  const s = o.start, a = s + o.travel, b = a + o.stay, e = b + o.travel;
+  const out = [];
+  if (o.travel > 0) out.push({ s, e: a, kind: o.kind, travel: true, from: home, place, mode: o.mode, label, escort, together: o.key });
+  out.push({ s: a, e: b, kind: o.kind, travel: false, place, mode: null, label, escort, together: o.key });
+  if (o.travel > 0) out.push({ s: b, e, kind: o.kind, travel: true, from: place, place: home, mode: o.mode, label: `home from ${label}`, escort, together: o.key });
+  return out;
+}
+
 // ---------------------------------------------------------------- the plan
 
 const PLAN_CACHE = new WeakMap();
@@ -246,8 +456,11 @@ const PLAN_CACHE = new WeakMap();
  * @param {number} t         epoch ms
  * @returns {ReadonlyArray<{start:number, end:number, startMin:number, endMin:number, kind:string,
  *   place:{kind:string, x:number, y:number, label:string}, mode:string|null, travel:boolean,
- *   from:{kind:string, x:number, y:number, label:string}|null, label:string, anchor?:'layer0'}>}
+ *   from:{kind:string, x:number, y:number, label:string}|null, label:string, anchor?:'layer0', leg?:'out'|'back',
+ *   escort?:number[], run?:'drop-off'|'pickup', together?:string}>}
  *   items tiling [midnight, next midnight) in order; the array and its items are frozen (shared by a cache).
+ *   escort lists the household members (by m) on a school run or a household outing with them; run marks a
+ *   school-run leg, together a household outing.
  */
 export function dayPlan(npc, persona, t) {
   const day = dayInfo(t);
@@ -263,16 +476,12 @@ export function dayPlan(npc, persona, t) {
   return plan;
 }
 
-function buildPlan(npc, persona, day) {
-  const rt = routineOf(npc, persona);
-  const rh = rhythmOf(npc, persona);
-  const seed = num(npc && npc.seed, 7) >>> 0;
-  const rng = new Rng(hashAll('day', seed, day.key));
-  const home = homePlace(rt), work = workPlace(rt, npc, persona);
-  const age = num(rt.age, num(npc && npc.age, 35));
-  const dow = day.dow, weekend = dow === 0 || dow === 6;
-  const blocks = [];
+const memberOf = (rt, npc) => (Number.isInteger(rt.m) ? rt.m : Number.isInteger(npc && npc.m) ? npc.m : 0);
 
+/** The day's fixed blocks before sleep: layer 0, the school runs, the household's outings, work at home. */
+function fixedBlocks(rt, npc, day, rh, rng, home, work) {
+  const dow = day.dow, me = memberOf(rt, npc);
+  const blocks = [];
   // 1. the layer 0 commute: last night's shift if it spills past midnight, and today's
   const span = Math.round(num(rt.departMin)) + 2 * Math.round(num(rt.commuteMin)) + Math.round(num(rt.dwellMin));
   if (commuteDay(rt, day.prevDow) && span > MIN_DAY) pushShift(blocks, rt, -MIN_DAY, home, work);
@@ -286,32 +495,63 @@ function buildPlan(npc, persona, day) {
     if (runsOn) for (const b of blocks) if (b.spill) b.e = Math.min(b.e, dep);
     pushShift(blocks, rt, 0, home, work, runsOn ? work : home);
   }
+  // 2. the school runs this adult takes today (persona.mjs assigned them around layer 0, so they fit)
+  const clash = legs => legs.some(b => overlapsAny(blocks, b.s, b.e));
+  for (const run of rt.schoolRuns || []) {
+    if (!(num(run.days) & bit(dow)) || !run.school) continue;
+    const legs = runBlocks(run, home);
+    if (!clash(legs)) blocks.push(...legs);
+  }
+  // 3. the household's outings today that include them
+  if (rt.household) {
+    for (const o of familyOutings(rt.household, day)) {
+      if (!o.members.includes(me)) continue;
+      const legs = outingBlocks(o, home, me, rt.household);
+      if (!clash(legs)) blocks.push(...legs);
+    }
+  }
+  // 4. a day of work at home, carved around the school runs and outings (they step out and come back)
   if (wfhDay(rt, dow)) {
     const ws = isNum(rt.departMin) ? Math.round(rt.departMin) : clamp(rh.freeWakeMin + 75 + rng.int(30), 7 * 60, 10 * 60 + 30);
     const len = num(rt.dwellMin) > 0 ? Math.round(rt.dwellMin) : 480;
-    blocks.push({ s: ws, e: ws + len, kind: 'work', travel: false, place: { kind: 'home', x: home.x, y: home.y, label: 'working from home' }, mode: null, anchor: 'layer0' });
+    const place = { kind: 'home', x: home.x, y: home.y, label: 'working from home' };
+    for (const w of windows(blocks, ws, Math.min(ws + len, MIN_DAY))) if (w.e - w.s >= 10) blocks.push({ s: w.s, e: w.e, kind: 'work', travel: false, place, mode: null, anchor: 'layer0' });
   }
-  // 2. school runs this adult drives (the household assigned them in persona.routine)
+  return { blocks, span, workingToday };
+}
+
+/** Minute the day's first fixed obligation starts (for wake times; before 2 PM), or null. */
+function firstAnchor(rt, npc, day) {
+  const dow = day.dow, me = memberOf(rt, npc);
+  let a = null;
+  const take = v => { if (isNum(v) && v < 14 * 60 && (a === null || v < a)) a = Math.round(v); };
+  if (commuteDay(rt, dow)) take(rt.departMin);
+  else if (wfhDay(rt, dow) && isNum(rt.departMin)) take(rt.departMin);
   for (const run of rt.schoolRuns || []) {
-    if (!(num(run.days) & bit(dow)) || !run.school) continue;
-    const school = { kind: 'school', x: run.school.x, y: run.school.y, label: `${run.childName ? run.childName + "'s" : 'the'} school` };
-    const c = Math.max(1, Math.round(run.commuteMin)), dep = Math.round(run.departMin), end = dep + c + Math.round(run.dwellMin);
-    const legs = [[dep, 'school drop-off'], ...(run.pickup ? [[end - c, 'school pickup']] : [])];
-    for (const [s0, label] of legs) {
-      const a = { s: s0, e: s0 + c, kind: 'errand', travel: true, from: home, place: school, mode: 'drive', label };
-      const b = { s: s0 + c, e: s0 + 2 * c, kind: 'errand', travel: true, from: school, place: home, mode: 'drive', label: `home from the ${label}` };
-      if (blocks.some(x => x.s < b.e && x.e > a.s)) continue;
-      blocks.push(a, b);
-    }
+    if (!(num(run.days) & bit(dow))) continue;
+    if (run.kind === 'drop-off') take(run.departMin);
+    else take(run.stopMin ? run.leaveMin + run.commuteMin - 2 * run.stopMin : run.arriveMin - run.commuteMin);
   }
+  if (rt.household) for (const o of familyOutings(rt.household, day)) if (o.members.includes(me)) take(o.start);
+  return a;
+}
+
+function buildPlan(npc, persona, day) {
+  const rt = routineOf(npc, persona);
+  const rh = rhythmOf(npc, persona);
+  const seed = num(npc && npc.seed, 7) >>> 0;
+  const rng = new Rng(hashAll('day', seed, day.key));
+  const home = homePlace(rt), work = workPlace(rt, npc, persona);
+  const age = num(rt.age, num(npc && npc.age, 35));
+  const dow = day.dow, weekend = dow === 0 || dow === 6;
+  const { blocks, span, workingToday } = fixedBlocks(rt, npc, day, rh, rng, home, work);
   const clipped = blocks.map(b => Object.assign({}, b, { s: clamp(b.s, 0, MIN_DAY), e: clamp(b.e, 0, MIN_DAY) })).filter(b => b.e > b.s);
 
-  // 3. sleep around the anchors
-  const anchorsToday = clipped.slice().sort((a, b) => a.s - b.s);
+  // 5. sleep around the anchors
   const spillEnd = Math.max(0, ...clipped.filter(b => b.spill).map(b => b.e));
-  const first = firstAnchor(rt, dow);
+  const first = firstAnchor(rt, npc, day);
   const todayShiftEndsLate = workingToday && span > MIN_DAY;
-  const todayOwn = anchorsToday.filter(b => !b.spill);
+  const todayOwn = clipped.filter(b => !b.spill);
   const lastEnd = todayOwn.length ? Math.max(...todayOwn.map(b => b.e)) : null;
   const sleeps = [];
   if (spillEnd > 0) {
@@ -321,8 +561,8 @@ function buildPlan(npc, persona, day) {
     const e = Math.min(s + rh.needMin, tonight);
     if (e - s >= 120) sleeps.push({ s, e });
   } else {
-    const prevLast = commuteDay(rt, day.prevDow) ? span : null;              // yesterday's shift ended before midnight
-    const bedPrev = bedtime(rt, rh, day.prevDow, first, prevLast) - MIN_DAY; // last night's bedtime in today's minutes
+    const prevLast = commuteDay(rt, day.prevDow) ? span : null;            // yesterday's shift ended before midnight
+    const bedPrev = bedtime(rh, day.prevDow, first, prevLast) - MIN_DAY;   // last night's bedtime in today's minutes
     let wake = rh.freeWakeMin + (weekend ? 60 : 0);
     if (first !== null) wake = Math.min(wake, first - rh.prepMin);
     wake = Math.max(wake, Math.max(0, bedPrev) + 180);
@@ -330,21 +570,20 @@ function buildPlan(npc, persona, day) {
   }
   if (age < 4) sleeps.push({ s: 13 * 60, e: 13 * 60 + 90 + rng.int(40), nap: true });
   if (!todayShiftEndsLate) {
-    const nextFirst = firstAnchor(rt, day.nextDow);
-    const bed = bedtime(rt, rh, dow, nextFirst, lastEnd !== null && lastEnd < MIN_DAY ? lastEnd : null);
+    const bed = bedtime(rh, dow, firstAnchor(rt, npc, nextDayOf(day)), lastEnd !== null && lastEnd < MIN_DAY ? lastEnd : null);
     if (bed < MIN_DAY) sleeps.push({ s: bed, e: MIN_DAY });
   }
   const sleepBlocks = [];
   for (const sl of sleeps) for (const w of windows(clipped, sl.s, sl.e)) if (w.e - w.s >= 10) sleepBlocks.push({ s: w.s, e: w.e, kind: 'sleep', travel: false, place: home, mode: null });
   const fixed = clipped.concat(sleepBlocks);
 
-  // 4. outings in the waking free time
+  // 6. their own outings in the waking free time (none for young children: they go out with the household)
   const awake = windows(fixed, 0, MIN_DAY).filter(w => w.e - w.s >= 30);
-  const outings = planOutings(rt, persona, npc, day, rng, { workingToday: workingToday || wfhDay(rt, dow), weekend, age, home, anchors: anchorsToday });
+  const outings = age < ALONE_AGE ? [] : planOutings(rt, persona, npc, day, rng, { workingToday: workingToday || wfhDay(rt, dow), weekend, age, home });
   const placed = [];
   for (const o of outings) placeOuting(placed, awake, o, rng);
 
-  // 5. home fills the rest; tile the day
+  // 7. home fills the rest; tile the day
   const all = fixed.concat(placed).sort((a, b) => a.s - b.s || a.e - b.e);
   const tiled = [];
   let cur = 0;
@@ -359,13 +598,13 @@ function buildPlan(npc, persona, day) {
   const merged = [];
   for (const b of tiled) {
     const last = merged[merged.length - 1];
-    if (last && !b.travel && !last.travel && last.kind === b.kind && last.place === b.place && !b.anchor && !last.anchor) last.e = b.e;
+    if (last && !b.travel && !last.travel && last.kind === b.kind && last.place === b.place && !b.anchor && !last.anchor && !b.escort && !last.escort) last.e = b.e;
     else merged.push(b);
   }
   return Object.freeze(toItems(merged, day));
 }
 
-/** Outings for the day, most important first. */
+/** Their own outings for the day (people ten and older), most important first. */
 function planOutings(rt, persona, npc, day, rng, ctx) {
   const { workingToday, weekend, age, home } = ctx;
   const P = rt.places || {};
@@ -378,8 +617,9 @@ function planOutings(rt, persona, npc, day, rng, ctx) {
   };
   const dow = day.dow;
   const practice = persona && persona.practice;
-  if (practice && dow === (num(practice.day, 0)) && P.church && rng.float() < 0.85) mk(P.church, 'worship', 'church', 'church', 8 * 60 + 30, 12 * 60 + 45, 'church');
-  const littleKid = age < 5, kid = age < 13, teen = age >= 13 && age < 18;
+  // church: with the household (familyOutings) when the routine has one; on their own otherwise
+  if (!rt.household && practice && dow === (num(practice.day, 0)) && P.church && rng.float() < 0.85) mk(P.church, 'worship', 'church', 'church', 8 * 60 + 30, 12 * 60 + 45, 'church');
+  const kid = age < 13, teen = age >= 13 && age < 18;
   // leisure from interests
   const opts = leisureOptions(rt, persona);
   const leisureP = weekend ? (dow === 6 ? 0.55 : 0.45) : workingToday ? 0.08 : kid ? 0.35 : 0.3;
@@ -390,9 +630,9 @@ function planOutings(rt, persona, npc, day, rng, ctx) {
       if (!game || weekend || rng.float() < 0.3) mk(pick.place, 'leisure', pick.key, pick.key, game ? 11 * 60 : weekend ? 8 * 60 : kid ? 15 * 60 : 9 * 60, game ? 21 * 60 + 30 : 19 * 60);
     }
   }
-  // errands to nearby stores (adults; children tag along sometimes)
+  // errands to nearby stores (grown-ups and teens)
   const errands = (P.errands || []).filter(e => isNum(e.x));
-  const nErr = littleKid ? (rng.float() < 0.25 ? 1 : 0) : kid ? 0 : weekend ? (rng.float() < (dow === 6 ? 0.8 : 0.4) ? 1 + (rng.float() < 0.35 ? 1 : 0) : 0)
+  const nErr = kid ? 0 : weekend ? (rng.float() < (dow === 6 ? 0.8 : 0.4) ? 1 + (rng.float() < 0.35 ? 1 : 0) : 0)
     : workingToday ? (rng.float() < 0.35 ? 1 : 0) : (rng.float() < 0.75 ? 1 + (rng.float() < 0.35 ? 1 : 0) : 0);
   const taken = new Set();
   for (let k = 0; k < nErr && errands.length; k++) {
@@ -408,13 +648,13 @@ function planOutings(rt, persona, npc, day, rng, ctx) {
   const b = (persona && persona.big5) || {};
   const ints = ((persona && persona.interests) || []).join(' | ').toLowerCase();
   const fit = /running|walking|the gym|surfing|hiking/.test(ints);
-  const exP = (littleKid ? 0 : 0.12 + 0.25 * Math.max(0, num(b.C, 0.5) - 0.5) * 2 + (fit ? 0.25 : 0)) * (age >= 75 ? 0.8 : 1);
+  const exP = (0.12 + 0.25 * Math.max(0, num(b.C, 0.5) - 0.5) * 2 + (fit ? 0.25 : 0)) * (age >= 75 ? 0.8 : 1);
   if (rng.float() < exP) {
     const gym = /the gym/.test(ints) && P.gym;
     const morning = rng.float() < 0.5;
     mk(gym ? P.gym : P.park, 'exercise', gym ? 'gym' : 'run', gym ? 'gym' : 'run', morning ? 5 * 60 + 30 : 16 * 60, morning ? 11 * 60 : 21 * 60, gym ? 'the gym' : age >= 60 ? 'a walk' : 'a run');
   }
-  // children and teens: the park or friends after school and on weekends
+  // older children and teens: the park or friends after school and on weekends
   if ((kid || teen) && P.park && rng.float() < (weekend ? 0.45 : 0.35)) mk(P.park, 'leisure', 'park', 'park', 14 * 60 + 30, 19 * 60, teen ? 'hanging out with friends' : P.park.label);
   return out;
 }
@@ -434,6 +674,9 @@ function toItems(blocks, day) {
     };
     if (b.anchor) item.anchor = b.anchor;
     if (b.leg) item.leg = b.leg;
+    if (b.escort) item.escort = Object.freeze(b.escort.slice());
+    if (b.run) item.run = b.run;
+    if (b.together) item.together = b.together;
     items.push(Object.freeze(item));
     prevEnd = end;
   }

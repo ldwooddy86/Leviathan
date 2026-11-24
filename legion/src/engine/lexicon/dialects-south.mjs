@@ -28,23 +28,23 @@ export const FAMILIES = {
     `),
     greetings: lines(`
       Hey! How's it going? How was the drive?
-      Hey, what's up? You staying cool?
+      @wx:heat Hey, what's up? You staying cool?
       Hi! Long time, how've you been?
       Hey there, how was traffic?
       Oh my gosh, hi!
       Hey, what's going on?
-      Morning! You see how gray it is?
+      @h4-11 @wx:fog Morning! You see how gray it is?
       Hey! You survived the freeway.
     `),
     farewells: lines(`
-      Okay, I gotta go beat traffic.
+      @drives Okay, I gotta go beat traffic.
       All right, drive safe on the freeway.
       Okay, let's get lunch soon, for real this time.
       Bye! Text me when you get home.
       Later! Don't take the 405.
       All right, see you on the other side of the hill.
-      Okay, I'm gonna go try to find my car.
-      Have a good one, stay cool.
+      @drives Okay, I'm gonna go try to find my car.
+      @wx:heat Have a good one, stay cool.
     `),
     fillers: lines(`
       like
@@ -75,14 +75,13 @@ export const FAMILIES = {
     `),
     weather: {
       fog: lines(`
-        June Gloom, every single day.
-        May Gray, then June Gloom, then it's August and everything's on fire.
-        The marine layer's thick this morning. Burns off by noon, maybe.
-        Gray at the beach and blazing in the Valley.
-        Sun's out inland and it's gray at the coast. Classic.
+        @m6-7 June Gloom, every single day.
+        @m5-7 May Gray, then June Gloom, then it's August and everything's on fire.
+        @h4-11 The marine layer's thick this morning. Burns off by noon, maybe.
+        @coast @m6-9 Gray at the beach, and I bet it's blazing in the Valley.
+        @coast Gray here at the coast, and I bet the sun's out inland. Classic.
       `),
       heat: lines(`
-        {temp} in the Valley. Of course.
         It's so hot the freeway's shimmering.
         Heat wave, and the power keeps flickering.
         Even the beach is packed on a day like this.
@@ -96,10 +95,10 @@ export const FAMILIES = {
         The LA River actually has water in it.
       `),
       wind: lines(`
-        Santa Anas are blowing. Everybody's nervous.
-        Santa Ana winds and red flag warnings. Here we go.
+        @offshore Santa Anas are blowing. Everybody's nervous.
+        @offshore @alert:redflag Santa Ana winds and red flag warnings. Here we go.
         Palm fronds all over the street from the wind.
-        Hot wind out of the desert. That's fire weather.
+        @offshore Hot wind out of the desert. That's fire weather.
       `),
       cold: lines(`
         It's {temp} and I'm freezing. Don't judge.
@@ -107,56 +106,56 @@ export const FAMILIES = {
         Got the space heater out. LA cold.
       `),
       smoke: lines(`
-        Smoke from the fire is coming over the hills.
-        Ash on my car this morning. That fire's close.
+        Smoke's coming over the hills from somewhere.
+        Ash on my car this morning. There must be a fire close by.
         The sun's red from the smoke. Scary.
-        Everybody's checking the evacuation maps.
+        I keep checking the evacuation maps, just in case.
       `),
       snow: lines(`
         Snow on {peak}! You can see it from the freeway.
         Snow on the mountains and palm trees in the front yard. That's LA.
       `),
       clear: lines(`
-        After the rain, the mountains look close enough to touch.
+        On a day like this, the mountains look close enough to touch.
         The smog's gone and the sky's blue. Enjoy it.
-        Sunny in January. Sorry, rest of the country.
+        @m11-3 Sunny in {month}. Sorry, rest of the country.
       `),
     },
     traffic: lines(`
       {road} was a parking lot. Like always.
       There's a SigAlert on {road}, so plan on an hour.
-      It's twelve miles and it took me an hour and ten.
-      I don't go west of the 405 after three.
-      Took surface streets the whole way to skip {road}.
-      {road} at rush hour? I'll just live in my car.
+      @drives It's twelve miles and it took me an hour and ten.
+      @drives I don't go west of the 405 after three.
+      @drives Took surface streets the whole way to skip {road}.
+      @drives {road} at rush hour? I'll just live in my car.
       Everybody in LA measures distance in minutes, not miles.
       {stretch} was backed up again.
-      The carpool lane was slower than the regular lanes, somehow.
+      @drives The carpool lane was slower than the regular lanes, somehow.
       Somebody lost a mattress on {road}. Every week, a mattress.
-      I listen to a whole podcast on {road} every morning.
+      @drives @works I listen to a whole podcast on {road} every morning.
     `),
     prideLines: lines(`
       LA's got the best food in the country, and I'll argue with anybody.
       You can surf in the morning and ski in the afternoon. Not that anybody does.
       Every neighborhood here is its own world.
-      People think LA is Hollywood. It's not. It's all of us.
+      @county:Los_Angeles People think LA is Hollywood. It's not. It's all of us.
       The sunsets here are unreal.
-      I'm an Angeleno, through and through.
+      @county:Los_Angeles I'm an Angeleno, through and through.
       Taco trucks on every corner. Can't beat it.
-      A {team} game is the only time LA agrees on anything.
-      Say what you want about LA, it's home.
+      Game day for {team} is the only time LA agrees on anything.
+      @county:Los_Angeles Say what you want about LA, it's home.
       There's nowhere else like this city.
     `),
     complaintLines: lines(`
       Rent in LA is criminal.
       Traffic is a full-time job.
-      I spend more time in my car than at home.
+      @drives I spend more time in my car than at home.
       Everything's getting more expensive and nothing's getting better.
-      You can't buy a house anywhere near where you work.
-      Parking tickets in this city are a racket.
+      @adult You can't buy a house anywhere near where you work.
+      @drives Parking tickets in this city are a racket.
       Every time it's windy now, I worry about fires.
       The Metro's great if it goes where you're going. It doesn't.
-      Insurance companies are pulling out of the hills.
+      @adult Insurance companies are pulling out of the hills.
     `),
     food: lines(`
       Taco truck tacos at midnight. That's LA.
@@ -229,15 +228,15 @@ export const FAMILIES = {
       Hi! How was the drive?
       Hey, what's up? Beach later?
       Oh hey! Good to see you!
-      Hey there! Gorgeous day, huh?
+      @wx:clear Hey there! Gorgeous day, huh?
       Hi! How's your week going?
       Hey! You survived the 405.
-      Morning! Gray at the beach again?
+      @h4-11 @wx:fog Morning! Gray at the beach again?
     `),
     farewells: lines(`
-      Okay, I gotta beat traffic on the 405.
+      @drives Okay, I gotta beat traffic on the 405.
       Bye! See you at the beach.
-      All right, have a good one, enjoy the sun.
+      @wx:clear,heat All right, have a good one, enjoy the sun.
       Okay, text me!
       Later! Don't let the toll roads bankrupt you.
       All right, see you this weekend.
@@ -265,12 +264,11 @@ export const FAMILIES = {
     `),
     weather: {
       fog: lines(`
-        June Gloom at the beach again.
-        Gray at the coast, sunny in Anaheim.
+        @m6-7 June Gloom at the beach again.
+        @coast Gray at the coast, and probably sunny in Anaheim.
         The marine layer's hanging on all day.
       `),
       heat: lines(`
-        {temp} inland and perfect at the beach. Easy call.
         Hot enough that the whole county's at the beach.
       `),
       rain: lines(`
@@ -278,48 +276,48 @@ export const FAMILIES = {
         Rain! Everybody's driving like it's a blizzard.
       `),
       wind: lines(`
-        Santa Anas are blowing through the canyons again.
-        Red flag warning in the canyons. Everybody's nervous.
+        @offshore Santa Anas are blowing through the canyons again.
+        @alert:redflag Red flag warning in the canyons. Everybody's nervous.
       `),
       cold: lines(`
-        It's {temp} and I'm wearing a jacket. OC winter.
+        @m11-3 It's {temp} and I'm wearing a jacket. OC winter.
       `),
       smoke: lines(`
-        Smoke from the fire in the canyons, and ash on the cars.
-        The air's terrible. The fire's close.
+        Smoke and ash on the cars. Must be a fire in the canyons.
+        The air's terrible. There must be a fire close by.
       `),
       snow: lines(`
         Snow on {peak} this morning!
       `),
       clear: lines(`
-        Clear enough to see Catalina from the beach.
+        @coast Clear enough to see Catalina from the beach.
         Perfect beach day. Honestly, every day is.
       `),
     },
     traffic: lines(`
       The 405 was a parking lot from Irvine to Long Beach.
       The El Toro Y at five is the worst place on earth.
-      Took the toll road. Worth every dollar.
+      @drives Took the toll road. Worth every dollar.
       The Orange Crush was crushed. Shocker.
       The 5 through Santa Ana, forget it.
       The 91 to Riverside was solid.
-      PCH on a summer weekend is all beach traffic.
+      @anytime PCH on a summer weekend is all beach traffic.
       Everybody's on the 55 at the same time.
     `),
     prideLines: lines(`
       Best beaches in California, I'll argue with anybody.
       Clean, safe and twenty minutes from the beach.
       Little Saigon has the best Vietnamese food outside Vietnam.
-      Angels game on a summer night.
-      Fireworks from the park in Anaheim every summer night.
+      @anytime Angels game on a summer night.
+      @anytime Fireworks from the park in Anaheim every summer night.
       OC is more than what you see on TV.
     `),
     complaintLines: lines(`
-      A starter home here costs a million dollars.
-      The toll roads cost a fortune.
+      @adult A starter home here costs a million dollars.
+      @drives The toll roads cost a fortune.
       Traffic on the 405 is a full-time job.
       Everything's a strip mall.
-      Insurance in the canyons is impossible now.
+      @adult Insurance in the canyons is impossible now.
     `),
     food: lines(`
       Pho in Little Saigon is the best anywhere.
@@ -349,24 +347,24 @@ export const FAMILIES = {
       swamp cooler | home | an evaporative cooler, the old IE standby
     `),
     greetings: lines(`
-      Hey, what's up? Hot enough for you?
+      @wx:heat Hey, what's up? Hot enough for you?
       Hey! How's it going? You working today?
       What's going on? How was the drive?
-      Hey, long time! Still out in {place}?
-      Morning! Already hot, huh?
+      Hey, long time! You still around here?
+      @h4-11 @wx:heat Morning! Already hot, huh?
       Hey there! You beat the traffic?
       What's up! How's the family?
       Hey! You make it back from the coast okay?
     `),
     farewells: lines(`
       All right, drive safe on the 15.
-      Okay, I gotta get on the road before the 91 locks up.
-      Later, stay cool.
-      All right, see you, don't melt.
+      @drives Okay, I gotta get on the road before the 91 locks up.
+      @wx:heat Later, stay cool.
+      @wx:heat All right, see you, don't melt.
       Okay, I'll catch you next time.
-      Later! Watch the wind on the pass.
+      @wx:wind Later! Watch the wind on the pass.
       All right, take it easy.
-      Okay, go get some shade.
+      @wx:heat Okay, go get some shade.
     `),
     fillers: lines(`
       like
@@ -403,20 +401,20 @@ export const FAMILIES = {
         The washes are running. Stay out of them.
       `),
       wind: lines(`
-        Santa Anas through Cajon Pass, the big rigs are getting blown around.
-        Santa Ana winds again. Everybody's watching for fires.
+        @offshore Santa Anas through Cajon Pass, the big rigs are getting blown around.
+        @offshore Santa Ana winds again. Everybody's watching for fires.
         Wind's so strong the palm trees are bending sideways.
       `),
       cold: lines(`
-        Cold morning, frost on the lawns.
-        The mountains got snow, so it's freezing down here.
+        @h4-11 Cold morning, frost on the lawns.
+        It's freezing down here, so the mountains must have gotten snow.
       `),
       smoke: lines(`
-        Smoke's coming over from the fire in the hills.
+        Smoke's coming over the hills. Must be a fire out there.
         Between the smog and the smoke, you can't see the mountains.
       `),
       snow: lines(`
-        Snow on the mountains! You can see it from the 10.
+        Snow on the mountains! You can see it from the freeway.
         Fresh snow on {peak}. Best view in the IE.
       `),
       clear: lines(`
@@ -428,7 +426,7 @@ export const FAMILIES = {
       The 91 was a parking lot all the way to Orange County.
       The 15 through Cajon Pass is all trucks.
       The 10 at rush hour, forget about it.
-      Two hours each way to work in LA. Every day.
+      @works Two hours each way to work in LA. Every day.
       Warehouse trucks on every road.
       The 215 and 60 interchange is a nightmare.
       Took Metrolink and read a whole book.
@@ -436,31 +434,31 @@ export const FAMILIES = {
     `),
     prideLines: lines(`
       The IE gets a bad rap, but this is home.
-      909 forever.
-      951 all day.
-      You can still buy a house here. Barely.
+      @county:San_Bernardino 909 forever.
+      @county:Riverside 951 all day.
+      @adult You can still buy a house here. Barely.
       Mountains, desert and the beach, all about an hour away.
       Real people, hard workers.
       Riverside has history. Look it up.
-      Temecula wine country is right in our backyard.
+      @county:Riverside Temecula wine country is right in our backyard.
     `),
     complaintLines: lines(`
       Warehouses everywhere you look.
       The air quality out here is terrible.
-      The commute is killing me.
+      @works The commute is killing me.
       LA and OC people act like we're the middle of nowhere.
       Summers keep getting hotter.
-      Everybody priced out of the coast moved here, and now we're getting priced out too.
+      @adult Everybody priced out of the coast moved here, and now we're getting priced out too.
     `),
     food: lines(`
-      Taco trucks after a long shift.
+      @works Taco trucks after a long shift.
       Fresh oranges from the old groves.
       Burgers from the stand on old Route 66.
       Wine tasting in Temecula on a Saturday.
       Carne asada in the backyard every weekend.
     `),
     slang: slang(`
-      the IE | 1 | 12-85 | the Inland Empire | Born and raised in the IE.
+      the IE | 1 | 12-85 | the Inland Empire | Out here in the IE, it's hot by ten.
     `),
     teams: ['the Dodgers', 'the Rams', 'the Lakers', 'the Angels', 'UC Riverside', 'the Chargers'],
   },
@@ -479,23 +477,23 @@ export const FAMILIES = {
       the 760 | identity | the desert's area code, with the 442 overlay
     `),
     greetings: lines(`
-      Hey! Staying cool?
-      Morning! Get your walk in before the heat?
+      @wx:heat Hey! Staying cool?
+      @h4-11 @m4-10 Morning! Get your walk in before the heat?
       Hey there, how's it going?
-      Well, hey! Haven't seen you since spring.
-      Hey! You back for the season?
-      Morning! Gonna be a scorcher.
-      Hi! How's the heat treating you?
+      @m9-12 Well, hey! Haven't seen you since spring.
+      @m10-12 Hey! You back for the season?
+      @h4-11 @wx:heat Morning! Gonna be a scorcher.
+      @wx:heat Hi! How's the heat treating you?
       Hey, good to see you out and about.
     `),
     farewells: lines(`
       Stay hydrated out there.
-      All right, stay cool.
-      Okay, drive safe, watch for the wind.
-      See you next season.
+      @wx:heat All right, stay cool.
+      @wx:wind Okay, drive safe, watch for the wind.
+      @m3-5 See you next season.
       Take care, keep the water bottle full.
-      All right, see you when it cools off.
-      Okay, go hide from the sun.
+      @wx:heat All right, see you when it cools off.
+      @wx:heat Okay, go hide from the sun.
       Take it easy out there.
     `),
     fillers: lines(`
@@ -523,14 +521,14 @@ export const FAMILIES = {
       `),
       heat: lines(`
         {temp}, and it's a dry heat. Still an oven.
-        You do everything before nine in the morning in summer.
-        The steering wheel's untouchable. Oven mitts in the car.
+        @anytime You do everything before nine in the morning in summer.
+        @drives The steering wheel's untouchable. Oven mitts in the car.
         The swamp cooler can't keep up with this.
-        Summer here is like winter everywhere else. You stay inside.
+        @anytime Summer here is like winter everywhere else. You stay inside.
       `),
       rain: lines(`
-        Monsoon storm coming, the washes will run.
-        Flash flood warning. Stay out of the washes.
+        @m7-9 Monsoon storm coming, the washes will run.
+        @alert:flashflood Flash flood warning. Stay out of the washes.
         It rained and the whole desert smells like creosote.
         The rain came sideways and was over in ten minutes.
       `),
@@ -540,60 +538,60 @@ export const FAMILIES = {
         The wind never stops out here.
       `),
       cold: lines(`
-        Cold desert night. You forget how cold it gets.
-        Frost in the desert, and the snowbirds are complaining.
+        @h17-6 Cold desert night. You forget how cold it gets.
+        @m11-3 Frost in the desert, and the snowbirds are complaining.
       `),
       smoke: lines(`
-        Smoke from the fires in the mountains blew down into the valley.
+        Smoke blew down into the valley. Must be a fire up in the mountains.
       `),
       snow: lines(`
         Snow on {peak}! Palm trees and snow in one view.
         Snow on the mountains and shorts weather down here.
       `),
       clear: lines(`
-        Winter in the desert is perfect. That's why everybody comes.
-        Clear night, a million stars.
+        @m11-3 Winter in the desert is perfect. That's why everybody comes.
+        @h18-5 Clear night, a million stars.
         Not a cloud for a hundred miles.
       `),
     },
     traffic: lines(`
       {road} through the desert is long and straight, and somebody's always flying.
-      The wind closed {road} again. Sand everywhere.
-      Snowbird season. The roads are full.
+      @wx:wind The wind closed {road} again. Sand everywhere.
+      @m11-4 Snowbird season. The roads are full.
       Nothing out here but the road and the heat.
-      Watch for blowing sand on {road}.
+      @wx:wind Watch for blowing sand on {road}.
       It's an hour to anywhere, and nobody minds.
-      {stretch} was windy enough to push the car around.
+      @wx:wind @drives {stretch} was windy enough to push the car around.
       Big rigs on {road} all night long.
-      Somebody broke down on {road} in the heat. Always carry water.
+      @wx:heat Somebody broke down on {road} in the heat. Always carry water.
     `),
     prideLines: lines(`
       The desert's beautiful if you know how to look.
-      Winters here are the best in the country.
+      @anytime Winters here are the best in the country.
       The stars out here are unreal.
       Quiet. Space. Nobody on top of you.
       People think the desert's empty. It's full of life.
-      Wildflowers after a wet winter, unbelievable.
-      {place} is small, but it's ours.
+      @anytime Wildflowers after a wet winter, unbelievable.
+      {place} isn't fancy, but it's ours.
       Desert people are tough and kind.
     `),
     complaintLines: lines(`
-      Summers are brutal and the power bill is worse.
+      @adult @anytime Summers are brutal and the power bill is worse.
       Everything's an hour's drive away.
       Water's going to be the fight out here.
       The wind and the dust never quit.
-      Nobody comes here in July, and I understand why.
-      The nearest hospital is a long way off.
+      @anytime Nobody comes here in July, and I understand why.
+      The good specialists are all a long drive away.
       Jobs out here are few and far between.
     `),
     food: lines(`
       A date shake on a hot day, the best thing in the desert.
-      Tamales at the market in December.
+      @anytime Tamales at the market in December.
       Burgers at the old diner on the highway.
       Fresh dates from the grove.
       Fresh grapefruit from a neighbor's tree.
       Mexican food from the little place by the highway.
-      Ice-cold watermelon on the porch in July.
+      @anytime Ice-cold watermelon on the porch in July.
     `),
     teams: ['the Dodgers', 'the Lakers', 'the Rams', 'the Padres'],
   },
@@ -618,24 +616,24 @@ export const FAMILIES = {
       Amtrak | transit | the Pacific Surfliner up the coast to LA
     `),
     greetings: lines(`
-      Hey! Beautiful day, huh?
+      @wx:clear Hey! Beautiful day, huh?
       Hey, how's it going? Catch any waves?
-      Morning! Gray again, huh?
+      @h4-11 @wx:fog Morning! Gray again, huh?
       Hey there! How's everything?
       Oh hey! You heading to the beach?
       Hi! How's your week been?
       Hey! Long time, what's new?
-      Morning! Another perfect one.
+      @h4-11 @wx:clear Morning! Another perfect one.
     `),
     farewells: lines(`
-      Okay, enjoy the sunshine.
+      @wx:clear,heat Okay, enjoy the sunshine.
       All right, see you at the beach.
       Later! Have a good one.
       Okay, take it easy. It's San Diego.
       All right, drive safe on the 5.
       Okay, see you this weekend.
       Bye! Go Padres.
-      Take care, enjoy the sunset.
+      @h14-19 Take care, enjoy the sunset.
     `),
     fillers: lines(`
       like
@@ -658,12 +656,11 @@ export const FAMILIES = {
     `),
     weather: {
       fog: lines(`
-        May Gray, June Gloom, and then summer finally shows up in August.
-        Gray at the beach, sunny ten minutes inland.
+        @m5-7 May Gray, June Gloom, and then summer finally shows up in August.
+        @coast Gray at the beach, and I bet it's sunny ten minutes inland.
         The marine layer's thick this morning.
       `),
       heat: lines(`
-        {temp} in East County, perfect at the beach.
         It's actually hot. San Diego doesn't do hot.
       `),
       rain: lines(`
@@ -671,22 +668,22 @@ export const FAMILIES = {
         Rain in San Diego is an event.
       `),
       wind: lines(`
-        Santa Anas are blowing. Everything's dry.
-        Hot wind from the east. Red flag warning.
+        @offshore Santa Anas are blowing. Everything's dry.
+        @offshore @alert:redflag Hot wind from the east. Red flag warning.
       `),
       cold: lines(`
         It's {temp} and I'm freezing. I've lived here too long.
-        San Diego winter means a hoodie in the morning.
+        @anytime San Diego winter means a hoodie in the morning.
       `),
       smoke: lines(`
-        Smoke from the backcountry fire is blowing west.
+        Smoke's blowing west. Must be a fire in the backcountry.
       `),
       snow: lines(`
         Snow on {peak}! Everybody's driving out to Julian.
       `),
       clear: lines(`
         Sunny and perfect, like always.
-        You can see the islands off the coast today.
+        @coast You can see the islands off the coast today.
         Another perfect day in paradise.
       `),
     },
@@ -697,7 +694,7 @@ export const FAMILIES = {
       Took the trolley. Way easier.
       The merge where the 5 and the 805 split, the worst.
       Border traffic coming back was long again.
-      Took the Coaster up to work and read the whole way.
+      @works Took the Coaster up to work and read the whole way.
       The 8 east was stopped at the 805.
     `),
     prideLines: lines(`
@@ -709,7 +706,7 @@ export const FAMILIES = {
       Fish tacos were made for a place like this.
     `),
     complaintLines: lines(`
-      The sunshine tax is real.
+      @adult The sunshine tax is real.
       Rent near the beach is impossible.
       Military pay doesn't go far here.
       Everything good costs a fortune.
@@ -740,21 +737,21 @@ export const KEYS = {
     `),
     weather: {
       clear: lines(`
-        Clear day, you can see Catalina.
+        @coast Clear day, you can see Catalina.
       `),
       fog: lines(`
-        Gray at the beach until two, then gorgeous.
-        Marine layer in Santa Monica, scorching in the Valley.
+        @coast Gray at the beach until two, then gorgeous.
+        @coast @m6-9 Marine layer here, and I bet it's scorching in the Valley.
       `),
     },
     traffic: lines(`
-      I don't go east of the 405 after three.
+      @drives I don't go east of the 405 after three.
       PCH to Malibu on a Sunday, forget it.
       The Sepulveda Pass at five is where dreams go to die.
-      Took the train to Santa Monica. Honestly not bad.
+      Took the train to the beach. Honestly not bad.
     `),
     prideLines: lines(`
-      Ocean air every day. I'm spoiled.
+      @coast Ocean air every day. I'm spoiled.
       Sunset off the pier never gets old.
       Biking the beach path down to the South Bay. That's my Sunday.
       Venice is weird and wonderful.
@@ -762,7 +759,7 @@ export const KEYS = {
     complaintLines: lines(`
       A one-bedroom near the beach costs more than a house almost anywhere.
       Everything's a twenty-minute drive that takes forty.
-      Parking at the beach costs as much as lunch.
+      @drives Parking at the beach costs as much as lunch.
       The fires in the canyons scare me more every year.
     `),
     food: lines(`
@@ -772,7 +769,7 @@ export const KEYS = {
       Acai bowl after a surf.
     `),
     slang: slang(`
-      the 310 | 1 | 13-80 | the Westside and South Bay | Born and raised in the 310.
+      the 310 | 1 | 13-80 | the Westside and South Bay | That's just how it is in the 310.
     `),
   },
   'la-central': {
@@ -788,7 +785,7 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} downtown, and the concrete's holding every bit of it.
+        {temp} out here, and the concrete's holding every bit of it.
       `),
     },
     traffic: lines(`
@@ -806,7 +803,7 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       Parking in Hollywood is a scam.
-      Rent in Echo Park doubled since I moved in.
+      @rents My rent doubled since I moved in.
       Tourists stop dead in the middle of the sidewalk on the Walk of Fame.
       Downtown's always under construction.
     `),
@@ -831,7 +828,7 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} east of the river. The ocean breeze never makes it this far.
+        {temp} out here. The ocean breeze never makes it this far.
       `),
     },
     traffic: lines(`
@@ -842,7 +839,7 @@ export const KEYS = {
     `),
     prideLines: lines(`
       The Eastside is the heart of LA.
-      Boyle Heights raised me.
+      @native {place} raised me, and I never forget it.
       Cruising down Whittier Boulevard on a Sunday. The cars are art.
       Everybody knows everybody's family here.
       Highland Park still has that neighborhood feel.
@@ -874,6 +871,7 @@ export const KEYS = {
     weather: {
       heat: lines(`
         {temp} in the Valley. Always hotter than the city.
+        {temp} in the Valley. Of course.
         Valley heat is no joke. The pool is the only answer.
       `),
     },
@@ -881,7 +879,7 @@ export const KEYS = {
       Getting over the hill takes the whole day.
       The 405 through the pass at five, I'd rather walk.
       The 101 through the Valley is solid red.
-      Took Coldwater to skip the pass, and so did everybody else.
+      @drives Took Coldwater to skip the pass, and so did everybody else.
     `),
     prideLines: lines(`
       The Valley has more real people than the rest of LA.
@@ -891,7 +889,7 @@ export const KEYS = {
       The studios are in Burbank. This is where the shows really get made.
     `),
     complaintLines: lines(`
-      The Valley gets so hot in summer.
+      @anytime The Valley gets so hot in summer.
       Everybody from the city looks down on the Valley.
       Getting anywhere from here takes an hour.
     `),
@@ -902,7 +900,7 @@ export const KEYS = {
       Pupusas in Van Nuys.
     `),
     slang: slang(`
-      the 818 | 1 | 13-80 | the San Fernando Valley | Valley kid, 818 forever.
+      the 818 | 1 | 13-80 | the San Fernando Valley | 818 forever.
     `),
   },
   'santa-clarita': {
@@ -916,25 +914,25 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in Santa Clarita, hotter than the Valley even.
+        {temp} in the SCV, hotter than the Valley even.
       `),
       wind: lines(`
-        Santa Anas through the canyon. Everybody's watching the hills.
+        @offshore Santa Anas through the canyon. Everybody's watching the hills.
       `),
     },
     traffic: lines(`
-      The 5 through the Newhall Pass is how I spend every morning.
+      @drives @works The 5 through the Newhall Pass is how I spend every morning.
       Everybody commutes into the Valley at the same time.
       The 14 backs up all the way from the Antelope Valley.
     `),
     prideLines: lines(`
       Safe, quiet, good schools, close enough to LA.
-      The paseos in Valencia. My kids walk everywhere.
-      You can hear the roller coasters screaming on summer nights.
+      @parent The paseos are the best part. My kids walk everywhere.
+      @anytime You can hear the roller coasters screaming on summer nights.
       Real hills, real trails.
     `),
     complaintLines: lines(`
-      Fire season out here is terrifying.
+      @anytime Fire season out here is terrifying.
       The commute into LA is brutal.
       Every hill is turning into houses.
       Nothing to do at night.
@@ -971,7 +969,7 @@ export const KEYS = {
       Leimert Park on a Sunday: the drums, the art, everybody's out.
       South LA built a lot of what LA is.
       Inglewood is the center of the sports world now.
-      My family's been here for generations.
+      @rooted My family's been here for generations.
       Everybody knows everybody on my block.
     `),
     complaintLines: lines(`
@@ -999,13 +997,13 @@ export const KEYS = {
     `),
     weather: {
       fog: lines(`
-        June Gloom in the beach cities, the whole month.
+        @m6 June Gloom in the beach cities, the whole month.
         Fog's sitting on PV this morning.
       `),
     },
     traffic: lines(`
       The 405 through the South Bay at five is a crawl.
-      PCH through the beach cities on a summer weekend, no thanks.
+      @anytime PCH through the beach cities on a summer weekend, no thanks.
       The 110 to the port is all trucks.
       The bridge to Terminal Island was backed up.
     `),
@@ -1019,7 +1017,7 @@ export const KEYS = {
       Beach city rent is out of control.
       The refinery smell when the wind's wrong.
       Trucks from the port everywhere.
-      Parking near the pier in summer, forget it.
+      @anytime Parking near the pier in summer, forget it.
     `),
     food: lines(`
       Japanese curry and ramen in Torrance.
@@ -1041,7 +1039,7 @@ export const KEYS = {
     `),
     weather: {
       wind: lines(`
-        Breezy by the water, hot inland.
+        Breezy by the water, and I bet it's hot inland.
       `),
       clear: lines(`
         Clear day, you can see Catalina from the shore.
@@ -1054,10 +1052,10 @@ export const KEYS = {
       Second Street on a Saturday, no parking anywhere.
     `),
     prideLines: lines(`
-      The LBC has its own thing going. Not LA, not OC.
+      The 562 has its own thing going. Not LA, not OC.
       Long Beach has a little of everybody.
       Biking the beach path along the shore.
-      Cambodia Town has some of the best food in the city.
+      Cambodia Town has some of the best food around.
     `),
     complaintLines: lines(`
       The air near the port is terrible.
@@ -1089,33 +1087,33 @@ export const KEYS = {
         No ocean breeze out here, just heat.
       `),
       wind: lines(`
-        Santa Anas coming down the canyons. Everybody's watching the foothills.
+        @offshore Santa Anas coming down the canyons. Everybody's watching the foothills.
       `),
     },
     traffic: lines(`
       The 10 east at five is solid from downtown to West Covina.
       The 210 was backed up all the way to Pasadena.
       Kellogg Hill was a mess again.
-      Took the train to Pasadena. Not bad.
+      Took the train for once. Not bad.
     `),
     prideLines: lines(`
-      Best Chinese food in America, right here in the 626.
+      Best Chinese food in America, right here in the SGV.
       Boba is a lifestyle here.
       The San Gabriels right there every morning.
-      Pasadena on New Year's morning, the whole world's watching.
+      @anytime Pasadena on New Year's morning, the whole world's watching.
       Old Town Pasadena on a Friday night.
     `),
     complaintLines: lines(`
       The smog sits right up against the mountains.
       Everybody drives here. Nobody walks.
-      Housing in the nice school districts costs a fortune.
-      Fire season in the foothills keeps everybody up at night.
+      @adult Housing in the nice school districts costs a fortune.
+      @anytime Fire season in the foothills keeps everybody up at night.
     `),
     food: lines(`
       Soup dumplings in San Gabriel, then boba.
       Dim sum in Monterey Park on a Sunday.
       Hot pot for every celebration.
-      Night market food all summer.
+      @anytime Night market food all summer.
       Taiwanese breakfast: warm soy milk and fried dough.
     `),
     slang: slang(`
@@ -1134,11 +1132,11 @@ export const KEYS = {
     `),
     weather: {
       fog: lines(`
-        Fog over the strawberry fields this morning.
-        Marine layer at the harbor, sunny in Ojai.
+        @coast Fog over the strawberry fields this morning.
+        @coast Marine layer at the harbor, and I bet it's sunny in Ojai.
       `),
       wind: lines(`
-        Santa Anas through the canyons. The whole county's on edge.
+        @offshore Santa Anas through the canyons. The whole county's on edge.
       `),
     },
     traffic: lines(`
@@ -1155,7 +1153,7 @@ export const KEYS = {
       Oxnard strawberries are the best.
     `),
     complaintLines: lines(`
-      Fire season in the canyons terrifies everybody.
+      @anytime Fire season in the canyons terrifies everybody.
       Housing's gotten as expensive as LA.
       The 101 is the only way anywhere.
     `),
@@ -1180,13 +1178,13 @@ export const KEYS = {
     weather: {
       fog: lines(`
         Gray at the pier until noon.
-        June Gloom means I'm surfing alone.
+        @m6-7 June Gloom means I'm surfing alone.
       `),
     },
     traffic: lines(`
       PCH through Newport on a Saturday, total gridlock.
-      Laguna Canyon Road on a summer weekend, bring snacks.
-      Parking near the pier is a nightmare all summer.
+      @anytime Laguna Canyon Road on a summer weekend, bring snacks.
+      @anytime Parking near the pier is a nightmare all summer.
     `),
     prideLines: lines(`
       Surf City, for a reason.
@@ -1195,7 +1193,7 @@ export const KEYS = {
       Living by the beach, I'll never take it for granted.
     `),
     complaintLines: lines(`
-      Tourists all summer, every summer.
+      @anytime Tourists all summer, every summer.
       Beach parking costs more than lunch.
       Rent at the beach is out of reach.
     `),
@@ -1226,17 +1224,18 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in Anaheim, and the beach is right there.
+        {temp} in {place}, and everybody's headed for the beach.
+        {temp} inland, and I bet it's perfect at the beach.
       `),
     },
     traffic: lines(`
       The 5 through Anaheim is always under construction.
-      Game day at the stadium, the 57 is stopped.
+      On game days at the stadium, the 57 is stopped.
       Everybody in Irvine leaves at the same time.
       The 22 to the 405, worst merge in the county.
     `),
     prideLines: lines(`
-      Fireworks from the park every summer night, right from my backyard.
+      @anytime Fireworks from the park on summer nights. You can see them for miles.
       Little Saigon has the best food in the county.
       Irvine is safe and clean, and the schools are great.
       Old Towne Orange on a Saturday.
@@ -1276,11 +1275,11 @@ export const KEYS = {
     `),
     complaintLines: lines(`
       Every orange grove turned into a warehouse.
-      The 91 toll lanes cost a fortune.
+      @drives The 91 toll lanes cost a fortune.
     `),
     food: lines(`
       Mexican food in San Bernardino, the real stuff.
-      Breakfast burritos from the truck by the warehouse.
+      @works Breakfast burritos from the truck by the warehouse.
     `),
   },
 
@@ -1297,29 +1296,29 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in Palm Springs. The misters are on everywhere.
-        Summer in the desert, and the town empties out.
+        {temp} in {place}. The misters are on everywhere.
+        @m6-9 Summer in the desert, and the town empties out.
       `),
       wind: lines(`
         The wind through the pass is howling. The windmills are spinning.
       `),
     },
     traffic: lines(`
-      Season traffic on Highway 111, every light.
+      @m11-4 Season traffic on Highway 111, every light.
       The 10 through the windmills is windy. Hold the wheel.
-      Festival traffic in Indio. Avoid it.
+      @m4 Festival traffic in Indio. Avoid it.
     `),
     prideLines: lines(`
       Sunshine almost every day of the year.
       The mountains turn pink at sunset.
       Palm Springs has that midcentury style nobody else has.
-      Golf in January in shorts.
+      @anytime Golf in January in shorts.
       Date groves and mountains. It's like nowhere else.
     `),
     complaintLines: lines(`
-      Summer power bills are unreal.
+      @adult @anytime Summer power bills are unreal.
       The Salton Sea smell when the wind's wrong.
-      Everything shuts down in summer.
+      @anytime Everything shuts down in summer.
       The workers can't afford to live anywhere near the resorts.
     `),
     food: lines(`
@@ -1342,7 +1341,7 @@ export const KEYS = {
     weather: {
       wind: lines(`
         The wind's blowing so hard the trash cans are in the next county.
-        Wind and snow on the Pass. They'll close it.
+        @m11-3 Wind like this, they might close the Pass.
       `),
       cold: lines(`
         Freezing at night up here. People forget it's high desert.
@@ -1355,7 +1354,7 @@ export const KEYS = {
       When the Pass closes, the whole High Desert is stuck.
       Sunday on the 15 is everybody driving home from Vegas.
       Trucks on the 395 all day.
-      Commuting down the hill every day, two hours easy.
+      @works Commuting down the hill every day, two hours easy.
     `),
     prideLines: lines(`
       You can still own a house with a yard up here.
@@ -1364,7 +1363,7 @@ export const KEYS = {
       The stars at night, unbelievable.
     `),
     complaintLines: lines(`
-      The commute down the hill is killing me.
+      @works The commute down the hill is killing me.
       Nothing's open late.
       The wind never, ever stops.
       The jobs are all down the hill.
@@ -1390,7 +1389,7 @@ export const KEYS = {
         Wind's blowing sand across the 14.
       `),
       clear: lines(`
-        The poppies are blooming on the hills. Everything's orange.
+        @m3-4 The poppies are blooming on the hills. Everything's orange.
       `),
     },
     traffic: lines(`
@@ -1399,23 +1398,23 @@ export const KEYS = {
       The 138 is two lanes and people pass like crazy.
     `),
     prideLines: lines(`
-      Poppy season in the AV is the best show in the state.
+      @anytime Poppy season in the AV is the best show in the state.
       Aerospace built this valley, and we still build the planes.
       Big skies, open space, real sunsets.
       The AV is still affordable, and that matters.
     `),
     complaintLines: lines(`
-      Commuting to LA eats my whole life.
+      @works Commuting to LA eats my whole life.
       The wind and the dust, every day.
       There's nothing to do here but drive somewhere else.
     `),
     food: lines(`
       Taco trucks on the boulevard.
-      Fruit stands in Littlerock in the summer.
+      @anytime Fruit stands in Littlerock in the summer.
       Burgers at the old stand in Lancaster.
     `),
     slang: slang(`
-      the AV | 1 | 12-80 | the Antelope Valley | Born and raised in the AV.
+      the AV | 1 | 12-80 | the Antelope Valley | Out here in the AV, the wind never stops.
     `),
   },
   'low-desert': {
@@ -1428,23 +1427,23 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} by the river, so everybody's in it.
+        {temp}, so anybody near the river is in it.
         Some days this is the hottest place in the country, and we live here on purpose.
       `),
     },
     traffic: lines(`
       Everybody between Phoenix and LA stops here for gas.
       The 40 is all trucks.
-      Snowbird RVs on every road in winter.
+      @anytime Snowbird RVs on every road in winter.
     `),
     prideLines: lines(`
-      The river in summer. Nothing better.
-      Wildflowers in Borrego after a wet winter, unbelievable.
+      @anytime The river in summer. Nothing better.
+      @anytime Wildflowers in Borrego after a wet winter, unbelievable.
       Small towns where everybody waves.
     `),
     complaintLines: lines(`
       The nearest big store is hours away.
-      The heat in summer is dangerous.
+      @anytime The heat in summer is dangerous.
       Nobody comes out here except to pass through.
     `),
     food: lines(`
@@ -1464,7 +1463,7 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in the valley. Just a summer day.
+        @m5-9 {temp} in the valley. Just a summer day.
         The fields need water, and so do we.
       `),
       wind: lines(`
@@ -1474,19 +1473,19 @@ export const KEYS = {
     traffic: lines(`
       The line at the border crossing was long again.
       The 8 over the mountains to San Diego, that's a climb.
-      Farm trucks and tractors on every road at harvest.
+      @anytime Farm trucks and tractors on every road at harvest.
       Carrot trucks on the 86.
     `),
     prideLines: lines(`
-      We grow the winter vegetables for the whole country.
+      @anytime We grow the winter vegetables for the whole country.
       Calexico and Mexicali. Two cities, one family.
       Small-town valley. Everybody knows your family.
       Sunrise over the fields, the mountains purple.
     `),
     complaintLines: lines(`
-      The heat in summer is deadly.
+      @anytime The heat in summer is deadly.
       The air is bad from the dust and the dry lakebed.
-      The jobs are seasonal and the pay is low.
+      @anytime The jobs are seasonal and the pay is low.
       San Diego forgets we're part of the same region.
     `),
     food: lines(`
@@ -1511,18 +1510,18 @@ export const KEYS = {
     `),
     traffic: lines(`
       PB on a Saturday, nowhere to park.
-      The Coaster's packed with surfboards in summer.
+      @anytime The Coaster's packed with surfboards in summer.
       The 5 through Del Mar on race day, avoid it.
     `),
     prideLines: lines(`
-      Surfing before work. That's the life.
+      @works Surfing before work. That's the life.
       OB is the last real beach town.
       Sunset at the cliffs, every week.
       Encinitas is the best surf town in the county.
     `),
     complaintLines: lines(`
       Short-term rentals took over the beach neighborhoods.
-      Parking at the beach in summer, forget it.
+      @anytime Parking at the beach in summer, forget it.
       Tourists everywhere, all year.
     `),
     food: lines(`
@@ -1551,7 +1550,7 @@ export const KEYS = {
     `),
     weather: {
       heat: lines(`
-        {temp} in East County. The beach people have no idea.
+        {temp} out here. The beach people have no idea.
       `),
     },
     traffic: lines(`
@@ -1563,11 +1562,11 @@ export const KEYS = {
       East County is the real San Diego.
       More house for the money than at the beach.
       Backcountry ranches, horses, open space.
-      Julian in the fall for apple pie.
+      @anytime Julian in the fall for apple pie.
     `),
     complaintLines: lines(`
       It's so much hotter out here than at the coast.
-      Wildfire season out here is no joke.
+      @anytime Wildfire season out here is no joke.
       The commute to the coast eats your day.
     `),
     food: lines(`

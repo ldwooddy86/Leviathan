@@ -280,6 +280,7 @@ export function bboxOf(pts) {
 
 // ---------------------------------------------------------------- land and water
 
+/** Ground kinds of the land and water grid: the ocean, California land, a bay or lake, land outside California. */
 export const GROUND = Object.freeze({ OCEAN: 0, LAND: 1, LAKE: 2, FOREIGN: 3 });
 
 /**

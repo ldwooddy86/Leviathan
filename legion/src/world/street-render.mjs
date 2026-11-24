@@ -17,6 +17,7 @@ import { drawRoads, drawLots, drawAreas, drawPools, drawShadow, drawRoof, drawTr
 const TILE = 512;
 const LEVELS = [0.25, 0.5, 1, 2, 4, 8, 16];
 
+/** An offscreen canvas (OffscreenCanvas where available, else a detached canvas element). */
 function makeCanvas(w, h) {
   if (typeof OffscreenCanvas === 'function') return new OffscreenCanvas(w, h);
   const c = document.createElement('canvas'); c.width = w; c.height = h; return c;
@@ -114,8 +115,11 @@ export class StreetRenderer {
     // shadows of buildings, then roofs, then trees above
     const sun = this.sun || { az: Math.PI, el: 45, strength: 0.6, dx: 0.3, dy: 0.5 };
     if (sun.strength > 0.03) {
+      // shadows fade under clouds: their darkness follows the strength of the direct sun
+      g.save(); g.globalAlpha = clamp(sun.strength, 0, 1);
       g.fillStyle = P.shadow;
       for (const b of bs) { const h = heightOf(b); const L = Math.min(h * 3.2, h / Math.tan(Math.max(6, sun.el) * Math.PI / 180)); drawShadow(g, b.ring, sun.dx * L, sun.dy * L); if (b.wing && b.wing.ring) drawShadow(g, b.wing.ring, sun.dx * L, sun.dy * L); }
+      g.restore();
     }
     for (const b of bs) drawRoof(g, b, P, level, sun);
     const treeIdx = [...q(this.idx.trees)].sort((a, b) => a - b);
@@ -227,7 +231,8 @@ export class StreetRenderer {
     // the sun for shadows and roof shading, bucketed so tiles are not redrawn every minute
     const L = env.light;
     const el = L.elevation, az = L.azimuth * Math.PI / 180;
-    const strength = clamp(el / 20, 0, 1) * (1 - 0.7 * (env.fx ? env.fx.cloud : 0));
+    // direct sunlight: none under an overcast or rainy sky, partial through broken clouds
+    const strength = clamp(el / 20, 0, 1) * Math.pow(1 - clamp(env.fx ? env.fx.cloud : 0, 0, 1), 1.5);
     const azB = Math.round(L.azimuth / 20) * 20 * Math.PI / 180, elB = el < 0 ? -1 : Math.round(Math.min(el, 60) / 10) * 10;
     this.sun = { az: azB, el: Math.max(5, elB), strength: elB < 0 ? 0 : Math.round(strength * 4) / 4, dx: -Math.sin(azB), dy: Math.cos(azB) };
     this.sunKey = elB < 0 ? 'night' : `${Math.round(azB * 100)}:${elB}:${this.sun.strength}`;
@@ -328,15 +333,15 @@ export class StreetRenderer {
     // people: dots far out, figures close in
     if (s < 2.6) {
       g.setTransform(s, 0, 0, s, cam.W / 2 - cam.x * s, cam.H / 2 - cam.y * s);
-      const r = Math.max(0.5, 1.9 / s);
+      const r = Math.max(0.55, 2.7 / s);
       const byColor = new Map();
       for (const a of people) { const k = a.look.shirt; let arr = byColor.get(k); if (!arr) byColor.set(k, arr = []); arr.push(a); }
       for (const [col, arr] of byColor) { g.fillStyle = col; g.beginPath(); for (const a of arr) { g.moveTo(a.x + r, a.y); g.arc(a.x, a.y, r, 0, Math.PI * 2); } g.fill(); }
       g.strokeStyle = 'rgba(20,20,20,0.55)'; g.lineWidth = Math.max(0.12, 0.6 / s); g.beginPath(); for (const a of people) { g.moveTo(a.x + r, a.y); g.arc(a.x, a.y, r, 0, Math.PI * 2); } g.stroke();
       return;
     }
-    // figures are drawn larger than life when zoomed out a little, so people read as people
-    const boost = clamp(9 / s, 1.15, 2.2);
+    // figures are drawn larger than life (about nine pixels across at most zooms) so people read as people
+    const boost = clamp(18 / s, 1.3, 3.5);
     for (const a of people) {
       const ang = Math.atan2(a.hy, a.hx), c = Math.cos(ang), sn = Math.sin(ang);
       const k = a.look.scale * boost;
@@ -401,11 +406,14 @@ export class StreetRenderer {
 
   _clouds(g, cam, fx, nowMs, day) {
     if (!this.cloudCanvas) {
+      // a tileable texture: every blob is also drawn wrapped around the edges
       const c = makeCanvas(256, 256), cg = c.getContext('2d');
       for (let k = 0; k < 14; k++) {
         const x = u01(hash2(this.cloudSeed, k)) * 256, y = u01(hash2(this.cloudSeed, k + 50)) * 256, r = 30 + u01(hash2(this.cloudSeed, k + 90)) * 60;
-        const grd = cg.createRadialGradient(x, y, 0, x, y, r); grd.addColorStop(0, 'rgba(0,0,0,0.5)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
-        cg.fillStyle = grd; cg.fillRect(0, 0, 256, 256);
+        for (const ox of [-256, 0, 256]) for (const oy of [-256, 0, 256]) {
+          const grd = cg.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r); grd.addColorStop(0, 'rgba(0,0,0,0.5)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+          cg.fillStyle = grd; cg.beginPath(); cg.arc(x + ox, y + oy, r, 0, Math.PI * 2); cg.fill();
+        }
       }
       this.cloudCanvas = c;
     }
@@ -510,7 +518,9 @@ export class StreetRenderer {
 
   _drawBubbles(g, sim, cam, s, nowMs) {
     const dpr = cam.dpr;
-    for (const b of sim.bubbles) {
+    const placed = [];          // bubbles already drawn this frame: later ones move up instead of covering them
+    const order = sim.bubbles.slice().sort((p, q) => (p.until - q.until));
+    for (const b of order) {
       const a = b.agent;
       if (!a.bubble || a.bubble.until < nowMs) continue;
       const px = (a.x - cam.x) * s + cam.W / 2, py = (a.y - cam.y) * s + cam.H / 2;
@@ -526,7 +536,14 @@ export class StreetRenderer {
       g.font = `italic ${Math.round(11 * dpr)}px system-ui, sans-serif`; for (const l of glossLines) w = Math.max(w, g.measureText(l).width);
       const lh = fs * 1.25, pad = 7 * dpr;
       const bw = w + 2 * pad, bh = (lines.length + glossLines.length) * lh + 2 * pad;
-      const bx = px - bw / 2, by = py - bh - 14 * dpr - (a.kind === 'walk' ? 4 : 10) * Math.min(s, 6) * 0.15;
+      const bx = px - bw / 2;
+      let by = py - bh - 14 * dpr - (a.kind === 'walk' ? 4 : 10) * Math.min(s, 6) * 0.15;
+      for (let guard = 0; guard < 6; guard++) {
+        const hit = placed.find(r => bx < r[0] + r[2] && bx + bw > r[0] && by < r[1] + r[3] + 4 * dpr && by + bh > r[1] - 4 * dpr);
+        if (!hit) break;
+        by = hit[1] - bh - 6 * dpr;
+      }
+      placed.push([bx, by, bw, bh]);
       g.globalAlpha = fade;
       g.fillStyle = 'rgba(0,0,0,0.18)'; roundRect(g, bx + 2 * dpr, by + 3 * dpr, bw, bh, 9 * dpr); g.fill();
       g.fillStyle = this.bubbleBg || '#fffdf8'; roundRect(g, bx, by, bw, bh, 9 * dpr); g.fill();

@@ -149,10 +149,15 @@ function sanDiego(c) {
   return c.coast <= 7.5 ? ['sd-coast', 'within 7.5 km of the ocean'] : ['sd-inland', 'inland San Diego County'];
 }
 
+// The Tehachapi Mountains (Tehachapi, Bear Valley Springs, Keene, Caliente) sit in the Sierra Nevada province
+// above about 1,000 m: mountain towns with snow on 58, not the valley floor's tule fog and triple digits.
+const TEHACHAPI_ELEV_M = 900;
+
 function kern(c) {
   if (c.province === 'Mojave Desert' || c.province === 'Basin and Range') return ['high-desert', 'eastern Kern desert'];
   if (c.province === 'Sierra Nevada' && c.lat > 35.5) return ['sierra-foothills', 'Kern River Valley and the southern Sierra'];
-  return ['kern', 'Kern County'];
+  if (c.province === 'Sierra Nevada' && c.elev >= TEHACHAPI_ELEV_M) return ['sierra-foothills', 'Tehachapi Mountains'];
+  return ['kern', 'Kern County valley floor'];
 }
 
 function southernSanJoaquin(c) {

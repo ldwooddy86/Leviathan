@@ -22,7 +22,8 @@ export const SLOTS = Object.freeze({
   temp: 'a temperature in degrees Fahrenheit, digits only: "104"',
   fire: 'a wildfire from the pack as people name it (fireLabel): "the Camp Fire", "the August Complex"',
   year: 'a four-digit year from the pack, paired with the fire or event in the same line: "2018"',
-  team: 'a local sports team the speaker follows: "the Giants", "Fresno State"',
+  team: 'a local sports team the speaker follows, as it goes in a sentence: "the Giants", "Fresno State", "LAFC"',
+  teamName: 'the same team without the article, for chants and "a ___ game": "Giants", "Fresno State", "LAFC" (teamName())',
   weather: 'a short forecast description from the NWS snapshot, lowercase: "patchy fog", "sunny"',
   season: 'a season or seasonal phrase: "summer", "fire season", "the rainy season", "ski season"',
   month: 'a month name: "November"',
@@ -55,12 +56,14 @@ function capitalizeSentences(s) {
 /**
  * Fill a template's {slots} from an object. Returns null when any slot is missing, empty, unknown (not in
  * SLOTS), or when the result would still contain a brace, so a caller can always pick another line. A slot
- * value that opens a sentence is capitalized ("the 405 was a parking lot" becomes "The 405 was a parking lot").
+ * value that opens a sentence is capitalized ("the 405 was a parking lot" becomes "The 405 was a parking lot"),
+ * unless opts.capitalize is false (for word-level pieces such as fillers and intensifiers, which go mid-sentence).
  * @param {string} template
  * @param {Record<string, string|number|null|undefined>} [slots]
+ * @param {{capitalize?: boolean}} [opts]
  * @returns {string|null}
  */
-export function fill(template, slots = {}) {
+export function fill(template, slots = {}, opts = {}) {
   if (typeof template !== 'string' || !template) return null;
   let ok = true;
   const out = template.replace(SLOT_RE, (m, name) => {
@@ -72,7 +75,19 @@ export function fill(template, slots = {}) {
     return s;
   });
   if (!ok || /[{}]/.test(out)) return null;
-  return capitalizeSentences(out);
+  return opts.capitalize === false ? out : capitalizeSentences(out);
+}
+
+/**
+ * A team's bare name for chants and attributive use: "the Giants" -> "Giants", "Fresno State" -> "Fresno State".
+ * Accepts a string or a persona team object ({name, label}).
+ * @param {string|{name?: string, label?: string}} team
+ * @returns {string|null}
+ */
+export function teamName(team) {
+  if (team && typeof team === 'object') return teamName(team.name || team.label);
+  if (typeof team !== 'string' || !team.trim()) return null;
+  return team.trim().replace(/^the\s+/i, '') || null;
 }
 
 // CAL FIRE unit and park codes that start complex names ("SCU Lightning Complex", "KNP Complex").

@@ -64,7 +64,9 @@ function personLook(id, age) {
   const grey = age >= 60 ? clamp((age - 55) / 30, 0, 1) : 0;
   return { shirt: SHIRTS[h % SHIRTS.length], hair: grey > 0.5 ? (age > 75 ? '#e6e3dc' : '#a9a6a0') : HAIR[(h >>> 5) % HAIR.length], scale: age < 13 ? 0.72 : age < 17 ? 0.88 : 1, pants: ['#2b3442', '#3b3b3b', '#5a5248', '#1f2a44', '#6d6a63'][(h >>> 9) % 5] };
 }
+/** FNV-1a hash of an NPC id string (for cosmetic choices that must stay the same for a person). */
 function idHash(id) { let h = 0x811c9dc5; for (let i = 0; i < id.length; i++) { h ^= id.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; }
+/** A vehicle's body and color from a hash: the California mix of sedans, SUVs, compacts and (more in the country) pickups. */
 function vehicleLook(h, rural) {
   const w = VEHICLES.map(v => v.w * (v.body === 'pickup' && rural ? 2.5 : 1));
   let tot = w.reduce((a, b) => a + b, 0), x = u01(h) * tot, i = 0;
@@ -88,6 +90,12 @@ export class StreetSim {
     this.fallback = createFallbackPlanner(world, population);
     this.external = typeof planner === 'function';
     this.planner = this.external ? planner : this.fallback;
+    /**
+     * With an external planner (the schedule module) everyone is first placed by the fast layer-0 planner and then
+     * moved over to the external plan in the background (upgrade()), people on the street first. `hybrid: false`
+     * uses the external planner from the start (fine for fast planners).
+     */
+    this.hybrid = this.external;
     this.seed = hash2(seed, scene.ctx.zseed);
     this.trafficScale = trafficScale;
     this.R = scene.R;
@@ -125,7 +133,7 @@ export class StreetSim {
     for (let ri = 0; ri < sc.residents.length; ri++) {
       const r = sc.residents[ri];
       const hh = sc.households[r.hh];
-      this.persons.push({ pid: this.persons.length, id: r.id, role: 'resident', member: r.member, hh: r.hh, b: r.b, agent: null, next: 0, look: null, veh: -1, spot: -1 });
+      this.persons.push({ pid: this.persons.length, id: r.id, role: 'resident', member: r.member, hh: r.hh, b: r.b, agent: null, next: 0, look: null, veh: -1, spot: -1, ext: false });
     }
     // household drivers: car commuters first, then other adults; vehicle k belongs to driver k
     for (const hh of sc.households) {
@@ -146,7 +154,7 @@ export class StreetSim {
       let best = null, bd = Infinity;
       for (const b of nb) { const d = Math.hypot(b.cx - c.workX, b.cy - c.workY); if (d < bd) { bd = d; best = b; } }
       if (!best || bd > 260 || !best.access) continue;
-      const p = { pid: this.persons.length, id: c.id, role: 'commuter', member: c.member, hh: -1, b: best.id, workB: best.id, agent: null, next: 0, look: null, veh: CAR_MODES.has(c.member.mode) ? 0 : -1, spot: -1, homeW: c.home };
+      const p = { pid: this.persons.length, id: c.id, role: 'commuter', member: c.member, hh: -1, b: best.id, workB: best.id, agent: null, next: 0, look: null, veh: CAR_MODES.has(c.member.mode) ? 0 : -1, spot: -1, homeW: c.home, ext: false };
       this.persons.push(p);
       this._schedule(p, this.t);
     }
@@ -281,11 +289,12 @@ export class StreetSim {
     for (const p of this.persons) { p.agent = null; p.away = false; }
     this.persons.length = this.residentCount;
     this._absorbCommuters();
-    if (this.evalBudgetMs < Infinity) {
-      // an external planner may be slow: everyone goes on the heap now and is placed over the next frames
+    if (this.external && !this.hybrid && this.evalBudgetMs < Infinity) {
+      // a slow external planner without the layer-0 head start: everyone goes on the heap and is placed over frames
       for (const p of this.persons) this._schedule(p, t);
       this._processEvents(t, true);
     } else for (const p of this.persons) this._evaluate(p, t, true);
+    this._upOrder = null; this._upK = 0;
     for (const en of this.entries) en.next = -1;
     for (const r of this.busRoutes) r.k = 0;
     this._streamsJump(t, 900);
@@ -343,6 +352,7 @@ export class StreetSim {
    */
   warm(budgetMs = 3) {
     const t0 = now();
+    if (this.external && this.hybrid && !this.upgrade(budgetMs * 0.5)) return;
     if (!this.commuterScan.done) { this.scanCommuters(budgetMs * 0.6); }
     if (!this._warmList) this._warmList = this.carExits.map(id => ['car', id]).concat(this.walkExits.map(id => ['foot', id]));
     while (this._warmList.length && now() - t0 < budgetMs) { const [m, id] = this._warmList.pop(); this.router.tree(m, id); }
@@ -374,9 +384,48 @@ export class StreetSim {
     }
   }
 
+  /** The plan of a person at t: the external planner once they have been moved over to it, else layer 0. */
+  _plan(p, t) {
+    if (!this.external || (this.hybrid && !p.ext)) return this.fallback(p.id, t);
+    return this.planner(p.id, t);
+  }
+
+  /**
+   * Move people from the fast layer-0 plan to the external planner, for up to budgetMs: people on the street
+   * first, then everyone else. A trip the external plan does not have ends (the person slips out of view) and the
+   * person is placed where the external plan puts them.
+   * @returns {boolean} true when everyone has been moved over
+   */
+  upgrade(budgetMs = 2) {
+    if (!this.external || !this.hybrid) return true;
+    const t0 = now();
+    if (!this._upOrder || this._upOrder.length !== this.persons.length) {
+      const onStreet = new Set(this.agents.filter(a => a.person >= 0).map(a => a.person));
+      this._upOrder = this.persons.map(p => p.pid).sort((a, b) => (onStreet.has(b) ? 1 : 0) - (onStreet.has(a) ? 1 : 0) || a - b);
+      this._upK = this._upK || 0;
+    }
+    while (this._upK < this._upOrder.length) {
+      if (now() - t0 > budgetMs) return false;
+      const p = this.persons[this._upOrder[this._upK++]];
+      if (!p || p.ext) continue;
+      p.ext = true;
+      let act;
+      try { act = normalizeActivity(this.planner(p.id, this.t), this.t); } catch { act = null; }
+      const a = p.agent;
+      if (a) {
+        const same = act && isTravel(act) && a.act && Math.abs((a.act.start || 0) - act.start) < 6 * MIN;
+        if (same) { a.act = act; continue; }
+        const i = this.agents.indexOf(a);
+        if (i >= 0) { this._finish(a, i); p.agent = null; }
+      }
+      this._evaluate(p, this.t, true);
+    }
+    return true;
+  }
+
   /** Ask the plan about a person at t: spawn them if a visible leg is under way, else schedule the next look. */
   _evaluate(p, t, jumping) {
-    let act = this.planner(p.id, t);
+    let act = this._plan(p, t);
     if (!act) { this._schedule(p, t + 60 * MIN); return; }
     act = normalizeActivity(act, t);
     if (!isTravel(act)) {
@@ -423,7 +472,7 @@ export class StreetSim {
   _origin(p, act) {
     const o = originOf(act);
     if (o) return o;
-    if (this.external) {
+    if (this.external && (p.ext || !this.hybrid)) {
       const prev = normalizeActivity(this.planner(p.id, act.start - 60000), act.start - 60000);
       if (prev && prev.place) return prev.place;
     }
@@ -940,8 +989,13 @@ export class StreetSim {
     if (a.kind === 'bus' && a.nextStop !== undefined && a.nextStop !== null) {
       const sd = a.stopD - a.d;
       if (a.nextStopK === a.k && sd > -1 && sd < 60) {
-        if (sd < 1.5 && a.v < 0.5) { a.dwell = (a.dwell || 0) + dt; this._busAtStop(a); if (a.dwell < a.dwellNeed) { a.v = 0; return false; } a.dwell = 0; this._nextBusStop(a); }
-        else if (sd > 0) { gap = Math.min(gap, sd + 0.5); vl = 0; }
+        if (sd < 1.5 && a.v < 0.6) {
+          // at the stop: open the doors (riders board on the first moment), wait out the dwell, then pull away
+          if (!a.dwell) this._busAtStop(a);
+          a.dwell = (a.dwell || 0) + dt;
+          if (a.dwell < a.dwellNeed) { a.v = 0; a.brake = true; return false; }
+          a.dwell = 0; this._nextBusStop(a);
+        } else if (sd > 0) { gap = Math.min(gap, sd + P.s0); vl = 0; }        // brake to stand right at the stop
       }
     }
     if (mustStop && lineD > -0.5) { gap = Math.min(gap, Math.max(0.01, lineD + P.s0 - 0.3)); vl = 0; }
