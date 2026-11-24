@@ -242,12 +242,18 @@ const P = {};
 
 P.greeting = (S, u, opts = {}) => {
   const v = S.v, st = S.st, parts = [];
+  if (st.greeted && !opts.initiated && !st.playerGreeted && st.npcOpened) {
+    st.playerGreeted = true;
+    parts.push(say(S, 'greet.ack'));
+    return { parts, topics: [], ask: 'visiting', askBoost: 0.2 };
+  }
   if (st.greeted && !opts.initiated) {
     parts.push(say(S, 'greet.repeat'));
     if (S.rng.chance(0.6)) parts.push(pivot(S));
     return { parts, topics: [], noAsk: false };
   }
   st.greeted = true;
+  if (opts.initiated) st.npcOpened = true; else st.playerGreeted = true;
   const known = !!(st.prev || v.relq.known);
   if (v.relq.guarded) parts.push(say(S, 'greet.cool'));
   else if (known) parts.push(say(S, 'greet.again') || say(S, 'greet.first'));
@@ -594,7 +600,7 @@ P.home = (S, u) => {
     parts.push(say(S, 'home.family', { parentsWord: pw ? pw.en : null }, facts));
     if (res.bornHere && v.age >= 13) parts.push(say(S, 'home.childhood', {}, [REC.residence]));
   }
-  if (head && S.rng.chance(0.5)) parts.push(say(S, 'home.since', {}, facts));
+  if (head && S.rng.chance(0.5) && !parts.some(p => p && S.base.yearMoved && p.text.includes(String(S.base.yearMoved)))) parts.push(say(S, 'home.since', {}, facts));
   if (v.flags.house && head) {
     const roof = v.p.roof;
     if (isNum(v.hh.yearBuilt) && S.rng.chance(0.5)) parts.push(say(S, 'home.built', { yearBuilt: v.hh.yearBuilt }, facts));
@@ -645,6 +651,17 @@ P.weather = (S, u) => {
     if (smoke && smoke.weight >= 0.15) ap.push(say(S, 'wx.airSmoke', {}, ['persona.concerns']));
     return { parts: ap, topics: ['weather', 'fire'], ask: null };
   }
+  if (/\bsnow/.test(q) && !/\b(today|now|right now)\b/.test(q)) {
+    const C = G.climateFacts(v);
+    const sp = [];
+    // snowfall where the pack has it; where it does not, the roofs' design snow load says how snowy a place is
+    if (isNum(C.snow) && C.snow >= 5) sp.push(say(S, 'wx.climate.snow', { snowIn: Math.round(C.snow) }, ['clim.snow']));
+    else if (!isNum(C.snow) && num(C.snowLoad) >= 100) sp.push(say(S, 'wx.climate.snowLoad', { psf: Math.round(C.snowLoad) }, ['clim.snowLoad']));
+    else if (!isNum(C.snow) && num(C.snowLoad) >= 30) sp.push(say(S, 'wx.climate.someSnow', {}, ['clim.snowLoad']));
+    else sp.push(say(S, 'wx.climate.noSnow', { peak: v.lex.values.peak }, v.lex.values.peak ? [v.lex.facts.peak, 'clim.snow'] : ['clim.snow']));
+    if (v.sky === 'snow') sp.push(say(S, 'wx.feel.snow'));
+    return { parts: sp, topics: ['weather'], ask: 'weather' };
+  }
   const ahead = /tomorrow|tonight|weekend|forecast|later|will it|going to|this week|thanksgiving/.test(q);
   const fc = [];
   const night = W.periods.find(p => !p.isDay && p.when === 'tonight');
@@ -676,7 +693,7 @@ P.weather = (S, u) => {
     if (isNum(C.rain)) climate.push(say(S, 'wx.climate.rain', { rainIn: Math.round(C.rain) }, ['clim.rain']));
     if (isNum(C.snow) && C.snow >= 10) climate.push(say(S, 'wx.climate.snow', { snowIn: Math.round(C.snow) }, ['clim.snow']));
   }
-  const again = (S.st.depth.weather || 0) > 0 && !/today|now|right now|outside/.test(q);
+  const again = (S.st.depth.weather || 0) > 0 && !/\b(today|now|right now|outside)\b/.test(q);
   if (again && !climate.length) {
     const C = G.climateFacts(v);
     if (isNum(C.tjul)) climate.push(say(S, 'wx.climate.tjul', { tjul: Math.round(C.tjul) }, ['clim.tjul']));
@@ -952,7 +969,7 @@ P.heat = (S, u) => {
     parts.push(say(S, 'heat.record', { recTemp: rec.heat.value, recDate: fullDate(dt), recDateEs: dateEs }, [rec.heat.id]));
     if (rec.heat.memory && rec.heat.memory.experience && v.lang.mode === 'en') parts.push(say(S, 'heat.recordLived', { exp: rec.heat.memory.experience }, [rec.heat.id, 'persona.memory']));
   }
-  if (isNum(W.temp) && (W.temp >= 85 || /today|right now|now/.test(u.norm))) parts.push(say(S, 'heat.now', { temp: W.temp }, [W.ids.now]));
+  if (isNum(W.temp) && (W.temp >= 85 || /\b(today|right now|now)\b/.test(u.norm))) parts.push(say(S, 'heat.now', { temp: W.temp }, [W.ids.now]));
   const ha = W.alerts.find(a => a.heat);
   if (ha) parts.push(say(S, 'heat.alert', { alert: ha.event }, [ha.id]));
   if (num(C.h90) >= 10 || v.flags.outdoor) parts.push(say(S, 'heat.cope'));
@@ -1423,7 +1440,7 @@ export function answerPending(S, u) {
     key = told.key === 'job' ? 'job' : told.key;
   }
   const strong = Object.entries(u.scores).some(([k, s]) => s >= 3.5 && !['greeting', 'thanks', 'apology', 'compliment', 'name'].includes(k));
-  if (u.question && strong) return null;
+  if (strong && !(key === 'job' && u.appraisal.facts.some(f => f.key === 'job'))) return null;
   if (u.intent === 'insult' || u.intent === 'goodbye' || u.flags.more) return null;
   const words = u.norm.split(' ').length;
   const parts = [];
@@ -1451,7 +1468,7 @@ export function answerPending(S, u) {
       return { parts, topics: ['neighborhood'], intent: 'smalltalk', ask: null };
     }
     if (key === 'lives' && (u.flags.yes || u.flags.no)) { parts.push(say(S, u.flags.yes ? 'react.yes' : 'react.no')); return { parts, topics: ['neighborhood'], intent: 'smalltalk', ask: u.flags.no ? 'visiting' : null }; }
-    if (words <= 5 && !u.question && /^[A-Za-z .'-]+$/.test(u.text.trim())) {
+    if (words <= 4 && !u.question && /^[A-Z][A-Za-z'-]*(\s+[A-Z][A-Za-z'-]*)*[.!]?$/.test(u.text.trim()) && !/^(Yes|No|Yeah|Nope|Sure|Okay|Ok|Thanks|Hi|Hey|Hello|Tell|What|Why|How|Where|Who)\b/.test(u.text.trim())) {
       learn('from', u.text.trim().replace(/[.!]$/, ''), `They are from ${u.text.trim().replace(/[.!]$/, '')}.`);
       parts.push(say(S, 'react.from.unknown'));
       return { parts, topics: ['neighborhood'], intent: 'smalltalk', ask: null };

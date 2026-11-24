@@ -67,7 +67,7 @@ const P = {
   neighborhood: [
     [/\bneighbou?rhoods?\b|\bneighbou?rs?\b|\bthis (area|town|city|place|block|part of town|street)\b|\baround here\b|\bthe area\b|\bcommunity\b/, 2.5],
     [/\bwhat'?s (it|life) like (living |to live |growing up )?(here|in|around)\b/, 4], [/\bwhat'?s [a-z .'-]{2,28} like\s*\??$/, 2.5], [/\bis it (safe|nice|good|quiet|loud|busy|walkable|friendly)\b/, 3],
-    [/\bdo you like (it )?(here|living here|this place|the area|this town|this neighborhood)\b/, 4], [/\b(best|worst) (thing|part) about\b/, 3.5],
+    [/\bdo you like (it )?(here|living here|this place|the area|this town|this neighborhood)\b/, 4], [/\b(best|worst) (thing|part)( about)?\b/, 3.5],
     [/\bpeople (here|around here)\b|\bwho lives (here|around here)\b|\bwhat language\b|\bspeak spanish\b/, 3],
   ],
   weather: [
@@ -96,7 +96,7 @@ const P = {
   ],
   housing: [
     [/\bhousing\b|\bhouse prices\b|\bhome prices\b|\bhome values?\b|\breal estate\b|\bmortgages?\b|\bafford(able|ability)?\b|\bcost of living\b|\bbuy(ing)? (a|a house|a home|a place)\b|\bproperty tax(es)?\b|\bgentrif\w*|\bhomeowners?\b|\bhoa\b|\bhousing market\b|\bbuild more\b|\bnew (apartments|construction|development)\b|\bzoning\b/, 3.5],
-    [/\bexpensive (here|to live)\b|\b(so|too) expensive\b|\bprices\b/, 2],
+    [/\bexpensive (here|to live)\b|\bexpensive around here\b|\bcost of living\b|\bafford to live\b/, 4], [/\b(so|too) expensive\b|\bprices\b/, 2],
   ],
   rent: [[/\brent(s|ing|er|ers)?\b|\blandlords?\b|\blease\b|\beviction\b|\btenants?\b|\bsecurity deposit\b|\brent control\b/, 4]],
   insurance: [[/\binsurance\b|\binsurer\w*|\binsured\b|\bpremiums?\b|\bfair plan\b|\bnon-?renew\w*|\bdropped (us|me|my|our|people)\b|\bdeductible\b|\bunderwrit\w*|\bcoverage\b/, 4.5]],

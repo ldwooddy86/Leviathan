@@ -32,6 +32,9 @@ export const SPANISH = compileBank({
     @usted ¡Usted otra vez! Qué gusto. || You again! How nice.
     @tu ¡Qué bueno verte otra vez! || So good to see you again!
   `,
+  'greet.ack': `
+    Mucho gusto. || Nice to meet you.
+  `,
   'greet.repeat': `
     ¡Hola otra vez! || Hi again!
   `,
@@ -555,6 +558,18 @@ export const SPANISH = compileBank({
   'wx.climate.tjul': `
     En julio estamos como a {tjul} grados. || In July it's about {tjul} degrees.
   `,
+  'wx.climate.snow': `
+    Aquí nieva como {snowIn} pulgadas al año. || Here it snows about {snowIn} inches a year.
+  `,
+  'wx.climate.snowLoad': `
+    Aquí nieva mucho. Los techos aguantan {psf} libras de nieve por pie cuadrado. || It snows a lot here. The roofs hold {psf} pounds of snow per square foot.
+  `,
+  'wx.climate.someSnow': `
+    Nieva un poco en los inviernos fríos. || It snows a little in cold winters.
+  `,
+  'wx.climate.noSnow': `
+    Aquí no nieva. Hay que ir a las montañas. || It doesn't snow here. You have to go to the mountains.
+  `,
   'wx.climate.rain': `
     Aquí llueven como {rainIn} pulgadas al año. || Here it rains about {rainIn} inches a year.
   `,
@@ -895,7 +910,8 @@ export const SPANISH = compileBank({
     Hay una {wordEs} aquí mismo. || There's a {word} right here.
   `,
   'dir.unknown': `
-    No sé dónde queda eso, perdón. || I don't know where that is, sorry.
+    @usted No sabría decirle cómo llegar ahí, perdón. || I couldn't tell you how to get there, sorry.
+    @tu No sabría decirte cómo llegar ahí, perdón. || I couldn't tell you how to get there, sorry.
   `,
   'dir.kid': `
     @usted No sé. Pregúntele a {parentEs}. || I don't know. Ask my {parentWord}.

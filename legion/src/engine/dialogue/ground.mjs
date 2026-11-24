@@ -224,7 +224,7 @@ export function climateFacts(v) {
   const z = v.z;
   return {
     h100: isNum(z.h100) ? z.h100 : null, h90: isNum(z.h90) ? z.h90 : null, tjul: isNum(z.tjul) ? z.tjul : null,
-    rain: isNum(z.rain_in) ? z.rain_in : null, snow: isNum(z.snowfall_in) ? z.snowfall_in : null,
+    rain: isNum(z.rain_in) ? z.rain_in : null, snow: isNum(z.snowfall_in) ? z.snowfall_in : null, snowLoad: isNum(z.snow_psf) ? z.snow_psf : null,
     flood: isNum(z.flood_n10) ? z.flood_n10 : null, ar: isNum(z.ar_n) ? z.ar_n : null,
     fhszVh: num(z.fhsz_vh, 0), fhszAny: num(z.fhsz_any, 0), offKind: z.off_kind || null,
   };

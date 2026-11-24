@@ -53,6 +53,13 @@ export const PEOPLE = compileBank({
     @loose Hey, it's you again. How's it going?
     @plain Nice to see you again.
   `,
+  'greet.ack': `
+    Nice to meet you.
+    Good to meet you.
+    Hi! Glad you stopped.
+    @loose Hey, good to meet you.
+    @kid Hi!
+  `,
   'greet.repeat': `
     Hi again!
     Hello again.

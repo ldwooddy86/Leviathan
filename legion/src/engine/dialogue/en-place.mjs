@@ -144,8 +144,22 @@ export const PLACE = compileBank({
     Something like {rainIn} inches of rain in a year here.
   `,
   'wx.climate.snow': `
-    We get snow, too. About {snowIn} inches a year.
+    We get snow, about {snowIn} inches a year.
     About {snowIn} inches of snow in a normal year.
+    Oh, we get snow. Something like {snowIn} inches a year.
+  `,
+  'wx.climate.snowLoad': `
+    Oh, we get snow. The roofs up here are built to hold {psf} pounds per square foot of it.
+    Plenty. Roofs here are designed for {psf} pounds of snow per square foot, and they need it.
+  `,
+  'wx.climate.someSnow': `
+    Some, in a cold winter. Not like up in the high country.
+    We get a little most winters. It doesn't stick around long.
+  `,
+  'wx.climate.noSnow': `
+    Snow? Not down here. You can see it on {peak} after a storm, though.
+    Not here, no. You have to drive up to the mountains for snow.
+    Snow? Here? No. Maybe once in a lifetime.
   `,
 
   // ---------------------------------------------------------------- traffic and the commute
@@ -734,10 +748,10 @@ export const PLACE = compileBank({
     The {word} I go to is close, right here in {place}.
   `,
   'dir.unknown': `
-    Hmm, I don't know that one.
-    Never heard of it. Is it around here?
-    I'm not sure where that is, sorry.
-    @plain I'm afraid I don't know where that is.
+    Hmm, I couldn't give you good directions there.
+    I'm not sure how to get there from here. Your phone will do better than me.
+    I don't know that one well enough to give directions.
+    @plain I'm afraid I couldn't give you directions there.
   `,
   'dir.kid': `
     I don't know. Ask my {parentWord}.
