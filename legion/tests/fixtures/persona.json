@@ -1,0 +1,114 @@
+{
+  "id": "91042-1520-1",
+  "npc": {
+    "id": "91042-1520-1",
+    "hid": "91042-1520",
+    "zip": "91042",
+    "zi": 178,
+    "h": 1520,
+    "m": 1,
+    "role": "spouse",
+    "sex": "F",
+    "age": 47,
+    "birthYear": 1979,
+    "pronouns": "she/her",
+    "race": "hispanic",
+    "heritage": "salvadoran",
+    "heritageLabel": "Salvadoran American",
+    "nativity": "foreign",
+    "generation": 1,
+    "arrivalYear": 1998,
+    "birthplace": "San Miguel, El Salvador",
+    "name": { "first": "Marisol", "last": "Henríquez", "full": "Marisol Henríquez", "display": "Marisol Henríquez", "nick": "Mari" },
+    "languages": { "home": "spanish", "english": "very well", "list": ["spanish", "english"] },
+    "education": "associate",
+    "school": null,
+    "status": "employed",
+    "occupation": { "key": "healthsupport", "title": "medical assistant", "sector": "health care", "employer": "a community clinic", "shift": "day", "wfh": false, "wage": 46000 },
+    "income": 46000,
+    "householdIncome": 98000,
+    "commute": {
+      "mode": "drive",
+      "minutes": 35,
+      "departMin": 400,
+      "dwellMin": 540,
+      "days": 62,
+      "workZi": 248,
+      "workZip": "91601",
+      "workCity": "North Hollywood",
+      "work": { "x": 2793.316748977173, "y": 4471.326690019108 },
+      "road": { "name": "I-210", "route": 210, "kind": "I" }
+    },
+    "marital": "married",
+    "veteran": false,
+    "household": {
+      "id": "91042-1520",
+      "size": 4,
+      "type": "married",
+      "tenure": "own",
+      "dwelling": "house",
+      "vehicles": 2,
+      "yearMoved": 2009,
+      "yearBuilt": 1956,
+      "home": { "x": 2833.4, "y": 4420.8, "lat": 34.25564, "lon": -118.28388 },
+      "members": [
+        { "m": 0, "role": "householder", "name": "Julio", "age": 50, "sex": "M" },
+        { "m": 1, "role": "spouse", "name": "Marisol", "age": 47, "sex": "F" },
+        { "m": 2, "role": "child", "name": "Daniela", "age": 16, "sex": "F" },
+        { "m": 3, "role": "child", "name": "Mateo", "age": 12, "sex": "M" }
+      ]
+    },
+    "place": {
+      "zip": "91042",
+      "city": "Tujunga",
+      "place": "Tujunga",
+      "countyName": "Los Angeles",
+      "countyFips": "06037",
+      "region": "la",
+      "regionName": "Los Angeles and Ventura",
+      "province": "Transverse Ranges",
+      "zone": "Los Angeles County Valleys"
+    },
+    "seed": 2876151904
+  },
+  "big5": { "O": 0.58, "C": 0.81, "E": 0.66, "A": 0.72, "N": 0.44 },
+  "traits": ["warm", "organized", "talkative", "practical"],
+  "archetype": "early-shift regular",
+  "values": ["benevolence", "security", "achievement"],
+  "interests": ["gardening", "hiking in the Verdugo Mountains", "Dodgers games", "cooking for the family on Sundays"],
+  "concerns": [
+    { "topic": "home insurance", "weight": 0.72, "why": "insurers non-renewed 9.8% of the homeowners policies up for renewal in 91042 in 2023 (nonren_sh), and there are 13.7 FAIR Plan policies per 100 housing units (fair_sh)" },
+    { "topic": "wildfire", "weight": 0.86, "why": "13% of the ZIP's land is in a Fire Hazard Severity Zone (fhsz_any); the Station Fire (2009) and the La Tuna Fire (2017) burned within 1.3 km of the ZIP" },
+    { "topic": "commute", "weight": 0.38, "why": "35 minutes each way to North Hollywood (commute.minutes)" }
+  ],
+  "memories": [
+    { "year": 2017, "date": "2017-09-01", "kind": "fire", "text": "The La Tuna Fire burned 7,051 acres in the Verdugos, 1.3 km from the ZIP; the 210 was shut and ash fell on the yard.", "weight": 0.81, "source": "fires" },
+    { "year": 2009, "date": "2009-08-26", "kind": "fire", "text": "The Station Fire burned 160,833 acres in the mountains above Tujunga, its edge 0.7 km from the ZIP; the sky was orange for days.", "weight": 0.9, "source": "fires" },
+    { "year": 2009, "date": null, "kind": "life", "text": "You and Julio bought the house and moved in, the year Daniela started preschool.", "weight": 0.6, "source": "life" },
+    { "year": 2025, "date": "2025-01-08", "kind": "disaster", "text": "FEMA declared the Los Angeles wildfires of January 2025 a major disaster for the county.", "weight": 0.74, "source": "fema" }
+  ],
+  "knowledge": {
+    "neighborhood": "Tujunga",
+    "county": "Los Angeles County",
+    "region": "Los Angeles and Ventura counties",
+    "landmarks": [
+      { "name": "Verdugo Mountains", "kind": "range", "distKm": 4.1 },
+      { "name": "Mendenhall Saddle", "kind": "pass", "distKm": 0.8 }
+    ],
+    "roads": [{ "name": "I-210", "route": 210, "kind": "I", "distKm": 2.2 }],
+    "nearbyPlaces": [{ "name": "La Crescenta-Montrose", "distKm": 13.5 }, { "name": "San Fernando", "distKm": 13 }]
+  },
+  "speech": {
+    "dialect": "sfv",
+    "register": "casual",
+    "verbosity": 0.62,
+    "slang": ["the 210", "the Valley", "June Gloom"],
+    "humor": 0.55,
+    "directness": 0.5,
+    "codeSwitch": { "lang": "spanish", "rate": 0.15 },
+    "fillers": ["like", "you know"],
+    "catchphrases": ["Ay, no", "It is what it is"]
+  },
+  "bio": "Mari came up from San Miguel at nineteen, worked her way through an associate's degree, and has spent the last decade running the front of a busy community clinic. She and Julio bought their house in Tujunga in 2009, the summer the Station Fire turned the sky orange.",
+  "hooks": ["the red flag warnings this fall", "Daniela's driving test", "whether the insurance will renew again"]
+}
