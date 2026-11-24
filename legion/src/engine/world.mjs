@@ -324,7 +324,11 @@ export class World {
     const cells = new Uint32Array(offsets[this.N]);
     const fill = offsets.slice(0, this.N);
     for (let k = 0; k < grid.length; k++) { const g = grid[k]; if (g) cells[fill[g - 1]++] = k; }
-    this._raster = { cell, W, H, grid, offsets, cells };
+    // ZIPs too small to own a raster cell (a handful of tiny ZCTAs such as Verdugo City 91046) are tested by
+    // their outlines before the raster, so a point inside one never reports the neighbour that owns the cell
+    const tiny = [];
+    for (let i = 0; i < this.N; i++) if (counts[i] === 0 && this.zipRings(i).length) tiny.push(i);
+    this._raster = { cell, W, H, grid, offsets, cells, tiny };
     return this._raster;
   }
 
@@ -333,6 +337,10 @@ export class World {
     const R = this.raster();
     const c = Math.floor(x / R.cell), r = Math.floor(y / R.cell);
     if (c < 0 || r < 0 || c >= R.W || r >= R.H) return -1;
+    for (const i of R.tiny) {
+      const bb = this.zipBBox(i);
+      if (x >= bb[0] && x <= bb[2] && y >= bb[1] && y <= bb[3] && pointInRings(x, y, this.zipRings(i))) return i;
+    }
     const g = R.grid[r * R.W + c];
     if (g) return g - 1;
     // a ZIP too small for its own cell: check the outlines of the ZIPs whose box holds the point
