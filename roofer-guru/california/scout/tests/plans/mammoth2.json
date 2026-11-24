@@ -1,0 +1,38 @@
+[
+{
+"name": "cover",
+"lens": "cover",
+"leg": true,
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "wx_ar3",
+"lens": "storm",
+"rain": "ar3"
+},
+{
+"name": "wx_ar5",
+"rain": "ar5"
+},
+{
+"name": "wx_tstorm",
+"rain": "tstorm"
+},
+{
+"name": "fire",
+"lens": "fire",
+"rain": "dry"
+},
+{
+"name": "solar",
+"lens": "solar"
+},
+{
+"name": "thermal_jan",
+"lens": "thermal",
+"day": "winter",
+"sun": 13
+}
+]

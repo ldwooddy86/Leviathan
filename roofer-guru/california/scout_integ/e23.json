@@ -1,0 +1,3 @@
+[
+ ["      exportGLB,\n      /* for tests: what the renderer holds, and lights to switch off to see the shadows alone */", "      exportGLB,\n      /* for tests: the roads as drawn, by kind, the cable car tracks, and the meshes they made */\n      roadsInfo() { const k = {}; S.roads.forEach(r => { k[r.kind] = (k[r.kind] || 0) + 1; }); return { kinds: k, cable: (S.cable || []).length, meshes: G.roads.children.map(m => m.name || m.type) }; },\n      /* for tests: what the renderer holds, and lights to switch off to see the shadows alone */"]
+]

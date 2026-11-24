@@ -2,9 +2,14 @@
 {
 "name": "cover",
 "lens": "cover",
+"leg": true,
 "mode": "orbit",
 "dist": 45,
 "pitch": -55
+},
+{
+"name": "cover_nl",
+"leg": false
 },
 {
 "name": "cover_close",
@@ -18,6 +23,10 @@
 {
 "name": "pat16_close",
 "pat": 16
+},
+{
+"name": "pat11_close",
+"pat": 11
 },
 {
 "name": "pat16_drone",
@@ -35,7 +44,8 @@
 {
 "name": "style",
 "lens": "style",
-"pat": 0
+"pat": 0,
+"leg": true
 },
 {
 "name": "thermal_july",

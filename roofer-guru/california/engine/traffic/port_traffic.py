@@ -98,7 +98,7 @@ rex(r"fleet\[c\.ty\]\.sets\[dc < 55 \? 'mnear' : 'mfar'\]\.add\(c\.x, [^;]*?, c\
 
 # ---- (3) the world ----
 rep("const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];",
-    "const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];\n    /* California traffic (SE.TrafficKit): made the first time the streets are set */\n    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); } }));")
+    "const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];\n    /* California traffic (SE.TrafficKit): made the first time the streets are set */\n    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); }, retake: list => setRoads(list) }));")
 rep("function setRoads(list) { S.roads = list.map(r => ({ name: r.name || '', kind: r.kind, pts: r.pts.map(([la, lo]) => toL(la, lo)) })).filter(r => r.pts.length >= 2); buildRoads(); }",
     "function setRoads(list) { S.roads = tf().take(list); buildRoads(); }   /* the surface streets, with lanes, direction, limit, level and width on each; freeways, ramps and cable car tracks stay with the kit */")
 rep("function buildRoads() {\n", "function buildRoads() {\n      tf().regrade();   /* the decks' heights over the ground as it now is (the traffic kit) */\n")   # [buildRoads]

@@ -1975,13 +1975,16 @@ void main() {
     else if (kind < 12.5) { float cy = q.y / 0.216, rw = floor(cy), fy = fract(cy), cx = q.x / 0.28 + 0.5 * mod(rw, 2.0), fx = fract(cx);
       pm = max(1.0 - smoothstep(0.005, 0.005 + px, min(fy, 1.0 - fy) * 0.216), 1.0 - smoothstep(0.004, 0.004 + px, min(fx, 1.0 - fx) * 0.28)) * fineK; lite = (h21(vec2(floor(cx), rw)) - 0.5) * 0.3 * fineK; }
     else if (kind < 14.5) { float sp = kind < 13.5 ? 3.05 : 0.9, fx = fract(q.x / sp), d = min(fx, 1.0 - fx) * sp; pm = (1.0 - smoothstep(0.03, 0.03 + px, d)) * 0.7 * (kind < 13.5 ? wideK : midK); }
-    else if (kind < 15.5) { float cy = q.y / 0.356, rw = floor(cy), fy = fract(cy), cx = q.x / 0.305 + 0.5 * mod(rw, 2.0), fx = fract(cx);
-      pm = max((1.0 - smoothstep(0.012, 0.012 + px, min(fy, 1.0 - fy) * 0.356)) * 0.95, (1.0 - smoothstep(0.004, 0.004 + px, min(fx, 1.0 - fx) * 0.305)) * 0.7) * midK; lite = (h21(vec2(floor(cx), rw)) - 0.5) * 0.14 * midK; }
-    else if (kind < 16.5) { float fy = fract(q.y / 0.356), u = fract(q.x / 0.298), sw = sin(u * 6.2832);
-      pm = max((1.0 - smoothstep(0.014, 0.014 + px, min(fy, 1.0 - fy) * 0.356)) * 0.9, max((0.5 - 0.5 * sw) * step(0.5, u) * 0.6, (1.0 - smoothstep(0.0, 0.05, abs(u - 0.5))) * 0.45)) * midK; lite = max(sw, 0.0) * 0.28 * midK; }
-    else if (kind < 17.5) { float cy = q.y / 0.254, rw = floor(cy), u = q.x / 0.2 + h21(vec2(rw, 3.0)) * 7.0, id = floor(u), fx = fract(u), r = h21(vec2(id, rw)), w = 0.55 + 0.4 * r, fy = fract(cy + (r - 0.5) * 0.12);
-      pm = max((1.0 - smoothstep(0.01, 0.01 + px, min(fy, 1.0 - fy) * 0.254)) * 0.9, (1.0 - smoothstep(0.006, 0.006 + px, abs(fx - w) * 0.2)) * 0.8) * fineK; lite = (r - 0.5) * 0.35 * fineK; }
-    else { vec2 gv = floor(q / 0.02); pm = step(0.6, h21(gv)) * 0.35 * fineK; lite = (h21(gv + 4.0) - 0.5) * 0.3 * fineK; }
+    else if (kind < 15.5) { float cy = q.y / 0.356, rw = floor(cy), fy = fract(cy), cx = q.x / 0.305 + 0.5 * mod(rw, 2.0), fx = fract(cx), tn = h21(vec2(floor(cx), rw));
+      pm = max((1.0 - smoothstep(0.016, 0.016 + px, min(fy, 1.0 - fy) * 0.356)) * 0.95, (1.0 - smoothstep(0.003, 0.003 + px * 0.6, min(fx, 1.0 - fx) * 0.305)) * 0.38) * midK; lite = ((tn - 0.5) * 0.16 + (0.5 - fy) * 0.14) * midK; }
+    else if (kind < 16.5) { float u = fract(q.x / 0.298), sw = sin(u * 6.2832), cr = max(sw, 0.0), fy = fract(q.y / 0.356 - 0.1 * cr);
+      pm = max((1.0 - smoothstep(0.012, 0.012 + px, min(fy, 1.0 - fy) * 0.356)) * 0.55, max((0.5 - 0.5 * sw) * step(0.5, u) * 0.8, (1.0 - smoothstep(0.0, 0.04, abs(u - 0.5))) * 0.5)) * midK; lite = (cr * 0.42 - 0.05) * midK; }
+    else if (kind < 17.5) { float cy = q.y / 0.254, rw = floor(cy), u = q.x / 0.2 + h21(vec2(rw, 3.0)) * 7.0, id = floor(u), fx = fract(u), r = h21(vec2(id, rw)), w = 0.55 + 0.4 * r, fy = fract(cy + (r - 0.5) * 0.2);
+      pm = max((1.0 - smoothstep(0.014, 0.014 + px, min(fy, 1.0 - fy) * 0.254)) * 0.95 * midK, (1.0 - smoothstep(0.005, 0.005 + px, abs(fx - w) * 0.2)) * 0.75 * fineK);
+      lite = ((r - 0.5) * 0.5 * mix(0.55, 1.0, fineK) + (h21(vec2(id + 31.0, rw)) - 0.5) * 0.18 + (0.5 - fy) * 0.16) * midK; }
+    else { vec2 gv = floor(q / 0.02), p1 = q / 0.8, i1 = floor(p1), f1 = fract(p1), p2 = q / 2.6 + 3.7, i2 = floor(p2), f2 = fract(p2); f1 = f1 * f1 * (3.0 - 2.0 * f1); f2 = f2 * f2 * (3.0 - 2.0 * f2);
+      float n1 = mix(mix(h21(i1), h21(i1 + vec2(1.0, 0.0)), f1.x), mix(h21(i1 + vec2(0.0, 1.0)), h21(i1 + vec2(1.0, 1.0)), f1.x), f1.y), n2 = mix(mix(h21(i2), h21(i2 + vec2(1.0, 0.0)), f2.x), mix(h21(i2 + vec2(0.0, 1.0)), h21(i2 + vec2(1.0, 1.0)), f2.x), f2.y), bare = smoothstep(0.6, 0.74, n1 * 0.45 + n2 * 0.55);
+      pm = max(step(0.6, h21(gv)) * 0.35 * fineK, bare * 0.5 * wideK); lite = (h21(gv + 4.0) - 0.5) * 0.3 * fineK + (n1 - 0.5) * 0.3 * wideK; }
   }
   if (dens > 0.012 && kind > 0.5 && kind < 6.5 && far < 1.0) {
     if (kind < 1.5) { vec2 g = vec2(q.x / 0.9, q.y / 0.42), f = fract(g); m = step(h21(floor(g)), dens * 0.5) * step(0.05, f.x) * step(f.x, 0.95) * step(0.08, f.y) * step(f.y, 0.92); }
@@ -2447,7 +2450,7 @@ void main() { vec2 lo = floor(gl_FragCoord.xy) / u_dstRes * u_srcRes, hi = (floo
   class Engine extends Emitter {
     /* canvas: where to draw. o.quality: 'auto' | 'ultra' | 'high' | 'medium' | 'low' */
     constructor(canvas, o) {
-      super(); o = o || {}; this.canvas = canvas; this.device = new Device(canvas, { preserve: o.preserve, onLost: () => this.emit('lost'), onRestored: () => { this.emit('restored'); } });
+      super(); o = o || {}; this.canvas = canvas; this.device = new Device(canvas, { preserve: o.preserve, onLost: () => { this._ctxGone(); this.emit('lost'); }, onRestored: () => { this._ctxGone(); this.broken = this._ctxDead = 'the graphics context was lost, and what the engine had built on the card went with it.'; this.emit('restored'); } });
       this.assets = new Assets(this); this.scene = new Scene(this); this.renderer = new Renderer(this); this.input = new Input(this, canvas);
       this.physics = SE.Physics ? new SE.Physics.World(this) : null; this.audio = SE.Audio ? new SE.Audio(this) : null; this.timelines = new Set();
       this.time = { now: 0, dt: 0, frame: 0, scale: 1, fixed: 1 / 60, acc: 0, fps: 0, ms: 0 }; this.playing = true; this.live = true; this.idleSleep = 25; this.settleFrames = 56; this.running = false;   /* frames drawn after the last change: long enough for the temporal filter to gather a still view in full */ this._raf = 0; this._last = 0; this._settle = 0; this._wakeAt = 0; this._req = 2;
@@ -2461,7 +2464,7 @@ void main() { vec2 lo = floor(gl_FragCoord.xy) / u_dstRes * u_srcRes, hi = (floo
     setQuality(q) {
       const dev = this.device; this.autoQuality = q === 'auto';
       if (q === 'auto') q = dev.caps.software ? 'low' : (navigator.maxTouchPoints || 0) > 1 && Math.min(screen.width, screen.height) < 820 ? 'medium' : 'high';
-      if (!QUALITY[q]) q = 'high'; this.quality = q; this.broken = null; if (this._watchS && this._watchS.stage < 2) { this._watchS.left = 12; this._watchS.black = 0; } const p = Object.assign({}, QUALITY[q]); delete p.label; Object.assign(this.renderer.settings, p); this._ft.length = 0; this.renderer.reset = true; this.requestRender(); this.emit('quality', q); return q;
+      if (!QUALITY[q]) q = 'high'; this.quality = q; this.broken = this._ctxDead || null; if (this._watchS && this._watchS.stage < 2) { this._watchS.left = 12; this._watchS.black = 0; } const p = Object.assign({}, QUALITY[q]); delete p.label; Object.assign(this.renderer.settings, p); this._ft.length = 0; this.renderer.reset = true; this.requestRender(); this.emit('quality', q); return q;
     }
     start() { if (this.running) return; this.running = true; this._last = 0; this.wake(); }
     stop() { this.running = false; if (this._raf) { cancelAnimationFrame(this._raf); this._raf = 0; } }
@@ -2487,22 +2490,81 @@ void main() { vec2 lo = floor(gl_FragCoord.xy) / u_dstRes * u_srcRes, hi = (floo
       const live = this.live && this.playing && awake && this.onScreen;
       if (resized || this.scene.touched || camMoved || busy || live || this._req > 0 || this.input.active) this._settle = this.settleFrames;
       if (this._req > 0) this._req--;
-      if (this._settle > 0) {
+      if (this._settle > 0 && this._held(now)) { if (live || busy) T.now += sim; }   /* frames are still on their way: nothing more is handed over, the world has moved all the same */
+      else if (this._settle > 0) {
         if (live || busy) T.now += sim; T.dt = dt;
         /* a frame the driver will not draw: first everything optional is switched off, then the quality goes to Low, and if
            it still cannot be drawn the engine says so and stops asking, instead of leaving a black view with no word */
-        if (!this.broken) { try { this.renderer.render(this.scene, this.camera, T.now, dt); this._bad = 0; this._watch(); }
+        if (!this.broken) { try { this.renderer.render(this.scene, this.camera, T.now, dt); this._bad = 0; this._watch(); this._fence(); }
           catch (e) { this._bad = (this._bad || 0) + 1; const msg = String((e && e.message) || e).split('\n')[0].slice(0, 240); console.error('[Scout Engine] frame not drawn (' + this._bad + '): ' + ((e && e.stack) || e));
             if (this._bad === 1) { this.renderer.safe(); this.emit('degraded', 'A frame could not be drawn, so the optional effects are switched off.', msg); this.requestRender(6); }
             else if (this._bad === 2) { this.setQuality('low'); this.autoQuality = false; this.renderer.safe(); this.emit('degraded', 'Frames still could not be drawn, so the quality is set to Low.', msg); this.requestRender(6); }
             else { this.broken = msg; this.emit('fatal', msg); } } }
         this._settle--; T.frame++;
-        const ms = performance.now() - t0; T.ms = T.ms * 0.9 + ms * 0.1; T.fps = T.fps * 0.9 + (1 / dt) * 0.1; this.emit('frame', dt);
-        if (this.autoQuality && (live || busy || camMoved)) { this._drs(dt); this._tune(dt); }
+        const ms = performance.now() - t0; T.ms = T.ms * 0.9 + ms * 0.1; T.fps = T.fps * 0.9 + (1 / ((this._gate && this._gate.dt) || dt)) * 0.1; this.emit('frame', dt);
+        if (this.autoQuality && (live || busy || camMoved)) { const rd = (this._gate && this._gate.dt) || dt; this._drs(rd); this._tune(Math.min(rd, 0.25)); }
       }
       this.input.endFrame();
       if (this._settle > 0 || this._req > 0) { if (!this._raf) this._raf = requestAnimationFrame(this._frame); } else if (!this._raf) { this._last = 0; this.emit('idle'); }
     }
+    /* Pacing: a frame is not started while the graphics side still has frames of this engine to draw.
+       The draw calls of a frame return at once; the drawing happens later, in the browser's GPU process. A browser
+       holds requestAnimationFrame back when the card falls behind, but not always: headless Chromium on its software
+       renderer does not, and there every turn of the loop handed over another frame. Measured at 200 N Spring St, Los
+       Angeles, on that renderer, a frame costing 1.3 s to draw: 236 frames handed over in 26 s, 317 s of drawing
+       queued, and the page frozen for all of it the first time anything waited for the picture (the watch below, a
+       screenshot, the tab being shown). So after each frame a fence is left behind it, and the next frame is drawn only
+       when the fence has been reached. Two frames may be on their way on a card that draws one in under 100 ms (one
+       would halve the rate of a card that needs 20 ms); one on anything slower. While a frame is held the world still
+       moves: input, physics, traffic and the camera are stepped every turn as before; only the drawing waits.
+       If no fence is ever reached (a driver that does not report them) the gate takes itself out after 40 s. */
+    _held(now) {
+      const G = this._gate || (this._gate = { q: [], ms: 0, since: 0, held: 0, drawn: 0, ok: 0, valve: 0, off: false, dt: 0, last: 0, wait: false, longest: 0 });
+      const gl = this.device.gl, q = G.q, t = performance.now(); if (G.off || this.device.lost || !gl.fenceSync) return false;
+      while (q.length) {
+        let st; try { st = gl.clientWaitSync(q[0].s, 0, 0); } catch (e) { st = gl.WAIT_FAILED; } if (st === gl.TIMEOUT_EXPIRED) { q[0].seen = true; break; }
+        const f = q.shift(); try { gl.deleteSync(f.s); } catch (e) {} if (st === gl.WAIT_FAILED) continue;
+        const ms = f.seen ? t - f.t : Math.min(t - f.t, 34); G.ms = G.ms ? G.ms * 0.7 + ms * 0.3 : ms; G.ok++;   /* reached at the first look: it may have lain there while the engine rested, so it is not counted as slow */
+      }
+      if (q.length < (G.ms > 100 ? 1 : 2)) { G.since = 0; return false; }
+      if (!G.since) G.since = t; G.longest = Math.max(G.longest, t - G.since);
+      if (t - G.since > 20000) { G.since = t; G.valve++; if (!G.ok && G.valve >= 2) { G.off = true; q.forEach(f => { try { gl.deleteSync(f.s); } catch (e) {} }); q.length = 0; } return false; }   /* held 20 s: one frame is let through all the same */
+      G.held++; G.wait = true; return true;
+    }
+    /* after a frame's draw calls: leave the fence, and note the true time between drawn frames (0 when nothing was held:
+       then the loop's own dt is the true one). A renderer that needs over a quarter of a second for a frame is not asked
+       for the 56 frames that let a still view gather: 16 are drawn and it rests (the number is a choice). */
+    _fence() {
+      const G = this._gate; if (!G || G.off || this.device.lost) return; const gl = this.device.gl, t = performance.now();
+      try { const s = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); if (s) { G.q.push({ s, t, seen: false }); gl.flush(); } } catch (e) {}
+      G.dt = G.wait && G.last ? Math.min(4, Math.max(0.0001, (t - G.last) / 1000)) : 0; G.wait = false; G.last = t; G.drawn++;
+      if (G.ms > 250 && this._settle > 16 && !(this._watchS && (this._watchS.black || this._watchS.pend))) this._settle = 16;   /* not while the watch is in doubt: its second look is 24 frames on */
+    }
+    /* for tests and the status line: how the drawing is paced */
+    pacing() { const G = this._gate; return G ? { inFlight: G.q.length, frameMs: Math.round(G.ms), allowed: G.ms > 100 ? 1 : 2, held: G.held, drawn: G.drawn, longestHoldMs: Math.round(G.longest), let: G.valve, off: G.off } : null; }
+    /* The watch's nine points, read without waiting: they are copied into a small buffer on the card and a fence is
+       left; the answer is fetched on a later frame, when the fence has been reached. (Reading them straight back made
+       the page wait for every frame still queued: 47.8 s in one call, measured as above.) False if it cannot be set up. */
+    _watchAsk(W, w, h) {
+      const gl = this.device.gl; if (!gl.fenceSync || !gl.getBufferSubData) return false;
+      try {
+        const b = gl.createBuffer(); gl.bindBuffer(gl.PIXEL_PACK_BUFFER, b); gl.bufferData(gl.PIXEL_PACK_BUFFER, 36, gl.STREAM_READ);
+        for (let i = 0; i < 9; i++) gl.readPixels(Math.floor(w * (0.1 + 0.4 * (i % 3))), Math.floor(h * (0.1 + 0.4 * Math.floor(i / 3))), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, i * 4);
+        gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null); const s = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); gl.flush(); if (!s) { gl.deleteBuffer(b); return false; }
+        W.pend = { b, s, t: performance.now() }; return true;
+      } catch (e) { try { gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null); } catch (x) {} return false; }
+    }
+    /* null: not drawn yet. true: something is lit (or the answer was lost with the context). false: all nine are black. */
+    _watchRead(W) {
+      const gl = this.device.gl, p = W.pend; let st; try { st = gl.clientWaitSync(p.s, 0, 0); } catch (e) { st = gl.WAIT_FAILED; }
+      if (st === gl.TIMEOUT_EXPIRED && performance.now() - p.t < 60000) return null;
+      W.pend = null; let lit = true;
+      try { if (st === gl.ALREADY_SIGNALED || st === gl.CONDITION_SATISFIED) { const px = new Uint8Array(36); gl.bindBuffer(gl.PIXEL_PACK_BUFFER, p.b); gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, px); gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null); lit = false; for (let i = 0; i < 36; i++) if (i % 4 !== 3 && px[i] > 0) lit = true; }
+        gl.deleteSync(p.s); gl.deleteBuffer(p.b); } catch (e) { lit = true; }
+      return lit;
+    }
+    /* the context was taken away or given back: what was left on the card is gone with it */
+    _ctxGone() { const G = this._gate; if (G) { G.q.length = 0; G.since = 0; } if (this._watchS) this._watchS.pend = null; }
     /* on Auto: frames that run long for a while step the quality down once, and say so */
     /* dynamic resolution: when frames run long the picture is drawn with fewer pixels and filled back in by the temporal
        filter; when there is room it goes back up. Going up is tried carefully: a try that drops the frame rate is undone
@@ -2519,9 +2581,11 @@ void main() { vec2 lo = floor(gl_FragCoord.xy) / u_dstRes * u_srcRes, hi = (floo
        Low, then it is said plainly. This is the net under what cannot be tested here: only a software renderer could
        be, and it is more forgiving than a graphics card's driver. */
     _watch() {
-      const W = this._watchS || (this._watchS = { n: 0, black: 0, left: 12, stage: 0 }); if (W.left <= 0 || (++W.n % 24) || this.renderer.sky.night > 0.5 || this.renderer.settings.viewMode !== 'lit') return; W.left--;
-      const dev = this.device, gl = dev.gl, w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(4); let lit = false; dev.bind(null);
-      for (let i = 0; i < 9 && !lit; i++) { gl.readPixels(Math.floor(w * (0.1 + 0.4 * (i % 3))), Math.floor(h * (0.1 + 0.4 * Math.floor(i / 3))), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); if (px[0] + px[1] + px[2] > 0) lit = true; }
+      const W = this._watchS || (this._watchS = { n: 0, black: 0, left: 12, stage: 0 }); let lit = false;
+      if (W.pend) { lit = this._watchRead(W); if (lit === null) return; } else { if (W.left <= 0 || (++W.n % 24) || this.renderer.sky.night > 0.5 || this.renderer.settings.viewMode !== 'lit') return; W.left--;
+      const dev = this.device, gl = dev.gl, w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(4); dev.bind(null);
+      if (this._watchAsk(W, w, h)) return;   /* the answer comes on a later frame */
+      for (let i = 0; i < 9 && !lit; i++) { gl.readPixels(Math.floor(w * (0.1 + 0.4 * (i % 3))), Math.floor(h * (0.1 + 0.4 * Math.floor(i / 3))), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); if (px[0] + px[1] + px[2] > 0) lit = true; } }
       if (lit) { W.black = 0; return; } if (++W.black < 2) { this.requestRender(30); return; } W.black = 0; W.stage++; W.left = 12;
       if (W.stage === 1) { this.renderer.safe(); this.emit('degraded', 'The picture came out black, so the optional effects are switched off.', 'the driver reported no error'); }
       else if (W.stage === 2) { this.setQuality('low'); this.autoQuality = false; this.renderer.safe(); this._watchS = W; W.left = 12; this.emit('degraded', 'The picture is still black, so the quality is set to Low.', 'the driver reported no error'); }
@@ -3332,7 +3396,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
   function WorldKit(engine, env, S) {
     const dev = engine.device, TEXD = window.__SCOUT_TEX__ || {}, K = {};
     const hexRGB = h => { const c = SE.color(h); return [SE.linToSrgb(c[0]), SE.linToSrgb(c[1]), SE.linToSrgb(c[2]), 1]; };   /* colours for vertices are stored as displayed */
-    const cvs = (w, h, fill) => { const c = document.createElement('canvas'); c.width = w; c.height = h || w; if (fill) { const g = c.getContext('2d'); g.fillStyle = fill; g.fillRect(0, 0, w, c.height); } return c; };
+    const cvs = (w, h, fill) => { const c = document.createElement('canvas'); c.width = w; c.height = h || w; c.getContext('2d', { willReadFrequently: true }); if (fill) { const g = c.getContext('2d'); g.fillStyle = fill; g.fillRect(0, 0, w, c.height); } return c; };
 
     /* ---------- photo-scanned materials (CC0, carried in the page as window.__SCOUT_TEX__), stacked in three array textures ---------- */
     const LAYERS = ['brick', 'siding', 'stucco', 'metal', 'concrete', 'asphalt', 'grass'], LAYER = {}; LAYERS.forEach((k, i) => { LAYER[k] = i; });
@@ -3682,7 +3746,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     P.decks = (roads, o) => {
       const sky = o && o.sky, N = new Map(), FX = new Map(), drive = r => r.kind !== 'path' && r.kind !== 'cable';
       const skyOn = r => { const P2 = r.pts, n = P2.length; let any = 0, run = 0, best = 0; const sk = new Uint8Array(n); for (let i = 0; i < n; i++) { const a = P2[Math.max(0, i - 1)], b = P2[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, v = sky(P2[i][0], P2[i][1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (v != null) { r.dk[i] = v; sk[i] = 1; any++; run++; if (run > best) best = run; } else run = 0; } r.sk = best >= 2 ? sk : null; r.sky = best >= 2; if (!r.sky && any) for (let i = 0; i < n; i++) if (sk[i]) r.dk[i] = r.span ? r.lv * LEVEL : 0; };
-      roads.forEach(r => { r.dk = r.pts.map(() => (r.span ? r.lv * LEVEL : 0)); r.sky = false; r.sk = null; if (sky && r.kind !== 'cable') skyOn(r); if (!drive(r)) return;
+      roads.forEach(r => { r.dk = r.pts.map((p, i) => Math.max(r.span ? r.lv * LEVEL : 0, r.lift ? r.lift[i] || 0 : 0)); r.sky = false; r.sk = null; if (sky && r.kind !== 'cable') skyOn(r); if (!drive(r)) return;
         r.pts.forEach((p, i) => { const k = key(p); if (r.sk && r.sk[i]) { FX.set(k, r.dk[i]); N.set(k, r.dk[i]); return; } if (FX.has(k)) return; const v = N.get(k); if (v === undefined || r.dk[i] > v) N.set(k, r.dk[i]); }); });
       for (let pass = 0, ch = true; ch && pass < 12; pass++) { ch = false; roads.forEach(r => { if (!drive(r)) return; const g = r.kind === 'freeway' || r.kind === 'ramp' ? 0.06 : 0.08, n = r.pts.length, h = r.dk, sk = r.sk;
           for (let i = 0; i < n; i++) { if (sk && sk[i]) continue; const k = key(r.pts[i]), f = FX.get(k); if (f !== undefined) { if (h[i] !== f) { h[i] = f; ch = true; } continue; } const v = N.get(k); if (v > h[i] + 0.01) { h[i] = v; ch = true; } }
@@ -3698,7 +3762,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       roads.forEach(r => { if (r.lv >= 0 || r.kind === 'path' || r.kind === 'cable' || r.sky) return; const n = r.pts.length, a = [0]; for (let i = 1; i < n; i++) a.push(a[i - 1] + Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1])); for (let i = 0; i < n; i++) r.dk[i] = -LEVEL * Math.min(1, Math.min(a[i], a[n - 1] - a[i]) / 40); });
       roads.forEach(r => { r.up = r.sky || r.dk.some(v => v > 0.3); r.own = r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable' || r.up || r.lv < 0; });
       /* long gaps between points are filled, so a rise is a slope and not a step, and a deck can follow the ground */
-      roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]]; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(24, Math.floor(l / 16)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); } p2.push(b); d2.push(r.dk[i]); } r.pts = p2; r.dk = d2;
+      roads.forEach(r => { if (!r.own) return; const p2 = [r.pts[0]], d2 = [r.dk[0]], l2 = r.lift ? [r.lift[0] || 0] : null; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.min(24, Math.floor(l / 16)); for (let j = 1; j <= m; j++) { const t = j / (m + 1); p2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d2.push(r.dk[i - 1] + (r.dk[i] - r.dk[i - 1]) * t); if (l2) l2.push(0); } p2.push(b); d2.push(r.dk[i]); if (l2) l2.push(r.lift[i] || 0); } r.pts = p2; r.dk = d2; if (l2) r.lift = l2;
         /* on a given deck every point is read again: its profile is a curve, not a line between the map's points */
         if (r.sky) { const n = p2.length, sk = new Uint8Array(n); for (let i = 0; i < n; i++) { const a = p2[Math.max(0, i - 1)], b = p2[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, v = sky(p2[i][0], p2[i][1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (v != null) { d2[i] = v; sk[i] = 1; } } r.sk = sk; } }); };
     /* A bridge is straight from one abutment to the other: where the ground falls away under it (a river, a canyon, a cutting) its
@@ -3707,10 +3771,24 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
        of the deck comes lower over the ground than its level. Points on a given deck (r.sk) are left as they are. */
     P.level = (roads, gy) => { const sp = roads.filter(r => r.span && r.kind !== 'path' && r.kind !== 'cable' && r.pts.length > 1); if (!sp.length) return 0; const other = new Set(); roads.forEach(r => { if (r.span || r.kind === 'path' || r.kind === 'cable') return; other.add(key(r.pts[0])); other.add(key(r.pts[r.pts.length - 1])); });
       const ND = new Map(), nd = (p, h) => { const k = key(p); let n = ND.get(k); if (!n) ND.set(k, n = { y: gy(p[0], p[1]) + h, e: [], fix: other.has(k), deg: 0 }); n.deg++; return n; };
-      const E = sp.map(r => { const n = r.pts.length; let len = 0; const acc = [0]; for (let i = 1; i < n; i++) { len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); acc.push(len); } const a = nd(r.pts[0], r.dk[0]), b = nd(r.pts[n - 1], r.dk[n - 1]), w = 1 / Math.max(len, 1); a.e.push([b, w]); b.e.push([a, w]); if (r.sk && r.sk[0]) a.fix = true; if (r.sk && r.sk[n - 1]) b.fix = true; return { r, a, b, acc, len }; });
+      /* a road partly on a given deck is taken in its other parts only, each from the deck's own height where it leaves it */
+      const E = []; sp.forEach(r => { const n = r.pts.length, sk = r.sk, runs = []; if (!sk) runs.push([0, n - 1]); else { let i = 0; while (i < n) { if (sk[i]) { i++; continue; } let j = i; while (j + 1 < n && !sk[j + 1]) j++; runs.push([Math.max(0, i - 1), Math.min(n - 1, j + 1)]); i = j + 1; } }
+        runs.forEach(([i0, i1]) => { if (i1 <= i0) return; const at = i => (sk && sk[i] ? { y: gy(r.pts[i][0], r.pts[i][1]) + r.dk[i], e: [], fix: true, deg: 2 } : nd(r.pts[i], r.dk[i])), acc = [0]; let len = 0; for (let i = i0 + 1; i <= i1; i++) { len += Math.hypot(r.pts[i][0] - r.pts[i - 1][0], r.pts[i][1] - r.pts[i - 1][1]); acc.push(len); } const a = at(i0), b = at(i1), w = 1 / Math.max(len, 1); a.e.push([b, w]); b.e.push([a, w]); E.push({ r, a, b, acc, len, i0, i1 }); }); });
       const free = []; ND.forEach(n => { if (n.deg < 2) n.fix = true; if (!n.fix) free.push(n); });
       for (let it = 0; it < 80 && free.length; it++) { let mv = 0; for (const n of free) { let sw = 0, sy = 0; for (const [m, w] of n.e) { sw += w; sy += w * m.y; } const y = sy / sw; mv = Math.max(mv, Math.abs(y - n.y)); n.y = y; } if (mv < 0.02) break; }
-      let ch = 0; E.forEach(({ r, a, b, acc, len }) => { for (let i = 0; i < r.pts.length; i++) { if (r.sk && r.sk[i]) continue; const v = a.y + (b.y - a.y) * (len ? acc[i] / len : 0) - gy(r.pts[i][0], r.pts[i][1]); if (v > r.dk[i] + 0.05) { r.dk[i] = v; ch++; } } if (ch) r.up = r.up || r.dk.some(v => v > 0.3); }); return ch; };
+      let ch = 0; E.forEach(({ r, a, b, acc, len, i0, i1 }) => { for (let i = i0; i <= i1; i++) { if (r.sk && r.sk[i]) continue; const v = a.y + (b.y - a.y) * (len ? acc[i - i0] / len : 0) - gy(r.pts[i][0], r.pts[i][1]); if (v > r.dk[i] + 0.05) { r.dk[i] = v; ch++; } } if (ch) r.up = r.up || r.dk.some(v => v > 0.3); }); return ch; };
+    /* A freeway is an engineered line: it does not ride every bump of the ground under its centre line, and it is level from side to side. Given
+       the ground (gy), each freeway and ramp that lies on the ground is given a profile: nowhere under the ground at its middle or either edge
+       (less a little: a road may be cut 0.3 m in), no steeper than `g` along its length (the hollows are filled, as an embankment), and smoothed
+       over about 100 m. What it stands above the ground at each point goes into r.dk, as for a bridge. Roads that meet agree where they meet.
+       Points on a landmark deck, bridges and tunnels are left as they are. */
+    P.grade = (roads, gy, g) => { g = g || 0.05; const fw = roads.filter(r => (r.kind === 'freeway' || r.kind === 'ramp') && r.lv >= 0 && r.pts.length > 1); if (!fw.length) return 0; const N = new Map(), nodeKeys = r => [key(r.pts[0]), key(r.pts[r.pts.length - 1])];
+      const prof = fw.map(r => { const n = r.pts.length, hw = (r.w || r.ln * LW + 4) / 2, base = new Float64Array(n), Y = new Float64Array(n), d = new Float64Array(n), free = new Uint8Array(n); for (let i = 0; i < n; i++) { const p = r.pts[i], a = r.pts[Math.max(0, i - 1)], b = r.pts[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = -(b[1] - a[1]) / l * hw, nz = (b[0] - a[0]) / l * hw, c = gy(p[0], p[1]); base[i] = c; d[i] = i ? Math.hypot(p[0] - r.pts[i - 1][0], p[1] - r.pts[i - 1][1]) : 0; free[i] = (r.sk && r.sk[i]) || r.dk[i] > 0.5 ? 0 : 1; Y[i] = free[i] ? Math.max(c, gy(p[0] + nx, p[1] + nz), gy(p[0] - nx, p[1] - nz)) - 0.3 : c + r.dk[i]; } return { r, n, base, Y, d, free }; });
+      const limit = q => { const { n, Y, d, free } = q; for (let i = 1; i < n; i++) { const v = Y[i - 1] - g * d[i]; if (free[i] && v > Y[i]) Y[i] = v; } for (let i = n - 2; i >= 0; i--) { const v = Y[i + 1] - g * d[i + 1]; if (free[i] && v > Y[i]) Y[i] = v; } };
+      const smooth = q => { const { n, Y, free } = q, low = Float64Array.from(Y); for (let it = 0; it < 6; it++) { let pv = Y[0]; for (let i = 1; i < n - 1; i++) { const c = Y[i], v = (pv + 2 * c + Y[i + 1]) / 4; pv = c; if (free[i]) Y[i] = Math.max(v, low[i] - 0.25); } } };
+      for (let round = 0; round < 3; round++) { prof.forEach(q => { limit(q); if (round) smooth(q); const k = nodeKeys(q.r), e = q.n - 1; if (q.free[0]) { const v = N.get(k[0]); if (v === undefined || q.Y[0] > v) N.set(k[0], q.Y[0]); } if (q.free[e]) { const v = N.get(k[1]); if (v === undefined || q.Y[e] > v) N.set(k[1], q.Y[e]); } });
+        prof.forEach(q => { const k = nodeKeys(q.r), e = q.n - 1, a = N.get(k[0]), b = N.get(k[1]); if (q.free[0] && a !== undefined) q.Y[0] = a; if (q.free[e] && b !== undefined) q.Y[e] = b; limit(q); }); }
+      let ch = 0; prof.forEach(({ r, n, base, Y, free }) => { for (let i = 0; i < n; i++) if (free[i]) { const v = Math.max(0, Y[i] - base[i]); if (Math.abs(v - r.dk[i]) > 0.02) ch++; r.dk[i] = v; } r.graded = true; }); return ch; };
     /* a long bridge that the map names as a bridge (the Coronado, the Bay Bridge, the Golden Gate) climbs to let ships under:
        up to 55 m at the middle of its length (the Coronado's deck is 61 m over the channel). Viaducts over land stay at their level. */
     P.high = roads => { const sp = roads.filter(r => r.span && !r.sky && /bridge/i.test(r.name || '') && (r.kind === 'freeway' || r.kind === 'major')), par = sp.map((r, i) => i), find = i => { while (par[i] !== i) i = par[i] = par[par[i]]; return i; }, ends = new Map();
@@ -3722,9 +3800,22 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     P.ground = roads => { const use = new Map(); roads.forEach(r => { if (r.kind !== 'freeway' && r.kind !== 'ramp') return; [r.pts[0], r.pts[r.pts.length - 1]].forEach(p => use.set(key(p), (use.get(key(p)) || 0) + 1)); r.pts.slice(1, -1).forEach(p => use.set(key(p), (use.get(key(p)) || 0) + 2)); });
       roads.forEach(r => { if (r.kind !== 'ramp' || r.span) return; const n = r.pts.length; [[0, 1], [n - 1, -1]].forEach(([e, sd]) => { if (use.get(key(r.pts[e])) > 1) return; let d = 0; for (let i = e; i >= 0 && i < n; i += sd) { if (i !== e) d += Math.hypot(r.pts[i][0] - r.pts[i - sd][0], r.pts[i][1] - r.pts[i - sd][1]); r.dk[i] = Math.min(r.dk[i], 0.09 * d); } }); }); };
     /* the Census file has no direction: of two freeway lines running side by side, each is taken to run with the other on its left */
-    P.pairDirs = roads => { const F = roads.filter(r => r.kind === 'freeway' && r.oneway == null); F.forEach(r => { const m = r.pts[Math.floor(r.pts.length / 2)], a = r.pts[Math.max(0, Math.floor(r.pts.length / 2) - 1)], hx = m[0] - a[0], hz = m[1] - a[1], hl = Math.hypot(hx, hz) || 1; let best = 0, bd = 70;
-        for (const o of F) { if (o === r) continue; for (const q of o.pts) { const dx = q[0] - m[0], dz = q[1] - m[1], d = Math.hypot(dx, dz); if (d < bd && d > 4) { const side = (dx * -hz + dz * hx) / hl; if (Math.abs(side) > d * 0.7) { bd = d; best = side; } } } }
-        r.oneway = best < 0 ? 1 : best > 0 ? -1 : 0; if (r.oneway && !r.lanes) r.lanes = 4; }); };
+    P.pairDirs = roads => { const F = roads.filter(r => r.kind === 'freeway' && r.oneway == null); F.forEach(r => { const n = r.pts.length; let vote = 0;
+        for (const f of [0.12, 0.3, 0.5, 0.7, 0.88]) { const k = Math.min(n - 1, Math.max(1, Math.round((n - 1) * f))), m = r.pts[k], a = r.pts[k - 1], hx = m[0] - a[0], hz = m[1] - a[1], hl = Math.hypot(hx, hz) || 1; let best = 0, bd = 110;
+          for (const o of F) { if (o === r) continue; for (const q of o.pts) { const dx = q[0] - m[0], dz = q[1] - m[1]; if (Math.abs(dx) > bd || Math.abs(dz) > bd) continue; const d = Math.hypot(dx, dz); if (d < bd && d > 4) { const side = (dx * -hz + dz * hx) / hl; if (Math.abs(side) > d * 0.7) { bd = d; best = side; } } } } vote += best < 0 ? -1 : best > 0 ? 1 : 0; }
+        r.oneway = vote < 0 ? 1 : vote > 0 ? -1 : 0; if (r.oneway && !r.lanes) r.lanes = 4; }); };
+    /* The Census map has no bridges either: a surface street that crosses a freeway's line would cross its traffic on the level. Such a street is
+       taken over the freeway: at the crossing it stands one level up (r.lift, read by P.decks), and comes down from there at a street's grade.
+       Which of the two really goes over is not known; that they do not meet is. fw: the freeway lines (points in the same metres). */
+    P.crossLift = (streets, fw) => { const G = new Map(), C = 48, put = (k, v) => { const a = G.get(k); if (a) a.push(v); else G.set(k, [v]); }; fw.forEach(r => { if (r.kind !== 'freeway' && r.kind !== 'ramp') return; for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i]; for (let x = Math.floor(Math.min(a[0], b[0]) / C); x <= Math.floor(Math.max(a[0], b[0]) / C); x++) for (let z = Math.floor(Math.min(a[1], b[1]) / C); z <= Math.floor(Math.max(a[1], b[1]) / C); z++) put(x + ':' + z, [a, b]); } }); if (!G.size) return 0; let n = 0;
+      /* the Census lines are cut at every crossing, bridges included: a street usually has a point of its own exactly on the freeway's line, in its middle
+         or (where it is two lines end to end) at the end of each; a street that only ends at a freeway and does not go on is left on the ground */
+      const ok = r => r.kind === 'street' || r.kind === 'major' || r.kind === 'service' || r.kind === 'alley', ends = new Map(); streets.forEach(r => { if (!ok(r)) return; [r.pts[0], r.pts[r.pts.length - 1]].forEach(p => { const k = key(p); ends.set(k, (ends.get(k) || 0) + 1); }); });
+      const onLine = p => { const cell = G.get(Math.floor(p[0] / C) + ':' + Math.floor(p[1] / C)); if (!cell) return false; for (const [a, b] of cell) { const dx = b[0] - a[0], dz = b[1] - a[1], l2 = dx * dx + dz * dz || 1e-9, t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / l2)); if (Math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dz * t) < 0.8) return true; } return false; };
+      streets.forEach(r => { if (!ok(r)) return; const m = r.pts.length, P2 = [r.pts[0]], L2 = [onLine(r.pts[0]) && ends.get(key(r.pts[0])) > 1 ? LEVEL : 0]; let any = L2[0] > 0;
+        for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i], ts = []; for (let x = Math.floor(Math.min(a[0], b[0]) / C); x <= Math.floor(Math.max(a[0], b[0]) / C); x++) for (let z = Math.floor(Math.min(a[1], b[1]) / C); z <= Math.floor(Math.max(a[1], b[1]) / C); z++) { const cell = G.get(x + ':' + z); if (!cell) continue; for (const [p, q] of cell) { const rx = b[0] - a[0], rz = b[1] - a[1], sx = q[0] - p[0], sz = q[1] - p[1], den = rx * sz - rz * sx; if (Math.abs(den) < 1e-9) continue; const t = ((p[0] - a[0]) * sz - (p[1] - a[1]) * sx) / den, u = ((p[0] - a[0]) * rz - (p[1] - a[1]) * rx) / den; if (t > 0.001 && t < 0.999 && u >= 0 && u <= 1) ts.push(t); } }
+          ts.sort((x, y) => x - y); let last = -1; for (const t of ts) { if (t - last < 0.002) continue; last = t; P2.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); L2.push(LEVEL); any = true; n++; } const up = onLine(b) && (i < m - 1 || ends.get(key(b)) > 1); P2.push(b); L2.push(up ? LEVEL : 0); if (up) { any = true; n++; } }
+        if (any) { r.pts = P2; r.lift = L2; } }); return n; };
     return P;
   })();
 
@@ -3786,6 +3877,10 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       segs.forEach(s => s.L.forEach(a => a.sort((p, q) => p.s - q.s))); F.cars.forEach(c => pose(c));
     };
     /* the lane under a point: { seg, lane, s, lat (how far off the lane's middle) } */
+    /* every piece that has (x, z) in one of its lanes at the level dk: the nearest place on each */
+    F.locateAll = (x, z, dk) => { const out = []; for (const s of F.segs) { if (s.hide || x < s.x0 - 14 || x > s.x1 + 14 || z < s.z0 - 14 || z > s.z1 + 14) continue; const P = s.pts; let best = null, bd = 9; for (let i = 1; i < P.length; i++) { const a = P[i - 1], dx = P[i][0] - a[0], dz = P[i][1] - a[1], l2 = dx * dx + dz * dz || 1, u = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / l2, 0, 1), l = Math.sqrt(l2), px = x - a[0] - dx * u, pz = z - a[1] - dz * u, side = (px * -dz + pz * dx) / l - s.shiftX, d = Math.hypot(px, pz);
+          if (d > s.n * LW / 2 + s.shiftX + 1.5) continue; if (dk != null && Math.abs((s.dk[i - 1] + (s.dk[i] - s.dk[i - 1]) * u) - dk) > 3.5) continue; const lf = side / LW + (s.n - 1) / 2, lane = clamp(Math.round(lf), 0, s.n - 1), lat = Math.abs(lf - lane) * LW; if (lat < bd) { bd = lat; best = { seg: s, lane, s: s.acc[i - 1] + u * l, lat, side: (lf - lane) * LW }; } }
+        if (best && best.lat < LW * 0.75) out.push(best); } return out; };
     F.locate = (x, z, hx, hz, dk) => { let best = null, bd = 9; for (const s of F.segs) { if (x < s.x0 - 14 || x > s.x1 + 14 || z < s.z0 - 14 || z > s.z1 + 14) continue; const P = s.pts; for (let i = 1; i < P.length; i++) { const a = P[i - 1], dx = P[i][0] - a[0], dz = P[i][1] - a[1], l2 = dx * dx + dz * dz || 1, u = clamp(((x - a[0]) * dx + (z - a[1]) * dz) / l2, 0, 1), l = Math.sqrt(l2), px = x - a[0] - dx * u, pz = z - a[1] - dz * u, side = (px * -dz + pz * dx) / l - s.shiftX, d = Math.hypot(px, pz);
           if (d > s.n * LW / 2 + s.shiftX + 1.5) continue; if (hx != null && (hx * dx + hz * dz) / l < 0.3) continue; if (dk != null && Math.abs((s.dk[i - 1] + (s.dk[i] - s.dk[i - 1]) * u) - dk) > 3.5) continue;
           const lf = side / LW + (s.n - 1) / 2, lane = clamp(Math.round(lf), 0, s.n - 1), lat = Math.abs(lf - lane) * LW, sc = lat + (Math.abs(lf - lane) > 0.5 ? 3 : 0); if (sc < bd) { bd = sc; best = { seg: s, lane, s: s.acc[i - 1] + u * l, lat, side: (lf - lane) * LW }; } } } return best; };
@@ -3825,10 +3920,13 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       if (at < 90) for (const p of s.ins) for (const k of p.conn) { if (k.out !== s) continue; const l0 = lane - k.shift; if (l0 < k.lo || l0 > k.hi) continue; const ar = p.L[l0]; if (ar.length) { const o = ar[ar.length - 1], g = at - hl + (p.len - o.s) - o.hl; if (g < FL.gap) { FL.gap = g; FL.c = o; } } } }
 
     /* ---------- one step ---------- */
+    /* no vehicle is put down on top of the user's car, or just in front of it or behind */
+    const nearActor = c => { for (const a of F.actors) { const dx = c.x - a.x, dz = c.z - a.z; if (dx * dx + dz * dz < 400 && (a.dk == null || Math.abs((c.dk || 0) - a.dk) < 4)) return true; } return false; };
     F.step = (dt, eye) => {
       F.time += dt; const segs = F.segs;
       /* other actors (the user's car) take their place in the lanes for this step */
-      const ghosts = []; for (const a of F.actors) { const hit = F.locate(a.x, a.z, null, null, a.dk); if (!hit) continue; const al = (a.hx * (hit.seg.pts[1][0] - hit.seg.pts[0][0]) + a.hz * (hit.seg.pts[1][1] - hit.seg.pts[0][1])); const put = (lane) => { const g = { actor: true, seg: hit.seg, lane, s: hit.s, v: Math.max(0, a.v * (al >= 0 ? 1 : -0.2)), hl: a.hl + 0.4, hw: a.hw, len: a.hl * 2, id: 0, lat: 0, am: 2, th: 1 }; const arr = hit.seg.L[lane]; let i = 0; while (i < arr.length && arr[i].s < g.s) i++; arr.splice(i, 0, g); ghosts.push(g); }; put(hit.lane); if (Math.abs(hit.side) > 0.75) { const l2 = hit.lane + (hit.side > 0 ? 1 : -1); if (l2 >= 0 && l2 < hit.seg.n) put(l2); } }
+      /* the user's car stands in every piece whose lanes it is in: where a ramp runs into a carriageway the two overlap, and traffic on both must see it */
+      const ghosts = []; for (const a of F.actors) for (const hit of F.locateAll(a.x, a.z, a.dk)) { const al = (a.hx * (hit.seg.pts[1][0] - hit.seg.pts[0][0]) + a.hz * (hit.seg.pts[1][1] - hit.seg.pts[0][1])); const put = (lane) => { const g = { actor: true, seg: hit.seg, lane, s: hit.s, v: Math.max(0, a.v * (al >= 0 ? 1 : -0.2)), hl: a.hl + 0.4, hw: a.hw, len: a.hl * 2, id: 0, lat: 0, am: 2, th: 1 }; const arr = hit.seg.L[lane]; let i = 0; while (i < arr.length && arr[i].s < g.s) i++; arr.splice(i, 0, g); ghosts.push(g); }; put(hit.lane); if (Math.abs(hit.side) > 0.75) { const l2 = hit.lane + (hit.side > 0 ? 1 : -1); if (l2 >= 0 && l2 < hit.seg.n) put(l2); } }
       for (const s of segs) { if (!s.act) continue; for (let ln = 0; ln < s.n; ln++) { const arr = s.L[ln]; for (let i = arr.length - 1; i >= 0; i--) { const c = arr[i]; if (c.actor) continue; if (c.ci < 0 && s.conn.length) route(c);
             lead(c, s, ln, c.s, i + 1, c.hl); let gap = LD.gap, dv = c.v - LD.v; const wall = LD.wall; let v0 = Math.min(s.lim * c.top, c.vcap || 99, c.vmax) * (s.hov && ln === 0 ? 1.05 : 1); if (c.ci >= 0) { const vn = s.conn[c.ci].out.vc[0]; if (vn < v0) v0 = Math.min(v0, Math.sqrt(vn * vn + 2.6 * (s.len - c.s))); }
             let a = idm(c, v0, gap, dv);
@@ -3854,7 +3952,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       /* --- the roads that come in from beyond what is loaded bring cars at the spacing the hour gives --- */
       let nCable = 0; if (F.cableMax > 2 || segs.some(s => s.kind === 'cable')) for (const c of F.cars) if (c.kind === 'cable') nCable++;
       if (F.cars.length < F.cap) for (const s of segs) { if (!s.act || !s.entry) continue; const sp = 1000 / s.k, ve = Math.min(s.vt, s.kind === 'ramp' ? 13 : 99, s.vc[0]); for (let ln = 0; ln < s.n; ln++) { const arr = s.L[ln], f = arr[0], room = f ? f.s - f.hl : 1e9; if (s.kind === 'cable' && nCable >= F.cableMax) continue; if (s.kind === 'ramp') { s.meterT = (s.meterT || 0) - dt / s.n; if (s.meterT > 0 || room < 14) continue; s.meterT = s.meter || Math.max(2.2, sp / Math.max(ve, 3)) * (0.6 + R() * 0.8); } else { /* one car per headway of the hour's flow in this lane (cars per km times speed), and only into a clear stretch */ const nt = s.nextT || (s.nextT = []); if (F.time < (nt[ln] || 0) || room < 10 + ve * 0.9) continue; nt[ln] = F.time + sp / Math.max(ve, 3) * (0.55 + 0.9 * R()); if (s.end[ln] < s.len + 400 && s.conn.length) continue; }
-          const c = make(s, ln, 2.6, f ? Math.min(ve, f.v + 2) : ve); if (!allowed(c, s, ln)) { F.pool.push(c); continue; } c.s = c.hl + 0.2; if (room < c.len + 2) { F.pool.push(c); continue; } arr.unshift(c); F.cars.push(c); pose(c); F.events.spawned++; if (c.kind === 'cable') nCable++; if (F.cars.length >= F.cap) break; } }
+          const c = make(s, ln, 2.6, f ? Math.min(ve, f.v + 2) : ve); if (!allowed(c, s, ln)) { F.pool.push(c); continue; } c.s = c.hl + 0.2; if (room < c.len + 2) { F.pool.push(c); continue; } pose(c); if (nearActor(c)) { F.pool.push(c); continue; } arr.unshift(c); F.cars.push(c); pose(c); F.events.spawned++; if (c.kind === 'cable') nCable++; if (F.cars.length >= F.cap) break; } }
     };
 
     /* ---------- how full each piece should be: set from the hour and the counts, and the fleet laid down to match ---------- */
@@ -3866,7 +3964,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       F.within = lim; for (const s of F.segs) { const was = s.act; s.act = s.dEye <= lim; if (was && !s.act) s.L.forEach(a => { a.forEach(c => { c.gone = true; }); a.length = 0; }); }
       for (const s of F.segs) s.entry = s.act && (!s.ins.length || s.ins.every(p => !p.act));
       F.cars = F.cars.filter(c => { if (c.gone) F.pool.push(c); return !c.gone; }); };
-    F.fill = () => { for (const s of F.segs) { if (!s.act || s._filled === F._gen) continue; s._filled = F._gen; if (s.L.some(a => a.length)) continue; const sp = 1000 / s.k; for (let ln = 0; ln < s.n; ln++) { let at = sp * R(); while (at < s.len - 1 && F.cars.length < F.cap) { const c = make(s, ln, at, Math.min(s.vt, s.vc[0]) * (0.92 + R() * 0.12)); if (allowed(c, s, ln) && !(s.conn.length && s.end[ln] - at < 300)) { s.L[ln].push(c); F.cars.push(c); pose(c); c.v = Math.min(c.v, c.vcap || 99); } else F.pool.push(c); at += sp * (0.7 + R() * 0.6) + (c.len - 4.8); } } } };
+    F.fill = () => { for (const s of F.segs) { if (!s.act || s._filled === F._gen) continue; s._filled = F._gen; if (s.L.some(a => a.length)) continue; const sp = 1000 / s.k; for (let ln = 0; ln < s.n; ln++) { let at = sp * R(); while (at < s.len - 1 && F.cars.length < F.cap) { const c = make(s, ln, at, Math.min(s.vt, s.vc[0]) * (0.92 + R() * 0.12)); pose(c); if (allowed(c, s, ln) && !(s.conn.length && s.end[ln] - at < 300) && !nearActor(c)) { s.L[ln].push(c); F.cars.push(c); pose(c); c.v = Math.min(c.v, c.vcap || 99); } else F.pool.push(c); at += sp * (0.7 + R() * 0.6) + (c.len - 4.8); } } } };
     F.clear = () => { F.cars.length = 0; F.segs.forEach(s => { s.L.forEach(a => { a.length = 0; }); s._filled = -1; }); F._gen = (F._gen || 0) + 1; };
     /* how many of the cars' boxes overlap right now (for the tests), and the nearest car whose box meets a given box */
     F.overlaps = ov => { let n = 0; const G = new Map(), kf = (x, z) => Math.floor(x / 24) + ':' + Math.floor(z / 24); F.cars.forEach(c => { const k = kf(c.x, c.z); (G.get(k) || (G.set(k, []), G.get(k))).push(c); });
@@ -3891,8 +3989,10 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     const SKQ = { info: true }, skyY = (x, z, hx, hz) => { if (!S.deckAt) return null; const d = S.deckAt(x, z, SKQ); if (!d) return null; if (hx != null && Math.abs(hx * d.tx + hz * d.tz) < 0.8) return null; return d.lower && hx > 0.15 ? d.y - d.lower : d.y; };
     const PREP = { sky: (x, z, hx, hz) => { const y = skyY(x, z, hx, hz); return y == null ? null : y - GY(x, z); } };
     /* where a vehicle of the freeway model stands: on the landmark deck if its piece runs on one, else on its own deck over the ground */
-    const yOn = c => { if (c.seg && c.seg.sk) { const y = skyY(c.x, c.z, c.hx, c.hz); if (y != null) return y; } return GY(c.x, c.z) + c.dk; };
+    const yOn = c => { const s = c.seg; if (s && s.sk) { const y = skyY(c.x, c.z, c.hx, c.hz); if (y != null) return y; } const i = c.gi, Y = s && s.Y; if (Y && i != null && i + 1 < Y.length) return Y[i] + (Y[i + 1] - Y[i]) * clamp((c.s - s.acc[i]) / (s.acc[i + 1] - s.acc[i] || 1), 0, 1); return GY(c.x, c.z) + c.dk; };
     TF.skyY = skyY; TF.yOn = yOn;
+    /* is (x, z) in a lane of a freeway or ramp that runs on the ground? (a parked car or a footprint there is a misfit of the maps, and is left out) */
+    TF.onRoad = (x, z) => F.segs.length > 0 && F.locateAll(x, z, 0).length > 0;
     TF.flow = F; S.traffic = TF;
     /* the mix of cars on California's roads: fewer full-size pickups than the engine's first edition drew, more sedans and electric cars (a choice, not a count) */
     [0.28, 0.3, 0.12, 0.14, 0.16].forEach((v, i) => { if (TYPES[i]) TYPES[i].share = v; });
@@ -3905,21 +4005,41 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     const QLA = 0.0045, QF = 5, tiles = new Map(), ftiles = new Map(); let cur = null, fcur = null, fwyRaw = [], strRaw = [], gen = -1, fwyKey = '', fwyAsk = 0;
     const qlo = la => QLA / Math.cos(la * RAD) * 0.998, snap = (la, lo, m) => { const a = QLA * m, b = qlo(Math.round(la / a) * a) * m, cla = Math.round(la / a) * a; return [cla, Math.round(lo / b) * b, a, b]; };
     const here = () => [S.lat0 - S.z / S.ky, S.lon0 + S.x / S.kx];
+    /* The Census map gives a road whole, however long (Interstate 5 from the border to Orange County as one line, and again under each of its names):
+       roads are cut to the box that was asked for (in local metres, round (cx, cz), `half` to each side), and a line that is there twice is kept once. */
+    const clipTo = (roads, cx, cz, half) => { const out = [], seen = new Set(), ins = p => Math.abs(p[0] - cx) <= half && Math.abs(p[1] - cz) <= half, cut = (a, b) => { let t = 0; if (Math.abs(a[0] - cx) > half) t = Math.max(t, (Math.abs(a[0] - cx) - half) / (Math.abs(a[0] - b[0]) || 1)); if (Math.abs(a[1] - cz) > half) t = Math.max(t, (Math.abs(a[1] - cz) - half) / (Math.abs(a[1] - b[1]) || 1)); t = Math.min(1, t); return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
+      const keep = (r, pts, tag) => { if (pts.length < 2) return; const e = pts[pts.length - 1], k = pts.length + ':' + Math.round(pts[0][0]) + ',' + Math.round(pts[0][1]) + ':' + Math.round(e[0]) + ',' + Math.round(e[1]), k2 = pts.length + ':' + Math.round(e[0]) + ',' + Math.round(e[1]) + ':' + Math.round(pts[0][0]) + ',' + Math.round(pts[0][1]); if (seen.has(k) || seen.has(k2)) return; seen.add(k); out.push(tag == null ? r : Object.assign({}, r, { pts, id: r.id + '#' + tag })); };
+      for (const r of roads) { const P = r.pts; if (P.every(ins)) { keep(r, P, null); continue; } let run = null, part = 0; for (let i = 0; i < P.length; i++) { const p = P[i]; if (ins(p)) { if (!run) { run = []; if (i > 0) run.push(cut(P[i - 1], p)); } run.push(p); } else if (run) { run.push(cut(p, P[i - 1])); keep(r, run, part++); run = null; } } if (run) keep(r, run, part++); }
+      return out; };
+    /* The same carriageway can also come twice with its points set differently (two layers of the Census map, two names). A line is kept only where it
+       does not run along one already kept (within 4 m, the same way or the opposite): what is left of it, if anything, is kept as its own pieces. */
+    const noDoubles = roads => { const G = new Map(), C = 40, out = [], cell = (x, z) => Math.floor(x / C) + ':' + Math.floor(z / C), add = r => { for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i]; for (let x = Math.floor(Math.min(a[0], b[0]) / C); x <= Math.floor(Math.max(a[0], b[0]) / C); x++) for (let z = Math.floor(Math.min(a[1], b[1]) / C); z <= Math.floor(Math.max(a[1], b[1]) / C); z++) { const k = x + ':' + z, v = G.get(k); if (v) v.push([a, b]); else G.set(k, [[a, b]]); } } };
+      const covered = p => { const cx = Math.floor(p[0] / C), cz = Math.floor(p[1] / C); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const v = G.get((cx + i) + ':' + (cz + j)); if (!v) continue; for (const [a, b] of v) { const dx = b[0] - a[0], dz = b[1] - a[1], l2 = dx * dx + dz * dz || 1e-9, t = clamp(((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / l2, 0, 1); if (Math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dz * t) < 4) return true; } } return false; };
+      for (const r of roads) { if (r.kind !== 'freeway') { out.push(r); continue; } const cv = r.pts.map(covered); if (!cv.some(Boolean)) { out.push(r); add(r); continue; } if (cv.every(Boolean)) continue; let run = null, part = 0; const fresh = []; for (let i = 0; i < r.pts.length; i++) { if (!cv[i]) { if (!run) { run = []; if (i > 0) run.push(r.pts[i - 1]); } run.push(r.pts[i]); } else if (run) { run.push(r.pts[i]); if (run.length > 2) fresh.push(Object.assign({}, r, { pts: run, id: r.id + '~' + (part++) })); run = null; } } if (run && run.length > 2) fresh.push(Object.assign({}, r, { pts: run, id: r.id + '~' + (part++) })); fresh.forEach(q => { out.push(q); add(q); }); }
+      return out; };
+    /* a road known by its number before one known by a name alone (the counts are by route number) */
+    const byRoute = (a, b) => (/^(I[- ]|US |State |Co |\d)/.test(b.name || '') ? 1 : 0) - (/^(I[- ]|US |State |Co |\d)/.test(a.name || '') ? 1 : 0);
     /* the streets round a point: the tile it is in, with 320 m to spare all round; asked once, then kept */
     let inAsk = 0;
     TF.ask = async (la, lo) => { const t = snap(la, lo, 1), k = t[0].toFixed(5) + ',' + t[1].toFixed(5); cur = t; inAsk++; const fp = askFwy(la, lo); let p = tiles.get(k); if (!p) { p = env.roads(t[0], t[1], 820); tiles.set(k, p); p.catch(() => tiles.delete(k)); if (tiles.size > 30) tiles.delete(tiles.keys().next().value); } let list; try { list = await p; /* the freeways are given five seconds to arrive first, so the world is built once and not twice */ if (fp) await Promise.race([fp, new Promise(r => setTimeout(r, 5000))]); } finally { inAsk--; } if (list && list.tiger) tiles.delete(k);   /* the Census fallback is not kept: OpenStreetMap is asked again next time */ return list; };
-    TF.stale = () => { if (S.hero && S.hero.on && Math.abs(S.hero.speed || 0) > 45) { const q = here(); if (fcur && (Math.abs(q[0] - fcur[0]) > fcur[2] * 0.62 || Math.abs(q[1] - fcur[1]) > fcur[3] * 0.62)) askFwy(q[0], q[1]); return false; }   /* over 100 mph the street set stays as it is and only the freeways keep coming */
+    let fwyFailT = 0;
+    TF.stale = () => { if (!fcur && fwyFailT && performance.now() - fwyFailT > 4000) { const q0 = here(); fwyFailT = performance.now(); askFwy(q0[0], q0[1]); }
+      if (S.hero && S.hero.on && Math.abs(S.hero.speed || 0) > 45) { const q = here(); if (fcur && (Math.abs(q[0] - fcur[0]) > fcur[2] * 0.62 || Math.abs(q[1] - fcur[1]) > fcur[3] * 0.62)) askFwy(q[0], q[1]); return false; }   /* over 100 mph the street set stays as it is and only the freeways keep coming */
       if (!cur) return !!S.roadsAt && Math.hypot(S.x - S.roadsAt[0], S.z - S.roadsAt[1]) > 230; const [la, lo] = here(); if (fcur && (Math.abs(la - fcur[0]) > fcur[2] * 0.62 || Math.abs(lo - fcur[1]) > fcur[3] * 0.62)) askFwy(la, lo); return Math.abs(la - cur[0]) > cur[2] * 0.62 || Math.abs(lo - cur[1]) > cur[3] * 0.62; };
     /* the freeways for several kilometres round, on their own: a small answer, and the far traffic has a road to run on */
     function askFwy(la, lo) { const t = snap(la, lo, QF), k = t[0].toFixed(4) + ',' + t[1].toFixed(4); if (fcur && fcur.k === k) return null; t.k = k; fcur = t; const my = ++fwyAsk, g = S.gen; let p = ftiles.get(k); if (!p) { try { p = Promise.resolve(env.roads(t[0], t[1], 3600, { only: 'freeway' })); } catch (e) { p = Promise.resolve([]); } ftiles.set(k, p); p.catch(() => ftiles.delete(k)); }
-      return p.then(list => { if (my !== fwyAsk || g !== S.gen || !list) return; fwyRaw = list.filter(r => r.kind === 'freeway' || r.kind === 'ramp'); fwyRaw.tiger = !!list.tiger; if (rebuild() && !inAsk && H.replan) H.replan();   /* trees and doors are laid out again round the new freeways */ H.need(); }).catch(() => {}); }
+      return p.then(list => { if (list && list.failed) { ftiles.delete(k); if (my === fwyAsk) { fcur = null; fwyFailT = performance.now(); } return; }   /* the map did not answer: asked again in a few seconds, not taken as a place with no freeways */ if (my !== fwyAsk || g !== S.gen || !list) return; fwyRaw = list.filter(r => r.kind === 'freeway' || r.kind === 'ramp'); fwyRaw.tiger = !!list.tiger; const made = rebuild(); if (made && !inAsk && strRaw.tiger && TF.streets && TF.streets.length && H.retake) H.retake(strRaw);   /* the Census map: the streets are graded again over the freeways that have now come */ else if (made && !inAsk && H.replan) H.replan();   /* trees and doors are laid out again round the new freeways */ H.need(); }).catch(() => {}); }
     /* The ground firms up as its tiles arrive, the datum moves, and the landmark bridges can be switched off: the heights of the decks over
        the ground are worked out again then, on the roads as they stand (the world calls this at the head of its street build). */
-    let gradeV = ''; const gradeNow = () => (S.terr && S.terr.verOf ? S.terr.verOf({ x0: S.x - 600, x1: S.x + 600, zN: S.z - 600, zS: S.z + 600 }, 0) : 0) + '/' + (S.y0 || 0) + '/' + (S.deckAt && S.deckAt.live && S.deckAt.live() ? 1 : 0);
-    TF.regrade = () => { const v = gradeNow(); if (v === gradeV || !TF.streets) return false; gradeV = v; RP.decks(TF.streets, PREP); RP.level(TF.streets, GY); fwyKey = ''; rebuild(); return true; };
+    let gradeV = '', probes = [], probeT = 0, probeGen = 0, regradeT = 0; const gradeNow = () => probeGen + '/' + (S.terr && S.terr.verOf ? S.terr.verOf({ x0: S.x - 600, x1: S.x + 600, zN: S.z - 600, zS: S.z + 600 }, 0) : 0) + '/' + (S.y0 || 0) + '/' + (S.deckAt && S.deckAt.live && S.deckAt.live() ? 1 : 0);
+    TF.regrade = () => { const v = gradeNow(); if (v === gradeV || !TF.streets) return false; gradeV = v; RP.decks(TF.streets, PREP); RP.level(TF.streets, GY); fwyKey = ''; rebuild(); S.roadsVer = (S.roadsVer || 0) + 1; return true; };
+    /* a few points of every road the kit draws, with the ground's height as it was when the road was graded: a landmark bridge's roads wherever they are (their
+       levels are worked out from it), the rest within 1.5 km (their drawn decks stand on it) */
+    function setProbes() { probes = []; const add = r => { if (!r.own || r.kind === 'cable') return; const st = r.sky ? 3 : 6; for (let i = 0; i < r.pts.length; i += st) probes.push([r.pts[i][0], r.pts[i][1], GY(r.pts[i][0], r.pts[i][1]), r.sky ? 1 : 0]); }; (TF.roads || []).forEach(add); (TF.streets || []).forEach(add); }
+    function watchGround(eye) { const tn = performance.now(); if (!S.gy || tn - probeT < 2000 || tn - regradeT < 3000) return; probeT = tn; for (const p of probes) { if (!p[3] && (Math.abs(p[0] - eye[0]) > 1500 || Math.abs(p[1] - eye[1]) > 1500)) continue; if (Math.abs(GY(p[0], p[1]) - p[2]) > 0.35) { regradeT = tn; probeGen++; TF.regrade(); H.need(); return; } } }
     /* what the world's street builder gets: the surface streets, in local metres, with what the traffic needs on them */
     TF.take = list => { if (gen !== S.gen) { gen = S.gen; F.clear(); fwyKey = ''; } strRaw = list || [];
-      const loc = strRaw.filter(r => r.kind !== 'freeway' && r.kind !== 'ramp' && r.kind !== 'cable').map(r => Object.assign({}, r, { name: r.name || '', pts: r.pts.map(p => S.toL(p[0], p[1])) })).filter(r => r.pts.length >= 2), roads = RP.prep(loc, PREP); RP.level(roads, GY); gradeV = gradeNow();
+      const sc = cur ? S.toL(cur[0], cur[1]) : [S.x, S.z], loc = clipTo(strRaw.filter(r => r.kind !== 'freeway' && r.kind !== 'ramp' && r.kind !== 'cable').map(r => Object.assign({}, r, { name: r.name || '', pts: r.pts.map(p => S.toL(p[0], p[1])) })).filter(r => r.pts.length >= 2), sc[0], sc[1], 1150); if (strRaw.tiger && TF.roads) RP.crossLift(loc, TF.roads);   /* the Census map: streets over the freeways, not through them */ const roads = RP.prep(loc, PREP); RP.level(roads, GY); gradeV = gradeNow();
       /* signals stand where the map says they do, when the map came with its signals */
       if (strRaw.osm && strRaw.signals) { const G = new Set(); strRaw.signals.forEach(p => { const q = S.toL(p[0], p[1]); for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) G.add((Math.round(q[0] / 14) + i) + ':' + (Math.round(q[1] / 14) + j)); }); roads.sig = (x, z) => G.has(Math.round(x / 14) + ':' + Math.round(z / 14)); }
       TF.streets = roads; rebuild(); return roads; };
@@ -3946,22 +4066,23 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     /* how much a vehicle's nose is up, from the ground under its two ends and the deck it is on */
     const pitchOf = (c, hl) => { if (!S.gy) return 0; const a = GY(c.x + c.hx * hl, c.z + c.hz * hl), b = GY(c.x - c.hx * hl, c.z - c.hz * hl); return clamp((a - b) / (2 * hl), -0.4, 0.4); };
     /* on a deck: the slope of the deck itself, from the two points of its piece the vehicle is between */
-    const deckPitch = c => { const s = c.seg, i = c.gi; if (!s || i == null || i + 1 >= s.pts.length) return 0; const a = s.pts[i], b = s.pts[i + 1], l = s.acc[i + 1] - s.acc[i] || 1; return clamp((GY(b[0], b[1]) + s.dk[i + 1] - GY(a[0], a[1]) - s.dk[i]) / l, -0.4, 0.4); };
+    const deckPitch = c => { const s = c.seg, i = c.gi, Y = s && s.Y; if (!Y || i == null || i + 1 >= Y.length) return 0; return clamp((Y[i + 1] - Y[i]) / (s.acc[i + 1] - s.acc[i] || 1), -0.4, 0.4); };
     /* the street traffic's cars are placed through here too (the port routes StreetKit's own line to it): on the ground or the deck under them, nose up or down with the slope */
     /* where the terrain kit has taken a buffer in hand (S.terr.onGround: it lifts and tilts what is added), the car goes through it, with its deck height if it is on one */
     const yStreet = c => { if (c.dk > 0.3 && S.deckAt) { const y = skyY(c.x, c.z, c.hx, c.hz); if (y != null) return y; } return GY(c.x, c.z) + (c.dk || 0); };
     SE.carPut = (ib, Sx, c, alpha) => { if (ib._onGround && !(c.dk > 0.3)) ib.add(c.x, 0, c.z, c.yaw, 1, 1, 1, c.col[0], c.col[1], c.col[2], alpha); else put(ib, c.x, yStreet(c), c.z, c.hx, c.hz, c.dk > 0.3 ? 0 : pitchOf(c, c.hl || 2.4), c.col, alpha); };
 
     /* ---------- building: the decks, the paint, the piers ---------- */
-    const yel = K.hexRGB('#d9a92e'), wht = K.hexRGB('#e6e4dc'), conc = [0.62, 0.61, 0.58, 1], concD = [0.5, 0.49, 0.47, 1];
+    const yel = K.hexRGB('#d9a92e'), wht = K.hexRGB('#e6e4dc'), conc = [0.62, 0.61, 0.58, 1], concD = [0.5, 0.49, 0.47, 1], earth = [0.4, 0.36, 0.26, 1];
     function clear() { parts.forEach(p => { p.e.destroy(); p.mesh.dispose(); }); parts = []; }
     /* a strip along a line at sideways offsets a..b (right of the heading is positive), lifted by `lift` over the deck */
     const strip = (B, P, N, Y, a, b, lift, col, aux, d0, d1, acc, sk) => { for (let i = 0; i + 1 < P.length; i++) { if (acc && (acc[i + 1] < d0 || acc[i] > d1)) continue; if (sk && sk[i] && sk[i + 1]) continue; const A = [P[i][0] + N[i][0] * b(i), Y[i] + lift, P[i][1] + N[i][1] * b(i)], Bq = [P[i][0] + N[i][0] * a(i), Y[i] + lift, P[i][1] + N[i][1] * a(i)], C = [P[i + 1][0] + N[i + 1][0] * a(i + 1), Y[i + 1] + lift, P[i + 1][1] + N[i + 1][1] * a(i + 1)], E = [P[i + 1][0] + N[i + 1][0] * b(i + 1), Y[i + 1] + lift, P[i + 1][1] + N[i + 1][1] * b(i + 1)]; B.quad(A, Bq, C, E, [0, 1, 0], aux ? [[A[0] / 4, A[2] / 4], [Bq[0] / 4, Bq[2] / 4], [C[0] / 4, C[2] / 4], [E[0] / 4, E[2] / 4]] : null, col || WHITE, aux); } };
     const wall = (B, P, N, Y, off, y0, y1, col) => { for (let i = 0; i + 1 < P.length; i++) { const o0 = off(i), o1 = off(i + 1), ax = P[i][0] + N[i][0] * o0, az = P[i][1] + N[i][1] * o0, bx = P[i + 1][0] + N[i + 1][0] * o1, bz = P[i + 1][1] + N[i + 1][1] * o1, nx = N[i][0], nz = N[i][1]; B.quad([ax, Y[i] + y0, az], [bx, Y[i + 1] + y0, bz], [bx, Y[i + 1] + y1, bz], [ax, Y[i] + y1, az], [nx, 0, nz], null, col); B.quad([bx, Y[i + 1] + y0, bz], [ax, Y[i] + y0, az], [ax, Y[i] + y1, az], [bx, Y[i + 1] + y1, bz], [-nx, 0, -nz], null, col); } };
-    function deck(Bd, Bs, Pt, P, N, DK, hw, shift, o) { const Y = P.map((p, i) => GY(p[0], p[1]) + DK[i]), AXL = [0, 0, 0, K.LAYER[o.surf || 'asphalt']], AX = [AXL, AXL, AXL, AXL], L = i => shift(i) - hw, Rr = i => shift(i) + hw;
+    function deck(Bd, Bs, Pt, P, N, DK, hw, shift, o) { const Y = P.map((p, i) => { if (o.sk && o.sk[i]) { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, y = skyY(p[0], p[1], (b[0] - a[0]) / l, (b[1] - a[1]) / l); if (y != null) return y; } return GY(p[0], p[1]) + DK[i]; }), AXL = [0, 0, 0, K.LAYER[o.surf || 'asphalt']], AX = [AXL, AXL, AXL, AXL], L = i => shift(i) - hw, Rr = i => shift(i) + hw;
       const sk = o.sk || null; if (!o.hide) strip(Bd, P, N, Y, L, Rr, 0.11, null, AX, undefined, undefined, null, sk);
       /* where the road stands clear of the ground: a slab, a parapet each side, and piers under it */
-      let acc = 0, next = 14; for (let i = 0; i + 1 < P.length; i++) { const up = (DK[i] > 1.2 || DK[i + 1] > 1.2) && !(sk && sk[i] && sk[i + 1]), sl = [P[i], P[i + 1]], sn = [N[i], N[i + 1]], sy = [Y[i], Y[i + 1]], l = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+      let acc = 0, next = 14; for (let i = 0; i + 1 < P.length; i++) { const onSky = sk && sk[i] && sk[i + 1], bank = !!o.fill && !onSky && (DK[i] > 0.2 || DK[i + 1] > 0.2), up = !o.fill && (DK[i] > 1.2 || DK[i + 1] > 1.2) && !onSky, sl = [P[i], P[i + 1]], sn = [N[i], N[i + 1]], sy = [Y[i], Y[i + 1]], l = Math.hypot(P[i + 1][0] - P[i][0], P[i + 1][1] - P[i][1]);
+        if (bank && !o.hide) [-1, 1].forEach(sd => { const e0 = shift(i) + sd * hw, e1 = shift(i + 1) + sd * hw, s0 = 0.4 + DK[i] * 1.6, s1 = 0.4 + DK[i + 1] * 1.6, A = [P[i][0] + N[i][0] * e0, Y[i] + 0.1, P[i][1] + N[i][1] * e0], B2 = [P[i + 1][0] + N[i + 1][0] * e1, Y[i + 1] + 0.1, P[i + 1][1] + N[i + 1][1] * e1], C = [P[i + 1][0] + N[i + 1][0] * (e1 + sd * s1), Y[i + 1] - DK[i + 1] - 0.5, P[i + 1][1] + N[i + 1][1] * (e1 + sd * s1)], D2 = [P[i][0] + N[i][0] * (e0 + sd * s0), Y[i] - DK[i] - 0.5, P[i][1] + N[i][1] * (e0 + sd * s0)], nn = [N[i][0] * sd * 0.55, 0.83, N[i][1] * sd * 0.55]; Bs.quad(A, D2, C, B2, nn, null, earth); Bs.quad(A, B2, C, D2, nn, null, earth); });
         if (up && !o.hide) { const a = j => (j ? shift(i + 1) : shift(i)) - hw, b = j => (j ? shift(i + 1) : shift(i)) + hw; wall(Bs, sl, sn, sy, a, -1.2, 0.95, conc); wall(Bs, sl, sn, sy, b, -1.2, 0.95, conc); strip(Bs, sl, sn, sy.map(v => v - 1.2), b, a, 0, concD);
           while (next < acc + l) { const t = (next - acc) / l, dk = DK[i] + (DK[i + 1] - DK[i]) * t; if (dk > 2.6) { const cx = P[i][0] + (P[i + 1][0] - P[i][0]) * t, cz = P[i][1] + (P[i + 1][1] - P[i][1]) * t, nx = N[i][0], nz = N[i][1], sh = shift(i), yaw = Math.atan2(nx, nz), cols = hw > 8 ? [-hw * 0.5, hw * 0.5] : [0]; cols.forEach(q => { const px = cx + nx * (sh + q), pz = cz + nz * (sh + q), g = GY(px, pz), top = sy[0] + (sy[1] - sy[0]) * t - 1.2; if (top - g > 1) Bs.box(px, (top + g) / 2, pz, Math.min(1.6, 0.7 + dk * 0.03), (top - g) / 2, 0.8, yaw, concD); }); if (hw > 5) Bs.box(cx + nx * sh, sy[0] + (sy[1] - sy[0]) * t - 1.75, cz + nz * sh, hw * 0.92, 0.55, 0.9, yaw, concD); } next += dk > 30 ? 60 : 32; } }
         else if (!up) next = Math.max(next, acc + l + 14); acc += l; }
@@ -3969,13 +4090,13 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     function rebuild() {
       if (!H.root()) return false; if (!group) group = scene.createEntity('Freeways and their traffic (generated)', { parent: H.root(), transient: true });
       /* the freeway set: what the wide answer gave, and whatever the street answer holds besides */
-      const seen = new Set(), raw = []; fwyRaw.concat(strRaw.filter(r => r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable')).forEach(r => { const k = r.id != null ? r.id : r.pts[0].join() + r.pts.length; if (seen.has(k)) return; seen.add(k); raw.push(r); });
+      const seen = new Set(), raw = []; fwyRaw.concat(strRaw.filter(r => r.kind === 'freeway' || r.kind === 'ramp' || r.kind === 'cable')).sort(byRoute).forEach(r => { const k = r.id != null ? r.id : r.pts[0].join() + r.pts.length, e = r.pts[r.pts.length - 1], g = r.pts.length + ':' + r.pts[0][0].toFixed(5) + ',' + r.pts[0][1].toFixed(5) + ':' + e[0].toFixed(5) + ',' + e[1].toFixed(5); if (seen.has(k) || seen.has(g)) return; seen.add(k); seen.add(g); raw.push(r); });   /* the same road can come in both answers under two names (the Census map has no ids of its own): one line is one road */
       const key = S.gen + ':' + raw.length + ':' + raw.reduce((a, r) => (a + (typeof r.id === 'number' ? r.id : r.pts.length * 7919)) % 1e9, 0) + ':' + (TF.streets ? TF.streets.filter(r => r.up).length : 0) + ':' + gradeV; if (key === fwyKey) return false; fwyKey = key;
-      const loc = raw.map(r => Object.assign({}, r, { pts: r.pts.map(p => S.toL(p[0], p[1])) })); if (fwyRaw.tiger || strRaw.tiger) RP.pairDirs(loc);
-      const roads = RP.prep(loc, PREP); RP.high(roads); RP.ground(roads); RP.level(roads, GY); F.setRoads(roads); TF.roads = roads; clear(); demandAt = null;
+      const fc = fcur ? S.toL(fcur[0], fcur[1]) : [S.x, S.z], tig = !!(fwyRaw.tiger || strRaw.tiger), clipped = clipTo(raw.slice().sort(byRoute).map(r => Object.assign({}, r, { pts: r.pts.map(p => S.toL(p[0], p[1])) })), fc[0], fc[1], 3900), loc = tig ? noDoubles(clipped) : clipped; if (tig) RP.pairDirs(loc);
+      const roads = RP.prep(loc, PREP); RP.high(roads); RP.ground(roads); RP.level(roads, GY); if (S.gy) RP.grade(roads, GY);   /* on real ground a freeway has its own profile */ F.setRoads(roads); TF.roads = roads; clear(); demandAt = null;
       const Bd = new MeshBuilder({ aux: true }), Bs = new MeshBuilder(), Pt = new MeshBuilder();
       F.segs.forEach(s => { if (s.kind === 'cable') return; const P = s.pts, N = P.map((p, i) => [s.nx[i], s.nz[i]]), sh = i => F.shiftAt(s, s.acc[i]), hw = s.n * LW / 2, sho = s.kind === 'ramp' ? 1.8 : 2.4;
-        const Y = deck(Bd, Bs, Pt, P, N, s.dk, hw + sho, sh, { hide: s.hide, sk: s.sk, surf: s.r.span ? 'concrete' : 'asphalt' }); if (s.hide) return;
+        const Y = deck(Bd, Bs, Pt, P, N, s.dk, hw + sho, sh, { hide: s.hide, sk: s.sk, fill: !!s.r.graded && !s.r.span, surf: s.r.span ? 'concrete' : 'asphalt' }); s.Y = Y; if (s.hide) return;
         /* freeway paint: a yellow line on the left edge, a white one on the right, and between the lanes four raised dots and a gap (Botts' dots), 48 ft from one group to the next */
         strip(Pt, P, N, Y, i => sh(i) - hw - 0.08, i => sh(i) - hw + 0.08, 0.135, yel); strip(Pt, P, N, Y, i => sh(i) + hw - 0.08, i => sh(i) + hw + 0.08, 0.135, wht);
         for (let ln = 1; ln < s.n; ln++) { const off = (ln - s.n / 2) * LW; if (s.hov && ln === 1) { strip(Pt, P, N, Y, i => sh(i) + off - 0.2, i => sh(i) + off - 0.08, 0.135, wht); strip(Pt, P, N, Y, i => sh(i) + off + 0.08, i => sh(i) + off + 0.2, 0.135, wht); continue; }
@@ -3986,7 +4107,7 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
         if (r.kind === 'path') return;   /* a footway on a landmark bridge: the bridge's own deck is all there is to draw */
         const Y = deck(Bd, Bs, Pt, P, N, r.dk, hw, () => 0, { sk: r.sk, surf: r.span ? 'concrete' : 'asphalt' }); if (r.kind === 'major' && !r.ow && !r.sky) { strip(Pt, P, N, Y, () => -0.2, () => -0.08, 0.135, yel); strip(Pt, P, N, Y, () => 0.08, () => 0.2, 0.135, yel); } });
       [['Freeway and bridge decks', Bd, M.road], ['Bridge structure', Bs, mStruct], ['Freeway paint', Pt, M.paint]].forEach(([name, b, mat]) => { if (b.empty) return; const mesh = b.build(dev, { name, clusters: 320 }), e = scene.createEntity(name, { parent: group, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.castShadow = mat === mStruct; mr.pickable = false; parts.push({ e, mesh }); });
-      fleetInit(); TF.stats = { pieces: F.segs.length, laneKm: +F.laneKm.toFixed(1), raised: roads.filter(r => r.up).length }; return true;
+      fleetInit(); setProbes(); TF.stats = { pieces: F.segs.length, laneKm: +F.laneKm.toFixed(1), raised: roads.filter(r => r.up).length }; return true;
     }
 
     /* ---------- the hour and the counts: how full each road should be ---------- */
@@ -4018,18 +4139,19 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     S.trafficHit = TF.hit = (x, z, yaw, o) => { const h = S.hero || {}, y = (yaw || 0) * RAD, hx = Math.sin(y), hz = -Math.cos(y), hl = (h.len || 4.8) / 2, hw = (h.wid || 1.9) / 2; let best = null, bd = 1e9;
       const dkH = h.dk != null ? h.dk : h.y != null ? h.y - GY(x, z) : null   /* how high the car stands over the ground: what is on another level (under a bridge, on one) is not struck */, test = (c, kind) => { if (c.out || Math.abs(c.x - x) > 16 || Math.abs(c.z - z) > 16 || (dkH != null && Math.abs((c.dk || 0) - dkH) > 3)) return; const r = sat(x, z, hx, hz, hl, hw, c); if (!r) return; const d = Math.hypot(c.x - x, c.z - z); if (d < bd) { bd = d; best = { nx: r[1], nz: r[2], depth: r[0], x: c.x, z: c.z, yaw: c.yaw, hx: c.hx, hz: c.hz, v: c.v, hl: c.hl, hw: c.hw, kind, car: c }; } };
       for (const c of F.cars) test(c, c.kind); for (const c of TR.cars) test(c, 'car'); for (const c of (TR.parked || [])) if (Math.abs(c.x - x) < 16) test(c, 'parked');
-      if (best && !(o && o.stop === false) && best.kind !== 'parked' && best.depth > 0.03) { const c = best.car; c.v = 0; if (c.legs) c.crash = 3; else { c.a = 0; c.halt = 3; } } return best; };
+      /* the vehicle struck stops for three seconds, once: one that is already standing after a blow is not held again while the user's car rests against it, so it drives off and the two come apart */
+      if (best && !(o && o.stop === false) && best.kind !== 'parked' && best.depth > 0.03) { const c = best.car, held = c.legs ? c.crash > 0 : c.halt > 0, push = Math.abs(h.speed || 0) > 1.2; if (!held && (push || c.v > 1)) { c.v = 0; if (c.legs) c.crash = 3; else { c.a = 0; c.halt = 3; } } else if (held && push) { if (c.legs) c.crash = Math.max(c.crash, 1); else c.halt = Math.max(c.halt, 1); } } return best; };
 
     /* ---------- every frame ---------- */
     TF.update = (dt, cam, o) => {
-      if (!group || !fleet) return false; const eye = [cam[0], cam[2]], night = o.night || 0;
+      if (!group || !fleet) return false; const eye = [cam[0], cam[2]], night = o.night || 0; watchGround(eye);
       acts.length = 0; const hb = heroBox(); if (hb) acts.push(hb); F.actors = acts; TR.actors = acts;
       if (!demandAt || Math.hypot(eye[0] - demandAt[0], eye[1] - demandAt[1]) > 240 || Math.abs(TF.hour() - demandAt[2]) > 0.06) demand(eye);
       if (o.moving) { const n = Math.max(1, Math.min(3, Math.ceil(dt / 0.034))); for (let i = 0; i < n; i++) F.step(dt / n, eye); }
       fleet.forEach(f => { f.near.clear(); f.far.clear(); }); for (const k in big) big[k].clear(); dots.head.clear(); dots.tail.clear();
       const lit = night > 0.12, bodyR = CAP()[2]; mHead.emissiveIntensity = 60 * night; mTail.emissiveIntensity = 26 * night; const ey = cam[1], white = WHITE;
       for (const c of F.cars) { if (c.seg.hide) continue; const dx = c.x - eye[0], dz = c.z - eye[1], y = yOn(c), d = Math.sqrt(dx * dx + dz * dz + (ey - y) * (ey - y)); if (c.halt > 0) { c.halt -= dt; c.v = 0; }
-        const sp = d < 400 ? (c.dk < 0.3 && !c.seg.sk ? (S.gy ? pitchOf(c, c.hl) : 0) : deckPitch(c)) : 0;
+        const sp = d < 400 ? deckPitch(c) : 0;
         if (c.kind === 'car') { if (d < bodyR) put(fleet[c.ty][d < 150 ? 'near' : 'far'], c.x, y, c.z, c.hx, c.hz, sp, c.col, c.halt > 0 ? 0.5 : c.brake ? 0.75 : 1); else if (night < 0.6) big.speck.add(c.x, y + 0.25, c.z, c.yaw, c.hw * 2, 1.25, c.hl * 2, c.col[0], c.col[1], c.col[2], 1); }
         else { if (!c.col) c.col = c.kind === 'bus' ? TF.busCol() : c.kind === 'cable' ? white : [[0.95, 0.95, 0.93], [0.8, 0.82, 0.85], [0.75, 0.2, 0.15], [0.2, 0.35, 0.6], [0.93, 0.8, 0.25]][Math.floor(c.tint * 5)]; put(big[c.kind], c.x, y, c.z, c.hx, c.hz, sp, c.col, 1); }
         if (lit && d > 110) { const k = clamp(d / 240, 1, 7); put(dots.head, c.x + c.hx * (c.hl + 0.1), y + 0.7, c.z + c.hz * (c.hl + 0.1), c.hx, c.hz, 0, white, 1, k); put(dots.tail, c.x - c.hx * (c.hl + 0.1), y + 0.85, c.z - c.hz * (c.hl + 0.1), c.hx, c.hz, 0, white, 1, k * (c.brake ? 1.35 : 0.9)); } }
@@ -4097,24 +4219,26 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
     const TT = TYPES.slice(); TT.push({ name: 'Transit bus', L: 12.2, W: 2.6, H: 3.1 }); TT.bus = 0; TT.pickType = r => (r < TT.bus ? TYPES.length : typeOf((r - TT.bus) / (1 - TT.bus))); TT.pickPaint = r => pick(PAINT, r);   /* a sixth kind, a 40 ft bus, drawn by SE.TrafficKit; TT.bus is its share of the street traffic */
     const TR = Traffic(TT), phys = engine.physics; X.traffic = TR; X.CK = CK; X.TYPES = TYPES; X.PAINT = PAINT; X.TT = TT;
     let NET = { nodes: [], ways: [] }, parked = [], lastBucket = null, carBodies = [], parkBodies = [];
-    function clear() { parts.forEach(p => { p.e.destroy(); if (p.mesh) p.mesh.dispose(); if (p.ib) p.ib.dispose(); }); parts = []; parked = []; TR.cars.length = 0; if (fleet) fleet.forEach(f => Object.values(f.sets).forEach(ib => ib.clear())); lastBucket = null;
+    let geoOld = [], later = null; const dropParts = list => list.forEach(p => { p.e.destroy(); if (p.mesh) p.mesh.dispose(); if (p.ib) p.ib.dispose(); });
+    /* keepGeo: the sidewalks and markings now shown stay up (geoOld) until X.pump has written their successors; ones a build had not finished are dropped */
+    function clear(keepGeo) { later = null; if (keepGeo) geoOld = geoOld.concat(parts.filter(p => p.geo && !p.fresh)); else { dropParts(geoOld); geoOld = []; } dropParts(parts.filter(p => !(keepGeo && p.geo && !p.fresh))); parts = []; parked = []; TR.cars.length = 0; if (fleet) fleet.forEach(f => Object.values(f.sets).forEach(ib => ib.clear())); lastBucket = null;
       carBodies.concat(parkBodies).forEach(b => phys.remove(b)); carBodies = []; parkBodies = []; }
     /* ---------- everything that is built once per street map ---------- */
     X.build = (roads, parent, o) => {
-      if (!group) group = scene.createEntity('Street life (generated)', { parent, transient: true }); clear(); NET = network(roads); TR.setNetwork(NET); if (!o.life) { group.setActive(false); return; } group.setActive(true);
-      const Sd = new MeshBuilder({ aux: true }), Pt = new MeshBuilder(), CX = [0, 0, 0, K.LAYER.concrete], AX = [CX, CX, CX, CX], white = K.hexRGB('#e6e4dc'), yel = K.hexRGB('#d9a92e'), p = [0, 0, 0, 0], R = SE.rng(9173);
+      if (!group) group = scene.createEntity('Street life (generated)', { parent, transient: true }); clear(!!o.spread && !!o.life); NET = network(roads); TR.setNetwork(NET); if (!o.life) { group.setActive(false); return; } group.setActive(true); const todo = [];
+      let Sd = new MeshBuilder({ aux: true }), Pt = new MeshBuilder(); const CX = [0, 0, 0, K.LAYER.concrete], AX = [CX, CX, CX, CX], white = K.hexRGB('#e6e4dc'), yel = K.hexRGB('#d9a92e'), p = [0, 0, 0, 0], R = SE.rng(9173);
       const inRange = (x, z, r) => Math.hypot(x - o.center[0], z - o.center[1]) < (r || 360), blocked = o.blocked || (() => false);
-      const park = (x, z, yaw, ty) => { if (parked.length >= 1100) return; parked.push({ x, z, yaw, ty: ty == null ? typeOf(R()) : ty, col: pick(PAINT, R()) }); };
+      const park = (x, z, yaw, ty) => { if (parked.length >= 1100 || (o.off && o.off(x, z))) return; parked.push({ x, z, yaw, ty: ty == null ? typeOf(R()) : ty, col: pick(PAINT, R()) }); };
       NET.ways.forEach(w => { if (!w || !w.drive || w.r.up) return;   /* a street on a bridge is built by SE.TrafficKit */
         /* the stretches between crossings */
         const cuts = w.nodes.map(c => [c.d - c.l.rm - 3.2, c.d + c.l.rp + 3.2]); let d = 0; const spans = []; cuts.forEach(([a, b]) => { if (a - d > 3) spans.push([d, a]); d = Math.max(d, b); }); if (w.len - d > 3) spans.push([d, w.len]);
-        spans.forEach(([d0, d1]) => { const line = S.terr ? S.terr.dense(piece(w, d0, d1), 12) : piece(w, d0, d1);
+        spans.forEach(([d0, d1]) => { todo.push(() => { const line = S.terr ? S.terr.dense(piece(w, d0, d1), 12) : piece(w, d0, d1);
           [1, -1].forEach(sd => { const inner = shift(line, sd * (w.hw + 0.12)), outer = shift(line, sd * (w.hw + 2.0)), y0 = 0.085, y1 = 0.2;
             for (let i = 0; i + 1 < line.length; i++) { const a = [inner[i][0], y1, inner[i][1]], b = [inner[i + 1][0], y1, inner[i + 1][1]], c = [outer[i + 1][0], y1, outer[i + 1][1]], e = [outer[i][0], y1, outer[i][1]], uv = q => [q[0] / 3, q[2] / 3];
               if (S.terr) S.terr.drapeQuad(Sd, a, b, c, e, y1, uv, K.WHITE, CX); else Sd.quad(a, b, c, e, [0, 1, 0], [uv(a), uv(b), uv(c), uv(e)], K.WHITE, AX); const nx = (inner[i][0] - outer[i][0]), nz = (inner[i][1] - outer[i][1]), nl = Math.hypot(nx, nz) || 1;
               if (S.terr) { const cu = S.terr.cuts(a[0], a[2], b[0], b[2]); for (let q = 0; q + 1 < cu.length; q++) { const p0 = cu[q], p1 = cu[q + 1]; Sd.quad([p0[0], p0[1] + y0 - 0.06, p0[2]], [p1[0], p1[1] + y0 - 0.06, p1[2]], [p1[0], p1[1] + y1, p1[2]], [p0[0], p0[1] + y1, p0[2]], [nx / nl, 0, nz / nl], [[0, 0], [1, 0], [1, 0.05], [0, 0.05]], [0.86, 0.86, 0.86, 1], AX); } }
               else Sd.quad([a[0], y0, a[2]], [b[0], y0, b[2]], b, a, [nx / nl, 0, nz / nl], [[0, 0], [1, 0], [1, 0.05], [0, 0.05]], [0.86, 0.86, 0.86, 1], AX); } });
-          if (SE.streetPaint && SE.streetPaint(K, Pt, w, line, d0, d1, piece, shift, white, yel)) { /* lane lines by the map's lanes */ } else if (w.r.kind === 'major') { K.ribbon(Pt, line, 0.11, 0.115, null, 0.12, yel); K.ribbon(Pt, line, 0.11, 0.115, null, -0.12, yel); for (let s = d0 + 2; s + 3 < d1; s += 9) { [3.05, -3.05].forEach(o2 => K.ribbon(Pt, shift(piece(w, s, s + 3), o2), 0.11, 0.115, null, 0, white)); } }
+          if (SE.streetPaint && SE.streetPaint(K, Pt, w, line, d0, d1, piece, shift, white, yel)) { /* lane lines by the map's lanes */ } else if (w.r.kind === 'major') { K.ribbon(Pt, line, 0.11, 0.115, null, 0.12, yel); K.ribbon(Pt, line, 0.11, 0.115, null, -0.12, yel); for (let s = d0 + 2; s + 3 < d1; s += 9) { [3.05, -3.05].forEach(o2 => K.ribbon(Pt, shift(piece(w, s, s + 3), o2), 0.11, 0.115, null, 0, white)); } } });
           /* cars at the curb: on one side of a residential street (the lanes are laid out to leave them room), in runs with gaps */
           if (w.r.kind === 'street' && d1 - d0 > 14) { const sd = w.ps || 1; let s = d0 + 5 + R() * 8; while (s < d1 - 6) { at(w, s, p); if (R() < 0.42 && inRange(p[0], p[1])) { const rt = right(p[2], p[3]), ty = typeOf(R()); park(p[0] + rt[0] * sd * (w.hw - 1.1), p[1] + rt[1] * sd * (w.hw - 1.1), Math.atan2(p[2] * sd, p[3] * sd) + (R() - 0.5) * 0.04, ty); s += TYPES[ty].L + 0.9 + R() * 1.6; } else s += 6 + R() * 16; } }
         }); });
@@ -4129,13 +4253,15 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       const sig = { ns: new InstanceBuffer(dev, 16), ew: new InstanceBuffer(dev, 16) }, stops = new InstanceBuffer(dev, 32);
       NET.nodes.forEach(n => { if (!n.cross) return; n.legs.forEach(l => { const w = l.w; if (!w.drive) return; const P = w.r.pts;
         [[l.pi + 1, 1], [l.pi - 1, -1]].forEach(([k, sd]) => { if (k < 0 || k >= P.length || (sd > 0 ? l.shortP : l.shortM)) return; at(w, w.acc[l.pi] + sd * Math.min(9, w.len), p); let dx = p[0] - n.x, dz = p[1] - n.z; const dl = Math.hypot(dx, dz); if (dl < 2) return; dx /= dl; dz /= dl; const rt = right(dx, dz), r0 = (sd > 0 ? l.rp : l.rm) + 0.4, hw = w.hw;
-          const bar = (d0, d1, a, b, col) => { const q = (d, sd2) => [n.x + dx * d + rt[0] * sd2, 0.117, n.z + dz * d + rt[1] * sd2]; if (S.terr) S.terr.drapeQuad(Pt, q(d0, a), q(d1, a), q(d1, b), q(d0, b), 0.117, null, col, null); else Pt.quad(q(d0, a), q(d1, a), q(d1, b), q(d0, b), [0, 1, 0], null, col); };
+          const bx = dx, bz = dz, bar = (d0, d1, a, b, col) => todo.push(() => { const q = (d, sd2) => [n.x + bx * d + rt[0] * sd2, 0.117, n.z + bz * d + rt[1] * sd2]; if (S.terr) S.terr.drapeQuad(Pt, q(d0, a), q(d1, a), q(d1, b), q(d0, b), 0.117, null, col, null); else Pt.quad(q(d0, a), q(d1, a), q(d1, b), q(d0, b), [0, 1, 0], null, col); });
           if (n.signal) for (let a = -hw + 0.35; a < hw - 0.5; a += 1.15) bar(r0, r0 + 2.6, a, a + 0.55, white); else { bar(r0, r0 + 0.16, -hw + 0.2, hw - 0.2, white); bar(r0 + 2.3, r0 + 2.46, -hw + 0.2, hw - 0.2, white); }
           bar(r0 + 3.3, r0 + 3.7, -hw + 0.2, -0.1, white);                           /* the stop bar, on the side the traffic comes in on */
           const px = n.x + dx * (r0 + 3.9) - rt[0] * (hw + 0.75), pz = n.z + dz * (r0 + 3.9) - rt[1] * (hw + 0.75), yaw = Math.atan2(dx, dz);
           if (!inRange(px, pz, 700)) return; const py = S.gy ? S.gy(px, pz) : 0; if (n.signal) sig[TR.phase(n, dx, dz)].add(px, py, pz, yaw, 1, 1, 1); else stops.add(px, py, pz, yaw, 1, 1, 1); }); }); });
       const add = (name, mesh, mat, extra) => { const e = scene.createEntity(name, { parent: group, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.pickable = false; mr.castShadow = false; parts.push(Object.assign({ e, mesh }, extra || {})); return mr; };
-      if (!Sd.empty) add('Sidewalks and curbs', Sd.build(dev, { name: 'sidewalks', clusters: 320 }), M.side); if (!Pt.empty) add('Crosswalks and lane lines', Pt.build(dev, { name: 'markings', clusters: 320 }), M.paint);
+      /* the sidewalks, curbs and markings: written piece by piece, at once or (o.spread) a little each frame through X.pump */
+      const flush = fresh => { [[Sd, 'Sidewalks and curbs', 'sidewalks', M.side], [Pt, 'Crosswalks and lane lines', 'markings', M.paint]].forEach(([b, name, nm, mat]) => { if (b.empty) return; add(name, b.build(dev, { name: nm, clusters: 320 }), mat, { geo: true, fresh }); if (fresh && geoOld.length) parts[parts.length - 1].e.setActive(false); }); Sd = new MeshBuilder({ aux: true }); Pt = new MeshBuilder(); };
+      if (o.spread) later = { todo, i: 0, n: 0, flush }; else { todo.forEach(f => f()); flush(false); }
       /* signal and stop sign meshes: built facing +z (toward the traffic they speak to), the mast reaching over the lane */
       if (!X.sigMesh) { const grey = [0.2, 0.21, 0.22, 1], Bd = new MeshBuilder(); const pole = Prim.cylinder(0.11, 0.08, 6.2, 8); for (let i = 1; i < pole.positions.length; i += 3) pole.positions[i] += 3.1; Prim.paint(pole, grey);
         Bd.box(-1.9, 6.0, 0, 2.0, 0.06, 0.06, 0, grey); Bd.box(-3.3, 5.45, 0, 0.19, 0.56, 0.16, 0, [0.07, 0.07, 0.07, 1]); Bd.box(-1.4, 5.45, 0, 0.19, 0.56, 0.16, 0, [0.07, 0.07, 0.07, 1]); X.sigMesh = new Mesh(dev, Prim.merge([pole, Bd.data()], 'signal'));
@@ -4149,6 +4275,9 @@ void groundPBR(inout Surface s, inout vec4 base, inout vec3 N) {
       X.stats = { parked: parked.length, cars: TR.cars.length, crossings: NET.nodes.filter(n => n.cross).length, signals: sig.ns.count + sig.ew.count, stops: stops.count };
     };
 
+    /* a few milliseconds of the sidewalks and markings a build left to be written; true while there is more */
+    X.pump = ms => { const L = later; if (!L) return false; const t0 = performance.now(); while (L.i < L.todo.length && performance.now() - t0 < ms) { L.todo[L.i++](); if (++L.n >= 170) { L.n = 0; L.flush(true); break; } }
+      if (L.i < L.todo.length) return true; L.flush(true); parts.forEach(q => { if (q.fresh) { q.fresh = false; q.e.setActive(true); } }); dropParts(geoOld); geoOld = []; later = null; return false; };
     /* ---------- every frame: signals change, the traffic takes a step, and the cars are sorted into near and far ---------- */
     const qy = [0, 0, 0, 1], UP = [0, 1, 0];
     /* o: { night, moving, viewer: [x, z] or null (a person standing in the street), reach } */
@@ -7571,7 +7700,9 @@ function M3Body() {
     /* the deck's height in local y, s metres along it. Within rampA of its start (rampB of its end) the deck is moved to meet the ground at that end, the move fading out along the ramp:
        on the terrain the difference is small; on the flat world it is the whole height of the abutment */
     function deckY(d, s, x, z) { const lc = d.loc, L = lc.L; let y = yOf(d.prof(s, L, lc.K), 0); const rA = terr() && d.rampAT != null ? d.rampAT : d.rampA, rB = terr() && d.rampBT != null ? d.rampBT : d.rampB;
-      if (rA && s < rA) { const e = lc.P[0]; y += (gy(e[0], e[1]) + 0.12 - yOf(d.prof(0, L, lc.K), 0)) * (1 - smoothstep(0, rA, s)); } else if (rB && s > L - rB) { const e = lc.P[lc.P.length - 1]; y += (gy(e[0], e[1]) + 0.12 - yOf(d.prof(L, L, lc.K), 0)) * (1 - smoothstep(0, rB, L - s)); } return y; }
+      /* where the traffic kit is (S.traffic) and the terrain's ground at an end lies under the deck, the deck is not bent down to it: the road that leads on comes away from the deck's own height at a road's grade, on the kit's own approach */
+      const kit = terr() && !!S.traffic, bend = v => (kit && v < 0 ? 0 : v);
+      if (rA && s < rA) { const e = lc.P[0]; y += bend(gy(e[0], e[1]) + 0.12 - yOf(d.prof(0, L, lc.K), 0)) * (1 - smoothstep(0, rA, s)); } else if (rB && s > L - rB) { const e = lc.P[lc.P.length - 1]; y += bend(gy(e[0], e[1]) + 0.12 - yOf(d.prof(L, L, lc.K), 0)) * (1 - smoothstep(0, rB, L - s)); } return y; }
     let geoKey = '';
     const geoNow = () => S.gen + '/' + S.lat0 + '/' + S.lon0 + '/' + (terr() ? S.y0 : 'flat');
     function relocate() { DECKS.forEach(d => { d.loc = null; }); }
@@ -7900,7 +8031,12 @@ function M3Body() {
       else for (const b of list) all.push(b);
       /* Each building is written with heights from its own floor (the wall shader, the equipment and the roof views count on that), and what it wrote is then lifted to where its floor is: gb.y. The glow's pool lies on the ground under each of its corners. */
       const LIFT = [B.wall, B.trim, B.fine, B.glass, B.glow, B.equip];
-      for (const b of all) { const rings = K.ringsOf(b); if (!rings.length) continue; const gb = baseOf(rings), at = LIFT.map(Bd => Bd.p.n); B.dy = gb.y; let g = null;
+      for (const b of all) { const rings = K.ringsOf(b); if (!rings.length) continue; const gb = baseOf(rings), at = LIFT.map(Bd => Bd.p.n);
+        /* a footprint that would stand up through a landmark bridge's deck (a tower of the bridge, the bridge itself, as the footprint files have them) is left out: the bridge is built by the aircraft, ships and bridges kit (S.deckAt) */
+        if (S.deckAt) { const P0 = rings[0]; let cx = 0, cz = 0, dk = null; for (const q of P0) { cx += q[0]; cz += q[1]; const d = S.deckAt(q[0], q[1]); if (d != null && (dk == null || d < dk)) dk = d; } const dc = S.deckAt(cx / P0.length, cz / P0.length); if (dc != null && (dk == null || dc < dk)) dk = dc; if (dk != null && gb.y + Math.max(2.4, env.height(b)) > dk - 2.5) continue; }
+        /* and one whose middle stands in a lane of a freeway on the ground (the footprint files and the road lines do not always agree) */
+        if (S.traffic && S.traffic.onRoad) { const P0 = rings[0]; let cx = 0, cz = 0; for (const q of P0) { cx += q[0]; cz += q[1]; } if (S.traffic.onRoad(cx / P0.length, cz / P0.length)) continue; }
+        B.dy = gb.y; let g = null;
         try { g = K.addBuilding(B, b, { detail: c.detailWant, nearRoad: S.roads.length ? nearRoad : null, rings, foot: gb.lo - gb.y - 0.4 }); } catch (e) { g = null; }
         if (g && gfx.roofKit !== false) { try { HV.exterior(b, B.equip); } catch (e) { /* this one goes without */ } }
         LIFT.forEach((Bd, k) => { const P = Bd.p.a, X = Bd === B.glow ? Bd.x.a : null; for (let i = at[k]; i < Bd.p.n; i += 3) { if (X) { const ay = X[i / 3 * 4 + 1]; if (ay > 0.5 && ay < 1.5) { P[i + 1] = S.gy(P[i], P[i + 2]) + 0.17; continue; } } P[i + 1] += gb.y; } });
@@ -8057,19 +8193,39 @@ function M3Body() {
     /* ---------- streets and alleys ---------- */
     const WALK = new Set(['street', 'major', 'alley', 'service']); let roadParts = [];
     /* California traffic (SE.TrafficKit): made the first time the streets are set */
-    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); } }));
+    let TF = null; const tf = () => TF || (TF = SE.TrafficKit(engine, K, S, ST, env, gfx, { need: () => need(), note: m => note(m), root: () => root, replan: () => { S.roadsVer++; planSoon(); need(); }, retake: list => setRoads(list) }));
     function setRoads(list) { S.roads = tf().take(list); buildRoads(); }   /* the surface streets, with lanes, direction, limit, level and width on each; freeways, ramps and cable car tracks stay with the kit */
-    function buildRoads() {
+    /* The street build. What the rest of the world reads of a new street map is set at once: the heights of the decks (the traffic kit), the
+       street life's network with its traffic, parked cars and signals, the graph a walker follows, the lamp posts. The drawn part (the road
+       ribbons cut to the ground, the paint, the sidewalks, curbs and crossings) is written by roadPump a few milliseconds a frame into new
+       meshes, a few hundred pieces to a mesh, and the meshes that were there stand until the new ones are whole: a street map that comes in
+       while driving no longer stops the picture. The first build after a move of the origin, and any build asked for with atOnce, is done whole. */
+    let roadJob = null, roadGenAt = -1;
+    function buildRoads(atOnce) {
       const rc0 = performance.now(); tf().regrade();   /* the decks' heights over the ground as it now is (the traffic kit) */
       TERR.center(S.x, S.z);   /* the streets near here are cut to the ground's triangles; the far ones are laid whole */
-      roadParts.forEach(p => { p.e.destroy(); p.mesh.dispose(); }); roadParts = [];
-      const Bd = new MeshBuilder({ aux: true }), Pt = new MeshBuilder(), yel = K.hexRGB('#e0b13c'), wht = K.hexRGB('#e9e7e0');
-      S.roads.forEach(r => { if (r.up) return; const spec = K.ROADW[r.kind] || K.ROADW.street; K.ribbon(Bd, r.pts, r.w || spec[0], spec[1], spec[2]); if (r.kind === 'major' && !gfx.life) { K.ribbon(Pt, r.pts, 0.11, 0.115, null, 0.12, yel); K.ribbon(Pt, r.pts, 0.11, 0.115, null, -0.12, yel); K.ribbon(Pt, r.pts, 0.12, 0.115, null, 5.4, wht); K.ribbon(Pt, r.pts, 0.12, 0.115, null, -5.4, wht); } });
-      [['Asphalt and concrete', Bd, M.road], ['Paint', Pt, M.paint]].forEach(([name, b, mat]) => { if (b.empty) return; const mesh = b.build(dev, { name, clusters: 320 }), e = scene.createEntity(name, { parent: gRoads, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.castShadow = false; mr.pickable = false; roadParts.push({ e, mesh }); });
+      if (roadJob) roadJob.parts.forEach(p => { p.e.destroy(); p.mesh.dispose(); });   /* a build that had not finished is dropped */
+      const spread = atOnce !== true && roadParts.length > 0 && roadGenAt === S.gen, job = roadJob = { parts: [], spread, ms: 0, slices: 0, budget: 8 }; roadGenAt = S.gen; job.it = roadSteps(job, S.roads);
       /* what stands and moves on the streets: sidewalks, crossings, signals, parked cars, traffic (generated, not observed) */
-      const rc1 = performance.now(); ST.build(S.roads, root, { life: gfx.life, center: [S.x, S.z], blocked: (x, z) => phys.prismsIn(x, z, x, z, []).some(p => Poly.contains(p.ring, x, z)), cars: tf().streetCars() });
+      const rc1 = performance.now(); ST.build(S.roads, root, { life: gfx.life, center: [S.x, S.z], blocked: (x, z) => phys.prismsIn(x, z, x, z, []).some(p => Poly.contains(p.ring, x, z)), cars: tf().streetCars(), spread, off: (x, z) => tf().onRoad(x, z) });
       S.graph = S.roads.filter(r => WALK.has(r.kind)); S.on = null; S.roadsVer++; S.roadTV = terrRoadVer(); const rc2 = performance.now(); lamps(); planSoon(); need();
-      { const n = performance.now(), c = S.roadCost || (S.roadCost = { n: 0, worst: 0, sum: 0 }); c.n++; c.ms = n - rc0; c.ribbons = rc1 - rc0; c.street = rc2 - rc1; c.lamps = n - rc2; c.sum += c.ms; if (c.ms > c.worst) c.worst = c.ms; }
+      { const n = performance.now(), c = S.roadCost || (S.roadCost = { n: 0, worst: 0, sum: 0, worstSlice: 0 }); c.n++; job.ms = n - rc0; c.atOnce = job.ms; c.grade = rc1 - rc0; c.street = rc2 - rc1; c.lamps = n - rc2; c.spread = spread; if (job.ms > c.worstSlice) { c.worstSlice = job.ms; c.worstAt = { grade: Math.round(rc1 - rc0), street: Math.round(rc2 - rc1), lamps: Math.round(n - rc2), roads: S.roads.length, spread }; } }
+      if (!spread) roadPump(1e9);
+    }
+    function* roadSteps(job, roads) {
+      const yel = K.hexRGB('#e0b13c'), wht = K.hexRGB('#e9e7e0'); let Bd = new MeshBuilder({ aux: true }), Pt = new MeshBuilder(), k = 0;
+      const flush = () => { [['Asphalt and concrete', Bd, M.road], ['Paint', Pt, M.paint]].forEach(([name, b, mat]) => { if (b.empty) return; const mesh = b.build(dev, { name, clusters: 320 }), e = scene.createEntity(name, { parent: gRoads, transient: true }), mr = e.add('MeshRenderer'); mr.mesh = mesh; mr.material = mat; mr.castShadow = false; mr.pickable = false; if (job.spread) e.setActive(false); job.parts.push({ e, mesh }); }); Bd = new MeshBuilder({ aux: true }); Pt = new MeshBuilder(); };
+      for (const r of roads) { if (r.up) continue; const spec = K.ROADW[r.kind] || K.ROADW.street; K.ribbon(Bd, r.pts, r.w || spec[0], spec[1], spec[2]); if (r.kind === 'major' && !gfx.life) { K.ribbon(Pt, r.pts, 0.11, 0.115, null, 0.12, yel); K.ribbon(Pt, r.pts, 0.11, 0.115, null, -0.12, yel); K.ribbon(Pt, r.pts, 0.12, 0.115, null, 5.4, wht); K.ribbon(Pt, r.pts, 0.12, 0.115, null, -5.4, wht); }
+        if (++k % 10 === 0) { if (k % 140 === 0) flush(); yield; } }
+      flush(); yield;
+      while (ST.pump && ST.pump(job.budget)) yield;
+    }
+    /* once a frame while a build is under way: `ms` milliseconds of it */
+    function roadPump(ms) {
+      const job = roadJob; if (!job) return; const t0 = performance.now(); job.budget = ms; let done = false; while (!done && performance.now() - t0 < ms) done = job.it.next().done;
+      const spent = performance.now() - t0, c = S.roadCost; job.ms += spent; job.slices++; if (c && ms < 1e8 && spent > c.worstSlice) c.worstSlice = spent;
+      if (done) { roadParts.forEach(p => { p.e.destroy(); p.mesh.dispose(); }); roadParts = job.parts; roadParts.forEach(p => p.e.setActive(true)); roadJob = null; if (c) { c.ms = job.ms; c.slices = job.slices; c.sum += job.ms; if (job.ms > c.worst) c.worst = job.ms; } }
+      need();
     }
     async function loadRoads() {
       const gen = S.gen, ask = S.roadsAsk = (S.roadsAsk || 0) + 1, [la, lo] = toLL(S.x, S.z); S.roadsAt = [S.x, S.z]; if (!S.roads.length) note('Loading the streets and alleys…');
@@ -8211,7 +8367,7 @@ function M3Body() {
     }
     /* the road under a point: null off the road, else [height of its surface over the land, the road] */
     /* where roads cross on bridges (the traffic's decks, r.dk) the one nearest the height the car is at is the one it is on */
-    function carRoadAt(x, z, offDeck) { let best = null, bd = 1e9; const cur = CARW.lift || 0, land = carLand(x, z); for (const s of CARW.segs) { if (offDeck && s[9]) continue; const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((x - s[0]) * s[2] + (z - s[1]) * s[3]) / l2, 0, 1) : 0, d = Math.hypot(x - s[0] - s[2] * t, z - s[1] - s[3] * t); if (d > s[4]) continue; const lift = s[10] != null ? Math.max(0.02, s[10] + (s[11] - s[10]) * t - land) : s[5] + s[7] + (s[8] - s[7]) * t, e = Math.abs(lift - cur); if (e < bd) { bd = e; best = [lift, s[6], s]; } } return best; }
+    function carRoadAt(x, z, offDeck) { let best = null, bd = 1e9; const cur = CARW.lift || 0, land = carLand(x, z); for (const s of CARW.segs) { if (offDeck && s[9]) continue; const l2 = s[2] * s[2] + s[3] * s[3], t = l2 ? clamp(((x - s[0]) * s[2] + (z - s[1]) * s[3]) / l2, 0, 1) : 0, d = Math.hypot(x - s[0] - s[2] * t, z - s[1] - s[3] * t); if (d > s[4]) continue; const lift = s[10] != null ? s[10] + (s[11] - s[10]) * t - land : s[5] + s[7] + (s[8] - s[7]) * t,   /* a road the kit draws: its drawn line, whatever the ground does between its points */ e = Math.abs(lift - cur); if (e < bd) { bd = e; best = [lift, s[6], s]; } } return best; }
     /* a landmark bridge's deck under the car (S.deckAt, from the aircraft, ships and bridges kit): the car is on it when it is at the deck's height
        (it drove on at the end), not when it passes far beneath; when the car is being set down, when the road it is set on runs on the deck */
     const CARDQ = { info: true };
@@ -8379,7 +8535,7 @@ function M3Body() {
       else { if (fwd) walk(fwd * sp * dt); if (turn) { S.yaw = (S.yaw + turn * 75 * dt + 360) % 360; after(); } }
       if (S.tween) { const w = S.tween, u = Math.min(1, (performance.now() - w.t0) / w.ms), e = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
         S.x = w.x0 + (w.x1 - w.x0) * e; S.z = w.z0 + (w.z1 - w.z0) * e; if (w.yaw1 != null) { const dy = ((w.yaw1 - w.yaw0 + 540) % 360) - 180; S.yaw = (w.yaw0 + dy * e + 360) % 360; } if (w.p1 != null) S.pitch = w.p0 + (w.p1 - w.p0) * e; need(); if (u >= 1) { S.tween = null; after(); } }
-      carIdle(dt); placeCamera(); pump();
+      if (roadJob) roadPump(clamp(dt * 300, 6, 60)); carIdle(dt); placeCamera(); pump();
       if (SKY.update(dt, cam.entity.transform.position, { night: smoothstep(2, -6, S.sunAlt), moving: engine.playing && engine.awake && engine.live, on: gfx.air !== false })) need();
       /* the storm: its rain, wind and lightning move whether or not the camera does, so while one is on the engine stays awake */
       { const moving = SK.update(dt, cam, engine.playing && engine.live); if (moving === 2) need(); if (moving && engine.live && engine.playing && engine.onScreen) engine.wake(); }
@@ -8394,6 +8550,11 @@ function M3Body() {
     /* what this machine's graphics driver would not do: said in the view, and kept for the status line */
     const NICE = { volumetricFog: 'the fog with shafts', volumetricClouds: 'the clouds with depth', contactShadows: 'contact shadows', shafts: 'sun shafts', dof: 'depth of field', motionBlur: 'motion blur', 'x-ray': 'the x-ray layer', 'roof views': 'the roof views', rain: 'the falling rain' };
     engine.on('degraded', (what, msg) => { note(NICE[what] ? `This graphics driver refused ${NICE[what]}; it is switched off and the view goes on. (${msg})` : `${what} (${msg})`); if (env.onGraphics) env.onGraphics(graphics()); need(4); });
+    /* The graphics context taken away (the driver was reset, or the system took the card's memory back): said in the
+       view, and the engine stops asking for frames, instead of a still picture with no word. What the engine had built
+       on the card goes with the context, so when the browser gives it back the view has to be opened afresh. */
+    engine.on('lost', () => { const t = 'The browser took the graphics context away from the Scout Engine, so the 3D picture has stopped. This happens when the graphics driver is reset or runs out of memory. The classic 3D view and the map still work.'; note(t); try { alarm(t); if (env.onGraphics) env.onGraphics(graphics()); } catch (e) {} });
+    engine.on('restored', () => { note('The graphics context is back, but what the Scout Engine had built on the card went with it. Reload the page to open the Scout Engine again. The classic 3D view and the map still work.'); try { if (env.onGraphics) env.onGraphics(graphics()); } catch (e) {} });
     engine.on('fatal', msg => { note(`The Scout Engine cannot draw with this graphics driver: ${msg} The classic 3D view and the map still work.`); });
     /* the editor asks to look at something: circle it */
     engine.on('focus', p => { if (S.mode !== 'orbit') setHeight('orbit'); S.orbit.at = [p[0], p[1], p[2]]; S.orbit.dist = 14; S.orbitSpin = false; need(); });

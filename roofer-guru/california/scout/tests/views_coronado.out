@@ -1,0 +1,17 @@
+coronado engine {"built":188,"queued":0,"roads":134,"mode":"street","elev":8.579679489135742,"lat":32.684869432002934,"lon":-117.17984723869863} {"name":"1106 Orange Ave","sub":"Coronado · 92118 · Retail · 22,070 sq ft footprint · 6.8 m tall"}
+coronado cover {"lens":"cover","n":130,"pend":0,"q":"High","fps":2} 28 s
+coronado pat18_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 11 s
+coronado pat18_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 10 s
+coronado pat14_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 14 s
+coronado pat13_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 11 s
+coronado style {"lens":"style","n":130,"pend":0,"q":"High","fps":1} 14 s
+coronado thermal_july {"lens":"thermal","n":130,"pend":0,"q":"High","fps":1} 15 s
+coronado wear {"lens":"wear","n":130,"pend":0,"q":"High","fps":0} 14 s
+coronado wx_ar4 {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 13 s
+coronado wx_marine {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 11 s
+coronado wx_breeze {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 12 s
+coronado fire {"lens":"fire","n":130,"pend":0,"q":"High","fps":0} 13 s
+coronado solar {"lens":"solar","n":130,"pend":0,"q":"High","fps":0} 14 s
+coronado time15 {"lens":"time","n":130,"pend":0,"q":"High","fps":0} 14 s
+PAGE ERRORS: none
+exit 0

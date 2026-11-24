@@ -2,6 +2,7 @@
 {
 "name": "off",
 "lens": "off",
+"leg": true,
 "mode": "orbit",
 "dist": 45,
 "pitch": -55
@@ -17,7 +18,8 @@
 {
 "name": "fire_close",
 "dist": 16,
-"pitch": -45
+"pitch": -45,
+"leg": false
 },
 {
 "name": "wx_sa4_smoke",
@@ -25,7 +27,8 @@
 "wind": "sa4",
 "sky": "smoke",
 "dist": 45,
-"pitch": -55
+"pitch": -55,
+"leg": true
 },
 {
 "name": "wx_sa1",

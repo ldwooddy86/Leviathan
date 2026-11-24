@@ -1,0 +1,26 @@
+[
+{
+"name": "fire",
+"lens": "fire",
+"leg": true,
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "wx_smoke",
+"lens": "storm",
+"sky": "smoke"
+},
+{
+"name": "wx_sa4_smoke",
+"wind": "sa4"
+},
+{
+"name": "time15",
+"lens": "time",
+"wind": "calm",
+"sky": "none",
+"year": 15
+}
+]

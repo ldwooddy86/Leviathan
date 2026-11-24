@@ -1,0 +1,18 @@
+ok   the Rooftop Scout tab with a building picked (111800 characters)
+ok   the rail tab (277 characters)
+ok   engine bar and view, street (10041 characters)
+ok   engine bar and view, alta (10446 characters)
+ok   engine bar and view, saucer (10539 characters)
+ok   engine bar and view, m3 (10956 characters)
+ok   roof view cover: bar, legend, labels (12638 characters)
+ok   roof view style: bar, legend, labels (12408 characters)
+ok   roof view thermal: bar, legend, labels (12920 characters)
+ok   roof view wear: bar, legend, labels (12407 characters)
+ok   roof view storm: bar, legend, labels (13325 characters)
+ok   roof view fire: bar, legend, labels (13766 characters)
+ok   roof view solar: bar, legend, labels (12760 characters)
+ok   roof view time: bar, legend, labels (12604 characters)
+ok   the engine's own tables and notes (weather steps, the car, the aircraft kit) (7990 characters)
+PAGE ERRORS: none
+all pass
+exit 0

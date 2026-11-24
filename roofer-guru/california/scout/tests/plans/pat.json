@@ -1,0 +1,93 @@
+[
+{
+"name": "cover",
+"lens": "cover",
+"leg": true,
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat16_drone",
+"pat": 16,
+"leg": false,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat16_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat15_drone",
+"pat": 15,
+"leg": false,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat15_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat17_drone",
+"pat": 17,
+"leg": false,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat17_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat18_drone",
+"pat": 18,
+"leg": false,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat18_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat11_drone",
+"pat": 11,
+"leg": false,
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "pat11_close",
+"dist": 13,
+"pitch": -48
+},
+{
+"name": "pat16_70m",
+"pat": 16,
+"dist": 85,
+"pitch": -55
+},
+{
+"name": "pat17_70m",
+"pat": 17
+},
+{
+"name": "pat18_70m",
+"pat": 18
+},
+{
+"name": "time15",
+"pat": 0,
+"lens": "time",
+"year": 15,
+"leg": true,
+"dist": 45,
+"pitch": -55
+}
+]

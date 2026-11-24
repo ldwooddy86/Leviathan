@@ -1,0 +1,3 @@
+[
+ ["P.style.bottom = (h + 8) + 'px'; if (nt) nt.style.bottom = (h + 10) + 'px'; }", "P.style.bottom = (h + 8) + 'px'; if (nt) nt.style.bottom = (h + 10) + 'px'; const lg = $('#scEn .se-legend', root); if (lg) { lg.style.bottom = (h + 8) + 'px'; lg.style.maxHeight = 'calc(100% - ' + (h + 72) + 'px)'; } }"]
+]

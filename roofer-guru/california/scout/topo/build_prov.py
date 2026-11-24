@@ -28,13 +28,28 @@ NOTE = {'Klamath Mountains': 22, 'Cascade Range': 24, 'Modoc Plateau': 26, 'Coas
 strips = [g for n, g in raw.items() if 'Coastline' in n]
 provs = {n: g for n, g in raw.items() if 'Coastline' not in n}
 assert sorted(provs) == sorted(NOTE), sorted(provs)
-# each piece of a coastline strip joins the province it shares the longest edge with (on land only)
+# A coastline strip runs the length of the shore past several provinces (the southern one from Point Conception to the
+# border, wide enough to hold Santa Barbara, Ventura and Oxnard). It is cut into cells of 0.05 degree and each cell
+# joins the province nearest to it (on land only), so the Santa Barbara and Ventura coast goes to the Transverse
+# Ranges and the Los Angeles and San Diego coast to the Peninsular Ranges, as CGS Note 36 describes them.
+from shapely.geometry import box
+base = dict(provs); add = {n: [] for n in provs}; CELL = 0.05
 for sg in strips:
     sg = sg.intersection(CAs.buffer(0.01))
-    for piece in (sg.geoms if hasattr(sg, 'geoms') else [sg]):
-        if piece.is_empty or piece.area < 1e-6: continue
-        best = max(provs, key=lambda n: piece.buffer(0.004).intersection(provs[n]).area)
-        if piece.buffer(0.004).intersection(provs[best]).area > 0: provs[best] = provs[best].union(piece.buffer(0.0005))
+    if sg.is_empty: continue
+    x0, y0, x1, y1 = sg.bounds
+    i = 0
+    while x0 + i * CELL < x1:
+        j = 0
+        while y0 + j * CELL < y1:
+            cell = sg.intersection(box(x0 + i * CELL, y0 + j * CELL, x0 + (i + 1) * CELL, y0 + (j + 1) * CELL)); j += 1
+            if cell.is_empty or cell.area < 1e-8: continue
+            best = min(base, key=lambda n: cell.distance(base[n]))
+            add[best].append(cell.buffer(0.0005))
+        i += 1
+from shapely.ops import unary_union
+for n in provs:
+    if add[n]: provs[n] = unary_union([provs[n]] + add[n]).buffer(0)
 P = [(n, 'CGS GeoGem Note %d' % NOTE[n], provs[n].intersection(CAs.buffer(0.02))) for n in ('Klamath Mountains', 'Cascade Range', 'Modoc Plateau', 'Coast Ranges', 'Great Valley', 'Sierra Nevada', 'Basin and Range', 'Transverse Ranges', 'Mojave Desert', 'Peninsular Ranges', 'Colorado Desert')]
 
 def clean(g, min_area=0.0006):

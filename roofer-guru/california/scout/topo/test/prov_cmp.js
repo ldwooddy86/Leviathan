@@ -1,0 +1,10 @@
+/* the province outlines before and after a rebuild, at a grid of land points and a few shore places: node prov_cmp.js <before.js> <after.js> */
+const fs = require('fs');
+function load(f) { const w = {}; new Function('window', fs.readFileSync(f, 'utf8'))(w); const D = w.__SCOUT_TOPO_PROV__;
+  const unpack = s => { const out = []; let i = 0, la = 0, lo = 0; while (i < s.length) { for (const k of [0, 1]) { let r = 0, sh = 0, b; do { b = s.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32); const d = r & 1 ? ~(r >> 1) : r >> 1; if (k === 0) la += d; else lo += d; } out.push([la / 1000, lo / 1000]); } return out; };
+  const P = D.prov.map(p => ({ n: p.n, rings: p.r.map(unpack) })), inRing = (r, la, lo) => { let c = false; for (let i = 0, j = r.length - 1; i < r.length; j = i++) { const a = r[i], b = r[j]; if ((a[0] > la) !== (b[0] > la) && lo < (b[1] - a[1]) * (la - a[0]) / (b[0] - a[0]) + a[1]) c = !c; } return c; };
+  return (la, lo) => { const p = P.find(q => q.rings.some(r => inRing(r, la, lo))); return p ? p.n : '-'; }; }
+const A = load(process.argv[2]), B = load(process.argv[3]); let n = 0, same = 0, outA = 0, outB = 0; const ch = {};
+for (let la = 32.5; la <= 42; la += 0.05) for (let lo = -124.5; lo <= -114.1; lo += 0.05) { const a = A(la, lo), b = B(la, lo); if (a === '-' && b === '-') continue; n++; if (a === b) same++; else { const k = a + ' -> ' + b; ch[k] = (ch[k] || 0) + 1; } if (a === '-') outA++; if (b === '-') outB++; }
+console.log('grid points in either', n, 'same', same, 'outside before', outA, 'outside after', outB); console.log(ch);
+[['Avalon', 33.3428, -118.3282], ['Santa Cruz Island', 34.0, -119.75], ['Coronado', 32.6859, -117.1831], ['Santa Monica', 34.0195, -118.4912], ['Long Beach', 33.7701, -118.1937], ['Malibu', 34.0259, -118.7798], ['San Francisco', 37.7793, -122.4193], ['Stockton', 37.9577, -121.2908], ['Crescent City', 41.7558, -124.2026], ['Monterey', 36.6002, -121.8947], ['Lompoc', 34.6391, -120.4579], ['Oceanside', 33.1959, -117.3795]].forEach(([nm, la, lo]) => console.log(nm.padEnd(18), A(la, lo).padEnd(20), B(la, lo)));

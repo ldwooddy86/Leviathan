@@ -30,11 +30,11 @@ const STEPS = [
     /* the ground firms up as tiles arrive, the buildings come in */
     for (let k = 0; k < 14; k++) { await wait(3000); s = await st(); if (s.built > 3 && !s.queued) break; }
     C.ok(there, 'warp by ' + T.how + ' to ' + (T.name || T.q) + ' (' + T.craft + ')', { took, lat: s.lat, lon: s.lon, off: Math.round(dist(s.lat, s.lon, T.la, T.lo)) });
-    C.ok(s.elev != null && Math.abs(s.elev - T.elev) <= T.tol, '  ground elevation there', { elev: s.elev, want: T.elev, elevAt: s.elevAt, agl: s.agl, uap: s.uap, ground: s.ground, terrain: s.terrain, built: s.built, ti: s.ti });
-    C.ok(s.uap && s.uap.alt > 1 && s.uap.alt < 400 && (s.uap.asl == null || Math.abs(s.uap.asl - s.uap.alt - s.elev) < 25), '  the craft stands over the ground, not under it or at sea level', s.uap);
-    C.ok(new RegExp('ground ' + (Math.round(s.elev * 3.281 / 10) * 10).toLocaleString('en-US') + ' ft').test(s.where), '  the bar gives the ground height in feet', s.where);
+    C.ok(s.ground != null && Math.abs(s.ground - T.elev) <= T.tol, '  ground elevation there', { ground: Math.round(s.ground), camera: s.elev, want: T.elev, elevAt: s.elevAt, agl: s.agl, uap: s.uap, ground: s.ground, terrain: s.terrain, built: s.built, ti: s.ti });
+    C.ok(s.uap && s.uap.alt > 1 && s.uap.alt < 400 && (s.uap.asl == null || Math.abs(s.uap.asl - s.uap.alt - T.elev) < T.tol + 25), '  the craft stands over the ground, not under it or at sea level', s.uap);
+    C.ok(new RegExp('ground ' + (Math.round(s.ground * 3.281 / 10) * 10).toLocaleString('en-US') + ' ft').test(s.where), '  the bar gives the ground height in feet', s.where);
     if (T.snowAt) { await page.focus('#scEnRain'); for (let k = 0; k < 6; k++) { await page.keyboard.press('ArrowRight'); await wait(700); } await wait(2500); const w = await st(); const want = T.elev >= 2200 ? 'snow' : 'rain';
-      C.ok(w.stormKey === 'ar3' && w.snowM === 2200 && w.precip === want, '  AR3 there: ' + want, { precip: w.precip, snowM: w.snowM, elev: w.elev, line: w.line });
+      C.ok(w.stormKey === 'ar3' && w.snowM === 2200 && w.precip === want, '  AR3 there: ' + want, { precip: w.precip, snowM: w.snowM, ground: Math.round(w.ground), line: w.line });
       if (DIR) await L.shot(page, path.join(DIR, 'warp_' + T.q.replace(/\W+/g, '_') + '_ar3.png'));
       await page.focus('#scEnRain'); await page.keyboard.press('Home'); await wait(1500); }
     else if (DIR) await L.shot(page, path.join(DIR, 'warp_' + (T.name || T.q).replace(/\W+/g, '_').slice(0, 24) + '.png'));

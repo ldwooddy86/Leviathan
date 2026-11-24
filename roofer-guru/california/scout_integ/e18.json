@@ -1,0 +1,4 @@
+[
+ ["${wx.sky === 'smoke' || /^sa/.test(wx.wind.id) ? 'Dry offshore wind or smoke: each roof shows its ember exposure, an index and not a chance. ' : ''}</span>", "${wx.sky === 'smoke' || /^sa/.test(wx.wind.id) ? (wx.gust >= 40 || wx.rain.id !== 'dry' ? 'Dry offshore wind or smoke: each roof\\'s ember exposure (an index, not a chance) is in its reading; the colour here is the wind\\'s or the rain\\'s. ' : 'Dry offshore wind or smoke: each roof shows its ember exposure, an index and not a chance. ') : ''}</span>"],
+ ["${wx.sky === 'smoke' || /^sa/.test(wx.wind.id) ? ramp(LENS_ROW.fire, 0, 0, ['low', '', 'ember exposure', '', 'high']) : ''}`;", "${(wx.sky === 'smoke' || /^sa/.test(wx.wind.id)) && wx.gust < 40 && wx.rain.id === 'dry' ? ramp(LENS_ROW.fire, 0, 0, ['low', '', 'ember exposure', '', 'high']) : ''}`;"]
+]

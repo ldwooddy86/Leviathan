@@ -7,10 +7,10 @@ set -e
 SP=/tmp/claude-0/-home-user-Leviathan/3de4e742-518d-5f10-b5db-2b34e6723642/scratchpad
 CA=$SP/ca; E=$CA/engine; W=$CA/scout_integ/w; S=$CA/scout
 OUT=${1:-/home/user/Leviathan/california-roofer-guru.html}; shift || true
-JOBS=${@:-terrain weather traffic car sky views}
+JOBS=${@:-terrain weather traffic car sky views dense}
 mkdir -p $W $CA/scout_integ/d
 cur=$E/la_engine.js
-for j in terrain weather traffic car sky views; do
+for j in terrain weather traffic car sky views dense; do
   case " $JOBS " in *" $j "*) ;; *) continue;; esac
   if [ $j = views ]; then port=$E/views/port_views_ca.py; else port=$E/$j/port_$j.py; fi
   nxt=$W/stack_$j.js

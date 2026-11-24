@@ -1,0 +1,26 @@
+[
+{
+"name": "wx_marine",
+"lens": "storm",
+"sky": "marine",
+"leg": true,
+"mode": "orbit",
+"dist": 45,
+"pitch": -55
+},
+{
+"name": "wx_breeze",
+"sky": "none",
+"wind": "breeze"
+},
+{
+"name": "wx_ar4",
+"wind": "calm",
+"rain": "ar4"
+},
+{
+"name": "cover",
+"lens": "cover",
+"rain": "dry"
+}
+]

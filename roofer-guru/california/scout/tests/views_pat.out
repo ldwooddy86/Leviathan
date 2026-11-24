@@ -1,0 +1,18 @@
+pat engine {"built":176,"queued":0,"roads":301,"mode":"street","elev":66.39903831481934,"lat":33.70038442028175,"lon":-117.7553737388427} {"name":"34 Fanpalm Irvine","sub":"Irvine · 92620 · Single family home · 1,980 sq ft footprint · 6.6 m tall"}
+pat cover {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 15 s
+pat pat16_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 9 s
+pat pat16_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 9 s
+pat pat15_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 9 s
+pat pat15_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 12 s
+pat pat17_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 14 s
+pat pat17_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 8 s
+pat pat18_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 10 s
+pat pat18_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 9 s
+pat pat11_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 9 s
+pat pat11_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 10 s
+pat pat16_70m {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 9 s
+pat pat17_70m {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 9 s
+pat pat18_70m {"lens":"cover","n":130,"pend":0,"q":"High","fps":0} 12 s
+pat time15 {"lens":"time","n":130,"pend":0,"q":"High","fps":0} 13 s
+PAGE ERRORS: none
+exit 0

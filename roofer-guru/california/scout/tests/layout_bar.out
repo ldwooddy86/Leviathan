@@ -1,0 +1,12 @@
+ok   w1280 saucer_ar5_time  {"W":1280,"scrollW":1280,"barH":818,"wide":[],"over":[],"clipped":[],"first":true,"rvFont":12.5,"otherFont":12,"rvLabel":12.5,"otherLabel":10.5,"rvBorder":"1px","padOverAttr":false,"padOverNote":false,"padOverHud":false,"viewH":594,"attrH":36,"tickFont":10}
+ok   w1280 m3_weather  {"W":1280,"scrollW":1280,"barH":661,"wide":[],"over":[],"clipped":[],"first":true,"rvFont":12.5,"otherFont":12,"rvLabel":12.5,"otherLabel":10.5,"rvBorder":"1px","padOverAttr":false,"padOverNote":false,"padOverHud":false,"viewH":594,"attrH":36,"tickFont":10}
+ok   w1280 Scene menu open: inside the window  {"left":425,"right":805,"top":732,"bottom":1881,"W":1280,"H":900,"wide":0,"scrollW":1280}
+ok   w1024 saucer_ar5_time  {"W":1024,"scrollW":1024,"barH":684,"wide":[],"over":[],"clipped":[],"first":true,"rvFont":12.5,"otherFont":12,"rvLabel":12.5,"otherLabel":10.5,"rvBorder":"1px","padOverAttr":false,"padOverNote":false,"padOverHud":false,"viewH":528,"attrH":36,"tickFont":10}
+ok   w1024 m3_weather  {"W":1024,"scrollW":1024,"barH":561,"wide":[],"over":[],"clipped":[],"first":true,"rvFont":12.5,"otherFont":12,"rvLabel":12.5,"otherLabel":10.5,"rvBorder":"1px","padOverAttr":false,"padOverNote":false,"padOverHud":false,"viewH":528,"attrH":36,"tickFont":10}
+ok   w1024 Scene menu open: inside the window  {"left":425,"right":805,"top":648,"bottom":1798,"W":1024,"H":800,"wide":0,"scrollW":1024}
+ok   w390 saucer_ar5_time  {"W":390,"scrollW":390,"barH":1239,"wide":[],"over":[],"clipped":[],"first":true,"rvFont":12.5,"otherFont":12,"rvLabel":12.5,"otherLabel":10.5,"rvBorder":"1px","padOverAttr":false,"padOverNote":false,"padOverHud":false,"viewH":464,"attrH":83,"tickFont":8.5}
+ok   w390 m3_weather  {"W":390,"scrollW":390,"barH":1110,"wide":[],"over":[],"clipped":[],"first":true,"rvFont":12.5,"otherFont":12,"rvLabel":12.5,"otherLabel":10.5,"rvBorder":"1px","padOverAttr":false,"padOverNote":false,"padOverHud":false,"viewH":464,"attrH":83,"tickFont":8.5}
+ok   w390 Scene menu open: inside the window  {"left":10,"right":380,"top":214,"bottom":790,"W":390,"H":800,"wide":0,"scrollW":390}
+PAGE ERRORS: none
+all pass
+exit 0

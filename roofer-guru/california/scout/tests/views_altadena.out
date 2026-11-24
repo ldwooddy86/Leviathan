@@ -1,0 +1,14 @@
+altadena engine {"built":225,"queued":0,"roads":178,"mode":"street","elev":370.914644241333,"lat":34.18539411170983,"lon":-118.13713295677702} {"name":"627 E Calaveras St","sub":"Altadena · 91001 · Single family home · 2,840 sq ft footprint"}
+altadena off {"lens":"off","n":0,"pend":0,"q":"High","fps":2} 14 s
+altadena cover {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 21 s
+altadena fire {"lens":"fire","n":130,"pend":0,"q":"High","fps":1} 20 s
+altadena fire_close {"lens":"fire","n":130,"pend":0,"q":"High","fps":1} 17 s
+altadena wx_sa4_smoke {"lens":"storm","n":130,"pend":0,"q":"High","fps":1} 18 s
+altadena wx_sa1 {"lens":"storm","n":130,"pend":0,"q":"High","fps":1} 13 s
+altadena wear {"lens":"wear","n":130,"pend":0,"q":"High","fps":1} 19 s
+altadena thermal {"lens":"thermal","n":130,"pend":0,"q":"High","fps":0} 19 s
+altadena solar {"lens":"solar","n":130,"pend":0,"q":"High","fps":0} 17 s
+altadena time15 {"lens":"time","n":130,"pend":0,"q":"High","fps":0} 16 s
+altadena style {"lens":"style","n":130,"pend":0,"q":"High","fps":0} 16 s
+PAGE ERRORS: none
+exit 0

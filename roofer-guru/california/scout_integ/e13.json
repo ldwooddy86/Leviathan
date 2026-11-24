@@ -1,0 +1,5 @@
+[
+ ["as fast as the average ${esc(RTYPE[R.types[0][0]].s)} roof here${R.heat > 1.08", "as fast as the average ${esc(ROOF_ONE[R.types[0][0]] || 'roof')} here${R.heat > 1.08"],
+ ["  /* the key and the reading the engine shows beside a roof view */", "  /* one roof of each kind, in words */\n  const ROOF_ONE = { shingle: 'shingle roof', tile: 'tile roof', wood: 'wood shake roof', flat: 'low slope roof', metal: 'metal roof', mh: 'manufactured home roof', low: 'low slope membrane', lowmf: 'low slope membrane', mbldg: 'metal building roof' };\n  /* the key and the reading the engine shows beside a roof view */"],
+ ["${pw ? `<br>It shows ${pw} in the satellite photo${isLowK(R.cover.k) ? (R.cover.white ? ': drawn as a white membrane or cool coating' : ': drawn as a dark cap sheet or membrane') : ''}.` : ''}", "${pw ? `<br>It shows ${pw} in the satellite photo${isLowK(R.cover.k) ? (R.cover.white ? ': drawn as a white membrane or cool coating' : pw === 'light' ? ', not bright enough for a white membrane: drawn as a cap sheet or a membrane of a darker tone' : ': drawn as a dark cap sheet or membrane') : ''}.` : ''}"]
+]

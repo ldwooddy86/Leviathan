@@ -5,7 +5,7 @@ const FILE = process.argv[2], ADDR = process.argv[3] || '1100 Orange Ave, Corona
 (async () => {
   const { page, errs, close } = await L.launch({ w: 900, h: 720, hard: 14 }); const C = L.checker(), wait = L.wait;
   await L.openPage(page, FILE); await L.find(page, ADDR);
-  const s0 = await L.engine(page, { life: true }); C.ok(s0 && s0.built > 5, 'engine opens', s0);
+  const s0 = await L.engine(page, { life: false }); C.ok(s0 && s0.built > 5, 'engine opens', s0);
   const ev = f => page.evaluate(f);
   const car = () => page.evaluate(() => { const en = MODI.rooftops.api.en(), st = en.state(), c = st.car; return { mode: st.mode, car: c && { mph: +(+c.mph).toFixed(1), gear: c.gear, rpm: Math.round(c.rpm), tc: c.tc, onRoad: c.onRoad, grip: c.grip, driving: c.driving }, cam: en.graphics().carCam, where: (document.querySelector('#scEnWhere') || {}).innerText.slice(0, 330) }; });
   /* the button, its tooltip and the keys help */
@@ -21,7 +21,8 @@ const FILE = process.argv[2], ADDR = process.argv[3] || '1100 Orange Ave, Corona
   const hold = async (k, ms) => { await ev(() => document.querySelector('#scEnPad').scrollIntoView({ block: 'center' })); await wait(400); const b = await page.$('#scEnPad button[data-k="' + k + '"]'); const r = await b.boundingBox(); if (!r) return false; await page.mouse.move(r.x + r.width / 2, r.y + r.height / 2); await page.mouse.down(); await wait(ms); const mid = await car(); await page.mouse.up(); return mid; };
   let m = await hold('fwd', 9000); C.ok(m && m.car && m.car.mph > 3, 'pad: throttle held moves the car', m && m.car);
   m = await hold('left', 900); console.log('     steer left held', JSON.stringify(m && m.car));
-  m = await hold('back', 6000); C.ok(m && m.car && m.car.mph < 15, 'pad: brake held slows it (then reverses)', m && m.car);
+  const pre = await car(); m = await hold('back', 1600); C.ok(m && m.car && m.car.mph < pre.car.mph - 5, 'pad: brake held slows it', { before: pre.car.mph, held: m && m.car.mph });
+  m = await hold('back', 7000); C.ok(m && m.car && m.car.gear === -1, 'pad: brake held at rest backs it up', m && m.car);
   await wait(2500); c = await car(); console.log('     after brake', JSON.stringify(c.car));
   /* handbrake on the pad */
   await ev(() => document.querySelector('#scEnBar').scrollIntoView({ block: 'start' })); await page.click('#scEnBar [data-car="reset"]'); await wait(2500);
@@ -51,6 +52,7 @@ const FILE = process.argv[2], ADDR = process.argv[3] || '1100 Orange Ave, Corona
   await page.click('#scEnBar [data-h="street"]'); await wait(3000); c = await car(); C.ok(c.mode === 'street' && (!c.car || !c.car.driving), 'leaving the car', c);
   const padS = await pad(); C.ok(padS.find(x => x.k === 'down').hidden, 'pad drops Handbrake on foot', padS.find(x => x.k === 'down'));
   await page.click('#scEnBar [data-h="m3"]'); await wait(5000); c = await car(); C.ok(c.mode === 'm3' && c.car && c.car.driving, 'returning to the car', c);
+  await ev(() => MODI.rooftops.api.en().setGraphics({ life: true })); await wait(6000);
   const what = await ev(() => (document.querySelector('#scEnWhat') || {}).innerText); C.ok(/The M3\./.test(what) && /251 mph is this dashboard/.test(what) && /Traffic/.test(what), 'captions: the M3 and the traffic say what is measured, chosen, generated', what);
   await page.click('#scEnBar [data-h="drone"]'); await wait(2000);
   console.log('PAGE ERRORS:', errs.length ? errs.length + '\n' + [...new Set(errs)].slice(0, 8).join('\n') : 'none'); console.log(C.bad ? C.bad + ' FAILED' : 'all pass');

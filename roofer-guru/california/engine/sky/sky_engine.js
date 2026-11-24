@@ -107,7 +107,9 @@
     /* the deck's height in local y, s metres along it. Within rampA of its start (rampB of its end) the deck is moved to meet the ground at that end, the move fading out along the ramp:
        on the terrain the difference is small; on the flat world it is the whole height of the abutment */
     function deckY(d, s, x, z) { const lc = d.loc, L = lc.L; let y = yOf(d.prof(s, L, lc.K), 0); const rA = terr() && d.rampAT != null ? d.rampAT : d.rampA, rB = terr() && d.rampBT != null ? d.rampBT : d.rampB;
-      if (rA && s < rA) { const e = lc.P[0]; y += (gy(e[0], e[1]) + 0.12 - yOf(d.prof(0, L, lc.K), 0)) * (1 - smoothstep(0, rA, s)); } else if (rB && s > L - rB) { const e = lc.P[lc.P.length - 1]; y += (gy(e[0], e[1]) + 0.12 - yOf(d.prof(L, L, lc.K), 0)) * (1 - smoothstep(0, rB, L - s)); } return y; }
+      /* where the traffic kit is (S.traffic) and the terrain's ground at an end lies under the deck, the deck is not bent down to it: the road that leads on comes away from the deck's own height at a road's grade, on the kit's own approach */
+      const kit = terr() && !!S.traffic, bend = v => (kit && v < 0 ? 0 : v);
+      if (rA && s < rA) { const e = lc.P[0]; y += bend(gy(e[0], e[1]) + 0.12 - yOf(d.prof(0, L, lc.K), 0)) * (1 - smoothstep(0, rA, s)); } else if (rB && s > L - rB) { const e = lc.P[lc.P.length - 1]; y += bend(gy(e[0], e[1]) + 0.12 - yOf(d.prof(L, L, lc.K), 0)) * (1 - smoothstep(0, rB, L - s)); } return y; }
     let geoKey = '';
     const geoNow = () => S.gen + '/' + S.lat0 + '/' + S.lon0 + '/' + (terr() ? S.y0 : 'flat');
     function relocate() { DECKS.forEach(d => { d.loc = null; }); }

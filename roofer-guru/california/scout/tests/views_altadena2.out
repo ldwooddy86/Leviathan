@@ -1,0 +1,7 @@
+altadena2 engine {"built":225,"queued":0,"roads":178,"mode":"street","elev":370.914644241333,"lat":34.18539411170983,"lon":-118.13713295677702} {"name":"627 E Calaveras St","sub":"Altadena · 91001 · Single family home · 2,840 sq ft footprint"}
+altadena2 fire {"lens":"fire","n":130,"pend":0,"q":"High","fps":1} 15 s
+altadena2 wx_smoke {"lens":"storm","n":130,"pend":0,"q":"High","fps":1} 14 s
+altadena2 wx_sa4_smoke {"lens":"storm","n":130,"pend":0,"q":"High","fps":1} 13 s
+altadena2 time15 {"lens":"time","n":130,"pend":0,"q":"High","fps":1} 18 s
+PAGE ERRORS: none
+exit 0

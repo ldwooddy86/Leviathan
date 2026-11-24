@@ -1,0 +1,16 @@
+berkeley engine {"built":227,"queued":0,"roads":286,"mode":"street","elev":81.00434875488281,"lat":37.88028455161485,"lon":-122.26851408296471} {"name":"2110 Vine St Berkeley 94709","sub":"Berkeley · 94709 · Retail · 9,270 sq ft footprint · 7.5 m tall"}
+berkeley cover {"lens":"cover","n":130,"pend":0,"q":"High","fps":2} 20 s
+berkeley pat17_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":2} 11 s
+berkeley pat17_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 11 s
+berkeley pat8_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 11 s
+berkeley pat7_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 12 s
+berkeley style {"lens":"style","n":130,"pend":0,"q":"High","fps":1} 16 s
+berkeley thermal_jan {"lens":"thermal","n":130,"pend":0,"q":"High","fps":1} 16 s
+berkeley wear {"lens":"wear","n":130,"pend":0,"q":"High","fps":1} 14 s
+berkeley wx_ar4 {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 15 s
+berkeley wx_smoke {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 9 s
+berkeley fire {"lens":"fire","n":130,"pend":0,"q":"High","fps":0} 15 s
+berkeley solar {"lens":"solar","n":130,"pend":0,"q":"High","fps":0} 16 s
+berkeley time8 {"lens":"time","n":130,"pend":0,"q":"High","fps":0} 15 s
+PAGE ERRORS: none
+exit 0

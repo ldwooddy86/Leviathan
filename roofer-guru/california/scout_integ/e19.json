@@ -1,0 +1,4 @@
+[
+ ["${cl.el != null ? ', and the ground here is taken at ' + N(Math.round(cl.el * 3.281 / 10) * 10) + ' ft' : ''})", "${cl.el != null ? ', with the ground taken at the ZIP code\\'s height, ' + N(Math.round(cl.el * 3.281 / 10) * 10) + ' ft' : ''})"],
+ ["snowHere ? `Here${elFt ? ', at ' + elFt + ' ft,' : ''} this storm falls as snow (its snow level is about ${slFt} ft): each roof shows", "snowHere ? `Here${elFt ? ', at ' + elFt + ' ft,' : ''} ${wx.elev != null && wx.elev < wx.snowM ? 'right at this storm\\'s snow level (about ' + slFt + ' ft), it falls as rain and snow together' : 'this storm falls as snow (its snow level is about ' + slFt + ' ft)'}: each roof shows"]
+]

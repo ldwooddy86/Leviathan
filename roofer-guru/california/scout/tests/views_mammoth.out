@@ -1,0 +1,17 @@
+mammoth engine {"built":33,"queued":0,"roads":375,"mode":"street","elev":2403.4520120620728,"lat":37.639417150010615,"lon":-118.96373694035205} {"name":"A point on the map","sub":"37.63907, -118.96451 · ZIP 93546"}
+mammoth off {"lens":"off","n":0,"pend":0,"q":"High","fps":3} 12 s
+mammoth cover {"lens":"cover","n":49,"pend":0,"q":"High","fps":2} 15 s
+mammoth wx_ar3 {"lens":"storm","n":49,"pend":0,"q":"High","fps":2} 12 s
+mammoth wx_ar5 {"lens":"storm","n":49,"pend":0,"q":"High","fps":2} 14 s
+mammoth wx_rain {"lens":"storm","n":49,"pend":0,"q":"High","fps":1} 9 s
+mammoth wx_tstorm {"lens":"storm","n":49,"pend":0,"q":"High","fps":1} 8 s
+mammoth off_ar3_snow {"lens":"off","n":0,"pend":0,"q":"High","fps":1} 9 s
+mammoth wx_sa3 {"lens":"storm","n":49,"pend":0,"q":"High","fps":1} 8 s
+mammoth thermal_jan {"lens":"thermal","n":49,"pend":0,"q":"High","fps":1} 12 s
+mammoth wear {"lens":"wear","n":49,"pend":0,"q":"High","fps":1} 11 s
+mammoth fire {"lens":"fire","n":49,"pend":0,"q":"High","fps":1} 12 s
+mammoth solar {"lens":"solar","n":49,"pend":0,"q":"High","fps":0} 13 s
+mammoth time15 {"lens":"time","n":49,"pend":0,"q":"High","fps":0} 11 s
+mammoth style {"lens":"style","n":49,"pend":0,"q":"High","fps":0} 11 s
+PAGE ERRORS: none
+exit 0

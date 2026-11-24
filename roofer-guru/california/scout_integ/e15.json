@@ -1,0 +1,6 @@
+[
+ ["    ['#2e140c', '#7a2e13', '#c4501f', '#f0845a', '#ffe1d4'],                                                            /* rust */", "    ['#2e0c1c', '#7a1444', '#c42a74', '#f478b0', '#ffe0ee'],                                                            /* rust: a rose, apart from the amber of age and the red of fire */"],
+ ["    ['#2a0d06', '#7a1f0c', '#d8421a', '#ff8a3c', '#ffe3b0'],                                                            /* wildfire */", "    ['#2a0608', '#7a0f18', '#d81f2f', '#ff4d5e', '#ffd9dd'],                                                            /* wildfire: red */"],
+ ["rust: '#f0845a', algae: '#9fd06a', fire: '#ff8a3c' };", "rust: '#f478b0', algae: '#9fd06a', fire: '#ff4d5e' };"],
+ ["    ['#2e2114', '#6e4f2c', '#b98a52'],                                                                                  /* covering: wood shakes */", "    ['#2a1f15', '#5a4028', '#8f6a45'],                                                                                  /* covering: wood shakes (weathered cedar: a grey brown, apart from clay tile's orange) */"]
+]

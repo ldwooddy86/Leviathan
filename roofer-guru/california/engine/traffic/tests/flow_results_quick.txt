@@ -9,24 +9,24 @@
   nearest count in the desert east of Lone Pine: null
 
 == 2. A straight 3 km carriageway, five lanes, Los Angeles, by hour (4 simulated minutes after 1 minute of settling) ==
-  3h: wanted 62 mph at 2/km/lane; ran 20 cars at a mean 66 mph (slowest 55, fastest 72), standing 0%, overlaps 0, lane changes 2, held 0, step 0.066 ms
-  17h: wanted 29 mph at 43/km/lane; ran 609 cars at a mean 28 mph (slowest 19, fastest 36), standing 0%, overlaps 0, lane changes 6, held 0, step 0.711 ms
+  3h: wanted 62 mph at 2/km/lane; ran 20 cars at a mean 66 mph (slowest 55, fastest 72), standing 0%, overlaps 0, lane changes 2, held 0, step 0.043 ms
+  17h: wanted 29 mph at 43/km/lane; ran 609 cars at a mean 28 mph (slowest 19, fastest 36), standing 0%, overlaps 0, lane changes 6, held 0, step 0.559 ms
 
 == 3. A ramp joins four lanes (1.2 km before, 1.2 km after), and a lane drop from four to three ==
-  03:00: 36 cars, mean 61 mph, standing 0%, overlaps 0, lane changes 67, rerouted 0, squeezed over 0, held 0, left by the ends 36, entered 40, on the two ramps now 4 and 1
-  17:00: 642 cars, mean 23 mph, standing 17%, overlaps 0, lane changes 147, rerouted 3, squeezed over 4, held 4, left by the ends 203, entered 286, on the two ramps now 69 and 1
+  03:00: 34 cars, mean 61 mph, standing 0%, overlaps 0, lane changes 57, rerouted 0, squeezed over 0, held 0, left by the ends 37, entered 39, on the two ramps now 4 and 1
+  17:00: 640 cars, mean 23 mph, standing 17%, overlaps 0, lane changes 147, rerouted 3, squeezed over 4, held 4, left by the ends 203, entered 284, on the two ramps now 69 and 1
 
 == 4. Real interchanges from the saved OpenStreetMap answers ==
-  Los Angeles: the four-level (SR-110 / US-101) and downtown, 17h: 286 pieces (252 carrying traffic, 66450 lane-metres, out to 1710 m), 1982 vehicles {"car":1943,"bus":7,"box":13,"truck":19}, mean 25 mph, standing 4%, overlaps 420, lane changes 686, rerouted 67, squeezed 1, held 16, step 5.591 ms
+  Los Angeles: the four-level (SR-110 / US-101) and downtown, 17h: 288 pieces (254 carrying traffic, 66450 lane-metres, out to 1710 m), 1991 vehicles {"car":1934,"truck":28,"bus":11,"box":18}, mean 24 mph, standing 4%, overlaps 438, lane changes 671, rerouted 62, squeezed 0, held 11, step 3.643 ms
     roads: 8788, freeway and ramp ways 284, roads with a raised deck 612, highest deck 19.5 m, one-way share of street length 28%, cable car track ways 0
-  San Francisco: I-80 and the Bay Bridge approach, 17h: 103 pieces (82 carrying traffic, 65756 lane-metres, out to 1800 m), 781 vehicles {"car":739,"bus":5,"truck":9,"box":6,"cable":22}, mean 39 mph, standing 1%, overlaps 70, lane changes 304, rerouted 9, squeezed 2, held 2, step 2.021 ms
+  San Francisco: I-80 and the Bay Bridge approach, 17h: 103 pieces (82 carrying traffic, 65756 lane-metres, out to 1800 m), 785 vehicles {"car":740,"bus":5,"truck":11,"box":7,"cable":22}, mean 39 mph, standing 1%, overlaps 75, lane changes 284, rerouted 6, squeezed 1, held 1, step 1.126 ms
     roads: 11642, freeway and ramp ways 102, roads with a raised deck 260, highest deck 26.0 m, one-way share of street length 57%, cable car track ways 35
-  San Diego: I-5 and the Coronado Bridge, 17h: 159 pieces (99 carrying traffic, 56022 lane-metres, out to 1800 m), 1074 vehicles {"car":1041,"truck":20,"box":10,"bus":3}, mean 39 mph, standing 1%, overlaps 95, lane changes 232, rerouted 7, squeezed 14, held 11, step 2.454 ms
+  San Diego: I-5 and the Coronado Bridge, 17h: 159 pieces (99 carrying traffic, 56022 lane-metres, out to 1800 m), 1078 vehicles {"car":1047,"truck":18,"box":9,"bus":4}, mean 39 mph, standing 2%, overlaps 120, lane changes 261, rerouted 8, squeezed 9, held 11, step 1.555 ms
     roads: 8484, freeway and ramp ways 157, roads with a raised deck 373, highest deck 19.5 m, one-way share of street length 34%, cable car track ways 0
 
 == 5. Step cost against fleet size (one straight carriageway of six lanes, as long as the fleet needs, 40 cars/km/lane) ==
-  382 cars: 1.265 ms a step (3.31 microseconds a car), overlaps 0
-  1556 cars: 1.960 ms a step (1.26 microseconds a car), overlaps 0
+  382 cars: 0.540 ms a step (1.41 microseconds a car), overlaps 0
+  1556 cars: 1.780 ms a step (1.14 microseconds a car), overlaps 0
 
 == 6. The user's car as an actor: standing still in lane 2 of four at 17:00 density, then gone ==
   60 s with the car standing: frames in which a traffic car touched it 0, closest a follower came 0.45 m, cars queued behind it 9, lane changes so far 22

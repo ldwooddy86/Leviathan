@@ -1,0 +1,20 @@
+irvine engine {"built":149,"queued":0,"roads":351,"mode":"street","elev":25.31817650794983,"lat":33.68018,"lon":-117.811577} {"name":"35 Woodleaf","sub":"Irvine · 92604 · Apartments or multifamily · 5,320 sq ft footprint"}
+irvine cover {"lens":"cover","n":130,"pend":0,"q":"High","fps":2} 21 s
+irvine cover_nl {"lens":"cover","n":130,"pend":0,"q":"High","fps":2} 15 s
+irvine cover_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 10 s
+irvine pat15_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 15 s
+irvine pat16_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 11 s
+irvine pat11_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 11 s
+irvine pat16_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 10 s
+irvine pat15_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 9 s
+irvine pat11_drone {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 14 s
+irvine style {"lens":"style","n":130,"pend":0,"q":"High","fps":0} 15 s
+irvine thermal_july {"lens":"thermal","n":130,"pend":0,"q":"High","fps":0} 16 s
+irvine wear {"lens":"wear","n":130,"pend":0,"q":"High","fps":0} 18 s
+irvine wx_sa2 {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 15 s
+irvine wx_ar3 {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 13 s
+irvine fire {"lens":"fire","n":130,"pend":0,"q":"High","fps":0} 13 s
+irvine solar {"lens":"solar","n":130,"pend":0,"q":"High","fps":0} 18 s
+irvine time15 {"lens":"time","n":130,"pend":0,"q":"High","fps":0} 16 s
+PAGE ERRORS: none
+exit 0

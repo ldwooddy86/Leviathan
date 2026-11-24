@@ -1,17 +1,12 @@
 ok   engine opens  {"built":188,"queued":0,"roads":134,"mode":"street","elev":8.579679489135742,"lat":32.684869432002934,"lon":-117.17984723869863}
-ok   aircraft on: the line reads en.air.info()  {"btn":"Aircraft, ships and bridges: on","pressed":"true","g":true,"st":{"on":true,"flights":11,"helicopters":3,"boats":5,"sites":5},"line":"Nearest airport: North Island Naval Air Station-Halsey Field (NZY), 4 km · no flights are drawn at this field (a military field, or one with no row in the schedule file). Measured: runways, approach paths, flights an hour, aircraft sizes, the piers and the bridges. Generated, not observed: every individual flight and its colours, which ships lie at which pier, aircraft on the carrier deck, the helicopter circuit, boats, the high traffic and its contrails.","info":{"airport":"NZY","name":"North Island Naval Air Station-Halsey Field","km":3.7,"landing":[],"departing":[],"arr":0,"dep":0,"arriving":0,"departingNow":0,"drawn":11,"helicopters":3,"boats":5,"built":["Naval Base Coronado and Naval Base San Diego (28 ships)","San Diego-Coronado Bridge (crest 
-     the switch took 52 s (it rebuilds the roads for the bridge decks)
-ok   aircraft switched off: no line, nothing in the sky  {"btn":"Aircraft, ships and bridges: off","st":{"on":false,"flights":0,"helicopters":3,"boats":5,"sites":5},"where":"On Orange Ave (main road), looking southwest · ground 20 ft above the sea · 188 buildings, 9 cells still building · 26 frames a second, 409,626 triangles. Drag "}
-ok   aircraft back on  {"st":{"on":true,"flights":12,"helicopters":3,"boats":5,"sites":5},"line":"Nearest airport: North Island Naval Air Station-Halsey Field (NZY), 4 km · no flights are drawn at this field (a military field, or one with no row in the schedule file) · drawn round you: 3 helicopters, 5 boats and ships. Measured: runways, approach paths, flights an hour, aircraft sizes, the piers"}
-ok   ground height: Coronado about 7 m (20 ft), the eye 1.7 m above it  {"where":"On Orange Ave (main road), looking southwest · ground 20 ft above the sea · 12 flights in the sky · 188 buildings, 6 cells still building · 35 frames a second, ","elev":8.579679489135742}
+ok   aircraft on: the line reads en.air.info()  {"btn":"Aircraft, ships and bridges: on","pressed":"true","g":true,"st":{"on":true,"flights":12,"helicopters":3,"boats":5,"sites":5},"line":"Nearest airport: North Island Naval Air Station-Halsey Field (NZY), 4 km · no flights are drawn at this field (a military field, or one with no row in the schedule file). Measured: runways, approach paths, flights an hour, aircraft sizes, the piers and the bridges. Generated, not observed: every individual flight and its colours, which ships lie at which pier, aircraft on the carrier deck, the helicopter circuit, boats, the high traffic and its contrails.","info":{"airport":"NZY","name":"North Island Naval Air Station-Halsey Field","km":3.7,"landing":[],"departing":[],"arr":0,"dep":0,"arriving":0,"departingNow":0,"drawn":12,"helicopters":3,"boats":5,"built":["Naval Base Coronado and Naval Base San Diego (28 ships)","San Diego-Coronado Bridge (crest 
+     the switch took 8 s (it rebuilds the roads for the bridge decks)
+ok   aircraft switched off: no line, nothing in the sky  {"btn":"Aircraft, ships and bridges: off","st":{"on":false,"flights":0,"helicopters":3,"boats":5,"sites":5},"where":"On Orange Ave (main road), looking southwest · ground 20 ft above the sea · 188 buildings · 1 frames a second, 409,562 triangles. Drag to look; W S move, A D tu"}
+ok   aircraft back on  {"st":{"on":true,"flights":11,"helicopters":3,"boats":5,"sites":5},"line":"Nearest airport: North Island Naval Air Station-Halsey Field (NZY), 4 km · no flights are drawn at this field (a military field, or one with no row in the schedule file) · drawn round you: 3 helicopters, 5 boats and ships. Measured: runways, approach paths, flights an hour, aircraft sizes, the piers"}
+ok   ground height: Coronado about 7 m (20 ft), the eye 1.7 m above it  {"where":"On Orange Ave (main road), looking southwest · ground 20 ft above the sea · 11 flights in the sky · 188 buildings · 1 frames a second, 432,039 triangles. Drag t","elev":8.579679489135742}
 ok   sound on  {"text":"Sound on","pressed":"true"}
-ERROR page.click: Timeout 30000ms exceeded.
-Call log:
-[2m  - waiting for locator('#scEnBar [data-a="sound"]')[22m
-
-    at snd (/tmp/claude-0/-home-user-Leviathan/3de4e742-518d-5f10-b5db-2b34e6723642/scratchpad/ca/scout/tests/bar_wx.js:61:40)
-    at /tmp/claude-0/-home-user-Leviathan/3de4e742-518d-5f10-b5db-2b34e6723642/scratchpad/ca/scout/tests/bar_wx.js:62:156 {
-  log: [ `  - waiting for locator('#scEnBar [data-a="sound"]')` ],
-  name: 'TimeoutError'
-}
-exit 2
+ok   sound off  {"text":"Sound off","pressed":"false"}
+     captions {"what":"","bar":1934}
+PAGE ERRORS: none
+all pass
+exit 0

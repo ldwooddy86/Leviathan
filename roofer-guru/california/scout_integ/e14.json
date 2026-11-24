@@ -1,0 +1,3 @@
+[
+ ["ramp(LENS_ROW.rain, 0, 0, ['0', '', '5%', '', '10% leak call']) + ramp(LENS_ROW.snow, 0, 0, ['no snow', '', 'half', '', 'the design load'])", "ramp(LENS_ROW.rain, 0, 0, ['0', '', '5%', '', '10% leak call']) + '<span class=\"se-leg-marks\"><span><i class=\"m6\"></i>rings: more of them the likelier a leak</span></span>' + ramp(LENS_ROW.snow, 0, 0, ['no snow', '', 'half', '', 'the design load'])"]
+]

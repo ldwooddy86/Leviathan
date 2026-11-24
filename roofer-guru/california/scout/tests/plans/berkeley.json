@@ -2,13 +2,15 @@
 {
 "name": "cover",
 "lens": "cover",
+"leg": true,
 "mode": "orbit",
 "dist": 45,
 "pitch": -55
 },
 {
 "name": "pat17_drone",
-"pat": 17
+"pat": 17,
+"leg": false
 },
 {
 "name": "pat17_close",
@@ -28,7 +30,8 @@
 "lens": "style",
 "pat": 0,
 "dist": 45,
-"pitch": -55
+"pitch": -55,
+"leg": true
 },
 {
 "name": "thermal_jan",

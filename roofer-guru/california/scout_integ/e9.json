@@ -1,0 +1,1 @@
+[["<span class=\"sc-enfps\">${N(g.fps)} frames a second, ${N(g.tris)} triangles</span>", "<span class=\"sc-enfps\">${plural(Math.round(+g.fps || 0), 'frame')} a second, ${N(g.tris)} triangles</span>"]]

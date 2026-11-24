@@ -1185,6 +1185,8 @@
         saveGfx(); if (pipe) pipeline(); else if (tr) buildTrees(); if (sunCh) setSun(); return graphics();
       },
       exportGLB,
+      /* for tests: the roads as drawn, by kind, the cable car tracks, and the meshes they made */
+      roadsInfo() { const k = {}; S.roads.forEach(r => { k[r.kind] = (k[r.kind] || 0) + 1; }); return { kinds: k, cable: (S.cable || []).length, meshes: G.roads.children.map(m => m.name || m.type) }; },
       /* for tests: what the renderer holds, and lights to switch off to see the shadows alone */
       debug(o) { if (o && o.probe) { const meshes = []; if (PR.tiles) PR.tiles.group.traverse(m => { if (m.isMesh) meshes.push(m); }); prRay.set(V3.set(S.x, 500, S.z), DOWN); prRay.far = 1200; const direct = meshes.length ? prRay.intersectObjects(meshes, false).map(h => +h.point.y.toFixed(2)) : [];
           let grp = []; try { grp = PR.tiles ? prRay.intersectObject(PR.tiles.group, true).map(h => +h.point.y.toFixed(2)) : []; } catch (e) { grp = ['error ' + e.message]; }

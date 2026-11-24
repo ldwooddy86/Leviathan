@@ -1,0 +1,10 @@
+mammoth2 engine {"built":57,"queued":0,"roads":272,"mode":"street","elev":2402.397123336792,"lat":37.647115,"lon":-118.972512} {"name":"167 Center St","sub":"Mammoth Lakes · 93546 · Single family home · 1,290 sq ft footprint"}
+mammoth2 cover {"lens":"cover","n":79,"pend":0,"q":"High","fps":2} 19 s
+mammoth2 wx_ar3 {"lens":"storm","n":79,"pend":0,"q":"High","fps":2} 17 s
+mammoth2 wx_ar5 {"lens":"storm","n":79,"pend":0,"q":"High","fps":1} 10 s
+mammoth2 wx_tstorm {"lens":"storm","n":79,"pend":0,"q":"High","fps":1} 10 s
+mammoth2 fire {"lens":"fire","n":79,"pend":0,"q":"High","fps":1} 11 s
+mammoth2 solar {"lens":"solar","n":79,"pend":0,"q":"High","fps":1} 11 s
+mammoth2 thermal_jan {"lens":"thermal","n":79,"pend":0,"q":"High","fps":1} 13 s
+PAGE ERRORS: none
+exit 0

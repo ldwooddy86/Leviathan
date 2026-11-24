@@ -333,6 +333,7 @@
       MAT.concrete = new THREE.MeshStandardMaterial(Object.assign(hasPhoto('concrete') ? { map: photoTex('concrete_diff', true), normalMap: photoTex('concrete_nor'), roughnessMap: photoTex('concrete_rough'), roughness: 1 } : { map: concreteTex, roughness: 0.86 }, { metalness: 0 }, po(-1, -3)));
       MAT.paintY = new THREE.MeshStandardMaterial(Object.assign({ color: '#e0b13c', roughness: 0.6 }, po(-2, -8)));
       MAT.paintW = new THREE.MeshStandardMaterial(Object.assign({ color: '#e9e7e0', roughness: 0.6 }, po(-2, -8)));
+      MAT.rail = new THREE.MeshStandardMaterial(Object.assign({ color: '#3b3f44', roughness: 0.35, metalness: 0.85 }, po(-2, -8)));
       MAT.crown = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, normalMap: leafNormal }); MAT.crown.normalScale.set(1.1, 1.1);
       MAT.trunk = hasPhoto('bark') ? new THREE.MeshStandardMaterial({ map: photoTex('bark_diff', true), normalMap: photoTex('bark_nor'), roughness: 0.95 }) : new THREE.MeshStandardMaterial({ color: '#5a4c40', roughness: 0.95 });
       if (MAT.trunk.map) MAT.trunk.map.repeat.set(2, 3);
@@ -749,11 +750,19 @@
     }
     function setRoads(list) {
       clearGroup(G.roads); mats();
+      /* a cable car track is not a street to walk nor a ribbon of asphalt: its two rails (3 ft 6 in apart) and the slot the
+         grip runs in are laid on the street it shares */
+      S.cable = list.filter(r => r.kind === 'cable').map(r => r.pts.map(([la, lo]) => toL(la, lo))).filter(p => p.length >= 2);
       S.roads = list.filter(r => r.kind !== 'cable').map(r => ({ name: r.name || '', kind: r.kind, lanes: +r.lanes || 0, pts: r.pts.map(([la, lo]) => toL(la, lo)) })).filter(r => r.pts.length >= 2);   /* a cable car track is not a street */
       const by = {}; S.roads.forEach(r => { const spec = ROADW[r.kind] || ROADW.street, B = by[r.kind] = by[r.kind] || batch(), w = (r.kind === 'freeway' || r.kind === 'ramp') && r.lanes > 0 ? r.lanes * 3.66 + (r.kind === 'freeway' ? 4.9 : 2.4) : spec[0]; ribbon(B, r.pts, w, spec[1], spec[2] === 'asphalt' ? 4 : 3); });
       Object.entries(by).forEach(([k, B]) => { const spec = ROADW[k] || ROADW.street, m = batchMesh(B, MAT[spec[2]], 'road-' + k); if (m) { m.castShadow = false; m.renderOrder = -1; G.roads.add(m); } });
       const paint = batch(), paintW = batch(); S.roads.filter(r => r.kind === 'major').forEach(r => { ribbon(paint, r.pts, 0.11, 0.115, 1, 0.12); ribbon(paint, r.pts, 0.11, 0.115, 1, -0.12); ribbon(paintW, r.pts, 0.12, 0.115, 1, 5.4); ribbon(paintW, r.pts, 0.12, 0.115, 1, -5.4); });
-      [[paint, MAT.paintY], [paintW, MAT.paintW]].forEach(([B, M]) => { const m = batchMesh(B, M, 'paint'); if (m) { m.castShadow = false; G.roads.add(m); } });
+      /* a freeway or a ramp: a white line at each edge of the travelled way and one between each pair of lanes (solid here: this
+         view does not break them into dashes), for the lanes the map gives, else four on a freeway and one on a ramp. Bridges
+         and stacked interchanges lie flat on the ground in this view; the Scout Engine lifts them. */
+      const rail = batch(); S.roads.filter(r => r.kind === 'freeway' || r.kind === 'ramp').forEach(r => { const n = r.lanes > 0 ? r.lanes : r.kind === 'freeway' ? 4 : 1, half = n * 3.66 / 2; for (let i = 0; i <= n; i++) { const edge = i === 0 || i === n; ribbon(paintW, r.pts, edge ? 0.16 : 0.1, 0.118, 1, (-half + i * 3.66) || 0.0001); } });
+      S.cable.forEach(p => { ribbon(rail, p, 0.07, 0.12, 1, 0.533); ribbon(rail, p, 0.07, 0.12, 1, -0.533); ribbon(rail, p, 0.03, 0.12, 1, 0.0001); });
+      [[paint, MAT.paintY], [paintW, MAT.paintW], [rail, MAT.rail]].forEach(([B, M]) => { const m = batchMesh(B, M, 'paint'); if (m) { m.castShadow = false; G.roads.add(m); } });
       S.graph = S.roads.filter(r => WALK.has(r.kind)); S.on = null; buildBuildings(); need();
     }
     function nearestOnRoads(x, z, maxD) {
@@ -1176,6 +1185,8 @@
         saveGfx(); if (pipe) pipeline(); else if (tr) buildTrees(); if (sunCh) setSun(); return graphics();
       },
       exportGLB,
+      /* for tests: the roads as drawn, by kind, the cable car tracks, and the meshes they made */
+      roadsInfo() { const k = {}; S.roads.forEach(r => { k[r.kind] = (k[r.kind] || 0) + 1; }); return { kinds: k, cable: (S.cable || []).length, meshes: G.roads.children.map(m => m.name || m.type) }; },
       /* for tests: what the renderer holds, and lights to switch off to see the shadows alone */
       debug(o) { if (o && o.probe) { const meshes = []; if (PR.tiles) PR.tiles.group.traverse(m => { if (m.isMesh) meshes.push(m); }); prRay.set(V3.set(S.x, 500, S.z), DOWN); prRay.far = 1200; const direct = meshes.length ? prRay.intersectObjects(meshes, false).map(h => +h.point.y.toFixed(2)) : [];
           let grp = []; try { grp = PR.tiles ? prRay.intersectObject(PR.tiles.group, true).map(h => +h.point.y.toFixed(2)) : []; } catch (e) { grp = ['error ' + e.message]; }

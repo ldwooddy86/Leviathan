@@ -1,0 +1,11 @@
+berkeley2 engine {"built":326,"queued":0,"roads":248,"mode":"street","elev":73.6458969116211,"lat":37.85602564873645,"lon":-122.25349270975238} {"name":"2635 Webster St Berkeley 94705","sub":"Berkeley · 94705 · Single family home · 1,150 sq ft footprint · 5.8 m tall"}
+berkeley2 cover {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 16 s
+berkeley2 cover_close {"lens":"cover","n":130,"pend":0,"q":"High","fps":1} 12 s
+berkeley2 style {"lens":"style","n":130,"pend":0,"q":"High","fps":1} 17 s
+berkeley2 wear {"lens":"wear","n":130,"pend":0,"q":"High","fps":1} 17 s
+berkeley2 fire {"lens":"fire","n":130,"pend":0,"q":"High","fps":1} 17 s
+berkeley2 wx_ar4 {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 13 s
+berkeley2 wx_smoke {"lens":"storm","n":130,"pend":0,"q":"High","fps":0} 12 s
+berkeley2 time15 {"lens":"time","n":130,"pend":0,"q":"High","fps":0} 17 s
+PAGE ERRORS: none
+exit 0

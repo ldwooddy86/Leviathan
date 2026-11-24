@@ -6,8 +6,11 @@ const L = require('./lib.js'), path = require('path'), fs = require('fs');
 const FILE = process.argv[2], ADDR = process.argv[3], TAG = process.argv[4], OUT = path.resolve(process.argv[5] || '.'), PLAN = JSON.parse(fs.readFileSync(process.argv[6], 'utf8'));
 fs.mkdirSync(OUT, { recursive: true });
 (async () => {
-  const { page, errs, close } = await L.launch({ w: 960, h: 700, hard: +process.env.HARD || 24 }); const wait = L.wait, log = {};
-  await L.openPage(page, FILE); const st = await L.find(page, ADDR);
+  const { page, errs, close } = await L.launch({ w: +process.env.VW || 1100, h: +process.env.VH || 1180, hard: +process.env.HARD || 24 }); const wait = L.wait, log = {};
+  await L.openPage(page, FILE); const LL = /^\s*(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)\s*(\w*)$/.exec(ADDR);
+  if (LL) { await page.evaluate(([la, lo]) => MODI.rooftops.api.goTo(la, lo, 18), [+LL[1], +LL[2]]); await L.settle(page, 150000); await wait(2500);
+    await page.evaluate(([la, lo, cls]) => { const api = MODI.rooftops.api, bs = api.buildings().filter(b => !cls || b.cls === cls).map(b => [Math.hypot(b.lat - la, (b.lon - lo) * 0.83), b]).sort((a, b) => a[0] - b[0]); if (bs[0]) api.pick(bs[0][1].id); }, [+LL[1], +LL[2], LL[3] || 'sf']); await wait(2500); }
+  else await L.find(page, ADDR);
   const picked = await page.evaluate(() => ({ name: document.querySelector('#scName').textContent, sub: document.querySelector('#scSub').textContent }));
   const s0 = await L.engine(page, { q: 'low' }); console.log(TAG, 'engine', JSON.stringify(s0), JSON.stringify(picked));
   await page.evaluate(() => { const en = MODI.rooftops.api.en(); en.setGraphics({ q: 'high', sun: 14, weather: 'clear', life: false, trees: true, wide: false }); en.engine.autoQuality = false; });
@@ -23,6 +26,7 @@ fs.mkdirSync(OUT, { recursive: true });
       else { if (P.yaw != null) w.yaw = P.yaw; if (P.pitch != null) w.pitch = P.pitch; }
       const G = {}; if (P.day) G.day = P.day; if (P.sun != null) G.sun = P.sun; if (P.year != null) G.year = P.year; if (P.trees != null) G.trees = P.trees; if (Object.keys(G).length) en.setGraphics(G);
       if (P.rain) api.setRain(P.rain); if (P.wind) api.setWind(P.wind); if (P.sky) api.setSky(P.sky);
+      if ('leg' in P) { let st = document.getElementById('__noleg'); if (!st) { st = document.createElement('style'); st.id = '__noleg'; document.head.appendChild(st); } st.textContent = P.leg ? '' : '.se-legend, .se-leg, .sc-3dnote, .sc-3dpad, .sc-3dattr { display: none !important; }'; }
       if ('pat' in P) { if (!L0._ready0) L0._ready0 = L0.ready; const kind = P.pat; L0.ready = !kind ? L0._ready0 : R => { const r = L0._ready0(R); if (r && R.lens === 'cover') { const row = kind === 15 ? L0.rows.tileC : kind === 16 || kind === 11 ? 10 : kind === 17 ? 19 : kind === 18 || kind === 14 ? 11 : kind === 13 ? 12 : kind >= 9 ? 9 : 8, cv = [0.9, 1, kind, row]; r.vertex = () => cv; } return r; }; }
     }, { P, cur });
     if (P.lens && P.lens !== cur.lens) { await page.evaluate(k => { const b = document.querySelector('#scEnBar [data-lens="' + k + '"]'); b.click(); }, P.lens); }

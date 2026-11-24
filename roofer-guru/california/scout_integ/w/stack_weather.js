@@ -5485,7 +5485,12 @@ void main() { float sz = linZ(textureLod(u_depth, gl_FragCoord.xy / u_res, 0.0).
       else for (const b of list) all.push(b);
       /* Each building is written with heights from its own floor (the wall shader, the equipment and the roof views count on that), and what it wrote is then lifted to where its floor is: gb.y. The glow's pool lies on the ground under each of its corners. */
       const LIFT = [B.wall, B.trim, B.fine, B.glass, B.glow, B.equip];
-      for (const b of all) { const rings = K.ringsOf(b); if (!rings.length) continue; const gb = baseOf(rings), at = LIFT.map(Bd => Bd.p.n); B.dy = gb.y; let g = null;
+      for (const b of all) { const rings = K.ringsOf(b); if (!rings.length) continue; const gb = baseOf(rings), at = LIFT.map(Bd => Bd.p.n);
+        /* a footprint that would stand up through a landmark bridge's deck (a tower of the bridge, the bridge itself, as the footprint files have them) is left out: the bridge is built by the aircraft, ships and bridges kit (S.deckAt) */
+        if (S.deckAt) { const P0 = rings[0]; let cx = 0, cz = 0, dk = null; for (const q of P0) { cx += q[0]; cz += q[1]; const d = S.deckAt(q[0], q[1]); if (d != null && (dk == null || d < dk)) dk = d; } const dc = S.deckAt(cx / P0.length, cz / P0.length); if (dc != null && (dk == null || dc < dk)) dk = dc; if (dk != null && gb.y + Math.max(2.4, env.height(b)) > dk - 2.5) continue; }
+        /* and one whose middle stands in a lane of a freeway on the ground (the footprint files and the road lines do not always agree) */
+        if (S.traffic && S.traffic.onRoad) { const P0 = rings[0]; let cx = 0, cz = 0; for (const q of P0) { cx += q[0]; cz += q[1]; } if (S.traffic.onRoad(cx / P0.length, cz / P0.length)) continue; }
+        B.dy = gb.y; let g = null;
         try { g = K.addBuilding(B, b, { detail: c.detailWant, nearRoad: S.roads.length ? nearRoad : null, rings, foot: gb.lo - gb.y - 0.4 }); } catch (e) { g = null; }
         if (g && gfx.roofKit !== false) { try { HV.exterior(b, B.equip); } catch (e) { /* this one goes without */ } }
         LIFT.forEach((Bd, k) => { const P = Bd.p.a, X = Bd === B.glow ? Bd.x.a : null; for (let i = at[k]; i < Bd.p.n; i += 3) { if (X) { const ay = X[i / 3 * 4 + 1]; if (ay > 0.5 && ay < 1.5) { P[i + 1] = S.gy(P[i], P[i + 2]) + 0.17; continue; } } P[i + 1] += gb.y; } });

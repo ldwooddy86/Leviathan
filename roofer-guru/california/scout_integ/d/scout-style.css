@@ -201,6 +201,11 @@ html.sc-noscroll .toast{z-index:600}html.sc-noscroll #tip{z-index:560}
 .sc .sc-enw .sc-en .sc-3dnote{left:152px;bottom:46px}
 .sc .sc-svbar .sc-gen{color:var(--ink-3)}
 .sc .sc-svwhere.sc-what b{font-weight:650}
+.sc .sc-en .se-legend>*{flex:0 0 auto}
+.sc .se-leg-marks .m6{background:radial-gradient(circle,#136b66 0 1.6px,#d9ffff 1.6px 3px,#136b66 3px)}
+.sc .sc-gfxp .seg{flex-wrap:wrap}
+.sc details.sc-what>summary{cursor:pointer;font-weight:650;color:var(--ink-2)}
+@media (max-width:620px){.sc .sc-gfxp{position:fixed;left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:72vh;overflow:auto}}
 /* ==== scout topo ==== */
 /* The terrain control, the place names on the map and the terrain section of the building card. */
 .sc .sc-topo-mul{mix-blend-mode:multiply}
