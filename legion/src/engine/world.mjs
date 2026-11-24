@@ -12,6 +12,39 @@ import { pacific } from './clock.mjs';
 
 const KM_PER_DEG = 111.32;
 
+// Weather. The snapshot has eleven NWS forecast points for the whole state. A ZIP uses its point's forecast as its
+// own within HERE_KM and HERE_DZ of it; up to BORROW_KM away, within the ZIP's own forecast office (the offices
+// split along the Sierra crest), it borrows it, carried to the ZIP's height at LAPSE_F_PER_M (about 3.5 F per
+// 1,000 ft); beyond that the ZIP has no forecast and reads its climate estimate. The observing station nearest the
+// ZIP (within OBS_KM) anchors the temperature to what was measured at the snapshot, an offset that fades with time
+// from it (OBS_FADE_MS).
+const LAPSE_F_PER_M = 3.5 / 304.8;
+const HERE_KM = 15, HERE_DZ = 150, BORROW_KM = 80, OBS_KM = 40, OBS_FADE_MS = 3 * 3600000, WINDOW_SLACK_MS = 90 * 60000;
+// a wind event of a kind that follows terrain (sundowner, mono, other) reaches a ZIP in the zones it was reported in,
+// or within this distance of its strongest gust when it names no zone
+const WIND_NEAR_KM = 30;
+
+/** Kilometers between two lat/lon points (equirectangular; fine at these distances). */
+function kmBetween(lat0, lon0, lat1, lon1) {
+  const dx = (lon1 - lon0) * Math.cos((lat0 + lat1) / 2 * Math.PI / 180), dy = lat1 - lat0;
+  return Math.sqrt(dx * dx + dy * dy) * KM_PER_DEG;
+}
+
+/**
+ * How much a wildfire matters to a ZIP: the buildings it destroyed or damaged there, then its size as seen from
+ * the ZIP (falling off past a km away), the share of the ZIP it burned and how recent it was. firesOf ranks by it;
+ * tools/build_pack.py keeps each ZIP's most salient fires by the same formula.
+ */
+export function fireSalience(f) {
+  const km = f.km || 0, near = km <= 1 ? 1 : Math.exp(-(km - 1) / 12);
+  const recent = clamp(((f.year || 1995) - 1995) / 30, 0, 1);
+  return 2 * Math.log10(1 + (f.destInZip || 0) + 0.25 * (f.dmgInZip || 0)) + Math.log10(1 + (f.acres || 0)) * near
+    + 0.03 * Math.min(f.pct || 0, 60) + 0.25 * recent;
+}
+
+/** "the Mission" → "mission": a name as search compares it. */
+const searchKey = s => String(s || '').toLowerCase().replace(/^the\s+/, '').trim();
+
 // ---------------------------------------------------------------- loading
 
 /** Gunzip bytes in the browser (DecompressionStream) or in Node (zlib). */
@@ -167,14 +200,17 @@ export class World {
     this.gaz = pack.gaz.map(g => ({ name: g[0], kind: pack.gazKinds[g[1]], rank: g[2], lat: g[3], lon: g[4], elev: g[5], x: g[6], y: g[7] }));
     this.roads = pack.roads;
     this.fires = pack.fires.map(f => ({ name: f[0], year: f[1], acres: f[2], dest: f[3], dmg: f[4], lat: f[5], lon: f[6], cause: f[7], start: f[8] }));
-    this.ars = pack.ars.map(a => ({ start: a[0], rank: a[1], peakAt: a[2], stretch: a[3], lat0: a[4], lat1: a[5], dmg: a[6], deaths: a[7], hours: a[8], gustAt: a[9] }));
-    this.winds = pack.winds.map(w => ({ kind: w[0], start: w[1], gust: w[2], where: w[3], fips: w[4] || [], dmg: w[5], deaths: w[6] }));
+    this.ars = pack.ars.map(a => ({ start: a[0], rank: a[1], peakAt: a[2], stretch: a[3], lat0: a[4], lat1: a[5], dmg: a[6], deaths: a[7], hours: a[8], gustAt: a[9], pr: a[10] || null }));
+    this.arPts = (pack.arPts || []).map(p => ({ name: p[0], lat: p[1], lon: p[2], max: p[3], maxDate: p[4] }));
+    this.winds = pack.winds.map(w => ({ kind: w[0], start: w[1], gust: w[2], where: w[3], fips: w[4] || [], dmg: w[5], deaths: w[6], lat: w[7] != null ? w[7] : null, lon: w[8] != null ? w[8] : null, zips: w[9] || [] }));
     this.weather = pack.weather;
+    this.offices = pack.weather.offices || {};
     this.snapshotTime = Date.parse(pack.weather.fetched);
     this._rows = new Array(this.N);
     this._rings = new Array(this.N);
     this._raster = null;
     this._gazIndex = null; this._placeIndex = null; this._roadIndex = null; this._zipPointIndex = null;
+    this._picks = new Array(this.N); this._hoods = null; this._window = null;
   }
 
   // ------------------------------------------------ ZIP access
@@ -187,7 +223,14 @@ export class World {
 
   get(i, name) { const c = this.z[name]; return c ? c[i] : undefined; }
 
-  /** Every column of ZIP i as one object, with names resolved (county, region, province, zone, place). Cached. */
+  /**
+   * Every column of ZIP i as one object, with names resolved (county, region, province, zone, place). Cached.
+   * Besides the columns: neighborhood (inside the eight biggest cities, the name residents use for the part of the
+   * city the ZIP covers, 'the Mission', 'Boyle Heights'; else null: name where someone lives with
+   * `z.neighborhood || z.placeName || z.city`), neighborhoods (that name and the others in use there, for search),
+   * ybBefore1940 (true when yb_med is the Census top code: half the homes were built in 1939 or earlier, so say
+   * "before 1940", never a year or "the thirties"), wfo and officeName (the NWS forecast office).
+   */
   zip(i) {
     if (typeof i === 'string') i = this.indexOf(i);
     if (i < 0 || i >= this.N) return null;
@@ -205,6 +248,12 @@ export class World {
     r.provinceName = this.provinces[r.province] || null;
     r.zoneTitle = r.zoneName >= 0 && this.zones[r.zoneName] ? this.zones[r.zoneName][1] : null;
     r.placeName = r.place || r.city;
+    r.neighborhoods = Array.isArray(r.nbhd) ? r.nbhd.slice() : [];
+    r.neighborhood = r.neighborhoods[0] || null;
+    // the ACS codes "built 1939 or earlier" as its lowest year; the atlas stores it as 1938
+    r.ybBefore1940 = r.yb_med != null && r.yb_med <= 1939;
+    r.wfo = r.wfo || null;
+    r.officeName = r.wfo ? this.offices[r.wfo] || r.wfo : null;
     r.label = `${r.city} ${r.zip}`;
     this._rows[i] = r;
     return r;
@@ -244,7 +293,34 @@ export class World {
   }
   zipsOfRegion(key) { const out = []; for (let i = 0; i < this.N; i++) if (this.z.region[i] === key) out.push(i); return out; }
 
-  /** Find ZIPs by ZIP code, city, place or county name (case-insensitive prefix). */
+  /**
+   * The neighborhoods of the big cities (see zip): [{name, key, city, zis, zi, primary}], one entry per name and
+   * city (Chinatown in San Francisco and in Los Angeles are two), its ZIPs in ZIP order; zi is the ZIP that stands
+   * for it (the most populous of those whose first name it is, else of all of them); key is the name as search
+   * compares it (lower case, no leading "the"); primary is true when the name is the first name of at least one of
+   * its ZIPs. Built once.
+   */
+  neighborhoods() {
+    if (this._hoods) return this._hoods;
+    const byKey = new Map(), col = this.z.nbhd || [], pop = i => this.z.pop[i] || 0;
+    for (let i = 0; i < this.N; i++) {
+      const names = col[i];
+      if (!Array.isArray(names)) continue;
+      names.forEach((name, k) => {
+        const key = searchKey(name), city = this.z.city[i], id = `${key}|${city}`;
+        let e = byKey.get(id);
+        if (!e) byKey.set(id, e = { name, key, city, zis: [], zi: i, primary: false });
+        e.zis.push(i);
+        if (k === 0) {
+          if (!e.primary || pop(i) > pop(e.zi)) { e.zi = i; e.name = name; }
+          e.primary = true;
+        } else if (!e.primary && pop(i) > pop(e.zi)) e.zi = i;
+      });
+    }
+    return (this._hoods = [...byKey.values()]);
+  }
+
+  /** Find ZIPs by ZIP code, city, place, neighborhood or county name (case-insensitive prefix; "the" optional). */
   search(q, limit = 12) {
     q = String(q || '').trim().toLowerCase();
     if (!q) return [];
@@ -254,6 +330,13 @@ export class World {
     for (let i = 0; i < this.N && out.length < limit; i++) {
       const city = (this.z.city[i] || '').toLowerCase(), place = (this.z.place[i] || '').toLowerCase();
       if ((city.startsWith(q) || place.startsWith(q)) && !seen.has(city + '|' + place)) { seen.add(city + '|' + place); out.push({ kind: 'city', index: i, label: `${this.z.city[i]} · ${this.zips[i]}` }); }
+    }
+    const hq = searchKey(q);
+    if (hq.length >= 2) {
+      const pop = h => this.z.pop[h.zi] || 0;
+      const hits = this.neighborhoods().filter(h => h.key.startsWith(hq))
+        .sort((a, b) => (b.key === hq) - (a.key === hq) || b.primary - a.primary || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0) || pop(b) - pop(a));
+      for (const h of hits) if (out.length < limit) out.push({ kind: 'neighborhood', index: h.zi, zis: h.zis.slice(), name: h.name, label: `${h.name.replace(/^the /, 'The ')} · ${h.city} ${this.zips[h.zi]}` });
     }
     for (const c of this.counties) if (c.name.toLowerCase().startsWith(q) && out.length < limit) out.push({ kind: 'county', county: c.index, label: `${c.name} County` });
     return out;
@@ -443,65 +526,202 @@ export class World {
 
   // ------------------------------------------------ history
 
-  /** Wildfires that touched or came near ZIP i, most destructive first: [{name, year, acres, destInZip, dmgInZip, km, pct, dest}]. */
+  /**
+   * Wildfires that touched or came near ZIP i, most salient first (fireSalience: buildings destroyed or damaged in
+   * the ZIP, then the fire's size as seen from the ZIP, the share of the ZIP burned, recency; a 7-acre fire that
+   * burned one building no longer outranks a 396,825-acre complex that burned across the ZIP):
+   * [{name, year, acres, dest, destInZip, dmgInZip, km, pct, salience, ...}].
+   */
   firesOf(i) {
-    return (this.z.fires[i] || []).map(([fi, dest, dmg, km, pct]) => {
+    return (this.z.fires[i] || []).map(([fi, dest, dmg, km, pct], k) => {
       const f = this.fires[fi];
-      return f ? Object.assign({}, f, { destInZip: dest, dmgInZip: dmg, km, pct }) : null;
-    }).filter(Boolean);
+      if (!f) return null;
+      const r = Object.assign({}, f, { destInZip: dest, dmgInZip: dmg, km, pct });
+      r.salience = +fireSalience(r).toFixed(3);
+      r._k = k;
+      return r;
+    }).filter(Boolean).sort((a, b) => b.salience - a.salience || a._k - b._k).map(r => { delete r._k; return r; });
   }
 
-  /** The largest atmospheric rivers whose landfall span covers ZIP i's latitude, strongest and latest first. */
+  /**
+   * The largest atmospheric rivers that reached ZIP i's stretch of coast, strongest there first: [{start, rank,
+   * peakAt, stretch, rankHere, coast, hours, dmg, deaths, ...}]. rank is the landfall peak, reached at peakAt (the
+   * January 2017 river peaked as a 5 at Point Reyes); rankHere is the rank it had at the ZIP's own coastal point,
+   * coast (the point the ZIP's ar_max is read at: a 3 on Santa Monica Bay), never above the ZIP's ar_max. Name a
+   * river by its landfall ("the atmospheric river that came ashore at Point Reyes") and call it "a category N
+   * here" only for N <= ar_max.
+   */
   arsOf(i, limit = 6) {
-    const lat = this.z.lat[i];
-    return this.ars.filter(a => a.lat0 <= lat + 0.25 && a.lat1 >= lat - 0.25)
-      .sort((a, b) => b.rank - a.rank || (b.start > a.start ? 1 : -1)).slice(0, limit);
+    const lat = this.z.lat[i], k = this.z.ar_pt ? this.z.ar_pt[i] : null, max = this.z.ar_max ? this.z.ar_max[i] : null;
+    const pt = k != null ? this.arPts[k] || null : null;
+    const out = [];
+    for (const a of this.ars) {
+      const local = k != null && typeof a.pr === 'string' && a.pr.length > k ? +a.pr[k] : null;
+      if (local != null ? !(local > 0) : !(a.lat0 <= lat + 0.25 && a.lat1 >= lat - 0.25)) continue;
+      const rankHere = local != null ? local : Math.min(a.rank, max != null ? max : a.rank);
+      out.push(Object.assign({}, a, { rankHere, coast: pt ? pt.name : null }));
+    }
+    return out.sort((a, b) => b.rankHere - a.rankHere || b.rank - a.rank || (b.start > a.start ? 1 : b.start < a.start ? -1 : 0)).slice(0, limit);
   }
 
-  /** Wind events (Santa Ana, Diablo, sundowner, winter storms) recorded in ZIP i's county, strongest first. */
+  /**
+   * Wind events recorded in ZIP i's county that reached the ZIP, strongest first: [{kind, start, gust, where, lat,
+   * lon, fips, dmg, deaths}]. Santa Ana events only where the ZIP's own record has Santa Ana episodes (off_kind 'sa'
+   * or sa_ep > 0), Diablo events where it has Diablo episodes (off_kind 'di' or di_ep > 0), sundowners on the Santa
+   * Barbara south coast (off_kind 'su'), mono and other winds in the NWS zones they were reported in (or within
+   * WIND_NEAR_KM of the strongest gust), winter storms county-wide: say where the gust was measured (`where`).
+   */
   windsOf(i, limit = 6) {
     const c = this.countyOf(i); if (!c) return [];
-    return this.winds.filter(w => w.fips.includes(c.fips)).sort((a, b) => (b.gust || 0) - (a.gust || 0)).slice(0, limit);
+    const z = this.z, off = (z.off_kind && z.off_kind[i]) || '';
+    const santaAna = off === 'sa' || (z.sa_ep && z.sa_ep[i]) > 0, diablo = off === 'di' || (z.di_ep && z.di_ep[i]) > 0;
+    const reaches = w => {
+      switch (w.kind) {
+        case 'santa_ana': return santaAna;
+        case 'diablo': return diablo;
+        case 'sundowner': return off === 'su';
+        case 'winter': return true;
+        default:
+          if (w.zips && w.zips.length) return (w._zipSet || (w._zipSet = new Set(w.zips))).has(i);
+          return w.lat != null && w.lon != null && kmBetween(z.tlat[i] || z.lat[i], z.tlon[i] || z.lon[i], w.lat, w.lon) <= WIND_NEAR_KM;
+      }
+    };
+    return this.winds.filter(w => w.fips.includes(c.fips) && reaches(w)).sort((a, b) => (b.gust || 0) - (a.gust || 0)).slice(0, limit);
   }
 
-  /** FEMA disaster declarations that covered ZIP i's county, latest first: [[date, kind, title, type]]. */
+  /**
+   * FEMA disaster declarations that designated ZIP i's county, latest first: [[date, kind, title, type]]. The pack
+   * lists a county under a declaration only when it is among the declaration's designated-county count with the
+   * most Individuals and Households registrations, with at least 25 (tools/build_pack.py).
+   */
   femaOf(i) { const c = this.countyOf(i); return c ? c.fema : []; }
 
   // ------------------------------------------------ weather
 
-  _forecastPoint(i) {
-    const pts = this.weather.points, reg = this.z.region[i];
-    let best = null, bd = Infinity;
-    const lat = this.z.lat[i], lon = this.z.lon[i];
-    for (const p of pts) {
-      const d = Math.hypot(p.lat - lat, (p.lon - lon) * 0.8) + (p.reg === reg ? 0 : 0.6);
-      if (d < bd) { bd = d; best = p; }
-    }
-    return best;
+  /** The elevation (m) where ZIP i's people live: at the ZIP's point, else its mean. */
+  elevOf(i) {
+    const pt = this.z.elev_pt_m ? this.z.elev_pt_m[i] : null;
+    return pt != null ? pt : (this.z.elev_m[i] || 0);
   }
 
-  _nearestObs(i) {
-    let best = null, bd = Infinity;
-    const lat = this.z.lat[i], lon = this.z.lon[i];
-    for (const o of this.weather.obs) { const d = Math.hypot(o.lat - lat, (o.lon - lon) * 0.8); if (d < bd) { bd = d; best = o; } }
-    return best ? Object.assign({ distKm: Math.round(bd * KM_PER_DEG) }, best) : null;
+  /** The ZIP's town point as lat/lon (where distances to forecast points and stations are measured from). */
+  _townLatLon(i) {
+    const z = this.z;
+    return [z.tlat[i] != null ? z.tlat[i] : z.lat[i], z.tlon[i] != null ? z.tlon[i] : z.lon[i]];
   }
 
   /**
-   * A climate estimate for ZIP i at time t, for times no forecast covers: the ZIP's July mean high (tjul) brought
-   * down through the year by an annual swing that grows with distance from the coast and with elevation (about
-   * 10 F on the coast, 40 F deep inland), a daily swing that does the same, and a sky chosen deterministically per
-   * ZIP and day from the season and the place (winter rain days in proportion to the ZIP's annual rain, snow
-   * showers when it is cold up high, marine layer mornings at the coast from May to August, tule fog on winter
-   * mornings in the Great Valley). Returns the shape of weatherAt's now, plus climate: true.
+   * The forecast point ZIP i reads, or null: the nearest of the snapshot's points within BORROW_KM in the ZIP's own
+   * forecast office. {pt, kind: 'forecast' (within HERE_KM and HERE_DZ: the point's forecast is the ZIP's) |
+   * 'borrowed', distKm, dz (ZIP minus point, m), elevAdjF (added to borrowed temperatures)}. Cached.
+   */
+  _forecastPick(i) {
+    if (this._picks[i] !== undefined) return this._picks[i];
+    const [lat, lon] = this._townLatLon(i), wfo = this.z.wfo ? this.z.wfo[i] : null;
+    let best = null, bd = Infinity;
+    for (const p of this.weather.points) {
+      if (wfo && p.office !== wfo) continue;
+      const d = kmBetween(lat, lon, p.lat, p.lon);
+      if (d < bd) { bd = d; best = p; }
+    }
+    let pick = null;
+    if (best && bd <= BORROW_KM) {
+      const dz = best.elev != null ? this.elevOf(i) - best.elev : 0;
+      const kind = bd <= HERE_KM && Math.abs(dz) <= HERE_DZ ? 'forecast' : 'borrowed';
+      pick = { pt: best, kind, distKm: +bd.toFixed(1), dz, elevAdjF: kind === 'borrowed' ? +(-LAPSE_F_PER_M * dz).toFixed(1) : 0 };
+    }
+    return (this._picks[i] = pick);
+  }
+
+  /** The forecast point ZIP i reads (see _forecastPick), or null when it has none. */
+  _forecastPoint(i) { const k = this._forecastPick(i); return k ? k.pt : null; }
+
+  /** The observing station nearest ZIP i, with distKm; withTemp: the nearest one that reported a temperature. */
+  _nearestObs(i, withTemp = false) {
+    let best = null, bd = Infinity;
+    const [lat, lon] = this._townLatLon(i);
+    for (const o of this.weather.obs) {
+      if (o.lat == null || (withTemp && o.tempF == null)) continue;
+      const d = kmBetween(lat, lon, o.lat, o.lon);
+      if (d < bd) { bd = d; best = o; }
+    }
+    return best ? Object.assign({ distKm: Math.round(bd) }, best) : null;
+  }
+
+  /** The forecast hourly rows' span (epoch ms), widened by the slack weatherAt allows. */
+  _forecastWindow() {
+    if (this._window) return this._window;
+    let t0 = Infinity, t1 = -Infinity;
+    for (const p of this.weather.points) for (const row of p.hourly || []) { const t = Date.parse(row[0]); if (t < t0) t0 = t; if (t > t1) t1 = t; }
+    return (this._window = { t0: t0 - WINDOW_SLACK_MS, t1: t1 + WINDOW_SLACK_MS });
+  }
+
+  /** The hourly row of point p nearest time t: [row, |dt| ms]. */
+  _hourAt(p, t) {
+    let h = null, bestDt = Infinity;
+    for (const row of p.hourly || []) { const dt = Math.abs(Date.parse(row[0]) - t); if (dt < bestDt) { bestDt = dt; h = row; } }
+    return [h, bestDt];
+  }
+
+  /**
+   * What the station nearest ZIP i measured at the snapshot, compared with the temperature ZIP i is given for that
+   * hour (base(t) at the snapshot, carried from the ZIP's height to the station's): the offset weatherAt adds,
+   * faded with time. 0 without a station within OBS_KM; at most 15 F either way.
+   */
+  _obsOffset(i, baseAtSnap) {
+    const o = this._nearestObs(i, true);
+    if (!o || o.distKm > OBS_KM || !Number.isFinite(baseAtSnap)) return 0;
+    const dz = o.elev != null ? o.elev - this.elevOf(i) : 0;
+    return clamp(o.tempF - (baseAtSnap - LAPSE_F_PER_M * dz), -15, 15);
+  }
+
+  /**
+   * A period of a borrowed forecast with its temperatures carried by adjF: tempF, and the temperatures in the text
+   * (the NWS phrases "high near", "low around", "falling to around", "wind chill values as low as"...; never a wind
+   * speed, a rain or snow amount or a snow level).
+   */
+  static _carryPeriod(p, adjF) {
+    const a = Math.round(adjF || 0);
+    if (!p || !a) return p;
+    const fix = s => String(s).replace(/\b(high near|high around|low around|low near|falling to around|rising to around|temperature around|as low as|as high as)(\s+)(-?\d+)(?!\d|\.\d)(?!\s*(?:mph|kt\b|knots|percent|%|inch|feet|ft\b|mile))/gi,
+      (m, w, sp, n) => `${w}${sp}${+n + a}`);
+    return Object.assign({}, p, { tempF: p.tempF != null ? p.tempF + a : p.tempF, detail: p.detail ? fix(p.detail) : p.detail, adjF: a });
+  }
+
+  /**
+   * January's mean daily high (F) at ZIP i, which the atlas does not carry: 67 F on the south coast, 1.6 F less per
+   * degree of latitude north of 33.5 and 9 F less per km of height (at the ZIP's point), 5 F less on the floor of
+   * the Great Valley (winter fog and inversions) and 2 F more in the Colorado Desert; never within 2 F of the July
+   * high. Fitted to the 1991-2020 NOAA normals of 29 places from Eureka to El Centro and Mammoth Lakes (within
+   * about 2 F on average).
+   */
+  janHigh(i) {
+    const z = this.z, prov = this.provinces[z.province[i]];
+    const lat = z.tlat[i] != null ? z.tlat[i] : z.lat[i], jul = z.tjul[i] != null ? z.tjul[i] : 80;
+    const jan = 67 - 1.6 * (lat - 33.5) - 9 * this.elevOf(i) / 1000 - (prov === 'Great Valley' ? 5 : 0) + (prov === 'Colorado Desert' ? 2 : 0);
+    return Math.min(jan, jul - 2);
+  }
+
+  /**
+   * A climate estimate for ZIP i at time t, for times no forecast covers: the day's high runs between the ZIP's
+   * January high (janHigh) and its July mean high (tjul) on a yearly curve that peaks in mid-July inland and later
+   * on the coast (where September is as warm as July and the fall stays mild), less a daily swing that grows with
+   * distance from the coast and with elevation; and a sky chosen deterministically per ZIP and day from the season
+   * and the place (winter rain days in proportion to the ZIP's annual rain, snow showers when it is cold up high,
+   * marine layer mornings at the coast from May to August, tule fog on winter mornings in the Great Valley).
+   * Returns the shape of weatherAt's now, plus climate: true.
    */
   climateAt(i, t) {
     const z = this.z, P = pacific(t);
     const coast = z.coast_km[i] != null ? z.coast_km[i] : 60, elev = z.elev_m[i] || 0;
     const inland = smoothstep(0, 90, coast), high_country = elev > 1200 ? 1 : 0;
-    const swingYear = 10 + 30 * inland + 6 * high_country;
-    const season = (1 + Math.cos(2 * Math.PI * (P.month - 7.4) / 12)) / 2;   // 1 in late July, 0 in late January
-    const high = (z.tjul[i] != null ? z.tjul[i] : 80) - swingYear * (1 - season);
+    const jul = z.tjul[i] != null ? z.tjul[i] : 80, jan = this.janHigh(i);
+    // the year's curve, 0 in mid-January and 1 in mid-July: a cosine peaking mid-July inland; on the coast mostly
+    // that one with some of one peaking in early August
+    const wave = (m, peak) => (1 + Math.cos(2 * Math.PI * (m - peak) / 12)) / 2;
+    const curve = m => (1 - inland) * (0.7 * wave(m, 7) + 0.3 * wave(m, 8)) + inland * wave(m, 7);
+    const mf = P.month + (P.day - 15) / 30.5, c1 = curve(1), c7 = curve(7);
+    const high = jan + (jul - jan) * (curve(mf) - c1) / (c7 - c1);
     const swingDay = 12 + 18 * inland + 6 * high_country;
     const hour = P.hour + P.minute / 60;
     const diurnal = (1 + Math.cos(2 * Math.PI * (hour - 15) / 24)) / 2;       // 1 at 3 PM, 0 at 3 AM
@@ -509,7 +729,8 @@ export class World {
     // sunrise and sunset, near enough: 7:20 and 16:50 at the winter solstice, 5:45 and 20:30 at the summer one
     const summer = (1 + Math.cos(2 * Math.PI * (P.month - 6.7) / 12)) / 2;
     const isDay = hour >= 7.33 - 1.58 * summer && hour < 16.83 + 3.67 * summer;
-    const m = P.month, day = Math.floor((t - 8 * 3600000) / 86400000);
+    // the day's draw is keyed by the Pacific calendar date, so the sky changes at local midnight in daylight time too
+    const m = P.month, day = Math.floor(Date.UTC(P.year, P.month - 1, P.day) / 86400000);
     const u = u01(hash3(0x534b59, i, day));
     const wetness = [1, 1, 0.85, 0.45, 0.12, 0.03, 0.01, 0.01, 0.05, 0.25, 0.6, 0.95][m - 1];
     const rainDay = u < clamp((z.rain_in[i] || 10) / 120, 0.02, 0.4) * wetness;
@@ -522,50 +743,83 @@ export class World {
   }
 
   /**
-   * The weather for ZIP i at time t (epoch ms; default the snapshot time): the NWS forecast hour and period
-   * of the nearest forecast point (offset by the nearest observing station's difference at the snapshot),
-   * active alerts for the ZIP's forecast zone or county, the forecast office's key messages, and the SPC fire
-   * weather and WPC excessive rain levels for the county. Beyond the forecast window it falls back to a
-   * climate estimate from the ZIP's July mean ({stale: true}).
+   * weatherAt's now for a time no forecast covers: the climate estimate, shifted toward what the station nearest
+   * the ZIP measured at the snapshot (carried to the ZIP's height) by an offset that fades with time from the
+   * snapshot (fade = exp(-|t - snapshot| / OBS_FADE_MS)); within two hours of the snapshot the station's sky too.
+   */
+  _climateNow(i, t, fade) {
+    const c = this.climateAt(i, t);
+    if (!(fade > 0.001)) return c;
+    const o = this._nearestObs(i, true);
+    if (!o || o.distKm > OBS_KM) return c;
+    const offset = this._obsOffset(i, this.climateAt(i, this.snapshotTime).tempF);
+    c.tempF = Math.round(c.tempF + offset * fade);
+    if (Math.abs(t - this.snapshotTime) <= 2 * 3600000 && o.text) c.short = o.text;
+    c.anchored = o.id;
+    return c;
+  }
+
+  /**
+   * The weather for ZIP i at time t (epoch ms; default the snapshot time). Fields: now {tempF, rh, pop, wind, short,
+   * isDay, time}, period and next (the forecast periods), obs (the nearest station), alerts (the ZIP's zone or
+   * county), keyMessages (the forecast office's), fireWeather and excessiveRain (the SPC and WPC day-1 levels for the
+   * county), point and office, stale, approx and basis.
+   *
+   * basis says where `now` comes from: {kind, point, office, officeName, distKm, elevAdjF}.
+   * - 'forecast': the NWS forecast of a point within HERE_KM and HERE_DZ (m) of the ZIP: the ZIP's own forecast.
+   * - 'borrowed': the forecast of a point up to BORROW_KM away in the ZIP's own forecast office (never across the
+   *   Sierra crest, which the offices split along), carried to the ZIP's height (elevAdjF, about -3.5 F per 1,000 ft,
+   *   applied to now, the periods' temperatures and the temperatures in their text). It is that city's forecast,
+   *   not the ZIP's: say so ("the forecast for Fresno"), never "here".
+   * - 'climate': no forecast for the ZIP at t (no point in reach, or t outside the forecast window): now is the
+   *   climate estimate (climateAt); period and next are empty; stale is true.
+   * approx is true unless the kind is 'forecast': hedge the numbers ("probably around 45").
+   *
+   * Near the snapshot every kind is anchored to the nearest station's measurement (within OBS_KM), an offset that
+   * fades with time from the snapshot (OBS_FADE_MS), so a cold afternoon reading at the snapshot does not cool the
+   * next day; within two hours of the snapshot a climate estimate takes the station's sky.
    */
   weatherAt(i, t = this.snapshotTime) {
-    const pt = this._forecastPoint(i), obs = this._nearestObs(i), zr = this.zip(i);
-    const out = { source: `NWS ${pt ? pt.office : ''} snapshot ${this.weather.fetched}`, fetched: this.weather.fetched, point: pt ? pt.city : null, office: pt ? pt.office : null, stale: false };
-    const hourly = pt ? pt.hourly : [];
-    let h = null, hAtSnap = null, bestDt = Infinity, snapDt = Infinity;
-    for (const row of hourly) {
-      const ht = Date.parse(row[0]);
-      const dt = Math.abs(ht - t); if (dt < bestDt) { bestDt = dt; h = row; }
-      const ds = Math.abs(ht - this.snapshotTime); if (ds < snapDt) { snapDt = ds; hAtSnap = row; }
-    }
-    const offset = obs && hAtSnap && obs.tempF != null ? clamp(obs.tempF - hAtSnap[1], -15, 15) * (obs.distKm < 60 ? 1 : 0.5) : 0;
-    if (h && bestDt <= 90 * 60000) {
-      out.now = { tempF: Math.round(h[1] + offset), rh: h[2], pop: h[3], wind: h[4], short: h[5], isDay: !!h[6], time: h[0] };
-    } else {
-      out.now = this.climateAt(i, t);
-      out.stale = true;
-    }
-    out.period = null;
-    out.next = [];
-    if (pt && !out.stale) {
-      const periods = pt.periods || [];
-      const cur = periods.find(p => Date.parse(p.start) <= t && t < Date.parse(p.end));
-      out.period = cur || null;
+    const zr = this.zip(i), pick = this._forecastPick(i), obs = this._nearestObs(i), snap = this.snapshotTime;
+    const wfo = zr.wfo || (pick ? pick.pt.office : null), fade = Math.exp(-Math.abs(t - snap) / OBS_FADE_MS);
+    const win = this._forecastWindow(), inWindow = t >= win.t0 && t <= win.t1;
+    const [h, bestDt] = pick ? this._hourAt(pick.pt, t) : [null, Infinity];
+    const out = { source: '', fetched: this.weather.fetched, point: null, office: wfo, stale: false, approx: true, basis: null, now: null, period: null, next: [] };
+    if (pick && h && bestDt <= WINDOW_SLACK_MS) {
+      const p = pick.pt, adj = pick.elevAdjF, [hs] = this._hourAt(p, snap);
+      const offset = fade > 0.001 && hs ? this._obsOffset(i, hs[1] + adj) * fade : 0;
+      out.now = { tempF: Math.round(h[1] + adj + offset), rh: h[2], pop: h[3], wind: h[4], short: h[5], isDay: !!h[6], time: h[0] };
+      out.point = p.city;
+      out.office = p.office;
+      out.approx = pick.kind !== 'forecast';
+      out.basis = { kind: pick.kind, point: p.city, office: p.office, officeName: this.offices[p.office] || p.office, distKm: pick.distKm, elevAdjF: adj };
+      out.source = pick.kind === 'forecast' ? `NWS ${p.office} forecast for ${p.city}, snapshot ${this.weather.fetched}`
+        : `NWS ${p.office} forecast for ${p.city} (${Math.round(pick.distKm)} km away), carried ${adj >= 0 ? '+' : ''}${adj} F for height; snapshot ${this.weather.fetched}`;
+      const periods = p.periods || [];
+      const cur = periods.find(q => Date.parse(q.start) <= t && t < Date.parse(q.end));
       const idx = cur ? periods.indexOf(cur) : -1;
-      out.next = idx >= 0 ? periods.slice(idx + 1, idx + 4) : [];
+      out.period = cur ? World._carryPeriod(cur, adj) : null;
+      out.next = idx >= 0 ? periods.slice(idx + 1, idx + 4).map(q => World._carryPeriod(q, adj)) : [];
+    } else {
+      out.now = this._climateNow(i, t, fade);
+      out.stale = true;
+      out.basis = { kind: 'climate', point: null, office: wfo, officeName: wfo ? this.offices[wfo] || wfo : null, distKm: null, elevAdjF: 0 };
+      out.source = inWindow ? `climate estimate for ${zr.zip}: no NWS forecast point within ${BORROW_KM} km in its forecast office`
+        : `climate estimate for ${zr.zip}: past the NWS forecast of ${this.weather.fetched}`;
     }
     out.obs = obs;
-    const zone = zr.zone, fips = zr.countyFips ? zr.countyFips.slice(2) : null, fipsFull = zr.countyFips;
+    const zone = zr.zone, fipsFull = zr.countyFips || '', fips = fipsFull ? fipsFull.slice(2) : null;
     out.alerts = this.weather.alerts.filter(a => {
       const on = a.onset ? Date.parse(a.onset) : -Infinity, end = Date.parse(a.ends || a.expires || '2999-01-01');
-      const here = (a.zones || []).includes(zone) || (a.fips || []).some(f => f === fipsFull || f === '0' + fipsFull || f === fips || String(f).endsWith(fipsFull.slice(2)));
+      const here = (a.zones || []).includes(zone) || (!!fipsFull && (a.fips || []).some(f => f === fipsFull || f === '0' + fipsFull || f === fips || String(f).endsWith(fipsFull.slice(2))));
       return here && t <= end && t >= on - 36 * 3600000;
     }).map(a => ({ event: a.event, severity: a.severity, headline: a.headline, onset: a.onset, ends: a.ends, description: a.description, instruction: a.instruction }))
       .filter((a, k, all) => all.findIndex(b => b.event === a.event) === k);
-    const afd = pt && this.weather.afd[pt.office];
-    // the forecast office's key messages and the day-1 outlooks speak about the snapshot's own days
-    const outlookDay = !out.stale && t >= this.snapshotTime - 12 * 3600000 && t <= this.snapshotTime + 30 * 3600000;
-    out.keyMessages = afd && !out.stale ? afd.key : [];
+    // the key messages of the ZIP's own forecast office (the office of the point it reads; Reno's for Mammoth Lakes,
+    // never Hanford's) and the day-1 outlooks speak about the snapshot's own days, whatever the basis
+    const afd = out.office ? this.weather.afd[out.office] : null;
+    const outlookDay = inWindow && t >= snap - 12 * 3600000 && t <= snap + 30 * 3600000;
+    out.keyMessages = afd && inWindow ? afd.key : [];
     const fireDay = (this.weather.fire.days || {})['1'], eroDay = (this.weather.ero.days || {})['1'];
     const fl = outlookDay && fireDay && fireDay.levels ? fireDay.levels[fipsFull] : 0, el = outlookDay && eroDay && eroDay.levels ? eroDay.levels[fipsFull] : 0;
     out.fireWeather = { level: fl || 0, name: (this.weather.fire.names || [])[fl || 0] || 'None' };
