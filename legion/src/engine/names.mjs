@@ -28,14 +28,18 @@
 //   nickname(rng, given, {heritage, age[, sex, surname]})   a diminutive or adopted name, or null
 // Extras: nameFor (first, middle, last, full, display, nick in one call), middleName, adaptSurname, eraOf,
 // ERAS, givenPool, surnamePool, nicknameCandidates, isReservedName, normName, and the raw data GIVEN,
-// SURNAMES, NAMING (heritage configuration), NICKNAMES, EXCLUDED_SURNAMES and RESERVED_NAMES.
+// SURNAMES, NAMING (heritage configuration), NICKNAMES, PET_NAMES, MIDDLE_NAMES, EXCLUDED_SURNAMES,
+// RESERVED_NAMES, JOKE_NAMES and BLOCKED_NAMES. Lookups by caller-supplied keys only see own entries, so a
+// heritage such as 'constructor' falls back like any unknown key.
 // Callers that know a person's surname (the household's) should pass it as opts.surname to givenName and
 // nickname: Chinese and Indian given names then follow the surname's romanization or region, and full
 // names that would point to a famous person are redrawn.
 //
 // Pool format: a comma-separated string ranked from most to least common. "Name:12.5" gives an explicit
-// relative weight; names after an explicit weight continue the Zipf curve from it. Spelling follows what
-// Californians of that heritage commonly write: accents kept where families keep them (José, María),
+// relative weight, and names after it continue the Zipf curve from it; "Name*3" weighs a name at three times
+// its place on the curve without moving the names after it (a cohort's dominant name: José, María). The
+// curve's exponent depends on the era and the tradition (Z_GIVEN, GIVEN[t].z, SURNAME_CURVE). Spelling follows
+// what Californians of that heritage commonly write: accents kept where families keep them (José, María),
 // dropped where US records and everyday use drop them (most surnames, US-born children's given names).
 
 import { cumulative, drawCumulative } from './rng.mjs';
@@ -1004,8 +1008,8 @@ GIVEN.english = {
 
 GIVEN['scottish-own'] = {
   base: {
-    M: 'Angus,Alasdair,Hamish,Callum,Fraser,Ewan,Ross,Lachlan,Duncan,Fergus,Malcolm,Iain,Euan,Gordon,Craig,Alistair,Murray,Douglas,Stuart,Graeme,Kenneth,Kyle,Struan,Rory,Finlay,Andrew,Gregor,Archie,Ruaridh,Niall',
-    F: 'Ailsa,Morag,Isla,Kirsty,Fiona,Eilidh,Catriona,Mhairi,Iona,Shona,Rhona,Elspeth,Heather,Moira,Isobel,Morven,Ishbel,Lorna,Skye,Freya,Rowan,Esme,Flora,Margaret,Jean,Agnes,Janet,Marion,Kirsteen,Euphemia',
+    M: 'Angus,Alasdair,Hamish,Callum,Fraser,Ewan,Ross,Lachlan,Duncan,Fergus,Malcolm,Iain,Euan,Gordon,Craig,Alistair,Murray,Douglas,Stuart,Graeme,Kenneth,Kyle,Struan,Rory,Finlay,Andrew,Gregor,Archie,Ruaridh,Niall,Torquil,Dougal,Hector,Innes,Lewis,Blair,Cameron,Neil,Scott,Grant',
+    F: 'Ailsa,Morag,Isla,Kirsty,Fiona,Eilidh,Catriona,Mhairi,Iona,Shona,Rhona,Elspeth,Heather,Moira,Isobel,Morven,Ishbel,Lorna,Skye,Freya,Rowan,Esme,Flora,Margaret,Jean,Agnes,Janet,Marion,Kirsteen,Euphemia,Jessie,Effie,Mairi,Islay,Greer,Mirren,Alison,Christina,Sheena,Annie',
   },
 };
 GIVEN.scottish = { mix: [['scottish-own', [0.45, 0.45, 0.45, 0.45]], ['english', [0.55, 0.55, 0.55, 0.55]]] };
@@ -1553,7 +1557,7 @@ const NICKNAMES = {
     },
   },
 };
-// Pet names given regardless of the formal name.
+/** Pet names given regardless of the formal name: {custom: {M, F, minAge, p}} (p = the chance of going by one). */
 const PET_NAMES = {
   filpet: { M: 'Jun,Boy,Bong,Jojo,Dodong,Toto', F: 'Baby,Girlie,Pinky,Inday,Neneng,Bing', minAge: 30, p: 0.12 },
   papet: { M: 'Sonu,Bittu,Goldy,Happy,Lucky,Bunty,Sunny,Rocky,Pinku,Bobby', F: 'Pinky,Dolly,Rimpy,Sweety,Neetu,Pammi,Rinku,Simmi,Babli,Rani', minAge: 0, p: 0.15 },
@@ -1581,7 +1585,7 @@ const EXCLUDED_SURNAMES = Object.freeze(('Kardashian,Kerkorian,Deukmejian,Tankia
   'Boeing,Kaling,Kurosawa,Bukele,Kahlo,Merkel').split(','));
 
 /** Full names refused when the surname is known, because they would point to a famous person. */
-const RESERVED_NAMES = ('Cesar Chavez|Dolores Huerta|Jennifer Lopez|George Lopez|Mario Lopez|Carlos Santana|Jerry Garcia|Andy Garcia|' +
+const RESERVED_NAMES = Object.freeze(('Cesar Chavez|Dolores Huerta|Jennifer Lopez|George Lopez|Mario Lopez|Carlos Santana|Jerry Garcia|Andy Garcia|' +
   'Fernando Valenzuela|Vicente Fernandez|Alejandro Fernandez|Pedro Infante|Eva Longoria|Salma Hayek|Diego Luna|Ricky Martin|Celia Cruz|' +
   'Penelope Cruz|Ted Cruz|Gloria Estefan|Sammy Sosa|Pedro Martinez|David Ortiz|Alex Rodriguez|Sonia Sotomayor|Jose Canseco|Rita Moreno|' +
   'Jessica Alba|America Ferrera|Zoe Saldana|Cameron Diaz|Danny Trejo|Cheech Marin|Selena Gomez|Selena Quintanilla|Roberto Clemente|' +
@@ -1611,7 +1615,38 @@ const RESERVED_NAMES = ('Cesar Chavez|Dolores Huerta|Jennifer Lopez|George Lopez
   'Tupac Shakur|Snoop Dogg|Prince Harry|Taylor Swift|Elvis Presley|Johnny Cash|Bob Dylan|Bob Marley|Paul McCartney|John Lennon|' +
   'Ringo Starr|Elton John|David Bowie|Freddie Mercury|Ed Sheeran|Harry Styles|Mark Zuckerberg|Larry Page|Sergey Brin|Steve Jobs|' +
   'Walt Disney|Jeff Bezos|Elon Musk|Warren Buffett|Mike Tyson|Floyd Mayweather|Lionel Messi|Cristiano Ronaldo|David Beckham|' +
-  'Rodney King|Mujibur Rahman|Ziaur Rahman|Pat Brown|Ted Williams|Bill Walsh|Pancho Villa').split('|');
+  'Rodney King|Mujibur Rahman|Ziaur Rahman|Pat Brown|Ted Williams|Bill Walsh|Pancho Villa|' +
+  // public life, California and national
+  'Earl Warren|Hilda Solis|Loretta Sanchez|Katie Porter|Fiona Ma|Duncan Hunter|Bernie Sanders|Elizabeth Warren|Paul Ryan|' +
+  'Marco Rubio|Angela Davis|Alberto Gonzales|Bill Richardson|Ken Salazar|Julian Castro|Joaquin Castro|Henry Cisneros|' +
+  'Billy Graham|Rick Warren|Oscar Grant|Freddie Gray|Dennis Banks|Will Rogers|Joy Harjo|Billy Mills|Ira Hayes|' +
+  // sport
+  'Joe Louis|Joe Frazier|Tim Duncan|Chris Paul|Anthony Davis|Paul George|Dwight Howard|Jerry West|Paul Pierce|Reggie Miller|' +
+  'Russell Wilson|Marcus Allen|Jim Brown|Barry Sanders|Jerry Jones|Ray Lewis|Terrell Owens|Lamar Jackson|Bo Jackson|' +
+  'Freddie Freeman|Kirk Gibson|Rickey Henderson|Ricky Henderson|Reggie Jackson|Will Clark|Dave Stewart|Eddie Murray|' +
+  'Orlando Cepeda|Vladimir Guerrero|Miguel Cabrera|Pablo Sandoval|Alex Morgan|Tim Howard|Landon Donovan|Hugo Sanchez|' +
+  'Rafa Marquez|James Rodriguez|Luis Suarez|Alexis Sanchez|Arnold Palmer|Sergio Garcia|Nancy Lopez|Saul Alvarez|Julio Chavez|' +
+  'Nathan Chen|Chloe Kim|Shaun White|Sloane Stephens|Gabby Douglas|Katie Taylor|Shane Lowry|Roy Keane|Robbie Keane|' +
+  'Harry Kane|Lewis Hamilton|Valentino Rossi|Paolo Rossi|Chris Gayle|Brian Lara|Mo Farah|Shoaib Akhtar|Tamim Iqbal|' +
+  // screen, music, letters
+  'Jennifer Lawrence|Emma Stone|Viola Davis|Regina King|Kerry Washington|Chris Pratt|Chris Evans|Ryan Reynolds|Carrie Fisher|' +
+  'Steve Martin|Robin Williams|Jack Black|Jon Stewart|Chris Tucker|Mike Myers|Steve Harvey|Martin Lawrence|Tyler Perry|' +
+  'Ron Howard|Larry David|Jerry Lewis|Natalie Wood|Cillian Murphy|Gina Rodriguez|Michelle Rodriguez|Eva Mendes|Gael Garcia|' +
+  'Stephen Chow|John Woo|Hong Chau|Dustin Nguyen|Michelle Phan|Aziz Ansari|Salman Khan|Amir Khan|Aamir Khan|Shahrukh Khan|' +
+  'Fawad Khan|Zain Malik|Zayn Malik|Tina Turner|Gladys Knight|Barry White|Isaac Hayes|Al Green|Chuck Berry|Missy Elliott|' +
+  'Grace Jones|Sean Paul|Keith Richards|Huey Lewis|Susan Boyle|Don Ho|Sergio Mendes|Joe Perry|Enrique Iglesias|' +
+  'Julio Iglesias|Pepe Aguilar|Antonio Aguilar|Jenni Rivera|Jenny Rivera|Romeo Santos|Marco Solis|Ramon Ayala|Willie Colon|' +
+  'Willy Colon|Jorge Ramos|Vilma Santos|Kris Aquino|Catriona Gray|Genevieve Nnaji|Peter Okoye|Paul Okoye|Liya Kebede|' +
+  'Abel Tesfaye|Zakir Hussain|Jay Chou|Ji-min Park|Seok-jin Kim|Alice Walker|Sandra Cisneros|Luis Valdez|Stephen King|' +
+  'Dan Brown|Harper Lee|Khaled Hosseini|Carlos Fuentes|Iris Chang|Ted Chiang|Graham Greene|Alexis Ohanian|' +
+  'Aram Khachatryan|Tigran Petrosyan|Tigran Petrosian|' +
+  // business, science and exploration
+  'Tim Cook|Howard Hughes|Henry Ford|Gordon Moore|Phil Knight|Ted Turner|Neil Armstrong|Ellen Ochoa|Sunita Williams|' +
+  'Sanjay Gupta|Deepak Chopra|Alexander Bell|Leif Erickson|Leif Erikson|' +
+  // heads of state and government, and notorious figures
+  'Hugo Chavez|Manuel Zelaya|Xiomara Castro|Jimmy Morales|Rafael Correa|Gordon Brown|David Cameron|Diana Spencer|' +
+  'Gerry Adams|Enda Kenny|Abdoulaye Wade|Somchai Wongsawat|Khaleda Zia|Nazrul Islam|Ne Win|Than Shwe|Thein Sein|' +
+  'Khin Nyunt|Win Myint|Htin Kyaw|Tin Oo|Saw Maung|Pablo Escobar|Joaquin Guzman|Griselda Blanco').split('|'));
 
 /** Stock joke names (the kind a prank caller gives), refused like famous names when the surname is known. */
 const JOKE_NAMES = Object.freeze(('Mike Hunt|Mike Hawk|Mike Rotch|Mike Oxlong|Ben Dover|Hugh Jass|Hugh Janus|Harry Cox|Wayne Kerr|' +
@@ -1633,7 +1668,7 @@ const BLOCKED_NAMES = Object.freeze(('kike kyke sambo coon spic spick chink gook
 // Zipf exponents of the popularity curve over a ranked given-name list, by birth era. Names grew more diverse
 // in every tradition over the century (the top name of a California birth cohort held about 4% of births in
 // the 1950s and under 2% since 2000), so later lists are flatter; with these, the top name of a 40-80 name
-// list holds 3-5% of its cohort. A tradition may set its own exponent (GIVEN[t].z, a number or one per era):
+// list holds about 2.5-5% of its cohort. A tradition may set its own exponent (GIVEN[t].z, a number or one per era):
 // flatter where names are diverse (Korean, Chinese, Indian ...), steeper where a few names dominate (Greek
 // families name children after their grandparents). Where one name is known to dominate a cohort (José and
 // María among Mexico-born Californians, Muhammad among Pakistani men) the list marks it "Name*k": k times its

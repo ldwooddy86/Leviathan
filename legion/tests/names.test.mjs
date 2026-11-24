@@ -2,9 +2,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Rng } from '../src/engine/rng.mjs';
+import { loadDefaultWorld } from '../src/engine/world.mjs';
 import {
   NAME_HERITAGES, surname, givenName, nickname, nameFor, middleName, adaptSurname, eraOf, givenPool, surnamePool,
-  nicknameCandidates, isReservedName, normName, GIVEN, SURNAMES, EXCLUDED_SURNAMES,
+  nicknameCandidates, isReservedName, normName, GIVEN, SURNAMES, NICKNAMES, PET_NAMES, MIDDLE_NAMES, EXCLUDED_SURNAMES,
+  RESERVED_NAMES, JOKE_NAMES, BLOCKED_NAMES,
 } from '../src/engine/names.mjs';
 
 const CONTRACT_KEYS = ('mexican salvadoran guatemalan honduran nicaraguan puertorican cuban dominican southamerican spanish latino ' +
@@ -15,8 +17,33 @@ const ERA_YEARS = [1948, 1971, 1990, 2012];
 const NAME_RE = /^\p{L}[\p{L}'’.\- ]*\p{L}\.?$|^\p{L}$/u;
 const draw = (n, fn) => Array.from({ length: n }, (_, i) => fn(i));
 const share = (arr, pred) => arr.filter(pred).length / arr.length;
-const namesOf = (str) => String(str || '').split(',').map(s => s.trim().replace(/[:*][\d.]+$/, '')).filter(Boolean);
+// The names of a pool string, without weights ("Nguyen:38"), boosts ("José*3") or nickname markers ("Bill+", "Lupita@F~").
+const namesOf = (str) => String(str || '').split(',').map(s => s.trim().replace(/[:*][\d.]+$/, '').replace(/(@[MF])?[+\-~^]?$/, '')).filter(Boolean);
 const generalSet = (sex, era) => new Set(givenPool('other', sex, era, 3).map(x => x.name));
+const nicks = (given, opts) => nicknameCandidates(given, opts).map(c => c.nick);
+// Heritages whose immigrant cohorts really are dominated by one name (José, María, Muhammad, Maria, Georgios),
+// marked in the pools with "Name*k" or a steeper curve.
+const DOMINANT_HEAD = new Set('mexican salvadoran guatemalan honduran nicaraguan puertorican cuban dominican southamerican spanish latino filipino portuguese pakistani bangladeshi afghan arab irish italian greek'.split(' '));
+
+// Every name string the module can emit, with where it lives: given-name lists (origin, US-born, base),
+// surname lists, nickname customs (including the adopted English names), pet names and middle names.
+function everyNameString() {
+  const out = [];
+  for (const [t, T] of Object.entries(GIVEN)) {
+    for (const sx of ['M', 'F']) {
+      (T[sx] || []).forEach((s, e) => out.push([`GIVEN.${t}.${sx}${e}`, s]));
+      if (T.us && T.us[sx]) T.us[sx].forEach((s, e) => out.push([`GIVEN.${t}.us.${sx}${e}`, s]));
+      if (T.base && T.base[sx]) out.push([`GIVEN.${t}.base.${sx}`, T.base[sx]]);
+    }
+  }
+  for (const [k, s] of Object.entries(SURNAMES)) if (typeof s === 'string') out.push([`SURNAMES.${k}`, s]);
+  for (const [c, M] of Object.entries(NICKNAMES)) {
+    for (const m of (c === 'vi' || c === 'ko' ? [M.M, M.F] : [M])) for (const [k, v] of Object.entries(m)) out.push([`NICKNAMES.${c}.${k}`, v]);
+  }
+  for (const [c, P] of Object.entries(PET_NAMES)) for (const sx of ['M', 'F']) out.push([`PET_NAMES.${c}.${sx}`, P[sx]]);
+  for (const [k, v] of Object.entries(MIDDLE_NAMES)) for (const s of (typeof v === 'string' ? [v] : Object.values(v))) out.push([`MIDDLE_NAMES.${k}`, s]);
+  return out;
+}
 
 test('every contract heritage key is covered, with nothing extra', () => {
   assert.deepEqual([...NAME_HERITAGES].sort(), [...CONTRACT_KEYS].sort());
@@ -43,14 +70,31 @@ test('every heritage gives plausible names for both sexes, all eras and generati
   }
 });
 
-test('pools: at least 40 given names per sex for every era of every heritage, 40 surnames per distinct pool', () => {
+test('pools: 40 given names per sex for every era of every naming tradition, 40 surnames per distinct pool', () => {
+  let traditions = 0;
+  for (const [trad, T] of Object.entries(GIVEN)) {
+    if (T.mix) continue;   // a mix of other traditions (Chinese, Indian, Scottish, Latino, Asian, European)
+    traditions++;
+    for (const sex of ['M', 'F']) {
+      const base = namesOf(T.base && T.base[sex]);
+      if (base.length) assert.ok(base.length >= 40, `${trad} ${sex} era-neutral list: ${base.length} names`);
+      for (let era = 0; era < 4; era++) {
+        const own = namesOf((T[sex] || [])[era]);
+        // the era's own list carries the weight; a tradition with an era-neutral list may add era favorites to it
+        if (base.length) assert.ok(own.length === 0 || own.length >= 20, `${trad} ${sex} era ${era}: ${own.length} era names`);
+        else assert.ok(own.length >= 40, `${trad} ${sex} era ${era}: ${own.length} names`);
+        if (T.us) assert.ok(namesOf(T.us[sex][era]).length >= 20, `${trad} ${sex} era ${era}: ${namesOf(T.us[sex][era]).length} US-born names`);
+      }
+    }
+  }
+  assert.ok(traditions > 40);
   for (const heritage of NAME_HERITAGES) {
     for (const sex of ['F', 'M']) {
       for (let era = 0; era < 4; era++) {
         const pool = givenPool(heritage, sex, era, 1);
         assert.ok(pool.length >= 40, `${heritage} ${sex} era ${era}: ${pool.length} names`);
-        const sum = pool.reduce((a, x) => a + x.weight, 0);
-        assert.ok(Math.abs(sum - 1) < 1e-9);
+        assert.ok(Math.abs(pool.reduce((a, x) => a + x.weight, 0) - 1) < 1e-9);
+        assert.ok(pool.every(x => !/[*:]/.test(x.name)), 'weight and boost markers never leak into names');
         assert.ok(givenPool(heritage, sex, era, 2).length >= 20, `${heritage} ${sex} era ${era} US-born pool`);
       }
     }
@@ -81,13 +125,39 @@ test('no duplicate entries inside any pool, no excluded surnames anywhere', () =
   for (const [key, s] of surnameLists) for (const n of namesOf(s)) assert.ok(!excluded.has(normName(n)), `${n} in ${key}`);
 });
 
+test('no name, name part, nickname, pet name or middle name reads as a slur or crude word', () => {
+  const blocked = new Set(BLOCKED_NAMES);
+  for (const w of ['kike', 'sambo', 'bimbo', 'dick', 'chink', 'gook', 'wetback']) assert.ok(blocked.has(w), `${w} is on the blocklist`);
+  let checked = 0;
+  for (const [label, s] of everyNameString()) {
+    for (const name of namesOf(s)) {
+      const f = normName(name);
+      for (const w of [f, ...f.split(' ')]) assert.ok(!blocked.has(w), `"${name}" in ${label}`);
+      checked++;
+    }
+  }
+  assert.ok(checked > 20000, `${checked} names checked`);
+  // the reviewed cases: Quique for Enrique, no Dick for Richard, Bola for Abimbola, no Sambo among Khmer names
+  assert.ok(nicks('Enrique', { heritage: 'mexican', age: 30 }).includes('Quique'));
+  assert.ok(!nicks('Enrique', { heritage: 'mexican', age: 30 }).includes('Kike'));
+  for (const heritage of ['english', 'american', 'african-american', 'irish']) assert.ok(!nicks('Richard', { heritage, age: 75, sex: 'M' }).includes('Dick'), heritage);
+  assert.deepEqual(nicks('Abimbola', { heritage: 'nigerian', age: 40, sex: 'F' }), ['Bola']);
+  for (let era = 0; era < 4; era++) assert.ok(!givenPool('cambodian', 'M', era, 1).some(x => x.name === 'Sambo'));
+  // and nothing drawn end to end carries one
+  const rng = new Rng(103);
+  for (let i = 0; i < 20000; i++) {
+    const n = nameFor(rng, { heritage: NAME_HERITAGES[i % NAME_HERITAGES.length], sex: i % 2 ? 'F' : 'M', birthYear: 1935 + (i % 90), generation: 1 + (i % 3) });
+    for (const w of normName(`${n.full} ${n.display}`).split(' ')) assert.ok(!blocked.has(w), n.full);
+  }
+});
+
 test('deterministic: the same rng seed gives the same names, and only the rng passed in is used', () => {
   const run = (seed) => {
     const rng = new Rng(seed), out = [];
     for (let i = 0; i < 300; i++) {
       const heritage = NAME_HERITAGES[i % NAME_HERITAGES.length], sex = i % 2 ? 'F' : 'M';
-      const last = surname(rng, heritage), first = givenName(rng, { heritage, sex, birthYear: 1930 + (i % 90), generation: 1 + (i % 3) });
-      out.push(first, last, nickname(rng, first, { heritage, age: 20 + (i % 60) }), JSON.stringify(nameFor(rng, { heritage, sex, birthYear: 1950 + (i % 70), generation: 1 + (i % 3) })));
+      const last = surname(rng, heritage), first = givenName(rng, { heritage, sex, birthYear: 1930 + (i % 90), generation: 1 + (i % 3), surname: last });
+      out.push(first, last, nickname(rng, first, { heritage, age: 20 + (i % 60), sex, surname: last }), JSON.stringify(nameFor(rng, { heritage, sex, birthYear: 1950 + (i % 70), generation: 1 + (i % 3) })));
     }
     return out;
   };
@@ -112,6 +182,69 @@ test('Vietnamese surnames: Nguyen first by a wide margin, then Tran and Le', () 
   assert.deepEqual(ranked.slice(1, 3).map(r => r[0]).sort(), ['Le', 'Tran']);
   const korean = surnamePool('korean');
   assert.deepEqual(korean.slice(0, 3).map(x => x.name), ['Kim', 'Lee', 'Park']);
+});
+
+test('surname frequencies: no single name dominates where a culture\'s surnames are diverse', () => {
+  // Lao and Thai surnames are particular to families, Ethiopian ones are fathers' given names, and the Nigerian,
+  // other African and Pacific pools mix many peoples: the commonest name is a few percent at most.
+  for (const heritage of ['lao', 'thai', 'ethiopian', 'nigerian', 'african', 'pacific']) {
+    const pool = surnamePool(heritage);
+    assert.ok(pool[0].weight <= 0.04, `${heritage}: ${pool[0].name} ${(100 * pool[0].weight).toFixed(1)}%`);
+    assert.ok(pool.length >= 100, `${heritage}: ${pool.length} surnames`);
+  }
+  // Vietnamese, Korean and Hmong surnames really are concentrated (Nguyen, Kim, the 18 clans); nowhere else
+  // does one surname reach a tenth of a heritage
+  for (const heritage of NAME_HERITAGES) {
+    if (heritage === 'vietnamese' || heritage === 'korean' || heritage === 'hmong') continue;
+    const top = surnamePool(heritage)[0];
+    assert.ok(top.weight < 0.1, `${heritage}: ${top.name} ${(100 * top.weight).toFixed(1)}%`);
+  }
+  const kim = surnamePool('korean')[0], vang = surnamePool('hmong')[0];
+  assert.ok(kim.name === 'Kim' && kim.weight > 0.18 && kim.weight < 0.28, `Kim ${kim.weight}`);
+  assert.ok(vang.weight > 0.1 && vang.weight < 0.2, `${vang.name} ${vang.weight}`);
+  // the draws follow the pool: in 30,000 Lao surnames none comes up more than 3% of the time
+  const rng = new Rng(105), counts = new Map();
+  for (let i = 0; i < 30000; i++) { const s = surname(rng, 'lao'); counts.set(s, (counts.get(s) || 0) + 1); }
+  assert.ok(Math.max(...counts.values()) / 30000 < 0.03);
+});
+
+test('given-name frequencies: the top name of a cohort holds a realistic share', () => {
+  const top = (heritage, sex, era, generation) => givenPool(heritage, sex, era, generation)[0];
+  const pct = x => `${x.name} ${(100 * x.weight).toFixed(1)}%`;
+  // the general California pool: Robert, Mary, Michael, Jennifer ... at about their share of births by cohort
+  const bounds = [0.06, 0.05, 0.045, 0.035];
+  for (const sex of ['M', 'F']) for (let era = 0; era < 4; era++) { const t = top('other', sex, era, 3); assert.ok(t.weight < bounds[era], `general ${sex} ${era}: ${pct(t)}`); }
+  assert.equal(top('other', 'M', 1, 3).name, 'Michael');
+  assert.equal(top('other', 'F', 1, 3).name, 'Jennifer');
+  // the reviewed cases: Korea-born and Vietnam-born cohorts
+  for (const [heritage, sex, era] of [['korean', 'F', 1], ['korean', 'M', 1], ['vietnamese', 'M', 1], ['vietnamese', 'F', 0]]) {
+    const t = top(heritage, sex, era, 1);
+    assert.ok(t.weight < 0.05, `${heritage} ${sex} ${era}: ${pct(t)}`);
+  }
+  // countries whose names are diverse never put one name above 5%; no tradition without a dominant name above 7.5%
+  for (const heritage of NAME_HERITAGES) {
+    for (const sex of ['M', 'F']) {
+      for (let era = 0; era < 4; era++) {
+        const t1 = top(heritage, sex, era, 1), t2 = top(heritage, sex, era, 2);
+        if (['korean', 'chinese', 'japanese', 'vietnamese', 'indian', 'thai', 'lao', 'cambodian', 'nigerian', 'ethiopian'].includes(heritage)) assert.ok(t1.weight <= 0.05, `${heritage} ${sex} ${era}: ${pct(t1)}`);
+        if (DOMINANT_HEAD.has(heritage)) assert.ok(t1.weight <= 0.25, `${heritage} ${sex} ${era}: ${pct(t1)}`);
+        else assert.ok(t1.weight <= 0.075, `${heritage} ${sex} ${era}: ${pct(t1)}`);
+        assert.ok(t2.weight <= (DOMINANT_HEAD.has(heritage) ? 0.2 : 0.1), `${heritage} ${sex} ${era} US-born: ${pct(t2)}`);
+      }
+    }
+  }
+  // where one name does dominate a cohort it leads by a wide margin: José and María among Mexico-born
+  // Californians born before 1960, Muhammad among Pakistan-born men, Georgios and Maria among Greeks
+  const mx = givenPool('mexican', 'F', 0, 1);
+  assert.equal(mx[0].name, 'María');
+  assert.ok(mx[0].weight > 0.12 && mx[0].weight > 3 * mx.find(x => x.name === 'Guadalupe').weight);
+  assert.equal(top('mexican', 'M', 0, 1).name, 'José');
+  assert.equal(top('pakistani', 'M', 2, 1).name, 'Muhammad');
+  assert.ok(top('greek', 'M', 1, 1).name === 'Georgios' && top('greek', 'M', 1, 1).weight > 0.06);
+  // and the draws follow the pools: 30,000 Korea-born women of the 1960s and 70s, none sharing a name above 5%
+  const rng = new Rng(107), counts = new Map();
+  for (let i = 0; i < 30000; i++) { const n = givenName(rng, { heritage: 'korean', sex: 'F', birthYear: 1962 + (i % 16), generation: 1 }); counts.set(n, (counts.get(n) || 0) + 1); }
+  assert.ok(Math.max(...counts.values()) / 30000 < 0.05);
 });
 
 test('Sikh men carry Singh and women Kaur, never the other', () => {
@@ -177,6 +310,8 @@ test('romanization: Vietnamese without tone marks, Korean hyphenated, Chinese by
   assert.ok(share(ko, n => /^[A-Z][a-z]+-[a-z]+$/.test(n)) > 0.9, 'Ji-hoon style');
   const cmn = new Set(GIVEN['chinese-cmn'].M.flatMap(namesOf));
   const yue = new Set(GIVEN['chinese-yue'].M.flatMap(namesOf)), tw = new Set(GIVEN['chinese-tw'].M.flatMap(namesOf));
+  // Taiwan's Wade-Giles spelling has no pinyin q, x, zh or ji (its j is pinyin r, as in Jung-hua)
+  for (const sex of ['M', 'F']) for (const n of GIVEN['chinese-tw'][sex].flatMap(namesOf)) assert.ok(!/(^|-)(q|x|zh|ji)/i.test(n), `pinyin in a Taiwanese name: ${n}`);
   // a Wong born in 1955 is named in Cantonese (or carries an English name, as many Hong Kong people do)
   const wong = draw(1500, () => givenName(rng, { heritage: 'chinese', sex: 'M', birthYear: 1955, generation: 1, surname: 'Wong' }));
   assert.ok(share(wong, n => yue.has(n)) > 0.6);
@@ -232,7 +367,6 @@ test('surname pools carry each heritage\'s own names', () => {
 });
 
 test('nicknames map to the right diminutives, by custom and age', () => {
-  const nicks = (given, opts) => nicknameCandidates(given, opts).map(c => c.nick);
   assert.ok(nicks('Roberto', { heritage: 'mexican', age: 45 }).includes('Beto'));
   assert.ok(nicks('Guadalupe', { heritage: 'mexican', age: 60, sex: 'F' }).includes('Lupe'));
   const francisco = nicks('Francisco', { heritage: 'salvadoran', age: 50 });
@@ -254,6 +388,12 @@ test('nicknames map to the right diminutives, by custom and age', () => {
   assert.ok(nicks('Ekaterina', { heritage: 'russian', age: 40 }).includes('Katya'));
   assert.ok(nicks('Konstantinos', { heritage: 'greek', age: 50 }).includes('Gus'));
   assert.deepEqual(nicks('Tuan', { heritage: 'vietnamese', age: 8 }), [], 'children keep their own names');
+  // Paddy is an Irish family's nickname (elsewhere in American English it reads as an ethnic label)
+  assert.ok(nicks('Patrick', { heritage: 'irish', age: 60, sex: 'M' }).includes('Paddy'));
+  for (const heritage of ['american', 'english', 'african-american', 'filipino']) {
+    const got = nicks('Patrick', { heritage, age: 60, sex: 'M' });
+    assert.ok(got.includes('Pat') && !got.includes('Paddy'), `${heritage}: ${got}`);
+  }
   // a modest share of people go by a nickname, and only by one their custom allows
   const rng = new Rng(21);
   const got = draw(4000, () => nickname(rng, 'Roberto', { heritage: 'mexican', age: 45 }));
@@ -263,19 +403,98 @@ test('nicknames map to the right diminutives, by custom and age', () => {
   assert.equal(nickname(rng, '', { heritage: 'mexican', age: 30 }), null);
 });
 
-test('famous full names are avoided when the surname is known', () => {
+test('famous full names and stock joke names are avoided when the surname is known', () => {
   assert.ok(isReservedName('Michael', 'Jordan') && isReservedName('César', 'Chávez') && isReservedName('Kar-wai', 'Wong'));
   assert.ok(!isReservedName('Michael', 'Jordon') && !isReservedName('Maria', 'Chavez'));
+  for (const [f, l] of [['Rodney', 'King'], ['Mujibur', 'Rahman'], ['Ziaur', 'Rahman'], ['Pat', 'Brown'], ['Ted', 'Williams'], ['Bill', 'Walsh'], ['Pancho', 'Villa'], ['Hugo', 'Chávez'], ['Ne', 'Win']]) assert.ok(isReservedName(f, l), `${f} ${l}`);
+  for (const [f, l] of [['Mike', 'Hunt'], ['Wayne', 'Kerr'], ['Harry', 'Cox']]) assert.ok(isReservedName(f, l), `${f} ${l}`);
+  assert.ok(RESERVED_NAMES.length > 400 && JOKE_NAMES.length >= 10);
   const rng = new Rng(23);
   const free = draw(3000, () => givenName(rng, { heritage: 'african-american', sex: 'M', birthYear: 1975, generation: 3 }));
   assert.ok(free.includes('Michael'), 'Michael is common for this cohort');
   const withJordan = draw(3000, () => givenName(rng, { heritage: 'african-american', sex: 'M', birthYear: 1975, generation: 3, surname: 'Jordan' }));
   assert.ok(!withJordan.includes('Michael'));
+  // the reviewed cases, each common enough to come up thousands of times statewide without the check
+  const never = (opts, name, n = 20000) => { for (let i = 0; i < n; i++) assert.notEqual(givenName(rng, opts), name, `${name} ${opts.surname}`); };
+  never({ heritage: 'mexican', sex: 'F', birthYear: 1985, generation: 2, surname: 'Lopez' }, 'Jennifer');
+  never({ heritage: 'african-american', sex: 'M', birthYear: 1968, generation: 3, surname: 'King' }, 'Rodney');
+  never({ heritage: 'bangladeshi', sex: 'M', birthYear: 1950, generation: 1, surname: 'Rahman' }, 'Mujibur');
+  never({ heritage: 'scottish', sex: 'M', birthYear: 1950, generation: 3, surname: 'Kerr' }, 'Wayne', 5000);
+  for (let i = 0; i < 3000; i++) {
+    assert.notEqual(nickname(rng, 'Patrick', { heritage: 'american', age: 60, sex: 'M', surname: 'Brown' }), 'Pat');
+    assert.notEqual(nickname(rng, 'Theodore', { heritage: 'american', age: 70, sex: 'M', surname: 'Williams' }), 'Ted');
+    assert.notEqual(nickname(rng, 'Michael', { heritage: 'american', age: 50, sex: 'M', surname: 'Hunt' }), 'Mike');
+  }
   for (let i = 0; i < 20000; i++) {
     const n = nameFor(rng, { heritage: NAME_HERITAGES[i % NAME_HERITAGES.length], sex: i % 2 ? 'F' : 'M', birthYear: 1940 + (i % 80), generation: 1 + (i % 3) });
     assert.ok(!isReservedName(n.first, n.last) && !(n.nick && isReservedName(n.nick, n.last)), n.full);
     assert.notEqual(normName(n.first), normName(n.last));
   }
+});
+
+test('the population\'s call pattern: a household surname, then each member\'s given name and nickname with it', () => {
+  // population.mjs draws the surname once per household and passes it (with sex) to givenName and nickname
+  const rng = new Rng(41);
+  let people = 0;
+  for (const heritage of NAME_HERITAGES) {
+    for (let h = 0; h < 150; h++) {
+      const last = surname(rng, heritage);
+      for (let m = 0; m < 4; m++) {
+        const sex = (h + m) % 2 ? 'F' : 'M', birthYear = 1935 + ((h * 7 + m * 23) % 88), generation = 1 + ((h + m) % 3);
+        const first = givenName(rng, { heritage, sex, birthYear, generation, nativity: generation === 1 ? 'foreign' : 'native', surname: last });
+        const nick = nickname(rng, first, { heritage, age: 2026 - birthYear, sex, surname: last });
+        assert.ok(!isReservedName(first, last) && !(nick && isReservedName(nick, last)), `${nick || first} ${last}`);
+        assert.notEqual(normName(first.split(' ')[0]), normName(last), `${first} ${last}`);
+        people++;
+      }
+    }
+  }
+  assert.equal(people, NAME_HERITAGES.length * 600);
+});
+
+test('integration: Population\'s NPCs carry names that respect the safeguards, with realistic surname spreads', async () => {
+  // imported here so that the rest of this file still runs if population.mjs is mid-edit
+  const { Population, LEGION_SEED } = await import('../src/engine/population.mjs');
+  const world = await loadDefaultWorld();
+  const pop = new Population(world, { seed: LEGION_SEED });
+  // Los Angeles, San Francisco, Westminster, Glendale, Yuba City, Fresno, Sacramento, Hawthorne, Hayward
+  let people = 0;
+  const bad = [];
+  for (const zip of ['90011', '94134', '92683', '90043', '91205', '95993', '93727', '95828', '90250', '94544']) {
+    const zi = world.indexOf(zip);
+    for (let h = 0; h < 600; h++) {
+      for (let m = 0; m < pop.householdSize(zi, h); m++) {
+        const { first, last, nick, display } = pop.person(zi, h, m).name;
+        people++;
+        if (isReservedName(first, last) || (nick && isReservedName(nick, last)) || normName(first.split(' ')[0]) === normName(last)) bad.push(`${zip}-${h}-${m} ${display}`);
+        for (const w of normName(display).split(' ')) if (BLOCKED_NAMES.includes(w)) bad.push(`${zip}-${h}-${m} ${display}`);
+      }
+    }
+  }
+  assert.ok(people > 15000, `${people} people`);
+  assert.deepEqual(bad, [], `${bad.length} of ${people} NPCs: ${bad.slice(0, 8).join('; ')}`);
+  // households by surname, in the communities the review looked at: Sacramento's Lao families, LA's Ethiopian
+  // families, Hawthorne's Nigerian families and Hayward's Pacific Islanders share no surname beyond a few percent,
+  // while a third of Westminster's Vietnamese households are Nguyens
+  const spread = (zip, heritage, households) => {
+    const zi = world.indexOf(zip), counts = new Map();
+    let n = 0;
+    for (let h = 0; h < Math.min(households, world.z.hh[zi]); h++) {
+      if (pop.householdCore(zi, h).heritage !== heritage) continue;
+      const last = pop.person(zi, h, 0).name.last;
+      counts.set(last, (counts.get(last) || 0) + 1);
+      n++;
+    }
+    const [name, top] = [...counts].sort((a, b) => b[1] - a[1])[0];
+    return { n, name, share: top / n };
+  };
+  for (const [zip, heritage] of [['95828', 'lao'], ['90018', 'ethiopian'], ['90250', 'nigerian'], ['94544', 'pacific']]) {
+    const s = spread(zip, heritage, Infinity);
+    assert.ok(s.n >= 100, `${zip} ${heritage}: ${s.n} households`);
+    assert.ok(s.share < 0.06, `${zip} ${heritage}: ${s.name} ${(100 * s.share).toFixed(1)}% of ${s.n} households`);
+  }
+  const vn = spread('92683', 'vietnamese', 3000);
+  assert.ok(vn.name === 'Nguyen' && vn.share > 0.28 && vn.share < 0.45, `Westminster: ${vn.name} ${vn.share}`);
 });
 
 test('feminine surname forms for immigrant women of Slavic and Greek families', () => {
@@ -286,9 +505,47 @@ test('feminine surname forms for immigrant women of Slavic and Greek families', 
   assert.equal(adaptSurname('Kovalenko', { heritage: 'ukrainian', sex: 'F' }), 'Kovalenko');
   assert.equal(adaptSurname('Ivanov', { heritage: 'russian', sex: 'M' }), 'Ivanov');
   assert.equal(adaptSurname('Garcia', { heritage: 'mexican', sex: 'F' }), 'Garcia');
+  // Greek patronymics in -idis, -iadis and -adis take -idou, -iadou, -adou; -akis and other -is endings take -i
+  assert.equal(adaptSurname('Georgiadis', { heritage: 'greek', sex: 'F' }), 'Georgiadou');
+  assert.equal(adaptSurname('Michailidis', { heritage: 'greek', sex: 'F' }), 'Michailidou');
+  assert.equal(adaptSurname('Papadakis', { heritage: 'greek', sex: 'F' }), 'Papadaki');
+  assert.equal(adaptSurname('Pappas', { heritage: 'greek', sex: 'F' }), 'Pappa');
+  assert.equal(adaptSurname('Georgiou', { heritage: 'greek', sex: 'F' }), 'Georgiou');
+  // the feminine form is final: applying it again changes nothing (population.mjs may adapt a name twice)
+  for (const [name, heritage] of [['Ivanov', 'russian'], ['Tolstoy', 'russian'], ['Kowalski', 'polish'], ['Shevchenko', 'ukrainian'], ['Kovalskyi', 'ukrainian'], ['Georgiadis', 'greek'], ['Papadakis', 'greek']]) {
+    const once = adaptSurname(name, { heritage, sex: 'F' });
+    assert.equal(adaptSurname(once, { heritage, sex: 'F' }), once, name);
+  }
   const rng = new Rng(25);
   const women = draw(2000, () => surname(rng, 'russian', { sex: 'F', generation: 1 }));
   assert.ok(women.filter(s => /(ov|ev|in)a$/.test(s)).length > 1000 && women.every(s => !/(ov|ev)$/.test(s)));
+  const greek = draw(20000, () => surname(rng, 'greek', { sex: 'F', generation: 1 }));
+  assert.ok(greek.some(s => /idou$/.test(s)) && greek.every(s => !/i?adi$|idi$/.test(s)), 'no Georgiadi or Michailidi');
+});
+
+test('keys that only exist on Object.prototype fall back like any unknown key instead of crashing', () => {
+  const rng = new Rng(43);
+  for (const key of ['toString', 'constructor', '__proto__', 'hasOwnProperty', 'valueOf']) {
+    assert.ok(NAME_RE.test(givenName(rng, { heritage: key, sex: 'M', birthYear: 1970 })), key);
+    assert.ok(NAME_RE.test(surname(rng, key)), key);
+    const n = nameFor(rng, { heritage: key, sex: 'F', birthYear: 1990, parents: ['constructor', '__proto__', key] });
+    assert.ok(NAME_RE.test(n.first) && NAME_RE.test(n.last), key);
+    assert.equal(typeof middleName(rng, { heritage: key, sex: 'F', birthYear: 1990 }), 'string');
+    const nick = nickname(rng, 'William', { heritage: key, age: 50 });
+    assert.ok(nick === null || NAME_RE.test(nick), key);
+    assert.equal(adaptSurname('Ivanov', { heritage: key, sex: 'F' }), 'Ivanov');
+    assert.ok(givenPool(key, 'M', 1).length >= 40 && surnamePool(key).length >= 40, key);
+  }
+  for (const given of ['Constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+    for (const heritage of ['mexican', 'vietnamese', 'korean', 'sikh', 'filipino', 'thai']) {
+      assert.ok(Array.isArray(nicknameCandidates(given, { heritage, age: 50, sex: 'M' })), `${given} ${heritage}`);
+    }
+  }
+  // and options may be left out or null
+  assert.ok(NAME_RE.test(givenName(rng, null)) && NAME_RE.test(givenName(rng)));
+  assert.ok(nickname(rng, 'José', null) === null || typeof nickname(rng, 'José', null) === 'string');
+  assert.ok(NAME_RE.test(nameFor(rng, null).first));
+  assert.equal(adaptSurname('Georgiadis', null), 'Georgiadis');
 });
 
 test('whole names: middle names by custom, full and display', () => {
@@ -323,9 +580,10 @@ test('fast enough for millions of people', () => {
   const rng = new Rng(31);
   let t0 = performance.now(), chars = 0;
   for (let i = 0; i < 100000; i++) {
-    const heritage = NAME_HERITAGES[i % NAME_HERITAGES.length];
-    const first = givenName(rng, { heritage, sex: i & 1 ? 'F' : 'M', birthYear: 1930 + (i % 95), generation: 1 + (i % 3) });
-    chars += first.length + surname(rng, heritage).length + (nickname(rng, first, { heritage, age: i % 90 }) || '').length;
+    const heritage = NAME_HERITAGES[i % NAME_HERITAGES.length], sex = i & 1 ? 'F' : 'M';
+    const last = surname(rng, heritage);
+    const first = givenName(rng, { heritage, sex, birthYear: 1930 + (i % 95), generation: 1 + (i % 3), surname: last });
+    chars += first.length + last.length + (nickname(rng, first, { heritage, age: i % 90, sex, surname: last }) || '').length;
   }
   const perPerson = (performance.now() - t0) * 1000 / 100000;
   assert.ok(chars > 0 && perPerson < 20, `${perPerson.toFixed(2)} µs per person`);
