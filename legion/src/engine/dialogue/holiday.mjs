@@ -112,6 +112,6 @@ export function worksHoliday(v, when) {
   // (their own farm: animals are fed every day; an orchard or a vineyard rests in late fall)
   if (v.flags && v.flags.onFarm) return ANIMALS.test(`${title} ${where}`);
   if (occ.shift === 'h24') return true;
-  if (CLOSED_PLACE.test(where) && !/\bhospital\b/.test(where)) return false;
+  if (CLOSED_PLACE.test(where) && !/\b(hospital|prison|jail)\b/.test(where)) return false;
   return HOLIDAY_TITLE.test(title) || (HOLIDAY_PLACE.test(where) && !DESK_TITLE.test(title));
 }

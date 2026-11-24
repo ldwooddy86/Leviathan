@@ -1567,3 +1567,84 @@ test('small things that read wrong: no "I think honestly", no doubled filler, no
     }
   }
 });
+
+test('"the city" and "the closest big town": the one people go to, with San Francisco found where its people live', () => {
+  const city = (zip, q) => {
+    const npc = residents(zip, 1, adult)[0];
+    const c = conv(npc, 3);
+    c.greet();
+    const line = c.reply(q);
+    return `${line.text} ${line.gloss || ''}`;
+  };
+  // (San Francisco's Census point sits out past the Golden Gate; Daly City is next door, not 25 km from Oakland)
+  assert.match(city('94015', 'Do you ever go to the city?'), /San Francisco/);
+  assert.match(city('95014', 'Do you ever go to the city?'), /San Francisco/, 'in the Bay Area "the city" is San Francisco');
+  assert.match(city('92243', 'Do you ever go to the city?'), /San Diego/);
+  assert.match(city('93702', 'Do you ever go to the city?'), /Fresno/, 'Fresno is the city itself');
+  assert.match(city('90022', 'Do you ever go to the city?'), /Los Angeles/);
+  assert.match(city('96001', "What's the closest big town?"), /Sacramento/);
+  assert.match(city('95014', "What's the closest big town?"), /San Jose/);
+  assert.doesNotMatch(city('92501', 'Do you ever go to the city?'), /Nobody runs to town|Out here you plan/, 'no rural lines in Riverside');
+});
+
+test('holidays: only work that runs through Thanksgiving is on the schedule, and the meal waits for the shift', () => {
+  let n = 0, working = 0;
+  for (const zip of ['90011', '93905', '96001', '94110', '92501']) {
+    for (const npc of residents(zip, 40, x => adult(x) && x.status === 'employed', 9)) {
+      const c = conv(npc, 4);
+      c.greet();
+      const line = c.reply('What are you doing for Thanksgiving?');
+      const text = `${line.text} ${line.gloss || ''}`;
+      n++;
+      if (!/\b(I'm working|Work, believe it|on the schedule|have to work|Chores first|Work in the morning)\b/.test(text)) continue;
+      working++;
+      const title = npc.occupation.title, where = npc.occupation.employer;
+      assert.doesNotMatch(`${title} @ ${where}`, /\b(administrative|secretary|accountant|analyst|engineer|developer)\b|\b(school|factory|department store)\b/, `${npc.id} ${title} @ ${where}: "${text}"`);
+      assert.doesNotMatch(text, /I'll be in the kitchen all day|I'm doing the cooking|Everybody's at our place/, `${npc.id}: "${text}"`);
+    }
+  }
+  assert.ok(n >= 100, `${n} workers`);
+  assert.ok(working > 0 && working / n < 0.25, `${working} of ${n} work Thanksgiving`);
+});
+
+test('"I\'m Marcus. What\'s your name?": the name is learned from its own sentence, and the question is answered', () => {
+  for (const zip of ['90022', '94015', '96001']) {
+    for (const npc of residents(zip, 2, adult)) {
+      for (const seed of [3, 11]) {
+        const c = conv(npc, seed);
+        c.greet();
+        const line = c.reply("I'm Marcus. What's your name?");
+        const text = `${line.text} ${line.gloss || ''}`;
+        assert.equal(c.voice.relq.name, 'Marcus', `${npc.id}: "${text}"`);
+        assert.match(text, /Marcus/, `${npc.id}: "${text}"`);
+        assert.ok(text.includes(npc.name.first), `${npc.id} gives their name: "${text}"`);
+        assert.doesNotMatch(text, /what'?s your name|your name\?|didn'?t catch your name|who do i have the pleasure/i, `${npc.id}: "${text}"`);
+        assert.ok((text.match(/meet you/gi) || []).length <= 1, `${npc.id}: "${text}"`);
+      }
+    }
+  }
+});
+
+test('"what brought you here?" after where they are from: the year they came, not the same answer again', () => {
+  let checked = 0;
+  for (const npc of residents('96015', 12, x => adult(x) && englishOnly(x))) {
+    const c = conv(npc, 7);
+    c.greet();
+    const first = c.reply('Where are you from originally?').text;
+    const again = c.reply('What brought you here?').text;
+    if (/Nothing brought me|I never left/i.test(again)) { assert.match(first, /grew up (?:here|around here|in [\w ]+ County)|born and raised|my whole life|from here/i, `${npc.id}: "${first}" / "${again}"`); continue; }
+    checked++;
+    assert.match(again, /\b(19|20)\d\d\b/, `${npc.id}: "${first}" / "${again}"`);
+    assert.doesNotMatch(again, /\boriginally\b/i, `${npc.id}: "${again}"`);
+  }
+  assert.ok(checked > 0);
+  // raised in San Francisco County: the years since are the neighborhood's, never "in San Francisco since"
+  for (const npc of residents('94110', 30, x => adult(x) && englishOnly(x), 5)) {
+    for (const seed of [1, 2, 3]) {
+      const c = conv(npc, seed);
+      c.greet();
+      const t = c.reply('Where are you from?').text;
+      if (/San Francisco County/.test(t)) assert.doesNotMatch(t, /\b(in|lived in) San Francisco (since|\w+ years)/, `${npc.id}: "${t}"`);
+    }
+  }
+});

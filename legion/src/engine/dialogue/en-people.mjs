@@ -540,6 +540,27 @@ export const PEOPLE = compileBank({
     I've lived in {place} since {zipSince}.
     I've been in {place} since {zipSince}. So, {zipYears} years.
   `,
+  // "what brought you here?" once they've said where they're from: the year, and that they stayed (no reason the record
+  // doesn't hold)
+  'about.whyHere': `
+    Long story. I came out in {cameYear} and stayed.
+    Life, I guess. I came in {cameYear} and never left.
+    One thing led to another. That was {cameYear}, and here I am.
+  `,
+  'about.cameWhen': `
+    Back in {cameYear}.
+    {cameYear}, like I said.
+    In {cameYear}. It's been a while now.
+  `,
+  'about.whyHereLocal': `
+    Nothing brought me. I grew up here.
+    I never left. I grew up here.
+  `,
+  // (raised in the county that bears the town's name, San Francisco: the years are the neighborhood's)
+  'about.yearsHood': `
+    I've been in this neighborhood since {zipSince}.
+    This neighborhood, {zipYears} years now.
+  `,
   // "did you grow up here?" of someone who didn't: a plain no before where they are from
   'about.notLocal': `
     No.
@@ -1885,7 +1906,7 @@ export const PEOPLE = compileBank({
   `,
   'hol.cook': `
     I'm doing the cooking, as usual. I wouldn't have it any other way.
-    I'll be in the kitchen all day. I love it.
+    I'm the one cooking. I love it.
   `,
   'hol.notCook': `
     Not me. Somebody else handles the cooking, thank goodness.

@@ -35,7 +35,7 @@
 
 import { Rng, hashAll, hash2 } from './rng.mjs';
 import { Picker, findBrands } from './lexicon.mjs';
-import { Mind } from './mind.mjs';
+import { Mind, appraise } from './mind.mjs';
 import { makeVoice, refreshVoice } from './dialogue/voice.mjs';
 import { understand, TOPICAL } from './dialogue/understand.mjs';
 import { PLANNERS, compose, answerPending, smallChild, say, baseSlots, EN, SPANISH, tagHash, pivot, memoryFact } from './dialogue/plan.mjs';
@@ -214,6 +214,7 @@ export class Conversation {
       // the mind learns what the player says about themselves; a crude, hateful or joke value is taken back out
       const before = playerFacts(this.mind);
       this.mind.observe({ kind: 'utterance', from: 'player', text, t: this.t });
+      sentenceName(this.mind, text, this.t);
       scrubFacts(this.mind, before);
     } else if (kind === 'greet') this.mind.observe({ kind: 'meet', from: 'player', t: this.t });
     refreshVoice(v, this.mind, { metBefore: !!st.prev });
@@ -466,6 +467,21 @@ const HEAVY_IMPORTANCE = { fire: 0.7, storm: 0.6, earthquake: 0.6, insurance: 0.
 function playerFacts(mind) {
   const r = mind && typeof mind.relationship === 'function' ? mind.relationship('player') : null;
   return r && Array.isArray(r.facts) ? r.facts.map(f => Object.assign({}, f)) : [];
+}
+
+/**
+ * The name in one sentence of a longer line ("I'm Marcus. What's your name?"), which the mind's reading of the whole
+ * line misses: read by the mind's own appraisal, a sentence at a time, and kept as the mind keeps it.
+ */
+function sentenceName(mind, text, t) {
+  const r = mind && typeof mind.relationship === 'function' ? mind.relationship('player') : null;
+  if (!r || !Array.isArray(r.facts) || r.facts.some(f => f && f.key === 'name')) return;
+  const parts = String(text || '').trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (parts.length < 2) return;
+  for (const s of parts) {
+    const f = (appraise(s).facts || []).find(x => x && x.key === 'name');
+    if (f) { r.facts.push({ key: 'name', value: f.value, t: isNum(t) ? t : null, text: `Their name is ${f.value}.` }); return; }
+  }
 }
 
 /** Take back any fact the mind just learned whose value is crude, hateful or a joke, restoring what it replaced. */

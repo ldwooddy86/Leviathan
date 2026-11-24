@@ -100,7 +100,8 @@ export function say(S, key, slots = {}, facts = []) {
   if (!list || !list.length) return null;
   // wordplay that only works in Spanish (@es) is for Spanish speakers; in plain English it is nonsense
   // slots._prefer: variants that answer the question asked ("is it hard?" → the lines about how hard it is), when any fit
-  const fitting = list.filter(l => tagsHold(l, v));
+  // slots._avoid: variants that would say again what the reply just said ("nice to meet you" twice)
+  const fitting = list.filter(l => tagsHold(l, v) && !(slots._avoid && slots._avoid.test(mode === 'en' ? l.text : (l.gloss || l.text))));
   const preferred = slots._prefer ? fitting.filter(l => slots._prefer.test(mode === 'en' ? l.text : (l.gloss || l.text))) : [];
   const usable = preferred.length ? preferred : fitting;
   if (!usable.length) return null;
@@ -631,7 +632,9 @@ P.name = (S, u) => {
   if (given) {
     const first = String(given.value).split(/\s+/)[0];
     parts.push(say(S, 'name.meet', { player: first }) || say(S, 'react.name', { player: first }));
-    if (!st.gaveName) { parts.push(say(S, 'name.give')); st.gaveName = true; }
+    // ("I'm Marcus. What's your name?" is answered, even when the greeting already gave it)
+    const asked = /\bwhat'?s your name\b|\bwhat is your name\b|\byour name\?|\bwho are you\b|\band you\?/.test(u.norm);
+    if (!st.gaveName || asked) { parts.push(say(S, 'name.give', { _avoid: /\b(?:meet|pleasure|pleased)\b/i }) || say(S, 'name.give')); st.gaveName = true; }
     return { parts, topics: ['self'], noAsk: true, learnedName: first };
   }
   if (/remember my name|what'?s my name|who am i/.test(u.norm)) {
@@ -731,7 +734,12 @@ function originParts(S, opts = {}) {
   }
   // how long here, unless the arrival just said it ("we came in 1998", then "I've lived here since 1998")
   const toldYear = isNum(res.zipSince) && out.some(p => p && /about\.(arrived|arrivedKid)/.test(p.key || '') && p.text.includes(String(res.zipSince)));
-  if (!res.bornHere && isNum(res.zipSince) && !toldYear && !opts.country && S.rng.chance(0.5)) out.push(say(S, v.flags.newcomer ? 'about.newHere' : 'about.years', {}, [REC.residence]));
+  // (raised in San Francisco County, or there since 2014, they have not "lived in San Francisco since 2015": the
+  // neighborhood has had them that long)
+  const countyTown = String(v.z.countyName || '').toLowerCase() === String(v.lex.values.place || v.z.city || '').toLowerCase()
+    && out.some(p => p && /^about\.(grewUpCounty|cameHere)$/.test(p.key || ''));
+  if (!res.bornHere && isNum(res.zipSince) && !toldYear && !opts.country && S.rng.chance(0.5)) out.push(say(S, countyTown ? 'about.yearsHood' : v.flags.newcomer ? 'about.newHere' : 'about.years', {}, [REC.residence]));
+  if (out.some(Boolean)) S.st.used.add('origin');
   return out.filter(Boolean);
 }
 
@@ -907,7 +915,18 @@ P['about-them'] = (S, u) => {
     // a yes-or-no about being from here, of someone who isn't: no, first
     const local = v.res && (v.res.bornHere || (v.res.grewUpHere && v.flags.bornInCounty));
     if (!local && /\bdid you grow up (?:here|around here|out here|nearby)\b|\bare you from (?:here|around here|this area|the area)\b|\bwere you born here\b|\bare you (?:a )?local\b/.test(q)) parts.push(say(S, 'about.notLocal'));
-    parts.push(...originParts(S, { country: /\b(?:the us|the u\.s\.|this country|america|the states|the united states|estados unidos)\b/.test(q) }));
+    const country = /\b(?:the us|the u\.s\.|this country|america|the states|the united states|estados unidos)\b/.test(q);
+    // "what brought you here?" once they've said where they're from: not the same answer again, and no reason the
+    // record doesn't hold (work, family): the year they came, and that they stayed
+    const res = v.res || {};
+    const year = country ? v.npc.arrivalYear : isNum(res.countySince) ? res.countySince : isNum(res.zipSince) ? res.zipSince : v.npc.arrivalYear;
+    const why = /brought you|end(?:ed)? up|wind up|wound up/.test(q);
+    // ("when did you come to the US?" right after "Quezon City, and I came in 2013": the year, not the whole story again)
+    const when = /\bwhen did you (?:come|get here|arrive|move)\b|\bwhat year did you\b|\bhow long have you been in (?:the us|the u\.s\.|this country|america|the states|the united states)\b/.test(q);
+    if ((why || when) && S.st.used.has('origin') && !(country && v.npc.nativity !== 'foreign') && (local || isNum(year))) {
+      parts.push(local && !country ? say(S, 'about.whyHereLocal', {}, [REC.origin])
+        : say(S, when ? 'about.cameWhen' : 'about.whyHere', { cameYear: year }, [REC.origin, REC.residence]));
+    } else parts.push(...originParts(S, { country }));
     ask = 'from';
   } else if (u.entities.interest && /\bdo you\b|\bare you\b/.test(q)) {
     const key = u.entities.interest;
@@ -2166,10 +2185,13 @@ P.housing = (S, u, opts = {}) => {
   if (v.age < 18) { parts.push(say(S, 'house.minor', { parentsWord: pw ? pw.en : 'parents', parentsEs: pw ? pw.es : 'mis papás' })); S.st.cs = false; return { parts, topics: ['housing'], noAsk: true }; }
   const rent = opts.rent || u.intent === 'rent';
   if (head && v.hh.tenure === 'own') {
-    if (rent) parts.push(say(S, 'rent.ownerSide', {}, [REC.home]));
+    const side = rent ? say(S, 'rent.ownerSide', {}, [REC.home]) : null;
+    if (side) parts.push(side);
     const years = v.P.year - num(v.hh.yearMoved, v.P.year);
+    // ("we own, luckily" is not followed by "we were lucky to buy")
+    const lucky = side && /\b(luck\w*|suerte)\b/i.test(`${side.text} ${side.gloss || ''}`) ? { _avoid: /\b(luck\w*|suerte)\b/i } : {};
     parts.push(joinedLater(v) ? say(S, 'house.boughtJoined', ownerWords(v), [REC.home])
-      : say(S, years >= 20 ? 'house.boughtLong' : 'house.bought', {}, [REC.home]) || say(S, 'house.bought', {}, [REC.home]));
+      : say(S, years >= 20 ? 'house.boughtLong' : 'house.bought', lucky, [REC.home]) || say(S, 'house.bought', lucky, [REC.home]));
     parts.push(value);
     if (v.flags.kids && v.speaker.nativeHere !== false && S.rng.chance(0.5)) parts.push(say(S, 'house.kidsFuture'));
   } else if (head || v.npc.role === 'roommate') {

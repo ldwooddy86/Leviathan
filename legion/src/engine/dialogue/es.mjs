@@ -579,6 +579,23 @@ export const SPANISH = compileBank({
     Llevo {zipYearsNum} años en {place}. || I've been in {place} {zipYearsNum} years.
     Ya son {zipYearsNum} años en {place}. || It's been {zipYearsNum} years in {place}.
   `,
+  'about.whyHere': `
+    Es una historia larga. Llegué en {cameYear} y aquí me quedé. || Long story. I came in {cameYear} and stayed.
+    Así se dio. Llegué en {cameYear} y ya no me fui. || That's how it went. I came in {cameYear} and never left.
+  `,
+  'about.cameWhen': `
+    En {cameYear}. || In {cameYear}.
+    @usted En {cameYear}, como le decía. || In {cameYear}, like I was saying.
+    @tu En {cameYear}, como te decía. || In {cameYear}, like I was saying.
+  `,
+  'about.whyHereLocal': `
+    Nada, yo crecí aquí. || Nothing, I grew up here.
+    Nunca me fui. Aquí crecí. || I never left. I grew up here.
+  `,
+  'about.yearsHood': `
+    Vivo en este barrio desde {zipSince}. || I've lived in this neighborhood since {zipSince}.
+    Ya llevo {zipYearsNum} años en este barrio. || I've been in this neighborhood {zipYearsNum} years now.
+  `,
   'about.notLocal': `
     No, no soy de aquí. || No, I'm not from here.
     No, yo no crecí aquí. || No, I didn't grow up here.
@@ -2713,7 +2730,7 @@ export const SPANISH = compileBank({
   `,
   'hol.cook': `
     Yo voy a cocinar, como siempre. Me encanta. || I'm cooking, as always. I love it.
-    Me la voy a pasar en la cocina todo el día. || I'll spend the whole day in the kitchen.
+    Me toca cocinar a mí, y me encanta. || The cooking's on me, and I love it.
   `,
   'hol.notCook': `
     Yo no. De la cocina se encarga otra persona, por suerte. || Not me. Somebody else handles the kitchen, luckily.

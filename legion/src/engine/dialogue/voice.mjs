@@ -15,7 +15,7 @@
 
 import {
   dialectFor, DIALECTS, slotsFor, speakerFacts, weatherCondition, offshoreWind,
-  resolveLanguage, varietyFor, faithFor, LANGUAGES, COAST_KM,
+  resolveLanguage, varietyFor, faithFor, LANGUAGES, COAST_KM, NAMED_STRETCHES, normalizeRoad,
 } from '../lexicon.mjs';
 import { activityAt } from '../schedule.mjs';
 import { pacific } from '../clock.mjs';
@@ -254,6 +254,16 @@ export function makeVoice(world, persona, opts = {}) {
   const team = teams[0] ? { name: teams[0].name, label: teamLabel(teams[0].name) } : null;
   const lex = slotsFor(world, zi, { t, dialect: key, team: team || undefined });
   if (!team) { lex.values.team = null; lex.values.teamName = null; }
+  // a commuter's named stretch is on their own road: "the Dumbarton Bridge was jammed again" is not said by someone who
+  // drives the 85 to San Jose (the lexicon picks the nearest stretch to the ZIP when their road has none)
+  if (lex.values.stretch && commute.road) {
+    const stretch = NAMED_STRETCHES.find(x => x.name === lex.values.stretch);
+    const mine = normalizeRoad(commute.road);
+    if (stretch && mine && !stretch.routes.some(r => { const n = normalizeRoad(r); return n && n.kind === mine.kind && n.route === mine.route; })) {
+      lex.values.stretch = null;
+      if (lex.facts) lex.facts.stretch = null;
+    }
+  }
   // dialect weather lines follow the sky, not an alert for a river somewhere in the county
   const context = Object.assign({}, lex.context, { condition: sky, alerts: alerts.map(a => String(a.event)) });
 

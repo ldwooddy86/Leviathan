@@ -620,6 +620,16 @@ export function understand(text, ctx = {}) {
   // the appraisal reads the paraphrase too: "Es usted muy amable" is a compliment
   const heard = said.replace(/(?:(?:el )?d[ií]a de )?acci[oó]n de gracias/gi, 'Thanksgiving');
   const ap = ctx.mind && typeof ctx.mind.appraise === 'function' ? ctx.mind.appraise(heard) : mindAppraise(heard);
+  // "I'm Marcus. What's your name?": a name given in one sentence of a longer line, read a sentence at a time
+  if (!ap.facts.some(f => f && f.key === 'name')) {
+    const sentences = heard.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+    if (sentences.length > 1) {
+      for (const sn of sentences) {
+        const f = (mindAppraise(sn).facts || []).find(x => x && x.key === 'name');
+        if (f) { ap.facts = ap.facts.concat([f]); if (!ap.intents.includes('self-introduction')) ap.intents = ap.intents.concat(['self-introduction']); break; }
+      }
+    }
+  }
   const scores = {};
   for (const [intent, pats] of Object.entries(P)) {
     let s = 0;
