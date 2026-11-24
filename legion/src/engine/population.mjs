@@ -3767,7 +3767,8 @@ export class Population {
    * mainland); occupation.hours (paid hours a week: occupation.wage is the year's pay for them, never below the
    * minimum wage); commute.workDays (layer 0's work or school days); commute.road for drivers (a world.roadsNear
    * record); household.members[].first; parents, the member indices of the person's parents who live in the household
-   * (a child of the householder: the householder and the spouse or partner when old enough to be a parent; a
+   * (a child of the householder: the householder and the spouse or partner when old enough to be a parent, a woman
+   * no more than 50 years older; a
    * grandchild: the householder's child who is their parent, and that child's spouse when they live here too; the
    * householder and siblings: the members in the 'parent' role), mother first.
    * @param {number} zi ZIP index
