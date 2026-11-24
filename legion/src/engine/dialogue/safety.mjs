@@ -207,9 +207,10 @@ export function safetyOf(text, opts = {}) {
   if (!s || s.length < 3) return null;
   const minor = Number.isFinite(opts.age) && opts.age < 18;
   // a baby or a toddler is told it is cute and asked where it lives by every grown-up it meets, and answers neither:
-  // for them only a sexual line, a lure or a threat counts
+  // for them a compliment or "where do you live" is not an alarm. Whether they are home alone, or when their parents
+  // are gone, is asked of a small child for one reason only, so that reading stays on at every age.
   const small = Number.isFinite(opts.age) && opts.age < 5;
-  const applies = (sub, minorOnly) => (!minorOnly || minor) && !(small && (sub === 'romance' || sub === 'location' || sub === 'alone'));
+  const applies = (sub, minorOnly) => (!minorOnly || minor) && !(small && (sub === 'romance' || sub === 'location'));
   for (const [sub, re] of CRISIS_EN) if (re.test(s)) return { kind: 'crisis', sub, es: false };
   for (const [sub, re] of CRISIS_ES) if (re.test(s)) return { kind: 'crisis', sub, es: true };
   // a threat before an advance: "I'm going to rape you" is a threat, said to anyone
