@@ -7,13 +7,20 @@
 //   node tests/e2e/run.mjs --headed        watch it
 //
 // Checks: boot without page errors; the map canvas draws pixels; '/' focuses search and '94110' flies the map to
-// the Mission and opens the Place panel (San Francisco); a resident opens the NPC panel on Profile with a name and
-// an age; every tab renders; the theme toggles both ways; Settings opens with density, theme, Claude and network
-// and closes on Escape; Space pauses the clock; Escape closes the panels; the phone layout has no horizontal
-// scroll and shows the panels as sheets. Screenshots: tests/e2e/app.png and tests/e2e/app-phone.png.
-// Works with the provisional crowd stub (0 agents) and with the real crowd. Exits 1 on any failure.
+// the Mission and opens the Place panel (San Francisco); Census versus generated reads in words (key figures, six
+// tables, the rest folded, no raw keys); a resident opens the NPC panel on Profile with a name and an age; every tab
+// renders; with small fake engine modules wired, Talk keeps its conversation when the open NPC is chosen again, its
+// starters are the NPC's own, and Claude errors speak as Legion; a failed copy says so and the JSON size counts
+// bytes; the theme toggles both ways; Settings opens with density, theme, Claude and network (live weather shown as
+// a later build) and closes on Escape; Space pauses the clock; Escape closes the panels; search finds counties by
+// name and Census places by their own ZIPs. A damaged inline pack fails with a plain message at the step that
+// failed. Served by server/serve.mjs with and without a key, the page uses the proxy the server advertises only
+// when it holds a key. The phone layout has no horizontal scroll and shows the panels as sheets.
+// Screenshots: tests/e2e/app.png and tests/e2e/app-phone.png. Works with the provisional crowd stub (0 agents) and
+// with the real crowd. Exits 1 on any failure.
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import zlib from 'node:zlib';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -106,15 +113,22 @@ async function openPage(browser, { viewport, mobile = false }) {
   return { context, page, errors };
 }
 
-async function boot(page) {
-  await page.goto(pathToFileURL(PAGE).href);
+/** Open a page and wait until it is ready or has failed; returns 'ready' or 'error'. */
+async function settle(page, url = pathToFileURL(PAGE).href) {
+  await page.goto(url);
   await page.waitForFunction(() => ['ready', 'error'].includes(document.documentElement.dataset.state), null, { timeout: 90000 });
-  const state = await page.evaluate(() => document.documentElement.dataset.state);
-  if (state !== 'ready') {
+  return page.evaluate(() => document.documentElement.dataset.state);
+}
+
+async function boot(page, url) {
+  if (await settle(page, url) !== 'ready') {
     const why = await page.evaluate(() => (document.querySelector('.boot-error') || {}).textContent || 'unknown');
     throw new Error(`boot failed: ${why}`);
   }
 }
+
+// Text the panels must never show: the population's raw keys (review: 'Hisp', 'Rent1', '150 200k', 'M35 39' ...)
+const RAW_KEYS = /\b(?:Hisp|Lep|OccM|OccF|Vet|Nilf|Southam|Puertorican|Otherasian|Rent\d|Own\d|[MF]\d+ \d+|[MF] never|[MF] married|G\d \d|\w+ lep)\b|\b\d+ \d+k\b/;
 
 async function waitForCrowd(page, timeout = 60000) {
   await page.waitForFunction(() => window.legion && window.legion.stage && !window.legion.stage.build.building && window.legion.stage.build.agents !== null, null, { timeout });
@@ -199,7 +213,34 @@ async function desktop(browser) {
     const n = await panel.locator('.resident').count();
     expect(n === 12, `${n} residents`);
     const fidelity = await panel.locator('.fidelity').count();
-    return `12 residents; fidelity bars ${fidelity ? 'shown' : 'hidden (the population reports none)'}`;
+    return `12 residents; fidelity bars ${fidelity ? 'shown' : 'not drawn yet (they render when the page is idle)'}`;
+  });
+
+  await step('desktop: Census versus generated reads in words: key figures, six tables, the rest folded', async () => {
+    const panel = page.locator('#place-panel');
+    const reports = await page.evaluate(() => typeof window.legion.services.population.validate === 'function');
+    if (!reports) return 'skipped: this population has no validate()';
+    const section = panel.locator('.fidelity');
+    await section.waitFor({ state: 'attached', timeout: 15000 });
+    const head = (await section.locator('.section-head').textContent()).trim();
+    expect(/Census versus generated\s*600 households · [\d,]+ people/.test(head), `header "${head}"`);
+    const figures = await section.locator('.fid-fig:not(.fid-fig-head) .fid-fig-label').allTextContents();
+    expect(['Household size', 'Median age', 'Under 18', '65 and over', 'Born abroad', 'Owners'].every(f => figures.includes(f)), `key figures ${figures}`);
+    const shown = await section.locator(':scope > .fid-table h4').allTextContents();
+    expect(JSON.stringify(shown) === JSON.stringify(['Household type', 'Tenure', 'Race and ethnicity', 'Language at home', 'Commute mode', 'Education']), `featured ${JSON.stringify(shown)}`);
+    const more = section.locator('details.fid-more');
+    expect(await more.count() === 1 && !(await more.evaluate(d => d.open)), 'the other tables are not folded away');
+    await more.locator('summary').click();
+    const folded = await more.locator('.fid-table h4').allTextContents();
+    for (const want of ['Hispanic origin', 'Asian group', 'Limited English', 'Occupation, men', 'Occupation, women', 'Veterans', 'Household income', 'Age']) expect(folded.includes(want), `missing "${want}" in ${folded.join(', ')}`);
+    const text = await section.textContent();
+    const raw = RAW_KEYS.exec(text);
+    expect(!raw, `raw key "${raw && raw[0]}" in the fidelity section`);
+    for (const label of ['$150k–200k', 'Owners · 2 vehicles', '30–34 min', 'Not in the labor force']) expect(text.includes(label), `missing row "${label}"`);
+    const ages = await more.locator('.fid-table[data-dim="age"] .paired-label').allTextContents();
+    expect(ages[0] === 'Under 18' && ages.at(-1) === '75 and over', `age rows ${ages}`);
+    await more.locator('summary').click();
+    return `${figures.length} key figures, ${shown.length} tables shown, ${folded.length} folded; no raw keys`;
   });
 
   await step('desktop: clicking a resident opens Profile with a name and an age', async () => {
@@ -243,6 +284,81 @@ async function desktop(browser) {
     return 'written';
   });
 
+  // The page's dialogue and Claude modules arrive with a later build; services.wire plugs small fakes in for these
+  // steps (and unplugs them after), so the Talk tab runs its real code against them.
+  const reopenNpc = async id => {
+    await page.evaluate(() => window.legion.bus.emit('npc:select', { id: null }));
+    await page.locator(`#place-panel .resident[data-id="${id}"]`).click();
+    await page.locator('#npc-panel').waitFor({ state: 'visible', timeout: 5000 });
+  };
+  const talkBubbles = () => page.locator('#npc-tabpanel-talk .talk-log .bubble').count();
+
+  await step('desktop: Talk keeps the conversation when the open NPC is chosen again', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    await page.evaluate(() => window.legion.services.wire({
+      persona: { persona: (world, npc) => ({ id: npc.id, npc }) },
+      dialogue: { Conversation: class { greet() { return { text: 'Hey, good to meet you.', intent: 'greeting' }; } reply(text) { return { text: `You said: ${text}`, intent: 'unknown' }; } farewell() { return { text: 'Take care.' }; } } },
+    }));
+    await reopenNpc(id);
+    await page.click('#npc-tab-talk');
+    await page.locator('#npc-tabpanel-talk .talk-input').fill('How is the fog today?');
+    await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+    expect(await talkBubbles() === 3, `${await talkBubbles()} bubbles after one exchange`);
+    // the same NPC again: from the resident list, from their dot on the map, and from search
+    await page.locator(`#place-panel .resident[data-id="${id}"]`).click();
+    await page.evaluate(i => window.legion.bus.emit('npc:select', { id: i, source: 'map' }), id);
+    await page.evaluate(i => window.legion.bus.emit('npc:select', { id: i, source: 'search' }), id);
+    const after = await page.evaluate(() => [window.legion.npcPanel.tab, window.legion.npcPanel.talk && window.legion.npcPanel.talk.lines.length]);
+    expect(after[0] === 'talk' && after[1] === 3, `after choosing the same NPC again: tab ${after[0]}, ${after[1]} lines`);
+    expect(await talkBubbles() === 3, `${await talkBubbles()} bubbles shown`);
+    // the starters are this NPC's: the Mission has no fire in the pack, so none asks about one
+    const starters = await page.locator('#npc-tabpanel-talk .starters .chip').allTextContents();
+    expect(starters.length >= 5 && !starters.some(s => /fire/i.test(s)), `starters ${starters.join(' | ')}`);
+    expect(starters.includes('How long have you lived here?'), `starters ${starters.join(' | ')}`);
+    return `3 lines kept; starters: ${starters.join(' | ')}`;
+  });
+
+  await step('desktop: Claude errors speak as Legion, not as the NPC', async () => {
+    const id = await page.evaluate(() => window.legion.npcPanel.id);
+    await page.evaluate(() => window.legion.services.wire({ llm: { ClaudeVoice: class { async stream() { return { text: 'unused' }; } } } }));
+    await reopenNpc(id);
+    await page.click('#npc-tab-talk');
+    await page.click('label[for="talk-engine-claude"]');
+    await page.locator('#npc-tabpanel-talk .talk-input').fill('Hi');
+    await page.locator('#npc-tabpanel-talk .talk-input').press('Enter');
+    const system = page.locator('#npc-tabpanel-talk .bubble.from-system');
+    await system.first().waitFor({ timeout: 3000 });
+    const said = (await system.first().textContent()).trim();
+    expect(/^Legion:\s*Allow the Claude API in Settings/.test(said), `system line "${said}"`);
+    const npcSays = await page.locator('#npc-tabpanel-talk .bubble.from-npc').allTextContents();
+    expect(!npcSays.some(t => /Allow the Claude API/.test(t)), 'the error was put in the NPC’s mouth');
+    await page.evaluate(() => window.legion.services.wire({ persona: null, dialogue: null, llm: null }));
+    await reopenNpc(id);
+    await page.click('#npc-tab-profile');
+    return `"${said.replace(/\s+/g, ' ')}"`;
+  });
+
+  await step('desktop: a failed copy says so, and the JSON size counts bytes', async () => {
+    await page.click('#npc-tab-json');
+    // no clipboard at all: the async API refuses and the textarea fallback fails
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('denied')) } });
+      document.execCommand = () => false;
+    });
+    await page.locator('#npc-tabpanel-json button', { hasText: 'Copy' }).click();
+    const toast = page.locator('#toasts .toast').last();
+    await toast.waitFor({ timeout: 3000 });
+    const kind = await toast.evaluate(el => [el.className, el.textContent]);
+    expect(/is-error/.test(kind[0]) && /Copy failed/.test(kind[1]), `toast ${JSON.stringify(kind)}`);
+    const size = await page.evaluate(() => {
+      const text = document.querySelector('#npc-tabpanel-json pre').textContent;
+      return [document.querySelector('#npc-tabpanel-json .json-size').textContent, new TextEncoder().encode(text).length];
+    });
+    expect(size[0] === `${size[1].toLocaleString('en-US')} bytes`, `size label "${size[0]}" for ${size[1]} bytes`);
+    await page.click('#npc-tab-profile');
+    return `error toast; ${size[0]}`;
+  });
+
   await step('desktop: the theme toggles to light and back', async () => {
     const before = await page.evaluate(() => [document.documentElement.getAttribute('data-theme'), getComputedStyle(document.body).backgroundColor]);
     expect(before[0] === 'dark', `starts ${before[0]}`);
@@ -267,6 +383,11 @@ async function desktop(browser) {
     expect(await dialog.locator('select').inputValue() === 'claude-opus-5-5', 'Opus is not the default');
     const efforts = await dialog.locator('input[name=effort]').evaluateAll(o => o.filter(x => x.checked).map(x => x.value));
     expect(efforts[0] === 'low', `effort ${efforts}`);
+    // nothing in this build refreshes the weather live, so its switch says so instead of pretending
+    const nws = dialog.locator('.toggle-row', { hasText: 'Live NWS weather' });
+    const nwsState = await nws.evaluate(row => [row.classList.contains('is-pending'), row.querySelector('input').disabled, row.querySelector('input').checked, row.textContent]);
+    expect(nwsState[0] && nwsState[1] && !nwsState[2] && /later build/i.test(nwsState[3]), `NWS switch ${JSON.stringify(nwsState)}`);
+    expect(await dialog.locator('.toggle-row', { hasText: 'OpenStreetMap streets' }).locator('input').isEnabled(), 'the OpenStreetMap switch is disabled');
     await page.keyboard.press('Escape');
     await page.waitForFunction(() => !document.getElementById('settings-dialog').open, null, { timeout: 2000 });
     return `${models.length} models`;
@@ -346,8 +467,137 @@ async function desktop(browser) {
     return id === target.id ? `opened ${id}` : `opened ${id} (the agent nearest the click; aimed at ${target.id})`;
   });
 
+  await step('desktop: search finds a county by name, and a Census place opens its own ZIPs', async () => {
+    const choose = async (query, wantFirst) => {
+      await page.locator('#search-input').fill('');
+      await page.locator('#search-input').focus();
+      await page.keyboard.type(query);
+      const first = page.locator('#search-list [role=option]').first();
+      await first.waitFor({ timeout: 5000 });
+      const options = await page.locator('#search-list [role=option] .opt-main').allTextContents();
+      const tags = await page.locator('#search-list [role=option] .opt-kind').allTextContents();
+      expect(options[0] === wantFirst, `"${query}" offers ${options.join(' | ')}`);
+      expect(new Set(options).size === options.length || query === 'Sacramento', `"${query}" repeats a row: ${options.join(' | ')}`);
+      await page.keyboard.press('Enter');
+      const place = page.locator('#place-panel');
+      await place.waitFor({ state: 'visible', timeout: 5000 });
+      return { options, tags, eyebrow: (await place.locator('.eyebrow').first().textContent()).trim(), title: (await place.locator('.panel-title').textContent()).trim(), sub: (await place.locator('.panel-sub').textContent()).trim() };
+    };
+    const county = await choose('Los Angeles County', 'Los Angeles County');
+    expect(county.eyebrow === 'County' && county.title === 'Los Angeles County', `opened ${county.eyebrow} ${county.title}`);
+    const eastLA = await choose('East Los', 'East Los Angeles');
+    expect(eastLA.tags[0] === 'Community', `East Los Angeles is tagged ${eastLA.tags[0]}`);
+    expect(eastLA.eyebrow === 'Community' && eastLA.title === 'East Los Angeles' && /2 ZIPs/.test(eastLA.sub), `opened ${eastLA.eyebrow} ${eastLA.title} (${eastLA.sub})`);
+    const sac = await choose('Sacramento', 'Sacramento');
+    expect(sac.options.includes('Sacramento County'), `Sacramento offers ${sac.options.join(' | ')}`);
+    expect(sac.tags[0] === 'City' && sac.tags[1] === 'Postal city', `Sacramento rows are tagged ${sac.tags.join(' | ')}`);
+    expect(sac.eyebrow === 'City' && /17 ZIPs/.test(sac.sub), `opened ${sac.eyebrow} ${sac.title} (${sac.sub})`);
+    const hash = await page.evaluate(() => location.hash);
+    expect(new URLSearchParams(hash.slice(1)).get('place') === 'Sacramento', `the deep link is ${hash}`);
+    await page.keyboard.press('Escape');
+    return `${county.title}; ${eastLA.title} (${eastLA.sub}); ${sac.title} (${sac.sub}) of ${sac.options.join(' | ')}`;
+  });
+
   await step('desktop: no page errors', async () => { expect(!errors.length, errors.slice(0, 3).join(' | ')); return 'none'; });
   await context.close();
+}
+
+// ------------------------------------------------------------------ a damaged file
+
+/** Copies of Legion.html whose inline pack was cut short or had bytes changed (an incomplete download). */
+function damagedCopies(dir) {
+  const html = fs.readFileSync(PAGE, 'utf8');
+  const m = /window\.__LEGION_PACK__="([A-Za-z0-9+/=]+)"/.exec(html);
+  if (!m) throw new Error('Legion.html has no inline pack');
+  const b64 = m[1], mid = Math.floor(b64.length / 2);
+  const variants = {
+    truncated: b64.slice(0, mid - (mid % 4)),
+    altered: b64.slice(0, mid) + 'A'.repeat(4000) + b64.slice(mid + 4000),
+    'not base64': `${b64.slice(0, mid)}%%%%${b64.slice(mid + 4)}`,
+  };
+  return Object.entries(variants).map(([name, pack]) => {
+    const file = path.join(dir, `${name.replace(/\W+/g, '-')}.html`);
+    fs.writeFileSync(file, html.replace(m[0], () => `window.__LEGION_PACK__="${pack}"`));
+    return { name, file };
+  });
+}
+
+async function damaged(browser) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'legion-e2e-'));
+  try {
+    for (const { name, file } of damagedCopies(dir)) {
+      await step(`damaged file (${name} pack): says the pack is damaged, at the step that failed`, async () => {
+        const { context, page } = await openPage(browser, { viewport: { width: 1024, height: 768 } });
+        try {
+          const state = await settle(page, pathToFileURL(file).href);
+          expect(state === 'error', `the page reached "${state}"`);
+          const err = await page.evaluate(() => [document.querySelector('.boot-error p').textContent, document.querySelector('.boot-error p + p') && document.querySelector('.boot-error p + p').textContent]);
+          expect(/world pack inside this file is damaged/.test(err[0]), `message "${err[0]}"`);
+          expect(/Download Legion\.html again/.test(err[1] || ''), `hint "${err[1]}"`);
+          const failed = await page.locator('#boot-steps li.is-failed').allTextContents();
+          expect(failed.length === 1 && /Unpacking the world pack/.test(failed[0]), `failed steps ${JSON.stringify(failed)}`);
+          return err[0];
+        } finally { await context.close(); }
+      });
+    }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+
+// ------------------------------------------------------------------ served by the Legion server
+
+/**
+ * The page opened from server/serve.mjs, once with an Anthropic key on the server and once without: it must use the
+ * proxy path the server advertises only when the server holds a key, and otherwise keep the player's own key. A
+ * fake ClaudeVoice records what services would hand the real one; no request reaches Anthropic.
+ */
+async function served(browser) {
+  const { createServer } = await import(pathToFileURL(path.join(LEGION, 'server/serve.mjs')).href);
+  for (const [label, env] of [['a server with a key', { ANTHROPIC_API_KEY: 'sk-ant-e2e-placeholder' }], ['a server without a key', {}]]) {
+    const server = createServer({ root: LEGION, env, log: () => {} });
+    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+    const origin = `http://127.0.0.1:${server.address().port}`;
+    const { context, page, errors } = await openPage(browser, { viewport: { width: 1280, height: 800 } });
+    try {
+      await step(`served by ${label}: Claude goes where /api/health says`, async () => {
+        await boot(page, `${origin}/`);
+        await page.evaluate(() => window.legion.clock.pause());   // a still map keeps software WebGL from slowing every click
+        const health = await page.evaluate(async () => (await fetch('/api/health')).json());
+        expect(health.service === 'legion' && typeof health.proxy === 'string', `health ${JSON.stringify(health)}`);
+        await page.evaluate(() => {
+          window.legion.services.wire({ llm: { ClaudeVoice: class { constructor(o) { window.__voiceOptions = { apiKey: o.apiKey || null, proxyURL: o.proxyURL || null }; } } } });
+          window.legion.settings.setApiKey('sk-ant-player-key');
+          window.legion.settings.set({ network: { claude: true } });
+        });
+        await page.waitForFunction(() => window.legion.settings.server !== null, null, { timeout: 5000 });
+        const s = await page.evaluate(() => {
+          const L = window.legion;
+          const v = L.services.voice(L.settings.get());
+          return { proxyURL: L.settings.proxyURL, keyConfigured: L.settings.server.keyConfigured, voice: v.ok ? window.__voiceOptions : v.message };
+        });
+        await page.click('#settings-button');
+        const line = (await page.locator('#settings-dialog .set-help[aria-live]').first().textContent()).trim();
+        await page.keyboard.press('Escape');
+        if (health.keyConfigured) {
+          expect(s.proxyURL === health.proxy && s.keyConfigured, `proxy "${s.proxyURL}" for a server that advertises "${health.proxy}"`);
+          expect(s.voice && s.voice.proxyURL === health.proxy && !s.voice.apiKey, `the voice got ${JSON.stringify(s.voice)}`);
+          expect(/Legion server’s Claude proxy/.test(line), `Settings says "${line}"`);
+          // the advertised path is the one the server routes (a 400 for an empty body, not a 404)
+          const status = await page.evaluate(async p => (await fetch(`${p}/v1/messages`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })).status, s.proxyURL);
+          expect(status === 400, `POST ${s.proxyURL}/v1/messages answered ${status}`);
+          return `proxy ${s.proxyURL}; the player's key stays in the page`;
+        }
+        expect(s.proxyURL === '' && s.keyConfigured === false, `proxy "${s.proxyURL}" for a server without a key`);
+        expect(s.voice && s.voice.apiKey === 'sk-ant-player-key' && !s.voice.proxyURL, `the voice got ${JSON.stringify(s.voice)}`);
+        expect(/server has no Anthropic key/.test(line), `Settings says "${line}"`);
+        return 'no proxy; the player’s own key is used';
+      });
+      await step(`served by ${label}: no page errors`, async () => { expect(!errors.length, errors.slice(0, 3).join(' | ')); return 'none'; });
+    } finally {
+      await context.close();
+      if (typeof server.closeAllConnections === 'function') server.closeAllConnections();
+      await new Promise(resolve => server.close(resolve));
+    }
+  }
 }
 
 // ------------------------------------------------------------------ phone
@@ -403,6 +653,8 @@ async function main() {
   const t0 = Date.now();
   try {
     await desktop(browser);
+    await damaged(browser);
+    await served(browser);
     await phone(browser);
   } finally {
     await browser.close();

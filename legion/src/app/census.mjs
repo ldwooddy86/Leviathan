@@ -8,43 +8,93 @@
 
 import { Rng, Alias, hashAll } from '../engine/rng.mjs';
 import {
-  ACS_LANGUAGE, RACE, HISPANIC_ORIGIN, ASIAN_GROUP, ANCESTRY, ACS_COMMUTE, FIDELITY_DIMENSION, HH_TYPE, TENURE,
-  MODE, EDUCATION, OCCUPATION_GROUP, DWELLING, STATUS, label, humanize,
+  ACS_LANGUAGE, RACE, HISPANIC_ORIGIN, ASIAN_GROUP, ANCESTRY, ACS_COMMUTE, FIDELITY_DIMENSION, HH_TYPE, MODE, EDUCATION,
+  OCCUPATION_GROUP, DWELLING, MARITAL, NATIVITY, EMPLOYMENT, SEX, SCHOOL_ENROLLMENT, label, humanize,
+  vehiclesLabel, commuteTimeLabel, fmtPct,
 } from './format.mjs';
 
 const isNum = v => typeof v === 'number' && Number.isFinite(v);
 
 /**
  * @typedef {object} Scope
- * @property {'zip'|'city'|'county'|'region'} kind
- * @property {string} key      ZIP code, city name, county FIPS or region key (stable, used for seeds and links)
+ * @property {'zip'|'place'|'city'|'county'|'region'} kind  'place' is a Census place (a city or a community), 'city' a
+ *   postal (USPS) city name, which often differs: mail to "Los Angeles" covers 63 ZIPs, the city of Los Angeles 100
+ * @property {string} key      ZIP code, place or postal city name, county FIPS or region key (stable, used for seeds and links)
  * @property {number[]} zis    ZIP indices covered
  * @property {string} title    the place's name
  * @property {string} subtitle "94110 · San Francisco County · Bay Area"
+ * @property {string} [eyebrow] the kind of place in words ('City', 'Community', 'Postal city'), when not the kind's own
  * @property {number} [zi]     the ZIP index (kind 'zip')
  * @property {number} [county] the county index (kind 'county')
  * @property {string} [region] the region key (kind 'region')
  */
 
-/** The scope of one ZIP. */
-export function zipScope(world, zi) {
+/**
+ * The scope of one ZIP. Its title is the ZIP's main Census place (else its postal city), or `title` when the ZIP was
+ * reached by another of its names (a search for the postal city "Emeryville" lands on 94608, whose place is Oakland).
+ * @param {object} world
+ * @param {number} zi
+ * @param {{title?: string}} [options]
+ */
+export function zipScope(world, zi, { title } = {}) {
   const z = world.zip(zi);
   if (!z) return null;
   const parts = [z.zip, z.countyName ? `${z.countyName} County` : null, z.regionName].filter(Boolean);
-  return { kind: 'zip', key: z.zip, zi, zis: [zi], title: z.placeName || z.city, subtitle: parts.join(' · ') };
+  return { kind: 'zip', key: z.zip, zi, zis: [zi], title: (typeof title === 'string' && title.trim()) || z.placeName || z.city, subtitle: parts.join(' · ') };
 }
 
-/** The scope of every ZIP whose city is `name` (exact, case-insensitive). */
-export function cityScope(world, name) {
-  const want = String(name || '').trim().toLowerCase();
-  const zis = [];
-  for (let i = 0; i < world.N; i++) if (String(world.z.city[i] || '').toLowerCase() === want) zis.push(i);
-  if (!zis.length) return null;
-  if (zis.length === 1) return zipScope(world, zis[0]);
-  const title = world.z.city[zis[0]];
+/** "Alameda County" for ZIPs in one county, "2 counties" otherwise. */
+function countiesWhere(world, zis) {
   const counties = [...new Set(zis.map(i => world.z.county[i]))].map(ci => world.county(ci)).filter(Boolean);
-  const where = counties.length === 1 ? `${counties[0].name} County` : `${counties.length} counties`;
-  return { kind: 'city', key: title, zis, title, subtitle: `${where} · ${zis.length} ZIPs` };
+  return counties.length === 1 ? `${counties[0].name} County` : `${counties.length} counties`;
+}
+
+/** ZIP indices whose column `col` equals `name`, ignoring case. */
+function zipsNamed(world, col, name) {
+  const want = String(name || '').trim().toLowerCase(), values = world.z[col], zis = [];
+  if (!want || !values) return zis;
+  for (let i = 0; i < world.N; i++) if (String(values[i] || '').toLowerCase() === want) zis.push(i);
+  return zis;
+}
+
+const PLACE_KINDS = new WeakMap();
+
+/**
+ * What kind of Census place a name is, from the gazetteer: 'City' (incorporated), 'Community' (a Census-designated
+ * place such as East Los Angeles) or 'Place' when the gazetteer does not list it.
+ */
+export function placeKind(world, name) {
+  let kinds = PLACE_KINDS.get(world);
+  if (!kinds) {
+    kinds = new Map();
+    for (const p of world.places || []) if (!kinds.has(p.name)) kinds.set(p.name, p.cdp ? 'Community' : 'City');
+    PLACE_KINDS.set(world, kinds);
+  }
+  return kinds.get(name) || 'Place';
+}
+
+/**
+ * The scope of every ZIP whose postal (USPS) city is `name`, ignoring case. A one-ZIP postal city is that ZIP's scope,
+ * titled with the city's name.
+ */
+export function cityScope(world, name) {
+  const zis = zipsNamed(world, 'city', name);
+  if (!zis.length) return null;
+  const title = world.z.city[zis[0]];
+  if (zis.length === 1) return zipScope(world, zis[0], { title });
+  return { kind: 'city', key: title, zis, title, eyebrow: 'Postal city', subtitle: `${countiesWhere(world, zis)} · ${zis.length} ZIPs` };
+}
+
+/**
+ * The scope of every ZIP whose main Census place is `name` (a city such as Oakland, or a community such as East Los
+ * Angeles), ignoring case. A one-ZIP place is that ZIP's scope.
+ */
+export function placeScope(world, name) {
+  const zis = zipsNamed(world, 'place', name);
+  if (!zis.length) return null;
+  const title = world.z.place[zis[0]];
+  if (zis.length === 1) return zipScope(world, zis[0], { title });
+  return { kind: 'place', key: title, zis, title, eyebrow: placeKind(world, title), subtitle: `${countiesWhere(world, zis)} · ${zis.length} ZIPs` };
 }
 
 /** The scope of a county (by index). */
@@ -64,11 +114,18 @@ export function regionScope(world, key) {
   return { kind: 'region', key, region: key, zis, title: reg.name, subtitle: `${(reg.counties || []).length} counties · ${zis.length} ZIPs` };
 }
 
-/** A scope for a search result ({kind:'zip'|'city', index} | {kind:'county', county} | {kind:'region', region}). */
+/**
+ * A scope for a search result: `{kind: 'zip', index}`, `{kind: 'place'|'city', key}` (a name; a 'city' item may give
+ * the `index` of one of its ZIPs instead), `{kind: 'county', county}` or `{kind: 'region', region}`.
+ */
 export function scopeFromSearch(world, item) {
   if (!item) return null;
   if (item.kind === 'zip') return zipScope(world, item.index);
-  if (item.kind === 'city') return cityScope(world, world.z.city[item.index]) || zipScope(world, item.index);
+  if (item.kind === 'place') return placeScope(world, item.key);
+  if (item.kind === 'city') {
+    const name = typeof item.key === 'string' ? item.key : Number.isInteger(item.index) ? world.z.city[item.index] : null;
+    return cityScope(world, name) || (Number.isInteger(item.index) ? zipScope(world, item.index) : null);
+  }
   if (item.kind === 'county') return countyScope(world, item.county);
   if (item.kind === 'region') return regionScope(world, item.region);
   return null;
@@ -77,6 +134,7 @@ export function scopeFromSearch(world, item) {
 /** Rebuild a scope from its kind and key (deep links). */
 export function scopeFromKey(world, kind, key) {
   if (kind === 'zip') { const zi = world.indexOf(key); return zi >= 0 ? zipScope(world, zi) : null; }
+  if (kind === 'place') return placeScope(world, key);
   if (kind === 'city') return cityScope(world, key);
   if (kind === 'county') { const c = world.countyByFips && world.countyByFips.get(key); return c ? countyScope(world, c.index) : null; }
   if (kind === 'region') return regionScope(world, key);
@@ -237,15 +295,80 @@ export function residentsOf(population, world, scope, n = 12, seed = 1) {
 
 // ------------------------------------------------------------------ Census versus generated
 
-const ROW_TABLES = {
-  race: RACE, heritage: {}, type: { ...HH_TYPE, male: HH_TYPE.father, female: HH_TYPE.mother }, hht: { ...HH_TYPE, male: HH_TYPE.father, female: HH_TYPE.mother },
-  tenure: TENURE, own: TENURE, mode: { ...MODE, ...ACS_COMMUTE }, comm: { ...MODE, ...ACS_COMMUTE }, lang: ACS_LANGUAGE,
-  language: ACS_LANGUAGE, edu: EDUCATION, education: EDUCATION, occ: OCCUPATION_GROUP, occupation: OCCUPATION_GROUP,
-  dwelling: DWELLING, status: STATUS,
+/** The lower bound of a bracket key: '<10k' and 'm<5' give 0, '150-200k' 150, 'f85+' 85, 'm20' 20. */
+function lowerBound(key) {
+  const s = String(key);
+  if (/^[mf]?</i.test(s)) return 0;
+  const m = /\d+/.exec(s);
+  return m ? Number(m[0]) : NaN;
+}
+
+/** A banding function: the label of the last band whose lower bound is at most the key's own. */
+const banded = (bands, parse = lowerBound) => key => {
+  const lo = parse(key);
+  if (!Number.isFinite(lo)) return null;
+  let out = bands[0][1];
+  for (const [from, name] of bands) if (lo >= from) out = name;
+  return out;
 };
+
+const AGE_BANDS = [[0, 'Under 18'], [18, '18–24'], [25, '25–34'], [35, '35–44'], [45, '45–54'], [55, '55–64'], [65, '65–74'], [75, '75 and over']];
+const INCOME_BANDS = [[0, 'Under $25k'], [25, '$25k–50k'], [50, '$50k–75k'], [75, '$75k–100k'], [100, '$100k–150k'], [150, '$150k–200k'], [200, '$200k or more']];
+const lepLanguage = key => label(ACS_LANGUAGE, String(key).replace(/_lep$/, ''));
+const vetBand = key => { const m = /_vet(.+)$/.exec(String(key)); return m ? `Ages ${m[1].replace(/(\d)-(?=\d)/g, '$1–').replace(/\+$/, ' and over')}` : null; };
+
+/**
+ * How each table of `pop.validate` is drawn. `rows` names the keys (a table or a function); `group` maps a raw key to
+ * the row it adds to (null drops it: the shares stay those of the whole universe, so a table of veterans by age reads
+ * as shares of all adults); `order` keeps an ordinal table in its own order (true: the Census order; a function: a
+ * sort key), where the others sort by size; `hide` drops rows by key; `note` says what the shares are of; `featured`
+ * tables show first, the rest fold away.
+ */
+export const FIDELITY_VIEWS = Object.freeze({
+  hht: { rows: { ...HH_TYPE, male: HH_TYPE.father, female: HH_TYPE.mother }, note: 'Share of households', featured: true },
+  tenure: { rows: { own: 'Owners', rent: 'Renters' }, note: 'Share of households', featured: true },
+  race: { rows: RACE, note: 'Share of residents', featured: true },
+  lang: { rows: ACS_LANGUAGE, note: 'Share of people 5 and over', featured: true },
+  comm: { rows: { ...MODE, ...ACS_COMMUTE }, note: 'Share of workers', featured: true },
+  edu: { rows: EDUCATION, order: true, note: 'Share of people 25 and over', featured: true },
+  dwelling: { rows: DWELLING, note: 'Share of households' },
+  veh: { rows: vehiclesLabel, order: k => (String(k).startsWith('own') ? 0 : 100) + (parseInt(String(k).replace(/\D+/g, ''), 10) || 0), note: 'Share of households' },
+  hinc: { group: banded(INCOME_BANDS), order: true, note: 'Share of households' },
+  sex: { rows: SEX, note: 'Share of residents' },
+  age: { group: banded(AGE_BANDS, k => lowerBound(String(k).replace(/^[mf]/i, ''))), order: true, note: 'Share of residents' },
+  hisp: { rows: HISPANIC_ORIGIN, note: 'Share of Hispanic residents' },
+  asian: { rows: ASIAN_GROUP, note: 'Share of Asian residents' },
+  nat: { rows: NATIVITY, note: 'Share of residents' },
+  lep: { rows: lepLanguage, note: 'Share of people 5 and over who speak English less than very well, by language at home' },
+  emp: { rows: EMPLOYMENT, note: 'Share of people 16 and over' },
+  ctime: { rows: commuteTimeLabel, order: true, note: 'Share of workers who travel to work' },
+  occM: { rows: OCCUPATION_GROUP, note: 'Share of employed men' },
+  occF: { rows: OCCUPATION_GROUP, note: 'Share of employed women' },
+  mar: { group: k => String(k).replace(/^[mf]_/i, ''), rows: MARITAL, note: 'Share of people 15 and over' },
+  vet: { group: vetBand, order: true, note: 'Veterans, as a share of people 18 and over' },
+  sch: { rows: SCHOOL_ENROLLMENT, order: true, hide: ['none'], note: 'Students, as a share of people 3 and over' },
+});
+
+/** Other names a population may give the same tables. */
+const VIEW_ALIASES = Object.freeze({ type: 'hht', own: 'tenure', mode: 'comm', language: 'lang', education: 'edu', vehicles: 'veh', income: 'hinc', nativity: 'nat', school: 'sch', marital: 'mar' });
+const viewKey = dim => (FIDELITY_VIEWS[dim] ? dim : VIEW_ALIASES[dim] || dim);
+
+/** The order the fidelity panel lists tables in (unknown dimensions follow, in the order the population gave). */
+const VIEW_ORDER = Object.keys(FIDELITY_VIEWS);
+
+/** The scalar pairs of `pop.validate` (`result.scalars`): words and how to print them. */
+export const FIDELITY_SCALARS = Object.freeze({
+  hhsize: { label: 'Household size', format: 'number' },
+  medianAge: { label: 'Median age', format: 'years' },
+  under18: { label: 'Under 18', format: 'share' },
+  over65: { label: '65 and over', format: 'share' },
+  foreign: { label: 'Born abroad', format: 'share' },
+  own: { label: 'Owners', format: 'share' },
+});
 
 const isTable = v => v && typeof v === 'object' && !Array.isArray(v) && Object.values(v).some(isNum);
 const asTable = v => Array.isArray(v) ? Object.fromEntries(v.map((x, k) => [String(k), x])) : v;
+const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
 
 // Shares come back as fractions, percents or raw counts depending on the dimension; bring all to percents.
 function toPercents(table, keys) {
@@ -257,33 +380,85 @@ function toPercents(table, keys) {
   return Object.fromEntries(keys.map((k, j) => [k, vals[j] * f]));
 }
 
+function rowLabel(view, key) {
+  const names = view.rows;
+  if (typeof names === 'function') return names(key);
+  if (names && has(names, key)) return names[key];
+  return view.group ? String(key) : humanize(key);
+}
+
+/** One share table: percents over the raw keys, then grouped, hidden, labeled and ordered as its view says. */
+function sharesTable(dim, ta, tg, view, maxRows) {
+  const keys = [...new Set([...Object.keys(ta), ...Object.keys(tg)])].filter(k => isNum(ta[k]) || isNum(tg[k]));
+  if (!keys.length) return null;
+  const pa = toPercents(ta, keys), pg = toPercents(tg, keys);
+  const byKey = new Map();
+  for (const k of keys) {
+    const rowKey = view.group ? view.group(k) : k;
+    if (rowKey === null || rowKey === undefined || (view.hide || []).includes(rowKey)) continue;
+    const r = byKey.get(rowKey) || { key: String(rowKey), acs: 0, gen: 0 };
+    r.acs += pa[k]; r.gen += pg[k];
+    byKey.set(rowKey, r);
+  }
+  const rows = [...byKey.values()].filter(r => r.acs > 0 || r.gen > 0);
+  if (!rows.length) return null;
+  for (const r of rows) r.label = rowLabel(view, r.key);
+  const meanGap = rows.reduce((s, r) => s + Math.abs(r.acs - r.gen), 0) / rows.length;
+  if (typeof view.order === 'function') rows.sort((p, q) => view.order(p.key) - view.order(q.key));
+  else if (!view.order) rows.sort((p, q) => Math.max(q.acs, q.gen) - Math.max(p.acs, p.gen));
+  // ordinal tables read as a whole (a histogram cut short says nothing); the others keep their largest rows
+  const shown = view.order ? rows : rows.slice(0, maxRows);
+  return {
+    key: dim, label: label(FIDELITY_DIMENSION, dim), kind: 'shares', rows: shown, meanGap,
+    more: rows.length - shown.length, ordered: !!view.order, note: view.note || null, featured: !!view.featured,
+  };
+}
+
+/** A scalar pair as a 'value' table; shares given as fractions become percents. */
+function valueTable(key, acs, gen, spec) {
+  const share = spec.format === 'share';
+  const f = share && Math.max(Math.abs(acs), Math.abs(gen)) <= 1.000001 ? 100 : 1;
+  return { key, label: spec.label || label(FIDELITY_DIMENSION, key), kind: 'value', acs: acs * f, gen: gen * f, format: spec.format || 'number', featured: true };
+}
+
 /**
- * Normalize `pop.validate(zi, households)` into the tables the fidelity panel draws. Accepts share tables as
- * objects or arrays of fractions, percents or counts, plus scalar pairs (e.g. mean household size).
- * Returns `[]` when the result holds nothing comparable (the panel is then hidden).
- * @returns {Array<{key: string, label: string, kind: 'shares', rows: Array<{key, label, acs, gen}>, meanGap: number}
- *   | {key: string, label: string, kind: 'value', acs: number, gen: number}>}
+ * Normalize `pop.validate(zi, households)` into what the fidelity panel draws: share tables (objects or arrays of
+ * fractions, percents or counts) labeled, grouped and ordered by FIDELITY_VIEWS, and scalar pairs (from
+ * `result.scalars` as `{name: {acs, generated}}`, or numbers side by side in `acs` and `generated`) as 'value'
+ * tables. Featured tables come first. Returns `[]` when the result holds nothing comparable (the panel is then hidden).
+ * @param {object} result
+ * @param {{maxRows?: number}} [options] rows kept per table that sorts by size
+ * @returns {Array<{key: string, label: string, kind: 'shares', rows: Array<{key: string, label: string, acs: number, gen: number}>,
+ *   meanGap: number, more: number, ordered: boolean, note: string|null, featured: boolean}
+ *   | {key: string, label: string, kind: 'value', acs: number, gen: number, format: 'number'|'years'|'share', featured: true}>}
  */
 export function fidelityTables(result, { maxRows = 8 } = {}) {
   if (!result || typeof result !== 'object') return [];
   const gen = result.generated, acs = result.acs;
   if (!gen || !acs || typeof gen !== 'object' || typeof acs !== 'object') return [];
-  const out = [];
+  const values = [], shares = [];
+  const scalars = result.scalars && typeof result.scalars === 'object' ? result.scalars : {};
+  for (const [key, pair] of Object.entries(scalars)) {
+    if (pair && isNum(pair.acs) && isNum(pair.generated)) values.push(valueTable(key, pair.acs, pair.generated, FIDELITY_SCALARS[key] || {}));
+  }
   for (const dim of Object.keys(acs)) {
     const a = acs[dim], g = gen[dim];
     if (a === undefined || g === undefined || a === null || g === null) continue;
-    const dimLabel = label(FIDELITY_DIMENSION, dim);
-    if (isNum(a) && isNum(g)) { out.push({ key: dim, label: dimLabel, kind: 'value', acs: a, gen: g }); continue; }
+    if (isNum(a) && isNum(g)) { if (!values.some(v => v.key === dim)) values.push(valueTable(dim, a, g, FIDELITY_SCALARS[dim] || {})); continue; }
     const ta = asTable(a), tg = asTable(g);
     if (!isTable(ta) || !isTable(tg)) continue;
-    const keys = [...new Set([...Object.keys(ta), ...Object.keys(tg)])].filter(k => isNum(ta[k]) || isNum(tg[k]));
-    if (!keys.length) continue;
-    const pa = toPercents(ta, keys), pg = toPercents(tg, keys);
-    const names = ROW_TABLES[dim] || {};
-    const rows = keys.map(k => ({ key: k, label: Object.prototype.hasOwnProperty.call(names, k) ? names[k] : humanize(k), acs: pa[k], gen: pg[k] }));
-    const meanGap = rows.reduce((s, r) => s + Math.abs(r.acs - r.gen), 0) / rows.length;
-    rows.sort((p, q) => Math.max(q.acs, q.gen) - Math.max(p.acs, p.gen));
-    out.push({ key: dim, label: dimLabel, kind: 'shares', rows: rows.slice(0, maxRows), meanGap });
+    const t = sharesTable(dim, ta, tg, FIDELITY_VIEWS[viewKey(dim)] || {}, maxRows);
+    if (t) shares.push(t);
   }
-  return out;
+  const rank = t => { const i = VIEW_ORDER.indexOf(viewKey(t.key)); return (t.featured ? 0 : 1000) + (i >= 0 ? i : 500); };
+  shares.sort((p, q) => rank(p) - rank(q));   // stable: unknown dimensions keep the population's order
+  return [...values, ...shares];
+}
+
+/** A fidelity value as text: household size "2.39", median age "39.8", a share "26%". */
+export function fidelityValueText(value, format) {
+  if (!isNum(value)) return '—';
+  if (format === 'share') return fmtPct(value);
+  if (format === 'years') return value.toFixed(1);
+  return Math.abs(value) >= 100 ? Math.round(value).toLocaleString('en-US') : (+value.toFixed(2)).toString();
 }

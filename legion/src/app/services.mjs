@@ -25,6 +25,7 @@ const scheduleModule = null;  // import * as scheduleModule from '../engine/sche
 const dialogueModule = null;  // import * as dialogueModule from '../engine/dialogue.mjs';
 const llmModule = null;       // import * as llmModule from '../engine/llm.mjs';
 const streetModule = null;    // import * as streetModule from '../world/street.mjs';
+const weatherModule = null;   // the live NWS refresh (CONTRACTS section 3): no module yet; Settings keeps its switch off
 
 /** The engine modules the app can use, what each gives the page, and the sentence shown until it is wired. */
 export const ENGINE_MODULES = Object.freeze([
@@ -34,6 +35,7 @@ export const ENGINE_MODULES = Object.freeze([
   { key: 'dialogue', file: 'src/engine/dialogue.mjs', title: 'Offline dialogue', provides: 'conversation in the NPC’s regional voice, no network needed', pending: 'The offline dialogue engine arrives with the next build.' },
   { key: 'llm', file: 'src/engine/llm.mjs', title: 'Claude bridge', provides: 'system prompts, streaming conversation with Claude, reflection into memory', pending: 'The Claude bridge arrives with the next build.' },
   { key: 'street', file: 'src/world/street.mjs', title: 'Street view', provides: 'the neighborhood up close: residents on the sidewalks and streets, chatting', pending: 'Street view arrives with the next build.' },
+  { key: 'weather', file: null, later: true, title: 'Live weather', provides: 'fresh NWS forecasts and alerts from api.weather.gov, when you allow it', pending: 'Live NWS weather arrives with a later build; until then the weather comes from the NWS snapshot in the pack.' },
 ]);
 
 /** Claude models offered in Settings (the Claude bridge's MODELS list replaces this once it is wired). */
@@ -49,6 +51,7 @@ export const CLAUDE_EFFORTS = Object.freeze(['low', 'medium', 'high']);
 
 const DEFAULT_MODULES = Object.freeze({
   persona: personaModule, mind: mindModule, schedule: scheduleModule, dialogue: dialogueModule, llm: llmModule, street: streetModule,
+  weather: weatherModule,
 });
 
 /** @typedef {{ok: true, value: any} | {ok: false, reason: 'missing'|'needs-key'|'needs-permission'|'not-found'|'error', module?: string, message: string}} Result */
@@ -121,6 +124,10 @@ export function createServices(options = {}) {
   const personas = new Map();   // id -> persona (LRU)
   const minds = new Map();      // id -> live Mind for this session
   const voices = new Map();     // settings signature -> ClaudeVoice
+  const fidelity = new Map();   // `${zi}:${households}` -> validate() result (LRU; a check costs a few hundred ms)
+  // Simulated time when a caller gives none: the snapshot epoch, never the wall clock, so the same call gives the
+  // same offline line and memories carry simulated timestamps.
+  const simTime = t => (Number.isFinite(t) ? t : world && Number.isFinite(world.snapshotTime) ? world.snapshotTime : 0);
 
   const pendingMessage = key => (ENGINE_MODULES.find(m => m.key === key) || {}).pending || `${key} is not available yet.`;
   const missing = key => fail('missing', pendingMessage(key), { module: key });
@@ -150,8 +157,24 @@ export function createServices(options = {}) {
     init(packOrWorld, { seed } = {}) {
       world = packOrWorld && typeof packOrWorld.zip === 'function' && packOrWorld.N ? packOrWorld : createWorld(packOrWorld);
       population = new PopulationClass(world, { seed: seed ?? options.seed ?? LEGION_SEED });
-      personas.clear(); minds.clear(); voices.clear();
+      personas.clear(); minds.clear(); voices.clear(); fidelity.clear();
       return { world, population };
+    },
+
+    /**
+     * Wire engine modules at runtime: `{persona, mind, schedule, dialogue, llm, street, weather}` (any subset; null
+     * unwires).
+     * The integration build wires modules with the import lines at the top of this file; this is the same switch for
+     * tests and tools. Caches that depend on the modules are dropped. Returns `status()`.
+     * @param {Record<string, object|null>} modules
+     */
+    wire(modules) {
+      for (const [key, mod] of Object.entries(modules || {})) {
+        if (!ENGINE_MODULES.some(m => m.key === key)) throw new Error(`services.wire: unknown module "${key}"`);
+        mods[key] = mod || null;
+      }
+      personas.clear(); minds.clear(); voices.clear();
+      return svc.status();
     },
 
     /** Swap the MindStore (the app uses a localStorage one). */
@@ -184,15 +207,34 @@ export function createServices(options = {}) {
       try { return world.weatherAt(zi, t); } catch { return null; }
     },
 
-    /** Census versus generated tables for a ZIP, or null when the population reports none. */
+    /**
+     * Census versus generated tables for a ZIP, or null when the population reports none. `households` and
+     * `persons` count what was actually generated and compared: the population caps the sample at the ZIP's own
+     * households (Bodega has 3). `gq` is the ZIP's group-quarters population (dorms, barracks, prisons, nursing
+     * homes), which households do not cover, when the population reports it. Cached per ZIP and sample size.
+     * @returns {{tables: object[], households: number, persons: number|null, gq: {persons: number, share: number}|null, raw: object} | null}
+     */
     validate(zi, households = 600) {
       needWorld();
       if (typeof population.validate !== 'function') return null;
+      const key = `${zi}:${households}`;
+      if (fidelity.has(key)) return fidelity.get(key);
+      let out = null;
       try {
         const raw = population.validate(zi, households);
         const tables = fidelityTables(raw);
-        return tables.length ? { tables, households, raw } : null;
-      } catch { return null; }
+        if (tables.length) {
+          const compared = raw && Number.isFinite(raw.households) ? raw.households : Math.min(households, world.z.hh[zi] || 0);
+          const gq = raw && raw.gq && Number.isFinite(raw.gq.share) ? { persons: Number(raw.gq.persons) || 0, share: raw.gq.share } : null;
+          out = { tables, households: compared, persons: raw && Number.isFinite(raw.persons) ? raw.persons : null, gq, raw };
+        }
+      } catch (e) {
+        console.error('[legion] validate failed', e);
+        out = null;
+      }
+      fidelity.set(key, out);
+      if (fidelity.size > 32) fidelity.delete(fidelity.keys().next().value);
+      return out;
     },
 
     /** The persona of an NPC (Result). */
@@ -251,14 +293,18 @@ export function createServices(options = {}) {
     /** Forget every mind (live and stored). */
     resetMinds() { minds.clear(); if (typeof store.clear === 'function') store.clear(); },
 
-    /** A new offline Conversation with an NPC (Result). */
-    conversation(id, { t = Date.now(), rngSeed } = {}) {
+    /**
+     * A new offline Conversation with an NPC (Result). `t` is the simulated time (epoch ms; default the snapshot
+     * time); with the NPC's id it seeds the engine, so the same id at the same minute gives the same lines.
+     */
+    conversation(id, { t, rngSeed } = {}) {
       if (!mods.dialogue) return missing('dialogue');
       const p = svc.persona(id);
       if (!p.ok) return p;
-      const m = mods.mind ? svc.mind(id, { t }) : null;
+      const time = simTime(t);
+      const m = mods.mind ? svc.mind(id, { t: time }) : null;
       try {
-        const conv = new mods.dialogue.Conversation({ world, persona: p.value, mind: m && m.ok ? m.value : null, t, rngSeed: rngSeed ?? hashAll(id, Math.floor(t / 60000)) });
+        const conv = new mods.dialogue.Conversation({ world, persona: p.value, mind: m && m.ok ? m.value : null, t: time, rngSeed: rngSeed ?? hashAll(id, Math.floor(time / 60000)) });
         return ok(conv);
       } catch (e) { return fail('error', `The conversation could not start: ${errorText(e)}`, { module: 'dialogue' }); }
     },
@@ -273,10 +319,12 @@ export function createServices(options = {}) {
       const c = settings.claude || {}, net = settings.network || {};
       if (!net.claude) return fail('needs-permission', 'Allow the Claude API in Settings, under Network, to talk with Claude.', { module: 'llm' });
       if (!c.apiKey && !c.proxyURL) return fail('needs-key', 'Add your Claude API key in Settings to talk with Claude.', { module: 'llm' });
-      const sig = [c.apiKey ? hashAll(c.apiKey) : 0, c.model, c.effort, c.proxyURL || ''].join('|');
+      // through the Legion server's proxy the server holds the key: the player's own key never leaves this function
+      const apiKey = c.proxyURL ? undefined : (c.apiKey || undefined);
+      const sig = [apiKey ? hashAll(apiKey) : 0, c.model, c.effort, c.proxyURL || ''].join('|');
       if (voices.has(sig)) return ok(voices.get(sig));
       try {
-        const voice = new mods.llm.ClaudeVoice({ apiKey: c.apiKey || undefined, model: c.model, effort: c.effort, proxyURL: c.proxyURL || undefined, dangerouslyAllowBrowser: true, world });
+        const voice = new mods.llm.ClaudeVoice({ apiKey, model: c.model, effort: c.effort, proxyURL: c.proxyURL || undefined, dangerouslyAllowBrowser: true, world });
         voices.clear(); voices.set(sig, voice);
         return ok(voice);
       } catch (e) { return fail('error', `Claude could not be set up: ${errorText(e)}`, { module: 'llm' }); }
@@ -284,20 +332,22 @@ export function createServices(options = {}) {
 
     /**
      * Reflect a finished Claude conversation into the NPC's mind (Result of the reflection). Uses the mind's own
-     * applyReflection(result, t) when it has one, else applyReflection() below (public Mind methods only).
+     * applyReflection(result, t) when it has one, else applyReflection() below (public Mind methods only). `t` is
+     * the simulated time the memories carry (default the snapshot time).
      */
-    async reflect(id, transcript, settings, { t = Date.now() } = {}) {
+    async reflect(id, transcript, settings, { t } = {}) {
       const v = svc.voice(settings);
       if (!v.ok) return v;
       if (typeof v.value.reflect !== 'function') return missing('llm');
       const p = svc.persona(id);
       if (!p.ok) return p;
+      const time = simTime(t);
       try {
         const result = await v.value.reflect(p.value, transcript);
         const m = mods.mind ? svc.mind(id) : null;
         if (m && m.ok && result) {
-          if (typeof m.value.applyReflection === 'function') m.value.applyReflection(result, t);
-          else applyReflection(m.value, result, t);
+          if (typeof m.value.applyReflection === 'function') m.value.applyReflection(result, time);
+          else applyReflection(m.value, result, time);
           svc.saveMind(id);
         }
         return ok(result);

@@ -32,6 +32,42 @@ export const DEFAULT_SETTINGS = Object.freeze({
 const MODEL_IDS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-fable-5-2'];
 const EFFORTS = ['low', 'medium', 'high'];
 
+/** Where the Legion server's Claude proxy lives when its /api/health does not say (server/serve.mjs PROXY_PATH). */
+export const DEFAULT_PROXY_PATH = '/api/anthropic';
+
+/**
+ * Read the Legion server's GET /api/health answer: null when it is not a Legion server, else `{keyConfigured,
+ * proxy, hint}`. `proxy` is the same-origin path the server advertises for its Claude proxy (the SDK's base URL),
+ * or the default when it names none or names something other than a plain path. A server without a key
+ * (`keyConfigured: false`) cannot answer for Claude, so the page then keeps using the player's own key.
+ * @param {any} body the parsed JSON
+ * @returns {{keyConfigured: boolean, proxy: string, hint: string} | null}
+ */
+export function serverFromHealth(body) {
+  if (!body || typeof body !== 'object' || body.service !== 'legion') return null;
+  const advertised = typeof body.proxy === 'string' ? body.proxy.trim() : '';
+  const proxy = /^\/(?!\/)[\w\-./]*$/.test(advertised) && !advertised.includes('..') ? advertised.replace(/\/+$/, '') || DEFAULT_PROXY_PATH : DEFAULT_PROXY_PATH;
+  return { keyConfigured: body.keyConfigured !== false, proxy, hint: typeof body.hint === 'string' ? body.hint : '' };
+}
+
+/**
+ * The Claude status line of the Settings dialog.
+ * @param {{network: {claude: boolean}, claude: {apiKey?: string, proxyURL?: string}}} s settings.get()
+ * @param {{bridge: boolean, server?: {keyConfigured: boolean}|null}} context whether the Claude bridge is wired, and
+ *   what the Legion server reported (null when the page is not served by one)
+ */
+export function claudeStatus(s, { bridge, server = null }) {
+  if (!bridge) return 'The Claude bridge arrives with the next build; your choices here are kept for it.';
+  if (!s.network.claude) return 'Claude is off until you allow the Claude API under Network.';
+  if (s.claude.proxyURL) return 'Using the Legion server’s Claude proxy: the key stays on the server.';
+  if (server && !server.keyConfigured) {
+    return s.claude.apiKey
+      ? 'The Legion server has no Anthropic key, so conversations use yours, straight from this browser to api.anthropic.com.'
+      : 'The Legion server has no Anthropic key. Add your own key below, or restart the server with ANTHROPIC_API_KEY set.';
+  }
+  return s.claude.apiKey ? 'Ready. Conversations go straight from this browser to api.anthropic.com.' : 'Add an API key to talk with Claude.';
+}
+
 /**
  * A complete, valid settings object from anything (stored JSON from another version, a patch): unknown or
  * invalid values fall back to the defaults.
@@ -77,6 +113,8 @@ export class Settings {
     const saved = this.values.claude.remember ? storageGet(API_KEY_KEY, '') : '';
     this.apiKey = typeof saved === 'string' ? saved : '';
     this.proxyURL = '';
+    /** What the Legion server reported (serverFromHealth), or null when the page is not served by one. */
+    this.server = null;
   }
 
   /** The full settings, including the in-memory API key and any detected proxy (for services.voice). */
@@ -92,6 +130,7 @@ export class Settings {
     const v = structuredClone(this.values);
     v.claude.hasKey = !!this.apiKey;
     v.claude.proxy = !!this.proxyURL;
+    v.claude.serverKey = this.server ? this.server.keyConfigured : null;
     return v;
   }
 
@@ -127,6 +166,24 @@ export class Settings {
     if (next === this.proxyURL) return;
     this.proxyURL = next;
     this._emit(['claude.proxyURL']);
+  }
+
+  /**
+   * What the Legion server reported (serverFromHealth's result), or null when the page is not served by one. Its
+   * Claude proxy is used only when the server holds a key; otherwise conversations use the player's own key.
+   * @param {{keyConfigured: boolean, proxy: string, hint?: string} | null} info
+   */
+  setServer(info) {
+    const next = info && typeof info === 'object'
+      ? { keyConfigured: info.keyConfigured !== false, proxy: String(info.proxy || DEFAULT_PROXY_PATH), hint: String(info.hint || '') }
+      : null;
+    const url = next && next.keyConfigured ? next.proxy : '';
+    const changed = [];
+    if (JSON.stringify(next) !== JSON.stringify(this.server)) changed.push('claude.server');
+    if (url !== this.proxyURL) changed.push('claude.proxyURL');
+    this.server = next;
+    this.proxyURL = url;
+    if (changed.length) this._emit(changed);
   }
 
   /** Back to the defaults (and forget a stored key). */
@@ -178,11 +235,15 @@ function segmented(name, options, value, onChange, ariaLabel) {
   return group;
 }
 
-function toggle(label, description, checked, onChange) {
+/**
+ * A switch with its label and description. A `pending` feature (nothing in this build would act on it) is shown
+ * off and disabled, with `pending` saying when it arrives; its stored value is kept for then.
+ */
+function toggle(label, description, checked, onChange, { pending = null } = {}) {
   const id = nextId('toggle');
-  return h('div.toggle-row',
-    h('input.switch', { type: 'checkbox', role: 'switch', id, checked, on: { change: e => onChange(e.target.checked) } }),
-    h('label', { for: id }, h('span.toggle-label', label), h('span.toggle-desc', description)));
+  return h('div.toggle-row', { class: pending ? 'is-pending' : null },
+    h('input.switch', { type: 'checkbox', role: 'switch', id, checked: pending ? false : checked, disabled: !!pending, on: { change: e => onChange(e.target.checked) } }),
+    h('label', { for: id }, h('span.toggle-label', label, pending ? h('span.toggle-tag', 'Later build') : null), h('span.toggle-desc', pending || description)));
 }
 
 /**
@@ -211,13 +272,7 @@ export function mountSettingsDialog(dialog, deps) {
   const claudeLine = h('p.set-help', { 'aria-live': 'polite' });
   const builtLine = h('span');
 
-  function claudeText() {
-    const s = settings.get();
-    if (!services.available('llm')) return 'The Claude bridge arrives with the next build; your choices here are kept for it.';
-    if (!s.network.claude) return 'Claude is off until you allow the Claude API under Network.';
-    if (s.claude.proxyURL) return 'Using the Legion server’s Claude proxy: the key stays on the server.';
-    return s.claude.apiKey ? 'Ready. Conversations go straight from this browser to api.anthropic.com.' : 'Add an API key to talk with Claude.';
-  }
+  function claudeText() { return claudeStatus(settings.get(), { bridge: services.available('llm'), server: settings.server }); }
 
   function builtText() {
     const s = settings.get();
@@ -299,13 +354,14 @@ export function mountSettingsDialog(dialog, deps) {
       section('Network',
         h('p.set-help', 'Legion runs offline from the data in this file. Each of these reaches out only when you allow it.'),
         toggle('Claude API', 'Sends the conversation and the NPC’s persona to api.anthropic.com.', s.network.claude, v => { settings.set({ network: { claude: v } }); update(); }),
-        toggle('Live NWS weather', 'Refreshes forecasts and alerts from api.weather.gov. Off: the NWS snapshot in the pack.', s.network.nws, v => settings.set({ network: { nws: v } })),
-        toggle('OpenStreetMap streets', 'Loads real streets for the street view from the Overpass API. Off: streets drawn from the ZIP’s data.', s.network.osm, v => settings.set({ network: { osm: v } }))),
+        toggle('Live NWS weather', 'Refreshes forecasts and alerts from api.weather.gov. Off: the NWS snapshot in the pack.', s.network.nws, v => settings.set({ network: { nws: v } }),
+          { pending: services.available('weather') ? null : 'Live forecasts and alerts from api.weather.gov arrive with a later build. Until then the weather comes from the NWS snapshot in this file.' }),
+        toggle('OpenStreetMap streets', `Loads real streets for the street view from the Overpass API. Off: streets drawn from the ZIP’s data.${services.available('street') ? '' : ' Takes effect with the street view, which arrives with the next build.'}`, s.network.osm, v => settings.set({ network: { osm: v } }))),
       section('Engine',
         h('ul.module-list', services.status().map(m => h('li', { class: m.available ? 'is-ready' : 'is-pending' },
           h('span.module-dot', { 'aria-hidden': 'true' }),
           h('span.module-name', m.title),
-          h('span.module-state', m.available ? 'Ready' : 'Next build'),
+          h('span.module-state', m.available ? 'Ready' : m.later ? 'Later build' : 'Next build'),
           h('span.module-desc', m.provides))))),
       section('Data',
         h('p.set-help', `${fmtInt(world.totalPop)} Californians in ${fmtInt(world.totalHH)} households across ${fmtInt(world.N)} ZIPs: Census ACS 2020–2024 tables by ZIP, the California atlas’s housing, climate and wildfire columns, the Caltrans 2024 traffic census, the USGS gazetteer and the NWS snapshot of ${Number.isFinite(world.snapshotTime) ? `${fmtTime(world.snapshotTime)} PT` : 'the pack'}.`),

@@ -7,7 +7,7 @@
 
 import { services } from './services.mjs';
 import { bus, EVENTS } from './bus.mjs';
-import { Settings, applyTheme, mountSettingsDialog } from './settings.mjs';
+import { Settings, applyTheme, mountSettingsDialog, serverFromHealth } from './settings.mjs';
 import { SimClock, mountClockControls } from './simclock.mjs';
 import { mountSearch } from './search.mjs';
 import { Stage } from './stage.mjs';
@@ -38,10 +38,13 @@ function paint() {
   });
 }
 
-/** The world pack: inline (built file) or fetched next to the sources (development). */
+/**
+ * The world pack: inline (built file) or fetched next to the sources (development).
+ * @returns {Promise<{data: string|Uint8Array, inline: boolean, where: string}>}
+ */
 async function packSource() {
   const inline = window.__LEGION_PACK__;
-  if (typeof inline === 'string' && inline.length > 1000) return inline;
+  if (typeof inline === 'string' && inline.length > 0) return { data: inline, inline: true, where: 'inside this file' };
   const url = new URL('../../data/world.json.gz', location.href);
   let res;
   try { res = await fetch(url); } catch {
@@ -49,7 +52,24 @@ async function packSource() {
       'Open the built legion/Legion.html (node tools/build.mjs makes it), or serve the legion folder over http and open src/app/index.html.');
   }
   if (!res.ok) throw withHint(new Error(`The world pack could not be fetched (${res.status} ${res.statusText}).`), 'Build legion/Legion.html with node tools/build.mjs and open that file.');
-  return new Uint8Array(await res.arrayBuffer());
+  return { data: new Uint8Array(await res.arrayBuffer()), inline: false, where: `at ${url.pathname}` };
+}
+
+/**
+ * Decode the pack, turning the browser's low-level failures into what happened. A truncated or altered pack fails
+ * inside the gzip stream (where the browser says "Failed to fetch", though nothing was fetched), in atob, or in
+ * JSON.parse; all three mean the same thing to the user: the pack is damaged.
+ */
+async function unpack(source) {
+  try {
+    return await services.unpack(source.data);
+  } catch (e) {
+    const error = withHint(new Error(`The world pack ${source.where} is damaged and could not be unpacked.`),
+      source.inline ? 'Download Legion.html again, or rebuild it with node tools/build.mjs.' : 'Rebuild the pack (tools/build_pack.py) or restore data/world.json.gz.');
+    error.detail = `${e && e.name ? `${e.name}: ` : ''}${e && e.message ? e.message : String(e)}`;
+    error.cause = e;
+    throw error;
+  }
 }
 
 /** The loading screen. */
@@ -65,13 +85,20 @@ function bootScreen() {
     finish() { const el = $('#boot'); el.classList.add('is-done'); el.setAttribute('aria-hidden', 'true'); setTimeout(() => el.remove(), 450); },
     fail(error) {
       document.documentElement.dataset.state = 'error';
-      for (const li of items.values()) if (li.className === 'is-active') li.className = '';
+      // the step that was running is the one that failed: mark it, so the user sees where it stopped
+      for (const li of items.values()) {
+        if (li.className !== 'is-active') continue;
+        li.className = 'is-failed';
+        li.append(h('span.sr-only', ' (failed)'));
+      }
+      const cause = error && error.cause;
+      const technical = [error && error.detail, (cause && cause.stack) || (error && error.stack)].filter(Boolean).join('\n\n');
       const card = $('#boot .boot-card');
       card.append(h('div.boot-error', { role: 'alert' },
         h('h2', 'Legion could not start'),
         h('p', error && error.message ? error.message : String(error)),
         error && error.hint ? h('p', error.hint) : null,
-        error && error.stack ? h('details', h('summary', 'Technical details'), h('pre', error.stack)) : null));
+        technical ? h('details', h('summary', 'Technical details'), h('pre', technical)) : null));
     },
   };
 }
@@ -92,13 +119,17 @@ async function boot() {
     }
     ui.start('pack');
     await paint();
-    const pack = await services.unpack(await packSource());
+    const pack = await unpack(await packSource());
     mark('pack');
     ui.done('pack');
 
     ui.start('world');
     await paint();
-    services.init(pack);
+    try { services.init(pack); } catch (e) {
+      const error = withHint(new Error(`The world pack does not hold a Legion world (${e && e.message ? e.message : e}).`), 'Rebuild Legion.html with node tools/build.mjs.');
+      error.cause = e;
+      throw error;
+    }
     const world = services.world;
     world.raster();   // the ZIP raster, built now so the first click on the map answers at once
     mark('world');
@@ -185,7 +216,8 @@ function mount(world) {
     onChoose: item => {
       if (item.kind === 'npc') { bus.emit(EVENTS.NPC_SELECT, { id: item.id, source: 'search' }); return; }
       const s = scopeFromSearch(world, item);
-      if (s) bus.emit(EVENTS.PLACE_SELECT, { zi: s.kind === 'zip' ? s.zi : -1, kind: s.kind, key: s.key, source: 'search' });
+      // a one-ZIP place keeps the name it was found by ("Emeryville" is 94608, whose Census place is Oakland)
+      if (s) bus.emit(EVENTS.PLACE_SELECT, { zi: s.kind === 'zip' ? s.zi : -1, kind: s.kind, key: s.key, title: s.title, source: 'search' });
     },
   });
 
@@ -244,9 +276,9 @@ function mount(world) {
     } else stage.flyToPoint(home.x, home.y, 30);
   }
 
-  bus.on(EVENTS.PLACE_SELECT, ({ zi, kind, key, source } = {}) => {
+  bus.on(EVENTS.PLACE_SELECT, ({ zi, kind, key, title, source } = {}) => {
     let next = null;
-    if ((kind === 'zip' || !kind) && Number.isInteger(zi) && zi >= 0) next = zipScope(world, zi);
+    if ((kind === 'zip' || !kind) && Number.isInteger(zi) && zi >= 0) next = zipScope(world, zi, { title });
     else if (kind && key) next = scopeFromKey(world, kind, key);
     if (!next) { if (source === 'map') placePanel.close(); return; }
     showPlace(next, { fly: source !== 'map' });
@@ -331,16 +363,21 @@ function mount(world) {
     updateCounts();
   }
 
+  // Opened from the Legion server (node server/serve.mjs)? Its /api/health says where the Claude proxy lives and
+  // whether the server holds a key; without one the page keeps using the player's own key.
+  let proxyCheck = 0;
   async function detectProxy() {
-    if (!/^https?:$/.test(location.protocol) || !settings.values.network.claude) { settings.setProxyURL(''); return; }
+    const run = ++proxyCheck;
+    if (!/^https?:$/.test(location.protocol) || !settings.values.network.claude) { settings.setServer(null); return; }
+    let body = null;
     try {
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), 1500);
       const res = await fetch('/api/health', { signal: ctl.signal, cache: 'no-store' });
       clearTimeout(timer);
-      const body = res.ok && /json/.test(res.headers.get('content-type') || '') ? await res.json() : null;
-      settings.setProxyURL(body && typeof body === 'object' && body.claude !== false ? '/api/claude' : '');
-    } catch { settings.setProxyURL(''); }
+      body = res.ok && /json/.test(res.headers.get('content-type') || '') ? await res.json() : null;
+    } catch { body = null; }
+    if (run === proxyCheck) settings.setServer(serverFromHealth(body));   // a newer check wins
   }
 
   bus.on(EVENTS.SETTINGS_CHANGE, ({ changed }) => {
@@ -404,10 +441,10 @@ function mount(world) {
     requestAnimationFrame(frame);
   }
 
-  // ---- deep links: #zip=94110, #city=…, #county=06075, #region=ba, #npc=94110-12-0
+  // ---- deep links: #zip=94110, #place=Oakland, #city=… (a postal city), #county=06075, #region=ba, #npc=94110-12-0
   function openFromHash() {
     const p = new URLSearchParams(initialHash.slice(1));
-    for (const kind of ['zip', 'city', 'county', 'region']) {
+    for (const kind of ['zip', 'place', 'city', 'county', 'region']) {
       const key = p.get(kind);
       const s = key ? scopeFromKey(world, kind, key) : null;
       if (s) { showPlace(s); break; }

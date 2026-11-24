@@ -54,8 +54,17 @@ export function plural(n, one, many = one + 's') { return `${fmtInt(n)} ${n === 
 /** Capitalize the first letter. */
 export function capitalize(s) { s = String(s ?? ''); return s ? s[0].toUpperCase() + s.slice(1) : s; }
 
-/** 'small-apartment' or 'some_college' to 'Small apartment'. */
-export function humanize(key) { return capitalize(String(key ?? '').replace(/[-_]+/g, ' ').trim()); }
+/**
+ * A key as words: 'small-apartment' or 'some_college' to 'Small apartment'. A dash between two numbers is a
+ * range and stays one, as an en dash ('150-200k' to '150–200k', 'g1-4' to 'G1–4').
+ */
+export function humanize(key) {
+  return capitalize(String(key ?? '')
+    .replace(/(\d)-(?=\d)/g, '$1–')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim());
+}
 
 /** Look a key up in a label table, falling back to a humanized key. */
 export function label(table, key, fallback) {
@@ -210,14 +219,57 @@ export const ACS_COMMUTE = {
   bike: 'Bike', walk: 'Walk', other: 'Other', wfh: 'Worked from home',
 };
 
+/** Nativity (B05012). */
+export const NATIVITY = { native: 'Born in the US', foreign: 'Born abroad' };
+/** Employment status of people 16 and over (B23025). */
+export const EMPLOYMENT = { employed: 'Employed', unemployed: 'Unemployed', military: 'Armed forces', nilf: 'Not in the labor force' };
+/** Sex, as the population and the age table code it. */
+export const SEX = { M: 'Male', F: 'Female', m: 'Male', f: 'Female' };
+/** School enrollment of people 3 and over (B14001). */
+export const SCHOOL_ENROLLMENT = {
+  preschool: 'Preschool', kindergarten: 'Kindergarten', 'g1-4': 'Grades 1–4', 'g5-8': 'Grades 5–8', 'g9-12': 'Grades 9–12',
+  undergrad: 'College', grad: 'Graduate school', none: 'Not enrolled',
+};
+
+/** "<10k" → "Under $10k", "150-200k" → "$150k–200k", "200k+" → "$200k or more" (B19001 brackets). */
+export function incomeBracketLabel(key) {
+  const k = String(key ?? '');
+  let m;
+  if ((m = /^<\s*(\d+)k$/i.exec(k))) return `Under $${m[1]}k`;
+  if ((m = /^(\d+)-(\d+)k$/i.exec(k))) return `$${m[1]}k–${m[2]}k`;
+  if ((m = /^(\d+)k\+$/i.exec(k))) return `$${m[1]}k or more`;
+  return humanize(k);
+}
+
+/** "<5" → "Under 5 min", "30-34" → "30–34 min", "90+" → "90 min or more" (B08303 brackets). */
+export function commuteTimeLabel(key) {
+  const k = String(key ?? '');
+  let m;
+  if ((m = /^<\s*(\d+)$/.exec(k))) return `Under ${m[1]} min`;
+  if ((m = /^(\d+)-(\d+)$/.exec(k))) return `${m[1]}–${m[2]} min`;
+  if ((m = /^(\d+)\+$/.exec(k))) return `${m[1]} min or more`;
+  return humanize(k);
+}
+
+/** A vehicles-by-tenure key ("own0", "rent2", "own5+") → "Owners · no vehicle", "Renters · 2 vehicles", "Owners · 5 or more". */
+export function vehiclesLabel(key) {
+  const m = /^(own|rent)(\d+)(\+?)$/.exec(String(key ?? ''));
+  if (!m) return humanize(key);
+  const who = m[1] === 'own' ? 'Owners' : 'Renters', n = Number(m[2]);
+  const count = m[3] ? `${n} or more vehicles` : n === 0 ? 'no vehicle' : n === 1 ? '1 vehicle' : `${n} vehicles`;
+  return `${who} · ${count}`;
+}
+
 /** Words for the dimensions a fidelity check (pop.validate) may report. */
 export const FIDELITY_DIMENSION = {
   type: 'Household type', hht: 'Household type', size: 'Household size', hhsize: 'Household size', age: 'Age',
   sex: 'Sex', race: 'Race and ethnicity', heritage: 'Heritage', mode: 'Commute mode', comm: 'Commute mode',
-  ctime: 'Commute time', tenure: 'Tenure', own: 'Tenure', vehicles: 'Vehicles', veh: 'Vehicles', occ: 'Occupation',
-  occupation: 'Occupation', edu: 'Education', education: 'Education', hinc: 'Household income', income: 'Household income',
-  emp: 'Employment', workers: 'Employment', lang: 'Language at home', language: 'Language at home', mar: 'Marital status',
-  marital: 'Marital status', nat: 'Nativity', nativity: 'Nativity', school: 'School', sch: 'School', dwelling: 'Dwelling',
+  ctime: 'Commute time', tenure: 'Tenure', own: 'Tenure', vehicles: 'Vehicles', veh: 'Vehicles by tenure', occ: 'Occupation',
+  occupation: 'Occupation', occM: 'Occupation, men', occF: 'Occupation, women', edu: 'Education', education: 'Education',
+  hinc: 'Household income', income: 'Household income', emp: 'Employment', workers: 'Employment', lang: 'Language at home',
+  language: 'Language at home', lep: 'Limited English', mar: 'Marital status', marital: 'Marital status', nat: 'Nativity',
+  nativity: 'Nativity', school: 'School enrollment', sch: 'School enrollment', dwelling: 'Dwelling', hisp: 'Hispanic origin',
+  asian: 'Asian group', vet: 'Veterans',
 };
 
 /** A road from the population (a string or a world.roadsNear record) as "I-80". */

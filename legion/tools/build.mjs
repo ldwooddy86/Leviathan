@@ -17,8 +17,9 @@
 // browser those imports resolve to a stub module that throws if ever called, so no import() is left in the page.
 //
 // --check verifies: the title, description and viewport; that every script is inline and parses as a classic
-// script (no import or export statements, no import() or require left); the app bundle is there; the pack
-// decodes and loads in Node as far as the engine goes (World + Population); the worker source parses.
+// script (no import or export statements, no import() or require left); that nothing loads from outside the file
+// (no src or href to a URL, no CSS url() or @import beyond data: URIs); the app bundle is there; the pack decodes
+// and loads in Node as far as the engine goes (World + Population); the worker source parses and imports nothing.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -189,6 +190,85 @@ export function inlineScripts(html) {
   return out;
 }
 
+// A reference that stays inside the page: a data: or blob: URL, a fragment (#map, url(#grad)), or nothing.
+const INSIDE = /^\s*(?:$|#|data:|blob:|about:blank)/i;
+
+/** The URLs of a srcset, as the HTML spec splits it: a URL runs to whitespace (data: URLs hold commas). */
+function srcsetURLs(value) {
+  const s = String(value), out = [];
+  let i = 0;
+  while (i < s.length) {
+    while (i < s.length && /[\s,]/.test(s[i])) i++;
+    let j = i;
+    while (j < s.length && !/\s/.test(s[j])) j++;
+    let url = s.slice(i, j);
+    if (!url) break;
+    if (/,$/.test(url)) { out.push(url.replace(/,+$/, '')); i = j; continue; }   // "a.png, b.png": no descriptors
+    out.push(url);
+    while (j < s.length && s[j] !== ',') j++;   // skip the descriptors ("2x", "640w")
+    i = j + 1;
+  }
+  return out;
+}
+// Attributes whose URL the browser loads by itself (a link's href only loads when followed, so it is not one).
+const LOADING_ATTRS = new Set(['src', 'href', 'srcset', 'poster', 'data', 'background', 'manifest', 'imagesrcset']);
+
+/**
+ * What a page would load from outside itself: URLs in loading attributes (src, href except on a link, srcset,
+ * poster ...) and in CSS (url(), @import), in <style> blocks and style attributes. Script bodies are code, which
+ * importProblems checks. Returns problem strings (none for a self-contained page).
+ * @param {string} html
+ * @returns {string[]}
+ */
+export function externalResourceProblems(html) {
+  const problems = new Set();
+  const markup = html.replace(/(<script\b[^>]*>)[\s\S]*?(<\/script>)/gi, '$1$2');
+  const styles = [];
+  const bare = markup.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/gi, (m, open, css, close) => { styles.push(css); return open + close; });
+  const tagRe = /<([a-z][\w-]*)\b([^>]*)>/gi;
+  let t;
+  while ((t = tagRe.exec(bare))) {
+    const tag = t[1].toLowerCase();
+    const attrRe = /([^\s"'=<>/]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
+    let a;
+    while ((a = attrRe.exec(t[2]))) {
+      const name = a[1].toLowerCase(), value = a[2] ?? a[3] ?? a[4] ?? '';
+      if (name === 'style') { styles.push(value); continue; }
+      if (!LOADING_ATTRS.has(name) || ((tag === 'a' || tag === 'area') && name === 'href')) continue;
+      const urls = name.endsWith('srcset') ? srcsetURLs(value) : [value];
+      for (const u of urls) if (!INSIDE.test(u)) problems.add(`<${tag} ${name}="${u.slice(0, 80)}"> loads a resource from outside the page`);
+    }
+  }
+  for (const css of styles) {
+    let m;
+    const imported = new Set();
+    const importRe = /@import\s+(?:url\(\s*)?(["']?)([^"')\s;]+)\1/gi;
+    while ((m = importRe.exec(css))) { imported.add(m[2]); problems.add(`the CSS @imports ${m[2].slice(0, 80)}`); }
+    const urlRe = /url\(\s*(["']?)([^"')]*)\1\s*\)/gi;
+    while ((m = urlRe.exec(css))) if (!INSIDE.test(m[2]) && !imported.has(m[2])) problems.add(`the CSS loads ${m[2].slice(0, 80)} from outside the page`);
+  }
+  return [...problems];
+}
+
+/**
+ * import or require left in a script, as esbuild's parser sees it (strings and comments do not count), and, for a
+ * worker, importScripts calls. Returns problem strings.
+ * @param {string} code
+ * @param {string} name for the messages ("script 3", "the worker source")
+ * @param {{worker?: boolean}} [options]
+ */
+export async function importProblems(code, name, { worker = false } = {}) {
+  const problems = [];
+  const { build: esb } = await esbuild();
+  try {
+    const r = await esb({ stdin: { contents: code, loader: 'js', sourcefile: `${name.replace(/\W+/g, '-')}.js` }, bundle: true, write: false, metafile: true, platform: 'browser', format: 'iife', logLevel: 'silent', external: ['*'] });
+    const imports = Object.values(r.metafile.inputs).flatMap(x => x.imports || []);
+    if (imports.length) problems.push(`${name} still imports ${imports.map(i => `${i.path} (${i.kind})`).join(', ')}`);
+  } catch (e) { problems.push(`${name} could not be analyzed: ${e.message.split('\n')[0]}`); }
+  if (worker && /\bimportScripts\s*\(/.test(code)) problems.push(`${name} calls importScripts, which loads code from outside the page`);
+  return problems;
+}
+
 /**
  * Verify a built page. Returns {ok, problems, info}; never throws for a problem in the page.
  * @param {string} [file]
@@ -207,9 +287,10 @@ export async function check(file = OUT_FILE) {
   if (/<script\b[^>]*type="module"/i.test(html)) problems.push('a module script remains');
   if (/<link\b[^>]*rel="stylesheet"/i.test(html)) problems.push('an external stylesheet remains');
   if (!/<style>[\s\S]{1000,}<\/style>/i.test(html)) problems.push('the stylesheet is not inline');
+  // nothing may load from outside the file: no remote fonts, images or @imports (the page works offline)
+  problems.push(...externalResourceProblems(html));
 
   const scripts = inlineScripts(html);
-  const { build: esb } = await esbuild();
   let packB64 = null, workerSrc = null, app = null;
   for (const [k, s] of scripts.entries()) {
     const name = `script ${k + 1}`;
@@ -225,11 +306,7 @@ export async function check(file = OUT_FILE) {
     }
     if (s.code.length > 50000) app = s.code;
     // import() or require() left behind (strings do not count: this is the parser's view)
-    try {
-      const r = await esb({ stdin: { contents: s.code, loader: 'js', sourcefile: `${name}.js` }, bundle: true, write: false, metafile: true, platform: 'browser', format: 'iife', logLevel: 'silent', external: ['*'] });
-      const imports = Object.values(r.metafile.inputs).flatMap(x => x.imports || []);
-      if (imports.length) problems.push(`${name} still imports ${imports.map(i => `${i.path} (${i.kind})`).join(', ')}`);
-    } catch (e) { problems.push(`${name} could not be analyzed: ${e.message}`); }
+    problems.push(...await importProblems(s.code, name));
   }
   if (!app) problems.push('the app bundle is missing');
   else info.app = Buffer.byteLength(app);
@@ -254,10 +331,14 @@ export async function check(file = OUT_FILE) {
   }
 
   const workerFile = fs.existsSync(PATHS.worker);
-  info.worker = workerSrc ? Buffer.byteLength(workerSrc) : 0;
-  if (workerSrc) {
-    try { new vm.Script(workerSrc, { filename: 'crowd-worker.js' }); } catch (e) { problems.push(`the worker source does not parse: ${e.message}`); }
-  } else if (workerFile) problems.push('src/world/crowd-worker.mjs exists but the page has no window.__LEGION_WORKER_SRC__');
+  info.worker = typeof workerSrc === 'string' ? Buffer.byteLength(workerSrc) : 0;
+  if (typeof workerSrc === 'string') {
+    let parses = true;
+    try { new vm.Script(workerSrc, { filename: 'crowd-worker.js' }); } catch (e) { parses = false; problems.push(`the worker source does not parse: ${e.message}`); }
+    // the worker runs from a Blob URL: an import() or importScripts in it would reach for files that are not there
+    if (parses) problems.push(...await importProblems(workerSrc, 'the worker source', { worker: true }));
+  } else if (workerSrc !== null) problems.push('the worker script does not hold a string');
+  else if (workerFile) problems.push('src/world/crowd-worker.mjs exists but the page has no window.__LEGION_WORKER_SRC__');
 
   return { ok: problems.length === 0, problems, info };
 }

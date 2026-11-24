@@ -30,8 +30,44 @@ const BIG5 = [
   ['N', 'Neuroticism', 'Calm', 'Sensitive'],
 ];
 const NEEDS = ['energy', 'social', 'fun', 'comfort', 'money'];
-const STARTERS = ['How’s your day going?', 'What do you do for work?', 'How’s the weather treating you?', 'What’s traffic like around here?', 'Where should I eat around here?', 'What was the fire like?'];
 const DRIVING = new Set(['drive', 'carpool', 'motorcycle', 'taxi']);
+
+/** A fire as people name it: "Camp" is "the Camp Fire", "Btu Lightning Complex" keeps its own word; null if unnamed. */
+export function fireName(name) {
+  const n = String(name || '').trim();
+  if (!n || /^unnamed\b/i.test(n)) return null;
+  return /\b(fire|fires|complex|incident)$/i.test(n) ? `the ${n}` : `the ${n} Fire`;
+}
+
+/**
+ * Conversation starters for one NPC, each about something the pack holds for them (CONTRACTS section 3), so a
+ * starter never invites the dialogue engine or Claude to describe an event the data does not contain: work, school
+ * or the days by their status; the weather, or an NWS alert active in their ZIP right now; traffic, on their own
+ * highway when they drive one; food; and the most destructive fire that touched or came near their ZIP when the pack
+ * records one, else how long they have lived there.
+ * @param {object} world
+ * @param {object} npc a layer 1 NPC
+ * @param {{weather?: object|null}} [context] world.weatherAt for the NPC's ZIP at the simulated time
+ * @returns {string[]}
+ */
+export function startersFor(world, npc, { weather = null } = {}) {
+  const out = ['How’s your day going?'];
+  if (npc.occupation || npc.status === 'employed' || npc.status === 'military') out.push('What do you do for work?');
+  else if (npc.school || npc.status === 'student') out.push('How’s school going?');
+  else if (npc.status === 'retired') out.push('What keeps you busy these days?');
+  else out.push('What do you like to do around here?');
+  const alert = weather && Array.isArray(weather.alerts) ? weather.alerts.find(a => a && a.event) : null;
+  out.push(alert ? `Heard about the ${alert.event}?` : 'How’s the weather treating you?');
+  const c = npc.commute || {};
+  const road = DRIVING.has(c.mode) ? roadLabel(c.road) : null;
+  out.push(road ? `How’s traffic on ${road}?` : 'What’s traffic like around here?');
+  out.push('Where should I eat around here?');
+  const zi = Number.isInteger(npc.zi) ? npc.zi : world.indexOf(npc.zip);
+  let fire = null;
+  if (zi >= 0 && typeof world.firesOf === 'function') for (const f of world.firesOf(zi)) { fire = fireName(f.name); if (fire) break; }
+  out.push(fire ? `What was ${fire} like?` : 'How long have you lived here?');
+  return out;
+}
 
 /** "Rents in an apartment building", "Owns a house". */
 export function homePhrase(tenure, dwelling) {
@@ -102,6 +138,20 @@ function placeholder(iconName, title, text, extra) {
 }
 function chips(list) { return h('div.chip-row.static', list.map(x => h('span.chip', typeof x === 'string' ? x : (x.label || x.name || x.topic || JSON.stringify(x))))); }
 
+/** Copy text and say how it went: a success toast only when the copy really happened. */
+async function copyWithToast(text, done) {
+  const copied = await copyText(text);
+  toast(copied ? done : 'Copy failed: select the text and copy it yourself.', { kind: copied ? 'success' : 'error' });
+  return copied;
+}
+
+/** The size of text as a file (UTF-8 bytes, which is what Download writes), in words: "18,472 bytes", "1.2 MB". */
+export function byteSize(text) {
+  const n = new TextEncoder().encode(String(text ?? '')).length;
+  if (n < 100 * 1024) return `${fmtInt(n)} bytes`;
+  return n < 1048576 ? `${(n / 1024).toFixed(0)} KB` : `${(n / 1048576).toFixed(1)} MB`;
+}
+
 /** The NPC panel. */
 export class NpcPanel {
   /**
@@ -150,18 +200,27 @@ export class NpcPanel {
   open(id, { focus = false, tab } = {}) {
     const npc = this.services.npc(id);
     if (!npc) { toast(`No NPC has the id ${id}.`, { kind: 'error' }); return false; }
-    if (this.id && this.id !== npc.id) this._leave();
-    this.id = npc.id; this.npc = npc;
-    if (tab && NPC_TABS.some(t => t.key === tab)) this.tab = tab;
-    this.rendered.clear();
+    const wantTab = tab && NPC_TABS.some(t => t.key === tab) ? tab : null;
+    if (!this.el.hidden && npc.id === this.id) {
+      // the NPC already open (their row, their dot, their search result): keep the panel and the conversation
+      if (wantTab && wantTab !== this.tab) this.select(wantTab);
+      if (focus) this._focusName();
+      return true;
+    }
+    if (this.id && this.id !== npc.id) this._leave();   // reflect and save the conversation with the one before
     this.talk = null;
+    this.id = npc.id; this.npc = npc;
+    if (wantTab) this.tab = wantTab;
+    this.rendered.clear();
     this._renderHead();
     this.refreshNow(this.getTime());
     this.el.hidden = false;
     this.select(this.tab, { focusTab: false });
-    if (focus) { const n = this.head.querySelector('#npc-name'); if (n) n.focus(); }
+    if (focus) this._focusName();
     return true;
   }
+
+  _focusName() { const n = this.head.querySelector('#npc-name'); if (n) n.focus(); }
 
   /** Hide the panel (a Claude conversation is reflected into the NPC's memory first). */
   close() {
@@ -169,6 +228,7 @@ export class NpcPanel {
     this._leave();
     this.el.hidden = true;
     this.id = null; this.npc = null;
+    this.talk = null;   // reflected and saved by _leave(): a new visit starts a new conversation
     if (this.deps.onClose) this.deps.onClose();
   }
 
@@ -420,10 +480,14 @@ export class NpcPanel {
       root.append(h('p.talk-note', 'Offline engine: no network. Claude joins once the Claude bridge is wired.'));
     }
 
+    // three voices in the log: the player, the NPC, and Legion itself (errors, Claude declining), which is never
+    // dressed as the NPC: screen readers hear "Legion:", not the character's name
+    const firstName = displayName(this.npc.name).split(' ')[0];
     const bubble = line => {
-      const who = line.who === 'player' ? 'You' : displayName(this.npc.name).split(' ')[0];
+      const who = line.who === 'player' ? 'You' : line.who === 'system' ? 'Legion' : firstName;
       const el = h('div.bubble', { class: `from-${line.who}${line.error ? ' is-error' : ''}` },
         h('span.sr-only', `${who}: `),
+        line.who === 'system' ? icon('alert', { size: 14 }) : null,
         h('p.bubble-text', line.text || ''),
         line.gloss ? h('p.bubble-gloss', `[${line.gloss}]`) : null,
         line.meta ? h('p.bubble-meta', line.meta) : null);
@@ -433,12 +497,17 @@ export class NpcPanel {
     };
     for (const line of t.lines) bubble(line);
 
-    const addNpcLine = (line, extra = {}) => {
+    const addNpcLine = line => {
       if (!line) return;
       const meta = [line.emotion, line.intent && line.intent !== 'unknown' ? line.intent : null].filter(Boolean).join(' · ');
-      const entry = { who: 'npc', text: line.text, gloss: line.gloss, meta, ...extra };
+      const entry = { who: 'npc', text: line.text, gloss: line.gloss, meta };
       t.lines.push(entry);
       bubble(entry);
+    };
+    const systemLine = text => {
+      const entry = { who: 'system', text: String(text || 'Something went wrong.'), error: true };
+      t.lines.push(entry);
+      return bubble(entry);
     };
 
     const ensureConv = () => {
@@ -461,33 +530,41 @@ export class NpcPanel {
       input.value = '';
       if (t.engine === 'offline') {
         if (!ensureConv()) return;
-        try { addNpcLine(t.conv.reply(text)); this.services.saveMind(this.id); } catch (e) { addNpcLine({ text: `(${e.message || e})` }, { error: true }); }
+        try { addNpcLine(t.conv.reply(text)); this.services.saveMind(this.id); } catch (e) { systemLine(`The dialogue engine failed: ${e && e.message ? e.message : e}`); }
         return;
       }
-      await this._claudeTurn(t, text, bubble, status, send);
+      await this._claudeTurn(t, text, { bubble, systemLine, status, send });
     };
 
     form.addEventListener('submit', e => { e.preventDefault(); sendText(input.value); });
     input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendText(input.value); } });
     input.addEventListener('input', () => { input.style.height = 'auto'; input.style.height = `${Math.min(120, input.scrollHeight)}px`; });
 
-    const starters = h('div.chip-row.starters', { 'aria-label': 'Conversation starters' }, STARTERS.map(s => h('button.chip', { type: 'button', on: { click: () => sendText(s) } }, s)));
+    const prompts = startersFor(this.world, this.npc, { weather: this.services.weather(this.npc.zi, this.getTime()) });
+    const starters = h('div.chip-row.starters', { 'aria-label': 'Conversation starters' }, prompts.map(s => h('button.chip', { type: 'button', on: { click: () => sendText(s) } }, s)));
     const goodbye = t.engine === 'offline' ? h('button.btn.ghost.small', { type: 'button', on: { click: () => { if (ensureConv() && typeof t.conv.farewell === 'function') { try { addNpcLine(t.conv.farewell()); this.services.saveMind(this.id); } catch (e) { status.textContent = String(e.message || e); } } } } }, 'Say goodbye') : null;
     root.append(log, starters, form, h('div.talk-foot', status, goodbye));
     return root;
   }
 
-  async _claudeTurn(t, text, bubble, status, send) {
+  /**
+   * One Claude turn: stream the NPC's reply into a bubble. What Legion itself has to say (Claude not allowed or not
+   * set up, a refusal, a failed request) goes in a system line, never in the NPC's voice; a reply cut off by an
+   * error keeps what the NPC had said.
+   */
+  async _claudeTurn(t, text, { bubble, systemLine, status, send }) {
     const v = this.services.voice(this.settings.get());
-    if (!v.ok) { const entry = { who: 'npc', text: v.message, error: true }; t.lines.push(entry); bubble(entry); return; }
+    if (!v.ok) { systemLine(v.message); return; }
     const p = this.services.persona(this.id);
-    if (!p.ok) { const entry = { who: 'npc', text: p.message, error: true }; t.lines.push(entry); bubble(entry); return; }
+    if (!p.ok) { systemLine(p.message); return; }
     const m = this.services.mind(this.id, { t: this.getTime() });
     const entry = { who: 'npc', text: '' };
     t.lines.push(entry);
     const el = bubble(entry);
     el.classList.add('is-streaming');
     const textEl = el.querySelector('.bubble-text');
+    // the streaming bubble belongs to the NPC only once they say something; otherwise it gives way to a system line
+    const dropEmpty = () => { if (entry.text) return; el.remove(); const k = t.lines.indexOf(entry); if (k >= 0) t.lines.splice(k, 1); };
     t.busy = true; send.disabled = true; status.textContent = 'Claude is answering…';
     let acc = '';
     const time = this.getTime();
@@ -501,27 +578,32 @@ export class NpcPanel {
         activity: activity.ok ? activity.value : undefined,
         onText: (delta, soFar) => {
           acc = typeof soFar === 'string' ? soFar : acc + String(delta ?? '');
+          entry.text = acc;
           textEl.textContent = acc;
         },
       });
       const refused = !!(result && (result.refusal || result.stopReason === 'refusal'));
       const reply = result && typeof result.text === 'string' ? result.text : acc;
+      el.classList.remove('is-streaming');
       if (refused || !reply) {
-        entry.text = refused ? 'Claude declined to answer that. Try another topic.' : 'No reply came back.';
-        entry.error = true; el.classList.add('is-error'); textEl.textContent = entry.text;
+        entry.text = '';
+        dropEmpty();
+        systemLine(refused ? 'Claude declined to answer that. Try another topic.' : 'No reply came back from Claude.');
       } else {
         entry.text = reply; textEl.textContent = reply;
         // a voice that does not record the exchange itself: keep the history here
         if (t.history.length === before) t.history.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
         t.claudeTurns = (t.claudeTurns || 0) + 1;
         this.services.saveMind(this.id);
+        entry.meta = [result && result.model ? `${result.model}${result.fallback ? ' (fallback)' : ''}` : null, result && result.truncated ? 'cut short at the length limit' : null].filter(Boolean).join(' · ');
+        if (entry.meta) el.append(h('p.bubble-meta', entry.meta));
       }
-      entry.meta = [result && result.model ? `${result.model}${result.fallback ? ' (fallback)' : ''}` : null, result && result.truncated ? 'cut short at the length limit' : null].filter(Boolean).join(' · ');
-      if (entry.meta) el.append(h('p.bubble-meta', entry.meta));
       status.textContent = '';
     } catch (e) {
-      entry.text = e && e.message ? e.message : String(e); entry.error = true;
-      textEl.textContent = entry.text; el.classList.add('is-error');
+      el.classList.remove('is-streaming');
+      if (entry.text) { entry.meta = 'cut off'; el.append(h('p.bubble-meta', entry.meta)); }
+      dropEmpty();
+      systemLine(e && e.message ? e.message : String(e));
       status.textContent = '';
     } finally {
       el.classList.remove('is-streaming');
@@ -554,7 +636,7 @@ export class NpcPanel {
     const names = ['Platform rules · shared by every NPC', 'Persona sheet · cached per NPC'];
     return h('div.prompt',
       h('div.btn-row',
-        h('button.btn.small', { type: 'button', on: { click: async () => toast(await copyText(text) ? 'Prompt copied' : 'Copy failed', { kind: 'success' }) } }, icon('copy', { size: 15 }), 'Copy'),
+        h('button.btn.small', { type: 'button', on: { click: () => copyWithToast(text, 'Prompt copied') } }, icon('copy', { size: 15 }), 'Copy'),
         h('span.muted.small', `${fmtInt(text.length)} characters · ${blocks.length} block${blocks.length === 1 ? '' : 's'}`)),
       blocks.map((b, k) => h('section.prompt-block',
         h('h3', names[k] || `Block ${k + 1}`, b.cache_control ? h('span.ranked-tag', 'cached') : null),
@@ -573,10 +655,10 @@ export class NpcPanel {
     const ex = this.services.exportPersona(this.id, this.settings.get());
     return h('div.json',
       h('div.btn-row',
-        h('button.btn.small', { type: 'button', on: { click: async () => toast(await copyText(text) ? 'JSON copied' : 'Copy failed', { kind: 'success' }) } }, icon('copy', { size: 15 }), 'Copy'),
+        h('button.btn.small', { type: 'button', on: { click: () => copyWithToast(text, 'JSON copied') } }, icon('copy', { size: 15 }), 'Copy'),
         h('button.btn.small', { type: 'button', on: { click: () => downloadText(`${this.id}.json`, text) } }, icon('download', { size: 15 }), 'Download'),
         ex.ok ? h('button.btn.small', { type: 'button', on: { click: () => downloadText(`${this.id}.persona.json`, safeJSON(ex.value, 2)) } }, icon('download', { size: 15 }), 'Game-engine export') : null,
-        h('span.muted.small', `${fmtInt(text.length)} bytes`)),
+        h('span.muted.small.json-size', byteSize(text))),
       h('pre.code.json-code', { tabindex: '0', 'aria-label': 'NPC record as JSON' }, text));
   }
 }

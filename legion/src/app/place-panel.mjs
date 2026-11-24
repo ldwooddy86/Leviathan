@@ -7,11 +7,15 @@
 import { EVENTS } from './bus.mjs';
 import { h, icon, clear } from './dom.mjs';
 import { fmtInt, fmtMoney, fmtPct, fmtCompact, displayName, initials, label, capitalize, STATUS, OCCUPATION_GROUP } from './format.mjs';
-import { placeStats } from './census.mjs';
+import { placeStats, fidelityValueText } from './census.mjs';
 import { rankedBars, segmentedBar, pairedBars, pairedLegend } from './charts.mjs';
 
-const KIND_WORD = { zip: 'ZIP code', city: 'City', county: 'County', region: 'Region' };
+const KIND_WORD = { zip: 'ZIP code', place: 'City', city: 'Postal city', county: 'County', region: 'Region' };
 const idle = fn => (typeof requestIdleCallback === 'function' ? requestIdleCallback(fn, { timeout: 600 }) : setTimeout(fn, 60));
+/** Households the fidelity check generates per ZIP (fewer when the ZIP has fewer). */
+const FIDELITY_HOUSEHOLDS = 600;
+/** Below this many households the comparison is noisy, and the panel says so. */
+const SMALL_SAMPLE = 100;
 
 /** One line about a resident for the list: occupation, school or status. */
 export function residentLine(npc) {
@@ -71,7 +75,7 @@ export class PlacePanel {
     const zi = scope.kind === 'zip' ? scope.zi : this._mainZip(scope);
     clear(this.head).append(
       h('div.panel-title-block',
-        h('div.eyebrow', KIND_WORD[scope.kind] || 'Place'),
+        h('div.eyebrow', scope.eyebrow || KIND_WORD[scope.kind] || 'Place'),
         h('h2.panel-title#place-title', scope.title),
         h('p.panel-sub', scope.subtitle)),
       h('div.head-actions',
@@ -176,16 +180,38 @@ export class PlacePanel {
   }
 
   _renderFidelity(zi, token) {
-    const result = this.services.validate(zi, 600);
+    const result = this.services.validate(zi, FIDELITY_HOUSEHOLDS);
     if (!result || token !== this._token) return;
-    const shareTables = result.tables.filter(t => t.kind === 'shares').length;
+    const values = result.tables.filter(t => t.kind === 'value');
+    const featured = result.tables.filter(t => t.kind === 'shares' && t.featured);
+    const rest = result.tables.filter(t => t.kind === 'shares' && !t.featured);
+    const n = result.households;
+    const counted = [`${fmtInt(n)} household${n === 1 ? '' : 's'}`, Number.isFinite(result.persons) ? `${fmtInt(result.persons)} people` : null].filter(Boolean).join(' · ');
+    const gqShare = result.gq ? result.gq.share : 0;
     clear(this._fidelitySlot).append(h('section.p-section.fidelity',
-      h('div.section-head', h('h3', 'Census versus generated'), h('span.section-note', `${fmtInt(result.households)} households`)),
+      h('div.section-head', h('h3', 'Census versus generated'), h('span.section-note', counted)),
+      n < SMALL_SAMPLE ? h('p.fid-caveat', { role: 'note' }, icon('info', { size: 14 }), h('span', `Only ${n === 1 ? 'one household lives' : `${fmtInt(n)} households live`} here, so the generated shares swing widely from the Census ones.`)) : null,
+      gqShare >= 0.02 ? h('p.fid-caveat', { role: 'note' }, icon('info', { size: 14 }), h('span', `About ${fmtInt(result.gq.persons)} people here (${fmtPct(gqShare * 100)}) live in group quarters such as dorms, barracks, prisons and nursing homes. Households do not include them, so the Census ages and school shares count people the generated ones leave out.`)) : null,
       pairedLegend(),
-      result.tables.map(t => t.kind === 'value'
-        ? h('div.fid-value', h('span', t.label), h('span.mono', `${round(t.acs)} · ${round(t.gen)}`))
-        : h('div.fid-table', h('h4', t.label, h('span.fid-gap', `mean gap ${t.meanGap.toFixed(1)} pts`)), pairedBars(t.rows, { ariaLabel: `${t.label}: Census versus generated` }))),
-      shareTables ? h('p.fine', 'Generated from the same seed the crowd uses; every NPC on the map comes from these households.') : null));
+      values.length ? h('div.fid-figures', { role: 'table', 'aria-label': 'Key figures, Census versus generated' },
+        h('div.fid-fig.fid-fig-head', { role: 'row' }, h('span', { role: 'columnheader' }, ''), h('span', { role: 'columnheader' }, 'Census'), h('span', { role: 'columnheader' }, 'Generated')),
+        values.map(t => h('div.fid-fig', { role: 'row' },
+          h('span.fid-fig-label', { role: 'rowheader' }, t.label),
+          h('span.mono', { role: 'cell' }, fidelityValueText(t.acs, t.format)),
+          h('span.mono', { role: 'cell' }, fidelityValueText(t.gen, t.format))))) : null,
+      featured.map(t => this._fidelityTable(t)),
+      rest.length ? h('details.fid-more',
+        h('summary', `${rest.length} more table${rest.length === 1 ? '' : 's'}`, h('span.fid-more-list', rest.map(t => t.label).join(', '))),
+        rest.map(t => this._fidelityTable(t))) : null,
+      h('p.fine', 'Generated from the same seed the crowd uses; every NPC on the map comes from these households.')));
+  }
+
+  _fidelityTable(t) {
+    return h('div.fid-table', { dataset: { dim: t.key } },
+      h('div.fid-head', h('h4', t.label), h('span.fid-gap', { title: 'Mean absolute difference across the rows, in percentage points' }, `gap ${t.meanGap.toFixed(1)} pts`)),
+      t.note ? h('p.fid-note', t.note) : null,
+      pairedBars(t.rows, { ariaLabel: `${t.label}: Census versus generated` }),
+      t.more ? h('p.fid-note', `and ${t.more} smaller group${t.more === 1 ? '' : 's'}`) : null);
   }
 
   _zipChips(scope) {
@@ -205,4 +231,3 @@ export class PlacePanel {
   }
 }
 
-function round(v) { return Math.abs(v) >= 100 ? Math.round(v).toString() : (+v.toFixed(2)).toString(); }

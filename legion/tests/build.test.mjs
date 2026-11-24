@@ -1,6 +1,8 @@
-// Legion · tests for the app module: the single-file build (tools/build.mjs) and the app's engine-facing code
-// (the bus, the Census statistics behind the Place panel, settings, and the services registry in both states:
-// modules missing, and modules wired). The page itself is exercised end to end by tests/e2e/run.mjs.
+// Legion · tests for the app module: the single-file build (tools/build.mjs, its --check), and the app's
+// engine-facing code: the bus, the Census statistics and the Census-versus-generated tables behind the Place panel,
+// search and its scopes, settings and the Legion server's Claude proxy, the Talk tab's starters, and the services
+// registry in both states (modules missing, and modules wired). The page itself is exercised end to end by
+// tests/e2e/run.mjs.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,13 +11,18 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
-import { build, check, bundle, inlineScripts, scriptSafe, jsString, OUT_FILE, PATHS } from '../tools/build.mjs';
+import { build, check, bundle, inlineScripts, scriptSafe, jsString, externalResourceProblems, importProblems, OUT_FILE, PATHS } from '../tools/build.mjs';
 import { loadDefaultWorld } from '../src/engine/world.mjs';
 import { Population } from '../src/engine/population.mjs';
 import { createBus } from '../src/app/bus.mjs';
-import { zipScope, cityScope, countyScope, regionScope, scopeFromKey, scopeBBox, placeStats, residentsOf, fidelityTables, COMMUTE_GROUPS } from '../src/app/census.mjs';
-import { normalizeSettings, DEFAULT_SETTINGS, DENSITIES } from '../src/app/settings.mjs';
-import { daysLabel, fmtPct, fmtMoney, displayName, roadLabel } from '../src/app/format.mjs';
+import {
+  zipScope, cityScope, placeScope, countyScope, regionScope, scopeFromKey, scopeFromSearch, scopeBBox, placeStats, residentsOf,
+  fidelityTables, fidelityValueText, COMMUTE_GROUPS,
+} from '../src/app/census.mjs';
+import { normalizeSettings, serverFromHealth, claudeStatus, Settings, DEFAULT_SETTINGS, DENSITIES, DEFAULT_PROXY_PATH } from '../src/app/settings.mjs';
+import { daysLabel, fmtPct, fmtMoney, displayName, roadLabel, humanize, incomeBracketLabel, commuteTimeLabel, vehiclesLabel } from '../src/app/format.mjs';
+import { searchItems, normalizeQuery } from '../src/app/search.mjs';
+import { startersFor, fireName, byteSize } from '../src/app/npc-panel.mjs';
 
 const sha = buf => crypto.createHash('sha256').update(buf).digest('hex');
 const scratch = () => fs.mkdtempSync(path.join(process.env.LEGION_SCRATCH || os.tmpdir(), 'legion-build-'));
@@ -206,11 +213,13 @@ test('fidelity tables accept fractions, percents and counts, and nothing when th
   const by = Object.fromEntries(t.map(x => [x.key, x]));
   assert.equal(by.tenure.rows.find(r => r.key === 'own').acs, 40);
   assert.equal(by.tenure.rows.find(r => r.key === 'own').gen, 45);
-  assert.equal(by.tenure.rows.find(r => r.key === 'own').label, 'Owns');
+  assert.equal(by.tenure.rows.find(r => r.key === 'own').label, 'Owners');
   assert.equal(by.race.rows.find(r => r.key === 'white').gen, 72);
   assert.ok(Math.abs(by.mode.rows.find(r => r.key === 'drove').acs - 60) < 1e-9);
   assert.ok(Math.abs(by.tenure.meanGap - 5) < 1e-9);
   assert.deepEqual([by.hhsize.kind, by.hhsize.acs, by.hhsize.gen], ['value', 2.9, 2.8]);
+  assert.equal(by.mode.rows.find(r => r.key === 'drove').label, 'Drove alone', 'an alias dimension uses its view');
+  assert.ok(by.tenure.featured && by.mode.featured);
 });
 
 test('settings normalize to valid values and keep the defaults safe', () => {
@@ -262,7 +271,7 @@ test('services: modules that are not wired yet answer with a clear result, never
     assert.equal(r.reason, 'missing', name);
     assert.match(r.message, /next build/, name);
   }
-  assert.deepEqual(svc.status().map(m => m.available), [false, false, false, false, false, false]);
+  assert.deepEqual(svc.status().map(m => [m.key, m.available]), [['persona', false], ['mind', false], ['schedule', false], ['dialogue', false], ['llm', false], ['street', false], ['weather', false]]);
   assert.deepEqual(svc.models().map(m => m.id), ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-fable-5-2']);
   assert.deepEqual(svc.efforts(), ['low', 'medium', 'high']);
   assert.equal(mod.npcIdFrom(world, (world.indexOf('94110') << 20) | (123 << 4) | 2), '94110-123-2');
@@ -320,7 +329,7 @@ test('services: wiring a module lights up its hooks (fake modules with the contr
   const r = await svc.reflect(id, [{ role: 'user', content: 'Foggy, huh?' }], { claude: { apiKey: 'sk-ant-x' }, network: { claude: true } });
   assert.ok(r.ok);
   assert.equal(store.get(id).memory.at(-1).text, 'We talked about the fog.');
-  assert.ok(svc.status().every(x => x.available));
+  assert.ok(svc.status().filter(x => x.key !== 'weather').every(x => x.available), 'the six engine modules are wired');
 });
 
 test('services: a Claude reflection lands in the mind through its public methods', async t => {
@@ -337,4 +346,305 @@ test('services: a Claude reflection lands in the mind through its public methods
   assert.ok(Math.abs(rel.trust - -0.1) < 1e-12);
   assert.deepEqual(rel.facts.map(f => f.text), ['works at the port', 'has a dog named Lu'], 'a known fact is not added twice');
   assert.doesNotThrow(() => mod.applyReflection({}, { summary: 'x' }, 0), 'a mind without the methods is left alone');
+});
+
+// ------------------------------------------------------------------ review fixes: the Place panel's fidelity tables
+
+test('fidelity: every table pop.validate reports reads in words, ordinal tables in order, six featured', () => {
+  const pop = new Population(world);
+  const raw = pop.validate(world.indexOf('94110'), 600);
+  const tables = fidelityTables(raw);
+  const shares = tables.filter(t => t.kind === 'shares');
+  const by = Object.fromEntries(shares.map(t => [t.key, t]));
+  // every Census block validate returns becomes a table (heritage has no Census side)
+  for (const dim of Object.keys(raw.acs)) assert.ok(by[dim], `${dim} is drawn`);
+  // headings and rows are words, never the population's keys
+  const rawKey = /^(?:[mf]\d|[mf]<|[mf]_|own\d|rent\d|<\d|\d+-\d+k?$|\d+k\+$|[a-z]+_lep$)|\b(?:Hisp|Lep|OccM|OccF|Vet|Nilf|Southam|Puertorican|Otherasian)\b|\d \d/;
+  for (const t of shares) {
+    assert.doesNotMatch(t.label, rawKey, `heading ${t.label}`);
+    assert.ok(t.note && t.note.length > 8, `${t.key} says what its shares are of`);
+    for (const r of t.rows) assert.doesNotMatch(r.label, rawKey, `${t.key} row ${r.label}`);
+  }
+  assert.equal(by.hisp.label, 'Hispanic origin');
+  assert.equal(by.asian.label, 'Asian group');
+  assert.equal(by.occM.label, 'Occupation, men');
+  assert.equal(by.occF.label, 'Occupation, women');
+  assert.equal(by.lep.label, 'Limited English');
+  assert.ok(by.hisp.rows.some(r => r.label === 'Salvadoran'));
+  assert.ok(by.emp.rows.some(r => r.label === 'Not in the labor force'));
+  assert.ok(by.lep.rows.some(r => r.label === 'Spanish'));
+  // ordinal tables keep their own order and show every row
+  assert.deepEqual(by.age.rows.map(r => r.label), ['Under 18', '18–24', '25–34', '35–44', '45–54', '55–64', '65–74', '75 and over']);
+  assert.deepEqual(by.hinc.rows.map(r => r.label), ['Under $25k', '$25k–50k', '$50k–75k', '$75k–100k', '$100k–150k', '$150k–200k', '$200k or more']);
+  assert.equal(by.ctime.rows[0].label, 'Under 5 min');
+  assert.ok(by.ctime.rows.some(r => r.label === '30–34 min'));
+  assert.equal(by.ctime.rows.at(-1).label, '90 min or more');
+  assert.deepEqual(by.veh.rows.slice(0, 3).map(r => r.label), ['Owners · no vehicle', 'Owners · 1 vehicle', 'Owners · 2 vehicles']);
+  assert.equal(by.veh.rows.at(-1).label, 'Renters · 5 or more vehicles');
+  assert.equal(by.edu.rows[0].label, 'No high school diploma');
+  assert.ok(!by.sch.rows.some(r => r.key === 'none'), 'not enrolled is the remainder, not a row');
+  assert.ok(by.vet.rows.every(r => /^Ages /.test(r.label)));
+  // grouped rows still add up: age bands are the whole age table
+  const ageSum = by.age.rows.reduce((a, r) => a + r.acs, 0);
+  assert.ok(Math.abs(ageSum - 100) < 1e-6, `age sums to ${ageSum}`);
+  // marital status merges the sexes into six statuses
+  assert.equal(new Set(by.mar.rows.map(r => r.label)).size, by.mar.rows.length);
+  assert.ok(by.mar.rows.length <= 6);
+  // the featured six lead, in the panel's order; the rest fold away
+  assert.deepEqual(shares.filter(t => t.featured).map(t => t.key), ['hht', 'tenure', 'race', 'lang', 'comm', 'edu']);
+  assert.ok(shares.findIndex(t => !t.featured) > shares.findLastIndex(t => t.featured));
+  // the scalar pairs become key figures; shares print as percents
+  const values = Object.fromEntries(tables.filter(t => t.kind === 'value').map(t => [t.key, t]));
+  assert.deepEqual(Object.keys(values), ['hhsize', 'medianAge', 'under18', 'over65', 'foreign', 'own']);
+  assert.equal(values.own.label, 'Owners');
+  assert.ok(Math.abs(values.own.acs - world.z.own_sh[world.indexOf('94110')]) < 0.01, 'owner share in percent');
+  assert.equal(fidelityValueText(values.hhsize.acs, values.hhsize.format), String(raw.scalars.hhsize.acs));
+  assert.match(fidelityValueText(values.foreign.gen, 'share'), /^\d+(\.\d)?%$/);
+  assert.equal(fidelityValueText(39.21, 'years'), '39.2');
+});
+
+test('humanize keeps number ranges; bracket keys read as words', () => {
+  assert.equal(humanize('150-200k'), '150–200k');
+  assert.equal(humanize('small-apartment'), 'Small apartment');
+  assert.equal(humanize('some_college'), 'Some college');
+  assert.equal(humanize('g1-4'), 'G1–4');
+  assert.equal(incomeBracketLabel('<10k'), 'Under $10k');
+  assert.equal(incomeBracketLabel('150-200k'), '$150k–200k');
+  assert.equal(incomeBracketLabel('200k+'), '$200k or more');
+  assert.equal(commuteTimeLabel('30-34'), '30–34 min');
+  assert.equal(commuteTimeLabel('<5'), 'Under 5 min');
+  assert.equal(vehiclesLabel('own2'), 'Owners · 2 vehicles');
+  assert.equal(vehiclesLabel('rent0'), 'Renters · no vehicle');
+  assert.equal(vehiclesLabel('own5+'), 'Owners · 5 or more vehicles');
+});
+
+test('services.validate reports the households actually compared, and caches', async t => {
+  const mod = await servicesModule(t);
+  if (!mod) return;
+  // the real population: Bodega (94922) has 3 households, so 3 are compared, not the 600 asked for
+  const svc = mod.createServices();
+  svc.init(world);
+  const zi = world.indexOf('94922');
+  const r = svc.validate(zi, 600);
+  assert.ok(r, 'tables for Bodega');
+  assert.equal(r.households, world.z.hh[zi]);
+  assert.ok(r.households < 600);
+  assert.ok(r.persons >= r.households);
+  assert.equal(svc.validate(zi, 600), r, 'cached');
+  // a population that reports no count: the smaller of the sample and the ZIP's households
+  let calls = 0;
+  class FakePopulation extends Population { validate() { calls++; return { generated: { tenure: { own: 0.4, rent: 0.6 } }, acs: { tenure: { own: 0.5, rent: 0.5 } } }; } }
+  const fake = mod.createServices({ PopulationClass: FakePopulation });
+  fake.init(world);
+  assert.equal(fake.validate(zi, 600).households, Math.min(600, world.z.hh[zi]));
+  const big = world.indexOf('94110');
+  assert.equal(fake.validate(big, 600).households, 600);
+  assert.equal(calls, 2);
+  assert.equal(fake.validate(big, 600).gq, null);
+});
+
+// ------------------------------------------------------------------ review fixes: search and scopes
+
+test('search: each scope once, counties by name, places open their own ZIPs', () => {
+  const pop = new Population(world);
+  const items = q => searchItems(world, pop, q);
+  const scopeOf = it => scopeFromSearch(world, it);
+  for (const q of ['Sacramento', 'Los Angeles', 'San', 'Oakland', 'Orange', 'Bay', 'Santa']) {
+    const list = items(q);
+    const ids = list.map(it => scopeOf(it).zis.join(','));
+    assert.equal(new Set(ids).size, ids.length, `${q}: every row opens a different set of ZIPs`);
+    assert.equal(new Set(list.map(it => `${it.kind}:${it.label}`)).size, list.length, `${q}: no duplicate rows`);
+  }
+  // a trailing "County" finds the county (case-insensitive)
+  for (const name of ['Los Angeles', 'Sacramento', 'Alameda']) {
+    for (const q of [`${name} County`, `${name.toLowerCase()} county`]) {
+      const list = items(q);
+      assert.equal(list[0] && list[0].kind, 'county', q);
+      assert.equal(scopeOf(list[0]).title, `${name} County`);
+    }
+  }
+  // a city name offers its city first, then its county
+  const sac = items('Sacramento');
+  assert.deepEqual(sac.slice(0, 3).map(it => [it.kind, it.label]), [['place', 'Sacramento'], ['city', 'Sacramento'], ['county', 'Sacramento County']]);
+  assert.equal(sac[0].tag, 'City');
+  assert.equal(sac[1].tag, 'Postal city');
+  const sacPlace = scopeOf(sac[0]), sacPostal = scopeOf(sac[1]);
+  assert.ok(sacPlace.zis.every(i => world.z.place[i] === 'Sacramento'));
+  assert.ok(sacPostal.zis.every(i => world.z.city[i] === 'Sacramento'));
+  assert.notEqual(sacPlace.zis.length, sacPostal.zis.length);
+  // a match on the Census place opens the place, never the postal city of the ZIP that matched
+  const oakland = items('Oakland');
+  assert.ok(!oakland.some(it => it.label === 'Emeryville' || it.label === 'Berkeley'), oakland.map(it => it.label).join(', '));
+  assert.ok(scopeOf(oakland[0]).zis.every(i => world.z.place[i] === 'Oakland'));
+  const eastLA = items('East Los');
+  assert.equal(eastLA[0].label, 'East Los Angeles');
+  assert.equal(eastLA[0].tag, 'Community');
+  assert.deepEqual(scopeOf(eastLA[0]).zis.map(i => world.zips[i]).sort(), ['90022', '90063']);
+  // a short prefix reaches the biggest cities and keeps a county on the list
+  const san = items('San').map(it => it.label);
+  for (const city of ['San Diego', 'San Jose', 'San Francisco']) assert.ok(san.includes(city), `${city} in ${san.join(', ')}`);
+  assert.ok(items('San').some(it => it.kind === 'county'));
+  // a one-ZIP postal city keeps the name it was found by
+  const emery = items('Emeryville')[0];
+  const s = scopeOf(emery);
+  assert.deepEqual([s.kind, s.key, s.title], ['zip', '94608', 'Emeryville']);
+  assert.equal(zipScope(world, world.indexOf('94608')).title, world.z.place[world.indexOf('94608')]);
+  // ZIP prefixes and NPC ids still work
+  assert.equal(items('94110')[0].kind, 'zip');
+  const npc = pop.sample(world.indexOf('94110'), 1, 1)[0];
+  assert.deepEqual(items(npc.id).map(it => [it.kind, it.id]), [['npc', npc.id]]);
+  assert.deepEqual(items('zzzz'), []);
+  assert.deepEqual(normalizeQuery('  San Diego,  CA '), { q: 'san diego', county: false });
+  assert.deepEqual(normalizeQuery('Orange County'), { q: 'orange', county: true });
+});
+
+test('scopes: Census places, postal cities and deep links', () => {
+  const la = placeScope(world, 'los angeles');
+  assert.equal(la.kind, 'place');
+  assert.equal(la.title, 'Los Angeles');
+  assert.equal(la.eyebrow, 'City');
+  assert.ok(la.zis.length > cityScope(world, 'Los Angeles').zis.length, 'the city of LA has more ZIPs than mail to "Los Angeles"');
+  assert.equal(cityScope(world, 'Los Angeles').eyebrow, 'Postal city');
+  assert.deepEqual(scopeFromKey(world, 'place', 'Oakland').zis, placeScope(world, 'Oakland').zis);
+  assert.equal(placeScope(world, 'Nowhere Special'), null);
+  assert.equal(scopeFromSearch(world, { kind: 'city', index: world.indexOf('94110') }).title, 'San Francisco', 'a city item by ZIP index still works');
+});
+
+// ------------------------------------------------------------------ review fixes: the Legion server's Claude proxy
+
+test('the Legion server: its advertised proxy is used only when it holds a key', () => {
+  assert.equal(DEFAULT_PROXY_PATH, '/api/anthropic');
+  const health = { ok: true, service: 'legion', keyConfigured: true, proxy: '/api/anthropic', models: [] };
+  assert.deepEqual(serverFromHealth(health), { keyConfigured: true, proxy: '/api/anthropic', hint: '' });
+  assert.equal(serverFromHealth({ ...health, proxy: '/proxy/claude/' }).proxy, '/proxy/claude', 'the path the server names');
+  assert.equal(serverFromHealth({ ...health, proxy: 'https://elsewhere.example/v1' }).proxy, '/api/anthropic', 'never another origin');
+  assert.equal(serverFromHealth({ ...health, proxy: '//elsewhere.example' }).proxy, '/api/anthropic');
+  assert.equal(serverFromHealth({ ...health, proxy: undefined }).proxy, '/api/anthropic');
+  assert.equal(serverFromHealth({ ...health, keyConfigured: false }).keyConfigured, false);
+  assert.equal(serverFromHealth({ ok: true }), null, 'not a Legion server');
+  assert.equal(serverFromHealth(null), null);
+
+  const events = [];
+  const settings = new Settings({ bus: { emit: (ev, p) => events.push(p.changed) } });
+  settings.setServer(serverFromHealth(health));
+  assert.equal(settings.proxyURL, '/api/anthropic');
+  assert.equal(settings.get().claude.proxyURL, '/api/anthropic');
+  settings.setServer(serverFromHealth({ ...health, keyConfigured: false }));
+  assert.equal(settings.proxyURL, '', 'a server without a key leaves Claude to the player’s own key');
+  assert.equal(settings.server.keyConfigured, false);
+  settings.setServer(null);
+  assert.equal(settings.server, null);
+  assert.deepEqual(events, [['claude.server', 'claude.proxyURL'], ['claude.server', 'claude.proxyURL'], ['claude.server']]);
+
+  const s = { network: { claude: true }, claude: { apiKey: '', proxyURL: '' } };
+  assert.match(claudeStatus(s, { bridge: true, server: { keyConfigured: false } }), /server has no Anthropic key\. Add your own key/);
+  assert.match(claudeStatus({ ...s, claude: { apiKey: 'sk-ant-x', proxyURL: '' } }, { bridge: true, server: { keyConfigured: false } }), /use yours/);
+  assert.match(claudeStatus({ ...s, claude: { apiKey: '', proxyURL: '/api/anthropic' } }, { bridge: true, server: { keyConfigured: true } }), /proxy/);
+  assert.match(claudeStatus(s, { bridge: false }), /next build/);
+  assert.match(claudeStatus({ ...s, network: { claude: false } }, { bridge: true }), /off until you allow/);
+});
+
+// ------------------------------------------------------------------ review fixes: Talk
+
+test('conversation starters are grounded in the pack: a fire only where one burned', () => {
+  const pop = new Population(world);
+  const mission = pop.sample(world.indexOf('94110'), 1, 1)[0];
+  assert.equal(world.firesOf(mission.zi).length, 0);
+  const plain = startersFor(world, mission, { weather: null });
+  assert.ok(!plain.some(s => /fire/i.test(s)), plain.join(' | '));
+  assert.ok(plain.includes('How long have you lived here?'));
+  assert.ok(plain.includes('How’s the weather treating you?'));
+  const paradise = pop.sample(world.indexOf('95969'), 1, 1)[0];
+  assert.ok(startersFor(world, paradise).includes('What was the Camp Fire like?'));
+  // an NWS alert active there, and the NPC's own highway
+  const alerted = startersFor(world, mission, { weather: { alerts: [{ event: 'High Surf Warning' }] } });
+  assert.ok(alerted.includes('Heard about the High Surf Warning?'));
+  const driver = { ...mission, occupation: { key: 'sales' }, commute: { mode: 'drive', road: { name: 'I-80', route: 80, kind: 'I' } } };
+  assert.ok(startersFor(world, driver).includes('How’s traffic on I-80?'));
+  assert.ok(startersFor(world, { ...mission, occupation: null, school: null, status: 'retired' }).includes('What keeps you busy these days?'));
+  assert.ok(!startersFor(world, { ...mission, occupation: null, status: 'child', school: 'elementary' }).includes('What do you do for work?'));
+  assert.equal(fireName('Camp'), 'the Camp Fire');
+  assert.equal(fireName('Btu Lightning Complex'), 'the Btu Lightning Complex');
+  assert.equal(fireName('Unnamed'), null);
+});
+
+test('services: a conversation without a time runs on the simulation epoch, not the wall clock', async t => {
+  const mod = await servicesModule(t);
+  if (!mod) return;
+  const seeds = [];
+  class Conversation { constructor(o) { seeds.push([o.rngSeed, o.t]); } }
+  const svc = mod.createServices({ modules: { persona: { persona: (w, npc) => ({ id: npc.id, npc }) }, dialogue: { Conversation } } });
+  svc.init(world);
+  const id = svc.residents(zipScope(world, world.indexOf('94110')), 1, 1)[0].id;
+  assert.ok(svc.conversation(id).ok);
+  assert.ok(svc.conversation(id, { t: world.snapshotTime }).ok);
+  assert.deepEqual(seeds[0], seeds[1]);
+  assert.equal(seeds[0][1], world.snapshotTime);
+  // a reflection without a time stamps the memory with the simulation epoch too
+  const stamps = [];
+  class Mind { constructor() { this.state = {}; } remember(text, importance, tags, o) { stamps.push(o.t); } toJSON() { return this.state; } }
+  class ClaudeVoice { async reflect() { return { summary: 'We talked.' }; } }
+  svc.wire({ mind: { Mind }, llm: { ClaudeVoice } });
+  const r = await svc.reflect(id, [], { claude: { apiKey: 'sk-ant-x' }, network: { claude: true } });
+  assert.ok(r.ok);
+  assert.deepEqual(stamps, [world.snapshotTime]);
+  assert.throws(() => svc.wire({ nonsense: {} }), /unknown module/);
+  assert.equal(svc.wire({ llm: null }).find(m => m.key === 'llm').available, false);
+});
+
+test('the JSON tab counts bytes as a file holds them', () => {
+  assert.equal(byteSize('abc'), '3 bytes');
+  assert.equal(byteSize('Peña'), '5 bytes', 'ñ is two bytes in UTF-8');
+  assert.equal(byteSize('x'.repeat(300 * 1024)), '300 KB');
+});
+
+// ------------------------------------------------------------------ review fixes: --check
+
+test('--check finds imports in the worker and anything the page would load from outside', async () => {
+  // the pieces on crafted inputs
+  assert.deepEqual(externalResourceProblems('<link rel="icon" href="data:image/svg+xml,x"><a href="https://example.com">x</a><div style="background:url(#g)"></div>'), []);
+  assert.equal(externalResourceProblems('<img src="https://example.com/x.png">').length, 1);
+  assert.deepEqual(externalResourceProblems("<img srcset='a.png 1x, data:image/png;base64,AA 2x'>"), ['<img srcset="a.png"> loads a resource from outside the page']);
+  assert.equal(externalResourceProblems("<img srcset='data:image/png;base64,AA, data:image/png;base64,BB 2x'>").length, 0);
+  assert.equal(externalResourceProblems('<style>@import url("https://fonts.googleapis.com/css2?family=Barlow");</style>').length, 1);
+  assert.equal(externalResourceProblems('<style>.a{background:url(https://example.com/bg.png)}</style>').length, 1);
+  assert.equal(externalResourceProblems('<div style="background-image:url(\'//cdn.example.com/x.png\')"></div>').length, 1);
+  assert.deepEqual(externalResourceProblems('<script>const u = "https://api.anthropic.com"; const i = "<img src=https://x>";</script>'), [], 'script bodies are code');
+  assert.match((await importProblems('import("./w.js")', 'the worker source', { worker: true })).join(), /still imports \.\/w\.js \(dynamic-import\)/);
+  assert.match((await importProblems('importScripts("x.js")', 'the worker source', { worker: true })).join(), /importScripts/);
+  assert.deepEqual(await importProblems('const s = "import(\\"./x.js\\")"; self.onmessage = () => {};', 'w', { worker: true }), [], 'strings do not count');
+
+  // and the whole check on crafted copies of the real page
+  if (!fs.existsSync(OUT_FILE)) await build({ quiet: true });
+  const html = fs.readFileSync(OUT_FILE, 'utf8');
+  const dir = scratch();
+  try {
+    const variants = {
+      worker: html.replace('window.__LEGION_WORKER_SRC__="', 'window.__LEGION_WORKER_SRC__="import(\\"./w.js\\");'),
+      font: html.replace('<style>', '<style>@import url("https://fonts.googleapis.com/css2?family=Barlow");'),
+      image: html.replace('<body>', '<body><img src="https://example.com/x.png" alt="">'),
+    };
+    const expected = { worker: /the worker source still imports/, font: /@imports https:\/\/fonts/, image: /<img src="https:\/\/example\.com\/x\.png">/ };
+    for (const [name, page] of Object.entries(variants)) {
+      assert.notEqual(page, html, `${name} variant was made`);
+      const file = path.join(dir, `${name}.html`);
+      fs.writeFileSync(file, page);
+      const r = await check(file);
+      assert.equal(r.ok, false, name);
+      assert.match(r.problems.join('\n'), expected[name], name);
+    }
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('services: through the Legion server’s proxy the player’s key never reaches the voice', async t => {
+  const mod = await servicesModule(t);
+  if (!mod) return;
+  const made = [];
+  class ClaudeVoice { constructor(o) { made.push({ apiKey: o.apiKey, proxyURL: o.proxyURL }); } }
+  const svc = mod.createServices({ modules: { llm: { ClaudeVoice } } });
+  svc.init(world);
+  assert.ok(svc.voice({ claude: { apiKey: 'sk-ant-player', proxyURL: '/api/anthropic', model: 'claude-opus-5-5', effort: 'low' }, network: { claude: true } }).ok);
+  assert.deepEqual(made.at(-1), { apiKey: undefined, proxyURL: '/api/anthropic' });
+  assert.ok(svc.voice({ claude: { apiKey: 'sk-ant-player', proxyURL: '', model: 'claude-opus-5-5', effort: 'low' }, network: { claude: true } }).ok);
+  assert.deepEqual(made.at(-1), { apiKey: 'sk-ant-player', proxyURL: undefined }, 'without a proxy the player’s key is used');
 });
