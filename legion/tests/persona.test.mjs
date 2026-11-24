@@ -444,7 +444,9 @@ test('work is read by Census group from layer 0: the life roles of the brief app
       workers++;
       assert.equal(p.routine.occKey, core.occ, `${npc.id}: the group is layer 0's (${core.occ}), not the job key ${npc.occupation && npc.occupation.key}`);
       roles.set(p.archetype, (roles.get(p.archetype) || 0) + 1);
-      if (core.occ === 'farming' && core.departMin < 390 && !/logger|forestry|fishing|deckhand/.test(npc.occupation.title)) assert.equal(p.archetype, 'farmworker on the morning crew', npc.id);
+      // an adult farmworker on an early crew (students, new parents and landlords have other roles first)
+      if (core.occ === 'farming' && Number.isFinite(core.departMin) && core.departMin < 390 && npc.age >= 18 && !core.student && !/logger|forestry|fishing|deckhand/.test(npc.occupation.title)
+        && !['new parent', 'small landlord'].includes(p.archetype)) assert.equal(p.archetype, 'farmworker on the morning crew', npc.id);
       const heat = p.concerns.find(c => c.topic === 'heat');
       if (p.routine.outdoor && heat) { assert.match(heat.why, /works outdoors/, npc.id); outdoorHeat++; }
       if (p.routine.outdoor !== undefined) assert.equal(typeof p.routine.outdoor, 'boolean');
@@ -524,7 +526,8 @@ test('the household agrees: when the family came to the county, the wedding year
       const hh = ms.find(x => x.npc.role === 'householder'), sp = ms.find(x => x.npc.role === 'spouse');
       if (hh && sp) {
         const wed = x => (x.p.memories.find(m => /got married in/.test(m.text)) || {}).year ?? null;
-        if (wed(hh) !== null || wed(sp) !== null) { couples++; assert.equal(wed(hh), wed(sp), `${core.id}: the couple married in one year`); }
+        // each keeps their five weightiest life events, so one may leave the wedding out; when both tell it, it is one year
+        if (wed(hh) !== null && wed(sp) !== null) { couples++; assert.equal(wed(hh), wed(sp), `${core.id}: the couple married in one year`); }
       }
       const goers = ms.filter(x => x.p.practice).map(x => x.npc);
       if (goers.length) {

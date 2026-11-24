@@ -10,7 +10,9 @@
 // Everything is a pure function of the pack, the NPC record (its seed drives the individual draws; household
 // facts such as the roof, the wedding year, when the family came to the county, churchgoing, the school runs and
 // the family outings are drawn from the household id so every member agrees) and the time t used for the weather
-// (default: the NWS snapshot). No Math.random, no clock reads.
+// (default: the NWS snapshot). No Math.random, no clock reads. With a population at hand, those household facts
+// read every member (layer 0's days, layer 1's birthplaces and arrivals), so each member's persona tells the same
+// story: who drives whom to school, that no child came to the county before the family did.
 //
 // Work is read by Census occupation group (layer 0's PersonCore.occ), never by the layer 1 job key: the key is a
 // job slug ('tractor-driver'), the group ('farming') is what archetypes, heat exposure, registers and interests
@@ -27,7 +29,7 @@ import * as Occupations from './occupations.mjs';
 import { busyIntervals } from './schedule.mjs';
 
 /** Bumped when the persona model changes shape or meaning. */
-export const PERSONA_VERSION = 1;
+export const PERSONA_VERSION = 2;
 
 /** The population's reference year (layer 1: birthYear = 2026 - age). */
 export const REF_YEAR = 2026;
@@ -143,12 +145,15 @@ const DIRS = { n: 'northern', s: 'southern', e: 'eastern', w: 'western', ne: 'no
 export function wherePhrase(where) {
   const w = str(where);
   if (!w) return '';
-  const tidy = t => t.replace(/\s+/g, ' ').replace(/\bS\.J\./g, 'San Joaquin').replace(/\bCty\b/g, 'County').replace(/\bMtns\b/g, 'Mountains').replace(/\bVly\b/g, 'Valley');
+  const tidy = t => t.replace(/\s+/g, ' ').replace(/\bS\.J\./g, 'San Joaquin').replace(/\bCty\b/g, 'County').replace(/\bMtns\b/g, 'Mountains').replace(/\bVly\b/g, 'Valley')
+    .replace(/(?<=\S\s)(And|The|Of|In|At|Near)\b/g, word => word.toLowerCase()).replace(/^The\b/, 'the'); // NWS title case: "Hills And The Diablo Range"
   let m = /^\d+\s+[NSEW]{1,3}\s+(.+)$/i.exec(w);
   if (m) return `near ${tidy(m[1])}`;
   m = /^(N|S|E|W|Ne|Nw|Se|Sw|W\/S)\s+(.+)$/.exec(w);
   if (m) return `in ${DIRS[m[1].toLowerCase()]} ${tidy(m[2])}`;
-  return `in ${/^the\b/i.test(w) ? '' : 'the '}${tidy(w)}`;
+  // an area ("the San Diego County Valleys", "the East Bay Hills") takes "the"; a town or a county does not
+  const area = /\b(valleys?|mountains|hills|range|ranges|coast|foothills|deserts?|delta|basin|islands|area|mesas?|plains|peninsula|beaches|highlands|sierra)$/i.test(w);
+  return `in ${area && !/^the\b/i.test(w) ? 'the ' : ''}${tidy(w)}`;
 }
 
 /** "the Woolsey Fire", "the Sawtooth Complex", "the Camp Fire". */
@@ -291,7 +296,8 @@ function occGroupOf(world, me, occ) {
 function jobTitle(world, occ) {
   const t = occ && typeof occ === 'object' ? clean(occ.title) : null;
   if (!t) return null;
-  return worldInfo(world).groups.has(t.toLowerCase()) ? null : t;
+  // "orchard worker (almonds)" reads "orchard worker in almonds" in a sentence
+  return worldInfo(world).groups.has(t.toLowerCase()) ? null : t.replace(/\s*\(([^)]+)\)\s*$/, ' in $1');
 }
 
 // Work done outside or exposed to the heat: by group, narrowed by title where the group mixes indoor and outdoor
@@ -312,6 +318,19 @@ function outdoorWork(group, title) {
   const t = String(title || '').toLowerCase();
   // with no title to tell, the groups that are mostly outdoor work count (the Census group alone)
   return t ? re.test(t) : ['cleaning', 'transport', 'repair', 'firefighting'].includes(group);
+}
+
+// The Census groups in plain words, for prose ("works in health care").
+const GROUP_WORDS = {
+  management: 'management', business: 'business and finance', computer: 'computing', engineering: 'engineering', science: 'science',
+  social: 'social services', legal: 'law', education: 'education', arts: 'the arts and media', practitioner: 'health care', healthtech: 'health care',
+  healthsupport: 'health care', firefighting: 'protective services', police: 'law enforcement', food: 'food service', cleaning: 'building and grounds work',
+  personalcare: 'personal care', sales: 'sales', office: 'office work', farming: 'farming', construction: 'construction', repair: 'repair work',
+  production: 'production', transport: 'transportation', moving: 'warehousing and moving',
+};
+/** "as a registered nurse" when the job has a title, else "in health care" (the Census group in words). */
+function jobWords(L) {
+  return L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : `in ${GROUP_WORDS[L.occKey] || 'their line of work'}`;
 }
 
 /**
@@ -985,6 +1004,8 @@ function landmarkLabel(lm) {
   return lm.name;
 }
 
+const ROAD_MODES = new Set(['drive', 'carpool', 'taxi', 'motorcycle', 'bus', 'other']);
+
 /** What they know: the neighborhood, county, region, landmarks, roads (home and commute), nearby places, records. */
 function knowledgeOf(ctx, L) {
   const { world, z, home, npc } = ctx;
@@ -1003,7 +1024,8 @@ function knowledgeOf(ctx, L) {
   if (given) addRoad(typeof given === 'string' ? { name: given } : given, true);
   for (const r of world.roadsNear(home.x, home.y, 10).slice(0, 4)) addRoad(r, false);
   const work = ctx.work;
-  if (work && L.mode && L.mode !== 'wfh') {
+  // the highways on the way to work, for those who travel them (on foot, by bike or by train they are not "their" road)
+  if (work && ROAD_MODES.has(L.mode)) {
     const mx = (home.x + work.x) / 2, my = (home.y + work.y) / 2;
     for (const r of world.roadsNear(mx, my, 6).slice(0, 2)) addRoad(r, true);
     for (const r of world.roadsNear(work.x, work.y, 5).slice(0, 1)) addRoad(r, true);
@@ -1323,7 +1345,7 @@ function interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places
     if (a >= 16 && a <= 60) add('off-roading', 0.24 + (L.sex === 'M' ? 0.06 : 0), `${z.provinceName || 'desert'} country (province)`);
   }
   const farmCountry = (zc.valley || ['sj', 'sv'].includes(z.regionKey)) && zc.density < 1500;
-  if (L.farm) { const w = `works ${L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : 'in farming'} (occupation)`; add('the county fair', 0.4, w); add('the harvest', 0.3, w); }
+  if (L.farm) { const w = `works ${jobWords(L)} (occupation)`; add('the county fair', 0.4, w); add('the harvest', 0.3, w); }
   else if (farmCountry) add('the county fair', 0.32, `farm country: ${z.provinceName || z.regionName}, ${fmtInt(zc.density)} people per square mile (density)`);
   if (L.isParent && farmCountry && L.kidAges.some(k => k >= 9 && k <= 18)) add('4-H with the kids', 0.3, 'kids at home in farm country');
   if (zc.urban) {
@@ -1381,8 +1403,8 @@ function interestsOf(ctx, L, big5, archetype, knowledge, teams, practice, places
     education: ['reading', 0.34], arts: ['photography', 0.3], practitioner: ['running', 0.22], healthtech: ['running', 0.2],
     food: ['cooking', 0.4], transport: ['classic cars', 0.22], management: ['golf', 0.2], science: ['reading', 0.26], legal: ['reading', 0.22],
   };
-  if (L.worker && occInterests[L.occKey]) add(occInterests[L.occKey][0], occInterests[L.occKey][1], `works in ${L.occKey} (occupation)`);
-  if (L.occKey === 'computer' || L.occKey === 'engineering') add('board games', 0.18, `works in ${L.occKey} (occupation)`);
+  if (L.worker && occInterests[L.occKey]) add(occInterests[L.occKey][0], occInterests[L.occKey][1], `works ${jobWords(L)} (occupation)`);
+  if (L.occKey === 'computer' || L.occKey === 'engineering') add('board games', 0.18, `works ${jobWords(L)} (occupation)`);
   if (O > 0.62 && a >= 12) { add('reading', 0.2 + 0.3 * (O - 0.62), 'openness'); add('travel', 0.18 + 0.2 * (O - 0.62), 'openness'); }
   if (E > 0.62 && a >= 18) add('hosting friends', 0.22 + 0.3 * (E - 0.62), 'extraversion');
   if (C > 0.65 && a >= 14 && a <= 70) add('running', 0.2 + 0.2 * (C - 0.65), 'conscientiousness');
@@ -1475,7 +1497,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const heat = 0.5 * smoothstep(5, 60, h100) + 0.2 * smoothstep(30, 120, h90) + 0.3 * smoothstep(85, 105, tjul);
   const outdoor = L.outdoor;
   add('heat', (0.05 + 0.75 * heat + (heatAlert ? alertBoost(heatAlert) : 0)) * (outdoor ? 1.35 : 1) * (age >= 65 ? 1.25 : 1) * (adult ? 1 : 0.6),
-    `about ${Math.round(h100)} days a year reach 100°F here (h100) and ${Math.round(h90)} reach 90°F (h90); July highs average ${fmt1(tjul)}°F (tjul)${outdoor ? `; works outdoors ${L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : `in ${L.occKey}`} (occupation)` : ''}${heatAlert ? `; a ${heatAlert.event} is out now (NWS)` : ''}`);
+    `about ${Math.round(h100)} days a year reach 100°F here (h100) and ${Math.round(h90)} reach 90°F (h90); July highs average ${fmt1(tjul)}°F (tjul)${outdoor ? `; works outdoors ${jobWords(L)} (occupation)` : ''}${heatAlert ? `; a ${heatAlert.event} is out now (NWS)` : ''}`);
   // storms and flooding (atmospheric rivers, flood reports, alerts now)
   const arN = num(z.ar_n), floodN = num(z.flood_n10);
   const stormAlert = alertOf(/flood|surf|storm|rain|winter|blizzard|tsunami/i);
@@ -1498,10 +1520,12 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   const snowIn = z.snowfall_in, psf = num(z.snow_psf);
   const s = isNum(snowIn) ? smoothstep(12, 150, snowIn) : smoothstep(60, 300, psf) * (num(z.elev_m) >= 1200 ? 1 : 0.4);
   if (s > 0.02) {
-    const road = L.vehicles > 0 ? knowledge.roads.find(x => !x.commute) || knowledge.roads[0] : null;
-    const why = (isNum(snowIn) ? `about ${fmt1(snowIn)} inches of snow a year (snowfall_in)` : `a ${psf} psf design ground snow load at ${num(z.elev_m)} m (snow_psf, elev_m)`) + (owner && psf >= 100 && isNum(snowIn) ? `; roofs here are designed for a ${psf} psf ground snow load (snow_psf)` : '') + (road ? `; drives ${road.name} through the winter (roadsNear)` : '');
-    add('snow', (0.1 + 0.7 * s + (owner && psf >= 100 ? 0.08 : 0) + (L.vehicles > 0 && adult ? 0.06 : 0)) * (adult ? 1 : 0.6), why,
-      L.vehicles > 0 && s > 0.3 ? { detail: 'chain controls and closures on the drive' } : owner && psf >= 100 ? { detail: 'shoveling the roof after big storms' } : null);
+    // the drive and the roof are the grown-ups' worries: the ones who drive, and the ones who own the house
+    const drives = L.vehicles > 0 && L.age >= 16, roofWorry = owner && owns && psf >= 100;
+    const road = drives ? knowledge.roads.find(x => !x.commute) || knowledge.roads[0] : null;
+    const why = (isNum(snowIn) ? `about ${fmt1(snowIn)} inches of snow a year (snowfall_in)` : `a ${psf} psf design ground snow load at ${num(z.elev_m)} m (snow_psf, elev_m)`) + (roofWorry && isNum(snowIn) ? `; roofs here are designed for a ${psf} psf ground snow load (snow_psf)` : '') + (road ? `; drives ${road.name} through the winter (roadsNear)` : '');
+    add('snow', (0.1 + 0.7 * s + (roofWorry ? 0.08 : 0) + (drives && adult ? 0.06 : 0)) * (adult ? 1 : 0.6), why,
+      drives && s > 0.3 ? { detail: 'chain controls and closures on the drive' } : roofWorry ? { detail: 'shoveling the roof after big storms' } : null);
   }
   // housing costs and rent (value against income; there is no rent column, so the market stands in)
   const value = num(z.value), hinc = Math.max(num(L.householdIncome, num(z.inc, 60000)), 15000);
@@ -1541,7 +1565,7 @@ function concernsOf(ctx, L, big5, residence, roof, wx, knowledge) {
   else if (adult && age < 65 && zc.urate !== null && zc.urate >= 8) add('jobs', 0.12 + 0.3 * smoothstep(8, 16, zc.urate), `unemployment in ${zip} is ${fmt1(zc.urate)}% (ACS B23025)`);
   // water, for farm work
   if (L.farm || (['sj', 'sv'].includes(z.regionKey) && zc.rural && owner)) {
-    add('water', 0.3 + 0.4 * smoothstep(20, 5, num(z.rain_in, 15)), `${L.farm ? `works ${L.jobTitle ? `as ${article(L.jobTitle)} ${lowerFirst(L.jobTitle)}` : 'in farming'} (occupation)` : `farm country (${z.regionName})`}; about ${fmt1(num(z.rain_in))} inches of rain a year (rain_in)`);
+    add('water', 0.3 + 0.4 * smoothstep(20, 5, num(z.rain_in, 15)), `${L.farm ? `works ${jobWords(L)} (occupation)` : `farm country (${z.regionName})`}; about ${fmt1(num(z.rain_in))} inches of rain a year (rain_in)`);
   }
   // aging and health
   if (age >= 60) add('health', 0.1 + 0.6 * smoothstep(60, 88, age), `age ${age}; ${num(z.health)} health-care establishments in ${zip} (health)`);
@@ -2067,8 +2091,9 @@ function bioOf(ctx, L, archetype, res, interests, concerns, knowledge, fam) {
   const firstInterest = interests[0] ? interests[0].name : null;
   let s3 = null;
   if (L.mode && L.mode !== 'wfh' && L.commuteMin >= 30 && knowledge.workCity && L.age >= 16) {
-    const road = knowledge.roads.find(x => x.commute);
-    s3 = `${P.Sub} ${MODE_VERB[L.mode] || 'travels'} ${L.commuteMin} minutes each way to ${knowledge.workCity}${road ? ` on ${road.name}` : ''}${top ? ` and worries about ${CONCERN_WORDS[top.topic] || top.topic}` : ''}.`;
+    const road = ROAD_MODES.has(L.mode) ? knowledge.roads.find(x => x.commute) : null;
+    const to = knowledge.workCity === knowledge.city ? (L.student && !L.worker ? 'to school' : 'to work') : `to ${knowledge.workCity}`;
+    s3 = `${P.Sub} ${MODE_VERB[L.mode] || 'travels'} ${L.commuteMin} minutes each way ${to}${road ? ` on ${road.name}` : ''}${top ? ` and worries about ${CONCERN_WORDS[top.topic] || top.topic}` : ''}.`;
   } else if (firstInterest) {
     s3 = `${P.Sub} loves ${firstInterest}${top && L.age >= 13 ? ` and worries about ${CONCERN_WORDS[top.topic] || top.topic}` : ''}.`;
   }
@@ -2134,7 +2159,8 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
  * @property {{name:string, sport:string}[]} teams
  * @property {{label:string, day:number, why:string}|null} practice   their own churchgoing
  * @property {{topic:string, weight:number, why:string, area:string}[]} concerns
- * @property {{year:number, date:string|null, kind:string, text:string, weight:number, source:string, fact?:string, experience?:string, scope?:string}[]} memories
+ * @property {{year:number, date:string|null, kind:string, text:string, weight:number, source:string, title?:string, fact?:string, experience?:string|null, scope?:string}[]} memories
+ *   events: text = fact (from the pack) + experience (their own, never repeated within one persona); life events: text alone
  * @property {{neighborhood:string, city:string, zip:string, county:string, countyLabel:string, region:string, regionThe:string, province:string,
  *   landmarks:{name:string,kind:string,distKm:number}[], roads:{name:string,route:number,kind:string,distKm:number,aadt:number,commute:boolean}[],
  *   nearbyPlaces:{name:string,distKm:number,pop:number}[], workCity:string|null, workZip:string|null,
@@ -2144,9 +2170,15 @@ function hooksOf(ctx, L, big5, interests, concerns, memories, fam, wx) {
  * @property {string} bio
  * @property {string[]} hooks              things they would bring up unprompted
  * @property {{kind:string, topic:string, text:string}[]} hookDetails
- * @property {{zipSince:number, countySince:number, grewUpHere:boolean, bornHere:boolean, yearsInZip:number, yearsInCounty:number}} residence
+ * @property {{zipSince:number, countySince:number, grewUpHere:boolean, bornHere:boolean, householdCounty:number, yearsInZip:number, yearsInCounty:number}} residence
+ *   householdCounty: when the household came to the county (the same for every member; its children never predate it)
  * @property {{age:number, material:string, solar:boolean, installed:number, original:boolean, why:string}|null} roof
- * @property {Object} routine              layer 0 commute fields, school runs and the places of their day (schedule.mjs)
+ * @property {Object} routine              what schedule.mjs reads: layer 0's commute fields (mode, departMin, commuteMin, dwellMin,
+ *   days, work), occKey (the Census occupation group) and outdoor, schoolRuns (the escort legs this adult takes: {kind
+ *   'drop-off'|'pickup', mode 'drive'|'walk'|'bike'|'bus-stop', children, school, departMin | arriveMin and leaveMin,
+ *   commuteMin, stopMin, days}), ride (for a child: {driver, pickup, legs:[{kind, mode, driver, days}]}), household (the
+ *   same in every member's persona: members' layer 0 days, the school runs with their drivers, churchgoers and the
+ *   shared park, grocery store, church, beach and relatives; schedule.familyOutings reads it) and places
  * @property {number} t                    the time the weather-dependent parts were computed for (epoch ms)
  */
 
