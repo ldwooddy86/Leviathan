@@ -20,3 +20,4 @@
 Integration order for the engine: terrain, weather, traffic, car, sky, views (CA/engine/views/port_views_ca.py).
 Scout: port_traffic_scout.py and topo/port_topo.py are applied to CA/scout/scout.js at assembly.
 | Atlas integration pass | ad3fdf96bd31b52b8 | all of CA/atlas/src, small data fixes |
+| Engine dense downtowns (LA crash) | ac82217a66f3a502b | CA/engine/dense |

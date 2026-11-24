@@ -58,3 +58,14 @@ are lifted and tilted by wrapping their instance buffers in fleetInit), haze/clo
 - [x] run_places.sh: all 7 places pass ground checks (Twin Peaks 261.9/262.1, S Lake Tahoe 1901.3/1901.6, Coronado 5.3/6.0, Mammoth 2401.4/2399.2, Truckee 1773.3/1773.1, LA 93.0/90.2, Lone Pine 1136.0/1136). One FAIL found and fixed: cells kept beyond reach kept old prisms after their ground was rebuilt (plan() now requeues by c.gv).
 - [x] despike extended inland (overAny 700 m z8 / 350 m z10); scan_spikes.py: 25 near-sea + 4 inland bad pixels in z8 statewide; grid source (z6) clean.
 - running: t_perf.js terrain then base -> out/perf_terrain.log, out/perf_base.log. Then: smoke of chain s4.js (all five ports) in the test bed; final report.
+- perf (high, SF, software GL; tris summed over all passes): base street 2.51M / drone 2.08M / bird 2.93M / metro 0.85M; terrain v1 2.82M / 2.45M / 3.00M / 1.42M. update median 1.2 ms both; p95 7.7 -> 9.7 ms; S.gy 123 ns near, 323 ns far.
+  PROBLEM found: buildRoads 83 ms -> 2738 ms (with life 416 -> 4247 ms): joints draped as 10 wedges each. FIXED in code (drapePoly, joints only at ends and turns, quads as one shape); re-measuring -> out/perf_terrain2.log
+- street build now: near (T.fineR 360 m of build centre) cut to triangles, far laid whole. dbg_roads: life off 281 ms/62k tris at fineR 420 (base 83 ms), life on 1141 ms/197k tris (base 416). Now fineR 360; rerunning dbg_roads, then t_misc, t_move, t_blocked, t_core SF as final regression.
+- [x] t_misc PASSES (23 rays on drawn ground, 22549 street vertices exact, 45 roof views on lifted roofs). Container restarted; rerunning t_move, t_blocked, t_core SF -> out/final.log; then chain smoke (bash CA/build/assemble_ca.sh).
+- [x] bash build/assemble_ca.sh engine/terrain/out/ca_stack.html: all six ports apply after terrain, engine parses, page assembles (scripts 60, syntax errors 0).
+- [x] final t_move PASSES (all 19 checks) on the final build.
+- [x] final t_blocked PASSES (catch-up in 80 s).
+- BUG found by final t_core (prism 61 m under ground): kidAt fast path remembered a COARSE kid (hit by far street vertices), then answered near points from it. Fixed: only finest-lattice kids are remembered. Rebuilding; rerun t_core SF + t_misc; then ca_smoke on the stack.
+- [x] After the cache fix: t_core SF passes (prisms [-10.0, -1]); full stack reassembled (bash build/assemble_ca.sh engine/terrain/out/ca_stack.html) and build/ca_smoke.js on it: engine opens on terrain (elev 38.4, agl 1.7), every engine check ok, no page errors (its one FAIL is the atlas weather module's live NWS text saying "storm surge", not the engine). shots/stack_smoke_sf.png.
+- t_move, t_blocked, t_misc last ran on the build just before the one-line cache fix (all passed).
+- DONE. Handed back.

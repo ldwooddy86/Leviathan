@@ -50,3 +50,14 @@ Decisions
   Traction control -> en.car.tc() (toggles; returns on), Reverse -> en.car.reverse(), Back onto the road -> en.car.reset().
 - graphics().carCam for the camera's name; setGraphics({carCam}).
 - "what is generated" paragraph: the car is a likeness built from BMW's published dimensions; 251 mph is the dashboard's figure.
+
+## 11-24 results (all logs in out/, pictures in shots/)
+- Container restarted once; downtown LA crashes the test browser on any engine (lead knows): tests moved to Coronado + Fresno County.
+- run_la_3.log (LA, clear stretch on Ducommun St): 0-60 mph 2.3 s, 116 mph after 5.3 s, stop in 116 m; slide TC off 112 deg/s; reverse; wall.
+- run_la_2.log: building stops the car (0 points inside), throttle held: slides along it.
+- run_cor.log (Coronado 10th St): shots, cams, night (lamps true), marks 139 instances gl 0, leave/return (hero on, driving false).
+- run_top3.log (W Shaw Ave west of Kerman, Fresno County): 250.90 mph at 70 s, 7.4 km on the road, no hits, roads reloaded
+  ahead 6 times, far tiles ~115, then the road ended; 13.3 km in all, no page errors.
+- governor: level 250.994 mph, never above 251 (tests/governor_output.txt).
+- stack terrain -> weather -> traffic -> car -> sky applies and parses (out/stack/4.js, 5.js); NOT run as a stack by me.
+- pending at time of writing: run_cor2.log (rain, origin move under a moving car, pictures of the final build).

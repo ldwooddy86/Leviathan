@@ -38,7 +38,7 @@
       brake: new Material({ name: 'M3: brake discs', albedo: '#5a5b5e', roughness: 0.45, metallic: 1, wet: 0 }),
       calliper: new Material({ name: 'M3: brake callipers (blue)', albedo: '#10307a', roughness: 0.35, metallic: 0.2, wet: 0 }),
       dark: new Material({ name: 'M3: cabin', albedo: '#0d0d0e', roughness: 0.7, metallic: 0, wet: 0, twoSided: true }),
-      screen: new Material({ name: 'M3: display', albedo: '#000000', emissive: '#3a6cff', emissiveIntensity: 0.6, wet: 0 }),
+      screen: new Material({ name: 'M3: display', albedo: '#020304', emissive: '#5f7fb8', emissiveIntensity: 0.15, roughness: 0.2, wet: 0 }),
       wheel: new Material({ name: 'M3: steering wheel', albedo: '#101010', roughness: 0.55, metallic: 0, wet: 0 }),
       skid: new Material({ name: 'M3: tyre marks', albedo: '#050505', alpha: 0.5, blend: 'alpha', vertexColors: true, depthWrite: false, castShadow: false, roughness: 0.9, wet: 0, polygonOffset: [-2, -4] }) };
     A.meshes = [];
@@ -59,7 +59,7 @@
     const glowE = scene.createEntity('Tail lamp glow', { parent: bodyE, transient: true }); glowE.add('Light', { type: 'point', color: [1, 0.08, 0.04], intensity: 0, range: 9 }); glowE.transform.setPosition(0, 0.9, -D.tail + 0.5); glowE.setActive(false);
     /* smoke from a sliding tyre, and spray off a wet road: one emitter at each wheel's foot */
     const fx = [0, 1, 2, 3].map(i => { const mk = (name, o) => { const e = scene.createEntity(name, { parent: root, transient: true }), ps = e.add('ParticleSystem'); Object.assign(ps, o); ps.emitting = false; ps.rate = 0; e.transform.setPosition(WY[i], 0.08, -WX[i] + 0.25); return ps; };
-      return { smoke: mk('Tyre smoke', { max: 260, life: [0.9, 2.2], speed: [0.3, 1.6], spread: 50, gravity: -0.7, drag: 1.4, size: [0.3, 2.4], colorA: [0.86, 0.86, 0.88, 0.34], colorB: [0.92, 0.92, 0.94, 0], blend: 'alpha', lit: 1, wispy: true, radius: 0.14, turbulence: 0.9, soft: 0.6, direction: [0, 0.6, 1] }),
+      return { smoke: mk('Tyre smoke', { max: 260, life: [0.9, 2.2], speed: [0.3, 1.6], spread: 50, gravity: -0.7, drag: 1.4, size: [0.3, 1.9], colorA: [0.86, 0.86, 0.88, 0.24], colorB: [0.92, 0.92, 0.94, 0], blend: 'alpha', lit: 1, wispy: true, radius: 0.14, turbulence: 0.9, soft: 0.6, direction: [0, 0.6, 1] }),
         spray: mk('Road spray', { max: 220, life: [0.45, 1.0], speed: [1.5, 4.5], spread: 28, gravity: 2.5, drag: 1.0, size: [0.25, 1.5], colorA: [0.82, 0.86, 0.92, 0.2], colorB: [0.9, 0.93, 0.97, 0], blend: 'alpha', lit: 1, wispy: true, radius: 0.12, turbulence: 0.5, soft: 0.6, direction: [0, 0.75, 1] }) }; });
     /* the marks sliding tyres leave: short dark strips kept in a ring, drawn as instances of one flat square */
     const skidB = new MeshBuilder(); skidB.quad([-0.5, 0, -0.5], [0.5, 0, -0.5], [0.5, 0, 0.5], [-0.5, 0, 0.5], [0, 1, 0], null, [1, 1, 1, 1]);
@@ -108,9 +108,9 @@
 
     /* ---------- lamps ---------- */
     function lamps(env) {
-      const night = clamp(env.night || 0, 0, 1), dark = Math.max(night, (env.wet || 0) > 0.5 ? 0.6 : 0), braking = PS.brake > 0.04, on = A.out;
-      M.drl.emissiveIntensity = on ? 9 + 16 * dark : 0; M.head.emissiveIntensity = on ? 0.15 + 30 * dark : 0; M.tail.emissiveIntensity = on ? 0.5 + 3.5 * dark + (braking ? 16 : 0) : 0; M.chmsl.emissiveIntensity = on && braking ? 22 : 0; M.rev.emissiveIntensity = on && PS.gear < 0 ? 16 : 0;
-      M.screen.emissiveIntensity = 0.5 + 0.8 * dark;
+      const night = clamp(env.night || 0, 0, 1), dark = Math.max(night, (env.wet || 0) > 0.5 ? 0.6 : 0), braking = PH.input.brake > 0.04 || (PS.brake > 0.04 && !PS.atRest), on = A.out;
+      M.drl.emissiveIntensity = on ? 6 + 16 * dark : 0; M.head.emissiveIntensity = on ? 0.15 + 30 * dark : 0; M.tail.emissiveIntensity = on ? 0.5 + 3.5 * dark + (braking ? 16 : 0) : 0; M.chmsl.emissiveIntensity = on && braking ? 22 : 0; M.rev.emissiveIntensity = on && PS.gear < 0 ? 16 : 0;
+      M.screen.emissiveIntensity = 0.15 + 0.5 * dark;
       const lit = dark > 0.25 && on; beams.forEach(e => { if (e.active !== lit) e.setActive(lit); if (lit) e.get('Light').intensity = 420 * dark; });
       const gl = on && (dark > 0.25 || braking) && dark > 0.1; if (glowE.active !== gl) glowE.setActive(gl); if (gl) glowE.get('Light').intensity = (braking ? 26 : 5) * dark;
       st.braking = braking; st.lamps = lit;
@@ -156,8 +156,8 @@
       env = env || {}; dt = Math.min(Math.max(dt || 0, 0), 0.1); const I = A.input, P = PH.input, live = env.live !== false;
       let thr = live ? clamp(+I.throttle || 0, 0, 1) : 0, brk = live ? clamp(+I.brake || 0, 0, 1) : (PS.atRest ? 0 : 0.6);
       /* the governor: 251 mph and no more, whatever the slope */
-      { const v = PS.speed, acc = dt > 0 && gov.v != null ? clamp((v - gov.v) / gov.dt, -5, 20) : 0, vp = v + Math.max(0, acc) * 0.3, vT = VMAX - 0.002; gov.v = v; gov.dt = dt || 1 / 60;
-        st.governed = vp > vT - 0.005; if (st.governed) { thr = Math.min(thr, clamp((vT - vp) / 0.005, 0, 1)); brk = Math.max(brk, clamp((v - vT) * 150, 0, 1)); } }
+      { const v = PS.speed, acc = dt > 0 && gov.v != null ? clamp((v - gov.v) / gov.dt, -5, 20) : 0, vp = v + Math.max(0, acc) * 0.3, vT = VMAX - 0.0006; gov.v = v; gov.dt = dt || 1 / 60;
+        st.governed = vp > vT - 0.002; if (st.governed) { thr = Math.min(thr, clamp((vT - vp) / 0.002, 0, 1)); brk = Math.max(brk, clamp((v - vT) * 400, 0, 1)); } }
       P.throttle = thr; P.brake = brk; P.steer = live ? clamp(+I.steer || 0, -1, 1) : 0; P.handbrake = live ? clamp(+I.handbrake || 0, 0, 1) : (PS.atRest ? 1 : 0); P.reverse = live && !!I.reverse; P.tc = I.tc !== false; P.sc = I.tc !== false;
       const g = env.ground, h = env.hit, px = st.x, pz = st.z;
       const moving = PH.update(dt, { ground: g ? (x, z) => g(x + ox, z + oz) : null, grip: env.grip == null ? 1 : env.grip, hit: h ? (x0, z0, x1, z1, r) => h(x0 + ox, z0 + oz, x1 + ox, z1 + oz, r) : null });

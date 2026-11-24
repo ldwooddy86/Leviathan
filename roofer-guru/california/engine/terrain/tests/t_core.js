@@ -6,7 +6,7 @@ const [FILE, ADDR, LAT, LON, KNOWN, TOL, OUT, MODE, YAW, PITCH] = process.argv.s
 (async () => {
   const T = await L.start(FILE, ADDR, { gfx: MODE === 'metro' || MODE === 'bird' ? { wide: true } : null });
   await T.open(+LAT, +LON, +(YAW || 0), { mode: MODE || 'street' }); if (PITCH != null) await T.ev(p => { const en = MODI.rooftops.api.en(); en.world.pitch = p; en.engine.requestRender(3); }, +PITCH);
-  const s = await T.ready(120000, true); console.log('ready', JSON.stringify(s));
+  let s = await T.ready(120000, true); await L.wait(7000); s = await T.ready(60000, true); console.log('ready', JSON.stringify(s));   /* twice: between a ground's rebuild and its cell's there is a moment with nothing queued */
   const r = await T.ev(a => { const en = MODI.rooftops.api.en(), S = en.world, st = en.state(), q = S.toL(a[0], a[1]);
     const ph = en.engine.physics, pr = ph.prisms.slice(0, 400).map(p => { let lo = 1e9, hi = -1e9; p.ring.forEach(c => { const y = S.gy(c[0], c[1]); if (y < lo) lo = y; if (y > hi) hi = y; }); return { foot: p.y0 - lo, floorOverHigh: null, lo, hi, y0: p.y0 }; });
     const lab = en.debug().cells.length;

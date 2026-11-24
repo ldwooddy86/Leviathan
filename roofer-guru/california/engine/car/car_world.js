@@ -76,6 +76,7 @@
     }
     /* the streets ahead of a fast car: asked for round a point some seconds ahead, one answer at a time */
     function carRoads() {
+      if (S.traffic && S.traffic.stale) return;   /* the traffic kit keeps the street map in tiles and loads ahead of S.hero itself */
       const a = CAR.state, sp = a.speed; if (sp < 28 || CARW.loading || !S.roadsAt) return; const now = performance.now(); if (now - CARW.loadT < 1500) return;
       const lead = clamp(sp * 3.6, 0, 420), tx = a.x + a.vx / sp * lead, tz = a.z + a.vz / sp * lead; if (Math.hypot(tx - S.roadsAt[0], tz - S.roadsAt[1]) < (sp > 60 ? 330 : 240)) return;
       CARW.loading = true; CARW.loadT = now; const kx = S.x, kz = S.z; let p = null; S.x = tx; S.z = tz; try { p = loadRoads(); } finally { S.x = kx; S.z = kz; } const done = () => { CARW.loading = false; }; Promise.resolve(p).then(done, done);

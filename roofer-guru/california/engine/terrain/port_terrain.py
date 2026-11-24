@@ -79,9 +79,11 @@ rep("    K.ribbon = (Bd, pts, w, y, kind, offs, col) => {\n      const n = pts.l
 rep("Bd.quad(a, b, c, d, up, [uv(a), uv(b), uv(c), uv(d)], col || WHITE, AX); }",
     "if (TR0) TR0.drapeQuad(Bd, a, b, c, d, y, uv, col || WHITE, ax); else Bd.quad(a, b, c, d, up, [uv(a), uv(b), uv(c), uv(d)], col || WHITE, AX); }")
 rep("if (!offs && kind) for (let i = 0; i < n; i++) { const p = pts[i]; for (let s = 0; s < 10; s++) {",
-    "if (!offs && kind) for (let i = 0; i < n; i++) { if (own && !own[i]) continue; const p = pts[i]; for (let s = 0; s < 10; s++) {")
-rep("Bd.tri(a, b, c, up, uv(a), uv(b), uv(c), WHITE, ax, ax, ax); } }",
-    "if (TR0) TR0.drapeTri(Bd, a, b, c, y, uv, WHITE, ax); else Bd.tri(a, b, c, up, uv(a), uv(b), uv(c), WHITE, ax, ax, ax); } }")
+    "if (!offs && kind) for (let i = 0; i < n; i++) { const p = pts[i];\n"
+    "        if (TR0) {   /* on terrain: a round joint only at a line's end and where it turns by more than about 17 degrees (the mitred ribbon covers the rest), laid on the ground as one shape */\n"
+    "          if (own && !own[i]) continue; if (i > 0 && i < n - 1) { const a = pts[i - 1], b = pts[i + 1], d1 = Math.hypot(p[0] - a[0], p[1] - a[1]) || 1, d2 = Math.hypot(b[0] - p[0], b[1] - p[1]) || 1; if (((p[0] - a[0]) * (b[0] - p[0]) + (p[1] - a[1]) * (b[1] - p[1])) / (d1 * d2) > 0.955) continue; }\n"
+    "          const ring = []; for (let s = 0; s < 10; s++) ring.push([p[0] + Math.cos(s / 10 * TAU) * hw, p[1] + Math.sin(s / 10 * TAU) * hw]); TR0.drapePoly(Bd, ring, y, uv, WHITE, ax); continue; }\n"
+    "        for (let s = 0; s < 10; s++) {")
 
 # ---------------------------------------------------------------- StreetKit: what is built once per street map lies on the ground; cars' instances stand on it
 rep("r.castShadow = sh > 0; r.shadowDistance = sh || 1; sets[k] = ib; });",
@@ -212,6 +214,7 @@ rep("<span>AT <b>${ll[0].toFixed(4)}, ${ll[1].toFixed(4)}</b></span>", "<span>AT
 
 # ---- streets: remember which elevation they were laid on; lamps on the ground
 rep("S.graph = S.roads.filter(r => WALK.has(r.kind)); S.on = null; S.roadsVer++;", "S.graph = S.roads.filter(r => WALK.has(r.kind)); S.on = null; S.roadsVer++; S.roadTV = terrRoadVer();")
+rep("    function buildRoads() {\n      roadParts.forEach(", "    function buildRoads() {\n      TERR.center(S.x, S.z);   /* the streets near here are cut to the ground's triangles; the far ones are laid whole */\n      roadParts.forEach(")
 rep("LAMP.spots.push([x, z, Math.atan2(-dz * side, dx * side)]);", "LAMP.spots.push([x, z, Math.atan2(-dz * side, dx * side), S.gy(x, z)]);")
 rep("LAMP.ib.add(s[0], 0, s[1], -s[2] + Math.PI / 2, 1, 1, 1)", "LAMP.ib.add(s[0], s[3], s[1], -s[2] + Math.PI / 2, 1, 1, 1)")
 rep("e.transform.setPosition(s[0][0] + c * 1.35, 7.1, s[0][1] + sn * 1.35);", "e.transform.setPosition(s[0][0] + c * 1.35, s[0][3] + 7.1, s[0][1] + sn * 1.35);")

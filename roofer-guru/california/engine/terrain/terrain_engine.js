@@ -221,8 +221,8 @@
     function kidAt(x, z) {
       if (gk && gkGen === regGen) { const r = gk.r; if (x >= r.x0 && x <= r.x1 && z >= r.zN && z <= r.zS) return gk; }
       const ll = H.toLL(x, z), X = Math.floor(lonU(ll[1]) * 262144), Y = Math.floor(mercV(ll[0]) * 262144);
-      for (let q = 0; q < 6; q++) { const zz = ZS[q], sh = 18 - zz, g = REG.get(gkey(zz, X >> sh, Y >> sh)); if (!g || !g.built) continue; const L = g.L, ks = 18 - L.kz, k = g.kids[((Y >> ks) - g.Y * L.C) * L.C + (X >> ks) - g.X * L.C]; if (!k) continue; gk = k; gkGen = regGen; return k; }
-      return null;
+      for (let q = 0; q < 6; q++) { const zz = ZS[q], sh = 18 - zz, g = REG.get(gkey(zz, X >> sh, Y >> sh)); if (!g || !g.built) continue; const L = g.L, ks = 18 - L.kz, k = g.kids[((Y >> ks) - g.Y * L.C) * L.C + (X >> ks) - g.X * L.C]; if (!k) continue; if (L.li === 0) { gk = k; gkGen = regGen; } else gk = null; return k; }   /* only a grid of the finest lattice is remembered for the next call: a coarse one's rectangle also holds places where finer ground is drawn */
+      gk = null; return null;
     }
     T.gy = (x, z) => { const k = kidAt(x, z); if (k) return interp(k, x, z); const ll = H.toLL(x, z), h = sample(lonU(ll[1]), mercV(ll[0]), 0); return h === h ? h - (S.y0 || 0) : 0; };
     T.slope = (x, z) => { const k = kidAt(x, z); if (k) return slope(k, x, z); const e = 6, g = T.gy; return [(g(x + e, z) - g(x - e, z)) / (2 * e), (g(x, z + e) - g(x, z - e)) / (2 * e)]; };
@@ -234,7 +234,13 @@
     const clipHP = (P, a, b, c) => { const o = []; for (let i = 0, n = P.length; i < n; i++) { const p = P[i], q = P[(i + 1) % n], dp = a * p[0] + b * p[1] + c, dq = a * q[0] + b * q[1] + c; if (dp <= 0) o.push(p); if ((dp < 0 && dq > 0) || (dp > 0 && dq < 0)) { const t = dp / (dp - dq); o.push([p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t]); } } return o; };
     /* A convex shape in plan ([[x, z], ...]) laid on the ground, lift metres above it: the shape is cut by the triangles of the 8 m lattice, so every piece lies in the plane of the ground under it and a lift of a few centimetres is enough everywhere.
        emit(points, normal): points [[x, y, z], ...] of one convex piece, and the ground's normal there */
+    /* Only what is within T.fineR metres of the place the streets were last built round (T.center) is cut to the triangles: a street
+       map can run to 150 km of line, and cut that way it is three quarters of a million triangles. Farther off a shape is laid
+       whole, each corner on the drawn ground and 22 cm higher, which at that distance is not seen. */
+    let fineC = null; const UPV = [0, 1, 0]; T.fineR = 360; T.center = (x, z) => { fineC = [x, z]; };
+    const farOff = (x, z) => !!fineC && Math.hypot(x - fineC[0], z - fineC[1]) > T.fineR;
     T.drape = (P, lift, emit) => {
+      { let sx = 0, sz = 0; for (const p of P) { sx += p[0]; sz += p[1]; } if (farOff(sx / P.length, sz / P.length)) { emit(P.map(p => [p[0], T.gy(p[0], p[1]) + lift + 0.22, p[1]]), UPV); return; } }
       let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const p of P) { if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0]; if (p[1] < z0) z0 = p[1]; if (p[1] > z1) z1 = p[1]; }
       if (!(x1 - x0 < 400 && z1 - z0 < 400)) return; const ca = cellXY(x0, z0), cb = cellXY(x1, z1);
       for (let Y = ca[1]; Y <= cb[1]; Y++) for (let X = ca[0]; X <= cb[0]; X++) {
@@ -251,9 +257,14 @@
     };
     /* a triangle of a mesh builder, laid on the ground. a, b, c: [x, anything, z]; uv(point) gives a piece's corner its uv, or is null */
     T.drapeTri = (Bd, a, b, c, lift, uv, col, ax) => T.drape([[a[0], a[2]], [b[0], b[2]], [c[0], c[2]]], lift, (pts, n) => { for (let i = 1; i + 1 < pts.length; i++) Bd.tri(pts[0], pts[i], pts[i + 1], n, uv ? uv(pts[0]) : null, uv ? uv(pts[i]) : null, uv ? uv(pts[i + 1]) : null, col, ax, ax, ax); });
-    T.drapeQuad = (Bd, a, b, c, d, lift, uv, col, ax) => { T.drapeTri(Bd, a, b, c, lift, uv, col, ax); T.drapeTri(Bd, a, c, d, lift, uv, col, ax); };
+    /* a convex shape in plan ([[x, z], ...]) of a mesh builder, laid on the ground */
+    T.drapePoly = (Bd, P, lift, uv, col, ax) => T.drape(P, lift, (pts, n) => { for (let i = 1; i + 1 < pts.length; i++) Bd.tri(pts[0], pts[i], pts[i + 1], n, uv ? uv(pts[0]) : null, uv ? uv(pts[i]) : null, uv ? uv(pts[i + 1]) : null, col, ax, ax, ax); });
+    /* a quad: laid as one shape when it is convex (it nearly always is), as its two triangles when it is not */
+    T.drapeQuad = (Bd, a, b, c, d, lift, uv, col, ax) => { const P = [[a[0], a[2]], [b[0], b[2]], [c[0], c[2]], [d[0], d[2]]]; let pos = 0, neg = 0; for (let i = 0; i < 4; i++) { const p = P[i], q = P[(i + 1) % 4], r = P[(i + 2) % 4], cr = (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]); if (cr > 1e-9) pos++; else if (cr < -1e-9) neg++; }
+      if (pos && neg) { T.drapeTri(Bd, a, b, c, lift, uv, col, ax); T.drapeTri(Bd, a, c, d, lift, uv, col, ax); } else T.drapePoly(Bd, P, lift, uv, col, ax); };
     /* a straight line in plan cut where it crosses the lattice's lines: [[x, y, z], ...] from one end to the other, y on the ground */
     T.cuts = (ax, az, bx, bz) => {
+      if (farOff((ax + bx) / 2, (az + bz) / 2)) return [[ax, T.gy(ax, az) + 0.22, az], [bx, T.gy(bx, bz) + 0.22, bz]];
       const k = blockAt((ax + bx) / 2, (az + bz) / 2), r = k.r, su = 16 / (r.x1 - r.x0), sv = 16 / (r.zS - r.zN), u0 = (ax - r.x0) * su, u1 = (bx - r.x0) * su, v0 = (az - r.zN) * sv, v1 = (bz - r.zN) * sv, ts = [0, 1];
       const add = (f0, f1) => { if (Math.abs(f1 - f0) < 1e-9) return; const lo = Math.min(f0, f1), hi = Math.max(f0, f1); for (let q = Math.ceil(lo + 1e-7); q < hi - 1e-7; q++) ts.push((q - f0) / (f1 - f0)); };
       add(u0, u1); add(v0, v1); add(u0 + v0, u1 + v1); ts.sort((a, b) => a - b); const out = []; let last = -1;

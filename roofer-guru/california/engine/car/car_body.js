@@ -161,7 +161,7 @@ function M3Body() {
     if (j0 < JB) {
       /* head lamps: a slim band round each front corner, its upper edge the daytime running light */
       var xs = (half[i0][JB][0] + half[i0 + 1][JB][0]) / 2, row = j0 - 1;            // the row counted up from the sill: 0 .. NL-1
-      if (s > sN - 0.56 && xs > 0.4 && row >= 11 && row <= 14) return row === 14 || (xs < 0.5 && row >= 12) ? 'drl' : 'head';
+      if (s > sN - 0.56 && xs > 0.4 && row >= 11 && row <= 14) return row === 14 ? 'drl' : 'head';
       /* the outer air intakes of the front bumper */
       if (s > sN - 0.36 && x > 0.36 && y > 0.2 && y < 0.45) return 'matte';
       /* tail lamps: a slim dark-red band round each rear corner; its inner end is the reversing lamp */
@@ -272,13 +272,13 @@ function M3Body() {
   /* ---------- the cabin, seen only from the driver's seat: dash, cowl, pillars, header, doors, wheel ---------- */
   var cabin = { dark: { positions: [], normals: [], indices: [] }, screen: { positions: [], normals: [], indices: [] }, wheel: { positions: [], normals: [], indices: [] } };
   (function () {
-    var g = cabin.dark, eye = [-0.37, 1.165, 0.12];           // model x, y, z (z to the rear: the driver sits just behind the middle)
+    var g = cabin.dark, eye = [-0.37, 1.17, 0.22];           // model x, y, z (z to the rear: the driver sits just behind the middle)
     D.eye = eye; D.bonnetCam = [0, 1.085, -(zc3 - 0.12)];
     var zd = -(zc3 - 0.38);                                    // the dash's leading edge under the glass
-    box(g, 0, 0.955, zd + 0.2, 0.74, 0.035, 0.26);             // the dash top
-    box(g, 0, 0.83, zd + 0.42, 0.74, 0.1, 0.05);               // its face
-    box(g, eye[0], 1.01, zd + 0.3, 0.19, 0.03, 0.1);           // the binnacle's hood
-    box(g, 0, 0.6, zd + 0.55, 0.13, 0.2, 0.4);                 // the tunnel
+    box(g, 0, 0.955, zd + 0.08, 0.74, 0.035, 0.2);             // the dash top
+    box(g, 0, 0.83, zd + 0.26, 0.74, 0.1, 0.04);               // its face
+    box(g, eye[0], 1.005, zd + 0.16, 0.17, 0.022, 0.1);           // the binnacle's hood
+    box(g, 0, 0.6, zd + 0.62, 0.13, 0.2, 0.45);                 // the tunnel
     [-1, 1].forEach(function (sg) {
       box(g, sg * 0.73, 0.96, 0.25, 0.04, 0.035, 1.05);        // door tops
       /* the screen pillars, from the cowl up to the header */
@@ -288,12 +288,12 @@ function M3Body() {
     box(g, 0, 1.385, -(zc2 - 0.1), 0.62, 0.02, 0.1);           // the header
     box(g, 0, 1.39, 0.6, 0.62, 0.012, 0.7);                    // the head lining
     box(g, 0, 1.325, -(zc2 - 0.02), 0.11, 0.035, 0.012);       // the mirror
-    box(cabin.screen, eye[0] + 0.1, 1.035, zd + 0.39, 0.3, 0.05, 0.004);   // the curved display, as one lit panel
+    box(cabin.screen, eye[0] + 0.13, 0.965, zd + 0.3, 0.27, 0.04, 0.004);   // the curved display, as one lit panel
     /* the steering wheel: built round the origin, facing +z (toward the driver), to be placed and turned by the kit */
-    var w = cabin.wheel, R = 0.185, q;
+    var w = cabin.wheel, R = 0.18, q;
     for (q = 0; q < 20; q++) { var t0 = q / 20 * TAU, t1 = (q + 1) / 20 * TAU; tube(w, [Math.cos(t0) * R, Math.sin(t0) * R, 0], [Math.cos(t1) * R, Math.sin(t1) * R, 0], 0.017, 0.017, 6, 0); }
     box(w, 0, 0, -0.01, 0.06, 0.045, 0.02); box(w, -0.095, 0.005, -0.008, 0.075, 0.016, 0.01); box(w, 0.095, 0.005, -0.008, 0.075, 0.016, 0.01); box(w, 0, -0.09, -0.008, 0.016, 0.08, 0.01);
-    D.steeringWheel = [eye[0], 0.985, zd + 0.5]; D.steeringRake = 20;
+    D.steeringWheel = [eye[0], 0.9, zd + 0.45]; D.steeringRake = 20;
   })();
 
   function pack(g) { return { positions: new Float32Array(g.positions), normals: new Float32Array(g.normals), indices: g.positions.length / 3 > 65535 ? new Uint32Array(g.indices) : new Uint16Array(g.indices) }; }

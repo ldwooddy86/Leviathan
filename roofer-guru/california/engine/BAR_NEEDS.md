@@ -44,3 +44,11 @@
 - What is measured and what is generated (for the bar's caption and the method text): measured: Caltrans 2024 counts,
   TomTom weekday hourly average speeds per metro; chosen: the hourly share curve, truck shares by route, lane and limit
   defaults, 6.5 m per bridge layer; generated: every car, bus, truck and cable car.
+
+## terrain (CA/engine/terrain): done
+- `en.state()` gains `elev` (metres above sea level at the camera's ground), `agl`, `ground`, `terrain`; the craft HUD shows
+  ELEV in feet. `uap.alt` and `alta.alt` are now height above the ground, with `asl` beside each.
+- `S.gy(x, z)`, `S.y0`, `S.elevAt(lat, lon)`, `S.slopeAt(x, z)`, `S.terr` (kit: `info()`, `tiles()`).
+- The page fetches elevation tiles from s3.amazonaws.com (AWS Terrain Tiles, terrarium); an embedded statewide grid
+  stands in before tiles arrive and offline. For the sources table and caveats: sharp summits read a few metres low, the
+  ground firms up as tiles arrive, buildings step down slopes (no graded pads), streets follow bare earth.
