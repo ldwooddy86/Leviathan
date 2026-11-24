@@ -69,6 +69,14 @@ export const PLACE = compileBank({
     It's the surf and the tides, mostly. Stay off the rocks.
     The beach parking lots flood when the tide comes in. Don't park down there.
   `,
+  'wx.airOkay': `
+    The air's all right today, as far as I can tell.
+    Air seems fine today. No smoke, anyway.
+  `,
+  'wx.airSmoke': `
+    Fire season is another story. Some summers the smoke sits here for weeks.
+    It's the smoke in fire season that gets you.
+  `,
   'wx.fireOutlook': `
     And the fire weather outlook is {fireOutlook} today.
     Fire weather's rated {fireOutlook} today, so be careful.
@@ -521,6 +529,10 @@ export const PLACE = compileBank({
   'rent.ownerSide': `
     I own, so rent's not my problem directly. But I hear it from everybody.
     We own, thank goodness. Renters around here have it rough.
+  `,
+  'rent.family': `
+    I live with family, so the rent isn't on me. But I hear about it.
+    Not my bill, thank goodness. But nothing's cheap around here.
   `,
   'rent.noNumber': `
     I won't say what I pay. Too depressing.

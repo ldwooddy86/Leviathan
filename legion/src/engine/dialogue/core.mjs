@@ -158,7 +158,8 @@ export function tidy(s) {
 export function terminate(s) {
   const t = String(s || '').trim();
   if (!t) return t;
-  return /[.!?…)"]$/.test(t) ? t : `${t}.`;
+  // terminal marks of every script the phrase banks use: CJK 。！？, Armenian ։, Ethiopic ።, Arabic ؟, Devanagari ।
+  return /[.!?…)"。！？։።؟।॥]$/u.test(t) ? t : `${t}.`;
 }
 
 /** Words of a text, lower case, for matching. */

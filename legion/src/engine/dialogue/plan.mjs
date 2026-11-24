@@ -243,8 +243,8 @@ const P = {};
 P.greeting = (S, u, opts = {}) => {
   const v = S.v, st = S.st, parts = [];
   if (st.greeted && !opts.initiated) {
-    parts.push(say(S, 'unk.statement') || null);
-    parts.push(pivot(S));
+    parts.push(say(S, 'greet.repeat'));
+    if (S.rng.chance(0.6)) parts.push(pivot(S));
     return { parts, topics: [], noAsk: false };
   }
   st.greeted = true;
@@ -312,7 +312,7 @@ P['how-are-you'] = (S, u) => {
     const facts = r === 'why.heat' || r === 'why.niceWeather' ? ['weather.now'] : r === 'why.alert' ? [`alert:${slots.alert}`] : r === 'why.commute' ? [REC.commute] : [];
     parts.push(say(S, r, slots, facts) || (reasons[1] ? say(S, reasons[1], slots) : null));
   }
-  S.st.cs = m.tired ? 'tired' : (v.speaker.works && !v.weekend && v.hour >= 9 && v.hour < 17 ? 'busy' : null);
+  S.st.cs = m.tired ? 'tired' : (v.speaker.works && worksToday(v) && v.hour >= 9 && v.hour < 17 && key !== 'hay.good' ? 'busy' : null);
   return { parts, topics: ['self'], ask: 'howAreYou', askBoost: 0.35 };
 };
 
@@ -438,13 +438,13 @@ P.job = (S, u, opts = {}) => {
     if (u && u.flags && u.flags.likeIt) return { parts: [say(S, v.age < 13 ? 'job.kidFeel' : 'job.teenFeel')], topics: ['school'], ask: null };
     parts.push(say(S, 'job.k12', { school: w[0], schoolEs: w[1] }, ['npc.school']));
     if (!opts.brief) parts.push(say(S, v.age < 13 ? 'job.kidFeel' : 'job.teenFeel'));
-    if (occ && occ.title && v.age >= 14) parts.push(say(S, 'job.studentWorks', { aJob: withArticle(occ.title) }, facts));
+    if (occ && occ.title && v.age >= 14) parts.push(say(S, 'job.studentWorks', { aJob: withArticle(String(occ.title).replace(/\s*\([^)]*\)\s*$/, '')) }, facts));
     return { parts, topics: ['school'], ask: v.age >= 13 ? 'school' : null };
   }
   if (school === 'college' || school === 'grad' || (npc.status === 'student' && v.age >= 18)) {
     if (u && u.flags && u.flags.likeIt) return { parts: [say(S, 'job.collegeFeel')], topics: ['school'], ask: 'job' };
     parts.push(say(S, school === 'grad' ? 'job.grad' : 'job.college', {}, ['npc.school']));
-    if (occ && occ.title) parts.push(say(S, 'job.studentWorks', { aJob: withArticle(occ.title) }, facts));
+    if (occ && occ.title) parts.push(say(S, 'job.studentWorks', { aJob: withArticle(String(occ.title).replace(/\s*\([^)]*\)\s*$/, '')) }, facts));
     return { parts, topics: ['school'], ask: 'job' };
   }
   if (npc.status === 'retired') {
@@ -459,7 +459,9 @@ P.job = (S, u, opts = {}) => {
     else parts.push(say(S, 'job.notWorking', {}, ['npc.status']));
     return { parts, topics: ['job'], ask: 'job' };
   }
-  const title = String(occ.title).trim();
+  const titleRaw = String(occ.title).trim();
+  const detail = /\(([^)]+)\)\s*$/.exec(titleRaw);
+  const title = titleRaw.replace(/\s*\([^)]*\)\s*$/, '');
   // "a preschool teacher at a preschool": an employer that only repeats the title adds nothing
   const titleWords = new Set(title.toLowerCase().split(/[^a-z]+/).filter(w => w.length >= 4));
   const empWords = String(occ.employer || '').toLowerCase().split(/[^a-z]+/).filter(w => w.length >= 5);
@@ -474,6 +476,7 @@ P.job = (S, u, opts = {}) => {
     if (more.filter(Boolean).length) return { parts: more, topics: ['job'], ask: 'job' };
   }
   parts.push(say(S, 'job.title', { aJob: withArticle(title), job: title, where, employer: occ.employer ? String(occ.employer).replace(/^their /, 'my ') : null, workCity, jobEs, jobEn }, facts));
+  if (detail && v.lang.mode === 'en') parts.push({ text: `Mostly ${detail[1]}.`, gloss: null, facts, key: 'job.detail' });
   if (opts.brief) return { parts, topics: ['job'] };
   const extra = [];
   if (v.flags.wfh) extra.push(say(S, 'job.wfh', {}, [REC.commute]));
@@ -632,6 +635,15 @@ P.weather = (S, u) => {
   else {
     const ce = cieloEs(W.short);
     parts.push(say(S, W.sky ? 'wx.now' : 'wx.nowPlain', { temp: W.temp, sky: W.sky, cieloEs: ce[0] }, nowFacts) || say(S, 'wx.nowPlain', { temp: W.temp }, nowFacts));
+  }
+  if (/\bair\b|\bsmog\b|\baqi\b|\bsmoke\b/.test(q)) {
+    const aq = W.alerts.find(a => /air quality|smoke/i.test(a.event));
+    const smoke = (v.p.concerns || []).find(c => c.topic === 'smoke');
+    const ap = [];
+    if (aq) ap.push(say(S, aq.until ? 'wx.alert' : 'wx.alertNoEnd', { alert: aq.event, until: aq.until }, [aq.id]));
+    else ap.push(say(S, v.sky === 'smoke' ? 'wx.feel.smoke' : 'wx.airOkay', {}, ['weather.now']));
+    if (smoke && smoke.weight >= 0.15) ap.push(say(S, 'wx.airSmoke', {}, ['persona.concerns']));
+    return { parts: ap, topics: ['weather', 'fire'], ask: null };
   }
   const ahead = /tomorrow|tonight|weekend|forecast|later|will it|going to|this week|thanksgiving/.test(q);
   const fc = [];
@@ -968,6 +980,7 @@ P.housing = (S, u, opts = {}) => {
     parts.push(value);
   } else {
     if (pw) parts.push(say(S, 'house.young', { parentsWord: pw.en, parentsEs: pw.es }, [REC.home]));
+    else if (rent) parts.push(say(S, 'rent.family', {}, [REC.home]));
     parts.push(value);
   }
   if (census.own) {
@@ -1658,6 +1671,7 @@ export function compose(S, intent, plan, u) {
     const ph = homePhrase(S, csIntent, fits);
     if (ph) { if (intent === 'goodbye') post = ph; else pre = ph; }
   }
+  if (pre && intent === 'greeting' && parts.length > 1 && /^(greet\.(first|again|repeat)|lex:greetings)$/.test(parts[0].key || '')) parts = parts.slice(1);
   const all = [pre, ...parts, post].filter(Boolean);
   const text = tidy(all.map(p => terminate(p.text)).join(' '));
   const foreign = all.some(p => p.gloss);

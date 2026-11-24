@@ -75,6 +75,7 @@ const P = {
     [/\b(weather|forecast|temperature|degrees|rain|raining|rainy|sunny|cloudy|clouds|fog|foggy|marine layer|june gloom|may gray|windy|breezy|chilly|freezing|snowing|humid|humidity|umbrella|jacket weather|sweater weather|drizzle)\b/, 3],
     [/\bhot (today|out|outside|enough)\b|\bwarm (today|out)\b|\bcold (today|out|outside)\b|\bnice (day|out|weather)\b|\bbeautiful day\b|\bgorgeous day\b/, 3],
     [/\b(wind|cold|snow|sun)\b/, 1.5], [/\bwill it rain\b|\bis it going to (rain|be hot|be cold)\b|\bwhat'?s it like out\b/, 3.5],
+    [/\bhow'?s the air\b|\bair quality\b|\bthe air (like|today|here)\b|\bsmog\b|\baqi\b/, 4],
   ],
   traffic: [
     [/\b(traffic|commute|commuting|freeways?|highways?|rush hour|carpool|gridlock|congestion|sigalert|parking)\b/, 3],

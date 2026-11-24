@@ -32,6 +32,9 @@ export const SPANISH = compileBank({
     @usted ¡Usted otra vez! Qué gusto. || You again! How nice.
     @tu ¡Qué bueno verte otra vez! || So good to see you again!
   `,
+  'greet.repeat': `
+    ¡Hola otra vez! || Hi again!
+  `,
   'greet.cool': `
     Ah. Hola. || Oh. Hi.
     Buenas. || Hello.
@@ -516,6 +519,12 @@ export const SPANISH = compileBank({
   'wx.coastalAlert': `
     Es por las olas y la marea. Hay que tener cuidado en la playa. || It's the waves and the tide. You have to be careful at the beach.
   `,
+  'wx.airOkay': `
+    Hoy el aire está bien. || The air is fine today.
+  `,
+  'wx.airSmoke': `
+    En temporada de incendios, el humo se queda aquí por semanas. || In fire season, the smoke stays here for weeks.
+  `,
   'wx.feel.clear': `
     No me puedo quejar con este clima. || I can't complain with this weather.
   `,
@@ -775,6 +784,9 @@ export const SPANISH = compileBank({
     La renta sube cada año. || The rent goes up every year.
     @works Casi todo mi sueldo se va en la renta. || Almost my whole paycheck goes to rent.
   `,
+  'rent.family': `
+    Vivo con mi familia, así que yo no pago renta. Pero todo está caro. || I live with my family, so I don't pay rent. But everything is expensive.
+  `,
   'rent.ownerSide': `
     Nosotros somos dueños, pero la renta aquí está carísima. || We own our place, but rent here is sky-high.
   `,
@@ -820,6 +832,8 @@ export const SPANISH = compileBank({
   'food.mine': `
     A mí me encantan los tacos. || I love tacos.
     Lo mejor es la comida de la casa. || The best is home cooking.
+    Me gusta probar de todo. || I like to try everything.
+    Prefiero comer en casa. || I'd rather eat at home.
     @kid ¡La pizza! || Pizza!
   `,
   'food.heritage': `
